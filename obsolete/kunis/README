@@ -1,0 +1,80 @@
+
+	Copyright (c) 2002-2004 Stefan Kunis, Daniel Potts
+
+
+This is the README file for nfft, a library that implements a nonequispaced fast
+Fourier transform and its generalised inverse.
+
+This is the second version of the library and may not be as robust or well
+documented as it should be. Please keep track of bugs or missing/confusing
+instructions and report them to kunis@math.uni-luebeck.de or 
+potts@math.uni-luebeck.de .
+
+################################################################################
+WHAT IT DOES:
+
+The fast transform implemented is based on the paper:
+'Fast Fourier transforms for nonequispaced data: A tutorial', by D.Potts,
+G. Steidl, and M. Tasche, Modern Sampling Theory: Mathematics and Applications,
+J.J. Benedetto and P. Ferreira (Eds.), Chapter 12, pages 249-274. 
+
+For the inverse transform see also the paper:
+'Stability Results Scattered Data Interpolation by Trigonometric Polynomials' by
+S. Kunis and D. Potts, preprint A-04-12, Institute of Mathematics, University of
+Luebeck.
+
+See also
+http://www.math.mu-luebeck.de/potts/nfft/
+
+Also available, on this web page, are PostScript, Acrobat PDF and online
+versions of the documentation.
+
+Key points:
+
+1. This transform is approximate, but allows you to set the precision needed.
+This does not cause any difficulties, but does require you to think about the
+precision needed.
+
+2. This transform has some initialisation phase. If you plan to do only one
+transforms of a given size, precomputation may be disabled to save memory.
+
+3. The break even with respect to the direct (slow) transform is very low.
+
+################################################################################
+INSTALLATION:
+
+1. Install the fftw library, available from http://www.fftw.org .
+Generally this will mean: 
+
+./configure --prefix <FFTW_PATH>
+make
+make install
+make clean
+
+2. Download from http://www.math.uni-luebeck.de/potts/nfft
+> tar xfv nfft.tar
+./nfft2> ./configure <FFTW_PATH>
+./nfft2> make
+
+################################################################################
+BUGS:
+
+Please report any problems to kunis@math.uni-luebeck.de or 
+potts@math.uni-luebeck.de . 
+
+################################################################################
+IMPROVEMENTS:
+
+If you find this library lacking useful routines or options, please describe
+what you would like to kunis@math.uni-luebeck.de or potts@math.uni-luebeck.de .
+If it seems appropriate it can be included in later versions. If you create your
+own routines that you are willing to donate to the effort, send them too. 
+
+################################################################################
+RELATED WORK:
+
+unequally-spaced fast Fourier transform (USFFT by G. Beylkin),
+generalized fast Fourier transform (GFFT by A. Dutt and V. Rokhlin),
+non uniform fast Fourier transform (NUFFT by J.A. Fessler and B.P. Sutton), 
+non equispaced fast Fourier transform (NFFT by K. Fourmount), 
+irregularly spaced data analysis (ISDA by J. Pelt) 

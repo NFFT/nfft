@@ -1,0 +1,23 @@
+if [ $# -eq 1 ]
+then
+  echo -n "building makefiles..."
+  echo "# ----- NFFT/FFTW library and path ---------------------------------------" > prefix
+  echo -n "NFFT_DIR = "  >> prefix; pwd >> prefix
+  echo -n "FFTW_DIR = "  >> prefix; echo "$1" >> prefix
+
+  cat prefix ./lib/Makefile.ins > ./lib/Makefile
+
+  for i in $(ls example)
+  do
+    echo "EXAMPLE_NAME = $i" > prefix_name
+    cat prefix prefix_name ./Make_example.ins > ./example/$i/Makefile
+  done
+
+  rm prefix
+  rm prefix_name
+  echo "done."
+  exit 0
+else
+  echo "$0 <FFTW_PATH>"
+  exit 1
+fi

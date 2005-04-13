@@ -1,0 +1,58 @@
+%=============================================================================
+\documentclass[11pt,a4paper,twoside]{article}
+%=============================================================================
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{theorem}
+%\usepackage{showkeys}
+%\usepackage{psfig}
+%\usepackage{lscape}
+\usepackage{color}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage[boxed,Algorithm]{algorithm}
+\usepackage{algorithmic}
+
+\parindent0mm
+
+\begin{document}
+\begin{center}
+{\bf \large intern.tex}\\
+\today
+\end{center}
+
+In the following float\_type is one of
+\begin{itemize}
+ \item double
+ \item fftw\_complex
+\end{itemize}
+
+The abstract\_plan contains
+\begin{itemize}
+ \item int M\_total
+ \item int N\_total
+ \item float\_type *f
+ \item float\_type *f\_hat
+\end{itemize}
+and provides the routines
+\begin{itemize}
+ \item void abstract\_trafo(abstract\_plan *this)
+ \item void abstract\_adjoint(abstract\_plan *this)
+\end{itemize}
+
+The sub directories of nfft are
+\begin{itemize}
+ \item doc
+ \item example
+ \item nfct
+ \item nfft
+ \item nfst
+ \item nfsft
+ \item nnfft
+ \item nsfft
+ \item obsolete
+ \item solver
+ \item util
+\end{itemize}
+
+\end{document} 
