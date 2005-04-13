@@ -1,0 +1,10 @@
+To use this programs follow the instructions:
+
+1. First install fftw (www.fftw.org) and nfft (www.math.uni-lubebeck.de/potts/nfft). 
+2. Then edit the NFFT/FFTW library path in the Makefile. 
+3. Run "make".
+
+Then open MATLAB and run the script file mri.m. 
+mri.m is an example for the usage of the programs.
+
+For questions mail us: tobias.knopp@informatik.uni-luebeck.de 
