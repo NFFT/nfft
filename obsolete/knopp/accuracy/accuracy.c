@@ -8,33 +8,33 @@ void accuracy(int d)
   fftw_complex *slow;
 
   int N[d],n[d];
-  int M1,M2;
-  M1=10000;M2=1;
+  int M_total,N_total;
+  M_total=10000;N_total=1;
 
-  slow=(fftw_complex*)fftw_malloc(M1*sizeof(fftw_complex));
+  slow=(fftw_complex*)fftw_malloc(M_total*sizeof(fftw_complex));
 
   for(t=0; t<d; t++)
     {
       N[t]=(1<<(12/d));
       n[t]=2*N[t];
-      M2*=N[t];
+      N_total*=N[t];
     }
 
   /** init a plan */
   for(m=0; m<15; m++)
     {
-      nnfft_init_specific(&my_plan, d, M1, M2, N, n, m, 
+      nnfft_init_specific(&my_plan, d, N_total, M_total, N, n, m, 
                           PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
       /** init pseudo random nodes */
-      for(j=0; j<my_plan.M1; j++)
+      for(j=0; j<my_plan.M_total; j++)
 	for(t=0; t<d; t++)
 	  {
 	    my_plan.x[d*j+t]=((double)rand())/RAND_MAX-0.5;
 	  }
           
-     for(j=0; j<my_plan.M2; j++)
+     for(j=0; j<my_plan.N_total; j++)
         for(t=0; t<d; t++)
           {
             my_plan.v[d*j+t]=((double)rand())/RAND_MAX-0.5;
@@ -49,7 +49,7 @@ void accuracy(int d)
         nnfft_precompute_phi_hut(&my_plan);
       
       /** init pseudo random Fourier coefficients */
-      for(k=0;k<my_plan.M2;k++)
+      for(k=0;k<my_plan.N_total;k++)
 	{
 	  my_plan.f_hat[k][0]=((double)rand())/RAND_MAX;
 	  my_plan.f_hat[k][1]=((double)rand())/RAND_MAX;
@@ -64,8 +64,8 @@ void accuracy(int d)
       nnfft_trafo(&my_plan);
         
       printf("%e, %e\n",
-	     E_2_error_c(slow, my_plan.f, M1),
-	     E_infty_error_c(slow, my_plan.f, M1, my_plan.f_hat, my_plan.M2));
+	     E_2_error_c(slow, my_plan.f, M_total),
+	     E_infty_error_c(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
       
       /** finalise the one dimensional plan */
       nnfft_finalize(&my_plan);
