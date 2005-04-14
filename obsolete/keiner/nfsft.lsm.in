@@ -1,0 +1,21 @@
+Begin3
+Title:		sfft
+Version:	@VERSION@
+Entered-date:	@ISODATE@
+Description:	Spherical Fourier transform of regularly and irregularly sampled data
+		@configure_input@
+		Please edit sfft.lsm.in to fix the Keywords and
+		Primary-site entries, add several more lines of
+		description here if appropriate, and to delete these
+		instructions.
+Keywords:	[substitute your keywords here]
+Author: 	keiner@math.uni-luebeck.de (Jens Keiner)
+Maintained-by:	keiner@math.uni-luebeck.de (Jens Keiner)
+Primary-site:	metlab.unc.edu pub/Linux/apps/some/directory
+		31k sfft-@VERSION@.tar.gz
+		500  sfft.lsm
+Alternate-site: 
+Original-site:  
+Platforms:      
+Copying-policy:	GNU copyleft
+End
