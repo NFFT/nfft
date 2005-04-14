@@ -1,7 +1,5 @@
 /**
- * Library.
- * Includes simple and fast computation of the NDFT (direct problem) as well
- * as (iterative) solution to the inverse problem.
+ * Simple and fast computation of the NDFT.
  * authors: D. Potts, S. Kunis (c) 2002-2003
  */
 
