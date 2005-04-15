@@ -1,67 +1,38 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(NFSFT, 1.0.0, nfsft@math.uni-luebeck.de)
+AC_INIT(NFSFT, 1.0.0, keiner@math.uni-luebeck.de)
+
 AC_CONFIG_SRCDIR(kernel/nfsft.h)
-AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(kernel/config.h)
+
+AM_INIT_AUTOMAKE
+AM_ENABLE_SHARED(no)
+AC_CANONICAL_HOST
+
 SHARED_VERSION_INFO="3:0:0"
-
 AC_SUBST(SHARED_VERSION_INFO)
-AM_ENABLE_SHARED(no) dnl to hell with shared libraries
-
 AC_SUBST(VERSION)
-
 ISODATE=`date +%Y-%m-%d`
 AC_SUBST(ISODATE)
-
-AC_CANONICAL_HOST
 
 # Checks for programs.
 AC_PROG_INSTALL
 AC_PROG_CC
 AM_PROG_LIBTOOL
 
-AC_ZERO_BYTES_DOUBLE
-
 # Checks for libraries.
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(complex.h options.h stdbool.h unistd.h sys/param.h sys/time.h time.h sys/mkdev.h sys/sysmacros.h string.h memory.h fcntl.h dirent.h sys/ndir.h ndir.h alloca.h locale.h fftw3.h nfft/nfft.h)
-
-jm_CHECK_TYPE_STRUCT_UTIMBUF
-AC_HEADER_MAJOR
-AC_FUNC_ALLOCA
-AC_STRUCT_TM
-AC_STRUCT_ST_BLOCKS
-AC_FUNC_CLOSEDIR_VOID
-AC_CHECK_FUNCS(mkfifo)
-AC_CHECK_FUNC(mknod)
-
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-
-dnl Checks for library functions.
-
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
 AC_CHECK_LIB(nfft,ndft_trafo,,,)
 
-dnl Additional options
-AC_ARG_ENABLE(
-  nfft, 
-  AC_HELP_STRING(
-    [--enable-nfft],
-    [use nfft (default is no)]),
-  AC_DEFINE(USE_NFFT, 1, "Use NFFT-library."),
-	 [])
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(complex.h stdbool.h string.h fftw3.h nfft/nfft.h)
 
-AC_ARG_ENABLE(
-  fftw, 
-  AC_HELP_STRING(
-    [--enable-memwatch],
-    [use memwatch (default is no)]),
-  AC_DEFINE(USE_MEMWATCH, 1, "Use Memwatch-library."),
-	 [])
+# Checks for typedefs, structures, and compiler characteristics.
+AC_ZERO_BYTES_DOUBLE
 
+# Checks for library functions.
+
+# Additional options
 AC_ARG_WITH(
   bwexp, 
   AC_HELP_STRING(
@@ -72,5 +43,4 @@ AC_ARG_WITH(
 	 [AC_DEFINE(BWEXP_MAX, 10, "Default exponent of maximum bandwidth"),
    AC_DEFINE(BW_MAX, 1024, "Default maximum bandwidth")])
 
-
-AC_OUTPUT(Makefile kernel/Makefile examples/Makefile nfsft.lsm nfsft.spec)
+AC_OUTPUT(Makefile kernel/Makefile examples/Makefile)
