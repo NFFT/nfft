@@ -69,88 +69,98 @@ typedef struct nfft_plan_
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  */
-void ndft_trafo(nfft_plan *this_plan);
+void ndft_trafo(nfft_plan *ths);
 
 /** see formula (1.1), computes
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
  */
-void ndft_conjugated(nfft_plan *this_plan);
+void ndft_conjugated(nfft_plan *ths);
 
 /** see formula (1.2), computes
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
  */
-void ndft_adjoint(nfft_plan *this_plan);
+void ndft_adjoint(nfft_plan *ths);
 
 /** see formula (1.2), computes
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(-2(pi) k x[j])
  */
-void ndft_transposed(nfft_plan *this_plan);
+void ndft_transposed(nfft_plan *ths);
 
 /** see formula (1.1), computes in a fast and approximative way
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  */
-void nfft_trafo(nfft_plan *this_plan);
+void nfft_trafo(nfft_plan *ths);
 
 /** see formula (1.1), computes in a fast and approximative way
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
  */
-void nfft_conjugated(nfft_plan *this_plan);
+void nfft_conjugated(nfft_plan *ths);
 
 /** see formula (1.2), computes in a fast and approximative way
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
  */
-void nfft_adjoint(nfft_plan *this_plan);
+void nfft_adjoint(nfft_plan *ths);
 
 /** see formula (1.2), computes in a fast and approximative way
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
  */
-void nfft_transposed(nfft_plan *this_plan);
-
-
+void nfft_transposed(nfft_plan *ths);
 
 /** wrapper for nfft_init and d=1
  */
-void nfft_init_1d(nfft_plan *this_plan, int N1, int M);
+void nfft_init_1d(nfft_plan *ths, int N1, int M);
 
 /** wrapper for nfft_init and d=2
  */
-void nfft_init_2d(nfft_plan *this_plan, int N1, int N2, int M);
+void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M);
 
 /** wrapper for nfft_init and d=3
  */
-void nfft_init_3d(nfft_plan *this_plan, int N1, int N2, int N3, int M);
+void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
 
-/** initialisation for direct transform, simple interface
+/** initialisation of transform, simple interface
  */
-void nfft_init(nfft_plan *this_plan, int d, int *N, int M);
+void nfft_init(nfft_plan *ths, int d, int *N, int M);
 
-/** initialisation for direct transform, specific interface
+/** initialisation of transform, advanced interface
  */
-void nfft_init_specific(nfft_plan *this_plan, int d, int *N, int M, int *n,
-	                int m, unsigned nfft_flags, unsigned fftw_flags);
+void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
+			unsigned nfft_flags_on, unsigned nfft_flags_off);
 
-/** precomputes the values psi
- *  if the PRE_PSI is set the application program has to call this routine
- *  after setting the nodes this_plan->x
+/** initialisation of transform, guru interface
  */
-void nfft_precompute_psi(nfft_plan *this_plan);
+void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
+	            int m, unsigned nfft_flags, unsigned fftw_flags);
 
-/** precomputes the values psi and their indices in non tensor form
- *  if the PRE_PSI and PRE_FULL_PSI is set the application program has to call
- *  this routine after calling nfft_precompute_psi
+/** precomputes equally spaced values of psi
+ *  if PRE_LIN_PSI is set the application program has to call this routine
  */
-void nfft_full_psi(nfft_plan *this_plan, double eps);
+void nfft_precompute_lin_psi(nfft_plan *ths);
 
-/** finalisation for direct transform
+/** precomputes the values psi in a tensor product form
+ *  if PRE_PSI is set the application program has to call this routine
+ *  after setting the nodes x
  */
-void nfft_finalize(nfft_plan *this_plan);
+void nfft_precompute_psi(nfft_plan *ths);
+
+/** precomputes the values psi and their indices in non tensor product form
+ *  if PRE_FULL_PSI is set the application program has to call this routine
+ */
+void nfft_precompute_full_psi(nfft_plan *ths);
+
+/** finalisation of transform
+ */
+void nfft_finalize(nfft_plan *ths);
+
+/* @} 
+ */
 
 
 #endif
