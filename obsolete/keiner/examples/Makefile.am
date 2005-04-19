@@ -8,5 +8,4 @@ noinst_PROGRAMS = nfsft
 nfsft_SOURCES = main.c
 
 ## 
-nfsft_LDADD = -lm -lfftw3 -lnfft $(top_builddir)/libnfsft.la
-
+nfsft_LDADD = -lnfsft -lnfft -lfftw3 -lm

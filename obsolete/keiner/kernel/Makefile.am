@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libkernel.la
+noinst_LIBRARIES = libkernel.a
 
-libkernel_la_SOURCES = api.h nfsft.h nfsft.c util.h util.c legendre.h legendre.c direct.h direct.c
+libkernel_a_SOURCES = api.h nfsft.h nfsft.c util.h util.c legendre.h legendre.c direct.h direct.c
 
