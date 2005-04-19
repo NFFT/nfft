@@ -7,5 +7,5 @@ noinst_PROGRAMS = nfsft
 ## The source files.
 nfsft_SOURCES = main.c
 
-## 
-nfsft_LDADD = -lnfsft -lnfft -lfftw3 -lm
+#  add " -lm" to the following if sfft requires the math library
+nfsft_LDADD = $(top_builddir)/libnfsft.la

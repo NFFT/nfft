@@ -1,8 +1,8 @@
-SUBDIRS = kernel . examples
+SUBDIRS = nfft kernel . examples
 
-lib_LIBRARIES = libnfsft.a      
+lib_LTLIBRARIES = libnfsft.la      
 
-libnfsft_a_SOURCES =
+libnfsft_la_SOURCES =
 
-libnfsft_a_LIBADD = kernel/libkernel.a
+libnfsft_la_LIBADD = nfft/libnfft.la kernel/libkernel.la
 

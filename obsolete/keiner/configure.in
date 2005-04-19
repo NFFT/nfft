@@ -21,7 +21,7 @@ AM_PROG_LIBTOOL
 
 # Checks for libraries.
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
-AC_CHECK_LIB(nfft,ndft_trafo,,,)
+# AC_CHECK_LIB(nfft,ndft_trafo,,,)
 
 # Checks for header files.
 AC_HEADER_STDC
