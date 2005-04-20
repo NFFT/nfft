@@ -1474,7 +1474,7 @@ void ndsft_execute(nfsft_plan plan)
   else
   {
     /* Compute direct transform. */
-    direct_trafo(plan->angles,plan->D,plan->f_hat, plan->f, plan->M, N, 
+    ndsft(plan->angles,plan->D,plan->f_hat, plan->f, plan->M, N, 
       tw, &wisdom);
   }  
 }
