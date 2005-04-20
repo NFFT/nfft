@@ -203,7 +203,7 @@ int main (int argc, char **argv)
   printf("M = %d\n",M);
 #endif
   /* Calculate N as next greater power of 2 of the bandwidth M. */
-  N = M==0?0:1<<(int)ceil(log2((double)M));
+  N = M==0?0:1<<(int)ceil(log((double)M)/log(2.0));
 #ifdef DEBUG
   printf("N = %d\n",N);
 #endif
@@ -211,6 +211,7 @@ int main (int argc, char **argv)
   /* Allocate memory for data. */
   F_HAT = (complex**) calloc(2*M+1,sizeof(complex*));
   F_HAT2 = (complex**) calloc(2*M+1,sizeof(complex*));
+  //printf("this N = %d\n",N);
   for (n = -M; n <= M; n++)
   {
     f_hat = (complex*) calloc(N+1,sizeof(complex));

@@ -8,6 +8,8 @@ static struct nfsft_wisdom wisdom = {false};
 int nfft_size[2] = {0,0};
 int fftw_size[2] = {0,0};
 
+#define THRESHOLD 1000000
+
 /**
  * Precomputation of the matrices U^n_k
  * 
@@ -54,10 +56,11 @@ struct U_type*** precomputeU(int M, double threshold, int t)
   double **xvecs;
   double *xc;
     
-  /* Initialize arrays with Chebyshev coefficients for the polynomials x. This 
+  /* Initialize arrays with Chebyshev coefficients for the polynomial x. This 
    * would be trivially an array containing a 1 as second entry with all other 
    * coefficients set to zero. In order to compensate for the multiplicative 
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
+  //printf("%d\n\n",1<<t); 
   xc = (double *) calloc(1<<t,sizeof(double));
   xc[1] = 0.5;
   
@@ -164,7 +167,7 @@ struct U_type*** precomputeU(int M, double threshold, int t)
 		        }
 		        else
 		        {
-		          Ng = pow2(1 + (int) log2(l*plength+N)); 
+		          Ng = pow2(1 + (int) (log((double)(l*plength+N)))/log(2.0)); 
 		          /* Ng = Zweierpotenz um schnelle Polynmomultiplikation auszuf¸hren */
           }
           
@@ -184,13 +187,13 @@ struct U_type*** precomputeU(int M, double threshold, int t)
           alpha = &(wisdom.alpha[ROW(n)+2]);
           beta = &(wisdom.beta[ROW(n)+2]);
           gamma = &(wisdom.gamma[ROW(n)+2]);         
-          eval_al(xvecs[(int)log2(Ng)-2], m1, Ng, m_stab-1, alpha, beta, gamma);
-          eval_al(xvecs[(int)log2(Ng)-2], m2, Ng, m_stab, alpha, beta, gamma); 
+          eval_al(xvecs[(int)(log((double)Ng)/log(2.0))-2], m1, Ng, m_stab-1, alpha, beta, gamma);
+          eval_al(xvecs[(int)(log((double)Ng)/log(2.0))-2], m2, Ng, m_stab, alpha, beta, gamma); 
           alpha--;
           beta--;
           gamma--;
-          eval_al(xvecs[(int)log2(Ng)-2], m3, Ng, m_stab, alpha, beta, gamma);
-          eval_al(xvecs[(int)log2(Ng)-2], m4, Ng, m_stab+1, alpha, beta, gamma);
+          eval_al(xvecs[(int)(log((double)Ng)/log(2.0))-2], m3, Ng, m_stab, alpha, beta, gamma);
+          eval_al(xvecs[(int)(log((double)Ng)/log(2.0))-2], m4, Ng, m_stab+1, alpha, beta, gamma);
           
           U[n][tau][i].m1=m1;
           U[n][tau][i].m2=m2;
@@ -446,7 +449,7 @@ void flft(struct U_type ***U, int M, int t, int n, complex *daten,
     printf("FLFT: plength = %d\n",plength);
 #endif    
     /* Compute first l. */
-    firstl = pow2((int)log2(n)-(n==N?1:0)-tau-1);
+    firstl = pow2((int)(log((double)n)/log(2.0))-(n==N?1:0)-tau-1);
     /* Compute last l. */
     lastl = (int)ceil(((double)M)/plength) - 1;
     /* Compute number of steps. */
@@ -493,7 +496,7 @@ void flft(struct U_type ***U, int M, int t, int n, complex *daten,
         }  
         else 
         {
-          tg = (int) (log2(l*plength+pow2(tau)));
+          tg = (int) (log((double)(l*plength+pow2(tau)))/log(2.0));
           Ng = pow2(tg+1); 
         }
         /* Ng = Zweierpotenz um schnelle Polynomultiplikation auszuf¸hren */
@@ -713,7 +716,7 @@ void flft_adjoint(struct U_type ***U, int M, int t, int n, complex *daten,
   if (true/*n == 0*/)
   {
     
-  for (tau = t-1; tau >= t-2; tau--)
+  for (tau = t-1; tau >= 1; tau--)
   {    
 #ifdef DEBUG
     printf("tau = %d\n",tau);
@@ -757,7 +760,7 @@ void flft_adjoint(struct U_type ***U, int M, int t, int n, complex *daten,
 #endif      
 #undef DEBUG
 
-      memcpy(&tw->work[plength*(4*l+0)/2],&(tw->work[plength*(4*l+0)/2]),(plength/2)*sizeof(complex));
+      //memcpy(&tw->work[plength*(4*l+0)/2],&(tw->work[plength*(4*l+0)/2]),(plength/2)*sizeof(complex));
       memcpy(&tw->work[plength*(4*l+1)/2],&(tw->work[plength*(4*l+2)/2]),(plength/2)*sizeof(complex));
       
       
@@ -863,7 +866,7 @@ void flft_adjoint(struct U_type ***U, int M, int t, int n, complex *daten,
         }  
         else 
         {
-          tg = (int) (log2(l*plength+pow2(tau)));
+          tg = (int) (log((double)(l*plength+pow2(tau)))/log(2.0));
           Ng = pow2(tg+1); 
         }
         /* Ng = Zweierpotenz um schnelle Polynomultiplikation auszuf¸hren */
@@ -1105,6 +1108,10 @@ void cheb2exp_adjoint(complex *f_hat, complex **DATA,int M,int N)
 #endif
     
     data = DATA[n+M];
+	
+	/*printf("data = %p\n",data);
+	printf("N = %d\n",N);
+	printf("length = %d\n",(N+1)*sizeof(complex));*/
     memset(data, 0U, (N+1)*sizeof(complex));
     
     *data++ = f_hat[rowz+n*dim+colz];
@@ -1234,7 +1241,7 @@ void forget_transform_wisdom(struct nfsft_transform_wisdom *tw)
   {
     if (nleg > 1)
     { 
-      mu = (int) (log2(nleg));
+      mu = (int) (log((double)nleg)/log(2.0));
     }  
     
     for (ts = 1; ts < tw->t; ts++)
@@ -1411,13 +1418,16 @@ void nfsft_compute_wisdom(int M)
 {
   int N;
   int t;
-  t = (int) ceil(log2((double)M/*+1*/));
+  t = (int) ceil(log((double)M)/log(2.0));
   /* Calculate N as next greater power of 2 of the bandwidth M. */
   N = pow2(t);  
   init_wisdom();
   if (M > 1)
   {  
-    init_transform_wisdom(N,1000000,t);
+    /*printf("M = %d\n",M);
+    printf("r = %f\n",log((double)M)/log(2.0));
+    printf("t = %d\n",t);*/
+    init_transform_wisdom(N,THRESHOLD,t);
   }
 }
 
@@ -1433,7 +1443,7 @@ nfsft_plan nfsft_create_plan(int type, int d, int m, double *angles,
   plan->f_hat = f_hat;
   plan->f = f;
   plan->kind = type;
-  plan->threshold = 1000000;
+  plan->threshold = THRESHOLD;
   
   return(plan);
 }
@@ -1450,7 +1460,7 @@ void ndsft_execute(nfsft_plan plan)
   
   init_wisdom();
   
-  t = (int) ceil(log2((double)plan->M));
+  t = (int) ceil(log((double)plan->M)/log(2.0));
   /* Calculate N as next greater power of 2 of the bandwidth M. */
   N = 1<<t;
   
@@ -1472,7 +1482,7 @@ void ndsft_execute(nfsft_plan plan)
 void nfsft_execute(nfsft_plan plan)
 {
   /** Exponent of next greater power of 2 realtive to M */
-  int t = plan->M==0?0:(int) ceil(log2((double)plan->M));
+  int t = plan->M==0?0:(int) ceil(log((double)plan->M)/log(2.0));
   /** Next greater power of 2 relative to M */
   int N = plan->M==0?0:1<<t;
   /** Counter for loops*/
@@ -1651,7 +1661,7 @@ double norm(complex* x, int length)
 void nfsft_test()
 {
   const int N = 128;
-  int t = (int)ceil(log2((double)N));
+  int t = (int)ceil(log((double)N)/log(2.0));
   int j;
   
   double m1[4] = { 2.0             ,  2.0             ,  2.0             ,  2.0             };

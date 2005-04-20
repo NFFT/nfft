@@ -1,4 +1,4 @@
-function err = test(D,M,mode)
+function [err,r1,r2] = test(D,M,mode)
 % TEST
 % TEST(D,M,MODE)
 % mode = {0,1,2,3,4,5}
@@ -52,7 +52,7 @@ if (mode == 1 || mode == 2 || mode == 4 || mode == 5)
   t
   for n=-M:M
     Ttau = T{n+M+1,t+1}';
-    for j=t-1:-1:t-2
+    for j=t-1:-1:1
       size(T{n+M+1,j+1}');
       Ttau = T{n+M+1,j+1}' * Ttau;
     end  
@@ -110,92 +110,58 @@ end
 switch mode
   case 0
     fprintf('Forward implementation vs. bare Y:\n');
-    err = norm(ri-rb,1)/norm(rb,1)
-    %image(abs(ri-rb));
-    %colorbar;
+	r1 = rb;
+	r2 = ri;
   case 1
     fprintf('Forward implementation vs. decomposed Y:\n');
-    err = norm(ri-rd,1)/norm(rd,1)
-    %image(abs(ri-rd));
-    %colorbar;
+	r1 = rd;
+	r2 = ri;
   case 2
     fprintf('Bare Y vs. decomposed Y:\n');
-    err = norm(rd-rb,1)/norm(rb,1)
-    %image(abs(rd-rb));
-    %colorbar;
+	r1 = rb;
+	r2 = rd;
   case 3
     fprintf('Adjoint implementation vs. bare Y^H:\n');
-    err = norm(ri-rb,1)/norm(rb,1)
-    ri = abs(ri-rb);
-    rim = zeros(M+1,2*M+1);
-    index = 1;
-    for k = 0:M
-      for n = -k:k
-        rim(k+1,n+M+1) = ri(index);
-        index = index + 1;
-      end
-    end
-    figure;
-    spy(rim>=1E-7);
-    colorbar;
-    colormap gray;
-    figure
-    image(rim);
-    colorbar;
+	r1 = rb;
+	r2 = ri;
   case 4
     fprintf('Adjoint implementation vs. decomposed Y^H:\n');
-    err = norm(ri-rd,1)/norm(rd,1);
-    ri = abs(ri-rd);
-    rim = zeros(M+1,2*M+1);
-    index = 1;
-    for k = 0:M
-      for n = -k:k
-        rim(k+1,n+M+1) = ri(index);
-        index = index + 1;
-      end
-    end
-    figure;
-    spy(rim>=1E-7);
-    colorbar;
-    colormap gray;
-    figure
-    imagesc(rim);
-    colorbar;
+	r1 = rd;
+	r2 = ri;
   case 5
     fprintf('Bare Y^H vs. decomposed Y^H:\n');
-    norm(A-Y',1)/norm(Y,1)
-    imagesc(abs(A-Y'));
-    colorbar;
-    max(max(abs(A)))
-    max(max(abs(Y)))
-    err = norm(rd-rb,1)/norm(rb,1)
+	r1 = rb;
+	r2 = rd;
 end
 
-return;
+err = norm(r1-r2,1)/norm(r1,1);
 
-Y = Y';
-Y(1:10,1:5);
-A(1:10,1:5);
-norm(A-Y,1)/norm(Y,1);
+fprintf('|r1|: max = %f, min = %f, NaN = %d\n', max(abs(r1)), min(abs(r1)), sum(sum(isnan(r1))));
+fprintf('|r2|: max = %f, min = %f, NaN = %d\n', max(abs(r2)), min(abs(r2)), sum(sum(isnan(r2))));
+fprintf('||r1-r2||_1/||r1||_1 = %17.16f\n', err);
 
-return;
-
-r = readComplex([filename,outsuffix],length(z));
-d = z-r;
-norm(d,1);
-
-
-
-r2 = Y'*a;
-[r,r2];
-g = r-r2;
-d = zeros(M+1,2*M+1);
-ll = 1;
-for k=0:M
-  d(k+1,M+1-k:M+1+k) = g(ll:ll+2*k)';
-  ll = ll + 2*k+1;
+if (mode <= 2)
+  rm = abs(r1-r2);
+  figure;
+  spy(rm>=1E-7);
+  colorbar;
+  figure
+  imagesc(rm);
+  colorbar;
+else
+  r = abs(r1-r2);
+  rm = zeros(M+1,2*M+1);
+  index = 1;
+  for k = 0:M
+    for n = -k:k
+	  rm(k+1,n+M+1) = r(index);
+	  index = index + 1;
+    end
+  end
+  figure;
+  spy(rm>=1E-7);
+  colorbar;
+  figure
+  imagesc(rm);
+  colorbar;
 end
-image(abs(d));
-err = norm(d,1)/norm(r2);
-return;
-
