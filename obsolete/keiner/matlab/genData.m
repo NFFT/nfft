@@ -1,7 +1,8 @@
-function genData(filename,D,M,mode)
+function genData(filename,D,M,type,mode)
   
   f = fopen(filename,'w');
-  
+
+  fprintf(f,'%d\n',type);  
   fprintf(f,'%d\n',mode);
   
   fprintf(f,'%d\n',D);

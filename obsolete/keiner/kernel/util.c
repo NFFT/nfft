@@ -13,6 +13,8 @@
 
 #include "util.h"
 
+#define max(a,b) a<b?b:a
+
 /** For timing */ 
 inline double mysecond()
 {
@@ -109,4 +111,59 @@ inline int pow2(const int t)
 {  
   return (1L << t); 
 }
+
+
+double error_complex_inf(complex *x0, complex *x, int n)
+{
+  double maximum=0.0, maxdiff=0.0, xda;
+  int k;
+  double res;
+  double x0a,xa;
+  
+  for (k = 0; k < n; k++) 
+  {
+    x0a = cabs(x0[k]);
+    xa = cabs(x[k]);
+    maximum = max(max(x0a,xa),maximum);
+    xda = cabs(x0[k]-x[k]);
+    maxdiff = max(maxdiff,xda);
+  }
+  
+  res = (maximum<2*DBL_EPSILON ? maxdiff : maxdiff / maximum);
+  
+  return res;
+}
+
+double error_complex_1(complex *a, complex *b, int n)
+{
+  double l1a,l1d;
+  int k;
+  
+  l1a = 0.0;
+  l1d = 0.0;
+  
+  for (k = 0; k < n; k++) 
+  {
+    l1d += cabs(a[k]-b[k]);
+    l1a += cabs(a[k]);
+  }
+    
+  return l1d/l1a;
+}
+
+double error_complex3(complex *a, complex *b, int n)
+{
+  double m;
+  int k;
+  
+  m = 0.0;
+  
+  for (k = 0; k < n; k++) 
+  {
+    m = max(m,cabs(a[k]-b[k])/cabs(a[k]));
+  }
+  
+  return m;
+}
+
 

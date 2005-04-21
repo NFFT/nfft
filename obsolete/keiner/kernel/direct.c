@@ -143,112 +143,114 @@ void ndsft(int D, double *angles, complex *f, int M, int N,
   free(h);
 }
 
+
 void adjoint_ndsft(int D, double *angles, complex *f, int M, int N, 
   complex **f_hat, struct nfsft_transform_wisdom *tw, 
 	struct nfsft_wisdom *wisdom)
 {
-  int j, nleg,n,k;
-  int index;
+  /** Fourier-index k */
+	int k;
+	/** Fourier-index n */
+	int n;
+  int j, l, nleg;
+  //int index;
   double *alpha_pre_n,*gamma_pre_n;
+  //complex result_j;
+  //double sin_n_phi,cos_n_phi;
+  //int l,N1;
+  //complex *h;
+  //complex *b;  
+  //int d;
+  //double *theta;
+  
   complex *a;
-  complex result_j;
-  double sin_n_phi,cos_n_phi;
-  int l,N1;
-  complex *h;
-  complex *b;  
-  int d;
-  double *theta;
-  
-  N1 = N + 1;
-  
-  /*theta = (complex*) malloc (sizeof(complex) * (D));
-  a = (complex*) malloc (sizeof(complex) * (D));    
-  b = (complex*) malloc (sizeof(complex) * (D));    */
-  
-  /* Convert angles. */ 
-  for(d = 0; d < D; d++)
+	complex *b;
+	complex *temp;
+	complex *y;
+	complex result;
+	
+  a = (complex*) malloc (sizeof(complex) * D);    
+  b = (complex*) malloc (sizeof(complex) * D);
+  temp = (complex*) malloc (sizeof(complex) * D);
+  y = (complex*) malloc (sizeof(complex) * D);
+	
+  /* 
+	 * Convert angles from [-1,1] and [0,1] to [-pi,pi] and [0,pi] 
+	 * respectively. 
+	 */ 
+  for(j = 0; j < D; j++)
   {
-    angles[2*d+1] = 2.0*PI*angles[2*d+1];
-    angles[2*d] = -2.0*PI*angles[2*d];
+    angles[2*j+1] = 2.0 * PI * angles[2*j+1];
+    angles[2*j+1] = cos(angles[2*j+1]);
+    angles[2*j] = -2.0 * PI * angles[2*j];
   }
-  
-  if (M == 0)
-  {
-    /* Constant function. */
-    for (j = 0; j < D; j++)
-   	{
-      f_hat[0][0] = f[j];
-	   }
-  }
-  else
-  { 
-    /* Convert theta angles. */
-    for (j = 0; j < D; j++)
-	   {
-	     angles[2*j+1] = cos(angles[2*j+1]);
-      theta[d] = angles[2*d+1];
-	   }
-    
-    for (k = 0; k <= M; k++)
-    {
-      for (n = -k; n <= k; n++)
-      {
-        /* Clenshaw to evaluate P_k^{|n|}(cos(\theta)) */
-        for (j = 0; j < D; j++)
-        {
-          a[j] = 1.0;
-          b[j] = 0.0;
-        }  
-      }
-    }
-    
-    /* Evaluate at every node. */
-    for (j = 0; j < D; j++)
-	   {
-	     /* Clenshaw */
-	     for (n = -M; n <= M; n++)
-	     {
-        a = f_hat[n+M];
+
+	for (k = 0; k < M; k++)
+	{
+	  for (n = -k; n < k; n++)
+		{
+		  /* Evaluate
+			 *   \sum_{j=0}^{D-1} f_j P_k^{|n|}(\cos\theta_j) e^{-i n \phi_j}
+			 */
+			
+			/* Evaluate b_j := (f_j P_k^{|n|}(\cos\theta_j))_{j=0}^D. */
+						
+			if (k == 0)
+			{
+			  for (j = 0; j < D; j++)
+		  	{
+			    y[j] = f[j];
+			  }
+			}
+			else
+			{
+				/* Take absolute value of n. */
+        nleg = abs(n);
         
-	       nleg = abs(n);
-        
-	       alpha_pre_n = &(wisdom->alpha[ROWK(nleg)]);
-	       gamma_pre_n = &(wisdom->gamma[ROWK(nleg)]);
+				/* Get corresponding three-term recurrence coefficients vectors. */
+	      alpha_pre_n = &(wisdom->alpha[ROWK(nleg)]);
+	      gamma_pre_n = &(wisdom->gamma[ROWK(nleg)]);
 	       
-        memcpy(h,a,N1*sizeof(complex));
-        
-	       /* Clenshaw */
-	       for (l = M; l > nleg + 1; l--)
-		      {
-		        index = l - nleg;
-          h[l-1] += h[l]*alpha_pre_n[index]*angles[2*j+1]; 
-          h[l-2] += h[l]*gamma_pre_n[index];
-        }
-        
-        if (nleg < M)
-        {  
- 	        h[0+nleg] += h[1+nleg] * wisdom->alpha[ROWK(nleg)+1] * angles[2*j+1];          
-        }
-        
-	       b[n+M] = h[0+nleg]*wisdom->gamma_m1[nleg]*pow(1-angles[2*j+1]*angles[2*j+1],nleg/2.0);
-	     }
-      
-      /* fourier */
-      
-      result_j = 0.0;
-      
-      for (n = -M; n <= M; n++)
-      {
-        sin_n_phi=sin(n*angles[2*j]); 
-        cos_n_phi=cos(n*angles[2*j]);
-        
-        result_j += (creal(b[n+M])*cos_n_phi-cimag(b[n+M])*sin_n_phi) + I*(creal(b[n+M])*sin_n_phi+cimag(b[n+M])*cos_n_phi);
-      }
-      
-      f[j] = result_j;
-    }
-  }  
-  fftw_free(a);  
-  fftw_free(b);  
-  fftw_free(theta);
+        /* Clenshaw algorithm */        
+	  		
+				/* Initialize vector a. */
+  			for (j = 0; j < D; j++)
+		  	{
+			    a[j] = f[j];
+				  b[j] = 0.0;
+			  }  
+
+        for (l = k; l > 1; l--)
+		    {
+  				/* Make copy of array a. */ 
+          memcpy(temp, a, D*sizeof(complex));
+  			  for (j = 0; j < D; j++)
+	  	  	{
+            a[j] = b[j] + temp[j]*(alpha_pre_n[l]*angles[2*j+1]);		        
+            b[j] = temp[j]*gamma_pre_n[l];
+			    }
+        }	
+			  for (j = 0; j < D; j++)
+  	  	{
+          y[j] = a[j]*(alpha_pre_n[0]*angles[2*j+1]) + b[j];                  
+  	    }						  
+			}
+			
+		  /* Evaluate
+			 *   \sum_{j=0}^{D-1} b_j e^{-i n \phi_j}
+			 */
+			result = 0.0;
+      for (j = 0; j < D; j++)
+  	  {
+        result += y[j] * cexp(-I*n*angles[2*j]);
+			}						  
+			f_hat[n+M][k] = result;
+		}
+	}
+
+  /* Free auxilliary data arrays. */
+  free(y);  
+  free(temp);
+  free(b);  
+  free(a);  
 }  

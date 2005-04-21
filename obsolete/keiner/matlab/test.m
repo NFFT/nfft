@@ -1,13 +1,23 @@
-function [err,r1,r2] = test(D,M,mode)
+function [err,r1,r2] = testNFSFT(D,M,test)
 % TEST
-% TEST(D,M,MODE)
-% mode = {0,1,2,3,4,5}
-% 0 = Compare forward implementation with bare Y
-% 1 = Compare forward implementation with factorized Y
-% 2 = Compare bare Y with factorized Y
-% 3 = Compare adjoint implementation with bare Y^H
-% 4 = Compare adjoint implementation with factorized Y^H
-% 5 = Compare bare Y^H with factorized Y^H
+% TEST(D,M,TEST)
+% TEST \in {0,1,2,3,4,5,6,7}
+% 0 = Compare fast forward implementation with bare Y
+% 1 = Compare direct forward implementation with bare Y
+% 2 = Compare fast forward implementation with factorized Y
+% 3 = Compare direct forward implementation with factorized Y
+% 4 = Compare bare Y with factorized Y
+% 3 = Compare fast adjoint implementation with bare Y^H
+% 4 = Compare direct adjoint implementation with bare Y^H
+% 5 = Compare fast adjoint implementation with factorized Y^H
+% 6 = Compare direct adjoint implementation with factorized Y^H
+% 7 = Compare bare Y^H with factorized Y^H
+
+if (test >= 0 && test <= 3)
+  usec = true
+	type = 0
+	
+usec = 
 
 rand('state',0);
 
@@ -18,9 +28,9 @@ outsuffix = '.out';
 
 % Generate new data set.
 if (mode == 0 || mode == 1 || mode == 2)
-  genData([filename,insuffix],D,M,0);
+  genData([filename,insuffix],D,M,1,0);
 else  
-  genData([filename,insuffix],D,M,1);
+  genData([filename,insuffix],D,M,1,1);
 end
 
 % Generate Y, the Fourier matrix F and the data vector a.
