@@ -803,6 +803,24 @@
 			4E585D4C0817E39A002BBA08 = 4E585D4C0817E39A002BBA08;
 			4E585D4D0817E39A002BBA08 = 4E585D4D0817E39A002BBA08;
 			4E585D4E0817E39A002BBA08 = 4E585D4E0817E39A002BBA08;
+			4E585D4F0817E563002BBA08 = 4E585D4F0817E563002BBA08;
+			4E585D500817E563002BBA08 = 4E585D500817E563002BBA08;
+			4E585D520817E563002BBA08 = 4E585D520817E563002BBA08;
+			4E585D530817E563002BBA08 = 4E585D530817E563002BBA08;
+			4E585D550817E617002BBA08 = 4E585D550817E617002BBA08;
+			4E585D560817E67C002BBA08 = 4E585D560817E67C002BBA08;
+			4E585D570817E67C002BBA08 = 4E585D570817E67C002BBA08;
+			4E585D580817E67C002BBA08 = 4E585D580817E67C002BBA08;
+			4E585D590817E67C002BBA08 = 4E585D590817E67C002BBA08;
+			4E585D5A0817E67C002BBA08 = 4E585D5A0817E67C002BBA08;
+			4E585D5B0817E67C002BBA08 = 4E585D5B0817E67C002BBA08;
+			4E585D5C0817E67C002BBA08 = 4E585D5C0817E67C002BBA08;
+			4E585D5D0817E7D5002BBA08 = 4E585D5D0817E7D5002BBA08;
+			4E585D5F0817E7D5002BBA08 = 4E585D5F0817E7D5002BBA08;
+			4E585D600817E7D5002BBA08 = 4E585D600817E7D5002BBA08;
+			4E585D610817E7D5002BBA08 = 4E585D610817E7D5002BBA08;
+			4E585D620817E7D5002BBA08 = 4E585D620817E7D5002BBA08;
+			4E585D640817E7D5002BBA08 = 4E585D640817E7D5002BBA08;
 			4E69796907E8CFCC0061A022 = 4E69796907E8CFCC0061A022;
 			4E6C2E8C07D3E260001B5986 = 4E6C2E8C07D3E260001B5986;
 			4E6CD5E207C555CB0040176B = 4E6CD5E207C555CB0040176B;
@@ -3934,6 +3952,217 @@
 		vrLen = 361;
 		vrLoc = 0;
 	};
+	4E585D4F0817E563002BBA08 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_complex_inf";
+		rLen = 0;
+		rLoc = 242;
+		rType = 0;
+		vrLen = 361;
+		vrLoc = 0;
+	};
+	4E585D500817E563002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		rLen = 0;
+		rLoc = "-2147483460";
+		rType = 0;
+	};
+	4E585D510817E563002BBA08 = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.objc;
+		name = testNFSFT.m;
+		path = /var/automount/home/keiner/Temporary/nfft_linux/matlab/testNFSFT.m;
+		refType = 0;
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {699, 2687}}";
+			sepNavSelRange = "{929, 0}";
+			sepNavVisRect = "{{0, 245}, {699, 477}}";
+		};
+	};
+	4E585D520817E563002BBA08 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_complex_inf";
+		rLen = 0;
+		rLoc = 242;
+		rType = 0;
+		vrLen = 361;
+		vrLoc = 0;
+	};
+	4E585D530817E563002BBA08 = {
+		fRef = 4E585D540817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "(null): 16";
+		rLen = 0;
+		rLoc = 668;
+		rType = 0;
+		vrLen = 931;
+		vrLoc = 0;
+	};
+	4E585D540817E563002BBA08 = {
+		isa = PBXFileReference;
+		name = testNFSFT.m;
+		path = /var/automount/home/keiner/Temporary/nfft_linux/matlab/testNFSFT.m;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E585D550817E617002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "testNFSFT.m: 43";
+		rLen = 0;
+		rLoc = 1083;
+		rType = 0;
+		vrLen = 653;
+		vrLoc = 697;
+	};
+	4E585D560817E67C002BBA08 = {
+		fRef = 4E585D440817E20B002BBA08;
+		isa = PBXTextBookmark;
+		name = "genData.m: 1";
+		rLen = 0;
+		rLoc = 35;
+		rType = 0;
+		vrLen = 399;
+		vrLoc = 0;
+	};
+	4E585D570817E67C002BBA08 = {
+		fRef = 4E80B85807E6450E0005D9DD;
+		isa = PBXTextBookmark;
+		name = "main.c: 49";
+		rLen = 0;
+		rLoc = 1280;
+		rType = 0;
+		vrLen = 799;
+		vrLoc = 1626;
+	};
+	4E585D580817E67C002BBA08 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 129";
+		rLen = 0;
+		rLoc = 4016;
+		rType = 0;
+		vrLen = 1469;
+		vrLoc = 2911;
+	};
+	4E585D590817E67C002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "testNFSFT.m: 42";
+		rLen = 0;
+		rLoc = 1073;
+		rType = 0;
+		vrLen = 734;
+		vrLoc = 697;
+	};
+	4E585D5A0817E67C002BBA08 = {
+		fRef = 4E80B85807E6450E0005D9DD;
+		isa = PBXTextBookmark;
+		name = "main.c: 49";
+		rLen = 0;
+		rLoc = 1280;
+		rType = 0;
+		vrLen = 799;
+		vrLoc = 1626;
+	};
+	4E585D5B0817E67C002BBA08 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 129";
+		rLen = 0;
+		rLoc = 4016;
+		rType = 0;
+		vrLen = 1469;
+		vrLoc = 2911;
+	};
+	4E585D5C0817E67C002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "testNFSFT.m: 45";
+		rLen = 0;
+		rLoc = 1135;
+		rType = 0;
+		vrLen = 969;
+		vrLoc = 968;
+	};
+	4E585D5D0817E7D5002BBA08 = {
+		fRef = 4E585D5E0817E7D5002BBA08;
+		isa = PBXTextBookmark;
+		name = "(null): 28";
+		rLen = 0;
+		rLoc = 556;
+		rType = 0;
+		vrLen = 613;
+		vrLoc = 0;
+	};
+	4E585D5E0817E7D5002BBA08 = {
+		isa = PBXFileReference;
+		name = readData.m;
+		path = /var/automount/home/keiner/Temporary/nfft_linux/matlab/readData.m;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E585D5F0817E7D5002BBA08 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_complex_inf";
+		rLen = 0;
+		rLoc = 242;
+		rType = 0;
+		vrLen = 361;
+		vrLoc = 0;
+	};
+	4E585D600817E7D5002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "testNFSFT.m: 45";
+		rLen = 0;
+		rLoc = 1135;
+		rType = 0;
+		vrLen = 969;
+		vrLoc = 968;
+	};
+	4E585D610817E7D5002BBA08 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_complex_inf";
+		rLen = 0;
+		rLoc = 242;
+		rType = 0;
+		vrLen = 361;
+		vrLoc = 0;
+	};
+	4E585D620817E7D5002BBA08 = {
+		fRef = 4E585D630817E7D5002BBA08;
+		isa = PBXTextBookmark;
+		name = "(null): 28";
+		rLen = 0;
+		rLoc = 556;
+		rType = 0;
+		vrLen = 613;
+		vrLoc = 0;
+	};
+	4E585D630817E7D5002BBA08 = {
+		isa = PBXFileReference;
+		name = readData.m;
+		path = /var/automount/home/keiner/Temporary/nfft_linux/matlab/readData.m;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E585D640817E7D5002BBA08 = {
+		fRef = 4E585D510817E563002BBA08;
+		isa = PBXTextBookmark;
+		name = "testNFSFT.m: 34";
+		rLen = 0;
+		rLoc = 929;
+		rType = 0;
+		vrLen = 738;
+		vrLoc = 697;
+	};
 	4E69796907E8CFCC0061A022 = {
 		fRef = 4E6CD57607C54E630040176B;
 		isa = PBXTextBookmark;
@@ -3971,9 +4200,9 @@
 	};
 	4E6CD54A07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {792, 25549}}";
+			sepNavIntBoundsRect = "{{0, 0}, {699, 13272}}";
 			sepNavSelRange = "{4016, 0}";
-			sepNavVisRect = "{{0, 1413}, {792, 477}}";
+			sepNavVisRect = "{{0, 1413}, {699, 477}}";
 			sepNavWindowFrame = "{{72, 109}, {1280, 755}}";
 		};
 	};

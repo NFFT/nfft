@@ -204,8 +204,6 @@
 			<key>Layout</key>
 			<array>
 				<dict>
-					<key>BecomeActive</key>
-					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -252,7 +250,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>11</integer>
+									<integer>12</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -291,7 +289,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>util.h</string>
+								<string>testNFSFT.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -299,9 +297,9 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>util.h</string>
+										<string>testNFSFT.m</string>
 										<key>bookmark</key>
-										<string>4E585D4E0817E39A002BBA08</string>
+										<string>4E585D640817E7D5002BBA08</string>
 										<key>history</key>
 										<array>
 											<string>4EDEC4EB07CE349A00514E5A</string>
@@ -318,18 +316,23 @@
 											<string>4E585C6F08162ED4002BBA08</string>
 											<string>4E585C9D08163E1D002BBA08</string>
 											<string>4E585D0408168DB8002BBA08</string>
-											<string>4E585D0C0816A234002BBA08</string>
 											<string>4E585D0D0816A234002BBA08</string>
 											<string>4E585D2E0817956D002BBA08</string>
 											<string>4E585D3D0817E16A002BBA08</string>
-											<string>4E585D420817E20B002BBA08</string>
-											<string>4E585D480817E230002BBA08</string>
 											<string>4E585D4B0817E39A002BBA08</string>
-											<string>4E585D4C0817E39A002BBA08</string>
+											<string>4E585D560817E67C002BBA08</string>
+											<string>4E585D570817E67C002BBA08</string>
+											<string>4E585D580817E67C002BBA08</string>
+											<string>4E585D5D0817E7D5002BBA08</string>
+											<string>4E585D5F0817E7D5002BBA08</string>
+											<string>4E585D600817E7D5002BBA08</string>
+										</array>
+										<key>nextStack</key>
+										<array>
+											<string>4E585D620817E7D5002BBA08</string>
 										</array>
 										<key>prevStack</key>
 										<array>
-											<string>4E71466007D24139002513CA</string>
 											<string>4E71467507D244A8002513CA</string>
 											<string>4E6C2E8C07D3E260001B5986</string>
 											<string>4ED2B5AF07E0E2FC00B9AA22</string>
@@ -349,15 +352,11 @@
 											<string>4E585CB60816433F002BBA08</string>
 											<string>4E585D0708168DB8002BBA08</string>
 											<string>4E585D0F0816A234002BBA08</string>
-											<string>4E585D100816A234002BBA08</string>
 											<string>4E585D1B08179421002BBA08</string>
 											<string>4E585D1C08179421002BBA08</string>
 											<string>4E585D1D08179421002BBA08</string>
-											<string>4E585D1E08179421002BBA08</string>
 											<string>4E585D1F08179421002BBA08</string>
-											<string>4E585D2008179421002BBA08</string>
 											<string>4E585D2108179421002BBA08</string>
-											<string>4E585D2208179421002BBA08</string>
 											<string>4E585D2308179421002BBA08</string>
 											<string>4E585D2408179421002BBA08</string>
 											<string>4E585D2508179421002BBA08</string>
@@ -368,6 +367,7 @@
 											<string>4E585D450817E20B002BBA08</string>
 											<string>4E585D490817E230002BBA08</string>
 											<string>4E585D4D0817E39A002BBA08</string>
+											<string>4E585D610817E7D5002BBA08</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -764,7 +764,7 @@
 			<key>WindowToolGUID</key>
 			<string>1C530D57069F1CE1000CFCEE</string>
 			<key>WindowToolIsVisible</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>Identifier</key>

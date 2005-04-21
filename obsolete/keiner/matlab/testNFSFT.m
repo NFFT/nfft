@@ -1,23 +1,35 @@
 function [err,r1,r2] = testNFSFT(D,M,test)
 % TEST
 % TEST(D,M,TEST)
-% TEST \in {0,1,2,3,4,5,6,7}
+% TEST \in {0,1,2,3,4,5,6,7,8,9}
 % 0 = Compare fast forward implementation with bare Y
 % 1 = Compare direct forward implementation with bare Y
 % 2 = Compare fast forward implementation with factorized Y
 % 3 = Compare direct forward implementation with factorized Y
 % 4 = Compare bare Y with factorized Y
-% 3 = Compare fast adjoint implementation with bare Y^H
-% 4 = Compare direct adjoint implementation with bare Y^H
-% 5 = Compare fast adjoint implementation with factorized Y^H
-% 6 = Compare direct adjoint implementation with factorized Y^H
-% 7 = Compare bare Y^H with factorized Y^H
+% 5 = Compare fast adjoint implementation with bare Y^H
+% 6 = Compare direct adjoint implementation with bare Y^H
+% 7 = Compare fast adjoint implementation with factorized Y^H
+% 8 = Compare direct adjoint implementation with factorized Y^H
+% 9 = Compare bare Y^H with factorized Y^H
 
 if (test >= 0 && test <= 3)
   usec = true
 	type = 0
+end
 	
-usec = 
+if (test >= 5 && test <= 8)
+  usec = true
+	type = 1
+end
+
+if (test == 0 || test == 2 || test == 5 || test == 7)
+  mode = 0;
+end
+	
+if (test == 1 || test == 3 || test == 6 || test == 8)
+  mode = 1;
+end
 
 rand('state',0);
 
@@ -27,17 +39,13 @@ insuffix = '.in';
 outsuffix = '.out';
 
 % Generate new data set.
-if (mode == 0 || mode == 1 || mode == 2)
-  genData([filename,insuffix],D,M,1,0);
-else  
-  genData([filename,insuffix],D,M,1,1);
-end
+genData([filename,insuffix],D,M,type,mode);
 
 % Generate Y, the Fourier matrix F and the data vector a.
 [Y,F,a,theta,phi,N,t] = readData([filename,insuffix]);
 
 % Compute decomposed Y, if neccesary.
-if (mode == 1 || mode == 2 || mode == 4 || mode == 5)    
+if ((mode >= 2 && mode <= 4) || (mode >= 7 && mode <= 9))    
   A = F';
   A = [sparse((2*M+1)*(2*N+1),(N-M)*(2*N+1)),speye((2*M+1)*(2*N+1)),sparse((2*M+1)*(2*N+1),(N-M)*(2*N+1))] * A;
 
@@ -84,18 +92,24 @@ if (mode == 1 || mode == 2 || mode == 4 || mode == 5)
   A = Z*A;  
 end
 
-if (mode == 0 || mode == 1)
-!../examples/nfsft < temp.in > temp.out
-% Read forward transformed data.
-ri = readComplex([filename,outsuffix],size(Y,1));  
+if (usec == true)
+  !../examples/nfsft < temp.in > temp.out
+	if (type ==)
+	
+  % Read forward transformed data.
+  ri = readComplex([filename,outsuffix],size(Y,1));  
 else
-  if  (mode == 3 || mode == 4)
-    !../examples/nfsft < temp.in > temp.out
+    if  (mode == 3 || mode == 4)
+      !../examples/nfsft < temp.in > temp.out
     % Read adjoint transformed data.
     %(M+1)^2
     ri = readComplex([filename,outsuffix],(M+1)^2);
   end
 end    
+	
+	
+	
+end
 
 if (mode == 0 || mode == 2)
 % Bare forward transform.

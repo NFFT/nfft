@@ -1,6 +1,7 @@
 function [Y,F,a,theta,phi,N,t] = readData(filename)
   f = fopen(filename,'r');
   
+  type = fscanf(f,'%d\n',1);
   mode = fscanf(f,'%d\n',1);
   
   D = fscanf(f,'%d\n',1);
@@ -17,7 +18,7 @@ function [Y,F,a,theta,phi,N,t] = readData(filename)
   Y = sfmatrix(M,2*pi*theta',2*pi*phi','semi');
   F = pfmatrix(N,2*pi*theta',2*pi*phi');
   
-  if (mode == 0)
+  if (type == 0)
     last = (M+1)^2;
   else
     last = D;
