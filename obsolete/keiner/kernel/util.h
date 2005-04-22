@@ -3,6 +3,15 @@
 
 #include <complex.h>
 
+/**
+ * Compute the exponent of the next greater power of two.
+ *
+ * \param An integer n
+ *
+ * \return The exponent of the next greater power of two with respect to n
+ */
+inline int ngpt(int n);
+
 double mysecond();
 void myvpr (double* x, int n, char * text);
 void myvprc (complex *x, int n, char * text);

@@ -166,7 +166,7 @@ void alpha_al_all(double *alpha, int N)
   double *alpha_act = alpha;
   for (i = 0; i <= N; i++)
   {
-    for (j = 0/*i*/; j <= N; j++)
+    for (j = 0; j <= N; j++)
     {
       *alpha_act = alpha_al(j-1,i); 
       alpha_act++;

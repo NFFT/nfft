@@ -15,6 +15,11 @@
 
 #define max(a,b) a<b?b:a
 
+inline int ngpt(int n)
+{
+  return (int) ceil(log((double)n)/log(2.0));
+}
+
 /** For timing */ 
 inline double mysecond()
 {

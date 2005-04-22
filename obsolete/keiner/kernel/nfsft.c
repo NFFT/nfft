@@ -61,6 +61,7 @@ struct U_type*** precomputeU(int M, double threshold, int t)
    * coefficients set to zero. In order to compensate for the multiplicative 
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
   //printf("%d\n\n",1<<t); 
+  fprintf(stderr,"%d\n\n",t); 
   xc = (double *) calloc(1<<t,sizeof(double));
   xc[1] = 0.5;
   
@@ -1455,37 +1456,52 @@ void nfsft_destroy_plan(nfsft_plan plan)
 
 void ndsft_execute(nfsft_plan plan)
 {
-  int t,N,n;
-  struct nfsft_transform_wisdom *tw;
+  /** Counter for loops */
+  int i;
   
   init_wisdom();
-  
-  t = (int) ceil(log((double)plan->M)/log(2.0));
-  /* Calculate N as next greater power of 2 of the bandwidth M. */
-  N = 1<<t;
-  
-  if (plan->M == 0)
+
+  if (plan->kind == NFSFT_BACKWARD)
   {
-    for (n = 0; n < plan->D; n++)
+#ifdef DEBUG
+    printf("Executing NFSFT_BACKWARD.\n");
+#endif
+    if (plan->M == 0)
     {
-      plan->f[n] = plan->f_hat[0][0];
+      for (i = 0; i < plan->D; i++)
+      {
+        plan->f[i] = plan->f_hat[0][0];
+      }  
+    }
+    else
+    {
+      /* Compute direct transform. */
+      ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, &wisdom);
     }  
+  }
+  else if (plan->kind == NFSFT_ADJOINT)
+  {
+    adjoint_ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
+		  &wisdom);
+  }	
+  else if (plan->kind == NFSFT_FORWARD)
+  {
   }
   else
   {
-    /* Compute direct transform. */
-    ndsft(plan->angles,plan->D,plan->f_hat, plan->f, plan->M, N, 
-      tw, &wisdom);
-  }  
+#ifdef DEBUG
+    printf("Wrong transform type.\n");
+#endif
+  }
 }
 
 void nfsft_execute(nfsft_plan plan)
 {
   /** Exponent of next greater power of 2 realtive to M */
-  int t = plan->M==0?0:(int) ceil(log((double)plan->M)/log(2.0));
+  int t;
   /** Next greater power of 2 relative to M */
-  int N = plan->M==0?0:1<<t;
-  /** Counter for loops*/
+  int N;
+  /** Counter for loops */
   int i, n;
   /** */
   struct nfsft_transform_wisdom *tw;
@@ -1501,6 +1517,10 @@ void nfsft_execute(nfsft_plan plan)
   }
   else
   {
+    t = ngpt(plan->M);
+    /** Next greater power of 2 relative to M */
+    N = 1<<t;
+
     /* Ensure that precomputation has been done. */
     if (wisdom.transform_wisdoms[t] == 0)
     {

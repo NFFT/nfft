@@ -12,7 +12,7 @@ function genData(filename,D,M,type,mode)
   
   fprintf(f,'%d\n',M);
   
-  if (mode == 0)
+  if (type == 0)
     last = (M+1)*(M+1);
   else
     last = D;

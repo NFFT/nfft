@@ -1,6 +1,6 @@
 function [err,r1,r2] = testNFSFT(D,M,test)
 % TEST
-% TEST(D,M,TEST)
+% [ERR,R1,R2] = TEST(D,M,TEST)
 % TEST \in {0,1,2,3,4,5,6,7,8,9}
 % 0 = Compare fast forward implementation with bare Y
 % 1 = Compare direct forward implementation with bare Y
@@ -42,6 +42,8 @@ end
 
 if ((test >= 0 && test <= 3) || (test >= 5 && test <= 8))
   usec = true
+else
+  usec = false
 end
 
 if (sum(test == [0,2,4,5,7]) > 0)
@@ -186,7 +188,7 @@ fprintf('|r1|: max = %f, min = %f, NaN = %d\n', max(abs(r1)), min(abs(r1)), sum(
 fprintf('|r2|: max = %f, min = %f, NaN = %d\n', max(abs(r2)), min(abs(r2)), sum(sum(isnan(r2))));
 fprintf('||r1-r2||_1/||r1||_1 = %17.16f\n', err);
 
-if (mode <= 4)
+if (test <= 4)
   rm = abs(r1-r2);
   figure;
   spy(rm>=1E-7);

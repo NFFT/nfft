@@ -36,7 +36,6 @@ typedef enum {false = 0,true = 1} bool;
 # error Need nfft/nfft.h
 #endif
 
-#undef ROW(k) (k<=0?0:((k*(2*BW_MAX+3-k))/2))
 #define ROW(k) (k*(BW_MAX+1))
 #define ROWK(k) (k*(BW_MAX+1)+k)
 

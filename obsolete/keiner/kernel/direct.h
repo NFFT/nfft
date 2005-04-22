@@ -26,14 +26,11 @@
  * \param f_hat Pointer to an array containing the spherical Fourier 
  *  coefficients \f$(a_k^n)\f$, \f$k = 0,...,M\f$, \f$n = -k,...,k\f$ in the 
  *  ordering \f$a_0^0,a_1^{-1},a_1^0,...,a_M^M\f$
- * \param tw Structure containing precomputed values of associated Legendre 
- *   functions.
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
  */
-void ndsft(int D, double *angles, complex *f, int M, int N, 
-  complex **f_hat, struct nfsft_transform_wisdom *tw, 
-	struct nfsft_wisdom *wisdom);
+void ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
+  struct nfsft_wisdom *wisdom);
 	
 /**
  * \brief Adjoint direct spherical Fourier transform
@@ -58,14 +55,11 @@ void ndsft(int D, double *angles, complex *f, int M, int N,
  *  \f$a_0^0,a_1^{-1},a_1^0,...,a_M^M\f$
  * \param M The bandwidth
  * \param N Next greater power of two with respect to the bandwidth \f$M\f$
- * \param tw Structure containing precomputed values of associated Legendre 
- *   functions.
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
  */	
-void adjoint_ndsft(int D, double *angles, complex *f, int M, int N, 
-  complex **f_hat, struct nfsft_transform_wisdom *tw, 
-	struct nfsft_wisdom *wisdom);
+void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
+  struct nfsft_wisdom *wisdom);
   
 #endif
 

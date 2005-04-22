@@ -1,8 +1,7 @@
 #include "direct.h"
 
-void ndsft(int D, double *angles, complex *f, int M, int N, 
-  complex **f_hat, struct nfsft_transform_wisdom *tw, 
-	struct nfsft_wisdom *wisdom)
+void ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
+  struct nfsft_wisdom *wisdom)
 {
   /** Node index */
   int j;
@@ -38,7 +37,7 @@ void ndsft(int D, double *angles, complex *f, int M, int N,
 
   
 	/* Allocate memory for auxilliary arrays. */
-  h = (complex*) malloc (sizeof(complex) * (N+1));
+  h = (complex*) malloc (sizeof(complex) * (M+1));
   b = (complex*) malloc (sizeof(complex) * (2*M+1));    
   
   /* 
@@ -93,7 +92,7 @@ void ndsft(int D, double *angles, complex *f, int M, int N,
 	      gamma_pre_n = &(wisdom->gamma[ROWK(nleg)]);
 	       
 				/* Make copy of array a. */ 
-        memcpy(h,a,(N+1)*sizeof(complex));
+        memcpy(h,a,(M+1)*sizeof(complex));
 
         /* Clenshaw algorithm */        
         for (l = M; l > nleg + 1; l--)
@@ -144,35 +143,28 @@ void ndsft(int D, double *angles, complex *f, int M, int N,
 }
 
 
-void adjoint_ndsft(int D, double *angles, complex *f, int M, int N, 
-  complex **f_hat, struct nfsft_transform_wisdom *tw, 
-	struct nfsft_wisdom *wisdom)
+void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
+  struct nfsft_wisdom *wisdom)
 {
   /** Fourier-index k */
 	int k;
 	/** Fourier-index n */
 	int n;
   int j, l, nleg;
-  //int index;
-  double *alpha_pre_n,*gamma_pre_n;
-  //complex result_j;
-  //double sin_n_phi,cos_n_phi;
-  //int l,N1;
-  //complex *h;
-  //complex *b;  
-  //int d;
-  //double *theta;
-  
+  double *alpha_pre_n, *beta_pre_n, *gamma_pre_n;  
   complex *a;
 	complex *b;
 	complex *temp;
 	complex *y;
 	complex result;
+	double gamma;
+	double *sintheta;
 	
   a = (complex*) malloc (sizeof(complex) * D);    
   b = (complex*) malloc (sizeof(complex) * D);
   temp = (complex*) malloc (sizeof(complex) * D);
   y = (complex*) malloc (sizeof(complex) * D);
+  sintheta = (double*) malloc (sizeof(double) * D);
 	
   /* 
 	 * Convert angles from [-1,1] and [0,1] to [-pi,pi] and [0,pi] 
@@ -180,20 +172,22 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, int N,
 	 */ 
   for(j = 0; j < D; j++)
   {
-    angles[2*j+1] = 2.0 * PI * angles[2*j+1];
-    angles[2*j+1] = cos(angles[2*j+1]);
     angles[2*j] = -2.0 * PI * angles[2*j];
+    angles[2*j+1] = 2.0 * PI * angles[2*j+1];
+    sintheta[2*j+1] = sin(angles[2*j+1]);
+    angles[2*j+1] = cos(angles[2*j+1]);
+		//printf("theta[%d] = %f\n",j,angles[2*j+1]);
   }
 
-	for (k = 0; k < M; k++)
+	for (k = 0; k <= M; k++)
 	{
-	  for (n = -k; n < k; n++)
+	  for (n = -k; n <= k; n++)
 		{
 		  /* Evaluate
 			 *   \sum_{j=0}^{D-1} f_j P_k^{|n|}(\cos\theta_j) e^{-i n \phi_j}
 			 */
 			
-			/* Evaluate b_j := (f_j P_k^{|n|}(\cos\theta_j))_{j=0}^D. */
+			/* Evaluate b_j := (f_j P_k^{|n|}(\cos\theta_j))_{j=0}^{D-1}. */
 						
 			if (k == 0)
 			{
@@ -208,10 +202,11 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, int N,
         nleg = abs(n);
         
 				/* Get corresponding three-term recurrence coefficients vectors. */
-	      alpha_pre_n = &(wisdom->alpha[ROWK(nleg)]);
-	      gamma_pre_n = &(wisdom->gamma[ROWK(nleg)]);
+	      alpha_pre_n = &(wisdom->alpha[ROW(nleg)]);
+	      beta_pre_n = &(wisdom->gamma[ROW(nleg)]);
+	      gamma_pre_n = &(wisdom->gamma[ROW(nleg)]);
 	       
-        /* Clenshaw algorithm */        
+        /* Clenshaw algorithm */
 	  		
 				/* Initialize vector a. */
   			for (j = 0; j < D; j++)
@@ -223,17 +218,30 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, int N,
         for (l = k; l > 1; l--)
 		    {
   				/* Make copy of array a. */ 
-          memcpy(temp, a, D*sizeof(complex));
+          memcpy(temp, a, D * sizeof(complex));
   			  for (j = 0; j < D; j++)
 	  	  	{
-            a[j] = b[j] + temp[j]*(alpha_pre_n[l]*angles[2*j+1]);		        
-            b[j] = temp[j]*gamma_pre_n[l];
+            a[j] = b[j] + temp[j] * (alpha_pre_n[l] * angles[2*j+1] + 
+						  beta_pre_n[l]);		        
+            b[j] = temp[j] * gamma_pre_n[l];
 			    }
         }	
-			  for (j = 0; j < D; j++)
-  	  	{
-          y[j] = a[j]*(alpha_pre_n[0]*angles[2*j+1]) + b[j];                  
-  	    }						  
+				
+				gamma = wisdom->gamma_m1[nleg];
+				if ((nleg % 2) == 0)
+				{
+  			  for (j = 0; j < D; j++)
+    	  	{
+            y[j] = gamma * (a[j] * (alpha_pre_n[0] * angles[2*j+1] + beta_pre_n[0]) + b[j]);
+  	      }						  
+				}
+				else
+				{
+  			  for (j = 0; j < D; j++)
+    	  	{
+            y[j] = gamma * (a[j] + b[j]) * sintheta[j];
+  	      }						  
+				}
 			}
 			
 		  /* Evaluate
@@ -249,6 +257,7 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, int N,
 	}
 
   /* Free auxilliary data arrays. */
+	free(sintheta);
   free(y);  
   free(temp);
   free(b);  
