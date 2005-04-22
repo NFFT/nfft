@@ -13,30 +13,44 @@ function [err,r1,r2] = testNFSFT(D,M,test)
 % 8 = Compare direct adjoint implementation with factorized Y^H
 % 9 = Compare bare Y^H with factorized Y^H
 
-if (test >= 0 && test <= 3)
-  usec = true
-	type = 0
-end
-	
-if (test >= 5 && test <= 8)
-  usec = true
-	type = 1
+% Argument checks
+if (isnumeric(D) == 0 || isequal(size(D),[1,1]) == false || D <= 0)
+  error('testNFSFT: Parameter D must be a positive natural number!');
 end
 
-if (test == 0 || test == 2 || test == 5 || test == 7)
-  mode = 0;
-end
-	
-if (test == 1 || test == 3 || test == 6 || test == 8)
-  mode = 1;
+if (isnumeric(M) == 0 || isequal(size(M),[1,1]) == false || M < 0)
+  error('testNFSFT: Parameter M must be a natural number!');
 end
 
-rand('state',0);
+if (isnumeric(test) == 0 || isequal(size(test),[1,1]) == false || test < 0 || test > 9)
+  error('testNFSFT: Parameter TEST must be a natural number from [0,9]!');
+end
 
 % Some constants.
 filename = 'temp';
 insuffix = '.in';
 outsuffix = '.out';
+
+% Reset random number generator.
+rand('state',0);
+
+if (test >= 0 && test <= 4)
+  type = 0
+else
+  type = 1
+end
+
+if ((test >= 0 && test <= 3) || (test >= 5 && test <= 8))
+  usec = true
+end
+
+if (sum(test == [0,2,4,5,7]) > 0)
+  mode = 0;
+end
+	
+if (sum(test == [1,3,6,8,9]) > 0)
+  mode = 1;
+end
 
 % Generate new data set.
 genData([filename,insuffix],D,M,type,mode);
@@ -45,7 +59,7 @@ genData([filename,insuffix],D,M,type,mode);
 [Y,F,a,theta,phi,N,t] = readData([filename,insuffix]);
 
 % Compute decomposed Y, if neccesary.
-if ((mode >= 2 && mode <= 4) || (mode >= 7 && mode <= 9))    
+if (sum(test == [2,3,4,7,8,9]) > 0)    
   A = F';
   A = [sparse((2*M+1)*(2*N+1),(N-M)*(2*N+1)),speye((2*M+1)*(2*N+1)),sparse((2*M+1)*(2*N+1),(N-M)*(2*N+1))] * A;
 
@@ -94,68 +108,76 @@ end
 
 if (usec == true)
   !../examples/nfsft < temp.in > temp.out
-	if (type ==)
-	
-  % Read forward transformed data.
-  ri = readComplex([filename,outsuffix],size(Y,1));  
-else
-    if  (mode == 3 || mode == 4)
-      !../examples/nfsft < temp.in > temp.out
+	if (type == 0)
+	  % Read forward transformed data.
+    ri = readComplex([filename,outsuffix],size(Y,1));  
+  else
     % Read adjoint transformed data.
-    %(M+1)^2
     ri = readComplex([filename,outsuffix],(M+1)^2);
   end
 end    
 	
-	
-	
-end
-
-if (mode == 0 || mode == 2)
+if (sum(test == [0,1,4]) > 0)
 % Bare forward transform.
 rb = Y*a;  
 else
-  if  (mode == 3 || mode == 5)
+  if (sum(test == [5,6,9]) > 0)
     % Bare adjoint transform.
     rb = Y'*a;
   end
 end    
 
-if (mode == 1 || mode == 2)
+if (sum(test == [2,3,4]) > 0)
 % Decomposed forward transform.
 rd = A'*a;  
 else
-  if  (mode == 4 || mode == 5)
+  if  (sum(test == [7,8,9]) > 0)
     % Decomposed adjoint transform.
     rd = A*a;
   end
 end    
 
-switch mode
+switch test
   case 0
-    fprintf('Forward implementation vs. bare Y:\n');
-	r1 = rb;
-	r2 = ri;
+    fprintf('Fast forward implementation vs. bare Y:\n');
+	  r1 = rb;
+	  r2 = ri;
   case 1
-    fprintf('Forward implementation vs. decomposed Y:\n');
-	r1 = rd;
-	r2 = ri;
+    fprintf('Direct forward implementation vs. bare Y:\n');
+	  r1 = rb;
+	  r2 = ri;
   case 2
-    fprintf('Bare Y vs. decomposed Y:\n');
-	r1 = rb;
-	r2 = rd;
+    fprintf('Fast forward implementation vs. decomposed Y:\n');
+	  r1 = rd;
+	  r2 = ri;
   case 3
-    fprintf('Adjoint implementation vs. bare Y^H:\n');
-	r1 = rb;
-	r2 = ri;
+    fprintf('Slow forward implementation vs. decomposed Y:\n');
+	  r1 = rd;
+	  r2 = ri;
   case 4
-    fprintf('Adjoint implementation vs. decomposed Y^H:\n');
-	r1 = rd;
-	r2 = ri;
+    fprintf('Bare Y vs. decomposed Y:\n');
+	  r1 = rb;
+	  r2 = rd;
   case 5
+    fprintf('Fast adjoint implementation vs. bare Y^H:\n');
+	  r1 = rb;
+	  r2 = ri;
+  case 6
+    fprintf('Direct adjoint implementation vs. bare Y^H:\n');
+	  r1 = rb;
+	  r2 = ri;
+  case 7
+    fprintf('Fast adjoint implementation vs. decomposed Y^H:\n');
+	  r1 = rd;
+	  r2 = ri;
+  case 8
+    fprintf('Direct adjoint implementation vs. decomposed Y^H:\n');
+	  r1 = rd;
+	  r2 = ri;
+  case 9
     fprintf('Bare Y^H vs. decomposed Y^H:\n');
-	r1 = rb;
-	r2 = rd;
+	  r1 = rb;
+	  r2 = rd;
 end
 
 err = norm(r1-r2,1)/norm(r1,1);
@@ -164,7 +186,7 @@ fprintf('|r1|: max = %f, min = %f, NaN = %d\n', max(abs(r1)), min(abs(r1)), sum(
 fprintf('|r2|: max = %f, min = %f, NaN = %d\n', max(abs(r2)), min(abs(r2)), sum(sum(isnan(r2))));
 fprintf('||r1-r2||_1/||r1||_1 = %17.16f\n', err);
 
-if (mode <= 2)
+if (mode <= 4)
   rm = abs(r1-r2);
   figure;
   spy(rm>=1E-7);

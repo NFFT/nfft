@@ -48,6 +48,11 @@
 #include "nfsft.h"
 #include "util.h"
 
+#define FORWARD 0
+#define ADJOINT 1
+#define FAST 0
+#define SLOW 1 
+
 /** Arrays for complex Fourier-coefficients. */
 complex *f_hat;
 complex *f_hat2;
@@ -77,10 +82,6 @@ int main (int argc, char **argv)
   complex *result;
   double ctime;
   int i,n,k,nleg;
-	#define FORWARD 0
-	#define ADJOINT 1
-	#define FAST 0
-	#define SLOW 1 
   int mode, type;
     
 	/* Read transform type. */
