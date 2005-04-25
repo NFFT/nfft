@@ -159,113 +159,141 @@ Legendre functions fulfill the orthogonality condition
 \end{equation}
 
 
-
-%Starting with the {\it{Legendre polynomials}}
-% $$
-% P_{k}(x):= \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} (x^2-1)^k\quad (x
-% \in [-1,1]; k \in \N_{0})\; ,
-% $$
-% we define the {\it{associated Legendre functions}} $P_{k}^n \; (n \in
-% \N_{0}; k = n,n+1, \ldots )$ as\\
-% \begin{eqnarray}
-% \label{assi}
-% P_{k}^n(x):=\left(\frac{(k-n)!}{(k+n)!} \right)^{1/2} (1-x^2)^{n/2}
-% \frac{\dx^n}{\dx x^n} P_{k}(x)\quad (x \in [-1,1])\; .
-% \end{eqnarray}
-% For any fixed $n \in \N_{0}$, the functions $P_{k}^n (k=n,n+1,
-% \ldots )$ form a complete orthogonal system in $L^2[-1,1]$ with
-% $$
-% \frac{1}{2} \int\limits_{-1}^1 P_{k}^n (x) P_{l}^n (x) \dx x =
-% \frac{1}{2k+1} \delta_{k,l}\quad (n \in \N_{0}; k,l=n,n+1, \ldots )\; .
-% $$
-% Moreover, the associated Legendre functions fulfill the three-term
-% recurrence relation
-% $$
-% P_{n-1}^n (x):=0,\qquad P_{n}^n
-%(x)= \frac{((2n)!)}{2^n n!}^{1/2} (1-x^2)^{n/2}\; ,
-%$$
-%\begin{equation}
-%    P_{k+1}^n (x)=v_{k}^n x P_{k}^n (x) + w_{k}^n P_{k-1}^n
-%    (x)\quad (k=n,n+1, \ldots )
-%    \end{equation}
-%    with
-%    $$
-%    v_{k}^n:= \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad
-%    w_{k}^n:= - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}\; .
-%    $$
-%    A simple but powerful idea in \cite{postta97} is to define the
-%    functions $P_{k}^n$  also for $k < n$.
-%    This was done as follows.
-%    For even $n$ we start with $P_{-1}^n:=0$ and $P_{0}^n (x):=
-%    \frac{\sqrt{(2n)!}}{2^n n!}$ and for odd $n$ let $P_{0}^n
-%    (x):=P_{1}^n (x):= 
-%    \frac{\sqrt{(2n)!}}{2^n n!} (1-x^2)^{1/2}$. We introduce the
-%    functions $P_{k}^n$ by the three-term recurrence relation
-%\begin{eqnarray}\label{drei}
-%    P_{k+1}^n (x) := (\alpha_{k}^n x+ \beta_{k}^n) P_{k}^n (x) +
-%    \gamma_{k}^n P_{k-1}^n (x)
-%    \end{eqnarray}
-%with
-%    $$
-%    \begin{array}{lllll}
-%        \alpha_{k}^n := \left\{\begin{array}{lll}
-%        (-1)^{k+1} &\ \mbox{for}\ k < n,\\
-%        v_{k}^n &\ \mbox{otherwise},
-%    \end{array}\right.\\[3ex]
-%    \beta_{k}^n := \left\{\begin{array}{lll}
-%        1 &\ \mbox{for}\ k < n,\\
-%        0 &\ \mbox{otherwise},
-%    \end{array}\right.\\[3ex]
-%    \gamma_{k}^n := \left\{\begin{array}{lll}
-%        0 &\ \mbox{for}\ k \leq n,\\
-%        w_{k}^n &\ \mbox{otherwise.}
-%    \end{array}\right.\\
-%        \end{array}
-%        $$
-% It is a fact, that $P_{k}^n$ is a polynomial of degree $k$
-% for even $n$ and that $(1-x^2)^{-1/2} P_{k}^n$ is a polynomial of degree
-% $k-1$ for odd $n$. Furthermore, these functions coincide with
-% (\ref{assi}) for $k\ge n$.
-%The main reason for defining $P_k^n$ also for $k<n$ is that this
-%modification allows a stable computation of the Legendre function transform.
-
-
-
 \section{Spherical Harmonics}
 \label{Basics:SphericalHarmonics}
 
-For harmonic analysis in $\R^3$ the complex exponentials $e^{i \V{\omega}^{\transp} \cdot}$ 
-($\V{\omega} \in \R^3$) provide the standard Fourier basis. With respect to the sphere one derives
-from Laplace's equation restricted to the sphere solutions forming an orthonormal basis similar to
-complex exponentials. We begin by noting some facts on 
-orthogonal Legendre polynomials and the closely related associated
-Legendre functions. Based on this
-foundation, we describe the function space of spherical harmonics
-and how it is related to spherical approximation.
+Spherical Harmonics on the sphere $\twosphere$ arise the same way as complex exponentials 
+$e^{i k x}$ on the circle $\mathbb{S}^1$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
+Speaking of Fourier analysis with respect to the sphere, one refers to Spherical Harmonics as the Fourier 
+Basis on $\twosphere$. In this section, we shortly introduce these basis functions mentioning basic properties.
 
-Concerning the generating series of the Legendre polynomials
+From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in spherical coordinates
 \begin{equation}
-\label{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.PowerSeries}
+  \label{SphericalHarmonics.LaplaceEquation.SphericalCoordinates}
+  \Delta f = \frac{\partial^2 f}{\partial r^2} + \frac{2}{r}\frac{\partial f}{\partial
+  r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \cdot \frac{\partial f}{\partial
+  \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
+\end{equation}
+Using an ansatz based on separation of variables and taking into account that $r = 1$ when restricting the 
+equation to $\twosphere$, one obtains the solutions
+\begin{eqnarray*}
+    & & Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
+    \C,\ n \in \NZ,\; k = -n,-n+1,\ldots,n,\\
+    & & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
+    \fun{P_{k}^{\abs{n}}}{\cos \vtheta} e^{in\vphi}.
+\end{eqnarray*}
+Figure \ref{Basics:SphericalHarmonics} shows the absolute value of some of the 
+functions $Y_{k}^{n}$. An important result is that these functions all are contained in $\fun{\text{Harm}_n}{\twosphere}$.
+Due to the separability one proves easily that they also fulfill the orthogonality condition with respect 
+to the standard scalar product on $\twosphere$:
+\begin{equation}
+  \nonumber
+  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} = \delta_{k,k} \delta_{n,m}
+\end{equation}
+No let $\mathcal{H}_k$ denote
+$\text{Harm}_k\paren{\twosphere}$, then
+for every $k \in \NZ$, the set
+\begin{equation}
+  \nonumber
+  \pset{Y_{k}^n}{|}{n = -k,-k1+1,\ldots,k}
+\end{equation}
+forms an orthonormal basis of $\mathcal{H}_k$, since $\dim \mathcal{H}_k =
+2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
+to each other and the set 
+$$\pset{Y_{k}^n}{|}{k = 0,1,\ldots,K,\ n = -k,-k+1,\ldots,k},\ K \in \NZ$$ 
+provides an orthonormal basis for the space $\bigoplus_{k=0}^{K}\mathcal{H}_k$ called
+the space of \emph{spherical harmonics} of degree $K$.
+
+At first glance, the restriction to homogeneous and harmonic polynomials
+might exclude various functions from being as well representable
+as in $\fun{\Pol_K}{\twosphere}$. But as a matter of fact these
+spaces are identical, i.e. 
+\begin{equation}
+  \nonumber
+    \fun{\Pol_K}{\twosphere} = \bigoplus_{k=0}^{K}\mathcal{H}_k.
+\end{equation}
+
+\begin{figure}[htbp]
+  \label{Basics:SphericalHarmonics}
+  \centering
+   \subfigure[$\abs{Y_{0}^{0}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_0_0.png}}\hfill
+   \subfigure[$\abs{Y_{1}^{-1}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_1_-1.png}}\hfill
+   \subfigure[$\abs{Y_{1}^{0}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_1_0.png}}\\
+   \subfigure[$\abs{Y_{1}^{1}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_1_1.png}}\hfill
+   \subfigure[$\abs{Y_{2}^{-2}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_2_-2.png}}\hfill
+   \subfigure[$\abs{Y_{2}^{-1}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_2_-1.png}}\\
+   \subfigure[$\abs{Y_{2}^{0}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_2_0.png}}\hfill
+   \subfigure[$\abs{Y_{2}^{1}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_2_1.png}}\hfill
+   \subfigure[$\abs{Y_{2}^{2}}$]
+     {\includegraphics[width=0.3\textwidth]{images/sh_2_2.png}}\\
+  \caption{To be written...}
+\end{figure}
+
+Finally, we mention the well known addition theorem for spherical harmonics 
+that relates functions $Y_k^n$ forming an orthonormal basis of $\mathcal{H}_n$ 
+to the Legendre polynomials. It particularly holds for the basis as given above but
+generally is also applicable to every orthonormal basis.
+
+\begin{proposition}[Addition Theorem]
+  \label{AdditionTheorem}
+  For every $\fun{L^2}{\twosphere}$ orthonormal basis 
+  $\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, it holds
+  \begin{equation}
+    \nonumber
+    \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
+    \frac{2k+1}{4\pi}\fun{P_k}{\scalarproduct{\V{\xi}}{\V{\eta}}_{\twosphere}}.
+  \end{equation}
+\end{proposition}
+
+\section{Radial Spherical Kernels}
+A \emph{radial spherical kernel} is a radial symmetric function defined on the sphere. 
+Generally, one starts with a continuous function $G: \interv{[}{-1}{1}{]} \rightarrow \C$ and defines 
+for a fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
+$$ \fun{K_{\V{\eta}}}{\cdot} := \fun{G}{\scalarproduct{\eta}{\V{\cdot}}_{\twosphere}}.$$
+The function $G$ can be developed into a series of Legendre polynomials
+$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}$$
+where the coefficients $a_k$ are the scalar products
+$$ a_k = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
+Applying the Addition Theorem from Proposition \ref{AdditionTheorem}, one gets the kernel 
+representation
+$$\fun{K_{\V{\eta}}}{\cdot} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\scalarproduct{\V{\eta}}{\cdot}_{\twosphere}} =  
+\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
+One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
+spherical convolution. As an application of the algorithms developed in this text, one can derive 
+an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
+
+As an example of a radial spherical kernel function, we consider the generating series of the Legendre polynomials
+\begin{equation}
+  \label{GeneratingFunction}
   \fun{\phi}{h} := \sum_{n = 0}^{\infty} \fun{P_n}{t} h^n,\ t \in
   \interv{[}{-1}{1}{]}
 \end{equation}
 which is absolutely and uniformly convergent for $h \in
 \interv{(}{-1}{1}{)}$, it holds
 \begin{equation}
-  \label{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.SeriesExpansion}
+  \label{Explicit}
     \sum_{n = 0}^{\infty} \fun{P_n}{t} h^n = \frac{1}{\sqrt{1-2ht+h^2}}.
 \end{equation}
 This follows from the ordinary differential equation
 \begin{equation}
-\label{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.SeriesExplicit}
+\label{DifferentialEquation}
   \paren{1+h^2-2ht}\fun{\phi'}{h} = \paren{t-h}\fun{\phi}{h}
 \end{equation}
 obtained by differentiation with respect to $h$ and comparing coefficients in line with Equation
-\eqref{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.PowerSeries}. Using the initial 
-condition $\fun{\phi}{0}=1$ this yields the unique solution in Equation
-\eqref{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.SeriesExplicit}.
+\eqref{Explicit.LegendrePolynomials.PowerSeries}. Using the initial 
+condition $\fun{\phi}{0}=1$ this yields the unique solution of Equation
+\eqref{DifferentialEquation}.
 From this result, the following identity follows easily:
 \begin{equation}
+  \nonumber
   \sum_{n=0}^{\infty} \paren{2n+1} \fun{P_n}{t} h^n =
   \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}}.
 \end{equation}
@@ -273,16 +301,17 @@ From this result, the following identity follows easily:
 When $h$ is restricted to $\interv{(}{0}{1}{)}$, the function
 $G_h:\interv{[}{-1}{1}{]} \rightarrow \R$, with
 \begin{equation}
-\label{PoissonKernel}
+  \label{PoissonKernel}
+  \nonumber
   \fun{G_h}{t} := \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}},
 \end{equation}
 is called \emph{Poisson kernel}. We refer 
-to Figure \ref{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.Figure.PoissonKernel}
+to Figure \ref{Basics.Poissonkernel}
 for a visual impression and take notice of the fact that the parameter $h$
 allows for controlling the concentration of the function's energy around
 $t = 1$.
 
-\begin{figure}[htb]
+\begin{figure}[tb]
   \centering
   \includegraphics[height=9cm,width=12cm]{images/poisson}
   \caption{The Poisson kernel for different values of $h$. The $x$-axis is scaled
@@ -293,68 +322,14 @@ $t = 1$.
   $t=1$ and $t=-1$. This is the fashion, this function will be used in further
   investigations. It can be seen clearly that the energy more and more concentrates around
   $\vtheta = 0$ as $h$ gets closer to 1.}
-  \label{LengendreFunctionsAndSphericalHarmonics.LegendrePolynomials.Figure.PoissonKernel}
+  \label{Basics.Poissonkernel}
 \end{figure}
 
 
-We now introduce the function space of spherical harmonics, a key to the treatment of spherical approximation problems.
-From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in spherical coordinates
-\begin{equation}
-  \label{SphericalHarmonics.LaplaceEquation.SphericalCoordinates}
-  \Delta f = \frac{\partial^2 f}{\partial r^2} + \frac{2}{r}\frac{\partial f}{\partial
-  r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \cdot \frac{\partial f}{\partial
-  \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
-\end{equation}
-Using an ansatz based on separation of variables and taking into account that $r = 1$, one obtains the solutions
-\begin{equation}
-  \label{LegendreFunctionsAndSphericalHarmonics.SphericalHarmonics}
-  \begin{split}
-    Y_{n,k}: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
-    \C,\\
-    \fun{Y_{n,k}}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
-    \fun{P_{n}^{\abs{k}}}{\cos \vtheta} e^{ik\vphi},
-  \end{split}
-\end{equation}
-where $n \in \N_{0},\ k = -n,-n+1,\dots,n$.
-An important result states that the functions $Y_{n,k}$ are contained in $\fun{\text{Harm}_n}{\twosphere}$.
-Due to the separability one proves easily
-that they also fulfill the orthogonality condition with respect to the standard scalar product on $\twosphere$:
-\begin{equation}
-\label{LengendreFunctionsAndSphericalHarmonics.SphericalHarmonics.Orthogonality1}
-\scalarproduct{Y_{n,j}}{Y_{m,k}}_{\twosphere} = \delta_{j,k} \delta_{n,m}\end{equation}
-If we now define $\mathcal{H}_n$ to be
-$\text{Harm}_n\paren{\twosphere}$, then
-for every $n \in \N_0$, the set
-\begin{equation}
-  \nonumber
-  \pset{Y_{n,k}}{|}{-n \le k \le n}
-\end{equation}
-forms an orthonormal basis of $\mathcal{H}_n$, since $\dim \mathcal{H}_n =
-2n+1$. Moreover, the spaces $\mathcal{H}_n$ are orthogonal
-to each other and the set 
-$$\pset{Y_{n,k}}{|}{n = 0,1,\dots,N,\ k = -n,-n+1,\dots,n},\ N \in
-\N_0$$ provides an orthonormal basis for the space
-$\bigoplus_{n=0}^{N}\mathcal{H}_n$ called
-the space of \emph{spherical harmonics} of degree $N$.
+\label{Basics:SphericalKernels}
 
-At first glance, the restriction to homogeneous and harmonic polynomials
-might exclude various functions from being as well representable
-as in $\fun{\Pi_n}{\twosphere}$. But as a matter of fact these
-spaces are identical, i.e. 
-\begin{equation}
-  \nonumber
-    \fun{\Pi_N}{\twosphere} = \bigoplus_{n=0}^{N}\mathcal{H}_n.
-\end{equation}
+\section{Fast Polynomial Multiplication}
+\label{Basics:FastPolynomialMultiplication}
 
-We finally mention the well-known addition theorem of
-spherical harmonics that relates basis functions of
-$\mathcal{H}_n$ and Legendre-polynomials.
-For every $\fun{L^2}{\twosphere}$ orthonormal basis
-$\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, it holds
-\begin{equation}
-\label{AdditionTheorem}
-  \sum_{k=-n}^{n} \fun{Y_{n,k}}{\V{\xi}}
-  \overline{\fun{Y_{n,k}}{\V{\eta}}} =
-  \frac{2n+1}{4\pi}\fun{P_n}{\scalarproduct{\V{\xi}}{\V{\eta}}_{\twosphere}}.
-\end{equation}
-
+\section{Nonuniform Fast Fourier Transform}
+\label{Basics:NFFT}
