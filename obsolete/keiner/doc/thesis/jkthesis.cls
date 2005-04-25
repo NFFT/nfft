@@ -1,28 +1,30 @@
-\NeedsTeXFormat{LaTeX2e} \ProvidesClass{jkthesis}
+% Minimum LaTeX version needed
+\NeedsTeXFormat{LaTeX2e} 
 
+% Document class provided
+\ProvidesClass{jkthesis}
+
+% Rquire package "ifthen"
 \RequirePackage{ifthen}
-\newboolean{@german} \setboolean{@german}{false}
 
+% Declare boolean for language
+\newboolean{@german} 
+\setboolean{@german}{false}
+
+% Declare language option
 \DeclareOption{german}{\setboolean{@german}{true}}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}} 
 \ProcessOptions 
 
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-  \pdffalse
-\else
-  \pdfoutput=1
-  \pdfcompresslevel=9
-  \pdftrue
-\fi
+% Load document class "article"
+\LoadClass[12pt,a4paper,pdftex,reqno,twoside]{article}
 
-\ifpdf
-  \LoadClass[12pt,a4paper,pdftex,reqno,twoside]{article}
-  \RequirePackage[a4paper=true, breaklinks=true, pdftex=true, hyperindex=true, colorlinks=true, 
-                  linkcolor=blue, anchorcolor=blue, citecolor=blue, filecolor=blue, menucolor=blue, 
-                  pagecolor=blue, urlcolor=blue, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true, 
-                  pdfstartview=FitH]{hyperref}
-  \hypersetup
+% Load package "hyperref"
+\RequirePackage[a4paper=true, breaklinks=true, pdftex=true, hyperindex=true, colorlinks=true, 
+                linkcolor=blue, anchorcolor=blue, citecolor=blue, filecolor=blue, menucolor=blue, 
+                pagecolor=blue, urlcolor=blue, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true, 
+                pdfstartview=FitH]{hyperref}
+\hypersetup
   {
     pdftitle = {}
     pdfsubject = {}
@@ -30,52 +32,44 @@
     pdfkeywords = {}
     pdfcreator = {}
     pdfproducer = {}
-  }
-\else
-  \LoadClass[12pt,a4paper,reqno,twoside]{article}
-  \RequirePackage[a4paper=true, hyperindex=true, colorlinks=true, 
-                  linkcolor=blue, anchorcolor=blue, citecolor=blue, filecolor=blue, menucolor=blue, 
-                  pagecolor=blue, urlcolor=blue]{hyperref}
-\fi
-
+}
 
 % Load some other packages
-\RequirePackage{latexsym}
 \RequirePackage{amsmath}
+% \RequirePackage[backrefs]{amsrefs}
+\RequirePackage{amsthm}
 \RequirePackage{amssymb}
 \RequirePackage{mathrsfs}
 \RequirePackage{graphicx}
 \RequirePackage{epsfig}
-\RequirePackage{theorem}
+%\RequirePackage[amsmath,amsthm]{ntheorem}
 \RequirePackage{t1enc}
 \RequirePackage[latin1]{inputenc}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{ae}
 \RequirePackage{exscale}
+%\RequirePackage{jkmath}
 
+% Page setup
 
+% Vertical
+\setlength{\voffset}{0mm}
+\setlength{\topmargin}{-15mm}
+\setlength{\headheight}{10mm} 
+\setlength{\headsep}{10mm}
+\setlength{\textheight}{237mm}
+\setlength{\footskip}{10mm}
 
-% page setup
+% Horizontal
+\setlength{\hoffset}{0mm}
+\setlength{\oddsidemargin}{5mm}
+\setlength{\evensidemargin}{5mm}
+\setlength{\textwidth}{150mm}
 
-  %vertical
-  \setlength{\voffset}{0mm}
-  \setlength{\topmargin}{-15mm}
-  \setlength{\headheight}{10mm} 
-  \setlength{\headsep}{10mm}
-  \setlength{\textheight}{237mm}
-  \setlength{\footskip}{10mm}
+% Set pagestyle
+\pagestyle{headings}
 
-  % horizontal
-  \setlength{\hoffset}{0mm}
-  \setlength{\oddsidemargin}{5mm}
-  \setlength{\evensidemargin}{5mm}
-  \setlength{\textwidth}{150mm}
-
-  % set pagestyle
-  \pagestyle{headings}
-
-
-
+% Define mathematical environments in English
 \newcommand{\englishnames}
 {
   \newtheorem{theorem}{Theorem}[section]
@@ -90,8 +84,10 @@
   \theoremstyle{remark}
   \newtheorem{remark}[theorem]{Remark}
   \numberwithin{equation}{section}
-  \newenvironment{proof}{\begin{Proof}}{\qed\end{Proof}}  
+  %\newenvironment{proof}{\begin{Proof}}{\qed\end{Proof}}  
 }
+
+% Define mathematical environments in German
 \newcommand{\germannames}
 {
   \renewtheorem{theorem}{Satz}[section]
@@ -105,14 +101,13 @@
   \theoremstyle{remark}
   \renewtheorem{remark}[theorem]{Bemerkung}
   \numberwithin{equation}{section}
-  \renewenvironment{proof}{\begin{Proof}}{\qed\end{Proof}}  
+  %\renewenvironment{proof}{\begin{Proof}}{\qed\end{Proof}}  
 }
 
+% Switch by language.
 \ifthenelse{\boolean{@german}}
 {\RequirePackage{ngerman}\germannames}
 {\englishnames}
-
-
 
 \newcommand{\jkNorm}[1]{\ensuremath{\left\|#1\right\|}}
 \newcommand{\jkAbs}[1]{\ensuremath{\left\vert#1\right\vert}}
@@ -120,7 +115,7 @@
 \newcommand{\jkSetV}[3]{\ensuremath{\left\{#1\ \left#2\ #3\right.\right\rbrace}}
 \newcommand{\jkEps}{\ensuremath{\varepsilon}}
 \newcommand{\jkTo}{\ensuremath{\longrightarrow}}
-\newcommand\qed{\hspace*{\fill}$\Box$}
+%\newcommand\qed{\hspace*{\fill}$\Box$}
 \newcommand{\N}{\ensuremath{\mathbb{N}}}
 \newcommand{\NZ}{\ensuremath{\mathbb{N}_{0}}}
 \newcommand{\Z}{\ensuremath{\mathbb{Z}}}
