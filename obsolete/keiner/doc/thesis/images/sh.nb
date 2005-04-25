@@ -1,0 +1,198 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      5213,        143]*)
+(*NotebookOutlinePosition[      5849,        165]*)
+(*  CellTagsIndexPosition[      5805,        161]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(<< Graphics`ParametricPlot3D`\)], "Input"],
+
+Cell[BoxData[
+    \(Do[\[IndentingNewLine]\ 
+      Do[\[IndentingNewLine]\ \ plotobj\  = \ 
+          SphericalPlot3D[
+            Abs[N[SphericalHarmonicY[k, n, \[Theta], \[Phi]]]], {\[Theta], 0, 
+              Pi}, {\[Phi], 0, 2  Pi}, PlotPoints \[Rule] {35, 70}, \ 
+            Axes \[Rule] False, \ 
+            Boxed \[Rule] 
+              False]; \ \[IndentingNewLine]\ \ Export["\<sh_\>"\  <> \ 
+            ToString[k]\  <> \ "\<_\>"\  <> \ ToString[n]\  <> \ "\<.png\>", 
+          plotobj, \ 
+          ImageResolution \[Rule] \ 600], \[IndentingNewLine]\ {n, \(-k\), 
+          k}], \ {k, 0, 3}]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Export["\<sh32.pdf\>", plot1]\)], "Input"],
+
+Cell[BoxData[
+    \("sh32.pdf"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Options[SphericalPlot3D]\)], "Input"],
+
+Cell[BoxData[
+    \({AmbientLight \[Rule] GrayLevel[0.`], AspectRatio \[Rule] Automatic, 
+      Axes \[Rule] True, AxesEdge \[Rule] Automatic, AxesLabel \[Rule] None, 
+      AxesStyle \[Rule] Automatic, Background \[Rule] Automatic, 
+      Boxed \[Rule] True, BoxRatios \[Rule] Automatic, 
+      BoxStyle \[Rule] Automatic, ColorOutput \[Rule] Automatic, 
+      Compiled \[Rule] True, DefaultColor \[Rule] Automatic, 
+      DefaultFont \[RuleDelayed] $DefaultFont, 
+      DisplayFunction \[RuleDelayed] $DisplayFunction, Epilog \[Rule] {}, 
+      FaceGrids \[Rule] None, FormatType \[RuleDelayed] $FormatType, 
+      ImageSize \[Rule] Automatic, Lighting \[Rule] True, 
+      LightSources \[Rule] {{{1.`, 0.`, 1.`}, 
+            RGBColor[1, 0, 0]}, {{1.`, 1.`, 1.`}, 
+            RGBColor[0, 1, 0]}, {{0.`, 1.`, 1.`}, RGBColor[0, 0, 1]}}, 
+      Plot3Matrix \[Rule] Automatic, PlotLabel \[Rule] None, 
+      PlotPoints \[Rule] Automatic, PlotRange \[Rule] Automatic, 
+      PlotRegion \[Rule] Automatic, PolygonIntersections \[Rule] True, 
+      Prolog \[Rule] {}, RenderAll \[Rule] True, Shading \[Rule] True, 
+      SphericalRegion \[Rule] False, TextStyle \[RuleDelayed] $TextStyle, 
+      Ticks \[Rule] Automatic, ViewCenter \[Rule] Automatic, 
+      ViewPoint \[Rule] {1.3`, \(-2.4`\), 2.`}, 
+      ViewVertical \[Rule] {0.`, 0.`, 1.`}}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \("\<sh_\>"\  <> \ ToString[3]\)], "Input"],
+
+Cell[BoxData[
+    \("sh_3"\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(G[t_, 
+        h_]\  := \ \((1 - 
+            h^2)\)/\((\((1 - 2*h*t + h^2)\)^\((3/2)\))\)\)], "Input"],
+
+Cell[BoxData[
+    \(SP[\[Theta]1_, \[Phi]1_, \[Theta]2_, \[Phi]2_]\  := \ 
+      Cos[\[Theta]1]*Cos[\[Theta]2]\  + \ 
+        Sin[\[Theta]1]*Sin[\[Theta]2]*Cos[\[Phi]1 - \[Phi]2]\)], "Input"],
+
+Cell[BoxData[
+    \(K[\[Theta]1_, \[Phi]1_, \[Theta]2_, \[Phi]2_, h_]\  := \ 
+      G[SP[\[Theta]1, \[Phi]1, \[Theta]2, \[Phi]2], h]\)], "Input"],
+
+Cell[BoxData[""], "Input"],
+
+Cell[BoxData[
+    \(Do[\[IndentingNewLine]\ 
+      plotobj\  = \ 
+        SphericalPlot3D[
+          1 + 0.035*K[\[Theta], \[Phi], 0, 0, h], {\[Theta], 0, Pi}, {\[Phi], 
+            0, 2  Pi}, PlotPoints \[Rule] {100, 50}, \ Axes \[Rule] False, 
+          Boxed \[Rule] False, 
+          ViewPoint -> {1.570, \ \(-2.641\), \ 1.418}]; \[IndentingNewLine]\ 
+      Export["\<p_\>"\  <> \ ToString[h]\ \  <> \ "\<.png\>", plotobj, \ 
+        ImageResolution \[Rule] \ 600], \[IndentingNewLine]{h, 0.7, 0.95, 
+        0.05}]\)], "Input"]
+},
+FrontEndVersion->"5.0 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 755}},
+WindowSize->{1144, 728},
+WindowMargins->{{4, Automatic}, {Automatic, 1}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 62, 1, 27, "Input"],
+Cell[1819, 54, 619, 12, 107, "Input"],
+
+Cell[CellGroupData[{
+Cell[2463, 70, 62, 1, 27, "Input"],
+Cell[2528, 73, 44, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2609, 79, 57, 1, 27, "Input"],
+Cell[2669, 82, 1355, 21, 123, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4061, 108, 61, 1, 27, "Input"],
+Cell[4125, 111, 40, 1, 27, "Output"]
+}, Open  ]],
+Cell[4180, 115, 123, 3, 27, "Input"],
+Cell[4306, 120, 191, 3, 27, "Input"],
+Cell[4500, 125, 145, 2, 27, "Input"],
+Cell[4648, 129, 26, 0, 27, "Input"],
+Cell[4677, 131, 532, 10, 91, "Input"]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
