@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      5213,        143]*)
-(*NotebookOutlinePosition[      5849,        165]*)
-(*  CellTagsIndexPosition[      5805,        161]*)
+(*NotebookOptionsPosition[      6129,        173]*)
+(*NotebookOutlinePosition[      6765,        195]*)
+(*  CellTagsIndexPosition[      6721,        191]*)
 (*WindowFrame->Normal*)
 
 
@@ -69,10 +69,22 @@ Cell[BoxData[
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(Export["\<sh32.pdf\>", plot1]\)], "Input"],
+    \(Do[\[IndentingNewLine]\ 
+      Do[\[IndentingNewLine]\ \ plotobj\  = \ 
+          SphericalPlot3D[
+            1 + 3*Re[
+                  N[SphericalHarmonicY[k, n, \[Theta], \[Phi]]]], {\[Theta], 
+              0, Pi}, {\[Phi], 0, 2  Pi}, PlotPoints \[Rule] {35, 70}, \ 
+            Axes \[Rule] False, \ Boxed \[Rule] False, \ 
+            DisplayFunction \[Rule] 
+              Identity]; \ \[IndentingNewLine]\ \ Export["\<sh_r_\>"\  <> \ 
+            ToString[k]\  <> \ "\<_\>"\  <> \ ToString[n]\  <> \ "\<.png\>", 
+          plotobj, \ 
+          ImageResolution \[Rule] \ 600], \[IndentingNewLine]\ {n, \(-k\), 
+          k}], \ {k, 2, 4}]\)], "Input"],
 
 Cell[BoxData[
-    \("sh32.pdf"\)], "Output"]
+    \($Aborted\)], "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -139,7 +151,25 @@ Cell[BoxData[
           ViewPoint -> {1.570, \ \(-2.641\), \ 1.418}]; \[IndentingNewLine]\ 
       Export["\<p_\>"\  <> \ ToString[h]\ \  <> \ "\<.png\>", plotobj, \ 
         ImageResolution \[Rule] \ 600], \[IndentingNewLine]{h, 0.7, 0.95, 
-        0.05}]\)], "Input"]
+        0.05}]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(NIntegrate[G[t, 0.8], {t, \(-1\), 1}]\)], "Input"],
+
+Cell[BoxData[
+    \(1.9999999999999858`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(G[0.3, 0.7]\)], "Input"],
+
+Cell[BoxData[
+    \(0.460780943376905`\)], "Output"]
+}, Open  ]]
 },
 FrontEndVersion->"5.0 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 755}},
@@ -168,24 +198,34 @@ Cell[1754, 51, 62, 1, 27, "Input"],
 Cell[1819, 54, 619, 12, 107, "Input"],
 
 Cell[CellGroupData[{
-Cell[2463, 70, 62, 1, 27, "Input"],
-Cell[2528, 73, 44, 1, 27, "Output"]
+Cell[2463, 70, 681, 13, 107, "Input"],
+Cell[3147, 85, 42, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[2609, 79, 57, 1, 27, "Input"],
-Cell[2669, 82, 1355, 21, 123, "Output"]
+Cell[3226, 91, 57, 1, 27, "Input"],
+Cell[3286, 94, 1355, 21, 123, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[4061, 108, 61, 1, 27, "Input"],
-Cell[4125, 111, 40, 1, 27, "Output"]
+Cell[4678, 120, 61, 1, 27, "Input"],
+Cell[4742, 123, 40, 1, 27, "Output"]
 }, Open  ]],
-Cell[4180, 115, 123, 3, 27, "Input"],
-Cell[4306, 120, 191, 3, 27, "Input"],
-Cell[4500, 125, 145, 2, 27, "Input"],
-Cell[4648, 129, 26, 0, 27, "Input"],
-Cell[4677, 131, 532, 10, 91, "Input"]
+Cell[4797, 127, 123, 3, 27, "Input"],
+Cell[4923, 132, 191, 3, 27, "Input"],
+Cell[5117, 137, 145, 2, 27, "Input"],
+Cell[5265, 141, 26, 0, 27, "Input"],
+Cell[5294, 143, 532, 10, 91, "Input"],
+
+Cell[CellGroupData[{
+Cell[5851, 157, 70, 1, 27, "Input"],
+Cell[5924, 160, 53, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6014, 166, 44, 1, 27, "Input"],
+Cell[6061, 169, 52, 1, 27, "Output"]
+}, Open  ]]
 }
 ]
 *)

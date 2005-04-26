@@ -341,8 +341,85 @@ $t = 1$.
 
 \label{Basics:SphericalKernels}
 
+\section{Discrete Cosine Transform}
+\label{Basics:DiscreteCosineTransform}
+
+\emph{Discrete cosine transforms (DCT)} are a class of real transforms closely related to the 
+in general complex \emph{discrete Fourier transform}. They exploit the fact that the 
+input data is real and has even/odd symmetry. The Fourier transform of a real-even 
+function is real even and $i$ times the Fourier transform of a real-odd function is real 
+odd. Similar results hold for the discrete Fourier. Based on this fact, one can now define 
+transforms respecting the that the input and output data are real and the additional symmetry.
+Due to the discrete transform character, one has an additional choice: The symmetry can be 
+viewed relatively to a data point or to a point halfway between two data points. For our 
+purposes we confine ourselves with defining two variants.
+
+So for a fixed $N \in \N$ we define the matrices
+\begin{align}
+  \nonumber
+  C_N & := \paren{\cos \frac{(2j+1)k \pi}{2N}}_{j,k = 0}^{N-1}, & D_N & := \diag\, \paren{\varepsilon_j^N}_{j = 0}^{N-1}
+\end{align}
+with $\varepsilon_0^N := \frac{1}{2}$ and $\varepsilon_j^N := 1$ for $j = 1,\ldots,N-1$.
+The discrete cosine transforms of type II and III are then defined as follows:
+\begin{align}
+  \nonumber
+  \text{DCT-II($N$): } & \R^N \rightarrow \R^N, \V{\tilde{a}} := C_{N}\, \V{a},\\
+  \nonumber
+  \text{DCT-III($N$): } & \R^N \rightarrow \R^N, \V{\tilde{b}} := C_{N}^{\transp} D_{N}\, \V{b}, 
+\end{align}
+where $\V{a} := \paren{a_k}_{k=0}^{N-1} \in \R^N$ is the input vector and $\V{\tilde{a}} := 
+\paren{\tilde{a}_k}_{k=0}^{N-1} \in \R^N$ is the output vector and similarly $\V{b}$ and $\V{\tilde{b}}$. 
+The Chebyshev polynomials of the first kind $T_{k}$ are given by $\fun{T_{k}}{x} := \fun{\cos}{k \arccos x}$ 
+and we get
+\begin{eqnarray*}
+  \tilde{a_{j}} & = & \sum_{k = 0}^{N-1} a_{k} \cos \frac{(2j+1)k \pi}{2N} = \sum_{k = 0}^{N-1} a_{k} \fun{T_{k}}{\cos \frac{(2j+1) \pi}{2N}},\\
+  \tilde{b_{j}} & = & \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \cos \frac{(2k+1)j \pi}{2N} = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \fun{T_{j}}{\cos \frac{(2k+1) \pi}{2N}}.\\
+\end{eqnarray*}
+The following lemma relates the two transforms to each other showing that the DCT-II is the inverse for the DCT-III an vice versa.
+\begin{lemma}
+  It holds
+  $$ C_{N}C_{N}^{\transp}D_{N} = C_{N}^{\transp}D_{N}C_{N} = \frac{N}{2} I_{N}. $$
+\end{lemma}
+
 \section{Fast Polynomial Multiplication}
 \label{Basics:FastPolynomialMultiplication}
+A polynomial $Q \in \Pol_{N}$, $N \in \NZ$ is uniquely determined by it's \emph{Chebyshev coefficients} 
+$b_{k}$, $k = 0,\ldots,N$ with
+$\fun{Q}{\cdot} = \sum_{k=0}^N b_{k} \fun{T_{k}}{\cdot}$. Given now a second polynomial $P \in \Pol_{N-1}$ with 
+Chebyshev-coefficients $a_{k}$, $k = 0,\ldots,N-1$, we describe a fast algorithm for computing the 
+Chebyshev coefficients of the polynomial product $R := P Q \in Pol_{2N-1}$. The polynomial $r$ is uniquely determined 
+by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$ for $j = 0,\ldots,2N-1$ and 
+by \eqref{} we obtain
+\begin{eqnarray*}
+  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = C_{2N}^{\transp} \paren{a_{k}}_{k}^{2N-1},\\
+  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = C_{2N}^{\transp} \paren{b_{k}}_{k}^{2N-1},
+\end{eqnarray*}
+where we set $a_{k} = 0$ for $k > N-1$ and $b_{k} = 0$ for $k > N$ respectively. This means that the evaluation 
+of the polynomials $P$ and $Q$ can be performed using each time a DCT-III of length $2N$ where we additionally have to 
+compensate for the twiddle factor introduced by the matrix $D_{2N}$,
+Once calculated the products $f_{j}$, the Chebyshev coefficients of $c_{k}$, $k = 0,\ldots,2N-1$ of $R$ and after
+taking into account that $C_{2N}^{-\transp} = \frac{2}{2N} D_{2N} C_{2N}$ one gets
+$$ \paren{c_{k}}_{k=0}^{2N-1} = \frac{2}{2N} D_{2N} C_{2N} \paren{f_{j}}_{j = 0}^{2N-1}.$$
+This leads to the following algorithm:
+
+\begin{algorithm}[ht]
+  \caption{Fast polynomial multiplication in Chebyshev representation with DCTs}
+  \label{Afastpoly}    
+  \begin{algorithmic}
+    \STATE  Input:  $N = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{N-1}$, $\paren{b_{k}}_{k = 0}^{N}$
+    \STATE
+    \STATE Evaluate the polynomials at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4N}}_{j = 0}^{2N-1}$
+      using two fast DCT-IIIs of length $2N$
+    \STATE 
+    \FOR {$j=0,\ldots , 2N-1$} 
+      \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
+    \ENDFOR
+    \STATE
+    \STATE Calculate the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2N-1}$ using a fast DCT-II 
+    \STATE
+    \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+\end{algorithmic}
+\end{algorithm}
 
 \section{Nonuniform Fast Fourier Transform}
 \label{Basics:NFFT}
