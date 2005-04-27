@@ -99,131 +99,188 @@ $$
 for $l=0,\ldots,\frac{}{}$and therefore
 $$ g_n = \sum_{l = 0}^{\frac{M}{4}-1} a_{4l}^{(1)} P_{4l}^{\abs{n}} + a_{4l+1}^{(1)} P_{4l+1}^{\abs{n}} $$
 with
-$$
-\left(\begin{array}{c}
-  a_{4l}^{(1)}\\
-  a_{4l+1}^{(1)} 
-\end{array}\right)
-=\left(\begin{array}{c}
-  a_{4l}^{(0)}\\
-  a_{4l+1}^{(0)} 
-\end{array}\right)
-+ {\mathbf{U}_{1}^{|n|}\left(\cdot,4l+1\right)}
-\left(\begin{array}{c}
-  a_{4l+2}^{(0)}\\
-  a_{4l+3}^{(0)} 
-\end{array}\right).
-$$
-
-We divide the sum \eqref{} into chunks of 
-four associated Legendre functions by
-$$ g_n = \sum_{k = \abs{n}}^{M-1}$$
+\begin{equation}
+\label{NFSFT:FirstStep}
+  \left(\begin{array}{c}
+    a_{4l}^{(1)}\\
+    a_{4l+1}^{(1)} 
+  \end{array}\right)
+  =  \left(\begin{array}{c}
+    a_{4l}^{(0)}\\
+    a_{4l+1}^{(0)} 
+  \end{array}\right)
+  + {\mathbf{U}_{1}^{|n|}\left(\cdot,4l+1\right)}
+  \left(\begin{array}{c}
+    a_{4l+2}^{(0)}\\
+    a_{4l+3}^{(0)} 
+  \end{array}\right).
+\end{equation}
+We can use Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2$ to compute 
+the polynomial products in \eqref{NFSFT:FirstStep}. Applying this idea repeatedly leads to a cascade 
+summation as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation} calculating in step $\tau$
+\begin{equation}
+  \nonumber
+  \left(\begin{array}{c}
+    a_{2^{\tau+1}l}^{(\tau)}\\
+    a_{2^{\tau+1}l+1}^{(\tau)} 
+  \end{array}\right)
+  =  \left(\begin{array}{c}
+    a_{2^{\tau+1}l}^{(\tau-1)}\\
+    a_{2^{\tau+1}l+1}^{(\tau-1)} 
+  \end{array}\right)
+  + {\mathbf{U}_{2^{\tau}-1}^{|n|}\left(\cdot,2^{\tau+1}l+1\right)}
+  \left(\begin{array}{c}
+    a_{2^{\tau+1}l+2}^{(\tau-1)}\\
+    a_{2^{\tau+1}l+3}^{(\tau-1)} 
+  \end{array}\right).
+\end{equation}
+by applying Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2^{\tau}$. 
+After step $j-1$ we arrive at
+\begin{equation}
+  \nonumber
+  g_n = a_{0}^{j-1} P_{0}^{\abs{n}} + a_{1}^{j-1} P_{1}^{\abs{n}}
+\end{equation}
+Since 
+\begin{align}
+  \nonumber
+  P_{0}^n(x) & = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!}, & P_{1}^n(x) & = \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+\end{align} 
+we get
+\begin{equation}
+  \label{NFSFT:LastStep}
+  g_n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{j-1} + a_{1}^{j-1} \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+\end{equation}
+Using 
+\begin{equation}
+  \nonumber
+  xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)
+\end{equation}
+one can calculate the remaining polynomial products in \eqref{NFSFT:LastStep} with elementary 
+vector operations to yield the Chebyshev coefficients of $g_n$. The case, where $n$ is odd can 
+be treated similarly and differs mainly in the last step.
 
 \begin{figure}
-  \label{test}
-  \caption{To be written...}
+  \label{NFSFT:Figure:CascadeSummation}
   % Cascade summation
   \unitlength0.87cm
-  \begin{picture}(14,14)
-    % setze 6 Boxen
-    \multiput(0,0)(0,2.5){6}{\framebox(14,1)[lb]}
-    % schreibe in die 1. Box
-    \multiput(1.64,12.5)(1.64,0){8}{\line(0,1){1}}
-    %\put(14.4,12.8){\large $\in \mathbb R$}
-    \put(0.3,12.8){\large $0$}
-    \put(1.0,12.8){\large $0$}
-    \put(1.94,12.8){\large $0$}
-    \put(2.64,12.8){\large $0$}
-    \put(3.59,12.8){\large $a_4^4$}
-    \put(4.29,12.8){\large $a_5^4$}
-    \put(5.24,12.8){\large $a_6^4$}
-    \put(5.94,12.8){\large $a_7^4$}
-    \put(6.88,12.8){\large $a_8^4$}
-    \put(7.58,12.8){\large $a_9^4$}
-    \put(8.45,12.8){\large $a_{10}^4$}
-    \put(9.15,12.8){\large $a_{11}^4$}
-    \put(10.1,12.8){\large $a_{12}^4$}
-    \put(10.8,12.8){\large $a_{13}^4$}
-    \put(11.75,12.8){\large $a_{14}^4$}
-    \put(12.4,12.8){\large $a_{15}^4$}
-    \put(13.3,12.8){\large $a_{16}^4$}
-    % schreibe zwischen 2. und 3. Box
-    \multiput(12.2,11.5)(1.3,0){2}{\line(0,1){1}}
-    \put(12.2,11.5){\line(1,0){1.3}}
-    \put(12.7,11){\line(0,1){0.5}}
-    %\multiput(0.82,11)(1.64,0){7}{\line(0,1){1.5}}
-    \multiput(4.12,11)(1.64,0){5}{\line(0,1){1.5}}
-    % schreibe in die 2. Box
-    \multiput(1.64,10)(1.64,0){7}{\line(0,1){1}}
-    %\put(14.4,10.3){\large $\in \Pi_1$}
-    \put(0.2,10.3){\large $0$}
-    \put(0.9,10.3){\large $0$}
-    \put(1.8,10.3){\large $0$}
-    \put(2.5,10.3){\large $0$}
-    \put(3.5,10.3){\large $a_4^{(0)}$}
-    \put(4.2,10.3){\large $a_5^{(0)}$}
-    \put(5.1,10.3){\large $a_6^{(0)}$}
-    \put(5.8,10.3){\large $a_7^{(0)}$}
-    \put(6.75,10.3){\large $a_8^{(0)}$}
-    \put(7.45,10.3){\large $a_9^{(0)}$}
-    \put(8.35,10.3){\large $a_{10}^{(0)}$}
-    \put(9.05,10.3){\large $a_{11}^{(0)}$}
-    \put(10.05,10.3){\large $a_{12}^{(0)}$}
-    \put(10.7,10.3){\large $a_{13}^{(0)}$}
-    \put(12.05,10.3){\large $a_{14}^{(0)}$}
-    \put(13.1,10.3){\large $a_{15}^{(0)}$}
-    % schreibe zwischen 2. und 3. Box
-    %\multiput(0.82,9)(1.64,0){7}{\line(0,1){1}}
-    \multiput(4.10,9)(1.64,0){5}{\line(0,1){1}}
-    \put(12.8,9){\line(0,1){1}}
-    %\multiput(0.82,9)(3.28,0){3}{\line(1,0){1.64}}
-    \multiput(4.10,9)(3.28,0){2}{\line(1,0){1.64}}
-    \put(10.66,9){\line(1,0){2.14}}
-    %\multiput(1.64,8.5)(3.28,0){4}{\line(0,1){0.5}}
-    \multiput(4.92,8.5)(3.28,0){3}{\line(0,1){0.5}}
-    %\put(0.95,9.3){$ U_1^4(\, \cdot\, ,1)$}
-    \put(4.23,9.3){$ U_1^4(\, \cdot\, ,5)$}
-    \put(7.45,9.3){$ U_1^4(\, \cdot\, ,9)$}
-    \put(10.79,9.3){$ U_1^4(\; \cdot\; ,13)$}
-    % schreibe in die 3. Box
-    \multiput(3.3,7.5)(3.3,0){3}{\line(0,1){1}}
-    %\put(14.4,7.8){\large $\in \Pi_3$}
-    \put(0.82,7.8){\large $0$}
-    \put(2.2,7.8){\large $0$}
-    \put(3.8,7.8){\large $a_4^{(1)}$}
-    \put(5.5,7.8){\large $a_5^{(1)}$}
-    \put(7,7.8){\large $a_8^{(1)}$}
-    \put(8.8,7.8){\large $a_9^{(1)}$}
-    \put(10.5,7.8){\large $a_{12}^{(1)}$}
-    \put(12.5,7.8){\large $a_{13}^{(1)}$}
-    % schreibe zwischen 3. und 4. Box
-    \multiput(1.64,6.5)(3.28,0){4}{\line(0,1){1}}
-    \put(1.64,6.5){\line(1,0){3.28}}
-    \put(8.2,6.5){\line(1,0){3.28}}
-    \multiput(3.3,6.0)(6.6,0){2}{\line(0,1){0.5}}
-    \put(2.4,6.8){$ U_3^4(\; \cdot\; ,1)$}
-    \put(9.2,6.8){$ U_3^4(\; \cdot\; ,9)$}
-    % schreibe in die 4. Box
-    %\put(14.4,5.5){\large $\in \Pi_7$}
-    \put(6.5,5){\line(0,1){1}}
-    \put(2,5.3){\large $a_0^{(2)}$}
-    \put(4,5.3){\large $a_1^{(2)}$}
-    \put(8.5,5.3){\large $a_8^{(2)}$}
-    \put(10.5,5.3){\large $a_9^{(2)}$}
-    % schreibe zwischen 4. und 5. Box
-    \multiput(3.3,4.0)(6.6,0){2}{\line(0,1){1}}
-    \put(3.3,4){\line(1,0){6.6}}
-    \put(5.8,4.3){$ U_7^4(\; \cdot\; ,1)$}
-    \put(6.5,3.5){\line(0,1){0.5}}
-    \put(6.5,1){\line(0,1){1.5}}
-    % schreibe in die 4. Box
-    %\put(14.4,2.8){\large $\in \Pi_{15}$}
-    %\put(14.4,0.3){\large $\in \Pi_{16}$}
-    \put(3,2.8){\large $a_0^{(3)}$}
-    \put(9.5,2.8){\large $a_1^{(3)}$}
-    \put(6.2,0.3){\large $\left(g_4(\cos\frac{s\pi}{16})\right)_{s=0,\ldots,16}$}
-  \end{picture}
+    \begin{picture}(14,14)
+      % setze 6 Boxen
+      \multiput(0,0)(0,2.5){6}{\framebox(14,1)[lb]}
+      % schreibe in die 1. Box
+      \multiput(1.64,12.5)(1.64,0){8}{\line(0,1){1}}
+      %\put(14.4,12.8){\large $\in \mathbb R$}
+      \put(0.3,12.8){\large $0$}
+      \put(1.0,12.8){\large $0$}
+      \put(1.94,12.8){\large $0$}
+      \put(2.64,12.8){\large $0$}
+      \put(3.59,12.8){\large $a_4^4$}
+      \put(4.29,12.8){\large $a_5^4$}
+      \put(5.24,12.8){\large $a_6^4$}
+      \put(5.94,12.8){\large $a_7^4$}
+      \put(6.88,12.8){\large $a_8^4$}
+      \put(7.58,12.8){\large $a_9^4$}
+      \put(8.45,12.8){\large $a_{10}^4$}
+      \put(9.15,12.8){\large $a_{11}^4$}
+      \put(10.1,12.8){\large $a_{12}^4$}
+      \put(10.8,12.8){\large $a_{13}^4$}
+      \put(11.75,12.8){\large $a_{14}^4$}
+      \put(12.4,12.8){\large $a_{15}^4$}
+      \put(13.3,12.8){\large $a_{16}^4$}
+      % schreibe zwischen 2. und 3. Box
+      \multiput(12.2,11.5)(1.3,0){2}{\line(0,1){1}}
+      \put(12.2,11.5){\line(1,0){1.3}}
+      \put(12.7,11){\line(0,1){0.5}}
+      %\multiput(0.82,11)(1.64,0){7}{\line(0,1){1.5}}
+      \multiput(4.12,11)(1.64,0){5}{\line(0,1){1.5}}
+      % schreibe in die 2. Box
+      \multiput(1.64,10)(1.64,0){7}{\line(0,1){1}}
+      %\put(14.4,10.3){\large $\in \Pi_1$}
+      \put(0.2,10.3){\large $0$}
+      \put(0.9,10.3){\large $0$}
+      \put(1.8,10.3){\large $0$}
+      \put(2.5,10.3){\large $0$}
+      \put(3.5,10.3){\large $a_4^{(0)}$}
+      \put(4.2,10.3){\large $a_5^{(0)}$}
+      \put(5.1,10.3){\large $a_6^{(0)}$}
+      \put(5.8,10.3){\large $a_7^{(0)}$}
+      \put(6.75,10.3){\large $a_8^{(0)}$}
+      \put(7.45,10.3){\large $a_9^{(0)}$}
+      \put(8.35,10.3){\large $a_{10}^{(0)}$}
+      \put(9.05,10.3){\large $a_{11}^{(0)}$}
+      \put(10.05,10.3){\large $a_{12}^{(0)}$}
+      \put(10.7,10.3){\large $a_{13}^{(0)}$}
+      \put(12.05,10.3){\large $a_{14}^{(0)}$}
+      \put(13.1,10.3){\large $a_{15}^{(0)}$}
+      % schreibe zwischen 2. und 3. Box
+      %\multiput(0.82,9)(1.64,0){7}{\line(0,1){1}}
+      \multiput(4.10,9)(1.64,0){5}{\line(0,1){1}}
+      \put(12.8,9){\line(0,1){1}}
+      %\multiput(0.82,9)(3.28,0){3}{\line(1,0){1.64}}
+      \multiput(4.10,9)(3.28,0){2}{\line(1,0){1.64}}
+      \put(10.66,9){\line(1,0){2.14}}
+      %\multiput(1.64,8.5)(3.28,0){4}{\line(0,1){0.5}}
+      \multiput(4.92,8.5)(3.28,0){3}{\line(0,1){0.5}}
+      %\put(0.95,9.3){$ U_1^4(\, \cdot\, ,1)$}
+      \put(4.23,9.3){$ U_1^4(\, \cdot\, ,5)$}
+      \put(7.45,9.3){$ U_1^4(\, \cdot\, ,9)$}
+      \put(10.79,9.3){$ U_1^4(\; \cdot\; ,13)$}
+      % schreibe in die 3. Box
+      \multiput(3.3,7.5)(3.3,0){3}{\line(0,1){1}}
+      %\put(14.4,7.8){\large $\in \Pi_3$}
+      \put(0.82,7.8){\large $0$}
+      \put(2.2,7.8){\large $0$}
+      \put(3.8,7.8){\large $a_4^{(1)}$}
+      \put(5.5,7.8){\large $a_5^{(1)}$}
+      \put(7,7.8){\large $a_8^{(1)}$}
+      \put(8.8,7.8){\large $a_9^{(1)}$}
+      \put(10.5,7.8){\large $a_{12}^{(1)}$}
+      \put(12.5,7.8){\large $a_{13}^{(1)}$}
+      % schreibe zwischen 3. und 4. Box
+      \multiput(1.64,6.5)(3.28,0){4}{\line(0,1){1}}
+      \put(1.64,6.5){\line(1,0){3.28}}
+      \put(8.2,6.5){\line(1,0){3.28}}
+      \multiput(3.3,6.0)(6.6,0){2}{\line(0,1){0.5}}
+      \put(2.4,6.8){$ U_3^4(\; \cdot\; ,1)$}
+      \put(9.2,6.8){$ U_3^4(\; \cdot\; ,9)$}
+      % schreibe in die 4. Box
+      %\put(14.4,5.5){\large $\in \Pi_7$}
+      \put(6.5,5){\line(0,1){1}}
+      \put(2,5.3){\large $a_0^{(2)}$}
+      \put(4,5.3){\large $a_1^{(2)}$}
+      \put(8.5,5.3){\large $a_8^{(2)}$}
+      \put(10.5,5.3){\large $a_9^{(2)}$}
+      % schreibe zwischen 4. und 5. Box
+      \multiput(3.3,4.0)(6.6,0){2}{\line(0,1){1}}
+      \put(3.3,4){\line(1,0){6.6}}
+      \put(5.8,4.3){$ U_7^4(\; \cdot\; ,1)$}
+      \put(6.5,3.5){\line(0,1){0.5}}
+      \put(6.5,1){\line(0,1){1.5}}
+      % schreibe in die 4. Box
+      %\put(14.4,2.8){\large $\in \Pi_{15}$}
+      %\put(14.4,0.3){\large $\in \Pi_{16}$}
+      \put(3,2.8){\large $a_0^{(3)}$}
+      \put(9.5,2.8){\large $a_1^{(3)}$}
+      \put(6.2,0.3){\large $\left(g_4(\cos\frac{s\pi}{16})\right)_{s=0,\ldots,16}$}
+    \end{picture}
+  \caption{To be written...}
 \end{figure}
+
+\begin{algorithm}[ht]
+  \caption{Fast Legendre Function transform}
+  \label{NFSFT:Algorithm:FLFT}    
+  \begin{algorithmic}
+    \STATE Input:  $M \in \NZ$, $n \in \Z$ $(\abs{n} \le M)$, $\paren{a_k^n}_{k=\abs{n},\ldots,M}$
+    \STATE Precompute: $j := \ceil{\log_2 M}$, $N := 2^j$, $\fun{U_{2^{\tau}-1}^{\abs{n}}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$ 
+    \STATE \invisible{Precompute:} for $\tau 1,\ldots,j-1$, $l = \floor{\frac{\abs{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{M}{2^{\tau+1}}}-1$ and
+    \STATE \invisible{Precompute:} 
+
+    \FOR {$j=0,\ldots , 2N-1$} 
+      \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
+    \ENDFOR
+    \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+\end{algorithmic}
+\end{algorithm}
+
 
 \section{Stabilization}
 \label{DSFT:Stabilization}

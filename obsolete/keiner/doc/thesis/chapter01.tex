@@ -8,7 +8,7 @@ Every point $\V{x} \in \R^3 \setminus \set{\V{0}}$ given in Cartesian coordinate
 $\paren{x_1,x_2,x_3}^{\transp}$ can be uniquely described in spherical coordinates by a vector
 $\paren{r,\vtheta,\vphi}^{\transp}$ with $r \in \Rp$, $\vtheta \in \interv{[}{0}{\pi}{]}$ and 
 $\vphi \in \interv{[}{0}{2\pi}{)}$.
-It holds 
+We have
 \begin{eqnarray*}
   \paren{x_1,x_2,x_3}^{\transp} & = & \paren{r \sin \vtheta \cos \vphi, r \sin \vtheta \sin \vphi, r \cos \vtheta}^{\transp}\\
   r & = & \sqrt{x_1^2+x_2^2+x_3^2} = \norm{\V{x}}_2.
@@ -21,7 +21,7 @@ spherical coordinate system is illustrated in Figure \ref{sphere}.
 Now let $\V{\xi} = \paren{\vtheta,\vphi}^{\transp}$, $\V{\eta} = \paren{\vtheta',\vphi'}^{\transp} \in
 \twosphere$ and $\alpha$ be the angle spanned by the origin, $\V{\xi}$ and $\V{\eta}$.
 Then the standard scalar product
-$\V{\xi} \V{\eta} = \cos\left(\alpha\right)$ is given by
+$\V{\xi} \: \V{\eta} = \cos\left(\alpha\right)$ is given by
 \begin{equation}
   \nonumber
   \fun{\cos}{\alpha} = \cos\vtheta\cos\vtheta' +
@@ -43,11 +43,12 @@ where $\Delta_{\V{x}}$ is the Laplacian
   \Delta_{\V{x}} = \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} +
   \frac{\partial^2}{\partial x_3^2}.
 \end{equation}
-Furthermore, the relations
-\begin{equation}
-  \fun{\dim}{\fun{\text{Hom}_k}{\R^3}} = \frac{(k+1)(k+2)}{2},\ 
+Furthermore, 
+\begin{align}
+  \nonumber
+  \fun{\dim}{\fun{\text{Hom}_k}{\R^3}} & = \frac{(k+1)(k+2)}{2}, & 
   \fun{\dim}{\fun{\text{Harm}_k}{\R^3}} = 2k+1
-\end{equation}
+\end{align}
 hold (see \cite{freeden}*{pp. 22, 28}) and we let $\mathcal{H}_k := \left.\fun{\text{Harm}_n}{\R^3}\right|_{\twosphere}$.
 
 \begin{figure}[htb]
@@ -63,14 +64,14 @@ hold (see \cite{freeden}*{pp. 22, 28}) and we let $\mathcal{H}_k := \left.\fun{\
 
 \section{Legendre Functions}
 \label{Basics:LegendreTypeFunctions}
-In this section we shortly define \emph{Legendre Polynomials}, \emph{associated Legendre functions} 
+In this section we briefly introduce \emph{Legendre Polynomials}, \emph{associated Legendre functions} 
 and \emph{associated Legendre polynomials} and collect some basic properties. These functions play 
 a major role in Fourier analysis on the sphere and are key for the algorithms related to Fourier 
 expansions developed in this text.
 
 The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in \N_{0}$ 
 as classical orthogonal polynomials are given by their corresponding 
-\emph{Rodrigues-formula}
+\emph{Rodrigues formula}
 \begin{equation}
   \nonumber
   \fun{P_k}{x} = \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
@@ -105,8 +106,8 @@ where
 v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
 \end{equation}
 A simple but at the same time very important idea is to define the associated Legendre functions $P_k^n$ also for 
-$k < n$ by means of the three-term recurrence relation
-$$ \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x} $$
+$k < n$ by means of the recurrence relation
+$$ \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x}\quad\paren{k \in \NZ}$$
 with
 \begin{eqnarray*}
   \alpha_{k}^n & := & \left\{
@@ -125,30 +126,29 @@ with
       w_{k}^n & \text{otherwise.}
     \end{array}\right.\\
 \end{eqnarray*}
-For even $n$ we set
+For even $n$ we let
 $$ \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}}$$
-and for odd $n$
+and for odd $n$ we define
 $$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2},$$
-respectively. For $k \ge n$ these functions coincide with the associated Legendre functions as defined in 
-\eqref{Basics:AssociatedLegendreDefinition}. As a matter of fact, $P_{k}^n$ is a polynomial 
-of degree $k$ for even $n$ while $\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree 
-$k-1$ for odd $n$.
+respectively. For $k \ge n$ this definition coincides \eqref{Basics:AssociatedLegendreDefinition}. 
+As a matter of fact, $P_{k}^n$ is a polynomial of degree $k$ for even $n$ while 
+$\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree $k-1$ for odd $n$.
 
-Based on the recurrence coefficients from Equation \eqref{Basics:AssociatedLegendreRecurrenceCoefficients} 
+Based on the recurrence coefficients from \eqref{Basics:AssociatedLegendreRecurrenceCoefficients} 
 and introducing a shift parameter $c \in \NZ$, we 
 define the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
 \begin{equation}
   \label{Basics:AssociatedLegendrePolynomials}
   \begin{split}
-    \fun{P_{-1}^n}{x,c} := 0,\ \fun{P_{0}^n}{x,c} := 1,\\
-    \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
+    & \fun{P_{-1}^n}{x,c} := 0,\ \fun{P_{0}^n}{x,c} := 1,\\
+    & \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
   \end{split}
 \end{equation}
-By induction one verifies the relation between associated Legendre functions and polynomials in the following lemma.
+By induction, one verifies the relation between associated Legendre functions and polynomials in the following lemma.
 \begin{lemma}
   \label{Basics:AssociatedLegendreRecurrence}
   Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinition} and 
-  \eqref{Basics:AssociatedLegendrePolynomials} respectively. Then it holds
+  \eqref{Basics:AssociatedLegendrePolynomials}. Then we have
   $$ \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. $$
 \end{lemma}
 
@@ -158,7 +158,8 @@ By induction one verifies the relation between associated Legendre functions and
 Spherical Harmonics on the sphere $\twosphere$ arise the same way as complex exponentials 
 $\e^{\im k x}$ on the circle $\mathbb{S}^1$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
 Speaking of Fourier analysis with respect to the sphere, one refers to Spherical Harmonics as the Fourier 
-Basis on $\twosphere$. In this section, we shortly introduce these basis functions mentioning basic properties.
+Basis on $\twosphere$. 
+%In this section, we shortly introduce these basis functions mentioning basic properties.
 
 From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in spherical coordinates
 \begin{equation}
@@ -167,15 +168,15 @@ From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in sp
   r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \cdot \frac{\partial f}{\partial
   \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
 \end{equation}
-%\begin{comment}Add reference here\end{comment}
+%*** \begin{comment}Add reference here\end{comment}
 Using an ansatz based on separation of variables and taking into account that $r = 1$ when restricting 
 \eqref{Basics:LaplaceBeltrami} to $\twosphere$, one obtains the solutions
 \begin{equation}
   \label{Basics:SphericalHarmonicsDefinition}
   \begin{split}
-    Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
+    & Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
     \C,\ n \in \NZ,\; k = -n,-n+1,\ldots,n,\\
-    \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
+    & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
     \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{\im n \vphi}.
   \end{split}
 \end{equation}
@@ -186,11 +187,15 @@ Due to the separability one proves easily that they also fulfill the orthogonali
   \nonumber
   \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} = \delta_{k,l} \delta_{n,m}
 \end{equation}
-with respect to the standard scalar product on $\twosphere$.
+with respect to the $\Ln{2}{\twosphere}$-scalar product 
+\begin{equation}
+  \nonumber
+  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} := \int_{0}^{2\pi} \int_{0}^{\pi} \fun{Y_{k}^n}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi.
+\end{equation}
 For every $k \in \NZ$, the set
 \begin{equation}
   \nonumber
-  \pset{Y_{k}^n}{|}{n = -k,-k1+1,\ldots,k}
+  \pset{Y_{k}^n}{|}{n = -k,-k+1,\ldots,k}
 \end{equation}
 forms an orthonormal basis of $ \mathcal{H}_k$, since $\dim \mathcal{H}_k =
 2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
@@ -200,16 +205,14 @@ provides an orthonormal basis for the space $\bigoplus_{k=0}^{K}\mathcal{H}_k$ c
 the space of \emph{spherical harmonics} of degree $K$.
 
 At first glance, the restriction to homogeneous and harmonic polynomials
-might exclude various functions from being as well representable
-as in $\fun{\Pol_K}{\twosphere}$. But as a matter of fact these
-spaces are identical, i.e. 
+might exclude various functions from $\fun{\Pol_K}{\twosphere}$. But as a 
+matter of fact these spaces are identical, i.e. 
 \begin{equation}
   \nonumber
     \fun{\Pol_K}{\twosphere} = \bigoplus_{k=0}^{K}\mathcal{H}_k.
 \end{equation}
 
 \begin{figure}[htbp]
-  \label{Basics:Figure:SphericalHarmonics}
   \centering
    \subfigure[$\abs{Y_{0}^{0}}$]
      {\includegraphics[width=0.3\textwidth]{images/sh_0_0.png}}\hfill
@@ -230,22 +233,22 @@ spaces are identical, i.e.
    \subfigure[$\abs{Y_{2}^{2}}$]
      {\includegraphics[width=0.3\textwidth]{images/sh_2_2.png}}\\
   \caption{To be written...}
+  \label{Basics:Figure:SphericalHarmonics}
 \end{figure}
 
 Finally, we mention the well known addition theorem for spherical harmonics 
-that relates functions $Y_k^n$ forming an orthonormal basis of $\mathcal{H}_n$ 
+that relates any functions $Y_k^n$ forming an orthonormal basis of $\mathcal{H}_n$ 
 to the Legendre polynomials. It particularly holds for the basis as given in 
-\eqref{Basics:SphericalHarmonicsDefinition} but
-generally is also applicable to every orthonormal basis.
+\eqref{Basics:SphericalHarmonicsDefinition}.
 
 \begin{proposition}[Addition Theorem]
   \label{Basics:AdditionTheorem}
-  For every $\fun{L^2}{\twosphere}$ orthonormal basis 
-  $\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, it holds
+  For every $\Ln{2}{\twosphere}$-orthonormal basis 
+  $\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, we have
   \begin{equation}
     \nonumber
     \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
-    \frac{2k+1}{4\pi}\fun{P_k}{\V{\xi} \V{\eta}}.
+    \frac{2k+1}{4\pi}\fun{P_k}{\V{\xi} \: \V{\eta}}.
   \end{equation}
 \end{proposition}
 
@@ -255,48 +258,44 @@ See \cite{freeden}*{p. 37} for a proof.
 A \emph{radial spherical kernel} is a radial symmetric function defined on the sphere. 
 Generally, one starts with a continuous function $G: \interv{[}{-1}{1}{]} \rightarrow \C$ and defines 
 for a fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
-$$ \fun{K_{\V{\eta}}}{\cdot} := \fun{G}{\scalarproduct{\eta}{\V{\cdot}}_{\twosphere}}.$$
+$$ \fun{K_{\V{\eta}}}{\cdot} := \fun{G}{\V{\eta} \: \V{\cdot}}.$$
 The function $G$ can be developed into a series of Legendre polynomials
 $$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}$$
 where the coefficients $a_k$ are the scalar products
 $$ a_k = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
 Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, one gets the kernel 
 representation
-$$\fun{K_{\V{\eta}}}{\cdot} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\scalarproduct{\V{\eta}}{\cdot}_{\twosphere}} =  
-\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
+$$\fun{K_{\V{\eta}}}{\cdot} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\cdot} \: \V{\eta}} =  
+\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\cdot}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
 One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
 spherical convolution. As an application of the algorithms developed in this text, one can derive 
 an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
 
-As an example of a radial spherical kernel function, we consider the generating series of the Legendre polynomials
+As an example of a radial spherical kernel function, we consider the generating series
 \begin{equation}
-  \label{GeneratingFunction}
-  \fun{\phi}{h} := \sum_{n = 0}^{\infty} \fun{P_n}{t} h^n,\ t \in
-  \interv{[}{-1}{1}{]}
+  \label{Basics:GeneratingFunction}
+  \fun{\phi}{h} := \sum_{n = 0}^{\infty} h^n \fun{P_n}{t}\ \paren{t \in \interv{[}{-1}{1}{]}}
 \end{equation}
 which is absolutely and uniformly convergent for $h \in
 \interv{(}{-1}{1}{)}$, it holds
 \begin{equation}
-  \label{Explicit}
-    \sum_{n = 0}^{\infty} \fun{P_n}{t} h^n = \frac{1}{\sqrt{1-2ht+h^2}}.
+  \nonumber
+  \sum_{n = 0}^{\infty} h^n \fun{P_n}{t} = \frac{1}{\sqrt{1-2ht+h^2}}.
 \end{equation}
 This follows from the ordinary differential equation
 \begin{equation}
-\label{DifferentialEquation}
+\label{Basics:DifferentialEquation}
   \paren{1+h^2-2ht}\fun{\phi'}{h} = \paren{t-h}\fun{\phi}{h}
 \end{equation}
-obtained by differentiation with respect to $h$ and comparing coefficients in line with Equation
-\eqref{Explicit.LegendrePolynomials.PowerSeries}. Using the initial 
-condition $\fun{\phi}{0}=1$ this yields the unique solution of Equation
-\eqref{DifferentialEquation}.
-From this result, the following identity follows easily:
+obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
+condition $\fun{\phi}{0}=1$ this yields the unique solution of \eqref{Basics:DifferentialEquation}.
+From this result, the identity
 \begin{equation}
   \nonumber
   \sum_{n=0}^{\infty} \paren{2n+1} \fun{P_n}{t} h^n =
   \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}}.
 \end{equation}
-
-When $h$ is restricted to $\interv{(}{0}{1}{)}$, the function
+ follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$, the function
 $G_h:\interv{[}{-1}{1}{]} \rightarrow \R$, with
 \begin{equation}
   \label{PoissonKernel}
@@ -304,8 +303,8 @@ $G_h:\interv{[}{-1}{1}{]} \rightarrow \R$, with
   \fun{G_h}{t} := \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}},
 \end{equation}
 is called \emph{Poisson kernel}. We refer 
-to Figure \ref{Basics.Poissonkernel}
-for a visual impression and take notice of the fact that the parameter $h$
+to Figures \ref{Basics:Figure:PoissonKernel} and \ref{Basics:Figure:PoissonKernel2}
+for a visual impression and mention that the parameter $h$
 allows for controlling the concentration of the function's energy around
 $t = 1$.
 
@@ -320,22 +319,22 @@ $t = 1$.
   $t=1$ and $t=-1$. This is the fashion, this function will be used in further
   investigations. It can be seen clearly that the energy more and more concentrates around
   $\vtheta = 0$ as $h$ gets closer to 1.}
-  \label{Basics.Poissonkernel}
+  \label{Basics:Figure:PoissonKernel}
 \end{figure}
 
-%\begin{figure}[tb]
-%  \label{Basics:PoissonKernel2}
-%  \centering
-%   \subfigure[To be written...]
-%     {\includegraphics[width=0.4\textwidth]{images/p_070.png}}\hfill
-%   \subfigure[To be written...]
-%     {\includegraphics[width=0.4\textwidth]{images/p_075.png}}\\
-%   \subfigure[To be written...]
-%     {\includegraphics[width=0.4\textwidth]{images/p_080.png}}\hfill
-%   \subfigure[To be written...]
-%     {\includegraphics[width=0.4\textwidth]{images/p_085.png}}
-%  \caption{To be written...}
-%\end{figure}
+\begin{figure}[tb]
+  \centering
+   \subfigure[To be written...]
+     {\includegraphics[width=0.4\textwidth]{images/p_070.png}}\hfill
+   \subfigure[To be written...]
+     {\includegraphics[width=0.4\textwidth]{images/p_075.png}}\\
+   \subfigure[To be written...]
+     {\includegraphics[width=0.4\textwidth]{images/p_080.png}}\hfill
+   \subfigure[To be written...]
+     {\includegraphics[width=0.4\textwidth]{images/p_085.png}}
+  \caption{To be written...}
+  \label{Basics:Figure:PoissonKernel2}
+\end{figure}
 
 \label{Basics:SphericalKernels}
 
@@ -402,7 +401,7 @@ This leads to the following algorithm:
 
 \begin{algorithm}[ht]
   \caption{Fast polynomial multiplication in Chebyshev representation with DCTs}
-  \label{Afastpoly}    
+  \label{Basics:Algorithm:FastPolynomialMultiplication}    
   \begin{algorithmic}
     \STATE  Input:  $N = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{N-1}$, $\paren{b_{k}}_{k = 0}^{N}$
     \STATE
