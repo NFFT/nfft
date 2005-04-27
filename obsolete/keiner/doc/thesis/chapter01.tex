@@ -4,65 +4,64 @@
 \section{Notational Conventions}
 \label{Basics:Notation}
 
-Every point $\V{\xi} \in \R^3 \setminus \set{\V{0}}$ given in Cartesian coordinates by the vector 
+Every point $\V{x} \in \R^3 \setminus \set{\V{0}}$ given in Cartesian coordinates by the vector 
 $\paren{x_1,x_2,x_3}^{\transp}$ can be uniquely described in spherical coordinates by a vector
 $\paren{r,\vtheta,\vphi}^{\transp}$ with $r \in \Rp$, $\vtheta \in \interv{[}{0}{\pi}{]}$ and 
 $\vphi \in \interv{[}{0}{2\pi}{)}$.
 It holds 
 \begin{eqnarray*}
   \paren{x_1,x_2,x_3}^{\transp} & = & \paren{r \sin \vtheta \cos \vphi, r \sin \vtheta \sin \vphi, r \cos \vtheta}^{\transp}\\
-  r & = & \sqrt{x_1^2+x_2^2+x_3^2} = \norm{\V{\xi}}_2.
+  r & = & \sqrt{x_1^2+x_2^2+x_3^2} = \norm{\V{x}}_2.
 \end{eqnarray*} 
-We denote by $\twosphere$ the $2$-nd unit sphere embedded into $\R^3$, i.e. 
-$$\twosphere := \pset{\V{\xi} \in \R^{3}}{|}{\norm{\V{\xi}}_2=1}$$ 
+We denote by $\twosphere$ the unit sphere embedded into $\R^3$, i.e. 
+$$\twosphere := \pset{\V{x} \in \R^{3}}{|}{\norm{\V{x}}_2=1}$$ 
 and identify $\V{\xi} \in \twosphere$ with the vector $\paren{\vtheta,\vphi}^{\transp}$. The 
 spherical coordinate system is illustrated in Figure \ref{sphere}.
 
 Now let $\V{\xi} = \paren{\vtheta,\vphi}^{\transp}$, $\V{\eta} = \paren{\vtheta',\vphi'}^{\transp} \in
 \twosphere$ and $\alpha$ be the angle spanned by the origin, $\V{\xi}$ and $\V{\eta}$.
 Then the standard scalar product
-$\scalarproduct{\V{\xi}}{\V{\eta}}_{2} = \cos\left(\alpha\right)$ is given by
+$\V{\xi} \V{\eta} = \cos\left(\alpha\right)$ is given by
 \begin{equation}
   \nonumber
   \fun{\cos}{\alpha} = \cos\vtheta\cos\vtheta' +
   \sin\vtheta\sin\vtheta'\fun{\cos}{\vphi-\vphi'}.
 \end{equation}
 
-The space of \emph{homogeneous polynomials} of degree $n \in \NZ$ in $\R^3$ is denoted by
-$\fun{\text{Hom}_n}{\R^3}$, comprising all polynomials $Q_n \in \Pol_{n}\paren{\R}$ fulfilling 
-$\fun{Q_n}{\alpha\:\V{\xi}} = \alpha^n \fun{Q_n}{\V{\xi}}$ for arbitrary $\alpha \in \R$ and $\V{\xi}
+The space of \emph{homogeneous polynomials} of degree $k \in \NZ$ in $\R^3$ is denoted by
+$\fun{\text{Hom}_k}{\R^3}$, comprising all polynomials $Q_k \in \Pol_{n}\paren{\R}$ fulfilling 
+$\fun{Q_k}{\alpha\:\V{x}} = \alpha^k \fun{Q_k}{\V{x}}$ for arbitrary $\alpha \in \R$ and $\V{x}
 \in \R^3$. The proper subspace of \emph{harmonic homogeneous polynomials} of
-degree $n$ is defined by
+degree $k$ is defined by
 \begin{equation}
   \nonumber
-  \fun{\text{Harm}_n}{\R^3} = \pset{Q_n \in \fun{\text{Hom}_n}{\R^3}}{|}{\Delta_x Q \equiv 0},
+  \fun{\text{Harm}_k}{\R^3} = \pset{Q_k \in \fun{\text{Hom}_k}{\R^3}}{|}{\Delta_{\V{x}} Q \equiv 0},
 \end{equation}
-where $\Delta_x$ is the Laplace-operator
+where $\Delta_{\V{x}}$ is the Laplacian
 \begin{equation}
   \nonumber
-  \Delta_x = \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} +
+  \Delta_{\V{x}} = \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} +
   \frac{\partial^2}{\partial x_3^2}.
 \end{equation}
 Furthermore, the relations
 \begin{equation}
-  \fun{\dim}{\fun{\text{Hom}_n}{\R^3}} = \frac{(n+1)(n+2)}{2},\ 
-  \fun{\dim}{\fun{\text{Harm}_n}{\R^3}} = 2n+1
+  \fun{\dim}{\fun{\text{Hom}_k}{\R^3}} = \frac{(k+1)(k+2)}{2},\ 
+  \fun{\dim}{\fun{\text{Harm}_k}{\R^3}} = 2k+1
 \end{equation}
-hold. We write $\fun{\text{Harm}_n}{\twosphere}$ instead of 
-$\left.\fun{\text{Harm}_n}{\R^3}\right|_{\twosphere}$.
+hold (see \cite{freeden}*{pp. 22, 28}) and we let $\mathcal{H}_k := \left.\fun{\text{Harm}_n}{\R^3}\right|_{\twosphere}$.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[height=12cm,width=12cm]{images/sphere}
-  \caption{The spherical coordinate system in $\R^3$. Every point $\xi$ on a
+  \caption{The spherical coordinate system in $\R^3$. Every point $\V{\xi}$ on a
   sphere with radius $r$ around the origin can be uniquely described by angles 
   $\vtheta$, $\vphi$ and the radius $r$. For $\vtheta = 0$ or
-  $\vtheta = \pi$ the point $\xi$ coincides with the North or the South
+  $\vtheta = \pi$ the point $\V{\xi}$ coincides with the North or the South
   pole, respectively.}
   \label{sphere}
 \end{figure}
 
-\section{Legendre-type functions}
+\section{Legendre Functions}
 \label{Basics:LegendreTypeFunctions}
 In this section we shortly define \emph{Legendre Polynomials}, \emph{associated Legendre functions} 
 and \emph{associated Legendre polynomials} and collect some basic properties. These functions play 
@@ -76,13 +75,12 @@ as classical orthogonal polynomials are given by their corresponding
   \nonumber
   \fun{P_k}{x} = \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \end{equation}
-The corresponding three-term recurrence relation is
-\begin{equation}
-  \nonumber
-  \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} -
-  k\fun{P_{k-1}}{x},\ k \in \N.
-\end{equation}
-
+%The corresponding three-term recurrence relation is
+%\begin{equation}
+%  \nonumber
+%  \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} -
+%  k\fun{P_{k-1}}{x},\ k \in \N.
+%\end{equation}
 Furthermore one defines the associated Legendre functions $P_k^n : \interv{[}{-1}{1}{]} \rightarrow \R$, 
 $n \in \NZ$, $k=n,n+1,\ldots$ as 
 \begin{equation}
@@ -94,15 +92,21 @@ For fixed $n$ the functions $\set{P_{k}^n}_{k=n,n+1,\ldots}$ form a complete set
 for $\Ln{2}{\interv{[}{-1}{1}{]}}$ with
 $$ \frac{1}{2} \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{1}{2k+1} \delta_{k,l}.$$
 Furthermore, associated Legendre functions fulfill the recurrence relation
-\begin{eqnarray*}
-  & & \fun{P_{n-1}^n}{x} := 0,\qquad \fun{P_{n}^n}{x} = \frac{((2n)!)}{2^n n!}^{1/2} \paren{1-x^2}^{n/2},\\
-  & & \fun{P_{k+1}^n}{x} = v_{k}^n x \fun{P_{k}^n}{x} + w_{k}^n \fun{P_{k-1}^n}{x} \quad (k = n,n+1,\ldots),
-\end{eqnarray*}
+\begin{equation}
+  \label{Basics:AssociatedLegendreDefinition}
+  \begin{split}
+    \fun{P_{n-1}^n}{x} & := 0,\qquad \fun{P_{n}^n}{x} := \frac{((2n)!)}{2^n n!}^{1/2} \paren{1-x^2}^{n/2},\\
+    \fun{P_{k+1}^n}{x} & = v_{k}^n x \fun{P_{k}^n}{x} + w_{k}^n \fun{P_{k-1}^n}{x} \quad (k = n,n+1,\ldots),
+  \end{split}
+\end{equation}
 where
-$$ v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}\; .$$
-A simple but at the same time very important idea is to define the associated Legendre functions also for 
+\begin{equation} 
+  \label{Basics:AssociatedLegendreRecurrenceCoefficients}
+v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
+\end{equation}
+A simple but at the same time very important idea is to define the associated Legendre functions $P_k^n$ also for 
 $k < n$ by means of the three-term recurrence relation
-$$ \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x} $$
+$$ \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x} $$
 with
 \begin{eqnarray*}
   \alpha_{k}^n & := & \left\{
@@ -121,83 +125,74 @@ with
       w_{k}^n & \text{otherwise.}
     \end{array}\right.\\
 \end{eqnarray*}
-For even $n$ one sets 
+For even $n$ we set
 $$ \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}}$$
 and for odd $n$
-$$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2}$$
-respectively. For $k >= n$ these functions coincide with the associated Legendre functions as defined above. 
-As a matter of fact, $P_{k}^n$ is a polynomial of degree $k$ for even $n$ while $\paren{1-x^2}^{-1/2}P_{k}^n$
-is a polynomial of degree $k-1$ for odd $n$.
+$$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2},$$
+respectively. For $k \ge n$ these functions coincide with the associated Legendre functions as defined in 
+\eqref{Basics:AssociatedLegendreDefinition}. As a matter of fact, $P_{k}^n$ is a polynomial 
+of degree $k$ for even $n$ while $\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree 
+$k-1$ for odd $n$.
 
-Based on the recurrence coefficients from Equation \eqref{} and introducing a shift parameter $c \in \NZ$, one 
-defines the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
-\begin{eqnarray*}
-  & & \fun{P_{-1}^n}{x,c} := 0,\ \fun{P_{0}^n}{x,c} := 1,\\
-  & & \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}
-\end{eqnarray*}
+Based on the recurrence coefficients from Equation \eqref{Basics:AssociatedLegendreRecurrenceCoefficients} 
+and introducing a shift parameter $c \in \NZ$, we 
+define the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
+\begin{equation}
+  \label{Basics:AssociatedLegendrePolynomials}
+  \begin{split}
+    \fun{P_{-1}^n}{x,c} := 0,\ \fun{P_{0}^n}{x,c} := 1,\\
+    \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
+  \end{split}
+\end{equation}
 By induction one verifies the relation between associated Legendre functions and polynomials in the following lemma.
 \begin{lemma}
-  Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in Equation \eqref{} and 
-  Equation \eqref{} respectively. Then it holds
+  \label{Basics:AssociatedLegendreRecurrence}
+  Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinition} and 
+  \eqref{Basics:AssociatedLegendrePolynomials} respectively. Then it holds
   $$ \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. $$
 \end{lemma}
-
-\newpage
-
-They can be characterized in ways similar
-to those for Legendre polynomials, for instance by the
-corresponding Rodrigues-formula or a differential equation. They
-play an important role in the definition of spherical harmonics.
-Note that for $k = 0$, the associated Legendre functions coincide with 
-the Legendre polynomials.
-Now let $k,m,n \in \N_0$, $k \le \min\encl{\{}{m,n}{\}}$. Then the associated
-Legendre functions fulfill the orthogonality condition
-\begin{equation}
-\nonumber
-  \int_{-1}^{1} \fun{P_{m}^{k}}{t} \fun{P_{n}^{k}}{t}\;dt =
-  \frac{2}{2n+1}\delta_{m,n}.
-\end{equation}
-
 
 \section{Spherical Harmonics}
 \label{Basics:SphericalHarmonics}
 
 Spherical Harmonics on the sphere $\twosphere$ arise the same way as complex exponentials 
-$e^{i k x}$ on the circle $\mathbb{S}^1$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
+$\e^{\im k x}$ on the circle $\mathbb{S}^1$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
 Speaking of Fourier analysis with respect to the sphere, one refers to Spherical Harmonics as the Fourier 
 Basis on $\twosphere$. In this section, we shortly introduce these basis functions mentioning basic properties.
 
 From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in spherical coordinates
 \begin{equation}
-  \label{SphericalHarmonics.LaplaceEquation.SphericalCoordinates}
+  \label{Basics:LaplaceBeltrami}
   \Delta f = \frac{\partial^2 f}{\partial r^2} + \frac{2}{r}\frac{\partial f}{\partial
   r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \cdot \frac{\partial f}{\partial
   \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
 \end{equation}
-Using an ansatz based on separation of variables and taking into account that $r = 1$ when restricting the 
-equation to $\twosphere$, one obtains the solutions
-\begin{eqnarray*}
-    & & Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
+%\begin{comment}Add reference here\end{comment}
+Using an ansatz based on separation of variables and taking into account that $r = 1$ when restricting 
+\eqref{Basics:LaplaceBeltrami} to $\twosphere$, one obtains the solutions
+\begin{equation}
+  \label{Basics:SphericalHarmonicsDefinition}
+  \begin{split}
+    Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
     \C,\ n \in \NZ,\; k = -n,-n+1,\ldots,n,\\
-    & & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
-    \fun{P_{k}^{\abs{n}}}{\cos \vtheta} e^{in\vphi}.
-\end{eqnarray*}
-Figure \ref{Basics:SphericalHarmonics} shows the absolute value of some of the 
+    \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
+    \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{\im n \vphi}.
+  \end{split}
+\end{equation}
+Figure \ref{Basics:Figure:SphericalHarmonics} shows the absolute value of some of the 
 functions $Y_{k}^{n}$. An important result is that these functions all are contained in $\fun{\text{Harm}_n}{\twosphere}$.
-Due to the separability one proves easily that they also fulfill the orthogonality condition with respect 
-to the standard scalar product on $\twosphere$:
+Due to the separability one proves easily that they also fulfill the orthogonality condition
 \begin{equation}
   \nonumber
-  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} = \delta_{k,k} \delta_{n,m}
+  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} = \delta_{k,l} \delta_{n,m}
 \end{equation}
-No let $\mathcal{H}_k$ denote
-$\text{Harm}_k\paren{\twosphere}$, then
-for every $k \in \NZ$, the set
+with respect to the standard scalar product on $\twosphere$.
+For every $k \in \NZ$, the set
 \begin{equation}
   \nonumber
   \pset{Y_{k}^n}{|}{n = -k,-k1+1,\ldots,k}
 \end{equation}
-forms an orthonormal basis of $\mathcal{H}_k$, since $\dim \mathcal{H}_k =
+forms an orthonormal basis of $ \mathcal{H}_k$, since $\dim \mathcal{H}_k =
 2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
 to each other and the set 
 $$\pset{Y_{k}^n}{|}{k = 0,1,\ldots,K,\ n = -k,-k+1,\ldots,k},\ K \in \NZ$$ 
@@ -214,7 +209,7 @@ spaces are identical, i.e.
 \end{equation}
 
 \begin{figure}[htbp]
-  \label{Basics:SphericalHarmonics}
+  \label{Basics:Figure:SphericalHarmonics}
   \centering
    \subfigure[$\abs{Y_{0}^{0}}$]
      {\includegraphics[width=0.3\textwidth]{images/sh_0_0.png}}\hfill
@@ -239,19 +234,22 @@ spaces are identical, i.e.
 
 Finally, we mention the well known addition theorem for spherical harmonics 
 that relates functions $Y_k^n$ forming an orthonormal basis of $\mathcal{H}_n$ 
-to the Legendre polynomials. It particularly holds for the basis as given above but
+to the Legendre polynomials. It particularly holds for the basis as given in 
+\eqref{Basics:SphericalHarmonicsDefinition} but
 generally is also applicable to every orthonormal basis.
 
 \begin{proposition}[Addition Theorem]
-  \label{AdditionTheorem}
+  \label{Basics:AdditionTheorem}
   For every $\fun{L^2}{\twosphere}$ orthonormal basis 
   $\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, it holds
   \begin{equation}
     \nonumber
     \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
-    \frac{2k+1}{4\pi}\fun{P_k}{\scalarproduct{\V{\xi}}{\V{\eta}}_{\twosphere}}.
+    \frac{2k+1}{4\pi}\fun{P_k}{\V{\xi} \V{\eta}}.
   \end{equation}
 \end{proposition}
+
+See \cite{freeden}*{p. 37} for a proof.
 
 \section{Radial Spherical Kernels}
 A \emph{radial spherical kernel} is a radial symmetric function defined on the sphere. 
@@ -262,7 +260,7 @@ The function $G$ can be developed into a series of Legendre polynomials
 $$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}$$
 where the coefficients $a_k$ are the scalar products
 $$ a_k = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
-Applying the Addition Theorem from Proposition \ref{AdditionTheorem}, one gets the kernel 
+Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, one gets the kernel 
 representation
 $$\fun{K_{\V{\eta}}}{\cdot} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\scalarproduct{\V{\eta}}{\cdot}_{\twosphere}} =  
 \sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
@@ -325,19 +323,19 @@ $t = 1$.
   \label{Basics.Poissonkernel}
 \end{figure}
 
-\begin{figure}[tb]
-  \label{Basics:PoissonKernel2}
-  \centering
-   \subfigure[To be written...]
-     {\includegraphics[width=0.4\textwidth]{images/p_070.png}}\hfill
-   \subfigure[To be written...]
-     {\includegraphics[width=0.4\textwidth]{images/p_075.png}}\\
-   \subfigure[To be written...]
-     {\includegraphics[width=0.4\textwidth]{images/p_080.png}}\hfill
-   \subfigure[To be written...]
-     {\includegraphics[width=0.4\textwidth]{images/p_085.png}}
-  \caption{To be written...}
-\end{figure}
+%\begin{figure}[tb]
+%  \label{Basics:PoissonKernel2}
+%  \centering
+%   \subfigure[To be written...]
+%     {\includegraphics[width=0.4\textwidth]{images/p_070.png}}\hfill
+%   \subfigure[To be written...]
+%     {\includegraphics[width=0.4\textwidth]{images/p_075.png}}\\
+%   \subfigure[To be written...]
+%     {\includegraphics[width=0.4\textwidth]{images/p_080.png}}\hfill
+%   \subfigure[To be written...]
+%     {\includegraphics[width=0.4\textwidth]{images/p_085.png}}
+%  \caption{To be written...}
+%\end{figure}
 
 \label{Basics:SphericalKernels}
 
@@ -357,7 +355,7 @@ purposes we confine ourselves with defining two variants.
 So for a fixed $N \in \N$ we define the matrices
 \begin{align}
   \nonumber
-  C_N & := \paren{\cos \frac{(2j+1)k \pi}{2N}}_{j,k = 0}^{N-1}, & D_N & := \diag\, \paren{\varepsilon_j^N}_{j = 0}^{N-1}
+  C_N & := \paren{\cos \frac{j(2k+1) \pi}{2N}}_{j,k = 0}^{N-1}, & D_N & := \diag\, \paren{\varepsilon_j^N}_{j = 0}^{N-1}
 \end{align}
 with $\varepsilon_0^N := \frac{1}{2}$ and $\varepsilon_j^N := 1$ for $j = 1,\ldots,N-1$.
 The discrete cosine transforms of type II and III are then defined as follows:
@@ -372,8 +370,8 @@ where $\V{a} := \paren{a_k}_{k=0}^{N-1} \in \R^N$ is the input vector and $\V{\t
 The Chebyshev polynomials of the first kind $T_{k}$ are given by $\fun{T_{k}}{x} := \fun{\cos}{k \arccos x}$ 
 and we get
 \begin{eqnarray*}
-  \tilde{a_{j}} & = & \sum_{k = 0}^{N-1} a_{k} \cos \frac{(2j+1)k \pi}{2N} = \sum_{k = 0}^{N-1} a_{k} \fun{T_{k}}{\cos \frac{(2j+1) \pi}{2N}},\\
-  \tilde{b_{j}} & = & \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \cos \frac{(2k+1)j \pi}{2N} = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \fun{T_{j}}{\cos \frac{(2k+1) \pi}{2N}}.\\
+  \tilde{a_{j}} & = & \sum_{k = 0}^{N-1} a_{k} \cos \frac{(2k+1)j \pi}{2N} = \sum_{k = 0}^{N-1} a_{k} \fun{T_{j}}{\cos \frac{(2k+1) \pi}{2N}},\\
+  \tilde{b_{j}} & = & \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \cos \frac{(2j+1)k \pi}{2N} = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \fun{T_{k}}{\cos \frac{(2j+1) \pi}{2N}}.\\
 \end{eqnarray*}
 The following lemma relates the two transforms to each other showing that the DCT-II is the inverse for the DCT-III an vice versa.
 \begin{lemma}
@@ -421,5 +419,7 @@ This leads to the following algorithm:
 \end{algorithmic}
 \end{algorithm}
 
-\section{Nonuniform Fast Fourier Transform}
+\section{Fast Fourier Transform for Nonequispaced Knots}
 \label{Basics:NFFT}
+
+To be written \dots
