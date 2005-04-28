@@ -3,8 +3,18 @@
  * authors: D. Potts, S. Kunis (c) 2002-2003
  */
 
-#include "nfft.h"
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "utils.h"
+#include "options.h"
 #include "window_defines.h"
+
+#include "nfft3.h"
+
+
 
 /** direct computation of non equispaced fourier transforms
  *  ndft_trafo, ndft_conjugated, ndft_adjoint, ndft_transposed
@@ -339,7 +349,7 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   int ll_plain[ths->d+1];               /**< postfix plain index in g       */\
   double phi_prod[ths->d+1];            /**< postfix product of PHI         */\
   complex *f, *g;                       /**< local copy                     */\
-  double *fj0,*fj1;                     /**< local copy                     */\
+  complex *fj;                          /**< local copy                     */	\
                                                                               \
   f=ths->f; g=ths->g;                                                         \
                                                                               \
