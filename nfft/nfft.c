@@ -72,11 +72,11 @@ for(t2 = t; t2<ths->d; t2++)                                                  \
 omega=Omega[ths->d];                                                          \
 }
 
-#define MACRO_ndft_compute_trafo (*fj) += (*f_hat_k)*cexp(omega);
+#define MACRO_ndft_compute_trafo (*fj) += (*f_hat_k)*cexp(-I*omega);
 
 #define MACRO_ndft_compute_conjugated MACRO_ndft_compute_trafo
 
-#define MACRO_ndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(-omega);
+#define MACRO_ndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(+I*omega);
 
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
@@ -710,7 +710,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
   nfft_init_help(ths);    
 }
 
-void nfft_init_specific(nfft_plan *ths, int d, int *N, int M_total, int *n,
+void nfft_init_guru(nfft_plan *ths, int d, int *N, int M_total, int *n,
 			int m, unsigned nfft_flags, unsigned fftw_flags)
 {
   int t;                                /**< index over all dimensions        */
