@@ -1,4 +1,7 @@
 function genData(filename,D,M,type,mode)
+% GENDATA
+%   GENDATA(FILENAME,D,M,TYPE,MODE)
+%
   
   f = fopen(filename,'w');
 
@@ -7,7 +10,7 @@ function genData(filename,D,M,type,mode)
   
   fprintf(f,'%d\n',D);
   for i=1:D
-    fprintf(f,'%17.16f\n%17.16f\n',rand-0.5,-0.5*rand);  
+    fprintf(f,'%17.16f\n%17.16f\n',rand-0.5,0.5*rand);  
   end    
   
   fprintf(f,'%d\n',M);

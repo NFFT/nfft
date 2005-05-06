@@ -36,17 +36,20 @@ function y = sheval(k,theta,phi,normalize)
   % Compute matrix containing row-wise the function values P_K^N for N =
   % 0,...,K at the nodes THETA.
   if strcmp(normalize,'unnorm') == 1
-    p = legendre(k,cos(theta),'unnorm');     
+    p = legendre(k,cos(theta),'unnorm');    
+    enorm = 1.0;
   else
     if strcmp(normalize,'semi') == 1
       p = legendre(k,cos(theta),'sch');     
       if k>0
         p(2:end,:) = (1/sqrt(2))*p(2:end,:);
       end
+      enorm = 1.0;
     else
       if strcmp(normalize,'norm') == 1
         p = legendre(k,cos(theta),'norm');     
-      else
+        enorm = 1.0;
+    else
         error('sheval: Wrong value for parameter ''normalize''.');
       end
     end
@@ -55,5 +58,5 @@ function y = sheval(k,theta,phi,normalize)
   % Compute matrix containing row-wise the function values Y_K^N for
   % N = -K,...,K at the nodes (THETA,PHI).
   [A,B] = meshgrid(phi,(-k:1:k));
-  y = [flipud(p(2:end,:));p] .* exp(i*A.*B);
+  y = [flipud(p(2:end,:));p] .* (enorm*exp(i*A.*B));
  

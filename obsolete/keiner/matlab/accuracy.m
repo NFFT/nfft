@@ -13,17 +13,23 @@ for j = M
   phi = (0:2*j+1).*(pi/(j+1));
 
   w = repmat(w,1,length(phi));
+  w = w';
   w = w(:);
   w = sparse(1:length(w),1:length(w),w);
 
-  [phi,theta] = meshgrid(phi,theta);
+  [theta,phi] = meshgrid(theta,phi);
 
   theta = theta(:)';
   phi = phi(:)';
 
+  %[theta;phi]
+  %w
   Y = sfmatrix(j,theta,phi,'norm');
+  Y2 = sfmatrix(j,theta,phi,'semi');
   for d = 1:rep
-    a = rand((j+1)*(j+1),1);
+    %a = rand((j+1)*(j+1),1);
+    a = ones((j+1)*(j+1),1);
+    Y'*w*Y*a
     z = (1/(2*j+2))*Y'*w*Y*a;
     err(i) = err(i) + max(abs(z-a));
   end

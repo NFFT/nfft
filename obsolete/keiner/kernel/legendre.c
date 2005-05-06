@@ -2,7 +2,7 @@
 
 inline double alpha_al (int k, int n)
 { 
-  if (k == -1 || (k == 0 && (n %2) == 1))
+  if (k == -1 /*|| (k == 0 && (n%2) == 1)*/)
   {
     return (0.0); 
   }

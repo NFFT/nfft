@@ -38,9 +38,9 @@ AC_ARG_WITH(
   AC_HELP_STRING(
     [--with-bwexp=VALUE],
     [Maximum allowable bandwidth exponent (default is 10)]),
-  [AC_DEFINE_UNQUOTED(BWEXP_MAX, $withval, "User defined exponent of maximum bandwidth"),
+  [AC_DEFINE_UNQUOTED(BWEXP_MAX, $withval, "User defined exponent of maximum bandwidth")
    AC_DEFINE_UNQUOTED(BW_MAX, $((2**$withval)), "User defined maximum bandwidth")],
-	 [AC_DEFINE(BWEXP_MAX, 10, "Default exponent of maximum bandwidth"),
+	 [AC_DEFINE(BWEXP_MAX, 10, "Default exponent of maximum bandwidth")
    AC_DEFINE(BW_MAX, 1024, "Default maximum bandwidth")])
 
-AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile)
+AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile examples/accuracy/Makefile)

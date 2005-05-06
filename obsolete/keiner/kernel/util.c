@@ -171,4 +171,25 @@ double error_complex3(complex *a, complex *b, int n)
   return m;
 }
 
+double error_f_hat(complex **f_hat, complex **f_hat2, int M)
+{
+  double err;
+  double absmax;
+  int k,n;
+  
+  err = 0.0;
+  absmax = 0.0;
+  
+  for (k = 0; k <= M; k++) 
+  {
+    for (n = -k; n <= k; n++) 
+    {
+      absmax = max(absmax,cabs(f_hat[n+M][k]));
+      err = max(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
+    }
+  }
+  
+  return err/absmax;
+}
+
 

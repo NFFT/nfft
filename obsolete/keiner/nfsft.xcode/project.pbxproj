@@ -108,6 +108,7 @@
 				4E6CD54C07C54A7E0040176B,
 				4E6CD54D07C54A7E0040176B,
 				4E80B85807E6450E0005D9DD,
+				4EB6522108292EA100B8863B,
 			);
 			isa = PBXGroup;
 			name = Source;
@@ -456,6 +457,21 @@
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		4EB6522108292EA100B8863B = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = accuracy.c;
+			path = examples/accuracy/accuracy.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4EB6522208292EA100B8863B = {
+			fileRef = 4EB6522108292EA100B8863B;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4EDA6CF007A439F1008B1386 = {
 			fileEncoding = 5;
 			isa = PBXFileReference;
@@ -565,6 +581,7 @@
 				4E6CD57707C54E630040176B,
 				4E6CD5D907C555500040176B,
 				4E80B85907E6450E0005D9DD,
+				4EB6522208292EA100B8863B,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

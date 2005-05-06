@@ -1,51 +1,146 @@
-\chapter{Nonuniform Discrete Spherical Fourier Transform}
+\chapter{Discrete Spherical Fourier Transform}
 \label{DSFT}
+Let in this chapter $M \in \NZ$, $M \ge 4$ be a fixed bandwidth, $N := 2^{\ceil{\log_2 M}}$ 
+and $\paren{\vtheta_j,\vphi_j}_{j=0,\ldots,D-1}$ a set of arbitrary nodes on $\twosphere$.
 
 The concern of the \emph{discrete spherical Fourier transform} \index{Discrete spherical Fourier transform} 
-is the evaluation of a bandlimited function $f: \twosphere \rightarrow \C$ with bandwidth $M \in \NZ$ given its Fourier expansion
-$$ f = \sum_{\paren{k,n} \in I^M} \fun{a_k^n}{f} Y_{k}^n,$$
-where $I^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}$. The coefficients $a_k^n$ are the spherical Fourier coefficients 
-with respect to the orthonormal basis of spherical harmonics, $k$ denotes the degree and $n$ the order. 
+is to evaluate a bandlimited function $f: \twosphere \rightarrow \C$ with bandwidth $M$ given its Fourier expansion
+\begin{equation}
+  \label{NFSFT:FourierExpansion} 
+  f = \sum_{\paren{k,n} \in I^M} \fun{a_k^n}{f} Y_{k}^n,
+\end{equation}  
+at arbitrary nodes $\paren{\vtheta_j,\vphi_j}_{j=0,\ldots,D-1}$, where 
+$$I^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}.$$
+The coefficients $a_k^n$ are the \emph{spherical Fourier coefficients} 
+with respect to the orthonormal basis of spherical harmonics $Y_{k}^n$. The index $k$ denotes the degree and $n$ the order. 
 By defining the total order $$ \paren{k_1,n_1} \le \paren{k_2,n_2} \iff k_1 \le k_2 \text{ or } n_1 \le n_2 $$ 
-over the index set $I^M$ we 
+over the index set $I^M$ we can
 %identify $\paren{k,n} = l$ with suitable $l \in \pset{l}{|}{0 \le l \le (M+1)^2-1}$ and 
 also write $$ f = \sum_{l=0}^{(M+1)^2-1} c_l Y_l.$$
 
+From a linear algebra point of view, evaluating $f$ corresponds to a matrix-vector product
+$$ \V{f} = \V{Y} \; \V{a}$$
+with
+\begin{equation}
+  \nonumber
+  \begin{split}
+    \V{f} & := \paren{f_j}_{j=0}^{D-1},\quad \V{Y} := \paren{\fun{Y_l}{\vtheta_j,\vphi_j}}_{j=0,\ldots,D-1, l=0,\ldots,(M+1)^2-1},\\
+    \V{a} & := \paren{a_l}_{l=0,\ldots,(M+1)^2-1}.
+  \end{split}
+\end{equation}
+
+Concerning a \emph{discrete Fourier transform} on the torus $\mathbb{T}$ of length $N \in \N$ which an be represented as a maxtrix-vector product
+$$
+  \V{f} = \V{F}_{N} \: \V{a}, \quad \V{F}_{N} \in \C^{N \times N},\ \V{a}, \V{f} \in \C^{N}
+$$
+as well, the Fourier matrix $\V{F}$ is unitary. Henceforth we immediately obtain the inversion formula
+$$
+  \V{a} = \V{F}^{\h} \: \V{f}
+$$ 
+The DFT evaluates the trigonometric polynomial 
+$$
+  f := \sum_{k=0}^{N-1} a_{k} \e^{\im k t}
+$$
+at equidistant nodes $\paren{t_{j}}_{j=0}^{N-1}$ with $t_{j} := \e{j * \frac{2 \pi}{N}}$. With respect to nonequispaced nodes, the 
+matrixcorresponding Fourier matrix is no longer unitary.
+
+Similarly, there exists a grid of nodes on the sphere that renders the matrix $\V{Y}$ unitary. We want to recover the 
+Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in I^M}$ of a bandlimited function $f$ on $\twosphere$ from samples 
+$\fun{f}{\vtheta,\vphi}$ at certain nodes. The Fourier coefficients are given by
+$$
+  a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\twosphere} = \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi.
+$$
+By seperating the integration variables, we obtain
+\begin{eqnarray*}
+  a_{k}^n & = & \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{-\im n \vphi} \sin \vtheta \; \dx \vtheta \; \dx \vphi\\
+          & = & \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \sin \vtheta \; \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi \; \dx \vtheta.
+\end{eqnarray*}
+For the integrals 
+$$
+  \fun{f_{n}}{\vtheta} := \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi
+$$
+we have
+$$ \fun{f_{n}}{\vtheta} = \frac{1}{2(M+1)} \sum_{j=0}^{2(M+1)-1} \fun{f}{\vtheta,\vphi_{j}} \e^{-\im n \vphi_{j}}$$
+where
+$$ \vphi_{j} := \frac{j\pi}{N} \quad \paren{j=0,\ldots,2(M+1)-1}. $$
+This holds due to the Sampling Theorem by taking into account that for fixed $\vtheta$ the function
+\begin{eqnarray*}
+  \fun{f}{\vtheta,\cdot} & = & \sum_{n=-M}^{M} \left(\sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}\right) \e^{-\im n \cdot}\\
+\end{eqnarray*}
+is a trigonometric polynomial of degree $M$ with Fourier coefficients
+$$
+  c_{n} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}.
+$$
+It remains to compute the integrals
+$$
+  a_{k}^n = \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\theta} \sin \vtheta \; \dx \vtheta.
+$$
+This can be done using a \emph{Gauss-Legendre} quadrature rule
+$$
+  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\theta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{M} w_{l} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}} \fun{f_{n}}{\theta_{l}} 
+$$
+with nodes $\paren{\vtheta_{l}}_{l=0}^M$ and weights $\paren{w_{l}}_{l=0}^M$ as described for example in \cite{???}. This finally yields
+\begin{equation}
+  a_{k}^n = \frac{1}{2(M+1)} \sum_{j=0}^{2(M+1)-1} \sum_{l=0}^{M} w_{l} \fun{f}{\vtheta_{l},\vphi_{j}} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}} \e^{-\im n \vphi_{j}}.
+\end{equation}
+So by evaluating $f$ on the grid $\paren{\vtheta_{l},\vphi_{j}}_{l=0,\ldots,M;j=0,\ldots,2(M+1)-1}$ we are able to recover the Fourier coefficients by \eqref{} which leads to the following algorithm
+
+\begin{algorithm}[ht]
+  \caption{Discrete Spherical Fourier Transform (DSFT)}
+  \label{NFSFT:DSFT}    
+  \begin{algorithmic}
+    \STATE  Input: $M \in \NZ$, $\paren{a_{k}^n}_{\paren{k,n} \in I^M}$
+    \STATE
+    \STATE Compute $\paren{f_{l,j}}_{l=0,\ldots,M;j=0,\ldots,2(M+1)-1}$ with 
+      $$f_{l,j} = \fun{f}{\paren{\vtheta_{l},\vphi_{j}}} = \sum_{n=-M}^{M} \sum_{k=\abs{n}}^M a_{k}^n \fun{Y_{k}^n}{\vtheta_{l,\vphi_{j}}}.$$
+    \STATE 
+    \FOR {$l=0,\ldots , M$} 
+      \FOR {$j=0,\ldots , 2(M+1)-1$} 
+        \STATE $\tilde{f}_{l,j} := w_{l} f_{l,j}$
+      \ENDFOR
+    \ENDFOR
+    \STATE
+    \STATE Compute $\paren{a_{k}^n}_{\paren{k,n} \in I^M}$ with 
+      $$a_{k}^n = \frac{1}{2(M+1)} \sum_{j=0}^{2(M+1)-1} \sum_{l=0}^{M} \tilde{f}_{l,j} \fun{Y_{k}^n}{\vtheta_{l,\vphi_{j}}}.$$
+    \STATE
+    \STATE Output: $\paren{a_{k}^n}_{\paren{k,n} \in I^M}$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[height=9cm,width=12cm]{images/accuracy}
+  \caption{To be written...}
+  \label{NFSFT:Figure:Accuracy}
+\end{figure}
+
+This holds only in the case of equispaced nodes. If one leaves 
 In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
-of the basis functions $Y_k^n$, evaluating a sum like \eqref{} can be split up in ordinary discrete Fourier transforms for nonequispaced 
-data in colatitudinal direction and discrete Legendre function transforms for the latitudinal part. The basic idea of the approach 
+of the basis functions $Y_k^n$, evaluating the sum in \eqref{NFSFT:FourierExpansion} can be split up in ordinary discrete Fourier transforms for nonequispaced 
+data in colatitudinal direction and \emph{discrete Legendre function transforms} for the latitudinal part. The basic idea of the approach 
 presented here is to perform a change of basis from Legendre functions to complex exponentials in latitudinal direction to get the 
 representation
 $$ \fun{f}{\vtheta,\vphi} = \sum_{n=-M}^{M} \sum_{k=-M}^M c_k^n e^{ik\vtheta} e^{in\vphi}.$$
-The computation of the function values $f_j := \fun{f}{\vtheta_j,\vphi_j}$ at arbitrary nodes 
-$\set{\paren{\vtheta_j,\vphi_j}}_{j=0}^{D-1}$ now can be performed using a two-dimensional NFFT. 
-From a linear algebra point of view, this corresponds to the matrix-vector product
-$$ \V{f} = Y \; \V{a}$$
-with
-\begin{align}
-  \nonumber
-  \V{f} & := \paren{f_j}_{j=0}^{D-1}, & Y & := \paren{\fun{Y_l}{\vtheta_j,\vphi_j}}_{j=0,\ldots,D-1, l=0,\ldots,(M+1)^2-1}, & \V{a} := \paren{a_l}_{l=0,\ldots,(M+1)^2-1}.
-\end{align}
+The computation of the function values $f_j := \fun{f}{\vtheta_j,\vphi_j}$ can now be performed 
+using a two-dimensional NFFT. 
 
-Once derived a fast algorithm for this product, which implies a factorization of $Y$ into a product of sparse matrices,
-one also immediately gets from the theoretical point of view a fast algorithm for the adjoint product $$\V{\tilde{a}} = Y^H \; \V{\tilde{f}}.$$
+Once derived a fast algorithm for this product, which implies a factorization of $\V{Y}$ into a product of sparse matrices,
+one also immediately gets from the theoretical point of view a fast algorithm for the adjoint product 
+$$\V{a} = \V{Y}^{\h} \; \V{f}.$$
 
 \section{Fast Legendre Function Transform}
 \label{DSFT:FLFT}
 
-Let $M \in \NZ$ and $n \in \Z$ with $M > \abs{n}$ be given. The \index{Fast Legendre function transform} \emph{fast Legendre function transform (FLFT)}
+Let $M \in \NZ$ and $n \in \Z$ with $M \ge \abs{n}$ be given. The \index{Fast Legendre function transform} \emph{fast Legendre function transform (FLFT)}
 considers polynomials of the form
-$$ \fun{g_n}{x} := \sum{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M$$
+$$ \fun{g_n}{x} := \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M$$
 for even $n$ and
-$$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M-1$$
-for odd $n$ with given real coefficients $a_k^n$. Later we have to allow complex coefficients also but since 
-the algorithm described below only acts on the coefficients with real arithmetic, this simply means that in this 
-case, one has to apply the algorithm to the real and imaginary parts separately.
-Given the coefficients $a_k^n$ the FLFT computes the coefficients $b_k^n$ of the Chebyshev representation
+$$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M-1$$
+for odd $n$ with given complex coefficients $a_k^n$. The FLFT computes the coefficients $b_k^n$ of the Chebyshev representation
 $$ \fun{g_n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}$$
 for even $n$ and
 $$\fun{g_n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}$$
-for odd $n$. We note that this algorithm is independent of the nodes at which one likes to evaluate the polynomials later.
+for odd $n$.
 
 Lemma \ref{Basics:AssociatedLegendreRecurrence} implies
 $$ 
@@ -67,14 +162,13 @@ $$
   \end{array}\right).   
 $$
 
-We restrict ourselves to the case where $n$ is even. Let $N := \max \set{2,2^{\ceil{log_2 M}}}$ be the next greater 
-power of two with respect to the bandwidth $M$. All further calculations will be performed with respect to $N$ as the 
+We restrict ourselves to the case where $n$ is even. All further calculations will be performed with respect to $N$ as the 
 bandwidth by setting $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
 \ref{Basics:AssociatedLegendreRecurrence} to write
 $$ g_n = \sum_{k = \abs{n}}^{N-1} a_{k}^{(0)} P_k^{\abs{n}} = \sum_{l = 0}^{\frac{N}{4}-1} \paren{\sum_{k = 0}^3 a_{4l+k}^{(0)}P_{4l+k}^{\abs{n}}},$$
 with
 \begin{eqnarray*}
-  \fun{a_k^{(0)}}{x}        & := & a_k^n \quad (k = 0,\ldots,N-3),\\
+  \fun{a_k^{(0)}}{x}     & := & a_k^n \quad (k = 0,\ldots,N-3),\\
   \fun{a_{N-2}^{(0)}}{x} & := & a_{N-2}^n + \gamma_{N-1}^{\abs{n}} a_N^n,\\
   \fun{a_{N-1}^{(0)}}{x} & := & a_{N-1}^n + \paren{\alpha_{N-1}^{\abs{n}}x + \beta_{N-1}^{\abs{n}}} a_N^n.
 \end{eqnarray*}
