@@ -1,1 +1,1 @@
-SUBDIRS = accuracy template wrapper
+SUBDIRS = accuracy convolution template wrapper
