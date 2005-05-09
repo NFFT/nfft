@@ -42,6 +42,9 @@
 #include "util.h"
 #include "time.h"
 
+#define M_START 8
+#define M_STRIDE 8
+#define M_STOP 256
 #define MAX_BANDWIDTH_EXPONENT 8
 
 /**

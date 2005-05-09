@@ -147,6 +147,21 @@
 //4E2
 //4E3
 //4E4
+		4E02C48E082F816D00EC0863 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = convolution.c;
+			path = examples/convolution/convolution.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E02C48F082F816D00EC0863 = {
+			fileRef = 4E02C48E082F816D00EC0863;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4E0887BC071585CD005706CD = {
 			fileEncoding = 5;
 			isa = PBXFileReference;
@@ -569,9 +584,10 @@
 		};
 		4E6E40D1082CB48500642FF0 = {
 			children = (
-				4E29331A082E672F004AD73C,
-				4E2932A7082E5984004AD73C,
 				4EB6522108292EA100B8863B,
+				4E02C48E082F816D00EC0863,
+				4E2932A7082E5984004AD73C,
+				4E29331A082E672F004AD73C,
 			);
 			isa = PBXGroup;
 			name = examples;
@@ -731,6 +747,7 @@
 				4E6E40CB082CB46F00642FF0,
 				4E293284082E5020004AD73C,
 				4E6A5D24082EAB5300ED6FD8,
+				4E02C48F082F816D00EC0863,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

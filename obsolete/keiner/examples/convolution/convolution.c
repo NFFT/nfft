@@ -74,7 +74,7 @@ int main (int argc, char **argv)
 	{
 	  for (n = -k; n <= k; n++)
 		{
-		  a_tilde[n+M][k] *= a[K];
+		  a_tilde[n+M][k] *= a[k];
 		}
 	}
 	

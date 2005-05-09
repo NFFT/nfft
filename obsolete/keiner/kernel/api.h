@@ -33,11 +33,7 @@ typedef enum {false = 0,true = 1} bool;
 # error Need fftw3.h
 #endif
 
-#ifdef HAVE_NFFT_NFFT_H
-# include <nfft/nfft.h>
-#else
-# error Need nfft/nfft.h
-#endif
+#include "../nfft/nfft.h"
 
 #define ROW(k) (k*(BW_MAX+1))
 #define ROWK(k) (k*(BW_MAX+1)+k)
