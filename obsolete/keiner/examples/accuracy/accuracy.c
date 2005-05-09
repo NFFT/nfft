@@ -42,7 +42,7 @@
 #include "util.h"
 #include "time.h"
 
-#define MAX_BANDWIDTH_EXPONENT 9
+#define MAX_BANDWIDTH_EXPONENT 8
 
 /**
  * The main program.
@@ -124,7 +124,7 @@ int main (int argc, char **argv)
   nfsft_compute_wisdom(M_MAX);
   
   /* Test backward stability of NDSFT. */
-  for (M = 8/*1*/; M <= 512/*< M_MAX*/; M = M+8/*M*=2*/)
+  for (M = 8/*1*/; M <= 256/*< M_MAX*/; M = M+8/*M*=2*/)
   {
     /* Perform backward stability test:
      * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
