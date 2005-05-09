@@ -31,6 +31,7 @@
 #ifdef STDC_HEADERS
 #  include <stdlib.h>
 #  include <stdio.h>
+#  include <math.h>
 #else
 #  error Need ANSI-C headers
 #endif
@@ -41,7 +42,7 @@
 #include "util.h"
 #include "time.h"
 
-#define MAX_BANDWIDTH_EXPONENT 6
+#define MAX_BANDWIDTH_EXPONENT 9
 
 /**
  * The main program.
@@ -93,7 +94,7 @@ int main (int argc, char **argv)
   nfsft_plan plan;
 
   /** Used to measure computation time. */
-  double ctime;
+  //double ctime;
   /** 
    * Used to store the filename of a file containing Gauss-Legendre nodes and 
    * weights.
@@ -120,8 +121,10 @@ int main (int argc, char **argv)
   w = (double*) malloc((M_MAX+1)*sizeof(double));
   f = (complex*) malloc(2*D_MAX*sizeof(complex));
   
+  nfsft_compute_wisdom(M_MAX);
+  
   /* Test backward stability of NDSFT. */
-  for (M = 1; M < M_MAX; M*=2)
+  for (M = 8/*1*/; M <= 512/*< M_MAX*/; M = M+8/*M*=2*/)
   {
     /* Perform backward stability test:
      * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
@@ -172,7 +175,7 @@ int main (int argc, char **argv)
     }
        
     /* Read Gauss-Legendre nodes and weights. */  
-    sprintf(filename,"gl%d.dat\0",M);  
+    sprintf(filename,"gl%d.dat",M);  
     file = fopen(filename,"r");
     for (n = 0; n < M+1; n++)
     {
@@ -201,9 +204,10 @@ int main (int argc, char **argv)
     }
         
     /* Compute forward transform. */
-    plan = nfsft_create_plan(NFSFT_BACKWARD, D, M, angles, f_hat, f, 0U);
-    ndsft_execute(plan);
-    nfsft_destroy_plan(plan);
+    plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+    //ndsft_trafo(plan);
+    nfsft_trafo(plan);
+    nfsft_finalize(plan);
         
     /* Multiply with quadrature weights. */
     d = 0;
@@ -217,9 +221,10 @@ int main (int argc, char **argv)
     }
     
     /* Compute adjoint transform. */
-    plan = nfsft_create_plan(NFSFT_ADJOINT, D, M, angles, f_hat, f, 0U);
-    ndsft_execute(plan);
-    nfsft_destroy_plan(plan);
+    plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+    //ndsft_adjoint(plan);
+    nfsft_adjoint(plan);
+    nfsft_finalize(plan);
     
     /* Respect normalization. */
     for (n = -M; n <= M; n++)
@@ -231,6 +236,7 @@ int main (int argc, char **argv)
     }
 
     /* Print relative error in infinity-norm. */    
-    fprintf(stdout,"%E\n",error_f_hat(f_hat_orig,f_hat,M));
+    fprintf(stdout,"%d: %20.16E\n",M,error_f_hat(f_hat_orig,f_hat,M));    
   }    
+  return EXIT_SUCCESS;
 }

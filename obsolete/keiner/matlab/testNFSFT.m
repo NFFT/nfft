@@ -121,7 +121,7 @@ end
 	
 if (sum(test == [0,1,4]) > 0)
 % Bare forward transform.
-rb = Y*a;  
+rb = Y*a; 
 else
   if (sum(test == [5,6,9]) > 0)
     % Bare adjoint transform.

@@ -1,7 +1,8 @@
 #include "direct.h"
 
+
 void ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
-  struct nfsft_wisdom *wisdom)
+           struct nfsft_wisdom *wisdom)
 {
   /** Node index */
   int d;
@@ -11,18 +12,18 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 	 int n;
 	 /** nleg = |n| */
 	 int nleg;
-
+  
 	 /**
-	  * Pointer to array containing three-term recurrence coefficients \alpha for 
+   * Pointer to array containing three-term recurrence coefficients \alpha for 
 	  * associated Legendre functions. 
 	  */
   double *alpha;
 	 /**
-	  * Pointer to array containing three-term recurrence coefficients \gamma for 
+   * Pointer to array containing three-term recurrence coefficients \gamma for 
 	  * associated Legendre functions. 
 	  */
 	 double *gamma;
-
+  
   /** Index used in Clenshaw algorithm. */
   int index;
  	/** Pointer to auxilliary array for Clenshaw algorithm. */
@@ -31,7 +32,7 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
   complex *temp;
  	/** Pointer to auxilliary array for Clenshaw algorithm. */
   complex *b;  
-
+  
   /** The final result for a single node. */
   complex f_d;
   
@@ -47,10 +48,8 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
   theta = (double*) malloc (sizeof(double) * D);    
   phi = (double*) malloc (sizeof(double) * D);    
   
-  /* 
- 	 * Scale angles phi_j from [-1,1] to [-pi,pi] and angles \theta_j from [0,1] 
-   * to and [0,pi], respectively. 
- 	 */ 
+  /* Scale angles phi_j from [-1,1] to [-pi,pi] and angles \theta_j from [0,1] 
+   * to and [0,pi], respectively. */ 
   for (d = 0; d < D; d++)
   {
     theta[d] = 2.0*PI*angles[2*d+1];
@@ -64,7 +63,7 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
     for (d = 0; d < D; d++)
    	{
       f[d] = f_hat[0][0];
-	  }
+    }
   }
   else
   { 
@@ -74,60 +73,54 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 	     theta[d] = cos(theta[d]);
     }
     
-    /* 
-  		 * Evaluate 
+    /* Evaluate 
      *      \sum_{k=0}^M \sum_{n=-k}^k a_k^n P_k^{|n|}(\cos\theta_j) e^{i n \phi_j} 
-		   *    = \sum_{n=-M}^M \sum_{k=|n|}^M a_k^n P_k^{|n|}(\cos\theta_j) e^{i n \phi_j}.
-		   */
+		   *    = \sum_{n=-M}^M \sum_{k=|n|}^M a_k^n P_k^{|n|}(\cos\theta_j) e^{i n \phi_j}. */
     for (d = 0; d < D; d++)
 	   {
-      /* 
-			    * For n = -M,...,M, evaluate 
+      /* For n = -M,...,M, evaluate 
 			    *   b_n := \sum_{k=|n|}^M a_k^n P_k^{|n|}(\cos\theta_j)
-			    * using Clenshaw's algorithm. 
-			    */
+			    * using Clenshaw's algorithm. */
       for (n = -M; n <= M; n++)
       {
 			     /* Get Fourier coefficients vector. */
         a = f_hat[n+M];
-				
+        
 				    /* Take absolute value of n. */
         nleg = abs(n);
         
-				   /* Get three-term recurrence coefficients vectors. */
-	      alpha = &(wisdom->alpha[ROWK(nleg)]);
-	      gamma = &(wisdom->gamma[ROWK(nleg)]);
+        /* Get three-term recurrence coefficients vectors. */
+        alpha = &(wisdom->alpha[ROWK(nleg)]);
+        gamma = &(wisdom->gamma[ROWK(nleg)]);
 	       
-				   /* Make copy of array a. */ 
-       memcpy(temp,a,(M+1)*sizeof(complex));
-
-       /* Clenshaw's algorithm */        
-       for (l = M; l > nleg + 1; l--)
-		     {
-		       index = l - nleg;
-         temp[l-1] += temp[l] * alpha[index] * theta[d]; 
-         temp[l-2] += temp[l] * gamma[index];
-       }
+        /* Make copy of array a. */ 
+        memcpy(temp,a,(M+1)*sizeof(complex));
         
-				   /* Compute final step if neccesary. */
-       if (nleg < M)
-       {  
- 	       temp[0+nleg] += temp[1+nleg] * wisdom->alpha[ROWK(nleg)+1] * theta[d];
-       }
+        /* Clenshaw's algorithm */        
+        for (l = M; l > nleg + 1; l--)
+        {
+          index = l - nleg;
+          temp[l-1] += temp[l] * alpha[index] * theta[d]; 
+          temp[l-2] += temp[l] * gamma[index];
+        }
         
-				   /* Write final result b_n of multiplication by normalization constant to 
-				    * array b  = (b_{-M},...,b_M). 
-				    */
-       b[n+M] = temp[0+nleg] * wisdom->gamma_m1[nleg] * pow(1- theta[d] * 
-				      theta[d], nleg/2.0);
+        /* Compute final step if neccesary. */
+        if (nleg < M)
+        {  
+          temp[0+nleg] += temp[1+nleg] * wisdom->alpha[ROWK(nleg)+1] * theta[d];
+        }
+        
+        /* Write final result b_n of multiplication by normalization constant to 
+         * array b  = (b_{-M},...,b_M). */
+        b[n+M] = temp[0+nleg] * wisdom->gamma_m1[nleg] *
+          pow(1- theta[d] * theta[d], nleg/2.0);
 	     }
       
 			   /* Initialize result for current node. */
       f_d = 0.0;
       
 			   /* Compute
-			    *   f_j := \sum_{n=-M}^M b_n e^{i n \phi_j}.
-			    */
+       *   f_j := \sum_{n=-M}^M b_n e^{i n \phi_j}. */
       for (n = -M; n <= M; n++)
       {        
         f_d += b[n+M]*cexp(I*n*phi[d]);
@@ -137,7 +130,7 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
       f[d] = f_d;
     }
   }  
-	
+  
  	/* Free auxilliary arrays. */
   free(phi);
   free(theta);
@@ -146,8 +139,8 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 }
 
 
-void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
-  struct nfsft_wisdom *wisdom)
+void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
+                   struct nfsft_wisdom *wisdom)
 {
   /** Legendre index k */
  	int k;
@@ -201,8 +194,8 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
   for(j = 0; j < D; j++)
   {
     phi[j] = - 2.0 * PI * angles[2*j];
-    sint[j] = - 2.0 * PI * angles[2*j+1];
-    cost[j] = - 2.0 * PI * angles[2*j+1];
+    sint[j] = 2.0 * PI * angles[2*j+1];
+    cost[j] = 2.0 * PI * angles[2*j+1];
     sint[j] = sin(sint[j]);
     cost[j] = cos(cost[j]);
   }
@@ -212,9 +205,7 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 	   for (n = -k; n <= k; n++)
 		  {
 		    /* Evaluate
-		 	   *   \sum_{j=0}^{D-1} f_j P_k^{|n|}(\cos\theta_j) e^{-i n \phi_j}
-			    */
-			
+		 	   *   \sum_{j=0}^{D-1} f_j P_k^{|n|}(\cos\theta_j) e^{-i n \phi_j} */
 			   /* Evaluate b_j := (f_j P_k^{|n|}(\cos\theta_j))_{j=0}^{D-1}. */
 						
 			   if (k == 0)
@@ -259,17 +250,12 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
         {
           y[j] = a[j];
         }			
-
-        /*for (j = 0; j < D; j++)
-  	  	  {
-          y[j] *= f[j] * gamma_nleg * pow(-1.0,nleg) * pow(1.0 - cost[j] * cost[j], nleg/2.0);
-	       }*/
-        
+       
         for (l = 0; l < nleg; l++)
         {  
           for (j = 0; j < D; j++)
     	  	  {
-            y[j] *= (-1.0)*sint[j];
+            y[j] *= sint[j];
   	       }						  
         }
         for (j = 0; j < D; j++)
@@ -279,8 +265,7 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 			   }
 			
 		    /* Evaluate
-			    *   \sum_{j=0}^{D-1} b_j e^{-i n \phi_j}
-			    */
+			    *   \sum_{j=0}^{D-1} b_j e^{-i n \phi_j} */
 			   result = 0.0;
       for (j = 0; j < D; j++)
   	   {

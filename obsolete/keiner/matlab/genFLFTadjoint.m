@@ -40,5 +40,5 @@ for n=-M:M
       Tt = [eye(N+1),eye(N+1)-W];
     end
   end
-  T{n+M+1,t+1} = gamman*Tt(1:N+1,[1:N,N+2:end-1]);
+  T{n+M+1,t+1} = (-1)^n * gamman*Tt(1:N+1,[1:N,N+2:end-1]);
 end  

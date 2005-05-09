@@ -81,7 +81,7 @@ int main (int argc, char **argv)
   nfsft_plan plan;
   complex *result;
   double ctime;
-  int i,n,k,nleg;
+  int i,n,k;
   int mode, type;
     
 	/* Read transform type. */
@@ -136,14 +136,14 @@ int main (int argc, char **argv)
     }  
 
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_create_plan(NFSFT_BACKWARD, D, M, angles, F_HAT, result, 0U);
+    plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
 			
 	  /* Switch by mode. */
 		if (mode == FAST)
 		{		
 			/* Initialize */
 			ctime = mysecond();
-			init_wisdom(M);
+			nfsft_compute_wisdom(M);
 			ctime = mysecond() - ctime;
 	    #ifdef DEBUG
 			printf("Time for initialization: %f sec.\n",ctime);
@@ -157,7 +157,7 @@ int main (int argc, char **argv)
 	    #endif
 			/* Execute the plan. */
 			ctime = mysecond();
-			nfsft_execute(plan);
+			nfsft_trafo(plan);
 			ctime = mysecond() - ctime;
 	    #ifdef DEBUG
 			printf("Time for fast algorithm: %f sec.\n",ctime);
@@ -167,7 +167,7 @@ int main (int argc, char **argv)
 		{
 			/* Execute the plan. */
 			ctime = mysecond();
-			ndsft_execute(plan);
+			ndsft_trafo(plan);
 			ctime = mysecond() - ctime;
       #ifdef DEBUG
 			printf("Time for slow algorithm: %f sec.\n",ctime);
@@ -194,14 +194,14 @@ int main (int argc, char **argv)
     }  
     
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_create_plan(NFSFT_ADJOINT, D, M, angles, F_HAT, result, 0U);
+    plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
 		
 		/* Switch by transform mode. */
 		if (mode == FAST)
 		{	
       /* Initialize */
       ctime = mysecond();
-      init_wisdom(M);
+      nfsft_compute_wisdom(M);
       ctime = mysecond() - ctime;
       #ifdef DEBUG
       printf("Time for initialization: %f sec.\n",ctime);
@@ -215,7 +215,7 @@ int main (int argc, char **argv)
       #endif
       /* Execute the plan. */
       ctime = mysecond();
-      nfsft_execute(plan);
+      nfsft_adjoint(plan);
       ctime = mysecond() - ctime;
       #ifdef DEBUG
       printf("Time for fast algorithm: %f sec.\n",ctime);
@@ -225,7 +225,7 @@ int main (int argc, char **argv)
 		{
       /* Execute the plan. */
       ctime = mysecond();
-      ndsft_execute(plan);
+      ndsft_adjoint(plan);
       ctime = mysecond() - ctime;
       #ifdef DEBUG
       printf("Time for fast algorithm: %f sec.\n",ctime);
@@ -246,7 +246,7 @@ int main (int argc, char **argv)
   }
   
   /* Destroy the plan. */
-  nfsft_destroy_plan(plan);
+  nfsft_finalize(plan);
 
   
   /* Forget wisdom. */

@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(NFSFT, 1.0.0, keiner@math.uni-luebeck.de)
+AC_INIT(NFSFT, 0.6.0, keiner@math.uni-luebeck.de)
 
 AC_CONFIG_SRCDIR(kernel/nfsft.h)
 AM_CONFIG_HEADER(kernel/config.h)
@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE
 AM_ENABLE_SHARED(no)
 AC_CANONICAL_HOST
 
-SHARED_VERSION_INFO="3:0:0"
+SHARED_VERSION_INFO="0.6.0"
 AC_SUBST(SHARED_VERSION_INFO)
 AC_SUBST(VERSION)
 ISODATE=`date +%Y-%m-%d`
@@ -43,4 +43,4 @@ AC_ARG_WITH(
 	 [AC_DEFINE(BWEXP_MAX, 10, "Default exponent of maximum bandwidth")
    AC_DEFINE(BW_MAX, 1024, "Default maximum bandwidth")])
 
-AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile examples/accuracy/Makefile)
+AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile examples/accuracy/Makefile examples/template/Makefile examples/wrapper/Makefile)

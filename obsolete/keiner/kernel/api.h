@@ -1,3 +1,6 @@
+/**
+ * Header file with internal API of the NFSFT library
+ */
 #ifndef API_H
 #define API_H
 
@@ -39,19 +42,32 @@ typedef enum {false = 0,true = 1} bool;
 #define ROW(k) (k*(BW_MAX+1))
 #define ROWK(k) (k*(BW_MAX+1)+k)
 
-/** Datatype for a set of real 2x2 matrices used in FLT. */
+#define FIRST_L (n/plength)/2;
+#define LAST_L (plength*(int)ceil(((double)M)/plength)-1)/plength; 
+
+/** \defgroup nfsft_internal NFSFT: Internal API */
+
+/** 
+ * Datatype for a set of real 2x2 matrices used in FLT. 
+ *
+ * \ingroup nfsft_internal
+ */
 struct U_type
 {
   /** 
-  * Indicates if the values contained represent a fast or a slow stabilized 
-  * step.
-  */
+   * Indicates if the values contained represent a fast or a slow stabilized 
+   * step.
+   */
   bool stable;
   /** The components */
   double *m1,*m2,*m3,*m4;
 };
 
-/** Structure for a transform plan. */
+/** 
+ * Structure for a transform plan. 
+ *
+ * \ingroup nfsft_internal
+ */
 struct nfsft_plan_s
 {
   /** The number of nodes. */
@@ -66,10 +82,13 @@ struct nfsft_plan_s
   complex **f_hat;
   /** The function values. */
   complex *f;
-  int kind;
 };
 
-/** Structure for wisdom for a specific bandwidth. */
+/** 
+ * Structure for wisdom for a specific bandwidth. 
+ *
+ * \ingroup nfsft_internal
+ */
 struct nfsft_transform_wisdom
 {
   /** The bandwidth */
@@ -89,11 +108,15 @@ struct nfsft_transform_wisdom
   /* Structure for matrices U */
   struct U_type ***U;    
   /** For FLFT */
-  complex *work,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
+  complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;
 };
 
-/** Toplevel wisdom structure. */
+/** 
+ * Toplevel wisdom structure. 
+ *
+ * \ingroup nfsft_internal
+ */
 struct nfsft_wisdom
 {
   /** Indicates wether the structure has been initialized. */ 

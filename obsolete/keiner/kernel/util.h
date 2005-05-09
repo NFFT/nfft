@@ -21,6 +21,4 @@ double error_complex_1(complex *a, complex *b, int n);
 double error_complex3(complex *a, complex *b, int n);
 double error_f_hat(complex **f_hat, complex **f_hat2, int M);
 
-
-
 #endif

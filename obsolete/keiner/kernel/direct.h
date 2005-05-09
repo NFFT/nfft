@@ -1,7 +1,12 @@
+/**
+ * Header file for direct NDSFT algorithms
+ */
 #ifndef DIRECT_H
 #define DIRECT_H
 
 #include "api.h"
+
+/** \defgroup nfsft_direct NFSFT: Direct algorithms */
 
 /*
  * Spherical Fourier transform and adjoint spherical Fourier transform 
@@ -28,6 +33,8 @@
  *  ordering \f$a_0^0,a_1^{-1},a_1^0,...,a_M^M\f$
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
+ *
+ * \ingroup nfsft_direct
  */
 void ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
   struct nfsft_wisdom *wisdom);
@@ -57,9 +64,9 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
  * \param N Next greater power of two with respect to the bandwidth \f$M\f$
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
+ *
+ * \ingroup nfsft_direct
  */	
 void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
   struct nfsft_wisdom *wisdom);
-  
 #endif
-

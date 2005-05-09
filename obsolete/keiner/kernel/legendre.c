@@ -2,7 +2,7 @@
 
 inline double alpha_al (int k, int n)
 { 
-  if (k == -1 /*|| (k == 0 && (n%2) == 1)*/)
+  if (k == -1)
   {
     return (0.0); 
   }
@@ -16,6 +16,7 @@ inline double alpha_al (int k, int n)
   }
 }
 
+
 inline double beta_al (int k, int n)
 {
   if (0 <= k && k < n)
@@ -27,6 +28,7 @@ inline double beta_al (int k, int n)
     return (0.0);
   }
 }
+
 
 inline double gamma_al (int k, int n)
 { 
@@ -53,6 +55,7 @@ inline double gamma_al (int k, int n)
   }
 }							
 
+
 inline void init_al_coeff(double *alpha, double *beta, double *gamma,
  int l, int m, int n)
 {
@@ -65,6 +68,7 @@ inline void init_al_coeff(double *alpha, double *beta, double *gamma,
     gamma[i+1] = gamma_al(l+i,n);
   }
 }
+
 
 inline void eval_al(double *x, double *y, int size, int m, double *alpha, 
   double *beta, double *gamma)
@@ -111,6 +115,7 @@ inline void eval_al(double *x, double *y, int size, int m, double *alpha,
   }
 }
 
+
 inline bool eval_al_thresh(double *x, double *y, int size, int m, double *alpha, 
   double *beta, double *gamma, double threshold)
 {
@@ -151,7 +156,10 @@ inline bool eval_al_thresh(double *x, double *y, int size, int m, double *alpha,
       }
       *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
       if (fabs(*y_act) > threshold)
+      {
+        //fprintf(stderr,"%f\n",fabs(*y_act));
         return true;
+      }
     }
     x_act++;
     y_act++;
@@ -174,6 +182,7 @@ void alpha_al_all(double *alpha, int N)
   }  
 }
 
+
 void beta_al_all(double *alpha, int N)
 {
   int i,j;
@@ -187,6 +196,7 @@ void beta_al_all(double *alpha, int N)
     }  
   }  
 }
+
 
 void gamma_al_all(double *alpha, int N)
 {
@@ -202,6 +212,7 @@ void gamma_al_all(double *alpha, int N)
   }  
 }
 
+
 void gamma_al_m1_all(double *alpha, int N)
 {
   int i;
@@ -212,4 +223,3 @@ void gamma_al_m1_all(double *alpha, int N)
     alpha_act++;
   }  
 }
-

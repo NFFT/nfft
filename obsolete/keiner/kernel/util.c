@@ -40,15 +40,15 @@ inline void myvpr (double* x, int n, char * text)
   
   for (k=0; k<n; k++)
   {
-    if (k%5==0) printf("%d.", k);
-    printf("%14.7e,", x[k]);
-    if (k%5==4) printf("\n");
+    if (k%5==0) fprintf(stderr,"%d.", k);
+    fprintf(stderr,"%14.7e,", x[k]);
+    if (k%5==4) fprintf(stderr,"\n");
     fflush(stdout);
   }
   
   if (n%5!=0)
   {
-    printf("\n");
+    fprintf(stderr,"\n");
   }
 }
 
@@ -57,19 +57,19 @@ inline void myvprs (double* x, int n, char * text, int stride)
 {
   int k;
   
-  printf ("%s, adr=%p\n", text, x);
+  fprintf(stderr,"%s, adr=%p\n", text, x);
   
   for (k=0; k<n; k++)
   {
-    if (k%5==0) printf("%d.", k);
-    printf("%14.7e,", x[stride*k]);
-    if (k%5==4) printf("\n");
+    if (k%5==0) fprintf (stderr,"%d.", k);
+    fprintf (stderr,"%14.7e,", x[stride*k]);
+    if (k%5==4) fprintf (stderr,"\n");
     fflush(stdout);
   }
   
   if (n%5!=0)
   {
-    printf("\n");
+    fprintf (stderr,"\n");
   }
 }
 
@@ -77,19 +77,19 @@ inline void myvprc (complex *x, int n, char *text)
 {
   int k;
   
-  printf ("%s, adr=%p\n", text, x);
+  fprintf(stderr,"%s, adr=%p\n", text, x);
   
   for (k=0; k<n; k++)
   {
-    if (k%5==0) printf("%d.", k);
-    printf("(%14.7e,", creal(x[k]));
-    printf("%14.7e),", cimag(x[k]));
-    if (k%5==4) printf("\n");
+    if (k%2==0) fprintf(stderr,"%d.", k);
+    fprintf(stderr,"(%20.16e,", creal(x[k]));
+    fprintf(stderr,"%20.16e),", cimag(x[k]));
+    if (k%2==1) fprintf(stderr,"\n");
     fflush(stdout);
   }
   
   if (n%5!=0)
-    printf("\n");
+    fprintf(stderr,"\n");
 }
 
 inline void myvprci (complex *x, int n, char *text)
@@ -102,14 +102,14 @@ inline void myvprci (complex *x, int n, char *text)
   
   for (k=0; k<2*n; k++)
   {
-    if (k%5==0) printf("%d.", k);
-    printf("%14.7e,", myx[k]);
-    if (k%5==4) printf("\n");
+    if (k%5==0) fprintf(stderr,"%d.", k);
+    fprintf(stderr,"%14.7e,", myx[k]);
+    if (k%5==4) fprintf(stderr,"\n");
     fflush(stdout);
   }
   
   if (n%5!=0)
-    printf("\n");
+    fprintf(stderr,"\n");
 }
 
 inline int pow2(const int t)

@@ -8,15 +8,11 @@
 			8DD76F620486A84900D96B5E,
 		);
 		breakpoints = (
-			4E75633D07BEA51C00C20775,
-			4E9FDEA407D08B7E009059D7,
-			4E9AFF3707D9B25C00132CC0,
-			4E83C23B07DF778800CFADEA,
-			4EDB22A30818EF1600127A63,
 		);
 		codeSenseManager = 4E25C4AC070DDADD0005BF02;
 		executables = (
 			4EB20A1E07D4B30C00FD1AB8,
+			4E6E40E9082CB6C600642FF0,
 		);
 		perUserDictionary = {
 			PBXConfiguration.PBXFileTableDataSource3.PBXBookmarksDataSource = {
@@ -52,8 +48,8 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					22,
-					444.7974,
-					233.5835,
+					618.7974,
+					320.5835,
 				);
 				PBXFileTableDataSourceColumnsKey = (
 					PBXExecutablesDataSource_ActiveFlagID,
@@ -66,9 +62,9 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					723,
+					678,
 					20,
-					128,
+					121,
 					43,
 					43,
 					20,
@@ -140,7 +136,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXTargetDataSource_PrimaryAttribute;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					574,
+					575,
 					122,
 					20,
 					122,
@@ -157,7 +153,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 137059895;
+			PBXPerProjectTemplateStateSaveDate = 137263234;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -507,46 +503,130 @@
 				};
 				RubberWindowFrame = "0 117 1280 821 0 0 1280 938 ";
 			};
-			PBXWorkspaceStateSaveDate = 137059895;
+			PBXWorkspaceStateSaveDate = 137263234;
 		};
 		perUserProjectItems = {
 			4E13CA0A07EB1770003D3B6C = 4E13CA0A07EB1770003D3B6C;
-			4E55C00908255CE70082E742 = 4E55C00908255CE70082E742;
-			4E55C02A082570C70082E742 = 4E55C02A082570C70082E742;
-			4E55C02C082570C70082E742 = 4E55C02C082570C70082E742;
+			4E293175082DF27B004AD73C = 4E293175082DF27B004AD73C;
+			4E29324A082E42B4004AD73C = 4E29324A082E42B4004AD73C;
+			4E29324D082E42B4004AD73C = 4E29324D082E42B4004AD73C;
+			4E29325E082E450C004AD73C = 4E29325E082E450C004AD73C;
+			4E293288082E50BD004AD73C = 4E293288082E50BD004AD73C;
+			4E29328C082E50BD004AD73C = 4E29328C082E50BD004AD73C;
+			4E29328E082E50BD004AD73C = 4E29328E082E50BD004AD73C;
+			4E293291082E50BD004AD73C = 4E293291082E50BD004AD73C;
+			4E29329B082E521A004AD73C = 4E29329B082E521A004AD73C;
+			4E29329C082E521A004AD73C = 4E29329C082E521A004AD73C;
+			4E2932B3082E5ABD004AD73C = 4E2932B3082E5ABD004AD73C;
+			4E2932D7082E5DDC004AD73C = 4E2932D7082E5DDC004AD73C;
+			4E2932E7082E5F54004AD73C = 4E2932E7082E5F54004AD73C;
+			4E2932F5082E639A004AD73C = 4E2932F5082E639A004AD73C;
+			4E293309082E6689004AD73C = 4E293309082E6689004AD73C;
+			4E293310082E6707004AD73C = 4E293310082E6707004AD73C;
+			4E293321082E6746004AD73C = 4E293321082E6746004AD73C;
+			4E29332B082E67D9004AD73C = 4E29332B082E67D9004AD73C;
+			4E293330082E6824004AD73C = 4E293330082E6824004AD73C;
+			4E293352082E6A18004AD73C = 4E293352082E6A18004AD73C;
+			4E293359082E6A31004AD73C = 4E293359082E6A31004AD73C;
+			4E29335D082E6A50004AD73C = 4E29335D082E6A50004AD73C;
+			4E293364082E6B32004AD73C = 4E293364082E6B32004AD73C;
+			4E293365082E6B32004AD73C = 4E293365082E6B32004AD73C;
+			4E29336A082E6D03004AD73C = 4E29336A082E6D03004AD73C;
 			4E585D0708168DB8002BBA08 = 4E585D0708168DB8002BBA08;
-			4E585D0F0816A234002BBA08 = 4E585D0F0816A234002BBA08;
-			4E585D1B08179421002BBA08 = 4E585D1B08179421002BBA08;
-			4E585D610817E7D5002BBA08 = 4E585D610817E7D5002BBA08;
-			4E6C2E8C07D3E260001B5986 = 4E6C2E8C07D3E260001B5986;
+			4E6A5C39082E791100ED6FD8 = 4E6A5C39082E791100ED6FD8;
+			4E6A5C3B082E791100ED6FD8 = 4E6A5C3B082E791100ED6FD8;
+			4E6A5C3C082E791100ED6FD8 = 4E6A5C3C082E791100ED6FD8;
+			4E6A5C44082E8A6300ED6FD8 = 4E6A5C44082E8A6300ED6FD8;
+			4E6A5C4B082E8AB000ED6FD8 = 4E6A5C4B082E8AB000ED6FD8;
+			4E6A5C61082E940900ED6FD8 = 4E6A5C61082E940900ED6FD8;
+			4E6A5C6A082E94C000ED6FD8 = 4E6A5C6A082E94C000ED6FD8;
+			4E6A5C76082E990C00ED6FD8 = 4E6A5C76082E990C00ED6FD8;
+			4E6A5C78082E990C00ED6FD8 = 4E6A5C78082E990C00ED6FD8;
+			4E6A5C7D082E998900ED6FD8 = 4E6A5C7D082E998900ED6FD8;
+			4E6A5C9E082EA04D00ED6FD8 = 4E6A5C9E082EA04D00ED6FD8;
+			4E6A5CA0082EA09E00ED6FD8 = 4E6A5CA0082EA09E00ED6FD8;
+			4E6A5CA3082EA09E00ED6FD8 = 4E6A5CA3082EA09E00ED6FD8;
+			4E6A5CA5082EA12700ED6FD8 = 4E6A5CA5082EA12700ED6FD8;
+			4E6A5CA8082EA12700ED6FD8 = 4E6A5CA8082EA12700ED6FD8;
+			4E6A5CB0082EA1E000ED6FD8 = 4E6A5CB0082EA1E000ED6FD8;
+			4E6A5CB1082EA1E000ED6FD8 = 4E6A5CB1082EA1E000ED6FD8;
+			4E6A5CB2082EA1E000ED6FD8 = 4E6A5CB2082EA1E000ED6FD8;
+			4E6A5CB3082EA1E000ED6FD8 = 4E6A5CB3082EA1E000ED6FD8;
+			4E6A5CB4082EA1E000ED6FD8 = 4E6A5CB4082EA1E000ED6FD8;
+			4E6A5CB5082EA1E000ED6FD8 = 4E6A5CB5082EA1E000ED6FD8;
+			4E6A5CB6082EA1E000ED6FD8 = 4E6A5CB6082EA1E000ED6FD8;
+			4E6A5CB7082EA1E000ED6FD8 = 4E6A5CB7082EA1E000ED6FD8;
+			4E6A5CB8082EA1E000ED6FD8 = 4E6A5CB8082EA1E000ED6FD8;
+			4E6A5CB9082EA1E000ED6FD8 = 4E6A5CB9082EA1E000ED6FD8;
+			4E6A5CBD082EA20000ED6FD8 = 4E6A5CBD082EA20000ED6FD8;
+			4E6A5CC3082EA20000ED6FD8 = 4E6A5CC3082EA20000ED6FD8;
+			4E6A5CC4082EA20000ED6FD8 = 4E6A5CC4082EA20000ED6FD8;
+			4E6A5CC5082EA20000ED6FD8 = 4E6A5CC5082EA20000ED6FD8;
+			4E6A5CC6082EA20000ED6FD8 = 4E6A5CC6082EA20000ED6FD8;
+			4E6A5CC7082EA20000ED6FD8 = 4E6A5CC7082EA20000ED6FD8;
+			4E6A5CC8082EA20000ED6FD8 = 4E6A5CC8082EA20000ED6FD8;
+			4E6A5CCD082EA25300ED6FD8 = 4E6A5CCD082EA25300ED6FD8;
+			4E6A5CE1082EA73A00ED6FD8 = 4E6A5CE1082EA73A00ED6FD8;
+			4E6A5CE3082EA73A00ED6FD8 = 4E6A5CE3082EA73A00ED6FD8;
+			4E6A5CE4082EA73A00ED6FD8 = 4E6A5CE4082EA73A00ED6FD8;
+			4E6A5CE7082EA73A00ED6FD8 = 4E6A5CE7082EA73A00ED6FD8;
+			4E6A5CE8082EA73A00ED6FD8 = 4E6A5CE8082EA73A00ED6FD8;
+			4E6A5CE9082EA73A00ED6FD8 = 4E6A5CE9082EA73A00ED6FD8;
+			4E6A5CEA082EA73A00ED6FD8 = 4E6A5CEA082EA73A00ED6FD8;
+			4E6A5CEB082EA73A00ED6FD8 = 4E6A5CEB082EA73A00ED6FD8;
+			4E6A5CEC082EA73A00ED6FD8 = 4E6A5CEC082EA73A00ED6FD8;
+			4E6A5CED082EA73A00ED6FD8 = 4E6A5CED082EA73A00ED6FD8;
+			4E6A5CEE082EA73A00ED6FD8 = 4E6A5CEE082EA73A00ED6FD8;
+			4E6A5CEF082EA73A00ED6FD8 = 4E6A5CEF082EA73A00ED6FD8;
+			4E6A5CF4082EA7FD00ED6FD8 = 4E6A5CF4082EA7FD00ED6FD8;
+			4E6A5CF5082EA7FD00ED6FD8 = 4E6A5CF5082EA7FD00ED6FD8;
+			4E6A5CFD082EA84300ED6FD8 = 4E6A5CFD082EA84300ED6FD8;
+			4E6A5CFE082EA84300ED6FD8 = 4E6A5CFE082EA84300ED6FD8;
+			4E6A5D02082EA92600ED6FD8 = 4E6A5D02082EA92600ED6FD8;
+			4E6A5D03082EA92600ED6FD8 = 4E6A5D03082EA92600ED6FD8;
+			4E6A5D05082EA92600ED6FD8 = 4E6A5D05082EA92600ED6FD8;
+			4E6A5D06082EA92600ED6FD8 = 4E6A5D06082EA92600ED6FD8;
+			4E6A5D07082EA92600ED6FD8 = 4E6A5D07082EA92600ED6FD8;
+			4E6A5D08082EA92600ED6FD8 = 4E6A5D08082EA92600ED6FD8;
+			4E6A5D09082EA92600ED6FD8 = 4E6A5D09082EA92600ED6FD8;
+			4E6A5D0A082EA92600ED6FD8 = 4E6A5D0A082EA92600ED6FD8;
+			4E6A5D0B082EA92600ED6FD8 = 4E6A5D0B082EA92600ED6FD8;
+			4E6A5D12082EA99E00ED6FD8 = 4E6A5D12082EA99E00ED6FD8;
+			4E6A5D13082EA99E00ED6FD8 = 4E6A5D13082EA99E00ED6FD8;
+			4E6A5D14082EA99E00ED6FD8 = 4E6A5D14082EA99E00ED6FD8;
+			4E6A5D15082EA99E00ED6FD8 = 4E6A5D15082EA99E00ED6FD8;
+			4E6A5D18082EAA9E00ED6FD8 = 4E6A5D18082EAA9E00ED6FD8;
+			4E6A5D19082EAA9E00ED6FD8 = 4E6A5D19082EAA9E00ED6FD8;
+			4E6A5D1A082EAA9E00ED6FD8 = 4E6A5D1A082EAA9E00ED6FD8;
+			4E6A5D1C082EAA9E00ED6FD8 = 4E6A5D1C082EAA9E00ED6FD8;
+			4E6A5D1D082EAA9E00ED6FD8 = 4E6A5D1D082EAA9E00ED6FD8;
+			4E6A5D1E082EAA9E00ED6FD8 = 4E6A5D1E082EAA9E00ED6FD8;
+			4E6A5D1F082EAA9E00ED6FD8 = 4E6A5D1F082EAA9E00ED6FD8;
+			4E6A5D2E082EAF0800ED6FD8 = 4E6A5D2E082EAF0800ED6FD8;
+			4E6A5D2F082EAF0800ED6FD8 = 4E6A5D2F082EAF0800ED6FD8;
+			4E6A5D30082EAF0800ED6FD8 = 4E6A5D30082EAF0800ED6FD8;
+			4E6A5D31082EAF0800ED6FD8 = 4E6A5D31082EAF0800ED6FD8;
+			4E6A5D32082EAF0800ED6FD8 = 4E6A5D32082EAF0800ED6FD8;
+			4E6A5D33082EAF0800ED6FD8 = 4E6A5D33082EAF0800ED6FD8;
+			4E6A5D34082EAF0800ED6FD8 = 4E6A5D34082EAF0800ED6FD8;
+			4E6A5D35082EAF0800ED6FD8 = 4E6A5D35082EAF0800ED6FD8;
+			4E6A5D36082EAF0800ED6FD8 = 4E6A5D36082EAF0800ED6FD8;
+			4E6A5D45082EAFD000ED6FD8 = 4E6A5D45082EAFD000ED6FD8;
+			4E6A5D5F082EBD7E00ED6FD8 = 4E6A5D5F082EBD7E00ED6FD8;
+			4E6A5D60082EBD7E00ED6FD8 = 4E6A5D60082EBD7E00ED6FD8;
+			4E6A5D61082EBD7E00ED6FD8 = 4E6A5D61082EBD7E00ED6FD8;
+			4E6F47E5082CD88B007CC678 = 4E6F47E5082CD88B007CC678;
+			4E6F47F0082CE28C007CC678 = 4E6F47F0082CE28C007CC678;
+			4E6F480E082CE944007CC678 = 4E6F480E082CE944007CC678;
+			4E6F4839082D024B007CC678 = 4E6F4839082D024B007CC678;
 			4E71467507D244A8002513CA = 4E71467507D244A8002513CA;
-			4E80B86307E6455E0005D9DD = 4E80B86307E6455E0005D9DD;
-			4E871BFB082BA3B100DAB834 = 4E871BFB082BA3B100DAB834;
-			4E871BFC082BA3B100DAB834 = 4E871BFC082BA3B100DAB834;
-			4E871BFD082BA3B100DAB834 = 4E871BFD082BA3B100DAB834;
-			4E871BFE082BA3B100DAB834 = 4E871BFE082BA3B100DAB834;
-			4E871BFF082BA3B100DAB834 = 4E871BFF082BA3B100DAB834;
+			4E751588082C0D65002018A8 = 4E751588082C0D65002018A8;
+			4E871C1A082BB4EF00DAB834 = 4E871C1A082BB4EF00DAB834;
 			4EA70AEE082A7DCA00193274 = 4EA70AEE082A7DCA00193274;
-			4EA70AEF082A7DCA00193274 = 4EA70AEF082A7DCA00193274;
 			4EA70AF0082A7DCA00193274 = 4EA70AF0082A7DCA00193274;
-			4EA70B9C082A8C9200193274 = 4EA70B9C082A8C9200193274;
-			4EA70B9E082A8C9200193274 = 4EA70B9E082A8C9200193274;
-			4EA70B9F082A8C9200193274 = 4EA70B9F082A8C9200193274;
-			4EA70BA3082A8D7600193274 = 4EA70BA3082A8D7600193274;
-			4EA70BA7082A8EFB00193274 = 4EA70BA7082A8EFB00193274;
-			4EA70BA8082A8EFB00193274 = 4EA70BA8082A8EFB00193274;
-			4EA70BA9082A8EFB00193274 = 4EA70BA9082A8EFB00193274;
-			4EA70BAA082A8EFB00193274 = 4EA70BAA082A8EFB00193274;
-			4EA70BD7082A94AF00193274 = 4EA70BD7082A94AF00193274;
-			4EA70BD8082A94AF00193274 = 4EA70BD8082A94AF00193274;
 			4EB6525808295D0500B8863B = 4EB6525808295D0500B8863B;
 			4EB6525908295D0500B8863B = 4EB6525908295D0500B8863B;
-			4EB65265082966FC00B8863B = 4EB65265082966FC00B8863B;
-			4EB6529A08297AE200B8863B = 4EB6529A08297AE200B8863B;
 			4EB652E7082A020700B8863B = 4EB652E7082A020700B8863B;
-			4EB65338082A20FF00B8863B = 4EB65338082A20FF00B8863B;
-			4EB6533D082A215400B8863B = 4EB6533D082A215400B8863B;
-			4ECC02CA07E2065C007D664C = 4ECC02CA07E2065C007D664C;
 			4ECC02D007E2065C007D664C = 4ECC02D007E2065C007D664C;
 			4ED2B5AF07E0E2FC00B9AA22 = 4ED2B5AF07E0E2FC00B9AA22;
 			4EDEC4EB07CE349A00514E5A = 4EDEC4EB07CE349A00514E5A;
@@ -602,157 +682,1366 @@
 		wantsCodeCompletionTabCompletes = 1;
 		wantsIndex = 1;
 	};
-	4E55C00908255CE70082E742 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
+	4E293175082DF27B004AD73C = {
+		fRef = 4E751580082C0CF4002018A8;
 		isa = PBXTextBookmark;
-		name = "nfsft.c: 130";
+		name = "u.c: 347";
 		rLen = 0;
-		rLoc = 4047;
+		rLoc = 11137;
 		rType = 0;
-		vrLen = 1107;
-		vrLoc = 2902;
+		vrLen = 797;
+		vrLoc = 11213;
 	};
-	4E55C02A082570C70082E742 = {
+	4E29324A082E42B4004AD73C = {
+		fRef = 4E751580082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.c: 361";
+		rLen = 0;
+		rLoc = 12010;
+		rType = 0;
+		vrLen = 1162;
+		vrLoc = 10055;
+	};
+	4E29324D082E42B4004AD73C = {
+		fRef = 4E6CD5D707C555500040176B;
+		isa = PBXTextBookmark;
+		name = "direct.c: 287";
+		rLen = 0;
+		rLoc = 7263;
+		rType = 0;
+		vrLen = 668;
+		vrLoc = 6595;
+	};
+	4E29325E082E450C004AD73C = {
 		fRef = 4E6CD57607C54E630040176B;
 		isa = PBXTextBookmark;
-		name = "legendre.c: 5";
+		name = "legendre.c: 226";
 		rLen = 0;
-		rLoc = 107;
+		rLoc = 4111;
 		rType = 0;
-		vrLen = 398;
+		vrLen = 544;
+		vrLoc = 3567;
+	};
+	4E293281082E501F004AD73C = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 576}}";
+			sepNavSelRange = "{40, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
+		};
+	};
+	4E293282082E501F004AD73C = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 8671}}";
+			sepNavSelRange = "{4388, 0}";
+			sepNavVisRect = "{{0, 1856}, {943, 576}}";
+		};
+	};
+	4E293288082E50BD004AD73C = {
+		fRef = 4E6E40C2082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "/** inverse nfft \n * -----------------------------------------------------------------------------\n * -----------------------------------------------------------------------------\n */\nvoid infft_init_specific(infft_plan *this_iplan, nfft_plan *direct_plan,\n\t\t\t int infft_flags)\n{\n  this_iplan->direct_plan = direct_plan;\n  this_iplan->infft_flags = infft_flags;\n  \n  this_iplan->given_f = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n\n  this_iplan->r_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n\n  this_iplan->f_hat_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  this_iplan->p_hat_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  if(this_iplan->infft_flags & LANDWEBER)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n    }\n\n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n\n      this_iplan->v_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n    }\n\n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      this_iplan->z_hat_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n      this_iplan->v_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n    }\n\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    this_iplan->f_hat_iter_2nd = (fftw_complex*) \n      fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->w = \n      (double*) fftw_malloc(this_iplan->direct_plan->M*sizeof(double));\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->w_hat = \n      (double*) fftw_malloc(this_iplan->direct_plan->N_L*sizeof(double));\n}\n\nvoid infft_init(infft_plan *this_iplan, nfft_plan *direct_plan)\n{\n  infft_init_specific(this_iplan, direct_plan, CGNR_E);\n}\n\nvoid infft_before_loop_help(infft_plan *this_iplan)\n{\n  /** step 2\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->r_iter\n   */\n  copyc(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,\n\tthis_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);\n\n  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f,\n\t       this_iplan->direct_plan->M);\n\n  if((!(this_iplan->infft_flags & LANDWEBER)) ||\n     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n\tthis_iplan->dot_r_iter =\n\t  dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\tthis_iplan->direct_plan->M);\n      else\n\tthis_iplan->dot_r_iter =\n\t  dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n    }\n  \n  /** step 3\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->z_hat_iter resp. this_iplan->z_hat_iter\n   */ \n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,\n\t    this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);\n  \n  if((!(this_iplan->infft_flags & LANDWEBER)) ||\n     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tthis_iplan->dot_z_hat_iter = \n\t  dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat,\n\t\t\tthis_iplan->direct_plan->N_L);\n      else\n\tthis_iplan->dot_z_hat_iter =\n\t  dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    this_iplan->dot_p_hat_iter = this_iplan->dot_z_hat_iter;\n\n} /* void infft_before_loop_help */\n\nvoid infft_before_loop(infft_plan *this_iplan)\n{\n  infft_before_loop_help(this_iplan);\n\n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      /** step 4-6\n       *  overwrites this_iplan->f_hat_iter_2nd\n       */\n      if(this_iplan->infft_flags & ITERATE_2nd)\n\tcopyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,\n\t      this_iplan->direct_plan->N_L);\n     \n      /** step 7\n       *  overwrites this_iplan->p_hat_iter\n       */\n      copyc(this_iplan->p_hat_iter, this_iplan->z_hat_iter,\n\t    this_iplan->direct_plan->N_L);\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    {\n      /** step 4-7\n       *  overwrites this_iplan->f_hat_iter_2nd\n       */\n      if(this_iplan->infft_flags & ITERATE_2nd)\n\t{\n\t  this_iplan->gamma_iter=1.0;\n\t  copyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,\n\t\tthis_iplan->direct_plan->N_L);\n\t}\n    }\n} /* void infft_before_loop */\n\nvoid infft_loop_one_step_landweber(infft_plan *this_iplan)\n{\n  /** step 5\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->z_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 6\n   *  original residual, not the updated residual,\n   *  overwrites this_iplan->r_iter\n   *  overwrites this_iplan->direct_plan->f_hat \n   */\n  copyc(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,\n\tthis_iplan->direct_plan->N_L);\n\n  SWAPC(this_iplan->r_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->r_iter,this_iplan->direct_plan->f);\n  \n  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f, \n\t       this_iplan->direct_plan->M);\n\n  if(this_iplan->infft_flags & NORMS_FOR_LANDWEBER)\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n\tthis_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter,this_iplan->w,\n\t\t\t\t\t       this_iplan->direct_plan->M);\n      else\n\tthis_iplan->dot_r_iter =\n\t  dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n    }\n\n  /** step 7\n   *  overwrites this_iplan->direct_plan->f \n   *  overwrites this_iplan->z_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w,\n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n    \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n\n  if(this_iplan->infft_flags & NORMS_FOR_LANDWEBER)\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tthis_iplan->dot_z_hat_iter = \n\t  dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat,\n\t\t\tthis_iplan->direct_plan->N_L);\n      else\n\tthis_iplan->dot_z_hat_iter =\n\t  dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n} /* void infft_loop_one_step_landweber */\n\nvoid infft_loop_one_step_steepest_descent(infft_plan *this_iplan)\n{\n  /** step 5\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->v_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->z_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_v_iter =\n      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->M);\n  \n  /** step 6\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;\n\n  /** step 7\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat,this_iplan->z_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n\n  /** step 8\n   *  updates this_iplan->r_iter\n   */\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,\n\t      this_iplan->direct_plan->M);\n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n\n  /** step 9\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->z_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,\n\t    this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_z_hat_iter =\n      dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat, \n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_z_hat_iter =\n      dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n} /* void infft_loop_one_step_steepest_descent */\n\nvoid infft_loop_one_step_cgnr_e(infft_plan *this_iplan)\n{\n  /** step 9\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->v_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_v_iter =\n      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->M);\n  \n  /** step 10\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;\n\n  /** step 11\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->p_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter, \n\t\tthis_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n\n  /** step 12-15\n   *  updates this_iplan->f_hat_iter_2nd\n   */\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    {\n      this_iplan->alpha_iter_2nd =\n\tthis_iplan->dot_r_iter / this_iplan->dot_z_hat_iter;\n      \n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tupdatec_xpawy(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,\n\t\t      this_iplan->w_hat, this_iplan->z_hat_iter,\n\t\t      this_iplan->direct_plan->N_L);\n      else\n\tupdatec_xpay(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,\n\t\t    this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n  \n  /** step 16\n   *  updates this_iplan->r_iter\n   */\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,\n\t      this_iplan->direct_plan->M);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n\n  /** step 17\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->direct_plan->r_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, \n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n\n  this_iplan->dot_z_hat_iter_old = this_iplan->dot_z_hat_iter;\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_z_hat_iter =\n      dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat, \n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_z_hat_iter =\n      dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 18\n   */\n  this_iplan->beta_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_z_hat_iter_old;\n  \n  /** step 19\n   *  updates this_iplan->p_hat_iter\n   */\n  updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter, \n\t       this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n} /* void infft_loop_one_step_cgnr_e */\n\nvoid infft_loop_one_step_cgne_r(infft_plan *this_iplan)\n{\n  /** step 9\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_r_iter / this_iplan->dot_p_hat_iter;\n  \n  /** step 10\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->p_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 11\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->direct_plan->f\n   *  updates this_iplan->r_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  nfft_trafo(this_iplan->direct_plan);\n\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter,\n\t      this_iplan->direct_plan->f, this_iplan->direct_plan->M);\n  \n  this_iplan->dot_r_iter_old = this_iplan->dot_r_iter;\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter =\n      dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t    this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n  \n  /** step 12\n   */\n  this_iplan->beta_iter =\n    this_iplan->dot_r_iter / this_iplan->dot_r_iter_old;\n  \n  /** step 13-16\n   *  updates this_iplan->f_hat_iter_2nd\n   */\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    {\n      this_iplan->gamma_iter_old = this_iplan->gamma_iter;\n      this_iplan->gamma_iter =\n\tthis_iplan->beta_iter * this_iplan->gamma_iter_old + 1;\n      \n      updatec_axpby(this_iplan->f_hat_iter_2nd, \n\t\t    this_iplan->beta_iter * this_iplan->gamma_iter_old / \n\t\t    this_iplan->gamma_iter, this_iplan->f_hat_iter, \n\t\t    1.0 / this_iplan->gamma_iter, this_iplan->direct_plan->N_L);\n    }\n  \n  /** step 16\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->direct_plan->f_hat\n   *  updates this_iplan->p_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w,\n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M); \n  \n  nfft_adjoint(this_iplan->direct_plan);\n  \n  updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter,\n\t       this_iplan->direct_plan->f_hat, this_iplan->direct_plan->N_L);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_p_hat_iter = \n      dotproductc_w(this_iplan->p_hat_iter, this_iplan->w_hat,\n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_p_hat_iter =\n      dotproductc(this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n}\n\nvoid infft_loop_one_step(infft_plan *this_iplan)\n{\n  if(this_iplan->infft_flags & LANDWEBER)\n    infft_loop_one_step_landweber(this_iplan);\n\n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    infft_loop_one_step_steepest_descent(this_iplan);\n  \n  if(this_iplan->infft_flags & CGNR_E)\n    infft_loop_one_step_cgnr_e(this_iplan);\n  \n  if(this_iplan->infft_flags & CGNE_R)\n    infft_loop_one_step_cgne_r(this_iplan);\n}\n\nvoid infft_finalize(infft_plan *this_iplan)\n{\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    fftw_free(this_iplan->w);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    fftw_free(this_iplan->w_hat);\n  \n  if(this_iplan->infft_flags & ITERATE_2nd)\n    fftw_free(this_iplan->f_hat_iter_2nd);\n  \n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      fftw_free(this_iplan->v_iter);\n      fftw_free(this_iplan->z_hat_iter);\n    }\n  \n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    fftw_free(this_iplan->v_iter);\n  \n  fftw_free(this_iplan->p_hat_iter);\n  fftw_free(this_iplan->f_hat_iter);\n\n  fftw_free(this_iplan->r_iter);\n  fftw_free(this_iplan->given_f);\n}\n";
+		rLen = 17550;
+		rLoc = 35456;
+		rType = 0;
+		vrLen = 945;
+		vrLoc = 52061;
+	};
+	4E29328C082E50BD004AD73C = {
+		fRef = 4E6E40C2082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "/** inverse nfft \n * -----------------------------------------------------------------------------\n * -----------------------------------------------------------------------------\n */\nvoid infft_init_specific(infft_plan *this_iplan, nfft_plan *direct_plan,\n\t\t\t int infft_flags)\n{\n  this_iplan->direct_plan = direct_plan;\n  this_iplan->infft_flags = infft_flags;\n  \n  this_iplan->given_f = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n\n  this_iplan->r_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n\n  this_iplan->f_hat_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  this_iplan->p_hat_iter = (fftw_complex*)\n    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  if(this_iplan->infft_flags & LANDWEBER)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n    }\n\n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n\n      this_iplan->v_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n    }\n\n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      this_iplan->z_hat_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n      this_iplan->v_iter = (fftw_complex*)\n\tfftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    {\n      this_iplan->z_hat_iter = this_iplan->p_hat_iter;\n    }\n\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    this_iplan->f_hat_iter_2nd = (fftw_complex*) \n      fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));\n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->w = \n      (double*) fftw_malloc(this_iplan->direct_plan->M*sizeof(double));\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->w_hat = \n      (double*) fftw_malloc(this_iplan->direct_plan->N_L*sizeof(double));\n}\n\nvoid infft_init(infft_plan *this_iplan, nfft_plan *direct_plan)\n{\n  infft_init_specific(this_iplan, direct_plan, CGNR_E);\n}\n\nvoid infft_before_loop_help(infft_plan *this_iplan)\n{\n  /** step 2\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->r_iter\n   */\n  copyc(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,\n\tthis_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);\n\n  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f,\n\t       this_iplan->direct_plan->M);\n\n  if((!(this_iplan->infft_flags & LANDWEBER)) ||\n     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n\tthis_iplan->dot_r_iter =\n\t  dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\tthis_iplan->direct_plan->M);\n      else\n\tthis_iplan->dot_r_iter =\n\t  dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n    }\n  \n  /** step 3\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->z_hat_iter resp. this_iplan->z_hat_iter\n   */ \n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,\n\t    this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);\n  \n  if((!(this_iplan->infft_flags & LANDWEBER)) ||\n     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tthis_iplan->dot_z_hat_iter = \n\t  dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat,\n\t\t\tthis_iplan->direct_plan->N_L);\n      else\n\tthis_iplan->dot_z_hat_iter =\n\t  dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    this_iplan->dot_p_hat_iter = this_iplan->dot_z_hat_iter;\n\n} /* void infft_before_loop_help */\n\nvoid infft_before_loop(infft_plan *this_iplan)\n{\n  infft_before_loop_help(this_iplan);\n\n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      /** step 4-6\n       *  overwrites this_iplan->f_hat_iter_2nd\n       */\n      if(this_iplan->infft_flags & ITERATE_2nd)\n\tcopyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,\n\t      this_iplan->direct_plan->N_L);\n     \n      /** step 7\n       *  overwrites this_iplan->p_hat_iter\n       */\n      copyc(this_iplan->p_hat_iter, this_iplan->z_hat_iter,\n\t    this_iplan->direct_plan->N_L);\n    }\n\n  if(this_iplan->infft_flags & CGNE_R)\n    {\n      /** step 4-7\n       *  overwrites this_iplan->f_hat_iter_2nd\n       */\n      if(this_iplan->infft_flags & ITERATE_2nd)\n\t{\n\t  this_iplan->gamma_iter=1.0;\n\t  copyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,\n\t\tthis_iplan->direct_plan->N_L);\n\t}\n    }\n} /* void infft_before_loop */\n\nvoid infft_loop_one_step_landweber(infft_plan *this_iplan)\n{\n  /** step 5\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->z_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 6\n   *  original residual, not the updated residual,\n   *  overwrites this_iplan->r_iter\n   *  overwrites this_iplan->direct_plan->f_hat \n   */\n  copyc(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,\n\tthis_iplan->direct_plan->N_L);\n\n  SWAPC(this_iplan->r_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->r_iter,this_iplan->direct_plan->f);\n  \n  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f, \n\t       this_iplan->direct_plan->M);\n\n  if(this_iplan->infft_flags & NORMS_FOR_LANDWEBER)\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n\tthis_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter,this_iplan->w,\n\t\t\t\t\t       this_iplan->direct_plan->M);\n      else\n\tthis_iplan->dot_r_iter =\n\t  dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n    }\n\n  /** step 7\n   *  overwrites this_iplan->direct_plan->f \n   *  overwrites this_iplan->z_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w,\n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n    \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n\n  if(this_iplan->infft_flags & NORMS_FOR_LANDWEBER)\n    {\n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tthis_iplan->dot_z_hat_iter = \n\t  dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat,\n\t\t\tthis_iplan->direct_plan->N_L);\n      else\n\tthis_iplan->dot_z_hat_iter =\n\t  dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n} /* void infft_loop_one_step_landweber */\n\nvoid infft_loop_one_step_steepest_descent(infft_plan *this_iplan)\n{\n  /** step 5\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->v_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->z_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_v_iter =\n      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->M);\n  \n  /** step 6\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;\n\n  /** step 7\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat,this_iplan->z_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n\n  /** step 8\n   *  updates this_iplan->r_iter\n   */\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,\n\t      this_iplan->direct_plan->M);\n\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n\n  /** step 9\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->z_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,\n\t    this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_z_hat_iter =\n      dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat, \n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_z_hat_iter =\n      dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n} /* void infft_loop_one_step_steepest_descent */\n\nvoid infft_loop_one_step_cgnr_e(infft_plan *this_iplan)\n{\n  /** step 9\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->v_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  nfft_trafo(this_iplan->direct_plan);\n  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_v_iter =\n      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->M);\n  \n  /** step 10\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;\n\n  /** step 11\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->p_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter, \n\t\tthis_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n\n  /** step 12-15\n   *  updates this_iplan->f_hat_iter_2nd\n   */\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    {\n      this_iplan->alpha_iter_2nd =\n\tthis_iplan->dot_r_iter / this_iplan->dot_z_hat_iter;\n      \n      if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n\tupdatec_xpawy(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,\n\t\t      this_iplan->w_hat, this_iplan->z_hat_iter,\n\t\t      this_iplan->direct_plan->N_L);\n      else\n\tupdatec_xpay(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,\n\t\t    this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n    }\n  \n  /** step 16\n   *  updates this_iplan->r_iter\n   */\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,\n\t      this_iplan->direct_plan->M);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t\t\t\t   this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n\n  /** step 17\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->direct_plan->r_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w, \n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M);\n  \n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n  nfft_adjoint(this_iplan->direct_plan);\n  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);\n\n  this_iplan->dot_z_hat_iter_old = this_iplan->dot_z_hat_iter;\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_z_hat_iter =\n      dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat, \n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_z_hat_iter =\n      dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 18\n   */\n  this_iplan->beta_iter =\n    this_iplan->dot_z_hat_iter / this_iplan->dot_z_hat_iter_old;\n  \n  /** step 19\n   *  updates this_iplan->p_hat_iter\n   */\n  updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter, \n\t       this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);\n} /* void infft_loop_one_step_cgnr_e */\n\nvoid infft_loop_one_step_cgne_r(infft_plan *this_iplan)\n{\n  /** step 9\n   */\n  this_iplan->alpha_iter =\n    this_iplan->dot_r_iter / this_iplan->dot_p_hat_iter;\n  \n  /** step 10\n   *  updates this_iplan->f_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\t  this_iplan->w_hat, this_iplan->p_hat_iter,\n\t\t  this_iplan->direct_plan->N_L);\n  else\n    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,\n\t\tthis_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  \n  /** step 11\n   *  overwrites this_iplan->direct_plan->f_hat \n   *  overwrites this_iplan->direct_plan->f\n   *  updates this_iplan->r_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,\n\t    this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n  else\n    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,\n\t  this_iplan->direct_plan->N_L);\n  \n  nfft_trafo(this_iplan->direct_plan);\n\n  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter,\n\t      this_iplan->direct_plan->f, this_iplan->direct_plan->M);\n  \n  this_iplan->dot_r_iter_old = this_iplan->dot_r_iter;\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    this_iplan->dot_r_iter =\n      dotproductc_w(this_iplan->r_iter, this_iplan->w,\n\t\t    this_iplan->direct_plan->M);\n  else\n    this_iplan->dot_r_iter =\n      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);\n  \n  /** step 12\n   */\n  this_iplan->beta_iter =\n    this_iplan->dot_r_iter / this_iplan->dot_r_iter_old;\n  \n  /** step 13-16\n   *  updates this_iplan->f_hat_iter_2nd\n   */\n  if(this_iplan->infft_flags & ITERATE_2nd)\n    {\n      this_iplan->gamma_iter_old = this_iplan->gamma_iter;\n      this_iplan->gamma_iter =\n\tthis_iplan->beta_iter * this_iplan->gamma_iter_old + 1;\n      \n      updatec_axpby(this_iplan->f_hat_iter_2nd, \n\t\t    this_iplan->beta_iter * this_iplan->gamma_iter_old / \n\t\t    this_iplan->gamma_iter, this_iplan->f_hat_iter, \n\t\t    1.0 / this_iplan->gamma_iter, this_iplan->direct_plan->N_L);\n    }\n  \n  /** step 16\n   *  overwrites this_iplan->direct_plan->f\n   *  overwrites this_iplan->direct_plan->f_hat\n   *  updates this_iplan->p_hat_iter\n   */\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    copyc_w(this_iplan->direct_plan->f, this_iplan->w,\n\t    this_iplan->r_iter, this_iplan->direct_plan->M);\n  else\n    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,\n\t  this_iplan->direct_plan->M); \n  \n  nfft_adjoint(this_iplan->direct_plan);\n  \n  updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter,\n\t       this_iplan->direct_plan->f_hat, this_iplan->direct_plan->N_L);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    this_iplan->dot_p_hat_iter = \n      dotproductc_w(this_iplan->p_hat_iter, this_iplan->w_hat,\n\t\t    this_iplan->direct_plan->N_L);\n  else\n    this_iplan->dot_p_hat_iter =\n      dotproductc(this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);\n}\n\nvoid infft_loop_one_step(infft_plan *this_iplan)\n{\n  if(this_iplan->infft_flags & LANDWEBER)\n    infft_loop_one_step_landweber(this_iplan);\n\n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    infft_loop_one_step_steepest_descent(this_iplan);\n  \n  if(this_iplan->infft_flags & CGNR_E)\n    infft_loop_one_step_cgnr_e(this_iplan);\n  \n  if(this_iplan->infft_flags & CGNE_R)\n    infft_loop_one_step_cgne_r(this_iplan);\n}\n\nvoid infft_finalize(infft_plan *this_iplan)\n{\n  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)\n    fftw_free(this_iplan->w);\n  \n  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)\n    fftw_free(this_iplan->w_hat);\n  \n  if(this_iplan->infft_flags & ITERATE_2nd)\n    fftw_free(this_iplan->f_hat_iter_2nd);\n  \n  if(this_iplan->infft_flags & CGNR_E)\n    {\n      fftw_free(this_iplan->v_iter);\n      fftw_free(this_iplan->z_hat_iter);\n    }\n  \n  if(this_iplan->infft_flags & STEEPEST_DESCENT)\n    fftw_free(this_iplan->v_iter);\n  \n  fftw_free(this_iplan->p_hat_iter);\n  fftw_free(this_iplan->f_hat_iter);\n\n  fftw_free(this_iplan->r_iter);\n  fftw_free(this_iplan->given_f);\n}\n";
+		rLen = 17550;
+		rLoc = 35456;
+		rType = 0;
+		vrLen = 945;
+		vrLoc = 52061;
+	};
+	4E29328E082E50BD004AD73C = {
+		fRef = 4E293281082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 40;
 		vrLoc = 0;
 	};
-	4E55C02C082570C70082E742 = {
-		fRef = 4E6CD54507C54A7E0040176B;
+	4E293291082E50BD004AD73C = {
+		fRef = 4E293282082E501F004AD73C;
 		isa = PBXTextBookmark;
-		name = "api.h: nfsft_wisdom";
+		name = "infsft.c: 1";
 		rLen = 0;
-		rLoc = 2657;
+		rLoc = 0;
 		rType = 0;
-		vrLen = 607;
-		vrLoc = 256;
+		vrLen = 1200;
+		vrLoc = 0;
+	};
+	4E29329B082E521A004AD73C = {
+		fRef = 4E7515A1082C0DF4002018A8;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 3";
+		rLen = 0;
+		rLoc = 98;
+		rType = 0;
+		vrLen = 161;
+		vrLoc = 0;
+	};
+	4E29329C082E521A004AD73C = {
+		fRef = 4E7515A1082C0DF4002018A8;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 3";
+		rLen = 0;
+		rLoc = 98;
+		rType = 0;
+		vrLen = 161;
+		vrLoc = 0;
+	};
+	4E2932A7082E5984004AD73C = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1696}}";
+			sepNavSelRange = "{1660, 0}";
+			sepNavVisRect = "{{0, 960}, {943, 576}}";
+		};
+	};
+	4E2932B3082E5ABD004AD73C = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 1";
+		rLen = 0;
+		rLoc = 2321;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+	4E2932D7082E5DDC004AD73C = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 768";
+		rLen = 0;
+		rLoc = 18831;
+		rType = 0;
+		vrLen = 318;
+		vrLoc = 19078;
+	};
+	4E2932E7082E5F54004AD73C = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 224";
+		rLen = 0;
+		rLoc = 6068;
+		rType = 0;
+		vrLen = 505;
+		vrLoc = 5753;
+	};
+	4E2932F5082E639A004AD73C = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 84";
+		rLen = 0;
+		rLoc = 1716;
+		rType = 0;
+		vrLen = 624;
+		vrLoc = 1079;
+	};
+	4E293300082E65F9004AD73C = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/examples/template/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E293309082E6689004AD73C = {
+		fRef = 4E293300082E65F9004AD73C;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 11";
+		rLen = 0;
+		rLoc = 173;
+		rType = 0;
+		vrLen = 282;
+		vrLoc = 0;
+	};
+	4E293310082E6707004AD73C = {
+		fRef = 4E6F47D6082CD7C9007CC678;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 2";
+		rLen = 0;
+		rLoc = 36;
+		rType = 0;
+		vrLen = 36;
+		vrLoc = 0;
+	};
+	4E293312082E6707004AD73C = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/examples/wrapper/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E29331A082E672F004AD73C = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 4319}}";
+			sepNavSelRange = "{344, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
+			sepNavWindowFrame = "{{15, 72}, {1280, 861}}";
+		};
+	};
+	4E293321082E6746004AD73C = {
+		fRef = 4E6F47D6082CD7C9007CC678;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 2";
+		rLen = 0;
+		rLoc = 36;
+		rType = 0;
+		vrLen = 36;
+		vrLoc = 0;
+	};
+	4E29332A082E67D9004AD73C = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = configure.in;
+		path = /Users/keiner/Temporary/nfft/configure.in;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E29332B082E67D9004AD73C = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1082;
+		vrLoc = 0;
+	};
+	4E293330082E6824004AD73C = {
+		fRef = 4E29332A082E67D9004AD73C;
+		isa = PBXTextBookmark;
+		name = "configure.in: 46";
+		rLen = 0;
+		rLoc = 1341;
+		rType = 0;
+		vrLen = 1111;
+		vrLoc = 241;
+	};
+	4E293352082E6A18004AD73C = {
+		fRef = 4E6F47D1082CD793007CC678;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 2";
+		rLen = 0;
+		rLoc = 63;
+		rType = 0;
+		vrLen = 286;
+		vrLoc = 0;
+	};
+	4E293359082E6A31004AD73C = {
+		fRef = 4E293300082E65F9004AD73C;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 10";
+		rLen = 0;
+		rLoc = 221;
+		rType = 0;
+		vrLen = 221;
+		vrLoc = 0;
+	};
+	4E29335D082E6A50004AD73C = {
+		fRef = 4E29335E082E6A50004AD73C;
+		isa = PBXTextBookmark;
+		name = "(null): 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 152;
+		vrLoc = 0;
+	};
+	4E29335E082E6A50004AD73C = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E293364082E6B32004AD73C = {
+		fRef = 4E293312082E6707004AD73C;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 10";
+		rLen = 0;
+		rLoc = 217;
+		rType = 0;
+		vrLen = 217;
+		vrLoc = 0;
+	};
+	4E293365082E6B32004AD73C = {
+		fRef = 4E293312082E6707004AD73C;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 10";
+		rLen = 0;
+		rLoc = 217;
+		rType = 0;
+		vrLen = 217;
+		vrLoc = 0;
+	};
+	4E29336A082E6D03004AD73C = {
+		fRef = 4E6F47D1082CD793007CC678;
+		isa = PBXTextBookmark;
+		name = "Makefile.am: 12";
+		rLen = 0;
+		rLoc = 331;
+		rType = 0;
+		vrLen = 335;
+		vrLoc = 0;
+	};
+	4E293375082E70C7004AD73C = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = configure.in;
+		path = /Users/keiner/Temporary/nfft/configure.in;
+		refType = 0;
+		sourceTree = "<absolute>";
 	};
 	4E585D0708168DB8002BBA08 = {
 		fRef = 4E6CD5D607C555500040176B;
 		isa = PBXTextBookmark;
 		name = "direct.h: adjoint_ndsft";
 		rLen = 0;
-		rLoc = 2730;
+		rLoc = 2865;
 		rType = 0;
-		vrLen = 1328;
+		vrLen = 1324;
 		vrLoc = 1496;
 	};
-	4E585D0F0816A234002BBA08 = {
-		fRef = 4E6CD57607C54E630040176B;
+	4E6A5C39082E791100ED6FD8 = {
+		fRef = 4E293375082E70C7004AD73C;
 		isa = PBXTextBookmark;
-		name = "legendre.c: eval_al";
+		name = "configure.in: 24";
 		rLen = 0;
-		rLoc = 1117;
+		rLoc = 522;
 		rType = 0;
-		vrLen = 801;
-		vrLoc = 1092;
-	};
-	4E585D1B08179421002BBA08 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.c: 146";
-		rLen = 0;
-		rLoc = 3711;
-		rType = 0;
-		vrLen = 754;
-		vrLoc = 5311;
-	};
-	4E585D610817E7D5002BBA08 = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: error_complex_inf";
-		rLen = 0;
-		rLoc = 421;
-		rType = 0;
-		vrLen = 361;
+		vrLen = 788;
 		vrLoc = 0;
 	};
-	4E6C2E8C07D3E260001B5986 = {
+	4E6A5C3B082E791100ED6FD8 = {
+		fRef = 4E293375082E70C7004AD73C;
+		isa = PBXTextBookmark;
+		name = "configure.in: 24";
+		rLen = 0;
+		rLoc = 522;
+		rType = 0;
+		vrLen = 788;
+		vrLoc = 0;
+	};
+	4E6A5C3C082E791100ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 91";
+		rLen = 0;
+		rLoc = 2066;
+		rType = 0;
+		vrLen = 882;
+		vrLoc = 1342;
+	};
+	4E6A5C44082E8A6300ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 238";
+		rLen = 0;
+		rLoc = 6381;
+		rType = 0;
+		vrLen = 881;
+		vrLoc = 5536;
+	};
+	4E6A5C4B082E8AB000ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3463;
+		rType = 0;
+		vrLen = 1440;
+		vrLoc = 2476;
+	};
+	4E6A5C61082E940900ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3477;
+		rType = 0;
+		vrLen = 1359;
+		vrLoc = 2555;
+	};
+	4E6A5C6A082E94C000ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3475;
+		rType = 0;
+		vrLen = 1361;
+		vrLoc = 2555;
+	};
+	4E6A5C76082E990C00ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3466;
+		rType = 0;
+		vrLen = 1450;
+		vrLoc = 2660;
+	};
+	4E6A5C78082E990C00ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: LAST_L";
+		rLen = 0;
+		rLoc = 784;
+		rType = 0;
+		vrLen = 739;
+		vrLoc = 170;
+	};
+	4E6A5C7D082E998900ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: MAX_BANDWIDTH_EXPONENT";
+		rLen = 0;
+		rLoc = 1169;
+		rType = 0;
+		vrLen = 826;
+		vrLoc = 961;
+	};
+	4E6A5C9E082EA04D00ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 204";
+		rLen = 0;
+		rLoc = 6040;
+		rType = 0;
+		vrLen = 1053;
+		vrLoc = 4328;
+	};
+	4E6A5CA0082EA09E00ED6FD8 = {
+		fRef = 4E6E40C4082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "options.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1401;
+		vrLoc = 0;
+	};
+	4E6A5CA3082EA09E00ED6FD8 = {
+		fRef = 4E6E40C4082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "options.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1401;
+		vrLoc = 0;
+	};
+	4E6A5CA5082EA12700ED6FD8 = {
+		fRef = 4E6E40C3082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "nfft.h: 127";
+		rLen = 0;
+		rLoc = 5103;
+		rType = 0;
+		vrLen = 1442;
+		vrLoc = 4339;
+	};
+	4E6A5CA7082EA12700ED6FD8 = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.cpp.cpp;
+		name = group.cpp;
+		path = /sw/share/doc/doxygen/examples/group.cpp;
+		refType = 0;
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1423}}";
+			sepNavSelRange = "{4, 16}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
+		};
+	};
+	4E6A5CA8082EA12700ED6FD8 = {
+		fRef = 4E6E40C3082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "nfft.h: 127";
+		rLen = 0;
+		rLoc = 5103;
+		rType = 0;
+		vrLen = 1442;
+		vrLoc = 4339;
+	};
+	4E6A5CB0082EA1E000ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 736";
+		rLen = 0;
+		rLoc = 18566;
+		rType = 0;
+		vrLen = 559;
+		vrLoc = 18220;
+	};
+	4E6A5CB1082EA1E000ED6FD8 = {
 		fRef = 4E6CD54B07C54A7E0040176B;
 		isa = PBXTextBookmark;
-		name = "nfsft.h: 71";
-		rLen = 0;
-		rLoc = 1398;
+		name = nfsft_init;
+		rLen = 10;
+		rLoc = 818;
 		rType = 0;
-		vrLen = 598;
-		vrLoc = 833;
+		vrLen = 502;
+		vrLoc = 348;
+	};
+	4E6A5CB2082EA1E000ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 197";
+		rLen = 0;
+		rLoc = 4609;
+		rType = 0;
+		vrLen = 562;
+		vrLoc = 4347;
+	};
+	4E6A5CB3082EA1E000ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 82";
+		rLen = 0;
+		rLoc = 1863;
+		rType = 0;
+		vrLen = 587;
+		vrLoc = 1577;
+	};
+	4E6A5CB4082EA1E000ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		rLen = 10;
+		rLoc = 5954;
+		rType = 0;
+	};
+	4E6A5CB5082EA1E000ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 224";
+		rLen = 0;
+		rLoc = 6019;
+		rType = 0;
+		vrLen = 510;
+		vrLoc = 5766;
+	};
+	4E6A5CB6082EA1E000ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 736";
+		rLen = 0;
+		rLoc = 18566;
+		rType = 0;
+		vrLen = 559;
+		vrLoc = 18220;
+	};
+	4E6A5CB7082EA1E000ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = nfsft_init;
+		rLen = 10;
+		rLoc = 818;
+		rType = 0;
+		vrLen = 502;
+		vrLoc = 348;
+	};
+	4E6A5CB8082EA1E000ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 197";
+		rLen = 0;
+		rLoc = 4609;
+		rType = 0;
+		vrLen = 562;
+		vrLoc = 4347;
+	};
+	4E6A5CB9082EA1E000ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 82";
+		rLen = 0;
+		rLoc = 1863;
+		rType = 0;
+		vrLen = 587;
+		vrLoc = 1577;
+	};
+	4E6A5CBD082EA20000ED6FD8 = {
+		fRef = 4E6A5CA7082EA12700ED6FD8;
+		isa = PBXTextBookmark;
+		name = "@defgroup group1";
+		rLen = 16;
+		rLoc = 4;
+		rType = 0;
+		vrLen = 563;
+		vrLoc = 0;
+	};
+	4E6A5CC3082EA20000ED6FD8 = {
+		fRef = 4E6A5CA7082EA12700ED6FD8;
+		isa = PBXTextBookmark;
+		name = "@defgroup group1";
+		rLen = 16;
+		rLoc = 4;
+		rType = 0;
+		vrLen = 563;
+		vrLoc = 0;
+	};
+	4E6A5CC4082EA20000ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 39";
+		rLen = 0;
+		rLoc = 920;
+		rType = 0;
+		vrLen = 774;
+		vrLoc = 187;
+	};
+	4E6A5CC5082EA20000ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1082;
+		vrLoc = 0;
+	};
+	4E6A5CC6082EA20000ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 75";
+		rLen = 0;
+		rLoc = 1660;
+		rType = 0;
+		vrLen = 852;
+		vrLoc = 1342;
+	};
+	4E6A5CC7082EA20000ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 10";
+		rLen = 0;
+		rLoc = 344;
+		rType = 0;
+		vrLen = 1082;
+		vrLoc = 0;
+	};
+	4E6A5CC8082EA20000ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 745";
+		rLen = 0;
+		rLoc = 18740;
+		rType = 0;
+		vrLen = 693;
+		vrLoc = 18142;
+	};
+	4E6A5CCD082EA25300ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: nfsft_plan_s";
+		rLen = 0;
+		rLoc = 1562;
+		rType = 0;
+		vrLen = 899;
+		vrLoc = 832;
+	};
+	4E6A5CE1082EA73A00ED6FD8 = {
+		fRef = 4E293282082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.c: 134";
+		rLen = 0;
+		rLoc = 4388;
+		rType = 0;
+		vrLen = 1030;
+		vrLoc = 3866;
+	};
+	4E6A5CE3082EA73A00ED6FD8 = {
+		fRef = 4E6CD54C07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.c: 3";
+		rLen = 0;
+		rLoc = 40;
+		rType = 0;
+		vrLen = 669;
+		vrLoc = 0;
+	};
+	4E6A5CE4082EA73A00ED6FD8 = {
+		fRef = 4E6CD54607C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "config.h: 81";
+		rLen = 0;
+		rLoc = 2221;
+		rType = 0;
+		vrLen = 964;
+		vrLoc = 1257;
+	};
+	4E6A5CE7082EA73A00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 117";
+		rLen = 0;
+		rLoc = 1962;
+		rType = 0;
+		vrLen = 558;
+		vrLoc = 1404;
+	};
+	4E6A5CE8082EA73A00ED6FD8 = {
+		fRef = 4E293281082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.h: 4";
+		rLen = 0;
+		rLoc = 40;
+		rType = 0;
+		vrLen = 40;
+		vrLoc = 0;
+	};
+	4E6A5CE9082EA73A00ED6FD8 = {
+		fRef = 4E293282082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.c: 134";
+		rLen = 0;
+		rLoc = 4388;
+		rType = 0;
+		vrLen = 1030;
+		vrLoc = 3866;
+	};
+	4E6A5CEA082EA73A00ED6FD8 = {
+		fRef = 4E75157F082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.h: 42";
+		rLen = 0;
+		rLoc = 1551;
+		rType = 0;
+		vrLen = 1342;
+		vrLoc = 83;
+	};
+	4E6A5CEB082EA73A00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 117";
+		rLen = 0;
+		rLoc = 1991;
+		rType = 0;
+		vrLen = 558;
+		vrLoc = 1404;
+	};
+	4E6A5CEC082EA73A00ED6FD8 = {
+		fRef = 4E6CD54C07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.c: 3";
+		rLen = 0;
+		rLoc = 40;
+		rType = 0;
+		vrLen = 669;
+		vrLoc = 0;
+	};
+	4E6A5CED082EA73A00ED6FD8 = {
+		fRef = 4E6CD54607C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "config.h: 81";
+		rLen = 0;
+		rLoc = 2221;
+		rType = 0;
+		vrLen = 964;
+		vrLoc = 1257;
+	};
+	4E6A5CEE082EA73A00ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: 1";
+		rLen = 0;
+		rLoc = 61;
+		rType = 0;
+		vrLen = 577;
+		vrLoc = 0;
+	};
+	4E6A5CEF082EA73A00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 3";
+		rLen = 0;
+		rLoc = 56;
+		rType = 0;
+		vrLen = 787;
+		vrLoc = 0;
+	};
+	4E6A5CF4082EA7FD00ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "/** \\defgroup nfsft_internal NFSFT Internal API */\n";
+		rLen = 51;
+		rLoc = 811;
+		rType = 0;
+		vrLen = 682;
+		vrLoc = 559;
+	};
+	4E6A5CF5082EA7FD00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 3";
+		rLen = 0;
+		rLoc = 56;
+		rType = 0;
+		vrLen = 787;
+		vrLoc = 0;
+	};
+	4E6A5CFD082EA84300ED6FD8 = {
+		fRef = 4E6CD56E07C54E170040176B;
+		isa = PBXTextBookmark;
+		name = "legendre.h: 9";
+		rLen = 0;
+		rLoc = 183;
+		rType = 0;
+		vrLen = 542;
+		vrLoc = 0;
+	};
+	4E6A5CFE082EA84300ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: 48";
+		rLen = 0;
+		rLoc = 846;
+		rType = 0;
+		vrLen = 663;
+		vrLoc = 559;
+	};
+	4E6A5D02082EA92600ED6FD8 = {
+		fRef = 4E6CD56E07C54E170040176B;
+		isa = PBXTextBookmark;
+		name = "/** \\defgroup nfsft_legendre NFSFT: Functions related to associated Legendre functions/polynomials */\n";
+		rLen = 102;
+		rLoc = 147;
+		rType = 0;
+		vrLen = 542;
+		vrLoc = 0;
+	};
+	4E6A5D03082EA92600ED6FD8 = {
+		fRef = 4E6CD5D607C555500040176B;
+		isa = PBXTextBookmark;
+		name = "/** \\defgroup nfsft_direct NFSFT: Direct algorithms */\n";
+		rLen = 55;
+		rLoc = 104;
+		rType = 0;
+		vrLen = 1362;
+		vrLoc = 0;
+	};
+	4E6A5D05082EA92600ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 11";
+		rLen = 0;
+		rLoc = 252;
+		rType = 0;
+		vrLen = 788;
+		vrLoc = 0;
+	};
+	4E6A5D06082EA92600ED6FD8 = {
+		fRef = 4E6CD56E07C54E170040176B;
+		isa = PBXTextBookmark;
+		name = "/** \\defgroup nfsft_legendre NFSFT: Functions related to associated Legendre functions/polynomials */\n";
+		rLen = 102;
+		rLoc = 147;
+		rType = 0;
+		vrLen = 542;
+		vrLoc = 0;
+	};
+	4E6A5D07082EA92600ED6FD8 = {
+		fRef = 4E6CD5D607C555500040176B;
+		isa = PBXTextBookmark;
+		name = "direct.h: 9";
+		rLen = 0;
+		rLoc = 155;
+		rType = 0;
+		vrLen = 1363;
+		vrLoc = 0;
+	};
+	4E6A5D08082EA92600ED6FD8 = {
+		fRef = 4E75157F082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.h: 3";
+		rLen = 0;
+		rLoc = 79;
+		rType = 0;
+		vrLen = 1213;
+		vrLoc = 0;
+	};
+	4E6A5D09082EA92600ED6FD8 = {
+		fRef = 4E6CD5D607C555500040176B;
+		isa = PBXTextBookmark;
+		name = "direct.h: 69";
+		rLen = 0;
+		rLoc = 2860;
+		rType = 0;
+		vrLen = 1633;
+		vrLoc = 1343;
+	};
+	4E6A5D0A082EA92600ED6FD8 = {
+		fRef = 4E75157F082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.h: 51";
+		rLen = 0;
+		rLoc = 1574;
+		rType = 0;
+		vrLen = 1227;
+		vrLoc = 347;
+	};
+	4E6A5D0B082EA92600ED6FD8 = {
+		fRef = 4E6CD5D607C555500040176B;
+		isa = PBXTextBookmark;
+		name = "/** \\defgroup nfsft_direct NFSFT: Direct algorithms */\n";
+		rLen = 55;
+		rLoc = 104;
+		rType = 0;
+		vrLen = 1362;
+		vrLoc = 0;
+	};
+	4E6A5D12082EA99E00ED6FD8 = {
+		fRef = 4E75157F082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.h: 7";
+		rLen = 0;
+		rLoc = 186;
+		rType = 0;
+		vrLen = 1098;
+		vrLoc = 0;
+	};
+	4E6A5D13082EA99E00ED6FD8 = {
+		fRef = 4E293281082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.h: 4";
+		rLen = 0;
+		rLoc = 40;
+		rType = 0;
+		vrLen = 40;
+		vrLoc = 0;
+	};
+	4E6A5D14082EA99E00ED6FD8 = {
+		fRef = 4E75157F082C0CF4002018A8;
+		isa = PBXTextBookmark;
+		name = "u.h: 7";
+		rLen = 0;
+		rLoc = 186;
+		rType = 0;
+		vrLen = 1098;
+		vrLoc = 0;
+	};
+	4E6A5D15082EA99E00ED6FD8 = {
+		fRef = 4E293281082E501F004AD73C;
+		isa = PBXTextBookmark;
+		name = "infsft.h: 4";
+		rLen = 0;
+		rLoc = 40;
+		rType = 0;
+		vrLen = 40;
+		vrLoc = 0;
+	};
+	4E6A5D18082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 11";
+		rLen = 0;
+		rLoc = 252;
+		rType = 0;
+		vrLen = 788;
+		vrLoc = 0;
+	};
+	4E6A5D19082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_f_hat";
+		rLen = 0;
+		rLoc = 608;
+		rType = 0;
+		vrLen = 617;
+		vrLoc = 0;
+	};
+	4E6A5D1A082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: 111";
+		rLen = 0;
+		rLoc = 2206;
+		rType = 0;
+		vrLen = 1180;
+		vrLoc = 1842;
+	};
+	4E6A5D1C082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.h: 11";
+		rLen = 0;
+		rLoc = 252;
+		rType = 0;
+		vrLen = 788;
+		vrLoc = 0;
+	};
+	4E6A5D1D082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: error_f_hat";
+		rLen = 0;
+		rLoc = 608;
+		rType = 0;
+		vrLen = 617;
+		vrLoc = 0;
+	};
+	4E6A5D1E082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 507";
+		rLen = 0;
+		rLoc = 13024;
+		rType = 0;
+		vrLen = 1334;
+		vrLoc = 12700;
+	};
+	4E6A5D1F082EAA9E00ED6FD8 = {
+		fRef = 4E6CD54507C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "api.h: 111";
+		rLen = 0;
+		rLoc = 2206;
+		rType = 0;
+		vrLen = 1180;
+		vrLoc = 1842;
+	};
+	4E6A5D2E082EAF0800ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 175";
+		rLen = 0;
+		rLoc = 5330;
+		rType = 0;
+		vrLen = 1158;
+		vrLoc = 7884;
+	};
+	4E6A5D2F082EAF0800ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 10";
+		rLen = 0;
+		rLoc = 344;
+		rType = 0;
+		vrLen = 1082;
+		vrLoc = 0;
+	};
+	4E6A5D30082EAF0800ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 75";
+		rLen = 0;
+		rLoc = 1660;
+		rType = 0;
+		vrLen = 852;
+		vrLoc = 1342;
+	};
+	4E6A5D31082EAF0800ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3466;
+		rType = 0;
+		vrLen = 1489;
+		vrLoc = 2749;
+	};
+	4E6A5D32082EAF0800ED6FD8 = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 175";
+		rLen = 0;
+		rLoc = 5330;
+		rType = 0;
+		vrLen = 1158;
+		vrLoc = 7884;
+	};
+	4E6A5D33082EAF0800ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3466;
+		rType = 0;
+		vrLen = 1489;
+		vrLoc = 2749;
+	};
+	4E6A5D34082EAF0800ED6FD8 = {
+		fRef = 4E29331A082E672F004AD73C;
+		isa = PBXTextBookmark;
+		name = "wrapper.c: 10";
+		rLen = 0;
+		rLoc = 344;
+		rType = 0;
+		vrLen = 1082;
+		vrLoc = 0;
+	};
+	4E6A5D35082EAF0800ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 126";
+		rLen = 0;
+		rLoc = 3466;
+		rType = 0;
+		vrLen = 1489;
+		vrLoc = 2749;
+	};
+	4E6A5D36082EAF0800ED6FD8 = {
+		fRef = 4E2932A7082E5984004AD73C;
+		isa = PBXTextBookmark;
+		name = "template.c: 75";
+		rLen = 0;
+		rLoc = 1660;
+		rType = 0;
+		vrLen = 852;
+		vrLoc = 1342;
+	};
+	4E6A5D45082EAFD000ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		rLen = 1;
+		rLoc = 242;
+		rType = 1;
+	};
+	4E6A5D5F082EBD7E00ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: MAX_BANDWIDTH_EXPONENT";
+		rLen = 0;
+		rLoc = 1179;
+		rType = 0;
+		vrLen = 1481;
+		vrLoc = 2696;
+	};
+	4E6A5D60082EBD7E00ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 239";
+		rLen = 0;
+		rLoc = 6396;
+		rType = 0;
+		vrLen = 539;
+		vrLoc = 5895;
+	};
+	4E6A5D61082EBD7E00ED6FD8 = {
+		fRef = 4EB6522108292EA100B8863B;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 224";
+		rLen = 0;
+		rLoc = 5975;
+		rType = 0;
+		vrLen = 531;
+		vrLoc = 5727;
 	};
 	4E6CD54507C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 1807}}";
-			sepNavSelRange = "{2657, 0}";
-			sepNavVisRect = "{{0, 317}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 2175}}";
+			sepNavSelRange = "{2206, 0}";
+			sepNavVisRect = "{{0, 1599}, {943, 576}}";
 		};
 	};
 	4E6CD54607C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {942, 2789}}";
-			sepNavSelRange = "{5366, 0}";
-			sepNavVisRect = "{{0, 0}, {942, 422}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1295}}";
+			sepNavSelRange = "{2221, 0}";
+			sepNavVisRect = "{{0, 704}, {943, 576}}";
 			sepNavWindowFrame = "{{15, 77}, {1280, 755}}";
 		};
 	};
 	4E6CD54A07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 29519}}";
-			sepNavSelRange = "{40336, 3}";
-			sepNavVisRect = "{{0, 24429}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {1233, 14783}}";
+			sepNavSelRange = "{19691, 0}";
+			sepNavVisRect = "{{0, 12708}, {1233, 233}}";
 			sepNavWindowFrame = "{{72, 109}, {1280, 755}}";
 		};
 	};
 	4E6CD54B07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 1231}}";
-			sepNavSelRange = "{700, 0}";
-			sepNavVisRect = "{{0, 253}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1887}}";
+			sepNavSelRange = "{252, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
 	4E6CD54C07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 3135}}";
-			sepNavSelRange = "{2848, 0}";
-			sepNavVisRect = "{{0, 1265}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 3135}}";
+			sepNavSelRange = "{40, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
 	4E6CD54D07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 576}}";
 			sepNavSelRange = "{608, 0}";
-			sepNavVisRect = "{{0, 0}, {995, 470}}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
 	4E6CD56E07C54E170040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 767}}";
-			sepNavSelRange = "{924, 0}";
-			sepNavVisRect = "{{0, 0}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1407}}";
+			sepNavSelRange = "{147, 102}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
 	4E6CD57607C54E630040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 3455}}";
-			sepNavSelRange = "{107, 0}";
-			sepNavVisRect = "{{0, 0}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 3615}}";
+			sepNavSelRange = "{4111, 0}";
+			sepNavVisRect = "{{0, 3039}, {943, 576}}";
 		};
 	};
 	4E6CD5D607C555500040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 1055}}";
-			sepNavSelRange = "{2027, 3}";
-			sepNavVisRect = "{{0, 397}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 1167}}";
+			sepNavSelRange = "{104, 55}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
 	4E6CD5D707C555500040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 4831}}";
-			sepNavSelRange = "{6789, 0}";
-			sepNavVisRect = "{{0, 4144}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 4591}}";
+			sepNavSelRange = "{7263, 0}";
+			sepNavVisRect = "{{0, 4015}, {943, 576}}";
 		};
+	};
+	4E6E40C2082CB46F00642FF0 = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 21839}}";
+			sepNavSelRange = "{35456, 17550}";
+			sepNavVisRect = "{{0, 21263}, {943, 576}}";
+		};
+	};
+	4E6E40C3082CB46F00642FF0 = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 4191}}";
+			sepNavSelRange = "{5103, 0}";
+			sepNavVisRect = "{{0, 1768}, {943, 576}}";
+		};
+	};
+	4E6E40C4082CB46F00642FF0 = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 655}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
+		};
+	};
+	4E6E40E9082CB6C600642FF0 = {
+		activeArgIndex = 0;
+		activeArgIndices = (
+			YES,
+		);
+		argumentStrings = (
+			"< ../matlab/temp.in",
+		);
+		configStateDict = {
+			"PBXLSLaunchAction-0" = {
+				PBXLSLaunchAction = 0;
+				PBXLSLaunchStartAction = 1;
+				PBXLSLaunchStdioStyle = 2;
+				PBXLSLaunchStyle = 0;
+				class = PBXLSRunLaunchConfig;
+				displayName = "Executable Runner";
+				identifier = com.apple.Xcode.launch.runConfig;
+				remoteHostInfo = "";
+				startActionInfo = "";
+			};
+		};
+		cppStopOnCatchEnabled = 0;
+		cppStopOnThrowEnabled = 0;
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		isa = PBXExecutable;
+		launchableReference = 4E6E40EA082CB6C600642FF0;
+		libgmallocEnabled = 0;
+		name = NFSFT2;
+		shlibInfoDictList = (
+		);
+		sourceDirectories = (
+		);
+		startupPath = /Users/keiner/Temporary/nfft/examples;
+	};
+	4E6E40EA082CB6C600642FF0 = {
+		isa = PBXFileReference;
+		lastKnownFileType = file;
+		name = nfsft2;
+		path = /Users/keiner/Temporary/nfft/examples/nfsft2;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E6F47D1082CD793007CC678 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/examples/accuracy/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E6F47D6082CD7C9007CC678 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/examples/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E6F47E4082CD88B007CC678 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = temp.in;
+		path = /Users/keiner/Temporary/nfft/matlab/temp.in;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E6F47E5082CD88B007CC678 = {
+		fRef = 4E6CD5D707C555500040176B;
+		isa = PBXTextBookmark;
+		name = "direct.c: 122";
+		rLen = 0;
+		rLoc = 3191;
+		rType = 0;
+		vrLen = 754;
+		vrLoc = 2990;
+	};
+	4E6F47F0082CE28C007CC678 = {
+		fRef = 4E6F47E4082CD88B007CC678;
+		isa = PBXTextBookmark;
+		name = "temp.in: 17";
+		rLen = 0;
+		rLoc = 236;
+		rType = 0;
+		vrLen = 236;
+		vrLoc = 0;
+	};
+	4E6F480E082CE944007CC678 = {
+		fRef = 4E6F47E4082CD88B007CC678;
+		isa = PBXTextBookmark;
+		name = "temp.in: 326";
+		rLen = 0;
+		rLoc = 6117;
+		rType = 0;
+		vrLen = 570;
+		vrLoc = 5395;
+	};
+	4E6F4839082D024B007CC678 = {
+		fRef = 4E6CD57607C54E630040176B;
+		isa = PBXTextBookmark;
+		name = "legendre.c: 155";
+		rLen = 0;
+		rLoc = 3157;
+		rType = 0;
+		vrLen = 498;
+		vrLoc = 0;
 	};
 	4E71467507D244A8002513CA = {
 		fRef = 4E6CD54C07C54A7E0040176B;
@@ -764,97 +2053,48 @@
 		vrLen = 517;
 		vrLoc = 0;
 	};
-	4E75633D07BEA51C00C20775 = {
-		isa = PBXSymbolicBreakpoint;
-		state = 1;
-		symbolName = "";
-	};
-	4E80B85807E6450E0005D9DD = {
+	4E75157F082C0CF4002018A8 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 4319}}";
-			sepNavSelRange = "{3308, 50}";
-			sepNavVisRect = "{{0, 1192}, {995, 470}}";
-			sepNavWindowFrame = "{{15, 71}, {1280, 761}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 847}}";
+			sepNavSelRange = "{186, 0}";
+			sepNavVisRect = "{{0, 0}, {943, 576}}";
 		};
 	};
-	4E80B86307E6455E0005D9DD = {
-		fRef = 4E80B85807E6450E0005D9DD;
-		isa = PBXTextBookmark;
-		name = "main.c: 329";
-		rLen = 0;
-		rLoc = 5790;
-		rType = 0;
-		vrLen = 0;
-		vrLoc = 6151;
+	4E751580082C0CF4002018A8 = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {943, 5775}}";
+			sepNavSelRange = "{12010, 0}";
+			sepNavVisRect = "{{0, 4777}, {943, 576}}";
+			sepNavWindowFrame = "{{15, 73}, {1280, 861}}";
+		};
 	};
-	4E83C23B07DF778800CFADEA = {
-		fileReference = 4E6CD54A07C54A7E0040176B;
-		functionName = "nfsft_test()";
-		isa = PBXFileBreakpoint;
-		lineNumber = 1742;
-		state = 1;
-	};
-	4E871BFB082BA3B100DAB834 = {
-		fRef = 4E6CD5D707C555500040176B;
+	4E751588082C0D65002018A8 = {
+		fRef = 4E75157F082C0CF4002018A8;
 		isa = PBXTextBookmark;
-		name = "direct.c: 266";
+		name = "u.h: 1";
 		rLen = 0;
-		rLoc = 6789;
+		rLoc = 287;
 		rType = 0;
-		vrLen = 689;
-		vrLoc = 6602;
-	};
-	4E871BFC082BA3B100DAB834 = {
-		fRef = 4E6CD57607C54E630040176B;
-		isa = PBXTextBookmark;
-		name = "legendre.c: 5";
-		rLen = 0;
-		rLoc = 107;
-		rType = 0;
-		vrLen = 398;
+		vrLen = 159;
 		vrLoc = 0;
 	};
-	4E871BFD082BA3B100DAB834 = {
-		fRef = 4E6CD5D707C555500040176B;
+	4E7515A1082C0DF4002018A8 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = Makefile.am;
+		path = /Users/keiner/Temporary/nfft/kernel/Makefile.am;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E871C1A082BB4EF00DAB834 = {
+		fRef = 4E6CD54607C54A7E0040176B;
 		isa = PBXTextBookmark;
-		name = "direct.c: 266";
+		name = "config.h: 81";
 		rLen = 0;
-		rLoc = 6789;
+		rLoc = 2221;
 		rType = 0;
-		vrLen = 689;
-		vrLoc = 6602;
-	};
-	4E871BFE082BA3B100DAB834 = {
-		fRef = 4E6CD57607C54E630040176B;
-		isa = PBXTextBookmark;
-		name = "legendre.c: 5";
-		rLen = 0;
-		rLoc = 107;
-		rType = 0;
-		vrLen = 398;
-		vrLoc = 0;
-	};
-	4E871BFF082BA3B100DAB834 = {
-		fRef = 4E6CD56E07C54E170040176B;
-		isa = PBXTextBookmark;
-		name = "legendre.h: eval_al";
-		rLen = 0;
-		rLoc = 924;
-		rType = 0;
-		vrLen = 706;
-		vrLoc = 0;
-	};
-	4E9AFF3707D9B25C00132CC0 = {
-		fileReference = 4E6CD54A07C54A7E0040176B;
-		functionName = "flft_adjoint()";
-		isa = PBXFileBreakpoint;
-		lineNumber = 609;
-		state = 1;
-	};
-	4E9FDEA407D08B7E009059D7 = {
-		isa = PBXSymbolicBreakpoint;
-		state = 1;
-		symbolName = "";
+		vrLen = 787;
+		vrLoc = 1434;
 	};
 	4EA70AEE082A7DCA00193274 = {
 		fRef = 4EB6539D082A331500B8863B;
@@ -866,16 +2106,6 @@
 		vrLen = 1074;
 		vrLoc = 1070;
 	};
-	4EA70AEF082A7DCA00193274 = {
-		fRef = 4E6CD54B07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.h: nfsft_create_plan";
-		rLen = 0;
-		rLoc = 700;
-		rType = 0;
-		vrLen = 696;
-		vrLoc = 270;
-	};
 	4EA70AF0082A7DCA00193274 = {
 		fRef = 4EB6539D082A331500B8863B;
 		isa = PBXTextBookmark;
@@ -886,110 +2116,28 @@
 		vrLen = 1074;
 		vrLoc = 1070;
 	};
-	4EA70B9C082A8C9200193274 = {
-		fRef = 4EB6522108292EA100B8863B;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 96";
-		rLen = 0;
-		rLoc = 2463;
-		rType = 0;
-		vrLen = 914;
-		vrLoc = 2164;
-	};
-	4EA70B9E082A8C9200193274 = {
-		fRef = 4EB6522108292EA100B8863B;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 96";
-		rLen = 0;
-		rLoc = 2463;
-		rType = 0;
-		vrLen = 914;
-		vrLoc = 2164;
-	};
-	4EA70B9F082A8C9200193274 = {
-		fRef = 4E6CD5D607C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.h: adjoint_ndsft";
-		rLen = 0;
-		rLoc = 2730;
-		rType = 0;
-		vrLen = 1406;
-		vrLoc = 1418;
-	};
-	4EA70BA3082A8D7600193274 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		rLen = 0;
-		rLoc = 938;
-		rType = 0;
-	};
-	4EA70BA7082A8EFB00193274 = {
-		fRef = 4E6CD5D607C555500040176B;
-		isa = PBXTextBookmark;
-		name = "\\f[";
-		rLen = 3;
-		rLoc = 2027;
-		rType = 0;
-		vrLen = 1617;
-		vrLoc = 881;
-	};
-	4EA70BA8082A8EFB00193274 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.c: 78";
-		rLen = 0;
-		rLoc = 1826;
-		rType = 0;
-		vrLen = 744;
-		vrLoc = 1725;
-	};
-	4EA70BA9082A8EFB00193274 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.c: 78";
-		rLen = 0;
-		rLoc = 1826;
-		rType = 0;
-		vrLen = 819;
-		vrLoc = 1725;
-	};
-	4EA70BAA082A8EFB00193274 = {
-		fRef = 4E6CD5D607C555500040176B;
-		isa = PBXTextBookmark;
-		name = "\\f[";
-		rLen = 3;
-		rLoc = 2027;
-		rType = 0;
-		vrLen = 1617;
-		vrLoc = 881;
-	};
-	4EA70BD7082A94AF00193274 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.c: 266";
-		rLen = 0;
-		rLoc = 6789;
-		rType = 0;
-		vrLen = 695;
-		vrLoc = 6602;
-	};
-	4EA70BD8082A94AF00193274 = {
-		fRef = 4E6CD5D707C555500040176B;
-		isa = PBXTextBookmark;
-		name = "direct.c: 71";
-		rLen = 0;
-		rLoc = 1721;
-		rType = 0;
-		vrLen = 117;
-		vrLoc = 882;
-	};
 	4EB20A1E07D4B30C00FD1AB8 = {
 		activeArgIndex = 2147483647;
 		activeArgIndices = (
+			NO,
+			NO,
 		);
 		argumentStrings = (
+			"< ../matlab/temp.in",
+			"> ../matlab/temp.out",
 		);
 		configStateDict = {
+			"PBXLSLaunchAction-0" = {
+				PBXLSLaunchAction = 0;
+				PBXLSLaunchStartAction = 1;
+				PBXLSLaunchStdioStyle = 2;
+				PBXLSLaunchStyle = 0;
+				class = PBXLSRunLaunchConfig;
+				displayName = "Executable Runner";
+				identifier = com.apple.Xcode.launch.runConfig;
+				remoteHostInfo = "";
+				startActionInfo = "";
+			};
 		};
 		cppStopOnCatchEnabled = 0;
 		cppStopOnThrowEnabled = 0;
@@ -1002,19 +2150,20 @@
 		);
 		isa = PBXExecutable;
 		libgmallocEnabled = 0;
-		name = sfft;
+		name = NFSFT;
 		savedGlobals = {
 		};
 		shlibInfoDictList = (
 		);
 		sourceDirectories = (
 		);
+		startupPath = /Users/keiner/Temporary/nfft/examples/accuracy;
 	};
 	4EB6522108292EA100B8863B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {995, 3791}}";
-			sepNavSelRange = "{2463, 0}";
-			sepNavVisRect = "{{0, 1347}, {995, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {943, 3887}}";
+			sepNavSelRange = "{1179, 0}";
+			sepNavVisRect = "{{0, 1668}, {943, 576}}";
 		};
 	};
 	4EB6524E082958D000B8863B = {
@@ -1045,55 +2194,15 @@
 		vrLen = 609;
 		vrLoc = 107;
 	};
-	4EB65265082966FC00B8863B = {
-		fRef = 4E80B85807E6450E0005D9DD;
-		isa = PBXTextBookmark;
-		name = "(NFSFT_BACKWARD, D, M, angles, F_HAT, result, 0U);";
-		rLen = 50;
-		rLoc = 3308;
-		rType = 0;
-		vrLen = 681;
-		vrLoc = 1741;
-	};
-	4EB6529A08297AE200B8863B = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = abs;
-		rLen = 3;
-		rLoc = 40336;
-		rType = 0;
-		vrLen = 899;
-		vrLoc = 39972;
-	};
 	4EB652E7082A020700B8863B = {
 		fRef = 4EB6522108292EA100B8863B;
 		isa = PBXTextBookmark;
 		name = "accuracy.c: 206";
 		rLen = 0;
-		rLoc = 5792;
+		rLoc = 5886;
 		rType = 0;
 		vrLen = 710;
 		vrLoc = 5002;
-	};
-	4EB65338082A20FF00B8863B = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: error_f_hat";
-		rLen = 0;
-		rLoc = 608;
-		rType = 0;
-		vrLen = 619;
-		vrLoc = 0;
-	};
-	4EB6533D082A215400B8863B = {
-		fRef = 4E6CD54C07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.c: 177";
-		rLen = 0;
-		rLoc = 2848;
-		rType = 0;
-		vrLen = 553;
-		vrLoc = 1287;
 	};
 	4EB6539D082A331500B8863B = {
 		isa = PBXFileReference;
@@ -1103,22 +2212,12 @@
 		refType = 0;
 		sourceTree = "<absolute>";
 	};
-	4ECC02CA07E2065C007D664C = {
-		fRef = 4E6CD56E07C54E170040176B;
-		isa = PBXTextBookmark;
-		name = eval_al;
-		rLen = 7;
-		rLoc = 900;
-		rType = 0;
-		vrLen = 749;
-		vrLoc = 460;
-	};
 	4ECC02D007E2065C007D664C = {
 		fRef = 4E6CD56E07C54E170040176B;
 		isa = PBXTextBookmark;
 		name = eval_al;
 		rLen = 7;
-		rLoc = 900;
+		rLoc = 1418;
 		rType = 0;
 		vrLen = 749;
 		vrLoc = 460;
@@ -1128,7 +2227,7 @@
 		isa = PBXTextBookmark;
 		name = "api.h: nfsft_wisdom";
 		rLen = 0;
-		rLoc = 2657;
+		rLoc = 3017;
 		rType = 0;
 		vrLen = 912;
 		vrLoc = 1755;
@@ -1139,13 +2238,6 @@
 			sepNavSelRange = "{518, 0}";
 			sepNavVisRect = "{{0, 0}, {942, 423}}";
 		};
-	};
-	4EDB22A30818EF1600127A63 = {
-		fileReference = 4E6CD57607C54E630040176B;
-		functionName = "eval_al()";
-		isa = PBXFileBreakpoint;
-		lineNumber = 108;
-		state = 1;
 	};
 	4EDEC4EB07CE349A00514E5A = {
 		fRef = 4EDA6CF007A439F1008B1386;

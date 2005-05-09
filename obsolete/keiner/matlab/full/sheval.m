@@ -44,6 +44,9 @@ function y = sheval(k,theta,phi,normalize)
       if k>0
         p(2:end,:) = (1/sqrt(2))*p(2:end,:);
       end
+      %for n = 1:size(p,1)
+      %  p(n,:) = (-1)^(n+1)*p(n,:);
+      %end
       enorm = 1.0;
     else
       if strcmp(normalize,'norm') == 1
