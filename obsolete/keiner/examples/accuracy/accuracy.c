@@ -42,10 +42,13 @@
 #include "util.h"
 #include "time.h"
 
-#define M_START 8
+#define M_MIN 8
 #define M_STRIDE 8
-#define M_STOP 256
-#define MAX_BANDWIDTH_EXPONENT 8
+#define M_MAX 256
+
+#define T_MIN 10000
+#define T_MAX 100000
+#define T_STRIDE 10000
 
 /**
  * The main program.
@@ -57,16 +60,13 @@
  */
 int main (int argc, char **argv)
 {  
-  /** Maximum bandwidth */
-  const int M_MAX = 1<<MAX_BANDWIDTH_EXPONENT;
-  /** Next greater power of 2 relative to M */
-  const int N_MAX = 1<<ngpt(M_MAX);
+  /** Next greater power of two with respect to M_MAX */
+  const int N_MAX = 1<<((int)ceil(log2((double)M_MAX)));
   /** Maximum number of nodes */
   const int D_MAX = (M_MAX+1)*(2*M_MAX+2);
-  
   /** The current bandwidth */
   int M;
-  /** Next greater power of two relative to M */
+  /** Next greater power of two with respect to M_MAX */
   int N;
   /** Loop counter for Legendre index k. */
   int k;
@@ -76,6 +76,8 @@ int main (int argc, char **argv)
   int D;
   /** Loop counter for nodes. */
   int d;  
+  /** Current threshold */
+  int t;
   
   /** Arrays for complex Fourier coefficients. */
   complex **f_hat;
@@ -97,7 +99,7 @@ int main (int argc, char **argv)
   nfsft_plan plan;
 
   /** Used to measure computation time. */
-  //double ctime;
+  double ctime;
   /** 
    * Used to store the filename of a file containing Gauss-Legendre nodes and 
    * weights.
@@ -123,123 +125,143 @@ int main (int argc, char **argv)
   phi = (double*) malloc((2*M_MAX+2)*sizeof(double));
   w = (double*) malloc((M_MAX+1)*sizeof(double));
   f = (complex*) malloc(2*D_MAX*sizeof(complex));
-  
-  nfsft_compute_wisdom(M_MAX);
-  
-  /* Test backward stability of NDSFT. */
-  for (M = 8/*1*/; M <= 256/*< M_MAX*/; M = M+8/*M*=2*/)
-  {
-    /* Perform backward stability test:
-     * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
-     *    coefficients \f$a_k^n \in \[0,1\] x i \[0,1\]\f$.
-     * 2. Evaluate \f$f := \sum_{k=0}^M \sum_{n=-k}^n a_k^n Y_k^n\f$ at 
-     *    Gauss-Legendre nodes \f$\left(\xi_d\right)_{d=0}^{(M+1)^2-1}\f$ by a
-     *    NDSFT.
-     * 3. Multiply each function value \f$f_d := f\left(\xi_d\right)\f$ by it's
-     *    corresponding Gauss-Legendre weight w_d.
-     * 4. Compute the Fourier coefficients \f$\tilde{a}_k^n\$f by Gauss-Legendre
-     *    quadrature rule using a adjoint NDSFT.
-     */
-    
-    /* Compute next greater power of two. */
-    N = 1<<ngpt(M);
-    
-    /* Compute number of nodes. */
-    D = (M+1)*(2*M+2);
-    
-    /* Compute random Fourier coefficients. */
-    for (n = -M; n <= M; n++)
-    {
-      for (k = 0; k < abs(n); k++)
-      {
-        /* These are zero by definition. */
-        f_hat[n+M][k] = 0.0;
-      }
-      for (k = abs(n); k <= M; k++)
-      {
-        f_hat[n+M][k] = drand48() + I*drand48();
-        /* Save a copy. */
-        f_hat_orig[n+M][k] = f_hat[n+M][k];
-      }
-      for (k = M+1; k <= N; k++)
-      {
-        /* These are zero by definition. */
-        f_hat[n+M][k] = 0.0;
-      }
-    }
 
-    /* Respect normalization. */
-    for (n = -M; n <= M; n++)
+  for (t = T_MIN; t <= T_MAX; t = t + T_STRIDE)
+  {  
+    printf("Threshold: %d\n",t);
+    /* Precompute wisdom */
+    printf("Precomputing wisdom up to M = %d...",N_MAX);
+    fflush(stdout);
+    nfsft_compute_wisdom(M_MAX,t);
+    printf("done\n");
+    
+    printf("Bandwidth      Time             err(infty)                 err(1)                 err(2)\n");
+
+    /* Test backward stability of NDSFT. */
+    for (M = 64/*1*/; M <= 256/*< M_MAX*/; M = M+32/*M*=2*/)
     {
-      for (k = abs(n); k <= M; k++)
+      /* Perform backward stability test:
+       * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
+       *    coefficients \f$a_k^n \in \[0,1\] x i \[0,1\]\f$.
+       * 2. Evaluate \f$f := \sum_{k=0}^M \sum_{n=-k}^n a_k^n Y_k^n\f$ at 
+       *    Gauss-Legendre nodes \f$\left(\xi_d\right)_{d=0}^{(M+1)^2-1}\f$ by a
+       *    NDSFT.
+       * 3. Multiply each function value \f$f_d := f\left(\xi_d\right)\f$ by it's
+       *    corresponding Gauss-Legendre weight w_d.
+       * 4. Compute the Fourier coefficients \f$\tilde{a}_k^n\$f by Gauss-Legendre
+       *    quadrature rule using a adjoint NDSFT.
+       */
+      
+      printf("%8d: ",M);
+      
+      /* Compute next greater power of two. */
+      N = 1<<ngpt(M);
+      
+      /* Compute number of nodes. */
+      D = (M+1)*(2*M+2);
+      
+      /* Compute random Fourier coefficients. */
+      for (n = -M; n <= M; n++)
       {
-        f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
+        for (k = 0; k < abs(n); k++)
+        {
+          /* These are zero by definition. */
+          f_hat[n+M][k] = 0.0;
+        }
+        for (k = abs(n); k <= M; k++)
+        {
+          f_hat[n+M][k] = drand48() + I*drand48();
+          /* Save a copy. */
+          f_hat_orig[n+M][k] = f_hat[n+M][k];
+        }
+        for (k = M+1; k <= N; k++)
+        {
+          /* These are zero by definition. */
+          f_hat[n+M][k] = 0.0;
+        }
       }
-    }
-       
-    /* Read Gauss-Legendre nodes and weights. */  
-    sprintf(filename,"gl%d.dat",M);  
-    file = fopen(filename,"r");
-    for (n = 0; n < M+1; n++)
-    {
-      fscanf(file,"%lf\n",&theta[n]);
-    }
-    for (k = 0; k < 2*M+2; k++)
-    {
-      fscanf(file,"%lf\n",&phi[k]);
-    }
-    for (n = 0; n < M+1; n++)
-    {
-      fscanf(file,"%lf\n",&w[n]);
+
+      /* Respect normalization. */
+      for (n = -M; n <= M; n++)
+      {
+        for (k = abs(n); k <= M; k++)
+        {
+          f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
+        }
+      }
+         
+      /* Read Gauss-Legendre nodes and weights. */  
+      sprintf(filename,"gl%d.dat",M);  
+      file = fopen(filename,"r");
+      for (n = 0; n < M+1; n++)
+      {
+        fscanf(file,"%lf\n",&theta[n]);
+      }
+      for (k = 0; k < 2*M+2; k++)
+      {
+        fscanf(file,"%lf\n",&phi[k]);
+      }
+      for (n = 0; n < M+1; n++)
+      {
+        fscanf(file,"%lf\n",&w[n]);
+      }    
+      fclose(file);
+      
+      /* Create grid nodes. */
+      d = 0;
+      for (n = 0; n < M+1; n++)
+      {
+        for (k = 0; k < 2*M+2; k++)
+        {
+          angles[2*d] = phi[k];
+          angles[2*d+1] = theta[n];
+          d++;
+        }  
+      }
+          
+      ctime = mysecond();
+
+      /* Compute forward transform. */
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //ndsft_trafo(plan);
+      nfsft_trafo(plan);
+      nfsft_finalize(plan);
+          
+      /* Multiply with quadrature weights. */
+      d = 0;
+      for (n = 0; n < M+1; n++)
+      {
+        for (k = 0; k < 2*M+2; k++)
+        {
+          f[d] *= w[n];
+          d++;
+        }  
+      }
+      
+      /* Compute adjoint transform. */
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //ndsft_adjoint(plan);
+      nfsft_adjoint(plan);
+      nfsft_finalize(plan);
+      
+      printf("%3.2f secs ",mysecond()-ctime);
+      
+      /* Respect normalization. */
+      for (n = -M; n <= M; n++)
+      {
+        for (k = abs(n); k <= M; k++)
+        {
+          f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+        }
+      }
+
+      /* Print relative error in infinity-norm. */    
+      printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
+             err_f_hat_1(f_hat_orig,f_hat,M),
+             err_f_hat_2(f_hat_orig,f_hat,M));    
     }    
-    fclose(file);
-    
-    /* Create grid nodes. */
-    d = 0;
-    for (n = 0; n < M+1; n++)
-    {
-      for (k = 0; k < 2*M+2; k++)
-      {
-        angles[2*d] = phi[k];
-        angles[2*d+1] = theta[n];
-        d++;
-      }  
-    }
-        
-    /* Compute forward transform. */
-    plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-    //ndsft_trafo(plan);
-    nfsft_trafo(plan);
-    nfsft_finalize(plan);
-        
-    /* Multiply with quadrature weights. */
-    d = 0;
-    for (n = 0; n < M+1; n++)
-    {
-      for (k = 0; k < 2*M+2; k++)
-      {
-        f[d] *= w[n];
-        d++;
-      }  
-    }
-    
-    /* Compute adjoint transform. */
-    plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-    //ndsft_adjoint(plan);
-    nfsft_adjoint(plan);
-    nfsft_finalize(plan);
-    
-    /* Respect normalization. */
-    for (n = -M; n <= M; n++)
-    {
-      for (k = abs(n); k <= M; k++)
-      {
-        f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
-      }
-    }
-
-    /* Print relative error in infinity-norm. */    
-    fprintf(stdout,"%d: %20.16E\n",M,error_f_hat(f_hat_orig,f_hat,M));    
-  }    
+    nfsft_forget_wisdom();
+    printf("\n");
+  }
   return EXIT_SUCCESS;
 }

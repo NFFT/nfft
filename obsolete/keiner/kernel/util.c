@@ -171,7 +171,7 @@ double error_complex3(complex *a, complex *b, int n)
   return m;
 }
 
-double error_f_hat(complex **f_hat, complex **f_hat2, int M)
+double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M)
 {
   double err;
   double absmax;
@@ -187,9 +187,40 @@ double error_f_hat(complex **f_hat, complex **f_hat2, int M)
       absmax = max(absmax,cabs(f_hat[n+M][k]));
       err = max(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
     }
-  }
-  
+  }  
   return err/absmax;
 }
 
+double err_f_hat_1(complex **f_hat, complex **f_hat2, int M)
+{
+  double err = 0;
+  double temp = 0;
+  int k,n;
+  
+  for (k = 0; k <= M; k++) 
+  {
+    for (n = -k; n <= k; n++) 
+    {
+      err += cabs(f_hat[n+M][k]-f_hat2[n+M][k]);
+      temp += cabs(f_hat[n+M][k]);
+    }
+  }  
+  return err/temp;
+}
 
+double err_f_hat_2(complex **f_hat, complex **f_hat2, int M)
+{
+  double err = 0;
+  double temp = 0;
+  int k,n;
+  
+  for (k = 0; k <= M; k++) 
+  {
+    for (n = -k; n <= k; n++) 
+    {
+      err += cabs(f_hat[n+M][k]-f_hat2[n+M][k])*cabs(f_hat[n+M][k]-f_hat2[n+M][k]);
+      temp += cabs(f_hat[n+M][k])*cabs(f_hat[n+M][k]);
+    }
+  }  
+  return sqrt(err/temp);
+}

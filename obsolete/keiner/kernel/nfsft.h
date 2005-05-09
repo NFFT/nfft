@@ -97,7 +97,7 @@ void nfsft_finalize(nfsft_plan plan);
  *
  * \ingroup nfsft 
  */
-void nfsft_compute_wisdom(int m);
+void nfsft_compute_wisdom(int m, int threshold);
 
 /**
  * Forgets all wisdom computed.

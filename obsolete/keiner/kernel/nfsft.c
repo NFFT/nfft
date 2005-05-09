@@ -9,8 +9,10 @@ static struct nfsft_wisdom wisdom = {false};
 int nfft_size[2] = {0,0};
 int fftw_size[2] = {0,0};
 
-#define THRESHOLD 1000
+//#define THRESHOLD 1000
 //#define THRESHOLD 78.203
+
+int gthreshold;
 
 /**
  * Fast Legendre Function Transform
@@ -717,7 +719,7 @@ void nfsft_import_wisdom(const char* filename)
 
 // --- Public interface ---
 
-void nfsft_compute_wisdom(int M)
+void nfsft_compute_wisdom(int M, int threshold)
 {
   int N;
   int t;
@@ -727,8 +729,9 @@ void nfsft_compute_wisdom(int M)
   init_wisdom();
   if (M > 1)
   {  
-    init_transform_wisdom(t,THRESHOLD);
+    init_transform_wisdom(t,threshold);
   }
+  gthreshold = threshold;
 }
 
 nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat, 
@@ -741,7 +744,7 @@ nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat,
   plan->angles = angles;
   plan->f_hat = f_hat;
   plan->f = f;
-  plan->threshold = THRESHOLD;
+  plan->threshold = gthreshold;
   
   return(plan);
 }
@@ -814,7 +817,7 @@ void nfsft_trafo(nfsft_plan plan)
     /* Ensure that precomputation has been done. */
     if (wisdom.transform_wisdoms[t] == 0)
     {
-      tw = init_transform_wisdom(t,plan->threshold);
+      tw = init_transform_wisdom(t,gthreshold);
     }  
     else
     {
@@ -882,7 +885,7 @@ void nfsft_adjoint(nfsft_plan plan)
     /* Ensure that precomputation has been done. */
     if (wisdom.transform_wisdoms[t] == 0)
     {
-      tw = init_transform_wisdom(t,plan->threshold);
+      tw = init_transform_wisdom(t,gthreshold);
     }  
     else
     {

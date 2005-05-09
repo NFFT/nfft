@@ -19,6 +19,8 @@ int pow2(const int t);
 double error_complex_inf(complex *x0, complex *x, int n);
 double error_complex_1(complex *a, complex *b, int n);
 double error_complex3(complex *a, complex *b, int n);
-double error_f_hat(complex **f_hat, complex **f_hat2, int M);
+double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M);
+double err_f_hat_1(complex **f_hat, complex **f_hat2, int M);
+double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
 
 #endif
