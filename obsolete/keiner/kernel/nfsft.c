@@ -9,10 +9,10 @@ static struct nfsft_wisdom wisdom = {false};
 int nfft_size[2] = {0,0};
 int fftw_size[2] = {0,0};
 
-//#define THRESHOLD 1000
+#define THRESHOLD 1000
 //#define THRESHOLD 78.203
 
-int gthreshold;
+int gthreshold = THRESHOLD;
 
 /**
  * Fast Legendre Function Transform

@@ -46,9 +46,9 @@
 #define M_STRIDE 8
 #define M_MAX 256
 
-#define T_MIN 10000
+#define T_MIN 1000
 #define T_MAX 100000
-#define T_STRIDE 10000
+#define T_STRIDE 1000
 
 /**
  * The main program.
