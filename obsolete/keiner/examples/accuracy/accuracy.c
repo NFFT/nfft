@@ -61,7 +61,7 @@
 int main (int argc, char **argv)
 {  
   /** Next greater power of two with respect to M_MAX */
-  const int N_MAX = 1<<((int)ceil(log2((double)M_MAX)));
+  const int N_MAX = 1<<((int)ceil(log((double)M_MAX)/log(2.0)));
   /** Maximum number of nodes */
   const int D_MAX = (M_MAX+1)*(2*M_MAX+2);
   /** The current bandwidth */
@@ -130,7 +130,7 @@ int main (int argc, char **argv)
   {  
     printf("Threshold: %d\n",t);
     /* Precompute wisdom */
-    printf("Precomputing wisdom up to M = %d...",N_MAX);
+    printf("Precomputing wisdom up to M = %d...",M_MAX);
     fflush(stdout);
     nfsft_compute_wisdom(M_MAX,t);
     printf("done\n");
