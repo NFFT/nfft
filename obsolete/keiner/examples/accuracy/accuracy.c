@@ -42,8 +42,8 @@
 #include "util.h"
 #include "time.h"
 
-#define M_MIN 8
-#define M_STRIDE 8
+#define M_MIN 32
+#define M_STRIDE 32
 #define M_MAX 256
 
 #define T_MIN 1000
@@ -138,7 +138,7 @@ int main (int argc, char **argv)
     printf("Bandwidth      Time             err(infty)                 err(1)                 err(2)\n");
 
     /* Test backward stability of NDSFT. */
-    for (M = 64/*1*/; M <= 256/*< M_MAX*/; M = M+32/*M*=2*/)
+    for (M = M_MIN/*1*/; M <= M_MAX/*< M_MAX*/; M = M + M_STRIDE/*M*=2*/)
     {
       /* Perform backward stability test:
        * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
