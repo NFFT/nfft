@@ -49,9 +49,9 @@ void flft(struct U_type ***U, int M, int t, int n, complex *f_hat,
   memset(tw->work,0U,(N1<<1)*sizeof(complex));
   memset(tw->ergeb,0U,(N1<<1)*sizeof(complex));
 
-  /* Set first n Fourier-coefficients explicitely to zero. They should be 
-   * zero right from the beginning anyway. */
+  /* Set first n Fourier-coefficients explicitely to zero. */
   memset(f_hat,0U,n*sizeof(complex));
+  memset(&(f_hat[M+1]),0U,(N-M)*sizeof(complex));
   
   /* First step */ 
   for (j = 0; j < N; j++) 

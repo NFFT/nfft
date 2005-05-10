@@ -38,16 +38,17 @@
 
 /* Auxilliary headers */
 #include <complex.h>
+#include <time.h>
+#include <fftw3.h>
 #include "nfsft.h"
 #include "util.h"
-#include "time.h"
 
 #define M_MIN 32
 #define M_STRIDE 32
-#define M_MAX 256
+#define M_MAX 512
 
-#define T_MIN 50000
-#define T_MAX 1000000
+#define T_MIN 1000
+#define T_MAX 1000
 #define T_STRIDE 50000
 
 /**
@@ -63,7 +64,7 @@ int main (int argc, char **argv)
   /** Next greater power of two with respect to M_MAX */
   const int N_MAX = 1<<((int)ceil(log((double)M_MAX)/log(2.0)));
   /** Maximum number of nodes */
-  const int D_MAX = (M_MAX+1)*(2*M_MAX+2);
+  const int D_MAX = (2*M_MAX+1)*(2*M_MAX+2);
   /** The current bandwidth */
   int M;
   /** Next greater power of two with respect to M_MAX */
@@ -107,6 +108,7 @@ int main (int argc, char **argv)
   char filename[20];
   /** File handle for reading quadrature nodes and weights. */
   FILE *file;
+  fftw_plan fplan;
   
   /* Initialize random number generator. */
   srand48(time(NULL));
@@ -121,9 +123,9 @@ int main (int argc, char **argv)
   }  
   
   angles = (double*) malloc(2*D_MAX*sizeof(double));
-  theta = (double*) malloc((M_MAX+1)*sizeof(double));
+  theta = (double*) malloc((2*M_MAX+1)*sizeof(double));
   phi = (double*) malloc((2*M_MAX+2)*sizeof(double));
-  w = (double*) malloc((M_MAX+1)*sizeof(double));
+  w = (double*) malloc((2*M_MAX+1)*sizeof(double));
   f = (complex*) malloc(2*D_MAX*sizeof(complex));
 
   for (t = T_MIN; t <= T_MAX; t = t + T_STRIDE)
@@ -135,7 +137,7 @@ int main (int argc, char **argv)
     nfsft_compute_wisdom(M_MAX,t);
     printf("done\n");
     
-    printf("Bandwidth      Time             err(infty)                 err(1)                 err(2)\n");
+    printf("Bandwidth         Time             err(infty)                 err(1)                 err(2)\n");
 
     /* Test backward stability of NDSFT. */
     for (M = M_MIN/*1*/; M <= M_MAX/*< M_MAX*/; M = M + M_STRIDE/*M*=2*/)
@@ -163,24 +165,19 @@ int main (int argc, char **argv)
       /* Compute random Fourier coefficients. */
       for (n = -M; n <= M; n++)
       {
-        for (k = 0; k < abs(n); k++)
-        {
-          /* These are zero by definition. */
-          f_hat[n+M][k] = 0.0;
-        }
         for (k = abs(n); k <= M; k++)
         {
-          f_hat[n+M][k] = drand48() + I*drand48();
-          /* Save a copy. */
-          f_hat_orig[n+M][k] = f_hat[n+M][k];
+          f_hat[n+M][k] = 0.0;//drand48() + I*drand48();
         }
-        for (k = M+1; k <= N; k++)
-        {
-          /* These are zero by definition. */
-          f_hat[n+M][k] = 0.0;
-        }
+        f_hat[M][0] = 1.0;
+        /* Save a copy. */
+        memcpy(&(f_hat_orig[n+M][abs(n)]),&(f_hat[n+M][abs(n)]),
+               (M-n+1)*sizeof(complex));
       }
 
+#ifdef GL
+      /* Test Gauss-Legendre quadrature */
+      
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
       {
@@ -244,7 +241,7 @@ int main (int argc, char **argv)
       nfsft_adjoint(plan);
       nfsft_finalize(plan);
       
-      printf("%3.2f secs ",mysecond()-ctime);
+      printf("%7.2f secs ",mysecond()-ctime);
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
@@ -259,6 +256,104 @@ int main (int argc, char **argv)
       printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
              err_f_hat_1(f_hat_orig,f_hat,M),
              err_f_hat_2(f_hat_orig,f_hat,M));    
+#endif
+      
+      /* Test Clenshaw-Curtis quadrature */
+
+      /* Compute number of nodes. */
+      D = (2*M+1)*(2*M+2);
+      
+      /* Reset Fourier coefficients. */
+      for (n = -M; n <= M; n++)
+      {
+        memcpy(&(f_hat[n+M][abs(n)]),&(f_hat_orig[n+M][abs(n)]),
+               (M-n+1)*sizeof(complex));
+      }
+      
+      /* Respect normalization. */
+      for (n = -M; n <= M; n++)
+      {
+        for (k = abs(n); k <= M; k++)
+        {
+          f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
+        }
+      }
+      
+      /* Compute Clenshaw-Curtis nodes and weights. */  
+      for (k = 0; k < 2*M+2; k++)
+      {
+        phi[k] = k/((double)2*M+2);
+      }
+      for (n = 0; n < 2*M+1; n++)
+      {
+        theta[n] = n/((double)4*M);
+      }
+      fplan = fftw_plan_r2r_1d(M+1, w, w, FFTW_REDFT00, 0U);
+      for (n = 0; n < M+1; n++)
+      {
+        w[n] = -2.0/(4*n*n-1);
+      }  
+      fftw_execute(fplan);
+      w[0] *= 0.5;
+      for (n = 0; n < M+1; n++)
+      {
+        w[n] *= 1/((double)2*M);
+        w[2*M-n] = w[n];
+      }  
+      fftw_destroy_plan(fplan);
+
+      /* Create grid nodes. */
+      d = 0;
+      for (n = 0; n < 2*M+1; n++)
+      {
+        for (k = 0; k < 2*M+2; k++)
+        {
+          angles[2*d] = phi[k];
+          angles[2*d+1] = theta[n];
+          d++;
+        }  
+      }
+      
+      ctime = mysecond();
+      
+      /* Compute forward transform. */
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //ndsft_trafo(plan);
+      nfsft_trafo(plan);
+      nfsft_finalize(plan);
+      
+      /* Multiply with quadrature weights. */
+      d = 0;
+      for (n = 0; n < 2*M+1; n++)
+      {
+        for (k = 0; k < 2*M+2; k++)
+        {
+          f[d] *= w[n];
+          d++;
+        }  
+      }
+      
+      /* Compute adjoint transform. */
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //ndsft_adjoint(plan);
+      nfsft_adjoint(plan);
+      nfsft_finalize(plan);
+      
+      printf("%7.2f secs ",mysecond()-ctime);
+      
+      /* Respect normalization. */
+      for (n = -M; n <= M; n++)
+      {
+        for (k = abs(n); k <= M; k++)
+        {
+          f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+        }
+      }
+      
+      /* Print relative error in infinity-norm. */    
+      printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
+             err_f_hat_1(f_hat_orig,f_hat,M),
+             err_f_hat_2(f_hat_orig,f_hat,M));
     }    
     nfsft_forget_wisdom();
     printf("\n");
