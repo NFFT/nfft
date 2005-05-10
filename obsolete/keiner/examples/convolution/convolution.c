@@ -52,35 +52,87 @@
  */
 int main (int argc, char **argv)
 {  
-  const int M = 128;
-	const int L = 64;
-	const int D = 64;
-	complex **a_tilde;
-	complex *b;
-	double *nu;
-	complex *a;
-	double *xi;
-	complex *f;
-	nfsft_plan plan, plan_adjoint;
-	int k,n;
+  const int M = 386;
+ 	const int L = 2;
+ 	const int D = 64;
+  /** Next greater power of two with respect to L */
+  const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
+ 	complex *b;
+  complex **f_hat;
+ 	complex *a;
+ 	double *xi;
+ 	double *nu;
+ 	complex *f;
+ 	nfsft_plan plan, plan_adjoint;
+ 	int k,n,d;
+  double h = 0.97;
 	
+  /** Allocate data structures. */
+  b = (complex*) malloc(L*sizeof(complex));
+  nu = (double*) malloc(2*L*sizeof(double));
+  f_hat = (complex**) malloc((2*M+1)*sizeof(complex*));
+  for (n = -M; n <= M; n++)
+  {
+    f_hat[n+M] = (complex*) malloc((N+1)*sizeof(complex));
+  }  
+  a = (complex*) malloc((M+1)*sizeof(double));
+  xi = (double*) malloc(2*D*sizeof(double));
+  f = (complex*) malloc(D*sizeof(complex));
+  
+  b[0] = 2.0;
+  nu[0] = 0;
+  nu[1] = 0.125;
+  b[1] = 1.0;
+  nu[2] = 0;
+  nu[3] = 0.25;
+  
+  /* Kernel coeffcients up to M */
+  for (k = 0; k <= M; k++)
+  {
+    a[k] = pow(h,k)*(2*k+1);
+  }
+  
+  /* Target nodes */
+  for (d = 0; d < D; d++)
+  {
+    xi[2*d] = 0.0;
+    xi[2*d+1] = (0.5*d)/(D-1);
+    //printf("(%f,%f)\n",xi[2*d],xi[2*d+1]);
+  }  
+  
+  /* Adjoint transform */
+	 plan_adjoint = nfsft_init(L,M,nu,f_hat,b,0U);
+	 nfsft_adjoint(plan_adjoint);
+	 nfsft_finalize(plan_adjoint);
+  
+ 	/* Multiplication with diagonal matrix. */
+ 	for (k = 0; k <= M; k++)
+ 	{
+ 	  for (n = -k; n <= k; n++)
+	  	{
+		    f_hat[n+M][k] *= a[k];
+		  }
+  }
 	
-	/* Adjoint transform */
-	plan_adjoint = nfsft_init(L,M,nu,a_tilde,b,0U);
-	nfsft_adjoint(plan_adjoint);
-	
-	/* Multiplication with diagonal matrix. */
-	for (k = 0; k <= M; k++)
-	{
-	  for (n = -k; n <= k; n++)
-		{
-		  a_tilde[n+M][k] *= a[k];
-		}
-	}
-	
-	/* Forward transform */
-	plan_adjoint = nfsft_init(D,M,xi,a_tilde,f,0U);
-	nfsft_trafo(plan);
+	 /* Forward transform */
+	 plan = nfsft_init(D,M,xi,f_hat,f,0U);
+	 nfsft_trafo(plan);
+  nfsft_finalize(plan);
+  
+  for (d = 0; d < D; d++)
+  {
+    printf("%f\n",f[d]);
+  }  
+  
+  free(f);
+  free(xi);
+  free(a);
+  for (n = -M; n <= M; n++)
+  {
+    free(f_hat[n+M]);
+  }   
+  free(f_hat);
+  free(b);
 	
   return EXIT_SUCCESS;
 }
