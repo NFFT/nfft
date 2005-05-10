@@ -43,9 +43,9 @@
 #include "nfsft.h"
 #include "util.h"
 
-#define M_MIN 32
+#define M_MIN 128
 #define M_STRIDE 32
-#define M_MAX 512
+#define M_MAX 1024
 
 #define T_MIN 1000
 #define T_MAX 1000
@@ -108,6 +108,7 @@ int main (int argc, char **argv)
   char filename[20];
   /** File handle for reading quadrature nodes and weights. */
   FILE *file;
+  /** FFTW plan for Clenshaw-Curtis quadrature */
   fftw_plan fplan;
   
   /* Initialize random number generator. */
@@ -132,15 +133,16 @@ int main (int argc, char **argv)
   {  
     printf("Threshold: %d\n",t);
     /* Precompute wisdom */
-    printf("Precomputing wisdom up to M = %d...",M_MAX);
+    printf("Precomputing wisdom up to M = %d ...",M_MAX);
     fflush(stdout);
+    ctime = mysecond();
     nfsft_compute_wisdom(M_MAX,t);
-    printf("done\n");
+    printf(" needed %7.2f secs.\n",mysecond()-ctime);
     
-    printf("Bandwidth         Time             err(infty)                 err(1)                 err(2)\n");
+    printf("Bandwidth         Time             err(infty)                 err(1)                 err(2)        Time             err(infty)                 err(1)                 err(2)\n");
 
     /* Test backward stability of NDSFT. */
-    for (M = M_MIN/*1*/; M <= M_MAX/*< M_MAX*/; M = M + M_STRIDE/*M*=2*/)
+    for (M = M_MIN; M <= M_MAX; M = M + M_STRIDE)
     {
       /* Perform backward stability test:
        * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier 
@@ -159,9 +161,6 @@ int main (int argc, char **argv)
       /* Compute next greater power of two. */
       N = 1<<ngpt(M);
       
-      /* Compute number of nodes. */
-      D = (M+1)*(2*M+2);
-      
       /* Compute random Fourier coefficients. */
       for (n = -M; n <= M; n++)
       {
@@ -175,8 +174,12 @@ int main (int argc, char **argv)
                (M-n+1)*sizeof(complex));
       }
 
-#ifdef GL
+#define GAUSS_LEGENDRE
+#ifdef GAUSS_LEGENDRE
       /* Test Gauss-Legendre quadrature */
+      
+      /* Compute number of nodes. */
+      D = (M+1)*(2*M+2);
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
@@ -252,12 +255,14 @@ int main (int argc, char **argv)
         }
       }
 
-      /* Print relative error in infinity-norm. */    
-      printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
+      /* Print relative error in various norms. */    
+      printf("%20.16E %20.16E %20.16E",err_f_hat_infty(f_hat_orig,f_hat,M),
              err_f_hat_1(f_hat_orig,f_hat,M),
              err_f_hat_2(f_hat_orig,f_hat,M));    
 #endif
       
+#define CLENSHAW_CURTIS
+#ifdef CLENSHAW_CURTIS
       /* Test Clenshaw-Curtis quadrature */
 
       /* Compute number of nodes. */
@@ -350,10 +355,11 @@ int main (int argc, char **argv)
         }
       }
       
-      /* Print relative error in infinity-norm. */    
+      /* Print relative error in various norms. */    
       printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
              err_f_hat_1(f_hat_orig,f_hat,M),
              err_f_hat_2(f_hat_orig,f_hat,M));
+#endif
     }    
     nfsft_forget_wisdom();
     printf("\n");
