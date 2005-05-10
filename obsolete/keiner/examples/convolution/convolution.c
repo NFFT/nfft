@@ -52,7 +52,7 @@
  */
 int main (int argc, char **argv)
 {  
-  const int M = 386;
+  const int M = 512;
  	const int L = 2;
  	const int D = 64;
   /** Next greater power of two with respect to L */
@@ -65,7 +65,7 @@ int main (int argc, char **argv)
  	complex *f;
  	nfsft_plan plan, plan_adjoint;
  	int k,n,d;
-  double h = 0.97;
+  double h = 0.99;
 	
   /** Allocate data structures. */
   b = (complex*) malloc(L*sizeof(complex));
@@ -75,7 +75,7 @@ int main (int argc, char **argv)
   {
     f_hat[n+M] = (complex*) malloc((N+1)*sizeof(complex));
   }  
-  a = (complex*) malloc((M+1)*sizeof(double));
+  a = (complex*) malloc((M+1)*sizeof(complex));
   xi = (double*) malloc(2*D*sizeof(double));
   f = (complex*) malloc(D*sizeof(complex));
   
