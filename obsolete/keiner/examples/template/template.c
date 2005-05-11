@@ -14,7 +14,11 @@
 int main()
 {
   /** The bandwidth */
+<<<<<<< .mine
+  const int M = 1<<1;
+=======
   const int M = 1<<3;
+>>>>>>> .r65
   /** Next greater power of two with respect to M */
   const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
   /** 
