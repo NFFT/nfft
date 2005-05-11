@@ -69,7 +69,8 @@ struct nfsft_plan_s
   /** The number of nodes. */
   int D;                      
   /** The bandwidth */
-  int M;                               
+  int M;              
+  int N;
   /** The threshold */
   double threshold;
   /** The angles phi of the nodes */
@@ -78,6 +79,8 @@ struct nfsft_plan_s
   complex **f_hat;
   /** The function values. */
   complex *f;
+  /** NFFT plan */
+  nfft_plan plan_nfft;  
 };
 
 /** 
@@ -106,8 +109,6 @@ struct nfsft_transform_wisdom
   /** For FLFT */
   complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;
-  /** NFFT plan */
-  nfft_plan plan;  
 };
 
 /** 

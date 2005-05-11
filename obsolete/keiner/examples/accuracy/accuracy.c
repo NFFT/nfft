@@ -43,9 +43,9 @@
 #include "nfsft.h"
 #include "util.h"
 
-#define M_MIN 128
+#define M_MIN 32
 #define M_STRIDE 32
-#define M_MAX 1024
+#define M_MAX 128
 
 #define T_MIN 1000
 #define T_MAX 1000
@@ -219,13 +219,13 @@ int main (int argc, char **argv)
         }  
       }
           
-      ctime = mysecond();
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
 
       /* Compute forward transform. */
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       //ndsft_trafo(plan);
+      ctime = mysecond();
       nfsft_trafo(plan);
-      nfsft_finalize(plan);
           
       /* Multiply with quadrature weights. */
       d = 0;
@@ -239,12 +239,12 @@ int main (int argc, char **argv)
       }
       
       /* Compute adjoint transform. */
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       //ndsft_adjoint(plan);
       nfsft_adjoint(plan);
-      nfsft_finalize(plan);
-      
       printf("%7.2f secs ",mysecond()-ctime);
+
+      //nfsft_finalize(plan);
+      nfsft_finalize(plan);      
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
@@ -319,13 +319,13 @@ int main (int argc, char **argv)
         }  
       }
       
-      ctime = mysecond();
+      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       
       /* Compute forward transform. */
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       //ndsft_trafo(plan);
+      ctime = mysecond();
       nfsft_trafo(plan);
-      nfsft_finalize(plan);
       
       /* Multiply with quadrature weights. */
       d = 0;
@@ -339,12 +339,12 @@ int main (int argc, char **argv)
       }
       
       /* Compute adjoint transform. */
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       //ndsft_adjoint(plan);
       nfsft_adjoint(plan);
-      nfsft_finalize(plan);
-      
       printf("%7.2f secs ",mysecond()-ctime);
+
+      //nfsft_finalize(plan);
+      nfsft_finalize(plan);      
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
