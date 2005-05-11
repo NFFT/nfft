@@ -44,8 +44,8 @@
 #include "util.h"
 
 #define M_MIN 32
-#define M_STRIDE 32
-#define M_MAX 128
+#define M_STRIDE 4
+#define M_MAX 256
 
 #define T_MIN 1000
 #define T_MAX 1000
@@ -139,7 +139,7 @@ int main (int argc, char **argv)
     nfsft_compute_wisdom(M_MAX,t);
     printf(" needed %7.2f secs.\n",mysecond()-ctime);
     
-    printf("Bandwidth         Time             err(infty)                 err(1)                 err(2)        Time             err(infty)                 err(1)                 err(2)\n");
+    printf("Bandwidth         Time err(infty)     err(1)     err(2)         Time err(infty)     err(1)     err(2)\n");
 
     /* Test backward stability of NDSFT. */
     for (M = M_MIN; M <= M_MAX; M = M + M_STRIDE)
@@ -166,12 +166,11 @@ int main (int argc, char **argv)
       {
         for (k = abs(n); k <= M; k++)
         {
-          f_hat[n+M][k] = 0.0;//drand48() + I*drand48();
+          f_hat[n+M][k] = drand48() + I*drand48();
         }
-        f_hat[M][0] = 1.0;
+        /*f_hat[M][0] = 1.0;*/
         /* Save a copy. */
-        memcpy(&(f_hat_orig[n+M][abs(n)]),&(f_hat[n+M][abs(n)]),
-               (M-n+1)*sizeof(complex));
+        memcpy(f_hat_orig[n+M],f_hat[n+M],(M+1)*sizeof(complex));
       }
 
 #define GAUSS_LEGENDRE
@@ -193,72 +192,82 @@ int main (int argc, char **argv)
       /* Read Gauss-Legendre nodes and weights. */  
       sprintf(filename,"gl%d.dat",M);  
       file = fopen(filename,"r");
-      for (n = 0; n < M+1; n++)
+
+      if (file != NULL)
       {
-        fscanf(file,"%lf\n",&theta[n]);
+				for (n = 0; n < M+1; n++)
+				{
+					fscanf(file,"%lf\n",&theta[n]);
+				}
+				for (k = 0; k < 2*M+2; k++)
+				{
+					fscanf(file,"%lf\n",&phi[k]);
+				}
+				for (n = 0; n < M+1; n++)
+				{
+					fscanf(file,"%lf\n",&w[n]);
+				}    
+				fclose(file);
+
+				/* Create grid nodes. */
+				d = 0;
+				for (n = 0; n < M+1; n++)
+				{
+					for (k = 0; k < 2*M+2; k++)
+					{
+						angles[2*d] = phi[k];
+						angles[2*d+1] = theta[n];
+						d++;
+					}  
+				}
+
+				plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+
+				/* Compute forward transform. */
+				//ndsft_trafo(plan);
+				ctime = mysecond();
+				nfsft_trafo(plan);
+				//nfsft_finalize(plan);
+
+				/* Multiply with quadrature weights. */
+				d = 0;
+				for (n = 0; n < M+1; n++)
+				{
+					for (k = 0; k < 2*M+2; k++)
+					{
+						f[d] *= w[n];
+						d++;
+					}  
+				}
+
+				//plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+
+				/* Compute adjoint transform. */
+				//ndsft_adjoint(plan);
+				nfsft_adjoint(plan);
+				printf("%7.2f secs ",mysecond()-ctime);
+
+				nfsft_finalize(plan);
+
+
+				/* Respect normalization. */
+				for (n = -M; n <= M; n++)
+				{
+					for (k = abs(n); k <= M; k++)
+					{
+						f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+					}
+				}
+
+				/* Print relative error in various norms. */    
+				printf("%6.4E %6.4E %6.4E\t",err_f_hat_infty(f_hat_orig,f_hat,M),
+				 err_f_hat_1(f_hat_orig,f_hat,M),
+				 err_f_hat_2(f_hat_orig,f_hat,M));
       }
-      for (k = 0; k < 2*M+2; k++)
+      else
       {
-        fscanf(file,"%lf\n",&phi[k]);
-      }
-      for (n = 0; n < M+1; n++)
-      {
-        fscanf(file,"%lf\n",&w[n]);
+        printf("   File %s not found.\t\t\t",filename);
       }    
-      fclose(file);
-      
-      /* Create grid nodes. */
-      d = 0;
-      for (n = 0; n < M+1; n++)
-      {
-        for (k = 0; k < 2*M+2; k++)
-        {
-          angles[2*d] = phi[k];
-          angles[2*d+1] = theta[n];
-          d++;
-        }  
-      }
-          
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-      //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-
-      /* Compute forward transform. */
-      //ndsft_trafo(plan);
-      ctime = mysecond();
-      nfsft_trafo(plan);
-          
-      /* Multiply with quadrature weights. */
-      d = 0;
-      for (n = 0; n < M+1; n++)
-      {
-        for (k = 0; k < 2*M+2; k++)
-        {
-          f[d] *= w[n];
-          d++;
-        }  
-      }
-      
-      /* Compute adjoint transform. */
-      //ndsft_adjoint(plan);
-      nfsft_adjoint(plan);
-      printf("%7.2f secs ",mysecond()-ctime);
-
-      //nfsft_finalize(plan);
-      nfsft_finalize(plan);      
-      
-      /* Respect normalization. */
-      for (n = -M; n <= M; n++)
-      {
-        for (k = abs(n); k <= M; k++)
-        {
-          f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
-        }
-      }
-
-      /* Print relative error in various norms. */    
-      printf("%20.16E %20.16E %20.16E",err_f_hat_infty(f_hat_orig,f_hat,M),
-             err_f_hat_1(f_hat_orig,f_hat,M),
-             err_f_hat_2(f_hat_orig,f_hat,M));    
 #endif
       
 #define CLENSHAW_CURTIS
@@ -271,8 +280,7 @@ int main (int argc, char **argv)
       /* Reset Fourier coefficients. */
       for (n = -M; n <= M; n++)
       {
-        memcpy(&(f_hat[n+M][abs(n)]),&(f_hat_orig[n+M][abs(n)]),
-               (M-n+1)*sizeof(complex));
+        memcpy(f_hat[n+M],f_hat_orig[n+M],(M+1)*sizeof(complex));
       }
       
       /* Respect normalization. */
@@ -320,12 +328,12 @@ int main (int argc, char **argv)
       }
       
       plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-      //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       
       /* Compute forward transform. */
       //ndsft_trafo(plan);
       ctime = mysecond();
       nfsft_trafo(plan);
+      //nfsft_finalize(plan);
       
       /* Multiply with quadrature weights. */
       d = 0;
@@ -339,12 +347,12 @@ int main (int argc, char **argv)
       }
       
       /* Compute adjoint transform. */
+      //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       //ndsft_adjoint(plan);
       nfsft_adjoint(plan);
       printf("%7.2f secs ",mysecond()-ctime);
-
-      //nfsft_finalize(plan);
-      nfsft_finalize(plan);      
+      
+			//nfsft_finalize(plan);      
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
@@ -356,7 +364,7 @@ int main (int argc, char **argv)
       }
       
       /* Print relative error in various norms. */    
-      printf("%20.16E %20.16E %20.16E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
+      printf("%6.4E %6.4E %6.4E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
              err_f_hat_1(f_hat_orig,f_hat,M),
              err_f_hat_2(f_hat_orig,f_hat,M));
 #endif
