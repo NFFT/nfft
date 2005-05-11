@@ -79,7 +79,7 @@ int main (int argc, char **argv)
   {
     f_hat[n+M] = (complex*) malloc((N+1)*sizeof(complex));
   }  
-  a = (complex*) malloc((M+1)*sizeof(double));
+  a = (complex*) malloc((M+1)*sizeof(complex));
   xi = (double*) malloc(2*D*sizeof(double));
   f = (complex*) malloc(D*sizeof(complex));
   
