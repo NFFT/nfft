@@ -1,4 +1,4 @@
-SUBDIRS = nfft kernel . examples
+SUBDIRS = nfft kernel . examples tests
 
 lib_LTLIBRARIES = libnfsft.la      
 

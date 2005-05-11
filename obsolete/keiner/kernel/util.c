@@ -13,8 +13,6 @@
 
 #include "util.h"
 
-#define max(a,b) a<b?b:a
-
 inline int ngpt(int n)
 {
   return (int) ceil(log((double)n)/log(2.0));
@@ -118,7 +116,7 @@ inline int pow2(const int t)
 }
 
 
-double error_complex_inf(complex *x0, complex *x, int n)
+double error_complex_inf_r(complex *x0, complex *x, int n)
 {
   double maximum=0.0, maxdiff=0.0, xda;
   int k;
@@ -139,6 +137,19 @@ double error_complex_inf(complex *x0, complex *x, int n)
   return res;
 }
 
+double error_complex_inf(complex *x0, complex *x, int n)
+{
+  double maximum=0.0;
+  int k;
+  
+  for (k = 0; k < n; k++) 
+  {
+    maximum = max(maximum,cabs(x0[k]-x[k]));
+  }
+    
+  return maximum;
+}
+
 double error_complex_1(complex *a, complex *b, int n)
 {
   double l1a,l1d;
@@ -151,6 +162,23 @@ double error_complex_1(complex *a, complex *b, int n)
   {
     l1d += cabs(a[k]-b[k]);
     l1a += cabs(a[k]);
+  }
+    
+  return l1d/l1a;
+}
+
+double error_complex_2(complex *a, complex *b, int n)
+{
+  double l1a,l1d;
+  int k;
+  
+  l1a = 0.0;
+  l1d = 0.0;
+  
+  for (k = 0; k < n; k++) 
+  {
+    l1d += cabs(a[k]-b[k])*cabs(a[k]-b[k]);
+    l1a += cabs(a[k])*cabs(a[k]);
   }
     
   return l1d/l1a;

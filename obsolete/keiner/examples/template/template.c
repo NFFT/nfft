@@ -14,7 +14,7 @@
 int main()
 {
   /** The bandwidth */
-  const int M = 1<<2;
+  const int M = 1<<3;
   /** Next greater power of two with respect to M */
   const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
   /** 

@@ -110,6 +110,7 @@
 				4E6CD54B07C54A7E0040176B,
 				4E6CD54C07C54A7E0040176B,
 				4E6CD54D07C54A7E0040176B,
+				4ECA771908320743008ADA24,
 				4E6E40D1082CB48500642FF0,
 				4E6E40D0082CB47C00642FF0,
 			);
@@ -662,6 +663,24 @@
 			lastKnownFileType = sourcecode.c.c;
 			name = stabilization.c;
 			path = examples/stabilization/stabilization.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4ECA771808320736008ADA24 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = summation.c;
+			path = /var/automount/home/keiner/Temporary/nfft_linux/tests/summation/summation.c;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		4ECA771908320743008ADA24 = {
+			children = (
+				4ECA771808320736008ADA24,
+			);
+			isa = PBXGroup;
+			name = tests;
 			refType = 4;
 			sourceTree = "<group>";
 		};

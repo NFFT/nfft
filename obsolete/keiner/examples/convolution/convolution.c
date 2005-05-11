@@ -52,9 +52,9 @@
  */
 int main (int argc, char **argv)
 {  
-  const int M = 256;
- 	const int L = 5;
-  const int D_PHI = 40;
+  const int M = 128;
+ 	const int L = 20;
+  const int D_PHI = 200;
   const int D_THETA = D_PHI/2+1;
  	const int D = D_PHI * D_THETA;
   /** Next greater power of two with respect to L */
@@ -67,7 +67,7 @@ int main (int argc, char **argv)
  	complex *f;
  	nfsft_plan plan, plan_adjoint;
  	int k,n,d,d_theta,d_phi;
-  double h = 0.94;
+  double h = 0.85;
 	
   srand48(time(NULL));
   
