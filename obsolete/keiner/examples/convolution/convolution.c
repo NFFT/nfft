@@ -52,9 +52,11 @@
  */
 int main (int argc, char **argv)
 {  
-  const int M = 512;
- 	const int L = 2;
- 	const int D = 64;
+  const int M = 256;
+ 	const int L = 5;
+  const int D_PHI = 40;
+  const int D_THETA = D_PHI/2+1;
+ 	const int D = D_PHI * D_THETA;
   /** Next greater power of two with respect to L */
   const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
  	complex *b;
@@ -64,9 +66,11 @@ int main (int argc, char **argv)
  	double *nu;
  	complex *f;
  	nfsft_plan plan, plan_adjoint;
- 	int k,n,d;
-  double h = 0.99;
+ 	int k,n,d,d_theta,d_phi;
+  double h = 0.94;
 	
+  srand48(time(NULL));
+  
   /** Allocate data structures. */
   b = (complex*) malloc(L*sizeof(complex));
   nu = (double*) malloc(2*L*sizeof(double));
@@ -75,16 +79,16 @@ int main (int argc, char **argv)
   {
     f_hat[n+M] = (complex*) malloc((N+1)*sizeof(complex));
   }  
-  a = (complex*) malloc((M+1)*sizeof(complex));
+  a = (complex*) malloc((M+1)*sizeof(double));
   xi = (double*) malloc(2*D*sizeof(double));
   f = (complex*) malloc(D*sizeof(complex));
   
-  b[0] = 2.0;
-  nu[0] = 0;
-  nu[1] = 0.125;
-  b[1] = 1.0;
-  nu[2] = 0;
-  nu[3] = 0.25;
+  for (k = 0; k < L; k++)
+  {
+    b[k] = 1.0;
+    nu[2*k] = drand48()-0.5;
+    nu[2*k+1] = 0.5*drand48();
+  }
   
   /* Kernel coeffcients up to M */
   for (k = 0; k <= M; k++)
@@ -93,11 +97,16 @@ int main (int argc, char **argv)
   }
   
   /* Target nodes */
-  for (d = 0; d < D; d++)
+  d = 0;
+  for (d_theta = 0; d_theta < D_THETA; d_theta++)
   {
-    xi[2*d] = 0.0;
-    xi[2*d+1] = (0.5*d)/(D-1);
-    //printf("(%f,%f)\n",xi[2*d],xi[2*d+1]);
+    for (d_phi = 0; d_phi < D_PHI; d_phi++)
+    {
+      xi[2*d] = ((double)d_phi)/(D_PHI-1)-0.5;
+      xi[2*d+1] = (0.5*d_theta)/(D_THETA-1);
+      //printf("(%f,%f)\n",xi[2*d],xi[2*d+1]);
+      d++;
+    }
   }  
   
   /* Adjoint transform */
@@ -119,9 +128,12 @@ int main (int argc, char **argv)
 	 nfsft_trafo(plan);
   nfsft_finalize(plan);
   
+  printf("%d\n",D);
+  printf("%d\n",D_PHI);
+  printf("%d\n",D_THETA);
   for (d = 0; d < D; d++)
   {
-    printf("%f\n",f[d]);
+    printf("%.16E %.16E %.16E\n",xi[2*d],xi[2*d+1],f[d]/300.0);
   }  
   
   free(f);
