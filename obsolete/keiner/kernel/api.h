@@ -109,6 +109,7 @@ struct nfsft_transform_wisdom
   /** For FLFT */
   complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;
+  double *alpha, *beta, *gamma, *gamma_m1;
 };
 
 /** 

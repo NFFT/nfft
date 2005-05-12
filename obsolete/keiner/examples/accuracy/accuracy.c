@@ -136,7 +136,7 @@ int main (int argc, char **argv)
     printf("Precomputing wisdom up to M = %d ...",M_MAX);
     fflush(stdout);
     ctime = mysecond();
-    nfsft_compute_wisdom(M_MAX,t);
+    nfsft_precompute(M_MAX,t);
     printf(" needed %7.2f secs.\n",mysecond()-ctime);
     
     printf("Bandwidth         Time err(infty)     err(1)     err(2)         Time err(infty)     err(1)     err(2)\n");
@@ -369,7 +369,7 @@ int main (int argc, char **argv)
              err_f_hat_2(f_hat_orig,f_hat,M));
 #endif
     }    
-    nfsft_forget_wisdom();
+    nfsft_forget();
     printf("\n");
   }
   return EXIT_SUCCESS;

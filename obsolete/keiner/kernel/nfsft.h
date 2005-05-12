@@ -8,7 +8,7 @@
 /* Include the header file for the complex datatype. */
 #include <complex.h>
 
-/** \defgroup nfsft NFSFT: public API */
+/** \defgroup nfsft NFSFT: Public API */
 
 /** 
  * Typedef for transform plans 
@@ -40,7 +40,7 @@ typedef int nfsft_flags;
  * \ingroup nfsft 
  */
 nfsft_plan nfsft_init(int D, int M, double *angles, complex **f_hat, complex *f, 
-           nfsft_flags flags);
+                      nfsft_flags flags);
 
 /**
  * Executes a NFSFT.
@@ -97,14 +97,14 @@ void nfsft_finalize(nfsft_plan plan);
  *
  * \ingroup nfsft 
  */
-void nfsft_compute_wisdom(int m, int threshold);
+void nfsft_precompute(int m, int threshold);
 
 /**
  * Forgets all wisdom computed.
  *
  * \ingroup nfsft 
  */
-void nfsft_forget_wisdom();
+void nfsft_forget();
 
 /**
  * Exports wisdom to a file
@@ -113,5 +113,5 @@ void nfsft_forget_wisdom();
  *
  * \ingroup nfsft 
  */
-/*void nfsft_export_wisdom(const char* filename);*/
+void nfsft_export_wisdom(const char* filename);
 #endif

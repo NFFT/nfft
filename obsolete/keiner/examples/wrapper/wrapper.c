@@ -143,14 +143,14 @@ int main (int argc, char **argv)
 		{		
 			/* Initialize */
 			ctime = mysecond();
-			nfsft_compute_wisdom(M,1000);
+			nfsft_precompute(M,1000);
 			ctime = mysecond() - ctime;
 	    #ifdef DEBUG
 			printf("Time for initialization: %f sec.\n",ctime);
 	    #endif
 			/* Precompute. */
 			ctime = mysecond();
-			nfsft_compute_wisdom(M,1000);
+			nfsft_precompute(M,1000);
 			ctime = mysecond() - ctime;
 	    #ifdef DEBUG
 			printf("Time for precomputation: %f sec.\n",ctime);
@@ -201,14 +201,14 @@ int main (int argc, char **argv)
 		{	
       /* Initialize */
       ctime = mysecond();
-      nfsft_compute_wisdom(M,1000);
+      nfsft_precompute(M,1000);
       ctime = mysecond() - ctime;
       #ifdef DEBUG
       printf("Time for initialization: %f sec.\n",ctime);
       #endif
       /* Precompute. */
       ctime = mysecond();
-      nfsft_compute_wisdom(M,1000);
+      nfsft_precompute(M,1000);
       ctime = mysecond() - ctime;
       #ifdef DEBUG
       printf("Time for precomputation: %f sec.\n",ctime);
@@ -250,7 +250,7 @@ int main (int argc, char **argv)
 
   
   /* Forget wisdom. */
-  nfsft_forget_wisdom();
+  nfsft_forget();
   
   fftw_free(result);
     

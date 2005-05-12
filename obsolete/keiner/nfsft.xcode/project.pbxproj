@@ -98,6 +98,8 @@
 			children = (
 				4E293281082E501F004AD73C,
 				4E293282082E501F004AD73C,
+				4E5470E10832A31200CA0375,
+				4E5470E20832A31200CA0375,
 				4E75157F082C0CF4002018A8,
 				4E751580082C0CF4002018A8,
 				4E6CD5D607C555500040176B,
@@ -322,6 +324,45 @@
 			path = examples/wrapper/wrapper.c;
 			refType = 4;
 			sourceTree = "<group>";
+		};
+		4E5470A208329F8600CA0375 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = summation.c;
+			path = tests/summation/summation.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E5470E10832A31200CA0375 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = flft.c;
+			path = kernel/flft.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E5470E20832A31200CA0375 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = flft.h;
+			path = kernel/flft.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E5470E30832A31200CA0375 = {
+			fileRef = 4E5470E10832A31200CA0375;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4E5470E40832A31200CA0375 = {
+			fileRef = 4E5470E20832A31200CA0375;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		4E6A5D24082EAB5300ED6FD8 = {
 			fileRef = 4EB6522108292EA100B8863B;
@@ -666,18 +707,9 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		4ECA771808320736008ADA24 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			name = summation.c;
-			path = /var/automount/home/keiner/Temporary/nfft_linux/tests/summation/summation.c;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
 		4ECA771908320743008ADA24 = {
 			children = (
-				4ECA771808320736008ADA24,
+				4E5470A208329F8600CA0375,
 			);
 			isa = PBXGroup;
 			name = tests;
@@ -760,6 +792,7 @@
 				4E6E40CC082CB46F00642FF0,
 				4E6E40CD082CB46F00642FF0,
 				4E293283082E501F004AD73C,
+				4E5470E40832A31200CA0375,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -777,6 +810,7 @@
 				4E293284082E5020004AD73C,
 				4E6A5D24082EAB5300ED6FD8,
 				4E02C48F082F816D00EC0863,
+				4E5470E30832A31200CA0375,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

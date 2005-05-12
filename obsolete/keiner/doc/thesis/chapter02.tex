@@ -1,56 +1,68 @@
 \chapter{Discrete Spherical Fourier Transform}
 \label{DSFT}
-Let in this chapter $M \in \NZ$, $M \ge 4$ be a fixed bandwidth, $N := 2^{\ceil{\log_2 M}}$ 
-and $\paren{\vtheta_j,\vphi_j}_{j=0,\ldots,D-1}$ a set of arbitrary nodes on $\twosphere$.
+Let in this chapter $M \in \NZ$ be a fixed \emph{bandwidth}, $N := 2^{\ceil{\log_2 M}}$ 
+and 
+$$\mathcal{X} := \paren{\vtheta_j,\vphi_j}_{j=0,\ldots,D-1} \quad \paren{D \in \N}$$ 
+a set of arbitrary nodes on $\twosphere$.
 
-The concern of the \emph{discrete spherical Fourier transform} \index{Discrete spherical Fourier transform} 
+The concern of the \emph{discrete spherical Fourier transform} (DSFT) \index{Discrete spherical Fourier transform} 
 is to evaluate a bandlimited function $f: \twosphere \rightarrow \C$ with bandwidth $M$ given its Fourier expansion
 \begin{equation}
   \label{NFSFT:FourierExpansion} 
   f = \sum_{\paren{k,n} \in I^M} \fun{a_k^n}{f} Y_{k}^n,
 \end{equation}  
-at arbitrary nodes $\paren{\vtheta_j,\vphi_j}_{j=0,\ldots,D-1}$, where 
-$$I^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}.$$
+on the set $\mathcal{X}$, where $$\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}.$$
 The coefficients $a_k^n$ are the \emph{spherical Fourier coefficients} 
-with respect to the orthonormal basis of spherical harmonics $Y_{k}^n$. The index $k$ denotes the degree and $n$ the order. 
-By defining the total order $$ \paren{k_1,n_1} \le \paren{k_2,n_2} \iff k_1 \le k_2 \text{ or } n_1 \le n_2 $$ 
-over the index set $I^M$ we can
+with respect to the orthonormal basis of spherical harmonics $Y_{k}^n$. The index $k$ denotes the \emph{degree} and $n$ 
+the \emph{order} of $Y_{k}^n$. 
+%By defining the total order $$ \paren{k_1,n_1} \le \paren{k_2,n_2} \iff k_1 \le k_2 \text{ or } n_1 \le n_2 $$ 
+%over the index set $I^M$ we can
 %identify $\paren{k,n} = l$ with suitable $l \in \pset{l}{|}{0 \le l \le (M+1)^2-1}$ and 
-also write $$ f = \sum_{l=0}^{(M+1)^2-1} c_l Y_l.$$
+%also write $$ f = \sum_{l=0}^{(M+1)^2-1} c_l Y_l.$$
 
 From a linear algebra point of view, evaluating $f$ corresponds to a matrix-vector product
-$$ \V{f} = \V{Y} \; \V{a}$$
+$$ \V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}}^M \; \V{a}_{M}$$
 with
 \begin{equation}
   \nonumber
   \begin{split}
-    \V{f} & := \paren{f_j}_{j=0}^{D-1},\quad \V{Y} := \paren{\fun{Y_l}{\vtheta_j,\vphi_j}}_{j=0,\ldots,D-1, l=0,\ldots,(M+1)^2-1},\\
-    \V{a} & := \paren{a_l}_{l=0,\ldots,(M+1)^2-1}.
+    \V{f}_{\mathcal{X}} & := \paren{f_j}_{j=0}^{D-1} \in \C^{D},\ f_{j} := \fun{f}{\vtheta_{j},\vphi_{j}},\\
+    \V{Y}_{\mathcal{X}}^M & := \paren{\fun{Y_k^n}{\vtheta_j,\vphi_j}}_{j=0,\ldots,D-1, \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2},\\
+    \V{a}_{M} & := \paren{a_k^n}_{\paren{k,n} \in \mathcal{I}^M} \in \C^{\paren{M+1}^2}.
   \end{split}
 \end{equation}
+If it is clear from the context what $\mathcal{X}$ and $M$ are or if the concrete choice does not matter, we also write 
+$$ \V{f} = \V{Y} \; \V{a}$$
 
-Concerning a \emph{discrete Fourier transform} on the torus $\mathbb{T}$ of length $N \in \N$ which an be represented as a maxtrix-vector product
+\section{Discrete Spherical Fourier Transform and its Inversion}
+A \emph{discrete Fourier transform} on the torus $\mathbb{T} = \R/\Z$ of length $M \in \N$ can be represented 
+as a maxtrix-vector product
 $$
-  \V{f} = \V{F}_{N} \: \V{a}, \quad \V{F}_{N} \in \C^{N \times N},\ \V{a}, \V{f} \in \C^{N}
+  \V{f} = \V{F}_{M} \: \V{a}, \quad \V{F}_{M} \in \C^{M \times M},\ \V{a},\:\V{f} \in \C^{M}
 $$
-as well, the Fourier matrix $\V{F}$ is unitary. Henceforth we immediately obtain the inversion formula
+as well. The Fourier matrix $\V{F}$ is unitary yielding the inversion formula
 $$
+  \label{NFSFT:DFTInversion}
   \V{a} = \V{F}^{\h} \: \V{f}
 $$ 
-The DFT evaluates the trigonometric polynomial 
+immediately. The DFT evaluates a trigonometric polynomial 
 $$
-  f := \sum_{k=0}^{N-1} a_{k} \e^{\im k t}
+  f := \sum_{k=0}^{M-1} \fun{a_{k}}{f} \e^{2 \pi \im k x}
 $$
-at equidistant nodes $\paren{t_{j}}_{j=0}^{N-1}$ with $t_{j} := \e{j * \frac{2 \pi}{N}}$. With respect to nonequispaced nodes, the 
-matrixcorresponding Fourier matrix is no longer unitary.
+at equidistant nodes $\paren{x_{d}}_{d=0}^{M-1}$ with $x_{d} := \frac{d}{M} \in \mathbb{T}$. 
+Concerning a NDFT the Fourier matrix $F$ now associated with a set of nodes from $\mathcal{T}$ is in general no longer unitary. 
+Depending on the number of Fourier coeffcients $a_{k}$ and the number of nodes $F$ is moreover no longer square.
 
-Similarly, there exists a grid of nodes on the sphere that renders the matrix $\V{Y}$ unitary. We want to recover the 
-Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in I^M}$ of a bandlimited function $f$ on $\twosphere$ from samples 
-$\fun{f}{\vtheta,\vphi}$ at certain nodes. The Fourier coefficients are given by
+Having defined the DSFT as the evaluation of a bandlimited function at a certain set of nodes, arises the question 
+whether there exist sets $\mathcal{X}$ allowing for an inversion formula similar to \eqref{NFSFT:DFTInversion}.
+The answer is affirmative but in general the number of nodes needed exceeds the number of Fourier coefficients to be computed.
+
+We want to recover the Fourier coefficients $\V{a}_{M}$ from samples $\V{f}_{\mathcal{X}}$ at certain nodes $\mathcal{X}$. The 
+Fourier coefficients $a_{k}^n$ are given by
 $$
   a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\twosphere} = \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi.
 $$
-By seperating the integration variables, we obtain
+By seperating the integrand with respect to the integration variables, we obtain
 \begin{eqnarray*}
   a_{k}^n & = & \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{-\im n \vphi} \sin \vtheta \; \dx \vtheta \; \dx \vphi\\
           & = & \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \sin \vtheta \; \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi \; \dx \vtheta.
