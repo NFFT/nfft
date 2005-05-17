@@ -49,7 +49,8 @@ Furthermore, we have
   \fun{\dim}{\fun{\text{Hom}_k}{\R^3}} & = \frac{(k+1)(k+2)}{2}, & 
   \fun{\dim}{\fun{\text{Harm}_k}{\R^3}} = 2k+1.
 \end{align}
-For a proof see \cite{freeden}*{pp. 22, 28}. To keep it short we let $\mathcal{H}_k := \left.\fun{\text{Harm}_n}{\R^3}\right|_{\twosphere}$.
+To keep it short we let $\mathcal{H}_k := \left.\fun{\text{Harm}_k}{\R^3}\right|_{\twosphere}$. For 
+further information see for example \cite{frgesc}*{Chapter ?}.
 
 \begin{figure}[htb]
   \centering
@@ -64,7 +65,7 @@ For a proof see \cite{freeden}*{pp. 22, 28}. To keep it short we let $\mathcal{H
 
 \section{Legendre Functions}
 \label{Basics:LegendreTypeFunctions}
-In this section we briefly introduce \emph{Legendre Polynomials}, \emph{associated Legendre functions} 
+In this section we briefly introduce \emph{Legendre polynomials}, \emph{associated Legendre functions} 
 and \emph{associated Legendre polynomials} and collect some basic properties. These functions play 
 a major role in Fourier analysis on the sphere and are key for the algorithms related to Fourier 
 expansions developed in this text.
@@ -76,23 +77,23 @@ as classical orthogonal polynomials are given by their corresponding
   \nonumber
   \fun{P_k}{x} = \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \end{equation}
+One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$ and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$ (\cite{niuv}*{pp. 45\mdash47}).
 %The corresponding three-term recurrence relation is
 %\begin{equation}
 %  \nonumber
 %  \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} -
 %  k\fun{P_{k-1}}{x},\ k \in \N.
 %\end{equation}
-Furthermore one defines the associated Legendre functions $P_k^n : \interv{[}{-1}{1}{]} \rightarrow \R$, 
-$n \in \NZ$, $k=n,n+1,\ldots$ as 
+Furthermore we define the associated Legendre functions $P_k^n : \interv{[}{-1}{1}{]} \rightarrow \R$ by
 \begin{equation}
   \nonumber
-  \fun{P_k^n}{x} := \paren{\frac{\paren{k-n}!}{\paren{k+n}!}}^{1/2}
-  \paren{1-x^2}^{n/2} \frac{\dx^n}{\dx x^n} \fun{P_k}{x}.
+  \fun{P_k^n}{x} := \sqrt{\frac{\paren{k-n}!}{\paren{k+n}!}}
+  \paren{1-x^2}^{n/2} \frac{\dx^n}{\dx x^n} \fun{P_k}{x} \quad \paren{n \in \NZ,\ k=n,n+1,\ldots}.
 \end{equation}
-For fixed $n$ the functions $\set{P_{k}^n}_{k=n,n+1,\ldots}$ form a complete set of orthogonal functions 
+For fixed $n$ the set $\set{P_{k}^n}_{k=n,n+1,\ldots}$ form a complete set of orthogonal functions 
 for $\Ln{2}{\interv{[}{-1}{1}{]}}$ with
-$$ \frac{1}{2} \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{1}{2k+1} \delta_{k,l}.$$
-Furthermore, associated Legendre functions fulfill the recurrence relation
+$$ \scalarproduct{P_{k}^n}{P_{l}^n}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l}.$$
+The associated Legendre functions fulfill the three-term recurrence
 \begin{equation}
   \label{Basics:AssociatedLegendreDefinition}
   \begin{split}
@@ -106,8 +107,11 @@ where
 v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
 \end{equation}
 A simple but at the same time very important idea is to define the associated Legendre functions $P_k^n$ also for 
-$k < n$ by means of the recurrence relation
-$$ \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x}\quad\paren{k \in \NZ}$$
+$k < n$ by means of the modified three-term recurrence
+\begin{equation} 
+  \label{Basics:AssociatedLegendreDefinitionExtended}
+  \fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n} \fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x}\quad\paren{k \in \NZ}
+\end{equation}
 with
 \begin{eqnarray*}
   \alpha_{k}^n & := & \left\{
@@ -128,9 +132,9 @@ with
 \end{eqnarray*}
 For even $n$ we let
 $$ \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}}$$
-and for odd $n$ we define
-$$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2},$$
-respectively. For $k \ge n$ this definition coincides \eqref{Basics:AssociatedLegendreDefinition}. 
+and for odd $n$ we start with
+$$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2}.$$
+For $k \ge n$ this definition coincides with \eqref{Basics:AssociatedLegendreDefinition}. 
 As a matter of fact, $P_{k}^n$ is a polynomial of degree $k$ for even $n$ while 
 $\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree $k-1$ for odd $n$.
 
@@ -144,10 +148,10 @@ define the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
     & \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
   \end{split}
 \end{equation}
-By induction, one verifies the relation between associated Legendre functions and polynomials in the following lemma.
+Now induction (see \cite[bel91]) yields
 \begin{lemma}
   \label{Basics:AssociatedLegendreRecurrence}
-  Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinition} and 
+  Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinitionExtended} and 
   \eqref{Basics:AssociatedLegendrePolynomials}. Then we have
   $$ \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. $$
 \end{lemma}
@@ -155,17 +159,17 @@ By induction, one verifies the relation between associated Legendre functions an
 \section{Spherical Harmonics}
 \label{Basics:SphericalHarmonics}
 
-Spherical Harmonics on the sphere $\twosphere$ arise the same way as complex exponentials 
-$\e^{\im k x}$ on the circle $\mathbb{S}^1$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
-Speaking of Fourier analysis with respect to the sphere, one refers to Spherical Harmonics as the Fourier 
-Basis on $\twosphere$. 
+\emph{Spherical harmonics} on the sphere $\twosphere$ arise the same way as complex exponentials 
+$\e^{\im k x}$ on the Torus $\mathbb{T}$ and form a complete orthogonal system for $\Ln{2}{\twosphere}$.
+Speaking of Fourier analysis with respect to the sphere, one refers to spherical harmonics as the Fourier 
+basis on $\twosphere$. 
 %In this section, we shortly introduce these basis functions mentioning basic properties.
 
 From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in spherical coordinates
 \begin{equation}
   \label{Basics:LaplaceBeltrami}
   \Delta f = \frac{\partial^2 f}{\partial r^2} + \frac{2}{r}\frac{\partial f}{\partial
-  r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \cdot \frac{\partial f}{\partial
+  r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \: \frac{\partial f}{\partial
   \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
 \end{equation}
 %*** \begin{comment}Add reference here\end{comment}
@@ -174,15 +178,15 @@ Using an ansatz based on separation of variables and taking into account that $r
 \begin{equation}
   \label{Basics:SphericalHarmonicsDefinition}
   \begin{split}
-    & Y_{k}^n: \interv{[}{0}{\pi}{]}\times\interv{[}{0}{2\pi}{)} \rightarrow
-    \C,\ n \in \NZ,\; k = -n,-n+1,\ldots,n,\\
+    & Y_{k}^n: \twosphere \rightarrow \C \quad \paren{n \in \NZ,\; k = -n,-n+1,\ldots,n},\\
     & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
     \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{\im n \vphi}.
   \end{split}
 \end{equation}
-Figure \ref{Basics:Figure:SphericalHarmonics} shows the absolute value of some of the 
-functions $Y_{k}^{n}$. An important result is that these functions all are contained in $\fun{\text{Harm}_n}{\twosphere}$.
-Due to the separability one proves easily that they also fulfill the orthogonality condition
+The index $k$ is called the \emph{degree} and $n$ is the \emph{order} of $Y_{k}^n$. 
+Figure \ref{Basics:Figure:SphericalHarmonics} shows the absolute value of the first
+functions $Y_{k}^{n}$.
+Due to the separability one proves easily that they fulfill the orthogonality condition
 \begin{equation}
   \nonumber
   \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} = \delta_{k,l} \delta_{n,m}
@@ -190,26 +194,27 @@ Due to the separability one proves easily that they also fulfill the orthogonali
 with respect to the $\Ln{2}{\twosphere}$-scalar product 
 \begin{equation}
   \nonumber
-  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} := \int_{0}^{2\pi} \int_{0}^{\pi} \fun{Y_{k}^n}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi.
+  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\twosphere} := \int_{0}^{2\pi} \int_{0}^{\pi} \fun{Y_{k}^n}{\vtheta,\vphi} \overline{\fun{Y_{l}^m}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi.
 \end{equation}
-For every $k \in \NZ$, the set
+An important result is that these functions all are contained in 
+$\mathcal{H}_k$ so that for fixed $k \in \NZ$, the set
 \begin{equation}
   \nonumber
   \pset{Y_{k}^n}{|}{n = -k,-k+1,\ldots,k}
 \end{equation}
 forms an orthonormal basis of $ \mathcal{H}_k$, since $\dim \mathcal{H}_k =
 2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
-to each other and the set 
-$$\pset{Y_{k}^n}{|}{k = 0,1,\ldots,K,\ n = -k,-k+1,\ldots,k},\ K \in \NZ$$ 
-provides an orthonormal basis for the space $\bigoplus_{k=0}^{K}\mathcal{H}_k$ called
-the space of \emph{spherical harmonics} of degree $K$.
+to each other and
+$$\pset{Y_{k}^n}{|}{k = 0,1,\ldots,M,\ n = -k,-k+1,\ldots,k},\ M \in \NZ$$ 
+provides an orthonormal basis for the space $\bigoplus_{k=0}^{M}\mathcal{H}_k$ called
+the space of \emph{spherical harmonics} of degree $M$.
 
 At first glance, the restriction to homogeneous and harmonic polynomials
-might exclude various functions from $\fun{\Pol_K}{\twosphere}$. But as a 
-matter of fact these spaces are identical, i.e. 
+might exclude various functions from $\fun{\Pol_M}{\twosphere}$. But as a 
+matter of fact these spaces are identical (see \cite{frgesc}*{pp. ??}), i.e. 
 \begin{equation}
   \nonumber
-    \fun{\Pol_K}{\twosphere} = \bigoplus_{k=0}^{K}\mathcal{H}_k.
+    \fun{\Pol_M}{\twosphere} = \bigoplus_{k=0}^{M}\mathcal{H}_k.
 \end{equation}
 
 \begin{figure}[htbp]
@@ -232,107 +237,104 @@ matter of fact these spaces are identical, i.e.
      {\includegraphics[width=0.3\textwidth]{images/sh_2_1.png}}\hfill
    \subfigure[$\abs{Y_{2}^{2}}$]
      {\includegraphics[width=0.3\textwidth]{images/sh_2_2.png}}\\
-  \caption{To be written...}
+  \caption{The functions $\abs{Y_{k}^{n}}$ plotted for $k = 0,1,2$, $n = -k,\dots,k$ on the sphere.}
   \label{Basics:Figure:SphericalHarmonics}
 \end{figure}
 
-Finally, we mention the well known addition theorem for spherical harmonics 
-that relates any functions $Y_k^n$ forming an orthonormal basis of $\mathcal{H}_n$ 
-to the Legendre polynomials. It particularly holds for the basis as given in 
-\eqref{Basics:SphericalHarmonicsDefinition}.
+We finally mention the well known addition theorem for spherical harmonics 
+that relates any set of functions $\set{H_k^n}_{n=-k}^k$ forming an orthonormal basis of $\mathcal{H}_k$ 
+to the Legendre polynomial $P_{k}$.
 
 \begin{proposition}[Addition Theorem]
   \label{Basics:AdditionTheorem}
   For every $\Ln{2}{\twosphere}$-orthonormal basis 
-  $\set{Y_{n,k}}_{k=-n}^{n}$ of $\mathcal{H}_n$, we have
+  $\set{H_{k}^n}_{n=-k}^{k}$ of $\mathcal{H}_k$, we have
   \begin{equation}
     \nonumber
-    \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
+    \sum_{n=-k}^{k} \fun{H_{k}^n}{\V{\xi}} \overline{\fun{H_{k}^n}{\V{\eta}}} =
     \frac{2k+1}{4\pi}\fun{P_k}{\V{\xi} \: \V{\eta}}.
   \end{equation}
 \end{proposition}
 
-See \cite{freeden}*{p. 37} for a proof.
+See \cite{frgesc}*{p. 37} for a proof. In particular it holds for the basis functions $Y_{k}^n$ given in 
+\eqref{Basics:SphericalHarmonicsDefinition}.
 
-\section{Radial Spherical Kernels}
-A \emph{radial spherical kernel} is a radial symmetric function defined on the sphere. 
+\section{Spherical Radial Basis Functions}
+\emph{Spherical radial basis basis functions} are radial symmetric functions defined on the sphere. 
 Generally, one starts with a continuous function $G: \interv{[}{-1}{1}{]} \rightarrow \C$ and defines 
-for a fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
-$$ \fun{K_{\V{\eta}}}{\cdot} := \fun{G}{\V{\eta} \: \V{\cdot}}.$$
+for fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
+$$ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\xi} \: \V{\eta}}.$$
 The function $G$ can be developed into a series of Legendre polynomials
 $$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}$$
 where the coefficients $a_k$ are the scalar products
-$$ a_k = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
-Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, one gets the kernel 
-representation
-$$\fun{K_{\V{\eta}}}{\cdot} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\cdot} \: \V{\eta}} =  
-\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\cdot}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
-One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
-spherical convolution. As an application of the algorithms developed in this text, one can derive 
-an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
+$$ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
+Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain the expansion
+$$\fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\V{\xi}} \: \V{\eta}} =  
+\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
+%One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
+%spherical convolution. As an application of the algorithms developed in this text, one can derive 
+%an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
 
-As an example of a radial spherical kernel function, we consider the generating series
+\begin{example}
+We consider the generating series
 \begin{equation}
   \label{Basics:GeneratingFunction}
-  \fun{\phi}{h} := \sum_{n = 0}^{\infty} h^n \fun{P_n}{t}\ \paren{t \in \interv{[}{-1}{1}{]}}
+  \fun{\phi}{h} := \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}
 \end{equation}
 which is absolutely and uniformly convergent for $h \in
-\interv{(}{-1}{1}{)}$, it holds
+\interv{(}{-1}{1}{)}$ with
 \begin{equation}
   \nonumber
-  \sum_{n = 0}^{\infty} h^n \fun{P_n}{t} = \frac{1}{\sqrt{1-2ht+h^2}}.
+  \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = \frac{1}{\sqrt{1-2hx+h^2}}.
 \end{equation}
 This follows from the ordinary differential equation
 \begin{equation}
 \label{Basics:DifferentialEquation}
-  \paren{1+h^2-2ht}\fun{\phi'}{h} = \paren{t-h}\fun{\phi}{h}
+  \paren{1+h^2-2hx}\fun{\phi'}{h} = \paren{x-h}\fun{\phi}{h}
 \end{equation}
 obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
 condition $\fun{\phi}{0}=1$ this yields the unique solution of \eqref{Basics:DifferentialEquation}.
 From this result, the identity
 \begin{equation}
   \nonumber
-  \sum_{n=0}^{\infty} \paren{2n+1} \fun{P_n}{t} h^n =
-  \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}}.
+  \sum_{k=0}^{\infty} \paren{2k+1} \fun{P_k}{x} h^k =
+  \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}
 \end{equation}
  follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$, the function
 $G_h:\interv{[}{-1}{1}{]} \rightarrow \R$, with
 \begin{equation}
   \label{PoissonKernel}
   \nonumber
-  \fun{G_h}{t} := \frac{1-h^2}{\paren{1-2ht+h^2}^{3/2}},
+  \fun{G_h}{x} := \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}},
 \end{equation}
 is called \emph{Poisson kernel}. We refer 
 to Figures \ref{Basics:Figure:PoissonKernel} and \ref{Basics:Figure:PoissonKernel2}
 for a visual impression and mention that the parameter $h$
 allows for controlling the concentration of the function's energy around
-$t = 1$.
+$x = 1$.
+\end{example}
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[height=9cm,width=12cm]{images/poisson}
-  \caption{The Poisson kernel for different values of $h$. The $x$-axis is scaled
-  linearly
-  with respect to $\vtheta$ while the argument for the function is $t=\cos\vtheta$. Since the cosine
-  function is monotone in the interval $\interv{[}{0}{\pi}{]}$, this yields a bijective mapping to
-  the interval $\interv{[}{-1}{1}{]}$, where $\vtheta = 0$ and $\vtheta = \pi$ correspond to
-  $t=1$ and $t=-1$. This is the fashion, this function will be used in further
-  investigations. It can be seen clearly that the energy more and more concentrates around
-  $\vtheta = 0$ as $h$ gets closer to 1.}
+  \includegraphics[width=12cm]{images/poisson}
+  \caption{The Poisson kernel $\fun{G_{h}}{x}$ for $x = \cos \vtheta$ for different values 
+  of $h$ normalized to $\fun{G_{h}}{1} = 1$. The angles $\vtheta = 0$ and $\vtheta = \pi$ 
+  correspond to $x=1$ and $x=-1$. The energy more and more concentrates around
+  $\vtheta = 0$ as $h$ approaches $1$.}
   \label{Basics:Figure:PoissonKernel}
 \end{figure}
 
 \begin{figure}[tb]
   \centering
-   \subfigure[To be written...]
+   \subfigure[$h=0.70$]
      {\includegraphics[width=0.5\textwidth]{images/p_070.png}}\hfill
-   \subfigure[To be written...]
+   \subfigure[$h=0.75$]
      {\includegraphics[width=0.5\textwidth]{images/p_075.png}}\\
-   \subfigure[To be written...]
+   \subfigure[$h=0.80$]
      {\includegraphics[width=0.5\textwidth]{images/p_080.png}}\hfill
-   \subfigure[To be written...]
+   \subfigure[$h=0.85$]
      {\includegraphics[width=0.5\textwidth]{images/p_085.png}}
-  \caption{To be written...}
+  \caption{The Poisson kernel plotted as a spherical radial basis function on the sphere for different values of $h$.}
   \label{Basics:Figure:PoissonKernel2}
 \end{figure}
 
@@ -342,20 +344,20 @@ $t = 1$.
 \label{Basics:DiscreteCosineTransform}
 
 The \emph{Discrete cosine transforms (DCTs)} are a class of real transforms closely related to the 
-\emph{discrete Fourier transform (DFT}. They exploit the fact that the 
-input data is real and has even/odd symmetry. The Fourier transform of a real-even 
-function is real even and $\im$ times the Fourier transform of a real-odd function is real 
-odd. Similar results hold for the DFT. Based on this fact, one can now define 
-real transforms respecting the the additional symmetry.
-Due to the discrete sampling, one has an additional choice: The symmetry can be 
+\emph{discrete Fourier transform (DFT)}. They exploit the fact that the 
+input data is real and has even symmetry. The Fourier transform of a real-even 
+function is real-even and $\im$ times the Fourier transform of a real-odd function is real-odd. 
+Similar results hold for the DFT. Based on this fact, one can now define 
+real transforms respecting the additional symmetry.
+Due to the discrete sampling, we have an additional choice: The symmetry can be 
 viewed relatively to a data point or to a point halfway between two data points. For our 
-purposes we confine ourselves with defining two variants.
+purposes we confine ourselves with introducing two variants.
 
-So for a fixed $N \in \N$ we define the matrices
-\begin{align}
+We define the matrices
+\begin{equation}
   \nonumber
-  \V{C}_{N} & := \paren{\cos \frac{j(2k+1) \pi}{2N}}_{j,k = 0}^{N-1}, & \V{D}_N & := \diag\, \paren{\varepsilon_j^N}_{j = 0}^{N-1}
-\end{align}
+  \V{C}_{N} := \paren{\cos \frac{j(2k+1) \pi}{2N}}_{j,k = 0}^{N-1}, \quad \V{D}_N := \diag\, \paren{\varepsilon_j^N}_{j = 0}^{N-1} \quad \paren{N \in \N}
+\end{equation}
 with $\varepsilon_0^N := \frac{1}{2}$ and $\varepsilon_j^N := 1$ for $j = 1,\ldots,N-1$.
 The discrete cosine transforms DCT-II($N$) and DCT-III($N$) are then defined as follows:
 \begin{equation}
@@ -368,33 +370,34 @@ The discrete cosine transforms DCT-II($N$) and DCT-III($N$) are then defined as 
 where $\V{a} := \paren{a_k}_{k=0}^{N-1} \in \R^N$ is the input vector and $\V{\tilde{a}} := 
 \paren{\tilde{a}_j}_{j=0}^{N-1} \in \R^N$ is the output vector and similarly $\V{b}$ and $\V{\tilde{b}}$. 
 The Chebyshev polynomials of the first kind $T_{k}$ are given by $\fun{T_{k}}{x} := \fun{\cos}{k \arccos x}$ 
-and we get
+and we obtain
 \begin{equation}
   \label{Basics:DCT2}
   \begin{split}
-    \tilde{a_{j}} & = \sum_{k = 0}^{N-1} a_{k} \cos \frac{j(2k+1)\pi}{2N} = \sum_{k = 0}^{N-1} a_{k} \fun{T_{j}}{\cos \frac{(2k+1) \pi}{2N}},\\
-    \tilde{b_{j}} & = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \cos \frac{k(2j+1)\pi}{2N} = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \fun{T_{k}}{\cos \frac{(2j+1) \pi}{2N}}.
+    \tilde{a}_{j} & = \sum_{k = 0}^{N-1} a_{k} \cos \frac{j(2k+1)\pi}{2N} = \sum_{k = 0}^{N-1} a_{k} \fun{T_{j}}{\cos \frac{(2k+1) \pi}{2N}},\\
+    \tilde{b}_{j} & = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \cos \frac{k(2j+1)\pi}{2N} = \sum_{k = 0}^{N-1} \varepsilon_k^N b_{k} \fun{T_{k}}{\cos \frac{(2j+1) \pi}{2N}}.
   \end{split}  
 \end{equation}
-The following lemma shows that the matrix $\V{C}_N$ is up to a scalar factor nearly orthogonal. Therefore the DCT-II is the inverse for the DCT-III an vice versa up to a scaling factor.
+The following lemma shows that the matrix $\V{C}_N$ is up to a scalar factor nearly orthogonal (for a proof see \cite{bata}).
 \begin{lemma}
   \label{Basics:DCT3}
   Let $\V{C}_N$ and $\V{D}_N$ be defined as in \eqref{Basics:DCT}. Then we have
   $$ \V{C}_N\V{C}_N^{\transp}\V{D}_N = \V{C}_N^{\transp}\V{D}_N\V{C}_N = \frac{N}{2} \V{I}_{N}. $$
 \end{lemma}
+Therefore the DCT-II is the inverse of the DCT-III an vice versa up to a scaling factor.
 
 \section{Fast Polynomial Multiplication}
 \label{Basics:FastPolynomialMultiplication}
-A polynomial $Q \in \Pol_{N}$, $N \in \NZ$ is uniquely determined by it's \emph{Chebyshev coefficients} 
-$\paren{b_{k}}_{k = 0}^N$ with
-$\fun{Q}{x} = \sum_{k=0}^N b_{k} \fun{T_{k}}{x}$. Given now a second polynomial $P \in \Pol_{N-1}$ with 
-Chebyshev-coefficients $\paren{a_{k}}_{k = 0}^{N-1}$, we describe a fast algorithm for computing the 
-Chebyshev coefficients of the polynomial product $R := P \: Q \in Pol_{2N-1}$. The polynomial $R$ is uniquely determined 
+A polynomial $P \in \Pol_{N-1}$ is uniquely determined by its \emph{Chebyshev coefficients} 
+$\paren{a_{k}}_{k = 0}^{N-1}$ with $\fun{P}{x} = \sum_{k=0}^{N-1} a_{k} \fun{T_{k}}{x}$. Given 
+now a second polynomial $Q \in \Pol_{N}$, $N \in \NZ$ with Chebyshev-coefficients 
+$\paren{b_{k}}_{k = 0}^N$, we give a fast algorithm first described in \cite{postta97} for computing the 
+Chebyshev coefficients of the polynomial product $R := P \: Q \in \Pol_{2N-1}$. The polynomial $R$ is uniquely determined 
 by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$ for $j = 0,\ldots,2N-1$ and 
 by \eqref{Basics:DCT2} we obtain
 \begin{eqnarray*}
-  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = C_{2N}^{\transp} \paren{a_{k}}_{k}^{2N-1},\\
-  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = C_{2N}^{\transp} \paren{b_{k}}_{k}^{2N-1},
+  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = \V{C}_{2N}^{\transp} \paren{a_{k=0}}_{k}^{2N-1},\\
+  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = \V{C}_{2N}^{\transp} \paren{b_{k=0}}_{k}^{2N-1},
 \end{eqnarray*}
 where we set $a_{k} = 0$ for $k > N-1$ and $b_{k} = 0$ for $k > N$. This means that the evaluation 
 of the polynomials $P$ and $Q$ can be performed using two DCT-IIIs of length $2N$ where we additionally have to 
@@ -417,7 +420,7 @@ This leads to the following algorithm:
       \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
     \ENDFOR
     \STATE
-    \STATE Calculate the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2N-1}$ using a fast DCT-II of length $2N$.
+    \STATE Compute the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2N-1}$ using a fast DCT-II of length $2N$.
     \STATE
     \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
 \end{algorithmic}

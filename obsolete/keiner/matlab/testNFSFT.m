@@ -109,7 +109,7 @@ if (sum(test == [2,3,4,7,8,9]) > 0)
 end
 
 if (usec == true)
-  !../examples/nfsft < temp.in > temp.out
+  !../examples/wrapper/wrapper < temp.in > temp.out
 	if (type == 0)
 	  % Read forward transformed data.
     ri = readComplex([filename,outsuffix],size(Y,1));  

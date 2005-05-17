@@ -159,12 +159,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		4E02C48F082F816D00EC0863 = {
-			fileRef = 4E02C48E082F816D00EC0863;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4E0887BC071585CD005706CD = {
 			fileEncoding = 5;
 			isa = PBXFileReference;
@@ -360,12 +354,6 @@
 		};
 		4E5470E40832A31200CA0375 = {
 			fileRef = 4E5470E20832A31200CA0375;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		4E6A5D24082EAB5300ED6FD8 = {
-			fileRef = 4EB6522108292EA100B8863B;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -667,6 +655,21 @@
 			settings = {
 			};
 		};
+		4E8A26E10838C49000216481 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = performance.c;
+			path = tests/performance/performance.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E8A26E20838C49000216481 = {
+			fileRef = 4E8A26E10838C49000216481;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4E984F5C07CA5BAD00BA8E94 = {
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
@@ -709,6 +712,7 @@
 		};
 		4ECA771908320743008ADA24 = {
 			children = (
+				4E8A26E10838C49000216481,
 				4E5470A208329F8600CA0375,
 			);
 			isa = PBXGroup;
@@ -808,9 +812,8 @@
 				4E6E40C8082CB46F00642FF0,
 				4E6E40CB082CB46F00642FF0,
 				4E293284082E5020004AD73C,
-				4E6A5D24082EAB5300ED6FD8,
-				4E02C48F082F816D00EC0863,
 				4E5470E30832A31200CA0375,
+				4E8A26E20838C49000216481,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

@@ -495,10 +495,7 @@ void ndsft_trafo(nfsft_plan plan)
 
 
 void ndsft_adjoint(nfsft_plan plan)
-{
-  /** Counter for loops */
-  int i;
-  
+{ 
   init_wisdom();
   
   adjoint_ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 

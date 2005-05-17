@@ -1,1 +1,1 @@
-SUBDIRS = summation
+SUBDIRS = performance summation

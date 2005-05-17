@@ -324,7 +324,7 @@ void multiplyU_adjoint(complex  *a, complex *b,
                        struct nfsft_transform_wisdom *tw, double gamma)
 { 
   /** Used to store temporary valiues. */
-  complex z;
+  //complex z;
   /** Counter for loops. */
   int i;
   /** The length of the coefficient arrays. */

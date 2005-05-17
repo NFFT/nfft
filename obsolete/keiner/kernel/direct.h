@@ -36,8 +36,8 @@
  *
  * \ingroup nfsft_direct
  */
-void ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
-  struct nfsft_wisdom *wisdom);
+void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
+           struct nfsft_wisdom *wisdom);
 	
 /**
  * \brief Adjoint direct spherical Fourier transform
@@ -67,6 +67,6 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
  *
  * \ingroup nfsft_direct
  */	
-void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat, 
-  struct nfsft_wisdom *wisdom);
+void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
+                   struct nfsft_wisdom *wisdom);
 #endif

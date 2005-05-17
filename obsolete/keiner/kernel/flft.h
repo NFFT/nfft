@@ -18,7 +18,7 @@
  * \arg tw The transform wisdom
  */
 void flft(const int M, const int t, const int n, complex *f_hat, 
-          const struct U_type ***U, const struct nfsft_transform_wisdom *tw);
+          struct U_type ***U, const struct nfsft_transform_wisdom *tw);
 
 /**
  * \brief AdjointfFast Legendre function transform
@@ -34,7 +34,7 @@ void flft(const int M, const int t, const int n, complex *f_hat,
  * \arg U The three-dimensional array containing the matrices \f$U_{n,\tau,l}\f$
  * \arg tw The transform wisdom
  */
-void flft_adjoint(const int M, const int t, const int n, complex *f_hat, const 
+void flft_adjoint(const int M, const int t, const int n, complex *f_hat, 
                   struct U_type ***U, const struct nfsft_transform_wisdom *tw);
 
 #endif
