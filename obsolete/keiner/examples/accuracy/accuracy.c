@@ -43,9 +43,9 @@
 #include "nfsft.h"
 #include "util.h"
 
-#define M_MIN 32
-#define M_STRIDE 4
-#define M_MAX 64
+#define M_MIN 1
+#define M_STRIDE 1
+#define M_MAX 256
 
 #define T_MIN 1000
 #define T_MAX 1000
@@ -352,7 +352,7 @@ int main (int argc, char **argv)
       nfsft_adjoint(plan);
       printf("%7.2f secs ",mysecond()-ctime);
       
-			//nfsft_finalize(plan);      
+      nfsft_finalize(plan);      
       
       /* Respect normalization. */
       for (n = -M; n <= M; n++)
@@ -369,8 +369,22 @@ int main (int argc, char **argv)
              err_f_hat_2(f_hat_orig,f_hat,M));
 #endif
     }    
-    nfsft_forget();
     printf("\n");
   }
+
+  nfsft_forget();
+  for (n = -M_MAX; n <= M_MAX; n++)
+  {
+    free(f_hat[n+M_MAX]);
+    free(f_hat_orig[n+M_MAX]);
+  }  
+  free(f_hat);
+  free(f_hat_orig);
+  
+  free(angles);
+  free(theta);
+  free(phi);
+  free(w);
+  free(f);
   return EXIT_SUCCESS;
 }
