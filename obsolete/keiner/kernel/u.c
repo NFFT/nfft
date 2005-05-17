@@ -254,8 +254,53 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
 }
 
 
+void forgetU(struct U_type*** U, int M, int t)
+{ 
+  /** Legendre index n */
+  int n;
+  /** Cascade level */
+  int tau;
+  /** Length of polynomials for the current level in the cascade */
+  int plength;
+  /** First index l for current cascade level and current n */
+  int firstl;
+  /** Last index l for current cascade level and current n */
+  int lastl;
+  /** Number of matrices U for current cascade level and current n .*/
+  int nsteps;
+  int i;
+
+  for (n = 0; n <= M; n++)
+  {   
+    plength = 4;
+    for (tau = 1; tau < t; tau++)
+    {
+      /* Compute first l. */
+      firstl = 0; //pow2((int)log2(n)-(n==M?1:0)-tau-1);
+      /* Compute last l. */
+      lastl = (int)(((double)pow2(t))/plength) - 1;
+      /* Compute number of matrices for this level. */
+      nsteps = lastl - firstl + 1;
+      /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
+  	   for (i = 0; i < nsteps; i++)
+	     {        
+	       fftw_free(U[n][tau][i].m1);
+	       fftw_free(U[n][tau][i].m2);
+	       fftw_free(U[n][tau][i].m3);
+	       fftw_free(U[n][tau][i].m4);
+      }
+      fftw_free(U[n][tau]);
+    }
+    fftw_free(U[n]);
+    /** Increase polynomial degree to next power of two. */
+    plength = plength << 1;
+  }
+  fftw_free(U);
+}
+
+
 void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l, 
-               struct nfsft_transform_wisdom *tw, double gamma)
+               struct nfsft_wisdom *tw, double gamma)
 { 
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -321,7 +366,7 @@ void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l,
 
 void multiplyU_adjoint(complex  *a, complex *b, 
                        struct U_type u, int tau, int n, int l, 
-                       struct nfsft_transform_wisdom *tw, double gamma)
+                       struct nfsft_wisdom *tw, double gamma)
 { 
   /** Used to store temporary valiues. */
   //complex z;

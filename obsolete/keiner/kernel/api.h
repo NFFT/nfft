@@ -69,10 +69,9 @@ struct nfsft_plan_s
   /** The number of nodes. */
   int D;                      
   /** The bandwidth */
-  int M;              
+  int M;
+  /** Next greater power of two with respect to M */
   int N;
-  /** The threshold */
-  double threshold;
   /** The angles phi of the nodes */
   double *angles;
   /** The fourier coefficients. */
@@ -88,9 +87,44 @@ struct nfsft_plan_s
  *
  * \ingroup nfsft_internal
  */
-struct nfsft_transform_wisdom
-{
+//struct nfsft_transform_wisdom
+//{
   /** The bandwidth */
+//  int N;
+  /** The logarithm of the bandwidth */
+//  int t;
+  /** Transform plans for the fftw library */
+//  fftw_plan *plans_dct3;
+  /** Transform plans for the fftw library */
+//  fftw_plan *plans_dct2;  
+  /** Transform kinds for fftw library */
+//  fftw_r2r_kind *kinds;
+  /** Transform kinds for fftw library */
+//  fftw_r2r_kind *kindsr;
+  /** Transform lengths for fftw library */
+//  int *lengths;
+  /* Structure for matrices U */
+//  struct U_type ***U;    
+  /** For FLFT */
+//  complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
+//  complex *ergeb;
+//};
+
+/** 
+ * Toplevel wisdom structure. 
+ *
+ * \ingroup nfsft_internal
+ */
+struct nfsft_wisdom
+{
+  /** Indicates wether the structure has been initialized */ 
+  bool initialized;
+  /** */
+  bool initialized_coeffs;
+
+  /** The threshold */
+  double threshold;
+  /** Maximum bandwidth */
   int N;
   /** The logarithm of the bandwidth */
   int t;
@@ -109,20 +143,7 @@ struct nfsft_transform_wisdom
   /** For FLFT */
   complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;
-  double *alpha, *beta, *gamma, *gamma_m1;
-};
-
-/** 
- * Toplevel wisdom structure. 
- *
- * \ingroup nfsft_internal
- */
-struct nfsft_wisdom
-{
-  /** Indicates wether the structure has been initialized. */ 
-  bool initialized;
-  /** Array of wisdoms for bandwidth values in powers of 2 */
-  struct nfsft_transform_wisdom **transform_wisdoms;  
+  
   /** Precomputed recursion coefficients for associated Legendre-functions */
   double alpha[(BW_MAX+1)*(BW_MAX+1)];
   /** Precomputed recursion coefficients for associated Legendre-functions */

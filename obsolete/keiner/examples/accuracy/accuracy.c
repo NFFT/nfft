@@ -45,7 +45,7 @@
 
 #define M_MIN 32
 #define M_STRIDE 4
-#define M_MAX 256
+#define M_MAX 64
 
 #define T_MIN 1000
 #define T_MAX 1000

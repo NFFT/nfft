@@ -1,7 +1,7 @@
 #include "flft.h"
 
 void flft(const int M, const int t, const int n, complex *f_hat, 
-          struct U_type ***U, const struct nfsft_transform_wisdom *tw)
+          struct U_type ***U, const struct nfsft_wisdom *tw)
 {
   /** Next greater power of two with respect to M since t=ceil(log2(M)) */
   const int N = 1<<t;
@@ -152,7 +152,7 @@ void flft(const int M, const int t, const int n, complex *f_hat,
 
 
 void flft_adjoint(const int M, const int t, const int n, complex *f_hat,  
-                  struct U_type ***U, const struct nfsft_transform_wisdom *tw)
+                  struct U_type ***U, const struct nfsft_wisdom *tw)
 {
   int plength, /*nsteps, */firstl, lastl, tau;
   int N, N1;

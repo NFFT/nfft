@@ -20,6 +20,13 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
                              double *wbeta, double *wgamma);
 
 /**
+ * Forget U
+ *
+ * \ingroup nfsft_u
+ */
+void forgetU(struct U_type*** U, int M, int t);
+
+/**
  * Fast matrix Multiplication with matrices \f$U_{n,\tau,l}\f$.
  *
  * \param a The first array of Chebyshev-coefficients
