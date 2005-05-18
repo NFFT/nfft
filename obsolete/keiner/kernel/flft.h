@@ -18,7 +18,7 @@
  * \arg tw The transform wisdom
  */
 void flft(const int M, const int t, const int n, complex *f_hat, 
-          struct U_type ***U, struct nfsft_wisdom *tw);
+          struct U_type ****U, struct nfsft_wisdom *tw);
 
 /**
  * \brief AdjointfFast Legendre function transform
@@ -35,6 +35,6 @@ void flft(const int M, const int t, const int n, complex *f_hat,
  * \arg tw The transform wisdom
  */
 void flft_adjoint(const int M, const int t, const int n, complex *f_hat, 
-                  struct U_type ***U, struct nfsft_wisdom *tw);
+                  struct U_type ****U, struct nfsft_wisdom *tw);
 
 #endif

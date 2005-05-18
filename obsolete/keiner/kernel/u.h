@@ -16,7 +16,7 @@
  *
  * \ingroup nfsft_u
  */
-struct U_type*** precomputeU(int t, double threshold, double *walpha, 
+struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma);
 
 /**
@@ -24,7 +24,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
  *
  * \ingroup nfsft_u
  */
-void forgetU(struct U_type*** U, int M, int t);
+void forgetU(struct U_type**** U, int M, int t);
 
 /**
  * Fast matrix Multiplication with matrices \f$U_{n,\tau,l}\f$.

@@ -1,7 +1,7 @@
 #include "legendre.h"
 #include "api.h"
 
-struct U_type*** precomputeU(int t, double threshold, double *walpha, 
+struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma)
 {
   /** Maximum bandwidth */
@@ -42,7 +42,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
   int degree_stab;
   
   /** Three-dimensional array of matrices U_{n,tau,l} */
-  struct U_type*** U;
+  struct U_type ****U;
   /** Array containing function values of the (1,1)-component of U_k^n. */
   double *m1;
   /** Array containing function values of the (1,2)-component of U_k^n. */
@@ -106,7 +106,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
   
   
   /* Allocate memory for matrices U_k^n(\cdot,4l+1). */
-  U = (struct U_type***) fftw_malloc(sizeof(struct U_type **) * (M+1));
+  U = (struct U_type****) fftw_malloc(sizeof(struct U_type ***) * (M+1));
   
   /* We have to precompute the matrices 
    *   U_{n,tau,l} := U_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1)
@@ -117,7 +117,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
   {   
     /* Allocate memory for current matrix array. The cascade will have 
      * t = log_2(M) many levels. */
-    U[n] = (struct U_type**) fftw_malloc(sizeof(struct U_type*) * t);
+    U[n] = (struct U_type***) fftw_malloc(sizeof(struct U_type**) * t);
     
     /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
     plength = 4;
@@ -135,7 +135,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
       
       /* Allocate memory for current matrix array. The level will contain
         * 2^{t-tau-1} many matrices. */
-	     U[n][tau] = (struct U_type*) fftw_malloc(sizeof(struct U_type) * (int)(((double)pow2(t))/plength)/*nsteps*/); 
+	     U[n][tau] = (struct U_type**) fftw_malloc(sizeof(struct U_type*) * (int)(((double)pow2(t))/plength)/*nsteps*/); 
       
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
@@ -181,12 +181,13 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
         /* Check if stabilization needed. */
         if (needstab == false)
         {  
+          U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)); 
           /* No stabilization needed. */
-          U[n][tau][l].m1 = m1;
-          U[n][tau][l].m2 = m2;
-          U[n][tau][l].m3 = m3;
-          U[n][tau][l].m4 = m4;
-          U[n][tau][l].stable = true;
+          U[n][tau][l][0].m1 = m1;
+          U[n][tau][l][0].m2 = m2;
+          U[n][tau][l][0].m3 = m3;
+          U[n][tau][l][0].m4 = m4;
+          U[n][tau][l][0].stable = true;
         }          
         else 
         {    
@@ -194,46 +195,51 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
           
           /* Stabilize. */
   		      degree_stab = degree*(2*l+1);          
-          plength_stab = pow2(t);
-          tau_stab = t-2;
           
           /* Old arrays are to small. */
           fftw_free(m1);
           fftw_free(m2);
           fftw_free(m3);
           fftw_free(m4);
-          
-          /* Allocate memory for arrays. */
-          m1 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          m2 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          m3 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          m4 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          
-          /* Get the pointers to the three-term recurrence coeffcients. */
-          alpha = &(walpha[ROW(n)+2]);
-          beta = &(wbeta[ROW(n)+2]);
-          gamma = &(wgamma[ROW(n)+2]);         
-          /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-          eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
-                  beta, gamma);
-          /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-          eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
-                  beta, gamma); 
-          alpha--;
-          beta--;
-          gamma--;
-          /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-          eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
-                  beta, gamma);
-          /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-          eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
-                  beta, gamma);
-                    
-          U[n][tau][l].m1 = m1;
-          U[n][tau][l].m2 = m2;
-          U[n][tau][l].m3 = m3;
-          U[n][tau][l].m4 = m4;          
-          U[n][tau][l].stable = false;                    
+
+          U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)*(t-tau)); 
+
+          for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+          {
+            //tau_stab = t-2;
+            plength_stab = pow2(tau_stab+2);
+            /* Allocate memory for arrays. */
+            m1 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            m2 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            m3 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            m4 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            
+            /* Get the pointers to the three-term recurrence coeffcients. */
+            alpha = &(walpha[ROW(n)+2]);
+            beta = &(wbeta[ROW(n)+2]);
+            gamma = &(wgamma[ROW(n)+2]);         
+            /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
+            eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
+                    beta, gamma);
+            /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
+            eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
+                    beta, gamma); 
+            alpha--;
+            beta--;
+            gamma--;
+            /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
+            eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
+                    beta, gamma);
+            /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
+            eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
+                    beta, gamma);
+                      
+            U[n][tau][l][tau_stab-tau+1].m1 = m1;
+            U[n][tau][l][tau_stab-tau+1].m2 = m2;
+            U[n][tau][l][tau_stab-tau+1].m3 = m3;
+            U[n][tau][l][tau_stab-tau+1].m4 = m4;          
+            U[n][tau][l][tau_stab-tau+1].stable = false;                    
+          }
         }
       }
       /** Increase polynomial degree to next power of two. */
@@ -253,7 +259,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
 }
 
 
-void forgetU(struct U_type*** U, int M, int t)
+void forgetU(struct U_type**** U, int M, int t)
 { 
   /** Legendre index n */
   int n;
@@ -268,6 +274,7 @@ void forgetU(struct U_type*** U, int M, int t)
   /** Number of matrices U for current cascade level and current n .*/
   int nsteps;
   int l;
+  int tau_stab;
 
   for (n = 0; n <= M; n++)
   {   
@@ -283,10 +290,24 @@ void forgetU(struct U_type*** U, int M, int t)
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
 	     {        
-	       fftw_free(U[n][tau][l].m1);
-	       fftw_free(U[n][tau][l].m2);
-	       fftw_free(U[n][tau][l].m3);
-	       fftw_free(U[n][tau][l].m4);
+        if (U[n][tau][l][0].stable == true)
+        {  
+	         fftw_free(U[n][tau][l][0].m1);
+	         fftw_free(U[n][tau][l][0].m2);
+	         fftw_free(U[n][tau][l][0].m3);
+	         fftw_free(U[n][tau][l][0].m4);
+        }
+        else
+        {
+          for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+          {
+            fftw_free(U[n][tau][l][tau_stab-tau+1].m1);
+            fftw_free(U[n][tau][l][tau_stab-tau+1].m2);
+            fftw_free(U[n][tau][l][tau_stab-tau+1].m3);
+            fftw_free(U[n][tau][l][tau_stab-tau+1].m4);
+          }
+        }
+        fftw_free(U[n][tau][l]);
       }
       fftw_free(U[n][tau]);
       /** Increase polynomial degree to next power of two. */

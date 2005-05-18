@@ -139,7 +139,7 @@ struct nfsft_wisdom
   /** Transform lengths for fftw library */
   int *lengths;
   /* Structure for matrices U */
-  struct U_type ***U;    
+  struct U_type ****U;    
   /** For FLFT */
   complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;

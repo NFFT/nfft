@@ -3,7 +3,7 @@
 #include "util.h"
 
 void flft(const int M, const int t, const int n, complex *f_hat, 
-          struct U_type ***U, struct nfsft_wisdom *tw)
+          struct U_type ****U, struct nfsft_wisdom *tw)
 {
   /** Next greater power of two with respect to M since t=ceil(log2(M)) */
   const int N = 1<<t;
@@ -71,7 +71,7 @@ void flft(const int M, const int t, const int n, complex *f_hat,
       memcpy(tw->vec4,&(tw->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(complex));     
       
       /* Get matrix U_{n,tau,l} */
-      act_U = U[n][tau][l];
+      act_U = U[n][tau][l][0];
       
       /* Check if step is stable. */
       if (act_U.stable)
@@ -87,6 +87,8 @@ void flft(const int M, const int t, const int n, complex *f_hat,
       }
       else
       {	
+        act_U = U[n][tau][l][t-tau-1];
+
         /* Stabilize. */
         plength_stab = pow2(t);
                 
@@ -154,7 +156,7 @@ void flft(const int M, const int t, const int n, complex *f_hat,
 
 
 void flft_adjoint(const int M, const int t, const int n, complex *f_hat,  
-                  struct U_type ***U, struct nfsft_wisdom *tw)
+                  struct U_type ****U, struct nfsft_wisdom *tw)
 {
   int plength, /*nsteps, */firstl, lastl, tau;
   int N, N1;
@@ -243,7 +245,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *f_hat,
       memcpy(&tw->work[(plength/2)*(4*l+1)],&(tw->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(complex));
            
       /* Get matrix U_(2^tau-1)^n() */
-      act_U = U[n][tau][l];
+      act_U = U[n][tau][l][0];
       
       /* Check if step is stable. */
       if (act_U.stable)
@@ -261,6 +263,8 @@ void flft_adjoint(const int M, const int t, const int n, complex *f_hat,
       }
       else
       {	
+        act_U = U[n][tau][l][t-tau-1];
+        
         /* Stabilize. */
         plength_stab = pow2(t);
         tau_stab = t-1;        
