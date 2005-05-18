@@ -43,13 +43,13 @@
 #include "nfsft.h"
 #include "util.h"
 
-#define M_MIN 256
-#define M_STRIDE 256
-#define M_MAX 256
+#define M_MIN 1
+#define M_STRIDE 1
+#define M_MAX 512
 
-#define T_MIN 500
-#define T_MAX 5000
-#define T_STRIDE 500
+#define T_MIN 1000
+#define T_MAX 1000
+#define T_STRIDE 1000
 
 /**
  * The main program.
@@ -272,13 +272,13 @@ int main (int argc, char **argv)
       fclose(file);
     }
 
-    sprintf(filename,"gl_m%04d.dat",M); 
+    /*sprintf(filename,"gl_m%04d.dat",M); 
     file = fopen(filename,"a");
     if (file != NULL)
     {
       fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
       fclose(file);
-    }
+    }*/
     
         /* Print relative error in various norms. */    
 				printf("%6.4E %6.4E %6.4E\t",err_infty, err_1, err_2);
@@ -392,13 +392,13 @@ int main (int argc, char **argv)
         fclose(file);
       }
 
-      sprintf(filename,"cc_m%04d.dat",M); 
+      /*sprintf(filename,"cc_m%04d.dat",M); 
       file = fopen(filename,"a");
       if (file != NULL)
       {
         fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
         fclose(file);
-      }
+      }*/
 
       /* Print relative error in various norms. */    
       printf("%6.4E %6.4E %6.4E\n",err_infty,err_1,err_2);
