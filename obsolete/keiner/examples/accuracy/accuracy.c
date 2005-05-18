@@ -43,13 +43,13 @@
 #include "nfsft.h"
 #include "util.h"
 
-#define M_MIN 1
-#define M_STRIDE 1
-#define M_MAX 128
+#define M_MIN 256
+#define M_STRIDE 256
+#define M_MAX 256
 
-#define T_MIN 1000
-#define T_MAX 1000
-#define T_STRIDE 50000
+#define T_MIN 500
+#define T_MAX 5000
+#define T_STRIDE 500
 
 /**
  * The main program.
@@ -95,6 +95,7 @@ int main (int argc, char **argv)
   double *w;  
   /** Array for function values. */
   complex *f;
+  double err_infty, err_1, err_2;
   
   /** Plan for fast spherical fourier transform. */
   nfsft_plan plan;
@@ -105,7 +106,7 @@ int main (int argc, char **argv)
    * Used to store the filename of a file containing Gauss-Legendre nodes and 
    * weights.
    */ 
-  char filename[20];
+  char filename[100];
   /** File handle for reading quadrature nodes and weights. */
   FILE *file;
   /** FFTW plan for Clenshaw-Curtis quadrature */
@@ -173,8 +174,7 @@ int main (int argc, char **argv)
         memcpy(f_hat_orig[n+M],f_hat[n+M],(M+1)*sizeof(complex));
       }
 
-#define GAUSS_LEGENDRE
-#ifdef GAUSS_LEGENDRE
+      
       /* Test Gauss-Legendre quadrature */
       
       /* Compute number of nodes. */
@@ -259,19 +259,36 @@ int main (int argc, char **argv)
 					}
 				}
 
-				/* Print relative error in various norms. */    
-				printf("%6.4E %6.4E %6.4E\t",err_f_hat_infty(f_hat_orig,f_hat,M),
-				 err_f_hat_1(f_hat_orig,f_hat,M),
-				 err_f_hat_2(f_hat_orig,f_hat,M));
+
+    err_infty = err_f_hat_infty(f_hat_orig,f_hat,M);
+    err_1 = err_f_hat_1(f_hat_orig,f_hat,M);
+    err_2 = err_f_hat_2(f_hat_orig,f_hat,M);
+        
+    sprintf(filename,"gl_t%07d.dat",t); 
+    file = fopen(filename,"a");
+    if (file != NULL)
+    {
+      fprintf(file,"%4d %6.4E %6.4E %6.4E\n",M,err_infty, err_1, err_2);
+      fclose(file);
+    }
+
+    sprintf(filename,"gl_m%04d.dat",M); 
+    file = fopen(filename,"a");
+    if (file != NULL)
+    {
+      fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
+      fclose(file);
+    }
+    
+        /* Print relative error in various norms. */    
+				printf("%6.4E %6.4E %6.4E\t",err_infty, err_1, err_2);
       }
       else
       {
         printf("   File %s not found.\t\t\t",filename);
       }    
-#endif
+
       
-#define CLENSHAW_CURTIS
-#ifdef CLENSHAW_CURTIS
       /* Test Clenshaw-Curtis quadrature */
 
       /* Compute number of nodes. */
@@ -363,11 +380,28 @@ int main (int argc, char **argv)
         }
       }
       
+      err_infty = err_f_hat_infty(f_hat_orig,f_hat,M);
+      err_1 = err_f_hat_1(f_hat_orig,f_hat,M);
+      err_2 = err_f_hat_2(f_hat_orig,f_hat,M);
+      
+      sprintf(filename,"cc_t%07d.dat",t); 
+      file = fopen(filename,"a");
+      if (file != NULL)
+      {
+        fprintf(file,"%4d %6.4E %6.4E %6.4E\n",M, err_infty, err_1, err_2);
+        fclose(file);
+      }
+
+      sprintf(filename,"cc_m%04d.dat",M); 
+      file = fopen(filename,"a");
+      if (file != NULL)
+      {
+        fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
+        fclose(file);
+      }
+
       /* Print relative error in various norms. */    
-      printf("%6.4E %6.4E %6.4E\n",err_f_hat_infty(f_hat_orig,f_hat,M),
-             err_f_hat_1(f_hat_orig,f_hat,M),
-             err_f_hat_2(f_hat_orig,f_hat,M));
-#endif
+      printf("%6.4E %6.4E %6.4E\n",err_infty,err_1,err_2);
     }    
     printf("\n");
   }

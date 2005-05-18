@@ -42,9 +42,9 @@
 #include "util.h"
 #include "time.h"
 
-#define M_MIN 1
+#define M_MIN 512
 #define M_STRIDE 1
-#define M_MAX 256
+#define M_MAX 512
 
 #define D_MIN 256
 #define D_STRIDE 256
