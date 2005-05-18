@@ -39,7 +39,7 @@ void forgetU(struct U_type*** U, int M, int t);
  * \ingroup nfsft_u
  */
 void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l, 
-               struct nfsft_transform_wisdom *tw, double gamma);
+               struct nfsft_wisdom *tw, double gamma);
 
 /**
  * Fast adjoint matrix Multiplication with matrices \f$U_{n,\tau,l}\f$.
@@ -55,5 +55,5 @@ void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l,
  */
 void multiplyU_adjoint(complex  *a, complex *b, 
                        struct U_type u, int tau, int n, int l, 
-                       struct nfsft_transform_wisdom *tw, double gamma);
+                       struct nfsft_wisdom *tw, double gamma);
 #endif

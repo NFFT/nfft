@@ -1,4 +1,5 @@
 #include "legendre.h"
+#include "api.h"
 
 struct U_type*** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma)
@@ -71,7 +72,7 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
   double *xc;
 
   /** loop counter */
-  int i;
+  //int i;
   /** Used to indicate that stabilization is neccessary. */
   bool needstab = false;  
   
@@ -126,19 +127,18 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
 	     degree = plength>>1;
       
       /* Compute first l. */
-      firstl = 0; //pow2((int)log2(n)-(n==M?1:0)-tau-1);
+      firstl = FIRST_L;//0; //pow2((int)log2(n)-(n==M?1:0)-tau-1);
       /* Compute last l. */
-      lastl = (int)(((double)pow2(t))/plength) - 1;
+      lastl = LAST_L;//(int)(((double)pow2(t))/plength) - 1;
       /* Compute number of matrices for this level. */
-      nsteps = lastl - firstl + 1;
+      //nsteps = lastl - firstl + 1;
       
       /* Allocate memory for current matrix array. The level will contain
         * 2^{t-tau-1} many matrices. */
-	     U[n][tau] = (struct U_type*) fftw_malloc(sizeof(struct U_type) * nsteps); 
+	     U[n][tau] = (struct U_type*) fftw_malloc(sizeof(struct U_type) * (int)(((double)pow2(t))/plength)/*nsteps*/); 
       
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
-      l = firstl;
-  	   for (i = 0; i < nsteps; i++)
+  	   for (l = firstl; l <= lastl; l++)
 	     {        
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);
@@ -182,11 +182,11 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
         if (needstab == false)
         {  
           /* No stabilization needed. */
-          U[n][tau][i].m1 = m1;
-          U[n][tau][i].m2 = m2;
-          U[n][tau][i].m3 = m3;
-          U[n][tau][i].m4 = m4;
-          U[n][tau][i].stable = true;
+          U[n][tau][l].m1 = m1;
+          U[n][tau][l].m2 = m2;
+          U[n][tau][l].m3 = m3;
+          U[n][tau][l].m4 = m4;
+          U[n][tau][l].stable = true;
         }          
         else 
         {    
@@ -229,13 +229,12 @@ struct U_type*** precomputeU(int t, double threshold, double *walpha,
           eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
                   beta, gamma);
                     
-          U[n][tau][i].m1 = m1;
-          U[n][tau][i].m2 = m2;
-          U[n][tau][i].m3 = m3;
-          U[n][tau][i].m4 = m4;          
-          U[n][tau][i].stable = false;                    
+          U[n][tau][l].m1 = m1;
+          U[n][tau][l].m2 = m2;
+          U[n][tau][l].m3 = m3;
+          U[n][tau][l].m4 = m4;          
+          U[n][tau][l].stable = false;                    
         }
-        l++;
       }
       /** Increase polynomial degree to next power of two. */
       plength = plength << 1;
@@ -268,7 +267,7 @@ void forgetU(struct U_type*** U, int M, int t)
   int lastl;
   /** Number of matrices U for current cascade level and current n .*/
   int nsteps;
-  int i;
+  int l;
 
   for (n = 0; n <= M; n++)
   {   
@@ -276,24 +275,24 @@ void forgetU(struct U_type*** U, int M, int t)
     for (tau = 1; tau < t; tau++)
     {
       /* Compute first l. */
-      firstl = 0; //pow2((int)log2(n)-(n==M?1:0)-tau-1);
+      firstl = FIRST_L;//0; //pow2((int)log2(n)-(n==M?1:0)-tau-1);
       /* Compute last l. */
-      lastl = (int)(((double)pow2(t))/plength) - 1;
+      lastl = LAST_L;//(int)(((double)pow2(t))/plength) - 1;
       /* Compute number of matrices for this level. */
-      nsteps = lastl - firstl + 1;
+      //nsteps = lastl - firstl + 1;
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
-  	   for (i = 0; i < nsteps; i++)
+  	   for (l = firstl; l <= lastl; l++)
 	     {        
-	       fftw_free(U[n][tau][i].m1);
-	       fftw_free(U[n][tau][i].m2);
-	       fftw_free(U[n][tau][i].m3);
-	       fftw_free(U[n][tau][i].m4);
+	       fftw_free(U[n][tau][l].m1);
+	       fftw_free(U[n][tau][l].m2);
+	       fftw_free(U[n][tau][l].m3);
+	       fftw_free(U[n][tau][l].m4);
       }
       fftw_free(U[n][tau]);
+      /** Increase polynomial degree to next power of two. */
+      plength = plength << 1;
     }
     fftw_free(U[n]);
-    /** Increase polynomial degree to next power of two. */
-    plength = plength << 1;
   }
   fftw_free(U);
 }

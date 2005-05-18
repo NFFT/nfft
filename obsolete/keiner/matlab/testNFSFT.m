@@ -1,4 +1,4 @@
-function [err,r1,r2] = testNFSFT(D,M,test)
+function [err,r1,r2] = testNFSFT(D,M,test,plot)
 % TEST
 % [ERR,R1,R2] = TEST(D,M,TEST)
 % TEST \in {0,1,2,3,4,5,6,7,8,9}
@@ -188,28 +188,30 @@ fprintf('|r1|: max = %f, min = %f, NaN = %d\n', max(abs(r1)), min(abs(r1)), sum(
 fprintf('|r2|: max = %f, min = %f, NaN = %d\n', max(abs(r2)), min(abs(r2)), sum(sum(isnan(r2))));
 fprintf('||r1-r2||_1/||r1||_1 = %17.16f\n', err);
 
-if (test <= 4)
-  rm = abs(r1-r2);
-  figure;
-  spy(rm>=1E-7);
-  colorbar;
-  figure
-  imagesc(rm);
-  colorbar;
-else
-  r = abs(r1-r2);
-  rm = zeros(M+1,2*M+1);
-  index = 1;
-  for k = 0:M
-    for n = -k:k
-	  rm(k+1,n+M+1) = r(index);
-	  index = index + 1;
+if (plot == 1)
+  if (test <= 4)
+    rm = abs(r1-r2);
+    figure;
+    spy(rm>=1E-7);
+    colorbar;
+    figure
+    imagesc(rm);
+    colorbar;
+  else
+    r = abs(r1-r2);
+    rm = zeros(M+1,2*M+1);
+    index = 1;
+    for k = 0:M
+      for n = -k:k
+      rm(k+1,n+M+1) = r(index);
+      index = index + 1;
+      end
     end
+    figure;
+    spy(rm>=1E-7);
+    colorbar;
+    figure
+    imagesc(rm);
+    colorbar;
   end
-  figure;
-  spy(rm>=1E-7);
-  colorbar;
-  figure
-  imagesc(rm);
-  colorbar;
 end

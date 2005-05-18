@@ -43,6 +43,8 @@
 				0249A663FF388D9811CA2CEA,
 				4E0887D007158614005706CD,
 				4E984F5C07CA5BAD00BA8E94,
+				4EAD6721083A854000C61F13,
+				4EAD6722083A854000C61F13,
 			);
 			isa = PBXGroup;
 			name = "External Frameworks and Libraries";
@@ -664,12 +666,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		4E8A26E20838C49000216481 = {
-			fileRef = 4E8A26E10838C49000216481;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4E984F5C07CA5BAD00BA8E94 = {
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
@@ -680,6 +676,40 @@
 		};
 		4E984F5D07CA5BAD00BA8E94 = {
 			fileRef = 4E984F5C07CA5BAD00BA8E94;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4EAD66E5083A82D200C61F13 = {
+			fileRef = 4E29331A082E672F004AD73C;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4EAD6721083A854000C61F13 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = libm.dylib;
+			path = /usr/lib/libm.dylib;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		4EAD6722083A854000C61F13 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = libmx.dylib;
+			path = /usr/lib/libmx.dylib;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		4EAD6723083A854000C61F13 = {
+			fileRef = 4EAD6721083A854000C61F13;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4EAD6724083A854000C61F13 = {
+			fileRef = 4EAD6722083A854000C61F13;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -811,9 +841,9 @@
 				4E751582082C0CF4002018A8,
 				4E6E40C8082CB46F00642FF0,
 				4E6E40CB082CB46F00642FF0,
+				4EAD66E5083A82D200C61F13,
 				4E293284082E5020004AD73C,
 				4E5470E30832A31200CA0375,
-				4E8A26E20838C49000216481,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -824,6 +854,8 @@
 				8DD76F670486A84900D96B5E,
 				4E0887D107158614005706CD,
 				4E984F5D07CA5BAD00BA8E94,
+				4EAD6723083A854000C61F13,
+				4EAD6724083A854000C61F13,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

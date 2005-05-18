@@ -96,20 +96,11 @@ int main (int argc, char **argv)
   {
     fscanf(stdin,"%lf\n%lf\n",&angles[2*i],&angles[2*i+1]);    
   } 
-#ifdef DEBUG
-  myvpr(angles,2*D,"angles");
-#endif
 
   /* Read bandwidth M. */  
   fscanf(stdin,"%d\n",&M);
-#ifdef DEBUG
-  printf("M = %d\n",M);
-#endif
   /* Calculate N as next greater power of 2 of the bandwidth M. */
-  N = M==0?0:1<<(int)ceil(log((double)M)/log(2.0));
-#ifdef DEBUG
-  printf("N = %d\n",N);
-#endif
+  N = 1<<ngpt(M);
   
   /* Initialize data structures for Fourier coefficients. */
   F_HAT = (complex**) calloc(2*M+1,sizeof(complex*));
@@ -138,50 +129,28 @@ int main (int argc, char **argv)
     /* Create plan for fast spherical Fourier transform.*/
     plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
 			
-	  /* Switch by mode. */
-		if (mode == FAST)
-		{		
-			/* Initialize */
-			ctime = mysecond();
-			nfsft_precompute(M,1000);
-			ctime = mysecond() - ctime;
-	    #ifdef DEBUG
-			printf("Time for initialization: %f sec.\n",ctime);
-	    #endif
-			/* Precompute. */
-			ctime = mysecond();
-			nfsft_precompute(M,1000);
-			ctime = mysecond() - ctime;
-	    #ifdef DEBUG
-			printf("Time for precomputation: %f sec.\n",ctime);
-	    #endif
-			/* Execute the plan. */
-			ctime = mysecond();
-			nfsft_trafo(plan);
-			ctime = mysecond() - ctime;
-	    #ifdef DEBUG
-			printf("Time for fast algorithm: %f sec.\n",ctime);
-	    #endif
-	  }
-	  else if (mode == SLOW)
-		{
-			/* Execute the plan. */
-			ctime = mysecond();
-			ndsft_trafo(plan);
-			ctime = mysecond() - ctime;
-      #ifdef DEBUG
-			printf("Time for slow algorithm: %f sec.\n",ctime);
-	    #endif
-		}
-		else
-		{
-		  fprintf(stderr,"Wrong transform mode!\n");
-		}
+	   /* Switch by mode. */
+		  if (mode == FAST)
+		  {		
+	   		/* Initialize */
+		   	nfsft_precompute(128/*M*/,1000);
+			   /* Execute the plan. */
+			   nfsft_trafo(plan);
+	   }
+	   else if (mode == SLOW)
+ 		 {
+	  	 	/* Execute the plan. */
+  		 	ndsft_trafo(plan);
+		  }
+ 		 else
+	 	 {  
+		    fprintf(stderr,"Wrong transform mode!\n");
+		  }
 
-   	for (k = 0; k < D; k++)
-		{
-			printf("%17.16f\n%17.16f\n",creal(result[k]),cimag(result[k]));
-		}
+    for (k = 0; k < D; k++)
+		  {
+			   printf("%17.16f\n%17.16f\n",creal(result[k]),cimag(result[k]));
+ 		 }
   }
   else
   {
@@ -196,45 +165,23 @@ int main (int argc, char **argv)
     /* Create plan for fast spherical Fourier transform.*/
     plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
 		
-		/* Switch by transform mode. */
-		if (mode == FAST)
-		{	
-      /* Initialize */
-      ctime = mysecond();
-      nfsft_precompute(M,1000);
-      ctime = mysecond() - ctime;
-      #ifdef DEBUG
-      printf("Time for initialization: %f sec.\n",ctime);
-      #endif
+		  /* Switch by transform mode. */
+		  if (mode == FAST)
+		  {	
       /* Precompute. */
-      ctime = mysecond();
-      nfsft_precompute(M,1000);
-      ctime = mysecond() - ctime;
-      #ifdef DEBUG
-      printf("Time for precomputation: %f sec.\n",ctime);
-      #endif
+      nfsft_precompute(128/*M*/,1000);
       /* Execute the plan. */
-      ctime = mysecond();
       nfsft_adjoint(plan);
-      ctime = mysecond() - ctime;
-      #ifdef DEBUG
-      printf("Time for fast algorithm: %f sec.\n",ctime);
-      #endif
-		}
-		else if (mode == SLOW)
-		{
+  		}
+		  else if (mode == SLOW)
+		  {
       /* Execute the plan. */
-      ctime = mysecond();
       ndsft_adjoint(plan);
-      ctime = mysecond() - ctime;
-      #ifdef DEBUG
-      printf("Time for fast algorithm: %f sec.\n",ctime);
-      #endif
-		}
-		else
-		{
-		  fprintf(stderr,"Wrong transform mode!\n");
-		}
+  		}
+		  else
+		  {
+		    fprintf(stderr,"Wrong transform mode!\n");
+  		}
 
     for (k = 0; k <= M; k++)
     {  
@@ -247,7 +194,6 @@ int main (int argc, char **argv)
   
   /* Destroy the plan. */
   nfsft_finalize(plan);
-
   
   /* Forget wisdom. */
   nfsft_forget();
