@@ -1,5 +1,6 @@
 #include "legendre.h"
 #include "api.h"
+#include "util.h"
 
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma)
@@ -22,7 +23,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   /** Last index l for current cascade level and current n */
   int lastl;
   /** Number of matrices U for current cascade level and current n .*/
-  int nsteps;
+  //int nsteps;
   
   /** 
     * Length of polynomials for the current level in the cascade for 
@@ -272,7 +273,7 @@ void forgetU(struct U_type**** U, int M, int t)
   /** Last index l for current cascade level and current n */
   int lastl;
   /** Number of matrices U for current cascade level and current n .*/
-  int nsteps;
+  //int nsteps;
   int l;
   int tau_stab;
 

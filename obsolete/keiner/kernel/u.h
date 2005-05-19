@@ -4,17 +4,15 @@
 #ifndef U_H
 #define U_H
 
-/** \defgroup nfsft_u NFSFT: Functions related to the matrices \f$U_{n,\tau,l}\f$ */
-
 /**
  * Precomputation of the matrices \f$U_{n,\tau,l}\f$
  * 
  * \param t Exponent of the maximum bandwidth \f$N = 2^t\f$
  * \param threshold The threshold for stabilization steps
  * 
- * \return 3-dimensional array containing the matrics 
+ * \return 4-dimensional array containing the matrics 
  *
- * \ingroup nfsft_u
+ * \ingroup nfsft_internal
  */
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma);
@@ -22,7 +20,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
 /**
  * Forget U
  *
- * \ingroup nfsft_u
+ * \ingroup nfsft_internal
  */
 void forgetU(struct U_type**** U, int M, int t);
 
@@ -36,7 +34,7 @@ void forgetU(struct U_type**** U, int M, int t);
  * \param n The parameter n
  * \param l The parameter l
  *
- * \ingroup nfsft_u
+ * \ingroup nfsft_internal
  */
 void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l, 
                struct nfsft_wisdom *tw, double gamma);
@@ -51,7 +49,7 @@ void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l,
  * \param n The parameter n
  * \param l The parameter l
  *
- * \ingroup nfsft_u
+ * \ingroup nfsft_internal
  */
 void multiplyU_adjoint(complex  *a, complex *b, 
                        struct U_type u, int tau, int n, int l, 

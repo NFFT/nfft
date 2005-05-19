@@ -430,7 +430,7 @@ void nfft_trafo(nfft_plan *this)
   this->g_hat=this->g1;
   this->g=this->g2;
  
-  /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
+  /** form \f$ \hat g_k = \frac{\hat{f}_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */ 
   T1;
@@ -459,7 +459,7 @@ void nfft_conjugated(nfft_plan *this)
   this->g_hat=this->g2;
   this->g=this->g1;
  
-  /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
+  /** form \f$ \hat g_k = \frac{\hat{f}_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */  
   T1;
@@ -503,7 +503,7 @@ void nfft_adjoint(nfft_plan *this)
   fftw_execute(this->my_fftw_plan2);
   T2(2);
   
-  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
+  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */
   T1;
@@ -532,7 +532,7 @@ void nfft_transposed(nfft_plan *this)
   fftw_execute(this->my_fftw_plan1);
   T2(2);
   
-  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
+  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */
   T1;

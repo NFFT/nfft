@@ -568,8 +568,6 @@ void nfsft_trafo(nfsft_plan plan)
   int i, n;
   /** */
   //struct nfsft_transform_wisdom *tw;
-  /** */
-  //nfft_plan myplan;
 
   /* Init global structure. */
   precompute_coeffs();
@@ -588,21 +586,11 @@ void nfsft_trafo(nfsft_plan plan)
     t = ngpt(plan->M);
     /** Next greater power of 2 relative to M */
     N = 1<<t;
-
-    /* Ensure that precomputation has been done. */
-    /*if (wisdom.transform_wisdoms[t] == 0)
-    {
-      tw = init_transform_wisdom(t,gthreshold);
-    }  
-    else
-    {
-      tw = wisdom.transform_wisdoms[t];
-    }*/  
     
     /* Compute FLFT. */
     for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
-      flft(plan->M, t, abs(n), plan->f_hat[i], wisdom.U, &wisdom);
+      flft(plan->M, t, abs(n), plan->f_hat[i], &wisdom);
     }
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
@@ -643,46 +631,17 @@ void nfsft_adjoint(nfsft_plan plan)
     t = ngpt(plan->M);
     /** Next greater power of 2 relative to M */
     N = 1<<t;
-    
-    /* Ensure that precomputation has been done. */
-    /*if (wisdom.transform_wisdoms[t] == 0)
-    {
-      tw = init_transform_wisdom(t,gthreshold);
-    }  
-    else
-    {
-      tw = wisdom.transform_wisdoms[t];
-    }*/  
-    
-    /* Calculate adjoint NFFT. */
-    /*nfft_size[0] = 2*(N+1);
-    nfft_size[1] = 2*(N+1);
-    fftw_size[0] = 4*N;
-    fftw_size[1] = 4*N;
-    nfft_init_specific(&myplan, 2, nfft_size, plan->D, fftw_size, 
-                       6, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
-                       FFTW_ESTIMATE| FFTW_DESTROY_INPUT);*/
-    /* Assign angle array. */
-    //myplan.x = plan->angles;
-    /* Assign result array. */
-    /*myplan.f = plan->f;
-    if (myplan.nfft_flags & PRE_PSI) 
-    {  
-      nfft_precompute_psi(&myplan); 
-    }*/ 
-    
+        
     /* Execute adjoint NFFT. */
     nfft_adjoint(&plan->plan_nfft);
     
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     cheb2exp_adjoint(plan->plan_nfft.f_hat, plan->f_hat, plan->M, N); 
-    
-    //nfft_finalize(&myplan);      
-    
+        
     /* Calculate FLFT. */
     for(n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
-      flft_adjoint(plan->M,t,abs(n),plan->f_hat[i],wisdom.U,&wisdom);
+      flft_adjoint(plan->M, t, abs(n), plan->f_hat[i], &wisdom);
     }          
   }    
 }

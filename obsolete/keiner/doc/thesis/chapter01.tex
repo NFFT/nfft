@@ -21,7 +21,7 @@ spherical coordinate system is illustrated in Figure \ref{sphere}.
 Now let $\V{\xi} = \paren{\vtheta,\vphi}^{\transp}$, $\V{\eta} = \paren{\vtheta',\vphi'}^{\transp} \in
 \twosphere$ and $\alpha$ be the angle spanned by the origin, $\V{\xi}$ and $\V{\eta}$.
 Then the standard scalar product
-$\V{\xi} \: \V{\eta} = \cos\left(\alpha\right)$ is given by
+$\V{\xi} \cdot \V{\eta} = \cos\left(\alpha\right)$ is given by
 \begin{equation}
   \nonumber
   \fun{\cos}{\alpha} = \cos\vtheta\cos\vtheta' +
@@ -50,7 +50,7 @@ Furthermore, we have
   \fun{\dim}{\fun{\text{Harm}_k}{\R^3}} = 2k+1.
 \end{align}
 To keep it short we let $\mathcal{H}_k := \left.\fun{\text{Harm}_k}{\R^3}\right|_{\twosphere}$. For 
-further information see for example \cite{frgesc}*{Chapter ?}.
+further information see for example \cite{frgesc}*{Chapter 2}.
 
 \begin{figure}[htb]
   \centering
@@ -75,9 +75,9 @@ as classical orthogonal polynomials are given by their corresponding
 \emph{Rodrigues formula}
 \begin{equation}
   \nonumber
-  \fun{P_k}{x} = \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
+  \fun{P_k}{x} := \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \end{equation}
-One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$ and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$ (\cite{niuv}*{pp. 45\mdash47}).
+One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$ and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$ (\cite{niuv}*{pp. 4\ndash47}).
 %The corresponding three-term recurrence relation is
 %\begin{equation}
 %  \nonumber
@@ -92,12 +92,12 @@ Furthermore we define the associated Legendre functions $P_k^n : \interv{[}{-1}{
 \end{equation}
 For fixed $n$ the set $\set{P_{k}^n}_{k=n,n+1,\ldots}$ form a complete set of orthogonal functions 
 for $\Ln{2}{\interv{[}{-1}{1}{]}}$ with
-$$ \scalarproduct{P_{k}^n}{P_{l}^n}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l}.$$
+$$ \scalarproduct{P_{k}^n}{P_{l}^n}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l} \quad \paren{0 \le n \le k,l}.$$
 The associated Legendre functions fulfill the three-term recurrence
 \begin{equation}
   \label{Basics:AssociatedLegendreDefinition}
   \begin{split}
-    \fun{P_{n-1}^n}{x} & := 0,\qquad \fun{P_{n}^n}{x} := \frac{((2n)!)}{2^n n!}^{1/2} \paren{1-x^2}^{n/2},\\
+    \fun{P_{n-1}^n}{x} & = 0,\qquad \fun{P_{n}^n}{x} = \frac{((2n)!)}{2^n n!}^{1/2} \paren{1-x^2}^{n/2},\\
     \fun{P_{k+1}^n}{x} & = v_{k}^n x \fun{P_{k}^n}{x} + w_{k}^n \fun{P_{k-1}^n}{x} \quad (k = n,n+1,\ldots),
   \end{split}
 \end{equation}
@@ -148,7 +148,7 @@ define the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
     & \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
   \end{split}
 \end{equation}
-Now induction (see \cite[bel91]) yields
+Now straightforward induction yields
 \begin{lemma}
   \label{Basics:AssociatedLegendreRecurrence}
   Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinitionExtended} and 
@@ -173,7 +173,7 @@ From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in sp
   \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
 \end{equation}
 %*** \begin{comment}Add reference here\end{comment}
-Using an ansatz based on separation of variables and taking into account that $r = 1$ when restricting 
+Using an ansatz based on separation of variables (see \cite{co}) and taking into account that $r = 1$ when restricting 
 \eqref{Basics:LaplaceBeltrami} to $\twosphere$, one obtains the solutions
 \begin{equation}
   \label{Basics:SphericalHarmonicsDefinition}

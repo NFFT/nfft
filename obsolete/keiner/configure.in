@@ -24,7 +24,7 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(complex.h stdbool.h string.h fftw3.h)
+AC_CHECK_HEADERS(complex.h time.h stdbool.h string.h fftw3.h)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_ZERO_BYTES_DOUBLE
@@ -42,4 +42,4 @@ AC_ARG_WITH(
 	 [AC_DEFINE(BWEXP_MAX, 10, "Default exponent of maximum bandwidth")
    AC_DEFINE(BW_MAX, 1024, "Default maximum bandwidth")])
 
-AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile examples/accuracy/Makefile examples/convolution/Makefile examples/stabilization/Makefile examples/template/Makefile examples/wrapper/Makefile tests/Makefile tests/performance/Makefile tests/summation/Makefile)
+AC_OUTPUT(Makefile nfft/Makefile kernel/Makefile examples/Makefile examples/convolution/Makefile examples/stabilization/Makefile examples/template/Makefile examples/wrapper/Makefile tests/Makefile tests/accuracy/Makefile tests/performance/Makefile tests/summation/Makefile)

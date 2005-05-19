@@ -616,7 +616,6 @@
 		};
 		4E6E40D1082CB48500642FF0 = {
 			children = (
-				4EB6522108292EA100B8863B,
 				4E02C48E082F816D00EC0863,
 				4EB6E45F082FF153003AAA48,
 				4E2932A7082E5984004AD73C,
@@ -680,12 +679,6 @@
 			settings = {
 			};
 		};
-		4EAD66E5083A82D200C61F13 = {
-			fileRef = 4E29331A082E672F004AD73C;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4EAD6721083A854000C61F13 = {
 			isa = PBXFileReference;
 			lastKnownFileType = "compiled.mach-o.dylib";
@@ -714,6 +707,21 @@
 			settings = {
 			};
 		};
+		4EAD6866083BB48600C61F13 = {
+			fileRef = 4E8A26E10838C49000216481;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4EAD69A2083BE07E00C61F13 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = accuracy.c;
+			path = tests/accuracy/accuracy.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
 		4EB20A1D07D4B30C00FD1AB8 = {
 			explicitFileType = "compiled.mach-o.executable";
 			includeInIndex = 0;
@@ -721,15 +729,6 @@
 			path = NFSFT;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		4EB6522108292EA100B8863B = {
-			fileEncoding = 5;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			name = accuracy.c;
-			path = examples/accuracy/accuracy.c;
-			refType = 4;
-			sourceTree = "<group>";
 		};
 		4EB6E45F082FF153003AAA48 = {
 			fileEncoding = 5;
@@ -742,6 +741,7 @@
 		};
 		4ECA771908320743008ADA24 = {
 			children = (
+				4EAD69A2083BE07E00C61F13,
 				4E8A26E10838C49000216481,
 				4E5470A208329F8600CA0375,
 			);
@@ -834,6 +834,7 @@
 		8DD76F640486A84900D96B5E = {
 			buildActionMask = 2147483647;
 			files = (
+				4EAD6866083BB48600C61F13,
 				4E6CD55307C54A7E0040176B,
 				4E6CD55507C54A7E0040176B,
 				4E6CD57707C54E630040176B,
@@ -841,7 +842,6 @@
 				4E751582082C0CF4002018A8,
 				4E6E40C8082CB46F00642FF0,
 				4E6E40CB082CB46F00642FF0,
-				4EAD66E5083A82D200C61F13,
 				4E293284082E5020004AD73C,
 				4E5470E30832A31200CA0375,
 			);

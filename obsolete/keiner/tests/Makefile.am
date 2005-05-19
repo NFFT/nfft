@@ -1,1 +1,1 @@
-SUBDIRS = performance summation
+SUBDIRS = accuracy performance summation

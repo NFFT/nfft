@@ -41,7 +41,7 @@ typedef enum {false = 0,true = 1} bool;
 #define FIRST_L (n/plength)/2;
 #define LAST_L (plength*(int)ceil(((double)M)/plength)-1)/plength; 
 
-/** \defgroup nfsft_internal NFSFT: Internal API */
+/** \defgroup nfsft_internal NFSFT: Internal API and functions */
 
 /** 
  * Datatype for a set of real 2x2 matrices used in FLT. 
