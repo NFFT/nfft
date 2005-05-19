@@ -16,7 +16,7 @@ void simple_test_nfft_1d()
   /** init an one dimensional plan */
   /*nfft_init_1d(&my_plan,12,19);*/
   nfft_init_guru(&my_plan, 1, N, 19, n, 6,
-		     PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+		     PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		     FFT_OUT_OF_PLACE, FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   
   /** init pseudo random nodes */
@@ -27,12 +27,10 @@ void simple_test_nfft_1d()
 
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nfft_flags & PRE_PSI)
-    {
-      nfft_precompute_psi(&my_plan);
+    nfft_precompute_psi(&my_plan);
       
-      if(my_plan.nfft_flags & PRE_FULL_PSI)
-	nfft_precompute_full_psi(&my_plan,pow(10,-10));
-    }
+  if(my_plan.nfft_flags & PRE_FULL_PSI)
+    nfft_precompute_full_psi(&my_plan,pow(10,-10));
 
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
@@ -165,7 +163,7 @@ void measure_time_nfft_1d()
 
 int main()
 { 
-  /*  printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
+  printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
 
   getc(stdin);
@@ -175,7 +173,6 @@ int main()
   simple_test_nfft_2d();
 
   getc(stdin);
-  */
   system("clear"); 
   printf("3) computing times for one dimensional nfft\n\n");
   measure_time_nfft_1d();
