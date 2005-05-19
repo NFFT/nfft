@@ -665,7 +665,7 @@ void nfft_init_help(nfft_plan *ths)
     nfft_precompute_phi_hut(ths);
 
   /* NO FFTW_MALLOC HERE */
-  if(ths->nfft_flags & PRE_PSI)
+  if((ths->nfft_flags & PRE_PSI)||(ths->nfft_flags & PRE_FULL_PSI))
     ths->psi = (double*) malloc(ths->M_total*ths->d*
 					   (2*ths->m+2)*sizeof(double));
   
@@ -771,13 +771,12 @@ void nfft_finalize(nfft_plan *ths)
 
   /* NO FFTW_FREE HERE */
   if(ths->nfft_flags & PRE_PSI)
-    {
-      if(ths->nfft_flags & PRE_FULL_PSI)
-	{
-	  free(ths->psi_index_g);
-	  free(ths->psi_index_f);
-	}
+    free(ths->psi);
 
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    {
+      free(ths->psi_index_g);
+      free(ths->psi_index_f);
       free(ths->psi);
     }
       
