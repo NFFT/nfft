@@ -1,1 +1,1 @@
-SUBDIRS = accuracy convolution stabilization template wrapper
+SUBDIRS = convolution stabilization template wrapper
