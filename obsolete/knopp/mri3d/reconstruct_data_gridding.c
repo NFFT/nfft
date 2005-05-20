@@ -17,8 +17,8 @@ void nfft (char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=next_power_of_2(N);
   my_N[1]=N; my_n[1]=next_power_of_2(N);  
-  nfft_init_specific(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI | 
-                        PRE_FULL_PSI |MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
+  nfft_init_specific(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI|
+                        MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                         FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
                         FFTW_MEASURE| FFTW_DESTROY_INPUT);
   
@@ -43,12 +43,12 @@ void nfft (char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
     fclose(fweight);
     
     /* precompute psi if set just one time because the nodes equal each slice */
-    if(z==0 && my_plan.nfft_flags & PRE_PSI) 
-    {
+    if(z==0 && my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
-      if(my_plan.nfft_flags & PRE_FULL_PSI)
-        nfft_full_psi(&my_plan,pow(10,-15));
-    }
+    
+    /* precompute full psi if set just one time because the nodes equal each slice */    
+    if(z==0 && my_plan.nfft_flags & PRE_FULL_PSI)
+      nfft_full_psi(&my_plan,pow(10,-15));
     
     /* compute the adjoint nfft */
     nfft_adjoint(&my_plan);

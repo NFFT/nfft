@@ -39,11 +39,13 @@ void nfft (char* filename, int N, int M, int weight)
   fclose(fweight);
 
   /* precompute psi */
-  if(my_plan.nfft_flags & PRE_PSI) {
+  if(my_plan.nfft_flags & PRE_PSI)
     nfft_precompute_psi(&my_plan);
-    if(my_plan.nfft_flags & PRE_FULL_PSI)
-      nfft_full_psi(&my_plan,pow(10,-15));
-  }
+  
+  /* precompute full psi */
+  if(my_plan.nfft_flags & PRE_FULL_PSI)
+    nfft_full_psi(&my_plan,pow(10,-15));
+
   
   /* compute the adjoint nfft */
   nfft_adjoint(&my_plan);

@@ -25,12 +25,10 @@ void simple_test_nnfft_1d()
 
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nnfft_flags & PRE_PSI)
-  {
     nnfft_precompute_psi(&my_plan);
       
-    if(my_plan.nnfft_flags & PRE_FULL_PSI)
-      nnfft_full_psi(&my_plan,pow(10,-15));
-  }
+  if(my_plan.nnfft_flags & PRE_FULL_PSI)
+    nnfft_full_psi(&my_plan,pow(10,-15));
     
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
     nnfft_precompute_lin_psi(&my_plan,1000); 
@@ -87,12 +85,10 @@ void simple_test_nnfft_2d()
 
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nnfft_flags & PRE_PSI)
-  {
     nnfft_precompute_psi(&my_plan);
       
-    if(my_plan.nnfft_flags & PRE_FULL_PSI)
-      nnfft_full_psi(&my_plan,pow(10,-15));
-  }
+  if(my_plan.nnfft_flags & PRE_FULL_PSI)
+    nnfft_full_psi(&my_plan,pow(10,-15));
   
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
     nnfft_precompute_lin_psi(&my_plan,1000);
@@ -144,12 +140,10 @@ void simple_test_innfft_1d()
     
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nnfft_flags & PRE_PSI)
-  {
     nnfft_precompute_psi(&my_plan);
-      
-    if(my_plan.nnfft_flags & PRE_FULL_PSI)
+  
+  if(my_plan.nnfft_flags & PRE_FULL_PSI)
       nnfft_full_psi(&my_plan,pow(10,-15));
-  }
   
   /** precompute phi_hut, the entries of the matrix D */
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
@@ -209,12 +203,11 @@ void measure_time_nnfft_1d()
       my_plan.v[j]=((double)rand())/RAND_MAX-0.5;        
         
     if(my_plan.nnfft_flags & PRE_PSI)
-    {
       nnfft_precompute_psi(&my_plan);
       
-      if(my_plan.nnfft_flags & PRE_FULL_PSI)
+    if(my_plan.nnfft_flags & PRE_FULL_PSI)
         nnfft_full_psi(&my_plan,pow(10,-15));
-    }
+
     if(my_plan.nnfft_flags & PRE_PHI_HUT)
       nnfft_precompute_phi_hut(&my_plan);
       

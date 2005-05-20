@@ -62,11 +62,11 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
     
     /* precompute psi if set just one time because the nodes equal each plane */
     if(z==0 && my_plan.nfft_flags & PRE_PSI) 
-    {
       nfft_precompute_psi(&my_plan);
-      if(my_plan.nfft_flags & PRE_FULL_PSI)
-        nfft_full_psi(&my_plan,pow(10,-15));
-    }
+      
+    /* precompute full psi if set just one time because the nodes equal each plane */
+    if(z==0 && my_plan.nfft_flags & PRE_FULL_PSI)
+      nfft_full_psi(&my_plan,pow(10,-15));
 
     /* init some guess */
     for(k=0;k<my_plan.N_L;k++)
