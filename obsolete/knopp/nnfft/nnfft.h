@@ -63,8 +63,8 @@ typedef struct nnfft_plan_
   
   double *v;                            /**< nodes (in fourier domain)   */
 
-  fftw_complex *f_hat;                  /**< fourier coefficients, equispaced */
-  fftw_complex *f;                      /**< samples at nodes x               */
+  complex *f_hat;                       /**< fourier coefficients, equispaced */
+  complex *f;                           /**< samples at nodes x               */
 
   double *c_phi_inv;                    /**< precomputed data, matrix D       */
   double *psi;                          /**< precomputed data, matrix B       */
@@ -72,7 +72,7 @@ typedef struct nnfft_plan_
   int *psi_index_g;                     /**< only for thin B                  */
   int *psi_index_f;                     /**< only for thin B                  */
 
-  fftw_complex *F;
+  complex *F;
 
   double *spline_coeffs;                /**< input for de Boor algorithm, if  
                                              B_SPLINE or SINC_2m is defined   */

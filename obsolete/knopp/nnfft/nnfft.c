@@ -1,10 +1,10 @@
 #include "nnfft.h"
 #include "window_defines.h"
 
-#define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(fftw_complex));
+#define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(complex));
 #define MACRO_nndft_init_result_conjugated MACRO_nndft_init_result_trafo
 #define MACRO_nndft_init_result_adjoint memset(f_hat,0,ths->N_total*               \
-                                              sizeof(fftw_complex));
+                                              sizeof(complex));
 #define MACRO_nndft_init_result_transposed MACRO_nndft_init_result_adjoint
 
 #define MACRO_nndft_sign_trafo      (+2.0*PI)
@@ -12,16 +12,12 @@
 #define MACRO_nndft_sign_adjoint    (-2.0*PI)
 #define MACRO_nndft_sign_transposed (+2.0*PI)
 
-#define MACRO_nndft_compute_trafo {                                             \
-  (*fj0)+=(*f_hat_k0)*cos_omega+(*f_hat_k1)*sin_omega;                          \
-  (*fj1)+=(*f_hat_k1)*cos_omega-(*f_hat_k0)*sin_omega;                          \
-}
+#define MACRO_nndft_compute_trafo (*fj) += (*f_hat_k)*cexp(-I*omega);
+
 #define MACRO_nndft_compute_conjugated MACRO_nndft_compute_trafo
 
-#define MACRO_nndft_compute_adjoint {                                           \
-  (*f_hat_k0)+=(*fj0)*cos_omega+(*fj1)*sin_omega;                               \
-  (*f_hat_k1)+=(*fj1)*cos_omega-(*fj0)*sin_omega;                               \
-}
+#define MACRO_nndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(+I*omega);
+
 #define MACRO_nndft_compute_transposed MACRO_nndft_compute_adjoint
 
 #define MACRO_nndft(which_one)                                                 \
@@ -29,31 +25,25 @@ void nndft_ ## which_one (nnfft_plan *ths)                                    \
 {                                                                              \
   int j;                                /**< index over all nodes (time)     */\
   int t;                                /**< index for dimensions            */\
-  int l;                                /**< index over all nodes (fouier)   */\
-  fftw_complex *f_hat, *f;              /**< dito                            */\
-  double *f_hat_k0, *f_hat_k1;          /**< actual Fourier coefficient      */\
-  double *fj0,*fj1;                     /**< actual sample                   */\
+  int l;                                /**< index over all nodes (fourier)  */\
+  complex *f_hat, *f;                   /**< dito                            */\
+  complex *f_hat_k;                     /**< actual Fourier coefficient      */\
+  complex *fj;                          /**< actual sample                   */\
   double omega;                         /**< sign times 2*pi*k*x             */\
-  double sin_omega,cos_omega;           /**< just for better reading         */\
                                                                                \
   f_hat=ths->f_hat; f=ths->f;                                                \
                                                                                \
   MACRO_nndft_init_result_ ## which_one                                        \
                                                                                \
-  for(j=0, fj0=&f[0][0], fj1=&f[0][1];                                         \
-          j<ths->M_total; j++, fj0+=2, fj1+=2)                                     \
+  for(j=0, fj=f; j<ths->M_total; j++, fj++)                                     \
   {                                                                            \
-    for(l=0, f_hat_k0= &f_hat[0][0], f_hat_k1= &f_hat[0][1];                   \
-      l<ths->N_total; l++, f_hat_k0+=2, f_hat_k1+=2)                               \
+    for(l=0, f_hat_k=f_hat; l<ths->N_total; l++, f_hat_k++)                    \
     {                                                                          \
       omega=0.0;                                                               \
       for(t = 0; t<ths->d; t++)                                               \
-        omega+=ths->v[l*ths->d+t] * ths->x[j*ths->d+t] * ths->N[t];       \
+        omega+=ths->v[l*ths->d+t] * ths->x[j*ths->d+t] * ths->N[t];           \
                                                                                \
       omega*= MACRO_nndft_sign_ ## which_one;                                  \
-                                                                               \
-      cos_omega= cos(omega);                                                   \
-      sin_omega= sin(omega);                                                   \
                                                                                \
       MACRO_nndft_compute_ ## which_one                                        \
                                                                                \
@@ -89,8 +79,8 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 /** sub routines for the fast transforms
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */
-#define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(fftw_complex));
-#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_L*sizeof(fftw_complex));
+#define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(complex));
+#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_L*sizeof(complex));
 
 #define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                  \
   (*fj0)+=ths->psi[ix]*g[ths->psi_index_g[ix]][0];                           \
@@ -171,7 +161,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
   int lj[ths->d];                      /**< multi index 0<=lj<u+o+1         */\
   int ll_plain[ths->d+1];              /**< postfix plain index in g        */\
   double phi_prod[ths->d+1];           /**< postfix product of PHI          */\
-  fftw_complex *f, *g;                  /**< local copy                      */\
+  complex *f, *g;                  /**< local copy                      */\
   double *fj0,*fj1;                     /**< local copy                      */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
@@ -573,10 +563,10 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
                                         sizeof(double));
 
   if(ths->nnfft_flags & MALLOC_F_HAT)
-    ths->f_hat = (fftw_complex*)fftw_malloc(ths->N_total*
-                                                  sizeof(fftw_complex));
+    ths->f_hat = (complex*)fftw_malloc(ths->N_total*
+                                                  sizeof(complex));
   if(ths->nnfft_flags & MALLOC_F)
-    ths->f=(fftw_complex*)fftw_malloc(ths->M_total*sizeof(fftw_complex));
+    ths->f=(complex*)fftw_malloc(ths->M_total*sizeof(complex));
     
   /* NO FFTW_MALLOC HERE */
   if(ths->nnfft_flags & PRE_PSI)
