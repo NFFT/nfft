@@ -79,7 +79,7 @@ typedef struct nnfft_plan_
 } nnfft_plan;
 
 /** @defgroup nndft Group for direct nndft
- * This group contains routines for 
+ * ths group contains routines for 
  * direct discrete Fourier transform at nonequispaced knots in time and fouier domain
  * @{ 
  */
@@ -88,49 +88,49 @@ typedef struct nnfft_plan_
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{l = 0}^{N-1} f_hat[k_l] * exp(-2 (pi) k_l x[j])
  */
-void nndft_trafo(nnfft_plan *this_plan);
+void nndft_trafo(nnfft_plan *ths_plan);
 
 /** see formula (???), computes
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{l = 0}^{N-1} f_hat[k_l] * exp(+2 (pi) k_l x[j])
  */
-void nndft_conjugated(nnfft_plan *this_plan);
+void nndft_conjugated(nnfft_plan *ths_plan);
 
-void nndft_adjoint(nnfft_plan *this_plan);
+void nndft_adjoint(nnfft_plan *ths_plan);
 
-void nndft_transposed(nnfft_plan *this_plan);
+void nndft_transposed(nnfft_plan *ths_plan);
 
 /** @defgroup nfft Group for direct nfft
- * This group contains routines for 
+ * ths group contains routines for 
  * direct fast Fourier transform at nonequispaced knots
  * @{ 
  */
  
  /** initialisation for direct transform, simple interface
  */
-void nnfft_init(nnfft_plan *this_plan, int d, int N_total, int M_total, int *N);
+void nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N);
 
-void nnfft_init_specific(nnfft_plan *this_plan, int d, int N_total, int M_total, int *N, int *N1,
+void nnfft_init_specific(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N, int *N1,
                         int m, unsigned nnfft_flags);
                         
 /** finalisation for direct transform
  */
-void nnfft_finalize(nnfft_plan *this_plan);
+void nnfft_finalize(nnfft_plan *ths_plan);
 
-void nnfft_trafo(nnfft_plan *this_plan);
+void nnfft_trafo(nnfft_plan *ths_plan);
 
-void nnfft_conjugated(nnfft_plan *this_plan);
+void nnfft_conjugated(nnfft_plan *ths_plan);
 
-void nnfft_adjoint(nnfft_plan *this_plan);
+void nnfft_adjoint(nnfft_plan *ths_plan);
 
-void nnfft_transposed(nnfft_plan *this_plan);
+void nnfft_transposed(nnfft_plan *ths_plan);
 
-void nnfft_precompute_lin_psi(nnfft_plan *this_plan, int K);
+void nnfft_precompute_lin_psi(nnfft_plan *ths_plan, int K);
 
-void nnfft_precompute_psi(nnfft_plan *this_plan);
+void nnfft_precompute_psi(nnfft_plan *ths_plan);
 
-void nnfft_full_psi(nnfft_plan *this_plan, double eps);
+void nnfft_full_psi(nnfft_plan *ths_plan, double eps);
 
-void nnfft_precompute_phi_hut(nnfft_plan *this_plan);
+void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
 #endif
 /* nnfft.h */
