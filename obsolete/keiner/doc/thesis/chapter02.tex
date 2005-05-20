@@ -82,6 +82,7 @@ For special sampling sets one can do better by exploiting the grid
 structure and employing FFT techniques (Hier sollten dann noch reichlich Referenzen hin). Our aim, however, 
 is not to develop algorithms designed for special grids but to describe a general approach to fast 
 spherical Fourier transforms for arbitrary sampling sets.
+\citelist{\cite{Mo99} \cite{postta97} \cite{roty} \cite{suta}}
 
 \section{Computing Fourier Coeffcients from Function Samples}
 A \emph{discrete Fourier transform (DFT)} on the torus $\mathbb{T} = \R/\Z$ of length $M \in \NZ$ can be represented 
@@ -148,7 +149,7 @@ with nodes $\paren{\vtheta_{l}^{\gl}}_{l=0}^M$ and weights $\paren{w_{l}^{\gl}}_
 We notice that the $M+1$ nodes $\vtheta_{l}^{\gl}$ can be computed as the eigenvalues of the \emph{Jacobi matrix} for the orthogonal 
 Legendre polynomials. The weights $w_{l}$ are obtained from the corresponding eigenvectors.
 
-A second idea is to employ a Clenshaw-Curtis quadrature rule
+A second idea is to employ a Clenshaw-Curtis quadrature rule (see \cite{dara}, pp. 86)
 $$
   \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\cc}} \fun{f_{n}}{\vtheta_{l}}
 $$

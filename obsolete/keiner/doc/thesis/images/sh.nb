@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      6129,        173]*)
-(*NotebookOutlinePosition[      6765,        195]*)
-(*  CellTagsIndexPosition[      6721,        191]*)
+(*NotebookOptionsPosition[      6974,        211]*)
+(*NotebookOutlinePosition[      7610,        233]*)
+(*  CellTagsIndexPosition[      7566,        229]*)
 (*WindowFrame->Normal*)
 
 
@@ -51,6 +51,8 @@ NotebookFileLineBreakTest*)
 Notebook[{
 Cell[BoxData[
     \(<< Graphics`ParametricPlot3D`\)], "Input"],
+
+Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]\ 
@@ -65,6 +67,10 @@ Cell[BoxData[
           plotobj, \ 
           ImageResolution \[Rule] \ 600], \[IndentingNewLine]\ {n, \(-k\), 
           k}], \ {k, 0, 3}]\)], "Input"],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]],
 
 Cell[CellGroupData[{
 
@@ -169,10 +175,42 @@ Cell[BoxData[
 
 Cell[BoxData[
     \(0.460780943376905`\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[{
+    \(\(genSH[k_, n_]\  := \ 
+        SphericalPlot3D[
+          2 + Re[N[SphericalHarmonicY[k, n, \[Theta], \[Phi]]]], {\[Theta], 
+            0, Pi}, {\[Phi], 0, 2  Pi}, PlotPoints \[Rule] {70, 140}, \ 
+          Axes \[Rule] False, \ 
+          Boxed \[Rule] False];\)\ \), "\[IndentingNewLine]", 
+    \(\ \ \)}], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(shplot\  = \ genSH[20, 10]\)], "Input"],
+
+Cell[BoxData[
+    TagBox[\(\[SkeletonIndicator]  Graphics3D  \[SkeletonIndicator]\),
+      False,
+      Editable->False]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(0\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Export["\<sh_r_9_5.eps\>", shplot]\)], "Input"],
+
+Cell[BoxData[
+    \("sh_r_9_5.eps"\)], "Output"]
 }, Open  ]]
 },
 FrontEndVersion->"5.0 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 755}},
+ScreenRectangle->{{0, 1280}, {0, 861}},
 WindowSize->{1144, 728},
 WindowMargins->{{4, Automatic}, {Automatic, 1}}
 ]
@@ -195,36 +233,52 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 62, 1, 27, "Input"],
-Cell[1819, 54, 619, 12, 107, "Input"],
 
 Cell[CellGroupData[{
-Cell[2463, 70, 681, 13, 107, "Input"],
-Cell[3147, 85, 42, 1, 27, "Output"]
+Cell[1841, 56, 619, 12, 107, "Input"],
+Cell[2463, 70, 42, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[3226, 91, 57, 1, 27, "Input"],
-Cell[3286, 94, 1355, 21, 123, "Output"]
+Cell[2542, 76, 681, 13, 107, "Input"],
+Cell[3226, 91, 42, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[4678, 120, 61, 1, 27, "Input"],
-Cell[4742, 123, 40, 1, 27, "Output"]
-}, Open  ]],
-Cell[4797, 127, 123, 3, 27, "Input"],
-Cell[4923, 132, 191, 3, 27, "Input"],
-Cell[5117, 137, 145, 2, 27, "Input"],
-Cell[5265, 141, 26, 0, 27, "Input"],
-Cell[5294, 143, 532, 10, 91, "Input"],
-
-Cell[CellGroupData[{
-Cell[5851, 157, 70, 1, 27, "Input"],
-Cell[5924, 160, 53, 1, 27, "Output"]
+Cell[3305, 97, 57, 1, 27, "Input"],
+Cell[3365, 100, 1355, 21, 123, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[6014, 166, 44, 1, 27, "Input"],
-Cell[6061, 169, 52, 1, 27, "Output"]
+Cell[4757, 126, 61, 1, 27, "Input"],
+Cell[4821, 129, 40, 1, 27, "Output"]
+}, Open  ]],
+Cell[4876, 133, 123, 3, 27, "Input"],
+Cell[5002, 138, 191, 3, 27, "Input"],
+Cell[5196, 143, 145, 2, 27, "Input"],
+Cell[5344, 147, 26, 0, 27, "Input"],
+Cell[5373, 149, 532, 10, 91, "Input"],
+
+Cell[CellGroupData[{
+Cell[5930, 163, 70, 1, 27, "Input"],
+Cell[6003, 166, 53, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6093, 172, 44, 1, 27, "Input"],
+Cell[6140, 175, 52, 1, 27, "Output"]
+}, Open  ]],
+Cell[6207, 179, 340, 7, 59, "Input"],
+
+Cell[CellGroupData[{
+Cell[6572, 190, 59, 1, 27, "Input"],
+Cell[6634, 193, 132, 3, 27, "Output"]
+}, Open  ]],
+Cell[6781, 199, 34, 1, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[6840, 204, 67, 1, 27, "Input"],
+Cell[6910, 207, 48, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

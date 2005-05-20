@@ -49,8 +49,8 @@ Furthermore, we have
   \fun{\dim}{\fun{\text{Hom}_k}{\R^3}} & = \frac{(k+1)(k+2)}{2}, & 
   \fun{\dim}{\fun{\text{Harm}_k}{\R^3}} = 2k+1.
 \end{align}
-To keep it short we let $\mathcal{H}_k := \left.\fun{\text{Harm}_k}{\R^3}\right|_{\twosphere}$. For 
-further information see for example \cite{frgesc}*{Chapter 2}.
+To keep it short we let $\Pol_{n}\paren{\twosphere} := \left.\Pol_{n}\paren{\R}\right|_{\twosphere}$ and $\mathcal{H}_k := \left.\fun{\text{Harm}_k}{\R^3}\right|_{\twosphere}$. For 
+further information see for example \cite{frgesc}*{Chapters 2.3 and 2.3}.
 
 \begin{figure}[htb]
   \centering
@@ -173,7 +173,7 @@ From Laplace's differential equation $\Delta f = 0$ in $\R^3$, one obtains in sp
   \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2}{\partial \vphi^2} = 0.
 \end{equation}
 %*** \begin{comment}Add reference here\end{comment}
-Using an ansatz based on separation of variables (see \cite{co}) and taking into account that $r = 1$ when restricting 
+Using an ansatz based on separation of variables (see \cite{co2}) and taking into account that $r = 1$ when restricting 
 \eqref{Basics:LaplaceBeltrami} to $\twosphere$, one obtains the solutions
 \begin{equation}
   \label{Basics:SphericalHarmonicsDefinition}
@@ -211,7 +211,7 @@ the space of \emph{spherical harmonics} of degree $M$.
 
 At first glance, the restriction to homogeneous and harmonic polynomials
 might exclude various functions from $\fun{\Pol_M}{\twosphere}$. But as a 
-matter of fact these spaces are identical (see \cite{frgesc}*{pp. ??}), i.e. 
+matter of fact these spaces are identical (see \cite{frgesc}*{Corollary 2.2.5}), i.e. 
 \begin{equation}
   \nonumber
     \fun{\Pol_M}{\twosphere} = \bigoplus_{k=0}^{M}\mathcal{H}_k.
@@ -219,25 +219,19 @@ matter of fact these spaces are identical (see \cite{frgesc}*{pp. ??}), i.e.
 
 \begin{figure}[htbp]
   \centering
-   \subfigure[$\abs{Y_{0}^{0}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_0_0.png}}\hfill
-   \subfigure[$\abs{Y_{1}^{-1}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_1_-1.png}}\hfill
-   \subfigure[$\abs{Y_{1}^{0}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_1_0.png}}\\
-   \subfigure[$\abs{Y_{1}^{1}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_1_1.png}}\hfill
-   \subfigure[$\abs{Y_{2}^{-2}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_2_-2.png}}\hfill
-   \subfigure[$\abs{Y_{2}^{-1}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_2_-1.png}}\\
-   \subfigure[$\abs{Y_{2}^{0}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_2_0.png}}\hfill
-   \subfigure[$\abs{Y_{2}^{1}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_2_1.png}}\hfill
-   \subfigure[$\abs{Y_{2}^{2}}$]
-     {\includegraphics[width=0.3\textwidth]{images/sh_2_2.png}}\\
-  \caption{The functions $\abs{Y_{k}^{n}}$ plotted for $k = 0,1,2$, $n = -k,\dots,k$ on the sphere.}
+   \subfigure[$\Re \: Y_{0}^{0}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_0_0}}\hfill
+   \subfigure[$\Re \: Y_{4}^{2}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_4_2}}\\
+   \subfigure[$\Re \: Y_{9}^{5}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_9_5}}\hfill
+   \subfigure[$\Re \: Y_{13}^{1}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_1}}\\
+   \subfigure[$\Re \: Y_{13}^{6}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_6}}\hfill
+   \subfigure[$\Re \: Y_{13}^{13}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_13}}\\
+  \caption{The functions $\R \: Y_{k}^{n}$ for different $\paren{k,n}$.}
   \label{Basics:Figure:SphericalHarmonics}
 \end{figure}
 
@@ -256,7 +250,7 @@ to the Legendre polynomial $P_{k}$.
   \end{equation}
 \end{proposition}
 
-See \cite{frgesc}*{p. 37} for a proof. In particular it holds for the basis functions $Y_{k}^n$ given in 
+See \cite{frgesc}*{p. 37} or \cite{co}*{pp. 172, Theorem 5} for a proof. In particular it holds for the basis functions $Y_{k}^n$ given in 
 \eqref{Basics:SphericalHarmonicsDefinition}.
 
 \section{Spherical Radial Basis Functions}
@@ -265,11 +259,11 @@ Generally, one starts with a continuous function $G: \interv{[}{-1}{1}{]} \right
 for fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
 $$ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\xi} \: \V{\eta}}.$$
 The function $G$ can be developed into a series of Legendre polynomials
-$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}$$
-where the coefficients $a_k$ are the scalar products
-$$ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
+$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}.$$
+%where the coefficients $a_k$ are the scalar products
+%$$ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
 Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain the expansion
-$$\fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\V{\xi}} \: \V{\eta}} =  
+$$\fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\V{\xi}} \cdot \V{\eta}} =  
 \sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
 %One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
 %spherical convolution. As an application of the algorithms developed in this text, one can derive 
@@ -284,7 +278,7 @@ We consider the generating series
 which is absolutely and uniformly convergent for $h \in
 \interv{(}{-1}{1}{)}$ with
 \begin{equation}
-  \nonumber
+  \label{Basics:Solution}
   \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = \frac{1}{\sqrt{1-2hx+h^2}}.
 \end{equation}
 This follows from the ordinary differential equation
@@ -293,34 +287,47 @@ This follows from the ordinary differential equation
   \paren{1+h^2-2hx}\fun{\phi'}{h} = \paren{x-h}\fun{\phi}{h}
 \end{equation}
 obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
-condition $\fun{\phi}{0}=1$ this yields the unique solution of \eqref{Basics:DifferentialEquation}.
+condition $\fun{\phi}{0}=1$ this yields the unique solution \eqref{Basics:Solution} of \eqref{Basics:DifferentialEquation}.
 From this result, the identity
 \begin{equation}
   \nonumber
-  \sum_{k=0}^{\infty} \paren{2k+1} \fun{P_k}{x} h^k =
+  \sum_{k=0}^{\infty} \paren{2k+1} h^k \fun{P_k}{x} =
   \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}
 \end{equation}
- follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$, the function
-$G_h:\interv{[}{-1}{1}{]} \rightarrow \R$, with
+ follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$ and for fixed $\V{\eta} \in \twosphere$ the function
+$Q_h:\twosphere \rightarrow \R$, with
 \begin{equation}
   \label{PoissonKernel}
   \nonumber
-  \fun{G_h}{x} := \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}},
+  \fun{Q_h}{\V{\xi} \cdot \V{\eta}} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2\V{\xi} \cdot \V{\eta}+h^2}^{3/2}},
 \end{equation}
 is called \emph{Poisson kernel}. We refer 
 to Figures \ref{Basics:Figure:PoissonKernel} and \ref{Basics:Figure:PoissonKernel2}
 for a visual impression and mention that the parameter $h$
 allows for controlling the concentration of the function's energy around
-$x = 1$.
+$x = 1$. The poisson kernel is a positive function and normalized with
+$$
+  \int_{\twosphere} \fun{Q_{h}}{\V{\xi} \cdot \V{\eta}} \d w(\V{\xi}) = 1.
+$$
+Further properties with respect to localization and smoothness are derived in \cite{frgesc}*{pp. 112}.
+\end{example}
+
+\begin{example}
+  The \emph{Gauss-Weierstraß kernel} $W_{\rho}: \twosphere \rightarrow \R$ is defined by
+  $$
+    \fun{W_{\rho}}{\V{\xi} \cdot \V{\eta}} := \sum_{k=0}^{\infty} \e^{-k(k+1)\rho} \frac{2k+1}{4\pi} \fun{P_{k}}{\V{\xi} \cdot \V{\eta}}.
+  $$
+  Results due to Bochner (1950, 1954) assure $\fun{W_{\rho}}{x} \ge 0$ and we have
+  $$
+    \int_{\twosphere} \fun{W_{\rho}}{\V{\xi} \cdot \V{\eta}} \d w(\V{\xi}) = 1.
+  $$
+  For further properties we refer to \cite{frgesc} again. The kernel function $W_{\rho}$ is illustrated in Figure \ref{Basics:Figure:PoissonKernel}.
 \end{example}
 
 \begin{figure}[tb]
   \centering
   \includegraphics[width=12cm]{images/poisson}
-  \caption{The Poisson kernel $\fun{G_{h}}{x}$ for $x = \cos \vtheta$ for different values 
-  of $h$ normalized to $\fun{G_{h}}{1} = 1$. The angles $\vtheta = 0$ and $\vtheta = \pi$ 
-  correspond to $x=1$ and $x=-1$. The energy more and more concentrates around
-  $\vtheta = 0$ as $h$ approaches $1$.}
+  \caption{The Poisson kernel $\fun{Q_{h}}{\cos\theta}$ for $h = 0.5,0.6,0.7,0.8$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
   \label{Basics:Figure:PoissonKernel}
 \end{figure}
 
@@ -390,18 +397,17 @@ Therefore the DCT-II is the inverse of the DCT-III an vice versa up to a scaling
 \label{Basics:FastPolynomialMultiplication}
 A polynomial $P \in \Pol_{N-1}$ is uniquely determined by its \emph{Chebyshev coefficients} 
 $\paren{a_{k}}_{k = 0}^{N-1}$ with $\fun{P}{x} = \sum_{k=0}^{N-1} a_{k} \fun{T_{k}}{x}$. Given 
-now a second polynomial $Q \in \Pol_{N}$, $N \in \NZ$ with Chebyshev-coefficients 
-$\paren{b_{k}}_{k = 0}^N$, we give a fast algorithm first described in \cite{postta97} for computing the 
+now a second polynomial $Q \in \Pol_{N}$, $N \in \NZ$ known in advance, we give a fast algorithm first described in \cite{postta97} for computing the 
 Chebyshev coefficients of the polynomial product $R := P \: Q \in \Pol_{2N-1}$. The polynomial $R$ is uniquely determined 
 by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$ for $j = 0,\ldots,2N-1$ and 
 by \eqref{Basics:DCT2} we obtain
 \begin{eqnarray*}
-  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = \V{C}_{2N}^{\transp} \paren{a_{k=0}}_{k}^{2N-1},\\
-  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0,\ldots,2N-1} = \V{C}_{2N}^{\transp} \paren{b_{k=0}}_{k}^{2N-1},
+  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0}^{2N-1} = \V{C}_{2N}^{\transp} \paren{a_{k}}_{k=0}^{2N-1},\\
+  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0}^{2N-1} = \V{C}_{2N}^{\transp} \paren{b_{k}}_{k=0}^{2N-1},
 \end{eqnarray*}
 where we set $a_{k} = 0$ for $k > N-1$ and $b_{k} = 0$ for $k > N$. This means that the evaluation 
 of the polynomials $P$ and $Q$ can be performed using two DCT-IIIs of length $2N$ where we additionally have to 
-compensate for the twiddle factors $\varepsilon_{k}^N$ introduced by the matrix $\V{D}_{2N}$.
+compensate for the factors $\varepsilon_{k}^N$ introduced by the matrix $\V{D}_{2N}$.
 Once calculated the products $f_{j}$ and taking into account that $\V{C}_{2N}^{-\transp} = \frac{2}{2N} \V{D}_{2N} \V{C}_{2N}$ 
 by Lemma \ref{Basics:DCT3} we get
 $$ \paren{c_{k}}_{k=0}^{2N-1} = \frac{2}{2N} \V{D}_{2N} \V{C}_{2N} \paren{f_{j}}_{j = 0}^{2N-1}.$$
@@ -411,7 +417,7 @@ This leads to the following algorithm:
   \caption{Fast polynomial multiplication in Chebyshev representation}
   \label{Basics:Algorithm:FastPolynomialMultiplication}    
   \begin{algorithmic}
-    \STATE  Input:  $N = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{N-1}$, $\paren{b_{k}}_{k = 0}^{N}$
+    \STATE  Input:  $N = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{N-1}$, $\paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{0}^{"N-1}$
     \STATE
     \STATE Evaluate the polynomials at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4N}}_{j = 0}^{2N-1}$
       using two fast DCT-IIIs of length $2N$.
@@ -428,5 +434,23 @@ This leads to the following algorithm:
 
 \section{Fast Fourier Transform for Nonequispaced Knots}
 \label{Basics:NFFT}
+
+The \emph{nonequispaced fast Fourier transform (NFFT)} generalizes the well know \emph{fast Fourier transform (FFT)}. For the sake of simplicity, we restrict ourselves to the one-dimensional case on the torus $\mathbb{T} := \pset{x \in \R}{|}{-\frac{1}{2} \le x \le \frac{1}{2}}$. For fixed $M \in \N_{0}$ and $D \in \N$ we denote by $\mathcal{X} := \pset{x_{j} \in \mathbb{T}}{|}{j = 0,\ldots,D-1}$ a \emph{sampling set} of nodes from $\mathbb{T}$ and let $\mathcal{I}_{M} := \pset{k \in \Z}{|}{-\frac{M}{2} \le k \le \frac{M}{2}-1}$ be the index set of all possible \emph{frequencies}. The considered problem is the evaluation of a trigonometric polynomial 
+$f: \mathbb{T} \rightarrow \C$ with
+\begin{equation}
+  \label{Basics:NFFT:f}
+  \fun{f}{x} =: \sum_{k \in \mathcal{I}_{M}} \hat{f}_{k} \e^{- 2 \pi \im k x}
+\end{equation}
+on the sampling set $\mathcal{X}$. The algorithm is approximative with computational complexity $\bigo{M \log M + \fun{\log}{1/\varepsilon}D}$ where $\varepsilon$ is the desired accuracy. The technique used is to approximate the function $f$ in \eqref{Basics:NFFT:f} by a linear combination of shifted 1-periodic window functions $\varphi$ as
+$$
+  \fun{f}{x} \approx \fun{s}{x} := \sum_{l \in \mathcal{I}_{m}} g_{l} \fun{\tilde{\varphi}}{x - \frac{l}{m}}.
+$$ 
+The oversampling factor $\sigma > 1$ defines $m$ by $m := \sigma M$. An admissible window function $\tilde{\varphi}$ should be well localized in time and frequency and has
+a uniform convergent Fourier series
+$$
+  \fun{\tilde{\varphi}}{x} = \sum_{k \in \Z} \fun{c_{k}}{\tilde{\varphi}} \e^{-2 \pi \im k x}
+$$
+with Fourier coefficients $\fun{c_{k}}{\tilde{\varphi}} \in \C$.
+We refer the interested reader to \citelist{\cite{postta} \cite{duro93}} for a detailed description of approximative algorithms for the NFFT and further related references. 
 
 To be written \dots
