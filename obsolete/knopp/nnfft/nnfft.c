@@ -476,6 +476,8 @@ void nnfft_full_psi(nnfft_plan *ths, double eps)
     }
   }
   
+  nnfft_precompute_psi(ths);
+  
   nfft_full_psi(ths->direct_plan,eps);
   
   for(j=0;j<ths->M_total;j++) {  
