@@ -80,26 +80,22 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */
 #define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(complex));
-#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_L*sizeof(complex));
+#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_total*sizeof(complex));
 
 #define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                  \
-  (*fj0)+=ths->psi[ix]*g[ths->psi_index_g[ix]][0];                           \
-  (*fj1)+=ths->psi[ix]*g[ths->psi_index_g[ix]][1];                           \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];                           \
 }
 
 #define MACRO_nnfft_B_PRE_FULL_PSI_compute_T {                                  \
-  g[ths->psi_index_g[ix]][0]+=ths->psi[ix]*(*fj0);                           \
-  g[ths->psi_index_g[ix]][1]+=ths->psi[ix]*(*fj1);                           \
+  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj);                           \
 }
 
 #define MACRO_nnfft_B_compute_A {                                               \
-  (*fj0) += phi_prod[ths->d]* g[ll_plain[ths->d]][0];                        \
-  (*fj1) += phi_prod[ths->d]* g[ll_plain[ths->d]][1];                        \
+  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];                        \
 }
 
 #define MACRO_nnfft_B_compute_T {                                               \
-  g[ll_plain[ths->d]][0] += phi_prod[ths->d]* (*fj0);                        \
-  g[ll_plain[ths->d]][1] += phi_prod[ths->d]* (*fj1);                        \
+  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                        \
 }
 
   /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
@@ -162,7 +158,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
   int ll_plain[ths->d+1];              /**< postfix plain index in g        */\
   double phi_prod[ths->d+1];           /**< postfix product of PHI          */\
   complex *f, *g;                  /**< local copy                      */\
-  double *fj0,*fj1;                     /**< local copy                      */\
+  complex *fj;                     /**< local copy                      */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
                                                                                \
@@ -170,9 +166,9 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
                                                                                \
   MACRO_nnfft_B_init_result_ ## which_one                                                 \
                                                                                \
-  if((ths->nnfft_flags & PRE_PSI)&&(ths->nnfft_flags & PRE_FULL_PSI))        \
+  if(ths->nnfft_flags & PRE_FULL_PSI)        \
     {                                                                          \
-      for(ix=0, j=0, fj0=&f[0][0], fj1=&f[0][1]; j<ths->N_total; j++,fj0+=2,fj1+=2)\
+      for(ix=0, j=0, fj=f; j<ths->N_total; j++,fj++)\
         for(l_L=0; l_L<ths->psi_index_f[j]; l_L++, ix++)                      \
           MACRO_nnfft_B_PRE_FULL_PSI_compute_ ## which_one;                                \
       return;                                                                  \
@@ -186,7 +182,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
                                                                                \
   if(ths->nnfft_flags & PRE_PSI)                                               \
     {                                                                          \
-      for(j=0, fj0=&f[0][0], fj1=&f[0][1]; j<ths->N_total; j++, fj0+=2, fj1+=2)     \
+      for(j=0, fj=f; j<ths->N_total; j++, fj++)     \
         {                                                                      \
           MACRO_init_uo_l_lj_t;                                                \
                                                                                \
@@ -204,7 +200,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
                                                                                \
   if(ths->nnfft_flags & PRE_LIN_PSI)                                           \
     {                                                                          \
-      for(j=0, fj0=&f[0][0], fj1=&f[0][1]; j<ths->N_total; j++, fj0+=2, fj1+=2)     \
+      for(j=0, fj=f; j<ths->N_total; j++, fj++)     \
         {                                                            \
           MACRO_init_uo_l_lj_t;                                                \
                                                                                \
@@ -223,7 +219,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
     } /* if(PRE_LIN_PSI) */                                                    \
                                                                                \
   /* no precomputed psi at all */                                              \
-  for(j=0, fj0=&f[0][0], fj1=&f[0][1]; j<ths->N_total; j++, fj0+=2, fj1+=2)         \
+  for(j=0, fj=f; j<ths->N_total; j++, fj++)         \
     {                  \
                                                 \
       MACRO_init_uo_l_lj_t;                                                    \
@@ -247,10 +243,8 @@ inline void nnfft_D (nnfft_plan *ths){
   double tmp;
   
   if(ths->nnfft_flags & PRE_PHI_HUT) {
-    for(j=0; j<ths->M_total; j++) {
-      ths->f[j][0] *= ths->c_phi_inv[j];
-      ths->f[j][1] *= ths->c_phi_inv[j];
-    }
+    for(j=0; j<ths->M_total; j++)
+      ths->f[j] *= ths->c_phi_inv[j];
   } else {
     for(j=0; j<ths->M_total; j++)
     {
@@ -258,8 +252,7 @@ inline void nnfft_D (nnfft_plan *ths){
       /* multiply with N1, because x was modified */
       for(t=0; t<ths->d; t++)
         tmp*= 1.0 /((PHI_HUT(ths->x[ths->d*j + t]*((double)ths->N[t]),t)) );
-      ths->f[j][0] *= tmp ;
-      ths->f[j][1] *= tmp ;
+      ths->f[j] *= tmp;
     }
   }
 }
@@ -540,7 +533,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
   
   ths->n = ths->N1;
   
-  ths->aN1_L=1;
+  ths->aN1_total=1;
   
   for(t = 0; t<ths->d; t++) {
     ths->a[t] = 1.0 + (2.0*((double)ths->m))/((double)ths->N1[t]);
@@ -548,7 +541,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
     if(ths->aN1[t]%2 != 0)
       ths->aN1[t] = ths->aN1[t] +1;
       
-    ths->aN1_L*=ths->aN1[t];
+    ths->aN1_total*=ths->aN1[t];
     ths->sigma[t] = ((double) ths->N1[t] )/((double) ths->N[t]);;
   }
   

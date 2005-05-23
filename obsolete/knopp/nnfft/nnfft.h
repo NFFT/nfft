@@ -1,9 +1,4 @@
-/*! \file nnfft.h
- *  \brief Header file for the library.
- *
- * Includes simple and fast computation of the NNDFT (direct problem) as well
- * as (iterative) solution to the inverse problem.
- * authors: D. Potts, S. Kunis (c) 2002,2003
+/*! THIS HEADER WILL BE MERGED WITH NFFT3.H
  */
 
 #ifndef nnfft_h_inc
@@ -31,6 +26,13 @@
 #define FFT_OUT_OF_PLACE (1U<< 9)
 #define MALLOC_V         (1U<< 10)
 
+
+#define MACRO_MV_PLAN(float_type)			                      \
+  int N_total;                          /**< total number of Fourier coeffs.*/\
+  int M_total;                          /**< total number of samples        */\
+  float_type *f_hat;                    /**< Fourier coefficients           */\
+  float_type *f;                        /**< samples                        */\
+  
 /**
  * Structs for transformations 
  */
@@ -40,31 +42,28 @@
 typedef struct nnfft_plan_ 
 {
   /** api */
-  int M_total;                          /**< number of frequencies            */
-  int N_total;                          /**< number of nodes                  */
+  MACRO_MV_PLAN(complex);
+
   int d;                                /**< dimension, rank                  */
   double *sigma;                        /**< oversampling-factor 1            */
-  double *a;                                /**< 1 + 2*m1/N1                      */ 
-  int *N;                               /**< fftw-length = sigma1*N           */ 
+  double *a;                            /**< 1 + 2*m1/N1                      */ 
+  int *N;                               /**< cut-off-frequencies              */
   int *N1;
   int *aN1;
   int m;                                /**< cut-off parameter in time-domain */
   double *b;                            /**< shape parameters                 */
   int K;                                /**< K+1 values of phi                */
 
-  int aN1_L;
+  int aN1_total;
   
-  nfft_plan *direct_plan;                /**< plan for the nfft                */
+  nfft_plan *direct_plan;               /**< plan for the nfft                */
   unsigned nnfft_flags;                 /**< flags for precomputation, malloc */
 
-  int *n;                               /**< fftw-length = a*N            */
+  int *n;                               /**<  = a*N                           */
   
   double *x;                            /**< nodes (in time/spatial domain)   */
   
   double *v;                            /**< nodes (in fourier domain)   */
-
-  complex *f_hat;                       /**< fourier coefficients, equispaced */
-  complex *f;                           /**< samples at nodes x               */
 
   double *c_phi_inv;                    /**< precomputed data, matrix D       */
   double *psi;                          /**< precomputed data, matrix B       */
