@@ -486,6 +486,8 @@ void nfsft_precompute(int M, int threshold)
   int i;
   int ti;
 
+  //fprintf(stderr,"nfsft_precompute(%d,%d)\n",M,threshold);
+
   if (wisdom.initialized == true)
   {
     if (wisdom.N < M || wisdom.threshold != threshold)
@@ -500,8 +502,10 @@ void nfsft_precompute(int M, int threshold)
   
   precompute_coeffs();
 
-  wisdom.t = (int) ceil(log((double)M)/log(2.0));
-  wisdom.N = pow2(wisdom.t);
+  wisdom.t = ngpt(M);
+  wisdom.N = 1<<wisdom.t;
+
+  fprintf(stderr,"precompute: M = %d, t = %d, N = %d\n",M,wisdom.t,wisdom.N);
 
   if (wisdom.N >= 4)
   {  
@@ -617,12 +621,12 @@ nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat,
                      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   /* Assign angle array. */
   plan->plan_nfft.x = plan->angles;
+  /* Assign result array. */
+  plan->plan_nfft.f = plan->f;
   if (plan->plan_nfft.nfft_flags & PRE_PSI) 
   {  
     nfft_precompute_psi(&plan->plan_nfft); 
   } 
-  /* Assign result array. */
-  plan->plan_nfft.f = plan->f;
   
   return(plan);
 }

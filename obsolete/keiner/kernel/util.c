@@ -15,7 +15,54 @@
 
 inline int ngpt(int n)
 {
-  return (int) ceil(log((double)n)/log(2.0));
+  if (n <= 1)
+  {
+    return 0;
+  }
+  else if (n <= 2)
+  {
+    return 1;
+  }
+  else if (n <= 4)
+  {
+    return 2;
+  }
+  else if (n <= 8)
+  {
+    return 3;
+  }
+  else if (n <= 16)
+  {
+    return 4;
+  }
+  else if (n <= 32)
+  {
+    return 5;
+  }
+  else if (n <= 64)
+  {
+    return 6;
+  }
+  else if (n <= 128)
+  {
+    return 7;
+  }
+  else if (n <= 256)
+  {
+    return 8;
+  }
+  else if (n <= 512)
+  {
+    return 9;
+  }
+  else if (n <= 1024)
+  {
+    return 10;
+  }
+  else
+  {
+    return (int) ceil(log((double)n)/log(2.0));
+  }
 }
 
 /** For timing */ 

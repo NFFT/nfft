@@ -82,6 +82,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
    * would be trivially an array containing a 1 as second entry with all other 
    * coefficients set to zero. In order to compensate for the multiplicative 
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
+  fprintf(stderr,"PrecomputeU: t = %d\n",t);
+
   xc = (double *) calloc(1<<t,sizeof(double));
   xc[1] = 0.5;
   
@@ -141,7 +143,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
 	     {        
-        //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
+        fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
         
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);

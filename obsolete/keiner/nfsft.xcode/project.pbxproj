@@ -763,6 +763,12 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		4EBC5C0B084B30E7008F7245 = {
+			fileRef = 4EAD69A2083BE07E00C61F13;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4ECA771908320743008ADA24 = {
 			children = (
 				4EAD69A2083BE07E00C61F13,
@@ -860,7 +866,11 @@
 		8DD76F640486A84900D96B5E = {
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< .mine
+				4EBC5C0B084B30E7008F7245,
+=======
 				4E6EA366083E95C9004C5D07,
+>>>>>>> .r89
 				4E6CD55307C54A7E0040176B,
 				4E6CD55507C54A7E0040176B,
 				4E6CD57707C54E630040176B,

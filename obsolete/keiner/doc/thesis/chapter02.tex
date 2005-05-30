@@ -1,68 +1,71 @@
 \chapter{Nonequispaced Discrete Spherical Fourier Transform}
 \label{DSFT}
-Let in this chapter be $M \in \NZ$ fixed, $N := 2^{\ceil{\log_2 M}}$ the 
+Let in this chapter $M \in \NZ$ be fixed, $N := 2^{\ceil{\log_2 M}}$ be the 
 next greater power of two with respect to $M$, $D \in \N$ and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ 
-an ordered set of nodes on $\twosphere$ called the \emph{sampling set}. As a special case, a \emph{spherical Grid} 
+a set of nodes on $\twosphere$ called the \emph{sampling set}. As a special case, a \emph{spherical grid} 
 $\mathcal{X}$ is defined by a Cartesian product 
 $$
   \mathcal{X} := \pset{\vtheta_{l}}{|}{l=0,\ldots,L-1} \times \pset{\vphi_{j}}{|}{j=0,\ldots,J-1} \quad \paren{J,L \in \N}
 $$
-with latitudes $\vtheta_{l}$ and colatitudes $\vphi_{j}$.
+with colatitudes $\vtheta_{l} \in \interv{[}{0}{\pi}{]}$ and longitudes $\vphi_{j} \in \interv{[}{0}{2\pi}{)}$.
 
-The concern of the \emph{discrete spherical Fourier transform (DSFT)} 
-is to evaluate a function $f: \twosphere \rightarrow \C$, $f \in \fun{\Pol_{M}}{\twosphere}$ given its Fourier expansion
+Given a function $f: \twosphere \rightarrow \C$, $f \in \fun{\Pol_{M}}{\twosphere}$ with Fourier expansion
 \begin{equation}
   \label{NFSFT:FourierExpansion} 
   f = \sum_{\paren{k,n} \in\mathcal{I}^M} \fun{a_k^n}{f} Y_{k}^n = \sum_{k=0}^M \sum_{n=-k}^k \fun{a_k^n}{f} Y_{k}^n = \sum_{n=-M}^M \sum_{k=\abs{n}}^M \fun{a_k^n}{f} Y_{k}^n,
 \end{equation}  
-on the sampling set $\mathcal{X}$, where $$\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}.$$
-We call $M$ the \emph{bandwidth} of $f$ and $a_{k}^n = \fun{a_k^n}{f}$ are the \emph{spherical Fourier coefficients} of $f$ with respect to the 
+where 
+$$\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k},$$
+the \emph{nonequispaced discrete spherical Fourier transform (NDSFT)} maps the coefficients $a_k^n = \fun{a_k^n}{f}$ to the function values on the sampling set $\mathcal{X}$.
+We call $M$ the \emph{bandwidth} of $f$ and $a_{k}^n$ are the \emph{spherical Fourier coefficients} of $f$ with respect to the 
 orthonormal basis of spherical harmonics $\set{Y_{k}^n}_{\paren{k,n} \in\mathcal{I}^M}$ of $\fun{\Pol_{M}}{\twosphere}$. The index $k$ will always denote the degree and $n$ always the order of $Y_{k}^n$. The Fourier coeffcients $a_{k}^n$ may be ordered 
 in different ways. We refer to the \emph{degree-major order} when the Fourier coefficents are sorted first by degree $k$ and then by order $n$ in ascending order, hence
 $$ a_{0}^0,\: a_{1}^{-1},\: a_{1}^{0},\: a_{1}^{1},\: a_{2}^{-2},\: \ldots,\: a_{M}^{M-1},\: a_{M}^{M}.$$ 
 Analogously, the \emph{order-major order} corresponds to reversed precedence, i.e.
 $$ a_{M}^{-M},\: a_{M-1}^{-(M-1)},\: a_{M}^{-(M-1)},\: a_{M-2}^{-(M-2)},\: \ldots,\: a_{M-1}^{M-1},\: a_{M}^{M-1},\: a_{M}^{M}.$$ 
 From a linear algebra point of view, evaluating $f$ on $\mathcal{X}$ corresponds to a matrix-vector product
-$$ \V{f}_{\mathcal{X}} = \V{Y}_{M,\mathcal{X}} \; \V{a}_{M}$$
+$$ \fun{\V{f}}{\mathcal{X}} = \fun{\V{Y}}{\mathcal{X}} \; \V{a}$$
 with
 \begin{equation}
   \nonumber
   \begin{split}
-    \V{f}_{\mathcal{X}} & := \paren{f_d}_{d=0}^{D-1} \in \C^{D},\ f_{d} := \fun{f}{\vtheta_{d},\vphi_{d}},\\
-    \V{Y}_{M,\mathcal{X}} & := \paren{\fun{Y_k^n}{\vtheta_d,\vphi_d}}_{d=0,\ldots,D-1, \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2},\\
-    \V{a}_{M} & := \paren{a_k^n}_{\paren{k,n} \in \mathcal{I}^M} \in \C^{\paren{M+1}^2}.
+    \fun{\V{f}}{\mathcal{X}} & := \paren{f_d}_{d=0}^{D-1} \in \C^{D},\ f_{d} := \fun{f}{\vtheta_{d},\vphi_{d}},\\
+    \fun{\V{Y}}{\mathcal{X}} & := \paren{\fun{Y_k^n}{\vtheta_d,\vphi_d}}_{d=0,\ldots,D-1; \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2},\\
+    \V{a} & := \paren{a_k^n}_{\paren{k,n} \in \mathcal{I}^M} \in \C^{\paren{M+1}^2}.
   \end{split}
 \end{equation}
-If not specified otherwise, $\V{a}_{M}$ contains the Fourier coeffcients $a_{k}^n$ in degree-mayor order and the columns of $\V{Y}_{M,\mathcal{X}}$ 
-are ordered accordingly. We drop the indices $\mathcal{X}$ and $M$ where appropriate, i.e. where they could be chosen arbitrarily or are obvious from the 
-context and write $\V{f} = \V{Y} \; \V{a}$ instead. Furthermore, we introduce the denotation
-\begin{eqnarray*}
- \V{a}_{k} & := & \paren{a_{k}^{-k},a_{k}^{-(k-1)},\ldots,a_{k}^k}^{\transp} \quad \paren{k=0,\ldots,M},\\
- \V{a}^{n} & := & \paren{a_{\abs{n}}^{n},a_{\abs{n}+1}^{n},\ldots,a_{M}^n}^{\transp} \quad \paren{n=-M,\ldots,M}
-\end{eqnarray*} 
-for subvectors of $\V{a}$. If $\mathcal{X}$ is a spherical grid, the standard order is first by latitude $\vtheta_{l}$ and then by colatitude $\vphi_{j}$. 
-We use double subscripts $l,j$ to denote $\V{f}_{l,j} = \fun{f}{\vtheta_{l},\vphi_{j}}$.
+If not specified otherwise, $\V{a}$ contains the Fourier coeffcients $a_{k}^n$ in degree-mayor order and the columns of $\fun{\V{Y}}{\mathcal{X}}$ 
+are ordered accordingly. 
+%We drop the indices $\mathcal{X}$ and $M$ where appropriate, i.e. where they could be chosen arbitrarily or are obvious from the 
+%context and write $\V{f} = \V{Y} \; \V{a}$ instead. 
+Furthermore, we introduce the denotation
+\begin{align*}
+    \V{a}_{k} & := \paren{a_{k}^{n}}_{n=-k,\ldots,k} \in \C^{2k+1} & \paren{k=0,\ldots,M},\\
+    \V{a}^{n} & := \paren{a_{k}^{n}}_{k=\abs{n},\ldots,M} \in \C^{M-\abs{n}+1} & \paren{n=-M,\ldots,M}
+\end{align*} 
+for subvectors of $\V{a}$. If $\mathcal{X}$ is a spherical grid, the standard order is first by colatitude $\vtheta_{l}$ and then by longitude $\vphi_{j}$. 
+We use double subscripts $l,j$ to denote $\fun{\V{f}}{l,j} = \fun{f}{\vtheta_{l},\vphi_{j}}$.
 
 A first naive approach to evaluating $f$ on $\mathcal{X}$ according to \eqref{NFSFT:FourierExpansion} would be to compute first all $D\:(M+1)^2$
-entries of $\V{Y}$ and then perform the matrix-vector multiplication $\V{Y} \: \V{a}$ the standard way. This would lead to an $\bigo{M^3 \: D}$
+entries of $\V{Y}$ and then perform the matrix-vector multiplication $\fun{\V{Y}}{\mathcal{X}} \: \V{a}$ the standard way. This would lead to an $\bigo{M^3 \: D}$
 algorithm, since the evaluation of a function $Y_{k}^n$ at a single node already needs $\bigo{M}$ \emph{floating-point operations (flops)}.
-But one can do better. Algorithm \ref{NFSFT:directDSFT} referred to as \emph{direct DSFT} computes 
+But one can do better. Algorithm \ref{NFSFT:directDSFT} referred to as \emph{direct NDSFT} computes 
 for every $\paren{\vtheta_{d},\vphi_{d}} \in \mathcal{X}$ first the sums 
 \begin{equation}
   \label{NFSFT:directDSFT:firstSum}
-  \fun{b^{n}}{d} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}}. 
+  b^{n}_{d} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}} \quad \paren{n=-M,\ldots,M}. 
 \end{equation}
 Here one can employ the \emph{Clenshaw algorithm} (see for example \cite{prtevefl}) using the three-term recurrence 
 for the associated Legendre functions from \eqref{Basics:AssociatedLegendreDefinition}. We finally compute
 $$
-  \fun{f}{\vtheta_{d},\vphi_{d}} = \sum_{n=-M}^M \fun{b^{n}}{d} \e^{\im n \vphi_{d}}
+  \fun{f}{\vtheta_{d},\vphi_{d}} = \sum_{n=-M}^M b^{n}_d \e^{\im n \vphi_{d}}
 $$
 directly.
 \begin{algorithm}[b]
   \caption{Direct DSFT}
   \label{NFSFT:directDSFT}    
   \begin{algorithmic}
-    \STATE  Input: $M \in \NZ$, $D \in \N$, $\V{a}_{M}$, $\mathcal{X}$ %$\paren{a_{k}^n}_{\paren{k,n} \in I^M}$
+    \STATE  Input: $M \in \NZ$, $D \in \N$, $\V{a}$, $\mathcal{X}$ %$\paren{a_{k}^n}_{\paren{k,n} \in I^M}$
     \STATE
     \FOR {$d=0,\ldots,D-1$} 
       \STATE $f_{d} := 0$
@@ -79,10 +82,9 @@ Each application of the Clenshaw algorithm for \eqref{NFSFT:directDSFT:firstSum}
 flops summing up to $\bigo{M^2}$ flops for the complete inner loop. In 
 total we have an $\bigo{M^2\:D}$ algorithm for the evaluation of $f$ on $\mathcal{X}$ and gained an order of complexity with respect to $M$. 
 For special sampling sets one can do better by exploiting the grid 
-structure and employing FFT techniques (Hier sollten dann noch reichlich Referenzen hin). Our aim, however, 
-is not to develop algorithms designed for special grids but to describe a general approach to fast 
-spherical Fourier transforms for arbitrary sampling sets.
-\citelist{\cite{Mo99} \cite{postta97} \cite{roty} \cite{suta}}
+structure and employing FFT techniques (see \citelist{\cite{postta97} \cite{drhe}}). 
+
+%\citelist{\cite{Mo99} \cite{postta97} \cite{roty} \cite{suta}}
 
 \section{Computing Fourier Coeffcients from Function Samples}
 A \emph{discrete Fourier transform (DFT)} on the torus $\mathbb{T} = \R/\Z$ of length $M \in \NZ$ can be represented 
@@ -107,9 +109,9 @@ $\V{F}$ moreover is no longer square.
 Having defined the DSFT as the evaluation of a bandlimited function $f$ on a sampling set $\mathcal{X}$ on $\twosphere$, arises the question 
 whether there exist sets $\mathcal{X}$ allowing for an inversion formula similar to \eqref{NFSFT:DFTInversion}.
 The answer is affirmative but in general the number of nodes needed exceeds the number of Fourier coefficients to be computed, 
-i.e. $\V{Y}_{M,\mathcal{X}}$ is not square.
+i.e. $\fun{\V{Y}}{\mathcal{X}}$ is not square.
 
-We want to recover the Fourier coefficients $\V{a}_{M}$ from samples $\V{f}_{\mathcal{X}}$ at certain nodes $\mathcal{X}$. The 
+We want to recover the Fourier coefficients $\V{a}$ from samples $\fun{\V{f}}{\mathcal{X}}$ at certain nodes $\mathcal{X}$. The 
 Fourier coefficients $a_{k}^n$ are given by the scalar products
 $$
   a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\twosphere} = \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi \quad \paren{\paren{k,n} \in \mathcal{I}^M}.
@@ -175,7 +177,7 @@ and refer to $\mathcal{X}_{\gl}^M$ as the \emph{Gauss-Legendre sampling set of d
 \emph{Clenshaw-Curtis sampling set of degree M}. These two types of sampling sets are illustrated in Figure \ref{quadrature}.
 \begin{figure}[tb]
   \centering
-  \includegraphics[height=12cm,width=12cm]{images/quadrature}
+  \includegraphics[width=12cm]{images/quadrature}
   \caption{The sample sets $\mathcal{X}_{\gl}^{7}$ (red dots) and $\mathcal{X}_{\cc}^{7}$ (green dots)}
   \label{quadrature}
 \end{figure}
@@ -183,9 +185,9 @@ We now immediately obtain the corresponding inversion formulae
 \begin{equation}
   \label{NFSFT:InversionFormula}
   \begin{split}
-    \V{a}_{M} & = \V{Y}_{M,\mathcal{X}_{\gl}}^{\h} \: \V{W}_{\gl} \: \V{f}_{\mathcal{X}_{\gl}},\quad \V{W}_{\gl} := \V{I}_{2M+2} \otimes \diag\paren{w_{l}^{\gl}}_{l=0}^M,\\
+    \V{a} & = \fun{\V{Y}}{\mathcal{X}_{\gl}}^{\h} \: \V{W}_{\gl} \: \fun{\V{f}}{\mathcal{X}_{\gl}},\quad \V{W}_{\gl} := \V{I}_{2M+2} \otimes \diag\paren{w_{l}^{\gl}}_{l=0}^M,\\
     %\label{NFSFT:InversionFormulaCC}
-    \V{a}_{M} & = \V{Y}_{M,\mathcal{X}_{\cc}}^{\h} \: \V{W}_{\cc} \: \V{f}_{\mathcal{X}_{\cc}},\quad \V{W}_{\cc} := \V{I}_{2M+2} \otimes \diag\paren{\varepsilon_{l}^{2M}w_{l}^{\cc}}_{l=0}^M.
+    \V{a} & = \fun{\V{Y}}{\mathcal{X}_{\cc}}^{\h} \: \V{W}_{\cc} \: \fun{\V{f}}{\mathcal{X}_{\cc}},\quad \V{W}_{\cc} := \V{I}_{2M+2} \otimes \diag\paren{\varepsilon_{l}^{2M}w_{l}^{\cc}}_{l=0}^M.
   \end{split}  
 \end{equation}  
 An algorithm for the multiplication with the adjoint matrix $\V{Y}^{\h}$ is the key for an implementation according to \eqref{NFSFT:InversionFormula}. Evaluating the matrix-vector product in the standard way, i.e. row-wise, a first approach would be to compute the Fourier coefficients $a_{k}^n$ by \eqref{NFSFT:iDSFT} for all $\paren{k,n} \in \mathcal{I}^M$ employing the Clenshaw algorithm for the evaluation of the functions $Y_{k}^n$. But this would again lead to an $\bigo{M^3 \: D}$ algorithm. This is due to the fact, that the Clenshaw algorithm would now be applied to each function $Y_{k}^n$ seperately instead of evaluating a linear combination for fixed $n$ and $k = \abs{n},\dots,M$ as in Algorithm \ref{NFSFT:directDSFT}. If we recall that we would end up with a $\bigo{M^3 \: D}$ algorithm for the DSFT, too, if we evaluated the matrix $\V{Y}$ componentwise and then performed the matrix-vector multiplication as usual, we notice that Algorithm \ref{NFSFT:directDSFT} implies a factorization of $\V{Y}$ into a product of sparse matrices therefore allowing us to save one order of $M$ in computing the matrix-vector product. Furthermore, by taking the adjoint factorization, we obtain a corresponding factorization of $\V{Y}^{\h}$. This allows for the derivation of an algorithm of exactly the same asymptotic complexity for computing the adjoint product.
@@ -342,7 +344,7 @@ A multiplication with a transposed matrix $\fun{{\V{C}^{n}}^{\transp}}{d}$ reali
   \caption{Adjoint DSFT}
   \label{NFSFT:adjointDSFT}    
   \begin{algorithmic}
-    \STATE  Input: $M \in \NZ$, $D \in \N$, $\V{f}_{M}$, $\mathcal{X}$
+    \STATE  Input: $M \in \NZ$, $D \in \N$, $\fun{\V{f}}{M}$, $\mathcal{X}$
     \STATE
     \FOR {$n=-M,\ldots,M$} 
       \FOR {$k=\abs{n},\ldots,M$} 
@@ -361,37 +363,37 @@ A multiplication with a transposed matrix $\fun{{\V{C}^{n}}^{\transp}}{d}$ reali
 \end{algorithmic}
 \end{algorithm}
 
-We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \ref{NFSFT:InversionFormula} and algorithm \ref{NFSFT:adjointDSFT} we obtain $\bigo{M^4}$ algorithms \ref{} and \ref{} for computing the Fourier coeffcients $\V{a}_{M}$ from the function samples $\V{f}_{\mathcal{X}_{\gl}^M}$ and $\V{f}_{\mathcal{X}_{\cc}^M}$. We refer to this algorithms as the \emph{inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
+We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \ref{NFSFT:InversionFormula} and algorithm \ref{NFSFT:adjointDSFT} we obtain $\bigo{M^4}$ algorithms \ref{} and \ref{} for computing the Fourier coeffcients $\V{a}$ from the function samples $\fun{\V{f}}{\mathcal{X}_{\gl}^M}$ and $\fun{\V{f}}{\mathcal{X}_{\cc}^M}$. We refer to this algorithms as the \emph{inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
 \begin{algorithm}[htb]
   \caption{Direct iDSFT-GL}
   \label{NFSFT:directIDSFTGL}    
   \begin{algorithmic}
-    \STATE Input: $M \in \NZ$, $\V{f}_{\mathcal{X}_{\gl}^M}$
+    \STATE Input: $M \in \NZ$, $\fun{\V{f}}{\mathcal{X}_{\gl}^M}$
     \STATE
     \FOR {$j = 0,\ldots,2M+1$}
       \FOR {$l = 0,\ldots,M$}
         \STATE $f_{j,l} = w^{\gl}_{l} f_{j,l}$ 
       \ENDFOR
     \ENDFOR
-    \STATE Compute $\V{a}_{M}$ by an adjoint DSFT
+    \STATE Compute $\V{a}$ by an adjoint DSFT
     \STATE
-    \STATE Output: $\V{a}_{M}$
+    \STATE Output: $\V{a}$
   \end{algorithmic}
 \end{algorithm}
 \begin{algorithm}[htb]
   \caption{Direct iDSFT-CC}
   \label{NFSFT:directIDSFTCC}    
   \begin{algorithmic}
-    \STATE Input: $M \in \NZ$, $\V{f}_{\mathcal{X}_{\cc}^M}$
+    \STATE Input: $M \in \NZ$, $\fun{\V{f}}{\mathcal{X}_{\cc}^M}$
     \STATE
     \FOR {$j = 0,\ldots,2M+1$}
       \FOR {$l = 0,\ldots,2M$}
         \STATE $f_{j,l} = \varepsilon_{l}^{2M} w^{\cc}_{l} f_{j,l}$ 
       \ENDFOR
     \ENDFOR
-    \STATE Compute $\V{a}_{M}$ by an adjoint DSFT
+    \STATE Compute $\V{a}$ by an adjoint DSFT
     \STATE
-    \STATE Output: $\V{a}_{M}$
+    \STATE Output: $\V{a}$
   \end{algorithmic}
 \end{algorithm}
 

@@ -171,7 +171,7 @@ void nfft_uo(nfft_plan *this,int j,int *up,int *op,int act_dim)
 {
   double c;
   int u,o;
-
+	
   c = this->x[j*this->d+act_dim] * this->n[act_dim];
   u = c; o = c;
   if(c < 0)                  

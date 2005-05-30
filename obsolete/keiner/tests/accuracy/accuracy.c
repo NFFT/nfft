@@ -32,6 +32,7 @@
 #  include <stdlib.h>
 #  include <stdio.h>
 #  include <math.h>
+#  include <string.h>
 #else
 #  error Need ANSI-C headers
 #endif
@@ -157,19 +158,19 @@ int main (int argc, char **argv)
     return -1;
   }  
   
-  N_MAX = 1<<((int)ceil(log((double)m_max)/log(2.0)));
+  N_MAX = 1<<ngpt(m_max);
   D_MAX = (2*m_max+1)*(2*m_max+2);
   
   /* Initialize random number generator. */
-  //srand48(time(NULL));
+  srand48(time(NULL));
     
   /* Allocate memory. */
   f_hat = (complex**) malloc((2*m_max+1)*sizeof(complex*));
   f_hat_orig = (complex**) malloc((2*m_max+1)*sizeof(complex*));
   for (n = -m_max; n <= m_max; n++)
   {
-    f_hat[n+m_max] = (complex*) malloc((N_MAX+1)*sizeof(complex));
-    f_hat_orig[n+m_max] = (complex*) malloc((N_MAX+1)*sizeof(complex));
+    f_hat[n+m_max] = (complex*) fftw_malloc((N_MAX+1)*sizeof(complex));
+    f_hat_orig[n+m_max] = (complex*) fftw_malloc((N_MAX+1)*sizeof(complex));
   }  
   
   angles = (double*) malloc(2*D_MAX*sizeof(double));
@@ -295,17 +296,17 @@ int main (int argc, char **argv)
 
       if (file != NULL)
       {
-    				for (n = 0; n < M+1; n++)
-				    {
-     					fscanf(file,"%lf\n",&theta[n]);
+ 				for (n = 0; n < M+1; n++)
+  	    {
+  				fscanf(file,"%lf\n",&theta[n]);
         }
         for (k = 0; k < 2*M+2; k++)
         {
-         fscanf(file,"%lf\n",&phi[k]);
+          fscanf(file,"%lf\n",&phi[k]);
         }
         for (n = 0; n < M+1; n++)
         {
-         fscanf(file,"%lf\n",&w[n]);
+          fscanf(file,"%lf\n",&w[n]);
         }    
         fclose(file);
 
@@ -313,12 +314,12 @@ int main (int argc, char **argv)
         d = 0;
         for (n = 0; n < M+1; n++)
         {
-         for (k = 0; k < 2*M+2; k++)
-         {
-          angles[2*d] = phi[k];
-          angles[2*d+1] = theta[n];
-          d++;
-         }  
+          for (k = 0; k < 2*M+2; k++)
+          {
+            angles[2*d] = phi[k];
+            angles[2*d+1] = theta[n];
+            d++;
+          }  
         }
 
         plan = nfsft_init(D, M, angles, f_hat, f, 0U);
@@ -332,11 +333,11 @@ int main (int argc, char **argv)
         d = 0;
         for (n = 0; n < M+1; n++)
         {
-         for (k = 0; k < 2*M+2; k++)
-         {
-          f[d] *= w[n];
-          d++;
-         }  
+          for (k = 0; k < 2*M+2; k++)
+          {
+            f[d] *= w[n];
+            d++;
+          }  
         }
 
         //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
@@ -351,10 +352,10 @@ int main (int argc, char **argv)
         /* Respect normalization. */
         for (n = -M; n <= M; n++)
         {
-         for (k = abs(n); k <= M; k++)
-         {
-          f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
-         }
+          for (k = abs(n); k <= M; k++)
+          {
+            f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+          }
         }
 
         err_infty = err_f_hat_infty(f_hat_orig,f_hat,M);
@@ -382,7 +383,7 @@ int main (int argc, char **argv)
           }
         }
         
-            /* Print relative error in various norms. */    
+        /* Print relative error in various norms. */    
         printf("%6.4E %6.4E %6.4E\t",err_infty, err_1, err_2);
       }
       else
@@ -390,6 +391,8 @@ int main (int argc, char **argv)
         printf("   File %s not found.\t\t\t",filename);
       }    
 
+      if (1 == 2)
+	{
       
       /* Test Clenshaw-Curtis quadrature */
 
@@ -508,6 +511,7 @@ int main (int argc, char **argv)
       /* Print relative error in various norms. */    
       printf("%6.4E %6.4E %6.4E\n",err_infty,err_1,err_2);
     }    
+    }
     printf("\n");
   }
 

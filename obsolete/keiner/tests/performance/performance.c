@@ -82,13 +82,12 @@ if (file != NULL)  \
       TRAFO_FUNCTION(plan); \
       ctime = mysecond() - ctime; \
       printf("D = %10d, M = %4d\n",D,M); \
-      fopen(filename,"a"); \
+      file = fopen(filename,"a"); \
       fprintf(file,"%10d %4d %10.4f\n",D,M,ctime); \
       fclose(file); \
       nfsft_finalize(plan); \
     } \
   } \
-  fclose(file); \
 } \
 printf("done\n");
 
@@ -187,11 +186,16 @@ int main (int argc, char **argv)
       f_hat[n+m_max][k] = drand48() + I*drand48();
     }
   }  
+	
+  for (d = 0; d < d_max; d++)
+  {
+    angles[2*d] = drand48();
+    angles[2*d+1] = drand48();
+	}
   
+  //MACRO_TEST("ndsft.dat",         ndsft_trafo,   "NDSFT")
+  //MACRO_TEST("ndsft_adjoint.dat", ndsft_adjoint, "adjoint NDSFT")
   nfsft_precompute(m_max,threshold);  
-  
-  MACRO_TEST("ndsft.dat",         ndsft_trafo,   "NDSFT")
-  MACRO_TEST("ndsft_adjoint.dat", ndsft_adjoint, "adjoint NDSFT")
   MACRO_TEST("nfsft.dat",         nfsft_trafo,   "NFSFT")
   MACRO_TEST("nfsft_adjoint.dat", nfsft_adjoint, "adjoint NFSFT")
 		
