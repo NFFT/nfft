@@ -252,3 +252,127 @@ double err_f_hat_2(complex **f_hat, complex **f_hat2, int M)
   }  
   return sqrt(err/temp);
 }
+
+/** Copies \f$x \leftarrow y\f$.
+*/
+void copyc_hat(complex **x,complex **y, int M)
+{
+  int n,k;
+  
+  for (n = 0; n < 2*M+1; n++)
+  {  
+    for(k = 0; k <= M; k++)
+    {
+      x[n][k] = y[n][k];
+    }
+  }
+}
+
+
+/** Copies \f$x \leftarrow w\odot y\f$.
+*/
+void copyc_w_hat(complex **x, double **w, complex **y, int M)
+{
+  int n,k;
+  
+  for (n = 0; n < 2*M+1; n++)
+  {
+    for (k = 0; k <= M; k++)
+    {
+      x[n][k] = w[n][k] * y[n][k];
+    }
+  }
+}
+
+/** Computes the inner/dot product \f$x^H x\f$.
+*/
+double dotproductc_hat(complex** x, int M)
+{
+  int n,k;
+  double result=0.0;
+  
+  for(n = 0; n < 2*M+1; n++)
+  {
+    for(k = 0; k <= M; k++)
+    {
+      result += (x[n][k]*x[n][k]);
+    }
+  }
+  
+  return result;
+}
+
+/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
+ */
+double dotproductc_w_hat(complex **x, double **w, int M)
+{
+  int n,k;
+  double result=0.0;
+  
+  for(n = 0; n < 2*M+1; n++)
+  {
+    for(k = 0; k <= M; k++)
+    {
+      result += w[k][n] * (x[n][k]*x[n][k]);
+    }
+  }
+  
+  return result;
+}
+
+/** Updates \f$x \leftarrow x + a y\f$.
+*/
+void updatec_xpay_hat(complex **x,double a, complex **y, int M)
+{
+  int n,k;
+  
+  for(n = 0; n < 2*M+1; n++)
+  for(k = 0; k <= M; k++)
+  {
+    x[n][k] += a*y[n][k];
+  }
+}
+
+/** Updates \f$x \leftarrow x + a w\odot y\f$.
+*/
+void updatec_xpawy_hat(complex **x, double a, double **w, complex **y,
+                   int M)
+{
+  int n,k;
+  
+  for(n = 0; n < 2*M+1; n++)
+    for(k = 0; k <= M; k++)
+    {
+      x[n][k] += a*w[n][k]*y[n][k];
+    }
+}
+
+/** Updates \f$x \leftarrow a x + y\f$.
+*/
+void updatec_axpy_hat(complex **x,double a, complex **y, int M)
+{
+  int n,k;
+  
+  for(n = 0; n < 2*M+1; n++)
+  {
+    for(k = 0; k <= M ; k++)
+    {
+      x[k][n]=a*x[k][n]+y[k][n];
+    }
+  }
+}
+
+/** Updates \f$x \leftarrow a x + b y\f$.
+*/
+void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M)
+{
+  int n,k;
+  
+  for (n = 0; n < 2*M+1; n++)
+  {
+    for (k = 0; k <= M; k++)
+    {
+      x[n][k] = a*x[n][k] + b*y[n][k];
+    }
+  }
+}

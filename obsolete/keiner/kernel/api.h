@@ -83,32 +83,52 @@ struct nfsft_plan_s
 };
 
 /** 
- * Structure for wisdom for a specific bandwidth. 
- *
- * \ingroup nfsft_internal
- */
-//struct nfsft_transform_wisdom
-//{
+* Structure for an inverse transform plan. 
+*
+* \ingroup nfsft_internal
+*/
+struct infsft_plan_s
+{
+  nfsft_plan direct_plan;
+  int infsft_flags;
+  complex *given_f;
+  complex *r_iter;
+  complex *v_iter;
+  complex **f_hat_iter;
+  complex **f_hat_iter_2nd;
+  complex **p_hat_iter;
+  complex **z_hat_iter;
+  double *w;
+  double **w_hat;
+  double dot_r_iter;
+  double dot_r_iter_old;
+  double dot_v_iter;
+  double alpha_iter;
+  double alpha_iter_2nd;
+  double beta_iter;
+  double gamma_iter;
+  double gamma_iter_old;
+  double dot_alpha_iter;
+  double dot_z_hat_iter;
+  double dot_z_hat_iter_old;
+  double dot_p_hat_iter;
+  
+  /** The number of nodes. */
+//  int D;                      
   /** The bandwidth */
+//  int M;
+  /** Next greater power of two with respect to M */
 //  int N;
-  /** The logarithm of the bandwidth */
-//  int t;
-  /** Transform plans for the fftw library */
-//  fftw_plan *plans_dct3;
-  /** Transform plans for the fftw library */
-//  fftw_plan *plans_dct2;  
-  /** Transform kinds for fftw library */
-//  fftw_r2r_kind *kinds;
-  /** Transform kinds for fftw library */
-//  fftw_r2r_kind *kindsr;
-  /** Transform lengths for fftw library */
-//  int *lengths;
-  /* Structure for matrices U */
-//  struct U_type ***U;    
-  /** For FLFT */
-//  complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
-//  complex *ergeb;
-//};
+  /** The angles phi of the nodes */
+//  double *angles;
+  /** The fourier coefficients. */
+//  complex **f_hat;
+  /** The function values. */
+//  complex *f;
+  /** NFFT plan */
+//  nfft_plan plan_nfft;  
+};
+
 
 /** 
  * Toplevel wisdom structure. 
@@ -145,12 +165,12 @@ struct nfsft_wisdom
   complex *ergeb;
   
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double alpha[(BW_MAX+1)*(BW_MAX+1)];
+  double *alpha;
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double beta[(BW_MAX+1)*(BW_MAX+1)];
+  double *beta;
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double gamma[(BW_MAX+1)*(BW_MAX+1)];
+  double *gamma;
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double gamma_m1[BW_MAX+1];
+  double *gamma_m1;
 };
 #endif

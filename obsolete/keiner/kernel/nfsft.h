@@ -17,6 +17,12 @@
 typedef struct nfsft_plan_s *nfsft_plan;
 
 /** 
+ * Typedef for transform plans 
+ * \ingroup nfsft 
+ */
+typedef struct infsft_plan_s *infsft_plan;
+
+/** 
  * Typedef for transform flags 
  * \ingroup nfsft 
  */
@@ -114,4 +120,10 @@ void nfsft_forget();
  * \ingroup nfsft 
  */
 void nfsft_export_wisdom(const char* filename);
+
+void nfsft_precompute_guru(int m, int threshold, int n);
+
+void nfsft_forget_guru(int n);
+
+struct nfsft_wisdom* nfsft_get_wisdom();
 #endif

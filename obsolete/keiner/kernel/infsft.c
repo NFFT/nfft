@@ -1,164 +1,207 @@
-/** inverse nfft 
-* -----------------------------------------------------------------------------
-* -----------------------------------------------------------------------------
-*/
-/*void infft_init_specific(infft_plan *this_iplan, nfft_plan *direct_plan,
-                         int infft_flags)
+#include "infsft.h"
+#include "api.h"
+#include "util.h"
+
+void infsft_init(infsft_plan this_iplan, nfsft_plan direct_plan)
 {
+  infsft_init_guru(this_iplan,direct_plan,CGNR_E);
+}
+
+infsft_plan infsft_make_plan()
+{
+  return (infsft_plan) malloc(sizeof(struct infsft_plan_s));
+}
+
+void infsft_init_guru(infsft_plan this_iplan, nfsft_plan direct_plan, 
+                      int infsft_flags)
+{
+  int n;
+  
   this_iplan->direct_plan = direct_plan;
-  this_iplan->infft_flags = infft_flags;
+  this_iplan->infsft_flags = infsft_flags;
   
-  this_iplan->given_f = (fftw_complex*)
-    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));
+  this_iplan->given_f = (complex*)
+    fftw_malloc(this_iplan->direct_plan->D*sizeof(complex));
   
-  this_iplan->r_iter = (fftw_complex*)
-    fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));
+  this_iplan->r_iter = (complex*)
+    fftw_malloc(this_iplan->direct_plan->D*sizeof(complex));
   
-  this_iplan->f_hat_iter = (fftw_complex*)
-    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));
+  this_iplan->f_hat_iter = (complex**)
+    fftw_malloc((2*this_iplan->direct_plan->M+1)*sizeof(complex*));
+  for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+  {
+    this_iplan->f_hat_iter[n] = (complex*)
+    fftw_malloc((this_iplan->direct_plan->N+1)*sizeof(complex));    
+  }
   
-  this_iplan->p_hat_iter = (fftw_complex*)
-    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));
+  this_iplan->p_hat_iter = (complex**)
+    fftw_malloc((2*this_iplan->direct_plan->M+1)*sizeof(complex*));
+  for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+  {
+    this_iplan->p_hat_iter[n] = (complex*)
+    fftw_malloc((this_iplan->direct_plan->N+1)*sizeof(complex));    
+  }
   
-  if(this_iplan->infft_flags & LANDWEBER)
+  if(this_iplan->infsft_flags & LANDWEBER)
   {
     this_iplan->z_hat_iter = this_iplan->p_hat_iter;
   }
   
-  if(this_iplan->infft_flags & STEEPEST_DESCENT)
+  if(this_iplan->infsft_flags & STEEPEST_DESCENT)
   {
     this_iplan->z_hat_iter = this_iplan->p_hat_iter;
     
-    this_iplan->v_iter = (fftw_complex*)
-      fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));
+    this_iplan->v_iter = (complex*)
+      fftw_malloc(this_iplan->direct_plan->D*sizeof(complex));
   }
   
-  if(this_iplan->infft_flags & CGNR_E)
+  if(this_iplan->infsft_flags & CGNR_E)
   {
-    this_iplan->z_hat_iter = (fftw_complex*)
-    fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));
+    this_iplan->z_hat_iter = (complex**)
+      fftw_malloc((2*this_iplan->direct_plan->M+1)*sizeof(complex*));
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      this_iplan->z_hat_iter[n] = (complex*)
+      fftw_malloc((this_iplan->direct_plan->N+1)*sizeof(complex));    
+    }
     
-    this_iplan->v_iter = (fftw_complex*)
-      fftw_malloc(this_iplan->direct_plan->M*sizeof(fftw_complex));
+    this_iplan->v_iter = (complex*)
+      fftw_malloc(this_iplan->direct_plan->D*sizeof(complex));
   }
   
-  if(this_iplan->infft_flags & CGNE_R)
+  if(this_iplan->infsft_flags & CGNE_R)
   {
     this_iplan->z_hat_iter = this_iplan->p_hat_iter;
   }
   
-  if(this_iplan->infft_flags & ITERATE_2nd)
-    this_iplan->f_hat_iter_2nd = (fftw_complex*) 
-      fftw_malloc(this_iplan->direct_plan->N_L*sizeof(fftw_complex));
+  if(this_iplan->infsft_flags & ITERATE_2nd)
+  {
+    this_iplan->f_hat_iter_2nd = (complex**) 
+      fftw_malloc((2*this_iplan->direct_plan->M+1)*sizeof(fftw_complex*));
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      this_iplan->f_hat_iter_2nd[n] = (complex*)
+      fftw_malloc((this_iplan->direct_plan->N+1)*sizeof(complex));    
+    }
+  }
   
-  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
+  {
     this_iplan->w = 
-      (double*) fftw_malloc(this_iplan->direct_plan->M*sizeof(double));
+      (double*) fftw_malloc(this_iplan->direct_plan->D*sizeof(double));
+  }
   
-  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-    this_iplan->w_hat = 
-      (double*) fftw_malloc(this_iplan->direct_plan->N_L*sizeof(double));
-}*/
-
-/*void infft_init(infft_plan *this_iplan, nfft_plan *direct_plan)
-{
-  infft_init_specific(this_iplan, direct_plan, CGNR_E);
-}*/
-
-/*void infft_before_loop_help(infft_plan *this_iplan)
-{*/
-  /** step 2
-  *  overwrites this_iplan->direct_plan->f_hat 
-  *  overwrites this_iplan->r_iter
-  */
-  /*copyc(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,
-        this_iplan->direct_plan->N_L);
-  
-  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);
-  nfft_trafo(this_iplan->direct_plan);
-  SWAPC(this_iplan->r_iter, this_iplan->direct_plan->f);
-  
-  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f,
-               this_iplan->direct_plan->M);
-  
-  if((!(this_iplan->infft_flags & LANDWEBER)) ||
-     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
   {
-    if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+    this_iplan->w_hat = 
+      (double**) fftw_malloc((2*this_iplan->direct_plan->M+1)*sizeof(double*));
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      this_iplan->w_hat[n] = (double*)
+      fftw_malloc((this_iplan->direct_plan->N+1)*sizeof(double));    
+    }
+  }
+}
+
+void infsft_before_loop_help(infsft_plan this_iplan)
+{
+  /** step 2
+   *  overwrites this_iplan->direct_plan->f_hat 
+   *  overwrites this_iplan->r_iter
+   */
+  
+  complex *temp;
+  complex **temp_hat;
+  
+  copyc_hat(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,
+        this_iplan->direct_plan->M);
+  
+  SWAPCT(this_iplan->r_iter,this_iplan->direct_plan->f,temp)
+  
+  nfsft_trafo(this_iplan->direct_plan);
+
+  SWAPCT(this_iplan->r_iter,this_iplan->direct_plan->f,temp)
+    
+  updatec_axpy(this_iplan->r_iter, -1.0, this_iplan->given_f,
+               this_iplan->direct_plan->D);
+  
+  if((!(this_iplan->infsft_flags & LANDWEBER)) ||
+     (this_iplan->infsft_flags & NORMS_FOR_LANDWEBER))
+  {
+    if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
       this_iplan->dot_r_iter =
         dotproductc_w(this_iplan->r_iter, this_iplan->w,
-                      this_iplan->direct_plan->M);
+                      this_iplan->direct_plan->D);
     else
       this_iplan->dot_r_iter =
-        dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);
-  }*/
+        dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
+  }
   
   /** step 3
     *  overwrites this_iplan->direct_plan->f
     *  overwrites this_iplan->z_hat_iter resp. this_iplan->z_hat_iter
     */ 
   
-  /*if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,
-            this_iplan->direct_plan->M);
+            this_iplan->direct_plan->D);
   else
     copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
-          this_iplan->direct_plan->M);
+          this_iplan->direct_plan->D);
   
-  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);
-  nfft_adjoint(this_iplan->direct_plan);
-  SWAPC(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat);
+  SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
+  nfsft_adjoint(this_iplan->direct_plan);
+  SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
   
-  if((!(this_iplan->infft_flags & LANDWEBER)) ||
-     (this_iplan->infft_flags & NORMS_FOR_LANDWEBER))
+  if((!(this_iplan->infsft_flags & LANDWEBER)) ||
+     (this_iplan->infsft_flags & NORMS_FOR_LANDWEBER))
   {
-    if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
+    if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
       this_iplan->dot_z_hat_iter = 
-        dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat,
-                      this_iplan->direct_plan->N_L);
+        dotproductc_w_hat(this_iplan->z_hat_iter, this_iplan->w_hat,
+                          this_iplan->direct_plan->M);
     else
       this_iplan->dot_z_hat_iter =
-        dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);
+        dotproductc_hat(this_iplan->z_hat_iter, this_iplan->direct_plan->M);
   }
   
-  if(this_iplan->infft_flags & CGNE_R)
+  if(this_iplan->infsft_flags & CGNE_R)
     this_iplan->dot_p_hat_iter = this_iplan->dot_z_hat_iter;
-  
-}*/ /* void infft_before_loop_help */
+} /* void infft_before_loop_help */
 
-/*void infft_before_loop(infft_plan *this_iplan)
+void infsft_before_loop(infsft_plan this_iplan)
 {
-  infft_before_loop_help(this_iplan);
+  infsft_before_loop_help(this_iplan);
   
-  if(this_iplan->infft_flags & CGNR_E)
-  {*/
+  if(this_iplan->infsft_flags & CGNR_E)
+  {
     /** step 4-6
     *  overwrites this_iplan->f_hat_iter_2nd
     */
-/*    if(this_iplan->infft_flags & ITERATE_2nd)
-      copyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,
-            this_iplan->direct_plan->N_L);
+    if(this_iplan->infsft_flags & ITERATE_2nd)
+      copyc_hat(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,
+            this_iplan->direct_plan->M);
     
     /** step 7
     *  overwrites this_iplan->p_hat_iter
     */
-    /*copyc(this_iplan->p_hat_iter, this_iplan->z_hat_iter,
-          this_iplan->direct_plan->N_L);
+    copyc_hat(this_iplan->p_hat_iter, this_iplan->z_hat_iter,
+          this_iplan->direct_plan->M);
   }
   
-  if(this_iplan->infft_flags & CGNE_R)
-  {*/
+  if(this_iplan->infsft_flags & CGNE_R)
+  {
     /** step 4-7
     *  overwrites this_iplan->f_hat_iter_2nd
     */
-    /*if(this_iplan->infft_flags & ITERATE_2nd)
+    if(this_iplan->infsft_flags & ITERATE_2nd)
     {
       this_iplan->gamma_iter=1.0;
-      copyc(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,
-            this_iplan->direct_plan->N_L);
+      copyc_hat(this_iplan->f_hat_iter_2nd, this_iplan->f_hat_iter,
+            this_iplan->direct_plan->M);
     }
   }
-}*/ /* void infft_before_loop */
+} /* void infft_before_loop */
 
 /*void infft_loop_one_step_landweber(infft_plan *this_iplan)
 {*/
@@ -302,240 +345,268 @@
       dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);
 }*/ /* void infft_loop_one_step_steepest_descent */
 
-/*void infft_loop_one_step_cgnr_e(infft_plan *this_iplan)
-{*/
+void infsft_loop_one_step_cgnr_e(infsft_plan this_iplan)
+{
+  complex *temp;
+  complex **temp_hat;
+  
   /** step 9
   *  overwrites this_iplan->direct_plan->f_hat 
   *  overwrites this_iplan->v_iter
   */
-  /*if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,
-            this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+    copyc_w_hat(this_iplan->direct_plan->f_hat, this_iplan->w_hat,
+            this_iplan->p_hat_iter, this_iplan->direct_plan->M);
   else
-    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,
-          this_iplan->direct_plan->N_L);
+    copyc_hat(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,
+          this_iplan->direct_plan->M);
   
-  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);
-  nfft_trafo(this_iplan->direct_plan);
-  SWAPC(this_iplan->v_iter,this_iplan->direct_plan->f);
+  SWAPCT(this_iplan->v_iter,this_iplan->direct_plan->f,temp);
+  nfsft_trafo(this_iplan->direct_plan);
+  SWAPCT(this_iplan->v_iter,this_iplan->direct_plan->f,temp);
   
-  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,
-                                           this_iplan->direct_plan->M);
+                                           this_iplan->direct_plan->D);
   else
     this_iplan->dot_v_iter =
-      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->M);*/
+      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->D);
   
   /** step 10
     */
-  //this_iplan->alpha_iter =
-  //  this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;
+  this_iplan->alpha_iter =
+    this_iplan->dot_z_hat_iter / this_iplan->dot_v_iter;
   
   /** step 11
     *  updates this_iplan->f_hat_iter
     */
-  /*if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+    updatec_xpawy_hat(this_iplan->f_hat_iter, this_iplan->alpha_iter,
                   this_iplan->w_hat, this_iplan->p_hat_iter,
-                  this_iplan->direct_plan->N_L);
+                      this_iplan->direct_plan->M);
   else
-    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter, 
-                 this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);*/
+    updatec_xpay_hat(this_iplan->f_hat_iter, this_iplan->alpha_iter, 
+                 this_iplan->p_hat_iter, this_iplan->direct_plan->M);
   
   /** step 12-15
     *  updates this_iplan->f_hat_iter_2nd
     */
-  /*if(this_iplan->infft_flags & ITERATE_2nd)
+  if (this_iplan->infsft_flags & ITERATE_2nd)
   {
     this_iplan->alpha_iter_2nd =
     this_iplan->dot_r_iter / this_iplan->dot_z_hat_iter;
     
-    if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-      updatec_xpawy(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,
+    if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+      updatec_xpawy_hat(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,
                     this_iplan->w_hat, this_iplan->z_hat_iter,
-                    this_iplan->direct_plan->N_L);
+                    this_iplan->direct_plan->M);
     else
-      updatec_xpay(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,
-                   this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);
-  }*/
+      updatec_xpay_hat(this_iplan->f_hat_iter_2nd, this_iplan->alpha_iter_2nd,
+                   this_iplan->z_hat_iter, this_iplan->direct_plan->M);
+  }
   
   /** step 16
     *  updates this_iplan->r_iter
     */
-  /*updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,
-               this_iplan->direct_plan->M);
+  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,
+               this_iplan->direct_plan->D);
   
-  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,
-                                           this_iplan->direct_plan->M);
+                                           this_iplan->direct_plan->D);
   else
     this_iplan->dot_r_iter =
-      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);*/
+      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
   
   /** step 17
     *  overwrites this_iplan->direct_plan->f
     *  overwrites this_iplan->direct_plan->r_iter
     */
-  /*if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     copyc_w(this_iplan->direct_plan->f, this_iplan->w, 
-            this_iplan->r_iter, this_iplan->direct_plan->M);
+            this_iplan->r_iter, this_iplan->direct_plan->D);
   else
     copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
-          this_iplan->direct_plan->M);
+          this_iplan->direct_plan->D);
   
-  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);
-  nfft_adjoint(this_iplan->direct_plan);
-  SWAPC(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat);
+  SWAPCT(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat,temp_hat);
+  nfsft_adjoint(this_iplan->direct_plan);
+  SWAPCT(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat,temp_hat);
   
   this_iplan->dot_z_hat_iter_old = this_iplan->dot_z_hat_iter;
-  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
     this_iplan->dot_z_hat_iter =
-      dotproductc_w(this_iplan->z_hat_iter, this_iplan->w_hat, 
-                    this_iplan->direct_plan->N_L);
+      dotproductc_w_hat(this_iplan->z_hat_iter, this_iplan->w_hat, 
+                    this_iplan->direct_plan->M);
   else
     this_iplan->dot_z_hat_iter =
-      dotproductc(this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);*/
+      dotproductc_hat(this_iplan->z_hat_iter, this_iplan->direct_plan->M);
   
   /** step 18
     */
-  //this_iplan->beta_iter =
-  //  this_iplan->dot_z_hat_iter / this_iplan->dot_z_hat_iter_old;
+  this_iplan->beta_iter =
+    this_iplan->dot_z_hat_iter / this_iplan->dot_z_hat_iter_old;
   
   /** step 19
     *  updates this_iplan->p_hat_iter
     */
-  /*updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter, 
-               this_iplan->z_hat_iter, this_iplan->direct_plan->N_L);
-}*/ /* void infft_loop_one_step_cgnr_e */
+  updatec_axpy_hat(this_iplan->p_hat_iter, this_iplan->beta_iter, 
+               this_iplan->z_hat_iter, this_iplan->direct_plan->M);
+} /* void infft_loop_one_step_cgnr_e */
 
-/*void infft_loop_one_step_cgne_r(infft_plan *this_iplan)
-{*/
+void infsft_loop_one_step_cgne_r(infsft_plan this_iplan)
+{
   /** step 9
   */
-//  this_iplan->alpha_iter =
-//  this_iplan->dot_r_iter / this_iplan->dot_p_hat_iter;
+  this_iplan->alpha_iter =
+  this_iplan->dot_r_iter / this_iplan->dot_p_hat_iter;
   
   /** step 10
   *  updates this_iplan->f_hat_iter
   */
-/*  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-    updatec_xpawy(this_iplan->f_hat_iter, this_iplan->alpha_iter,
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+    updatec_xpawy_hat(this_iplan->f_hat_iter, this_iplan->alpha_iter,
                   this_iplan->w_hat, this_iplan->p_hat_iter,
-                  this_iplan->direct_plan->N_L);
+                  this_iplan->direct_plan->M);
   else
-    updatec_xpay(this_iplan->f_hat_iter, this_iplan->alpha_iter,
-                 this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);*/
+    updatec_xpay_hat(this_iplan->f_hat_iter, this_iplan->alpha_iter,
+                     this_iplan->p_hat_iter, this_iplan->direct_plan->M);
   
   /** step 11
     *  overwrites this_iplan->direct_plan->f_hat 
     *  overwrites this_iplan->direct_plan->f
     *  updates this_iplan->r_iter
     */
-/*  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
-    copyc_w(this_iplan->direct_plan->f_hat, this_iplan->w_hat,
-            this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+    copyc_w_hat(this_iplan->direct_plan->f_hat, this_iplan->w_hat,
+            this_iplan->p_hat_iter, this_iplan->direct_plan->M);
   else
-    copyc(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,
-          this_iplan->direct_plan->N_L);
+    copyc_hat(this_iplan->direct_plan->f_hat, this_iplan->p_hat_iter,
+          this_iplan->direct_plan->M);
   
-  nfft_trafo(this_iplan->direct_plan);
+  nfsft_trafo(this_iplan->direct_plan);
   
   updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter,
-               this_iplan->direct_plan->f, this_iplan->direct_plan->M);
+               this_iplan->direct_plan->f, this_iplan->direct_plan->D);
   
   this_iplan->dot_r_iter_old = this_iplan->dot_r_iter;
-  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     this_iplan->dot_r_iter =
       dotproductc_w(this_iplan->r_iter, this_iplan->w,
-                    this_iplan->direct_plan->M);
+                    this_iplan->direct_plan->D);
   else
     this_iplan->dot_r_iter =
-      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->M);*/
+      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
   
   /** step 12
     */
-//  this_iplan->beta_iter =
-//    this_iplan->dot_r_iter / this_iplan->dot_r_iter_old;
+  this_iplan->beta_iter =
+    this_iplan->dot_r_iter / this_iplan->dot_r_iter_old;
   
   /** step 13-16
     *  updates this_iplan->f_hat_iter_2nd
     */
-/*  if(this_iplan->infft_flags & ITERATE_2nd)
+  if(this_iplan->infsft_flags & ITERATE_2nd)
   {
     this_iplan->gamma_iter_old = this_iplan->gamma_iter;
     this_iplan->gamma_iter =
       this_iplan->beta_iter * this_iplan->gamma_iter_old + 1;
     
-    updatec_axpby(this_iplan->f_hat_iter_2nd, 
+    updatec_axpby_hat(this_iplan->f_hat_iter_2nd, 
                   this_iplan->beta_iter * this_iplan->gamma_iter_old / 
                   this_iplan->gamma_iter, this_iplan->f_hat_iter, 
-                  1.0 / this_iplan->gamma_iter, this_iplan->direct_plan->N_L);
-  }*/
+                  1.0 / this_iplan->gamma_iter, this_iplan->direct_plan->M);
+  }
   
   /** step 16
     *  overwrites this_iplan->direct_plan->f
     *  overwrites this_iplan->direct_plan->f_hat
     *  updates this_iplan->p_hat_iter
     */
-  /*if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     copyc_w(this_iplan->direct_plan->f, this_iplan->w,
-            this_iplan->r_iter, this_iplan->direct_plan->M);
+            this_iplan->r_iter, this_iplan->direct_plan->D);
   else
     copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
-          this_iplan->direct_plan->M); 
+          this_iplan->direct_plan->D); 
   
-  nfft_adjoint(this_iplan->direct_plan);
+  nfsft_adjoint(this_iplan->direct_plan);
   
-  updatec_axpy(this_iplan->p_hat_iter, this_iplan->beta_iter,
-               this_iplan->direct_plan->f_hat, this_iplan->direct_plan->N_L);
+  updatec_axpy_hat(this_iplan->p_hat_iter, this_iplan->beta_iter,
+               this_iplan->direct_plan->f_hat, this_iplan->direct_plan->M);
   
-  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
     this_iplan->dot_p_hat_iter = 
-      dotproductc_w(this_iplan->p_hat_iter, this_iplan->w_hat,
-                    this_iplan->direct_plan->N_L);
+      dotproductc_w_hat(this_iplan->p_hat_iter, this_iplan->w_hat,
+                    this_iplan->direct_plan->M);
   else
     this_iplan->dot_p_hat_iter =
-      dotproductc(this_iplan->p_hat_iter, this_iplan->direct_plan->N_L);
+      dotproductc_hat(this_iplan->p_hat_iter, this_iplan->direct_plan->M);
 }
 
-void infft_loop_one_step(infft_plan *this_iplan)
+void infsft_loop_one_step(infsft_plan this_iplan)
 {
-  if(this_iplan->infft_flags & LANDWEBER)
-    infft_loop_one_step_landweber(this_iplan);
+  /*if(this_iplan->infsft_flags & LANDWEBER)
+    infsft_loop_one_step_landweber(this_iplan);
   
-  if(this_iplan->infft_flags & STEEPEST_DESCENT)
-    infft_loop_one_step_steepest_descent(this_iplan);
+  if(this_iplan->infsft_flags & STEEPEST_DESCENT)
+    infsft_loop_one_step_steepest_descent(this_iplan);*/
   
-  if(this_iplan->infft_flags & CGNR_E)
-    infft_loop_one_step_cgnr_e(this_iplan);
+  if(this_iplan->infsft_flags & CGNR_E)
+    infsft_loop_one_step_cgnr_e(this_iplan);
   
-  if(this_iplan->infft_flags & CGNE_R)
-    infft_loop_one_step_cgne_r(this_iplan);
+  if(this_iplan->infsft_flags & CGNE_R)
+    infsft_loop_one_step_cgne_r(this_iplan);
 }
 
-void infft_finalize(infft_plan *this_iplan)
+void infsft_finalize(infsft_plan this_iplan)
 {
-  if(this_iplan->infft_flags & PRECOMPUTE_WEIGHT)
+  int n;
+  
+  if(this_iplan->infsft_flags & PRECOMPUTE_WEIGHT)
     fftw_free(this_iplan->w);
   
-  if(this_iplan->infft_flags & PRECOMPUTE_DAMP)
+  if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
+  {  
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      free(this_iplan->w_hat[n]);
+    }
     fftw_free(this_iplan->w_hat);
+  }
   
-  if(this_iplan->infft_flags & ITERATE_2nd)
+  if(this_iplan->infsft_flags & ITERATE_2nd)
+  {
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      free(this_iplan->f_hat_iter_2nd[n]);
+    }
     fftw_free(this_iplan->f_hat_iter_2nd);
+  }
   
-  if(this_iplan->infft_flags & CGNR_E)
+  if(this_iplan->infsft_flags & CGNR_E)
   {
     fftw_free(this_iplan->v_iter);
+    for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+    {
+      free(this_iplan->z_hat_iter[n]);
+    }
     fftw_free(this_iplan->z_hat_iter);
   }
   
-  if(this_iplan->infft_flags & STEEPEST_DESCENT)
+  if(this_iplan->infsft_flags & STEEPEST_DESCENT)
     fftw_free(this_iplan->v_iter);
   
+  for (n = 0; n < 2*this_iplan->direct_plan->M+1; n++)
+  {
+    free(this_iplan->p_hat_iter[n]);
+    free(this_iplan->f_hat_iter[n]);
+  }
   fftw_free(this_iplan->p_hat_iter);
   fftw_free(this_iplan->f_hat_iter);
   
   fftw_free(this_iplan->r_iter);
   fftw_free(this_iplan->given_f);
-}*/
+  
+  free(this_iplan);
+}

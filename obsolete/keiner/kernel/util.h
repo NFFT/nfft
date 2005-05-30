@@ -12,6 +12,8 @@
  */
 inline int ngpt(int n);
 
+#define SWAPCT(x,y,temp) {temp=(x); (x)=(y); (y)=temp;}
+
 double mysecond();
 void myvpr (double* x, int n, char * text);
 void myvprc (complex *x, int n, char * text);
@@ -24,6 +26,14 @@ double error_complex3(complex *a, complex *b, int n);
 double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_1(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
+void copyc_hat(complex **x,complex **y, int M);
+void copyc_w_hat(complex **x, double **w, complex **y, int M);
+double dotproductc_w_hat(complex **x, double **w, int M);
+double dotproductc_hat(complex** x, int M);
+void updatec_xpay_hat(complex **x,double a, complex **y, int M);
+void updatec_xpawy_hat(complex **x, double a, double **w, complex **y, int M);
+void updatec_axpy_hat(complex **x,double a, complex **y, int M);
+void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M);
 
 #define PI 3.1415926535897932385
 #define QUADRATIC_KERNEL(k) k==0?1.0:((2*k+1)/((double)(k*(k+1))*(k*(k+1))))

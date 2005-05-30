@@ -54,4 +54,9 @@ void multiplyU(complex  *a, complex *b, struct U_type u, int tau, int n, int l,
 void multiplyU_adjoint(complex  *a, complex *b, 
                        struct U_type u, int tau, int n, int l, 
                        struct nfsft_wisdom *tw, double gamma);
+
+struct U_type**** precomputeU_guru(int t, double threshold, double *walpha, 
+                                   double *wbeta, double *wgamma, int n);
+
+void forgetU_guru(struct U_type**** U, int M, int t, int n);
 #endif

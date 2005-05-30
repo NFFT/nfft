@@ -297,6 +297,10 @@ inline void precompute_coeffs()
 { 
   if (wisdom.initialized_coeffs == false)
   {
+    wisdom.alpha = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+    wisdom.beta = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+    wisdom.gamma = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+    wisdom.gamma_m1 = (double*) malloc((BW_MAX+1)*sizeof(double));    
     alpha_al_all(wisdom.alpha,BW_MAX);
     beta_al_all(wisdom.beta,BW_MAX);
     gamma_al_all(wisdom.gamma,BW_MAX);
@@ -337,6 +341,51 @@ void nfsft_forget()
       free(wisdom.kindsr);
       free(wisdom.lengths);
     }
+    free(wisdom.alpha);
+    free(wisdom.beta);
+    free(wisdom.gamma);
+    free(wisdom.gamma_m1);
+    wisdom.initialized = false;
+  }
+}
+
+
+void nfsft_forget_guru(int n)
+{
+  int i;
+  
+  if (wisdom.initialized == true)
+  {
+    if (wisdom.N >= 4)
+    {  
+      forgetU_guru(wisdom.U,wisdom.N,wisdom.t,n);
+      
+      fftw_free(wisdom.work);
+      fftw_free(wisdom.old);
+      fftw_free(wisdom.ergeb);
+      fftw_free(wisdom.vec1);
+      fftw_free(wisdom.vec2);
+      fftw_free(wisdom.vec3);
+      fftw_free(wisdom.vec4);
+      fftw_free(wisdom.a2);
+      fftw_free(wisdom.b2);
+      
+      for(i = 0; i < wisdom.t-1; i++)
+      {
+        fftw_destroy_plan(wisdom.plans_dct3[i]);
+        fftw_destroy_plan(wisdom.plans_dct2[i]);
+      }  
+      
+      free(wisdom.plans_dct3);
+      free(wisdom.plans_dct2);
+      free(wisdom.kinds);
+      free(wisdom.kindsr);
+      free(wisdom.lengths);
+    }
+    free(wisdom.alpha);
+    free(wisdom.beta);
+    free(wisdom.gamma);
+    free(wisdom.gamma_m1);
     wisdom.initialized = false;
   }
 }
@@ -484,6 +533,63 @@ void nfsft_precompute(int M, int threshold)
                                              (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
     }  
     wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma);
+  }
+  
+  wisdom.initialized = true;
+}
+
+void nfsft_precompute_guru(int M, int threshold, int n)
+{
+  int i;
+  int ti;
+  
+  if (wisdom.initialized == true)
+  {
+    if (wisdom.N < M || wisdom.threshold != threshold)
+    {
+      nfsft_forget();
+    }
+    else
+    {
+      return;
+    }
+  }
+  
+  precompute_coeffs();
+  
+  wisdom.t = (int) ceil(log((double)M)/log(2.0));
+  wisdom.N = pow2(wisdom.t);
+  
+  if (wisdom.N >= 4)
+  {  
+    wisdom.threshold = threshold;
+    wisdom.work  = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
+    wisdom.old   = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
+    wisdom.ergeb = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
+    wisdom.vec1  = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec2  = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec3  = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec4  = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.a2    = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.b2    = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.kinds     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kinds[0]  = FFTW_REDFT01;
+    wisdom.kinds[1]  = FFTW_REDFT01;
+    wisdom.kindsr    = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kindsr[0] = FFTW_REDFT10;
+    wisdom.kindsr[1] = FFTW_REDFT10;
+    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.lengths = (int*) malloc((wisdom.t-1)*sizeof(int));
+    for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
+    {
+      wisdom.lengths[i] = ti;
+      wisdom.plans_dct3[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
+                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 0);
+      wisdom.plans_dct2[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
+                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
+    }  
+    wisdom.U = precomputeU_guru(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma,n);
   }
   
   wisdom.initialized = true;
@@ -645,3 +751,9 @@ void nfsft_adjoint(nfsft_plan plan)
     }          
   }    
 }
+
+struct nfsft_wisdom* nfsft_get_wisdom()
+{
+  return &wisdom;
+}
+

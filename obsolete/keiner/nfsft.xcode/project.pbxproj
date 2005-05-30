@@ -626,6 +626,21 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		4E6EA365083E95C9004C5D07 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = inverse.c;
+			path = tests/inverse/inverse.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E6EA366083E95C9004C5D07 = {
+			fileRef = 4E6EA365083E95C9004C5D07;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4E75157F082C0CF4002018A8 = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -679,6 +694,21 @@
 			settings = {
 			};
 		};
+		4E98AAA1084A0B790002D4FC = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = flft.c;
+			path = tests/flft/flft.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E98AAA2084A0B790002D4FC = {
+			fileRef = 4E98AAA1084A0B790002D4FC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4EAD6721083A854000C61F13 = {
 			isa = PBXFileReference;
 			lastKnownFileType = "compiled.mach-o.dylib";
@@ -703,12 +733,6 @@
 		};
 		4EAD6724083A854000C61F13 = {
 			fileRef = 4EAD6722083A854000C61F13;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		4EAD6866083BB48600C61F13 = {
-			fileRef = 4E8A26E10838C49000216481;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -742,6 +766,8 @@
 		4ECA771908320743008ADA24 = {
 			children = (
 				4EAD69A2083BE07E00C61F13,
+				4E98AAA1084A0B790002D4FC,
+				4E6EA365083E95C9004C5D07,
 				4E8A26E10838C49000216481,
 				4E5470A208329F8600CA0375,
 			);
@@ -834,7 +860,7 @@
 		8DD76F640486A84900D96B5E = {
 			buildActionMask = 2147483647;
 			files = (
-				4EAD6866083BB48600C61F13,
+				4E6EA366083E95C9004C5D07,
 				4E6CD55307C54A7E0040176B,
 				4E6CD55507C54A7E0040176B,
 				4E6CD57707C54E630040176B,
@@ -844,6 +870,7 @@
 				4E6E40CB082CB46F00642FF0,
 				4E293284082E5020004AD73C,
 				4E5470E30832A31200CA0375,
+				4E98AAA2084A0B790002D4FC,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
