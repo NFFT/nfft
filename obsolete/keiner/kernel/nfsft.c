@@ -561,8 +561,8 @@ void nfsft_precompute_guru(int M, int threshold, int n)
   
   precompute_coeffs();
   
-  wisdom.t = (int) ceil(log((double)M)/log(2.0));
-  wisdom.N = pow2(wisdom.t);
+  wisdom.t = ngpt(M);
+  wisdom.N = 1<<wisdom.t;
   
   if (wisdom.N >= 4)
   {  
