@@ -1,29 +1,5 @@
 #include "sparse_nfft.h"
 
-int total_used_memory()
-{
-  struct mallinfo m;
-  m=mallinfo();
-  return m.hblkhd + m.uordblks;
-}
-
-int int_2_pow(int a)
-{
-  return (1U<< a);
-}
-
-int ld(int m)
-{
-  int l=0;
-  int mm=m;
-  
-  while(mm>0)
-    {
-      mm=(mm>>1);
-      l++;
-    }
-  return (l-1);
-}
 
 int index_sparse_to_full_direct(int J, int k)
 {
@@ -148,7 +124,7 @@ int index_sparse_to_full_direct(int J, int k)
 inline int index_sparse_to_full(sparse_nfft_plan* this, int k)
 {
   /* only by lookup table */
-  if( k < this->N_S)
+  if( k < this->N_total)
     return this->index_sparse_to_full[k];
   else
     return -1;
@@ -212,14 +188,14 @@ void init_index_sparse_to_full(sparse_nfft_plan* this)
 {
   int k_S;
 
-  for (k_S=0; k_S<this->N_S; k_S++)
+  for (k_S=0; k_S<this->N_total; k_S++)
     this->index_sparse_to_full[k_S]=index_sparse_to_full_direct(this->J, k_S);
 }
 
 inline int index_sparse_to_full_3d(sparse_nfft_plan_3d* this, int k)
 {
   /* only by lookup table */
-  if( k < this->N_S)
+  if( k < this->N_total)
     return this->index_sparse_to_full[k];
   else
     return -1;
@@ -418,18 +394,17 @@ void copy_sparse_to_full_3d(sparse_nfft_plan_3d *this, nfft_plan *this_full_plan
   int N=this_full_plan->N[0];     /* length of the full grid            */
   
   /* initialize f_hat with zero values */
-  memset(this_full_plan->f_hat, 0, N*N*N*sizeof(fftw_complex));
+  memset(this_full_plan->f_hat, 0, N*N*N*sizeof(complex));
   
    /* copy values at hyperbolic grid points */
-  for(k_S=0;k_S<this->N_S;k_S++)
+  for(k_S=0;k_S<this->N_total;k_S++)
     {
       k=(int)this->index_sparse_to_full[k_S];
-      this_full_plan->f_hat[k][0]=this->f_hat[k_S][0];
-      this_full_plan->f_hat[k][1]=this->f_hat[k_S][1];
+      this_full_plan->f_hat[k]=this->f_hat[k_S];
     }
   
   /* copy nodes */
-  memcpy(this_full_plan->x,this->act_nfft_plan->x,this->M*3*sizeof(double));
+  memcpy(this_full_plan->x,this->act_nfft_plan->x,this->M_total*3*sizeof(double));
 }
 
 void test_sparse_to_full_3d(sparse_nfft_plan_3d* this)
@@ -457,18 +432,17 @@ void copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
   
 
   /* initialize f_hat with zero values */
-  memset(this_full_plan->f_hat, 0, N*N*sizeof(fftw_complex));
+  memset(this_full_plan->f_hat, 0, N*N*sizeof(complex));
   
    /* copy values at hyperbolic grid points */
-  for(k_S=0;k_S<this->N_S;k_S++)
+  for(k_S=0;k_S<this->N_total;k_S++)
     {
       k=(int)this->index_sparse_to_full[k_S];
-      this_full_plan->f_hat[k][0]=this->f_hat[k_S][0];
-      this_full_plan->f_hat[k][1]=this->f_hat[k_S][1];
+      this_full_plan->f_hat[k]=this->f_hat[k_S];
     }
   
   /* copy nodes */
-  memcpy(this_full_plan->x,this->act_nfft_plan->x,this->M*2*sizeof(double));
+  memcpy(this_full_plan->x,this->act_nfft_plan->x,this->M_total*2*sizeof(double));
 }
 
 /* test copy_sparse_to_full */
@@ -492,8 +466,8 @@ void test_copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
     printf("top\n");
     for (k1=0; k1<a; k1++){
       for (k2=0; k2<b; k2++){
-        printf("(%1.1f,%1.1f) ", this->f_hat[(4*r+1)*N_B+ k1*b+k2 ][0]
-	                       , this->f_hat[(4*r+1)*N_B+ k1*b+k2 ][1]);
+        printf("(%1.1f,%1.1f) ", creal(this->f_hat[(4*r+1)*N_B+ k1*b+k2 ]),
+	       cimag(this->f_hat[(4*r+1)*N_B+ k1*b+k2 ]));
       }
       printf("\n");
     }
@@ -501,8 +475,8 @@ void test_copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
     printf("bottom\n");
     for (k1=0; k1<a; k1++){
       for (k2=0; k2<b; k2++){
-        printf("(%1.1f,%1.1f) ", this->f_hat[(4*r+3)*N_B+ k1*b+k2 ][0]
-                               , this->f_hat[(4*r+3)*N_B+ k1*b+k2 ][1]);
+        printf("(%1.1f,%1.1f) ", creal(this->f_hat[(4*r+3)*N_B+ k1*b+k2 ]),
+	       cimag(this->f_hat[(4*r+3)*N_B+ k1*b+k2 ]));
       }
       printf("\n");
     }
@@ -510,8 +484,8 @@ void test_copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
     printf("right\n");
     for (k2=0; k2<b; k2++){
       for (k1=0; k1<a; k1++){
-        printf("(%1.1f,%1.1f) ", this->f_hat[(4*r+0)*N_B+ k2*a+k1 ][0]
-                               , this->f_hat[(4*r+0)*N_B+ k2*a+k1 ][1]);
+        printf("(%1.1f,%1.1f) ", creal(this->f_hat[(4*r+0)*N_B+ k2*a+k1 ]),
+	       cimag(this->f_hat[(4*r+0)*N_B+ k2*a+k1 ]));
       }
       printf("\n");
     }
@@ -519,8 +493,8 @@ void test_copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
     printf("left\n");
     for (k2=0; k2<b; k2++){
       for (k1=0; k1<a; k1++){
-        printf("(%1.1f,%1.1f) ", this->f_hat[(4*r+2)*N_B+ k2*a+k1 ][0]
-	                       , this->f_hat[(4*r+2)*N_B+ k2*a+k1 ][1]);
+        printf("(%1.1f,%1.1f) ", creal(this->f_hat[(4*r+2)*N_B+ k2*a+k1 ]),
+	       cimag(this->f_hat[(4*r+2)*N_B+ k2*a+k1 ]));
       }
       printf("\n");
     }
@@ -531,7 +505,7 @@ void test_copy_sparse_to_full(sparse_nfft_plan *this, nfft_plan *this_full_plan)
   printf("full f_hat\n");
   for (k1=0;k1<N;k1++){
     for (k2=0;k2<N;k2++){
-      printf("(%1.1f,%1.1f) ", this_full_plan->f_hat[k1*N+k2][0],this_full_plan->f_hat[k1*N+k2][1]);
+      printf("(%1.1f,%1.1f) ", creal(this_full_plan->f_hat[k1*N+k2]),cimag(this_full_plan->f_hat[k1*N+k2]));
     }
     printf("\n");
   }
@@ -542,14 +516,11 @@ void sparse_init_random_nodes_coeffs(sparse_nfft_plan *this)
   int k_S,j;
 
   /* init frequencies */
-  for(k_S=0;k_S<this->N_S;k_S++)
-    {
-      this->f_hat[k_S][0]=(double)rand()/RAND_MAX;
-      this->f_hat[k_S][1]=(double)rand()/RAND_MAX;
-    }
+  for(k_S=0;k_S<this->N_total;k_S++)
+    this->f_hat[k_S]=(double)rand()/RAND_MAX + I*(double)rand()/RAND_MAX;
  
   /* init nodes */
-  for(j=0;j<this->M;j++) 
+  for(j=0;j<this->M_total;j++) 
     {
       this->act_nfft_plan->x[2*j+0]=((double)rand())/RAND_MAX-0.5;
       this->act_nfft_plan->x[2*j+1]=((double)rand())/RAND_MAX-0.5;
@@ -563,16 +534,13 @@ void sparse_init_random_nodes_coeffs_3d(sparse_nfft_plan_3d *this)
   int k_S,j;
 
   /* init frequencies */
-  for(k_S=0;k_S<this->N_S;k_S++)
-    {
-      this->f_hat[k_S][0]=(double)rand()/RAND_MAX;
-      this->f_hat[k_S][1]=(double)rand()/RAND_MAX;
-    }
+  for(k_S=0;k_S<this->N_total;k_S++)
+    this->f_hat[k_S]=(double)rand()/RAND_MAX + I*(double)rand()/RAND_MAX;
 
-  //this->f_hat[672][0]=1;
+  //this->f_hat[672]=1;
  
   /* init nodes */
-  for(j=0;j<this->M;j++) 
+  for(j=0;j<this->M_total;j++) 
     {
       this->act_nfft_plan->x[3*j+0]=((double)rand())/RAND_MAX-0.5;
       this->act_nfft_plan->x[3*j+1]=((double)rand())/RAND_MAX-0.5;
@@ -602,23 +570,21 @@ void sparse_ndft_trafo(sparse_nfft_plan *this)
   double omega,cosx,sinx;
   int N=int_2_pow(this->J+2);
 
-  memset(this->f,0,this->M*sizeof(fftw_complex));
+  memset(this->f,0,this->M_total*sizeof(complex));
 
-  for(k_S=0;k_S<this->N_S;k_S++)
+  for(k_S=0;k_S<this->N_total;k_S++)
     {
       k_L=this->index_sparse_to_full[k_S];
       k0=k_L / N;
       k1=k_L % N;
       
-      for(j=0;j<this->M;j++)
+      for(j=0;j<this->M_total;j++)
 	{
 	  omega =
 	    ((double)(k0 - N/2)) * this->act_nfft_plan->x[2 * j + 0] + 
 	    ((double)(k1 - N/2)) * this->act_nfft_plan->x[2 * j + 1];
-	  cosx = cos(2*PI*omega); sinx = sin(2*PI*omega);
 
-	  this->f[j][0] += (this->f_hat[k_S][0]*cosx + this->f_hat[k_S][1]*sinx);
-	  this->f[j][1] += (this->f_hat[k_S][1]*cosx - this->f_hat[k_S][0]*sinx);
+	  this->f[j] += this->f_hat[k_S] * cexp(2*PI*I*omega)
 	}
     }
 } /* void sparse_ndft_trafo */
@@ -630,9 +596,9 @@ void sparse_ndft_trafo_3d(sparse_nfft_plan_3d *this)
   int N=int_2_pow(this->J+2);
   int k_L;
 
-  memset(this->f,0,this->M*sizeof(fftw_complex));
+  memset(this->f,0,this->M_total*sizeof(complex));
 
-  for(k_S=0;k_S<this->N_S;k_S++)
+  for(k_S=0;k_S<this->N_total;k_S++)
     {
       k_L=this->index_sparse_to_full[k_S];
 
@@ -640,16 +606,14 @@ void sparse_ndft_trafo_3d(sparse_nfft_plan_3d *this)
       k1=(k_L/N)%N;
       k2=k_L%N;
       
-      for(j=0;j<this->M;j++)
+      for(j=0;j<this->M_total;j++)
 	{
 	  omega =
 	    ((double)(k0 - N/2)) * this->act_nfft_plan->x[3 * j + 0] + 
 	    ((double)(k1 - N/2)) * this->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * this->act_nfft_plan->x[3 * j + 2];
-	  cosx = cos(2*PI*omega); sinx = sin(2*PI*omega);
 
-	  this->f[j][0] += (this->f_hat[k_S][0]*cosx + this->f_hat[k_S][1]*sinx);
-	  this->f[j][1] += (this->f_hat[k_S][1]*cosx - this->f_hat[k_S][0]*sinx);
+	  this->f[j] += this->f_hat[k_S] * cexp(2*PI*I*omega);
 	}
     }
 } /* void sparse_ndft_trafo */
@@ -660,7 +624,7 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
   int r,rr,j;
   double temp,ctx,cty,stx,sty;
 
-  int M=this->M;
+  int M=this->M_total;
   int J=this->J;
 
   /* center */
@@ -672,10 +636,7 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
     nfft_trafo(this->center_nfft_plan);
 
   for (j=0; j<M; j++) 
-    {
-      this->f[j][0]= this->center_nfft_plan->f[j][0];
-      this->f[j][1]= this->center_nfft_plan->f[j][1];
-    }
+    this->f[j] = this->center_nfft_plan->f[j];
 
   for(rr=0;rr<=(J+1)/2;rr++)
     {
@@ -706,12 +667,14 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
 	SWAP(this->act_nfft_plan->x,this->x_transposed);
       
       for (j=0; j<M; j++)
-	{
-	  cty=cos(temp*this->act_nfft_plan->x[2*j+1]); sty=sin(temp*this->act_nfft_plan->x[2*j+1]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*cty - this->act_nfft_plan->f[j][1]*sty);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*cty + this->act_nfft_plan->f[j][0]*sty);
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( - I*temp*this->act_nfft_plan->x[2*j+1] );
+      /******************was es vorher berechnet hat{
+	cty=cos(temp*this->act_nfft_plan->x[2*j+1]); sty=sin(temp*this->act_nfft_plan->x[2*j+1]);
+	
+	this->f[j][0]+= (this->act_nfft_plan->f[j][0]*cty - this->act_nfft_plan->f[j][1]*sty);
+	this->f[j][1]+= (this->act_nfft_plan->f[j][1]*cty + this->act_nfft_plan->f[j][0]*sty);
 	}
+      */
 
       /* top */
       this->act_nfft_plan->f_hat=this->f_hat+(4*rr+1)*int_2_pow(J);
@@ -731,12 +694,7 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
 	SWAP(this->act_nfft_plan->x,this->x_transposed);
 
       for (j=0; j<M; j++)
-	{
-	  ctx=cos(temp*this->act_nfft_plan->x[2*j+0]); stx=sin(temp*this->act_nfft_plan->x[2*j+0]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ctx - this->act_nfft_plan->f[j][1]*stx);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ctx + this->act_nfft_plan->f[j][0]*stx);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( - I*temp*this->act_nfft_plan->x[2*j+0] );
 
       /* left */
       this->act_nfft_plan->f_hat=this->f_hat+(4*rr+2)*int_2_pow(J);
@@ -756,12 +714,7 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
 	SWAP(this->act_nfft_plan->x,this->x_transposed);
 
       for (j=0; j<M; j++)
-	{
-	  cty=cos(temp*this->act_nfft_plan->x[2*j+1]); sty=sin(temp*this->act_nfft_plan->x[2*j+1]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*cty + this->act_nfft_plan->f[j][1]*sty);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*cty - this->act_nfft_plan->f[j][0]*sty);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( + I*temp*this->act_nfft_plan->x[2*j+1] );
 
       /* bottom */
       this->act_nfft_plan->f_hat=this->f_hat+(4*rr+3)*int_2_pow(J);
@@ -781,12 +734,7 @@ void sparse_nfft_trafo(sparse_nfft_plan *this)
 	SWAP(this->act_nfft_plan->x,this->x_transposed);
 
       for (j=0; j<M; j++)
-	{
-	  ctx=cos(temp*this->act_nfft_plan->x[2*j+0]); stx=sin(temp*this->act_nfft_plan->x[2*j+0]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ctx + this->act_nfft_plan->f[j][1]*stx);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ctx - this->act_nfft_plan->f[j][0]*stx);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( + I*temp*this->act_nfft_plan->x[2*j+0] );
     } /* for(rr) */
 } /* void sparse_nfft_trafo */
 
@@ -797,7 +745,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
   double temp,ct0,ct1,ct2,st0,st1,st2;
   int sum_N_B_less_r,N_B_r,a,b;
 
-  int M=this->M;
+  int M=this->M_total;
   int J=this->J;
 
   /* center */
@@ -809,10 +757,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
     nfft_trafo(this->center_nfft_plan);
 
   for (j=0; j<M; j++) 
-    {
-      this->f[j][0]= this->center_nfft_plan->f[j][0];
-      this->f[j][1]= this->center_nfft_plan->f[j][1];
-    }
+    this->f[j] = this->center_nfft_plan->f[j];
 
   sum_N_B_less_r=0;
   for(rr=0;rr<=(J+1)/2;rr++)
@@ -867,12 +812,15 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_120);
       
       for (j=0; j<M; j++)
-	{
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( - I*temp*this->act_nfft_plan->x[3*j+0]);
+	/* wieder, was mal berechnet wurde ...
+	  {
 	  ct0=cos(temp*this->act_nfft_plan->x[3*j+0]); st0=sin(temp*this->act_nfft_plan->x[3*j+0]);
-
+	  
 	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct0 - this->act_nfft_plan->f[j][1]*st0);
 	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct0 + this->act_nfft_plan->f[j][0]*st0);
-	}
+	  }
+	*/
 
       /* rear */      
       this->act_nfft_plan->f_hat=this->f_hat + sum_N_B_less_r + N_B_r*1;
@@ -899,12 +847,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_102);
       
       for (j=0; j<M; j++)
-	{
-	  ct1=cos(temp*this->act_nfft_plan->x[3*j+1]); st1=sin(temp*this->act_nfft_plan->x[3*j+1]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct1 - this->act_nfft_plan->f[j][1]*st1);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct1 + this->act_nfft_plan->f[j][0]*st1);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( - I*temp*this->act_nfft_plan->x[3*j+1]);
 
       /* top */      
       this->act_nfft_plan->f_hat=this->f_hat + sum_N_B_less_r + N_B_r*2;
@@ -927,12 +870,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_201);
       
       for (j=0; j<M; j++)
-	{
-	  ct2=cos(temp*this->act_nfft_plan->x[3*j+2]); st2=sin(temp*this->act_nfft_plan->x[3*j+2]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct2 - this->act_nfft_plan->f[j][1]*st2);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct2 + this->act_nfft_plan->f[j][0]*st2);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( - I*temp*this->act_nfft_plan->x[3*j+2]);
 
       /* only for left - front - bottom */
       if((J==0)||((J==1)&&(rr==1)))
@@ -961,12 +899,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_120);
       
       for (j=0; j<M; j++)
-	{
-	  ct0=cos(temp*this->act_nfft_plan->x[3*j+0]); st0=sin(temp*this->act_nfft_plan->x[3*j+0]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct0 + this->act_nfft_plan->f[j][1]*st0);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct0 - this->act_nfft_plan->f[j][0]*st0);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( + I*temp*this->act_nfft_plan->x[3*j+0]);
 
       /* front */      
       this->act_nfft_plan->f_hat=this->f_hat + sum_N_B_less_r + N_B_r*4;
@@ -993,12 +926,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_102);
       
       for (j=0; j<M; j++)
-	{
-	  ct1=cos(temp*this->act_nfft_plan->x[3*j+1]); st1=sin(temp*this->act_nfft_plan->x[3*j+1]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct1 + this->act_nfft_plan->f[j][1]*st1);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct1 - this->act_nfft_plan->f[j][0]*st1);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( + I*temp*this->act_nfft_plan->x[3*j+1]);
 
       /* bottom */      
       this->act_nfft_plan->f_hat=this->f_hat + sum_N_B_less_r + N_B_r*5;
@@ -1021,12 +949,7 @@ void sparse_nfft_trafo_3d(sparse_nfft_plan_3d *this)
 	SWAP(this->act_nfft_plan->x,this->x_201);
       
       for (j=0; j<M; j++)
-	{
-	  ct2=cos(temp*this->act_nfft_plan->x[3*j+2]); st2=sin(temp*this->act_nfft_plan->x[3*j+2]);
-
-	  this->f[j][0]+= (this->act_nfft_plan->f[j][0]*ct2 + this->act_nfft_plan->f[j][1]*st2);
-	  this->f[j][1]+= (this->act_nfft_plan->f[j][1]*ct2 - this->act_nfft_plan->f[j][0]*st2);
-	}
+	this->f[j] += this->act_nfft_plan->f[j] * cexp( + I*temp*this->act_nfft_plan->x[3*j+2]);
 
       sum_N_B_less_r+=6*N_B_r; 
     } /* for(rr) */
@@ -1043,12 +966,12 @@ void sparse_nfft_init(sparse_nfft_plan *this, int J, int M, int m, unsigned snff
   this->snfft_flags=snfft_flags;
   this->sigma=2;
   this->J=J;
-  this->M=M;
-  this->N_S=(J+4)*int_2_pow(J+1);
+  this->M_total=M;
+  this->N_total=(J+4)*int_2_pow(J+1);
   
   /* memory allocation */
-  this->f = (fftw_complex *)fftw_malloc(M*sizeof(fftw_complex));
-  this->f_hat = (fftw_complex *)fftw_malloc(this->N_S*sizeof(fftw_complex));
+  this->f = (complex *)fftw_malloc(M*sizeof(complex));
+  this->f_hat = (complex *)fftw_malloc(this->N_total*sizeof(complex));
   this->x_transposed= (double*)fftw_malloc(2*M*sizeof(double));
 
   this->act_nfft_plan = (nfft_plan*)fftw_malloc(sizeof(nfft_plan));
@@ -1102,7 +1025,7 @@ void sparse_nfft_init(sparse_nfft_plan *this, int J, int M, int m, unsigned snff
 
   if(this->snfft_flags & SNDFT)
     {
-      this->index_sparse_to_full=(int*)fftw_malloc(this->N_S*sizeof(int));
+      this->index_sparse_to_full=(int*)fftw_malloc(this->N_total*sizeof(int));
       init_index_sparse_to_full(this);
     }
 }
@@ -1118,12 +1041,12 @@ void sparse_nfft_init_3d(sparse_nfft_plan_3d *this, int J, int M, int m, unsigne
   this->snfft_flags=snfft_flags;
   this->sigma=2;
   this->J=J;
-  this->M=M;
-  this->N_S=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
+  this->M_total=M;
+  this->N_total=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
   
   /* memory allocation */
-  this->f =     (fftw_complex *)fftw_malloc(M*sizeof(fftw_complex));
-  this->f_hat = (fftw_complex *)fftw_malloc(this->N_S*sizeof(fftw_complex));
+  this->f =     (complex *)fftw_malloc(M*sizeof(complex));
+  this->f_hat = (complex *)fftw_malloc(this->N_total*sizeof(complex));
 
   this->x_102= (double*)fftw_malloc(3*M*sizeof(double));
   this->x_201= (double*)fftw_malloc(3*M*sizeof(double));
@@ -1150,8 +1073,8 @@ void sparse_nfft_init_3d(sparse_nfft_plan_3d *this, int J, int M, int m, unsigne
     nfft_precompute_lin_psi(this->act_nfft_plan,100000);
 
   /* malloc g1, g2 for maximal size */
-  this->act_nfft_plan->g1 = fftw_malloc(this->sigma*this->sigma*this->sigma*int_2_pow(J+(J+1)/2)*sizeof(fftw_complex));
-  this->act_nfft_plan->g2 = fftw_malloc(this->sigma*this->sigma*this->sigma*int_2_pow(J+(J+1)/2)*sizeof(fftw_complex));
+  this->act_nfft_plan->g1 = fftw_malloc(this->sigma*this->sigma*this->sigma*int_2_pow(J+(J+1)/2)*sizeof(complex));
+  this->act_nfft_plan->g2 = fftw_malloc(this->sigma*this->sigma*this->sigma*int_2_pow(J+(J+1)/2)*sizeof(complex));
 
   this->act_nfft_plan->my_fftw_plan1 =
     fftw_plan_dft(3, n, this->act_nfft_plan->g1, this->act_nfft_plan->g2,
@@ -1210,7 +1133,7 @@ void sparse_nfft_init_3d(sparse_nfft_plan_3d *this, int J, int M, int m, unsigne
 
   if(this->snfft_flags & SNDFT)
     {
-      this->index_sparse_to_full=(int*)fftw_malloc(this->N_S*sizeof(int));
+      this->index_sparse_to_full=(int*)fftw_malloc(this->N_total*sizeof(int));
       init_index_sparse_to_full_3d(this);
     }
 }

@@ -1,7 +1,7 @@
 #include <malloc.h>
 
 #include "nfft.h"
-#include "utils.h"
+#include "util.h"
 #include "short_dim_2d.h"
 
 #define MAX(a,b) ((a>b)?a:b)
@@ -13,12 +13,18 @@
 
 #define SNDFT		(1U<< 0)
 
+#define MACRO_MV_PLAN(float_type)			                      \
+  int N_total;                          /**< total number of Fourier coeffs.*/\
+  int M_total;                          /**< total number of samples        */\
+  float_type *f_hat;                    /**< Fourier coefficients           */\
+  float_type *f;                        /**< samples                        */\
+  
 typedef struct sparse_nfft_plan_ 
 {
+  MACRO_MV_PLAN(complex);
+
   int J;                      
   int sigma;
-  int N_S;
-  int M;
 
   unsigned snfft_flags;
 
@@ -29,23 +35,19 @@ typedef struct sparse_nfft_plan_
   nfft_plan* center_nfft_plan;
 
   fftw_plan* set_fftw_plan1;
-  //fftw_plan* set_fftw_plan2;
 
   nfft_plan* set_nfft_plan_1d;
 
   double* x_transposed;
   
-  fftw_complex *f_hat;
-  fftw_complex *f;
-
 } sparse_nfft_plan;
 
 typedef struct sparse_nfft_plan_3d_ 
 {
+  MACRO_MV_PLAN(complex);
+
   int J;                      
   int sigma;
-  int N_S;
-  int M;
 
   unsigned snfft_flags;
 
@@ -56,16 +58,12 @@ typedef struct sparse_nfft_plan_3d_
   nfft_plan* center_nfft_plan;
 
   fftw_plan* set_fftw_plan1;
-  //fftw_plan* set_fftw_plan2;
 
   nfft_plan* set_nfft_plan_1d;
   nfft_plan* set_nfft_plan_2d;
 
   double *x_102,*x_201,*x_120,*x_021;	
   
-  fftw_complex *f_hat;
-  fftw_complex *f;
-
 } sparse_nfft_plan_3d;
 
 #endif
