@@ -82,7 +82,7 @@ inline double gauss_weierstrass(double phi1,double theta1,double phi2,double the
 int main (int argc, char **argv)
 {  
   /** Next greater power of two with respect to M_MAX */
-  const int N_MAX = 1<<((int)ceil(log((double)M_MAX)/log(2.0)));
+  const int N_MAX = 1<<ngpt(M_MAX);
   /* Bandwidth */
   int M;
 	/* Use only one kernel */

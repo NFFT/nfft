@@ -62,9 +62,8 @@ int main (int argc, char **argv)
   int n;
   int k;
   complex *coefs;
-  complex *chebc;
-  double ctime;
-  int re,im;
+  //double ctime;
+  double re,im;
   struct nfsft_wisdom *wisdom;
   
   fscanf(stdin,"%d\n",&M);

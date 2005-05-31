@@ -164,7 +164,7 @@ int main (int argc, char **argv)
   }  
       
   /** Next greater power of two with respect to m_max */
-  N_MAX = 1<<((int)ceil(log((double)m_max)/log(2.0)));
+  N_MAX = 1<<ngpt(m_max);
   
   /* Initialize random number generator. */
   srand48(time(NULL));
