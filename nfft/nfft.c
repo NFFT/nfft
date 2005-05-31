@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "utils.h"
+#include "util.h"
 #include "options.h"
 #include "window_defines.h"
 
