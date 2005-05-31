@@ -58,7 +58,7 @@ int main (int argc, char **argv)
   const int D_THETA = D_PHI/2+1;
  	const int D = D_PHI * D_THETA;
   /** Next greater power of two with respect to L */
-  const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
+  const int N = 1<<ngpt(M);
  	complex *b;
   complex **f_hat;
  	complex *a;

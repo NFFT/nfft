@@ -16,7 +16,7 @@ int main()
   /** The bandwidth */
   const int M = 1<<2;
   /** Next greater power of two with respect to M */
-  const int N = 1<<((int)ceil(log((double)M)/log(2.0)));
+  const int N = 1<<ngpt(M);
   /** 
    * For the Fourier coefficients. 
    * Layout: f_hat[M+n][k] = a_k^n for n=-M,...,M; k=0,...,M
