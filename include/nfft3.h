@@ -4,6 +4,7 @@
 #ifndef NFFT3_H
 #define NFFT3_H
 
+#include <complex.h>
 #include "fftw3.h"
 
 /** 
@@ -62,6 +63,8 @@ typedef struct nfft_plan_
 
   double *spline_coeffs;          	/**< input for de Boor algorithm, if  
 					     B_SPLINE or SINC_2m is defined  */
+
+  int size_psi;                         /**< if PRE_FULL_PSI is set          */
 } nfft_plan;
 
 
@@ -153,7 +156,7 @@ void nfft_precompute_psi(nfft_plan *ths);
 /** precomputes the values psi and their indices in non tensor product form
  *  if PRE_FULL_PSI is set the application program has to call this routine
  */
-void nfft_precompute_full_psi(nfft_plan *ths);
+void nfft_precompute_full_psi(nfft_plan *ths, double eps);
 
 /** finalisation of transform
  */
