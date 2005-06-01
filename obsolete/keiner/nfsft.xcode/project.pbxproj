@@ -635,12 +635,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		4E6EA366083E95C9004C5D07 = {
-			fileRef = 4E6EA365083E95C9004C5D07;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4E75157F082C0CF4002018A8 = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -763,12 +757,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		4EBC5C0B084B30E7008F7245 = {
-			fileRef = 4EAD69A2083BE07E00C61F13;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		4ECA771908320743008ADA24 = {
 			children = (
 				4EAD69A2083BE07E00C61F13,
@@ -781,6 +769,12 @@
 			name = tests;
 			refType = 4;
 			sourceTree = "<group>";
+		};
+		4ED0A18D084C52260028A948 = {
+			fileRef = 4EAD69A2083BE07E00C61F13;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		4EDA6CF007A439F1008B1386 = {
 			fileEncoding = 5;
@@ -866,11 +860,7 @@
 		8DD76F640486A84900D96B5E = {
 			buildActionMask = 2147483647;
 			files = (
-<<<<<<< .mine
-				4EBC5C0B084B30E7008F7245,
-=======
-				4E6EA366083E95C9004C5D07,
->>>>>>> .r89
+				4ED0A18D084C52260028A948,
 				4E6CD55307C54A7E0040176B,
 				4E6CD55507C54A7E0040176B,
 				4E6CD57707C54E630040176B,
