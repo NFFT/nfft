@@ -26,4 +26,4 @@ AC_CHECK_HEADERS(complex.h time.h stdbool.h string.h fftw3.h)
 
 # Additional options
 
-AC_OUTPUT(Makefile include/Makefile util/Makefile nfft/Makefile examples/Makefile examples/nfft/Makefile)
+AC_OUTPUT(Makefile include/Makefile util/Makefile nfft/Makefile nnfft/Makefile examples/Makefile examples/nfft/Makefile)

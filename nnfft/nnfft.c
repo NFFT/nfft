@@ -1,3 +1,14 @@
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "util.h"
+#include "options.h"
+#include "window_defines.h"
+
+#include "nfft3.h"
+
 #include "nnfft.h"
 #include "window_defines.h"
 
@@ -389,7 +400,8 @@ void nnfft_precompute_lin_psi(nnfft_plan *ths, int K)
   ths->K=K;
   ths->psi = (double*) malloc((ths->K+1)*ths->d*sizeof(double));
   
-  nfft_precompute_lin_psi(ths->direct_plan,K);
+  /* Warte bis nfft wieder lin_psi hat */
+  //nfft_precompute_lin_psi(ths->direct_plan,K);
   
   for (t=0; t<ths->d; t++)
     {

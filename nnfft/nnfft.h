@@ -10,21 +10,15 @@
 #include <stdlib.h>
 
 
-#include "nfft.h"
+#include "nfft3.h"
 
 /** 
  * Constant symbols for precomputation and memory usage (direct problem)
  */
-#define PRE_PHI_HUT      (1U<< 0)
-#define PRE_LIN_PSI      (1U<< 2)
-#define PRE_PSI          (1U<< 3)
-#define PRE_FULL_PSI     (1U<< 4)
-#define MALLOC_X         (1U<< 5)
-#define MALLOC_F_HAT     (1U<< 6)
-#define MALLOC_F         (1U<< 7)
-#define FFTW_INIT        (1U<< 8)
-#define FFT_OUT_OF_PLACE (1U<< 9)
-#define MALLOC_V         (1U<< 10)
+
+#define PRE_LIN_PSI      (1U<< 22)
+#define FFTW_INIT        (1U<< 23)
+#define MALLOC_V         (1U<< 24)
 
 
 #define MACRO_MV_PLAN(float_type)			                      \
@@ -131,5 +125,7 @@ void nnfft_precompute_psi(nnfft_plan *ths_plan);
 void nnfft_full_psi(nnfft_plan *ths_plan, double eps);
 
 void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
+#endif
+
 #endif
 /* nnfft.h */
