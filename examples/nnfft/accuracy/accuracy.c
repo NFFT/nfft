@@ -1,5 +1,7 @@
-#include "utils.h"
-#include "nfft.h"
+#include <math.h>
+#include "nfft3.h"
+#include "util.h"
+#include "nnfft.h"
 
 void accuracy(int d)
 {
@@ -50,10 +52,7 @@ void accuracy(int d)
       
       /** init pseudo random Fourier coefficients */
       for(k=0;k<my_plan.N_total;k++)
-	{
-	  my_plan.f_hat[k][0]=((double)rand())/RAND_MAX;
-	  my_plan.f_hat[k][1]=((double)rand())/RAND_MAX;
-	}
+	my_plan.f_hat[k]=((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
       
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
@@ -63,10 +62,10 @@ void accuracy(int d)
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
         
-      printf("%e, %e\n",
+      /*printf("%e, %e\n",
 	     E_2_error_c(slow, my_plan.f, M_total),
 	     E_infty_error_c(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
-      
+      */
       /** finalise the one dimensional plan */
       nnfft_finalize(&my_plan);
     }

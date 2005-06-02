@@ -8,8 +8,8 @@
 #include "window_defines.h"
 
 #include "nfft3.h"
-
 #include "nnfft.h"
+
 #include "window_defines.h"
 
 #define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(complex));
