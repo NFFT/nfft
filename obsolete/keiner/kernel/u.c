@@ -143,7 +143,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
 	     {        
-        fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
+        //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
         
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);
@@ -564,7 +564,7 @@ struct U_type**** precomputeU_guru(int t, double threshold, double *walpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
 	     {        
-        fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
+        //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
         
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);

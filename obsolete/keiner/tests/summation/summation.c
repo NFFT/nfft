@@ -55,14 +55,13 @@
 
 inline double ip(double phi1,double theta1,double phi2,double theta2)
 {
-  //printf("theta = %f -> cos(theta) = %f\n",theta1,cos(theta1));
   return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
 }
 
 inline double poisson(double phi1,double theta1,double phi2,double theta2,double h)
 {
   double t = ip(phi1,theta1,phi2,theta2);
-	return pow((1-h)/sqrt(1-2*h*t+h*h),3);
+ 	return pow((1-h)/sqrt(1-2*h*t+h*h),3);
 }
 
 inline double gauss_weierstrass(double phi1,double theta1,double phi2,double theta2,double h)
