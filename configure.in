@@ -3,7 +3,6 @@ AC_INIT(NFFT, 3.0.0, potts@math.uni-luebeck.de)
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
 AC_CONFIG_SRCDIR(include/nfft3.h)
-AM_CONFIG_HEADER(include/config.h)
 
 AM_INIT_AUTOMAKE
 AM_ENABLE_SHARED(no)
