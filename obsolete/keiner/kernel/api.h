@@ -171,6 +171,8 @@ struct nfsft_wisdom
   /** Precomputed recursion coefficients for associated Legendre-functions */
   double *gamma;
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double *gamma_m1;
+  double *gamma_m1;  
+
+  complex *z;
 };
 #endif

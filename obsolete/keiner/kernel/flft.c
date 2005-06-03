@@ -11,7 +11,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
    */
   const int N = 1<<t;
   
-  /** Level index tau */
+  /** Level index \f$tau\f$ */
   int tau;
   /** Index of first block at current level */  
   int firstl;
@@ -26,7 +26,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   
   /** Multidimensional array of matrices \$U_{n,\tau,l}\$ */
   struct U_type ****const U  = wisdom->U;
-  /** Current matrix U_{n,tau,l} */
+  /** Current matrix \f$U_{n,tau,l}\f$ */
   struct U_type act_U;
   
   /** */
@@ -34,6 +34,9 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
 
   /** Loop counter */
   int j;
+  
+  complex *work_ptr;
+  complex *f_hat_ptr;
   
   
   /* Initialize working arrays. */
@@ -44,17 +47,20 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   memset(f_hat,0U,n*sizeof(complex));
   memset(&(f_hat[M+1]),0U,(N-M)*sizeof(complex));
   
+  work_ptr = wisdom->work;
+  f_hat_ptr = f_hat;
   /* First step */ 
   for (j = 0; j < N; j++) 
   {
-    wisdom->work[2*j] = f_hat[j];
+    *work_ptr = *f_hat_ptr++;
+    work_ptr += 2;
   }
   
   /* Use three-term recurrence to map last coefficient a_N to a_{N-1} and 
    * a_{N-2}. */
-  wisdom->work[2*(N-2)] += wisdom->gamma[ROW(n)+N]*f_hat[N];
-  wisdom->work[2*(N-1)] = f_hat[N-1] + wisdom->beta[ROW(n)+N]*f_hat[N];
-  wisdom->work[2*(N-1)+1] = wisdom->alpha[ROW(n)+N]*f_hat[N];
+  wisdom->work[2*(N-2)]   += wisdom->gamma[ROW(n)+N]*f_hat[N];
+  wisdom->work[2*(N-1)]   += wisdom->beta[ROW(n)+N]*f_hat[N];
+  wisdom->work[2*(N-1)+1]  = wisdom->alpha[ROW(n)+N]*f_hat[N];
   
   /* Compute the remaining steps. */
   plength = 4;
@@ -68,17 +74,16 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
     /* Compute the multiplication steps. */
     for (l = firstl; l <= lastl; l++)
     {  
-      /* Initialize second half of coefficient arrays with zeros. */
-      memset(&wisdom->vec1[plength/2],0U,(plength/2)*sizeof(complex));
-      memset(&wisdom->vec2[plength/2],0U,(plength/2)*sizeof(complex));
+      /* Copy vectors to multiply into working arrays zero-padded to twice the length. */
+      memcpy(wisdom->vec3,&(wisdom->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(complex));
+      memcpy(wisdom->vec4,&(wisdom->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(complex));     
       memset(&wisdom->vec3[plength/2],0U,(plength/2)*sizeof(complex));
       memset(&wisdom->vec4[plength/2],0U,(plength/2)*sizeof(complex));
       
       /* Copy coefficients into first half. */
-      memcpy(wisdom->vec1,&(wisdom->work[(plength/2)*(4*l+0)]),(plength/2)*sizeof(complex));
-      memcpy(wisdom->vec2,&(wisdom->work[(plength/2)*(4*l+1)]),(plength/2)*sizeof(complex));
-      memcpy(wisdom->vec3,&(wisdom->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(complex));
-      memcpy(wisdom->vec4,&(wisdom->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(complex));     
+      memcpy(&(wisdom->work[(plength/2)*(4*l+2)]),&(wisdom->work[(plength/2)*(4*l+1)]),(plength/2)*sizeof(complex));
+      memset(&(wisdom->work[(plength/2)*(4*l+1)]),0U,(plength/2)*sizeof(complex));
+      memset(&(wisdom->work[(plength/2)*(4*l+3)]),0U,(plength/2)*sizeof(complex));
       
       /* Get matrix U_{n,tau,l} */
       act_U = U[n][tau][l][0];
@@ -89,10 +94,16 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
         /* Multiply third and fourth polynomial with matrix U. */
         multiplyU(wisdom->vec3, wisdom->vec4, act_U, tau, n, plength*l+1, wisdom, 
                   wisdom->gamma[ROWK(n)+plength*l+1-n+1]);        
+        if (wisdom->gamma[ROWK(n)+plength*l+1-n+1] != 0.0)
+        {  
+          for (j = 0; j < plength; j++)
+          {
+            wisdom->work[plength*2*l+j] += wisdom->vec3[j];
+          }          
+        }
         for (j = 0; j < plength; j++)
         {
-          wisdom->work[plength*2*l+j]     = wisdom->vec1[j] + wisdom->vec3[j];
-          wisdom->work[plength*(2*l+1)+j] = wisdom->vec2[j] + wisdom->vec4[j];
+          wisdom->work[plength*(2*l+1)+j] += wisdom->vec4[j];
         }          
       }
       else
@@ -116,10 +127,6 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
         {
           wisdom->ergeb[plength_stab+j] += wisdom->vec4[j];
         }
-        
-        /* Don't change first and second polynomial. */
-        memcpy(&(wisdom->work[plength*2*l]),wisdom->vec1,plength*sizeof(complex));
-        memcpy(&(wisdom->work[plength*(2*l+1)]),wisdom->vec2,plength*sizeof(complex)); 
       }
     }
     /* Double length of polynomials. */
@@ -222,22 +229,22 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
     if (n == 0)
     {
       /* Second half is T_{N+1}^T */
-      wisdom->work[N+1+0] = gamma * f_hat[1];
+      wisdom->work[N+0] = gamma * f_hat[1];
       for (j = 1; j < N; j++)
       {
-        wisdom->work[N+1+j] = gamma*0.5*(f_hat[j-1] + f_hat[j+1]);
+        wisdom->work[N+j] = gamma*0.5*(f_hat[j-1] + f_hat[j+1]);
       } 
-      wisdom->work[N+1+N] = 0.5*gamma*f_hat[N-1];     
+      wisdom->work[N+N] = 0.5*gamma*f_hat[N-1];     
     }
     else
     {
       /* Second half is I_{N+1} - T_{N+1}^T */
-      wisdom->work[N+1+0] = gamma * (f_hat[0] - f_hat[1]);
+      wisdom->work[N+0] = gamma * (f_hat[0] - f_hat[1]);
       for (j = 1; j < N; j++)
       {
-        wisdom->work[N+1+j] = gamma * (f_hat[j] - 0.5*(f_hat[j-1] + f_hat[j+1]));
+        wisdom->work[N+j] = gamma * (f_hat[j] - 0.5*(f_hat[j-1] + f_hat[j+1]));
       } 
-      wisdom->work[N+1+N] = gamma * (f_hat[N] - 0.5*f_hat[N-1]);     
+      wisdom->work[N+N] = gamma * (f_hat[N] - 0.5*f_hat[N-1]);     
     }
   }
   else
@@ -245,13 +252,10 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
     /* Second half is I_{N+1} */    
     for (j = 0; j <= N; j++)
     {
-      wisdom->work[N+1+j] = /*---*/ - gamma*f_hat[j];
+      wisdom->work[N+j] = /*---*/ - gamma*f_hat[j];
     }
   }  
-  
-  memmove(&wisdom->work[N],&wisdom->work[N+1],N*sizeof(complex));
-  memset(&wisdom->work[2*N],0U,2*sizeof(complex));
-  
+    
   /** Save copy of inpute data for stabilization steps. */
   memcpy(wisdom->old,wisdom->work,2*N*sizeof(complex));
   

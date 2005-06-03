@@ -144,7 +144,7 @@ int main (int argc, char **argv)
   printf("Precomputing wisdom up to M = %d ...",M);
   fflush(stdout);
   ctime = mysecond();
-  nfsft_precompute(M,1000);
+  nfsft_precompute(M,2000);
   printf(" needed %7.2f secs.\n",mysecond()-ctime);
           
   /* Compute random Fourier coefficients. */
@@ -152,7 +152,7 @@ int main (int argc, char **argv)
   {
     for (k = abs(n); k <= M; k++)
     {
-      f_hat[n+M][k] = drand48() + I*drand48();
+      f_hat[n+M][k] = (k <= 0)?1.0:0.0;//drand48(); + I*drand48();
     }
     /* Save a copy. */
     memcpy(f_hat_orig[n+M],f_hat[n+M],(M+1)*sizeof(complex));
@@ -182,6 +182,8 @@ int main (int argc, char **argv)
   plan = nfsft_init(D, M, angles, f_hat, f, 0U);
   nfsft_trafo(plan);
 
+  myvprc(f,D,"f:");
+  
   for (n = -M; n <= M; n++)
   {
     for (k = abs(n); k <= M; k++)
@@ -195,7 +197,8 @@ int main (int argc, char **argv)
   
   /* inverse trafo */  
   infsft_before_loop(iplan);
-  for(l=0;l<30;l++)
+  fprintf(stderr,"%e,\n",sqrt(iplan->dot_r_iter));
+  for(l=0;l<50;l++)
   { 
     fprintf(stderr,"%e,\n",sqrt(iplan->dot_r_iter));
     infsft_loop_one_step(iplan);

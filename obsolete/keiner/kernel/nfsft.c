@@ -319,6 +319,7 @@ void nfsft_forget()
     {  
       forgetU(wisdom.U,wisdom.N,wisdom.t);
       
+      free(wisdom.z);
       fftw_free(wisdom.work);
       fftw_free(wisdom.old);
       fftw_free(wisdom.ergeb);
@@ -360,6 +361,7 @@ void nfsft_forget_guru(int n)
     {  
       forgetU_guru(wisdom.U,wisdom.N,wisdom.t,n);
       
+      free(wisdom.z);
       fftw_free(wisdom.work);
       fftw_free(wisdom.old);
       fftw_free(wisdom.ergeb);
@@ -536,6 +538,7 @@ void nfsft_precompute(int M, int threshold)
       wisdom.plans_dct2[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
                                              (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
     }  
+    wisdom.z = (complex*) malloc(wisdom.N*sizeof(complex));
     wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma);
   }
   
@@ -593,6 +596,7 @@ void nfsft_precompute_guru(int M, int threshold, int n)
       wisdom.plans_dct2[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
                                                 (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
     }  
+    wisdom.z = (complex*) malloc(wisdom.N*sizeof(complex));
     wisdom.U = precomputeU_guru(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma,n);
   }
   
@@ -642,6 +646,8 @@ void ndsft_trafo(nfsft_plan plan)
   /** Counter for loops */
   int i;
   
+  plan->plan_nfft.f = plan->f;
+  
   precompute_coeffs();
 
   if (plan->M == 0)
@@ -661,6 +667,8 @@ void ndsft_trafo(nfsft_plan plan)
 
 void ndsft_adjoint(nfsft_plan plan)
 { 
+  plan->plan_nfft.f = plan->f;
+
   precompute_coeffs();
   
   adjoint_ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
@@ -678,6 +686,8 @@ void nfsft_trafo(nfsft_plan plan)
   int i, n;
   /** */
   //struct nfsft_transform_wisdom *tw;
+
+  plan->plan_nfft.f = plan->f;
 
   /* Init global structure. */
   precompute_coeffs();
@@ -723,6 +733,8 @@ void nfsft_adjoint(nfsft_plan plan)
   //struct nfsft_transform_wisdom *tw;
   /** */
   //nfft_plan myplan;
+  
+  plan->plan_nfft.f = plan->f;
   
   if (wisdom.initialized == false || plan->M > wisdom.N)
   {

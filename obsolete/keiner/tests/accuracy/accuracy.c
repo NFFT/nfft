@@ -391,7 +391,7 @@ int main (int argc, char **argv)
         printf("   File %s not found.\t\t\t",filename);
       }    
 
-      if (1 == 2)
+      if (1 == 1)
 	{
       
       /* Test Clenshaw-Curtis quadrature */

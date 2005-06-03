@@ -118,6 +118,30 @@ inline void myvprs (double* x, int n, char * text, int stride)
   }
 }
 
+inline void myvprc_hat (complex **x, int n, char *text)
+{
+  int k,m,d;
+  
+  fprintf(stderr,"%s, adr=%p\n", text, x);
+  
+  d = 0;
+  for (k=0; k<n; k++)
+  {
+    for (m = -k; m < k; m++)
+    {  
+      if (d%2==0) fprintf(stderr,"%d,%d.", k,m);
+      fprintf(stderr,"(%20.16e,", creal(x[k][m+n]));
+      fprintf(stderr,"%20.16e),", cimag(x[k][m+n]));
+      if (d%2==1) fprintf(stderr,"\n");
+      fflush(stdout);
+      d++;
+    }
+  }
+  
+  if (n%5!=0)
+    fprintf(stderr,"\n");
+}
+
 inline void myvprc (complex *x, int n, char *text)
 {
   int k;
@@ -136,6 +160,8 @@ inline void myvprc (complex *x, int n, char *text)
   if (n%5!=0)
     fprintf(stderr,"\n");
 }
+
+
 
 inline void myvprci (complex *x, int n, char *text)
 {
@@ -369,7 +395,7 @@ double dotproductc_w_hat(complex **x, double **w, int M)
 
 /** Updates \f$x \leftarrow x + a y\f$.
 */
-void updatec_xpay_hat(complex **x,double a, complex **y, int M)
+inline void updatec_xpay_hat(complex **x,double a, complex **y, int M)
 {
   int n,k;
   
@@ -382,7 +408,7 @@ void updatec_xpay_hat(complex **x,double a, complex **y, int M)
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
 */
-void updatec_xpawy_hat(complex **x, double a, double **w, complex **y,
+inline void updatec_xpawy_hat(complex **x, double a, double **w, complex **y,
                    int M)
 {
   int n,k;
@@ -396,7 +422,7 @@ void updatec_xpawy_hat(complex **x, double a, double **w, complex **y,
 
 /** Updates \f$x \leftarrow a x + y\f$.
 */
-void updatec_axpy_hat(complex **x,double a, complex **y, int M)
+inline void updatec_axpy_hat(complex **x,double a, complex **y, int M)
 {
   int n,k;
   
@@ -411,7 +437,7 @@ void updatec_axpy_hat(complex **x,double a, complex **y, int M)
 
 /** Updates \f$x \leftarrow a x + b y\f$.
 */
-void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M)
+inline void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M)
 {
   int n,k;
   
@@ -423,3 +449,112 @@ void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M)
     }
   }
 }
+
+/** Updates \f$x \leftarrow a x + y\f$.
+*/
+inline void updatec_axpy_2(complex* x,double a, complex* y, int n)
+{
+  int l;
+  
+  for(l=0;l<n;l++)
+  {
+    x[l] = a*x[l] + y[l];
+  }
+}
+
+/** Updates \f$x \leftarrow x + a y\f$.
+*/
+inline void updatec_xpay_2(complex* x,double a, complex* y, int n)
+{
+  int l;
+  
+  for(l=0;l<n;l++)
+  {
+    x[l] += a*y[l];
+  }
+}
+
+/** Updates \f$x \leftarrow a x + b y\f$.
+*/
+inline void updatec_axpby_2(complex* x, double a, complex* y, double b,
+                   int n)
+{
+  int l;
+  
+  for(l=0;l<n;l++)
+  {
+    x[l]=a*x[l]+b*y[l];
+  }
+}
+
+/** Updates \f$x \leftarrow x + a w\odot y\f$.
+ */
+inline void updatec_xpawy_2(complex* x,double a, double* w, complex* y,
+                   int n)
+{
+  int l;
+  
+  for(l=0;l<n;l++)
+  {
+    x[l] += a*w[l]*y[l];
+  }
+}
+
+/** Updates \f$x \leftarrow x + a w\odot y\f$.
+ */
+inline void uvxpwy(complex* u, complex* x, double* v, complex* y, double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
+  
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
+  
+  for (l = 0; l < n; l++)
+  {
+    *u++ = (*v++) * (*x++) + (*w++) * (*y++);
+  }
+}
+
+/** Updates \f$x \leftarrow x + a w\odot y\f$.
+*/
+inline void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
+  
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
+  
+  for (l = 0; l < n; l++)
+  {
+    *u++ = a * ((*v++) * (*x++) + (*w++) * (*y++));
+  }
+}
+
+inline void abuvxpwy(double a, double b, complex* u, complex* x, double* v, complex* y, double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
+  
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
+  
+  for (l = 0; l < n; l++)
+  {
+    *u++ = a * (b * (*v++) * (*x++) + (*w++) * (*y++));
+  }
+}
+

@@ -17,6 +17,7 @@ inline int ngpt(int n);
 double mysecond();
 void myvpr (double* x, int n, char * text);
 void myvprc (complex *x, int n, char * text);
+void myvprc_hat (complex **x, int n, char * text);
 int pow2(const int t);
 double error_complex_inf(complex *x0, complex *x, int n);
 double error_complex_inf_r(complex *x0, complex *x, int n);
@@ -34,6 +35,15 @@ void updatec_xpay_hat(complex **x,double a, complex **y, int M);
 void updatec_xpawy_hat(complex **x, double a, double **w, complex **y, int M);
 void updatec_axpy_hat(complex **x,double a, complex **y, int M);
 void updatec_axpby_hat(complex **x, double a, complex **y, double b, int M);
+void updatec_axpy_2(complex* x,double a, complex* y, int n);
+void updatec_xpay_2(complex* x,double a, complex* y, int n);
+void updatec_axpby_2(complex* x, double a, complex* y, double b, int n);
+void updatec_xpawy_2(complex* x,double a, double* w, complex* y, int n);
+void uvxpwy(complex* u, complex* x, double* v, complex* y, double* w, int n);
+void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, double* w, int n);
+void abuvxpwy(double a, double b, complex* u, complex* x, double* v, complex* y, double* w, int n);
+
+
 
 #define PI 3.1415926535897932385
 #define QUADRATIC_KERNEL(k) k==0?1.0:((2*k+1)/((double)(k*(k+1))*(k*(k+1))))
