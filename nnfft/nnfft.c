@@ -473,7 +473,7 @@ void nnfft_full_psi(nnfft_plan *ths, double eps)
   
   nnfft_precompute_psi(ths);
   
-  nfft_full_psi(ths->direct_plan,eps);
+  nfft_precompute_full_psi(ths->direct_plan,eps);
   
   for(j=0;j<ths->M_total;j++) {  
     for(t=0;t<ths->d;t++) {
@@ -580,8 +580,8 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
                                            
   ths->direct_plan = (nfft_plan*) malloc(sizeof(nfft_plan));
     
-  nfft_init_specific(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2,
-                        m2, nfft_flags, fftw_flags);
+  nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2, 
+	               nfft_flags, fftw_flags);
                         
   ths->direct_plan->x = ths->x;
   ths->direct_plan->f = ths->f;

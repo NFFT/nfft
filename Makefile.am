@@ -1,8 +1,8 @@
 SUBDIRS = include util nfft nnfft . examples
 
-lib_LTLIBRARIES = libnfft.la      
+lib_LTLIBRARIES = libnfft3.la      
 
-libnfft_la_SOURCES =
+libnfft3_la_SOURCES =
 
-libnfft_la_LIBADD = util/libutil.la nfft/libnfft.la nnfft/libnnfft.la
+libnfft3_la_LIBADD = util/libutil.la nfft/libnfft.la nnfft/libnnfft.la
 
