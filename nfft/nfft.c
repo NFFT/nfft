@@ -304,8 +304,13 @@ MACRO_nfft_D(T)
 }
 
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
+  /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
+#define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*              \
+                                (y_u[t2]+1-y[t2]) +                           \
+                                ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
+                                (y[t2]-y_u[t2])) 
 #define MACRO_without_PRE_PSI  PHI(ths->x[j*ths->d+t2]-                       \
-                               ((double)l[t2])/ths->n[t2], t2)
+                                   ((double)l[t2])/ths->n[t2], t2)
 
 #define MACRO_init_uo_l_lj_t {                                                \
   for(t = ths->d-1; t>=0; t--)                                                \
@@ -315,6 +320,15 @@ MACRO_nfft_D(T)
       lj[t] = 0;                                                              \
     } /* for(t) */                                                            \
   t++;                                                                        \
+}
+
+#define MACRO_update_with_PRE_PSI_LIN {                                        \
+  for(t2=t; t2<ths->d; t2++)                                                   \
+    {                                                                          \
+      y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])             \
+	  * ((double)ths->K))/(ths->m+1));                                     \
+      y_u[t2] = (int)y[t2];                                                    \
+    } /* for(t2) */                                                            \
 }
 
 #define MACRO_update_phi_prod_ll_plain(which_one) {                           \
@@ -349,7 +363,9 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   int ll_plain[ths->d+1];               /**< postfix plain index in g       */\
   double phi_prod[ths->d+1];            /**< postfix product of PHI         */\
   complex *f, *g;                       /**< local copy                     */\
-  complex *fj;                          /**< local copy                     */	\
+  complex *fj;                          /**< local copy                     */\
+  double y[ths->d];                                                           \
+  int y_u[ths->d];                                                            \
                                                                               \
   f=ths->f; g=ths->g;                                                         \
                                                                               \
@@ -378,6 +394,24 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
 	  for(l_L=0; l_L<lprod; l_L++)                                        \
 	    {                                                                 \
               MACRO_update_phi_prod_ll_plain(with_PRE_PSI);                   \
+                                                                              \
+	      MACRO_nfft_B_compute_ ## which_one;                             \
+		                                                              \
+	      MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+	} /* for(j) */                                                        \
+      return;                                                                 \
+    } /* if(PRE_PSI) */                                                       \
+                                                                              \
+  if(ths->nfft_flags & PRE_LIN_PSI)                                           \
+    {                                                                         \
+      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
+	{                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+	  for(l_L=0; l_L<lprod; l_L++)                                        \
+	    {                                                                 \
+              MACRO_update_with_PRE_PSI_LIN;                                  \
                                                                               \
 	      MACRO_nfft_B_compute_ ## which_one;                             \
 		                                                              \
@@ -543,6 +577,26 @@ void nfft_precompute_phi_hut(nfft_plan *ths)
     }
 } /* nfft_phi_hut */
 
+/** create a lookup table, but NOT for each node
+ *  good idea K=2^xx
+ *  TODO: estimate K, call from init
+ */
+void nfft_precompute_lin_psi(nfft_plan *ths)
+{
+  int t;                                /**< index over all dimensions        */
+  int j;                                /**< index over all nodes             */  
+  double step;                          /**< step size in [0,(m+1)/n]         */
+
+  for (t=0; t<ths->d; t++)
+    {
+      step=((double)(ths->m+1))/(ths->K*ths->n[t]);
+      for(j=0;j<=ths->K;j++)
+	{
+	  ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
+	} /* for(j) */
+    } /* for(t) */
+}
+
 void nfft_precompute_psi(nfft_plan *ths)
 {
   int t;                                /**< index over all dimensions       */
@@ -563,7 +617,7 @@ void nfft_precompute_psi(nfft_plan *ths)
   /* for(t) */
 } /* nfft_precompute_psi */
 
-void nfft_precompute_full_psi(nfft_plan *ths, double eps)
+void nfft_precompute_full_psi(nfft_plan *ths)
 {
   int t,t2;                             /**< index over all dimensions       */
   int j;                                /**< index over all nodes            */
@@ -576,72 +630,39 @@ void nfft_precompute_full_psi(nfft_plan *ths, double eps)
   
   double phi_prod[ths->d+1];
 
-  int *index_g, *index_f;
-  double *new_psi;
-  int ix,ix_old,size_psi;
-
-  nfft_precompute_psi(ths);
+  int ix,ix_old;
 
   phi_prod[0]=1;
   ll_plain[0]=0;
 
-  size_psi=ths->M_total;
-  index_f = (int*) malloc(ths->M_total*sizeof(int));
-  index_g = (int*) malloc(size_psi*sizeof(int));
-  new_psi = (double*) malloc(size_psi*sizeof(double));
-      
   for(t=0,lprod = 1; t<ths->d; t++)
-    {
       lprod *= 2*ths->m+2;
-      eps=eps*(PHI(0,t));
-    }
-      
-  for(ix=0,ix_old=0,j=0; j<ths->M_total; j++)
+
+  for(j=0,ix=0,ix_old=0; j<ths->M_total; j++)
     {
       MACRO_init_uo_l_lj_t;
       
-      for(l_L=0; l_L<lprod; l_L++)
+      for(l_L=0; l_L<lprod; l_L++, ix++)
 	{
-	  MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
+	  MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
 	  
-	  if(phi_prod[ths->d]>eps)
-	    {
-	      index_g[ix]=ll_plain[ths->d];
-	      new_psi[ix]=phi_prod[ths->d];
-	      ix++;
-	      if(ix==size_psi)
-		{
-		  size_psi+=ths->M_total;
-		  index_g=(int*)realloc(index_g,size_psi*sizeof(int));
-		  new_psi=(double*)realloc(new_psi,size_psi*sizeof(double));
-		}
-	    }
+	  ths->psi_index_g[ix]=ll_plain[ths->d];
+	  ths->psi[ix]=phi_prod[ths->d];
+	   
 	  MACRO_count_uo_l_lj_t;
 	} /* for(l_L) */
       
       
-      index_f[j]=ix-ix_old;
+      ths->psi_index_f[j]=ix-ix_old;
       ix_old=ix;
     } /* for(j) */
-  
-  free(ths->psi);
-  size_psi=ix;
-  ths->size_psi=size_psi;
-  index_g=(int*)realloc(index_g,size_psi*sizeof(int));
-  new_psi=(double*)realloc(new_psi,size_psi*sizeof(double));
-  
-  ths->psi         =new_psi;
-  ths->psi_index_g =index_g; 
-  ths->psi_index_f=index_f;
-  
-  /*printf("size_psi / (lprod*M_total)=%e\n",size_psi / 
-    ((double)lprod*ths->M_total));*/
 }
 
 
 void nfft_init_help(nfft_plan *ths)
 {
   int t;                                /**< index over all dimensions       */
+  int lprod;                            /**< 'bandwidth' of matrix B         */
 
   ths->N_total=nfft_prod_int(ths->N, ths->d);
   ths->n_total=nfft_prod_int(ths->n, ths->d);
@@ -664,10 +685,26 @@ void nfft_init_help(nfft_plan *ths)
   if(ths->nfft_flags & PRE_PHI_HUT)
     nfft_precompute_phi_hut(ths);
 
-  /* NO FFTW_MALLOC HERE */
-  if((ths->nfft_flags & PRE_PSI)||(ths->nfft_flags & PRE_FULL_PSI))
-    ths->psi = (double*) malloc(ths->M_total*ths->d*
-					   (2*ths->m+2)*sizeof(double));
+  if(ths->nfft_flags & PRE_LIN_PSI)
+  {
+      ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+      ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
+  }
+
+  if(ths->nfft_flags & PRE_PSI)
+    ths->psi = (double*) fftw_malloc(ths->M_total*ths->d*
+				     (2*ths->m+2)*sizeof(double));
+
+  if(ths->nfft_flags & PRE_FULL_PSI)
+  {
+      for(t=0,lprod = 1; t<ths->d; t++)
+	  lprod *= 2*ths->m+2;
+      
+      ths->psi = (double*) fftw_malloc(ths->M_total*lprod*sizeof(double));
+
+      ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
+      ths->psi_index_g = (int*) fftw_malloc(lprod*sizeof(int));
+  }
   
   ths->g1=(complex*)fftw_malloc(ths->n_total*sizeof(complex));
 
@@ -769,16 +806,18 @@ void nfft_finalize(nfft_plan *ths)
 
   fftw_free(ths->g1);
 
-  /* NO FFTW_FREE HERE */
-  if(ths->nfft_flags & PRE_PSI)
-    free(ths->psi);
-
   if(ths->nfft_flags & PRE_FULL_PSI)
     {
-      free(ths->psi_index_g);
-      free(ths->psi_index_f);
-      free(ths->psi);
+      fftw_free(ths->psi_index_g);
+      fftw_free(ths->psi_index_f);
+      fftw_free(ths->psi);
     }
+
+  if(ths->nfft_flags & PRE_PSI)
+    fftw_free(ths->psi);
+
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    fftw_free(ths->psi);
       
   if(ths->nfft_flags & PRE_PHI_HUT)
     {

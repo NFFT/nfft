@@ -11,12 +11,13 @@
  * Constant symbols for precomputation and memory usage
  */
 #define PRE_PHI_HUT      (1U<< 0)
-#define PRE_PSI          (1U<< 1)
-#define PRE_FULL_PSI     (1U<< 2)
-#define MALLOC_X         (1U<< 3)
-#define MALLOC_F_HAT     (1U<< 4)
-#define MALLOC_F         (1U<< 5)
-#define FFT_OUT_OF_PLACE (1U<< 6)
+#define PRE_LIN_PSI      (1U<< 1)
+#define PRE_PSI          (1U<< 2)
+#define PRE_FULL_PSI     (1U<< 3)
+#define MALLOC_X         (1U<< 4)
+#define MALLOC_F_HAT     (1U<< 5)
+#define MALLOC_F         (1U<< 6)
+#define FFT_OUT_OF_PLACE (1U<< 7)
 
 #define MACRO_MV_PLAN(float_type)			                      \
   int N_total;                          /**< total number of Fourier coeffs.*/\
@@ -41,6 +42,7 @@ typedef struct nfft_plan_
   int n_total;                          /**< total size of fftw              */	
   int m;                                /**< cut-off parameter in time-domain*/
   double *b;                            /**< shape parameters                */
+  int K;                                /**< number of precomp. uniform psi  */
 
   unsigned nfft_flags;                  /**< flags for precomputation, malloc*/
   unsigned fftw_flags;                  /**< flags for the fftw              */
@@ -132,7 +134,7 @@ void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
  */
 void nfft_init(nfft_plan *ths, int d, int *N, int M);
 
-/** initialisation of transform, advanced interface
+/** initialisation of transform, advanced interfacegoogle.de/
  */
 void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
 			unsigned nfft_flags_on, unsigned nfft_flags_off);
@@ -156,7 +158,7 @@ void nfft_precompute_psi(nfft_plan *ths);
 /** precomputes the values psi and their indices in non tensor product form
  *  if PRE_FULL_PSI is set the application program has to call this routine
  */
-void nfft_precompute_full_psi(nfft_plan *ths, double eps);
+void nfft_precompute_full_psi(nfft_plan *ths);
 
 /** finalisation of transform
  */
