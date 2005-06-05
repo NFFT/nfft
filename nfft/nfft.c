@@ -186,7 +186,7 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
 #define MACRO_nfft_D_init_result_A  memset(g_hat,0,ths->n_total*              \
 					   sizeof(complex));
 #define MACRO_nfft_D_init_result_T memset(f_hat,0,ths->N_total*               \
-                                          sizeof(complex));
+                                           sizeof(complex));
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 #define MACRO_without_PRE_PHI_HUT / (PHI_HUT(ks[t2]-ths->N[t2]/2,t2));
@@ -413,13 +413,15 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
 	    {                                                                 \
               MACRO_update_with_PRE_PSI_LIN;                                  \
                                                                               \
+              MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);               \
+                                                                              \
 	      MACRO_nfft_B_compute_ ## which_one;                             \
 		                                                              \
 	      MACRO_count_uo_l_lj_t;                                          \
             } /* for(l_L) */                                                  \
 	} /* for(j) */                                                        \
       return;                                                                 \
-    } /* if(PRE_PSI) */                                                       \
+    } /* if(PRE_LIN_PSI) */                                                   \
                                                                               \
   /* no precomputed psi at all */                                             \
   for(j=0, fj=f; j<ths->M_total; j++, fj++)                                   \
@@ -703,7 +705,7 @@ void nfft_init_help(nfft_plan *ths)
       ths->psi = (double*) fftw_malloc(ths->M_total*lprod*sizeof(double));
 
       ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
-      ths->psi_index_g = (int*) fftw_malloc(lprod*sizeof(int));
+      ths->psi_index_g = (int*) fftw_malloc(ths->M_total*lprod*sizeof(int));
   }
   
   ths->g1=(complex*)fftw_malloc(ths->n_total*sizeof(complex));
