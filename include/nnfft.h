@@ -16,7 +16,6 @@
  * Constant symbols for precomputation and memory usage (direct problem)
  */
 
-#define PRE_LIN_PSI      (1U<< 22)
 #define FFTW_INIT        (1U<< 23)
 #define MALLOC_V         (1U<< 24)
 
