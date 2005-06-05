@@ -7,8 +7,8 @@
 
 void simple_test_nfft_1d()
 {
-  int j,k;                              /**< index for nodes and freqencies   */
-  nfft_plan my_plan;                    /**< plan for the nfft                */
+  int j,k;                              /**< index for nodes and freqencies  */
+  nfft_plan my_plan;                    /**< plan for the nfft               */
 
   int N[1],n[1];
   N[0]=16; n[0]=32;
@@ -26,13 +26,14 @@ void simple_test_nfft_1d()
     }
 
   /** precompute psi, the entries of the matrix B */
+    if(my_plan.nfft_flags & PRE_LIN_PSI)
+      nfft_precompute_lin_psi(&my_plan);
+
   if(my_plan.nfft_flags & PRE_PSI)
-    {
       nfft_precompute_psi(&my_plan);
       
-      if(my_plan.nfft_flags & PRE_FULL_PSI)
-	nfft_precompute_full_psi(&my_plan,pow(10,-10));
-    }
+  if(my_plan.nfft_flags & PRE_FULL_PSI)
+      nfft_precompute_full_psi(&my_plan);
 
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
@@ -72,7 +73,7 @@ void simple_test_nfft_2d()
   /** init an one dimensional plan */
   //nfft_init_2d(&my_plan,12,12,19);
   nfft_init_guru(&my_plan, 2, N, 19, n, 6,
-		 PRE_PHI_HUT| PRE_PSI|
+		 PRE_PHI_HUT| PRE_LIN_PSI|
 		 MALLOC_X| MALLOC_F_HAT| MALLOC_F, 
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
@@ -84,13 +85,14 @@ void simple_test_nfft_2d()
     }
 
   /** precompute psi, the entries of the matrix B */
+    if(my_plan.nfft_flags & PRE_LIN_PSI)
+      nfft_precompute_lin_psi(&my_plan);
+
   if(my_plan.nfft_flags & PRE_PSI)
-    {
       nfft_precompute_psi(&my_plan);
       
-      if(my_plan.nfft_flags & PRE_FULL_PSI)
-	nfft_precompute_full_psi(&my_plan,pow(10,-10));
-    }
+  if(my_plan.nfft_flags & PRE_FULL_PSI)
+      nfft_precompute_full_psi(&my_plan);
 
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
