@@ -1,6 +1,6 @@
 /**
  * Simple and fast computation of the NDFT.
- * authors: D. Potts, S. Kunis (c) 2002-2003
+ * authors: D. Potts, S. Kunis (c) 2002-2005
  */
 
 #include <stdio.h>
@@ -707,21 +707,24 @@ void nfft_init_help(nfft_plan *ths)
       ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
       ths->psi_index_g = (int*) fftw_malloc(ths->M_total*lprod*sizeof(int));
   }
-  
-  ths->g1=(complex*)fftw_malloc(ths->n_total*sizeof(complex));
 
-  if(ths->nfft_flags & FFT_OUT_OF_PLACE)
-    ths->g2 = (complex*) fftw_malloc(ths->n_total*
-						sizeof(complex));
-  else
-    ths->g2 = ths->g1;
-  
-  ths->my_fftw_plan1 = 
-    fftw_plan_dft(ths->d, ths->n, ths->g1, ths->g2,
-		  FFTW_FORWARD, ths->fftw_flags);
-  ths->my_fftw_plan2 = 
-    fftw_plan_dft(ths->d, ths->n, ths->g2, ths->g1,
-		  FFTW_BACKWARD, ths->fftw_flags);
+  if(ths->nfft_flags & FFTW_INIT)
+    {  
+	ths->g1=(complex*)fftw_malloc(ths->n_total*sizeof(complex));
+
+	if(ths->nfft_flags & FFT_OUT_OF_PLACE)
+	    ths->g2 = (complex*) fftw_malloc(ths->n_total*
+					     sizeof(complex));
+	else
+	    ths->g2 = ths->g1;
+	
+	ths->my_fftw_plan1 = 
+	    fftw_plan_dft(ths->d, ths->n, ths->g1, ths->g2,
+			  FFTW_FORWARD, ths->fftw_flags);
+	ths->my_fftw_plan2 = 
+	    fftw_plan_dft(ths->d, ths->n, ths->g2, ths->g1,
+			  FFTW_BACKWARD, ths->fftw_flags);
+    }
 }
 
 void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
@@ -743,7 +746,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
   WINDOW_HELP_ESTIMATE_m;
 
   ths->nfft_flags = PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-    FFT_OUT_OF_PLACE;
+    FFTW_INIT| FFT_OUT_OF_PLACE;
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
   nfft_init_help(ths);    
@@ -800,13 +803,16 @@ void nfft_finalize(nfft_plan *ths)
 {
   int t; /* index over dimensions */
 
-  fftw_destroy_plan(ths->my_fftw_plan2);
-  fftw_destroy_plan(ths->my_fftw_plan1);
+  if(ths->nfft_flags & FFTW_INIT)
+    {
+	fftw_destroy_plan(ths->my_fftw_plan2);
+	fftw_destroy_plan(ths->my_fftw_plan1);
 
-  if(ths->nfft_flags & FFT_OUT_OF_PLACE)
-    fftw_free(ths->g2);
-
-  fftw_free(ths->g1);
+	if(ths->nfft_flags & FFT_OUT_OF_PLACE)
+	    fftw_free(ths->g2);
+	
+	fftw_free(ths->g1);
+    }
 
   if(ths->nfft_flags & PRE_FULL_PSI)
     {
