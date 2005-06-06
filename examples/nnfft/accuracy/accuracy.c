@@ -60,13 +60,15 @@ void accuracy(int d)
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
 
-    vpr_c(my_plan.f,3," slow ");
+    
       
       SWAPC(my_plan.f,slow);
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
 
+
+    vpr_c(slow,3," slow ");
     vpr_c(my_plan.f,3," fast ");
 
 

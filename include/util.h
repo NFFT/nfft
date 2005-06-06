@@ -139,12 +139,13 @@ double errorc(complex *x0, complex *x, int n);
 
 /** computes \f$\frac{\|x_0-x\|_{\infty}}{\|\hat f\|_1} \f$
  */
-double E_infty_error_c(complex *x0, complex *x, int M,
-			  complex *f_hat, int N_d);
+double error_l_infty_1_c(complex *x0, complex *x, int n,
+                         complex *f_hat, int N_d);
 
 /** computes \f$\frac{\|x_0-x\|_2}{\|x\|_2} \f$
  */
-double E_2_error_c(complex *x0, complex *x, int M);
+double error_l_infty_c(complex *x0, complex *x, int n);
+
 
 /** vector print
  */
