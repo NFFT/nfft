@@ -8,9 +8,7 @@
 #include "window_defines.h"
 
 #include "nfft3.h"
-#include "nnfft.h"
 
-#include "window_defines.h"
 
 #define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(complex));
 #define MACRO_nndft_init_result_conjugated MACRO_nndft_init_result_trafo
@@ -588,7 +586,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
   ths->F = ths->direct_plan->f_hat;
 }
 
-void nnfft_init_specific(nnfft_plan *ths, int d, int N_total, int M_total, int *N, int *N1,
+void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, int *N1,
                         int m, unsigned nnfft_flags)
 {
   int t;                             /**< index over all dimensions        */

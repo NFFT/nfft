@@ -18,6 +18,8 @@
 #define MALLOC_F_HAT     (1U<< 5)
 #define MALLOC_F         (1U<< 6)
 #define FFT_OUT_OF_PLACE (1U<< 7)
+#define MALLOC_V         (1U<< 8)
+#define FFTW_INIT        (1U<< 9)
 
 #define MACRO_MV_PLAN(float_type)			                      \
   int N_total;                          /**< total number of Fourier coeffs.*/\
@@ -167,6 +169,88 @@ void nfft_finalize(nfft_plan *ths);
 /* @} 
  */
 
+ 
+ 
+ 
+ 
+ 
+/** @defgroup nnfft Group
+ * Direct and fast computation of the
+ * discrete Fourier transform at nonequispaced knots in time- and fourier-domain
+ * @{ 
+ */
+ typedef struct nnfft_plan_ 
+{
+  /** api */
+  MACRO_MV_PLAN(complex);
 
+  int d;                                /**< dimension, rank                  */
+  double *sigma;                        /**< oversampling-factor 1            */
+  double *a;                            /**< 1 + 2*m1/N1                      */ 
+  int *N;                               /**< cut-off-frequencies              */
+  int *N1;
+  int *aN1;
+  int m;                                /**< cut-off parameter in time-domain */
+  double *b;                            /**< shape parameters                 */
+  int K;                                /**< K+1 values of phi                */
+
+  int aN1_total;
+  
+  nfft_plan *direct_plan;               /**< plan for the nfft                */
+  unsigned nnfft_flags;                 /**< flags for precomputation, malloc */
+
+  int *n;                               /**<  = a*N                           */
+  
+  double *x;                            /**< nodes (in time/spatial domain)   */
+  
+  double *v;                            /**< nodes (in fourier domain)   */
+
+  double *c_phi_inv;                    /**< precomputed data, matrix D       */
+  double *psi;                          /**< precomputed data, matrix B       */
+  int size_psi;                         /**< only for thin B                  */
+  int *psi_index_g;                     /**< only for thin B                  */
+  int *psi_index_f;                     /**< only for thin B                  */
+
+  complex *F;
+
+  double *spline_coeffs;                /**< input for de Boor algorithm, if  
+                                             B_SPLINE or SINC_2m is defined   */
+} nnfft_plan;
+
+
+void nndft_trafo(nnfft_plan *ths_plan);
+
+void nndft_conjugated(nnfft_plan *ths_plan);
+
+void nndft_adjoint(nnfft_plan *ths_plan);
+
+void nndft_transposed(nnfft_plan *ths_plan);
+
+void nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N);
+
+void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N, int *N1,
+                        int m, unsigned nnfft_flags);
+                        
+void nnfft_finalize(nnfft_plan *ths_plan);
+
+void nnfft_trafo(nnfft_plan *ths_plan);
+
+void nnfft_conjugated(nnfft_plan *ths_plan);
+
+void nnfft_adjoint(nnfft_plan *ths_plan);
+
+void nnfft_transposed(nnfft_plan *ths_plan);
+
+void nnfft_precompute_lin_psi(nnfft_plan *ths_plan, int K);
+
+void nnfft_precompute_psi(nnfft_plan *ths_plan);
+
+void nnfft_full_psi(nnfft_plan *ths_plan, double eps);
+
+void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
+ 
+/* @} 
+ */
+ 
 #endif
 /* nfft.h */

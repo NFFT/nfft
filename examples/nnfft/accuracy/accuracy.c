@@ -1,7 +1,7 @@
 #include <math.h>
+#include <stdlib.h>
 #include "nfft3.h"
 #include "util.h"
-#include "nnfft.h"
 
 void accuracy(int d)
 {
@@ -25,7 +25,7 @@ void accuracy(int d)
   /** init a plan */
   for(m=0; m<15; m++)
     {
-      nnfft_init_specific(&my_plan, d, N_total, M_total, N, n, m, 
+      nnfft_init_guru(&my_plan, d, N_total, M_total, N, n, m, 
                           PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
