@@ -446,7 +446,7 @@ void nnfft_precompute_psi(nnfft_plan *ths)
 } /* nfft_precompute_psi */
 
 /** computes all entries of B explicitly */
-void nnfft_full_psi(nnfft_plan *ths, double eps)
+void nnfft_precompute_full_psi(nnfft_plan *ths, double eps)
 {
   int t,t2;                             /**< index over all dimensions        */
   int j;                                /**< index over all nodes             */
