@@ -278,6 +278,9 @@ int main (int argc, char **argv)
 
       
       /* Test Gauss-Legendre quadrature */
+
+      if (1 == 2)
+	{
       
       /* Compute number of nodes. */
       D = (M+1)*(2*M+2);
@@ -390,7 +393,8 @@ int main (int argc, char **argv)
       else
       {
         printf("   File %s not found.\t\t\t",filename);
-      }    
+      } 
+	}   
 
       if (1 == 1)
 	{

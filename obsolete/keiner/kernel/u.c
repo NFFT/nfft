@@ -117,7 +117,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
-    printf("n = %5d\n",n);
+    fprintf(stderr,"n = %5d\n",n);
+		fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
      * t = log_2(M) many levels. */
     U[n] = (struct U_type***) fftw_malloc(sizeof(struct U_type**) * t);
@@ -143,7 +144,9 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
 	     {        
+
         //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
+
         
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);
@@ -159,8 +162,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         beta = &(wbeta[ROW(n)+plength*l+1+1]);
         gamma = &(wgamma[ROW(n)+plength*l+1+1]);
         /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
-        needstab = eval_al_thresh(xvecs[tau-1], m1, plength, degree-2, alpha, beta, 
-                                  gamma, threshold);
+        needstab = eval_al_thresh(xvecs[tau-1], m1, plength, degree-2, alpha, beta, gamma, threshold);
         if (needstab == false)
         {
           /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
@@ -173,7 +175,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
             gamma--;
             /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
             needstab = eval_al_thresh(xvecs[tau-1], m3, plength, degree-1, alpha, 
-                                      beta, gamma, threshold);
+	      beta, gamma, threshold);
             if (needstab == false)
             { 
               /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */

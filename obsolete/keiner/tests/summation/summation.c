@@ -43,20 +43,23 @@
 #include "../../nfft/utils.h"
 #include "time.h"
 
-#define M_MIN 64
-#define M_STRIDE 4
-#define M_MAX 64
+#define M_MIN 32
+#define M_MAX 256
+#define M_STRIDE 32
 
-#define EPS_START 1E-1
-#define EPS_STRIDE 5E-1
-#define EPS_END 1E-6 
+#define H_MIN 0.7
+#define H_MAX 0.9
+#define H_STRIDE 0.2
 
-#define M_ERR_QUADRATIC(eps) (int)ceil(0.5*(sqrt(1+4/eps)-1))
-#define M_ERR_ABEL_POISSON(eps) ()
+#define D_MIN 1000
+#define D_MAX 10000
+#define D_STRIDE 1000
 
-#define QUADRATIC_KERNEL(k) k==0?1.0:((2*k+1)/((double)(k*(k+1))*(k*(k+1))))
-#define ABEL_POISSON_KERNEL(k,h) (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h))
-#define GAUSS_WEIERSTRASS(k,p) exp(-k*(k+1)*p)*(2*k+1)/(4*PI) 
+#define DD_MAX 40000
+
+#define L_MIN 1000
+#define L_MAX 10000
+#define L_STRIDE 1000
 
 inline double ip(double phi1,double theta1,double phi2,double theta2)
 {
@@ -69,12 +72,6 @@ inline double poisson(double phi1,double theta1,double phi2,double theta2,double
  	return pow((1-h)/sqrt(1-2*h*t+h*h),3);
 }
 
-inline double gauss_weierstrass(double phi1,double theta1,double phi2,double theta2,double h)
-{
-  double t = ip(phi1,theta1,phi2,theta2);
-	return pow((1-h)/sqrt(1-2*h*t+h*h),3);
-}
-
 /**
  * The main program.
  *
@@ -85,24 +82,30 @@ inline double gauss_weierstrass(double phi1,double theta1,double phi2,double the
  */
 int main (int argc, char **argv)
 {  
+  double h_min;
+  double h_max;
+  double h_stride;
+  int m_min;
+  int m_max;
+  int m_stride;
+  int l_min;
+  int l_max;
+  int l_stride;
+  int d_min;
+  int d_max;
+  int d_stride;
+
   /** Next greater power of two with respect to M_MAX */
-  const int N_MAX = 1<<ngpt(M_MAX);
+  int N_MAX;
   /* Bandwidth */
   int M;
-	/* Use only one kernel */
- 	const int L = 1;
-	/* Number of nodes in colatitudinal direction */
-  const int D_PHI = 120;
-	/* Use only one theta */
-  const int D_THETA = 1;
-	/* Total number of nodes */
- 	const int D = D_PHI * D_THETA;
   /** Next greater power of two with respect to M */
   int N;
 	/** Error */
 	double eps;
   double h;
 	double err;
+	double t_d, t_f;
 	
  	complex *b;
   complex **f_hat;
@@ -111,104 +114,164 @@ int main (int argc, char **argv)
  	double *nu;
  	complex *f, *f2;
  	nfsft_plan plan, plan_adjoint;
- 	int k,n,d,d_theta,d_phi;
-	 
-	/** Test quadratic kernel */
-	/*for (eps = EPS_START; eps >= EPS_END; eps = eps * EPS_STRIDE)
-	{
-	  printf("eps = %.4E => M >= %d\n",eps,M_ERR_QUADRATIC(eps));
-	}*/
+ 	int j,k,n,l,d;
+	FILE *file;
+	 	
+  if (argc == 1)
+  {
+    h_min = H_MIN;
+    h_max = H_MAX; 
+    h_stride = H_STRIDE;
+    m_min = M_MIN; 
+    m_max = M_MAX; 
+    m_stride = M_STRIDE; 
+    l_min = L_MIN; 
+    l_max = L_MAX; 
+    l_stride = L_STRIDE; 
+    d_min = D_MIN; 
+    d_max = D_MAX; 
+    d_stride = D_STRIDE; 
+  }
+  else if (argc == 13)
+  {
+    sscanf(argv[1],"%lf",&h_min);
+    sscanf(argv[2],"%lf",&h_max);
+    sscanf(argv[3],"%lf",&h_stride);
+    sscanf(argv[4],"%d",&m_min);
+    sscanf(argv[5],"%d",&m_max);
+    sscanf(argv[6],"%d",&m_stride);
+    sscanf(argv[7],"%d",&l_min);
+    sscanf(argv[8],"%d",&l_max);
+    sscanf(argv[9],"%d",&l_stride);
+    sscanf(argv[10],"%d",&d_min);
+    sscanf(argv[11],"%d",&d_max);
+    sscanf(argv[12],"%d",&d_stride);
+  }
+  else
+  {
+    fprintf(stderr,"Convolution - Convolution test for NFSFT\n");
+    fprintf(stderr,"Usage: convolution H_MIN H_MAX H_STRIDE M_MIN M_MAX M_STRIDE L_MIN L_MAX L_STRIDE D_MIN D_MAX D_STRIDE\n");
+    return -1;
+  }  
+		
+  printf("d = %d\n",d);
+	N_MAX = 1<<ngpt(m_max);	
+		
+	nfsft_precompute(m_max,2000);
 	
   /** Allocate data structures. */
-  b = (complex*) malloc(L*sizeof(complex));
-  nu = (double*) malloc(2*L*sizeof(double));
-  f_hat = (complex**) malloc((2*M_MAX+1)*sizeof(complex*));
-  for (n = -M_MAX; n <= M_MAX; n++)
+  b = (complex*) malloc(l_max*sizeof(complex));
+  nu = (double*) malloc(2*l_max*sizeof(double));
+  f_hat = (complex**) malloc((2*m_max+1)*sizeof(complex*));
+  for (n = -m_max; n <= m_max; n++)
   {
-    f_hat[n+M_MAX] = (complex*) malloc((N_MAX+1)*sizeof(complex));
+    f_hat[n+m_max] = (complex*) malloc((N_MAX+1)*sizeof(complex));
   }  
-  a = (complex*) malloc((M_MAX+1)*sizeof(complex));
-  xi = (double*) malloc(2*D*sizeof(double));
-  f = (complex*) malloc(D*sizeof(complex));
-  f2 = (complex*) malloc(D*sizeof(complex));
+  a = (complex*) malloc((m_max+1)*sizeof(complex));
+  xi = (double*) malloc(2*d_max*sizeof(double));
+  f = (complex*) malloc(d_max*sizeof(complex));
+  f2 = (complex*) malloc(d_max*sizeof(complex));
 	  
-	/* One kernel only */
-  b[0] = 1.0;
-  nu[0] = 0.0;
-  nu[1] = 0.25;;
-  
-	h = 0.90;
-	
-  /* Kernel coeffcients up to M_MAX */
-  for (k = 0; k <= M_MAX; k++)
-  {
-    //a[k] = QUADRATIC_KERNEL(k);
-    //a[k] = ABEL_POISSON_KERNEL(k,h);
-    a[k] = GAUSS_WEIERSTRASS(k,1.00);
-		//printf("%f\n",GAUSS_WEIERSTRASS(k,10.0));
-  }
-
   /* Target nodes */
-  d = 0;
-  for (d_phi = 0; d_phi < D_PHI; d_phi++)
+  j = 0;
+  for (j = 0; j < d_max; j++)
   {
-    xi[2*d] = ((double)d_phi)/(D_PHI-1)-0.5;
-    xi[2*d+1] = 0.25;
-    //printf("(%f,%f)\n",xi[2*d],xi[2*d+1]);
-    d++;
+    xi[2*j] = drand48();
+    xi[2*j+1] = 0.5*drand48();
   }
-	
-  for (d = 0; d < D; d++)
-  {
-    f2[d] = b[0]*poisson(2*PI*nu[0],2*PI*nu[1],2*PI*xi[2*d],2*PI*xi[2*d+1],h);
-  } 
-	
-	for (M = M_MIN; M <= M_MAX; M = M + M_STRIDE)
-	{
-    /* Adjoint transform */
-	  plan_adjoint = nfsft_init(L,M,nu,f_hat,b,0U);
-	  nfsft_adjoint(plan_adjoint);
-	  nfsft_finalize(plan_adjoint);
-  
-   	/* Multiplication with diagonal matrix. */
- 	  for (k = 0; k <= M; k++)
-   	{
- 	    for (n = -k; n <= k; n++)
-	   	{
-		    f_hat[n+M][k] *= a[k];
-		  }
-    }
-	
-	  /* Forward transform */
-	  plan = nfsft_init(D,M,xi,f_hat,f,0U);
-	  nfsft_trafo(plan);
-    nfsft_finalize(plan);
 
-    /*printf("%d\n",D);
-    printf("%d\n",D_PHI);
-    printf("%d\n",D_THETA);*/
-		
-      //printf("%.16E %.16E %.16E %.16E",xi[2*d],xi[2*d+1],creal(f[d]),b[0]*poisson(2*PI*nu[0],2*PI*nu[1],2*PI*xi[2*d],2*PI*xi[2*d+1],h));
-			//printf(" %E\n",fabs(creal(f[d])-b[0]*poisson(2*PI*nu[0],2*PI*nu[1],2*PI*xi[2*d],2*PI*xi[2*d+1],h)));
-		  //err = 0.0;
-		
-		for (d = 0; d < D; d++)
-		{
-		  printf("%.4E\n",creal(f[d]));
-		}
-		 //printf("%d: err = %.4E\n",M,error_complex_inf(f,f2,D)); 
+  /* Init kernels */
+	/* Create kernels. */
+	for (k = 0; k < l_max; k++)
+	{
+		b[k] = drand48();
+		nu[2*k] = drand48()-0.5;
+		nu[2*k+1] = 0.5*drand48();
 	}
-	
-	//printf("%f\n",ip(0.0,PI/2.0,0.0,PI/2.0));
+
+  file = fopen("summation.tex","w");
+  fprintf(file,"\\begin{tabular}{l|l|l|l|l|l|l}\n");
+	fprintf(file,"$h$ & $M$ & $K$ & $N$ & $t_{\\text{fast}}$ & $t_{\\text{slow}}$ & $\\text{err}_{\\infty}$\\\\\\hline\n");
+
+  for (l = l_min; l <= l_max; l = l + l_stride)
+	{
+	  for (d = d_min; d <= d_max; d = d + d_stride)
+		{
+  		int temp = l;
+		  l = d/2;
+			for (h = h_min; h <= h_max; h = h + h_stride)
+			{
+				/* Kernel coeffcients up to m_max */
+				for (k = 0; k <= m_max; k++)
+				{
+					a[k] = ABEL_POISSON_KERNEL(k,h);
+				}
+				
+				if (d <= DD_MAX)
+				{
+					t_d = mysecond();
+					for (j = 0; j < d; j++)
+					{
+						f2[j] = 0.0;
+						for (k = 0; k < l; k++)
+						{
+							f2[j] += b[k]*poisson(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
+						}
+					} 
+					t_d = mysecond() - t_d;
+				}
+				
+				for (M = m_min; M <= m_max; M = M + m_stride)
+				{
+					fprintf(stderr,"L = %d, D = %d, h = %lf, M = %d\n",l,d,h,M);
+					fflush(stderr);
+					/* Adjoint transform */
+					plan_adjoint = nfsft_init(l,M,nu,f_hat,b,0U);
+					plan = nfsft_init(d,M,xi,f_hat,f,0U);
+					t_f = mysecond();
+					nfsft_adjoint(plan_adjoint);
+				
+					/* Multiplication with diagonal matrix. */
+					for (k = 0; k <= M; k++)
+					{
+						for (n = -k; n <= k; n++)
+						{
+							f_hat[n+M][k] *= a[k];
+						}
+					}
+				
+					/* Forward transform */
+					nfsft_trafo(plan);
+					t_f = mysecond() - t_f;
+					nfsft_finalize(plan_adjoint);
+					nfsft_finalize(plan);
+					
+					if (d <= DD_MAX)
+					{
+					  fprintf(file,"%.2f & %3d & %6d & %6d & %5.2f & %5.2f & %.4E\\\\\n",h,M,l,d,t_d,t_f,error_complex_inf(f, f2, d));
+					}
+					else
+					{
+					  fprintf(file,"%.2f & %3d & %6d & %6d & -- & %5.2f & --\\\\\n",h,M,l,d,t_f);
+					}
+				}
+			}
+			l = temp;
+		}
+		fprintf(file,"\\hline");
+	}
 		
+	fprintf(file,"\\end{tabular}\n");
+  fclose(file);
+	
   free(f);
 	free(f2);
   free(xi);
 	free(nu);
   free(a);
-  for (n = -M_MAX; n <= M_MAX; n++)
+  for (n = -m_max; n <= m_max; n++)
   {
-    free(f_hat[n+M_MAX]);
+    free(f_hat[n+m_max]);
   }   
   free(f_hat);
   free(b);

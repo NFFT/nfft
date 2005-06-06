@@ -161,46 +161,49 @@ int main (int argc, char **argv)
   nfsft_precompute(m_max,2000);
   
   /* Create kernels. */
-  //fprintf(stderr,"kernels:\n");
+  fprintf(stderr,"kernels:\n");
   for (k = 0; k < l; k++)
   {
-    b[k] = drand48();
-    nu[2*k] = drand48()-0.5;
-    nu[2*k+1] = 0.5*drand48();
-    //fprintf(stderr,"k = %d, b[%d] = %5f, nu[2*%d] = %5f, nu[2*%d+1] = %5f\n",k,k,creal(b[k]),k,nu[2*k],k,nu[2*k+1]);
+    b[k] = 1.0;//drand48();
+    nu[2*k] = 0.0;//drand48()-0.5;
+    nu[2*k+1] = 0.25;//0.5*drand48();
+    fprintf(stderr,"k = %d, b[%d] = %5f, nu[2*%d] = %5f, nu[2*%d+1] = %5f\n",k,k,creal(b[k]),k,nu[2*k],k,nu[2*k+1]);
   }
 
   /* Create nodes. */
-  //fprintf(stderr,"nodes:\n");
+  fprintf(stderr,"nodes:\n");
   for (j = 0; j < d; j++)
   {
-    xi[2*j] = drand48()-0.5;
-    xi[2*j+1] = 0.5*drand48();
-    //fprintf(stderr,"j = %d, xi[2*%d] = %5f, xi[2*%d+1] = %5f\n",j,j,xi[2*j],j,xi[2*j+1]);
+    xi[2*j] = ((double)j)/d-0.5;//drand48()-0.5;
+    xi[2*j+1] = 0.25;//0.5*drand48();
+    fprintf(stderr,"j = %d, xi[2*%d] = %5f, xi[2*%d+1] = %5f\n",j,j,xi[2*j],j,xi[2*j+1]);
   }
   
   for (h = h_min; h <= h_max; h = h + h_stride)
   {  
     fprintf(stderr,"h = %lf\n",h);
+
+    /* Kernel coeffcients up to M */
+    fprintf(stderr,"Kernels coefs:\n");
+    for (k = 0; k <= m_max; k++)
+    {
+      a[k] = (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h));
+    	fprintf(stderr,"h = %f, k = %d, m_max = %d, a[%d] = %.16f\n",h,k,m_max,k,a[k]);
+    }
+
     /* Compute real values of Poisson kernel */
     for (j = 0; j < d; j++)
     {
       fd[j] = 0.0;
       for (k = 0; k < l; k++)
       {
-        fd[j] = fd[j] + b[k]*poisson(-2*PI*nu[2*k],2*PI*nu[2*k+1],-2*PI*xi[2*j],2*PI*xi[2*j+1],h);
+        fd[j] = fd[j] + b[k]*poisson(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
         //fprintf(stderr,"%5lf %5lf %5lf %5lf %5lf %lf\n",creal(b[k]),nu[2*k],nu[2*k+1],xi[2*j],xi[2*j+1],creal(fd[j]));
       }
     }
 
     for (m = m_min; m <= m_max; m++)
-    {
-      /* Kernel coeffcients up to M */
-      for (k = 0; k <= m_max; k++)
-      {
-        a[k] = ABEL_POISSON_KERNEL(k,h);
-      }
-      
+    {      
       /* Target nodes */
       for (k = 0; k < d; k++)
       {
@@ -230,7 +233,7 @@ int main (int argc, char **argv)
       printf("%d\n",d);
       for (k = 0; k < d; k++)
       {
-        printf("%+5f %+5f %.16.15f %16.15f\n",xi[2*k],xi[2*k+1],creal(f[k]), creal(fd[k]));
+        printf("%+5f %+5f %16.15f %16.15f\n",xi[2*k],xi[2*k+1],creal(f[k]), creal(fd[k]));
       }  
     }
   }
