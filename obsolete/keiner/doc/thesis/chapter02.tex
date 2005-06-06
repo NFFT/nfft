@@ -408,12 +408,12 @@ The algorithms for the computation of the products $\fun{\V{f}}{\mathcal{X}} = \
 $$
   f_{d} := \sum_{n = -M}^M b^n_d \e^{\im n \vphi_{d}} \quad \paren{d = 0,\ldots,D}
 $$
-if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution one may apply the NFFT algorithm as mentioned in Section \ref{Basics:NFFT}. In the following section we present a fast algorithm for the evaluation of the sums $b^{n}_{d}$ from \eqref{NFSFT:directDSFT:firstSum} first mentioned in \cite{postta97}. To be more precise, the algorithm performs for a fixed $n$ a change of basis independent of the nodes to transform a sum of the form
+if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution one may apply the NFFT algorithm from Section \ref{Basics:NFFT}. In the following section we present a fast algorithm for the evaluation of the sums $b^{n}_{d}$ from \eqref{NFSFT:directDSFT:firstSum} first mentioned in \cite{postta97}. To be more precise, the algorithm performs for a fixed $n$ a change of basis independent of the nodes to transform a sum of the form
 \begin{equation}
   \label{NFSFT:LegendreSum}
   \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^n}{x}
 \end{equation}
-into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonequispaced nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
+into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions $P_{k}^n$ are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonequispaced nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
 
 %This holds only in the case of equispaced nodes. If one leaves 
 %In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
@@ -436,7 +436,7 @@ We consider polynomials of the form
 $$ \fun{g_n}{x} := \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M$$
 for even $n$ and
 $$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_{M-1}$$
-for odd $n$ with given complex coefficients $a_k^n$. The Fast Legendre Function Transform (FLFT) performes a change of basis and computes the 
+for odd $n$ with given complex coefficients $a_k^n$. The \emph{fast Legendre tunction transform (FLFT)} performes a change of basis and computes the 
 coefficients $b_k^n$ of the Chebyshev representation
 $$ \fun{g_n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}$$
 for even $n$ and
@@ -444,7 +444,8 @@ $$\fun{g_n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}$$
 for odd $n$.
 
 Lemma \ref{Basics:AssociatedLegendreRecurrence} implies
-$$ 
+\begin{equation}
+  \label{NFSFT:U}
   \left(\begin{array}{c}
     P_{c+k}^n \\ P_{c+k+1}^n
   \end{array}\right)
@@ -453,7 +454,7 @@ $$
   \left(\begin{array}{c}
     P_{c-1}^n \\ P_{c}^n
   \end{array}\right)
-$$
+\end{equation}
 where
 $$
   \fun{U_{k}^{n}}{\cdot,c}^{\transp} :=
@@ -462,7 +463,7 @@ $$
                              \fun{P_{k}^n}{\cdot,c}         &                         \fun{P_{k+1}^n}{\cdot,c}
   \end{array}\right).   
 $$
-For the rest of this section restrict ourselves to the case when $n$ is even. Furthermore, we set $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
+We set $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
 \ref{Basics:AssociatedLegendreRecurrence} to write
 $$ g_n = \sum_{k = \abs{n}}^{N-1} a_{k}^{(0)} P_k^{\abs{n}}$$
 with
@@ -473,7 +474,7 @@ with
 \end{eqnarray*}
 We now set 
 $$\tilde{n} := \fun{\min}{\abs{n},N-2}, \quad \tilde{M} := \left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.$$
-and write
+and obtain
 $$
   g_n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} \paren{\sum_{k=0}^{3} a_{4l+k}^{(0)} P_{4l+k}^{\abs{n}}}.
 $$
@@ -481,7 +482,7 @@ $$
 Notice that $a_k^{(0)}$ are polynomials of 
 degree at most $1$ and that one immediately has their corresponding Chebyshev coefficients.
 
-From \eqref{} with $k = 1$ and $c = l+1$ it follows that
+From \eqref{NFSFT:U} with $k = 1$ and $c = l+1$ it follows that
 $$
 \left(\begin{array}{c}  P_{4l+2}^{|n|}, 
   P_{4l+3}^{|n|}\end{array}\right)
@@ -496,8 +497,8 @@ $$
   a_{4l+3}^{(0)} 
 \end{array}\right)
 $$
-for $l=0,\ldots,\frac{}{}$and therefore
-$$ g_n = \sum_{l = 0}^{\frac{M}{4}-1} a_{4l}^{(1)} P_{4l}^{\abs{n}} + a_{4l+1}^{(1)} P_{4l+1}^{\abs{n}} $$
+and therefore
+$$ g_n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} a_{4l}^{(1)} \paren{P_{4l}^{\abs{n}} + a_{4l+1}^{(1)} P_{4l+1}^{\abs{n}}} $$
 with
 \begin{equation}
 \label{NFSFT:FirstStep}
@@ -517,9 +518,10 @@ with
 \end{equation}
 We can use Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2$ to compute 
 the polynomial products in \eqref{NFSFT:FirstStep}. Applying this idea repeatedly leads to a cascade 
-summation as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation} calculating in step $\tau$
+summation with steps $\tau=1,\ldots,t-1$ as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation}. 
+In step $\tau$ we compute
 \begin{equation}
-  \nonumber
+  \label{NFSFT:GeneralStep}
   \left(\begin{array}{c}
     a_{2^{\tau+1}l}^{(\tau)}\\
     a_{2^{\tau+1}l+1}^{(\tau)} 
@@ -530,25 +532,28 @@ summation as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation} calculati
   \end{array}\right)
   + {\mathbf{U}_{2^{\tau}-1}^{|n|}\left(\cdot,2^{\tau+1}l+1\right)}
   \left(\begin{array}{c}
-    a_{2^{\tau+1}l+2}^{(\tau-1)}\\
-    a_{2^{\tau+1}l+3}^{(\tau-1)} 
-  \end{array}\right).
+    a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}\\
+    a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)} 
+  \end{array}\right)
 \end{equation}
-by applying Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2^{\tau}$. 
-After step $j-1$ we arrive at
+for $\paren{l=\floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1}$
+by applying Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2^{\tau}$. It can be shown that
+$a_{2^{\tau+1}l}^{(\tau)} = a_{2^{\tau+1}l+1}^{(\tau)} \equiv 0$ for $l < \floor{\frac{\tilde{n}}{2^{\tau+1}}}$ and 
+$l > \ceil{\frac{\tilde{M+1}}{2^{\tau+1}}}-1$.
+After step $\tau = t-1$ we arrive at
 \begin{equation}
   \nonumber
-  g_n = a_{0}^{j-1} P_{0}^{\abs{n}} + a_{1}^{j-1} P_{1}^{\abs{n}}
+  g_n = a_{0}^{t-1} P_{0}^{\abs{n}} + a_{1}^{t-1} P_{1}^{\abs{n}}.
 \end{equation}
 Since 
-\begin{align}
+\begin{equation}
   \nonumber
-  P_{0}^n(x) & = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!}, & P_{1}^n(x) & = \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
-\end{align} 
+  P_{0}^n(x) = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ P_{1}^n(x) = \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+\end{equation} 
 we get
 \begin{equation}
   \label{NFSFT:LastStep}
-  g_n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{j-1} + a_{1}^{j-1} \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+  g_n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{t-1} + a_{1}^{t-1} \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
 \end{equation}
 Using 
 \begin{equation}
@@ -556,8 +561,7 @@ Using
   xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)
 \end{equation}
 one can calculate the remaining polynomial products in \eqref{NFSFT:LastStep} with elementary 
-vector operations to yield the Chebyshev coefficients of $g_n$. The case, where $n$ is odd can 
-be treated similarly and differs mainly in the last step.
+vector operations to yield the Chebyshev coefficients $b_k^n$ of $g_n$.
 
 \begin{figure}
   \label{NFSFT:Figure:CascadeSummation}
@@ -595,10 +599,10 @@ be treated similarly and differs mainly in the last step.
       % schreibe in die 2. Box
       \multiput(1.64,10)(1.64,0){7}{\line(0,1){1}}
       %\put(14.4,10.3){\large $\in \Pi_1$}
-      \put(0.2,10.3){\large $0$}
-      \put(0.9,10.3){\large $0$}
-      \put(1.8,10.3){\large $0$}
-      \put(2.5,10.3){\large $0$}
+      \put(0.3,10.3){\large $0$}
+      \put(1.0,10.3){\large $0$}
+      \put(1.94,10.3){\large $0$}
+      \put(2.64,10.3){\large $0$}
       \put(3.5,10.3){\large $a_4^{(0)}$}
       \put(4.2,10.3){\large $a_5^{(0)}$}
       \put(5.1,10.3){\large $a_6^{(0)}$}
@@ -609,8 +613,8 @@ be treated similarly and differs mainly in the last step.
       \put(9.05,10.3){\large $a_{11}^{(0)}$}
       \put(10.05,10.3){\large $a_{12}^{(0)}$}
       \put(10.7,10.3){\large $a_{13}^{(0)}$}
-      \put(12.05,10.3){\large $a_{14}^{(0)}$}
-      \put(13.1,10.3){\large $a_{15}^{(0)}$}
+      \put(11.85,10.3){\large $a_{14}^{(0)}$}
+      \put(13.00,10.3){\large $a_{15}^{(0)}$}
       % schreibe zwischen 2. und 3. Box
       %\multiput(0.82,9)(1.64,0){7}{\line(0,1){1}}
       \multiput(4.10,9)(1.64,0){5}{\line(0,1){1}}
@@ -622,8 +626,8 @@ be treated similarly and differs mainly in the last step.
       \multiput(4.92,8.5)(3.28,0){3}{\line(0,1){0.5}}
       %\put(0.95,9.3){$ U_1^4(\, \cdot\, ,1)$}
       \put(4.23,9.3){$ U_1^4(\, \cdot\, ,5)$}
-      \put(7.45,9.3){$ U_1^4(\, \cdot\, ,9)$}
-      \put(10.79,9.3){$ U_1^4(\; \cdot\; ,13)$}
+      \put(7.5,9.3){$ U_1^4(\, \cdot\, ,9)$}
+      \put(10.9,9.3){$ U_1^4(\; \cdot\; ,13)$}
       % schreibe in die 3. Box
       \multiput(3.3,7.5)(3.3,0){3}{\line(0,1){1}}
       %\put(14.4,7.8){\large $\in \Pi_3$}
@@ -640,8 +644,8 @@ be treated similarly and differs mainly in the last step.
       \put(1.64,6.5){\line(1,0){3.28}}
       \put(8.2,6.5){\line(1,0){3.28}}
       \multiput(3.3,6.0)(6.6,0){2}{\line(0,1){0.5}}
-      \put(2.4,6.8){$ U_3^4(\; \cdot\; ,1)$}
-      \put(9.2,6.8){$ U_3^4(\; \cdot\; ,9)$}
+      \put(2.43,6.8){$ U_3^4(\; \cdot\; ,1)$}
+      \put(9.07,6.8){$ U_3^4(\; \cdot\; ,9)$}
       % schreibe in die 4. Box
       %\put(14.4,5.5){\large $\in \Pi_7$}
       \put(6.5,5){\line(0,1){1}}
@@ -652,7 +656,7 @@ be treated similarly and differs mainly in the last step.
       % schreibe zwischen 4. und 5. Box
       \multiput(3.3,4.0)(6.6,0){2}{\line(0,1){1}}
       \put(3.3,4){\line(1,0){6.6}}
-      \put(5.8,4.3){$ U_7^4(\; \cdot\; ,1)$}
+      \put(5.70,4.3){$ U_7^4(\; \cdot\; ,1)$}
       \put(6.5,3.5){\line(0,1){0.5}}
       \put(6.5,1){\line(0,1){1.5}}
       % schreibe in die 4. Box
@@ -660,7 +664,7 @@ be treated similarly and differs mainly in the last step.
       %\put(14.4,0.3){\large $\in \Pi_{16}$}
       \put(3,2.8){\large $a_0^{(3)}$}
       \put(9.5,2.8){\large $a_1^{(3)}$}
-      \put(6.2,0.3){\large $\left(g_4(\cos\frac{s\pi}{16})\right)_{s=0,\ldots,16}$}
+      \put(5.85,0.3){\large $\paren{b_{k}^{n}}_{k=0}^{16}$}
     \end{picture}
   \caption{To be written...}
 \end{figure}
@@ -669,29 +673,41 @@ be treated similarly and differs mainly in the last step.
   \caption{Fast Legendre Function transform}
   \label{NFSFT:Algorithm:FLFT}    
   \begin{algorithmic}
-    \STATE Input:  $M \in \NZ$, $n \in \Z$ $(\abs{n} \le M)$, $\paren{a_k^n}_{k=\abs{n},\ldots,M}$
-    \STATE Precompute: $j := \ceil{\log_2 M}$, $N := 2^j$, $\fun{U_{2^{\tau}-1}^{\abs{n}}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$ 
-    \STATE \invisible{Precompute:} for $\tau 1,\ldots,j-1$, $l = \floor{\frac{\abs{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{M}{2^{\tau+1}}}-1$ and
+    \STATE Input:  $M \in \NZ$, $n \in \Z$ $(\abs{n} \le M)$, $\paren{a_k^n}_{k=\abs{n}}^{M}$
+    \STATE Precompute: $t$, $N$, $\tilde{n}$, $\tilde{M}$ as above and $$\fun{U_{2^{\tau}-1}^{\abs{n}}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$$ 
+    \STATE \invisible{Precompute:} for $\tau = 1,\ldots,t-1$, $l = \floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$ and $s = 0,\ldots,2^{\tau+1}$
     \STATE \invisible{Precompute:} 
 
-    \FOR {$j=0,\ldots , 2N-1$} 
-      \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
+    \STATE $a_{0}^{(t-1),\text{stab}} := a_{1}^{(t-1),\text{stab}} := 0$
+    \STATE Compute $\paren{a_{k}^{(0)}}_{k=0}^{N-1}$ 
+    \FOR {$\tau=1,\ldots,t$}
+      \FOR {$l = \floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$} 
+        \IF {multiplication with \fun{U_{2^{\tau}-1}^{\abs{n}}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1} is stable}
+          \STATE Compute $a_{2^{\tau+1}l}^{(\tau)}$ and $a_{2^{\tau+1}l+1}^{(\tau)}$ from $$a_{2^{\tau+1}l}^{(\tau-1)},\  
+            a_{2^{\tau+1}l+1}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}$$ using 
+            \eqref{NFSFT:GeneralStep} and Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication}
+        \ELSE
+          \STATE Update $a_{0}^{(t-1),\text{stab}}$ and $a_{1}^{(t-1),\text{stab}}$ from
+            $$ 
+              a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}
+            $$ 
+            using \eqref{NFSFT:StabilizationStep} and Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication}
+          \STATE Update $a_{2^{\tau+1}l^{(\tau)}} := a_{2^{\tau+1}l^{(\tau-1)}}$, $a_{2^{\tau+1}l+1}^{(\tau)} := a_{2^{\tau+1}l+1}^{(\tau-1)}$
+        \ENDIF
+      \ENDFOR
     \ENDFOR
+    \STATE Compute $a_{0}^{(t-1)} := a_{0}^{(t-1)} + a_{0}^{(t-1),\text{stab}}$, $a_{1}^{(t-1)} := a_{1}^{(t-1)} + a_{1}^{(t-1),\text{stab}}$
     \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
 \end{algorithmic}
 \end{algorithm}
 
-
 \section{Stabilization}
 \label{DSFT:Stabilization}
-
-\section{Nonuniform Fast Spherical Fourier Transform}
-\label{DSFT:NFSFT}
 
 \section{A Linear Algebra Approach}
 \label{DSFT:LinearAlgebra}
 
-In this section we represent the FLFT algorithm as a linear operator, hence a matrix, that acts on a vector of Fourier-coefficients. So let $M \in \N$ be a fixed bandwidth and as usual $t := \lceil\log_2{M}\rceil$, $N := 2^t$. Furthermore let  $-M \le n \le M$ be fixed. The FLFT can be represented as a matrix $\mb{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with a vector $\mb{a} = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients gives a vector $\mb{g}_n = \left(g_0^n,g_1^n,\dots,g_{2N-1}^n\right) \in \C^{2N}$ containing the Chebyshev coefficients of the polynomial $g_n$: $$\mb{g_{n}} = \mb{T} \; \mb{a}.$$ For the sake of simplicity we omit the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$. Clearly, this can be exploited in the algorithm to save some computational steps.
+In this section we represent the FLFT algorithm as a linear mapping, hence a matrix, that acts on a vector of Fourier coefficients $\V{a}^n$. So let $M \in \N$ be a fixed bandwidth and as usual $t := \lceil\log_2{M}\rceil$, $N := 2^t$. Furthermore let  $-M \le n \le M$ be fixed. The FLFT can be represented as a matrix $\mb{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with a vector $\mb{a} = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients gives a vector $\mb{g}_n = \left(g_0^n,g_1^n,\dots,g_{2N-1}^n\right) \in \C^{2N}$ containing the Chebyshev coefficients of the polynomial $g_n$: $$\mb{g_{n}} = \mb{T} \; \mb{a}.$$ For the sake of simplicity we omit the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$. Clearly, this can be exploited in the algorithm to save some computational steps.
 
 Since the FLFT algorithm is asymptotically faster than the naive evaluation of the polynomial $g_{n}$ at the Chebyshev nodes, this implies a factorization of $\mb{T}$ into sparse matrices. This factorization can be derived directly from the algorithm already presented and will later be used to construct an algorithm for the transposed problem. In general the FLFT consists of $t+1$ steps so that $\mb{T}$ can be written as $$\mb{T} = \mb{T}_{t} \: \cdot \:  \mb{T}_{t-1} \dots \mb{T}_{1} \: \cdot \:  \mb{T}_{0} \text{, with } \mb{T}_{\tau} \in \left\{\begin{array}{l@{\quad \text{if} \quad}l} \R^{2N \times (N+1)} & \tau = 0, \\ \R^{2N \times 2N} & 1 \le \tau < t, \\ \R^{(N+1) \times 2N} & \tau = t. \end{array}\right.$$
 
