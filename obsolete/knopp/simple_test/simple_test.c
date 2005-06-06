@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "nfft.h"
+#include "util.h"
+#include "nnfft.h"
 
 void simple_test_nnfft_1d()
 {
@@ -28,7 +28,7 @@ void simple_test_nnfft_1d()
     nnfft_precompute_psi(&my_plan);
       
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-    nnfft_full_psi(&my_plan,pow(10,-15));
+    nnfft_precompute_full_psi(&my_plan,pow(10,-15));
     
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
     nnfft_precompute_lin_psi(&my_plan,1000); 
@@ -39,10 +39,8 @@ void simple_test_nnfft_1d()
     
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
-  {
-    my_plan.f_hat[k][0]=((double)rand())/RAND_MAX;
-    my_plan.f_hat[k][1]=((double)rand())/RAND_MAX;
-  }
+    my_plan.f_hat[k] = ((double)rand())/RAND_MAX +I*((double)rand())/RAND_MAX;
+
   vpr_c(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /** direct trafo and show the result */
@@ -88,7 +86,7 @@ void simple_test_nnfft_2d()
     nnfft_precompute_psi(&my_plan);
       
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-    nnfft_full_psi(&my_plan,pow(10,-15));
+    nnfft_precompute_full_psi(&my_plan,pow(10,-15));
   
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
     nnfft_precompute_lin_psi(&my_plan,1000);
@@ -99,10 +97,8 @@ void simple_test_nnfft_2d()
     
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
-  {
-    my_plan.f_hat[k][0]=((double)rand())/RAND_MAX;
-    my_plan.f_hat[k][1]=((double)rand())/RAND_MAX;
-  }
+    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+
   vpr_c(my_plan.f_hat,12,
         "given Fourier coefficients, vector f_hat (first 12 entries)");
 
@@ -143,7 +139,7 @@ void simple_test_innfft_1d()
     nnfft_precompute_psi(&my_plan);
   
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-      nnfft_full_psi(&my_plan,pow(10,-15));
+      nnfft_precompute_full_psi(&my_plan,pow(10,-15));
   
   /** precompute phi_hut, the entries of the matrix D */
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
@@ -151,18 +147,14 @@ void simple_test_innfft_1d()
     
   /** init pseudo random samples (real) and show them */
   for(j=0;j<my_plan.M_total;j++)
-  {
-    my_iplan.given_f[j][0]=((double)rand())/RAND_MAX;
-    my_iplan.given_f[j][1]=0.0;
-  }
+    my_iplan.given_f[j] = ((double)rand())/RAND_MAX;
+
   vpr_c(my_iplan.given_f,my_plan.M_total,"given data, vector given_f");
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_plan.N_total;k++)
-  {
-    my_iplan.f_hat_iter[k][0]=0.0; 
-    my_iplan.f_hat_iter[k][1]=0.0;
-  }
+    my_iplan.f_hat_iter[k] = 0.0;
+
   vpr_c(my_iplan.f_hat_iter,my_plan.N_total,
         "approximate solution, vector f_hat_iter");
 
@@ -206,16 +198,13 @@ void measure_time_nnfft_1d()
       nnfft_precompute_psi(&my_plan);
       
     if(my_plan.nnfft_flags & PRE_FULL_PSI)
-        nnfft_full_psi(&my_plan,pow(10,-15));
+        nnfft_precompute_full_psi(&my_plan,pow(10,-15));
 
     if(my_plan.nnfft_flags & PRE_PHI_HUT)
       nnfft_precompute_phi_hut(&my_plan);
       
     for(k=0;k<my_plan.N_total;k++)
-    {
-      my_plan.f_hat[k][0]=((double)rand())/RAND_MAX;
-      my_plan.f_hat[k][1]=((double)rand())/RAND_MAX;
-    }
+      my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
 
     t=second();
     nndft_trafo(&my_plan);

@@ -25,7 +25,7 @@ void accuracy(int d)
   /** init a plan */
   for(m=0; m<15; m++)
     {
-      nnfft_init_guru(&my_plan, d, N_total, M_total, N, n, m, 
+      nnfft_init_guru(&my_plan, d, N_total, M_total, N, n, m,
                           PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
@@ -45,27 +45,35 @@ void accuracy(int d)
       /** precompute psi, the entries of the matrix B */
       if(my_plan.nnfft_flags & PRE_PSI)
 	nnfft_precompute_psi(&my_plan);
-        
+
+      //if(my_plan.nnfft_flags & PRE_LIN_PSI)
+      //  nnfft_precompute_lin_psi(&my_plan);
+               
        /** precompute psi, the entries of the matrix D */ 
       if(my_plan.nnfft_flags & PRE_PHI_HUT)
         nnfft_precompute_phi_hut(&my_plan);
       
       /** init pseudo random Fourier coefficients */
       for(k=0;k<my_plan.N_total;k++)
-	my_plan.f_hat[k]=((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
+	my_plan.f_hat[k]=((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
       
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
+
+    vpr_c(my_plan.f,3," slow ");
       
       SWAPC(my_plan.f,slow);
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
-        
-      /*printf("%e, %e\n",
-	     E_2_error_c(slow, my_plan.f, M_total),
-	     E_infty_error_c(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
-      */
+
+    vpr_c(my_plan.f,3," fast ");
+
+
+      printf("%e, %e\n",
+	     error_l_infty_c(slow, my_plan.f, M_total),
+	     error_l_infty_1_c(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
+      
       /** finalise the one dimensional plan */
       nnfft_finalize(&my_plan);
     }
