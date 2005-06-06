@@ -1,6 +1,7 @@
 #include "infsft.h"
 #include "api.h"
 #include "util.h"
+#include "../nfft/utils.h"
 
 void infsft_init(infsft_plan this_iplan, nfsft_plan direct_plan)
 {
@@ -120,14 +121,14 @@ void infsft_before_loop_help(infsft_plan this_iplan)
   complex *temp;
   complex **temp_hat;
   
-  //myvprc_hat(this_iplan->direct_plan->f_hat, this_iplan->direct_plan->M, "f_hat");
-  //myvprc_hat(this_iplan->f_hat_iter, this_iplan->direct_plan->M, "f_hat_iter");
+  //vpr_c_hat(this_iplan->direct_plan->f_hat, this_iplan->direct_plan->M, "f_hat");
+  //vpr_c_hat(this_iplan->f_hat_iter, this_iplan->direct_plan->M, "f_hat_iter");
 
   copyc_hat(this_iplan->direct_plan->f_hat, this_iplan->f_hat_iter,
         this_iplan->direct_plan->M);
   
-  //myvprc_hat(this_iplan->direct_plan->f_hat, this_iplan->direct_plan->M, "f_hat");
-  //myvprc_hat(this_iplan->f_hat_iter, this_iplan->direct_plan->M, "f_hat_iter");
+  //vpr_c_hat(this_iplan->direct_plan->f_hat, this_iplan->direct_plan->M, "f_hat");
+  //vpr_c_hat(this_iplan->f_hat_iter, this_iplan->direct_plan->M, "f_hat_iter");
     
   SWAPCT(this_iplan->r_iter,this_iplan->direct_plan->f,temp)
           
@@ -135,14 +136,14 @@ void infsft_before_loop_help(infsft_plan this_iplan)
 
   SWAPCT(this_iplan->r_iter,this_iplan->direct_plan->f,temp)
     
-  myvprc(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
-  myvprc(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
+  vpr_c(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
+  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
 
   updatec_axpy_2(this_iplan->r_iter, -1.0, this_iplan->given_f,
                this_iplan->direct_plan->D);
   
-  myvprc(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
-  myvprc(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
+  vpr_c(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
+  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
 
   if((!(this_iplan->infsft_flags & LANDWEBER)) ||
      (this_iplan->infsft_flags & NORMS_FOR_LANDWEBER))

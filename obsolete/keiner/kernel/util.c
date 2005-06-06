@@ -12,113 +12,22 @@
 #include <math.h>
 
 #include "util.h"
+#include "../nfft/utils.h"
 
 inline int ngpt(int n)
 {
-  if (n <= 1)
+  int e = 0;
+  int p = 1;
+  
+  while (n > p)
   {
-    return 0;
+    e++;
+    p = p<<1;
   }
-  else if (n <= 2)
-  {
-    return 1;
-  }
-  else if (n <= 4)
-  {
-    return 2;
-  }
-  else if (n <= 8)
-  {
-    return 3;
-  }
-  else if (n <= 16)
-  {
-    return 4;
-  }
-  else if (n <= 32)
-  {
-    return 5;
-  }
-  else if (n <= 64)
-  {
-    return 6;
-  }
-  else if (n <= 128)
-  {
-    return 7;
-  }
-  else if (n <= 256)
-  {
-    return 8;
-  }
-  else if (n <= 512)
-  {
-    return 9;
-  }
-  else if (n <= 1024)
-  {
-    return 10;
-  }
-  else
-  {
-    return (int) ceil(log((double)n)/log(2.0));
-  }
+  return e;  
 }
 
-/** For timing */ 
-inline double mysecond()
-{
-  static struct rusage temp;
-  double foo, foo1;
-  
-  getrusage(RUSAGE_SELF,&temp)    ;
-  foo     = temp.ru_utime.tv_sec  ;       /* seconds */
-  foo1    = temp.ru_utime.tv_usec ;       /* uSecs */
-  return  foo  + (foo1/1000000.0)         ;       /* milliseconds */
-}
-
-inline void myvpr (double* x, int n, char * text)
-{
-  int k;
-  
-  printf ("%s, adr=%p\n", text, x);
-  
-  for (k=0; k<n; k++)
-  {
-    if (k%5==0) fprintf(stderr,"%d.", k);
-    fprintf(stderr,"%14.7e,", x[k]);
-    if (k%5==4) fprintf(stderr,"\n");
-    fflush(stdout);
-  }
-  
-  if (n%5!=0)
-  {
-    fprintf(stderr,"\n");
-  }
-}
-
-
-inline void myvprs (double* x, int n, char * text, int stride)
-{
-  int k;
-  
-  fprintf(stderr,"%s, adr=%p\n", text, x);
-  
-  for (k=0; k<n; k++)
-  {
-    if (k%5==0) fprintf (stderr,"%d.", k);
-    fprintf (stderr,"%14.7e,", x[stride*k]);
-    if (k%5==4) fprintf (stderr,"\n");
-    fflush(stdout);
-  }
-  
-  if (n%5!=0)
-  {
-    fprintf (stderr,"\n");
-  }
-}
-
-inline void myvprc_hat (complex **x, int n, char *text)
+inline void vpr_c_hat (complex **x, int n, char *text)
 {
   int k,m,d;
   
@@ -142,53 +51,6 @@ inline void myvprc_hat (complex **x, int n, char *text)
     fprintf(stderr,"\n");
 }
 
-inline void myvprc (complex *x, int n, char *text)
-{
-  int k;
-  
-  fprintf(stderr,"%s, adr=%p\n", text, x);
-  
-  for (k=0; k<n; k++)
-  {
-    if (k%2==0) fprintf(stderr,"%d.", k);
-    fprintf(stderr,"(%20.16e,", creal(x[k]));
-    fprintf(stderr,"%20.16e),", cimag(x[k]));
-    if (k%2==1) fprintf(stderr,"\n");
-    fflush(stdout);
-  }
-  
-  if (n%5!=0)
-    fprintf(stderr,"\n");
-}
-
-
-
-inline void myvprci (complex *x, int n, char *text)
-{
-  int k;
-  double *myx;
-  myx = (double*) x;
-  
-  printf ("%s, adr=%p\n", text, x);
-  
-  for (k=0; k<2*n; k++)
-  {
-    if (k%5==0) fprintf(stderr,"%d.", k);
-    fprintf(stderr,"%14.7e,", myx[k]);
-    if (k%5==4) fprintf(stderr,"\n");
-    fflush(stdout);
-  }
-  
-  if (n%5!=0)
-    fprintf(stderr,"\n");
-}
-
-inline int pow2(const int t)
-{  
-  return (1L << t); 
-}
-
-
 double error_complex_inf_r(complex *x0, complex *x, int n)
 {
   double maximum=0.0, maxdiff=0.0, xda;
@@ -200,9 +62,9 @@ double error_complex_inf_r(complex *x0, complex *x, int n)
   {
     x0a = cabs(x0[k]);
     xa = cabs(x[k]);
-    maximum = max(max(x0a,xa),maximum);
+    maximum = MAX(MAX(x0a,xa),maximum);
     xda = cabs(x0[k]-x[k]);
-    maxdiff = max(maxdiff,xda);
+    maxdiff = MAX(maxdiff,xda);
   }
   
   res = (maximum<2*DBL_EPSILON ? maxdiff : maxdiff / maximum);
@@ -217,7 +79,7 @@ double error_complex_inf(complex *x0, complex *x, int n)
   
   for (k = 0; k < n; k++) 
   {
-    maximum = max(maximum,cabs(x0[k]-x[k]));
+    maximum = MAX(maximum,cabs(x0[k]-x[k]));
   }
     
   return maximum;
@@ -266,7 +128,7 @@ double error_complex3(complex *a, complex *b, int n)
   
   for (k = 0; k < n; k++) 
   {
-    m = max(m,cabs(a[k]-b[k])/cabs(a[k]));
+    m = MAX(m,cabs(a[k]-b[k])/cabs(a[k]));
   }
   
   return m;
@@ -285,8 +147,8 @@ double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M)
   {
     for (n = -k; n <= k; n++) 
     {
-      absmax = max(absmax,cabs(f_hat[n+M][k]));
-      err = max(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
+      absmax = MAX(absmax,cabs(f_hat[n+M][k]));
+      err = MAX(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
     }
   }  
   return err/absmax;

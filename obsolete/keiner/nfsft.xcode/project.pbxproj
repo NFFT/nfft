@@ -98,6 +98,8 @@
 		};
 		08FB7795FE84155DC02AAC07 = {
 			children = (
+				4E8F44930850B4800098CEFF,
+				4E8F44940850B4800098CEFF,
 				4E293281082E501F004AD73C,
 				4E293282082E501F004AD73C,
 				4E5470E10832A31200CA0375,
@@ -617,7 +619,6 @@
 		4E6E40D1082CB48500642FF0 = {
 			children = (
 				4E02C48E082F816D00EC0863,
-				4EB6E45F082FF153003AAA48,
 				4E2932A7082E5984004AD73C,
 				4E29331A082E672F004AD73C,
 			);
@@ -634,12 +635,6 @@
 			path = tests/inverse/inverse.c;
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		4E72094E084F77A5007F8CEA = {
-			fileRef = 4E6EA365083E95C9004C5D07;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 		4E75157F082C0CF4002018A8 = {
 			fileEncoding = 4;
@@ -680,6 +675,36 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
+		4E8F44930850B4800098CEFF = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = c2f.c;
+			path = kernel/c2f.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E8F44940850B4800098CEFF = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = c2f.h;
+			path = kernel/c2f.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E8F44950850B4800098CEFF = {
+			fileRef = 4E8F44930850B4800098CEFF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4E8F44960850B4800098CEFF = {
+			fileRef = 4E8F44940850B4800098CEFF;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4E984F5C07CA5BAD00BA8E94 = {
 			isa = PBXFileReference;
 			lastKnownFileType = archive.ar;
@@ -705,6 +730,21 @@
 		};
 		4E98AAA2084A0B790002D4FC = {
 			fileRef = 4E98AAA1084A0B790002D4FC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4E9F7CAA0851D7A700952ECD = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = stabilization.c;
+			path = tests/stabilization/stabilization.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E9F7CAB0851D7A700952ECD = {
+			fileRef = 4E9F7CAA0851D7A700952ECD;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -754,21 +794,13 @@
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		4EB6E45F082FF153003AAA48 = {
-			fileEncoding = 5;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			name = stabilization.c;
-			path = examples/stabilization/stabilization.c;
-			refType = 4;
-			sourceTree = "<group>";
-		};
 		4ECA771908320743008ADA24 = {
 			children = (
 				4EAD69A2083BE07E00C61F13,
 				4E98AAA1084A0B790002D4FC,
 				4E6EA365083E95C9004C5D07,
 				4E8A26E10838C49000216481,
+				4E9F7CAA0851D7A700952ECD,
 				4E5470A208329F8600CA0375,
 			);
 			isa = PBXGroup;
@@ -853,6 +885,7 @@
 				4E6E40CD082CB46F00642FF0,
 				4E293283082E501F004AD73C,
 				4E5470E40832A31200CA0375,
+				4E8F44960850B4800098CEFF,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -860,7 +893,6 @@
 		8DD76F640486A84900D96B5E = {
 			buildActionMask = 2147483647;
 			files = (
-				4E72094E084F77A5007F8CEA,
 				4E6CD55307C54A7E0040176B,
 				4E6CD55507C54A7E0040176B,
 				4E6CD57707C54E630040176B,
@@ -871,6 +903,8 @@
 				4E293284082E5020004AD73C,
 				4E5470E30832A31200CA0375,
 				4E98AAA2084A0B790002D4FC,
+				4E8F44950850B4800098CEFF,
+				4E9F7CAB0851D7A700952ECD,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -932,8 +966,8 @@
 				4E0887BC071585CD005706CD,
 				4E0887BD071585CD005706CD,
 				4E0887BE071585CD005706CD,
-				4E0887BF071585CD005706CD,
 				4E0887C0071585CD005706CD,
+				4E0887BF071585CD005706CD,
 				4E0887C1071585CD005706CD,
 				4E0887C2071585CD005706CD,
 				4EDA6CF007A439F1008B1386,

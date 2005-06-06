@@ -133,7 +133,7 @@ int main (int argc, char **argv)
 		  if (mode == FAST)
 		  {		
 	   		/* Initialize */
-		   	nfsft_precompute(128/*M*/,1000);
+		   	nfsft_precompute(M,2000);
 			   /* Execute the plan. */
 			   nfsft_trafo(plan);
 	   }
@@ -169,7 +169,7 @@ int main (int argc, char **argv)
 		  if (mode == FAST)
 		  {	
       /* Precompute. */
-      nfsft_precompute(128/*M*/,1000);
+      nfsft_precompute(M,2000);
       /* Execute the plan. */
       nfsft_adjoint(plan);
   		}

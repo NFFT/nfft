@@ -33,7 +33,7 @@ int main()
   complex *f;
   
   /* NFSFT transform plans */
-  nfsft_plan plan, plan_adjoint;
+  nfsft_plan plan;
   
   /** Loop counters */
   int n,k,d;
@@ -66,10 +66,12 @@ int main()
     angles[2*d+1] = 0.5*drand48();
   }  
   
+  /* Precompute. 2000 is the threshold. */
+  nfsft_precompute(M,2000);
+  
   /* Compute NFSFT */
   plan = nfsft_init(D, M, angles, f_hat, f, 0U);
   nfsft_trafo(plan);
-  nfsft_finalize(plan);
   
   /* Print result */
   for (d = 0; d < D; d++)
@@ -79,9 +81,7 @@ int main()
   }  
   
   /* Compute adjoint NFSFT */
-  plan_adjoint = nfsft_init(D, M, angles, f_hat, f, 0U);
-  nfsft_adjoint(plan_adjoint);
-  nfsft_finalize(plan_adjoint);
+  nfsft_adjoint(plan);
   
   /* Print result */
   for (k= 0; k <= M; k++)
@@ -92,6 +92,8 @@ int main()
               cimag(f_hat[n+M][k]));
     }  
   }   
+
+  nfsft_finalize(plan);
   
   /* Free memory */
   free(f);

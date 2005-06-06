@@ -1,1 +1,1 @@
-SUBDIRS = convolution stabilization template wrapper
+SUBDIRS = convolution egm96 template wrapper

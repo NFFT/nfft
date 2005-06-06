@@ -43,6 +43,7 @@
 #include <fftw3.h>
 #include "nfsft.h"
 #include "util.h"
+#include "../../nfft/utils.h"
 
 #define M_MIN 1
 #define M_STRIDE 1
@@ -236,9 +237,9 @@ int main (int argc, char **argv)
     /* Precompute wisdom */
     printf("Precomputing wisdom up to M = %d ...",m_max);
     fflush(stdout);
-    ctime = mysecond();
+    ctime = second();
     nfsft_precompute(m_max,t);
-    printf(" needed %7.2f secs.\n",mysecond()-ctime);
+    printf(" needed %7.2f secs.\n",second()-ctime);
     
     printf("Bandwidth         Time err(infty)     err(1)     err(2)         Time err(infty)     err(1)     err(2)\n");
 
@@ -325,7 +326,7 @@ int main (int argc, char **argv)
         plan = nfsft_init(D, M, angles, f_hat, f, 0U);
 
         /* Compute forward transform. */
-        ctime = mysecond();
+        ctime = second();
         //ndsft_trafo(plan);
         nfsft_trafo(plan);
 
@@ -345,7 +346,7 @@ int main (int argc, char **argv)
         /* Compute adjoint transform. */
         //ndsft_adjoint(plan);
         nfsft_adjoint(plan);
-        printf("%7.2f secs ",mysecond()-ctime);
+        printf("%7.2f secs ",second()-ctime);
 
         nfsft_finalize(plan);
 
@@ -452,7 +453,7 @@ int main (int argc, char **argv)
       plan = nfsft_init(D, M, angles, f_hat, f, 0U);
       
       /* Compute forward transform. */
-      ctime = mysecond();
+      ctime = second();
       //ndsft_trafo(plan);
       nfsft_trafo(plan);
       
@@ -470,7 +471,7 @@ int main (int argc, char **argv)
       /* Compute adjoint transform. */
       //ndsft_adjoint(plan);
       nfsft_adjoint(plan);
-      printf("%7.2f secs ",mysecond()-ctime);
+      printf("%7.2f secs ",second()-ctime);
       
       nfsft_finalize(plan);      
       

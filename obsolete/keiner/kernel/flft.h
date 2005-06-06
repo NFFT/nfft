@@ -21,7 +21,7 @@
  * \ingroup nfsft_internal
  */
 void flft(const int M, const int t, const int n, complex *const f_hat, 
-          struct nfsft_wisdom *const wisdom);
+          struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal);
 
 /**
  * \brief Adjoint fast Legendre function transform

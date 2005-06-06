@@ -6,7 +6,10 @@
 
 #include "api.h"
 
-/** \defgroup nfsft_direct NFSFT: Direct algorithms */
+/** 
+ * \defgroup nfsft_direct NFSFT: Direct algorithms 
+ * \ingroup nfsft
+ */
 
 /*
  * Spherical Fourier transform and adjoint spherical Fourier transform 

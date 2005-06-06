@@ -72,6 +72,7 @@ struct nfsft_plan_s
   int M;
   /** Next greater power of two with respect to M */
   int N;
+  int t;
   /** The angles phi of the nodes */
   double *angles;
   /** The fourier coefficients. */
@@ -139,9 +140,6 @@ struct nfsft_wisdom
 {
   /** Indicates wether the structure has been initialized */ 
   bool initialized;
-  /** */
-  bool initialized_coeffs;
-
   /** The threshold */
   double threshold;
   /** Maximum bandwidth */
@@ -171,7 +169,7 @@ struct nfsft_wisdom
   /** Precomputed recursion coefficients for associated Legendre-functions */
   double *gamma;
   /** Precomputed recursion coefficients for associated Legendre-functions */
-  double *gamma_m1;  
+  //double *gamma_m1;  
 
   complex *z;
 };

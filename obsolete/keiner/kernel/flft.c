@@ -3,7 +3,7 @@
 #include "util.h"
 
 void flft(const int M, const int t, const int n, complex *const f_hat, 
-          struct nfsft_wisdom *const wisdom)
+          struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal)
 {
   /** 
    * Next greater power of two with respect to M since 
@@ -88,6 +88,8 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
       /* Get matrix U_{n,tau,l} */
       act_U = U[n][tau][l][0];
       
+      *ntotal = *ntotal + 1;
+      
       /* Check if step is stable. */
       if (act_U.stable)
       {
@@ -109,6 +111,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
       else
       {	
         /* Stabilize. */
+        *nstab = *nstab + 1;
 
         /* Get U suitable for current N. */
         act_U = U[n][tau][l][t-tau-1];
@@ -142,7 +145,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
    * polynomials in front of P_0^n and P_1^n. */ 
-  gamma = wisdom->gamma_m1[n];
+  gamma = wisdom->gamma[ROW(n)];//_m1[n];
   if (n%2 == 0)
   {
     if (n == 0)
@@ -214,7 +217,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
   memset(wisdom->ergeb,0U,((N+1)<<1)*sizeof(complex));
   
   /* The final step */ 
-  gamma = wisdom->gamma_m1[n];
+  gamma = wisdom->gamma[ROW(n)];//gamma_m1[n];
     
   /* First half consists always of coefficient vector multiplied by I_{N+1}, 
    * i.e. a copy of this vector. */
@@ -302,7 +305,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
         act_U = U[n][tau][l][t-tau-1];
         
         /* Stabilize. */
-        plength_stab = pow2(t);
+        plength_stab = 1<<t;
         
         memcpy(wisdom->vec3,wisdom->old,plength_stab*sizeof(complex));
         memcpy(wisdom->vec4,&(wisdom->old[plength_stab]),plength_stab*sizeof(complex));

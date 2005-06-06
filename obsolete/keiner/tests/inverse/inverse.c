@@ -42,6 +42,7 @@
 #include <fftw3.h>
 #include "nfsft.h"
 #include "util.h"
+#include "../../nfft/utils.h"
 #include "api.h"
 #include "infsft.h"
 
@@ -143,9 +144,9 @@ int main (int argc, char **argv)
     
   printf("Precomputing wisdom up to M = %d ...",M);
   fflush(stdout);
-  ctime = mysecond();
+  ctime = second();
   nfsft_precompute(M,2000);
-  printf(" needed %7.2f secs.\n",mysecond()-ctime);
+  printf(" needed %7.2f secs.\n",second()-ctime);
           
   /* Compute random Fourier coefficients. */
   for (n = -M; n <= M; n++)
@@ -182,7 +183,7 @@ int main (int argc, char **argv)
   plan = nfsft_init(D, M, angles, f_hat, f, 0U);
   nfsft_trafo(plan);
 
-  myvprc(f,D,"f:");
+  vpr_c(f,D,"f:");
   
   for (n = -M; n <= M; n++)
   {

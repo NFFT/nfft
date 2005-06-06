@@ -30,8 +30,6 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
   complex *a;
  	/** Pointer to auxilliary array for Clenshaw algorithm. */
   complex *temp;
- 	/** Pointer to auxilliary array for Clenshaw algorithm. */
-  complex *b;  
   
   /** The final result for a single node. */
   complex f_d;
@@ -40,11 +38,9 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
   double *theta;
   /** Used to store the angles phi_d */
   double *phi;
-  
-  
+    
 	 /* Allocate memory for auxilliary arrays. */
   temp = (complex*) malloc (sizeof(complex) * (M+1));
-  b = (complex*) malloc (sizeof(complex) * (2*M+1));    
   theta = (double*) malloc (sizeof(double) * D);    
   phi = (double*) malloc (sizeof(double) * D);    
   
@@ -78,6 +74,9 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
 		   *    = \sum_{n=-M}^M \sum_{k=|n|}^M a_k^n P_k^{|n|}(\cos\theta_j) e^{i n \phi_j}. */
     for (d = 0; d < D; d++)
 	   {
+			   /* Initialize result for current node. */
+      f_d = 0.0;
+
       /* For n = -M,...,M, evaluate 
 			    *   b_n := \sum_{k=|n|}^M a_k^n P_k^{|n|}(\cos\vtheta_j)
 			    * using Clenshaw's algorithm. */
@@ -112,20 +111,10 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
         
         /* Write final result b_n of multiplication by normalization constant to 
          * array b  = (b_{-M},...,b_M). */
-        b[n+M] = temp[0+nleg] * wisdom->gamma_m1[nleg] *
-          pow(1- theta[d] * theta[d], nleg/2.0);
+        f_d += temp[0+nleg] * wisdom->gamma[ROW(nleg)]/*gamma_m1[nleg]*/ *
+          pow(1- theta[d] * theta[d], 0.5*nleg) * cexp(I*n*phi[d]);
 	     }
-      
-			   /* Initialize result for current node. */
-      f_d = 0.0;
-      
-			   /* Compute
-       *   f_j := \sum_{n=-M}^M b_n e^{i n \phi_j}. */
-      for (n = -M; n <= M; n++)
-      {        
-        f_d += b[n+M]*cexp(I*n*phi[d]);
-      }
-      
+            
 			   /* Write result to vector f. */
       f[d] = f_d;
     }
@@ -134,7 +123,6 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
  	/* Free auxilliary arrays. */
   free(phi);
   free(theta);
-  free(b);  
   free(temp);
 }
 
@@ -222,8 +210,8 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
         alpha = &(wisdom->alpha[ROWK(nleg)]);
         gamma = &(wisdom->gamma[ROWK(nleg)]);
 
-        temp[nleg] = f[d] * cexp(-I*n*phi[d]) * wisdom->gamma_m1[nleg] *
-          pow(1- theta[d] * theta[d], nleg/2.0);
+        temp[nleg] = f[d] * cexp(-I*n*phi[d]) * wisdom->gamma[ROW(nleg)]/*gamma_m1[nleg]*/ *
+          pow(1- theta[d] * theta[d], 0.5*nleg);
                 
         /* Compute final step if neccesary. */
         if (nleg < M)
@@ -250,6 +238,5 @@ void adjoint_ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
  	/* Free auxilliary arrays. */
   free(phi);
   free(theta);
-  //free(b);  
   free(temp);
 }

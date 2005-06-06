@@ -64,7 +64,7 @@ int main (int argc, char **argv)
   complex *coefs;
   //double ctime;
   double re,im;
-  struct nfsft_wisdom *wisdom;
+  //struct nfsft_wisdom *wisdom;
   
   fscanf(stdin,"%d\n",&M);
   fscanf(stdin,"%d\n",&n);
@@ -82,11 +82,11 @@ int main (int argc, char **argv)
   
   
 		/* Initialize */
- 	nfsft_precompute_guru(N,THRESHOLD,n);
+ 	//nfsft_precompute_guru(N,THRESHOLD,n);
     
-  wisdom = nfsft_get_wisdom();
+  //wisdom = nfsft_get_wisdom();
   
-  flft(M,ngpt(M),n,coefs,wisdom);
+  //flft(M,ngpt(M),n,coefs,wisdom);
     
   for (k = abs(n); k <= M ; k++)
   {   
@@ -94,7 +94,7 @@ int main (int argc, char **argv)
   } 
 
   /* Forget wisdom. */
-  nfsft_forget_guru(n);
+  //nfsft_forget_guru(n);
   
   fftw_free(coefs);
     

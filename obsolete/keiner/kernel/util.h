@@ -14,11 +14,8 @@ inline int ngpt(int n);
 
 #define SWAPCT(x,y,temp) {temp=(x); (x)=(y); (y)=temp;}
 
-double mysecond();
-void myvpr (double* x, int n, char * text);
-void myvprc (complex *x, int n, char * text);
-void myvprc_hat (complex **x, int n, char * text);
-int pow2(const int t);
+void vpr_c_hat (complex **x, int n, char * text);
+
 double error_complex_inf(complex *x0, complex *x, int n);
 double error_complex_inf_r(complex *x0, complex *x, int n);
 double error_complex_1(complex *a, complex *b, int n);
@@ -27,6 +24,7 @@ double error_complex3(complex *a, complex *b, int n);
 double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_1(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
+
 void copyc_hat(complex **x,complex **y, int M);
 void copyc_w_hat(complex **x, double **w, complex **y, int M);
 double dotproductc_w_hat(complex **x, double **w, int M);
@@ -42,14 +40,4 @@ void updatec_xpawy_2(complex* x,double a, double* w, complex* y, int n);
 void uvxpwy(complex* u, complex* x, double* v, complex* y, double* w, int n);
 void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, double* w, int n);
 void abuvxpwy(double a, double b, complex* u, complex* x, double* v, complex* y, double* w, int n);
-
-
-
-#define PI 3.1415926535897932385
-#define QUADRATIC_KERNEL(k) k==0?1.0:((2*k+1)/((double)(k*(k+1))*(k*(k+1))))
-#define ABEL_POISSON_KERNEL(k,h) (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h))
-#define GAUSS_WEIERSTRASS(k,p) exp(-k*(k+1)*p)*(2*k+1)/(4*PI) 
-#define max(a,b) a<b?b:a
-
-
 #endif

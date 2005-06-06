@@ -1,7 +1,7 @@
 \chapter{Nonequispaced Discrete Spherical Fourier Transform}
 \label{DSFT}
-Let in this chapter $M \in \NZ$ be fixed, $N := 2^{\ceil{\log_2 M}}$ be the 
-next greater power of two with respect to $M$ and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$ be
+Let in this chapter $M \in \NZ$ be fixed, $N := 2^t$ be the 
+next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$ be
 a set of nodes on $\twosphere$ called the \emph{sampling set}. As a special case, a \emph{spherical grid} 
 $\mathcal{X}$ is defined by a Cartesian product 
 $$
@@ -72,7 +72,7 @@ directly.
       \STATE $f_{d} := 0$
       \FOR {$n=-M,\ldots,M$} 
         \STATE Compute $\fun{b^{n}}{d}$ by the Clenshaw algorithm,
-        \STATE $f_{d} := f_{d} + \fun{b^n}{d} * \e^{\im n \vphi_{d}}$
+        \STATE $f_{d} := f_{d} + b^n_d \e^{\im n \vphi_{d}}$
       \ENDFOR
     \ENDFOR
     \STATE
@@ -404,31 +404,40 @@ We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\
   \end{algorithmic}
 \end{algorithm}
 
+The algorithms for the computation of the products $\fun{\V{f}}{\mathcal{X}} = \fun{\V{Y}}{\mathcal{X}} \: \V{a}$ and $\V{\tilde{a}} = \fun{\V{Y}}{\mathcal{X}}^{\h} \: \fun{\V{f}}{\mathcal{X}}$ presented so far have both computational complexity $\bigo{M^2\:D}$ making computations for most applications impracticably slow. We already mentioned that FFT techniques may be applied to sums of the form
+$$
+  f_{d} := \sum_{n = -M}^M b^n_d \e^{\im n \vphi_{d}} \quad \paren{d = 0,\ldots,D}
+$$
+if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution one may apply the NFFT algorithm as mentioned in Section \ref{Basics:NFFT}. In the following section we present a fast algorithm for the evaluation of the sums $b^{n}_{d}$ from \eqref{NFSFT:directDSFT:firstSum} first mentioned in \cite{postta97}. To be more precise, the algorithm performs for a fixed $n$ a change of basis independent of the nodes to transform a sum of the form
+\begin{equation}
+  \label{NFSFT:LegendreSum}
+  \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^n}{x}
+\end{equation}
+into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonequispaced nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
 
+%This holds only in the case of equispaced nodes. If one leaves 
+%In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
+%of the basis functions $Y_k^n$, evaluating the sum in \eqref{NFSFT:FourierExpansion} can be split up in ordinary discrete Fourier transforms for nonequispaced 
+%data in colatitudinal direction and \emph{discrete Legendre function transforms} for the latitudinal part. The basic idea of the approach 
+%presented here is to perform a change of basis from Legendre functions to complex exponentials in latitudinal direction to get the 
+%representation
+%$$ \fun{f}{\vtheta,\vphi} = \sum_{n=-M}^{M} \sum_{k=-M}^M c_k^n e^{ik\vtheta} e^{in\vphi}.$$
+%The computation of the function values $f_j := \fun{f}{\vtheta_j,\vphi_j}$ can now be performed 
+%using a two-dimensional NFFT. 
 
-This holds only in the case of equispaced nodes. If one leaves 
-In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
-of the basis functions $Y_k^n$, evaluating the sum in \eqref{NFSFT:FourierExpansion} can be split up in ordinary discrete Fourier transforms for nonequispaced 
-data in colatitudinal direction and \emph{discrete Legendre function transforms} for the latitudinal part. The basic idea of the approach 
-presented here is to perform a change of basis from Legendre functions to complex exponentials in latitudinal direction to get the 
-representation
-$$ \fun{f}{\vtheta,\vphi} = \sum_{n=-M}^{M} \sum_{k=-M}^M c_k^n e^{ik\vtheta} e^{in\vphi}.$$
-The computation of the function values $f_j := \fun{f}{\vtheta_j,\vphi_j}$ can now be performed 
-using a two-dimensional NFFT. 
-
-Once derived a fast algorithm for this product, which implies a factorization of $\V{Y}$ into a product of sparse matrices,
-one also immediately gets from the theoretical point of view a fast algorithm for the adjoint product 
-$$\V{a} = \V{Y}^{\h} \; \V{f}.$$
+%Once derived a fast algorithm for this product, which implies a factorization of $\V{Y}$ into a product of sparse matrices,
+%one also immediately gets from the theoretical point of view a fast algorithm for the adjoint product 
+%$$\V{a} = \V{Y}^{\h} \; \V{f}.$$
 
 \section{Fast Legendre Function Transform}
 \label{DSFT:FLFT}
 
-Let $M \in \NZ$ and $n \in \Z$ with $M \ge \abs{n}$ be given. The \index{Fast Legendre function transform} \emph{fast Legendre function transform (FLFT)}
-considers polynomials of the form
+We consider polynomials of the form
 $$ \fun{g_n}{x} := \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M$$
 for even $n$ and
-$$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M-1$$
-for odd $n$ with given complex coefficients $a_k^n$. The FLFT computes the coefficients $b_k^n$ of the Chebyshev representation
+$$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_{M-1}$$
+for odd $n$ with given complex coefficients $a_k^n$. The Fast Legendre Function Transform (FLFT) performes a change of basis and computes the 
+coefficients $b_k^n$ of the Chebyshev representation
 $$ \fun{g_n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}$$
 for even $n$ and
 $$\fun{g_n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}$$
@@ -453,19 +462,24 @@ $$
                              \fun{P_{k}^n}{\cdot,c}         &                         \fun{P_{k+1}^n}{\cdot,c}
   \end{array}\right).   
 $$
-
-We restrict ourselves to the case where $n$ is even. All further calculations will be performed with respect to $N$ as the 
-bandwidth by setting $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
+For the rest of this section restrict ourselves to the case when $n$ is even. Furthermore, we set $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
 \ref{Basics:AssociatedLegendreRecurrence} to write
-$$ g_n = \sum_{k = \abs{n}}^{N-1} a_{k}^{(0)} P_k^{\abs{n}} = \sum_{l = 0}^{\frac{N}{4}-1} \paren{\sum_{k = 0}^3 a_{4l+k}^{(0)}P_{4l+k}^{\abs{n}}},$$
+$$ g_n = \sum_{k = \abs{n}}^{N-1} a_{k}^{(0)} P_k^{\abs{n}}$$
 with
 \begin{eqnarray*}
   \fun{a_k^{(0)}}{x}     & := & a_k^n \quad (k = 0,\ldots,N-3),\\
   \fun{a_{N-2}^{(0)}}{x} & := & a_{N-2}^n + \gamma_{N-1}^{\abs{n}} a_N^n,\\
   \fun{a_{N-1}^{(0)}}{x} & := & a_{N-1}^n + \paren{\alpha_{N-1}^{\abs{n}}x + \beta_{N-1}^{\abs{n}}} a_N^n.
 \end{eqnarray*}
-Please take note of the fact that $a_k^{(0)}$  instead of constants are now polynomials of 
-maximal degree $1$ and that one immediately has their corresponding Chebyshev coefficients.
+We now set 
+$$\tilde{n} := \fun{\min}{\abs{n},N-2}, \quad \tilde{M} := \left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.$$
+and write
+$$
+  g_n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} \paren{\sum_{k=0}^{3} a_{4l+k}^{(0)} P_{4l+k}^{\abs{n}}}.
+$$
+
+Notice that $a_k^{(0)}$ are polynomials of 
+degree at most $1$ and that one immediately has their corresponding Chebyshev coefficients.
 
 From \eqref{} with $k = 1$ and $c = l+1$ it follows that
 $$

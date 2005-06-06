@@ -40,6 +40,7 @@
 #include <complex.h>
 #include "nfsft.h"
 #include "util.h"
+#include "../../nfft/utils.h"
 #include "time.h"
 
 #define H_MIN 0.6
@@ -53,6 +54,11 @@
 #define L 128
 
 #define D 1024
+
+#define QUADRATIC_KERNEL(k) k==0?1.0:((2*k+1)/((double)(k*(k+1))*(k*(k+1))))
+#define ABEL_POISSON_KERNEL(k,h) (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h))
+#define GAUSS_WEIERSTRASS(k,p) exp(-k*(k+1)*p)*(2*k+1)/(4*PI) 
+
 
 inline double ip(double phi1,double theta1,double phi2,double theta2)
 {
