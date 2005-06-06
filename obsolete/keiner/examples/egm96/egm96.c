@@ -68,7 +68,7 @@ int main (int argc, char **argv)
   double a,b,c,e;
   const int D = D_PHI * D_THETA;
   
-  file = fopen("egm96_2.dat","r");
+  file = fopen("egm96.dat","r");
   if (file != NULL)
   {
     /** Allocate data structures. */
@@ -82,10 +82,16 @@ int main (int argc, char **argv)
       f_hat[n+M] = (complex*) calloc((N+1),sizeof(complex));
     }  
 
-    while (fscanf(file,"%d %d %lf %lf %lf %lf\n",&k,&n,&a,&b,&c,&e) != EOF)
+    while (fscanf(file,"%d %d %le %le %le %le\n",&k,&n,&a,&b,&c,&e) != EOF)
     {
-      f_hat[n+M][k] = pow(1.02,k)*a*sqrt(2*k+1);
-      //fprintf(stderr,"f_hat[%d][%d] = %E; a = %E\n",n,k,f_hat[n+M][k],a);
+		  if (k <= M && k > 5)
+			{
+  		  a *= sqrt(2.0*k+1.0); 
+	  	  b *= sqrt(2.0*k+1.0); 
+        f_hat[n+M][k] = 0.5*(a + I*b);
+        f_hat[-n+M][k] = 0.5*(a - I*b);
+        //fprintf(stderr,"f_hat[%d][%d] = %E; a = %E\n",n,k,f_hat[n+M][k],creal(f_hat[n+M][k]));
+			}
     }
     //f_hat[M][0] = 1.0;
     fclose(file);
@@ -136,7 +142,7 @@ int main (int argc, char **argv)
       for (d = 0; d < D; d++)
       {
         //fprintf(file,"%.16f %.16f %.16f %.16f\n",x[2*d],x[2*d+1],creal(f[d]),cimag(f[d]));
-        fprintf(file,"%.16f\n",creal(f[d]));
+        fprintf(file,"%.16f\n",cabs(f[d]));
       }
       fclose(file);
     }

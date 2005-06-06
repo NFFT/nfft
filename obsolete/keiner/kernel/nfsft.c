@@ -135,6 +135,10 @@ nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat,
   plan->f = f;
   
   /* Initialize NFFT. */
+/*  nfft_size[0] = 2*(plan->N+1);
+  nfft_size[1] = 2*(plan->N+1);
+  fftw_size[0] = 4*plan->N;
+  fftw_size[1] = 4*plan->N;*/
   nfft_size[0] = 2*(plan->N+1);
   nfft_size[1] = 2*(plan->N+1);
   fftw_size[0] = 4*plan->N;
@@ -193,14 +197,22 @@ void nfsft_trafo(nfsft_plan plan)
     /* Compute FLFT. */
     for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
+		  //fprintf(stderr,"flft: n = %d\n",n);
+			//fflush(stderr);
       flft(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
     }
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
+    //fprintf(stderr,"cheb2exp\n",n);
+	  //fflush(stderr);
     cheb2exp(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
     
     /* Execute NFFT. */
+    //fprintf(stderr,"nfft\n",n);
+	  //fflush(stderr);
     nfft_trafo(&plan->plan_nfft);
+    //fprintf(stderr,"after nfft\n",n);
+	  //fflush(stderr);
   }    
 }
 

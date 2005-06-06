@@ -82,7 +82,7 @@ inline void beta_al_all(double *alpha, int N)
   }  
 }
 
-inlinevoid gamma_al_all(double *alpha, int N)
+inline void gamma_al_all(double *alpha, int N)
 {
   int i,j;
   double *alpha_act = alpha;

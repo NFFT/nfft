@@ -61,6 +61,8 @@
 #define L_MAX 10000
 #define L_STRIDE 1000
 
+#define ABEL_POISSON_KERNEL(k,h) (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h))
+
 inline double ip(double phi1,double theta1,double phi2,double theta2)
 {
   return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
@@ -154,7 +156,7 @@ int main (int argc, char **argv)
     return -1;
   }  
 		
-  printf("d = %d\n",d);
+  //printf("d = %d\n",d);
 	N_MAX = 1<<ngpt(m_max);	
 		
 	nfsft_precompute(m_max,2000);
@@ -193,23 +195,23 @@ int main (int argc, char **argv)
   fprintf(file,"\\begin{tabular}{l|l|l|l|l|l|l}\n");
 	fprintf(file,"$h$ & $M$ & $K$ & $N$ & $t_{\\text{fast}}$ & $t_{\\text{slow}}$ & $\\text{err}_{\\infty}$\\\\\\hline\n");
 
-  for (l = l_min; l <= l_max; l = l + l_stride)
-	{
-	  for (d = d_min; d <= d_max; d = d + d_stride)
+  for (h = h_min; h <= h_max; h = h + h_stride)
+  {
+		/* Kernel coeffcients up to m_max */
+		for (k = 0; k <= m_max; k++)
 		{
-  		int temp = l;
-		  l = d/2;
-			for (h = h_min; h <= h_max; h = h + h_stride)
+			a[k] = ABEL_POISSON_KERNEL(k,h);
+		}
+		for (l = l_min; l <= l_max; l = l + l_stride)
+		{
+			for (d = d_min; d <= d_max; d = d + d_stride)
 			{
-				/* Kernel coeffcients up to m_max */
-				for (k = 0; k <= m_max; k++)
+				int temp = l;
+				l = d/2;
+					
+  			if (d <= DD_MAX)
 				{
-					a[k] = ABEL_POISSON_KERNEL(k,h);
-				}
-				
-				if (d <= DD_MAX)
-				{
-					t_d = mysecond();
+					t_d = second();
 					for (j = 0; j < d; j++)
 					{
 						f2[j] = 0.0;
@@ -218,7 +220,7 @@ int main (int argc, char **argv)
 							f2[j] += b[k]*poisson(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
 						}
 					} 
-					t_d = mysecond() - t_d;
+					t_d = second() - t_d;
 				}
 				
 				for (M = m_min; M <= m_max; M = M + m_stride)
@@ -228,8 +230,10 @@ int main (int argc, char **argv)
 					/* Adjoint transform */
 					plan_adjoint = nfsft_init(l,M,nu,f_hat,b,0U);
 					plan = nfsft_init(d,M,xi,f_hat,f,0U);
-					t_f = mysecond();
+					t_f = second();
 					nfsft_adjoint(plan_adjoint);
+					//fprintf(stderr,"1");
+					//fflush(stderr);
 				
 					/* Multiplication with diagonal matrix. */
 					for (k = 0; k <= M; k++)
@@ -239,12 +243,16 @@ int main (int argc, char **argv)
 							f_hat[n+M][k] *= a[k];
 						}
 					}
+					//fprintf(stderr,"2");
+					//fflush(stderr);
 				
 					/* Forward transform */
 					nfsft_trafo(plan);
-					t_f = mysecond() - t_f;
+					t_f = second() - t_f;
 					nfsft_finalize(plan_adjoint);
 					nfsft_finalize(plan);
+					//fprintf(stderr,"3");
+					//fflush(stderr);
 					
 					if (d <= DD_MAX)
 					{
@@ -255,8 +263,8 @@ int main (int argc, char **argv)
 					  fprintf(file,"%.2f & %3d & %6d & %6d & -- & %5.2f & --\\\\\n",h,M,l,d,t_f);
 					}
 				}
+  			l = temp;
 			}
-			l = temp;
 		}
 		fprintf(file,"\\hline");
 	}
