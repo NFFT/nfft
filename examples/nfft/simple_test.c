@@ -16,8 +16,9 @@ void simple_test_nfft_1d()
   /** init an one dimensional plan */
   /*nfft_init_1d(&my_plan,12,19);*/
   nfft_init_guru(&my_plan, 1, N, 19, n, 6,
-		     PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-		     FFT_OUT_OF_PLACE, FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+		 PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
@@ -73,9 +74,8 @@ void simple_test_nfft_2d()
   /** init an one dimensional plan */
   //nfft_init_2d(&my_plan,12,12,19);
   nfft_init_guru(&my_plan, 2, N, 19, n, 6,
-		 PRE_PHI_HUT| PRE_LIN_PSI|
-		 MALLOC_X| MALLOC_F_HAT| MALLOC_F, 
-		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+		 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+		 FFTW_INIT, FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
@@ -83,6 +83,70 @@ void simple_test_nfft_2d()
       my_plan.x[2*j]=((double)rand())/RAND_MAX-0.5;
       my_plan.x[2*j+1]=((double)rand())/RAND_MAX-0.5;
     }
+
+  /** precompute psi, the entries of the matrix B */
+    if(my_plan.nfft_flags & PRE_LIN_PSI)
+      nfft_precompute_lin_psi(&my_plan);
+
+  if(my_plan.nfft_flags & PRE_PSI)
+      nfft_precompute_psi(&my_plan);
+      
+  if(my_plan.nfft_flags & PRE_FULL_PSI)
+      nfft_precompute_full_psi(&my_plan);
+
+  /** init pseudo random Fourier coefficients and show them */
+  for(k=0;k<my_plan.N_total;k++)
+    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
+
+  vpr_c(my_plan.f_hat,12,
+	"given Fourier coefficients, vector f_hat (first 12 entries)");
+
+  /** direct trafo and show the result */
+  ndft_trafo(&my_plan);
+  vpr_c(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+
+  /** approx. trafo and show the result */
+  nfft_trafo(&my_plan);
+  vpr_c(my_plan.f,my_plan.M_total,"nfft, vector f");
+
+  /** direct adjoint and show the result */
+  ndft_adjoint(&my_plan);
+  vpr_c(my_plan.f_hat,12,"adjoint ndft, vector f_hat (first 12 entries)");
+
+  /** approx. adjoint and show the result */
+  nfft_adjoint(&my_plan);
+  vpr_c(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
+
+  /** finalise the one dimensional plan */
+  nfft_finalize(&my_plan);
+}
+
+void simple_test_nfft_2d_huge()
+{
+  int j,k;                              /**< index for nodes and freqencies   */
+  nfft_plan my_plan;                    /**< plan for the nfft                */
+
+  int N[2],n[2];
+  N[0]=2050; n[0]=4096;
+  N[1]=2059; n[1]=4096;
+
+  /** init an one dimensional plan */
+
+  nfft_init_guru(&my_plan, 2, N, 10, n, 
+		 6, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+
+  printf("HALLO"); fflush(stdout);
+
+  /** init pseudo random nodes */
+  for(j=0;j<my_plan.M_total;j++)
+    {
+      my_plan.x[2*j]=((double)rand())/RAND_MAX-0.5;
+      my_plan.x[2*j+1]=((double)rand())/RAND_MAX-0.5;
+    }
+
+printf("HALLO"); fflush(stdout);
 
   /** precompute psi, the entries of the matrix B */
     if(my_plan.nfft_flags & PRE_LIN_PSI)
