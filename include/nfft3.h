@@ -192,7 +192,7 @@ void nfft_finalize(nfft_plan *ths);
   int *aN1;
   int m;                                /**< cut-off parameter in time-domain */
   double *b;                            /**< shape parameters                 */
-  int K;                                /**< K+1 values of phi                */
+  int K;                                /**< number of precomp. uniform psi  */
 
   int aN1_total;
   
@@ -241,7 +241,7 @@ void nnfft_adjoint(nnfft_plan *ths_plan);
 
 void nnfft_transposed(nnfft_plan *ths_plan);
 
-void nnfft_precompute_lin_psi(nnfft_plan *ths_plan, int K);
+void nnfft_precompute_lin_psi(nnfft_plan *ths_plan);
 
 void nnfft_precompute_psi(nnfft_plan *ths_plan);
 

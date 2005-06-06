@@ -389,24 +389,20 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
  *  good idea K=2^xx
  *  TODO: estimate K, call from init
  */
-void nnfft_precompute_lin_psi(nnfft_plan *ths, int K)
+void nnfft_precompute_lin_psi(nnfft_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
   int j;                                /**< index over all nodes             */  
   double step;                          /**< step size in [0,(m+1)/n]         */
-
-  ths->K=K;
-  ths->psi = (double*) malloc((ths->K+1)*ths->d*sizeof(double));
   
-  /* Warte bis nfft wieder lin_psi hat */
-  //nfft_precompute_lin_psi(ths->direct_plan,K);
+  nfft_precompute_lin_psi(ths->direct_plan);
   
   for (t=0; t<ths->d; t++)
     {
-      step=((double)(ths->m+1))/(K*ths->N1[t]);
-      for(j=0;j<=K;j++)
+      step=((double)(ths->m+1))/(ths->K*ths->N1[t]);
+      for(j=0;j<=ths->K;j++)
         {
-          ths->psi[(K+1)*t + j] = PHI(j*step,t);
+          ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
         } /* for(j) */
     } /* for(t) */
 }
@@ -570,6 +566,12 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
                                                   sizeof(complex));
   if(ths->nnfft_flags & MALLOC_F)
     ths->f=(complex*)fftw_malloc(ths->M_total*sizeof(complex));
+    
+  if(ths->nnfft_flags & PRE_LIN_PSI)
+  {
+    ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
+  }
     
   /* NO FFTW_MALLOC HERE */
   if(ths->nnfft_flags & PRE_PSI)
