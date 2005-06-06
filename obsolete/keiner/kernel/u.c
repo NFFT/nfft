@@ -118,7 +118,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   for (n = 0; n <= M; n++)
   {   
     fprintf(stderr,"n = %5d\n",n);
-		fflush(stderr);
+  		fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
      * t = log_2(M) many levels. */
     U[n] = (struct U_type***) fftw_malloc(sizeof(struct U_type**) * t);

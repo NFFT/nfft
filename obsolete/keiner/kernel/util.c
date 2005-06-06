@@ -18,7 +18,7 @@ inline int ngpt(int n)
 {
   int e = 0;
   int p = 1;
-
+  
   while (n > p)
   {
     e++;
