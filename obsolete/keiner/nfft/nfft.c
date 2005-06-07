@@ -213,8 +213,10 @@ void nfft_uo(nfft_plan *this,int j,int *up,int *op,int act_dim)
 }
 
 #define MACRO_update_c_phi_inv_k(which_one) {                                  \
-  for(t2=t_temp; t2<this->d; t2++)                                                  \
+  for(t2=0; t2<this->d; t2++)                                                  \
     {                                                                          \
+		  printf("t2 = %d\n",t2);\
+			fflush(stdout);\
       c_phi_inv_k[t2+1]= c_phi_inv_k[t2] MACRO_ ##which_one;                   \
       ks_plain[t2+1]= ks_plain[t2]*this->N[t2]+ks[t2];                         \
       k_plain[t2+1]= k_plain[t2]*this->n[t2]+k[t2];                            \
@@ -277,15 +279,23 @@ inline void nfft_D_ ## which_one (nfft_plan *this)                             \
     } /* if(PRE_PHI_HUT) */                                                    \
   else                                                                         \
     {                                                                          \
+		  printf("Before MACRO_init_k_ks\n");\
+			fflush(stdout);\
       MACRO_init_k_ks;                                                         \
                                                                                \
       t_temp = t;																															\
       for(k_L=0; k_L<this->N_L; k_L++)                                         \
 	{                                                                      \
+    		  printf("Before MACRO_update_c_phi_inv_k\n");\
+    			fflush(stdout);\
           MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                       \
                                                                                \
+    printf("Before MACRO_nfft_D_compute\n");\
+  	fflush(stdout);\
 	  MACRO_nfft_D_compute_ ## which_one;                                  \
 	                                                                       \
+    printf("Before MACRO_count_k_ks\n");\
+		fflush(stdout);\
 	  MACRO_count_k_ks;                                                    \
 	} /* for(k_L) */                                                       \
     } /* else(PRE_PHI_HUT) */                                                  \
@@ -435,9 +445,15 @@ void nfft_trafo(nfft_plan *this)
  
   /** form \f$ \hat g_k = \frac{\hat{f}_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
-   */ 
+   */
+  printf("before T1\n");
+	fflush(stdout);
   T1;
+  printf("before D_A\n");
+	fflush(stdout);	
   nfft_D_A(this);
+  printf("before T_2\n");
+	fflush(stdout);
   T2(1);
 
   /** compute by d-variate discrete Fourier transform
