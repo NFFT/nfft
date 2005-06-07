@@ -275,6 +275,15 @@
 			settings = {
 			};
 		};
+		4E23D9390854D1E300CC656A = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = egm96.c;
+			path = examples/egm96/egm96.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
 		4E293281082E501F004AD73C = {
 			fileEncoding = 4;
 			isa = PBXFileReference;
@@ -618,7 +627,7 @@
 		};
 		4E6E40D1082CB48500642FF0 = {
 			children = (
-				4ED64BD70854975E008E1E9E,
+				4E23D9390854D1E300CC656A,
 				4E02C48E082F816D00EC0863,
 				4E2932A7082E5984004AD73C,
 				4E29331A082E672F004AD73C,
@@ -808,15 +817,6 @@
 			name = tests;
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		4ED64BD70854975E008E1E9E = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.c;
-			name = egm96.c;
-			path = /private/var/automount/home/keiner/Temporary/nfft_linux/examples/egm96/egm96.c;
-			refType = 0;
-			sourceTree = "<absolute>";
 		};
 		4EDA6CF007A439F1008B1386 = {
 			fileEncoding = 5;
