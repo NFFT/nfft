@@ -167,7 +167,7 @@ int main (int argc, char **argv)
       /* Forward transform */
       nfsft_trafo(plan);
     
-      sprintf(filename,"egm96%05d.dat",i);
+      sprintf(filename,"egm96%05d.dat",k-3);
       file = fopen(filename,"w");
       for (d = 0; d < D; d++)
       {
