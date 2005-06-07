@@ -128,7 +128,7 @@ void simple_test_nfft_2d_huge()
 
   int N[2],n[2];
   N[0]=2050; n[0]=4096;
-  N[1]=2059; n[1]=4096;
+  N[1]=2050; n[1]=4096;
 
   /** init an one dimensional plan */
 
@@ -137,16 +137,12 @@ void simple_test_nfft_2d_huge()
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
-  printf("HALLO"); fflush(stdout);
-
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
     {
       my_plan.x[2*j]=((double)rand())/RAND_MAX-0.5;
       my_plan.x[2*j+1]=((double)rand())/RAND_MAX-0.5;
     }
-
-printf("HALLO"); fflush(stdout);
 
   /** precompute psi, the entries of the matrix B */
     if(my_plan.nfft_flags & PRE_LIN_PSI)
@@ -194,7 +190,7 @@ void measure_time_nfft_1d()
   int my_N;
   double t;
 
-  for(my_N=16; my_N<=1024*1024; my_N*=2)
+  for(my_N=16; my_N<=1024*1024; my_N*=2)simple_test_nfft_2d();
     {
       nfft_init_1d(&my_plan,my_N,my_N);
 
@@ -230,7 +226,10 @@ void measure_time_nfft_1d()
 
 
 int main()
-{ 
+{
+  simple_test_nfft_2d_huge();
+  exit(-1);
+    
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
 
