@@ -213,7 +213,7 @@ void nfft_uo(nfft_plan *this,int j,int *up,int *op,int act_dim)
 }
 
 #define MACRO_update_c_phi_inv_k(which_one) {                                  \
-  for(t2=t; t2<this->d; t2++)                                                  \
+  for(t2=t_temp; t2<this->d; t2++)                                                  \
     {                                                                          \
       c_phi_inv_k[t2+1]= c_phi_inv_k[t2] MACRO_ ##which_one;                   \
       ks_plain[t2+1]= ks_plain[t2]*this->N[t2]+ks[t2];                         \
@@ -244,7 +244,7 @@ void nfft_uo(nfft_plan *this,int j,int *up,int *op,int act_dim)
 #define MACRO_nfft_D(which_one)                                                \
 inline void nfft_D_ ## which_one (nfft_plan *this)                             \
 {                                                                              \
-  int t, t2;                            /**< index dimensions                */\
+  int t, t2, t_temp;                            /**< index dimensions                */\
   int k_L;                              /**< plain index                     */\
   int kp[this->d];                      /**< multi index (simple)            */\
   int k[this->d];                       /**< multi index in g_hat            */\
@@ -264,7 +264,8 @@ inline void nfft_D_ ## which_one (nfft_plan *this)                             \
   if(this->nfft_flags & PRE_PHI_HUT)                                           \
     {                                                                          \
       MACRO_init_k_ks;                                                         \
-                                                                               \
+                                     \
+      t_temp = t;																															\
       for(k_L=0; k_L<this->N_L; k_L++)                                         \
 	{                                                                      \
           MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT);                          \
@@ -278,6 +279,7 @@ inline void nfft_D_ ## which_one (nfft_plan *this)                             \
     {                                                                          \
       MACRO_init_k_ks;                                                         \
                                                                                \
+      t_temp = t;																															\
       for(k_L=0; k_L<this->N_L; k_L++)                                         \
 	{                                                                      \
           MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                       \
@@ -288,6 +290,7 @@ inline void nfft_D_ ## which_one (nfft_plan *this)                             \
 	} /* for(k_L) */                                                       \
     } /* else(PRE_PHI_HUT) */                                                  \
 } /* nfft_D */
+
 
 MACRO_nfft_D(A)
 MACRO_nfft_D(T)
