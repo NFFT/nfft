@@ -574,7 +574,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
   }
     
   /* NO FFTW_MALLOC HERE */
-  if(ths->nnfft_flags & PRE_PSI)
+  if(ths->nnfft_flags & PRE_PSI || ths->nnfft_flags & PRE_FULL_PSI)
     ths->psi = (double*) malloc(ths->N_total*ths->d*
                                            (2*ths->m+2)*sizeof(double));
                                            
