@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "nfft.h"
+#include "util.h"
+#include "nfft3.h"
 
 /**
  * nfft makes an 2d-nfft for every slice
@@ -16,7 +16,7 @@ void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
 
   fp=fopen("nodes.dat","r");
   
-  for(j=0;j<my_plan.M;j++)
+  for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
   }
@@ -28,19 +28,17 @@ void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
     tmp = (double) l;
   
     for(j=0;j<N*N;j++)
-    {
-      my_plan.f_hat[j][0] = mem[(l*N*N+N*N*Z/2+j)%(N*N*Z)][0];
-      my_plan.f_hat[j][1] = mem[(l*N*N+N*N*Z/2+j)%(N*N*Z)][1];
-    }
+      my_plan.f_hat[j] = mem[(l*N*N+N*N*Z/2+j)%(N*N*Z)];
     
     if(my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
 
     nfft_trafo(&my_plan);
 
-    for(j=0;j<my_plan.M;j++)
+    for(j=0;j<my_plan.M_total;j++)
     {
-      fprintf(fp,"%le %le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],tmp/Z-0.5,my_plan.f[j][0],my_plan.f[j][1]);
+      fprintf(fp,"%le %le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],tmp/Z-0.5,
+              creal(my_plan.f[j]),cimag(my_plan.f[j]));
     }
   }
   fclose(fp);
@@ -77,10 +75,8 @@ void read(int N,int M,int Z, fftw_complex *mem)
   fin=fopen("input_f.dat","r");
 
 
-  for(i=0;i<Z*N*N;i++) {
-    fscanf(fin,"%le ",&mem[i][0] );
-    mem[i][1] = 0.0;
-  }
+  for(i=0;i<Z*N*N;i++)
+    fscanf(fin,"%le ",&mem[i] );
 
   fclose(fin);
 }

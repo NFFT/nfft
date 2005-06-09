@@ -1,6 +1,6 @@
 % This script file is an example of the usage 
 
-N=256;   % points per row / column
+N=128;   % points per row / column
 Z=36;    % number of slices 
 
 % Construct the raw data of the phantom
@@ -28,15 +28,15 @@ precompute_weights('output_phantom_nfft.dat',M);
 % The usage is "./reconstruct_data_2+1d filename N M Z ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-system(['./reconstruct_data_2+1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
+%system(['./reconstruct_data_2+1d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
 
 % Visualize the three dimensional phantom. Makes a pic of
 % every slice and one plot of the N/2 row of the 10th plane.
-visualize_data('pics_2+1d/pic', N,Z);
+%visualize_data('pics_2+1d/pic', N,Z);
 
 % Compute the signal to noise ratio 
-snr('pics_2+1d/snr.txt');
+%snr('pics_2+1d/snr.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -51,10 +51,10 @@ snr('pics_gridding/snr.txt');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % The same as above but reconstructed with a 3d nfft
-system(['./reconstruct_data_3d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 5 1']);
-visualize_data('pics_3d/pic', N,Z);
-snr('pics_3d/snr.txt');
+%system(['./reconstruct_data_3d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 5 1']);
+%visualize_data('pics_3d/pic', N,Z);
+%snr('pics_3d/snr.txt');
 
 !rm nodes.dat
 !rm weights.dat

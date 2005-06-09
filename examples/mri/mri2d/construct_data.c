@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "nfft.h"
+#include "util.h"
+#include "nfft3.h"
 
 /**
  * nfft makes an 2d-nfft
@@ -17,7 +17,7 @@ void nfft (char * file, int N, int M)
 
   fp=fopen("nodes.dat","r");
   
-  for(j=0;j<my_plan.M;j++)
+  for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
   }
@@ -29,10 +29,7 @@ void nfft (char * file, int N, int M)
   for(j=0;j<N;j++)
   {
     for(k=0;k<N;k++)
-    {
-      fscanf(fi,"%le ",&my_plan.f_hat[(N*j+k)][0]);
-      my_plan.f_hat[(N*j+k)][1]=0.0;
-    }
+      fscanf(fi,"%le ",&my_plan.f_hat[(N*j+k)]);
   }
     
   if(my_plan.nfft_flags & PRE_PSI)
@@ -40,9 +37,9 @@ void nfft (char * file, int N, int M)
 
   nfft_trafo(&my_plan);
 
-  for(j=0;j<my_plan.M;j++)
+  for(j=0;j<my_plan.M_total;j++)
   {
-    fprintf(fk,"%le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],my_plan.f[j][0],my_plan.f[j][1]);
+    fprintf(fk,"%le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],creal(my_plan.f[j]),cimag(my_plan.f[j]));
   }
   fclose(fk);
   fclose(fi);

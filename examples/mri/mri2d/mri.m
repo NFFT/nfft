@@ -28,15 +28,15 @@ precompute_weights('output_phantom_nfft.dat',M);
 % The usage is "./reconstruct_data_2+1d filename N M ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 1 1']);
+%system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M)  ' 1 1']);
 
 % Visualize the two dimensional phantom. Make a pic
 % and one plot of the N/2
-visualize_data('pics/pic_2d', N);
+%visualize_data('pics/pic_2d', N);
 
 % Compute the signal to noise ratio 
-snr('pics/snr_2d.txt');
+%snr('pics/snr_2d.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

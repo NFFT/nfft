@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "nfft.h"
+#include "util.h"
+#include "nfft3.h"
 #include "malloc.h"
 
 /**
@@ -8,6 +8,7 @@
 void infft(char* filename,int N,int M,int Z,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
+  double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
@@ -31,7 +32,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
  
   /* precompute lin psi */
   if(my_plan.nfft_flags & PRE_LIN_PSI) {
-    nfft_precompute_lin_psi(&my_plan,10000);
+    nfft_precompute_lin_psi(&my_plan);
   }
                     
   if (weight)
@@ -63,7 +64,8 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   for(j=0;j<M*Z;j++)
   {
     fscanf(fin,"%le %le %le %le %le ",&my_plan.x[3*j+1],&my_plan.x[3*j+2], &my_plan.x[3*j+0],
-    &my_iplan.given_f[j][0],&my_iplan.given_f[j][1]);
+    &real,&imag);
+    my_iplan.given_f[j] = real + I*imag;
   }
 
   /* precompute psi */
@@ -72,7 +74,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   
   /* precompute full psi */
   if(my_plan.nfft_flags & PRE_FULL_PSI)
-    nfft_full_psi(&my_plan,pow(10,-15));
+    nfft_precompute_full_psi(&my_plan);
 
   /* init some guess */
   for(k=0;k<my_plan.N_L;k++)
