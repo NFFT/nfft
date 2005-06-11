@@ -1,5 +1,5 @@
 #include "util.h"
-#include "nnfft.h"
+#include "nfft3.h"
 
 void simple_test_nnfft_1d()
 {
@@ -28,10 +28,10 @@ void simple_test_nnfft_1d()
     nnfft_precompute_psi(&my_plan);
       
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-    nnfft_precompute_full_psi(&my_plan,pow(10,-15));
+    nnfft_precompute_full_psi(&my_plan);
     
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
-    nnfft_precompute_lin_psi(&my_plan,1000); 
+    nnfft_precompute_lin_psi(&my_plan);
   
   /** precompute phi_hut, the entries of the matrix D */
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
@@ -86,10 +86,10 @@ void simple_test_nnfft_2d()
     nnfft_precompute_psi(&my_plan);
       
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-    nnfft_precompute_full_psi(&my_plan,pow(10,-15));
+    nnfft_precompute_full_psi(&my_plan);
   
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
-    nnfft_precompute_lin_psi(&my_plan,1000);
+    nnfft_precompute_lin_psi(&my_plan);
         
   /** precompute phi_hut, the entries of the matrix D */
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
@@ -124,7 +124,7 @@ void simple_test_innfft_1d()
   nnfft_init(&my_plan,1 ,32 ,32 ,&N);
 
   /** initialise my_iplan */
-  infft_init_specific(&my_iplan,&my_plan,CGNR_E|NNFFT);
+  infft_init_guru(&my_iplan,&my_plan,CGNR_E|NNFFT);
 
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
@@ -139,7 +139,7 @@ void simple_test_innfft_1d()
     nnfft_precompute_psi(&my_plan);
   
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-      nnfft_precompute_full_psi(&my_plan,pow(10,-15));
+      nnfft_precompute_full_psi(&my_plan);
   
   /** precompute phi_hut, the entries of the matrix D */
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
@@ -198,7 +198,7 @@ void measure_time_nnfft_1d()
       nnfft_precompute_psi(&my_plan);
       
     if(my_plan.nnfft_flags & PRE_FULL_PSI)
-        nnfft_precompute_full_psi(&my_plan,pow(10,-15));
+        nnfft_precompute_full_psi(&my_plan);
 
     if(my_plan.nnfft_flags & PRE_PHI_HUT)
       nnfft_precompute_phi_hut(&my_plan);

@@ -26,7 +26,7 @@ void accuracy(int d)
   for(m=0; m<15; m++)
     {
       nnfft_init_guru(&my_plan, d, N_total, M_total, N, n, m,
-                          PRE_LIN_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
+                          PRE_FULL_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
       /** init pseudo random nodes */

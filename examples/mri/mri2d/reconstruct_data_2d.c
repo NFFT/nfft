@@ -1,5 +1,5 @@
-#include "utils.h"
-#include "nfft.h"
+#include "util.h"
+#include "nfft3.h"
 #include "malloc.h"
 
 /**
@@ -8,6 +8,7 @@
 void infft(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
+  double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
@@ -21,14 +22,14 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=next_power_of_2(N);
   my_N[1]=N; my_n[1]=next_power_of_2(N);
-  nfft_init_specific(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI| 
+  nfft_init_guru(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI|
                          MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                          FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
                          FFTW_MEASURE| FFTW_DESTROY_INPUT);
   
   /* precompute lin psi if set */
   if(my_plan.nfft_flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi(&my_plan,10000);
+    nfft_precompute_lin_psi(&my_plan);
   
   /* set the flags for the infft*/
   if (weight)
@@ -55,7 +56,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   for(j=0;j<my_plan.M;j++)
   {
     fscanf(fin,"%le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1],
-    &my_iplan.given_f[j][0],&my_iplan.given_f[j][1]);
+    &real,&imag);
+    my_iplan.given_f[j] = real + I*imag;
   }
   
   /* precompute psi */
@@ -64,14 +66,11 @@ void infft(char* filename,int N,int M,int iteration, int weight)
 
   /* precompute full psi */
   if(my_plan.nfft_flags & PRE_FULL_PSI)
-      nfft_full_psi(&my_plan,pow(10,-15));
+      nfft_precompute_full_psi(&my_plan);
 
   /* init some guess */
   for(k=0;k<my_plan.N_L;k++)
-  {
-    my_iplan.f_hat_iter[k][0]=0.0;
-    my_iplan.f_hat_iter[k][1]=0.0;
-  }
+    my_iplan.f_hat_iter[k]=0.0;
     
   /* inverse trafo */
   infft_before_loop(&my_iplan);
@@ -88,8 +87,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fout_imag=fopen("output_imag.dat","w");
 
   for(k=0;k<my_plan.N_L;k++) {
-    fprintf(fout_real,"%le ", my_iplan.f_hat_iter[k][0]);
-    fprintf(fout_imag,"%le ", my_iplan.f_hat_iter[k][1]);
+    fprintf(fout_real,"%le ", creal(my_iplan.f_hat_iter[k]));
+    fprintf(fout_imag,"%le ", cimag(my_iplan.f_hat_iter[k]));
   }
 
   fclose(fout_real);

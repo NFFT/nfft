@@ -455,9 +455,7 @@ void nnfft_precompute_full_psi(nnfft_plan *ths, double eps)
   
   double phi_prod[ths->d+1];
 
-  int *index_g, *index_f;
-  double *new_psi;
-  int ix,ix_old,size_psi;
+  int ix,ix_old;
   
   for(j=0;j<ths->M_total;j++) {  
     for(t=0;t<ths->d;t++) {
@@ -478,58 +476,33 @@ void nnfft_precompute_full_psi(nnfft_plan *ths, double eps)
   phi_prod[0]=1;
   ll_plain[0]=0;
 
-  size_psi=ths->N_total;
-  index_f = (int*) malloc(ths->N_total*sizeof(int));
-  index_g = (int*) malloc(size_psi*sizeof(int));
-  new_psi = (double*) malloc(size_psi*sizeof(double));
-  
   for(t=0,lprod = 1; t<ths->d; t++)
-    {
-      lprod *= 2*ths->m+2;
-      eps=eps*(PHI(0,t));
-    }
+    lprod *= 2*ths->m+2;
   
-  for(ix=0,ix_old=0,j=0; j<ths->N_total; j++)
+  for(j=0,ix=0,ix_old=0; j<ths->M_total; j++)
     {
       MACRO_init_uo_l_lj_t;
       
-      for(l_L=0; l_L<lprod; l_L++)
+      for(l_L=0; l_L<lprod; l_L++, ix++)
         {
-          MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
+          MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
           
-          if(phi_prod[ths->d]>eps)
-            {
-              index_g[ix]=ll_plain[ths->d];
-              new_psi[ix]=phi_prod[ths->d];
-              ix++;
-              if(ix==size_psi)
-                {
-                  size_psi+=ths->N_total;
-                  index_g=(int*)realloc(index_g,size_psi*sizeof(int));
-                  new_psi=(double*)realloc(new_psi,size_psi*sizeof(double));
-                }
-            }
+          ths->psi_index_g[ix]=ll_plain[ths->d];
+          ths->psi[ix]=phi_prod[ths->d];
+           
           MACRO_count_uo_l_lj_t;
         } /* for(l_L) */
       
-      index_f[j]=ix-ix_old;
+      
+      ths->psi_index_f[j]=ix-ix_old;
       ix_old=ix;
     } /* for(j) */
-  
-  free(ths->psi);
-  size_psi=ix;
-  ths->size_psi=size_psi;
-  index_g=(int*)realloc(index_g,size_psi*sizeof(int));
-  new_psi=(double*)realloc(new_psi,size_psi*sizeof(double));
-  
-  ths->psi         =new_psi;
-  ths->psi_index_g =index_g; 
-  ths->psi_index_f=index_f;
 }
 
 void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsigned fftw_flags)
 {
-  int t;                                /**< index over all dimensions        */
+  int t;                                /**< index over all dimensions       */
+  int lprod;                            /**< 'bandwidth' of matrix B         */
   
   ths->aN1 = (int*) fftw_malloc(ths->d*sizeof(int));
   
@@ -574,9 +547,20 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
   }
     
   /* NO FFTW_MALLOC HERE */
-  if(ths->nnfft_flags & PRE_PSI || ths->nnfft_flags & PRE_FULL_PSI)
+  if(ths->nnfft_flags & PRE_PSI)
     ths->psi = (double*) malloc(ths->N_total*ths->d*
                                            (2*ths->m+2)*sizeof(double));
+
+  if(ths->nnfft_flags & PRE_FULL_PSI)
+  {
+      for(t=0,lprod = 1; t<ths->d; t++)
+          lprod *= 2*ths->m+2;
+      
+      ths->psi = (double*) fftw_malloc(ths->M_total*lprod*sizeof(double));
+
+      ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
+      ths->psi_index_g = (int*) fftw_malloc(ths->M_total*lprod*sizeof(int));
+  }
                                            
   ths->direct_plan = (nfft_plan*) malloc(sizeof(nfft_plan));
     
@@ -658,7 +642,7 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 }
 
 void nnfft_finalize(nnfft_plan *ths)
-{ 
+{
   nfft_finalize(ths->direct_plan);
   
   free(ths->direct_plan);
@@ -666,18 +650,20 @@ void nnfft_finalize(nnfft_plan *ths)
   free(ths->aN1);
   free(ths->N);
   free(ths->N1);
-  
-  /* NO FFTW_FREE HERE */
-  if((ths->nnfft_flags & PRE_PSI) || (ths->nnfft_flags & PRE_LIN_PSI))
-    {
-      if(ths->nnfft_flags & PRE_FULL_PSI)
-        {
-          free(ths->psi_index_g);
-          free(ths->psi_index_f);
-        }
 
-      free(ths->psi);
+  if(ths->nnfft_flags & PRE_FULL_PSI)
+    {
+      fftw_free(ths->psi_index_g);
+      fftw_free(ths->psi_index_f);
+      fftw_free(ths->psi);
     }
+  
+  if(ths->nnfft_flags & PRE_PSI)
+    fftw_free(ths->psi);
+
+  if(ths->nnfft_flags & PRE_LIN_PSI)
+    fftw_free(ths->psi);
+      
       
   if(ths->nnfft_flags & PRE_PHI_HUT)
     fftw_free(ths->c_phi_inv);

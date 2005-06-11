@@ -78,10 +78,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
 
   /* init some guess */
   for(k=0;k<my_plan.N_L;k++)
-  {
-    my_iplan.f_hat_iter[k][0]=0.0;
-    my_iplan.f_hat_iter[k][1]=0.0;
-  }
+    my_iplan.f_hat_iter[k]=0.0;
   
   /* inverse trafo */
   infft_before_loop(&my_iplan);
