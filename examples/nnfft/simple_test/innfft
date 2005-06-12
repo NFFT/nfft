@@ -1,0 +1,62 @@
+void simple_test_innfft_1d()
+{
+  int j,k,l,N=32;                        /**< index for nodes, freqencies, iter*/
+  nnfft_plan my_plan;                    /**< plan for the nfft                */
+  infft_plan my_iplan;                  /**< plan for the inverse nfft        */
+ 
+  /** initialise an one dimensional plan */
+  nnfft_init(&my_plan,1 ,32 ,32 ,&N);
+
+  /** initialise my_iplan */
+  infft_init_guru(&my_iplan,&my_plan,CGNR_E|NNFFT);
+
+  /** init pseudo random nodes */
+  for(j=0;j<my_plan.M_total;j++)
+    my_plan.x[j]=((double)rand())/RAND_MAX-0.5;
+  
+  /** init pseudo random nodes */
+  for(j=0;j<my_plan.N_total;j++)
+    my_plan.v[j]=((double)rand())/RAND_MAX-0.5;
+    
+  /** precompute psi, the entries of the matrix B */
+  if(my_plan.nnfft_flags & PRE_PSI)
+    nnfft_precompute_psi(&my_plan);
+  
+  if(my_plan.nnfft_flags & PRE_FULL_PSI)
+      nnfft_precompute_full_psi(&my_plan);
+  
+  /** precompute phi_hut, the entries of the matrix D */
+  if(my_plan.nnfft_flags & PRE_PHI_HUT)
+    nnfft_precompute_phi_hut(&my_plan);
+    
+  /** init pseudo random samples (real) and show them */
+  for(j=0;j<my_plan.M_total;j++)
+    my_iplan.given_f[j] = ((double)rand())/RAND_MAX;
+
+  vpr_c(my_iplan.given_f,my_plan.M_total,"given data, vector given_f");
+
+  /** initialise some guess f_hat_0 */
+  for(k=0;k<my_plan.N_total;k++)
+    my_iplan.f_hat_iter[k] = 0.0;
+
+  vpr_c(my_iplan.f_hat_iter,my_plan.N_total,
+        "approximate solution, vector f_hat_iter");
+
+  /** solve the system */
+  infft_before_loop(&my_iplan);
+  for(l=0;l<4;l++)
+  {
+    printf("iteration l=%d\n",l);
+    infft_loop_one_step(&my_iplan);
+    vpr_c(my_iplan.f_hat_iter,my_plan.N_total,
+          "approximate solution, vector f_hat_iter");
+      
+    SWAPC(my_iplan.f_hat_iter,my_plan.f_hat);
+    nnfft_trafo(&my_plan);
+    vpr_c(my_plan.f,my_plan.M_total,"fitting the data, vector f");
+    SWAPC(my_iplan.f_hat_iter,my_plan.f_hat);
+  }
+  
+  infft_finalize(&my_iplan);  
+  nnfft_finalize(&my_plan);  
+}

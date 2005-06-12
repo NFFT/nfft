@@ -1,1 +1,1 @@
-SUBDIRS = accuracy
+SUBDIRS = accuracy simple_test

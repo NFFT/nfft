@@ -245,7 +245,7 @@ void nnfft_precompute_lin_psi(nnfft_plan *ths_plan);
 
 void nnfft_precompute_psi(nnfft_plan *ths_plan);
 
-void nnfft_precompute_full_psi(nnfft_plan *ths_plan, double eps);
+void nnfft_precompute_full_psi(nnfft_plan *ths_plan);
 
 void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
  
