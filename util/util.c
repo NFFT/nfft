@@ -4,6 +4,7 @@
  */
 
 #include "util.h"
+#include <malloc.h>
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
@@ -11,7 +12,6 @@
 //#include <time.h>
 
 #include <stdlib.h>
-
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
@@ -25,6 +25,31 @@ double second()
   foo     = temp.ru_utime.tv_sec;       /* seconds                           */
   foo1    = temp.ru_utime.tv_usec;      /* uSecs                             */
   return  foo  + (foo1/1000000.0);      /* milliseconds                      */
+}
+
+int total_used_memory()
+{
+  struct mallinfo m;
+  m=mallinfo();
+  return m.hblkhd + m.uordblks;
+}
+
+int int_2_pow(int a)
+{
+  return (1U<< a);
+}
+
+int ld(int m)
+{
+  int l=0;
+  int mm=m;
+  
+  while(mm>0)
+    {
+      mm=(mm>>1);
+      l++;
+    }
+  return (l-1);
 }
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
@@ -277,22 +302,6 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 #define EDOM		33
 #define ERANGE		34
-/* Complex numeral.  */
-typedef struct
-	{
-	double r;
-	double i;
-	} cmplx;
-
-#ifdef HAVE_LONG_DOUBLE
-/* Long double complex numeral.  */
-typedef struct
-	{
-	long double r;
-	long double i;
-	} cmplxl;
-#endif
-
 
 /* Type of computer arithmetic */
 
@@ -360,18 +369,6 @@ typedef struct
 /* Define 1 for ANSI C atan2() function
    See atan.c and clog.c. */
 #define ANSIC 1
-
-/* Get ANSI function prototypes, if you want them. */
-#if 1
-/* #ifdef __STDC__ */
-#define ANSIPROT 1
-int mtherr ( char *, int );
-#else
-int mtherr();
-#endif
-
-/* Variable for error reporting.  See mtherr.c.  */
-extern int merror;
 
 /*							chbevl.c
  *
@@ -770,13 +767,6 @@ static unsigned short B[] = {
 };
 #endif
 
-#ifdef ANSIPROT
-extern double exp ( double );
-extern double sqrt ( double );
-#else
-double exp(), sqrt();
-#endif
-
 /** Modified Bessel function of order zero.
  *  Cephes Math Library Release 2.8:  June, 2000
  *  Copyright 1984, 1987, 2000 by Stephen L. Moshier
@@ -798,238 +788,213 @@ double i0(double x)
 
 /** Computes the inner/dot product \f$x^H x\f$.
  */
-double dotproductc(complex* x, int n)
+double dot_complex(complex *x, int n)
 {
   int k;
-  double result=0.0;
+  double dot;
 
-  for(k=0;k<n;k++)
-    result+=cabs(x[k])*cabs(x[k]);
+  for(k=0,dot=0; k<n; k++)
+    dot+=conj(x[k])*x[k];
 
-  return result;
+  return dot;
 }
 
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
-double dotproductc_w(complex* x, double* w, int n)
+double dot_w_complex(complex *x, double *w, int n)
 {
   int k;
-  double result=0.0;
+  double dot;
 
-  for(k=0;k<n;k++)
-    result+=w[k]*cabs(x[k])*cabs(x[k]);
+  for(k=0,dot=0.0; k<n; k++)
+    dot+=w[k]*conj(x[k])*x[k];
 
-  return result;
+  return dot;
 }
 
 /** Computes the weighted inner/dot product 
-    \f$x^H (w1\odot w2\odot w2 \odot x)\f$.
+    \f$x^H (w\odot w2\odot w2 \odot x)\f$.
  */
-double dotproductc_w1_w2(complex* x, double* w1, double* w2, int n)
+double dot_w_w2_complex(complex *x, double *w, double *w2, int n)
 {
   int k;
-  double result=0.0;
+  double dot;
 
-  for(k=0;k<n;k++)
-    result+=w1[k]*w2[k]*w2[k]*cabs(x[k])*cabs(x[k]);
+  for(k=0,dot=0.0; k<n; k++)
+    dot+=w[k]*w2[k]*w2[k]*conj(x[k])*x[k];
 
-  return result;
+  return dot;
 }
 
 /** Computes the weighted inner/dot product 
     \f$x^H (w2\odot w2 \odot x)\f$.
  */
-double dotproductc_w2(complex* x, double* w2, int n)
+double dot_w2_complex(complex *x, double *w2, int n)
 {
   int k;
-  double result=0.0;
+  double dot;
 
-  for(k=0;k<n;k++)
-    result+=w2[k]*w2[k]*cabs(x[k])*cabs(x[k]);
+  for(k=0,dot=0.0; k<n; k++)
+    dot+=w2[k]*w2[k]*conj(x[k])*x[k];
 
-  return result;
+  return dot;
 }
 
 /** Copies \f$x \leftarrow y\f$.
  */
-void copyc(complex* x,complex* y, int n)
+void cp_complex(complex *x, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=y[l];
+  for(k=0;k<n;k++)
+    x[k]=y[k];
+}
+
+/** Copies \f$x \leftarrow y\f$.
+ */
+void cp_double(double *x, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=y[k];
 }
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-void copyc_a(complex* x,double a, complex* y, int n)
+void cp_a_complex(complex *x, double a, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=a*y[l];
+  for(k=0;k<n;k++)
+    x[k]=a*y[k];
 }
 
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
-void copyc_w(complex* x,double* w,complex* y, int n)
+void cp_w_complex(complex *x, double *w, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=w[l]*y[l];
+  for(k=0;k<n;k++)
+    x[k]=w[k]*y[k];
 }
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
-void updatec_axpy(complex* x,double a, complex* y, int n)
+void upd_axpy_complex(complex *x, double a, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=a*x[l]+y[l];
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+y[k];
 }
 
 /** Updates \f$x \leftarrow x + a y\f$.
  */
-void updatec_xpay(complex* x,double a, complex* y, int n)
+void upd_xpay_complex(complex *x, double a, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]+=a*y[l];
+  for(k=0;k<n;k++)
+    x[k]+=a*y[k];
 }
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
-void updatec_axpby(complex* x, double a, complex* y, double b,
-		   int n)
+void upd_axpby_complex(complex *x, double a, complex *y, double b, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=a*x[l]+b*y[l];
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+b*y[k];
 }
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
-void updatec_xpawy(complex* x,double a, double* w, complex* y,
-		   int n)
+void upd_xpawy_complex(complex *x, double a, double *w, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]+=a*w[l]*y[l];
+  for(k=0;k<n;k++)
+    x[k]+=a*w[k]*y[k];
 }
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
-void updatec_axpwy(complex* x,double a, double* w, complex* y,
-		   int n)
+void upd_axpwy_complex(complex *x, double a, double *w, complex *y, int n)
 {
-  int l;
+  int k;
 
-  for(l=0;l<n;l++)
-    x[l]=a*x[l]+w[l]*y[l];
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+w[k]*y[k];
 }
 
-/** computes \f$\frac{\|x_0-x\|_{\infty}}{\|x0\|_{\infty}} \f$
- */
-double error_l_infty_c(complex *x0, complex *x, int n)
+double l_1_complex(complex *x, complex *y, int n)
 {
-  double maximum, maxdiff, xd, bx;
   int k;
+  double l1;
   
-  for (k=0, maximum=0, maxdiff=0; k<n; k++)
-    {
-      xd=cabs(x0[k]-x[k]);
-      bx=cabs(x0[k]);
+  if(y==NULL)
+    for(k=0,l1=0; k<n; k++)
+      l1+=cabs(x[k]);
+  else
+    for(k=0,l1=0; k<n; k++)
+      l1+=cabs(x[k]-y[k]);
 
-      if(xd>maxdiff)
-	maxdiff=xd;
-      if(bx>maximum)
-	maximum=bx;
-    }
+  return l1;
+}
+
+double l_2_complex(complex *x, complex *y, int n)
+{
+  int k;
+  double l22;  
+
+  if(y==NULL)
+    for(k=0,l22=0; k<n; k++)
+      l22+=conj(x[k])*x[k];
+  else
+    for(k=0,l22=0; k<n; k++)
+      l22+=conj(x[k]-y[k])*(x[k]-y[k]);
   
-  return maxdiff/maximum;
+  return sqrt(l22);
 }
 
-/** computes \f$\frac{\|x_0-x\|_{\infty}}{\|\hat f\|_1} \f$
- */
-double error_l_infty_1_c(complex *x0, complex *x, int n,
-			 complex *f_hat, int N_d)
+double l_infty_complex(complex *x, complex *y, int n)
 {
-  double maxdiff, xd, bx;
   int k;
-
-  for (k=0, maxdiff=0; k<n; k++)
-    {
-      xd=cabs(x0[k]-x[k]);
-      
-      if(xd>maxdiff)
-	maxdiff=xd;
-    }
+  double linfty;
   
-  for (k=0, bx=0; k<N_d; k++)
-    {
-      bx=bx+cabs(f_hat[k]);
-    }
+  if(y==NULL)
+    for(k=0,linfty=0; k<n; k++)
+      linfty=((linfty<cabs(x[k]))?cabs(x[k]):linfty);
+  else
+    for(k=0,linfty=0; k<n; k++)
+      linfty=((linfty<cabs(x[k]-y[k]))?cabs(x[k]-y[k]):linfty);
 
-  return maxdiff/bx;
+  return linfty;
 }
 
-/** computes \f$\frac{\|x_0-x\|_2}{\|x_0\|_2} \f$
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-double error_l_2_c(complex *x0, complex *x, int n)
+double error_l_infty_complex(complex *x, complex *y, int n)
 {
-  double sumdiff, bx;
-  int j;
-
-  for (j=0, sumdiff=0, bx=0; j<n; j++)
-    {
-      sumdiff+=cabs(x0[j]-x[j])*cabs(x0[j]-x[j]);
-      bx+= cabs(x0[j])*cabs(x0[j]);
-    }
-
-  return sqrt(sumdiff/bx);
+  return (l_infty_complex(x, y, n)/l_infty_complex(x, NULL, n));
 }
 
-/** vector print
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-void vpr(double *x, int n, char *text)
+double error_l_infty_1_complex(complex *x, complex *y, int n,
+			       complex *z, int m)
 {
-  int k;
-
-  printf ("\n %s, adr=%p\n", text, (void*)x); 
-  for (k=0; k<n; k++)
-    {
-      if (k%5==0) 
-	printf("%d.", k);
-      printf("%14.7e,", x[k]);
-      if (k%5==4) 
-	printf("\n");
-      fflush(stdout);
-    }
-  printf("\n");
+  return (l_infty_complex(x, y, n)/l_1_complex(z, NULL, m));
 }
 
-/** vector print
+/** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-void vpr_c(complex *x, int n, char *text)
+double error_l_2_complex(complex *x, complex *y, int n)
 {
-  int k;
-
-  printf ("\n %s, adr=%p\n", text, (void*)x);
-  for (k=0; k<n; k++)
-    {
-      if (k%4==0) 
-	printf("%d.", k);
-      printf("%5.4e+%5.4e i,", creal(x[k]),cimag(x[k]));
-      if (k%4==3) 
-	printf("\n");
-      fflush(stdout);
-    }
-  printf("\n");
+  return (l_2_complex(x, y, n)/l_2_complex(x, NULL, n));
 }
 
 /** vector print
@@ -1038,17 +1003,98 @@ void vpr_int(int *x, int n, char *text)
 {
   int k;
 
-  printf ("\n %s, adr=%p\n", text, (void*)x);
-  for (k=0; k<n; k++)
-    {
-      if (k%5==0) 
-	printf("%d.", k);
-      printf("%d,", x[k]);
-      if (k%5==4) 
-	printf("\n");
-      fflush(stdout);
-    }
+  if(text!=NULL)
+  {
+      printf ("\n %s, adr=%p\n", text, (void*)x);
+      for (k=0; k<n; k++)
+      {
+	  if (k%8==0) 
+	      printf("%6d.\t", k);
+	  printf("%d,", x[k]);
+	  if (k%8==7) 
+	      printf("\n");
+      }
+      printf("\n");
+  }
+  else
+      for (k=0; k<n; k++)
+	  printf("%d\n,", x[k]);
+  fflush(stdout);
 }
+
+/** vector print
+ */
+void vpr_double(double *x, int n, char *text)
+{
+  int k;
+
+  if(x==NULL)
+    {
+      printf("null pointer\n");
+      fflush(stdout);
+      exit(-1);
+    }
+
+  if(text!=NULL)
+  {
+      printf ("\n %s, adr=%p\n", text, (void*)x);
+      for (k=0; k<n; k++)
+      {
+	  if (k%8==0) 
+	      printf("%6d.\t", k);
+	  printf("%+.1E,", x[k]);
+	  if (k%8==7) 
+	      printf("\n");
+      }
+      printf("\n");
+  }
+  else
+      for (k=0; k<n; k++)
+	  printf("%+E\n,", x[k]);
+  fflush(stdout);
+}
+
+/** vector print
+ */
+void vpr_complex(complex *x, int n, char *text)
+{
+  int k;
+
+  if(text!=NULL)
+  {
+      printf ("\n %s, adr=%p\n", text, (void*)x);
+      for (k=0; k<n; k++)
+      {
+	  if (k%4==0) 
+	      printf("%6d.\t", k);
+	  printf("%+.1E%+.1Ei,", creal(x[k]), cimag(x[k]));
+	  if (k%4==3) 
+	      printf("\n");
+      }
+      printf("\n");
+  }
+  else
+      for (k=0; k<n; k++)
+	  printf("%+E%+Ei\n,", creal(x[k]), cimag(x[k]));
+  fflush(stdout);
+}
+
+void vrand_unit_complex(complex *x, int n)
+{
+  int k;
+
+  for (k=0; k<n; k++)
+    x[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+}
+
+void vrand_shifted_unit_double(double *x, int n)
+{
+  int k;
+
+  for (k=0; k<n; k++)
+    x[k] = ((double)rand())/RAND_MAX - 0.5;
+}
+
 
 /** Computes non periodic voronoi weights 
  *  assumes ordered x_j */
