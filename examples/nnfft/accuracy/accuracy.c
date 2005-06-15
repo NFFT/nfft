@@ -71,13 +71,13 @@ void accuracy(int d)
       nnfft_trafo(&my_plan);
 
 
-    vpr_c(slow,3," slow ");
-    vpr_c(my_plan.f,3," fast ");
+    vpr_complex(slow,3," slow ");
+    vpr_complex(my_plan.f,3," fast ");
 
 
       printf("%e, %e\n",
-	     error_l_infty_c(slow, my_plan.f, M_total),
-	     error_l_infty_1_c(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
+	     error_l_infty_complex(slow, my_plan.f, M_total),
+	     error_l_infty_1_complex(slow, my_plan.f, M_total, my_plan.f_hat, my_plan.N_total));
       
       /** finalise the one dimensional plan */
       nnfft_finalize(&my_plan);

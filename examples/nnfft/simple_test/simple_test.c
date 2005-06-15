@@ -42,15 +42,15 @@ void simple_test_nnfft_1d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX +I*((double)rand())/RAND_MAX;
 
-  vpr_c(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
+  vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /** direct trafo and show the result */
   nndft_trafo(&my_plan);
-  vpr_c(my_plan.f,my_plan.M_total,"nndft, vector f"); 
+  vpr_complex(my_plan.f,my_plan.M_total,"nndft, vector f"); 
 
   /** approx. trafo and show the result */
   nnfft_trafo(&my_plan);
-  vpr_c(my_plan.f,my_plan.M_total,"nnfft, vector f");
+  vpr_complex(my_plan.f,my_plan.M_total,"nnfft, vector f");
 
   /** finalise the one dimensional plan */
   nnfft_finalize(&my_plan);
@@ -100,16 +100,16 @@ void simple_test_nnfft_2d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
 
-  vpr_c(my_plan.f_hat,12,
+  vpr_complex(my_plan.f_hat,12,
         "given Fourier coefficients, vector f_hat (first 12 entries)");
 
   /** direct trafo and show the result */
   nndft_trafo(&my_plan);
-  vpr_c(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
 
   /** approx. trafo and show the result */
   nnfft_trafo(&my_plan);
-  vpr_c(my_plan.f,my_plan.M_total,"nfft, vector f");
+  vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
 
   /** finalise the one dimensional plan */
   nnfft_finalize(&my_plan);
