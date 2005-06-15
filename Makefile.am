@@ -1,4 +1,4 @@
-SUBDIRS = include util nfft nnfft . examples
+SUBDIRS = include util nfft nnfft nsfft solver . examples
 
 lib_LTLIBRARIES = libnfft3.la      
 
