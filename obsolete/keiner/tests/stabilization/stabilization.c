@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   else
   {
     fprintf(stderr,"Stabilization - Stabilization test for NFSFT\n");
-    fprintf(stderr,"Usage: performance M_MIN M_MAX M_STRIDE T_MIN T_MAX T_STRIDE\n");
+    fprintf(stderr,"Usage: Stabilization M_MIN M_MAX M_STRIDE T_MIN T_MAX T_STRIDE\n");
     return -1;
   }  
   
@@ -81,9 +81,9 @@ int main(int argc, char **argv)
   file = fopen(filename,"w");
   fclose(file);
   
-  for (t = t_min; t <= t_max; t = t + t_stride)
+  for (t = t_min; t <= t_max; t = t * t_stride)
   {
-    nfsft_precompute(m_max,t);
+    nfsft_precompute_stab(m_max,t);
     for (m = m_min; m <= m_max; m = m + m_stride)
     {
       /* Compute NFSFT */
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
       }  
       fprintf(stdout,"%10.0f %5d %10d %10d %15.10f\n",t,m,nstab,ntotal,ntotal==0?0:((double)nstab)/ntotal);
     }
-    nfsft_forget();
+    nfsft_forget_stab();
   }
   
   for (n = -m_max; n <= m_max; n++)

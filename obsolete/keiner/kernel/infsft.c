@@ -136,14 +136,15 @@ void infsft_before_loop_help(infsft_plan this_iplan)
 
   SWAPCT(this_iplan->r_iter,this_iplan->direct_plan->f,temp)
     
+  /*printf("D = %d\n",this_iplan->direct_plan->D);
   vpr_c(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
-  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
+  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");*/
 
   updatec_axpy_2(this_iplan->r_iter, -1.0, this_iplan->given_f,
                this_iplan->direct_plan->D);
   
-  vpr_c(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
-  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");
+  /*vpr_c(this_iplan->r_iter, this_iplan->direct_plan->D, "r_iter");
+  vpr_c(this_iplan->direct_plan->f, this_iplan->direct_plan->D, "f");*/
 
   if((!(this_iplan->infsft_flags & LANDWEBER)) ||
      (this_iplan->infsft_flags & NORMS_FOR_LANDWEBER))

@@ -42,4 +42,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
 void flft_adjoint(const int M, const int t, const int n, complex *const f_hat, 
                   struct nfsft_wisdom *const wisdom);
 
+void flft_stab(const int M, const int t, const int n, complex *const f_hat, 
+               struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal);
+
 #endif

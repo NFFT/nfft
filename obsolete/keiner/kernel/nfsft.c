@@ -197,22 +197,22 @@ void nfsft_trafo(nfsft_plan plan)
     /* Compute FLFT. */
     for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
-		  fprintf(stderr,"flft: n = %d\n",n);
-			fflush(stderr);
+//		  fprintf(stderr,"flft: n = %d\n",n);
+//			fflush(stderr);
       flft(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
     }
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
-    fprintf(stderr,"cheb2exp\n",n);
-	  fflush(stderr);
+//    fprintf(stderr,"cheb2exp\n",n);
+//	  fflush(stderr);
     cheb2exp(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
     
     /* Execute NFFT. */
-    fprintf(stderr,"before nfft\n",n);
-	  fflush(stderr);
+//    fprintf(stderr,"before nfft\n",n);
+//	  fflush(stderr);
     nfft_trafo(&plan->plan_nfft);
-    fprintf(stderr,"after nfft\n",n);
-	  fflush(stderr);
+//    fprintf(stderr,"after nfft\n",n);
+//	  fflush(stderr);
   }    
 }
 
@@ -271,7 +271,7 @@ int nfsft_trafo_stab(nfsft_plan plan)
     /* Compute FLFT. */
     for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
-      flft(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
+      flft_stab(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
     }
   } 
   return nstab;
@@ -287,6 +287,107 @@ nfsft_plan nfsft_init_stab(int d, int m, double *angles, fftw_complex **f_hat,
   plan->N = 1<<plan->t;
   plan->f_hat = f_hat;
   return(plan);
+}
+
+void nfsft_precompute_stab(int M, double threshold)
+{
+  int i;
+  int ti;
+  
+  /*  Check if already initialized. */
+  if (wisdom.initialized == true )
+  {
+    return;
+  }
+  
+  wisdom.t = ngpt(M);
+  wisdom.N = 1<<wisdom.t;
+  
+  /* Precompute three-term recurrence coefficients. */
+  wisdom.alpha = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+  wisdom.beta = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+  wisdom.gamma = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
+  //wisdom.gamma_m1 = (double*) malloc((BW_MAX+1)*sizeof(double));    
+  alpha_al_all(wisdom.alpha,BW_MAX);
+  beta_al_all(wisdom.beta,BW_MAX);
+  gamma_al_all(wisdom.gamma,BW_MAX);
+  //gamma_al_m1_all(wisdom.gamma_m1,BW_MAX);
+  
+  if (wisdom.N >= 4)
+  {  
+    wisdom.threshold  = threshold;
+    wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
+    wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
+    wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
+    wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kinds[0]   = FFTW_REDFT01;
+    wisdom.kinds[1]   = FFTW_REDFT01;
+    wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kindsr[0]  = FFTW_REDFT10;
+    wisdom.kindsr[1]  = FFTW_REDFT10;
+    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
+    for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
+    {
+      wisdom.lengths[i] = ti;
+      wisdom.plans_dct3[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
+                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 0);
+      wisdom.plans_dct2[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
+                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
+    }  
+    wisdom.z = (complex*) malloc(wisdom.N*sizeof(complex));
+    wisdom.U = precomputeU_stab(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma);
+  }
+  
+  wisdom.initialized = true;
+}
+
+void nfsft_forget_stab()
+{
+  int i;
+  
+  if (wisdom.initialized == true)
+  {
+    if (wisdom.N >= 4)
+    {  
+      forgetU_stab(wisdom.U,wisdom.N,wisdom.t);
+      
+      free(wisdom.z);
+      fftw_free(wisdom.work);
+      fftw_free(wisdom.old);
+      fftw_free(wisdom.ergeb);
+      fftw_free(wisdom.vec1);
+      fftw_free(wisdom.vec2);
+      fftw_free(wisdom.vec3);
+      fftw_free(wisdom.vec4);
+      fftw_free(wisdom.a2);
+      fftw_free(wisdom.b2);
+      
+      for(i = 0; i < wisdom.t-1; i++)
+      {
+        fftw_destroy_plan(wisdom.plans_dct3[i]);
+        fftw_destroy_plan(wisdom.plans_dct2[i]);
+      }  
+      
+      free(wisdom.plans_dct3);
+      free(wisdom.plans_dct2);
+      free(wisdom.kinds);
+      free(wisdom.kindsr);
+      free(wisdom.lengths);
+    }
+    free(wisdom.alpha);
+    free(wisdom.beta);
+    free(wisdom.gamma);
+    //free(wisdom.gamma_m1);
+    wisdom.initialized = false;
+  }
 }
 
 void nfsft_finalize_stab(nfsft_plan plan)

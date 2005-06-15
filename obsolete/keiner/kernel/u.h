@@ -59,4 +59,11 @@ struct U_type**** precomputeU_guru(int t, double threshold, double *walpha,
                                    double *wbeta, double *wgamma, int n);
 
 void forgetU_guru(struct U_type**** U, int M, int t, int n);
+
+struct U_type**** precomputeU_stab(int t, double threshold, double *walpha, 
+                                   double *wbeta, double *wgamma);
+
+void forgetU_stab(struct U_type**** U, int M, int t);
+
+
 #endif

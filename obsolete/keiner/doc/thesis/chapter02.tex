@@ -432,51 +432,58 @@ into a representation by Chebyshev polynomials. This is possible since the assoc
 \section{Fast Legendre Function Transform}
 \label{DSFT:FLFT}
 
-We consider polynomials of the form
-$$ \fun{g_n}{x} := \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_M$$
+In this and the following section, we assume $n \ge 0$ without loss of generality. We consider polynomials of the form
+\begin{equation}
+  \label{NFSFT:GnEven}
+ \fun{g^n}{x} := \sum_{k=n}^M a_k^n \fun{P_k^n}{x} \in \Pol_M
+ \end{equation}
 for even $n$ and
-$$ \fun{g_n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=\abs{n}}^M a_k^n \fun{P_k^{\abs{n}}}{x} \in \Pol_{M-1}$$
-for odd $n$ with given complex coefficients $a_k^n$. The \emph{fast Legendre tunction transform (FLFT)} performes a change of basis and computes the 
+\begin{equation}
+  \label{NFSFT:GnOdd}
+  \fun{g^n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=n}^M a_k^n \fun{P_k^n}{x} \in \Pol_{M-1}
+\end{equation}
+for odd $n$ with given complex coefficients $a_k^n$.
+The \emph{fast Legendre tunction transform (FLFT)} performes a change of basis and computes the 
 coefficients $b_k^n$ of the Chebyshev representation
-$$ \fun{g_n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}$$
+$$ \fun{g^n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}$$
 for even $n$ and
-$$\fun{g_n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}$$
+$$\fun{g^n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}$$
 for odd $n$.
 
 Lemma \ref{Basics:AssociatedLegendreRecurrence} implies
 \begin{equation}
   \label{NFSFT:U}
   \left(\begin{array}{c}
-    P_{c+k}^n \\ P_{c+k+1}^n
+    P_{c+k}^{n} \\ P_{c+k+1}^{n}
   \end{array}\right)
   =
   \fun{U_{k}^{n}}{\cdot,c}^{\transp}\;
   \left(\begin{array}{c}
-    P_{c-1}^n \\ P_{c}^n
+    P_{c-1}^{n} \\ P_{c}^{n}
   \end{array}\right)
 \end{equation}
 where
 $$
   \fun{U_{k}^{n}}{\cdot,c}^{\transp} :=
   \left(\begin{array}{cc}
-    \gamma_c^n \fun{P_{k-1}^n}{\cdot,c+1} & \gamma_c^n \fun{P_{k}^n}{\cdot,c+1} \\
-                             \fun{P_{k}^n}{\cdot,c}         &                         \fun{P_{k+1}^n}{\cdot,c}
+    \gamma_c^{n} \fun{P_{k-1}^{n}}{\cdot,c+1} & \gamma_c^{n} \fun{P_{k}^{n}}{\cdot,c+1} \\
+                 \fun{P_{k}^{n}}{\cdot,c}     &              \fun{P_{k+1}^{n}}{\cdot,c}
   \end{array}\right).   
 $$
-We set $a_k^n := 0$ for $k < \abs{n}$ or $k > M$. In a first step, we use Lemma 
+We set $a_k^n := 0$ for $k < n$ or $k > M$. In a first step, we use Lemma 
 \ref{Basics:AssociatedLegendreRecurrence} to write
-$$ g_n = \sum_{k = \abs{n}}^{N-1} a_{k}^{(0)} P_k^{\abs{n}}$$
+$$ g^n = \sum_{k = n}^{N-1} a_{k}^{(0)} P_k^{n}$$
 with
 \begin{eqnarray*}
   \fun{a_k^{(0)}}{x}     & := & a_k^n \quad (k = 0,\ldots,N-3),\\
-  \fun{a_{N-2}^{(0)}}{x} & := & a_{N-2}^n + \gamma_{N-1}^{\abs{n}} a_N^n,\\
-  \fun{a_{N-1}^{(0)}}{x} & := & a_{N-1}^n + \paren{\alpha_{N-1}^{\abs{n}}x + \beta_{N-1}^{\abs{n}}} a_N^n.
+  \fun{a_{N-2}^{(0)}}{x} & := & a_{N-2}^n + \gamma_{N-1}^{n} a_N^n,\\
+  \fun{a_{N-1}^{(0)}}{x} & := & a_{N-1}^n + \paren{\alpha_{N-1}^{n}x + \beta_{N-1}^{n}} a_N^n.
 \end{eqnarray*}
 We now set 
-$$\tilde{n} := \fun{\min}{\abs{n},N-2}, \quad \tilde{M} := \left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.$$
+$$\tilde{n} := \fun{\min}{n,N-2}, \quad \tilde{M} := \left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.$$
 and obtain
 $$
-  g_n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} \paren{\sum_{k=0}^{3} a_{4l+k}^{(0)} P_{4l+k}^{\abs{n}}}.
+  g^n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} \paren{\sum_{k=0}^{3} a_{4l+k}^{(0)} P_{4l+k}^{n}}.
 $$
 
 Notice that $a_k^{(0)}$ are polynomials of 
@@ -484,21 +491,21 @@ degree at most $1$ and that one immediately has their corresponding Chebyshev co
 
 From \eqref{NFSFT:U} with $k = 1$ and $c = l+1$ it follows that
 $$
-\left(\begin{array}{c}  P_{4l+2}^{|n|}, 
-  P_{4l+3}^{|n|}\end{array}\right)
+\left(\begin{array}{c}  P_{4l+2}^{n}, 
+  P_{4l+3}^{n}\end{array}\right)
 \left(\begin{array}{c}
   a_{4l+2}^{(0)}\\
   a_{4l+3}^{(0)} 
 \end{array}\right)=
-\left(\begin{array}{c}  P_{4l}^{|n|},
-  P_{4l+1}^{|n|}\end{array}\right)
-{\mathbf{U}_{1}^{|n|}\left(\cdot,4l+1\right)}
+\left(\begin{array}{c}  P_{4l}^{n},
+  P_{4l+1}^{n}\end{array}\right)
+{\mathbf{U}_{1}^{n}\left(\cdot,4l+1\right)}
 \left(\begin{array}{c}  a_{4l+2}^{(0)}\\
   a_{4l+3}^{(0)} 
 \end{array}\right)
 $$
 and therefore
-$$ g_n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} a_{4l}^{(1)} \paren{P_{4l}^{\abs{n}} + a_{4l+1}^{(1)} P_{4l+1}^{\abs{n}}} $$
+$$ g^n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} a_{4l}^{(1)} \paren{P_{4l}^{n} + a_{4l+1}^{(1)} P_{4l+1}^{n}} $$
 with
 \begin{equation}
 \label{NFSFT:FirstStep}
@@ -510,13 +517,13 @@ with
     a_{4l}^{(0)}\\
     a_{4l+1}^{(0)} 
   \end{array}\right)
-  + {\mathbf{U}_{1}^{|n|}\left(\cdot,4l+1\right)}
+  + {\mathbf{U}_{1}^{n}\left(\cdot,4l+1\right)}
   \left(\begin{array}{c}
     a_{4l+2}^{(0)}\\
     a_{4l+3}^{(0)} 
   \end{array}\right).
 \end{equation}
-We can use Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2$ to compute 
+We can use Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $K=2$ to compute 
 the polynomial products in \eqref{NFSFT:FirstStep}. Applying this idea repeatedly leads to a cascade 
 summation with steps $\tau=1,\ldots,t-1$ as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation}. 
 In step $\tau$ we compute
@@ -530,7 +537,7 @@ In step $\tau$ we compute
     a_{2^{\tau+1}l}^{(\tau-1)}\\
     a_{2^{\tau+1}l+1}^{(\tau-1)} 
   \end{array}\right)
-  + {\mathbf{U}_{2^{\tau}-1}^{|n|}\left(\cdot,2^{\tau+1}l+1\right)}
+  + {\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}}
   \left(\begin{array}{c}
     a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}\\
     a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)} 
@@ -543,25 +550,28 @@ $l > \ceil{\frac{\tilde{M+1}}{2^{\tau+1}}}-1$.
 After step $\tau = t-1$ we arrive at
 \begin{equation}
   \nonumber
-  g_n = a_{0}^{t-1} P_{0}^{\abs{n}} + a_{1}^{t-1} P_{1}^{\abs{n}}.
+  g^n = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}.
 \end{equation}
 Since 
 \begin{equation}
   \nonumber
-  P_{0}^n(x) = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ P_{1}^n(x) = \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+  \fun{P_{0}^n}{x} = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ \fun{P_{1}^n}{x} = \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x}
 \end{equation} 
 we get
 \begin{equation}
   \label{NFSFT:LastStep}
-  g_n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{t-1} + a_{1}^{t-1} \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)
+  g^n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{(t-1)} + a_{1}^{(t-1)} \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x}
 \end{equation}
 Using 
 \begin{equation}
   \nonumber
   xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)
 \end{equation}
-one can calculate the remaining polynomial products in \eqref{NFSFT:LastStep} with elementary 
-vector operations to yield the Chebyshev coefficients $b_k^n$ of $g_n$.
+we finally obtain the sought Chebyshev coeffcients $b_{k}^n$ of $g^n$ from \eqref{NFSFT:LastStep} by
+applying elementary vector operations on the vectors of Chebyshev coefficients of $a_{0}^{(t-1)}$ and $a_{1}^{(t-1)}$ 
+(see Section \ref{NFSFT:LinearAlgebra:LastStep}).
+
+In total, the FLFT consists of $t+1 = \bigo{\log M}$ steps. The first and the last step clearly have computational complexity $\bigo{M}$. The rest of the steps is the cascade summation. Each step has computational complexity $\bigo{M \log M}$ due to the DCT applications in Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} used for the multiplication with the matrices $U$. In total this accumulates to $\bigo{M \log^2 M}$ for the whole algorithm.
 
 \begin{figure}
   \label{NFSFT:Figure:CascadeSummation}
@@ -666,18 +676,75 @@ vector operations to yield the Chebyshev coefficients $b_k^n$ of $g_n$.
       \put(9.5,2.8){\large $a_1^{(3)}$}
       \put(5.85,0.3){\large $\paren{b_{k}^{n}}_{k=0}^{16}$}
     \end{picture}
-  \caption{To be written...}
+  \caption{Schematic representation of the FLFT cascade summation for $M = 16$ and $n = 4$.}
 \end{figure}
 
-\begin{algorithm}[ht]
-  \caption{Fast Legendre Function transform}
-  \label{NFSFT:Algorithm:FLFT}    
+\begin{algorithm}[htb]
+  \caption{Fast Legendre Function transform (unstabilized)}
+  \label{NFSFT:Algorithm:FLFT_unstab}    
   \begin{algorithmic}
-    \STATE Input:  $M \in \NZ$, $n \in \Z$ $(\abs{n} \le M)$, $\paren{a_k^n}_{k=\abs{n}}^{M}$
-    \STATE Precompute: $t$, $N$, $\tilde{n}$, $\tilde{M}$ as above and $$\fun{U_{2^{\tau}-1}^{\abs{n}}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$$ 
+    \STATE Input:  $M \in \NZ$, $n \in \NZ$ $(n \le M)$, $\paren{a_k^n}_{k=n}^{M}$
+    \STATE Precompute: $t$, $N$, $\tilde{n}$, $\tilde{M}$ as above and $$\fun{U_{2^{\tau}-1}^{n}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$$ 
     \STATE \invisible{Precompute:} for $\tau = 1,\ldots,t-1$, $l = \floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$ and $s = 0,\ldots,2^{\tau+1}$
     \STATE \invisible{Precompute:} 
 
+    \STATE $a_{0}^{(t-1),\text{stab}} := a_{1}^{(t-1),\text{stab}} := 0$
+    \STATE Compute $\paren{a_{k}^{(0)}}_{k=0}^{N-1}$ 
+    \FOR {$\tau=1,\ldots,t$}
+      \FOR {$l = \floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$} 
+        \STATE Compute $a_{2^{\tau+1}l}^{(\tau)}$ and $a_{2^{\tau+1}l+1}^{(\tau)}$ from $$a_{2^{\tau+1}l}^{(\tau-1)},\  
+          a_{2^{\tau+1}l+1}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}$$ using 
+          \eqref{NFSFT:GeneralStep} and Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication}
+      \ENDFOR
+    \ENDFOR
+    \STATE Compute $a_{0}^{(t-1)} := a_{0}^{(t-1)} + a_{0}^{(t-1),\text{stab}}$, $a_{1}^{(t-1)} := a_{1}^{(t-1)} + a_{1}^{(t-1),\text{stab}}$
+    \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Stabilization}
+\label{DSFT:Stabilization}
+Algorithm \ref{NFSFT:Algorithm:FLFT_unstab} is exact in exact arithmetic. Unfortunately, it becomes unstable in finite precision for $n > 16$. The computation is subject to cancelations since the associated Legendre polynomials $\fun{P_{k}^n}{x,c}$ involved in the algorithm become very large for certain triples $\paren{k,n,c}$ and $\abs{x} \approx 1$ while at the same time the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ exhibit arbitrary small values (see \cite{kupo02}). A simple but effective idea first developed in \cite{97} is to replace the ordinary multiplication steps by "stabilization" steps, whenever the values $\fun{P_{k}^n}{x,c}$ exceed a certain threshold. The multiplications with $\fun{U_{2^{\tau+1}}^n}{\cdot,2^{\tau+1}l+1}$ are replaced by multiplications with $\fun{U_{2^{\tau}(2l+1)-1}^n}{\cdot,1}$ fulfilling
+$$
+	\left(\begin{array}{c}	  P_{2^{\tau+1}l+2^{\tau}}^{n}\\ 
+	  P_{2^{\tau+1}l+2^{\tau}+1}^{n}	\end{array}\right)
+	=
+	\V{U}_{2^{\tau}(2l+1)-1}^{n}\left(\cdot,1\right)^{\transp}
+		\left(\begin{array}{c}	  P_{0}^{n}\\
+	  P_{1}^{n}	\end{array}\right).
+$$
+This corresponds to taking the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}$ out of the cascade and updating
+$$
+	\left(\begin{array}{c}	  a_{0}^{(t-1)}\\
+	  a_{1}^{(t-1)}	\end{array}\right)^{\text{stab}}
+	:=
+	\left(\begin{array}{c}	  a_{0}^{(t-1)}\\
+	  a_{1}^{(t-1)}	\end{array}\right)^{\text{old}}
+  +
+	\V{U}_{2^{\tau}(2l+1)-1}^{n}\left(\cdot,1\right)
+	\left(\begin{array}{c}	  a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}\\
+	  a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}	\end{array}\right)  
+$$
+after the cascade summation is completed. Clearly, each "stabilization" step can be implemented using Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} 
+again with $K = N$. Therefore, these steps are costly compared to the cascade summation without stabilization. We sacrifice runtime efficiency for accuracy. 
+Unfortunately, an upper bound for the number $s$ of stabilization steps with respect to $M$ for a given threshold is not known yet. However, if $s = \bigo{\log M} $, 
+we still have an $\bigo{M \log^2 M}$ algorithm. Our computations for $M$ up to $1024$ and various thresholds show (see Figure \ref{NFSFT:figure:stabilization}) 
+that this might be indeed the case. 
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=12cm]{images/stabilization}
+  \caption{The relative number of stabilization steps for thresholds 1000 (blue), 10000 (red), 100000 (magenta) and 1000000 (black).}
+  \label{NFSFT:figure:stabilization}
+\end{figure}
+Algorithm \ref{Fast Legendre Function transform (stabilized)} summarizes the complete algorithm with stabilization.
+\begin{algorithm}[htb]
+  \caption{Fast Legendre Function transform (stabilized)}
+  \label{NFSFT:Algorithm:FLFT_stab}    
+  \begin{algorithmic}
+    \STATE Input:  $M \in \NZ$, $n \in \NZ$ $(n \le M)$, $\paren{a_k^n}_{k=n}^{M}$
+    \STATE Precompute: $t$, $N$, $\tilde{n}$, $\tilde{M}$ as above and $$\fun{U_{2^{\tau}-1}^{n}}{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}, 2^{\tau+1}l+1}$$ 
+    \STATE \invisible{Precompute:} for $\tau = 1,\ldots,t-1$, $l = \floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$, 
+    \STATE \invisible{Precompute:} $s = 0,\ldots,2^{\tau+1}$ and the stabilization steps.
     \STATE $a_{0}^{(t-1),\text{stab}} := a_{1}^{(t-1),\text{stab}} := 0$
     \STATE Compute $\paren{a_{k}^{(0)}}_{k=0}^{N-1}$ 
     \FOR {$\tau=1,\ldots,t$}
@@ -701,70 +768,133 @@ vector operations to yield the Chebyshev coefficients $b_k^n$ of $g_n$.
 \end{algorithmic}
 \end{algorithm}
 
-\section{Stabilization}
-\label{DSFT:Stabilization}
-
 \section{A Linear Algebra Approach}
 \label{DSFT:LinearAlgebra}
 
-In this section we represent the FLFT algorithm as a linear mapping, hence a matrix, that acts on a vector of Fourier coefficients $\V{a}^n$. So let $M \in \N$ be a fixed bandwidth and as usual $t := \lceil\log_2{M}\rceil$, $N := 2^t$. Furthermore let  $-M \le n \le M$ be fixed. The FLFT can be represented as a matrix $\mb{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with a vector $\mb{a} = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients gives a vector $\mb{g}_n = \left(g_0^n,g_1^n,\dots,g_{2N-1}^n\right) \in \C^{2N}$ containing the Chebyshev coefficients of the polynomial $g_n$: $$\mb{g_{n}} = \mb{T} \; \mb{a}.$$ For the sake of simplicity we omit the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$. Clearly, this can be exploited in the algorithm to save some computational steps.
+In this section we represent the FLFT algorithm as a linear mapping acting on a vector of Fourier coefficients $\V{a}^n$, hence a matrix. 
+%Let again $n$ with $\abs{n} \le M$ be fixed. 
+The FLFT can be represented as a matrix $\V{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with a vector $\V{a}^n = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients gives a vector $\V{b}^n := \left(b_0^n,b_1^n,\dots,b_{2N-1}^n\right)^{\transp} \in \C^{2N}$ containing the Chebyshev coefficients $b_{k}^n$ of the polynomial $\fun{g^n}{x}$ from \eqref{NFSFT:GnEven} or \eqref{NFSFT:GnOdd}, respectively: 
+$$\V{b}^{n} = \V{T} \; \V{a}^n.$$ 
+For the sake of simplicity we omit the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$ exploited in Algorithm \ref{NFSFT:Algorithm:FLFT_stab} in order to save some computational steps.
 
-Since the FLFT algorithm is asymptotically faster than the naive evaluation of the polynomial $g_{n}$ at the Chebyshev nodes, this implies a factorization of $\mb{T}$ into sparse matrices. This factorization can be derived directly from the algorithm already presented and will later be used to construct an algorithm for the transposed problem. In general the FLFT consists of $t+1$ steps so that $\mb{T}$ can be written as $$\mb{T} = \mb{T}_{t} \: \cdot \:  \mb{T}_{t-1} \dots \mb{T}_{1} \: \cdot \:  \mb{T}_{0} \text{, with } \mb{T}_{\tau} \in \left\{\begin{array}{l@{\quad \text{if} \quad}l} \R^{2N \times (N+1)} & \tau = 0, \\ \R^{2N \times 2N} & 1 \le \tau < t, \\ \R^{(N+1) \times 2N} & \tau = t. \end{array}\right.$$
+The algorithm implies a factorization of $\V{T}$ into sparse matrices that can be derived directly.
+%from the algorithm already presented 
+We will use this fact to obtain an algorithm for the transposed problem. In general, the FLFT consists of $t+1$ steps such that $\V{T}$ can be written as 
+$$
+  \V{T} = \V{T}^{(t)} \: \cdot \:  \V{T}^{(t-1)} \: \cdot \: \dots \: \cdot \: \V{T}^{(1)} \: \cdot \:  \V{T}^{(0)},
+$$
+with
+$$
+ \V{T}^{(\tau)} \in \left\{\begin{array}{l@{\quad \text{if} \quad}l} \R^{2N \times (N+1)} & \tau = 0, \\ \R^{2N \times 2N} & 1 \le \tau < t, \\ \R^{(N+1) \times 2N} & \tau = t. \end{array}\right.
+$$
 
-\subsubsection{The First Step}
+\subsection{The First Step}
 
-The first step consists in converting each Fourier-coefficent $a_{k}^n$ into a polynomial of degree at most 1 in Chebyshev representation $\mb{a}_{k}^{(0)} \in \C^2$ so that the result $\mb{a^{(0)}}$ is a vector of length $2N$, hence $$ \mb{a}_{k}^{(0)} = \mb{e}_{1} a_{k}^n,\quad \text{with } \mb{e}_{1} = \left(\begin{array}{l}1\\0\end{array}\right).$$
-The last polynomial $\mb{a}_{N}^{(0)}$ is mapped to the preceeding two polynomials by means of the three term recurrence for associated Legendre Functions, i.e. $\mb{a}_{N}^{(0)} = \left(\alpha x + \beta\right)\mb{a}_{N-1}^{(0)} + \gamma \mb{a}_{N-2}^{(0)}$. Following this, $\mb{T}_{0}$ can be written as
-$$\left(\mb{I}_{N} \otimes \mb{e}_{1},\;\mb{\tilde{e}}\right),$$ 
-where $\mb{\tilde{e}} = \left(0,0,\dots,0,\gamma, 0, \beta,\alpha\right)^T \in \R^{2N}.$
+The first step converts each Fourier coefficent $a_{k}^n$ into a polynomial of degree at most 1 in Chebyshev representation $\V{a}_{k}^{(0)} \in \C^2$. The result 
+$$
+  \V{a^{(0)}} := 
+    \left[\begin{array}{c}
+      \V{a}_{0}^{(0)}\\
+      \vdots\\
+      \V{a}_{N-1}^{(0)}
+    \end{array}\right] 
+    \in \C^{2N}
+$$ 
+is a vector of length $2N$, hence 
+$$ 
+  \V{a}_{k}^{(0)} = \V{e} \: a_{k}^n,\quad \text{with } \V{e} := \left(\begin{array}{l}1\\0\end{array}\right) \quad \paren{k = 0,\ldots,N-3}.
+$$
+The last polynomial $a_{N}^{(0)}$ is mapped to the preceeding two polynomials by means of the three-term recurrence for associated Legendre Functions, 
+i.e. 
+$$
+  a_{N}^{(0)} = \left(\alpha x + \beta\right)a_{N-1}^{(0)} + \gamma a_{N-2}^{(0)}.
+$$
+Following this, $\V{T}^{(0)}$ can be written as 
+$$
+  \V{T}^{(0)} = \encl{[}{\V{I}_{N} \otimes \V{e},\;\V{\tilde{e}}}{]},
+$$
+with $\V{\tilde{e}} := \left(0,0,\dots,0,\gamma, 0, \beta,\alpha\right)^{\transp} \in \R^{2N}$.
 
-\subsubsection{Cascade Summation}
-
-Steps $1$ to $t-1$ represent the cascade summation that is applied to associated Legendre functions. In each round, half of the the functions is eliminated by mapping them to the remaining functions. Therefore the vector is divided into consecutive blocks, each consisting of four polynomials representing the factors in front of each function. Each polynomial is represented by its vector of Chebyshev coefficients of length $2^{\tau}$. In every block, the first and the second polynomial remain unchanged. The third and the fourth polynomial are multiplied with a matrix $\mb{U}$ that transforms them into a representation in terms of the first two functions. Following this, the output contains only half of the polynomials compared to the input vector, but due to the multiplication with $\mb{U}$ the degree might double each time so that twice the space is needed to store the Chebyshev coefficients. So in total the result vector still has length $2N$. For each step $1 \le \tau < t$ and for each block $$\mb{\tilde{a}}_{l}^{(\tau-1)} := \left(\mb{a}_{4l}^{(\tau-1)},\mb{a}_{4l+1}^{(\tau-1)},\mb{a}_{4l+2}^{(\tau-1)},\mb{a}_{4l+3}^{(\tau-1)}\right)^T \text{, where } 0 \le l < 2^{t-\tau-1},$$ we need to keep the first two polynomials but with their vectors zero-padded up to twice the length. Furthermore, the multiplication with the matrix $\mb{U}$ acts on the third and fourth polynomial.
-Correspondingly, each block $\mb{\tilde{a}}_{l}^{(\tau-1)}$ is multiplied by a matrix $\mb{V}_{\tau}^l := \left[\mb{Z_{\tau}},\mb{U}_{\tau}^l\right]$, with
-$$\mb{Z}_{\tau} := \left(\begin{array}{cccc} \mb{I}_{2^{\tau}} & 0\\ 0 & 0 \\ 0 & \mb{I}_{2^{\tau}} \\ 0 & 0 \end{array}\right) \in \R^{2^{\tau+2} \times 2^{\tau+1}},\ \mb{U}_{\tau}^l \in \R^{2^{\tau+2} \times 2^{\tau+1}}.$$
+\subsection{Steps $\tau = 1,\ldots,t-1$ (Cascade Summation)}
+These steps represent the cascade summation applied to associated Legendre functions. In each round, half of the the functions is eliminated by mapping them to the remaining functions. Therefore, the vector $\V{a}^{(\tau-1)}$ is divided into consecutive blocks of four polynomials
+$$
+  \V{a}^{(\tau-1)} = 
+    \left[\begin{array}{c}
+      \V{a}^{(\tau-1)}_{0}\\
+      \vdots\\
+      \V{a}^{(\tau-1)}_{\frac{N}{2^{\tau+1}}-1}
+    \end{array}\right]  \in \C^{2N},
+$$
+with
+\begin{equation}
+  \nonumber
+  \V{a}^{(\tau-1)}_{l} := 
+    \left[\begin{array}{l}
+      \V{a}^{(\tau-1)}_{2^{\tau+1}l}\\[1ex]
+      \V{a}^{(\tau-1)}_{2^{\tau+1}l+1}\\[1ex]
+      \V{a}^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}\\[1ex]
+      \V{a}^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}
+    \end{array}\right] \in \C^{2^{\tau+2}} \quad \paren{l=0,\ldots,\frac{N}{2^{\tau+1}}-1},
+\end{equation}
+where $\V{a}^{(\tau-1)}_{2^{\tau+1}l+j} \in \C^{2^{\tau}}$ for $j = 0,1,2^{\tau},2^{\tau}+1$, representing the polynomial factors in front of each remaining function $P_{k}^n$. Each polynomial is represented by its vector of Chebyshev coefficients of length $2^{\tau}$. In every block, the first and the second polynomial, $a^{(\tau-1)}_{2^{\tau+1}l}$
+and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ remain unchanged. The third and the fourth polynomial, $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, are multiplied with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ which transforms them into a representation in terms of the first two functions. Following this, the output contains only half of the polynomials, but due to the multiplication with $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ the degree might double each time so that twice the space is needed to store the Chebyshev coefficients. In total, the result vector still has length $2N$. 
+%For each step $1 \le \tau < t$ and for each block $$\mb{\tilde{a}}_{l}^{(\tau-1)} := \left(\mb{a}_{4l}^{(\tau-1)},\mb{a}_{4l+1}^{(\tau-1)},\mb{a}_{4l+2}^{(\tau
+%-1)},\mb{a}_{4l+3}^{(\tau-1)}\right)^T \text{, where } 0 \le l < 2^{t-\tau-1},$$ 
+We need to keep the first two polynomials, but with their vectors zero-padded to twice the length. Furthermore, we have to add the coefficients due to the multiplication of the third and fourth polynomial with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$.
+Correspondingly, each block $\V{a}_{l}^{(\tau-1)}$ is multiplied by a matrix $\V{V}^{(\tau)}_l := \left[\V{Z^{(\tau)}},\V{U}^{(\tau)}_l\right]$, with
+$$\V{Z}^{(\tau)} := \left(\begin{array}{cccc} \V{I}_{2^{\tau}} & 0\\ 0 & 0 \\ 0 & \V{I}_{2^{\tau}} \\ 0 & 0 \end{array}\right) \in \R^{2^{\tau+2} \times 2^{\tau+1}},\ \V{U}^{(\tau)}_l \in \R^{2^{\tau+2} \times 2^{\tau+1}}.$$
 %Correspondingly, this can be written as the product 
 %$$\mb{ZP}_{\tau} \; \mb{\tilde{a}}_{l}^{\tau-1} \text{, with } \mb{ZP}_{\tau} := \left(\begin{array}{cccc} \mb{I}_{2^{\tau}} & 0 & 0 & 0\\ 0 & 0 & 0 & 0 \\ 0 & \mb{I}_{2^{\tau}} & 0 & 0 \\ 0 & 0 & 0 & 0 \end{array}\right) \in \R^{2^{\tau+2} \times 2^{\tau+2}}.$$ 
 %The multiplication with the matrix $\mb{U}$ that acts on the third and fourth polynomial is written as $\mb{U}_{\tau}^l \; \mb{\tilde{a}}_{l}^{\tau-1}$ where the matrix can be factorized as follows:
-The matrix $\mb{U}_{\tau}^l$ can be factorized as follows:
-$$ \mb{U}_{\tau}^l = \mb{D}_{\tau}^{II} \; \cdot \; \mb{S}_{\tau} \; \cdot \; \mb{P}_{\tau}\left(2^{\tau + 1}l+1\right) \; \cdot \; \mb{D}_{\tau}^{III}  \in \R^{2^{\tau+2} \times 2^{\tau+1}}$$
+The matrix $\V{U}^{(\tau)}_l \in \R^{2^{\tau+2} \times 2^{\tau+1}}$ can be factorized as follows:
+\begin{equation} 
+  \label{NFSFT:LinearAlgebra:Factorization}
+  \V{U}^{(\tau)}_l := \V{D}^{(\tau)}_{\text{II}} \; \cdot \; \V{S}^{(\tau)} \; \cdot \; \fun{\V{P}^{(\tau)}}{2^{\tau + 1}l+1} \; \cdot \; \V{D}^{(\tau)}_{\text{III}}
+\end{equation}
 where we define
-\begin{eqnarray*}
-  \mb{D}_{\tau}^{II} & := & \mb{I}_{2} \otimes \left(\mb{\tilde{D}}_{2^{\tau+1}} \mb{\tilde{C}}_{2^{\tau+1}}\right) \in \R^{2^{\tau+2} \times 2^{\tau+2}},\\
-  \mb{S}_{\tau} & := & \mb{I}_2 \otimes \left[\begin{array}{cc}\mb{I}_{2^{\tau+1}},\mb{I}_{2^{\tau+1}}\end{array}\right] \in \R^{2^{\tau+2} \times 2^{\tau+3}},\\
-  \mb{P}_{\tau}(c) & := & \text{diag}\left(\gamma_{c}^n \mb{P}_{2^{\tau}-2}^n(c+1),\gamma_{c}^n \mb{P}_{2^{\tau}-1}^n(c+1),\right.\\
-    & & \left. \mb{P}_{2^{\tau}-1}^n(c), \mb{P}_{2^{\tau}}^n(c)\right) \in \R^{2^{\tau+3} \times 2^{\tau+3}},\\
-  \mb{D}_{\tau}^{III} & := &\mb{I}_{2} \otimes \left(\left(\mb{I}_{2} \otimes \mb{\tilde{C}}^T_{2^{\tau+1}}\right)\mb{Z}_{\tau}\right) \in \R^{2^{\tau+3} \times 2^{\tau+1}}.
-\end{eqnarray*}   
-This interpretation corresponds directly to the algorithm implemented. The matrix $\mb{D}_{\tau}^{III}$ realizes first the zero-padding of the two polynomials ($\mb{Z}$), second the evaluation of the polynomials at the Chebyshev nodes ($\mb{\tilde{C}}^T$) and finally a duplication of the result vector in order to permit multiplication with two different associated Legendre functions for each polynomial. The matrix $\mb{P}_{\tau}(c)$ contains the associated Legendre polynomials of the matrix $U_{2^{\tau}-1}^n(\cdot,2^{\tau+1}l+1)$ also evaluated at the Chebyshev nodes on its main diagonal. Therefore a multiplication with this matrix realizes a pointwise multiplication of the zero-padded and evaluated polynomials. For each of the two rows of $U_{2^{\tau}-1}^n(\cdot,2^{\tau+1}l+1)$, two of the results of the previous step are summed by the following multiplication with the matrix $\mb{S}_{\tau}$. Finally, the matrix $\mb{D}_{\tau}^{II}$ transforms the newly formed polynomials back into Chebyshev coefficients.
+\begin{align*}
+  \V{D}^{(\tau)}_{\text{II}} & := \V{I}_{2} \otimes \left(\V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}}\right) & \in \R^{2^{\tau+2} \times 2^{\tau+2}},\\
+  \V{S}^{(\tau)} & := \V{I}_2 \otimes \left[\begin{array}{cc}\V{I}_{2^{\tau+1}},\V{I}_{2^{\tau+1}}\end{array}\right] & \in \R^{2^{\tau+2} \times 2^{\tau+3}},\\
+  \fun{\V{P}^{(\tau)}}{c} & := \text{diag}\left(\gamma_{c}^n \fun{\V{P}_{2^{\tau}-2}^n}{c+1},\gamma_{c}^n \fun{\V{P}_{2^{\tau}-1}^n}{c+1},\right.\\
+    & \left. \hspace{9ex} \fun{\V{P}_{2^{\tau}-1}^n}{c}, \fun{\V{P}_{2^{\tau}}^n}{c}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+3}},\\
+  \V{D}^{(\tau)}_{\text{III}} & := \V{I}_{2} \otimes \left(\left(\V{I}_{2} \otimes \V{C}^{\transp}_{2^{\tau+1}}\right)\V{Z}^{(\tau)}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+1}}.
+\end{align*}   
+This follows directly from Algorithm \ref{NFSFT:Algorithm:FLFT_unstab}. The matrix $\V{D}^{(\tau)}_{\text{III}}$ realizes first the zero-padding ($\V{Z}^{(\tau)}$)
+of the two polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, second the evaluation at the Chebyshev nodes ($\V{\tilde{C}}^{\transp}$) and finally a duplication of the result vector in order to permit multiplication with two different associated Legendre polynomials for each polynomial. The matrix $\fun{\V{P}^{(\tau)}}{2^{\tau+1}l+1}$ contains on its main diagonal the associated Legendre polynomials of the matrix $\fun{\V{U}_{2^{\tau}-1}^n}{\cdot,2^{\tau+1}l+1}$ evaluated at the Chebyshev nodes. It realizes therefore a pointwise multiplication with the zero-padded and evaluated polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$. The matrix $\V{S}^{(\tau)}$ forms the sums for the two rows of the result and finally the $\V{D}^{(\tau)}_{\text{II}}$ transforms the new obtained polynomials $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ back into Chebyshev representation.
 
-From the factorization a more compact representation can be obtained, so that $\mb{U}_{\tau}^l$ can be written as
+From the factorization in \eqref{NFSFT:LinearAlgebra:Factorization} the more compact representation
 \begin{equation}
 \label{UCompact}
-\mb{U}_{\tau}^l = 
+\V{U}^{(\tau)}_l = 
 \left(\begin{array}{lclrcr}
-\mb{\mb{\tilde{D}}_{2^{\tau+1}}\tilde{C}}_{2^{\tau+1}} & \gamma_{c}^n & \left(\right. & \mb{P}_{2^{\tau}-2}^n(c+1) \mb{\tilde{C}}^T_{2^{\tau+1}} Z_{1} & + & \mb{P}_{2^{\tau}-1}^n(c+1) \mb{\tilde{C}}^T_{2^{\tau+1}} Z_{2} \left.\right) \\
-\mb{\mb{\tilde{D}}_{2^{\tau+1}}\tilde{C}}_{2^{\tau+1}} & & \left(\right. & \mb{P}_{2^{\tau}-1}^n(c) \mb{\tilde{C}}^T_{2^{\tau+1}} Z_{1} & + & \mb{P}_{2^{\tau}}^n(c) \mb{\tilde{C}}^T_{2^{\tau+1}} Z_{2} \left.\right)
+  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & \gamma_{c}^n & \left(\right. & \fun{\V{P}_{2^{\tau}-2}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1} & + & 
+  \fun{\V{P}_{2^{\tau}-1}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2} \left.\right) \\
+  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & & \left(\right. & \fun{\V{P}_{2^{\tau}-1}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1} & + & 
+  \fun{\V{P}_{2^{\tau}}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2} \left.\right)
 \end{array}\right)
 \end{equation}
+is obtained.
 %So for each block $l$, a multiplication with a matrix $\mb{V}_{\tau}^l  \in \R^{2^{\tau+2} \times 2^{\tau+2}}$ is applied where
 %$$ \mb{V}_{\tau}^l = \left[\mb{ZP},\mb{U}_{\tau}^l\right].$$ 
-The complete round can then be represented as $$\mb{T}_{\tau} = \text{diag}\left(\mb{V}_{\tau}^0,\mb{V}_{\tau}^1,\dots,\mb{V}_{\tau}^{2^{t-\tau-1}-1}\right).$$
+The complete step can finally be represented as $$\V{T}^{(\tau)} = \text{diag}\left(\V{V}^{(\tau)}_0,\V{V}^{(\tau)}_1,\dots,\V{V}^{(\tau)}_{2^{t-\tau-1}-1}\right).$$
 
 \subsubsection{The Last Step}
-The last step consists of calculating the polynomial $g_{n} = \mb{a}_{0}^{(t-1)} P_{0}^{|n|} + \mb{a}_{1}^{(t-1)} P_{1}^{|n|}$ in Chebyshev representation. Since 
-$$P_{0}^n(x) = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ P_{1}^n(x) = \left(\alpha_{0}^nx + \beta_{0}^n\right)P_{0}^n(x)$$ we can use 
-$$xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)$$ to write
-$$ \mb{g_{n}} = \gamma_{0}^n \left( \mb{I}_{N+1} \mb{a}_{0}^{(\tau-1)} + \left( \alpha_{0}^n\mb{W}_{N+1} + \beta_{0}^n\mb{I}_{N+1} \right) \mb{a}_{1}^{(\tau-1)} \right)$$
-Depending on $n \in \N_{0}$, we can distinguish three cases:
-\begin{description}
-  \item[n odd:] In this case, $\alpha_{0}^n = 0$ and $\beta_{0}^n = 1$ so that $\mb{T}_{\tau}$ can be written as $$\mb{T}_{\tau} = \gamma_{0}^n \left[ \mb{I}_{N+1}, \mb{I}_{N+1} \right].$$
-  \item[n = 0:] Here it holds, $\alpha_{0}^n = 1$ and $\beta_{0}^n = 0$ and we get $$\mb{T}_{\tau} = \gamma_{0}^n \left[ \mb{I}_{N+1}, \mb{W}_{N+1} \right].$$
-  \item[n even, n > 0:] Now $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in $$\mb{T}_{\tau} = \gamma_{0}^n \left[ \mb{I}_{N+1}, \mb{I}_{N+1} - \mb{W}_{N+1} \right].$$
-\end{description}
-where we define
+\label{NFSFT:LinearAlgebra:LastStep}
+The last step consists in calculating the polynomial $g^{n} = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}$ in Chebyshev representation. Since 
 $$
-\mb{W}_{n} :=
+  \fun{P_{0}^n}{x} = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ \fun{P_{1}^n}{x} = \left(\alpha_{0}^n x + \beta_{0}^n\right)P_{0}^n(x),
+$$ 
+we can use 
+$$
+  xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)
+$$ 
+to write
+$$ 
+  \V{g}^{n} = \gamma_{0}^n \left( \V{I}_{N+1} \V{a}_{0}^{(\tau-1)} + \left( \alpha_{0}^n\V{W}_{N+1} + \beta_{0}^n\V{I}_{N+1} \right) \V{a}_{1}^{(\tau-1)} \right).
+$$
+Here, we have defined
+$$
+\mb{W}_{k} :=
 \left(
 \begin{array}{ccccccc}
   0 & \frac{1}{2} &             &                           \\
@@ -774,38 +904,47 @@ $$
     &             &             & \frac{1}{2} &           0
 \end{array}
 \right)
-\in \R^{n \times n}.
+\in \R^{k \times k} \quad \paren{k \in \N}.
 $$
+Depending on $n \in \NZ$, we can distinguish three cases:
+\begin{description}
+  \item[n odd] In this case, $\alpha_{0}^n = 0$ and $\beta_{0}^n = 1$ so that $\V{T}^{(\tau)}$ is 
+    $$
+      \V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} \right].
+    $$
+  \item[n = 0] Here it holds, $\alpha_{0}^n = 1$ and $\beta_{0}^n = 0$ and we get $$\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{W}_{N+1} \right].$$
+  \item[n even, n > 0] Now $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in $$\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} - \mb{W}_{N+1} \right].$$
+\end{description}
 
-\subsection{The Adjoint Operator}
-Following the factorization of $\mb{T}$ given in the previous section, one obtains easily the adjoint operator which is paramount for an implementation of xxx: 
-$$\mb{T}^H = \mb{T}_{0}^H \; \cdot \; \mb{T}_{1}^H \dots \mb{T}_{t-1}^H \; \cdot \; \mb{T}_{t}^H.$$ For $\tau = 0$ and $\tau = t$ we obtain immediatly
-$$ \mb{T}_{0}^H = \left( \begin{array}{c} \mb{I}_{N} \otimes \mb{e}_{1}^T\\ \mb{\tilde{e}}^T \end{array}\right), \mb{T}_{t}^H = \gamma_{0}^n \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
- \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} \end{array} \right] & \text{n odd},\\[2ex]
- \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{T}_{N+1}^T \end{array} \right] & \text{n = 0},\\[2ex]
- \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} - \mb{T}_{N+1}^T \end{array} \right] & \text{n even, n > 0}.
-\end{array}\right.$$
-Using xxx we get for the rest of the steps $\mb{T}_{\tau}$, $1 \le \tau \le t-1$
-\begin{eqnarray*}
- \mb{T}_{\tau}^H & = & \text{diag}\left({\mb{V}_{\tau}^0}^H,{\mb{V}_{\tau}^1}^H,\dots,{\mb{V}_{\tau}^{2^{t-\tau-1}-1}}^H\right),\\
- {\mb{V}_{\tau}^l}^H & = & \left[ \begin{array}{c} \mb{Z}^H \\ { \mb{U}_{\tau}^l}^H \end{array} \right],\\
- {\mb{U}_{\tau}^l}^H & = &
-   \left(
-     \begin{array}{rlllr}
-        \gamma_{c}^n & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-2}^n(c+1)   & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c+1)
-         & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T \\
-        & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c) & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}}^n(c) & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T
-     \end{array}
-   \right).
-\end{eqnarray*}
+%\subsection{The Adjoint Operator}
+%Following the factorization of $\mb{T}$ given in the previous section, one obtains easily the adjoint operator which is paramount for an implementation of xxx: 
+%$$\mb{T}^H = \mb{T}_{0}^H \; \cdot \; \mb{T}_{1}^H \dots \mb{T}_{t-1}^H \; \cdot \; \mb{T}_{t}^H.$$ For $\tau = 0$ and $\tau = t$ we obtain immediatly
+%$$ \mb{T}_{0}^H = \left( \begin{array}{c} \mb{I}_{N} \otimes \mb{e}_{1}^T\\ \mb{\tilde{e}}^T \end{array}\right), \mb{T}_{t}^H = \gamma_{0}^n \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
+% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} \end{array} \right] & \text{n odd},\\[2ex]
+% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{T}_{N+1}^T \end{array} \right] & \text{n = 0},\\[2ex]
+% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} - \mb{T}_{N+1}^T \end{array} \right] & \text{n even, n > 0}.
+%\end{array}\right.$$
+%Using xxx we get for the rest of the steps $\mb{T}_{\tau}$, $1 \le \tau \le t-1$
+%\begin{eqnarray*}
+% \mb{T}_{\tau}^H & = & \text{diag}\left({\mb{V}_{\tau}^0}^H,{\mb{V}_{\tau}^1}^H,\dots,{\mb{V}_{\tau}^{2^{t-\tau-1}-1}}^H\right),\\
+% {\mb{V}_{\tau}^l}^H & = & \left[ \begin{array}{c} \mb{Z}^H \\ { \mb{U}_{\tau}^l}^H \end{array} \right],\\
+% {\mb{U}_{\tau}^l}^H & = &
+%   \left(
+%     \begin{array}{rlllr}
+%        \gamma_{c}^n & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-2}^n(c+1)   & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c+1)
+%         & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T \\
+%        & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c) & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}}^n(c) & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T
+%     \end{array}
+%   \right).
+%\end{eqnarray*}
 
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[height=9cm,width=12cm]{images/accuracy}
-  \caption{To be written...}
-  \label{NFSFT:Figure:Accuracy}
-\end{figure}
+%
+%\begin{figure}[tb]
+%  \centering
+%  \includegraphics[height=9cm,width=12cm]{images/accuracy}
+%  \caption{To be written...}
+%  \label{NFSFT:Figure:Accuracy}
+%\end{figure}
 
 
 \section{Adjoint Fast Spherical Fourier Transform}

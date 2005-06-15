@@ -395,40 +395,40 @@ Therefore the DCT-II is the inverse of the DCT-III an vice versa up to a scaling
 
 \section{Fast Polynomial Multiplication}
 \label{Basics:FastPolynomialMultiplication}
-A polynomial $P \in \Pol_{N-1}$ is uniquely determined by its \emph{Chebyshev coefficients} 
-$\paren{a_{k}}_{k = 0}^{N-1}$ with $\fun{P}{x} = \sum_{k=0}^{N-1} a_{k} \fun{T_{k}}{x}$. Given 
-now a second polynomial $Q \in \Pol_{N}$, $N \in \NZ$ known in advance, we give a fast algorithm first described in \cite{postta97} for computing the 
-Chebyshev coefficients of the polynomial product $R := P \: Q \in \Pol_{2N-1}$. The polynomial $R$ is uniquely determined 
-by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$ for $j = 0,\ldots,2N-1$ and 
+A polynomial $P \in \Pol_{K-1}$ is uniquely determined by its \emph{Chebyshev coefficients} 
+$\paren{a_{k}}_{k = 0}^{K-1}$ with $\fun{P}{x} = \sum_{k=0}^{K-1} a_{k} \fun{T_{k}}{x}$. Given 
+now a second polynomial $Q \in \Pol_{K}$, $K \in \NZ$ known in advance, we give a fast algorithm first described in \cite{postta97} for computing the 
+Chebyshev coefficients of the polynomial product $R := P \: Q \in \Pol_{2K-1}$. The polynomial $R$ is uniquely determined 
+by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}$ for $j = 0,\ldots,2K-1$ and 
 by \eqref{Basics:DCT2} we obtain
 \begin{eqnarray*}
-  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0}^{2N-1} = \V{C}_{2N}^{\transp} \paren{a_{k}}_{k=0}^{2N-1},\\
-  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{j=0}^{2N-1} = \V{C}_{2N}^{\transp} \paren{b_{k}}_{k=0}^{2N-1},
+  \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4K}}}_{j=0}^{2K-1} = \V{C}_{2K}^{\transp} \paren{a_{k}}_{k=0}^{2K-1},\\
+  \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4K}}}_{j=0}^{2K-1} = \V{C}_{2K}^{\transp} \paren{b_{k}}_{k=0}^{2K-1},
 \end{eqnarray*}
-where we set $a_{k} = 0$ for $k > N-1$ and $b_{k} = 0$ for $k > N$. This means that the evaluation 
-of the polynomials $P$ and $Q$ can be performed using two DCT-IIIs of length $2N$ where we additionally have to 
-compensate for the factors $\varepsilon_{k}^N$ introduced by the matrix $\V{D}_{2N}$.
-Once calculated the products $f_{j}$ and taking into account that $\V{C}_{2N}^{-\transp} = \frac{2}{2N} \V{D}_{2N} \V{C}_{2N}$ 
+where we set $a_{k} = 0$ for $k > K-1$ and $b_{k} = 0$ for $k > K$. This means that the evaluation 
+of the polynomials $P$ and $Q$ can be performed using two DCT-IIIs of length $2K$ where we additionally have to 
+compensate for the factors $\varepsilon_{k}^K$ introduced by the matrix $\V{D}_{2K}$.
+Once calculated the products $f_{j}$ and taking into account that $\V{C}_{2K}^{-\transp} = \frac{2}{2K} \V{D}_{2K} \V{C}_{2K}$ 
 by Lemma \ref{Basics:DCT3} we get
-$$ \paren{c_{k}}_{k=0}^{2N-1} = \frac{2}{2N} \V{D}_{2N} \V{C}_{2N} \paren{f_{j}}_{j = 0}^{2N-1}.$$
+$$ \paren{c_{k}}_{k=0}^{2K-1} = \frac{2}{2K} \V{D}_{2K} \V{C}_{2K} \paren{f_{j}}_{j = 0}^{2K-1}.$$
 This leads to the following algorithm:
 
 \begin{algorithm}[ht]
   \caption{Fast polynomial multiplication in Chebyshev representation}
   \label{Basics:Algorithm:FastPolynomialMultiplication}    
   \begin{algorithmic}
-    \STATE  Input:  $N = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{N-1}$, $\paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4N}}}_{0}^{"N-1}$
+    \STATE  Input:  $K = 2^t\; (t \in \N)$, $\paren{a_{k}}_{k = 0}^{K-1}$, $\paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4K}}}_{0}^{"K-1}$
     \STATE
-    \STATE Evaluate the polynomials at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4N}}_{j = 0}^{2N-1}$
-      using two fast DCT-IIIs of length $2N$.
+    \STATE Evaluate the polynomials at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4K}}_{j = 0}^{2K-1}$
+      using two fast DCT-IIIs of length $2K$.
     \STATE 
-    \FOR {$j=0,\ldots , 2N-1$} 
-      \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
+    \FOR {$j=0,\ldots , 2K-1$} 
+      \STATE $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}$
     \ENDFOR
     \STATE
-    \STATE Compute the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2N-1}$ using a fast DCT-II of length $2N$.
+    \STATE Compute the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2K-1}$ using a fast DCT-II of length $2K$.
     \STATE
-    \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+    \STATE Output: $\paren{c_{k}}_{k=0}^{2K-1}$
 \end{algorithmic}
 \end{algorithm}
 
