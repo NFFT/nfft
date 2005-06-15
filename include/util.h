@@ -10,8 +10,11 @@
 /** Macros
  */
 #define SWAPC(x,y) {complex* temp; temp=(x); (x)=(y); (y)=temp;}
+#define SWAP_double(x,y) {double* temp; temp=(x); (x)=(y); (y)=temp;}
+#define SWAP_complex(x,y) {complex* temp; temp=(x); (x)=(y); (y)=temp;}
 #define PI 3.1415926535897932384
 #define MAX(a,b) ((a)>(b)? (a) : (b))
+#define MIN(a,b) ((a)<(b)? (a) : (b))
 
 /** @defgroup little_group Group for little helpers
  * This group contains little helpers, e.g. for
@@ -78,87 +81,80 @@ double i0(double x);
 
 /** Computes the inner/dot product \f$x^H x\f$.
  */
-double dotproductc(complex* x, int n);
+double dot_complex(complex* x, int n);
 
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
-double dotproductc_w(complex* x, double* w, int n);
+double dot_w_complex(complex* x, double* w, int n);
 
 /** Computes the weighted inner/dot product 
     \f$x^H (w1\odot w2\odot w2 \odot x)\f$.
  */
-double dotproductc_w1_w2(complex* x, double* w1, double* w2, int n);
+double dot_w_w2_complex(complex* x, double* w, double* w2, int n);
 
 /** Computes the weighted inner/dot product 
     \f$x^H (w2\odot w2 \odot x)\f$.
  */
-double dotproductc_w2(complex* x, double* w2, int n);
+double dot_w2_complex(complex* x, double* w2, int n);
 
 /** Copies \f$x \leftarrow y\f$.
  */
-void copyc(complex* x,complex* y, int n);
+void cp_complex(complex* x, complex* y, int n);
+
+/** Copies \f$x \leftarrow y\f$.
+ */
+void cp_double(double* x, double* y, int n);
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-void copyc_a(complex* x,double a, complex* y, int n);
+void cp_a_complex(complex* x, double a, complex* y, int n);
 
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
-void copyc_w(complex* x,double* w,complex* y, int n);
+void cp_w_complex(complex* x, double* w, complex* y, int n);
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
-void updatec_axpy(complex* x,double a, complex* y, int n);
+void upd_axpy_complex(complex* x, double a, complex* y, int n);
 
 /** Updates \f$x \leftarrow x + a y\f$.
  */
-void updatec_xpay(complex* x,double a, complex* y, int n);
+void upd_xpay_complex(complex* x, double a, complex* y, int n);
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
-void updatec_axpby(complex* x, double a, complex* y, double b,
-		   int n);
+void upd_axpby_complex(complex* x, double a, complex* y, double b, int n);
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
-void updatec_xpawy(complex* x,double a, double* w, complex* y,
-		   int n);
+void upd_xpawy_complex(complex* x, double a, double* w, complex* y, int n);
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
-void updatec_axpwy(complex* x,double a, double* w, complex* y,
-		   int n);
+void upd_axpwy_complex(complex* x, double a, double* w, complex* y, int n);
 
-/** computes \f$\frac{\|x_0-x\|_{\infty}}{\|x\|_{\infty}} \f$
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-double error(double *x0, double *x, int n);
+double error_l_infty_complex(complex *x, complex *y, int n);
 
-/** computes \f$\frac{\|x_0-x\|_{\infty}}{\|x\|_{\infty}} \f$
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-double errorc(complex *x0, complex *x, int n);
+double error_l_infty_1_complex(complex *x, complex *y, int n, complex *z,
+                               int m);
 
-/** computes \f$\frac{\|x_0-x\|_{\infty}}{\|\hat f\|_1} \f$
+/** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-double error_l_infty_1_c(complex *x0, complex *x, int n,
-                         complex *f_hat, int N_d);
+double error_l_2_complex(complex *x, complex *y, int n);
 
-/** computes \f$\frac{\|x_0-x\|_2}{\|x\|_2} \f$
- */
-double error_l_infty_c(complex *x0, complex *x, int n);
-
-
-/** vector print
- */
-void vpr(double *x, int n, char *text);
-
-/** vector print
- */
-void vpr_c(complex *x, int n, char *text);
-
-/** vector print
- */
 void vpr_int(int *x, int n, char *text);
 
+void vpr_double(double *x, int n, char *text);
+
+void vpr_complex(complex *x, int n, char *text);
+
+void vrand_unit_complex(complex *x, int n);
+
+void vrand_shifted_unit_double(double *x, int n);
 /** @} 
  */ 
 
