@@ -1,1 +1,1 @@
-SUBDIRS = nfft nnfft mri
+SUBDIRS = nfft nnfft mri nsfft
