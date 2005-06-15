@@ -173,7 +173,7 @@ void infsft_before_loop_help(infsft_plan this_iplan)
   SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
   nfsft_adjoint(this_iplan->direct_plan);
   SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
-  
+ 
   if((!(this_iplan->infsft_flags & LANDWEBER)) ||
      (this_iplan->infsft_flags & NORMS_FOR_LANDWEBER))
   {
@@ -449,11 +449,11 @@ void infsft_loop_one_step_cgnr_e(infsft_plan this_iplan)
   else
     copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
           this_iplan->direct_plan->D);
-  
-  SWAPCT(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat,temp_hat);
+
+  SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
   nfsft_adjoint(this_iplan->direct_plan);
-  SWAPCT(this_iplan->z_hat_iter,this_iplan->direct_plan->f_hat,temp_hat);
-  
+  SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
+
   this_iplan->dot_z_hat_iter_old = this_iplan->dot_z_hat_iter;
   if(this_iplan->infsft_flags & PRECOMPUTE_DAMP)
     this_iplan->dot_z_hat_iter =

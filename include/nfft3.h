@@ -267,6 +267,7 @@ typedef struct nsfft_plan_
   nfft_plan *center_nfft_plan;
 
   fftw_plan* set_fftw_plan1;
+  fftw_plan* set_fftw_plan2;
 
   nfft_plan *set_nfft_plan_1d;
   nfft_plan *set_nfft_plan_2d;          /**< d=3                             */

@@ -1014,7 +1014,8 @@ void vpr_int(int *x, int n, char *text)
 	  if (k%8==7) 
 	      printf("\n");
       }
-      printf("\n");
+      if (n%8!=0)
+        printf("\n");
   }
   else
       for (k=0; k<n; k++)
@@ -1046,7 +1047,8 @@ void vpr_double(double *x, int n, char *text)
 	  if (k%8==7) 
 	      printf("\n");
       }
-      printf("\n");
+      if (n%8!=0)
+        printf("\n");
   }
   else
       for (k=0; k<n; k++)
@@ -1071,7 +1073,8 @@ void vpr_complex(complex *x, int n, char *text)
 	  if (k%4==3) 
 	      printf("\n");
       }
-      printf("\n");
+      if (n%4!=0)
+        printf("\n");
   }
   else
       for (k=0; k<n; k++)

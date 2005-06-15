@@ -29,6 +29,28 @@ void short_nfft_trafo_2d(nfft_plan* ths, nfft_plan* plan_1d)
     }
 }
 
+void short_nfft_adjoint_2d(nfft_plan* ths, nfft_plan* plan_1d)
+{
+  int j,k0;
+  double omega;
+
+  for(j=0;j<ths->M_total;j++)     
+    plan_1d->x[j] = ths->x[ths->d * j + 1];
+
+  for(k0=0;k0<ths->N[0];k0++) /* for shorties */
+    {
+      for(j=0;j<ths->M_total;j++)
+	{
+	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
+          plan_1d->f[j] = ths->f[j] * cexp( + I*2*PI*omega);
+	}
+   
+      plan_1d->f_hat = ths->f_hat + k0*ths->N[1];
+
+      nfft_adjoint(plan_1d);
+    }
+}
+
 /* computes a 3d ndft by 1d nfft along the dimension 2 times
    2d ndft along dimension 0,1
 */
@@ -59,6 +81,30 @@ void short_nfft_trafo_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
       }
 }
 
+void short_nfft_adjoint_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
+{
+  int j,k0,k1;
+  double omega;
+
+  for(j=0;j<ths->M_total;j++)
+    plan_1d->x[j] = ths->x[ths->d * j + 2]; 
+ 
+  for(k0=0;k0<ths->N[0];k0++) /* for shorties */
+    for(k1=0;k1<ths->N[1];k1++) 
+      {
+	for(j=0;j<ths->M_total;j++)
+	  {
+	    omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0]
+	      +     ((double)(k1 - ths->N[1]/2)) * ths->x[ths->d * j + 1];
+            plan_1d->f[j] = ths->f[j] * cexp( + I*2*PI*omega);
+	  }
+
+	plan_1d->f_hat = ths->f_hat + (k0*ths->N[1]+k1)*ths->N[2];
+	
+	nfft_adjoint(plan_1d);
+      }
+}
+
 /* computes a 3d ndft by 2d nfft along the dimension 1,2 times
    1d ndft along dimension 0
 */
@@ -85,6 +131,31 @@ void short_nfft_trafo_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
 	  ths->f[j] += plan_2d->f[j] * cexp( - I*2*PI*omega);
 	}
+    }
+}
+
+void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
+{
+  int j,k0;
+  double omega;
+
+  for(j=0;j<ths->M_total;j++)
+    {
+      plan_2d->x[2*j+0] = ths->x[ths->d * j + 1];
+      plan_2d->x[2*j+1] = ths->x[ths->d * j + 2];
+    }
+
+  for(k0=0;k0<ths->N[0];k0++) /* for shorties */
+    {     
+      for(j=0;j<ths->M_total;j++)
+	{
+	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
+	  plan_2d->f[j] = ths->f[j] * cexp( + I*2*PI*omega);
+	}
+
+      plan_2d->f_hat = ths->f_hat + k0*ths->N[1]*ths->N[2];
+   
+      nfft_adjoint(plan_2d);
     }
 }
 
@@ -775,7 +846,7 @@ void nsdft_adjoint_3d(nsfft_plan *ths)
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[3 * j + 0] + 
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * ths->act_nfft_plan->x[3 * j + 2];
-          ths->f_hat[k_S] += ths->f[j] * cexp( - 2*PI*I*omega);
+          ths->f_hat[k_S] += ths->f[j] * cexp( + 2*PI*I*omega);
 	}
     }
 } /* void nsdft_adjoint_3d */
@@ -903,6 +974,122 @@ void nsfft_trafo_2d(nsfft_plan *ths)
                      cexp( - I*temp*ths->act_nfft_plan->x[2*j+0]);
     } /* for(rr) */
 } /* void nsfft_trafo_2d */
+
+void nsfft_adjoint_2d(nsfft_plan *ths)
+{
+  int r,rr,j;
+  double temp,ctx,cty,stx,sty;
+
+  int M=ths->M_total;
+  int J=ths->J;
+
+  /* center */
+  for (j=0; j<M; j++) 
+    ths->center_nfft_plan->f[j] = ths->f[j];
+
+  ths->center_nfft_plan->f_hat=ths->f_hat+4*((J+1)/2+1)*int_2_pow(J);
+  
+  if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m) 
+    ndft_adjoint(ths->center_nfft_plan);
+  else
+    nfft_adjoint(ths->center_nfft_plan);
+
+  for(rr=0;rr<=(J+1)/2;rr++)
+    {
+      r=MIN(rr,J-rr);
+      ths->act_nfft_plan->my_fftw_plan2 = ths->set_fftw_plan2[r];
+      ths->act_nfft_plan->N[0]=int_2_pow(r); ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
+      ths->act_nfft_plan->N[1]=int_2_pow(J-r); ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
+
+      /*printf("%d x %d\n",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1]);*/
+
+      temp=-3.0*PI*int_2_pow(J-rr);
+
+      /* right */      
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*int_2_pow(J);
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] * 
+                                  cexp( - I*temp*ths->act_nfft_plan->x[2*j+1]);
+
+      if(r<rr)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  ndft_adjoint(ths->act_nfft_plan);
+	else
+	  short_nfft_adjoint_2d(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(r<rr)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      /* top */
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+1)*int_2_pow(J);
+
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( - I*temp*ths->act_nfft_plan->x[2*j+0]);
+      
+      if((r==rr)&&(J-rr!=rr))
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  ndft_adjoint(ths->act_nfft_plan);
+	else
+	  short_nfft_adjoint_2d(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+
+      if((r==rr)&&(J-rr!=rr))
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      /* left */
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+2)*int_2_pow(J);
+
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( + I*temp*ths->act_nfft_plan->x[2*j+1]);
+      
+      if(r<rr)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  ndft_adjoint(ths->act_nfft_plan);
+	else
+	  short_nfft_adjoint_2d(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+
+      if(r<rr)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      /* bottom */
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+3)*int_2_pow(J);
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( + I*temp*ths->act_nfft_plan->x[2*j+0]);
+
+      if((r==rr)&&(J-rr!=rr))
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  ndft_adjoint(ths->act_nfft_plan);
+	else
+	  short_nfft_adjoint_2d(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if((r==rr)&&(J-rr!=rr))
+	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+    } /* for(rr) */
+} /* void nsfft_adjoint_2d */
 
 void nsfft_trafo_3d(nsfft_plan *ths)
 {
@@ -1118,10 +1305,233 @@ void nsfft_trafo_3d(nsfft_plan *ths)
     } /* for(rr) */
 } /* void nsfft_trafo_3d */
 
+void nsfft_adjoint_3d(nsfft_plan *ths)
+{
+  int r,rr,j;
+  double temp,ct0,ct1,ct2,st0,st1,st2;
+  int sum_N_B_less_r,N_B_r,a,b;
+
+  int M=ths->M_total;
+  int J=ths->J;
+
+  /* center */
+  for (j=0; j<M; j++) 
+    ths->center_nfft_plan->f[j] = ths->f[j];
+
+  ths->center_nfft_plan->f_hat=ths->f_hat+6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1);
+  
+  if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m)
+    ndft_adjoint(ths->center_nfft_plan);
+  else
+    nfft_adjoint(ths->center_nfft_plan);
+
+  sum_N_B_less_r=0;
+  for(rr=0;rr<=(J+1)/2;rr++)
+    {
+      a=int_2_pow(J-rr);
+      b=int_2_pow(rr);
+
+      N_B_r=a*b*b;
+
+      r=MIN(rr,J-rr);
+      ths->act_nfft_plan->my_fftw_plan1 = ths->set_fftw_plan1[rr];
+      ths->act_nfft_plan->my_fftw_plan2 = ths->set_fftw_plan2[rr];
+
+      ths->act_nfft_plan->N[0]=int_2_pow(r);
+      if(a<b)
+	ths->act_nfft_plan->N[1]=int_2_pow(J-r);
+      else
+	ths->act_nfft_plan->N[1]=int_2_pow(r);
+      ths->act_nfft_plan->N[2]=int_2_pow(J-r);
+
+      /*printf("\n\n%d x %d x %d:\t",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1],ths->act_nfft_plan->N[2]); fflush(stdout);*/
+
+      ths->act_nfft_plan->N_total=ths->act_nfft_plan->N[0]*ths->act_nfft_plan->N[1]*ths->act_nfft_plan->N[2];
+      ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
+      ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
+      ths->act_nfft_plan->n[2]=ths->sigma*ths->act_nfft_plan->N[2];
+      ths->act_nfft_plan->n_total=ths->act_nfft_plan->n[0]*ths->act_nfft_plan->n[1]*ths->act_nfft_plan->n[2];
+
+      /* only for right - rear - top */
+      if((J==0)||((J==1)&&(rr==1)))
+	temp=-2.0*PI;
+      else
+	temp=-3.0*PI*int_2_pow(J-rr);
+	
+      /* right */      
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*0;
+
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( - I*temp*ths->act_nfft_plan->x[3*j+0]);
+
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+
+      /* rear */      
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*1;
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( - I*temp*ths->act_nfft_plan->x[3*j+1]);
+
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+      
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+
+      /* top */      
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*2;
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( - I*temp*ths->act_nfft_plan->x[3*j+2]);
+
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+      
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+
+      /* only for left - front - bottom */
+      if((J==0)||((J==1)&&(rr==1)))
+	temp=-4.0*PI;
+      else
+	temp=-3.0*PI*int_2_pow(J-rr);
+
+      /* left */
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*3;
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( + I*temp*ths->act_nfft_plan->x[3*j+0]);
+
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+
+      /* front */      
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*4;
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( + I*temp*ths->act_nfft_plan->x[3*j+1]);
+
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+      
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a>b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+
+      /* bottom */      
+      ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*5;
+      
+      for (j=0; j<M; j++)
+        ths->act_nfft_plan->f[j]= ths->f[j] *
+                                  cexp( + I*temp*ths->act_nfft_plan->x[3*j+2]);
+
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+      
+      if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
+	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
+	  if(ths->act_nfft_plan->N[2]<=ths->act_nfft_plan->m)
+	    ndft_adjoint(ths->act_nfft_plan);
+	  else
+	    short_nfft_adjoint_3d_1(ths->act_nfft_plan,&(ths->set_nfft_plan_1d[r]));
+	else
+	  short_nfft_adjoint_3d_2(ths->act_nfft_plan,&(ths->set_nfft_plan_2d[r]));
+      else
+	nfft_adjoint(ths->act_nfft_plan);
+      
+      if(a<b)
+	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+
+      sum_N_B_less_r+=6*N_B_r; 
+    } /* for(rr) */
+} /* void nsfft_adjoint_3d */
+
 void nsfft_trafo(nsfft_plan *ths)
 {
   if(ths->d==2)
     nsfft_trafo_2d(ths);
+  else
+    nsfft_trafo_3d(ths);
+}
+
+void nsfft_adjoint(nsfft_plan *ths)
+{
+  if(ths->d==2)
+    nsfft_adjoint_2d(ths);
   else
     nsfft_trafo_3d(ths);
 }
@@ -1150,6 +1560,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->center_nfft_plan = (nfft_plan*)fftw_malloc(sizeof(nfft_plan));
 
   ths->set_fftw_plan1=(fftw_plan*) fftw_malloc((J/2+1)*sizeof(fftw_plan));
+  ths->set_fftw_plan2=(fftw_plan*) fftw_malloc((J/2+1)*sizeof(fftw_plan));
 
   ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
   
@@ -1164,6 +1575,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
     nfft_precompute_lin_psi(ths->act_nfft_plan);
 
   ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
+  ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
 
   for(r=1;r<=J/2;r++)
     {
@@ -1172,6 +1584,10 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
       ths->set_fftw_plan1[r] = 
 	fftw_plan_dft(2, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		      FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
+
+      ths->set_fftw_plan2[r] = 
+	fftw_plan_dft(2, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
+		      FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
     }
 
   /* planning the 1d nffts */
@@ -1231,6 +1647,7 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->center_nfft_plan = (nfft_plan*)fftw_malloc(sizeof(nfft_plan));
 
   ths->set_fftw_plan1=(fftw_plan*) fftw_malloc(((J+1)/2+1)*sizeof(fftw_plan));
+  ths->set_fftw_plan2=(fftw_plan*) fftw_malloc(((J+1)/2+1)*sizeof(fftw_plan));
 
   ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
   ths->set_nfft_plan_2d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
@@ -1253,8 +1670,12 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->act_nfft_plan->my_fftw_plan1 =
     fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		  FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
+  ths->act_nfft_plan->my_fftw_plan2 =
+    fftw_plan_dft(3, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
+		  FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
 
   ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
+  ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
 
   for(rr=1;rr<=(J+1)/2;rr++)
     {
@@ -1273,6 +1694,9 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
       ths->set_fftw_plan1[rr] =
 	fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		      FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
+      ths->set_fftw_plan2[rr] =
+	fftw_plan_dft(3, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
+		      FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
     }
 
   /* planning the 1d nffts */
@@ -1345,16 +1769,21 @@ void nsfft_finalize_2d(nsfft_plan *ths)
     }
   
   /* finalize the small nffts */
+  ths->act_nfft_plan->my_fftw_plan2=ths->set_fftw_plan2[0];
   ths->act_nfft_plan->my_fftw_plan1=ths->set_fftw_plan1[0];
 
   for(r=1;r<=ths->J/2;r++)
-    fftw_destroy_plan(ths->set_fftw_plan1[r]);
+    {
+      fftw_destroy_plan(ths->set_fftw_plan2[r]);
+      fftw_destroy_plan(ths->set_fftw_plan1[r]);
+    }
 
   /* r=0 */
   nfft_finalize(ths->act_nfft_plan);
 
   fftw_free(ths->set_nfft_plan_1d);
 
+  fftw_free(ths->set_fftw_plan2);
   fftw_free(ths->set_fftw_plan1);
 
   fftw_free(ths->x_transposed);
@@ -1387,10 +1816,14 @@ void nsfft_finalize_3d(nsfft_plan *ths)
     }
   
   /* finalize the small nffts */
+  ths->act_nfft_plan->my_fftw_plan2=ths->set_fftw_plan2[0];
   ths->act_nfft_plan->my_fftw_plan1=ths->set_fftw_plan1[0];
 
   for(r=1;r<=(ths->J+1)/2;r++)
-    fftw_destroy_plan(ths->set_fftw_plan1[r]);
+    {
+      fftw_destroy_plan(ths->set_fftw_plan2[r]);
+      fftw_destroy_plan(ths->set_fftw_plan1[r]);
+    }
 
   /* r=0 */
   nfft_finalize(ths->act_nfft_plan);
@@ -1398,6 +1831,7 @@ void nsfft_finalize_3d(nsfft_plan *ths)
   fftw_free(ths->set_nfft_plan_1d);
   fftw_free(ths->set_nfft_plan_2d);
 
+  fftw_free(ths->set_fftw_plan2);
   fftw_free(ths->set_fftw_plan1);
 
   fftw_free(ths->x_102);

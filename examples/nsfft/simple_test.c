@@ -17,7 +17,7 @@ void simple_test_nsfft(int d, int J, int M)
 
   nsfft_init_random_nodes_coeffs(&my_plan);
 
-  vpr_complex(my_plan.f_hat, 16,"frequencies, vector f_hat, 0,...,16");
+  vpr_complex(my_plan.f_hat, 8,"frequencies, vector f_hat, 0,...,7");
 
   /** direct trafo and show the result */
   nsdft_trafo(&my_plan);
@@ -26,6 +26,14 @@ void simple_test_nsfft(int d, int J, int M)
   /** approx. trafo and show the result */
   nsfft_trafo(&my_plan);
   vpr_complex(my_plan.f,my_plan.M_total,"nsfft, vector f");
+
+  /** direct adjoint and show the result */
+  nsdft_adjoint(&my_plan);
+  vpr_complex(my_plan.f_hat, 8,"adjoint nsdft, vector f_hat, 0,...,7");
+
+  /** approx. adjoint and show the result */
+  nsfft_adjoint(&my_plan);
+  vpr_complex(my_plan.f_hat, 8,"adjoint nsfft, vector f_hat, 0,...,7");
 
   /** finalise the one dimensional plan */
   nsfft_finalize(&my_plan);
@@ -41,7 +49,7 @@ int main()
 
   system("clear");
   printf("1) computing a three dimensional nfft, nsdft, nsfft\n\n");
-  simple_test_nsfft(3,10,8);
+  simple_test_nsfft(3,5,8);
 
   return 1;
 }
