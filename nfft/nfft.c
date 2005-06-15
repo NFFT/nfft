@@ -22,10 +22,10 @@
  *
  * direct computation of the ndft_trafo and ndft_conjugated, formula (1.1)
  * ndft_trafo:
- * for j=0,...,M_total-1                                                             
+ * for j=0,...,M_total-1                                                       
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  * ndft_conjugated:
- * for j=0,...,M_total-1                                                             
+ * for j=0,...,M_total-1                                                       
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
  *
  * direct computation of the ndft_adjoint and ndft_transposed, formula (1.2)
@@ -138,10 +138,10 @@ MACRO_ndft(transposed)
  *
  * fast computation of the nfft_trafo and nfft_conjugated, formula (1.1)
  * nfft_trafo:
- * for j=0,...,M_total-1                                                             
+ * for j=0,...,M_total-1                                                       
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  * nfft_conjugated:
- * for j=0,...,M_total-1                                                             
+ * for j=0,...,M_total-1                                                       
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
  *
  * direct computation of the nfft_adjoint and nfft_transposed, formula (1.2)
@@ -175,6 +175,7 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
   up[0]=u; op[0]=o;
 }
 
+//printf("k_plain=%d, \t ks_plain=%d\n",k_plain[ths->d],ks_plain[ths->d]); fflush(stdout);
 #define MACRO_nfft_D_compute_A {                                              \
  g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];      \
 }
@@ -322,13 +323,13 @@ MACRO_nfft_D(T)
   t++;                                                                        \
 }
 
-#define MACRO_update_with_PRE_PSI_LIN {                                        \
-  for(t2=t; t2<ths->d; t2++)                                                   \
-    {                                                                          \
-      y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])             \
-	  * ((double)ths->K))/(ths->m+1));                                     \
-      y_u[t2] = (int)y[t2];                                                    \
-    } /* for(t2) */                                                            \
+#define MACRO_update_with_PRE_PSI_LIN {                                       \
+  for(t2=t; t2<ths->d; t2++)                                                  \
+    {                                                                         \
+      y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])            \
+	  * ((double)ths->K))/(ths->m+1));                                    \
+      y_u[t2] = (int)y[t2];                                                   \
+    } /* for(t2) */                                                           \
 }
 
 #define MACRO_update_phi_prod_ll_plain(which_one) {                           \
@@ -466,7 +467,7 @@ void nfft_trafo(nfft_plan *ths)
   fftw_execute(ths->my_fftw_plan1);
   T2(2);
 
-  /** set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
+  /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
    *  \text{ for } j=0,\hdots,M_total-1 \f$
    */
   T1;
@@ -495,7 +496,7 @@ void nfft_conjugated(nfft_plan *ths)
   fftw_execute(ths->my_fftw_plan2);
   T2(2);
 
-  /** set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
+  /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
    *  \text{ for } j=0,\hdots,M_total-1 \f$
    */
   T1;
@@ -523,7 +524,7 @@ void nfft_adjoint(nfft_plan *ths)
   T1;
   fftw_execute(ths->my_fftw_plan2);
   T2(2);
-  
+ 
   /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
    *  k \in I_N \f$
    */
@@ -585,9 +586,9 @@ void nfft_precompute_phi_hut(nfft_plan *ths)
  */
 void nfft_precompute_lin_psi(nfft_plan *ths)
 {
-  int t;                                /**< index over all dimensions        */
-  int j;                                /**< index over all nodes             */  
-  double step;                          /**< step size in [0,(m+1)/n]         */
+  int t;                                /**< index over all dimensions       */
+  int j;                                /**< index over all nodes            */
+  double step;                          /**< step size in [0,(m+1)/n]        */
 
   for (t=0; t<ths->d; t++)
     {
@@ -709,7 +710,7 @@ void nfft_init_help(nfft_plan *ths)
   }
 
   if(ths->nfft_flags & FFTW_INIT)
-    {  
+      {  
 	ths->g1=(complex*)fftw_malloc(ths->n_total*sizeof(complex));
 
 	if(ths->nfft_flags & FFT_OUT_OF_PLACE)
@@ -724,7 +725,7 @@ void nfft_init_help(nfft_plan *ths)
 	ths->my_fftw_plan2 = 
 	    fftw_plan_dft(ths->d, ths->n, ths->g2, ths->g1,
 			  FFTW_BACKWARD, ths->fftw_flags);
-    }
+      }
 }
 
 void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
@@ -746,7 +747,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
   WINDOW_HELP_ESTIMATE_m;
 
   ths->nfft_flags = PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-    FFTW_INIT| FFT_OUT_OF_PLACE;
+                    FFTW_INIT| FFT_OUT_OF_PLACE;
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
   nfft_init_help(ths);    
@@ -755,7 +756,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M_total, int *n,
 			int m, unsigned nfft_flags, unsigned fftw_flags)
 {
-  int t;                                /**< index over all dimensions        */
+  int t;                                /**< index over all dimensions       */
 
   ths->d =d;
   ths->N= (int*) fftw_malloc(ths->d*sizeof(int));
