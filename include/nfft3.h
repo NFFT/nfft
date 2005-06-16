@@ -278,10 +278,10 @@ typedef struct nsfft_plan_
 } nsfft_plan;
 
 void nsdft_trafo(nsfft_plan *ths);
-void nsdft_adjoint(nsfft_plan *ths); /*TODO!--------------------------------------------------------*/
+void nsdft_adjoint(nsfft_plan *ths);
 
 void nsfft_trafo(nsfft_plan *ths);
-void nsfft_adjoint(nsfft_plan *ths); /*TODO!--------------------------------------------------------*/
+void nsfft_adjoint(nsfft_plan *ths);
 
 /** Copy coefficients and knots from ths to ths_nfft */
 void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_nfft);

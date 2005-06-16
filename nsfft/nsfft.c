@@ -786,7 +786,7 @@ void nsdft_trafo_3d(nsfft_plan *ths)
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[3 * j + 0] + 
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * ths->act_nfft_plan->x[3 * j + 2];
-          ths->f[j] += ths->f_hat[k_S] * cexp( - 2*PI*I*omega);
+          ths->f[j] += ths->f_hat[k_S] * cexp( - I*2*PI*omega);
 	}
     }
 } /* void nsdft_trafo_3d */
@@ -846,7 +846,7 @@ void nsdft_adjoint_3d(nsfft_plan *ths)
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[3 * j + 0] + 
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * ths->act_nfft_plan->x[3 * j + 2];
-          ths->f_hat[k_S] += ths->f[j] * cexp( + 2*PI*I*omega);
+          ths->f_hat[k_S] += ths->f[j] * cexp( + I*2*PI*omega);
 	}
     }
 } /* void nsdft_adjoint_3d */
@@ -1533,7 +1533,7 @@ void nsfft_adjoint(nsfft_plan *ths)
   if(ths->d==2)
     nsfft_adjoint_2d(ths);
   else
-    nsfft_trafo_3d(ths);
+    nsfft_adjoint_3d(ths);
 }
 
 
