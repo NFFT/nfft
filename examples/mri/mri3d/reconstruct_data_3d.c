@@ -18,15 +18,15 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   double epsilon=0.0000003;     /* tmp to read the obsolent z from 700.acs
                                    epsilon is a the break criterion for
                                    the iteration */
-  unsigned infft_flags = CGNR_E; /* flags for the infft */
+  unsigned infft_flags = CGNR; /* flags for the infft */
                                    
   /* initialise my_plan, specific. 
      we don't precompute psi */
   my_N[0]=Z; my_n[0]=next_power_of_2(Z); 
   my_N[1]=N; my_n[1]=next_power_of_2(N);
   my_N[2]=N; my_n[2]=next_power_of_2(N);
-  nfft_init_specific(&my_plan, 3, my_N, M*Z, my_n, 6,
-                      PRE_PHI_HUT| PRE_LIN_PSI |MALLOC_X| MALLOC_F_HAT|
+  nfft_init_guru(&my_plan, 3, my_N, M*Z, my_n, 6,
+                      PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
  
@@ -38,12 +38,12 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
   
-  /* initialise my_iplan, specific */
-  infft_init_specific(&my_iplan,&my_plan, infft_flags );
+  /* initialise my_iplan, advanced */
+  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
  
   /* get the weights */
-  fin=fopen("weights.dat","r");
-  if(my_iplan.infft_flags & PRECOMPUTE_WEIGHT)
+  if(my_iplan.flags & PRECOMPUTE_WEIGHT) {
+    fin=fopen("weights.dat","r");
     for(k=0;k<Z;k++) {
       for(j=0;j<M;j++) {
         fscanf(fin,"%le ",&my_iplan.w[j+k*M]);
@@ -51,7 +51,8 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
       fclose(fin);
       fin=fopen("weights.dat","r");
     }
-  fclose(fin);
+    fclose(fin);
+  }
 
   /* open the input file */
   fin=fopen(filename,"r");
@@ -65,7 +66,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   {
     fscanf(fin,"%le %le %le %le %le ",&my_plan.x[3*j+1],&my_plan.x[3*j+2], &my_plan.x[3*j+0],
     &real,&imag);
-    my_iplan.given_f[j] = real + I*imag;
+    my_iplan.y[j] = real + I*imag;
   }
 
   /* precompute psi */
@@ -77,7 +78,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
     nfft_precompute_full_psi(&my_plan);
 
   /* init some guess */
-  for(k=0;k<my_plan.N_L;k++)
+  for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
   
   /* inverse trafo */
@@ -95,8 +96,8 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   for(l=0;l<Z;l++) {
     for(k=0;k<N*N;k++) {
       /* write every Layer in the files */
-      fprintf(fout_real,"%le ",my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ][0]);
-      fprintf(fout_imag,"%le ",my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ][1]);
+      fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
+      fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
     }  
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");

@@ -17,7 +17,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   int my_N[2],my_n[2];          /* to init the nfft */
   double epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */
-  unsigned infft_flags = CGNR_E; /* flags for the infft*/
+  unsigned infft_flags = CGNR;  /* flags for the infft*/
                                     
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=next_power_of_2(N);
@@ -35,14 +35,14 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
-  /* initialise my_iplan, specific */  
-  infft_init_specific(&my_iplan,&my_plan, infft_flags );
+  /* initialise my_iplan, advanced */
+  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
 
   /* get the weights */
-  if(my_iplan.infft_flags & PRECOMPUTE_WEIGHT)
+  if(my_iplan.flags & PRECOMPUTE_WEIGHT)
   {
     fin=fopen("weights.dat","r");
-    for(j=0;j<my_plan.M;j++) 
+    for(j=0;j<my_plan.M_total;j++) 
     {
         fscanf(fin,"%le ",&my_iplan.w[j]);
     }
@@ -53,11 +53,11 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fin=fopen(filename,"r"); 
 
   /* read x,y,freal and fimag from the nodes */
-  for(j=0;j<my_plan.M;j++)
+  for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fin,"%le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1],
     &real,&imag);
-    my_iplan.given_f[j] = real + I*imag;
+    my_iplan.y[j] = real + I*imag;
   }
   
   /* precompute psi */
@@ -69,7 +69,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
       nfft_precompute_full_psi(&my_plan);
 
   /* init some guess */
-  for(k=0;k<my_plan.N_L;k++)
+  for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
     
   /* inverse trafo */
@@ -78,7 +78,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   {
     /* break if dot_r_iter is smaller than epsilon*/
     if(my_iplan.dot_r_iter<epsilon)
-    break;
+      break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
     l+1,iteration);
     infft_loop_one_step(&my_iplan);
@@ -86,7 +86,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 
-  for(k=0;k<my_plan.N_L;k++) {
+  for(k=0;k<my_plan.N_total;k++) {
     fprintf(fout_real,"%le ", creal(my_iplan.f_hat_iter[k]));
     fprintf(fout_imag,"%le ", cimag(my_iplan.f_hat_iter[k]));
   }

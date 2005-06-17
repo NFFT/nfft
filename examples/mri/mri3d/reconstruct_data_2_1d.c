@@ -16,7 +16,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   double tmp, epsilon=0.0000003;/* tmp to read the obsolent z from the input file
                                    epsilon is the break criterium for
                                    the iteration */
-  unsigned infft_flags = CGNR_E; /* flags for the infft */
+  unsigned infft_flags = CGNR; /* flags for the infft */
                                    
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=next_power_of_2(N);
@@ -34,14 +34,14 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
   
-  /* initialise my_iplan, specific */  
-  infft_init_specific(&my_iplan,&my_plan, infft_flags );
+  /* initialise my_iplan, advanced */
+  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
 
   /* get the weights */
-  if(my_iplan.infft_flags & PRECOMPUTE_WEIGHT)
+  if(my_iplan.flags & PRECOMPUTE_WEIGHT)
   {
     fin=fopen("weights.dat","r");
-    for(j=0;j<my_plan.M;j++) 
+    for(j=0;j<my_plan.M_total;j++) 
     {
         fscanf(fin,"%le ",&my_iplan.w[j]);
     }
@@ -55,11 +55,11 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   for(z=0;z<Z;z++) {
 
     /* read x,y,freal and fimag from the nodes */
-    for(j=0;j<my_plan.M;j++)
+    for(j=0;j<my_plan.M_total;j++)
     {
       fscanf(fin,"%le %le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1], &tmp,
       &real,&imag);
-      my_iplan.given_f[j] = real + I*imag;
+      my_iplan.y[j] = real + I*imag;
     }
     
     /* precompute psi if set just one time because the nodes equal each plane */
@@ -71,7 +71,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
       nfft_precompute_full_psi(&my_plan);
 
     /* init some guess */
-    for(k=0;k<my_plan.N_L;k++)
+    for(k=0;k<my_plan.N_total;k++)
       my_iplan.f_hat_iter[k]=0.0;
  
     /* inverse trafo */
@@ -85,12 +85,10 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
       iteration*z+l+1,iteration*Z);
       infft_loop_one_step(&my_iplan);
     }
-    for(k=0;k<my_plan.N_L;k++) {
+    for(k=0;k<my_plan.N_total;k++) {
       /* write every slice in the memory.
       here we make an fftshift direct */
-      mem[(Z*N*N/2+z*N*N+ k)%(Z*N*N)][0] = my_iplan.f_hat_iter[k][0];
-      mem[(Z*N*N/2+z*N*N+ k)%(Z*N*N)][1] = my_iplan.f_hat_iter[k][1];
-
+      mem[(Z*N*N/2+z*N*N+ k)%(Z*N*N)] = my_iplan.f_hat_iter[k];
     }
   }
   /* finalize the infft */
@@ -114,8 +112,8 @@ void print(int N,int M,int Z, fftw_complex *mem)
 
   for(i=0;i<Z;i++) {
     for (j=0;j<N*N;j++) {
-      fprintf(fout_real,"%le ",mem[i*N*N+j][0] /Z);
-      fprintf(fout_imag,"%le ",mem[i*N*N+j][1] /Z);
+      fprintf(fout_real,"%le ",creal(mem[i*N*N+j]) /Z);
+      fprintf(fout_imag,"%le ",cimag(mem[i*N*N+j]) /Z);
     }
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");
