@@ -41,5 +41,6 @@ AC_OUTPUT(Makefile \
           examples/mri/Makefile \
           examples/mri/mri2d/Makefile \
           examples/mri/mri3d/Makefile \
+          examples/exp/Makefile \
           examples/nsfft/Makefile \
 )

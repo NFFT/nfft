@@ -1,1 +1,1 @@
-SUBDIRS = nfft nnfft mri nsfft
+SUBDIRS = nfft nnfft mri nsfft exp
