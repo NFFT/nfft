@@ -28,12 +28,12 @@ precompute_weights('output_phantom_nfft.dat',M);
 % The usage is "./reconstruct_data_2_1d filename N M Z ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-system(['./reconstruct_data_2_1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
+%system(['./reconstruct_data_2_1d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
 
 % Visualize the three dimensional phantom. Makes a pic of
 % every slice and one plot of the N/2 row of the 10th plane.
-visualize_data('pics_2+1d/pic', N,Z);
+%visualize_data('pics_2+1d/pic', N,Z);
 
 % Compute the signal to noise ratio 
 %snr('pics_2+1d/snr.txt');
@@ -61,4 +61,4 @@ snr('pics_3d/snr.txt');
 !rm input_f.dat
 !rm output_phantom_nfft.dat
 !rm output_imag.dat
-!rm output_real.dat
+%!rm output_real.dat

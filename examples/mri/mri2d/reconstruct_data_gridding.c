@@ -20,8 +20,8 @@ void nfft (char* filename, int N, int M, int weight)
                       FFTW_MEASURE| FFTW_DESTROY_INPUT;
 
   /* initialise nfft */ 
-  my_N[0]=N; my_n[0]=next_power_of_2(N);
-  my_N[1]=N; my_n[1]=next_power_of_2(N);
+  my_N[0]=N; my_n[0]=2*next_power_of_2(N);
+  my_N[1]=N; my_n[1]=2*next_power_of_2(N);
   nfft_init_guru(&my_plan, 2, my_N, M, my_n, 6,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 

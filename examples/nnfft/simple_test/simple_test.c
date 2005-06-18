@@ -161,7 +161,7 @@ void simple_test_innfft_1d()
 
   /** solve the system */
   innfft_before_loop(&my_iplan);
-  for(l=0;l<32;l++)
+  for(l=0;l<64;l++)
   {
     printf("iteration l=%d\n",l);
     innfft_loop_one_step(&my_iplan);

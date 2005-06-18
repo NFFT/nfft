@@ -22,18 +22,17 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
                                    
   /* initialise my_plan, specific. 
      we don't precompute psi */
-  my_N[0]=Z; my_n[0]=next_power_of_2(Z); 
-  my_N[1]=N; my_n[1]=next_power_of_2(N);
-  my_N[2]=N; my_n[2]=next_power_of_2(N);
+  my_N[0]=Z; my_n[0]=2*next_power_of_2(Z); 
+  my_N[1]=N; my_n[1]=2*next_power_of_2(N);
+  my_N[2]=N; my_n[2]=2*next_power_of_2(N);
   nfft_init_guru(&my_plan, 3, my_N, M*Z, my_n, 6,
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
  
   /* precompute lin psi */
-  if(my_plan.nfft_flags & PRE_LIN_PSI) {
+  if(my_plan.nfft_flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&my_plan);
-  }
                     
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
@@ -42,10 +41,13 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   infft_init_advanced(&my_iplan,&my_plan, infft_flags );
  
   /* get the weights */
-  if(my_iplan.flags & PRECOMPUTE_WEIGHT) {
+  if(my_iplan.flags & PRECOMPUTE_WEIGHT)
+  {
     fin=fopen("weights.dat","r");
-    for(k=0;k<Z;k++) {
-      for(j=0;j<M;j++) {
+    for(k=0;k<Z;k++)
+    {
+      for(j=0;j<M;j++)
+      {
         fscanf(fin,"%le ",&my_iplan.w[j+k*M]);
       }
       fclose(fin);
@@ -93,8 +95,10 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
     infft_loop_one_step(&my_iplan);
   }
   
-  for(l=0;l<Z;l++) {
-    for(k=0;k<N*N;k++) {
+  for(l=0;l<Z;l++)
+  {
+    for(k=0;k<N*N;k++)
+    {
       /* write every Layer in the files */
       fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
       fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
