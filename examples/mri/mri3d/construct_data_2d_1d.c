@@ -6,29 +6,29 @@
  */
 void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
 {
-  int j,l;                /* some variables */
+  int j,z;                /* some variables */
   double tmp;             /* a placeholder */
   nfft_plan my_plan;      /* plan for the two dimensional nfft  */
   FILE* fp;
     
   /* initialise my_plan */
-  nfft_init_2d(&my_plan,N,N,M);
+  nfft_init_2d(&my_plan,N,N,M/Z);
 
   fp=fopen("nodes.dat","r");
   
   for(j=0;j<my_plan.M_total;j++)
   {
-    fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
+    fscanf(fp,"%le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],tmp);
   }
   fclose(fp);
 
   fp=fopen(file,"w");
 
-  for(l=0;l<Z;l++) {
-    tmp = (double) l;
+  for(z=0;z<Z;z++) {
+    tmp = (double) z;
   
     for(j=0;j<N*N;j++)
-      my_plan.f_hat[j] = mem[(l*N*N+N*N*Z/2+j)%(N*N*Z)];
+      my_plan.f_hat[j] = mem[(z*N*N+N*N*Z/2+j)%(N*N*Z)];
     
     if(my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
@@ -70,14 +70,19 @@ void fft(int N,int M,int Z, fftw_complex *mem)
  */
 void read(int N,int M,int Z, fftw_complex *mem)
 {
-  int i;
+  int i,z;
+  double real;
   FILE* fin;
   fin=fopen("input_f.dat","r");
 
-
-  for(i=0;i<Z*N*N;i++)
-    fscanf(fin,"%le ",&mem[i] );
-
+  for(z=0;z<Z;z++)
+  {
+    for(i=0;i<N*N;i++)
+    {
+      fscanf(fin,"%le ",&real );
+      mem[(z*N*N+N*N*Z/2+i)%(N*N*Z)]=real;
+    }
+  }
   fclose(fin);
 }
 

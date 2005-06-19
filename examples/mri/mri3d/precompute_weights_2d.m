@@ -1,9 +1,9 @@
-function [] = precompute_weights ( file, M )
+function [] = precompute_weights_2d ( file,M,Z )
 
 input=load(file);
 
-kx = input(1:M,1);
-ky = input(1:M,2);
+kx = input(1:M/Z,1);
+ky = input(1:M/Z,2);
 
 kxy=[kx ky];
 
@@ -44,6 +44,13 @@ end
 % norm the weights
 area = area / sum_area;
 
-save weights.dat -ascii area
+
+% stack the weights for every slice
+out=[];
+for z=0:Z-1,
+  out=[out area];
+end
+
+save weights.dat -ascii out
 
 

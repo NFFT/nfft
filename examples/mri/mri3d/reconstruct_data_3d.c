@@ -25,7 +25,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   my_N[0]=Z; my_n[0]=2*next_power_of_2(Z); 
   my_N[1]=N; my_n[1]=2*next_power_of_2(N);
   my_N[2]=N; my_n[2]=2*next_power_of_2(N);
-  nfft_init_guru(&my_plan, 3, my_N, M*Z, my_n, 6,
+  nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -44,14 +44,9 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
   {
     fin=fopen("weights.dat","r");
-    for(k=0;k<Z;k++)
+    for(j=0;j<M;j++)
     {
-      for(j=0;j<M;j++)
-      {
-        fscanf(fin,"%le ",&my_iplan.w[j+k*M]);
-      }
-      fclose(fin);
-      fin=fopen("weights.dat","r");
+      fscanf(fin,"%le ",&my_iplan.w[j]);
     }
     fclose(fin);
   }
@@ -64,7 +59,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   fout_imag=fopen("output_imag.dat","w");
 
   /* read x,y,freal and fimag from the nodes */
-  for(j=0;j<M*Z;j++)
+  for(j=0;j<M;j++)
   {
     fscanf(fin,"%le %le %le %le %le ",&my_plan.x[3*j+1],&my_plan.x[3*j+2], &my_plan.x[3*j+0],
     &real,&imag);
@@ -91,7 +86,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
     if(my_iplan.dot_r_iter<epsilon)
       break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
-    l,iteration+1);
+    l+1,Z);
     infft_loop_one_step(&my_iplan);
   }
   
@@ -100,8 +95,8 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
     for(k=0;k<N*N;k++)
     {
       /* write every Layer in the files */
-      fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
-      fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[(k +N*N*Z/2+(N*N*l))%(N*N*Z) ]));
+      fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[ k+N*N*l ]));
+      fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[ k+N*N*l ]));
     }  
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");

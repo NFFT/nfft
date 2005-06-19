@@ -18,7 +18,7 @@ void nfft (char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=2*next_power_of_2(N);
   my_N[1]=N; my_n[1]=2*next_power_of_2(N);  
-  nfft_init_guru(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI|
+  nfft_init_guru(&my_plan, 2, my_N, M/Z, my_n, 6, PRE_PHI_HUT| PRE_PSI|
                         MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                         FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
                         FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -78,8 +78,8 @@ void print(int N,int M,int Z, fftw_complex *mem)
 
   for(i=0;i<Z;i++) {
     for (j=0;j<N*N;j++) {
-      fprintf(fout_real,"%le ",creal(mem[i*N*N+j] /Z));
-      fprintf(fout_imag,"%le ",cimag(mem[i*N*N+j] /Z));
+      fprintf(fout_real,"%le ",creal(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /Z);
+      fprintf(fout_imag,"%le ",cimag(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /Z);
     }
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
   fftw_execute(plan);
   
   /* write the memory back in files */
-  print(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
+  print(N,M,Z, mem);
 
   /* free memory */
   fftw_free(mem);
