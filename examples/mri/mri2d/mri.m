@@ -51,10 +51,10 @@ visualize_data('pics/pic_2d', N);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-!rm nodes.dat
-!rm weights.dat
-!rm input_f.dat
-!rm output_phantom_nfft.dat
-!rm output_imag.dat
-!rm output_real.dat
+%!rm nodes.dat
+%!rm weights.dat
+%!rm input_f.dat
+%!rm output_phantom_nfft.dat
+%!rm output_imag.dat
+%!rm output_real.dat
 
