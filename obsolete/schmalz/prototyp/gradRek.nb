@@ -1,0 +1,577 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     15265,        437]*)
+(*NotebookOutlinePosition[     15963,        461]*)
+(*  CellTagsIndexPosition[     15919,        457]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(Off[General::spell]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Clear["\<Global`*\>"]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\($MaxPrecision\  = \ Infinity;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\($MaxExtraPrecision\  = \ 50;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(PosPart[k_]\  := \ k*\((Sign[k]\  + \ 1)\)\ /\ 2;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(NegPart[k_]\  := \ k*\((Sign[k] - 1)\)\ /\ 2;\)\)], "Input",
+  InitializationCell->True],
+
+Cell["Legendre Polynome:", "Text"],
+
+Cell[BoxData[
+    \(P[k_, \ x_]\  := \ LegendreP[k, \ x]\)], "Input",
+  InitializationCell->True],
+
+Cell["\<\
+Pref[k_, x_] := (1/(2^k*k!))*((Derivative[k][(#1^2 - 1)^k & \
+])[x])\
+\>", "Input"],
+
+Cell[BoxData[
+    \(\(\(Table[
+      FullSimplify[P[k, \ x]\  - \ Pref[k, \ x]], \ {k, \ 0, \ 
+        50}]\)\(\[IndentingNewLine]\)
+    \)\)], "Input"],
+
+Cell["assoziierte Legendre Polynome:", "Text"],
+
+Cell[BoxData[
+    \(P[k_, \ n_, \ 
+        x_]\  := \ \((\(-1\))\)^
+          n\ *\((\(\((k - n)\)!\)/\(\((k + n)\)!\))\)^\((1/2)\)\ *\ 
+        LegendreP[k, \ n, \ x]\)], "Input",
+  InitializationCell->True],
+
+Cell["\<\
+Pref2[k_, n_, x_] := ((k - n)!/(k + n)!)^(1/2)*(1 - x^2)^(n/2)*
+   Derivative[n][P[k, #1] & ][x]\
+\>", "Input"],
+
+Cell[BoxData[
+    \(Table[
+      FullSimplify[Pref2[k, \ n, \ x]\ /\ P[k, \ n, \ x], \ x <= 1], \ {k, \ 
+        0, \ 10}, \ {n, \ 0, \ k}]\)], "Input"],
+
+Cell["spherical Harmonics:", "Text"],
+
+Cell["\<\
+Yref[k_, n_, \[Theta]_, \[CapitalPhi]_] := P[k, Abs[n], \
+Cos[\[Theta]]] * \[ExponentialE]^(\[ImaginaryI] n \[CapitalPhi])\
+\>", "Input"],
+
+Cell[BoxData[
+    \(Y[k_, \ 
+        n_, \ \[Theta]_, \ \[CapitalPhi]_]\  := \ \((\(-1\))\)^\((PosPart[
+              n]\ )\)*\ \(\@\(\(4  \[Pi]\)\/\(2  k + 1\)\)\) 
+        SphericalHarmonicY[k, \ n, \ \[Theta], \ \[CapitalPhi]]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Table[
+      FullSimplify[
+        Yref[k, \ n, \ \[Theta], \ \[CapitalPhi]]\ /\ 
+          Y[k, \ n, \ \[Theta], \ \[CapitalPhi]], \ 
+        0\  <= \ \[Theta]\  && \ \[Theta]\  <= \ \[Pi]], \ {k, \ 0, \ 
+        10}, \ {n, \ \(-k\), \ k}]\)], "Input"],
+
+Cell["Eingabe:", "Text",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(N1\  := \ 10\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Nu\  := \ 500\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(initPrec\  := \ 20\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(range\  := \ {\(-10\) - 10  \[ImaginaryI], \ 
+        10 + 10  \[ImaginaryI]}\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(\[Omega]2\  = \ 
+        Table[Random[Complex, \ range, \ initPrec], \ {l, \ 0, \ 
+            Nu}, \ {m, \ \(-l\), \ l}, \ {n, \ \(-l\), \ l}];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(\[Omega]2\  = \ 
+        Table[Random[Complex, \ range, \ initPrec], \ {l, \ 0, \ Nu}, \ {m, \ 
+            1}, \ {n, \ \(-l\), \ l}];\)\)], "Input",
+  InitializationCell->True],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+    \(\(\[Theta]2\  = \ 
+        Table[ArcCos[Random[Real, \ {0.9, \ 1}, \ initPrec]], \ {i, \ 
+            N1}];\)\), "\[IndentingNewLine]", 
+    \(\(\[Theta]2\  = \ Join[{}, \ \[Theta]2];\)\)}], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \({0.1651434520631150831080054121`18.43969611372675, 
+      0.42251807476444124604771270657415941937`19.278667923884324, 
+      0.36003103305658178741937419364923458638`19.13203371914171, 
+      0.42778291689997950229177793089188071143`19.290131451858052, 
+      0.40510425686750620106236605669466036676`19.239844824178448, 
+      0.1758488561485032776256930247`18.49478821530645, 
+      0.3744351405222610251901320571243604011`19.167740794605216, 
+      0.44080730844869021249321989307262848468`19.31797647236751, 
+      0.29291458852868363920832542838094714863`18.94615749570344, 
+      0.28414834437765154014819614842057720078`18.919003940801197}\)], \
+"Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(\[CapitalPhi]2\  = \ 
+        Table[Random[Real, \ {0, \ 2*\[Pi]}, \ initPrec], \ {i, \ 
+            N1}];\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(setExact\  := \ \((\[IndentingNewLine]$MaxExtraPrecision\  = \ 
+          200; \[IndentingNewLine]$MaxPrecision\  = \ 
+          Infinity; \[IndentingNewLine]\[Omega]\  = \ 
+          Rationalize[\[Omega]2, \ 0]; \[IndentingNewLine]\[Theta]\  = \ 
+          Rationalize[\[Theta]2, \ 0]; \[IndentingNewLine]\[CapitalPhi]\  = \ 
+          Rationalize[\[CapitalPhi]2, \ 0];\[IndentingNewLine])\)\)], "Input",\
+
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(setApprox[
+        prec_]\  := \ \((\[IndentingNewLine]$MaxExtraPrecision\  = \ 
+          0; \[IndentingNewLine]$MaxPrecision\ \  = \ 
+          prec; \[IndentingNewLine]\[Omega]\  = \ 
+          SetPrecision[\[Omega]2, \ prec]; \[IndentingNewLine]\[Theta]\  = \ 
+          SetPrecision[\[Theta]2, \ 
+            prec]; \[IndentingNewLine]\[CapitalPhi]\  = \ 
+          SetPrecision[\[CapitalPhi]2, \ 
+            prec];\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(setMachine\  := \((\[IndentingNewLine]\[Omega]\  = \ 
+          N[\[Omega]2]; \[IndentingNewLine]\[Theta]\  = \ 
+          N[\[Theta]2]; \[IndentingNewLine]\[CapitalPhi]\  = \ 
+          N[\[CapitalPhi]2];\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell["Direkt:", "Text"],
+
+Cell[BoxData[
+    \(algRef\  := \ \((\[IndentingNewLine]Table[\[Sum]\+\(n = \(-l\)\)\%l \
+\[Omega][\([l + 1, \ m + l + 1, \ n + l + 1]\)] 
+              Conjugate[
+                Y[l, \ n, \ \[Theta][\([i]\)], \ \[CapitalPhi][\([i]\)]]], \ \
+{l, \ 0, \ Nu}, \ {m, \ \(-l\), \ l}, \ {i, \ 
+            N1}]\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(algRefSimple\  := \ \((\[IndentingNewLine]Table[\[Sum]\+\(n = \(-Nu\)\)\
+\%Nu \[Omega][\([Nu + 1, \ 1, \ n + Nu + 1]\)] 
+              Conjugate[
+                Y[Nu, \ 
+                  n, \ \[Theta][\([i]\)], \ \[CapitalPhi][\([i]\)]]], \ {i, \ 
+            N1}]\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell["Version 1 (naiv):", "Text"],
+
+Cell[BoxData[
+    \(\(z[l_, \ m_, \ 0, \ 
+          i_]\  := \ \[Omega][\([l + 1, \ m + l + 1, \ 
+            l + 1]\)];\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(z[l_, \ m_, \ n_, \ 
+          i_]\  := \ \[Omega][\([l + 1, \ m + l + 1, \ 
+                n + l + 
+                  1]\)]\ *\ \[ExponentialE]^\((\(-\[ImaginaryI]\)\ n\ \
+\[CapitalPhi][\([i]\)])\)\  + \ \[Omega][\([l + 1, \ 
+                m + l + 1, \ \(-n\) + l + 
+                  1]\)]*\[ExponentialE]^\((\[ImaginaryI]\ n\ \
+\[CapitalPhi][\([i]\)])\);\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(v[k_, \ 
+          n_]\  := \ \(2  k + 1\)\/\@\(\((k - n + 1)\) \((k + n + \
+1)\)\);\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(w[k_, \ 
+          n_]\  := \ \@\(\((k - n)\) \((k + n)\)\)\/\@\(\((k - n + 1)\) \((k \
++ n + 1)\)\);\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(algNaiv\  := \ \((\[IndentingNewLine]res\  = \ 
+          Table[0, \ {l, \ 0, \ Nu}, \ {m, \ \(-l\), \ l}, \ {i, \ 
+              N1}]; \[IndentingNewLine]\[IndentingNewLine]costheta\  = \ 
+          Table[Cos[\[Theta][\([i]\)]], \ {i, \ 
+              N1}]; \[IndentingNewLine]sintheta\  = \ 
+          Table[Sin[\[Theta][\([i]\)]], \ {i, \ 
+              N1}]; \[IndentingNewLine]\[IndentingNewLine]For[i\  = \ 1, \ 
+          i\  \[LessEqual] \ N1, \ \(i++\), \[IndentingNewLine]pdiag\  = \ 
+            1; \[IndentingNewLine]For[n\  = \ 0, \ 
+            n\  \[LessEqual] \ Nu, \ \(n++\), \[IndentingNewLine]palt2\  = \ 
+              0; \[IndentingNewLine]palt1\  = \ 
+              pdiag; \[IndentingNewLine]pdiag\  *= \ \(\@\(\(2  n + 
+                          1\)\/\(2  n + 2\)\)\) 
+                sintheta[\([i]\)]; \[IndentingNewLine]For[m\  = \ \(-n\), \ 
+              m\  \[LessEqual] \ 
+                n, \ \(m++\), \[IndentingNewLine]\(res[\([n + 1, \ 
+                      m + n + 1, \ i]\)]\  += \ 
+                  z[n, \ m, \ n, \ i]\ *\ 
+                    palt1;\)\[IndentingNewLine]]; \[IndentingNewLine]For[
+              l\  = \ n + 1, \ 
+              l\  \[LessEqual] \ Nu, \ \(l++\), \[IndentingNewLine]p\  = \ 
+                v[l - 1, \ n]*costheta[\([i]\)]*palt1\  - \ 
+                  w[l - 1, \ n]*palt2; \[IndentingNewLine]palt2\  = \ 
+                palt1; \[IndentingNewLine]palt1\  = \ 
+                p; \[IndentingNewLine]For[m\  = \ \(-l\), \ 
+                m\  \[LessEqual] \ 
+                  l, \ \(m++\), \[IndentingNewLine]\(res[\([l + 1, \ 
+                        m + l + 1, \ i]\)]\  += \ 
+                    z[l, \ m, \ n, \ i]\ *\ 
+                      p;\)\[IndentingNewLine]];\[IndentingNewLine]];\
+\[IndentingNewLine]];\[IndentingNewLine]]; \[IndentingNewLine]Clear[l, \ m, \ 
+          n, \ i]; \[IndentingNewLine]res\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(algNaivSimple\  := \ \((\[IndentingNewLine]res\  = \ 
+          Table[0, \ {i, \ 
+              N1}]; \[IndentingNewLine]\[IndentingNewLine]costheta\  = \ 
+          Table[Cos[\[Theta][\([i]\)]], \ {i, \ 
+              N1}]; \[IndentingNewLine]sintheta\  = \ 
+          Table[Sin[\[Theta][\([i]\)]], \ {i, \ 
+              N1}]; \[IndentingNewLine]\[IndentingNewLine]For[i\  = \ 1, \ 
+          i\  \[LessEqual] \ N1, \ \(i++\), \[IndentingNewLine]pdiag\  = \ 
+            1; \[IndentingNewLine]For[n\  = \ 0, \ 
+            n\  \[LessEqual] \ Nu, \ \(n++\), \[IndentingNewLine]palt2\  = \ 
+              0; \[IndentingNewLine]palt1\  = \ 
+              pdiag; \[IndentingNewLine]p\  = \ 
+              pdiag; \[IndentingNewLine]pdiag\  *= \ \(\@\(\(2  n + 
+                          1\)\/\(2  n + 2\)\)\) 
+                sintheta[\([i]\)]; \[IndentingNewLine]For[l\  = \ n + 1, \ 
+              l\  \[LessEqual] \ Nu, \ \(l++\), \[IndentingNewLine]p\  = \ 
+                v[l - 1, \ n]*costheta[\([i]\)]*palt1\  - \ 
+                  w[l - 1, \ n]*palt2; \[IndentingNewLine]palt2\  = \ 
+                palt1; \[IndentingNewLine]palt1\  = \ 
+                p;\[IndentingNewLine]]; \[IndentingNewLine]res[\([i]\)]\  \
++= \ z[Nu, \ \(-Nu\), \ n, \ i]*
+                p;\[IndentingNewLine]];\[IndentingNewLine]]; \
+\[IndentingNewLine]Clear[l, \ m, \ n, \ 
+          i]; \[IndentingNewLine]res\[IndentingNewLine])\)\)], "Input",
+  InitializationCell->True],
+
+Cell["Vergleich von Ergebnissen:", "Text"],
+
+Cell[BoxData[
+    \(compareAbs[res1_, \ res2_]\  := \ Abs[res1 - res2]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(compareRel[res1_, \ res2_]\  := \ Abs[res1 - res2]/Abs[res2]\)], "Input",\
+
+  InitializationCell->True],
+
+Cell["Korrektheit:", "Text"],
+
+Cell["Algorithmus allgemein", "Text"],
+
+Cell[BoxData[
+    \(\(setApprox[50];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(ref\  = \ algRef;\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(naiv\  = \ algNaiv;\)\)], "Input"],
+
+Cell[BoxData[
+    \({Max[compareAbs[ref, \ naiv]], \ Precision[ref], \ 
+      Precision[naiv]}\)], "Input"],
+
+Cell["vereinfachter Algorithmus", "Text"],
+
+Cell[BoxData[
+    \(\(setApprox[50];\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(refSimple\  = \ algRefSimple;\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(naivSimple\  = \ algNaivSimple;\)\)], "Input"],
+
+Cell[BoxData[
+    \({Max[compareAbs[refSimple, \ naivSimple]], \ Precision[refSimple], \ 
+      Precision[naivSimple]}\)], "Input"],
+
+Cell["Stabilit\[ADoubleDot]t: (systematisch)", "Text"],
+
+Cell[BoxData[{
+    \(\(incr\  := \ 50;\)\), "\n", 
+    \(\(start\  := \ 50;\)\), "\n", 
+    \(\(max\  := \ 500;\)\), "\n", 
+    \(\(minError\  := \ 0.5;\)\)}], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+    \(\(For[err\  = \ 0; \ Nu\  = \ start, \ 
+        err\  < \ minError\  && \ Nu\  \[LessEqual] \ max, \ 
+        Nu\  += \ incr, \[IndentingNewLine]\[IndentingNewLine]setApprox[
+          Nu + 10]; \[IndentingNewLine]numeric\  = \ 
+          algNaivSimple; \[IndentingNewLine]\[IndentingNewLine]setMachine; \
+\[IndentingNewLine]machine\  = \ 
+          algNaivSimple; \[IndentingNewLine]\[IndentingNewLine]err\  = 
+          Max[compareRel[machine, \ 
+              numeric]]; \[IndentingNewLine]Print[{Nu, \ err, \ 
+            Precision[
+              numeric]}];\[IndentingNewLine]];\)\ \), "\[IndentingNewLine]", 
+    \(\(Nu\  -= \ incr;\)\), "\[IndentingNewLine]", 
+    \({Nu, \ err}\)}], "Input"],
+
+Cell[BoxData[
+    \({50, 1.0935384800271416`*^-13, 28.44833642404622`}\)], "Print"],
+
+Cell[BoxData[
+    \({100, 4.2500582985375`*^-14, 46.75666160038416`}\)], "Print"],
+
+Cell[BoxData[
+    \({150, 3.947012118939577`*^-14, 69.58125925271166`}\)], "Print"],
+
+Cell[BoxData[
+    \({200, 5.772988300116918`*^-14, 91.37701829583204`}\)], "Print"],
+
+Cell[BoxData[
+    \({250, 1.0098635221487572`*^-13, 113.20410648072291`}\)], "Print"],
+
+Cell[BoxData[
+    \({300, 7.794035295684368`*^-14, 134.54441893278874`}\)], "Print"],
+
+Cell[BoxData[
+    \({350, 1.1447204185549196`*^-13, 156.8574525978998`}\)], "Print"],
+
+Cell[BoxData[
+    \({400, 1.366307725280892`*^-13, 177.26440360314373`}\)], "Print"],
+
+Cell[BoxData[
+    \({450, 2.525292026023168`*^-13, 200.38631927221795`}\)], "Print"],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"],
+
+Cell[BoxData[
+    \({450, 2.525292026023168`*^-13}\)], "Output"]
+}, Open  ]]
+},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1280}, {0, 1024}},
+AutoGeneratedPackage->Automatic,
+WindowSize->{607, 936},
+WindowMargins->{{261, Automatic}, {Automatic, 22}},
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 80, 2, 27, "Input",
+  InitializationCell->True],
+Cell[1837, 55, 82, 2, 27, "Input",
+  InitializationCell->True],
+Cell[1922, 59, 94, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2019, 63, 93, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2115, 67, 114, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2232, 71, 110, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2345, 75, 34, 0, 32, "Text"],
+Cell[2382, 77, 97, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2482, 81, 93, 3, 27, "Input"],
+Cell[2578, 86, 152, 4, 43, "Input"],
+Cell[2733, 92, 46, 0, 32, "Text"],
+Cell[2782, 94, 208, 5, 27, "Input",
+  InitializationCell->True],
+Cell[2993, 101, 121, 3, 42, "Input"],
+Cell[3117, 106, 152, 3, 43, "Input"],
+Cell[3272, 111, 36, 0, 32, "Text"],
+Cell[3311, 113, 147, 3, 27, "Input"],
+Cell[3461, 118, 270, 5, 69, "Input",
+  InitializationCell->True],
+Cell[3734, 125, 273, 6, 43, "Input"],
+Cell[4010, 133, 52, 1, 32, "Text",
+  InitializationCell->True],
+Cell[4065, 136, 73, 2, 27, "Input",
+  InitializationCell->True],
+Cell[4141, 140, 74, 2, 27, "Input",
+  InitializationCell->True],
+Cell[4218, 144, 79, 2, 27, "Input",
+  InitializationCell->True],
+Cell[4300, 148, 138, 3, 27, "Input",
+  InitializationCell->True],
+Cell[4441, 153, 181, 3, 43, "Input"],
+Cell[4625, 158, 199, 4, 43, "Input",
+  InitializationCell->True],
+
+Cell[CellGroupData[{
+Cell[4849, 166, 248, 5, 43, "Input",
+  InitializationCell->True],
+Cell[5100, 173, 683, 11, 75, "Output"]
+}, Open  ]],
+Cell[5798, 187, 171, 4, 27, "Input",
+  InitializationCell->True],
+Cell[5972, 193, 455, 8, 123, "Input",
+  InitializationCell->True],
+Cell[6430, 203, 504, 10, 123, "Input",
+  InitializationCell->True],
+Cell[6937, 215, 288, 5, 91, "Input",
+  InitializationCell->True],
+Cell[7228, 222, 23, 0, 32, "Text"],
+Cell[7254, 224, 369, 7, 182, "Input",
+  InitializationCell->True],
+Cell[7626, 233, 349, 7, 178, "Input",
+  InitializationCell->True],
+Cell[7978, 242, 33, 0, 32, "Text"],
+Cell[8014, 244, 163, 4, 27, "Input",
+  InitializationCell->True],
+Cell[8180, 250, 425, 9, 43, "Input",
+  InitializationCell->True],
+Cell[8608, 261, 149, 4, 50, "Input",
+  InitializationCell->True],
+Cell[8760, 267, 166, 4, 55, "Input",
+  InitializationCell->True],
+Cell[8929, 273, 1968, 33, 562, "Input",
+  InitializationCell->True],
+Cell[10900, 308, 1478, 25, 498, "Input",
+  InitializationCell->True],
+Cell[12381, 335, 42, 0, 32, "Text"],
+Cell[12426, 337, 111, 2, 27, "Input",
+  InitializationCell->True],
+Cell[12540, 341, 123, 3, 27, "Input",
+  InitializationCell->True],
+Cell[12666, 346, 28, 0, 32, "Text"],
+Cell[12697, 348, 37, 0, 32, "Text"],
+Cell[12737, 350, 51, 1, 27, "Input"],
+Cell[12791, 353, 54, 1, 27, "Input"],
+Cell[12848, 356, 56, 1, 27, "Input"],
+Cell[12907, 359, 107, 2, 27, "Input"],
+Cell[13017, 363, 41, 0, 32, "Text"],
+Cell[13061, 365, 51, 1, 27, "Input"],
+Cell[13115, 368, 66, 1, 27, "Input"],
+Cell[13184, 371, 68, 1, 27, "Input"],
+Cell[13255, 374, 131, 2, 43, "Input"],
+Cell[13389, 378, 54, 0, 32, "Text"],
+Cell[13446, 380, 168, 4, 75, "Input"],
+
+Cell[CellGroupData[{
+Cell[13639, 388, 720, 13, 219, "Input"],
+Cell[14362, 403, 83, 1, 25, "Print"],
+Cell[14448, 406, 81, 1, 25, "Print"],
+Cell[14532, 409, 83, 1, 25, "Print"],
+Cell[14618, 412, 83, 1, 25, "Print"],
+Cell[14704, 415, 85, 1, 25, "Print"],
+Cell[14792, 418, 84, 1, 25, "Print"],
+Cell[14879, 421, 84, 1, 25, "Print"],
+Cell[14966, 424, 84, 1, 25, "Print"],
+Cell[15053, 427, 84, 1, 25, "Print"],
+Cell[15140, 430, 42, 1, 27, "Output"],
+Cell[15185, 433, 64, 1, 29, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
