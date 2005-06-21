@@ -1,4 +1,75 @@
-\chapter{The Inverse Problem}
-\label{iDSFT}
+\begin{savequote}[8cm]
+  ``Those who can, do; those who can't, teach.''
+  \qauthor{Dan Zevin}
+\end{savequote}
+\makeatletter
+\chapter{Applications}
+\label{Applications}
 
-\section{}
+\section{Fast Summation}
+
+A common task in many applications involving computations on the sphere is the fast evaluation of a function $f: \twosphere \rightarrow \R$ given by
+\begin{equation}
+  \label{Applications:KernelSum}
+  \fun{f}{\xi} = \sum_{\V{\eta} \in \mathcal{Y}} \fun{\alpha}{\V{\eta}} \fun{K}{\V{\eta} \cdot \V{\xi}}
+\end{equation}
+on a set of \emph{target nodes} 
+$$
+  \mathcal{X} := \pset{\V{\xi}_{d} \in \twosphere}{|}{d=0,\ldots,D-1,\ D \in \N}
+$$ 
+with 
+$$
+  \mathcal{Y} := \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1,\ L \in \N}
+$$
+being the set of \emph{source nodes}, $\alpha_{l} := \fun{\alpha}{\V{\eta}_{l}} \in \R$ and a \emph{radial spherical basis function} $K: \twosphere \rightarrow \R$. 
+
+The naive approach, i.e. evaluating \ref{Applications:KernelSum} for every $\V{\xi}_{d} \in \mathcal{X}$ clearly leads to an $\bigo{L\:D}$ algorithm. For large $L$ and $D$ the computational effort becomes quickly unaffordable.
+The \emph{panel clustering} method introduced in \cite{FrGlSch98} reduces the computational effort to evaluate \ref{Applications:KernelSum} by approximating the Kernel function $K$ in the time-domain. The general idea is that kernel functions $K$ often show a single prominent peak for $\eta \cdot \xi = 1$, i.e. $\eta = \xi$ while they behave rather smooth outside a certain spherical cap around $\V{\xi}$. Therefore the evaluation of the Kernel function is split into two parts, namely \emph{near-} and \emph{far-field evaluations}...
+Our approach is a cutoff in frequency-domain. Using \ref{}, we obtain
+$$
+  \fun{f}{\xi} = \sum_{l = 0}^{L-1} \alpha_{l} \sum_{k=0}^{\infty} \beta_{k} \fun{P_k}{\V{\eta}_{l} \cdot \V{\xi}}.
+$$
+Now using the Addition Theorem \ref{} we can write
+\begin{equation}
+  \fun{f}{\xi} = \sum_{l = 0}^{L-1} \alpha_{l} \sum_{k=0}^{\infty} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}.
+\end{equation}
+We approximate the infinite series
+$$
+  \fun{K}{\V{\eta}_{l} \cdot \V{\xi}} = \sum_{k=0}^{\infty} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}
+$$
+by truncating at a finite index $M$, i.e. defining
+$$
+  \fun{K_{M}}{\V{\eta}_{l} \cdot \V{\xi}} := 
+  \sum_{k=0}^{M} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}.
+$$
+This approximation causes a pointwise truncation error 
+\begin{eqnarray*}
+  \fun{K_{\text{\textsl{err}}}}{\V{\eta}_{l} \cdot \V{\xi}} 
+    & := & \abs{\fun{K}{\V{\eta}_{l} \cdot \V{\xi}} - \fun{K_{M}}{\V{\eta}_{l} \cdot \V{\xi}}}\\
+    &  = & \abs{\sum_{k=M+1}^{\infty} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} \fun{Y_{k}^n}{\V{\eta}_{l}} \overline{\fun{Y_{k}^n}{\V{\xi}}}}.
+\end{eqnarray*}
+In total we obtain
+\begin{eqnarray}
+  \fun{f_{M}}{\xi} & := & \sum_{l=0}^{L-1} \alpha_{l} \fun{K_{M}} {\V{\eta}_{l} \cdot \V{\xi}} \\
+                   &  = & \sum_{l = 0}^{L-1} \alpha_{l} \sum_{k=0}^{\infty} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} 
+                           \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}} \\
+                   &  = & \sum_{k=0}^{\infty} \sum_{n=-k}^k \beta_{k} \frac{4\pi}{2k+1} \paren{\sum_{l = 0}^{L-1} 
+                           \alpha_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}} \fun{Y_{k}^n}{\V{\xi}}
+\end{eqnarray}
+where the pointwise error $\fun{f_{\text{\textsl{err}}}}{\xi}$ can be estimated by
+\begin{eqnarray*}
+  \fun{f_{\text{\textsl{err}}}}{\xi} &  := & \abs{\fun{f}{\xi} - \fun{f_{M}}{\xi}}\\
+                                     & \le & \sum{l=0}^{L-1} \fun{K_{\text{\textsl{err}}}}{\V{\eta}_{l} \cdot \V{\xi}}.
+\end{eqnarray*}
+The evaluation of the sum
+$$
+  \sum_{l = 0}^{L-1} \alpha_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}
+$$
+corresponds to an adjoint NDSFT, hence
+$$
+  \V{\tilde{a}} = Y_{\mathcal{Y}}^{\h} \: \V{b}.
+$$
+
+
+
+

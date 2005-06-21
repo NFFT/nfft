@@ -1,3 +1,8 @@
+\begin{savequote}[8cm]
+  ``Confession: I played golf. Confession: I hired a cleaning lady. Confession: I am owner of the Turbo nose-hair trimmer with optional ear-hair accessory.''
+  \qauthor{Dan Zevin}
+\end{savequote}
+\makeatletter
 \chapter{Basics}
 \label{Basics}
 
@@ -217,23 +222,23 @@ matter of fact these spaces are identical (see \cite{frgesc}*{Corollary 2.2.5}),
     \fun{\Pol_M}{\twosphere} = \bigoplus_{k=0}^{M}\mathcal{H}_k.
 \end{equation}
 
-%\begin{figure}[htbp]
-%  \centering
-%   \subfigure[$\Re \: Y_{0}^{0}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_0_0}}\hfill
-%   \subfigure[$\Re \: Y_{4}^{2}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_4_2}}\\
-%   \subfigure[$\Re \: Y_{9}^{5}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_9_5}}\hfill
-%   \subfigure[$\Re \: Y_{13}^{1}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_1}}\\
-%   \subfigure[$\Re \: Y_{13}^{6}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_6}}\hfill
-%   \subfigure[$\Re \: Y_{13}^{13}$]
-%     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_13}}\\
-%  \caption{The functions $\R \: Y_{k}^{n}$ for different $\paren{k,n}$.}
-%  \label{Basics:Figure:SphericalHarmonics}
-%\end{figure}
+\begin{figure}[htbp]
+  \centering
+   \subfigure[$\Re \: Y_{0}^{0}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_0_0}}\hfill
+   \subfigure[$\Re \: Y_{4}^{2}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_4_2}}\\
+   \subfigure[$\Re \: Y_{9}^{5}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_9_5}}\hfill
+   \subfigure[$\Re \: Y_{13}^{1}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_1}}\\
+   \subfigure[$\Re \: Y_{13}^{6}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_6}}\hfill
+   \subfigure[$\Re \: Y_{13}^{13}$]
+     {\includegraphics[width=0.5\textwidth]{images/sh_r_13_13}}\\
+  \caption{The functions $\R \: Y_{k}^{n}$ for different $\paren{k,n}$.}
+  \label{Basics:Figure:SphericalHarmonics}
+\end{figure}
 
 We finally mention the well known addition theorem for spherical harmonics 
 that relates any set of functions $\set{H_k^n}_{n=-k}^k$ forming an orthonormal basis of $\mathcal{H}_k$ 
@@ -451,4 +456,4 @@ $$
   \fun{\tilde{\varphi}}{x} = \sum_{k \in \Z} \fun{c_{k}}{\tilde{\varphi}} \e^{-2 \pi \im k x}
 $$
 with Fourier coefficients $\fun{c_{k}}{\tilde{\varphi}} \in \C$.
-We refer the interested reader to \citelist{\cite{postta} \cite{duro93}} for a detailed description of approximative algorithms for the NFFT and further related references.
+We refer the interested reader to \cite{duro93} and \cite{postta} for a detailed description of approximative algorithms for the NFFT and further related references.

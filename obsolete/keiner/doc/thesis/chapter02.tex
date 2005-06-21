@@ -1,4 +1,10 @@
+\begin{savequote}[8cm]
+  ``Suddenly, I felt like a big Nancy-boy in front of my wife. Ihad to do something to reclaim my manhood. I had to put a shelf in the closet.''
+  \qauthor{Dan Zevin}
+\end{savequote}
+\makeatletter
 \chapter{Nonequispaced Discrete Spherical Fourier Transform}
+
 \label{DSFT}
 Let in this chapter $M \in \NZ$ be fixed, $N := 2^t$ be the 
 next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$ be
@@ -55,14 +61,30 @@ for every $\paren{\vtheta_{d},\vphi_{d}} \in \mathcal{X}$ first the sums
   \label{NFSFT:directDSFT:firstSum}
   b^{n}_{d} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}} \quad \paren{n=-M,\ldots,M}. 
 \end{equation}
-Here one can employ the \emph{Clenshaw algorithm} (see for example \cite{prtevefl}) using the three-term recurrence 
+Here one can employ the \emph{Clenshaw algorithm} (see for example \cite{prtevefl} and Algorithm \ref{NFSFT:Algorithm:Clenshaw}) the three-term recurrence 
 for the associated Legendre functions from \eqref{Basics:AssociatedLegendreDefinition}. We finally compute
 \begin{equation}
   \label{NFSFT:directNDSFT:secondSum}
   \fun{f}{\vtheta_{d},\vphi_{d}} = \sum_{n=-M}^M b^{n}_d \e^{\im n \vphi_{d}}
 \end{equation}
 directly.
-\begin{algorithm}[b]
+\begin{algorithm}[htb]
+  \caption{Clenshaw Algorithm for \eqref{NFSFT:directDSFT:firstSum}}
+  \label{NFSFT:Algorithm:Clenshaw}    
+  \begin{algorithmic}
+    \STATE  Input: $M \in \NZ$, $n \in \Z$ with $\abs{n} \le M$, $\V{a}^n$, $x := \cos\vtheta_{d} \in \interv{[}{-1}{1}{]}$
+    \STATE
+    \FOR {$k=M,\ldots,\abs{n}+2$} 
+      \STATE $a_{k-1}^n := a_{k-1}^n + \paren{\alpha_{k}^{|n|} x + \beta_{k}^{|n|}} a_{k}^n$
+      \STATE $a_{k-2}^n := a_{k-2}^n + \gamma_{k}^{|n|} a_{k}^n$
+    \ENDFOR
+    \STATE $a_{\abs{n}}^n := a_{\abs{n}}^n + \paren{\alpha_{\abs{n}+1}^{|n|} x + \beta_{\abs{n}+1}^{|n|}} a_{\abs{n}+1}^n$\\[1ex]
+    \STATE $b_{d}^n := \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-x^2}^{|n|/2} a_{\abs{n}}^n$
+    \STATE
+    \STATE Output: $b_{d}^n$
+\end{algorithmic}
+\end{algorithm}
+\begin{algorithm}[htb]
   \caption{Direct DSFT}
   \label{NFSFT:directDSFT}    
   \begin{algorithmic}
@@ -71,20 +93,20 @@ directly.
     \FOR {$d=0,\ldots,D-1$} 
       \STATE $f_{d} := 0$
       \FOR {$n=-M,\ldots,M$} 
-        \STATE Compute $\fun{b^{n}}{d}$ by the Clenshaw algorithm,
+        \STATE Compute $b^{n}_d$ by Algorithm \ref{NFSFT:Algorithm:Clenshaw} (Clenshaw algorithm),
         \STATE $f_{d} := f_{d} + b^n_d \e^{\im n \vphi_{d}}$
       \ENDFOR
     \ENDFOR
     \STATE
-    \STATE Output: $\paren{f_{d}}_{d=0,\dots,D-1}$
+    \STATE Output: $\fun{\V{f}}{\mathcal{X}}$
 \end{algorithmic}
 \end{algorithm}
 Each application of the Clenshaw algorithm for \eqref{NFSFT:directDSFT:firstSum} needs $\bigo{M}$ 
 flops summing up to $\bigo{M^2}$ flops for the complete inner loop. In 
 total we have an $\bigo{M^2\:D}$ algorithm for the evaluation of $f$ on $\mathcal{X}$ and gained an order of complexity with respect to $M$. 
 For special sampling sets one can exploit the grid 
-structure and employ FFT techniques for the sums \eqref{NFSFT:directNDSFT:secondSum} if the nodes $$\varphi_{d}$$  are equispaced 
-(see \citelist{\cite{drhe}} \cite{postta97} \cite{kupo02}). 
+structure and employ FFT techniques for the sums \eqref{NFSFT:directNDSFT:secondSum} if the nodes $$\varphi_{d}$$ are equispaced 
+(see \cite{drhe}, \cite{postta97} and \cite{kupo02}). 
 
 %\citelist{\cite{Mo99} \cite{postta97} \cite{roty} \cite{suta}}
 
@@ -241,10 +263,10 @@ $$
     \V{a}^{M}
   \end{array}\right]
 $$
-where each matrix $\V{C}^{n}_{d} \in \R^{1 \times (M-n+1)}$ for $n = -M,\ldots,M$ realizes the Clenshaw algorithm acting on the subvector $\V{a}^n$ of $\V{a}$.
-The matrices $\V{C}^{n}_{d}$ can be further decomposed corresponding to the number of steps in the Clenshaw algorithm by
+where each matrix $\V{C}^{n}_{d} \in \R^{1 \times (M-n+1)}$ for $n = -M,\ldots,M$ realizes the Clenshaw algorithm \ref{NFSFT:Algorithm:Clenshaw} acting on the subvector $\V{a}^n$ of $\V{a}$.
+They can be further decomposed corresponding to the number of steps in the Clenshaw algorithm by
 \begin{eqnarray*}
-  \V{C}^{n}_{d}       & := & \V{C}_{d,1}^{n} \: \V{C}_{d,2}^{n} \: \ldots \: \V{C}_{d,M-\abs{n}}^{n},\\
+  \V{C}^{n}_{d}       & := & \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-\cos^2\vtheta_{d}}^{|n|/2} \V{C}_{d,1}^{n} \: \V{C}_{d,2}^{n} \: \ldots \: \V{C}_{d,M-\abs{n}}^{n},\\
   \V{C}_{d,l}^{n}     & := & \encl{[}{\V{I}_{l}, \V{\tilde{e}}_{d,l}}{]} \in \R^{l \times (l+1)},\\
   \V{\tilde{e}}_{d,l} & := & \paren{0,0,\ldots,\gamma_{k}^n,\alpha_{k}^n \vtheta_{d} + \beta_{k}^n}^{\transp} \in \R^{l} \quad \paren{l=1,\ldots,M-\abs{n}}.
 \end{eqnarray*}
@@ -335,10 +357,10 @@ A multiplication with a transposed matrix ${\V{C}^{n}_{d}}^{\transp}$ realizes a
   \caption{Transposed Clenshaw Algorithm}
   \label{NFSFT:transposedClenshaw}    
   \begin{algorithmic}
-    \STATE  Input: $M \in \NZ$, $n \in \NZ$ with $\abs{n} \le M$, $d$, $\tilde{b}^n_{d}$
+    \STATE  Input: $M \in \NZ$, $n \in \NZ$ with $\abs{n} \le M$, $\tilde{b}^n_{d}$, $x := \cos\vtheta_{d} \in \interv{[}{-1}{1}{]}$
     \STATE
     \STATE $\tilde{a}_{d,\abs{n}-1}^n := 0$
-    \STATE $\tilde{a}_{d,\abs{n}}^n := \tilde{b}^n_{d}$
+    \STATE $\tilde{a}_{d,\abs{n}}^n := \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-x^2}^{|n|/2} \tilde{b}^n_{d}$
     \FOR {$k=\abs{n}+1,\ldots,M$} 
       \STATE $\tilde{a}_{d,k}^n := \paren{\alpha_{k}^n\vtheta_{d} + \beta_{k}^n}\tilde{a}_{d,k-1}^n + \gamma_{k}^n \tilde{a}_{d,k-2}^n$
     \ENDFOR
@@ -704,7 +726,7 @@ In total, the FLFT consists of $t+1 = \bigo{\log M}$ steps. The first and the la
 
 \section{Stabilization}
 \label{DSFT:Stabilization}
-Algorithm \ref{NFSFT:Algorithm:FLFT_unstab} is exact in exact arithmetic. Unfortunately, it becomes unstable in finite precision for $n > 16$. The computation is subject to cancelations since the associated Legendre polynomials $\fun{P_{k}^n}{x,c}$ involved in the algorithm become very large for certain triples $\paren{k,n,c}$ and $\abs{x} \approx 1$ while at the same time the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ exhibit arbitrary small values (see \cite{kupo02}). A simple but effective idea first developed in \cite{97} is to replace the ordinary multiplication steps by "stabilization" steps, whenever the values $\fun{P_{k}^n}{x,c}$ exceed a certain threshold. The multiplications with $\fun{U_{2^{\tau+1}}^n}{\cdot,2^{\tau+1}l+1}$ are replaced by multiplications with $\fun{U_{2^{\tau}(2l+1)-1}^n}{\cdot,1}$ fulfilling
+Algorithm \ref{NFSFT:Algorithm:FLFT_unstab} is exact in exact arithmetic. Unfortunately, it becomes unstable in finite precision for $n > 16$. The computation is subject to cancelations since the associated Legendre polynomials $\fun{P_{k}^n}{x,c}$ involved in the algorithm become very large for certain triples $\paren{k,n,c}$ and $\abs{x} \approx 1$ while at the same time the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ exhibit arbitrary small values (see \cite{kupo02}). A simple but effective idea first developed in \cite{postta97} is to replace the ordinary multiplication steps by "stabilization" steps, whenever the values $\fun{P_{k}^n}{x,c}$ exceed a certain threshold. The multiplications with $\fun{U_{2^{\tau+1}}^n}{\cdot,2^{\tau+1}l+1}$ are replaced by multiplications with $\fun{U_{2^{\tau}(2l+1)-1}^n}{\cdot,1}$ fulfilling
 $$
 	\left(\begin{array}{c}	  P_{2^{\tau+1}l+2^{\tau}}^{n}\\ 
 	  P_{2^{\tau+1}l+2^{\tau}+1}^{n}	\end{array}\right)
@@ -732,8 +754,15 @@ we still have an $\bigo{M \log^2 M}$ algorithm. Our computations for $M$ up to $
 that this might be indeed the case. 
 \begin{figure}[htb]
   \centering
-  \includegraphics[width=12cm]{images/stabilization}
-  \caption{The relative number of stabilization steps for thresholds 1000 (blue), 10000 (red), 100000 (magenta) and 1000000 (black).}
+   \subfigure
+     {\includegraphics[width=0.5\textwidth]{images/stabilization1000}}\hfill
+   \subfigure
+     {\includegraphics[width=0.5\textwidth]{images/stabilization10000}}\\
+   \subfigure
+     {\includegraphics[width=0.5\textwidth]{images/stabilization100000}}\hfill
+   \subfigure
+     {\includegraphics[width=0.5\textwidth]{images/stabilization1000000}}\\
+  \caption{The relative number of stabilization steps for thresholds $1000, 10000, 100000$ and $1000000$ and bandwidth $M$ up to $4096$.}
   \label{NFSFT:figure:stabilization}
 \end{figure}
 Algorithm \ref{Fast Legendre Function transform (stabilized)} summarizes the complete algorithm with stabilization.
@@ -916,27 +945,37 @@ Depending on $n \in \NZ$, we can distinguish three cases:
   \item[n even, n > 0] Now $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in $$\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} - \mb{W}_{N+1} \right].$$
 \end{description}
 
-%\subsection{The Adjoint Operator}
-%Following the factorization of $\mb{T}$ given in the previous section, one obtains easily the adjoint operator which is paramount for an implementation of xxx: 
-%$$\mb{T}^H = \mb{T}_{0}^H \; \cdot \; \mb{T}_{1}^H \dots \mb{T}_{t-1}^H \; \cdot \; \mb{T}_{t}^H.$$ For $\tau = 0$ and $\tau = t$ we obtain immediatly
-%$$ \mb{T}_{0}^H = \left( \begin{array}{c} \mb{I}_{N} \otimes \mb{e}_{1}^T\\ \mb{\tilde{e}}^T \end{array}\right), \mb{T}_{t}^H = \gamma_{0}^n \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
-% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} \end{array} \right] & \text{n odd},\\[2ex]
-% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{T}_{N+1}^T \end{array} \right] & \text{n = 0},\\[2ex]
-% \left[ \begin{array}{c} \mb{I}_{N+1} \\ \mb{I}_{N+1} - \mb{T}_{N+1}^T \end{array} \right] & \text{n even, n > 0}.
-%\end{array}\right.$$
-%Using xxx we get for the rest of the steps $\mb{T}_{\tau}$, $1 \le \tau \le t-1$
-%\begin{eqnarray*}
-% \mb{T}_{\tau}^H & = & \text{diag}\left({\mb{V}_{\tau}^0}^H,{\mb{V}_{\tau}^1}^H,\dots,{\mb{V}_{\tau}^{2^{t-\tau-1}-1}}^H\right),\\
-% {\mb{V}_{\tau}^l}^H & = & \left[ \begin{array}{c} \mb{Z}^H \\ { \mb{U}_{\tau}^l}^H \end{array} \right],\\
-% {\mb{U}_{\tau}^l}^H & = &
-%   \left(
-%     \begin{array}{rlllr}
-%        \gamma_{c}^n & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-2}^n(c+1)   & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c+1)
-%         & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T \\
-%        & \left(\right. Z_{1}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}-1}^n(c) & + & Z_{2}^T \mb{\tilde{C}}_{2^{\tau+1}} \mb{P}_{2^{\tau}}^n(c) & \left.\right) \mb{\tilde{C}}_{2^{\tau+1}}^T
-%     \end{array}
-%   \right).
-%\end{eqnarray*}
+\subsection{Transposed FLFT}
+Following the factorization of $\V{T}$ given in the previous section, one obtains easily the transposed factorization corresponding to $\V{T^{\transp}}$:
+$$
+  \V{T}^{\transp} = {\V{T}^{(0)}}^{\transp} \: \cdot \: {\V{T}^{(1)}}^{\transp} \: \cdot \: \ldots \: \cdot {\V{T}^{(t-1)}}^{\transp} \: \cdot \: {\V{T}^{(t)}}^{\transp}.
+$$ 
+For $\tau = 0$ and $\tau = t$ we obtain immediatly
+$$
+  {\V{T}^{(0)}}^{\transp} = 
+     \left(\begin{array}{c} 
+       \V{I}_{N} \otimes \V{e}_{1}^{\transp}\\ 
+       \V{\tilde{e}}^{\transp} 
+     \end{array}\right),\  
+   {\V{T}^{(t)}}^{\transp} = \gamma_{0}^n 
+     \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
+       \left[ \begin{array}{c} \V{I}_{N+1} \\ \V{I}_{N+1}                         \end{array} \right] & \text{$n$ odd},          \\[2ex]
+       \left[ \begin{array}{c} \V{I}_{N+1} \\               \V{W}_{N+1}^{\transp} \end{array} \right] & \text{$n = 0$},          \\[2ex]
+       \left[ \begin{array}{c} \V{I}_{N+1} \\ \V{I}_{N+1} - \V{W}_{N+1}^{\transp} \end{array} \right] & \text{$n$ even, $n$ > 0}.
+     \end{array}\right.
+$$
+For the rest of the steps, i.e. $\tau = t-1,\ldots,1$, we have
+\begin{eqnarray*}
+ {\V{T}^{(\tau)}}^{\transp}   & = & \text{diag}\left({\V{V}^{(\tau)}_0}^{\transp},{\V{V}^{(\tau)}_1}^{\transp},\dots,{\V{V}^{(\tau)}_{2^{t-\tau-1}-1}}^{\transp}\right),\\
+ {\V{V}^{(\tau)}_l}^{\transp} & = & \left[ \begin{array}{c} \V{Z}^{\transp},\\ 
+ {\V{U}^{(\tau)}_l}^{\transp} \end{array} \right],\\
+ {\V{U}^{(\tau)}_l}^{\transp} & = &
+   \left(\begin{array}{rlllr}
+     \gamma_{c}^n & \left(\right. \V{Z}_{1}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-2}^n}{c+1} & + & \V{Z}_{2}^T \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c+1}                  & \left.\right) \V{\tilde{C}}_{2^{\tau+1}}^{\transp} \\
+                  & \left(\right. \V{Z}_{1}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c} & + & \V{Z}_{2}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}}^n}{c} & \left.\right) \V{\tilde{C}}_{2^{\tau+1}}^{\transp}
+     \end{array}
+   \right).
+\end{eqnarray*}
 
 %
 %\begin{figure}[tb]

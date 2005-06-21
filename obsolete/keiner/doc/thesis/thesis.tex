@@ -3,7 +3,7 @@
 % AMSMath-packages
 \usepackage{amsthm}
 \usepackage{amssymb}
-\usepackage{amsrefs}
+%\usepackage{amsrefs}
 \usepackage{textcmds}
 
 % ISO Latin 1 input encoding
@@ -33,6 +33,14 @@
 \usepackage{color}
 \usepackage{comment}
 %\usepackage{showkeys}
+\usepackage[grey]{quotchap}
+
+\newcommand{\qchapter}[2]
+{
+  \chapter{#1}
+  \vspace{-0.5cm}
+  \hfill\parbox[t]{10cm}{\textit{``#2''}}
+}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[chapter]
@@ -55,7 +63,7 @@
 
 \begin{document}
 
-\bibliographystyle{amsxport} 
+%\bibliographystyle{amsxport} 
 
 \frontmatter
 
@@ -74,7 +82,7 @@
 %\include{introduction}
 \include{chapter01}
 \include{chapter02}
-%\include{chapter03}
+\include{chapter03}
 %\include{chapter04}
 \include{bibliography}
 
