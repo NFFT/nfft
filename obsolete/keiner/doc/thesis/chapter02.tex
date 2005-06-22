@@ -4,8 +4,8 @@
 \end{savequote}
 \makeatletter
 \chapter{Nonequispaced Discrete Spherical Fourier Transform}
-
 \label{DSFT}
+
 Let in this chapter $M \in \NZ$ be fixed, $N := 2^t$ be the 
 next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$ be
 a set of nodes on $\twosphere$ called the \emph{sampling set}. As a special case, a \emph{spherical grid} 
@@ -391,7 +391,7 @@ A multiplication with a transposed matrix ${\V{C}^{n}_{d}}^{\transp}$ realizes a
 \end{algorithmic}
 \end{algorithm}
 
-We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \ref{NFSFT:InversionFormula} and algorithm \ref{NFSFT:adjointDSFT} we obtain $\bigo{M^4}$ algorithms \ref{} and \ref{} for computing the Fourier coeffcients $a_{k}^n$ from the function samples $\fun{\V{f}}{\mathcal{X}^{\gl}}$ and $\fun{\V{f}}{\mathcal{X}^{\cc}}$. We refer to these algorithms as the \emph{direct inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
+We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \ref{NFSFT:InversionFormula} and algorithm \ref{NFSFT:adjointDSFT} we obtain $\bigo{M^4}$ algorithms \ref{NFSFT:directIDSFTGL} and \ref{NFSFT:directIDSFTCC} for computing the Fourier coeffcients $a_{k}^n$ from the function samples $\fun{\V{f}}{\mathcal{X}^{\gl}}$ and $\fun{\V{f}}{\mathcal{X}^{\cc}}$. We refer to these algorithms as the \emph{direct inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
 
 \begin{algorithm}[htb]
   \caption{Direct iDSFT-GL}
@@ -736,7 +736,8 @@ $$
 	  P_{1}^{n}	\end{array}\right).
 $$
 This corresponds to taking the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}$ out of the cascade and updating
-$$
+\begin{equation}
+  \label{NFSFT:StabilizationStep}
 	\left(\begin{array}{c}	  a_{0}^{(t-1)}\\
 	  a_{1}^{(t-1)}	\end{array}\right)^{\text{stab}}
 	:=
@@ -746,7 +747,7 @@ $$
 	\V{U}_{2^{\tau}(2l+1)-1}^{n}\left(\cdot,1\right)
 	\left(\begin{array}{c}	  a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}\\
 	  a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}	\end{array}\right)  
-$$
+\end{equation}
 after the cascade summation is completed. Clearly, each "stabilization" step can be implemented using Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} 
 again with $K = N$. Therefore, these steps are costly compared to the cascade summation without stabilization. We sacrifice runtime efficiency for accuracy. 
 Unfortunately, an upper bound for the number $s$ of stabilization steps with respect to $M$ for a given threshold is not known yet. However, if $s = \bigo{\log M} $, 
@@ -765,7 +766,7 @@ that this might be indeed the case.
   \caption{The relative number of stabilization steps for thresholds $1000, 10000, 100000$ and $1000000$ and bandwidth $M$ up to $4096$.}
   \label{NFSFT:figure:stabilization}
 \end{figure}
-Algorithm \ref{Fast Legendre Function transform (stabilized)} summarizes the complete algorithm with stabilization.
+Algorithm \ref{NFSFT:Algorithm:FLFT_stab} summarizes the complete algorithm with stabilization.
 \begin{algorithm}[htb]
   \caption{Fast Legendre Function transform (stabilized)}
   \label{NFSFT:Algorithm:FLFT_stab}    
@@ -844,7 +845,7 @@ $$
 $$
 with $\V{\tilde{e}} := \left(0,0,\dots,0,\gamma, 0, \beta,\alpha\right)^{\transp} \in \R^{2N}$.
 
-\subsection{Steps $\tau = 1,\ldots,t-1$ (Cascade Summation)}
+\subsection[Cascade Summation]{Steps $\tau = 1,\ldots,t-1$ (Cascade Summation)}
 These steps represent the cascade summation applied to associated Legendre functions. In each round, half of the the functions is eliminated by mapping them to the remaining functions. Therefore, the vector $\V{a}^{(\tau-1)}$ is divided into consecutive blocks of four polynomials
 $$
   \V{a}^{(\tau-1)} = 
@@ -907,7 +908,7 @@ is obtained.
 %$$ \mb{V}_{\tau}^l = \left[\mb{ZP},\mb{U}_{\tau}^l\right].$$ 
 The complete step can finally be represented as $$\V{T}^{(\tau)} = \text{diag}\left(\V{V}^{(\tau)}_0,\V{V}^{(\tau)}_1,\dots,\V{V}^{(\tau)}_{2^{t-\tau-1}-1}\right).$$
 
-\subsubsection{The Last Step}
+\subsection{The Last Step}
 \label{NFSFT:LinearAlgebra:LastStep}
 The last step consists in calculating the polynomial $g^{n} = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}$ in Chebyshev representation. Since 
 $$
@@ -945,7 +946,7 @@ Depending on $n \in \NZ$, we can distinguish three cases:
   \item[n even, n > 0] Now $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in $$\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} - \mb{W}_{N+1} \right].$$
 \end{description}
 
-\subsection{Transposed FLFT}
+\section{Transposed FLFT}
 Following the factorization of $\V{T}$ given in the previous section, one obtains easily the transposed factorization corresponding to $\V{T^{\transp}}$:
 $$
   \V{T}^{\transp} = {\V{T}^{(0)}}^{\transp} \: \cdot \: {\V{T}^{(1)}}^{\transp} \: \cdot \: \ldots \: \cdot {\V{T}^{(t-1)}}^{\transp} \: \cdot \: {\V{T}^{(t)}}^{\transp}.

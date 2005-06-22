@@ -159,7 +159,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 140387465;
+			PBXPerProjectTemplateStateSaveDate = 140521145;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -509,7 +509,7 @@
 				};
 				RubberWindowFrame = "0 117 1280 821 0 0 1280 938 ";
 			};
-			PBXWorkspaceStateSaveDate = 140387465;
+			PBXWorkspaceStateSaveDate = 140521145;
 		};
 		perUserProjectItems = {
 			4E23D93B0854D6D400CC656A = 4E23D93B0854D6D400CC656A;
@@ -576,34 +576,20 @@
 			4E9F7CAE0851DA3100952ECD = 4E9F7CAE0851DA3100952ECD;
 			4E9F7CB00851DA3100952ECD = 4E9F7CB00851DA3100952ECD;
 			4E9F7CB30851DA6700952ECD = 4E9F7CB30851DA6700952ECD;
+			4EA74F6408602EE800CEF756 = 4EA74F6408602EE800CEF756;
+			4EA74F6508602EE800CEF756 = 4EA74F6508602EE800CEF756;
+			4EA74F7C0861931200CEF756 = 4EA74F7C0861931200CEF756;
 			4EAD6954083BD14300C61F13 = 4EAD6954083BD14300C61F13;
 			4EAD6969083BD39C00C61F13 = 4EAD6969083BD39C00C61F13;
 			4EAD696A083BD39C00C61F13 = 4EAD696A083BD39C00C61F13;
 			4EAD69CB083BE6CE00C61F13 = 4EAD69CB083BE6CE00C61F13;
 			4EB3D36D085E24BA003A05A5 = 4EB3D36D085E24BA003A05A5;
-			4EB3D36E085E24BA003A05A5 = 4EB3D36E085E24BA003A05A5;
 			4EB3D375085E28D9003A05A5 = 4EB3D375085E28D9003A05A5;
 			4EB3D376085E28D9003A05A5 = 4EB3D376085E28D9003A05A5;
 			4EB3D377085E28D9003A05A5 = 4EB3D377085E28D9003A05A5;
 			4EB3D378085E28D9003A05A5 = 4EB3D378085E28D9003A05A5;
 			4EB3D379085E28D9003A05A5 = 4EB3D379085E28D9003A05A5;
 			4EB3D37A085E28D9003A05A5 = 4EB3D37A085E28D9003A05A5;
-			4EB3D37B085E28D9003A05A5 = 4EB3D37B085E28D9003A05A5;
-			4EB3D37C085E28D9003A05A5 = 4EB3D37C085E28D9003A05A5;
-			4EB3D37D085E28D9003A05A5 = 4EB3D37D085E28D9003A05A5;
-			4EB3D37E085E28D9003A05A5 = 4EB3D37E085E28D9003A05A5;
-			4EB3D37F085E28D9003A05A5 = 4EB3D37F085E28D9003A05A5;
-			4EB3D380085E28D9003A05A5 = 4EB3D380085E28D9003A05A5;
-			4EB3D381085E28D9003A05A5 = 4EB3D381085E28D9003A05A5;
-			4EB3D382085E28D9003A05A5 = 4EB3D382085E28D9003A05A5;
-			4EB3D383085E28D9003A05A5 = 4EB3D383085E28D9003A05A5;
-			4EB3D384085E28D9003A05A5 = 4EB3D384085E28D9003A05A5;
-			4EB3D385085E28D9003A05A5 = 4EB3D385085E28D9003A05A5;
-			4EB3D386085E28D9003A05A5 = 4EB3D386085E28D9003A05A5;
-			4EB3D387085E28D9003A05A5 = 4EB3D387085E28D9003A05A5;
-			4EB3D388085E28D9003A05A5 = 4EB3D388085E28D9003A05A5;
-			4EB3D389085E28D9003A05A5 = 4EB3D389085E28D9003A05A5;
-			4EB3D38D085E411E003A05A5 = 4EB3D38D085E411E003A05A5;
 			4EB6E510083143AE003AAA48 = 4EB6E510083143AE003AAA48;
 			4ED64B470854402F008E1E9E = 4ED64B470854402F008E1E9E;
 			4ED64B4B0854402F008E1E9E = 4ED64B4B0854402F008E1E9E;
@@ -1206,9 +1192,9 @@
 	};
 	4E6CD5D707C555500040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {734, 3887}}";
-			sepNavSelRange = "{5428, 0}";
-			sepNavVisRect = "{{0, 3221}, {734, 359}}";
+			sepNavIntBoundsRect = "{{0, 0}, {910, 3887}}";
+			sepNavSelRange = "{3406, 13}";
+			sepNavVisRect = "{{0, 3208}, {910, 470}}";
 		};
 	};
 	4E6E40C2082CB46F00642FF0 = {
@@ -1521,7 +1507,7 @@
 		isa = PBXTextBookmark;
 		name = "direct.c: adjoint_ndsft2";
 		rLen = 0;
-		rLoc = 3437;
+		rLoc = 3419;
 		rType = 0;
 		vrLen = 0;
 		vrLoc = 6094;
@@ -1638,7 +1624,7 @@
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {910, 1792}}";
 			sepNavSelRange = "{2381, 0}";
-			sepNavVisRect = "{{0, 1222}, {910, 470}}";
+			sepNavVisRect = "{{0, 1216}, {910, 470}}";
 		};
 	};
 	4E9F7CAC0851DA3100952ECD = {
@@ -1680,6 +1666,36 @@
 		rType = 0;
 		vrLen = 919;
 		vrLoc = 1544;
+	};
+	4EA74F6408602EE800CEF756 = {
+		fRef = 4E9F7CAA0851D7A700952ECD;
+		isa = PBXTextBookmark;
+		name = "stabilization.c: 102";
+		rLen = 0;
+		rLoc = 2381;
+		rType = 0;
+		vrLen = 892;
+		vrLoc = 1540;
+	};
+	4EA74F6508602EE800CEF756 = {
+		fRef = 4E9F7CAA0851D7A700952ECD;
+		isa = PBXTextBookmark;
+		name = "stabilization.c: 102";
+		rLen = 0;
+		rLoc = 2381;
+		rType = 0;
+		vrLen = 892;
+		vrLoc = 1540;
+	};
+	4EA74F7C0861931200CEF756 = {
+		fRef = 4E6CD5D707C555500040176B;
+		isa = PBXTextBookmark;
+		name = adjoint_ndsft;
+		rLen = 13;
+		rLoc = 3406;
+		rType = 0;
+		vrLen = 911;
+		vrLoc = 5042;
 	};
 	4EAD692A083BC9A900C61F13 = {
 		isa = PBXFileReference;
@@ -1805,16 +1821,6 @@
 		vrLen = 609;
 		vrLoc = 3006;
 	};
-	4EB3D36E085E24BA003A05A5 = {
-		fRef = 4E294D5008575D3600F546C3;
-		isa = PBXTextBookmark;
-		name = "healpix.c: 139";
-		rLen = 0;
-		rLoc = 3378;
-		rType = 0;
-		vrLen = 609;
-		vrLoc = 3006;
-	};
 	4EB3D375085E28D9003A05A5 = {
 		fRef = 4E5470E10832A31200CA0375;
 		isa = PBXTextBookmark;
@@ -1874,166 +1880,6 @@
 		rType = 0;
 		vrLen = 694;
 		vrLoc = 10372;
-	};
-	4EB3D37B085E28D9003A05A5 = {
-		fRef = 4E9F7CAA0851D7A700952ECD;
-		isa = PBXTextBookmark;
-		name = "stabilization.c: 86";
-		rLen = 0;
-		rLoc = 1783;
-		rType = 0;
-		vrLen = 820;
-		vrLoc = 1657;
-	};
-	4EB3D37C085E28D9003A05A5 = {
-		fRef = 4E9F7CAA0851D7A700952ECD;
-		isa = PBXTextBookmark;
-		name = "stabilization.c: 86";
-		rLen = 0;
-		rLoc = 1783;
-		rType = 0;
-		vrLen = 904;
-		vrLoc = 1342;
-	};
-	4EB3D37D085E28D9003A05A5 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.c: 274";
-		rLen = 0;
-		rLoc = 7370;
-		rType = 0;
-		vrLen = 600;
-		vrLoc = 7068;
-	};
-	4EB3D37E085E28D9003A05A5 = {
-		fRef = 4E5470E10832A31200CA0375;
-		isa = PBXTextBookmark;
-		name = "flft.c: 514";
-		rLen = 0;
-		rLoc = 16365;
-		rType = 0;
-		vrLen = 1019;
-		vrLoc = 15346;
-	};
-	4EB3D37F085E28D9003A05A5 = {
-		fRef = 4E751580082C0CF4002018A8;
-		isa = PBXTextBookmark;
-		name = "struct U_type**** precomputeU_stab(int t, double threshold, double *walpha, \n                             double *wbeta, double *wgamma)\n";
-		rLen = 137;
-		rLoc = 13574;
-		rType = 0;
-		vrLen = 969;
-		vrLoc = 13054;
-	};
-	4EB3D380085E28D9003A05A5 = {
-		fRef = 4E75157F082C0CF4002018A8;
-		isa = PBXTextBookmark;
-		name = "u.h: 64";
-		rLen = 0;
-		rLoc = 2027;
-		rType = 0;
-		vrLen = 1060;
-		vrLoc = 976;
-	};
-	4EB3D381085E28D9003A05A5 = {
-		fRef = 4E5470E10832A31200CA0375;
-		isa = PBXTextBookmark;
-		name = "void flft_stab(const int M, const int t, const int n, complex *const f_hat, \n          struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal)\n";
-		rLen = 147;
-		rLoc = 10341;
-		rType = 0;
-		vrLen = 866;
-		vrLoc = 9959;
-	};
-	4EB3D382085E28D9003A05A5 = {
-		fRef = 4E5470E20832A31200CA0375;
-		isa = PBXTextBookmark;
-		name = "flft.h: 46";
-		rLen = 0;
-		rLoc = 1694;
-		rType = 0;
-		vrLen = 1080;
-		vrLoc = 623;
-	};
-	4EB3D383085E28D9003A05A5 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "void nfsft_precompute_stab(int M, double threshold)\n";
-		rLen = 52;
-		rLoc = 7776;
-		rType = 0;
-		vrLen = 683;
-		vrLoc = 7449;
-	};
-	4EB3D384085E28D9003A05A5 = {
-		fRef = 4E6CD54B07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.h: infsft_plan";
-		rLen = 0;
-		rLoc = 652;
-		rType = 0;
-		vrLen = 560;
-		vrLoc = 353;
-	};
-	4EB3D385085E28D9003A05A5 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.c: 299";
-		rLen = 0;
-		rLoc = 7929;
-		rType = 0;
-		vrLen = 1134;
-		vrLoc = 9531;
-	};
-	4EB3D386085E28D9003A05A5 = {
-		fRef = 4E9F7CAA0851D7A700952ECD;
-		isa = PBXTextBookmark;
-		name = "stabilization.c: 86";
-		rLen = 0;
-		rLoc = 1783;
-		rType = 0;
-		vrLen = 843;
-		vrLoc = 1657;
-	};
-	4EB3D387085E28D9003A05A5 = {
-		fRef = 4E751580082C0CF4002018A8;
-		isa = PBXTextBookmark;
-		name = "void forgetU_stab(struct U_type**** U, int M, int t)\n";
-		rLen = 53;
-		rLoc = 23222;
-		rType = 0;
-		vrLen = 789;
-		vrLoc = 22515;
-	};
-	4EB3D388085E28D9003A05A5 = {
-		fRef = 4E75157F082C0CF4002018A8;
-		isa = PBXTextBookmark;
-		name = "u.h: forgetU_stab";
-		rLen = 0;
-		rLoc = 2082;
-		rType = 0;
-		vrLen = 976;
-		vrLoc = 1116;
-	};
-	4EB3D389085E28D9003A05A5 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.c: 360";
-		rLen = 0;
-		rLoc = 10639;
-		rType = 0;
-		vrLen = 694;
-		vrLoc = 10372;
-	};
-	4EB3D38D085E411E003A05A5 = {
-		fRef = 4E9F7CAA0851D7A700952ECD;
-		isa = PBXTextBookmark;
-		name = "stabilization.c: 102";
-		rLen = 0;
-		rLoc = 2381;
-		rType = 0;
-		vrLen = 892;
-		vrLoc = 1540;
 	};
 	4EB6E510083143AE003AAA48 = {
 		fRef = 4E02C48E082F816D00EC0863;

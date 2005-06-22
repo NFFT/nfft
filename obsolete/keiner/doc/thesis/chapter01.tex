@@ -6,6 +6,7 @@
 \chapter{Basics}
 \label{Basics}
 
+
 \section{Notational Conventions}
 \label{Basics:Notation}
 
@@ -259,17 +260,32 @@ See \cite{frgesc}*{p. 37} or \cite{co}*{pp. 172, Theorem 5} for a proof. In part
 \eqref{Basics:SphericalHarmonicsDefinition}.
 
 \section{Spherical Radial Basis Functions}
-\emph{Spherical radial basis basis functions} are radial symmetric functions defined on the sphere. 
-Generally, one starts with a continuous function $G: \interv{[}{-1}{1}{]} \rightarrow \C$ and defines 
-for fixed $\V{\eta} \in \twosphere$ a kernel function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
-$$ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\xi} \: \V{\eta}}.$$
-The function $G$ can be developed into a series of Legendre polynomials
-$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}.$$
+\emph{Spherical radial basis basis functions} are the spherical counterpart of radial basis functions in Euclidean spaces. 
+Generally, one starts with a function $G$ from $\Ln{2}{\interv{[}{-1}{1}{]}}$
+%$: \interv{[}{-1}{1}{]} \rightarrow \C$ 
+and defines for fixed $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
+$$ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\eta} \cdot \V{\xi}}.$$
+By means of the \emph{Funk-Hecke formula} (see \cite[pp. 60]{frgesc}) we obtain for fixed $k \in \NZ$
+$$
+  \scalarproduct{G}{Y_{k}^n} = \int_{\twosphere} \fun{G}{\V{\eta} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \dx \V{\xi} = \fun{G^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \quad \paren{n=-k,\ldots,k},
+$$
+where the \emph{Legendre transform}, i.e. the \emph{symbol} of $G$, is given by
+$$
+  \fun{G^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{G}{x} \fun{P_{k}}{x} \dx x \quad \paren{k \in \NZ}.
+$$
+%We refer the interested reader to \cite{} and \cite{} for more details.
+%The function $G$ can be developed into a series of Legendre polynomials
+%$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}.$$
 %where the coefficients $a_k$ are the scalar products
 %$$ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
-Applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain the expansion
-$$\fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{\V{\V{\xi}} \cdot \V{\eta}} =  
-\sum_{k = 0}^{\infty} a_k \frac{4\pi}{2k+1} \sum_{n=-k}^k \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}}.$$
+We have therefore 
+$$
+  \fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k \fun{G^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}} 
+$$
+and applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain the orthogonal expansion
+$$
+  \fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} \frac{2n+1}{4\pi} \fun{G^{\wedge}}{k} \fun{P_k}{\V{\eta} \cdot \V{\xi}}.
+$$
 %One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
 %spherical convolution. As an application of the algorithms developed in this text, one can derive 
 %an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
@@ -299,22 +315,25 @@ From this result, the identity
   \sum_{k=0}^{\infty} \paren{2k+1} h^k \fun{P_k}{x} =
   \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}
 \end{equation}
- follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$ and for fixed $\V{\eta} \in \twosphere$ the function
+ follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$ and for fixed $\V{\eta} \in \twosphere$ the spherical radial basis function
 $Q_h:\twosphere \rightarrow \R$, with
 \begin{equation}
   \label{PoissonKernel}
   \nonumber
-  \fun{Q_h}{\V{\xi} \cdot \V{\eta}} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2\V{\xi} \cdot \V{\eta}+h^2}^{3/2}},
+  \fun{Q_h}{\V{\eta} \cdot \V{\xi}} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2\V{\eta} \cdot \V{\xi}+h^2}^{3/2}},
 \end{equation}
-is called \emph{Poisson kernel}. We refer 
-to Figures \ref{Basics:Figure:PoissonKernel} and \ref{Basics:Figure:PoissonKernel2}
+is called \emph{Poisson kernel}. The symbol $\fun{Q_{h}^{\wedge}}{k}$ is given by 
+$$
+  \fun{Q_{h}^{\wedge}}{k} = h^k.
+$$
+We refer to Figures \ref{Basics:Figure:PoissonKernel} and \ref{Basics:Figure:PoissonKernel2}
 for a visual impression and mention that the parameter $h$
 allows for controlling the concentration of the function's energy around
-$x = 1$. The poisson kernel is a positive function and normalized with
+$x = 1$. The Poisson kernel is a positive function and normalized with
 $$
-  \int_{\twosphere} \fun{Q_{h}}{\V{\xi} \cdot \V{\eta}} \d w(\V{\xi}) = 1.
+  \int_{\twosphere} \fun{Q_{h}}{\V{\xi} \cdot \V{\eta}} \dx \V{\xi} = 1.
 $$
-Further properties with respect to localization and smoothness are derived in \cite{frgesc}*{pp. 112}.
+Further properties with respect to localization and smoothness are derived in \cite[pp. 112]{frgesc}.
 \end{example}
 
 \begin{example}
@@ -324,7 +343,7 @@ Further properties with respect to localization and smoothness are derived in \c
   $$
   Results due to Bochner (1950, 1954) assure $\fun{W_{\rho}}{x} \ge 0$ and we have
   $$
-    \int_{\twosphere} \fun{W_{\rho}}{\V{\xi} \cdot \V{\eta}} \d w(\V{\xi}) = 1.
+    \int_{\twosphere} \fun{W_{\rho}}{\V{\xi} \cdot \V{\eta}} \dx \V{\xi} = 1.
   $$
   For further properties we refer to \cite{frgesc} again. The kernel function $W_{\rho}$ is illustrated in Figure \ref{Basics:Figure:PoissonKernel}.
 \end{example}

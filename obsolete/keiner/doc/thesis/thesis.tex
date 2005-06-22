@@ -1,6 +1,7 @@
-\documentclass[a4paper,10pt]{amsbook}
+\documentclass[a4paper,twoside,10pt,draft]{scrreprt}
 
 % AMSMath-packages
+\usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
 %\usepackage{amsrefs}
@@ -21,26 +22,20 @@
 \usepackage{exscale}
 
 % Use "makeindex" package
-%\usepackage{makeidx}
+\usepackage{makeidx}
 
 % My own math commands
 \usepackage{jkmath}
 
 \usepackage{subfigure}
+\usepackage{natbib}
 
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{color}
-\usepackage{comment}
+%\usepackage{comment}
 %\usepackage{showkeys}
 \usepackage[grey]{quotchap}
-
-\newcommand{\qchapter}[2]
-{
-  \chapter{#1}
-  \vspace{-0.5cm}
-  \hfill\parbox[t]{10cm}{\textit{``#2''}}
-}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[chapter]
@@ -53,31 +48,33 @@
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
-\numberwithin{figure}{chapter} 
-\numberwithin{table}{chapter} 
-\numberwithin{equation}{chapter} 
+%\numberwithin{figure}{chapter} 
+%\numberwithin{table}{chapter} 
+%\numberwithin{equation}{chapter} 
 
 \makeindex
 
-\includecomment{comment}
+%\includecomment{comment}
+
+\pagestyle{headings}
 
 \begin{document}
 
 %\bibliographystyle{amsxport} 
 
-\frontmatter
+%\frontmatter
 
 \title{Fast Spherical Fourier Transform}
 \author{Jens Keiner}
-\email{keiner@math.uni-luebeck.de}
-\address{Mühlenstraße 22-24 \\ 23552 Lübeck \\ Germany}
-\subjclass{12J32A32}
+%\email{keiner@math.uni-luebeck.de}
+%\address{Mühlenstraße 22-24 \\ 23552 Lübeck \\ Germany}
+%\subjclass{12J32A32}
 
 \maketitle
 
 \tableofcontents
 
-\mainmatter
+%\mainmatter
 
 %\include{introduction}
 \include{chapter01}
@@ -86,7 +83,7 @@
 %\include{chapter04}
 \include{bibliography}
 
-\backmatter
+%\backmatter
 
 \printindex
 

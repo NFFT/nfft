@@ -111,7 +111,7 @@ void ndsft(int D, double *angles, complex *f, int M, complex **f_hat,
         
         /* Write final result b_n of multiplication by normalization constant to 
          * array b  = (b_{-M},...,b_M). */
-        f_d += temp[0+nleg] * wisdom->gamma[ROW(nleg)]/*gamma_m1[nleg]*/ *
+        f_d += temp[0+nleg] * wisdom->gamma[ROW(nleg)] *
           pow(1- theta[d] * theta[d], 0.5*nleg) * cexp(I*n*phi[d]);
 	     }
             

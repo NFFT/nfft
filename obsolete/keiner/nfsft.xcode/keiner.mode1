@@ -254,8 +254,7 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>25</integer>
-									<integer>20</integer>
+									<integer>11</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
@@ -278,7 +277,7 @@
 							<real>278</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>160 133 1280 699 0 0 1280 832 </string>
+						<string>0 133 1280 699 0 0 1280 832 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -294,7 +293,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>stabilization.c</string>
+								<string>direct.c</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -302,9 +301,9 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>stabilization.c</string>
+										<string>direct.c</string>
 										<key>bookmark</key>
-										<string>4EB3D38D085E411E003A05A5</string>
+										<string>4EA74F7C0861931200CEF756</string>
 										<key>history</key>
 										<array>
 											<string>4EDEC4EB07CE349A00514E5A</string>
@@ -318,7 +317,6 @@
 											<string>4E8F457B0850CE760098CEFF</string>
 											<string>4E9F7CAC0851DA3100952ECD</string>
 											<string>4E9F7CAE0851DA3100952ECD</string>
-											<string>4E9F7CB30851DA6700952ECD</string>
 											<string>4E7691E40852D02A0088C885</string>
 											<string>4E76920D0852D3840088C885</string>
 											<string>4E7692190852D4160088C885</string>
@@ -349,7 +347,8 @@
 											<string>4EB3D378085E28D9003A05A5</string>
 											<string>4EB3D379085E28D9003A05A5</string>
 											<string>4EB3D37A085E28D9003A05A5</string>
-											<string>4EB3D37B085E28D9003A05A5</string>
+											<string>4EA74F6408602EE800CEF756</string>
+											<string>4E9F7CB30851DA6700952ECD</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -392,21 +391,7 @@
 											<string>4E294D830857766000F546C3</string>
 											<string>4E294DC0085780BA00F546C3</string>
 											<string>4E294DD20857819800F546C3</string>
-											<string>4EB3D36E085E24BA003A05A5</string>
-											<string>4EB3D37C085E28D9003A05A5</string>
-											<string>4EB3D37D085E28D9003A05A5</string>
-											<string>4EB3D37E085E28D9003A05A5</string>
-											<string>4EB3D37F085E28D9003A05A5</string>
-											<string>4EB3D380085E28D9003A05A5</string>
-											<string>4EB3D381085E28D9003A05A5</string>
-											<string>4EB3D382085E28D9003A05A5</string>
-											<string>4EB3D383085E28D9003A05A5</string>
-											<string>4EB3D384085E28D9003A05A5</string>
-											<string>4EB3D385085E28D9003A05A5</string>
-											<string>4EB3D386085E28D9003A05A5</string>
-											<string>4EB3D387085E28D9003A05A5</string>
-											<string>4EB3D388085E28D9003A05A5</string>
-											<string>4EB3D389085E28D9003A05A5</string>
+											<string>4EA74F6508602EE800CEF756</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -420,7 +405,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {957, 502}}</string>
 								<key>RubberWindowFrame</key>
-								<string>160 133 1280 699 0 0 1280 832 </string>
+								<string>0 133 1280 699 0 0 1280 832 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
@@ -440,7 +425,7 @@
 								<key>Frame</key>
 								<string>{{0, 509}, {957, 148}}</string>
 								<key>RubberWindowFrame</key>
-								<string>160 133 1280 699 0 0 1280 832 </string>
+								<string>0 133 1280 699 0 0 1280 832 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
@@ -464,9 +449,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>4EB3D370085E24BA003A05A5</string>
+				<string>4EA74F6708602EE800CEF756</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>4EB3D371085E24BA003A05A5</string>
+				<string>4EA74F6808602EE800CEF756</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -497,7 +482,7 @@
 		<string>/Users/keiner/Temporary/trunk/obsolete/keiner/nfsft.xcode</string>
 	</array>
 	<key>WindowString</key>
-	<string>160 133 1280 699 0 0 1280 832 </string>
+	<string>0 133 1280 699 0 0 1280 832 </string>
 	<key>WindowTools</key>
 	<array>
 		<dict>
