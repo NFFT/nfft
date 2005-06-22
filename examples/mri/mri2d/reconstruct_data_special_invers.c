@@ -16,11 +16,15 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   double t,real,imag;
   double *w;
   nfft_plan my_plan, *ths;
+  infft_plan my_iplan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
+  double epsilon=0.0000003;     /* epsilon is a the break criterium for
+                                   the iteration */
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
                       FFTW_MEASURE| FFTW_DESTROY_INPUT;
+  unsigned infft_flags = CGNR|PRECOMPUTE_WEIGHT; /* flags for the infft*/
 
 
   double Ts;
@@ -75,35 +79,38 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   my_N[0]=N3; my_n[0]=ths->n[0];
   my_N[1]=N; my_n[1]=next_power_of_2(N)+16;
-  my_N[2]=N;my_n[2]=next_power_of_2(N)+16;
+  my_N[2]=N; my_n[2]=next_power_of_2(N)+16;
   
   /* initialise nfft */ 
   nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
+  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
+
+                      
   fp=fopen(filename,"r");
   ftime=fopen("readout_time.dat","r");
 
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le %le %le",&my_plan.x[3*j+1],&my_plan.x[3*j+2],&real,&imag);
-    my_plan.f[j]=real+I*imag;
+    my_iplan.y[j]=real+I*imag;
     fscanf(ftime,"%le ",&my_plan.x[3*j+0]);
 
     my_plan.x[3*j+0] = (my_plan.x[3*j+0]-Ts)*W/N3;
-    my_plan.f[j]*=1.0/PHI_HUT(N3*my_plan.x[3*j+0],0);
+    my_iplan.y[j]*=PHI_HUT(N3*my_plan.x[3*j+0],0);
   }
   fclose(fp);
   fclose(ftime);
 
-  
-  if (weight)
+
+  /* get the weights */
+  if(my_iplan.flags & PRECOMPUTE_WEIGHT)
   {
     fw=fopen("weights.dat","r");
-    for(j=0;j<my_plan.M_total;j++)
+    for(j=0;j<my_plan.M_total;j++) 
     {
-      fscanf(fw,"%le ",&weights);
-      my_plan.f[j]*= weights;
+        fscanf(fw,"%le ",&my_iplan.w[j]);
     }
     fclose(fw);
   }
@@ -116,25 +123,49 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   } 
 
   t=second();
-  /* do the transform */ 
-  nfft_adjoint(&my_plan);
-  
+  /* init some guess */
+  for(j=0;j<my_plan.N_total;j++)
+    my_iplan.f_hat_iter[j]=0.0;
+    
+  /* inverse trafo */
+  infft_before_loop(&my_iplan);
+  for(l=0;l<iteration;l++)
+  {
+    /* break if dot_r_iter is smaller than epsilon*/
+    if(my_iplan.dot_r_iter<epsilon)
+      break;
+    fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
+    l+1,iteration);
+    infft_loop_one_step(&my_iplan);
+  }
 
     
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
   
   for (j=0;j<N*N;j++) {
-    my_plan.f_hat[j]*=PHI_periodic(w[j]/W+0.5);
-    for(l=1;l<N3;l++) {
-      my_plan.f_hat[j]+=my_plan.f_hat[j+l*N*N]*PHI_periodic(w[j]/W-((double)l)/((double)N3)+0.5);
-    }
+    //my_iplan.f_hat_iter[j]/=PHI_periodic(w[j]/W+0.5);
+    //int l = N3/2;
+    int l;
+    if(ceil(N3*(w[j]/W+0.5))==floor(N3*(w[j]/W+0.5)+0.5))
+      l=ceil(N3*(w[j]/W+0.5));
+    else
+      l=floor(N3*(w[j]/W+0.5));
+
+
+    
+    //printf("j: %i %i %i \n",j,l,N3);
+    my_iplan.f_hat_iter[j]= my_iplan.f_hat_iter[j+l*N*N]/PHI_periodic(w[j]/W-((double)l)/((double)N3)+0.5);
+    //my_iplan.f_hat_iter[j]= my_iplan.f_hat_iter[j+l*N*N]/PHI_periodic(w[j]/W-((double)l)/((double)N3)+0.5);
+    /*for(l=1;l<N3;l++) {
+      my_iplan.f_hat_iter[j]+=my_iplan.f_hat_iter[j+l*N*N]/PHI_periodic(w[j]/W-((double)l)/((double)N3)+0.5);
+    }*/
 
     /* Verschiebung wieder herausrechnen */
-    my_plan.f_hat[j]*=cexp(2.0*I*PI*Ts*w[j]);
+    my_iplan.f_hat_iter[j]*=cexp(2.0*I*PI*Ts*w[j]);
     
-    fprintf(fout_real,"%le ",creal(my_plan.f_hat[j]));
-    fprintf(fout_imag,"%le ",cimag(my_plan.f_hat[j]));
+    fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
+    fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));
   }
   
   t=second()-t;
@@ -142,6 +173,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   fclose(fout_real);
   fclose(fout_imag);
+  /* finalize the infft */
+  infft_finalize(&my_iplan);
   nfft_finalize(&my_plan);
   nfft_finalize(ths);
   free(ths);

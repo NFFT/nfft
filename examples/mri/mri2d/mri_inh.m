@@ -1,17 +1,17 @@
 N=256;   % points per row / column
-%M=78000; % number of nodes
+M=75520; % number of knots
 
-load output_phantom_nfft.dat
+%load output_phantom_nfft.dat
 
-M=size(output_phantom_nfft,1)
+%M=size(output_phantom_nfft,1)
 
 
 %precompute_weights('output_phantom_nfft.dat',M);
 
 disp(2);
 for iter=1:1,
-system(['./reconstruct_data_inhomog_nnfft ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 6 1'])
+system(['./reconstruct_data_special_invers ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 1 1'])
 
 load output_real.dat
 figure(1);

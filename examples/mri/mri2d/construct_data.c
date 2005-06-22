@@ -15,7 +15,7 @@ void nfft (char * file, int N, int M)
   /* initialise my_plan */
   nfft_init_2d(&my_plan,N,N,M);
 
-  fp=fopen("nodes.dat","r");
+  fp=fopen("knots.dat","r");
   
   for(j=0;j<my_plan.M_total;j++)
   {

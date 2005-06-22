@@ -52,7 +52,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   /* open the input file */
   fin=fopen(filename,"r"); 
 
-  /* read x,y,freal and fimag from the nodes */
+  /* read x,y,freal and fimag from the knots */
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fin,"%le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1],

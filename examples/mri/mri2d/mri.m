@@ -9,12 +9,12 @@ N=128;   % points per row / column
 output = reshape(phantom(N),1,N*N);
 save input_f.dat -ascii output
 
-% Construct the nodes in k-space and write them to nodes.dat
-% Different nodes like spiral,rose,radial or linogram can be chosen
-% M is the number of nodes
-M = construct_nodes_spiral(N);
+% Construct the knots in k-space and write them to knots.dat
+% Different knots like spiral,rose,radial or linogram can be chosen
+% M is the number of knots
+M = construct_knots_spiral(N);
 
-% Make a 2d-NFFT on the constructed nodes
+% Make a 2d-NFFT on the constructed knots
 % and write the output to output_data_phantom_nfft.dat
 system(['./construct_data ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)]);
@@ -51,7 +51,7 @@ visualize_data('pics/pic_2d', N);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%!rm nodes.dat
+%!rm knots.dat
 %!rm weights.dat
 %!rm input_f.dat
 %!rm output_phantom_nfft.dat
