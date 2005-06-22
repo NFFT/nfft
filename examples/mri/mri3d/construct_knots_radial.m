@@ -1,4 +1,4 @@
-function [M] = construct_nodes_radial( N,Z )
+function [M] = construct_knots_radial( N,Z )
 
 A=N*2;
 P=410/512*A;
@@ -20,8 +20,8 @@ for i=1:P,
 end
 end
 
-% feel free to plot the nodes by uncommenting
+% feel free to plot the knots by uncommenting
 % plot(file(1:M/Z,1),file(1:M/Z,2),'.-');
 
 
-save nodes.dat -ascii file
+save knots.dat -ascii file

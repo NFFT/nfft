@@ -1,4 +1,4 @@
-function [M] = construct_nodes_rose( N,Z )
+function [M] = construct_knots_rose( N,Z )
 B=1;
 M=N^2*Z;
 file = zeros(M,3);
@@ -18,7 +18,7 @@ end
 end
 end
 
-% feel free to plot the nodes by uncommenting
+% feel free to plot the knots by uncommenting
 % plot(file(1:M/Z,1),file(1:M/Z,2),'.-');
 
-save nodes.dat -ascii file
+save knots.dat -ascii file

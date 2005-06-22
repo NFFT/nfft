@@ -1,4 +1,4 @@
-function [M] = construct_nodes_radial_3d( N )
+function [M] = construct_knots_radial_3d( N )
 R=N;
 P=N;
 xk=zeros(N^3,4);
@@ -19,12 +19,12 @@ end
 
 xk=xk(1:counter,:);
 
-% feel free to plot the nodes by uncommenting
+% feel free to plot the knots by uncommenting
 % plot3(xk(:,1),xk(:,2),xk(:,3),'.');
 M=size(xk,1);
 
-nodes=xk(:,1:3);
+knots=xk(:,1:3);
 weights=xk(:,4);
-save nodes.dat -ascii nodes
+save knots.dat -ascii knots
 save weights.dat -ascii weights
 
