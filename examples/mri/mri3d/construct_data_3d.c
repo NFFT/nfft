@@ -12,7 +12,7 @@ void nfft (char * file, int N, int M, int Z)
 
   nfft_init_3d(&my_plan,Z,N,N,M);
 
-  fp=fopen("nodes.dat","r");
+  fp=fopen("knots.dat","r");
    
   for(j=0;j<M;j++)
     fscanf(fp,"%le %le %le",&my_plan.x[3*(j)+1],

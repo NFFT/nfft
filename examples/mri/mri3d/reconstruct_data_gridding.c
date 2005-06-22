@@ -42,11 +42,11 @@ void nfft (char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
     } 
     fclose(fweight);
     
-    /* precompute psi if set just one time because the nodes equal each slice */
+    /* precompute psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
     
-    /* precompute full psi if set just one time because the nodes equal each slice */    
+    /* precompute full psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.nfft_flags & PRE_FULL_PSI)
       nfft_precompute_full_psi(&my_plan);
     

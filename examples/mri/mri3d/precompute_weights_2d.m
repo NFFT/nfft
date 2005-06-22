@@ -10,7 +10,7 @@ kxy=[kx ky];
 % compute the voronoi regions
 [V,C] = voronoin(kxy);
 
-% the surface of the nodes is written to area
+% the surface of the knots is written to area
 area = [];
 
 % sum of all surfaces
@@ -20,7 +20,7 @@ sum_area = 0;
 % to get the surface we store max_distance^2
 max_distance=0;
 
-% compute the surface of the nodes 
+% compute the surface of the knots 
 for j= 1:length(kxy)
   x = V(C{j},1);
   y = V(C{j},2);
@@ -32,7 +32,7 @@ for j= 1:length(kxy)
   max_distance = max([max_distance min_distance]);
 end
 
-% if the surface of a node is bigger than max_distance^2
+% if the surface of a knot is bigger than max_distance^2
 % or isnan or isinf, then take max_distance^2
 for j=1:length(area),
   if(isnan(area(j)) | isinf(area(j))| area(j)>max_distance),

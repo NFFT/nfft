@@ -54,7 +54,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   /* For every Layer*/
   for(z=0;z<Z;z++) {
 
-    /* read x,y,freal and fimag from the nodes */
+    /* read x,y,freal and fimag from the knots */
     for(j=0;j<my_plan.M_total;j++)
     {
       fscanf(fin,"%le %le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1], &tmp,
@@ -62,11 +62,11 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
       my_iplan.y[j] = real + I*imag;
     }
     
-    /* precompute psi if set just one time because the nodes equal each plane */
+    /* precompute psi if set just one time because the knots equal each plane */
     if(z==0 && my_plan.nfft_flags & PRE_PSI) 
       nfft_precompute_psi(&my_plan);
       
-    /* precompute full psi if set just one time because the nodes equal each plane */
+    /* precompute full psi if set just one time because the knots equal each plane */
     if(z==0 && my_plan.nfft_flags & PRE_FULL_PSI)
       nfft_precompute_full_psi(&my_plan);
 

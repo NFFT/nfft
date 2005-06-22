@@ -9,14 +9,14 @@ Z=16;    % number of slices
 % just put the reshape of your example into input_f.dat
 construct_phantom(N,Z);
 
-% Construct the nodes in k-space and write them to nodes.dat
-% Different nodes like spiral,rose,radial,radial_3d or linogram can be chosen
-% The radial_3d nodes just work with construct_data_3d and reconstruct_data_3d
-% Then the weights are generated in construct_nodes_radial_3d
-% M is the number of nodes
-M = construct_nodes_spiral(N,Z);
+% Construct the knots in k-space and write them to knots.dat
+% Different knots like spiral,rose,radial,radial_3d or linogram can be chosen
+% The radial_3d knots just work with construct_data_3d and reconstruct_data_3d
+% Then the weights are generated in construct_knots_radial_3d
+% M is the number of knots
+M = construct_knots_spiral(N,Z);
 
-% First make N^2 1d-FFT, then Z 2d-NFFT on the constructed nodes
+% First make N^2 1d-FFT, then Z 2d-NFFT on the constructed knots
 % and write the output to output_phantom_nfft.dat
 system(['./construct_data_2d_1d ' 'output_phantom_nfft.dat '...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
@@ -60,9 +60,9 @@ precompute_weights_2d('output_phantom_nfft.dat',M,Z);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% An example with the radial_3d nodes
+% An example with the radial_3d knots
 
-M = construct_nodes_radial_3d(N);
+M = construct_knots_radial_3d(N);
 
 system(['./construct_data_3d ' 'output_phantom_nfft.dat '...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
@@ -73,7 +73,7 @@ visualize_data('pics_3d/pic', N,Z);
 snr('pics_3d/snr.txt');
 
 
-!rm nodes.dat
+!rm knots.dat
 !rm weights.dat
 !rm input_f.dat
 !rm output_phantom_nfft.dat

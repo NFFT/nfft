@@ -58,7 +58,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 
-  /* read x,y,freal and fimag from the nodes */
+  /* read x,y,freal and fimag from the knots */
   for(j=0;j<M;j++)
   {
     fscanf(fin,"%le %le %le %le %le ",&my_plan.x[3*j+1],&my_plan.x[3*j+2], &my_plan.x[3*j+0],

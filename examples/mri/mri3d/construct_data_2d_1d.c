@@ -14,7 +14,7 @@ void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
   /* initialise my_plan */
   nfft_init_2d(&my_plan,N,N,M/Z);
 
-  fp=fopen("nodes.dat","r");
+  fp=fopen("knots.dat","r");
   
   for(j=0;j<my_plan.M_total;j++)
   {
@@ -47,7 +47,7 @@ void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
 }
 
 /**
- * fft makes an 1D-ftt for every node through
+ * fft makes an 1D-ftt for every knot through
  * all layers
  */
 void fft(int N,int M,int Z, fftw_complex *mem)
