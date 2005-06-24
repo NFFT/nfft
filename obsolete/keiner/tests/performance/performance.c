@@ -194,7 +194,7 @@ int main (int argc, char **argv)
     angles[2*d+1] = drand48();
 	}
   
-  nfsft_precompute(m_max,threshold);  
+  nfsft_precompute(m_max,threshold,0U);  
   MACRO_TEST("ndsft.dat",         ndsft_trafo,   "NDSFT")
   MACRO_TEST("ndsft_adjoint.dat", ndsft_adjoint, "adjoint NDSFT")
   MACRO_TEST("nfsft.dat",         nfsft_trafo,   "NFSFT")

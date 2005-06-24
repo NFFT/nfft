@@ -67,7 +67,7 @@ int main()
   }  
   
   /* Precompute. 2000 is the threshold. */
-  nfsft_precompute(M,2000);
+  nfsft_precompute(M,2000,0U);
   
   /* Compute NFSFT */
   plan = nfsft_init(D, M, angles, f_hat, f, 0U);

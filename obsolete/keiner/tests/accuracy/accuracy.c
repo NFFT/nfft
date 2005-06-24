@@ -238,7 +238,7 @@ int main (int argc, char **argv)
     printf("Precomputing wisdom up to M = %d ...",m_max);
     fflush(stdout);
     ctime = second();
-    nfsft_precompute(m_max,t);
+    nfsft_precompute(m_max,t,NFSFT_FAST_ONLY | NFSFT_BW_WINDOW);
     printf(" needed %7.2f secs.\n",second()-ctime);
     
     printf("Bandwidth         Time err(infty)     err(1)     err(2)         Time err(infty)     err(1)     err(2)\n");
@@ -284,15 +284,6 @@ int main (int argc, char **argv)
       
       /* Compute number of nodes. */
       D = (M+1)*(2*M+2);
-      
-      /* Respect normalization. */
-      for (n = -M; n <= M; n++)
-      {
-        for (k = abs(n); k <= M; k++)
-        {
-          f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
-        }
-      }
          
       /* Read Gauss-Legendre nodes and weights. */  
       sprintf(filename,"gl%d.dat",M);  
@@ -326,7 +317,7 @@ int main (int argc, char **argv)
           }  
         }
 
-        plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+        plan = nfsft_init(D, M, angles, f_hat, f, NFSFT_NORMALIZED);
 
         /* Compute forward transform. */
         ctime = second();
@@ -358,7 +349,7 @@ int main (int argc, char **argv)
         {
           for (k = abs(n); k <= M; k++)
           {
-            f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+            f_hat[n+M][k] *= (1.0/(2*M+2));
           }
         }
 

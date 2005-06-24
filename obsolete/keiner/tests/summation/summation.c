@@ -159,7 +159,7 @@ int main (int argc, char **argv)
   //printf("d = %d\n",d);
 	N_MAX = 1<<ngpt(m_max);	
 		
-	nfsft_precompute(m_max,2000);
+	nfsft_precompute(m_max,2000,0U);
 	
   /** Allocate data structures. */
   b = (complex*) malloc(l_max*sizeof(complex));

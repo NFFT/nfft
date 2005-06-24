@@ -145,7 +145,7 @@ int main (int argc, char **argv)
   printf("Precomputing wisdom up to M = %d ...",M);
   fflush(stdout);
   ctime = second();
-  nfsft_precompute(M,2000);
+  nfsft_precompute(M,2000,0U);
   printf(" needed %7.2f secs.\n",second()-ctime);
           
   /* Compute random Fourier coefficients. */

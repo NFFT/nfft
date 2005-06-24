@@ -3,7 +3,7 @@
 #include "util.h"
 
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
-                             double *wbeta, double *wgamma)
+                             double *wbeta, double *wgamma, int flags)
 {
   /** Maximum bandwidth */
   int M = 1<<t;
@@ -209,43 +209,82 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
           fftw_free(m3);
           fftw_free(m4);
 
-          U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)*(t-tau)); 
-
-          for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+          if (flags != 0U)
           {
-            //tau_stab = t-2;
-            plength_stab = 1<<(tau_stab+2);
+            U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type));             
+            plength_stab = 1<<t;
+
             /* Allocate memory for arrays. */
             m1 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             m2 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             m3 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             m4 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-            
+              
             /* Get the pointers to the three-term recurrence coeffcients. */
             alpha = &(walpha[ROW(n)+2]);
             beta = &(wbeta[ROW(n)+2]);
             gamma = &(wgamma[ROW(n)+2]);         
             /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-            eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
+            eval_al(xvecs[t-2], m1, plength_stab, degree_stab-2, alpha, 
                     beta, gamma);
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-            eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
+            eval_al(xvecs[t-2], m2, plength_stab, degree_stab-1, alpha, 
                     beta, gamma); 
             alpha--;
             beta--;
             gamma--;
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-            eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
+            eval_al(xvecs[t-2], m3, plength_stab, degree_stab-1, alpha, 
                     beta, gamma);
             /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-            eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
+            eval_al(xvecs[t-2], m4, plength_stab, degree_stab+0, alpha, 
                     beta, gamma);
-                      
-            U[n][tau][l][tau_stab-tau+1].m1 = m1;
-            U[n][tau][l][tau_stab-tau+1].m2 = m2;
-            U[n][tau][l][tau_stab-tau+1].m3 = m3;
-            U[n][tau][l][tau_stab-tau+1].m4 = m4;          
-            U[n][tau][l][tau_stab-tau+1].stable = false;                    
+            
+            U[n][tau][l][0].m1 = m1;
+            U[n][tau][l][0].m2 = m2;
+            U[n][tau][l][0].m3 = m3;
+            U[n][tau][l][0].m4 = m4;          
+            U[n][tau][l][0].stable = false;                    
+          }  
+          else
+          {
+            U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)*(t-tau));             
+            for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+            {
+              //tau_stab = t-2;
+              plength_stab = 1<<(tau_stab+2);
+              /* Allocate memory for arrays. */
+              m1 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              m2 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              m3 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              m4 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              
+              /* Get the pointers to the three-term recurrence coeffcients. */
+              alpha = &(walpha[ROW(n)+2]);
+              beta = &(wbeta[ROW(n)+2]);
+              gamma = &(wgamma[ROW(n)+2]);         
+              /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
+              eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
+                      beta, gamma);
+              /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
+              eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
+                      beta, gamma); 
+              alpha--;
+              beta--;
+              gamma--;
+              /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
+              eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
+                      beta, gamma);
+              /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
+              eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
+                      beta, gamma);
+              
+              U[n][tau][l][tau_stab-tau+1].m1 = m1;
+              U[n][tau][l][tau_stab-tau+1].m2 = m2;
+              U[n][tau][l][tau_stab-tau+1].m3 = m3;
+              U[n][tau][l][tau_stab-tau+1].m4 = m4;          
+              U[n][tau][l][tau_stab-tau+1].stable = false;                    
+            }
           }
         }
       }
@@ -266,7 +305,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
 }
 
 
-void forgetU(struct U_type**** U, int M, int t)
+void forgetU(struct U_type**** U, int M, int t, int flags)
 { 
   /** Legendre index n */
   int n;
@@ -282,6 +321,7 @@ void forgetU(struct U_type**** U, int M, int t)
   //int nsteps;
   int l;
   int tau_stab;
+  int lb;
 
   for (n = 0; n <= M; n++)
   {   
@@ -306,12 +346,22 @@ void forgetU(struct U_type**** U, int M, int t)
         }
         else
         {
-          for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+          if (flags != 0U)
           {
-            fftw_free(U[n][tau][l][tau_stab-tau+1].m1);
-            fftw_free(U[n][tau][l][tau_stab-tau+1].m2);
-            fftw_free(U[n][tau][l][tau_stab-tau+1].m3);
-            fftw_free(U[n][tau][l][tau_stab-tau+1].m4);
+            fftw_free(U[n][tau][l][0].m1);
+            fftw_free(U[n][tau][l][0].m2);
+            fftw_free(U[n][tau][l][0].m3);
+            fftw_free(U[n][tau][l][0].m4);
+          }
+          else
+          {
+            for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+            {
+              fftw_free(U[n][tau][l][tau_stab-tau+1].m1);
+              fftw_free(U[n][tau][l][tau_stab-tau+1].m2);
+              fftw_free(U[n][tau][l][tau_stab-tau+1].m3);
+              fftw_free(U[n][tau][l][tau_stab-tau+1].m4);
+            }
           }
         }
         fftw_free(U[n][tau][l]);

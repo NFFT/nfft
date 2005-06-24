@@ -142,7 +142,7 @@ int main (int argc, char **argv)
     
     copyc_hat(f_hat,f_hat_orig,k_max);
 
-    nfsft_precompute(k_max,2000);
+    nfsft_precompute(k_max,2000,0U);
     
     plan = nfsft_init(D,k_max,x,f_hat,f,0U);
 

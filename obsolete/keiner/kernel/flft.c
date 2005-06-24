@@ -1,6 +1,7 @@
 #include "flft.h"
 #include "u.h"
 #include "util.h"
+#include "legendre.h"
 
 void flft(const int M, const int t, const int n, complex *const f_hat, 
           struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal)
@@ -30,7 +31,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   struct U_type act_U;
   
   /** */
-  double gamma;
+  double mygamma;
 
   /** Loop counter */
   int j;
@@ -58,9 +59,9 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   
   /* Use three-term recurrence to map last coefficient a_N to a_{N-1} and 
    * a_{N-2}. */
-  wisdom->work[2*(N-2)]   += wisdom->gamma[ROW(n)+N]*f_hat[N];
-  wisdom->work[2*(N-1)]   += wisdom->beta[ROW(n)+N]*f_hat[N];
-  wisdom->work[2*(N-1)+1]  = wisdom->alpha[ROW(n)+N]*f_hat[N];
+  wisdom->work[2*(N-2)]   += gamma_al(N-1,n)*f_hat[N];
+  wisdom->work[2*(N-1)]   += beta_al(N-1,n)*f_hat[N];
+  wisdom->work[2*(N-1)+1]  = alpha_al(N-1,n)*f_hat[N];
   
   /* Compute the remaining steps. */
   plength = 4;
@@ -93,10 +94,17 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
       /* Check if step is stable. */
       if (act_U.stable)
       {
+        /*fprintf("-----\n");
+        fprintf("gamma = %f\n",wisdom->gamma[ROWK(n)+plength*l+1-n+1]);
+        fprintf("gamma(n-1) = %f\n",gamma_al(n,plength*l));
+        fprintf("gamma(n) = %f\n",gamma_al(n,plength*l+1));
+        fprintf("gamma(n+1) = %f\n",gamma_al(n,plength*l+2));
+        fprintf("-----\n");*/
+        
         /* Multiply third and fourth polynomial with matrix U. */
         multiplyU(wisdom->vec3, wisdom->vec4, act_U, tau, n, plength*l+1, wisdom, 
-                  wisdom->gamma[ROWK(n)+plength*l+1-n+1]);        
-        if (wisdom->gamma[ROWK(n)+plength*l+1-n+1] != 0.0)
+                  gamma_al(plength*l+1,n));
+        if (gamma_al(plength*l+1,n) != 0.0)
         {  
           for (j = 0; j < plength; j++)
           {
@@ -114,7 +122,13 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
         *nstab = *nstab + 1;
 
         /* Get U suitable for current N. */
-        act_U = U[n][tau][l][t-tau-1];
+        if (wisdom->flags & NFSFT_BW_WINDOW)
+        {
+        }
+        else
+        {
+          act_U = U[n][tau][l][t-tau-1];
+        }
 
         /* The lengh of the polynomials */
         plength_stab = 1<<t;
@@ -145,29 +159,29 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
    * polynomials in front of P_0^n and P_1^n. */ 
-  gamma = wisdom->gamma[ROW(n)];//_m1[n];
+  mygamma = gamma_al(-1,n);
   if (n%2 == 0)
   {
     if (n == 0)
     {
-      f_hat[0] = gamma*(wisdom->ergeb[0]+wisdom->ergeb[N+1]*0.5);
-      f_hat[1] = gamma*(wisdom->ergeb[1]+(wisdom->ergeb[N]+wisdom->ergeb[N+2]*0.5));
-      f_hat[N-1] = gamma*(wisdom->ergeb[N-1]+wisdom->ergeb[N+N-2]*0.5);
-      f_hat[N] = gamma*(wisdom->ergeb[N+N-1]*0.5);
+      f_hat[0] = mygamma*(wisdom->ergeb[0]+wisdom->ergeb[N+1]*0.5);
+      f_hat[1] = mygamma*(wisdom->ergeb[1]+(wisdom->ergeb[N]+wisdom->ergeb[N+2]*0.5));
+      f_hat[N-1] = mygamma*(wisdom->ergeb[N-1]+wisdom->ergeb[N+N-2]*0.5);
+      f_hat[N] = mygamma*(wisdom->ergeb[N+N-1]*0.5);
       for (j = 2; j < N-1; j++)
       {
-        f_hat[j] = gamma*(wisdom->ergeb[j]+(wisdom->ergeb[j+N-1]+wisdom->ergeb[j+N+1])*0.5);
+        f_hat[j] = mygamma*(wisdom->ergeb[j]+(wisdom->ergeb[j+N-1]+wisdom->ergeb[j+N+1])*0.5);
       } 
     }
     else
     {
-      f_hat[0] = gamma*(wisdom->ergeb[0]+wisdom->ergeb[N]-wisdom->ergeb[N+1]*0.5);
-      f_hat[1] = gamma*(wisdom->ergeb[1]+wisdom->ergeb[N+1]-(wisdom->ergeb[N]+wisdom->ergeb[N+2]*0.5));
-      f_hat[N-1] = gamma*(wisdom->ergeb[N-1]+wisdom->ergeb[N+N-1]-wisdom->ergeb[N+N-2]*0.5);
-      f_hat[N] = gamma*(wisdom->ergeb[N+N]-wisdom->ergeb[N+N-1]*0.5);
+      f_hat[0] = mygamma*(wisdom->ergeb[0]+wisdom->ergeb[N]-wisdom->ergeb[N+1]*0.5);
+      f_hat[1] = mygamma*(wisdom->ergeb[1]+wisdom->ergeb[N+1]-(wisdom->ergeb[N]+wisdom->ergeb[N+2]*0.5));
+      f_hat[N-1] = mygamma*(wisdom->ergeb[N-1]+wisdom->ergeb[N+N-1]-wisdom->ergeb[N+N-2]*0.5);
+      f_hat[N] = mygamma*(wisdom->ergeb[N+N]-wisdom->ergeb[N+N-1]*0.5);
       for (j = 2; j < N-1; j++)
       {
-        f_hat[j] = gamma*(wisdom->ergeb[j]+wisdom->ergeb[j+N]-(wisdom->ergeb[j+N-1]+wisdom->ergeb[j+N+1])*0.5);
+        f_hat[j] = mygamma*(wisdom->ergeb[j]+wisdom->ergeb[j+N]-(wisdom->ergeb[j+N-1]+wisdom->ergeb[j+N+1])*0.5);
       } 
     }
   }
@@ -176,7 +190,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
     f_hat[N] = 0.0;
     for (j = 0; j < N; j++)
     {
-      f_hat[j] = /*---*/ - gamma*(wisdom->ergeb[j]+wisdom->ergeb[j+N]);
+      f_hat[j] = /*---*/ - mygamma*(wisdom->ergeb[j]+wisdom->ergeb[j+N]);
     }
   }
 }
@@ -217,7 +231,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
   memset(wisdom->ergeb,0U,((N+1)<<1)*sizeof(complex));
   
   /* The final step */ 
-  gamma = wisdom->gamma[ROW(n)];//gamma_m1[n];
+  gamma = gamma_al(-1,n);//wisdom->gamma[ROW(n)];//gamma_m1[n];
     
   /* First half consists always of coefficient vector multiplied by I_{N+1}, 
    * i.e. a copy of this vector. */
@@ -288,7 +302,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
       {
         /* Multiply third and fourth polynomial with matrix U. */
         multiplyU_adjoint(wisdom->vec3, wisdom->vec4, act_U, tau, n, plength*l+1, 
-                          wisdom,  wisdom->gamma[ROWK(n)+plength*l+1-n+1]);
+                          wisdom,  gamma_al(plength*l+1,n));
         memcpy(&(wisdom->vec3[plength/2]),wisdom->vec4,(plength/2)*sizeof(complex));
         
         for (j = 0; j < plength; j++)
@@ -302,7 +316,13 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
         /* Stabilize. */
         
         /* Get U suitable for current N. */
-        act_U = U[n][tau][l][t-tau-1];
+        if (wisdom->flags & NFSFT_BW_WINDOW)
+        {
+        }
+        else
+        {
+          act_U = U[n][tau][l][t-tau-1];
+        }
         
         /* Stabilize. */
         plength_stab = 1<<t;
@@ -328,7 +348,7 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
   {
     f_hat[j] = wisdom->work[2*j];
   }  
-  f_hat[N] = wisdom->gamma[ROW(n)+N]*wisdom->work[2*N-4] + wisdom->beta[ROW(n)+N]*wisdom->work[2*N-2] +  wisdom->alpha[ROW(n)+N]*wisdom->work[2*N-1];
+  f_hat[N] = gamma_al(N-1,n)*wisdom->work[2*N-4] + beta_al(N-1,n)*wisdom->work[2*N-2] +  alpha_al(N-1,n)*wisdom->work[2*N-1];
 }
 
 

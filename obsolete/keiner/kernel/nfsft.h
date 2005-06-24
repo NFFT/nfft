@@ -15,6 +15,11 @@
  *  \ingroup nfsft
  */
 
+/** Flag for normalization */
+#define NFSFT_NORMALIZED 1<<0
+#define NFSFT_FAST_ONLY  1<<1
+#define NFSFT_BW_WINDOW  1<<2
+
 /** 
  * Typedef for transform plans 
  * \author Jens Keiner
@@ -71,7 +76,7 @@ nfsft_plan nfsft_init(int M, int N, double *x, complex **f_hat, complex *f,
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-void nfsft_precompute(int m, double threshold);
+void nfsft_precompute(int m, double threshold, int flags);
 
 /**
  * Forgets all wisdom computed.

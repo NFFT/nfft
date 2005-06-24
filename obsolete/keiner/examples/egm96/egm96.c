@@ -141,7 +141,7 @@ int main (int argc, char **argv)
   }
   fclose(file);
   
-  nfsft_precompute(k_max,2000);
+  nfsft_precompute(k_max,2000,0U);
 
   plan = nfsft_init(D,k_max,x,f_hat,f,0U);
   fprintf(stderr,"d_phi = %d, d_theta = %d, D = %d\n",d_phi,d_theta,D);

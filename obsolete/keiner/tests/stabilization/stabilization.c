@@ -83,7 +83,7 @@ int main(int argc, char **argv)
   
   for (t = t_min; t <= t_max; t = t * t_stride)
   {
-    nfsft_precompute_stab(m_max,t);
+    nfsft_precompute_stab(m_max,t,0U);
     for (m = m_min; m <= m_max; m = m + m_stride)
     {
       /* Compute NFSFT */

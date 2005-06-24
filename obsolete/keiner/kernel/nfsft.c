@@ -17,7 +17,7 @@ static struct nfsft_wisdom wisdom = {false,false};
 static int nstab;
 static int ntotal;
 
-void nfsft_precompute(int M, double threshold)
+void nfsft_precompute(int M, double threshold, int flags)
 {
   int i;
   int ti;
@@ -28,6 +28,7 @@ void nfsft_precompute(int M, double threshold)
     return;
   }
   
+  wisdom.flags = flags;
   wisdom.t = ngpt(M);
   wisdom.N = 1<<wisdom.t;
 
@@ -35,15 +36,20 @@ void nfsft_precompute(int M, double threshold)
   wisdom.alpha = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
   wisdom.beta = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
   wisdom.gamma = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
-  //wisdom.gamma_m1 = (double*) malloc((BW_MAX+1)*sizeof(double));    
   alpha_al_all(wisdom.alpha,BW_MAX);
   beta_al_all(wisdom.beta,BW_MAX);
   gamma_al_all(wisdom.gamma,BW_MAX);
-  //gamma_al_m1_all(wisdom.gamma_m1,BW_MAX);
+  wisdom.threshold  = threshold;
+  wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma, wisdom.flags & NFSFT_BW_WINDOW);
+  if (wisdom.flags & NFSFT_FAST_ONLY)
+  {
+    free(wisdom.alpha);
+    free(wisdom.beta);
+    free(wisdom.gamma);
+  }
   
   if (wisdom.N >= 4)
   {  
-    wisdom.threshold  = threshold;
     wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
     wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
     wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
@@ -71,7 +77,6 @@ void nfsft_precompute(int M, double threshold)
                                                 (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
     }  
     wisdom.z = (complex*) malloc(wisdom.N*sizeof(complex));
-    wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma);
   }
   
   wisdom.initialized = true;
@@ -85,7 +90,7 @@ void nfsft_forget()
   {
     if (wisdom.N >= 4)
     {  
-      forgetU(wisdom.U,wisdom.N,wisdom.t);
+      forgetU(wisdom.U,wisdom.N,wisdom.t,wisdom.flags & NFSFT_BW_WINDOW);
       
       free(wisdom.z);
       fftw_free(wisdom.work);
@@ -110,10 +115,15 @@ void nfsft_forget()
       free(wisdom.kindsr);
       free(wisdom.lengths);
     }
-    free(wisdom.alpha);
-    free(wisdom.beta);
-    free(wisdom.gamma);
-    //free(wisdom.gamma_m1);
+    if (wisdom.flags & NFSFT_FAST_ONLY)
+    {
+    }
+    else
+    {
+      free(wisdom.alpha);
+      free(wisdom.beta);
+      free(wisdom.gamma);
+    }
     wisdom.initialized = false;
   }
 }
@@ -126,6 +136,7 @@ nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat,
 
   nfsft_plan plan = malloc(sizeof(struct nfsft_plan_s));
   
+  plan->flags = flags;
   plan->D = d;
   plan->M = m;
   plan->t = ngpt(plan->M);
@@ -135,16 +146,12 @@ nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat,
   plan->f = f;
   
   /* Initialize NFFT. */
-/*  nfft_size[0] = 2*(plan->N+1);
-  nfft_size[1] = 2*(plan->N+1);
-  fftw_size[0] = 4*plan->N;
-  fftw_size[1] = 4*plan->N;*/
   nfft_size[0] = 2*(plan->N+1);
   nfft_size[1] = 2*(plan->N+1);
   fftw_size[0] = 4*plan->N;
   fftw_size[1] = 4*plan->N;
   nfft_init_specific(&plan->plan_nfft, 2, nfft_size, plan->D, fftw_size, 
-                     6, /*PRE_PHI_HUT|*/ PRE_PSI| MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
+                     6, PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
                      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   /* Assign angle array. */
   plan->plan_nfft.x = plan->angles;
@@ -167,13 +174,35 @@ void nfsft_finalize(nfsft_plan plan)
 void ndsft_trafo(nfsft_plan plan)
 {
   /* Compute direct transform. */
-  ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, &wisdom);
+  if (wisdom.flags & NFSFT_FAST_ONLY)
+  {  
+  }
+  else
+  {
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED)
+    {
+      normalize_f_hat(plan->f_hat, plan->M);
+    }  
+    ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, &wisdom);
+  }
 }
 
 void ndsft_adjoint(nfsft_plan plan)
 { 
-  adjoint_ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
-                &wisdom);
+  if (wisdom.flags & NFSFT_FAST_ONLY)
+  {  
+  }
+  else
+  {
+    adjoint_ndsft(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
+                  &wisdom);
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED)
+    {
+      normalize_f_hat(plan->f_hat, plan->M);
+    }  
+  }
 }
 
 void nfsft_trafo(nfsft_plan plan)
@@ -190,10 +219,16 @@ void nfsft_trafo(nfsft_plan plan)
   {
     ndsft_trafo(plan);
   }
-  else
+  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
   {
     plan->plan_nfft.f = plan->f;
     
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED)
+    {
+      normalize_f_hat(plan->f_hat, plan->M);
+    }  
+
     /* Compute FLFT. */
     for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
     {
@@ -230,7 +265,7 @@ void nfsft_adjoint(nfsft_plan plan)
   {
     ndsft_adjoint(plan);
   }
-  else
+  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
   {
     plan->plan_nfft.f = plan->f;
 
@@ -245,6 +280,12 @@ void nfsft_adjoint(nfsft_plan plan)
     {
       flft_adjoint(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom);
     }          
+
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED)
+    {
+      normalize_f_hat(plan->f_hat, plan->M);
+    }  
   }    
 }
 

@@ -420,3 +420,15 @@ inline void abuvxpwy(double a, double b, complex* u, complex* x, double* v, comp
   }
 }
 
+inline void normalize_f_hat(complex **f_hat, int M)
+{
+  int k,n;
+  for (k = 0; k <= M; k++)
+  {
+    for (n = -M; n <= M; n++)
+    {
+      f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
+    }
+  }
+}
+

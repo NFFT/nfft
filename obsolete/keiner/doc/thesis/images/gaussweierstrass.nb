@@ -41,31 +41,31 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      3809,        110]*)
-(*NotebookOutlinePosition[      4445,        132]*)
-(*  CellTagsIndexPosition[      4401,        128]*)
+(*NotebookOptionsPosition[      3994,        119]*)
+(*NotebookOutlinePosition[      4630,        141]*)
+(*  CellTagsIndexPosition[      4586,        137]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
 Cell[BoxData[
-    \(PoissonKernel[x_, 
-        h_]\  := \((1/\((4  Pi)\))\)*\ \((1 - 
-              h^2)\)/\((\((Sqrt[1 - 2  h*x + h^2])\)^3)\)\)], "Input"],
+    \(PoissonKernel[x_, h_]\  := \ 
+      Sum[Exp[\(-k\)*\((k + 1)\)*h]*\((\((2  k + 1)\)/\((4  Pi)\))\)*
+          LegendreP[k, x], {k, 0, 50}]\)], "Input"],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(PKSpecs\  = \ {{0.5, {Dashing[{0.00}], 
-            Thickness[0.002]}}, {0.7, {Dashing[{0.010, \ 0.005}], 
-            Thickness[0.002]}}, {0.8, {Dashing[{0.005, \ 0.005}], 
+    \(PKSpecs\  = \ {{0.4, {Dashing[{0.00}], 
+            Thickness[0.002]}}, {0.1, {Dashing[{0.010, \ 0.005}], 
+            Thickness[0.002]}}, {0.05, {Dashing[{0.005, \ 0.005}], 
             Thickness[0.002]}}}\)], "Input"],
 
 Cell[BoxData[
-    \({{0.5`, {Dashing[{0.`}], 
-          Thickness[0.002`]}}, {0.7`, {Dashing[{0.01`, 0.005`}], 
-          Thickness[0.002`]}}, {0.8`, {Dashing[{0.005`, 0.005`}], 
+    \({{0.4`, {Dashing[{0.`}], 
+          Thickness[0.002`]}}, {0.1`, {Dashing[{0.01`, 0.005`}], 
+          Thickness[0.002`]}}, {0.05`, {Dashing[{0.005`, 0.005`}], 
           Thickness[0.002`]}}}\)], "Output"]
 }, Open  ]],
 
@@ -81,7 +81,7 @@ Cell[BoxData[
                 Table[t, {t, 0.0, 20.0, 1.0}], 
                 Table[{t, "\<\>"}, {t, \(-Pi\), Pi, Pi/4}], 
                 Table[{t, "\<\>"}, {t, 0.0, 20.0, 1.0}]}, 
-            PlotRange -> {{\(-Pi\), Pi}, {0, 4}}, Axes \[Rule] True, 
+            PlotRange -> {{\(-Pi\), Pi}, {0, 1.8}}, Axes \[Rule] True, 
             PlotStyle \[Rule] \(PKSpecs[\([i]\)]\)[\([2]\)], 
             AxesStyle \[Rule] {Dashing[{0.01, 0.01}]}, \ Frame \[Rule] True, 
             TextStyle \[Rule] {FontFamily \[Rule] "\<Helvetica\>", 
@@ -102,10 +102,19 @@ Cell[BoxData[
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(Export["\<poisson.eps\>", myPlots]\)], "Input"],
+    \(Export["\<gaussweierstrass.eps\>", myPlots]\)], "Input"],
 
 Cell[BoxData[
-    \("poisson.eps"\)], "Output"]
+    \("gaussweierstrass.eps"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PoissonKernel[1, 0.5]\)], "Input"],
+
+Cell[BoxData[
+    \(0.16740221883242642`\)], "Output"]
 }, Open  ]]
 },
 FrontEndVersion->"5.0 for Macintosh",
@@ -131,22 +140,27 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 156, 3, 27, "Input"],
+Cell[1754, 51, 171, 3, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[1935, 58, 238, 4, 43, "Input"],
-Cell[2176, 64, 223, 4, 27, "Output"]
+Cell[1950, 58, 239, 4, 43, "Input"],
+Cell[2192, 64, 224, 4, 27, "Output"]
 }, Open  ]],
-Cell[2414, 71, 958, 16, 118, "Input"],
+Cell[2431, 71, 960, 16, 118, "Input"],
 
 Cell[CellGroupData[{
-Cell[3397, 91, 109, 2, 27, "Input"],
-Cell[3509, 95, 130, 3, 27, "Output"]
+Cell[3416, 91, 109, 2, 27, "Input"],
+Cell[3528, 95, 130, 3, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[3676, 103, 67, 1, 27, "Input"],
-Cell[3746, 106, 47, 1, 27, "Output"]
+Cell[3695, 103, 76, 1, 27, "Input"],
+Cell[3774, 106, 56, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3867, 112, 54, 1, 27, "Input"],
+Cell[3924, 115, 54, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

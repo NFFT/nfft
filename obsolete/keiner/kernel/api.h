@@ -66,6 +66,8 @@ struct U_type
  */
 struct nfsft_plan_s
 {
+  /** The flags */
+  int flags;
   /** The number of nodes. */
   int D;                      
   /** The bandwidth */
@@ -140,6 +142,7 @@ struct nfsft_wisdom
 {
   /** Indicates wether the structure has been initialized */ 
   bool initialized;
+  int flags;
   /** The threshold */
   double threshold;
   /** Maximum bandwidth */
@@ -168,8 +171,10 @@ struct nfsft_wisdom
   double *beta;
   /** Precomputed recursion coefficients for associated Legendre-functions */
   double *gamma;
-  /** Precomputed recursion coefficients for associated Legendre-functions */
-  //double *gamma_m1;  
+  
+  double *flft_alpha;
+  double *flft_beta;
+  double *flft_gamma;
 
   complex *z;
 };

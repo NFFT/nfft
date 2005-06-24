@@ -158,7 +158,7 @@ int main (int argc, char **argv)
   f = (complex*) malloc(d*sizeof(complex));
   fd = (complex*) malloc(d*sizeof(complex));
   
-  nfsft_precompute(m_max,2000);
+  nfsft_precompute(m_max,2000,0U);
   
   /* Create kernels. */
   fprintf(stderr,"kernels:\n");

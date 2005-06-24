@@ -15,14 +15,14 @@
  * \ingroup nfsft_internal
  */
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
-                             double *wbeta, double *wgamma);
+                             double *wbeta, double *wgamma, int flags);
 
 /**
  * Forget U
  *
  * \ingroup nfsft_internal
  */
-void forgetU(struct U_type**** U, int M, int t);
+void forgetU(struct U_type**** U, int M, int t, int flags);
 
 /**
  * Fast matrix Multiplication with matrices \f$U_{n,\tau,l}\f$.

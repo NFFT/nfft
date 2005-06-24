@@ -40,4 +40,6 @@ void updatec_xpawy_2(complex* x,double a, double* w, complex* y, int n);
 void uvxpwy(complex* u, complex* x, double* v, complex* y, double* w, int n);
 void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, double* w, int n);
 void abuvxpwy(double a, double b, complex* u, complex* x, double* v, complex* y, double* w, int n);
+void normalize_f_hat(complex **f_hat, int M);
+
 #endif
