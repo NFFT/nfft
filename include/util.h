@@ -133,6 +133,10 @@ void upd_xpawy_complex(complex* x, double a, double* w, complex* y, int n);
  */
 void upd_axpwy_complex(complex* x, double a, double* w, complex* y, int n);
 
+/** Swaps each half over N[d]/2.
+ */
+void fftshift_complex(complex *x, int d, int* N);
+
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
 double error_l_infty_complex(complex *x, complex *y, int n);

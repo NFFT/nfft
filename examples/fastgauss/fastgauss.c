@@ -5,362 +5,182 @@
 #include <time.h>
 #include <complex.h>
 
-#include "nfft.h"
-#include "utils.h"
+#include "nfft3.h"
+#include "util.h"
 
-#define SAMPLED_FT       (1U<< 0)
-#define DFT_APPROX       (1U<< 1)
-
-typedef struct gauss_plan_ 
-{
-  int N,M;
-
-  double p;
-
-  fftw_complex delta;
-
-  double *x;
-  double *y;
-
-  fftw_complex *alpha;
-  fftw_complex *f;
-
-  /** precomputed values of the Gaussian for the direct transform */
-  fftw_complex *pre_cexp;
-
-  /** data for the fast transform */
-  int n;
-
-  fftw_complex *b;
-
-  fftw_plan my_fftw_plan;
-  
-  nfft_plan *my_nfft_plan1;
-  nfft_plan *my_nfft_plan2;
-
-} gauss_plan;
-
-/** @defgroup utilities
- * contains utility routines
- * @{ 
- */
-void fft_shift(fftw_complex *a, int n)
-{
-  int j;
-  fftw_complex temp;
-
-  for(j=0; j<n/2; j++)
-    {
-      temp=a[j];
-      a[j]=a[j+n/2];
-      a[j+n/2]=temp;
-    }
-}
-
-double l_infty_error_relative_to_alpha(fftw_complex *x_0, fftw_complex *x,
-				       int M, fftw_complex *alpha, int N)
-{
-  int j;
-  double error,l1_alpha;
-
-  error=0;
-  for(j=0; j<M; j++) 
-    if(cabs(x_0[j]-x[j])>error)
-      error=cabs(x_0[j]-x[j]);
-
-  l1_alpha=0;
-  for(j=0; j<N; j++)
-    l1_alpha += cabs(alpha[j]);
-  
-  return error/l1_alpha;
-}
-/** @} 
- */ 
-
-/** @defgroup gauss transform
+/** @defgroup fast gauss transform
  * contains the gauss transforms with and without precomputation
  * @{ 
  */
-void precompute_cexp(gauss_plan *this)
+#define DGT_PRE_CEXP     (1U<< 0)
+#define FGT_NDFT         (1U<< 1)
+#define FGT_APPROX_B     (1U<< 2)
+
+typedef struct fgt_plan_ 
+{
+  int N;                                /**< number of source knots          */
+  int M;                                /**< number of target knots          */
+
+  complex *alpha;                       /**< source coefficients             */
+  complex *f;                           /**< target evaluations              */
+
+  unsigned flags;                       /**< flags precomp. and approx.type  */
+
+  complex sigma;                        /**< parameter of the Gaussian       */
+
+  double *x;                            /**< source knots in [-1/4,1/4]      */
+  double *y;                            /**< target knots in [-1/4,1/4]      */
+
+  complex *pre_cexp;                    /**< precomputed values for dgt      */
+
+  int n;                                /**< expansion degree                */
+  double p;                             /**< period, at least 1              */
+
+  complex *b;                           /**< expansion coefficients          */
+
+  nfft_plan *nplan1;                    /**< source nfft plan                */
+  nfft_plan *nplan2;                    /**< target nfft plan                */
+
+} fgt_plan;
+
+void dgt_trafo(fgt_plan *ths)
 {
   int j,k,l;
   
-  for(j=0,l=0; j<this->M; j++)
-    for(k=0; k<this->N; k++,l++)
-      this->pre_cexp[l]=cexp(-this->delta*(this->y[j]-this->x[k])*
-			     (this->y[j]-this->x[k]));
+  for(j=0; j<ths->M; j++)
+    ths->f[j] = 0;
+  
+  if(ths->flags & DGT_PRE_CEXP)
+    for(j=0,l=0; j<ths->M; j++)
+      for(k=0; k<ths->N; k++,l++)
+        ths->f[j] += ths->alpha[k]*ths->pre_cexp[l];
+  else
+    for(j=0; j<ths->M; j++)
+      for(k=0; k<ths->N; k++)
+        ths->f[j] += ths->alpha[k]*cexp(-ths->sigma*(ths->y[j]-ths->x[k])*
+					(ths->y[j]-ths->x[k]));
 }
 
-void gauss_trafo(gauss_plan *this)
-{
-  int j,k;
-  
-  for(j=0; j<this->M; j++)
-    this->f[j] = 0;
-  
-  for(j=0; j<this->M; j++)
-    for(k=0; k<this->N; k++)
-      this->f[j] += this->alpha[k]*cexp(-this->delta*(this->y[j]-this->x[k])*
-					(this->y[j]-this->x[k]));
-}
-
-void gauss_trafo_pre(gauss_plan *this)
-{
-  int j,k,l;
-  
-  for(j=0; j<this->M; j++)
-    this->f[j] = 0;
-  
-  for(j=0,l=0; j<this->M; j++)
-    for(k=0; k<this->N; k++,l++)
-      this->f[j] += this->alpha[k]*this->pre_cexp[l];
-}
-/** @} 
- */
-
-/** @defgroup fast gauss transform
- * contains the fast gauss transforms ndft and nfft based
- * @{ 
- */
-void fast_gauss_trafo_ndft(gauss_plan *this)
+void fgt_trafo(fgt_plan *ths)
 {
   int l;
 
-  ndft_adjoint(this->my_nfft_plan1);
-
-  for(l=0; l<this->n; l++)
-    this->my_nfft_plan1->f_hat[l] *= this->b[l];
-  
-  ndft_trafo(this->my_nfft_plan2);
-}
-
-void fast_gauss_trafo_nfft(gauss_plan *this)
-{
-  int l;
-
-  nfft_adjoint(this->my_nfft_plan1);
-
-  for(l=0; l<this->n; l++)
-    this->my_nfft_plan1->f_hat[l] *= this->b[l];
-  
-  nfft_trafo(this->my_nfft_plan2);
-}
-/** @} 
- */
-
-/** @defgroup init gauss transform
- * contains the initialization and finalization
- * @{ 
- */
-void init_gauss_trafo(gauss_plan *this, int N, int M, fftw_complex delta,
-		      int n, double p)
-{
-  int j,k,sigma_n;
-
-  this->M = M;
-  this->N = N;
-  this->p = p;
-  this->delta = delta;
-
-  this->x = (double*)fftw_malloc(this->N*sizeof(double));
-  this->alpha = (fftw_complex*)fftw_malloc(this->N*sizeof(fftw_complex));
-
-  this->y = (double*)fftw_malloc(this->M*sizeof(double));
-  this->f = (fftw_complex*)fftw_malloc(this->M*sizeof(fftw_complex));
-
-  for(k=0; k<this->N; k++)
-    this->x[k] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
-
-  for(j=0; j<this->M; j++)
-    this->y[j] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
-
-  for(k=0; k<this->N; k++)
+  if(ths->flags & FGT_NDFT)
     {
-      this->alpha[k] = (double)rand()/(RAND_MAX)-1.0/2.0
-	             + I*(double)rand()/(RAND_MAX)-I/2.0;
-    }
+      ndft_adjoint(ths->nplan1);
 
-  /* ... and for the fast trafo */
-  this->n = n;
-
-  this->b = (fftw_complex*)fftw_malloc(this->n*sizeof(fftw_complex));
-
-  this->my_nfft_plan1 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
-  this->my_nfft_plan2 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
-
-  sigma_n=next_power_of_2(2*this->n);
-  if(0)
-    {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI, FFTW_MEASURE);
-      this->my_nfft_plan1->x = this->x;
-      this->my_nfft_plan2->x = this->y;
+      for(l=0; l<ths->n; l++)
+        ths->nplan1->f_hat[l] *= ths->b[l];
+  
+      ndft_trafo(ths->nplan2);
     }
   else
     {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X,
-			 FFTW_MEASURE);
-      for(j=0; j<this->my_nfft_plan1->M; j++)
-	this->my_nfft_plan1->x[j] = this->x[j]/this->p;
-      for(j=0; j<this->my_nfft_plan2->M; j++)
-	this->my_nfft_plan2->x[j] = this->y[j]/this->p;
-    }
+      nfft_adjoint(ths->nplan1);
+
+      for(l=0; l<ths->n; l++)
+        ths->nplan1->f_hat[l] *= ths->b[l];
   
-  if(this->my_nfft_plan1->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan1);
-
-  this->my_nfft_plan1->f = this->alpha; 
-
-  if(this->my_nfft_plan2->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan2);
-
-  this->my_nfft_plan2->f_hat = this->my_nfft_plan1->f_hat;
-
-  this->my_nfft_plan2->f = this->f;
-}
-
-void finalize_gauss_trafo(gauss_plan *this)
-{
-  nfft_finalize(this->my_nfft_plan2);
-  nfft_finalize(this->my_nfft_plan1);
-
-  fftw_free(this->my_nfft_plan2);
-  fftw_free(this->my_nfft_plan1);
-
-  fftw_free(this->b);
-
-  fftw_free(this->f);
-  fftw_free(this->y);
-
-  fftw_free(this->alpha);
-  fftw_free(this->x);
-}
-
-void init_gauss_trafo_approx_type(gauss_plan *this, unsigned approx_type)
-{
-  int j;
-
-  if(approx_type==SAMPLED_FT)
-    {
-      for(j=0; j<this->n; j++)
-	this->b[j] = 1.0/this->p * csqrt(PI/this->delta)*
-	  cexp(-PI*PI*(j-this->n/2)*(j-this->n/2)/
-	       (this->p*this->p*this->delta));
+      nfft_trafo(ths->nplan2);
     }
+}
 
-  if(approx_type==DFT_APPROX)
+void fgt_init(fgt_plan *ths, int N, int M, complex sigma, int n, double p, unsigned flags)
+{
+  int j,k,l,n_fftw;
+  fftw_plan fplan;
+
+  ths->M = M;
+  ths->N = N;
+  ths->sigma = sigma;
+  ths->flags = flags;
+
+  ths->x = (double*)fftw_malloc(ths->N*sizeof(double));
+  ths->y = (double*)fftw_malloc(ths->M*sizeof(double));
+  ths->alpha = (complex*)fftw_malloc(ths->N*sizeof(complex));
+  ths->f = (complex*)fftw_malloc(ths->M*sizeof(complex));
+
+  if(ths->flags & DGT_PRE_CEXP)
+   {
+     ths->pre_cexp=(complex*)fftw_malloc(my_plan.M*my_plan.N*sizeof(complex));
+
+     for(j=0,l=0; j<ths->M; j++)
+       for(k=0; k<ths->N; k++,l++)
+         ths->pre_cexp[l]=cexp(-ths->sigma*(ths->y[j]-ths->x[k])*
+                                (ths->y[j]-ths->x[k]));
+   }
+
+/* TODO: ESTIMATE n, p for simple init !!!!!!!!!!!!!!!!!!!!!!*/
+  ths->n = n;
+  ths->p = p;
+
+  ths->b = (complex*)fftw_malloc(ths->n*sizeof(complex));
+
+  ths->nplan1 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
+  ths->nplan2 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
+
+  n_fftw=next_power_of_2(2*ths->n);
+
+/* TODO: PRE_PHI_HUT only once?, FFTW_INIT only once?, PRE_LIN_PSI instead of PRE_PSI and only once? */
+  nfft_init_guru(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, 7, PRE_PHI_HUT|
+                 PRE_PSI| MALLOC_X| MALLOC_F_HAT| FFTW_INIT, FFTW_MEASURE);
+  nfft_init_guru(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, 7, PRE_PHI_HUT|
+                 PRE_PSI| MALLOC_X| FFTW_INIT, FFTW_MEASURE);
+
+  for(j=0; j<ths->nplan1->M_total; j++)
+    ths->nplan1->x[j] = ths->x[j]/ths->p;
+  for(j=0; j<ths->nplan2->M_total; j++)
+    ths->nplan2->x[j] = ths->y[j]/ths->p;
+  
+  if(ths->nplan1->nfft_flags & PRE_PSI)
+    nfft_precompute_psi(ths->nplan1);
+  if(ths->nplan2->nfft_flags & PRE_PSI)
+    nfft_precompute_psi(ths->nplan2);
+
+  ths->nplan1->f = ths->alpha;
+  ths->nplan2->f_hat = ths->nplan1->f_hat;
+  ths->nplan2->f = ths->f;
+
+  if(ths->flags & FGT_APPROX_B)
     {
-      this->my_fftw_plan = fftw_plan_dft_1d(this->n, this->b, this->b,
-					    FFTW_FORWARD, FFTW_MEASURE);
-      for(j=0; j<this->n; j++)
-	this->b[j] = cexp(-this->p*this->p*this->delta*(j-this->n/2)*
-			  (j-this->n/2)/((double)this->n*this->n)) / this->n;
+      ths->fplan = fftw_plan_dft_1d(ths->n, ths->b, ths->b, FFTW_FORWARD,
+                                    FFTW_MEASURE);
+
+      for(j=0; j<ths->n; j++)
+	ths->b[j] = cexp(-ths->p*ths->p*ths->sigma*(j-ths->n/2)*(j-ths->n/2)/
+                          ((double)ths->n*ths->n)) / ths->n;
       
-      fft_shift(this->b, this->n);  
-      fftw_execute(this->my_fftw_plan);
-      fft_shift(this->b, this->n);
+      fftshift_complex(ths->b, ths->n);  
+      fftw_execute(ths->fplan);
+      fftshift_complex(ths->b, ths->n);
       
-      fftw_destroy_plan(this->my_fftw_plan);
-    }
-}
-
-void init_gauss_trafo_nfft_change_m(gauss_plan *this, int m)
-{
-  int sigma_n,j;
-
-  nfft_finalize(this->my_nfft_plan1);
-  nfft_finalize(this->my_nfft_plan2);
-
-  sigma_n=next_power_of_2(2*this->n);
-  if(0)
-    {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI, FFTW_MEASURE);
-      this->my_nfft_plan1->x = this->x;
-      this->my_nfft_plan2->x = this->y;
+      fftw_destroy_plan(ths->fplan);
     }
   else
     {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X,
-			 FFTW_MEASURE);
-      for(j=0; j<this->my_nfft_plan1->M; j++)
-	this->my_nfft_plan1->x[j] = this->x[j]/this->p;
-      for(j=0; j<this->my_nfft_plan2->M; j++)
-	this->my_nfft_plan2->x[j] = this->y[j]/this->p;
+      for(j=0; j<ths->n; j++)
+	ths->b[j] = 1.0/ths->p * csqrt(PI/ths->sigma)*
+	  cexp(-PI*PI*(j-ths->n/2)*(j-ths->n/2)/
+	       (ths->p*ths->p*ths->sigma));
     }
-  
-  if(this->my_nfft_plan1->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan1);
 
-  this->my_nfft_plan1->f = this->alpha; 
-
-  if(this->my_nfft_plan2->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan2);
-
-  this->my_nfft_plan2->f_hat = this->my_nfft_plan1->f_hat;
-
-  this->my_nfft_plan2->f = this->f;
 }
 
-void init_gauss_trafo_nfft_change_p(gauss_plan *this, double p)
+void fgt_finalize(fgt_plan *ths)
 {
-  int sigma_n,j;
+  nfft_finalize(ths->nplan2);
+  nfft_finalize(ths->nplan1);
 
-  nfft_finalize(this->my_nfft_plan1);
-  nfft_finalize(this->my_nfft_plan2);
+  fftw_free(ths->nplan2);
+  fftw_free(ths->nplan1);
 
-  this->p=p;
+  fftw_free(ths->b);
 
-  sigma_n=next_power_of_2(2*this->n);
-  if(p==1)
-    {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI, FFTW_MEASURE);
-      this->my_nfft_plan1->x = this->x;
-      this->my_nfft_plan2->x = this->y;
-    }
-  else
-    {
-      nfft_init_specific(this->my_nfft_plan1, 1, &(this->n), this->N, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT,
-			 FFTW_MEASURE);
-      nfft_init_specific(this->my_nfft_plan2, 1, &(this->n), this->M, &sigma_n,
-			 7, PRE_PHI_HUT| PRE_PSI| MALLOC_X,
-			 FFTW_MEASURE);
-      for(j=0; j<this->my_nfft_plan1->M; j++)
-	this->my_nfft_plan1->x[j] = this->x[j]/this->p;
-      for(j=0; j<this->my_nfft_plan2->M; j++)
-	this->my_nfft_plan2->x[j] = this->y[j]/this->p;
-    }
-  
-  if(this->my_nfft_plan1->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan1);
+  fftw_free(ths->f);
+  fftw_free(ths->y);
 
-  this->my_nfft_plan1->f = this->alpha; 
-
-  if(this->my_nfft_plan2->nfft_flags & PRE_PSI)
-    nfft_precompute_psi(this->my_nfft_plan2);
-
-  this->my_nfft_plan2->f_hat = this->my_nfft_plan1->f_hat;
-
-  this->my_nfft_plan2->f = this->f;
+  fftw_free(ths->alpha);
+  fftw_free(ths->x);
 }
 /** @} 
  */
@@ -370,252 +190,136 @@ void init_gauss_trafo_nfft_change_p(gauss_plan *this, double p)
  * @{ 
  */
 
-/** gauss_andersson_test similar to the test in
+void TODO()
+{
+  for(k=0; k<ths->N; k++)
+    ths->x[k] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
+
+  for(j=0; j<ths->M; j++)
+    ths->y[j] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
+
+  for(k=0; k<ths->N; k++)
+    {
+      ths->alpha[k] = (double)rand()/(RAND_MAX)-1.0/2.0
+	             + I*(double)rand()/(RAND_MAX)-I/2.0;
+    }
+}
+
+/** fgt_andersson_test similar to the test in
  *  F. Andersson and G. Beylkin.
  *  The fast Gauss transform with complex parameters.
  *  J. Comput. Physics, to appear.
  */
-void gauss_andersson_test()
+void fgt_andersson_test()
 {
-  gauss_plan my_plan;
+  fgt_plan my_plan;
   double t;
-  fftw_complex *direct;
+  complex *direct;
   int N;
+  int r;
 
-  fftw_complex delta=4*(138+I*100);
+  complex sigma=4*(138+I*100);
   int n=128;
-  int r,r_max;
-  r_max=1000;
 
-  printf("n=%d, delta=%1.3e+i%1.3e\n",n,creal(delta),cimag(delta));
+  double tau=0.01;
+
+  printf("n=%d, sigma=%1.3e+i%1.3e\n",n,creal(sigma),cimag(sigma));
 
   for(N=((int)(1U<<6)); N<((int)(1U<<22)); N=N<<1)
     {
       printf("$%d$\t & ",N);
-      init_gauss_trafo(&my_plan, N, N, delta, n, 1);
-      init_gauss_trafo_approx_type(&my_plan, SAMPLED_FT);
-      direct = (fftw_complex*)fftw_malloc(my_plan.M*sizeof(fftw_complex));
-      
-      SWAPC(direct,my_plan.f);
+      fgt_init(&my_plan, N, N, sigma, n, 1, DGT_PRE_CEXP);
 
       if(N<((int)(1U<<19)))
 	{
-	  t=second();
-	  gauss_trafo(&my_plan);
-	  t=second()-t;
-	  if(t>=0.1)
-	    printf("$%1.1e$\t & ",t);
-	  else
-	    {
-	      t=second();
-	      for(r=0;r<r_max;r++)
-		gauss_trafo(&my_plan);
-	      t=second()-t;
-	      printf("$%1.1e$\t & ",t/r_max);
-	    }
+          direct = (complex*)fftw_malloc(my_plan.M*sizeof(complex));
+          SWAP_complex(direct,my_plan.f);
+          my_plan.flags^=DGT_PRE_CEXP;
+          t_dgt=0;
+          r=0; 
+          while(t_dgt<0.1)
+            {
+              r++;
+              t=second();
+              dgt_trafo(&my_plan);
+              t_dgt+=second()-t;
+            }
+          t_dgt/=r;
+
+	  printf("$%1.1e$\t & ",t_dgt);
+          my_plan.flags^=DGT_PRE_CEXP;
+          SWAP_complex(direct,my_plan.f);  
 	}
       else
 	printf("\t\t & ");	
 
       if(N<((int)(1U<<14)))
 	{
-	  my_plan.pre_cexp=(fftw_complex*)fftw_malloc(my_plan.M*my_plan.N*
-						      sizeof(fftw_complex));
-	  precompute_cexp(&my_plan);
-	  t=second();
-	  gauss_trafo_pre(&my_plan);
-	  t=second()-t;
-	  if(t>=0.1)
-	    printf("$%1.1e$\t & ",t);
-	  else
-	    {
-	      t=second();
-	      for(r=0;r<r_max;r++)
-		gauss_trafo_pre(&my_plan);
-	      t=second()-t;
-	      printf("$%1.1e$\t & ",t/r_max);
-	    }
+          t_dgt_pre=0;
+          r=0; 
+          while(t_dgt_pre<0.1)
+            {
+              r++;
+              t=second();
+              dgt_trafo(&my_plan);
+              t_dgt_pre+=second()-t;
+            }
+          t_dgt_pre/=r;
+
+	  printf("$%1.1e$\t & ",t_dgt_pre);
 	}
       else
 	printf("\t\t & ");	
 
-      t=second();
-      fast_gauss_trafo_ndft(&my_plan);
-      t=second()-t;
-      if(t>=0.1)
-	printf("$%1.1e$\t & ",t);
-      else
-	{
-	  t=second();
-	  for(r=0;r<r_max;r++)
-	    fast_gauss_trafo_ndft(&my_plan);
-	  t=second()-t;
-	  printf("$%1.1e$\t & ",t/r_max);
-	}
+       my_plan.flags^=FGT_NDFT;
+       t_fgt_ndft=0;
+       r=0; 
+       while(t_fgt_ndft<0.1)
+         {
+           r++;
+           t=second();
+           dgt_trafo(&my_plan);
+           t_fgt_ndft+=second()-t;
+         }
+       t_fgt_ndft/=r;
+
+       printf("$%1.1e$\t & ",t_fgt_ndft);
+       my_plan.flags^=FGT_NDFT;
       
-      SWAPC(direct,my_plan.f);
-      
-      t=second();
-      fast_gauss_trafo_nfft(&my_plan);
-      t=second()-t;
-      if(t>=0.1)
-	printf("$%1.1e$\t & ",t);
-      else
-	{
-	  t=second();
-	  for(r=0;r<r_max;r++)
-	    fast_gauss_trafo_nfft(&my_plan);
-	  t=second()-t;
-	  printf("$%1.1e$\t & ",t/r_max);
-	}
-      
-      printf("$%1.1e$\t \\\\ \n",
-	     l_infty_error_relative_to_alpha(direct,my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
+       t_fgt_nfft=0;
+       r=0; 
+       while(t_fgt_nfft<0.1)
+         {
+           r++;
+           t=second();
+           dgt_trafo(&my_plan);
+           t_fgt_nfft+=second()-t;
+         }
+       t_fgt_nfft/=r;
+
+       printf("$%1.1e$\t & ",t_fgt_nfft);
+
+
+      printf("$%1.1e$\t \\\\ \n", error_l_infty_1_complex(direct, my_plan.f,
+             my_plan.M, my_plan.alpha, my_plan.N));
       fflush(stdout);
 
-      finalize_gauss_trafo(&my_plan);
+      fgt_finalize(&my_plan);
       fftw_cleanup();
     }
 }
 
-void gauss_error()
-{
-  gauss_plan my_plan;
-  fftw_complex *direct;
-  int n;
-
-  fftw_complex delta=4*(138+I*100);
-  int N=1000;
-  int M=1000;
-  
-  printf("N=%d;\tM=%d;\ndelta=%1.3e+i*%1.3e;\n",N,M,creal(delta),cimag(delta));
-  printf("error=[\n");
-
-  for(n=8; n<=128; n+=4)
-    {
-      printf("%d\t",n);
-      
-      init_gauss_trafo(&my_plan, N, M, delta, n, 1);
-
-      direct = (fftw_complex*)fftw_malloc(my_plan.M*sizeof(fftw_complex));
-      
-      SWAPC(direct,my_plan.f);
-      gauss_trafo(&my_plan);
-      SWAPC(direct,my_plan.f);
-
-      /** fast gauss trafo with sampled continuous Fourier transform for b */
-      init_gauss_trafo_approx_type(&my_plan, SAMPLED_FT);
-
-      fast_gauss_trafo_ndft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      init_gauss_trafo_nfft_change_m(&my_plan, 7);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      init_gauss_trafo_nfft_change_m(&my_plan, 3);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-     
-      /** fast gauss trafo with truncated kernel and DFT-coefficients for b */
-      init_gauss_trafo_approx_type(&my_plan, DFT_APPROX);
-      fast_gauss_trafo_ndft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      init_gauss_trafo_nfft_change_m(&my_plan, 7);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      init_gauss_trafo_nfft_change_m(&my_plan, 3);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\n",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      finalize_gauss_trafo(&my_plan);
-      fftw_cleanup();
-    }
-  printf("];\n");
-}
-
-void gauss_error_p()
-{
-  gauss_plan my_plan;
-  fftw_complex *direct;
-  int n;
-
-  fftw_complex delta=20+40I;
-  int N=1000;
-  int M=1000;
-  
-  printf("N=%d;\tM=%d;\ndelta=%1.3e+i*%1.3e;\n",N,M,creal(delta),cimag(delta));
-  printf("error=[\n");
-
-  for(n=8; n<=128; n+=4)
-    {
-      printf("%d\t",n);
-      
-      /** p=1 */
-      init_gauss_trafo(&my_plan, N, M, delta, n, 1);
-
-      direct = (fftw_complex*)fftw_malloc(my_plan.M*sizeof(fftw_complex));
-      
-      SWAPC(direct,my_plan.f);
-      gauss_trafo(&my_plan);
-      SWAPC(direct,my_plan.f);
-
-      /** fast gauss trafo with sampled continuous Fourier transform for b */
-      init_gauss_trafo_approx_type(&my_plan, SAMPLED_FT);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      /** p=1.5 */
-      init_gauss_trafo_nfft_change_p(&my_plan, 1.5);
-      init_gauss_trafo_approx_type(&my_plan, SAMPLED_FT);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\t",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      /** p=2 */
-      init_gauss_trafo_nfft_change_p(&my_plan, 2);
-      init_gauss_trafo_approx_type(&my_plan, SAMPLED_FT);
-      fast_gauss_trafo_nfft(&my_plan);
-      printf("%1.3e\n",
-	     l_infty_error_relative_to_alpha(direct, my_plan.f, my_plan.M,
-					     my_plan.alpha, my_plan.N));
-
-      finalize_gauss_trafo(&my_plan);
-      fftw_cleanup();
-    }
-  printf("];\n");
-}
-/** @} 
- */
 
 int main()
 {
   /**  pipe to output_andersson.tex */
-  gauss_andersson_test();
+  fgt_andersson_test();
 
   /** pipe to output_error.m */
-  //gauss_error();
+  //fgt_error();
 
   /** pipe to output_error_p.m */
-  //gauss_error_p();
+  //fgt_error_p();
 
   return 1;
 }

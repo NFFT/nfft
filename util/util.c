@@ -930,6 +930,39 @@ void upd_axpwy_complex(complex *x, double a, double *w, complex *y, int n)
     x[k]=a*x[k]+w[k]*y[k];
 }
 
+void fftshift_complex(complex *x, int d, int* N)
+{
+  int d_pre, d_act, d_post;
+  int N_pre, N_act, N_post;
+  int k_pre, k_act, k_post;
+  int k,k_swap;
+
+  complex x_swap;
+
+  for(d_act=0;d_act<d;d_act++)
+    {
+      for(d_pre=0, N_pre=1;d_pre<d_act;d_pre++)
+	N_pre*=N[d_pre];
+      
+      N_act=N[d_act];
+
+      for(d_post=d_act+1, N_post=1;d_post<d;d_post++)
+	N_post*=N[d_post];
+
+      for(k_pre=0;k_pre<N_pre;k_pre++)
+	for(k_act=0;k_act<N_act/2;k_act++)
+	  for(k_post=0;k_post<N_post;k_post++)
+	    {
+	      k=(k_pre*N_act+k_act)*N_post+k_post;
+	      k_swap=(k_pre*N_act+k_act+N_act/2)*N_post+k_post;
+
+	      x_swap=x[k];
+	      x[k]=x[k_swap];
+	      x[k_swap]=x_swap;
+	    }
+    }
+}
+
 double l_1_complex(complex *x, complex *y, int n)
 {
   int k;

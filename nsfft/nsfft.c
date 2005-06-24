@@ -556,48 +556,20 @@ void init_index_sparse_to_full_3d(nsfft_plan *ths)
 }
 
 /* copies ths->f_hat to ths_plan->f_hat */
-void nsfft_cp_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
-{
-  int k_S,k; 
-  const int N=ths_full_plan->N[0];  /* size of full NFFT      */
-  
-
-  /* initialize f_hat with zero values */
-  memset(ths_full_plan->f_hat, 0, N*N*sizeof(complex));
-  
-   /* copy values at hyperbolic grid points */
-  for(k_S=0;k_S<ths->N_total;k_S++)
-    ths_full_plan->f_hat[ths->index_sparse_to_full[k_S]]=ths->f_hat[k_S];
-  
-  /* copy nodes */
-  memcpy(ths_full_plan->x,ths->act_nfft_plan->x,ths->M_total*2*sizeof(double));
-}
-
-/* copies ths->f_hat to ths_plan->f_hat */
-void nsfft_cp_to_full_3d(nsfft_plan *ths, nfft_plan *ths_full_plan)
-{
-  int k_S,k; 
-  int N=ths_full_plan->N[0];     /* length of the full grid            */
-  
-  /* initialize f_hat with zero values */
-  memset(ths_full_plan->f_hat, 0, N*N*N*sizeof(complex));
-  
-   /* copy values at hyperbolic grid points */
-  for(k_S=0;k_S<ths->N_total;k_S++)
-    ths_full_plan->f_hat[ths->index_sparse_to_full[k_S]]=ths->f_hat[k_S];
-  
-  /* copy nodes */
-  memcpy(ths_full_plan->x,ths->act_nfft_plan->x,ths->M_total*3*sizeof(double));
-}
-
 void nsfft_cp_to_full(nsfft_plan *ths, nfft_plan *ths_full_plan)
 {
-  if(ths->d==2)
-    nsfft_cp_to_full_2d(ths, ths_full_plan);
-  else
-    nsfft_cp_to_full_3d(ths, ths_full_plan);
-}
+  int k; 
 
+  /* initialize f_hat with zero values */
+  memset(ths_full_plan->f_hat, 0, ths_full_plan->N_total*sizeof(complex));
+  
+   /* copy values at hyperbolic grid points */
+  for(k=0;k<ths->N_total;k++)
+    ths_full_plan->f_hat[ths->index_sparse_to_full[k]]=ths->f_hat[k];
+  
+  /* copy nodes */
+  memcpy(ths_full_plan->x,ths->act_nfft_plan->x,ths->M_total*ths->d*sizeof(double));
+}
 
 /* test copy_sparse_to_full */
 void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
