@@ -61,17 +61,26 @@
 #define L_MAX 10000
 #define L_STRIDE 1000
 
-#define ABEL_POISSON_KERNEL(k,h) (2*k+1)*pow(h,k)*((1-h)*(1-h)/(1+h))
+#define SYMBOL_ABEL_POISSON(k,h) ((2*k+1)/(4*PI))*pow(h,k)
+#define SYMBOL_SINGULARITY(k,h) (1/(2*PI))*pow(h,k)
 
 inline double ip(double phi1,double theta1,double phi2,double theta2)
 {
   return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
 }
 
-inline double poisson(double phi1,double theta1,double phi2,double theta2,double h)
+inline double poissonKernel(double phi1,double theta1,double phi2,double theta2,
+                            double h)
 {
   double t = ip(phi1,theta1,phi2,theta2);
- 	return pow((1-h)/sqrt(1-2*h*t+h*h),3);
+ 	return (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*t+h*h),3);
+}
+
+inline double singularityKernel(double phi1,double theta1,double phi2,double theta2,
+                            double h)
+{
+  double t = ip(phi1,theta1,phi2,theta2);
+ 	return (1.0/(2*PI))/sqrt(1-2*h*t+h*h);
 }
 
 /**
@@ -84,6 +93,15 @@ inline double poisson(double phi1,double theta1,double phi2,double theta2,double
  */
 int main (int argc, char **argv)
 {  
+  /*double *h;
+  int ih_max;
+  int *m;
+  int im_max;
+  int *l;
+  int il_max;
+  int *d;
+  int id_max;*/
+  
   double h_min;
   double h_max;
   double h_stride;
@@ -103,11 +121,11 @@ int main (int argc, char **argv)
   int M;
   /** Next greater power of two with respect to M */
   int N;
-	/** Error */
-	double eps;
+ 	/** Error */
+	 double eps;
   double h;
-	double err;
-	double t_d, t_f;
+	 double err;
+	 double t_d, t_f;
 	
  	complex *b;
   complex **f_hat;
@@ -117,7 +135,8 @@ int main (int argc, char **argv)
  	complex *f, *f2;
  	nfsft_plan plan, plan_adjoint;
  	int j,k,n,l,d;
-	FILE *file;
+	 FILE *file;
+  FILE *file2;
 	 	
   if (argc == 1)
   {
@@ -151,7 +170,7 @@ int main (int argc, char **argv)
   }
   else
   {
-    fprintf(stderr,"Convolution - Convolution test for NFSFT\n");
+    fprintf(stderr,"Summation - Fast summation test for NFSFT\n");
     fprintf(stderr,"Usage: convolution H_MIN H_MAX H_STRIDE M_MIN M_MAX M_STRIDE L_MIN L_MAX L_STRIDE D_MIN D_MAX D_STRIDE\n");
     return -1;
   }  
@@ -200,7 +219,8 @@ int main (int argc, char **argv)
 		/* Kernel coeffcients up to m_max */
 		for (k = 0; k <= m_max; k++)
 		{
-			a[k] = ABEL_POISSON_KERNEL(k,h);
+			//a[k] = SYMBOL_ABEL_POISSON(k,h);
+   a[k] = SYMBOL_SINGULARITY(k,h);
 		}
 		for (l = l_min; l <= l_max; l = l + l_stride)
 		{
@@ -217,7 +237,8 @@ int main (int argc, char **argv)
 						f2[j] = 0.0;
 						for (k = 0; k < l; k++)
 						{
-							f2[j] += b[k]*poisson(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
+							 //f2[j] += b[k]*poissonKernel(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
+        f2[j] += b[k]*singularityKernel(2*PI*nu[2*k],2*PI*nu[2*k+1],2*PI*xi[2*j],2*PI*xi[2*j+1],h);
 						}
 					} 
 					t_d = second() - t_d;
