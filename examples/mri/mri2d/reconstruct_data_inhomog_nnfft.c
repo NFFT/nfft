@@ -19,6 +19,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   int my_N[3],my_n[3];          /* to init the nfft */
   double t,tmp1,tmp2,tmp3,tmp4,epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */
+  unsigned infft_flags = CGNR; /* flags for the infft*/
   double time,min_time,max_time,min_inh,max_inh;
   double real,imag;
   double *w;
@@ -67,8 +68,6 @@ void infft(char* filename,int N,int M,int iteration, int weight)
 
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
-  unsigned infft_flags = CGNR; /* flags for the infft*/
-                                    
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=next_power_of_2(N);
   my_N[1]=N; my_n[1]=next_power_of_2(N);

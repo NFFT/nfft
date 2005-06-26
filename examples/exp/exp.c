@@ -35,7 +35,8 @@ void exponential (double k, double x)
 
     result_exact = cexp(-2.0*PI*I*k*xx );
 
-    printf("%e %e %e %e\n",xx,creal(result_exact),creal(result_approx) ,cabs(result_exact-result_approx));
+    printf("%e %e %e %e %e %e\n",xx,creal(result_exact),creal(result_approx),
+        cimag(result_exact),cimag(result_approx) ,cabs(result_exact-result_approx));
   }
   nfft_finalize(ths);
   free(ths);

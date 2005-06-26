@@ -39,6 +39,7 @@ AC_OUTPUT(Makefile \
           examples/nnfft/accuracy/Makefile \
           examples/nnfft/simple_test/Makefile \
           examples/mri/Makefile \
+          examples/mri/mri_inh/Makefile \
           examples/mri/mri2d/Makefile \
           examples/mri/mri3d/Makefile \
           examples/exp/Makefile \

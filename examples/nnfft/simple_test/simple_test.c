@@ -117,12 +117,12 @@ void simple_test_nnfft_2d()
 
 void simple_test_innfft_1d()
 {
-  int j,k,l,N=32;                        /**< index for nodes, freqencies, iter*/
+  int j,k,l,N=8;                        /**< index for nodes, freqencies, iter*/
   nnfft_plan my_plan;                    /**< plan for the nfft                */
   innfft_plan my_iplan;                  /**< plan for the inverse nfft        */
- 
+
   /** initialise an one dimensional plan */
-  nnfft_init(&my_plan,1 ,32 ,32 ,&N);
+  nnfft_init(&my_plan,1 ,8 ,8 ,&N);
 
   /** initialise my_iplan */
   innfft_init_advanced(&my_iplan,&my_plan,CGNR);
@@ -161,7 +161,7 @@ void simple_test_innfft_1d()
 
   /** solve the system */
   innfft_before_loop(&my_iplan);
-  for(l=0;l<64;l++)
+  for(l=0;l<8;l++)
   {
     printf("iteration l=%d\n",l);
     innfft_loop_one_step(&my_iplan);
