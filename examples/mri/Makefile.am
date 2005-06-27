@@ -1,1 +1,1 @@
-SUBDIRS = mri2d mri3d mri_inh
+SUBDIRS = mmri_inh ri2d mri3d 
