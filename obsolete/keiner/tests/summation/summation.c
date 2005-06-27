@@ -224,23 +224,23 @@ int main (int argc, char **argv)
     /* Target nodes */
     for (j = 0; j < d_max; j++)
     {
-      /*xi[2*j] = drand48()-0.5;
-      xi[2*j+1] = 0.5*drand48();*/
-      xi[2*j] = ((double)j/(d_max)) -0.5;
+      xi[2*j] = drand48()-0.5;
+      xi[2*j+1] = 0.5*drand48();
+      /*xi[2*j] = ((double)j/(d_max)) -0.5;
       xi[2*j+1] = 0.25;
-      fprintf(stderr,"Target node: (%f,%f)\n",xi[2*j],xi[2*j+1]);
+      fprintf(stderr,"Target node: (%f,%f)\n",xi[2*j],xi[2*j+1]);*/
     }
 
     /* Source nodes. */
     for (k = 0; k < l_max; k++)
     {
-      /*b[k] = drand48();
+      b[k] = drand48();
       nu[2*k] = drand48()-0.5;
-      nu[2*k+1] = 0.5*drand48();*/
-      b[k] = 1.0;
+      nu[2*k+1] = 0.5*drand48();
+      /*b[k] = 1.0;
       nu[2*k] = 0.0;
       nu[2*k+1] = 0.25;
-      fprintf(stderr,"Source node: (%f,%f)\n",nu[2*k],nu[2*k+1]);
+      fprintf(stderr,"Source node: (%f,%f)\n",nu[2*k],nu[2*k+1]);*/
     }
 
     sprintf(filename,"summation%d.tex",kt);
