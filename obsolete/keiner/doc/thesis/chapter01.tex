@@ -20,7 +20,7 @@ We have
   r & = & \sqrt{x_1^2+x_2^2+x_3^2} = \norm{\V{x}}_2.
 \end{eqnarray*} 
 We denote by $\twosphere$ the unit sphere embedded into $\R^3$, i.e. 
-$$\twosphere := \pset{\V{x} \in \R^{3}}{|}{\norm{\V{x}}_2=1}$$ 
+\[\twosphere := \pset{\V{x} \in \R^{3}}{|}{\norm{\V{x}}_2=1}\] 
 and identify $\V{\xi} \in \twosphere$ with the vector $\paren{\vtheta,\vphi}^{\transp}$. The 
 spherical coordinate system is illustrated in Figure \ref{sphere}.
 
@@ -98,7 +98,7 @@ Furthermore we define the associated Legendre functions $P_k^n : \interv{[}{-1}{
 \end{equation}
 For fixed $n$ the set $\set{P_{k}^n}_{k=n,n+1,\ldots}$ form a complete set of orthogonal functions 
 for $\Ln{2}{\interv{[}{-1}{1}{]}}$ with
-$$ \scalarproduct{P_{k}^n}{P_{l}^n}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l} \quad \paren{0 \le n \le k,l}.$$
+\[ \scalarproduct{P_{k}^n}{P_{l}^n}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{P_{k}^n}{x} \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l} \quad \paren{0 \le n \le k,l}.\]
 The associated Legendre functions fulfill the three-term recurrence
 \begin{equation}
   \label{Basics:AssociatedLegendreDefinition}
@@ -137,9 +137,9 @@ with
     \end{array}\right.\\
 \end{eqnarray*}
 For even $n$ we let
-$$ \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}}$$
+\[ \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}}\]
 and for odd $n$ we start with
-$$ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2}.$$
+\[ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2}.\]
 For $k \ge n$ this definition coincides with \eqref{Basics:AssociatedLegendreDefinition}. 
 As a matter of fact, $P_{k}^n$ is a polynomial of degree $k$ for even $n$ while 
 $\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree $k-1$ for odd $n$.
@@ -159,7 +159,7 @@ Now straightforward induction yields
   \label{Basics:AssociatedLegendreRecurrence}
   Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinitionExtended} and 
   \eqref{Basics:AssociatedLegendrePolynomials}. Then we have
-  $$ \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. $$
+  \[ \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. \]
 \end{lemma}
 
 \section{Spherical Harmonics}
@@ -185,7 +185,7 @@ Using an ansatz based on separation of variables (see \cite{co2}) and taking int
   \label{Basics:SphericalHarmonicsDefinition}
   \begin{split}
     & Y_{k}^n: \twosphere \rightarrow \C \quad \paren{n \in \NZ,\; k = -n,-n+1,\ldots,n},\\
-    & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2n+1}{4\pi}} 
+    & \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2k+1}{4\pi}} 
     \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{\im n \vphi}.
   \end{split}
 \end{equation}
@@ -211,7 +211,7 @@ $\mathcal{H}_k$ so that for fixed $k \in \NZ$, the set
 forms an orthonormal basis of $ \mathcal{H}_k$, since $\dim \mathcal{H}_k =
 2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
 to each other and
-$$\pset{Y_{k}^n}{|}{k = 0,1,\ldots,M,\ n = -k,-k+1,\ldots,k},\ M \in \NZ$$ 
+\[\pset{Y_{k}^n}{|}{k = 0,1,\ldots,M,\ n = -k,-k+1,\ldots,k},\ M \in \NZ\] 
 provides an orthonormal basis for the space $\bigoplus_{k=0}^{M}\mathcal{H}_k$ called
 the space of \emph{spherical harmonics} of degree $M$.
 
@@ -263,31 +263,35 @@ See \cite{frgesc}*{p. 37} or \cite{co}*{pp. 172, Theorem 5} for a proof. In part
 \label{Basics:SphericalKernels}
 
 \emph{Spherical radial basis basis functions} are the spherical counterpart of radial basis functions in Euclidean spaces. 
-Generally, one starts with a function $G$ from $\Ln{2}{\interv{[}{-1}{1}{]}}$
+Generally, one starts with a function $K$ from $\Ln{2}{\interv{[}{-1}{1}{]}}$
 %$: \interv{[}{-1}{1}{]} \rightarrow \C$ 
-and defines for fixed $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function $K_{\V{\eta}}: \twosphere \rightarrow \C$ by
-$$ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\eta} \cdot \V{\xi}}.$$
+and defines for fixed $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function 
+\[
+  \fun{K}{\V{\eta} \: \cdot}: \twosphere \rightarrow \C,\ \V{\xi} \mapsto \fun{K}{\V{\eta} \cdot \V{\xi}} \quad \paren{\V{\xi} \in \twosphere}.\] 
+%by \[ \fun{K_{\V{\eta}}}{\V{\xi}} := \fun{G}{\V{\eta} \cdot \V{\xi}}.\]
 By means of the \emph{Funk-Hecke formula} (see \cite[pp. 60]{frgesc}) we obtain for fixed $k \in \NZ$
-$$
-  \scalarproduct{K_{\V{\eta}}}{Y_{k}^n} = \int_{\twosphere} \fun{G}{\V{\eta} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \dx \V{\xi} = \fun{G^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \quad \paren{n=-k,\ldots,k},
-$$
-where the \emph{Legendre transform}, i.e. the \emph{symbol} of $G$, is given by
-$$
-  \fun{G^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{G}{x} \fun{P_{k}}{x} \dx x \quad \paren{k \in \NZ}.
-$$
+\[
+  \scalarproduct{\fun{K}{\V{\eta} \: \cdot}}{Y_{k}^n} = \int_{\twosphere} \fun{K}{\V{\eta} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \: \dx \V{\xi} = \fun{K^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \quad \paren{n=-k,\ldots,k},
+\]
+where the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given by
+\[
+  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx x \quad \paren{k \in \NZ}.
+\]
 %We refer the interested reader to \cite{} and \cite{} for more details.
 %The function $G$ can be developed into a series of Legendre polynomials
-%$$ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}.$$
+%\[ \fun{G}{x} = \sum_{k = 0}^{\infty} a_k \fun{P_k}{x}.\]
 %where the coefficients $a_k$ are the scalar products
-%$$ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.$$
+%\[ a_k = \scalarproduct{G}{P_{k}}_{\interv{[}{-1}{1}{]}} = \int_{-1}^{1} \fun{G}{x} \fun{P_k}{x} \dx x.\]
 We have therefore 
-$$
-  \fun{K_{\V{\eta}}}{\V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k \fun{G^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}} 
-$$
-and applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain for $G$ the orthogonal expansion
-$$
-  \fun{G}{x} = \sum_{k = 0}^{\infty} \frac{2n+1}{4\pi} \fun{G^{\wedge}}{k} \fun{P_k}{t} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
-$$
+\begin{equation}
+  \label{Basics:Kernel}
+  \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k \fun{K^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}} 
+\end{equation}
+and applying the Addition Theorem from Proposition \ref{Basics:AdditionTheorem}, we obtain for $K$ the orthogonal expansion
+\begin{equation}
+\label{Basics:OrthogonalKernelExpansion}
+  \fun{K}{x} = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
+\end{equation}
 %One is often interested in evaluating such an expansion on the sphere in a fast way when dealing with 
 %spherical convolution. As an application of the algorithms developed in this text, one can derive 
 %an algorithm based on the discrete spherical Fourier transform, as shown in Chapter \ref{}.
@@ -322,20 +326,20 @@ $Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$, with
 \begin{equation}
   \label{PoissonKernel}
   \nonumber
-  \fun{Q_{h}}{t} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}} \quad \paren{x \in \interv{[}{-1}{1}{]}},
+  \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}} \quad \paren{x \in \interv{[}{-1}{1}{]}},
 \end{equation}
 is called \emph{Poisson kernel}. The symbol $\fun{Q_{h}^{\wedge}}{k}$ is given by 
-$$
+\[
   \fun{Q_{h}^{\wedge}}{k} = h^k.
-$$
+\]
 We refer to Figure \ref{Basics:Figure:PoissonKernel} 
 %and \ref{Basics:Figure:PoissonKernel2}
 for a visual impression and mention that the parameter $h$
 allows for controlling the concentration of the function's energy around
 $x = 1$. The Poisson kernel is a positive function and normalized with
-$$
+\[
   \int_{\twosphere} \fun{Q_{h}}{\V{\eta} \cdot \V{\xi}} \dx \V{\xi} = 1 \quad \paren{\V{\eta} \in \twosphere}.
-$$
+\]
 Further properties with respect to localization and smoothness are derived in \cite[pp. 112]{frgesc}.
 \end{example}
 
@@ -362,17 +366,17 @@ Further properties with respect to localization and smoothness are derived in \c
 
 \begin{example}
   We define the \emph{singularity kernel} $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ by
-  $$
+  \[
     \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\paren{1-2hx+h^2}^{1/2}}  \quad \paren{x \in \interv{[}{-1}{1}{]}}.
-  $$
+  \]
   Using \eqref{Basics:Solution} we obtain
-  $$
+  \[
     \fun{S_{h}}{x} = \sum_{k = 0}^{\infty} \frac{1}{2\pi} h^k \fun{P_k}{x}
-  $$
+  \]
   and therefore
-  $$
+  \[
     \fun{S_{h}^{\wedge}}{k} = \frac{2k+1}{2} h^k.
-  $$
+  \]
   See Figure \ref{Basics:Figure:SingularityKernel} and for more information \cite[pp. 112]{frgesc}.
 \end{example}
 
@@ -385,13 +389,13 @@ Further properties with respect to localization and smoothness are derived in \c
 
 \begin{example}
   The \emph{Gauss-Weierstraﬂ kernel} $W_{\rho}: \interv{[}{-\pi}{\pi}{]} \rightarrow \R$ is defined by
-  $$
+  \[
     \fun{W_{\rho}}{x} := \sum_{k=0}^{\infty} \e^{-k(k+1)\rho} \frac{2k+1}{4\pi} \fun{P_{k}}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
-  $$
+  \]
   Results due to Bochner (\cite{bochner1950},\cite{bochner1954}) assure $\fun{W_{\rho}}{x} \ge 0$ and we have
-  $$
+  \[
     \int_{\twosphere} \fun{W_{\rho}}{\V{\eta} \cdot \V{\xi}} \dx \V{\xi} = 1.
-  $$
+  \]
   For further properties we refer to \cite{frgesc} again. The kernel function $W_{\rho}$ is illustrated in Figure \ref{Basics:Figure:GaussWeierstrassKernel}.
 \end{example}
 
@@ -404,13 +408,13 @@ Further properties with respect to localization and smoothness are derived in \c
 
 \begin{example}
   The locally supported kernel $L_{h,\lambda}: \interv{[}{-1}{1}{]} \rightarrow \R$ mentioned in \cite{frsc} and defined by
-  $$
-    \fun{L_{h,\lambda}}{x} = 
+  \[
+    \fun{L_{h,\lambda}}{x} := 
       \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
                                               0 & -1 \le x \le h, \\
-        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h   < x \le 1
+        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h   < x \le 1,
       \end{array}\right.
-  $$
+  \]
   has the recursively defined symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$ with
 \begin{eqnarray*}
     \fun{L_{h,\lambda}^{\wedge}}{0} & = & 1,\\
@@ -477,7 +481,7 @@ The following lemma shows that the matrix $\V{C}_N$ is up to a scalar factor nea
 \begin{lemma}
   \label{Basics:DCT3}
   Let $\V{C}_N$ and $\V{D}_N$ be defined as in \eqref{Basics:DCT}. Then we have
-  $$ \V{C}_N\V{C}_N^{\transp}\V{D}_N = \V{C}_N^{\transp}\V{D}_N\V{C}_N = \frac{N}{2} \V{I}_{N}. $$
+  \[ \V{C}_N\V{C}_N^{\transp}\V{D}_N = \V{C}_N^{\transp}\V{D}_N\V{C}_N = \frac{N}{2} \V{I}_{N}. \]
 \end{lemma}
 Therefore the DCT-II is the inverse of the DCT-III an vice versa up to a scaling factor.
 
@@ -498,7 +502,7 @@ of the polynomials $P$ and $Q$ can be performed using two DCT-IIIs of length $2K
 compensate for the factors $\varepsilon_{k}^K$ introduced by the matrix $\V{D}_{2K}$.
 Once calculated the products $f_{j}$ and taking into account that $\V{C}_{2K}^{-\transp} = \frac{2}{2K} \V{D}_{2K} \V{C}_{2K}$ 
 by Lemma \ref{Basics:DCT3} we get
-$$ \paren{c_{k}}_{k=0}^{2K-1} = \frac{2}{2K} \V{D}_{2K} \V{C}_{2K} \paren{f_{j}}_{j = 0}^{2K-1}.$$
+\[ \paren{c_{k}}_{k=0}^{2K-1} = \frac{2}{2K} \V{D}_{2K} \V{C}_{2K} \paren{f_{j}}_{j = 0}^{2K-1}.\]
 This leads to the following algorithm:
 
 \begin{algorithm}[ht]
@@ -530,13 +534,13 @@ $f: \mathbb{T} \rightarrow \C$ with
   \fun{f}{x} =: \sum_{k \in \mathcal{I}_{M}} \hat{f}_{k} \e^{- 2 \pi \im k x}
 \end{equation}
 on the sampling set $\mathcal{X}$. The algorithm is approximative with computational complexity $\bigo{M \log M + \fun{\log}{1/\varepsilon}D}$ where $\varepsilon$ is the desired accuracy. The technique used is to approximate the function $f$ in \eqref{Basics:NFFT:f} by a linear combination of shifted 1-periodic window functions $\varphi$ as
-$$
+\[
   \fun{f}{x} \approx \fun{s}{x} := \sum_{l \in \mathcal{I}_{m}} g_{l} \fun{\tilde{\varphi}}{x - \frac{l}{m}}.
-$$ 
+\] 
 The oversampling factor $\sigma > 1$ defines $m$ by $m := \sigma M$. An admissible window function $\tilde{\varphi}$ should be well localized in time and frequency and has
 a uniform convergent Fourier series
-$$
+\[
   \fun{\tilde{\varphi}}{x} = \sum_{k \in \Z} \fun{c_{k}}{\tilde{\varphi}} \e^{-2 \pi \im k x}
-$$
+\]
 with Fourier coefficients $\fun{c_{k}}{\tilde{\varphi}} \in \C$.
 We refer the interested reader to \cite{duro93} and \cite{postta} for a detailed description of approximative algorithms for the NFFT and further related references.

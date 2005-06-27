@@ -3,13 +3,14 @@
 
 #include "nfsft.h"
 
-#define CGNR_E            1<<0
-#define CGNE_R            1<<1
-#define LANDWEBER         1<<2
-#define STEEPEST_DESCENT  1<<3
-#define ITERATE_2nd       1<<4
-#define PRECOMPUTE_WEIGHT 1<<5
-#define PRECOMPUTE_DAMP   1<<6
+#define NFSFT_CGNR_E            (1U<<0)
+#define NFSFT_CGNE_R            (1U<<1)
+#define NFSFT_LANDWEBER         (1U<<2)
+#define NFSFT_STEEPEST_DESCENT  (1U<<3)
+#define NFSFT_ITERATE_2nd       (1U<<4)
+#define NFSFT_PRECOMPUTE_WEIGHT (1U<<5)
+#define NFSFT_PRECOMPUTE_DAMP   (1U<<6)
+#define NFSFT_NORMS_FOR_LANDWEBER    (1U<<7)
 
 void infsft_init(infsft_plan this_iplan, nfsft_plan direct_plan);
 

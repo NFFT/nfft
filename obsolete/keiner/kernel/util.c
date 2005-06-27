@@ -34,9 +34,9 @@ inline void vpr_c_hat (complex **x, int n, char *text)
   fprintf(stderr,"%s, adr=%p\n", text, x);
   
   d = 0;
-  for (k=0; k<n; k++)
+  for (k=0; k<=n; k++)
   {
-    for (m = -k; m < k; m++)
+    for (m = -k; m <= k; m++)
     {  
       if (d%2==0) fprintf(stderr,"%d,%d.", k,m);
       fprintf(stderr,"(%20.16e,", creal(x[k][m+n]));
@@ -82,6 +82,19 @@ double error_complex_inf(complex *x0, complex *x, int n)
     maximum = MAX(maximum,cabs(x0[k]-x[k]));
   }
     
+  return maximum;
+}
+
+double norm_complex_inf(complex *x, int n)
+{
+  double maximum=0.0;
+  int k;
+  
+  for (k = 0; k < n; k++) 
+  {
+    maximum = MAX(maximum,cabs(x[k]));
+  }
+  
   return maximum;
 }
 
@@ -194,11 +207,11 @@ void copyc_hat(complex **x,complex **y, int M)
 {
   int n,k;
   
-  for (n = 0; n < 2*M+1; n++)
-  {  
-    for(k = 0; k <= M; k++)
+  for (k = 0; k <= M; k++)
+  {
+    for (n = -k; n <= k; n++)
     {
-      x[n][k] = y[n][k];
+      x[n+M][k] = y[n+M][k];
     }
   }
 }
@@ -210,11 +223,11 @@ void copyc_w_hat(complex **x, double **w, complex **y, int M)
 {
   int n,k;
   
-  for (n = 0; n < 2*M+1; n++)
+  for (k = 0; k <= M; k++)
   {
-    for (k = 0; k <= M; k++)
+    for (n = -k; n <= k; n++)
     {
-      x[n][k] = w[n][k] * y[n][k];
+      x[n+M][k] = w[n+M][k] * y[n+M][k];
     }
   }
 }
@@ -226,11 +239,11 @@ double dotproductc_hat(complex** x, int M)
   int n,k;
   double result=0.0;
   
-  for(n = 0; n < 2*M+1; n++)
+  for(k = 0; k <= M; k++)
   {
-    for(k = 0; k <= M; k++)
+    for(n = -k; n <= k; n++)
     {
-      result += (x[n][k]*x[n][k]);
+      result += (x[n+M][k]*x[n+M][k]);
     }
   }
   
@@ -244,11 +257,11 @@ double dotproductc_w_hat(complex **x, double **w, int M)
   int n,k;
   double result=0.0;
   
-  for(n = 0; n < 2*M+1; n++)
+  for(k = 0; k <= M; k++)
   {
-    for(k = 0; k <= M; k++)
+    for(n = -k; n <= k; n++)
     {
-      result += w[k][n] * (x[n][k]*x[n][k]);
+      result += w[n+M][k] * (x[n+M][k]*x[n+M][k]);
     }
   }
   
@@ -261,10 +274,12 @@ inline void updatec_xpay_hat(complex **x,double a, complex **y, int M)
 {
   int n,k;
   
-  for(n = 0; n < 2*M+1; n++)
   for(k = 0; k <= M; k++)
   {
-    x[n][k] += a*y[n][k];
+    for(n = -k; n <= k; n++)
+    {
+      x[n+M][k] += a*y[n+M][k];
+    }
   }
 }
 
@@ -275,11 +290,13 @@ inline void updatec_xpawy_hat(complex **x, double a, double **w, complex **y,
 {
   int n,k;
   
-  for(n = 0; n < 2*M+1; n++)
-    for(k = 0; k <= M; k++)
+  for(k = 0; k <= M; k++)
+  {
+    for(n = -k; n <= k; n++)
     {
-      x[n][k] += a*w[n][k]*y[n][k];
+      x[n+M][k] += a*w[n+M][k]*y[n+M][k];
     }
+  }
 }
 
 /** Updates \f$x \leftarrow a x + y\f$.
@@ -288,11 +305,11 @@ inline void updatec_axpy_hat(complex **x,double a, complex **y, int M)
 {
   int n,k;
   
-  for(n = 0; n < 2*M+1; n++)
+  for(k = 0; k <= M; k++)
   {
-    for(k = 0; k <= M ; k++)
+    for(n = -k; n <= k; n++)
     {
-      x[k][n]=a*x[k][n]+y[k][n];
+      x[n+M][k]=a*x[n+M][k]+y[n+M][k];
     }
   }
 }
@@ -303,11 +320,11 @@ inline void updatec_axpby_hat(complex **x, double a, complex **y, double b, int 
 {
   int n,k;
   
-  for (n = 0; n < 2*M+1; n++)
+  for(k = 0; k <= M; k++)
   {
-    for (k = 0; k <= M; k++)
+    for(n = -k; n <= k; n++)
     {
-      x[n][k] = a*x[n][k] + b*y[n][k];
+      x[n+M][k] = a*x[n+M][k] + b*y[n+M][k];
     }
   }
 }
@@ -425,7 +442,7 @@ inline void normalize_f_hat(complex **f_hat, int M)
   int k,n;
   for (k = 0; k <= M; k++)
   {
-    for (n = -M; n <= M; n++)
+    for (n = -k; n <= k; n++)
     {
       f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
     }

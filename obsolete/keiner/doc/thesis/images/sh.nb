@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      6974,        211]*)
-(*NotebookOutlinePosition[      7610,        233]*)
-(*  CellTagsIndexPosition[      7566,        229]*)
+(*NotebookOptionsPosition[      7001,        211]*)
+(*NotebookOutlinePosition[      7637,        233]*)
+(*  CellTagsIndexPosition[      7593,        229]*)
 (*WindowFrame->Normal*)
 
 
@@ -181,15 +181,15 @@ Cell[BoxData[{
     \(\(genSH[k_, n_]\  := \ 
         SphericalPlot3D[
           2 + Re[N[SphericalHarmonicY[k, n, \[Theta], \[Phi]]]], {\[Theta], 
-            0, Pi}, {\[Phi], 0, 2  Pi}, PlotPoints \[Rule] {70, 140}, \ 
-          Axes \[Rule] False, \ 
+            0, Pi}, {\[Phi], 0, 2  Pi}, Shading \[Rule] False, 
+          PlotPoints \[Rule] {50, 100}, \ Axes \[Rule] False, \ 
           Boxed \[Rule] False];\)\ \), "\[IndentingNewLine]", 
     \(\ \ \)}], "Input"],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(shplot\  = \ genSH[20, 10]\)], "Input"],
+    \(shplot\  = \ genSH[13, 13]\)], "Input"],
 
 Cell[BoxData[
     TagBox[\(\[SkeletonIndicator]  Graphics3D  \[SkeletonIndicator]\),
@@ -203,14 +203,14 @@ Cell[BoxData[
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(Export["\<sh_r_9_5.eps\>", shplot]\)], "Input"],
+    \(Export["\<sh_r_13_13.eps\>", shplot]\)], "Input"],
 
 Cell[BoxData[
-    \("sh_r_9_5.eps"\)], "Output"]
+    \("sh_r_13_13.eps"\)], "Output"]
 }, Open  ]]
 },
 FrontEndVersion->"5.0 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 861}},
+ScreenRectangle->{{0, 1280}, {0, 758}},
 WindowSize->{1144, 728},
 WindowMargins->{{4, Automatic}, {Automatic, 1}}
 ]
@@ -268,17 +268,17 @@ Cell[CellGroupData[{
 Cell[6093, 172, 44, 1, 27, "Input"],
 Cell[6140, 175, 52, 1, 27, "Output"]
 }, Open  ]],
-Cell[6207, 179, 340, 7, 59, "Input"],
+Cell[6207, 179, 363, 7, 59, "Input"],
 
 Cell[CellGroupData[{
-Cell[6572, 190, 59, 1, 27, "Input"],
-Cell[6634, 193, 132, 3, 27, "Output"]
+Cell[6595, 190, 59, 1, 27, "Input"],
+Cell[6657, 193, 132, 3, 27, "Output"]
 }, Open  ]],
-Cell[6781, 199, 34, 1, 27, "Input"],
+Cell[6804, 199, 34, 1, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[6840, 204, 67, 1, 27, "Input"],
-Cell[6910, 207, 48, 1, 27, "Output"]
+Cell[6863, 204, 69, 1, 27, "Input"],
+Cell[6935, 207, 50, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

@@ -24,6 +24,7 @@ double error_complex3(complex *a, complex *b, int n);
 double err_f_hat_infty(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_1(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
+double norm_complex_inf(complex *x, int n);
 
 void copyc_hat(complex **x,complex **y, int M);
 void copyc_w_hat(complex **x, double **w, complex **y, int M);

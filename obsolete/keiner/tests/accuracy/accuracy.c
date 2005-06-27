@@ -131,7 +131,6 @@ int main (int argc, char **argv)
   /** FFTW plan for Clenshaw-Curtis quadrature */
   fftw_plan fplan;
 
-  
   if (argc == 1)
   {
     m_min = M_MIN;
@@ -445,7 +444,7 @@ int main (int argc, char **argv)
         }  
       }
       
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+      plan = nfsft_init(D, M, angles, f_hat, f, NFSFT_NORMALIZED);
       
       /* Compute forward transform. */
       ctime = second();
@@ -475,7 +474,7 @@ int main (int argc, char **argv)
       {
         for (k = abs(n); k <= M; k++)
         {
-          f_hat[n+M][k] *= (1.0/(2*M+2))*sqrt((2*k+1)/2.0);
+          f_hat[n+M][k] *= 1.0/(2*M+2);
         }
       }
       

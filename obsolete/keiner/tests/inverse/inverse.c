@@ -46,7 +46,7 @@
 #include "api.h"
 #include "infsft.h"
 
-#define M_DEFAULT 16
+#define M_DEFAULT 4
 
 /**
  * The main program.
@@ -83,10 +83,14 @@ int main (int argc, char **argv)
   double *theta;
   /** Array for angles \f$\phi\f$ of a grid. */
   double* phi;
-  /** Array for Gauss-Legendre weights. */
-  //double *w;  
+  /** Array for Clenshaw-Curtis weights. */
+  double *w;  
+  /** Array for Clenshaw-Curtis weights. */
+  double *wf;  
   /** Array for function values. */
   complex *f;
+  /** Array for function values. */
+  complex *f_orig;
   double err_infty, err_1, err_2;
   
   /** Plan for fast spherical fourier transform. */
@@ -105,7 +109,6 @@ int main (int argc, char **argv)
   FILE *file;
   /** FFTW plan for Clenshaw-Curtis quadrature */
   fftw_plan fplan;
-
   
   if (argc == 1)
   {
@@ -133,14 +136,17 @@ int main (int argc, char **argv)
   f_hat_orig = (complex**) malloc((2*M+1)*sizeof(complex*));
   for (n = -M; n <= M; n++)
   {
-    f_hat[n+M] = (complex*) malloc((N+1)*sizeof(complex));
-    f_hat_orig[n+M] = (complex*) malloc((N+1)*sizeof(complex));
+    f_hat[n+M] = (complex*) calloc((N+1),sizeof(complex));
+    f_hat_orig[n+M] = (complex*) calloc((N+1),sizeof(complex));
   }  
   
+  f = (complex*) malloc(D*sizeof(complex));
+  f_orig = (complex*) malloc(D*sizeof(complex));
   angles = (double*) malloc(2*D*sizeof(double));
   theta = (double*) malloc((2*M+1)*sizeof(double));
   phi = (double*) malloc((2*M+2)*sizeof(double));
-  f = (complex*) malloc(2*D*sizeof(complex));
+  w = (double*) malloc((2*M+1)*sizeof(double));
+  wf = (double*) malloc(D*sizeof(double));
     
   printf("Precomputing wisdom up to M = %d ...",M);
   fflush(stdout);
@@ -153,7 +159,7 @@ int main (int argc, char **argv)
   {
     for (k = abs(n); k <= M; k++)
     {
-      f_hat[n+M][k] = (k <= 0)?1.0:0.0;//drand48(); + I*drand48();
+      f_hat[n+M][k] = /*(k <= 0)?1.0:0.0;*/drand48();// + I*drand48();
     }
     /* Save a copy. */
     memcpy(f_hat_orig[n+M],f_hat[n+M],(M+1)*sizeof(complex));
@@ -162,12 +168,26 @@ int main (int argc, char **argv)
   /* Compute Clenshaw-Curtis nodes and weights. */  
   for (k = 0; k < 2*M+2; k++)
   {
-    phi[k] = k/((double)2*M+2);
+    phi[k] = k/((double)2*M+2) - 0.5;
   }
   for (n = 0; n < 2*M+1; n++)
   {
     theta[n] = n/((double)4*M);
   }
+  fplan = fftw_plan_r2r_1d(M+1, w, w, FFTW_REDFT00, 0U);
+  for (n = 0; n < M+1; n++)
+  {
+    w[n] = -2.0/(4*n*n-1);
+  }  
+  fftw_execute(fplan);
+  w[0] *= 0.5;
+  for (n = 0; n < M+1; n++)
+  {
+    w[n] *= 1/((double)2*M);
+    w[2*M-n] = w[n];
+  }  
+  fftw_destroy_plan(fplan);
+
   /* Create grid nodes. */
   d = 0;
   for (n = 0; n < 2*M+1; n++)
@@ -176,33 +196,58 @@ int main (int argc, char **argv)
     {
       angles[2*d] = phi[k];
       angles[2*d+1] = theta[n];
+      wf[d] = w[n]; 
       d++;
     }  
   }
-    
-  plan = nfsft_init(D, M, angles, f_hat, f, 0U);
-  nfsft_trafo(plan);
-
-  vpr_c(f,D,"f:");
   
-  for (n = -M; n <= M; n++)
+  //vpr(wf,D,"wf");
+    
+  plan = nfsft_init(D, M, angles, f_hat, f, NFSFT_NORMALIZED);
+  nfsft_trafo(plan);
+  
+  /* Save a copy. */
+  memcpy(f_orig,f,D*sizeof(complex));
+
+  //vpr_c(f_orig,D,"f_orig:");
+  //vpr_c_hat(f_hat_orig,M,"f_hat_orig:");
+
+  /*for (n = -M; n <= M; n++)
   {
     for (k = abs(n); k <= M; k++)
     {
       f_hat[n+M][k] = 0.0;
     }
-  }
+  }*/
 
   iplan = infsft_make_plan();
-  infsft_init(iplan, plan);
+  infsft_init_guru(iplan, plan, NFSFT_CGNR_E | NFSFT_PRECOMPUTE_WEIGHT);
+  
+  for (d = 0; d < D; d++)
+  {
+    iplan->given_f[d] = f_orig[d];
+    iplan->w[d] = wf[d]/(2*M+2);
+  }
+  
+  for (n = -M; n <= M; n++)
+  {
+    for (k = abs(n); k <= M; k++)
+    {
+      iplan->f_hat_iter[n+M][k] = 0.0;
+    }
+  }
+  //vpr_c_hat(iplan->f_hat_iter,M,"f_hat_iter");
+  
+  //fprintf(stderr,"here\n");
+  //fflush(stderr);
   
   /* inverse trafo */  
   infsft_before_loop(iplan);
-  fprintf(stderr,"%e,\n",sqrt(iplan->dot_r_iter));
-  for(l=0;l<50;l++)
+  fprintf(stderr,"%3d: %e,\n",0,sqrt(iplan->dot_r_iter));
+  for(l=0;l<10;l++)
   { 
-    fprintf(stderr,"%e,\n",sqrt(iplan->dot_r_iter));
     infsft_loop_one_step(iplan);
+    fprintf(stderr,"%3d: %e,\n",l+1,sqrt(iplan->dot_r_iter));
   }
     
   infsft_finalize(iplan);  
@@ -217,6 +262,9 @@ int main (int argc, char **argv)
   free(f_hat);
   free(f_hat_orig);
   
+  free(w);
+  free(wf);
+  free(f_orig);
   free(angles);
   free(theta);
   free(phi);

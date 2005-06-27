@@ -1,4 +1,4 @@
-\documentclass[a4paper,twoside,10pt,final]{scrreprt}
+\documentclass[a4paper,oneside,10pt,final]{scrreprt}
 
 % AMSMath-packages
 \usepackage{amsmath}
@@ -64,13 +64,38 @@
 
 %\frontmatter
 
-\title{Fast Spherical Fourier Transform}
-\author{Jens Keiner}
+\begin{titlepage} 
+\vspace*{1cm}
+\begin{center}
+\textbf{\sffamily{
+  {\huge Fast Spherical Fourier Transform \\ and Applications} \\[1ex]
+  {\Large Jens Keiner} \\
+  \today
+}}
+
+\end{center}
+\vspace{1cm}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/sh_r_9_5}
+\end{figure}
+\end{titlepage} 
+
+%\titlehead{} 
+%\subject{} 
+%\title{}
+%\author{Jens Keiner}
+%\date{Dat15.07.2005} 
+%\publishers{Universität zu Lübeck, Institut für Mathematik} 
+%\thanks{Stefan Kunis, Daniel Potts and Jürgen Prestin} 
 %\email{keiner@math.uni-luebeck.de}
 %\address{Mühlenstraße 22-24 \\ 23552 Lübeck \\ Germany}
 %\subjclass{12J32A32}
 
-\maketitle
+%\maketitle
+$${}^{}$$
+
+\newpage
 
 \tableofcontents
 
@@ -81,9 +106,13 @@
 \include{chapter02}
 \include{chapter03}
 %\include{chapter04}
+
+%\listoffigures
+
 \include{bibliography}
 
 %\backmatter
+
 
 \printindex
 

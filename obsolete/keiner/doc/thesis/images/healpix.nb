@@ -41,16 +41,16 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      4347,        136]*)
-(*NotebookOutlinePosition[      4983,        158]*)
-(*  CellTagsIndexPosition[      4939,        154]*)
+(*NotebookOptionsPosition[      4348,        136]*)
+(*NotebookOutlinePosition[      4984,        158]*)
+(*  CellTagsIndexPosition[      4940,        154]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
 Cell[BoxData[
-    \(scale\  := \ 0.99\)], "Input"],
+    \(scale\  := \ 0.995\)], "Input"],
 
 Cell[BoxData[
     \(M\  := \ 7\)], "Input"],
@@ -90,7 +90,7 @@ Cell[BoxData[
     \(\(GridPlotGL\  = \ 
         ScatterPlot3D[Nodes, Axes \[Rule] False, Boxed \[Rule] False, 
           PlotStyle \[Rule] {PointSize[0.015], 
-              RGBColor[1.0, 0.0, 0.0]}];\)\)], "Input"],
+              RGBColor[0.0, 0.0, 0.0]}];\)\)], "Input"],
 
 Cell[BoxData[
     \(<< Graphics`Shapes`\)], "Input"],
@@ -132,7 +132,7 @@ Cell[BoxData[
 }, Open  ]],
 
 Cell[BoxData[
-    \(\(Export["\<grid.pdf\>", myPlot];\)\)], "Input"]
+    \(\(Export["\<grid.eps\>", myPlot];\)\)], "Input"]
 },
 FrontEndVersion->"5.0 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 758}},
@@ -157,29 +157,29 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 50, 1, 27, "Input"],
-Cell[1807, 54, 43, 1, 27, "Input"],
-Cell[1853, 57, 334, 6, 43, "Input"],
-Cell[2190, 65, 332, 6, 43, "Input"],
-Cell[2525, 73, 158, 3, 27, "Input"],
-Cell[2686, 78, 165, 2, 27, "Input"],
-Cell[2854, 82, 88, 1, 27, "Input"],
-Cell[2945, 85, 56, 1, 27, "Input"],
-Cell[3004, 88, 214, 4, 27, "Input"],
-Cell[3221, 94, 52, 1, 27, "Input"],
+Cell[1754, 51, 51, 1, 27, "Input"],
+Cell[1808, 54, 43, 1, 27, "Input"],
+Cell[1854, 57, 334, 6, 43, "Input"],
+Cell[2191, 65, 332, 6, 43, "Input"],
+Cell[2526, 73, 158, 3, 27, "Input"],
+Cell[2687, 78, 165, 2, 27, "Input"],
+Cell[2855, 82, 88, 1, 27, "Input"],
+Cell[2946, 85, 56, 1, 27, "Input"],
+Cell[3005, 88, 214, 4, 27, "Input"],
+Cell[3222, 94, 52, 1, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[3298, 99, 275, 5, 59, "Input"],
-Cell[3576, 106, 132, 3, 27, "Output"]
+Cell[3299, 99, 275, 5, 59, "Input"],
+Cell[3577, 106, 132, 3, 27, "Output"]
 }, Open  ]],
-Cell[3723, 112, 111, 2, 27, "Input"],
-Cell[3837, 116, 114, 2, 27, "Input"],
+Cell[3724, 112, 111, 2, 27, "Input"],
+Cell[3838, 116, 114, 2, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[3976, 122, 149, 3, 27, "Input"],
-Cell[4128, 127, 132, 3, 27, "Output"]
+Cell[3977, 122, 149, 3, 27, "Input"],
+Cell[4129, 127, 132, 3, 27, "Output"]
 }, Open  ]],
-Cell[4275, 133, 68, 1, 27, "Input"]
+Cell[4276, 133, 68, 1, 27, "Input"]
 }
 ]
 *)
