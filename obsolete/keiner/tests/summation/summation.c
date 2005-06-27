@@ -294,9 +294,9 @@ int main (int argc, char **argv)
         }
       }
 
-      fprintf(stderr,"h[%d] = %f\n",ih,h[ih]);
+      /*fprintf(stderr,"h[%d] = %f\n",ih,h[ih]);
       fprintf(stderr,"lambda[%d] = %f\n",ilambda,lambda[ilambda]);
-      fflush(stderr);
+      fflush(stderr);*/
       
       for (k = 0; k <= m_max; k++)
       {
@@ -332,8 +332,8 @@ int main (int argc, char **argv)
             {
               f2[j] *= ((lambda[ilambda]+1)/(2*PI*pow(1-h[ih],lambda[ilambda]+1)));
             }
-            fprintf(stderr,"f(%f,%f) = %f\n",xi[2*j],xi[2*j+1],f2[j]);
-            fflush(stderr);
+            /*fprintf(stderr,"f(%f,%f) = %f\n",xi[2*j],xi[2*j+1],f2[j]);
+            fflush(stderr);*/
           } 
           t_d = second() - t_d;
         }
@@ -381,11 +381,11 @@ int main (int argc, char **argv)
           //fprintf(stderr,"3");
           //fflush(stderr);
             
-          for (j = 0; j < d[id]; j++)
+          /*for (j = 0; j < d[id]; j++)
           {
             fprintf(stderr,"f_a(%f,%f) = %f\n",xi[2*j],xi[2*j+1],f[j]);
             fflush(stderr);
-          }
+          }*/
           
           if (d[id] <= DD_MAX)
           {
