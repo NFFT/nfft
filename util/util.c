@@ -1052,7 +1052,7 @@ void vpr_int(int *x, int n, char *text)
   }
   else
       for (k=0; k<n; k++)
-	  printf("%d\n,", x[k]);
+	  printf("%d,\n", x[k]);
   fflush(stdout);
 }
 
@@ -1085,7 +1085,7 @@ void vpr_double(double *x, int n, char *text)
   }
   else
       for (k=0; k<n; k++)
-	  printf("%+E\n,", x[k]);
+	  printf("%+E,\n", x[k]);
   fflush(stdout);
 }
 
@@ -1111,7 +1111,7 @@ void vpr_complex(complex *x, int n, char *text)
   }
   else
       for (k=0; k<n; k++)
-	  printf("%+E%+Ei\n,", creal(x[k]), cimag(x[k]));
+	  printf("%+E%+Ei,\n", creal(x[k]), cimag(x[k]));
   fflush(stdout);
 }
 
