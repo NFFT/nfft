@@ -56,7 +56,7 @@ void nfft (char * file, int N, int M)
   fclose(finh);
 
   W=2.0*MAX(fabs(min_inh),fabs(max_inh)); //1.0+m/n!?!?!?!?!?
-  N3=ceil(W*(max_time-min_time)*(1.2));
+  N3=2*ceil(W*(max_time-min_time)*(1.2));
 
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
