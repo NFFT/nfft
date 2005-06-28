@@ -7,7 +7,9 @@
 }
 
 
+\usepackage{pgf,pgfarrows,pgfnodes}
 \usepackage[english]{babel}
+\usepackage{amsmath}
 
 \usepackage[latin1]{inputenc}
 
@@ -17,8 +19,32 @@
 \usepackage{euler}
 
 \usepackage{jkmath}
-
 \usepackage{array}
+
+\definecolor{MyBlue}{rgb}{0.3,0.3,1.0} 
+\definecolor{MyGreen}{rgb}{0.3,1.0,0.3} 
+\definecolor{MyRed}{rgb}{1.0,0.3,0.3} 
+
+\newcommand{\textarrowdown}[1]
+{
+        \begin{pgfpicture}{0cm}{0cm}{4cm}{0.7cm} 
+          \pgfsetlinewidth{1.0pt}
+          \color{structure}
+          \pgfsetendarrow{\pgfarrowto}
+          \pgfline{\pgfxy(2,0.5)}{\pgfxy(2,0.0)} 
+           \pgfputat{\pgfxy(2.4,0.35)}{\pgfbox[left,center]{#1}}
+        \end{pgfpicture}
+}
+\newcommand{\textarrowup}[1]
+{
+        \begin{pgfpicture}{0cm}{0cm}{4cm}{0.7cm} 
+          \pgfsetlinewidth{1.0pt}
+          \color{structure}
+          \pgfsetendarrow{\pgfarrowto}
+          \pgfline{\pgfxy(2,0.0)}{\pgfxy(2,0.5)} 
+           \pgfputat{\pgfxy(2.4,0.35)}{\pgfbox[left,center]{#1}}
+        \end{pgfpicture}
+}
 
 \setbeamertemplate{title page}
 { 
@@ -111,6 +137,145 @@
 
 \section{Fourier Analysis on \twosphere}
 
+\subsection{$\mathbb{S}^1$: Fourier Series}
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^1$: Fourier Series}
+  
+  \begin{center}
+  
+  \begin{minipage}[t]{0.5\textwidth}
+	  \begin{tabular}{c}
+	    Approximation space \\  
+	    $\Ln{2}{\R^2}$\\
+	    \pause
+	    \textarrowup{dense in} \\
+	    Polynomials \\
+	    $\fun{\Pi}{\R^2}$ \\
+	    \pause
+	    \textarrowdown{restrict to} \\
+	    Homogeneous polynomials \\
+	    $\fun{\text{Hom}}{\R^2} := \pset{f \in \fun{\Pi_{k}}{\R^2}}{|}{k \in \NZ,\ \fun{f}{\lambda\V{x}} = \lambda^k \fun{f}{\V{x}}}$ \\
+	    \pause
+	    \textarrowdown{restrict to} \\
+	    Homogeneous harmonic polynomials \\ 
+	    $\fun{\text{Harm}}{\R^2} := \pset{f \in \fun{\Pi_{k}}{\R^2}}{|}{k \in \NZ,\ \fun{f}{\lambda\V{x}} = \lambda^k \fun{f}{\V{x}},\ \Delta_{\V{x}} f \equiv 0}$
+	  \end{tabular}
+	\end{minipage}
+	\hfill
+  \begin{minipage}[b]{0.3\textwidth}
+    \begin{pgfpicture}{0cm}{0cm}{2cm}{3cm} 
+      \only<6->
+      {
+	      \pgfnodecircle{Node1}[stroke]{\pgfxy(-7,-2.6)}{0.0cm} 
+	      \pgfnodecircle{Node2}[stroke]{\pgfxy(-3.8,2.8)}{0.0cm}     
+	      \pgfsetlinewidth{1.0pt}
+	      \color{structure}
+	      \pgfsetendarrow{\pgfarrowto}
+	      \pgfnodeconncurve{Node1}{Node2}{110}{200}{3cm}{3cm}
+	    }
+      \only<5>{\pgfputat{\pgfxy(-6.2,2.0)}{\pgfbox[right,center]{\alert{{Surprise}}}}}
+      \only<6->{\pgfputat{\pgfxy(-6.2,2.0)}{\pgfbox[right,center]{dense in}}}
+    \end{pgfpicture}
+	\end{minipage}
+
+  \end{center}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^1$: Fourier Series}
+  
+  \begin{itemize}
+    \item Homogeneous polynomials separate in polar coordinates:\\
+          $p_{k} \in \fun{\text{Hom}}{\R^2}, \deg p_{k} = k, k \in \NZ$
+          \[\Rightarrow \fun{p}{r,\vphi} = r^k \fun{q_{k}}{\vphi}, \quad \paren{r \in \Rp,\ 
+          \vphi \in \interv{[}{-\pi}{\pi}{]}}\]
+    \pause  
+    \item Laplacian in Cartesian coordinates:
+      \[\Delta_{\V{x}} = \frac{\partial^2}{\partial x_{1}^2} + \frac{\partial^2}{\partial x_{2}^2}\]
+     \pause
+    \item Laplacian in polar coordinates:
+      \[\Delta_{\paren{r,\vphi}} = \frac{1}{r^2} \frac{\partial^2}{\partial \vphi^2} +  \frac{\partial^2}{\partial r^2} + \frac{1}{r}\frac{\partial}{\partial r}\]
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^1$: Fourier Series}
+
+  \vspace{-1.6cm}
+  \begin{itemize}
+    \item Restriction to the unit circle $\mathbb{S}^1$ ($r = 1$):
+  \end{itemize}  
+      \[\Delta_{\vphi} = \frac{\partial^2}{\partial \vphi^2}\]
+  \begin{columns}
+    \column{4cm}
+    \column{4cm}
+    \uncover<2->
+    {
+		  \begin{block}{Eigenfunctions}
+		  \[
+		     \e^{\im k \varphi} \quad \paren{k \in \Z}
+		  \]
+		  \end{block}
+		}
+    \column{4cm}
+	    \begin{pgfpicture}{0cm}{0cm}{1cm}{1cm} 
+	      \only<2->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-1,2.2)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(0.3,1.1)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{0}{40}{1.5cm}{1.5cm}
+		    }
+		    \color{black}
+	      \only<3->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-6,-1.0)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-4.6,0.3)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{-180}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-6,-2.0)}{\pgfbox[center,center]
+	        {\parbox{3cm}{\begin{center}homogeneous \\ harmonic \\ polynomials in $\R^2$\end{center}}}}
+		    }
+	      \only<4->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-2.2,-1.1)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-2.2,-0.6)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{-90}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-2.2,-2.0)}{\pgfbox[center,center] 
+	        {\parbox{3cm}{\begin{center} orthogonal w. r. \\ to the $\Ln{2}{\mathbb{S}^1}$ inner product\end{center}}}}	
+	      }
+	      \only<5->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(1.6,-1.0)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(0.2,0.3)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{0}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(1.6,-2.0)}{\pgfbox[center,center]
+	        {\parbox{3cm}{\begin{center} span $\left.\fun{\Pi}{\R^2}\right|_{\mathbb{S}^1}$\end{center}}}}
+	      }
+	      
+	      %\only<6->{\pgfputat{\pgfxy(-6.2,2.0)}{\pgfbox[right,center]{dense in}}}
+	    \end{pgfpicture}
+  \end{columns}  
+%    \item The functions $\e^{ik\varphi}$ are homogeneous harmonic polynomials in $\R^2$ restricted to the unit circle $\mathbb{S}^1$
+%    \item The functions $\e^{ik\varphi}$ are orthogonal with respect to the $\Ln{2}{\mathbb{S}^1}$ inner product
+%    \item $\text{span} \pset{\e^{ik\varphi}}{|}{k \in \Z} = \left.\fun{\Pi}{\R^2}\right|_{\mathbb{S}^1}$
+%  \end{itemize}
+  
+\end{frame}
+
 \begin{frame}
   \frametitle{Spherical Coordinates}
 
@@ -128,69 +293,1103 @@
 
 \end{frame}
 
+\subsection{$\mathbb{S}^2$: Spherical Harmonics}
+
 \begin{frame}
-  \frametitle{Comparison $\mathbb{S}^1$ and $\twosphere$}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  
+  \begin{center}
+  
+  \begin{minipage}[t]{0.5\textwidth}
+	  \begin{tabular}{c}
+	    Approximation space \\  
+	    $\Ln{2}{\alert{\R^3}}$\\
+	    \pause
+	    \textarrowup{dense in} \\
+	    Polynomials \\
+	    $\fun{\Pi}{\alert{\R^3}}$ \\
+	    \pause
+	    \textarrowdown{restrict to} \\
+	    Homogeneous polynomials \\
+	    $\fun{\text{Hom}}{\alert{\R^3}} := \pset{f \in \fun{\Pi_{k}}{\alert{\R^3}}}{|}{k \in \NZ,\ \fun{f}{\lambda\V{x}} = \lambda^k \fun{f}{\V{x}}}$ \\
+	    \pause
+	    \textarrowdown{restrict to} \\
+	    Homogeneous harmonic polynomials \\ 
+	    $\fun{\text{Harm}}{\alert{\R^3}} := \pset{f \in \fun{\Pi_{k}}{\alert{\R^3}}}{|}{k \in \NZ,\ \fun{f}{\lambda\V{x}} = \lambda^k \fun{f}{\V{x}},\ \Delta_{\V{x}} f \equiv 0}$
+	  \end{tabular}
+	\end{minipage}
+	\hfill
+  \begin{minipage}[b]{0.3\textwidth}
+    \begin{pgfpicture}{0cm}{0cm}{2cm}{3cm} 
+      \only<6->
+      {
+	      \pgfnodecircle{Node1}[stroke]{\pgfxy(-7,-2.6)}{0.0cm} 
+	      \pgfnodecircle{Node2}[stroke]{\pgfxy(-3.8,2.8)}{0.0cm}     
+	      \pgfsetlinewidth{1.0pt}
+	      \color{structure}
+	      \pgfsetendarrow{\pgfarrowto}
+	      \pgfnodeconncurve{Node1}{Node2}{110}{200}{3cm}{3cm}
+	    }
+      \only<5>{\pgfputat{\pgfxy(-6.2,2.0)}{\pgfbox[right,center]{\alert{{Big surprise}}}}}
+      \only<6->{\pgfputat{\pgfxy(-6.2,2.0)}{\pgfbox[right,center]{dense in}}}
+    \end{pgfpicture}
+	\end{minipage}
 
-  \newcolumntype{C}{>{$}c<{$}} 
-  \newcolumntype{L}{>{$}l<{$}} 
-  \newcolumntype{R}{>{$}r<{$}} 
-  \setlength{\extrarowheight}{5pt}
+  \end{center}
 
-  {\tiny
-  \begin{tabular}{|l|C|C|}
-    \firsthline
-               & \mathbb{S}^1 & \twosphere \\[5pt] \hline
-    Definition & \mathbb{S}^1 := \mathbb{T}^1 := \pset{\V{x} \in \R^2}{|}{\norm{\V{x}}_{2} = 1} &
-    \twosphere := \pset{\V{x} \in \R^{3}}{|}{\norm{\V{x}}_2 = 1} \\[5pt] \hline
-    Laplace's equation & \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} = 0 &
-    \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} + \frac{\partial^2}{\partial x_3^2} = 0 \\[5pt]
-                       & \lasthline
-  \end{tabular}
-  }
+\end{frame}
 
-  You can create overlays\dots
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  
   \begin{itemize}
-  \item using the \texttt{pause} command:
-    \begin{itemize}
-    \item
-      First item.
-      \pause
-    \item    
-      Second item.
-    \end{itemize}
-  \item
-    using overlay specifications:
-    \begin{itemize}
-    \item<3->
-      First item.
-    \item<4->
-      Second item.
-    \end{itemize}
-  \item
-    using the general \texttt{uncover} command:
-    \begin{itemize}
-      \uncover<5->{\item
-        First item.}
-      \uncover<6->{\item
-        Second item.}
-    \end{itemize}
+    \item Homogeneous polynomials separate in \alert{spherical} coordinates:\\
+          $p_{k} \in \fun{\text{Hom}}{\alert{\R^3}}, \deg p_{k} = k, k \in \NZ$
+          \[\Rightarrow \fun{p}{r,\alert{\vtheta,}\vphi} = r^k
+          \fun{q_{k}}{\alert{\vtheta,}\vphi}, \quad \paren{r \in \Rp,\ 
+          \alert{\vtheta \in \interv{[}{0}{\pi}{]},} \
+          \vphi \in \interv{[}{-\pi}{\pi}{]}}\]
+    \pause  
+    \item Laplacian in Cartesian coordinates:
+      \[\Delta_{\V{x}} = \frac{\partial^2}{\partial x_{1}^2} + 
+      \frac{\partial^2}{\partial x_{2}^2} + 
+      \alert{\frac{\partial^2}{\partial x_{3}^2}}\]
+     \pause
+    \item Laplacian in \alert{spherical} coordinates:
+      \[\Delta_{\paren{r,\vtheta,\vphi}} = \frac{1}{r^2 \alert{\sin^2 \vtheta}} \frac{\partial^2}{\partial \vphi^2} +  \frac{\partial^2}{\partial r^2} + \frac{\alert{2}}{r}\frac{\partial}{\partial r} + \alert{\frac{1}{r^2 \sin \vtheta} \frac{\partial}{\partial \vtheta} \paren{\sin \vtheta \: \frac{\partial}{\partial \vtheta}}}\]
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+
+  \vspace{-1.6cm}
+  \begin{itemize}
+    \item Restriction to the unit \alert{sphere} $\alert{\mathbb{S}^2}$ ($r = 1$):
+  \end{itemize}  
+  \[
+    \Delta_{\paren{\vtheta,\vphi}} = \frac{1}{\alert{\sin^2 \vtheta}} 
+    \frac{\partial^2}{\partial \vphi^2} + \alert{\frac{1}{ \sin \vtheta} 
+    \frac{\partial}{\partial \vtheta} \paren{\sin \vtheta \: \frac{\partial}{\partial \vtheta}}}
+  \]
+  \begin{columns}
+    \column{0.1cm}
+    \column{11cm}
+    \uncover<2->
+    {
+		  \begin{block}{Eigenfunctions}
+		  \[
+        \alert
+        {
+          \fun{Y_{k}^n}{\vtheta,\vphi} := \sqrt{\frac{2k+1}{4\pi}}
+          \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{i n \varphi} \quad 
+          \paren{k \in \NZ,\ n = -k,\ldots,k}
+        }
+		  \]
+		  \end{block}
+		}
+    \column{0.1cm}
+	    \begin{pgfpicture}{0cm}{0cm}{1cm}{1cm} 
+	      \only<2->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-2.4,2.6)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-1.4,1.7)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{0}{90}{0.7cm}{0.7cm}
+		    }
+		    \color{black}
+	      \only<3->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-9.8,-1.6)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-9.8,-1.0)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{-90}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-9.8,-2.4)}{\pgfbox[center,center]
+	        {\parbox{3cm}{\begin{center}homogeneous \\ harmonic \\ polynomials in $\alert{\R^2}$\end{center}}}}
+		    }
+	      \only<4->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-5.8,-1.6)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-5.8,-1.0)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{-90}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-5.8,-2.4)}{\pgfbox[center,center] 
+	        {\parbox{3cm}{\begin{center} \alert{orthonormal} w. r. \\ to the $\Ln{2}{\alert{\mathbb{S}^2}}$ 
+	          inner product\end{center}}}}	
+	      }
+	      \only<5->
+	      {
+		      \pgfnodecircle{Node1}[stroke]{\pgfxy(-1.8,-1.6)}{0.0cm} 
+		      \pgfnodecircle{Node2}[stroke]{\pgfxy(-1.8,-1.0)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{90}{-90}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-1.8,-2.4)}{\pgfbox[center,center]
+	        {\parbox{3cm}{\begin{center} span $\left.\fun{\Pi}{\alert{\R^3}}\right|_{\alert{\mathbb{S}^2}}$\end{center}}}}
+	      }
+	    \end{pgfpicture}
+  \end{columns}  
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{sh_r_4_2}\\
+    $\Re \: Y_{4}^{2}$
+  \end{figure} 
+\end{frame}  
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{sh_r_9_5}\\
+    $\Re \: Y_{9}^{5}$
+  \end{figure}
+\end{frame}  
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{sh_r_13_1}\\
+    $\Re \: Y_{13}^{1}$
+  \end{figure}
+\end{frame}  
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{sh_r_13_6}\\
+    $\Re \: Y_{13}^{6}$
+  \end{figure}
+\end{frame}  
+
+\begin{frame}
+  \frametitle{$\mathbb{S}^2$: Spherical Harmonics}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{sh_r_13_13}\\
+    $\Re \: Y_{13}^{13}$
+  \end{figure}
+\end{frame}  
+
+%    \item Eigenfunctions: 
+%      \[
+%      \]  
+%    \item The functions $\e^{ik\varphi}$ are homogeneous harmonic polynomials in 
+%      $\R^2$ restricted to the unit circle $\mathbb{S}^1$
+%    \item The functions $\e^{ik\varphi}$ are orthogonal with respect to 
+%      the $\Ln{2}{\mathbb{S}^1}$ inner product
+%    \item $\text{span} \pset{\e^{ik\varphi}}{|}{k \in \Z} = \left.\fun{\Pi}{\R^3}\right|_{\mathbb{S}^1}$
+
+%\begin{frame}
+%  \frametitle{Comparison $\mathbb{S}^1$ and $\twosphere$}
+
+%  \newcolumntype{C}{>{$}c<{$}} 
+%  \newcolumntype{L}{>{$}l<{$}} 
+%  \newcolumntype{R}{>{$}r<{$}} 
+%  \setlength{\extrarowheight}{5pt}
+
+%  {\tiny
+%  \begin{tabular}{|l|C|C|}
+%    \firsthline
+%               & \mathbb{S}^1 & \twosphere \\[5pt] \hline
+%    Definition & \mathbb{S}^1 := \mathbb{T}^1 := \pset{\V{x} \in \R^2}{|}{\norm{\V{x}}_{2} = 1} &
+%    \twosphere := \pset{\V{x} \in \R^{3}}{|}{\norm{\V{x}}_2 = 1} \\[5pt] \hline
+%    Laplace's equation & \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} = 0 &
+%    \frac{\partial^2}{\partial x_1^2} + \frac{\partial^2}{\partial x_2^2} + \frac{\partial^2}{\partial x_3^2} = 0 \\[5pt] \lasthline
+%  \end{tabular}
+%  }
+%  
+%  You can create overlays\dots
+%  \begin{itemize}
+%  \item using the \texttt{pause} command:
+%    \begin{itemize}
+%    \item
+%      First item.
+%      \pause
+%    \item    
+%      Second item.
+%    \end{itemize}
+%  \item
+%    using overlay specifications:
+%    \begin{itemize}
+%    \item<3->
+%      First item.
+%    \item<4->
+%      Second item.
+%    \end{itemize}
+%  \item
+%    using the general \texttt{uncover} command:
+%    \begin{itemize}
+%      \uncover<5->{\item
+%        First item.}
+%      \uncover<6->{\item
+%        Second item.}
+%    \end{itemize}
+%  \end{itemize}
+%\end{frame}
+
+\section{Nonequispaced Fast Spherical Fourier Transform (NFSFT)}
+
+\subsection{Introduction}
+
+\begin{frame}
+  \frametitle{Some notation}
+  
+  \begin{itemize}
+    \item Bandwidth: $M \in \NZ$, $t := \ceil{\log_{2}M}$, $N := 2^t$
+    \pause
+    \item Sampling set: $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1} \quad \paren{D \in \N}$
+    \pause
+    \item Index set: $\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k}$
+    \pause
+    \item Fourier expansion of $f: \twosphere \rightarrow \C$ with bandwidth $M \in \NZ$: 
+      \[ f = \sum_{\paren{k,n} \in \mathcal{I}^M} \fun{a_k^n}{f} Y_{k}^n,\]
+    \pause
+    \item Spherical Fourier coefficients: $a_{k}^n = \fun{a_k^n}{f}$
   \end{itemize}
 \end{frame}
 
-
-\subsection{Previous Work}
-
 \begin{frame}
-  \frametitle{Make Titles Informative.}
+  \frametitle{Nonequispaced Discrete Spherical Fourier Transform}
+  \begin{block}{Nonequispaced Discrete Spherical Fourier Transform (NDSFT)}
+    Given Fourier coefficients $a_k^n$ for $\paren{k,n} \in \mathcal{I}^M$ and a 
+    sampling set $\mathcal{X}$, evaluate
+    \[
+      \fun{f}{\vtheta_d,\vphi_d} = \sum_{\paren{k,n} \in \mathcal{I}^M}
+      a_k^n \fun{Y_{k}^n}{\vtheta_d,\vphi_d} 
+      \quad \paren{\paren{\vtheta_d,\vphi_d} \in \mathcal{X}}.
+    \]
+  \end{block}
+  
+  \begin{center}
+    \alert
+    {
+      \begin{align}
+        \pause
+        \nonumber \text{Naivest algorithm} & \longrightarrow \bigo{M^3 D}\ \text{flops} \\
+        \pause
+        \nonumber \text{``Direct'' algorithm} & \longrightarrow \bigo{M^2 D}\ \text{flops}
+      \end{align}
+    }
+  \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Make Titles Informative.}
+  \frametitle{Nonequispaced Fast Spherical Fourier Transform}
+  
+  \begin{center}
+  
+    \vspace{-1.0cm}
+	  \begin{tabular}{c}
+	    \parbox[b]{10cm}
+	    {
+	      \begin{center}
+	          $\displaystyle \fun{f}{\vtheta,\vphi} = 
+	             \displaystyle 
+	             \only<1>{\sum_{\paren{k,n} \in \mathcal{I}^M} a_k^n \fun{Y_{k}^n}{\vtheta,\vphi}}
+	             \only<2>{\sum_{k = 0}^M \sum_{n = -k}^k a_k^n \fun{Y_{k}^n}{\vtheta,\vphi}}
+	             \only<3>{\sum_{n = -M}^M \sum_{k = \abs{n}}^M a_k^n \fun{Y_{k}^n}{\vtheta,\vphi}}
+	             \only<4->{\sum_{n = -M}^M \paren{\sum_{k = \abs{n}}^M a_k^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}} \e^{\im n \vphi}}
+	            $ 
+	      \end{center}
+	    } \\
+	    \visible<5-10>
+	    {
+	      \begin{pgfpicture}{0cm}{0cm}{4cm}{0.5cm} 
+          \pgfnodecircle{Node1}[stroke]{\pgfxy(2.8,0.7)}{0.0cm} 
+	        \pgfnodecircle{Node2}[stroke]{\pgfxy(-0.4,-0.5)}{0.0cm}     
+          \pgfnodecircle{Node3}[stroke]{\pgfxy(2.8,0.7)}{0.0cm} 
+	        \pgfnodecircle{Node4}[stroke]{\pgfxy(4.6,-0.5)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{-90}{90}{1.0cm}{1.0cm}
+		      \pgfnodeconncurve{Node3}{Node4}{-90}{90}{1.0cm}{1.0cm}
+	        \pgfputat{\pgfxy(-1.0,0.0)}{\pgfbox[center,center]{$n$ even}}
+	        \pgfputat{\pgfxy(5.2,-0.0)}{\pgfbox[center,center]{$n$ odd}}
+        \end{pgfpicture}\\
+   	    \parbox[b][2cm][c]{5cm}
+	      {
+	        \begin{center}
+	            $\displaystyle 
+	              \only<-5>{\uncover<5>{\sum_{k = \abs{n}}^M a_k^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}}}
+	              \only<6>{\sum_{k = 0}^M b_k^n \fun{T_{k}}{\cos \vtheta}}
+	              \only<7>{\sum_{k = 0}^M b_k^n \fun{\cos}{k \vtheta}}
+	              \only<8->{\sum_{k = -M}^M c_k^n \e^{\im k \vtheta}}
+	            $ 
+  	        \end{center}
+	      }
+   	    \parbox[b][2cm][c]{5cm}
+	      {
+	        \begin{center}
+	            $\displaystyle 
+	              \only<-5>{\uncover<5>{\sum_{k = \abs{n}}^M a_k^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}}}
+	              \only<6>{\sin{\vtheta} \sum_{k = 0}^{M-1} b_k^n \fun{T_{k}}{\cos \vtheta}}
+	              \only<7>{\sin{\vtheta} \sum_{k = 0}^{M-1} b_k^n \fun{\cos}{k \vtheta}}
+	              \only<8->{\sum_{k = -M}^{M} c_k^n \e^{\im k \vtheta}}
+	            $ 
+  	        \end{center}
+	      }
+	    }\\
+	    \visible<9->
+	    {
+	      \begin{pgfpicture}{0cm}{0cm}{4cm}{0.5cm} 
+          \pgfnodecircle{Node1}[stroke]{\pgfxy(-0.4,0.7)}{0.0cm} 
+	        \pgfnodecircle{Node2}[stroke]{\pgfxy(3.4,-0.3)}{0.0cm}     
+          \pgfnodecircle{Node3}[stroke]{\pgfxy(4.6,0.7)}{0.0cm} 
+	        \pgfnodecircle{Node4}[stroke]{\pgfxy(3.4,-0.3)}{0.0cm}     
+		      \pgfsetlinewidth{1.0pt}
+		      \color{structure}
+		      \pgfsetendarrow{\pgfarrowto}
+		      \pgfnodeconncurve{Node1}{Node2}{-90}{90}{1.0cm}{1.0cm}
+		      \pgfnodeconncurve{Node3}{Node4}{-90}{90}{1.0cm}{1.0cm}
+        \end{pgfpicture}\\
+	      $\displaystyle \fun{f}{\vtheta,\vphi} = \sum_{n = -M}^M \sum_{k = -M}^M c_k^n 
+	      \e^{\im k \vtheta} \e^{\im n \vphi}$
+	    }
+    \end{tabular}
+  \end{center}
+  
 \end{frame}
 
+\begin{frame}
+  \frametitle{Nonequispaced Fast Spherical Fourier Transform}
 
+  \begin{columns}
+  
+    \column{5cm}
+    
+	      \begin{pgfpicture}{-0.7cm}{-0.6cm}{5cm}{5cm} 
+          \pgfsetlinewidth{1.0pt}
+          \visible<1>
+          {
+	          \begin{pgfscope}
+	            \pgfmoveto{\pgfxy(3.00,2.00)} 
+	            \pgflineto{\pgfxy(5.00,0.00)} 
+	            \pgflineto{\pgfxy(5.00,4.00)} 
+	            \pgfclip 
+	            \color{MyBlue}
+	            \pgfrect[fill]{\pgfxy(3.00,0.00)}{\pgfxy(5.00,4.00)} 
+	          \end{pgfscope}
+	        }
+          \visible<2>
+          {
+	          \begin{pgfscope}
+	            \pgfmoveto{\pgfxy(3.00,0.00)} 
+	            \pgflineto{\pgfxy(5.00,0.00)} 
+	            \pgflineto{\pgfxy(5.00,4.00)} 
+	            \pgflineto{\pgfxy(3.00,4.00)} 
+	            \pgfclip 
+	            \color{MyGreen}
+	            \pgfrect[fill]{\pgfxy(3.00,0.00)}{\pgfxy(5.00,4.00)} 
+	          \end{pgfscope}
+	        }
+          \visible<3->
+          {
+	          \begin{pgfscope}
+	            \pgfmoveto{\pgfxy(1.00,0.00)} 
+	            \pgflineto{\pgfxy(5.00,0.00)} 
+	            \pgflineto{\pgfxy(5.00,4.00)} 
+	            \pgflineto{\pgfxy(1.00,4.00)} 
+	            \pgfclip 
+	            \color{MyRed}
+	            \pgfrect[fill]{\pgfxy(1.00,0.00)}{\pgfxy(5.00,4.00)} 
+	          \end{pgfscope}
+	        }
+          \color{structure}
+          \pgfsetendarrow{\pgfarrowto}
+          \pgfline{\pgfxy(0,2)}{\pgfxy(6,2)} 
+          \pgfline{\pgfxy(3,-1)}{\pgfxy(3,5)} 
+          \color{black}
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,4.00)}{0.05cm}
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.00)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.75)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.50)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.25)}{0.05cm} 
+          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.00)}{0.05cm}
+          \visible<2->
+          {
+            \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,4.00)}{0.05cm} 
+            \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.00)}{0.05cm} 
+          }
+          \visible<3->
+          {
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,4.00)}{0.05cm}
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.00)}{0.05cm}
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,4.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.75)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.50)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.25)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.00)}{0.05cm} 
+	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.00)}{0.05cm} 
+          }
+	      \end{pgfpicture}
+    \column{7.7cm}
+      \vspace{-3ex}
+			  \begin{tabular}{c}
+			    $\color{MyBlue}\paren{a_{k}^n}$ \\
+			    \pause
+			    \textarrowdown{FLFT $\bigo{M^2 \log^2 M}$} \\
+			    $\color{MyGreen}\paren{b_{k}^n}$ \\
+			    \pause
+			    \textarrowdown{"magic" $\bigo{M^2}$} \\
+			    $\color{MyRed}\paren{c_{k}^n}$ \\
+			    \pause
+			    \textarrowdown{2D-NFFT \tiny$\bigo{M^2 \log M + \log\frac{1}{\varepsilon}D}$} \\
+			    $\paren{\fun{f}{\vtheta_{d},\vphi_{d}}}$ \\
+			  \end{tabular}	  
+  \end{columns}
+  
+\end{frame}
 
-\section{Nonequispaced Fast Spherical Fourier Transform (NFSFT)}
+\subsection{Fast Legendre Function Transform}
+
+\begin{frame}
+  \frametitle{Associated Legendre Functions}
+  \begin{block}{Definition: Associated Legendre Functions}
+    \begin{itemize}
+      \item $P_{k}^n: \interv{[}{-1}{1}{]} \rightarrow \R \ \paren{k \in \NZ, n \le k}$
+      \item $P_{k}^n = \paren{\frac{(k-n)!}{(k+n)!}}^{1/2} \paren{x^2-1}^{n/2} \frac{\dx^n}{\dx x^n} P_{k}$
+    \end{itemize}
+  \end{block}  
+
+  \parbox[t][3cm]{10cm}
+  {
+  \only<-2>
+  {
+    \uncover<2>
+    {
+		  \begin{block}{Three-term Recurrence}
+		    \begin{itemize}
+		      \item $\fun{P_{n-1}^n}{x} := 0$
+		      \item $\fun{P_{n}^n}{x} := \frac{\sqrt{(2n)!}}{2^nn!}\paren{1-x^2}^{n/2}$
+		      \item $\fun{P_{k+1}^n}{x} = v_{k}^n x \fun{P_{k}^n}{x} + w_{k}^n \fun{P_{k-1}^n}{x} \ \paren{k,n \in \NZ,\ k \ge n}$
+		    \end{itemize}
+		  \end{block}
+		}
+  }
+  \only<3>
+  {
+		  \begin{block}{\alert{Extended} Three-term Recurrence (Potts, Steidl, Tasche)}
+		    \begin{itemize}
+		      \item n even: $\fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \frac{\sqrt{(2n)!}}{2^nn!}$
+		      \item n odd: $\fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \frac{\sqrt{(2n)!}}{2^nn!}\left(1-x^2\right)^{1/2}$
+		      \item $\fun{P_{k+1}^n}{x} = \paren{\alpha_{k}^n x + \beta_{k}^n}\fun{P_{k}^n}{x} + \gamma_{k}^n \fun{P_{k-1}^n}{x}$
+		    \end{itemize}
+		  \end{block}
+  }
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{Associated Legendre Functions}
+  
+  \begin{block}{Definition: Associated Legendre Polynomials}
+    \begin{itemize}
+      \item $\fun{P_{-1}^n}{x,c}  := 0$,\\
+      \item $\fun{P_{0}^n}{x,c}   := 1$,\\
+      \item $\fun{P_{k+1}^n}{x,c}  = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.$    
+    \end{itemize}  
+  \end{block}  
+  
+  \begin{block}{Lemma}
+    $\displaystyle \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c}\fun{P_{c}^n}{x} + \gamma_{c}^n\fun{P_{k-1}^n}{x,c+1}\fun{P_{c-1}^n}{x}$
+  \end{block}
+  
+  \begin{itemize}
+    \item For sake of simplicity: $n \ge 0$, $n even$
+    \item Idea: $\displaystyle \sum_{k = n}^M a_{k}^n P_{k}^{n}$ \hspace{0.2cm}
+      \begin{pgfpicture}{0cm}{0cm}{1.0cm}{0.2cm} 
+        \pgfsetlinewidth{1.0pt}
+        \color{structure}
+        \pgfsetendarrow{\pgfarrowto}
+        \pgfline{\pgfxy(0.0,0.0)}{\pgfxy(1.0,0.0)} 
+      \end{pgfpicture}
+      \hspace{0.2cm}
+      $\displaystyle a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}$\\
+      with $a_{0}^{(t-1)},\ a_{1}^{(t-1)} \in \Pi_{M}$
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cascade Summation}
+  
+  \begin{example}
+    \begin{itemize}
+      \item $M = 16$, $n = 4$
+    \end{itemize}
+      \begin{pgfpicture}{-0.15cm}{-5.2cm}{10.70cm}{0.2cm} 
+        \pgfsetlinewidth{1.0pt}
+        \color{structure}
+        \pgfsetendarrow{\pgfarrowtriangle{2pt}}
+        \visible<2->
+        {
+	        \pgfputat{\pgfxy(0.00,0.0)}{\pgfbox[center,center]{$a_{0}^4$}}
+	        \pgfputat{\pgfxy(0.65,0.0)}{\pgfbox[center,center]{$a_{1}^4$}}
+	        \pgfputat{\pgfxy(1.30,0.0)}{\pgfbox[center,center]{$a_{2}^4$}}
+	        \pgfputat{\pgfxy(1.95,0.0)}{\pgfbox[center,center]{$a_{3}^4$}}
+	        \pgfputat{\pgfxy(2.60,0.0)}{\pgfbox[center,center]{$a_{4}^4$}}
+	        \pgfputat{\pgfxy(3.25,0.0)}{\pgfbox[center,center]{$a_{5}^4$}}
+	        \pgfputat{\pgfxy(3.90,0.0)}{\pgfbox[center,center]{$a_{6}^4$}}
+	        \pgfputat{\pgfxy(4.55,0.0)}{\pgfbox[center,center]{$a_{7}^4$}}
+	        \pgfputat{\pgfxy(5.20,0.0)}{\pgfbox[center,center]{$a_{8}^4$}}
+	        \pgfputat{\pgfxy(5.85,0.0)}{\pgfbox[center,center]{$a_{9}^4$}}
+	        \pgfputat{\pgfxy(6.50,0.0)}{\pgfbox[center,center]{$a_{10}^4$}}
+	        \pgfputat{\pgfxy(7.15,0.0)}{\pgfbox[center,center]{$a_{11}^4$}}
+	        \pgfputat{\pgfxy(7.80,0.0)}{\pgfbox[center,center]{$a_{12}^4$}}
+	        \pgfputat{\pgfxy(8.45,0.0)}{\pgfbox[center,center]{$a_{13}^4$}}
+	        \pgfputat{\pgfxy(9.10,0.0)}{\pgfbox[center,center]{$a_{14}^4$}}
+	        \pgfputat{\pgfxy(9.75,0.0)}{\pgfbox[center,center]{$a_{15}^4$}}
+	        \pgfputat{\pgfxy(10.4,0.0)}{\pgfbox[center,center]{$a_{16}^4$}}
+	      } 
+
+        \visible<3>
+        {
+          \color{red}
+	        \pgfline{\pgfxy(0.00,-0.35)}{\pgfxy( 0.20,-0.65)} 
+	        \pgfline{\pgfxy(0.65,-0.35)}{\pgfxy( 0.85,-0.65)} 
+	        \pgfline{\pgfxy(1.30,-0.35)}{\pgfxy( 1.50,-0.65)} 
+	        \pgfline{\pgfxy(1.95,-0.35)}{\pgfxy( 2.15,-0.65)} 
+	        \pgfline{\pgfxy(2.60,-0.35)}{\pgfxy( 2.80,-0.65)} 
+	        \pgfline{\pgfxy(3.25,-0.35)}{\pgfxy( 3.45,-0.65)} 
+	        \pgfline{\pgfxy(3.90,-0.35)}{\pgfxy( 4.10,-0.65)} 
+	        \pgfline{\pgfxy(4.55,-0.35)}{\pgfxy( 4.75,-0.65)} 
+	        \pgfline{\pgfxy(5.20,-0.35)}{\pgfxy( 5.40,-0.65)} 
+	        \pgfline{\pgfxy(5.85,-0.35)}{\pgfxy( 6.05,-0.65)} 
+	        \pgfline{\pgfxy(6.50,-0.35)}{\pgfxy( 6.70,-0.65)} 
+	        \pgfline{\pgfxy(7.15,-0.35)}{\pgfxy( 7.35,-0.65)} 
+	        \pgfline{\pgfxy(7.80,-0.35)}{\pgfxy( 8.00,-0.65)} 
+	        \pgfline{\pgfxy(8.45,-0.35)}{\pgfxy( 8.65,-0.65)} 
+	        \pgfline{\pgfxy(9.10,-0.35)}{\pgfxy( 9.30,-0.65)} 
+	        \pgfline{\pgfxy(9.75,-0.35)}{\pgfxy( 9.95,-0.65)}
+	      } 
+        \visible<4->
+        {
+          \color{structure}
+	        \pgfline{\pgfxy(0.00,-0.35)}{\pgfxy( 0.20,-0.65)} 
+	        \pgfline{\pgfxy(0.65,-0.35)}{\pgfxy( 0.85,-0.65)} 
+	        \pgfline{\pgfxy(1.30,-0.35)}{\pgfxy( 1.50,-0.65)} 
+	        \pgfline{\pgfxy(1.95,-0.35)}{\pgfxy( 2.15,-0.65)} 
+	        \pgfline{\pgfxy(2.60,-0.35)}{\pgfxy( 2.80,-0.65)} 
+	        \pgfline{\pgfxy(3.25,-0.35)}{\pgfxy( 3.45,-0.65)} 
+	        \pgfline{\pgfxy(3.90,-0.35)}{\pgfxy( 4.10,-0.65)} 
+	        \pgfline{\pgfxy(4.55,-0.35)}{\pgfxy( 4.75,-0.65)} 
+	        \pgfline{\pgfxy(5.20,-0.35)}{\pgfxy( 5.40,-0.65)} 
+	        \pgfline{\pgfxy(5.85,-0.35)}{\pgfxy( 6.05,-0.65)} 
+	        \pgfline{\pgfxy(6.50,-0.35)}{\pgfxy( 6.70,-0.65)} 
+	        \pgfline{\pgfxy(7.15,-0.35)}{\pgfxy( 7.35,-0.65)} 
+	        \pgfline{\pgfxy(7.80,-0.35)}{\pgfxy( 8.00,-0.65)} 
+	        \pgfline{\pgfxy(8.45,-0.35)}{\pgfxy( 8.65,-0.65)} 
+	        \pgfline{\pgfxy(9.10,-0.35)}{\pgfxy( 9.30,-0.65)} 
+	        \pgfline{\pgfxy(9.75,-0.35)}{\pgfxy( 9.95,-0.65)}
+	      } 
+	      
+        \pgfnodecircle{Node1}[stroke]{\pgfxy(10.40,-0.35)}{0.0cm} 
+        \pgfnodecircle{Node2}[stroke]{\pgfxy( 9.50,-0.65)}{0.0cm} 
+        \pgfnodecircle{Node3}[stroke]{\pgfxy(10.15,-0.65)}{0.0cm} 
+
+	      \visible<4>
+	      {
+	        \color{red}
+		      \pgfnodeconncurve{Node1}{Node2}{-90}{90}{0.15cm}{0.4cm}
+		      \pgfnodeconncurve{Node1}{Node3}{-90}{90}{0.15cm}{0.4cm}
+	        %\pgfline{\pgfxy(10.4,-0.35)}{\pgfxy( 9.50,-0.65)} 
+	        %\pgfline{\pgfxy(10.4,-0.35)}{\pgfxy( 10.15,-0.65)} 
+	      }
+	      \visible<5->
+	      {
+          \color{structure}
+		      \pgfnodeconncurve{Node1}{Node2}{-90}{90}{0.15cm}{0.4cm}
+		      \pgfnodeconncurve{Node1}{Node3}{-90}{90}{0.15cm}{0.4cm}
+	        %\pgfline{\pgfxy(10.4,-0.35)}{\pgfxy( 9.50,-0.65)} 
+	        %\pgfline{\pgfxy(10.4,-0.35)}{\pgfxy( 10.15,-0.65)} 
+	      }
+
+        \visible<3->
+        {
+	        \color{structure}
+	        \pgfputat{\pgfxy( 0.40,-1.0)}{\pgfbox[center,center]{$a_{0}^{(0)}$}}
+	        \pgfputat{\pgfxy( 1.05,-1.0)}{\pgfbox[center,center]{$a_{1}^{(0)}$}}
+	        \pgfputat{\pgfxy( 1.70,-1.0)}{\pgfbox[center,center]{$a_{2}^{(0)}$}}
+	        \pgfputat{\pgfxy( 2.35,-1.0)}{\pgfbox[center,center]{$a_{3}^{(0)}$}}
+	        \pgfputat{\pgfxy( 3.00,-1.0)}{\pgfbox[center,center]{$a_{4}^{(0)}$}}
+	        \pgfputat{\pgfxy( 3.65,-1.0)}{\pgfbox[center,center]{$a_{5}^{(0)}$}}
+	        \pgfputat{\pgfxy( 4.30,-1.0)}{\pgfbox[center,center]{$a_{6}^{(0)}$}}
+	        \pgfputat{\pgfxy( 4.95,-1.0)}{\pgfbox[center,center]{$a_{7}^{(0)}$}}
+	        \pgfputat{\pgfxy( 5.60,-1.0)}{\pgfbox[center,center]{$a_{8}^{(0)}$}}
+	        \pgfputat{\pgfxy( 6.25,-1.0)}{\pgfbox[center,center]{$a_{9}^{(0)}$}}
+	        \pgfputat{\pgfxy( 6.90,-1.0)}{\pgfbox[center,center]{$a_{10}^{(0)}$}}
+	        \pgfputat{\pgfxy( 7.55,-1.0)}{\pgfbox[center,center]{$a_{11}^{(0)}$}}
+	        \pgfputat{\pgfxy( 8.20,-1.0)}{\pgfbox[center,center]{$a_{12}^{(0)}$}}
+	        \pgfputat{\pgfxy( 8.85,-1.0)}{\pgfbox[center,center]{$a_{13}^{(0)}$}}
+	        \pgfputat{\pgfxy( 9.50,-1.0)}{\pgfbox[center,center]{$a_{14}^{(0)}$}}
+	        \pgfputat{\pgfxy(10.15,-1.0)}{\pgfbox[center,center]{$a_{15}^{(0)}$}}
+	      }
+
+        \visible<6>
+        {
+          \color{red}
+	        \pgfline{\pgfxy(0.40,-1.35)}{\pgfxy( 0.40,-1.65)} 
+	        \pgfline{\pgfxy(1.05,-1.35)}{\pgfxy( 1.05,-1.65)} 
+	        \pgfline{\pgfxy(3.00,-1.35)}{\pgfxy( 3.00,-1.65)} 
+	        \pgfline{\pgfxy(3.65,-1.35)}{\pgfxy( 3.65,-1.65)} 
+	        \pgfline{\pgfxy(5.60,-1.35)}{\pgfxy( 5.60,-1.65)} 
+	        \pgfline{\pgfxy(6.25,-1.35)}{\pgfxy( 6.25,-1.65)} 
+	        \pgfline{\pgfxy(8.20,-1.35)}{\pgfxy( 8.20,-1.65)} 
+	        \pgfline{\pgfxy(8.85,-1.35)}{\pgfxy( 8.85,-1.65)} 
+	      } 
+        \visible<7->
+        {
+          \color{structure}
+	        \pgfline{\pgfxy(0.40,-1.35)}{\pgfxy( 0.40,-1.65)} 
+	        \pgfline{\pgfxy(1.05,-1.35)}{\pgfxy( 1.05,-1.65)} 
+	        \pgfline{\pgfxy(3.00,-1.35)}{\pgfxy( 3.00,-1.65)} 
+	        \pgfline{\pgfxy(3.65,-1.35)}{\pgfxy( 3.65,-1.65)} 
+	        \pgfline{\pgfxy(5.60,-1.35)}{\pgfxy( 5.60,-1.65)} 
+	        \pgfline{\pgfxy(6.25,-1.35)}{\pgfxy( 6.25,-1.65)} 
+	        \pgfline{\pgfxy(8.20,-1.35)}{\pgfxy( 8.20,-1.65)} 
+	        \pgfline{\pgfxy(8.85,-1.35)}{\pgfxy( 8.85,-1.65)} 
+	      } 
+
+        \visible<7->
+        {
+          \color{black}
+          \pgfnodecircle{Node4}[fill]{\pgfxy( 2.00,-1.60)}{2pt} 
+          \pgfnodecircle{Node5}[fill]{\pgfxy( 4.60,-1.60)}{2pt} 
+          \pgfnodecircle{Node6}[fill]{\pgfxy( 7.20,-1.60)}{2pt} 
+          \pgfnodecircle{Node7}[fill]{\pgfxy( 9.80,-1.60)}{2pt} 
+        }
+
+        \visible<7>
+        {
+          \color{red}
+	        \pgfline{\pgfxy( 1.70,-1.35)}{\pgfxy( 1.90,-1.55)} 
+	        \pgfline{\pgfxy( 2.35,-1.35)}{\pgfxy( 2.10,-1.55)} 
+	        \pgfline{\pgfxy( 4.30,-1.35)}{\pgfxy( 4.50,-1.55)} 
+	        \pgfline{\pgfxy( 4.95,-1.35)}{\pgfxy( 4.70,-1.55)} 
+	        \pgfline{\pgfxy( 6.90,-1.35)}{\pgfxy( 7.10,-1.55)} 
+	        \pgfline{\pgfxy( 7.55,-1.35)}{\pgfxy( 7.30,-1.55)} 
+	        \pgfline{\pgfxy( 9.50,-1.35)}{\pgfxy( 9.70,-1.55)} 
+	        \pgfline{\pgfxy(10.15,-1.35)}{\pgfxy( 9.90,-1.55)}
+        }
+
+        \visible<8->
+        {
+          \color{structure}
+	        \pgfline{\pgfxy( 1.70,-1.35)}{\pgfxy( 1.90,-1.55)} 
+	        \pgfline{\pgfxy( 2.35,-1.35)}{\pgfxy( 2.10,-1.55)} 
+	        \pgfline{\pgfxy( 4.30,-1.35)}{\pgfxy( 4.50,-1.55)} 
+	        \pgfline{\pgfxy( 4.95,-1.35)}{\pgfxy( 4.70,-1.55)} 
+	        \pgfline{\pgfxy( 6.90,-1.35)}{\pgfxy( 7.10,-1.55)} 
+	        \pgfline{\pgfxy( 7.55,-1.35)}{\pgfxy( 7.30,-1.55)} 
+	        \pgfline{\pgfxy( 9.50,-1.35)}{\pgfxy( 9.70,-1.55)} 
+	        \pgfline{\pgfxy(10.15,-1.35)}{\pgfxy( 9.90,-1.55)}
+        }
+
+        \pgfnodecircle{Node8}[fill]{\pgfxy( 0.40,-1.65)}{0pt} 
+        \pgfnodecircle{Node9}[fill]{\pgfxy( 1.05,-1.65)}{0pt} 
+        \pgfnodecircle{Node10}[fill]{\pgfxy( 3.00,-1.65)}{0pt} 
+        \pgfnodecircle{Node11}[fill]{\pgfxy( 3.65,-1.65)}{0pt} 
+        \pgfnodecircle{Node12}[fill]{\pgfxy( 5.60,-1.65)}{0pt} 
+        \pgfnodecircle{Node13}[fill]{\pgfxy( 6.25,-1.65)}{0pt} 
+        \pgfnodecircle{Node14}[fill]{\pgfxy( 8.20,-1.65)}{0pt} 
+        \pgfnodecircle{Node15}[fill]{\pgfxy( 8.85,-1.65)}{0pt} 
+
+        \visible<8>
+        {  
+          \color{red}       
+		      \pgfnodeconncurve{Node4}{Node8}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node4}{Node9}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node5}{Node10}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node5}{Node11}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node6}{Node12}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node6}{Node13}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node7}{Node14}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node7}{Node15}{180}{90}{0.2cm}{0.7cm}	         
+	      } 
+
+        \visible<9->
+        {         
+          \color{structure}
+		      \pgfnodeconncurve{Node4}{Node8}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node4}{Node9}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node5}{Node10}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node5}{Node11}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node6}{Node12}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node6}{Node13}{180}{90}{0.2cm}{0.7cm}
+		      \pgfnodeconncurve{Node7}{Node14}{180}{90}{0.2cm}{0.4cm}
+		      \pgfnodeconncurve{Node7}{Node15}{180}{90}{0.2cm}{0.7cm}	         
+	      } 
+
+        \visible<5->
+        {
+	        \color{structure}
+	        \pgfputat{\pgfxy( 0.40,-2.0)}{\pgfbox[center,center]{$a_{0}^{(1)}$}}
+	        \pgfputat{\pgfxy( 1.05,-2.0)}{\pgfbox[center,center]{$a_{1}^{(1)}$}}
+	        \pgfputat{\pgfxy( 3.00,-2.0)}{\pgfbox[center,center]{$a_{4}^{(1)}$}}
+	        \pgfputat{\pgfxy( 3.65,-2.0)}{\pgfbox[center,center]{$a_{5}^{(1)}$}}
+	        \pgfputat{\pgfxy( 5.60,-2.0)}{\pgfbox[center,center]{$a_{8}^{(1)}$}}
+	        \pgfputat{\pgfxy( 6.25,-2.0)}{\pgfbox[center,center]{$a_{9}^{(1)}$}}
+	        \pgfputat{\pgfxy( 8.20,-2.0)}{\pgfbox[center,center]{$a_{12}^{(1)}$}}
+	        \pgfputat{\pgfxy( 8.85,-2.0)}{\pgfbox[center,center]{$a_{13}^{(1)}$}}
+	      }
+
+        \visible<9>
+        {
+          \color{red}
+	        \pgfline{\pgfxy(0.40,-2.35)}{\pgfxy( 0.40,-2.65)} 
+	        \pgfline{\pgfxy(1.05,-2.35)}{\pgfxy( 1.05,-2.65)} 
+	        \pgfline{\pgfxy(5.60,-2.35)}{\pgfxy( 5.60,-2.65)} 
+	        \pgfline{\pgfxy(6.25,-2.35)}{\pgfxy( 6.25,-2.65)} 
+	      } 
+        \visible<10->
+        {
+          \color{structure}
+	        \pgfline{\pgfxy(0.40,-2.35)}{\pgfxy( 0.40,-2.65)} 
+	        \pgfline{\pgfxy(1.05,-2.35)}{\pgfxy( 1.05,-2.65)} 
+	        \pgfline{\pgfxy(5.60,-2.35)}{\pgfxy( 5.60,-2.65)} 
+	        \pgfline{\pgfxy(6.25,-2.35)}{\pgfxy( 6.25,-2.65)} 
+	      } 
+	      
+        \visible<10->
+        {
+          \color{black}
+          \pgfnodecircle{Node16}[fill]{\pgfxy( 3.30,-2.60)}{2pt} 
+          \pgfnodecircle{Node17}[fill]{\pgfxy( 8.50,-2.60)}{2pt} 
+        }
+        
+        \visible<10>
+        {
+          \color{red}
+	        \pgfline{\pgfxy( 3.00,-2.35)}{\pgfxy( 3.20,-2.55)} 
+	        \pgfline{\pgfxy( 3.65,-2.35)}{\pgfxy( 3.40,-2.55)} 
+	        \pgfline{\pgfxy( 8.20,-2.35)}{\pgfxy( 8.40,-2.55)} 
+	        \pgfline{\pgfxy( 8.95,-2.35)}{\pgfxy( 8.60,-2.55)} 
+        }
+        
+        \visible<11->
+        {
+          \color{structure}
+	        \pgfline{\pgfxy( 3.00,-2.35)}{\pgfxy( 3.20,-2.55)} 
+	        \pgfline{\pgfxy( 3.65,-2.35)}{\pgfxy( 3.40,-2.55)} 
+	        \pgfline{\pgfxy( 8.20,-2.35)}{\pgfxy( 8.40,-2.55)} 
+	        \pgfline{\pgfxy( 8.95,-2.35)}{\pgfxy( 8.60,-2.55)} 
+        }
+	      
+        \pgfnodecircle{Node18}[fill]{\pgfxy( 0.40,-2.65)}{0pt} 
+        \pgfnodecircle{Node19}[fill]{\pgfxy( 1.05,-2.65)}{0pt} 
+        \pgfnodecircle{Node20}[fill]{\pgfxy( 5.60,-2.65)}{0pt} 
+        \pgfnodecircle{Node21}[fill]{\pgfxy( 6.25,-2.65)}{0pt} 	      
+	      
+        \visible<11>
+        {  
+          \color{red}       
+		      \pgfnodeconncurve{Node16}{Node18}{180}{90}{0.6cm}{0.6cm}
+		      \pgfnodeconncurve{Node16}{Node19}{180}{90}{0.6cm}{1.2cm}
+		      \pgfnodeconncurve{Node17}{Node20}{180}{90}{0.6cm}{0.6cm}
+		      \pgfnodeconncurve{Node17}{Node21}{180}{90}{0.6cm}{1.2cm}
+	      } 
+
+        \visible<9->
+        {
+	        \color{structure}
+	        \pgfputat{\pgfxy( 0.40,-3.0)}{\pgfbox[center,center]{$a_{0}^{(2)}$}}
+	        \pgfputat{\pgfxy( 1.05,-3.0)}{\pgfbox[center,center]{$a_{1}^{(2)}$}}
+	        \pgfputat{\pgfxy( 5.60,-3.0)}{\pgfbox[center,center]{$a_{8}^{(2)}$}}
+	        \pgfputat{\pgfxy( 6.25,-3.0)}{\pgfbox[center,center]{$a_{9}^{(2)}$}}
+	      }
+      \end{pgfpicture}  
+  \end{example}
+\end{frame}
+
 
 \subsection{Main Results}
 
