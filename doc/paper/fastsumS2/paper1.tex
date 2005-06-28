@@ -152,8 +152,8 @@ $\fun{K}{\V{\eta}_{l}\: \cdot}$ with a degree $M \in \NZ$, i.e.,
 \end{equation}
 
 Substituting \eqref{Applications:TruncatedSeries} into
-\eqref{Applications:KernelSum} and interchanging the summation order we obtain
-our final approximation
+\eqref{Applications:KernelSum} and interchanging the order of summation we
+obtain our final approximation
 \[
   \fun{f_{M}}{\xi_{d}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
   \paren{\sum_{l = 0}^{L-1} b_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}}
@@ -199,7 +199,7 @@ with
 
 Replacing the NFSFT by its slow version, which takes $\mathcal{O}(L M^2)$ and
 $\mathcal{O}(D M^2)$ arithmetic operations, respectively, yields an
-$\mathcal{O}(L+M)$ algorithm, too.
+$\mathcal{O}(L+D)$ algorithm, too.
 \end{remark}
 
 In summary, we propose the following algorithm.
@@ -238,59 +238,65 @@ proposed approximation obeys the uniform error estimate
   \abs{\fun{K^{\wedge}}{k}}.
 \end{equation}
 
-\begin{example}
-We consider the generating series
-\begin{equation}
-  \label{Basics:GeneratingFunction}
-  \fun{\phi}{h} := \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}
-\end{equation}
-which is absolutely and uniformly convergent for $h \in
-\interv{(}{-1}{1}{)}$ with
-\begin{equation}
-  \label{Basics:Solution}
-  \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = \frac{1}{\sqrt{1-2hx+h^2}}.
-\end{equation}
-This follows from the ordinary differential equation
-\begin{equation}
-\label{Basics:DifferentialEquation}
-  \paren{1+h^2-2hx}\fun{\phi'}{h} = \paren{x-h}\fun{\phi}{h}
-\end{equation}
-obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
-condition $\fun{\phi}{0}=1$ this yields the unique solution \eqref{Basics:Solution} of \eqref{Basics:DifferentialEquation}.
-From this result, the identity
-\begin{equation}
-  \nonumber
-  \sum_{k=0}^{\infty} \paren{2k+1} h^k \fun{P_k}{x} =
-  \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}
-\end{equation}
- follows easily. When $h$ is restricted to $\interv{(}{0}{1}{)}$ the function
-$Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$, with
-\begin{equation}
-  \label{PoissonKernel}
-  \nonumber
-  \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}} \quad \paren{x \in \interv{[}{-1}{1}{]}},
-\end{equation}
-is called \emph{Poisson kernel}. The symbol $\fun{Q_{h}^{\wedge}}{k}$ is given by 
-\[
-  \fun{Q_{h}^{\wedge}}{k} = h^k.
-\]
-We refer to Figure \ref{Basics:Figure:PoissonKernel} 
-%and \ref{Basics:Figure:PoissonKernel2}
-for a visual impression and mention that the parameter $h$
-allows for controlling the concentration of the function's energy around
-$x = 1$. The Poisson kernel is a positive function and normalized with
-\[
-  \int_{\twosphere} \fun{Q_{h}}{\V{\eta} \cdot \V{\xi}} \dx \V{\xi} = 1 \quad \paren{\V{\eta} \in \twosphere}.
-\]
-Further properties with respect to localization and smoothness are derived in \cite[pp. 112]{frgesc}.
-\end{example}
+%% We consider the generating series
+%% \begin{equation}
+%%   \label{Basics:GeneratingFunction}
+%%   \fun{\phi}{h} := \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}
+%% \end{equation}
+%% which is absolutely and uniformly convergent for $h \in
+%% \interv{(}{-1}{1}{)}$ with
+%% \begin{equation}
+%%   \label{Basics:Solution}
+%%   \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = \frac{1}{\sqrt{1-2hx+h^2}}.
+%% \end{equation}
+%% This follows from the ordinary differential equation
+%% \begin{equation}
+%% \label{Basics:DifferentialEquation}
+%%   \paren{1+h^2-2hx}\fun{\phi'}{h} = \paren{x-h}\fun{\phi}{h}
+%% \end{equation}
+%% obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
+%% condition $\fun{\phi}{0}=1$ this yields the unique solution \eqref{Basics:Solution} of \eqref{Basics:DifferentialEquation}.
+%% From this result, the identity
+%% \begin{equation}
+%%   \nonumber
+%%   \sum_{k=0}^{\infty} \paren{2k+1} h^k \fun{P_k}{x} =
+%%   \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}
+%% \end{equation}
+%%  follows easily. 
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.7\textwidth]{images/poisson}
-  \caption{The Poisson kernel $\fun{Q_{h}}{\cos\theta}$ for $h = 0.5,0.7,0.8$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
-  \label{Basics:Figure:PoissonKernel}
-\end{figure}
+\begin{example}
+  Let $h \in \interv{(}{0}{1}{)}$ and the \emph{Poisson kernel}
+  $Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ be given by
+  \begin{equation}
+    \label{PoissonKernel}
+    \nonumber
+    \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}\,.
+  \end{equation}
+  Its symbol is given by $\fun{Q_{h}^{\wedge}}{k}=h^k$.
+  We refer to Figure \ref{Basics:Figure:PoissonKernel} for a visual impression
+  and mention that the parameter $h$ allows for controlling the concentration
+  of $\fun{Q_{h}}{\V{\eta} \: \cdot}$ around $\eta \in \twosphere$.
+  \begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/poisson}
+    \caption{The Poisson kernel $\fun{Q_{h}}{\cos\theta}$ for $h =
+    0.5,0.7,0.8$ and  $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
+    \label{Basics:Figure:PoissonKernel}
+  \end{figure}
+  The Poisson kernel is a positive function and normalized with
+  $\|\fun{Q_{h}}{\V{\eta} \: \cdot}\|_{\Ln{1}{\twosphere}}$.
+  Further properties with respect to localization and smoothness are derived
+  in \cite[pp. 112]{frgesc}.
+
+  Using this kernel within our summation algorithm yields an relative error of
+  \begin{equation}
+    \label{error:poisson}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+    \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right).
+  \end{equation}
+  Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\epsilon \,
+  / \, \log h$.
+\end{example}
 
 %\begin{figure}[htb]
 %  \centering
@@ -307,60 +313,72 @@ Further properties with respect to localization and smoothness are derived in \c
 %\end{figure}
 
 \begin{example}
-  We define the \emph{singularity kernel} $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ by
+  For $h \in \interv{(}{0}{1}{)}$ we define the \emph{singularity kernel}
+  $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ by
   \[
-    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\paren{1-2hx+h^2}^{1/2}}  \quad \paren{x \in \interv{[}{-1}{1}{]}}.
+    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\paren{1-2hx+h^2}^{1/2}},
   \]
-  Using \eqref{Basics:Solution} we obtain
-  \[
-    \fun{S_{h}}{x} = \sum_{k = 0}^{\infty} \frac{1}{2\pi} h^k \fun{P_k}{x}
-  \]
-  and therefore
-  \[
-    \fun{S_{h}^{\wedge}}{k} = \frac{2k+1}{2} h^k.
-  \]
-  See Figure \ref{Basics:Figure:SingularityKernel} and for more information \cite[pp. 112]{frgesc}.
+  with symbol $\fun{S_{h}^{\wedge}}{k} = \frac{2k+1}{2} h^k$.
+  See Figure \ref{Basics:Figure:SingularityKernel} and for more information
+  \cite[pp. 112]{frgesc}.
+  \begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/singularity}
+    \caption{The singularity kernel $\fun{S_{h}}{\cos\theta}$ for $h =
+    0.8,0.9,0.95$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
+    \label{Basics:Figure:SingularityKernel}
+  \end{figure}
+
+  Using this kernel within our summation algorithm yields an relative error of
+  \begin{equation}
+    \label{error:singular}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+    \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{2\left(1-h\right)}+
+      \frac{4M}{\left(1-h\right)^2}+ \frac{4}{\left(1-h\right)^3}\right).
+  \end{equation}
+  Again, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge
+  \log\epsilon \, / \, \log h$.
 \end{example}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=0.7\textwidth]{images/singularity}
-  \caption{The singularity kernel $\fun{S_{h}}{\cos\theta}$ for $h = 0.8,0.9,0.95$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
-  \label{Basics:Figure:SingularityKernel}
-\end{figure}
 
 \begin{example}
-  The locally supported kernel $L_{h,\lambda}: \interv{[}{-1}{1}{]} \rightarrow \R$ mentioned in \cite{frsc} and defined by
+  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \NZ$.
+  The locally supported kernel $L_{h,\lambda}: \interv{[}{-1}{1}{]}\rightarrow
+  \R$, as defined in \cite{Sc97} by
   \[
-    \fun{L_{h,\lambda}}{x} := 
-      \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
-                                              0 & -1 \le x \le h, \\
-        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h   < x \le 1,
-      \end{array}\right.
+  \fun{L_{h,\lambda}}{x} := 
+  \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
+      0 & -1 \le x \le h, \\
+      \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h   < x \le 1,
+    \end{array}\right.
   \]
   has the recursively defined symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$ with
-\begin{eqnarray*}
-    \fun{L_{h,\lambda}^{\wedge}}{0} & = & 1,\\
-    \paren{\lambda+1} \fun{L_{h,\lambda}^{\wedge}}{1} & = & \paren{\lambda + 1 + h},\\
-    \paren{k+\lambda+2} \fun{L_{h,\lambda}^{\wedge}}{k+1} & = & \paren{2k+1} h \fun{L_{h,\lambda}^{\wedge}}{k} - \paren{k-\lambda-1} \fun{L_{h,\lambda}^{\wedge}}{k-1} 
-    \quad \paren{k = 1,2,\ldots}.
-\end{eqnarray*}
-  Figure \ref{Basics:Figure:LKernel} shows the function $L_{h,\lambda}$ for different values $h$ and $\lambda$.
+  \[
+  \paren{k+\lambda+2} \fun{L_{h,\lambda}^{\wedge}}{k+1} = \paren{2k+1} h
+  \fun{L_{h,\lambda}^{\wedge}}{k} - \paren{k-\lambda-1}
+  \fun{L_{h,\lambda}^{\wedge}}{k-1}
+  \]
+  for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
+  $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+1}$.
+  Figure \ref{Basics:Figure:LKernel} shows the function $L_{h,\lambda}$ for
+  different values $h$ and $\lambda$.
+  \begin{figure}[tb]
+    \centering
+    \subfigure[$\lambda=1.5$]
+    {\includegraphics[width=0.33\textwidth]{images/locsup4}}\hfill
+    \subfigure[$\lambda=1.0$]
+    {\includegraphics[width=0.33\textwidth]{images/locsup3}}\\
+    \subfigure[$\lambda=0.5$]
+    {\includegraphics[width=0.33\textwidth]{images/locsup2}}\hfill
+    \subfigure[$\lambda=0.2$]
+    {\includegraphics[width=0.33\textwidth]{images/locsup1}}
+    \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, -0.2, 0.2, 0.7$ and different values of $\lambda$.}
+    \label{Basics:Figure:LKernel}
+  \end{figure}
+  While the parameter $h$ again steers the localisation in spatial domain, the
+  parameter $\lambda$ correponds to the localisation in frequency domain, more formally
 \end{example}
 
-\begin{figure}[tb]
-  \centering
-   \subfigure[$\lambda=1.5$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup4}}\hfill
-   \subfigure[$\lambda=1.0$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup3}}\\
-   \subfigure[$\lambda=0.5$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup2}}\hfill
-   \subfigure[$\lambda=0.2$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup1}}
-  \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, -0.2, 0.2, 0.7$ and different values of $\lambda$.}
-  \label{Basics:Figure:LKernel}
-\end{figure}
 
 \section{Conclusions}
 
@@ -368,7 +386,8 @@ Further properties with respect to localization and smoothness are derived in \c
 
 %-----------------------------------------------------------------------------
 \bibliographystyle{abbrv}
-\bibliography{/home/potts/tex/ref}
+%\bibliography{/home/potts/tex/ref}
 %\bibliography{ref}
 %\bibliography{../myrefs}
+\bibliography{/home/kunis/Paper/ref}
 \end{document}
