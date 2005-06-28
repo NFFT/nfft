@@ -1,5 +1,5 @@
+#include "nfft3.h"
 #include "util.h"
-#include "mri_inh.h"
 #include "math.h"
 
 /**

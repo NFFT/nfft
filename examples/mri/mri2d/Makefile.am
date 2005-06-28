@@ -1,4 +1,4 @@
-AM_CFLAGS = -I$(top_srcdir)/include -I../mri_inh
+AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
 ## The program name
@@ -13,7 +13,7 @@ construct_data_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 construct_data_inhomogen_SOURCES = construct_data_inhomogen.c
 
-construct_data_inhomogen_LDADD = $(top_builddir)/libnfft3.la ../mri_inh/libmri_inh.la -lm -lfftw3
+construct_data_inhomogen_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 reconstruct_data_gridding_SOURCES = reconstruct_data_gridding.c
 
@@ -25,11 +25,11 @@ reconstruct_data_2d_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 reconstruct_data_special_SOURCES = reconstruct_data_special.c
 
-reconstruct_data_special_LDADD = $(top_builddir)/libnfft3.la ../mri_inh/libmri_inh.la -lm -lfftw3
+reconstruct_data_special_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 reconstruct_data_special_invers_SOURCES = reconstruct_data_special_invers.c
 
-reconstruct_data_special_invers_LDADD = $(top_builddir)/libnfft3.la ../mri_inh/libmri_inh.la -lm -lfftw3
+reconstruct_data_special_invers_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 reconstruct_data_inhomog_nnfft_SOURCES = reconstruct_data_inhomog_nnfft.c
 

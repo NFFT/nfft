@@ -1,4 +1,4 @@
-#include "mri_inh.h"
+#include "nfft3.h"
 #include "util.h"
 #include "math.h"
 
@@ -12,7 +12,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   mri_inh_plan my_plan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
-  int flags = PRE_PHI_HUT| PRE_FULL_PSI |MALLOC_X| MALLOC_F_HAT|
+  int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
                       FFTW_MEASURE| FFTW_DESTROY_INPUT;
 
@@ -81,8 +81,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
     my_plan.t[j] = (my_plan.t[j]-Ts)*W/my_n[2];
-
-    /*fscanf(fp,"%le %le %le %le",&my_plan.x[3*j+0],&my_plan.x[3*j+1],&real,&imag);
+/*
+    fscanf(fp,"%le %le %le %le",&my_plan.x[3*j+0],&my_plan.x[3*j+1],&real,&imag);
     my_plan.f[j]=real+I*imag;
     fscanf(ftime,"%le ",&my_plan.x[3*j+2]);
 

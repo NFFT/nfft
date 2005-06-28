@@ -60,3 +60,57 @@ void mri_inh_init_guru2(mri_inh_plan *ths, int d, int *N, int M, int *n,
 void mri_inh_finalize2(mri_inh_plan *ths);
 
 MACRO_SOLVER_PLAN(mri_inh, complex)
+
+
+
+
+void mri_inh_trafo2(mri_inh_plan *that) {
+
+}
+
+void mri_inh_adjoint2(mri_inh_plan *that) {
+  int l,j;
+  complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
+
+  nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
+  nfft_init_1d(ths,that->N3,1);
+  memset(f_hat,0,that->N_total*sizeof(complex));
+
+  for(j=0;j<that->M_total;j++)
+  {
+    that->f[j] /= PHI_HUT(ths->n[0]*that->x[3*j+2],0);
+  }
+  
+  nfft_adjoint((nfft_plan*)that);
+  
+
+  for(j=0;j<that->N[0]*that->N[1];j++) {
+    for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
+    {
+      f_hat[j]+= that->f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI_periodic(that->w[j]-((double)l)/((double)ths->n[0]));
+    }
+  }
+
+
+
+
+
+  fftw_free(that->f_hat);
+  that->f_hat=f_hat;
+  
+  nfft_finalize(ths);
+  free(ths);
+}
+
+void mri_inh_init_guru2(mri_inh_plan *ths, int d, int *N, int M, int *n,
+                    int m, unsigned nfft_flags, unsigned fftw_flags) {
+  ths->N3=N[2];
+  N[2]=n[2];
+  nfft_init_guru((nfft_plan*)ths,d,N,M,n,m,nfft_flags,fftw_flags);
+  ths->w = (double*) fftw_malloc(ths->N_total*sizeof(double));
+}
+
+void mri_inh_finalize2(mri_inh_plan *ths) {
+  fftw_free(ths->w);
+  nfft_finalize((nfft_plan*)ths);
+}

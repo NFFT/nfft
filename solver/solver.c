@@ -358,3 +358,4 @@ F(MV, FLT, finalize, i ## MV ## _plan *ths)                                   \
 
 MACRO_SOLVER_IMPL(nfft, complex)
 MACRO_SOLVER_IMPL(nnfft, complex)
+MACRO_SOLVER_IMPL(mri_inh, complex)
