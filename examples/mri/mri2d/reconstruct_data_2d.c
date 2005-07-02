@@ -7,8 +7,8 @@
  */
 void infft(char* filename,int N,int M,int iteration, int weight)
 {
-  int j,k,l,t;                    /* some variables  */
-  double real,imag;             /* to read the real and imag part of a complex number */
+  int j,k,l;                    /* some variables  */
+  double real,imag,t;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
