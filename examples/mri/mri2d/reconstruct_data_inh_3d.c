@@ -59,9 +59,12 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   }
   fclose(finh);
 
-  W=2.0*MAX(fabs(min_inh),fabs(max_inh)*1.2); //1.0+m/n!?!?!?!?!?
-  N3=2*next_power_of_2(ceil(W*(max_time-min_time)));
+  //N3=2*next_power_of_2(ceil(W*(max_time-min_time)));
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
+  
 
+  W=(MAX(fabs(min_inh),fabs(max_inh))+6/(1.2*N3))*2;
+  
   //N3=next_power_of_2(ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2));
   
   //W=2.0*MAX(fabs(min_inh),fabs(max_inh));
