@@ -11,7 +11,7 @@ void nfft (char * file, int N, int M)
   double real,imag;
   double w;
   double time,min_time,max_time,min_inh,max_inh;
-  mri_inh_plan my_plan;  /* plan for the two dimensional nfft  */
+  mri_inh_2d1d_plan my_plan;  /* plan for the two dimensional nfft  */
   FILE *fp,*fout,*fi,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -55,18 +55,20 @@ void nfft (char * file, int N, int M)
   }
   fclose(finh);
 
-  W=2.0*MAX(fabs(min_inh),fabs(max_inh)); //1.0+m/n!?!?!?!?!?
-  N3=2*ceil(W*(max_time-min_time)*(1.2));
+
+  W=2.0*MAX(fabs(min_inh),fabs(max_inh)); 
+  N3=next_power_of_2(ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2));
 
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
+  
 
-  my_N[0]=N; my_n[0]=next_power_of_2(N)+16;
-  my_N[1]=N;my_n[1]=next_power_of_2(N)+16;
-  my_N[2]=N3;my_n[2]=2*next_power_of_2(N3);
 
+  my_N[0]=N;my_n[0]=next_power_of_2(N)+16;
+  my_N[1]=N; my_n[1]=next_power_of_2(N)+16;
+  my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_init_guru(&my_plan, 2, my_N, M, my_n, 6,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 6,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   ftime=fopen("readout_time.dat","r");
@@ -76,7 +78,7 @@ void nfft (char * file, int N, int M)
   {
     fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
     fscanf(ftime,"%le ",&my_plan.t[j]);
-    my_plan.t[j] = (my_plan.t[j]-Ts)*W/my_n[2];
+    my_plan.t[j] = (my_plan.t[j]-Ts)*W/N3;
   }
   fclose(fp);
   fclose(ftime);
@@ -100,7 +102,7 @@ void nfft (char * file, int N, int M)
   if(my_plan.nfft_flags & PRE_PSI)
     nfft_precompute_psi((nfft_plan*)&my_plan);
 
-  mri_inh_trafo(&my_plan);
+  mri_inh_2d1d_trafo(&my_plan);
 
   fout=fopen(file,"w");
   
@@ -111,7 +113,7 @@ void nfft (char * file, int N, int M)
 
   fclose(fout);
 
-  mri_inh_finalize(&my_plan);
+  mri_inh_2d1d_finalize(&my_plan);
 }
 
 int main(int argc, char **argv)

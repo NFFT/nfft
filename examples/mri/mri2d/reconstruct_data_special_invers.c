@@ -10,8 +10,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   double t,real,imag;
   double w,epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */;
-  mri_inh_plan my_plan;
-  imri_inh_plan my_iplan;
+  mri_inh_2d1d_plan my_plan;
+  imri_inh_2d1d_plan my_iplan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_FULL_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -60,30 +60,30 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
   W=2.0*MAX(fabs(min_inh),fabs(max_inh)); //1.0+m/n!?!?!?!?!?
-  N3=2*ceil(W*(max_time-min_time)*1.2);
+  //N3=2*ceil(W*(max_time-min_time)*1.2);
 
-  //N3=(MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)-6/(2*2))*4;
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
   
   //W=2.0*MAX(fabs(min_inh),fabs(max_inh));
-  //T=(max_time-min_time)-6/(2*N3);
+  //T=2*ceil((max_time-min_time)*1.2);//(0.5-6.0/(2.0*N3));
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
 
 
-  my_N[0]=N;my_n[0]=next_power_of_2(N)+16;
-  my_N[1]=N; my_n[1]=next_power_of_2(N)+16;
-  my_N[2]=N3; my_n[2]=2*next_power_of_2(N3);
+  my_N[0]=N;my_n[0]=ceil(N*1.2);
+  my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_init_guru(&my_plan, 2, my_N, M, my_n, 4,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 2,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
   /* initialise my_iplan, advanced */
-  imri_inh_init_advanced(&my_iplan,&my_plan, infft_flags );
+  imri_inh_2d1d_init_advanced(&my_iplan,&my_plan, infft_flags );
 
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
@@ -106,12 +106,6 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
     my_plan.t[j] = (my_plan.t[j]-Ts)*W/my_n[2];
-
-    /*fscanf(fp,"%le %le %le %le",&my_plan.x[3*j+0],&my_plan.x[3*j+1],&real,&imag);
-    my_plan.f[j]=real+I*imag;
-    fscanf(ftime,"%le ",&my_plan.x[3*j+2]);
-
-    my_plan.x[3*j+2] = (my_plan.x[3*j+2]-Ts)*W/my_n[2];*/
   }
   fclose(fp);
   fclose(ftime);
@@ -142,7 +136,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   t=second();
   
   /* inverse trafo */
-  imri_inh_before_loop(&my_iplan);
+  imri_inh_2d1d_before_loop(&my_iplan);
   for(l=0;l<iteration;l++)
   {
     /* break if dot_r_iter is smaller than epsilon*/
@@ -150,9 +144,12 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
     l+1,iteration);
-    imri_inh_loop_one_step(&my_iplan);
+    imri_inh_2d1d_loop_one_step(&my_iplan);
   }
-    
+
+  t=second()-t;
+  fprintf(stderr,"time: %e seconds\n",t);
+  
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
   
@@ -163,14 +160,11 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));
   }
-  
-  t=second()-t;
-  fprintf(stderr,"time: %e seconds\n",t);
 
   fclose(fout_real);
   fclose(fout_imag);
-  imri_inh_finalize(&my_iplan);
-  mri_inh_finalize(&my_plan);
+  imri_inh_2d1d_finalize(&my_iplan);
+  mri_inh_2d1d_finalize(&my_plan);
 }
 
 

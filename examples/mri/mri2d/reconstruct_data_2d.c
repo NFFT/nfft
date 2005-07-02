@@ -7,7 +7,7 @@
  */
 void infft(char* filename,int N,int M,int iteration, int weight)
 {
-  int j,k,l;                    /* some variables  */
+  int j,k,l,t;                    /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
@@ -20,8 +20,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   unsigned infft_flags = CGNR;  /* flags for the infft*/
                                     
   /* initialise my_plan */
-  my_N[0]=N; my_n[0]=2*next_power_of_2(N);
-  my_N[1]=N; my_n[1]=2*next_power_of_2(N);
+  my_N[0]=N; my_n[0]=ceil(1.5*next_power_of_2(N));
+  my_N[1]=N; my_n[1]=ceil(1.5*next_power_of_2(N));
   nfft_init_guru(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI|
                          MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                          FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
@@ -71,6 +71,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   /* init some guess */
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
+
+  t=second();
     
   /* inverse trafo */
   infft_before_loop(&my_iplan);
@@ -83,6 +85,12 @@ void infft(char* filename,int N,int M,int iteration, int weight)
     l+1,iteration);
     infft_loop_one_step(&my_iplan);
   }
+
+  
+  t=second()-t;
+  fprintf(stderr,"time: %e seconds\n",t);
+
+  
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 

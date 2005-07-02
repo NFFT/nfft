@@ -9,7 +9,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   double time,min_time,max_time,min_inh,max_inh;
   double t,real,imag;
   double w;
-  mri_inh_plan my_plan;
+  mri_inh_2d1d_plan my_plan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -56,18 +56,20 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
   W=2.0*MAX(fabs(min_inh),fabs(max_inh)); //1.0+m/n!?!?!?!?!?
-  N3=ceil(W*(max_time-min_time));
 
+  N3=next_power_of_2(ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2));
+  
+  
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
 
 
   my_N[0]=N;my_n[0]=next_power_of_2(N)+16;
   my_N[1]=N; my_n[1]=next_power_of_2(N)+16;
-  my_N[2]=N3; my_n[2]=2*next_power_of_2(N3);
+  my_N[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_init_guru(&my_plan, 2, my_N, M, my_n, 4,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 4,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   fp=fopen(filename,"r");
@@ -80,7 +82,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     my_plan.f[j]=real+I*imag;
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
-    my_plan.t[j] = (my_plan.t[j]-Ts)*W/my_n[2];
+    my_plan.t[j] = (my_plan.t[j]-Ts)*W/N3;
 /*
     fscanf(fp,"%le %le %le %le",&my_plan.x[3*j+0],&my_plan.x[3*j+1],&real,&imag);
     my_plan.f[j]=real+I*imag;
@@ -121,7 +123,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   t=second();
   /* do the transform */ 
-  mri_inh_adjoint(&my_plan);
+  mri_inh_2d1d_adjoint(&my_plan);
   
 
     
@@ -141,7 +143,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   fclose(fout_real);
   fclose(fout_imag);
-  mri_inh_finalize(&my_plan);
+  mri_inh_2d1d_finalize(&my_plan);
 }
 
 

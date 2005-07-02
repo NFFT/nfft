@@ -44,5 +44,4 @@ AC_OUTPUT(Makefile \
           examples/mri/mri3d/Makefile \
           examples/exp/Makefile \
           examples/nsfft/Makefile \
-          examples/fastgauss/Makefile \
 )

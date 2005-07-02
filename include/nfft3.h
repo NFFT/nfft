@@ -297,10 +297,10 @@ void nsfft_finalize(nsfft_plan *ths);
  * @{ 
  */
 
-typedef struct mri_inh_plan_
+typedef struct mri_inh_2d1d_plan_
 {
   /** api */
-  MACRO_MV_PLAN(complex);          
+  MACRO_MV_PLAN(complex);
 
   int d;                                /**< dimension, rank                 */
   int *N;                               /**< cut-off-frequencies             */
@@ -335,18 +335,38 @@ typedef struct mri_inh_plan_
   int N3;
   double *t;
   double *w;
-} mri_inh_plan;
+} mri_inh_2d1d_plan;
+
+typedef struct mri_inh_3d_plan_
+{
+  /** api */
+  MACRO_MV_PLAN(complex);
+
+  nfft_plan plan;
+  
+  int N3;
+  double *t;
+  double *w;
+} mri_inh_3d_plan;
 
 
-void mri_inh_trafo(mri_inh_plan *ths);
+void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *ths);
 
-void mri_inh_adjoint(mri_inh_plan *ths);
+void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *ths);
 
-void mri_inh_init_guru(mri_inh_plan *ths, int d, int *N, int M, int *n,
+void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
                     int m, unsigned nfft_flags, unsigned fftw_flags);
 
-void mri_inh_finalize(mri_inh_plan *ths);
+void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths);
 
+void mri_inh_3d_trafo(mri_inh_3d_plan *ths);
+
+void mri_inh_3d_adjoint(mri_inh_3d_plan *ths);
+
+void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
+                    int m, unsigned nfft_flags, unsigned fftw_flags);
+
+void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /* @} 
  */
 
@@ -421,7 +441,8 @@ F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
 
 MACRO_SOLVER_PLAN(nfft, complex)
 MACRO_SOLVER_PLAN(nnfft, complex)
-MACRO_SOLVER_PLAN(mri_inh, complex)
+MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
+MACRO_SOLVER_PLAN(mri_inh_3d, complex)
 /** @} 
  */
  

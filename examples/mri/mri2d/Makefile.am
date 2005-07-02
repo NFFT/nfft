@@ -3,7 +3,7 @@ AM_LDFLAGS = -L$(top_srcdir)
 
 ## The program name
 noinst_PROGRAMS = construct_data construct_data_inhomogen reconstruct_data_gridding \
-          reconstruct_data_2d reconstruct_data_special \
+          reconstruct_data_2d reconstruct_data_special reconstruct_data_special2 \
           reconstruct_data_special_invers reconstruct_data_inhomog_nnfft
 
 ## The source files.
@@ -26,6 +26,10 @@ reconstruct_data_2d_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 reconstruct_data_special_SOURCES = reconstruct_data_special.c
 
 reconstruct_data_special_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
+
+reconstruct_data_special2_SOURCES = reconstruct_data_special2.c
+
+reconstruct_data_special2_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 reconstruct_data_special_invers_SOURCES = reconstruct_data_special_invers.c
 
