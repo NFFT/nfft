@@ -16,7 +16,7 @@ M = construct_knots_spiral(N);
 
 % Make a 2d-NFFT on the constructed knots
 % and write the output to output_data_phantom_nfft.dat
-system(['./construct_data ' 'output_phantom_nfft.dat ' ...
+system(['./construct_data_2d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)]);
 
 % Precompute the weights using voronoi cells

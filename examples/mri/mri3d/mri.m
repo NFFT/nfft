@@ -18,7 +18,7 @@ M = construct_knots_spiral(N,Z);
 
 % First make N^2 1d-FFT, then Z 2d-NFFT on the constructed knots
 % and write the output to output_phantom_nfft.dat
-system(['./construct_data_2d_1d ' 'output_phantom_nfft.dat '...
+system(['./construct_data_2d1d ' 'output_phantom_nfft.dat '...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
 
 % Precompute the weights using voronoi cells
@@ -27,10 +27,10 @@ precompute_weights_2d('output_phantom_nfft.dat',M,Z);
 
 % First make Z inverse 2d-NFFT, then N^2 inverse 1d-FFT
 % and write the output to output_real.dat and output_imag.dat
-% The usage is "./reconstruct_data_2d_1d filename N M Z ITER WEIGHTS"
+% The usage is "./reconstruct_data_2d1d filename N M Z ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-%system(['./reconstruct_data_2d_1d ' 'output_phantom_nfft.dat ' ...
+%system(['./reconstruct_data_2d1d ' 'output_phantom_nfft.dat ' ...
 %         int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 2 1']);
 
 % Visualize the three dimensional phantom. Makes a pic of

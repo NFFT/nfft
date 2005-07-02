@@ -11,7 +11,7 @@ construct_readout_time( M, 2, 32, 0.00402542373 ); %400
 %precompute_weights('output_phantom_nfft.dat',M);
 
 disp(2);
-system(['./reconstruct_data_special_invers ' 'output_phantom_nfft.dat ' ...
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 1 1'])
 
 figure(1);
