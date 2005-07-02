@@ -1,6 +1,6 @@
 #include "util.h"
 #include "nfft3.h"
-#include "malloc.h"
+#include "math.h"
 
 /**
  * infft makes an inverse 2d-nfft for every slice
@@ -19,8 +19,8 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   unsigned infft_flags = CGNR; /* flags for the infft */
                                    
   /* initialise my_plan */
-  my_N[0]=N; my_n[0]=2*next_power_of_2(N);
-  my_N[1]=N; my_n[1]=2*next_power_of_2(N);
+  my_N[0]=N;my_n[0]=ceil(N*1.2);
+  my_N[1]=N; my_n[1]=ceil(N*1.2);
   nfft_init_guru(&my_plan, 2, my_N, M/Z, my_n, 6, PRE_PHI_HUT| PRE_PSI|
                          MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                         FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,

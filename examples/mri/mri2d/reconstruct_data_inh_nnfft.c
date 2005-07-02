@@ -69,9 +69,9 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
   /* initialise my_plan */
-  my_N[0]=N; my_n[0]=next_power_of_2(N);
-  my_N[1]=N; my_n[1]=next_power_of_2(N);
-  my_N[2]=N3; my_n[2]=next_power_of_2(N3);
+  my_N[0]=N;my_n[0]=ceil(N*1.2);
+  my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[2]=N3; my_n[2]=ceil(N3*1.2);
   nnfft_init_guru(&my_plan, 3, M, N*N, my_N,my_n,6,
         PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
         
