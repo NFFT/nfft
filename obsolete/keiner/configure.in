@@ -50,6 +50,8 @@ AC_CONFIG_FILES([
   examples/convolution/Makefile 
   examples/egm96/Makefile 
   examples/healpix/Makefile 
+  examples/interpolation/Makefile
+  examples/reuter/Makefile 
   examples/template/Makefile 
   examples/wrapper/Makefile 
   tests/Makefile 

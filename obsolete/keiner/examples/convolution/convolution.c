@@ -212,7 +212,7 @@ int main (int argc, char **argv)
       }  
       
       /* Adjoint transform */
-      plan_adjoint = nfsft_init(l,m,nu,f_hat,b,0U);
+      plan_adjoint = nfsft_init(m,1,f_hat,nu,b,0U);
       nfsft_adjoint(plan_adjoint);
       nfsft_finalize(plan_adjoint);
       
@@ -226,7 +226,7 @@ int main (int argc, char **argv)
       }
       
       /* Forward transform */
-      plan = nfsft_init(d,m,xi,f_hat,f,0U);
+      plan = nfsft_init(m,d,f_hat,xi,f,0U);
       nfsft_trafo(plan);
       nfsft_finalize(plan);
       

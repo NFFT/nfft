@@ -15,13 +15,55 @@
  *  \ingroup nfsft
  */
 
-/** Flag for normalization */
+/** 
+ * If set, all computations are carried out with spherical harmonics normalized 
+ * with respect to the \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ standard inner 
+ * product
+ * \f[ 
+ *   <f,g>_{\mathbb{S}^2} = \int_{0}^{\pi} \int_{-\pi}^{\pi} 
+ *   f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} \; 
+ *   d\varphi \; d\vartheta.
+ * \f]
+ * 
+ * \see nfsft_init
+ * \see nfsft_trafo
+ * \see nfsft_adjoint
+ * \see ndsft_trafo
+ * \see ndsft_adjoint
+ * \author Jens Keiner
+ * \ingroup nfsft_public_api 
+ */
 #define NFSFT_NORMALIZED 1<<0
+
+/**
+ * If set, only the fast transformations work.
+ * 
+ * \see nfsft_precompute
+ * \see nfsft_trafo
+ * \see nfsft_adjoint
+ * \author Jens Keiner
+ * \ingroup nfsft_public_api 
+ */
 #define NFSFT_FAST_ONLY  1<<1
+
+/**
+ * If set, only fast transformations for bandwidth in a certain bandwidth
+ * window will work. If \f$N\f$ is the power of two up to which precomputations 
+ * is done, only transformations for bandwidth \f$M\f$ with \f$N/2 < M \le N\f$ 
+ * will work.
+ *
+ * \see nfsft_precompute
+ * \see nfsft_trafo
+ * \see nfsft_adjoint
+ * \author Jens Keiner
+ * \ingroup nfsft_public_api 
+ */
 #define NFSFT_BW_WINDOW  1<<2
 
+
 /** 
- * Typedef for transform plans 
+ * Typedef for transform plans
+ *
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
@@ -52,34 +94,37 @@ typedef int infsft_flags;
 /**
  * Creates a transform plan.
  *
- * \arg D The number of nodes
  * \arg M The bandwidth \f$M\f$
- * \arg x The nodes
- * \arg f_hat Fourier coefficients
- * \arg f Function values
- * \arg flags NFSFT flags
+ * \arg D The number of nodes \f$D\f$
+ * \arg f_hat Fourier coefficients \f$\left(a_k^n\right)_{(k,n) \in 
+ *   \mathcal{I}^M}\f$
+ * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
+ * \arg f Function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
+ * \arg flags Flags
  *
  * \return The plan
  *
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-nfsft_plan nfsft_init(int M, int N, double *x, complex **f_hat, complex *f, 
+nfsft_plan nfsft_init(int M, int D, complex **f_hat, double *x, complex *f, 
                       nfsft_flags flags);
 
 /**
- * Precomputes wisdom up to the next power of two relative to a  given bandwidth.
+ * Precomputes wisdom up to the next power of two with respect to a given 
+ * bandwidth. Stabilization steps are precomputed for the given threshold.
  *
- * \arg m The bandwidth
+ * \arg M The bandwidth \F$M\f$
  * \arg threshold The threshold
+ * \arg flags Flags
  *
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-void nfsft_precompute(int m, double threshold, int flags);
+void nfsft_precompute(int M, double threshold, int flags);
 
 /**
- * Forgets all wisdom computed.
+ * Forget all wisdom.
  *
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
@@ -87,7 +132,12 @@ void nfsft_precompute(int m, double threshold, int flags);
 void nfsft_forget();
 
 /**
- * Executes a direct NDSFT
+ * Executes a direct NDSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * \f[
+ *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
+ *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
+ *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
  *
  * \arg plan The plan
  *
@@ -97,7 +147,12 @@ void nfsft_forget();
 void ndsft_trafo(nfsft_plan plan);
 
 /**
- * Executes a direct adjoint NDSFT
+ * Executes a direct adjoint NDSFT, i.e. computes for \f$(k,n) \in 
+ * \mathcal{I}^M\f$
+ * \f[
+ *   a_k^n = \sum_{d = 0}^{D-1} f_d 
+ *           Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
  *
  * \arg plan The plan
  *
@@ -107,7 +162,12 @@ void ndsft_trafo(nfsft_plan plan);
 void ndsft_adjoint(nfsft_plan plan);
 
 /**
- * Executes a NFSFT.
+ * Executes a NFSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * \f[
+ *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
+ *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
+ *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
  *
  * \arg plan The plan
  *
@@ -117,7 +177,12 @@ void ndsft_adjoint(nfsft_plan plan);
 void nfsft_trafo(nfsft_plan plan);
 
 /**
- * Executes an adjoint NFSFT.
+ * Executes an adjoint NFSFT, i.e. computes for \f$(k,n) \in 
+ * \mathcal{I}^M\f$
+ * \f[
+ *   a_k^n = \sum_{d = 0}^{D-1} f_d 
+ *           Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
  *
  * \arg plan The plan
  *

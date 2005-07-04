@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     for (m = m_min; m <= m_max; m = m + m_stride)
     {
       /* Compute NFSFT */
-      plan = nfsft_init_stab(1, m, 0U, f_hat, 0U, 0U);
+      plan = nfsft_init_stab(m, 1, f_hat, 0U, 0U, 0U);
       nstab = nfsft_trafo_stab(plan);
       nfsft_get_stat(&nstab,&ntotal);
       nfsft_finalize_stab(plan);

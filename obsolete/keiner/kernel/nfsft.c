@@ -128,7 +128,7 @@ void nfsft_forget()
   }
 }
 
-nfsft_plan nfsft_init(int d, int m, double *angles, fftw_complex **f_hat, 
+nfsft_plan nfsft_init(int m, int d, fftw_complex **f_hat, double *angles, 
                       fftw_complex *f, nfsft_flags flags)
 {
   int nfft_size[2] = {0,0};
@@ -318,7 +318,7 @@ int nfsft_trafo_stab(nfsft_plan plan)
   return nstab;
 }
 
-nfsft_plan nfsft_init_stab(int d, int m, double *angles, fftw_complex **f_hat, 
+nfsft_plan nfsft_init_stab(int m, int d, fftw_complex **f_hat, double *angles, 
                       fftw_complex *f, nfsft_flags flags)
 {
   nfsft_plan plan = malloc(sizeof(struct nfsft_plan_s));

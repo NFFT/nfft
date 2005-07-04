@@ -636,9 +636,10 @@
 		};
 		4E6E40D1082CB48500642FF0 = {
 			children = (
+				4E02C48E082F816D00EC0863,
 				4E23D9390854D1E300CC656A,
 				4E294D5008575D3600F546C3,
-				4E02C48E082F816D00EC0863,
+				4EE9EBCD0878767600880508,
 				4E2932A7082E5984004AD73C,
 				4E29331A082E672F004AD73C,
 			);
@@ -841,6 +842,15 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
+		};
+		4EE9EBCD0878767600880508 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = interpolation.c;
+			path = examples/interpolation/interpolation.c;
+			refType = 4;
+			sourceTree = "<group>";
 		};
 //4E0
 //4E1

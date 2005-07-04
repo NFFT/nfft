@@ -143,7 +143,7 @@ int main (int argc, char **argv)
   
   nfsft_precompute(k_max,2000,0U);
 
-  plan = nfsft_init(D,k_max,x,f_hat,f,0U);
+  plan = nfsft_init(k_max,D,f_hat,x,f,0U);
   fprintf(stderr,"d_phi = %d, d_theta = %d, D = %d\n",d_phi,d_theta,D);
   i = 0;
   for (k = k_min; k <= k_max; k++)

@@ -127,7 +127,7 @@ int main (int argc, char **argv)
     }  
 
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
+    plan = nfsft_init(M, D, F_HAT, angles, result, 0U);
 			
 	   /* Switch by mode. */
 		  if (mode == FAST)
@@ -163,7 +163,7 @@ int main (int argc, char **argv)
     }  
     
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_init(D, M, angles, F_HAT, result, 0U);
+    plan = nfsft_init(M, D, F_HAT, angles, result, 0U);
 		
 		  /* Switch by transform mode. */
 		  if (mode == FAST)

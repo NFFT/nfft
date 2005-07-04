@@ -351,8 +351,8 @@ int main (int argc, char **argv)
           fflush(stderr);
           
           /* Init transform plans. */
-          plan_adjoint = nfsft_init(l[il],m[im],nu,f_hat,b,0U);
-          plan = nfsft_init(d[id],m[im],xi,f_hat,f,0U);
+          plan_adjoint = nfsft_init(m[im],l[il],f_hat,nu,b,0U);
+          plan = nfsft_init(m[im],d[id],f_hat,xi,f,0U);
           
           /* Adjoint transform */
           t_f = second();

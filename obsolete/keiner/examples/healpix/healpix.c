@@ -189,7 +189,7 @@ int main (int argc, char **argv)
 
     nfsft_precompute(M,1000,0U);
     
-    plan = nfsft_init(D,M,x,f_hat,f,NFSFT_NORMALIZED);
+    plan = nfsft_init(M,D,f_hat,x,f,NFSFT_NORMALIZED);
 
     nfsft_trafo(plan);
     
@@ -228,7 +228,7 @@ int main (int argc, char **argv)
     fprintf(stderr,"D2 = %d\n",D2);
     fprintf(stderr,"M = %d\n",M);
     fflush(stderr);
-    plan2 = nfsft_init(D2,M,x2,f_hat_temp,f_temp,NFSFT_NORMALIZED);
+    plan2 = nfsft_init(M,D2,f_hat_temp,x2,f_temp,NFSFT_NORMALIZED);
 
     copyc_hat(f_hat_temp,f_hat_orig,M);
     nfsft_trafo(plan2);

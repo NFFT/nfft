@@ -1,1 +1,1 @@
-SUBDIRS = convolution egm96 healpix template wrapper
+SUBDIRS = convolution egm96 healpix interpolation reuter template wrapper

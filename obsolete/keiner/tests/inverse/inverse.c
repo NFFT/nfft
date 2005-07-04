@@ -203,7 +203,7 @@ int main (int argc, char **argv)
   
   //vpr(wf,D,"wf");
     
-  plan = nfsft_init(D, M, angles, f_hat, f, NFSFT_NORMALIZED);
+  plan = nfsft_init(M, D, f_hat, angles, f, NFSFT_NORMALIZED);
   nfsft_trafo(plan);
   
   /* Save a copy. */

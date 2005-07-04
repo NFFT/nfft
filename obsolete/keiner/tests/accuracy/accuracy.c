@@ -316,7 +316,7 @@ int main (int argc, char **argv)
           }  
         }
 
-        plan = nfsft_init(D, M, angles, f_hat, f, NFSFT_NORMALIZED);
+        plan = nfsft_init(M, D, f_hat, angles, f, NFSFT_NORMALIZED);
 
         /* Compute forward transform. */
         ctime = second();
@@ -334,7 +334,7 @@ int main (int argc, char **argv)
           }  
         }
 
-        //plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+        //plan = nfsft_init(M, D, f_hat, angles, f, 0U);
 
         /* Compute adjoint transform. */
         //ndsft_adjoint(plan);
@@ -444,7 +444,7 @@ int main (int argc, char **argv)
         }  
       }
       
-      plan = nfsft_init(D, M, angles, f_hat, f, 0U/*NFSFT_NORMALIZED*/);
+      plan = nfsft_init(M, D, f_hat, angles, f, 0U/*NFSFT_NORMALIZED*/);
       
       /* Compute forward transform. */
       ctime = second();

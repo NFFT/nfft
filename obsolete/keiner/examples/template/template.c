@@ -70,7 +70,7 @@ int main()
   nfsft_precompute(M,2000,0U);
   
   /* Compute NFSFT */
-  plan = nfsft_init(D, M, angles, f_hat, f, 0U);
+  plan = nfsft_init(M, D, f_hat, angles, f, 0U);
   nfsft_trafo(plan);
   
   /* Print result */
