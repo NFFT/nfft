@@ -160,6 +160,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
   
 
   for(j=0;j<that->N_total;j++) {
+    that->f_hat[j]=0.0;
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
       that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI_periodic(that->w[j]-((double)l)/((double)ths->n[0]));

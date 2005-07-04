@@ -14,7 +14,7 @@ for k=1:N,
 end
 
 % plot the two dimensional phantom
-imagesc(A,[0 1.2]);
+imagesc(A);
 colormap((gray(256)));
 colorbar;
 file_out =[file '.png'];

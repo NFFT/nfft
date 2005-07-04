@@ -103,8 +103,8 @@ Germany, {\tt potts@math.uni-luebeck.de}}
 
 %------------------------------------------------------------------------------
 \section{Introduction}
-% Hier sollte motivert werden, warum die Inhomogentiäten wieder interessant werden:
-% kürzere Röhren? usw.
+% Hier sollte motivert werden, warum die Inhomogentiï¿½en wieder interessant werden:
+% krzere Rï¿½ren? usw.
 \section{Theory}\label{Sec:Th}
 
 In MRI, ignoring relaxation effects, the relation between the MR signal
@@ -498,12 +498,14 @@ bivariate NFFT.
 \section{Numerical results}\label{Sec:Num}
 All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP 2700+, 2GB memory, SuSe-Linux, kernel 2.4.20-4GB-athlon,
 FFTW3.0.1, and NFFT2.0.1.
-The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ and MR measurements of a physical phantom by the Philips Achieva 1.5T device. We use two INTERLEAVED SPIRAL k-space trajectorys, given by
+The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ and MR measurements of a physical phantom by the Philips Achieva 1.5T device. We use two interleaved spiral k-space trajectorys, both given by
 \begin{equation*}
 \zb {\tilde k}_j = A \sqrt{\frac{j}{M_1}} \left(\cos\frac{2\pi \omega
     j}{M_1}, \sin\frac{2\pi \omega j}{M_1}\right)^{\top}. 
 \end{equation*}
-with the parameters $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
+%SPIRAL_SHORT with the parameters ???? $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
+%SPIRAL_LONG
+
 
 Oversampling factor 1.2
 %3d-NNFFT,2dNFFT: PRE_PSI 
@@ -533,12 +535,12 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \begin{center}
 \begin{tabular}{|l||c|c|c|c|c|} \hline
  \rule{0mm}{4mm} method $\backslash$ iter. & $1$ & $2$  & $5$  & $10$ &  \\[1ex] \hline\hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} SNR}& \\[1ex] \hline\hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} SNR}& Memory in MB\\[1ex] \hline\hline
  \rule{0mm}{4mm} Gridding &  &  &  &  & \\[1ex] \hline
  \rule{0mm}{4mm} 3d NNFFT &  &  &  & &  \\[1ex] \hline
  \rule{0mm}{4mm} 3d NFFT &  &  &  &  & \\[1ex] \hline
  \rule{0mm}{4mm} 2d$\otimes$1d NFFT &  & &  & &  \\[1ex] \hline \hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} &Memory in MB \\[1ex] \hline\hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & CPU-Time per Iter\\[1ex] \hline\hline
  \rule{0mm}{4mm} Gridding &  &  &  & &  \\[1ex] \hline
  \rule{0mm}{4mm} 3d NNFFT &  &  &  &  & \\[1ex] \hline
  \rule{0mm}{4mm} 3d NFFT &  &  &  &  & \\[1ex] \hline
@@ -549,7 +551,35 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \caption{SNR and CPU-time for different reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:1}
 \end{table}
 
-\textbf{Numerical Experiment 1:}
+
+\begin{figure*}[ht!]
+\centering
+\begin{tabular}{ccc}
+\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1.png} &
+\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1.png}&
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1.png}\\
+\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1row.png} &
+\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1row.png} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1row.png}
+\end{tabular}
+\caption{} \label{Fig:5}
+\end{figure*}
+
+
+\begin{figure*}[ht!]
+\centering
+\begin{tabular}{ccc}
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1.png} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5.png}&
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10.png}\\
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1row.png} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5row.png} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10row.png}
+\end{tabular}
+\caption{} \label{Fig:5}
+\end{figure*}
+
+\textbf{Numerical Experiment 2:}
 
 
 fieldmap
@@ -564,7 +594,6 @@ Wie wurde die fieldmap berechnet? siehe Fessler?
 \caption{The measured field map (left) in kHz.}
 \label{Fig:Philips}
 \end{figure*}
-
 
 \begin{figure*}[ht] 
 \centering

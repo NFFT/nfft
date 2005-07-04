@@ -22,7 +22,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
 
   double Ts;
-  double W,T;
+  double W;
   int N3;
 
 
@@ -60,17 +60,18 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
   //N3=2*next_power_of_2(ceil(W*(max_time-min_time)));
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
+  N3=ceil(((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4*1.2);
+  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
   
 
-  W=(MAX(fabs(min_inh),fabs(max_inh))+6/(1.2*N3))*2;
+  W= (MAX(fabs(min_inh),fabs(max_inh))+6.0/(N3))*2.0;
   
   //N3=next_power_of_2(ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2));
   
   //W=2.0*MAX(fabs(min_inh),fabs(max_inh));
   //T=2*ceil((max_time-min_time)*1.2);//(0.5-6.0/(2.0*N3));
   
-  fprintf(stderr,"3:  %i %e %e %e %e %e %e %e %e\n",N3,W,T,(0.5-6.0/(2.0*N3)),min_inh,max_inh,min_time,max_time,Ts);
+  fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
 
 
