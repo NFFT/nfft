@@ -42,6 +42,7 @@
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{example}[theorem]{Example}
+\newtheorem{numExp}{\bf Numerical Example}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{algorithm}[theorem]{Algorithm}
 
@@ -49,6 +50,7 @@
 \newenvironment{Lemma}{\goodbreak \begin{lemma}\sl}{\end{lemma}}
 \newenvironment{Remark}{\goodbreak \begin{remark}\rm}{\hfill \bend\end{remark}}
 \newenvironment{Example}{\goodbreak \begin{example}\rm}{\hfill \bend \end{example}}
+\newenvironment{NumExp}{\goodbreak \begin{numExp}\rm}{\hfill \bend \end{numExp}}
 \newenvironment{Definition}{\goodbreak \begin{definition}\rm}{\end{definition}}
 \newenvironment{Corollary}{\goodbreak \begin{corollary}\rm}{\end{corollary}}
 \newenvironment{Algorithm}{\begin{algorithm}\sl}{\hfill
@@ -103,8 +105,7 @@ Germany, {\tt potts@math.uni-luebeck.de}}
 
 %------------------------------------------------------------------------------
 \section{Introduction}
-% Hier sollte motivert werden, warum die Inhomogenti�en wieder interessant werden:
-% krzere R�ren? usw.
+% Hier sollte motivert werden, warum die Inhomogentitäten wieder interessant werden: kürzere Röhren? usw.
 \section{Theory}\label{Sec:Th}
 
 In MRI, ignoring relaxation effects, the relation between the MR signal
@@ -496,8 +497,11 @@ bivariate NFFT.
 
 %----------------------------------------------------------------------------
 \section{Numerical results}\label{Sec:Num}
-All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP 2700+, 2GB memory, SuSe-Linux, kernel 2.4.20-4GB-athlon,
-FFTW3.0.1, and NFFT2.0.1.
+All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP
+2700+, 2GB memory, SuSe-Linux, kernel 2.4.20-4GB-athlon, FFTW3.0.1, and NFFT2.
+We are concerned with the application to real life data, the reconstruction
+quality, and the usage of time and memory resources.
+
 The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ and MR measurements of a physical phantom by the Philips Achieva 1.5T device. We use two interleaved spiral k-space trajectorys, both given by
 \begin{equation*}
 \zb {\tilde k}_j = A \sqrt{\frac{j}{M_1}} \left(\cos\frac{2\pi \omega
@@ -511,7 +515,10 @@ Oversampling factor 1.2
 %3d-NNFFT,2dNFFT: PRE_PSI 
 %2d+1NFFT,Gridding: PRE_FULL_PSI
 
-\textbf{Numerical Experiment 1:}
+
+\begin{NumExp}
+
+
 
 In the simulation study we use the following field map
 \begin{equation*}
@@ -579,7 +586,9 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \caption{} \label{Fig:5}
 \end{figure*}
 
-\textbf{Numerical Experiment 2:}
+\end{NumExp}
+
+\begin{NumExp}
 
 
 fieldmap
@@ -620,7 +629,7 @@ with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration}
 \label{Fig:Philips}
 \end{figure*}
 
-
+\end{NumExp}
 
 % \begin{figure*}[ht] 
 % \centering
@@ -655,6 +664,6 @@ with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration}
 {\bf Acknowledgement.}
 
 %\bibliographystyle{IEEEabbrv}
-%\bibliographystyle{IEEEtran}
-%\bibliography{/home/knopp/Uni/Studienarbeit/ref}
+\bibliographystyle{IEEEtran}
+\bibliography{ref}
 \end{document}

@@ -66,8 +66,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   //W=2.0*MAX(fabs(min_inh),fabs(max_inh))*(1.2); //1.0+m/n!?!?!?!?!?
   //N3=2*ceil(W*(max_time-min_time));
 
-  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4);
-  N3=((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4;
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4);
+  //N3=((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4;
 
   W=(MAX(fabs(min_inh),fabs(max_inh))+6.0/(1.2*N3))*2.0;
   
@@ -156,8 +156,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   }
 
   t=second()-t;
-  fprintf(stderr,"time: %e seconds\n",t);
-  
+  fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
+
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 

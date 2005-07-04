@@ -60,8 +60,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
   //N3=2*next_power_of_2(ceil(W*(max_time-min_time)));
-  N3=ceil(((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4*1.2);
-  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
+  //N3=ceil(((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4*1.2);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
   
 
   W= (MAX(fabs(min_inh),fabs(max_inh))+6.0/(N3))*2.0;
@@ -153,7 +153,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   
   t=second()-t;
-  fprintf(stderr,"time: %e seconds\n",t);
+  fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
     
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
