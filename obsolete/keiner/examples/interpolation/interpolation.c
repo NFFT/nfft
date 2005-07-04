@@ -44,9 +44,6 @@
 #include "time.h"
 #include "api.h"
 
-//#define K_MIN 3
-//#define K_MAX 360
-
 /**
  * The main program.
  *
@@ -57,7 +54,7 @@
  */
 int main (int argc, char **argv)
 {  
- 	complex *f;
+/* 	complex *f;
   complex *f_orig;
   complex **f_hat;
   complex **f_hat_orig;
@@ -93,7 +90,6 @@ int main (int argc, char **argv)
 
   fprintf("M1 = %d, M2 = %d\n",M1,M2);
   
-  /* Read node file. */
   sprintf(filename,"healpix.dat");  
   file = fopen(filename,"r");
   
@@ -105,7 +101,6 @@ int main (int argc, char **argv)
   
   M = 360;
   
-  /* Read Healpix nodes. */  
   sprintf(filename,"healpix.dat");  
   file = fopen(filename,"r");
   
@@ -120,7 +115,6 @@ int main (int argc, char **argv)
     fprintf(stderr,"M = %d\n",M);
     fprintf(stderr,"N = %d\n",N);
 
-    /** Allocate data structures. */
     f = (complex*) calloc(D,sizeof(complex));
     f_temp = (complex*) calloc(D2,sizeof(complex));
     f_orig = (complex*) calloc(D,sizeof(complex));
@@ -159,35 +153,23 @@ int main (int argc, char **argv)
       }
     }
     
-    /* Read Healpix nodes */
     for (d = 0; d < D; d++)
     {
   				fscanf(file,"%lf %lf\n",&x[2*d+1],&x[2*d]);
-      //fprintf(stderr,"%e %e\n",x[2*d+1],x[2*d]);
     }
     
     fclose(file);
 
-    /* Read EGM96 data. */
     file = fopen("../egm96/egm96.dat","r");
     while (fscanf(file,"%d %d %le %le %le %le\n",&j,&m,&a,&b,&c,&e) != EOF)
     {
       if (j <= M && j > 2)
       {
-        //a *= sqrt(2.0*j+1.0); 
-        //b *= sqrt(2.0*j+1.0); 
         f_hat_orig[m+M][j] = 0.5*(a + I*b);
         f_hat_orig[-m+M][j] = 0.5*(a - I*b);
       }
     }
     fclose(file);
-    /*for (k = 0; k <= M; k++)
-    {
-      for (n = -k; n <= k ; n++)
-      {
-        f_hat_orig[n+M][k] = (k<=32)?drand48():0.0;//drand48() + I * drand48();
-      }  
-    }*/  
     
     copyc_hat(f_hat,f_hat_orig,M);
 
@@ -199,19 +181,12 @@ int main (int argc, char **argv)
     
     copyc(f_orig,f,D);
 
-    /* Init guess */
-    /*for (n = -k_max; n <= k_max; n++)
-    {
-      memset(f_hat[n+k_max],0U,(N+1)*sizeof(complex));
-    }*/  
-    
     iplan = infsft_make_plan();
     infsft_init_guru(iplan, plan, NFSFT_CGNR_E);
     
     for (d = 0; d < D; d++)
     {
       iplan->given_f[d] = f_orig[d];
-      //iplan->w[d] = wf[d]/(2*M+2);
     }
     
     for (n = -M; n <= M; n++)
@@ -222,12 +197,7 @@ int main (int argc, char **argv)
       }
     }
     
-    //vpr_c_hat(iplan->f_hat_iter,M,"f_hat_iter");
-
-    /* inverse trafo */
     infsft_before_loop(iplan);
-    //vpr_c(f_orig,D,"f_orig");
-    //vpr_c(iplan->r_iter,D,"r_iter");
 
     fprintf(stderr,"D2 = %d\n",D2);
     fprintf(stderr,"M = %d\n",M);
@@ -258,7 +228,6 @@ int main (int argc, char **argv)
     for(l=0;l<10;l++)
     { 
       infsft_loop_one_step(iplan);
-      //vpr_c(iplan->r_iter,D,"r_iter");
 
       copyc_hat(f_hat_temp,iplan->f_hat_iter,M);
       nfsft_trafo(plan2);
@@ -294,5 +263,5 @@ int main (int argc, char **argv)
     free(f_orig);
   }      
   
-  return EXIT_SUCCESS;
+  return EXIT_SUCCESS;*/
 }
