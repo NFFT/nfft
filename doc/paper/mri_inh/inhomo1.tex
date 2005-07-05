@@ -511,18 +511,21 @@ The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. F
 %SPIRAL_LONG
 
 
-Oversampling factor 1.2
+In all tests we used the oversampling factor $\alpha \approx 1.2$, such that $\alpha N$ is an integer. A greater oversampling factor results in better SNR but not in a visible better image quality. 
+
+The NFFT2 library allows different flags to optimise the computing time which
+affect the storage of the precomputed values for the third step within the
+NFFT, i.e., the left factor $\zb B$, see Section \ref{Sec:NFFT}. For better comparison we chose in all test the same
+flag PRE\_PSI which stores the precomputed values in a lossless compressed form.
+
 %3d-NNFFT,2dNFFT: PRE_PSI 
 %2d+1NFFT,Gridding: PRE_FULL_PSI
 
 
 \begin{NumExp}
-
-
-
-In the simulation study we use the following field map
+First of all, we compare the different reconstruction methods with a $2d$-Shepp-Logan phantom. The simulated MR data are computed by the $2d\otimes1d$-method using the following field map
 \begin{equation*}
-\omega(r_1,r_2) = \sqrt{\left(\frac{r_1 \sqrt{2}}{N}\right)^2+\left(\frac{r_2 \sqrt{2}}{N}\right)^2} -\frac{1}{2}.
+\omega(r_1,r_2) = \left(\frac{r_1 \sqrt{2}}{N}\right)^2+\left(\frac{r_2 \sqrt{2}}{N}\right)^2 -\frac{1}{2}.
 \end{equation*}
 Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 
@@ -595,14 +598,14 @@ fieldmap
 
 Wie wurde die fieldmap berechnet? siehe Fessler?
 
-\begin{figure*} 
-\centering
-\begin{tabular}{c}
-\includegraphics[width=7cm,height=6cm]{pics/fieldmap.jpg} 
-\end{tabular}
+
+\begin{figure}[ht!] 
+\begin{center}
+\includegraphics[width=6cm]{pics/fieldmap.jpg} 
+\end{center}
 \caption{The measured field map (left) in kHz.}
 \label{Fig:Philips}
-\end{figure*}
+\end{figure}
 
 \begin{figure*}[ht] 
 \centering
