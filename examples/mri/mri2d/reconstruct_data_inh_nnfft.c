@@ -49,7 +49,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   
   fclose(ftime);
   
-  Ts=min_time+max_time/2.0;
+  Ts=(min_time+max_time)/2.0;
 
 
   min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
@@ -65,8 +65,9 @@ void infft(char* filename,int N,int M,int iteration, int weight)
 
   //W=2.0*MAX(fabs(min_inh),fabs(max_inh))*(1.2); //1.0+m/n!?!?!?!?!?
   //N3=2*ceil(W*(max_time-min_time));
-
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4);
+  
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*1.5))*4*1.5)+1;
+  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4);
   //N3=((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4;
 
   W=(MAX(fabs(min_inh),fabs(max_inh))+6.0/(1.2*N3))*2.0;
@@ -74,9 +75,9 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
   /* initialise my_plan */
-  my_N[0]=N;my_n[0]=ceil(N*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
-  my_N[2]=N3; my_n[2]=ceil(N3*1.2);
+  my_N[0]=N;my_n[0]=ceil(N*1.5);
+  my_N[1]=N; my_n[1]=ceil(N*1.5);
+  my_N[2]=N3; my_n[2]=ceil(N3*1.5);
   nnfft_init_guru(&my_plan, 3, N*N, M, my_N,my_n,6,
         PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
         

@@ -41,7 +41,7 @@ void nfft (char * file, int N, int M)
   
   fclose(ftime);
   
-  Ts=min_time+max_time/2.0;
+  Ts=(min_time+max_time)/2.0;
 
 
   min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
@@ -58,15 +58,15 @@ void nfft (char * file, int N, int M)
 
   W=2.0*MAX(fabs(min_inh),fabs(max_inh)); 
   //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2);
-  N3=ceil((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*2))*4*2);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*1.5))*4*1.5)+1;
 
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
 
 
-  my_N[0]=N; my_n[0]=ceil(N*2);
-  my_N[1]=N; my_n[1]=ceil(N*2);
+  my_N[0]=N; my_n[0]=ceil(N*1.5);
+  my_N[1]=N; my_n[1]=ceil(N*1.5);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 

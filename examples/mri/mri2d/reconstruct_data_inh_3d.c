@@ -45,7 +45,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   
   fclose(ftime);
   
-  Ts=min_time+max_time/2.0;
+  Ts=(min_time+max_time)/2.0;
 
 
   min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
@@ -61,7 +61,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   //N3=2*next_power_of_2(ceil(W*(max_time-min_time)));
   //N3=ceil(((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4*1.2);
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4*1.2);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*1.5))*4*1.5)+1;
   
 
   W= (MAX(fabs(min_inh),fabs(max_inh))+6.0/(N3))*2.0;
@@ -75,8 +75,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   
 
 
-  my_N[0]=N;my_n[0]=ceil(N*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[0]=N;my_n[0]=ceil(N*1.5);
+  my_N[1]=N; my_n[1]=ceil(N*1.5);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 

@@ -502,34 +502,6 @@ All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP
 We are concerned with the application to real life data, the reconstruction
 quality, and the usage of time and memory resources.
 
-The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ and MR measurements of a physical phantom by the Philips Achieva 1.5T device. We use two interleaved spiral k-space trajectorys, both given by
-\begin{equation*}
-\zb {\tilde k}_j = A \sqrt{\frac{j}{M_1}} \left(\cos\frac{2\pi \omega
-    j}{M_1}, \sin\frac{2\pi \omega j}{M_1}\right)^{\top}. 
-\end{equation*}
-%SPIRAL_SHORT with the parameters ???? $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
-%SPIRAL_LONG
-
-
-In all tests we used the oversampling factor $\alpha \approx 1.2$, such that $\alpha N$ is an integer. A greater oversampling factor results in better SNR but not in a visible better image quality. 
-
-The NFFT2 library allows different flags to optimise the computing time which
-affect the storage of the precomputed values for the third step within the
-NFFT, i.e., the left factor $\zb B$, see Section \ref{Sec:NFFT}. For better comparison we chose in all test the same
-flag PRE\_PSI which stores the precomputed values in a lossless compressed form.
-
-%3d-NNFFT,2dNFFT: PRE_PSI 
-%2d+1NFFT,Gridding: PRE_FULL_PSI
-
-
-\begin{NumExp}
-First of all, we compare the different reconstruction methods with a $2d$-Shepp-Logan phantom. The simulated MR data are computed by the $2d\otimes1d$-method using the following field map
-\begin{equation*}
-\omega(r_1,r_2) = \left(\frac{r_1 \sqrt{2}}{N}\right)^2+\left(\frac{r_2 \sqrt{2}}{N}\right)^2 -\frac{1}{2}.
-\end{equation*}
-Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
-
-
 \begin{figure*}[ht] 
 \centering
 \begin{tabular}{ccc}
@@ -541,20 +513,53 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \label{Fig:Phantom}
 \end{figure*}
 
+The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ with a simulated field map. Furthermore we use MR measurements of a physical phantom by the Philips Achieva 1.5T device with a measured field maps. In all test we use an interleaved spiral k-space trajectory, given by
+\begin{equation*}
+\zb {\tilde k}_j = A \sqrt{\frac{j}{M_1}} \left(\cos\frac{2\pi \omega
+    j}{M_1}, \sin\frac{2\pi \omega j}{M_1}\right)^{\top}. 
+\end{equation*}
+\marginpar{spirale analytisch???}
+with 16 interleaved spiral arms and 4720 knots each.
+% with the parameters ???? $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
+The length of the readout intervall was 19ms for each spiral arm with an echo time $T_E=2$ms.
+
+In all tests we used the oversampling factor $\alpha \approx 1.5$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$ depends on the field map. With the simulated field map we choose $N_3=40$, with the measured field map $N_3=80$ A greater oversampling factor results in better SNR but not in a visible better image quality. 
+
+
+To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{KnKuPo,RaPrSiBoEg99,qhull}.
+
+The NFFT2 library allows different flags to optimise the computing time which
+affect the storage of the precomputed values for the third step within the
+NFFT, i.e., the left factor $\zb B$, see Section \ref{Sec:NFFT}. For better comparison we choose in the tests \label{Exp:1} and \label{Exp:3} the same
+flag PRE\_PSI which stores the precomputed values in a lossless compressed form.
+However, the NFFT2 library can also store all precomputed values of the left factor $\zb B$ in an uncompressed form (flag PRE\_PSI) which results in better performance but higher memory consumption. In experiment \ref{Exp:2} we test different flags. 
+
+
+
+\begin{NumExp} \label{Exp:1}
+First of all, we compare the different reconstruction methods with a $2d$-Shepp-Logan phantom. The simulated MR data are computed by the $2d\otimes1d$-method using the following field map
+\begin{equation*}
+\omega(r_1,r_2) = \left(\frac{r_1}{N}\right)^2+\left(\frac{r_2}{N}\right)^2 -\frac{1}{4}.
+\end{equation*}
+Thus the field map is in the interval $[-\frac{1}{4},\frac{1}{4}]$ kHz. Table \ref{Tab:1} shows the signal-to-noise-ratio 
+${\rm SNR}(\zb{\tilde p},\zb p):=20 \log_{10}({\|\zb p\|_2}\,/\,{\|\zb p-
+\zb{\tilde p}\|_2})$ where $\zb {\tilde p}$ is our reconstruction and $\zb p$
+denotes the original image.
+
 \begin{table}[ht]
 \begin{center}
 \begin{tabular}{|l||c|c|c|c|c|} \hline
  \rule{0mm}{4mm} method $\backslash$ iter. & $1$ & $2$  & $5$  & $10$ &  \\[1ex] \hline\hline
  \multicolumn{5}{|c|}{\rule{0mm}{4mm} SNR}& Memory in MB\\[1ex] \hline\hline
- \rule{0mm}{4mm} Gridding &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} 3d NNFFT &  &  &  & &  \\[1ex] \hline
- \rule{0mm}{4mm} 3d NFFT &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} 2d$\otimes$1d NFFT &  & &  & &  \\[1ex] \hline \hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & CPU-Time per Iter\\[1ex] \hline\hline
- \rule{0mm}{4mm} Gridding &  &  &  & &  \\[1ex] \hline
- \rule{0mm}{4mm} 3d NNFFT &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} 3d NFFT &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} 2d$\otimes$1d NFFT &  & &  & &  \\[1ex] \hline \hline
+ \rule{0mm}{4mm} 2d NFFT & 4.14 & 4.40 & 4.44  & 4.47 & 31 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NNFFT & 10.15 & 13.55 & 14.02 & 14.43 & 32 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NFFT & 10.15 & 13.55 & 14.02 & 14.43 & 256 \\[1ex] \hline
+ \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 9.80 & 13.45 & 14.00 & 14.46& 1394 \\[1ex] \hline \hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & CPU-Time/Iter\\[1ex] \hline\hline
+ \rule{0mm}{4mm} 2d NFFT & 3.27 & 4.91 & 9.83 & 18.07 &  \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NNFFT & 140.04 & 210.24 & 421.26 & 773.46&  \\[1ex] \hline \hline
+ \rule{0mm}{4mm} 3d NFFT & 62.81 & 94.15 & 188.35 & 345.39 & \\[1ex] \hline
+ \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 144.36 & 216.62 & 432.82 &  & \\[1ex] \hline
 
 \end{tabular}
 \end{center}
@@ -567,10 +572,10 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \begin{tabular}{ccc}
 \includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1.png} &
 \includegraphics[width=5.5cm]{pics/phantom_3d_iter=1.png}&
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1.png}\\
+\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1.png}\\
 \includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1row.png} &
 \includegraphics[width=5.5cm]{pics/phantom_3d_iter=1row.png} &
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1row.png}
+\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1row.png}
 \end{tabular}
 \caption{} \label{Fig:5}
 \end{figure*}
@@ -589,46 +594,40 @@ Thus the field map is in the iterval $[-\frac{1}{2},\frac{1}{2}]$.
 \caption{} \label{Fig:5}
 \end{figure*}
 
+\end{NumExp} 
+
+\begin{NumExp} \label{Exp:2}
+
 \end{NumExp}
 
-\begin{NumExp}
+\begin{NumExp} \label{Exp:3}
+In the second example we test our algorithms with MR measurements of a physical phantom by 
+the Philips Achieva 1.5T device.
 
-
-fieldmap
-
+\marginpar{fieldmap???}
 Wie wurde die fieldmap berechnet? siehe Fessler?
 
+The field map is shown in Figure \ref{fieldmap}. The off-resonance is in the interval $[-??,???]$ kHz, which 
+causes ??? $\pi$ extra spin phase accural during the readout.
 
 \begin{figure}[ht!] 
 \begin{center}
 \includegraphics[width=6cm]{pics/fieldmap.jpg} 
 \end{center}
 \caption{The measured field map (left) in kHz.}
-\label{Fig:Philips}
+\label{Fig:fieldmap}
 \end{figure}
 
 \begin{figure*}[ht] 
 \centering
 \begin{tabular}{cc}
-\includegraphics[width=7cm]{pics/reallife_400_gridding_iter=1.png} &
-\includegraphics[width=7cm]{pics/reallife_400_iter=1.png}\\
-\includegraphics[width=7cm]{pics/reallife_400_gridding_iter=1row.png} &
-\includegraphics[width=7cm]{pics/reallife_400_iter=1row.png}
+\includegraphics[width=8cm]{pics/reallife_600_gridding_iter=1.jpg} &
+\includegraphics[width=8cm]{pics/reallife_600_iter=1.jpg}\\
+\includegraphics[width=8cm]{pics/reallife_600_gridding_iter=1row.jpg} &
+\includegraphics[width=8cm]{pics/reallife_600_iter=1row.jpg}
 \end{tabular}
 \caption{Physical phantom from a MR scan by the Philips Achieva 1.5T device, reconstructed
 with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration}
-\label{Fig:Philips}
-\end{figure*}
-
-\begin{figure*}[ht] 
-\centering
-\begin{tabular}{cc}
-\includegraphics[width=7cm]{pics/reallife_900_gridding_iter=1.png} &
-\includegraphics[width=7cm]{pics/reallife_900_iter=1.png}\\
-\includegraphics[width=7cm]{pics/reallife_900_gridding_iter=1row.png} &
-\includegraphics[width=7cm]{pics/reallife_900_iter=1row.png}
-\end{tabular}
-\caption{Two slices of the reconstruction with Voronoi weights after one iteration from a MR scan by the Philips Achieva 1.5T device.}
 \label{Fig:Philips}
 \end{figure*}
 

@@ -1,22 +1,24 @@
 N=256;   % points per row / column
 M=75520;
-arms=32;
-construct_readout_time( M, 2, arms, 0.00402542373 );
+arms=16;
+%construct_readout_time( M, 2, arms, 0.00402542373 );
+%construct_readout_time( M, 2, arms,0.00402542372881);%600
 
-construct_inh(N);
 
-out=reshape(phantom(N),1,N*N);
-save input_f.dat -ascii out 
+%construct_inh(N);
 
-system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)])
+%out=reshape(phantom(N),1,N*N);
+%save input_f.dat -ascii out 
 
-precompute_weights('output_phantom_nfft.dat',M);
+%system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M)])
+
+%precompute_weights('output_phantom_nfft.dat',M);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 1 1'])
 visualize_data('pics/phantom_gridding_iter=1',N);
 snr('pics/snr_phantom_gridding_iter=1');
