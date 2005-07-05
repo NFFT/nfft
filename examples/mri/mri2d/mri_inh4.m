@@ -8,9 +8,9 @@ arms=16;
 %construct_inh(N);
 
 %out=reshape(phantom(N),1,N*N);
-%save input_f.dat -ascii out 
+%save input_f.dat -ascii out
 
-%system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+%system(['./construct_data_inh_3d ' 'output_phantom_nfft.dat ' ...
 %         int2str(N) ' ' int2str(M)])
 
 %precompute_weights('output_phantom_nfft.dat',M);
