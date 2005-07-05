@@ -65,8 +65,8 @@ void nfft (char * file, int N, int M)
   
 
 
-  my_N[0]=N; my_n[0]=ceil(N*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[0]=N; my_n[0]=ceil(N*2);
+  my_N[1]=N; my_n[1]=ceil(N*2);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 

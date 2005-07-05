@@ -74,7 +74,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 2,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 6,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   if (weight)

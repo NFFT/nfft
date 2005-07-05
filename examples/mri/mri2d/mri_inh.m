@@ -15,7 +15,8 @@ construct_readout_time( M, 2, 32, 0.00402542373 ); %400
 
 disp(2);
 system(['./reconstruct_data_inh_3d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 10 1'])
+         int2str(N) ' ' int2str(M)  ' 1 1'])
 
 figure(1);
 visualize_data('pics/reallife_400_iter=1',N);
+snr('pics/snr');
