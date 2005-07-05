@@ -8,7 +8,7 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{theorem}
-\usepackage{jkmath}
+%\usepackage{jkmath}
 \usepackage{subfigure}
 \usepackage{natbib}
 \usepackage{algorithm}
@@ -36,6 +36,51 @@
 
 %============================================================================
 
+\newcommand{\N}{\ensuremath{\mathbb{N}}}
+\newcommand{\NZ}{\ensuremath{\mathbb{N}_{0}}}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}}
+\newcommand{\Q}{\ensuremath{\mathbb{Q}}}
+\newcommand{\R}{\ensuremath{\mathbb{R}}}
+\newcommand{\Rp}{\ensuremath{\mathbb{R}^{+}}}
+\newcommand{\Rn}{\ensuremath{\mathbb{R}^n}}
+\newcommand{\Rnn}{\ensuremath{\mathbb{R}^{n \times n}}}
+\newcommand{\C}{\ensuremath{\mathbb{C}}}
+\newcommand{\Pol}{\ensuremath{\Pi}}
+
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\abs}[1]{\ensuremath{\left\vert#1\right\vert}}
+\newcommand{\set}[1]{\ensuremath{\left\{#1\right\rbrace}}
+\newcommand{\pset}[3]{\ensuremath{\left\{#1\ \left#2\ #3\right.\right\rbrace}}
+\newcommand{\veps}{\ensuremath{\varepsilon}}
+\newcommand{\vtheta}{\ensuremath{\vartheta}}
+\newcommand{\vphi}{\ensuremath{\varphi}}
+\newcommand{\towards}{\ensuremath{\longrightarrow}}
+
+\newcommand{\twosphere}{\ensuremath{\mathbb{S}^2}}
+\newcommand{\Ln}[2]{\ensuremath{\text{\rm{L}}^{#1}\left(#2\right)}}
+\newcommand{\interv}[4]{\ensuremath{\left#1\left.#2,#3\right#4\right.}}
+\newcommand{\fun}[2]{\ensuremath{#1{\hspace{-0.4ex}}\left(#2\right)}}
+\newcommand{\paren}[1]{\ensuremath{\left(#1\right)}}
+\newcommand{\encl}[3]{\ensuremath{\left#1#2\right#3}}
+\newcommand{\bigo}[1]{\ensuremath{\mathcal{O}\paren{#1}}}
+\newcommand{\smallo}[1]{\ensuremath{\mathcal{o}\paren{#1}}}
+\newcommand{\jkSpacer}{\ensuremath{{}^{}}}
+\newcommand{\scalarproduct}[2]{\ensuremath{\left<#1,#2\right>}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\V}[1]{\mb{#1}}
+\newcommand{\transp}{\text{\rm{T}}}
+\newcommand{\h}{\text{\rm{H}}}
+\newcommand{\dx}{\text{\rm{d}}}
+\renewcommand{\Re}{\text{\rm{Re}}}
+\renewcommand{\Im}{\text{\rm{Im}}}
+\newcommand{\e}{\mbox{\rm{e}}}
+\newcommand{\im}{\mbox{\scriptsize\rm{i}}}
+\newcommand{\diag}{\text{\rm{diag}}}
+\def\invisible#1{\textcolor{white}{#1}}
+\newcommand{\ceil}[1]{\encl{\lceil}{#1}{\rceil}}
+\newcommand{\floor}[1]{\encl{\lfloor}{#1}{\rfloor}}
+
+%============================================================================
 
 \numberwithin{equation}{section}
 \numberwithin{table}{section}
@@ -79,9 +124,11 @@ Stefan Kunis\thanks{kunis@math.uni-luebeck.de, University of
 %-----------------------------------------------------------------------------
 \section{Introduction}
 \label{sect:1}
+Radial basis functions are a powerful tool in many areas of multi-dimensional 
+approximation and interpolation.
 In radial basis function methods one approximates functions from $\R^3
-\rightarrow \R$ by linear combinations of translates of a single function
-$\phi:\R^3 \rightarrow \R, \, \phi(x)=\phi(\|x\|_2)$.
+\rightarrow \R$ by linear combinations of translates of a single radial 
+symmetric function $\phi:\R^3 \rightarrow \R, \, \phi(x)=\phi(\|x\|_2)$.
 The spherical counterpart are the \emph{zonal} functions which depent solely
 on the geodesic distance of two points on the sphere $\twosphere:=\{
 \V{\xi}: \|\V{\xi}\|_2=1\} \subset \R^3$ and the notion of the former
@@ -92,7 +139,7 @@ $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function
   \fun{K}{\V{\eta} \: \cdot}: \twosphere \rightarrow \R,\ \V{\xi} \mapsto
   \fun{K}{\V{\eta} \cdot \V{\xi}}\,.% \qquad \V{\xi} \in \twosphere.
 \]
-Of course, every radial function can be made into a zonal function by means of
+Of course, every radial function corresponds to a zonal function by means of
 \[
   \fun{K}{\V{\eta} \cdot \V{\xi}} = \phi\left(\sqrt{2-2\V{\eta} \cdot
   \V{\xi}}\right)\,.
@@ -107,8 +154,9 @@ The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
 \fun{P_k}{x} := \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \]
 One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$, $\fun{P_{k}}{\cos\theta}
-\le \sqrt{\frac{2}{\pi k \sin\theta}}$, $k \in \N$, and $\max_{x \in
-  \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$, \cite[pp. 447]{niuv}.
+\le \sqrt{\frac{2}{\pi k \sin\theta}}$ for $\theta \in (0,\pi)$, $k \ge 1$, 
+and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$, 
+\cite[pp. 47]{niuv}.
 Furthermore, two recurrence relations are given by
 \begin{equation}\label{three1}
 \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} - k\fun{P_{k-1}}{x}
@@ -120,39 +168,59 @@ and
 
 Let the space of real-valued continuous functions on the sphere be decomposed
 into the direct sum of spaces of spherical harmonics, i.e.,
-$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$, and let
-$\set{Y_{k}^n}_{n=-k}^{k}$ denote the standard orthonormal basis of spherical
-harmonics.
+$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$ \textbf{Warum $C$ und 
+nicht $L^2$?}, and let $\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
+standard orthonormal \textbf{ja, bez\"uglich $L^2$-Skalarprodukt} basis of 
+spherical harmonics given by
+\[
+  \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\theta,\varphi} = 
+  \sqrt{\frac{2k+1}{4\pi}} 
+  \fun{P_{k}^{|n|}}{\cos\theta} \e^{\im n \varphi}.
+\]
+The orthogonal expansion of the zonal function $\fun{K}{\V{\eta} \: \cdot}$
+in terms of Legendre-polynomials is
+\begin{equation}
+  \label{equation:kernelExpansion}
+  \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} 
+  \fun{P_{k}}{\V{\eta} \cdot \V{\xi}},
+\end{equation}
+where the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given
+for $k \in \NZ$ by
+\[
+  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx 
+  x\,.
+\]
 Using the addition theorem
 \[
 \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
     \frac{2k+1}{4\pi}\fun{P_k}{\V{\eta} \cdot \V{\xi}}
 \]
-the expansion of the zonal function $\fun{K}{\V{\eta} \: \cdot}$ reduces to
+the expansion \eqref{equation:kernelExpansion} of 
+$\fun{K}{\V{\eta} \: \cdot}$ transforms to
 \begin{equation}
   \label{Basics:Kernel}
   \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k
-  \fun{K^{\wedge}}{k}\overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}},
+  \fun{K^{\wedge}}{k}\overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}}.
 \end{equation}
-where the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given
-for $k \in \NZ$ by
-\[
-  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx x\,.
-\]
 
 The convolution of two zonal functions is considered in the following lemma.
 \begin{lemma} {\bf Normalisierung!!}
-  Let $Q,P\in \Ln{2}{\interv{[}{-1}{1}{]}}$ then the symbol of the spherical
-  convolution
+  Let $Q,P\in \Ln{2}{\interv{[}{-1}{1}{]}}$ and
   \[
-  \fun{K}{\V{\eta} \cdot \V{\xi}} = \fun{\left(Q * P\right)}{\V{\eta} \cdot
-    \V{\xi}} := \int_{\twosphere} \fun{Q}{\V{\eta} \cdot \V{\nu}}
-  \fun{P}{\V{\nu} \cdot \V{\xi}} \dx \omega\left(\nu\right)
+  \fun{K}{\V{\eta} \cdot \V{\xi}} := \fun{\left(Q * P\right)}{\V{\eta} \cdot
+    \V{\xi}},
   \]
-  is given by
-  \fun{K^{\wedge}}{k} = \fun{Q^{\wedge}}{k} \fun{P^{\wedge}}{k}.
-  Furthermore, for compactly supported functions $\supp Q = \supp P =
-  \interv{[}{h}{1}{]}$, $h>0$, we conclude $\supp K =
+  where
+  \[
+    \fun{\left(Q * P\right)}{\V{\eta} \cdot \V{\xi}}:= 
+    \int_{\twosphere} \fun{Q}{\V{\eta} \cdot \V{\nu}}
+    \fun{P}{\V{\nu} \cdot \V{\xi}} \dx \omega\left(\nu\right)
+  \]
+  is the \emph{spherical convolution} of $Q$ and $P$. Then the symbol 
+  $\fun{K^{\wedge}}{k}$ is given by 
+  $\fun{K^{\wedge}}{k} = \fun{Q^{\wedge}}{k} \fun{P^{\wedge}}{k}$.
+  Furthermore, for compactly supported functions $\supp\; Q = \supp\; P =
+  \interv{[}{h}{1}{]}$, $h>0$, we conclude $\supp\; K =
   \interv{[}{2h^2-1}{1}{]}$.
 \end{lemma}
 
@@ -165,12 +233,13 @@ evaluation of sums
   \label{Applications:KernelSum}
   \fun{f}{\xi} := \sum_{l = 0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l} \cdot \V{\xi}}
 \end{equation}
-at a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
+on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
   \in \twosphere}{|}{d=0,\ldots,D-1}$.
 
-Given, the zonal function $\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily
-or all the values $\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in
-advance, the naive approach evaluating \eqref{Applications:KernelSum} leads to
+Given an explicit expression, the zonal function $\fun{K}{\V{\eta} \: \cdot}$ 
+can be evaluated easily or all the values 
+$\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in
+advance. The naive approach evaluating \eqref{Applications:KernelSum} leads to
 an $\bigo{L\:D}$ algorithm. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
 The \emph{panel clustering} method introduced in \cite{FrGlSch98} reduces the
@@ -181,8 +250,8 @@ is calculated exactly whereas the contribution of the far-field may be
 approximated coarsly.
 % due to the supposed rapid decay of $\fun{K}{\V{\eta} \:\cdot}$. 
 
-We propose to simply truncate the series of the function
-$\fun{K}{\V{\eta}_{l}\: \cdot}$ with a degree $M \in \NZ$, i.e.,
+We propose to simply truncate the series \eqref{Basics:Kernel} at degree 
+$M \in \NZ$, i.e.
 \begin{equation}
   \label{Applications:TruncatedSeries}
   \fun{K}{\V{\eta}_{l} \cdot \V{\xi}} \approx \fun{K_{M}}{\V{\eta}_{l} \cdot
@@ -192,7 +261,7 @@ $\fun{K}{\V{\eta}_{l}\: \cdot}$ with a degree $M \in \NZ$, i.e.,
 
 Substituting \eqref{Applications:TruncatedSeries} into
 \eqref{Applications:KernelSum} and interchanging the order of summation we
-obtain our final approximation
+finally obtain the approximation
 \[
   \fun{f_{M}}{\xi_{d}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
   \paren{\sum_{l = 0}^{L-1} b_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}}
@@ -200,7 +269,8 @@ obtain our final approximation
 \]
 
 The expression in the inner brackets can be computed by an adjoint Nonuniform
-Fast Spherical Fourier Transform (NFSFT) in $\mathcal{O}(L + M^2 \log^2 M)$
+Fast Spherical Fourier Transform (adjoint NFSFT) in 
+$\mathcal{O}(L + M^2 \log^2 M)$
 arithmetic operations, see \cite{} and the forthcoming paper \cite{} for
 details.
 This is followed by $(M+1)^2$ multiplications with the symbol
@@ -215,8 +285,13 @@ D)$, in particular this performance does not depend on the distribution of the
 nodes $\V{\xi}_{d}$ and $\V{\eta}_{l}$.
 
 \begin{remark}
+  NFSFT ist auch nur approximativ. Referenzen zu Driscoll, Healy, usw..... 
+  (Aufbau des Algorithmus)
+\end{remark}
+
+\begin{remark}
 In matrix-vector notation the proposed approach, a particular rank $(M+1)^2$
-approximation, is given by
+approximation, read as
 \[
   \V{f} = \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
   \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}
@@ -249,18 +324,19 @@ In summary, we propose the following algorithm.
     \STATE  Input:  $L \in \N$, $\paren{b_{l}}_{l=0}^{L-1}$, $\paren{\V{\eta}_{l}}_{l=0}^{L-1}$, 
                     $D \in \N$, $\paren{\V{\xi}_{d}}_{d=0}^{D-1}$, $M \in \NZ, \paren{\fun{K^{\wedge}}{k}}_{k=0}^M$
     \STATE
-    \STATE Compute $\V{\tilde{b}}= \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}$ by an
+    \STATE Compute $\V{\tilde{b}} := \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}$ by an
                     adjoint NFSFT 
-    \STATE 
     \FOR {$k=0,\ldots,M$} 
       \FOR {$n=-k,\ldots,k$} 
-        \STATE Set $a_{k}^n = \tilde{b}_{k}^n \: \fun{K^{\wedge}}{k}$
+        \STATE Set $a_{k}^n := \tilde{b}_{k}^n \: \fun{K^{\wedge}}{k}$
       \ENDFOR
     \ENDFOR
+    \STATE Compute $\V{f} := \V{Y_{\mathcal{X}}} \: \V{a}$ by a NFSFT
     \STATE
-    \STATE Compute $\V{f} = \V{Y_{\mathcal{X}}} \: \V{a}$ by a NFSFT
+    \STATE Output: $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$ (an approximation to 
+      $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$)
     \STATE
-    \STATE Output: $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$
+    \STATE Complexity: $\mathcal{O}\left(M^2 \log^2M + L + D\right)$  
 \end{algorithmic}
 \end{algorithm}
 
@@ -310,7 +386,7 @@ in \cite[pp. 112]{frgesc}.
   {\includegraphics[width=0.33\textwidth]{images/poisson}}\hfill
   \subfigure[$h=0.8,0.9,0.95$]
   {\includegraphics[width=0.33\textwidth]{images/singularity}}
-  \caption{The kernel $\fun{Q_{h}}{\cos\theta}$ and $\fun{S_{h}}{\cos\theta}$
+  \caption{The kernels $\fun{Q_{h}}{\cos\theta}$ and $\fun{S_{h}}{\cos\theta}$
   for different values of $h$.}
   \label{Basics:Figure:PoissonSingularityKernel}
 \end{figure}
