@@ -93,6 +93,19 @@ double norm_complex_inf(complex *x, int n)
   return maximum;
 }
 
+double norm_complex_1(complex *x, int n)
+{
+  double r = 0.0;
+  int k;
+  
+  for (k = 0; k < n; k++) 
+  {
+    r += cabs(x[k]);
+  }
+  
+  return r;
+}
+
 double error_complex_1(complex *a, complex *b, int n)
 {
   double l1a,l1d;

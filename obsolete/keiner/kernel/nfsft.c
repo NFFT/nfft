@@ -151,7 +151,7 @@ nfsft_plan nfsft_init(int m, int d, fftw_complex **f_hat, double *angles,
   fftw_size[0] = 4*plan->N;
   fftw_size[1] = 4*plan->N;
   nfft_init_specific(&plan->plan_nfft, 2, nfft_size, plan->D, fftw_size, 
-                     6, PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
+                     12, PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
                      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   /* Assign angle array. */
   plan->plan_nfft.x = plan->angles;
