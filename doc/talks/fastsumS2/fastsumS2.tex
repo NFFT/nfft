@@ -1,0 +1,183 @@
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+
+task: fast computation of 
+\begin{equation*}
+  f\left(\zb \xi_{d_2}\right) = \sum_{d_1=1}^{D_1} \alpha_{d_1} K(\zb
+  \xi_{d_2}\cdot \zb \eta_{d_1})\,, \qquad d_2 =1,\ldots,D_2
+\end{equation*}
+where
+\begin{enumerate}
+\item source knots $\zb \eta_{d_1} \in \mathbb{S}^2$,
+\item target knots $\zb \xi_{d_2} \in \mathbb{S}^2$, and
+\item zonal kernel $K$
+\end{enumerate}
+\vfill
+applications: integral equations, scattered data approximation, numerical
+integration
+\vfill
+known methods: panel clustering, fast multipole method, hierarchical matrices
+{\tiny (Freeden, Glockner, Schreiner 1998; B\"orm, Grasedyck, Hackbusch 1999-)}
+
+\vfill
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+in matrix vector notation 
+\begin{equation*}
+  \zb f=\zb K \zb \alpha \approx \zb A_{\xi} \zb D \zb A^{\adj}_{\eta} \zb \alpha
+\end{equation*}
+\vfill
+Fourier method: approximate $K=\sum_{k=0}^{\infty} b_k P_k$ by
+\begin{equation*}
+  K_M\left(t\right)=\sum_{k=0}^M b_k P_k\left(t\right)
+\end{equation*}
+\vfill
+and
+\begin{equation*}
+  f_M\left(\zb \xi\right) =  \sum_{d_1=1}^{D_1} \alpha_{d_1} K_M
+  \left(\zb \xi \cdot \zb \eta_{d_1}\right)
+\end{equation*}
+\vfill
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+yields a fast scheme
+\begin{eqnarray*}
+  f_M \left(\zb \xi_{d_2}\right)
+  &=& 
+  \sum_{d_1=1}^{D_1} \alpha_{d_1} \sum_{k=0}^M b_{k} 
+  P_k \left(\zb \xi_{d_2} \cdot \zb \eta_{d_1}\right)
+  \\ &=& 
+  \sum_{d_1=1}^{D_1} \alpha_{d_1}  \sum_{k=0}^M b_{k} \sum_{n=-k}^{k}
+  Y_k^n\left(\zb \xi_{d_2}\right) \overline{Y_k^n\left(\zb \eta_{d_1}\right)}
+  \\ &=& 
+  \,\underbrace{
+    \sum_{k=0}^M  \sum_{n=-k}^{k} b_{k}
+    \underbrace{\left( \sum_{d_1=1}^{D_1}  \alpha_{d_1}  \overline{Y_k^n( \zb
+          \eta_{d_1})} \right)}_{\color{blue} {\rm NFSFT}^{\adj}} 
+    Y_k^n(\zb \xi_{d_2})}_{\color{blue} \rm NFSFT}\,,
+\end{eqnarray*}
+${\cal O}( M^2 \log^2 M + D_1+D_2)$
+\vfill
+
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+error estimate
+\begin{eqnarray*}
+  \left\|f - f_M\right\|_{\infty}
+  &\le&
+  \left\|\zb \alpha\right\|_1 \left\|\left(K-K_M\right)\left(\cdot\:\zb \eta
+  \right)\right\|_{\infty}\\
+  &\le& \left\|\zb \alpha\right\|_1 \sum_{k>M}
+  \frac{2k+1}{4\pi} \left| K^{\wedge}\left(k\right)\right|
+\end{eqnarray*}
+where 
+\begin{equation*}
+  K^{\wedge}\left(k\right) = 2 \pi \int_{-1}^{1} K\left(x\right)
+  P_k\left(x\right) {\rm d} x
+\end{equation*}
+\vfill
+typically
+\begin{equation*}
+M \approx \frac{\log \varepsilon}{\log h}
+\end{equation*}
+\vfill
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme, examples}
+\vfill
+\begin{enumerate}
+\item Abel-Poisson kernel, $h \in \left(0,1\right)$,
+  \begin{equation*}
+    Q_h\left(x\right)=\frac{1}{4\pi}\,
+    \frac{1-h^2}{\left(1+h^2-2hx\right)^{3/2}}
+  \end{equation*}
+  has symbol $Q_h^{\wedge}\left(k\right)=h^k$ and yields
+  \begin{equation*}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\zb \alpha\right\|_1} \le
+    \frac{h^{M+1}}{4\pi}
+    \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right), 
+  \end{equation*}
+\item singularity kernel, $h \in \left(0,1\right)$,
+  \begin{equation*}
+    S_h\left(x\right)=\frac{1}{2\pi}\,
+    \frac{1}{\left(1+h^2-2hx\right)^{1/2}}
+  \end{equation*}
+  has symbol $S_h^{\wedge}\left(k\right)=\frac{2k+1}{2} h^k$ and yields
+  \begin{equation*}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\zb \alpha\right\|_1} \le
+    \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{2\left(1-h\right)}+
+      \frac{4M}{\left(1-h\right)^2}+ \frac{4}{\left(1-h\right)^3}\right)
+  \end{equation*}
+\end{enumerate}
+\vfill
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+computational time and relative error, Abel-Poisson kernel
+\vfill
+\bc
+\begin{tabular}{l|l||l|l|l|l||c}
+$h$ & $M$ & $D_1$ & $D_2$ & $t_{\text{slow}}$& $t_{\text{fast}}$ &
+$\text{err}_{\infty}$\\\hline
+0.70 &  32 &  10000&  20000 & 89.38 &  0.36 & 4.6875E-03\\
+0.70 &  64 &  10000&  20000 & 89.38 &  0.54 & 7.2283E-08\\ 
+0.70 & 128 &  10000&  20000 & 89.38 &  1.14 & 1.9048E-09\\
+0.70 & 256 &  10000&  20000 & 89.38 &  3.96 & 1.7526E-09\\
+\hline
+0.80 &  32 &  10000&  20000 & 89.42 &  0.36 & 2.1706E-01\\
+0.80 &  64 &  10000&  20000 & 89.42 &  0.54 & 1.6567E-04\\
+0.80 & 128 &  10000&  20000 & 89.42 &  1.14 & 1.1367E-09\\ 
+0.80 & 256 &  10000&  20000 & 89.42 &  3.95 & 1.0580E-09\\
+\hline
+0.90 &  64 &  10000&  20000 & 89.45 &  0.54 & 2.4962E-01\\
+0.90 & 128 &  10000&  20000 & 89.45 &  1.14 & 3.0379E-04\\
+0.90 & 192 &  10000&  20000 & 89.45 &  3.29 & 3.8656E-07\\
+0.90 & 256 &  10000&  20000 & 89.45 &  3.96 & 9.1680E-10\\
+\end{tabular}
+\ec
+\vfill
+
+\newpage
+\hypertarget{fastsumS2}{}
+{\color{blue} Fast summation scheme}
+\vfill
+
+comp. time and relative error, Abel-Poisson kernel, $h=0.7\, $, $M=256$
+\vfill
+\bc
+\begin{tabular}{l|l||l|l||c}
+$D_1$ & $D_2$ & $t_{\text{slow}}$ & $t_{\text{fast}}$  &
+$\text{err}_{\infty}$\\\hline
+   5000 &  10000 & 22.24 &  3.42 & 8.5987E-10\\
+  10000 &  20000 & 89.09 &  3.68 & 1.7275E-09\\
+  15000 &  30000 & 200.67 &  3.86 & 2.5799E-09\\
+  20000 &  40000 & 356.84 &  4.04 & 3.4349E-09\\
+  25000 &  50000 & 560$^*$ &  4.23 & --\\
+  30000 &  60000 & 806$^*$ &  4.47 & --\\
+  35000 &  70000 & 1097$^*$ &  4.67 & --\\
+  40000 &  80000 & 1436$^*$ &  4.82 & --\\
+  45000 &  90000 & 1814$^*$ &  5.04 & --\\
+  50000 & 100000 & 2240$^*$ &  5.26 & --\\
+\end{tabular}
+\ec
+
+\vfill
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "vortrag"
+%%% End: 
