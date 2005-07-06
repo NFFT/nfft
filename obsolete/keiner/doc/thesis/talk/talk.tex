@@ -19,7 +19,9 @@
 \usepackage{euler}
 
 \usepackage{jkmath}
-\usepackage{pb-diagram}
+%\usepackage{pb-diagram}
+\usepackage{fp}
+\usepackage{multido}
 
 \definecolor{MyBlue}{rgb}{0.3,0.3,1.0} 
 \definecolor{MyGreen}{rgb}{0.3,1.0,0.3} 
@@ -46,6 +48,50 @@
         \end{pgfpicture}
 }
 
+\newcounter{countdy}
+\newcommand{\ftriangle}[6]
+{
+  \newcommand{\starty}{#2}
+  \setcounter{countdy}{1}
+  \multido{\rx=#1+#3}{#5}
+  {
+    \multido{\ry=\starty+#4}{\value{countdy}}
+    {
+      \pgfnodecircle{Node1}[fill]{\pgfxy(\rx,\ry)}{#6} 
+    }
+    \FPsub{\starty}{#3}{\starty}
+    \stepcounter{countdy}
+    \stepcounter{countdy}
+  }
+}
+
+\newcommand{\faxes}[8]
+{
+  \FPsub{#3}{#1}{\hx}
+  \FPsub{#4}{#2}{\hy}
+  \FPmul{\hx}{0.5}{\hx}
+  \FPmul{\hy}{0.5}{\hy}
+  \FPadd{\hx}{#1}{\hx}
+  \FPadd{\hy}{#2}{\hy}
+  \pgfsetendarrow{\pgfarrowto}
+  \pgfline{\pgfxy(#1,\hy)}{\pgfxy(#3,\hy)} 
+  \pgfline{\pgfxy(\hx,#2)}{\pgfxy(\hx,#4)} 
+  \FPadd{#3}{#5}{\nx}
+  \FPadd{#4}{#6}{\ny}
+  \pgfputat{\pgfxy(\nx,\hy)}{\pgfbox[left,center]{#7}}
+  \pgfputat{\pgfxy(\hx,\ny)}{\pgfbox[center,bottom]{#8}}
+}
+
+\newcommand{\frect}[7]
+{
+  \multido{\rx=#1+#3}{#5}
+  {
+    \multido{\ry=#2+#4}{#6}
+    {
+      \pgfnodecircle{Node1}[fill]{\pgfxy(\rx,\ry)}{#7} 
+    }
+  }
+}
 \setbeamertemplate{title page}
 { 
   \begin{centering}
@@ -728,306 +774,24 @@
 	          \end{pgfscope}
 	        }
           \color{structure}
-          \pgfsetendarrow{\pgfarrowto}
-          \pgfline{\pgfxy(0,2)}{\pgfxy(6,2)} 
-          \pgfline{\pgfxy(3,-1)}{\pgfxy(3,5)} 
-	        \pgfputat{\pgfxy(6.2,2.0)}{\pgfbox[left,center]{$k$}}
-	        \pgfputat{\pgfxy(3.0,5.2)}{\pgfbox[center,bottom]{$n$}}
+          \faxes{0.00}{-1.00}{6.00}{5.00}{0.2}{0.2}{$k$}{$n$}
+%          \pgfsetendarrow{\pgfarrowto}
+%          \pgfline{\pgfxy(0,2)}{\pgfxy(6,2)} 
+%          \pgfline{\pgfxy(3,-1)}{\pgfxy(3,5)} 
+%	        \pgfputat{\pgfxy(6.2,2.0)}{\pgfbox[left,center]{$k$}}
+%	        \pgfputat{\pgfxy(3.0,5.2)}{\pgfbox[center,bottom]{$n$}}
           \color{black}
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,2.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,3.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,3.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,4.00)}{0.05cm}
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,1.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,1.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,1.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,1.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,1.00)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.75)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.50)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.25)}{0.05cm} 
-          \pgfnodecircle{Node1}[fill]{\pgfxy(5.00,0.00)}{0.05cm}
-          \visible<2->
+          \visible<1>
           {
-            \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,4.00)}{0.05cm} 
-            \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.00,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.25,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.50,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(3.75,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.00,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.25,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.50,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(4.75,0.00)}{0.05cm} 
+            \ftriangle{3.00}{2.00}{0.25}{0.25}{9}{0.05cm}
+          }  
+          \visible<2>
+          {
+            \frect{3.00}{0.00}{0.25}{0.25}{9}{17}{0.05cm}
           }
           \visible<3->
           {
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,4.00)}{0.05cm}
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.00,0.00)}{0.05cm}
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,2.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,3.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,4.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,1.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.75)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.50)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.25)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.75,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.50,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.25,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(2.00,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.75,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.50,0.00)}{0.05cm} 
-	          \pgfnodecircle{Node1}[fill]{\pgfxy(1.25,0.00)}{0.05cm} 
+            \frect{1.00}{0.00}{0.25}{0.25}{17}{17}{0.05cm}
           }
 	      \end{pgfpicture}
     \column{7.7cm}

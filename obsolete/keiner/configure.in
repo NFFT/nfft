@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(NFSFT, 0.6.0, keiner@math.uni-luebeck.de)
+AC_INIT(NFSFT, 0.8.0, keiner@math.uni-luebeck.de)
 
 AC_CONFIG_SRCDIR(kernel/nfsft.h)
 AM_CONFIG_HEADER(kernel/config.h)
@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE
 AM_ENABLE_SHARED(no)
 AC_CANONICAL_HOST
 
-SHARED_VERSION_INFO="0.6.0"
+SHARED_VERSION_INFO="0.8.0"
 AC_SUBST(SHARED_VERSION_INFO)
 AC_SUBST(VERSION)
 ISODATE=`date +%Y-%m-%d`
@@ -20,11 +20,11 @@ AC_PROG_CC
 AM_PROG_LIBTOOL
 
 # Checks for libraries.
-AC_CHECK_LIB(fftw3,fftw_execute,,,)
+AC_CHECK_LIB(fftw3,fftw_execute,,[AC_MSG_ERROR([Library fftw3 not found.])],)
 
 # Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(complex.h time.h stdbool.h string.h fftw3.h)
+AC_CHECK_HEADERS(math.h string.h complex.h fftw3.h stdio.h time.h crazy.h,,[required header not found.],)
+AC_HEADER_STDBOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_ZERO_BYTES_DOUBLE

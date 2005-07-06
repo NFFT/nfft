@@ -1,11 +1,6 @@
 #include "config.h"
 
-#ifdef HAVE_FFTW3_H
-# include <fftw3.h>
-#else
-# error Need fftw3.h
-#endif
-
+#include <fftw3.h>
 #include <float.h>
 #include <sys/time.h>
 #include <sys/resource.h>
