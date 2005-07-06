@@ -103,7 +103,7 @@ Jens Keiner\thanks{keiner@math.uni-luebeck.de, University of
   L\"ubeck, Institute of Mathematics, D--23560 L\"ubeck} \and
 Stefan Kunis\thanks{kunis@math.uni-luebeck.de, University of
   L\"ubeck, Institute of Mathematics, D--23560 L\"ubeck} \and
-  Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
+Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
   L\"ubeck, Institute of Mathematics, D--23560 L\"ubeck} 
 }
 
@@ -271,7 +271,7 @@ finally obtain the approximation
 The expression in the inner brackets can be computed by an adjoint Nonuniform
 Fast Spherical Fourier Transform (adjoint NFSFT) in 
 $\mathcal{O}(L + M^2 \log^2 M)$
-arithmetic operations, see \cite{} and the forthcoming paper \cite{} for
+arithmetic operations, see \cite{xxx} and the forthcoming paper \cite{xxx} for
 details.
 This is followed by $(M+1)^2$ multiplications with the symbol
 $\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the outer sum in
@@ -346,12 +346,12 @@ In summary, we propose the following algorithm.
 %--------------------------------------------------------------------------
 \begin{lemma}\label{lemma:error}
   The proposed approximation obeys the uniform error estimate
-  \begin{equation}
+  \begin{equation*}
     \left\|f - f_{M}\right\|_{\infty} \le
     \left\|\V{b}\right\|_1 \left\|\fun{\left(K-K_M\right)}{\V{\eta} \: \cdot
       }\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
     \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}.
-  \end{equation}
+  \end{equation*}
 \end{lemma}
 
 \subsection{Poisson and Singularity kernel}
@@ -396,79 +396,128 @@ the following lemma.
 \begin{lemma}
  Using these kernels within our summation algorithm yields an relative error
  of
-\begin{equation}
-    \label{error:poisson}
-    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right)
-  \end{equation}
-and
-\begin{equation}
-    \label{error:singular}
-    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{2\left(1-h\right)}+
-      \frac{4M}{\left(1-h\right)^2}+ \frac{4}{\left(1-h\right)^3}\right),
-  \end{equation}
-respectively.
+ \begin{enumerate}
+   \item
+     \begin{equation}
+       \label{error:poisson}
+       \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+       \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right)
+     \end{equation}
+     for the Poisson kernel and
+     \item 
+       \begin{equation}
+         \label{error:singular}
+         \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+         \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{2\left(1-h\right)}+
+           \frac{4M}{\left(1-h\right)^2}+ \frac{4}{\left(1-h\right)^3}\right),
+       \end{equation}
+       for the singularity kernel, respectively.
+ \end{enumerate}
 \end{lemma}
 \begin{proof}
-Its symbol is given by $\fun{Q_{h}^{\wedge}}{k}=h^k$.
-   with symbol $\fun{S_{h}^{\wedge}}{k} = \frac{2k+1}{2} h^k$.
+The symbols are given by $\fun{Q_{h}^{\wedge}}{k}=h^k$ and
+$\fun{S_{h}^{\wedge}}{k}=\frac{2k+1}{2}h^k$, respectively.
+Using Lemma \ref{lemma:error} yields the assertions.
 \end{proof}
   
 Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\epsilon \,
 / \, \log h$.
 
 \subsection{Locally supported kernel}
+\begin{definition}
   Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \NZ$.
-  A locally supported zonal function $L_{h,\lambda}:\interv{[}{-1}{1}{]}
-  \rightarrow \R$, considered in \cite{Sc97}, is defined by
-  \[
-  \fun{L_{h,\lambda}}{x} := 
-  \left\{\begin{array}{l@{\quad \text{if} \quad}rcl} 
-      0 & -1 &\le x \le& h, \\
-      \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1,
-    \end{array}\right.
-  \]
-  has the symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$, which can be computed
-  recursively, using \eqref{three1}, by
-  \[
-  \fun{L_{h,\lambda}^{\wedge}}{k+1} = \frac{\paren{2k+1} h}{k+\lambda+2}
-  \fun{L_{h,\lambda}^{\wedge}}{k}   - \frac{k-\lambda-1}{k+\lambda+2}
-  \fun{L_{h,\lambda}^{\wedge}}{k-1}
-  \]
-  for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
-  $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+1}$.
-  Figure \ref{Basics:Figure:LKernel} shows the function $L_{h,\lambda}$ for
-  different values $h$ and $\lambda$.
-  \begin{figure}[tb]
-    \centering
-    \subfigure[$\lambda=1.5$]
-    {\includegraphics[width=0.33\textwidth]{images/locsup4}}\hfill
-    \subfigure[$\lambda=1.0$]
-    {\includegraphics[width=0.33\textwidth]{images/locsup3}}\\
-    \subfigure[$\lambda=0.5$]
-    {\includegraphics[width=0.33\textwidth]{images/locsup2}}\hfill
-    \subfigure[$\lambda=0.2$]
-    {\includegraphics[width=0.33\textwidth]{images/locsup1}}
-    \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, -0.2, 0.2, 0.7$ and different values of $\lambda$.}
-    \label{Basics:Figure:LKernel}
-  \end{figure}
-  While the parameter $h$ again steers the localisation in spatial domain, the
-  parameter $\lambda$ correponds to the localisation in frequency domain.
-  Using in particular \eqref{three2}, we obtain for $\lambda=0$ the decay
-  \[
-  \left|\fun{L_{h,0}^{\wedge}}{k}\right| = \frac{1}{1-h}
-  \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
-  \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
-  \left(\frac{1}{\sqrt{k-1}}+\frac{1}{\sqrt{k+1}}\right)\,.
-  \]
-  Unfortunately, this is not sufficient for an estimate of the relative error
-  by means of Lemma \ref{lemma:error}.
-  Nevertheless, using a technique we estimate
-  \[
-  \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_h
-  k^{-\frac{3}{2}-\lambda}\,.
-  \] 
+  \begin{enumerate}
+  \item A locally supported zonal function
+    $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
+    \cite{Sc97}, is defined by
+    \[
+    \fun{L_{h,\lambda}}{x} := 
+    \left\{\begin{array}{l@{\quad \text{if} \quad}rcl} 
+        0 & -1 &\le x \le& h, \\
+        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1,
+      \end{array}\right.
+    \]
+  \item Furthermore, we define by iterated spherical convolution
+    \[
+    L_{h,\lambda,\mu} = L_{h,\lambda,\mu-1} * L_{h,\lambda},
+    \]
+    where $L_{h,\lambda,1}=L_{h,\lambda}$.
+  \end{enumerate}
+\end{definition}
+
+Figure \ref{Basics:Figure:LKernel} shows the function $L_{h,\lambda}$ for
+different values $h$ and $\lambda$.
+\begin{figure}[tb]
+  \centering
+  \subfigure[$\lambda=1.5$]
+  {\includegraphics[width=0.33\textwidth]{images/locsup4}}\hfill
+  \subfigure[$\lambda=1.0$]
+  {\includegraphics[width=0.33\textwidth]{images/locsup3}}\\
+  \subfigure[$\lambda=0.5$]
+  {\includegraphics[width=0.33\textwidth]{images/locsup2}}\hfill
+  \subfigure[$\lambda=0.2$]
+  {\includegraphics[width=0.33\textwidth]{images/locsup1}}
+  \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, -0.2, 0.2, 0.7$ and different values of $\lambda$.}
+  \label{Basics:Figure:LKernel}
+\end{figure}
+While the parameter $h$ again steers the localisation in spatial domain, the
+parameter $\lambda$ correponds to the smoothness in spatial domain.
+The iterated kernels $L_{h,\lambda,\mu}$ trade localisation in spatial domain
+for localisation in frequency domain by increasing $\mu$.
+More formally, we have the following lemma.
+
+\begin{lemma}
+  We collect the following facts about the locally supported kernel.
+  \begin{enumerate}
+  \item The symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$ can be computed recursively by
+    \[
+    \fun{L_{h,\lambda}^{\wedge}}{k+1} = \frac{\paren{2k+1} h}{k+\lambda+2}
+    \fun{L_{h,\lambda}^{\wedge}}{k}   - \frac{k-\lambda-1}{k+\lambda+2}
+    \fun{L_{h,\lambda}^{\wedge}}{k-1}
+    \]
+    for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
+    $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+1}$.
+  \item We obtain for fixed $\lambda \in \NZ$ the decay rate
+    \[
+    \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_{\lambda}
+    \left(1-h\right)^{-\lambda-\frac{5}{4}} k^{-\lambda-\frac{3}{2}}.
+    \]
+  \item Thus, the relative error of our summation algorithm with this kernel
+  is bounded for fixed $\lambda \in \N$ by
+  \begin{equation}
+    \label{error:Lh}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+    \tilde C_{\lambda} \left(1-h\right)^{-\lambda-\frac{5}{4}} M^{\frac{1}{2}-\lambda}.
+  \end{equation}
+  \end{enumerate}
+\end{lemma}
+\begin{proof}
+  \begin{enumerate}
+  \item We apply \eqref{three1} and \eqref{three2}.
+  \item For $\lambda=0$ holds
+    \[
+    \left|\fun{L_{h,0}^{\wedge}}{k}\right| = \frac{1}{1-h}
+    \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
+    \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
+    \left(\frac{1}{\sqrt{k-1}}+\frac{1}{\sqrt{k+1}}\right)\,.
+    \]
+    Applying \eqref{three2}, we obtain furthermore
+    \begin{eqnarray*}
+      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| &\le&
+      \frac{\lambda+1}{\lambda\left(1-h\right)\left(2k+1\right)}
+      \left|\fun{L_{h,\lambda-1}^{\wedge}}{k-1}-
+        \fun{L_{h,\lambda-1}^{\wedge}}{k+1}\right|\\ &\le&
+      \frac{\lambda+1}{\lambda\left(1-h\right)\left(k+\frac{1}{2}\right)}
+      \max\limits_{k-1\le k'\le k+1}
+      \left|\fun{L_{h,\lambda-1}^{\wedge}}{k'}\right|
+    \end{eqnarray*}
+    Iterate this argument until $\lambda=0$ yields the assertion.
+  \item We combine 2. with Lemma \ref{lemma:error}. 
+  \end{enumerate}
+\end{proof}
+
+Simply put, our scheme achieves accuracy of order $\epsilon$ for $M \ge
+(1-h)\sqrt[\lambda]{\epsilon}$.
 
 \subsection{Gaussian kernel}
   Let $\sigma>0$ and the \emph{Gaussian kernel}
