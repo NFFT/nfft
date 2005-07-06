@@ -134,6 +134,7 @@ int main (int argc, char **argv)
   int tc;
   /** The kernel type */
   int kt;
+  int cutoff;
   
   /** Next greater power of two with respect to m_max */
   int n_max;
@@ -178,6 +179,7 @@ int main (int argc, char **argv)
 	 	
   /* Read number of testcases. */
   fscanf(stdin,"%d",&tc_max);
+  fscanf(stdin,"%d",&cutoff);
   
   fprintf(stdout,"Number of testcases: %d\n\n",tc_max);
   

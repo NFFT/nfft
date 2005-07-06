@@ -110,6 +110,9 @@ typedef int infsft_flags;
 nfsft_plan nfsft_init(int M, int D, complex **f_hat, double *x, complex *f, 
                       nfsft_flags flags);
 
+nfsft_plan nfsft_init_guru(int M, int D, complex **f_hat, double *x, complex *f, 
+                           nfsft_flags flags, int cutoff);
+
 /**
  * Precomputes wisdom up to the next power of two with respect to a given 
  * bandwidth. Stabilization steps are precomputed for the given threshold.
