@@ -425,7 +425,7 @@ Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\eps
 
 \subsection{Locally supported kernel}
 \begin{definition}
-  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \NZ$.
+  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda,\mu \in \NZ$.
   \begin{enumerate}
   \item A locally supported zonal function
     $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
@@ -462,7 +462,7 @@ different values $h$ and $\lambda$.
 \end{figure}
 While the parameter $h$ again steers the localisation in spatial domain, the
 parameter $\lambda$ correponds to the smoothness in spatial domain.
-The iterated kernels $L_{h,\lambda,\mu}$ trade localisation in spatial domain
+The iterated kernel $L_{h,\lambda,\mu}$ trades localisation in spatial domain
 for localisation in frequency domain by increasing $\mu$.
 More formally, we have the following lemma.
 
@@ -520,23 +520,49 @@ Simply put, our scheme achieves accuracy of order $\epsilon$ for $M \ge
 (1-h)\sqrt[\lambda]{\epsilon}$.
 
 \subsection{Gaussian kernel}
-  Let $\sigma>0$ and the \emph{Gaussian kernel}
-  $G_{\sigma}:\interv{[}{-1}{1}{]} \rightarrow \R$ be given by
+\begin{definition}
+  For $\sigma>0$, the \emph{Gaussian kernel}
+  $G_{\sigma}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
   \begin{equation}
     \label{GaussKernel}
     \nonumber
     \fun{G_{\sigma}}{x} := \e^{2\sigma x-2\sigma}\,.
   \end{equation}
+\end{definition}
+
+Figure \ref{Basics:Figure:GKernel} shows the function $G_{\sigma}$ for
+different values $\sigma$.
+\begin{figure}[tb]
+  \centering
+  \subfigure[$\sigma=$]
+  XX%{\includegraphics[width=0.33\textwidth]{images/gauss1}}\hfill
+  \subfigure[$\sigma=$]
+  XX%{\includegraphics[width=0.33\textwidth]{images/gauss2}}\\
+  \caption{The kernel $G_{\sigma}$ for $\sigma = $.}
+  \label{Basics:Figure:GKernel}
+\end{figure}
+
+\begin{lemma}
   Again, the symbol $\fun{G_{\sigma}^{\wedge}}{k}$ can be computed by a
   recurrence relation
   \[
-  \fun{G_{\sigma}^{\wedge}}{k+1} = ?
-  \fun{G_{\sigma}^{\wedge}}{k}   - ?
-  \fun{G_{\sigma}^{\wedge}}{k-1}
+  \fun{G_{\sigma}^{\wedge}}{k+1} = 
+  \fun{G_{\sigma}^{\wedge}}{k-1}   - \frac{2k+1}{2\sigma}
+  \fun{G_{\sigma}^{\wedge}}{k}
   \]
   for $k\in \N$, $\fun{G_{\sigma}^{\wedge}}{0} = 4 \pi \sigma^{-1}
   \e^{-2\sigma} \sinh \sigma \cosh \sigma$, and $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2}
   \e^{-2\sigma} (2 \sigma \cosh 2 \sigma + \sinh \sigma )$.
+\end{lemma}
+\begin{proof}
+  The relation \eqref{three2} and integration by parts yields
+  \[
+  \fun{G_{\sigma}^{\wedge}}{k} =
+  \frac{2\sigma}{2k+1}\left(\fun{G_{\sigma}^{\wedge}}{k-1}-
+  \fun{G_{\sigma}^{\wedge}}{k+1} \right)
+  \]
+  and thus the assertion.
+\end{proof}
 
 %--------------------------------------------------------------------------
 \section{Numerical experiments}
