@@ -168,42 +168,48 @@ and
 
 Let the space of real-valued continuous functions on the sphere be decomposed
 into the direct sum of spaces of spherical harmonics, i.e.,
-$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$ \textbf{Warum $C$ und 
-nicht $L^2$?}, and let $\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
-standard orthonormal \textbf{ja, bez\"uglich $L^2$-Skalarprodukt} basis of 
-spherical harmonics given by
+$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$ and let
+$\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
+standard orthonormal basis of spherical harmonics given by
 \[
   \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\theta,\varphi} = 
   \sqrt{\frac{2k+1}{4\pi}} 
   \fun{P_{k}^{|n|}}{\cos\theta} \e^{\im n \varphi}.
 \]
 The orthogonal expansion of the zonal function $\fun{K}{\V{\eta} \: \cdot}$
-in terms of Legendre-polynomials is
+is given by, cf \cite{XXX},
 \begin{equation}
   \label{equation:kernelExpansion}
-  \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} 
+  \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k
+  \fun{K^{\wedge}}{k}\overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}}
+  = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k}
   \fun{P_{k}}{\V{\eta} \cdot \V{\xi}},
 \end{equation}
-where the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given
-for $k \in \NZ$ by
-\[
-  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx 
-  x\,.
-\]
-Using the addition theorem
+where we use the addition theorem
 \[
 \sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
     \frac{2k+1}{4\pi}\fun{P_k}{\V{\eta} \cdot \V{\xi}}
 \]
-the expansion \eqref{equation:kernelExpansion} of 
-$\fun{K}{\V{\eta} \: \cdot}$ transforms to
+and the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given
+for $k \in \NZ$ by
 \begin{equation}
-  \label{Basics:Kernel}
-  \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k
-  \fun{K^{\wedge}}{k}\overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}}.
+  \label{equation:legtrafo}
+  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx 
+  x\,.
 \end{equation}
 
-The convolution of two zonal functions is considered in the following lemma.
+Note, that the first representation in \eqref{equation:kernelExpansion} allows
+the construction of fast algorithms, which is due to the separation of the
+knots $\V{\eta}$ and $\V{\xi}$.
+Using the second representation of Equation \eqref{equation:kernelExpansion} in
+conjunction with \eqref{equation:legtrafo} and the recurrence relations
+\eqref{three1} and \eqref{three2} yields efficient ways to precompute the
+needed coefficients $\fun{K^{\wedge}}{k}$.
+
+Furthermore, we use the following convolution lemma which yields a possibility to trade
+localisation of a zonal function in spatial domain against the decay of its
+symbol.
+More formally, we state
 \begin{lemma} {\bf Normalisierung!!}
   Let $Q,P\in \Ln{2}{\interv{[}{-1}{1}{]}}$ and
   \[
@@ -543,16 +549,25 @@ different values $\sigma$.
 \end{figure}
 
 \begin{lemma}
-  Again, the symbol $\fun{G_{\sigma}^{\wedge}}{k}$ can be computed by a
-  recurrence relation
-  \[
-  \fun{G_{\sigma}^{\wedge}}{k+1} = 
-  \fun{G_{\sigma}^{\wedge}}{k-1}   - \frac{2k+1}{2\sigma}
-  \fun{G_{\sigma}^{\wedge}}{k}
-  \]
-  for $k\in \N$, $\fun{G_{\sigma}^{\wedge}}{0} = 4 \pi \sigma^{-1}
-  \e^{-2\sigma} \sinh \sigma \cosh \sigma$, and $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2}
-  \e^{-2\sigma} (2 \sigma \cosh 2 \sigma + \sinh \sigma )$.
+  Again, we collect some useful facts about kernel.
+  \begin{enumerate}
+  \item The symbol $\fun{G_{\sigma}^{\wedge}}{k}$ can be computed by a
+    recurrence relation
+    \[
+    \fun{G_{\sigma}^{\wedge}}{k+1} = 
+    \fun{G_{\sigma}^{\wedge}}{k-1}   - \frac{2k+1}{2\sigma}
+    \fun{G_{\sigma}^{\wedge}}{k}
+    \]
+    for $k\in \N$, $\fun{G_{\sigma}^{\wedge}}{0} = 4 \pi \sigma^{-1}
+    \e^{-2\sigma} \sinh \sigma \cosh \sigma$, and
+    $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2} \e^{-2\sigma} (2 \sigma
+    \cosh 2 \sigma + \sinh \sigma )$.
+  \item A 'closed' form of the symbol is given by
+    \[
+    \fun{G_{\sigma}^{\wedge}}{k} = 2 \sigma^{-\frac{1}{2}} \e^{-2\sigma}
+    \pi^{\frac{3}{2}} I_{k+\frac{1}{2}}\left(2\sigma\right)
+    \]
+\end{enumerate}
 \end{lemma}
 \begin{proof}
   The relation \eqref{three2} and integration by parts yields
