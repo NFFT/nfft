@@ -66,11 +66,6 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   W= (MAX(fabs(min_inh),fabs(max_inh))+6.0/(N3))*2.0;
   
-  //N3=next_power_of_2(ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2));
-  
-  //W=2.0*MAX(fabs(min_inh),fabs(max_inh));
-  //T=2*ceil((max_time-min_time)*1.2);//(0.5-6.0/(2.0*N3));
-  
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
 

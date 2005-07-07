@@ -19,7 +19,7 @@ void nfft (char * file, int N, int M)
                       FFTW_MEASURE| FFTW_DESTROY_INPUT;
 
   double Ts;
-  double W;
+  double W,T;
   int N3;
 
   ftime=fopen("readout_time.dat","r");
@@ -56,10 +56,9 @@ void nfft (char * file, int N, int M)
   fclose(finh);
 
 
-  W=2.0*MAX(fabs(min_inh),fabs(max_inh)); 
-  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*2))*4*2);
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*2))*4*2)+1;
-
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*2.0))*4*2.0)+1;
+  T=((max_time-min_time)/2.0+6/N3)*2.0;
+  W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
@@ -80,7 +79,7 @@ void nfft (char * file, int N, int M)
   {
     fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
     fscanf(ftime,"%le ",&my_plan.t[j]);
-    my_plan.t[j] = (my_plan.t[j]-Ts)*W/N3;
+    my_plan.t[j] = (my_plan.t[j]-Ts)/T;
   }
   fclose(fp);
   fclose(ftime);

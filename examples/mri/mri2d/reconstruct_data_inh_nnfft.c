@@ -70,7 +70,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)+6/(2*1.2))*4);
   //N3=((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2)))*4;
 
-  W=(MAX(fabs(min_inh),fabs(max_inh))+6.0/(1.2*N3))*2.0;
+  W=(MAX(fabs(min_inh),fabs(max_inh))+6.0/(N3))*2.0;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 

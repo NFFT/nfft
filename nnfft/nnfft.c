@@ -604,7 +604,7 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
     ths->N1[t] = N1[t];    
-    N2[t] = 2*next_power_of_2((int)((double)ths->N1[t])* 
+    N2[t] = ceil(1.5*((double)ths->N1[t])*
            (1.0+2.0*((double)ths->m)/((double)ths->N1[t])));
   }
   nnfft_init_help(ths,m,N2,nfft_flags,fftw_flags);  
@@ -629,8 +629,8 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
-    ths->N1[t] = 2*next_power_of_2(ths->N[t]);
-    N2[t] = 2*next_power_of_2((int)((double)ths->N1[t])* 
+    ths->N1[t] = ceil(1.5*ths->N[t]);
+    N2[t] = ceil(1.5*(int)((double)ths->N1[t])*
             (1.0+2.0*((double)ths->m)/((double)ths->N1[t])));
   }
   ths->nnfft_flags=PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F;

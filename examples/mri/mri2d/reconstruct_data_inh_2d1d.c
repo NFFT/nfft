@@ -22,7 +22,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
 
   double Ts;
-  double W;
+  double W,T;
   int N3;
 
 
@@ -59,12 +59,10 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   }
   fclose(finh);
 
-  W=2.0*MAX(fabs(min_inh),fabs(max_inh)); //1.0+m/n!?!?!?!?!?
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*1.5))*4*1.5)+1;
-  //N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2+6/(2*1.5))*4*1.5);
-  //N3=ceil((max_time-min_time)*(MAX(fabs(min_inh),fabs(max_inh))+6/(2*1.2))*4*1.2);
-
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6.0/(2*1.5))*4*1.5)+1;
+  T=((max_time-min_time)/2.0+6.0/N3)*2.0;
+  W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
   
@@ -104,7 +102,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     my_iplan.y[j]=real+I*imag;
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
-    my_plan.t[j] = (my_plan.t[j]-Ts)*W/my_n[2];
+    my_plan.t[j] = (my_plan.t[j]-Ts)/T;
   }
   fclose(fp);
   fclose(ftime);

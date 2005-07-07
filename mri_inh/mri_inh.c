@@ -12,17 +12,16 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
 
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 1,0,0);
   memset(f,0,that->M_total*sizeof(complex));
   for(j=0;j<that->N_total;j++)
   {
-    that->f_hat[j]/=PHI_HUT(ths->n[0]*that->w[j],0);
     f_hat[j]=that->f_hat[j];
   }
 
   for(l=-ths->n[0]/2;l<ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
-      that->f_hat[j]*=cexp(-2*PI*I*that->w[j]*l);
+      that->f_hat[j]*=cexp(-2*PI*I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
     nfft_trafo((nfft_plan*)that);
     for(j=0;j<that->M_total;j++)
       f[j]+=that->f[j]*PHI_periodic(that->t[j]-((double)l)/((double)ths->n[0]));
@@ -44,7 +43,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
 
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 1,0,0);
   memset(f_hat,0,that->N_total*sizeof(complex));
   for(j=0;j<that->M_total;j++)
   {
@@ -59,7 +58,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
       that->f[j]*=PHI_periodic(that->t[j]-((double)l)/((double)ths->n[0]));
     nfft_adjoint((nfft_plan*)that);
     for(j=0;j<that->N_total;j++)
-      f_hat[j]+=that->f_hat[j]*cexp(2*PI*I*that->w[j]*l);
+      f_hat[j]+=that->f_hat[j]*cexp(2*PI*I*that->w[j]*((double)l));
     for(j=0;j<that->M_total;j++)
       that->f[j]=f[j];
   }
@@ -120,7 +119,7 @@ void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths) {
 void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
   int l,j;
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 4,0,0);
 
   that->plan.f =that->f ;
   
@@ -147,7 +146,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
   int l,j;
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 4,0,0);
 
   that->plan.f =that->f ;
   

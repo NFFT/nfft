@@ -17,12 +17,16 @@ void exponential (double k, double x)
 
   ths = (nfft_plan*) malloc(sizeof(nfft_plan));
 
-  N=2*ceil(k);
+  N=4*ceil(k);
   
-  nfft_init_1d(ths,N,1);
+  //nfft_init_1d(ths,N,1);
+  nfft_init_guru(ths, 1, &N, 1,&N, 4,0,0);
 
   n=ths->n[0];
 
+  x=0.5-4/N;
+
+  
   result_approx= 0.0;
   for (xx=-x;xx<x;xx=xx+0.001)
   {
