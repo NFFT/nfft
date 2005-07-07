@@ -21,7 +21,7 @@ void nfsft_precompute(int M, double threshold, int flags)
 {
   int i;
   int ti;
-
+  
   /*  Check if already initialized. */
   if (wisdom.initialized == true )
   {

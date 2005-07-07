@@ -71,13 +71,16 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   double **xvecs;
   /** Array for Chebychev-nodes. */
   double *xc;
-
+  
   /** loop counter */
   //int i;
   /** Used to indicate that stabilization is neccessary. */
-  bool needstab = false;  
+  bool needstab = false; 
   
+  int nstab = 0;
   
+  fprintf(stdout,"Threshold = %lf\n",threshold);  
+    
   /* Initialize array with Chebyshev coefficients for the polynomial x. This 
    * would be trivially an array containing a 1 as second entry with all other 
    * coefficients set to zero. In order to compensate for the multiplicative 
@@ -117,8 +120,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
-    fprintf(stderr,"n = %5d\n",n);
-  		fflush(stderr);
+    //fprintf(stderr,"n = %5d\n",n);
+  		//fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
      * t = log_2(M) many levels. */
     U[n] = (struct U_type***) fftw_malloc(sizeof(struct U_type**) * t);
@@ -147,7 +150,6 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
 
         //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
 
-        
         /* Allocate memory for the components of U_{n,tau,l}. */
 	       m1 = (double*) fftw_malloc(sizeof(double)*plength);
 	       m2 = (double*) fftw_malloc(sizeof(double)*plength);
@@ -162,28 +164,42 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         beta = &(wbeta[ROW(n)+plength*l+1+1]);
         gamma = &(wgamma[ROW(n)+plength*l+1+1]);
         /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
-        needstab = eval_al_thresh(xvecs[tau-1], m1, plength, degree-2, alpha, beta, gamma, threshold);
-        if (needstab == false)
+        if (1 == 0)
         {
-          /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
-          needstab = eval_al_thresh(xvecs[tau-1], m2, plength, degree-1, alpha, beta, 
-                                    gamma, threshold);
+          eval_al(xvecs[tau-1], m1, plength, degree-2, alpha, beta, gamma);
+          eval_al(xvecs[tau-1], m2, plength, degree-1, alpha, beta, gamma);
+          alpha--;
+          beta--;
+          gamma--;
+          eval_al(xvecs[tau-1], m3, plength, degree-1, alpha, beta, gamma);
+          eval_al(xvecs[tau-1], m4, plength, degree, alpha, beta, gamma);
+        }
+        
+        if (1 == 1)
+        {
+          needstab = eval_al_thresh(xvecs[tau-1], m1, plength, degree-2, alpha, beta, gamma, threshold);
           if (needstab == false)
-          { 
-            alpha--;
-            beta--;
-            gamma--;
-            /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
-            needstab = eval_al_thresh(xvecs[tau-1], m3, plength, degree-1, alpha, 
-	      beta, gamma, threshold);
+          {
+            /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
+            needstab = eval_al_thresh(xvecs[tau-1], m2, plength, degree-1, alpha, beta, 
+                                      gamma, threshold);
             if (needstab == false)
             { 
-              /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
-              needstab = eval_al_thresh(xvecs[tau-1], m4, plength, degree, alpha, 
-                                        beta, gamma, threshold);
+              alpha--;
+              beta--;
+              gamma--;
+              /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
+              needstab = eval_al_thresh(xvecs[tau-1], m3, plength, degree-1, alpha, 
+         beta, gamma, threshold);
+              if (needstab == false)
+              { 
+                /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
+                needstab = eval_al_thresh(xvecs[tau-1], m4, plength, degree, alpha, 
+                                          beta, gamma, threshold);
+              }
             }
-          }
-        }      
+          }      
+        }
         
         /* Check if stabilization needed. */
         if (needstab == false)
@@ -198,6 +214,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         }          
         else 
         {    
+          nstab++;
           //fprintf(stderr,"(%d,%d,%d)\n",n,tau,l);
           
           /* Stabilize. */
@@ -301,6 +318,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   free(xvecs);
   free(xc);
     
+  fprintf(stdout,"Stabilized %d times.\n",nstab);
+  
   return U;
 }
 

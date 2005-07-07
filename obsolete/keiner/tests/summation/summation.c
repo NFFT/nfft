@@ -135,6 +135,7 @@ int main (int argc, char **argv)
   /** The kernel type */
   int kt;
   int cutoff;
+  double threshold;
   
   /** Next greater power of two with respect to m_max */
   int n_max;
@@ -179,7 +180,6 @@ int main (int argc, char **argv)
 	 	
   /* Read number of testcases. */
   fscanf(stdin,"%d",&tc_max);
-  fscanf(stdin,"%d",&cutoff);
   
   fprintf(stdout,"Number of testcases: %d\n\n",tc_max);
   
@@ -187,6 +187,13 @@ int main (int argc, char **argv)
   for (tc = 0; tc < tc_max; tc++)
   {
     fprintf(stdout,"Testcase %d:\n",tc);
+
+    fscanf(stdin,"%d",&cutoff);
+    fscanf(stdin,"%lf",&threshold);
+
+    fprintf(stdout,"  Cutoff = %d:\n",cutoff);
+    fprintf(stdout,"  Threshold = %E:\n",threshold);
+
     /* Initialize bandwidth bound. */
     m_max = 0;
     /* Initialize source node bound. */
@@ -320,7 +327,14 @@ int main (int argc, char **argv)
       fprintf(file_tex,"$\rho$ & $M$ & $K$ & $N$ & $t_{\\text{slow}}$ & $t_{\\text{fast}}$ & $\\text{err}$\\\\\\hline\n");
     }
     
-    nfsft_precompute(m_max,1000,0U);
+    if (threshold < 0.0)
+    {  
+      nfsft_precompute(m_max,1000000000000.0,0U);
+    }
+    else
+    {
+      nfsft_precompute(m_max,threshold,0U);
+    }
     
     for (ip = 0; ip < ip_max; ip++)
     {
@@ -418,12 +432,12 @@ int main (int argc, char **argv)
           fprintf(stderr,"      M = %d\n",m[im]);
           
           /* Init transform plans. */
-          plan_adjoint = nfsft_init(m[im],ld[ild][0],f_hat,nu,b,0U);
-          plan = nfsft_init(m[im],ld[ild][1],f_hat,xi,f_m,0U);
+          plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,0U,cutoff);
+          plan = nfsft_init_guru(m[im],ld[ild][1],f_hat,xi,f_m,0U,cutoff);
           
           /* Adjoint transform */
           t_f = second();
-          nfsft_adjoint(plan_adjoint);
+          ndsft_adjoint(plan_adjoint);
             
           /* Multiplication with diagonal matrix. */
           for (k = 0; k <= m[im]; k++)
@@ -435,7 +449,7 @@ int main (int argc, char **argv)
           }
             
           /* Forward transform */
-          nfsft_trafo(plan);
+          ndsft_trafo(plan);
           t_f = second() - t_f;
 
           /* Finalize plans */

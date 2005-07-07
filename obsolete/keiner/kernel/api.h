@@ -38,8 +38,8 @@ typedef enum {false = 0,true = 1} bool;
 #define ROW(k) (k*(BW_MAX+1))
 #define ROWK(k) (k*(BW_MAX+1)+k)
 
-#define FIRST_L (n/plength)/2;
-#define LAST_L (plength*(int)ceil(((double)M)/plength)-1)/plength; 
+#define FIRST_L (n/plength)/2
+#define LAST_L (plength*(int)ceil(((double)M)/plength)-1)/plength
 
 /** \defgroup nfsft_internal NFSFT: Internal API and functions */
 
