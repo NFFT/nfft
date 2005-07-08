@@ -528,7 +528,7 @@ In all tests we used the oversampling factor $\alpha \approx 1.5$, such that $\a
 
 To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{KnKuPo,RaPrSiBoEg99,qhull}.
 
-The NFFT2 library allows different flags to reduce computation time at expense of memory. Because the reconstruction algorithms have significantly different memory consumption  we tested different flags in experiment \ref{Exp:2}. 
+The NFFT2 library allows different flags to reduce computation time at expense of memory. Because the reconstruction algorithms have significantly different memory consumption  we tested different flags in example \ref{Exp:2}. 
 
 
 
@@ -600,10 +600,10 @@ NFFT, i.e., the left factor $\zb B$, see Section \ref{Sec:NFFT}.
 The flag PRE\_FULL\_PSI stores all nonzero entries of the matrix $\zb B$, 
 PRE\_PSI in a lossless compressed form and PRE\_LIN\_PSI in a lossy compressed, trajectory
 independent form.
-For better comparison we choose in experiment \ref{Exp:1} the same
+For better comparison we choose in example \ref{Exp:1} the same
 flag PRE\_PSI for all reconstruction methods.
 Table \ref{Tab:1} shows the CPU-time and memory consumtion of the 2d$\otimes$1d NFFT method with different flags.
-The reconstruction object is the same as in experiment \ref{Exp:1}.
+The reconstruction object is the same as in example \ref{Exp:1}.
 
 \begin{table}[ht]
 \begin{center}
