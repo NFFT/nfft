@@ -171,15 +171,15 @@ int main (int argc, char **argv)
   /** adjoint NFSFT plan */
   nfsft_plan plan_adjoint;
   
- 	int j,k,n,d,l;
+ 	int j,k,n,d,l,use_nfsft,use_nfft;
   
-	 FILE *file_tex;
+  FILE *file_tex;
   FILE *file_dat;
   char filename_tex[100];
   char filename_dat[100];
 	 	
   /* Read number of testcases. */
-  fscanf(stdin,"%d",&tc_max);
+  fscanf(stdin,"testcases=%d\n",&tc_max);
   
   fprintf(stdout,"Number of testcases: %d\n\n",tc_max);
   
@@ -188,11 +188,24 @@ int main (int argc, char **argv)
   {
     fprintf(stdout,"Testcase %d:\n",tc);
 
-    fscanf(stdin,"%d",&cutoff);
-    fscanf(stdin,"%lf",&threshold);
-
-    fprintf(stdout,"  Cutoff = %d:\n",cutoff);
-    fprintf(stdout,"  Threshold = %E:\n",threshold);
+    fscanf(stdin,"nfsft=%d\n",&use_nfsft);
+    if (use_nfsft != 0)
+		{
+      fprintf(stdout,"  NFSFT = yes\n");
+      fscanf(stdin,"nfft=%d\n",&use_nfft);
+      fprintf(stdout,"  NFFT = %d\n",use_nfft);
+			if (use_nfft != 0)
+			{
+        fscanf(stdin,"cutoff=%d\n",&cutoff);
+        fprintf(stdout,"  Cutoff = %d\n",cutoff);
+			}
+      fscanf(stdin,"threshold=%lf\n",&threshold);
+      fprintf(stdout,"  Threshold = %E\n",threshold);
+		}
+		else
+		{
+      fprintf(stdout,"  NFSFT = no\n");
+		}
 
     /* Initialize bandwidth bound. */
     m_max = 0;
@@ -203,11 +216,11 @@ int main (int argc, char **argv)
     
     /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP 
      * or KT_GAUSSIAN. */
-    fscanf(stdin,"%d",&kt);
+    fscanf(stdin,"kernel=%d\n",&kt);
 
     fprintf(stdout,"  Kernel type: %d\n",kt);    
     
-    fscanf(stdin,"%d",&ip_max);
+    fscanf(stdin,"parameter_sets=%d\n",&ip_max);
     p = (double**) malloc(ip_max*sizeof(double*));
 
     fprintf(stdout,"  Parameter sets: %d\n",ip_max);    
@@ -216,34 +229,34 @@ int main (int argc, char **argv)
     {
       case KT_ABEL_POISSON:
       case KT_SINGULARITY:
+        for (ip = 0; ip < ip_max; ip++)
+        {  
+          p[ip] = (double*) malloc(1*sizeof(double));
+          fscanf(stdin,"h=%lf\n",&p[ip][0]);
+          fprintf(stdout,"    h = %lf\n",p[ip][0]);    
+        }
+			  break;
       case KT_GAUSSIAN:
         for (ip = 0; ip < ip_max; ip++)
         {  
           p[ip] = (double*) malloc(1*sizeof(double));
-          fscanf(stdin,"%lf",&p[ip][0]);
-          if (kt == KT_GAUSSIAN)
-          {
-            fprintf(stdout,"    rho = %lf\n",p[ip][0]);    
-          }
-          else
-          {
-            fprintf(stdout,"    h = %lf\n",p[ip][0]);    
-          }
+          fscanf(stdin,"sigma=%lf\n",&p[ip][0]);
+          fprintf(stdout,"    sigma = %lf\n",p[ip][0]);    
         }
         break;
       case KT_LOC_SUPP:
         for (ip = 0; ip < ip_max; ip++)
         {  
           p[ip] = (double*) malloc(2*sizeof(double));
-          fscanf(stdin,"%lf",&p[ip][0]);
-          fscanf(stdin,"%lf",&p[ip][1]);
+          fscanf(stdin,"h=%lf ",&p[ip][0]);
+          fscanf(stdin,"lambda=%lf\n",&p[ip][1]);
           fprintf(stdout,"    h = %lf, lambda = %lf\n",p[ip][0],p[ip][1]);    
         }
         break;
     };
     
     /* Read number of bandwidths. */
-    fscanf(stdin,"%d",&im_max);
+    fscanf(stdin,"bandwidths=%d\n",&im_max);
     m = (int*) malloc(im_max*sizeof(int));
 
     fprintf(stdout,"  Bandwidths: %d\n",im_max);    
@@ -251,13 +264,13 @@ int main (int argc, char **argv)
     /* Read bandwidths. */
     for (im = 0; im < im_max; im++)
     {  
-      fscanf(stdin,"%d",&m[im]);
+      fscanf(stdin,"M=%d\n",&m[im]);
       m_max = max(m_max,m[im]);
       fprintf(stdout,"    M = %d\n",m[im]);    
     }
     
     /* Read number of nodes specifications. */
-    fscanf(stdin,"%d",&ild_max);
+    fscanf(stdin,"node_sets=%d\n",&ild_max);
     ld = (int**) malloc(ild_max*sizeof(int*));
     
     fprintf(stdout,"  Nodes: %d\n",ild_max);    
@@ -265,12 +278,12 @@ int main (int argc, char **argv)
     for (ild = 0; ild < ild_max; ild++)
     {  
       ld[ild] = (int*) malloc(3*sizeof(int));
-      fscanf(stdin,"%d",&ld[ild][0]);
+      fscanf(stdin,"L=%d ",&ld[ild][0]);
       l_max = max(l_max,ld[ild][0]);
-      fscanf(stdin,"%d",&ld[ild][1]);
+      fscanf(stdin,"D=%d ",&ld[ild][1]);
       d_max = max(d_max,ld[ild][1]);
-      fscanf(stdin,"%d",&ld[ild][2]);
-      fprintf(stdout,"    L = %d, D = %d, Compute slow = %d\n",ld[ild][0],ld[ild][1],ld[ild][2]);    
+      fscanf(stdin,"compare=%d\n",&ld[ild][2]);
+      fprintf(stdout,"    L = %d, D = %d, Compare = %d\n",ld[ild][0],ld[ild][1],ld[ild][2]);    
     }
     
     fprintf(stdout,"  Maximum M = %d\n",m_max);    
@@ -295,22 +308,29 @@ int main (int argc, char **argv)
     /* Generate random source nodes and weights. */
     for (l = 0; l < l_max; l++)
     {
-      b[l] = drand48() - 0.5;
-      nu[2*l] = drand48() - 0.5;
-      nu[2*l+1] = 0.5*drand48();
+      b[l] = /*1.0;*/drand48() - 0.5;
+      nu[2*l] = /*0.0;*/drand48() - 0.5;
+      nu[2*l+1] = /*0.25;*/0.5*drand48();
     }
     
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
-      xi[2*d] = drand48() - 0.5;
-      xi[2*d+1] = 0.5*drand48();
+      xi[2*d] = /*(d/(double)d_max)-0.5;*/drand48() - 0.5;
+      xi[2*d+1] = /*0.25;*/0.5*drand48();
     }
 
     sprintf(filename_tex,"testcase%d.tex",tc);
     sprintf(filename_dat,"testcase%d.dat",tc);
     file_tex = fopen(filename_tex,"w");
     file_dat = fopen(filename_dat,"w");
+    fprintf(file_dat,"kernel=%d\n",kt);
+    fprintf(file_dat,"nfsft=%d\n",use_nfsft);
+		if (use_nfsft != 0)
+		{
+      fprintf(file_dat,"cutoff=%d\n",cutoff);
+      fprintf(file_dat,"threshold=%d\n",threshold);
+		}
     if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY)
     {  
       fprintf(file_tex,"\\begin{tabular}{l|l|l|l|l|l|l|l}\n");
@@ -327,13 +347,13 @@ int main (int argc, char **argv)
       fprintf(file_tex,"$\rho$ & $M$ & $K$ & $N$ & $t_{\\text{slow}}$ & $t_{\\text{fast}}$ & $\\text{err}$\\\\\\hline\n");
     }
     
-    if (threshold < 0.0)
+    if (use_nfsft != 0)
     {  
-      nfsft_precompute(m_max,1000000000000.0,0U);
+      nfsft_precompute(m_max,threshold,0U);
     }
     else
     {
-      nfsft_precompute(m_max,threshold,0U);
+      nfsft_precompute(m_max,1000000000000.0,0U);
     }
     
     for (ip = 0; ip < ip_max; ip++)
@@ -432,12 +452,19 @@ int main (int argc, char **argv)
           fprintf(stderr,"      M = %d\n",m[im]);
           
           /* Init transform plans. */
-          plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,0U,cutoff);
-          plan = nfsft_init_guru(m[im],ld[ild][1],f_hat,xi,f_m,0U,cutoff);
+          plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
+          plan = nfsft_init_guru(m[im],ld[ild][1],f_hat,xi,f_m,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
           
           /* Adjoint transform */
           t_f = second();
-          ndsft_adjoint(plan_adjoint);
+					if (use_nfsft != 0)
+					{
+            ndsft_adjoint(plan_adjoint);
+					}
+					else
+					{
+            ndsft_adjoint(plan_adjoint);
+					}
             
           /* Multiplication with diagonal matrix. */
           for (k = 0; k <= m[im]; k++)
@@ -449,30 +476,46 @@ int main (int argc, char **argv)
           }
             
           /* Forward transform */
-          ndsft_trafo(plan);
+					if (use_nfsft != 0)
+					{
+            ndsft_trafo(plan);
+					}
+					else
+					{
+            ndsft_trafo(plan);
+					}
           t_f = second() - t_f;
 
           /* Finalize plans */
           nfsft_finalize(plan_adjoint);
           nfsft_finalize(plan);
             
-          //for (j = 0; j < d[id]; j++)
-          //{
-          //  fprintf(stderr,"f_a(%f,%f) = %f\n",xi[2*j],xi[2*j+1],f[j]);
-          //  fflush(stderr);
-          //}
+          for (d = 0; d < ld[ild][1]; d++)
+          {
+            fprintf(stderr,"%+5.16f, %+5.16f, %+.3E\n",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));
+            fflush(stderr);
+          }
+					fprintf(stderr,"\n");
+          for (l = 0; l < ld[ild][0]; l++)
+          {
+            fprintf(stderr,"%+5.16f\n",creal(b[l]));
+            fflush(stderr);
+          }
+					
+					fprintf(stderr,"err = %E, D = %d\n",error_complex_inf(f, f_m, ld[ild][1]),ld[ild][1]);
+					fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
           
           if (ld[ild][2] != 0)
           {
             if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)
             {
               fprintf(file_tex,"%.2f & %3d & %6d & %6d & %5.2f & %5.2f & %.4E\\\\\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
-              fprintf(file_dat,"%.2f %3d %6d %6d %5.2f %5.2f %.4E\\\\\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
+              fprintf(file_dat,"%.2f %3d %6d %6d %5.2f %5.2f %.4E\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
             }
             else if (kt == KT_LOC_SUPP)
             {
               fprintf(file_tex,"%.2f & %2f & %3d & %6d & %6d & %5.2f & %5.2f & %.4E\\\\\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
-              fprintf(file_dat,"%.2f %2f %3d %6d %6d %5.2f %5.2f %.4E\\\\\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
+              fprintf(file_dat,"%.2f %2f %3d %6d %6d %5.2f %5.2f %.4E\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
             }
           }
           else
@@ -480,12 +523,12 @@ int main (int argc, char **argv)
             if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)
             {
               fprintf(file_tex,"%.2f & %3d & %6d & %6d & -- & %5.2f & --\\\\\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_f);
-              fprintf(file_dat,"%.2f %3d %6d %6d -1.0 %5.2f -1E0\\\\\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_f);
+              fprintf(file_dat,"%.2f %3d %6d %6d -1.0 %5.2f -1E0\n",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_f);
             }
             else if (kt == KT_LOC_SUPP)
             {
               fprintf(file_tex,"%.2f & %2f & %3d & %6d & %6d & -- & %5.2f & -- & --\\\\\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_f);
-              fprintf(file_dat,"%.2f %2f %3d %6d %6d -1.0 %5.2f -1E0 -1E0\\\\\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_f);
+              fprintf(file_dat,"%.2f %2f %3d %6d %6d -1.0 %5.2f -1E0 -1E0\n",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_f);
             }
           }
         }

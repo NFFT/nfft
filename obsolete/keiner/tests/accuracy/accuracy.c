@@ -278,7 +278,7 @@ int main (int argc, char **argv)
       
       /* Test Gauss-Legendre quadrature */
 
-      if (1 == 1)
+      if (1 == 0)
 	{
       
       /* Compute number of nodes. */

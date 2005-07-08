@@ -218,7 +218,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
           //fprintf(stderr,"(%d,%d,%d)\n",n,tau,l);
           
           /* Stabilize. */
-  		      degree_stab = degree*(2*l+1);          
+  		    degree_stab = degree*(2*l+1);          
           
           /* Old arrays are to small. */
           fftw_free(m1);
@@ -246,7 +246,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
                     beta, gamma);
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
             eval_al(xvecs[t-2], m2, plength_stab, degree_stab-1, alpha, 
-                    beta, gamma); 
+                    beta, gamma);
             alpha--;
             beta--;
             gamma--;
@@ -275,26 +275,32 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
               m2 = (double*) fftw_malloc(sizeof(double)*plength_stab);
               m3 = (double*) fftw_malloc(sizeof(double)*plength_stab);
               m4 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+							
+							/*if (m1 == NULL || m2 == NULL || m3 == NULL || m4 == NULL)
+							{
+							  fprintf(stderr,"Precompute U: stabilized U -> malloc failed!");
+								fflush(stderr);
+							}*/
               
               /* Get the pointers to the three-term recurrence coeffcients. */
               alpha = &(walpha[ROW(n)+2]);
               beta = &(wbeta[ROW(n)+2]);
               gamma = &(wgamma[ROW(n)+2]);         
               /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-              eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
-                      beta, gamma);
+              /*eval_al(xvecs[tau_stab], m1, plength_stab, degree_stab-2, alpha, 
+                      beta, gamma);*/
               /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-              eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
-                      beta, gamma); 
+              /*eval_al(xvecs[tau_stab], m2, plength_stab, degree_stab-1, alpha, 
+                      beta, gamma);*/
               alpha--;
               beta--;
               gamma--;
               /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-              eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
-                      beta, gamma);
+              /*eval_al(xvecs[tau_stab], m3, plength_stab, degree_stab-1, alpha, 
+                      beta, gamma);*/
               /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-              eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
-                      beta, gamma);
+              /*eval_al(xvecs[tau_stab], m4, plength_stab, degree_stab+0, alpha, 
+                      beta, gamma);*/
               
               U[n][tau][l][tau_stab-tau+1].m1 = m1;
               U[n][tau][l][tau_stab-tau+1].m2 = m2;

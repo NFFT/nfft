@@ -60,6 +60,8 @@
  */
 #define NFSFT_BW_WINDOW  1<<2
 
+#define NFSFT_USE_NDFT 1<<3
+
 
 /** 
  * Typedef for transform plans

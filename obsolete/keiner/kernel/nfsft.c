@@ -249,11 +249,14 @@ void nfsft_trafo(nfsft_plan plan)
     cheb2exp(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
     
     /* Execute NFFT. */
-//    fprintf(stderr,"before nfft\n",n);
-//	  fflush(stderr);
-    nfft_trafo(&plan->plan_nfft);
-//    fprintf(stderr,"after nfft\n",n);
-//	  fflush(stderr);
+		if (plan->flags & NFSFT_USE_NDFT)
+		{
+      ndft_trafo(&plan->plan_nfft);
+		}
+		else
+		{
+      nfft_trafo(&plan->plan_nfft);
+		}
   }    
 }
 
@@ -276,7 +279,14 @@ void nfsft_adjoint(nfsft_plan plan)
     plan->plan_nfft.f = plan->f;
 
     /* Execute adjoint NFFT. */
-    nfft_adjoint(&plan->plan_nfft);
+		if (plan->flags & NFSFT_USE_NDFT)
+		{
+      ndft_adjoint(&plan->plan_nfft);
+		}
+		else
+		{
+      nfft_adjoint(&plan->plan_nfft);
+		}
     
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     cheb2exp_adjoint(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
