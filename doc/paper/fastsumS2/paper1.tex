@@ -567,16 +567,47 @@ different values $\sigma$.
     \fun{G_{\sigma}^{\wedge}}{k} = 2 \sigma^{-\frac{1}{2}} \e^{-2\sigma}
     \pi^{\frac{3}{2}} I_{k+\frac{1}{2}}\left(2\sigma\right)
     \]
+    where $I_{k+\frac{1}{2}}$ denotes the modified Bessel function of first kind.
+    Furthermore, $\fun{G_{\sigma}^{\wedge}}{k} \ge 0$.
+  \item Thus, the relative error of our summation algorithm with this kernel
+  is bounded by
+  \begin{equation}
+    \label{error:G}
+    \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
+    .
+  \end{equation} 
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-  The relation \eqref{three2} and integration by parts yields
-  \[
-  \fun{G_{\sigma}^{\wedge}}{k} =
-  \frac{2\sigma}{2k+1}\left(\fun{G_{\sigma}^{\wedge}}{k-1}-
-  \fun{G_{\sigma}^{\wedge}}{k+1} \right)
-  \]
-  and thus the assertion.
+  \begin{enumerate}
+  \item The relation \eqref{three2} and integration by parts yields the
+  assertion.
+  \item The solution of the difference equation in 1. is given by the modified
+  Bessel function of first kind, cf. \cite{}.
+  The nonnegativity follows readily from the fact that the Gaussian is a
+  positive definite function, cf. \cite{}.
+  \item Using 2. and
+  \begin{eqnarray*}
+    \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
+    &=&
+    \sum_{k>M} \frac{\e^{-2\sigma}
+    \left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}} \int_{-1}^{1}
+    \e^{2\sigma x} \left(1-x^2\right)^k \dx x\\
+    &\le&
+    \sum_{k>M} \frac{\left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}}
+    \int_{-1}^{1} \left(1-x^2\right)^k \dx x\\
+    &=&
+    \sum_{k>M} \frac{\sqrt{\pi}\sigma^k}{\fun{\Gamma}{k+\frac{1}{2}}}\\
+    &=&
+    \frac{\sqrt{\pi\sigma}\e^{\sigma}}{\fun{\Gamma}{M+\frac{1}{2}}} 
+    \int_{0}^{\sigma} t^{M-\frac{1}{2}} \e^{-t} \dx t
+  \end{eqnarray*}
+  yields the assertion.
+\end{enumerate}
+
+\begin{corollary}
+ Matrix norms ...
+\end{corollary}
 \end{proof}
 
 %--------------------------------------------------------------------------
