@@ -199,6 +199,10 @@ int main (int argc, char **argv)
         fscanf(stdin,"cutoff=%d\n",&cutoff);
         fprintf(stdout,"  Cutoff = %d\n",cutoff);
 			}
+   else
+   {
+     cutoff = 3;
+   }
       fscanf(stdin,"threshold=%lf\n",&threshold);
       fprintf(stdout,"  Threshold = %E\n",threshold);
 		}
@@ -349,7 +353,7 @@ int main (int argc, char **argv)
     
     if (use_nfsft != 0)
     {  
-      nfsft_precompute(m_max,threshold,0U);
+      nfsft_precompute(m_max,threshold,NFSFT_FAST_ONLY/* | NFSFT_BW_WINDOW*/);
     }
     else
     {
@@ -459,7 +463,7 @@ int main (int argc, char **argv)
           t_f = second();
 					if (use_nfsft != 0)
 					{
-            ndsft_adjoint(plan_adjoint);
+            nfsft_adjoint(plan_adjoint);
 					}
 					else
 					{
@@ -478,7 +482,7 @@ int main (int argc, char **argv)
           /* Forward transform */
 					if (use_nfsft != 0)
 					{
-            ndsft_trafo(plan);
+            nfsft_trafo(plan);
 					}
 					else
 					{
@@ -490,7 +494,7 @@ int main (int argc, char **argv)
           nfsft_finalize(plan_adjoint);
           nfsft_finalize(plan);
             
-          for (d = 0; d < ld[ild][1]; d++)
+          /*for (d = 0; d < ld[ild][1]; d++)
           {
             fprintf(stderr,"%+5.16f, %+5.16f, %+.3E\n",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));
             fflush(stderr);
@@ -500,10 +504,10 @@ int main (int argc, char **argv)
           {
             fprintf(stderr,"%+5.16f\n",creal(b[l]));
             fflush(stderr);
-          }
+          }*/
 					
-					fprintf(stderr,"err = %E, D = %d\n",error_complex_inf(f, f_m, ld[ild][1]),ld[ild][1]);
-					fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
+					     fprintf(stderr,"err = %E, D = %d\n",error_complex_inf(f, f_m, ld[ild][1]),ld[ild][1]);
+					     //fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
           
           if (ld[ild][2] != 0)
           {
