@@ -278,7 +278,7 @@ int main (int argc, char **argv)
       
       /* Test Gauss-Legendre quadrature */
 
-      if (1 == 0)
+      if (1 == 1)
 	{
       
       /* Compute number of nodes. */
@@ -316,7 +316,7 @@ int main (int argc, char **argv)
           }  
         }
 
-        plan = nfsft_init(M, D, f_hat, angles, f, NFSFT_NORMALIZED);
+        plan = nfsft_init_guru(M, D, f_hat, angles, f, NFSFT_NORMALIZED,6);
 
         /* Compute forward transform. */
         ctime = second();

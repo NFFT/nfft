@@ -3,7 +3,7 @@
   \qauthor{Dan Zevin}
 \end{savequote}
 \makeatletter
-\chapter{Nonequispaced Discrete Spherical Fourier Transform}
+\chapter{Nonuniform Discrete Spherical Fourier Transform}
 \label{DSFT}
 
 Let in this chapter $M \in \NZ$ be fixed, $N := 2^t$ be the 
@@ -22,7 +22,7 @@ Given a function $f: \twosphere \rightarrow \C$, $f \in \fun{\Pol_{M}}{\twospher
 \end{equation}  
 where 
 \[\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k},\]
-the \emph{nonequispaced discrete spherical Fourier transform (NDSFT)} maps the coefficients $\paren{\fun{a_k^n}{f}}_{(k,n) \in \mathcal{I}^M}$ to the function values $\fun{f}{\mathcal{X}}$ on the sampling set $\mathcal{X}$.
+the \emph{nonuniform discrete spherical Fourier transform (NDSFT)} maps the coefficients $\paren{\fun{a_k^n}{f}}_{(k,n) \in \mathcal{I}^M}$ to the function values $\fun{f}{\mathcal{X}}$ on the sampling set $\mathcal{X}$.
 We call $M$ the \emph{bandwidth} of $f$ and $a_{k}^n = \fun{a_{k}^n}{f}$ are the \emph{spherical Fourier coefficients} of $f$ with respect to the 
 orthonormal basis of spherical harmonics $\set{Y_{k}^n}_{\paren{k,n} \in\mathcal{I}^M}$ of $\fun{\Pol_{M}}{\twosphere}$. The index $k$ will always denote the degree and $n$ always the order of $Y_{k}^n$. The Fourier coeffcients $a_{k}^n$ may be ordered 
 in different ways: We refer to the \emph{degree-major order} when the Fourier coefficents are sorted first by degree $k$ and then by order $n$ in ascending order, hence
@@ -435,11 +435,11 @@ if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution 
   \label{NFSFT:LegendreSum}
   \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^n}{x}
 \end{equation}
-into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions $P_{k}^n$ are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonequispaced nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
+into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions $P_{k}^n$ are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonuniform nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
 
 %This holds only in the case of equispaced nodes. If one leaves 
 %In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
-%of the basis functions $Y_k^n$, evaluating the sum in \eqref{NFSFT:FourierExpansion} can be split up in ordinary discrete Fourier transforms for nonequispaced 
+%of the basis functions $Y_k^n$, evaluating the sum in \eqref{NFSFT:FourierExpansion} can be split up in ordinary discrete Fourier transforms for nonuniform 
 %data in colatitudinal direction and \emph{discrete Legendre function transforms} for the latitudinal part. The basic idea of the approach 
 %presented here is to perform a change of basis from Legendre functions to complex exponentials in latitudinal direction to get the 
 %representation

@@ -83,11 +83,16 @@ int main (int argc, char **argv)
   double ctime;
   int i,n,k;
   int mode, type;
-    
+  double threshold;  
+  
 	/* Read transform type. */
   fscanf(stdin,"%d\n",&type);
 	/* Read transform mode. */	
   fscanf(stdin,"%d\n",&mode);
+  if (mode == FAST)
+  {
+    fscanf(stdin,"%lf\n",&threshold);    
+  }
 
   /* Initialize nodes. */
   fscanf(stdin,"%d\n",&D);
@@ -127,18 +132,20 @@ int main (int argc, char **argv)
     }  
 
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_init(M, D, F_HAT, angles, result, 0U);
+    plan = nfsft_init_guru(M, D, F_HAT, angles, result, 0U,12);
 			
 	   /* Switch by mode. */
 		  if (mode == FAST)
 		  {		
 	   		/* Initialize */
-		   	nfsft_precompute(M,2000,0U);
+      nfsft_precompute(M,threshold,NFSFT_BW_WINDOW);
 			   /* Execute the plan. */
 			   nfsft_trafo(plan);
 	   }
 	   else if (mode == SLOW)
  		 {
+	   		/* Initialize */
+		   	nfsft_precompute(M,1000000000000.0,0U);
 	  	 	/* Execute the plan. */
   		 	ndsft_trafo(plan);
 		  }
@@ -163,18 +170,20 @@ int main (int argc, char **argv)
     }  
     
     /* Create plan for fast spherical Fourier transform.*/
-    plan = nfsft_init(M, D, F_HAT, angles, result, 0U);
+    plan = nfsft_init_guru(M, D, F_HAT, angles, result, 0U,12);
 		
 		  /* Switch by transform mode. */
 		  if (mode == FAST)
 		  {	
       /* Precompute. */
-      nfsft_precompute(M,2000,0U);
+      nfsft_precompute(M,threshold,NFSFT_BW_WINDOW);
       /* Execute the plan. */
       nfsft_adjoint(plan);
   		}
 		  else if (mode == SLOW)
 		  {
+	   		/* Initialize */
+		   	nfsft_precompute(M,1000000000000.0,0U);
       /* Execute the plan. */
       ndsft_adjoint(plan);
   		}

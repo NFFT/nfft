@@ -41,72 +41,51 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      3809,        110]*)
-(*NotebookOutlinePosition[      4445,        132]*)
-(*  CellTagsIndexPosition[      4401,        128]*)
+(*NotebookOptionsPosition[      3463,         89]*)
+(*NotebookOutlinePosition[      4099,        111]*)
+(*  CellTagsIndexPosition[      4055,        107]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
 Cell[BoxData[
-    \(PoissonKernel[x_, 
-        h_]\  := \((1/\((4  Pi)\))\)*\ \((1 - 
-              h^2)\)/\((\((Sqrt[1 - 2  h*x + h^2])\)^3)\)\)], "Input"],
-
-Cell[CellGroupData[{
+    \(\(PoissonKernel[x_, 
+          h_]\  := \((1/\((4  Pi)\))\)*\ \((1 - 
+                h^2)\)/\((\((Sqrt[1 - 2  h*x + h^2])\)^3)\);\)\)], "Input"],
 
 Cell[BoxData[
-    \(PKSpecs\  = \ {{0.5, {Dashing[{0.00}], 
-            Thickness[0.002]}}, {0.7, {Dashing[{0.010, \ 0.005}], 
-            Thickness[0.002]}}, {0.8, {Dashing[{0.005, \ 0.005}], 
-            Thickness[0.002]}}}\)], "Input"],
+    \(\(PoissonKernelParameters\  = \ {{0.5, {Dashing[{0.00}], 
+              Thickness[0.002]}}, {0.7, {Dashing[{0.010, \ 0.005}], 
+              Thickness[0.002]}}, {0.8, {Dashing[{0.005, \ 0.005}], 
+              Thickness[0.002]}}};\)\)], "Input"],
 
 Cell[BoxData[
-    \({{0.5`, {Dashing[{0.`}], 
-          Thickness[0.002`]}}, {0.7`, {Dashing[{0.01`, 0.005`}], 
-          Thickness[0.002`]}}, {0.8`, {Dashing[{0.005`, 0.005`}], 
-          Thickness[0.002`]}}}\)], "Output"]
-}, Open  ]],
-
-Cell[BoxData[
-    \(\(PKPlots\  = \ 
+    \(\(PoissonKernelPlots\  = \ 
         Table[Plot[\(PoissonKernel[Cos[v], 
-                PKSpecs[\([i]\)]]\)[\([1]\)], {v, \(-Pi\), Pi}, 
-            DisplayFunction \[Rule] Identity, AspectRatio \[Rule] 1, 
+                PoissonKernelParameters[\([i]\)]]\)[\([1]\)], {v, \(-Pi\), 
+              Pi}, DisplayFunction \[Rule] Identity, AspectRatio \[Rule] 1, 
             AxesLabel \[Rule] {"\<\>", "\<\>"}, 
-            FrameTicks \[Rule] {{\(-\(\[Pi]\/4\)\), \(-\(\[Pi]\/2\)\), \
-\(-\(\(3\ \[Pi]\)\/4\)\), \ \(-\[Pi]\), 
+            FrameTicks \[Rule] {{\(-\[Pi]\), \(-\(\(3\ \[Pi]\)\/4\)\), \(-\(\
+\[Pi]\/2\)\), \(-\(\[Pi]\/4\)\), 
                   0, \[Pi]\/4, \[Pi]\/2, \(3\ \[Pi]\)\/4, \ \[Pi]}, 
-                Table[t, {t, 0.0, 20.0, 1.0}], 
+                Table[t, {t, 0.0, 4.0, 1.0}], 
                 Table[{t, "\<\>"}, {t, \(-Pi\), Pi, Pi/4}], 
-                Table[{t, "\<\>"}, {t, 0.0, 20.0, 1.0}]}, 
-            PlotRange -> {{\(-Pi\), Pi}, {0, 4}}, Axes \[Rule] True, 
-            PlotStyle \[Rule] \(PKSpecs[\([i]\)]\)[\([2]\)], 
+                Table[{t, "\<\>"}, {t, 0.0, 4.0, 1.0}]}, 
+            PlotRange -> {{\(-Pi\) - 0.000000001, Pi}, {0, 4}}, 
+            Axes \[Rule] True, 
+            PlotStyle \[Rule] \(PoissonKernelParameters[\([i]\)]\)[\([2]\)], 
             AxesStyle \[Rule] {Dashing[{0.01, 0.01}]}, \ Frame \[Rule] True, 
             TextStyle \[Rule] {FontFamily \[Rule] "\<Helvetica\>", 
-                FontSize \[Rule] 6}], {i, 1, 3}];\)\)], "Input"],
-
-Cell[CellGroupData[{
+                FontSize \[Rule] 10}], {i, 1, 3}];\)\)], "Input"],
 
 Cell[BoxData[
-    \(myPlots\  = \ 
-      Show[PKPlots, DisplayFunction \[Rule] $DisplayFunction]\)], "Input"],
+    \(\(PoissonKernelGraphic\  = \ 
+        Show[PoissonKernelPlots, 
+          DisplayFunction \[Rule] $DisplayFunction];\)\)], "Input"],
 
 Cell[BoxData[
-    TagBox[\(\[SkeletonIndicator]  Graphics  \[SkeletonIndicator]\),
-      False,
-      Editable->False]], "Output"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
-    \(Export["\<poisson.eps\>", myPlots]\)], "Input"],
-
-Cell[BoxData[
-    \("poisson.eps"\)], "Output"]
-}, Open  ]]
+    \(\(Export["\<poisson.eps\>", PoissonKernelGraphic];\)\)], "Input"]
 },
 FrontEndVersion->"5.0 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 758}},
@@ -131,23 +110,11 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 156, 3, 27, "Input"],
-
-Cell[CellGroupData[{
-Cell[1935, 58, 238, 4, 43, "Input"],
-Cell[2176, 64, 223, 4, 27, "Output"]
-}, Open  ]],
-Cell[2414, 71, 958, 16, 118, "Input"],
-
-Cell[CellGroupData[{
-Cell[3397, 91, 109, 2, 27, "Input"],
-Cell[3509, 95, 130, 3, 27, "Output"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-Cell[3676, 103, 67, 1, 27, "Input"],
-Cell[3746, 106, 47, 1, 27, "Output"]
-}, Open  ]]
+Cell[1754, 51, 165, 3, 27, "Input"],
+Cell[1922, 56, 265, 4, 43, "Input"],
+Cell[2190, 62, 1027, 17, 152, "Input"],
+Cell[3220, 81, 151, 3, 27, "Input"],
+Cell[3374, 86, 85, 1, 27, "Input"]
 }
 ]
 *)

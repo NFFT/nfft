@@ -19,12 +19,12 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AM_PROG_LIBTOOL
 
-# Checks for libraries.
-AC_CHECK_LIB(fftw3,fftw_execute,,[AC_MSG_ERROR([Library fftw3 not found.])],)
-
 # Checks for header files.
-AC_CHECK_HEADERS(math.h string.h complex.h fftw3.h stdio.h time.h crazy.h,,[required header not found.],)
+AC_CHECK_HEADERS(math.h string.h complex.h fftw3.h stdio.h time.h,,[required header not found.],)
 AC_HEADER_STDBOOL
+
+# Checks for libraries.
+#AC_CHECK_LIB(fftw3,fftw_execute,,[AC_MSG_ERROR([Library fftw3 not found.])],)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_ZERO_BYTES_DOUBLE

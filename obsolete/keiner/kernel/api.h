@@ -142,13 +142,23 @@ struct nfsft_wisdom
 {
   /** Indicates wether the structure has been initialized */ 
   bool initialized;
-  int flags;
-  /** The threshold */
-  double threshold;
-  /** Maximum bandwidth */
-  int N;
+  nfsft_precompute_flags flags;
   /** The logarithm of the bandwidth */
   int t;
+  /** Maximum bandwidth */
+  int N;
+  /** Precomputed recursion coefficients for associated Legendre-functions */
+  double *alpha;
+  /** Precomputed recursion coefficients for associated Legendre-functions */
+  double *beta;
+  /** Precomputed recursion coefficients for associated Legendre-functions */
+  double *gamma;
+  /** The threshold */
+  double threshold;
+  /* Structure for matrices U */
+  struct U_type ****U;    
+  /** For FLFT */
+  complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   /** Transform plans for the fftw library */
   fftw_plan *plans_dct3;
   /** Transform plans for the fftw library */
@@ -159,18 +169,8 @@ struct nfsft_wisdom
   fftw_r2r_kind *kindsr;
   /** Transform lengths for fftw library */
   int *lengths;
-  /* Structure for matrices U */
-  struct U_type ****U;    
-  /** For FLFT */
-  complex *work,*old,*vec1,*vec2,*vec3,*vec4, *a2, *b2;
   complex *ergeb;
   
-  /** Precomputed recursion coefficients for associated Legendre-functions */
-  double *alpha;
-  /** Precomputed recursion coefficients for associated Legendre-functions */
-  double *beta;
-  /** Precomputed recursion coefficients for associated Legendre-functions */
-  double *gamma;
   
   double *flft_alpha;
   double *flft_beta;

@@ -1,4 +1,4 @@
-function genData(filename,D,M,type,mode)
+function genData(filename,D,M,type,mode,threshold)
 % GENDATA
 %   GENDATA(FILENAME,D,M,TYPE,MODE)
 %
@@ -7,6 +7,9 @@ function genData(filename,D,M,type,mode)
 
   fprintf(f,'%d\n',type);  
   fprintf(f,'%d\n',mode);
+  if (mode == 0)
+    fprintf(f,'%f\n',threshold);
+  end
   
   fprintf(f,'%d\n',D);
   for i=1:D

@@ -1,6 +1,6 @@
-function [err,r1,r2] = testNFSFT(D,M,test,plot)
+function [err,r1,r2] = testNFSFT(D,M,test,threshold,plot)
 % TEST
-% [ERR,R1,R2] = TEST(D,M,TEST)
+% [ERR,R1,R2] = TEST(D,M,TEST,THRESHOLD,PLOT)
 % TEST \in {0,1,2,3,4,5,6,7,8,9}
 % 0 = Compare fast forward implementation with bare Y
 % 1 = Compare direct forward implementation with bare Y
@@ -55,7 +55,7 @@ if (sum(test == [1,3,6,8,9]) > 0)
 end
 
 % Generate new data set.
-genData([filename,insuffix],D,M,type,mode);
+genData([filename,insuffix],D,M,type,mode,threshold);
 
 % Generate Y, the Fourier matrix F and the data vector a.
 [Y,F,a,theta,phi,N,t] = readData([filename,insuffix]);
@@ -182,11 +182,11 @@ switch test
 	  r2 = rd;
 end
 
-err = norm(r1-r2,1)/norm(r1,1);
+err = norm(r1-r2,inf);%/norm(r1,inf);
 
 fprintf('|r1|: max = %f, min = %f, NaN = %d\n', max(abs(r1)), min(abs(r1)), sum(sum(isnan(r1))));
 fprintf('|r2|: max = %f, min = %f, NaN = %d\n', max(abs(r2)), min(abs(r2)), sum(sum(isnan(r2))));
-fprintf('||r1-r2||_1/||r1||_1 = %17.16f\n', err);
+fprintf('||r1-r2||_1/||r1||_1 = %.3E\n', err);
 
 if (plot == 1)
   if (test <= 4)

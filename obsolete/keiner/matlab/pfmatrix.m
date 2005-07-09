@@ -1,4 +1,5 @@
 function F = pfmatrix(N,theta,phi)
+N
   [x,y] = meshgrid((-N):N,theta);
   f1 = exp(-i*x.*y);
   [x2,y2] = meshgrid((-N):N,phi);

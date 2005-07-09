@@ -383,7 +383,7 @@ Further properties with respect to localization and smoothness are derived in \c
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.7\textwidth]{images/singularity}
-  \caption{The singularity kernel $\fun{S_{h}}{\cos\theta}$ for $h = 0.8,0.9,0.95$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
+  \caption{The singularity kernel $\fun{S_{h}}{\cos\theta}$ for $h = 0.8,0.9,0.955$ and $\theta \in \interv{[}{-\pi}{\pi}{]}$.}
   \label{Basics:Figure:SingularityKernel}
 \end{figure}
 
@@ -427,15 +427,11 @@ Further properties with respect to localization and smoothness are derived in \c
 
 \begin{figure}[tb]
   \centering
-   \subfigure[$\lambda=1.5$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup4}}\hfill
    \subfigure[$\lambda=1.0$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup3}}\\
-   \subfigure[$\lambda=0.5$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup2}}\hfill
-   \subfigure[$\lambda=0.2$]
-     {\includegraphics[width=0.33\textwidth]{images/locsup1}}
-  \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, -0.2, 0.2, 0.7$ and different values of $\lambda$.}
+     {\includegraphics[width=0.33\textwidth]{images/locsup1}}\hfill
+   \subfigure[$\lambda=2.0$]
+     {\includegraphics[width=0.33\textwidth]{images/locsup2}}
+  \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, 0.2, 0.7$ and different values of $\lambda$.}
   \label{Basics:Figure:LKernel}
 \end{figure}
 
@@ -524,10 +520,10 @@ This leads to the following algorithm:
 \end{algorithmic}
 \end{algorithm}
 
-\section{Fast Fourier Transform for Nonequispaced Knots}
+\section{Fast Fourier Transform for Nonuniform Knots}
 \label{Basics:NFFT}
 
-The \emph{nonequispaced fast Fourier transform (NFFT)} generalizes the well know \emph{fast Fourier transform (FFT)}. For the sake of simplicity, we restrict ourselves to the one-dimensional case on the torus $\mathbb{T} := \pset{x \in \R}{|}{-\frac{1}{2} \le x \le \frac{1}{2}}$. For fixed $M \in \N_{0}$ and $D \in \N$ we denote by $\mathcal{X} := \pset{x_{j} \in \mathbb{T}}{|}{j = 0,\ldots,D-1}$ a \emph{sampling set} of nodes from $\mathbb{T}$ and let $\mathcal{I}_{M} := \pset{k \in \Z}{|}{-\frac{M}{2} \le k \le \frac{M}{2}-1}$ be the index set of all possible \emph{frequencies}. The considered problem is the evaluation of a trigonometric polynomial 
+The \emph{nonuniform fast Fourier transform (NFFT)} generalizes the well know \emph{fast Fourier transform (FFT)}. For the sake of simplicity, we restrict ourselves to the one-dimensional case on the torus $\mathbb{T} := \pset{x \in \R}{|}{-\frac{1}{2} \le x \le \frac{1}{2}}$. For fixed $M \in \N_{0}$ and $D \in \N$ we denote by $\mathcal{X} := \pset{x_{j} \in \mathbb{T}}{|}{j = 0,\ldots,D-1}$ a \emph{sampling set} of nodes from $\mathbb{T}$ and let $\mathcal{I}_{M} := \pset{k \in \Z}{|}{-\frac{M}{2} \le k \le \frac{M}{2}-1}$ be the index set of all possible \emph{frequencies}. The considered problem is the evaluation of a trigonometric polynomial 
 $f: \mathbb{T} \rightarrow \C$ with
 \begin{equation}
   \label{Basics:NFFT:f}

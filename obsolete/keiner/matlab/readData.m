@@ -3,6 +3,9 @@ function [Y,F,a,theta,phi,N,t] = readData(filename)
   
   type = fscanf(f,'%d\n',1);
   mode = fscanf(f,'%d\n',1);
+  if (mode == 0)
+    threshold = fscanf(f,'%lf\n',1);
+  end
   
   D = fscanf(f,'%d\n',1);
   phi = zeros(D,1);

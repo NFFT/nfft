@@ -60,6 +60,14 @@
  */
 #define NFSFT_BW_WINDOW  1<<2
 
+/**
+ * If set, the direct NDFT algorithm will be used.
+ *
+ * \see nfsft_trafo
+ * \see nfsft_adjoint
+ * \author Jens Keiner
+ * \ingroup nfsft_public_api 
+ */
 #define NFSFT_USE_NDFT 1<<3
 
 
@@ -70,6 +78,13 @@
  * \ingroup nfsft_public_api 
  */
 typedef struct nfsft_plan_s *nfsft_plan;
+
+/** 
+ * Typedef for precomputation flags 
+ * \author Jens Keiner
+ * \ingroup nfsft_public_api 
+ */
+typedef int nfsft_precompute_flags;
 
 /** 
  * Typedef for transform flags 
@@ -126,7 +141,7 @@ nfsft_plan nfsft_init_guru(int M, int D, complex **f_hat, double *x, complex *f,
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-void nfsft_precompute(int M, double threshold, int flags);
+void nfsft_precompute(int M, double threshold, nfsft_precompute_flags flags);
 
 /**
  * Forget all wisdom.

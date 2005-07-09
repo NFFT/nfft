@@ -17,7 +17,7 @@ static struct nfsft_wisdom wisdom = {false,false};
 static int nstab;
 static int ntotal;
 
-void nfsft_precompute(int M, double threshold, int flags)
+void nfsft_precompute(int M, double threshold, nfsft_precompute_flags flags)
 {
   int i;
   int ti;
@@ -28,8 +28,12 @@ void nfsft_precompute(int M, double threshold, int flags)
     return;
   }
   
+  /* Set the flags. */
   wisdom.flags = flags;
+
+  /* Set t. */
   wisdom.t = ngpt(M);
+  /* Set N. */
   wisdom.N = 1<<wisdom.t;
 
   /* Precompute three-term recurrence coefficients. */
@@ -39,15 +43,24 @@ void nfsft_precompute(int M, double threshold, int flags)
   alpha_al_all(wisdom.alpha,BW_MAX);
   beta_al_all(wisdom.beta,BW_MAX);
   gamma_al_all(wisdom.gamma,BW_MAX);
+  
+  /* Set the threshold. */
   wisdom.threshold  = threshold;
-  wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, wisdom.gamma, wisdom.flags & NFSFT_BW_WINDOW);
-  if (wisdom.flags & NFSFT_FAST_ONLY)
+
+  /* Precompute. */
+  wisdom.U = precomputeU(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, 
+                         wisdom.gamma, 
+                         (wisdom.flags & NFSFT_BW_WINDOW) == NFSFT_BW_WINDOW);
+  
+  /* Delete coefficients direct algorithms are deactivated. */
+  if (wisdom.flags & NFSFT_FAST_ONLY == NFSFT_FAST_ONLY)
   {
     free(wisdom.alpha);
     free(wisdom.beta);
     free(wisdom.gamma);
   }
   
+  /* Check, if bandwidth big enough. */
   if (wisdom.N >= 4)
   {  
     wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
@@ -59,24 +72,28 @@ void nfsft_precompute(int M, double threshold, int flags)
     wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
     wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
     wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
+    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
     wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
     wisdom.kinds[0]   = FFTW_REDFT01;
     wisdom.kinds[1]   = FFTW_REDFT01;
     wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
     wisdom.kindsr[0]  = FFTW_REDFT10;
     wisdom.kindsr[1]  = FFTW_REDFT10;
-    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
     wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
     for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
     {
       wisdom.lengths[i] = ti;
-      wisdom.plans_dct3[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
-                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 0);
-      wisdom.plans_dct2[i] = fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 2, 1,
-                                                (double*)wisdom.vec1, NULL, 2, 1, wisdom.kindsr, 0);
+      wisdom.plans_dct3[i] = 
+        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                           2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
+                           0);
+      wisdom.plans_dct2[i] = 
+        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                           2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
+                           0);
     }  
-    wisdom.z = (complex*) malloc(wisdom.N*sizeof(complex));
   }
   
   wisdom.initialized = true;
@@ -90,9 +107,9 @@ void nfsft_forget()
   {
     if (wisdom.N >= 4)
     {  
-      forgetU(wisdom.U,wisdom.N,wisdom.t,wisdom.flags & NFSFT_BW_WINDOW);
+      forgetU(wisdom.U,wisdom.N,wisdom.t,
+              (wisdom.flags & NFSFT_BW_WINDOW) == NFSFT_BW_WINDOW);
       
-      free(wisdom.z);
       fftw_free(wisdom.work);
       fftw_free(wisdom.old);
       fftw_free(wisdom.ergeb);
@@ -102,6 +119,7 @@ void nfsft_forget()
       fftw_free(wisdom.vec4);
       fftw_free(wisdom.a2);
       fftw_free(wisdom.b2);
+      free(wisdom.z);
       
       for(i = 0; i < wisdom.t-1; i++)
       {
@@ -115,10 +133,7 @@ void nfsft_forget()
       free(wisdom.kindsr);
       free(wisdom.lengths);
     }
-    if (wisdom.flags & NFSFT_FAST_ONLY)
-    {
-    }
-    else
+    if (wisdom.flags & NFSFT_FAST_ONLY != NFSFT_FAST_ONLY)
     {
       free(wisdom.alpha);
       free(wisdom.beta);

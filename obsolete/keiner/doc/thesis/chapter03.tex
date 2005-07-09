@@ -132,6 +132,126 @@ for some constant $C \in \Rp$.
 
 \section{Iterative Fourier Reconstruction}
 
+As already mentioned, the matrix $\V{Y}$ is in general neither hermitian nor 
+even square, but rectangular. For certain grids like $\mathcal{X^{\gl}}$ or 
+$\mathcal{X^{\cc}}$, we derived inversion formula allowing for the computation 
+of Fourier coefficients given function values on the corresponding grids 
+based on quadrature formulae. 
+
+In a more general approach, we like to compute Fourier coefficients 
+$\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ for a fixed bandwidth $M$
+from function values $\paren{f_{d}}_{d=0}^D$ given on a sampling set
+$\mathcal{X}$ with $D$ nodes, i.e. we like to compute a 'solution' to
+\begin{equation}
+  \label{Applications:Problem}
+  \V{Y}_{\mathcal{X}} \V{a} \approx \V{f}.
+\end{equation}
+
+Now given an arbitrary sampling set $\mathcal{X}$ of $D$ nodes and a fixed 
+bandwidth $M$, we consider two problems, i.e. the \emph{weighted linear 
+least squares problem} and \emph{optimal interpolation}.
+
+\subsection{Weighted Linear Least Squares Problem}
+  For a comparatively low bandwidth, i.e. $(M+1)^2 \le D$, the matrix $\V{Y}$ 
+  has more rows than columns and the system \eqref{Applications:Problem} is 
+  overdetermined. We therefore consider the weighted linear least squares 
+  problem
+    \begin{equation}
+      \label{Applications:Problem1}
+      \norm{\V{f} - \V{Y}\:\V{a}}_{\V{W}}^2 \rightarrow \text{min},\ \V{W} = 
+      \fun{\diag}{\paren{w_{d}}_{d=0}^{D-1}}, \ w_{d} \in \Rp.
+    \end{equation}
+  The diagonal matrix $\V{W}$ can be used to compensate for clustering of 
+  the nodes. One might wish to weight the influence of nodes in sparsely 
+  represented region more than in dense regions. 
+  \begin{lemma}
+    Problem \eqref{Applications:Problem1} is equivalent to the \emph{normal equation of the first kind}
+    \begin{equation}
+      \label{Applications:NormalEquation1}
+      \V{Y^{\h}} \; \V{W} \; \V{Y} \V{a} = \V{Y^{\h}} \; \V{W} \; \V{f}.
+    \end{equation}
+  \end{lemma}
+  \begin{proof}
+    By definition, minimizing $\norm{\V{f} - \V{Y}\:\V{a}}_{\V{W}}^2 = 
+    \norm{\V{W}^{1/2}\paren{\V{f} - \V{Y}\:\V{a}}}_2^2$ yields
+    \[
+      \fun{F}{\V{a}} := \V{a}^{\h} \; \V{Y}^{\h} \; \V{W} \; \V{Y} \; \V{a} - 
+      2 \; \V{a}^{\h} \; \V{Y}^{\h} \; \V{W} \; \V{f} +  \V{f}^{\h} \; 
+      \V{W} \; \V{f} \rightarrow \text{min}.
+    \]
+    The quadratic functional $F$ is convex, since 
+    $\V{Y}^{\h} \; \V{W} \; \V{Y}$ is symmetric positive semi-definite 
+    (positive definite if $\V{Y}$ has full rank) and the necessary condition 
+    for minimizing $F$ requires $\V{a}$ to obey 
+    $\triangledown \fun{f}{\V{a}}^T = \V{0}$, or equivalently
+    \[
+      \V{Y^{\h}} \; \V{W} \; \V{Y} \V{a} = \V{Y^{\h}} \; \V{W} \; \V{f}.
+    \]
+  \end{proof}
+  The theoretical and numerical treatment of Problem \eqref{Applications:Problem1}
+  has been studied extensively (see for example \cite{bjoerk}). Generally, one tries to
+  avoid normal equations since they are often subject to numerical instabilities. In
+  our setting, however, computing a solution to \eqref{Applications:Problem1}
+  by means of the QR-decomposition or SVD is no practical way, due to performance and 
+  memory requirements. But the Algorithms \ref{} (NFSFT) and \ref{} (adjoint NFSFT)
+  derived in Section \ref{NFSFT} allow for an application of numerical methods to
+  \eqref{Applications:NormalEquation1}. A well know algorithm is the 
+  \emph{conjugate gradient method (CG)} modified for 
+  \eqref{Applications:NormalEquation1} and denoted as \emph{CGNR}, where N stands 
+  for ''Normal'' and R for ''Residual''. Other, simpler methods we won't mention here
+  include the \emph{steepest descent} method and the \emph{Landweber iteration}. We 
+  refer to \cite{bjoerk} and \cite{golo} for details. The CGNR algorithm is summarized in 
+  Algorithm \ref{Applications:Algorithm:CGNR}. We notice that the algorithm does not 
+  need to store the matrices $\V{Y}$, $\V{Y}^{\h}$ or even $\V{Y}^{\h} \; \V{W} \; 
+  V{Y}^{\h}$ explicitly. Instead, we only need to perform multiplications with 
+  $\V{Y}$ and $\V{Y}^{\h}$ which corresponds to applications of Algorithms 
+  \ref{} and \ref{}, respectively.
+ 
+  \begin{algorithm}[tb]
+    \caption{CGNR}
+    \label{Applications:Algorithm:CGNR}    
+	  \begin{algorithmic}
+	    \STATE  Input:  $\V{f} \in \C^{D}$, $\V{a}_{0} \in C^{(M+1)^2}$
+	    \STATE
+	    \STATE $\V{r_{0}} := \V{f} - \V{Y} \; \V{a}_{0}$
+	    \STATE $\V{z_{0}} := \V{Y}^{\h} \; \V{W} \V{r}_{0}$
+	    \STATE $\V{p_{0}} := \V{z}_{0}$
+	    \STATE 
+	    \FOR {$l=0,\ldots,\text{until convergence}$} 
+	      \STATE $\V{v}_{l} := \V{Y} \; \V{p}_{l}$
+	      \STATE $\alpha_{l} := \frac{\norm{\V{z}_{l}}_{2}^2}{\norm{\V{v}_{l}}_{2}^2}$  
+	      \STATE $\V{a}_{l+1} := \V{a}_{l} + \alpha_{l} \V{p}_{l}$
+	      \STATE $\V{r}_{l+1} := \V{r}_{l} - \alpha_{l} \V{w}_{l}$
+	      \STATE $\V{z}_{l+1} := \V{Y}^{\h} \; \V{r}_{l+1}$
+	      \STATE $\beta_{l}   := \frac{\norm{\V{z}_{l+1}}_{2}^2}{\norm{\V{z}_{l}}_{2}^2}$
+	      \STATE $\V{p}_{l+1} := \V{z}_{l+1} + \beta_{l} \V{p}_{l}$
+	    \ENDFOR
+	    \STATE
+	    \STATE Output: $\V{a}_{l}$ where $l$ is the iteration after which the loop has terminated.
+	  \end{algorithmic}
+  \end{algorithm}
+  
+  \begin{example}
+    We considered the NASA GSFC and NIMA Joint Geopotential Model, \emph{EGM96} (see 
+    \verb+http://cddis.gsfc.nasa.gov/926/egm96/egm96.html+) and the corresponding model 
+    dataset consisting of Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$
+    for $M$ up to 360.
+    The corresponding function $f$ was evaluated on the Clenshaw-Curtis grid 
+    $\mathcal{X}^{\cc}$ corresponding to $M = 360$ and consisting of $2(M+1)(2M+1) = 520,562$
+    nodes. Algorithm \ref{Applications:Algorithm:CGNR} was applied with the corresponding 
+    weight matrix $\V{W}^{\cc}$ and an initial guess $\V{a}_{0} = \V{0}$. In theory, the
+    algorithm terminates after one step with the original Fourier vector
+  \end{example}
+  
+  
+  
+  \begin{remark}
+    For the NFFT, Fourier reconstruction methods have been investigated for example by \cite. 
+    We follow the lines in \cite for our setup. However, theoretical results leading to 
+    stability results have still to be  developed.
+  \end{remark}
+    
+    
 \begin{figure}[tb]
   \centering
   \includegraphics[width=12cm]{images/healpix}
