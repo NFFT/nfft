@@ -1,5 +1,70 @@
+%\begin{savequote}[8cm]
+%  ``Confession: I played golf. Confession: I hired a cleaning lady. Confession: I am owner of the Turbo nose-hair trimmer with optional ear-hair accessory.''
+%  \qauthor{Dan Zevin}
+%\end{savequote}
+%\makeatletter
+
 \chapter{Introduction}
+\label{Introduction}
 
-To be written...
-
-\input{sumAbelPoisson}
+The \emph{fast Fourier transform (FFT)} has become one of the most important 
+and widely used algorithms today. Cooley and Tukey (\cite{cotu}) published
+and publicized the first description of a fast algorithm for computing certain
+trigonometric sums, generally referred to as the \emph{discrete} or 
+\ emph{finite Fourier transform}, in 1965. In fact, developments since then now
+let us speak of a whole class of algorithms. The original Culey-Tukey FFT
+used a recursive scheme to split one large transform successively into
+smaller transforms achieving an asymptotical complexity of 
+$\bigo{N \log N}$ \emph{floating point operations (flops)} instead of
+$\bigo{N^2}$ for a direct computation, where $N$ is the transform length. 
+Efficient and highly optimized implementations also for the
+multidimensional case are available (\cite{fftw}).
+Surprisingly, the idea of Cooley and Tukey was already described by Gauss around
+1805 (\cite{gauss},\cite{hejobu}) interpolating the trajectories of the asteroids Pallas 
+and Juno. But his work was not widely recognized and only published posthumously.
+The wide areas of applications nowadays using FFT-techniques, including 
+time-frequency analysis, signal-processing and the numerical solution of 
+partial differential equations, underline the great importance and impact of fast
+DFT algorithms.
+Recently, algorithms have been developed for a more general type of discrete 
+transform, namely the \emph{nonuniform discrete Fourier transform (NDFT)}. 
+While the DFT is a bijective and easily invertible mapping of $N$ 
+ingoing coefficients to $N$ outgoing coefficients corresponding to
+uniformly distributed 'nodes' on an interval, the NDFT generalizes
+discrete Fourier sums for arbitrary node distributions, hence the name
+'nonuniform'. Fast algorithms have been described in several papers 
+(\cite{bey95},\cite{duro93},\cite{fesu02},\cite{four},\cite{Ja},\cite{Pe},
+\cite{scsc},\cite{ware98}) and a C subroutine library is available 
+(\cite{kupo02C}).
+A different line of generalization leaves the 'classical' setting of 
+Fourier series on a multidimensional torus and describes analogously
+Fourier series on different geometries like the surface of a
+multidimensional sphere. Particularly, the unit sphere $\twosphere$ 
+embedded into $\R^3$ has practical relevance in quite a wide range of 
+applications, in many cases due to its correspondence to the surface 
+of the earth. Fields of interest are numerical analysis in
+geo-sciences, for example in the computation of climate models for
+weather forecasts, or regarding the gravitational potential of the 
+earth. Moreover, data distributed on the surface of a sphere arise
+in many other applications in a natural way. Examples are
+molecular dynamics for protein docking problems and 
+gamma-cameras for applications in computed tomography.
+Unfortunately, the spherical setting differs from the 'classical' 
+one in that the numerical treatment of many computational problems
+is quite more challenging. Also there exists a rich theory for 
+analysis on the sphere, fast algorithms allowing for efficient and
+reliable discrete transforms in terms of the so-called 
+\emph{spherical harmonics}, the spherical counterpart of the 
+Fourier basis $\set{e^{\im k x}}_{k \in \Z}$ on the interval,
+haven't been developed until a first paper by Driscoll and Healy. 
+During the past years, major progress has been made and several 
+different techniques have been developed. The common idea is to
+transform the spherical discrete Fourier transformation into a
+'classical' two-dimensional discrete Fourier transform. The
+different proposed algorithms mainly differ in the ansatz chosen
+to compute the transformation efficiently. A careful analysis
+of numerical instabilities involved has proven to be of major 
+importance.
+The aim of this text is to give a short introduction to Fourier 
+series on the sphere $\twosphere$ and to describe a particular
+algorithms with more detail. 

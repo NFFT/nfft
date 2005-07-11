@@ -1,4 +1,4 @@
-\documentclass[a4paper,oneside,10pt,final]{scrreprt}
+\documentclass[a4paper,oneside,10pt,draft]{scrreprt}
 
 % AMSMath-packages
 \usepackage{amsmath}
@@ -103,8 +103,11 @@ $${}^{}$$
 \tableofcontents
 
 %\mainmatter
+\newpage
+\thispagestyle{empty}
+$${}^{}$$
 
-%\include{introduction}
+\include{introduction}
 \include{chapter01}
 \include{chapter02}
 \include{chapter03}

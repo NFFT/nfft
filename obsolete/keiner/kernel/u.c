@@ -5,6 +5,7 @@
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma, bool window)
 {
+  const int N = 1<<t;
   /** Maximum bandwidth */
   int M = 1<<t;
   /** Legendre index n */
@@ -75,6 +76,9 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   
   int nstab = 0;
   
+  int ntilde;
+  int Mtilde = min(M,N-1);
+  
   fprintf(stderr,"Threshold = %lf\n",threshold);  
     
   /* Initialize array with Chebyshev coefficients for the polynomial x. This 
@@ -116,6 +120,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
+    ntilde = min(n,/*N*/1<<ngpt(n)-2);
     //fprintf(stderr,"n = %5d\n",n);
   		//fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
@@ -326,6 +331,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
 
 void forgetU(struct U_type**** U, int M, int t, bool window)
 { 
+  const int N = 1<<t;
   /** Legendre index n */
   int n;
   /** Cascade level */
@@ -341,9 +347,12 @@ void forgetU(struct U_type**** U, int M, int t, bool window)
   int l;
   int tau_stab;
   int lb;
+  int ntilde;
+  int Mtilde = min(M,N-1);
 
   for (n = 0; n <= M; n++)
   {   
+    ntilde = min(n,/*N*/1<<ngpt(n)-2);
     plength = 4;
     for (tau = 1; tau < t; tau++)
     {
@@ -462,6 +471,7 @@ inline void multiplyU_adjoint(complex  *a, complex *b,
 struct U_type**** precomputeU_stab(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma)
 {
+  const int N = 1<<t;
   /** Maximum bandwidth */
   int M = 1<<t;
   /** Legendre index n */
@@ -534,6 +544,8 @@ struct U_type**** precomputeU_stab(int t, double threshold, double *walpha,
   /** Used to indicate that stabilization is neccessary. */
   bool needstab = false;  
   
+  int ntilde;
+  int Mtilde = min(M,N-1);
   
   /* Initialize array with Chebyshev coefficients for the polynomial x. This 
    * would be trivially an array containing a 1 as second entry with all other 
@@ -579,6 +591,7 @@ struct U_type**** precomputeU_stab(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
+    ntilde = min(n,/*N*/1<<ngpt(n)-2);
     fprintf(stderr,"n = %5d\n",n);
   		fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
@@ -729,6 +742,7 @@ struct U_type**** precomputeU_stab(int t, double threshold, double *walpha,
 
 void forgetU_stab(struct U_type**** U, int M, int t)
 { 
+  const int N = 1<<t;
   /** Legendre index n */
   int n;
   /** Cascade level */
@@ -743,9 +757,12 @@ void forgetU_stab(struct U_type**** U, int M, int t)
   //int nsteps;
   int l;
   int tau_stab;
+  int ntilde;
+  int Mtilde = min(M,N-1);
   
   for (n = 0; n <= M; n++)
   {   
+    ntilde = min(n,/*N*/1<<ngpt(n)-2);
     plength = 4;
     for (tau = 1; tau < t; tau++)
     {

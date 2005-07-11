@@ -457,3 +457,9 @@ inline void normalize_f_hat(complex **f_hat, int M)
   }
 }
 
+inline int min(const int a, const int b)
+{
+  return a<b?a:b;
+}
+
+

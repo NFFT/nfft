@@ -190,26 +190,27 @@ int main (int argc, char **argv)
 
     fscanf(stdin,"nfsft=%d\n",&use_nfsft);
     if (use_nfsft != 0)
-		{
+  		{
       fprintf(stdout,"  NFSFT = yes\n");
       fscanf(stdin,"nfft=%d\n",&use_nfft);
       fprintf(stdout,"  NFFT = %d\n",use_nfft);
-			if (use_nfft != 0)
-			{
+		   	if (use_nfft != 0)
+			   {
         fscanf(stdin,"cutoff=%d\n",&cutoff);
         fprintf(stdout,"  Cutoff = %d\n",cutoff);
-			}
-   else
-   {
-     cutoff = 3;
-   }
+			   }
+      else
+      {
+        cutoff = 3;
+      }     
       fscanf(stdin,"threshold=%lf\n",&threshold);
       fprintf(stdout,"  Threshold = %E\n",threshold);
-		}
-		else
-		{
+  		}
+		  else
+		  {
+      cutoff = 3;
       fprintf(stdout,"  NFSFT = no\n");
-		}
+		  }
 
     /* Initialize bandwidth bound. */
     m_max = 0;
@@ -461,14 +462,14 @@ int main (int argc, char **argv)
           
           /* Adjoint transform */
           t_f = second();
-					if (use_nfsft != 0)
-					{
+					     if (use_nfsft != 0)
+					     {
             nfsft_adjoint(plan_adjoint);
-					}
-					else
-					{
+					     }
+					     else
+					     {
             ndsft_adjoint(plan_adjoint);
-					}
+					     }
             
           /* Multiplication with diagonal matrix. */
           for (k = 0; k <= m[im]; k++)
@@ -480,14 +481,14 @@ int main (int argc, char **argv)
           }
             
           /* Forward transform */
-					if (use_nfsft != 0)
-					{
+	     				if (use_nfsft != 0)
+					     {
             nfsft_trafo(plan);
-					}
-					else
-					{
+					     }
+					     else
+					     {
             ndsft_trafo(plan);
-					}
+					     }
           t_f = second() - t_f;
 
           /* Finalize plans */

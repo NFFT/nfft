@@ -39,6 +39,8 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   complex *work_ptr;
   complex *f_hat_ptr;
   
+  int ntilde = min(n,N-2);;
+  int Mtilde = min(M,N-1);
   
   /* Initialize working arrays. */
   memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));
@@ -225,6 +227,8 @@ void flft_adjoint(const int M, const int t, const int n, complex *const f_hat,
   /** Loop counter */
   int j;
 
+  int ntilde = min(n,N-2);;
+  int Mtilde = min(M,N-1);
   
   /* Initialize working arrays. */
   memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));
@@ -388,6 +392,8 @@ void flft_stab(const int M, const int t, const int n, complex *const f_hat,
   complex *work_ptr;
   complex *f_hat_ptr;
   
+  int ntilde = min(n,N-2);;
+  int Mtilde = min(M,N-1);
   
   /* Initialize working arrays. */
   /*memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));

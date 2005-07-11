@@ -350,8 +350,6 @@ In summary, we propose the following algorithm.
 %--------------------------------------------------------------------------
 \section{Error estimates and examples}\label{Basics:SphericalKernels}
 %--------------------------------------------------------------------------
-Beyond the well--known errors appearing in the NFFT computations, see  \cite{post02},
-our algorithm produces the following error.
 \begin{lemma}\label{lemma:error}
   The proposed approximation obeys the uniform error estimate
   \begin{equation*}
@@ -361,14 +359,6 @@ our algorithm produces the following error.
     \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}.
   \end{equation*}
 \end{lemma}
-
-Thus, the error decouples into a part solely dependent on the coefficients
-$b_l$ and a decay condition on the symbol of the particular kernel.
-In contrast to results given in \cite{HuBa,CaFi}, we are interested also in
-the decay of the symbol in relation to the parameter of the kernel.
-We consider a couple of 'representative' kernels, where a closed form of the
-kernel allows direct evaluation and some scheme for the precomputation of the
-symbol is necessary for the fast summation algorithm.
 
 \subsection{Poisson and Singularity kernel}
 \begin{definition}
@@ -547,7 +537,7 @@ different values $\sigma$.
 \begin{figure}[tb]
   \centering
   \includegraphics[width=0.7\textwidth]{images/gaussian}
-  \caption{The kernel $G_{\sigma}$ for $\sigma = 2,6,20$.}
+  \caption{The kernel $G_{\sigma}$ for $\sigma = 2,10,80$.}
   \label{Basics:Figure:GKernel}
 \end{figure}
 
@@ -577,8 +567,7 @@ different values $\sigma$.
   \begin{equation}
     \label{error:G}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    \frac{\sqrt{\pi\sigma}\left(\e^{\sigma}-1\right)
-    \sigma^{M-\frac{1}{2}}}{\fun{\Gamma}{M+\frac{1}{2}}}.
+    .
   \end{equation} 
 \end{enumerate}
 \end{lemma}
@@ -606,7 +595,7 @@ different values $\sigma$.
     \frac{\sqrt{\pi\sigma}\e^{\sigma}}{\fun{\Gamma}{M+\frac{1}{2}}} 
     \int_{0}^{\sigma} t^{M-\frac{1}{2}} \e^{-t} \dx t\\
     &\le&
-    \frac{\sqrt{\pi\sigma}\left(\e^{\sigma}-1\right) \sigma^{M-\frac{1}{2}}}{\fun{\Gamma}{M
+    \frac{\sqrt{\pi\sigma}\e^{\sigma} \sigma^{M+\frac{1}{2}}}{\fun{\Gamma}{M
     +\frac{1}{2}}}
   \end{eqnarray*}
   yields the assertion.
