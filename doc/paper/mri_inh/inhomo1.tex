@@ -525,6 +525,7 @@ The length of the readout intervall was 19ms for each spiral arm with an echo ti
 
 In all tests we used the oversampling factor $\alpha \approx 1.5$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$ depends on the field map. With the simulated field map we choose $N_3=28$, with the measured field map $N_3=48$.
 
+\marginpar{m=6}
 
 To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{KnKuPo,RaPrSiBoEg99,qhull}.
 
@@ -550,7 +551,7 @@ denotes the original image.
  \rule{0mm}{4mm} 2d NFFT & 4.21 & 4.47 &  4.51 & 4.55 & 31 \\[1ex] \hline
  \rule{0mm}{4mm} 3d NNFFT & 10.15 & 13.60 & 14.13 & 14.56 & 1394 \\[1ex] \hline
  \rule{0mm}{4mm} 3d NFFT & 10.15 & 13.60 & 14.13 & 14.56 & 256 \\[1ex] \hline
- \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 10.12 & 13.53 & 14.01 & 14.41& 32\\[1ex] \hline \hline
+ \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 10.15 & 13.60 & 14.13 & 14.56& 32\\[1ex] \hline \hline
  \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & CPU-Time/Iter\\[1ex] \hline\hline
  \rule{0mm}{4mm} 2d NFFT &  &  &  &  &  \\[1ex] \hline
  \rule{0mm}{4mm} 3d NNFFT &  &  &  & &  \\[1ex] \hline \hline

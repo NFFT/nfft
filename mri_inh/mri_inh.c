@@ -12,7 +12,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
 
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 1,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
   memset(f,0,that->M_total*sizeof(complex));
   for(j=0;j<that->N_total;j++)
   {
@@ -43,7 +43,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
 
   nfft_plan *ths = (nfft_plan*) malloc(sizeof(nfft_plan));
-  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 1,0,0);
+  nfft_init_guru(ths, 1, &that->N3, 1,&that->N3, 6,0,0);
   memset(f_hat,0,that->N_total*sizeof(complex));
   for(j=0;j<that->M_total;j++)
   {

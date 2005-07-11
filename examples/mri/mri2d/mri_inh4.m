@@ -17,6 +17,30 @@ arms=16;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 1 1'])
+visualize_data('pics/phantom_2d1d_iter=1',N);
+snr('pics/snr_phantom_2d1d_iter=1');
+
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 2 1'])
+visualize_data('pics/phantom_2d1d_iter=2',N);
+snr('pics/snr_phantom_2d1d_iter=2');
+
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 5 1'])
+visualize_data('pics/phantom_2d1d_iter=5',N);
+snr('pics/snr_phantom_2d1d_iter=5');
+
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 10 1'])
+visualize_data('pics/phantom_2d1d_iter=10',N);
+snr('pics/snr_phantom_2d1d_iter=10');
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 system(['./reconstruct_data_inh_3d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 1 1'])
 visualize_data('pics/phantom_3d_iter=1',N);
@@ -60,28 +84,6 @@ system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
 visualize_data('pics/phantom_gridding_iter=10',N);
 snr('pics/snr_phantom_gridding_iter=10');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 1 1'])
-visualize_data('pics/phantom_2d1d_iter=1',N);
-snr('pics/snr_phantom_2d1d_iter=1');
-
-system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 2 1'])
-visualize_data('pics/phantom_2d1d_iter=2',N);
-snr('pics/snr_phantom_2d1d_iter=2');
-
-system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 5 1'])
-visualize_data('pics/phantom_2d1d_iter=5',N);
-snr('pics/snr_phantom_2d1d_iter=5');
-
-system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 10 1'])
-visualize_data('pics/phantom_2d1d_iter=10',N);
-snr('pics/snr_phantom_2d1d_iter=10');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
