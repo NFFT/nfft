@@ -18,5 +18,5 @@ system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 1 1'])
 
 figure(1);
-visualize_data('pics/reallife_400_iter=1',N);
+visualize_data('pics/reallife_600_iter=1',N);
 snr('pics/snr');

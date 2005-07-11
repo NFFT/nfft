@@ -8,6 +8,6 @@ for k=1:N,
 end
 
 imagesc(reshape(out,N,N));
-plot(1:N,out(N*N/2+1:N*N/2+N));
+%plot(1:N,out(N*N/2+1:N*N/2+N));
 
 save inh.dat -ascii out

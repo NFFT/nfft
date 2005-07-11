@@ -505,9 +505,9 @@ quality, and the usage of time and memory resources.
 \begin{figure*}[ht] 
 \centering
 \begin{tabular}{ccc}
-\includegraphics[width=5.5cm]{pics/spiral.jpg} &
-\includegraphics[width=5.5cm]{pics/phantom_original.jpg} &
-\includegraphics[width=5.5cm]{pics/fieldmap_simulated.jpg}
+\includegraphics[height=4.7cm]{pics/spiral.jpg} &
+\includegraphics[height=4.7cm]{pics/phantom_original.jpg} &
+\includegraphics[height=4.7cm]{pics/fieldmap_simulated.jpg}
 \end{tabular}
 \caption{A subset of the k-Space trajectory, here with only 4 interleaved spiral arms (left), the used phantom (middle) and the simulated field map (right)}
 \label{Fig:Phantom}
@@ -541,22 +541,23 @@ First of all, we compare the different reconstruction methods with a $2d$-Shepp-
 Thus the field map is in the interval $[-\frac{1}{4},\frac{1}{4}]$ kHz. Table \ref{Tab:1} shows the signal-to-noise-ratio 
 ${\rm SNR}(\zb{\tilde p},\zb p):=20 \log_{10}({\|\zb p\|_2}\,/\,{\|\zb p-
 \zb{\tilde p}\|_2})$ where $\zb {\tilde p}$ is our reconstruction and $\zb p$
-denotes the original image.
+denotes the original image. The SNR for 3d NNFFT, 3d NFFT and 2d$\otimes$1d NFFT is nearly the same.
+Thus, no method is rising above the other in image quality.
 
 \begin{table}[ht]
 \begin{center}
 \begin{tabular}{|l||c|c|c|c|c|} \hline
  \rule{0mm}{4mm} method $\backslash$ iter. & $1$ & $2$  & $5$  & $10$ &  \\[1ex] \hline\hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} SNR}& Memory in MB\\[1ex] \hline\hline
- \rule{0mm}{4mm} 2d NFFT & 4.21 & 4.47 &  4.51 & 4.55 & 31 \\[1ex] \hline
- \rule{0mm}{4mm} 3d NNFFT & 10.15 & 13.60 & 14.13 & 14.56 & 1394 \\[1ex] \hline
- \rule{0mm}{4mm} 3d NFFT & 10.15 & 13.60 & 14.13 & 14.56 & 256 \\[1ex] \hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} SNR}& Mem in MB\\[1ex] \hline\hline
+ \rule{0mm}{4mm} 2d NFFT & 4.21 & 4.47 &  4.51 & 4.55 & 29 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NNFFT & 10.15 & 13.60 & 14.13 & 14.56 & 599 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NFFT & 10.15 & 13.60 & 14.13 & 14.56 & 189 \\[1ex] \hline
  \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 10.15 & 13.60 & 14.13 & 14.56& 32\\[1ex] \hline \hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & CPU-Time/Iter\\[1ex] \hline\hline
- \rule{0mm}{4mm} 2d NFFT &  &  &  &  &  \\[1ex] \hline
- \rule{0mm}{4mm} 3d NNFFT &  &  &  & &  \\[1ex] \hline \hline
- \rule{0mm}{4mm} 3d NFFT &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} 2d$\otimes$1d NFFT &  &  &  &  & \\[1ex] \hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & Time/Iter\\[1ex] \hline\hline
+ \rule{0mm}{4mm} 2d NFFT & 5.07 & 7.61 & 15.24 & 27.95 & 2.54 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NNFFT & 144.75 & 217.16 & 434.26 & 796.18& 72.41 \\[1ex] \hline
+ \rule{0mm}{4mm} 3d NFFT & 84.55 & 126.68 & 253.20 & 464.14 & 42.13\\[1ex] \hline
+ \rule{0mm}{4mm} 2d$\otimes$1d NFFT & 159.00 & 237.93 &  475.50 & 871.65 & 78.93\\[1ex] \hline
 
 \end{tabular}
 \end{center}
@@ -564,31 +565,38 @@ denotes the original image.
 \end{table}
 
 
+Figure \ref{Fig:1} and \ref{Fig:2} show the reconstructed Shepp-Logan phantom with different methods after one iteration. Furthermore Figure \ref{Fig:2} shows the phantom reconstructed with the 2d$\otimes$1d NFFT method after 5 and 10 iteration.
+The pictures show again that no reconstruction methods 3d NNFFT, 3d NFFT or 2d$\otimes$1d NFFT has
+advantages in image quality. The image in \ref{Fig:1} shows the result if the field inhomogenities are ignored (gridding).
+
+
 \begin{figure*}[ht!]
 \centering
 \begin{tabular}{ccc}
-\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1.png} &
-\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1.png}&
-\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1.png}\\
-\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1row.png} &
-\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1row.png} &
-\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1row.png}
+\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1.jpg} &
+\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1.jpg}&
+\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1.jpg}\\
+\includegraphics[width=5.5cm]{pics/phantom_gridding_iter=1row.jpg} &
+\includegraphics[width=5.5cm]{pics/phantom_nnfft_iter=1row.jpg}&
+\includegraphics[width=5.5cm]{pics/phantom_3d_iter=1row.jpg} 
 \end{tabular}
-\caption{} \label{Fig:5}
+\caption{The Shepp-Logan phantom (top) and the profile of the $128$th row of this (bottom), reconstructed
+with {\bf gridding} (left), {\bf 3D NNFFT} (middle) and {\bf 3D NFFT} (right) after one iteration.} \label{Fig:1}
 \end{figure*}
 
 
 \begin{figure*}[ht!]
 \centering
 \begin{tabular}{ccc}
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1.png} &
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5.png}&
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10.png}\\
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1row.png} &
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5row.png} &
-\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10row.png}
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1.jpg} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5.jpg}&
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10.jpg}\\
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=1row.jpg} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=5row.jpg} &
+\includegraphics[width=5.5cm]{pics/phantom_2d1d_iter=10row.jpg}
 \end{tabular}
-\caption{} \label{Fig:5}
+\caption{The Shepp-Logan phantom (top) and the profile of the $128$th row of this (bottom), reconstructed
+with {\bf 2d$\otimes$1d NFFT}: from left to right after 1,5 and 10 iterations.} \label{Fig:2}
 \end{figure*}
 
 \end{NumExp} 
@@ -610,11 +618,11 @@ The reconstruction object is the same as in example \ref{Exp:1}.
 \begin{center}
 \begin{tabular}{|l||c|c|c|c|c|} \hline
  \rule{0mm}{4mm} method $\backslash$ iter. & $1$ & $2$  & $5$  & $10$ &  \\[1ex] \hline\hline
- \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & Memory in MB\\[1ex] \hline\hline
+ \multicolumn{5}{|c|}{\rule{0mm}{4mm} CPU-Time} & Mem in MB\\[1ex] \hline\hline
  \rule{0mm}{4mm} no precompution &  &  &  &  &  \\[1ex] \hline
- \rule{0mm}{4mm} PRE\_LIN\_PSI &  &  &  & &  \\[1ex] \hline
- \rule{0mm}{4mm} PRE\_PSI &  &  &  &  & \\[1ex] \hline
- \rule{0mm}{4mm} PRE\_FULL\_PSI &  &  &  &  & \\[1ex] \hline
+ \rule{0mm}{4mm} PRE\_LIN\_PSI & 288.47 & 432.04 & 862.95 & & 17 \\[1ex] \hline
+ \rule{0mm}{4mm} PRE\_PSI &144.75 & 217.16 & 434.26 & 796.18& 32\\[1ex] \hline
+ \rule{0mm}{4mm} PRE\_FULL\_PSI & 51.91 & 77.90 & 155.84 & 285.91 & 185\\[1ex] \hline
 \end{tabular}
 \end{center}
 \caption{CPU-time for different flags with 2d$\otimes$1d NFFT reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
@@ -631,14 +639,14 @@ the Philips Achieva 1.5T device.
 \marginpar{fieldmap???}
 Wie wurde die fieldmap berechnet? siehe Fessler?
 
-The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance is in the interval $[-??,???]$ kHz, which 
+The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance is in the interval $[-0.475 0.591]$ kHz, which 
 causes ??? $\pi$ extra spin phase accural during the readout.
 
 \begin{figure}[ht!] 
 \begin{center}
-\includegraphics[width=6cm]{pics/fieldmap.jpg} 
+\includegraphics[width=8cm]{pics/fieldmap.jpg} 
 \end{center}
-\caption{The measured field map (left) in kHz.}
+\caption{The measured field map in kHz.}
 \label{Fig:fieldmap}
 \end{figure}
 
@@ -650,7 +658,7 @@ causes ??? $\pi$ extra spin phase accural during the readout.
 \includegraphics[width=8cm]{pics/reallife_600_gridding_iter=1row.jpg} &
 \includegraphics[width=8cm]{pics/reallife_600_iter=1row.jpg}
 \end{tabular}
-\caption{Physical phantom from a MR scan by the Philips Achieva 1.5T device, reconstructed
+\caption{Physical phantom from a MR scan by the Philips Achieva 1.5T device (top) and the profile of the $128$th row of this (bottom), reconstructed
 with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration}
 \label{Fig:Philips}
 \end{figure*}
