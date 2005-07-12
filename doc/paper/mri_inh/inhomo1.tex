@@ -523,11 +523,9 @@ with 16 interleaved spiral arms and 4720 knots each.
 % with the parameters ???? $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
 The length of the readout intervall was 19ms for each spiral arm with an echo time $T_E=2$ms.
 
-In all tests we used the oversampling factor $\alpha \approx 1.5$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$ depends on the field map. With the simulated field map we choose $N_3=28$, with the measured field map $N_3=48$.
+In all tests we used the oversampling factor $\alpha \approx 1.5$ and $m=6$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$ depends on the field map. With the simulated field map we choose $N_3=28$, with the measured field map $N_3=48$.
 
-\marginpar{m=6}
-
-To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{KnKuPo,RaPrSiBoEg99,qhull}.
+To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{RaPrSiBoEg99,qhull}. In \cite{KnKuPo} was shown, that this method leads to very good results.
 
 The NFFT2 library allows different flags to reduce computation time at expense of memory. Because the reconstruction algorithms have significantly different memory consumption  we tested different flags in example \ref{Exp:2}. 
 
@@ -542,7 +540,7 @@ Thus the field map is in the interval $[-\frac{1}{4},\frac{1}{4}]$ kHz. Table \r
 ${\rm SNR}(\zb{\tilde p},\zb p):=20 \log_{10}({\|\zb p\|_2}\,/\,{\|\zb p-
 \zb{\tilde p}\|_2})$ where $\zb {\tilde p}$ is our reconstruction and $\zb p$
 denotes the original image. The SNR for 3d NNFFT, 3d NFFT and 2d$\otimes$1d NFFT is nearly the same.
-Thus, no method is rising above the other in image quality.
+Thus, no method is rising above another in image quality.
 
 \begin{table}[ht]
 \begin{center}
@@ -567,7 +565,7 @@ Thus, no method is rising above the other in image quality.
 
 Figure \ref{Fig:1} and \ref{Fig:2} show the reconstructed Shepp-Logan phantom with different methods after one iteration. Furthermore Figure \ref{Fig:2} shows the phantom reconstructed with the 2d$\otimes$1d NFFT method after 5 and 10 iteration.
 The pictures show again that no reconstruction methods 3d NNFFT, 3d NFFT or 2d$\otimes$1d NFFT has
-advantages in image quality. The image in \ref{Fig:1} shows the result if the field inhomogenities are ignored (gridding).
+advantages in image quality. Compared to gridding, all methods yield to very good results. The image in \ref{Fig:1} shows the result if the field inhomogenities are ignored (gridding). 
 
 
 \begin{figure*}[ht!]
@@ -599,6 +597,8 @@ with {\bf gridding} (left), {\bf 3D NNFFT} (middle) and {\bf 3D NFFT} (right) af
 with {\bf 2d$\otimes$1d NFFT}: from left to right after 1,5 and 10 iterations.} \label{Fig:2}
 \end{figure*}
 
+Now we compare the computation time and the memory consumption of the algorithms. In both categorys the 
+3D NFFT beats the 3D NNFFT method. At first glance the 2d$\otimes$1d NFFT method is the slowest but with the lowest memory consumption. The 2d$\otimes$1d NFFT consumes almost the same memory as gridding. In Experiment \label{Exp:2} we see the possibility to speed up the NFFT at expense of memory. Thus to choose the fastest method, the available memory must be considered.
 \end{NumExp} 
 
 \begin{NumExp} \label{Exp:2}
@@ -628,7 +628,7 @@ The reconstruction object is the same as in example \ref{Exp:1}.
 \caption{CPU-time for different flags with 2d$\otimes$1d NFFT reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
 \end{table}
 
-
+Conclusion ....
 
 \end{NumExp}
 
@@ -639,7 +639,7 @@ the Philips Achieva 1.5T device.
 \marginpar{fieldmap???}
 Wie wurde die fieldmap berechnet? siehe Fessler?
 
-The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance is in the interval $[-0.475 0.591]$ kHz, which 
+The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance is in the interval $[-0.475, 0.591]$ kHz, which 
 causes ??? $\pi$ extra spin phase accural during the readout.
 
 \begin{figure}[ht!] 
@@ -649,6 +649,8 @@ causes ??? $\pi$ extra spin phase accural during the readout.
 \caption{The measured field map in kHz.}
 \label{Fig:fieldmap}
 \end{figure}
+
+Figure \ref{Fig:Philips} shows images reconstructed with gridding (left) and 2d$\otimes$1d NFFT (right).
 
 \begin{figure*}[ht] 
 \centering
