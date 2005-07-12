@@ -579,7 +579,7 @@ advantages in image quality. Compared to gridding, all methods yield to very goo
 \includegraphics[width=5.5cm]{pics/phantom_3d_iter=1row.jpg} 
 \end{tabular}
 \caption{The Shepp-Logan phantom (top) and the profile of the $128$th row of this (bottom), reconstructed
-with {\bf gridding} (left), {\bf 3D NNFFT} (middle) and {\bf 3D NFFT} (right) after one iteration.} \label{Fig:1}
+with {\bf gridding} (left), {\bf 3d NNFFT} (middle) and {\bf 3d NFFT} (right) after one iteration.} \label{Fig:1}
 \end{figure*}
 
 
@@ -598,7 +598,7 @@ with {\bf 2d$\otimes$1d NFFT}: from left to right after 1,5 and 10 iterations.} 
 \end{figure*}
 
 Now we compare the computation time and the memory consumption of the algorithms. In both categorys the 
-3D NFFT beats the 3D NNFFT method. At first glance the 2d$\otimes$1d NFFT method is the slowest but with the lowest memory consumption. The 2d$\otimes$1d NFFT consumes almost the same memory as gridding. In Experiment \label{Exp:2} we see the possibility to speed up the NFFT at expense of memory. Thus to choose the fastest method, the available memory must be considered.
+3d NFFT beats the 3d NNFFT method. At first glance the 2d$\otimes$1d NFFT method is the slowest but with the lowest memory consumption. The 2d$\otimes$1d NFFT consumes almost the same memory as gridding. In Experiment \ref{Exp:2} we see the possibility to speed up the NFFT at expense of memory. Thus to choose the fastest method, the available memory must be considered.
 \end{NumExp} 
 
 \begin{NumExp} \label{Exp:2}
@@ -625,10 +625,11 @@ The reconstruction object is the same as in example \ref{Exp:1}.
  \rule{0mm}{4mm} PRE\_FULL\_PSI & 51.91 & 77.90 & 155.84 & 285.91 & 185\\[1ex] \hline
 \end{tabular}
 \end{center}
-\caption{CPU-time for different flags with 2d$\otimes$1d NFFT reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
+\caption{CPU-time for different flags with the 2d$\otimes$1d NFFT reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
 \end{table}
 
-Conclusion ....
+If it is possible the flag PRE\_PSI is recommend. The advantage in Time is ...
+The flag PRE\_FULL\_PSI gives another great speed up. Because this flag uses ... extra memory it can just be choosen if enough memory is available. 
 
 \end{NumExp}
 
