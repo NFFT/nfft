@@ -55,12 +55,6 @@
 /** Gaussian kernel */
 #define KT_GAUSSIAN     (3)
 
-/** Computes the maximum of two integers. */
-inline int max(const int a, const int b)
-{
-  return (a>b)?a:b;
-}
-
 /** Computes the inner product on \f$\mathbb{S}^2\f$. */
 inline double innerProduct(const double phi1, const double theta1, 
                            const double phi2, const double theta2)
@@ -89,7 +83,7 @@ inline double locSuppKernel(const double x, const double h, const double lambda)
 /** Evaluates the Gaussian kernel. */
 inline double gaussianKernel(const double x, const double rho)
 {
- 	return exp(2*rho*(x-1));
+ 	return exp(rho*(x-1));
 }
 
 /**
@@ -209,6 +203,7 @@ int main (int argc, char **argv)
 		  else
 		  {
       cutoff = 3;
+			threshold = 1000000000000.0;
       fprintf(stdout,"  NFSFT = no\n");
 		  }
 
@@ -352,14 +347,11 @@ int main (int argc, char **argv)
       fprintf(file_tex,"$\rho$ & $M$ & $K$ & $N$ & $t_{\\text{slow}}$ & $t_{\\text{fast}}$ & $\\text{err}$\\\\\\hline\n");
     }
     
-    if (use_nfsft != 0)
-    {  
-      nfsft_precompute(m_max,threshold,NFSFT_FAST_ONLY/* | NFSFT_BW_WINDOW*/);
-    }
-    else
-    {
-      nfsft_precompute(m_max,1000000000000.0,0U);
-    }
+		//printf("reached1, m_max = %d\n",m_max);
+		//fflush(stdout);
+    nfsft_precompute(m_max,threshold,0U);
+		//printf("reached2\n");
+		//fflush(stdout);
     
     for (ip = 0; ip < ip_max; ip++)
     {
@@ -381,35 +373,71 @@ int main (int argc, char **argv)
       }          
       
       /* Kernel coeffcients up to m_max */
-      for (k = 0; k <= m_max; k++)
-      {        
-        switch (kt)
-        {
-          case KT_ABEL_POISSON:
-            a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);            
-            break;
-          case KT_SINGULARITY:
-            a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
-            break;
-          case KT_LOC_SUPP:
-            if (k == 0)
-            {
-              a[k] = 1.0;
-            }
-            else if (k == 1)
-            {
-              a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
-            }
-            else
-            {
-              a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);
-            }
-            break;                
-          case KT_GAUSSIAN:
-            break;                
-        }
-      }
-
+			switch (kt)
+			{
+				case KT_ABEL_POISSON:
+					for (k = 0; k <= m_max; k++)
+					{        
+						a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);            
+					}
+					break;
+				case KT_SINGULARITY:
+					for (k = 0; k <= m_max; k++)
+					{        
+						a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
+					}
+					break;
+				case KT_LOC_SUPP:
+					for (k = 0; k <= m_max; k++)
+					{        
+						if (k == 0)
+						{
+							a[k] = 1.0;
+						}
+						else if (k == 1)
+						{
+							a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
+						}
+						else
+						{
+							a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);
+						}
+					}
+					break;                
+				case KT_GAUSSIAN:
+					for (k = 0; k <= m_max; k++)
+					{        
+						if (k == 0)
+						{
+							a[k] = (4*PI/p[ip][0])*exp(-p[ip][0])*sinh(p[ip][0]);
+						}
+						else if (k == 1)
+						{
+							a[k] = 2*PI*((-1+p[ip][0]+exp(-2*p[ip][0])*(1+p[ip][0]))/(p[ip][0]*p[ip][0]));
+						}
+						else
+						{
+							a[k] = -((2*k-1)/p[ip][0])*a[k-1] + a[k-2];
+						}
+					}
+					for (k = 0; k <= m_max; k++)
+					{
+					  /*a[k] = a[k]*a[k];   
+							if (k == 63)
+							{
+							  fprintf(stderr,"            -((2*k-1) = %d\n",-(2*k-1));
+							  fprintf(stderr,"             p[ip][0] = %E\n",p[ip][0]);
+							  fprintf(stderr,"  -((2*k-1)/p[ip][0]) = %E\n",-((2*k-1)/p[ip][0]));
+							  fprintf(stderr,"              a[%d-1] = %E\n",k,a[k-1]);
+							  fprintf(stderr,"  -((2*k-1)/p[ip][0])a[%d-1] = %E\n",k,-((2*k-1)/p[ip][0])*a[k-1]);
+							  fprintf(stderr,"              a[%d-2] = %E\n",k,a[k-2]);
+							  fprintf(stderr,"  -((2*k-1)/p[ip][0])a[%d-1]+ a[%d-2] = %E\n",k,k,-((2*k-1)/p[ip][0])*a[k-1]+a[k-2]);
+							}*/
+						fprintf(stderr,"a[%d] = %E\n",k,creal(a[k]));
+					}
+					break;                
+			}
+			
       for (k = 0; k <= m_max; k++)
       {
         a[k] *= (2*k+1)/(4*PI);
@@ -437,7 +465,10 @@ int main (int argc, char **argv)
                   break;
                 case KT_LOC_SUPP:
                   f[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);
-                  break;                
+                  break;  
+								case KT_GAUSSIAN:	              
+                  f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+                  break;
               }
             }
 
@@ -445,6 +476,10 @@ int main (int argc, char **argv)
             {
               f[d] *= ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
             }
+						/*else if (kt = KT_GAUSSIAN)
+						{
+						  f[d] *= 2.0*p[ip][0]*(1.0-exp(-2.0*p[ip][0]));
+						}*/
             //fprintf(stderr,"f(%f,%f) = %f\n",xi[2*j],xi[2*j+1],f2[j]);
             //fflush(stderr);
           } 
@@ -454,7 +489,7 @@ int main (int argc, char **argv)
         
         for (im = 0; im < im_max; im++)
         {
-          fprintf(stderr,"      M = %d\n",m[im]);
+          fprintf(stderr,"      M = %d: ",m[im]);
           
           /* Init transform plans. */
           plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
@@ -499,15 +534,15 @@ int main (int argc, char **argv)
           {
             fprintf(stderr,"%+5.16f, %+5.16f, %+.3E\n",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));
             fflush(stderr);
-          }
-					fprintf(stderr,"\n");
+          }*/
+					/*fprintf(stderr,"\n");
           for (l = 0; l < ld[ild][0]; l++)
           {
             fprintf(stderr,"%+5.16f\n",creal(b[l]));
             fflush(stderr);
           }*/
 					
-					     fprintf(stderr,"err = %E, D = %d\n",error_complex_inf(f, f_m, ld[ild][1]),ld[ild][1]);
+					     fprintf(stderr,"err = %E\n",error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));
 					     //fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
           
           if (ld[ild][2] != 0)
