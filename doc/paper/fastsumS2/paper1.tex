@@ -153,8 +153,8 @@ The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
 \[
 \fun{P_k}{x} := \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \]
-One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$, $\fun{P_{k}}{\cos\theta}
-\le \sqrt{\frac{2}{\pi k \sin\theta}}$ for $\theta \in (0,\pi)$, $k \ge 1$, 
+One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$, $\left|\fun{P_{k}}{\cos\vartheta}\right|
+\le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for $\vartheta \in (0,\pi)$, $k \ge 1$, 
 and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$, 
 \cite[pp. 47]{niuv}.
 Furthermore, two recurrence relations are given by
@@ -172,9 +172,9 @@ $C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$ and let
 $\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
 standard orthonormal basis of spherical harmonics given by
 \[
-  \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\theta,\varphi} = 
+  \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\vartheta,\varphi} = 
   \sqrt{\frac{2k+1}{4\pi}} 
-  \fun{P_{k}^{|n|}}{\cos\theta} \e^{\im n \varphi}.
+  \fun{P_{k}^{|n|}}{\cos\vartheta} \e^{\im n \varphi}.
 \]
 The orthogonal expansion of the zonal function $\fun{K}{\V{\eta} \: \cdot}$
 is given by, cf \cite{XXX},
@@ -353,12 +353,82 @@ In summary, we propose the following algorithm.
 \begin{lemma}\label{lemma:error}
   The proposed approximation obeys the uniform error estimate
   \begin{equation*}
-    \left\|f - f_{M}\right\|_{\infty} \le
-    \left\|\V{b}\right\|_1 \left\|\fun{\left(K-K_M\right)}{\V{\eta} \: \cdot
-      }\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
+    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
     \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}.
   \end{equation*}
+%  Moreover, if we assume random uniformly distributed source and target nodes, 
+%  then we obtain the asymptotic bound
+%  \begin{equation*}
+%    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 
+%    \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{4\pi^2} \left( 2 \sum_{k>M} 
+%    \sqrt{k} \abs{\fun{K^{\wedge}}{k}} + \sum_{k>M} \frac{1}{\sqrt{k}} 
+%    \abs{\fun{K^{\wedge}}{k}}\right).
+%  \end{equation*}
 \end{lemma}
+\begin{proof}
+  We obtain immediately
+  \begin{align*}
+    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
+    & = \max_{\V{\xi} \in \mathcal{X}} 
+        \left|\sum_{l=0}^{L-1} b_{l} \sum_{k>M} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} 
+        \fun{P_{k}}{\V{\eta}_{l} \cdot \V{\xi}}\right| \\
+    & \le \sum_{l=0}^{L-1} \left| b_{l} \right| \max_{\V{\xi} \in \mathcal{X}} \left| \sum_{k>M} 
+          \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} \fun{P_{k}}{\V{\eta}_{l} \cdot \V{\xi}} \right| \\
+    & \le \left\|\V{b}\right\|_1 \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}},
+  \end{align*}
+  where, we have used $\left|\fun{P_{k}}{x}\right| \le 1$. 
+%  If we now asume random uniformly 
+%  distributed source and target nodes, we might replace this estimate in the asymptotic sense, i.e.
+%  for $L,D \towards \infty$ by the expected value
+%  \begin{equation*}
+%    E_{k} := \int_{0}^{\pi} \fun{P_{k}}{\cos\vartheta} \fun{p}{\vartheta} \; \dx \vartheta,
+%  \end{equation*}
+%  where $\fun{p}{\vartheta} := \frac{\sin\vartheta}{2}$ is the probability for a source node 
+%  $\V{\eta}$ and a target node $\V{\xi}$ to span the angle $\vartheta$. 
+%  Now using the estimate
+%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
+%  $\vartheta \in \left(0, \pi\right)$ yields
+%  \begin{equation*}
+%    E_{k} 
+%    \le \int_{0}^{\pi} 
+%          \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
+%      = \int_{0}^{\pi} \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
+%      = \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi\sqrt{k}}.
+%  \end{equation*}
+%  We obtain finally
+%  \begin{align*}
+%    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
+%    & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi} \sum_{k>M} 
+%    \frac{2k+1}{4\pi\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\\
+%    & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{4\pi^2} \left( 2 \sum_{k>M} 
+%    \sqrt{k} \abs{\fun{K^{\wedge}}{k}} + \sum_{k>M} \frac{1}{\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\right)\\
+%  \end{align*}
+%  Now using the estimates
+%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
+%  $\vartheta \in \left[\arcsin \frac{2}{\pi k}, \pi - \arcsin \frac{2}{\pi k}\right]$ and 
+%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le 1$ for $\vartheta \in \left[0, \arcsin 
+%  \frac{2}{\pi k}\right)\cup \left( \pi-\arcsin\frac{2}{\pi k}, \pi\right]$ yields
+%  \begin{align*}
+%    E_{k} 
+%    & \le 2\arcsin\frac{2}{\pi k} + 
+%          \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
+%          \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
+%    &   = 2\arcsin\frac{2}{\pi k} +  \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
+%          \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
+%    &   = 2\arcsin\frac{2}{\pi k} - \frac{4}{\sqrt{2\pi k}} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2},
+%  \end{align*}
+%  and \fun{E}{\phi,j} is the elliptic integral of the second kind
+%  \begin{equation*}
+%    \fun{E}{\phi,j} := \int_{0}^{\phi} \sqrt{1-j^2\sin^2 \theta} \: \dx \theta.
+%  \end{equation*}
+%  We obtain finally
+%  \begin{equation*}
+%    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
+%    \le \left\|\V{b}\right\|_1 \left(2\sum_{k>M} \fun{\arcsin}{\frac{2}{\pi k}} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}} - 
+%    \frac{4}{\sqrt{2\pi}} \sum_{k>M} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2} \frac{2k+1}{4\pi\sqrt{k}} 
+%    \abs{\fun{K^{\wedge}}{k}}\right),
+%  \end{equation*}
+\end{proof}
 
 \subsection{Poisson and Singularity kernel}
 \begin{definition}
@@ -392,7 +462,7 @@ in \cite[pp. 112]{frgesc}.
   {\includegraphics[width=0.45\textwidth]{images/poisson}}\hfill
   \subfigure[$h=0.8,0.9,0.955$]
   {\includegraphics[width=0.45\textwidth]{images/singularity}}
-  \caption{The kernels $\fun{Q_{h}}{\cos\theta}$ and $\fun{S_{h}}{\cos\theta}$
+  \caption{The kernels $\fun{Q_{h}}{\cos\vartheta}$ and $\fun{S_{h}}{\cos\vartheta}$
   for different values of $h$.}
   \label{Basics:Figure:PoissonSingularityKernel}
 \end{figure}
@@ -422,7 +492,7 @@ the following lemma.
 \end{lemma}
 \begin{proof}
 The symbols are given by $\fun{Q_{h}^{\wedge}}{k}=h^k$ and
-$\fun{S_{h}^{\wedge}}{k}=\frac{2k+1}{2}h^k$, respectively.
+$\fun{S_{h}^{\wedge}}{k}=\frac{2}{2k+1}h^k$, respectively.
 Using Lemma \ref{lemma:error} yields the assertions.
 \end{proof}
   
@@ -478,7 +548,7 @@ More formally, we have the following lemma.
     \fun{L_{h,\lambda}^{\wedge}}{k-1}
     \]
     for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
-    $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+1}$.
+    $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+2}$.
   \item We obtain for fixed $\lambda \in \NZ$ the decay rate
     \[
     \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_{\lambda}
@@ -537,7 +607,7 @@ different values $\sigma$.
 \begin{figure}[tb]
   \centering
   \includegraphics[width=0.7\textwidth]{images/gaussian}
-  \caption{The kernel $G_{\sigma}$ for $\sigma = 2,10,80$.}
+  \caption{The Gaussian-kernel $G_{\sigma}$ for $\sigma = 2,10,80$.}
   \label{Basics:Figure:GKernel}
 \end{figure}
 
@@ -632,11 +702,17 @@ We have considered the following kernels
 
 \begin{figure}[tb]
   \centering
-  \subfigure[$\lambda=1.0$]
+  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$.]
   {\includegraphics[width=0.45\textwidth]{images/poisson_test}}\hfill
-  \subfigure[$\lambda=2.0$]
+  \subfigure[[The Singularity kernel $S_{h}$ for $h = 0.8$.]
   {\includegraphics[width=0.45\textwidth]{images/singularity_test}}\\
-  \caption{To be written...}
+  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $h=0.3$, $\lambda = 7$.]
+  {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}
+  \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$: 
+  Fast summation with NDSFT (solid), fast summation with NFSFT, 
+  cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT, cut-off 
+  parameter $m = 6$ (dashed), error estimate for 
+  $E_{\infty}$ (dotted).}
   \label{Figure:PoissonTest}
 \end{figure}
 
