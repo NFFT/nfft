@@ -219,19 +219,19 @@ and we obtain
   \eim{ k x} \, \d { x} = c_{ k} (\tilde \varphi )\, .
 \end{equation}
 The Fourier coefficients
-\begin{equation} \label{FKphi}
+\begin{equation*}
 c_{ k} (\tilde \varphi ) =  
 \int\limits_{-\infty}^{\infty} \tilde\varphi (x-y)
   \eim{ k(x-y)} \, {\rm d} {y} \quad ( k \in \mathbb{Z}, x\in[-1/2,1/2)) 
-\end{equation}
+\end{equation*}
 can be approximated for $k=-N/2,\ldots, N/2-1$ by
-\begin{equation} \label{approx}
+\begin{equation} \label{approx1}
 c_{ k} (\tilde \varphi ) \approx
 \frac{1}{\alpha N} \sum_{l=-\alpha N/2}^{\alpha N/2-1}
 \tilde\varphi (x-\frac{l}{\alpha N})  \eim{ k(x-\frac{l}{\alpha N})} \,
 \end{equation}
 with an oversampling factor $\alpha >1$.
-But \eqref{approx} can be written as
+But \eqref{approx1} can be written as
 \[
 c_{ k} (\tilde \varphi ) \approx
 \frac{1}{\alpha N}\eim{kx}
@@ -263,6 +263,7 @@ with a truncation parameter $m$ $(m\ll N,m\in \mathbb{N})$.
 Note that the approximation of the exponentials in \eqref{approx} is
 used in order to develop the NFFT. The methods differ only by choosing
 different window functions $\varphi$. 
+
 For a finite number of  
 given Fourier coefficients $\hat f_{k} \in \mathbb{C}$
 we want to
@@ -275,7 +276,7 @@ at given non equispaced knots $ x_j \in
 [-\frac{1}{2},\frac{1}{2})^d,\;j=0,\hdots,M-1$. 
 Thus, our concern is the fast evaluation of
 \begin{equation*}
- f_j = \sum_{k=-N/2}^{N/2-1} \hat{f}_{k} \eip{k x_j}\,, \qquad
+ f_j :=f(x_j) = \sum_{k=-N/2}^{N/2-1} \hat{f}_{k} \eip{k x_j}\,, \qquad
  j=0,\hdots,M-1. 
 \end{equation*}
 Using now the approximation of the exponentials given in \eqref{approx}
@@ -300,22 +301,20 @@ where
 \zb f:=\left(f_j\right)_{j=0,\hdots,M-1},\quad 
 \zb {\hat f}:=\left(\hat{f}_{\zbs r}\right)_{\zbs r\in I_{\zbss N}^d}.
 \end{equation*}
-and the approximation \eqref{NFFTapr} to a fast
-evaluation of \eqref{trigPoly} can
-be written as 
+and the approximation \eqref{NFFTapr} 
+can be written as 
 $\zb A \approx \zb B \zb F \zb D$ with a diagonal matrix $\zb
 D=\diag(\hat \varphi(\zb r))$,
 an oversampled Fourier matrix $\zb F$, and
 a sparse matrix $\zb B$
-with nonzero entries $b_{j,l}=\psi (\zb x_j - l/ (\alpha N))$, where
+with nonzero entries $b_{j,l}=\psi (x_j - l/ (\alpha N))$, where
 $\psi$ approximates the window  function $\varphi$ and $\alpha$
 denotes the oversampling factor. The generalisation to higher
 dimensions is straightforward. A unified approach to the
 efficient computations of \eqref{trigPoly} was suggested in \cite{st97,
-  postta01}. It was already pointed out in \cite{postta01,SaBeCo01},
-that the gridding 
-method is simply a fast algorithm for the multiplication of the matrix
-$\zb A^{\adj}$ with a vector (see also \cite{KnKuPo}).
+  postta01}. 
+
+
 Our algorithms are based on the approach in \cite{postta01} where one can change 
 the window function $\varphi$ in a very simple way. Note, that
 \begin{enumerate}
@@ -327,10 +326,37 @@ The manual \cite{kupo04b} and the appendix in \cite{post02} present details
 for a suitable choice of the window function, the window-width, and the
 oversampling factor with respect to accuracy, speed and memory usage.
 
+In various papers, different window functions $\varphi$ for the NFFT
+were considered, e.g. 
+a Gaussian pulse tapered with a Hanning window in \cite{DuSc}, 
+Gaussian kernels combined with sinc kernels in \cite{Pe}, and
+special optimised windows in \cite{Ja,DuSc}. 
+Furthermore, special approaches based on scaling vectors
+\cite{NgLi99}, based on minimising the Frobenius norm of certain error
+matrices \cite{st01}, or based on min-max interpolation \cite{fesu02} are
+proposed. However, the numerical results in \cite{four, st01, fesu02} show that
+these approaches are not superior to the approach based on the Kaiser-Bessel
+window function.
+We remark further that the NFFT and the NFFT$^{\adj}$ can realized
+with all suggested window functions. However the accuracy depends on
+the truncation parameter $m$. In our further numerical test we use the
+Kaiser-Bessel window since this window provides the best results for a
+particular chosen parameter $m$.
+It was already pointed out in \cite{postta01,SaBeCo01},
+that the gridding 
+method is simply a fast algorithm for the multiplication of the matrix
+$\zb A^{\adj}$ with a vector (see also \cite{KnKuPo}).
+It is widely accepted that a gridding method derived from
+\eqref{approx} where the window function is the Kaiser-Bessel function
+leads to the most efficient algorithms. 
+
+Hence our aim is in the following to use this approximation and derive
+methods for the fast matrix vector multiplication with $\zb H$ based
+on \eqref{approx}. 
 
 Since the support of $\tilde\psi$ is ${\rm supp} \tilde\psi\subset
 [-m/(\alpha N), m/(\alpha N)]$ we can avoid the periodisation of $\psi$ 
-if $x\in[-\frac{1}{2}+\frac{m}{\alpha N},-\frac{1}{2}+\frac{m}{\alpha N}]$ 
+if $x\in[-\frac{1}{2}+\frac{m}{\alpha N},\frac{1}{2}-\frac{m}{\alpha N}]$ 
 and we obtain from \eqref{approx} and \eqref{FK=ck}
 \begin{equation} \label{approx2}
 \eip{kx}
@@ -345,12 +371,13 @@ Note that \eqref{approx2} is a good approximation if
 $kx\in[-\frac{N}{4}+\frac{m}{2\alpha},-\frac{N}{4}+\frac{m}{2\alpha}]$.
 
 
-\section{Fast matrix vector multiplication}\label{Sec:NFFT}
+\section{Fast matrix vector multiplication}\label{Sec:H}
  
 There are different possibilities to realize a matrix vector
 multiplication with $\zb H$.
 
-\subsection{3d NNFFT}
+\subsection{Method based on fast Fourier transforms for
+   nonequispaced data in time {\bf and} frequency domain(3d NNFFT)}
   
 A straightforward idea is to embed the data points in a higher
    dimensional space, i.e., set $\zb K_j= ((\zb k(t_j))^{\top},
@@ -368,9 +395,10 @@ A straightforward idea is to embed the data points in a higher
    \cite{postta01}. However we remark that this algorithms needs a
    further oversampling factor and is more expensive than the NFFT.
 
-\subsection{3d NFFT}
+\subsection{Method based on fast Fourier transforms for
+   nonequispaced data (3d NFFT)}
 
- We suggest a much simpler and faster method based on the NFFT.
+We suggest a much simpler and faster method based on the NFFT.
 First of all we choose $N_3$ such that 
 for all $\zb r\in I_{\zbs N}^2$, $j=0,\ldots,M-1$
 \begin{equation}\label{wahlN3}
@@ -397,10 +425,10 @@ Using this approximation in \eqref{inverse2} we obtain
 \frac{1}{N_3 \hat\varphi\left(\frac{Wt_j}{2\pi}\right)}
 \sum_{r_3=-N_3/2}^{N_3/2-1}
 \sum_{\zbs r \in I^2_{\zbss N}} 
-p(\zb r) \psi \left(\frac{\omega(\zb r)}{2\pi W}+\frac{r_3}{N_3}\right) \times
+p(\zb r) \psi \left(\frac{\omega(\zb r)}{2\pi W}+\frac{r_3}{N_3}\right)
 \end{equation*}
 \begin{equation*}
-\eip{\left(\begin{array}{c}
+\times \eip{\left(\begin{array}{c}
 \zbs k(t_j)\\
 \frac{t_jW}{2\pi N_3}
 \end{array}\right)
@@ -412,7 +440,7 @@ r_3
 }
 \end{equation*}
 and further by using $\zb k_j:= ((\zb k(t_j))^{\top},
-  t_jW/(2\pi N_3))^{\top}\in \mathbb{R}^3$ $(j=0,\ldots, M-1)$
+  t_jW/(2\pi N_3))^{\top}\in \mathbb{R}^3$ $(j=0,\ldots, M-1)$;
 $P(\zb r,r_3):= p(\zb r) \psi \left(\frac{\omega(\zbs
   r)}{W}+\frac{r_3}{N_3}\right)$ 
 we obtain
@@ -436,7 +464,7 @@ $
 $
 and $\zb A$ the trivariate nonequispaced Fourier matrix.
 
-Now we procced and develop a fast matrix times vector
+We proceed and develop a fast matrix times vector
 multiplication with $H^{\adj}$ more precisely we want to compute
 \[
 p_{\zbs r} =
@@ -455,11 +483,15 @@ p_{\zbs r} \approx
 \zb r\\
 r_3
 \end{array}\right)}\right)
+\]
+\[
+\times
 \psi \left(\frac{\omega(\zb r)}{W}-\frac{r_3}{N_3}\right)
 \]
-Now again the sum over $j$ can be computed by a trivariate NFFT.
+Now the sum over $j$ can be computed in an efficient way by a
+trivariate NFFT followed by a sparse sum over $r_3$.
 
-\subsection{2d$\otimes$1d methode, modified Fesslers methode}
+\subsection{The 2d$\otimes$1d method}
 
 After choosing $N_3$ as in \eqref{wahlN3} we choose a further scaling parameter $T$ such that
 \[
@@ -494,13 +526,16 @@ Using this approximation in \eqref{inverse2} we obtain
 We can perform the inner Fourier transforms quickly using $N_3$
 bivariate NFFT.
 
+Note that this method is known as ``time segmentation'' \cite{SuNoFe03}. The
+idea is to use  small time segments over which $t$ is approximately
+constant \cite{NoMe91}. With unified our approach there is no need to
+compute coefficients in a precomputation step. 
 
 %----------------------------------------------------------------------------
 \section{Numerical results}\label{Sec:Num}
 All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP
 2700+, 2GB memory, SuSe-Linux, kernel 2.4.20-4GB-athlon, FFTW3.0.1, and NFFT2.
-We are concerned with the application to real life data, the reconstruction
-quality, and the usage of time and memory resources.
+
 
 \begin{figure*}[ht] 
 \centering
@@ -509,38 +544,74 @@ quality, and the usage of time and memory resources.
 \includegraphics[height=4.7cm]{pics/phantom_original.jpg} &
 \includegraphics[height=4.7cm]{pics/fieldmap_simulated.jpg}
 \end{tabular}
-\caption{A subset of the k-Space trajectory, here with only 4 interleaved spiral arms (left), the used phantom (middle) and the simulated field map (right)}
+\caption{A subset of the k-Space trajectory, here with only 4
+  interleaved spiral arms (left), the used phantom (middle) and the
+  simulated field map (right)} 
 \label{Fig:Phantom}
 \end{figure*}
 
-The reconstruction algorithms were tested with a $2d$-Shepp-Logan phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ with a simulated field map. Furthermore we use MR measurements of a physical phantom by the Philips Achieva 1.5T device with a measured field maps. In all test we used an interleaved spiral k-space trajectory, given by
+The reconstruction algorithms were tested with a $2d$-Shepp-Logan
+phantom, cf. Figure \ref{Fig:Phantom}, of size $256\times256$ with a
+simulated field map. Furthermore we use MR measurements of a physical
+phantom by the Philips Achieva 1.5T device with a measured field
+maps. In all test we used an interleaved spiral k-space trajectory,
+given by 
 \begin{equation*}
 \zb {\tilde k}_j = A \sqrt{\frac{j}{M_1}} \left(\cos\frac{2\pi \omega
     j}{M_1}, \sin\frac{2\pi \omega j}{M_1}\right)^{\top}. 
 \end{equation*}
-\marginpar{spirale analytisch???}
+
+{\bf spirale analytisch???}
+
 with 16 interleaved spiral arms and 4720 knots each.
 % with the parameters ???? $M_1=N^2$, $A=0.5$, $\omega=\frac{25}{32}N$ and $j=0 \dots M_1-1$.
 The length of the readout intervall was 19ms for each spiral arm with an echo time $T_E=2$ms.
 
-In all tests we used the oversampling factor $\alpha \approx 1.5$ and $m=6$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$ depends on the field map. With the simulated field map we choose $N_3=28$, with the measured field map $N_3=48$.
+In all tests we used an oversampling factor $\alpha \approx 1.5$ and 
+$m=6$, such that $\alpha N_1=\alpha N_2 = 384$. The factor $N_3$
+depends on the field map. For the simulated field map and for the
+measured field map we choose $N_3=28$ and $N_3=48$, respectively. 
 
-To take into account the local sampling density in k-space we used weights $\zb W$ obtained as the area of the Voronoi cell around each sample knot, see also \cite{RaPrSiBoEg99,qhull}. In \cite{KnKuPo} was shown, that this method leads to very good results.
+In order to take into account the local sampling density in k-space we use
+weights $\zb W$ obtained as the area of the Voronoi cell around each
+sample knot, see also \cite{RaPrSiBoEg99,qhull}. In \cite{KnKuPo} it was
+shown, that this method leads to very good results. 
 
-The NFFT2 library allows different flags to reduce computation time at expense of memory. Because the reconstruction algorithms have significantly different memory consumption  we tested different flags in Example \ref{Exp:3}. 
-
-
+The NFFT2 library allows different flags to reduce computation time at
+expense of memory. Because the reconstruction algorithms have
+significantly different memory consumption  we tested different flags
+in Example \ref{Exp:3}.  
 
 \begin{NumExp} \label{Exp:1}
-First of all, we compare the different reconstruction methods with a $2d$-Shepp-Logan phantom. The simulated MR data are computed by the $3d$-NFFT-method using the following field map
+First of all, we compare the different reconstruction methods with a
+$2d$-Shepp-Logan phantom. The simulated MR data are computed by the
+$3d$-NFFT-method using the following field map 
 \begin{equation*}
-\omega(r_1,r_2) = \left(\frac{r_1}{N}\right)^2+\left(\frac{r_2}{N}\right)^2 -\frac{1}{4}.
+\omega(r_1,r_2) =
+\left(\frac{r_1}{N}\right)^2+\left(\frac{r_2}{N}\right)^2
+-\frac{1}{4}. 
 \end{equation*}
-Thus the field map is in the interval $[-\frac{1}{4},\frac{1}{4}]$ kHz. Table \ref{Tab:1} shows the signal-to-noise-ratio 
+Thus the field map is in the interval $[-\frac{1}{4},\frac{1}{4}]$. 
+Table \ref{Tab:1} shows the signal-to-noise-ratio  
 ${\rm SNR}(\zb{\tilde p},\zb p):=20 \log_{10}({\|\zb p\|_2}\,/\,{\|\zb p-
 \zb{\tilde p}\|_2})$ where $\zb {\tilde p}$ is our reconstruction and $\zb p$
-denotes the original image. The SNR for 3d NNFFT, 3d NFFT and 2d$\otimes$1d NFFT is nearly the same.
-Thus it appears that no method is rising above another in image quality.
+denotes the original image. 
+With gridding we denote an algorithm based on 2d NFFT where the field
+inhomogeneities are ignored.  
+The SNR for 3d NNFFT, 3d NFFT and
+2d$\otimes$1d NFFT is nearly the same. 
+Thus as expected we see that no method is rising above another in
+image quality.
+Figure \ref{Fig:1} and \ref{Fig:2} show the reconstructed Shepp-Logan
+phantom with different methods after one iteration. Furthermore Figure
+\ref{Fig:2} shows the  reconstructed phantom with the 2d$\otimes$1d
+NFFT method after 5 and 10 iterations. 
+The pictures show again that no reconstruction methods 3d NNFFT, 3d
+NFFT and 2d$\otimes$1d NFFT  has advantages in image quality. Compared
+to gridding, all methods yield 
+to very good results. The image in \ref{Fig:1} shows the result if the
+field inhomogeneities are ignored (gridding).  
+\end{NumExp}
 
 \begin{table}[ht]
 \begin{center}
@@ -555,12 +626,6 @@ Thus it appears that no method is rising above another in image quality.
 \end{center}
 \caption{SNR for different reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:1}
 \end{table}
-
-
-Figure \ref{Fig:1} and \ref{Fig:2} show the reconstructed Shepp-Logan phantom with different methods after one iteration. Furthermore Figure \ref{Fig:2} shows the phantom reconstructed with the 2d$\otimes$1d NFFT method after 5 and 10 iteration.
-The pictures show again that no reconstruction methods 3d NNFFT, 3d NFFT or 2d$\otimes$1d NFFT has
-advantages in image quality. Compared to gridding, all methods yield to very good results. The image in \ref{Fig:1} shows the result if the field inhomogenities are ignored (gridding). 
-
 
 \begin{figure*}[ht!]
 \centering
@@ -591,14 +656,22 @@ with {\bf gridding} (left), {\bf 3d NNFFT} (middle) and {\bf 3d NFFT} (right) af
 with {\bf 2d$\otimes$1d NFFT}: from left to right after 1,5 and 10 iterations.} \label{Fig:2}
 \end{figure*}
 
-\end{NumExp}
+
 
 \begin{NumExp} \label{Exp:2}
-
-
-Now we compare the computation time and the memory consumption of the algorithms. Table \ref{Tab:1} shows the results for the same reconstruction object as in Example \ref{Exp:1}. In both categorys, 
-time and space, the 
-3d NFFT beats the 3d NNFFT method. At first glance the 2d$\otimes$1d NFFT method is the slowest but with the lowest memory consumption. The 2d$\otimes$1d NFFT consumes almost the same memory as gridding. In Experiment \ref{Exp:3} we see the possibility to speed up the NFFT at expense of memory. Thus to choose the fastest method, the available memory must be considered.
+Now we compare the computation time and the memory usage of the
+algorithms. Table \ref{Tab:2} shows the results for the same
+reconstruction object as in Example \ref{Exp:1}. In both category's,  
+time and space requirements, the 
+3d NFFT beats the 3d NNFFT method. At first glance the 2d$\otimes$1d
+NFFT method is the slowest but with the lowest memory usage. The
+2d$\otimes$1d NFFT required almost the same memory usage as
+gridding. In the following
+Experiment \ref{Exp:3} we see the possibility to speed up the
+2d$\otimes$1d NFFT method at
+expense of memory. Thus to choose the fastest method, the available
+memory must be considered. 
+\end{NumExp} 
 
 \begin{table}[ht]
 \begin{center}
@@ -615,22 +688,25 @@ time and space, the
 \caption{CPU-time for different reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
 \end{table}
 
-
-
-\end{NumExp} 
-
 \begin{NumExp} \label{Exp:3}
-
 The NFFT2 library allows different flags to optimise the computing time which
 affect the storage of the precomputed values for the third step within the
 NFFT, i.e., the left factor $\zb B$, see Section \ref{Sec:NFFT}.
 The flag PRE\_FULL\_PSI stores all nonzero entries of the matrix $\zb B$, 
 PRE\_PSI in a lossless compressed form and PRE\_LIN\_PSI in a lossy compressed, trajectory
 independent form. PRE\_PSI needs  ${\cal O} (d(2m+2))$, PRE\_FULL\_PSI ${\cal O} ((2m+2)^d)$ extra
-memory for every knot $x_j$ $j=0,\hdots,M-1$.
-For better comparison we have choosen the same
+memory for every knot $x_j$, $j=0,\hdots,M-1$.
+For better comparison we have chosen the same
 flag PRE\_PSI for all reconstruction methods in Example \ref{Exp:1} and \ref{Exp:2}.
-Table \ref{Tab:3} shows CPU-Times and memory consumtions of the 2d$\otimes$1d NFFT method with different flags. The reconstruction object is the same as in Example \ref{Exp:1}.
+Table \ref{Tab:3} shows CPU-Times and memory requirement of the
+2d$\otimes$1d NFFT method with different flags. 
+Again we use the Shepp-Logan phantom as in Example \ref{Exp:1}. 
+If it is possible the flag PRE\_PSI is recommend. The ratio between Time speedup and extra used 
+memory is good.
+The flag PRE\_FULL\_PSI gives another great speedup but increases the extra used memory highly.
+We remark that we were not able to use the flag PRE\_FULL\_PSI with the 3d NNFFT or 
+3d NFFT method, because the memory requirements is greater than the 2GB of our machine.
+\end{NumExp}
 
 \begin{table}[ht]
 \begin{center}
@@ -642,26 +718,25 @@ Table \ref{Tab:3} shows CPU-Times and memory consumtions of the 2d$\otimes$1d NF
  \rule{0mm}{4mm} PRE\_FULL\_PSI & 51.91 & 77.90 & 155.84 & 285.91 & 185\\[1ex] \hline
 \end{tabular}
 \end{center}
-\caption{CPU-time for different flags with the 2d$\otimes$1d NFFT reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:3}
+
+\caption{CPU-time for different flags with the 2d$\otimes$1d NFFT
+ reconstruction methods after $1$, $2$, $5$, and $10$ iterations.}
+ \label{Tab:3} 
 \end{table}
 
-If it is possible the flag PRE\_PSI is recommend. The ratio between Time speedup and extra used 
-memory is good.
-The flag PRE\_FULL\_PSI gives another great speedup but increases the extra used memory highly.
-We want to remark that we were not able to use the flag PRE\_FULL\_PSI with the 3d NNFFT or 
-3d NFFT method, because the memory consumption was bigger than the 2GB of our machine.
-
-\end{NumExp}
-
 \begin{NumExp} \label{Exp:4}
-In the third Example we test our algorithms with MR measurements of a physical phantom by 
-the Philips Achieva 1.5T device.
+In the last Example we test our algorithms with MR measurements of a
+physical phantom by the Philips Achieva 1.5T device.
 
-\marginpar{fieldmap???}
-Wie wurde die fieldmap berechnet? siehe Fessler?
 
-The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance is in the interval $[-0.475, 0.591]$ kHz, which 
+{\bf Wie wurde die fieldmap berechnet? siehe Fessler?}
+
+The field map is shown in Figure \ref{Fig:fieldmap}. The off-resonance
+is in the interval $[-0.475, 0.591]$ kHz, which  
 causes ??? $\pi$ extra spin phase accural during the readout.
+Figure \ref{Fig:Philips} shows images reconstructed with gridding
+(left) and with 2d$\otimes$1d NFFT (right). 
+\end{NumExp}
 
 \begin{figure}[ht!] 
 \begin{center}
@@ -671,7 +746,7 @@ causes ??? $\pi$ extra spin phase accural during the readout.
 \label{Fig:fieldmap}
 \end{figure}
 
-Figure \ref{Fig:Philips} shows images reconstructed with gridding (left) and 2d$\otimes$1d NFFT (right).
+
 
 \begin{figure*}[ht] 
 \centering
@@ -682,14 +757,17 @@ Figure \ref{Fig:Philips} shows images reconstructed with gridding (left) and 2d$
 \includegraphics[width=8cm]{pics/reallife_600_iter=1row.jpg}
 \end{tabular}
 \caption{Physical phantom from a MR scan by the Philips Achieva 1.5T device (top) and the profile of the $128$th row of this (bottom), reconstructed
-with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration}
+with gridding (left) and 2d$\otimes$1d NFFT (right) after one iteration.}
 \label{Fig:Philips}
 \end{figure*}
 
-\end{NumExp}
+
 
 \section{Discussion}\label{Sec:Dis}
+la, la, ...
 
+We are concerned with the application to simulated as well as to real life data, the reconstruction
+quality, and the usage of time and memory resources.
 
 {\bf Acknowledgement.}
 
