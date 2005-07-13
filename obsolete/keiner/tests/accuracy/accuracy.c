@@ -386,7 +386,7 @@ int main (int argc, char **argv)
       } 
 	}   
 
-      if (1 == 1)
+      if (1 == 0)
 	{
       
       /* Test Clenshaw-Curtis quadrature */

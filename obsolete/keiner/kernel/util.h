@@ -27,6 +27,7 @@ double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
 double norm_complex_inf(complex *x, int n);
 double norm_complex_1(complex *x, int n);
 int min(const int a, const int b);
+int max(const int a, const int b);
 
 void copyc_hat(complex **x,complex **y, int M);
 void copyc_w_hat(complex **x, double **w, complex **y, int M);

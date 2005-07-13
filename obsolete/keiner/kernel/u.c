@@ -120,7 +120,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
-    ntilde = min(n,/*N*/1<<ngpt(n)-2);
+    ntilde = max(min(n,/*N*/(1<<ngpt(n))-2),0);
+    //printf("ntilde: n = %d, 1<<(ngpt(n))-2 = %d, min(n,1<<(ngpt(n))-2) = %d\n",n,(1<<ngpt(n))-2,ntilde);
     //fprintf(stderr,"n = %5d\n",n);
   		//fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
@@ -135,6 +136,7 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
 	     degree = plength>>1;
       
       /* Compute first l. */
+		  //printf("firstl: ntile = %d, plength = %d, n = %d, dings = %d\n",ntilde,plength,n,1<<ngpt(n));
       firstl = FIRST_L;
       /* Compute last l. */
       lastl = LAST_L;
@@ -143,7 +145,9 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
       
       /* Allocate memory for current matrix array. The level will contain
         * 2^{t-tau-1} many matrices. */
-	     U[n][tau] = (struct U_type**) fftw_malloc(sizeof(struct U_type*) * (int)(((double)(1<<t))/plength)/*nsteps*/); 
+		  //printf("Alloc tau: n = %d, tau = %d, firstl = %d, lastl = %d, lastl+1 = %d\n",n,tau,firstl,lastl,lastl+1);
+			//fflush(stdout);
+	     U[n][tau] = (struct U_type**) fftw_malloc(sizeof(struct U_type*) * (lastl+1)); 
       
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
   	   for (l = firstl; l <= lastl; l++)
@@ -203,6 +207,8 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         /* Check if stabilization needed. */
         if (needstab == false)
         {  
+				  //printf("Alloc l: n = %d, tau = %d, l = %d\n",n,tau,l);
+					//fflush(stdout);
           U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)); 
           /* No stabilization needed. */
           U[n][tau][l][0].m1 = m1;
@@ -352,7 +358,7 @@ void forgetU(struct U_type**** U, int M, int t, bool window)
 
   for (n = 0; n <= M; n++)
   {   
-    ntilde = min(n,/*N*/1<<ngpt(n)-2);
+    ntilde = max(min(n,/*N*/(1<<ngpt(n))-2),0);
     plength = 4;
     for (tau = 1; tau < t; tau++)
     {
@@ -591,7 +597,7 @@ struct U_type**** precomputeU_stab(int t, double threshold, double *walpha,
   /* For nleg = 0,...,M compute the matrices U_{n,tau,l}. */
   for (n = 0; n <= M; n++)
   {   
-    ntilde = min(n,/*N*/1<<ngpt(n)-2);
+    ntilde = max(min(n,/*N*/(1<<ngpt(n))-2),0);
     fprintf(stderr,"n = %5d\n",n);
   		fflush(stderr);
     /* Allocate memory for current matrix array. The cascade will have 
@@ -762,7 +768,7 @@ void forgetU_stab(struct U_type**** U, int M, int t)
   
   for (n = 0; n <= M; n++)
   {   
-    ntilde = min(n,/*N*/1<<ngpt(n)-2);
+    ntilde = max(min(n,/*N*/(1<<ngpt(n))-2),0);
     plength = 4;
     for (tau = 1; tau < t; tau++)
     {
