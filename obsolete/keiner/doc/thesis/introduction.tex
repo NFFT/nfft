@@ -8,10 +8,10 @@
 \label{Introduction}
 
 The \emph{fast Fourier transform (FFT)} has become one of the most important 
-and widely used algorithms today. Cooley and Tukey (\cite{cotu}) published
+and widely used algorithms today. In 1965, Cooley and Tukey (\cite{cotu}) published
 and publicized the first description of a fast algorithm for computing certain
 trigonometric sums, generally referred to as the \emph{discrete} or 
-\ emph{finite Fourier transform}, in 1965. In fact, developments since then now
+\emph{finite Fourier transform}. In fact, developments since then, now
 let us speak of a whole class of algorithms. The original Culey-Tukey FFT
 used a recursive scheme to split one large transform successively into
 smaller transforms achieving an asymptotical complexity of 
@@ -22,15 +22,15 @@ multidimensional case are available (\cite{fftw}).
 Surprisingly, the idea of Cooley and Tukey was already described by Gauss around
 1805 (\cite{gauss},\cite{hejobu}) interpolating the trajectories of the asteroids Pallas 
 and Juno. But his work was not widely recognized and only published posthumously.
-The wide areas of applications nowadays using FFT-techniques, including 
+The wide areas of applications nowadays using FFT-techniques, including, for example, 
 time-frequency analysis, signal-processing and the numerical solution of 
 partial differential equations, underline the great importance and impact of fast
 DFT algorithms.
 Recently, algorithms have been developed for a more general type of discrete 
 transform, namely the \emph{nonuniform discrete Fourier transform (NDFT)}. 
-While the DFT is a bijective and easily invertible mapping of $N$ 
-ingoing coefficients to $N$ outgoing coefficients corresponding to
-uniformly distributed 'nodes' on an interval, the NDFT generalizes
+While the DFT is a bijective and easily invertible linear mapping of $N$ 
+ingoing coefficients to $N$ outgoing coefficients, corresponding to
+uniformly distributed nodes on an interval, the NDFT generalizes
 discrete Fourier sums for arbitrary node distributions, hence the name
 'nonuniform'. Fast algorithms have been described in several papers 
 (\cite{bey95},\cite{duro93},\cite{fesu02},\cite{four},\cite{Ja},\cite{Pe},
