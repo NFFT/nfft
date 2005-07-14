@@ -94,7 +94,7 @@
 
 \title{
 %{\rm\normalsize Short Note}\\
-Fast Summation on the sphere}
+Fast Summation of radial functions on the sphere}
 
 \date{\today}
 
@@ -248,7 +248,7 @@ $\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in
 advance. The naive approach evaluating \eqref{Applications:KernelSum} leads to
 an $\bigo{L\:D}$ algorithm. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering} method introduced in \cite{FrGlSch98} reduces the
+The \emph{panel clustering} method applied to \eqref{Applications:KernelSum} in \cite{FrGlSch98} reduces the
 computational effort to evaluate \eqref{Applications:KernelSum} based on the
 traditional method of dividing the evaluation into near- and far-field.
 For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field contribution
@@ -256,7 +256,8 @@ is calculated exactly whereas the contribution of the far-field may be
 approximated coarsly.
 % due to the supposed rapid decay of $\fun{K}{\V{\eta} \:\cdot}$. 
 
-We propose to simply truncate the series \eqref{Basics:Kernel} at degree 
+We propose to simply truncate the series
+\eqref{equation:kernelExpansion} at degree  
 $M \in \NZ$, i.e.
 \begin{equation}
   \label{Applications:TruncatedSeries}
@@ -277,7 +278,7 @@ finally obtain the approximation
 The expression in the inner brackets can be computed by an adjoint Nonuniform
 Fast Spherical Fourier Transform (adjoint NFSFT) in 
 $\mathcal{O}(L + M^2 \log^2 M)$
-arithmetic operations, see \cite{xxx} and the forthcoming paper \cite{xxx} for
+arithmetic operations, see \cite{kupo02, keiner05} for
 details.
 This is followed by $(M+1)^2$ multiplications with the symbol
 $\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the outer sum in
@@ -452,7 +453,7 @@ impression and mention that the parameter $h$ allows for controlling the
 concentration of $\fun{Q_{h}}{\V{\eta} \: \cdot}$ and $\fun{S_{h}}{\V{\eta} \:
   \cdot}$ around $\eta \in \twosphere$, respectively.
 The Poisson kernel is a positive function and normalized with
-$\|\fun{Q_{h}}{\V{\eta} \: \cdot}\|_{\Ln{1}{\twosphere}}$.
+$\|\fun{Q_{h}}{\V{\eta} \: \cdot}\|_{\Ln{1}{\twosphere}}=1$.
 Further properties with respect to localization and smoothness are derived
 in \cite[pp. 112]{frgesc}.
 
@@ -467,27 +468,29 @@ in \cite[pp. 112]{frgesc}.
   \label{Basics:Figure:PoissonSingularityKernel}
 \end{figure}
 
-For both kernels the symbol is explicitely known, such that we easily state
+For both kernels the symbol $\fun{K^{\wedge}}{k}$ is explicitely
+known, such that we easily state 
 the following lemma.
+
 \begin{lemma}
- Using these kernels within our summation algorithm yields an relative error
- of
  \begin{enumerate}
-   \item
+   \item 
+Using the Poisson kernel with $K=Q_h$ within our summation algorithm yields an relative error of
      \begin{equation}
        \label{error:poisson}
        \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-       \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right)
+       \frac{h^{M+1}}{4\pi}
+       \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right)\, .
      \end{equation}
-     for the Poisson kernel and
      \item 
+Using the singularity kernel with $K=S_h$ within our summation algorithm yields an relative error of
        \begin{equation}
          \label{error:singular}
          \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
          \frac{h^{M+1}}{4\pi} \left(\frac{2M+1}{2\left(1-h\right)}+
-           \frac{4M}{\left(1-h\right)^2}+ \frac{4}{\left(1-h\right)^3}\right),
+           \frac{4M}{\left(1-h\right)^2}+
+         \frac{4}{\left(1-h\right)^3}\right)\, .
        \end{equation}
-       for the singularity kernel, respectively.
  \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -501,9 +504,8 @@ Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\eps
 
 \subsection{Locally supported kernel}
 \begin{definition}
-  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda,\mu \in \NZ$.
-  \begin{enumerate}
-  \item A locally supported zonal function
+  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \NZ$.
+  A locally supported zonal function
     $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
     \cite{Sc97}, is defined by
     \[
@@ -513,12 +515,6 @@ Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\eps
         \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1,
       \end{array}\right.
     \]
-  \item Furthermore, we define by iterated spherical convolution
-    \[
-    L_{h,\lambda,\mu} = L_{h,\lambda,\mu-1} * L_{h,\lambda},
-    \]
-    where $L_{h,\lambda,1}=L_{h,\lambda}$.
-  \end{enumerate}
 \end{definition}
 
 Figure \ref{Basics:Figure:LKernel} shows the function $L_{h,\lambda}$ for
@@ -539,7 +535,7 @@ for localisation in frequency domain by increasing $\mu$.
 More formally, we have the following lemma.
 
 \begin{lemma}
-  We collect the following facts about the locally supported kernel.
+  For the locally supported kernels $L_{h,\lambda}$ holds:
   \begin{enumerate}
   \item The symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$ can be computed recursively by
     \[
@@ -552,8 +548,9 @@ More formally, we have the following lemma.
   \item We obtain for fixed $\lambda \in \NZ$ the decay rate
     \[
     \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_{\lambda}
-    \left(1-h\right)^{-\lambda-\frac{5}{4}} k^{-\lambda-\frac{3}{2}}.
+    \left(1-h\right)^{-\lambda-\frac{5}{4}} k^{-\lambda-\frac{3}{2}}, 
     \]
+where $C_{\lambda}$ is a constant which is independent of $h$ and $k$.
   \item Thus, the relative error of our summation algorithm with this kernel
   is bounded for fixed $\lambda \in \N$ by
   \begin{equation}
@@ -561,12 +558,17 @@ More formally, we have the following lemma.
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
     \tilde C_{\lambda} \left(1-h\right)^{-\lambda-\frac{5}{4}} M^{\frac{1}{2}-\lambda}.
   \end{equation}
+where $\tilde C_{\lambda}$ is a constant which is independent of $h$,
+$k$ and $M$.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
   \begin{enumerate}
   \item We apply \eqref{three1} and \eqref{three2}.
   \item For $\lambda=0$ holds
+
+{\bf genauer}
+
     \[
     \left|\fun{L_{h,0}^{\wedge}}{k}\right| = \frac{1}{1-h}
     \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
@@ -612,7 +614,7 @@ different values $\sigma$.
 \end{figure}
 
 \begin{lemma}
-  Again, we collect some useful facts about kernel.
+For the Gaussian-kernel $G_{\sigma}$ holds:
   \begin{enumerate}
   \item The symbol $\fun{G_{\sigma}^{\wedge}}{k}$ can be computed by a
     recurrence relation
@@ -632,8 +634,8 @@ different values $\sigma$.
     \]
     where $I_{k+\frac{1}{2}}$ denotes the modified Bessel function of first kind.
     Furthermore, $\fun{G_{\sigma}^{\wedge}}{k} \ge 0$.
-  \item Thus, the relative error of our summation algorithm with this kernel
-  is bounded by
+  \item Thus, the relative error of our summation algorithm with this
+  kernel $G_{\sigma}$ is bounded by
   \begin{equation}
     \label{error:G}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
@@ -646,9 +648,9 @@ different values $\sigma$.
   \item The relation \eqref{three2} and integration by parts yields the
   assertion.
   \item The solution of the difference equation in 1. is given by the modified
-  Bessel function of first kind, cf. \cite{}.
+  Bessel function of first kind, cf. \cite{bahu01}.
   The nonnegativity follows readily from the fact that the Gaussian is a
-  positive definite function, cf. \cite{}.
+  positive definite function.
   \item Using 2. and
   \begin{eqnarray*}
     \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
@@ -677,7 +679,7 @@ different values $\sigma$.
 \end{proof}
 
 %--------------------------------------------------------------------------
-\section{Numerical Examples}
+\section{Numerical results}
 %--------------------------------------------------------------------------
 
 We present numerical examples in order to demonstrate the performance of
@@ -754,7 +756,7 @@ These results confirm the error estimates \eqref{error:poisson},
   \subfigure[$\lambda=2.0$]
   {\includegraphics[width=0.45\textwidth]{images/locsupp_lambda_test}}
   \caption{To be written...}
-  \label{Figure:PoissonTest}
+  \label{Figure:PoissonTest2}
 \end{figure}
 
 Finally, we compare the computation time of the straightforward summation, the
