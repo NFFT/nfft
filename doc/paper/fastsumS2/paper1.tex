@@ -769,8 +769,24 @@ variants, but with the NFSFT--version considerably faster.
 
 \begin{table}[ht!]
   \begin{center}
-    \begin{tabular}{r|r|r|r|r|r}
-      $D=L$    & direct alg.   & with precomp. & fast GT, NDFT & fast GT, NFFT & error $E_\infty$ \\ \hline
+    \begin{tabular}{r|r|r|r|r|r|r}
+    $L$ & $D$ & direct alg. & with precomp. & FS, NDSFT & FS, NFSFT & error $E_{\infty}$\\\hline
+        64 &     64 & 1.0E-03 & -- & 1.1E-01 & 6.1E-01 & 7.7E-14\\
+       128 &    128 & 7.0E-03 & -- & 2.3E-01 & 6.1E-01 & 6.5E-14\\
+       256 &    256 & 2.5E-02 & -- & 4.6E-01 & 6.1E-01 & 4.1E-14\\
+       512 &    512 & 1.0E-01 & -- & 9.1E-01 & 6.2E-01 & 2.8E-14\\
+      1024 &   1024 & 4.0E-01 & -- & 1.8E+00 & 6.5E-01 & 3.6E-14\\
+      2048 &   2048 & 1.6E+00 & -- & 3.6E+00 & 6.6E-01 & 1.8E-14\\
+      4096 &   4096 & 6.4E+00 & -- & 7.3E+00 & 7.2E-01 & 1.3E-14\\
+      8192 &   8192 & 2.6E+01 & -- & 1.5E+01 & 8.2E-01 & 6.7E-15\\
+     16384 &  16384 & 1.0E+02 & -- & 2.9E+01 & 1.0E+00 & 5.5E-15\\
+     32768 &  32768 & 4.1E+02 & -- & 5.8E+01 & 1.5E+00 & 4.0E-15\\
+     65536 &  65536 & 1.7E+03 & -- & 1.2E+02 & 2.3E+00 & 2.9E-15\\
+    131072 & 131072 & 6.6E+03 & -- & 2.3E+02 & 4.0E+00 & 2.4E-15\\
+    262144 & 262144 & 2.6E+04 & -- & 4.7E+02 & 7.5E+00 & 1.9E-15\\
+    524288 & 524288 & -- & -- & 9.4E+02 & 1.4E+01 & --\\
+    1048576 & 1048576 & -- & -- & 1.9E+03 & 2.8E+01 & --\\
+    2097152 & 2097152 & -- & -- & 3.8E+03 & 5.6E+01 & --.\\
     \end{tabular}
   \end{center}
   \caption{CPU-Time and error $E_{\infty}$ for the fast summation algorithm.
