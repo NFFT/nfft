@@ -160,13 +160,13 @@ weights $w_j> 0$ compensate for clusters in the sampling set, i.e.,
 \begin{equation} \label{eq:min}
   \|\zb s - \zb H \zb  p\|_{\zbs W}
   = \left(\sum_{j=0}^{M-1} w_j |s(\zb k_j)-\tilde s(\zb k_j)|^2\right)^{1/2}
-  \stackrel{\zbs {\hat f}}{\rightarrow} \min,
+  \stackrel{\zbs p}{\rightarrow} \min,
 \end{equation}
 where $\zb W:=\diag(w_j)_{j=0,\ldots,M-1}$.
 This problem is equivalent to the weighted normal equation of first kind
 \begin{equation}
   \label{eq:no1}
-  \zb H^{\adj} \zb W \zb H \zb {\hat f} = \zb H^{\adj} \zb W \zb y.
+  \zb H^{\adj} \zb W \zb H \zb p = \zb H^{\adj} \zb W \zb s.
 \end{equation}
 The iterative solution of problem \eqref{eq:no1} can be solved 
 by a suitable variant of conjugated gradients (CGNR). 
@@ -179,17 +179,12 @@ We state problem \eqref{inverse2} as the weighted approximation problem
 where $\zb {\tilde s}=\zb H\zb p$, see \eqref{inverse2}, and the density compensation weights are collected in the diagonal matrix
 $\zb W=\diag(w_j)_{j=0,\ldots,M-1}$. 
 We would like to emphasise that the CGNR method minimises \eqref{minMR} in each iteration over a certain Krylov space.
-Thus, iterate for only one step, we obtain the 'optimised' gridding
-solution.
+%Thus, iterate for only one step, we obtain the 'optimised' gridding
+%solution.
 An algorithm for the fast multiplication with the matrix $\zb H$ and
 $\zb H^{\top}$  is the key for CGNR and so for a fast solution of \eqref{inverse2}.
 
 \section{NFFT}\label{Sec:NFFT}
-
-If the data are sampled on a Cartesian grid in k-space the
-reconstruction can be done with the FFT. For non-Cartesian
-trajectories in k-space the reconstruction can be done via
-\eqref{inverse2}, where the FFT has to be replaced by the NFFT.
 
 In the following we briefly describe the NFFT, which has, for a fixed accuracy,
 the same arithmetical complexity as the FFT. One can use the
@@ -299,7 +294,7 @@ where
 \end{equation*}
 \begin{equation*}
 \zb f:=\left(f_j\right)_{j=0,\hdots,M-1},\quad 
-\zb {\hat f}:=\left(\hat{f}_{\zbs r}\right)_{\zbs r\in I_{\zbss N}^d}.
+\zb {\hat f}:=\left(\hat{f}_{\zbs k}\right)_{k=-N/2,\ldots,N/2-1}.
 \end{equation*}
 and the approximation \eqref{NFFTapr} 
 can be written as 
@@ -327,31 +322,48 @@ for a suitable choice of the window function, the window-width, and the
 oversampling factor with respect to accuracy, speed and memory usage.
 
 In various papers, different window functions $\varphi$ for the NFFT
-were considered, e.g. 
-a Gaussian pulse tapered with a Hanning window in \cite{DuSc}, 
-Gaussian kernels combined with sinc kernels in \cite{Pe}, and
-special optimised windows in \cite{Ja,DuSc}. 
+were considered. 
 Furthermore, special approaches based on scaling vectors
 \cite{NgLi99}, based on minimising the Frobenius norm of certain error
 matrices \cite{st01}, or based on min-max interpolation \cite{fesu02} are
 proposed. However, the numerical results in \cite{four, st01, fesu02} show that
 these approaches are not superior to the approach based on the Kaiser-Bessel
 window function.
-We remark further that the NFFT and the NFFT$^{\adj}$ can realized
+We remark further that the NFFT  can realized
 with all suggested window functions. However the accuracy depends on
 the truncation parameter $m$. In our further numerical test we use the
 Kaiser-Bessel window since this window provides the best results for a
 particular chosen parameter $m$.
-It was already pointed out in \cite{postta01,SaBeCo01},
-that the gridding 
+
+The adjoint algorithm, i.e. the evaluation of the sums
+\begin{equation} \label{trigPolyT}
+\zb {\hat f}_{\zbs r} := \sum_{j=0}^{M-1} f_j \eim{\zbs r \zbs x_j}\,,
+\end{equation}
+can be computed by the matrix vector multiplication with $\zb A^{\adj}$, where
+we obtain a fast algorithm by using $\zb A^{\adj} \approx \zb D^{\top}
+\zb F^{\adj} \zb B^{\top}$.
+It was already pointed out in \cite{postta01,SaBeCo01}, that the gridding
 method is simply a fast algorithm for the multiplication of the matrix
-$\zb A^{\adj}$ with a vector (see also \cite{KnKuPo}).
+$\zb A^{\adj}$ with a vector.
+Including a sampling density compensation yields the following gridding
+algorithm, see also \cite{scsc, Ja, Pe}:
+\begin{enumerate}
+\item sampling density compensation, i.e., multiplication with a diagonal
+  matrix $\zb W$,
+\item approximation to an oversampled Cartesian grid, i.e., multiplication
+  with the matrix $\zb B^{\top}$,
+\item inverse fast Fourier transform, i.e., mult. with $\zb F^{\adj}$,
+\item roll-off correction, i.e., multiplication with $\zb D^{\top}$.
+\end{enumerate}
+Note, that the role of the window function, appearing in the matrices $\zb D$
+and $\zb B$, and the sampling density compensation, appearing in $\zb W$,
+should not be mixed up.
 It is widely accepted that a gridding method derived from
 \eqref{approx} where the window function is the Kaiser-Bessel function
 leads to the most efficient algorithms. 
 
 Hence our aim is in the following to use this approximation and derive
-methods for the fast matrix vector multiplication with $\zb H$ based
+methods for the fast matrix vector multiplication for the matrix $\zb H$ based
 on \eqref{approx}. 
 
 Since the support of $\tilde\psi$ is ${\rm supp} \tilde\psi\subset
@@ -377,7 +389,7 @@ There are different possibilities to realize a matrix vector
 multiplication with $\zb H$.
 
 \subsection{Method based on fast Fourier transforms for
-   nonequispaced data in time {\bf and} frequency domain(3d NNFFT)}
+   nonequispaced data in time {\bf and} frequency domain (3d NNFFT)}
   
 A straightforward idea is to embed the data points in a higher
    dimensional space, i.e., set $\zb K_j= ((\zb k(t_j))^{\top},
@@ -421,7 +433,7 @@ Now we use the approximation \eqref{approx2} and obtain
 \end{eqnarray}
 Using this approximation in \eqref{inverse2} we obtain
 \begin{equation*}
-\tilde{\zb s}(\zb k(t_j))=
+\tilde{\zb s}(\zb k(t_j))\approx
 \frac{1}{N_3 \hat\varphi\left(\frac{Wt_j}{2\pi}\right)}
 \sum_{r_3=-N_3/2}^{N_3/2-1}
 \sum_{\zbs r \in I^2_{\zbss N}} 
@@ -445,7 +457,7 @@ $P(\zb r,r_3):= p(\zb r) \psi \left(\frac{\omega(\zbs
   r)}{W}+\frac{r_3}{N_3}\right)$ 
 we obtain
 \begin{equation*}
-\tilde{\zb s}(\zb k(t_j))=
+\tilde{\zb s}(\zb k(t_j))\approx
 \frac{1}{N_3 \hat\varphi\left(\frac{Wt_j}{2\pi}\right)}
 \sum_{\zbs r \in I^3_{\zbss N}} 
 P(\zb r) \eip{\zbs k_j\zbs r}
@@ -453,16 +465,20 @@ P(\zb r) \eip{\zbs k_j\zbs r}
 where $I^3_{\zbs N} :=
 \{-\frac{N_1}{2},\dots,\frac{N_1}{2}-1\}\times\{-\frac{N_2}{2},\dots,
 \frac{N_2}{2}-1\}\times\{-\frac{N_3}{2},\dots,\frac{N_3}{2}-1\}$.
-Now let
-$\zb s:=\left(N_3 \hat\varphi\left(\frac{Wt_j}{2\pi}\right)\tilde{\zb s}(\zb
-  k(t_j))\right)_{j=0,\ldots, M-1}\in \mathbb{R}^M
-$
-and
-$
-\zb p :=\left(p(r_1,r_2) \psi \left(\frac{\omega(r_1,r_2)}{W}+\frac{r_3}{N_3}\right)\right)_{\zbs r\in I_N^3}\in
-\mathbb{R}^{N_1N_2N_3}
-$
-and $\zb A$ the trivariate nonequispaced Fourier matrix.
+%Now let
+%$\zb s:=\left(N_3 \hat\varphi\left(\frac{Wt_j}{2\pi}\right)\tilde{\zb s}(\zb
+%  k(t_j))\right)_{j=0,\ldots, M-1}\in \mathbb{R}^M
+%$
+%and
+%$
+%\zb p :=\left(p(r_1,r_2) \psi
+%\left(\frac{\omega(r_1,r_2)}{W}+\frac{r_3}{N_3}\right)\right)_{\zbs
+%r\in I_N^3}\in 
+%\mathbb{R}^{N_1N_2N_3}
+%$
+%and $\zb A$ the trivariate nonequispaced Fourier matrix.
+Now the matrix vector product with $\zb H$ can be efficiently realised
+by a trivariate NFFT.
 
 We proceed and develop a fast matrix times vector
 multiplication with $H^{\adj}$ more precisely we want to compute
@@ -488,7 +504,7 @@ r_3
 \times
 \psi \left(\frac{\omega(\zb r)}{W}-\frac{r_3}{N_3}\right)
 \]
-Now the sum over $j$ can be computed in an efficient way by a
+The sum over $j$ can be computed in an efficient way by a
 trivariate NFFT followed by a sparse sum over $r_3$.
 
 \subsection{The 2d$\otimes$1d method}
@@ -523,14 +539,22 @@ Using this approximation in \eqref{inverse2} we obtain
 \right)
 {\rm e}^{2\pi {\rm\scriptsize i}\zbs r \zbs k(t_j)}\, .
 \end{equation*}
-We can perform the inner Fourier transforms quickly using $N_3$
-bivariate NFFT.
+We can perform  matrix-vector product with $\zb H$ by $N_3$ bivariate
+NFFT followed by a sum over $r_3$.
 
 Note that this method is known as ``time segmentation'' \cite{SuNoFe03}. The
 idea is to use  small time segments over which $t$ is approximately
-constant \cite{NoMe91}. With unified our approach there is no need to
-compute coefficients in a precomputation step. 
+constant \cite{NoMe91}. With our unified approach there is no need to
+compute coefficients in a precomputation step (see \cite{SuNoFe03}). 
 
+Summary: We have suggested three different methods for matrix vector
+multiplication with $\zb H$. Note the for the arithmetical complexity
+for the 3d NNFFT and the 3d NFFT is ${\cal
+  O}(N_1N_2N_3\log(N_1N_2N_3))$ but for the 2d$\otimes$1d method only 
+ ${\cal  O}(N_1N_2N_3\log(N_1N_2))$. Furthermore the memory
+ requirements for the algorithms are different. Hence we compare these
+ algorithms in the following section.
+ 
 %----------------------------------------------------------------------------
 \section{Numerical results}\label{Sec:Num}
 All algorithms were implemented in Matlab\&C and tested on a AMD Athlon(tm) XP
@@ -578,9 +602,7 @@ sample knot, see also \cite{RaPrSiBoEg99,qhull}. In \cite{KnKuPo} it was
 shown, that this method leads to very good results. 
 
 The NFFT2 library allows different flags to reduce computation time at
-expense of memory. Because the reconstruction algorithms have
-significantly different memory consumption  we tested different flags
-in Example \ref{Exp:3}.  
+expense of memory. 
 
 \begin{NumExp} \label{Exp:1}
 First of all, we compare the different reconstruction methods with a
@@ -687,6 +709,10 @@ memory must be considered.
 \end{center}
 \caption{CPU-time for different reconstruction methods after $1$, $2$, $5$, and $10$ iterations.} \label{Tab:2}
 \end{table}
+
+Because the reconstruction algorithms have
+significantly different memory usage we tested different flags
+in the following Example \ref{Exp:3}.  
 
 \begin{NumExp} \label{Exp:3}
 The NFFT2 library allows different flags to optimise the computing time which
