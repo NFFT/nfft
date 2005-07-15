@@ -466,3 +466,8 @@ inline int max(const int a, const int b)
 {
   return a>b?a:b;
 }
+
+inline long int maxl(const long int a, const long int b)
+{
+  return a>b?a:b;
+}

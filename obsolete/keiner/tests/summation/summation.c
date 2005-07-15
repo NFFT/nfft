@@ -127,7 +127,8 @@ int main (int argc, char **argv)
   int l_max;
   /** Maximum \f$D\f$ for the current dataset */
   int d_max;
-	int dl_max_prec;
+	long ld_max_prec;
+	long l_max_prec;
   
   /** Index variable for testcases. */
   int tc;
@@ -149,7 +150,9 @@ int main (int argc, char **argv)
   double nfactor;
   double temp;
 	double err;
+	double t;
 	int precompute = NO;
+	complex *ptr;
 	
   /** Weights \f$\left(b_l\right)_{l=0}^{L-1}\f$ */
  	complex *b;
@@ -171,8 +174,8 @@ int main (int argc, char **argv)
   /** adjoint NFSFT plan */
   nfsft_plan plan_adjoint;
   
- 	int j,k,n,d,l,use_nfsft,use_nfft,nsymbols;
-	int index;
+ 	int i,j,k,n,d,l,use_nfsft,use_nfft,nsymbols;
+	long index;
 	int rinc;
   
   FILE *file_tex;
@@ -226,6 +229,8 @@ int main (int argc, char **argv)
     l_max = 0;
     /* Initialize target node bound. */
     d_max = 0;
+		ld_max_prec = 0; 
+		l_max_prec = 0; 
     
     /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP 
      * or KT_GAUSSIAN. */
@@ -288,22 +293,34 @@ int main (int argc, char **argv)
     
     fprintf(stdout,"  Nodes: %d\n",ild_max);    
 
-  	dl_max_prec = 0;
+  	ld_max_prec = 0;
+  	l_max_prec = 0;
     for (ild = 0; ild < ild_max; ild++)
     {  
-      ld[ild] = (int*) malloc(4*sizeof(int));
+      ld[ild] = (int*) malloc(5*sizeof(int));
       fscanf(stdin,"L=%d ",&ld[ild][0]);
       l_max = max(l_max,ld[ild][0]);
       fscanf(stdin,"D=%d ",&ld[ild][1]);
       d_max = max(d_max,ld[ild][1]);
       fscanf(stdin,"compare=%d ",&ld[ild][2]);
-      fscanf(stdin,"precomputed=%d\n",&ld[ild][3]);
-			if (ld[ild][2] == YES && ld[ild][3] == YES)
+      fprintf(stdout,"    L = %d, D = %d, compare = %d",ld[ild][0],ld[ild][1],ld[ild][2]);    
+			if (ld[ild][2] == YES)
 			{
-			  precompute = YES;
-				dl_max_prec = max(dl_max_prec,ld[ild][0]*ld[ild][1]);
+        fscanf(stdin,"precomputed=%d\n",&ld[ild][3]);
+        fscanf(stdin,"repetitions=%d\n",&ld[ild][4]);
+        fprintf(stdout,", precomputed = %d, %repetitions = %d",ld[ild][3],ld[ild][4]);    
+  			if (ld[ild][3] == YES)
+        {
+				  ld_max_prec = max(ld_max_prec,ld[ild][0]*ld[ild][1]);
+				  l_max_prec = max(l_max_prec,ld[ild][0]);
+			    precompute = YES;
+			  }
 			}
-      fprintf(stdout,"    L = %d, D = %d, Compare = %d, Precomputed = %d\n",ld[ild][0],ld[ild][1],ld[ild][2],ld[ild][2]);    
+			else
+			{
+			  ld[ild][4] = 1;
+			}
+			fprintf(stdout,"\n");
     }
     
     fprintf(stdout,"  Maximum M = %d\n",m_max);    
@@ -326,9 +343,9 @@ int main (int argc, char **argv)
     f = (complex*) malloc(d_max*sizeof(complex));
     if (precompute == YES)
 		{
-  		fprintf(stderr,"reached! %d\n",d_max*l_max);
+  		fprintf(stderr,"reached! %d\n",ld_max_prec);
 	  	fflush(stderr);
-		  prec = (complex*) malloc(dl_max_prec*sizeof(complex));
+		  prec = (complex*) malloc(ld_max_prec*sizeof(complex));
 		}
     
 		
@@ -453,66 +470,74 @@ int main (int argc, char **argv)
       
       for (ild = 0; ild < ild_max; ild++)
       {               
-        fprintf(stdout,"    L = %d, D = %d\n",ld[ild][0],ld[ild][1]);
+        fprintf(stdout,"    L = %d, D = %d, ld_max_prec = %d, l_max_prec = %d\n",ld[ild][0],ld[ild][1],ld_max_prec,l_max_prec);
         if (ld[ild][2] != NO)
         {
 				  /* Check if direct algorithm with precomputation should be tested. */
   				if (ld[ild][3] != NO)
-	  			{
-            for (d = 0; d < ld[ild][1]; d++)
-            {
-              for (l = 0; l < ld[ild][0]; l++)
-              {
-                temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-								switch (kt)
+	  			{ 
+  					t_dp = 0.0;
+					  for (i = 0; i < ld[ild][4]; i++)
+						{
+							ptr = prec;
+							rinc = l_max_prec-ld[ild][0];
+							for (d = 0; d < ld[ild][1]; d++)
+							{
+								for (l = 0; l < ld[ild][0]; l++)
 								{
-									case KT_ABEL_POISSON:
-										prec[d*l_max+l] = poissonKernel(temp,p[ip][0]);
-										break;
-									case KT_SINGULARITY:
-										prec[d*l_max+l] = singularityKernel(temp,p[ip][0]);
-										break;
-									case KT_LOC_SUPP:
-										prec[d*l_max+l] = locSuppKernel(temp,p[ip][0],p[ip][1]);
-										break;  
-									case KT_GAUSSIAN:	              
-										prec[d*l_max+l] = gaussianKernel(temp,p[ip][0]);
-										break;
+									temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+									switch (kt)
+									{
+										case KT_ABEL_POISSON:
+											*ptr++ = poissonKernel(temp,p[ip][0]);
+											break;
+										case KT_SINGULARITY:
+											*ptr++ = singularityKernel(temp,p[ip][0]);
+											break;
+										case KT_LOC_SUPP:
+											*ptr++ = locSuppKernel(temp,p[ip][0],p[ip][1]);
+											break;  
+										case KT_GAUSSIAN:	              
+											*ptr++ = gaussianKernel(temp,p[ip][0]);
+											break;
+									}
 								}
+								ptr += rinc;
+							}
+							ptr = prec;
+							rinc = l_max_prec-ld[ild][0];
+							if (kt == KT_LOC_SUPP)
+							{
+								constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
+								{
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										f[d] += b[l]*(*ptr++);
+									}
+									f[d] *= constant;
+									ptr += rinc;
+								}
+								t_dp += second() - t;
+							}
+							else
+							{
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
+								{
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										f[d] += b[l]*(*ptr++);
+									}
+									ptr += rinc;
+								}
+								t_dp += second() - t;
 							}
 						}
-						rinc = l_max-ld[ild][0];
-						index = 0;
-						if (kt == KT_LOC_SUPP)
-						{
-						  constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-              t_dp = second();
-              for (d = 0; d < ld[ild][1]; d++)
-              {
-                f[d] = 0.0;
-                for (l = 0; l < ld[ild][0]; l++)
-					  		{
-						  	  f[d] += b[l]*prec[index++];
-							  }
-                f[d] *= constant;
-							  index += rinc;
-							}
-              t_dp = second() - t_dp;
-						}
-						else
-						{
-              t_dp = second();
-              for (d = 0; d < ld[ild][1]; d++)
-              {
-                f[d] = 0.0;
-                for (l = 0; l < ld[ild][0]; l++)
-					  		{
-						  	  f[d] += b[l]*prec[index++];
-							  }
-							  index += rinc;
-							}
-              t_dp = second() - t_dp;
-						}
+						t_dp = t_dp/((double)ld[ild][4]);
 						printf("t_dp = %f\n",t_dp);
 		  		}
 					else
@@ -520,64 +545,68 @@ int main (int argc, char **argv)
 					  t_dp = -1.0;
 					}
 					
-					switch (kt)
+					t_d = 0.0;
+          for (i = 0; i < ld[ild][4]; i++)
 					{
-						case KT_ABEL_POISSON:
-							t_d = second();
-							for (d = 0; d < ld[ild][1]; d++)
-							{
-								f[d] = 0.0;
-								for (l = 0; l < ld[ild][0]; l++)
+						switch (kt)
+						{
+							case KT_ABEL_POISSON:
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
 								{
-									temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-									f[d] += b[l]*poissonKernel(temp,p[ip][0]);
-								}
-							} 
-							t_d = second() - t_d;
-							break;
-						case KT_SINGULARITY:
-							t_d = second();
-							for (d = 0; d < ld[ild][1]; d++)
-							{
-								f[d] = 0.0;
-								for (l = 0; l < ld[ild][0]; l++)
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+										f[d] += b[l]*poissonKernel(temp,p[ip][0]);
+									}
+								} 
+								t_d += second() - t;
+								break;
+							case KT_SINGULARITY:
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
 								{
-									temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-    							f[d] += b[l]*singularityKernel(temp,p[ip][0]);
-								}
-							} 
-							t_d = second() - t_d;
-							break;
-						case KT_LOC_SUPP:
-						  constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-							t_d = second();
-							for (d = 0; d < ld[ild][1]; d++)
-							{
-								f[d] = 0.0;
-								for (l = 0; l < ld[ild][0]; l++)
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+										f[d] += b[l]*singularityKernel(temp,p[ip][0]);
+									}
+								} 
+								t_d += second() - t;
+								break;
+							case KT_LOC_SUPP:
+								constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
 								{
-									temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-    							f[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);
-								}
-                f[d] *= constant;
-							} 
-							t_d = second() - t_d;
-							break;  
-						case KT_GAUSSIAN:	              
-							t_d = second();
-							for (d = 0; d < ld[ild][1]; d++)
-							{
-								f[d] = 0.0;
-								for (l = 0; l < ld[ild][0]; l++)
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+										f[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);
+									}
+									f[d] *= constant;
+								} 
+								t_d += second() - t;
+								break;  
+							case KT_GAUSSIAN:	              
+								t = second();
+								for (d = 0; d < ld[ild][1]; d++)
 								{
-									temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-    							f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
-								}
-							} 
-							t_d = second() - t_d;
-						  break;
-					}  
-
+									f[d] = 0.0;
+									for (l = 0; l < ld[ild][0]; l++)
+									{
+										temp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+										f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+									}
+								} 
+								t_d = second() - t;
+								break;
+						}  
+					}
+					t_d = t_d/((double)ld[ild][4]);
   				printf("t_d = %f\n",t_d);
         }
 				else
@@ -589,7 +618,7 @@ int main (int argc, char **argv)
         
         for (im = 0; im < im_max; im++)
         {
-          fprintf(stderr,"      M = %d: ",m[im]);
+          fprintf(stderr,"      M = %d:\n ",m[im]);
           
           /* Init transform plans. */
           plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
@@ -597,8 +626,44 @@ int main (int argc, char **argv)
           
 					if (use_nfsft == BOTH)
 					{
-            t_fd = second();
-            ndsft_adjoint(plan_adjoint);
+  					t_fd = 0.0;
+            for (i = 0; i < ld[ild][4]; i++)
+		  			{
+							t = second();
+							ndsft_adjoint(plan_adjoint);
+							/* Multiplication with diagonal matrix. */
+							for (k = 0; k <= m[im]; k++)
+							{
+								for (n = -k; n <= k; n++)
+								{
+									f_hat[n+m[im]][k] *= a[k];
+								}
+							}
+							ndsft_trafo(plan);
+							t_fd += second() - t;
+						}
+  					t_fd = t_fd/((double)ld[ild][4]);
+						printf("t_fd = %f\n",t_fd);
+					}
+					else
+					{
+					  t_fd = -1.0;
+					}
+					
+					t_f = 0.0;
+          for (i = 0; i < ld[ild][4]; i++)
+    			{
+						/* Adjoint transform */
+						t = second();
+						if (use_nfsft != NO)
+						{
+							nfsft_adjoint(plan_adjoint);
+						}
+						else
+						{
+							ndsft_adjoint(plan_adjoint);
+						}
+							
 						/* Multiplication with diagonal matrix. */
 						for (k = 0; k <= m[im]; k++)
 						{
@@ -607,44 +672,20 @@ int main (int argc, char **argv)
 								f_hat[n+m[im]][k] *= a[k];
 							}
 						}
-            ndsft_trafo(plan);
-            t_fd = second() - t_fd;
+							
+						/* Forward transform */
+						if (use_nfsft != 0)
+						{
+							nfsft_trafo(plan);
+						}
+						else
+						{
+							ndsft_trafo(plan);
+						}
+						t_f += second() - t;
 					}
-					else
-					{
-					  t_fd = -1.0;
-					}
-					
-          /* Adjoint transform */
-          t_f = second();
- 		      if (use_nfsft != NO)
-					{
-            nfsft_adjoint(plan_adjoint);
-					}
-					else
-					{
-            ndsft_adjoint(plan_adjoint);
-					}
-            
-          /* Multiplication with diagonal matrix. */
-          for (k = 0; k <= m[im]; k++)
-          {
-            for (n = -k; n <= k; n++)
-            {
-              f_hat[n+m[im]][k] *= a[k];
-            }
-          }
-            
-          /* Forward transform */
-	 				if (use_nfsft != 0)
-				  {
-            nfsft_trafo(plan);
-					}
-					else
-					{
-            ndsft_trafo(plan);
-					}
-          t_f = second() - t_f;
+ 					t_f = t_f/((double)ld[ild][4]);
+					printf("t_f = %f\n",t_f);
 
           /* Finalize plans */
           nfsft_finalize(plan_adjoint);
