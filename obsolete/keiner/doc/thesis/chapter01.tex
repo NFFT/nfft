@@ -27,10 +27,10 @@ spherical coordinate system is illustrated in Figure \ref{sphere}.
 Now let $\V{\xi} := \paren{\vtheta,\vphi}^{\transp}$, $\V{\eta} := \paren{\vtheta',\vphi'}^{\transp} \in
 \twosphere$ and $\alpha$ be the angle spanned by the origin, $\V{\xi}$ and $\V{\eta}$.
 Then the standard inner product
-$\V{\xi} \cdot \V{\eta} = \cos\left(\alpha\right)$ is given by
+$\V{\xi} \cdot \V{\eta} = \cos \alpha$ is given by
 \begin{equation}
   \nonumber
-  \fun{\cos}{\alpha} = \cos\vtheta\cos\vtheta' +
+  \cos \alpha = \cos\vtheta\cos\vtheta' +
   \sin\vtheta\sin\vtheta'\fun{\cos}{\vphi-\vphi'}.
 \end{equation}
 
@@ -41,7 +41,7 @@ $\fun{Q_k}{\alpha\:\V{x}} = \alpha^k \fun{Q_k}{\V{x}}$ for arbitrary $\alpha \in
 degree $k$ is defined by
 \begin{equation}
   \nonumber
-  \fun{\text{Harm}_k}{\R^3} := \pset{Q_k \in \fun{\text{Hom}_k}{\R^3}}{|}{\Delta_{\V{x}} Q \equiv \V{0}},
+  \fun{\text{Harm}_k}{\R^3} := \pset{Q_k \in \fun{\text{Hom}_k}{\R^3}}{|}{\Delta_{\V{x}} Q \equiv 0},
 \end{equation}
 where $\Delta_{\V{x}}$ is the Laplacian
 \begin{equation}
@@ -57,7 +57,7 @@ Furthermore, we have
 \end{align}
 To keep it short, we let $\Pol_{k}\paren{\twosphere} := \left.\Pol_{k}\paren{\R^3}\right|_{\twosphere}$ and 
 $\mathcal{H}_k := \left.\fun{\text{Harm}_k}{\R^3}\right|_{\twosphere}$. For 
-further information, see for example \cite[Chapters 2.3 and 2.3]{frgesc}.
+further information, see for example \cite[Chapter 2.3]{frgesc}.
 
 \begin{figure}[tb]
   \centering
@@ -104,16 +104,16 @@ Furthermore, we define the associated Legendre functions $P_k^n : \interv{[}{-1}
   \paren{1-x^2}^{n/2} \frac{\dx^n}{\dx x^n} \fun{P_k}{x} \quad \paren{n \in \NZ,\ k=n,n+1,\ldots}.
 \end{equation}
 For fixed $n$, the set $\set{P_{k}^n}_{k=n,n+1,\ldots}$ forms a complete set of orthogonal functions 
-for $\Ln{2}{\Ln{2}{[-1,1]}}$ with
+for $\Ln{2}{[-1,1]}$ with
 \[ 
   \scalarproduct{P_{k}^n}{P_{l}^n}_{\Ln{2}{[-1,1]}} := \int_{-1}^{1} \fun{P_{k}^n}{x} 
   \fun{P_{l}^n}{x} \dx x = \frac{2}{2k+1} \delta_{k,l} \quad \paren{0 \le n \le k,l}.
 \]
-The associated Legendre functions obey the three-term recurrence
+The associated Legendre functions obey the three-term recurrence relation
 \begin{equation}
   \label{Basics:AssociatedLegendreDefinition}
   \begin{split}
-    \fun{P_{n-1}^n}{x} & := 0,\qquad \fun{P_{n}^n}{x} := \frac{((2n)!)}{2^n n!}^{1/2} \paren{1-x^2}^{n/2},\\
+    \fun{P_{n-1}^n}{x} & := 0,\qquad \fun{P_{n}^n}{x} := \frac{\sqrt{(2n)!}}{2^n n!} \paren{1-x^2}^{n/2},\\
     \fun{P_{k+1}^n}{x} & = v_{k}^n x \fun{P_{k}^n}{x} + w_{k}^n \fun{P_{k-1}^n}{x} \quad (k = n,n+1,\ldots),
   \end{split}
 \end{equation}
@@ -151,10 +151,10 @@ with
 \end{equation}
 For even $n$, we let
 \[ 
-  \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}},
+  \fun{P_{-1}^n}{x} := 0,\ \fun{P_{0}^n}{x} := \frac{\sqrt{(2n)!}}{2^n n!},
 \]
 and for odd $n$, we start with
-\[ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \sqrt{\frac{(2n)!}{2^n n!}} \paren{1-x^2}^{1/2}.\]
+\[ \fun{P_{0}^n}{x} := \fun{P_{1}^n}{x} := \frac{\sqrt{(2n)!}}{2^n n!} \paren{1-x^2}^{1/2}.\]
 For $k \ge n$, this definition coincides with \eqref{Basics:AssociatedLegendreDefinition}. 
 As a matter of fact, $P_{k}^n$ is a polynomial of degree $k$ for even $n$ while 
 $\paren{1-x^2}^{-1/2}P_{k}^n$ is a polynomial of degree $k-1$ for odd $n$.
@@ -169,35 +169,80 @@ define the associated Legendre polynomials $\fun{P_{k}^n}{\cdot,c}$ by
     & \fun{P_{k+1}^n}{x,c} = \paren{\alpha_{k+c}^n x + \beta_{k+c}^n} \fun{P_{k}^n}{x,c} + \gamma_{k+c}^n \fun{P_{k-1}^n}{x,c}.
   \end{split}
 \end{equation}
-Now, straightforward induction yields
+We have the following Lemma:
 \begin{lemma}
   \label{Basics:AssociatedLegendreRecurrence}
-  Let the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in \eqref{Basics:AssociatedLegendreDefinitionExtended}, 
-  \eqref{Basics:AssociatedLegendreRecurrenceCoefficientsExtended}, and \eqref{Basics:AssociatedLegendrePolynomials}. 
+  Let $c \ge 1$, $k \ge 0$ and the functions $P_{k}^n$ and $\fun{P_{k}^n}{\cdot,c}$ be given as in 
+  \eqref{Basics:AssociatedLegendreDefinitionExtended}, 
+  \eqref{Basics:AssociatedLegendreRecurrenceCoefficientsExtended}, and 
+  \eqref{Basics:AssociatedLegendrePolynomials}. 
   Then we have
   \[ 
-    \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}. 
+    \fun{P_{c+k}^n}{x} = \fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}.
   \]
 \end{lemma}
+\begin{proof}
+  The proof is by induction over $k$. So let $c \ge 1$ be arbitrary. For $k = 0,1$ we have
+  \begin{align}
+    \nonumber
+    \fun{P_{c+0}^n}{x} 
+%    & = 1 \; \fun{P_{c}^n}{x} + \gamma_{c}^n \; 0 \; \fun{P_{c-1}^n}{x},\\
+%    \nonumber
+    & = \fun{P_{0}}{x,c}\fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{-1}}{x,c} \fun{P_{c-1}^n}{x},\\
+    \nonumber
+    \fun{P_{c+1}^n}{x} 
+    & = \paren{\alpha_{c}^n x + \beta_{c}^n} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{c-1}^n}{x}\\
+    \nonumber
+    & = \fun{P_{1}}{x,c}\fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{0}}{x,c} \fun{P_{c-1}^n}{x}.
+  \end{align}
+  Let now the assertion be true for $k$ and $k-1$, where $k \ge 1$ is fixed. We verify
+  \begin{equation}
+    \nonumber
+    \begin{split}
+      \fun{P_{c+k+1}^n}{x}& 
+       = \paren{\alpha_{c+k}^n x + \beta_{c+k}^n} \fun{P_{c+k}^n}{x} + \gamma_{c+k}^n \fun{P_{c+k-1}^n}{x}\\
+      & = \paren{\alpha_{c+k}^n x + \beta_{c+k}^n} \paren{\fun{P_{k}^n}{x,c} \fun{P_{c}^n}{x} + 
+      \gamma_{c}^n \fun{P_{k-1}^n}{x,c+1} \fun{P_{c-1}^n}{x}}\\
+      & \quad + \gamma_{c+k}^n \paren{\fun{P_{k-1}^n}{x,c} \fun{P_{c}^n}{x} + 
+      \gamma_{c}^n \fun{P_{k-2}^n}{x,c+1} \fun{P_{c-1}^n}{x}}\\
+      & = \paren{\paren{\alpha_{c+k}^n x + \beta_{c+k}^n}\fun{P_{k}^n}{x,c} + \gamma_{c+k}^n\fun{P_{k-1}^n}{x,c}} \fun{P_{c}^n}{x}\\ 
+      & \quad + \gamma_{c}^n\paren{\paren{\alpha_{c+k}^n x + \beta_{c+k}^n}\fun{P_{k-1}^n}{x,c+1} + \gamma_{c+k}^n\fun{P_{k-2}^n}{x,c+1}}\fun{P_{c-1}^n}{x}\\ 
+      & = \fun{P_{k+1}^n}{x,c} \fun{P_{c}^n}{x} + \gamma_{c}^n \fun{P_{k}^n}{x,c+1} \fun{P_{c-1}^n}{x}
+    \end{split}  
+  \end{equation}
+\end{proof}
 
 \section{Spherical Harmonics}
 \label{Basics:SphericalHarmonics}
 
 \emph{Spherical harmonics} on the sphere $\twosphere$ arise the same way as complex exponentials 
-$\e^{\im k x}$ on the Torus $\mathbb{T}$ or equivalently the unit circle $\mathbb{S}^1$ and form 
-a complete orthogonal system for $\Ln{2}{\twosphere}$.
-Speaking of Fourier analysis with respect to the sphere, one refers to a set of certain 
-functions $Y_{k}^n$ for $k \in \NZ$, $|n| \le k$ as the Fourier basis on $\twosphere$. 
+$\e^{\im n x}$, $n \in \Z$, on the unit circle $\mathbb{S}^1$. In cartesian coordinates, they are 
+homogeneous harmonic polynomials in $\R^3$, but restricted to $\twosphere$. For a brief 
+comprehensive introduction, we refer to \cite{Mo99}. A more general and abstract treatment is
+found in \cite{frgesc}.
 
-From Laplace's differential equation $\Delta \V{f} \equiv \V{0}$ in $\R^3$, one obtains in spherical coordinates
+In $\R^2$, a homogeneous harmonic polynomial $p_{n}$ of degree $n \in \NZ$, restricted to the unit 
+circle $\mathbb{S}^1$ must fulfill 
+\[
+  n^2 \fun{q_{n}}{\vphi} + \fun{q_{n}''}{\vphi} = 0
+\]
+in polar coordinates $\vphi \in [-\pi,\pi)$. Equivalently, $q_{n}$ is 
+an eigenfunction of the \emph{circular Laplacian} $\Delta_{\vphi} = \frac{\partial^2}{\partial \vphi^2}$ 
+corresponding to the eigenvalue $n^2$.
+Following these lines, a homogeneous harmonic polynomial $q_{k} \in \fun{\Pi}{\R^3}$ in spherical coordinates, 
+restricted to the unit sphere $\twosphere$,
+is an eigenfunction of the \emph{spherical Laplacian} or \emph{Laplace-Beltrami operator} 
+\[
+  \Delta_{\paren{\vtheta,\vphi}} = \frac{1}{\sin^2 \vtheta} 
+  \frac{\partial^2}{\partial \vphi^2} + \frac{1}{ \sin \vtheta} 
+   \frac{\partial}{\partial \vtheta} \paren{\sin \vtheta \: \frac{\partial}{\partial \vtheta}}.
+\]
+with eigenvalue $k(k-1)$ and obeys
 \begin{equation}
   \label{Basics:LaplaceBeltrami}
-  \Delta_{r,\vtheta,\vphi} f = \frac{\partial^2 f}{\partial r^2} + \frac{2}{r}\frac{\partial f}{\partial
-  r} + \frac{1}{r^2 \sin \vtheta}\frac{\partial}{\partial \vtheta}\paren{\sin \vtheta \: \frac{\partial f}{\partial
-  \vtheta}} + \frac{1}{r^2 \sin \vtheta}\frac{\partial^2 f}{\partial \vphi^2} \equiv 0.
+  \Delta_{\paren{\vtheta,\vphi}} \fun{q_{k}}{\vtheta,\vphi} = -k(k-1) \fun{q_{k}}{\vtheta,\vphi}.
 \end{equation}
-Using an ansatz based on separation of variables (see \cite{co2}) and taking into account that $r = 1$ when restricting 
-\eqref{Basics:LaplaceBeltrami} to $\twosphere$, one obtains the solutions
+Using an ansatz based on separation of variables (see \cite{co2}), one obtains the linear independent solutions
 \begin{equation}
   \label{Basics:SphericalHarmonicsDefinition}
   \begin{split}
@@ -211,28 +256,30 @@ Figure \ref{Basics:Figure:SphericalHarmonics} illustrates several functions $Y_{
 Due to the separability with respect to $\vtheta$ and $\vphi$, one proves easily the 
 orthogonality property
 \begin{equation}
-  \nonumber
+  \label{Basics:orthogonality}
   \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\Ln{2}{\twosphere}} = \delta_{k,l} \delta_{n,m}
 \end{equation}
 with respect to the $\Ln{2}{\twosphere}$-inner product 
 \begin{equation}
   \nonumber
-  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\Ln{2}{\twosphere}} := \int_{0}^{2\pi} \int_{0}^{\pi} 
-  \fun{Y_{k}^n}{\vtheta,\vphi} \overline{\fun{Y_{l}^m}{\vtheta,\vphi}} \sin \vtheta \; 
+  \scalarproduct{Y_{k}^n}{Y_{l}^m}_{\Ln{2}{\twosphere}} = \int_{\twosphere}
+  \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{l}^m}{\V{\xi}}} \: \dx \V{\xi} := 
+  \int_{0}^{2\pi} \int_{0}^{\pi} \fun{Y_{k}^n}{\vtheta,\vphi} 
+  \overline{\fun{Y_{l}^m}{\vtheta,\vphi}} \sin \vtheta \; 
   \dx \vtheta \; \dx \vphi.
 \end{equation}
-An important result states that these functions all are contained in 
-$\mathcal{H}_k$ so that for fixed $k \in \NZ$, the set
+An important result states $Y_{k}^n \in \mathcal{H}_k$ and therefore, the set
 \begin{equation}
   \nonumber
   \pset{Y_{k}^n}{|}{n = -k,\ldots,k}
 \end{equation}
 forms an orthonormal basis of $ \mathcal{H}_k$, since $\dim \mathcal{H}_k =
-2k+1$. Moreover, the spaces $\mathcal{H}_k$ are orthogonal
+2k+1$. Moreover, due to \eqref{Basics:orthogonality}, the spaces $\mathcal{H}_k$ are orthogonal
 to each other and
-\[
-  \pset{Y_{k}^n}{|}{k = 0,\ldots,M,\ n = -k,\ldots,k} \quad \paren{M \in \NZ}
-\] 
+\begin{equation}
+  \label{Basics:FourierBasis}
+  \pset{Y_{k}^n}{|}{k = 0,\ldots,M;\ n = -k,\ldots,k} \quad \paren{M \in \NZ}
+\end{equation}
 provides an orthonormal basis for the space $\bigoplus_{k=0}^{M}\mathcal{H}_k$, called
 the space of \emph{spherical harmonics} of degree $M$.
 
@@ -243,6 +290,23 @@ matter of fact, these spaces are identical (see \cite[Corollary 2.2.5]{frgesc}),
   \nonumber
     \fun{\Pol_M}{\twosphere} = \bigoplus_{k=0}^{M}\mathcal{H}_k \quad \paren{M \in \NZ}.
 \end{equation}
+Since polynomials are dense in $\Ln{2}{\twosphere}$, we have also obtained an orthonormal 
+basis for $\Ln{2}{\twosphere}$ and we call \eqref{Basics:FourierBasis} the 
+\emph{Fourier Basis} for $\Ln{2}{\twosphere}$.
+A function $f \in \Ln{2}{\twosphere}$ can be developed into a series
+\[
+  f = \sum_{k=0}^{\infty} \sum_{n=-k}^{k} a_{k}^n Y_{k}^n,
+\]
+where the coefficients $a_{k}^n = \fun{f^{\wedge}}{k,n} = \scalarproduct{f}{Y_{k}^{n}}_{\Ln{2}{\twosphere}}$
+are the \emph{spherical Fourier coefficients}.
+\begin{remark}
+  There exist several different denotations for the functions $Y_{k}^n$. ...
+\end{remark}
+%one obtains from Laplace's differential equation $\Delta_{\V{x}} f \equiv 0$ in $\R^3$ in spherical coordinates
+%i.e. as restrictions of homogeneous harmonic polynomials  and form 
+%a complete orthogonal system for $\Ln{2}{\twosphere}$.
+%Speaking of Fourier analysis with respect to the sphere, one refers to a set of certain 
+%functions $Y_{k}^n$ for $k \in \NZ$, $|n| \le k$ as the Fourier basis on $\twosphere$. 
 
 \begin{figure}[hp]
   \centering
@@ -258,7 +322,7 @@ matter of fact, these spaces are identical (see \cite[Corollary 2.2.5]{frgesc}),
      {\includegraphics[width=0.33\textwidth]{images/sh_r_13_6}}\hfill
    \subfigure[$\Re \: Y_{13}^{13}$]
      {\includegraphics[width=0.33\textwidth]{images/sh_r_13_13}}\\
-  \caption{The functions $\Re \: Y_{k}^{n}$ for different combinations $\paren{k,n}$.}
+  \caption{The real part of $Y_{k}^{n}$ for different combinations $\paren{k,n}$.}
   \label{Basics:Figure:SphericalHarmonics}
 \end{figure}
 
@@ -268,7 +332,7 @@ to the Legendre polynomials $P_{k}$.
 
 \begin{proposition}[Addition Theorem]
   \label{Basics:AdditionTheorem}
-  For every $\Ln{2}{\twosphere}$-orthonormal basis 
+  For every $\Ln{2}{\twosphere}$-orthonormal basis\\ 
   $\set{H_{k}^n}_{n=-k}^{k}$ of $\mathcal{H}_k$, $k \in \NZ$, we have
   \begin{equation}
     \nonumber
@@ -278,26 +342,30 @@ to the Legendre polynomials $P_{k}$.
 \end{proposition}
 
 See \cite[p. 37]{frgesc} or \cite[pp. 172, Theorem 5]{co} for a proof. In particular, the theorem 
-holds for the basis functions $Y_{k}^n$ given in \eqref{Basics:SphericalHarmonicsDefinition}.
+holds for the basis functions $Y_{k}^n$.
 
 \section{Spherical Radial Basis Functions}
 \label{Basics:SphericalKernels}
 
 \emph{Spherical radial basis functions} are the spherical counterpart 
 of \emph{radial basis functions} in Euclidean spaces (see for example 
-\cite{buhmann} or \cite{wendland}). 
+\cite{buhmann} or \cite{wendland}). Other denotations are \emph{spherical radial kernels} or
+\emph{zonal functions}.
 Generally, one starts with a function $K$ from $\Ln{2}{\interv{[}{-1}{1}{]}}$
 and defines for fixed $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function 
 \[
   \fun{K}{\V{\eta} \: \cdot}: \twosphere \rightarrow \C,\ \V{\xi} \mapsto \fun{K}{\V{\eta} \cdot \V{\xi}} \quad \paren{\V{\xi} \in \twosphere}.
-\] 
+\]
+The fact that the geodesic distance $d$ for two points $\V{\eta}$, $\V{\xi} \in \twosphere$ is $\fun{d}{\V{\eta},\V{\xi}} = 
+\sqrt{2-2\V{\eta}\cdot\V{\xi}}$ justifies the name \emph{spherical radial basis function}. 
 By means of the \emph{Funk-Hecke formula} (see \cite[pp. 60]{frgesc}) we obtain for fixed $k \in \NZ$
-\[
-  \scalarproduct{\fun{K}{\V{\eta} \: \cdot}}{Y_{k}^n} = \int_{\twosphere} 
+\begin{equation}
+  \label{Basics:Symbol2}
+  \scalarproduct{\fun{K}{\V{\eta} \: \cdot}}{Y_{k}^n}_{\Ln{2}{\twosphere}} = \int_{\twosphere} 
   \fun{K}{\V{\eta} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \: \dx \V{\xi} = 
   \fun{K^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \quad \paren{n=-k,\ldots,k},
-\]
-where the \emph{Legendre transform}, i.e. the \emph{symbol} of $K$, is given by
+\end{equation}
+where the \emph{Legendre transform} is given by
 \begin{equation}
   \label{Basics:Symbol}
   \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx x \quad \paren{k \in \NZ}.
@@ -314,29 +382,61 @@ for $K$ the orthogonal expansion
 \label{Basics:OrthogonalKernelExpansion}
   \fun{K}{x} = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
 \end{equation}
+\begin{remark}
+  The Legendre transform $\fun{K^{\wedge}}{k}$ is also called the $symbol$ of $K$ since it corresponds to a
+  linear operator $\Lambda: \Ln{2}{\twosphere} \rightarrow \Ln{2}{\twosphere}$ with 
+  $\fun{\paren{\Lambda f}^{\wedge}}{k,n} = \fun{K^{\wedge}}{k} \fun{f^{\wedge}}{k,n}$.
+\end{remark}
 The symbol $\fun{K^{\wedge}}{k}$ has many remarkable properties. The following result allows for the 
-construction of so-called \emph{iterated kernels} by multiplying simple the corresponding symbols.
+construction of so-called \emph{iterated spherical radial basis functions} by multiplying simple the corresponding symbols (see \cite{frsc}).
 \begin{lemma}
-  Let $Q,P\in \Ln{2}{\interv{[}{-1}{1}{]}}$ and
+  Let $P,Q\in \Ln{2}{\interv{[}{-1}{1}{]}}$ and
   \[
-  \fun{K}{\V{\eta} \cdot \V{\xi}} := \fun{\left(Q * P\right)}{\V{\eta} \cdot
+  \fun{K}{\V{\eta} \cdot \V{\xi}} := \fun{\left(P * Q\right)}{\V{\eta} \cdot
     \V{\xi}},
   \]
   where
-  \[
-    \fun{\left(Q * P\right)}{\V{\eta} \cdot \V{\xi}}:= 
-    \int_{\twosphere} \fun{Q}{\V{\eta} \cdot \V{\nu}}
-    \fun{P}{\V{\nu} \cdot \V{\xi}} \dx \omega\left(\nu\right)
-  \]
+  \begin{equation}
+    \label{Basics:Convolution}
+    \fun{\left(P * Q\right)}{\V{\eta} \cdot \V{\xi}}:= 
+    \int_{\twosphere} \fun{P}{\V{\eta} \cdot \V{\nu}}
+    \fun{Q}{\V{\nu} \cdot \V{\xi}} \dx \V{\nu}
+  \end{equation}
   is the \emph{spherical convolution} of $Q$ and $P$. Then the symbol 
   $\fun{K^{\wedge}}{k}$ is given by 
-  $\fun{K^{\wedge}}{k} = \fun{Q^{\wedge}}{k} \fun{P^{\wedge}}{k}$.
-  Furthermore, for compactly supported functions, $\supp\; Q = \supp\; P =
-  \interv{[}{h}{1}{]}$, $h>0$, it can be shown that $\supp\; K =
+  $\fun{K^{\wedge}}{k} = \fun{P^{\wedge}}{k} \fun{Q^{\wedge}}{k}$.
+  Furthermore, for compactly supported functions, $\supp\; P = \supp\; Q =
+  \interv{[}{h}{1}{]}$, $h \in [0,1]$, we have $\supp\; K =
   \interv{[}{2h^2-1}{1}{]}$.
 \end{lemma}
+\begin{proof}
+  First, we use \eqref{Basics:Symbol2} to get
+  \begin{equation}
+    \begin{split}
+      \scalarproduct{\fun{K}{\V{\eta} \: \cdot}}{Y_{k}^n}_{\Ln{2}{\twosphere}} 
+      & = \int_{\twosphere} \fun{K}{\V{\eta} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \: \dx \V{\xi}\\
+      & = \int_{\twosphere} \int_{\twosphere} \fun{P}{\V{\eta} \cdot \V{\nu}}
+          \fun{Q}{\V{\nu} \cdot \V{\xi}} \: \dx \V{\nu} \; \overline{\fun{Y_{k}^n}{\V{\xi}}} \: \dx \V{\xi}\\
+      & = \int_{\twosphere} \int_{\twosphere} \fun{Q}{\V{\nu} \cdot \V{\xi}} \overline{\fun{Y_{k}^n}{\V{\xi}}} \:
+          \dx \V{\xi} \; \fun{P}{\V{\eta} \cdot \V{\nu}} \: \dx \V{\nu}\\
+      & = \int_{\twosphere} \fun{Q^{\wedge}}{k} \fun{P}{\V{\eta} \cdot \V{\nu}} 
+          \overline{\fun{Y_{k}^n}{\V{\nu}}} \: \dx \V{\nu}\\
+      & = \fun{Q^{\wedge}}{k} \fun{P^{\wedge}}{k} \overline{\fun{Y_{k}^n}{\V{\eta}}}, 
+    \end{split}
+  \end{equation}  
+  which proves $\fun{K^{\wedge}}{k} = \fun{P^{\wedge}}{k} \fun{Q^{\wedge}}{k}$. 
+  If $P$ and $Q$ are compactly supported, with $\supp\; P = \supp\; Q =
+  \interv{[}{h}{1}{]}$, and $h \in [0,1]$, we note that the support of $P$ and $Q$ 
+  are spherical caps $\fun{C_{\V{\eta}}}{h}$ and $\fun{C_{\V{\nu}}}{h}$, respectively, where
+   $\fun{C_{\V{\eta}}}{h} := \pset{\V{\xi} \in \twosphere}{|}{\V{\eta} \cdot \V{\xi} \ge h}$. For the 
+   integrand in \eqref{Basics:Convolution} not to vanish, we must require $\V{\nu}$ and $\V{\xi}$ to lie in the 
+   spherical caps $\fun{C_{\V{\eta}}}{h}$ and $\fun{C_{\V{\nu}}}{h}$. Equivalently, if we denote
+   by $\alpha$, $\beta$, $\gamma$ the angles $\fun{\angle}{\V{\eta},\V{\nu}}$, $\fun{\angle}{\V{\nu},\V{\xi}}$, and
+   $\fun{\angle}{\V{\eta},\V{\xi}}$, we conclude $\gamma \le \alpha + \beta \le 2 \arccos h$, where we note that
+   this estimate is sharp. Since $\fun{\cos}{2 \arccos h} = 2h^2-1$, the support of $K$ is $\supp\; K = \interv{[}{2h^2-1}{1}{]}$.
+\end{proof}
 
-We consider the generating series
+The following examples are taken from \cite{frgesc} or \cite{frsc}. We consider the generating series
 \begin{equation}
   \label{Basics:GeneratingFunction}
   \fun{\phi}{h} := \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} \quad \paren{x \in \interv{[}{-1}{1}{]}}
@@ -353,8 +453,8 @@ This follows from the ordinary differential equation
   \paren{1+h^2-2hx}\fun{\phi'}{h} = \paren{x-h}\fun{\phi}{h}
 \end{equation}
 obtained by differentiation with respect to $h$ and comparing coefficients in line with \eqref{Basics:GeneratingFunction}. Using the initial 
-condition $\fun{\phi}{0}=1$ this yields the unique solution \eqref{Basics:Solution} of \eqref{Basics:DifferentialEquation}.
-From this result, the identity
+condition $\fun{\phi}{0}=1$ yields the unique solution \eqref{Basics:Solution} of \eqref{Basics:DifferentialEquation}.
+The identity
 \begin{equation}
   \nonumber
   \sum_{k=0}^{\infty} \paren{2k+1} h^k \fun{P_k}{x} =
@@ -362,7 +462,7 @@ From this result, the identity
 \end{equation}
 follows easily. 
 \begin{definition}
-  Let $h \in \interv{(}{0}{1}{)}$. Then the function
+  Let $h \in \interv{(}{0}{1}{)}$. The function
   $Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$, with
   \begin{equation}
     \label{PoissonKernel}
@@ -386,18 +486,18 @@ Further properties with respect to localization and smoothness are derived in \c
 
 \begin{figure}[tb]
   \centering
-  \subfigure[$h=0.5,0.7,0.8$]
+  \subfigure[$h=0.5,0.7,0.8$.]
   {
   \label{Basics:Figure:PoissonKernel}
   \includegraphics[width=0.45\textwidth]{images/poisson}
   }
   \hfill
-  \subfigure[$h=0.8,0.9,0.955$]
+  \subfigure[$h=0.8,0.9,0.955$.]
   {
     \label{Basics:Figure:SingularityKernel}
     \includegraphics[width=0.45\textwidth]{images/singularity}
   }
-  \caption{The kernels $\fun{Q_{h}}{\cos\vartheta}$ and $\fun{S_{h}}{\cos\vartheta}$
+  \caption{The kernels $\fun{Q_{h}}{\cos\vartheta}$ (left) and $\fun{S_{h}}{\cos\vartheta}$ (right)
   for different values of $h$.}
   \label{Basics:Figure:PoissonSingularityKernel}
 \end{figure}
@@ -423,13 +523,13 @@ Further properties with respect to localization and smoothness are derived in \c
 %  \label{Basics:Figure:PoissonKernel2}
 %\end{figure}
 
-  The series \eqref{Basics:Solution} itself defines a spherical radial kernel.
+  The series \eqref{Basics:Solution} itself leads to a spherical radial basis function.
   \begin{definition}
-    Let $h \in \interv{(}{0}{1}{)}$. Then the \emph{singularity kernel} 
+    Let $h \in \interv{(}{0}{1}{)}$. The \emph{singularity kernel} 
     $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
     \[
       \fun{S_{h}}{x} := \frac{1}{2\pi} \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = 
-      \frac{1}{2\pi} \frac{1}{\sqrt{1-2hx+h^2}} \paren{x \in \interv{[}{-1}{1}{]}}.
+      \frac{1}{2\pi} \frac{1}{\sqrt{1-2hx+h^2}} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
     \]
   \end{definition}
   For the symbol $\fun{S_{h}^{\wedge}}{k}$, we have
@@ -468,33 +568,35 @@ Further properties with respect to localization and smoothness are derived in \c
   \begin{definition}
     Let $h \in \interv{(}{0}{1}{)}$ and $\lambda,\mu \in \NZ$.
     \begin{enumerate}
-	    \item The locally supported zonal function
-	    $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$ is defined by
+	    \item Let the locally supported kernel
+	    $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$ defined by
 	    \[
 	    \fun{L_{h,\lambda}}{x} := 
-	    \left\{\begin{array}{l@{\quad \text{if} \quad}rcl} 
-	        0 & -1 &\le x \le& h, \\
-	        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1,
+	    \left\{\begin{array}{l@{\quad \text{if} \quad}l} 
+	        0 & -1 \le x \le h, \\
+	        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h <  x \le 1,
 	      \end{array}\right.
 	    \]
 	    \item Furthermore, we define the iterated locally supported kernels 
-	    $L_{h,\lambda}^{(\mu)}:\interv{[}{-1}{1}{]} \rightarrow \R$ recursively,
+	    $L_{h,\lambda}^{(\mu)}:\interv{[}{-1}{1}{]} \rightarrow \R$, $\mu \in \N$ 
+	    recursively,
 	    \[
 	      L_{h,\lambda}^{(\mu+1)} := L_{h,\lambda}^{(\mu)} * L_{h,\lambda},
 	    \]
-	    where $\mu \in \N$ and $L_{h,\lambda}^{(\mu)} = L_{h,\lambda}$.
+	    where $\mu \in \N$ and $L_{h,\lambda}^{(1)} = L_{h,\lambda}$.
     \end{enumerate}
   \end{definition}  
   
-	Figures \ref{Basics:Figure:LKernel} and \ref{LKernelIterated} show the 
+	Figures \ref{Basics:Figure:LKernel} and \ref{Basics:Figure:LKernelIterated} 
+	show the 
 	function $L_{h,\lambda}$ for	different values $h$ and $\lambda$ and the 
 	iterated kernel $L_{h,\lambda}^{(\mu)}$ for different values of $\mu$, 
 	respectively.
-	While the parameter $h$ again steers the localisation in spatial domain, the
+	While the parameter $h$ again steers the localization in spatial domain, the
 	parameter $\lambda$ correponds to the smoothness in spatial domain.
-	The iterated kernel $L_{h,\lambda,\mu}$ trades localisation in spatial domain
-	for localisation in frequency domain by increasing $\mu$.
-	We have the following lemma.
+	The iterated kernel $L_{h,\lambda,\mu}$ trades localization in spatial domain
+	for localization in frequency domain by increasing $\mu$.
+	We recall the following lemma from \cite{frsc}:
 
 	\begin{lemma}
 	  \item The symbol $\fun{L_{h,\lambda}^{\wedge}}{k}$ can be computed recursively by
@@ -508,7 +610,7 @@ Further properties with respect to localization and smoothness are derived in \c
 	\end{lemma}
 	
 	\begin{proof}
-	  straightforward integration yields $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$
+	  Straightforward integration yields $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$
 	  and $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+2}$.
 	  We use \eqref{Basics:Symbol} and apply the recurrence relation \eqref{three1}
 	  and have
@@ -520,12 +622,7 @@ Further properties with respect to localization and smoothness are derived in \c
 	  \[
 	    (2k+1)\fun{L_{h,\lambda+1}^{\wedge}}{k} = (\lambda+1)\paren{\fun{L_{h,\lambda}^{\wedge}}{k-1}-\fun{L_{h,\lambda}^{\wedge}}{k+1}}.
 	  \]
-	  The combination of these results finally leads to 
-	  \[
-      \fun{L_{h,\lambda}^{\wedge}}{k+1} = \frac{\paren{2k+1} h}{k+\lambda+2}
-	    \fun{L_{h,\lambda}^{\wedge}}{k}   - \frac{k-\lambda-1}{k+\lambda+2}
-	    \fun{L_{h,\lambda}^{\wedge}}{k-1}.
-	  \]
+	  The combination of these results finally yields the assertion.
 	\end{proof}
 
 \begin{figure}[tb]
@@ -538,11 +635,10 @@ Further properties with respect to localization and smoothness are derived in \c
   \label{Basics:Figure:LKernel}
 \end{figure}
 
-The spherical analog to the bell-shaped Gaussian probability density function is the so-called 
-\emph{Gaussian kernel}.
+The so-called \emph{spherical Gaussian kernel} takes it's name from the bell-shaped Gaussian probability density function.
 
 \begin{definition}
-  For $\sigma>0$, the \emph{Gaussian kernel}
+  For $\sigma>0$, the \emph{spherical Gaussian kernel}
   $G_{\sigma}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
   \begin{equation}
     \label{GaussKernel}
@@ -571,8 +667,8 @@ $\norm{\fun{\gamma}{\sigma}G_{\sigma}}_{\Ln{2}{\twosphere}} = 1$ for different v
   \label{Basics:Figure:GLKernel}
 \end{figure}
 
-As for the locally supported kernel $L_{h,\lambda}$, the Symbol $\fun{G_{\sigma}^{\wedge}}{k}$ obeys a 
-three-term recurrence relation. A 'closed' form expression can be given in terms of Bessel functions 
+As for the locally supported kernel $L_{h,\lambda}$, the Symbol $\fun{G_{\sigma}^{\wedge}}{k}$ likewise
+obeys a three-term recurrence relation. A 'closed' form expression can be given in terms of Bessel functions 
 of the first kind.
 \begin{lemma}
 
@@ -608,37 +704,18 @@ of the first kind.
       & = & -\sigma 2\pi \int_{-1}^1 \e^{\sigma{x-1}} \fun{P_{k+1}}{x} \; \dx x  + \sigma 2\pi \int_{-1}^1 \e^{\sigma{x-1}} \fun{P_{k-1}}{x} \; \dx x \\
       & = & -\sigma \fun{G_{\sigma}^{\wedge}}{k+1} + \sigma \fun{G_{\sigma}^{\wedge}}{k-1}.
     \end{eqnarray*}
-  \item The solution of the difference equation in 1. is given by the modified
+  \item The solution of the difference equation in \eqref{Basics:Gaussian:SymbolRecurrence} 
+  is given by the modified
   Bessel function of the first kind, cf. \cite{bahu01}.
-  The nonnegativity follows readily from the fact that the Gaussian is a
+  The nonnegativity follows already from the fact that the spherical Gaussian kernel is a
   positive definite function, cf. \cite{powell}.
-  \item Using 2. and
-  \begin{eqnarray*}
-    \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
-    &=&
-    \sum_{k>M} \frac{\e^{-2\sigma}
-    \left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}} \int_{-1}^{1}
-    \e^{2\sigma x} \left(1-x^2\right)^k \dx x\\
-    &\le&
-    \sum_{k>M} \frac{\left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}}
-    \int_{-1}^{1} \left(1-x^2\right)^k \dx x\\
-    &=&
-    \sum_{k>M} \frac{\sqrt{\pi}\sigma^k}{\fun{\Gamma}{k+\frac{1}{2}}}\\
-    &=&
-    \frac{\sqrt{\pi\sigma}\e^{\sigma}}{\fun{\Gamma}{M+\frac{1}{2}}} 
-    \int_{0}^{\sigma} t^{M-\frac{1}{2}} \e^{-t} \dx t\\
-    &\le&
-    \frac{\sqrt{\pi\sigma}\e^{\sigma} \sigma^{M+\frac{1}{2}}}{\fun{\Gamma}{M
-    +\frac{1}{2}}}
-  \end{eqnarray*}
-  yields the assertion.
   \end{enumerate}
   \end{proof}
   
   \begin{remark}
-    The recurrence relation \eqref{Basics:Gaussian:SymbolRecurrence} proofs to be unstable. 
+    The recurrence relation \eqref{Basics:Gaussian:SymbolRecurrence} proves to be unstable. 
     This forbids computing the symbol $\fun{G_{\sigma}^{\wedge}}{k}$ in finite precision 
-    arithmetic with the desired accuracy. Four our numerical tests in Section 
+    arithmetic with the desired accuracy. For our numerical tests in Section 
     \ref{Applications:FastSum}, we used Mathematica 5.0 with extended precision arithmetic, 
     to compute the coefficients up to double precision accuracy. Another idea, but beyond 
     the scope of this text, would be to apply quadrature formulae to the integrals
@@ -703,8 +780,11 @@ we give a fast algorithm (see \cite{postta97} and \cite{kupo02})
 for computing the Chebyshev coefficients $\V{c} := \paren{c_{k}}_{k=0}^{2K-1}$ of the polynomial 
 product $R := P \cdot Q \in \Pol_{2K-1}$.\\ 
 The polynomial $R$ is uniquely determined 
-by the products $f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}$ for $j = 0,\ldots,2K-1$ and 
-by \eqref{Basics:DCT2} we obtain
+by the products 
+\[
+  f_{j} := \fun{P}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}
+\]
+for $j = 0,\ldots,2K-1$, and by \eqref{Basics:DCT2} we obtain
 \begin{eqnarray*}
   \paren{\fun{P}{\cos \frac{(2j+1)\pi}{4K}}}_{j=0}^{2K-1} = \V{C}_{2K}^{\transp} \V{a} = \V{C}_{2K}^{\transp} \paren{a_{k}}_{k=0}^{2K-1},\\
   \paren{\fun{Q}{\cos \frac{(2j+1)\pi}{4K}}}_{j=0}^{2K-1} = \V{C}_{2K}^{\transp} \V{b} = \V{C}_{2K}^{\transp} \paren{b_{k}}_{k=0}^{2K-1},
@@ -741,11 +821,11 @@ power of two, although this is generally not necessary to apply the algorithm.
     \STATE Compute the Chebyshev coefficients $\paren{c_{k}}_{k=0}^{2K-1}$ of $R$ using a fast DCT-II of length $2K$.
     \STATE
     \STATE Output: $\paren{c_{k}}_{k=0}^{2K-1}$
-    \STATE Computational complexity: $\bigo{K \log K}$
+    \STATE Complexity: $\bigo{K \log K}$ flops
 \end{algorithmic}
 \end{algorithm}
 
-\section{Fast Fourier Transform for Nonuniform Knots}
+\section{Fast Fourier Transform for Nonuniform Nodes}
 \label{Basics:NFFT}
 
 The \emph{nonuniform fast Fourier transform (NFFT)} generalizes the well known 
@@ -761,7 +841,7 @@ $\mathcal{I}^{M} := \pset{k \in \Z}{|}{-\frac{M}{2}
 trigonometric polynomial $f: \mathbb{T} \rightarrow \C$ with
 \begin{equation}
   \label{Basics:NFFT:f}
-  \fun{f}{x} =: \sum_{k \in \mathcal{I}_{M}} \hat{f}_{k} \e^{- 2 \pi \im k x}
+  \fun{f}{x} := \sum_{k \in \mathcal{I}_{M}} \hat{f}_{k} \e^{- 2 \pi \im k x}
 \end{equation}
 on the sampling set $\mathcal{X}$. The algorithm is approximative with 
 computational complexity $\bigo{M \log M + \fun{\log}{1/\varepsilon}D}$ 

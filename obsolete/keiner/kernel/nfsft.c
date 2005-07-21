@@ -472,3 +472,14 @@ void nfsft_get_stat(int *nstabp, int *ntotalp)
   *nstabp = nstab;
   *ntotalp = ntotal;
 }
+
+void nfsft_flft_trafo(complex *in,int n, int M)
+{
+  flft(M, ngpt(M), abs(n), in, &wisdom, &nstab, &ntotal);
+}
+
+void nfsft_flft_trafo_adjoint(complex *in,int n, int M)
+{ 
+  flft_adjoint(M, ngpt(M), abs(n), in, &wisdom);
+}
+

@@ -1,68 +1,106 @@
-\begin{savequote}[8cm]
-  ``Suddenly, I felt like a big Nancy-boy in front of my wife. I had to do something to reclaim my manhood. I had to put a shelf in the closet.''
-  \qauthor{Dan Zevin}
-\end{savequote}
-\makeatletter
+%\begin{savequote}[8cm]
+%  ``Suddenly, I felt like a big Nancy-boy in front of my wife. I had to do something to reclaim my manhood. I had to put a shelf in the closet.''
+%  \qauthor{Dan Zevin}
+%\end{savequote}
+%\makeatletter
 \chapter{Nonuniform Discrete Spherical Fourier Transform}
 \label{DSFT}
 
-Let in this chapter $M \in \NZ$ be fixed, $N := 2^t$ be the 
-next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$ be
-a set of nodes on $\twosphere$ called the \emph{sampling set}. As a special case, a \emph{spherical grid} 
-$\mathcal{X}$ is defined by a Cartesian product 
+Let in this chapter be $M \in \NZ$ be fixed, $N := 2^t$ the 
+next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$
+a set of nodes on $\twosphere$, called the \emph{sampling set}. As a special case, a \emph{spherical grid} 
+$\mathcal{X}$ is a Cartesian product 
 \[
   \mathcal{X} := \pset{\vtheta_{l}}{|}{l=0,\ldots,L-1} \times \pset{\vphi_{j}}{|}{j=0,\ldots,J-1} \quad \paren{J,L \in \N}
 \]
-with colatitudes $\vtheta_{l} \in \interv{[}{0}{\pi}{]}$ and longitudes $\vphi_{j} \in \interv{[}{0}{2\pi}{)}$.
+with \emph{colatitudes} $\vtheta_{l} \in \interv{[}{0}{\pi}{]}$ and \emph{longitudes} $\vphi_{j} \in \interv{[}{0}{2\pi}{)}$.
+We denote by $\mathcal{I}^M$ the index set
+\[
+  \mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;\ n=-k,\ldots,k}
+\]
+of \emph{admissible} indices $(k,n)$, and by $f$ a function $f: \twosphere \rightarrow \C$, $f \in \fun{\Pol_{M}}{\twosphere}$, hence a polynomial in $\R^3$ of degree at most $M$, restricted to the unit sphere $\twosphere$.
 
-Given a function $f: \twosphere \rightarrow \C$, $f \in \fun{\Pol_{M}}{\twosphere}$ with Fourier expansion
+Referring to Section \ref{Basics:SphericalHarmonics}, the function $f$ can be developed into an orthogonal expansion in terms of the $\Ln{2}{\twosphere}$-orthogonal basis functions $\set{Y_{k}^n}_{(k,n) \in \mathcal{I}^M}$, i.e.
 \begin{equation}
   \label{NFSFT:FourierExpansion} 
-  f = \sum_{\paren{k,n} \in\mathcal{I}^M} \fun{a_k^n}{f} Y_{k}^n = \sum_{k=0}^M \sum_{n=-k}^k \fun{a_k^n}{f} Y_{k}^n = \sum_{n=-M}^M \sum_{k=\abs{n}}^M \fun{a_k^n}{f} Y_{k}^n,
+  f = \sum_{\paren{k,n} \in\mathcal{I}^M} \fun{a_k^n}{f} Y_{k}^n = \sum_{k=0}^M \sum_{n=-k}^k \fun{a_k^n}{f} Y_{k}^n = \sum_{n=-M}^M \sum_{k=\abs{n}}^M \fun{a_k^n}{f} Y_{k}^n.
 \end{equation}  
-where 
-\[\mathcal{I}^M := \pset{\paren{k,n}}{|}{k=0,\ldots,M;n=-k,\ldots,k},\]
-the \emph{nonuniform discrete spherical Fourier transform (NDSFT)} maps the coefficients $\paren{\fun{a_k^n}{f}}_{(k,n) \in \mathcal{I}^M}$ to the function values $\fun{f}{\mathcal{X}}$ on the sampling set $\mathcal{X}$.
-We call $M$ the \emph{bandwidth} of $f$ and $a_{k}^n = \fun{a_{k}^n}{f}$ are the \emph{spherical Fourier coefficients} of $f$ with respect to the 
-orthonormal basis of spherical harmonics $\set{Y_{k}^n}_{\paren{k,n} \in\mathcal{I}^M}$ of $\fun{\Pol_{M}}{\twosphere}$. The index $k$ will always denote the degree and $n$ always the order of $Y_{k}^n$. The Fourier coeffcients $a_{k}^n$ may be ordered 
-in different ways: We refer to the \emph{degree-major order} when the Fourier coefficents are sorted first by degree $k$ and then by order $n$ in ascending order, hence
-\[ a_{0}^0,\: a_{1}^{-1},\: a_{1}^{0},\: a_{1}^{1},\: a_{2}^{-2},\: \ldots,\: a_{M}^{M-1},\: a_{M}^{M}.\] 
-Analogously, the \emph{order-major order} corresponds to reversed precedence, i.e.
-\[ a_{M}^{-M},\: a_{M-1}^{-(M-1)},\: a_{M}^{-(M-1)},\: a_{M-2}^{-(M-2)},\: \ldots,\: a_{M-1}^{M-1},\: a_{M}^{M-1},\: a_{M}^{M}.\] 
-From a linear algebra point of view, evaluating $f$ on $\mathcal{X}$ corresponds to a matrix-vector product
-\[ \fun{\V{f}}{\mathcal{X}} = \fun{\V{Y}}{\mathcal{X}} \; \V{a}\]
+Equation \eqref{NFSFT:FourierExpansion} is the \emph{spherical Fourier sum} or \emph{spherical Fourier expansion} of the function $f$ and $M$ is called the \emph{bandwidth} of $f$. Likewise, $f$ is said to be a \emph{bandlimited} function on $\twosphere$ with bandwidth $M$. So far, the nomenclature alludes to the usual conception of "classical" Fourier analysis and signal theory on the unit circle $\mathbb{S}^1$.
+This chapter will deal with algorithms related to \eqref{NFSFT:FourierExpansion} subsumed under the topic \emph{discrete spherical Fourier transform (DSFT)}, which can be regarded as the spherical analog to the \emph{discrete Fourier transform (DFT)} on $\mathbb{S}^1$. Furthermore, the generalizing idea of \emph{irregular sampling} which refers to arbitrary sets of nodes at which a function is given or is to be evaluated, is incorporated into the algorithms. In order to form a concise notion, one needs on the one hand to keep the widespread and accepted vocabulary from ''classical'' Fourier analysis, but on the other hand to introduce modified denotations in order to reflect the generalized conception.
+Speaking of the DFT on the unit circle, on refers to the transformation of a sequence of $K \in \N$ complex numbers $\paren{g_{k}}_{k=0}^{K-1}$ into the sequence of $K$ complex numbers $\paren{\hat{g}_{k}}_{k=0}^{K-1}$ according to the formula
+\[
+  \hat{g}_{k} := \sum_{j=0}^{K-1} g_{j} \e^{-2\pi\im \frac{jk}{K}} \quad \paren{j=0,\ldots,K-1}.
+\]
+The numbers $g_{k}$ can be regarded as samples of a bandlimited function $g: \mathbb{S}^1 \rightarrow \C$ at uniformly distributed nodes $\vphi_{k} := \frac{2\pi k}{K}$ whereas the numbers $\hat{g}_{k}$
+can be interpreted as the \emph{frequencies} contained in the signal $g$.
+A translation of this concept to the sphere $\twosphere$ and the incorporation of irregular sampling imposes a deviation from the standard notation. 
+
+We refer to the 
+\emph{nonuniform discrete spherical Fourier transform (NDSFT)} as the transformation of 
+spherical Fourier coefficients $\paren{\fun{a_{k}^n}{f}}_{(k,n) \in \mathcal{I}^M}$ 
+of a bandlimited function $f$ into function samples $\paren{\fun{f}{\vtheta_{d},\vphi_{d}}}_{d=0}^{D-1}$ on an arbitrary sampling set $\mathcal{X}$.
+The fast related algorithm presented in this chapter is named \emph{nonuniform fast spherical 
+Fourier transform (NFSFT)}. Due to the generalization to ? sampling sets, the inverse 
+transformation, hence
+the recovery of the spherical Fourier coefficients 
+$\paren{\fun{a_{k}^n}{f}}_{(k,n) \in \mathcal{I}^M}$ from the function samples
+$\paren{\fun{f}{\vtheta_{d},\vphi_{d}}}_{d=0}^{D-1}$ does not always exists or may 
+not be uniquely defined.
+We therefore reserve the term DSFT for the case when 
+certain sampling sets $\mathcal{X}$ are used, which allow for the reconstruction of the spherical Fourier coefficients from the corresponding function samples.
+
+The index $k$ will always denote the degree and $n$ always the order with respect to the functions $Y_{k}^n$. The spherical Fourier coeffcients $a_{k}^n$ may be ordered 
+in different ways and we use
+\begin{equation}
+  \label{Basics:Ordering}
+  a_{M}^{-M},\: a_{M-1}^{-(M-1)},\: a_{M}^{-(M-1)},\: a_{M-2}^{-(M-2)},
+  \: \ldots,\: a_{M-1}^{M-1},\: a_{M}^{M-1},\: a_{M}^{M}
+\end{equation}
+as the standard ordering.
+From a linear algebra point of view, evaluating the function $f$ on the sampling set $\mathcal{X}$ corresponds to a matrix-vector product
+\[ 
+  \V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}} \; \V{a}
+\]
 with
 \begin{equation}
   \nonumber
   \begin{split}
-    \fun{\V{f}}{\mathcal{X}} & := \paren{f_d}_{d=0}^{D-1} \in \C^{D},\ f_{d} := \fun{f}{\vtheta_{d},\vphi_{d}},\\
-    \fun{\V{Y}}{\mathcal{X}} & := \paren{\fun{Y_k^n}{\vtheta_d,\vphi_d}}_{d=0,\ldots,D-1; \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2},\\
+    \V{f}_{\mathcal{X}} & := \paren{f_d}_{d=0}^{D-1} \in \C^{D},\ f_{d} := \fun{f}{\vtheta_{d},\vphi_{d}},\\
+    \V{Y}_{\mathcal{X}} & := \paren{\fun{Y_k^n}{\vtheta_d,\vphi_d}}_{d=0,\ldots,D-1; 
+      \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2},\\
     \V{a} & := \paren{a_k^n}_{\paren{k,n} \in \mathcal{I}^M} \in \C^{\paren{M+1}^2}.
   \end{split}
 \end{equation}
-If not specified otherwise, $\V{a}$ contains the Fourier coeffcients $a_{k}^n$ in degree-mayor order and the columns of $\fun{\V{Y}}{\mathcal{X}}$ 
-are ordered accordingly. 
+If not specified otherwise, the vector $\V{a}$ contains the Fourier 
+coeffcients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ in the 
+standard ordering \eqref{Basics:Ordering}, and the columns of 
+$\V{Y}_{\mathcal{X}}$ are ordered accordingly. We drop the 
+index $\mathcal{X}$ for $\V{f}_{\mathcal{X}}$ and 
+$\V{Y}_{\mathcal{X}}$ where appropriate.
 %We drop the indices $\mathcal{X}$ and $M$ where appropriate, i.e. where they could be chosen arbitrarily or are obvious from the 
 %context and write $\V{f} = \V{Y} \; \V{a}$ instead. 
-Furthermore, we introduce the denotation
-\begin{align*}
-    \V{a}_{k} & := \paren{a_{k}^{n}}_{n=-k,\ldots,k} \in \C^{2k+1} & \paren{k=0,\ldots,M},\\
-    \V{a}^{n} & := \paren{a_{k}^{n}}_{k=\abs{n},\ldots,M} \in \C^{M-\abs{n}+1} & \paren{n=-M,\ldots,M}
-\end{align*} 
-for subvectors of $\V{a}$. If $\mathcal{X}$ is a spherical grid, the standard order is first by colatitude $\vtheta_{l}$ and then by longitude $\vphi_{j}$. 
-We use double subscripts $l,j$ to denote $\V{f}_{l,j} := \fun{f}{\vtheta_{l},\vphi_{j}}$.
+Furthermore, we introduce the notation
+\begin{equation}
+  \nonumber
+  \V{a}_{k} := \paren{a_{k}^{n}}_{n=-k,\ldots,k} \in \C^{2k+1} \quad \paren{k=0,\ldots,M},
+\end{equation} 
+for subvectors of $\V{a}$. If $\mathcal{X}$ is a spherical grid, the standard ordering of the nodes is first by longitude $\vphi_{j}$ and then by 
+colatitude $\vtheta_{l}$. 
+Furthermore, we use double subscripts $l,j$ to denote $\V{f}_{l,j} := \fun{f}{\vtheta_{l},\vphi_{j}}$.
 
-A first "naive" approach to evaluating $f$ on $\mathcal{X}$ according to \eqref{NFSFT:FourierExpansion} would be to compute first all $D\:(M+1)^2$
-entries of $\V{Y}$ and then perform the matrix-vector multiplication $\fun{\V{Y}}{\mathcal{X}} \: \V{a}$ the standard way. This would lead to an $\bigo{M^3 \: D}$
-algorithm, since the evaluation of a function $Y_{k}^n$ at a single node already requires $\bigo{M}$ \emph{floating-point operations (flops)}.
-But one can do better. Algorithm \ref{NFSFT:directDSFT} referred to as \emph{direct NDSFT} computes 
+A first "naive" approach to evaluating $f$ on $\mathcal{X}$ according to \eqref{NFSFT:FourierExpansion} would be to compute first all $(M+1)^2D$
+entries of $\V{Y}_{\mathcal{X}}$ and then perform the matrix-vector multiplication $\V{Y} \: \V{a}$ the standard way. This would lead to an $\bigo{M^3D}$ algorithm, since the evaluation of a single function 
+$Y_{k}^n$ at a single node already requires $\bigo{M}$ flops.
+But one can do better: Algorithm \ref{NFSFT:directDSFT}, referred 
+to as \emph{direct NDSFT}, computes 
 for every $\paren{\vtheta_{d},\vphi_{d}} \in \mathcal{X}$ first the sums 
 \begin{equation}
   \label{NFSFT:directDSFT:firstSum}
   b^{n}_{d} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}} \quad \paren{n=-M,\ldots,M}. 
 \end{equation}
-Here one can employ the \emph{Clenshaw algorithm} (see for example \cite{prtevefl} and Algorithm \ref{NFSFT:Algorithm:Clenshaw}) the three-term recurrence 
-for the associated Legendre functions from \eqref{Basics:AssociatedLegendreDefinition}. We finally compute
+Here, we can employ the \emph{Clenshaw algorithm} (see Algorithm \ref{NFSFT:Algorithm:Clenshaw} and \cite{prtevefl}) 
+by using the three-term recurrence \eqref{Basics:AssociatedLegendreDefinition}
+for associated Legendre functions. We finally compute
 \begin{equation}
   \label{NFSFT:directNDSFT:secondSum}
   \fun{f}{\vtheta_{d},\vphi_{d}} = \sum_{n=-M}^M b^{n}_d \e^{\im n \vphi_{d}}
@@ -78,92 +116,103 @@ directly.
       \STATE $a_{k-1}^n := a_{k-1}^n + \paren{\alpha_{k}^{|n|} x + \beta_{k}^{|n|}} a_{k}^n$
       \STATE $a_{k-2}^n := a_{k-2}^n + \gamma_{k}^{|n|} a_{k}^n$
     \ENDFOR
-    \STATE $a_{\abs{n}}^n := a_{\abs{n}}^n + \paren{\alpha_{\abs{n}+1}^{|n|} x + \beta_{\abs{n}+1}^{|n|}} a_{\abs{n}+1}^n$\\[1ex]
-    \STATE $b_{d}^n := \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-x^2}^{|n|/2} a_{\abs{n}}^n$
+    \STATE $a_{\abs{n}}^n := a_{\abs{n}}^n + \paren{\alpha_{\abs{n}+1}^{|n|} x + \beta_{\abs{n}+1}^{|n|}} a_{\abs{n}+1}^n$\\[0.5ex]
+    \STATE $b_{d}^n := \frac{\sqrt{(2|n|)!}}{2^{|n|} |n|!} \paren{1-x^2}^{|n|/2} a_{\abs{n}}^n$
     \STATE
     \STATE Output: $b_{d}^n$
+    \STATE Complexity: $\bigo{M}$ flops
 \end{algorithmic}
 \end{algorithm}
 \begin{algorithm}[htb]
   \caption{Direct DSFT}
   \label{NFSFT:directDSFT}    
   \begin{algorithmic}
-    \STATE  Input: $M \in \NZ$, $D \in \N$, $\V{a}$, $\mathcal{X}$ %$\paren{a_{k}^n}_{\paren{k,n} \in I^M}$
+    \STATE  Input: $M \in \NZ$, $D \in \N$, $\V{a}$, $\mathcal{X}$
     \STATE
     \FOR {$d=0,\ldots,D-1$} 
       \STATE $f_{d} := 0$
       \FOR {$n=-M,\ldots,M$} 
-        \STATE Compute $b^{n}_d$ by Algorithm \ref{NFSFT:Algorithm:Clenshaw} (Clenshaw algorithm),
+        \STATE Compute $b^{n}_d$ by Algorithm \ref{NFSFT:Algorithm:Clenshaw},
         \STATE $f_{d} := f_{d} + b^n_d \e^{\im n \vphi_{d}}$
       \ENDFOR
     \ENDFOR
     \STATE
-    \STATE Output: $\fun{\V{f}}{\mathcal{X}}$
+    \STATE Output: $\V{f}_{\mathcal{X}}$
+    \STATE Complexity: $\bigo{M^2 D}$ flops
 \end{algorithmic}
 \end{algorithm}
-Each application of the Clenshaw algorithm for \eqref{NFSFT:directDSFT:firstSum} needs $\bigo{M}$ 
-flops summing up to $\bigo{M^2}$ flops for the complete inner loop. In 
-total we have an $\bigo{M^2\:D}$ algorithm for the evaluation of $f$ on $\mathcal{X}$ and gained an order of complexity with respect to $M$. 
+Each application of the Clenshaw algorithm for fixed $n$ to evaluate \eqref{NFSFT:directDSFT:firstSum} needs $\bigo{M}$ 
+flops, summing up to $\bigo{M^2}$ flops for $n = -M,\ldots,M$. In 
+total, we have an $\bigo{M^2 D}$ algorithm for the evaluation of $f$ on $\mathcal{X}$ and gained an order of complexity with respect to $M$. 
+
 For special sampling sets one can exploit the grid 
-structure and employ FFT techniques for the sums \eqref{NFSFT:directNDSFT:secondSum} if the nodes $\varphi_{d}$ are equispaced 
+structure and employ FFT techniques for the sums \eqref{NFSFT:directNDSFT:secondSum} if the nodes $\varphi_{d}$ are distributed uniformely 
 (see \cite{drhe}, \cite{postta97} and \cite{kupo02}). 
 
 %\citelist{\cite{Mo99} \cite{postta97} \cite{roty} \cite{suta}}
 
 \section{Computing Fourier Coeffcients from Function Samples}
-A \emph{discrete Fourier transform (DFT)} on the torus $\mathbb{T} := \pset{x \in \R}{|}{0 \le x < 2\pi}$ of length $M \in \NZ$ can be represented 
-as a maxtrix-vector product
+A \emph{discrete Fourier transform (DFT)} on the unit circle $\mathbb{S}^1$, identified with the interval $[0,2\pi)$, 
+of length $K \in \NZ$ can be represented as a maxtrix-vector product
+$\V{g} = \V{F} \: \V{\hat{g}}$ with
 \[
-  \V{f} = \V{F} \: \V{\hat{f}}
+ \V{F} := \paren{\e^{2 \pi i \frac{kj}{K}}}_{k,j = 0}^{K-1} \in 
+ \C^{K \times K},\ \V{\hat{g}},\:\V{g} \in \C^{K},
 \]
-with
-\[
- \V{F} := \paren{\e^{2 \pi i j \frac{k}{M}}}_{j,k = 0}^{M-1} \in \C^{M \times M},\ \V{\hat{f}},\:\V{f} \in \C^{M},
-\]
-as well. The Fourier matrix $\V{F}$ is unitary yielding the inversion formula
+The unitary Fourier matrix $\V{F}$ yields the inversion formula
 \begin{equation}
   \label{NFSFT:DFTInversion}
-  \V{\hat{f}} = \V{F}^{\h} \: \V{f}
+  \V{\hat{g}} = \V{F}^{\h} \: \V{g}
 \end{equation}
-immediately. The DFT evaluates a trigonometric polynomial 
+immediately. The DFT is a linear mapping that evaluates a 
+trigonometric polynomial of degree $K$
 \[
-  f := \sum_{k=0}^{M-1} \fun{\hat{f}}{k} \e^{2 \pi \im k x}
+  g := \sum_{k=0}^{K-1} \fun{\hat{g}}{k} \e^{2 \pi \im k \vphi}
 \]
-at equidistant nodes $\paren{x_{d}}_{d=0}^{M-1}$ with $x_{d} := \frac{d}{M} \in \mathbb{T}$. 
-For an arbitrary sampling set $\mathcal{Y}$ the associated Fourier matrix $\fun{\V{F}}{\mathcal{Y}}$ is in general no longer unitary. 
+at uniformely distributed nodes $\paren{\vphi_{d}}_{d=0}^{K-1}$ with $\vphi_{d} := \frac{d}{M} \in \mathbb{S}^1$. 
+For an arbitrary sampling set $\mathcal{Y}$, the associated Fourier matrix 
+$\V{F}_{\mathcal{Y}}$ is in general no longer unitary. 
 Depending on the number of Fourier coefficients and the number of nodes,
-$\fun{\V{F}}{\mathcal{Y}}$ is moreover no longer square.
+$\V{F}_{\mathcal{Y}}$ is moreover no longer square.
 
-Having defined the NDSFT as the evaluation of a bandlimited function $f$ on a sampling set $\mathcal{X}$ on $\twosphere$, arises the question 
-whether there exist sets $\mathcal{X}$ allowing for an inversion formula similar to \eqref{NFSFT:DFTInversion}.
-The answer is affirmative but in general the number of nodes needed exceeds the number of Fourier coefficients to be computed, 
-i.e. $\fun{\V{Y}}{\mathcal{X}}$ is not square.
+Having defined the NDSFT as the evaluation of a bandlimited function $f \in 
+\fun{Pi_{M}}{\twosphere}$ on an \emph{arbitrary} 
+sampling set $\mathcal{X}$ on $\twosphere$, arises immediately the question, 
+whether in the spherical case, there exist sampling sets $\mathcal{X}$ allowing for an inversion formula similar to \eqref{NFSFT:DFTInversion}.
+The answer is affirmative, but in general, the number of nodes needed, exceeds the number of Fourier coefficients to be computed, 
+i.e. $\V{Y}_{\mathcal{X}}$ is not square.
 
-We want to recover the Fourier coefficients $a_{k^n}$ from samples $\fun{\V{f}}{\mathcal{X}}$ at certain nodes $\mathcal{X}$. They 
-are given by the scalar products
+We want to recover the Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ from 
+samples $\V{f}_{\mathcal{X}}$ on set of certain nodes $\mathcal{X} \subset \twosphere$. They are given by the inner products
 \[
-  a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\twosphere} = \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta \; \dx \vtheta \; \dx \vphi \quad \paren{\paren{k,n} \in \mathcal{I}^M}.
+  a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\Ln{2}{\twosphere}} = \int_{0}^{2\pi} \int_{0}^{\pi} 
+  \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta 
+  \; \dx \vtheta \; \dx \vphi.
 \]
-By seperating the integrand with respect to the integration variables, we obtain
-\begin{eqnarray*}
-  a_{k}^n & = & \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{-\im n \vphi} \sin \vtheta \; \dx \vtheta \; \dx \vphi\\
-          & = & \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \sin \vtheta \; \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi \; \dx \vtheta.
-\end{eqnarray*}
+By separating the integrand with respect to the integration variables $\vtheta$ and $\vphi$, we obtain
+\begin{align*}
+  a_{k}^n & = \int_{0}^{2\pi} \int_{0}^{\pi} \fun{f}{\vtheta,\vphi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \e^{-\im n \vphi} \sin \vtheta \; \dx \vtheta \; \dx \vphi\\
+          & = \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \sin \vtheta \; \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi \; \dx \vtheta.
+\end{align*}
 For the integrals
 \[
   \fun{f_{n}}{\vtheta} := \int_{0}^{2\pi} \fun{f}{\vtheta,\vphi} \e^{-\im n \vphi} \; \dx \vphi
 \]
 we have the quadrature rule
-\[ \fun{f_{n}}{\vtheta} = \frac{1}{2(M+1)} \sum_{j=0}^{2M+1} \fun{f}{\vtheta,\vphi_{j}} \e^{-\im n \vphi_{j}}\]
-where
-\[ \vphi_{j} := \frac{j\pi}{N} \quad \paren{j=0,\ldots,2M+1}. \]
-This holds due to the Sampling Theorem by taking into account that for fixed $\vtheta$ the function
+\[ 
+  \fun{f_{n}}{\vtheta} = \frac{1}{2(M+1)} \sum_{j=0}^{2M+1} \fun{f}{\vtheta,\vphi_{j}} \e^{-\im n \vphi_{j}}
+\]
+with the nodes
+\[ 
+  \vphi_{j} := \frac{j\pi}{M+1} \quad \paren{j=0,\ldots,2M+1}. 
+\]
+This holds (cf. \cite[Chapter X]{Zy}) by taking into account that for fixed $\vtheta$, the function
 \begin{eqnarray*}
-  \fun{f}{\vtheta,\vphi} & = & \sum_{n=-M}^{M} \left(\sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}\right) \e^{-\im n \vphi}\\
+  \fun{f}{\vtheta,\cdot} & = & \sum_{n=-M}^{M} \left(\sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}\right) \e^{-\im n \cdot}\\
 \end{eqnarray*}
 is a trigonometric polynomial of degree $M$ in $\vphi$ with Fourier coefficients
 \[
-  c_{n} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}.
+  \fun{\paren{\fun{f}{\vtheta,\cdot}}^{\wedge}}{n} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}.
 \]
 It remains to compute
 \[
@@ -173,56 +222,73 @@ It remains to compute
 By verifying that $\fun{P_{k}^{\abs{n}}}{x} \fun{f_{n}}{\arccos x}$ is an algebraic polynomial of degree at most $2M+1$, 
 we can use various types of quadrature rules. We first mention the \emph{Gauss-Legendre} quadrature rule
 \[
-  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{M} w_{l}^{\gl} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\gl}} \fun{f_{n}}{\vtheta_{l}} 
+  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{M} w_{l}^{\gl} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\gl}} \fun{f_{n}}{\vtheta_{l}^{\gl}} 
 \]
-with nodes $\paren{\vtheta_{l}^{\gl}}_{l=0}^M$ and weights $\paren{w_{l}^{\gl}}_{l=0}^M$ as described for example in \cite{boehme02}. 
-We notice that the $M+1$ nodes $\paren{\vtheta_{l}^{\gl}}_{l=0}^{M}$ can be computed as the eigenvalues of the \emph{Jacobi matrix} for the orthogonal 
-Legendre polynomials. The weights $\paren{w_{l}}_{l=0}^{M}$ are obtained from the corresponding eigenvectors.
+with nodes $\paren{\vtheta_{l}^{\gl}}_{l=0}^M$ and weights $\paren{w_{l}^{\gl}}_{l=0}^M$ as described, for example in \cite{boehme02}. 
+We note that the $M+1$ nodes $\paren{\vtheta_{l}^{\gl}}_{l=0}^{M}$ can be computed as the eigenvalues of the \emph{Jacobi matrix} for the orthogonal 
+Legendre polynomials $P_{k}$. The weights $\paren{w_{l}^{\gl}}_{l=0}^{M}$ are obtained from the corresponding eigenvectors.
 
 A second idea is to employ a Clenshaw-Curtis quadrature rule (see \cite{dara}, pp. 86)
 \[
-  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\cc}} \fun{f_{n}}{\vtheta_{l}}
+  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\cc}} \fun{f_{n}}{\vtheta_{l}^{\cc}}
 \]
 where $\varepsilon_{0}^{M} := \epsilon_{M}^M := \frac{1}{2}$, $\epsilon_{l}^M := 1$, $l=1,\dots,M-1$, and $\vtheta_{l}^{\cc} = \frac{l\pi}{2M}$ are the \emph{Chebyshev nodes}.
 This quadrature rule uses almost twice as many points as the Gauss-Legendre quadrature rule but allows for an easy and fast online computation of the nodes $\vtheta_{l}^{\cc}$
-and weights $w_{l}^{\gl}$. The weights are given by
-\[ w_{l}^{\gl} := \frac{1}{2M} \sum_{j=0}^{M} \varepsilon_{j}^{M} \frac{-2}{4j^2-1} \cos\frac{lj\pi}{M}.\]
-This finally yields for the Fourier coeffcients $a_{k}^n$ the identities 
+and weights $w_{l}^{\cc}$. The weights are given by
+\[ w_{l}^{\cc} := \frac{1}{2M} \sum_{j=0}^{M} \varepsilon_{j}^{M} \frac{-2}{4j^2-1} \cos\frac{lj\pi}{M}.\]
+Finally, the identities 
 \begin{equation}
   \label{NFSFT:iDSFT}
   \begin{split}
-    a_{k}^n & = \frac{1}{2(M+1)} \sum_{j=0}^{2(M+1)-1} \sum_{l=0}^{M} w_{l}^{\gl} \fun{f}{\vtheta_{l}^{\gl},\vphi_{j}} \overline{\fun{Y_{k}^n}{\vtheta_{l}^{\gl},\vphi_{j}}},\\
-    a_{k}^n & = \frac{1}{2(M+1)} \sum_{j=0}^{2(M+1)-1} \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{f}{\vtheta_{l}^{\cc},\vphi_{j}} 
-  \overline{\fun{Y_{k}^n}{\vtheta_{l}^{\cc},\vphi_{j}}}.
+    a_{k}^n & = \frac{1}{2(M+1)} \sum_{j=0}^{2M+1} \sum_{l=0}^{M} w_{l}^{\gl} \fun{f}{\vtheta_{l}^{\gl},\vphi_{j}} \overline{\fun{Y_{k}^n}{\vtheta_{l}^{\gl},\vphi_{j}}},\\
+    a_{k}^n & = \frac{1}{2(M+1)} \sum_{j=0}^{2M+1} \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{f}{\vtheta_{l}^{\cc},\vphi_{j}} 
+  \overline{\fun{Y_{k}^n}{\vtheta_{l}^{\cc},\vphi_{j}}}
   \end{split}
 \end{equation}
-Associated with this quadrature formulae, we define the sampling sets
+follow. Associated with this quadrature formulae, we define the sampling sets
 \begin{eqnarray*}
   \mathcal{X}^{\gl} & := & \paren{\vtheta_{l}^{\gl},\vphi_{j}}_{j=0,\dots,2(M+1)-1;l=0,\dots,M},\\
   \mathcal{X}^{\cc} & := & \paren{\vtheta_{l}^{\cc},\vphi_{j}}_{j=0,\dots,2(M+1)-1;l=0,\dots,2M}
 \end{eqnarray*}
 and refer to $\mathcal{X}^{\gl}$ as the \emph{Gauss-Legendre sampling set of degree M} and to $\mathcal{X}^{\cc}$ as the 
-\emph{Clenshaw-Curtis sampling set of degree M}. These two types of sampling sets are illustrated in Figure \ref{quadrature}.
+\emph{Clenshaw-Curtis sampling set of degree M}. They are illustrated in Figure \ref{quadrature}.
 \begin{figure}[tb]
   \centering
   \includegraphics[width=12cm]{images/quadrature}
   \caption{The sample sets $\mathcal{X}^{\gl}$ (black dots) and $\mathcal{X}^{\cc}$ (gray dots) for $M=7$.}
   \label{quadrature}
 \end{figure}
+Note that in contrast to the Gauss-Legendre sampling set $\mathcal{X}^{\gl}$,
+the Clenshaw-Curtis sampling set $\mathcal{X}^{\cc}$ always contains the poles.
 We now immediately obtain the corresponding inversion formulae
 \begin{equation}
   \label{NFSFT:InversionFormula}
   \begin{split}
-    \V{a} & = \fun{\V{Y}}{\mathcal{X}^{\gl}}^{\h} \: \V{W}^{\gl} \: \fun{\V{f}}{\mathcal{X}^{\gl}},\quad \V{W}^{\gl} := \V{I}_{2M+2} \otimes \diag\paren{w_{l}^{\gl}}_{l=0}^M,\\
+    \V{a} & = \V{Y}_{\mathcal{X}^{\gl}}^{\h} \: \V{W}^{\gl} \:
+    \V{f}_{\mathcal{X}^{\gl}},\quad \V{W}^{\gl} := \V{I}_{2M+2} 
+    \otimes \diag\paren{w_{l}^{\gl}}_{l=0}^M,\\
     %\label{NFSFT:InversionFormulaCC}
-    \V{a} & = \fun{\V{Y}}{\mathcal{X}^{\cc}}^{\h} \: \V{W}^{\cc} \: \fun{\V{f}}{\mathcal{X}^{\cc}},\quad \V{W}^{\cc} := \V{I}_{2M+2} \otimes \diag\paren{\varepsilon_{l}^{2M}w_{l}^{\cc}}_{l=0}^M.
+    \V{a} & = \V{Y}_{\mathcal{X}^{\cc}}^{\h} \: \V{W}^{\cc} \:
+    \V{f}_{\mathcal{X}^{\cc}},\quad \V{W}^{\cc} := \V{I}_{2M+2} 
+    \otimes \diag\paren{\varepsilon_{l}^{2M}w_{l}^{\cc}}_{l=0}^{2M}.
   \end{split}  
 \end{equation}  
-An algorithm for the multiplication with the adjoint matrix $\V{Y}^{\h}$ is the key for an implementation according to \eqref{NFSFT:InversionFormula}. Evaluating the matrix-vector product the standard way, i.e. row-wise for $\V{Y}^{\h}$, a first approach would be to compute the Fourier coefficients $a_{k}^n$ by \eqref{NFSFT:iDSFT} for all $\paren{k,n} \in \mathcal{I}^M$ employing the Clenshaw algorithm for the evaluation of the functions $Y_{k}^n$. But this would again lead to an $\bigo{M^3 \: D}$ algorithm. This is due to the fact, that the Clenshaw algorithm would now be applied to each function $Y_{k}^n$ seperately instead of evaluating a linear combination for fixed $n$ and $k = \abs{n},\dots,M$ as in Algorithm \ref{NFSFT:directDSFT}. If we recall that we would end up with a $\bigo{M^3 \: D}$ algorithm for the NDSFT, too, if we evaluated the matrix $\V{Y}$ componentwise and then performed the matrix-vector multiplication as usual, we notice that Algorithm \ref{NFSFT:directDSFT} implies a factorization of $\V{Y}$ into a product of sparse matrices therefore allowing us to save one order of $M$. Furthermore, by taking the adjoint factorization, we obtain a corresponding factorization of $\V{Y}^{\h}$ immediately. This allows for the derivation of an algorithm of exactly the same asymptotic complexity for computing the adjoint product, too.
+An algorithm for the multiplication with the adjoint matrix $\V{Y}^{\h}$ is the key for an implementation according to \eqref{NFSFT:InversionFormula}. Evaluating the matrix-vector product the standard way, i.e. row-wise for $\V{Y}^{\h}$, a first approach would be to compute the Fourier coefficients $a_{k}^n$ by the quadrature formulae \eqref{NFSFT:iDSFT} for all $\paren{k,n} \in \mathcal{I}^M$ employing the Clenshaw algorithm for the evaluation of the functions $Y_{k}^n$. But this would again lead to an $\bigo{M^3 D}$ algorithm. This is due to the fact, that the Clenshaw algorithm would now be applied to each function $Y_{k}^n$ seperately, instead of evaluating a linear combination for fixed $n$ and $k = \abs{n},\dots,M$ as in Algorithm \ref{NFSFT:directDSFT}. We recall that we would end up with an $\bigo{M^3 D}$ algorithm for the NDSFT, too, if we evaluated the matrix $\V{Y}$ componentwise and then performed the matrix-vector multiplication as usual. But Algorithm \ref{NFSFT:directDSFT} implies a factorization of $\V{Y}$ into a product of sparse matrices therefore allowing us to save one order of $M$. By taking the adjoint factorization, we obtain a corresponding factorization of $\V{Y}^{\h}$ immediately, and thus an algorithm with the same arithmetic complexity.
+% This allows for the derivation of an algorithm of exactly the same asymptotic complexity for computing the adjoint product, too.
 
 \section{A Factorization of the Fourier Matrix}
 
-In order to abtain an $\bigo{M^2 \: D}$ algorithm for the adjoint product, we first derive the factorization of $\V{Y}$ according to Algorithm \ref{NFSFT:directDSFT}. The matrix $\V{Y}$ can be written as
+Since the adjoint matrix $\V{Y}^{\h}$ is not generally the inverse of $\V{Y}$, i.e. $\V{Y}^{\h} \neq \V{Y}^{-1}$, we use $\V{\tilde{a}}$ and $\V{\tilde{f}}$ instead of $\V{a}$ and $\V{f}$ in the matrix-vector notation, to make clear 
+that we do not mean the inverse transform here. The product
+\[
+  \V{\tilde{a}} = \V{Y}^{\h} \: \V{\tilde{f}}
+\]
+yields coefficients $\V{\tilde{a}} = \paren{\tilde{a}_{k}^n}$ that 
+we refer to as \emph{pseudo-Fourier coefficients}. Similarly, we speak of
+\emph{pseudo-function samples} $\V{\tilde{f}} = \paren{\tilde{f}_{d}}_{d=0}^{D-1}$ instead.
+In order to abtain an $\bigo{M^2D}$ algorithm for the adjoint product, 
+we first derive the factorization of $\V{Y}$ according to Algorithm 
+\ref{NFSFT:directDSFT}. The matrix $\V{Y}$ can be written as
 \[
   \V{Y} = 
     \left[\begin{array}{c}
@@ -236,9 +302,9 @@ Each matrix $\V{E}_{d}$ evaluates $f$ at $\paren{\vtheta_{d},\vphi_{d}}$ accordi
 \[
   \fun{f}{\vtheta_{d},\vphi_{d}} = \sum_{n=-M}^M \sum_{k=\abs{n}}^M a_k^n \fun{Y_{k}^n}{\vtheta_{d},\vphi_{d}}.
 \]
-So let $d$ be fixed. The algorithms begins by evaluating the sums
+Let now $d$ be fixed. The algorithm begins by evaluating the sums
 \[
-  b^{n}_{d} = \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}} \quad \paren{n=-M,\ldots,M}. 
+  b^{n}_{d} = \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos\vtheta_{d}} \quad \paren{n=-M,\ldots,M}, 
 \]
 which corresponds to computing
 \[
@@ -263,18 +329,23 @@ which corresponds to computing
     \V{a}^{M}
   \end{array}\right]
 \]
-where each matrix $\V{C}^{n}_{d} \in \R^{1 \times (M-n+1)}$ for $n = -M,\ldots,M$ realizes the Clenshaw algorithm \ref{NFSFT:Algorithm:Clenshaw} acting on the subvector $\V{a}^n$ of $\V{a}$.
-They can be further decomposed corresponding to the number of steps in the Clenshaw algorithm by
+where each matrix $\V{C}^{n}_{d} \in \R^{1 \times (M-n+1)}$ for $n = -M,\ldots,M$ realizes the Clenshaw algorithm (Algorithm \ref{NFSFT:Algorithm:Clenshaw}), acting on the subvector $\V{a}^n$ of $\V{a}$.
+They matrices $\V{C}_{d}^n$ can be further decomposed, according to the number of steps in the Clenshaw algorithm by
 \begin{eqnarray*}
-  \V{C}^{n}_{d}       & := & \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-\cos^2\vtheta_{d}}^{|n|/2} \V{C}_{d,1}^{n} \: \V{C}_{d,2}^{n} \: \ldots \: \V{C}_{d,M-\abs{n}}^{n},\\
+  \V{C}^{n}_{d}       
+  & := & \frac{\sqrt{(2|n|)!}}{2^{|n|} |n|!} 
+         \paren{1-\cos^2\vtheta_{d}}^{|n|/2}
+    \V{C}_{d,1}^{n} \: \V{C}_{d,2}^{n} \: \ldots \: \V{C}_{d,M-\abs{n}}^{n},\\
   \V{C}_{d,l}^{n}     & := & \encl{[}{\V{I}_{l}, \V{\tilde{e}}_{d,l}}{]} \in \R^{l \times (l+1)},\\
-  \V{\tilde{e}}_{d,l} & := & \paren{0,0,\ldots,\gamma_{k}^n,\alpha_{k}^n \vtheta_{d} + \beta_{k}^n}^{\transp} \in \R^{l} \quad \paren{l=1,\ldots,M-\abs{n}}.
+  \V{\tilde{e}}_{d,1} & := & \paren{\alpha_{|n|}^n \vtheta_{d} + \beta_{|n|}^n}^{\transp} \in \R^{1},\\
+  \V{\tilde{e}}_{d,l} & := & \paren{0,0,\ldots,\gamma_{l+|n|-1}^n,\alpha_{l+|n|-1}^n \vtheta_{d} +
+    \beta_{l+|n|-1}^n}^{\transp} \in \R^{l} \quad \paren{l=2,\ldots,M-\abs{n}}.
 \end{eqnarray*}
 Finally, we compute the sum
-\[
+$%\[
   f_{d} = \sum_{n=-M}^M b^{n}_{d} \e^{\im n \vphi_{d}}
-\]
-by the scalar product
+$ %\]
+by the inner product
 \[
   f_{d} 
   = 
@@ -304,12 +375,10 @@ This gives the representation
 
 \section{Adjoint and Inverse DSFT}
 
-We obtain the sought algorithm for the adjoint transform directly from the factorization given in the last section. We have to evaluate
+We obtain the sought algorithm for the adjoint transform directly from the factorization, given in the last section. We have to evaluate $\V{\tilde{a}} = \V{Y}^{\h} \: \V{\tilde{f}}$, i.e.
 \[
   \V{\tilde{a}}
-  :=
-  \V{Y}^{\h} \V{f}
-  = 
+  =
   \encl{[}{
     \V{E}_{0}^{\h},
     \V{E}_{1}^{\h},
@@ -318,20 +387,21 @@ We obtain the sought algorithm for the adjoint transform directly from the facto
   }{]}
   \:
   \left(\begin{array}{c}
-    f_{0}\\
-    f_{1}\\
+    \tilde{f}_{0}\\
+    \tilde{f}_{1}\\
     \vdots\\
-    f_{D-1}
+    \tilde{f}_{D-1}
   \end{array}\right). 
 \]
-This decomposition implies the evaluation of the matrix-vector product in a nonstandard way by traversing the 
+This decomposition corresponds to the evaluation of the matrix-vector product in a, say, nonstandard 
+way, by traversing the 
 matrix column-wise instead of row-wise. After each column $\V{E}_{d}^{\h}$, the result vector is updated with the portion due 
-to the product $\V{\tilde{a}}_{d} := \V{E}^{\h}_{d} \: f_{d}$. We obtain
+to the product $\V{\tilde{a}}_{d} := \V{E}^{\h}_{d} \: \tilde{f}_{d}$. We obtain $\V{\tilde{a}}$ as
 \begin{equation}
   \nonumber
-  \V{\tilde{a}} = \V{\tilde{a}}_{0} + \V{\tilde{a}}_{1} + \ldots + \V{\tilde{a}}_{D-1}
+  \V{\tilde{a}} = \V{\tilde{a}}_{0} + \V{\tilde{a}}_{1} + \ldots + \V{\tilde{a}}_{D-1}.
 \end{equation}
-and
+For a particular $\V{\tilde{a}}_{d}$, we have
 \begin{equation}
   \label{NFSFT:adjointNDSFTFactorization}
   \V{\tilde{a}}_{d}
@@ -352,27 +422,28 @@ and
   \:
   f_{d}.
 \end{equation}
-A multiplication with a transposed matrix ${\V{C}^{n}_{d}}^{\transp}$ realizes a \emph{"transposed" Clenshaw algorithm} summarized in Algorithm \ref{NFSFT:transposedClenshaw}. The complete algorithm can be obtained from \eqref{NFSFT:adjointNDSFTFactorization} directly and is given in Algorithm \ref{NFSFT:adjointDSFT}.
-\begin{algorithm}[htb]
+A multiplication with the transposed matrix ${\V{C}^{n}_{d}}^{\transp}$ realizes a \emph{"transposed" Clenshaw algorithm} summarized in Algorithm \ref{NFSFT:transposedClenshaw}. The complete algorithm can be obtained from \eqref{NFSFT:adjointNDSFTFactorization} directly and is given in Algorithm \ref{NFSFT:adjointDSFT}.
+\begin{algorithm}[tb]
   \caption{Transposed Clenshaw Algorithm}
   \label{NFSFT:transposedClenshaw}    
   \begin{algorithmic}
     \STATE  Input: $M \in \NZ$, $n \in \NZ$ with $\abs{n} \le M$, $\tilde{b}^n_{d}$, $x := \cos\vtheta_{d} \in \interv{[}{-1}{1}{]}$
     \STATE
     \STATE $\tilde{a}_{d,\abs{n}-1}^n := 0$
-    \STATE $\tilde{a}_{d,\abs{n}}^n := \frac{((2|n|)!)}{2^{|n|} |n|!}^{1/2} \paren{1-x^2}^{|n|/2} \tilde{b}^n_{d}$
+    \STATE $\tilde{a}_{d,\abs{n}}^n := \frac{\sqrt{(2|n|)!}}{2^{|n|} |n|!}^{1/2} \paren{1-x^2}^{|n|/2} \tilde{b}^n_{d}$
     \FOR {$k=\abs{n}+1,\ldots,M$} 
       \STATE $\tilde{a}_{d,k}^n := \paren{\alpha_{k}^n\vtheta_{d} + \beta_{k}^n}\tilde{a}_{d,k-1}^n + \gamma_{k}^n \tilde{a}_{d,k-2}^n$
     \ENDFOR
     \STATE
     \STATE Output: $\V{\tilde{a}}^n_{d}$
+    \STATE Complexity: $\bigo{M}$ flops
 \end{algorithmic}
 \end{algorithm}
-\begin{algorithm}[htb]
+\begin{algorithm}[tb]
   \caption{Adjoint DSFT}
   \label{NFSFT:adjointDSFT}    
   \begin{algorithmic}
-    \STATE  Input: $M \in \NZ$, $D \in \N$, $\mathcal{X}$, $\fun{\V{f}}{\mathcal{X}}$
+    \STATE  Input: $M \in \NZ$, $D \in \N$, $\mathcal{X}$, $\V{f}_{\mathcal{X}}$
     \STATE
     \FOR {$n=-M,\ldots,M$} 
       \FOR {$k=\abs{n},\ldots,M$} 
@@ -388,16 +459,17 @@ A multiplication with a transposed matrix ${\V{C}^{n}_{d}}^{\transp}$ realizes a
     \ENDFOR
     \STATE
     \STATE Output: $\V{\tilde{a}}$
+    \STATE Complexity: $\bigo{M^2 D}$ flops
 \end{algorithmic}
 \end{algorithm}
 
-We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \ref{NFSFT:InversionFormula} and algorithm \ref{NFSFT:adjointDSFT} we obtain $\bigo{M^4}$ algorithms \ref{NFSFT:directIDSFTGL} and \ref{NFSFT:directIDSFTCC} for computing the Fourier coeffcients $a_{k}^n$ from the function samples $\fun{\V{f}}{\mathcal{X}^{\gl}}$ and $\fun{\V{f}}{\mathcal{X}^{\cc}}$. We refer to these algorithms as the \emph{direct inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
+We have now obtained an $\bigo{M^2 D}$ algorithm for the multiplication with $\V{Y}^{\h}$. Based on \eqref{NFSFT:InversionFormula} and Algorithm \ref{NFSFT:adjointDSFT}, we obtain $\bigo{M^4}$ Algorithms \ref{NFSFT:directIDSFTGL} and \ref{NFSFT:directIDSFTCC} for computing the Fourier coeffcients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ from the function samples $\V{f}_{\mathcal{X}^{\gl}}$ and $\V{f}_{\mathcal{X}^{\cc}}$. We refer to these algorithms as the \emph{direct inverse discrete spherical Fourier transform} of \emph{Gauss-Legendre type (iDSFT-GL)} and \emph{Clenshaw-Curtis type (iDSFT-CC)}, respectively.
 
-\begin{algorithm}[htb]
+\begin{algorithm}[t]
   \caption{Direct iDSFT-GL}
   \label{NFSFT:directIDSFTGL}    
   \begin{algorithmic}
-    \STATE Input: $M \in \NZ$, $\fun{\V{f}}{\mathcal{X}^{\gl}}$
+    \STATE Input: $M \in \NZ$, $\V{f}_{\mathcal{X}^{\gl}}$
     \STATE
     \FOR {$j = 0,\ldots,2M+1$}
       \FOR {$l = 0,\ldots,M$}
@@ -407,13 +479,14 @@ We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\
     \STATE Compute $\V{a}$ by an adjoint DSFT
     \STATE
     \STATE Output: $\V{a}$
+    \STATE Complexity: $\bigo{M^4}$ flops
   \end{algorithmic}
 \end{algorithm}
-\begin{algorithm}[htb]
+\begin{algorithm}[t]
   \caption{Direct iDSFT-CC}
   \label{NFSFT:directIDSFTCC}    
   \begin{algorithmic}
-    \STATE Input: $M \in \NZ$, $\fun{\V{f}}{\mathcal{X}^{\cc}}$
+    \STATE Input: $M \in \NZ$, $\V{f}_{\mathcal{X}^{\cc}}$
     \STATE
     \FOR {$j = 0,\ldots,2M+1$}
       \FOR {$l = 0,\ldots,2M$}
@@ -423,19 +496,28 @@ We have now obtained an $\bigo{M^2\:D}$ algorithm for the multiplication with $\
     \STATE Compute $\V{a}$ by an adjoint DSFT
     \STATE
     \STATE Output: $\V{a}$
+    \STATE Complexity: $\bigo{M^4}$ flops
   \end{algorithmic}
 \end{algorithm}
 
-The algorithms for the computation of the products $\fun{\V{f}}{\mathcal{X}} = \fun{\V{Y}}{\mathcal{X}} \: \V{a}$ and $\V{\tilde{a}} = \fun{\V{Y}}{\mathcal{X}}^{\h} \: \fun{\V{f}}{\mathcal{X}}$ presented so far have both computational complexity $\bigo{M^2\:D}$ making computations for most applications impracticably slow. We already mentioned that FFT techniques may be applied to sums of the form
+The algorithms for the computation of the products $\V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}} \: \V{a}$ and $\V{\tilde{a}} = \V{Y}_{\mathcal{X}}^{\h} \: \V{f}_{\mathcal{X}}$ presented so far, have both computational complexity $\bigo{M^2D}$ making computations for most applications impracticably slow. We already mentioned that the grid structure may be exploited and FFT 
+techniques may be applied to sums of the form
 \[
   f_{d} := \sum_{n = -M}^M b^n_d \e^{\im n \vphi_{d}} \quad \paren{d = 0,\ldots,D}
 \]
-if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution one may apply the NFFT algorithm from Section \ref{Basics:NFFT}. In the following section we present a fast algorithm for the evaluation of the sums $b^{n}_{d}$ from \eqref{NFSFT:directDSFT:firstSum} first mentioned in \cite{postta97}. To be more precise, the algorithm performs for a fixed $n$ a change of basis independent of the nodes to transform a sum of the form
+if the nodes $\vphi_d$ are distributed uniformly. For a nonuniform distribution one may apply the NFFT algorithm from Section \ref{Basics:NFFT}. 
+
+In the following section, we present a fast algorithm for the transformation of sums $\sum_{k=\abs{n}}^M a_{k}^n P_{k}^{\abs{n}}$ from \eqref{NFSFT:directDSFT:firstSum} into sums in terms of Chebyshev polynomials. Since the associated Legendre functions are (for odd $n$ almost) polynomials, we speak of a fast \emph{discrete polynomial transform}. The first originating
+paper \cite{drhe} is due to Driscoll and Healy, describing an exact algorithm for the transposed
+problem, i.e. projecting a sum of Chebyshev polynomials onto associated Legendre functions. In \cite{postta97}, an exact algorithm is derived, introducing for the first time a stabilization technique to compensate for errors due to finite precision arithmetic. Both, the original algorithm for the transposed problem and the latter algorithm in its initial version, are subject to instabilities. Healy, Kostelec, Moore, and Rockmore also introduced variants including stabilization methods (\cite{HeRoKoMo}). Mohlenkamp (\cite{Mo99}) introduced the first related approximative algorithm. Recent papers by Suda and Takami (\cite{SuTa01}), and Rokhlin and Tygert (\cite{roty}) present further approximative algorithms. 
+
+We follow the lines in \cite{postta97} and \cite{kupo02}. To be more precise, the algorithm described performs for a fixed $n$ with $|n| \le M$ a change of basis independent of the nodes, to transform a sum of the form
 \begin{equation}
   \label{NFSFT:LegendreSum}
-  \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^n}{x}
+  \sum_{k=\abs{n}}^M a_{k}^n P_{k}^n
 \end{equation}
-into a representation by Chebyshev polynomials. This is possible since the associated Legendre functions $P_{k}^n$ are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonuniform nodes in a fast way, too. In total this results in an approximative $\bigo{M^2 \log^2 M + mD}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
+into a representation by Chebyshev polynomials $\fun{T_{k}}{x} := \fun{\cos}{k \arccos x}$, $k=0,\ldots,M$. This is possible, since the associated Legendre functions $P_{k}^n$ are (up to a factor $\frac{1}{\sqrt{1-x^2}}$ for odd $n$) polynomials of degree at most $M$. Once obtained this representation, and taking into account that the argument $x$ takes the form $\cos \vtheta$, one may rewrite the sum again as an ordinary Fourier sum that can be evaluated by the NFFT algorithm at nonuniform distributed nodes in a fast way. 
+%In total this results in an approximative $\bigo{M^2 \log^2 M + \log\frac{1}{\varepsilon}D}$ algorithm, where $m$ is a constant depending on the desired accuracy. 
 
 %This holds only in the case of equispaced nodes. If one leaves 
 %In this chapter, we first derive an algorithm for the fast evaluation of a bandlimited function $f$ at arbitrary nodes. Due to the separability 
@@ -454,7 +536,8 @@ into a representation by Chebyshev polynomials. This is possible since the assoc
 \section{Fast Legendre Function Transform}
 \label{DSFT:FLFT}
 
-In this and the following section, we assume $n \ge 0$ without loss of generality. We consider polynomials of the form
+Let in this section and throughout Sections \ref{NFSFT:Stabilization} to 
+\ref {NFSFT:transposedFLFT} be $M \ge 2$. Furthermore, we assume without loss of generality $n \ge 0$. We consider polynomials of the form
 \begin{equation}
   \label{NFSFT:GnEven}
  \fun{g^n}{x} := \sum_{k=n}^M a_k^n \fun{P_k^n}{x} \in \Pol_M
@@ -464,14 +547,13 @@ for even $n$ and
   \label{NFSFT:GnOdd}
   \fun{g^n}{x} := \frac{1}{\sqrt{1-x^2}} \sum_{k=n}^M a_k^n \fun{P_k^n}{x} \in \Pol_{M-1}
 \end{equation}
-for odd $n$ with given complex coefficients $a_k^n$.
-The \emph{fast Legendre tunction transform (FLFT)} performes a change of basis and computes the 
-coefficients $b_k^n$ of the Chebyshev representation
+for odd $n$ with given complex coefficients $\paren{a_k^n}_{k=n}^M$.
+The \emph{fast Legendre Function transform (FLFT)} performes a change of basis and computes the 
+coefficients $\paren{b_k^n}_{k=0}^M$ of the Chebyshev representation
 \[ \fun{g^n}{x} = \sum_{k=0}^M b_k^n \fun{T_k}{x}\]
 for even $n$ and
 \[\fun{g^n}{x} = \sum_{k=0}^{M-1} b_k^n \fun{T_k}{x}\]
 for odd $n$.
-
 Lemma \ref{Basics:AssociatedLegendreRecurrence} implies
 \begin{equation}
   \label{NFSFT:U}
@@ -492,24 +574,27 @@ where
                  \fun{P_{k}^{n}}{\cdot,c}     &              \fun{P_{k+1}^{n}}{\cdot,c}
   \end{array}\right).   
 \]
-We set $a_k^n := 0$ for $k < n$ or $k > M$. In a first step, we use Lemma 
-\ref{Basics:AssociatedLegendreRecurrence} to write
+We set $a_k^n := 0$ for $k < n$ or $k > M$. In the first step, we write
+%\ref{Basics:AssociatedLegendreRecurrence} to write
 \[ g^n = \sum_{k = n}^{N-1} a_{k}^{(0)} P_k^{n}\]
-with
+with the polynomials
 \begin{eqnarray*}
   \fun{a_k^{(0)}}{x}     & := & a_k^n \quad (k = 0,\ldots,N-3),\\
   \fun{a_{N-2}^{(0)}}{x} & := & a_{N-2}^n + \gamma_{N-1}^{n} a_N^n,\\
   \fun{a_{N-1}^{(0)}}{x} & := & a_{N-1}^n + \paren{\alpha_{N-1}^{n}x + \beta_{N-1}^{n}} a_N^n.
 \end{eqnarray*}
 We now set 
-\[\tilde{n} := \fun{\min}{n,N-2}, \quad \tilde{M} := \left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.\]
+\[
+\tilde{n} := \fun{\min}{n,N-2}, \quad \tilde{M} := \fun{\min}{M,N-1}
+%\left\{\begin{array}{l@{\quad \text{if} \quad}l} M & M < N, \\ M-1 & M = N.\end{array}\right.
+\]
 and obtain
 \[
   g^n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} \paren{\sum_{k=0}^{3} a_{4l+k}^{(0)} P_{4l+k}^{n}}.
 \]
 
 Notice that $a_k^{(0)}$ are polynomials of 
-degree at most $1$ and that one immediately has their corresponding Chebyshev coefficients.
+degree at most one and that one immediately has their corresponding Chebyshev coefficients.
 
 From \eqref{NFSFT:U} with $k = 1$ and $c = l+1$ it follows that
 \[
@@ -527,15 +612,190 @@ From \eqref{NFSFT:U} with $k = 1$ and $c = l+1$ it follows that
 \end{array}\right)
 \]
 and therefore
-\[ g^n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} a_{4l}^{(1)} \paren{P_{4l}^{n} + a_{4l+1}^{(1)} P_{4l+1}^{n}} \]
+\[ 
+  g^n = \sum_{l = \floor{\frac{\tilde{n}}{4}}}^{\ceil{\frac{\tilde{M}+1}{4}}-1} 
+  \paren{a_{4l}^{(1)} P_{4l}^{n} + a_{4l+1}^{(1)} P_{4l+1}^{n}} 
+\]
 with
+\begin{figure}[htb]
+  \label{NFSFT:Figure:CascadeSummation}
+  \centering
+  \begin{pgfpicture}{0cm}{0cm}{11.05cm}{10.075cm}
+    \pgfsetlinewidth{1.0pt}  
+    \begin{pgftranslate}{\pgfxy(0,3.575)}    
+	    \begin{pgfmagnify}{0.65}{0.65}
+	      \color{lightgray}
+	      \pgfrect[fill]{\pgfxy(0,9)}{\pgfxy(2,1)}
+	      \pgfrect[fill]{\pgfxy(4,9)}{\pgfxy(2,1)}
+	      \pgfrect[fill]{\pgfxy(8,9)}{\pgfxy(2,1)}
+	      \pgfrect[fill]{\pgfxy(12,9)}{\pgfxy(2,1)}
+	      \pgfrect[fill]{\pgfxy(16,9)}{\pgfxy(1,1)}
+	      \color{black}
+	      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(17,1)}
+	      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(2,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(4,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(6,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(8,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(10,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(12,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(14,9)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(16,9)}{\pgfxy(1,1)}
+	      \pgfputat{\pgfxy(0.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+	      \pgfputat{\pgfxy(1.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+	      \pgfputat{\pgfxy(2.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+	      \pgfputat{\pgfxy(3.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+	      \pgfputat{\pgfxy(4.5,9.5)}{\pgfbox[center,center]{\Large$a_{4}^4$}} 
+	      \pgfputat{\pgfxy(5.5,9.5)}{\pgfbox[center,center]{\Large$a_{5}^4$}} 
+	      \pgfputat{\pgfxy(6.5,9.5)}{\pgfbox[center,center]{\Large$a_{6}^4$}} 
+	      \pgfputat{\pgfxy(7.5,9.5)}{\pgfbox[center,center]{\Large$a_{7}^4$}} 
+	      \pgfputat{\pgfxy(8.5,9.5)}{\pgfbox[center,center]{\Large$a_{8}^4$}} 
+	      \pgfputat{\pgfxy(9.5,9.5)}{\pgfbox[center,center]{\Large$a_{9}^4$}} 
+	      \pgfputat{\pgfxy(10.5,9.5)}{\pgfbox[center,center]{\Large$a_{10}^4$}} 
+	      \pgfputat{\pgfxy(11.5,9.5)}{\pgfbox[center,center]{\Large$a_{11}^4$}} 
+	      \pgfputat{\pgfxy(12.5,9.5)}{\pgfbox[center,center]{\Large$a_{12}^4$}} 
+	      \pgfputat{\pgfxy(13.5,9.5)}{\pgfbox[center,center]{\Large$a_{13}^4$}} 
+	      \pgfputat{\pgfxy(14.5,9.5)}{\pgfbox[center,center]{\Large$a_{14}^4$}} 
+	      \pgfputat{\pgfxy(15.5,9.5)}{\pgfbox[center,center]{\Large$a_{15}^4$}} 
+	      \pgfputat{\pgfxy(16.5,9.5)}{\pgfbox[center,center]{\Large$a_{16}^4$}}
+	      \pgfline{\pgfxy(5, 9)}{\pgfxy(5, 8)}
+	      \pgfline{\pgfxy(7, 9)}{\pgfxy(7, 8)}
+	      \pgfline{\pgfxy(9, 9)}{\pgfxy(9, 8)}
+	      \pgfline{\pgfxy(11, 9)}{\pgfxy(11, 8)}
+	      \pgfline{\pgfxy(13, 9)}{\pgfxy(13, 8)}
+	      \pgfline{\pgfxy(15, 9)}{\pgfxy(15, 8)}
+	      \pgfline{\pgfxy(16.5, 9)}{\pgfxy(16.5, 8.5)}
+	      \pgfline{\pgfxy(15, 8.5)}{\pgfxy(16.5, 8.5)}
+        \begin{pgftranslate}{\pgfxy(0,-2)}
+		      \color{lightgray}
+		      \pgfrect[fill]{\pgfxy(0,9)}{\pgfxy(2,1)}
+		      \pgfrect[fill]{\pgfxy(4,9)}{\pgfxy(2,1)}
+		      \pgfrect[fill]{\pgfxy(8,9)}{\pgfxy(2,1)}
+		      \pgfrect[fill]{\pgfxy(12,9)}{\pgfxy(2,1)}
+		      \color{black}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(16,1)}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(2,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(4,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(6,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(8,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(10,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(12,9)}{\pgfxy(2,1)}
+		      \pgfrect[stroke]{\pgfxy(14,9)}{\pgfxy(2,1)}
+		      \pgfputat{\pgfxy(0.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(1.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(2.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(3.5,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(4.5,9.5)}{\pgfbox[center,center]{\Large$a_{4}^{(0)}$}} 
+		      \pgfputat{\pgfxy(5.5,9.5)}{\pgfbox[center,center]{\Large$a_{5}^{(0)}$}} 
+		      \pgfputat{\pgfxy(6.5,9.5)}{\pgfbox[center,center]{\Large$a_{6}^{(0)}$}} 
+		      \pgfputat{\pgfxy(7.5,9.5)}{\pgfbox[center,center]{\Large$a_{7}^{(0)}$}} 
+		      \pgfputat{\pgfxy(8.5,9.5)}{\pgfbox[center,center]{\Large$a_{8}^{(0)}$}} 
+		      \pgfputat{\pgfxy(9.5,9.5)}{\pgfbox[center,center]{\Large$a_{9}^{(0)}$}} 
+		      \pgfputat{\pgfxy(10.5,9.5)}{\pgfbox[center,center]{\Large$a_{10}^{(0)}$}} 
+		      \pgfputat{\pgfxy(11.5,9.5)}{\pgfbox[center,center]{\Large$a_{11}^{(0)}$}} 
+		      \pgfputat{\pgfxy(12.5,9.5)}{\pgfbox[center,center]{\Large$a_{12}^{(0)}$}} 
+		      \pgfputat{\pgfxy(13.5,9.5)}{\pgfbox[center,center]{\Large$a_{13}^{(0)}$}} 
+		      \pgfputat{\pgfxy(14.5,9.5)}{\pgfbox[center,center]{\Large$a_{14}^{(0)}$}} 
+		      \pgfputat{\pgfxy(15.5,9.5)}{\pgfbox[center,center]{\Large$a_{15}^{(0)}$}} 
+        \end{pgftranslate}
+        \pgfrect[stroke]{\pgfxy(6,5.5)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(10,5.5)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(14,5.5)}{\pgfxy(2,1)}
+	      \pgfputat{\pgfxy(7,6)}{\pgfbox[center,center]{\Large$\fun{U_{1}^4}{\cdot,5}$}} 
+	      \pgfputat{\pgfxy(11,6)}{\pgfbox[center,center]{\Large$\fun{U_{1}^4}{\cdot,9}$}} 
+	      \pgfputat{\pgfxy(15,6)}{\pgfbox[center,center]{\Large$\fun{U_{1}^4}{\cdot,13}$}} 
+	      \pgfline{\pgfxy(7, 7)}{\pgfxy(7, 6.5)}
+	      \pgfline{\pgfxy(11, 7)}{\pgfxy(11, 6.5)}
+	      \pgfline{\pgfxy(15, 7)}{\pgfxy(15, 6.5)}
+	      \pgfline{\pgfxy(7, 5.5)}{\pgfxy(7, 5)}
+	      \pgfline{\pgfxy(11, 5.5)}{\pgfxy(11, 5)}
+	      \pgfline{\pgfxy(15, 5.5)}{\pgfxy(15, 5)}
+	      \pgfline{\pgfxy(5, 7)}{\pgfxy(5, 5)}
+	      \pgfline{\pgfxy(9, 7)}{\pgfxy(9, 5)}
+	      \pgfline{\pgfxy(13, 7)}{\pgfxy(13, 5)}
+	      \pgfline{\pgfxy(5, 5)}{\pgfxy(7, 5)}
+	      \pgfline{\pgfxy(9, 5)}{\pgfxy(11, 5)}
+	      \pgfline{\pgfxy(13, 5)}{\pgfxy(15, 5)}
+	      \pgfline{\pgfxy(6, 5)}{\pgfxy(6, 4.5)}
+	      \pgfline{\pgfxy(10, 5)}{\pgfxy(10, 4.5)}
+	      \pgfline{\pgfxy(14, 5)}{\pgfxy(14, 4.5)}
+        \begin{pgftranslate}{\pgfxy(0,-5.5)}
+		      \color{lightgray}
+		      \pgfrect[fill]{\pgfxy(0,9)}{\pgfxy(4,1)}
+		      \pgfrect[fill]{\pgfxy(8,9)}{\pgfxy(4,1)}
+		      \color{black}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(16,1)}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(4,1)}
+		      \pgfrect[stroke]{\pgfxy(4,9)}{\pgfxy(4,1)}
+		      \pgfrect[stroke]{\pgfxy(8,9)}{\pgfxy(4,1)}
+		      \pgfrect[stroke]{\pgfxy(12,9)}{\pgfxy(4,1)}
+		      \pgfputat{\pgfxy(1,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(3,9.5)}{\pgfbox[center,center]{\Large$0$}} 
+		      \pgfputat{\pgfxy(5,9.5)}{\pgfbox[center,center]{\Large$a_{4}^{(1)}$}} 
+		      \pgfputat{\pgfxy(7,9.5)}{\pgfbox[center,center]{\Large$a_{5}^{(1)}$}} 
+		      \pgfputat{\pgfxy(9,9.5)}{\pgfbox[center,center]{\Large$a_{8}^{(1)}$}} 
+		      \pgfputat{\pgfxy(11,9.5)}{\pgfbox[center,center]{\Large$a_{9}^{(1)}$}} 
+		      \pgfputat{\pgfxy(13,9.5)}{\pgfbox[center,center]{\Large$a_{12}^{(1)}$}} 
+		      \pgfputat{\pgfxy(15,9.5)}{\pgfbox[center,center]{\Large$a_{13}^{(1)}$}} 
+        \end{pgftranslate}
+        \pgfrect[stroke]{\pgfxy(5,2.0)}{\pgfxy(2,1)}
+	      \pgfrect[stroke]{\pgfxy(13,2.0)}{\pgfxy(2,1)}
+	      \pgfputat{\pgfxy(6,2.5)}{\pgfbox[center,center]{\Large$\fun{U_{3}^4}{\cdot,1}$}} 
+	      \pgfputat{\pgfxy(14,2.5)}{\pgfbox[center,center]{\Large$\fun{U_{3}^4}{\cdot,9}$}} 
+	      \pgfline{\pgfxy(6, 3.5)}{\pgfxy(6, 3)}
+	      \pgfline{\pgfxy(14, 3.5)}{\pgfxy(14, 3)}
+	      \pgfline{\pgfxy(2, 3.5)}{\pgfxy(2, 1.5)}
+	      \pgfline{\pgfxy(10, 3.5)}{\pgfxy(10, 1.5)}
+	      \pgfline{\pgfxy(6, 2)}{\pgfxy(6, 1.5)}
+	      \pgfline{\pgfxy(14, 2)}{\pgfxy(14, 1.5)}
+	      \pgfline{\pgfxy(2, 1.5)}{\pgfxy(6, 1.5)}
+	      \pgfline{\pgfxy(10, 1.5)}{\pgfxy(14, 1.5)}
+	      \pgfline{\pgfxy(4, 1.5)}{\pgfxy(4, 1.0)}
+	      \pgfline{\pgfxy(12, 1.5)}{\pgfxy(12, 1.0)}
+        \begin{pgftranslate}{\pgfxy(0,-9)}
+		      \color{lightgray}
+		      \pgfrect[fill]{\pgfxy(0,9)}{\pgfxy(8,1)}
+		      \color{black}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(16,1)}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(8,1)}
+		      \pgfrect[stroke]{\pgfxy(8,9)}{\pgfxy(8,1)}
+		      \pgfputat{\pgfxy(2,9.5)}{\pgfbox[center,center]{\Large$a_{0}^{(2)}$}} 
+		      \pgfputat{\pgfxy(6,9.5)}{\pgfbox[center,center]{\Large$a_{1}^{(2)}$}} 
+		      \pgfputat{\pgfxy(10,9.5)}{\pgfbox[center,center]{\Large$a_{8}^{(2)}$}} 
+		      \pgfputat{\pgfxy(14,9.5)}{\pgfbox[center,center]{\Large$a_{9}^{(2)}$}} 
+        \end{pgftranslate}
+	      \pgfrect[stroke]{\pgfxy(11,-1.5)}{\pgfxy(2,1)}
+	      \pgfputat{\pgfxy(12,-1.0)}{\pgfbox[center,center]{\Large$\fun{U_{7}^4}{\cdot,1}$}} 
+	      \pgfline{\pgfxy(12, 0)}{\pgfxy(12, -0.5)}
+	      \pgfline{\pgfxy(4, 0.0)}{\pgfxy(4, -2.0)}
+	      \pgfline{\pgfxy(12, -1.5)}{\pgfxy(12, -2.0)}
+	      \pgfline{\pgfxy(4, -2.0)}{\pgfxy(12, -2.0)}
+	      \pgfline{\pgfxy(8, -2.0)}{\pgfxy(8, -2.5)}
+        \begin{pgftranslate}{\pgfxy(0,-12.5)}
+		      \color{lightgray}
+		      \pgfrect[fill]{\pgfxy(0,9)}{\pgfxy(16,1)}
+		      \pgfrect[fill]{\pgfxy(0,7)}{\pgfxy(16,1)}
+		      \color{black}
+		      \pgfrect[stroke]{\pgfxy(0,9)}{\pgfxy(16,1)}
+		      \pgfputat{\pgfxy(4,9.5)}{\pgfbox[center,center]{\Large$a_{0}^{(3)}$}} 
+		      \pgfputat{\pgfxy(12,9.5)}{\pgfbox[center,center]{\Large$a_{1}^{(3)}$}} 
+		      \pgfrect[stroke]{\pgfxy(0,7)}{\pgfxy(16,1)}
+		      \pgfputat{\pgfxy(8,7.5)}{\pgfbox[center,center]{\Large$\paren{b_{k}^4}_{k=0}^{16}$}} 
+   	      \pgfline{\pgfxy(8, 9)}{\pgfxy(8, 8)}
+        \end{pgftranslate}
+	    \end{pgfmagnify}
+	  \end{pgftranslate}  
+  \end{pgfpicture}
+  \caption{Schematic representation of the FLFT cascade summation for $M = 16$ and $n = 4$.}
+\end{figure}
 \begin{equation}
 \label{NFSFT:FirstStep}
   \left(\begin{array}{c}
     a_{4l}^{(1)}\\
     a_{4l+1}^{(1)} 
   \end{array}\right)
-  =  \left(\begin{array}{c}
+  :=  \left(\begin{array}{c}
     a_{4l}^{(0)}\\
     a_{4l+1}^{(0)} 
   \end{array}\right)
@@ -545,9 +805,36 @@ with
     a_{4l+3}^{(0)} 
   \end{array}\right).
 \end{equation}
-We can use Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $K=2$ to compute 
-the polynomial products in \eqref{NFSFT:FirstStep}. Applying this idea repeatedly leads to a cascade 
-summation with steps $\tau=1,\ldots,t-1$ as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation}. 
+\begin{algorithm}[tb]
+  \caption{Fast Multiplication for \eqref{NFSFT:GeneralStep}}
+  \label{NFSFT:Algorithm:U}
+  \begin{algorithmic}
+    \STATE Input:  $K := 2^t$, $t \in \N$, $\gamma \in \R$, $P,Q \in \Pi_{K-1}$ given by
+       Chebyshev coefficients $\paren{p_{k}}_{k=0}^{K-1}$,\\
+    \STATE \invisible{Input:} $\paren{q_{k}}_{k=0}^{K-1}$, $U_{l} \in \Pi_{K}$ for $l=0,1,2,3$ 
+      given by function values
+      \[\fun{U_{l}}{\frac{(2j+1)\pi}{4K}}_{j = 0}^{2K-1} \quad \paren{l=0,1,2,3}.\] 
+    \STATE Evaluate $P$ and $Q$ at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4K}}_{j = 0}^{2K-1}$
+      using two fast DCT-IIIs of length $2K$.
+    \STATE 
+    \FOR {$j=0,\ldots , 2K-1$} 
+      \STATE $r_{j} := \gamma \fun{U_{0}}{\cos \frac{(2j+1)\pi}{4K}} \fun{P}{\cos \frac{(2j+1)\pi}{4K}}
+        \fun{U_{1}}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}$
+      \STATE $s_{j} := \gamma \fun{U_{2}}{\cos \frac{(2j+1)\pi}{4K}} \fun{P}{\cos \frac{(2j+1)\pi}{4K}}
+        \fun{U_{3}}{\cos \frac{(2j+1)\pi}{4K}} \fun{Q}{\cos \frac{(2j+1)\pi}{4K}}$
+    \ENDFOR
+    \STATE
+    \STATE Compute the Chebyshev coefficients $\paren{r_{k}}_{k=0}^{2K-1}$, $\paren{s_{k}}_{k=0}^{2K-1}$ 
+      using two fast DCT-IIs of length $2K$.
+    \STATE
+    \STATE Output: $\paren{r_{k}}_{k=0}^{2K-1}$, $\paren{s_{k}}_{k=0}^{2K-1}$
+    \STATE Complexity: $\bigo{K \log K}$ flops
+  \end{algorithmic}
+\end{algorithm}  
+We can use Algorithm \ref{NFSFT:Algorithm:U}, a variant of Algorithm 
+\ref{Basics:Algorithm:FastPolynomialMultiplication} with $K=2$, to compute the polynomial products in 
+\eqref{NFSFT:FirstStep}. Applying this idea repeatedly leads to a \emph{cascade 
+summation} with steps $\tau=1,\ldots,t-1$ as illustrated in Figure \ref{NFSFT:Figure:CascadeSummation}. 
 In step $\tau$ we compute
 \begin{equation}
   \label{NFSFT:GeneralStep}
@@ -565,170 +852,44 @@ In step $\tau$ we compute
     a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)} 
   \end{array}\right)
 \end{equation}
-for $\paren{l=\floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1}$
-by applying Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} with $N=2^{\tau}$. It can be shown that
+for $l=\floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$
+by applying Algorithm \ref{NFSFT:Algorithm:U} with $K=2^{\tau}$. It can be shown that
 $a_{2^{\tau+1}l}^{(\tau)} = a_{2^{\tau+1}l+1}^{(\tau)} \equiv 0$ for $l < \floor{\frac{\tilde{n}}{2^{\tau+1}}}$ and 
-$l > \ceil{\frac{\tilde{M+1}}{2^{\tau+1}}}-1$.
+$l > \ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$.
 After step $\tau = t-1$ we arrive at
 \begin{equation}
   \nonumber
   g^n = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}.
 \end{equation}
 Since 
-\begin{equation}
+\begin{align}
   \nonumber
-  \fun{P_{0}^n}{x} = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ \fun{P_{1}^n}{x} = \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x}
-\end{equation} 
-we get
+  \fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{n even}},\\
+  \nonumber
+  \frac{1}{\sqrt{1-x^2}}\fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{n odd}},\\
+  \fun{P_{1}^n}{x} = \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x},
+\end{align} 
+we have
 \begin{equation}
   \label{NFSFT:LastStep}
-  g^n = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!} a_{0}^{(t-1)} + a_{1}^{(t-1)} \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x}
+  g^n = \frac{\sqrt{(2n)!}}{2^n n!} \paren{a_{0}^{(t-1)} + 
+  \paren{\alpha_{0}^nx + \beta_{0}^n} a_{1}^{(t-1)}}.
 \end{equation}
-Using 
-\begin{equation}
-  \nonumber
-  xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right)
-\end{equation}
-we finally obtain the sought Chebyshev coeffcients $b_{k}^n$ of $g^n$ from \eqref{NFSFT:LastStep} by
-applying elementary vector operations on the vectors of Chebyshev coefficients of $a_{0}^{(t-1)}$ and $a_{1}^{(t-1)}$ 
+Now, using 
+$%\begin{equation}
+%  \nonumber
+  xT_{0}(x) = T_{1}(x),\ xT_{k}(x) = \frac{1}{2}\left( T_{k+1}(x) + T_{k-1}(x) \right),
+$ %\end{equation}
+we finally obtain in the last step the sought Chebyshev coeffcients $b_{k}^n$ of $g^n$ 
+from \eqref{NFSFT:LastStep} by
+elementary operations on the vectors of Chebyshev coefficients of $a_{0}^{(t-1)}$ and $a_{1}^{(t-1)}$, respectively 
 (see Section \ref{NFSFT:LinearAlgebra:LastStep}).
 
-In total, the FLFT consists of $t+1 = \bigo{\log M}$ steps. The first and the last step clearly have computational complexity $\bigo{M}$. The rest of the steps is the cascade summation. Each step has computational complexity $\bigo{M \log M}$ due to the DCT applications in Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} used for the multiplication with the matrices $U$. In total this accumulates to $\bigo{M \log^2 M}$ for the whole algorithm.
+In total, the FLFT consists of $t+1 = \bigo{\log M}$ steps. The first step and the last step clearly have complexity $\bigo{M}$ flops. The rest of the steps is the cascade summation. Each step has complexity $\bigo{M \log M}$ flops due to the DCT applications in Algorithm \ref{NFSFT:Algorithm:U} used for the multiplication with the matrices ${\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}}$. In total this accumulates to $\bigo{M \log^2 M}$ flops for the whole, yet unstabilized algorithm which is given in Algorithm 
+\ref{NFSFT:Algorithm:FLFT_unstab}.
 
-\begin{figure}
-  \label{NFSFT:Figure:CascadeSummation}
-  % Cascade summation
-  \unitlength0.87cm
-    \begin{picture}(14,14)
-      % setze 6 Boxen
-      \multiput(0,0)(0,2.5){6}{\framebox(14,1)[lb]}
-      % schreibe in die 1. Box
-      \multiput(1.64,12.5)(1.64,0){8}{\line(0,1){1}}
-      %\put(14.4,12.8){\large $\in \mathbb R$}
-      \put(0.3,12.8){\large $0$}
-      \put(1.0,12.8){\large $0$}
-      \put(1.94,12.8){\large $0$}
-      \put(2.64,12.8){\large $0$}
-      \put(3.59,12.8){\large $a_4^4$}
-      \put(4.29,12.8){\large $a_5^4$}
-      \put(5.24,12.8){\large $a_6^4$}
-      \put(5.94,12.8){\large $a_7^4$}
-      \put(6.88,12.8){\large $a_8^4$}
-      \put(7.58,12.8){\large $a_9^4$}
-      \put(8.45,12.8){\large $a_{10}^4$}
-      \put(9.15,12.8){\large $a_{11}^4$}
-      \put(10.1,12.8){\large $a_{12}^4$}
-      \put(10.8,12.8){\large $a_{13}^4$}
-      \put(11.75,12.8){\large $a_{14}^4$}
-      \put(12.4,12.8){\large $a_{15}^4$}
-      \put(13.3,12.8){\large $a_{16}^4$}
-      % schreibe zwischen 2. und 3. Box
-      \multiput(12.2,11.5)(1.3,0){2}{\line(0,1){1}}
-      \put(12.2,11.5){\line(1,0){1.3}}
-      \put(12.7,11){\line(0,1){0.5}}
-      %\multiput(0.82,11)(1.64,0){7}{\line(0,1){1.5}}
-      \multiput(4.12,11)(1.64,0){5}{\line(0,1){1.5}}
-      % schreibe in die 2. Box
-      \multiput(1.64,10)(1.64,0){7}{\line(0,1){1}}
-      %\put(14.4,10.3){\large $\in \Pi_1$}
-      \put(0.3,10.3){\large $0$}
-      \put(1.0,10.3){\large $0$}
-      \put(1.94,10.3){\large $0$}
-      \put(2.64,10.3){\large $0$}
-      \put(3.5,10.3){\large $a_4^{(0)}$}
-      \put(4.2,10.3){\large $a_5^{(0)}$}
-      \put(5.1,10.3){\large $a_6^{(0)}$}
-      \put(5.8,10.3){\large $a_7^{(0)}$}
-      \put(6.75,10.3){\large $a_8^{(0)}$}
-      \put(7.45,10.3){\large $a_9^{(0)}$}
-      \put(8.35,10.3){\large $a_{10}^{(0)}$}
-      \put(9.05,10.3){\large $a_{11}^{(0)}$}
-      \put(10.05,10.3){\large $a_{12}^{(0)}$}
-      \put(10.7,10.3){\large $a_{13}^{(0)}$}
-      \put(11.85,10.3){\large $a_{14}^{(0)}$}
-      \put(13.00,10.3){\large $a_{15}^{(0)}$}
-      % schreibe zwischen 2. und 3. Box
-      %\multiput(0.82,9)(1.64,0){7}{\line(0,1){1}}
-      \multiput(4.10,9)(1.64,0){5}{\line(0,1){1}}
-      \put(12.8,9){\line(0,1){1}}
-      %\multiput(0.82,9)(3.28,0){3}{\line(1,0){1.64}}
-      \multiput(4.10,9)(3.28,0){2}{\line(1,0){1.64}}
-      \put(10.66,9){\line(1,0){2.14}}
-      %\multiput(1.64,8.5)(3.28,0){4}{\line(0,1){0.5}}
-      \multiput(4.92,8.5)(3.28,0){3}{\line(0,1){0.5}}
-      %\put(0.95,9.3){$ U_1^4(\, \cdot\, ,1)$}
-      \put(4.23,9.3){$ U_1^4(\, \cdot\, ,5)$}
-      \put(7.5,9.3){$ U_1^4(\, \cdot\, ,9)$}
-      \put(10.9,9.3){$ U_1^4(\; \cdot\; ,13)$}
-      % schreibe in die 3. Box
-      \multiput(3.3,7.5)(3.3,0){3}{\line(0,1){1}}
-      %\put(14.4,7.8){\large $\in \Pi_3$}
-      \put(0.82,7.8){\large $0$}
-      \put(2.2,7.8){\large $0$}
-      \put(3.8,7.8){\large $a_4^{(1)}$}
-      \put(5.5,7.8){\large $a_5^{(1)}$}
-      \put(7,7.8){\large $a_8^{(1)}$}
-      \put(8.8,7.8){\large $a_9^{(1)}$}
-      \put(10.5,7.8){\large $a_{12}^{(1)}$}
-      \put(12.5,7.8){\large $a_{13}^{(1)}$}
-      % schreibe zwischen 3. und 4. Box
-      \multiput(1.64,6.5)(3.28,0){4}{\line(0,1){1}}
-      \put(1.64,6.5){\line(1,0){3.28}}
-      \put(8.2,6.5){\line(1,0){3.28}}
-      \multiput(3.3,6.0)(6.6,0){2}{\line(0,1){0.5}}
-      \put(2.43,6.8){$ U_3^4(\; \cdot\; ,1)$}
-      \put(9.07,6.8){$ U_3^4(\; \cdot\; ,9)$}
-      % schreibe in die 4. Box
-      %\put(14.4,5.5){\large $\in \Pi_7$}
-      \put(6.5,5){\line(0,1){1}}
-      \put(2,5.3){\large $a_0^{(2)}$}
-      \put(4,5.3){\large $a_1^{(2)}$}
-      \put(8.5,5.3){\large $a_8^{(2)}$}
-      \put(10.5,5.3){\large $a_9^{(2)}$}
-      % schreibe zwischen 4. und 5. Box
-      \multiput(3.3,4.0)(6.6,0){2}{\line(0,1){1}}
-      \put(3.3,4){\line(1,0){6.6}}
-      \put(5.70,4.3){$ U_7^4(\; \cdot\; ,1)$}
-      \put(6.5,3.5){\line(0,1){0.5}}
-      \put(6.5,1){\line(0,1){1.5}}
-      % schreibe in die 4. Box
-      %\put(14.4,2.8){\large $\in \Pi_{15}$}
-      %\put(14.4,0.3){\large $\in \Pi_{16}$}
-      \put(3,2.8){\large $a_0^{(3)}$}
-      \put(9.5,2.8){\large $a_1^{(3)}$}
-      \put(5.85,0.3){\large $\paren{b_{k}^{n}}_{k=0}^{16}$}
-    \end{picture}
-  \caption{Schematic representation of the FLFT cascade summation for $M = 16$ and $n = 4$.}
-\end{figure}
-
-\begin{algorithm}[htb]
-  \caption{Fast Multiplication for \eqref{}}
-  \label{NFSFT:Algorithm:U}
-  \begin{algorithmic}
-    \STATE Input:  $N := 2^t$, $t \in \N$, $\gamma \in \R$, $P,Q \in \Pi_{N-1}$ given by
-       Chebyshev coefficients $\paren{p_{k}}_{k=0}^{N-1}$,\\
-    \STATE \invisible{Input:} $\paren{q_{k}}_{k=0}^{N-1}$, $U_{l} \in \Pi_{N}$ for $l=0,1,2,3$ 
-      given by function values
-      \[\fun{U_{l}}{\frac{(2j+1)\pi}{4N}}_{j = 0}^{2N-1} \quad \paren{l=0,1,2,3}.\] 
-    \STATE Evaluate $P$ and $Q$ at the Chebyshev nodes $\paren{\cos \frac{(2j+1)\pi}{4N}}_{j = 0}^{2N-1}$
-      using two fast DCT-IIIs of length $2N$.
-    \STATE 
-    \FOR {$j=0,\ldots , 2K-1$} 
-      \STATE $r_{j} := \gamma \fun{U_{0}}{\cos \frac{(2j+1)\pi}{4N}} \fun{P}{\cos \frac{(2j+1)\pi}{4N}}
-        \fun{U_{1}}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
-      \STATE $s_{j} := \gamma \fun{U_{2}}{\cos \frac{(2j+1)\pi}{4N}} \fun{P}{\cos \frac{(2j+1)\pi}{4N}}
-        \fun{U_{3}}{\cos \frac{(2j+1)\pi}{4N}} \fun{Q}{\cos \frac{(2j+1)\pi}{4N}}$
-    \ENDFOR
-    \STATE
-    \STATE Compute the Chebyshev coefficients $\paren{r_{k}}_{k=0}^{2N-1}$, $\paren{s_{k}}_{k=0}^{2N-1}$ 
-      using two fast DCT-IIs of length $2N$.
-    \STATE
-    \STATE Output: $\paren{r_{k}}_{k=0}^{2N-1}$, $\paren{s_{k}}_{k=0}^{2N-1}$
-  \end{algorithmic}
-\end{algorithm}  
-
-\begin{algorithm}[htb]
-  \caption{Fast Legendre Function transform (unstabilized)}
+\begin{algorithm}[tb]
+  \caption{Fast Legendre function transform (unstabilized)}
   \label{NFSFT:Algorithm:FLFT_unstab}    
   \begin{algorithmic}
     \STATE Input:  $M \in \NZ$, $n \in \NZ$ $(n \le M)$, $\paren{a_k^n}_{k=n}^{M}$
@@ -747,12 +908,27 @@ In total, the FLFT consists of $t+1 = \bigo{\log M}$ steps. The first and the la
     \ENDFOR
     \STATE Compute $a_{0}^{(t-1)} := a_{0}^{(t-1)} + a_{0}^{(t-1),\text{stab}}$, $a_{1}^{(t-1)} := a_{1}^{(t-1)} + a_{1}^{(t-1),\text{stab}}$
     \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+    \STATE Complexity: $\bigo{M \log^2 M}$ flops
 \end{algorithmic}
 \end{algorithm}
 
 \section{Stabilization}
-\label{DSFT:Stabilization}
-Algorithm \ref{NFSFT:Algorithm:FLFT_unstab} is exact in exact arithmetic. Unfortunately, it becomes unstable in finite precision for $n > 16$. The computation is subject to cancelations since the associated Legendre polynomials $\fun{P_{k}^n}{x,c}$ involved in the algorithm become very large for certain triples $\paren{k,n,c}$ and $\abs{x} \approx 1$ while at the same time the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ exhibit arbitrary small values (see \cite{kupo02}). A simple but effective idea first developed in \cite{postta97} is to replace the ordinary multiplication steps by "stabilization" steps, whenever the values $\fun{P_{k}^n}{x,c}$ exceed a certain threshold. The multiplications with $\fun{U_{2^{\tau+1}}^n}{\cdot,2^{\tau+1}l+1}$ are replaced by multiplications with $\fun{U_{2^{\tau}(2l+1)-1}^n}{\cdot,1}$ fulfilling
+\label{NFSFT:Stabilization}
+\begin{figure}[tb]
+  \centering
+   \subfigure
+     {\includegraphics[width=0.45\textwidth]{images/stabilization1000}}\hfill
+   \subfigure
+     {\includegraphics[width=0.45\textwidth]{images/stabilization10000}}\\
+   \subfigure
+     {\includegraphics[width=0.45\textwidth]{images/stabilization100000}}\hfill
+   \subfigure
+     {\includegraphics[width=0.45\textwidth]{images/stabilization1000000}}\\
+  \caption{The accumulated relative number of stabilization steps for $n=-M,\ldots,M$, 
+  thresholds $10^3, 10^4, 10^5$ and $10^6$, and bandwidth $M$ up to $4096$.}
+  \label{NFSFT:figure:stabilization}
+\end{figure}
+Algorithm \ref{NFSFT:Algorithm:FLFT_unstab} is exact in exact arithmetic. Unfortunately, it becomes unstable in finite precision for $n > 16$ (cf. \cite{postta97}). The computation is subject to cancelations since the associated Legendre polynomials $\fun{P_{k}^n}{x,c}$ involved in the algorithm become very large for certain admitable triples $\paren{k,n,c}$ and $\abs{x} \approx 1$, while at the same time the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$ and $a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}$ may exhibit arbitrary small values (see \cite{kupo02}). A simple, but effective idea, first developed in \cite{postta97}, is to replace the ordinary multiplication steps by so-called "stabilization" steps, whenever the values $\fun{P_{k}^n}{x,c}$ exceed a certain threshold. The multiplications with $\fun{U_{2^{\tau+1}}^n}{\cdot,2^{\tau+1}l+1}$ are replaced by multiplications with $\fun{U_{2^{\tau}(2l+1)-1}^n}{\cdot,1}$ fulfilling
 \[
 	\left(\begin{array}{c}	  P_{2^{\tau+1}l+2^{\tau}}^{n}\\ 
 	  P_{2^{\tau+1}l+2^{\tau}+1}^{n}	\end{array}\right)
@@ -765,33 +941,26 @@ This corresponds to taking the polynomials $a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}$
 \begin{equation}
   \label{NFSFT:StabilizationStep}
 	\left(\begin{array}{c}	  a_{0}^{(t-1)}\\
-	  a_{1}^{(t-1)}	\end{array}\right)^{\text{stab}}
+	  a_{1}^{(t-1)}	\end{array}\right)
 	:=
 	\left(\begin{array}{c}	  a_{0}^{(t-1)}\\
-	  a_{1}^{(t-1)}	\end{array}\right)^{\text{old}}
+	  a_{1}^{(t-1)}	\end{array}\right)
   +
 	\V{U}_{2^{\tau}(2l+1)-1}^{n}\left(\cdot,1\right)
 	\left(\begin{array}{c}	  a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)}\\
 	  a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}	\end{array}\right)  
 \end{equation}
-after the cascade summation is completed. Clearly, each "stabilization" step can be implemented using Algorithm \ref{Basics:Algorithm:FastPolynomialMultiplication} 
-again with $K = N$. Therefore, these steps are costly compared to the cascade summation without stabilization. We sacrifice runtime efficiency for accuracy. 
-Unfortunately, an upper bound for the number $s$ of stabilization steps with respect to $M$ for a given threshold is not known yet. However, if $s = \bigo{\log M} $, 
-we still have an $\bigo{M \log^2 M}$ algorithm. Our computations for $M$ up to $1024$ and various thresholds show (see Figure \ref{NFSFT:figure:stabilization}) 
-that this might be indeed the case. 
-\begin{figure}[htb]
-  \centering
-   \subfigure
-     {\includegraphics[width=0.5\textwidth]{images/stabilization1000}}\hfill
-   \subfigure
-     {\includegraphics[width=0.5\textwidth]{images/stabilization10000}}\\
-   \subfigure
-     {\includegraphics[width=0.5\textwidth]{images/stabilization100000}}\hfill
-   \subfigure
-     {\includegraphics[width=0.5\textwidth]{images/stabilization1000000}}\\
-  \caption{The relative number of stabilization steps for thresholds $1000, 10000, 100000$ and $1000000$ and bandwidth $M$ up to $4096$.}
-  \label{NFSFT:figure:stabilization}
-\end{figure}
+\label{DSFT:Stabilization}
+after the cascade summation is completed. Clearly, each "stabilization" step can be implemented using Algorithm \ref{NFSFT:Algorithm:U}, 
+again, with $K = N$. But these steps are costly compared to the cascade summation without stabilization. We sacrifice runtime efficiency 
+for accuracy. Unfortunately, an upper bound for the number 
+\[
+  s_{n} := \#\pset{\paren{k,n,c}}{|}{\paren{k,n,c} \text{ is admitable and } \fun{P_{k}^n}{\cdot,c} \text{ exceeds the threshold}}
+\] 
+of stabilization steps with respect to $M$ for a given threshold is not known yet. If $s = \bigo{\log M}$, 
+we still have an $\bigo{M \log^2 M}$ algorithm. However, our computations for $M$ up to $4096$ and various 
+thresholds give an indication (see Figure \ref{NFSFT:figure:stabilization}) 
+that we only have $s = \bigo{M}$ which means that we would only achieve an $\bigo{M^3 \log M}$ algorithm with stabilization. 
 Algorithm \ref{NFSFT:Algorithm:FLFT_stab} summarizes the complete algorithm with stabilization.
 \begin{algorithm}[htb]
   \caption{Fast Legendre Function transform (stabilized)}
@@ -821,21 +990,26 @@ Algorithm \ref{NFSFT:Algorithm:FLFT_stab} summarizes the complete algorithm with
     \ENDFOR
     \STATE Compute $a_{0}^{(t-1)} := a_{0}^{(t-1)} + a_{0}^{(t-1),\text{stab}}$, $a_{1}^{(t-1)} := a_{1}^{(t-1)} + a_{1}^{(t-1),\text{stab}}$
     \STATE Output: $\paren{c_{k}}_{k=0}^{2N-1}$
+%    \STATE Complexity: $\bigo{M^2 \log^2 M}$ flops (conjecture due to numerical results)
 \end{algorithmic}
 \end{algorithm}
 
 \section{A Linear Algebra Approach}
 \label{DSFT:LinearAlgebra}
 
-In this section we represent the FLFT algorithm as a linear mapping acting on a vector of Fourier coefficients $\V{a}^n$, hence a matrix. 
-%Let again $n$ with $\abs{n} \le M$ be fixed. 
-The FLFT can be represented as a matrix $\V{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with a vector $\V{a}^n = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients gives a vector $\V{b}^n := \left(b_0^n,b_1^n,\dots,b_{2N-1}^n\right)^{\transp} \in \C^{2N}$ containing the Chebyshev coefficients $b_{k}^n$ of the polynomial $\fun{g^n}{x}$ from \eqref{NFSFT:GnEven} or \eqref{NFSFT:GnOdd}, respectively: 
+In this section we, represent the FLFT algorithm as a linear mapping, acting on a vector of Fourier coefficients $\V{a}^n$. 
+The FLFT can be represented as a matrix $\V{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with the vector 
+$\V{a}^n = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients, gives a vector 
+$\V{b}^n := \left(b_0^n,b_1^n,\dots,b_{2N-1}^n\right)^{\transp} \in \C^{2N}$ containing the Chebyshev coefficients 
+$b_{k}^n$ of the polynomial $\fun{g^n}{x}$ from \eqref{NFSFT:GnEven} or \eqref{NFSFT:GnOdd}, respectively: 
 \[\V{b}^{n} = \V{T} \; \V{a}^n.\] 
-For the sake of simplicity we omit the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$ exploited in Algorithm \ref{NFSFT:Algorithm:FLFT_stab} in order to save some computational steps.
+For the sake of simplicity we omit the stabilization procedure and the fact that $a_{k}^n = 0$ for $k < n$ or $k > M$, 
+exploited in Algorithm \ref{NFSFT:Algorithm:FLFT_stab} in order to save some computational steps.
 
-The algorithm implies a factorization of $\V{T}$ into sparse matrices that can be derived directly.
-%from the algorithm already presented 
-We will use this fact to obtain an algorithm for the transposed problem. In general, the FLFT consists of $t+1$ steps such that $\V{T}$ can be written as 
+The algorithm implies a factorization of $\V{T}$ into sparse matrices which can be derived directly.
+We will use this fact later on, in order to obtain an algorithm for the transposed problem, i.e. computing 
+a matrix-vector product of the form $\V{\tilde{a}} = \V{T}^{\transp}\:\V{\tilde{b}}$. In general, the FLFT algorithm consists 
+of $t+1$ steps, such that $\V{T}$ can be written as 
 \[
   \V{T} = \V{T}^{(t)} \: \cdot \:  \V{T}^{(t-1)} \: \cdot \: \dots \: \cdot \: \V{T}^{(1)} \: \cdot \:  \V{T}^{(0)},
 \]
@@ -846,9 +1020,9 @@ with
 
 \subsection{The First Step}
 
-The first step converts each Fourier coefficent $a_{k}^n$ into a polynomial of degree at most 1 in Chebyshev representation $\V{a}_{k}^{(0)} \in \C^2$. The result 
+The first step converts each Fourier coefficent $a_{k}^n$ into a polynomial of degree at most one in Chebyshev representation, i.e. $\V{a}_{k}^{(0)} \in \C^2$. The result 
 \[
-  \V{a^{(0)}} := 
+  \V{a}^{(0)} := 
     \left[\begin{array}{c}
       \V{a}_{0}^{(0)}\\
       \vdots\\
@@ -860,19 +1034,21 @@ is a vector of length $2N$, hence
 \[ 
   \V{a}_{k}^{(0)} = \V{e} \: a_{k}^n,\quad \text{with } \V{e} := \left(\begin{array}{l}1\\0\end{array}\right) \quad \paren{k = 0,\ldots,N-3}.
 \]
-The last polynomial $a_{N}^{(0)}$ is mapped to the preceeding two polynomials by means of the three-term recurrence for associated Legendre Functions, 
-i.e. 
+The last polynomial $a_{N}^{(0)}$ is mapped to the preceeding ones, $a_{N-1}^{(0)}$ and $a_{N-2}^{(0)}$, by means of the three-term 
+recurrence relation for associated Legendre functions, i.e. 
 \[
-  a_{N}^{(0)} = \left(\alpha x + \beta\right)a_{N-1}^{(0)} + \gamma a_{N-2}^{(0)}.
+  a_{N}^{(0)} = \left(\alpha_{N-1}^n x + \beta_{N-1}^n\right)a_{N-1}^{(0)} + \gamma_{N-1}^n a_{N-2}^{(0)}.
 \]
 Following this, $\V{T}^{(0)}$ can be written as 
 \[
   \V{T}^{(0)} = \encl{[}{\V{I}_{N} \otimes \V{e},\;\V{\tilde{e}}}{]},
 \]
-with $\V{\tilde{e}} := \left(0,0,\dots,0,\gamma, 0, \beta,\alpha\right)^{\transp} \in \R^{2N}$.
+with $\V{\tilde{e}} := \left(0,0,\dots,0,\gamma_{N-1}^n, 0, \beta_{N-1}^n,\alpha_{N-1}^n\right)^{\transp} \in \R^{2N}$.
 
 \subsection[Cascade Summation]{Steps $\tau = 1,\ldots,t-1$ (Cascade Summation)}
-These steps represent the cascade summation applied to associated Legendre functions. In each round, half of the the functions is eliminated by mapping them to the remaining functions. Therefore, the vector $\V{a}^{(\tau-1)}$ is divided into consecutive blocks of four polynomials
+These steps represent the cascade summation applied to associated Legendre functions as in Figure \ref{NFSFT:Figure:CascadeSummation}. In each step, 
+half the functions $P_{k}^n$ are eliminated 
+by mapping them to the remaining ones. Therefore, the vector $\V{a}^{(\tau-1)}$ is divided into consecutive blocks of four polynomials
 \[
   \V{a}^{(\tau-1)} = 
     \left[\begin{array}{c}
@@ -892,11 +1068,19 @@ with
       \V{a}^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}
     \end{array}\right] \in \C^{2^{\tau+2}} \quad \paren{l=0,\ldots,\frac{N}{2^{\tau+1}}-1},
 \end{equation}
-where $\V{a}^{(\tau-1)}_{2^{\tau+1}l+j} \in \C^{2^{\tau}}$ for $j = 0,1,2^{\tau},2^{\tau}+1$, representing the polynomial factors in front of each remaining function $P_{k}^n$. Each polynomial is represented by its vector of Chebyshev coefficients of length $2^{\tau}$. In every block, the first and the second polynomial, $a^{(\tau-1)}_{2^{\tau+1}l}$
-and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ remain unchanged. The third and the fourth polynomial, $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, are multiplied with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ which transforms them into a representation in terms of the first two functions. Following this, the output contains only half of the polynomials, but due to the multiplication with $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ the degree might double each time so that twice the space is needed to store the Chebyshev coefficients. In total, the result vector still has length $2N$. 
+where $\V{a}^{(\tau-1)}_{2^{\tau+1}l+j} \in \C^{2^{\tau}}$ for $j = 0,1,2^{\tau},2^{\tau}+1$, representing the polynomial 
+factors in front of each remaining function $P_{2^{\tau+1}l+j}^n$. 
+In every block, the first and the second polynomial, $a^{(\tau-1)}_{2^{\tau+1}l}$
+and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ remain unchanged. The third and the fourth polynomial, $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ 
+and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, are multiplied with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ 
+and the result is added to $a^{(\tau-1)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ yielding $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau)}_{2^{\tau+1}l+1}$. Following this, the output contains 
+only half as many polynomials as before, but due to the multiplication with $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$, 
+the degree might nearly double each time so that twice the space is needed to store the Chebyshev coefficients. In total, the result vector still has length $2N$. 
 %For each step $1 \le \tau < t$ and for each block \[\mb{\tilde{a}}_{l}^{(\tau-1)} := \left(\mb{a}_{4l}^{(\tau-1)},\mb{a}_{4l+1}^{(\tau-1)},\mb{a}_{4l+2}^{(\tau
-%-1)},\mb{a}_{4l+3}^{(\tau-1)}\right)^T \text{, where } 0 \le l < 2^{t-\tau-1},\] 
-We need to keep the first two polynomials, but with their vectors zero-padded to twice the length. Furthermore, we have to add the coefficients due to the multiplication of the third and fourth polynomial with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$.
+%-1)},\mb{a}_{4l+3}^{(\tau-1)}\right)^T \text{, where } 0 \le l < 2^{t-\tau-1},\]
+ 
+We need to keep the first two polynomials, but with their vectors zero-padded to twice the length. Furthermore, we have to add 
+the coefficients due to the multiplication of the third and fourth polynomial with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$.
 Correspondingly, each block $\V{a}_{l}^{(\tau-1)}$ is multiplied by a matrix $\V{V}^{(\tau)}_l := \left[\V{Z^{(\tau)}},\V{U}^{(\tau)}_l\right]$, with
 \[\V{Z}^{(\tau)} := \left(\begin{array}{cccc} \V{I}_{2^{\tau}} & 0\\ 0 & 0 \\ 0 & \V{I}_{2^{\tau}} \\ 0 & 0 \end{array}\right) \in \R^{2^{\tau+2} \times 2^{\tau+1}},\ \V{U}^{(\tau)}_l \in \R^{2^{\tau+2} \times 2^{\tau+1}}.\]
 %Correspondingly, this can be written as the product 
@@ -915,30 +1099,58 @@ where we define
     & \left. \hspace{9ex} \fun{\V{P}_{2^{\tau}-1}^n}{c}, \fun{\V{P}_{2^{\tau}}^n}{c}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+3}},\\
   \V{D}^{(\tau)}_{\text{III}} & := \V{I}_{2} \otimes \left(\left(\V{I}_{2} \otimes \V{C}^{\transp}_{2^{\tau+1}}\right)\V{Z}^{(\tau)}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+1}}.
 \end{align*}   
-This follows directly from Algorithm \ref{NFSFT:Algorithm:FLFT_unstab}. The matrix $\V{D}^{(\tau)}_{\text{III}}$ realizes first the zero-padding ($\V{Z}^{(\tau)}$)
-of the two polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, second the evaluation at the Chebyshev nodes ($\V{\tilde{C}}^{\transp}$) and finally a duplication of the result vector in order to permit multiplication with two different associated Legendre polynomials for each polynomial. The matrix $\fun{\V{P}^{(\tau)}}{2^{\tau+1}l+1}$ contains on its main diagonal the associated Legendre polynomials of the matrix $\fun{\V{U}_{2^{\tau}-1}^n}{\cdot,2^{\tau+1}l+1}$ evaluated at the Chebyshev nodes. It realizes therefore a pointwise multiplication with the zero-padded and evaluated polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$. The matrix $\V{S}^{(\tau)}$ forms the sums for the two rows of the result and finally the $\V{D}^{(\tau)}_{\text{II}}$ transforms the new obtained polynomials $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ back into Chebyshev representation.
+This follows directly from Algorithm \ref{NFSFT:Algorithm:FLFT_unstab}. The matrix $\V{D}^{(\tau)}_{\text{III}}$ realizes 
+first, the zero-padding ($\V{Z}^{(\tau)}$) of the two polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and 
+$a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, second, the evaluation at the Chebyshev nodes ($\V{C}^{\transp}$) 
+and finally, a duplication of the result vector in order to permit multiplication with two different 
+associated Legendre polynomials from $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ for each of the 
+two polynomials. The diagonal matrix $\fun{\V{P}^{(\tau)}}{2^{\tau+1}l+1}$ 
+contains the corresponding associated Legendre polynomials of $\fun{\V{U}_{2^{\tau}-1}^n}{\cdot,2^{\tau+1}l+1}$ 
+evaluated at the Chebyshev nodes $\paren{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}}_{s=0}^{2^{\tau}+1}$. It realizes therefore 
+a pointwise multiplication with the zero-padded and evaluated 
+polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$. The matrix $\V{S}^{(\tau)}$ 
+forms the sums for the two rows of the result, and finally, the $\V{D}^{(\tau)}_{\text{II}}$ transforms the newly obtained 
+polynomials $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ back into Chebyshev representation.
 
-From the factorization in \eqref{NFSFT:LinearAlgebra:Factorization} the more compact representation
+From the factorization in \eqref{NFSFT:LinearAlgebra:Factorization}, the more compact representation
 \begin{equation}
-\label{UCompact}
+\nonumber
+%\label{UCompact}
 \V{U}^{(\tau)}_l = 
 \left(\begin{array}{lclrcr}
-  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & \gamma_{c}^n & \left(\right. & \fun{\V{P}_{2^{\tau}-2}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1} & + & 
-  \fun{\V{P}_{2^{\tau}-1}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2} \left.\right) \\
-  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & & \left(\right. & \fun{\V{P}_{2^{\tau}-1}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1} & + & 
-  \fun{\V{P}_{2^{\tau}}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2} \left.\right)
+  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & \gamma_{c}^n & \left(\right. & \fun{\V{P}_{2^{\tau}-2}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1}^{(\tau)} & + & 
+  \fun{\V{P}_{2^{\tau}-1}^n}{c+1} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2}^{(\tau)} \left.\right) \\
+  \V{D}_{2^{\tau+1}} \V{C}_{2^{\tau+1}} & & \left(\right. & \fun{\V{P}_{2^{\tau}-1}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{1}^{(\tau)} & + & 
+  \fun{\V{P}_{2^{\tau}}^n}{c} \V{C}^{\transp}_{2^{\tau+1}} \V{Z}_{2}^{(\tau)} \left.\right)
 \end{array}\right)
 \end{equation}
+with 
+\[
+  \V{Z}_{1}^{(\tau)} := 
+    \left(\begin{array}{cc}
+      \V{I}_{2^{\tau}} & 0\\
+      0 & 0
+    \end{array}\right),\
+  \V{Z}_{2}^{(\tau)} := 
+    \left(\begin{array}{cc}
+      0 & \V{I}_{2^{\tau}} \\
+      0 & 0
+    \end{array}\right)    
+\]
 is obtained.
 %So for each block $l$, a multiplication with a matrix $\mb{V}_{\tau}^l  \in \R^{2^{\tau+2} \times 2^{\tau+2}}$ is applied where
 %\[ \mb{V}_{\tau}^l = \left[\mb{ZP},\mb{U}_{\tau}^l\right].\] 
-The complete step can finally be represented as \[\V{T}^{(\tau)} = \text{diag}\left(\V{V}^{(\tau)}_0,\V{V}^{(\tau)}_1,\dots,\V{V}^{(\tau)}_{2^{t-\tau-1}-1}\right).\]
+The complete step $\V{T}^{(\tau)}$ can be represented as 
+\[
+  \V{T}^{(\tau)} = \text{diag}\left(\V{V}^{(\tau)}_0,\V{V}^{(\tau)}_1,\dots,\V{V}^{(\tau)}_{2^{t-\tau-1}-1}\right).
+\]
 
 \subsection{The Last Step}
 \label{NFSFT:LinearAlgebra:LastStep}
-The last step consists in calculating the polynomial $g^{n} = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}$ in Chebyshev representation. Since 
+The last step consists in calculating the polynomial $g^{n} = a_{0}^{(t-1)} P_{0}^{n} + a_{1}^{(t-1)} P_{1}^{n}$ in 
+Chebyshev representation, i.e. the vector $\V{g}^{n} \in \C^{N+1}$. Since 
 \[
-  \fun{P_{0}^n}{x} = \frac{\left( \left( 2n \right) ! \right)^{1/2}}{2^n n!},\ \fun{P_{1}^n}{x} = \left(\alpha_{0}^n x + \beta_{0}^n\right)P_{0}^n(x),
+  \fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!},\ \fun{P_{1}^n}{x} = \left(\alpha_{0}^n x + \beta_{0}^n\right)P_{0}^n(x),
 \] 
 we can use 
 \[
@@ -946,7 +1158,8 @@ we can use
 \] 
 to write
 \[ 
-  \V{g}^{n} = \gamma_{0}^n \left( \V{I}_{N+1} \V{a}_{0}^{(\tau-1)} + \left( \alpha_{0}^n\V{W}_{N+1} + \beta_{0}^n\V{I}_{N+1} \right) \V{a}_{1}^{(\tau-1)} \right).
+  \V{g}^{n} = \gamma_{0}^n \left( \V{I}_{N+1} \V{a}_{0}^{(t-1)} + \left( \alpha_{0}^n\V{W}_{N+1} + \beta_{0}^n\V{I}_{N+1} \right) 
+  \V{a}_{1}^{(t-1)} \right).
 \]
 Here, we have defined
 \[
@@ -964,20 +1177,22 @@ Here, we have defined
 \]
 Depending on $n \in \NZ$, we can distinguish three cases:
 \begin{description}
-  \item[n odd] In this case, $\alpha_{0}^n = 0$ and $\beta_{0}^n = 1$ so that $\V{T}^{(\tau)}$ is 
+  \item[n odd:] In this case, $\alpha_{0}^n = 0$, $\beta_{0}^n = 1$, and $\V{T}^{(\tau)}$ is 
     \[
       \V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} \right].
     \]
-  \item[n = 0] Here it holds, $\alpha_{0}^n = 1$ and $\beta_{0}^n = 0$ and we get \[\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{W}_{N+1} \right].\]
-  \item[n even, n > 0] Now $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in \[\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} - \mb{W}_{N+1} \right].\]
+  \item[n = 0:] Here we have $\alpha_{0}^n = 1$, $\beta_{0}^n = 0$, and we obtain \[\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{W}_{N+1} \right].\]
+  \item[n even, n > 0:] Now, $\alpha_{0}^n = -1$ and $\beta_{0}^n = 1$ which results in \[\V{T}^{(\tau)} = \gamma_{0}^n \left[ \V{I}_{N+1}, \V{I}_{N+1} - \mb{W}_{N+1} \right].\]
 \end{description}
 
 \section{Transposed FLFT}
-Following the factorization of $\V{T}$ given in the previous section, one obtains easily the transposed factorization corresponding to $\V{T^{\transp}}$:
-\[
+\label{NFSFT:transposedFLFT}
+Following the factorization of $\V{T}$ given in the previous section, one obtains easily the factorization of $\V{T^{\transp}}$:
+\begin{equation}
+  \label{NFSFT:transposedFactorization}
   \V{T}^{\transp} = {\V{T}^{(0)}}^{\transp} \: \cdot \: {\V{T}^{(1)}}^{\transp} \: \cdot \: \ldots \: \cdot {\V{T}^{(t-1)}}^{\transp} \: \cdot \: {\V{T}^{(t)}}^{\transp}.
-\] 
-For $\tau = 0$ and $\tau = t$ we obtain immediatly
+\end{equation}
+For $\tau = 0$ and $\tau = t$, we obtain immediatly
 \[
   {\V{T}^{(0)}}^{\transp} = 
      \left(\begin{array}{c} 
@@ -991,45 +1206,50 @@ For $\tau = 0$ and $\tau = t$ we obtain immediatly
        \left[ \begin{array}{c} \V{I}_{N+1} \\ \V{I}_{N+1} - \V{W}_{N+1}^{\transp} \end{array} \right] & \text{$n$ even, $n$ > 0}.
      \end{array}\right.
 \]
-For the rest of the steps, i.e. $\tau = t-1,\ldots,1$, we have
-\begin{eqnarray}
+For the rest of the steps, i.e. the ''transposed'' cascade summation for $\tau = t-1,\ldots,1$, we have
+\begin{align}
   \nonumber
-  {\V{T}^{(\tau)}}^{\transp}   & = & \text{diag}\left({\V{V}^{(\tau)}_0}^{\transp},{\V{V}^{(\tau)}_1}^{\transp},
+  {\V{T}^{(\tau)}}^{\transp}   & = \text{diag}\left({\V{V}^{(\tau)}_0}^{\transp},{\V{V}^{(\tau)}_1}^{\transp},
   \dots,{\V{V}^{(\tau)}_{2^{t-\tau-1}-1}}^{\transp}\right),\\
   \nonumber
-  {\V{V}^{(\tau)}_l}^{\transp} & = & \left[ \begin{array}{c} \V{Z}^{\transp},\\ 
+  {\V{V}^{(\tau)}_l}^{\transp} & = \left[ \begin{array}{c}
+    {\V{Z}^{(\tau)}}^{\transp},\\ 
   \nonumber
   {\V{U}^{(\tau)}_l}^{\transp} \end{array} \right],\\
-  \nonumber
-  {\V{U}^{(\tau)}_l}^{\transp} & = &
-  \left[
-    \begin{array}{rrl}
-      \gamma_{c}^n \left( \V{Z}_{1}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-2}^n}{c+1} + \right. & 
-                   \left. \V{Z}_{2}^T         \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c+1}   \right) &
-                   \V{\tilde{C}}_{2^{\tau+1}}^{\transp},
-    \end{array}               
-   \right.\\
-  %\raisetag{3ex}
-  %\label{NFSFT:transposedUformula}
-  \nonumber
-   & &
-   \left.
-     \begin{array}{rrl}
-       \hspace*{3.8ex} \left( \V{Z}_{1}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c} + \right. &
-                                \left. \V{Z}_{2}^{\transp} \V{\tilde{C}}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}}^n}{c}     \right) &
-                                \hspace*{10.4ex} \V{\tilde{C}}_{2^{\tau+1}}^{\transp}
-       \end{array}
-   \right].
-\end{eqnarray}
+  \label{NFSFT:transposedUformula}
+  \begin{split}
+    {\V{U}^{(\tau)}_l}^{\transp} & =
+      \left[\gamma_{c}^n \left( \V{Z}_{1}^{\transp} \V{C}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-2}^n}{c+1} +
+      \V{Z}_{2}^T \V{C}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c+1} \right) \V{C}_{2^{\tau+1}}^{\transp},\right.\\
+     & \quad \left. \left( \V{Z}_{1}^{\transp} \V{C}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}-1}^n}{c} + \V{Z}_{2}^{\transp} 
+     \V{C}_{2^{\tau+1}} \fun{\V{P}_{2^{\tau}}^n}{c} \right) \V{C}_{2^{\tau+1}}^{\transp} \right].
+  \end{split}
+\end{align}
 
-Following the factorization, a fast algorithm for computing the transposed FLFT, hence computing the matrix-vector 
-product $\V{a} = \V{T}^{\h} \: \V{b}$ in a fast way, can be derived immediately. We shall mention that the first fast 
-algorithm for transposed Legendre function transforms was described in \cite{drhe}. Driscoll and Healy describe the process of 
-computing the transposed Legendre function transform as computing projections of Polynomials in Chebyshev representation onto 
-associated Legendre functions. Our approach differs in that we derived the transposed version of our algorithm by transposing the corresponding matrix factorization. In this process we completely omit the interpretation of the adjoiunt algorithm. We start by the transposed version of Algorithm{NFSFT:Algorithm:U} according to \eqref{NFSFT:transposedUformula} summarized in Algorithm \ref{}. 
-Although we do not delve into details concerning the interpretation of the steps carried out by the transposed algorithm, we keep 
-speaking of polynomials and their corresponding Chebyshev coefficients.
+Following this factorization, a fast algorithm for computing the transposed FLFT, hence computing the matrix-vector 
+product $\V{\tilde{a}} = \V{T}^{\transp} \: \V{\tilde{b}}$ can be derived immediately. Since $\V{T}^{\transp} \neq \V{T}^{-1}$, 
+we use tildes for the vectors $\V{\tilde{a}}$ and $\V{\tilde{b}}$ to make clear that the transposed algorithm does not 
+compute the inverse transform, hence a change of basis from Chebyshev polynomials to associated Legendre functions. However, 
+the transposed algorithm is much like doing everything backwards and therefore, we keep the nomenclature so far used. 
 
+We shall mention that the first fast 
+algorithm for transposed Legendre function transforms was described in \cite{drhe}. In fact, Driscoll and Healy describe the process of 
+computing the transposed Legendre function transform as computing projections of polynomials in Chebyshev representation onto 
+associated Legendre functions. Our approach differs in that we derived the transposed version of our algorithm by transposing 
+the corresponding matrix factorization. So far, we have completely omitted the interpretation of the transposed algorithm. 
+We skip interpreting the transposed first and last step, i.e. $\tau = 0$ and $\tau = t$. At each level 
+$\tau = t-1,\ldots,1$ in the now according to \eqref{NFSFT:transposedFactorization} backwards traversed cascade, we apply
+two transformations (corresponding to the matrix ${\V{V}^{(\tau)}_l}^{\transp}$) to each pair of polynomials 
+$\tilde{a}_{2^{\tau+1}l}^{(\tau)}$, $\tilde{a}_{2^{\tau+1}l+1}^{(\tau)}$ for $l=0,\ldots,\frac{N}{2^{\tau+1}}-1$:
+First, we cut off the higher half of Chebyshev coefficients of every polynomial. This is a multiplication with the 
+matrix ${\V{Z}^{(\tau)}}^{\transp}$ and can be interpreted as a projection onto a polynomial subspace spanned by Chebyshev polynomials 
+up to the cutoff-degree. This yields the polynomials $\tilde{a}_{2^{\tau+1}l}^{(\tau-1)}$ and $\tilde{a}_{2^{\tau+1}l+1}^{(\tau-1)}$.
+The second transformation corresponds to the multiplication with the matrix ${\V{U}^{(\tau)}_l}^{\transp}$ and consists in
+polynomial multiplications with the associated Legendre polynomials contained in 
+$\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ followed by projections onto different subspaces of Chebyshev 
+polynomials, i.e. the set of polynomials up to the cutoff-degree (multiplication with ${\V{Z}_{1}^{(\tau)}}^{\transp}$) and the set of 
+polynomials above the cutoff-degree (multiplication with ${\V{Z}_{2}^{(\tau)}}^{\transp}$). This transformation is summed up 
+in Algorithm \ref{NFSFT:Algorithm:Utransposed}.
 \begin{algorithm}[htb]
   \caption{Fast Multiplication for \eqref{NFSFT:transposedUformula}}
   \label{NFSFT:Algorithm:Utransposed}
@@ -1054,7 +1274,9 @@ speaking of polynomials and their corresponding Chebyshev coefficients.
     \STATE Output: $\paren{p_{k}}_{k=0}^{N-1}$, $\paren{q_{k}}_{k=0}^{N-1}$
   \end{algorithmic}
 \end{algorithm}  
-
+The complete transposed FLFT condenses in Algorithm \ref{NFSFT:Algorithm:adjointFLFT_stab}.
+%Now that we have a FLFT and a transposed FLFT algorithm, we are able to combine these with the NFFT algorithm to yield
+%a fast NFSFT and adjoint NFSFT algorithms, shown in the next section. 
 \begin{algorithm}[htb]
   \caption{Adjoint fast Legendre Function transform (stabilized)}
   \label{NFSFT:Algorithm:adjointFLFT_stab}    
@@ -1075,7 +1297,7 @@ speaking of polynomials and their corresponding Chebyshev coefficients.
             \[ 
               a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}
             \] 
-            using \eqref{NFSFT:StabilizationStep} and Algorithm \ref{NFSFT:Algorithm:U}
+            using \eqref{NFSFT:StabilizationStep} and Algorithm NFSFT:Algorithm:Utransposed
           \STATE Update $a_{2^{\tau+1}l^{(\tau)}} := a_{2^{\tau+1}l^{(\tau-1)}}$, $a_{2^{\tau+1}l+1}^{(\tau)} := a_{2^{\tau+1}l+1}^{(\tau-1)}$
         \ENDIF
       \ENDFOR
@@ -1086,14 +1308,98 @@ speaking of polynomials and their corresponding Chebyshev coefficients.
 \end{algorithmic}
 \end{algorithm}
 
-
-%
-%\begin{figure}[tb]
-%  \centering
-%  \includegraphics[height=9cm,width=12cm]{images/accuracy}
-%  \caption{To be written...}
-%  \label{NFSFT:Figure:Accuracy}
-%\end{figure}
+\section{Nonuniform Fast Spherical Fourier Transform and its Adjoint}
+\label{NFSFT:NFSFT}
+We recall that our aim is the fast evaluation of a bandlimited function $f$ on a set of arbitrary nodes $\mathcal{X}$ on 
+the sphere $\twosphere$, or equivalently, the fast computation of the matrix-vector product 
+$\V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}} \: \V{a}$. We write
+\begin{equation}
+  \label{NFSFT:f}
+  \fun{f}{\vtheta,\vphi} = \sum_{n=-M}^M \sum_{k=\abs{n}}^M a_k^n \fun{Y_{k}^n}{\vtheta,\vphi} = 
+  \sum_{n=-M}^M \underbrace{\paren{\sum_{k=\abs{n}}^M a_k^n \fun{P_{k}^n}{\cos\vtheta}}}_{:= \fun{h_{n}}{\cos\vtheta}} \e^{\im n \vphi},
+\end{equation}
+where we have in view of \eqref{NFSFT:GnEven} and \eqref{NFSFT:GnOdd} that
+\[
+  \fun{h_{n}}{\cos\vtheta} = 
+    \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+      \fun{g_{n}}{\cos\vtheta} & n \text{ even},\\
+      \paren{\sin \vtheta} \fun{g_{n}}{\cos \vtheta} & n \text{ odd}.
+    \end{array}\right. 
+\]
+By virtue of Algorithm \ref{NFSFT:Algorithm:adjointFLFT_stab} (FLFT), we perform a change of basis 
+and obtain $\fun{h_{n}}{\cos\vtheta}$ in Chebyshev representation
+\[
+  \fun{h_{n}}{\cos\vtheta} = 
+    \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+      \sum_{k=0}^{M} b_{k}^n \fun{T_{k}}{\cos\vtheta} & n \text{ even},\\
+      \paren{\sin \vtheta}\sum_{k=0}^{M-1} b_{k}^n \fun{T_{k}}{\cos\vtheta} & n \text{ odd},
+    \end{array}\right. 
+\]
+and since $\fun{T_{k}}{k \cos \vtheta} = \fun{\cos}{k \vtheta}$, we simply have
+\[
+  \fun{h_{n}}{\cos\vtheta} = 
+    \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+      \sum_{k=0}^{M} b_{k}^n \fun{\cos}{k \vtheta} & n \text{ even},\\
+      \paren{\sin \vtheta}\sum_{k=0}^{M-1} b_{k}^n \fun{\cos}{k \vtheta} & n \text{ odd}.
+    \end{array}\right. 
+\]
+In addition, we use $\fun{\cos}{k \vtheta} = \frac{1}{2} \paren{\e^{\im k \vtheta} + \e^{-\im k \vtheta}}$ 
+and arrive at
+\[
+  \fun{h_{n}}{\cos\vtheta} = 
+    \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+      \sum_{k=-M}^{M} d_{k}^n \e^{\im k \vtheta} & n \text{ even},\\
+      \paren{\sin \vtheta} \sum_{k=-(M-1)}^{M-1} d_{k}^n \e^{\im k \vtheta} & n \text{ odd},
+    \end{array}\right. 
+\]
+where we let
+\begin{align}
+  d_{k}^n :=
+    \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+      b_{|k|}^n & k \neq 0,\\
+      \frac{b_{|0|}^n}{2} & k = 0.
+    \end{array}\right. 
+\end{align}
+We utilize finally $\sin \vtheta = \frac{1}{2\im} \paren{\e^{\im \vtheta} - \e^{-\im \vtheta}}$, and have
+\[
+  \fun{h_{n}}{\cos\vtheta} = \sum_{k=-M}^{M} c_{k}^n \e^{\im k \vtheta},
+\]
+with $c_{k}^n := d_{k}^n$ for even $n$ and
+\[
+  c_{k}^n :=  
+  \left\{\begin{array}{l@{\quad \text{if} \quad}l}
+    - \frac{d_{k+1}^n}{2\im} & k = -M,-M+1,\\[1ex]
+      \frac{d_{k-1}^n}{2\im} & k = M,M-1,\\[1ex]
+      \frac{d_{k-1}^n - d_{k+1}^n}{2\im} & k = -M+2,\dots,M-2
+  \end{array} \right.
+\]
+for odd $n$. For $f$ in \eqref{NFSFT:f}, this yields
+\begin{equation}
+  \label{NFSFT:transformed}
+  \fun{f}{\vtheta,\vphi} = \sum_{n=-M}^{M} \sum_{k=-M}^M c_{k}^n \e^{\im k \vtheta} \e^{\im n \vphi}.
+\end{equation}
+The sum \eqref{NFSFT:transformed} can be evaluated by the NFFT algorithm on an arbitrary sampling set $\mathcal{X}$.
+In matrix-vector notation, this procedure reads
+\begin{equation}
+  \label{NFSFT:fastFactorization}
+  \V{f}_{\mathcal{X}} = \V{F}_{\mathcal{X}} \: \V{Q} \: \V{T} \: \V{a}.
+\end{equation}
+Here, $\V{F}$ represents the NFFT, $\V{Q}$ the intermediate steps to convert the Chebyshev coefficients $b_{k}^n$ 
+into the Fourier coefficients $c_{k}^n$, and $\V{T}$ the FLFT. This results in Algorithm \ref{NFSFT:Algorithm:NFSFT} denoted as 
+\emph{nonuniform fast spherical Fourier transform (NFSFT)}. A schematic overview is given in Figure \ref{NFSFT:Figure:NFSFT}.
+\begin{algorithm}[tb]
+  \caption{nonuniform fast spherical Fourier transform (NFSFT)}
+  \label{NFSFT:Algorithm:NFSFT}    
+  \begin{algorithmic}
+    \STATE Input:  $M \in \NZ$, $\paren{a_k^n}_{(k,n) \in \mathcal{I}^M}$
+    \FOR {$n=-M,\ldots,M$}
+      \STATE Compute the Chebyshev coefficients $\paren{b_{k}^n}_{k=0}^{M}$ of $g^{n}$ by a fast FLFT.
+      \STATE Compute the coeffcients $\paren{c_{k}^n}_{k=-M}^M$ from the coefficients $\paren{b_{k}^n}_{k=0}^{M}$ 
+    \ENDFOR
+    \STATE Compute $\paren{f_{d}}_{d=0}^{D-1}$ by a fast 2-dimensional NFFT
+    \STATE Output: $\paren{f_{d}}_{d=0}^{D-1}$
+\end{algorithmic}
+\end{algorithm}
 
 \newcommand{\aknGraph}
 {
@@ -1145,25 +1451,26 @@ speaking of polynomials and their corresponding Chebyshev coefficients.
   \frect{1.00}{1.00}{0.25}{0.25}{17}{17}{0.05cm}
 }
 
-\begin{figure}
+\begin{figure}[tb]
+  \label{NFSFT:Figure:NFSFT}
   \centering
-  \begin{pgfpicture}{0cm}{0cm}{5cm}{15cm}
+  \begin{pgfpicture}{0cm}{0cm}{5cm}{17cm}
     \pgfsetlinewidth{1.0pt}  
-    \begin{pgftranslate}{\pgfxy(-3,0)}    
+    \begin{pgftranslate}{\pgfxy(-3.75,0)}    
 	    \begin{pgfmagnify}{0.65}{0.65}
 	      \pgfputat{\pgfxy(0,19)}{\aknGraph}
 	      \pgfputat{\pgfxy(0,12)}{\bknGraph}
 	      \pgfputat{\pgfxy(0,5)}{\cknGraph}
-	      \pgfputat{\pgfxy(12.6,1)}{\pgfbox[left,center]{\Large$\paren{f_{d}}_{d=0}^{D-1}$}}
-	      \pgfputat{\pgfxy(12.6, 8)}{\pgfbox[left,center]{\Large$\paren{c_{k}^n}_{n=-M,\ldots,M;k=\abs{n},\ldots,M}$}}
-	      \pgfputat{\pgfxy(12.6,15)}{\pgfbox[left,center]{\Large$\paren{b_{k}^n}_{n=-M,\ldots,M;k=0,\ldots,M}$}}
-	      \pgfputat{\pgfxy(12.6,22)}{\pgfbox[center,center]{\Large$\paren{a_{k}^n}_{n=-M,\ldots,M;k=-M,\ldots,M}$}}
-	      \pgfputat{\pgfxy(13, 4.5)}{\pgfbox[left,center]{\parbox{4cm}
+	      \pgfputat{\pgfxy(11.6,1)}{\pgfbox[left,center]{\Large$\paren{f_{d}}_{d=0}^{D-1}$}}
+	      \pgfputat{\pgfxy(11.6, 8)}{\pgfbox[left,center]{\Large$\paren{c_{k}^n}_{n=-M,\ldots,M;k=\abs{n},\ldots,M}$}}
+	      \pgfputat{\pgfxy(11.6,15)}{\pgfbox[left,center]{\Large$\paren{b_{k}^n}_{n=-M,\ldots,M;k=0,\ldots,M}$}}
+	      \pgfputat{\pgfxy(11.6,22)}{\pgfbox[left,center]{\Large$\paren{a_{k}^n}_{n=-M,\ldots,M;k=-M,\ldots,M}$}}
+	      \pgfputat{\pgfxy(16, 4.5)}{\pgfbox[center,center]{\parbox{7cm}
 	      {
 	        \Large
 	        \begin{center}
-	          NFFT \\ 
-	          $\paren{\bigo{M^2} \log M + \log \frac{1}{\varepsilon} D}$
+	          NFFT\\ 
+	          $\paren{\bigo{M^2 \log M + \log \frac{1}{\varepsilon} D}}$
 	        \end{center}  
 	      }}}
 	      \pgfputat{\pgfxy(16, 11.5)}{\pgfbox[center,center]{\parbox{4cm}
@@ -1179,28 +1486,65 @@ speaking of polynomials and their corresponding Chebyshev coefficients.
 	        \Large
 	        \begin{center}
 	          FLFT \\
-	          $\paren{\bigo{M^2 \log^2 M}}$
+	          $\paren{\bigo{M^3 \log M}}$
 	        \end{center}
 	      }}}
 	      \pgfsetstartarrow{\pgfarrowtriangle{6pt}}
 	      \pgfsetendarrow{\pgfarrowtriangle{6pt}}
-        \pgfline{\pgfxy(8.5, 8)}{\pgfxy(10.5, 8)} 
-	      \pgfline{\pgfxy(8.5,15)}{\pgfxy(10.5,15)} 
-	      \pgfline{\pgfxy(8.5,22)}{\pgfxy(10.5,22)} 
+        \pgfline{\pgfxy(8.0, 8)}{\pgfxy(10.0, 8)} 
+	      \pgfline{\pgfxy(8.0,15)}{\pgfxy(10.0,15)} 
+	      \pgfline{\pgfxy(8.0,22)}{\pgfxy(10.0,22)} 
 	      \pgfclearstartarrow
 	      \pgfsetlinewidth{6.0pt}  
 	      \color{gray}
 	      \pgfsetendarrow{\pgfarrowtriangle{9pt}}
-	      \pgfline{\pgfxy(13,20)}{\pgfxy(13,17)} 
-	      \pgfline{\pgfxy(13,13)}{\pgfxy(13,10)} 
-	      \pgfline{\pgfxy(13, 6)}{\pgfxy(13,3)} 
+	      \pgfline{\pgfxy(12,20)}{\pgfxy(12,17)} 
+	      \pgfline{\pgfxy(12,13)}{\pgfxy(12,10)} 
+	      \pgfline{\pgfxy(12, 6)}{\pgfxy(12,3)} 
 	    \end{pgfmagnify}  
 	  \end{pgftranslate}  
   \end{pgfpicture}
-
-  \caption{The NFSFT in a schematic overview. The total arithmetic complexity is $\bigo{M^2 \log^2 M + \log \frac{1}{\varepsilon} D}$.}  
+  \caption{The NFSFT algorithm in a schematic overview. The total arithmetic complexity is $\bigo{M^3 \log M + \log \frac{1}{\varepsilon} D}$.}  
 \end{figure}
+\clearpage
 
+%\section{Adjoint nonuniform fast spherical Fourier transform}
+%\label{NFSFT:adjointNFSFT}
+The adjoint counterpart of Algorithm \ref{NFSFT:Algorithm:NFSFT} is obtained easily from the factorization 
+\eqref{NFSFT:fastFactorization} of the matrix $\V{Y}_{\mathcal{X}}$, i.e.
+\[
+  \V{\tilde{a}} = \V{T}^{\transp} \: \V{Q}^{\transp} \: {\V{F}_{\mathcal{X}}}^{\h} \: \V{\tilde{f}}_{\mathcal{X}}.
+\]
+The adjoint algorithm for the intermediate steps, hence the multiplication with $\V{Q}^{\transp}$, can be derived easily, 
+and we do not delve into details here. The transposed FLFT algorithm for $\V{T}^{\transp}$ has already been concerned 
+in Section \ref{NFSFT:transposedFLFT}. The final algorithm is compiled in Algorithm \ref{NFSFT:Algorithm:adjointNFSFT}.
 
-\section{Adjoint Fast Spherical Fourier Transform}
-\label{DSFT:AdjointTransform}
+\begin{algorithm}[tb]
+  \caption{Adjoint nonuniform fast spherical Fourier transform (adjoint NFSFT)}
+  \label{NFSFT:Algorithm:adjointNFSFT}    
+  \begin{algorithmic}
+    \STATE Input:  $M \in \NZ$, $\paren{\tilde{f}}_{d=0}^{D-1}$
+    \STATE Compute the coefficients $\paren{\tilde{c}_{k}^n}_{k,n=-M}^M$ by a fast 2-dimensional adjoint NFFT
+    \FOR {$n=-M,\ldots,M$}
+      \STATE Compute the coeffcients $\paren{\tilde{b}_{k}^n}_{k=0}^M$ from the coefficients $\paren{\tilde{c}_{k}^n}_{k=-M}^{M}$ 
+      \STATE Compute the coefficients $\paren{\tilde{a}_{k}^n}_{k=|n|}^{M}$ by a fast adjoint FLFT.
+    \ENDFOR
+    \STATE Output: $\paren{\tilde{a}_{k}^n}_{(k,n) \in \mathcal{I}^M}$
+\end{algorithmic}
+\end{algorithm}
+
+%\begin{table}
+%  \label{NFSFT:Table:Algorithms}
+%  \centering
+%  \begin{tabular}{r|r}
+%    Algorithm & Complexity (flops) \\
+%    naive NDSFT & $\bigo{M^3D}$ \\
+%    direct NDSFT & $\bigo{M^2D}$ \\
+%    direct NDSFT on arbitrary grids & $\bigo{LM^2 + MLJ}$ \\
+%    direct NDSFT on Fourier type grid & $\bigo{LM^2+LM \log M}$ \\
+%    direct adjoint NDSFT & $\bigo{M^2D}$ \\
+%    NFSFT & $\bigo{M^2 \log^2 M + \log\frac{1}{\varepsilon}D}$ \\
+%    adjoint NFSFT & $\bigo{M^2 \log^2 M + \log\frac{1}{\varepsilon}D}$ \\
+%  \end{tabular}
+%  \caption{To be written}
+%\end{table}

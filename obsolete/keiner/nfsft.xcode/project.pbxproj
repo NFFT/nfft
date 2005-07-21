@@ -98,6 +98,8 @@
 		};
 		08FB7795FE84155DC02AAC07 = {
 			children = (
+				4E8FDDEA088AC0F70098D700,
+				4E8FDDEB088AC0F70098D700,
 				4E8F44930850B4800098CEFF,
 				4E8F44940850B4800098CEFF,
 				4E293281082E501F004AD73C,
@@ -731,6 +733,24 @@
 			isa = PBXBuildFile;
 			settings = {
 			};
+		};
+		4E8FDDEA088AC0F70098D700 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = dpt.c;
+			path = kernel/dpt.c;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4E8FDDEB088AC0F70098D700 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = dpt.h;
+			path = kernel/dpt.h;
+			refType = 4;
+			sourceTree = "<group>";
 		};
 		4E984F5C07CA5BAD00BA8E94 = {
 			isa = PBXFileReference;

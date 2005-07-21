@@ -74,24 +74,23 @@ if (file != NULL)  \
 { \
   fprintf(file,"%d\n",((d_max-d_min)/d_stride+1)*((m_max-m_min)/m_stride+1)); \
   fclose(file); \
-  for (D = d_min; D <= d_max; D = D + d_stride) \
-  {  \
     for (M = m_min; M <= m_max; M = M + m_stride) \
     { \
-      plan = nfsft_init(M, D, f_hat, angles, f, 0U); \
+      plan = nfsft_init(M, M, f_hat, angles, f, 0U); \
       ctime = second(); \
       TRAFO_FUNCTION(plan); \
       ctime = second() - ctime; \
-      printf("D = %10d, M = %4d\n",D,M); \
+      printf("D = %10d, M = %4d\n",M,M); \
       file = fopen(filename,"a"); \
-      fprintf(file,"%10d %4d %10.4f\n",D,M,ctime); \
+      fprintf(file,"%10d %4d %10.4f\n",M,M,ctime); \
       fclose(file); \
       nfsft_finalize(plan); \
-    } \
-  } \
+    } \    
 } \
 printf("done\n");
 
+//for (D = d_min; D <= d_max; D = D + d_stride) \
+//{  \
 
 /**
  * The main program.
@@ -163,6 +162,8 @@ int main (int argc, char **argv)
     fprintf(stderr,"Usage: performance M_MIN M_MAX M_STRIDE D_MIN D_MAX D_STRIDE THRESHOLD\n");
     return -1;
   }  
+  
+  d_max = m_max;
       
   /** Next greater power of two with respect to m_max */
   N_MAX = 1<<ngpt(m_max);
@@ -184,14 +185,14 @@ int main (int argc, char **argv)
   {
     for (k = abs(n); k <= N_MAX; k++)
     {
-      f_hat[n+m_max][k] = drand48() + I*drand48();
+      f_hat[n+m_max][k] = (drand48()-0.5) + I*(drand48()-0.5);
     }
   }  
 	
   for (d = 0; d < d_max; d++)
   {
-    angles[2*d] = drand48();
-    angles[2*d+1] = drand48();
+    angles[2*d] = drand48()-0.5;
+    angles[2*d+1] = 0.5*drand48();
 	}
   
   nfsft_precompute(m_max,threshold,0U);  

@@ -57,46 +57,44 @@
 int main (int argc, char **argv)
 {  
   /** The bandwidth */
-  int M;
-  int N;
-  int n;
+  int M = 4;
+  int N = 1<<ngpt(M);
+  int n = 0;
   int k;
-  complex *coefs;
-  //double ctime;
-  double re,im;
-  //struct nfsft_wisdom *wisdom;
+  complex *leg;
   
-  fscanf(stdin,"%d\n",&M);
-  fscanf(stdin,"%d\n",&n);
-  
-  N = 1<<ngpt(M);
-  
-  /* Initialize nodes. */
-  coefs = (complex*) fftw_malloc((N+1)*sizeof(complex));
-  for (k = abs(n); k <= M ; k++)
-  {   
-    fscanf(stdin,"%lf\n%lf\n",&re,&im);
-    coefs[k] = re + I*im;
-    //fprintf(stderr,"%lf + %lfi\n",creal(coefs[k]),cimag(coefs[k]));
-  } 
-  
-  
-		/* Initialize */
- 	//nfsft_precompute_guru(N,THRESHOLD,n);
-    
-  //wisdom = nfsft_get_wisdom();
-  
-  //flft(M,ngpt(M),n,coefs,wisdom);
-    
-  for (k = abs(n); k <= M ; k++)
-  {   
-    fprintf(stdout,"%.30lf\n%.30lf\n",creal(coefs[k]),cimag(coefs[k]));
-  } 
+  leg = (complex*) fftw_malloc((N+1)*sizeof(complex));
 
-  /* Forget wisdom. */
-  //nfsft_forget_guru(n);
+		/* Initialize */
+ 	nfsft_precompute(N,1E6,0U);
+
+  for (k = 0; k <= M ; k++)
+  {   
+    //leg[k] = (k<abs(n))?(0.0):(drand48() + I*drand48());
+    leg[k] = (k == M-1)?(1.0):(0.0);
+    fprintf(stderr,"leg[%d] = %lf + %lfi\n",k,creal(leg[k]),cimag(leg[k]));
+  }   
+  fprintf(stderr,"\n");
+ 
+  nfsft_flft_trafo(leg,n,M);
+    
+  for (k = 0; k <= M ; k++)
+  {   
+    fprintf(stderr,"leg[%d] = %lf + %lfi\n",k,creal(leg[k]),cimag(leg[k]));
+  } 
+  fprintf(stderr,"\n");
+
+  nfsft_flft_trafo_adjoint(leg,n,M);
+
+  for (k = 0; k <= M ; k++)
+  {   
+    fprintf(stderr,"leg[%d] = %lf + %lfi\n",k,creal(leg[k]),cimag(leg[k]));
+  } 
+  fprintf(stderr,"\n");
+
+  nfsft_forget();
   
-  fftw_free(coefs);
+  fftw_free(leg);
     
   return EXIT_SUCCESS;
 }

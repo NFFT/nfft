@@ -117,22 +117,7 @@ struct infsft_plan_s
   double dot_alpha_iter;
   double dot_z_hat_iter;
   double dot_z_hat_iter_old;
-  double dot_p_hat_iter;
-  
-  /** The number of nodes. */
-//  int D;                      
-  /** The bandwidth */
-//  int M;
-  /** Next greater power of two with respect to M */
-//  int N;
-  /** The angles phi of the nodes */
-//  double *angles;
-  /** The fourier coefficients. */
-//  complex **f_hat;
-  /** The function values. */
-//  complex *f;
-  /** NFFT plan */
-//  nfft_plan plan_nfft;  
+  double dot_p_hat_iter; 
 };
 
 
