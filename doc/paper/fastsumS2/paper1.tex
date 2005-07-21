@@ -731,7 +731,7 @@ These results confirm the error estimates \eqref{error:poisson},
   The error estimate was fitted using $C_{\lambda} = 100$. For $C_{\lambda} = 50$ 
   the error estimate virtually coincides with the numerical result.]
   {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
-  \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=250$.]
+  \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=200$.]
   {\includegraphics[width=0.45\textwidth]{images/gaussian_test}}
   \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$: 
   Fast summation with NDSFT (solid), fast summation with NFSFT, 
@@ -743,20 +743,16 @@ These results confirm the error estimates \eqref{error:poisson},
 
 \begin{figure}[tb]
   \centering
+  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$: Fast summation with 
+  NFSFT/NDSFT and thresholds $10^6$ (solid), $10^9$ (dashed), $10^9$ (dash-dot). 
+  The threshold steers the accuracy of the FLFT transformation.]
   {\includegraphics[width=0.45\textwidth]{images/threshold_test}}\hfill
-  \subfigure[$\lambda=2.0$]
-  {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}
-  \caption{To be written...}
+  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $\lambda = 7$, and $h=0.3$ (solid),
+  and $h=0.7$ (dashed). The error estimate (dotted) for $E_{\infty}$ was fitted 
+  using $C_{\lambda} = 100$.]
+  {\includegraphics[width=0.45\textwidth]{images/locsup_h_test}}
+  \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$.}
   \label{Figure:PoissonTest}
-\end{figure}
-
-\begin{figure}[tb]
-  \centering
-  {\includegraphics[width=0.45\textwidth]{images/locsupp_lambda_test}}\hfill
-  \subfigure[$\lambda=2.0$]
-  {\includegraphics[width=0.45\textwidth]{images/locsupp_lambda_test}}
-  \caption{To be written...}
-  \label{Figure:PoissonTest2}
 \end{figure}
 
 Finally, we compare the computation time of the straightforward summation, the

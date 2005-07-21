@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[     14669,        356]*)
-(*NotebookOutlinePosition[     15323,        379]*)
-(*  CellTagsIndexPosition[     15279,        375]*)
+(*NotebookOptionsPosition[     14655,        356]*)
+(*NotebookOutlinePosition[     15309,        379]*)
+(*  CellTagsIndexPosition[     15265,        375]*)
 (*WindowFrame->Normal*)
 
 
@@ -161,12 +161,12 @@ Cell[BoxData[
 "Subsection"],
 
 Cell[BoxData[
-    \(\[Gamma][\[Sigma]_]\  := \ \(1\/\@\(4  \[Pi]\)\) \((\(1\/\(2  \
-\[Sigma]\)\) \((1 - Exp[\(-2\) \[Sigma]])\))\)\^\(-\(1\/2\)\)\)], "Input"],
+    \(\[Gamma][\[Sigma]_]\  := \ \(1\/\@\(4  \[Pi]\)\) \((\(1\/\[Sigma]\) \
+\((1 - Exp[\(-2\) \[Sigma]])\))\)\^\(-\(1\/2\)\)\)], "Input"],
 
 Cell[BoxData[
     \(G[\[Sigma]_, x_]\  := \ \[Gamma][\[Sigma]] 
-        Exp[\(\[Sigma]\/2\) \((x - 1)\)]\)], "Input"]
+        Exp[\[Sigma] \((x - 1)\)]\)], "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -416,25 +416,25 @@ Cell[4874, 151, 50, 1, 53, "Output"]
 
 Cell[CellGroupData[{
 Cell[4961, 157, 113, 3, 75, "Subsection"],
-Cell[5077, 162, 158, 2, 103, "Input"],
-Cell[5238, 166, 117, 2, 77, "Input"]
+Cell[5077, 162, 151, 2, 103, "Input"],
+Cell[5231, 166, 110, 2, 53, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[5392, 173, 46, 0, 70, "Subsection"],
-Cell[5441, 175, 89, 1, 56, "Input"],
-Cell[5533, 178, 175, 3, 81, "Input"],
-Cell[5711, 183, 209, 5, 88, "Input"],
-Cell[5923, 190, 209, 5, 88, "Input"],
+Cell[5378, 173, 46, 0, 70, "Subsection"],
+Cell[5427, 175, 89, 1, 56, "Input"],
+Cell[5519, 178, 175, 3, 81, "Input"],
+Cell[5697, 183, 209, 5, 88, "Input"],
+Cell[5909, 190, 209, 5, 88, "Input"],
 
 Cell[CellGroupData[{
-Cell[6157, 199, 87, 1, 53, "Input"],
-Cell[6247, 202, 8216, 141, 2201, "Output"]
+Cell[6143, 199, 87, 1, 53, "Input"],
+Cell[6233, 202, 8216, 141, 2176, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[14500, 348, 87, 1, 53, "Input"],
-Cell[14590, 351, 51, 1, 78, "Output"]
+Cell[14486, 348, 87, 1, 53, "Input"],
+Cell[14576, 351, 51, 1, 53, "Output"]
 }, Open  ]]
 }, Open  ]]
 }
