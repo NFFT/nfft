@@ -64,7 +64,7 @@
 \newcommand{\encl}[3]{\ensuremath{\left#1#2\right#3}}
 \newcommand{\bigo}[1]{\ensuremath{\mathcal{O}\paren{#1}}}
 \newcommand{\smallo}[1]{\ensuremath{\mathcal{o}\paren{#1}}}
-\newcommand{\jkSpacer}{\ensuremath{{}^{}}}
+\newcommand{\spacer}{\ensuremath{{}^{}}}
 \newcommand{\scalarproduct}[2]{\ensuremath{\left<#1,#2\right>}}
 \newcommand{\mb}[1]{\mathbf{#1}}
 \newcommand{\V}[1]{\mb{#1}}
@@ -504,7 +504,7 @@ Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\eps
 
 \subsection{Locally supported kernel}
 \begin{definition}
-  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \NZ$.
+  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \Rp$.
   A locally supported zonal function
     $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
     \cite{Sc97}, is defined by
@@ -545,18 +545,20 @@ More formally, we have the following lemma.
     \]
     for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
     $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+2}$.
-  \item We obtain for fixed $\lambda \in \NZ$ the decay rate
+  \item We obtain for fixed $\lambda \in \Rp$ the decay rate
     \[
     \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_{\lambda}
-    \left(1-h\right)^{-\lambda-\frac{5}{4}} k^{-\lambda-\frac{3}{2}}, 
+    \left(1-h\right)^{-(\lambda+1)}\paren{1-|h|}^{-\frac{1}{4}} 
+    k^{-\paren{\floor{\lambda}+\frac{3}{2}}}, 
     \]
 where $C_{\lambda}$ is a constant which is independent of $h$ and $k$.
   \item Thus, the relative error of our summation algorithm with this kernel
-  is bounded for fixed $\lambda \in \N$ by
+  is bounded for fixed $\lambda \in \Rp$ by
   \begin{equation}
     \label{error:Lh}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    \tilde C_{\lambda} \left(1-h\right)^{-\lambda-\frac{5}{4}} M^{\frac{1}{2}-\lambda}.
+    \tilde C_{\lambda} \left(1-h\right)^{-(\lambda+1)}\paren{1-|h|}^{-\frac{1}{4}} 
+    M^{-\paren{\floor{\lambda}+\frac{1}{2}}}.
   \end{equation}
 where $\tilde C_{\lambda}$ is a constant which is independent of $h$,
 $k$ and $M$.
@@ -565,17 +567,35 @@ $k$ and $M$.
 \begin{proof}
   \begin{enumerate}
   \item We apply \eqref{three1} and \eqref{three2}.
-  \item For $\lambda=0$ holds
-
-{\bf genauer}
-
-    \[
-    \left|\fun{L_{h,0}^{\wedge}}{k}\right| = \frac{1}{1-h}
-    \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
-    \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
-    \left(\frac{1}{\sqrt{k-1}}+\frac{1}{\sqrt{k+1}}\right)\,.
-    \]
-    Applying \eqref{three2}, we obtain furthermore
+  \item For $\lambda \in [0,1)$, we have
+    \begin{equation*}
+      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| 
+      = \abs{2\pi \int_{h}^1 \frac{\lambda+1}{2\pi\paren{1-h}^{\lambda+1}} 
+        \paren{x-h}^{\lambda} \fun{P_{k}}{x} \: \dx x} 
+      \le \frac{\lambda+1}{(1-h)^{\lambda+1}}\abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}.
+    \end{equation*}
+    Now, using \eqref{three2} and ${}$ follows
+    \begin{align*}
+      \frac{\lambda+1}{(1-h)^{\lambda+1}}\abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}
+      & = \frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)}
+          \abs{\int_{h}^1 \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x} \: \dx x}\\
+      & = \frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)}
+          \abs{\fun{P_{k-1}}{h} - \fun{P_{k+1}}{h}}\\
+      & \le \sqrt{\frac{2}{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)
+            \sqrt{\sin\arccos h}} \cdot \\
+      & \quad \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}},
+    \end{align*}
+    and with $\sin\arccos h = \sqrt[4]{1-h^2} \ge \sqrt{1-|h|}$ finally
+    \begin{equation*}
+      \left|\fun{L_{h,0}^{\wedge}}{k}\right| \le 
+      \sqrt{\frac{2}{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt{1-|h|}(2k+1)}
+      \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}}.
+    \end{equation*}
+%    \frac{1}{1-h}
+%    \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
+%    \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
+%    \left(\frac{1}{\sqrt{k-1}}+\frac{1}{\sqrt{k+1}}\right)\,.
+    Furthermore, for $\lambda \ge 1$, we obtain by applying \eqref{three2}
     \begin{eqnarray*}
       \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| &\le&
       \frac{\lambda+1}{\lambda\left(1-h\right)\left(2k+1\right)}
@@ -585,7 +605,11 @@ $k$ and $M$.
       \max\limits_{k-1\le k'\le k+1}
       \left|\fun{L_{h,\lambda-1}^{\wedge}}{k'}\right|
     \end{eqnarray*}
-    Iterate this argument until $\lambda=0$ yields the assertion.
+    Iterate this argument until $\lambda \in [0,1)$ yields
+    \begin{align*}
+      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| 
+      & \le \frac{\lambda+1}{\lambda-\floor{\lambda}+1} \frac{1}{(1-h)^{\floor{\lambda}}}
+    \end{align*}
   \item We combine 2. with Lemma \ref{lemma:error}. 
   \end{enumerate}
 \end{proof}
