@@ -466,7 +466,6 @@ follows easily.
   $Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$, with
   \begin{equation}
     \label{PoissonKernel}
-    \nonumber
     \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}} \quad 
     \paren{x \in \interv{[}{-1}{1}{]}},
   \end{equation}
@@ -527,10 +526,11 @@ Further properties with respect to localization and smoothness are derived in \c
   \begin{definition}
     Let $h \in \interv{(}{0}{1}{)}$. The \emph{singularity kernel} 
     $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
-    \[
+    \begin{equation}
+      \label{SingularityKernel}
       \fun{S_{h}}{x} := \frac{1}{2\pi} \sum_{k = 0}^{\infty} h^k \fun{P_k}{x} = 
       \frac{1}{2\pi} \frac{1}{\sqrt{1-2hx+h^2}} \quad \paren{x \in \interv{[}{-1}{1}{]}}.
-    \]
+    \end{equation}
   \end{definition}
   For the symbol $\fun{S_{h}^{\wedge}}{k}$, we have
   \[
@@ -566,7 +566,7 @@ Further properties with respect to localization and smoothness are derived in \c
 
   Locally supported zonal functions are considered for example in \cite{frsc}.
   \begin{definition}
-    Let $h \in \interv{(}{0}{1}{)}$ and $\lambda,\mu \in \NZ$.
+    Let $h \in \interv{(}{0}{1}{)}$, $\lambda \in \Rp$, and $\mu \in \N$.
     \begin{enumerate}
 	    \item Let the locally supported kernel
 	    $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$ defined by
