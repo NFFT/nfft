@@ -76,16 +76,21 @@ if (file != NULL)  \
   fclose(file); \
     for (M = m_min; M <= m_max; M = M + m_stride) \
     { \
-      plan = nfsft_init(M, M, f_hat, angles, f, 0U); \
-      ctime = second(); \
-      TRAFO_FUNCTION(plan); \
-      ctime = second() - ctime; \
-      printf("D = %10d, M = %4d\n",M,M); \
+      t = 0.0; \
+      plan = nfsft_init(M, M*M, f_hat, angles, f, 0U); \
+      for (j = 0; j < 100; j++) \
+      { \
+        ctime = second(); \
+        TRAFO_FUNCTION(plan); \
+        t += second() - ctime; \
+      } \
+      t = t/100.0; \
+      printf("D = %10d, M = %4d\n",M*M,M); \
       file = fopen(filename,"a"); \
-      fprintf(file,"%10d %4d %10.4f\n",M,M,ctime); \
+      fprintf(file,"%10d %10d %.4E\n",M,M*M,t); \
       fclose(file); \
       nfsft_finalize(plan); \
-    } \    
+    } \
 } \
 printf("done\n");
 
@@ -115,6 +120,8 @@ int main (int argc, char **argv)
   int M;
   /** Next greater power of two with respect to M */
   //int N;
+  int j;
+  double t;
   
   /* Number of nodes */
   int D;
@@ -163,7 +170,7 @@ int main (int argc, char **argv)
     return -1;
   }  
   
-  d_max = m_max;
+  d_max = m_max*m_max;
       
   /** Next greater power of two with respect to m_max */
   N_MAX = 1<<ngpt(m_max);
@@ -196,10 +203,10 @@ int main (int argc, char **argv)
 	}
   
   nfsft_precompute(m_max,threshold,0U);  
-  MACRO_TEST("ndsft.dat",         ndsft_trafo,   "NDSFT")
-  MACRO_TEST("ndsft_adjoint.dat", ndsft_adjoint, "adjoint NDSFT")
+  //MACRO_TEST("ndsft.dat",         ndsft_trafo,   "NDSFT")
+  //MACRO_TEST("ndsft_adjoint.dat", ndsft_adjoint, "adjoint NDSFT")
   MACRO_TEST("nfsft.dat",         nfsft_trafo,   "NFSFT")
-  MACRO_TEST("nfsft_adjoint.dat", nfsft_adjoint, "adjoint NFSFT")
+  //MACRO_TEST("nfsft_adjoint.dat", nfsft_adjoint, "adjoint NFSFT")
 		
   free(angles);
   free(f);
