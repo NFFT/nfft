@@ -1,8 +1,8 @@
-\begin{savequote}[8cm]
-  ``Those who can, do; those who can't, teach.''
-  \qauthor{Dan Zevin}
-\end{savequote}
-\makeatletter
+%\begin{savequote}[8cm]
+%  ``Those who can, do; those who can't, teach.''
+%  \qauthor{Dan Zevin}
+%\end{savequote}
+%\makeatletter
 \chapter{Applications}
 \label{Applications}
 
@@ -127,9 +127,70 @@ If the coefficients $b_{l}$ in \eqref{Applications:KernelSum} are assumed to be 
   \le C L \fun{\varepsilon}{M}
 \]
 for some constant $C \in \Rp$.
-%\begin{example}
-%  We applied Algorithm 
-%\end{example}
+
+\begin{figure}[tb]
+  \centering
+  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$.]
+  {\includegraphics[width=0.45\textwidth]{images/poisson_test}}\hfill
+  \subfigure[[The Singularity kernel $S_{h}$ for $h = 0.8$.]
+  {\includegraphics[width=0.45\textwidth]{images/singularity_test}}\\
+  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $h=0.3$, $\lambda = 7$. 
+  The error estimate was fitted using $C_{\lambda} = 100$. For $C_{\lambda} = 50$ 
+  the error estimate virtually coincides with the numerical result.]
+  {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
+  \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=200$.]
+  {\includegraphics[width=0.45\textwidth]{images/gaussian_test}}
+  \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$: 
+  Fast summation with NDSFT (solid), fast summation with NFSFT, 
+  cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT, cut-off 
+  parameter $m = 6$ (dashed), error estimate for 
+  $E_{\infty}$ (dotted).}
+  \label{fig:error}
+\end{figure}
+
+\begin{figure}[tb]
+  \centering
+  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$: Fast summation with 
+  NFSFT/NDSFT and thresholds $10^6$ (solid), $10^9$ (dashed), $10^9$ (dash-dot). 
+  The threshold steers the accuracy of the FLFT transformation.]
+  {\includegraphics[width=0.45\textwidth]{images/threshold_test}}\hfill
+  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $\lambda = 7$, and $h=0.3$ (solid),
+  and $h=0.7$ (dashed). The error estimate (dotted) for $E_{\infty}$ was fitted 
+  using $C_{\lambda} = 100$.]
+  {\includegraphics[width=0.45\textwidth]{images/locsup_h_test}}
+  \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$.}
+  \label{Figure:PoissonTest}
+\end{figure}
+
+\begin{table}[ht!]
+  \begin{center}
+    \begin{tabular}{r|r|r|r|r|r}
+        $L = D$ & direct alg. & w/precomp. & FS, NDSFT & FS, NFSFT & error $E_{\infty}$\\\hline
+           $2^6$ & 1.0E-05 & 8.0E-05 & 1.1E-01 & 6.2E-01 & 7.7E-14\\
+           $2^7$ & 6.0E-05 & 3.8E-04 & 2.2E-01 & 6.2E-01 & 6.5E-14\\
+           $2^8$ & 2.5E-04 & 1.4E-03 & 4.5E-01 & 6.2E-01 & 4.1E-14\\
+           $2^9$ & 1.0E-03 & 5.3E-03 & 8.9E-01 & 6.3E-01 & 2.8E-14\\
+      $2^{10}$ & 4.0E-02 & 2.1E-02 & 1.8E+00 & 6.5E-01 & 3.6E-14\\
+      $2^{11}$ & 1.6E+00 & 8.3E-02 & 3.6E+00 & 6.6E-01 & 1.8E-14\\
+      $2^{12}$ & 6.4E+00 & 3.5E-01 & 7.1E+00 & 7.2E-01 & 1.3E-14\\
+      $2^{13}$ & 2.6E+01 & 1.4E+00 & 1.4E+01 & 8.2E-01 & 6.7E-15\\
+     $2^{14}$ & 1.0E+02 & -- & 2.8E+01 & 1.0E+00 & 5.5E-15\\
+     $2^{15}$ & 4.1E+02 & -- & 5.7E+01 & 1.5E+00 & 4.0E-15\\
+     $2^{16}$ & 1.6E+03 & -- & 1.1E+02 & 2.3E+00 & 2.9E-15\\
+     $2^{17}$ & 6.6E+03 & -- & 2.3E+02 & 4.0E+00 & 2.4E-15\\
+     $2^{18}$ & 2.6E+04 & -- & 4.6E+02 & 7.5E+00 & 1.9E-15\\
+     $2^{19}$ & -- & -- & 9.1E+02 & 1.4E+01 & --\\
+     $2^{20}$ & -- & -- & 1.8E+03 & 2.8E+01 & --\\
+     $2^{21}$ & -- & -- & 3.6E+03 & 5.5E+01 & --\\
+    \end{tabular}
+  \end{center}
+  \caption{CPU-Time and error $E_{\infty}$ for the fast summation algorithm.
+    Note that we used accumulated measurements in case of small times and the
+    times/error (*) are not displayed due to the large response time or the 
+    limited size of memory.}
+  \label{tab:TimeSpace}
+\end{table}
+
 
 \section{Iterative Fourier Reconstruction}
 
@@ -246,11 +307,11 @@ least squares problem} and \emph{optimal interpolation}.
   
   
   
-  \begin{remark}
-    For the NFFT, Fourier reconstruction methods have been investigated for example by \cite. 
-    We follow the lines in \cite for our setup. However, theoretical results leading to 
-    stability results have still to be  developed.
-  \end{remark}
+%  \begin{remark}
+%    For the NFFT, Fourier reconstruction methods have been investigated for example by \cite. 
+%    We follow the lines in \cite for our setup. However, theoretical results leading to 
+%    stability results have still to be  developed.
+%  \end{remark}
     
     
 \begin{figure}[tb]

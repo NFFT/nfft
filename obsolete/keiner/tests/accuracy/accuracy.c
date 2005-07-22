@@ -386,7 +386,7 @@ int main (int argc, char **argv)
       } 
 	}   
 
-      if (1 == 0)
+      if (0 == 0)
 	{
       
       /* Test Clenshaw-Curtis quadrature */
@@ -425,13 +425,19 @@ int main (int argc, char **argv)
       }  
       fftw_execute(fplan);
       w[0] *= 0.5;
+      
       for (n = 0; n < M+1; n++)
       {
         w[n] *= 1/((double)2*M);
         w[2*M-n] = w[n];
       }  
       fftw_destroy_plan(fplan);
-
+      fprintf(stderr,"CC-weights for M = %d:\n",M);
+      for (n = 0; n < 2*M+1; n++)
+      {
+        fprintf(stderr,"w[%d] = %lf\n",n,w[n]);
+      }  
+      
       /* Create grid nodes. */
       d = 0;
       for (n = 0; n < 2*M+1; n++)

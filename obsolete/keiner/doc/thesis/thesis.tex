@@ -1,4 +1,15 @@
-\documentclass[a4paper,oneside,10pt,final]{scrreprt}
+\documentclass[a4paper,twoside,11pt,final,openright,bigheadings,headsepline]{scrreprt}
+
+\setlength{\paperheight}{297mm}
+\setlength{\paperwidth}{210mm}
+\setlength{\topmargin}{-3mm}
+\setlength{\headheight}{10mm}
+\setlength{\headsep}{8mm}
+\setlength{\textheight}{225mm}
+\setlength{\footskip}{30mm}
+\setlength{\oddsidemargin}{7mm}
+\setlength{\evensidemargin}{7mm}
+\setlength{\textwidth}{145mm}
 
 % AMSMath-packages
 \usepackage{amsmath}
@@ -22,7 +33,8 @@
 \usepackage{exscale}
 
 % Use "makeindex" package
-\usepackage{makeidx}
+%\usepackage{makeidx}
+\usepackage{nomencl}
 
 % My own math commands
 \usepackage{jkmath}
@@ -50,16 +62,24 @@
 \newtheorem{example}[theorem]{Example}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
+\usepackage{scrpage2}
 
 %\numberwithin{figure}{chapter} 
 %\numberwithin{table}{chapter} 
 %\numberwithin{equation}{chapter} 
 
-\makeindex
-
 %\includecomment{comment}
+\pagestyle{scrheadings}
 
-\pagestyle{headings}
+\automark[section]{chapter}
+\clearscrheadings
+\lehead{\pagemark}
+\rehead{\leftmark}
+\rohead{\pagemark}
+\lohead{\rightmark}
+\ofoot[]{}
+\cfoot[]{}
+\ifoot[]{}
 
 \begin{document}
 
@@ -71,9 +91,9 @@
 \vspace*{1cm}
 \begin{center}
 \textbf{\sffamily{
-  {\huge Fast Spherical Fourier Transform \\ and Applications} \\[1ex]
-  {\Large Jens Keiner} \\
-  \today
+  {\Huge Fast Spherical Fourier Transform \\ and Applications} \\[1.5ex]
+  {\large Jens Keiner} \\
+%  \today
 }}
 
 \end{center}
@@ -96,8 +116,14 @@
 %\subjclass{12J32A32}
 
 %\maketitle
-$${}^{}$$
-
+${}^{}$
+\vfill
+\noindent
+Ich erkläre hiermit, dass ich die vorliegende Arbeit selbstständig verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel verwendet habe.
+\begin{flushright}
+  Lübeck, 05.08.2005
+\end{flushright}
+\thispagestyle{empty}
 \newpage
 
 \tableofcontents
@@ -114,6 +140,8 @@ $${}^{}$$
 %\include{chapter04}
 
 %\listoffigures
+
+
 \listofalgorithms
 
 \include{bibliography}
@@ -121,6 +149,6 @@ $${}^{}$$
 %\backmatter
 
 
-\printindex
+%\printindex
 
 \end{document}  

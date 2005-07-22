@@ -182,8 +182,9 @@ whether in the spherical case, there exist sampling sets $\mathcal{X}$ allowing 
 The answer is affirmative, but in general, the number of nodes needed, exceeds the number of Fourier coefficients to be computed, 
 i.e. $\V{Y}_{\mathcal{X}}$ is not square.
 
-We want to recover the Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ from 
-samples $\V{f}_{\mathcal{X}}$ on set of certain nodes $\mathcal{X} \subset \twosphere$. They are given by the inner products
+We want to recover the Fourier coefficients $\paren{a_{k}^n}_{(k,n) \in \mathcal{I}^M}$ a the bandlimited function $f \in \fun{\Pi_{M}}{\twosphere}$
+from samples $\V{f}_{\mathcal{X}}$ on set of certain nodes $\mathcal{X} 
+\subset \twosphere$. They are given by the inner products
 \[
   a_{k}^n = \scalarproduct{f}{Y_{k}^n}_{\Ln{2}{\twosphere}} = \int_{0}^{2\pi} \int_{0}^{\pi} 
   \fun{f}{\vtheta,\vphi} \overline{\fun{Y_{k}^n}{\vtheta,\vphi}} \sin \vtheta 
@@ -207,10 +208,13 @@ with the nodes
   \vphi_{j} := \frac{j\pi}{M+1} \quad \paren{j=0,\ldots,2M+1}. 
 \]
 This holds (cf. \cite[Chapter X]{Zy}) by taking into account that for fixed $\vtheta$, the function
-\begin{eqnarray*}
-  \fun{f}{\vtheta,\cdot} & = & \sum_{n=-M}^{M} \left(\sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}\right) \e^{-\im n \cdot}\\
-\end{eqnarray*}
-is a trigonometric polynomial of degree $M$ in $\vphi$ with Fourier coefficients
+\[
+  \fun{f}{\vtheta,\cdot} = \sum_{(k,n) \in \mathcal{I}^M} a_{k}^n
+  \fun{Y_{k}^n}{\vtheta,\cdot} = \sum_{n=-M}^{M} 
+  \left(\sum_{k=\abs{n}}^M a_{k}^n 
+  \fun{P_{k}^{\abs{n}}}{\cos \vtheta}\right) \e^{-\im n \cdot}
+\]
+is a trigonometric polynomial of degree $M$ with Fourier coefficients
 \[
   \fun{\paren{\fun{f}{\vtheta,\cdot}}^{\wedge}}{n} := \sum_{k=\abs{n}}^M a_{k}^n \fun{P_{k}^{\abs{n}}}{\cos \vtheta}.
 \]
@@ -230,12 +234,18 @@ Legendre polynomials $P_{k}$. The weights $\paren{w_{l}^{\gl}}_{l=0}^{M}$ are ob
 
 A second idea is to employ a Clenshaw-Curtis quadrature rule (see \cite{dara}, pp. 86)
 \[
-  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{2M} \varepsilon_{l}^{2M} w_{l}^{\cc} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\cc}} \fun{f_{n}}{\vtheta_{l}^{\cc}}
+  \int_{0}^{\pi} \fun{P_{k}^{\abs{n}}}{\cos \vtheta} \fun{f_{n}}{\vtheta} \sin \vtheta \; \dx \vtheta = \sum_{l=0}^{2M} w_{l}^{\cc} \fun{P_{k}^{\abs{n}}}{\cos \vtheta_{l}^{\cc}} \fun{f_{n}}{\vtheta_{l}^{\cc}}
 \]
-where $\varepsilon_{0}^{M} := \epsilon_{M}^M := \frac{1}{2}$, $\epsilon_{l}^M := 1$, $l=1,\dots,M-1$, and $\vtheta_{l}^{\cc} = \frac{l\pi}{2M}$ are the \emph{Chebyshev nodes}.
-This quadrature rule uses almost twice as many points as the Gauss-Legendre quadrature rule but allows for an easy and fast online computation of the nodes $\vtheta_{l}^{\cc}$
-and weights $w_{l}^{\cc}$. The weights are given by
-\[ w_{l}^{\cc} := \frac{1}{2M} \sum_{j=0}^{M} \varepsilon_{j}^{M} \frac{-2}{4j^2-1} \cos\frac{lj\pi}{M}.\]
+where $\vtheta_{l}^{\cc} = \frac{l\pi}{2M}$ are the \emph{Chebyshev nodes}.
+This quadrature rule uses almost twice as many points as the Gauss-Legendre quadrature rule but allows for an easy and fast online computation of the nodes $\vtheta_{l}^{\cc}$ and weights $w_{l}^{\cc}$. The weights $ w_{l}^{\cc}$ 
+are given by
+\[ 
+  w_{l}^{\cc} := \frac{\varepsilon_{l}^{2M}}{M} \sum_{j=0}^{M}
+  \varepsilon_{j}^{M} \frac{-2}{4j^2-1} \cos\frac{lj\pi}{M} 
+  \quad \paren{l=0,\ldots,2M},
+\]
+with $\varepsilon_{0}^{M} := \varepsilon_{M}^{M} := \frac{1}{2}$, 
+$\varepsilon_{l}^{M} := 1$, $l = 1,\ldots,M-1$.
 Finally, the identities 
 \begin{equation}
   \label{NFSFT:iDSFT}
@@ -245,7 +255,7 @@ Finally, the identities
   \overline{\fun{Y_{k}^n}{\vtheta_{l}^{\cc},\vphi_{j}}}
   \end{split}
 \end{equation}
-follow. Associated with this quadrature formulae, we define the sampling sets
+follow. Associated with these quadrature formulae, we define the sampling sets
 \begin{eqnarray*}
   \mathcal{X}^{\gl} & := & \paren{\vtheta_{l}^{\gl},\vphi_{j}}_{j=0,\dots,2(M+1)-1;l=0,\dots,M},\\
   \mathcal{X}^{\cc} & := & \paren{\vtheta_{l}^{\cc},\vphi_{j}}_{j=0,\dots,2(M+1)-1;l=0,\dots,2M}
@@ -273,7 +283,7 @@ We now immediately obtain the corresponding inversion formulae
     \otimes \diag\paren{\varepsilon_{l}^{2M}w_{l}^{\cc}}_{l=0}^{2M}.
   \end{split}  
 \end{equation}  
-An algorithm for the multiplication with the adjoint matrix $\V{Y}^{\h}$ is the key for an implementation according to \eqref{NFSFT:InversionFormula}. Evaluating the matrix-vector product the standard way, i.e. row-wise for $\V{Y}^{\h}$, a first approach would be to compute the Fourier coefficients $a_{k}^n$ by the quadrature formulae \eqref{NFSFT:iDSFT} for all $\paren{k,n} \in \mathcal{I}^M$ employing the Clenshaw algorithm for the evaluation of the functions $Y_{k}^n$. But this would again lead to an $\bigo{M^3 D}$ algorithm. This is due to the fact, that the Clenshaw algorithm would now be applied to each function $Y_{k}^n$ seperately, instead of evaluating a linear combination for fixed $n$ and $k = \abs{n},\dots,M$ as in Algorithm \ref{NFSFT:directDSFT}. We recall that we would end up with an $\bigo{M^3 D}$ algorithm for the NDSFT, too, if we evaluated the matrix $\V{Y}$ componentwise and then performed the matrix-vector multiplication as usual. But Algorithm \ref{NFSFT:directDSFT} implies a factorization of $\V{Y}$ into a product of sparse matrices therefore allowing us to save one order of $M$. By taking the adjoint factorization, we obtain a corresponding factorization of $\V{Y}^{\h}$ immediately, and thus an algorithm with the same arithmetic complexity.
+An algorithm for the multiplication with the adjoint matrix $\V{Y}^{\h}$ is the key for an implementation according to \eqref{NFSFT:InversionFormula}. Evaluating the matrix-vector product the standard way, i.e. row-wise for $\V{Y}^{\h}$, a first approach would be to compute the Fourier coefficients $a_{k}^n$ by the quadrature formulae \eqref{NFSFT:iDSFT} for all $\paren{k,n} \in \mathcal{I}^M$ employing the Clenshaw algorithm for the evaluation of the functions $Y_{k}^n$. But we would only have an $\bigo{M^3 D}$ algorithm due to the fact that the Clenshaw algorithm would now be applied to each function $Y_{k}^n$ seperately, instead of evaluating a linear combination for fixed $n$ and $k = \abs{n},\dots,M$ as in Algorithm \ref{NFSFT:directDSFT}. We recall that we would end up with an $\bigo{M^3 D}$ algorithm for the NDSFT, too, if we evaluated the matrix $\V{Y}$ componentwise and then performed the matrix-vector multiplication as usual. But Algorithm \ref{NFSFT:directDSFT} implies a factorization of $\V{Y}$ into a product of sparse matrices therefore allowing us to save one order of $M$. By taking the adjoint factorization, we obtain a corresponding factorization of $\V{Y}^{\h}$ immediately, and thus an algorithm with the same arithmetic complexity.
 % This allows for the derivation of an algorithm of exactly the same asymptotic complexity for computing the adjoint product, too.
 
 \section{A Factorization of the Fourier Matrix}
@@ -330,17 +340,23 @@ which corresponds to computing
   \end{array}\right]
 \]
 where each matrix $\V{C}^{n}_{d} \in \R^{1 \times (M-n+1)}$ for $n = -M,\ldots,M$ realizes the Clenshaw algorithm (Algorithm \ref{NFSFT:Algorithm:Clenshaw}), acting on the subvector $\V{a}^n$ of $\V{a}$.
-They matrices $\V{C}_{d}^n$ can be further decomposed, according to the number of steps in the Clenshaw algorithm by
-\begin{eqnarray*}
+The matrices $\V{C}_{d}^n$ can be further decomposed, according to the number of steps in the Clenshaw algorithm by
+\begin{align*}
   \V{C}^{n}_{d}       
-  & := & \frac{\sqrt{(2|n|)!}}{2^{|n|} |n|!} 
-         \paren{1-\cos^2\vtheta_{d}}^{|n|/2}
-    \V{C}_{d,1}^{n} \: \V{C}_{d,2}^{n} \: \ldots \: \V{C}_{d,M-\abs{n}}^{n},\\
-  \V{C}_{d,l}^{n}     & := & \encl{[}{\V{I}_{l}, \V{\tilde{e}}_{d,l}}{]} \in \R^{l \times (l+1)},\\
-  \V{\tilde{e}}_{d,1} & := & \paren{\alpha_{|n|}^n \vtheta_{d} + \beta_{|n|}^n}^{\transp} \in \R^{1},\\
-  \V{\tilde{e}}_{d,l} & := & \paren{0,0,\ldots,\gamma_{l+|n|-1}^n,\alpha_{l+|n|-1}^n \vtheta_{d} +
-    \beta_{l+|n|-1}^n}^{\transp} \in \R^{l} \quad \paren{l=2,\ldots,M-\abs{n}}.
-\end{eqnarray*}
+  & := \frac{\sqrt{(2|n|)!}}{2^{|n|} |n|!} 
+       \paren{1-\cos^2\vtheta_{d}}^{|n|/2}
+       \prod_{l=1}^{M-|n|} \V{C}_{d,l}^{n},\\
+  \V{C}_{d,l}^{n}     
+  & := \encl{[}{\V{I}_{l}, \V{\tilde{e}}_{d,l}}{]} \in \R^{l \times (l+1)} 
+  & \quad \paren{l=1,\ldots,M-|n|},\\
+  \V{\tilde{e}}_{d,1} 
+  & := \paren{\alpha_{|n|}^n \vtheta_{d} + \beta_{|n|}^n}^{\transp} 
+       \in \R^{1},\\
+  \V{\tilde{e}}_{d,l} 
+  & := \paren{0,0,\ldots,\gamma_{l+|n|-1}^n,\alpha_{l+|n|-1}^n 
+       \vtheta_{d} + \beta_{l+|n|-1}^n}^{\transp} \in \R^{l} 
+  & \quad \paren{l=2,\ldots,M-\abs{n}}.
+\end{align*}
 Finally, we compute the sum
 $%\[
   f_{d} = \sum_{n=-M}^M b^{n}_{d} \e^{\im n \vphi_{d}}
@@ -500,7 +516,7 @@ We have now obtained an $\bigo{M^2 D}$ algorithm for the multiplication with $\V
   \end{algorithmic}
 \end{algorithm}
 
-The algorithms for the computation of the products $\V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}} \: \V{a}$ and $\V{\tilde{a}} = \V{Y}_{\mathcal{X}}^{\h} \: \V{f}_{\mathcal{X}}$ presented so far, have both computational complexity $\bigo{M^2D}$ making computations for most applications impracticably slow. We already mentioned that the grid structure may be exploited and FFT 
+The algorithms for the computation of the products $\V{f}_{\mathcal{X}} = \V{Y}_{\mathcal{X}} \: \V{a}$ and $\V{\tilde{a}} = \V{Y}_{\mathcal{X}}^{\h} \: \V{\tilde{f}}_{\mathcal{X}}$ presented so far, have both computational complexity $\bigo{M^2D}$ making computations for most applications impracticably slow. We already mentioned that the grid structure may be exploited and FFT 
 techniques may be applied to sums of the form
 \[
   f_{d} := \sum_{n = -M}^M b^n_d \e^{\im n \vphi_{d}} \quad \paren{d = 0,\ldots,D}
@@ -537,7 +553,8 @@ into a representation by Chebyshev polynomials $\fun{T_{k}}{x} := \fun{\cos}{k \
 \label{DSFT:FLFT}
 
 Let in this section and throughout Sections \ref{NFSFT:Stabilization} to 
-\ref {NFSFT:transposedFLFT} be $M \ge 2$. Furthermore, we assume without loss of generality $n \ge 0$. We consider polynomials of the form
+\ref {NFSFT:transposedFLFT} be $M \ge 2$. We recall the definitions 
+$t := \ceil{\log_{2}M}$, and $N := 2^t$. Furthermore, we assume without loss of generality $n \ge 0$. We consider polynomials of the form
 \begin{equation}
   \label{NFSFT:GnEven}
  \fun{g^n}{x} := \sum_{k=n}^M a_k^n \fun{P_k^n}{x} \in \Pol_M
@@ -564,7 +581,7 @@ Lemma \ref{Basics:AssociatedLegendreRecurrence} implies
   \fun{U_{k}^{n}}{\cdot,c}^{\transp}\;
   \left(\begin{array}{c}
     P_{c-1}^{n} \\ P_{c}^{n}
-  \end{array}\right)
+  \end{array}\right),
 \end{equation}
 where
 \[
@@ -853,8 +870,8 @@ In step $\tau$ we compute
   \end{array}\right)
 \end{equation}
 for $l=\floor{\frac{\tilde{n}}{2^{\tau+1}}},\ldots,\ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$
-by applying Algorithm \ref{NFSFT:Algorithm:U} with $K=2^{\tau}$. It can be shown that
-$a_{2^{\tau+1}l}^{(\tau)} = a_{2^{\tau+1}l+1}^{(\tau)} \equiv 0$ for $l < \floor{\frac{\tilde{n}}{2^{\tau+1}}}$ and 
+by applying Algorithm \ref{NFSFT:Algorithm:U} with $K=2^{\tau}$. By elementary considerations, one verifies
+$a_{2^{\tau+1}l}^{(\tau)} = a_{2^{\tau+1}l+1}^{(\tau)} = 0$ for $l < \floor{\frac{\tilde{n}}{2^{\tau+1}}}$ and 
 $l > \ceil{\frac{\tilde{M}+1}{2^{\tau+1}}}-1$.
 After step $\tau = t-1$ we arrive at
 \begin{equation}
@@ -864,9 +881,9 @@ After step $\tau = t-1$ we arrive at
 Since 
 \begin{align}
   \nonumber
-  \fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{n even}},\\
+  \fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{$n$ even}},\\
   \nonumber
-  \frac{1}{\sqrt{1-x^2}}\fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{n odd}},\\
+  \frac{1}{\sqrt{1-x^2}}\fun{P_{0}^n}{x} = \frac{\sqrt{(2n)!}}{2^n n!} \quad \paren{\text{$n$ odd}},\\
   \fun{P_{1}^n}{x} = \left(\alpha_{0}^nx + \beta_{0}^n\right)\fun{P_{0}^n}{x},
 \end{align} 
 we have
@@ -997,7 +1014,7 @@ Algorithm \ref{NFSFT:Algorithm:FLFT_stab} summarizes the complete algorithm with
 \section{A Linear Algebra Approach}
 \label{DSFT:LinearAlgebra}
 
-In this section we, represent the FLFT algorithm as a linear mapping, acting on a vector of Fourier coefficients $\V{a}^n$. 
+In this section, we represent the FLFT algorithm as a linear mapping, acting on a vector of Fourier coefficients $\V{a}^n$. 
 The FLFT can be represented as a matrix $\V{T} \in \R^{(N+1) \times (N+1)}$ that multiplied with the vector 
 $\V{a}^n = \left(a_0^n,a_1^n,\dots,a_N^n\right)^T \in \C^{N+1}$ of Fourier coefficients, gives a vector 
 $\V{b}^n := \left(b_0^n,b_1^n,\dots,b_{2N-1}^n\right)^{\transp} \in \C^{2N}$ containing the Chebyshev coefficients 
@@ -1046,8 +1063,8 @@ Following this, $\V{T}^{(0)}$ can be written as
 with $\V{\tilde{e}} := \left(0,0,\dots,0,\gamma_{N-1}^n, 0, \beta_{N-1}^n,\alpha_{N-1}^n\right)^{\transp} \in \R^{2N}$.
 
 \subsection[Cascade Summation]{Steps $\tau = 1,\ldots,t-1$ (Cascade Summation)}
-These steps represent the cascade summation applied to associated Legendre functions as in Figure \ref{NFSFT:Figure:CascadeSummation}. In each step, 
-half the functions $P_{k}^n$ are eliminated 
+These steps represent the cascade summation applied to associated Legendre functions as in Figure \ref{NFSFT:Figure:CascadeSummation}. Note that after the first step, we have $N$ polynomials $a_{k}^{(0)}$,
+$k=0,\ldots,N-1$, and that $N$ is a power of two. In each step, half the functions $P_{k}^n$ are eliminated 
 by mapping them to the remaining ones. Therefore, the vector $\V{a}^{(\tau-1)}$ is divided into consecutive blocks of four polynomials
 \[
   \V{a}^{(\tau-1)} = 
@@ -1073,7 +1090,7 @@ factors in front of each remaining function $P_{2^{\tau+1}l+j}^n$.
 In every block, the first and the second polynomial, $a^{(\tau-1)}_{2^{\tau+1}l}$
 and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ remain unchanged. The third and the fourth polynomial, $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ 
 and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, are multiplied with the matrix $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ 
-and the result is added to $a^{(\tau-1)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ yielding $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau)}_{2^{\tau+1}l+1}$. Following this, the output contains 
+and the result is added to $a^{(\tau-1)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ yielding $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau)}_{2^{\tau+1}l+1}$. The output contains 
 only half as many polynomials as before, but due to the multiplication with $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$, 
 the degree might nearly double each time so that twice the space is needed to store the Chebyshev coefficients. In total, the result vector still has length $2N$. 
 %For each step $1 \le \tau < t$ and for each block \[\mb{\tilde{a}}_{l}^{(\tau-1)} := \left(\mb{a}_{4l}^{(\tau-1)},\mb{a}_{4l+1}^{(\tau-1)},\mb{a}_{4l+2}^{(\tau
@@ -1086,10 +1103,10 @@ Correspondingly, each block $\V{a}_{l}^{(\tau-1)}$ is multiplied by a matrix $\V
 %Correspondingly, this can be written as the product 
 %\[\mb{ZP}_{\tau} \; \mb{\tilde{a}}_{l}^{\tau-1} \text{, with } \mb{ZP}_{\tau} := \left(\begin{array}{cccc} \mb{I}_{2^{\tau}} & 0 & 0 & 0\\ 0 & 0 & 0 & 0 \\ 0 & \mb{I}_{2^{\tau}} & 0 & 0 \\ 0 & 0 & 0 & 0 \end{array}\right) \in \R^{2^{\tau+2} \times 2^{\tau+2}}.\] 
 %The multiplication with the matrix $\mb{U}$ that acts on the third and fourth polynomial is written as $\mb{U}_{\tau}^l \; \mb{\tilde{a}}_{l}^{\tau-1}$ where the matrix can be factorized as follows:
-The matrix $\V{U}^{(\tau)}_l \in \R^{2^{\tau+2} \times 2^{\tau+1}}$ can be factorized as follows:
+As a direct consequence of Algorithm \ref{NFSFT:Algorithm:FLFT_unstab}, the matrix $\V{U}^{(\tau)}_l \in \R^{2^{\tau+2} \times 2^{\tau+1}}$ can be factorized as follows:
 \begin{equation} 
   \label{NFSFT:LinearAlgebra:Factorization}
-  \V{U}^{(\tau)}_l := \V{D}^{(\tau)}_{\text{II}} \; \cdot \; \V{S}^{(\tau)} \; \cdot \; \fun{\V{P}^{(\tau)}}{2^{\tau + 1}l+1} \; \cdot \; \V{D}^{(\tau)}_{\text{III}}
+  \V{U}^{(\tau)}_l := \V{D}^{(\tau)}_{\text{II}} \; \cdot \; \V{S}^{(\tau)} \; \cdot \; \fun{\V{P}^{(\tau)}}{2^{\tau + 1}l+1} \; \cdot \; \V{D}^{(\tau)}_{\text{III}},
 \end{equation}
 where we define
 \begin{align*}
@@ -1099,17 +1116,17 @@ where we define
     & \left. \hspace{9ex} \fun{\V{P}_{2^{\tau}-1}^n}{c}, \fun{\V{P}_{2^{\tau}}^n}{c}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+3}},\\
   \V{D}^{(\tau)}_{\text{III}} & := \V{I}_{2} \otimes \left(\left(\V{I}_{2} \otimes \V{C}^{\transp}_{2^{\tau+1}}\right)\V{Z}^{(\tau)}\right) & \in \R^{2^{\tau+3} \times 2^{\tau+1}}.
 \end{align*}   
-This follows directly from Algorithm \ref{NFSFT:Algorithm:FLFT_unstab}. The matrix $\V{D}^{(\tau)}_{\text{III}}$ realizes 
+The matrix $\V{D}^{(\tau)}_{\text{III}}$ realizes 
 first, the zero-padding ($\V{Z}^{(\tau)}$) of the two polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and 
 $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$, second, the evaluation at the Chebyshev nodes ($\V{C}^{\transp}$) 
-and finally, a duplication of the result vector in order to permit multiplication with two different 
+and finally, a duplication of the resulting vector in order to permit multiplication with two different 
 associated Legendre polynomials from $\fun{\V{U}_{2^{\tau}-1}^{n}}{\cdot,2^{\tau+1}l+1}$ for each of the 
 two polynomials. The diagonal matrix $\fun{\V{P}^{(\tau)}}{2^{\tau+1}l+1}$ 
 contains the corresponding associated Legendre polynomials of $\fun{\V{U}_{2^{\tau}-1}^n}{\cdot,2^{\tau+1}l+1}$ 
 evaluated at the Chebyshev nodes $\paren{\cos \frac{\paren{2s+1}\pi}{2^{\tau+2}}}_{s=0}^{2^{\tau}+1}$. It realizes therefore 
 a pointwise multiplication with the zero-padded and evaluated 
 polynomials $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}}$ and $a^{(\tau-1)}_{2^{\tau+1}l+2^{\tau}+1}$. The matrix $\V{S}^{(\tau)}$ 
-forms the sums for the two rows of the result, and finally, the $\V{D}^{(\tau)}_{\text{II}}$ transforms the newly obtained 
+forms the sums for the two rows of the result, and finally, the matrices $\V{D}^{(\tau)}_{\text{II}}$ transforms the newly obtained 
 polynomials $a^{(\tau)}_{2^{\tau+1}l}$ and $a^{(\tau-1)}_{2^{\tau+1}l+1}$ back into Chebyshev representation.
 
 From the factorization in \eqref{NFSFT:LinearAlgebra:Factorization}, the more compact representation
@@ -1297,7 +1314,7 @@ The complete transposed FLFT condenses in Algorithm \ref{NFSFT:Algorithm:adjoint
             \[ 
               a_{2^{\tau+1}l+2^{\tau}}^{(\tau-1)},\ a_{2^{\tau+1}l+2^{\tau}+1}^{(\tau-1)}
             \] 
-            using \eqref{NFSFT:StabilizationStep} and Algorithm NFSFT:Algorithm:Utransposed
+            using \eqref{NFSFT:StabilizationStep} and Algorithm \ref{NFSFT:Algorithm:Utransposed}
           \STATE Update $a_{2^{\tau+1}l^{(\tau)}} := a_{2^{\tau+1}l^{(\tau-1)}}$, $a_{2^{\tau+1}l+1}^{(\tau)} := a_{2^{\tau+1}l+1}^{(\tau-1)}$
         \ENDIF
       \ENDFOR
@@ -1385,7 +1402,7 @@ In matrix-vector notation, this procedure reads
   \V{f}_{\mathcal{X}} = \V{F}_{\mathcal{X}} \: \V{Q} \: \V{T} \: \V{a}.
 \end{equation}
 Here, $\V{F}$ represents the NFFT, $\V{Q}$ the intermediate steps to convert the Chebyshev coefficients $b_{k}^n$ 
-into the Fourier coefficients $c_{k}^n$, and $\V{T}$ the FLFT. This results in Algorithm \ref{NFSFT:Algorithm:NFSFT} denoted as 
+into the Fourier coefficients $c_{k}^n$, and $\V{T}$ the FLFT. The result is Algorithm \ref{NFSFT:Algorithm:NFSFT} denoted as 
 \emph{nonuniform fast spherical Fourier transform (NFSFT)}. A schematic overview is given in Figure \ref{NFSFT:Figure:NFSFT}.
 \begin{algorithm}[tb]
   \caption{nonuniform fast spherical Fourier transform (NFSFT)}
@@ -1470,7 +1487,7 @@ into the Fourier coefficients $c_{k}^n$, and $\V{T}$ the FLFT. This results in A
 	        \Large
 	        \begin{center}
 	          NFFT\\ 
-	          $\paren{\bigo{M^2 \log M + \log \frac{1}{\varepsilon} D}}$
+	          $\paren{\bigo{M^2 \log M + D \log \frac{1}{\varepsilon}}}$
 	        \end{center}  
 	      }}}
 	      \pgfputat{\pgfxy(16, 11.5)}{\pgfbox[center,center]{\parbox{4cm}
@@ -1504,7 +1521,7 @@ into the Fourier coefficients $c_{k}^n$, and $\V{T}$ the FLFT. This results in A
 	    \end{pgfmagnify}  
 	  \end{pgftranslate}  
   \end{pgfpicture}
-  \caption{The NFSFT algorithm in a schematic overview. The total arithmetic complexity is $\bigo{M^3 \log M + \log \frac{1}{\varepsilon} D}$.}  
+  \caption{The NFSFT algorithm in a schematic overview. The total arithmetic complexity is $\bigo{M^3 \log M + D \log \frac{1}{\varepsilon}}$.}  
 \end{figure}
 \clearpage
 

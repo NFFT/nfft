@@ -26,6 +26,8 @@ double err_f_hat_1(complex **f_hat, complex **f_hat2, int M);
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M);
 double norm_complex_inf(complex *x, int n);
 double norm_complex_1(complex *x, int n);
+double norm_complex_2(complex *x, int n);
+double norm_f_hat_1(complex **f_hat, int M);
 int min(const int a, const int b);
 int max(const int a, const int b);
 long int maxl(const long int a, const long int b);

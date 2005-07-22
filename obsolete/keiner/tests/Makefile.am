@@ -1,1 +1,1 @@
-SUBDIRS = accuracy flft inverse performance stabilization summation
+SUBDIRS = accuracy accuracy2 flft inverse performance stabilization summation

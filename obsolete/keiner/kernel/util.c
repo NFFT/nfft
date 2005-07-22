@@ -93,6 +93,19 @@ double norm_complex_inf(complex *x, int n)
   return maximum;
 }
 
+double norm_complex_2(complex *x, int n)
+{
+  double r = 0.0;
+  int k;
+  
+  for (k = 0; k < n; k++) 
+  {
+    r += cabs(x[k])*cabs(x[k]);
+  }
+  
+  return r;
+}
+
 double norm_complex_1(complex *x, int n)
 {
   double r = 0.0;
@@ -190,6 +203,21 @@ double err_f_hat_1(complex **f_hat, complex **f_hat2, int M)
     }
   }  
   return err/temp;
+}
+
+double norm_f_hat_1(complex **f_hat, int M)
+{
+  double r = 0.0;
+  int k,n;
+  
+  for (k = 0; k <= M; k++) 
+  {
+    for (n = -k; n <= k; n++) 
+    {
+      r += cabs(f_hat[n+M][k]);
+    }
+  }  
+  return r;
 }
 
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M)

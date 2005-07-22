@@ -242,6 +242,7 @@
 								<string>08FB7794FE84155DC02AAC07</string>
 								<string>08FB7795FE84155DC02AAC07</string>
 								<string>4ECA771908320743008ADA24</string>
+								<string>4E6E40D0082CB47C00642FF0</string>
 								<string>C6859E8C029090F304C91782</string>
 								<string>0249A662FF388D9811CA2CEA</string>
 								<string>1AB674ADFE9D54B511CA2CBB</string>
@@ -252,14 +253,13 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>23</integer>
-									<integer>22</integer>
+									<integer>21</integer>
 									<integer>1</integer>
 									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 0}, {298, 639}}</string>
+							<string>{{0, 107}, {298, 639}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -292,7 +292,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>accuracy.c</string>
+								<string>accuracy2.c</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -300,9 +300,9 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>accuracy.c</string>
+										<string>accuracy2.c</string>
 										<key>bookmark</key>
-										<string>4E6C5ECE088E96C10051B166</string>
+										<string>4ED46A2308910F7400F4E929</string>
 										<key>history</key>
 										<array>
 											<string>4EDEC4EB07CE349A00514E5A</string>
@@ -315,7 +315,6 @@
 											<string>4E9F7CAC0851DA3100952ECD</string>
 											<string>4E7692190852D4160088C885</string>
 											<string>4E294DA908577C8700F546C3</string>
-											<string>4EE055EA086DA935003A47E5</string>
 											<string>4EE056E6086DE4EE003A47E5</string>
 											<string>4E00A414086F469A0062012D</string>
 											<string>4EE9EBAF08786E2B00880508</string>
@@ -329,9 +328,6 @@
 											<string>4ECF7CDD087BC75A00F4A43E</string>
 											<string>4EA42B57087E6423004F81E3</string>
 											<string>4EE65A2A087FA0F000926C77</string>
-											<string>4E7021F30886930C00CBA928</string>
-											<string>4E7021F40886930C00CBA928</string>
-											<string>4E7022200887F8C700CBA928</string>
 											<string>4E8FDDA5088A73E10098D700</string>
 											<string>4E8FDDA6088A73E10098D700</string>
 											<string>4E8FDDA7088A73E10098D700</string>
@@ -346,7 +342,17 @@
 											<string>4E8FDE19088AF3D40098D700</string>
 											<string>4E8FDE1B088AF3D40098D700</string>
 											<string>4E6C5EC8088E96680051B166</string>
-											<string>4E8FDE1A088AF3D40098D700</string>
+											<string>4ED469FD0890F17700F4E929</string>
+											<string>4ED469FE0890F17700F4E929</string>
+											<string>4ED46A0B089109C900F4E929</string>
+											<string>4ED46A1508910C6700F4E929</string>
+											<string>4ED46A1608910C6700F4E929</string>
+											<string>4ED46A1E08910F7400F4E929</string>
+											<string>4ED46A2008910F7400F4E929</string>
+										</array>
+										<key>nextStack</key>
+										<array>
+											<string>4ED46A2108910F7400F4E929</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -380,7 +386,6 @@
 											<string>4ECF7CE0087BC75A00F4A43E</string>
 											<string>4EE659D4087F92A000926C77</string>
 											<string>4E757C62087FDC0C0027229F</string>
-											<string>4E7021F70886930C00CBA928</string>
 											<string>4E7021F80886930C00CBA928</string>
 											<string>4E7022210887F8C700CBA928</string>
 											<string>4E8FDDB3088A73E10098D700</string>
@@ -388,7 +393,8 @@
 											<string>4E8FDDF7088AC2F80098D700</string>
 											<string>4E8FDDFC088AC2F80098D700</string>
 											<string>4E8FDE1F088AF3D40098D700</string>
-											<string>4E6C5EC9088E96680051B166</string>
+											<string>4ED46A000890F17700F4E929</string>
+											<string>4ED46A020890F17700F4E929</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -446,9 +452,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>4E6C5ECB088E96680051B166</string>
+				<string>4ED469FA0890F0D400F4E929</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>4E6C5ECC088E96680051B166</string>
+				<string>4ED469FB0890F0D400F4E929</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>

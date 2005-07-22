@@ -838,6 +838,7 @@
 		4ECA771908320743008ADA24 = {
 			children = (
 				4EAD69A2083BE07E00C61F13,
+				4ED469FC0890F0E100F4E929,
 				4E98AAA1084A0B790002D4FC,
 				4E6EA365083E95C9004C5D07,
 				4E8A26E10838C49000216481,
@@ -846,6 +847,15 @@
 			);
 			isa = PBXGroup;
 			name = tests;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		4ED469FC0890F0E100F4E929 = {
+			fileEncoding = 5;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.c;
+			name = accuracy2.c;
+			path = tests/accuracy2/accuracy2.c;
 			refType = 4;
 			sourceTree = "<group>";
 		};
