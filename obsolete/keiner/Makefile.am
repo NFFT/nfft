@@ -6,5 +6,5 @@ libnfsft_la_SOURCES =
 
 libnfsft_la_LIBADD = nfft/libnfft.la kernel/libkernel.la
 
-dist-hook:
-	./strip.sh $(distdir)
+#dist-hook:
+#	./strip.sh $(distdir)

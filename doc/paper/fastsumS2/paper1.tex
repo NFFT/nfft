@@ -586,11 +586,12 @@ $k$ and $M$.
       & \quad \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}},
     \end{align*}
     and with $\sin\arccos h = \sqrt[4]{1-h^2} \ge \sqrt{1-|h|}$ finally
-    \begin{equation*}
+    \begin{equation}
+      \label{SmallLambda}
       \left|\fun{L_{h,0}^{\wedge}}{k}\right| \le 
       \sqrt{\frac{2}{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt{1-|h|}(2k+1)}
       \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}}.
-    \end{equation*}
+    \end{equation}
 %    \frac{1}{1-h}
 %    \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
 %    \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
@@ -607,9 +608,19 @@ $k$ and $M$.
     \end{eqnarray*}
     Iterate this argument until $\lambda \in [0,1)$ yields
     \begin{align*}
-      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| 
+      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right|
       & \le \frac{\lambda+1}{\lambda-\floor{\lambda}+1} \frac{1}{(1-h)^{\floor{\lambda}}}
+        \frac{1}{\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}}} 
+        \max_{k-\floor{\lambda} \le k' \le k+\floor{\lambda}} 
+        \abs{\fun{L_{h,\lambda-\floor{\lambda}}^{\wedge}}{k'}}.
     \end{align*}
+    Here, $\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}} := 
+    \paren{k+\frac{3}{2}-\floor{\lambda}} \paren{k+\frac{3}{2}-\floor{\lambda}+1}
+    \cdot \ldots \cdot 
+    \paren{k+\frac{1}{2}}$ is the Pochhammer symbol. We finally use 
+    $\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}} \ge
+    \paren{k+\frac{3}{2}-\floor{\lambda}}^{\floor{\lambda}}$ and 
+    \eqref{SmallLambda} to obtain the assertion.
   \item We combine 2. with Lemma \ref{lemma:error}. 
   \end{enumerate}
 \end{proof}

@@ -47,6 +47,7 @@ AC_CONFIG_FILES([
   nfft/Makefile 
   kernel/Makefile 
   examples/Makefile 
+  examples/cgne/Makefile
   examples/convolution/Makefile 
   examples/egm96/Makefile 
   examples/healpix/Makefile 
