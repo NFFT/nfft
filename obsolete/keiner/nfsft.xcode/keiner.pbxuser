@@ -61,9 +61,9 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					652,
+					696,
 					20,
-					116,
+					124,
 					43,
 					43,
 					20,
@@ -152,7 +152,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 143716558;
+			PBXPerProjectTemplateStateSaveDate = 143884315;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -502,10 +502,9 @@
 				};
 				RubberWindowFrame = "0 117 1280 821 0 0 1280 938 ";
 			};
-			PBXWorkspaceStateSaveDate = 143716558;
+			PBXWorkspaceStateSaveDate = 143884315;
 		};
 		perUserProjectItems = {
-			4E00A414086F469A0062012D = 4E00A414086F469A0062012D;
 			4E29328C082E50BD004AD73C = 4E29328C082E50BD004AD73C;
 			4E29328E082E50BD004AD73C = 4E29328E082E50BD004AD73C;
 			4E2932B3082E5ABD004AD73C = 4E2932B3082E5ABD004AD73C;
@@ -520,22 +519,30 @@
 			4E6C0277085316E90095AA39 = 4E6C0277085316E90095AA39;
 			4E6C0285085318950095AA39 = 4E6C0285085318950095AA39;
 			4E6C5EC8088E96680051B166 = 4E6C5EC8088E96680051B166;
-			4E6C5ECE088E96C10051B166 = 4E6C5ECE088E96C10051B166;
 			4E6E72130855C89400D77920 = 4E6E72130855C89400D77920;
-			4E7021F30886930C00CBA928 = 4E7021F30886930C00CBA928;
-			4E7021F40886930C00CBA928 = 4E7021F40886930C00CBA928;
-			4E7021F70886930C00CBA928 = 4E7021F70886930C00CBA928;
+			4E7008FD08938177008C8663 = 4E7008FD08938177008C8663;
+			4E70090608938730008C8663 = 4E70090608938730008C8663;
+			4E70090C089387DB008C8663 = 4E70090C089387DB008C8663;
+			4E70090F0893889B008C8663 = 4E70090F0893889B008C8663;
+			4E7009100893889B008C8663 = 4E7009100893889B008C8663;
+			4E70091508938A53008C8663 = 4E70091508938A53008C8663;
+			4E70091608938A53008C8663 = 4E70091608938A53008C8663;
+			4E70091808938B51008C8663 = 4E70091808938B51008C8663;
+			4E70091908938B51008C8663 = 4E70091908938B51008C8663;
+			4E70091A08938B51008C8663 = 4E70091A08938B51008C8663;
+			4E70091B08938B51008C8663 = 4E70091B08938B51008C8663;
+			4E70091F08938C9E008C8663 = 4E70091F08938C9E008C8663;
+			4E70092408938CFC008C8663 = 4E70092408938CFC008C8663;
+			4E70092508938CFC008C8663 = 4E70092508938CFC008C8663;
+			4E70092608938CFC008C8663 = 4E70092608938CFC008C8663;
+			4E70092908939D28008C8663 = 4E70092908939D28008C8663;
 			4E7021F80886930C00CBA928 = 4E7021F80886930C00CBA928;
-			4E7022200887F8C700CBA928 = 4E7022200887F8C700CBA928;
 			4E7022210887F8C700CBA928 = 4E7022210887F8C700CBA928;
 			4E720984084F7DAE007F8CEA = 4E720984084F7DAE007F8CEA;
 			4E751588082C0D65002018A8 = 4E751588082C0D65002018A8;
 			4E757C62087FDC0C0027229F = 4E757C62087FDC0C0027229F;
-			4E7692190852D4160088C885 = 4E7692190852D4160088C885;
-			4E7848BA08903A1600842C4C = 4E7848BA08903A1600842C4C;
 			4E8A26AA0838C11700216481 = 4E8A26AA0838C11700216481;
 			4E8A27670838E2CF00216481 = 4E8A27670838E2CF00216481;
-			4E8E5792083E4CA60061697E = 4E8E5792083E4CA60061697E;
 			4E8F457B0850CE760098CEFF = 4E8F457B0850CE760098CEFF;
 			4E8F45840850CE760098CEFF = 4E8F45840850CE760098CEFF;
 			4E8FDDA5088A73E10098D700 = 4E8FDDA5088A73E10098D700;
@@ -544,21 +551,16 @@
 			4E8FDDA8088A73E10098D700 = 4E8FDDA8088A73E10098D700;
 			4E8FDDB3088A73E10098D700 = 4E8FDDB3088A73E10098D700;
 			4E8FDDD8088AC08F0098D700 = 4E8FDDD8088AC08F0098D700;
-			4E8FDDEC088AC0FA0098D700 = 4E8FDDEC088AC0FA0098D700;
 			4E8FDDF0088AC2F80098D700 = 4E8FDDF0088AC2F80098D700;
-			4E8FDDF1088AC2F80098D700 = 4E8FDDF1088AC2F80098D700;
 			4E8FDDF2088AC2F80098D700 = 4E8FDDF2088AC2F80098D700;
 			4E8FDDF5088AC2F80098D700 = 4E8FDDF5088AC2F80098D700;
-			4E8FDDF7088AC2F80098D700 = 4E8FDDF7088AC2F80098D700;
 			4E8FDDFC088AC2F80098D700 = 4E8FDDFC088AC2F80098D700;
 			4E8FDE04088AC3610098D700 = 4E8FDE04088AC3610098D700;
 			4E8FDE12088AC7020098D700 = 4E8FDE12088AC7020098D700;
-			4E8FDE19088AF3D40098D700 = 4E8FDE19088AF3D40098D700;
 			4E8FDE1B088AF3D40098D700 = 4E8FDE1B088AF3D40098D700;
 			4E8FDE1F088AF3D40098D700 = 4E8FDE1F088AF3D40098D700;
 			4E98AAC2084A23820002D4FC = 4E98AAC2084A23820002D4FC;
 			4E9F7CAC0851DA3100952ECD = 4E9F7CAC0851DA3100952ECD;
-			4EA42B57087E6423004F81E3 = 4EA42B57087E6423004F81E3;
 			4EAB55900879C3B700919EC9 = 4EAB55900879C3B700919EC9;
 			4EAD6954083BD14300C61F13 = 4EAD6954083BD14300C61F13;
 			4EAD6969083BD39C00C61F13 = 4EAD6969083BD39C00C61F13;
@@ -572,61 +574,18 @@
 			4ECF7CDD087BC75A00F4A43E = 4ECF7CDD087BC75A00F4A43E;
 			4ECF7CDF087BC75A00F4A43E = 4ECF7CDF087BC75A00F4A43E;
 			4ECF7CE0087BC75A00F4A43E = 4ECF7CE0087BC75A00F4A43E;
-			4ED469F80890F0D400F4E929 = 4ED469F80890F0D400F4E929;
-			4ED469F90890F0D400F4E929 = 4ED469F90890F0D400F4E929;
-			4ED469FD0890F17700F4E929 = 4ED469FD0890F17700F4E929;
-			4ED469FE0890F17700F4E929 = 4ED469FE0890F17700F4E929;
-			4ED469FF0890F17700F4E929 = 4ED469FF0890F17700F4E929;
-			4ED46A000890F17700F4E929 = 4ED46A000890F17700F4E929;
-			4ED46A010890F17700F4E929 = 4ED46A010890F17700F4E929;
-			4ED46A020890F17700F4E929 = 4ED46A020890F17700F4E929;
-			4ED46A030890F17700F4E929 = 4ED46A030890F17700F4E929;
-			4ED46A060890F62700F4E929 = 4ED46A060890F62700F4E929;
-			4ED46A070890F70500F4E929 = 4ED46A070890F70500F4E929;
-			4ED46A080891060E00F4E929 = 4ED46A080891060E00F4E929;
-			4ED46A090891084F00F4E929 = 4ED46A090891084F00F4E929;
-			4ED46A0A089109C900F4E929 = 4ED46A0A089109C900F4E929;
 			4ED46A0B089109C900F4E929 = 4ED46A0B089109C900F4E929;
-			4ED46A0C089109C900F4E929 = 4ED46A0C089109C900F4E929;
-			4ED46A0D089109C900F4E929 = 4ED46A0D089109C900F4E929;
-			4ED46A0E089109C900F4E929 = 4ED46A0E089109C900F4E929;
-			4ED46A0F08910A5900F4E929 = 4ED46A0F08910A5900F4E929;
-			4ED46A1008910A5900F4E929 = 4ED46A1008910A5900F4E929;
-			4ED46A1108910A5900F4E929 = 4ED46A1108910A5900F4E929;
-			4ED46A1208910A5900F4E929 = 4ED46A1208910A5900F4E929;
-			4ED46A1308910A5900F4E929 = 4ED46A1308910A5900F4E929;
-			4ED46A1408910A5900F4E929 = 4ED46A1408910A5900F4E929;
-			4ED46A1508910C6700F4E929 = 4ED46A1508910C6700F4E929;
-			4ED46A1608910C6700F4E929 = 4ED46A1608910C6700F4E929;
-			4ED46A1708910C6700F4E929 = 4ED46A1708910C6700F4E929;
-			4ED46A1808910C6700F4E929 = 4ED46A1808910C6700F4E929;
-			4ED46A1908910C6700F4E929 = 4ED46A1908910C6700F4E929;
-			4ED46A1A08910EB500F4E929 = 4ED46A1A08910EB500F4E929;
-			4ED46A1B08910ECA00F4E929 = 4ED46A1B08910ECA00F4E929;
-			4ED46A1C08910EDD00F4E929 = 4ED46A1C08910EDD00F4E929;
-			4ED46A1D08910F0000F4E929 = 4ED46A1D08910F0000F4E929;
-			4ED46A1E08910F7400F4E929 = 4ED46A1E08910F7400F4E929;
-			4ED46A2008910F7400F4E929 = 4ED46A2008910F7400F4E929;
-			4ED46A2108910F7400F4E929 = 4ED46A2108910F7400F4E929;
-			4ED46A2308910F7400F4E929 = 4ED46A2308910F7400F4E929;
-			4ED46A240891122B00F4E929 = 4ED46A240891122B00F4E929;
-			4ED46A250891123000F4E929 = 4ED46A250891123000F4E929;
-			4ED46A26089112DA00F4E929 = 4ED46A26089112DA00F4E929;
-			4ED46A2708911D3500F4E929 = 4ED46A2708911D3500F4E929;
-			4ED46A2808914AF000F4E929 = 4ED46A2808914AF000F4E929;
-			4ED46A2908919E1200F4E929 = 4ED46A2908919E1200F4E929;
-			4ED46A2A08919E1200F4E929 = 4ED46A2A08919E1200F4E929;
-			4ED46A2B08919E1200F4E929 = 4ED46A2B08919E1200F4E929;
-			4ED46A2C08919E1200F4E929 = 4ED46A2C08919E1200F4E929;
 			4ED46A2D0891A06000F4E929 = 4ED46A2D0891A06000F4E929;
 			4ED46A2E0891A06000F4E929 = 4ED46A2E0891A06000F4E929;
-			4ED46A2F0891A06000F4E929 = 4ED46A2F0891A06000F4E929;
+			4ED46A320891A78900F4E929 = 4ED46A320891A78900F4E929;
+			4ED46A450891AD3A00F4E929 = 4ED46A450891AD3A00F4E929;
+			4ED46A470891AD3A00F4E929 = 4ED46A470891AD3A00F4E929;
+			4ED46A5B0891AF4B00F4E929 = 4ED46A5B0891AF4B00F4E929;
+			4ED46A5C0891AF4B00F4E929 = 4ED46A5C0891AF4B00F4E929;
 			4EDEC4EB07CE349A00514E5A = 4EDEC4EB07CE349A00514E5A;
-			4EE0558D086DA00D003A47E5 = 4EE0558D086DA00D003A47E5;
 			4EE0559B086DA10C003A47E5 = 4EE0559B086DA10C003A47E5;
 			4EE055AD086DA4D6003A47E5 = 4EE055AD086DA4D6003A47E5;
 			4EE055E4086DA894003A47E5 = 4EE055E4086DA894003A47E5;
-			4EE055EA086DA935003A47E5 = 4EE055EA086DA935003A47E5;
 			4EE055EB086DA935003A47E5 = 4EE055EB086DA935003A47E5;
 			4EE056E6086DE4EE003A47E5 = 4EE056E6086DE4EE003A47E5;
 			4EE659D4087F92A000926C77 = 4EE659D4087F92A000926C77;
@@ -635,20 +594,18 @@
 			4EE9EBB908786EE000880508 = 4EE9EBB908786EE000880508;
 			4EE9EBD20878768200880508 = 4EE9EBD20878768200880508;
 			4EE9EBD508787B6200880508 = 4EE9EBD508787B6200880508;
+			4EF50FD108924EB70027295B = 4EF50FD108924EB70027295B;
+			4EF50FD208924EB70027295B = 4EF50FD208924EB70027295B;
+			4EF50FE10892511F0027295B = 4EF50FE10892511F0027295B;
+			4EF51002089260FD0027295B = 4EF51002089260FD0027295B;
+			4EF510070892661E0027295B = 4EF510070892661E0027295B;
+			4EF510080892661E0027295B = 4EF510080892661E0027295B;
+			4EF5100A0892661E0027295B = 4EF5100A0892661E0027295B;
+			4EF5100B0892661E0027295B = 4EF5100B0892661E0027295B;
 		};
 		sourceControlManager = 4E25C4AB070DDADD0005BF02;
 		userBuildSettings = {
 		};
-	};
-	4E00A414086F469A0062012D = {
-		fRef = 4E294D5008575D3600F546C3;
-		isa = PBXTextBookmark;
-		name = "healpix.c: 190";
-		rLen = 0;
-		rLoc = 4522;
-		rType = 0;
-		vrLen = 609;
-		vrLoc = 4457;
 	};
 	4E02C48E082F816D00EC0863 = {
 		uiCtxt = {
@@ -780,9 +737,9 @@
 	};
 	4E294D5008575D3600F546C3 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {937, 4719}}";
-			sepNavSelRange = "{5417, 10}";
-			sepNavVisRect = "{{0, 3541}, {734, 295}}";
+			sepNavIntBoundsRect = "{{0, 0}, {964, 4783}}";
+			sepNavSelRange = "{6666, 0}";
+			sepNavVisRect = "{{0, 4055}, {964, 482}}";
 		};
 	};
 	4E294DA908577C8700F546C3 = {
@@ -798,8 +755,8 @@
 	4E5470A208329F8600CA0375 = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {1385, 12703}}";
-			sepNavSelRange = "{861, 20514}";
-			sepNavVisRect = "{{0, 12233}, {912, 470}}";
+			sepNavSelRange = "{21227, 0}";
+			sepNavVisRect = "{{0, 9917}, {965, 482}}";
 		};
 	};
 	4E5470E10832A31200CA0375 = {
@@ -914,16 +871,6 @@
 		vrLen = 833;
 		vrLoc = 3367;
 	};
-	4E6C5ECE088E96C10051B166 = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 415";
-		rLen = 0;
-		rLoc = 10872;
-		rType = 0;
-		vrLen = 705;
-		vrLoc = 10713;
-	};
 	4E6CD54507C54A7E0040176B = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {912, 2719}}";
@@ -941,31 +888,31 @@
 	};
 	4E6CD54A07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 7775}}";
-			sepNavSelRange = "{13234, 0}";
-			sepNavVisRect = "{{0, 7305}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 7775}}";
+			sepNavSelRange = "{7395, 0}";
+			sepNavVisRect = "{{0, 3430}, {965, 482}}";
 			sepNavWindowFrame = "{{72, 109}, {1280, 755}}";
 		};
 	};
 	4E6CD54B07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 3583}}";
-			sepNavSelRange = "{3287, 16}";
-			sepNavVisRect = "{{0, 2061}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 3583}}";
+			sepNavSelRange = "{781, 16}";
+			sepNavVisRect = "{{0, 944}, {965, 482}}";
 		};
 	};
 	4E6CD54C07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 8031}}";
-			sepNavSelRange = "{3182, 44}";
-			sepNavVisRect = "{{0, 3104}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 8031}}";
+			sepNavSelRange = "{3791, 9}";
+			sepNavVisRect = "{{0, 3623}, {965, 482}}";
 		};
 	};
 	4E6CD54D07C54A7E0040176B = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 847}}";
-			sepNavSelRange = "{1000, 0}";
-			sepNavVisRect = "{{0, 240}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {964, 847}}";
+			sepNavSelRange = "{654, 0}";
+			sepNavVisRect = "{{0, 224}, {964, 482}}";
 		};
 	};
 	4E6CD56E07C54E170040176B = {
@@ -1029,7 +976,7 @@
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {964, 3023}}";
 			sepNavSelRange = "{2905, 0}";
-			sepNavVisRect = "{{0, 1757}, {964, 470}}";
+			sepNavVisRect = "{{0, 1751}, {964, 482}}";
 		};
 	};
 	4E6E40C7082CB46F00642FF0 = {
@@ -1099,40 +1046,178 @@
 	};
 	4E6EA365083E95C9004C5D07 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {910, 4383}}";
+			sepNavIntBoundsRect = "{{0, 0}, {907, 4383}}";
 			sepNavSelRange = "{5685, 0}";
-			sepNavVisRect = "{{0, 2448}, {910, 470}}";
+			sepNavVisRect = "{{0, 2432}, {907, 482}}";
 		};
 	};
-	4E7021F30886930C00CBA928 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
+	4E7008FD08938177008C8663 = {
+		fRef = 4EF510210892922B0027295B;
 		isa = PBXTextBookmark;
-		name = "inline long int maxl(const long int a, const long int b)";
-		rLen = 56;
-		rLoc = 7999;
+		name = "test.in: 23";
+		rLen = 0;
+		rLoc = 954;
 		rType = 0;
-		vrLen = 401;
-		vrLoc = 7313;
+		vrLen = 147;
+		vrLoc = 0;
 	};
-	4E7021F40886930C00CBA928 = {
+	4E70090608938730008C8663 = {
+		fRef = 4ED469FC0890F0E100F4E929;
+		isa = PBXTextBookmark;
+		name = "accuracy2.c: 394";
+		rLen = 0;
+		rLoc = 10880;
+		rType = 0;
+		vrLen = 467;
+		vrLoc = 10444;
+	};
+	4E70090B089387DB008C8663 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = test3.in;
+		path = /Users/keiner/Temporary/trunk/obsolete/keiner/tests/accuracy2/test3.in;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4E70090C089387DB008C8663 = {
+		fRef = 4EF510210892922B0027295B;
+		isa = PBXTextBookmark;
+		name = "test.in: 1";
+		rLen = 0;
+		rLoc = 11;
+		rType = 0;
+		vrLen = 218;
+		vrLoc = 0;
+	};
+	4E70090F0893889B008C8663 = {
+		fRef = 4E70090B089387DB008C8663;
+		isa = PBXTextBookmark;
+		name = "test3.in: 58";
+		rLen = 0;
+		rLoc = 450;
+		rType = 0;
+		vrLen = 238;
+		vrLoc = 0;
+	};
+	4E7009100893889B008C8663 = {
+		fRef = 4E70090B089387DB008C8663;
+		isa = PBXTextBookmark;
+		name = "test3.in: 58";
+		rLen = 0;
+		rLoc = 450;
+		rType = 0;
+		vrLen = 238;
+		vrLoc = 0;
+	};
+	4E70091508938A53008C8663 = {
+		fRef = 4ED469FC0890F0E100F4E929;
+		isa = PBXTextBookmark;
+		name = "accuracy2.c: 225";
+		rLen = 0;
+		rLoc = 5612;
+		rType = 0;
+		vrLen = 1282;
+		vrLoc = 4403;
+	};
+	4E70091608938A53008C8663 = {
+		fRef = 4ED469FC0890F0E100F4E929;
+		isa = PBXTextBookmark;
+		name = "accuracy2.c: 225";
+		rLen = 0;
+		rLoc = 5612;
+		rType = 0;
+		vrLen = 1282;
+		vrLoc = 4403;
+	};
+	4E70091808938B51008C8663 = {
+		fRef = 4EF510210892922B0027295B;
+		isa = PBXTextBookmark;
+		name = "test.in: 147";
+		rLen = 0;
+		rLoc = 947;
+		rType = 0;
+		vrLen = 221;
+		vrLoc = 0;
+	};
+	4E70091908938B51008C8663 = {
+		fRef = 4E6EA365083E95C9004C5D07;
+		isa = PBXTextBookmark;
+		name = "inverse.c: 239";
+		rLen = 0;
+		rLoc = 5685;
+		rType = 0;
+		vrLen = 763;
+		vrLoc = 3893;
+	};
+	4E70091A08938B51008C8663 = {
+		fRef = 4EF510210892922B0027295B;
+		isa = PBXTextBookmark;
+		name = "test.in: 147";
+		rLen = 0;
+		rLoc = 947;
+		rType = 0;
+		vrLen = 221;
+		vrLoc = 0;
+	};
+	4E70091B08938B51008C8663 = {
+		fRef = 4E6EA365083E95C9004C5D07;
+		isa = PBXTextBookmark;
+		name = "inverse.c: 239";
+		rLen = 0;
+		rLoc = 5685;
+		rType = 0;
+		vrLen = 763;
+		vrLoc = 3893;
+	};
+	4E70091F08938C9E008C8663 = {
+		fRef = 4E6E40C6082CB46F00642FF0;
+		isa = PBXTextBookmark;
+		name = "utils.h: error";
+		rLen = 0;
+		rLoc = 2905;
+		rType = 0;
+		vrLen = 878;
+		vrLoc = 2469;
+	};
+	4E70092408938CFC008C8663 = {
 		fRef = 4E6CD54D07C54A7E0040176B;
 		isa = PBXTextBookmark;
-		name = "util.h: maxl";
+		name = "util.h: err_f_hat_infty";
 		rLen = 0;
-		rLoc = 1075;
+		rLoc = 654;
 		rType = 0;
-		vrLen = 1005;
-		vrLoc = 31;
+		vrLen = 1569;
+		vrLoc = 248;
 	};
-	4E7021F70886930C00CBA928 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
+	4E70092508938CFC008C8663 = {
+		fRef = 4E294D5008575D3600F546C3;
 		isa = PBXTextBookmark;
-		name = "inline long int maxl(const long int a, const long int b)";
-		rLen = 56;
-		rLoc = 7999;
+		name = "healpix.c: 252";
+		rLen = 0;
+		rLoc = 5967;
 		rType = 0;
-		vrLen = 401;
-		vrLoc = 7313;
+		vrLen = 897;
+		vrLoc = 5644;
+	};
+	4E70092608938CFC008C8663 = {
+		fRef = 4E6CD54D07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.h: err_f_hat_infty";
+		rLen = 0;
+		rLoc = 654;
+		rType = 0;
+		vrLen = 1569;
+		vrLoc = 248;
+	};
+	4E70092908939D28008C8663 = {
+		fRef = 4E294D5008575D3600F546C3;
+		isa = PBXTextBookmark;
+		name = "healpix.c: 273";
+		rLen = 0;
+		rLoc = 6666;
+		rType = 0;
+		vrLen = 858;
+		vrLoc = 6034;
 	};
 	4E7021F80886930C00CBA928 = {
 		fRef = 4E6CD54D07C54A7E0040176B;
@@ -1143,16 +1228,6 @@
 		rType = 0;
 		vrLen = 1005;
 		vrLoc = 31;
-	};
-	4E7022200887F8C700CBA928 = {
-		fRef = 4E5470A208329F8600CA0375;
-		isa = PBXTextBookmark;
-		name = "summation.c: 721";
-		rLen = 0;
-		rLoc = 19324;
-		rType = 0;
-		vrLen = 412;
-		vrLoc = 20963;
 	};
 	4E7022210887F8C700CBA928 = {
 		fRef = 4E5470A208329F8600CA0375;
@@ -1209,26 +1284,6 @@
 		vrLen = 1091;
 		vrLoc = 1391;
 	};
-	4E7692190852D4160088C885 = {
-		fRef = 4E6E40C6082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = "utils.h: error";
-		rLen = 0;
-		rLoc = 2905;
-		rType = 0;
-		vrLen = 878;
-		vrLoc = 2469;
-	};
-	4E7848BA08903A1600842C4C = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 436";
-		rLen = 0;
-		rLoc = 11378;
-		rType = 0;
-		vrLen = 675;
-		vrLoc = 11028;
-	};
 	4E8A26AA0838C11700216481 = {
 		fRef = 4E6CD5D607C555500040176B;
 		isa = PBXTextBookmark;
@@ -1256,21 +1311,11 @@
 		vrLen = 1463;
 		vrLoc = 7977;
 	};
-	4E8E5792083E4CA60061697E = {
-		fRef = 4E6E40C6082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = SWAPC;
-		rLen = 5;
-		rLoc = 272;
-		rType = 0;
-		vrLen = 624;
-		vrLoc = 75;
-	};
 	4E8F44930850B4800098CEFF = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 2703}}";
-			sepNavSelRange = "{0, 0}";
-			sepNavVisRect = "{{0, 0}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 2703}}";
+			sepNavSelRange = "{512, 0}";
+			sepNavVisRect = "{{0, 0}, {965, 482}}";
 		};
 	};
 	4E8F44940850B4800098CEFF = {
@@ -1367,16 +1412,6 @@
 			sepNavVisRect = "{{0, 0}, {912, 470}}";
 		};
 	};
-	4E8FDDEC088AC0FA0098D700 = {
-		fRef = 4E8F44930850B4800098CEFF;
-		isa = PBXTextBookmark;
-		name = "c2f.c: 1";
-		rLen = 0;
-		rLoc = 0;
-		rType = 0;
-		vrLen = 873;
-		vrLoc = 0;
-	};
 	4E8FDDF0088AC2F80098D700 = {
 		fRef = 4E8FDDEA088AC0F70098D700;
 		isa = PBXTextBookmark;
@@ -1386,16 +1421,6 @@
 		rType = 0;
 		vrLen = 130;
 		vrLoc = 0;
-	};
-	4E8FDDF1088AC2F80098D700 = {
-		fRef = 4E6CD54B07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = nfsft_precompute;
-		rLen = 16;
-		rLoc = 3287;
-		rType = 0;
-		vrLen = 864;
-		vrLoc = 2838;
 	};
 	4E8FDDF2088AC2F80098D700 = {
 		fRef = 4E6CD54607C54A7E0040176B;
@@ -1416,16 +1441,6 @@
 		rType = 0;
 		vrLen = 130;
 		vrLoc = 0;
-	};
-	4E8FDDF7088AC2F80098D700 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.c: 499";
-		rLen = 0;
-		rLoc = 13320;
-		rType = 0;
-		vrLen = 516;
-		vrLoc = 13091;
 	};
 	4E8FDDFC088AC2F80098D700 = {
 		fRef = 4E6CD54607C54A7E0040176B;
@@ -1456,16 +1471,6 @@
 		rType = 0;
 		vrLen = 635;
 		vrLoc = 1627;
-	};
-	4E8FDE19088AF3D40098D700 = {
-		fRef = 4E6CD54A07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "nfsft.c: 478";
-		rLen = 0;
-		rLoc = 13234;
-		rType = 0;
-		vrLen = 514;
-		vrLoc = 12844;
 	};
 	4E8FDE1B088AF3D40098D700 = {
 		fRef = 4E6CD5D707C555500040176B;
@@ -1520,16 +1525,6 @@
 		rType = 0;
 		vrLen = 578;
 		vrLoc = 1679;
-	};
-	4EA42B57087E6423004F81E3 = {
-		fRef = 4E6EA365083E95C9004C5D07;
-		isa = PBXTextBookmark;
-		name = "inverse.c: 239";
-		rLen = 0;
-		rLoc = 5685;
-		rType = 0;
-		vrLen = 743;
-		vrLoc = 3913;
 	};
 	4EAB55900879C3B700919EC9 = {
 		fRef = 4EE9EBCD0878767600880508;
@@ -1589,9 +1584,9 @@
 	};
 	4EAD69A2083BE07E00C61F13 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 8559}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 8559}}";
 			sepNavSelRange = "{11378, 0}";
-			sepNavVisRect = "{{0, 6736}, {912, 470}}";
+			sepNavVisRect = "{{0, 6735}, {965, 482}}";
 		};
 	};
 	4EB20A1E07D4B30C00FD1AB8 = {
@@ -1741,152 +1736,12 @@
 		vrLen = 539;
 		vrLoc = 0;
 	};
-	4ED469F80890F0D400F4E929 = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 436";
-		rLen = 0;
-		rLoc = 11378;
-		rType = 0;
-		vrLen = 668;
-		vrLoc = 11028;
-	};
-	4ED469F90890F0D400F4E929 = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 436";
-		rLen = 0;
-		rLoc = 11378;
-		rType = 0;
-		vrLen = 668;
-		vrLoc = 11028;
-	};
 	4ED469FC0890F0E100F4E929 = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 4783}}";
-			sepNavSelRange = "{3357, 0}";
-			sepNavVisRect = "{{0, 2174}, {912, 470}}";
+			sepNavIntBoundsRect = "{{0, 0}, {965, 6447}}";
+			sepNavSelRange = "{5612, 0}";
+			sepNavVisRect = "{{0, 3161}, {965, 482}}";
 		};
-	};
-	4ED469FD0890F17700F4E929 = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 436";
-		rLen = 0;
-		rLoc = 11378;
-		rType = 0;
-		vrLen = 668;
-		vrLoc = 11028;
-	};
-	4ED469FE0890F17700F4E929 = {
-		fRef = 4E5470A208329F8600CA0375;
-		isa = PBXTextBookmark;
-		name = "#ifdef HAVE_CONFIG_H\n#  include \"config.h\"\n#else\n#  error Need config.h\n#endif\n\n/* Auxilliary headers */\n#include <complex.h>\n#include <math.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <time.h>\n\n/* Library headers. */\n#include \"nfsft.h\"\n#include \"util.h\"\n#include \"../../nfft/utils.h\"\n\n/** The symbol of the Abel-Poisson kernel */\n#define SYMBOL_ABEL_POISSON(k,h) pow(h,k)\n/** The symbol of the singularity kernel */\n#define SYMBOL_SINGULARITY(k,h) (2.0/(2*k+1))*pow(h,k)\n\n/* Kernel types */\n/** Abel-Poisson kernel */\n#define KT_ABEL_POISSON (0)\n/** Singularity kernel */\n#define KT_SINGULARITY  (1)\n/** Locally supported kernel */\n#define KT_LOC_SUPP     (2)\n/** Gaussian kernel */\n#define KT_GAUSSIAN     (3)\n\n#define NO   (0)\n#define YES  (1)\n#define BOTH (2)\n\n/** Computes the inner product on \\f$\\mathbb{S}^2\\f$. */\ninline double innerProduct(const double phi1, const double theta1, \n                           const double phi2, const double theta2)\n{\n  return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);\n}\n\n/** Evaluates the Poisson kernel. */\ninline double poissonKernel(const double x, const double h)\n{\n \treturn (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);\n}\n\n/** Evaluates the singularity kernel. */\ninline double singularityKernel(const double x, const double h)\n{\n  return (1.0/(2*PI))/sqrt(1-2*h*x+h*h);\n}\n\n/** Evaluates the locally supported kernel. */\ninline double locSuppKernel(const double x, const double h, const double lambda)\n{\n \treturn (x<=h)?(0.0):(pow((x-h),lambda));\n}\n\n/** Evaluates the Gaussian kernel. */\ninline double gaussianKernel(const double x, const double rho)\n{\n \treturn exp(rho*(x-1));\n}\n\n/**\n * The main program.\n *\n * \\param argc The number of arguments\n * \\param argv An array containing the arguments as C-strings\n *\n * \\return Exit code \n */\nint main (int argc, char **argv)\n{  \n  /** An array containing the parameter sets for the current kernel. */\n  double **p;\n  /** An array containing the parameters \\f$M\\f$. */\n  int *m;\n  /** An array containing the parameters \\f$L\\f$ and \\f$D\\f$. */\n  int **ld;\n  /** Index variable for p */\n  int ip;\n  /** Index variable for m */\n  int im;\n  /** Index variable for l */\n  int ild;\n  /** Maximum index for p */\n  int ip_max;\n  /** Maximum index for m */\n  int im_max;\n  /** Maximum index for l */\n  int ild_max;\n\n  /** Number of testcases */\n  int tc_max;\n  /** Maximum \\f$M\\f$ for the current dataset */\n  int m_max;\n  /** Maximum \\f$L\\f$ for the current dataset */\n  int l_max;\n  /** Maximum \\f$D\\f$ for the current dataset */\n  int d_max;\n\tlong ld_max_prec;\n\tlong l_max_prec;\n  \n  /** Index variable for testcases. */\n  int tc;\n  /** The kernel type */\n  int kt;\n  int cutoff;\n  double threshold;\n  \n  /** Next greater power of two with respect to m_max */\n  int n_max;\n \t/** \n   * The relative error\n   * \n   * \\f[\n       \\frac{\\left\\|f-f_M\\right\\|_{\\infty}}{\\left\\|\\mathbf{b}\\right\\|}\n   * \\f]\n   */\n  double t_d, t_dp, t_fd, t_f;\n  double nfactor;\n  double temp;\n\tdouble err;\n\tdouble t;\n\tint precompute = NO;\n\tcomplex *ptr;\n\t\n  /** Weights \\f$\\left(b_l\\right)_{l=0}^{L-1}\\f$ */\n \tcomplex *b;\n  /** Fourier coefficients */\n  complex **f_hat;\n  /** Symbool coefficients */\n \tcomplex *a;\n  /** Target nodes */\n \tdouble *xi;\n  /** Source nodes */\n \tdouble *nu;\n  /** Approximate function values */\n \tcomplex *f_m;\n  /** Exact function values */\n  complex *f;\n  complex *prec;\n  /** NFSFT plan */\n \tnfsft_plan plan;\n  /** adjoint NFSFT plan */\n  nfsft_plan plan_adjoint;\n  \n \tint i,j,k,n,d,l,use_nfsft,use_nfft,nsymbols;\n\tlong index;\n\tint rinc;\n  \n  FILE *file_tex;\n  FILE *file_dat;\n  FILE *file_gaussian;\n  char filename_tex[100];\n  char filename_dat[100];\n  char filename_gaussian[100];\n\tdouble constant;\n\t \t\n  /* Read number of testcases. */\n  fscanf(stdin,\"testcases=%d\\n\",&tc_max);\n  \n  fprintf(stdout,\"Number of testcases: %d\\n\\n\",tc_max);\n  \n  /* Process testcases. */\n  for (tc = 0; tc < tc_max; tc++)\n  {\n    fprintf(stdout,\"Testcase %d:\\n\",tc);\n\n    fscanf(stdin,\"nfsft=%d\\n\",&use_nfsft);\n    if (use_nfsft != NO)\n  \t{\n      fprintf(stdout,\"  NFSFT = yes\\n\");\n      fscanf(stdin,\"nfft=%d\\n\",&use_nfft);\n      fprintf(stdout,\"  NFFT = %d\\n\",use_nfft);\n\t\t \tif (use_nfft != NO)\n      {\n        fprintf(stdout,\"  NFFT = yes\\n\");\n        fscanf(stdin,\"cutoff=%d\\n\",&cutoff);\n        fprintf(stdout,\"  Cutoff = %d\\n\",cutoff);\n\t\t\t   }\n      else\n      {\n        fprintf(stdout,\"  NFFT = no\\n\");\n        cutoff = 3;\n      }     \n        fscanf(stdin,\"threshold=%lf\\n\",&threshold);\n        fprintf(stdout,\"  Threshold = %E\\n\",threshold);\n  \t}\n\t  else\n\t  {\n      cutoff = 3;\n\t\t\tthreshold = 1000000000000.0;\n      fprintf(stdout,\"  NFSFT = no\\n\");\n\t  }\n\n    /* Initialize bandwidth bound. */\n    m_max = 0;\n    /* Initialize source node bound. */\n    l_max = 0;\n    /* Initialize target node bound. */\n    d_max = 0;\n\t\tld_max_prec = 0; \n\t\tl_max_prec = 0; \n    \n    /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP \n     * or KT_GAUSSIAN. */\n    fscanf(stdin,\"kernel=%d\\n\",&kt);\n\n    fprintf(stdout,\"  Kernel type: %d\\n\",kt);    \n    \n    fscanf(stdin,\"parameter_sets=%d\\n\",&ip_max);\n    p = (double**) malloc(ip_max*sizeof(double*));\n\n    fprintf(stdout,\"  Parameter sets: %d\\n\",ip_max);    \n    \n    switch (kt)\n    {\n      case KT_ABEL_POISSON:\n      case KT_SINGULARITY:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(1*sizeof(double));\n          fscanf(stdin,\"h=%lf\\n\",&p[ip][0]);\n          fprintf(stdout,\"    h = %lf\\n\",p[ip][0]);    \n        }\n\t\t\t  break;\n      case KT_GAUSSIAN:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(1*sizeof(double));\n          fscanf(stdin,\"sigma=%lf\\n\",&p[ip][0]);\n          fprintf(stdout,\"    sigma = %lf\\n\",p[ip][0]);    \n        }\n        break;\n      case KT_LOC_SUPP:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(2*sizeof(double));\n          fscanf(stdin,\"h=%lf \",&p[ip][0]);\n          fscanf(stdin,\"lambda=%lf\\n\",&p[ip][1]);\n          fprintf(stdout,\"    h = %lf, lambda = %lf\\n\",p[ip][0],p[ip][1]);    \n        }\n        break;\n    };\n    \n    /* Read number of bandwidths. */\n    fscanf(stdin,\"bandwidths=%d\\n\",&im_max);\n    m = (int*) malloc(im_max*sizeof(int));\n\n    fprintf(stdout,\"  Bandwidths: %d\\n\",im_max);    \n    \n    /* Read bandwidths. */\n    for (im = 0; im < im_max; im++)\n    {  \n      fscanf(stdin,\"M=%d\\n\",&m[im]);\n      m_max = max(m_max,m[im]);\n      fprintf(stdout,\"    M = %d\\n\",m[im]);    \n    }\n    \n    /* Read number of nodes specifications. */\n    fscanf(stdin,\"node_sets=%d\\n\",&ild_max);\n    ld = (int**) malloc(ild_max*sizeof(int*));\n    \n    fprintf(stdout,\"  Nodes: %d\\n\",ild_max);    \n\n  \tld_max_prec = 0;\n  \tl_max_prec = 0;\n    for (ild = 0; ild < ild_max; ild++)\n    {  \n      ld[ild] = (int*) malloc(5*sizeof(int));\n      fscanf(stdin,\"L=%d \",&ld[ild][0]);\n      l_max = max(l_max,ld[ild][0]);\n      fscanf(stdin,\"D=%d \",&ld[ild][1]);\n      d_max = max(d_max,ld[ild][1]);\n      fscanf(stdin,\"compare=%d \",&ld[ild][2]);\n      fprintf(stdout,\"    L = %d, D = %d, compare = %d\",ld[ild][0],ld[ild][1],ld[ild][2]);    \n\t\t\tif (ld[ild][2] == YES)\n\t\t\t{\n        fscanf(stdin,\"precomputed=%d\\n\",&ld[ild][3]);\n        fscanf(stdin,\"repetitions=%d\\n\",&ld[ild][4]);\n        fprintf(stdout,\", precomputed = %d, %repetitions = %d\",ld[ild][3],ld[ild][4]);    \n  \t\t\tif (ld[ild][3] == YES)\n        {\n\t\t\t\t  ld_max_prec = max(ld_max_prec,ld[ild][0]*ld[ild][1]);\n\t\t\t\t  l_max_prec = max(l_max_prec,ld[ild][0]);\n\t\t\t    precompute = YES;\n\t\t\t  }\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t  ld[ild][4] = 1;\n\t\t\t}\n\t\t\tfprintf(stdout,\"\\n\");\n    }\n    \n    fprintf(stdout,\"  Maximum M = %d\\n\",m_max);    \n    fprintf(stdout,\"  Maximum L = %d\\n\",l_max);    \n    fprintf(stdout,\"  Maximum D = %d\\n\",d_max);    \n    \n    n_max = 1<<ngpt(m_max);\t\n\n    /** Allocate data structures. */\n    b = (complex*) malloc(l_max*sizeof(complex));\n    nu = (double*) malloc(2*l_max*sizeof(double));\n    f_hat = (complex**) malloc((2*m_max+1)*sizeof(complex*));\n    for (n = -m_max; n <= m_max; n++)\n    {\n      f_hat[n+m_max] = (complex*) malloc((n_max+1)*sizeof(complex));\n    }  \n    a = (complex*) malloc((m_max+1)*sizeof(complex));\n    xi = (double*) malloc(2*d_max*sizeof(double));\n    f_m = (complex*) malloc(d_max*sizeof(complex));\n    f = (complex*) malloc(d_max*sizeof(complex));\n    if (precompute == YES)\n\t\t{\n  \t\tfprintf(stderr,\"reached! %d\\n\",ld_max_prec);\n\t  \tfflush(stderr);\n\t\t  prec = (complex*) malloc(ld_max_prec*sizeof(complex));\n\t\t}\n    \n\t\t\n    /* Generate random source nodes and weights. */\n    for (l = 0; l < l_max; l++)\n    {\n      b[l] = /*1.0;*/drand48() - 0.5;\n      nu[2*l] = /*0.0;*/drand48() - 0.5;\n      nu[2*l+1] = /*0.25;*/0.5*drand48();\n      /*b[l] = 1.0;\n      nu[2*l] = 0.0;\n      nu[2*l+1] = 0.25;*/\n    }\n    \n    /* Generate random target nodes. */\n    for (d = 0; d < d_max; d++)\n    {\n      xi[2*d] = /*(d/(double)d_max)-0.5;*/drand48() - 0.5;\n      xi[2*d+1] = /*0.25;*/0.5*drand48();\n      /*xi[2*d] = (d/(double)d_max)-0.5;\n      xi[2*d+1] = 0.25;*/\n    }\n\n    sprintf(filename_tex,\"testcase%d.tex\",tc);\n    sprintf(filename_dat,\"testcase%d.dat\",tc);\n    file_tex = fopen(filename_tex,\"w\");\n    file_dat = fopen(filename_dat,\"w\");\n    fprintf(file_dat,\"kernel=%d\\n\",kt);\n    fprintf(file_dat,\"nfsft=%d\\n\",use_nfsft);\n\t\tif (use_nfsft != NO)\n\t\t{\n      fprintf(file_dat,\"nfft=%d\\n\",use_nfsft);\n      fprintf(file_dat,\"cutoff=%d\\n\",cutoff);\n      fprintf(file_dat,\"threshold=%lf\\n\",threshold);\n\t\t}\n    fprintf(file_tex,\"\\\\begin{tabular}{l|l|l|l|l|l|l|l}\\n\");\n    fprintf(file_tex,\"$L$ & $D$ & direct algorithm & with precomputation & fast summation, NDSFT & fast summation, NFSFT & error $E_{\\\\infty}$\\\\\\\\\\\\hline\\n\");\n    fclose(file_tex);\n\t\tfclose(file_dat);\n    \n    nfsft_precompute(m_max,threshold,0U);\n    \n    for (ip = 0; ip < ip_max; ip++)\n    {\n      fprintf(stdout,\"  Parameter set %d: \",ip);\n      switch (kt)\n      {\n        case KT_ABEL_POISSON:\n          fprintf(stdout,\" h = %lf\\n\",p[ip][0]);\n          break;\n        case KT_SINGULARITY:\n          fprintf(stdout,\" h = %lf\\n\",p[ip][0]);\n          break;\n        case KT_LOC_SUPP:\n          fprintf(stdout,\" h = %lf, lambda = %lf\\n\",p[ip][0],p[ip][1]);\n          break;\n        case KT_GAUSSIAN:\n          fprintf(stdout,\" rho = %lf\\n\",p[ip][0]);\n          break;\n      }          \n      \n      /* Kernel coeffcients up to m_max */\n\t\t\tswitch (kt)\n\t\t\t{\n\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\ta[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);            \n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\ta[k] = SYMBOL_SINGULARITY(k,p[ip][0]);\n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\tif (k == 0)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = 1.0;\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse if (k == 1)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tbreak;                \n\t\t\t\tcase KT_GAUSSIAN:\n          sprintf(filename_gaussian,\"gaussian%.0f.dat\",p[ip][0]);\n\t\t\t\t\tfprintf(stderr,\"filename = %s\\n\",filename_gaussian);\n          file_gaussian = fopen(filename_gaussian,\"r\");\n\t\t\t\t  if (file_gaussian != NULL)\n\t\t\t\t\t{\n\t\t\t\t\t  fscanf(file_gaussian,\"%d\\n\",&nsymbols);\n\t\t\t\t\t\tfor (k = 0; k <= min(nsymbols,m_max); k++)\n\t\t\t\t\t\t{\n  \t\t\t\t\t  fscanf(file_gaussian,\"%lf\\n\",&a[k]);\n  \t\t\t\t\t  fprintf(stderr,\"a[%d] = %E\\n\",k,a[k]);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tfor (k = nsymbols+1; k <= m_max; k++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t  a[k] = 0.0;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  fprintf(stderr,\"Couldn't open file %s for reading!\\n\",filename_gaussian);\n\t\t\t\t\t}\n\t\t\t\t\tbreak;                \n\t\t\t}\n\t\t\t\n      for (k = 0; k <= m_max; k++)\n      {\n        a[k] *= (2*k+1)/(4*PI);\n      }\n      \n      for (ild = 0; ild < ild_max; ild++)\n      {               \n        fprintf(stdout,\"    L = %d, D = %d, ld_max_prec = %d, l_max_prec = %d\\n\",ld[ild][0],ld[ild][1],ld_max_prec,l_max_prec);\n        if (ld[ild][2] != NO)\n        {\n\t\t\t\t  /* Check if direct algorithm with precomputation should be tested. */\n  \t\t\t\tif (ld[ild][3] != NO)\n\t  \t\t\t{ \n  \t\t\t\t\tt_dp = 0.0;\n\t\t\t\t\t  for (i = 0; i < ld[ild][4]; i++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tptr = prec;\n\t\t\t\t\t\t\trinc = l_max_prec-ld[ild][0];\n\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\tswitch (kt)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = poissonKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = singularityKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = locSuppKernel(temp,p[ip][0],p[ip][1]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;  \n\t\t\t\t\t\t\t\t\t\tcase KT_GAUSSIAN:\t              \n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = gaussianKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tptr = prec;\n\t\t\t\t\t\t\trinc = l_max_prec-ld[ild][0];\n\t\t\t\t\t\t\tif (kt == KT_LOC_SUPP)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconstant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*(*ptr++);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tf[d] *= constant;\n\t\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tt_dp += second() - t;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\telse\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*(*ptr++);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tt_dp += second() - t;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tt_dp = t_dp/((double)ld[ild][4]);\n\t\t\t\t\t\tprintf(\"t_dp = %f\\n\",t_dp);\n\t\t  \t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  t_dp = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\tt_d = 0.0;\n          for (i = 0; i < ld[ild][4]; i++)\n\t\t\t\t\t{\n\t\t\t\t\t\tswitch (kt)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*poissonKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*singularityKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\t\t\t\tconstant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tf[d] *= constant;\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;  \n\t\t\t\t\t\t\tcase KT_GAUSSIAN:\t              \n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*gaussianKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d = second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}  \n\t\t\t\t\t}\n\t\t\t\t\tt_d = t_d/((double)ld[ild][4]);\n  \t\t\t\tprintf(\"t_d = %f\\n\",t_d);\n        }\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t  t_d = -1.0;\n\t\t\t\t\tt_dp = -1.0;\n\t\t\t\t}\n        \n        \n        for (im = 0; im < im_max; im++)\n        {\n          fprintf(stderr,\"      M = %d:\\n \",m[im]);\n          \n          /* Init transform plans. */\n          plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);\n          plan = nfsft_init_guru(m[im],ld[ild][1],f_hat,xi,f_m,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);\n          \n\t\t\t\t\tif (use_nfsft == BOTH)\n\t\t\t\t\t{\n  \t\t\t\t\tt_fd = 0.0;\n            for (i = 0; i < ld[ild][4]; i++)\n\t\t  \t\t\t{\n\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\tndsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t\t/* Multiplication with diagonal matrix. */\n\t\t\t\t\t\t\tfor (k = 0; k <= m[im]; k++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tfor (n = -k; n <= k; n++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf_hat[n+m[im]][k] *= a[k];\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tndsft_trafo(plan);\n\t\t\t\t\t\t\tt_fd += second() - t;\n\t\t\t\t\t\t}\n  \t\t\t\t\tt_fd = t_fd/((double)ld[ild][4]);\n\t\t\t\t\t\tprintf(\"t_fd = %f\\n\",t_fd);\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  t_fd = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\tt_f = 0.0;\n          for (i = 0; i < ld[ild][4]; i++)\n    \t\t\t{\n\t\t\t\t\t\t/* Adjoint transform */\n\t\t\t\t\t\tt = second();\n\t\t\t\t\t\tif (use_nfsft != NO)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tnfsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tndsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t/* Multiplication with diagonal matrix. */\n\t\t\t\t\t\tfor (k = 0; k <= m[im]; k++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tfor (n = -k; n <= k; n++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tf_hat[n+m[im]][k] *= a[k];\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t/* Forward transform */\n\t\t\t\t\t\tif (use_nfsft != 0)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tnfsft_trafo(plan);\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tndsft_trafo(plan);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tt_f += second() - t;\n\t\t\t\t\t}\n \t\t\t\t\tt_f = t_f/((double)ld[ild][4]);\n\t\t\t\t\tprintf(\"t_f = %f\\n\",t_f);\n\n          /* Finalize plans */\n          nfsft_finalize(plan_adjoint);\n          nfsft_finalize(plan);\n            \n          /*for (d = 0; d < ld[ild][1]; d++)\n          {\n            fprintf(stderr,\"%+5.16f, %+5.16f, %+.3E\\n\",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));\n            fflush(stderr);\n          }*/\n\t\t\t\t\t/*fprintf(stderr,\"\\n\");\n          for (l = 0; l < ld[ild][0]; l++)\n          {\n            fprintf(stderr,\"%+5.16f\\n\",creal(b[l]));\n            fflush(stderr);\n          }*/\n\t\t\t\t\t\n\t\t\t\t\tif (ld[ild][2] != NO)\n\t\t\t\t\t{\n            err = error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]);\n  \t\t\t\t\tfprintf(stderr,\"err = %E\\n\",error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  err = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t        //fprintf(stderr,\"||b||_1 = %E, L = %d\\n\",norm_complex_1(b,ld[ild][0]),ld[ild][0]);\n\n          file_tex = fopen(filename_tex,\"a\");\n          file_dat = fopen(filename_dat,\"a\");\n          \n          fprintf(file_tex,\"%6d & %6d & %.1E & %.1E & %.1E & %.1E & %.1E\\\\\\\\\\n\",ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n          if (ld[ild][2] != 0)\n          {\n            if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)\n            {\n              fprintf(file_dat,\"%.2f %3d %6d %6d %5.2f %5.2f %.4E\\n\",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n            }\n            else if (kt == KT_LOC_SUPP)\n            {\n              fprintf(file_dat,\"%.2f %2f %3d %6d %6d %5.2f %5.2f %.4E\\n\",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n            }\n          }\n          else\n          {\n            if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)\n            {\n              fprintf(file_dat,\"%.2f %3d %6d %6d -1.0 %5.2f -1E0\\n\",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_f);\n            }\n            else if (kt == KT_LOC_SUPP)\n            {\n              fprintf(file_dat,\"%.2f %2f %3d %6d %6d -1.0 %5.2f -1E0 -1E0\\n\",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_f);\n            }\n          }\n  \t\t    fclose(file_tex);\n\t      \tfclose(file_dat);\n        }\n      }\n      fprintf(file_tex,\"\\\\hline\\n\");\n    }\n    \n    file_tex = fopen(filename_tex,\"a\");\n    file_dat = fopen(filename_dat,\"a\");\n    fprintf(file_tex,\"\\\\end{tabular}\\n\");\n    fclose(file_tex);\n    fclose(file_dat);\n    \n    nfsft_forget();\n    \n    if (precompute == YES)\n\t\t{\n\t\t  free(prec);\n\t\t}\n    free(f);\n    free(f_m);\n    free(xi);\n    free(nu);\n    free(a);\n    for (n = -m_max; n <= m_max; n++)\n    {\n      free(f_hat[n+m_max]);\n    }   \n    free(f_hat);\n    free(b);\n    \n    for (ild = 0; ild < ild_max; ild++)\n    {\n      free(ld[ild]);\n    }  \n    free(ld);\n    \n    free(m);\n\n    for (ip = 0; ip < ip_max; ip++)\n    {\n      free(p[ip]);\n    }  \n    free(p);\n    \n    fprintf(stdout,\"\\n\");\n  }  \n  \n  return EXIT_SUCCESS;\n}\n";
-		rLen = 20514;
-		rLoc = 861;
-		rType = 0;
-		vrLen = 412;
-		vrLoc = 20963;
-	};
-	4ED469FF0890F17700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 47";
-		rLen = 0;
-		rLoc = 1218;
-		rType = 0;
-		vrLen = 543;
-		vrLoc = 1031;
-	};
-	4ED46A000890F17700F4E929 = {
-		fRef = 4EAD69A2083BE07E00C61F13;
-		isa = PBXTextBookmark;
-		name = "accuracy.c: 436";
-		rLen = 0;
-		rLoc = 11378;
-		rType = 0;
-		vrLen = 668;
-		vrLoc = 11028;
-	};
-	4ED46A010890F17700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 47";
-		rLen = 0;
-		rLoc = 1218;
-		rType = 0;
-		vrLen = 556;
-		vrLoc = 1031;
-	};
-	4ED46A020890F17700F4E929 = {
-		fRef = 4E5470A208329F8600CA0375;
-		isa = PBXTextBookmark;
-		name = "#ifdef HAVE_CONFIG_H\n#  include \"config.h\"\n#else\n#  error Need config.h\n#endif\n\n/* Auxilliary headers */\n#include <complex.h>\n#include <math.h>\n#include <stdlib.h>\n#include <stdio.h>\n#include <time.h>\n\n/* Library headers. */\n#include \"nfsft.h\"\n#include \"util.h\"\n#include \"../../nfft/utils.h\"\n\n/** The symbol of the Abel-Poisson kernel */\n#define SYMBOL_ABEL_POISSON(k,h) pow(h,k)\n/** The symbol of the singularity kernel */\n#define SYMBOL_SINGULARITY(k,h) (2.0/(2*k+1))*pow(h,k)\n\n/* Kernel types */\n/** Abel-Poisson kernel */\n#define KT_ABEL_POISSON (0)\n/** Singularity kernel */\n#define KT_SINGULARITY  (1)\n/** Locally supported kernel */\n#define KT_LOC_SUPP     (2)\n/** Gaussian kernel */\n#define KT_GAUSSIAN     (3)\n\n#define NO   (0)\n#define YES  (1)\n#define BOTH (2)\n\n/** Computes the inner product on \\f$\\mathbb{S}^2\\f$. */\ninline double innerProduct(const double phi1, const double theta1, \n                           const double phi2, const double theta2)\n{\n  return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);\n}\n\n/** Evaluates the Poisson kernel. */\ninline double poissonKernel(const double x, const double h)\n{\n \treturn (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);\n}\n\n/** Evaluates the singularity kernel. */\ninline double singularityKernel(const double x, const double h)\n{\n  return (1.0/(2*PI))/sqrt(1-2*h*x+h*h);\n}\n\n/** Evaluates the locally supported kernel. */\ninline double locSuppKernel(const double x, const double h, const double lambda)\n{\n \treturn (x<=h)?(0.0):(pow((x-h),lambda));\n}\n\n/** Evaluates the Gaussian kernel. */\ninline double gaussianKernel(const double x, const double rho)\n{\n \treturn exp(rho*(x-1));\n}\n\n/**\n * The main program.\n *\n * \\param argc The number of arguments\n * \\param argv An array containing the arguments as C-strings\n *\n * \\return Exit code \n */\nint main (int argc, char **argv)\n{  \n  /** An array containing the parameter sets for the current kernel. */\n  double **p;\n  /** An array containing the parameters \\f$M\\f$. */\n  int *m;\n  /** An array containing the parameters \\f$L\\f$ and \\f$D\\f$. */\n  int **ld;\n  /** Index variable for p */\n  int ip;\n  /** Index variable for m */\n  int im;\n  /** Index variable for l */\n  int ild;\n  /** Maximum index for p */\n  int ip_max;\n  /** Maximum index for m */\n  int im_max;\n  /** Maximum index for l */\n  int ild_max;\n\n  /** Number of testcases */\n  int tc_max;\n  /** Maximum \\f$M\\f$ for the current dataset */\n  int m_max;\n  /** Maximum \\f$L\\f$ for the current dataset */\n  int l_max;\n  /** Maximum \\f$D\\f$ for the current dataset */\n  int d_max;\n\tlong ld_max_prec;\n\tlong l_max_prec;\n  \n  /** Index variable for testcases. */\n  int tc;\n  /** The kernel type */\n  int kt;\n  int cutoff;\n  double threshold;\n  \n  /** Next greater power of two with respect to m_max */\n  int n_max;\n \t/** \n   * The relative error\n   * \n   * \\f[\n       \\frac{\\left\\|f-f_M\\right\\|_{\\infty}}{\\left\\|\\mathbf{b}\\right\\|}\n   * \\f]\n   */\n  double t_d, t_dp, t_fd, t_f;\n  double nfactor;\n  double temp;\n\tdouble err;\n\tdouble t;\n\tint precompute = NO;\n\tcomplex *ptr;\n\t\n  /** Weights \\f$\\left(b_l\\right)_{l=0}^{L-1}\\f$ */\n \tcomplex *b;\n  /** Fourier coefficients */\n  complex **f_hat;\n  /** Symbool coefficients */\n \tcomplex *a;\n  /** Target nodes */\n \tdouble *xi;\n  /** Source nodes */\n \tdouble *nu;\n  /** Approximate function values */\n \tcomplex *f_m;\n  /** Exact function values */\n  complex *f;\n  complex *prec;\n  /** NFSFT plan */\n \tnfsft_plan plan;\n  /** adjoint NFSFT plan */\n  nfsft_plan plan_adjoint;\n  \n \tint i,j,k,n,d,l,use_nfsft,use_nfft,nsymbols;\n\tlong index;\n\tint rinc;\n  \n  FILE *file_tex;\n  FILE *file_dat;\n  FILE *file_gaussian;\n  char filename_tex[100];\n  char filename_dat[100];\n  char filename_gaussian[100];\n\tdouble constant;\n\t \t\n  /* Read number of testcases. */\n  fscanf(stdin,\"testcases=%d\\n\",&tc_max);\n  \n  fprintf(stdout,\"Number of testcases: %d\\n\\n\",tc_max);\n  \n  /* Process testcases. */\n  for (tc = 0; tc < tc_max; tc++)\n  {\n    fprintf(stdout,\"Testcase %d:\\n\",tc);\n\n    fscanf(stdin,\"nfsft=%d\\n\",&use_nfsft);\n    if (use_nfsft != NO)\n  \t{\n      fprintf(stdout,\"  NFSFT = yes\\n\");\n      fscanf(stdin,\"nfft=%d\\n\",&use_nfft);\n      fprintf(stdout,\"  NFFT = %d\\n\",use_nfft);\n\t\t \tif (use_nfft != NO)\n      {\n        fprintf(stdout,\"  NFFT = yes\\n\");\n        fscanf(stdin,\"cutoff=%d\\n\",&cutoff);\n        fprintf(stdout,\"  Cutoff = %d\\n\",cutoff);\n\t\t\t   }\n      else\n      {\n        fprintf(stdout,\"  NFFT = no\\n\");\n        cutoff = 3;\n      }     \n        fscanf(stdin,\"threshold=%lf\\n\",&threshold);\n        fprintf(stdout,\"  Threshold = %E\\n\",threshold);\n  \t}\n\t  else\n\t  {\n      cutoff = 3;\n\t\t\tthreshold = 1000000000000.0;\n      fprintf(stdout,\"  NFSFT = no\\n\");\n\t  }\n\n    /* Initialize bandwidth bound. */\n    m_max = 0;\n    /* Initialize source node bound. */\n    l_max = 0;\n    /* Initialize target node bound. */\n    d_max = 0;\n\t\tld_max_prec = 0; \n\t\tl_max_prec = 0; \n    \n    /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP \n     * or KT_GAUSSIAN. */\n    fscanf(stdin,\"kernel=%d\\n\",&kt);\n\n    fprintf(stdout,\"  Kernel type: %d\\n\",kt);    \n    \n    fscanf(stdin,\"parameter_sets=%d\\n\",&ip_max);\n    p = (double**) malloc(ip_max*sizeof(double*));\n\n    fprintf(stdout,\"  Parameter sets: %d\\n\",ip_max);    \n    \n    switch (kt)\n    {\n      case KT_ABEL_POISSON:\n      case KT_SINGULARITY:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(1*sizeof(double));\n          fscanf(stdin,\"h=%lf\\n\",&p[ip][0]);\n          fprintf(stdout,\"    h = %lf\\n\",p[ip][0]);    \n        }\n\t\t\t  break;\n      case KT_GAUSSIAN:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(1*sizeof(double));\n          fscanf(stdin,\"sigma=%lf\\n\",&p[ip][0]);\n          fprintf(stdout,\"    sigma = %lf\\n\",p[ip][0]);    \n        }\n        break;\n      case KT_LOC_SUPP:\n        for (ip = 0; ip < ip_max; ip++)\n        {  \n          p[ip] = (double*) malloc(2*sizeof(double));\n          fscanf(stdin,\"h=%lf \",&p[ip][0]);\n          fscanf(stdin,\"lambda=%lf\\n\",&p[ip][1]);\n          fprintf(stdout,\"    h = %lf, lambda = %lf\\n\",p[ip][0],p[ip][1]);    \n        }\n        break;\n    };\n    \n    /* Read number of bandwidths. */\n    fscanf(stdin,\"bandwidths=%d\\n\",&im_max);\n    m = (int*) malloc(im_max*sizeof(int));\n\n    fprintf(stdout,\"  Bandwidths: %d\\n\",im_max);    \n    \n    /* Read bandwidths. */\n    for (im = 0; im < im_max; im++)\n    {  \n      fscanf(stdin,\"M=%d\\n\",&m[im]);\n      m_max = max(m_max,m[im]);\n      fprintf(stdout,\"    M = %d\\n\",m[im]);    \n    }\n    \n    /* Read number of nodes specifications. */\n    fscanf(stdin,\"node_sets=%d\\n\",&ild_max);\n    ld = (int**) malloc(ild_max*sizeof(int*));\n    \n    fprintf(stdout,\"  Nodes: %d\\n\",ild_max);    \n\n  \tld_max_prec = 0;\n  \tl_max_prec = 0;\n    for (ild = 0; ild < ild_max; ild++)\n    {  \n      ld[ild] = (int*) malloc(5*sizeof(int));\n      fscanf(stdin,\"L=%d \",&ld[ild][0]);\n      l_max = max(l_max,ld[ild][0]);\n      fscanf(stdin,\"D=%d \",&ld[ild][1]);\n      d_max = max(d_max,ld[ild][1]);\n      fscanf(stdin,\"compare=%d \",&ld[ild][2]);\n      fprintf(stdout,\"    L = %d, D = %d, compare = %d\",ld[ild][0],ld[ild][1],ld[ild][2]);    \n\t\t\tif (ld[ild][2] == YES)\n\t\t\t{\n        fscanf(stdin,\"precomputed=%d\\n\",&ld[ild][3]);\n        fscanf(stdin,\"repetitions=%d\\n\",&ld[ild][4]);\n        fprintf(stdout,\", precomputed = %d, %repetitions = %d\",ld[ild][3],ld[ild][4]);    \n  \t\t\tif (ld[ild][3] == YES)\n        {\n\t\t\t\t  ld_max_prec = max(ld_max_prec,ld[ild][0]*ld[ild][1]);\n\t\t\t\t  l_max_prec = max(l_max_prec,ld[ild][0]);\n\t\t\t    precompute = YES;\n\t\t\t  }\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t  ld[ild][4] = 1;\n\t\t\t}\n\t\t\tfprintf(stdout,\"\\n\");\n    }\n    \n    fprintf(stdout,\"  Maximum M = %d\\n\",m_max);    \n    fprintf(stdout,\"  Maximum L = %d\\n\",l_max);    \n    fprintf(stdout,\"  Maximum D = %d\\n\",d_max);    \n    \n    n_max = 1<<ngpt(m_max);\t\n\n    /** Allocate data structures. */\n    b = (complex*) malloc(l_max*sizeof(complex));\n    nu = (double*) malloc(2*l_max*sizeof(double));\n    f_hat = (complex**) malloc((2*m_max+1)*sizeof(complex*));\n    for (n = -m_max; n <= m_max; n++)\n    {\n      f_hat[n+m_max] = (complex*) malloc((n_max+1)*sizeof(complex));\n    }  \n    a = (complex*) malloc((m_max+1)*sizeof(complex));\n    xi = (double*) malloc(2*d_max*sizeof(double));\n    f_m = (complex*) malloc(d_max*sizeof(complex));\n    f = (complex*) malloc(d_max*sizeof(complex));\n    if (precompute == YES)\n\t\t{\n  \t\tfprintf(stderr,\"reached! %d\\n\",ld_max_prec);\n\t  \tfflush(stderr);\n\t\t  prec = (complex*) malloc(ld_max_prec*sizeof(complex));\n\t\t}\n    \n\t\t\n    /* Generate random source nodes and weights. */\n    for (l = 0; l < l_max; l++)\n    {\n      b[l] = /*1.0;*/drand48() - 0.5;\n      nu[2*l] = /*0.0;*/drand48() - 0.5;\n      nu[2*l+1] = /*0.25;*/0.5*drand48();\n      /*b[l] = 1.0;\n      nu[2*l] = 0.0;\n      nu[2*l+1] = 0.25;*/\n    }\n    \n    /* Generate random target nodes. */\n    for (d = 0; d < d_max; d++)\n    {\n      xi[2*d] = /*(d/(double)d_max)-0.5;*/drand48() - 0.5;\n      xi[2*d+1] = /*0.25;*/0.5*drand48();\n      /*xi[2*d] = (d/(double)d_max)-0.5;\n      xi[2*d+1] = 0.25;*/\n    }\n\n    sprintf(filename_tex,\"testcase%d.tex\",tc);\n    sprintf(filename_dat,\"testcase%d.dat\",tc);\n    file_tex = fopen(filename_tex,\"w\");\n    file_dat = fopen(filename_dat,\"w\");\n    fprintf(file_dat,\"kernel=%d\\n\",kt);\n    fprintf(file_dat,\"nfsft=%d\\n\",use_nfsft);\n\t\tif (use_nfsft != NO)\n\t\t{\n      fprintf(file_dat,\"nfft=%d\\n\",use_nfsft);\n      fprintf(file_dat,\"cutoff=%d\\n\",cutoff);\n      fprintf(file_dat,\"threshold=%lf\\n\",threshold);\n\t\t}\n    fprintf(file_tex,\"\\\\begin{tabular}{l|l|l|l|l|l|l|l}\\n\");\n    fprintf(file_tex,\"$L$ & $D$ & direct algorithm & with precomputation & fast summation, NDSFT & fast summation, NFSFT & error $E_{\\\\infty}$\\\\\\\\\\\\hline\\n\");\n    fclose(file_tex);\n\t\tfclose(file_dat);\n    \n    nfsft_precompute(m_max,threshold,0U);\n    \n    for (ip = 0; ip < ip_max; ip++)\n    {\n      fprintf(stdout,\"  Parameter set %d: \",ip);\n      switch (kt)\n      {\n        case KT_ABEL_POISSON:\n          fprintf(stdout,\" h = %lf\\n\",p[ip][0]);\n          break;\n        case KT_SINGULARITY:\n          fprintf(stdout,\" h = %lf\\n\",p[ip][0]);\n          break;\n        case KT_LOC_SUPP:\n          fprintf(stdout,\" h = %lf, lambda = %lf\\n\",p[ip][0],p[ip][1]);\n          break;\n        case KT_GAUSSIAN:\n          fprintf(stdout,\" rho = %lf\\n\",p[ip][0]);\n          break;\n      }          \n      \n      /* Kernel coeffcients up to m_max */\n\t\t\tswitch (kt)\n\t\t\t{\n\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\ta[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);            \n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\ta[k] = SYMBOL_SINGULARITY(k,p[ip][0]);\n\t\t\t\t\t}\n\t\t\t\t\tbreak;\n\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\tfor (k = 0; k <= m_max; k++)\n\t\t\t\t\t{        \n\t\t\t\t\t\tif (k == 0)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = 1.0;\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse if (k == 1)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\ta[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tbreak;                \n\t\t\t\tcase KT_GAUSSIAN:\n          sprintf(filename_gaussian,\"gaussian%.0f.dat\",p[ip][0]);\n\t\t\t\t\tfprintf(stderr,\"filename = %s\\n\",filename_gaussian);\n          file_gaussian = fopen(filename_gaussian,\"r\");\n\t\t\t\t  if (file_gaussian != NULL)\n\t\t\t\t\t{\n\t\t\t\t\t  fscanf(file_gaussian,\"%d\\n\",&nsymbols);\n\t\t\t\t\t\tfor (k = 0; k <= min(nsymbols,m_max); k++)\n\t\t\t\t\t\t{\n  \t\t\t\t\t  fscanf(file_gaussian,\"%lf\\n\",&a[k]);\n  \t\t\t\t\t  fprintf(stderr,\"a[%d] = %E\\n\",k,a[k]);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tfor (k = nsymbols+1; k <= m_max; k++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t  a[k] = 0.0;\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  fprintf(stderr,\"Couldn't open file %s for reading!\\n\",filename_gaussian);\n\t\t\t\t\t}\n\t\t\t\t\tbreak;                \n\t\t\t}\n\t\t\t\n      for (k = 0; k <= m_max; k++)\n      {\n        a[k] *= (2*k+1)/(4*PI);\n      }\n      \n      for (ild = 0; ild < ild_max; ild++)\n      {               \n        fprintf(stdout,\"    L = %d, D = %d, ld_max_prec = %d, l_max_prec = %d\\n\",ld[ild][0],ld[ild][1],ld_max_prec,l_max_prec);\n        if (ld[ild][2] != NO)\n        {\n\t\t\t\t  /* Check if direct algorithm with precomputation should be tested. */\n  \t\t\t\tif (ld[ild][3] != NO)\n\t  \t\t\t{ \n  \t\t\t\t\tt_dp = 0.0;\n\t\t\t\t\t  for (i = 0; i < ld[ild][4]; i++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tptr = prec;\n\t\t\t\t\t\t\trinc = l_max_prec-ld[ild][0];\n\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\tswitch (kt)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = poissonKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = singularityKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = locSuppKernel(temp,p[ip][0],p[ip][1]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;  \n\t\t\t\t\t\t\t\t\t\tcase KT_GAUSSIAN:\t              \n\t\t\t\t\t\t\t\t\t\t\t*ptr++ = gaussianKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tptr = prec;\n\t\t\t\t\t\t\trinc = l_max_prec-ld[ild][0];\n\t\t\t\t\t\t\tif (kt == KT_LOC_SUPP)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tconstant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*(*ptr++);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tf[d] *= constant;\n\t\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tt_dp += second() - t;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\telse\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*(*ptr++);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tptr += rinc;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tt_dp += second() - t;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tt_dp = t_dp/((double)ld[ild][4]);\n\t\t\t\t\t\tprintf(\"t_dp = %f\\n\",t_dp);\n\t\t  \t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  t_dp = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\tt_d = 0.0;\n          for (i = 0; i < ld[ild][4]; i++)\n\t\t\t\t\t{\n\t\t\t\t\t\tswitch (kt)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tcase KT_ABEL_POISSON:\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*poissonKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\tcase KT_SINGULARITY:\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*singularityKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\tcase KT_LOC_SUPP:\n\t\t\t\t\t\t\t\tconstant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));\n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\tf[d] *= constant;\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d += second() - t;\n\t\t\t\t\t\t\t\tbreak;  \n\t\t\t\t\t\t\tcase KT_GAUSSIAN:\t              \n\t\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\t\tfor (d = 0; d < ld[ild][1]; d++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf[d] = 0.0;\n\t\t\t\t\t\t\t\t\tfor (l = 0; l < ld[ild][0]; l++)\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\ttemp = innerProduct(2*PI*nu[2*l],2*PI*nu[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);\n\t\t\t\t\t\t\t\t\t\tf[d] += b[l]*gaussianKernel(temp,p[ip][0]);\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t} \n\t\t\t\t\t\t\t\tt_d = second() - t;\n\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t}  \n\t\t\t\t\t}\n\t\t\t\t\tt_d = t_d/((double)ld[ild][4]);\n  \t\t\t\tprintf(\"t_d = %f\\n\",t_d);\n        }\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t  t_d = -1.0;\n\t\t\t\t\tt_dp = -1.0;\n\t\t\t\t}\n        \n        \n        for (im = 0; im < im_max; im++)\n        {\n          fprintf(stderr,\"      M = %d:\\n \",m[im]);\n          \n          /* Init transform plans. */\n          plan_adjoint = nfsft_init_guru(m[im],ld[ild][0],f_hat,nu,b,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);\n          plan = nfsft_init_guru(m[im],ld[ild][1],f_hat,xi,f_m,(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);\n          \n\t\t\t\t\tif (use_nfsft == BOTH)\n\t\t\t\t\t{\n  \t\t\t\t\tt_fd = 0.0;\n            for (i = 0; i < ld[ild][4]; i++)\n\t\t  \t\t\t{\n\t\t\t\t\t\t\tt = second();\n\t\t\t\t\t\t\tndsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t\t/* Multiplication with diagonal matrix. */\n\t\t\t\t\t\t\tfor (k = 0; k <= m[im]; k++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tfor (n = -k; n <= k; n++)\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\tf_hat[n+m[im]][k] *= a[k];\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tndsft_trafo(plan);\n\t\t\t\t\t\t\tt_fd += second() - t;\n\t\t\t\t\t\t}\n  \t\t\t\t\tt_fd = t_fd/((double)ld[ild][4]);\n\t\t\t\t\t\tprintf(\"t_fd = %f\\n\",t_fd);\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  t_fd = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\tt_f = 0.0;\n          for (i = 0; i < ld[ild][4]; i++)\n    \t\t\t{\n\t\t\t\t\t\t/* Adjoint transform */\n\t\t\t\t\t\tt = second();\n\t\t\t\t\t\tif (use_nfsft != NO)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tnfsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tndsft_adjoint(plan_adjoint);\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t/* Multiplication with diagonal matrix. */\n\t\t\t\t\t\tfor (k = 0; k <= m[im]; k++)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tfor (n = -k; n <= k; n++)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tf_hat[n+m[im]][k] *= a[k];\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t/* Forward transform */\n\t\t\t\t\t\tif (use_nfsft != 0)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tnfsft_trafo(plan);\n\t\t\t\t\t\t}\n\t\t\t\t\t\telse\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tndsft_trafo(plan);\n\t\t\t\t\t\t}\n\t\t\t\t\t\tt_f += second() - t;\n\t\t\t\t\t}\n \t\t\t\t\tt_f = t_f/((double)ld[ild][4]);\n\t\t\t\t\tprintf(\"t_f = %f\\n\",t_f);\n\n          /* Finalize plans */\n          nfsft_finalize(plan_adjoint);\n          nfsft_finalize(plan);\n            \n          /*for (d = 0; d < ld[ild][1]; d++)\n          {\n            fprintf(stderr,\"%+5.16f, %+5.16f, %+.3E\\n\",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));\n            fflush(stderr);\n          }*/\n\t\t\t\t\t/*fprintf(stderr,\"\\n\");\n          for (l = 0; l < ld[ild][0]; l++)\n          {\n            fprintf(stderr,\"%+5.16f\\n\",creal(b[l]));\n            fflush(stderr);\n          }*/\n\t\t\t\t\t\n\t\t\t\t\tif (ld[ild][2] != NO)\n\t\t\t\t\t{\n            err = error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]);\n  \t\t\t\t\tfprintf(stderr,\"err = %E\\n\",error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n\t\t\t\t\t}\n\t\t\t\t\telse\n\t\t\t\t\t{\n\t\t\t\t\t  err = -1.0;\n\t\t\t\t\t}\n\t\t\t\t\t\n\t        //fprintf(stderr,\"||b||_1 = %E, L = %d\\n\",norm_complex_1(b,ld[ild][0]),ld[ild][0]);\n\n          file_tex = fopen(filename_tex,\"a\");\n          file_dat = fopen(filename_dat,\"a\");\n          \n          fprintf(file_tex,\"%6d & %6d & %.1E & %.1E & %.1E & %.1E & %.1E\\\\\\\\\\n\",ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n          if (ld[ild][2] != 0)\n          {\n            if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)\n            {\n              fprintf(file_dat,\"%.2f %3d %6d %6d %5.2f %5.2f %.4E\\n\",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n            }\n            else if (kt == KT_LOC_SUPP)\n            {\n              fprintf(file_dat,\"%.2f %2f %3d %6d %6d %5.2f %5.2f %.4E\\n\",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_d,t_f,error_complex_inf(f, f_m, ld[ild][1])/norm_complex_1(b,ld[ild][0]));\n            }\n          }\n          else\n          {\n            if (kt == KT_ABEL_POISSON || kt == KT_SINGULARITY || kt == KT_GAUSSIAN)\n            {\n              fprintf(file_dat,\"%.2f %3d %6d %6d -1.0 %5.2f -1E0\\n\",p[ip][0],m[im],ld[ild][0],ld[ild][1],t_f);\n            }\n            else if (kt == KT_LOC_SUPP)\n            {\n              fprintf(file_dat,\"%.2f %2f %3d %6d %6d -1.0 %5.2f -1E0 -1E0\\n\",p[ip][0],p[ip][1],m[im],ld[ild][0],ld[ild][1],t_f);\n            }\n          }\n  \t\t    fclose(file_tex);\n\t      \tfclose(file_dat);\n        }\n      }\n      fprintf(file_tex,\"\\\\hline\\n\");\n    }\n    \n    file_tex = fopen(filename_tex,\"a\");\n    file_dat = fopen(filename_dat,\"a\");\n    fprintf(file_tex,\"\\\\end{tabular}\\n\");\n    fclose(file_tex);\n    fclose(file_dat);\n    \n    nfsft_forget();\n    \n    if (precompute == YES)\n\t\t{\n\t\t  free(prec);\n\t\t}\n    free(f);\n    free(f_m);\n    free(xi);\n    free(nu);\n    free(a);\n    for (n = -m_max; n <= m_max; n++)\n    {\n      free(f_hat[n+m_max]);\n    }   \n    free(f_hat);\n    free(b);\n    \n    for (ild = 0; ild < ild_max; ild++)\n    {\n      free(ld[ild]);\n    }  \n    free(ld);\n    \n    free(m);\n\n    for (ip = 0; ip < ip_max; ip++)\n    {\n      free(p[ip]);\n    }  \n    free(p);\n    \n    fprintf(stdout,\"\\n\");\n  }  \n  \n  return EXIT_SUCCESS;\n}\n";
-		rLen = 20514;
-		rLoc = 861;
-		rType = 0;
-		vrLen = 412;
-		vrLoc = 20963;
-	};
-	4ED46A030890F17700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 76";
-		rLen = 0;
-		rLoc = 1735;
-		rType = 0;
-		vrLen = 716;
-		vrLoc = 1512;
-	};
-	4ED46A060890F62700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 216";
-		rLen = 0;
-		rLoc = 5881;
-		rType = 0;
-		vrLen = 1015;
-		vrLoc = 4663;
-	};
-	4ED46A070890F70500F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 205";
-		rLen = 0;
-		rLoc = 5077;
-		rType = 0;
-		vrLen = 984;
-		vrLoc = 3786;
-	};
-	4ED46A080891060E00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 238";
-		rLen = 0;
-		rLoc = 5889;
-		rType = 0;
-		vrLen = 824;
-		vrLoc = 5576;
-	};
-	4ED46A090891084F00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 238";
-		rLen = 0;
-		rLoc = 5889;
-		rType = 0;
-		vrLen = 824;
-		vrLoc = 5576;
-	};
-	4ED46A0A089109C900F4E929 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = copyc_hat;
-		rLen = 9;
-		rLoc = 3791;
-		rType = 0;
-		vrLen = 514;
-		vrLoc = 3124;
 	};
 	4ED46A0B089109C900F4E929 = {
 		fRef = 4E6E40C5082CB46F00642FF0;
@@ -1898,223 +1753,6 @@
 		vrLen = 567;
 		vrLoc = 20379;
 	};
-	4ED46A0C089109C900F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 248";
-		rLen = 0;
-		rLoc = 6234;
-		rType = 0;
-		vrLen = 909;
-		vrLoc = 5576;
-	};
-	4ED46A0D089109C900F4E929 = {
-		fRef = 4E6E40C5082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = "updatec_xpay(fftw_complex* x,double a, fftw_complex* y, int n)";
-		rLen = 62;
-		rLoc = 20652;
-		rType = 0;
-		vrLen = 567;
-		vrLoc = 20379;
-	};
-	4ED46A0E089109C900F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 249";
-		rLen = 0;
-		rLoc = 6257;
-		rType = 0;
-		vrLen = 874;
-		vrLoc = 5576;
-	};
-	4ED46A0F08910A5900F4E929 = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: norm_complex_2";
-		rLen = 0;
-		rLoc = 954;
-		rType = 0;
-		vrLen = 1061;
-		vrLoc = 15;
-	};
-	4ED46A1008910A5900F4E929 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "double norm_complex_2(complex *x, int n)";
-		rLen = 40;
-		rLoc = 1552;
-		rType = 0;
-		vrLen = 380;
-		vrLoc = 1531;
-	};
-	4ED46A1108910A5900F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 249";
-		rLen = 0;
-		rLoc = 6268;
-		rType = 0;
-		vrLen = 885;
-		vrLoc = 5576;
-	};
-	4ED46A1208910A5900F4E929 = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: norm_complex_2";
-		rLen = 0;
-		rLoc = 954;
-		rType = 0;
-		vrLen = 1061;
-		vrLoc = 15;
-	};
-	4ED46A1308910A5900F4E929 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "double norm_complex_2(complex *x, int n)";
-		rLen = 40;
-		rLoc = 1552;
-		rType = 0;
-		vrLen = 380;
-		vrLoc = 1531;
-	};
-	4ED46A1408910A5900F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 250";
-		rLen = 0;
-		rLoc = 6335;
-		rType = 0;
-		vrLen = 936;
-		vrLoc = 5576;
-	};
-	4ED46A1508910C6700F4E929 = {
-		fRef = 4E6CD54C07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "double norm_f_hat_1(complex **f_hat, int M)\n";
-		rLen = 44;
-		rLoc = 3182;
-		rType = 0;
-		vrLen = 470;
-		vrLoc = 2981;
-	};
-	4ED46A1608910C6700F4E929 = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: norm_f_hat_1";
-		rLen = 0;
-		rLoc = 1000;
-		rType = 0;
-		vrLen = 1513;
-		vrLoc = 304;
-	};
-	4ED46A1708910C6700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 246";
-		rLen = 0;
-		rLoc = 6154;
-		rType = 0;
-		vrLen = 927;
-		vrLoc = 5576;
-	};
-	4ED46A1808910C6700F4E929 = {
-		fRef = 4E6CD54D07C54A7E0040176B;
-		isa = PBXTextBookmark;
-		name = "util.h: norm_f_hat_1";
-		rLen = 0;
-		rLoc = 1000;
-		rType = 0;
-		vrLen = 1513;
-		vrLoc = 304;
-	};
-	4ED46A1908910C6700F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 249";
-		rLen = 0;
-		rLoc = 6256;
-		rType = 0;
-		vrLen = 959;
-		vrLoc = 5883;
-	};
-	4ED46A1A08910EB500F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 117";
-		rLen = 0;
-		rLoc = 2497;
-		rType = 0;
-		vrLen = 577;
-		vrLoc = 2082;
-	};
-	4ED46A1B08910ECA00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 122";
-		rLen = 0;
-		rLoc = 2585;
-		rType = 0;
-		vrLen = 558;
-		vrLoc = 2082;
-	};
-	4ED46A1C08910EDD00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 101";
-		rLen = 0;
-		rLoc = 2209;
-		rType = 0;
-		vrLen = 569;
-		vrLoc = 2072;
-	};
-	4ED46A1D08910F0000F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 922;
-		vrLoc = 5836;
-	};
-	4ED46A1E08910F7400F4E929 = {
-		fRef = 4ED46A1F08910F7400F4E929;
-		isa = PBXTextBookmark;
-		name = "(null): 70";
-		rLen = 0;
-		rLoc = 424;
-		rType = 0;
-		vrLen = 180;
-		vrLoc = 244;
-	};
-	4ED46A1F08910F7400F4E929 = {
-		isa = PBXFileReference;
-		name = test.in;
-		path = /Users/keiner/Temporary/trunk/obsolete/keiner/tests/accuracy2/test.in;
-		refType = 0;
-		sourceTree = "<absolute>";
-	};
-	4ED46A2008910F7400F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 922;
-		vrLoc = 5836;
-	};
-	4ED46A2108910F7400F4E929 = {
-		fRef = 4ED46A2208910F7400F4E929;
-		isa = PBXTextBookmark;
-		name = "(null): 70";
-		rLen = 0;
-		rLoc = 424;
-		rType = 0;
-		vrLen = 180;
-		vrLoc = 244;
-	};
 	4ED46A2208910F7400F4E929 = {
 		isa = PBXFileReference;
 		lastKnownFileType = text;
@@ -2122,111 +1760,6 @@
 		path = /Users/keiner/Temporary/trunk/obsolete/keiner/tests/accuracy2/test.in;
 		refType = 0;
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {912, 1120}}";
-			sepNavSelRange = "{424, 0}";
-			sepNavVisRect = "{{0, 0}, {912, 470}}";
-		};
-	};
-	4ED46A2308910F7400F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A240891122B00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A250891123000F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A26089112DA00F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 252";
-		rLen = 0;
-		rLoc = 6348;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A2708911D3500F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 155";
-		rLen = 0;
-		rLoc = 3357;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A2808914AF000F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 155";
-		rLen = 0;
-		rLoc = 3357;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A2908919E1200F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 155";
-		rLen = 0;
-		rLoc = 3357;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A2A08919E1200F4E929 = {
-		fRef = 4E6E40C7082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = "window_defines.h: 1";
-		rLen = 0;
-		rLoc = 0;
-		rType = 0;
-		vrLen = 1411;
-		vrLoc = 0;
-	};
-	4ED46A2B08919E1200F4E929 = {
-		fRef = 4ED469FC0890F0E100F4E929;
-		isa = PBXTextBookmark;
-		name = "accuracy2.c: 155";
-		rLen = 0;
-		rLoc = 3357;
-		rType = 0;
-		vrLen = 794;
-		vrLoc = 2885;
-	};
-	4ED46A2C08919E1200F4E929 = {
-		fRef = 4E6E40C7082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = "window_defines.h: 1";
-		rLen = 0;
-		rLoc = 0;
-		rType = 0;
-		vrLen = 1411;
-		vrLoc = 0;
 	};
 	4ED46A2D0891A06000F4E929 = {
 		fRef = 4E6E40C7082CB46F00642FF0;
@@ -2248,15 +1781,63 @@
 		vrLen = 1411;
 		vrLoc = 0;
 	};
-	4ED46A2F0891A06000F4E929 = {
+	4ED46A320891A78900F4E929 = {
 		fRef = 4ED46A2208910F7400F4E929;
 		isa = PBXTextBookmark;
-		name = "test.in: 70";
+		name = "test.in: 262";
 		rLen = 0;
-		rLoc = 424;
+		rLoc = 954;
 		rType = 0;
-		vrLen = 184;
-		vrLoc = 0;
+		vrLen = 0;
+		vrLoc = 136;
+	};
+	4ED46A450891AD3A00F4E929 = {
+		fRef = 4E6CD54C07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = copyc_hat;
+		rLen = 9;
+		rLoc = 3791;
+		rType = 0;
+		vrLen = 514;
+		vrLoc = 3488;
+	};
+	4ED46A470891AD3A00F4E929 = {
+		fRef = 4E6CD54C07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "util.c: 90";
+		rLen = 0;
+		rLoc = 1518;
+		rType = 0;
+		vrLen = 440;
+		vrLoc = 1173;
+	};
+	4ED46A5B0891AF4B00F4E929 = {
+		fRef = 4E5470A208329F8600CA0375;
+		isa = PBXTextBookmark;
+		name = "summation.c: 782";
+		rLen = 0;
+		rLoc = 21227;
+		rType = 0;
+		vrLen = 885;
+		vrLoc = 16714;
+	};
+	4ED46A5C0891AF4B00F4E929 = {
+		fRef = 4E6CD54B07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = NFSFT_NORMALIZED;
+		rLen = 16;
+		rLoc = 781;
+		rType = 0;
+		vrLen = 533;
+		vrLoc = 1391;
+	};
+	4ED46A6E0891B1FF00F4E929 = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = test2.in;
+		path = /Users/keiner/Temporary/trunk/obsolete/keiner/tests/accuracy2/test2.in;
+		refType = 0;
+		sourceTree = "<absolute>";
 	};
 	4EDA6CF007A439F1008B1386 = {
 		uiCtxt = {
@@ -2274,16 +1855,6 @@
 		rType = 0;
 		vrLen = 957;
 		vrLoc = 0;
-	};
-	4EE0558D086DA00D003A47E5 = {
-		fRef = 4E294D5008575D3600F546C3;
-		isa = PBXTextBookmark;
-		name = "healpix.c: 163";
-		rLen = 0;
-		rLoc = 5261;
-		rType = 0;
-		vrLen = 673;
-		vrLoc = 3676;
 	};
 	4EE0559B086DA10C003A47E5 = {
 		fRef = 4E5470E10832A31200CA0375;
@@ -2314,16 +1885,6 @@
 		rType = 0;
 		vrLen = 1167;
 		vrLoc = 5251;
-	};
-	4EE055EA086DA935003A47E5 = {
-		fRef = 4E6E40C5082CB46F00642FF0;
-		isa = PBXTextBookmark;
-		name = copyc_w;
-		rLen = 7;
-		rLoc = 20219;
-		rType = 0;
-		vrLen = 530;
-		vrLoc = 19972;
 	};
 	4EE055EB086DA935003A47E5 = {
 		fRef = 4E6EA365083E95C9004C5D07;
@@ -2411,6 +1972,107 @@
 		rType = 0;
 		vrLen = 723;
 		vrLoc = 1066;
+	};
+	4EF50FD108924EB70027295B = {
+		fRef = 4EAD69A2083BE07E00C61F13;
+		isa = PBXTextBookmark;
+		name = "accuracy.c: 436";
+		rLen = 0;
+		rLoc = 11378;
+		rType = 0;
+		vrLen = 736;
+		vrLoc = 10967;
+	};
+	4EF50FD208924EB70027295B = {
+		fRef = 4ED46A6E0891B1FF00F4E929;
+		isa = PBXTextBookmark;
+		name = "test2.in: 5";
+		rLen = 0;
+		rLoc = 54;
+		rType = 0;
+		vrLen = 186;
+		vrLoc = 2201;
+	};
+	4EF50FE10892511F0027295B = {
+		fRef = 4ED46A6E0891B1FF00F4E929;
+		isa = PBXTextBookmark;
+		name = "testcases=3\nnfft=1\ncutoff=7\nthreshold=1000\nbandwidths=128\nM=4\nM=8\nM=12\nM=16\nM=20\nM=24\nM=28\nM=32\nM=36\nM=40\nM=44\nM=48\nM=52\nM=56\nM=60\nM=64\nM=68\nM=72\nM=76\nM=80\nM=84\nM=88\nM=92\nM=96\nM=100\nM=104\nM=108\nM=112\nM=116\nM=120\nM=124\nM=128\nM=132\nM=136\nM=140\nM=144\nM=148\nM=152\nM=156\nM=160\nM=164\nM=168\nM=172\nM=176\nM=180\nM=184\nM=188\nM=192\nM=196\nM=200\nM=204\nM=208\nM=212\nM=216\nM=220\nM=224\nM=228\nM=232\nM=236\nM=240\nM=244\nM=248\nM=252\nM=256\nM=260\nM=264\nM=268\nM=272\nM=276\nM=280\nM=284\nM=288\nM=292\nM=296\nM=300\nM=304\nM=308\nM=312\nM=316\nM=320\nM=324\nM=328\nM=332\nM=336\nM=340\nM=344\nM=348\nM=352\nM=356\nM=360\nM=364\nM=368\nM=372\nM=376\nM=380\nM=384\nM=388\nM=392\nM=396\nM=400\nM=404\nM=408\nM=412\nM=416\nM=420\nM=424\nM=428\nM=432\nM=436\nM=440\nM=444\nM=448\nM=452\nM=456\nM=460\nM=464\nM=468\nM=472\nM=476\nM=480\nM=484\nM=488\nM=492\nM=496\nM=500\nM=504\nM=508\nM=512\nD=1000\n";
+		rLen = 807;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 191;
+		vrLoc = 770;
+	};
+	4EF50FFE08925F210027295B = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.c;
+		name = simple_test.c;
+		path = /Users/keiner/Temporary/trunk/obsolete/kunis/example/simple_test/simple_test.c;
+		refType = 0;
+		sourceTree = "<absolute>";
+	};
+	4EF51002089260FD0027295B = {
+		fRef = 4EF50FFE08925F210027295B;
+		isa = PBXTextBookmark;
+		name = "simple_test.c: 66";
+		rLen = 0;
+		rLoc = 1942;
+		rType = 0;
+		vrLen = 885;
+		vrLoc = 1596;
+	};
+	4EF510070892661E0027295B = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 264";
+		rLen = 0;
+		rLoc = 7395;
+		rType = 0;
+		vrLen = 588;
+		vrLoc = 6285;
+	};
+	4EF510080892661E0027295B = {
+		fRef = 4E8F44930850B4800098CEFF;
+		isa = PBXTextBookmark;
+		name = "c2f.c: 11";
+		rLen = 0;
+		rLoc = 512;
+		rType = 0;
+		vrLen = 886;
+		vrLoc = 0;
+	};
+	4EF5100A0892661E0027295B = {
+		fRef = 4ED469FC0890F0E100F4E929;
+		isa = PBXTextBookmark;
+		name = "accuracy2.c: 278";
+		rLen = 0;
+		rLoc = 8582;
+		rType = 0;
+		vrLen = 1246;
+		vrLoc = 6454;
+	};
+	4EF5100B0892661E0027295B = {
+		fRef = 4E6CD54A07C54A7E0040176B;
+		isa = PBXTextBookmark;
+		name = "nfsft.c: 264";
+		rLen = 0;
+		rLoc = 7395;
+		rType = 0;
+		vrLen = 588;
+		vrLoc = 6285;
+	};
+	4EF510210892922B0027295B = {
+		isa = PBXFileReference;
+		lastKnownFileType = text;
+		name = test.in;
+		path = /Users/keiner/Temporary/trunk/obsolete/keiner/tests/accuracy2/test.in;
+		refType = 0;
+		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {965, 2367}}";
+			sepNavSelRange = "{947, 0}";
+			sepNavVisRect = "{{0, 0}, {965, 482}}";
+		};
 	};
 	8DD76F620486A84900D96B5E = {
 		activeExec = 0;

@@ -250,7 +250,9 @@ int main (int argc, char **argv)
     }
     fclose(file);
     
-    fprintf(stderr,"%3d: %.3E %.3E,\n",0,sqrt(iplan->dot_r_iter),error_complex_inf(iplan->r_iter,f_orig,iplan->direct_plan->D));
+    fprintf(stderr,"%3d: %.3E %.3E,\n",0,sqrt(iplan->dot_r_iter),
+            err_f_hat_infty(iplan->f_hat_iter,f_hat_orig,
+                            iplan->direct_plan->M));
     for(l=0;l<10;l++)
     { 
       infsft_loop_one_step(iplan);
@@ -266,7 +268,9 @@ int main (int argc, char **argv)
       }
       fclose(file);
 
-      fprintf(stderr,"%3d: %.3E %.3E\n",l+1,sqrt(iplan->dot_r_iter),error_complex_inf(iplan->r_iter,f_orig,iplan->direct_plan->D));
+      fprintf(stderr,"%3d: %.3E %.3E\n",l+1,sqrt(iplan->dot_r_iter),
+              err_f_hat_infty(iplan->f_hat_iter,f_hat_orig,
+                              iplan->direct_plan->M));
     }
     
     infsft_finalize(iplan);  

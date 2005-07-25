@@ -44,6 +44,7 @@
 #include "nfsft.h"
 #include "util.h"
 #include "../../nfft/utils.h"
+#include "../../nfft/nfft.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -98,26 +99,38 @@ int main (int argc, char **argv)
   /** Next greater power of two with respect to m_max */
   int n_max;
 
-  double err2, err_inf;
+  double err2, err_inf, err_inf2, err_help;
+  double errn2, errn_inf, errn_help;
 
   double nfactor;
   double temp;
  	double t;
  	complex *ptr;
+  unsigned short xseed[3];
 	
   /** Fourier coefficients */
   complex **f_hat;
   /** Fourier coefficients */
   complex **f_hat2;
   complex **f_hatr;
+  complex *fn_hat;
+  complex *fn_hat2;
+  complex *fn_hatr;
   /** Target nodes */
  	double *xi;
   /** Approximate function values */
  	complex *f;
  	complex *f2;
  	complex *fr;
+  complex *fn;
+  complex *fn2;
+  complex *fnr;
+ 	double *xn;
   /** NFSFT plan */
  	nfsft_plan plan;
+  nfft_plan plan2;
+  int nfft_size[2] = {0,0};
+  int fftw_size[2] = {0,0};  
   /** adjoint NFSFT plan */
   //nfsft_plan plan_adjoint;
   
@@ -129,6 +142,10 @@ int main (int argc, char **argv)
   char filename_tex[100];
   char filename_dat[100];
 	 	
+  xseed[0] = 98;
+  xseed[1] = 205;
+  xseed[2] = 191;
+  
   /* Read number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
   
@@ -176,6 +193,7 @@ int main (int argc, char **argv)
 
     /* Read number of nodes specifications. */
     fscanf(stdin,"D=%d\n",&D);
+    //D = m_max*m_max;
     
     fprintf(stdout,"  D = %d\n",D);    
         
@@ -187,17 +205,25 @@ int main (int argc, char **argv)
     f_hatr = (complex**) malloc((2*m_max+1)*sizeof(complex*));
     for (n = -m_max; n <= m_max; n++)
     {
-      f_hat[n+m_max] = (complex*) malloc((n_max+1)*sizeof(complex));
-      f_hat2[n+m_max] = (complex*) malloc((n_max+1)*sizeof(complex));
-      f_hatr[n+m_max] = (complex*) malloc((n_max+1)*sizeof(complex));
+      f_hat[n+m_max] = (complex*) calloc((n_max+1),sizeof(complex));
+      f_hat2[n+m_max] = (complex*) calloc((n_max+1),sizeof(complex));
+      f_hatr[n+m_max] = (complex*) calloc((n_max+1),sizeof(complex));
     }  
-    xi = (double*) malloc(2*D*sizeof(double));
-    f = (complex*) malloc(D*sizeof(complex));
-    f2 = (complex*) malloc(D*sizeof(complex));
-    fr = (complex*) malloc(D*sizeof(complex));
+    xi = (double*) calloc(2*D,sizeof(double));
+    f = (complex*) calloc(D,sizeof(complex));
+    f2 = (complex*) calloc(D,sizeof(complex));
+    fr = (complex*) calloc(D,sizeof(complex));
     
-    srand48(time(NULL));
-		    
+    /*fn_hat = (complex*) calloc((m_max+1)*(m_max+1),sizeof(complex));
+    fn_hat2 = (complex*) calloc((m_max+1)*(m_max+1),sizeof(complex));
+    fn_hatr = (complex*) calloc((m_max+1)*(m_max+1),sizeof(complex));
+    xn = (double*) calloc(2*D,sizeof(double));
+    fn = (complex*) calloc(D,sizeof(complex));
+    fn2 = (complex*) calloc(D,sizeof(complex));
+    fnr = (complex*) calloc(D,sizeof(complex));*/
+                                
+    seed48(xseed);    
+    
     /* Generate random nodes. */
     for (d = 0; d < D; d++)
     {
@@ -210,7 +236,7 @@ int main (int argc, char **argv)
     /* Generate random Fourier coefficients. */
     for (n = -m_max; n <= m_max; n++)
     {
-      for (k = 0; k <= n_max; k++)
+      for (k = abs(n); k <= n_max; k++)
       {
         f_hatr[n+m_max][k] = (drand48()-0.5) + I*(drand48()-0.5);
       }  
@@ -221,8 +247,32 @@ int main (int argc, char **argv)
     {
       fr[d] = (drand48()-0.5) + I*(drand48()-0.5);
     }  
-    
+
+    /* Generate random nodes. */
+    /*for (d = 0; d < D; d++)
+    {
+      xn[2*d] = drand48() - 0.5;
+      xn[2*d+1] = drand48() - 0.5;
+    }*/
+                                
+    /* Generate random Fourier coefficients. */
+    /*for (k = 0; k < (m_max+1)*(m_max+1); k++)
+    {
+      fprintf(stderr,"k = %d, (m_max+1)^2 = %d\n",k,(m_max+1)*(m_max+1));
+      fflush(stderr);
+      fn_hatr[k] = (drand48() - 0.5) * I * (drand48() - 0.5);
+    }*/
+                                
+    //fprintf(stderr,"new\n");
+    //fflush(stderr);
+    /* Generate random function samples. */
+    /*for (d = 0; d < D; d++)
+    {
+      fnr[d] = (drand48()-0.5) + I*(drand48()-0.5);
+    }*/  
+                                
     //sprintf(filename_tex,"testcase%d.tex",tc);
+
     sprintf(filename_dat,"testcase%d.dat",tc);
     //file_tex = fopen(filename_tex,"w");
     file_dat = fopen(filename_dat,"w");
@@ -233,26 +283,72 @@ int main (int argc, char **argv)
     for (im = 0; im < im_max; im++)
     {
       /* Init transform plan. */
-      plan = nfsft_init_guru(m[im],D,&f_hat[m_max-m[im]],xi,f,
-                             (use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
-      fprintf(stderr,"      M = %d:\n ",m[im]);
+      plan = nfsft_init_guru(m[im],D/*m[im]*m[im]*/,&f_hat[m_max-m[im]],xi,f,
+                             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) /*| 
+                             NFSFT_NORMALIZED*/,cutoff);
+      //fprintf(stderr,"      M = %d:\n ",m[im]);
           
-      /* Test foward transform. */    
+      /* Test transforms. */    
       copyc_hat(&f_hat[m_max-m[im]],&f_hatr[m_max-m[im]],m[im]);      
+      //copyc(f,fr,/*D*/m[im]*m[im]);
+      //ndsft_adjoint(plan);
       ndsft_trafo(plan);
         
-      copyc(f2,f,D);
+      copyc(f2,f,D/*m[im]*m[im]*/);
       
+      //copyc(f,fr,/*D*/m[im]*m[im]);
       copyc_hat(&f_hat[m_max-m[im]],&f_hatr[m_max-m[im]],m[im]);
-      err_inf = norm_f_hat_1(&f_hat[m_max-m[im]],m[im]);
+      err_help = norm_f_hat_1(&f_hat[m_max-m[im]],m[im]);
+      //nfsft_adjoint(plan);
       nfsft_trafo(plan);
       
-      updatec_xpay(f, -1.0, f2, D);
-      err2 = norm_complex_2(f,D)/norm_complex_2(f2,D);
-      err_inf = norm_complex_inf(f,D)/err_inf;
+      updatec_xpay(f, -1.0, f2, D/*m[im]*m[im]*/);
+      err2 = norm_complex_2(f,D/*m[im]*m[im]*/)/norm_complex_2(f2,D/*m[im]*m[im]*/);
+      err_inf = norm_complex_inf(f,D/*m[im]*m[im]*/);
+      err_inf2 = err_inf/norm_complex_inf(f2,D);
+      ///norm_complex_1(fr,/*D*/m[im]*m[im]);
+      fprintf(stderr,"%3d %.4E %.4E %.4E %.4E %.4E\n",m[im],err2,err_inf,
+              err_help,err_inf/err_help,err_inf2);
       
       nfsft_finalize(plan);
-            
+                  
+      /*nfft_size[0] = 2*m[im];
+      nfft_size[1] = 2*m[im];
+      fftw_size[0] = 4*m[im];
+      fftw_size[1] = 4*m[im];
+      nfft_init_specific(&plan2, 2, nfft_size, D, fftw_size, 
+                         cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE, 
+                         FFTW_ESTIMATE| FFTW_DESTROY_INPUT);*/
+      /* Assign angle array. */
+      /*plan2.x = xn;
+      plan2.f = fn;
+      plan2.f_hat = fn_hat;
+      if (plan2.nfft_flags & PRE_PSI) 
+      {  
+        nfft_precompute_psi(&plan2); 
+      }*/ 
+
+      //copyc(fn,fnr,/*D*/m[im]*m[im]);
+      //copyc(fn_hat,fn_hatr,(m_max+1)*(m_max+1));
+      //ndft_adjoint(&plan2);
+      //ndft_trafo(&plan2);
+      
+      //copyc(fn2,fn,D/*m[im]*m[im]*/);
+      
+      //copyc(fn,fnr,/*D*/m[im]*m[im]);
+      //copyc(fn_hat,fn_hatr,(m_max+1)*(m_max+1));
+      //errn_help = norm_complex_1(fn_hat,m[im]*m[im]);
+      //nfft_adjoint(&plan2);
+      //nfft_trafo(&plan2);
+      
+      //updatec_xpay(fn, -1.0, fn2, D/*m[im]*m[im]*/);
+      //errn2 = norm_complex_2(fn,D/*m[im]*m[im]*/)/norm_complex_2(fn2,D/*m[im]*m[im]*/);
+      //errn_inf = norm_complex_inf(fn,D/*m[im]*m[im]*/);
+        ///norm_complex_1(fnr,/*D*/m[im]*m[im]);
+      //fprintf(stderr," | %3d %.4E %.4E %.4E\n",m[im],errn2,errn_inf,errn_inf/errn_help);
+      
+      //nfft_finalize(&plan2);
+      
       /*for (d = 0; d < ld[ild][1]; d++)
       {
         fprintf(stderr,"%+5.16f, %+5.16f, %+.3E\n",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));
@@ -273,7 +369,8 @@ int main (int argc, char **argv)
       ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_complex_inf(f, f_m, 
       ld[ild][1])/norm_complex_1(b,ld[ild][0]));*/
 
-      fprintf(file_dat,"%3d %.4E %.4E\n",m[im],err2,err_inf);
+      fprintf(file_dat,"%3d %.4E %.4E %.4E\n",m[im],err2,err_inf,
+              err_inf/err_help);
      	fclose(file_dat);
     }
         
@@ -293,6 +390,13 @@ int main (int argc, char **argv)
     free(f_hat2);
     free(f_hatr);
   }
-  
+
+  /*free(fn);
+  free(fn2);
+  free(fnr);
+  free(fn_hat);
+  free(fn_hat2);
+  free(fn_hatr);*/
+
   return EXIT_SUCCESS;
 }
