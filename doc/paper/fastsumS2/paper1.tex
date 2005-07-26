@@ -148,15 +148,20 @@ Of course, every radial function corresponds to a zonal function by means of
 \section{Prerequisites}
 \label{sect:2}
 The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
-\N_{0}$ as classical orthogonal polynomials are given by their corresponding
-\emph{Rodrigues formula}
+\N_{0}$ as classical orthogonal polynomials are given by their
+\emph{Rodrigues formula} 
 \[
 \fun{P_k}{x} := \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
 \]
-One verifies $\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}$, $\left|\fun{P_{k}}{\cos\vartheta}\right|
-\le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for $\vartheta \in (0,\pi)$, $k \ge 1$, 
-and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$, 
-\cite[pp. 47]{niuv}.
+One verifies
+\begin{equation}\label{leg_prop}
+\fun{P_{k}}{\pm1} = \paren{\pm1}^{k}, \quad
+\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1,\text{ and} \quad
+\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k
+    \sin\vartheta}}
+\end{equation}
+where the last inequality holds for $\vartheta \in (0,\pi)$, $k \ge 1$, see
+e.g. \cite[pp. 47]{niuv}.
 Furthermore, two recurrence relations are given by
 \begin{equation}\label{three1}
 \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} - k\fun{P_{k-1}}{x}
@@ -206,29 +211,18 @@ conjunction with \eqref{equation:legtrafo} and the recurrence relations
 \eqref{three1} and \eqref{three2} yields efficient ways to precompute the
 needed coefficients $\fun{K^{\wedge}}{k}$.
 
-Furthermore, we use the following convolution lemma which yields a possibility to trade
-localisation of a zonal function in spatial domain against the decay of its
-symbol.
-More formally, we state
-\begin{lemma} {\bf Normalisierung!!}
-  Let $Q,P\in \Ln{2}{\interv{[}{-1}{1}{]}}$ and
-  \[
-  \fun{K}{\V{\eta} \cdot \V{\xi}} := \fun{\left(Q * P\right)}{\V{\eta} \cdot
-    \V{\xi}},
-  \]
-  where
-  \[
-    \fun{\left(Q * P\right)}{\V{\eta} \cdot \V{\xi}}:= 
-    \int_{\twosphere} \fun{Q}{\V{\eta} \cdot \V{\nu}}
-    \fun{P}{\V{\nu} \cdot \V{\xi}} \dx \omega\left(\nu\right)
-  \]
-  is the \emph{spherical convolution} of $Q$ and $P$. Then the symbol 
-  $\fun{K^{\wedge}}{k}$ is given by 
-  $\fun{K^{\wedge}}{k} = \fun{Q^{\wedge}}{k} \fun{P^{\wedge}}{k}$.
-  Furthermore, for compactly supported functions $\supp\; Q = \supp\; P =
-  \interv{[}{h}{1}{]}$, $h>0$, we conclude $\supp\; K =
-  \interv{[}{2h^2-1}{1}{]}$.
-\end{lemma}
+\begin{remark}
+Discretising \eqref{equation:legtrafo} yields a second method within the
+precomputation step of the fast summation algorithm. We do not focus on the
+introduced error, since all considered symbols obey an exact precomputation
+scheme.
+\end{remark}
+
+\begin{remark}
+Note furthermore, that the spherical convolution lemma yields a simple
+possibility to trade localisation of a zonal function in spatial domain
+against the decay of its symbol, see \cite{Sc97} for details.
+\end{remark}
 
 \section{Fast Summation}
 Given a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
@@ -242,23 +236,21 @@ evaluation of sums
 on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
   \in \twosphere}{|}{d=0,\ldots,D-1}$.
 
-Given an explicit expression, the zonal function $\fun{K}{\V{\eta} \: \cdot}$ 
-can be evaluated easily or all the values 
-$\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in
-advance. The naive approach evaluating \eqref{Applications:KernelSum} leads to
-an $\bigo{L\:D}$ algorithm. 
+The naive approach evaluating \eqref{Applications:KernelSum} leads to
+an $\bigo{L\:D}$ algorithm if we assume that the zonal function
+$\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all the values
+$\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in advance. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering} method applied to \eqref{Applications:KernelSum} in \cite{FrGlSch98} reduces the
-computational effort to evaluate \eqref{Applications:KernelSum} based on the
-traditional method of dividing the evaluation into near- and far-field.
-For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field contribution
-is calculated exactly whereas the contribution of the far-field may be
-approximated coarsly.
-% due to the supposed rapid decay of $\fun{K}{\V{\eta} \:\cdot}$. 
+The \emph{panel clustering} method applied to \eqref{Applications:KernelSum}
+in \cite{FrGlSch98} reduces the computational effort to evaluate
+\eqref{Applications:KernelSum} based on the traditional method of dividing the
+evaluation into near- and far-field.
+For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field
+contribution is calculated exactly whereas the contribution of the far-field
+may be approximated coarsly.
 
-We propose to simply truncate the series
-\eqref{equation:kernelExpansion} at degree  
-$M \in \NZ$, i.e.
+We propose to simply truncate the series \eqref{equation:kernelExpansion} at
+degree $M \in \NZ$, i.e.,
 \begin{equation}
   \label{Applications:TruncatedSeries}
   \fun{K}{\V{\eta}_{l} \cdot \V{\xi}} \approx \fun{K_{M}}{\V{\eta}_{l} \cdot
@@ -270,19 +262,18 @@ Substituting \eqref{Applications:TruncatedSeries} into
 \eqref{Applications:KernelSum} and interchanging the order of summation we
 finally obtain the approximation
 \[
-  \fun{f_{M}}{\xi_{d}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
+  \fun{f_{M}}{\xi} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
   \paren{\sum_{l = 0}^{L-1} b_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}}
-  \fun{Y_{k}^n}{\V{\xi}_{d}}.
+  \fun{Y_{k}^n}{\V{\xi}}.
 \]
 
 The expression in the inner brackets can be computed by an adjoint Nonuniform
-Fast Spherical Fourier Transform (adjoint NFSFT) in 
-$\mathcal{O}(L + M^2 \log^2 M)$
-arithmetic operations, see \cite{kupo02, keiner05} for
-details.
+Fast Spherical Fourier Transform (adjoint NFSFT) in $\mathcal{O}(L + M^2
+\log^2 M)$ arithmetic operations, see \cite{kupo02, keiner05} for details.
 This is followed by $(M+1)^2$ multiplications with the symbol
-$\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the outer sum in
-$\mathcal{O}(D + M^2 \log^2 M)$ arithmetic operations.
+$\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the outer sum for
+the target nodes $\mathcal{X}$ in $\mathcal{O}(D + M^2 \log^2 M)$ arithmetic
+operations.
 In Section \ref{Basics:SphericalKernels}, we will decompose the error and show
 that the degree $M$ depends only on the desired accuracy of our algorithm and
 on the particular zonal function $\fun{K}{\V{\eta} \: \cdot}$, but not on the
@@ -298,7 +289,7 @@ nodes $\V{\xi}_{d}$ and $\V{\eta}_{l}$.
 
 \begin{remark}
 In matrix-vector notation the proposed approach, a particular rank $(M+1)^2$
-approximation, read as
+approximation, reads as
 \[
   \V{f} = \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
   \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}
@@ -348,13 +339,15 @@ In summary, we propose the following algorithm.
 \end{algorithm}
 
 
-%--------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 \section{Error estimates and examples}\label{Basics:SphericalKernels}
-%--------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+Beyond the well-known errors appearing in the NFFT computations, see
+\cite{postta01}, our algorithm produces the following error.
 \begin{lemma}\label{lemma:error}
   The proposed approximation obeys the uniform error estimate
   \begin{equation*}
-    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
+    \left\|f - f_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
     \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}.
   \end{equation*}
 %  Moreover, if we assume random uniformly distributed source and target nodes, 
@@ -367,69 +360,78 @@ In summary, we propose the following algorithm.
 %  \end{equation*}
 \end{lemma}
 \begin{proof}
-  We obtain immediately
-  \begin{align*}
-    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
-    & = \max_{\V{\xi} \in \mathcal{X}} 
-        \left|\sum_{l=0}^{L-1} b_{l} \sum_{k>M} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} 
-        \fun{P_{k}}{\V{\eta}_{l} \cdot \V{\xi}}\right| \\
-    & \le \sum_{l=0}^{L-1} \left| b_{l} \right| \max_{\V{\xi} \in \mathcal{X}} \left| \sum_{k>M} 
-          \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} \fun{P_{k}}{\V{\eta}_{l} \cdot \V{\xi}} \right| \\
-    & \le \left\|\V{b}\right\|_1 \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}},
-  \end{align*}
-  where, we have used $\left|\fun{P_{k}}{x}\right| \le 1$. 
-%  If we now asume random uniformly 
-%  distributed source and target nodes, we might replace this estimate in the asymptotic sense, i.e.
-%  for $L,D \towards \infty$ by the expected value
-%  \begin{equation*}
-%    E_{k} := \int_{0}^{\pi} \fun{P_{k}}{\cos\vartheta} \fun{p}{\vartheta} \; \dx \vartheta,
-%  \end{equation*}
-%  where $\fun{p}{\vartheta} := \frac{\sin\vartheta}{2}$ is the probability for a source node 
-%  $\V{\eta}$ and a target node $\V{\xi}$ to span the angle $\vartheta$. 
-%  Now using the estimate
-%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
-%  $\vartheta \in \left(0, \pi\right)$ yields
-%  \begin{equation*}
-%    E_{k} 
-%    \le \int_{0}^{\pi} 
-%          \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
-%      = \int_{0}^{\pi} \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
-%      = \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi\sqrt{k}}.
-%  \end{equation*}
-%  We obtain finally
-%  \begin{align*}
-%    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
-%    & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi} \sum_{k>M} 
-%    \frac{2k+1}{4\pi\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\\
-%    & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{4\pi^2} \left( 2 \sum_{k>M} 
-%    \sqrt{k} \abs{\fun{K^{\wedge}}{k}} + \sum_{k>M} \frac{1}{\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\right)\\
-%  \end{align*}
-%  Now using the estimates
-%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
-%  $\vartheta \in \left[\arcsin \frac{2}{\pi k}, \pi - \arcsin \frac{2}{\pi k}\right]$ and 
-%  $\left|\fun{P_{k}}{\cos\vartheta}\right| \le 1$ for $\vartheta \in \left[0, \arcsin 
-%  \frac{2}{\pi k}\right)\cup \left( \pi-\arcsin\frac{2}{\pi k}, \pi\right]$ yields
-%  \begin{align*}
-%    E_{k} 
-%    & \le 2\arcsin\frac{2}{\pi k} + 
-%          \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
-%          \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
-%    &   = 2\arcsin\frac{2}{\pi k} +  \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
-%          \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
-%    &   = 2\arcsin\frac{2}{\pi k} - \frac{4}{\sqrt{2\pi k}} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2},
-%  \end{align*}
-%  and \fun{E}{\phi,j} is the elliptic integral of the second kind
-%  \begin{equation*}
-%    \fun{E}{\phi,j} := \int_{0}^{\phi} \sqrt{1-j^2\sin^2 \theta} \: \dx \theta.
-%  \end{equation*}
-%  We obtain finally
-%  \begin{equation*}
-%    \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
-%    \le \left\|\V{b}\right\|_1 \left(2\sum_{k>M} \fun{\arcsin}{\frac{2}{\pi k}} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}} - 
-%    \frac{4}{\sqrt{2\pi}} \sum_{k>M} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2} \frac{2k+1}{4\pi\sqrt{k}} 
-%    \abs{\fun{K^{\wedge}}{k}}\right),
-%  \end{equation*}
+  The assertion is obtained by
+  \begin{equation*}
+    \left\|f - f_{M}\right\|_{\infty} 
+%     = \max_{\V{\xi} \in \twosphere} 
+%        \left|\sum_{l=0}^{L-1} b_{l} \sum_{k>M} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} 
+%        \fun{P_{k}}{\V{\eta}_{l} \cdot \V{\xi}}\right|
+     \le \sum_{l=0}^{L-1} \left| b_{l} \right| \max_{\V{\xi} \in \twosphere} \left| \sum_{k>M} 
+          \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k} \fun{P_{k}}{\V{\eta}_{l} \cdot
+    \V{\xi}} \right|
+%\\& \le \left\|\V{b}\right\|_1 \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}
+  \end{equation*}
+  and the fact $\left|\fun{P_{k}}{x}\right| \le 1$. 
+%%   If we now asume random uniformly 
+%%   distributed source and target nodes, we might replace this estimate in the asymptotic sense, i.e.
+%%   for $L,D \towards \infty$ by the expected value
+%%   \begin{equation*}
+%%     E_{k} := \int_{0}^{\pi} \fun{P_{k}}{\cos\vartheta} \fun{p}{\vartheta} \; \dx \vartheta,
+%%   \end{equation*}
+%%   where $\fun{p}{\vartheta} := \frac{\sin\vartheta}{2}$ is the probability for a source node 
+%%   $\V{\eta}$ and a target node $\V{\xi}$ to span the angle $\vartheta$. 
+%%   Now using the estimate
+%%   $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
+%%   $\vartheta \in \left(0, \pi\right)$ yields
+%%   \begin{equation*}
+%%     E_{k} 
+%%     \le \int_{0}^{\pi} 
+%%           \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
+%%       = \int_{0}^{\pi} \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
+%%       = \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi\sqrt{k}}.
+%%   \end{equation*}
+%%   We obtain finally
+%%   \begin{align*}
+%%     \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
+%%     & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{\pi} \sum_{k>M} 
+%%     \frac{2k+1}{4\pi\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\\
+%%     & \le \left\|\V{b}\right\|_1 \frac{2 \fun{\Gamma^2}{\frac{3}{4}}}{4\pi^2} \left( 2 \sum_{k>M} 
+%%     \sqrt{k} \abs{\fun{K^{\wedge}}{k}} + \sum_{k>M} \frac{1}{\sqrt{k}} \abs{\fun{K^{\wedge}}{k}}\right)\\
+%%   \end{align*}
+%%   Now using the estimates
+%%   $\left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for 
+%%   $\vartheta \in \left[\arcsin \frac{2}{\pi k}, \pi - \arcsin \frac{2}{\pi k}\right]$ and 
+%%   $\left|\fun{P_{k}}{\cos\vartheta}\right| \le 1$ for $\vartheta \in \left[0, \arcsin 
+%%   \frac{2}{\pi k}\right)\cup \left( \pi-\arcsin\frac{2}{\pi k}, \pi\right]$ yields
+%%   \begin{align*}
+%%     E_{k} 
+%%     & \le 2\arcsin\frac{2}{\pi k} + 
+%%           \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
+%%           \sqrt{\frac{2}{\pi k \sin\vartheta}} \frac{\sin\vartheta}{2} \; \dx \vartheta \\
+%%     &   = 2\arcsin\frac{2}{\pi k} +  \int_{\arcsin\frac{2}{\pi k}}^{\pi - \arcsin\frac{2}{\pi k}} 
+%%           \sqrt{\frac{\sin\vartheta}{2 \pi k }} \; \dx \vartheta \\
+%%     &   = 2\arcsin\frac{2}{\pi k} - \frac{4}{\sqrt{2\pi k}} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2},
+%%   \end{align*}
+%%   and \fun{E}{\phi,j} is the elliptic integral of the second kind
+%%   \begin{equation*}
+%%     \fun{E}{\phi,j} := \int_{0}^{\phi} \sqrt{1-j^2\sin^2 \theta} \: \dx \theta.
+%%   \end{equation*}
+%%   We obtain finally
+%%   \begin{equation*}
+%%     \left\|\V{f} - \V{f}_{M}\right\|_{\infty} 
+%%     \le \left\|\V{b}\right\|_1 \left(2\sum_{k>M} \fun{\arcsin}{\frac{2}{\pi k}} \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}} - 
+%%     \frac{4}{\sqrt{2\pi}} \sum_{k>M} \fun{E}{\frac{\arcsin\frac{2}{\pi k}}{2} - \frac{\pi}{4},2} \frac{2k+1}{4\pi\sqrt{k}} 
+%%     \abs{\fun{K^{\wedge}}{k}}\right),
+%%   \end{equation*}
 \end{proof}
+
+Thus, the error decouples into a part solely dependent on the coefficients
+$b_l$ and a decay condition on the symbol of the particular kernel.
+In contrast to results given in \cite{bahu01,Sc97} we are interested also in
+the decay of the symbol in relation to the parameter of the kernel.
+We consider a couple of 'representative' kernels, where a closed from of the
+kernel allows direct evaluation and some scheme for the precomputation of the
+symbol is neccesary for the fast summation algorithm.
 
 \subsection{Poisson and Singularity kernel}
 \begin{definition}
@@ -438,12 +440,12 @@ In summary, we propose the following algorithm.
   \item \emph{Poisson kernel}
     $Q_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
     \[
-    \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}\,.
+    \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\paren{1-2hx+h^2}^{3/2}}\,
     \]
   \item and the \emph{singularity kernel}
     $S_{h}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
     \[
-    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\paren{1-2hx+h^2}^{1/2}},
+    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\paren{1-2hx+h^2}^{1/2}}.
     \]
   \end{enumerate}
 \end{definition}
@@ -454,7 +456,7 @@ concentration of $\fun{Q_{h}}{\V{\eta} \: \cdot}$ and $\fun{S_{h}}{\V{\eta} \:
   \cdot}$ around $\eta \in \twosphere$, respectively.
 The Poisson kernel is a positive function and normalized with
 $\|\fun{Q_{h}}{\V{\eta} \: \cdot}\|_{\Ln{1}{\twosphere}}=1$.
-Further properties with respect to localization and smoothness are derived
+Further properties with respect to localisation and smoothness are derived
 in \cite[pp. 112]{frgesc}.
 
 \begin{figure}[tb]
@@ -475,7 +477,7 @@ the following lemma.
 \begin{lemma}
  \begin{enumerate}
    \item 
-Using the Poisson kernel with $K=Q_h$ within our summation algorithm yields an relative error of
+Using the Poisson kernel $K=Q_h$ within our summation algorithm yields an relative error of
      \begin{equation}
        \label{error:poisson}
        \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
@@ -483,7 +485,7 @@ Using the Poisson kernel with $K=Q_h$ within our summation algorithm yields an r
        \left(\frac{2M+1}{1-h}+\frac{2}{\left(1-h\right)^2}\right)\, .
      \end{equation}
      \item 
-Using the singularity kernel with $K=S_h$ within our summation algorithm yields an relative error of
+Using the singularity kernel $K=S_h$ within our summation algorithm yields an relative error of
        \begin{equation}
          \label{error:singular}
          \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
@@ -499,12 +501,12 @@ $\fun{S_{h}^{\wedge}}{k}=\frac{2}{2k+1}h^k$, respectively.
 Using Lemma \ref{lemma:error} yields the assertions.
 \end{proof}
   
-Simply put, our scheme (almost) achieves accuracy $\epsilon$ for $M \ge \log\epsilon \,
+Simply put, our scheme achieves (almost) accuracy $\epsilon$ for $M \ge \log\epsilon \,
 / \, \log h$.
 
 \subsection{Locally supported kernel}
 \begin{definition}
-  Let $h \in \interv{(}{0}{1}{)}$ and $\lambda \in \Rp$.
+  Let $h \in \interv{(}{-1}{1}{)}$ and $\lambda \in \NZ$.
   A locally supported zonal function
     $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
     \cite{Sc97}, is defined by
@@ -529,9 +531,8 @@ different values $h$ and $\lambda$.
   \label{Basics:Figure:LKernel}
 \end{figure}
 While the parameter $h$ again steers the localisation in spatial domain, the
-parameter $\lambda$ correponds to the smoothness in spatial domain.
-The iterated kernel $L_{h,\lambda,\mu}$ trades localisation in spatial domain
-for localisation in frequency domain by increasing $\mu$.
+parameter $\lambda$ correponds to the smoothness of $L_{h,\lambda}$ in the
+endpoint of the support $h$.
 More formally, we have the following lemma.
 
 \begin{lemma}
@@ -543,90 +544,87 @@ More formally, we have the following lemma.
     \fun{L_{h,\lambda}^{\wedge}}{k}   - \frac{k-\lambda-1}{k+\lambda+2}
     \fun{L_{h,\lambda}^{\wedge}}{k-1}
     \]
-    for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
+    for $k\in \N$ where $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$ and
     $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+2}$.
-  \item We obtain for fixed $\lambda \in \Rp$ the decay rate
+  \item We obtain for $\lambda \in \NZ$ and $k>\lambda+1$ the decay rate
     \[
-    \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le C_{\lambda}
-    \left(1-h\right)^{-(\lambda+1)}\paren{1-|h|}^{-\frac{1}{4}} 
-    k^{-\paren{\floor{\lambda}+\frac{3}{2}}}, 
+    \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le
+    \frac{2\sqrt{2}}{\paren{2k+1}\sqrt{\pi}}
+    \frac{\paren{\lambda+1}^2}{\paren{1-h}^{2\lambda+1}\sqrt[4]{1-|h|}}
+    \frac{1}{\paren{k-\lambda}^{\lambda+\frac{1}{2}}}\,. 
     \]
-where $C_{\lambda}$ is a constant which is independent of $h$ and $k$.
   \item Thus, the relative error of our summation algorithm with this kernel
-  is bounded for fixed $\lambda \in \Rp$ by
+  $K=L_{h,\lambda}$ is bounded for $\lambda \in \N$ and $M>\lambda$ by
   \begin{equation}
     \label{error:Lh}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    \tilde C_{\lambda} \left(1-h\right)^{-(\lambda+1)}\paren{1-|h|}^{-\frac{1}{4}} 
-    M^{-\paren{\floor{\lambda}+\frac{1}{2}}}.
+    \frac{1}{\pi\sqrt{2\pi}}
+    \frac{\paren{\lambda+1}^2}{\lambda-\frac{1}{2}}
+    \frac{1}{\paren{1-h}^{2\lambda+1}\sqrt[4]{1-|h|}}
+    \frac{1}{\paren{M-\lambda}^{\lambda-\frac{1}{2}}}\,.
   \end{equation}
-where $\tilde C_{\lambda}$ is a constant which is independent of $h$,
-$k$ and $M$.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
   \begin{enumerate}
   \item We apply \eqref{three1} and \eqref{three2}.
-  \item For $\lambda \in [0,1)$, we have
+  \item For $\lambda=0$, we have
     \begin{equation*}
       \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| 
       = \abs{2\pi \int_{h}^1 \frac{\lambda+1}{2\pi\paren{1-h}^{\lambda+1}} 
         \paren{x-h}^{\lambda} \fun{P_{k}}{x} \: \dx x} 
       \le \frac{\lambda+1}{(1-h)^{\lambda+1}}\abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}.
     \end{equation*}
-    Now, using \eqref{three2} and ${}$ follows
+    Using \eqref{three2} and \eqref{leg_prop}, we obtain
     \begin{align*}
-      \frac{\lambda+1}{(1-h)^{\lambda+1}}\abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}
-      & = \frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)}
-          \abs{\int_{h}^1 \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x} \: \dx x}\\
-      & = \frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)}
+      \abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}
+      %& = \frac{1}{2k+1}
+      %    \abs{\int_{h}^1 \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x} \: \dx x}\\
+      & = \frac{1}{2k+1}
           \abs{\fun{P_{k-1}}{h} - \fun{P_{k+1}}{h}}\\
-      & \le \sqrt{\frac{2}{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}(2k+1)
-            \sqrt{\sin\arccos h}} \cdot \\
-      & \quad \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}},
+      & \le \frac{1}{2k+1} \sqrt{\frac{2}{\pi \sin\arccos h}} \paren{\frac{1}{\sqrt{k-1}} + \frac{1}{\sqrt{k+1}}},
     \end{align*}
-    and with $\sin\arccos h = \sqrt[4]{1-h^2} \ge \sqrt{1-|h|}$ finally
+    and with $\sin\arccos h = \sqrt{1-h^2} \ge \sqrt{1-|h|}$ and
+    $\frac{1}{\sqrt{k-1}} + \frac{1}{\sqrt{k+1}} \le
+    \frac{2k+1}{k\sqrt{k}}$ finally
     \begin{equation}
       \label{SmallLambda}
       \left|\fun{L_{h,0}^{\wedge}}{k}\right| \le 
-      \sqrt{\frac{2}{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt{1-|h|}(2k+1)}
-      \paren{\frac{1}{\sqrt{(k-1)}} + \frac{1}{\sqrt{(k+1)}}}.
+      \frac{\sqrt{2}}{\sqrt{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt[4]{1-|h|}}
+      \frac{1}{k\sqrt{k}}.
     \end{equation}
 %    \frac{1}{1-h}
 %    \left|\int_{h}^{1} \fun{P_{k}}{x} \dx x\right| \le
 %    \frac{\sqrt{2}}{\left(2k+1\right)\left(1-h\right)\sqrt{\pi}\sqrt[4]{1-h^2}}
 %    \left(\frac{1}{\sqrt{k-1}}+\frac{1}{\sqrt{k+1}}\right)\,.
-    Furthermore, for $\lambda \ge 1$, we obtain by applying \eqref{three2}
-    \begin{eqnarray*}
-      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| &\le&
-      \frac{\lambda+1}{\lambda\left(1-h\right)\left(2k+1\right)}
-      \left|\fun{L_{h,\lambda-1}^{\wedge}}{k-1}-
-        \fun{L_{h,\lambda-1}^{\wedge}}{k+1}\right|\\ &\le&
-      \frac{\lambda+1}{\lambda\left(1-h\right)\left(k+\frac{1}{2}\right)}
-      \max\limits_{k-1\le k'\le k+1}
-      \left|\fun{L_{h,\lambda-1}^{\wedge}}{k'}\right|
-    \end{eqnarray*}
-    Iterate this argument until $\lambda \in [0,1)$ yields
+    Furthermore, for $\lambda \in \N$, we obtain by applying \eqref{three2} that
+    \begin{equation*}
+      \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| 
+      %&\le&
+      %\frac{\lambda+1}{\lambda\left(1-h\right)\left(2k+1\right)}
+      %\left|\fun{L_{h,\lambda-1}^{\wedge}}{k-1}-
+      %  \fun{L_{h,\lambda-1}^{\wedge}}{k+1}\right|\\ &\le&
+      \le \frac{2}{2k+1} \frac{\lambda+1}{\lambda\left(1-h\right)}
+      \max\limits_{|k-k'|\le 1}
+      \left|\fun{L_{h,\lambda-1}^{\wedge}}{k'}\right|.
+    \end{equation*}
+    Iterate this argument and estimate $\frac{2}{2k'+1}\le
+    \frac{1}{k-\lambda}$ yields
     \begin{align*}
       \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right|
-      & \le \frac{\lambda+1}{\lambda-\floor{\lambda}+1} \frac{1}{(1-h)^{\floor{\lambda}}}
-        \frac{1}{\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}}} 
-        \max_{k-\floor{\lambda} \le k' \le k+\floor{\lambda}} 
-        \abs{\fun{L_{h,\lambda-\floor{\lambda}}^{\wedge}}{k'}}.
+      & \le \frac{2}{2k+1} \frac{\lambda+1}{\paren{1-h}^{\lambda}}
+        \frac{1}{\paren{k-\lambda}^{\lambda-1}} 
+        \max_{|k-k'| \le \lambda} 
+        \abs{\fun{L_{h,0}^{\wedge}}{k'}}.
     \end{align*}
-    Here, $\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}} := 
-    \paren{k+\frac{3}{2}-\floor{\lambda}} \paren{k+\frac{3}{2}-\floor{\lambda}+1}
-    \cdot \ldots \cdot 
-    \paren{k+\frac{1}{2}}$ is the Pochhammer symbol. We finally use 
-    $\paren{k+\frac{3}{2}-\floor{\lambda}}_{\floor{\lambda}} \ge
-    \paren{k+\frac{3}{2}-\floor{\lambda}}^{\floor{\lambda}}$ and 
-    \eqref{SmallLambda} to obtain the assertion.
+    We finally use \eqref{SmallLambda} for $k'=k-\lambda$ to obtain the
+    assertion.
   \item We combine 2. with Lemma \ref{lemma:error}. 
   \end{enumerate}
 \end{proof}
 
 Simply put, our scheme achieves accuracy of order $\epsilon$ for $M \ge
-(1-h)\sqrt[\lambda]{\epsilon}$.
+\lambda + (1-h)^{-2} {\epsilon}^{-1/\lambda}$.
 
 \subsection{Gaussian kernel}
 \begin{definition}
@@ -651,7 +649,7 @@ different values $\sigma$.
 \begin{lemma}
 For the Gaussian-kernel $G_{\sigma}$ holds:
   \begin{enumerate}
-  \item The symbol $\fun{G_{\sigma}^{\wedge}}{k}$ can be computed by a
+  \item The symbol $\fun{G_{\sigma}^{\wedge}}{k}$ fulfils a highly unstable
     recurrence relation
     \[
     \fun{G_{\sigma}^{\wedge}}{k+1} = 
@@ -669,18 +667,19 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
     \]
     where $I_{k+\frac{1}{2}}$ denotes the modified Bessel function of first kind.
     Furthermore, $\fun{G_{\sigma}^{\wedge}}{k} \ge 0$.
-  \item Thus, the relative error of our summation algorithm with this
-  kernel $G_{\sigma}$ is bounded by
+  \item Thus, the relative error of our summation algorithm with the Gaussian
+  kernel $K=G_{\sigma}$ is bounded by
   \begin{equation}
     \label{error:G}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
-    .
+    \frac{\sqrt{\pi\sigma}\left(\e^{\sigma}-1\right) \sigma^{M-\frac{1}{2}}}{\fun{\Gamma}{M
+    +\frac{1}{2}}}.
   \end{equation} 
 \end{enumerate}
 \end{lemma}
 \begin{proof}
   \begin{enumerate}
-  \item The relation \eqref{three2} and integration by parts yields the
+  \item The relation \eqref{three2} and integration by parts yield the
   assertion.
   \item The solution of the difference equation in 1. is given by the modified
   Bessel function of first kind, cf. \cite{bahu01}.
@@ -688,23 +687,27 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
   positive definite function.
   \item Using 2. and
   \begin{eqnarray*}
-    \sum_{k>M} \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
+    \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
     &=&
-    \sum_{k>M} \frac{\e^{-2\sigma}
+    \frac{\e^{-2\sigma}
     \left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}} \int_{-1}^{1}
     \e^{2\sigma x} \left(1-x^2\right)^k \dx x\\
     &\le&
-    \sum_{k>M} \frac{\left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}}
+    \frac{\left(k+\frac{1}{2}\right)\sigma^k}{\fun{\Gamma}{k+1}}
     \int_{-1}^{1} \left(1-x^2\right)^k \dx x\\
     &=&
+    \frac{\sqrt{\pi}\sigma^k}{\fun{\Gamma}{k+\frac{1}{2}}}
+  \end{eqnarray*}
+  in conjunction with
+  \begin{equation*}
     \sum_{k>M} \frac{\sqrt{\pi}\sigma^k}{\fun{\Gamma}{k+\frac{1}{2}}}\\
-    &=&
+    =
     \frac{\sqrt{\pi\sigma}\e^{\sigma}}{\fun{\Gamma}{M+\frac{1}{2}}} 
     \int_{0}^{\sigma} t^{M-\frac{1}{2}} \e^{-t} \dx t\\
-    &\le&
-    \frac{\sqrt{\pi\sigma}\e^{\sigma} \sigma^{M+\frac{1}{2}}}{\fun{\Gamma}{M
+    \le
+    \frac{\sqrt{\pi\sigma}\left(\e^{\sigma}-1\right) \sigma^{M-\frac{1}{2}}}{\fun{\Gamma}{M
     +\frac{1}{2}}}
-  \end{eqnarray*}
+  \end{equation*}
   yields the assertion.
 \end{enumerate}
 
@@ -719,7 +722,7 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
 
 We present numerical examples in order to demonstrate the performance of
 our approach. All algorithms were implemented in C and tested on an 
-AMD Athlon\texttrademark XP 2700+ with 2GB main memory, SuSe-Linux 
+AMD Athlon\texttrademark XP 2700+ with 2GB main memory, SuSE-Linux 
 (kernel 2.4.20-4GB-athlon, gcc 3.3) using double precision arithmetic. 
 Moreover, we have used the libraries FFTW 3.0.1 \cite{fftw}, NFFT 2
 \cite{kupo02C} and a custom NFSFT library that will be part of the next 
@@ -748,9 +751,8 @@ approximative NFSFT algorithm. Figure \ref{fig:error} presents
 the error
 \[
   E_{\infty}:=
-  \frac{\max\limits_{d=0,\ldots,D-1}\left|\fun{f}{\xi_{d}}-
-  \fun{f_{M}}{\xi_{d}}\right|}{\sum\limits_{k=0}^N 
-  |b_l|} \quad \approx \quad \|K_{\text{ERR}}\|_{\infty}
+  \frac{\left\|\V{f}-\V{f}_M\right\|_{\infty}}{\left\|\V{b}\right\|_{1}}
+  \quad \approx \quad \frac{\left\|f-f_M\right\|_{\infty}}{\left\|\V{b}\right\|_{1}}
 \]
 for the mentioned kernels as a function of the parameter $M$.
 These results confirm the error estimates \eqref{error:poisson},
