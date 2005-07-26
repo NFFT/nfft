@@ -7,7 +7,10 @@
 /**
  * The structure for the transform plan.
  */
-struct transform_plan_s {
+struct texture_plan {
+
+	MACRO_MV_PLAN(complex);
+
 	int N;
 	int N1;
 	int N2;
@@ -16,11 +19,6 @@ struct transform_plan_s {
 	complex* omega;
 	complex* x;
 };
-
-/**
- * Datatype for the transform.
- */
-typedef struct transform_plan_s *transform_plan;
 
 /**
  * Konvert a non-flat index to a flat index.
@@ -33,6 +31,21 @@ int flatIndex(int l, int m, int n);
 /**
  * Carries out the transform.
  */
-void transform(transform_plan);
+void texture_trafo(texture_plan *ths);
+
+/**
+ * Simple initialisation of a plan.
+ */
+void texture_init(texture_plan *ths);
+
+/*
+ * Initialisation of a plan.
+ */
+void texture_init_advanced(texture_plan *ths);
+
+/**
+ * The adjoint version of the transform.
+ */
+void texture_adjoint(texture_plan *ths);
 
 #endif
