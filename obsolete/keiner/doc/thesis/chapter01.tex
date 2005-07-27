@@ -90,12 +90,12 @@ and $\max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1$ (see \cite[pp. 
 Two recurrence relations are given by
 \begin{equation}
   \label{three1}
-  \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} - k\fun{P_{k-1}}{x}
+  \paren{k+1}\fun{P_{k+1}}{x} = \paren{2k+1}x\fun{P_{k}}{x} - k\fun{P_{k-1}}{x} \quad \paren{k \in \NZ}
 \end{equation}
 and
 \begin{equation}
   \label{three2}
-  \paren{2k+1} \fun{P_{k}}{x} = \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x}.
+  \paren{2k+1} \fun{P_{k}}{x} = \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x}  \quad \paren{k \in \NZ}.
 \end{equation}
 Furthermore, we define the associated Legendre functions $P_k^n : \interv{[}{-1}{1}{]} \rightarrow \R$ by
 \begin{equation}
@@ -568,7 +568,7 @@ Further properties with respect to localization and smoothness are derived in \c
   \begin{definition}
     Let $h \in \interv{(}{0}{1}{)}$, $\lambda \in \Rp$, and $\mu \in \N$.
     \begin{enumerate}
-	    \item Let the locally supported kernel
+	    \item Let the \emph{locally supported kernel}
 	    $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$ defined by
 	    \[
 	    \fun{L_{h,\lambda}}{x} := 
@@ -577,7 +577,7 @@ Further properties with respect to localization and smoothness are derived in \c
 	        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h <  x \le 1,
 	      \end{array}\right.
 	    \]
-	    \item Furthermore, we define the iterated locally supported kernels 
+	    \item Furthermore, we define the \emph{iterated locally supported kernels} 
 	    $L_{h,\lambda}^{(\mu)}:\interv{[}{-1}{1}{]} \rightarrow \R$, $\mu \in \N$ 
 	    recursively,
 	    \[
@@ -603,7 +603,7 @@ Further properties with respect to localization and smoothness are derived in \c
 	    \[
 	    \fun{L_{h,\lambda}^{\wedge}}{k+1} = \frac{\paren{2k+1} h}{k+\lambda+2}
 	    \fun{L_{h,\lambda}^{\wedge}}{k}   - \frac{k-\lambda-1}{k+\lambda+2}
-	    \fun{L_{h,\lambda}^{\wedge}}{k-1}
+	    \fun{L_{h,\lambda}^{\wedge}}{k-1} \quad \paren{k \ge 1}
 	    \]
 	    for $k\in \N$, $\fun{L_{h,\lambda}^{\wedge}}{0} = 1$, and
 	    $\fun{L_{h,\lambda}^{\wedge}}{1} = \frac{\lambda + 1 + h}{\lambda+2}$.

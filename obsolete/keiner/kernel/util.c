@@ -220,6 +220,22 @@ double norm_f_hat_1(complex **f_hat, int M)
   return r;
 }
 
+double norm_f_hat_1s(complex **f_hat, int M)
+{
+  double r = 0.0;
+  int k,n;
+  
+  for (k = 1; k <= M; k++) 
+  {
+    for (n = -k; n <= k; n++) 
+    {
+      r += cabs(f_hat[n+M][k])/sqrt((double)k);
+    }
+  }  
+  r += cabs(f_hat[0][0]);
+  return r;
+}
+
 double err_f_hat_2(complex **f_hat, complex **f_hat2, int M)
 {
   double err = 0;

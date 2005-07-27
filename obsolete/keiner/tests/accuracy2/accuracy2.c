@@ -298,7 +298,7 @@ int main (int argc, char **argv)
       
       //copyc(f,fr,/*D*/m[im]*m[im]);
       copyc_hat(&f_hat[m_max-m[im]],&f_hatr[m_max-m[im]],m[im]);
-      err_help = norm_f_hat_1(&f_hat[m_max-m[im]],m[im]);
+      err_help = norm_f_hat_1s(&f_hat[m_max-m[im]],m[im]);
       //nfsft_adjoint(plan);
       nfsft_trafo(plan);
       
@@ -308,7 +308,8 @@ int main (int argc, char **argv)
       err_inf2 = err_inf/norm_complex_inf(f2,D);
       ///norm_complex_1(fr,/*D*/m[im]*m[im]);
       fprintf(stderr,"%3d %.4E %.4E %.4E %.4E %.4E\n",m[im],err2,err_inf,
-              err_help,err_inf/err_help,err_inf2);
+              err_h
+              elp,err_inf/err_help,err_inf2);
       
       nfsft_finalize(plan);
                   

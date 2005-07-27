@@ -4,7 +4,7 @@
 %\end{savequote}
 %\makeatletter
 
-\chapter{Introduction}
+\chapter*{Introduction}
 \label{Introduction}
 
 The \emph{fast Fourier transform (FFT)} has become one of the most important 
@@ -64,6 +64,16 @@ different proposed algorithms mainly differ in the ansatz chosen
 to compute the transformation efficiently. A careful analysis
 of numerical instabilities involved has proven to be of major 
 importance.
-The aim of this text is to give a short introduction to Fourier 
-series on the sphere $\twosphere$ and to describe a particular
-algorithms with more detail. 
+
+The aim of this text is to describe particular algorithms for fast discrete
+spherical Fourier transforms. Chapter \ref{Basics} gives a brief 
+introduction to Fourier analysis on the sphere $\twosphere$ and 
+provides fundamental facts and results.
+In Chapter \ref{DSFT}, algorithms for the computation of discrete
+spherical Fourier transforms are derived. We describe the
+so-called 'direct' algorithms and the 'fast' algorithms based on
+the \emph{fast Legendre function transform (FLFT)}. We also mention
+how spherical Fourier coefficients might be computed by certain 
+quadrature formulae. Chapter \ref{Applications} finally presents 
+two applications of the proposed algorithms along with numerical
+test computations.
