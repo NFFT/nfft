@@ -63,10 +63,11 @@ int main (int argc, char **argv)
   complex **f_hat_orig;
   complex **f_hat_temp;
   complex *f_orig;
+  complex *f_test;
   double *x;
   double *x_phi, *x_theta;
   double *x2;
-  nfsft_plan plan, plan2;
+  nfsft_plan plan, plan2, plan3;
   int n,m,k,d,j,l,i, M, /*k_min, k_max,*/ d_phi, d_theta, N, n_d;
   FILE *file;
   char filename[100];
@@ -118,6 +119,7 @@ int main (int argc, char **argv)
 
     /** Allocate data structures. */
     f = (complex*) calloc(D,sizeof(complex));
+    f_test = (complex*) calloc(D,sizeof(complex));
     f_temp = (complex*) calloc(D2,sizeof(complex));
     f_orig = (complex*) calloc(D,sizeof(complex));
     x = (double*) calloc(2*D,sizeof(double));
@@ -190,6 +192,7 @@ int main (int argc, char **argv)
     nfsft_precompute(M,1000,0U);
     
     plan = nfsft_init(M,D,f_hat,x,f,NFSFT_NORMALIZED);
+    plan3 = nfsft_init(M,D,f_hat_temp,x,f_test,NFSFT_NORMALIZED);
 
     nfsft_trafo(plan);
     
@@ -249,10 +252,15 @@ int main (int argc, char **argv)
       fprintf(file,"%16E\n",cabs(f_temp[d]));
     }
     fclose(file);
+    copyc_hat(f_hat_temp,iplan->f_hat_iter,M);
+    nfsft_trafo(plan3);
     
-    fprintf(stderr,"%3d: %.3E %.3E,\n",0,sqrt(iplan->dot_r_iter),
+    fprintf(stderr,"%3d: %.4E %.4E %.4E,\n",0,sqrt(iplan->dot_r_iter),
             err_f_hat_infty(iplan->f_hat_iter,f_hat_orig,
-                            iplan->direct_plan->M));
+                              iplan->direct_plan->M)/norm_complex_1(f_orig,
+															iplan->direct_plan->D),
+															error_complex_inf(f_test,f_orig,D)/
+															norm_complex_inf(f_orig,D));
     for(l=0;l<10;l++)
     { 
       infsft_loop_one_step(iplan);
@@ -267,15 +275,21 @@ int main (int argc, char **argv)
         fprintf(file,"%16E\n",cabs(f_temp[d]));
       }
       fclose(file);
+      copyc_hat(f_hat_temp,iplan->f_hat_iter,M);
+      nfsft_trafo(plan3);
 
-      fprintf(stderr,"%3d: %.3E %.3E\n",l+1,sqrt(iplan->dot_r_iter),
+      fprintf(stderr,"%3d: %.4E %.4E %.4E\n",l+1,sqrt(iplan->dot_r_iter),
               err_f_hat_infty(iplan->f_hat_iter,f_hat_orig,
-                              iplan->direct_plan->M));
+                              iplan->direct_plan->M)/norm_complex_1(f_orig,
+															iplan->direct_plan->D),
+															error_complex_inf(f_test,f_orig,D)/
+															norm_complex_inf(f_orig,D));
     }
     
     infsft_finalize(iplan);  
     nfsft_finalize(plan);  
     nfsft_finalize(plan2);  
+    nfsft_finalize(plan3);  
     
     nfsft_forget();
     
@@ -290,6 +304,7 @@ int main (int argc, char **argv)
     free(f_hat_orig);
     free(x);
     free(f);
+    free(f_test);
     free(f_temp);
     free(f_orig);
   }      

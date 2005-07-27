@@ -278,7 +278,7 @@ int main (int argc, char **argv)
     file_dat = fopen(filename_dat,"w");
   		fclose(file_dat);
     
-    nfsft_precompute(m_max,threshold,0U);
+    nfsft_precompute(m_max,threshold,NFSFT_BW_WINDOW);
     
     for (im = 0; im < im_max; im++)
     {
