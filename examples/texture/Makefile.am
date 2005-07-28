@@ -17,4 +17,4 @@ noinst_PROGRAMS = textureTest
 textureTest_SOURCES = textureTest.c
 
 ## Additional libraries for the library
-textureTest_LDADD = libtexture.la
+textureTest_LDADD = libtexture.la $(top_builddir)/libnfft3.la -lm -lfftw3

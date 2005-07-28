@@ -370,6 +370,39 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /* @} 
  */
 
+/** @defgroup texture group
+ * @{
+ */
+
+/**
+ * The structure for the transform plan.
+ */
+typedef struct texture_plan_ {
+
+	MACRO_MV_PLAN(complex);
+
+	int N;
+	int N1;
+	int N2;
+	double *h_phi;
+	double *h_theta;
+	double **r_phi;
+	double **r_theta;
+} texture_plan;
+
+/**
+ * Carries out the transform.
+ */
+void texture_trafo(texture_plan *ths);
+
+/**
+ * The adjoint version of the transform.
+ */
+void texture_adjoint(texture_plan *ths);
+
+/* @}
+ */
+
 /** @defgroup solver Group
  * @{ 
  */
@@ -443,6 +476,7 @@ MACRO_SOLVER_PLAN(nfft, complex)
 MACRO_SOLVER_PLAN(nnfft, complex)
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex)
+//MACRO_SOLVER_PLAN(texture, complex)
 /** @} 
  */
  

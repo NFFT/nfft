@@ -15,6 +15,15 @@ int flatIndex(int l, int m, int n) {
  * Carries out the transform.
  */
 void texture_trafo(texture_plan *ths) {
+	int i, j;
+	
+	for (i = 0, j = 0; i <= ths->N_total - 2 && j < ths->M_total; i += 2, j++) {
+		ths->f[j] = ths->f_hat[i] + ths->f_hat[i+1];
+	}
+	
+	for (; j < ths->M_total; j++) {
+		ths->f[j] = 0;
+	}
 }
 
 void texture_init(texture_plan *ths, int N,	int N1, int N2) {
@@ -49,4 +58,14 @@ void texture_finalize(texture_plan *ths) {
  * The adjoint version of the transform.
  */
 void texture_adjoint(texture_plan *ths) {
+	int i, j;
+
+	for(i = 0, j = 0; i <= ths->N_total - 2 && j < ths->M_total; i += 2, j++) {
+		ths->f_hat[i] = ths->f[j];
+		ths->f_hat[i+1] = ths->f[j];
+	}
+
+	for(; i < ths->N_total; i++) {
+		ths->f_hat[i] = 0;
+	}
 }
