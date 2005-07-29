@@ -24,6 +24,10 @@ void texture_trafo(texture_plan *ths) {
 	for (; j < ths->M_total; j++) {
 		ths->f[j] = 0;
 	}
+/*	int i;
+	for (i = 0; i < ths->N_total; i++) {
+		ths->f[i] = 2*ths->f_hat[i];
+	}*/
 }
 
 void texture_init(texture_plan *ths, int N,	int N1, int N2) {
@@ -68,4 +72,8 @@ void texture_adjoint(texture_plan *ths) {
 	for(; i < ths->N_total; i++) {
 		ths->f_hat[i] = 0;
 	}
+/*	int i;
+	for (i = 0; i < ths->M_total; i++) {
+		ths->f_hat[i] = 2*ths->f[i];
+	}*/
 }
