@@ -1551,18 +1551,85 @@ in Section \ref{NFSFT:transposedFLFT}. The final algorithm is compiled in Algori
 \end{algorithmic}
 \end{algorithm}
 
-%\begin{table}
-%  \label{NFSFT:Table:Algorithms}
-%  \centering
-%  \begin{tabular}{r|r}
-%    Algorithm & Complexity (flops) \\
-%    naive NDSFT & $\bigo{M^3D}$ \\
-%    direct NDSFT & $\bigo{M^2D}$ \\
-%    direct NDSFT on arbitrary grids & $\bigo{LM^2 + MLJ}$ \\
-%    direct NDSFT on Fourier type grid & $\bigo{LM^2+LM \log M}$ \\
-%    direct adjoint NDSFT & $\bigo{M^2D}$ \\
-%    NFSFT & $\bigo{M^2 \log^2 M + \log\frac{1}{\varepsilon}D}$ \\
-%    adjoint NFSFT & $\bigo{M^2 \log^2 M + \log\frac{1}{\varepsilon}D}$ \\
-%  \end{tabular}
-%  \caption{To be written}
-%\end{table}
+\section{Performance and Accuracy}
+We present numerical examples in order to demonstrate the performance and accuracy of our approach. All algorithms were implemented in C and tested on an 
+AMD Athlon\texttrademark XP 2700+ with 2GB main memory, SuSe-Linux 
+(kernel 2.4.20-4GB-athlon, gcc 3.3) using double precision arithmetic. 
+Moreover, we have used the libraries FFTW 3.0.1 \cite{fftw}, NFFT 2
+\cite{kupo02C} and a custom NFSFT library which will be part of the next 
+major release of the NFFT library. Throughout our experiments we have 
+applied the NFFT package \cite{kupo02C} with precomputed Kaiser--Bessel 
+functions and an oversampling factor $\rho=2$.
+
+In our tests we have always chosen uniformely distributed pseudo-random 
+nodes $\paren{\vartheta,\varphi} \in [0,\pi] \times [-\pi,\pi]$ and 
+spherical Fourier coefficients $a_{k}^n$ from the complex square
+$\left[-\frac{1}{2},\frac{1}{2}\right] \times 
+i\left[-\frac{1}{2},\frac{1}{2}\right]$.
+
+We first examine the error of the NFSFT algorithm compared wit the direct NDSFT
+algorithm. As usual, we denote by $\V{a}$ the vector of
+spherical Fourier coefficients, by $\V{\tilde{f}}$ the NFSFT result and
+by $\V{f}$ the NDSFT result. We considered the following error measures:
+\begin{align*}
+  E_{2} & := \frac{\norm{\V{f}-\V{\tilde{f}}}_{2}}{\norm{\V{f}}_{2}},\\
+  E_{\infty} & := \frac{\norm{\V{f}-\V{\tilde{f}}}_{\infty}}{\norm{\V{a}}_{1}}.
+\end{align*}
+
+\begin{figure}[tb]
+  \centering
+  \subfigure[The error $E_{2}$ for fixed threshold 
+  $\kappa = 1000$ as a function of the cutoff parameter $m$.]
+  {
+  \label{NFSFT:Figure:Accuracy:m2}
+  \includegraphics[width=0.45\textwidth]{images/accuracy_m_2}
+  }
+  \hfill
+  \subfigure[The error $E_{\infty}$ for fixed threshold 
+  $\kappa = 1000$ as a function of the cutoff parameter $m$.]
+  {
+  \label{NFSFT:Figure:Accuracy:minf}
+  \includegraphics[width=0.45\textwidth]{images/accuracy_m_inf}
+  }
+  \\
+  \subfigure[The error $E_{2}$ for fixed cutoff parameter $m = 7$ 
+  as a function of the threshold $\kappa$.]
+  {
+  \label{NFSFT:Figure:Accuracy:t2}
+  \includegraphics[width=0.45\textwidth]{images/accuracy_t_2}
+  }
+  \hfill
+  \subfigure[The error $E_{\infty}$ for fixed cutoff parameter $m = 7$ 
+  as a function of the threshold $\kappa$.]
+  {
+  \label{NFSFT:Figure:Accuracy:tinf}
+  \includegraphics[width=0.45\textwidth]{images/accuracy_t_inf}
+  }
+  %\caption{The errors $E_{2}$ (left) and $E_{\infty}$.}
+  \label{NFSFT:Figure:Accuracy}
+\end{figure}
+
+The results for fixed $M = 256$, $D = 16384$ and FLFT threshold 
+$\kappa=10^3$ as a function of the NFFT cutoff parameter $m$ 
+are shown in Figure \ref{NFSFT:Figure:Accuracy:m2} and 
+\ref{NFSFT:Figure:Accuracy:minf}. In order to show the
+demonstrate the influence of the FLFT threshold $\kappa$, we fixed now 
+$m=7$ and plotted the errors $E_{2}$ and $E_{\infty}$ as a function
+of $\kappa$. The result is shown in Figures \ref{NFSFT:Figure:Accuracy:t2}
+and \ref{NFSFT:Figure:Accuracy:tinf}. Both parameters limit 
+the achievable accuracy of the algorithm.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.45\textwidth]{images/timing}
+  \caption{The CPU-time in seconds as a function of the bandwidth $M$. 
+  The number of nodes $D$ was chosen as $D=M^2$.}
+  \label{NFSFT:Figure:Timing}
+\end{figure}
+
+We finally compared the computation time of the NDSFT and NFSFT algorithms.
+Figure \ref{NFSFT:Figure:Timing} shows the CPU time required by the two
+algorithms as a
+function of the bandwidth $M$. For given $M$ we chose $D=M^2$. For large 
+$M$, the NFSFT algorithm outperforms the NDSFT algorithm.
+

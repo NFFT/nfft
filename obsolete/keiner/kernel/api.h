@@ -43,6 +43,9 @@ typedef enum {false = 0,true = 1} bool;
 #define FIRST_L (int)floor(ntilde/(double)plength)
 #define LAST_L (int)ceil((Mtilde+1)/(double)plength)-1
 
+#ifdef LOGFILE
+  #define LOGFILENAME "/tmp/nfsft.log"
+#endif
 
 /** \defgroup nfsft_internal NFSFT: Internal API and functions */
 

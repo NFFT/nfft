@@ -308,8 +308,7 @@ int main (int argc, char **argv)
       err_inf2 = err_inf/norm_complex_inf(f2,D);
       ///norm_complex_1(fr,/*D*/m[im]*m[im]);
       fprintf(stderr,"%3d %.4E %.4E %.4E %.4E %.4E\n",m[im],err2,err_inf,
-              err_h
-              elp,err_inf/err_help,err_inf2);
+              err_help,err_inf/err_help,err_inf2);
       
       nfsft_finalize(plan);
                   

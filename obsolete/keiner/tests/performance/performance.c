@@ -77,8 +77,8 @@ if (file != NULL)  \
     for (M = m_min; M <= m_max; M = M + m_stride) \
     { \
       t = 0.0; \
-      plan = nfsft_init(M, M*M, f_hat, angles, f, 0U); \
-      for (j = 0; j < 100; j++) \
+      plan = nfsft_init(M, D, f_hat, angles, f, 0U); \
+      for (j = 0; j < 1; j++) \
       { \
         ctime = second(); \
         TRAFO_FUNCTION(plan); \

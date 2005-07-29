@@ -230,6 +230,13 @@ void nfsft_trafo(nfsft_plan plan)
 {
   /** Counter for loops */
   int i,n;
+#ifdef LOGFILE
+  FILE *logfile = fopen(LOGFILENAME,"w");
+  if (logfile != NULL)
+  {
+    fclose(logfile);
+  }  
+#endif
 
   if (wisdom.initialized == false || plan->M > wisdom.N)
   {

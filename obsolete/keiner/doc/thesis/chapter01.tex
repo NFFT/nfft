@@ -70,6 +70,48 @@ further information, see for example \cite[Chapter 2.3]{frgesc}.
   \label{sphere}
 \end{figure}
 
+Throughout the text, vectors $\V{x}$ and matrices $\V{A}$ are printed 
+in boldface. Let now $n \in \N$. As usual, $\V{0}$ is the null vector
+$\paren{0,0,\ldots,0}^{\transp} \in \R^{n}$ and $\V{I}_{n}$ is the $n$ 
+dimensional unity matrix 
+\[
+  \V{I} := 
+    \left(\begin{array}{cccc}
+         1 &        0 &  \dots &       0\\
+           0 &      1 & \ddots &  \vdots\\
+      \vdots & \ddots & \ddots &       0\\
+           0 &  \dots &      0 &       1\\
+    \end{array}\right) \in \R^{n \times n}.
+\]
+For a vector $\V{x} = \paren{x_{j}}_{j=0}^{n-1} 
+\in \C^{n}$, we denote by $\V{W} = \fun{\diag}{\V{x}}$ 
+the diagonal matrix
+\[
+  \V{W} := 
+    \left(\begin{array}{cccc}
+       x_{0} &      0 &  \dots &       0\\
+           0 &  x_{1} & \ddots &  \vdots\\
+      \vdots & \ddots & \ddots &       0\\
+           0 &  \dots &      0 & x_{n-1}\\
+    \end{array}\right) \in \C^{n \times n}.
+\]
+Moreover, $\norm{\cdot}_{1}$, $\norm{\cdot}_{2}$ and $\norm{\cdot}_{\infty}$
+denote the usual 1-norm, euclidean or 2-norm, and the infinity- or maximum norm,
+respectively. For a matrix $\V{W} = \fun{\diag}{\paren{w}_{j=0}^{n-1}} \in
+{\Rp}^{n}$ the \emph{weighted euclidean norm}
+ $\norm{\cdot}_{\V{W}}$ is understood as $\norm{\cdot}_{\V{W}} 
+ = \norm{\V{W}^{1/2}\:\cdot}_{2}$.
+ 
+The \emph{range} $\fun{\mathcal{R}}{A}$ and \emph{nullspace}
+$\fun{\mathcal{N}}{A}$
+of a matrix $\V{A} \in \C^{n \times n}$ is given by
+\begin{align*} 
+  \fun{\mathcal{R}}{A} & := \pset{\V{y} = \V{A}\:\V{x}}{|}{\V{x} \in \C^{n}},\\
+  \fun{\mathcal{N}}{A} & := \pset{\V{x} \in \C^{n}}{|}{\V{A}\:\V{x} = \V{0}}.
+\end{align*}
+For the identity $\fun{\mathcal{R}}{A} = \fun{\mathcal{N}}{A^{\h}}$, we refer
+the reader to \cite{bjoerk}.
+
 \section{Legendre Functions}
 \label{Basics:LegendreTypeFunctions}
 In this section, we briefly introduce \emph{Legendre polynomials}, \emph{associated Legendre functions} 

@@ -2,6 +2,7 @@
 #include "u.h"
 #include "util.h"
 #include "legendre.h"
+#include "api.h"
 
 void flft(const int M, const int t, const int n, complex *const f_hat, 
           struct nfsft_wisdom *const wisdom, int *nstab, int *ntotal)
@@ -39,8 +40,12 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   complex *work_ptr;
   complex *f_hat_ptr;
   
-  int ntilde = min(n,N-2);;
+  int ntilde = min(n,N-2);
   int Mtilde = min(M,N-1);
+  
+#ifdef LOGFILE
+  FILE *logfile;
+#endif  
   
   /* Initialize working arrays. */
   memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));
@@ -120,6 +125,16 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
       }
       else
       {	
+#ifdef LOGFILE
+        logfile = fopen(LOGFILENAME,"a");
+        if (logfile != NULL)
+        {
+          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau));
+          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau)+1);
+          fclose(logfile);
+        }
+#endif
+        
         /* Stabilize. */
         *nstab = *nstab + 1;
 
