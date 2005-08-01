@@ -43,10 +43,6 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   int ntilde = min(n,N-2);
   int Mtilde = min(M,N-1);
   
-#ifdef LOGFILE
-  FILE *logfile;
-#endif  
-  
   /* Initialize working arrays. */
   memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));
   memset(wisdom->ergeb,0U,((N+1)<<1)*sizeof(complex));
@@ -124,17 +120,7 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
         }          
       }
       else
-      {	
-#ifdef LOGFILE
-        logfile = fopen(LOGFILENAME,"a");
-        if (logfile != NULL)
-        {
-          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau));
-          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau)+1);
-          fclose(logfile);
-        }
-#endif
-        
+      {	        
         /* Stabilize. */
         *nstab = *nstab + 1;
 

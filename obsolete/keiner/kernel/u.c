@@ -78,6 +78,16 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
   
   int ntilde;
   int Mtilde = min(M,N-1);
+	
+#ifdef LOGFILE
+  int j;
+	char filename[100];
+  FILE *logfile = fopen(LOGFILENAME,"w");
+  if (logfile != NULL)
+  {
+    fclose(logfile);
+  }  
+#endif	
   
   fprintf(stderr,"Threshold = %lf\n",threshold);  
     
@@ -207,7 +217,58 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         /* Check if stabilization needed. */
         if (needstab == false)
         {  
-				  //printf("Alloc l: n = %d, tau = %d, l = %d\n",n,tau,l);
+#ifdef LOGFILE2
+					/*logfile = fopen(LOGFILENAME,"a");
+					if (logfile != NULL)
+					{
+						fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau));
+						fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau)+1);
+						fclose(logfile);
+					}*/
+					sprintf(filename,"%d__%d_%d_%d_1_u.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m1[j]);						  
+						}
+						fclose(logfile);
+					}
+					sprintf(filename,"%d__%d_%d_%d_2_u.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m2[j]);						  
+						}
+						fclose(logfile);
+					}
+					alpha--;
+					beta--;
+					gamma--;
+					sprintf(filename,"%d__%d_%d_%d_3_u.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m3[j]);						  
+						}
+						fclose(logfile);
+					}
+					sprintf(filename,"%d__%d_%d_%d_4_u.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m4[j]);						  
+						}
+						fclose(logfile);
+					}
+#endif				  //printf("Alloc l: n = %d, tau = %d, l = %d\n",n,tau,l);
 					//fflush(stdout);
           U[n][tau][l] = (struct U_type*) fftw_malloc(sizeof(struct U_type)); 
           /* No stabilization needed. */
@@ -219,6 +280,63 @@ struct U_type**** precomputeU(int t, double threshold, double *walpha,
         }          
         else 
         {    
+#ifdef LOGFILE
+					logfile = fopen(LOGFILENAME,"a");
+					if (logfile != NULL)
+					{
+						fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau));
+						fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+(1<<tau)+1);
+						fclose(logfile);
+					}
+					eval_al(xvecs[tau-1], m1, plength, degree-2, alpha, beta, gamma);
+					sprintf(filename,"%d__%d_%d_%d_1.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m1[j]);						  
+						}
+						fclose(logfile);
+					}
+					eval_al(xvecs[tau-1], m2, plength, degree-1, alpha, beta, gamma);
+					sprintf(filename,"%d__%d_%d_%d_2.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m2[j]);						  
+						}
+						fclose(logfile);
+					}
+					alpha--;
+					beta--;
+					gamma--;
+					eval_al(xvecs[tau-1], m3, plength, degree-1, alpha, beta, gamma);
+					sprintf(filename,"%d__%d_%d_%d_3.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m3[j]);						  
+						}
+						fclose(logfile);
+					}
+					eval_al(xvecs[tau-1], m4, plength, degree, alpha, beta, gamma);
+					sprintf(filename,"%d__%d_%d_%d_4.dat",tau,(1<<tau)-1,n,(1<<(tau+1))*l+1);
+					logfile = fopen(filename,"w");
+					if (logfile != NULL)
+					{
+					  for (j = 0; j < plength; j++)
+						{
+  						fprintf(logfile,"%.16E\n",m4[j]);						  
+						}
+						fclose(logfile);
+					}
+#endif
+
           nstab++;
           //fprintf(stderr,"(%d,%d,%d)\n",n,tau,l);
           
@@ -764,7 +882,7 @@ void forgetU_stab(struct U_type**** U, int M, int t)
   int l;
   int tau_stab;
   int ntilde;
-  int Mtilde = min(M,N-1);
+  int Mtilde = min(M,N-1);	
   
   for (n = 0; n <= M; n++)
   {   

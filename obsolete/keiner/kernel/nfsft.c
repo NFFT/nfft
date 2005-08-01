@@ -230,14 +230,7 @@ void nfsft_trafo(nfsft_plan plan)
 {
   /** Counter for loops */
   int i,n;
-#ifdef LOGFILE
-  FILE *logfile = fopen(LOGFILENAME,"w");
-  if (logfile != NULL)
-  {
-    fclose(logfile);
-  }  
-#endif
-
+	
   if (wisdom.initialized == false || plan->M > wisdom.N)
   {
     return;
@@ -269,7 +262,11 @@ void nfsft_trafo(nfsft_plan plan)
 //    fprintf(stderr,"cheb2exp\n",n);
 //	  fflush(stderr);
     cheb2exp(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
-    
+
+		//norm = norm_nfft_1(plan->plan_nfft.f_hat, 2*(plan->N+1));
+		//fprintf(stderr,"nfft_norm_1 = %.4E\n",norm);
+		fflush(stderr);
+		
     /* Execute NFFT. */
 		if (plan->flags & NFSFT_USE_NDFT)
 		{
@@ -279,7 +276,8 @@ void nfsft_trafo(nfsft_plan plan)
 		{
       nfft_trafo(&plan->plan_nfft);
 		}
-  }    
+		
+  } 
 }
 
 void nfsft_adjoint(nfsft_plan plan)

@@ -278,14 +278,14 @@ int main (int argc, char **argv)
     file_dat = fopen(filename_dat,"w");
   		fclose(file_dat);
     
-    nfsft_precompute(m_max,threshold,NFSFT_BW_WINDOW);
+    nfsft_precompute(m_max,threshold,0U/*NFSFT_BW_WINDOW*/);
     
     for (im = 0; im < im_max; im++)
     {
       /* Init transform plan. */
       plan = nfsft_init_guru(m[im],D/*m[im]*m[im]*/,&f_hat[m_max-m[im]],xi,f,
-                             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) /*| 
-                             NFSFT_NORMALIZED*/,cutoff);
+                             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) | 
+                             NFSFT_NORMALIZED,cutoff);
       //fprintf(stderr,"      M = %d:\n ",m[im]);
           
       /* Test transforms. */    
@@ -304,11 +304,10 @@ int main (int argc, char **argv)
       
       updatec_xpay(f, -1.0, f2, D/*m[im]*m[im]*/);
       err2 = norm_complex_2(f,D/*m[im]*m[im]*/)/norm_complex_2(f2,D/*m[im]*m[im]*/);
-      err_inf = norm_complex_inf(f,D/*m[im]*m[im]*/);
-      err_inf2 = err_inf/norm_complex_inf(f2,D);
+      err_inf = norm_complex_inf(f,D/*m[im]*m[im]*/)/err_help;
+      //err_inf2 = err_inf/norm_complex_inf(f2,D);
       ///norm_complex_1(fr,/*D*/m[im]*m[im]);
-      fprintf(stderr,"%3d %.4E %.4E %.4E %.4E %.4E\n",m[im],err2,err_inf,
-              err_help,err_inf/err_help,err_inf2);
+      fprintf(stderr,"%3d %.4E %.4E\n",m[im],err2,err_inf);
       
       nfsft_finalize(plan);
                   
@@ -369,8 +368,7 @@ int main (int argc, char **argv)
       ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_complex_inf(f, f_m, 
       ld[ild][1])/norm_complex_1(b,ld[ild][0]));*/
 
-      fprintf(file_dat,"%3d %.4E %.4E %.4E\n",m[im],err2,err_inf,
-              err_inf/err_help);
+      fprintf(file_dat,"%3d %.4E %.4E\n",m[im],err2,err_inf);
      	fclose(file_dat);
     }
         

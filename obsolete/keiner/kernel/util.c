@@ -103,7 +103,7 @@ double norm_complex_2(complex *x, int n)
     r += cabs(x[k])*cabs(x[k]);
   }
   
-  return r;
+  return sqrt(r);
 }
 
 double norm_complex_1(complex *x, int n)
@@ -203,6 +203,23 @@ double err_f_hat_1(complex **f_hat, complex **f_hat2, int M)
     }
   }  
   return err/temp;
+}
+
+double norm_nfft_1(complex *f_hat, int M)
+{
+  double r = 0.0;
+  int k,n;
+	complex* t = f_hat;
+  
+  for (k = 0; k < M; k++) 
+  {
+    for (n = 0; n < M; n++) 
+    {
+		  //fprintf(stderr,"r = %.4E\n",r);
+      r += cabs(*t++);
+    }
+  }  
+  return r;
 }
 
 double norm_f_hat_1(complex **f_hat, int M)
