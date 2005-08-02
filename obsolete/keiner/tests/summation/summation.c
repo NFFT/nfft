@@ -35,6 +35,9 @@
 #include <stdio.h>
 #include <time.h>
 
+/* Include GSL header. */
+#include <gsl/gsl_sf_bessel.h>
+
 /* Library headers. */
 #include "nfsft.h"
 #include "util.h"
@@ -153,6 +156,7 @@ int main (int argc, char **argv)
 	double t;
 	int precompute = NO;
 	complex *ptr;
+ double* steed;
 	
   /** Weights \f$\left(b_l\right)_{l=0}^{L-1}\f$ */
  	complex *b;
@@ -440,28 +444,35 @@ int main (int argc, char **argv)
 					}
 					break;                
 				case KT_GAUSSIAN:
-          sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
-					fprintf(stderr,"filename = %s\n",filename_gaussian);
-          file_gaussian = fopen(filename_gaussian,"r");
+      /*steed = (double*) malloc(m_max*sizeof(double));
+      gsl_sf_bessel_il_scaled_array(m_max,p[ip][0],steed);
+      for (k = 0; k <= m_max; k++)
+      {
+        a[k] = 4*PI*steed[k];
+      }
+      free(steed);*/
+      sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
+					 fprintf(stderr,"filename = %s\n",filename_gaussian);
+      file_gaussian = fopen(filename_gaussian,"r");
 				  if (file_gaussian != NULL)
-					{
-					  fscanf(file_gaussian,"%d\n",&nsymbols);
-						for (k = 0; k <= min(nsymbols,m_max); k++)
-						{
-  					  fscanf(file_gaussian,"%lf\n",&a[k]);
-  					  fprintf(stderr,"a[%d] = %E\n",k,a[k]);
-						}
-						for (k = nsymbols+1; k <= m_max; k++)
-						{
-						  a[k] = 0.0;
-						}
-					}
-					else
-					{
-					  fprintf(stderr,"Couldn't open file %s for reading!\n",filename_gaussian);
-					}
-					break;                
-			}
+					 {
+					   fscanf(file_gaussian,"%d\n",&nsymbols);
+						  for (k = 0; k <= min(nsymbols,m_max); k++)
+						  {
+  					   fscanf(file_gaussian,"%lf\n",&a[k]);
+  					   fprintf(stderr,"a[%d] = %.16E\n",k,a[k]);
+						  }
+						  for (k = nsymbols+1; k <= m_max; k++)
+						  {
+						    a[k] = 0.0;
+						  }
+      }
+					 else
+					 {
+					   fprintf(stderr,"Couldn't open file %s for reading!\n",filename_gaussian);
+					 }
+					 break;                
+    }
 			
       for (k = 0; k <= m_max; k++)
       {

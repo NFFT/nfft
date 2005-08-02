@@ -65,5 +65,8 @@ struct U_type**** precomputeU_stab(int t, double threshold, double *walpha,
 
 void forgetU_stab(struct U_type**** U, int M, int t);
 
-
+#ifdef LOGFILE
+inline void multiplyU_print(complex  *a, complex *b, struct U_type u, int tau, int n, int l, 
+                            struct nfsft_wisdom *tw, double gamma, FILE *logfile, FILE *logfile2);
+#endif
 #endif

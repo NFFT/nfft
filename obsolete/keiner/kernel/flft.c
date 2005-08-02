@@ -43,6 +43,14 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   int ntilde = min(n,N-2);
   int Mtilde = min(M,N-1);
   
+#ifdef LOGFILE
+  FILE *logfile;
+  FILE *logfile2;
+  int k,i;
+  char logfilename[100];
+  char logfilename2[100];
+#endif  
+  
   /* Initialize working arrays. */
   memset(wisdom->work,0U,((N+1)<<1)*sizeof(complex));
   memset(wisdom->ergeb,0U,((N+1)<<1)*sizeof(complex));
@@ -78,6 +86,31 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
     /* Compute the multiplication steps. */
     for (l = firstl; l <= lastl; l++)
     {  
+#ifdef LOGFILE
+      for (k = 0; k < 4; k++)
+      {
+        if (k <= 1)
+        {
+          sprintf(logfilename,"a_%d_%d_%d.dat",n,tau,(1<<(tau+1))*l+k);
+        }
+        else
+        {
+          sprintf(logfilename,"a_%d_%d_%d.dat",n,tau,(1<<(tau+1))*l+(1<<tau)+k-2);
+        }
+        logfile = fopen(logfilename,"w");
+        if (logfile != NULL)
+        {
+          for (i = 0; i < plength/2; i++)
+          {
+            fprintf(logfile,"%.16E + %.16E * I\n",
+                    creal(wisdom->work[(plength/2)*(4*l+k)+i]),
+                    cimag(wisdom->work[(plength/2)*(4*l+k)+i]));
+          }  
+          fclose(logfile);
+        }
+      }
+#endif
+      
       /* Copy vectors to multiply into working arrays zero-padded to twice the length. */
       memcpy(wisdom->vec3,&(wisdom->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(complex));
       memcpy(wisdom->vec4,&(wisdom->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(complex));     
@@ -96,17 +129,22 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
       
       /* Check if step is stable. */
       if (act_U.stable)
-      {
-        /*fprintf("-----\n");
-        fprintf("gamma = %f\n",wisdom->gamma[ROWK(n)+plength*l+1-n+1]);
-        fprintf("gamma(n-1) = %f\n",gamma_al(n,plength*l));
-        fprintf("gamma(n) = %f\n",gamma_al(n,plength*l+1));
-        fprintf("gamma(n+1) = %f\n",gamma_al(n,plength*l+2));
-        fprintf("-----\n");*/
-        
+      {        
+#ifdef LOGFILE
+        sprintf(logfilename,"a_%d_%d_%d_m.dat",n,tau,(1<<(tau+1))*l+(1<<tau));
+        sprintf(logfilename2,"a_%d_%d_%d_m.dat",n,tau,(1<<(tau+1))*l+(1<<tau)+1);
+        logfile = fopen(logfilename,"w");
+        logfile2 = fopen(logfilename2,"w");
+          /* Multiply third and fourth polynomial with matrix U. */
+        multiplyU_print(wisdom->vec3, wisdom->vec4, act_U, tau, n, plength*l+1, wisdom, 
+                  gamma_al(plength*l+1,n),logfile,logfile2);
+        fclose(logfile);
+        fclose(logfile2);
+#else       
         /* Multiply third and fourth polynomial with matrix U. */
         multiplyU(wisdom->vec3, wisdom->vec4, act_U, tau, n, plength*l+1, wisdom, 
                   gamma_al(plength*l+1,n));
+#endif        
         if (gamma_al(plength*l+1,n) != 0.0)
         {  
           for (j = 0; j < plength; j++)
@@ -117,10 +155,37 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
         for (j = 0; j < plength; j++)
         {
           wisdom->work[plength*(2*l+1)+j] += wisdom->vec4[j];
-        }          
+        }  
+        
+        /*if (cabs(wisdom->work[plength*2*l+plength-1]) < MYEPS)
+        {
+          wisdom->work[plength*2*l+plength-1] = 0.0;
+        }
+        if (cabs(wisdom->work[plength*2*l+plength-2]) < MYEPS)
+        {
+          wisdom->work[plength*2*l+plength-2] = 0.0;
+        }
+        if (cabs(wisdom->work[plength*(2*l+1)+plength-1]) < MYEPS)
+        {
+          wisdom->work[plength*(2*l+1)+plength-1] = 0.0;
+        }
+        if (cabs(wisdom->work[plength*(2*l+1)+plength-2]) < MYEPS)
+        {
+          wisdom->work[plength*(2*l+1)+plength-2] = 0.0;
+        }*/
       }
       else
-      {	        
+      {	
+#ifdef LOGFILE
+        logfile = fopen(LOGFILENAME,"a");
+        if (logfile != NULL)
+        {
+          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l);
+          fprintf(logfile,"%d %d %d\n",n,tau,(1<<(tau+1))*l+1);
+          fclose(logfile);
+        }
+#endif
+        
         /* Stabilize. */
         *nstab = *nstab + 1;
 
@@ -151,6 +216,14 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
     }
     /* Double length of polynomials. */
     plength = plength<<1;
+#ifdef LOGFILE
+    logfile = fopen(LOGFILENAME2,"a");
+    if (logfile != NULL)
+    {
+      fprintf(logfile,"%d %d %.4E\n",n,tau,norm_complex_1(wisdom->work,2*N));
+      fclose(logfile);
+    }
+#endif
   } 
   
   /* Add the resulting cascade coeffcients to the coeffcients accumulated from 
@@ -159,6 +232,24 @@ void flft(const int M, const int t, const int n, complex *const f_hat,
   {
     wisdom->ergeb[j] += wisdom->work[j];
   }  
+
+#ifdef LOGFILE
+  for (k = 0; k < 2; k++)
+  {
+    sprintf(logfilename,"a_%d_%d_%d.dat",n,tau,k);
+    logfile = fopen(logfilename,"w");
+    if (logfile != NULL)
+    {
+      for (i = 0; i < plength/2; i++)
+      {
+        fprintf(logfile,"%.16E + %.16E * I\n",
+                creal(wisdom->ergeb[(plength/2)*k+i]),
+                cimag(wisdom->ergeb[(plength/2)*k+i]));
+      }  
+      fclose(logfile);
+    }
+  }
+#endif  
   
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
    * polynomials in front of P_0^n and P_1^n. */ 

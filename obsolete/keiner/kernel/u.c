@@ -1,6 +1,8 @@
 #include "legendre.h"
 #include "api.h"
 #include "util.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 struct U_type**** precomputeU(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma, bool window)
@@ -926,3 +928,52 @@ void forgetU_stab(struct U_type**** U, int M, int t)
   }
   fftw_free(U);
 }
+
+#ifdef LOGFILE
+inline void multiplyU_print(complex  *a, complex *b, struct U_type u, int tau, int n, int l, 
+                      struct nfsft_wisdom *tw, double gamma, FILE *logfile, FILE *logfile2)
+{ 
+  /** The length of the coefficient arrays. */
+  int length = 1<<(tau+1);
+  /** Twice the length of the coefficient arrays. */
+  double normalize = 1.0/(length<<1);
+  int j;
+  
+  /* Compensate for factors introduced by a raw DCT-III. */
+  a[0] *= 2.0;
+  b[0] *= 2.0;   
+  
+  /* Compute function values from Chebyshev-coefficients using a DCT-III. */
+  fftw_execute_r2r(tw->plans_dct3[tau-1],(double*)a,(double*)a);
+  fftw_execute_r2r(tw->plans_dct3[tau-1],(double*)b,(double*)b);
+  
+  for (j = 0; j < length; j++)
+  {
+    fprintf(logfile,"%.16E + %.16E * I\n",creal(a[j]),cimag(a[j]));
+    fprintf(logfile2,"%.16E + %.16E * I\n",creal(b[j]),cimag(b[j]));
+  }  
+  
+  /* Check, if gamma_k^n is zero. This is the case when l <= n holds. */
+  if (gamma == 0.0)
+  {
+    /* Perform multiplication only for second row. */
+    auvxpwy(normalize,b,b,u.m4,a,u.m3,length);
+  }
+  else 
+  {
+    /* Perform multiplication for both rows. */
+    auvxpwy(normalize,tw->z,b,u.m4,a,u.m3,length);
+    auvxpwy(normalize*gamma,a,a,u.m1,b,u.m2,length);
+    memcpy(b,tw->z,length*sizeof(complex));    
+    /* Compute Chebyshev-coefficients using a DCT-II. */
+    fftw_execute_r2r(tw->plans_dct2[tau-1],(double*)a,(double*)a);   
+    /* Compensate for factors introduced by a raw DCT-II. */    
+    a[0] *= 0.5;
+  }  
+  
+  /* Compute Chebyshev-coefficients using a DCT-II. */
+  fftw_execute_r2r(tw->plans_dct2[tau-1],(double*)b,(double*)b);  
+  /* Compensate for factors introduced by a raw DCT-II. */      
+  b[0] *= 0.5;  
+}
+#endif

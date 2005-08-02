@@ -45,7 +45,10 @@ typedef enum {false = 0,true = 1} bool;
 
 #ifdef LOGFILE
   #define LOGFILENAME "nfsft.log"
+  #define LOGFILENAME2 "nfsft_norms.log"
 #endif
+
+#define MYEPS (1E-14)
 
 /** \defgroup nfsft_internal NFSFT: Internal API and functions */
 
