@@ -8,72 +8,113 @@
 \label{Introduction}
 
 The \emph{fast Fourier transform (FFT)} has become one of the most important 
-and widely used algorithms today. In 1965, Cooley and Tukey (\cite{cotu}) published
-and publicized the first description of a fast algorithm for computing certain
-trigonometric sums, generally referred to as the \emph{discrete} or 
-\emph{finite Fourier transform}. In fact, developments since then, now
-let us speak of a whole class of algorithms. The original Culey-Tukey FFT
+and widely used algorithms today. In 1965, Cooley and Tukey \cite{cotu} published
+and publicized the first description of a fast algorithm, known nowadays as Cooley-Tukey 
+FFT, for computing certain trigonometric sums, generally referred to as the 
+\emph{discrete} or \emph{finite Fourier transform (DFT)}. In fact, developments since then, now
+let us speak of a whole class of algorithms. The original Cooley-Tukey FFT
 used a recursive scheme to split one large transform successively into
 smaller transforms achieving an asymptotical complexity of 
 $\bigo{N \log N}$ \emph{floating point operations (flops)} instead of
 $\bigo{N^2}$ for a direct computation, where $N$ is the transform length. 
 Efficient and highly optimized implementations also for the
-multidimensional case are available (\cite{fftw}).
+multidimensional case are available \cite{fftw}.
 Surprisingly, the idea of Cooley and Tukey was already described by Gauss around
-1805 (\cite{hejobu}) interpolating the trajectories of the asteroids Pallas 
+1805 \cite{hejobu} interpolating the trajectories of the asteroids Pallas 
 and Juno. But his work was not widely recognized and only published posthumously.
 The wide areas of applications nowadays using FFT-techniques, including, for example, 
 time-frequency analysis, signal-processing and the numerical solution of 
 partial differential equations, underline the great importance and impact of fast
 DFT algorithms.
+
 Recently, algorithms have been developed for a more general type of discrete 
-transform, namely the \emph{nonuniform discrete Fourier transform (NDFT)}. 
+transforms, namely the \emph{nonuniform discrete Fourier transform (NDFT)}. 
 While the DFT is a bijective and easily invertible linear mapping of $N$ 
 ingoing coefficients to $N$ outgoing coefficients, corresponding to
-uniformly distributed nodes on an interval, the NDFT generalizes
+uniformly distributed nodes on an interval, or in higher dimensions on 
+the multidimensional Torus, the NDFT generalizes
 discrete Fourier sums for arbitrary node distributions, hence the name
 'nonuniform'. Fast algorithms have been described in several papers 
-(\cite{bey95},\cite{duro93},\cite{fesu02},\cite{four},\cite{Ja},\cite{Pe},\cite{scsc},\cite{ware98}) and a C subroutine library is available 
+(see \cite{postta01} and the references therein) and a C subroutine library is available 
 (\cite{kupo02C}).
+
 A different line of generalization leaves the 'classical' setting of 
-Fourier series on a multidimensional torus and describes analogously
+Fourier series on a multidimensional torus and analogously describes
 Fourier series on different geometries like the surface of a
 multidimensional sphere. Particularly, the unit sphere $\twosphere$ 
 embedded into $\R^3$ has practical relevance in quite a wide range of 
 applications, in many cases due to its correspondence to the surface 
 of the earth. Fields of interest are numerical analysis in
 geo-sciences, for example in the computation of climate models for
-weather forecasts, or regarding the gravitational potential of the 
-earth. Moreover, data distributed on the surface of a sphere arise
-in many other applications in a natural way. Examples are
+weather forecasts or regarding the gravitational potential of the 
+earth. Moreover, data distributed on the surface of a sphere arises
+in many different applications in a natural way. Examples are
 molecular dynamics for protein docking problems and 
 gamma-cameras for applications in computed tomography.
 Unfortunately, the spherical setting differs from the 'classical' 
 one in that the numerical treatment of many computational problems
-is quite more challenging. Also there exists a rich theory for 
+is quite more challenging. Although there exists a rich theory for 
 analysis on the sphere, fast algorithms allowing for efficient and
-reliable discrete transforms in terms of the so-called 
-\emph{spherical harmonics}, the spherical counterpart of the 
-Fourier basis $\set{e^{\im k x}}_{k \in \Z}$ on the interval,
-haven't been developed until a first paper by Driscoll and Healy. 
+reliable discrete transforms in terms of so-called 
+\emph{spherical surface functions}, the spherical counterpart of the 
+Fourier basis of complex exponentials on the torus,
+had not been developed until a first paper by Driscoll and Healy 
+\cite{drhe}.
+ 
 During the past years, major progress has been made and several 
-different techniques have been developed. The common idea is to
-transform the spherical discrete Fourier transformation into a
-'classical' two-dimensional discrete Fourier transform. The
-different proposed algorithms mainly differ in the ansatz chosen
-to compute the transformation efficiently. A careful analysis
+different techniques have been proposed (see \cite{HeRoKoMo}, 
+\cite{suta}, \cite{roty}). The basic idea for the 
+methods presented in this text is to convert the discrete spherical 
+Fourier transform into a 'classical' two-dimensional discrete 
+Fourier transform. A careful analysis
 of numerical instabilities involved has proven to be of major 
 importance.
 
 The aim of this text is to describe particular algorithms for fast discrete
 spherical Fourier transforms. Chapter \ref{Basics} gives a brief 
 introduction to Fourier analysis on the sphere $\twosphere$ and 
-provides fundamental facts and results.
+provides fundamental facts and results. We refer to the literature for 
+details.
+
 In Chapter \ref{DSFT}, algorithms for the computation of discrete
-spherical Fourier transforms are derived. We describe the
-so-called 'direct' algorithms and the 'fast' algorithms based on
-the \emph{fast Legendre function transform (FLFT)}. We also mention
-how spherical Fourier coefficients might be computed by certain 
-quadrature formulae. Chapter \ref{Applications} finally presents 
-two applications of the proposed algorithms along with numerical
-test computations.
+spherical Fourier transforms for arbitrary nodes on the sphere 
+are presented. We first describe the so-called 'direct' algorithms 
+and mention how spherical Fourier coefficients might be computed 
+by certain quadrature formulae: Starting with a simple algorithm 
+for the evaluation of a \emph{spherical Fourier sum} at arbitrary 
+nodes, we derive the matrix factorization corresponding to the 
+algorithm translated into matrix-vector notation. Based on the 
+easily obtained \emph{adjoint matrix factorization}, we 
+describe the so-called \emph{adjoint algorithm}. In conjunction
+with appropriate quadrature formulae, we are able to reconstruct
+spherical Fourier coefficients from function samples on the sphere.
+We then present corresponding 'fast' algorithms which employ a
+\emph{discrete polynomial transform}. The work is based on 
+previous papers concerning an algorithm for 
+the fast approximative evaluation of \emph{spherical Fourier sums} 
+in terms of spherical surface functions at arbitrary nodes on the 
+sphere. The main contribution of this text is the derivation of the corresponding
+matrix factorization along with the construction of the 
+\emph{adjoint algorithm}. All algorithms were implemented and tests 
+of the 'fast' algorithms with respect to numerical stability and 
+runtime performance are provided.
+Chapter \ref{Applications} finally presents two applications of the 
+proposed algorithms: 
+
+We propose a new method for the fast 
+approximative summation of \emph{spherical radial basis functions}
+and derive theoretical error bounds for some example functions. The 
+theoretical results are verified by numerical tests and the runtime
+performance of the presented algorithms is compared with a direct
+and exact implementation.
+
+We finally treat the generally ill-posed problem of reconstructing 
+spherical Fourier coefficients from scattered data. We formulate
+the problem as a \emph{weighted linear least squares problem}
+and a \emph{weighted optimal interpolation problem} using
+\emph{normal equations} and describe how the fast algorithms
+for discrete spherical Fourier transforms can be used to obtain 
+a solution by means of standard iterative algorithms for systems 
+of linear equations. Examples are given for the former case using 
+data of the earth's gravitational potential.
+
