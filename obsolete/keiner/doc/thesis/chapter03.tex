@@ -1,7 +1,8 @@
 \chapter{Applications}
 \label{Applications}
 
-In this chapter, we present two applications of the discrete spherical Fourier transform algorithms. The first application concerns the fast summation radial
+In this chapter, we present two applications of the discrete spherical Fourier 
+transform algorithms. The first application concerns the fast summation radial
 functions on the sphere -- an essential task in approximation by spherical
 radial basis functions. We propose an approximative algorithm which can be
 interpreted as a cutoff in 'frequency' domain with respect to the
@@ -26,9 +27,10 @@ In radial basis function methods one approximates a function $g: \R^n
 \rightarrow \R$, $n \in \N$, by a linear combination $f$ of the form
 \begin{equation}
   \nonumber
-  \fun{f}{\V{x}} := \sum_{l=0}^{L-1} b_{l} \fun{\phi}{\norm{\V{y}_{l}-\V{x}}} \quad \paren{L \in \N}
+  \fun{f}{\V{x}} := \sum_{l=0}^{L-1} b_{l} \fun{\phi}{\norm{\V{y}_{l}-\V{x}}} \quad 
+  \paren{L \in \N,\ y_{l} \in \R^n},
 \end{equation}
-where $\V{x}, \V{y}_{l} \in \R^n$, $b_{l} \in \R$ for $l = 0,\ldots,L-1$, and 
+where $b_{l} \in \R$ for $l = 0,\ldots,L-1$, and 
 $\phi: \Rp \rightarrow \R$ is a function on the positive real line. 
 The functions $\set{\fun{\phi}{\norm{\V{y}-\cdot}}}_{l=0}^{L-1}$ are
 denoted \emph{radial basis functions} since they depend solely on 
@@ -37,17 +39,20 @@ by a suitable norm $\norm{\cdot}$, which is usually intended to be euclidean.
 Moreover, these functions are, loosely speaking, \emph{localizing} in the sense 
 that they decay rapidly outside a neighborhood of $\V{y}_{l}$.
 
-The spherical counterpart of radial basis function are the \emph{spherical radial basis functions} or \emph{zonal} functions as introduced in section 
+The spherical counterpart of radial basis function are the \emph{spherical radial basis functions} 
+or \emph{zonal} functions as introduced in Section 
 \ref{Basics:SphericalKernels}. The norm $\norm{\V{y}_{l}-\V{x}}$ is replaced 
 by the usual inner product $\V{\eta}_{l}\cdot\V{\xi}$, i.e. one
 approximates a function $g: \twosphere \rightarrow \R$ by
 \begin{equation}
   \label{Applications:ZonalSum}
-  \fun{f}{\V{\xi}} := \sum_{l=0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l}\cdot\V{\xi}} \quad \paren{L \in \N}
+  \fun{f}{\V{\xi}} := \sum_{l=0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l}\cdot\V{\xi}} \quad 
+  \paren{L \in \N,\ \V{\eta}_{l} \in \twosphere}
 \end{equation}
-with $\V{\xi}, \V{\eta}_{l} \in \twosphere$, $b_{l} \in \R$ for $l=0,\ldots,L-1$, and 
-$K: [-1,1] \rightarrow \R$ is now a $\Ln{2}{[-1,1]}$ function on the closed interval $[-1,1]$. 
-The fact that the geodesic distance $d$ of two points $\V{\xi}$ and $\V{\eta}$ on the 
+with $b_{l} \in \R$ for $l=0,\ldots,L-1$, and 
+$K: [-1,1] \rightarrow \R$ is now an $\Ln{2}{[-1,1]}$ function. 
+The fact that the geodesic distance $\fun{d}{\V{\xi},\V{\eta}}$ of two points 
+$\V{\xi}$ and $\V{\eta}$ on the 
 sphere $\twosphere$ is $\fun{d}{\V{\eta},\V{\xi}} = 
 \sqrt{2-2\V{\eta}\cdot\V{\xi}}$ justifies this choice.
 
@@ -61,7 +66,7 @@ with
 $$
   \mathcal{Y} := \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1} \quad \paren{L \in \N}
 $$
-being the the set of so-called \emph{source nodes}.
+being the set of so-called \emph{source nodes}.
 
 Clearly, the construction of fast algorithms for this task depends strongly on the
 choice of the function $K$, and conditions imposed on the distribution of the 
@@ -69,7 +74,7 @@ source and target nodes $\mathcal{Y}$ and $\mathcal{X}$, respectively.
 If, for example, these sets of nodes are fixed for all evaluations, one might 
 precompute all values $ \fun{K}{\V{\eta}_{l}\cdot\V{\xi}_{d}}$ for $l=0,\ldots,L-1$ and 
 $d=0,\ldots,D-1$, just forming a weighted sum of $L$ summands for each evaluation 
-at one of the $D$ a target nodes $\V{\xi}_{d}$. This clearly yields an $\bigo{L D}$ algorithm.
+at one of the $D$ target nodes $\V{\xi}_{d}$. This clearly yields an $\bigo{L D}$ algorithm.
 
 Of course, the naive approach, i.e. evaluating \eqref{Applications:ZonalSum} for every $\V{\xi}_{d} 
 \in \mathcal{X}$ leads to an $\bigo{L\:D}$ algorithm, too. 
@@ -77,7 +82,7 @@ For large $L$ and $D$ the computational effort for $\bigo{L D}$ algorithms
 becomes quickly unaffordable.
 
 Quite effective algorithms are often derived by approximating the desired result 
-up to an adjustable accuracy. In this case, the localizing properties of the function $K$ 
+up to an adjustable accuracy. In this case, the localizing property of the function $K$ 
 generally has a strong impact. If the function $K$ localizes well and the source nodes 
 are not, say, 'clustered' too much, one might take for the evaluation of $f$ at a single target 
 node $\V{\xi}_{d}$ into consideration only those functions $\fun{K}{\V{\eta}_{l}\:\cdot}$, for
@@ -98,7 +103,8 @@ of spherical surface functions $Y_{k}^n$. The Addition
 Theorem \ref{Basics:AdditionTheorem} provides a 
 representation of the function $K$ that separates source and target nodes and 
 therefore allows for the construction of fast algorithms. The connection is as 
-follows: Using the representation \eqref{Basics:Kernel} page \pageref{Basics:Kernel}, we have
+follows: Using the representation \eqref{Basics:Kernel} from Section 
+\ref{Basics:SphericalKernels}, we have
 \begin{equation}
   \label{Applications:KSeries}
   \fun{K}{\V{\eta}_{l} \cdot \V{\xi}} = \sum_{k=0}^{\infty} \sum_{n=-k}^k 
@@ -106,7 +112,7 @@ follows: Using the representation \eqref{Basics:Kernel} page \pageref{Basics:Ker
 \end{equation}
 where we recall the symbol $K^{\wedge}$ of $K$
 \[
-  \fun{K^{\wedge}}{k} := 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx x 
+  \fun{K^{\wedge}}{k} = 2 \pi \int_{-1}^{1} \fun{K}{x} \fun{P_{k}}{x} \dx x 
   \quad \paren{k \in \NZ}.
 \]
 Now, truncating at a fixed index $M \in \NZ$, i.e. setting
@@ -115,7 +121,7 @@ Now, truncating at a fixed index $M \in \NZ$, i.e. setting
   \fun{K_{M}}{\V{\eta}_{l} \cdot \V{\xi}} := 
   \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}},
 \end{equation}
-we approximate $f$ by a function $f_{M} \approx f$ with
+we approximate $f$ by a function $f_{M}$ with
 \begin{equation}
   \nonumber
   \begin{split}
@@ -188,13 +194,13 @@ $\V{\eta}_{l}$ and $\V{\xi}_{d}$. We summarize this procedure in Algorithm
 	  \V{f}_{\mathcal{X}} & := \paren{\fun{f_{M}}{\V{\xi}_{d}}}_{d=0}^{D-1} \in \R^D,\\
 	  \nonumber
 	  \V{Y}_{\mathcal{X}} & := \paren{\fun{Y_k^n}{\V{\xi}_{d}}}_{d=0,\ldots,D-1; 
-	  \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2}. \\
+	  \paren{k,n} \in \mathcal{I}^M} \in \C^{D \times \paren{M+1}^2}, \\
 	  \nonumber
 	  \V{W} & := \fun{\diag}{\V{w}},\ \V{w} := \paren{w_{k}^n}_{\paren{k,n} \in 
 	  \mathcal{I}^M} \in \R^{(M+1)^2},\ w_{k}^n := \fun{K^{\wedge}}{k}, \\
 	  \nonumber
 	  \V{Y}_{\mathcal{Y}} & := \paren{\fun{Y_k^n}{\V{\eta}_{l}}}_{l=0,\ldots,L-1;
-	  \paren{k,n} \in \mathcal{I}^M} \in \C^{L \times \paren{M+1}^2}
+	  \paren{k,n} \in \mathcal{I}^M} \in \C^{L \times \paren{M+1}^2}.
 	\end{align}
 \end{remark}
 
@@ -225,7 +231,7 @@ $\V{\eta}_{l}$ and $\V{\xi}_{d}$. We summarize this procedure in Algorithm
 \subsection{Error estimates}
 
 \begin{lemma}\label{lemma:error}
-  The proposed approximation obeys the uniform error estimate
+  The proposed approximation $f_{M}$ obeys the uniform error estimate
   \begin{equation}
     \label{Applications:UniformErrorBound}
     \left\|f - f_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
@@ -278,10 +284,11 @@ The symbols are given by $\fun{Q_{h}^{\wedge}}{k}=h^k$ and
 $\fun{S_{h}^{\wedge}}{k}=\frac{2}{2k+1}h^k$, respectively.
 Using Lemma \ref{lemma:error} yields the assertions.
 \end{proof}
-Simply put, the error decays exponentially with increasing $M$.
-The locally supported kernels $L_{h,\lambda}$ also obey the uniform error bound
+Thus, the error decays exponentially with increasing $M$.
+The locally supported kernels $L_{h,\lambda}$ defined in Section 
+\ref{Basics:SphericalKernels} also obey the uniform error bound
 \eqref{Applications:UniformErrorBound}. But in contrast to the Poisson kernel 
-and Singularity kernel we obtain only a polynomial error decay in $M$.
+and the Singularity kernel we obtain only a polynomial error decay in $M$.
 \begin{lemma}
   For the locally supported kernels $L_{h,\lambda}$ holds:
   \begin{enumerate}
@@ -314,7 +321,8 @@ and Singularity kernel we obtain only a polynomial error decay in $M$.
         \paren{x-h}^{\lambda} \fun{P_{k}}{x} \: \dx x} 
       \le \frac{\lambda+1}{(1-h)^{\lambda+1}}\abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}.
     \end{equation*}
-    Using \eqref{three2} and \eqref{leg_prop}, we obtain
+    Using \eqref{three2} and $\left|\fun{P_{k}}{\cos\vartheta}\right|
+    \le \sqrt{\frac{2}{\pi k \sin\vartheta}}$ for $\vartheta \in (0,\pi)$, we obtain
     \begin{align*}
       \abs{\int_{h}^1 \fun{P_{k}}{x} \: \dx x}
       %& = \frac{1}{2k+1}
@@ -358,7 +366,7 @@ and Singularity kernel we obtain only a polynomial error decay in $M$.
     \end{align*}
     We finally use \eqref{SmallLambda} for $k'=k-\lambda$ to obtain the
     assertion.
-  \item We combine 2. with Lemma \ref{lemma:error}. 
+  \item We combine 1. with Lemma \ref{lemma:error}. 
   \end{enumerate}
 \end{proof}
 
@@ -441,7 +449,7 @@ coefficients $b_l$ from $\left[-\frac{1}{2},\frac{1}{2}\right]$.
   it virtually coincides with the numerical result.]
   {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
   \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=200$. The corresponding
-  error estimate from \eqref{error:G} does not provide a useful error bound]
+  error estimate from \eqref{error:G} does not provide a useful error bound.]
   {\includegraphics[width=0.45\textwidth]{images/gaussian_test}}
   \caption{The error $E_{\infty}$ for $k = 4,8,\ldots,256$ and $L = D = 1000$: 
   Fast summation with NDSFT (solid), fast summation with NFSFT, 
@@ -708,7 +716,7 @@ whether the system \eqref{Applications:Problem} is \emph{over-} or
     cosmic microwave background experiments. The grid layout is described in  
     \begin{figure}[tb]
       \centering
-      \includegraphics[width=12cm]{images/healpix}
+      \includegraphics[width=0.6\textwidth]{images/healpix}
       \caption{A Healpix grid with $D = 192$ almost uniformly nodes.}
       \label{Applications:healpix}
     \end{figure}  
