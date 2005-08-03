@@ -3,8 +3,38 @@
 %  \qauthor{Dan Zevin}
 %\end{savequote}
 %\makeatletter
-\chapter{Nonuniform Discrete Spherical Fourier Transform}
+\chapter{Nonuniform Discrete Spherical Fourier Transforms}
 \label{DSFT}
+
+In this chapter, we present algorithms for the computation of discrete
+spherical Fourier transforms for arbitrary node distributions. 
+Section \ref{NFSFT:dsfts} introduces the notation and naming conventions
+of discrete Fourier transforms on the sphere $\twosphere$. 
+
+
+We first describe the so-called 'direct' algorithms 
+and mention how spherical Fourier coefficients might be computed 
+by certain quadrature formulae: Starting with a simple algorithm 
+for the evaluation of a \emph{spherical Fourier sum} at arbitrary 
+nodes, we derive the matrix factorization corresponding to the 
+algorithm translated into matrix-vector notation. Based on the 
+easily obtained \emph{adjoint matrix factorization}, we 
+describe the so-called \emph{adjoint algorithm}. In conjunction
+with appropriate quadrature formulae, we are able to reconstruct
+spherical Fourier coefficients from function samples on the sphere.
+We then present corresponding 'fast' algorithms which employ a
+\emph{discrete polynomial transform}. The work is based on 
+previous papers concerning an algorithm for 
+the fast approximative evaluation of \emph{spherical Fourier sums} 
+in terms of spherical surface functions at arbitrary nodes on the 
+sphere. The main contribution of this text is the derivation of the corresponding
+matrix factorization along with the construction of the 
+\emph{adjoint algorithm}. All algorithms were implemented and tests 
+of the 'fast' algorithms with respect to numerical stability and 
+runtime performance are provided.
+
+\section{Discrete spherical Fourier transforms}
+\label{NFSFT:dsfts}
 
 Let in this chapter be $M \in \NZ$ be fixed, $N := 2^t$ the 
 next greater power of two with respect to $M$, i.e. $t := {\ceil{\log_2 M}}$, and $\mathcal{X} := \paren{\vtheta_d,\vphi_d}_{d=0}^{D-1}$ for $D \in \N$
