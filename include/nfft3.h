@@ -403,6 +403,230 @@ void texture_adjoint(texture_plan *ths);
 /* @}
  */
 
+/** @defgroup nfsft NFSFT
+ * Direct and fast computation of the discrete spherical Fourier transform at 
+ * nonequispaced nodes in time and Fourier domain
+ * @{ 
+ */
+
+
+/* Plan flags */
+
+/** 
+ * If set, all computations for the created plan are carried out with spherical 
+ * harmonics \f$Y_k^n\f$ normalized with respect to the 
+ * \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ standard inner product
+ * \f[ 
+ *   <f,g>_{\text{L}^2\mathbb{S}^2} = \int_{0}^{\pi} \int_{-\pi}^{\pi} 
+ *   f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} \; d\varphi \; 
+ *   d\vartheta.
+ * \f]
+ * 
+ * \see nfsft_init
+ * \author Jens Keiner
+ */
+#define NFSFT_NORMALIZED (1U<<0)
+
+/**
+ * If set, the direct NDFT algorithm will be used internally instead of the 
+ * approximative NFFT algorithm.
+ *
+ * \see nfsft_init
+ * \author Jens Keiner
+ */
+#define NFSFT_USE_NDFT   (1<<0)
+
+
+/* Precomputation flags */
+
+/**
+ * If set, the direct algorithms do not work. Setting this flag saves some 
+ * memory during precomputation.
+ * 
+ * \see nfsft_precompute
+ * \author Jens Keiner
+ */
+#define NFSFT_NO_DIRECT  (1U<<0)
+
+/**
+ * If set, The fast algorithms only work in a certain bandwidth window. If 
+ * \f$N\f$ is the power of two up to which precomputation is performed, only 
+ * transformations for bandwidth \f$M\f$ with \f$N/2 < M \le N\f$ will work.
+ *
+ * \see nfsft_precompute
+ * \author Jens Keiner
+ */
+#define NFSFT_BW_WINDOW  (1<<1)
+
+/** Structure for a transform plan */
+struct nfsft_plan_
+{
+  MACRO_MV_PLAN(complex);          
+
+  /* API */
+  int M;                                /**< The bandwidth \f$M\f$           */
+  int D;                                /**< The number of nodes \f$D\f$     */  
+  double *x;                           /**< The nodes \f$\mathcal{X} = 
+                                             \left(\xi_d\right)_{d=0}
+                                             ^{D-1}\f$                       */
+  
+  /* Internal */
+  int N;                                /**< Next greater power of two with
+                                             respect to M                    */
+  int t;                                /**< The logaritm of N with respect 
+                                             to the basis 2                  */  
+
+  unsigned int flags;                   /**< The flags                       */
+
+  nfft_plan plan_nfft;                  /**< The internal NFFT plan          */
+} nfsft_plan_s;
+
+/** Typedef for transform plans */
+typedef nfsft_plan_s *nfsft_plan;
+
+
+/**
+ * Creates a transform plan.
+ *
+ * \arg M The bandwidth \f$M\f$
+ * \arg D The number of nodes \f$D\f$
+ * \arg f_hat The spherical Fourier coefficients 
+ *      \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^M}\f$
+ * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
+ * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
+ *
+ * \return The plan
+ *
+ * \author Jens Keiner
+ */
+nfsft_plan nfsft_init(int M, int D, complex *f_hat, double *x, complex *f);
+
+/**
+ * Creates a transform plan.
+ *
+ * \arg M The bandwidth \f$M\f$
+ * \arg D The number of nodes \f$D\f$
+ * \arg f_hat The spherical Fourier coefficients 
+ *      \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^M}\f$
+ * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
+ * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
+ * \arg nfsft_flags The flags
+ *
+ * \return The plan
+ *
+ * \author Jens Keiner
+ */
+nfsft_plan nfsft_init_advanced(int M, int D, complex *f_hat, double *x, 
+                               complex *f, unsigned int nfsft_flags);
+
+/**
+ * Creates a transform plan.
+ *
+ * \arg M The bandwidth \f$M\f$
+ * \arg D The number of nodes \f$D\f$
+ * \arg f_hat The spherical Fourier coefficients 
+ *      \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^M}\f$
+ * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
+ * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
+ * \arg nfsft_flags The flags
+ * \arg nfft_cutoff The NFFT cutoff parameter
+ *
+ * \return The plan
+ *
+ * \author Jens Keiner
+ */
+nfsft_plan nfsft_init_guru(int M, int D, complex *f_hat, double *x, complex *f, 
+                           unsigned int flags, int nfft_cutoff);
+
+/**
+ * Performes precomputation up to the next power of two with respect to a given 
+ * bandwidth \f$M\f$. The threshold parameter \f$\kappa\f$ determines the number 
+ * of stabilization steps computed in the discrete polynomial transform and 
+ * thereby its accuracy.
+ *
+ * \arg M The bandwidth \F$M\f$
+ * \arg threshold The threshold \f$\kappa\f$
+ * \arg flags The flags
+ *
+ * \author Jens Keiner
+ */
+void nfsft_precompute(int M, double kappa, unsigned int flags);
+
+/**
+ * Forgets all precomputed data.
+ *
+ * \author Jens Keiner
+ */
+void nfsft_forget();
+
+/**
+ * Executes a direct NDSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * \f[
+ *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
+ *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
+ *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
+ *
+ * \arg plan The plan
+ *
+ * \author Jens Keiner
+ */
+void ndsft_trafo(nfsft_plan plan);
+
+/**
+ * Executes a direct adjoint NDSFT, i.e. computes for \f$(k,n) \in 
+ * \mathcal{I}^M\f$
+ * \f[
+ *   \tilde{a}_k^n = \sum_{d = 0}^{D-1} \tilde{f}_d 
+ *                   Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
+ *
+ * \arg plan The plan
+ *
+ * \author Jens Keiner
+ */
+void ndsft_adjoint(nfsft_plan plan);
+
+/**
+ * Executes a NFSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * \f[
+ *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
+ *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
+ *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
+ *
+ * \arg plan The plan
+ *
+ * \author Jens Keiner
+ */
+void nfsft_trafo(nfsft_plan plan);
+
+/**
+ * Executes an adjoint NFSFT, i.e. computes for \f$(k,n) \in 
+ * \mathcal{I}^M\f$
+ * \f[
+ *   \tilde{a}_k^n = \sum_{d = 0}^{D-1} \tilde{f}_d 
+ *                   Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ * \f]
+ *
+ * \arg plan The plan
+ *
+ * \author Jens Keiner
+ */
+void nfsft_adjoint(nfsft_plan plan);
+
+/**
+ * Destroys a plan.
+ *
+ * \arg plan The plan
+ *
+ * \author Jens Keiner
+ */
+void nfsft_finalize(nfsft_plan plan);
+
+/* @}
+ */
+
 /** @defgroup solver Group
  * @{ 
  */
