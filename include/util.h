@@ -193,6 +193,12 @@ double modified_sobolev(double mu,int kk);
  */
 double modified_multiquadric(double mu,double c,int kk);
 
+#ifdef HAVE_MALLINFO
+/**
+ * 
+ */
+int total_used_memory();
+#endif
 /** @} 
  */ 
 #endif

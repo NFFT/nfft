@@ -466,7 +466,7 @@ struct nfsft_plan_
   /* API */
   int M;                                /**< The bandwidth \f$M\f$           */
   int D;                                /**< The number of nodes \f$D\f$     */  
-  double *x;                           /**< The nodes \f$\mathcal{X} = 
+  double *x;                            /**< The nodes \f$\mathcal{X} = 
                                              \left(\xi_d\right)_{d=0}
                                              ^{D-1}\f$                       */
   
@@ -482,7 +482,7 @@ struct nfsft_plan_
 } nfsft_plan_s;
 
 /** Typedef for transform plans */
-typedef nfsft_plan_s *nfsft_plan;
+typedef struct nfsft_plan_s *nfsft_plan;
 
 
 /**
