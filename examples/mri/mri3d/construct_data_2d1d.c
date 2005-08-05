@@ -68,7 +68,7 @@ void fft(int N,int M,int Z, fftw_complex *mem)
  * read fills the memory with the file input_data_f.dat as
  * the real part of f and with zeros for the imag part of f
  */
-void read(int N,int M,int Z, fftw_complex *mem)
+void read_data(int N,int M,int Z, fftw_complex *mem)
 {
   int i,z;
   double real;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
   mem = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
   
-  read(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
+  read_data(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
 
   fft(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
  

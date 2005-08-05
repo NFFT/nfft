@@ -151,8 +151,12 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   }
 
   t=second()-t;
+#ifdef HAVE_MALLINFO
   fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
-
+#else
+  fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
+#endif
+  
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
   
