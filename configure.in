@@ -18,11 +18,12 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(complex.h time.h stdbool.h string.h fftw3.h)
+AC_CHECK_HEADERS(complex.h malloc.h time.h stdbool.h string.h fftw3.h)
 
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+AC_CHECK_FUNCS([mallinfo])
 
 # Additional options
 
@@ -34,6 +35,8 @@ AC_OUTPUT(Makefile \
           nsfft/Makefile \
           mri_inh/Makefile \
           solver/Makefile \
+          nfsft/Makefile \
+          nfsft/obsolete/Makefile \
 					texture/Makefile \
           examples/Makefile \
           examples/nfft/Makefile \
@@ -45,6 +48,8 @@ AC_OUTPUT(Makefile \
           examples/mri/mri3d/Makefile \
           examples/exp/Makefile \
           examples/nsfft/Makefile \
+          examples/nfsft/Makefile
+          examples/nfsft/obsolete/Makefile
 					examples/fastgauss/Makefile \
 					examples/texture/Makefile \
 )

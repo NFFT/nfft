@@ -1,26 +1,18 @@
 \documentclass[a4paper,twoside,11pt,final,openright,bigheadings,headsepline]{scrreprt}
 
-\setlength{\paperheight}{297mm}
-\setlength{\paperwidth}{210mm}
-\setlength{\topmargin}{-3mm}
-\setlength{\headheight}{10mm}
-\setlength{\headsep}{8mm}
-\setlength{\textheight}{225mm}
-\setlength{\footskip}{30mm}
-\setlength{\oddsidemargin}{7mm}
-\setlength{\evensidemargin}{7mm}
-\setlength{\textwidth}{145mm}
+\setlength{\paperheight}{297mm} \setlength{\paperwidth}{210mm}
+\setlength{\topmargin}{-3mm} \setlength{\headheight}{10mm}
+\setlength{\headsep}{8mm} \setlength{\textheight}{225mm}
+\setlength{\footskip}{30mm} \setlength{\oddsidemargin}{7mm}
+\setlength{\evensidemargin}{7mm} \setlength{\textwidth}{145mm}
 
 % AMSMath-packages
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
+\usepackage{amsmath} \usepackage{amsthm} \usepackage{amssymb}
 %\usepackage{amsrefs}
 \usepackage{textcmds}
 
 % ISO Latin 1 input encoding
-\usepackage{t1enc}
-\usepackage[latin1]{inputenc}
+\usepackage{t1enc} \usepackage[latin1]{inputenc}
 \usepackage[T1]{fontenc}
 
 % Vector fonts for PDF
@@ -42,27 +34,19 @@
 \usepackage{subfigure}
 %\usepackage[square]{natbib}
 
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{xcolor}
+\usepackage{algorithm} \usepackage{algorithmic} \usepackage{xcolor}
 %\usepackage{comment}
-\usepackage{showkeys}
-\usepackage[grey]{quotchap}
-\usepackage{pgf,pgfarrows,pgfnodes}
-\usepackage{jkpgf}
+\usepackage{showkeys} \usepackage[grey]{quotchap}
+\usepackage{pgf,pgfarrows,pgfnodes} \usepackage{jkpgf}
 \usepackage{verbatim}
 
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[chapter]
+\theoremstyle{plain} \newtheorem{theorem}{Theorem}[chapter]
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-\theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
-\usepackage{scrpage2}
+\theoremstyle{definition} \newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example} \theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark} \usepackage{scrpage2}
 
 %\numberwithin{figure}{chapter} 
 %\numberwithin{table}{chapter} 
@@ -71,15 +55,9 @@
 %\includecomment{comment}
 \pagestyle{scrheadings}
 
-\automark[section]{chapter}
-\clearscrheadings
-\lehead{\pagemark}
-\rehead{\leftmark}
-\rohead{\pagemark}
-\lohead{\rightmark}
-\ofoot[]{}
-\cfoot[]{}
-\ifoot[]{}
+\automark[section]{chapter} \clearscrheadings \lehead{\pagemark}
+\rehead{\leftmark} \rohead{\pagemark} \lohead{\rightmark} \ofoot[]{}
+\cfoot[]{} \ifoot[]{}
 
 \parindent0cm
 
@@ -90,19 +68,18 @@
 %\frontmatter
 
 \begin{titlepage} 
-\vspace*{1cm}
+  \vspace*{1cm}
 \begin{center}
-\textbf{\sffamily{
-  {\huge Fast Spherical Fourier Transforms \\ and Applications} \\[1.5ex]
-  {\large Jens Keiner} \\
+  \textbf{\sffamily{
+      {\huge Fast Spherical Fourier Transforms \\ and Applications} \\[1.5ex]
+      {\large Jens Keiner} \\
 %  \today
-}}
+    }}
 
 \end{center}
 \vspace{1cm}
 \begin{figure}[h]
-  \centering
-  \includegraphics[width=0.8\textwidth]{images/sh_r_9_5}
+  \centering \includegraphics[width=0.8\textwidth]{images/sh_r_9_5}
 \end{figure}
 \end{titlepage} 
 
@@ -118,21 +95,20 @@
 %\subjclass{12J32A32}
 
 %\maketitle
-${}^{}$
-\vfill
+${}^{}$ \vfill
 \noindent
-Ich erkläre hiermit, dass ich die vorliegende Arbeit selbstständig verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel verwendet habe.
+Ich erkläre hiermit, dass ich die vorliegende Arbeit selbstständig
+verfasst und keine anderen als die angegebenen Quellen und Hilfsmittel
+verwendet habe.
 \begin{flushright}
   Lübeck, 05.08.2005
 \end{flushright}
-\thispagestyle{empty}
-\newpage
+\thispagestyle{empty} \newpage
 
 \tableofcontents
 
 %\mainmatter
-\newpage
-\thispagestyle{empty}
+\newpage \thispagestyle{empty}
 $${}^{}$$
 
 \include{introduction}
