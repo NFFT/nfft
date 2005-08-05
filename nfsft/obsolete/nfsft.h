@@ -33,7 +33,7 @@
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-#define NFSFT_NORMALIZED 1<<0
+#define NFSFT_NORMALIZED_OLD 1<<0
 
 /**
  * If set, only the fast transformations work.
@@ -44,7 +44,7 @@
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-#define NFSFT_FAST_ONLY  1<<1
+#define NFSFT_FAST_ONLY_OLD  1<<1
 
 /**
  * If set, only fast transformations for bandwidth in a certain bandwidth
@@ -58,7 +58,7 @@
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-#define NFSFT_BW_WINDOW  1<<2
+#define NFSFT_BW_WINDOW_OLD  1<<2
 
 /**
  * If set, the direct NDFT algorithm will be used.
@@ -68,7 +68,7 @@
  * \author Jens Keiner
  * \ingroup nfsft_public_api 
  */
-#define NFSFT_USE_NDFT 1<<3
+#define NFSFT_USE_NDFT_OLD 1<<3
 
 
 /** 

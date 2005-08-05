@@ -1,6 +1,7 @@
 #include "direct.h"
 
-#include "../../include/util.h"
+#include "util.h"
+#include <stdlib.h>
 
 
 void ndsft_old(int D, double *angles, complex *f, int M, complex **f_hat, 

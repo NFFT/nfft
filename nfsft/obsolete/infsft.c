@@ -1,7 +1,7 @@
 #include "infsft.h"
 #include "api.h"
 #include "util.h"
-#include "../../include/util.h"
+#include <stdlib.h>
 
 void infsft_init_old(infsft_plan_old this_iplan, nfsft_plan_old direct_plan)
 {
@@ -154,14 +154,14 @@ void infsft_before_loop_help_old(infsft_plan_old this_iplan)
     {  
       //fprintf(stderr,"with weight!\n");
       this_iplan->dot_r_iter =
-        dotproductc_w(this_iplan->r_iter, this_iplan->w,
+        dot_w_complex(this_iplan->r_iter, this_iplan->w,
                       this_iplan->direct_plan->D);
     }
     else
     {
       //fprintf(stderr,"without weight!\n");
       this_iplan->dot_r_iter =
-        dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
+        dot_complex(this_iplan->r_iter, this_iplan->direct_plan->D);
     }
   }
   else
@@ -178,10 +178,10 @@ void infsft_before_loop_help_old(infsft_plan_old this_iplan)
     */ 
   
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
-    copyc_w(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,
+    cp_w_complex(this_iplan->direct_plan->f, this_iplan->w, this_iplan->r_iter,
             this_iplan->direct_plan->D);
   else
-    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
+    cp_complex(this_iplan->direct_plan->f, this_iplan->r_iter,
           this_iplan->direct_plan->D);
     
   SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
@@ -410,13 +410,13 @@ void infsft_loop_one_step_cgnr_e(infsft_plan_old this_iplan)
   
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
   {
-    this_iplan->dot_v_iter = dotproductc_w(this_iplan->v_iter, this_iplan->w,
+    this_iplan->dot_v_iter = dot_w_complex(this_iplan->v_iter, this_iplan->w,
                                            this_iplan->direct_plan->D);
     //fprintf(stderr,"dot_v_iter\n");
   }
   else
     this_iplan->dot_v_iter =
-      dotproductc(this_iplan->v_iter, this_iplan->direct_plan->D);
+      dot_complex(this_iplan->v_iter, this_iplan->direct_plan->D);
   
   /** step 10
     */
@@ -462,26 +462,26 @@ void infsft_loop_one_step_cgnr_e(infsft_plan_old this_iplan)
   //vpr_c(this_iplan->v_iter,this_iplan->direct_plan->D,"v_iter");
   //vpr_c(this_iplan->r_iter,this_iplan->direct_plan->D,"r_iter");
 
-  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,
+  upd_xpay_complex(this_iplan->r_iter, -this_iplan->alpha_iter, this_iplan->v_iter,
                this_iplan->direct_plan->D);
   
   
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
-    this_iplan->dot_r_iter = dotproductc_w(this_iplan->r_iter, this_iplan->w,
+    this_iplan->dot_r_iter = dot_w_complex(this_iplan->r_iter, this_iplan->w,
                                            this_iplan->direct_plan->D);
   else
     this_iplan->dot_r_iter =
-      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
+      dot_complex(this_iplan->r_iter, this_iplan->direct_plan->D);
   
   /** step 17
     *  overwrites this_iplan->direct_plan->f
     *  overwrites this_iplan->direct_plan->r_iter
     */
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
-    copyc_w(this_iplan->direct_plan->f, this_iplan->w, 
+    cp_w_complex(this_iplan->direct_plan->f, this_iplan->w, 
             this_iplan->r_iter, this_iplan->direct_plan->D);
   else
-    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
+    cp_complex(this_iplan->direct_plan->f, this_iplan->r_iter,
           this_iplan->direct_plan->D);
 
   SWAPCT(this_iplan->z_hat_iter, this_iplan->direct_plan->f_hat, temp_hat);
@@ -541,17 +541,17 @@ void infsft_loop_one_step_cgne_r(infsft_plan_old this_iplan)
   
   nfsft_trafo_old(this_iplan->direct_plan);
   
-  updatec_xpay(this_iplan->r_iter, -this_iplan->alpha_iter,
+  upd_xpay_complex(this_iplan->r_iter, -this_iplan->alpha_iter,
                this_iplan->direct_plan->f, this_iplan->direct_plan->D);
   
   this_iplan->dot_r_iter_old = this_iplan->dot_r_iter;
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
     this_iplan->dot_r_iter =
-      dotproductc_w(this_iplan->r_iter, this_iplan->w,
+      dot_w_complex(this_iplan->r_iter, this_iplan->w,
                     this_iplan->direct_plan->D);
   else
     this_iplan->dot_r_iter =
-      dotproductc(this_iplan->r_iter, this_iplan->direct_plan->D);
+      dot_complex(this_iplan->r_iter, this_iplan->direct_plan->D);
   
   /** step 12
     */
@@ -579,10 +579,10 @@ void infsft_loop_one_step_cgne_r(infsft_plan_old this_iplan)
     *  updates this_iplan->p_hat_iter
     */
   if(this_iplan->infsft_flags_old & NFSFT_PRECOMPUTE_WEIGHT)
-    copyc_w(this_iplan->direct_plan->f, this_iplan->w,
+    cp_w_complex(this_iplan->direct_plan->f, this_iplan->w,
             this_iplan->r_iter, this_iplan->direct_plan->D);
   else
-    copyc(this_iplan->direct_plan->f, this_iplan->r_iter,
+    cp_complex(this_iplan->direct_plan->f, this_iplan->r_iter,
           this_iplan->direct_plan->D); 
   
   nfsft_adjoint_old(this_iplan->direct_plan);

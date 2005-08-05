@@ -1,4 +1,5 @@
 #include "c2f.h"
+#include <string.h>
 
 inline void cheb2exp_old(complex *f_hat, complex **cheb, int M, int N)
 {

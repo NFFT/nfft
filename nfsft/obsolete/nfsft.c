@@ -11,6 +11,7 @@
 #include "legendre.h"
 #include "flft.h"
 #include "c2f.h"
+#include <stdlib.h>
 
 /** Global structure for wisdom. */
 static struct nfsft_wisdom_old wisdom = {0,0};
@@ -50,10 +51,10 @@ void nfsft_precompute_old(int M, double threshold, nfsft_precompute_flags_old fl
   /* Precompute. */
   wisdom.U = precomputeU_old(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, 
                          wisdom.gamma, 
-                         (wisdom.flags & NFSFT_BW_WINDOW) == NFSFT_BW_WINDOW);
+                         (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
   
   /* Delete coefficients direct algorithms are deactivated. */
-  if (wisdom.flags & NFSFT_FAST_ONLY == NFSFT_FAST_ONLY)
+  if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) == NFSFT_FAST_ONLY_OLD)
   {
     free(wisdom.alpha);
     free(wisdom.beta);
@@ -108,7 +109,7 @@ void nfsft_forget_old()
     if (wisdom.N >= 4)
     {  
       forgetU_old(wisdom.U,wisdom.N,wisdom.t,
-              (wisdom.flags & NFSFT_BW_WINDOW) == NFSFT_BW_WINDOW);
+              (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
       
       fftw_free(wisdom.work);
       fftw_free(wisdom.old);
@@ -133,7 +134,7 @@ void nfsft_forget_old()
       free(wisdom.kindsr);
       free(wisdom.lengths);
     }
-    if (wisdom.flags & NFSFT_FAST_ONLY != NFSFT_FAST_ONLY)
+    if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) != NFSFT_FAST_ONLY_OLD)
     {
       free(wisdom.alpha);
       free(wisdom.beta);
@@ -195,13 +196,13 @@ void nfsft_finalize_old(nfsft_plan_old plan)
 void ndsft_trafo_old(nfsft_plan_old plan)
 {
   /* Compute direct transform. */
-  if (wisdom.flags & NFSFT_FAST_ONLY)
+  if (wisdom.flags & NFSFT_FAST_ONLY_OLD)
   {  
   }
   else
   {
     /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED)
+    if (plan->flags & NFSFT_NORMALIZED_OLD)
     {
       normalize_f_hat_old(plan->f_hat, plan->M);
     }  
@@ -211,7 +212,7 @@ void ndsft_trafo_old(nfsft_plan_old plan)
 
 void ndsft_adjoint_old(nfsft_plan_old plan)
 { 
-  if (wisdom.flags & NFSFT_FAST_ONLY)
+  if (wisdom.flags & NFSFT_FAST_ONLY_OLD)
   {  
   }
   else
@@ -219,7 +220,7 @@ void ndsft_adjoint_old(nfsft_plan_old plan)
     adjoint_ndsft_old(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
                   &wisdom);
     /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED)
+    if (plan->flags & NFSFT_NORMALIZED_OLD)
     {
       normalize_f_hat_old(plan->f_hat, plan->M);
     }  
@@ -240,12 +241,12 @@ void nfsft_trafo_old(nfsft_plan_old plan)
   {
     ndsft_trafo_old(plan);
   }
-  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
+  else if ((wisdom.flags & NFSFT_BW_WINDOW_OLD) == 0U || plan->M > 1<<(wisdom.t-1))
   {
     plan->plan_nfft.f = plan->f;
     
     /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED)
+    if (plan->flags & NFSFT_NORMALIZED_OLD)
     {
       normalize_f_hat_old(plan->f_hat, plan->M);
     }  
@@ -268,7 +269,7 @@ void nfsft_trafo_old(nfsft_plan_old plan)
 		fflush(stderr);
 		
     /* Execute NFFT. */
-		if (plan->flags & NFSFT_USE_NDFT)
+		if (plan->flags & NFSFT_USE_NDFT_OLD)
 		{
       ndft_trafo(&plan->plan_nfft);
 		}
@@ -294,12 +295,12 @@ void nfsft_adjoint_old(nfsft_plan_old plan)
   {
     ndsft_adjoint_old(plan);
   }
-  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
+  else if ((wisdom.flags & NFSFT_BW_WINDOW_OLD) == 0U || plan->M > 1<<(wisdom.t-1))
   {
     plan->plan_nfft.f = plan->f;
 
     /* Execute adjoint NFFT. */
-		if (plan->flags & NFSFT_USE_NDFT)
+		if (plan->flags & NFSFT_USE_NDFT_OLD)
 		{
       ndft_adjoint(&plan->plan_nfft);
 		}
@@ -318,7 +319,7 @@ void nfsft_adjoint_old(nfsft_plan_old plan)
     }          
 
     /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED)
+    if (plan->flags & NFSFT_NORMALIZED_OLD)
     {
       normalize_f_hat_old(plan->f_hat, plan->M);
     }  
@@ -341,7 +342,7 @@ int nfsft_trafo_old_stab(nfsft_plan_old plan)
 
   if (plan->M < 3)
   {
-    return;
+    return 0;
   }
   else
   {

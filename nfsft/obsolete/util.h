@@ -2,8 +2,7 @@
 #define UTIL_H
 
 #include <complex.h>
-
-#define MAX(a,b) ((a>b)?(a):(b))
+#include "../../include/util.h"
 
 /**
  * Compute the exponent of the next greater power of two.
@@ -52,5 +51,5 @@ void uvxpwy_old(complex* u, complex* x, double* v, complex* y, double* w, int n)
 void auvxpwy_old(double a, complex* u, complex* x, double* v, complex* y, double* w, int n);
 void abuvxpwy_old(double a, double b, complex* u, complex* x, double* v, complex* y, double* w, int n);
 void normalize_f_hat_old(complex **f_hat, int M);
-
+int abs(const int a);
 #endif

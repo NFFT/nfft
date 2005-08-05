@@ -42,7 +42,7 @@
 #include <time.h>
 #include <fftw3.h>
 #include "nfsft.h"
-#include "util.h"
+#include "../../../nfsft/obsolete/util.h"
 
 #define M 256
 #define D 100
@@ -114,8 +114,8 @@ int main (int argc, char **argv)
     angles[2*d+1] = 0.5*drand48();
   }  
 
-  plan = nfsft_init_guru_old(M, D, f_hat, angles, f, NFSFT_NORMALIZED,6);
-  plan_direct = nfsft_init_guru_old(M, D, f_hat_direct, angles, f_direct, NFSFT_NORMALIZED,6);
+  plan = nfsft_init_guru_old(M, D, f_hat, angles, f, NFSFT_NORMALIZED_OLD,6);
+  plan_direct = nfsft_init_guru_old(M, D, f_hat_direct, angles, f_direct, NFSFT_NORMALIZED_OLD,6);
 
   //ndsft_trafo(plan);
   nfsft_trafo_old(plan);

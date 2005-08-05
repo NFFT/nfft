@@ -533,3 +533,9 @@ inline long int max_oldl(const long int a, const long int b)
 {
   return a>b?a:b;
 }
+
+inline int abs(const int a)
+{
+  return (a>0)?(a):(-a);
+}
+
