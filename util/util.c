@@ -3,15 +3,21 @@
  *  (c) if not stated otherwise: Daniel Potts, Stefan Kunis
  */
 
+#include "config.h"
+
 #include "util.h"
-#include <malloc.h>
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+#ifdef HAVE_MALLINFO
+#  include <malloc.h>
+#endif
 //#include <time.h>
 
-#include <stdlib.h>
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
@@ -27,12 +33,14 @@ double second()
   return  foo  + (foo1/1000000.0);      /* milliseconds                      */
 }
 
+#ifdef HAVE_TOTAL_USED_MEMORY
 int total_used_memory()
 {
   struct mallinfo m;
   m=mallinfo();
   return m.hblkhd + m.uordblks;
 }
+#endif
 
 int int_2_pow(int a)
 {
