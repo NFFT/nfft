@@ -1,0 +1,140 @@
+\section{Directory Structure}
+\input{tree}
+The directory structure of the SVN repository is as follows:
+
+{
+\scriptsize
+\tree nfft                                       
+  \subtree doc
+    \subtree \mbox{\begin{tabular}{l}
+                     paper\\
+                     [our papers]
+                   \end{tabular}}
+    \endsubtree 
+    \subtree talks                      
+    \endsubtree 
+    \subtree \mbox{\begin{tabular}{l}
+                     internal\\
+                     [internal doc]
+                   \end{tabular}}                          
+    \endsubtree 
+  \endsubtree 
+  
+  \subtree lib 
+    \subtree \mbox{\begin{tabular}{l}
+                     doc\\
+                     [library doc]
+                   \end{tabular}}
+    \endsubtree 
+
+    \subtree include
+    \endsubtree 
+
+    \subtree kernel
+      \subtree \mbox{\begin{tabular}{l}
+                     dpt\\
+                     [disc. pol. transf.]
+                   \end{tabular}} 
+      \endsubtree 
+      \subtree nfcft
+      \endsubtree 
+      \subtree nfft
+      \endsubtree 
+      \subtree nfst
+      \endsubtree 
+    \endsubtree 
+    
+    \subtree lowlevel
+      \subtree mri\_inh
+      \endsubtree     
+      \subtree nfsft
+      \endsubtree     
+      \subtree nnfft
+      \endsubtree     
+      \subtree nsfft
+      \endsubtree     
+      \subtree texture
+      \endsubtree     
+    \endsubtree 
+    
+    \subtree highlevel
+      \subtree solver
+      \endsubtree     
+      \subtree \mbox{\begin{tabular}{l}
+                     fastsum\\
+                     [fast summation]
+                   \end{tabular}}    
+      \endsubtree     
+    \endsubtree 
+    
+    \subtree examples
+	    \subtree kernel
+	      \subtree dpt
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree 
+	      \subtree nfcft
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree 
+	      \subtree nfft
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree 
+	      \subtree nfst
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree 
+	    \endsubtree 
+	    
+	    \subtree lowlevel
+	      \subtree mri\_inh
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	      \subtree nfsft
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	      \subtree nnfft
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	      \subtree nsfft
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	      \subtree texture
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	    \endsubtree 
+	    
+	    \subtree highlevel
+	      \subtree solver
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	      \subtree fastsum 
+		      \subtree \dots
+		      \endsubtree 
+	      \endsubtree     
+	    \endsubtree 	    
+    \endsubtree 
+
+    \subtree util
+    \endsubtree 
+                                
+  \endsubtree 
+
+  \subtree \mbox{\begin{tabular}{l}
+                     obsolete\\
+                     [legacy \\
+                     modules]
+                   \end{tabular}} 
+    \subtree \dots
+    \endsubtree 
+  \endsubtree 
+
+\endtree 
+}
