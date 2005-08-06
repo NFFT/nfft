@@ -6,135 +6,79 @@ The directory structure of the SVN repository is as follows:
 \scriptsize
 \tree nfft                                       
   \subtree doc
-    \subtree \mbox{\begin{tabular}{l}
-                     paper\\
-                     [our papers]
-                   \end{tabular}}
+    \subtree 
+      paper
+      [our papers]
     \endsubtree 
-    \subtree talks                      
-    \endsubtree 
-    \subtree \mbox{\begin{tabular}{l}
-                     internal\\
-                     [internal doc]
-                   \end{tabular}}                          
+    \leaf{talks}
+    \subtree 
+      internal
+      [internal doc]
     \endsubtree 
   \endsubtree 
-  
   \subtree lib 
-    \subtree \mbox{\begin{tabular}{l}
-                     doc\\
-                     [library doc]
-                   \end{tabular}}
-    \endsubtree 
-
-    \subtree include
-    \endsubtree 
-
-    \subtree kernel
-      \subtree \mbox{\begin{tabular}{l}
-                     dpt\\
-                     [disc. pol. transf.]
-                   \end{tabular}} 
-      \endsubtree 
-      \subtree nfct
-      \endsubtree 
-      \subtree nfft
-      \endsubtree 
-      \subtree nfst
-      \endsubtree 
-    \endsubtree 
-    
-    \subtree lowlevel
-      \subtree mri\_inh
-      \endsubtree     
-      \subtree nfsft
-      \endsubtree     
-      \subtree nnfft
-      \endsubtree     
-      \subtree nsfft
-      \endsubtree     
-      \subtree texture
-      \endsubtree     
-    \endsubtree 
-    
-    \subtree highlevel
-      \subtree solver
-      \endsubtree     
-      \subtree \mbox{\begin{tabular}{l}
-                     fastsum\\
-                     [fast summation]
-                   \end{tabular}}    
-      \endsubtree     
-    \endsubtree 
-    
-    \subtree examples
+    \leaf{branches}
+    \leaf{releases}
+    \subtree trunk
+	    \subtree 
+        doc
+        [library doc]
+	    \endsubtree 
+	    \leaf{include}
 	    \subtree kernel
-	      \subtree dpt
-		      \subtree \dots
-		      \endsubtree 
+	      \subtree 
+          dpt
+          [disc. pol. transf.]
 	      \endsubtree 
-	      \subtree nfct
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree 
-	      \subtree nfft
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree 
-	      \subtree nfst
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree 
+	      \leaf{nfct}
+	      \leaf{nfft}
+	      \leaf{nfst}
 	    \endsubtree 
-	    
 	    \subtree lowlevel
-	      \subtree mri\_inh
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	      \subtree nfsft
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	      \subtree nnfft
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	      \subtree nsfft
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	      \subtree texture
-		      \subtree \dots
-		      \endsubtree 
+	      \leaf{mri\_inh}
+	      \leaf{nfsft}
+	      \leaf{nnfft}
+	      \leaf{nsfft}
+	      \leaf{texture}
+	    \endsubtree 
+	    \subtree highlevel
+	      \leaf{solver}
+	      \subtree
+          fastsum\\
+          [fast summation]
 	      \endsubtree     
 	    \endsubtree 
-	    
-	    \subtree highlevel
-	      \subtree solver
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	      \subtree fastsum 
-		      \subtree \dots
-		      \endsubtree 
-	      \endsubtree     
-	    \endsubtree 	    
-    \endsubtree 
-
-    \subtree util
-    \endsubtree 
-                                
-  \endsubtree 
-
-  \subtree \mbox{\begin{tabular}{l}
-                     obsolete\\
-                     [legacy \\
-                     modules]
-                   \end{tabular}} 
+	    \subtree examples
+		    \subtree kernel
+		      \leaf{dpt}
+		      \leaf{nfct}
+		      \leaf{nfft}
+		      \leaf{nfst}
+		    \endsubtree 
+		    \subtree lowlevel
+		      \leaf{mri\_inh}
+		      \leaf{nfsft}
+		      \leaf{nnfft}
+		      \leaf{nsfft}
+		      \leaf{texture}
+		    \endsubtree 
+		    \subtree highlevel
+		      \leaf{solver}
+		      \subtree
+	          fastsum\\
+	          [fast summation]
+		      \endsubtree     
+		    \endsubtree 	    
+	    \endsubtree 
+	    \leaf{util}                
+	  \endsubtree 
+	\endsubtree  
+  \subtree
+     obsolete
+     [legacy 
+     modules]
     \subtree \dots
     \endsubtree 
   \endsubtree 
-
 \endtree 
 }
