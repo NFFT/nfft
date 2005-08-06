@@ -173,9 +173,11 @@ void nfft_finalize(nfft_plan *ths);
  
 /** @defgroup nnfft Group
  * Direct and fast computation of the
- * discrete Fourier transform at nonequispaced knots in time- and fourier-domain
+ * discrete Fourier transform at nonequispaced knots in time and Fourier domain
  * @{ 
  */
+
+/** Structure for a transform plan */
 typedef struct nnfft_plan_ 
 {
   /** api */
@@ -212,27 +214,130 @@ typedef struct nnfft_plan_
 } nnfft_plan;
 
 
-void nndft_trafo(nnfft_plan *ths_plan);
-
-void nndft_conjugated(nnfft_plan *ths_plan);
-
-void nndft_adjoint(nnfft_plan *ths_plan);
-
-void nndft_transposed(nnfft_plan *ths_plan);
-
+/**
+ * Creates a transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d The dimension
+ * \arg N_total The number of nodes \f$v\f$
+ * \arg N_total The number of nodes \f$x\f$
+ * \arg N The bandwidth \f$N\f$
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N);
 
+/**
+ * Creates a transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d The dimension
+ * \arg N_total The number of nodes \f$v\f$
+ * \arg N_total The number of nodes \f$x\f$
+ * \arg N The bandwidth \f$N\f$
+ * \arg N The oversampled bandwidth \f$N\f$
+ * \arg m The cut-off parameter
+ * \arg nnfft_flags The flags
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total,
                      int *N, int *N1, int m, unsigned nnfft_flags);
-                        
-void nnfft_finalize(nnfft_plan *ths_plan);
+                     
+/**
+ * Executes a direct NNDFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+void nndft_trafo(nnfft_plan *ths_plan);
 
+/**
+ * Executes a direct conjugated NNDFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+void nndft_conjugated(nnfft_plan *ths_plan);
+
+/**
+ * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+void nndft_adjoint(nnfft_plan *ths_plan);
+
+/**
+ * Executes a direct transposed NNDFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+void nndft_transposed(nnfft_plan *ths_plan);
+
+/**
+ * Executes a NNFFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_trafo(nnfft_plan *ths_plan);
 
+/**
+ * Executes a conjugated NNFFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_conjugated(nnfft_plan *ths_plan);
 
+/**
+ * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_adjoint(nnfft_plan *ths_plan);
 
+/**
+ * Executes a transposed NNFFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void nnfft_transposed(nnfft_plan *ths_plan);
 
 void nnfft_precompute_lin_psi(nnfft_plan *ths_plan);
@@ -242,6 +347,15 @@ void nnfft_precompute_psi(nnfft_plan *ths_plan);
 void nnfft_precompute_full_psi(nnfft_plan *ths_plan);
 
 void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
+
+/**
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+void nnfft_finalize(nnfft_plan *ths_plan);
  
 /* @} 
  */
