@@ -489,6 +489,17 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  */
 
 /**
+ * Flags controlling the texture transform.
+ */
+
+/** 
+ * Flag controlling the max angle (representation of 2*Pi)
+ */
+#define TEXTURE_MAX_ANGLE (2*PI)
+
+// Flag controlling wether to check for errors of usage
+
+/**
  * The structure for the transform plan.
  */
 typedef struct texture_plan_ {
@@ -500,9 +511,26 @@ typedef struct texture_plan_ {
 	int N2;
 	double *h_phi;
 	double *h_theta;
-	double **r_phi;
-	double **r_theta;
+	double *r;
+
+	double *cos_h_theta;
+	double *sin_h_theta;
+
+	complex **nfsft_f_hat;
+	complex *nfsft_f;
+	double *nfsft_x;
 } texture_plan;
+
+/**
+ * Simple initialisation of a plan.
+ * Use texture_finalize to free allocated memory.
+ */
+void texture_init(texture_plan *ths, int N, int N1, int N2);
+
+/**
+ * Advanced initialisation of a plan.
+ */
+void texture_init_advanced(texture_plan *ths, int N, int N1, int N2);
 
 /**
  * Carries out the transform.
@@ -513,6 +541,21 @@ void texture_trafo(texture_plan *ths);
  * The adjoint version of the transform.
  */
 void texture_adjoint(texture_plan *ths);
+
+/**
+ * Frees all memory allocated by texture_init or texture_init_advanced.
+ */
+void texture_finalize(texture_plan *ths);
+
+/**
+ * Convert a non-flat index to a flat index.
+ * \arg l the frequence
+ * \arg m ranges from -l to l
+ * \arg n ranges from -l to l
+ */
+inline int texture_flat_index(int l, int m, int n);
+
+inline void texture_vec_init(complex* vec, int n, complex value);
 
 /* @}
  */

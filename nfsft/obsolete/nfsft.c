@@ -172,9 +172,14 @@ nfsft_plan_old nfsft_init_guru_old(int m, int d, fftw_complex **f_hat, double *a
   nfft_size[1] = 2*(plan->N+1);
   fftw_size[0] = 4*plan->N;
   fftw_size[1] = 4*plan->N;
-  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->D, fftw_size, 
+	/* MS */
+/*  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->D, fftw_size, 
                      cutoff, PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFT_OUT_OF_PLACE, 
+                     FFTW_ESTIMATE| FFTW_DESTROY_INPUT);*/
+  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->D, fftw_size, 
+                     cutoff, PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFT_OUT_OF_PLACE | FFTW_INIT, 
                      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+	/* MS */
   /* Assign angle array. */
   plan->plan_nfft.x = plan->angles;
   /* Assign result array. */

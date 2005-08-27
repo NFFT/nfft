@@ -1,11 +1,15 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include
-AM_LDFLAGS = -L$(top_srcdir)
+AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/nfsft/obsolete
+AM_LDFLAGS = -L$(top_srcdir) -L.
 
 ## The program name
-noinst_PROGRAMS = textureTest
+noinst_PROGRAMS = textureTest template
 
 ## The source files for the library
 textureTest_SOURCES = textureTest.c
 
 ## Additional libraries for the library
-textureTest_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
+textureTest_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lnfsft
+
+template_SOURCES = template.c
+
+template_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lnfsft

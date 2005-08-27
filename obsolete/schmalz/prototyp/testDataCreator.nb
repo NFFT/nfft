@@ -1,0 +1,326 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      7629,        235]*)
+(*NotebookOutlinePosition[      8326,        259]*)
+(*  CellTagsIndexPosition[      8282,        255]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(Off[General::spell]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Clear["\<Global`*\>"]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\($MaxPrecision\  = \ Infinity;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\($MaxExtraPrecision\  = \ 50;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(PosPart[k_]\  := \ k*\((Sign[k]\  + \ 1)\)\ /\ 2;\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(NegPart[k_]\  := \ k*\((Sign[k] - 1)\)\ /\ 2;\)\)], "Input",
+  InitializationCell->True],
+
+Cell["Legendre Polynome:", "Text"],
+
+Cell[BoxData[
+    \(P[k_, \ x_]\  := \ LegendreP[k, \ x]\)], "Input",
+  InitializationCell->True],
+
+Cell["\<\
+Pref[k_, x_] := (1/(2^k*k!))*((Derivative[k][(#1^2 - 1)^k & \
+])[x])\
+\>", "Input"],
+
+Cell[BoxData[
+    \(\(\(Table[
+      FullSimplify[P[k, \ x]\  - \ Pref[k, \ x]], \ {k, \ 0, \ 
+        50}]\)\(\[IndentingNewLine]\)
+    \)\)], "Input"],
+
+Cell["assoziierte Legendre Polynome:", "Text"],
+
+Cell[BoxData[
+    \(P[k_, \ n_, \ 
+        x_]\  := \ \((\(-1\))\)^
+          n\ *\((\(\((k - n)\)!\)/\(\((k + n)\)!\))\)^\((1/2)\)\ *\ 
+        LegendreP[k, \ n, \ x]\)], "Input",
+  InitializationCell->True],
+
+Cell["\<\
+Pref2[k_, n_, x_] := ((k - n)!/(k + n)!)^(1/2)*(1 - x^2)^(n/2)*
+   Derivative[n][P[k, #1] & ][x]\
+\>", "Input"],
+
+Cell[BoxData[
+    \(Table[
+      FullSimplify[Pref2[k, \ n, \ x]\ /\ P[k, \ n, \ x], \ x <= 1], \ {k, \ 
+        0, \ 10}, \ {n, \ 0, \ k}]\)], "Input"],
+
+Cell["spherical Harmonics:", "Text"],
+
+Cell["\<\
+Yref[k_, n_, \[Theta]_, \[CapitalPhi]_] := P[k, Abs[n], \
+Cos[\[Theta]]] * \[ExponentialE]^(\[ImaginaryI] n \[CapitalPhi])\
+\>", "Input"],
+
+Cell[BoxData[
+    \(Y[k_, \ 
+        n_, \ \[Theta]_, \ \[CapitalPhi]_]\  := \ \((\(-1\))\)^\((PosPart[
+              n]\ )\)*\ \(\@\(\(4  \[Pi]\)\/\(2  k + 1\)\)\) 
+        SphericalHarmonicY[k, \ n, \ \[Theta], \ \[CapitalPhi]]\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Table[
+      FullSimplify[
+        Yref[k, \ n, \ \[Theta], \ \[CapitalPhi]]\ /\ 
+          Y[k, \ n, \ \[Theta], \ \[CapitalPhi]], \ 
+        0\  <= \ \[Theta]\  && \ \[Theta]\  <= \ \[Pi]], \ {k, \ 0, \ 
+        10}, \ {n, \ \(-k\), \ k}]\)], "Input"],
+
+Cell["Eingabe:", "Text",
+  InitializationCell->True],
+
+Cell[BoxData[{
+    \(N1\  := \ 10\), "\[IndentingNewLine]", 
+    \(N2\  := \ 10\)}], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(Nu\  := \ 10\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(\[Theta]\  = \ 
+        Table[N[\(\((i - 1)\)\ \[Pi]\)\/\(N1 - 1\)], \ {i, \ 
+            N1}];\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    \(\(\[CapitalPhi]\  = \ 
+        Table[N[\(\((i - 1)\)\ 2\ \[Pi]\)\/\(N2 - 1\)], \ {i, \ 
+            N2}];\)\)], "Input",
+  InitializationCell->True],
+
+Cell["schreibe Testdaten", "Text"],
+
+Cell["Hilfsroutinen", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(prefix\  = \ \
+"\</home/schmalz/prg/s8/studienarbeit/nfft/trunk/obsolete/schmalz/prototyp/\>\
+";\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(prefix\\)\\\" is similar to existing symbol \
+\\\"\\!\\(Prefix\\)\\\". \\!\\(\\*ButtonBox[\\\"Mehr\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(Open[file_]\  := \ \(stream\  = 
+          OpenWrite[prefix\  <> \ file]\);\)\)], "Input",
+  InitializationCell->True],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(format[x_]\  := \ Chop[x, \ 10^\(-15\)];\)\)], "Input",
+  InitializationCell->True],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(format\\)\\\" is similar to existing symbol \
+\\\"\\!\\(Format\\)\\\". \\!\\(\\*ButtonBox[\\\"Mehr\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"]
+}, Open  ]],
+
+Cell["Einheitsvektoren", "Text"],
+
+Cell[BoxData[{
+    \(\(\(Open["\<unit.data\>"];\)\(\n\)
+    \)\), "\[IndentingNewLine]", 
+    \(\(Write[stream, \ N1];\)\), "\n", 
+    \(\(Write[stream, \ N2];\)\), "\n", 
+    \(\(Write[stream, \ Nu];\)\), "\n", 
+    \(\(\(Write[stream];\)\(\n\)
+    \)\), "\[IndentingNewLine]", 
+    \(\(For[i\  = \ 1, \ 
+        i\  \[LessEqual] \ 
+          N1, \ \(i++\), \[IndentingNewLine]\[IndentingNewLine]Write[
+          stream, \ \[Theta][\([i]\)]]; \[IndentingNewLine]Write[
+          stream]; \[IndentingNewLine]\[IndentingNewLine]For[n\  = \ 0, \ 
+          n\  \[LessEqual] \ 
+            Nu, \ \(n++\), \[IndentingNewLine]\(For[k\  = \ n, \ 
+              k\  \[LessEqual] \ 
+                Nu, \ \(k++\), \[IndentingNewLine]\(For[j\  = \ 1, \ 
+                  j\  \[LessEqual] \ 
+                    N2, \ \(j++\), \[IndentingNewLine]z\  = \ 
+                    Y[k, \ \(-n\), \ \[Theta][\([\)\(i\)\(]\)], \ \
+\[CapitalPhi][\([\)\(j\)\(]\)]]; \[IndentingNewLine]Write[
+                    stream, \ \[CapitalPhi][\([\)\(j\)\(]\)], \ a, \ 
+                    format[Re[z]], \ a, \ 
+                    format[Im[
+                        z]]]; \[IndentingNewLine]\[IndentingNewLine]z\  = \ 
+                    Y[k, \ n, \ \[Theta][\([\)\(i\)\(]\)], \ \
+\[CapitalPhi][\([\)\(j\)\(]\)]]; \[IndentingNewLine]Write[
+                    stream, \ \[CapitalPhi][\([\)\(j\)\(]\)], \ a, \ 
+                    format[Re[z]], \ a, \ 
+                    format[Im[
+                        z]]];\[IndentingNewLine]];\)\[IndentingNewLine]];\)\
+\[IndentingNewLine]]; \[IndentingNewLine]\[IndentingNewLine]Write[
+          stream];\[IndentingNewLine]];\)\)}], "Input"],
+
+Cell[BoxData[
+    \(\(Close[stream];\)\)], "Input"]
+},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1280}, {0, 1024}},
+AutoGeneratedPackage->Automatic,
+WindowSize->{981, 936},
+WindowMargins->{{129, Automatic}, {Automatic, 0}},
+StyleDefinitions -> "Default.nb"
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 80, 2, 27, "Input",
+  InitializationCell->True],
+Cell[1837, 55, 82, 2, 27, "Input",
+  InitializationCell->True],
+Cell[1922, 59, 94, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2019, 63, 93, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2115, 67, 114, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2232, 71, 110, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2345, 75, 34, 0, 32, "Text"],
+Cell[2382, 77, 97, 2, 27, "Input",
+  InitializationCell->True],
+Cell[2482, 81, 93, 3, 27, "Input"],
+Cell[2578, 86, 152, 4, 43, "Input"],
+Cell[2733, 92, 46, 0, 32, "Text"],
+Cell[2782, 94, 208, 5, 27, "Input",
+  InitializationCell->True],
+Cell[2993, 101, 121, 3, 42, "Input"],
+Cell[3117, 106, 152, 3, 27, "Input"],
+Cell[3272, 111, 36, 0, 32, "Text"],
+Cell[3311, 113, 147, 3, 27, "Input"],
+Cell[3461, 118, 270, 5, 50, "Input",
+  InitializationCell->True],
+Cell[3734, 125, 273, 6, 27, "Input"],
+Cell[4010, 133, 52, 1, 32, "Text",
+  InitializationCell->True],
+Cell[4065, 136, 121, 3, 43, "Input",
+  InitializationCell->True],
+Cell[4189, 141, 73, 2, 27, "Input",
+  InitializationCell->True],
+Cell[4265, 145, 160, 4, 44, "Input",
+  InitializationCell->True],
+Cell[4428, 151, 168, 4, 44, "Input",
+  InitializationCell->True],
+Cell[4599, 157, 34, 0, 32, "Text"],
+Cell[4636, 159, 29, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[4690, 163, 161, 4, 27, "Input",
+  InitializationCell->True],
+Cell[4854, 169, 360, 5, 20, "Message"]
+}, Open  ]],
+Cell[5229, 177, 140, 3, 27, "Input",
+  InitializationCell->True],
+
+Cell[CellGroupData[{
+Cell[5394, 184, 105, 2, 27, "Input",
+  InitializationCell->True],
+Cell[5502, 188, 360, 5, 20, "Message"]
+}, Open  ]],
+Cell[5877, 196, 32, 0, 32, "Text"],
+Cell[5912, 198, 1659, 32, 427, "Input"],
+Cell[7574, 232, 51, 1, 27, "Input"]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
