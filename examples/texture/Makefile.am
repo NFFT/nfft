@@ -8,8 +8,8 @@ noinst_PROGRAMS = textureTest template
 textureTest_SOURCES = textureTest.c
 
 ## Additional libraries for the library
-textureTest_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lnfsft
+textureTest_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 template_SOURCES = template.c
 
-template_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lnfsft
+template_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 
