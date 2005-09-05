@@ -261,7 +261,7 @@ void nfct_precompute_psi( nfct_plan *this_plan);
 void nfct_trafo( nfct_plan *this_plan); 
 
 /* the slow way */
-void ndct_trafo( nfct_plan *this_plan, int fast_or_slow); 
+void ndct_trafo( nfct_plan *this_plan); 
  
 
 /** see formula (1.2), computes in a fast and approximative way 
@@ -271,7 +271,7 @@ void ndct_trafo( nfct_plan *this_plan, int fast_or_slow);
 void nfct_transposed( nfct_plan *this_plan); 
 
 /* the slow way */ 
-void ndct_transposed( nfct_plan *this_plan, int fast_or_slow); 
+void ndct_transposed( nfct_plan *this_plan); 
  
 
 /** finalisation for direct transform 
@@ -370,7 +370,7 @@ void nfst_precompute_psi( nfst_plan *this_plan);
  */
 void nfst_trafo( nfst_plan *this_plan);
 /* the slow way */
-void ndst_trafo( nfst_plan *this_plan, int fast_or_slow);
+void ndst_trafo( nfst_plan *this_plan);
 
 void nfst_full_psi( nfst_plan *this_plan, double eps);
 
@@ -381,7 +381,7 @@ void nfst_full_psi( nfst_plan *this_plan, double eps);
  */
 void nfst_transposed( nfst_plan *this_plan);
 /* the slow way */
-void ndst_transposed( nfst_plan *this_plan, int fast_or_slow);
+void ndst_transposed( nfst_plan *this_plan);
 
 /** finalisation for direct transform
  */
