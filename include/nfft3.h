@@ -170,7 +170,228 @@ void nfft_finalize(nfft_plan *ths);
 /* @} 
  */
 
+
+
+/** @defgroup nfct Group
+ * Direct and fast computation of the
+ * discrete cosine transform at nonequispaced knots
+ * @{ 
+ */
+
+
+typedef struct nfct_plan_  
+{ 
+  /** api */ 
+  MACRO_MV_PLAN(double);
+
+  int d;                                /**< dimension, rank                  */ 
+  int *N;                               /**< cut-off-frequencies              */ 
+  double *sigma;                        /**< oversampling-factor              */ 
+  int *n;                               /**< sigma*N                          */ 
+  int n_total;                          /**< n_0 * n_1 *...* n_(d-1)          */         
+  int *dct_n;                           /**< dct1-length = n/2+1              */ 
+  int dct_n_total;                      /**< dct_n_0*dct_n_1*...*dct_n_(d-1)  */ 
+  int m;                                /**< cut-off parameter in time-domain */ 
+  double *b;                            /**< shape parameters                 */ 
  
+  unsigned nfct_flags;                  /**< flags for precomputation, malloc */ 
+  unsigned fftw_flags;                  /**< flags for the fftw               */ 
+ 
+  double *x;                            /**< nodes (in time/spatial domain)   */ 
+ 
+  /** internal */ 
+  fftw_plan  my_fftw_r2r_plan;          /**< fftw_plan                        */ 
+  fftw_r2r_kind *r2r_kind;              /**< r2r transform type (dct-i)       */
+ 
+  double **c_phi_inv;                   /**< precomputed data, matrix D       */ 
+  double *psi;                          /**< precomputed data, matrix B       */ 
+  int size_psi;                         /**< only for thin B                  */ 
+  int *psi_index_g;                     /**< only for thin B                  */ 
+  int *psi_index_f;                     /**< only for thin B                  */ 
+  double nfct_full_psi_eps; 
+ 
+  double *g; 
+  double *g_hat; 
+  double *g1;                           /**< input of fftw                    */ 
+  double *g2;                           /**< output of fftw                   */ 
+ 
+  double *spline_coeffs;                /**< input for de Boor algorithm, if   
+                                             B_SPLINE or SINC_2m is defined   */ 
+} nfct_plan; 
+
+
+/** @defgroup nfct Group for direct nfct 
+ * This group contains routines for  
+ * direct fast Fourier transform at nonequispaced knots 
+ * @{  
+ */ 
+ 
+/** wrapper for nfct_init and d=1 
+ */ 
+void nfct_init_1d( nfct_plan *this_plan, int N1, int M); 
+ 
+/** wrapper for nfct_init and d=2 
+ */ 
+void nfct_init_2d( nfct_plan *this_plan, int N1, int N2, int M); 
+ 
+/** wrapper for nfct_init and d=3 
+ */ 
+void nfct_init_3d( nfct_plan *this_plan, int N1, int N2, int N3, int M); 
+ 
+/** initialization for direct transform, simple interface 
+ */ 
+void nfct_init( nfct_plan *this_plan, int d, int *N, int M); 
+ 
+/** initialization for direct transform, guru interface 
+ */ 
+void nfct_init_guru( nfct_plan *this_plan, int d, int *N, int M, int *n, 
+                         int m, unsigned nfct_flags, unsigned fftw_flags); 
+ 
+/** precomputes the values psi 
+ *  if the PRE_PSI is set the application program has to call this routine 
+ *  after setting the nodes this_plan->x 
+ */ 
+void nfct_precompute_psi( nfct_plan *this_plan); 
+
+
+/** see formula (1.1), computes in a fast and approximative way 
+ * for j=0,...,M-1                                                              
+ *  f^C[j] = sum_{k in I_0^(N,d)} f_hat^C[k] * cos(2 pi k x[j]) 
+ */ 
+void nfct_trafo( nfct_plan *this_plan); 
+
+/* the slow way */
+void ndct_trafo( nfct_plan *this_plan, int fast_or_slow); 
+ 
+
+/** see formula (1.2), computes in a fast and approximative way 
+ * for k in I_N^d 
+ *  f_hat_C[k] = sum_{j=0}^{M-1} f_S[j] * cos(2 pi k x[j]) 
+ */ 
+void nfct_transposed( nfct_plan *this_plan); 
+
+/* the slow way */ 
+void ndct_transposed( nfct_plan *this_plan, int fast_or_slow); 
+ 
+
+/** finalisation for direct transform 
+ */ 
+void nfct_finalize( nfct_plan *this_plan);
+
+/** @}  
+ */
+
+
+
+typedef struct nfst_plan_ 
+{
+  /** api */
+  MACRO_MV_PLAN(double);
+
+  int d;                                /**< dimension, rank                  */
+  int *N;                               /**< cut-off-frequencies              */
+  int *dst_N;                           /**< N-1                              */
+  double *sigma;                        /**< oversampling-factor              */
+  int *n;                               /**< n = sigma*N                      */
+  int n_total;                          /**< n0 * n1 *...* n(d-1)             */        
+  int *dst_n;                           /**< dst1-length = n/2-1              */
+  int dst_n_total;                      /**< dst_n0 * dst_n1 *...* dst_n(d-1) */
+  int m;                                /**< cut-off parameter in time-domain */
+  double *b;                            /**< shape parameters                 */
+
+  unsigned nfst_flags;                  /**< flags for precomputation, malloc */
+  unsigned fftw_flags;                  /**< flags for the fftw               */
+
+  double *x;                            /**< nodes (in time/spatial domain)   */
+
+  double *f_hat_S;                      /**< fourier coefficients, equispaced */
+  double *f_S;                          /**< samples at nodes x               */
+
+  /** internal */
+  fftw_plan  my_fftw_r2r_plan;         /**< fftw_plan forward                */
+  fftw_r2r_kind *r2r_kind;              /**< r2r transform type (dct-i)       */
+
+  double **c_phi_inv;                   /**< precomputed data, matrix D       */
+  double *psi;                          /**< precomputed data, matrix B       */
+  int size_psi;                         /**< only for thin B                  */
+  int *psi_index_g;                     /**< only for thin B                  */
+  int *psi_index_f;                     /**< only for thin B                  */
+  double nfst_full_psi_eps;
+
+
+  double *g;
+  double *g_hat;
+  double *g1;                           /**< input of fftw                    */
+  double *g2;                           /**< output of fftw                   */
+
+  double *spline_coeffs;                /**< input for de Boor algorithm, if  
+                                             B_SPLINE or SINC_2m is defined   */
+} nfst_plan;
+
+
+
+/** @defgroup nfct Group for direct nfst 
+ * This group contains routines for 
+ * direct fast sine transform at nonequispaced knots
+ * @{ 
+ */
+
+/** wrapper for nfst_init and d=1
+ */
+void nfst_init_1d( nfst_plan *this_plan, int N1, int M);
+
+/** wrapper for nfst_init and d=2
+ */
+void nfst_init_2d( nfst_plan *this_plan, int N1, int N2, int M);
+
+/** wrapper for nfst_init and d=3
+ */
+void nfst_init_3d( nfst_plan *this_plan, int N1, int N2, int N3, int M);
+
+/** initialisation for direct transform, simple interface
+ */
+void nfst_init( nfst_plan *this_plan, int d, int *N, int M);
+
+/** initialisation for direct transform, specific interface
+ */
+void nfst_init_guru( nfst_plan *this_plan, int d, int *N, int M, int *n,
+                     int m, unsigned nfst_flags, unsigned fftw_flags);
+
+/** precomputes the values psi
+ *  if the PRE_PSI is set the application program has to call this routine
+ *  after setting the nodes this_plan->x
+ */
+void nfst_precompute_psi( nfst_plan *this_plan);
+
+
+/** see formula (1.1), computes in a fast and approximative way
+ * for j=0,...,M-1                                                             
+ *  f^S[j] = sum_{k in I_1^N,d} f_hat^S[k] * sin(2 pi k x[j])
+ */
+void nfst_trafo( nfst_plan *this_plan);
+/* the slow way */
+void ndst_trafo( nfst_plan *this_plan, int fast_or_slow);
+
+void nfst_full_psi( nfst_plan *this_plan, double eps);
+
+
+/** see formula (1.2), computes in a fast and approximative way
+ * for k in I_N^d
+ *  f_hat_S[k] = sum_{j=0}^{M-1} f_S[j] * sin(2 pi k x[j])
+ */
+void nfst_transposed( nfst_plan *this_plan);
+/* the slow way */
+void ndst_transposed( nfst_plan *this_plan, int fast_or_slow);
+
+/** finalisation for direct transform
+ */
+void nfst_finalize( nfst_plan *this_plan);                      
+/** @} 
+ */ 
+
+
+
+
 /** @defgroup nnfft Group
  * Direct and fast computation of the
  * discrete Fourier transform at nonequispaced knots in time and Fourier domain
@@ -854,6 +1075,8 @@ F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
 
 
 MACRO_SOLVER_PLAN(nfft, complex)
+MACRO_SOLVER_PLAN(nfct, double)
+MACRO_SOLVER_PLAN(nfst, double)
 MACRO_SOLVER_PLAN(nnfft, complex)
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex)
