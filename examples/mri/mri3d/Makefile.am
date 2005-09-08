@@ -1,5 +1,6 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
+EXTRA_DIST = mri.m README
 
 ## The program name
 noinst_PROGRAMS = construct_data_2d1d construct_data_3d reconstruct_data_gridding reconstruct_data_2d1d reconstruct_data_3d

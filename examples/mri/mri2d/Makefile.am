@@ -1,5 +1,6 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
+EXTRA_DIST = construct_inh.m  construct_readout_time.m  precompute_weights.m construct_knots_linogram.m  mri_inh.m  snr.m construct_knots_radial.m mri.m construct_knots_rose.m visualize_data.m construct_knots_spiral.m README
 
 ## The program name
 noinst_PROGRAMS = construct_data_2d construct_data_inh_2d1d construct_data_inh_3d reconstruct_data_gridding \
