@@ -5,7 +5,7 @@ load input_f.dat
 % load recontructed data f~
 load output_real.dat
 load output_imag.dat
-output = abs(output_real+i*output_imag);
+output = output_real+i*output_imag;
 
 % compute
 result = 20*log10(norm(input_f) / norm(input_f - output));

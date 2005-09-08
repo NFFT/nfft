@@ -18,7 +18,7 @@ for j=0:Z-1,
   figure(1)
   imagesc(A(:,:,j+1),[0 1]);
   colorbar;
-  colormap(flipud(gray(256)));
+  colormap(gray(256));
   if j<9,
     file_out =[file '0' int2str(j+1) '.png'];
   else
@@ -30,5 +30,5 @@ end
 % plot the N/2 row of the 10 plane
 file_out = [file 'row' '.png'];
 plot(1:N,A(N/2,:,Z/2));
-axis([1 N 0 1]);
+axis([1 N 0 1.2]);
 print('-dpng',file_out);

@@ -16,7 +16,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
   double tmp, epsilon=0.0000003;/* tmp to read the obsolent z from the input file
                                    epsilon is the break criterium for
                                    the iteration */
-  unsigned infft_flags = CGNR; /* flags for the infft */
+  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP; /* flags for the infft */
                                    
   /* initialise my_plan */
   my_N[0]=N;my_n[0]=ceil(N*1.2);
@@ -46,6 +46,22 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_comp
         fscanf(fin,"%le ",&my_iplan.w[j]);
     }
     fclose(fin);
+  }
+  
+  /* get the damping factors */
+  if(my_iplan.flags & PRECOMPUTE_DAMP)
+  {
+    for(j=0;j<N;j++){
+      for(k=0;k<N;k++) {
+        int j2= j-N/2;
+        int k2= k-N/2;
+        double r=sqrt(j2*j2+k2*k2);
+        if(r>(double) N/2) 
+          my_iplan.w_hat[j*N+k]=0.0;
+        else
+          my_iplan.w_hat[j*N+k]=1.0;
+      }   
+    }
   }
   
   /* open the input file */

@@ -1,10 +1,11 @@
 #include "nfft3.h"
 #include "util.h"
 #include "math.h"
+#include "limits.h"
 
 void nfft (char* filename,int N,int M,int iteration , int weight)
 {
-  int j,l;
+  int j,k,l;
   double weights;
   double time,min_time,max_time,min_inh,max_inh;
   double t,real,imag;
@@ -14,25 +15,21 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   imri_inh_2d1d_plan my_iplan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
-  int flags = PRE_PHI_HUT| PRE_FULL_PSI |MALLOC_X| MALLOC_F_HAT|
+  int flags = PRE_PHI_HUT| PRE_LIN_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
                       FFTW_MEASURE| FFTW_DESTROY_INPUT;
-  unsigned infft_flags = CGNR;
-
-
+  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;
 
   double Ts;
   double W,T;
   int N3;
-
-
+  int m=1;
+  double alpha = 1.25;
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
 
-  fprintf(stderr,"1\n");
-  
-  min_time=999999.0; max_time=-9999999.0;//Integer.maxValue!!!!
+  min_time=INT_MAX; max_time=INT_MIN;
   for(j=0;j<M;j++)
   {
     fscanf(ftime,"%le ",&time);
@@ -41,15 +38,13 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     if(time>max_time)
       max_time = time;
   }
-
-  fprintf(stderr,"2\n");
   
   fclose(ftime);
   
   Ts=(min_time+max_time)/2.0;
 
 
-  min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
+  min_inh=INT_MAX; max_inh=INT_MIN;
   for(j=0;j<N*N;j++)
   {
     fscanf(finh,"%le ",&w);
@@ -60,25 +55,23 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   }
   fclose(finh);
 
-
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6.0/(2*1.5))*4*1.5)+1;
-  T=((max_time-min_time)/2.0)/(0.5-6.0/N3);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+(m)/(2*alpha))*4*alpha);
+  T=((max_time-min_time)/2.0)/(0.5-((double) (m))/N3);
   W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e %e\n",N3,W,T,min_inh,max_inh,min_time,max_time,Ts);
   
 
-
-  my_N[0]=N; my_n[0]=ceil(N*1.5);
-  my_N[1]=N; my_n[1]=ceil(N*1.5);
+  my_N[0]=N; my_n[0]=ceil(N*alpha);
+  my_N[1]=N; my_n[1]=ceil(N*alpha);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 6,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, m,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
 
-    /* precompute lin psi if set */
+  /* precompute lin psi if set */
   if(my_plan.nfft_flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi((nfft_plan*)&my_plan);
                       
@@ -99,6 +92,22 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
     fclose(fw);
   }
                       
+  /* get the damping factors */
+  if(my_iplan.flags & PRECOMPUTE_DAMP)
+  {
+    for(j=0;j<N;j++){
+      for(k=0;k<N;k++) {
+        int j2= j-N/2;
+        int k2= k-N/2;
+        double r=sqrt(j2*j2+k2*k2);
+        if(r>(double) N/2) 
+          my_iplan.w_hat[j*N+k]=0.0;
+        else
+          my_iplan.w_hat[j*N+k]=1.0;
+      }   
+    }
+  }
+
   fp=fopen(filename,"r");
   ftime=fopen("readout_time.dat","r");
 
@@ -162,7 +171,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   
   for (j=0;j<N*N;j++) {
     /* Verschiebung wieder herausrechnen */
-    my_iplan.f_hat_iter[j]*=cexp(2.0*I*PI*Ts*my_plan.w[j]*W);
+    my_iplan.f_hat_iter[j]*=cexp(-2.0*I*PI*Ts*my_plan.w[j]*W);
     
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));
@@ -177,9 +186,9 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
 int main(int argc, char **argv)
 {
-  if (argc <= 3) {
+  if (argc <= 5) {
 
-    printf("usage: ./reconstruct FILENAME N M m PRE_FULL_PSI\n");
+    printf("usage: ./reconstruct_data_inh_2d1d FILENAME N M ITER WEIGHTS\n");
     return 1;
   }
   

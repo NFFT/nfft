@@ -1,6 +1,6 @@
 % This script file is an example of the usage 
 
-N=128;   % points per row / column
+N=256;   % points per row / column
 
 % Construct the raw data of the phantom
 % and write it to input_f.dat
@@ -12,7 +12,7 @@ save input_f.dat -ascii output
 % Construct the knots in k-space and write them to knots.dat
 % Different knots like spiral,rose,radial or linogram can be chosen
 % M is the number of knots
-M = construct_knots_spiral(N);
+M = construct_knots_spiral(N,1);
 
 % Make a 2d-NFFT on the constructed knots
 % and write the output to output_data_phantom_nfft.dat
@@ -29,14 +29,14 @@ precompute_weights('output_phantom_nfft.dat',M);
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
 system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 1 1']);
+         int2str(N) ' ' int2str(M)  ' 3 1']);
 
 % Visualize the two dimensional phantom. Make a pic
 % and one plot of the N/2
 visualize_data('pics/pic_2d', N);
 
 % Compute the signal to noise ratio 
-%snr('pics/snr_2d.txt');
+snr('pics/snr_2d.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

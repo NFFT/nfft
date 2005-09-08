@@ -8,7 +8,7 @@
 void infft(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
-  double real,imag,t;             /* to read the real and imag part of a complex number */
+  double real,imag,t;           /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
@@ -17,12 +17,13 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   int my_N[2],my_n[2];          /* to init the nfft */
   double epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */
-  unsigned infft_flags = CGNR;  /* flags for the infft*/
-                                    
+  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;  /* flags for the infft*/
+  int m = 6;
+  double alpha = 2.0;
   /* initialise my_plan */
-  my_N[0]=N; my_n[0]=ceil(N*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
-  nfft_init_guru(&my_plan, 2, my_N, M, my_n, 6, PRE_PHI_HUT| PRE_PSI|
+  my_N[0]=N; my_n[0]=ceil(N*alpha);
+  my_N[1]=N; my_n[1]=ceil(N*alpha);
+  nfft_init_guru(&my_plan, 2, my_N, M, my_n, m, PRE_PHI_HUT| PRE_PSI|
                          MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
                          FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
                          FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -47,6 +48,22 @@ void infft(char* filename,int N,int M,int iteration, int weight)
         fscanf(fin,"%le ",&my_iplan.w[j]);
     }
     fclose(fin);
+  }
+  
+  /* get the damping factors */
+  if(my_iplan.flags & PRECOMPUTE_DAMP)
+  {
+    for(j=0;j<N;j++){
+      for(k=0;k<N;k++) {
+        int j2= j-N/2;
+        int k2= k-N/2;
+        double r=sqrt(j2*j2+k2*k2);
+        if(r>(double) N/2) 
+          my_iplan.w_hat[j*N+k]=0.0;
+        else
+          my_iplan.w_hat[j*N+k]=1.0;
+      }   
+    }
   }
   
   /* open the input file */

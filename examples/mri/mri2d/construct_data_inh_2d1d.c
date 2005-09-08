@@ -1,6 +1,7 @@
 #include "nfft3.h"
 #include "util.h"
 #include "math.h"
+#include "limits.h"
 
 /**
  * nfft makes an 2d-nfft
@@ -21,13 +22,13 @@ void nfft (char * file, int N, int M)
   double Ts;
   double W,T;
   int N3;
+  int m=2;
+  double alpha = 1.25;
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
 
-  fprintf(stderr,"1\n");
-  
-  min_time=999999.0; max_time=-9999999.0;//Integer.maxValue!!!!
+  min_time=INT_MAX; max_time=INT_MIN;
   for(j=0;j<M;j++)
   {
     fscanf(ftime,"%le ",&time);
@@ -37,14 +38,11 @@ void nfft (char * file, int N, int M)
       max_time = time;
   }
 
-  fprintf(stderr,"2\n");
-  
   fclose(ftime);
   
   Ts=(min_time+max_time)/2.0;
 
-
-  min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
+  min_inh=INT_MAX; max_inh=INT_MIN;
   for(j=0;j<N*N;j++)
   {
     fscanf(finh,"%le ",&w);
@@ -56,20 +54,19 @@ void nfft (char * file, int N, int M)
   fclose(finh);
 
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*2.0))*4*2.0)+1;
-  T=((max_time-min_time)/2.0)/(0.5-6.0/N3);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*alpha))*4*alpha);
+  T=((max_time-min_time)/2.0)/(0.5-((double) m)/N3);
   W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
-  
 
 
-  my_N[0]=N; my_n[0]=ceil(N*1.5);
-  my_N[1]=N; my_n[1]=ceil(N*1.5);
+  my_N[0]=N; my_n[0]=ceil(N*alpha);
+  my_N[1]=N; my_n[1]=ceil(N*alpha);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, 6,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, m,flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   ftime=fopen("readout_time.dat","r");
@@ -120,7 +117,7 @@ void nfft (char * file, int N, int M)
 int main(int argc, char **argv)
 { 
   if (argc <= 3) {
-    printf("usage: ./construct_data FILENAME N M\n");
+    printf("usage: ./construct_data_inh_2d1d FILENAME N M\n");
     return 1;
   }
   

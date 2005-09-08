@@ -3,12 +3,14 @@
 #include "nfft3.h"
 #include "window_defines.h"
 #include "math.h"
+#include "limits.h"
 
 /**
  * infft makes an inverse 2d nfft
  */
 void infft(char* filename,int N,int M,int iteration, int weight)
-{ int j,k,l;                    /* some variables  */
+{ 
+  int j,k,l;                    /* some variables  */
   nnfft_plan my_plan;            /* plan for the two dimensional nfft  */
   innfft_plan my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
@@ -19,7 +21,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   int my_N[3],my_n[3];          /* to init the nfft */
   double t,tmp1,tmp2,tmp3,tmp4,epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */
-  unsigned infft_flags = CGNR; /* flags for the infft*/
+  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP; /* flags for the infft*/
   double time,min_time,max_time,min_inh,max_inh;
   double real,imag;
   double *w;
@@ -27,15 +29,15 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   double Ts;
   double W;
   int N3;
+  int m=2;
+  double alpha = 1.25;
   
   w = (double*) malloc(N*N*sizeof(double));
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
 
-  fprintf(stderr,"1\n");
-  
-  min_time=999999.0; max_time=-9999999.0;//Integer.maxValue!!!!
+  min_time=INT_MAX; max_time=INT_MIN;
   for(j=0;j<M;j++)
   {
     fscanf(ftime,"%le ",&time);
@@ -45,14 +47,11 @@ void infft(char* filename,int N,int M,int iteration, int weight)
       max_time = time;
   }
 
-  fprintf(stderr,"2\n");
-  
   fclose(ftime);
   
   Ts=(min_time+max_time)/2.0;
 
-
-  min_inh=999999.0; max_inh=-9999999.0;//Integer.maxValue!!!!
+  min_inh=INT_MAX; max_inh=INT_MIN;
   for(j=0;j<N*N;j++)
   {
     fscanf(finh,"%le ",&w[j]);
@@ -63,10 +62,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   }
   fclose(finh);
 
-  //W=2.0*MAX(fabs(min_inh),fabs(max_inh))*(1.2); //1.0+m/n!?!?!?!?!?
-  //N3=2*ceil(W*(max_time-min_time));
-  
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0)*4)+1;
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0)*4);
 
 
   W=MAX(fabs(min_inh),fabs(max_inh))*2.0;
@@ -76,10 +72,10 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
   /* initialise my_plan */
-  my_N[0]=N;my_n[0]=ceil(N*1.5);
-  my_N[1]=N; my_n[1]=ceil(N*1.5);
-  my_N[2]=N3; my_n[2]=ceil(N3*1.5);
-  nnfft_init_guru(&my_plan, 3, N*N, M, my_N,my_n,6,
+  my_N[0]=N;my_n[0]=ceil(N*alpha);
+  my_N[1]=N; my_n[1]=ceil(N*alpha);
+  my_N[2]=N3; my_n[2]=ceil(N3*alpha);
+  nnfft_init_guru(&my_plan, 3, N*N, M, my_N,my_n,m,
         PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
         
   /* precompute lin psi if set */
@@ -102,6 +98,22 @@ void infft(char* filename,int N,int M,int iteration, int weight)
         fscanf(fin,"%le ",&my_iplan.w[j]);
     }
     fclose(fin);
+  }
+  
+  /* get the damping factors */
+  if(my_iplan.flags & PRECOMPUTE_DAMP)
+  {
+    for(j=0;j<N;j++){
+      for(k=0;k<N;k++) {
+        int j2= j-N/2;
+        int k2= k-N/2;
+        double r=sqrt(j2*j2+k2*k2);
+        if(r>(double) N/2) 
+          my_iplan.w_hat[j*N+k]=0.0;
+        else
+          my_iplan.w_hat[j*N+k]=1.0;
+      }   
+    }
   }
   
   /* open the input file */
@@ -192,7 +204,7 @@ fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
 int main(int argc, char **argv)
 {
   if (argc <= 5) {
-    printf("usage: ./reconstruct_data_2d FILENAME N M ITER WEIGHTS\n");
+    printf("usage: ./reconstruct_data_inh_nnfft FILENAME N M ITER WEIGHTS\n");
     return 1;
   }
   
