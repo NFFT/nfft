@@ -237,15 +237,25 @@ evaluation of sums
 on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
   \in \twosphere}{|}{d=0,\ldots,D-1}$.
 
+In matrix vector notation
+\begin{equation}\label{eq:MV}
+\V{f}=\V{K} \V{b}
+\end{equation}
+where
+\begin{align*}
+  \V{f} & := \paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1} \in \R^D,\\
+  \V{K} & :=(\fun{K}{\V{\eta}_{l} \cdot
+  \V{\xi}_d})_{d=0,\hdots,D-1;l=0,\hdots,L-1}\in \R^{D\times L}\,.
+\end{align*}
+
 The naive approach evaluating \eqref{Applications:KernelSum} leads to
 an $\bigo{L\:D}$ algorithm if we assume that the zonal function
 $\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all the values
 $\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in advance. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering} method applied to \eqref{Applications:KernelSum}
-in \cite{FrGlSch98} reduces the computational effort to evaluate
-\eqref{Applications:KernelSum} based on the traditional method of dividing the
-evaluation into near- and far-field.
+The \emph{panel clustering} method in \cite{FrGlSch98} reduces the
+computational effort to evaluate \eqref{Applications:KernelSum} based on the
+traditional method of dividing the evaluation into a near- and a far-field.
 For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field
 contribution is calculated exactly whereas the contribution of the far-field
 may be approximated coarsly.
@@ -723,11 +733,11 @@ We conclude this section by the following corollary on the matrix norm
 approximation.
 \begin{corollary}
   Let $L \in \N$, a set of arbitrary source nodes $\mathcal{Y} =
-  \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$, a set of target
-  nodes $\mathcal{X} := \pset{\V{\xi}_{d} \in \twosphere}{|}{d=0,\ldots,L-1}$,
-  and the matrix $\V{K}=(\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_d})_{d,l=
-    0,\hdots,L-1}$ be given.
-  Then, the poposed approximation, see also Remark \ref{rem:rankM}, fulfils
+  \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$, and a set of
+  target nodes $\mathcal{X} := \pset{\V{\xi}_{d} \in
+  \twosphere}{|}{d=0,\ldots,L-1}$ be given.
+  Then, the poposed approximation, cf. Equation \eqref{eq:MV} and Remark
+  \ref{rem:rankM}, fulfils
   \begin{equation*}
     \left\| \V{K} - \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
       \V{Y_{\mathcal{Y}}}^{\adj} \right\|_p
@@ -752,6 +762,13 @@ approximation.
   \eqref{error:poisson}, \eqref{error:singular}, \eqref{error:Lh}, or
   \eqref{error:G}.
 \end{proof}
+
+Using the Poisson kernel, we achieve an approximation of the square matrix
+$\V{K}\in\R^{L\times L}$ up to an prescribed accuracy $\varepsilon$ by
+choosing the truncation parameter $M\ge \log(\frac{\varepsilon}{L}) /\log h$.
+Thus, for the Poisson kernel we have to increase the truncation parameter to
+$M+\log\frac{1}{2} / \log h$ whenever we double the number of nodes to achieve
+the same accuracy.
 
 %--------------------------------------------------------------------------
 \section{Numerical results}
