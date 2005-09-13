@@ -121,9 +121,11 @@ Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
 {\it Key words and phrases}.  
 \end{abstract}
 
-%-----------------------------------------------------------------------------
-\section{Introduction}
-\label{sect:1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}\label{sect:1}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 Radial basis functions are a powerful tool in many areas of multi-dimensional 
 approximation and interpolation.
 In radial basis function methods one approximates functions from $\R^3
@@ -139,14 +141,46 @@ $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function
   \fun{K}{\V{\eta} \: \cdot}: \twosphere \rightarrow \R,\ \V{\xi} \mapsto
   \fun{K}{\V{\eta} \cdot \V{\xi}}\,.% \qquad \V{\xi} \in \twosphere.
 \]
-Of course, every radial function corresponds to a zonal function by means of
-\[
-  \fun{K}{\V{\eta} \cdot \V{\xi}} = \phi\left(\sqrt{2-2\V{\eta} \cdot
-  \V{\xi}}\right)\,.
-\]
 
-\section{Prerequisites}
-\label{sect:2}
+Given $D,L\in \N$, a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
+\pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$, and a vector of
+real coefficients $\V{b}:=(b_{l})_{l=0}^{L-1}$, our goal consists in the fast
+evaluation of sums 
+\begin{equation}
+  \label{Applications:KernelSum}
+  \fun{f}{\xi} := \sum_{l = 0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l} \cdot \V{\xi}}
+\end{equation}
+on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
+  \in \twosphere}{|}{d=0,\ldots,D-1}$.
+
+The naive approach evaluating \eqref{Applications:KernelSum} leads to
+an $\bigo{L\:D}$ algorithm if we assume that the zonal function
+$\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all the values
+$\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in advance. 
+For large $L$ and $D$ the computational effort becomes quickly unaffordable.
+The \emph{panel clustering} method in \cite{FrGlSch98} reduces the
+computational effort to evaluate \eqref{Applications:KernelSum} based on the
+traditional method of dividing the evaluation into a near- and a far-field.
+For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field
+contribution is calculated exactly whereas the contribution of the far-field
+may be approximated coarsly.
+
+Here, we present a algorithm of arithemtic complexity ${\cal O} (D+L)$ which
+is based on the Nonequispaced Fast Spherical Fourier Transform (NFSFT),
+cf. \cite{XXX}. 
+
+The remainder of this paper is organised as follows:
+To keep the paper self-contained, we summarise the definitions and properties
+of Fourier expansions of zonal functions in Section 2.
+In Section 3, we propose our fast scheme for the computation of
+\eqref{Applications:KernelSum}, whereas Section 4 is devoted to error
+estimates for a set of particular chosen kernels.
+Finally, Section 5 presents various numerical experiments.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Prerequisites} \label{sect:2}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
 \N_{0}$ as classical orthogonal polynomials are given by their
 \emph{Rodrigues formula} 
@@ -203,63 +237,23 @@ by
   x\,.
 \end{equation}
 
-Note, that the first representation in \eqref{equation:kernelExpansion} allows
+\begin{remark}
+Of course, every radial function $\phi$ corresponds to a zonal function by
+means of 
+\[
+  \fun{K}{\V{\eta} \cdot \V{\xi}} = \phi\left(\sqrt{2-2\V{\eta} \cdot
+  \V{\xi}}\right)\,.
+\]
+The relation between radial basis functions and their corresponding zonal
+functions is considered in detail in \cite{CaFi}.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fast Summation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Basically, the first representation in \eqref{equation:kernelExpansion} allows
 the construction of fast algorithms, which is due to the separation of the
 knots $\V{\eta}$ and $\V{\xi}$.
-Using the second representation of Equation \eqref{equation:kernelExpansion} in
-conjunction with \eqref{equation:legtrafo} and the recurrence relations
-\eqref{three1} and \eqref{three2} yields efficient ways to precompute the
-needed coefficients $\fun{K^{\wedge}}{k}$.
-
-\begin{remark}
-Discretising \eqref{equation:legtrafo} yields a second method within the
-precomputation step of the fast summation algorithm. We do not focus on this
-method and the error it introduces, since all considered Fourier-Legendre
-coefficients obey an exact precomputation scheme.
-\end{remark}
-
-\begin{remark}
-Note furthermore, that the spherical convolution lemma yields a simple
-possibility to trade localisation of a zonal function in spatial domain
-against the decay of its Fourier-Legendre coefficients, see \cite{Sc97} for
-details.
-\end{remark}
-
-\section{Fast Summation}
-Given a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
-  \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$ and a vector of
-  real coefficients $\V{b}:=(b_{l})_{l=0}^{L-1}$, our goal consists in the fast
-evaluation of sums 
-\begin{equation}
-  \label{Applications:KernelSum}
-  \fun{f}{\xi} := \sum_{l = 0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l} \cdot \V{\xi}}
-\end{equation}
-on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
-  \in \twosphere}{|}{d=0,\ldots,D-1}$.
-
-In matrix vector notation
-\begin{equation}\label{eq:MV}
-\V{f}=\V{K} \V{b}
-\end{equation}
-where
-\begin{align*}
-  \V{f} & := \paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1} \in \R^D,\\
-  \V{K} & :=(\fun{K}{\V{\eta}_{l} \cdot
-  \V{\xi}_d})_{d=0,\hdots,D-1;l=0,\hdots,L-1}\in \R^{D\times L}\,.
-\end{align*}
-
-The naive approach evaluating \eqref{Applications:KernelSum} leads to
-an $\bigo{L\:D}$ algorithm if we assume that the zonal function
-$\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all the values
-$\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in advance. 
-For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering} method in \cite{FrGlSch98} reduces the
-computational effort to evaluate \eqref{Applications:KernelSum} based on the
-traditional method of dividing the evaluation into a near- and a far-field.
-For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field
-contribution is calculated exactly whereas the contribution of the far-field
-may be approximated coarsly.
-
 We propose to simply truncate the series \eqref{equation:kernelExpansion} at
 degree $M \in \NZ$, i.e.,
 \begin{equation}
@@ -278,34 +272,46 @@ finally obtain the approximation
   \fun{Y_{k}^n}{\V{\xi}}.
 \]
 
-The expression in the inner brackets can be computed by an adjoint Nonuniform
-Fast Spherical Fourier Transform (adjoint NFSFT) in $\mathcal{O}(L + M^2
-\log^2 M)$ arithmetic operations, see \cite{kupo02, keiner05} for details.
+The expression in the inner brackets can be computed by an adjoint
+Nonequispaced Fast Spherical Fourier Transform (adjoint NFSFT) in
+$\mathcal{O}(L + M^2 \log^2 M)$ arithmetic operations.
 This is followed by $(M+1)^2$ multiplications with the Fourier-Legendre
 coefficients $\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the
 outer sum for the target nodes $\mathcal{X}$ in $\mathcal{O}(D + M^2 \log^2
 M)$ arithmetic operations.
-In Section \ref{Basics:SphericalKernels}, we will decompose the error and show
-that the degree $M$ depends only on the desired accuracy of our algorithm and
-on the particular zonal function $\fun{K}{\V{\eta} \: \cdot}$, but not on the
-numbers $L$ and $D$.
-Thus, the overall arithmetic complexity of our algorithm is $\mathcal{O}(L +
-D)$, in particular this performance does not depend on the distribution of the
-nodes $\V{\xi}_{d}$ and $\V{\eta}_{l}$.
 
-\begin{remark}
+Here, we use the second representation of Equation
+\eqref{equation:kernelExpansion} in conjunction with \eqref{equation:legtrafo}
+and the recurrence relations \eqref{three1} and \eqref{three2} to precompute
+the needed coefficients $\fun{K^{\wedge}}{k}$.
+Discretising \eqref{equation:legtrafo} yields a second method within the
+precomputation step of the fast summation algorithm, but we do not focus on
+this method and the error it introduces, since all considered Fourier-Legendre
+coefficients obey an exact precomputation scheme.
+
 {\bf JENS}
   NFSFT ist auch nur approximativ. Referenzen zu Driscoll, Healy, usw..... 
-  (Aufbau des Algorithmus)
-\end{remark}
+, see \cite{kupo02, keiner05} for details
 
 \begin{remark}\label{rem:rankM}
-In matrix-vector notation the proposed approach, a particular rank $(M+1)^2$
-approximation, reads as
-\[
+The original problem \eqref{Applications:KernelSum} is stated in matrix-vector
+notation as $\V{f}=\V{K} \V{b}$
+%\begin{equation}\label{eq:MV}
+%\V{f}=\V{K} \V{b}
+%\end{equation}
+where
+\begin{align*}
+  \V{f} & := \paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1} \in \R^D,\\
+  \V{K} & :=(\fun{K}{\V{\eta}_{l} \cdot
+  \V{\xi}_d})_{d=0,\hdots,D-1;l=0,\hdots,L-1}\in \R^{D\times L}\,.
+\end{align*}
+
+Furthermore, our approach, a particular rank $(M+1)^2$ approximation, takes
+the form
+$
   \V{f}_M = \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
   \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}
-\]
+$
 with
 \begin{align}
   \nonumber
@@ -331,8 +337,10 @@ In summary, we propose the following algorithm.
   \caption{Fast Summation}
   \label{Applications:Algorithm:FastSummation}    
   \begin{algorithmic}
-    \STATE  Input:  $L \in \N$, $\paren{b_{l}}_{l=0}^{L-1}$, $\paren{\V{\eta}_{l}}_{l=0}^{L-1}$, 
-                    $D \in \N$, $\paren{\V{\xi}_{d}}_{d=0}^{D-1}$, $M \in \NZ, \paren{\fun{K^{\wedge}}{k}}_{k=0}^M$
+    \STATE  Input:  $L \in \N$, $\paren{b_{l}}_{l=0}^{L-1}$,
+                    $\paren{\V{\eta}_{l}}_{l=0}^{L-1}$,  
+                    $D \in \N$, $\paren{\V{\xi}_{d}}_{d=0}^{D-1}$, $M \in \NZ,
+                    \paren{\fun{K^{\wedge}}{k}}_{k=0}^M$ 
     \STATE
     \STATE Compute $\V{\tilde{b}} := \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}$ by an
                     adjoint NFSFT 
@@ -343,16 +351,25 @@ In summary, we propose the following algorithm.
     \ENDFOR
     \STATE Compute $\V{f}_M := \V{Y_{\mathcal{X}}} \: \V{a}$ by a NFSFT
     \STATE
-    \STATE Output: $\paren{\fun{f_M}{\V{\xi}_{d}}}_{d=0}^{D-1}$ approximating $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$
+    \STATE Output: $\paren{\fun{f_M}{\V{\xi}_{d}}}_{d=0}^{D-1}$ approximating
+                    $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$ 
     \STATE
     \STATE Complexity: $\mathcal{O}\left(M^2 \log^2M + L + D\right)$  
 \end{algorithmic}
 \end{algorithm}
 
+In Section \ref{Basics:SphericalKernels}, we decompose the error and show
+that the degree $M$ depends only on the desired accuracy of our algorithm and
+on the particular zonal function $\fun{K}{\V{\eta} \: \cdot}$, but not on the
+numbers $L$ and $D$.
+Thus, the overall arithmetic complexity of our algorithm is $\mathcal{O}(L +
+D)$, in particular this performance does not depend on the distribution of the
+nodes $\V{\xi}_{d}$ and $\V{\eta}_{l}$.
 
-%------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Error estimates and examples}\label{Basics:SphericalKernels}
-%------------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 Beyond the well-known errors appearing in the NFFT computations, see
 \cite{postta01}, our algorithm produces the following error.
 \begin{lemma}\label{lemma:error}
@@ -440,10 +457,16 @@ Thus, the error decouples into a part solely dependent on the coefficients
 $b_l$ and a decay condition on the Fourier-Legendre coefficients of the
 particular kernel.
 General results on the decay of Fourier-Legendre coefficients are given in
-\cite{bahu01,Sc97}, i.e., for a fixed set of parameters the coefficients
+\cite{Sc97,bahu01,CaFi}, i.e., for a fixed set of parameters the coefficients
 $\fun{K^{\wedge}}{k}$ obey a certain decay rate with respect to $k$.
-In contrast, we use the decay of the Fourier-Legendre coefficients with respect
-to $k$ and the parameters of the kernel to determine the truncation index $M$
+Note furthermore, that the spherical convolution lemma yields a simple
+possibility to trade localisation of a zonal function in spatial domain
+against the decay of its Fourier-Legendre coefficients, see \cite{Sc97} for
+details.
+
+We use, in contrast to \cite{Sc97,bahu01,CaFi}, the decay of the
+Fourier-Legendre coefficients with respect to $k$ and the parameters of the
+kernel to determine the truncation index $M$ 
 in \eqref{Applications:TruncatedSeries}.
 We consider a couple of 'representative' kernels, where a closed from of the
 kernel allows direct evaluation and some scheme for the precomputation of the
@@ -763,6 +786,7 @@ approximation.
   \eqref{error:G}.
 \end{proof}
 
+{\bf hier haengt M von L ab!!!!!!!!!!!!!}
 Using the Poisson kernel, we achieve an approximation of the square matrix
 $\V{K}\in\R^{L\times L}$ up to an prescribed accuracy $\varepsilon$ by
 choosing the truncation parameter $M\ge \log(\frac{\varepsilon}{L}) /\log h$.
@@ -770,9 +794,9 @@ Thus, for the Poisson kernel we have to increase the truncation parameter to
 $M+\log\frac{1}{2} / \log h$ whenever we double the number of nodes to achieve
 the same accuracy.
 
-%--------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical results}
-%--------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 We present numerical examples in order to demonstrate the performance of
 our approach. All algorithms were implemented in C and tested on an 
