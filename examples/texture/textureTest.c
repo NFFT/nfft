@@ -41,6 +41,55 @@ inline double equidist(double min_value, double max_value, int i, int n,
 		+ ((double) (i)  * (max_value - min_value)) / (double) (n - 1);
 }
 
+inline double two_norm_dist(const complex *vec1, const complex *vec2, 
+		unsigned int length) {
+	double norm = 0;
+	unsigned int i;
+
+	for(i = 0; i < length; i++) {
+		double x = cabs(vec1[i] - vec2[i]);
+
+		norm += x*x;
+	}
+	norm = sqrt(norm);
+
+	return norm;
+}
+
+inline double mse(const complex *vec1, const complex *vec2,
+		unsigned int length) {
+	return two_norm_dist(vec1, vec2, length) / length;
+}
+
+inline void initialize_angles(double *h_phi, double *h_theta, double *r, 
+		int h_phi_count, int h_theta_count, int N2, int r_phi_count, 
+		int r_theta_count) {
+	int k = 0;
+	int o = 0;
+	int s, t, j;
+	
+	for(s = 0; s < h_phi_count; s++) {
+		for(t = 0; t < h_theta_count; t++) {
+			int i = s*h_theta_count + t;
+			
+			h_phi[i] = equidist(0, TEXTURE_MAX_ANGLE, s, h_phi_count, 0);
+			h_theta[i] = equidist(0, TEXTURE_MAX_ANGLE / 2, t, h_theta_count, 1);
+
+			for(j = 0; j < N2; j++) {
+				r[2*(i*N2 + j)] = equidist(0, TEXTURE_MAX_ANGLE, k, r_phi_count, 0);
+				r[2*(i*N2 + j) + 1] = 
+					equidist(0, TEXTURE_MAX_ANGLE / 2, o, r_theta_count, 1);
+			
+				o++;
+				if (o == r_theta_count) {
+					o = 0;
+					k = (k+1) % r_phi_count;
+				}
+			}
+		}
+	}
+}
+
 complex spherical_harmonic(int k, int n, double phi, double theta, int init) {
 	static double p;
 	static double p_old;
@@ -76,6 +125,7 @@ complex spherical_harmonic(int k, int n, double phi, double theta, int init) {
 	return p * expi(n*phi*2*PI/TEXTURE_MAX_ANGLE);
 }
 
+/*
 void simple_solver_test() {
 	texture_plan my_plan;
 	itexture_plan my_iplan;
@@ -123,6 +173,7 @@ void simple_solver_test() {
 	itexture_finalize(&my_iplan);
 	texture_finalize(&my_plan);
 }
+*/
 
 void spherical_harmonic_test(const char *inp) {
 	int N1, N2, N;
@@ -166,13 +217,14 @@ void spherical_harmonic_test(const char *inp) {
 	fclose(inp_file);
 }
 
+//TODO Parameter
 void unit_vector_test(const char *inp) {
 	FILE *inp_file = fopen(inp, "r");
 	int N, h_phi_count, h_theta_count, N1, N2, r_phi_count, r_theta_count;
-	double theta_min, theta_max, phi_min, phi_max;
 	texture_plan plan;
+	complex *omega, *x;
+	double *r, *h_phi, *h_theta;
 	int l, m0, n0;
-	int j, r, o, s, t;
 	char err_prefix[100]; 
 		
 	sprintf(err_prefix, "unit_vector_test failed (%s):\n", inp);
@@ -181,33 +233,22 @@ void unit_vector_test(const char *inp) {
 			&N, &h_phi_count, &h_theta_count, &N2, &r_phi_count, &r_theta_count);
 	N1 = h_phi_count * h_theta_count;
 
-	fscanf(inp_file, "%lf%lf%lf%lf", &phi_min, &phi_max, &theta_min, &theta_max);
+	texture_precompute(N);
 	
-	texture_init(&plan, N, N1, N2);
-	texture_vec_init(plan.f_hat, plan.N_total, 0);
+	omega = (complex*) calloc(texture_flat_length(N), sizeof(complex));
+	x = (complex*) calloc(N1 * N2, sizeof(complex));
+	h_phi = (double*) malloc(N1 * sizeof(double));
+	h_theta = (double*) malloc(N1 * sizeof(double));
+	r = (double*) malloc(N1 * N2 * 2 * sizeof(double));
 
-	r = 0;
-	o = 0;
-	for(s = 0; s < h_phi_count; s++) {
-		for(t = 0; t < h_theta_count; t++) {
-			int i = s*h_theta_count + t;
-			
-			plan.h_phi[i] = equidist(phi_min, phi_max, s, h_phi_count, 0);
-			plan.h_theta[i] = equidist(theta_min, theta_max, t, h_theta_count, 1);
+	initialize_angles(h_phi, h_theta, r, h_phi_count, h_theta_count, N2, 
+			r_phi_count, r_theta_count);
+	
+	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 
-			for(j = 0; j < N2; j++) {
-				plan.r[2*(i*N2 + j)] = equidist(phi_min, phi_max, r, r_phi_count, 0);
-				plan.r[2*(i*N2 + j) + 1] = 
-					equidist(theta_min, theta_max, o, r_theta_count, 1);
-			
-				o++;
-				if (o == r_theta_count) {
-					o = 0;
-					r = (r+1) % r_phi_count;
-				}
-			}
-		}
-	}
+	texture_set_r(&plan, r);
+	texture_set_h_phi(&plan, h_phi);
+	texture_set_h_theta(&plan, h_theta);
 
 	for(m0 = 0; m0 <= N; m0++) {
 		for(n0 = 0; n0 <= N; n0++) {
@@ -219,7 +260,8 @@ void unit_vector_test(const char *inp) {
 					int i, j;
 					int m = m_sign[sign] * m0, n = n_sign[sign] * n0;
 					
-					plan.f_hat[texture_flat_index(l, m, n)] = 1;
+					omega[texture_flat_index(l, m, n)] = 1;
+					texture_set_omega(&plan, omega);
 
 					texture_trafo(&plan);
 
@@ -227,16 +269,19 @@ void unit_vector_test(const char *inp) {
 						for(j = 0; j < N2; j++) {
 							complex out = 
 								conj(
-									spherical_harmonic(l, n, plan.h_phi[i], plan.h_theta[i], 0))
-								* spherical_harmonic(l, m, plan.r[2*(i*N2 + j)], 
-										plan.r[2*(i*N2 + j) + 1], 0);
-							complex res = plan.f[i*N2 + j];
+									spherical_harmonic(l, n, texture_get_h_phi(&plan)[i], 
+										texture_get_h_theta(&plan)[i], 0))
+								* spherical_harmonic(l, m, texture_get_r(&plan)[2*(i*N2 + j)], 
+										texture_get_r(&plan)[2*(i*N2 + j) + 1], 0);
+							complex res = texture_get_x(&plan)[i*N2 + j];
 
-							if(!equal(out, res, 1E-13)) {
+							if(!equal(out, res, 1E-10)) {
 								printf(
 									"%sl=%d m=%d n=%d h_phi=%g h_theta=%g r_phi=%g r_theta=%g\n", 
-									err_prefix, l, m, n, plan.h_phi[i], plan.h_theta[i], 
-									plan.r[2*(i*N2 + j)], plan.r[2*(i*N2 + j) + 1]);
+									err_prefix, l, m, n, texture_get_h_phi(&plan)[i], 
+									texture_get_h_theta(&plan)[i], 
+									texture_get_r(&plan)[2*(i*N2 + j)], 
+									texture_get_r(&plan)[2*(i*N2 + j) + 1]);
 								printf("result=%g%+gi reference=%g%+gi difference=%g\n",
 									creal(res), cimag(res), creal(out), cimag(out), 
 									cabs(out - res));
@@ -245,13 +290,20 @@ void unit_vector_test(const char *inp) {
 						}
 					}
 					
-					plan.f_hat[texture_flat_index(l, m, n)] = 0;
+					omega[texture_flat_index(l, m, n)] = 0;
+					texture_set_omega(&plan, omega);
 				}
 			}
 		}
 	}
 
 	texture_finalize(&plan);
+	texture_forget();
+	free(omega);
+	free(x);
+	free(r);
+	free(h_phi);
+	free(h_theta);
 	fclose(inp_file);
 }
 
@@ -380,24 +432,145 @@ void nfsft_test(const char *inp) {
 	nfsft_forget_old();
 }
 
+void linearity_test(const char *inp) {
+	FILE *inp_file = fopen(inp, "r");
+	int N, h_phi_count, h_theta_count, N1, N2, r_phi_count, r_theta_count, w, it;
+	double delta;
+	char err_prefix[100];
+	complex *omega, *x;
+	complex *x_ref;
+	double *h_phi, *h_theta, *r;
+	texture_plan plan;
+	int i, j, count, k;
+	unsigned short int seed[] = {1, 2, 3};
+
+	sprintf(err_prefix, "linearity_test failed (%s):\n", inp);
+
+	fscanf(inp_file, "%d%d%d%d%d%d%d%d%lg", &N, &w, &h_phi_count, &h_theta_count, 
+		&N2, &r_phi_count, &r_theta_count, &it, &delta);
+	N1 = h_phi_count * h_theta_count;
+
+	texture_precompute(N);
+	seed48(seed);
+
+	omega = (complex*) malloc(texture_flat_length(N) * sizeof(complex));
+	x = (complex*) malloc(N1 * N2 * sizeof(complex));
+	x_ref = (complex*) malloc(N1 * N2 * sizeof(complex));
+	
+	h_phi = (double*) malloc(N1 * sizeof(double));
+	h_theta = (double*) malloc(N1 * sizeof(double));
+	r = (double*) malloc(N1 * N2 * 2 * sizeof(double));
+	initialize_angles(h_phi, h_theta, r, h_phi_count, h_theta_count, N2,
+			r_phi_count, r_theta_count);
+	
+	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
+
+	for(count = 0; count < it; count++) {
+		double diff;
+		
+		memset(x_ref, 0, N1 * N2 * sizeof(complex));
+		memset(omega, 0, texture_flat_length(N) * sizeof(complex));
+
+		for(k = 0; k < w; k++) {
+			int l, m, n;
+			complex offset;
+			
+			l = rand() % (N + 1);
+			m = (rand() % (2*l + 1)) - l;
+			n = (rand() % (2*l + 1)) - l;
+			offset = drand48() * rand() + I * drand48() * rand();
+
+			omega[texture_flat_index(l, m, n)] += offset;
+
+			for(i = 0; i < N1; i++) {
+				for(j = 0; j < N2; j++) {
+					x_ref[i*N2 + j] += offset 
+						* conj(spherical_harmonic(l, n, texture_get_h_phi(&plan)[i], 
+									 texture_get_h_theta(&plan)[i], 0))
+						* spherical_harmonic(l, m, texture_get_r(&plan)[2*(i*N2 + j)], 
+								texture_get_r(&plan)[2*(i*N2 + j) + 1], 0);
+				}
+			}
+		}
+		texture_set_omega(&plan, omega);
+
+		texture_trafo(&plan);
+
+		diff = mse(texture_get_x(&plan), x_ref, texture_get_x_length(&plan));
+		if(diff	> delta) {
+			printf("%scount=%d diff=%lg\n", err_prefix, count, diff);
+		}	
+	}
+	
+	texture_finalize(&plan);
+	
+	free(omega);
+	free(x);
+	free(x_ref);
+	
+	free(h_phi);
+	free(h_theta);
+	free(r);
+
+	texture_forget();
+}
+
 void init() {
 	spherical_harmonic(0, 0, 0, 0, 1);
 }
 
-int main() {
-	printf("If no further output is produced, everything seems to be okay.\n");
+void usage() {
+	printf("A test for the texture transform.\n");
+	printf("textureTest [Options]\n");
+	printf("Options:\n");
+	printf("-val : use small input values for usage with valgrind\n");
+}
 
-	init();
+int main(int arglen, char *argv[]) {
 	
-	//spherical_harmonic_test("spherical_harmonic_test.inp");
+	if (arglen == 2 && !strcmp(argv[1], "-val")) {
+		// usage with valgrind
+		
+		printf("Test for usage with valgrind.\n");
+		printf("If no further output is produced, everything seems to be okay.\n");
 
-	//nfsft_test("nfsft_test.inp");
+		init();
+		
+		//spherical_harmonic_test("spherical_harmonic_test.inp");
 
-	//nfsft_test("nfsft_small_test.inp");
-	
-	unit_vector_test("unit_vector_test.inp");
-	
-	//simple_solver_test();
-	
+		//nfsft_test("nfsft_moderate_test.inp");
+
+		//nfsft_test("nfsft_small_test.inp"); //reveals a bug in nfsft
+		
+		//unit_vector_test("unit_vector_moderate_test.inp");
+
+		linearity_test("linearity_moderate_test.inp");
+		
+		//simple_solver_test();
+	} else if (arglen == 1) {
+		// default usage
+		
+		printf("Test with default parameters.\n");
+		printf("If no further output is produced, everything seems to be okay.\n");
+
+		init();
+		
+		//spherical_harmonic_test("spherical_harmonic_test.inp");
+
+		//nfsft_test("nfsft_test.inp");
+
+		//nfsft_test("nfsft_small_test.inp"); //reveals a bug in nfsft
+		
+		nfsft_test("nfsft_test2.inp");
+		
+		//unit_vector_test("unit_vector_test.inp");
+
+		//linearity_test("linearity_test.inp");
+		
+		//simple_solver_test();
+	} else {
+		usage();
+	}
+
 	return 0;
 }

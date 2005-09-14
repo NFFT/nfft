@@ -4,7 +4,16 @@
 #include<nfft3.h>
 #include<nfsft.h>
 
-static inline void precompute(texture_plan *ths);
+typedef struct precompute_params_type_ {
+	int N;
+	unsigned int texture_precompute_flags; 
+	unsigned int nfsft_precompute_flags;
+	double nfsft_threshold;
+} precompute_params_type;
+
+static precompute_params_type precompute_params;
+
+static int is_precomputed = 0;
 
 static nfsft_plan_old prepare_nfsft_plan(texture_plan *ths, int i);
 

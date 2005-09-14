@@ -1,4 +1,4 @@
-/*! \file nfft3.h
+	/*! \file nfft3.h
  *  \brief Header file for the nfft3 library.
  */
 #ifndef NFFT3_H
@@ -714,9 +714,19 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  */
 
 /** 
- * Flag controlling the max angle (representation of 2*Pi)
+ * Constant for the max angle (representation of 2*Pi)
  */
 #define TEXTURE_MAX_ANGLE (2*PI)
+
+/**
+ * Constants for default values.
+ */
+#define TEXTURE_DEF_PRECOMPUTE_FLAGS 0U
+#define TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS 0U
+#define TEXTURE_DEF_NFSFT_THRESHOLD 1000.0
+#define TEXTURE_DEF_INIT_FLAGS 0U
+#define TEXTURE_DEF_NFSFT_INIT_FLAGS 0U
+#define TEXTURE_DEF_NFFT_CUTOFF 6
 
 // Flag controlling wether to check for errors of usage
 
@@ -730,28 +740,43 @@ typedef struct texture_plan_ {
 	int N;
 	int N1;
 	int N2;
-	double *h_phi;
-	double *h_theta;
-	double *r;
+	const double *h_phi;
+	const double *h_theta;
+	const double *r;
 
+	/*TODO*/
+	unsigned int nfsft_init_flags;
+	unsigned int nfft_cutoff;
+
+	/* private */
 	double *cos_h_theta;
 	double *sin_h_theta;
 
 	complex **nfsft_f_hat;
 	complex *nfsft_f;
-	double *nfsft_x;
+	double *nfsft_angles;
 } texture_plan;
+
+void texture_precompute(int N);
+
+void texture_precompute_advanced(int N, unsigned int texture_precompute_flags, 
+		unsigned int nfsft_precompute_flags, double nfsft_threshold);
 
 /**
  * Simple initialisation of a plan.
  * Use texture_finalize to free allocated memory.
  */
-void texture_init(texture_plan *ths, int N, int N1, int N2);
+void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega, 
+		complex* x, const double* h_phi, const double* h_theta, const double* r);
 
 /**
  * Advanced initialisation of a plan.
  */
-void texture_init_advanced(texture_plan *ths, int N, int N1, int N2);
+//TODO int nfsft_flags
+void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
+		complex* omega, complex* x, const double* h_phi, const double* h_theta, 
+		const double *r, unsigned int texture_init_flags, 
+		unsigned int nfsft_init_flags, int nfft_cutoff);
 
 /**
  * Carries out the transform.
@@ -768,6 +793,10 @@ void texture_adjoint(texture_plan *ths);
  */
 void texture_finalize(texture_plan *ths);
 
+void texture_forget();
+
+/* utiliy functions */
+
 /**
  * Convert a non-flat index to a flat index.
  * \arg l the frequence
@@ -776,8 +805,76 @@ void texture_finalize(texture_plan *ths);
  */
 inline int texture_flat_index(int l, int m, int n);
 
-inline void texture_vec_init(complex* vec, int n, complex value);
+inline int texture_flat_length(int N);
 
+inline int texture_get_omega_length(texture_plan *ths);
+
+inline int texture_get_x_length(texture_plan *ths);
+
+inline int texture_get_N(texture_plan *ths);
+
+inline int texture_get_N1(texture_plan *ths);
+
+inline int texture_get_N2(texture_plan *ths);
+
+inline const complex *texture_get_omega(texture_plan *ths);
+
+inline void texture_set_omega(texture_plan *ths, complex* omega);
+
+inline const complex *texture_get_x(texture_plan *ths);
+
+inline void texture_set_x(texture_plan *ths, complex* x);
+
+inline const double *texture_get_h_phi(texture_plan *ths);
+
+inline void texture_set_h_phi(texture_plan *ths, const double* h_phi);
+
+inline const double *texture_get_h_theta(texture_plan *ths);
+
+inline void texture_set_h_theta(texture_plan *ths, const double* h_theta);
+
+inline const double *texture_get_r(texture_plan *ths);
+
+inline void texture_set_r(texture_plan *ths, const double* r);
+
+/*TODO*/
+inline unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
+
+inline void texture_set_nfsft_init_flags(texture_plan *ths, 
+		unsigned int nfsft_init_flags);
+
+inline int texture_get_nfft_cutoff(texture_plan *ths);
+
+inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
+
+/* private */
+
+/**
+ * The structure for the transform plan.
+ */
+/*
+struct texture_plan {
+
+	MACRO_MV_PLAN(complex);
+
+	int N;
+	int N1;
+	int N2;
+	double *h_phi;
+	double *h_theta;
+	double *r;
+
+	double *cos_h_theta;
+	double *sin_h_theta;
+
+	complex **nfsft_f_hat;
+	complex *nfsft_f;
+	double *nfsft_angles;
+
+	unsigned int nfsft_init_flags;
+	unsigned int nfft_cutoff;
+}; // texture_plan_s;
+*/
 /* @}
  */
 
