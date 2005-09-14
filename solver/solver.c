@@ -357,8 +357,8 @@ F(MV, FLT, finalize, i ## MV ## _plan *ths)                                   \
 } /** void i<mv>_finalize */
 
 MACRO_SOLVER_IMPL(nfft, complex)
-MACRO_SOLVER_IMPL(nfct, double)
-MACRO_SOLVER_IMPL(nfst, double)
+/*MACRO_SOLVER_IMPL(nfct, double)
+MACRO_SOLVER_IMPL(nfst, double)*/
 MACRO_SOLVER_IMPL(nnfft, complex)
 MACRO_SOLVER_IMPL(mri_inh_2d1d, complex)
 MACRO_SOLVER_IMPL(mri_inh_3d, complex)
