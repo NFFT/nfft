@@ -23,7 +23,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   double Ts;
   double W,T;
   int N3;
-  int m=1;
+  int m=2;
   double alpha = 1.25;
 
   ftime=fopen("readout_time.dat","r");

@@ -7,7 +7,7 @@
  */
 void infft(char* filename,int N,int M,int Z,int iteration, int weight)
 {
-  int j,k,l;                    /* some variables  */
+  int j,k,z,l;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   infft_plan my_iplan;          /* plan for the two dimensional infft */
@@ -18,13 +18,13 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   double epsilon=0.0000003;     /* tmp to read the obsolent z from 700.acs
                                    epsilon is a the break criterion for
                                    the iteration */
-  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP; /* flags for the infft */
+  unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;  /* flags for the infft */
                                    
   /* initialise my_plan, specific. 
      we don't precompute psi */
   my_N[0]=Z; my_n[0]=ceil(Z*1.2);
-  my_N[0]=N; my_n[0]=ceil(N*1.2);
   my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[2]=N; my_n[2]=ceil(N*1.2);
   nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
@@ -56,13 +56,16 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
   {
     for(j=0;j<N;j++){
       for(k=0;k<N;k++) {
+        for(z=0;z<N;z++) {
         int j2= j-N/2;
         int k2= k-N/2;
-        double r=sqrt(j2*j2+k2*k2);
+        int z2= z-N/2;
+        double r=sqrt(j2*j2+k2*k2+z2*z2);
         if(r>(double) N/2) 
-          my_iplan.w_hat[j*N+k]=0.0;
+          my_iplan.w_hat[z*N*N+j*N+k]=0.0;
         else
-          my_iplan.w_hat[j*N+k]=1.0;
+          my_iplan.w_hat[z*N*N+j*N+k]=1.0;
+        }
       }   
     }
   }
@@ -102,7 +105,7 @@ void infft(char* filename,int N,int M,int Z,int iteration, int weight)
     if(my_iplan.dot_r_iter<epsilon)
       break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
-    l+1,Z);
+    l+1,iteration);
     infft_loop_one_step(&my_iplan);
   }
   

@@ -29,6 +29,6 @@ end
 
 % plot the N/2 row of the 10 plane
 file_out = [file 'row' '.png'];
-plot(1:N,A(N/2,:,Z/2));
+plot(1:N,A(:,N/2,Z/2));
 axis([1 N 0 1.2]);
 print('-dpng',file_out);

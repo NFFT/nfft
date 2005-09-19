@@ -3,7 +3,8 @@ function [] = construct_phantom( N, Z )
 
 % The phantom will be a little bit smaller than N
 % because of aliasing effects
-N_=N/8*5;
+%N_=N/8*5;
+N_=N;
 
 % The specs of the phantom
 A = [1.0 0.69 0.92 0.0 0.0 0;

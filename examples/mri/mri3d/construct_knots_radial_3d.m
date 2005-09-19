@@ -1,16 +1,18 @@
-function [M] = construct_knots_radial_3d( N )
-R=N;
-P=N;
-xk=zeros(N^3,4);
+function [M] = construct_knots_radial_3d( N,P )
+xk=zeros(N*P^2,4);
 counter=1;
-for r=1:R,
- for i=1:N,
+for r=0:N-1,
+ for i=1:P,
   for j=1:P,
-   x1=sqrt(2)*r/R/2*cos(2*(i-1/2)*pi/N)*sin((j-1/2)*pi/P);
-   x2=sqrt(2)*r/R/2*sin(2*(i-1/2)*pi/N)*sin((j-1/2)*pi/P);
-   x3=sqrt(2)*r/R/2*cos((j-1/2)*pi/P);
+   x1=sqrt(2)*r/N/2*cos(2*(i-1/2)*pi/P)*sin((j-1/2)*pi/P);
+   x2=sqrt(2)*r/N/2*sin(2*(i-1/2)*pi/P)*sin((j-1/2)*pi/P);
+   x3=sqrt(2)*r/N/2*cos((j-1/2)*pi/P);
    if (abs(x1)<0.5 & abs(x2)<0.5 & abs(x3)<0.5),
-     xk(counter,:)=[ x1 x2 x3 sqrt(2)*r/R/2*sin((j-1/2)*pi/P)]; %weights
+     if(r==0)
+       xk(counter,:)=[ x1 x2 x3 (r/N/2)^2*pi]; %weights
+     else
+       xk(counter,:)=[ x1 x2 x3 sqrt(2)*r/N/2*sin((j-1/2)*pi/P)]; %weights
+     end
      counter=counter+1;
    end 
   end
