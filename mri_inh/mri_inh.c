@@ -19,12 +19,14 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     f_hat[j]=that->f_hat[j];
   }
 
-  for(l=-ths->n[0]/2;l<ths->n[0]/2;l++) {
+  for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]*=cexp(-2*PI*I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
     nfft_trafo((nfft_plan*)that);
-    for(j=0;j<that->M_total;j++)
-      f[j]+=that->f[j]*PHI_periodic(that->t[j]-((double)l)/((double)ths->n[0]));
+    for(j=0;j<that->M_total;j++){
+      if(abs(that->t[j]-((double)l)/((double)ths->n[0]))<that->m/((double)ths->n[0])) 
+        f[j]+=that->f[j]*PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
+    }
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]=f_hat[j];
   }
@@ -52,10 +54,14 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 
 
   
-  for(l=-ths->n[0]/2;l<ths->n[0]/2;l++) {
+  for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     
-    for(j=0;j<that->M_total;j++)
-      that->f[j]*=PHI_periodic(that->t[j]-((double)l)/((double)ths->n[0]));
+    for(j=0;j<that->M_total;j++) {
+      if(abs(that->t[j]-((double)l)/((double)ths->n[0]))<that->m/((double)ths->n[0])) 
+        that->f[j]*=PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
+      else
+	that->f[j]=0.0;
+    }
     nfft_adjoint((nfft_plan*)that);
     for(j=0;j<that->N_total;j++)
       f_hat[j]+=that->f_hat[j]*cexp(2*PI*I*that->w[j]*((double)l));
@@ -128,7 +134,10 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
   for(j=0;j<that->N_total;j++) {
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
-      that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]= that->f_hat[j]*PHI_periodic(that->w[j]-((double)l)/((double)ths->n[0]));
+      if(abs(that->t[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0])) 
+        that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]= that->f_hat[j]*PHI(that->w[j]-((double)l)/((double)ths->n[0]),0);
+      else
+	that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]=0.0;
     }
   }
   
@@ -162,7 +171,8 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
     that->f_hat[j]=0.0;
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
-      that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI_periodic(that->w[j]-((double)l)/((double)ths->n[0]));
+      if(abs(that->t[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0])) 
+        that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI(that->w[j]-((double)l)/((double)ths->n[0]),0);
     }
   }
 
