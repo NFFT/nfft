@@ -129,60 +129,63 @@ Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
 Radial basis functions are a powerful tool in many areas of multi-dimensional 
 approximation and interpolation.
 In radial basis function methods one approximates functions from $\R^3
-\rightarrow \R$ by linear combinations of translates of a single radial 
-symmetric function $\phi:\R^3 \rightarrow \R, \, \phi(x)=\phi(\|x\|_2)$.
-The spherical counterpart are the \emph{zonal} functions which depent solely
+\rightarrow \R$ by linear combinations of radial symmetric translates 
+$\fun{\Phi}{\V{y} - \cdot \,}$, $\V{y} \in \R^3$, of a single function $\phi : \R^{+} \rightarrow \R$, i.e. 
+\[
+  \fun{\Phi}{\V{y} - \cdot \,}:\R^3 \rightarrow \R, \, \V{x} \mapsto \phi(\|\V{y} - \V{x}\|_2).
+\]
+The spherical counterpart are the \emph{zonal functions} which depent solely
 on the geodesic distance of two points on the sphere $\twosphere:=\{
-\V{\xi}: \|\V{\xi}\|_2=1\} \subset \R^3$ and the notion of the former
-translation is replaced by the usual inner product.
+\V{\xi} \in \twosphere: \|\V{\xi}\|_2=1\} \subset \R^3$. The norm $\|\V{y} - \V{x}\|_2$ 
+is replaced by the usual inner product.
+
 More formally, let $K \in \Ln{2}{\interv{[}{-1}{1}{]}}$ and define for fixed
 $\V{\eta} \in \twosphere$ the $\V{\eta}$-zonal function 
 \[
-  \fun{K}{\V{\eta} \: \cdot}: \twosphere \rightarrow \R,\ \V{\xi} \mapsto
+  \fun{K}{\V{\eta} \: \cdot \,}: \twosphere \rightarrow \R,\ \V{\xi} \mapsto
   \fun{K}{\V{\eta} \cdot \V{\xi}}\,.% \qquad \V{\xi} \in \twosphere.
 \]
 
-Given $D,L\in \N$, a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
-\pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$, and a vector of
-real coefficients $\V{b}:=(b_{l})_{l=0}^{L-1}$, our goal consists in the fast
-evaluation of sums 
+The formal description of the problem we will address is as follows:
+Given $D,L \in \N$, a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
+\{\V{\eta}_{l} \in \twosphere: l = 0,\ldots,L-1\}$, and a vector of
+real coefficients $\V{b}:=(b_{l})_{l=0}^{L-1}$, evaluate the sum
 \begin{equation}
   \label{Applications:KernelSum}
-  \fun{f}{\xi} := \sum_{l = 0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l} \cdot \V{\xi}}
+  \fun{f}{\V{\xi}} := \sum_{l = 0}^{L-1} b_{l} \fun{K}{\V{\eta}_{l} \cdot \V{\xi}}
 \end{equation}
-on a set of arbitrary \emph{target nodes} $\mathcal{X} := \pset{\V{\xi}_{d}
-  \in \twosphere}{|}{d=0,\ldots,D-1}$.
+on a set of arbitrary \emph{target nodes} $\mathcal{X} := \{\V{\xi}_{d}
+  \in \twosphere: d=0,\ldots,D-1\}$.
 
-The naive approach evaluating \eqref{Applications:KernelSum} leads to
-an $\bigo{L\:D}$ algorithm if we assume that the zonal function
-$\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all the values
+The naive approach for evaluating \eqref{Applications:KernelSum} leads to
+an $\bigo{LD}$ algorithm if we assume that the zonal function
+$\fun{K}{\V{\eta} \: \cdot}$ can be evaluated easily or all values
 $\fun{K}{\V{\eta}_{l} \cdot \V{\xi}_{d}}$ can be stored in advance. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering} method in \cite{FrGlSch98} reduces the
-computational effort to evaluate \eqref{Applications:KernelSum} based on the
-traditional method of dividing the evaluation into a near- and a far-field.
+The \emph{panel clustering method} on the sphere in \cite{FrGlSch98} reduces the
+computational effort for evaluating \eqref{Applications:KernelSum} based on the
+traditional method of dividing the evaluation into a near- and a far-field:
 For every zonal function $\fun{K}{\V{\eta}_l \: \cdot}$, the near-field
 contribution is calculated exactly whereas the contribution of the far-field
-may be approximated coarsly.
+is approximated coarsely.
+We present an approximative algorithm with arithmetic complexity 
+${\cal O} (D+L)$ based on the \emph{nonuniform fast spherical Fourier 
+transform (NFSFT)}, cf. \cite{kupo02}. 
 
-Here, we present a algorithm of arithemtic complexity ${\cal O} (D+L)$ which
-is based on the Nonequispaced Fast Spherical Fourier Transform (NFSFT),
-cf. \cite{XXX}. 
-
-The remainder of this paper is organised as follows:
-To keep the paper self-contained, we summarise the definitions and properties
+The remainder of this paper is organized as follows:
+To keep the paper self-contained, we summarize definitions and properties
 of Fourier expansions of zonal functions in Section 2.
-In Section 3, we propose our fast scheme for the computation of
-\eqref{Applications:KernelSum}, whereas Section 4 is devoted to error
-estimates for a set of particular chosen kernels.
-Finally, Section 5 presents various numerical experiments.
+In Section 3, we propose our fast scheme for the evaluation of
+\eqref{Applications:KernelSum}, whereas Section 4 establishes
+error estimates for a variety of functions $K$.
+Finally, Section 5 presents numerical experiments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Prerequisites} \label{sect:2}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The Legendre polynomials $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
-\N_{0}$ as classical orthogonal polynomials are given by their
+The \emph{Legendre polynomials} $P_k : \interv{[}{-1}{1}{]} \rightarrow \R$, $k \in
+\N_{0}$, as classical orthogonal polynomials are given by their
 \emph{Rodrigues formula} 
 \[
 \fun{P_k}{x} := \frac{1}{2^k k!} \frac{\dx^k}{\dx x^k} \paren{x^2-1}^k.
@@ -192,9 +195,9 @@ One verifies
 \fun{P_{k}}{\pm1} = \paren{\pm1}^{k}, \quad
 \max_{x \in \interv{[}{-1}{1}{]}} \abs{\fun{P_{k}}{x}} = 1,\text{ and} \quad
 \left|\fun{P_{k}}{\cos\vartheta}\right| \le \sqrt{\frac{2}{\pi k
-    \sin\vartheta}}
+    \sin\vartheta}},
 \end{equation}
-where the last inequality holds for $\vartheta \in (0,\pi)$, $k \ge 1$, see
+where the last inequality holds for $\vartheta \in (0,\pi)$ and $k \ge 1$, see
 e.g. \cite[pp. 47]{niuv}.
 Furthermore, two recurrence relations are given by
 \begin{equation}\label{three1}
@@ -205,31 +208,33 @@ and
 \paren{2k+1} \fun{P_{k}}{x} = \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x}.
 \end{equation}
 
+In spherical coordinates, a point $\V{\xi} \in \twosphere$ is identified with 
+a vector $(\vartheta,\varphi) \in [0,\pi] \times [0,2\pi)$. 
 Let the space of real-valued continuous functions on the sphere be decomposed
-into the direct sum of spaces of spherical harmonics, i.e.,
-$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$ and let
+into the direct sum of spaces of \emph{spherical harmonics}, i.e.
+$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$, and let
 $\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
 standard orthonormal basis of spherical harmonics given by
 \[
-  \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\vartheta,\varphi} = 
+  \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\vartheta,\varphi} := 
   \sqrt{\frac{2k+1}{4\pi}} 
   \fun{P_{k}^{|n|}}{\cos\vartheta} \e^{\im n \varphi}.
 \]
-The orthogonal expansion of the zonal function $\fun{K}{\V{\eta} \: \cdot}$
-is given by,
+The orthogonal expansion in terms of the basis functions $Y_k^n$ 
+of the zonal function $\fun{K}{\V{\eta} \: \cdot \,}$ is given by
 \begin{equation}
   \label{equation:kernelExpansion}
   \fun{K}{\V{\eta} \cdot \V{\xi}} = \sum_{k = 0}^{\infty} \sum_{n=-k}^k
   \fun{K^{\wedge}}{k}\overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}}
   = \sum_{k = 0}^{\infty} \frac{2k+1}{4\pi} \fun{K^{\wedge}}{k}
-  \fun{P_{k}}{\V{\eta} \cdot \V{\xi}},
+  \fun{P_{k}}{\V{\eta} \cdot \V{\xi}}.
 \end{equation}
-where we use the addition theorem
+Here, we use the addition theorem
 \[
-\sum_{n=-k}^{k} \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}}} =
+\sum_{n=-k}^{k} \overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}} =
     \frac{2k+1}{4\pi}\fun{P_k}{\V{\eta} \cdot \V{\xi}}
 \]
-and the \emph{Fourier-Legendre coefficients} of $K$ are given for $k \in \NZ$
+and the \emph{Fourier-Legendre coefficients} $\fun{K^{\wedge}}{k}$ of $K$ are given for $k \in \NZ$
 by
 \begin{equation}
   \label{equation:legtrafo}
@@ -238,10 +243,10 @@ by
 \end{equation}
 
 \begin{remark}
-Of course, every radial function $\phi$ corresponds to a zonal function by
-means of 
+Of course, to every radial function $\phi(\|\V{\eta} - \cdot \,\|_2)$ corresponds a zonal function 
+$\fun{K}{\V{\eta} \: \cdot \,}$ by means of 
 \[
-  \fun{K}{\V{\eta} \cdot \V{\xi}} = \phi\left(\sqrt{2-2\V{\eta} \cdot
+  \fun{K}{\V{\eta} \cdot \V{\xi}} := \phi\left(\sqrt{2-2\V{\eta} \cdot
   \V{\xi}}\right)\,.
 \]
 The relation between radial basis functions and their corresponding zonal
