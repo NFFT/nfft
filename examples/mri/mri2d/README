@@ -1,3 +1,15 @@
+Based on the research paper:
+Fast Iterative Reconstruction for MRI
+ 
+by Tobias Knopp, Stefan Kunis and Daniel Potts
+Available from:
+http://www.math.uni-luebeck.de/potts
+
+see also: 
+http://www.math.mu-luebeck.de/potts/projekte/mri.sql
+
+--------------------------------------------------------------------
+
 To use this programs follow the instructions:
 
 1. First install fftw (www.fftw.org) and nfft (www.math.uni-lubebeck.de/potts/nfft). 

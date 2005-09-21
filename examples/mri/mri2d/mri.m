@@ -1,6 +1,6 @@
 % This script file is an example of the usage 
 
-N=256;   % points per row / column
+N=128;   % points per row / column
 
 % Construct the raw data of the phantom
 % and write it to input_f.dat
