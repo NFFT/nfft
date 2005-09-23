@@ -4,6 +4,11 @@
  * authors: D. Potts, S. Kunis (c) 2002,2003
  */
 
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "util.h"
 #include "options.h"
 #include "window_defines.h"
@@ -11,10 +16,12 @@
 #include "nfft3.h"
 
 
-/** handy shortcuts
- */
-#define NFST_SUMMANDS (2 * ths->m + 2)
-#define NODE(p,r) (ths->x[(p) * ths->d + (r)])
+/** 
+ *  handy shortcuts
+ **/
+#define WINDOW_FUN_N ( 2 * ( ths->nfst_N[t] + 1))
+#define NFST_SUMMANDS ( 2 * ths->m + 2)
+#define NODE(p,r) ( ths->x[(p) * ths->d + (r)])
 
 
 /** direct computation of non equispaced sine transforms
@@ -38,34 +45,35 @@
 
 #define MACRO_ndst_malloc__sin_vec  					\
 									\
-    double **sin_vec;							\
-    sin_vec = (double**) malloc( ths->d * sizeof( double*));		\
-    for( t = 0; t < ths->d; t++)                                       \
-      sin_vec[t] = (double*) malloc( ths->dst_N[t] * sizeof( double));	\
+  double **sin_vec;							\
+  sin_vec = (double**)malloc( ths->d * sizeof( double*));		\
+  for( t = 0; t < ths->d; t++)                                          \
+    sin_vec[t] = (double*)malloc( ths->nfst_N[t] * sizeof( double));	\
 
 
 
 
 #define MACRO_ndst_free__sin_vec {                                      \
 									\
-    /* free allocated memory */                                         \
-    for( t = 0; t < ths->d; t++)                                       \
-      free( sin_vec[t]);                                                \
-    free( sin_vec);                                                     \
+  /* free allocated memory */                                           \
+  for( t = 0; t < ths->d; t++)                                          \
+    free( sin_vec[t]);                                                  \
+  free( sin_vec);                                                       \
 }
 
 
 
 #define MACRO_ndst_init__sin_vec {					\
                                                                         \
-    for( t = 0; t < ths->d; t++) {					\
-      cos_x[t] = cos( 2.0 * PI * NODE(j,t));				\
-      sin_vec[t][0] = sin( 2.0 * PI * NODE(j,t));	                \
-      sin_vec[t][1] = sin( 4.0 * PI * NODE(j,t));	                \
-      for( k = 2; k < ths->dst_N[t]; k++)				\
-	sin_vec[t][k] = 2.0 * cos_x[t] * sin_vec[t][k-1] - sin_vec[t][k-2]; \
-    }									\
-  }
+  for( t = 0; t < ths->d; t++) {					\
+    cos_x[t] = cos( 2.0 * PI * NODE(j,t));				\
+    sin_vec[t][0] = sin( 2.0 * PI * NODE(j,t));	                        \
+    sin_vec[t][1] = sin( 4.0 * PI * NODE(j,t));	                        \
+    for( k = 2; k < ths->nfst_N[t]; k++)				\
+      sin_vec[t][k] = 2.0 * cos_x[t] * sin_vec[t][k-1]                  \
+                      - sin_vec[t][k-2];                                \
+  }									\
+}
   
 
 
@@ -76,46 +84,44 @@
 
 #define MACRO_ndst_init__k__sin_k( which_one) {				\
 									\
-    sin_k[0] = 1.0;							\
-    for( t = 0; t < ths->d; t++) 					\
-      ka[t] = 0;							\
+  sin_k[0] = 1.0;							\
+  for( t = 0; t < ths->d; t++) 					        \
+    ka[t] = 0;							        \
     									\
-    for( t = 0; t < ths->d; t++) {					\
-      sin_k[t+1] = sin_k[t] * MACRO_ ##which_one;			\
-    }									\
-  }
-
+  for( t = 0; t < ths->d; t++) {					\
+    sin_k[t+1] = sin_k[t] * MACRO_ ##which_one;			        \
+  }									\
+}
 
 
 #define MACRO_ndst_count__k__sin_k( which_one) {			\
 									\
-    ka[ths->d-1]++;							\
-    i = ths->d - 1;							\
-    while( (ka[i] == ths->dst_N[i]) && (i>0))				\
-      {									\
-	ka[i - 1]++;							\
-	ka[i] = 0;							\
+  ka[ths->d-1]++;							\
+  i = ths->d - 1;							\
+  while( ( ka[i] == ths->nfst_N[i]) && ( i>0)) {			\
 									\
-	i--;								\
-      }									\
-    for( t = i; t < ths->d; t++)					\
-      sin_k[t+1] = sin_k[t] * MACRO_ ##which_one;			\
-  }
+    ka[i - 1]++;							\
+    ka[i] = 0;							        \
+									\
+    i--;								\
+  }									\
+  for( t = i; t < ths->d; t++)					        \
+    sin_k[t+1] = sin_k[t] * MACRO_ ##which_one;			        \
+}
 
 
 
 #define MACRO_ndst_compute__trafo {		\
-						\
-    f[j] += f_hat[k] * sin_k[ths->d];	\
-  }
+  f[j] += f_hat[k] * sin_k[ths->d];	        \
+}
 
 #define MACRO_ndst_compute__transposed {	\
-    						\
-    f_hat[k] += f[j] * sin_k[ths->d];	        \
-  }
+  f_hat[k] += f[j] * sin_k[ths->d];	        \
+}
+
 
 /* slow (trafo) transform */
-#define MACRO_ndst(which_one)					  \
+#define MACRO_ndst( which_one)					  \
   void ndst_ ## which_one ( nfst_plan *ths) {                     \
     								  \
     int j, k, t, i;						  \
@@ -123,7 +129,7 @@
     double sin_k[ths->d+1];					  \
     double cos_x[ths->d];					  \
 								  \
-    double *f = ths->f;			         	          \
+    double *f     = ths->f;		         	          \
     double *f_hat = ths->f_hat;			        	  \
 								  \
     MACRO_ndst_init_result_ ## which_one;			  \
@@ -190,21 +196,21 @@ MACRO_ndst(transposed)
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * sin(2 (pi) k x[j])
  */
 
-#define MACRO_nfst__lower_boundary( j,act_dim) {			\
-    lb[(act_dim)] = ((int)(NODE((j),(act_dim)) * ths->n[(act_dim)])) - ths->m; \
-  }
+#define MACRO_nfst__lower_boundary( j,act_dim) {		        \
+  lb[(act_dim)] =                                                       \
+    ((int)(NODE((j),(act_dim)) * ths->n[(act_dim)])) - ths->m;          \
+}
 
 #define MACRO_nfst_D_compute_A {					\
-    g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d];	\
-  }
+  g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d];	        \
+}
 
 #define MACRO_nfst_D_compute_T {                                        \
-    f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d];     \
-  }
+  f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d];           \
+}
 
 
-
-#define MACRO_nfst_D_init_result_A  memset(g_hat,   0, ths->dst_n_total * sizeof( double));
+#define MACRO_nfst_D_init_result_A  memset(g_hat, 0, nfst_prod_int( ths->nfst_n, ths->d) * sizeof( double));
 
 #define MACRO_nfst_D_init_result_T  memset(f_hat, 0, ths->N_total * sizeof( double));
 
@@ -217,11 +223,11 @@ MACRO_ndst(transposed)
 
 #define MACRO_init__kg {						\
 									\
-    for( t = 0; t < ths->d; t++)					\
-      kg[t] = 0;							\
+  for( t = 0; t < ths->d; t++)					        \
+    kg[t] = 0;							        \
     									\
-    i = 0;								\
-  }
+  i = 0;								\
+}
 
 
 
@@ -229,7 +235,7 @@ MACRO_ndst(transposed)
 									\
     kg[ths->d - 1]++;							\
     i = ths->d - 1;							\
-    while( (kg[i] == ths->dst_N[i]) && (i > 0)) {			\
+    while( ( kg[i] == ths->nfst_N[i]) && ( i > 0)) {			\
       kg[i - 1]++;							\
       kg[i] = 0;							\
       									\
@@ -242,7 +248,7 @@ MACRO_ndst(transposed)
 #define MACRO_update__c_phi_inv_k__lg_plain( which_one, which_phi) {	\
     for( t = i; t < ths->d; t++) {                                     \
       MACRO__c_phi_inv_k( which_phi);					\
-      kg_plain[t+1] = kg_plain[t] * ths->dst_n[t] + kg[t];		\
+      kg_plain[t+1] = kg_plain[t] * ths->nfst_n[t] + kg[t];		\
     }									\
   }
 
@@ -318,7 +324,7 @@ MACRO_nfst_D(T)
  */ 
 #define MACRO_nfst_B_init_result_A   memset(f, 0,     ths->M_total * sizeof( double));
 
-#define MACRO_nfst_B_init_result_T   memset(g, 0, ths->dst_n_total * sizeof( double));
+#define MACRO_nfst_B_init_result_T   memset(g, 0, nfst_prod_int( ths->nfst_n, ths->d) * sizeof( double));
 
 
 #define MACRO_nfst_B_PRE_FULL_PSI_compute_A {				\
@@ -360,7 +366,7 @@ MACRO_nfst_D(T)
       /*       printf( "post_clg_else: lg_offset=%d\n", lg_offset[(i0)]);	 */ \
 									\
     }									\
-    if( lg_offset[(i0)] >= ths->dst_n[(i0)]+2) 			\
+    if( lg_offset[(i0)] >= ths->nfst_n[(i0)]+2) 			\
       lg_offset[(i0)] = -(ths->n[(i0)] - lg_offset[(i0)]);		\
   }
 
@@ -384,7 +390,7 @@ MACRO_nfst_D(T)
 #define MACRO_count__lg(dim) {						\
 									\
     /* turn around when we hit one of the boundaries */			\
-    if( ((lg[(dim)] == 0) || (lg[(dim)] == (ths->dst_n[(dim)] + 1))) ) \
+    if( ((lg[(dim)] == 0) || (lg[(dim)] == (ths->nfst_n[(dim)] + 1))) ) \
       count_lg[(dim)] *= -1;						\
 									\
     lg[(dim)] += count_lg[(dim)];					\
@@ -411,14 +417,14 @@ MACRO_nfst_D(T)
       if( lg[t] == 0) {							\
 	/* 	printf( " pre_init_if: lg_plain[%d]=%d\n", t,lg_plain[t]);  */ \
 									\
-	lg_plain[t+1]  = lg_plain[t] * ths->dst_n[t];		        \
+	lg_plain[t+1]  = lg_plain[t] * ths->nfst_n[t];		        \
 	/* 	printf( "post_init_if: lg_plain[%d]=%d\n", t+1,lg_plain[t+1]);  */ \
         phi_tilde[t+1] = 0.0;			                        \
       }									\
-      else if( lg[t] == ths->dst_n[t]+1) {				\
+      else if( lg[t] == ths->nfst_n[t]+1) {				\
 	/* 	printf( " pre_init_elif: lg_plain[%d]=%d\n", t,lg_plain[t]);  */ \
 									\
-	lg_plain[t+1]  = lg_plain[t] * ths->dst_n[t] + ths->dst_n[t]-1; \
+	lg_plain[t+1]  = lg_plain[t] * ths->nfst_n[t] + ths->nfst_n[t]-1; \
 	/* 	printf( "post_init_elif: lg_plain[%d]=%d\n", t+1,lg_plain[t+1]);  */ \
 	phi_tilde[t+1] = 0.0;						\
       }									\
@@ -426,7 +432,7 @@ MACRO_nfst_D(T)
 	/* 	printf( " init_else: lg_plain[%d]=%d\n",t, lg_plain[t]);  */ \
 									\
 	MACRO__phi_tilde( which_psi);					\
-	lg_plain[t+1]  = lg_plain[t] * ths->dst_n[t] + lg[t]-1;	\
+	lg_plain[t+1]  = lg_plain[t] * ths->nfst_n[t] + lg[t]-1;	\
       }									\
     }									\
     									\
@@ -461,11 +467,11 @@ MACRO_nfst_D(T)
 									\
     for( t = i; t < ths->d; t++) {					\
 									\
-      if( (lg[t] != 0) && (lg[t] != ths->dst_n[t]+1)) {		\
+      if( (lg[t] != 0) && (lg[t] != ths->nfst_n[t]+1)) {		\
 									\
 	MACRO__phi_tilde( which_psi);					\
 	/* 	printf( " pre_upd: lg_plain=%d\n", lg_plain[t]);		 */ \
-	lg_plain[t+1] = lg_plain[t] * ths->dst_n[t] + lg[t]-1;		\
+	lg_plain[t+1] = lg_plain[t] * ths->nfst_n[t] + lg[t]-1;		\
 	/* 	printf( "post_upd: lg_plain=%d\n", lg_plain[t+1]);		 */ \
       }									\
       else								\
@@ -568,104 +574,132 @@ MACRO_nfst_B(T)
 
 
 
-/** user routines
+/** 
+ * user routines
+ *
  */
-void nfst_trafo( nfst_plan *ths)
-{
-  /* use ths->my_fftw_r2r_plan */
+void nfst_trafo( nfst_plan *ths) {
+
+  /**
+   * use ths->my_fftw_r2r_plan 
+   *
+   */
   ths->g_hat = ths->g1;
   ths->g     = ths->g2;
 
  
-  /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
-   *  k \in I_N \f$
+  /**
+   * form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
+   * k \in I_N \f$
+   *
    */ 
-
-  //  T1;
+  T1;
   nfst_D_A( ths);
-  //  T2(1);
+  T2(1);
 
 
-  /** compute by d-variate discrete Fourier transform
-   *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for } l \in I_n \f$
+  /**
+   * compute by d-variate discrete Fourier transform
+   * \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
+   * \text{ for } l \in I_n \f$
+   *
    */
-
-  //  T1;
+  T1;
   fftw_execute( ths->my_fftw_r2r_plan);
-  //  T2(2);
+  T2(2);
 
 
-  /** set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } j=0,\hdots,M-1 \f$
+  /**
+   * set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
+   * \text{ for } j=0,\hdots,M-1 \f$
+   *
    */
-
-  //  printf("segF _ \n");
-  //T1;
+  T1;
   nfst_B_A( ths);
-  //T2(1);
+  T2(3);
+
 } /* nfst_trafo */
 
 
 
 
-void nfst_transposed( nfst_plan *ths)
-{
-  /* use ths->my_fftw_plan */
+void nfst_transposed( nfst_plan *ths) {
+
+  /**
+   * use ths->my_fftw_plan
+   *
+   **/
   ths->g_hat = ths->g2;
   ths->g     = ths->g1;
 
 
-  /** set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } l \in I_n,m(x_j) \f$
+  /**
+   * set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
+   * \text{ for } l \in I_n,m(x_j) \f$
+   *
    */
-  //  T1;
+  T1;
   nfst_B_T( ths);
-  //  T2(1);
+  T2(1);
       
 
-  /** compute by d-variate discrete cosine transform
-   *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for }  k \in I_N\f$
+  /**
+   * compute by d-variate discrete cosine transform
+   * \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
+   * \text{ for }  k \in I_N\f$
+   *
    */ 
-  //  T1;
+  T1;
   fftw_execute( ths->my_fftw_r2r_plan);
-  //  T2(2);
+  T2(2);
 
-  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
-   *  k \in I_N \f$
+  
+  /**
+   * form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
+   * k \in I_N \f$
+   *
    */
-  //  T1;
+  T1;
   nfst_D_T( ths);
-  //  T2(3);
+  T2(3);
 
 } /* nfst_transposed */
 
 
 
+/**
+ *  wrapper function for non-existent nfct_adjoint function
+ *  used in autimatically generated infst_* functions
+ *
+ **/
+void nfst_adjoint( nfst_plan *ths) {
+  nfst_transposed( ths);
+}
 
 
 
 
  
-/** initialization of direct transform 
+/**
+ * initialization of direct transform 
+ *
  */
 void nfst_precompute_phi_hut( nfst_plan *ths)
 {
   int kg[ths->d];                      /**< index over all frequencies       */
-  int t;                                /**< index over all dimensions        */
+  int t;                               /**< index over all dimensions        */
 
   ths->c_phi_inv = (double**)fftw_malloc( ths->d * sizeof( double*));
 
-  for( t = 0; t < ths->d; t++)
-    {
-      ths->c_phi_inv[t] = (double*)fftw_malloc( ths->dst_N[t] * sizeof( double));
-   
-      for( kg[t] = 0; kg[t] < ths->dst_N[t]; kg[t]++)  
-	/*                        = 1.0 / PHI_HUT */
-        ths->c_phi_inv[t][kg[t]] = 1.0 MACRO_compute_PHI_HUT;
+  for( t = 0; t < ths->d; t++) {
 
-    }
+    ths->c_phi_inv[t] = (double*)fftw_malloc( ths->nfst_N[t] * sizeof( double));
+    
+    for( kg[t] = 0; kg[t] < ths->nfst_N[t]; kg[t]++)  
+      /*                       = 1.0 / PHI_HUT */
+      ths->c_phi_inv[t][kg[t]] = 1.0 MACRO_compute_PHI_HUT;
+    
+  }
 } /* nfst_phi_hut */
 
 
@@ -674,41 +708,41 @@ void nfst_precompute_psi( nfst_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
   int j;                                /**< index over all nodes             */
-  int lc[ths->d];                      /**< index 0<=lj<u+o+1                */
-  int lb[ths->d];                      /**< depends on x_j                   */
+  int lc[ths->d];                       /**< index 0<=lj<u+o+1                */
+  int lb[ths->d];                       /**< depends on x_j                   */
   
-  for (t = 0; t < ths->d; t++)
-    for(j = 0; j < ths->M_total; j++)
-      {
-	MACRO_nfst__lower_boundary( j, t);
+  for (t = 0; t < ths->d; t++) {
+    for(j = 0; j < ths->M_total; j++) {
 
-	for( lc[t] = 0; lc[t] < NFST_SUMMANDS; lc[t]++)
- 	  ths->psi[(j * ths->d + t) * NFST_SUMMANDS + lc[t]] = MACRO_compute_PSI;
+      MACRO_nfst__lower_boundary( j, t);
 
-      } /* for(j) */
-    /* for(t) */
+      for( lc[t] = 0; lc[t] < NFST_SUMMANDS; lc[t]++)
+	ths->psi[(j * ths->d + t) * NFST_SUMMANDS + lc[t]] = MACRO_compute_PSI;
 
-   /* full precomputation of psi */
-   if ( ths->nfst_flags & PRE_FULL_PSI)
-     nfst_full_psi( ths, ths->nfst_full_psi_eps);
+    } /* for(j) */
+  }  /* for(t) */
+
+  /* full precomputation of psi */
+  if ( ths->nfst_flags & PRE_FULL_PSI)
+    nfst_full_psi( ths, ths->nfst_full_psi_eps);
 
 } /* nfst_precompute_psi */
 
 
 
 /** more memory usage, a bit faster */
-void nfst_full_psi(nfst_plan *ths, double eps)
-{
+void nfst_full_psi(nfst_plan *ths, double eps) {
+
   int t, i;                             /**< index over all dimensions        */
   int j;                                /**< index over all nodes             */
   int l_L;                              /**< plain index 0<=l_L<lprod         */
-  int lc[ths->d];                      /**< multi index 0<=lj<u+o+1          */
-  int lg_plain[ths->d+1];              /**< postfix plain index              */
+  int lc[ths->d];                       /**< multi index 0<=lj<u+o+1          */
+  int lg_plain[ths->d+1];               /**< postfix plain index              */
   int count_lg[ths->d];
   int lg_offset[ths->d];
   int lg[ths->d];
   int lprod;                            /**< 'bandwidth' of matrix B          */
-  int lb[ths->d];                      /**< depends on x_j                   */
+  int lb[ths->d];                       /**< depends on x_j                   */
   
   double phi_tilde[ths->d+1];
 
@@ -716,20 +750,20 @@ void nfst_full_psi(nfst_plan *ths, double eps)
   double *new_psi;
   int ix, ix_old, size_psi;
 
-  phi_tilde[0] = 1;
-  lg_plain[0]  = 0;
+  phi_tilde[0] = 1.0;
+  lg_plain[0]  =   0;
 
   if(ths->nfst_flags & PRE_PSI) {
 
-    size_psi=ths->M_total;
-    index_f =    (int*) malloc( ths->M_total  * sizeof( int));
-    index_g =    (int*) malloc( size_psi * sizeof( int));
-    new_psi = (double*) malloc( size_psi * sizeof( double));
+    size_psi = ths->M_total;
+    index_f  =    (int*)malloc( ths->M_total  * sizeof( int));
+    index_g  =    (int*)malloc( size_psi * sizeof( int));
+    new_psi  = (double*)malloc( size_psi * sizeof( double));
     
     for( t = 0,lprod = 1; t < ths->d; t++) {
       lprod *= NFST_SUMMANDS;
       eps *= PHI( 0, t);
-      }
+    }
     
     for( ix = 0, ix_old = 0, j = 0; j < ths->M_total; j++) {
       
@@ -762,34 +796,31 @@ void nfst_full_psi(nfst_plan *ths, double eps)
     } /* for(j) */
     
     free( ths->psi);
-    size_psi = ix;
+
+    size_psi      = ix;
     ths->size_psi = size_psi;
-    index_g =    (int*)realloc( index_g, size_psi * sizeof( int));
-    new_psi = (double*)realloc( new_psi, size_psi * sizeof( double));
+    index_g       = (int*)realloc( index_g, size_psi * sizeof( int));
+    new_psi       = (double*)realloc( new_psi, size_psi * sizeof( double));
     
     ths->psi         = new_psi;
     ths->psi_index_g = index_g; 
     ths->psi_index_f = index_f;
     
   } /* if(PRE_PSI) */
-}
+} /* nfst_full_psi */
 
 
 
 
+void nfst_init_help( nfst_plan *ths) {
 
-
-void nfst_init_help( nfst_plan *ths)
-{
   int t;                                /**< index over all dimensions        */
 
-  ths->N_total = nfst_prod_int( ths->dst_N, ths->d);
-  //ths->n_total = nfst_prod_int( ths->n, ths->d);
-  ths->dst_n_total = nfst_prod_int( ths->dst_n, ths->d);
+  ths->N_total = nfst_prod_int( ths->nfst_N, ths->d);
 
-  ths->sigma = (double*) fftw_malloc( ths->d * sizeof( double));
+  ths->sigma   = (double*)fftw_malloc( ths->d * sizeof( double));
 
-  for(t = 0;t < ths->d; t++) 
+  for( t = 0; t < ths->d; t++) 
     ths->sigma[t] = ((double)ths->n[t]) / ths->N[t];
 
   /* assign r2r transform kinds for each dimension */
@@ -813,167 +844,175 @@ void nfst_init_help( nfst_plan *ths)
     nfst_precompute_phi_hut( ths);
 
   /* NO FFTW_MALLOC HERE */
-  if(ths->nfst_flags & PRE_PSI)
-    ths->psi = (double*) malloc( ths->M_total * ths->d * NFST_SUMMANDS * sizeof( double));
+  if(ths->nfst_flags & PRE_PSI) {
+    ths->psi =
+      (double*)malloc( ths->M_total * ths->d * NFST_SUMMANDS * sizeof( double));
+
+    /**
+     * set default for full_psi_eps 
+     **/
+    ths->nfst_full_psi_eps = pow(10, -10);
+  }
   
-  if(ths->nfst_flags & FFTW_INIT)
-    {
-      ths->g1 = (double*)fftw_malloc( ths->dst_n_total * sizeof( double));
+  if(ths->nfst_flags & FFTW_INIT) {
+      ths->g1 =
+	(double*)fftw_malloc( nfst_prod_int( ths->nfst_n, ths->d) * sizeof( double));
 
       if(ths->nfst_flags & FFT_OUT_OF_PLACE)
-	{
-	  ths->g2 = (double*) fftw_malloc( ths->dst_n_total * sizeof( double));
-	}
+	ths->g2 =
+	  (double*)fftw_malloc( nfst_prod_int( ths->nfst_n, ths->d) * sizeof( double));
       else
 	ths->g2 = ths->g1;
 
-      ths->my_fftw_r2r_plan = fftw_plan_r2r( ths->d, ths->dst_n, ths->g1, ths->g2, 
- 					       ths->r2r_kind, ths->fftw_flags);
-
-    }
+      ths->my_fftw_r2r_plan = 
+	fftw_plan_r2r( ths->d, ths->nfst_n, ths->g1, ths->g2, 
+		       ths->r2r_kind, ths->fftw_flags);
+  }
 }
 
-void nfst_init( nfst_plan *ths, int d, int *N, int M)
-{
+void nfst_init( nfst_plan *ths, int d, int *nfst_N, int M_total) {
+
   int t;                                /**< index over all dimensions        */
 
   ths->d = d;
 
-  ths->N = (int*) fftw_malloc( d * sizeof( int));
-  ths->dst_N = (int*) fftw_malloc( d * sizeof( int));
+  ths->nfst_N = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->N      = (int*)fftw_malloc( ths->d * sizeof( int));
 
   for(t = 0;t < d; t++) {
-    ths->N[t] = N[t];
-    ths->dst_N[t] = N[t] - 1;
+    /**
+     * KEEP ORDER
+     */
+    ths->nfst_N[t] = nfst_N[t] - 1;
+    ths->N[t]      = WINDOW_FUN_N;
   }
 
-  ths->M_total = M;
-
-  ths->n = (int*) fftw_malloc( d * sizeof( int));
-  ths->dst_n = (int*) fftw_malloc( d * sizeof( int));
-
+  ths->nfst_n = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->n      = (int*)fftw_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++) {
-    ths->n[t] = 4 * next_power_of_2( ths->N[t]);
-    ths->dst_n[t] = ths->n[t] / 2 - 1;
+    ths->n[t]      = 2 * next_power_of_2( ths->N[t]);
+    ths->nfst_n[t] = ths->n[t] / 2 - 1;
   }
+
+  ths->M_total = M_total;
 
   WINDOW_HELP_ESTIMATE_m;
 
-  ths->nfst_flags= PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE;
-  ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
+  ths->nfst_flags = PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE;
+  ths->fftw_flags = FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
-  ths->nfst_full_psi_eps = pow(10, -10);
-
-  nfst_init_help(ths);    
+  nfst_init_help( ths);    
 }
 
-void nfst_init_guru( nfst_plan *ths, int d, int *N, int M, int *n,
-			 int m, unsigned nfst_flags, unsigned fftw_flags)
-{
-  int t;                                /**< index over all dimensions        */
+void nfst_init_guru( nfst_plan *ths, int d, int *nfst_N,
+		     int M_total, int *nfst_n, int m,
+		     unsigned nfst_flags, unsigned fftw_flags) {
+
+  int t;             /**< index over all dimensions */
 
   ths->d = d;
-  ths->N = (int*)fftw_malloc( ths->d * sizeof( int));
-  ths->dst_N = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->M_total = M_total;
+
+  ths->nfst_N = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->N      = (int*)fftw_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++) {
-    ths->N[t] = N[t];
-    ths->dst_N[t] = N[t] - 1;
+    /**
+     * KEEP ORDER
+     */
+    ths->nfst_N[t] = nfst_N[t] - 1;
+    ths->N[t]      = WINDOW_FUN_N;
   }
 
-  ths->M_total = M;
-  ths->n = (int*)fftw_malloc( ths->d * sizeof( int));
-  ths->dst_n = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->nfst_n = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->n      = (int*)fftw_malloc( ths->d * sizeof( int));
+
   for( t = 0; t < d; t++) {
-    ths->n[t] = n[t];
-    ths->dst_n[t] = (n[t] / 2) - 1;
+    ths->nfst_n[t] = nfst_n[t];
+    ths->n[t]      = 2 * (nfst_n[t] + 1);
   }
 
   ths->m = m;
+
   ths->nfst_flags = nfst_flags;
   ths->fftw_flags = fftw_flags;
 
   nfst_init_help( ths);  
 }
 
-void nfst_init_1d(nfst_plan *ths, int N1, int M)
-{
-  int N[1];
 
-  N[0]=N1;
-  nfst_init(ths,1,N,M);
+void nfst_init_1d( nfst_plan *ths, int nfst_N0, int M_total) {
+
+  int nfst_N[1];
+
+  nfst_N[0] = nfst_N0;
+  nfst_init( ths, 1, nfst_N, M_total);
 }
 
-void nfst_init_2d(nfst_plan *ths, int N1, int N2, int M)
-{
-  int N[2];
+void nfst_init_2d( nfst_plan *ths, int nfst_N0, int nfst_N1, int M_total) {
 
-  N[0]=N1;
-  N[1]=N2;
-  nfst_init(ths,2,N,M);
+  int nfst_N[2];
+
+  nfst_N[0] = nfst_N0;
+  nfst_N[1] = nfst_N1;
+  nfst_init( ths, 2, nfst_N, M_total);
 }
 
-void nfst_init_3d(nfst_plan *ths, int N1, int N2, int N3, int M)
-{
-  int N[3];
+void nfst_init_3d( nfst_plan *ths, int nfst_N0, int nfst_N1, int nfst_N2, int M_total) {
 
-  N[0]=N1;
-  N[1]=N2;
-  N[2]=N3;
-  nfst_init(ths,3,N,M);
+  int nfst_N[3];
+
+  nfst_N[0] = nfst_N0;
+  nfst_N[1] = nfst_N1;
+  nfst_N[2] = nfst_N2;
+  nfst_init( ths, 3, nfst_N, M_total);
 }
 
-void nfst_finalize(nfst_plan *ths)
+void nfst_finalize( nfst_plan *ths)
 {
   int t; /* index over dimensions */
 
-  if(ths->nfst_flags & FFTW_INIT)
-    {
-      fftw_destroy_plan(ths->my_fftw_r2r_plan);
+  if( ths->nfst_flags & FFTW_INIT) {
+    fftw_destroy_plan( ths->my_fftw_r2r_plan);
       
-      if(ths->nfst_flags & FFT_OUT_OF_PLACE)
-	fftw_free(ths->g2);
+    if( ths->nfst_flags & FFT_OUT_OF_PLACE)
+      fftw_free( ths->g2);
       
-      fftw_free(ths->g1);
-    }
+    fftw_free( ths->g1);
+  }
 
   /* NO FFTW_FREE HERE */
-  if(ths->nfst_flags & PRE_PSI)
-    {
-      if(ths->nfst_flags & PRE_FULL_PSI)
-	{
-	  free(ths->psi_index_g);
-	  free(ths->psi_index_f);
-	}
-
-      free(ths->psi);
+  if( ths->nfst_flags & PRE_PSI) {
+    if( ths->nfst_flags & PRE_FULL_PSI) {
+      free( ths->psi_index_g);
+      free( ths->psi_index_f);
     }
+    
+    free( ths->psi);
+  }
 
-  if(ths->nfst_flags & PRE_PHI_HUT)
-    {
-      for( t = 0; t < ths->d; t++)
-	fftw_free( ths->c_phi_inv[t]);
-      fftw_free( ths->c_phi_inv);
-    }
+  if( ths->nfst_flags & PRE_PHI_HUT) {
+    for( t = 0; t < ths->d; t++)
+      fftw_free( ths->c_phi_inv[t]);
+    fftw_free( ths->c_phi_inv);
+  }
 
+  if( ths->nfst_flags & MALLOC_F)
+    fftw_free( ths->f);
 
-  if(ths->nfst_flags & MALLOC_F)
-    fftw_free(ths->f);
-
-  if(ths->nfst_flags & MALLOC_F_HAT)
-    fftw_free(ths->f_hat);
-
-  if(ths->nfst_flags & MALLOC_X)
-  fftw_free(ths->x);
+  if( ths->nfst_flags & MALLOC_F_HAT)
+    fftw_free( ths->f_hat);
+  
+  if( ths->nfst_flags & MALLOC_X)
+    fftw_free( ths->x);
  
-
   WINDOW_HELP_FINALIZE;
- 
-  fftw_free( ths->sigma);
-  fftw_free( ths->n);
-  fftw_free( ths->dst_n);
+
+  fftw_free( ths->nfst_N);
   fftw_free( ths->N);
-  fftw_free( ths->dst_N);
+  fftw_free( ths->nfst_n);
+  fftw_free( ths->n);
+  fftw_free( ths->sigma);
 
 } /* nfst_finalize */
