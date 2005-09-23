@@ -1,4 +1,4 @@
-	/*! \file nfft3.h
+/*! \file nfft3.h
  *  \brief Header file for the nfft3 library.
  */
 #ifndef NFFT3_H
@@ -173,25 +173,26 @@ void nfft_finalize(nfft_plan *ths);
 
 
 /** @defgroup nfct Group
- * Direct and fast computation of the
- * discrete cosine transform at nonequispaced knots
+ * direct and fast computation of the
+ * discrete cosine transform at nonequispaced knots in time/spatial domain
  * @{ 
  */
 
-
+/** Structure for a transform plan */
 typedef struct nfct_plan_  
 { 
   /** api */ 
   MACRO_MV_PLAN(double);
 
-  int d;                                /**< dimension, rank                  */ 
-  int *N;                               /**< cut-off-frequencies              */ 
-  double *sigma;                        /**< oversampling-factor              */ 
+  int d;                                /**< dimension, rank                  */
+  int *nfct_N;				/**< cut-off-frequencies              */
+  int *N;                               /**< cut-off-frequencies (kernel)     */
+  double *sigma;                        /**< oversampling-factor              */
+  int *nfct_n;                          /**< dct1-length = n/2+1              */ 
   int *n;                               /**< sigma*N                          */ 
-  int n_total;                          /**< n_0 * n_1 *...* n_(d-1)          */         
-  int *dct_n;                           /**< dct1-length = n/2+1              */ 
-  int dct_n_total;                      /**< dct_n_0*dct_n_1*...*dct_n_(d-1)  */ 
-  int m;                                /**< cut-off parameter in time-domain */ 
+  int m;                                /**< cut-off parameter in time-domain */
+ 
+  double nfct_full_psi_eps; 
   double *b;                            /**< shape parameters                 */ 
  
   unsigned nfct_flags;                  /**< flags for precomputation, malloc */ 
@@ -208,7 +209,6 @@ typedef struct nfct_plan_
   int size_psi;                         /**< only for thin B                  */ 
   int *psi_index_g;                     /**< only for thin B                  */ 
   int *psi_index_f;                     /**< only for thin B                  */ 
-  double nfct_full_psi_eps; 
  
   double *g; 
   double *g_hat; 
@@ -220,92 +220,164 @@ typedef struct nfct_plan_
 } nfct_plan; 
 
 
-/** @defgroup nfct Group for direct nfct 
- * This group contains routines for  
- * direct fast Fourier transform at nonequispaced knots 
- * @{  
+/**
+ * Creates a 1-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfct_N0 The bandwidth \f$N\f$
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+void nfct_init_1d( nfct_plan *ths_plan, int nfct_N0, int M_total); 
+
+/**
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfct_N0 The bandwidth of dimension 1
+ * \arg nfct_N1 The bandwidth of dimension 2
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+void nfct_init_2d( nfct_plan *ths_plan, int nfct_N0, int nfct_N1, int M_total); 
+
+/**
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfct_N0 The bandwidth of dimension 1
+ * \arg nfct_N1 The bandwidth of dimension 2
+ * \arg nfct_N2 The bandwidth of dimension 3
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
  */ 
+void nfct_init_3d( nfct_plan *ths_plan, int nfct_N0, int nfct_N1, int nfct_N2, int M_total); 
+
+/**
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg nfct_N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */ 
+void nfct_init( nfct_plan *ths_plan, int d, int *nfct_N, int M_total); 
+
+/**
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg nfct_N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg nfct_n The oversampled bandwidths
+ * \arg m The cut-off parameter
+ * \arg nfct_flags The flags known to nfct
+ * \arg fftw_flags The flags known to fftw
+ *
+ * \author Steffen Klatt
+ */ 
+void nfct_init_guru( nfct_plan *ths_plan, int d, int *nfct_N, int M_total, int *nfct_n,
+                         int m, unsigned nfct_flags, unsigned fftw_flags);
  
-/** wrapper for nfct_init and d=1 
+/** 
+ * precomputes the values psi 
+ * if the PRE_PSI is set the application program has to call this routine 
+ * after setting the nodes this_plan->x 
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */ 
-void nfct_init_1d( nfct_plan *this_plan, int N1, int M); 
- 
-/** wrapper for nfct_init and d=2 
- */ 
-void nfct_init_2d( nfct_plan *this_plan, int N1, int N2, int M); 
- 
-/** wrapper for nfct_init and d=3 
- */ 
-void nfct_init_3d( nfct_plan *this_plan, int N1, int N2, int N3, int M); 
- 
-/** initialization for direct transform, simple interface 
- */ 
-void nfct_init( nfct_plan *this_plan, int d, int *N, int M); 
- 
-/** initialization for direct transform, guru interface 
- */ 
-void nfct_init_guru( nfct_plan *this_plan, int d, int *N, int M, int *n, 
-                         int m, unsigned nfct_flags, unsigned fftw_flags); 
- 
-/** precomputes the values psi 
- *  if the PRE_PSI is set the application program has to call this routine 
- *  after setting the nodes this_plan->x 
- */ 
-void nfct_precompute_psi( nfct_plan *this_plan); 
+void nfct_precompute_psi( nfct_plan *ths_plan); 
 
 
-/** see formula (1.1), computes in a fast and approximative way 
- * for j=0,...,M-1                                                              
- *  f^C[j] = sum_{k in I_0^(N,d)} f_hat^C[k] * cos(2 pi k x[j]) 
+/** 
+ * executes a NFCT (approximate,fast), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^C(x_j) = sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */ 
-void nfct_trafo( nfct_plan *this_plan); 
+void nfct_trafo( nfct_plan *ths_plan); 
 
-/* the slow way */
-void ndct_trafo( nfct_plan *this_plan); 
+/** 
+ * executes a NDCT (exact,slow), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^C(x_j) = sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+void ndct_trafo( nfct_plan *ths_plan);
  
+/** 
+ * executes a transposed NFCT (approximate,fast), computes for \f$k \in I_0^{N,d}\f$
+ * \f$h^C(k) = sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+void nfct_transposed( nfct_plan *ths_plan); 
 
-/** see formula (1.2), computes in a fast and approximative way 
- * for k in I_N^d 
- *  f_hat_C[k] = sum_{j=0}^{M-1} f_S[j] * cos(2 pi k x[j]) 
- */ 
-void nfct_transposed( nfct_plan *this_plan); 
-
-/* the slow way */ 
-void ndct_transposed( nfct_plan *this_plan); 
+/** 
+ * executes a direct transposed NDCT (exact,slow), computes for \f$k \in I_0^{N,d}\f$
+ * \f$h^C(k) = sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+void ndct_transposed( nfct_plan *ths_plan); 
  
-
-/** finalisation for direct transform 
- */ 
-void nfct_finalize( nfct_plan *this_plan);
+/**
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt 
+ */
+void nfct_finalize( nfct_plan *ths_plan);
 
 /** @}  
  */
 
 
+/** @defgroup nfst Group
+ * direct and fast computation of the
+ * discrete sine transform at nonequispaced knots in time/spatial domain
+ * @{ 
+ */
 
+/** Structure for a transform plan */
 typedef struct nfst_plan_ 
 {
   /** api */
   MACRO_MV_PLAN(double);
 
   int d;                                /**< dimension, rank                  */
-  int *N;                               /**< cut-off-frequencies              */
-  int *dst_N;                           /**< N-1                              */
+  int *nfst_N;                          /**< cut-off-frequencies              */
+  int *N;                               /**<                                  */
   double *sigma;                        /**< oversampling-factor              */
+  int *nfst_n;                          /**< dst1-length = n/2-1              */
   int *n;                               /**< n = sigma*N                      */
-  int n_total;                          /**< n0 * n1 *...* n(d-1)             */        
-  int *dst_n;                           /**< dst1-length = n/2-1              */
-  int dst_n_total;                      /**< dst_n0 * dst_n1 *...* dst_n(d-1) */
+
   int m;                                /**< cut-off parameter in time-domain */
+
+  double nfst_full_psi_eps;
   double *b;                            /**< shape parameters                 */
 
   unsigned nfst_flags;                  /**< flags for precomputation, malloc */
   unsigned fftw_flags;                  /**< flags for the fftw               */
 
   double *x;                            /**< nodes (in time/spatial domain)   */
-
-  double *f_hat_S;                      /**< fourier coefficients, equispaced */
-  double *f_S;                          /**< samples at nodes x               */
 
   /** internal */
   fftw_plan  my_fftw_r2r_plan;         /**< fftw_plan forward                */
@@ -316,7 +388,6 @@ typedef struct nfst_plan_
   int size_psi;                         /**< only for thin B                  */
   int *psi_index_g;                     /**< only for thin B                  */
   int *psi_index_f;                     /**< only for thin B                  */
-  double nfst_full_psi_eps;
 
 
   double *g;
@@ -329,63 +400,141 @@ typedef struct nfst_plan_
 } nfst_plan;
 
 
-
-/** @defgroup nfct Group for direct nfst 
- * This group contains routines for 
- * direct fast sine transform at nonequispaced knots
- * @{ 
+/**
+ * Creates a 1-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfst_N0 The bandwidth \f$N\f$
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
  */
+void nfst_init_1d( nfst_plan *ths_plan, int nfst_N0, int M_total);
 
-/** wrapper for nfst_init and d=1
+/**
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfst_N0 The bandwidth of dimension 1
+ * \arg nfst_N1 The bandwidth of dimension 2
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
  */
-void nfst_init_1d( nfst_plan *this_plan, int N1, int M);
+void nfst_init_2d( nfst_plan *ths_plan, int nfst_N0, int nfst_N1, int M_total);
 
-/** wrapper for nfst_init and d=2
+/**
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg nfst_N0 The bandwidth of dimension 1
+ * \arg nfst_N1 The bandwidth of dimension 2
+ * \arg nfst_N2 The bandwidth of dimension 3
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
  */
-void nfst_init_2d( nfst_plan *this_plan, int N1, int N2, int M);
+void nfst_init_3d( nfst_plan *ths_plan, int nfst_N0, int nfst_N1, int nfst_N2, int M_total);
 
-/** wrapper for nfst_init and d=3
+/**
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg nfst_N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
  */
-void nfst_init_3d( nfst_plan *this_plan, int N1, int N2, int N3, int M);
+void nfst_init( nfst_plan *ths_plan, int d, int *nfct_N, int M_total);
 
-/** initialisation for direct transform, simple interface
+/**
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg nfst_N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg nfst_n The oversampled bandwidths
+ * \arg m The cut-off parameter
+ * \arg nfst_flags The flags known to nfst
+ * \arg fftw_flags The flags known to fftw
+ *
+ * \author Steffen Klatt
  */
-void nfst_init( nfst_plan *this_plan, int d, int *N, int M);
-
-/** initialisation for direct transform, specific interface
- */
-void nfst_init_guru( nfst_plan *this_plan, int d, int *N, int M, int *n,
+void nfst_init_guru( nfst_plan *ths_plan, int d, int *nfst_N, int M_total, int *nfst_n,
                      int m, unsigned nfst_flags, unsigned fftw_flags);
 
-/** precomputes the values psi
- *  if the PRE_PSI is set the application program has to call this routine
- *  after setting the nodes this_plan->x
+/** 
+ * precomputes the values psi 
+ * if the PRE_PSI is set the application program has to call this routine 
+ * after setting the nodes this_plan->x 
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */
-void nfst_precompute_psi( nfst_plan *this_plan);
+void nfst_precompute_psi( nfst_plan *ths_plan);
 
-
-/** see formula (1.1), computes in a fast and approximative way
- * for j=0,...,M-1                                                             
- *  f^S[j] = sum_{k in I_1^N,d} f_hat^S[k] * sin(2 pi k x[j])
+/** 
+ * executes a NFST (approximate,fast), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^S(x_j) = sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */
-void nfst_trafo( nfst_plan *this_plan);
-/* the slow way */
-void ndst_trafo( nfst_plan *this_plan);
+void nfst_trafo( nfst_plan *ths_plan);
 
-void nfst_full_psi( nfst_plan *this_plan, double eps);
-
-
-/** see formula (1.2), computes in a fast and approximative way
- * for k in I_N^d
- *  f_hat_S[k] = sum_{j=0}^{M-1} f_S[j] * sin(2 pi k x[j])
+/** 
+ * executes a NDST (exact,slow), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^S(x_j) = sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */
-void nfst_transposed( nfst_plan *this_plan);
-/* the slow way */
-void ndst_transposed( nfst_plan *this_plan);
+void ndst_trafo( nfst_plan *ths_plan);
 
-/** finalisation for direct transform
+
+
+/** 
+ * executes a transposed NFST (approximate,fast), computes for \f$k \in I_1^{N,d}\f$
+ * \f$h^S(k) = sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
  */
-void nfst_finalize( nfst_plan *this_plan);                      
+void nfst_transposed( nfst_plan *ths_plan);
+
+/** 
+ * executes a direct transposed NDST (exact,slow), computes for \f$k \in I_1^{N,d}\f$
+ * \f$h^S(k) = sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$ 
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+void ndst_transposed( nfst_plan *ths_plan);
+
+/**
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt 
+ */
+void nfst_finalize( nfst_plan *ths_plan);
+
+/**
+ * 
+ * 
+ * \arg ths_plan The plan for the transform
+ * 
+ */
+void nfst_full_psi( nfst_plan *ths_plan, double eps);
+
 /** @} 
  */ 
 
@@ -1172,8 +1321,8 @@ F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
 
 
 MACRO_SOLVER_PLAN(nfft, complex)
-/*MACRO_SOLVER_PLAN(nfct, double)
-MACRO_SOLVER_PLAN(nfst, double)*/
+MACRO_SOLVER_PLAN(nfct, double)
+/*MACRO_SOLVER_PLAN(nfst, double)*/
 MACRO_SOLVER_PLAN(nnfft, complex)
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex)
