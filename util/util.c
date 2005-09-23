@@ -99,6 +99,21 @@ int nfft_prod_int(int *vec, int d)
   return prod;
 }
 
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
+ */
+int nfct_prod_int(int *vec, int d)
+{
+  nfft_prod_int( vec, d);
+}
+
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
+ */
+int nfst_prod_int(int *vec, int d)
+{
+  nfft_prod_int( vec, d);
+}
+   
+
 /** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$.
  */
 int nfft_plain_loop(int *idx,int *N,int d)
@@ -807,6 +822,20 @@ double dot_complex(complex *x, int n)
   return dot;
 }
 
+/** Computes the inner/dot product \f$x^H x\f$.
+ */
+double dot_double(double *x, int n)
+{
+  int k;
+  double dot;
+
+  for(k=0,dot=0; k<n; k++)
+    dot+=x[k]*x[k];
+
+  return dot;
+}
+
+
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
 double dot_w_complex(complex *x, double *w, int n)
@@ -819,6 +848,20 @@ double dot_w_complex(complex *x, double *w, int n)
 
   return dot;
 }
+
+/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
+ */
+double dot_w_double(double *x, double *w, int n)
+{
+  int k;
+  double dot;
+
+  for(k=0,dot=0.0; k<n; k++)
+    dot+=w[k]*x[k]*x[k];
+
+  return dot;
+}
+
 
 /** Computes the weighted inner/dot product 
     \f$x^H (w\odot w2\odot w2 \odot x)\f$.
@@ -878,6 +921,17 @@ void cp_a_complex(complex *x, double a, complex *y, int n)
     x[k]=a*y[k];
 }
 
+/** Copies \f$x \leftarrow a y\f$.
+ */
+void cp_a_double(double *x, double a, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=a*y[k];
+}
+
+
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
 void cp_w_complex(complex *x, double *w, complex *y, int n)
@@ -887,6 +941,18 @@ void cp_w_complex(complex *x, double *w, complex *y, int n)
   for(k=0;k<n;k++)
     x[k]=w[k]*y[k];
 }
+
+/** Copies \f$x \leftarrow w\odot y\f$.
+ */
+void cp_w_double(double *x, double *w, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=w[k]*y[k];
+}
+
+
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
@@ -898,6 +964,17 @@ void upd_axpy_complex(complex *x, double a, complex *y, int n)
     x[k]=a*x[k]+y[k];
 }
 
+/** Updates \f$x \leftarrow a x + y\f$.
+ */
+void upd_axpy_double(double *x, double a, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+y[k];
+}
+
+
 /** Updates \f$x \leftarrow x + a y\f$.
  */
 void upd_xpay_complex(complex *x, double a, complex *y, int n)
@@ -907,6 +984,18 @@ void upd_xpay_complex(complex *x, double a, complex *y, int n)
   for(k=0;k<n;k++)
     x[k]+=a*y[k];
 }
+
+/** Updates \f$x \leftarrow x + a y\f$.
+ */
+void upd_xpay_double(double *x, double a, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]+=a*y[k];
+}
+
+
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
@@ -918,6 +1007,17 @@ void upd_axpby_complex(complex *x, double a, complex *y, double b, int n)
     x[k]=a*x[k]+b*y[k];
 }
 
+/** Updates \f$x \leftarrow a x + b y\f$.
+ */
+void upd_axpby_double(double *x, double a, double *y, double b, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+b*y[k];
+}
+
+
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
 void upd_xpawy_complex(complex *x, double a, double *w, complex *y, int n)
@@ -928,6 +1028,18 @@ void upd_xpawy_complex(complex *x, double a, double *w, complex *y, int n)
     x[k]+=a*w[k]*y[k];
 }
 
+/** Updates \f$x \leftarrow x + a w\odot y\f$.
+ */
+void upd_xpawy_double(double *x, double a, double *w, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]+=a*w[k]*y[k];
+}
+
+
+
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
 void upd_axpwy_complex(complex *x, double a, double *w, complex *y, int n)
@@ -937,6 +1049,17 @@ void upd_axpwy_complex(complex *x, double a, double *w, complex *y, int n)
   for(k=0;k<n;k++)
     x[k]=a*x[k]+w[k]*y[k];
 }
+
+/** Updates \f$x \leftarrow a x +  w\odot y\f$.
+ */
+void upd_axpwy_double(double *x, double a, double *w, double *y, int n)
+{
+  int k;
+
+  for(k=0;k<n;k++)
+    x[k]=a*x[k]+w[k]*y[k];
+}
+
 
 void fftshift_complex(complex *x, int d, int* N)
 {
@@ -986,6 +1109,24 @@ double l_1_complex(complex *x, complex *y, int n)
   return l1;
 }
 
+double l_1_double(double *x, double *y, int n)
+{
+  int k;
+  double l1;
+
+  if(y==NULL)
+    for(k=0,l1=0; k<n; k++)
+      l1+=fabs(x[k]);
+  else
+    for(k=0,l1=0; k<n; k++)
+      l1+=fabs(x[k]-y[k]);
+
+  return l1;
+}
+
+
+
+
 double l_2_complex(complex *x, complex *y, int n)
 {
   int k;
@@ -1000,6 +1141,24 @@ double l_2_complex(complex *x, complex *y, int n)
   
   return sqrt(l22);
 }
+
+double l_2_double(double *x, double *y, int n)
+{
+  int k;
+  double l22;
+
+  if(y==NULL)
+    for(k=0,l22=0; k<n; k++)
+      l22+=x[k]*x[k];
+  else
+    for(k=0,l22=0; k<n; k++)
+      l22+=(x[k]-y[k])*(x[k]-y[k]);
+
+  return sqrt(l22);
+}
+
+
+
 
 double l_infty_complex(complex *x, complex *y, int n)
 {
@@ -1016,12 +1175,41 @@ double l_infty_complex(complex *x, complex *y, int n)
   return linfty;
 }
 
+
+double l_infty_double(double *x, double *y, int n)
+{
+  int k;
+  double linfty;
+
+  if(y==NULL)
+    for(k=0,linfty=0; k<n; k++)
+      linfty=((linfty<fabs(x[k]))?fabs(x[k]):linfty);
+  else
+    for(k=0,linfty=0; k<n; k++)
+      linfty=((linfty<fabs(x[k]-y[k]))?fabs(x[k]-y[k]):linfty);
+
+  return linfty;
+}
+
+
+
+
+
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
 double error_l_infty_complex(complex *x, complex *y, int n)
 {
   return (l_infty_complex(x, y, n)/l_infty_complex(x, NULL, n));
 }
+
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
+ */
+double error_l_infty_double(double *x, double *y, int n)
+{
+  return (l_infty_double(x, y, n)/l_infty_double(x, NULL, n));
+}
+
+
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
@@ -1031,12 +1219,31 @@ double error_l_infty_1_complex(complex *x, complex *y, int n,
   return (l_infty_complex(x, y, n)/l_1_complex(z, NULL, m));
 }
 
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
+ */
+double error_l_infty_1_double(double *x, double *y, int n,
+                              double *z, int m)
+{
+  return (l_infty_double(x, y, n)/l_1_double(z, NULL, m));
+}
+
+
+
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
 double error_l_2_complex(complex *x, complex *y, int n)
 {
   return (l_2_complex(x, y, n)/l_2_complex(x, NULL, n));
 }
+
+/** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
+ */
+double error_l_2_double(double *x, double *y, int n)
+{
+  return (l_2_double(x, y, n)/l_2_double(x, NULL, n));
+}
+
+
 
 /** vector print
  */

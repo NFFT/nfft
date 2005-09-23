@@ -34,6 +34,7 @@ int next_power_of_2(int N);
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
  */
 int nfft_prod_int(int *vec, int d);
+int nfft_prod_int(int *vec, int d);
 
 /** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$.
  */
@@ -82,10 +83,12 @@ double i0(double x);
 /** Computes the inner/dot product \f$x^H x\f$.
  */
 double dot_complex(complex* x, int n);
+double dot_double( double*  x, int n);
 
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
 double dot_w_complex(complex* x, double* w, int n);
+double dot_w_double( double*  x, double* w, int n);
 
 /** Computes the weighted inner/dot product 
     \f$x^H (w1\odot w2\odot w2 \odot x)\f$.
@@ -100,10 +103,7 @@ double dot_w2_complex(complex* x, double* w2, int n);
 /** Copies \f$x \leftarrow y\f$.
  */
 void cp_complex(complex* x, complex* y, int n);
-
-/** Copies \f$x \leftarrow y\f$.
- */
-void cp_double(double* x, double* y, int n);
+void cp_double( double*  x, double*  y, int n);
 
 /** Copies \f$x \leftarrow a y\f$.
  */
@@ -112,26 +112,32 @@ void cp_a_complex(complex* x, double a, complex* y, int n);
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
 void cp_w_complex(complex* x, double* w, complex* y, int n);
+void cp_w_double( double*  x, double* w, double*  y, int n);
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
 void upd_axpy_complex(complex* x, double a, complex* y, int n);
+void upd_axpy_double( double*  x, double a, double*  y, int n);
 
 /** Updates \f$x \leftarrow x + a y\f$.
  */
 void upd_xpay_complex(complex* x, double a, complex* y, int n);
+void upd_xpay_double( double*  x, double a, double*  y, int n);
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
 void upd_axpby_complex(complex* x, double a, complex* y, double b, int n);
+void upd_axpby_double(  double* x, double a, double*  y, double b, int n);
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
 void upd_xpawy_complex(complex* x, double a, double* w, complex* y, int n);
+void upd_xpawy_double( double*  x, double a, double* w, double*  y, int n);
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
 void upd_axpwy_complex(complex* x, double a, double* w, complex* y, int n);
+void upd_axpwy_double( double*  x, double a, double* w, double*  y, int n);
 
 /** Swaps each half over N[d]/2.
  */
@@ -141,14 +147,28 @@ void fftshift_complex(complex *x, int d, int* N);
  */
 double error_l_infty_complex(complex *x, complex *y, int n);
 
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
+ */
+double error_l_infty_double(double *x, double *y, int n);
+
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
 double error_l_infty_1_complex(complex *x, complex *y, int n, complex *z,
                                int m);
 
+/** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
+ */
+double error_l_infty_1_double(double *x, double *y, int n, double *z,
+                               int m);
+
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
 double error_l_2_complex(complex *x, complex *y, int n);
+
+/** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
+ */
+double error_l_2_double(double *x, double *y, int n);
+
 
 void vpr_int(int *x, int n, char *text);
 
