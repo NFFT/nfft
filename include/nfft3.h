@@ -185,11 +185,9 @@ typedef struct nfct_plan_
   MACRO_MV_PLAN(double);
 
   int d;                                /**< dimension, rank                  */
-  int *nfct_N;				/**< cut-off-frequencies              */
   int *N;                               /**< cut-off-frequencies (kernel)     */
+  int *n;                               /**< length of dct-i                  */ 
   double *sigma;                        /**< oversampling-factor              */
-  int *nfct_n;                          /**< dct1-length = n/2+1              */ 
-  int *n;                               /**< sigma*N                          */ 
   int m;                                /**< cut-off parameter in time-domain */
  
   double nfct_full_psi_eps; 
@@ -224,65 +222,65 @@ typedef struct nfct_plan_
  * Creates a 1-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfct_N0 The bandwidth \f$N\f$
+ * \arg N0 The bandwidth \f$N\f$
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfct_init_1d( nfct_plan *ths_plan, int nfct_N0, int M_total); 
+void nfct_init_1d( nfct_plan *ths_plan, int N0, int M_total); 
 
 /**
  * Creates a 3-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfct_N0 The bandwidth of dimension 1
- * \arg nfct_N1 The bandwidth of dimension 2
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfct_init_2d( nfct_plan *ths_plan, int nfct_N0, int nfct_N1, int M_total); 
+void nfct_init_2d( nfct_plan *ths_plan, int N0, int N1, int M_total); 
 
 /**
  * Creates a 3-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfct_N0 The bandwidth of dimension 1
- * \arg nfct_N1 The bandwidth of dimension 2
- * \arg nfct_N2 The bandwidth of dimension 3
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
+ * \arg N2 The bandwidth of dimension 3
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */ 
-void nfct_init_3d( nfct_plan *ths_plan, int nfct_N0, int nfct_N1, int nfct_N2, int M_total); 
+void nfct_init_3d( nfct_plan *ths_plan, int N0, int N1, int N2, int M_total); 
 
 /**
  * Creates a d-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
  * \arg d the dimension
- * \arg nfct_N The bandwidths
+ * \arg N The bandwidths
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */ 
-void nfct_init( nfct_plan *ths_plan, int d, int *nfct_N, int M_total); 
+void nfct_init( nfct_plan *ths_plan, int d, int *N, int M_total); 
 
 /**
  * Creates a d-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
  * \arg d the dimension
- * \arg nfct_N The bandwidths
+ * \arg N The bandwidths
  * \arg M_total The number of nodes \f$x\f$
- * \arg nfct_n The oversampled bandwidths
+ * \arg n The oversampled bandwidths
  * \arg m The cut-off parameter
  * \arg nfct_flags The flags known to nfct
  * \arg fftw_flags The flags known to fftw
  *
  * \author Steffen Klatt
  */ 
-void nfct_init_guru( nfct_plan *ths_plan, int d, int *nfct_N, int M_total, int *nfct_n,
+void nfct_init_guru( nfct_plan *ths_plan, int d, int *N, int M_total, int *n,
                          int m, unsigned nfct_flags, unsigned fftw_flags);
  
 /** 
@@ -346,6 +344,46 @@ void ndct_transposed( nfct_plan *ths_plan);
  */
 void nfct_finalize( nfct_plan *ths_plan);
 
+/**
+ * do some adjustments (N,n) then compute PHI_HUT
+ * 
+ * \arg ths_plan the plan for the transform
+ * \arg k        index of c_phi
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+double nfct_phi_hut( nfct_plan *ths_plan, int k, int d);
+
+/**
+ * do some adjustments (N,n) then compute PHI
+ * 
+ * \arg ths_plan the plan for the transform
+ * \arg x        node \f$x\f$
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+double nfct_phi ( nfct_plan *ths_plan, double x, int d);
+
+/**
+ * returns 2(n-1),  fftw related issue
+ *
+ * \arg n       i.e. length of dct-1
+ *
+ * \author Steffen Klatt
+ */
+int nfct_fftw_2N( int n);
+
+/**
+ * returns 0.5n+1,  fftw related issue
+ *
+ * \arg n       i.e. length of dct-1
+ *
+ * \author Steffen Klatt
+ */
+int nfct_fftw_2N_rev( int n);
+
 /** @}  
  */
 
@@ -363,12 +401,9 @@ typedef struct nfst_plan_
   MACRO_MV_PLAN(double);
 
   int d;                                /**< dimension, rank                  */
-  int *nfst_N;                          /**< cut-off-frequencies              */
-  int *N;                               /**<                                  */
+  int *N;                               /**< bandwidth                        */
+  int *n;                               /**< length of dst-1                  */
   double *sigma;                        /**< oversampling-factor              */
-  int *nfst_n;                          /**< dst1-length = n/2-1              */
-  int *n;                               /**< n = sigma*N                      */
-
   int m;                                /**< cut-off parameter in time-domain */
 
   double nfst_full_psi_eps;
@@ -404,65 +439,79 @@ typedef struct nfst_plan_
  * Creates a 1-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfst_N0 The bandwidth \f$N\f$
+ * \arg N0 The bandwidth \f$N\f$
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfst_init_1d( nfst_plan *ths_plan, int nfst_N0, int M_total);
+void nfst_init_1d( nfst_plan *ths_plan, int N0, int M_total);
 
 /**
  * Creates a 3-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfst_N0 The bandwidth of dimension 1
- * \arg nfst_N1 The bandwidth of dimension 2
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfst_init_2d( nfst_plan *ths_plan, int nfst_N0, int nfst_N1, int M_total);
+void nfst_init_2d( nfst_plan *ths_plan, int N0, int N1, int M_total);
 
 /**
  * Creates a 3-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
- * \arg nfst_N0 The bandwidth of dimension 1
- * \arg nfst_N1 The bandwidth of dimension 2
- * \arg nfst_N2 The bandwidth of dimension 3
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
+ * \arg N2 The bandwidth of dimension 3
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfst_init_3d( nfst_plan *ths_plan, int nfst_N0, int nfst_N1, int nfst_N2, int M_total);
+void nfst_init_3d( nfst_plan *ths_plan, int N0, int N1, int N2, int M_total);
 
 /**
  * Creates a d-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
  * \arg d the dimension
- * \arg nfst_N The bandwidths
+ * \arg N The bandwidths
  * \arg M_total The number of nodes \f$x\f$
  *
  * \author Steffen Klatt
  */
-void nfst_init( nfst_plan *ths_plan, int d, int *nfct_N, int M_total);
+void nfst_init( nfst_plan *ths_plan, int d, int *N, int M_total);
+
+/**
+ * Creates a d-dimensional transform plan with pcific m.
+ * (just for convenience)
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg m cut-off parameter
+ *
+ * \author Steffen Klatt
+ */
+void nfst_init_m( nfst_plan *ths_plan, int d, int *N, int M_total, int m);
 
 /**
  * Creates a d-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
  * \arg d the dimension
- * \arg nfst_N The bandwidths
+ * \arg N The bandwidths
  * \arg M_total The number of nodes \f$x\f$
- * \arg nfst_n The oversampled bandwidths
+ * \arg n The oversampled bandwidths
  * \arg m The cut-off parameter
  * \arg nfst_flags The flags known to nfst
  * \arg fftw_flags The flags known to fftw
  *
  * \author Steffen Klatt
  */
-void nfst_init_guru( nfst_plan *ths_plan, int d, int *nfst_N, int M_total, int *nfst_n,
+void nfst_init_guru( nfst_plan *ths_plan, int d, int *N, int M_total, int *n,
                      int m, unsigned nfst_flags, unsigned fftw_flags);
 
 /** 
@@ -534,6 +583,46 @@ void nfst_finalize( nfst_plan *ths_plan);
  * 
  */
 void nfst_full_psi( nfst_plan *ths_plan, double eps);
+
+/**
+ * do some adjustments (N,n) then compute PHI_HUT
+ * 
+ * \arg ths_plan the plan for the transform
+ * \arg k        index of c_phi
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+double nfst_phi_hut( nfst_plan *ths_plan, int k, int d);
+
+/**
+ * do some adjustments (N,n) then compute PHI
+ * 
+ * \arg ths_plan the plan for the transform
+ * \arg x        node \f$x\f$
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+double nfst_phi ( nfst_plan *ths_plan, double x, int d);
+
+/**
+ * returns 2(n+1),  fftw related issue
+ *
+ * \arg n       i.e. length of dst-1
+ *
+ * \author Steffen Klatt
+ */
+int nfst_fftw_2N( int n);
+
+/**
+ * returns 0.5n-1,  fftw related issue
+ *
+ * \arg n       i.e. length of dct-1
+ *
+ * \author Steffen Klatt
+ */
+int nfst_fftw_2N_rev( int n);
 
 /** @} 
  */ 
@@ -1322,7 +1411,7 @@ F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
 
 MACRO_SOLVER_PLAN(nfft, complex)
 MACRO_SOLVER_PLAN(nfct, double)
-/*MACRO_SOLVER_PLAN(nfst, double)*/
+MACRO_SOLVER_PLAN(nfst, double)
 MACRO_SOLVER_PLAN(nnfft, complex)
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex)

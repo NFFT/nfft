@@ -34,7 +34,11 @@ int next_power_of_2(int N);
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
  */
 int nfft_prod_int(int *vec, int d);
-int nfft_prod_int(int *vec, int d);
+int nfct_prod_int(int *vec, int d);
+
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$.
+ */
+int nfst_prod_minus_a_int(int *vec, int a, int d);
 
 /** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$.
  */

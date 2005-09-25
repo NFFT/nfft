@@ -106,11 +106,17 @@ int nfct_prod_int(int *vec, int d)
   nfft_prod_int( vec, d);
 }
 
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$.
  */
-int nfst_prod_int(int *vec, int d)
+int nfst_prod_minus_a_int(int *vec, int a, int d)
 {
-  nfft_prod_int( vec, d);
+  int t, prod;
+
+  prod=1;
+  for(t=0; t<d; t++)
+    prod *= vec[t]-a;
+
+  return prod;
 }
    
 

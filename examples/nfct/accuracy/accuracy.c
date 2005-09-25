@@ -61,10 +61,7 @@ void accuracy(int d, int M, int m1, int m2)
     
   for( m = m1; m < m2+1; m++) {
 
-    nfct_init_guru(&my_plan, d, N, M, n, m,
-			 PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-			 FFTW_INIT| FFT_OUT_OF_PLACE, 
-			 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+    nfct_init_m(&my_plan, d, N, M, m);
       
       /** init pseudo random nodes */
     for( j = 0; j < d * M; j++)
@@ -81,7 +78,7 @@ void accuracy(int d, int M, int m1, int m2)
     /** approx. trafo and show the result */
     nfct_trafo( &my_plan);
 
-    fprintf( stderr, "%d  %e, %e\n", m,
+    printf( "%d  %e, %e\n", m,
       error_l_2_double( slow, my_plan.f, M),
       error_l_infty_1_double( slow, my_plan.f, M, my_plan.f_hat, my_plan.N_total));
       
