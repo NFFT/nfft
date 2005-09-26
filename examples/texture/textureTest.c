@@ -76,7 +76,8 @@ inline void initialize_angles(double *h_phi, double *h_theta, double *r,
 			h_theta[i] = equidist(0, TEXTURE_MAX_ANGLE / 2, t, h_theta_count, 1);
 
 			for(j = 0; j < N2; j++) {
-				r[2*(i*N2 + j)] = equidist(0, TEXTURE_MAX_ANGLE, k, r_phi_count, 0);
+				r[2*(i*N2 + j)] = equidist(-TEXTURE_MAX_ANGLE / 2, 
+						TEXTURE_MAX_ANGLE / 2, k, r_phi_count, 0);
 				r[2*(i*N2 + j) + 1] = 
 					equidist(0, TEXTURE_MAX_ANGLE / 2, o, r_theta_count, 1);
 			
@@ -512,6 +513,8 @@ void linearity_test(const char *inp) {
 	free(h_theta);
 	free(r);
 
+	fclose(inp_file);
+	
 	texture_forget();
 }
 
