@@ -118,7 +118,11 @@ Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
 %2000 {\it Mathematics Subject Classification}. 65F10, 65F15, 65T40.
 
 \noindent
-{\it Key words and phrases}.  
+{\it Radial functions are a powerful tool in many areas of multi-dimensional 
+approximation. We present a fast approximative algorithm for the evaluation of
+a linear combination of radial functions on the sphere $\mathbb{S}^2$. The 
+approach is based on an approximation to the corresponding Gramian matrix
+and fast algorithms for the computation of spherical Fourier transforms.}
 \end{abstract}
 
 
@@ -725,7 +729,7 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
     \e^{-2\sigma} \sinh \sigma \cosh \sigma$ and
     $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2} \e^{-2\sigma} (2 \sigma
     \cosh 2 \sigma + \sinh \sigma )$.
-    The assertion follows e.g. by \cite{bahu01,XXX???}
+    The assertion follows e.g. by \cite{bahu01}
   \item Using 1. and
   \begin{eqnarray*}
     \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
@@ -754,7 +758,7 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
 \end{proof}
 
 Note, that using the difference equation \eqref{eq:gauss_rec} in a forward
-recursion is numerically unstable and hence, we use \cite{XXX} for the
+recursion is numerically unstable and hence, we use \cite{gsl} for the
 computation of the Fourier-Legendre coefficients of the Gaussian kernel.
 
 We conclude this section by the following corollary on the matrix norm

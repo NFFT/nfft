@@ -37,7 +37,9 @@ AC_OUTPUT(Makefile \
           solver/Makefile \
           nfsft/Makefile \
           nfsft/obsolete/Makefile \
-					texture/Makefile \
+          nfct/Makefile \
+          nfst/Makefile \
+          texture/Makefile \
           examples/Makefile \
           examples/nfft/Makefile \
           examples/nnfft/Makefile \
@@ -50,6 +52,9 @@ AC_OUTPUT(Makefile \
           examples/nsfft/Makefile \
           examples/nfsft/Makefile
           examples/nfsft/obsolete/Makefile
-					examples/fastgauss/Makefile \
-					examples/texture/Makefile \
+          examples/fastgauss/Makefile \
+          examples/texture/Makefile \
+          examples/nfct/Makefile \
+          examples/nfct/accuracy/Makefile \
+          examples/nfct/simple_itest/Makefile \
 )
