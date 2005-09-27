@@ -56,5 +56,4 @@ AC_OUTPUT(Makefile \
           examples/texture/Makefile \
           examples/nfct/Makefile \
           examples/nfct/accuracy/Makefile \
-          examples/nfct/simple_itest/Makefile \
 )

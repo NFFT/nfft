@@ -101,6 +101,7 @@ void texture_adjoint(texture_plan *ths) {
 	int i;
 
 	memcpy(ths->nfsft_f, ths->f, sizeof(complex) * ths->M_total);
+	memset(ths->f_hat, 0, sizeof(complex) * ths->N_total);
 	
 	for(i = 0; i < ths->N1; i++) {
 		nfsft_plan_old nfsft;
@@ -326,7 +327,7 @@ static void process_results(texture_plan *ths, int i) {
 	double p_old1 = p_diag;
 	int l, n;
 
-	ths->f_hat[texture_flat_index(0, 0, 0)] = ths->nfsft_f_hat[0 + ths->N][0];
+	ths->f_hat[texture_flat_index(0, 0, 0)] += ths->nfsft_f_hat[0 + ths->N][0];
 
 	for(l = 1; l <= ths->N; l++) {
 		int m;
@@ -345,17 +346,17 @@ static void process_results(texture_plan *ths, int i) {
 
 	for(n = 1; n <= ths->N; n++) {
 		int m;
-		p_diag *= sqrt((double) (2*n - 1) / (double) (2*n) * ths->sin_h_theta[i]);
+		p_diag *= sqrt((double) (2*n - 1) / (double) (2*n)) * ths->sin_h_theta[i];
 		p_old2 = 0;
 		p_old1 = p_diag;
 
 		for(m = -n; m <= n; m++) {
 			ths->f_hat[texture_flat_index(n, m, n)] 
-				+= p_diag * ths->nfsft_f_hat[m + ths->N][l] 
+				+= p_diag * ths->nfsft_f_hat[m + ths->N][n] 
 					* (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i]));
 			
 			ths->f_hat[texture_flat_index(n, m, -n)] 
-				+= p_diag * ths->nfsft_f_hat[m + ths->N][l]
+				+= p_diag * ths->nfsft_f_hat[m + ths->N][n]
 					* (cos(n * ths->h_phi[i]) - I * sin(n * ths->h_phi[i]));
 		}
 
