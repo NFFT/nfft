@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.0'
+                     CreatedBy='Mathematica 5.2'
 
                     Mathematica-Compatible Notebook
 
@@ -41,24 +41,24 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      3586,         92]*)
-(*NotebookOutlinePosition[      4225,        114]*)
-(*  CellTagsIndexPosition[      4181,        110]*)
+(*NotebookOptionsPosition[      3581,         92]*)
+(*NotebookOutlinePosition[      4220,        114]*)
+(*  CellTagsIndexPosition[      4176,        110]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
 Cell[BoxData[{
-    \(\[Gamma][\[Sigma]_]\  := \ \(1\/\@\(4  \[Pi]\)\) \((\(1\/\(2  \
-\[Sigma]\)\) \((1 - Exp[\(-2\) \[Sigma]])\))\)\^\(-\(1\/2\)\)\), "\n", 
+    \(\[Gamma][\[Sigma]_]\  := \ \((\(\((1 - \[ExponentialE]\^\(\(-8\)\ \
+\[Sigma]\))\)\ \[Pi]\)\/\(2\ \[Sigma]\))\)\^\(-\(1\/2\)\)\), "\n", 
     \(G[x_, \[Sigma]_]\  := \ \[Gamma][\[Sigma]] 
-        Exp[\(\[Sigma]\/2\) \((x - 1)\)]\)}], "Input"],
+        Exp[2  \[Sigma] \((x - 1)\)]\)}], "Input"],
 
 Cell[BoxData[
-    \(\(GaussianKernelParameters\  = \ {{2.0, {Dashing[{0.00}], 
-              Thickness[0.002]}}, {10.0, {Dashing[{0.010, \ 0.005}], 
-              Thickness[0.002]}}, {80.0, {Dashing[{0.005, \ 0.005}], 
+    \(\(GaussianKernelParameters\  = \ {{1.0, {Dashing[{0.00}], 
+              Thickness[0.002]}}, {5.0, {Dashing[{0.010, \ 0.005}], 
+              Thickness[0.002]}}, {20.0, {Dashing[{0.005, \ 0.005}], 
               Thickness[0.002]}}};\)\)], "Input"],
 
 Cell[BoxData[
@@ -90,8 +90,8 @@ Cell[BoxData[
 
 Cell[BoxData[""], "Input"]
 },
-FrontEndVersion->"5.0 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 755}},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowSize->{1144, 728},
 WindowMargins->{{52, Automatic}, {-85, Automatic}}
 ]
@@ -113,12 +113,12 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 261, 4, 84, "Input"],
-Cell[2018, 57, 268, 4, 43, "Input"],
-Cell[2289, 63, 1018, 17, 135, "Input"],
-Cell[3310, 82, 153, 3, 27, "Input"],
-Cell[3466, 87, 87, 1, 27, "Input"],
-Cell[3556, 90, 26, 0, 27, "Input"]
+Cell[1754, 51, 257, 4, 69, "Input"],
+Cell[2014, 57, 267, 4, 43, "Input"],
+Cell[2284, 63, 1018, 17, 135, "Input"],
+Cell[3305, 82, 153, 3, 27, "Input"],
+Cell[3461, 87, 87, 1, 27, "Input"],
+Cell[3551, 90, 26, 0, 27, "Input"]
 }
 ]
 *)

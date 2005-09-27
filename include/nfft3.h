@@ -1189,7 +1189,7 @@ typedef struct nfsft_plan_
   MACRO_MV_PLAN(complex);          
 
   /* Public members */
-  int N;                                 /**< The bandwidth \f$N\f$           */
+  int N;                                /**< The bandwidth \f$N\f$           */
   double *x;                            /**< The nodes \f$\mathcal{X} = 
                                              \left(\xi_d\right)_{d=0}
                                              ^{D-1}\f$                       */

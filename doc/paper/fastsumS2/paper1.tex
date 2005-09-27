@@ -14,6 +14,8 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{showkeys}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
@@ -211,14 +213,19 @@ and
 \begin{equation}\label{three2}
 \paren{2k+1} \fun{P_{k}}{x} = \fun{P_{k+1}'}{x} - \fun{P_{k-1}'}{x}.
 \end{equation}
+The more general \emph{associated Legendre functions} $P_{k}^n$, $k \in \NZ$, $n \le k$, are defined by
+\[
+  \fun{P_{k}^n}{x} := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
+  \left(1-x^2\right)^{n/2} \frac{\dx^n}{\dx x^n} \fun{P_{k}}{x}.
+\]
 
 In spherical coordinates, a point $\V{\xi} \in \twosphere$ is identified with 
-a vector $(\vartheta,\varphi) \in [0,\pi] \times [0,2\pi)$. 
+a vector $(\vartheta,\varphi) \in [0,\pi] \times [-\pi,\pi)$. 
 Let the space of real-valued continuous functions on the sphere be decomposed
 into the direct sum of spaces of \emph{spherical harmonics}, i.e.
-$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$, and let
-$\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ denote the 
-standard orthonormal basis of spherical harmonics given by
+$C(\twosphere)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$. We denote by 
+$\set{Y_{k}^n}_{k \in \NZ; n=-k,\ldots,k}$ the 
+standard $\text{L}^2$-orthonormal basis of spherical harmonics given by
 \[
   \fun{Y_{k}^n}{\V{\xi}} = \fun{Y_{k}^n}{\vartheta,\varphi} := 
   \sqrt{\frac{2k+1}{4\pi}} 
@@ -261,50 +268,61 @@ functions is considered in detail in \cite{CaFi}.
 \section{Fast Summation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Basically, the first representation in \eqref{equation:kernelExpansion} allows
-the construction of fast algorithms, which is due to the separation of the
-knots $\V{\eta}$ and $\V{\xi}$.
-We propose to simply truncate the series \eqref{equation:kernelExpansion} at
-degree $M \in \NZ$, i.e.,
+the construction of fast algorithms, owing to the separation of the
+nodes $\V{\eta}$ and $\V{\xi}$.
+We simply propose to truncate the series \eqref{equation:kernelExpansion} at a fixed degree $M \in \NZ$, i.e.
 \begin{equation}
   \label{Applications:TruncatedSeries}
-  \fun{K}{\V{\eta}_{l} \cdot \V{\xi}} \approx \fun{K_{M}}{\V{\eta}_{l} \cdot
+  \fun{K}{\V{\eta} \cdot \V{\xi}} \approx \fun{K_{M}}{\V{\eta} \cdot
   \V{\xi}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
-  \fun{Y_{k}^n}{\V{\xi}} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}.
+  \overline{\fun{Y_{k}^n}{\V{\eta}}} \fun{Y_{k}^n}{\V{\xi}}.
 \end{equation}
 
 Substituting \eqref{Applications:TruncatedSeries} into
 \eqref{Applications:KernelSum} and interchanging the order of summation we
 finally obtain the approximation
 \[
-  \fun{f_{M}}{\xi} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
+  \fun{f}{\V{\xi}} \approx \fun{f_{M}}{\V{\xi}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
   \paren{\sum_{l = 0}^{L-1} b_{l} \overline{\fun{Y_{k}^n}{\V{\eta}_{l}}}}
-  \fun{Y_{k}^n}{\V{\xi}}.
+  \fun{Y_{k}^n}{\V{\xi}}
 \]
+to be evaluated at the $D$ target nodes $\V{\xi}_{d}$.
 
-The expression in the inner brackets can be computed by an adjoint
-Nonequispaced Fast Spherical Fourier Transform (adjoint NFSFT) in
-$\mathcal{O}(L + M^2 \log^2 M)$ arithmetic operations.
-This is followed by $(M+1)^2$ multiplications with the Fourier-Legendre
-coefficients $\fun{K^{\wedge}}{k}$, and completed by a NFSFT to compute the
-outer sum for the target nodes $\mathcal{X}$ in $\mathcal{O}(D + M^2 \log^2
+Our algorithm now works as follows: The expression in the inner brackets 
+can be evaluated by an \emph{adjoint nonuniform fast spherical Fourier 
+transform (adjoint NFSFT)} with $\mathcal{O}(L + M^2 \log^2 M)$ arithmetic 
+operations involving the $L$ source nodes $\V{\eta}_{l}$. This is followed 
+by $(M+1)^2$ multiplications with the Fourier-Legendre coefficients 
+$\fun{K^{\wedge}}{k}$, and completed by a NFSFT to evaluate the
+outer sum at the $D$ target nodes $\V{\xi}_{d}$ with $\mathcal{O}(D + M^2 \log^2
 M)$ arithmetic operations.
 
-Here, we use the second representation of Equation
-\eqref{equation:kernelExpansion} in conjunction with \eqref{equation:legtrafo}
-and the recurrence relations \eqref{three1} and \eqref{three2} to precompute
-the needed coefficients $\fun{K^{\wedge}}{k}$.
-Discretising \eqref{equation:legtrafo} yields a second method within the
-precomputation step of the fast summation algorithm, but we do not focus on
-this method and the error it introduces, since all considered Fourier-Legendre
-coefficients obey an exact precomputation scheme.
+In Section \ref{Basics:SphericalKernels}, we will show that the choice 
+of the cutoff degree $M$ only depends on the desired accuracy
+and the particular zonal function $\fun{K}{\V{\eta} \: \cdot \,}$, but neither
+on the numbers $L$ and $D$ of source nodes $\V{\eta}_{l}$ and target nodes 
+$\V{\xi}_{d}$, nor on their distribution.
+In total, this yields an $\bigo{L + D}$ algorithm for evaluating the 
+approximation $f_{M}$.
 
-{\bf JENS}
-  NFSFT ist auch nur approximativ. Referenzen zu Driscoll, Healy, usw..... 
-, see \cite{kupo02, keiner05} for details
+The nonuniform fast spherical Fourier transform algorithm (\cite{kupo02}) is 
+a derivative of the stabilized Driscoll-Healy algorithm \cite{drhe,postta97}
+combined with the fast Fourier transform for nonequispaced nodes (NFFT)
+described for example in \cite{postta}. Recently, the corresponding adjoint 
+algorithm was derived and implemented (see \cite{keiner05}). The algorithms 
+themselves are approximative, on the one hand owing to the thresholded stabilization scheme used, and on the other by employing the approximative
+NFFT algorithm.
+
+For practical calculations, the Fourier-Legendre coefficients 
+$\fun{K^{\wedge}}{k}$ have to be stored in advance in a precomputation step. 
+For some examples these coefficients are known explicitly whereas for others, one might use \eqref{equation:legtrafo}
+and the recurrence relations \eqref{three1} and \eqref{three2} to derive
+recursion formulae for the needed coefficients $\fun{K^{\wedge}}{k}$.
+Discretising \eqref{equation:legtrafo} is a second possibility for obtaining them.
+But here, we do not focus on the latter method and the error it would introduce, since for all Fourier-Legendre coefficients considered later on, an exact computation scheme is available.
 
 \begin{remark}\label{rem:rankM}
-The original problem \eqref{Applications:KernelSum} is stated in matrix-vector
-notation as $\V{f}=\V{K} \V{b}$
+In matrix-vector notation the original problem \eqref{Applications:KernelSum} reads $\V{f}=\V{K} \: \V{b}$,
 %\begin{equation}\label{eq:MV}
 %\V{f}=\V{K} \V{b}
 %\end{equation}
@@ -315,8 +333,7 @@ where
   \V{\xi}_d})_{d=0,\hdots,D-1;l=0,\hdots,L-1}\in \R^{D\times L}\,.
 \end{align*}
 
-Furthermore, our approach, a particular rank $(M+1)^2$ approximation, takes
-the form
+Our approach is a particular rank $(M+1)^2$ approximation to the matrix $\V{K}$ and takes the form
 $
   \V{f}_M = \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
   \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}
@@ -335,54 +352,62 @@ with
   \V{Y_{\mathcal{Y}}} & := \paren{\fun{Y_k^n}{\V{\eta}_{l}}}_{l=0,\ldots,L-1;
   k=0,\ldots,M,\:n=-k,\ldots,k} \in \C^{L \times \paren{M+1}^2}.
 \end{align}
-
-Replacing the NFSFT by its slow version, which takes $\mathcal{O}(L M^2)$ and
-$\mathcal{O}(D M^2)$ arithmetic operations, respectively, yields an
-$\mathcal{O}(L+D)$ algorithm, too.
 \end{remark}
 
-In summary, we propose the following algorithm.
+In summary, we propose the following algorithm:
 \begin{algorithm}[h]
   \caption{Fast Summation}
   \label{Applications:Algorithm:FastSummation}    
   \begin{algorithmic}
-    \STATE  Input:  $L \in \N$, $\paren{b_{l}}_{l=0}^{L-1}$,
-                    $\paren{\V{\eta}_{l}}_{l=0}^{L-1}$,  
-                    $D \in \N$, $\paren{\V{\xi}_{d}}_{d=0}^{D-1}$, $M \in \NZ,
-                    \paren{\fun{K^{\wedge}}{k}}_{k=0}^M$ 
+    \STATE Input:             $L \in \N$, coefficients $\V{b}:=\paren{b_{l}}_{l=0}^{L-1}$, 
+                              $b_{l} \in \R$, source nodes $\V{\eta}_{l} \in \twosphere$ for $l=0,
+                              \ldots,L-1$, \\ 
+    \STATE \invisible{Input:} $D \in \N$, target nodes $\V{\xi}_{d} \in \twosphere$ for $d=0,\ldots,D-1$,\\
+    \STATE \invisible{Input:} $M \in \NZ$, Fourier-Legendre coefficients $\fun{K^{\wedge}}{k}$ for $k=0,\ldots,M$.  
     \STATE
-    \STATE Compute $\V{\tilde{b}} := \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}$ by an
-                    adjoint NFSFT 
+%    \STATE Let $\V{b} := (b_{l})_{l=0}^{L-1}$, 
+%           $\V{\tilde{b}} := \paren{\tilde{b}_k^n}_{k=0,\ldots,M, n=-k,\ldots,k}$,
+%           $\V{a} := \paren{a_{k}^n}_{k=0,\ldots,M, n=-k,\ldots,k}$
+    \STATE
+    \STATE Compute $\V{\tilde{a}} := \V{Y_{\mathcal{Y}}}^{\adj} \: \V{b}$ 
+           with $\V{\tilde{a}} := (\tilde{a}_k^n)_{k=0,\ldots,M, n=-k,\ldots,k}$ 
+           by an adjoint NFSFT.
     \FOR {$k=0,\ldots,M$} 
       \FOR {$n=-k,\ldots,k$} 
-        \STATE Set $a_{k}^n := \tilde{b}_{k}^n \: \fun{K^{\wedge}}{k}$
+        \STATE Set $a_{k}^n := \tilde{a}_{k}^n \: \fun{K^{\wedge}}{k}$.
       \ENDFOR
     \ENDFOR
-    \STATE Compute $\V{f}_M := \V{Y_{\mathcal{X}}} \: \V{a}$ by a NFSFT
+    \STATE Compute $\V{f}_M := \V{Y_{\mathcal{X}}} \: \V{a}$ with 
+           $\V{a} := \paren{a_k^n}_{k=0,\ldots,M, n=-k,\ldots,k}$ 
+           by a NFSFT.
     \STATE
     \STATE Output: $\paren{\fun{f_M}{\V{\xi}_{d}}}_{d=0}^{D-1}$ approximating
-                    $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$ 
+                    $\paren{\fun{f}{\V{\xi}_{d}}}_{d=0}^{D-1}$.
     \STATE
-    \STATE Complexity: $\mathcal{O}\left(M^2 \log^2M + L + D\right)$  
+    \STATE Complexity: $\mathcal{O}\left(M^2 \log^2M + L + D\right)$.  
 \end{algorithmic}
 \end{algorithm}
 
-In Section \ref{Basics:SphericalKernels}, we decompose the error and show
-that the degree $M$ depends only on the desired accuracy of our algorithm and
-on the particular zonal function $\fun{K}{\V{\eta} \: \cdot}$, but not on the
-numbers $L$ and $D$.
-Thus, the overall arithmetic complexity of our algorithm is $\mathcal{O}(L +
-D)$, in particular this performance does not depend on the distribution of the
-nodes $\V{\xi}_{d}$ and $\V{\eta}_{l}$.
+\begin{remark}
+Replacing the NFSFT algorithms by their slow versions \emph{nonuniform 
+discrete spherical Fourier transform (NDSFT)} and \emph{adjoint NDSFT}, i.e. 
+direct algorithms which need 
+$\mathcal{O}(L M^2)$ and
+$\mathcal{O}(D M^2)$ arithmetic operations for the multiplications with the 
+matrices $\V{Y}_{\mathcal{Y}}^{\h}$ and $\V{Y}_{\mathcal{X}}$, respectively, 
+yields an $\mathcal{O}(L+D)$ algorithm, too. Nevertheless, the fast 
+algorithms are the key for applications to large data sets since they 
+decouple the cutoff degree $M$ from the numbers of nodes $L$ and $D$.
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Error estimates and examples}\label{Basics:SphericalKernels}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Beyond the well-known errors appearing in the NFFT computations, see
-\cite{postta01}, our algorithm produces the following error.
+Besides the well-known errors appearing in the NFFT computations, see
+\cite{postta01}, our algorithm causes the following systematic error:
 \begin{lemma}\label{lemma:error}
-  The proposed approximation obeys the uniform error estimate
+  The proposed approximation $f_{M}$ obeys the uniform error estimate
   \begin{equation*}
     \left\|f - f_{M}\right\|_{\infty} \le \left\|\V{b}\right\|_1 \sum_{k>M}
     \frac{2k+1}{4\pi} \abs{\fun{K^{\wedge}}{k}}.
@@ -463,23 +488,25 @@ Beyond the well-known errors appearing in the NFFT computations, see
 \end{proof}
 
 Thus, the error decouples into a part solely dependent on the coefficients
-$b_l$ and a decay condition on the Fourier-Legendre coefficients of the
-particular kernel.
-General results on the decay of Fourier-Legendre coefficients are given in
-\cite{Sc97,bahu01,CaFi}, i.e., for a fixed set of parameters the coefficients
+$b_l$ and a decay condition for the Fourier-Legendre coefficients 
+$\fun{K^{\wedge}}{k}$ of the
+particular zonal function $\fun{K}{\V{\eta} \: \cdot \,}$.
+General results for the decay of Fourier-Legendre coefficients are given in
+\cite{Sc97,bahu01,CaFi}: For a fixed set of parameters, the coefficients
 $\fun{K^{\wedge}}{k}$ obey a certain decay rate with respect to $k$.
-Note furthermore, that the spherical convolution lemma yields a simple
+Note furthermore that the spherical convolution lemma \cite{xxx} yields a simple
 possibility to trade localisation of a zonal function in spatial domain
 against the decay of its Fourier-Legendre coefficients, see \cite{Sc97} for
 details.
 
-We use, in contrast to \cite{Sc97,bahu01,CaFi}, the decay of the
+In contrast to \cite{Sc97,bahu01,CaFi}, we use the decay of the
 Fourier-Legendre coefficients with respect to $k$ and the parameters of the
-kernel to determine the truncation index $M$ 
-in \eqref{Applications:TruncatedSeries}.
-We consider a couple of 'representative' kernels, where a closed from of the
-kernel allows direct evaluation and some scheme for the precomputation of the
-Fourier-Legendre coefficients is used by the fast summation algorithm.
+zonal function $\fun{K}{\V{\eta} \: \cdot \,}$ to determine the cutoff degree
+$M$ in \eqref{Applications:TruncatedSeries}.
+We consider a 'representative' range of zonal functions. A closed form expression
+allows for direct evaluation and numerical verification. Depending on the 
+particular zonal function $\fun{K}{\V{\eta} \: \cdot \,}$, we use different 
+methods for precomputing the Fourier-Legendre coefficients $\fun{K^{\wedge}}{k}$.
 
 \subsection{Poisson and Singularity kernel}
 \begin{definition}\label{def:poisson_sing}
@@ -498,20 +525,22 @@ Fourier-Legendre coefficients is used by the fast summation algorithm.
   \end{enumerate}
 \end{definition}
 
-We refer to Figure \ref{Basics:Figure:PoissonSingularityKernel} for a visual
-impression and mention that the parameter $h$ allows for controlling the
-concentration of $\fun{Q_{h}}{\V{\eta} \: \cdot}$ and $\fun{S_{h}}{\V{\eta} \:
-  \cdot}$ around $\eta \in \twosphere$, respectively.
-The Poisson kernel is a positive function and normalized with
-$\|\fun{Q_{h}}{\V{\eta} \: \cdot}\|_{\Ln{1}{\twosphere}}=1$.
-Further properties with respect to localisation and smoothness are derived
+We refer to Figure \ref{Basics:Figure:PoissonSingularityKernel}. The parameter 
+$h$ allows for controlling the localization of 
+$\fun{Q_{h}}{\V{\eta} \: \cdot \,}$ and $\fun{S_{h}}{\V{\eta} \: \cdot \,}$ 
+around $\eta \in \twosphere$, respectively.
+The Poisson kernel $\fun{Q_{h}}{\V{\eta} \: \cdot \,}$ is a normalized positive function with
+$\|\fun{Q_{h}}{\V{\eta} \: \cdot \,}\|_{\Ln{1}{\twosphere}}=1$.
+Further properties of the Poisson kernel $\fun{Q_{h}}{\V{\eta} \: \cdot \,}$ and the 
+singularity kernel $\fun{S_{h}}{\V{\eta} \: \cdot \,}$
+with respect to localisation and smoothness are derived
 in \cite[pp. 112]{frgesc}.
 
 \begin{figure}[tb]
   \centering
-  \subfigure[$h=0.5,0.7,0.8$]
+  \subfigure[$\fun{Q_{h}}{\cos\vartheta}$, $h=0.5,0.7,0.8$.]
   {\includegraphics[width=0.45\textwidth]{images/poisson}}\hfill
-  \subfigure[$h=0.8,0.9,0.955$]
+  \subfigure[$\fun{S_{h}}{\cos\vartheta}$, $h=0.8,0.9,0.955$.]
   {\includegraphics[width=0.45\textwidth]{images/singularity}}
   \caption{The kernels $\fun{Q_{h}}{\cos\vartheta}$ and $\fun{S_{h}}{\cos\vartheta}$
   for different values of $h$.}
@@ -519,13 +548,14 @@ in \cite[pp. 112]{frgesc}.
 \end{figure}
 
 For both kernels the Fourier-Legendre coefficients $\fun{K^{\wedge}}{k}$ are
-explicitely known, such that we easily state the following lemma.
+explicitely known, such that we simply state the following lemma:
 
 \begin{lemma}
+  ${}^{}$\\[-2ex]
  \begin{enumerate}
    \item 
 Using the Poisson kernel $K=Q_h$, cf. Definition \ref{def:poisson_sing} 1.,
-within our summation algorithm yields an relative error of
+in our summation algorithm yields a relative error of
      \begin{equation}
        \label{error:poisson}
        \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
@@ -534,7 +564,7 @@ within our summation algorithm yields an relative error of
      \end{equation}
      \item 
 Using the singularity kernel $K=S_h$, cf. Definition \ref{def:poisson_sing}
-2., within our summation algorithm yields an relative error of 
+2., in our summation algorithm yields a relative error of 
        \begin{equation}
          \label{error:singular}
          \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1} \le
@@ -556,14 +586,14 @@ Simply put, our scheme achieves (almost) accuracy $\epsilon$ for $M \ge \log\eps
 \subsection{Locally supported kernel}
 \begin{definition}
   Let $h \in \interv{(}{-1}{1}{)}$ and $\lambda \in \NZ$.
-  A locally supported zonal function
+  The locally supported kernel
     $L_{h,\lambda}:\interv{[}{-1}{1}{]} \rightarrow \R$, considered in
     \cite{Sc97}, is defined by
     \[
     \fun{L_{h,\lambda}}{x} := 
     \left\{\begin{array}{l@{\quad \text{if} \quad}rcl} 
         0 & -1 &\le x \le& h, \\
-        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1,
+        \frac{\lambda+1}{2\pi(1-h)^{\lambda+1}}\paren{x-h}^{\lambda} &  h & <  x \le& 1.
       \end{array}\right.
     \]
 \end{definition}
@@ -576,16 +606,17 @@ different values $h$ and $\lambda$.
   {\includegraphics[width=0.45\textwidth]{images/locsup1}}\hfill
   \subfigure[$\lambda=2.0$]
   {\includegraphics[width=0.45\textwidth]{images/locsup2}}
-  \caption{The kernel $L_{h,\lambda}$ for $h = -0.7, 0.2, 0.7$ and different values of $\lambda$.}
+  \caption{The locally supported kernel $\fun{L_{h,\lambda}}{\cos\vtheta}$ 
+  for $h = -0.7, 0.2, 0.7$ and different values of $\lambda$.}
   \label{Basics:Figure:LKernel}
 \end{figure}
 While the parameter $h$ again steers the localisation in spatial domain, the
 parameter $\lambda$ correponds to the smoothness of $L_{h,\lambda}$ in the
 endpoint of the support $h$.
-More formally, we have the following lemma.
+We have the following lemma:
 
 \begin{lemma}
-  For the locally supported kernels $L_{h,\lambda}$ holds:
+  For the locally supported kernel $L_{h,\lambda}$ holds:
   \begin{enumerate}
   \item The Fourier-Legendre coefficients $\fun{L_{h,\lambda}^{\wedge}}{k}$ can be computed recursively by
     \[
@@ -670,14 +701,17 @@ More formally, we have the following lemma.
     assertion.
   \item We combine 2. with Lemma \ref{lemma:error}. 
   \end{enumerate}
+  \hfill
 \end{proof}
 
 Simply put, our scheme achieves accuracy of order $\epsilon$ for $M \ge
 \lambda + (1-h)^{-2} {\epsilon}^{-1/\lambda}$.
 
-\subsection{Gaussian kernel}
+\subsection{Spherical Gaussian kernel}
+The spherical analog to the well-known \emph{Gaussian kernel} $\e^{-\sigma x^2}$ is the 
+\emph{spherical Gaussian kernel}, see for example \cite{bahu01}.
 \begin{definition}
-  For $\sigma>0$, the \emph{Gaussian kernel}
+  For $\sigma>0$, the spherical Gaussian kernel
   $G_{\sigma}:\interv{[}{-1}{1}{]} \rightarrow \R$ is given by
   \begin{equation}
     \label{GaussKernel}
@@ -686,28 +720,31 @@ Simply put, our scheme achieves accuracy of order $\epsilon$ for $M \ge
   \end{equation}
 \end{definition}
 
-Figure \ref{Basics:Figure:GKernel} shows the function $G_{\sigma}$ for
+Figure \ref{Basics:Figure:GKernel} shows the spherical Gaussian kernel $G_{\sigma}$ for
 different values $\sigma$.
 \begin{figure}[tb]
   \centering
   \includegraphics[width=0.7\textwidth]{images/gaussian}
-  \caption{The Gaussian-kernel $G_{\sigma}$ for $\sigma = 2,10,80$.}
+  \caption{The $\text{L}^2$-normalized spherical Gaussian kernel 
+  $\fun{\gamma}{\sigma} \fun{G_{\sigma}}{\cos\vtheta}$ with
+  $\fun{\gamma}{\sigma} := \paren{\frac{2\sigma}{\pi}}^{1/2} \paren{1-\e^{-8\sigma}}^{-1/2}$ for $\sigma = 1,5,20$.}
   \label{Basics:Figure:GKernel}
 \end{figure}
 
 \begin{lemma}
-For the Gaussian-kernel $G_{\sigma}$ holds:
+For the spherical Gaussian $G_{\sigma}$ holds:
   \begin{enumerate}
   \item The Fourier-Legendre coefficients $\fun{G_{\sigma}^{\wedge}}{k}$
     are given by
-    \[
-    \fun{G_{\sigma}^{\wedge}}{k} = 2 \sigma^{-\frac{1}{2}} \e^{-2\sigma}
-    \pi^{\frac{3}{2}} I_{k+\frac{1}{2}}\left(2\sigma\right)
-    \]
+    \begin{equation}
+      \label{gaussian:explicit}
+      \fun{G_{\sigma}^{\wedge}}{k} = 2 \sigma^{-\frac{1}{2}} \e^{-2\sigma}
+      \pi^{\frac{3}{2}} I_{k+\frac{1}{2}}\left(2\sigma\right)
+    \end{equation}
     where $I_{k+\frac{1}{2}}$ denotes the modified Bessel function of first
-    kind.
+    kind, see \cite{abst}.
                                 %Furthermore, $\fun{G_{\sigma}^{\wedge}}{k} \ge 0$.
-  \item Thus, the relative error of our summation algorithm with the Gaussian
+  \item Thus, the relative error of our summation algorithm with the spherical Gaussian
     kernel $K=G_{\sigma}$ is bounded by
     \begin{equation}
       \label{error:G}
@@ -729,7 +766,7 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
     \e^{-2\sigma} \sinh \sigma \cosh \sigma$ and
     $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2} \e^{-2\sigma} (2 \sigma
     \cosh 2 \sigma + \sinh \sigma )$.
-    The assertion follows e.g. by \cite{bahu01}
+    The assertion follows e.g. by \cite{bahu01}.
   \item Using 1. and
   \begin{eqnarray*}
     \frac{2k+1}{4\pi} \abs{\fun{G_{\sigma}^{\wedge}}{k}}
@@ -755,20 +792,26 @@ For the Gaussian-kernel $G_{\sigma}$ holds:
   \end{equation*}
   yields the assertion.
 \end{enumerate}
+  \hfill
 \end{proof}
 
-Note, that using the difference equation \eqref{eq:gauss_rec} in a forward
-recursion is numerically unstable and hence, we use \cite{gsl} for the
-computation of the Fourier-Legendre coefficients of the Gaussian kernel.
+Note that using the difference equation \eqref{eq:gauss_rec} in a forward
+recursion is numerically unstable and we therefore use routines for
+evaluating Bessel functions provided by
+the \emph{GNU scientific library (GSL)} \cite{gsl} in the
+precomputation of the Fourier-Legendre coefficients $\fun{G^{\wedge}}{k}$ 
+by means of \eqref{gaussian:explicit}.
 
-We conclude this section by the following corollary on the matrix norm
+We conclude this section with the following corollary on the matrix norm
 approximation.
 \begin{corollary}
+  \label{cor:rankapprox}
   Let $L \in \N$, a set of arbitrary source nodes $\mathcal{Y} =
   \pset{\V{\eta}_{l} \in \twosphere}{|}{l = 0,\ldots,L-1}$, and a set of
-  target nodes $\mathcal{X} := \pset{\V{\xi}_{d} \in
-  \twosphere}{|}{d=0,\ldots,L-1}$ be given.
-  Then, the poposed approximation, cf. Equation \eqref{eq:MV} and Remark
+  arbitrary target nodes $\mathcal{X} := \pset{\V{\xi}_{l} \in
+  \twosphere}{|}{l=0,\ldots,L-1}$ be given.
+  Then, the proposed approximation $\V{Y_{\mathcal{X}}} \: \V{\hat W} \:
+  \V{Y_{\mathcal{Y}}}^{\adj}$ to the matrix $\V{K}$, cf. Remark
   \ref{rem:rankM}, fulfils
   \begin{equation*}
     \left\| \V{K} - \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
@@ -784,9 +827,9 @@ approximation.
  \[
  \left\| \V{K} - \V{Y_{\mathcal{X}}} \: \V{\hat W} \:
    \V{Y_{\mathcal{Y}}}^{\adj} \right\|_p
- = \max_{\V{b}\in \C^L} \frac{\left\|\V{f} -
+ = \max_{\V{b}\in \R^L} \frac{\left\|\V{f} -
      \V{f}_{M}\right\|_{p}}{\left\|\V{b}\right\|_p}
- \le \max_{\V{b}\in \C^L} L^{\frac{1}{p}} L^{1-\frac{1}{p}} \frac{\left\|\V{f}
+ \le \max_{\V{b}\in \R^L} L^{\frac{1}{p}} L^{1-\frac{1}{p}} \frac{\left\|\V{f}
      - \V{f}_{M}\right\|_{\infty}}{\left\|\V{b}\right\|_1}\,.
  \]
  The assertion follows by $\|\V{f} - \V{f}_{M}\|_{\infty} \le
@@ -795,9 +838,8 @@ approximation.
   \eqref{error:G}.
 \end{proof}
 
-{\bf hier haengt M von L ab!!!!!!!!!!!!!}
-Using the Poisson kernel, we achieve an approximation of the square matrix
-$\V{K}\in\R^{L\times L}$ up to an prescribed accuracy $\varepsilon$ by
+Using for example the Poisson kernel, we achieve an approximation of the square matrix
+$\V{K}\in\R^{L \times L}$ up to an prescribed accuracy $\varepsilon$ by
 choosing the truncation parameter $M\ge \log(\frac{\varepsilon}{L}) /\log h$.
 Thus, for the Poisson kernel we have to increase the truncation parameter to
 $M+\log\frac{1}{2} / \log h$ whenever we double the number of nodes to achieve
@@ -812,35 +854,34 @@ our approach. All algorithms were implemented in C and tested on an
 AMD Athlon\texttrademark XP 2700+ with 2GB main memory, SuSE-Linux 
 (kernel 2.4.20-4GB-athlon, gcc 3.3) using double precision arithmetic. 
 Moreover, we have used the libraries FFTW 3.0.1 \cite{fftw}, NFFT 2
-\cite{kupo02C} and a custom NFSFT library that will be part of the next 
+\cite{kupo02C} and a custom NFSFT library which will be part of the next 
 major release of the NFFT library. Throughout our experiments we have 
 applied the NFFT package \cite{kupo02C} with precomputed Kaiser--Bessel 
 functions and an oversampling factor $\rho=2$.
 
 In our tests we have always chosen uniformely distributed pseudo-random 
 source and target nodes 
-$\paren{\vartheta,\varphi} \in [0,\pi] \times [-\pi,\pi]$ and 
+$\paren{\vartheta,\varphi} \in [0,\pi] \times [-\pi,\pi)$ and 
 coefficients $b_l$ from $\left[-\frac{1}{2},\frac{1}{2}\right]$.
 
 We have considered the following kernels:
 
 \begin{itemize}
   \item Poisson kernel $Q_{h}$,
-  \item Singularity kernel $S_{h}$,
-  \item Locally supported kernel $L_{h,\lambda}$,
+  \item singularity kernel $S_{h}$,
+  \item locally supported kernel $L_{h,\lambda}$,
   \item Gaussian kernel $G_{\sigma}$.
 \end{itemize}
 
-
 First, we examine the systematic error due to our approximation
-\eqref{Applications:TruncatedSeries} and the use of the  approximative NFSFT
-algorithm. Figure \ref{fig:error} presents the error
+\eqref{Applications:TruncatedSeries} and the use of the approximative NFSFT
+algorithms. Figure \ref{fig:error} shows the error
 \[
 E_{\infty}:=
 \frac{\left\|\V{f}-\V{f}_M\right\|_{\infty}}{\left\|\V{b}\right\|_{1}}
 \quad \approx \quad \frac{\left\|f-f_M\right\|_{\infty}}{\left\|\V{b}\right\|_{1}}
 \]
-for the mentioned kernels as a function of the parameter $M$.
+for the mentioned kernels as a function of the cutoff degree $M$.
 These results confirm the error estimates \eqref{error:poisson},
 \eqref{error:singular}, \eqref{error:Lh}, and \eqref{error:G}.
 
@@ -848,15 +889,15 @@ These results confirm the error estimates \eqref{error:poisson},
   \centering
   \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$.]
   {\includegraphics[width=0.45\textwidth]{images/poisson_test}}\hfill
-  \subfigure[[The Singularity kernel $S_{h}$ for $h = 0.8$.]
+  \subfigure[The Singularity kernel $S_{h}$ for $h = 0.8$.]
   {\includegraphics[width=0.45\textwidth]{images/singularity_test}}\\
   \subfigure[The locally supported kernel $L_{h,\lambda}$ for $h=0.3$ and $\lambda = 7$.]
   {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
-  \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=200$.]
+  \subfigure[The Gaussian kernel $G_{\sigma}$ for $\sigma=100$.]
   {\includegraphics[width=0.45\textwidth]{images/gaussian_test}}
   \caption{The error $E_{\infty}$ for $M = 4,8,\ldots,256$ and $L = D = 1000$: 
-  Fast summation with NDSFT (solid), fast summation with NFSFT, 
-  cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT, cut-off 
+  Fast summation with NDSFT (solid), fast summation with NFSFT and 
+  NFFT cutoff parameter $m = 3$ (dash-dot), fast summation with NFSFT and NFFT cutoff 
   parameter $m = 6$ (dashed), error estimate for 
   $E_{\infty}$ (dotted).}
   \label{fig:error}
@@ -876,44 +917,76 @@ These results confirm the error estimates \eqref{error:poisson},
   \label{Figure:PoissonTest}
 \end{figure}
 
-Finally, we compare the computation time of the straightforward summation, the
-straightforward summation with the precomputed matrix, the fast summation
+We now compare the computation time of the straightforward summation, the
+straightforward summation with precomputed matrix $\V{K}$, the fast summation
 algorithm with NDSFT, and the fast summation algorithm with NFSFT for
-increasing $D=L$. 
+increasing $D=L$ and fixed cutoff degree $M=128$. 
 The CPU time required by the four algorithms is shown in Table
 \ref{tab:TimeSpace}. 
 As expected, the fast NDSFT and NFSFT summation algorithms outperform the 
-straightforward algorithms, yielding an ${\cal O}(D)$ complexity in both 
-variants, but with the NFSFT--version considerably faster.
+straightforward algorithms, but with the NFSFT--version considerably faster.
 
 \begin{table}[ht!]
   \begin{center}
     \begin{tabular}{r|r|r|r|r|r}
-        $L = D$ & direct alg. & w/precomp. & FS, NDSFT & FS, NFSFT & error $E_{\infty}$\\\hline
-           $2^6$ & 1.0E-05 & 8.0E-05 & 1.1E-01 & 6.2E-01 & 7.7E-14\\
-           $2^7$ & 6.0E-05 & 3.8E-04 & 2.2E-01 & 6.2E-01 & 6.5E-14\\
-           $2^8$ & 2.5E-04 & 1.4E-03 & 4.5E-01 & 6.2E-01 & 4.1E-14\\
-           $2^9$ & 1.0E-03 & 5.3E-03 & 8.9E-01 & 6.3E-01 & 2.8E-14\\
-      $2^{10}$ & 4.0E-02 & 2.1E-02 & 1.8E+00 & 6.5E-01 & 3.6E-14\\
-      $2^{11}$ & 1.6E+00 & 8.3E-02 & 3.6E+00 & 6.6E-01 & 1.8E-14\\
-      $2^{12}$ & 6.4E+00 & 3.5E-01 & 7.1E+00 & 7.2E-01 & 1.3E-14\\
-      $2^{13}$ & 2.6E+01 & 1.4E+00 & 1.4E+01 & 8.2E-01 & 6.7E-15\\
-     $2^{14}$ & 1.0E+02 & -- & 2.8E+01 & 1.0E+00 & 5.5E-15\\
-     $2^{15}$ & 4.1E+02 & -- & 5.7E+01 & 1.5E+00 & 4.0E-15\\
-     $2^{16}$ & 1.6E+03 & -- & 1.1E+02 & 2.3E+00 & 2.9E-15\\
-     $2^{17}$ & 6.6E+03 & -- & 2.3E+02 & 4.0E+00 & 2.4E-15\\
-     $2^{18}$ & 2.6E+04 & -- & 4.6E+02 & 7.5E+00 & 1.9E-15\\
-     $2^{19}$ & -- & -- & 9.1E+02 & 1.4E+01 & --\\
-     $2^{20}$ & -- & -- & 1.8E+03 & 2.8E+01 & --\\
-     $2^{21}$ & -- & -- & 3.6E+03 & 5.5E+01 & --\\
+         $L = D$ &      direct alg.   &     w/precomp.     &      FS, NDSFT &      FS, NFSFT & error $E_{\infty}$\\\hline\\[-2.0ex]
+           $2^6$ & \verb#1.0E-05#     & \verb#8.0E-05#     & \verb#1.1E-01# & \verb#6.2E-01# & \verb#7.7E-14# \\
+           $2^7$ & \verb#6.0E-05#     & \verb#3.8E-04#     & \verb#2.2E-01# & \verb#6.2E-01# & \verb#6.5E-14# \\
+           $2^8$ & \verb#2.5E-04#     & \verb#1.4E-03#     & \verb#4.5E-01# & \verb#6.2E-01# & \verb#4.1E-14# \\
+           $2^9$ & \verb#1.0E-03#     & \verb#5.3E-03#     & \verb#8.9E-01# & \verb#6.3E-01# & \verb#2.8E-14# \\
+        $2^{10}$ & \verb#4.0E-02#     & \verb#2.1E-02#     & \verb#1.8E+00# & \verb#6.5E-01# & \verb#3.6E-14# \\
+        $2^{11}$ & \verb#1.6E+00#     & \verb#8.3E-02#     & \verb#3.6E+00# & \verb#6.6E-01# & \verb#1.8E-14# \\
+        $2^{12}$ & \verb#6.4E+00#     & \verb#3.5E-01#     & \verb#7.1E+00# & \verb#7.2E-01# & \verb#1.3E-14# \\
+        $2^{13}$ & \verb#2.6E+01#     & \verb#1.4E+00#     & \verb#1.4E+01# & \verb#8.2E-01# & \verb#6.7E-15# \\
+        $2^{14}$ & \verb#1.0E+02#     & $^*$\verb#5.6E+00# & \verb#2.8E+01# & \verb#1.0E+00# & \verb#5.5E-15# \\
+        $2^{15}$ & \verb#4.1E+02#     & $^*$\verb#2.2E+01# & \verb#5.7E+01# & \verb#1.5E+00# & \verb#4.0E-15# \\
+        $2^{16}$ & \verb#1.6E+03#     & $^*$\verb#8.9E+01# & \verb#1.1E+02# & \verb#2.3E+00# & \verb#2.9E-15# \\
+        $2^{17}$ & \verb#6.6E+03#     & $^*$\verb#3.6E+02# & \verb#2.3E+02# & \verb#4.0E+00# & \verb#2.4E-15# \\
+        $2^{18}$ & \verb#2.6E+04#     & $^*$\verb#1.4E+03# & \verb#4.6E+02# & \verb#7.5E+00# & \verb#1.9E-15# \\
+        $2^{19}$ & $^*$\verb#1.0E+05# & $^*$\verb#5.7E+03# & \verb#9.1E+02# & \verb#1.4E+01# & \verb#-# \\
+        $2^{20}$ & $^*$\verb#4.2E+05# & $^*$\verb#2.3E+04# & \verb#1.8E+03# & \verb#2.8E+01# & \verb#-# \\
+        $2^{21}$ & $^*$\verb#1.7E+06# & $^*$\verb#9.1E+04# & \verb#3.6E+03# & \verb#5.5E+01# & \verb#-# \\
     \end{tabular}
+
   \end{center}
-  \caption{CPU-Time and error $E_{\infty}$ for the fast summation algorithm.
-    Note that we used accumulated measurements in case of small times and the
-    times/error (*) are not displayed due to the large response time or the 
-    limited size of memory. {\bf XXXXXXXXXXXXXX M?}}
+  \caption{CPU-Time and error $E_{\infty}$ for the fast summation algorithm with cutoff degree $M = 128$.
+    Note that we used accumulated measurements in case of small times. Values 
+    marked with $^{*}$ are estimates owing to CPU-time and memory limitations.}
   \label{tab:TimeSpace}
 \end{table}
+
+As an example for the result provided by Corollary \ref{cor:rankapprox}, we 
+finally consider the Poisson kernel $Q_{h}$ for 
+$h = 0.1$ and $h=0.5$, $L=D=400$ arbitrary source and target nodes $\V{\eta}_{l}$ and $\V{\xi}_{d}$,
+and our particular rank $(M+1)^2$ approximation 
+$\V{Y_{\mathcal{X}}} \: \V{\hat W} \: \V{Y_{\mathcal{Y}}}^{\adj}$ to the matrix $\V{K} \in \R^{L \times L}$ 
+for cutoff degrees $M=0,\ldots,19$. Note that for $M=19$ we 
+have $(M+1)^2 = 400 = L = D$ and therefore $\V{Y_{\mathcal{X}}}, \V{\hat W}, 
+\V{Y_{\mathcal{Y}}}^{\adj} \in \C^{L \times L}$ which renders our approximation a full-rank 
+approximation. We compare the performance of our approach $\V{Y_{\mathcal{X}}} \: \V{\hat W} \: 
+\V{Y_{\mathcal{Y}}}^{\adj}$ and the corresponding error estimate from Corollery \ref{cor:rankapprox}
+with the truncated-SVD rank $l$ approximation $\V{S}_{l}$ for $l = 1,\ldots,L$
+measured in the spectral norm $\left\|\cdot\right\|_{2}$. The results are shown in Figure \ref{fig:rankapprox}. 
+
+\begin{figure}[tb]
+  \centering
+  \subfigure[$h=0.1$]
+  {\includegraphics[width=0.45\textwidth]{images/poisson_h_0_1}}\hfill
+  \subfigure[$h=0.5$]
+  {\includegraphics[width=0.45\textwidth]{images/poisson_h_0_5}}\\
+  \caption{Comparison of our approximation $\V{Y_{\mathcal{X}}} \: \V{\hat W} \: 
+  \V{Y_{\mathcal{Y}}}^{\adj}$ to the matrix $\V{K}$ with the truncated-SVD approximation
+  for the Poisson kernel $Q_{h}$ with $h=0.1$ (left) and $h=0.5$ (right), 
+  and $L = D = 400$ arbitrary source and target nodes. 
+  We compare 
+  $\|\V{K} - \V{Y_{\mathcal{X}}} \: \V{\hat W} \: \V{Y_{\mathcal{Y}}}^{\adj}\|_{2}$ 
+  ($+$) and the error estimate $L \: C_{M}$ ($\times$) from Corollary \ref{cor:rankapprox} 
+  for cutoff degree $M=0,\ldots,19$ with 
+  $\left\|\V{K} - \V{S}_{l}\right\|_{2}$ (solid) for 
+  the truncated-SVD rank $l$ approximation $\V{S}_{l}$ for $l=1,\ldots,L$.
+  }
+  \label{fig:rankapprox}
+\end{figure}
 
 
 %--------------------------------------------------------------------------
@@ -921,13 +994,13 @@ variants, but with the NFSFT--version considerably faster.
 %--------------------------------------------------------------------------
 
 We have presented a fast algorithm for the computation of sums of type
-\eqref{Applications:KernelSum} in ${\cal O} (D +L)$ arithmetic operations.
-We have proved error estimates concerning the dependence of the computational
-speed on the desired accuracy and the parameters of particular interesting
-kernels.
-The software for this algorithm including all described tests is available
-within the NFFT package \cite[{\tt ./example/fastsumS2}]{kupo02C}. // Can be
-obtained from the authors?????
+\eqref{Applications:KernelSum} in ${\cal O} (D + L)$ arithmetic operations.
+For a range of zonal functions, we established error estimates 
+concerning the dependence of the computational speed on the desired accuracy 
+and the function's parameters. The numerical results confirm the theoretical 
+expectations.
+The software for this algorithm including all described tests can be
+obtained from the authors.
 
 %-----------------------------------------------------------------------------
 \bibliographystyle{abbrv}
