@@ -30,6 +30,7 @@
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
+
 \newcommand{\N}{\ensuremath{\mathbb{N}}}
 \newcommand{\NZ}{\ensuremath{\mathbb{N}_{0}}}
 \newcommand{\R}{\ensuremath{\mathbb{R}}}
@@ -84,7 +85,8 @@ bounds and provide numerical examples.}
 %=============================================================================
 Radial basis functions are a powerful tool in many areas of multi-dimensional 
 approximation and interpolation.
-In radial basis function methods one approximates functions from $\R^3
+In radial basis function methods $\in \R^3$ one approximates functions
+from $\R^3 
 \rightarrow \R$ by linear combinations of radial symmetric translates 
 $\fun{\Phi}{\mathbf{y} - \cdot \,}$, $\mathbf{y} \in \R^3$, of a single function $\phi : \R^{+} \rightarrow \R$, i.e. 
 \[
@@ -92,7 +94,7 @@ $\fun{\Phi}{\mathbf{y} - \cdot \,}$, $\mathbf{y} \in \R^3$, of a single function
 \]
 The spherical counterpart are the \emph{zonal functions} which depend solely
 on the geodesic distance of two points on the sphere $\mathbb{S}^2:=\{
-\mathbf{\xi} \in \mathbb{S}^2: \|\mathbf{\xi}\|_2=1\} \subset \R^3$. The norm $\|\mathbf{y} - \mathbf{x}\|_2$ 
+\mathbf{x} \in \mathbb{R}^3: \|\mathbf{x}\|_2=1\} \subset \R^3$. The norm $\|\mathbf{y} - \mathbf{x}\|_2$ 
 is replaced by the usual inner product.
 
 More formally, let $K \in \Ln{2}{[-1,1]}$ and define for fixed
@@ -101,6 +103,20 @@ $\mathbf{\eta} \in \mathbb{S}^2$ the $\mathbf{\eta}$-zonal function
   \fun{K}{\mathbf{\eta} \: \cdot \,}: \mathbb{S}^2 \rightarrow \R,\ \mathbf{\xi} \mapsto
   \fun{K}{\mathbf{\eta} \cdot \mathbf{\xi}}\,.% \qquad \mathbf{\xi} \in \mathbb{S}^2.
 \]
+Note that in spherical coordinates, a point $\mathbf{\xi} \in \mathbb{S}^2$ is identified with 
+a vector $(\vartheta,\varphi) \in [0,\pi] \times [-\pi,\pi)$. 
+Then the {\it spherical distance} between the two points 
+$\eta=(\theta,\varphi)$ and $\xi=(\theta',\varphi')$ of $\mathbb{S}^2$ is
+determined by
+$
+%\eta \xi :=
+{\rm arccos}\;  (\eta\cdot \xi)                     
+$
+with the inner (cartesian) product 
+$$
+\eta\cdot \xi = \cos\theta\; \cos \theta^\prime \; +\; \sin\theta\; \sin
+\theta^\prime\;\cos(\varphi-\varphi^\prime)\, .
+$$
 
 The formal description of the problem we will address is as follows:
 Given $D,L \in \N$, a set of arbitrary \emph{source nodes} $\mathcal{Y} :=
@@ -118,15 +134,22 @@ an $\mathcal{O}\left(LD\right)$ algorithm if we assume that the zonal function
 $\fun{K}{\mathbf{\eta} \: \cdot}$ can be evaluated in constant time or that all values
 $\fun{K}{\mathbf{\eta}_{l} \cdot \mathbf{\xi}_{d}}$ can be stored in advance. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-The \emph{panel clustering method} on the sphere in \cite{FrGlSch98} reduces the
+We present an approximative algorithm with arithmetic complexity 
+${\cal O} (D+L)$ based on the \emph{nonuniform fast spherical Fourier 
+transform $($NFSFT$)$}, cf. \cite{kupo02,keiner05}. 
+
+The \emph{panel clustering method} on the sphere in \cite{FrGlSch98}
+reduces the 
 computational effort for evaluating \eqref{Applications:KernelSum} based on the
 traditional method of dividing the evaluation into a near- and a far-field:
 For every zonal function $\fun{K}{\mathbf{\eta}_l \: \cdot}$, the near-field
 contribution is calculated exactly whereas the contribution of the far-field
-is approximated coarsely.
-We present an approximative algorithm with arithmetic complexity 
-${\cal O} (D+L)$ based on the \emph{nonuniform fast spherical Fourier 
-transform (NFSFT)}, cf. \cite{kupo02}. 
+is approximated coarsely. However our  algorithm, is simpler structured 
+and can be easily adapted to different kernels $K$.
+Our method utilises the widely known FFT and can consequently incorporate
+advanced FFT implementations.
+We prove error estimates to obtain clues about the choice of the
+involved parameters and present numerical examples.
 
 The remainder of this paper is organised as follows:
 To keep the text self-contained, we summarise definitions and properties
@@ -168,8 +191,6 @@ The more general \emph{associated Legendre functions} $P_{k}^n$, $k \in \NZ$, $n
   \left(1-x^2\right)^{n/2} \frac{\dx^n}{\dx x^n} \fun{P_{k}}{x}.
 \]
 
-In spherical coordinates, a point $\mathbf{\xi} \in \mathbb{S}^2$ is identified with 
-a vector $(\vartheta,\varphi) \in [0,\pi] \times [-\pi,\pi)$. 
 Let the space of real-valued continuous functions on the sphere be decomposed
 into the direct sum of spaces of \emph{spherical harmonics}, i.e.
 $C(\mathbb{S}^2)=\bigoplus_{k=0}^{\infty} \mathcal{H}_k$. We denote by 
@@ -231,11 +252,12 @@ fixed \emph{cut-off degree} $M \in \NZ$, i.e.
 Substituting \eqref{Applications:TruncatedSeries} into
 \eqref{Applications:KernelSum} and interchanging the order of summation we
 finally obtain the approximation
-\[
+\begin{equation}
+ \label{Eq:truncf_M}
   \fun{f}{\mathbf{\xi}} \approx \fun{f_{M}}{\mathbf{\xi}} := \sum_{k=0}^{M} \sum_{n=-k}^k \fun{K^{\wedge}}{k}
   \left(\sum_{l = 0}^{L-1} b_{l} \overline{\fun{Y_{k}^n}{\mathbf{\eta}_{l}}}\right)
   \fun{Y_{k}^n}{\mathbf{\xi}}
-\]
+\end{equation}
 to be evaluated at the $D$ target nodes $\mathbf{\xi}_{d}$.
 
 Our algorithm now works as follows: The expression in the inner brackets 
@@ -577,8 +599,8 @@ We have the following lemma:
   \item We obtain for $\lambda \in \NZ$ and $k>\lambda+1$ the decay rate
     \[
     \left|\fun{L_{h,\lambda}^{\wedge}}{k}\right| \le
-    \frac{2\sqrt{2}}{\left(2k+1\right)\sqrt{\pi}}
-    \frac{\left(\lambda+1\right)^2}{\left(1-h\right)^{2\lambda+1}\sqrt[4]{1-|h|}}
+    \frac{2\sqrt{2}}{\left(2k+1\right)\sqrt{\pi}}\;
+    \frac{\left(\lambda+1\right)^2}{\left(1-h\right)^{2\lambda+1}\sqrt[4]{1-|h|}}\;
     \frac{1}{\left(k-\lambda\right)^{\lambda+\frac{1}{2}}}\,. 
     \]
   \item Thus, the relative error of our summation algorithm with this kernel
@@ -586,9 +608,9 @@ We have the following lemma:
   \begin{equation}
     \label{error:Lh}
     \frac{\left\|f - f_{M}\right\|_{\infty}}{\left\|\mathbf{b}\right\|_1} \le
-    \frac{1}{\pi\sqrt{2\pi}}
-    \frac{\left(\lambda+1\right)^2}{\lambda-\frac{1}{2}}
-    \frac{1}{\left(1-h\right)^{2\lambda+1}\sqrt[4]{1-|h|}}
+    \frac{1}{\pi\sqrt{2\pi}}\;
+    \frac{\left(\lambda+1\right)^2}{\lambda-\frac{1}{2}}\;
+    \frac{1}{\left(1-h\right)^{2\lambda+1}\sqrt[4]{1-|h|}}\;
     \frac{1}{\left(M-\lambda\right)^{\lambda-\frac{1}{2}}}\,.
   \end{equation}
   \end{enumerate}
@@ -619,7 +641,8 @@ We have the following lemma:
     \begin{equation}
       \label{SmallLambda}
       \left|\fun{L_{h,0}^{\wedge}}{k}\right| \le 
-      \frac{\sqrt{2}}{\sqrt{\pi}}\frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt[4]{1-|h|}}
+      \frac{\sqrt{2}}{\sqrt{\pi}}\;
+      \frac{\lambda+1}{(1-h)^{\lambda+1}\sqrt[4]{1-|h|}}\;
       \frac{1}{k\sqrt{k}}.
     \end{equation}
 %    \frac{1}{1-h}
@@ -718,7 +741,12 @@ For the spherical Gaussian $G_{\sigma}$ holds:
     \e^{-2\sigma} \sinh \sigma \cosh \sigma$ and
     $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2} \e^{-2\sigma} (2 \sigma
     \cosh 2 \sigma + \sinh \sigma )$.
-    The assertion follows e.g. by \cite{bahu01}.
+    The assertion follows than e.g. by \cite{bahu01} from the
+    definition of the midified Bessel function. 
+
+{\bf Oder sollten wir statt auf Huber nochmals auf [12]
+    verweisen. Bei Hubber steht auch nicht mehr}
+
   \item Using 1. and
   \begin{eqnarray*}
     \frac{2k+1}{4\pi} \left|\fun{G_{\sigma}^{\wedge}}{k}\right|
@@ -762,7 +790,8 @@ approximation.
   arbitrary target nodes $\mathcal{X} := \left\{\mathbf{\xi}_{l} \in
   \mathbb{S}^2:\ l=0,\ldots,L-1\right\}$ be given.
   Then, the proposed approximation $\mathbf{Y_{\mathcal{X}}} \: \mathbf{\hat W} \:
-  \mathbf{Y_{\mathcal{Y}}}^{\adj}$ to the matrix $\mathbf{K}$, cf. Remark
+  \mathbf{Y_{\mathcal{Y}}}^{\adj}$ to the matrix $\mathbf{K}\in
+  \R^{L\times L}$, cf. Remark
   \ref{rem:rankM}, fulfils
   \begin{equation*}
     \left\| \mathbf{K} - \mathbf{Y_{\mathcal{X}}} \: \mathbf{\hat W} \:
@@ -814,15 +843,12 @@ source and target nodes
 $\left(\vartheta,\varphi\right) \in [0,\pi] \times [-\pi,\pi)$ and 
 coefficients $b_l$ from $\left[-\frac{1}{2},\frac{1}{2}\right]$.
 
-We have considered the following kernels:
+We have considered the Poisson kernel $Q_{h}$,
+the singularity kernel $S_{h}$,
+the locally supported kernel $L_{h,\lambda}$,
+and the Gaussian kernel $G_{\sigma}$.
 
-\begin{itemize}
-  \item Poisson kernel $Q_{h}$,
-  \item singularity kernel $S_{h}$,
-  \item locally supported kernel $L_{h,\lambda}$,
-  \item Gaussian kernel $G_{\sigma}$.
-\end{itemize}
-
+\begin{example}
 First, we examine the systematic error due to our approximation
 \eqref{Applications:TruncatedSeries} and the use of the approximative NFSFT
 algorithms. Figures \ref{fig:error} and \ref{fig:gtest2} show the error
@@ -832,8 +858,13 @@ E_{\infty}:=
 \quad \approx \quad \frac{\left\|f-f_M\right\|_{\infty}}{\left\|\mathbf{b}\right\|_{1}}
 \]
 for the mentioned kernels as a function of the cut-off degree $M$.
-These results confirm the error estimates \eqref{error:poisson},
+Here the vector $\mathbf{f}$ contains the values $f(\xi_d)$ for
+$d=0,\ldots, 999$. We compute the vector $\mathbf{f}_M$ by
+\eqref{Eq:truncf_M} by the straightforward summation (NDSFT) and by
+Algorithm  \ref{Applications:Algorithm:FastSummation} where we use the NFSFT.
+Furthermore we plot the error estimates given in \eqref{error:poisson},
 \eqref{error:singular}, \eqref{error:Lh}, and \eqref{error:G}.
+\end{example}
 
 \begin{figure}[tb]
   \centering
@@ -875,14 +906,25 @@ These results confirm the error estimates \eqref{error:poisson},
   \label{fig:gtest2}
 \end{figure}
 
-We now compare the computation time of the straightforward summation, the
-straightforward summation with pre-computed matrix $\mathbf{K}$, the fast summation
-algorithm with NDSFT, and the fast summation algorithm with NFSFT for
+{\bf Figure 5.2 in Figure 5.1 d setzen}
+
+\begin{example}
+We now compare the computation time of the straightforward summation
+(direct alg.), the 
+straightforward summation with pre-computed matrix $\mathbf{K}$
+(w/pre-comp.) , the fast summation 
+algorithm with NDSFT (FS, NDSFT), and the fast summation algorithm
+with NFSFT (FS, NFSFT) for 
 increasing $D=L$ and fixed cut-off degree $M=128$. 
+
+{\bf was ist error  ( Fehler zwischen direct alg and FS, NFSFT oder NDSFT?} 
+
 The CPU time required by the four algorithms is shown in Table
 \ref{tab:TimeSpace}. 
 As expected, the fast NDSFT and NFSFT summation algorithms outperform the 
-straightforward algorithms, but with the NFSFT--version considerably faster.
+straightforward algorithms, but with the NFSFT--version considerably
+faster. 
+\end{example}
 
 \begin{table}[ht!]
   \begin{center}
@@ -913,6 +955,7 @@ straightforward algorithms, but with the NFSFT--version considerably faster.
   \label{tab:TimeSpace}
 \end{table}
 
+\begin{example}
 As an example for the result provided by Corollary \ref{cor:rankapprox}, we 
 finally consider the Poisson kernel $Q_{h}$ for 
 $h = 0.1$ and $h=0.5$, $L=D=400$ arbitrary source and target nodes $\mathbf{\eta}_{l}$ and $\mathbf{\xi}_{d}$,
@@ -925,6 +968,10 @@ approximation. We compare the performance of our approach $\mathbf{Y_{\mathcal{X
 \mathbf{Y_{\mathcal{Y}}}^{\adj}$ and the corresponding error estimate from Corollary \ref{cor:rankapprox}
 with the truncated-SVD rank $l$ approximation $\mathbf{S}_{l}$ for $l = 1,\ldots,L$
 measured in the spectral norm $\left\|\cdot\right\|_{2}$. The results are shown in Figure \ref{fig:rankapprox}. 
+
+{\bf und zeigen ...}
+ 
+\end{example}
 
 \begin{figure}[tb]
   \centering

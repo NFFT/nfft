@@ -163,11 +163,11 @@ Thus, the sought Fourier coefficients fulfil the equations
  \zb A \zb {\hat f} \approx \zb y
 \end{equation}
 where $\zb A$ denotes the nonequispaced Fourier matrix 
-\begin{equation}
-  \label{eq:A}
+\begin{equation*}
+%  \label{eq:A}
   \zb A:=\left(\eip{\zb k \zb x_j}\right)_{j=0,\hdots,M-1;\zb k \in \indexset}
   \in \C^{M\times N^d}.
-\end{equation}
+\end{equation*}
 A standard method to determine $\zb {\hat f}$ is to solve the general linear
 least squares problem, see, e.g., \cite[p. 15]{Bj96},
 \begin{equation*}
@@ -264,7 +264,7 @@ The section closes by giving reference to related problems in Remark
   Let $d\in\N,\;N\in 2\N$, and $I_N=\{-\frac{N}{2},\hdots,\frac{N}{2}-1\}^d$
   be given. 
   We define for positive weights $\hat w_{\zb k}>0,\; \zb k \in
-  \indexset$, with normalisation $\sum_{\zb k\in I_N} w_k=1$ and for $\zb x
+  \indexset$, with normalisation $\sum_{\zb k\in I_N} \hat w_{\zb k}=1$ and for $\zb x
   \in \T^d$ the trigonometric {\em kernel}
   \begin{equation*}
     K_N \left(\zb x\right):=\sum\limits_{\zb k \in \indexset} \hat w_{\zb k}
@@ -280,9 +280,9 @@ The section closes by giving reference to related problems in Remark
 
   Furthermore, given a sampling set ${\cal X}$, we define the {\em kernel
   matrix}
-  \begin{equation*}
+  \begin{equation}\label{def:K}
     \zb K_N: = \left(K_N (\zb x_j-\zb x_l) \right)_{j,l=0,\ldots,M-1}.
-  \end{equation*}
+  \end{equation}
   We denote by $\Lambda=\Lambda\left(\zb K_N\right)$ and
   $\lambda=\lambda\left(\zb K_N\right)$ the largest and smallest eigenvalue of 
   the kernel matrix $\zb K_N$, respectively.
@@ -369,7 +369,7 @@ Applying the standard estimate for the convergence of the conjugate gradient
 method we obtain the following lemma.
 
 \begin{Lemma}\label{lemma:cg_error}
-Let the kernel matrix $\zb K_N$ in \eqref{eq:ne} be regular and let
+Let the kernel matrix $\zb K_N$ in \eqref{def:K} be regular and let
  $\zb {\hat e}_l:=\zb {\hat f}_l-\zb {\hat W}\zb A^{\adj}\zb K_N^{-1} \zb y$
  denote the error of the $l$-th iterate within Algorithm \ref{algo:CGNE}.
 Then the a-priori error bound
@@ -388,7 +388,7 @@ iterate of the conjugate gradient method applied to equation $\zb K_N \zb
 estimate for the conjugate gradient method, see also \cite[pp. 288]{Bj96}. \Box
 
 This result includes the special case of $M=N^d$ equispaced nodes and no
-damping, i.e. $w_{\zb k}=1$, $\zb k \in I_N$, where the first iterate of our
+damping, i.e. $\hat w_{\zb k}=1$, $\zb k \in I_N$, where the first iterate of our
 algorithm is already the solution to equation \eqref{eq:ne}.
 
 We present estimates for the extremal eigenvalues $\lambda,\Lambda$ dependent
@@ -411,7 +411,7 @@ Before that, we would like to give a few references to related work.
       \cdot}:\;\zb k \in \indexset\right\}$.
   This inner product also makes $T_N$ to a reproducing kernel Hilbert space,
   its reproducing kernel is given by $K_N$, i.e., the point evaluations
-  obey $f(\zb x_0) = \langle f,K_N(\cdot - \zb x_0)\rangle_{\zb {\hat
+  obey $f(\zb x_*) = \langle f,K_N(\cdot - \zb x_*)\rangle_{\zb {\hat
       W}^{-1}}$.
 
   The solution $f(\zb x)=\sum_{\zb k \in \indexset} \hat f_{\zb k} \eip{\zb k
@@ -493,7 +493,7 @@ class of tensor product kernels in Corollary \ref{cor:tensorproduct}.
   For $\beta \in \N$, $\beta\ge 2$, we define
   \begin{enumerate}
   \item the {\em zeta function} by $\zeta(\beta):=\sum_{r=1}^{\infty} r^{-\beta}$.
-  \item Furthermore, the {\em space} $BV^{\beta}_0$ consists of nonnegative
+  \item Furthermore, the {\em space} $BV^{\beta-1}_0$ consists of nonnegative
     functions $g \in C^{\beta-2}(\R)$ such that
     \begin{enumerate}
     \item $\supp\,g\subseteq [-\frac{1}{2},\frac{1}{2}]$, $\|g\|_{L_1}=1$,
@@ -516,7 +516,7 @@ class of tensor product kernels in Corollary \ref{cor:tensorproduct}.
         < \infty.
       \end{equation*}
     \end{enumerate}
-  \item For notational convenience, we also define for $g\in BV_0^{\beta}$
+  \item For notational convenience, we also define for $g\in BV_0^{\beta-1}$
     the {\em norm of the samples}
     \begin{equation*}
       \left\|g\right\|_{N,1}:=\sum_{k=-\frac{N}{2}}^{\frac{N}{2}}
@@ -528,7 +528,7 @@ class of tensor product kernels in Corollary \ref{cor:tensorproduct}.
 The following lemma prepares Theorem \ref{theorem:T1_smooth}.
 
 \begin{Lemma}\label{lemma:decay_g}
-  For $\beta \in \mathbb{N},\;\beta\ge 2$, let a function $g\in BV^{\beta}_0$
+  For $\beta \in \mathbb{N},\;\beta\ge 2$, let a function $g\in BV^{\beta-1}_0$
   be given.
   Then for $N\in 2\N$, $N\ge 2\beta$, and $x \in \left[-\frac{1}{2},
   \frac{1}{2}\right]\setminus\left\{0\right\}$ the following estimates
@@ -579,7 +579,7 @@ $g^{\left(\tilde\beta\right)}\left(\pm\frac{1}{2}\right)=0$ for $\tilde \beta=
   \frac{1+\left|x\right|^{\beta} \sum\limits_{r\in \Z\setminus\{0\}}
     \left|r-x\right|^{-\beta}}
   {\left(2\pi\right)^{\beta} N^{\beta-1} |x|^{\beta}} \sup_{r_0\in\Z}
-  \left | \int\limits_{-\frac{1}{2}}^{\frac{1}{2}}
+  \left | \, \int\limits_{-\frac{1}{2}}^{\frac{1}{2}}
     g^{\left(\beta-1\right)}\left(z\right)  \left( \eip{N z \left(x -
           r_0\right)} \right)' 
     \d z \right |\,.
@@ -610,7 +610,7 @@ $N$. \Box
 
 \begin{Theorem}
  \label{theorem:T1_smooth}
- For $\beta \in \mathbb{N},\;\beta\ge 2$, let a function $g\in BV^{\beta}_0$
+ For $\beta \in \mathbb{N},\;\beta\ge 2$, let a function $g\in BV^{\beta-1}_0$
  be given.
  Furthermore, let $N\in2\mathbb{N}$, $N\ge 2\beta$, and the 
  damping factors
@@ -692,7 +692,7 @@ $|z|\le \frac{1}{2}$ and $g_2(z)=0$ elsewhere, leads to the well known {\em
   whereas $B_{\beta,N}(0)=1$.
 \end{Corollary}
 
-Proof. Note that $g_{\beta} \in BV_0^{\beta}$.
+Proof. Note that $g_{\beta} \in BV_0^{\beta-1}$.
 Using $N_{\beta}'(z)=N_{\beta-1}(z)-N_{\beta-1}(z-1)$, we conclude
 \begin{equation*}
   \left|g_{\beta}^{\left(\beta-1\right)}\right|_V
@@ -711,7 +711,8 @@ Under additional conditions this result can be slightly improved.
   $N=\beta\sigma$, $\sigma\in \N$, then the stronger estimate
   $|B_{\beta,N}(x)| \le 2\zeta(\beta)(1-2^{-\beta})
   (\frac{\beta}{\pi})^{\beta}|Nx|^{-2}$ holds true.
-  This improvement is due to $\|g_{\beta}\|_{N,1}=N$ and follows from the
+  This improvement is due to $\|g_{\beta}\|_{N,1}=N$ in Lemma
+  \ref{lemma:decay_g} and follows from the
   partition of unity of the cardinal B-Spline $N_{\beta}$ and the refinement
   equation $N_{\beta}(z)=\sum_{\tau\in \Z} a_{\tau}^{(\beta,\sigma)}
   N_{\beta}(\sigma z - \tau)$ for some finitely supported coefficients
@@ -724,7 +725,7 @@ Under additional conditions this result can be slightly improved.
     \left(\frac{\sin\left(\frac{N}{2} \pi x\right)}{\sin 
         \left(\pi x\right)}\right)^{2}
   \end{equation*}
-  and $|\sin(\pi x)|\ge 2|x|$.
+  and $|\sin(\pi x)|\ge 2|x|$ for $|x|\le 1/2$.
 \end{Remark}
 
 \begin{Example}\label{ex:kernels}
@@ -744,11 +745,12 @@ Other, frequently applied kernels are given as follows.
   {\em Jackson kernel}.
   We define for $\beta\in2\N$, $\sigma\in \N$, and $N=\beta(\sigma-1)+2$ the
   Jackson kernel by
-  \begin{equation}\label{eq:jackson}
+  \begin{equation*}
+  %\label{eq:jackson}
     J_{\beta,N}\left(x\right):=\frac{1+\eim{x}}{2\sigma^{\beta}}
     \left(\frac{\sin\left(\sigma\pi x\right)}{\sin 
         \left(\pi x\right)}\right)^{\beta}.
-  \end{equation}
+  \end{equation*}
   Being a normalised power of the Fejer kernel $B_{2,2\sigma}=J_{2,2\sigma}$,
   the coefficients $\hat w_k$ to the Jackson kernel can be obtained by an
   iterated discrete convolution of the coefficients of this Fejer kernel, see
@@ -769,7 +771,7 @@ Other, frequently applied kernels are given as follows.
   elsewhere, whereas the constant $c_{\alpha,\beta,\gamma}$ is chosen such
   that $\|g_{\alpha,\beta,\gamma}\|_{L_1}=1$.
   Here, the denominator generalises the weight $1+(2\pi k)^{2\alpha}$ and the
-  nominator ensures $g_{\alpha,\beta,\gamma} \in BV^{\beta}_0$.
+  nominator ensures $g_{\alpha,\beta,\gamma} \in BV^{\beta-1}_0$.
   We define for $N\in2\N$ the Sobolev kernel by
   \begin{equation*}
     S_{\alpha,\beta,\gamma,N}\left(x\right)
@@ -800,7 +802,7 @@ its counterpart Jackson kernel $J_{4,78}$ (right).
       \includegraphics[width=4cm]{images/polynomial_kernels4.eps}
     \end{tabular}
   \end{center}
-  \caption{From left to right: Real part of Dirichlet kernel $D_{20}$, the
+  \caption{From left to right: Real part of the Dirichlet kernel $D_{20}$, the
     Fejer kernel $B_{2,20}$, and the Sobolev kernel
     $S_{1,2,10^{-4},20}$. \label{Fig:polykerne}}
 \end{figure}
@@ -816,8 +818,10 @@ its counterpart Jackson kernel $J_{4,78}$ (right).
   \caption{Left: Real part of the B-Spline kernel $B_{4,20}$.
     Middle: Log plot of the modulus $|B_{4,80}|$ (solid) and the estimate by
     Corollary \ref{cor:spline} (dashed).
-    Right: Log plot of the modulus Jackson kernel $|J_{4,78}|$, its decay
-    estimate, cf. Example \ref{ex:kernels}, and the slightly better localised
+    Right: Log plot of the modulus Jackson kernel $|J_{4,78}|$ (solid)
+    , its decay 
+    estimate, cf. Example \ref{ex:kernels} (dashed), and the slightly
+    better localised 
     B-Spline kernel $|B_{4,80}|$ (dashed). \label{Fig:polykerne2}}
 \end{figure}
 
@@ -1118,7 +1122,7 @@ Definition \ref{def:spline} and the kernels given in Example
   \end{equation*}
   where equality holds for the outmost inequalities if
   $N=\left(2\sigma+1\right)q^{-1},\,\sigma\in\mathbb{N}$.
-  In particular, the kernel matrix $K_N$ is non singular.
+  In particular, the kernel matrix $K_N$ is nonsingular.
 \end{Corollary}
 
 Proof. Throughout this proof, let $n=q^{-1}$ and the damping factors be
@@ -1137,7 +1141,7 @@ We use the representation
   \sum\limits_{r=0}^{\frac{N}{2}-1} \sum\limits_{k=-r}^{r} \eip{kx}.
 \end{equation*}
 Now, let $\lambda_{\star}$ be an arbitrary eigenvalue of the kernel matrix
-$K_N$, then Gershgorin's circle theorem yields
+$\zb K_N$, then Gershgorin's circle theorem yields
 \begin{equation*}
   \left|\lambda_{\star}-1\right|
   \le \sum_{l=1}^{n-1}\left|B_{2,N}\left(\frac{l}{n}\right)\right|
@@ -1170,7 +1174,7 @@ Next, we give estimates for the stability of interpolation problem at
 arbitrary nodes.
 \begin{Corollary}  \label{cor:qsep}
   Let the dimension $d\in\N$ and an arbitrary sampling set $\cal X$ with
-  separation distance $q\le\frac{1}{2}$ be given, then the eigenvalues of the
+  separation distance $0<q\le\frac{1}{2}$ be given, then the eigenvalues of the
   kernel matrix are bounded away from zero as follows.
   \begin{enumerate}
   \item For the Dirichlet kernel, $d=1$, $N\in 2\N$, and
@@ -1214,14 +1218,15 @@ Proof. We apply Theorem \ref{theorem:Tdallgemein} for ii) and iii) where we
 Thus, we have shown that the optimal trigonometric interpolation problem at
 $q$-separated nodes in $d$ dimensions is well conditioned for a polynomial
 degree $N \ge 2 d q^{-1}$.
-If we assume further the uniformity condition $q=c M^{-\frac{1}{d}}$ for a
-sampling set of cardinality $M$, then the total arithmetical complexity for
+If we assume further a uniformity condition $q=c M^{-\frac{1}{d}}$ for the
+sampling set  ${\cal X}$ of cardinality $M$, then the total arithmetical complexity for
 solving \eqref{eq:optInterp} up to a prescribed error is of order ${\cal O}(M
 \log M)$.
 Note however, that the condition $N> 2 d q^{-1}$ is not optimal for high
 dimensional problems.
 As pointed out in \cite{BaGr04} for the approximation problem \eqref{eq:ap},
-it is an open problem to improve these estimates.
+it is also an open problem to improve the estimate $N<(\tilde c \,d
+\,\delta)^{-1}$.
 
 %-----------------------------------------------------------------------------
 \section{Numerical results}
@@ -1233,10 +1238,10 @@ Algorithm \ref{algo:CGNE}.
 The estimates for the condition number of the kernel matrix $\zb K_N$ for
 equispaced nodes, cf. Corollary \ref{cor:eq}, are shown in Figure
 \ref{Fig:cond_eq_jitter} (left).
-For $N=\sigma q^{-1}$ and the Dirichlet kernel $D_N$ the matrix $\zb K_N$ is
+For $Nq\in \N$ and the Dirichlet kernel $D_N$ the matrix $\zb K_N$ is
 just the identity.
 However, using the better localised Fejer kernel $B_{2,N}$ improves the
-condition number already for $N>\sqrt{3}q^{-1}$ when $N\ne\sigma q^{-1}$.
+condition number already for $N>\sqrt{3}q^{-1}$ when $Nq\not\in \N$.
 
 We present the effect on the stability of the interpolation problem when the
 equispaced nodes are perturbed by jitter error, cf. Corollary
@@ -1246,7 +1251,8 @@ nodes disturbed by $10\%$ jitter error and evaluate the maximum condition
 number over $100$ reruns for the Dirichlet kernel $D_{6M}$ and the Fejer
 kernel $B_{2,6M}$, respectively.
 The Fejer kernel produces a lower condition number which is also validated by
-the shown upper bound.
+the shown upper bound. These results confirm the theoretical results
+of Corollary \ref{cor:eq} and Corollary \ref{cor:jitter}.
 
 \begin{figure}[ht!]
   \begin{center}
@@ -1259,7 +1265,7 @@ the shown upper bound.
     Left: Condition number with respect to polynomial degree
     $N=100,\hdots,600$, no weights, i.e., Dirichlet kernel (dash-dot); weight
     function $g_2$, i.e., Fejer kernel (solid), and the estimate of Corollary
-    \ref{cor:eq}; here, the number of equispaced nodes is $M=100$.
+    \ref{cor:eq} (dashed); here, the number of equispaced nodes is $M=100$.
     Right: Condition number with respect to the number of nodes
     $M=1,\hdots,100$, the nodes are equispaced perturbed by
     $\varepsilon_{\text{rel.}}=0.1$ jitter error, the polynomial degree is 
@@ -1312,7 +1318,8 @@ the Fejer- and the B-Spline kernel.
 \end{figure}
 
 
-The last example shows a typical test case for radial basis function methods.
+The last example shows a typical test case known in  radial basis
+function methods. 
 We reconstruct from a data set of $M=8345$ samples on level curves of a
 glacier a total number of $2^{16} \approx 8 M$ Fourier coefficients.
 Note however, that the sampling set is highly nonuniform in the sense that the
@@ -1342,23 +1349,25 @@ given data after $40$ iterations.
 We have shown that the optimal trigonometric interpolation problem at
 $q$-separated nodes in $d$ dimensions is well conditioned for a polynomial
 degree $N \ge 2d q^{-1}$.
-In particular, an 'undersampling factor' less than $2$ suffices to ensure a
-well conditioned univariate interpolation problem.
-If we assume furthermore the uniformity condition $q=c M^{-\frac{1}{d}}$ for a
-sampling set of cardinality $M$, then the total arithmetical complexity for
+However in our further extensive numerical examples we observe that
+for $N\sim M^{1/d}$ one can expect fast convergence of Algorithm
+\ref{algo:CGNE}. 
+If we assume furthermore a uniformity condition $q=c M^{-\frac{1}{d}}$ for the
+sampling set ${\cal X}$ of cardinality $M$, then the total
+arithmetical complexity for 
 solving the interpolation problem \eqref{eq:optInterp} up to a prescribed
-native error is of order ${\cal O}\left(M \log M \right)$.
+error is of order ${\cal O}\left(M \log M \right)$.
 
-{\bf Acknowledgement.}
-The authors would like to thank J.~Prestin and G.~Steidl for numerous
-fruitful and enlightening discussions.
-The first author is grateful for partial support of this work by the German
-Academic Exchange Service (DAAD) and the warm hospitality during his stay at
-the Numerical Harmonic Analysis Group, University of Vienna.
-%We would also like to thank the referees for their valuable
-%suggestions.
+%{\bf Acknowledgement.}
+%The authors would like to thank J.~Prestin and G.~Steidl for numerous
+%fruitful and enlightening discussions.
+%The first author is grateful for partial support of this work by the German
+%Academic Exchange Service (DAAD) and the warm hospitality during his stay at
+%the Numerical Harmonic Analysis Group, University of Vienna.
+%%We would also like to thank the referees for their valuable
+%%suggestions.
 
 \bibliographystyle{abbrv}
 %\bibliography{/home/potts/tex/ref}
-\bibliography{/home/kunis/Nfft3/nfft/trunk/doc/paper/references}
+\bibliography{/home/potts/nfft/doc/paper/references}
 \end{document}
