@@ -6,33 +6,47 @@
 
 #include "nfft3.h"
 
-#define PHI_periodic(x) ((x>0.5)?(PHI(x-1.0,0)):((x<-0.5)?PHI(x+1.0,0):PHI(x,0)))
+/*
+ * window_funct_plan is a plan to use the window functions
+ * independent of the nfft
+ */
+
+typedef struct window_funct_plan_ {
+  int d;
+	int m;
+	int n[1];
+	double sigma[1];
+	double *b;
+} window_funct_plan;
+
+void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
+	ths->d=1;
+	ths->m=m;
+	ths->n[0]=n;
+	ths->sigma[0]=sigma;
+  WINDOW_HELP_INIT
+}
 
 void exponential (double k, double x)
 {
   int l,n,N;
   double xx;
-  nfft_plan  *ths;
+  window_funct_plan  *ths;
   complex result_exact,result_approx;
 
-  ths = (nfft_plan*) malloc(sizeof(nfft_plan));
+  ths = (window_funct_plan*) malloc(sizeof(window_funct_plan));
 
-  N=4*ceil(k);
+	N=ceil(k);
+  n=4*N;
   
-  //nfft_init_1d(ths,N,1);
-  nfft_init_guru(ths, 1, &N, 1,&N, 4,0,0);
+  window_funct_init(ths,4, n,n/((double)N));
 
-  n=ths->n[0];
-
-  x=0.5-4/N;
-
-  
   result_approx= 0.0;
   for (xx=-x;xx<x;xx=xx+0.001)
   {
     for (l = -n/2;l<n/2;l++)
     {
-      result_approx += PHI_periodic(xx -(((double)l)/((double)n)))  * cexp( -2.0*PI*I*k*l/((double)n));
+      result_approx += PHI(xx -(((double)l)/((double)n)),0)  * cexp( -2.0*PI*I*k*l/((double)n));
     }
 
     result_approx *= 1.0/(PHI_HUT(k,0));
@@ -42,8 +56,8 @@ void exponential (double k, double x)
     printf("%e %e %e %e %e %e\n",xx,creal(result_exact),creal(result_approx),
         cimag(result_exact),cimag(result_approx) ,cabs(result_exact-result_approx));
   }
-  nfft_finalize(ths);
-  free(ths);
+  WINDOW_HELP_FINALIZE
+	free(ths);
 }
 
 

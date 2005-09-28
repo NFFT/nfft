@@ -23,7 +23,7 @@ void nfft (char * file, int N, int M)
   double W,T;
   int N3;
   int m=2;
-  double alpha = 1.25;
+  double sigma = 1.25;
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
@@ -54,19 +54,19 @@ void nfft (char * file, int N, int M)
   fclose(finh);
 
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*alpha))*4*alpha);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
   T=((max_time-min_time)/2.0)/(0.5-((double) m)/N3);
   W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
 
-  my_N[0]=N; my_n[0]=ceil(N*alpha);
-  my_N[1]=N; my_n[1]=ceil(N*alpha);
+  my_N[0]=N; my_n[0]=ceil(N*sigma);
+  my_N[1]=N; my_n[1]=ceil(N*sigma);
   my_N[2]=N3; my_n[2]=N3;
   
   /* initialise nfft */ 
-  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, m,flags,
+  mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, m, sigma, flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   ftime=fopen("readout_time.dat","r");

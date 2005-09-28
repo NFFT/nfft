@@ -18,7 +18,7 @@ for j=0:Z-1,
   figure(1)
   imagesc(A(:,:,j+1),[0 1]);
   colorbar;
-  colormap(gray(256));
+  colormap(flipud(gray(256)));
   if j<9,
     file_out =[file '0' int2str(j+1) '.png'];
   else

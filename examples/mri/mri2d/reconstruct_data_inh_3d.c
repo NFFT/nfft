@@ -23,8 +23,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   double Ts;
   double W;
   int N3;
-  int m=1;
-  double alpha = 1.25;
+  int m=2;
+  double sigma = 1.25;
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
@@ -55,18 +55,18 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   }
   fclose(finh);
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*alpha))*4*alpha);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
   W= MAX(fabs(min_inh),fabs(max_inh))/(0.5-((double) m)/N3);
 
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
-  my_N[0]=N;my_n[0]=ceil(N*alpha);
-  my_N[1]=N; my_n[1]=ceil(N*alpha);
-  my_N[2]=N3; my_n[2]=ceil(N3*alpha);
+  my_N[0]=N;my_n[0]=ceil(N*sigma);
+  my_N[1]=N; my_n[1]=ceil(N*sigma);
+  my_N[2]=N3; my_n[2]=ceil(N3*sigma);
   
   /* initialise nfft */ 
-  mri_inh_3d_init_guru(&my_plan, my_N, M, my_n, m,flags,
+  mri_inh_3d_init_guru(&my_plan, my_N, M, my_n, m, sigma, flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   if (weight)

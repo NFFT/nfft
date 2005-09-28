@@ -15,7 +15,7 @@ for i=1:M/arms,
 
     file(b*M/arms+i,2) = A*t*sin(2*pi*(w*t+b/arms));
 end
-    plot(file(b*M/arms+1:(b+1)*M/arms,1),file(b*M/arms+1:(b+1)*M/arms,2),'-');
+%    plot(file(b*M/arms+1:(b+1)*M/arms,1),file(b*M/arms+1:(b+1)*M/arms,2),'-');
 end
 hold off;
 

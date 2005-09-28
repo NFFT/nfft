@@ -30,7 +30,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   double W;
   int N3;
   int m=2;
-  double alpha = 1.25;
+  double sigma = 1.25;
   
   w = (double*) malloc(N*N*sizeof(double));
 
@@ -66,15 +66,13 @@ void infft(char* filename,int N,int M,int iteration, int weight)
 
 
   W=MAX(fabs(min_inh),fabs(max_inh))*2.0;
-  //W= MAX(fabs(min_inh),fabs(max_inh))/(0.5-6.0/N3);
-
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
   /* initialise my_plan */
-  my_N[0]=N;my_n[0]=ceil(N*alpha);
-  my_N[1]=N; my_n[1]=ceil(N*alpha);
-  my_N[2]=N3; my_n[2]=ceil(N3*alpha);
+  my_N[0]=N;my_n[0]=ceil(N*sigma);
+  my_N[1]=N; my_n[1]=ceil(N*sigma);
+  my_N[2]=N3; my_n[2]=ceil(N3*sigma);
   nnfft_init_guru(&my_plan, 3, N*N, M, my_N,my_n,m,
         PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
         

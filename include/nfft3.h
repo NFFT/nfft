@@ -910,6 +910,7 @@ typedef struct mri_inh_2d1d_plan_
   double *spline_coeffs;                /**< input for de Boor algorithm, if
                                              B_SPLINE or SINC_2m is defined  */
   int N3;
+	double sigma3;
   double *t;
   double *w;
 } mri_inh_2d1d_plan;
@@ -922,6 +923,7 @@ typedef struct mri_inh_3d_plan_
   nfft_plan plan;
   
   int N3;
+	double sigma3;
   double *t;
   double *w;
 } mri_inh_3d_plan;
@@ -932,7 +934,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *ths);
 void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *ths);
 
 void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
-                    int m, unsigned nfft_flags, unsigned fftw_flags);
+                    int m, double sigma, unsigned nfft_flags, unsigned fftw_flags);
 
 void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths);
 
@@ -941,7 +943,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *ths);
 void mri_inh_3d_adjoint(mri_inh_3d_plan *ths);
 
 void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
-                    int m, unsigned nfft_flags, unsigned fftw_flags);
+                    int m, double sigma, unsigned nfft_flags, unsigned fftw_flags);
 
 void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /* @} 

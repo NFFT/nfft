@@ -44,7 +44,7 @@ void accuracy(int d)
       
       /** precompute psi, the entries of the matrix B */
       if(my_plan.nnfft_flags & PRE_PSI)
-	nnfft_precompute_psi(&my_plan);
+      	nnfft_precompute_psi(&my_plan);
 
       if(my_plan.nnfft_flags & PRE_LIN_PSI)
         nnfft_precompute_lin_psi(&my_plan);
@@ -58,21 +58,19 @@ void accuracy(int d)
       
       /** init pseudo random Fourier coefficients */
       for(k=0;k<my_plan.N_total;k++)
-	my_plan.f_hat[k]=((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+	      my_plan.f_hat[k]=((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
       
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
 
-    
-      
       SWAPC(my_plan.f,slow);
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
 
 
-    vpr_complex(slow,3," slow ");
-    vpr_complex(my_plan.f,3," fast ");
+    //vpr_complex(slow,3," slow ");
+    //vpr_complex(my_plan.f,3," fast ");
 
 
       printf("%e, %e\n",

@@ -64,8 +64,8 @@ construct_phantom(N,Z);
 
 M = construct_knots_radial_3d(64,96);
 
-%system(['./construct_data_3d ' 'output_phantom_nfft.dat '...
-%         int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
+system(['./construct_data_3d ' 'output_phantom_nfft.dat '...
+         int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
 
 system(['./reconstruct_data_3d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 10 1']);
