@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.0'
+                     CreatedBy='Mathematica 5.2'
 
                     Mathematica-Compatible Notebook
 
@@ -41,33 +41,50 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      5939,        149]*)
-(*NotebookOutlinePosition[      6576,        171]*)
-(*  CellTagsIndexPosition[      6532,        167]*)
+(*NotebookOptionsPosition[      6765,        196]*)
+(*NotebookOutlinePosition[      7436,        219]*)
+(*  CellTagsIndexPosition[      7392,        215]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
+
+Cell[CellGroupData[{
+Cell["Locally supported kernel:", "Subsection",
+  FontFamily->"Courier"],
+
 Cell[BoxData[
-    \(\(LocSuppKernel[x_, h_, \ \[Lambda]_]\  := \ 
+    \(\(L[x_, h_, \ \[Lambda]_]\  := \ 
         If[x\  \[LessEqual] \ h, 
           0, \(\(\[Lambda] + 
                   1\)\/\(2  \[Pi] \((1 - h)\)\^\(\[Lambda] + 1\)\)\) \((x - \
-h)\)\^\[Lambda]];\)\)], "Input"],
+h)\)\^\[Lambda]];\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Parameters for plots:", "Subsection",
+  FontFamily->"Courier"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelParameters\  = \ {{\(-0.7\), {Dashing[{0.00}], 
-              Thickness[0.002]}}, {0.2, {Dashing[{0.010, \ 0.005}], 
-              Thickness[0.002]}}, {0.60, {Dashing[{0.005, \ 0.005}], 
-              Thickness[0.002]}}};\)\)], "Input"],
+    \(\(parameters\  = \ {{\(-0.7\), 
+            2.0, {Dashing[{0.00}], Thickness[0.002]}}, {0.2, 
+            2.0, {Dashing[{0.010, \ 0.005}], Thickness[0.002]}}, {0.60, 
+            2.0, {Dashing[{0.005, \ 0.005}], 
+              Thickness[0.002]}}};\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The plots:", "Subsection",
+  FontFamily->"Courier"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelPlots\  = \ 
+    \(\(plots\  = \ 
         Table[Plot[
-            LocSuppKernel[
-              Cos[v], \(LocSuppKernelParameters[\([i]\)]\)[\([1]\)], 
-              2.0], {v, \(-Pi\), Pi}, DisplayFunction \[Rule] Identity, 
+            L[Cos[v], \(parameters[\([i]\)]\)[\([1]\)], \(parameters[\([i]\)]\
+\)[\([2]\)]], {v, \(-Pi\), Pi}, DisplayFunction \[Rule] Identity, 
             AspectRatio \[Rule] 1, AxesLabel \[Rule] {"\<\>", "\<\>"}, 
             FrameTicks \[Rule] {{\(-\(\[Pi]\/4\)\), \(-\(\[Pi]\/2\)\), \
 \(-\(\(3\ \[Pi]\)\/4\)\), \ \(-\[Pi]\), 
@@ -77,18 +94,27 @@ Cell[BoxData[
                 Table[{t, "\<\>"}, {t, 0.0, 20.0, 0.2}]}, 
             PlotRange -> {{\(-Pi\) - 0.000000000001, Pi}, {0, 1.4000000001}}, 
             Axes \[Rule] True, 
-            PlotStyle \[Rule] \(LocSuppKernelParameters[\([i]\)]\)[\([2]\)], 
+            PlotStyle \[Rule] \(parameters[\([i]\)]\)[\([3]\)], 
             AxesStyle \[Rule] {Dashing[{0.01, 0.01}]}, \ Frame \[Rule] True, 
             TextStyle \[Rule] {FontFamily \[Rule] "\<Helvetica\>", 
                 FontSize \[Rule] 10}], {i, 1, 3}];\)\)], "Input"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelGraphic\  = \ 
-        Show[LocSuppKernelPlots, 
-          DisplayFunction \[Rule] $DisplayFunction];\)\)], "Input"],
+    \(\(graphic\  = \ 
+        Show[plots, DisplayFunction \[Rule] $DisplayFunction];\)\)], "Input"],
 
 Cell[BoxData[
-    \(\(Export["\<locsup_1.eps\>", LocSuppKernelGraphic];\)\)], "Input"],
+    ButtonBox[\(Export\ to\ "\<locsupp.eps\>"\),
+      ButtonFunction:>Export[ "locsupp.eps", graphic],
+      ButtonEvaluator->Automatic,
+      Active->True,
+      ButtonStyle->"EvaluateCell"]], "Input",
+  Evaluatable->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Gauss-Legendre coefficients of locally supported kernel:", "Subsection"],
 
 Cell[BoxData[
     \(a[k_, 
@@ -104,27 +130,43 @@ Cell[BoxData[
 Cell[BoxData[
     \(\(a[1, 
           h_, \[Lambda]_]\  = \ \(\[Lambda] + 1 + h\)\/\(\[Lambda] + \
-2\);\)\)], "Input"],
+2\);\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Iterated locally supported kernel:", "Subsection",
+  FontFamily->"Courier"],
 
 Cell[BoxData[
-    \(IteratedLocSuppKernel[x_, h_, \ \[Lambda]_, l_, M_]\  := \ 
+    \(Li[x_, h_, \ \[Lambda]_, l_, M_]\  := \ 
       Sum[\(2  k + 1\)\/\(4  \[Pi]\)\ \(a[k, h, \[Lambda]]\^l\) 
-          LegendreP[k, x], {k, 0, M}]\)], "Input"],
+          LegendreP[k, x], {k, 0, M}]\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Parameters for plots:", "Subsection",
+  FontFamily->"Courier"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelParameters\  = \ {{0.6, {Dashing[{0.00}], 
-              Thickness[0.002]}, 
-            1}, {0.6, {Dashing[{0.010, \ 0.005}], Thickness[0.002]}, 
-            2}, {0.6, {Dashing[{0.005, \ 0.005}], Thickness[0.002]}, 
-            3}};\)\)], "Input"],
+    \(\(parameters\  = \ {{0.6, 2.0, 
+            1, {Dashing[{0.00}], Thickness[0.002]}}, {0.6, 2.0, \ 
+            2, {Dashing[{0.010, \ 0.005}], Thickness[0.002]}}, {0.6, 2.0, 
+            3, {Dashing[{0.005, \ 0.005}], Thickness[0.002]}}};\)\)], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The plots:", "Subsection",
+  FontFamily->"Courier"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelPlots\  = \ 
+    \(\(plots\  = \ 
         Table[Plot[
-            IteratedLocSuppKernel[
-              Cos[v], \(LocSuppKernelParameters[\([i]\)]\)[\([1]\)], 
-              2, \(LocSuppKernelParameters[\([i]\)]\)[\([3]\)], 
-              200], {v, \(-Pi\), Pi}, DisplayFunction \[Rule] Identity, 
+            Li[Cos[v], \(parameters[\([i]\)]\)[\([1]\)], \
+\(parameters[\([i]\)]\)[\([2]\)], \(parameters[\([i]\)]\)[\([3]\)], 
+              100], {v, \(-Pi\), Pi}, DisplayFunction \[Rule] Identity, 
             AspectRatio \[Rule] 1, AxesLabel \[Rule] {"\<\>", "\<\>"}, 
             FrameTicks \[Rule] {{\(-\(\[Pi]\/4\)\), \(-\(\[Pi]\/2\)\), \
 \(-\(\(3\ \[Pi]\)\/4\)\), \ \(-\[Pi]\), 
@@ -134,23 +176,29 @@ Cell[BoxData[
                 Table[{t, "\<\>"}, {t, 0.0, 20.0, 0.2}]}, 
             PlotRange -> {{\(-Pi\) - 0.000000000001, Pi}, {0, 1.4000000001}}, 
             Axes \[Rule] True, 
-            PlotStyle \[Rule] \(LocSuppKernelParameters[\([i]\)]\)[\([2]\)], 
+            PlotStyle \[Rule] \(parameters[\([i]\)]\)[\([4]\)], 
             AxesStyle \[Rule] {Dashing[{0.01, 0.01}]}, \ Frame \[Rule] True, 
             TextStyle \[Rule] {FontFamily \[Rule] "\<Helvetica\>", 
                 FontSize \[Rule] 10}], {i, 1, 3}];\)\)], "Input"],
 
 Cell[BoxData[
-    \(\(LocSuppKernelGraphic\  = \ 
-        Show[LocSuppKernelPlots, 
-          DisplayFunction \[Rule] $DisplayFunction];\)\)], "Input"],
+    \(\(graphic\  = \ 
+        Show[plots, DisplayFunction \[Rule] $DisplayFunction];\)\)], "Input"],
 
 Cell[BoxData[
-    \(\(Export["\<locsup_it.eps\>", LocSuppKernelGraphic];\)\)], "Input"]
+    ButtonBox[\(Export\ to\ "\<locsuppit.eps\>"\),
+      ButtonFunction:>Export[ "locsuppit.eps", graphic],
+      ButtonEvaluator->Automatic,
+      Active->True,
+      ButtonStyle->"EvaluateCell"]], "Input",
+  Evaluatable->False]
+}, Open  ]]
 },
-FrontEndVersion->"5.0 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 758}},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowSize->{1144, 728},
-WindowMargins->{{29, Automatic}, {Automatic, 0}}
+WindowMargins->{{54, Automatic}, {Automatic, 0}},
+StyleDefinitions -> "Default.nb"
 ]
 
 (*******************************************************************
@@ -170,19 +218,49 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 240, 5, 44, "Input"],
-Cell[1997, 58, 271, 4, 43, "Input"],
-Cell[2271, 64, 1061, 18, 152, "Input"],
-Cell[3335, 84, 151, 3, 27, "Input"],
-Cell[3489, 89, 86, 1, 27, "Input"],
-Cell[3578, 92, 302, 6, 42, "Input"],
-Cell[3883, 100, 66, 1, 27, "Input"],
-Cell[3952, 103, 118, 3, 42, "Input"],
-Cell[4073, 108, 195, 3, 42, "Input"],
-Cell[4271, 113, 283, 5, 43, "Input"],
-Cell[4557, 120, 1134, 19, 152, "Input"],
-Cell[5694, 141, 151, 3, 27, "Input"],
-Cell[5848, 146, 87, 1, 27, "Input"]
+
+Cell[CellGroupData[{
+Cell[1776, 53, 72, 1, 36, "Subsection"],
+Cell[1851, 56, 228, 5, 44, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2116, 66, 68, 1, 36, "Subsection"],
+Cell[2187, 69, 282, 5, 43, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2506, 79, 57, 1, 36, "Subsection"],
+Cell[2566, 82, 1011, 17, 135, "Input"],
+Cell[3580, 101, 114, 2, 27, "Input"],
+Cell[3697, 105, 239, 6, 32, "Input",
+  Evaluatable->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3973, 116, 78, 0, 38, "Subsection"],
+Cell[4054, 118, 302, 6, 42, "Input"],
+Cell[4359, 126, 66, 1, 27, "Input"],
+Cell[4428, 129, 118, 3, 42, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4583, 137, 81, 1, 36, "Subsection"],
+Cell[4667, 140, 176, 3, 42, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4880, 148, 68, 1, 36, "Subsection"],
+Cell[4951, 151, 272, 4, 43, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5260, 160, 57, 1, 36, "Subsection"],
+Cell[5320, 163, 1066, 18, 135, "Input"],
+Cell[6389, 183, 114, 2, 27, "Input"],
+Cell[6506, 187, 243, 6, 32, "Input",
+  Evaluatable->False]
+}, Open  ]]
 }
 ]
 *)

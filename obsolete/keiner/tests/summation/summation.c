@@ -90,7 +90,7 @@ inline double locSuppKernel(const double x, const double h, const double lambda)
 /** Evaluates the Gaussian kernel. */
 inline double gaussianKernel(const double x, const double rho)
 {
- 	return exp(rho*(x-1));
+ 	return exp(2*rho*(x-1));
 }
 
 /**
@@ -445,7 +445,7 @@ int main (int argc, char **argv)
 					break;                
 				case KT_GAUSSIAN:
       /*steed = (double*) malloc(m_max*sizeof(double));
-      gsl_sf_bessel_il_scaled_array(m_max,p[ip][0],steed);
+      gsl_sf_bessel_il_scaled_array(m_max,2*p[ip][0],steed);
       for (k = 0; k <= m_max; k++)
       {
         a[k] = 4*PI*steed[k];
