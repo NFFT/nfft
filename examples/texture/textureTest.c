@@ -138,55 +138,81 @@ complex spherical_harmonic(int k, int n, double phi, double theta, int init) {
 	return p * expi(n*phi*2*PI/TEXTURE_MAX_ANGLE);
 }
 
-/*
-void simple_solver_test() {
-	texture_plan my_plan;
-	itexture_plan my_iplan;
-	int N = 2;
-	int N1 = (texture_flat_index(N, N, N) + 1)/2 + 3;
-	int N2 = 1;
+void simple_solver_test(const char *inp) {
+	FILE *inp_file = fopen(inp, "r");
+	texture_plan plan;
+	itexture_plan iplan;
+	int N, N1, N2, r_phi_count, r_theta_count, h_phi_count, h_theta_count, 
+			max_iter;
+	double delta;
 	int i;
-	complex *f_hat_ref; 
+	complex *omega, *x, *omega_ref;
+	double *h_phi, *h_theta, *r;
+	char err_prefix[100];
+	unsigned short int seed[] = {1, 2, 3};
 
-	printf("simple solver test:\n");
+	printf("simple_solver_test (%s)\n", inp);
+	sprintf(err_prefix, "simple_solver_test failed (%s):\n", inp);
+	fscanf(inp_file, "%d%d%d%d%d%d%d%lg", &N, &h_phi_count, &h_theta_count, 
+			&N2, &r_phi_count, &r_theta_count, &max_iter, &delta);
+	N1 = h_phi_count * h_theta_count;
+	seed48(seed);
+
+	texture_precompute(N);
+	omega = (complex*) malloc(texture_flat_length(N) * sizeof(complex));
+	x = (complex*) malloc(N1 * N2 * sizeof(complex));
+	omega_ref = (complex*) malloc(texture_flat_length(N) * sizeof(complex));
+	h_phi = (double*) malloc(N1 * sizeof(double));
+	h_theta = (double*) malloc(N2 * sizeof(double));
+	r = (double*) malloc(N1 * N2 * 2 * sizeof(double));
 	
-	texture_init(&my_plan, N, N1, N2);
-	itexture_init(&my_iplan, &my_plan);
+	initialize_angles(h_phi, h_theta, r, h_phi_count, h_theta_count, N2, 
+			r_phi_count, r_theta_count);
+	for(i = 0; i < texture_flat_length(N); i++) {
+		omega_ref[i] = rand()*drand48() + I*rand()*drand48();
+	}
+	
+	texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
+	texture_trafo(&plan);
+	texture_set_omega(&plan, omega);
+	
+	itexture_init(&iplan, &plan);
 
-	f_hat_ref = (complex*) malloc(sizeof(complex) * my_plan.N_total);
-	for(i = 0; i < my_plan.N_total; i++) {
-		f_hat_ref[i] = i + 1;
-		my_plan.f_hat[i] = f_hat_ref[i];
+	memset(iplan.f_hat_iter, 0, 
+			texture_get_omega_length(&plan) * sizeof(complex));
+	memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(complex));
+	itexture_before_loop(&iplan);
+	for(i = 0; 
+			i < max_iter && 
+			!equal_two_norm_rel(iplan.f_hat_iter, omega_ref, 
+													texture_get_omega_length(&plan), delta); 
+			i++)	{
+		itexture_loop_one_step(&iplan);
 	}
 
-	texture_trafo(&my_plan);
-	vpr_complex(my_plan.f, my_plan.M_total, "f - the samples");
-	vpr_complex(my_plan.f_hat, my_plan.N_total, 
-			"f_hat - the corresponding frequencies");
-
-	// destroying f_hat
-	texture_adjoint(&my_plan);
-
-	cp_complex(my_iplan.y, my_plan.f, my_plan.M_total);
-	cp_complex(my_iplan.f_hat_iter, my_plan.f_hat, my_plan.N_total);
-
-	itexture_before_loop(&my_iplan);
-	for(i = 0; i < 4; i++)	{
-		vpr_complex(my_iplan.f_hat_iter, my_plan.N_total, "f_hat_iter - the guess");
-
-		SWAP_complex(my_iplan.f_hat_iter, my_plan.f_hat);
-		texture_trafo(&my_plan);
-		print_error(my_iplan.y, my_plan.f, my_plan.M_total);
-		SWAP_complex(my_iplan.f_hat_iter, my_plan.f_hat);
-
-		itexture_loop_one_step(&my_iplan);
+	if(!equal_two_norm_rel(iplan.f_hat_iter, omega_ref, 
+				texture_get_omega_length(&plan), delta)) {
+		printf("%sdiff=%lg ref=%lg\n", 
+				err_prefix, 
+				two_norm_dist(iplan.f_hat_iter, omega_ref, 
+					texture_get_omega_length(&plan)),
+				delta*two_norm(omega_ref, texture_get_omega_length(&plan)));
 	}
+	
+	itexture_finalize(&iplan);
+	texture_finalize(&plan);
 
-	free(f_hat_ref);
-	itexture_finalize(&my_iplan);
-	texture_finalize(&my_plan);
+	texture_forget();
+
+	free(omega);
+	free(x);
+	free(omega_ref);
+	free(h_phi);
+	free(h_theta);
+	free(r);
+
+	fclose(inp_file);
 }
-*/
 
 void spherical_harmonic_test(const char *inp) {
 	int N1, N2, N;
@@ -717,6 +743,58 @@ void linearity_adjoint_test(const char *inp) {
 	texture_forget();
 }
 
+void precompute_extreme_values_test() {
+	printf("*** precompute_extreme_values_test\n");
+
+	texture_precompute(2);
+	texture_forget();
+	
+	texture_precompute(1);
+	texture_forget();
+
+	texture_precompute(0);
+	texture_forget();
+}
+
+void texture_trafo_extreme_values_test() {
+	texture_plan plan;
+	complex omega0[1];
+	complex x0[0];
+	double h_phi0[0], h_theta0[0], r0[0];
+	complex omega1[10], x1[1];
+	double h_phi1[1] = {0}, h_theta1[1] = {0}, r1[2] = {0, 0};
+	int i;
+
+	omega0[0] = 0;
+	for(i = 0; i < 10; i++) {
+		omega1[i] = 0;
+	}
+	
+	printf("*** texture_trafo_extreme_values_test\n");
+
+	texture_precompute(0);
+
+	texture_init(&plan, 0, 0, 0, omega0, x0, h_phi0, h_theta0, r0);
+
+	texture_trafo(&plan);
+	texture_adjoint(&plan);
+
+	texture_finalize(&plan);	
+	
+	texture_forget();
+
+	texture_precompute(1);
+
+	texture_init(&plan, 1, 1, 1, omega1, x1, h_phi1, h_theta1, r1);
+
+	texture_trafo(&plan);
+	texture_adjoint(&plan);
+
+	texture_finalize(&plan);	
+	
+	texture_forget();
+}
+
 void init() {
 	spherical_harmonic(0, 0, 0, 0, 1);
 }
@@ -737,7 +815,7 @@ int main(int arglen, char *argv[]) {
 		printf("*** If some output not preceded by *** is produced, there is some error.\n");
 
 		init();
-	
+/*	
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
 		nfsft_test("nfsft_moderate_test.inp");
@@ -751,8 +829,12 @@ int main(int arglen, char *argv[]) {
 		linearity_test("linearity_moderate_test.inp");
 
 		linearity_adjoint_test("linearity_adjoint_moderate_test.inp");
-		
-		//simple_solver_test();
+
+		//precompute_extreme_values_test(); //reveals a bug in nfsft
+
+		//texture_trafo_extreme_values_test(); //reveals a bug in nfsft
+*/		
+		simple_solver_test("simple_solver_moderate_test.inp");
 	} else if (arglen == 1) {
 		// default usage
 		
@@ -760,7 +842,7 @@ int main(int arglen, char *argv[]) {
 		printf("*** If some output not preceded by *** is produced, there is some error.\n");
 
 		init();
-		
+/*		
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
 		nfsft_test("nfsft_test.inp");
@@ -774,8 +856,8 @@ int main(int arglen, char *argv[]) {
 		linearity_test("linearity_test.inp");
 		
 		linearity_adjoint_test("linearity_adjoint_test.inp");
-		
-		//simple_solver_test();
+*/		
+		simple_solver_test("simple_solver_test.inp");
 	} else {
 		usage();
 	}
