@@ -49,6 +49,8 @@
 \numberwithin{equation}{section}
 \numberwithin{table}{section}
 \numberwithin{figure}{section}
+
+\renewcommand{\bottomfraction}{0.9}
 %============================================================================
 \title{Fast summation of radial functions on the sphere}
 
@@ -72,8 +74,8 @@ Daniel Potts\thanks{potts@math.uni-luebeck.de, University of
 %\noindent
 %2000 {\it Mathematics Subject Classification}. 65F10, 65F15, 65T40.
 \noindent
-{\it Radial functions are a powerful tool in many areas of multi-dimensional 
-approximation. We present a fast approximative algorithm for the evaluation of
+{Radial functions are a powerful tool in many areas of multi-dimensional 
+approximation. We present a fast approximate algorithm for the evaluation of
 linear combinations of radial functions on the sphere $\mathbb{S}^2$. The 
 approach is based on a rank approximation to the corresponding Gramian matrix
 and fast algorithms for spherical Fourier transforms. We establish explicit error 
@@ -112,7 +114,7 @@ $
 %\eta \xi :=
 {\rm arccos}\;  (\eta\cdot \xi)                     
 $
-with the (cartesian) inner product 
+with the (Cartesian) inner product 
 $$
 \eta\cdot \xi = \cos\theta\; \cos \theta^\prime \; +\; \sin\theta\; \sin
 \theta^\prime\;\cos(\varphi-\varphi^\prime)\, .
@@ -134,7 +136,7 @@ an $\mathcal{O}\left(LD\right)$ algorithm if we assume that the zonal function
 $\fun{K}{\mathbf{\eta} \: \cdot}$ can be evaluated in constant time or that all values
 $\fun{K}{\mathbf{\eta}_{l} \cdot \mathbf{\xi}_{d}}$ can be stored in advance. 
 For large $L$ and $D$ the computational effort becomes quickly unaffordable.
-We present an approximative algorithm with arithmetic complexity 
+We present an approximate algorithm with arithmetic complexity 
 ${\cal O} (D+L)$ based on the \emph{nonuniform fast spherical Fourier 
 transform $($NFSFT$)$}, cf. \cite{kupo02,keiner05}. 
 
@@ -282,8 +284,8 @@ a derivative of the stabilised Driscoll-Healy algorithm \cite{drhe,postta97}
 combined with the fast Fourier transform for nonequispaced nodes (NFFT)
 described for example in \cite{postta01}. Recently, the corresponding adjoint 
 algorithm was derived and implemented (see \cite{keiner05}). The algorithms 
-themselves are approximative, on the one hand owing to a thresholded 
-stabilisation scheme, and on the other by using the approximative
+themselves are approximate, on the one hand owing to a thresholded 
+stabilisation scheme, and on the other by using the approximate
 NFFT algorithm.
 
 For practical calculations, the Fourier-Legendre coefficients 
@@ -478,6 +480,8 @@ allows for direct evaluation and numerical verification. Depending on the
 particular zonal function $\fun{K}{\mathbf{\eta} \: \cdot \,}$, we use different 
 methods for pre-computing the Fourier-Legendre coefficients $\fun{K^{\wedge}}{k}$.
 
+\pagebreak
+
 \subsection{Poisson and Singularity kernel}
 \begin{definition}\label{def:poisson_sing}
   Let $h \in (0,1)$, then the
@@ -485,12 +489,12 @@ methods for pre-computing the Fourier-Legendre coefficients $\fun{K^{\wedge}}{k}
   \item \emph{Poisson kernel}
     $Q_{h}:[-1,1] \rightarrow \R$ is given by
     \[
-    \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\left(1-2hx+h^2\right)^{3/2}}\,
+    \fun{Q_{h}}{x} := \frac{1}{4\pi} \frac{1-h^2}{\left(1-2 h x+h^2\right)^{3/2}}\,
     \]
   \item and the \emph{singularity kernel}
     $S_{h}:[-1,1] \rightarrow \R$ is given by
     \[
-    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\left(1-2hx+h^2\right)^{1/2}}.
+    \fun{S_{h}}{x} := \frac{1}{2\pi} \frac{1}{\left(1-2 h x +h^2\right)^{1/2}}.
     \]
   \end{enumerate}
 \end{definition}
@@ -702,8 +706,6 @@ different values $\sigma$.
   \label{Basics:Figure:GKernel}
 \end{figure}
 
-\newpage
-
 \begin{lemma}
 \label{lem:gauss}
 For the spherical Gaussian $G_{\sigma}$ holds:
@@ -742,7 +744,7 @@ For the spherical Gaussian $G_{\sigma}$ holds:
     $\fun{G_{\sigma}^{\wedge}}{1} = \pi \sigma^{-2} \e^{-2\sigma} (2 \sigma
     \cosh 2 \sigma + \sinh \sigma )$.
     The assertion follows than e.g. by \cite{bahu01} from the
-    definition of the midified Bessel function. 
+    definition of the modified Bessel function. 
 
 {\bf Oder sollten wir statt auf Huber nochmals auf [12]
     verweisen. Bei Hubber steht auch nicht mehr}
@@ -803,7 +805,7 @@ approximation.
   \eqref{error:Lh}, or \eqref{error:G}. 
 \end{corollary}
 \begin{proof}
- Using Hoelder's inequality, we obtain
+ Using H\"older's inequality, we obtain
  \[
  \left\| \mathbf{K} - \mathbf{Y_{\mathcal{X}}} \: \mathbf{\hat W} \:
    \mathbf{Y_{\mathcal{Y}}}^{\adj} \right\|_p
@@ -833,7 +835,25 @@ our approach. All algorithms were implemented in C and tested on an
 AMD Athlon\texttrademark XP 2700+ with 2GB main memory, SuSE-Linux 
 (kernel 2.4.20-4GB-athlon, gcc 3.3) using double precision arithmetic. 
 Moreover, we have used the libraries FFTW 3.0.1 \cite{fftw}, NFFT 2
-\cite{kupo02C} and a custom NFSFT library which will be part of the next 
+\cite{kupo02C} and a custom NFSFT library which will be part of the next \begin{figure}[tb]
+  \centering
+  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$.]
+  {\includegraphics[width=0.45\textwidth]{images/poisson_test}}\hfill
+  \subfigure[The Singularity kernel $S_{h}$ for $h = 0.8$.]
+  {\includegraphics[width=0.45\textwidth]{images/singularity_test}}\\
+  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $h=0.3$ and $\lambda = 7$.]
+  {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
+  \subfigure[The spherical Gaussian kernel $G_{\sigma}$ for $\sigma=5$.]
+  {\includegraphics[width=0.45\textwidth]{images/gaussian_test2}}
+  \caption{The error $E_{\infty}$ for $M = 4,8,\ldots,256$ in (a) -- (c) and 
+  $M = 1,2,\ldots,32$ in (d), respectively, 
+  and $L = D = 1000$: Fast summation with NDSFT (solid), fast summation with NFSFT and 
+  NFFT cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT and NFFT cut-off 
+  parameter $m = 6$ (dashed), error estimate for 
+  $E_{\infty}$ (dotted).}
+  \label{fig:error}
+\end{figure}
+
 major release of the NFFT library. Throughout our experiments we have 
 applied the NFFT package \cite{kupo02C} with pre-computed Kaiser--Bessel 
 functions and an oversampling factor $\rho=2$.
@@ -850,8 +870,8 @@ and the Gaussian kernel $G_{\sigma}$.
 
 \begin{example}
 First, we examine the systematic error due to our approximation
-\eqref{Applications:TruncatedSeries} and the use of the approximative NFSFT
-algorithms. Figures \ref{fig:error} and \ref{fig:gtest2} show the error
+\eqref{Applications:TruncatedSeries} and the use of the approximate NFSFT
+algorithms. Figure \ref{fig:error} shows the error
 \[
 E_{\infty}:=
 \frac{\left\|\mathbf{f}-\mathbf{f}_M\right\|_{\infty}}{\left\|\mathbf{b}\right\|_{1}}
@@ -866,31 +886,11 @@ Furthermore we plot the error estimates given in \eqref{error:poisson},
 \eqref{error:singular}, \eqref{error:Lh}, and \eqref{error:G}.
 \end{example}
 
-\begin{figure}[tb]
-  \centering
-  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$.]
-  {\includegraphics[width=0.45\textwidth]{images/poisson_test}}\hfill
-  \subfigure[The Singularity kernel $S_{h}$ for $h = 0.8$.]
-  {\includegraphics[width=0.45\textwidth]{images/singularity_test}}\\
-  \subfigure[The locally supported kernel $L_{h,\lambda}$ for $h=0.3$ and $\lambda = 7$.]
-  {\includegraphics[width=0.45\textwidth]{images/locsupp_test}}\hfill
-  \subfigure[The spherical Gaussian kernel $G_{\sigma}$ for $\sigma=100$. The 
-  error estimate from Lemma \ref{lem:gauss} does not provide a useful bound
-  for this value of $\sigma$ and is not shown. Compare with Figure \ref{fig:gtest2}.]
-  {\includegraphics[width=0.45\textwidth]{images/gaussian_test}}
-  \caption{The error $E_{\infty}$ for $M = 4,8,\ldots,256$ and $L = D = 1000$: 
-  Fast summation with NDSFT (solid), fast summation with NFSFT and 
-  NFFT cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT and NFFT cut-off 
-  parameter $m = 6$ (dashed), error estimate for 
-  $E_{\infty}$ (dotted).}
-  \label{fig:error}
-\end{figure}
-
-\begin{figure}[tb]
-  \centering
+%\begin{figure}[tb]
+%  \centering
 %  \subfigure[To be written...]
 %  {
-  \includegraphics[width=0.45\textwidth]{images/gaussian_test2}
+%  \includegraphics[width=0.45\textwidth]{images/gaussian_test2}
 %  }\hfill
 %  \subfigure[The Poisson kernel $Q_{h}$ for $h = 0.8$: Fast summation with 
 %  NFSFT/NDSFT and thresholds $10^6$ (solid), $10^9$ (dashed), $10^9$ (dash-dot). 
@@ -898,15 +898,15 @@ Furthermore we plot the error estimates given in \eqref{error:poisson},
 %  {
 %    \includegraphics[width=0.45\textwidth]{images/threshold_test}
 %  }\hfill
-  \caption{The error $E_{\infty}$ for $M = 1,2,\ldots,32$ and $L = D = 1000$: 
-  Fast summation with NDSFT (solid), fast summation with NFSFT and 
-  NFFT cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT and NFFT cut-off 
-  parameter $m = 6$ (dashed), error estimate for $E_{\infty}$ (dotted). We used the
-  spherical Gaussian kernel $G_{\sigma}$ with small $\sigma=5$.}
-  \label{fig:gtest2}
-\end{figure}
+%  \caption{The error $E_{\infty}$ for $M = 1,2,\ldots,32$ and $L = D = 1000$: 
+%  Fast summation with NDSFT (solid), fast summation with NFSFT and 
+%  NFFT cut-off parameter $m = 3$ (dash-dot), fast summation with NFSFT and NFFT cut-off 
+%  parameter $m = 6$ (dashed), error estimate for $E_{\infty}$ (dotted). We used the
+%  spherical Gaussian kernel $G_{\sigma}$ with small $\sigma=5$.}
+%  \label{fig:gtest2}
+%\end{figure}
 
-{\bf Figure 5.2 in Figure 5.1 d setzen}
+%{\bf Figure 5.2 in Figure 5.1 d setzen}
 
 \begin{example}
 We now compare the computation time of the straightforward summation
@@ -915,12 +915,12 @@ straightforward summation with pre-computed matrix $\mathbf{K}$
 (w/pre-comp.) , the fast summation 
 algorithm with NDSFT (FS, NDSFT), and the fast summation algorithm
 with NFSFT (FS, NFSFT) for 
-increasing $D=L$ and fixed cut-off degree $M=128$. 
-
-{\bf was ist error  ( Fehler zwischen direct alg and FS, NFSFT oder NDSFT?} 
-
+increasing $D=L$ and fixed cut-off degree $M=128$.
 The CPU time required by the four algorithms is shown in Table
-\ref{tab:TimeSpace}. 
+\ref{tab:TimeSpace}. The last column shows the error 
+$E_{\infty} = \left\|\mathbf{f}-\mathbf{f}_M\right\|_{\infty}/\left\|\mathbf{b}\right\|_{1}$ 
+where we compute the vector $\mathbf{f}$ using the direct algorithm and 
+the vector $\mathbf{f}_{M}$ using the NFSFT algorithm.
 As expected, the fast NDSFT and NFSFT summation algorithms outperform the 
 straightforward algorithms, but with the NFSFT--version considerably
 faster. 
@@ -968,8 +968,6 @@ approximation. We compare the performance of our approach $\mathbf{Y_{\mathcal{X
 \mathbf{Y_{\mathcal{Y}}}^{\adj}$ and the corresponding error estimate from Corollary \ref{cor:rankapprox}
 with the truncated-SVD rank $l$ approximation $\mathbf{S}_{l}$ for $l = 1,\ldots,L$
 measured in the spectral norm $\left\|\cdot\right\|_{2}$. The results are shown in Figure \ref{fig:rankapprox}. 
-
-{\bf und zeigen ...}
  
 \end{example}
 
