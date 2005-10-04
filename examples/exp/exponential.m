@@ -1,7 +1,6 @@
-k=2.5;
-x=0.5;
+k=12.5;
 
-system(['./exp  '  num2str(k) ' ' num2str(x) ' > out.dat']);
+system(['./exp  '  num2str(k) '  > out.dat']);
 
 load out.dat
 

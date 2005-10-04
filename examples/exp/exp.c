@@ -27,7 +27,7 @@ void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
   WINDOW_HELP_INIT
 }
 
-void exponential (double k, double x)
+void exponential (double k)
 {
   int l,n,N;
   double xx;
@@ -37,12 +37,12 @@ void exponential (double k, double x)
   ths = (window_funct_plan*) malloc(sizeof(window_funct_plan));
 
 	N=ceil(k);
-  n=4*N;
+  n=2*N;
   
-  window_funct_init(ths,4, n,n/((double)N));
+  window_funct_init(ths,2, n,n/((double)N));
 
   result_approx= 0.0;
-  for (xx=-x;xx<x;xx=xx+0.001)
+  for (xx=-0.5;xx<0.5;xx=xx+0.001)
   {
     for (l = -n/2;l<n/2;l++)
     {
@@ -63,8 +63,8 @@ void exponential (double k, double x)
 
 int main(int argc, char **argv)
 {
-  // usage: k x 
-  exponential(atof(argv[1]),atof(argv[2]));
+  // usage: k 
+  exponential(atof(argv[1]));
   return 1;
 }
 
