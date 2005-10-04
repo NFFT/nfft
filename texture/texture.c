@@ -154,11 +154,11 @@ inline int texture_flat_length(int N) {
 }
 
 inline int texture_get_omega_length(texture_plan *ths) {
-	return texture_flat_length(ths->N);
+	return ths->N_total;
 }
 
 inline int texture_get_x_length(texture_plan *ths) {
-	return ths->N1 * ths->N2;
+	return ths->M_total;
 }
 
 inline int texture_get_N(texture_plan *ths) {

@@ -54,6 +54,8 @@ AC_OUTPUT(Makefile \
           examples/nfsft/obsolete/Makefile
           examples/fastgauss/Makefile \
           examples/texture/Makefile \
+          examples/texture/test/Makefile \
+          examples/texture/regularity/Makefile \
           examples/nfct/Makefile \
           examples/nfct/accuracy/Makefile \
 )
