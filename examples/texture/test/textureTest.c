@@ -160,7 +160,7 @@ void simple_solver_test(const char *inp)
 	char err_prefix[100];
 	unsigned short int seed[] = { 1, 2, 3 };
 
-	printf("simple_solver_test (%s)\n", inp);
+	printf("*** simple_solver_test (%s)\n", inp);
 	sprintf(err_prefix, "simple_solver_test failed (%s):\n", inp);
 	fscanf(inp_file, "%d%d%d%d%d%d%d%lg", &N, &h_phi_count, &h_theta_count,
 				 &N2, &r_phi_count, &r_theta_count, &max_iter, &delta);
@@ -837,7 +837,7 @@ int main(int arglen, char *argv[])
 		printf("there is some error.\n");
 
 		init();
-/*	
+	
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
 		nfsft_test("nfsft_moderate_test.inp");
@@ -853,7 +853,7 @@ int main(int arglen, char *argv[])
 		linearity_adjoint_test("linearity_adjoint_moderate_test.inp");
 
 		//precompute_extreme_values_test(); //reveals a bug in nfsft
-*/
+
 //    texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_1.inp"); //reveals a bug in nfsft
 //		texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_2.inp");	//reveals a bug in nfsft
 //    texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_3.inp");
@@ -868,13 +868,11 @@ int main(int arglen, char *argv[])
 		printf("there is some error.\n");
 
 		init();
-/*		
+		
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
 		nfsft_test("nfsft_test.inp");
 
-		//nfsft_test("nfsft_small_test.inp"); //reveals a bug in nfsft
-		
 		unit_vector_test("unit_vector_test.inp");
 
 		unit_vector_adjoint_test("unit_vector_adjoint_test.inp");
@@ -882,7 +880,7 @@ int main(int arglen, char *argv[])
 		linearity_test("linearity_test.inp");
 		
 		linearity_adjoint_test("linearity_adjoint_test.inp");
-*/
+
 		simple_solver_test("simple_solver_test.inp");
 	} else {
 		usage();

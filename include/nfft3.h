@@ -960,7 +960,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /** 
  * Constant for the max angle (representation of 2*Pi)
  */
-#define TEXTURE_MAX_ANGLE (2*PI)
+#define TEXTURE_MAX_ANGLE (2*3.1415926535897932384)
 
 /**
  * Constants for default values.
