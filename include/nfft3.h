@@ -16,7 +16,7 @@ int M_total;                          /**< total number of samples        */\
 float_type *f_hat;                    /**< Fourier coefficients           */\
 float_type *f;                        /**< samples                        */\
  
-/** @defgroup nfft Group
+/** @defgroup nfft NFFT
  * Direct and fast computation of the
  * discrete Fourier transform at nonequispaced knots
  * @{ 
@@ -176,7 +176,7 @@ void nfft_finalize(nfft_plan *ths);
 
 
 
-/** @defgroup nfct Group
+/** @defgroup nfct NFCT
  * direct and fast computation of the
  * discrete cosine transform at nonequispaced knots in time/spatial domain
  * @{ 
@@ -392,7 +392,7 @@ int nfct_fftw_2N_rev( int n);
  */
 
 
-/** @defgroup nfst Group
+/** @defgroup nfst NFST
  * direct and fast computation of the
  * discrete sine transform at nonequispaced knots in time/spatial domain
  * @{ 
@@ -634,7 +634,7 @@ int nfst_fftw_2N_rev( int n);
 
 
 
-/** @defgroup nnfft Group
+/** @defgroup nnfft NNFFT
  * Direct and fast computation of the
  * discrete Fourier transform at nonequispaced knots in time and Fourier domain
  * @{ 
@@ -823,7 +823,7 @@ void nnfft_finalize(nnfft_plan *ths_plan);
 /** @} 
  */
 
-/** @defgroup nsfft Group
+/** @defgroup nsfft NSFFT
  * @{ 
  */
 typedef struct nsfft_plan_ 
@@ -949,7 +949,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /** @} 
  */
 
-/** @defgroup texture group
+/** @defgroup texture Texture
  * @{
  */
 
@@ -1132,6 +1132,23 @@ struct texture_plan {
  * This section summarises basic definitions and properties related to spherical 
  * Fourier transforms.
  *
+ * \subsection sc Spherical Coordinates
+ * Every point \f$\mathbf{x} \in \mathbb{R}^3 \setminus \{\mathbf{0}\}\f$ given 
+ * in \e Cartesian \e coordinates by the vector \f$\left(x_1,x_2,x_3\right)^
+ * {\mathrm{T}}\f$ can be described in \e spherical \e coordinates by a vector 
+ * \f$(r,\vartheta,\varphi)^{\mathrm{T}}\f$ with the radius 
+ * \f$r \in \mathbb{R}^{+}\f$ and the angles \f$\vartheta \in [0,\pi]\f$, 
+ * \f$\varphi \in [-\pi,\pi)\f$. We denote by \f$\mathbb{S}^2\f$ the 
+ * two-dimensional unit sphere embedded into \f$\mathbb{R}^3\f$, i.e. 
+ * \f[
+ *   \mathbb{S}^2 := \left\{\mathbf{x} \in \mathbb{R}^{3}:\; 
+ *   \|\mathbf{x}\|_2=1\right\}
+ * \f] 
+ * and identify a point \f$\mathbf{\xi} \in \mathbb{S}^2\f$ with the 
+ * corresponding vector \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The 
+ * spherical coordinate system is illustrated in the following figure:
+ * \image html sphere.png "" width=0.45\textwidth
+ *
  * \subsection lp Legendre Polynomials
  * The \emph \e Legendre \e polynomials \f$P_k : [-1,1] 
  * \rightarrow \mathbb{R}$, $k \in \mathbb{N}_{0}\f$ as \e classical \e 
@@ -1140,102 +1157,152 @@ struct texture_plan {
  * \f[
  *   P_k(x) := \frac{1}{2^k k!} \frac{\text{d}^k}{\text{d} x^k} 
  *   \left(x^2-1\right)^k.
- * \f]  
- * One verifies \f$P_{k}(\pm1) = (\pm1)^{k}$, $\left|P_{k}(\cos\vartheta)\right| 
- * \le \sqrt{\frac{2}{\pi k \sin\vartheta}}\f$ for 
- * \f$\vartheta \in (0,\pi)$ and $k \ge 1\f$, and \f$\max_{x \in 
- * [-1,1]} \left|P_{k}(x)\right| = 1\f$ (see \cite[pp. 47]{niuv}).
- * For convenience, we let \f$P_{-1}(x) := 0\f$. Two recurrence relations are 
- * given by
+ * \f]
+ * The corresponding three-term recurrence relation is
  * \f[
  *   (k+1)P_{k+1}(x) = (2k+1) x P_{k}(x) - k P_{k-1}(x) \quad (k \in 
- *   \mathbb{N}_0)
+ *   \mathbb{N}_0).
  * \f]  
- * and
+ * With
  * \f[
- *   (2k+1) P_{k}(x) = P_{k+1}'(x) - P_{k-1}'(x)  \quad (k \in \mathbb{N}_0).
+ *   \left< f,g \right>_{\text{L}^2\left([-1,1]\right)} := 
+ *   \int_{-1}^{1} f(x) g(x) \text{d} x
  * \f]  
+ * being the usual \f$\text{L}^2\left([-1,1]\right)\f$ inner product,
+ * the Legendre polynomials obey the orthogonality condition
+ * \f[
+ *   \left< P_k,P_l \right>_{\text{L}^2\left([-1,1]\right)} = \frac{2}{2k+1} 
+ *   \delta_{k,l}.
+ * \f]
+ *
+ * \remark The normalisation constant \f$ c_k := \sqrt{\frac{2k+1}{2}}\f$ 
+ * renders the scaled Legendre polynomials \f$c_k P_k\f$ orthonormal with 
+ * respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
+ * \f[
+ *   \|f\|_{\text{L}^2\left([-1,1]\right)} := 
+ *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
+ *   \sqrt{\int_{-1}^{1} |f(x)|^2 \; \text{d} x}.
+ * \f]
  * 
  * \subsection alf Associated Legendre Functions
  * The \a associated \a Legendre \a functions \f$P_k^n : [-1,1] \rightarrow 
- * \mathbb{R} \f$ by
+ * \mathbb{R} \f$, \f$n \in \mathbb{N}_0\f$, \f$k \ge n\f$ are defined by
  * \f[ 
  *   P_k^n(x) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
- *   \left(1-x^2\right)^{n/2} \frac{\text{d}^n}{\text{d} x^n} P_k(x) \quad 
- *   (n \in \mathbb{N}_0,\ k \ge n).
+ *   \left(1-x^2\right)^{n/2} \frac{\text{d}^n}{\text{d} x^n} P_k(x).
  * \f]
- * For fixed \f$n\f$, the set \f$\left\{P_k^n:\: k \ge n\right\}\f$ forms a 
- * complete set of orthogonal functions for \f$\text{L}^2\left([-1,1]\right)\f$ 
- * with
- * \f[ 
- *   \left< P_k^n,P_l^n \right>_{\text{L}^2\left([-1,1]\right)} := 
- *   \int_{-1}^{1} P_k^n(x) P_l^n(x) \text{d} x = \frac{2}{2k+1} \delta_{k,l} 
- *   \quad (0 \le n \le k,l).
- * \f]
+ * For \f$n = 0\f$ they coincide with the Legendre polynomials, i.e. 
+ * \f$P_k^0 = P_k\f$. 
  * The associated Legendre functions obey the three-term recurrence relation
  * \f[  
  *   P_{k+1}^n(x) = v_{k}^n x P_k^n(x) + w_{k}^n P_{k-1}^n(x) \quad (k \ge n),
  * \f]
- * with \f$P_{n-1}^n(x) := 0\f$, \f$P_{n}^n(x) = \frac{\sqrt{(2n)!}}{2^n n!} 
+ * with \f$P_{n-1}^n(x) := 0\f$, \f$P_{n}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!} 
  * \left(1-x^2\right)^{n/2}\f$, and
  * \f[ 
  *   v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad 
  *   w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
  * \f]
- * A simple but at the same time powerful idea is to define the associated 
- * Legendre functions \f$P_k^n\f$ also for \f$k < n\f$ by means of the modified 
- * three-term recurrence relation
- * \f[
- *   P_{k+1}^n(x) = \left(\alpha_{k}^n x + \beta_{k}^n\right) P_{k}^n(x) + 
- *   \gamma_{k}^n P_{k-1}^n(x) \quad (k \in \mathbb{N}_0).
- * \f]
+ * For fixed \f$n\f$, the set \f$\left\{P_k^n:\: k 
+ * \ge n\right\}\f$ forms a complete set of orthogonal functions for 
+ * \f$\text{L}^2\left([-1,1]\right)\f$ 
  * with
+ * \f[ 
+ *   \left< P_k^n,P_l^n \right>_{\text{L}^2\left([-1,1]\right)} = \frac{2}{2k+1}
+ *   \delta_{k,l} \quad (0 \le n \le k,l).
+ * \f]
+ * 
+ * \remark The normalisation constant \f$ c_k = \sqrt{\frac{2k+1}{2}}\f$ 
+ * renders the scaled associated Legendre functions \f$c_k P_k^n\f$ orthonormal 
+ * with respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
  * \f[
- *   \begin{split}
- *     \alpha_{k}^n & := 
- *       \left\{
- *         \begin{array}{ll}
- *           (-1)^{k+1} & \text{for}\ k < n,\\
- *           v_{k}^n    & \text{otherwise},
- *         \end{array}
- *       \right.\\
- *     \beta_{k}^n & := 
- *       \left\{
- *         \begin{array}{lll}
- *           1 & \text{for}\ k < n,\\
- *           0 & \text{otherwise},
- *         \end{array}
- *       \right.\\
- *     \gamma_{k}^n & := 
- *       \left\{
- *         \begin{array}{lll}
- *           0       & \text{for}\ k \leq n,\\
- *           w_{k}^n & \text{otherwise.}
- *         \end{array}
- *       \right.
- *   \end{split}  
+ *   \|f\|_{\text{L}^2\left([-1,1]\right)} = 
+ *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
+ *   \sqrt{\int_{-1}^{1} |f(x)|^2 \; \text{d} x}.
  * \f]
- * For even $n$, we let
- * \f[ 
- *   P_{-1}^n(x) := 0,\ P_{0}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!},
- * \f]
- * and for odd \f$n\f$, we start with
- * \f[ 
- *   P_{0}^n(x) := P_{1}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!} 
- *   \left(1-x^2\right)^{1/2},
- * \f]
- * where \f$P_{-1}^n(x) := 0\f$ is understood.
- * For \f$k \ge n\f$, this definition coincides with 
- * \eqref{Basics:AssociatedLegendreDefinition}. 
- * As a matter of fact, \f$P_{k}^n\f$ is a polynomial of degree \f$k\f$, if 
- * \f$n\f$ is even, while \f$\left(1-x^2\right)^{-1/2}P_{k}^n\f$ is a polynomial 
- * of degree \f$k-1\f$ for odd \f$n\f$, as easily verified by 
- * \eqref{basics:AssLegDef}.
  *
  * \subsection sh Spherical Harmonics
+ * The standard orthogonal basis of spherical harmonics for \f$\text{L}^2
+ * \left(\mathbb{S}^2\right)\f$ with yet unnormalised basis functions 
+ * \f$\tilde{Y}_k^n : \mathbb{S}^2 \rightarrow \mathbb{C}\f$ is given by
+ * \f[
+ *   \tilde{Y}_k^n(\vartheta,\varphi) := P_k^{|n|}(\cos\vartheta) 
+ *   \mathrm{e}^{\mathrm{i} n \varphi}
+ * \f]
+ * with the usual \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ inner product
+ * \f[
+ *   \left< f,g \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)} := 
+ *   \int_{\mathbb{S^2}} f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} 
+ *   \: \mathrm{d} \mathbf{\xi} := \int_{-\pi}^{\pi} \int_{0}^{\pi} 
+ *   f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} \sin \vartheta 
+ *   \; \mathrm{d} \vartheta \; \mathrm{d} \varphi.
+ * \f]
+ * The normalisation constant \f$c_k^n := \sqrt{\frac{2k+1}{4\pi}}\f$ renders 
+ * the  scaled basis functions 
+ * \f[
+ *   Y_k^n(\vartheta,\varphi) := c_k^n P_k^{|n|}(\cos\vartheta) 
+ *   \mathrm{e}^{\mathrm{i} n \varphi}
+ * \f]
+ * orthonormal with respect to the induced \f$\text{L}^2\left(\mathbb{S}^2
+ * \right)\f$ norm
+ * \f[
+ *   \|f\|_{\text{L}^2\left(\mathbb{S}^2\right)} = 
+ *   \sqrt{<f,f>_{\text{L}^2\left(\mathbb{S}^2\right)}} =
+ *   \sqrt{\int_{-\pi}^{\pi} \int_{0}^{\pi} |f(\vartheta,\varphi)|^2 \sin 
+ *   \vartheta \; \mathrm{d} \vartheta \; \mathrm{d} \varphi}.
+ * \f]
+ * A function \f$f \in \mathrm{L}^2\left(\mathbb{S}^2\right)\f$ has the 
+ * orthogonal expansion
+ * \f[
+ *   f = \sum_{k=0}^{\infty} \sum_{n=-k}^{k} f^{\wedge}(k,n) Y_k^n,
+ * \f]
+ * where the coefficients \f$f^{\wedge}(k,n) := \left< f, Y_k^{n} 
+ * \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)}\f$ are the \e spherical 
+ * \e Fourier \e coefficients and the equivalence is understood in the 
+ * \f$\mathrm{L}^2\f$-sense.
  *
- * \section Nonuniform Fast Spherical Fourier Transforms
- * test2
+ *
+ * \section nfsfts Nonuniform Fast Spherical Fourier Transforms
+ * 
+ * \subsection ndsft Nonuniform Discrete Spherical Fourier Transform
+ * The \e nonuniform \e discrete \e spherical \e Fourier \e transform (\e NDSFT)
+ * is defined as follows:
+ * \f[
+ *     \begin{array}{rcl}
+ *       \text{\textbf{Input}} & : & \text{coefficients } 
+ *         a_k^n \in \mathbb{C} \text{ for } k=0,\ldots,N,\;n=-k,
+ *         \ldots,k,\; N \in \mathbb{N}_0,\\[1ex]
+ *                             &   & \text{arbitrary nodes } (\vartheta_m, 
+ *         \varphi_m) \in [0,\pi] \times [-\pi,\pi] \text{ for } m=0,\ldots,M-1, 
+ *         M \in \mathbb{N}. \\[1ex]
+ *       \text{\textbf{Task}}  & : & \text{evaluate } f_m := f\left(\vartheta_m,
+ *         \varphi_m\right) = \sum_{k=0}^N \sum_{n=-k}^k f^{\wedge}(k,n) 
+ *         Y_k^n\left(\vartheta_m,\varphi_m\right) \text{ for } m=0,\ldots,M-1.
+ *         \\[1ex]
+ *       \text{\textbf{Output}} & : & \text{coefficients } f_m \in 
+ *         \mathbb{C} \text{ for } m=0,\ldots,M-1.\\
+ *     \end{array}
+ * \f]
+ *
+ * \subsection andsft Adjoint Nonuniform Discrete Spherical Fourier Transform
+ * The \e adjoint \e nonuniform \e discrete \e spherical \e Fourier \e transform 
+ * (\e adjoint \e NDSFT)
+ * is defined as follows:
+ * \f[
+ *     \begin{array}{rcl}
+ *       \text{\textbf{Input}} & : & \text{coefficients } f_m \in 
+ *         \mathbb{C} \text{ for } m=0,\ldots,M-1,\\
+ *                             &   & \text{arbitrary nodes } (\vartheta_m, 
+ *         \varphi_m) \in [0,\pi] \times [-\pi,\pi] \text{ for } m=0,\ldots,M-1, 
+ *         M \in \mathbb{N}, N \in \mathbb{N}_0.\\[1ex]
+ *       \text{\textbf{Task}}  & : & \text{evaluate } a_k^n 
+ *         := \sum_{m=0}^{M-1} f_m Y_k^n\left(\vartheta_m,\varphi_m\right) 
+ *         \text{ for } k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
+ *       \text{\textbf{Output}} & : & \text{coefficients } 
+ *         a_k^n \in \mathbb{C} \text{ for } 
+ *         k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
+ *     \end{array}
+ * \f]
  */
 
 /* Planner flags */
@@ -1320,7 +1387,7 @@ typedef struct nfsft_plan_
  *
  * \arg N The bandwidth \f$N\f$
  * \arg M The number of nodes \f$M\f$
- * \arg f_hat The spherical Fourier coefficients 
+ * \arg f_hat The coefficients \f$a_k^n\f$ for 
  *            \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^N}\f$ in order-major
  *            order. The coefficients must be aligned as follows:
  *            \todo Continue this comment
