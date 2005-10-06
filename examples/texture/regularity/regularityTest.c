@@ -15,7 +15,7 @@ typedef struct iteration_param_set_ {
 	double res_delta;
 	double err_delta;
 	double min_improve;
-	int max_iter_without_improve;
+	int iterations_without_check;
 } iteration_param_set;
 
 const char *grid_id_descr[] = { "equidistant theta - equidistant phi" };
@@ -45,7 +45,7 @@ typedef struct test_case_param_set_1_ {
 } test_case_param_set_1;
 
 const char *method_descr[] = { "N1, N2 independent", "alpha * N1 = N2" };
-const char *output_policy[] = { "quiet", "human readable" };
+const char *output_policy_descr[] = { "quiet", "human readable" };
 
 typedef struct test_case_param_set_ {
 	int method;
@@ -393,106 +393,109 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 	static complex *x = 0;
 
 	if (!clean_up) {
-		texture_plan plan, test_plan;
-		itexture_plan iplan;
-		complex *omega =
-			(complex *) malloc(texture_flat_length(N) * sizeof(complex));
-		complex *omega_ref =
-			(complex *) malloc(texture_flat_length(N) * sizeof(complex));
-		int success;
+		if (N <= 2) {
+			return 1;
+		} else {
+			texture_plan plan, test_plan;
+			itexture_plan iplan;
+			complex *omega =
+				(complex *) malloc(texture_flat_length(N) * sizeof(complex));
+			complex *omega_ref =
+				(complex *) malloc(texture_flat_length(N) * sizeof(complex));
+			int success;
 
-		if (N1 != N1_new || N2 != N2_new) {
-			if (N1_new > N1) {
-				free(h_phi);
-				free(h_theta);
-				h_phi = (double *) malloc(N1 * sizeof(double));
-				h_theta = (double *) malloc(N1 * sizeof(double));
+			if (N1 != N1_new || N2 != N2_new) {
+				if (N1_new > N1) {
+					free(h_phi);
+					free(h_theta);
+					h_phi = (double *) malloc(N1_new * sizeof(double));
+					h_theta = (double *) malloc(N1_new * sizeof(double));
+				}
+				if (N1_new * N2_new > N1 * N2) {
+					free(r);
+					free(x);
+					r = (double *) malloc(N1_new * N2_new * 2 * sizeof(double));
+					x = (complex *) malloc(N1_new * N2_new * sizeof(complex));
+				}
+
+				N1 = N1_new;
+				N2 = N2_new;
+
+				make_grid_h(h_phi, h_theta, N1, sol_par->grid_id);
+				make_grid_r(r, N1, N2, sol_par->grid_id);
 			}
-			if (N1_new * N2_new > N1 * N2) {
-				free(r);
-				free(x);
-				r = (double *) malloc(N1 * N2 * 2 * sizeof(double));
-				x = (complex *) malloc(N1 * N2 * sizeof(complex));
-			}
 
-			N1 = N1_new;
-			N2 = N2_new;
+			make_omega_ref(omega_ref, texture_flat_length(N),
+										 sol_par->omega_ref_policy);
+			texture_precompute(N);
+			texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
+			texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
+			texture_trafo(&plan);
+			texture_set_omega(&plan, omega);
 
-			make_grid_h(h_phi, h_theta, N1, sol_par->grid_id);
-			make_grid_r(r, N1, N2, sol_par->grid_id);
-		}
+			itexture_init_advanced(&iplan, &plan, make_solver_flags(sol_par));
 
-		make_omega_ref(omega_ref, texture_flat_length(N),
-									 sol_par->omega_ref_policy);
-		texture_precompute(N);
-		texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
-		texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
-		texture_trafo(&plan);
-		texture_set_omega(&plan, omega);
+			make_starting_point(&iplan, sol_par->starting_point_policy);
+			make_weights(&iplan, sol_par);
+			memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(complex));
 
-		itexture_init_advanced(&iplan, &plan, make_solver_flags(sol_par));
+			itexture_before_loop(&iplan);
+			{
+				double (*dist_arr[]) (const complex * vec, const complex * ref,
+															unsigned int length) = {
+				dist_0};
+				double (*err_dist) (const complex * vec, const complex * ref,
+														unsigned int length) =
+					dist_arr[it_par->err_fun_id];
+				double (*res_dist) (const complex * vec, const complex * ref,
+														unsigned int length) =
+					dist_arr[it_par->res_fun_id];
+				double old_res, new_res;
 
-		make_starting_point(&iplan, sol_par->starting_point_policy);
-		make_weights(&iplan, sol_par);
-		memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(complex));
-
-		itexture_before_loop(&iplan);
-		{
-			int iter_without_improve;
-			double (*dist_arr[]) (const complex * vec, const complex * ref,
-														unsigned int length) = {
-			dist_0};
-			double (*err_dist) (const complex * vec, const complex * ref,
-													unsigned int length) = dist_arr[it_par->err_fun_id];
-			double (*res_dist) (const complex * vec, const complex * ref,
-													unsigned int length) = dist_arr[it_par->res_fun_id];
-			double old_res, new_res;
-
-			texture_set_omega(&test_plan, iplan.f_hat_iter);
-			texture_trafo(&test_plan);
-			new_res =
-				res_dist(texture_get_x(&test_plan), iplan.y,
-								 texture_get_x_length(&test_plan));
-
-			for (iter_without_improve = 0;
-					 iter_without_improve <= it_par->max_iter_without_improve
-					 && new_res > it_par->res_delta;) {
-				itexture_loop_one_step(&iplan);
-
-				old_res = new_res;
 				texture_set_omega(&test_plan, iplan.f_hat_iter);
 				texture_trafo(&test_plan);
 				new_res =
 					res_dist(texture_get_x(&test_plan), iplan.y,
 									 texture_get_x_length(&test_plan));
 
-				if (old_res - new_res < it_par->min_improve) {
-					iter_without_improve++;
-				} else {
-					iter_without_improve = 0;
+				do {
+					int count;
+
+					for (count = 0; count < it_par->iterations_without_check; count++) {
+						itexture_loop_one_step(&iplan);
+					}
+
+					old_res = new_res;
+					texture_set_omega(&test_plan, iplan.f_hat_iter);
+					texture_trafo(&test_plan);
+					new_res =
+						res_dist(texture_get_x(&test_plan), iplan.y,
+										 texture_get_x_length(&test_plan));
+					//printf("residuum: %lg\n", new_res);
+				} while (old_res > 0 && new_res > it_par->res_delta
+								 && (old_res - new_res) / old_res >= it_par->min_improve);
+
+				if (new_res > it_par->res_delta) {
+					char message[100];
+
+					sprintf(message, "No convergence, residuum was %lg!", new_res);
+					output_warning(message);
 				}
+
+				success =
+					(err_dist
+					 (iplan.f_hat_iter, omega_ref,
+						texture_get_omega_length(&plan)) <= it_par->err_delta);
 			}
 
-			if (new_res > it_par->res_delta) {
-				char message[100];
+			itexture_finalize(&iplan);
+			texture_finalize(&plan);
+			texture_finalize(&test_plan);
+			free(omega);
+			free(omega_ref);
 
-				sprintf(message, "No convergence, residuum was %lg!", new_res);
-				output_warning(message);
-			}
-
-			success =
-				(err_dist
-				 (iplan.f_hat_iter, omega_ref,
-					texture_get_omega_length(&plan)) <= it_par->err_delta);
+			return success;
 		}
-
-		itexture_finalize(&iplan);
-		texture_finalize(&plan);
-		texture_finalize(&test_plan);
-		free(omega);
-		free(omega_ref);
-
-		return success;
 	} else {
 		free(h_phi);
 		free(h_theta);
@@ -512,61 +515,72 @@ int determine_max_N(int N1, int N2, int N_hint,
 										const iteration_param_set * it_par,
 										const solver_param_set * sol_par)
 {
-	int N_max = MIN(3, N_hint);
+	int N_max = MAX(1, N_hint);
 	int N_min = N_max;
-
-	while (is_regular(N1, N2, N_max, it_par, sol_par)) {
-		N_min = N_max;
-		N_max *= 2;
+	if (is_regular(N1, N2, N_max, it_par, sol_par)) {
+		do {
+			printf("regular: %d\n", N_max);
+			fflush(0);
+			N_min = N_max;
+			N_max *= 2;
+		} while (is_regular(N1, N2, N_max, it_par, sol_par));
+		printf("not regular: %d\n", N_max);
+		fflush(0);
+	} else {
+		do {
+			printf("not regular: %d\n", N_min);
+			fflush(0);
+			N_max = N_min;
+			N_min /= 2;
+		} while (!is_regular(N1, N2, N_min, it_par, sol_par));
+		printf("regular: %d\n", N_min);
+		fflush(0);
 	}
 
-	while (!is_regular(N1, N2, N_min, it_par, sol_par)) {
-		N_max = N_min;
-		N_min /= 2;
-	}
-
-	do {
+	while (N_max - N_min > 1) {
 		int N = (N_max + N_min) / 2;
 		if (is_regular(N1, N2, N, it_par, sol_par)) {
+			printf("regular: %d\n", N);
+			fflush(0);
 			N_min = N;
 		} else {
+			printf("not regular: %d\n", N);
+			fflush(0);
 			N_max = N;
 		}
-	} while (N_max - N_min > 1);
+	}
 
-	return MIN(2, N_min);
+	return MAX(2, N_min);
 }
 
 void output_preliminaries(const param_set * params)
 {
-	if (params->test_case.output_policy != 0) {
-		const iteration_param_set *it_par = &params->iteration;
-		const solver_param_set *sol_par = &params->solver;
+	const iteration_param_set *it_par = &params->iteration;
+	const solver_param_set *sol_par = &params->solver;
 
-		printf("# iteration parameters:\n");
-		printf("# error function: %d (%s)\n", it_par->err_fun_id,
-					 err_fun_id_descr[it_par->err_fun_id]);
-		printf("# error_delta = %lg\n", it_par->err_delta);
-		printf("# residuum function: %d (%s)\n", it_par->res_fun_id,
-					 res_fun_id_descr[it_par->res_fun_id]);
-		printf("# residuum_delta = %lg\n", it_par->res_delta);
-		printf("# min_improve = %lg\n", it_par->min_improve);
-		printf("# max_iter_without_improve = %d\n",
-					 it_par->max_iter_without_improve);
+	printf("# iteration parameters:\n");
+	printf("# error function: %d (%s)\n", it_par->err_fun_id,
+				 err_fun_id_descr[it_par->err_fun_id]);
+	printf("# error_delta = %lg\n", it_par->err_delta);
+	printf("# residuum function: %d (%s)\n", it_par->res_fun_id,
+				 res_fun_id_descr[it_par->res_fun_id]);
+	printf("# residuum_delta = %lg\n", it_par->res_delta);
+	printf("# min_improve = %lg\n", it_par->min_improve);
+	printf("# iterations_without_check = %d\n",
+				 it_par->iterations_without_check);
 
-		printf("# solver parameters:\n");
-		printf("# grid_id: %d (%s)\n", sol_par->grid_id,
-					 grid_id_descr[sol_par->grid_id]);
-		printf("# starting_point_policy: %d (%s)\n",
-					 sol_par->starting_point_policy,
-					 starting_point_policy_descr[sol_par->starting_point_policy]);
-		printf("# solver_algorithm_id: %d (%s)\n", sol_par->solver_algorithm_id,
-					 solver_algorithm_id_descr[sol_par->solver_algorithm_id]);
-		printf("# weight_policy: %d (%s)\n", sol_par->weight_policy,
-					 weight_policy_descr[sol_par->weight_policy]);
-		printf("# omega_ref_policy: %d (%s)\n", sol_par->omega_ref_policy,
-					 omega_ref_policy_descr[sol_par->omega_ref_policy]);
-	}
+	printf("# solver parameters:\n");
+	printf("# grid_id: %d (%s)\n", sol_par->grid_id,
+				 grid_id_descr[sol_par->grid_id]);
+	printf("# starting_point_policy: %d (%s)\n",
+				 sol_par->starting_point_policy,
+				 starting_point_policy_descr[sol_par->starting_point_policy]);
+	printf("# solver_algorithm_id: %d (%s)\n", sol_par->solver_algorithm_id,
+				 solver_algorithm_id_descr[sol_par->solver_algorithm_id]);
+	printf("# weight_policy: %d (%s)\n", sol_par->weight_policy,
+				 weight_policy_descr[sol_par->weight_policy]);
+	printf("# omega_ref_policy: %d (%s)\n", sol_par->omega_ref_policy,
+				 omega_ref_policy_descr[sol_par->omega_ref_policy]);
 }
 
 void output_N_curve_header(const param_set * params)
@@ -577,6 +591,8 @@ void output_N_curve_header(const param_set * params)
 
 		printf("# method: %d (%s)\n", params->test_case.method,
 					 method_descr[params->test_case.method]);
+		printf("# output_policy: %d (%s)\n", params->test_case.output_policy,
+					 output_policy_descr[params->test_case.output_policy]);
 		switch (params->test_case.method) {
 			case 0:
 				printf("# N1 = %d:%d:%d\n", tc_par_0->N1_start, tc_par_0->N1_incr,
@@ -614,6 +630,7 @@ void output_N_curve_0_subheader(int N1, const param_set * params)
 void output_N_curve_point(int x, int y, const param_set * params)
 {
 	printf("%d %d\n", x, y);
+	fflush(0);
 }
 
 void determine_N_curve_0(const param_set * params)
@@ -710,8 +727,8 @@ void usage()
 void read_iteration_params(FILE * inp_file, iteration_param_set * param_set)
 {
 	fscanf(inp_file, "%d%d%lg%lg%lg%d", &param_set->err_fun_id,
-				 &param_set->res_fun_id, &param_set->res_delta, &param_set->err_delta,
-				 &param_set->min_improve, &param_set->max_iter_without_improve);
+				 &param_set->res_fun_id, &param_set->err_delta, &param_set->res_delta,
+				 &param_set->min_improve, &param_set->iterations_without_check);
 }
 
 void read_solver_params(FILE * inp_file, solver_param_set * param_set)
@@ -783,7 +800,7 @@ int main(int arglen, char *argv[])
 	const char *iteration_params = "iteration_parameters.inp";
 	const char *solver_params = "solver_parameters.inp";
 
-	make_grid_test_case();
+	//make_grid_test_case();
 
 	if (arglen >= 2) {
 		test_cases = argv[1];

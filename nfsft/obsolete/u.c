@@ -91,7 +91,7 @@ struct U_type_old**** precomputeU_old(int t, double threshold, double *walpha,
   }  
 #endif	
   
-  fprintf(stderr,"Threshold = %lf\n",threshold);  
+  //fprintf(stderr,"Threshold = %lf\n",threshold);  /* MS */
     
   /* Initialize array with Chebyshev coefficients for the polynomial x. This 
    * would be trivially an array containing a 1 as second entry with all other 
@@ -449,7 +449,7 @@ struct U_type_old**** precomputeU_old(int t, double threshold, double *walpha,
   free(xvecs);
   free(xc);
     
-  fprintf(stdout,"Stabilized %d times.\n",nstab);
+  //fprintf(stdout,"Stabilized %d times.\n",nstab); /* MS */
   
   return U;
 }

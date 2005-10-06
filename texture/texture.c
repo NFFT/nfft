@@ -53,8 +53,8 @@ void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
 	ths->N = N;	
 	ths->N1 = N1;
 	ths->N2 = N2;
-	ths->N_total = texture_get_omega_length(ths);
-	ths->M_total = texture_get_x_length(ths);
+	ths->N_total = texture_flat_length(N);
+	ths->M_total = N1 * N2;
 
 	ths->nfsft_f_hat = (complex**) malloc(sizeof(complex*) * (2*N + 1));
 	for(n = -N; n <= N; n++)
