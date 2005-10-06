@@ -171,7 +171,7 @@ void nfft_precompute_full_psi(nfft_plan *ths);
  */
 void nfft_finalize(nfft_plan *ths);
 
-/* @} 
+/** @} 
  */
 
 
@@ -820,7 +820,7 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
  */
 void nnfft_finalize(nnfft_plan *ths_plan);
  
-/* @} 
+/** @} 
  */
 
 /** @defgroup nsfft Group
@@ -867,7 +867,7 @@ void nsfft_init_random_nodes_coeffs(nsfft_plan *ths);
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags);
 void nsfft_finalize(nsfft_plan *ths);
 
-/* @} 
+/** @} 
  */
 
 /** @defgroup mri_inh Group
@@ -946,7 +946,7 @@ void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
                     int m, double sigma, unsigned nfft_flags, unsigned fftw_flags);
 
 void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
-/* @} 
+/** @} 
  */
 
 /** @defgroup texture group
@@ -1119,13 +1119,123 @@ struct texture_plan {
 	unsigned int nfft_cutoff;
 }; // texture_plan_s;
 */
-/* @}
+/** @}
  */
 
 /** 
  * @defgroup nfsft NFSFT
- * Nonuniform fast spherical Fourier transforms (NFSFT)
  * @{ 
+ * 
+ * This module implements nonuniform fast spherical Fourier transforms (NFSFT).
+ *
+ * \section Preliminaries
+ * This section summarises basic definitions and properties related to spherical 
+ * Fourier transforms.
+ *
+ * \subsection lp Legendre Polynomials
+ * The \emph \e Legendre \e polynomials \f$P_k : [-1,1] 
+ * \rightarrow \mathbb{R}$, $k \in \mathbb{N}_{0}\f$ as \e classical \e 
+ * orthogonal \e polynomials are given by their corresponding \e Rodrigues \e 
+ * formula
+ * \f[
+ *   P_k(x) := \frac{1}{2^k k!} \frac{\text{d}^k}{\text{d} x^k} 
+ *   \left(x^2-1\right)^k.
+ * \f]  
+ * One verifies \f$P_{k}(\pm1) = (\pm1)^{k}$, $\left|P_{k}(\cos\vartheta)\right| 
+ * \le \sqrt{\frac{2}{\pi k \sin\vartheta}}\f$ for 
+ * \f$\vartheta \in (0,\pi)$ and $k \ge 1\f$, and \f$\max_{x \in 
+ * [-1,1]} \left|P_{k}(x)\right| = 1\f$ (see \cite[pp. 47]{niuv}).
+ * For convenience, we let \f$P_{-1}(x) := 0\f$. Two recurrence relations are 
+ * given by
+ * \f[
+ *   (k+1)P_{k+1}(x) = (2k+1) x P_{k}(x) - k P_{k-1}(x) \quad (k \in 
+ *   \mathbb{N}_0)
+ * \f]  
+ * and
+ * \f[
+ *   (2k+1) P_{k}(x) = P_{k+1}'(x) - P_{k-1}'(x)  \quad (k \in \mathbb{N}_0).
+ * \f]  
+ * 
+ * \subsection alf Associated Legendre Functions
+ * The \a associated \a Legendre \a functions \f$P_k^n : [-1,1] \rightarrow 
+ * \mathbb{R} \f$ by
+ * \f[ 
+ *   P_k^n(x) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
+ *   \left(1-x^2\right)^{n/2} \frac{\text{d}^n}{\text{d} x^n} P_k(x) \quad 
+ *   (n \in \mathbb{N}_0,\ k \ge n).
+ * \f]
+ * For fixed \f$n\f$, the set \f$\left\{P_k^n:\: k \ge n\right\}\f$ forms a 
+ * complete set of orthogonal functions for \f$\text{L}^2\left([-1,1]\right)\f$ 
+ * with
+ * \f[ 
+ *   \left< P_k^n,P_l^n \right>_{\text{L}^2\left([-1,1]\right)} := 
+ *   \int_{-1}^{1} P_k^n(x) P_l^n(x) \text{d} x = \frac{2}{2k+1} \delta_{k,l} 
+ *   \quad (0 \le n \le k,l).
+ * \f]
+ * The associated Legendre functions obey the three-term recurrence relation
+ * \f[  
+ *   P_{k+1}^n(x) = v_{k}^n x P_k^n(x) + w_{k}^n P_{k-1}^n(x) \quad (k \ge n),
+ * \f]
+ * with \f$P_{n-1}^n(x) := 0\f$, \f$P_{n}^n(x) = \frac{\sqrt{(2n)!}}{2^n n!} 
+ * \left(1-x^2\right)^{n/2}\f$, and
+ * \f[ 
+ *   v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad 
+ *   w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
+ * \f]
+ * A simple but at the same time powerful idea is to define the associated 
+ * Legendre functions \f$P_k^n\f$ also for \f$k < n\f$ by means of the modified 
+ * three-term recurrence relation
+ * \f[
+ *   P_{k+1}^n(x) = \left(\alpha_{k}^n x + \beta_{k}^n\right) P_{k}^n(x) + 
+ *   \gamma_{k}^n P_{k-1}^n(x) \quad (k \in \mathbb{N}_0).
+ * \f]
+ * with
+ * \f[
+ *   \begin{split}
+ *     \alpha_{k}^n & := 
+ *       \left\{
+ *         \begin{array}{ll}
+ *           (-1)^{k+1} & \text{for}\ k < n,\\
+ *           v_{k}^n    & \text{otherwise},
+ *         \end{array}
+ *       \right.\\
+ *     \beta_{k}^n & := 
+ *       \left\{
+ *         \begin{array}{lll}
+ *           1 & \text{for}\ k < n,\\
+ *           0 & \text{otherwise},
+ *         \end{array}
+ *       \right.\\
+ *     \gamma_{k}^n & := 
+ *       \left\{
+ *         \begin{array}{lll}
+ *           0       & \text{for}\ k \leq n,\\
+ *           w_{k}^n & \text{otherwise.}
+ *         \end{array}
+ *       \right.
+ *   \end{split}  
+ * \f]
+ * For even $n$, we let
+ * \f[ 
+ *   P_{-1}^n(x) := 0,\ P_{0}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!},
+ * \f]
+ * and for odd \f$n\f$, we start with
+ * \f[ 
+ *   P_{0}^n(x) := P_{1}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!} 
+ *   \left(1-x^2\right)^{1/2},
+ * \f]
+ * where \f$P_{-1}^n(x) := 0\f$ is understood.
+ * For \f$k \ge n\f$, this definition coincides with 
+ * \eqref{Basics:AssociatedLegendreDefinition}. 
+ * As a matter of fact, \f$P_{k}^n\f$ is a polynomial of degree \f$k\f$, if 
+ * \f$n\f$ is even, while \f$\left(1-x^2\right)^{-1/2}P_{k}^n\f$ is a polynomial 
+ * of degree \f$k-1\f$ for odd \f$n\f$, as easily verified by 
+ * \eqref{basics:AssLegDef}.
+ *
+ * \subsection sh Spherical Harmonics
+ *
+ * \section Nonuniform Fast Spherical Fourier Transforms
+ * test2
  */
 
 /* Planner flags */
@@ -1352,7 +1462,7 @@ void nfsft_adjoint(nfsft_plan* plan);
  */
 void nfsft_finalize(nfsft_plan plan);
 
-/* @}
+/** @}
  */
 
 /** @defgroup solver Group
