@@ -1,1 +1,1 @@
-SUBDIRS = nfft nfct nnfft mri nsfft exp texture nfsft
+SUBDIRS = kernel lowlevel highlevel
