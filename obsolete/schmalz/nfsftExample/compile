@@ -1,3 +1,0 @@
-export CPATH=../include
-export LIBRARY_PATH=../libs
-gcc -Wall template.c -lnfsft -lfftw3 -lm

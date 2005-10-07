@@ -1,8 +1,0 @@
-libtool --mode=compile gcc -c foo11.c
-libtool --mode=compile gcc -c foo12.c
-libtool --mode=compile gcc -c foo21.c
-libtool --mode=compile gcc -c foo22.c
-libtool --mode=compile gcc -c main.c
-libtool --mode=link gcc -o libfoo1.la foo11.lo foo12.lo
-libtool --mode=link gcc -o libfoo2.la foo21.lo foo22.lo
-libtool --mode=link gcc -o main main.o libfoo2.la -lfoo1
