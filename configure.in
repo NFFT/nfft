@@ -30,33 +30,40 @@ AC_CHECK_FUNCS([mallinfo])
 AC_OUTPUT(Makefile \
           include/Makefile \
           util/Makefile \
-          nfft/Makefile \
-          nnfft/Makefile \
-          nsfft/Makefile \
-          mri_inh/Makefile \
-          solver/Makefile \
-          nfsft/Makefile \
-          nfsft/obsolete/Makefile \
-          nfct/Makefile \
-          nfst/Makefile \
-          texture/Makefile \
+          kernel/Makefile \
+          kernel/dpt/Makefile \
+          kernel/nfft/Makefile \
+          lowlevel/Makefile \
+          lowlevel/nnfft/Makefile \
+          lowlevel/nsfft/Makefile \
+          lowlevel/mri_inh/Makefile \
+          highlevel/Makefile \
+          highlevel/solver/Makefile \
+          lowlevel/nfsft/Makefile \
+          lowlevel/nfsft/obsolete/Makefile \
+          kernel/nfct/Makefile \
+          kernel/nfst/Makefile \
+          lowlevel/texture/Makefile \
           examples/Makefile \
-          examples/nfft/Makefile \
-          examples/nnfft/Makefile \
-          examples/nnfft/accuracy/Makefile \
-          examples/nnfft/simple_test/Makefile \
-          examples/mri/Makefile \
-          examples/mri/mri2d/Makefile \
-          examples/mri/mri3d/Makefile \
-          examples/exp/Makefile \
-          examples/nsfft/Makefile \
-          examples/nfsft/Makefile
-          examples/nfsft/obsolete/Makefile
-          examples/fastgauss/Makefile \
-          examples/texture/Makefile \
-          examples/texture/test/Makefile \
-          examples/texture/regularity/Makefile \
-          examples/texture/performance/Makefile \
-          examples/nfct/Makefile \
-          examples/nfct/accuracy/Makefile \
+          examples/kernel/Makefile \
+          examples/lowlevel/Makefile \
+          examples/highlevel/Makefile \
+          examples/kernel/nfft/Makefile \
+          examples/lowlevel/nnfft/Makefile \
+          examples/lowlevel/nnfft/accuracy/Makefile \
+          examples/lowlevel/nnfft/simple_test/Makefile \
+          examples/lowlevel/mri/Makefile \
+          examples/lowlevel/mri/mri2d/Makefile \
+          examples/lowlevel/mri/mri3d/Makefile \
+          examples/highlevel/exp/Makefile \
+          examples/lowlevel/nsfft/Makefile \
+          examples/lowlevel/nfsft/Makefile
+          examples/lowlevel/nfsft/obsolete/Makefile
+          examples/highlevel/fastgauss/Makefile \
+          examples/lowlevel/texture/Makefile \
+          examples/lowlevel/texture/test/Makefile \
+          examples/lowlevel/texture/regularity/Makefile \
+          examples/lowlevel/texture/performance/Makefile \
+          examples/kernel/nfct/Makefile \
+          examples/kernel/nfct/accuracy/Makefile \
 )

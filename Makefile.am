@@ -1,8 +1,8 @@
-SUBDIRS = include util nfct nfft nnfft nsfft nfsft nfst mri_inh solver texture . examples
+SUBDIRS = include kernel lowlevel highlevel util . examples
 
 lib_LTLIBRARIES = libnfft3.la      
 
 libnfft3_la_SOURCES =
 
-libnfft3_la_LIBADD = util/libutil.la nfct/libnfct.la nfst/libnfst.la nfft/libnfft.la nnfft/libnnfft.la nsfft/libnsfft.la mri_inh/libmri_inh.la solver/libsolver.la texture/libtexture.la nfsft/libnfsft.la
+libnfft3_la_LIBADD = kernel/libkernel.la lowlevel/liblowlevel.la highlevel/libhighlevel.la util/libutil.la
 
