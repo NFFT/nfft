@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libfastsum.la     
+noinst_LTLIBRARIES = libfastsum.la     
 
 libfastsum_la_SOURCES =
 

@@ -2,7 +2,7 @@
 #define UTIL_H
 
 #include <complex.h>
-#include "../../include/util.h"
+#include "../../../include/util.h"
 
 /**
  * Compute the exponent of the next greater power of two.

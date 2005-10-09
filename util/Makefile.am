@@ -1,4 +1,6 @@
+AM_CFLAGS = -I$(top_srcdir)/include
+
 noinst_LTLIBRARIES = libutil.la
 
-libutil_la_SOURCES = $(top_srcdir)/include/util.h util.c 
+libutil_la_SOURCES = util.c 
 

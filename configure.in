@@ -39,6 +39,7 @@ AC_OUTPUT(Makefile \
           lowlevel/mri_inh/Makefile \
           highlevel/Makefile \
           highlevel/solver/Makefile \
+          highlevel/fastsum/Makefile \
           lowlevel/nfsft/Makefile \
           lowlevel/nfsft/obsolete/Makefile \
           kernel/nfct/Makefile \
@@ -66,6 +67,5 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/texture/regularity/Makefile \
           examples/lowlevel/texture/performance/Makefile \
           examples/kernel/nfct/Makefile \
-#          examples/kernel/nfct/accuracy/Makefile \
           examples/kernel/nfst/Makefile
-
+)

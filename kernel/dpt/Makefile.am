@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libdpt.la     
+noinst_LTLIBRARIES = libdpt.la     
 
 libdpt_la_SOURCES =
 

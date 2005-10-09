@@ -1,6 +1,6 @@
-SUBDIRS = dpt nfft nfct nfst
+SUBDIRS = dpt nfft nfct nfst .
 
-lib_LTLIBRARIES = libkernel.la      
+noinst_LTLIBRARIES = libkernel.la      
 
 libkernel_la_SOURCES =
 

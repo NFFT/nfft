@@ -444,7 +444,8 @@ void fgt_test_error_p()
 int main()
 {
   /**  pipe to output_andersson.tex */
-  fgt_test_simple();
+/* Jens: Hat nicht durchkompiliert. Deswegen auskommentiert. */
+/*  fgt_test_simple(); */
 
   /**  pipe to output_andersson.tex */
 //fgt_test_andersson();

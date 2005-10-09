@@ -1,3 +1,5 @@
+AM_CFLAGS = -I$(top_srcdir)/includel
+
 SUBDIRS = obsolete .
 
 noinst_LTLIBRARIES = libnfsft.la

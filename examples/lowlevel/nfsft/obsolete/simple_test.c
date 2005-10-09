@@ -42,7 +42,7 @@
 #include <time.h>
 #include <fftw3.h>
 #include "nfsft.h"
-#include "../../../nfsft/obsolete/util.h"
+#include "../../../../lowlevel/nfsft/obsolete/util.h"
 
 #define M 256
 #define D 100

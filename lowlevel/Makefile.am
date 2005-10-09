@@ -1,6 +1,6 @@
-SUBDIRS = mri_inh nnfft nsfft nfsft texture
+SUBDIRS = mri_inh nnfft nsfft nfsft texture .
 
-lib_LTLIBRARIES = liblowlevel.la     
+noinst_LTLIBRARIES = liblowlevel.la     
 
 liblowlevel_la_SOURCES =
 

@@ -1,6 +1,6 @@
-SUBDIRS = solver fastsum
+SUBDIRS = solver fastsum .
 
-lib_LTLIBRARIES = libhighlevel.la     
+noinst_LTLIBRARIES = libhighlevel.la     
 
 libhighlevel_la_SOURCES =
 
