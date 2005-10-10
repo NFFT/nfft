@@ -1133,40 +1133,44 @@ struct texture_plan {
  * Fourier transforms.
  *
  * \subsection sc Spherical Coordinates
- * Every point \f$\mathbf{x} \in \mathbb{R}^3 \setminus \{\mathbf{0}\}\f$ given 
- * in \e Cartesian \e coordinates by the vector \f$\left(x_1,x_2,x_3\right)^
- * {\mathrm{T}}\f$ can be described in \e spherical \e coordinates by a vector 
- * \f$(r,\vartheta,\varphi)^{\mathrm{T}}\f$ with the radius 
- * \f$r \in \mathbb{R}^{+}\f$ and the angles \f$\vartheta \in [0,\pi]\f$, 
- * \f$\varphi \in [-\pi,\pi)\f$. We denote by \f$\mathbb{S}^2\f$ the 
- * two-dimensional unit sphere embedded into \f$\mathbb{R}^3\f$, i.e. 
+ * Every point in \f$\mathbb{R}^3\f$ can be described in \e spherical \e 
+ * coordinates by a vector \f$(r,\vartheta,\varphi)^{\mathrm{T}}\f$ with the 
+ * radius \f$r \in \mathbb{R}^{+}\f$ and the angles \f$\vartheta \in [0,\pi]\f$, 
+ * \f$\varphi \in [-\pi,\pi)\f$. 
+ * We denote by \f$\mathbb{S}^2\f$ the two-dimensional unit sphere embedded 
+ * into \f$\mathbb{R}^3\f$, i.e. 
  * \f[
  *   \mathbb{S}^2 := \left\{\mathbf{x} \in \mathbb{R}^{3}:\; 
  *   \|\mathbf{x}\|_2=1\right\}
  * \f] 
- * and identify a point \f$\mathbf{\xi} \in \mathbb{S}^2\f$ with the 
- * corresponding vector \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The 
+ * and identify a point from \f$\mathbb{S}^2\f$ with the corresponding vector 
+ * \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The 
  * spherical coordinate system is illustrated in the following figure:
  * \image html sphere.png "" width=0.45\textwidth
+ * For consistency with the other modules and the conventions used there, we 
+ * also use \e scaled \e spherical \e coordinates \f$x_1 := 
+ * \frac{\vartheta}{2\pi}\f$, \f$x_2 := \frac{\varphi}{2\pi}\f$ and identify a point 
+ * from \f$\mathbb{S}^2\f$ with the vector \f$\mathbf{x} := \left(x_1,x_2\right) \in 
+ * [0,\frac{1}{2}] \times [-\frac{1}{2}, \frac{1}{2})\f$.
  *
  * \subsection lp Legendre Polynomials
- * The \emph \e Legendre \e polynomials \f$P_k : [-1,1] 
+ * The \e Legendre \e polynomials \f$P_k : [-1,1] 
  * \rightarrow \mathbb{R}$, $k \in \mathbb{N}_{0}\f$ as \e classical \e 
  * orthogonal \e polynomials are given by their corresponding \e Rodrigues \e 
  * formula
  * \f[
- *   P_k(x) := \frac{1}{2^k k!} \frac{\text{d}^k}{\text{d} x^k} 
- *   \left(x^2-1\right)^k.
+ *   P_k(t) := \frac{1}{2^k k!} \frac{\text{d}^k}{\text{d} t^k} 
+ *   \left(t^2-1\right)^k.
  * \f]
  * The corresponding three-term recurrence relation is
  * \f[
- *   (k+1)P_{k+1}(x) = (2k+1) x P_{k}(x) - k P_{k-1}(x) \quad (k \in 
+ *   (k+1)P_{k+1}(t) = (2k+1) x P_{k}(t) - k P_{k-1}(t) \quad (k \in 
  *   \mathbb{N}_0).
  * \f]  
  * With
  * \f[
  *   \left< f,g \right>_{\text{L}^2\left([-1,1]\right)} := 
- *   \int_{-1}^{1} f(x) g(x) \text{d} x
+ *   \int_{-1}^{1} f(t) g(t) \text{d} t
  * \f]  
  * being the usual \f$\text{L}^2\left([-1,1]\right)\f$ inner product,
  * the Legendre polynomials obey the orthogonality condition
@@ -1181,24 +1185,24 @@ struct texture_plan {
  * \f[
  *   \|f\|_{\text{L}^2\left([-1,1]\right)} := 
  *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
- *   \sqrt{\int_{-1}^{1} |f(x)|^2 \; \text{d} x}.
+ *   \sqrt{\int_{-1}^{1} |f(t)|^2 \; \text{d} t}.
  * \f]
  * 
  * \subsection alf Associated Legendre Functions
  * The \a associated \a Legendre \a functions \f$P_k^n : [-1,1] \rightarrow 
  * \mathbb{R} \f$, \f$n \in \mathbb{N}_0\f$, \f$k \ge n\f$ are defined by
  * \f[ 
- *   P_k^n(x) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
- *   \left(1-x^2\right)^{n/2} \frac{\text{d}^n}{\text{d} x^n} P_k(x).
+ *   P_k^n(t) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
+ *   \left(1-t^2\right)^{n/2} \frac{\text{d}^n}{\text{d} t^n} P_k(t).
  * \f]
  * For \f$n = 0\f$ they coincide with the Legendre polynomials, i.e. 
  * \f$P_k^0 = P_k\f$. 
  * The associated Legendre functions obey the three-term recurrence relation
  * \f[  
- *   P_{k+1}^n(x) = v_{k}^n x P_k^n(x) + w_{k}^n P_{k-1}^n(x) \quad (k \ge n),
+ *   P_{k+1}^n(t) = v_{k}^n t P_k^n(t) + w_{k}^n P_{k-1}^n(t) \quad (k \ge n),
  * \f]
- * with \f$P_{n-1}^n(x) := 0\f$, \f$P_{n}^n(x) := \frac{\sqrt{(2n)!}}{2^n n!} 
- * \left(1-x^2\right)^{n/2}\f$, and
+ * with \f$P_{n-1}^n(t) := 0\f$, \f$P_{n}^n(t) := \frac{\sqrt{(2n)!}}{2^n n!} 
+ * \left(1-t^2\right)^{n/2}\f$, and
  * \f[ 
  *   v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad 
  *   w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
@@ -1218,7 +1222,7 @@ struct texture_plan {
  * \f[
  *   \|f\|_{\text{L}^2\left([-1,1]\right)} = 
  *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
- *   \sqrt{\int_{-1}^{1} |f(x)|^2 \; \text{d} x}.
+ *   \sqrt{\int_{-1}^{1} |f(t)|^2 \; \text{d} t}.
  * \f]
  *
  * \subsection sh Spherical Harmonics
@@ -1254,9 +1258,9 @@ struct texture_plan {
  * A function \f$f \in \mathrm{L}^2\left(\mathbb{S}^2\right)\f$ has the 
  * orthogonal expansion
  * \f[
- *   f = \sum_{k=0}^{\infty} \sum_{n=-k}^{k} f^{\wedge}(k,n) Y_k^n,
+ *   f = \sum_{k=0}^{\infty} \sum_{n=-k}^{k} \hat{f}(k,n) Y_k^n,
  * \f]
- * where the coefficients \f$f^{\wedge}(k,n) := \left< f, Y_k^{n} 
+ * where the coefficients \f$\hat{f}(k,n) := \left< f, Y_k^{n} 
  * \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)}\f$ are the \e spherical 
  * \e Fourier \e coefficients and the equivalence is understood in the 
  * \f$\mathrm{L}^2\f$-sense.
@@ -1270,16 +1274,16 @@ struct texture_plan {
  * \f[
  *     \begin{array}{rcl}
  *       \text{\textbf{Input}} & : & \text{coefficients } 
- *         a_k^n \in \mathbb{C} \text{ for } k=0,\ldots,N,\;n=-k,
+ *         \hat{f}(k,n) \in \mathbb{C} \text{ for } k=0,\ldots,N,\;n=-k,
  *         \ldots,k,\; N \in \mathbb{N}_0,\\[1ex]
- *                             &   & \text{arbitrary nodes } (\vartheta_m, 
- *         \varphi_m) \in [0,\pi] \times [-\pi,\pi] \text{ for } m=0,\ldots,M-1, 
- *         M \in \mathbb{N}. \\[1ex]
- *       \text{\textbf{Task}}  & : & \text{evaluate } f_m := f\left(\vartheta_m,
- *         \varphi_m\right) = \sum_{k=0}^N \sum_{n=-k}^k f^{\wedge}(k,n) 
- *         Y_k^n\left(\vartheta_m,\varphi_m\right) \text{ for } m=0,\ldots,M-1.
+ *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in 
+ *         [0,\frac{1}{2}] \times [-\frac{1}{2},\frac{1}{2}] 
+ *         \text{ for } m=0,\ldots,M-1, M \in \mathbb{N}. \\[1ex]
+ *       \text{\textbf{Task}}  & : & \text{evaluate } f(m) := f\left(
+ *       \mathbf{x}(m)\right) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}_k^n 
+ *         Y_k^n\left(\mathbf{x}(m)\right) \text{ for } m=0,\ldots,M-1.
  *         \\[1ex]
- *       \text{\textbf{Output}} & : & \text{coefficients } f_m \in 
+ *       \text{\textbf{Output}} & : & \text{coefficients } f(m) \in 
  *         \mathbb{C} \text{ for } m=0,\ldots,M-1.\\
  *     \end{array}
  * \f]
@@ -1290,34 +1294,45 @@ struct texture_plan {
  * is defined as follows:
  * \f[
  *     \begin{array}{rcl}
- *       \text{\textbf{Input}} & : & \text{coefficients } f_m \in 
+ *       \text{\textbf{Input}} & : & \text{coefficients } f(m) \in 
  *         \mathbb{C} \text{ for } m=0,\ldots,M-1,\\
- *                             &   & \text{arbitrary nodes } (\vartheta_m, 
- *         \varphi_m) \in [0,\pi] \times [-\pi,\pi] \text{ for } m=0,\ldots,M-1, 
- *         M \in \mathbb{N}, N \in \mathbb{N}_0.\\[1ex]
- *       \text{\textbf{Task}}  & : & \text{evaluate } a_k^n 
- *         := \sum_{m=0}^{M-1} f_m Y_k^n\left(\vartheta_m,\varphi_m\right) 
+ *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in 
+ *         [0,\frac{1}{2}] \times [-\frac{1}{2},\frac{1}{2}] \text{ for } 
+ *         m=0,\ldots,M-1, M \in \mathbb{N}, N \in \mathbb{N}_0.\\[1ex]
+ *       \text{\textbf{Task}}  & : & \text{evaluate } \hat{f}(k,n) 
+ *         := \sum_{m=0}^{M-1} f(m) Y_k^n\left(\mathbf{x}(m)\right) 
  *         \text{ for } k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
  *       \text{\textbf{Output}} & : & \text{coefficients } 
- *         a_k^n \in \mathbb{C} \text{ for } 
+ *         \hat{f}(k,n) \in \mathbb{C} \text{ for } 
  *         k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
  *     \end{array}
  * \f]
+ * 
+ * \subsection Good to know...
+ * When using the routines of this module you should bear in mind the following:
+ * - The bandwidth \f$N_{\text{max}}\f$ upt to which precomputation is always a 
+ *   power of two.
+ * - The \e NFSFT transform is \e in \e place, i.e. the coefficients 
+ *   \f$\hat{f}(k,n)\f$ are destroyed.
+ * - The \e adjoint \e NFSFT transform is \e out \e of \e place, i.e. the 
+ *   coefficients \f$f(m)\f$ are not destroyed.
  */
 
 /* Planner flags */
 
 /** 
- * By default, all computations are performed with respect to the semi-
- * normalized spherical surface functions $Y_k^n$ defined by
- * \[
- *   Y_k^n = P_k^{|n|}(\cos\vartheta) e^{i n \varphi}.
- * \]
- * If this flag is set, all computations are carried out using \f$L_2\f$-
- * normalized spherical surface functions \f$Y_k^n\f$ defined by
- * \[
- *   Y_k^n = \sqrt{\frac{2k+1}{4\pi}} P_k^{|n|}(\cos\vartheta) e^{i n \varphi}.
- * \]  
+ * By default, all computations are performed with respect to the unnormalized basis
+ * functions
+ * \f[
+ *   \tilde{Y}_k^n(\vartheta,\varphi) = P_k^{|n|}(\cos\vartheta) 
+ *   \mathrm{e}^{\mathrm{i} n \varphi}.
+ * \f]
+ * If this flag is set, all computations are carried out using the \f$L_2\f$-
+ * normalized basis functions
+ * \f[
+ *   Y_k^n(\vartheta,\varphi) = \sqrt{\frac{2k+1}{4\pi}} P_k^{|n|}(\cos\vartheta) 
+ *   \mathrm{e}^{\mathrm{i} n \varphi}.
+ * \f]  
  * 
  * \see nfsft_init
  * \author Jens Keiner
@@ -1325,19 +1340,19 @@ struct texture_plan {
 #define NFSFT_NORMALIZED (1U<<0)
 
 /**
- * If this flag is set, the direct NDFT algorithm will be used internally 
- * instead of the fast approximative NFFT algorithm.
+ * If this flag is set, the \e direct \e NDFT algorithm will be used internally 
+ * instead of the fast approximative \e NFFT algorithm.
  *
  * \see nfsft_init
  * \author Jens Keiner
  */
-#define NFSFT_USE_NDFT   (1U<<0)
+#define NFSFT_USE_NDFT   (1U<<1)
 
 /* Precomputation flags */
 
 /**
- * If this flag is set, the algorithms direct NDSFT and adjoint direct NDSFT do
- * not work. Setting this flag saves some memory for precomputed data.
+ * If this flag is set, the algorithms \e direct \e NDSFT and \e adjoint \e direct 
+ * \e NDSFT do not work. Setting this flag saves some memory for precomputed data.
  * 
  * \see nfsft_precompute
  * \see ndsft_trafo
@@ -1347,12 +1362,12 @@ struct texture_plan {
 #define NFSFT_NO_DIRECT  (1U<<0)
 
 /**
- * If this flag is set, the fast algorithms NFSFT and adjoint NFSFT only work 
- * in a defined bandwidth window. If \f$N\f$ is the power of two up to which 
- * precomputation is performed, only fast transformations for bandwidth 
- * \f$M\f$ with \f$N/2 < M \le N\f$ will work. The slow algorithms direct NDSFT
- * and adjoint direct NDSFT are unaffected. Using this flag saves memory for
- * precomputed data.
+ * If this flag is set, the fast algorithms \e NFSFT and \e adjoint \e NFSFT only 
+ * work in a defined bandwidth window. If \f$N_{\text{max}}\f$ is the power of two 
+ * up to which precomputation is performed, only fast transformations for bandwidths 
+ * \f$N\f$ with \f$N_{\text{max}}/2 < N \le N_{\text{max}}\f$ will work. The slow 
+ * algorithms \e direct \e NDSFT and \e adjoint \e direct \e NDSFT are unaffected. 
+ * Using this flag saves memory for precomputed data.
  *
  * \see nfsft_precompute
  * \see nfsft_trafo
@@ -1368,31 +1383,39 @@ typedef struct nfsft_plan_
   MACRO_MV_PLAN(complex);          
 
   /* Public members */
-  int N;                                /**< The bandwidth \f$N\f$           */
-  double *x;                            /**< The nodes \f$\mathcal{X} = 
-                                             \left(\xi_d\right)_{d=0}
-                                             ^{D-1}\f$                       */
+  int N;                                  /**< The bandwidth \f$N\f$              */
+  double *x;                              /**< The nodes \f$\mathbf{x}(m) \in 
+                                               [0,\frac{1}{2}] \times 
+                                               [-\frac{1}{2},\frac{1}{2}]\f$ for 
+                                               \f$m=0,\ldots,M-1\f$,\f$M \in 
+                                               \mathbb{N}\f$                      */
   
   /* Private members */
-  int NP2;                              /**< Next greater power of two with
-                                             respect to \f$N\f|              */
-  int t;                                /**< The logaritm of NP2 with respect 
-                                             to the basis 2                  */  
-  unsigned int flags;                   /**< The planner flags               */
-  nfft_plan plan_nfft;                  /**< The internal NFFT plan          */
+  int NP2;                                /**< Next greater power of two with
+                                               respect to \f$N\f$                 */
+  int t;                                  /**< The logaritm of NP2 with 
+                                               respect to the basis 2             */  
+  unsigned int flags;                     /**< The planner flags                  */
+  nfft_plan plan_nfft;                    /**< The internal NFFT plan             */
 } nfsft_plan;
 
 /**
  * Creates a transform plan.
  *
- * \arg N The bandwidth \f$N\f$
- * \arg M The number of nodes \f$M\f$
- * \arg f_hat The coefficients \f$a_k^n\f$ for 
- *            \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^N}\f$ in order-major
- *            order. The coefficients must be aligned as follows:
- *            \todo Continue this comment
- * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
- * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
+ * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M The number of nodes \f$M \in \mathbb{N}\f$
+ * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
+ *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
+ *            \f$(2N+1)(2N_{\text{max}})\f$ and 
+ *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
+ *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
+ *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
+ * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
+ *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
+ *        for \f$m=0,\ldots,M-1\f$ such that 
+ *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
+ * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
+ *        such that f[\f$m\f$]\f$= f(m)\f$.
  *
  * \return The plan
  *
@@ -1409,13 +1432,21 @@ void nfsft_init(
 /**
  * Creates a transform plan.
  *
- * \arg M The bandwidth \f$M\f$
- * \arg D The number of nodes \f$D\f$
- * \arg f_hat The spherical Fourier coefficients 
- *      \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^M}\f$
- * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
- * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
- * \arg nfsft_flags The flags
+ * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M The number of nodes \f$M \in \mathbb{N}\f$
+ * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
+ *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
+ *            \f$(2N+1)(2N_{\text{max}})\f$ and 
+ *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
+ *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
+ *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
+ * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
+ *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
+ *        for \f$m=0,\ldots,M-1\f$ such that 
+ *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
+ * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
+ *        such that f[\f$m\f$]\f$= f(m)\f$.
+ * \arg nfsft_flags The NFSFT flags 
  *
  * \return The plan
  *
@@ -1427,13 +1458,21 @@ void nfsft_init_advanced(nfsft_plan* plan, int M, int D, complex *f_hat,
 /**
  * Creates a transform plan.
  *
- * \arg M The bandwidth \f$M\f$
- * \arg D The number of nodes \f$D\f$
- * \arg f_hat The spherical Fourier coefficients 
- *      \f$\left(a_k^n\right)_{(k,n) \in \mathcal{I}^M}\f$
- * \arg x The nodes \f$\left(\mathbf{\xi}_d\right)_{d = 0}^{D - 1}\f$
- * \arg f The function values \f$\left(f_d\right)_{d = 0}^{D - 1}\f$
- * \arg nfsft_flags The flags
+ * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M The number of nodes \f$M \in \mathbb{N}\f$
+ * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
+ *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
+ *            \f$(2N+1)(2N_{\text{max}})\f$ and 
+ *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
+ *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
+ *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
+ * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
+ *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
+ *        for \f$m=0,\ldots,M-1\f$ such that 
+ *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
+ * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
+ *        such that f[\f$m\f$]\f$= f(m)\f$.
+ * \arg nfsft_flags The NFSFT flags 
  * \arg nfft_cutoff The NFFT cutoff parameter
  *
  * \return The plan
@@ -1445,12 +1484,12 @@ void nfsft_init_guru(nfsft_plan* plan, int M, int D, complex *f_hat, double *x,
 
 /**
  * Performes precomputation up to the next power of two with respect to a given 
- * bandwidth \f$M\f$. The threshold parameter \f$\kappa\f$ determines the number 
- * of stabilization steps computed in the discrete polynomial transform and 
- * thereby its accuracy.
+ * bandwidth \f$N \in \mathbb{N}_2\f$. The threshold parameter \f$\kappa \in 
+ * \mathbb{R}^{+}\f$ determines the number of stabilization steps computed in the 
+ * discrete polynomial transform and thereby its accuracy.
  *
- * \arg M The bandwidth \F$M\f$
- * \arg threshold The threshold \f$\kappa\f$
+ * \arg N The bandwidth \f$N \in \mathbb{N}_2\f$
+ * \arg threshold The threshold \f$\kappa \in \mathbb{R}^{+}\f$
  * \arg flags The flags
  *
  * \author Jens Keiner
@@ -1465,11 +1504,10 @@ void nfsft_precompute(int M, double kappa, unsigned int flags);
 void nfsft_forget();
 
 /**
- * Executes a direct NDSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * Executes a direct NDSFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
  * \f[
- *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
- *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
- *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ *   f(m) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}(k,n) Y_k^n\left(2\pi x_1(m),
+ *   2\pi x_2(m)\right).  
  * \f]
  *
  * \arg plan The plan
@@ -1479,11 +1517,11 @@ void nfsft_forget();
 void ndsft_trafo(nfsft_plan* plan);
 
 /**
- * Executes a direct adjoint NDSFT, i.e. computes for \f$(k,n) \in 
- * \mathcal{I}^M\f$
+ * Executes a direct adjoint NDSFT, i.e. computes for \f$k=0,\ldots,N;
+ * n=-k,\ldots,k\f$
  * \f[
- *   \tilde{a}_k^n = \sum_{d = 0}^{D-1} \tilde{f}_d 
- *                   Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ *   \hat{f}(k,n) = \sum_{m = 0}^{M-1} f(m) Y_k^n\left(2\pi x_1(m), 
+ *   2\pi x_2(m)\right).  
  * \f]
  *
  * \arg plan The plan
@@ -1564,18 +1602,18 @@ void nfsft_finalize(nfsft_plan plan);
  */
 #define F(MV, FLT, name, ...) void i ## MV ## _ ## name(__VA_ARGS__)
 
-#define MACRO_SOLVER_PLAN(MV, FLT)	          		              \
-typedef struct i ## MV ## _plan_				              \
-{									      \
-  MV ## _plan *mv;			/**< matrix vector multiplication   */\
-  unsigned flags;			/**< iteration type, ...            */\
-									      \
-  double *w;                         	/**< weighting factors              */\
-  double *w_hat;                     	/**< damping factors                */\
-									      \
-  FLT *y;                	        /**< right hand side, samples       */\
-									      \
-  FLT *f_hat_iter;		        /**< iterative solution             */\
+#define MACRO_SOLVER_PLAN(MV, FLT) \
+typedef struct i ## MV ## _plan_ \
+{	\
+  MV ## _plan *mv;                          /**< matrix vector multiplication   */\
+  unsigned flags;			                     /**< iteration type, ...            */\
+ \
+  double *w;                         	      /**< weighting factors              */\
+  double *w_hat;                     	      /**< damping factors                */\
+ \
+  FLT *y;                                   /**< right hand side, samples       */\
+ \
+  FLT *f_hat_iter;                          /**< iterative solution             */\
 									      \
   FLT *r_iter;			        /**< iterated residual vector       */\
   FLT *z_hat_iter;             	        /**< residual vector of normal eq.1 */\
@@ -1610,6 +1648,6 @@ MACRO_SOLVER_PLAN(mri_inh_3d, complex)
 MACRO_SOLVER_PLAN(texture, complex)
 /** @} 
  */
- 
+
 #endif
 /* nfft3.h */
