@@ -688,7 +688,7 @@ ths->g     = ths->g2;
 
 
 /** 
-* form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
+* form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
 * k \in I_N \f$
 *
 **/ 
@@ -768,7 +768,7 @@ fftw_execute( ths->my_fftw_r2r_plan);
 T2(2);
 
 /**
-* form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
+* form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
 * k \in I_N \f$
 *
 **/

@@ -613,7 +613,7 @@ void nfst_trafo( nfst_plan *ths) {
 
  
   /**
-   * form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right) \text{ for }
+   * form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
    * k \in I_N \f$
    *
    */ 
@@ -679,7 +679,7 @@ void nfst_transposed( nfst_plan *ths) {
 
   
   /**
-   * form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right) \text{ for }
+   * form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    * k \in I_N \f$
    *
    */

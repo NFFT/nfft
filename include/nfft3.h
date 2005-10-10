@@ -1337,7 +1337,7 @@ struct texture_plan {
  * \see nfsft_init
  * \author Jens Keiner
  */
-#define NFSFT_NORMALIZED (1U<<0)
+#define NFSFT_NORMALIZED   (1U<<0)
 
 /**
  * If this flag is set, the \e direct \e NDFT algorithm will be used internally 
@@ -1346,7 +1346,12 @@ struct texture_plan {
  * \see nfsft_init
  * \author Jens Keiner
  */
-#define NFSFT_USE_NDFT   (1U<<1)
+#define NFSFT_USE_NDFT     (1U<<1)
+
+#define NFSFT_MALLOC_X     (1U<< 2)
+#define NFSFT_MALLOC_F_HAT (1U<< 3)
+#define NFSFT_MALLOC_F     (1U<< 4)
+
 
 /* Precomputation flags */
 
@@ -1391,9 +1396,9 @@ typedef struct nfsft_plan_
                                                \mathbb{N}\f$                      */
   
   /* Private members */
-  int NP2;                                /**< Next greater power of two with
+  int NPT;                                /**< Next greater power of two with
                                                respect to \f$N\f$                 */
-  int t;                                  /**< The logaritm of NP2 with 
+  int t;                                  /**< The logaritm of NPT with 
                                                respect to the basis 2             */  
   unsigned int flags;                     /**< The planner flags                  */
   nfft_plan plan_nfft;                    /**< The internal NFFT plan             */
@@ -1402,85 +1407,39 @@ typedef struct nfsft_plan_
 /**
  * Creates a transform plan.
  *
+ * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
  * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
  * \arg M The number of nodes \f$M \in \mathbb{N}\f$
- * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
- *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
- *            \f$(2N+1)(2N_{\text{max}})\f$ and 
- *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
- *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
- *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
- * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
- *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
- *        for \f$m=0,\ldots,M-1\f$ such that 
- *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
- * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
- *        such that f[\f$m\f$]\f$= f(m)\f$.
- *
- * \return The plan
  *
  * \author Jens Keiner
  */
-void nfsft_init(
-                nfsft_plan *plan, 
-                int M, 
-                int D, 
-                complex *f_hat, 
-                double *x, 
-                complex *f);
+void nfsft_init(nfsft_plan *plan, int N, int M);
 
 /**
  * Creates a transform plan.
  *
+ * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
  * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
  * \arg M The number of nodes \f$M \in \mathbb{N}\f$
- * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
- *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
- *            \f$(2N+1)(2N_{\text{max}})\f$ and 
- *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
- *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
- *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
- * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
- *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
- *        for \f$m=0,\ldots,M-1\f$ such that 
- *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
- * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
- *        such that f[\f$m\f$]\f$= f(m)\f$.
  * \arg nfsft_flags The NFSFT flags 
  *
- * \return The plan
- *
  * \author Jens Keiner
  */
-void nfsft_init_advanced(nfsft_plan* plan, int M, int D, complex *f_hat, 
-                         double *x, complex *f, unsigned int nfsft_flags);
+void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int nfsft_flags);
 
 /**
  * Creates a transform plan.
  *
+ * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
  * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
  * \arg M The number of nodes \f$M \in \mathbb{N}\f$
- * \arg f_hat The coefficients \f$\hat{f}(k,n) \in \mathbb{C}\f$ for 
- *            \f$k=0,\ldots,N; n=-k,\ldots,k\f$. The array has length 
- *            \f$(2N+1)(2N_{\text{max}})\f$ and 
- *            the coefficient \f$\hat{f}(k,n)\f$ is stored at the index 
- *            \f$(n+N)(2N_{\text{max}})+k\f$, i.e. 
- *            f_hat[\f$(n+N)(2N_{\text{max}})+k\f$]\f$= \hat{f}(k,n)\f$.
- * \arg x The nodes \f$\mathbf{x}(m) \in [0,\frac{1}{2}] \times 
- *        [-\frac{1}{2},\frac{1}{2})\f$ in \e scaled \e spherical \e coordinates
- *        for \f$m=0,\ldots,M-1\f$ such that 
- *        x[\f$2m\f$]\f$= x_1(m)\f$, \f$x[2m+1] = x_2(m)\f$.
- * \arg f The coefficients \f$f(m) \in \mathbb{C}\f$ for \f$m=0,\ldots,M-1\f$ 
- *        such that f[\f$m\f$]\f$= f(m)\f$.
  * \arg nfsft_flags The NFSFT flags 
  * \arg nfft_cutoff The NFFT cutoff parameter
  *
- * \return The plan
- *
  * \author Jens Keiner
  */
-void nfsft_init_guru(nfsft_plan* plan, int M, int D, complex *f_hat, double *x,
-                     complex *f, unsigned int flags, int nfft_cutoff);
+void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags, 
+                     int nfft_cutoff);
 
 /**
  * Performes precomputation up to the next power of two with respect to a given 
@@ -1531,11 +1490,10 @@ void ndsft_trafo(nfsft_plan* plan);
 void ndsft_adjoint(nfsft_plan* plan);
 
 /**
- * Executes a NFSFT, i.e. computes for \f$d = 0,\ldots,D-1\f$
+ * Executes a NFSFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
  * \f[
- *   f_d = f\left(\vartheta_d,\varphi_d\right) = 
- *         \sum_{(k,n) \in \mathcal{I}^M} a_k^n 
- *         Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ *   f(m) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}(k,n) Y_k^n\left(2\pi x_1(m),
+ *   2\pi x_2(m)\right).  
  * \f]
  *
  * \arg plan The plan
@@ -1545,11 +1503,11 @@ void ndsft_adjoint(nfsft_plan* plan);
 void nfsft_trafo(nfsft_plan* plan);
 
 /**
- * Executes an adjoint NFSFT, i.e. computes for \f$(k,n) \in 
- * \mathcal{I}^M\f$
+ * Executes an adjoint NFSFT, i.e. computes for \f$k=0,\ldots,N;
+ * n=-k,\ldots,k\f$
  * \f[
- *   \tilde{a}_k^n = \sum_{d = 0}^{D-1} \tilde{f}_d 
- *                   Y_k^n\left(\vartheta_d,\varphi_d\right).  
+ *   \hat{f}(k,n) = \sum_{m = 0}^{M-1} f(m) Y_k^n\left(2\pi x_1(m), 
+ *   2\pi x_2(m)\right).  
  * \f]
  *
  * \arg plan The plan
@@ -1561,7 +1519,7 @@ void nfsft_adjoint(nfsft_plan* plan);
 /**
  * Destroys a plan.
  *
- * \arg plan The plan
+ * \arg plan The plan to be destroyed
  *
  * \author Jens Keiner
  */
