@@ -1,3 +1,4 @@
+# Subdirectories
 SUBDIRS = include util kernel lowlevel highlevel . examples
 
 lib_LTLIBRARIES = libnfft3.la      
