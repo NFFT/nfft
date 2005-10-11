@@ -23,16 +23,16 @@ system(['./construct_data_2d ' 'output_phantom_nfft.dat ' ...
 % and write them to weights.dat
 precompute_weights('output_phantom_nfft.dat',M);
 
-% First make Z inverse 2d-NFFT, then N^2 inverse 1d-FFT
+% Make an inverse 2d-NFFT
 % and write the output to output_real.dat and output_imag.dat
-% The usage is "./reconstruct_data_2+1d filename N M ITER WEIGHTS"
+% The usage is "./reconstruct_data_2 filename N M ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
 system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 3 1']);
 
 % Visualize the two dimensional phantom. Make a pic
-% and one plot of the N/2
+% and one plot of the N/2 row
 visualize_data('pics/pic_2d', N);
 
 % Compute the signal to noise ratio 
@@ -42,7 +42,7 @@ snr('pics/snr_2d.txt');
 
 % The same as above but reconstructed with gridding
 % That means an adjoint 2d NFFT
-% The ITER parameter is obsolent and just for compatibility
+% The ITER parameter is unused and just for compatibility
 %system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
 %         int2str(N) ' ' int2str(M)  ' 5 1']);
 %visualize_data('pics/pic_gridding', N);

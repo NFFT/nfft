@@ -29,18 +29,18 @@ void accuracy(int d)
                           PRE_FULL_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
-      /** init pseudo random nodes */
-      for(j=0; j<my_plan.M_total; j++)
-	for(t=0; t<d; t++)
+  /** init pseudo random nodes */
+  for(j=0; j<my_plan.M_total; j++)
+	  for(t=0; t<d; t++)
 	  {
 	    my_plan.x[d*j+t]=((double)rand())/RAND_MAX-0.5;
 	  }
           
-     for(j=0; j<my_plan.N_total; j++)
-        for(t=0; t<d; t++)
-          {
-            my_plan.v[d*j+t]=((double)rand())/RAND_MAX-0.5;
-          }
+    for(j=0; j<my_plan.N_total; j++)
+      for(t=0; t<d; t++)
+      {
+        my_plan.v[d*j+t]=((double)rand())/RAND_MAX-0.5;
+      }
       
       /** precompute psi, the entries of the matrix B */
       if(my_plan.nnfft_flags & PRE_PSI)
@@ -67,11 +67,6 @@ void accuracy(int d)
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
-
-
-    //vpr_complex(slow,3," slow ");
-    //vpr_complex(my_plan.f,3," fast ");
-
 
       printf("%e, %e\n",
 	     error_l_infty_complex(slow, my_plan.f, M_total),

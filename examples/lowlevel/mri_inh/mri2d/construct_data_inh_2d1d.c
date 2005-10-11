@@ -12,7 +12,7 @@ void nfft (char * file, int N, int M)
   double real,imag;
   double w;
   double time,min_time,max_time,min_inh,max_inh;
-  mri_inh_2d1d_plan my_plan;  /* plan for the two dimensional nfft  */
+  mri_inh_2d1d_plan my_plan;  
   FILE *fp,*fout,*fi,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -74,7 +74,7 @@ void nfft (char * file, int N, int M)
   
   for(j=0;j<my_plan.M_total;j++)
   {
-    fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
+    fscanf(fp,"%le %le ",&my_plan.plan.x[2*j+0],&my_plan.plan.x[2*j+1]);
     fscanf(ftime,"%le ",&my_plan.t[j]);
     my_plan.t[j] = (my_plan.t[j]-Ts)/T;
   }
@@ -97,8 +97,8 @@ void nfft (char * file, int N, int M)
     my_plan.f_hat[j] = real*cexp(2.0*I*PI*Ts*my_plan.w[j]*W);
   }
   
-  if(my_plan.nfft_flags & PRE_PSI)
-    nfft_precompute_psi((nfft_plan*)&my_plan);
+  if(my_plan.plan.nfft_flags & PRE_PSI)
+    nfft_precompute_psi(&my_plan.plan);
 
   mri_inh_2d1d_trafo(&my_plan);
 
@@ -106,7 +106,7 @@ void nfft (char * file, int N, int M)
   
   for(j=0;j<my_plan.M_total;j++)
   {
-    fprintf(fout,"%le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],creal(my_plan.f[j]),cimag(my_plan.f[j]));
+    fprintf(fout,"%le %le %le %le\n",my_plan.plan.x[2*j+0],my_plan.plan.x[2*j+1],creal(my_plan.f[j]),cimag(my_plan.f[j]));
   }
 
   fclose(fout);

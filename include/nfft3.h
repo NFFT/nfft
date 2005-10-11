@@ -640,7 +640,9 @@ int nfst_fftw_2N_rev( int n);
  * @{ 
  */
 
-/** Structure for a transform plan */
+/** 
+ * Structure for a transform plan
+ */
 typedef struct nnfft_plan_ 
 {
   /** api */
@@ -708,9 +710,9 @@ void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total,
                      int *N, int *N1, int m, unsigned nnfft_flags);
                      
 /**
- * Executes a direct NNDFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * Executes a direct NNDFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -720,9 +722,9 @@ void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total,
 void nndft_trafo(nnfft_plan *ths_plan);
 
 /**
- * Executes a direct conjugated NNDFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * Executes a direct conjugated NNDFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -732,9 +734,9 @@ void nndft_trafo(nnfft_plan *ths_plan);
 void nndft_conjugated(nnfft_plan *ths_plan);
 
 /**
- * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -744,9 +746,9 @@ void nndft_conjugated(nnfft_plan *ths_plan);
 void nndft_adjoint(nnfft_plan *ths_plan);
 
 /**
- * Executes a direct transposed NNDFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * Executes a direct transposed NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -756,9 +758,9 @@ void nndft_adjoint(nnfft_plan *ths_plan);
 void nndft_transposed(nnfft_plan *ths_plan);
 
 /**
- * Executes a NNFFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * Executes a NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -768,9 +770,9 @@ void nndft_transposed(nnfft_plan *ths_plan);
 void nnfft_trafo(nnfft_plan *ths_plan);
 
 /**
- * Executes a conjugated NNFFT, i.e. computes for \f$j=0,...,M_total-1\f$
+ * Executes a conjugated NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_total-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -780,9 +782,9 @@ void nnfft_trafo(nnfft_plan *ths_plan);
 void nnfft_conjugated(nnfft_plan *ths_plan);
 
 /**
- * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{tota}l-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -792,9 +794,9 @@ void nnfft_conjugated(nnfft_plan *ths_plan);
 void nnfft_adjoint(nnfft_plan *ths_plan);
 
 /**
- * Executes a transposed NNFFT, i.e. computes for \f$k=0,...,N_total-1\f$
+ * Executes a transposed NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_total-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -874,47 +876,25 @@ void nsfft_finalize(nsfft_plan *ths);
  * @{ 
  */
 
+/**
+ * The structure for the transform plan.
+ */
 typedef struct mri_inh_2d1d_plan_
 {
   /** api */
   MACRO_MV_PLAN(complex);
+  
+	nfft_plan plan;
 
-  int d;                                /**< dimension, rank                 */
-  int *N;                               /**< cut-off-frequencies             */
-  double *sigma;                        /**< oversampling-factor             */
-  int *n;                               /**< fftw-length = sigma*N           */
-  int n_total;                          /**< total size of fftw              */
-  int m;                                /**< cut-off parameter in time-domain*/
-  double *b;                            /**< shape parameters                */
-  int K;                                /**< number of precomp. uniform psi  */
-
-  unsigned nfft_flags;                  /**< flags for precomputation, malloc*/
-  unsigned fftw_flags;                  /**< flags for the fftw              */
-
-  double *x;                            /**< nodes (in time/spatial domain)  */
-
-  /** internal*/
-  fftw_plan  my_fftw_plan1;             /**< fftw_plan forward               */
-  fftw_plan  my_fftw_plan2;             /**< fftw_plan backward              */
-
-  double **c_phi_inv;                   /**< precomputed data, matrix D      */
-  double *psi;                          /**< precomputed data, matrix B      */
-  int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
-  int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
-
-  complex *g;
-  complex *g_hat;
-  complex *g1;                          /**< input of fftw                   */
-  complex *g2;                          /**< output of fftw                  */
-
-  double *spline_coeffs;                /**< input for de Boor algorithm, if
-                                             B_SPLINE or SINC_2m is defined  */
   int N3;
 	double sigma3;
   double *t;
   double *w;
 } mri_inh_2d1d_plan;
 
+/**
+ * The structure for the transform plan.
+ */
 typedef struct mri_inh_3d_plan_
 {
   /** api */

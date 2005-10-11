@@ -12,7 +12,7 @@ void nfft (char * file, int N, int M)
   double real,imag;
   double w;
   double time,min_time,max_time,min_inh,max_inh;
-  mri_inh_3d_plan my_plan;  /* plan for the two dimensional nfft  */
+  mri_inh_3d_plan my_plan;  
   FILE *fp,*fout,*fi,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -54,7 +54,7 @@ void nfft (char * file, int N, int M)
   }
   fclose(finh);
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+6/(2*sigma))*m*sigma)+1;
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
 
   W= MAX(fabs(min_inh),fabs(max_inh))/(0.5-((double)m)/N3);
     
@@ -75,7 +75,7 @@ void nfft (char * file, int N, int M)
   {
     fscanf(fp,"%le %le",&my_plan.plan.x[3*j+0],&my_plan.plan.x[3*j+1]);
     fscanf(ftime,"%le ",&my_plan.plan.x[3*j+2]);
-    my_plan.plan.x[3*j+2] = (my_plan.plan.x[3*j+2]-Ts)*W/my_n[2];
+    my_plan.plan.x[3*j+2] = (my_plan.plan.x[3*j+2]-Ts)*W/N3;
   }
   fclose(fp);
   fclose(ftime);

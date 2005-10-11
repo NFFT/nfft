@@ -72,8 +72,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
 
   /* precompute lin psi if set */
-  if(my_plan.nfft_flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi((nfft_plan*)&my_plan);
+  if(my_plan.plan.nfft_flags & PRE_LIN_PSI)
+    nfft_precompute_lin_psi(&my_plan.plan);
                       
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
@@ -113,7 +113,7 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
 
   for(j=0;j<my_plan.M_total;j++)
   {
-    fscanf(fp,"%le %le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],&real,&imag);
+    fscanf(fp,"%le %le %le %le",&my_plan.plan.x[2*j+0],&my_plan.plan.x[2*j+1],&real,&imag);
     my_iplan.y[j]=real+I*imag;
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
@@ -132,11 +132,11 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);  
 
     
-  if(my_plan.nfft_flags & PRE_PSI) {
-    nfft_precompute_psi((nfft_plan*)&my_plan);
+  if(my_plan.plan.nfft_flags & PRE_PSI) {
+    nfft_precompute_psi(&my_plan.plan);
   }
-  if(my_plan.nfft_flags & PRE_FULL_PSI) {
-      nfft_precompute_full_psi((nfft_plan*)&my_plan);
+  if(my_plan.plan.nfft_flags & PRE_FULL_PSI) {
+      nfft_precompute_full_psi(&my_plan.plan);
   } 
 
   /* init some guess */

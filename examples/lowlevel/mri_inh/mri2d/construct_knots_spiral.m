@@ -20,6 +20,6 @@ end
 hold off;
 
 % feel free to plot the knots by uncommenting
-% plot(file(:,1),file(:,2),'-');
+% plot(file(:,1),file(:,2),'.');
 
 save knots.dat -ascii file

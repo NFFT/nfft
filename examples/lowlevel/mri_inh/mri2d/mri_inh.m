@@ -1,25 +1,50 @@
-N=256;   % points per row / column
-M=75520;
-arms=16;
-%construct_readout_time( M, 2, arms, 0.00402542373 );
-%M = construct_knots_spiral(256,16);
-%construct_readout_time( M, 2, arms,0.00402542372881);%600
+N=128;   % points per row / column
+arms=1;  % number of spiral arms
 
-%construct_inh(N);
+% Construct the spiral knots in k-space and write them to knots.dat
+% M is the number of knots
+M = construct_knots_spiral(N,arms);
 
-%out=reshape(phantom(N),1,N*N);
-%save input_f.dat -ascii out
+% Construct a the file time.dat which contains the readout time 
+construct_readout_time( M, 2, arms,0.0004);
 
-%system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-%         int2str(N) ' ' int2str(M)])
+% Construct a fieldmap an write the output to inh.dat
+construct_inh(N);
 
-%precompute_weights('output_phantom_nfft.dat',M);
+% Construct the raw data of the phantom
+% and write it to input_f.dat
+% To use another example than the phantom
+% just put the reshape of your example into input_data_f.dat
+out=reshape(phantom(N),1,N*N);
+save input_f.dat -ascii out
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Construct the k-space data considering the fieldmap
+% and write the output to output_data_phantom_nfft.dat
+system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)])
 
+% Precompute the weights using voronoi cells
+% and write them to weights.dat
+precompute_weights('output_phantom_nfft.dat',M);
 
-system(['./reconstruct_data_inh_3d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 1 1'])
-visualize_data('pics/phantom_2d1d_iter=1',N);
-snr('pics/snr_phantom_2d1d_iter=1');
-%%%%%%%%%%%%
+% Reconstruct with the 2d1d method
+% and write the output to output_real.dat and output_imag.dat
+% The usage is "./reconstruct_data_inh_2d1d filename N M ITER WEIGHTS"
+% where ITER is the number of iteration and WEIGHTS is 1
+% if the weights are used 0 else
+% The other methods can be used by replacing 2d1d with 3d or nnfft
+system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 3 1'])
+
+% Visualize the two dimensional phantom. Make a pic
+% and one plot of the N/2 row
+visualize_data('pics/pic_2d1d',N);
+
+% Compute the signal to noise ratio 
+snr('pics/snr_2d1d.txt');
+
+% Reconstruct without considering the fildmap
+system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 3 1']);
+visualize_data('pics/pic_2d', N);
+snr('pics/snr_2d.txt');
