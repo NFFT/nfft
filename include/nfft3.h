@@ -643,26 +643,26 @@ int nfst_fftw_2N_rev( int n);
 /** 
  * Structure for a transform plan
  */
-typedef struct nnfft_plan_ 
+typedef struct  
 {
   /** api */
   MACRO_MV_PLAN(complex);
 
   int d;                                /**< dimension, rank                 */
-  double *sigma;                        /**< oversampling-factor 1           */
-  double *a;                            /**< 1 + 2*m1/N1                     */
+  double *sigma;                        /**< oversampling-factor            */
+  double *a;                            /**< 1 + 2*m/N1                     */
   int *N;                               /**< cut-off-frequencies             */
-  int *N1;
-  int *aN1;
+  int *N1;                              /**< sigma*N                         */
+  int *aN1;                             /**< sigma*a*N                       */
   int m;                                /**< cut-off parameter in time-domain*/
   double *b;                            /**< shape parameters                */
   int K;                                /**< number of precomp. uniform psi  */
 
-  int aN1_total;
+  int aN1_total;                        /**< aN1_total=aN1[0]* ... *aN1[d-1] */
   
   nfft_plan *direct_plan;               /**< plan for the nfft               */
   unsigned nnfft_flags;                 /**< flags for precomputation, malloc*/
-  int *n;                               /**<  = a*N                          */
+  int *n;                               /**<  n=N1, just for the window function */
   
   double *x;                            /**< nodes (in time/spatial domain)  */
   double *v;                            /**< nodes (in fourier domain)       */
@@ -879,7 +879,7 @@ void nsfft_finalize(nsfft_plan *ths);
 /**
  * The structure for the transform plan.
  */
-typedef struct mri_inh_2d1d_plan_
+typedef struct
 {
   /** api */
   MACRO_MV_PLAN(complex);
@@ -895,7 +895,7 @@ typedef struct mri_inh_2d1d_plan_
 /**
  * The structure for the transform plan.
  */
-typedef struct mri_inh_3d_plan_
+typedef struct
 {
   /** api */
   MACRO_MV_PLAN(complex);

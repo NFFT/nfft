@@ -445,9 +445,6 @@ void nnfft_precompute_psi(nnfft_plan *ths)
 
 /** 
  * computes all entries of B explicitly
- *
- * @bug Here is something wrong with PRE_FULL_PSI and the memory. 
- *      valgrind finds many errors, see the accuracy example!!!
  */
 void nnfft_precompute_full_psi(nnfft_plan *ths)
 {
@@ -486,7 +483,7 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
   for(t=0,lprod = 1; t<ths->d; t++)
     lprod *= 2*ths->m+2;
   
-  for(j=0,ix=0,ix_old=0; j<ths->M_total; j++)
+  for(j=0,ix=0,ix_old=0; j<ths->N_total; j++)
     {
       MACRO_init_uo_l_lj_t;
       
