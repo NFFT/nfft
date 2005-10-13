@@ -24,10 +24,62 @@
 
 #include "nfft3.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #define N 256
 #define M 100
 #define THRESHOLD 1000.0
 
+/**
+ * Test function for direct NDSFT
+ */
+void test_ndsft_trafo(void)
+{
+  /** The plan */
+  nfsft_plan plan;
+  /** The file containg the testcase data */
+  FILE file;
+  /** The bandwidth */
+  int N;
+  /** The number of nodes */
+  int M;
+  /** The original samples */
+  complex* f_orig;
+  int k,n,m;
+  double re,im;
+
+  /* Read input data from file. */ 
+  file = fopen("test001.dat","r");
+  if (file != NULL)
+  {
+    /* Read in bandwidth. */
+    fscanf(file,"%d",&N);
+    printf(stdout,"N = %d",N);
+    /* Read in number of nodes. */
+    fscanf(file,"%d",&M);
+    printf(stdout,", M = %d",M);
+    /* Precompute. */
+    nfsft_precompute(N,THRESHOLD,0U);
+    /* Initialise plan. */
+    nfsft_plan = nfsft_init(&plan,N,M);
+    /* Fill in spherical Fourier coefficients */
+    fprintf("/n");
+    for (k = 0; k <= N; k++)
+    {
+      for (n = -k; n <= k; n++)
+      {
+        fscanf(file,"%fl",$re);
+        fscanf(file,"%fl",$im);
+        plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = re + I*im;
+        fprintf(stdout,"f[%d] = %f + I*%f\n",
+          (2*plan.NPT+1)*(n+plan.N)+plan.NPT+k,re,im);
+      }
+    }
+    fclose(file);
+  }
+} 
+ 
 /**
  * The main program.
  *
@@ -38,95 +90,6 @@
  */
 int main (int argc, char **argv)
 {  
-  /** Arrays for complex Fourier coefficients. */
-  complex **f_hat;
-  /** Copy the original Fourier coefficients. */
-  complex **f_hat_direct;
-  /** Array of angles defining the nodes. */
-  double *angles;
-  /** Array for function values. */
-  complex *f;
-  /** Array for function values. */
-  complex *f_direct;
-  double err_infty, err_1, err_2;
-  int N = 1<<ngpt(M);
-  int k,n,d;
-  
-  /** Plan for fast spherical fourier transform. */
-  nfsft_plan_old plan;
-  nfsft_plan_old plan_direct;
-  
-  unsigned short seed[3]={1,2,3};
-
-  /* Initialize random number generator. */
-  seed48(seed);
-    
-  /* Allocate memory. */
-  f_hat = (complex**) malloc((2*M+1)*sizeof(complex*));
-  f_hat_direct = (complex**) malloc((2*M+1)*sizeof(complex*));
-  for (n = -M; n <= M; n++)
-  {
-    f_hat[n+M] = (complex*) fftw_malloc((N+1)*sizeof(complex));
-    f_hat_direct[n+M] = (complex*) fftw_malloc((N+1)*sizeof(complex));
-  }  
-  
-  angles = (double*) malloc(2*D*sizeof(double));
-  f = (complex*) malloc(D*sizeof(complex));
-  f_direct = (complex*) malloc(D*sizeof(complex));
-
-  nfsft_precompute_old(M, THRESHOLD, 0U);
-
-  /* Compute random Fourier coefficients. */
-  for (n = -M; n <= M; n++)
-  {
-    for (k = abs(n); k <= M; k++)
-    {
-      f_hat[n+M][k] = (drand48()-0.5) + I * (drand48()-0.5);
-    }
-    /* Save a copy. */
-    memcpy(f_hat_direct[n+M],f_hat[n+M],(M+1)*sizeof(complex));
-  }
-  
-  /* Random angles */
-  for (d = 0; d < D; d++)
-  {
-    angles[2*d] = drand48()-0.5;
-    angles[2*d+1] = 0.5*drand48();
-  }  
-
-  plan = nfsft_init_guru_old(M, D, f_hat, angles, f, NFSFT_NORMALIZED_OLD,6);
-  plan_direct = nfsft_init_guru_old(M, D, f_hat_direct, angles, f_direct, NFSFT_NORMALIZED_OLD,6);
-
-  //ndsft_trafo(plan);
-  nfsft_trafo_old(plan);
-  ndsft_trafo_old(plan_direct);
-  fprintf(stdout,"reached!\n");
-  fflush(stdout);
-  
-  for (d = 0; d < D; d++)
-  {
-    fprintf(stdout,"%.4E %.4E\n",cabs(f[d]),cabs(f_direct[d]));
-  }
-
-  err_infty = error_l_infty_complex(f,f_direct,D);
-  err_2 = error_l_2_complex(f,f_direct,D);
-            
-  fprintf(stdout,"M = %d, D = %d: %.4E %.4E\n",M,D,err_infty, err_2);
-
-  nfsft_finalize_old(plan);      
-  nfsft_finalize_old(plan_direct);      
-      
-  nfsft_forget_old();
-  for (n = -M; n <= M; n++)
-  {
-    free(f_hat[n+M]);
-    free(f_hat_direct[n+M]);
-  }  
-  free(f_hat);
-  free(f_hat_direct);
-  
-  free(angles);
-  free(f);
-  free(f_direct);
+  test_ndsft_trafo();
   return EXIT_SUCCESS;
 }

@@ -36,7 +36,8 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
                          unsigned int nfsft_flags)
 {
   /* Call nfsft_init_guro with no flags and default NFFT cut-off. */
-  nfsft_init_guru(plan, N, M, 0U, NFSFT_DEFAULT_NFFT_CUTOFF);
+  nfsft_init_guru(plan, N, M, NFSFT_MALLOC_X & NFSFT_MALLOC_F & 
+                  NFSFT_MALLOC_F_HAT, NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
 void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags, 
@@ -64,7 +65,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+1)(2NPT) */
-  plan->N_total = (2*plan->N+1)*2*plan->NPT;
+  plan->N_total = (2*plan->N+1)*(2*plan->NPT+1);
   
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
