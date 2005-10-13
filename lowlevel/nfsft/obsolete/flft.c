@@ -190,7 +190,7 @@ void flft_old(const int M, const int t, const int n, complex *const f_hat,
         *nstab = *nstab + 1;
 
         /* Get U suitable for current N. */
-        if (wisdom->flags & NFSFT_BW_WINDOW)
+        if (wisdom->flags & NFSFT_BW_WINDOW_OLD)
         {
         }
         else
@@ -412,7 +412,7 @@ void flft_adjoint_old(const int M, const int t, const int n, complex *const f_ha
         /* Stabilize. */
         
         /* Get U suitable for current N. */
-        if (wisdom->flags & NFSFT_BW_WINDOW)
+        if (wisdom->flags & NFSFT_BW_WINDOW_OLD)
         {
         }
         else

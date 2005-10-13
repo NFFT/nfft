@@ -1412,8 +1412,9 @@ struct texture_plan {
 /* Precomputation flags */
 
 /**
- * If this flag is set, the algorithms \e direct \e NDSFT and \e adjoint \e direct 
- * \e NDSFT do not work. Setting this flag saves some memory for precomputed data.
+ * If this flag is set, the algorithms \e direct \e NDSFT and \e adjoint \e 
+ * direct \e NDSFT do not work. Setting this flag saves some memory for 
+ * precomputed data.
  * 
  * \see nfsft_precompute
  * \see ndsft_trafo
@@ -1421,6 +1422,17 @@ struct texture_plan {
  * \author Jens Keiner
  */
 #define NFSFT_NO_DIRECT  (1U<<0)
+
+/**
+ * If this flag is set, the algorithms \e NFSFT and \e adjoint \e \e NFSFT do 
+ * not work. Setting this flag saves some memory for precomputed data.
+ * 
+ * \see nfsft_precompute
+ * \see nfsft_trafo
+ * \see nfsft_adjoint
+ * \author Jens Keiner
+ */
+#define NFSFT_NO_FAST    (1U<<1)
 
 /**
  * If this flag is set, the fast algorithms \e NFSFT and \e adjoint \e NFSFT only 
@@ -1435,7 +1447,7 @@ struct texture_plan {
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_BW_WINDOW  (1U<<1)
+#define NFSFT_BANDWIDTH_WINDOW  (1U<<2)
 
 /** Structure for a transform plan */
 typedef struct nfsft_plan_
@@ -1481,7 +1493,8 @@ void nfsft_init(nfsft_plan *plan, int N, int M);
  *
  * \author Jens Keiner
  */
-void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int nfsft_flags);
+void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int 
+                         nfsft_flags);
 
 /**
  * Creates a transform plan.
@@ -1494,7 +1507,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int nfsft_flag
  *
  * \author Jens Keiner
  */
-void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags, 
+void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int nfsft_flags, 
                      int nfft_cutoff);
 
 /**
@@ -1503,13 +1516,14 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
  * \mathbb{R}^{+}\f$ determines the number of stabilization steps computed in the 
  * discrete polynomial transform and thereby its accuracy.
  *
- * \arg N The bandwidth \f$N \in \mathbb{N}_2\f$
+ * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
  * \arg threshold The threshold \f$\kappa \in \mathbb{R}^{+}\f$
- * \arg flags The flags
+ * \arg nfsft_precomputation_flags The precomputation flags
  *
  * \author Jens Keiner
  */
-void nfsft_precompute(int M, double kappa, unsigned int flags);
+void nfsft_precompute(int N, double kappa, 
+                      unsigned int flags);
 
 /**
  * Forgets all precomputed data.
@@ -1579,7 +1593,7 @@ void nfsft_adjoint(nfsft_plan* plan);
  *
  * \author Jens Keiner
  */
-void nfsft_finalize(nfsft_plan plan);
+void nfsft_finalize(nfsft_plan* plan);
 
 /** @}
  */

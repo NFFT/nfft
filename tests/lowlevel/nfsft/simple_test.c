@@ -22,30 +22,10 @@
 #include <pwd.h>
 */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#else
-#  error Need config.h
-#endif
+#include "nfft3.h"
 
-#ifdef STDC_HEADERS
-#  include <stdlib.h>
-#  include <stdio.h>
-#  include <math.h>
-#  include <string.h>
-#else
-#  error Need ANSI-C headers
-#endif
-
-/* Auxilliary headers */
-#include <complex.h>
-#include <time.h>
-#include <fftw3.h>
-#include "nfsft.h"
-#include "../../../lowlevel/nfsft/obsolete/util.h"
-
-#define M 256
-#define D 100
+#define N 256
+#define M 100
 #define THRESHOLD 1000.0
 
 /**

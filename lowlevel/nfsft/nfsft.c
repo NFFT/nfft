@@ -7,6 +7,9 @@
 /* Include library header. */
 #include "nfft3.h"
 
+/* Include private API header. */
+#include "api.h"
+
 /* Include utilities header. */
 #include "util.h"
 
@@ -21,7 +24,7 @@
 #define NFSFT_DEFAULT_NFFT_CUTOFF 6
 
 /** Global structure for wisdom. */
-static struct nfsft_wisdom wisdom = {0,0};
+static struct nfsft_wisdom wisdom = {false,0U};
 
 void nfsft_init(nfsft_plan *plan, int N, int M)
 {
@@ -29,7 +32,8 @@ void nfsft_init(nfsft_plan *plan, int N, int M)
   nfsft_init_advanced(plan, N, M, 0U);
 } 
   
-void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int nfsft_flags)
+void nfsft_init_advanced(nfsft_plan* plan, int N, int M, 
+                         unsigned int nfsft_flags)
 {
   /* Call nfsft_init_guro with no flags and default NFFT cut-off. */
   nfsft_init_guru(plan, N, M, 0U, NFSFT_DEFAULT_NFFT_CUTOFF);
@@ -44,7 +48,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   int fftw_size[2] = {0,0};
 
   /** Allocate memory for the plan. */
-  plan = (nfsft_plan*) malloc(sizeof(struct nfsft_plan));
+  plan = (nfsft_plan*) malloc(sizeof(nfsft_plan));
   
   /* Save the flags in the plan. */
   plan->flags = flags;
@@ -87,7 +91,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   fftw_size[0] = 4*plan->NPT;
   fftw_size[1] = 4*plan->NPT;
   /** \todo Check NFFT flags. */
-  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M, fftw_size, 
+  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size, 
                      nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
                      FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
   /* Assign angle array. */
@@ -101,267 +105,262 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   } 
 }
 
-void nfsft_precompute(int M, double threshold, nfsft_precompute_flags_old flags)
+void nfsft_precompute(int N, double kappa, 
+                      unsigned int flags)
 {
-  int i;
-  int ti;
+  //int i;
+  //int ti;
   
   /*  Check if already initialized. */
-  if (wisdom.initialized == 1 )
+  if (wisdom.initialized == true)
   {
     return;
   }
   
-  /* Set the flags. */
+  /* Save the precomputation flags. */
   wisdom.flags = flags;
 
-  /* Set t. */
-  wisdom.t = ngpt(M);
-  /* Set N. */
-  wisdom.N = 1<<wisdom.t;
+  /* Compute and save /f$N_{\text{max}} = 2^{\ceil{\log_2 N}}/f$ as next greater 
+   * power of two with respect to /f$N/f$. */
+  wisdom.N_MAX = next_power_of_2(N);
+  /* Save t. */
+  wisdom.T_MAX = log((double)wisdom.N_MAX)/log(2.0);
 
-  /* Precompute three-term recurrence coefficients. */
-  wisdom.alpha = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
-  wisdom.beta = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
-  wisdom.gamma = (double*) malloc((BW_MAX+1)*(BW_MAX+1)*sizeof(double));    
-  alpha_al_all_old(wisdom.alpha,BW_MAX);
-  beta_al_all_old(wisdom.beta,BW_MAX);
-  gamma_al_all_old(wisdom.gamma,BW_MAX);
-  
-  /* Set the threshold. */
-  wisdom.threshold  = threshold;
-
-  /* Precompute. */
-  wisdom.U = precomputeU_old(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, 
-                         wisdom.gamma, 
-                         (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
-  
-  /* Delete coefficients direct algorithms are deactivated. */
-  if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) == NFSFT_FAST_ONLY_OLD)
+  /* Check, if precomputation for direct algorithms needs to be performed. */    
+  if (wisdom.flags & NFSFT_NO_DIRECT == 0)
   {
-    free(wisdom.alpha);
-    free(wisdom.beta);
-    free(wisdom.gamma);
+    /* Precompute three-term recurrence coefficients. */
+    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+      sizeof(double));    
+    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+      sizeof(double));    
+    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+      sizeof(double));
+    /** \todo Change to functions which compute only for fixed order n. */       
+    alpha_al_all(wisdom.alpha,BW_MAX);
+    beta_al_all(wisdom.beta,BW_MAX);
+    gamma_al_all(wisdom.gamma,BW_MAX);
+
+    /* Wisdom has been initialised. */
+    wisdom.initialized = true;
   }
   
-  /* Check, if bandwidth big enough. */
-  if (wisdom.N >= 4)
-  {  
-    wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
-    wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
-    wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
-    wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
-    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-    wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-    wisdom.kinds[0]   = FFTW_REDFT01;
-    wisdom.kinds[1]   = FFTW_REDFT01;
-    wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-    wisdom.kindsr[0]  = FFTW_REDFT10;
-    wisdom.kindsr[1]  = FFTW_REDFT10;
-    wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
-    for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
-    {
-      wisdom.lengths[i] = ti;
-      wisdom.plans_dct3[i] = 
-        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                           2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
-                           0);
-      wisdom.plans_dct2[i] = 
-        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                           2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
-                           0);
-    }  
-  }
+  /* Check, if precomputation for direct algorithms needs to be performed. */    
+  if (wisdom.flags & NFSFT_NO_FAST == 0)
+  { 
+    /* Set the threshold. */
+    //wisdom.threshold  = threshold;
   
-  wisdom.initialized = 1;
-}
-
-void nfsft_forget()
-{
-  int i;
-  
-  if (wisdom.initialized == 1)
-  {
-    if (wisdom.N >= 4)
-    {  
-      forgetU_old(wisdom.U,wisdom.N,wisdom.t,
-              (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
-      
-      fftw_free(wisdom.work);
-      fftw_free(wisdom.old);
-      fftw_free(wisdom.ergeb);
-      fftw_free(wisdom.vec1);
-      fftw_free(wisdom.vec2);
-      fftw_free(wisdom.vec3);
-      fftw_free(wisdom.vec4);
-      fftw_free(wisdom.a2);
-      fftw_free(wisdom.b2);
-      free(wisdom.z);
-      
-      for(i = 0; i < wisdom.t-1; i++)
-      {
-        fftw_destroy_plan(wisdom.plans_dct3[i]);
-        fftw_destroy_plan(wisdom.plans_dct2[i]);
-      }  
-      
-      free(wisdom.plans_dct3);
-      free(wisdom.plans_dct2);
-      free(wisdom.kinds);
-      free(wisdom.kindsr);
-      free(wisdom.lengths);
-    }
-    if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) != NFSFT_FAST_ONLY_OLD)
+    /* Precompute. */
+    //wisdom.U = precomputeU_old(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, 
+    //                      wisdom.gamma, 
+    //                       (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
+    
+    /* Delete coefficients direct algorithms are deactivated. */
+    /*if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) == NFSFT_FAST_ONLY_OLD)
     {
       free(wisdom.alpha);
       free(wisdom.beta);
       free(wisdom.gamma);
+    }*/
+    
+    /* Check, if bandwidth big enough. */
+    /*if (wisdom.N >= 4)
+    {  
+      wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
+      wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
+      wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
+      wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+      wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
+      wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+      wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+      wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+      wisdom.kinds[0]   = FFTW_REDFT01;
+      wisdom.kinds[1]   = FFTW_REDFT01;
+      wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+      wisdom.kindsr[0]  = FFTW_REDFT10;
+      wisdom.kindsr[1]  = FFTW_REDFT10;
+      wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
+      for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
+      {
+        wisdom.lengths[i] = ti;
+        wisdom.plans_dct3[i] = 
+          fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                             2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
+                             0);
+        wisdom.plans_dct2[i] = 
+          fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                             2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
+                             0);
+      }  
     }
-    wisdom.initialized = 0;
+    }
+    
+    wisdom.initialized = 1;*/
   }
+}
+ 
+void nfsft_forget()
+{
+  if (wisdom.flags & NFSFT_NO_DIRECT == 0)
+  {
+    /* Free arrays holding three-term recurrence coefficients. */
+    free(wisdom.alpha);   
+    free(wisdom.beta);    
+    free(wisdom.gamma);
+  }
+
+  /* Wisdom is now uninitialised. */
+  wisdom.initialized = false;
 }
                      
-void nfsft_finalize(nfsft_plan_old plan)
+void nfsft_finalize(nfsft_plan* plan)
 {
-  nfft_finalize(&plan->plan_nfft);  
-  free(plan);
 }
 
-void ndsft_trafo(nfsft_plan_old plan)
+void ndsft_trafo(nfsft_plan* plan)
 {
-  /* Compute direct transform. */
-  if (wisdom.flags & NFSFT_FAST_ONLY_OLD)
-  {  
+  /** Node index */
+  int m;
+  /** Legendre index k */
+  int k;
+  /** Legendre index n */
+  int n;
+  /** n_abs = |n| */
+  int n_abs;
+  
+  /**
+   * Pointer to current three-term recurrence coefficient \f$\alpha_k^n\f$
+   * for associated Legendre functions \f$P_k^n\f$. 
+   */
+  double *alpha;
+  /**
+   * Pointer to current three-term recurrence coefficient \f$\beta_k^n\f$
+   * for associated Legendre functions \f$P_k^n\f$. 
+   */
+  double *gamma;
+  
+  /** Index used in Clenshaw algorithm. */
+  int index;
+  /** Pointer to auxilliary array for Clenshaw algorithm. */
+  complex *a;
+  /** Pointer to auxilliary array for Clenshaw algorithm. */
+  complex *temp;
+  
+  /** The final result for a single node. */
+  complex f_m;
+  
+  /** Used to store the angles theta_m */
+  double *theta;
+  /** Used to store the angles phi_m */
+  double *phi;
+    
+   /* Allocate memory for auxilliary arrays. */
+  temp = (complex*) malloc (sizeof(complex) * (plan->N+1));
+  theta = (double*) malloc (sizeof(double) * plan->M_total);    
+  phi = (double*) malloc (sizeof(double) * plan->M_total);    
+  
+  /* Scale angles phi_m from [-0.5,0.5] to [-pi,pi] and angles \theta_m from 
+   * [0,0.5] to and [0,pi], respectively. */ 
+  for (m = 0; m < plan->M_total; m++)
+  {
+    theta[m] = 2.0*PI*plan->x[2*m+1];
+    phi[m] = 2.0*PI*plan->x[2*m];
+  }
+  
+   /* Distinguish by bandwidth M. */
+  if (plan->N == 0)
+  {
+    /* Constant function */
+    for (m = 0; m < plan->M_total; m++)
+    {
+      plan->f[m] = plan->f_hat[0];
+    }
   }
   else
-  {
-    /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED_OLD)
+  { 
+    /* Apply cosine to angles theta_m. */
+    for (m = 0; m < plan->M_total; m++)
     {
-      normalize_f_hat_old(plan->f_hat, plan->M);
-    }  
-    ndsft_old(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, &wisdom);
-  }
-}
+       theta[m] = cos(theta[m]);
+    }
+    
+    /* Evaluate 
+     * \[
+     *   \sum_{k=0}^N \sum_{n=-k}^k a_k^n P_k^{|n|}(\cos\theta_m) e^{i n \phi_m} 
+     *     = \sum_{n=-N}^N \sum_{k=|n|}^N a_k^n P_k^{|n|}(\cos\theta_m) 
+     *     e^{i n \phi_m}. 
+     * \] */
+    for (m = 0; m < plan->M_total; m++)
+     {
+         /* Initialize result for current node. */
+      f_m = 0.0;
 
-void ndsft_adjoint(nfsft_plan_old plan)
-{ 
-  if (wisdom.flags & NFSFT_FAST_ONLY_OLD)
-  {  
-  }
-  else
-  {
-    adjoint_ndsft_old(plan->D, plan->angles, plan->f, plan->M, plan->f_hat, 
-                  &wisdom);
-    /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED_OLD)
-    {
-      normalize_f_hat_old(plan->f_hat, plan->M);
-    }  
-  }
-}
-
-void nfsft_trafo(nfsft_plan_old plan)
-{
-  /** Counter for loops */
-  int i,n;
-	
-  if (wisdom.initialized == 0 || plan->M > wisdom.N)
-  {
-    return;
+      /* For n = -N,...,N, evaluate 
+       * \[
+       *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(\cos\vartheta_m)
+       * using Clenshaw's algorithm. */
+      for (n = -plan->N; n <= plan->N; n++)
+      {
+        /* Get Fourier coefficients vector. */
+        a = &(plan->f_hat[(n+plan->N)*(2*plan->N+1)+plan->N]);
+        
+        /* Take absolute value of n. */
+        n_abs = abs(n);
+        
+        /* Get three-term recurrence coefficients vectors. */
+        alpha = wisdom.alpha + plan->N - n_abs;
+        gamma = wisdom.gamma + plan->N - n_abs;
+        //alpha = &(wisdom.alpha[ROWK(n_abs)]);
+        //gamma = &(wisdom.gamma[ROWK(n_abs)]);
+         
+        /* Make copy of array a. */ 
+        memcpy(temp,a,(plan->N+1)*sizeof(complex));
+        
+        /* Clenshaw's algorithm */        
+        for (k = plan->N; k > n_abs + 1; k--)
+        {
+          //index = k - n_abs;
+          temp[k-1] += temp[k] * (*alpha--) * theta[m]; 
+          temp[k-2] += temp[k] * (*gamma--);
+        }
+        
+        /* Compute final step if neccesary. */
+        if (n_abs < plan->N)
+        {  
+          temp[0+n_abs] += temp[1+n_abs] * (*alpha) * theta[m];
+        }
+        
+        /* Write final result b_n of multiplication by normalization constant to 
+         * array b  = (b_{-M},...,b_M). */
+        f_m += temp[0+n_abs] * wisdom.gamma[ROW(n_abs)] *
+          pow(1- theta[m] * theta[m], 0.5*n_abs) * cexp(I*n*phi[m]);
+       }
+            
+         /* Write result to vector f. */
+      plan->f[m] = f_m;
+    }
   }  
   
-  if (plan->M < 3)
-  {
-    ndsft_trafo_old(plan);
-  }
-  else if ((wisdom.flags & NFSFT_BW_WINDOW_OLD) == 0U || plan->M > 1<<(wisdom.t-1))
-  {
-    plan->plan_nfft.f = plan->f;
-    
-    /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED_OLD)
-    {
-      normalize_f_hat_old(plan->f_hat, plan->M);
-    }  
-
-    /* Compute FLFT. */
-    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
-    {
-//		  fprintf(stderr,"flft: n = %d\n",n);
-//			fflush(stderr);
-      flft_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
-    }
-   
-    /* Convert Chebyshev coefficients to Fourier coefficients. */
-//    fprintf(stderr,"cheb2exp_old\n",n);
-//	  fflush(stderr);
-    cheb2exp_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
-
-		//norm = norm_nfft_1_old(plan->plan_nfft.f_hat, 2*(plan->N+1));
-		//fprintf(stderr,"nfft_norm_1 = %.4E\n",norm);
-		fflush(stderr);
-		
-    /* Execute NFFT. */
-		if (plan->flags & NFSFT_USE_NDFT_OLD)
-		{
-      ndft_trafo(&plan->plan_nfft);
-		}
-		else
-		{
-      nfft_trafo(&plan->plan_nfft);
-		}
-		
-  } 
+  /* Free auxilliary arrays. */
+  free(phi);
+  free(theta);
+  free(temp);
 }
 
-void nfsft_adjoint(nfsft_plan_old plan)
+void ndsft_adjoint(nfsft_plan* plan)
+{ 
+}
+
+void nfsft_trafo(nfsft_plan* plan)
 {
-  /** Counter for loops */
-  int i,n;
-    
-  if (wisdom.initialized == 0 || plan->M > wisdom.N)
-  {
-    return;
-  }
-  
-  if (plan->M < 3)
-  {
-    ndsft_adjoint_old(plan);
-  }
-  else if ((wisdom.flags & NFSFT_BW_WINDOW_OLD) == 0U || plan->M > 1<<(wisdom.t-1))
-  {
-    plan->plan_nfft.f = plan->f;
+}
 
-    /* Execute adjoint NFFT. */
-		if (plan->flags & NFSFT_USE_NDFT_OLD)
-		{
-      ndft_adjoint(&plan->plan_nfft);
-		}
-		else
-		{
-      nfft_adjoint(&plan->plan_nfft);
-		}
-    
-    /* Convert Chebyshev coefficients to Fourier coefficients. */
-    cheb2exp_adjoint_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
-        
-    /* Calculate FLFT. */
-    for(n = -plan->M, i = 0; n <= plan->M; n++, i++) 
-    {
-      flft_adjoint_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom);
-    }          
-
-    /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED_OLD)
-    {
-      normalize_f_hat_old(plan->f_hat, plan->M);
-    }  
-  }    
+void nfsft_adjoint(nfsft_plan* plan)
+{
 }
