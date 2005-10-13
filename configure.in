@@ -2,31 +2,59 @@
 AC_INIT(NFFT, 3.0.0, potts@math.uni-luebeck.de)
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
+# Set configure source directory
 AC_CONFIG_SRCDIR(include/nfft3.h)
 
+# Initialise automake
 AM_INIT_AUTOMAKE
+
+# TO hell with shared libraries
 AM_ENABLE_SHARED(no)
+
+# Get canocical host identifier
 AC_CANONICAL_HOST
 
-# Checks for programs.
+# Checks for programs
 AC_PROG_INSTALL
 AC_PROG_CC
 AM_PROG_LIBTOOL
-
-# Checks for libraries.
-AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(complex.h malloc.h time.h stdbool.h string.h fftw3.h)
 
-# Checks for typedefs, structures, and compiler characteristics.
+# Checks for libraries
+AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for library functions.
-AC_CHECK_FUNCS([mallinfo])
 
-# Additional options
+# Checks for typedefs, structures, and compiler characteristics
 
+# Additional command-line options
+AC_ARG_WITH(
+  tests, 
+  AC_HELP_STRING(
+    [--with-test],
+    [Compile with unit tests. Run 'make test' to execute the tests.]),
+    [
+      AC_CHECK_HEADERS(CUnit/CUnit.h,[found_cunit=true],[found_cunit=false])
+      if test "$found_cunit" = "true"; then
+        AC_CHECK_LIB(cunit,CU_initialize_registry,[found_cunit=true],[found_cunit=false])
+        if test "$found_cunit" = "true"; then
+          AM_CONDITIONAL(WITH_TESTS,true)
+        else  
+          AC_MSG_NOTICE([Couldn't find CUnit library. Tests won't be compiled.])
+          AM_CONDITIONAL(WITH_TESTS,false)
+	      fi
+	    else  
+        AC_MSG_NOTICE([Couldn't find CUnit library headers. Tests won't be compiled.])
+        AM_CONDITIONAL(WITH_TESTS,false)
+      fi
+    ],
+	  [AM_CONDITIONAL(WITH_TESTS,false)])
+
+
+# The output files to be generated
 AC_OUTPUT(Makefile \
           include/Makefile \
           util/Makefile \
@@ -67,5 +95,8 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/texture/regularity/Makefile \
           examples/lowlevel/texture/performance/Makefile \
           examples/kernel/nfct/Makefile \
-          examples/kernel/nfst/Makefile
+          examples/kernel/nfst/Makefile \
+          tests/Makefile \
+          tests/lowlevel/Makefile \
+          tests/lowlevel/nfsft/Makefile \
 )

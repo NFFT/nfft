@@ -1,0 +1,2 @@
+# Subdirectories
+SUBDIRS = nfsft
