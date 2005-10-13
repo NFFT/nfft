@@ -1,4 +1,4 @@
-AM_CFLAGS = -I$(top_srcdir)/include
+AM_CFLAGS = -Wall -I$(top_srcdir)/include
 
 ## The program name
 noinst_PROGRAMS = regularityTest

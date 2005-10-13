@@ -1,4 +1,4 @@
-AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lowlevel/nfsft/obsolete
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I$(top_srcdir)/lowlevel/nfsft/obsolete
 
 ## The program name
 noinst_PROGRAMS = textureTest
