@@ -1,1 +1,1 @@
-SUBDIRS = test regularity performance
+SUBDIRS = correctness regularity performance

@@ -90,13 +90,13 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/nfsft/Makefile
           examples/lowlevel/nfsft/obsolete/Makefile
           examples/highlevel/fastgauss/Makefile \
-          examples/lowlevel/texture/Makefile \
-          examples/lowlevel/texture/test/Makefile \
-          examples/lowlevel/texture/regularity/Makefile \
-          examples/lowlevel/texture/performance/Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \
           tests/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
+          tests/lowlevel/texture/Makefile \
+          tests/lowlevel/texture/correctness/Makefile \
+          tests/lowlevel/texture/regularity/Makefile \
+          tests/lowlevel/texture/performance/Makefile \
 )
