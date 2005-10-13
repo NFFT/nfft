@@ -44,7 +44,7 @@ visualize_data('pics/pic_2d1d',N);
 snr('pics/snr_2d1d.txt');
 
 % Reconstruct without considering the fildmap
-system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 3 1']);
-visualize_data('pics/pic_2d', N);
-snr('pics/snr_2d.txt');
+%system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+%         int2str(N) ' ' int2str(M)  ' 3 1']);
+%visualize_data('pics/pic_2d', N);
+%snr('pics/snr_2d.txt');

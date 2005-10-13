@@ -15,9 +15,8 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   imri_inh_2d1d_plan my_iplan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
-  int flags = PRE_PHI_HUT| PRE_LIN_PSI |MALLOC_X| MALLOC_F_HAT|
-                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
-                      FFTW_MEASURE| FFTW_DESTROY_INPUT;
+  int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
+                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE;
   unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;
 
   double Ts;
@@ -56,7 +55,11 @@ void nfft (char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
   N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+(m)/(2*sigma))*4*sigma);
-  T=((max_time-min_time)/2.0)/(0.5-((double) (m))/N3);
+	/* N3 has to be even */
+	if(N3%2!=0)
+	  N3++;
+  
+	T=((max_time-min_time)/2.0)/(0.5-((double) (m))/N3);
   W=N3/T;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e %e\n",N3,W,T,min_inh,max_inh,min_time,max_time,Ts);

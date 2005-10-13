@@ -685,7 +685,7 @@ typedef struct nnfft_plan_
  * \arg ths_plan The plan for the transform
  * \arg d The dimension
  * \arg N_total The number of nodes \f$v\f$
- * \arg N_total The number of nodes \f$x\f$
+ * \arg M_total The number of nodes \f$x\f$
  * \arg N The bandwidth \f$N\f$
  *
  * \author Tobias Knopp
@@ -698,9 +698,9 @@ void nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N);
  * \arg ths_plan The plan for the transform
  * \arg d The dimension
  * \arg N_total The number of nodes \f$v\f$
- * \arg N_total The number of nodes \f$x\f$
+ * \arg M_total The number of nodes \f$x\f$
  * \arg N The bandwidth \f$N\f$
- * \arg N The oversampled bandwidth \f$N\f$
+ * \arg N1 The oversampled bandwidth \f$N\f$
  * \arg m The cut-off parameter
  * \arg nnfft_flags The flags
  *
@@ -782,7 +782,7 @@ void nnfft_trafo(nnfft_plan *ths_plan);
 void nnfft_conjugated(nnfft_plan *ths_plan);
 
 /**
- * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{tota}l-1\f$
+ * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
  *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
@@ -872,7 +872,7 @@ void nsfft_finalize(nsfft_plan *ths);
 /** @} 
  */
 
-/** @defgroup mri_inh Group
+/** @defgroup mri_inh MRI_INH 
  * @{ 
  */
 
@@ -909,23 +909,99 @@ typedef struct mri_inh_3d_plan_
 } mri_inh_3d_plan;
 
 
+/**
+ * Executes a mri transformation considering field inhomogenities using the 2d1d method, 
+ * i.e. computes for \f$j=0,...,M_{total}-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
+ *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *ths);
 
+/**
+ * Executes an adjoint mri transformation considering field inhomogenities using the 2d1d method, 
+ * i.e. computes for \f$k \in I_N^2\f$
+ * \f[
+ *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
+ *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *ths);
 
+/**
+ * Creates a transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg N The bandwidth \f$N\f$
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg n The oversampled bandwidth \f$N\f$
+ * \arg m The cut-off parameter
+ * \arg sigma The oversampling factor
+ * \arg nnfft_flags The flags
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
                     int m, double sigma, unsigned nfft_flags, unsigned fftw_flags);
 
+/**
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths);
 
+/**
+ * Executes a mri transformation considering field inhomogenities using the 3d method, 
+ * i.e. computes for \f$j=0,...,M_{total}-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
+ *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_3d_trafo(mri_inh_3d_plan *ths);
 
+/**
+ * Executes an adjoint mri transformation considering field inhomogenities using the 3d method, 
+ * i.e. computes for \f$k \in I_N^2\f$
+ * \f[
+ *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
+ *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_3d_adjoint(mri_inh_3d_plan *ths);
 
 void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
                     int m, double sigma, unsigned nfft_flags, unsigned fftw_flags);
 
+/**
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
 void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
+
 /** @} 
  */
 

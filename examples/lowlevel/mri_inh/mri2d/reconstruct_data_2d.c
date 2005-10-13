@@ -25,7 +25,7 @@ void infft(char* filename,int N,int M,int iteration, int weight)
   my_N[1]=N; my_n[1]=ceil(N*alpha);
   nfft_init_guru(&my_plan, 2, my_N, M, my_n, m, PRE_PHI_HUT| PRE_PSI|
                          MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
-                         FFTW_INIT| FFT_OUT_OF_PLACE| FFTW_MEASURE| FFTW_DESTROY_INPUT,
+                         FFTW_INIT| FFT_OUT_OF_PLACE,
                          FFTW_MEASURE| FFTW_DESTROY_INPUT);
   
   /* precompute lin psi if set */
@@ -76,6 +76,8 @@ void infft(char* filename,int N,int M,int iteration, int weight)
     &real,&imag);
     my_iplan.y[j] = real + I*imag;
   }
+
+	fclose(fin);
   
   /* precompute psi */
   if(my_plan.nfft_flags & PRE_PSI)

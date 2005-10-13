@@ -26,22 +26,26 @@ void accuracy(int d)
   for(m=0; m<15; m++)
     {
       nnfft_init_guru(&my_plan, d, N_total, M_total, N, n, m,
-                          PRE_FULL_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
+                          PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
       
-  /** init pseudo random nodes */
-  for(j=0; j<my_plan.M_total; j++)
-	  for(t=0; t<d; t++)
-	  {
-	    my_plan.x[d*j+t]=((double)rand())/RAND_MAX-0.5;
-	  }
-          
-    for(j=0; j<my_plan.N_total; j++)
-      for(t=0; t<d; t++)
-      {
-        my_plan.v[d*j+t]=((double)rand())/RAND_MAX-0.5;
-      }
-      
+      /** init pseudo random nodes */
+      for(j=0; j<my_plan.M_total; j++)
+	    {
+				for(t=0; t<d; t++)
+	      {
+	        my_plan.x[d*j+t]=((double)rand())/RAND_MAX-0.5;
+	      }
+		  }
+	
+      for(j=0; j<my_plan.N_total; j++)
+			{
+        for(t=0; t<d; t++)
+        {
+          my_plan.v[d*j+t]=((double)rand())/RAND_MAX-0.5;
+        }
+			}
+			
       /** precompute psi, the entries of the matrix B */
       if(my_plan.nnfft_flags & PRE_PSI)
       	nnfft_precompute_psi(&my_plan);

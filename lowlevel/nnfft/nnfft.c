@@ -73,6 +73,7 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
   int u,o;
 
   c = ths->v[j*ths->d+act_dim] * ths->n[act_dim];
+	
   u = c; o = c;
   if(c < 0)                  
     u = u-1;                  
@@ -80,7 +81,6 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
     o = o+1;
   
   u = u - (ths->m); o = o + (ths->m);
-  /* make the matrix B nonperiodic */
 
   up[0]=u; op[0]=o;
 }
@@ -139,7 +139,7 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
   for(t2=t; t2<ths->d; t2++)                                                  \
     {                                                                          \
       phi_prod[t2+1]=phi_prod[t2]* MACRO_ ## which_one;                        \
-      ll_plain[t2+1]=ll_plain[t2]*ths->aN1[t2] +(l[t2]+ths->aN1[t2]*3/2)%ths->aN1[t2];\
+      ll_plain[t2+1]=ll_plain[t2]*ths->aN1[t2] +(l[t2]+ths->aN1[t2]*3/2)%ths->aN1[t2]; /* 3/2 because of the (not needed) fftshift and to be in [0 aN1[t2]] ?! */   \
     } /* for(t2) */                                                            \
 }
 
@@ -441,7 +441,14 @@ void nnfft_precompute_psi(nnfft_plan *ths)
   /* for(t) */
 } /* nfft_precompute_psi */
 
-/** computes all entries of B explicitly */
+
+
+/** 
+ * computes all entries of B explicitly
+ *
+ * @bug Here is something wrong with PRE_FULL_PSI and the memory. 
+ *      valgrind finds many errors, see the accuracy example!!!
+ */
 void nnfft_precompute_full_psi(nnfft_plan *ths)
 {
   int t,t2;                             /**< index over all dimensions        */
@@ -499,11 +506,12 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
     } /* for(j) */
 }
 
-void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsigned fftw_flags)
+void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
 {
   int t;                                /**< index over all dimensions       */
   int lprod;                            /**< 'bandwidth' of matrix B         */
-  
+  int N2[ths->d];
+
   ths->aN1 = (int*) fftw_malloc(ths->d*sizeof(int));
   
   ths->a = (double*) fftw_malloc(ths->d*sizeof(double));
@@ -517,11 +525,19 @@ void nnfft_init_help(nnfft_plan *ths, int m2, int *N2, unsigned nfft_flags, unsi
   for(t = 0; t<ths->d; t++) {
     ths->a[t] = 1.0 + (2.0*((double)ths->m))/((double)ths->N1[t]);
     ths->aN1[t] = ths->a[t] * ((double)ths->N1[t]);
-    if(ths->aN1[t]%2 != 0)
+    /* aN1 should be even */
+		if(ths->aN1[t]%2 != 0)
       ths->aN1[t] = ths->aN1[t] +1;
       
     ths->aN1_total*=ths->aN1[t];
     ths->sigma[t] = ((double) ths->N1[t] )/((double) ths->N[t]);;
+    
+		/* take the same oversampling factor in the inner NFFT */
+		N2[t] = ceil(ths->sigma[t]*(ths->aN1[t]));
+    
+		/* N2 should be even */
+		if(N2[t]%2 != 0)
+      N2[t] = N2[t] +1;
   }
   
   WINDOW_HELP_INIT
@@ -604,10 +620,8 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
     ths->N1[t] = N1[t];    
-    N2[t] = ceil(1.5*((double)ths->N1[t])*
-           (1.0+2.0*((double)ths->m)/((double)ths->N1[t])));
   }
-  nnfft_init_help(ths,m,N2,nfft_flags,fftw_flags);  
+  nnfft_init_help(ths,m,nfft_flags,fftw_flags);  
 }
 
 void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
@@ -621,7 +635,8 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   ths->d = d;
   ths->M_total = M_total;
   ths->N_total = N_total;
-
+  
+	/* m should be greater to get the same accuracy as the nfft */
   WINDOW_HELP_ESTIMATE_m;
   
   ths->N = (int*) fftw_malloc(ths->d*sizeof(int));  
@@ -629,16 +644,20 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
+
+		/* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
-    N2[t] = ceil(1.5*(int)((double)ths->N1[t])*
-            (1.0+2.0*((double)ths->m)/((double)ths->N1[t])));
+		
+		/* N1 should be even */
+		if(ths->N1[t]%2 != 0)
+      ths->N1[t] = ths->N1[t] +1;
   }
   ths->nnfft_flags=PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F;
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
   
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
   
-  nnfft_init_help(ths,ths->m,N2,nfft_flags,fftw_flags);    
+  nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);    
 }
 
 void nnfft_finalize(nnfft_plan *ths)
