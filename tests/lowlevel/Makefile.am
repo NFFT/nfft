@@ -1,2 +1,2 @@
 # Subdirectories
-SUBDIRS = nfsft texture
+SUBDIRS = nfsft
