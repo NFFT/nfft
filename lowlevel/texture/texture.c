@@ -151,12 +151,6 @@ void texture_forget()
 	is_precomputed = 0;
 }
 
-/**
- * Convert a non-flat index to a flat index.
- * \arg l the frequence
- * \arg m ranges from -l to l
- * \arg n ranges from -l to l
- */
 inline int texture_flat_index(int l, int m, int n)
 {
 	return m + n + ((l * (5 + 6 * l + 4 * l * l + 6 * m)) / 3);

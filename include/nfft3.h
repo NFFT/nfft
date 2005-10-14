@@ -1006,175 +1006,466 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  */
 
 /** @defgroup texture Texture
+ * TODO texture_undocumented
+ *
+ * @section Preliminaries
+ *
+ * @section The transformation
+ *
+ * @section States of the transformation
+ *
+ * @section Data representation
+ *
+ * @section Good to know...
+ * 
+ * @author Matthias Schmalz
  * @{
  */
 
-/**
- * Flags controlling the texture transform.
+/** @defgroup texture_private Texture: private functions
+ * TODO texture_undocumented
+ */
+
+/** @defgroup texture_util Texture: utility functions
+ * TODO texture_undocumented
  */
 
 /** 
- * Constant for the max angle (representation of 2*Pi)
+ * Constant for the period length of sine (default: @f$2 \pi@f$)
  */
 #define TEXTURE_MAX_ANGLE (2*3.1415926535897932384)
 
 /**
- * Constants for default values.
+ * @addtogroup texture_private
+ * @{
+ */
+
+/** Default value for texture_precompute_flags.
+ * @see texture_precompute_advanced
  */
 #define TEXTURE_DEF_PRECOMPUTE_FLAGS 0U
+
+/** Default value for nfsft_precompute_flags.
+ * @see texture_precompute_advanced
+ */
 #define TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS 0U
+
+/** Default value for nfsft_threshold.
+ * @see texture_precompute_advanced
+ */
 #define TEXTURE_DEF_NFSFT_THRESHOLD 1000.0
+
+/** Default value for texture_init_flags.
+ * @see texture_init_advanced
+ */
 #define TEXTURE_DEF_INIT_FLAGS 0U
+
+/** Default value for nfsft_init_flags.
+ * @see texture_init_advanced
+ */
 #define TEXTURE_DEF_NFSFT_INIT_FLAGS 0U
+
+/** Default value for nfft_cutoff.
+ * @see texture_init_advanced
+ */
 #define TEXTURE_DEF_NFFT_CUTOFF 6
 
-// Flag controlling wether to check for errors of usage
-
 /**
- * The structure for the transform plan.
+ * @}
+ */
+
+/** @typedef texture_plan.
+ * @ingroup texture
+ * @brief Stores all data for a direct and adjoint transformation.
+ */
+
+/** @struct texture_plan_
+ * @ingroup texture_private
+ * @brief Definition of the texture_plan.
+ *
+ * @attention Do not access any member directly! 
+ * The plan could get an inconsistent state.
  */
 typedef struct texture_plan_ {
 
+	/** @var f
+	 * @brief Used to store the sample data x.
+	 * @see texture_init
+	 */
+
+	/** @var f_hat
+	 * @brief Used to store the pseudo frequencies omega.
+	 * @see texture_init
+	 */
+
+	/** @var N_total
+	 * @brief The total length of f_hat.
+	 */
+
+	/** The total length of f.
+	 * @var M_total
+	 */
 	MACRO_MV_PLAN(complex);
 
+	/** The pseudo bandwidth.
+	 * @see texture_init
+	 */
 	int N;
+
+	/** The number of pole figures.
+	 * @see texture_init
+	 */
 	int N1;
+
+	/** The number of samples per pole figure.
+	 * @see texture_init
+	 */
 	int N2;
+
+	/** The latitudes of the pole figures.
+	 * @see texture_init
+	 */
 	const double *h_phi;
+
+	/** The longitudes of the pole figures.
+	 * @see texture_init
+	 */
 	const double *h_theta;
+
+	/** The nodes for the samples for each pole figure.
+	 * @see texture_init
+	 */
 	const double *r;
 
-	/*TODO*/
+	/** The flags for the initialisation of the nfsft.
+	 * @see texture_init_advanced
+	 */
 	unsigned int nfsft_init_flags;
+
+	/** The nfft_cutoff for the initialisation of the nfsft.
+	 * @see texture_init_advanced
+	 */
 	unsigned int nfft_cutoff;
 
-	/* private */
+	/** Stores the cosines of the components of h_theta.
+	 */
 	double *cos_h_theta;
+
+	/** Stores the sines of the components of h_theta.
+	 */
 	double *sin_h_theta;
 
+	/** Stores the frequencies for the nfsft transformation.
+	 */
 	complex **nfsft_f_hat;
+
+	/** Stores the samples for the nfsft transformation.
+	 */
 	complex *nfsft_f;
+
+	/** Stores the nodes for the nfsft transformation.
+	 */
 	double *nfsft_angles;
 } texture_plan;
 
+/** Performes precomputations with default values for all parameters.
+ * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
+ * having a pseudo bandwidth equal or less than N.
+ *
+ * @attention To free allocated memory ::texture_forget has to be called.
+ *
+ * @param N - the maximum pseudo bandwidth
+ *
+ * @see TEXTURE_DEF_PRECOMPUTE_FLAGS
+ * @see TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS
+ * @see TEXTURE_DEF_NFSFT_THRESHOLD
+ */
 void texture_precompute(int N);
 
+/** Performes precomputations.
+ * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
+ * having a pseudo bandwidth equal or less than N.
+ *
+ * @attention To free allocated memory ::texture_forget has to be called.
+ * 
+ * @param N - the maximum pseudo bandwidth
+ * @param texture_precompute_flags - does not have any effect
+ * @param nfsft_precompute_flags - flags for the precomputation of the nfsft
+ * @param nfsft_threshold - a parameter for the precomputation of the nfsft
+ */
 void texture_precompute_advanced(int N, unsigned int texture_precompute_flags, 
 		unsigned int nfsft_precompute_flags, double nfsft_threshold);
 
-/**
- * Simple initialisation of a plan.
- * Use texture_finalize to free allocated memory.
+/** Initialisation of a plan with default values for all parameters.
+ * The arguments after ths will be stored in the plan ths.
+ *
+ * @par ths - Points to the transformation plan.
+ * @par N - the pseudo bandwidth
+ * @par N1 - the number of pole figures
+ * @par N2 - the number of samples per pole figure
+ * @par omega - the pseudo frequencies
+ * @par x - the samples
+ * @par h_phi - the latitudes of the pole figures
+ * @par h_theta - the longitudes of the pole figures
+ * @par r - the samples of the pole figures
+ * 
+ * @attention 
+ * - ::texture_init performes only a flat copy. If you change the storage 
+ * referenced to by any of the pointer arguments, the plan can get an 
+ * inconsistent
+ * state.
+ * - Use ::texture_finalize to free allocated memory.
+ *  
+ * @pre
+ * All pointer arguments have to point to allocated memory.
+ * omega, x, h_phi, h_theta and r have to refer to arrays of appropriate 
+ * lengths.
+ *
+ * @note
+ * For details about data representation see the corresponding section in the
+ * description of this modul. 
  */
 void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega, 
 		complex* x, const double* h_phi, const double* h_theta, const double* r);
 
-/**
- * Advanced initialisation of a plan.
+/** Initialisation of a plan.
+ * The arguments after ths will be stored in the plan ths.
+ *
+ * @par ths - Points to the transformation plan.
+ * @par N - the pseudo bandwidth
+ * @par N1 - the number of pole figures
+ * @par N2 - the number of samples per pole figure
+ * @par omega - the pseudo frequencies
+ * @par x - the samples
+ * @par h_phi - the latitudes of the pole figures
+ * @par h_theta - the longitudes of the pole figures
+ * @par r - the nodes of the pole figures
+ * @par texture_init_flags - does not have any effect
+ * @par nfsft_init_flags - flags to use for the initialisation of the nfsft
+ * @par nfft_cutoff - a parameter for the initialisation of the nfsft
+ * 
+ * @attention 
+ * - ::texture_init_advanced performes only a flat copy. If you change the 
+ *   storage 
+ * referenced to by any of the pointer arguments, the plan can get an 
+ * inconsistent
+ * state.
+ * - Use ::texture_finalize to free allocated memory.
+ *  
+ * @pre
+ * All pointer arguments have to point to allocated memory.
+ * omega, x, h_phi, h_theta and r have to refer to arrays of appropriate 
+ * lengths.
+ *
+ * @note
+ * For details about data representation see the corresponding section in the
+ * description of this modul. 
  */
-//TODO int nfsft_flags
 void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
 		complex* omega, complex* x, const double* h_phi, const double* h_theta, 
 		const double *r, unsigned int texture_init_flags, 
 		unsigned int nfsft_init_flags, int nfft_cutoff);
 
-/**
- * Carries out the transform.
+/** Carries out the direct transform.
+ * Maps the pseudo frequencies on the samples.
+ * Therefore the samples will be changed,
+ * everything else will be preserved.
+ *
+ * @par ths - Points to the transformation plan.
+ * @pre
+ * - ::texture_precompute or ::texture_precompute_advanced must have been called
+ *   with appropriate arguments.
+ * - The plan hast to be initialised with ::texture_init or 
+ *   ::texture_init_advanced. 
  */
 void texture_trafo(texture_plan *ths);
 
-/**
- * The adjoint version of the transform.
+/** Carries out the adjoint transform.
+ * Maps the samples on the pseudo frequencies.
+ * Therefor the pseudo frequencies change, everything else is
+ * preserved.
+ *
+ * @par ths - Points to the transformation plan.
+ * @pre
+ * - ::texture_precompute or ::texture_precompute_advanced must have been called
+ *   with appropriate arguments.
+ * - The plan hast to be initialised with ::texture_init or 
+ *   ::texture_init_advanced. 
  */
 void texture_adjoint(texture_plan *ths);
 
-/**
- * Frees all memory allocated by texture_init or texture_init_advanced.
+/** Frees all memory allocated by ::texture_init or ::texture_init_advanced.
  */
 void texture_finalize(texture_plan *ths);
 
+/** Frees all memory allocated by ::texture_precompute or 
+ * ::texture_precompute_advanced.
+ */
 void texture_forget();
 
-/* utiliy functions */
+/** @addtogroup texture_util
+ * @{
+ */
 
-/**
- * Convert a non-flat index to a flat index.
- * \arg l the frequence
- * \arg m ranges from -l to l
- * \arg n ranges from -l to l
+/** Convert a non-flat index of the pseudo frequencies @f$ \omega @f$ to a 
+ * flat index.
+ * If an array @f$ omega @f$ stores @f$ \omega @f$, then
+ * @f$ omega[@f$texture_flat_index@f$ (l, m, n)] = \omega_{l, m, n} @f$.
+ * 
+ * @arg l - the first index
+ * @arg m - the second index
+ * @arg n - the third index
+ *
+ * @return - the flat index
+ *
+ * @pre
+ * - @f$ m \in [-l \dots l] @f$
+ * - @f$ n \in [-l \dots l] @f$
  */
 inline int texture_flat_index(int l, int m, int n);
 
+/** Determines the length of an array omega storing pseudo frequencies in a 
+ * given pseudo
+ * bandwidth.
+ *
+ * @par N - the pseudo bandwidth.
+ * @return the length of the corresponding omega 
+ */
 inline int texture_flat_length(int N);
 
+/** Returns the length of the pseudo frequency array stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_omega_length(texture_plan *ths);
 
+/** Returns the length of the sample array stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_x_length(texture_plan *ths);
 
+/** Returns the pseudo bandwidth stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_N(texture_plan *ths);
 
+/** Returns the number of pole figures stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_N1(texture_plan *ths);
 
+/** Returns the number of samples per pole figure stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_N2(texture_plan *ths);
 
+/** Returns a pointer to the pseudo frequencies stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline const complex *texture_get_omega(texture_plan *ths);
 
+/** Sets the pseudo frequencies in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par omega - a pointer to the new pseudo frequencies.
+ * @pre omega has to point to an array of appropriate length.
+ */
 inline void texture_set_omega(texture_plan *ths, complex* omega);
 
+/** Returns a pointer to the samples stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */ 
 inline const complex *texture_get_x(texture_plan *ths);
 
+/** Sets the samples in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par x - a pointer to the new samples
+ * @pre x has to point to an array of appropriate length.
+ */
 inline void texture_set_x(texture_plan *ths, complex* x);
 
+/** Returns a pointer to the latitudes of the pole figures stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline const double *texture_get_h_phi(texture_plan *ths);
 
+/** Sets the latitudes of the pole figures in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par h_phi - a pointer to the new latitudes
+ * @pre h_phi has to point to an array of appropriate length.
+ */
 inline void texture_set_h_phi(texture_plan *ths, const double* h_phi);
 
+/** Returns the longitudes of the pole figures stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline const double *texture_get_h_theta(texture_plan *ths);
 
+/** Sets the longitudes of the pole figures in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par h_theta - a pointer to the longitudes
+ * @pre h_theta has to point to an array of appropriate length.
+ */
 inline void texture_set_h_theta(texture_plan *ths, const double* h_theta);
 
+/** Returns the nodes of the pole figures stored in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ */
 inline const double *texture_get_r(texture_plan *ths);
 
+/** Sets the nodes of the pole figures in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par r - a pointer to the nodes
+ * @pre r has to point to an array of appropriate length.
+ */
 inline void texture_set_r(texture_plan *ths, const double* r);
 
-/*TODO*/
+/** Returnes the flags used for the initialisation of the nfsft stored in a 
+ * plan.
+ * 
+ * @par ths - a pointer to the transformation plan
+ */
 inline unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
 
+/** Sets the flags used for the initialisation of the nfsft in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par nfsft_init_flags - the nfsft flags
+ */
 inline void texture_set_nfsft_init_flags(texture_plan *ths, 
 		unsigned int nfsft_init_flags);
 
+/** Returns the nfft_cutoff parameter used for the initialisation of the nfsft
+ * stored in a plan.
+ * 
+ * @par ths - a pointer to the transformation plan
+ */
 inline int texture_get_nfft_cutoff(texture_plan *ths);
 
+/** Sets the nfft_cutoff parameter used for the initialisation of the nfsft
+ * in a plan.
+ *
+ * @par ths - a pointer to the transformation plan
+ * @par nfft_cutoff - the parameter
+ */
 inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 
-/* private */
-
-/**
- * The structure for the transform plan.
+/** @}
  */
-/*
-struct texture_plan {
 
-	MACRO_MV_PLAN(complex);
-
-	int N;
-	int N1;
-	int N2;
-	double *h_phi;
-	double *h_theta;
-	double *r;
-
-	double *cos_h_theta;
-	double *sin_h_theta;
-
-	complex **nfsft_f_hat;
-	complex *nfsft_f;
-	double *nfsft_angles;
-
-	unsigned int nfsft_init_flags;
-	unsigned int nfft_cutoff;
-}; // texture_plan_s;
-*/
 /** @}
  */
 
