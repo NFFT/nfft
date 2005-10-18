@@ -1008,9 +1008,13 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /** @defgroup texture Texture
  * This module provides the basic functions for the Texture Transforms.
  *
+ * @author Matthias Schmalz
+ *
  * @section texture_transforms Texture Transforms
  * In the following we describe the @ref direct_texture_transform and 
  * the @ref adjoint_texture_transform.
+ * For the definition of the spherical harmonics @f$ Y_l^n @f$ please see 
+ * @ref sh in @ref nfsft.
  * 
  * @subsection direct_texture_transform Direct Texture Transform
  * The <b>Direct Texture Transform</b> is defined as follows:
@@ -1034,7 +1038,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2], 
  * \text{ where } \\[1ex]&&&
  * x_{i, j} = \sum_{l = 0}^{N} \sum_{m = -l}^{l} \sum_{n = -l}^{l}
- * \omega_{l, m, n} \overline{Y_{l, n}(h_i)} Y_{l, m}(r_{i, j}).
+ * \omega_{l, m, n} \overline{Y_l^n(h_i)} Y_l^m(r_{i, j}).
  *
  * \end{array}
  * \f]
@@ -1062,31 +1066,112 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  * l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],
  * \text{ where}\\[1ex]&&&
  * \omega_{l, m, n} = \sum_{i = 1}^{N_1} \sum_{j = 1}^{N_2}
- * x_{i, j} Y_{l, n}(h_i) \overline{Y_{l, m}(r_{i, j})}.
+ * x_{i, j} Y_l^n(h_i) \overline{Y_l^m(r_{i, j})}.
  *
  * \end{array}
  * \f]
  *
- * @section States Of The Transformation
- * state chart
+ * @section texture_states States of the Transformation
+ * For reasons of performance this module has some state based behaviour, 
+ * i.e. certain functions only yield the correct result, if other certain 
+ * functions have been called before.
+ * For ease of notation we denominate 
+ * - ::texture_trafo, ::texture_adjoint, ::itexture_before_loop and 
+ *   ::itexture_loop_one_step as <b>transform functions</b>,
+ * - ::texture_precompute and ::texture_precompute_advanced as
+ *   <b>precomputation functions</b> and
+ * - ::texture_init and ::texture_init_advanced as 
+ *   <b>initialisation functions</b>.
  *
- * @section Data Representation
- * indexing
- * angles
- *
- * @section Good to know...
+ * You have to bear in mind the following two points:
+ * -# Precomputation
+ *  - State 1:
+ *   - The behaviour of the transform functions is undefined.
+ *   - ::texture_forget has no effect.
+ *   - The precomputation functions cause a state change to state 2 and 
+ *     initialise the precomputed data.
+ *   - There is no memory allocated for precomputed data.
+ *  - State 2:
+ *   - The transform functions yield the correct result, if the pseudo 
+ *     bandwidth of the transform plan is in the valid range according to 
+ *     the precomputed data.
+ *     Otherwise their behaviour is undefined.
+ *   - The precomputation functions change the precomputed data.
+ *   - ::texture_foget causes a state change to state 1 and frees all memory
+ *     for precomputed data.
+ *   - There is some memory allocated for precomputed data.
+ * -# Manipulation of Transform Plans
+ *   - Before using the transform functions with a cerain plan, you have to
+ *     initialise it with one of the initialisation functions.
+ *   - After the initialisation you can apply the transform functions as often
+ *     as you want.
+ *     But the only way you may read or manipulate elements of the plan is 
+ *     using the 
+ *     utility 
+ *     functions described in @ref texture_util.
+ *   - After the usage of a plan you must destroy its temporary data with 
+ *     ::texture_finalize
+ *     to avoid memory leaks.
+ *		
+ * @section texture_data_rep Data Representation
+ * Spherical coordinates are represented by two angles @f$\phi@f$ (latitude) 
+ * and 
+ * @f$\theta@f$ (longitude) as described in @ref sc.
+ * Their normalisation has to be defined in TEXTURE_MAX_ANGLE before compiling 
+ * the
+ * library.
+ * Hence @f$\phi@f$ and @f$\theta@f$ have to satisfy the following conditions:
+ * \f[
+ * \phi \in 
+ * [- \frac{TEXTURE\_MAX\_ANGLE}{2}, \frac{TEXTURE\_MAX\_ANGLE}{2}) 
+ * \quad and \quad
+ * \theta \in
+ * [0, \frac{TEXTURE\_MAX\_ANGLE}{2}].
+ * \f]
  * 
- * @author Matthias Schmalz
+ * In the following we describe, how the input and output data 
+ * @f$\omega,\ x,\ h \text{ and } r@f$ is stored in the arguments for 
+ * ::texture_init or ::texture_init_advanced.
+ * Formally the following conditions hold:
+ * - @f$\omega_{l, m, n} = @f$ omega[::texture_flat_index (l, m, n)],
+ * - @f$x_{i, j} = @f$ x[i * N2 + j],
+ * - the latitude @f$\phi@f$ of @f$h_{i} = @f$ h_phi[i],
+ * - the longitude @f$\theta@f$ of @f$h_{i} = @f$ h_theta[i],
+ * - the latitude @f$\phi@f$ of @f$r_{i, j} = @f$ r[2 * (i * N2 + j)] and
+ * - the longitude @f$\theta@f$ of @f$r_{i, j} = @f$ r[2 * (i * N2 + j) + 1]
+ *
+ * for all @f$l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],\ 
+ * i \in [1 \ldots N_1] \text{ and } j \in [1 \ldots N_2].@f$
+ *
+ * To get a better feeling what ::texture_flat_index does, see the following
+ * fragment of code:
+ * @code
+ * int l, m, n;
+ * for(l = 0; l <= N; l++) {
+ *   for(m = -l; m <= l; m++) {
+ *     for(n = -l; n <= l; n++) {
+ *       printf("%d\n", texture_flat_index(l, m, n));
+ *     }
+ *   }
+ * }
+ * @endcode
+ * It will print a list of succeeding numbers from 0.
  * @{
  */
 
 /** @defgroup texture_private Texture: Private Functions
- * TODO texture_undocumented
+ * This module containes the private functions used for the implementation
+ * of the texture transforms.
+ * Users of the library can skip this section since it has been written for 
+ * developers.
+ * 
  * @author Matthias Schmalz
  */
 
 /** @defgroup texture_util Texture: Utility Functions
- * TODO texture_undocumented
+ * This module provides functions that perform some basic operations on the
+ * @ref texture_plan data structur.
+ *
  * @author Matthias Schmalz
  */
 
@@ -1284,8 +1369,7 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
  * lengths.
  *
  * @note
- * For details about data representation see the corresponding section in the
- * description of this modul. 
+ * For details about data representation see @ref texture_data_rep.
  */
 void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega, 
 		complex* x, const double* h_phi, const double* h_theta, const double* r);
@@ -1323,8 +1407,7 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega,
  * lengths.
  *
  * @note
- * For details about data representation see the corresponding section in the
- * description of this modul. 
+ * For details about data representation see @ref texture_data_rep.
  */
 void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
 		complex* omega, complex* x, const double* h_phi, const double* h_theta, 
@@ -1374,8 +1457,7 @@ void texture_forget();
 
 /** Convert a non-flat index of the pseudo frequencies @f$ \omega @f$ to a 
  * flat index.
- * If an array @f$ omega @f$ stores @f$ \omega @f$, then
- * @f$ omega[@f$texture_flat_index@f$ (l, m, n)] = \omega_{l, m, n} @f$.
+ * See @ref texture_data_rep for more information.
  * 
  * @arg l - the first index
  * @arg m - the second index
