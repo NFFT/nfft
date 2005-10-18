@@ -1,7 +1,6 @@
 # Subdirectories
 if WITH_TESTS
   SUBDIRS = include util kernel lowlevel highlevel . examples tests
-  TESTS = tests/lowlevel/nfsft/simple_test
 else
   SUBDIRS = include util kernel lowlevel highlevel . examples
 endif  

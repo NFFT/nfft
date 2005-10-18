@@ -13,6 +13,11 @@
 /* Include utilities header. */
 #include "util.h"
 
+/* Include standard C headers. */
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+
 //#include "util.h"
 //#include "u.h"
 //#include "direct.h"
@@ -28,16 +33,16 @@ static struct nfsft_wisdom wisdom = {false,0U};
 
 void nfsft_init(nfsft_plan *plan, int N, int M)
 {
-  /* Call nfsft_init_guro with no flags. */
-  nfsft_init_advanced(plan, N, M, 0U);
+  /* Call nfsft_init_advanced with flags to allocate memory. */
+  nfsft_init_advanced(plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
+                      NFSFT_MALLOC_F_HAT);
 } 
   
 void nfsft_init_advanced(nfsft_plan* plan, int N, int M, 
-                         unsigned int nfsft_flags)
+                         unsigned int flags)
 {
-  /* Call nfsft_init_guro with no flags and default NFFT cut-off. */
-  nfsft_init_guru(plan, N, M, NFSFT_MALLOC_X & NFSFT_MALLOC_F & 
-                  NFSFT_MALLOC_F_HAT, NFSFT_DEFAULT_NFFT_CUTOFF);
+  /* Call nfsft_init_guro with the flags and default NFFT cut-off. */
+  nfsft_init_guru(plan, N, M, flags, NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
 void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags, 
@@ -48,9 +53,6 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   /** Array for FFTW sizes */
   int fftw_size[2] = {0,0};
 
-  /** Allocate memory for the plan. */
-  plan = (nfsft_plan*) malloc(sizeof(nfsft_plan));
-  
   /* Save the flags in the plan. */
   plan->flags = flags;
   
@@ -61,7 +63,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   /* Calculate the next greater power of two with respect to the bandwidth N and
    * the corresponding exponent. */
   plan->NPT = next_power_of_2(plan->N);
-  plan->t = log((double)plan->NPT)/log(2.0);
+  plan->t = (int)(log((double)plan->NPT)/log(2.0));
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+1)(2NPT) */
@@ -128,7 +130,10 @@ void nfsft_precompute(int N, double kappa,
   wisdom.T_MAX = log((double)wisdom.N_MAX)/log(2.0);
 
   /* Check, if precomputation for direct algorithms needs to be performed. */    
-  if (wisdom.flags & NFSFT_NO_DIRECT == 0)
+  if (wisdom.flags & NFSFT_NO_DIRECT)
+  {
+  }
+  else
   {
     /* Precompute three-term recurrence coefficients. */
     wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
@@ -147,7 +152,10 @@ void nfsft_precompute(int N, double kappa,
   }
   
   /* Check, if precomputation for direct algorithms needs to be performed. */    
-  if (wisdom.flags & NFSFT_NO_FAST == 0)
+  if (wisdom.flags & NFSFT_NO_FAST)
+  {
+  }
+  else
   { 
     /* Set the threshold. */
     //wisdom.threshold  = threshold;
@@ -298,8 +306,8 @@ void ndsft_trafo(nfsft_plan* plan)
      *     e^{i n \phi_m}. 
      * \] */
     for (m = 0; m < plan->M_total; m++)
-     {
-         /* Initialize result for current node. */
+    {
+      /* Initialize result for current node. */
       f_m = 0.0;
 
       /* For n = -N,...,N, evaluate 
@@ -309,16 +317,21 @@ void ndsft_trafo(nfsft_plan* plan)
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Get Fourier coefficients vector. */
-        a = &(plan->f_hat[(n+plan->N)*(2*plan->N+1)+plan->N]);
+        a = &(plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT]);
+        
+        for (k = 0; k <= plan->N; k++)
+        {
+          fprintf(stdout,"a_%d^%d = %lf +I*%lf\n",k,n,creal(a[k]),cimag(a[k]));
+        }
         
         /* Take absolute value of n. */
         n_abs = abs(n);
         
         /* Get three-term recurrence coefficients vectors. */
-        alpha = wisdom.alpha + plan->N - n_abs;
-        gamma = wisdom.gamma + plan->N - n_abs;
-        //alpha = &(wisdom.alpha[ROWK(n_abs)]);
-        //gamma = &(wisdom.gamma[ROWK(n_abs)]);
+        //alpha = wisdom.alpha + plan->N - n_abs;
+        //gamma = wisdom.gamma + plan->N - n_abs;
+        alpha = &(wisdom.alpha[ROWK(n_abs)]);
+        gamma = &(wisdom.gamma[ROWK(n_abs)]);
          
         /* Make copy of array a. */ 
         memcpy(temp,a,(plan->N+1)*sizeof(complex));
@@ -326,25 +339,25 @@ void ndsft_trafo(nfsft_plan* plan)
         /* Clenshaw's algorithm */        
         for (k = plan->N; k > n_abs + 1; k--)
         {
-          //index = k - n_abs;
-          temp[k-1] += temp[k] * (*alpha--) * theta[m]; 
-          temp[k-2] += temp[k] * (*gamma--);
+          index = k - n_abs;
+          temp[k-1] += temp[k] * alpha[index] * theta[m]; 
+          temp[k-2] += temp[k] * gamma[index];
         }
         
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)
         {  
-          temp[0+n_abs] += temp[1+n_abs] * (*alpha) * theta[m];
+          temp[0+n_abs] += temp[1+n_abs] * wisdom.alpha[ROWK(n_abs)+1] * theta[m];
         }
         
         /* Write final result b_n of multiplication by normalization constant to 
          * array b  = (b_{-M},...,b_M). */
         f_m += temp[0+n_abs] * wisdom.gamma[ROW(n_abs)] *
           pow(1- theta[m] * theta[m], 0.5*n_abs) * cexp(I*n*phi[m]);
-       }
+      }
             
-         /* Write result to vector f. */
-      plan->f[m] = f_m;
+      /* Write result to vector f. */
+      plan->f[m] = f_m;                
     }
   }  
   

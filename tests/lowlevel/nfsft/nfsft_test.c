@@ -27,8 +27,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define N 256
-#define M 100
 #define THRESHOLD 1000.0
 
 /**
@@ -39,7 +37,7 @@ void test_ndsft_trafo(void)
   /** The plan */
   nfsft_plan plan;
   /** The file containg the testcase data */
-  FILE file;
+  FILE *file;
   /** The bandwidth */
   int N;
   /** The number of nodes */
@@ -47,35 +45,58 @@ void test_ndsft_trafo(void)
   /** The original samples */
   complex* f_orig;
   int k,n,m;
-  double re,im;
+  double d1,d2;
 
   /* Read input data from file. */ 
   file = fopen("test001.dat","r");
+  fprintf(stdout,"file = %p\n",file);
   if (file != NULL)
   {
     /* Read in bandwidth. */
-    fscanf(file,"%d",&N);
-    printf(stdout,"N = %d",N);
+    fscanf(file,"%d\n",&N);
+    fprintf(stdout,"N = %d",N);
     /* Read in number of nodes. */
-    fscanf(file,"%d",&M);
-    printf(stdout,", M = %d",M);
+    fscanf(file,"%d\n",&M);
+    fprintf(stdout,", M = %d",M);
     /* Precompute. */
     nfsft_precompute(N,THRESHOLD,0U);
     /* Initialise plan. */
-    nfsft_plan = nfsft_init(&plan,N,M);
-    /* Fill in spherical Fourier coefficients */
-    fprintf("/n");
+    nfsft_init(&plan,N,M);
+    /* Read in spherical Fourier coefficients. */
+    fprintf(stdout,"\n");
     for (k = 0; k <= N; k++)
     {
       for (n = -k; n <= k; n++)
       {
-        fscanf(file,"%fl",$re);
-        fscanf(file,"%fl",$im);
-        plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = re + I*im;
+        fscanf(file,"%lf",&d1);
+        fscanf(file,"%lf",&d2);
+        /*fprintf(stdout,"Scanned: %fl + I*%fl, Index: %d\n",re,im,
+          2*plan.NPT+1);*/
+        plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = d1 + I*d2;
         fprintf(stdout,"f[%d] = %f + I*%f\n",
-          (2*plan.NPT+1)*(n+plan.N)+plan.NPT+k,re,im);
+          (2*plan.NPT+1)*(n+plan.N)+plan.NPT+k,
+          creal(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]),
+          cimag(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]));
       }
     }
+    /* Read in nodes. */
+    for (m = 0; m < plan.M_total; m++)
+    {
+      fscanf(file,"%lf",&d1);
+      fscanf(file,"%lf",&d2);
+      plan.x[2*m] = d1;
+      plan.x[2*m+1] = d2;
+    }
+    /* Execute the plan. */
+    ndsft_trafo(&plan);
+    /* Display result. */
+    for (m = 0; m < plan.M_total; m++)
+    {
+      fprintf(stdout,"f[%d] = %lf + I*%lf\n",m,creal(plan.f[m]),cimag(plan.f[m]));
+    }    
+    /* Destroy the plan. */
+    nfsft_finalize(&plan);
+    /* CLose the file. */
     fclose(file);
   }
 } 
