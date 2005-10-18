@@ -7,34 +7,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_error(complex * vec1, complex * vec2, int n)
-{
-	double infNorm = 0, twoNorm = 0;
-	int i;
+/** @defgroup texture_correctness Texture: Correctness
+ * This program was designed to check the correctness of the implementation
+ * of the texture transforms.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
 
-	for (i = 0; i < n; i++) {
-		double absDiff = cabs(vec1[i] - vec2[i]);
-		if (absDiff > infNorm) {
-			infNorm = absDiff;
-		}
-
-		twoNorm += absDiff * absDiff;
-	}
-	twoNorm = sqrt(twoNorm);
-
-	printf("error in twoNorm: %g in infNorm: %g\n", twoNorm, infNorm);
-}
-
+/** Returns @f$e^{i \cdot phi}@f$
+ */ 
 inline complex expi(double phi)
 {
 	return cos(phi) + I * sin(phi);
 }
 
+/** Returns if @f$ | x - y | \leq delta @f$.
+ */
 inline int equal(complex x, complex y, double delta)
 {
 	return cabs(x - y) <= delta;
 }
 
+/** Returns some value on a equidistant one dimensional grid.
+ *
+ * @par min_value - the lower margin
+ * @par max_value - the upper margin
+ * @par i - the index of the point that will be returned
+ * Ranges from 0 to n-1.
+ * @par n - the number of points on the grid
+ * @par incl determines if max_value is a point on the grid.
+ */
 inline double equidist(double min_value, double max_value, int i, int n,
 											 int incl)
 {
@@ -45,6 +49,10 @@ inline double equidist(double min_value, double max_value, int i, int n,
 		+ ((double) (i) * (max_value - min_value)) / (double) (n - 1);
 }
 
+/** Returns @f$ \| vec1 - vec2 \|_2 @f$.
+ *
+ * @par length - the length of vec1 and vec2.
+ */
 inline double two_norm_dist(const complex * vec1, const complex * vec2,
 														unsigned int length)
 {
@@ -61,6 +69,10 @@ inline double two_norm_dist(const complex * vec1, const complex * vec2,
 	return norm;
 }
 
+/** Returns @f$ \| vec \|_2.
+ *
+ * @par length - the length of vec.
+ */
 inline double two_norm(const complex * vec, unsigned int length)
 {
 	double norm = 0;
@@ -74,12 +86,41 @@ inline double two_norm(const complex * vec, unsigned int length)
 	return norm;
 }
 
+/** Returns if @f$ \| vec - ref \|_2 \leq delta \cdot \|ref\|_2 @f$
+ *
+ * @par length - the length of vec and ref
+ */
 inline int equal_two_norm_rel(const complex * vec, const complex * ref,
 															unsigned int length, double delta)
 {
 	return two_norm_dist(vec, ref, length) <= delta * two_norm(ref, length);
 }
 
+/** Initializes the nodes.
+ * The nodes are taken from a
+ * cartesian rectangle of h_phi_count / r_phi_count equidistant angles for the 
+ * latitudes and 
+ * h_theta_count / r_theta_count
+ * equidistant angles for the longitudes.
+ * 
+ * If @f$ h\_phi\_count \cdot h\_theta\_count \cdot N2 
+ * \leq r\_phi\_count \cdot r\_theta\_count @f$, i.e. if the rectangle is too
+ * small, the nodes will be extended periodically.
+ *
+ * @par h_phi, h_theta store the pole figures.
+ * @par r stores the nodes of the pole figures.
+ * @par h_phi_count, h_theta_count determines the number of different 
+ * @par                            latitudes / longitudes that will be taken for
+ * @par                            the pole figures.
+ * @par r_phi_count, r_theta_count determines the number of different
+ * @par                            latitudes / longitudes that will be taken for
+ * @par                            the nodes in the pole figures.
+ * @par N2 - the number of nodes per pole figure
+ *
+ * @pre The size of h_phi and h_theta has to be 
+ * @f$ h\_phi\_count \cdot h\_theta\_count @f$.
+ * The size of r has to be N2.
+ */ 
 inline void initialize_angles(double *h_phi, double *h_theta, double *r,
 															int h_phi_count, int h_theta_count, int N2,
 															int r_phi_count, int r_theta_count)
@@ -112,6 +153,13 @@ inline void initialize_angles(double *h_phi, double *h_theta, double *r,
 	}
 }
 
+/** Returns @f$ Y_k^n(phi, theta)@f$.
+ * See @ref sh for the definition of spherical harmonics.
+ *
+ * @par init determines if values from the last call should be reused.
+ *
+ * @pre At the first call, init has to be nonzero.
+ */
 complex spherical_harmonic(int k, int n, double phi, double theta, int init)
 {
 	static double p;
@@ -888,3 +936,7 @@ int main(int arglen, char *argv[])
 
 	return 0;
 }
+
+/**
+ * @}
+ */

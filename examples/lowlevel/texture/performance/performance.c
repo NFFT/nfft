@@ -5,15 +5,53 @@
 
 #include<nfft3.h>
 
-int N, N1, N2;
+/** @defgroup texture_performance Texture: Performance
+ * This program tests the velocity of the texture transforms.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
+
+/** the pseudo bandwidth for the tests
+ */
+int N;
+
+/** the number of pole figures for the tests
+ */
+int N1;
+
+/** the number of sample values per pole figure for the tests
+ */
+int N2;
+
+/** the type of the tests
+ */
 int type;
+
+/** the number of tests
+ */
 int iterations;
 
+/** input / output Data for the tests
+ */
 complex *omega, *x;
+
+/** nodes
+ */
 double *h_phi, *h_theta, *r;
+
+/** the plan for the direct and adjoined transform
+ */
 texture_plan plan;
+
+/** the plan for the inverse transform
+ */
 itexture_plan iplan;
 
+/** Prints instructions for the user in the case of illegal command line 
+ * arguments.
+ */
 void usage()
 {
 	printf("'performance N N1 N2 type iterations' carries out some ");
@@ -25,6 +63,8 @@ void usage()
 	printf("iterations gives the number of transformations.\n");
 }
 
+/** Parses the command line.
+ */
 void parse_input(int arglen, char *argv[])
 {
 	if (arglen == 6) {
@@ -39,13 +79,24 @@ void parse_input(int arglen, char *argv[])
 	}
 }
 
+/** Performes the initialisation.
+ * Initialises:
+ * - the pseudo random number generator
+ * - the input / output data
+ * - the nodes
+ * - the transform plans
+ *
+ * and calls ::texture_precompute and ::itexture_before_loop.
+ */
 void init()
 {
 	int i;
 	unsigned short int seed[] = { 1, 2, 3 };
-
+  
+	// pseudo random number generator
 	seed48(seed);
 
+	// input / output data
 	omega = (complex *) malloc(texture_flat_length(N) * sizeof(complex));
 	x = (complex *) malloc(N1 * N2 * sizeof(complex));
 	h_phi = (double *) malloc(N1 * sizeof(double));
@@ -67,6 +118,7 @@ void init()
 		r[2 * i + 1] = (drand48() / 2) * TEXTURE_MAX_ANGLE;
 	}
 
+	// precompute, plan initialisation, ...
 	texture_precompute(N);
 	
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
@@ -77,6 +129,8 @@ void init()
 	itexture_before_loop(&iplan);
 }
 
+/** Runs the test @ref iterations times.
+ */
 void run_test()
 {
 	int count;
@@ -100,6 +154,8 @@ void run_test()
 	}
 }
 
+/** Frees allocated memory.
+ */
 void cleanup()
 {
 	itexture_finalize(&iplan);
@@ -114,6 +170,8 @@ void cleanup()
 	free(r);
 }
 
+/** Runs the hole proceedure.
+ */
 int main(int arglen, char *argv[])
 {
 	parse_input(arglen, argv);
@@ -123,3 +181,7 @@ int main(int arglen, char *argv[])
 
 	return 0;
 }
+
+/**
+ * @}
+ */
