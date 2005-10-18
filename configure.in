@@ -34,7 +34,7 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 AC_ARG_WITH(
   tests, 
   AC_HELP_STRING(
-    [--with-test],
+    [--with-tests],
     [Compile with unit tests. Run 'make test' to execute the tests.]),
     [
       AC_CHECK_HEADERS(CUnit/CUnit.h,[found_cunit=true],[found_cunit=false])

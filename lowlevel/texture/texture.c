@@ -7,6 +7,11 @@
 
 #include "texture.h"
 
+/** @file texture.c
+ * Provides the implementation of all methods of the texture transform.
+ * @ingroup texture_private
+ */
+
 void texture_precompute(int N)
 {
 	texture_precompute_advanced(N, TEXTURE_DEF_PRECOMPUTE_FLAGS,
@@ -19,6 +24,7 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
 																 double nfsft_threshold)
 {
 
+	// Forget nfsft wisdom if necessary.
 	if (is_precomputed &&
 			(N > precompute_params.N ||
 			 texture_precompute_flags != precompute_params.texture_precompute_flags
@@ -27,9 +33,10 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
 
 		nfsft_forget_old();
 	}
-
+	// Precompute nfsft wisdom.
 	nfsft_precompute_old(N, nfsft_threshold, nfsft_precompute_flags);
 
+	// Store precompute state.
 	precompute_params.N = N;
 	precompute_params.texture_precompute_flags = texture_precompute_flags;
 	precompute_params.nfsft_precompute_flags = nfsft_precompute_flags;
@@ -58,12 +65,14 @@ void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
 	int n;
 	int N_tilde = next_power_of_2(N);
 
+	// Set sizes.
 	ths->N = N;
 	ths->N1 = N1;
 	ths->N2 = N2;
 	ths->N_total = texture_flat_length(N);
 	ths->M_total = N1 * N2;
 
+	// Allocate storage for internal computations.
 	ths->nfsft_f_hat = (complex **) malloc(sizeof(complex *) * (2 * N + 1));
 	for (n = -N; n <= N; n++) {
 		ths->nfsft_f_hat[n + N] =
@@ -75,12 +84,15 @@ void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
 	ths->cos_h_theta = (double *) malloc(sizeof(double) * N1);
 	ths->sin_h_theta = (double *) malloc(sizeof(double) * N1);
 
+	// Set Parameters.
 	texture_set_nfsft_init_flags(ths, nfsft_init_flags);
 	texture_set_nfft_cutoff(ths, nfft_cutoff);
 
+	// Set input / output.
 	texture_set_omega(ths, omega);
 	texture_set_x(ths, x);
 
+	// Set nodes.
 	texture_set_h_phi(ths, h_phi);
 	texture_set_h_theta(ths, h_theta);
 	texture_set_r(ths, r);
@@ -271,27 +283,36 @@ inline void texture_set_nfft_cutoff(texture_plan * ths, int nfft_cutoff)
 	ths->nfft_cutoff = nfft_cutoff;
 }
 
-static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
+nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 {
+	// Stores the associated legendre polynomial of order and degree |n|.
+	// p_diag = p_n^n(cos_h_theta[i])
 	double p_diag = 1;
 	int n;
 
+	// Initialise the frequencies for the nfsft_plan with 0.
 	for (n = -ths->N; n <= ths->N; n++) {
 		memset(&(ths->nfsft_f_hat[n + ths->N][abs(n)]), 0,
 					 (ths->N - abs(n) + 1) * sizeof(complex));
 	}
 
+	// Sum up the pseudo frequencies for n = 0.
 	{
+		// Stores the values with lower index in the three term recurrency
+		// relation for the associated legendre polynomials.
 		double p_old2 = 0;
 		double p_old1 = p_diag;
 		int l;
 
-		//TODO indexfunktion
+		// Add the pseudo frequency with m = l = 0.
 		ths->nfsft_f_hat[0 + ths->N][0] +=
 			ths->f_hat[texture_flat_index(0, 0, 0)];
 
+		// Add the pseudo frequencies with 0 < l <= N.
 		for (l = 1; l <= ths->N; l++) {
 			int m;
+			// Stores the associated legendre polynomial of order 0 and degree l.
+			// p = p_l^0(cos_h_theta[i])
 			double p =
 				(double) (2 * l - 1) / (double) (l) * ths->cos_h_theta[i] * p_old1
 				- (double) (l - 1) / (double) (l) * p_old2;
@@ -299,6 +320,7 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 			p_old2 = p_old1;
 			p_old1 = p;
 
+			// Add the pseudo frequencies with -l <= m <= l.
 			for (m = -l; m <= l; m++) {
 				ths->nfsft_f_hat[m + ths->N][l]
 					+= p * ths->f_hat[texture_flat_index(l, m, 0)];
@@ -306,16 +328,20 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 		}
 	}
 
+	// Sum up the pseudo frequencies for 0 < |n| <= N.
 	for (n = 1; n <= ths->N; n++) {
+		// Stores the values with lower index in the three term recurrency
+		// relation for the associated legendre polynomials.
 		double p_old2 = 0;
 		double p_old1;
 		int l, m;
 
-		p_diag *= sqrt((double) (2*n - 1) / (double) (2 * n))
+		p_diag *= sqrt((double) (2 * n - 1) / (double) (2 * n))
 			* ths->sin_h_theta[i];
 
 		p_old1 = p_diag;
 
+		// Add the pseudo frequencies for l = |n|, -l <= m <= l.
 		for (m = -n; m <= n; m++) {
 			ths->nfsft_f_hat[m + ths->N][n]
 				+= p_diag * (ths->f_hat[texture_flat_index(n, m, n)]
@@ -324,7 +350,10 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 										 * (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i])));
 		}
 
+		// Add the pseudo frequencies for |n| < l <= N.
 		for (l = n + 1; l <= ths->N; l++) {
+			// Stores the associated legendre polynomial of order |n| and degree l.
+			// p = p_l^{|n|}(cos_h_theta[i])
 			double p = (double) (2 * l - 1) / sqrt((double) (l * l - n * n))
 				* ths->cos_h_theta[i] * p_old1
 				-
@@ -334,6 +363,7 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 			p_old2 = p_old1;
 			p_old1 = p;
 
+			// Add the pseudo frequencies for -l <= m <= l.
 			for (m = -l; m <= l; m++) {
 				ths->nfsft_f_hat[m + ths->N][l] += p
 					* (ths->f_hat[texture_flat_index(l, m, n)]
@@ -344,23 +374,32 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 		}
 	}
 
+	// Build the nfsft_plan.
 	return nfsft_init_guru_old(ths->N, ths->N2, ths->nfsft_f_hat,
 														 &(ths->nfsft_angles[2 * ths->N2 * i]),
 														 &(ths->f[ths->N2 * i]), ths->nfsft_init_flags,
 														 ths->nfft_cutoff);
 }
 
-static void process_results(texture_plan * ths, int i)
+void process_results(texture_plan * ths, int i)
 {
+	// Stores the associated legendre polynomial of order and degree |n|.
+	// p_diag = p_n^n(cos_h_theta[i])
 	double p_diag = 1;
+	// Stores the values with lower index in the three term recurrency
+	// relation for the associated legendre polynomials.
 	double p_old2 = 0;
 	double p_old1 = p_diag;
 	int l, n;
 
+	// Add the frequency with n = m = l = 0.
 	ths->f_hat[texture_flat_index(0, 0, 0)] += ths->nfsft_f_hat[0 + ths->N][0];
 
+	// Add the frequencies for n = 0, 0 < l <= N.
 	for (l = 1; l <= ths->N; l++) {
 		int m;
+		// Stores the associated legendre polynomial of order 0 and degree l.
+		// p = p_l^0(cos_h_theta[i])
 		double p =
 			(double) (2 * l - 1) / (double) (l) * ths->cos_h_theta[i] * p_old1
 			- (double) (l - 1) / (double) (l) * p_old2;
@@ -368,12 +407,14 @@ static void process_results(texture_plan * ths, int i)
 		p_old2 = p_old1;
 		p_old1 = p;
 
+		// Add the frequencies for -l <= m <= l.
 		for (m = -l; m <= l; m++) {
 			ths->f_hat[texture_flat_index(l, m, 0)]
 				+= p * ths->nfsft_f_hat[m + ths->N][l];
 		}
 	}
 
+	// Add the frequencies for 0 < |n| <= N.
 	for (n = 1; n <= ths->N; n++) {
 		int m;
 		p_diag *=
@@ -381,6 +422,7 @@ static void process_results(texture_plan * ths, int i)
 		p_old2 = 0;
 		p_old1 = p_diag;
 
+		// Add the frequencies for l = |n|, -l <= m <= l.
 		for (m = -n; m <= n; m++) {
 			ths->f_hat[texture_flat_index(n, m, n)]
 				+= p_diag * ths->nfsft_f_hat[m + ths->N][n]
@@ -391,7 +433,10 @@ static void process_results(texture_plan * ths, int i)
 				* (cos(n * ths->h_phi[i]) - I * sin(n * ths->h_phi[i]));
 		}
 
+		// Add the freqeuncies for |n| < l <= N.
 		for (l = n + 1; l <= ths->N; l++) {
+			// Stores the associated legendre polynomial of order |n| and degree l.
+			// p = p_l^{|n|}(cos_h_theta[i])
 			double p = (double) (2 * l - 1) / sqrt((double) (l * l - n * n))
 				* ths->cos_h_theta[i] * p_old1
 				-
@@ -401,6 +446,7 @@ static void process_results(texture_plan * ths, int i)
 			p_old2 = p_old1;
 			p_old1 = p;
 
+			// Add the frequencies for -l <= m <= l.
 			for (m = -l; m <= l; m++) {
 				ths->f_hat[texture_flat_index(l, m, n)]
 					+= p * ths->nfsft_f_hat[m + ths->N][l]

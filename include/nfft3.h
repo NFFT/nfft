@@ -1006,15 +1006,73 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  */
 
 /** @defgroup texture Texture
- * TODO texture_undocumented
+ * This module provides the basic functions for the Texture Transforms.
  *
- * @section Preliminaries
+ * @section texture_transforms Texture Transforms
+ * In the following we describe the @ref direct_texture_transform and 
+ * the @ref adjoint_texture_transform.
+ * 
+ * @subsection direct_texture_transform Direct Texture Transform
+ * The <b>Direct Texture Transform</b> is defined as follows:
+ * \f[
+ * \begin{array}{rcll}
+ * 
+ * \text{\textbf{Input}} & : &
+ * \text{pseudo frequency coefficients (pseudo frequencies): } &
+ * \omega_{l, m, n} \in \mathbb{C} \quad \text{for } 
+ * l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],\\[1ex]&&
+ * \text{pole figures: } &
+ * h_i \in \mathbb{S}^2 \quad \text{for }
+ * i \in [1 \ldots N_1] \text{ and }\\[1ex]&&
+ * \text{nodes: } &
+ * r_{i, j} \in \mathbb{S}^2 \quad \text{for }
+ * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2].\\[1em]
  *
- * @section The transformation
+ * \text{\textbf{Output}} & : &
+ * \text{sample values (samples): }&
+ * x_{i, j} \in \mathbb{C} \quad \text{for }
+ * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2], 
+ * \text{ where } \\[1ex]&&&
+ * x_{i, j} = \sum_{l = 0}^{N} \sum_{m = -l}^{l} \sum_{n = -l}^{l}
+ * \omega_{l, m, n} \overline{Y_{l, n}(h_i)} Y_{l, m}(r_{i, j}).
  *
- * @section States of the transformation
+ * \end{array}
+ * \f]
  *
- * @section Data representation
+ * @subsection adjoint_texture_transform Adjoint Texture Transform
+ * The <b>Adjoint Texture Transform</b> is defined as follows:
+ *
+ * \f[
+ * \begin{array}{rcll}
+ *
+ * \text{\textbf{Input}} & : & 
+ * \text{sample values (samples): }&
+ * x_{i, j} \in \mathbb{C} \quad \text{for }
+ * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2], \\[1ex]&&
+ * \text{pole figures: } &
+ * h_i \in \mathbb{S}^2 \quad \text{for }
+ * i \in [1 \ldots N_1] \text{ and }\\[1ex]&&
+ * \text{nodes: } &
+ * r_{i, j} \in \mathbb{S}^2 \quad \text{for }
+ * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2].\\[1em]
+ *
+ * \text{\textbf{Ouput}} & : &
+ * \text{pseudo frequency coefficients (pseudo frequencies): } &
+ * \omega_{l, m, n} \in \mathbb{C} \quad \text{for } 
+ * l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],
+ * \text{ where}\\[1ex]&&&
+ * \omega_{l, m, n} = \sum_{i = 1}^{N_1} \sum_{j = 1}^{N_2}
+ * x_{i, j} Y_{l, n}(h_i) \overline{Y_{l, m}(r_{i, j})}.
+ *
+ * \end{array}
+ * \f]
+ *
+ * @section States Of The Transformation
+ * state chart
+ *
+ * @section Data Representation
+ * indexing
+ * angles
  *
  * @section Good to know...
  * 
@@ -1022,12 +1080,14 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  * @{
  */
 
-/** @defgroup texture_private Texture: private functions
+/** @defgroup texture_private Texture: Private Functions
  * TODO texture_undocumented
+ * @author Matthias Schmalz
  */
 
-/** @defgroup texture_util Texture: utility functions
+/** @defgroup texture_util Texture: Utility Functions
  * TODO texture_undocumented
+ * @author Matthias Schmalz
  */
 
 /** 
@@ -1187,6 +1247,8 @@ void texture_precompute(int N);
  * having a pseudo bandwidth equal or less than N.
  *
  * @attention To free allocated memory ::texture_forget has to be called.
+ * @remark Use ::texture_precompute instead if you do not know, what you are 
+ * doing.
  * 
  * @param N - the maximum pseudo bandwidth
  * @param texture_precompute_flags - does not have any effect
@@ -1251,6 +1313,9 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega,
  * inconsistent
  * state.
  * - Use ::texture_finalize to free allocated memory.
+ *   
+ * @remark Use ::texture_init instead if you do not know, what you are 
+ * doing.
  *  
  * @pre
  * All pointer arguments have to point to allocated memory.
