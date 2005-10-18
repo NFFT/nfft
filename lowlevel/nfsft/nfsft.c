@@ -70,19 +70,19 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (complex*) malloc(plan->N_total*sizeof(complex));
+    plan->f_hat = (complex*) calloc(plan->N_total,sizeof(complex));
   }
   
   /* Allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
-    plan->f = (complex*) malloc(plan->M_total*sizeof(complex));
+    plan->f = (complex*) calloc(plan->M_total,sizeof(complex));
   }
   
   /* Allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
-    plan->x = (double*) malloc(2*plan->M_total*sizeof(double));
+    plan->x = (double*) calloc(2*plan->M_total,sizeof(double));
   }
   
   /* Initialize NFFT plan. */

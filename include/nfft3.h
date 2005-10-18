@@ -1712,7 +1712,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *         [0,\frac{1}{2}] \times [-\frac{1}{2},\frac{1}{2}] \text{ for } 
  *         m=0,\ldots,M-1, M \in \mathbb{N}, N \in \mathbb{N}_0.\\[1ex]
  *       \text{\textbf{Task}}  & : & \text{evaluate } \hat{f}(k,n) 
- *         := \sum_{m=0}^{M-1} f(m) Y_k^n\left(\mathbf{x}(m)\right) 
+ *         := \sum_{m=0}^{M-1} f(m) \overline{Y_k^n\left(\mathbf{x}(m)\right)}cd Do 
  *         \text{ for } k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
  *       \text{\textbf{Output}} & : & \text{coefficients } 
  *         \hat{f}(k,n) \in \mathbb{C} \text{ for } 
