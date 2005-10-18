@@ -5,7 +5,7 @@
 #define U_H
 
 /**
- * Precomputation of the matrices \f$U_{n,\tau,l}\f$
+ * Precomputation of the matrices \f$U_{n,\tau,l}\f$
  * 
  * \param t Exponent of the max_oldimum bandwidth \f$N = 2^t\f$
  * \param threshold The threshold for stabilization steps
