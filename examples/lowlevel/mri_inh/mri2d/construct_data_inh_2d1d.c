@@ -4,9 +4,9 @@
 #include "limits.h"
 
 /**
- * nfft makes an 2d-nfft
+ * construct 
  */
-void nfft (char * file, int N, int M)
+void construct(char * file, int N, int M)
 {
   int j,k,l;                  /* some variables */
   double real,imag;
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     return 1;
   }
   
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]));
+  construct(argv[1],atoi(argv[2]),atoi(argv[3]));
   
   return 1;
 }

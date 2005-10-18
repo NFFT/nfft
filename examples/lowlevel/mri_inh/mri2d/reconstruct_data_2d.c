@@ -3,9 +3,9 @@
 #include "math.h"
 
 /**
- * infft makes an inverse 2d nfft
+ * reconstruct makes an inverse 2d nfft
  */
-void infft(char* filename,int N,int M,int iteration, int weight)
+void reconstruct(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
   double real,imag,t;           /* to read the real and imag part of a complex number */
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     return 1;
   }
   
-  infft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
    
   return 1;
 }

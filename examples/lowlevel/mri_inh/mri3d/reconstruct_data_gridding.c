@@ -3,9 +3,9 @@
 #include "math.h"
 
 /**
- * nfft makes an 2d-adjoint-nfft for every slice
+ * reconstruct makes an 2d-adjoint-nfft for every slice
  */
-void nfft (char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
+void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
 {
   int j,k,z;               /* some variables  */
   double weights;          /* store one weight temporary */
@@ -118,10 +118,10 @@ int main(int argc, char **argv)
                                   N*N,1 ,
                                   FFTW_BACKWARD, FFTW_MEASURE);
  
-  /* execute the 2d-infft */
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[6]),mem);
+  /* execute the 2d-nfft's */
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[6]),mem);
 
-  /* execute the 1d-fft */
+  /* execute the 1d-fft's */
   fftw_execute(plan);
   
   /* write the memory back in files */

@@ -1,14 +1,13 @@
-#include "options.h"
+#include "stdlib.h"
 #include "util.h"
 #include "nfft3.h"
-#include "window_defines.h"
 #include "math.h"
 #include "limits.h"
 
 /**
- * infft makes an inverse 2d nfft
+ * reconstruct 
  */
-void infft(char* filename,int N,int M,int iteration, int weight)
+void reconstruct(char* filename,int N,int M,int iteration, int weight)
 { 
   int j,k,l;                    /* some variables  */
   nnfft_plan my_plan;            /* plan for the two dimensional nfft  */
@@ -206,7 +205,7 @@ int main(int argc, char **argv)
     return 1;
   }
   
-  infft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
    
   return 1;
 }

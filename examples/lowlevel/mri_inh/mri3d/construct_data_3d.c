@@ -1,7 +1,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-void nfft (char * file, int N, int M, int Z)
+void construct(char * file, int N, int M, int Z)
 {
   int j,k,l;
   double real;
@@ -55,8 +55,12 @@ void nfft (char * file, int N, int M, int Z)
 
 int main(int argc, char **argv)
 { 
+  if (argc <= 4) {
+    printf("usage: ./construct_data FILENAME N M Z\n");
+    return 1;
+  }
 
-  nfft(argv[1], atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
-  return 1;
+  construct(argv[1], atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
   
+	return 1;
 }

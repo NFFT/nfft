@@ -3,9 +3,9 @@
 #include "math.h"
 
 /**
- * infft makes an inverse 2d-nfft for every slice
+ * reconstruct makes an inverse 2d-nfft for every slice
  */
-void infft(char* filename,int N,int M,int Z,int iteration, int weight, fftw_complex *mem)
+void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fftw_complex *mem)
 {
   int j,k,l,z;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
@@ -169,10 +169,10 @@ int main(int argc, char **argv)
                                   N*N,1 ,
                                   FFTW_BACKWARD, FFTW_MEASURE);
   
-  /* execute the 2d-infft */
-  infft(argv[1],N,M,Z,atoi(argv[5]),atoi(argv[6]),mem);
+  /* execute the 2d-infft's */
+  reconstruct(argv[1],N,M,Z,atoi(argv[5]),atoi(argv[6]),mem);
 
-  /* execute the 1d-fft */
+  /* execute the 1d-fft's */
   fftw_execute(plan);
 
   /* write the memory back in files */

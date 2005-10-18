@@ -2,9 +2,9 @@
 #include "nfft3.h"
 
 /**
- * nfft makes an 2d-nfft
+ * construct makes an 2d-nfft
  */
-void nfft (char * file, int N, int M)
+void construct(char * file, int N, int M)
 {
   int j,k;            /* some variables */
   nfft_plan my_plan;  /* plan for the two dimensional nfft  */
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     return 1;
   }
   
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]));
+  construct(argv[1],atoi(argv[2]),atoi(argv[3]));
   
   return 1;
 }

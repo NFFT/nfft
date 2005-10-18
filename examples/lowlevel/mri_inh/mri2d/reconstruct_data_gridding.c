@@ -3,9 +3,9 @@
 #include "math.h"
 
 /**
- * nfft makes a 2d-adjoint-nfft
+ * reconstruct makes a 2d-adjoint-nfft
  */
-void nfft (char* filename, int N, int M, int weight)
+void reconstruct(char* filename, int N, int M, int weight)
 {
   int j;                   /* some variables  */
   double weights;          /* store one weight temporary */
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     printf("usage: ./reconstruct_data_gridding FILENAME N M ITER WEIGHTS\n");
     return 1;
   }
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[5]));
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[5]));
 
   return 1;
 }

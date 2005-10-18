@@ -3,9 +3,9 @@
 #include "math.h"
 
 /**
- * infft makes an inverse 3d-nfft
+ * reconstruct makes an inverse 3d-nfft
  */
-void infft(char* filename,int N,int M,int Z,int iteration, int weight)
+void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
 {
   int j,k,z,l;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
@@ -137,6 +137,6 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  infft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]));
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]));
   return 1;
 }

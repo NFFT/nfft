@@ -3,7 +3,7 @@
 #include "math.h"
 #include "limits.h"
 
-void nfft (char* filename,int N,int M,int iteration , int weight)
+void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
   double weights;
@@ -195,10 +195,7 @@ int main(int argc, char **argv)
     return 1;
   }
   
-  /* Allocate memory to hold every layer in memory after the
-  2D-infft */
-
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
+  reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
 
   return 1;
 }

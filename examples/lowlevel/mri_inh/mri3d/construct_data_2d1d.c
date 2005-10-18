@@ -2,9 +2,9 @@
 #include "nfft3.h"
 
 /**
- * nfft makes an 2d-nfft for every slice
+ * construct makes an 2d-nfft for every slice
  */
-void nfft (char * file, int N, int M, int Z, fftw_complex *mem)
+void construct(char * file, int N, int M, int Z, fftw_complex *mem)
 {
   int j,z;                /* some variables */
   double tmp;             /* a placeholder */
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 
   fft(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
  
-  nfft(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
+  construct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
   
   fftw_free(mem);
   
