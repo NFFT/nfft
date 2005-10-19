@@ -63,7 +63,7 @@ inline void alpha_al_all(double *alpha, int N)
   {
     for (j = 0; j <= N; j++)
     {
-      *alpha_act = alpha_al_old(j-1,i); 
+      *alpha_act = alpha_al(j-1,i); 
       alpha_act++;
     }  
   }  
@@ -77,7 +77,7 @@ inline void beta_al_all(double *alpha, int N)
   {
     for (j = 0; j <= N; j++)
     {
-      *alpha_act = beta_al_old(j-1,i); 
+      *alpha_act = beta_al(j-1,i); 
       alpha_act++;
     }  
   }  
@@ -91,7 +91,7 @@ inline void gamma_al_all(double *alpha, int N)
   {
     for (j = 0; j <= N; j++)
     {
-      *alpha_act = gamma_al_old(j-1,i); 
+      *alpha_act = gamma_al(j-1,i); 
       alpha_act++;
     }  
   }  

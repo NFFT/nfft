@@ -21,7 +21,7 @@
 //#include "util.h"
 //#include "u.h"
 //#include "direct.h"
-//#include "legendre.h"
+#include "legendre.h"
 //#include "flft.h"
 //#include "c2f.h"
 //#include <stdlib.h>
@@ -110,10 +110,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
 
 void nfsft_precompute(int N, double kappa, 
                       unsigned int flags)
-{
-  //int i;
-  //int ti;
-  
+{ 
   /*  Check if already initialized. */
   if (wisdom.initialized == true)
   {
@@ -135,6 +132,7 @@ void nfsft_precompute(int N, double kappa,
   }
   else
   {
+    /*fprintf(stdout,"Precomputation for ndsft_trafo done.\n");*/
     /* Precompute three-term recurrence coefficients. */
     wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
       sizeof(double));    
@@ -143,9 +141,9 @@ void nfsft_precompute(int N, double kappa,
     wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
       sizeof(double));
     /** \todo Change to functions which compute only for fixed order n. */       
-    alpha_al_all(wisdom.alpha,BW_MAX);
-    beta_al_all(wisdom.beta,BW_MAX);
-    gamma_al_all(wisdom.gamma,BW_MAX);
+    alpha_al_all(wisdom.alpha,wisdom.N_MAX);
+    beta_al_all(wisdom.beta,wisdom.N_MAX);
+    gamma_al_all(wisdom.gamma,wisdom.N_MAX);
 
     /* Wisdom has been initialised. */
     wisdom.initialized = true;
@@ -268,31 +266,43 @@ void ndsft_trafo(nfsft_plan* plan)
   double *theta;
   /** Used to store the angles phi_m */
   double *phi;
-    
-   /* Allocate memory for auxilliary arrays. */
+  
+  /* Allocate memory for auxilliary arrays. */
   temp = (complex*) malloc (sizeof(complex) * (plan->N+1));
   theta = (double*) malloc (sizeof(double) * plan->M_total);    
   phi = (double*) malloc (sizeof(double) * plan->M_total);    
   
-  /* Scale angles phi_m from [-0.5,0.5] to [-pi,pi] and angles \theta_m from 
-   * [0,0.5] to and [0,pi], respectively. */ 
-  for (m = 0; m < plan->M_total; m++)
+  if (plan->flags & NFSFT_NORMALIZED)
   {
-    theta[m] = 2.0*PI*plan->x[2*m+1];
-    phi[m] = 2.0*PI*plan->x[2*m];
+    for (k = 0; k <= plan->N; k++)
+    {
+      for (n = -k; n <= k; n++)
+      {
+        plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+          sqrt((2*k+1)/(4.0*PI));
+      }
+    }
   }
-  
+   
    /* Distinguish by bandwidth M. */
   if (plan->N == 0)
   {
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
-      plan->f[m] = plan->f_hat[0];
+      plan->f[m] = plan->f_hat[plan->NPT+0];
     }
   }
   else
   { 
+    /* Scale angles phi_m from [-0.5,0.5] to [-pi,pi] and angles \theta_m from 
+     * [0,0.5] to and [0,pi], respectively. */ 
+    for (m = 0; m < plan->M_total; m++)
+    {
+      theta[m] = 2.0*PI*plan->x[2*m];
+      phi[m] = 2.0*PI*plan->x[2*m+1];
+    }
+
     /* Apply cosine to angles theta_m. */
     for (m = 0; m < plan->M_total; m++)
     {
@@ -321,7 +331,7 @@ void ndsft_trafo(nfsft_plan* plan)
         
         for (k = 0; k <= plan->N; k++)
         {
-          fprintf(stdout,"a_%d^%d = %lf +I*%lf\n",k,n,creal(a[k]),cimag(a[k]));
+          //fprintf(stdout,"a_%d^%d = %lf +I*%lf\n",k,n,creal(a[k]),cimag(a[k]));
         }
         
         /* Take absolute value of n. */
@@ -343,6 +353,7 @@ void ndsft_trafo(nfsft_plan* plan)
           temp[k-1] += temp[k] * alpha[index] * theta[m]; 
           temp[k-2] += temp[k] * gamma[index];
         }
+        //fprintf(stdout,"\n");
         
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)

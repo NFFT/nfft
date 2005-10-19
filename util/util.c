@@ -67,23 +67,36 @@ int next_power_of_2(int N)
   int n,i,logn;
   int N_is_not_power_of_2=0;
 
-  n=N;
-  logn=0;
-  while(n!=1)
+  if (N == 0)
+  {
+    return 1;
+  }
+  else
+  {
+    n=N;
+    logn=0;
+    while (n != 1)
     {
-      if(n%2==1)
-	N_is_not_power_of_2=1;
-      n=n/2;
+      if (n%2 == 1)
+      {
+  	      N_is_not_power_of_2=1;
+      }
+      n = n/2;
       logn++;
     }
-
-  if(!N_is_not_power_of_2)
-    logn--;
-
-  for(i=0;i<=logn;i++)
-    n=n*2;
-
-  return n;
+  
+    if (!N_is_not_power_of_2)
+    {
+      logn--;
+    }
+  
+    for (i = 0; i <= logn; i++)
+    {
+      n = n*2;
+    }
+  
+    return n;
+  }  
 }
  
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
