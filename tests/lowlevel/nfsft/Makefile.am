@@ -2,7 +2,7 @@ AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lowlevel/nfsft/obsolete
 AM_LDFLAGS = -L$(top_srcdir)
 
 TESTS = nfsft_test
-  
+
 ## The program name
 noinst_PROGRAMS = nfsft_test
 
