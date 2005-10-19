@@ -31,19 +31,14 @@
 #include <float.h>
 #include <math.h>
 
+/* Include CUnit header. */
+#include <CUnit/CUnit.h>
+
 /* Default threshold. Not important here since NDSFT-algorithm is used. */
 #define THRESHOLD 1000.0
 
-/**
- * The main program.
- *
- * \param argc The number of arguments
- * \param argv An array containing the arguments as C-strings
- *
- * \return Exit code 
- */
-int main (int argc, char **argv)
-{  
+void test_ndsft_trafo(void)
+{
   /** The plan */
   nfsft_plan plan;
   /** The bandwidth */
@@ -62,20 +57,13 @@ int main (int argc, char **argv)
   double d1,d2;
   /** The file containg the testcase data */
   FILE *file;
+  char filename[50] = "data/test_ndsft_0008_00100.dat";
 
   fprintf(stdout,"ndsft_trafo: ");
 
-  /* Check number of command-line arguments. */
-  if (argc != 2)
-  {
-    fprintf(stdout,"No filename!\n");
-    /* Wrong number of command-line arguments. */
-    return EXIT_FAILURE;
-  }
-
-  fprintf(stdout,"filename = %s",argv[1]);
+  fprintf(stdout,"filename = %s",filename);
   /* Open input file. */ 
-  file = fopen(argv[1],"r");
+  file = fopen(filename,"r");
   /* Check if file was opened successfully. */
   if (file != NULL)
   {
@@ -125,7 +113,7 @@ int main (int argc, char **argv)
       {
         fprintf(stdout," wrong result: f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
           m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-        return EXIT_FAILURE;
+        return;// EXIT_FAILURE;
       }
     }    
     /* Free memory. */
@@ -141,7 +129,29 @@ int main (int argc, char **argv)
   else
   {
     fprintf(stdout,", Couldn't open file!\n");
-    return EXIT_FAILURE;
+    return;// EXIT_FAILURE;
   }
+}
+
+/**
+ * The main program.
+ *
+ * \param argc The number of arguments
+ * \param argv An array containing the arguments as C-strings
+ *
+ * \return Exit code 
+ */
+int main (int argc, char **argv)
+{  
+  /* Initialise registry. */
+  CU_initialize_registry();
+  /* Create test suite. */
+  CU_pSuite suite = CU_add_suite("NDSFT", NULL, NULL);
+  /* Add test for ndsft_trafo. */
+  CU_add_test(suite,"NDSFT",test_ndsft_trafo);
+  /* Run the tests. */
+  CU_automated_run_tests();
+  /* Cleanup registry. */
+  CU_cleanup_registry();   
   return EXIT_SUCCESS;
 }
