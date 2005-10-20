@@ -57,7 +57,8 @@ void test_ndsft_trafo(void)
   double d1,d2;
   /** The file containg the testcase data */
   FILE *file;
-  char filename[50] = "data/test_ndsft_0008_00100.dat";
+  //char filename[50] = "../../../../../../test.dat";
+  //char filename[50] = "data/test_ndsft_0002_00010.dat";
 
   fprintf(stdout,"ndsft_trafo: ");
 
@@ -107,8 +108,11 @@ void test_ndsft_trafo(void)
     /* Execute the plan. */
     ndsft_trafo(&plan);
     /* Check result */
+    fprintf(stdout,"\n");
     for (m = 0; m < M; m++)
     {
+      fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
+        m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
       if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
       {
         fprintf(stdout," wrong result: f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",

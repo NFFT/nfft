@@ -1,0 +1,448 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     13082,        344]*)
+(*NotebookOutlinePosition[     13718,        366]*)
+(*  CellTagsIndexPosition[     13674,        362]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(mySphericalHarmonicY[k_, 
+        n_, \[Theta]_, \[CurlyPhi]_]\  := \@\(\(2  k + 1\)\/\(4  \
+\[Pi]\)\)*\((\(\((k - Abs[n])\)!\)\/\(\((k + \
+Abs[n])\)!\))\)\^\(1\/2\)*\((\(-1\))\)\^n*LegendreP[k, Abs[n], Cos[\[Theta]]]*
+        Exp[\[ImaginaryI]*n*\[CurlyPhi]]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+    \(NN\  = \ {0, 1, 2, 3, 4, 8}\), "\[IndentingNewLine]", 
+    \(M = {1, 10, 100, 1000, 10000}\), "\[IndentingNewLine]", 
+    \(\)}], "Input"],
+
+Cell[BoxData[
+    \({0, 1, 2, 3, 4, 8}\)], "Output"],
+
+Cell[BoxData[
+    \({1, 10, 100, 1000, 10000}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(\(Do[\[IndentingNewLine]{\[IndentingNewLine]Do[\[IndentingNewLine]{\
+\[IndentingNewLine]\ 
+            fhat\  = \ 
+              Table[Table[
+                  Random[Complex, {\(-0.5\) - 0.5  \[ImaginaryI], 
+                      0.5 + 0.5  \[ImaginaryI]}], {n, \(-k\), k}], {k, 0, 
+                  NN[\([j]\)]}]; \[IndentingNewLine]\ 
+            x\  = \ Table[{Random[Real, {0, 1\/2}], 
+                  Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, 
+                  M[\([l]\)] - 
+                    1}]; \[IndentingNewLine]\ \ f[\[Theta]_, \[CurlyPhi]_]\  \
+:= \ \[Sum]\+\(k = 0\)\%\(NN[\([j]\)]\)\(\[Sum]\+\(n = \(-k\)\)\%k\( 
+                        fhat[\([k + 1]\)]\)[\([n + k + 1]\)]*
+                    mySphericalHarmonicY[k, 
+                      n, \[Theta], \[CurlyPhi]]\); \[IndentingNewLine]\ \ fv\ \
+ = \ Table[f[2*\[Pi]*\(x[\([m + 1]\)]\)[\([1]\)], 
+                  2*\[Pi]*\(x[\([m + 1]\)]\)[\([2]\)]], {m, 0, 
+                  M[\([l]\)] - 1}]; \[IndentingNewLine]\ \ testfile\  = \ 
+              OpenWrite[
+                StringJoin["\<test_ndsft_\>", 
+                  StringTake[
+                    ToString[
+                      PaddedForm[NN[\([j]\)], 3, 
+                        NumberPadding -> {"\<0\>", "\<\>"}]], \(-4\)], \
+"\<_\>", StringTake[
+                    ToString[
+                      PaddedForm[M[\([l]\)], 4, 
+                        NumberPadding -> {"\<0\>", "\<0\>"}]], \(-5\)], \
+"\<.dat\>"]]; \[IndentingNewLine]\ \ Write[testfile, 
+              NN[\([j]\)]]; \n\ \ \ \ \ \ \ \ \ \ \ \ \ Write[testfile, 
+              M[\([l]\)]]; \n\ \ \ \ \ \ \ \ \ \ \ \ \ Do[
+              Do[{Write[testfile, 
+                    Re[\(fhat[\([k + 1]\)]\)[\([n + k + 1]\)]]], 
+                  Write[testfile, 
+                    Im[\(fhat[\([k + 1]\)]\)[\([n + k + 1]\)]]]}, {n, \(-k\), 
+                  k}], {k, 0, 
+                NN[\([j]\)]}]; \n\ \ \ \ \ \ \ \ \ \ \ \ \ Do[{Write[
+                  testfile, \(x[\([m + 1]\)]\)[\([1]\)]], 
+                Write[testfile, \(x[\([m + 1]\)]\)[\([2]\)]]}, {m, 0, 
+                M[\([l]\)] - 1}]; \n\ \ \ \ \ \ \ \ \ \ \ \ \ Do[{Write[
+                  testfile, Re[fv[\([m + 1]\)]]], 
+                Write[testfile, Im[fv[\([m + 1]\)]]]}, {m, 0, 
+                M[\([l]\)] - 1}]; \n\ \ \ \ \ \ \ \ \ \ \ \ \ Close[
+              testfile];\[IndentingNewLine]}, \[IndentingNewLine]{l, 1, 
+            Length[M]}\[IndentingNewLine]]\[IndentingNewLine]}, \
+\[IndentingNewLine]{j, 1, 
+        Length[NN]}\[IndentingNewLine]]\)\(\[IndentingNewLine]\)
+    \)\)], "Input"],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[{
+    \(\(NTOTAL\  = \ 5;\)\), "\[IndentingNewLine]", 
+    \(\(M\  = \ 10;\)\)}], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(fhat\  = \ 
+      Table[Table[
+          Random[Complex, {\(-0.5\) - 0.5  \[ImaginaryI], 
+              0.5 + 0.5  \[ImaginaryI]}], {n, \(-k\), k}], {k, 0, 
+          NTOTAL}]\)], "Input"],
+
+Cell[BoxData[
+    \({{\(\(0.04123287118670227`\)\(\[InvisibleSpace]\)\) - 
+          0.22793989980927215`\ \[ImaginaryI]}, {\(-0.22008911515001656`\) - 
+          0.10200251877653188`\ \[ImaginaryI], \(\(0.21944670476540984`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.2206558347012863`\ \[ImaginaryI], \(-0.4427131105288426`\) + 
+          0.30274942596146237`\ \[ImaginaryI]}, {\(\(0.22329883424811414`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.3345643418302998`\ \[ImaginaryI], \(-0.42642415567829584`\) + 
+          0.49441275219816316`\ \[ImaginaryI], \(-0.4634400777183847`\) - 
+          0.4734407089820753`\ \[ImaginaryI], \(\(0.14967755732086674`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.4573333403207013`\ \[ImaginaryI], \(\(0.36938456731042135`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.4843970877784852`\ \[ImaginaryI]}, {\(-0.0737647423308384`\) + 
+          0.29914135466552094`\ \[ImaginaryI], \(\(0.26455639180618273`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.11250555565851372`\ \[ImaginaryI], \(\(0.4489286942428915`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.3149510913171155`\ \[ImaginaryI], \(-0.2766764793805195`\) - 
+          0.15955454453221418`\ \[ImaginaryI], \(\(0.169017809392908`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.0830463899063526`\ \[ImaginaryI], \(\(0.0038768158540707365`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.4388987098309279`\ \[ImaginaryI], \(\(0.11173091992175066`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.11420418413218503`\ \[ImaginaryI]}, {\(\(0.2805779816059566`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.27346305166122775`\ \[ImaginaryI], \(\(0.038155075600046495`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.11979143193402197`\ \[ImaginaryI], \(\(0.24401805932434129`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.30002234267915245`\ \[ImaginaryI], \(\(0.38847751827917976`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.1624580916133207`\ \[ImaginaryI], \(\(0.3746334920139198`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.28441943045763773`\ \[ImaginaryI], \(-0.03775773938998184`\) + 
+          0.36331673694779976`\ \[ImaginaryI], \(-0.3899228997922629`\) + 
+          0.10307501388384865`\ \[ImaginaryI], \(\(0.013313566367126661`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.4516343543693158`\ \[ImaginaryI], \(\(0.3867535795882566`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.23737044158393716`\ \[ImaginaryI]}, {\(\(0.34429575697421866`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.13141203553703673`\ \[ImaginaryI], \(-0.11712323626581411`\) - 
+          0.2984717317530093`\ \[ImaginaryI], \(-0.267435162947532`\) - 
+          0.4827921485951483`\ \[ImaginaryI], \(\(0.1022987821282293`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.4749913199082184`\ \[ImaginaryI], \(\(0.1944097614524215`\)\(\
+\[InvisibleSpace]\)\) - 
+          0.10258358052917027`\ \[ImaginaryI], \(\(0.3582807228038881`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.2750136625873709`\ \[ImaginaryI], \(\(0.30593224317324186`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.23495832785750903`\ \[ImaginaryI], \(\(0.4836472307899682`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.059433093045008656`\ \[ImaginaryI], \(-0.1563100174367763`\) + 
+          0.3716415909097094`\ \[ImaginaryI], \(\(0.3735701305822311`\)\(\
+\[InvisibleSpace]\)\) + 
+          0.45635807916116`\ \[ImaginaryI], \(\(0.33037641619609703`\)\(\
+\[InvisibleSpace]\)\) + 0.32327594527902515`\ \[ImaginaryI]}}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(x\  = \ 
+      Table[{Random[Real, {0, 1\/2}], 
+          Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, M - 1}]\)], "Input"],
+
+Cell[BoxData[
+    \({{0.4108930832106462`, 0.49271593489201415`}, {0.11131199768941302`, 
+        0.09524805526200575`}, {0.49807393525864785`, \
+\(-0.055220176531586174`\)}, {0.4918555225747266`, 
+        0.3083366737632992`}, {0.3433694559832494`, 
+        0.30800505081237517`}, {0.2119491435004187`, \
+\(-0.46292058812253817`\)}, {0.08358767748559698`, \(-0.4578377967605605`\)}, \
+{0.11172114982585257`, \(-0.34180801434481967`\)}, {0.05241408775211931`, \
+\(-0.12810846788002844`\)}, {0.23865328171313505`, 
+        0.4841902633484054`}}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+    \(fhat\  = \ {{0}, {1.0, 0.0, 0.5}}\), "\[IndentingNewLine]", 
+    \(x\  = \ {{0.25, 0.0}}\)}], "Input"],
+
+Cell[BoxData[
+    \({{0}, {1.`, 0.`, 0.5`}}\)], "Output"],
+
+Cell[BoxData[
+    \({{0.25`, 0.`}}\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(f[\[Theta]_, \[CurlyPhi]_]\  := \ \[Sum]\+\(k = \
+0\)\%NTOTAL\(\[Sum]\+\(n = \(-k\)\)\%k\((\(fhat[\([k + 1]\)]\)[\([n + k + 
+                    1]\)]*mySphericalHarmonicY[k, 
+                n, \[Theta], \[CurlyPhi]])\)\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(fv\  = \ 
+      Table[f[2  \[Pi]*\(x[\([m + 1]\)]\)[\([1]\)], 
+          2  \[Pi]*\(x[\([m + 1]\)]\)[\([2]\)]], {m, 0, M - 1}]\)], "Input"],
+
+Cell[BoxData[
+    \({\(-0.5941163429062091`\) + 
+        0.14812358799249148`\ \[ImaginaryI], \(-0.23694545989290886`\) + 
+        0.2274506169883142`\ \[ImaginaryI], \(-0.1829413678192139`\) - 
+        0.6460313748387138`\ \[ImaginaryI], \(-0.21994776249870948`\) - 
+        0.5904863179294566`\ \[ImaginaryI], \(\(0.27758517304220665`\)\(\
+\[InvisibleSpace]\)\) - 
+        0.6500758067391083`\ \[ImaginaryI], \(\(0.6724376574990218`\)\(\
+\[InvisibleSpace]\)\) + 
+        0.0026494985734800275`\ \[ImaginaryI], \(-0.09573502291962332`\) - 
+        0.977709921956551`\ \[ImaginaryI], \(-0.42890319540659194`\) - 
+        0.9840753026056824`\ \[ImaginaryI], \(\(0.43446848447751135`\)\(\
+\[InvisibleSpace]\)\) + 
+        0.035960588676783395`\ \[ImaginaryI], \(\(0.8222924420470215`\)\(\
+\[InvisibleSpace]\)\) - 0.3155493374667767`\ \[ImaginaryI]}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(testfile\  = \ OpenWrite["\<test.dat\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(OutputStream["test.dat", 12]\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[{
+    \(Write[testfile, NTOTAL]\), "\[IndentingNewLine]", 
+    \(Write[testfile, M]\), "\[IndentingNewLine]", 
+    \(Do[Do[{Write[testfile, N[Re[\(fhat[\([k + 1]\)]\)[\([n + k + 1]\)]]]], 
+          Write[testfile, 
+            N[Im[\(fhat[\([k + 1]\)]\)[\([n + k + 1]\)]]]]}, {n, \(-k\), 
+          k}], {k, 0, NTOTAL}]\), "\[IndentingNewLine]", 
+    \(Do[{Write[testfile, N[\(x[\([m + 1]\)]\)[\([1]\)]]], 
+        Write[testfile, N[\(x[\([m + 1]\)]\)[\([2]\)]]]}, {m, 0, 
+        M - 1}]\), "\[IndentingNewLine]", 
+    \(Do[{Write[testfile, N[Re[fv[\([m + 1]\)]]]], 
+        Write[testfile, N[Im[fv[\([m + 1]\)]]]]}, {m, 0, M - 1}]\)}], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Close[testfile]\)], "Input"],
+
+Cell[BoxData[
+    \("test.dat"\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[mySphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]]\)], "Input"],
+
+Cell[BoxData[
+    \(1\/2\ e\^\(i\ \[CurlyPhi]\)\ \@\(3\/\(2\ \[Pi]\)\)\ \
+\@Sin[\[Theta]]\^2\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(SphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(-\(1\/2\)\)\ \[ExponentialE]\^\(\[ImaginaryI]\ \[CurlyPhi]\)\ \@\(3\/\
+\(2\ \[Pi]\)\)\ Sin[\[Theta]]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(N[f[\[Pi]\/2, 0], 16]\)], "Input"],
+
+Cell[BoxData[
+    \(0.345494149471335479265244646`16. \)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(N[SphericalHarmonicY[1, 1, \[Pi]\/2, 0]]\)], "Input"],
+
+Cell[BoxData[
+    \(\(-0.3454941494713355`\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(N[Re[fv[\([1]\)]]]\)], "Input"],
+
+Cell[BoxData[
+    \(0.34549414947133544`\ Re[e\^\(0``16. \ i\)]\)], "Output"]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 766}},
+WindowSize->{1144, 739},
+WindowMargins->{{4, Automatic}, {Automatic, 1}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 292, 5, 51, "Input"],
+
+Cell[CellGroupData[{
+Cell[2071, 60, 159, 3, 59, "Input"],
+Cell[2233, 65, 52, 1, 27, "Output"],
+Cell[2288, 68, 59, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2384, 74, 2603, 48, 471, "Input"],
+Cell[4990, 124, 42, 1, 27, "Output"]
+}, Open  ]],
+Cell[5047, 128, 103, 2, 43, "Input"],
+
+Cell[CellGroupData[{
+Cell[5175, 134, 208, 5, 27, "Input"],
+Cell[5386, 141, 3387, 60, 123, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8810, 206, 143, 3, 42, "Input"],
+Cell[8956, 211, 557, 9, 43, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[9550, 225, 123, 2, 43, "Input"],
+Cell[9676, 229, 57, 1, 27, "Output"],
+Cell[9736, 232, 48, 1, 27, "Output"]
+}, Open  ]],
+Cell[9799, 236, 255, 4, 51, "Input"],
+
+Cell[CellGroupData[{
+Cell[10079, 244, 159, 3, 27, "Input"],
+Cell[10241, 249, 860, 14, 43, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[11138, 268, 73, 1, 27, "Input"],
+Cell[11214, 271, 62, 1, 27, "Output"]
+}, Open  ]],
+Cell[11291, 275, 660, 11, 91, "Input"],
+
+Cell[CellGroupData[{
+Cell[11976, 290, 48, 1, 27, "Input"],
+Cell[12027, 293, 44, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12108, 299, 92, 1, 27, "Input"],
+Cell[12203, 302, 106, 2, 51, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12346, 309, 80, 1, 27, "Input"],
+Cell[12429, 312, 136, 2, 51, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12602, 319, 54, 1, 39, "Input"],
+Cell[12659, 322, 68, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12764, 328, 73, 1, 39, "Input"],
+Cell[12840, 331, 58, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12935, 337, 51, 1, 27, "Input"],
+Cell[12989, 340, 77, 1, 36, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

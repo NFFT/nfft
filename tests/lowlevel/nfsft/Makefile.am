@@ -9,4 +9,4 @@ noinst_PROGRAMS = nfsft_test
 ## The source files.
 nfsft_test_SOURCES = nfsft_test.c
 
-nfsft_test_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
+nfsft_test_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lcunit
