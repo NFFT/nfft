@@ -427,7 +427,7 @@ void ndsft_adjoint(nfsft_plan* plan)
   {
     for (k = abs(n); k <= plan->N; k++)
     {
-      plan->f_hat[n+plan->N][k] = 0.0;
+      plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] = 0.0;
     }  
   }
   
@@ -478,7 +478,7 @@ void ndsft_adjoint(nfsft_plan* plan)
         /* Copy result */
         for (k = n_abs; k <= plan->N; k++)
         {
-          plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT]+k] += temp[k];
+          plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT+k] += temp[k];
         }  
        }      
     }
