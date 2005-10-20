@@ -41,113 +41,200 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      4669,        146]*)
-(*NotebookOutlinePosition[      5305,        168]*)
-(*  CellTagsIndexPosition[      5261,        164]*)
+(*NotebookOptionsPosition[      8852,        226]*)
+(*NotebookOutlinePosition[      9701,        255]*)
+(*  CellTagsIndexPosition[      9657,        251]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
-Cell["\<\
-mySphericalHarmonicY[k_, n_, \[Theta]_, \[CurlyPhi]_] := Sqrt[(2*k \
-+ 1)/(4*Pi)]*((k - Abs[n])!/(k + Abs[n])!)^(1/2)*(-1)^n*LegendreP[k, Abs[n], \
-Cos[\[Theta]]]*
-   Exp[I*n*\[CurlyPhi]]\
-\>", "Input"],
+Cell[BoxData[
+    \(mySphericalHarmonicY[k_, 
+        n_, \[Theta]_, \[CurlyPhi]_] := \@\(\(2\ k + 1\)\/\(4\ \[Pi]\)\)\ \
+\@\(\(\((k - Abs[n])\)!\)\/\(\((k + Abs[n])\)!\)\)\ \((\(-1\))\)\^n\ \
+LegendreP[k, Abs[n], 
+          Cos[\[Theta]]]\ \[ExponentialE]\^\(\[ImaginaryI]\ n\ \
+\[CurlyPhi]\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-NN = {3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}
-M = {1, 10, 100, 1000, 100}\
-\>", "Input"],
+Cell[BoxData[{
+    \(NN = {3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\), "\n", 
+    \(M = {1, 10, 100, 1000, 100}\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-Do[{Do[{fhat = Table[Table[Random[Complex, {-0.5 - 0.5*I, 0.5 + \
-0.5*I}], {n, -k, k}], {k, 0, NN[[j]]}]; 
-      x = Table[{Random[Real, {0, 1/2}], Random[Real, {-(1/2), 1/2}]}, {m, 0, \
-M[[l]] - 1}]; 
-      f[\[Theta]_, \[CurlyPhi]_] := Sum[fhat[[k + 1]][[n + k + \
-1]]*mySphericalHarmonicY[k, n, \[Theta], \[CurlyPhi]], {k, 0, NN[[j]]}, {n, \
--k, k}]; 
-      fv = Table[f[2*Pi*x[[m + 1]][[1]], 2*Pi*x[[m + 1]][[2]]], {m, 0, M[[l]] \
-- 1}]; 
-      testfile = OpenWrite[StringJoin[\"test_ndsft_\", \
-StringTake[ToString[PaddedForm[NN[[j]], 3, NumberPadding -> {\"0\", \"\"}]], \
--4], \"_\", 
-         StringTake[ToString[PaddedForm[M[[l]], 4, NumberPadding -> {\"0\", \
-\"0\"}]], -5], \".dat\"]]; Write[testfile, NN[[j]]]; 
-      Write[testfile, M[[l]]]; Do[Do[{Write[testfile, Re[fhat[[k + 1]][[n + k \
-+ 1]]]], Write[testfile, Im[fhat[[k + 1]][[n + k + 1]]]]}, 
-        {n, -k, k}], {k, 0, NN[[j]]}]; Do[{Write[testfile, x[[m + 1]][[1]]], \
-Write[testfile, x[[m + 1]][[2]]]}, {m, 0, M[[l]] - 1}]; 
-      Do[{Write[testfile, Re[fv[[m + 1]]]], Write[testfile, Im[fv[[m + \
-1]]]]}, {m, 0, M[[l]] - 1}]; Close[testfile]; }, {l, 1, Length[M]}]}, 
-  {j, 1, Length[NN]}]\
-\>", "Input"],
+Cell[BoxData[
+    \(Do[{Do[{fhat = 
+              Table[Table[
+                  Random[Complex, {\(-0.5\) - 0.5\ \[ImaginaryI], 
+                      0.5 + 0.5\ \[ImaginaryI]}], {n, \(-k\), k}], {k, 0, 
+                  NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
+            x = Table[{Random[Real, {0, 1\/2}], 
+                  Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, 
+                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            f[\[Theta]_, \[CurlyPhi]_] := \[Sum]\+\(k = 0\)\%\(NN\
+\[LeftDoubleBracket]j\[RightDoubleBracket]\)\(\[Sum]\+\(n = \(-k\)\)\%k\( 
+                        fhat\[LeftDoubleBracket]k + 
+                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                      n + k + 1\[RightDoubleBracket]\ mySphericalHarmonicY[k, 
+                      n, \[Theta], \[CurlyPhi]]\); 
+            fv = Table[
+                f[2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                        m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 
+                  2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                        m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]], {m, 0, 
+                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            testfile = 
+              OpenWrite["\<test_ndsft_\>" <> 
+                  StringTake[
+                    ToString[
+                      PaddedForm[
+                        NN\[LeftDoubleBracket]j\[RightDoubleBracket], 3, 
+                        NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> StringTake[
+                    ToString[
+                      PaddedForm[M\[LeftDoubleBracket]l\[RightDoubleBracket], 
+                        4, NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \
+\(-5\)] <> "\<.dat\>"]; 
+            Write[testfile, NN\[LeftDoubleBracket]j\[RightDoubleBracket]]; 
+            Write[testfile, M\[LeftDoubleBracket]l\[RightDoubleBracket]]; 
+            Do[Do[{Write[testfile, 
+                    Re[\(fhat\[LeftDoubleBracket]
+                          k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                        n + k + 1\[RightDoubleBracket]]], 
+                  Write[testfile, 
+                    Im[\(fhat\[LeftDoubleBracket]
+                          k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                        n + k + 1\[RightDoubleBracket]]]}, {n, \(-k\), 
+                  k}], {k, 0, NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
+            Do[{Write[
+                  testfile, \(x\[LeftDoubleBracket]
+                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket]], 
+                Write[testfile, \(x\[LeftDoubleBracket]
+                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]]}, {m, 0, 
+                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            Do[{Write[testfile, 
+                  Re[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]], 
+                Write[testfile, 
+                  Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]]}, {m, 
+                0, M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            Close[testfile]; }, {l, 1, Length[M]}]}, {j, 1, 
+        Length[NN]}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-NTOTAL = 5; 
-M = 10; \
-\>", "Input"],
+Cell[BoxData[{
+    \(NTOTAL = 5; \), "\n", 
+    \(M = 10; \)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-fhat = Table[Table[Random[Complex, {-0.5 - 0.5*I, 0.5 + 0.5*I}], \
-{n, -k, k}], {k, 0, NTOTAL}]\
-\>", "Input"],
+Cell[BoxData[
+    \(fhat = 
+      Table[Table[
+          Random[Complex, {\(-0.5\) - 0.5\ \[ImaginaryI], 
+              0.5 + 0.5\ \[ImaginaryI]}], {n, \(-k\), k}], {k, 0, 
+          NTOTAL}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-x = Table[{Random[Real, {0, 1/2}], Random[Real, {-(1/2), 1/2}]}, \
-{m, 0, M - 1}]\
-\>", "Input"],
+Cell[BoxData[
+    \(x = 
+      Table[{Random[Real, {0, 1\/2}], 
+          Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, M - 1}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-fhat = {{0}, {1., 0., 0.5}}
-x = {{0.25, 0.}}\
-\>", "Input"],
+Cell[BoxData[{
+    \(fhat = {{0}, {1. , 0. , 0.5}}\), "\n", 
+    \(x = {{0.25, 0. }}\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-f[\[Theta]_, \[CurlyPhi]_] := Sum[fhat[[k + 1]][[n + k + \
-1]]*mySphericalHarmonicY[k, n, \[Theta], \[CurlyPhi]], {k, 0, NTOTAL}, {n, \
--k, k}]\
-\>", "Input"],
+Cell[BoxData[
+    \(f[\[Theta]_, \[CurlyPhi]_] := \[Sum]\+\(k = 0\)\%NTOTAL\(\[Sum]\+\(n = \
+\(-k\)\)\%k\( fhat\[LeftDoubleBracket]
+                k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+              n + k + 1\[RightDoubleBracket]\ mySphericalHarmonicY[k, 
+              n, \[Theta], \[CurlyPhi]]\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-fv = Table[f[2*Pi*x[[m + 1]][[1]], 2*Pi*x[[m + 1]][[2]]], {m, 0, M \
-- 1}]\
-\>", "Input"],
+Cell[BoxData[
+    \(fv = 
+      Table[f[2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 
+          2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]], {m, 0, M - 1}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["testfile = OpenWrite[\"test.dat\"]", "Input"],
+Cell[BoxData[
+    \(testfile = OpenWrite["\<test.dat\>"]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-Write[testfile, NTOTAL]
-Write[testfile, M]
-Do[Do[{Write[testfile, N[Re[fhat[[k + 1]][[n + k + 1]]]]], Write[testfile, \
-N[Im[fhat[[k + 1]][[n + k + 1]]]]]}, {n, -k, k}], {k, 0, NTOTAL}]
-Do[{Write[testfile, N[x[[m + 1]][[1]]]], Write[testfile, N[x[[m + \
-1]][[2]]]]}, {m, 0, M - 1}]
-Do[{Write[testfile, N[Re[fv[[m + 1]]]]], Write[testfile, N[Im[fv[[m + \
-1]]]]]}, {m, 0, M - 1}]\
-\>", "Input"],
+Cell[BoxData[{
+    \(Write[testfile, NTOTAL]\), "\n", 
+    \(Write[testfile, M]\), "\n", 
+    \(Do[Do[{Write[testfile, 
+            N[Re[\(fhat\[LeftDoubleBracket]
+                    k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                  n + k + 1\[RightDoubleBracket]]]], 
+          Write[testfile, 
+            N[Im[\(fhat\[LeftDoubleBracket]
+                    k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                  n + k + 1\[RightDoubleBracket]]]]}, {n, \(-k\), k}], {k, 0, 
+        NTOTAL}]\), "\n", 
+    \(Do[{Write[testfile, 
+          N[\(x\[LeftDoubleBracket]m + 
+                  1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket]]], 
+        Write[testfile, 
+          N[\(x\[LeftDoubleBracket]m + 
+                  1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]]]}, {m, 0, M - 1}]\), "\n", 
+    \(Do[{Write[testfile, 
+          N[Re[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]]], 
+        Write[testfile, 
+          N[Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]]]}, {m, 0, 
+        M - 1}]\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["Close[testfile]", "Input"],
+Cell[BoxData[
+    \(Close[testfile]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["\<\
-Simplify[mySphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]]\
-\>", \
-"Input"],
+Cell[BoxData[
+    \(Simplify[mySphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]]\)], "Input",\
 
-Cell["SphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]", "Input"],
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["N[f[Pi/2, 0], 16]", "Input"],
+Cell[BoxData[
+    \(SphericalHarmonicY[1, 1, \[Theta], \[CurlyPhi]]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["N[SphericalHarmonicY[1, 1, Pi/2, 0]]", "Input"],
+Cell[BoxData[
+    \(N[f[\[Pi]\/2, 0], 16]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell["N[Re[fv[[1]]]]", "Input"]
+Cell[BoxData[
+    \(N[SphericalHarmonicY[1, 1, \[Pi]\/2, 0]]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(N[Re[fv\[LeftDoubleBracket]1\[RightDoubleBracket]]]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
 },
 FrontEndVersion->"5.2 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 766}},
+WindowToolbars->{},
+CellGrouping->Manual,
 WindowSize->{1144, 739},
-WindowMargins->{{4, Automatic}, {Automatic, 1}}
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
+ShowCellLabel->True,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False}
 ]
 
 (*******************************************************************
@@ -167,23 +254,23 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 212, 5, 57, "Input"],
-Cell[1969, 58, 100, 3, 42, "Input"],
-Cell[2072, 63, 1190, 22, 222, "Input"],
-Cell[3265, 87, 46, 3, 42, "Input"],
-Cell[3314, 92, 120, 3, 27, "Input"],
-Cell[3437, 97, 106, 3, 27, "Input"],
-Cell[3546, 102, 69, 3, 42, "Input"],
-Cell[3618, 107, 168, 4, 27, "Input"],
-Cell[3789, 113, 99, 3, 27, "Input"],
-Cell[3891, 118, 51, 0, 27, "Input"],
-Cell[3945, 120, 402, 9, 102, "Input"],
-Cell[4350, 131, 32, 0, 27, "Input"],
-Cell[4385, 133, 86, 3, 27, "Input"],
-Cell[4474, 138, 64, 0, 27, "Input"],
-Cell[4541, 140, 34, 0, 27, "Input"],
-Cell[4578, 142, 53, 0, 27, "Input"],
-Cell[4634, 144, 31, 0, 27, "Input"]
+Cell[1754, 51, 340, 7, 52, "Input"],
+Cell[2097, 60, 160, 3, 43, "Input"],
+Cell[2260, 65, 3307, 61, 231, "Input"],
+Cell[5570, 128, 106, 3, 43, "Input"],
+Cell[5679, 133, 238, 6, 27, "Input"],
+Cell[5920, 141, 173, 4, 42, "Input"],
+Cell[6096, 147, 132, 3, 43, "Input"],
+Cell[6231, 152, 356, 6, 51, "Input"],
+Cell[6590, 160, 361, 8, 27, "Input"],
+Cell[6954, 170, 103, 2, 27, "Input"],
+Cell[7060, 174, 1133, 25, 91, "Input"],
+Cell[8196, 201, 82, 2, 27, "Input"],
+Cell[8281, 205, 128, 3, 27, "Input"],
+Cell[8412, 210, 114, 2, 27, "Input"],
+Cell[8529, 214, 88, 2, 39, "Input"],
+Cell[8620, 218, 107, 2, 39, "Input"],
+Cell[8730, 222, 118, 2, 27, "Input"]
 }
 ]
 *)
