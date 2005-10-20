@@ -380,6 +380,126 @@ void ndsft_trafo(nfsft_plan* plan)
 
 void ndsft_adjoint(nfsft_plan* plan)
 { 
+  /** Node index */
+  int m;
+   /** Legendre index k */
+  int k;
+  /** Legendre index n */
+  int n;
+  /** nleg = |n| */
+  int n_abs;
+  
+  /**
+   * Pointer to current three-term recurrence coefficient \f$\alpha_k^n\f$
+   * for associated Legendre functions \f$P_k^n\f$. 
+   */
+  double *alpha;
+  /**
+   * Pointer to current three-term recurrence coefficient \f$\beta_k^n\f$
+   * for associated Legendre functions \f$P_k^n\f$. 
+   */
+  double *gamma;
+  
+  /** Index used in Clenshaw algorithm. */
+  int index;
+  /** Pointer to auxilliary array for Clenshaw algorithm. */
+  complex *temp;
+   
+  /** Used to store the angles theta_d */
+  double *theta;
+  /** Used to store the angles phi_d */
+  double *phi;
+  
+  /* Allocate memory for auxilliary arrays. */
+  temp = (complex*) malloc (sizeof(complex) * (plan->N+1));
+  theta = (double*) malloc (sizeof(double) * plan->M_total);    
+  phi = (double*) malloc (sizeof(double) * plan->M_total);    
+  
+  /* Scale angles phi_j from [-0.5,0.5) to [-pi,pi) and angles \theta_j from 
+   * [0,0.5] to and [0,pi], respectively. */ 
+  for (m = 0; m < plan->M_total; m++)
+  {
+    theta[m] = 2.0*PI*plan->x[2*m];
+    phi[m] = 2.0*PI*plan->x[2*m+1];
+  }
+
+  for (n = -plan->N; n <= plan->N; n++)
+  {
+    for (k = abs(n); k <= plan->N; k++)
+    {
+      plan->f_hat[n+plan->N][k] = 0.0;
+    }  
+  }
+  
+  /* Distinguish by bandwidth N. */
+  if (plan->N == 0)
+  {
+    /* Constant function */
+    for (m = 0; m < plan->M_total; m++)
+    {
+      plan->f_hat[1] += plan->f[m];
+    }
+  }
+  else
+  { 
+    /* Apply cosine to angles theta_j. */
+    for (m = 0; m < plan->M_total; m++)
+    {
+       theta[m] = cos(theta[m]);
+    }
+    
+    for (m = 0; m < plan->M_total; m++)
+     {
+      for (n = -plan->N; n <= plan->N; n++)
+      {
+        /* Take absolute value of n. */
+        n_abs = abs(n);
+
+        /* Get three-term recurrence coefficients vectors. */
+        alpha = &(wisdom.alpha[ROWK(n_abs)]);
+        gamma = &(wisdom.gamma[ROWK(n_abs)]);
+        
+        temp[n_abs] = plan->f[m] * cexp(-I*n*phi[m]) * wisdom.gamma[ROW(n_abs)] *
+          pow(1- theta[m] * theta[m], 0.5*n_abs);
+                
+        /* Compute final step if neccesary. */
+        if (n_abs < plan->N)
+        {  
+          temp[n_abs+1] = temp[n_abs] * wisdom.alpha[ROWK(n_abs)+1] * theta[m];
+        }
+
+        /* Clenshaw's algorithm */        
+        for (k = n_abs+2; k <= plan->N; k++)
+        {
+          index = k - n_abs;
+          temp[k] = alpha[index] * theta[m] * temp[k-1] + gamma[index] * temp[k-2];
+        }
+        
+        /* Copy result */
+        for (k = n_abs; k <= plan->N; k++)
+        {
+          plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT]+k] += temp[k];
+        }  
+       }      
+    }
+  }  
+  
+  if (plan->flags & NFSFT_NORMALIZED)
+  {
+    for (k = 0; k <= plan->N; k++)
+    {
+      for (n = -k; n <= k; n++)
+      {
+        plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+          sqrt((2*k+1)/(4.0*PI));
+      }
+    }
+  }
+    
+  /* Free auxilliary arrays. */
+  free(phi);
+  free(theta);
+  free(temp);
 }
 
 void nfsft_trafo(nfsft_plan* plan)
