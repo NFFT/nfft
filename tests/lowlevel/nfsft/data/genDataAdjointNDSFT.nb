@@ -1,0 +1,176 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      5651,        132]*)
+(*NotebookOutlinePosition[      6492,        161]*)
+(*  CellTagsIndexPosition[      6448,        157]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(mySphericalHarmonicY[k_, 
+        n_, \[Theta]_, \[CurlyPhi]_] := \@\(\(2\ k + 1\)\/\(4\ \[Pi]\)\)\ \
+\@\(\(\((k - Abs[n])\)!\)\/\(\((k + Abs[n])\)!\)\)\ \((\(-1\))\)\^n\ \
+LegendreP[k, Abs[n], 
+          Cos[\[Theta]]]\ \[ExponentialE]\^\(\[ImaginaryI]\ n\ \
+\[CurlyPhi]\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[{
+    \(NN = {0, 1, 2, 3, 4, 8, 16, 32}\), "\n", 
+    \(M = {1, 10, 100, 1000}\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(Do[{Do[{f = 
+              Table[Random[
+                  Complex, {\(-0.5\) - 0.5\ \[ImaginaryI], 
+                    0.5 + 0.5\ \[ImaginaryI]}], {m, 0, 
+                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            x = Table[{Random[Real, {0, 1\/2}], 
+                  Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, 
+                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            fhat[k, n] := \[Sum]\+\(m = 0\)\%\(M\[LeftDoubleBracket]l\
+\[RightDoubleBracket] - 1\)f\[LeftDoubleBracket]m + 1\[RightDoubleBracket]*\ 
+                  mySphericalHarmonicY[k, n, 
+                    2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                          m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 
+                    2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                          m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]]; 
+            fhatv = Table[
+                Table[fhat[k, n], {n, \(-k\), k}], {k, 0, 
+                  NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
+            testfile = 
+              OpenWrite["\<test_adjoint_ndsft_\>" <> 
+                  StringTake[
+                    ToString[
+                      PaddedForm[
+                        NN\[LeftDoubleBracket]j\[RightDoubleBracket], 3, 
+                        NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> StringTake[
+                    ToString[
+                      PaddedForm[M\[LeftDoubleBracket]l\[RightDoubleBracket], 
+                        4, NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \
+\(-5\)] <> "\<.dat\>"]; \[IndentingNewLine]Write[testfile, 
+              NN\[LeftDoubleBracket]
+                j\[RightDoubleBracket]]; \[IndentingNewLine]Write[testfile, 
+              M\[LeftDoubleBracket]
+                l\[RightDoubleBracket]]; \[IndentingNewLine]Do[{Write[
+                  testfile, 
+                  N[Re[f\[LeftDoubleBracket]m + 1\[RightDoubleBracket]], 
+                    32]], Write[testfile, 
+                  N[Im[f\[LeftDoubleBracket]m + 1\[RightDoubleBracket]], 
+                    32]]}, {m, 0, 
+                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 
+                  1}]; \[IndentingNewLine]Do[{Write[testfile, 
+                  N[\(x\[LeftDoubleBracket]m + 
+                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 32]], 
+                Write[testfile, 
+                  N[\(x\[LeftDoubleBracket]m + 
+                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket], 32]]}, {m, 0, 
+                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+            Do[Do[{Write[testfile, 
+                    N[Re[\(fhatv\[LeftDoubleBracket]
+                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                          n + k + 1\[RightDoubleBracket]], 32]], 
+                  Write[testfile, 
+                    N[Im[\(fhatv\[LeftDoubleBracket]
+                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]n \
++ k + 1\[RightDoubleBracket]], 32]]}, {n, \(-k\), k}], {k, 0, 
+                NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; \
+\[IndentingNewLine]Close[testfile];\[IndentingNewLine]}, {l, 1, 
+            Length[M]}]}, {j, 1, Length[NN]}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[""], "Input"]
+},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
+WindowToolbars->{},
+CellGrouping->Manual,
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
+ShowCellLabel->True,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 340, 7, 62, "Input"],
+Cell[2097, 60, 139, 3, 43, "Input"],
+Cell[2239, 65, 3379, 63, 311, "Input"],
+Cell[5621, 130, 26, 0, 27, "Input"]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
