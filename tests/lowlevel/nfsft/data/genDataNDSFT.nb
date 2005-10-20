@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      9106,        241]*)
-(*NotebookOutlinePosition[      9947,        270]*)
-(*  CellTagsIndexPosition[      9903,        266]*)
+(*NotebookOptionsPosition[     10492,        271]*)
+(*NotebookOutlinePosition[     11333,        300]*)
+(*  CellTagsIndexPosition[     11289,        296]*)
 (*WindowFrame->Normal*)
 
 
@@ -66,7 +66,7 @@ Cell[BoxData[{
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \({1, 2, 3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\)], "Output"],
+    \({0, 1, 2, 3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\)], "Output"],
 
 Cell[BoxData[
     \({1, 10, 100, 100}\)], "Output"]
@@ -112,30 +112,60 @@ Cell[BoxData[
             Write[testfile, NN\[LeftDoubleBracket]j\[RightDoubleBracket]]; 
             Write[testfile, M\[LeftDoubleBracket]l\[RightDoubleBracket]]; 
             Do[Do[{Write[testfile, 
-                    Re[\(fhat\[LeftDoubleBracket]
-                          k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                        n + k + 1\[RightDoubleBracket]]], 
+                    N[Re[\(fhat\[LeftDoubleBracket]
+                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                          n + k + 1\[RightDoubleBracket]], 16]], 
                   Write[testfile, 
-                    Im[\(fhat\[LeftDoubleBracket]
-                          k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                        n + k + 1\[RightDoubleBracket]]]}, {n, \(-k\), 
+                    N[Im[\(fhat\[LeftDoubleBracket]
+                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                          n + k + 1\[RightDoubleBracket]], 16]]}, {n, \(-k\), 
                   k}], {k, 0, NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
-            Do[{Write[
-                  testfile, \(x\[LeftDoubleBracket]
-                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
-\[RightDoubleBracket]], 
-                Write[testfile, \(x\[LeftDoubleBracket]
-                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
-\[RightDoubleBracket]]}, {m, 0, 
+            Do[{Write[testfile, 
+                  N[\(x\[LeftDoubleBracket]m + 
+                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 16]], 
+                Write[testfile, 
+                  N[\(x\[LeftDoubleBracket]m + 
+                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket], 16]]}, {m, 0, 
                 M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
             Do[{Write[testfile, 
-                  Re[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]], 
-                Write[testfile, 
-                  Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]]}, {m, 
-                0, M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+                  N[Re[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]], 
+                    16]], Write[testfile, 
+                  N[Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]], 
+                    16]]}, {m, 0, 
+                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
             Close[testfile];}, {l, 1, Length[M]}]}, {j, 1, 
         Length[NN]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    RowBox[{\(\[Infinity]::"indet"\), \(\(:\)\(\ \)\), "\<\"Indeterminate \
+expression \\!\\(0\\\\ ComplexInfinity\\) encountered. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::indet\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(\[Infinity]::"indet"\), \(\(:\)\(\ \)\), "\<\"Indeterminate \
+expression \\!\\(0\\\\ ComplexInfinity\\) encountered. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::indet\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(\[Infinity]::"indet"\), \(\(:\)\(\ \)\), "\<\"Indeterminate \
+expression \\!\\(0\\\\ ComplexInfinity\\) encountered. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::indet\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(\[Infinity] :: \\\"indet\\\"\\) will be suppressed during this \
+calculation. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], "Message"],
 
 Cell[BoxData[
     \($Aborted\)], "Output"]
@@ -273,28 +303,32 @@ Cell[1754, 51, 340, 7, 62, "Input"],
 
 Cell[CellGroupData[{
 Cell[2119, 62, 163, 3, 43, "Input"],
-Cell[2285, 67, 82, 1, 27, "Output"],
-Cell[2370, 70, 51, 1, 27, "Output"]
+Cell[2285, 67, 85, 1, 27, "Output"],
+Cell[2373, 70, 51, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[2458, 76, 3306, 61, 250, "Input"],
-Cell[5767, 139, 42, 1, 27, "Output"]
+Cell[2461, 76, 3408, 63, 266, "Input"],
+Cell[5872, 141, 311, 5, 20, "Message"],
+Cell[6186, 148, 311, 5, 20, "Message"],
+Cell[6500, 155, 311, 5, 20, "Message"],
+Cell[6814, 162, 336, 5, 20, "Message"],
+Cell[7153, 169, 42, 1, 27, "Output"]
 }, Open  ]],
-Cell[5824, 143, 106, 3, 43, "Input"],
-Cell[5933, 148, 238, 6, 27, "Input"],
-Cell[6174, 156, 173, 4, 44, "Input"],
-Cell[6350, 162, 132, 3, 43, "Input"],
-Cell[6485, 167, 356, 6, 52, "Input"],
-Cell[6844, 175, 361, 8, 27, "Input"],
-Cell[7208, 185, 103, 2, 27, "Input"],
-Cell[7314, 189, 1133, 25, 91, "Input"],
-Cell[8450, 216, 82, 2, 27, "Input"],
-Cell[8535, 220, 128, 3, 27, "Input"],
-Cell[8666, 225, 114, 2, 27, "Input"],
-Cell[8783, 229, 88, 2, 40, "Input"],
-Cell[8874, 233, 107, 2, 40, "Input"],
-Cell[8984, 237, 118, 2, 27, "Input"]
+Cell[7210, 173, 106, 3, 43, "Input"],
+Cell[7319, 178, 238, 6, 27, "Input"],
+Cell[7560, 186, 173, 4, 44, "Input"],
+Cell[7736, 192, 132, 3, 43, "Input"],
+Cell[7871, 197, 356, 6, 52, "Input"],
+Cell[8230, 205, 361, 8, 27, "Input"],
+Cell[8594, 215, 103, 2, 27, "Input"],
+Cell[8700, 219, 1133, 25, 91, "Input"],
+Cell[9836, 246, 82, 2, 27, "Input"],
+Cell[9921, 250, 128, 3, 27, "Input"],
+Cell[10052, 255, 114, 2, 27, "Input"],
+Cell[10169, 259, 88, 2, 40, "Input"],
+Cell[10260, 263, 107, 2, 40, "Input"],
+Cell[10370, 267, 118, 2, 27, "Input"]
 }
 ]
 *)

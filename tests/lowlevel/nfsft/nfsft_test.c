@@ -34,6 +34,12 @@
 /* Include CUnit header. */
 #include <CUnit/CUnit.h>
 
+/** Maximum filename length */
+#define FILENAME_LENGTH_MAX 50
+
+/** Name of the file containing the test data filenames. */
+const char TESTFILES[] = "ndsft.txt\0";
+
 /* Default threshold. Not important here since NDSFT-algorithm is used. */
 #define THRESHOLD 1000.0
 
@@ -55,86 +61,103 @@ void test_ndsft_trafo(void)
   int m;
   /** Auxilliary variables used to read in complex numbers. */
   double d1,d2;
+  /** The file containing the names of the testdata files. */
+  FILE *testfiles;
   /** The file containg the testcase data */
   FILE *file;
+  /** Name of file containing test data. */
+  char filename[FILENAME_LENGTH_MAX+1];
   //char filename[50] = "../../../../../../test.dat";
   //char filename[50] = "data/test_ndsft_0002_00010.dat";
 
-  fprintf(stdout,"ndsft_trafo: ");
+  /* Tell what we're doing. */
+  fprintf(stdout,"ndsft_trafo: Testing ndsft_trafo ...\n");
 
-  fprintf(stdout,"filename = %s",filename);
-  /* Open input file. */ 
-  file = fopen(filename,"r");
-  /* Check if file was opened successfully. */
-  if (file != NULL)
+  /* Try to open file containing the names of the test data files. */
+  testfiles = fopen("TESTFILES","r");
+
+  /* Test if successful. */
+  if (testfiles == NULL)
   {
-    /* Read in bandwidth. */
-    fscanf(file,"%d",&N);
-    fprintf(stdout,", N = %d",N);
-    /* Read in number of nodes. */
-    fscanf(file,"%d",&M);
-    fprintf(stdout,", M = %d ...",M);
-    /* Precompute. */
-    nfsft_precompute(N,THRESHOLD,0U);
-    /* Initialise plan. */
-    nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
-      NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
-    /* Read in spherical Fourier coefficients. */
-    for (k = 0; k <= N; k++)
+    CU_FAIL("Couldn't open %s to read test data filenames!");      
+  }
+
+  while (fscanf(testfiles,"%s",filename) == 1)
+  { 
+    fprintf(stdout,"filename = %s",filename);
+    /* Open input file. */ 
+    file = fopen(filename,"r");
+    /* Check if file was opened successfully. */
+    if (file != NULL)
     {
-      for (n = -k; n <= k; n++)
+      /* Read in bandwidth. */
+      fscanf(file,"%d",&N);
+      fprintf(stdout,", N = %d",N);
+      /* Read in number of nodes. */
+      fscanf(file,"%d",&M);
+      fprintf(stdout,", M = %d ...",M);
+      /* Precompute. */
+      nfsft_precompute(N,THRESHOLD,0U);
+      /* Initialise plan. */
+      nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
+        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
+      /* Read in spherical Fourier coefficients. */
+      for (k = 0; k <= N; k++)
+      {
+        for (n = -k; n <= k; n++)
+        {
+          fscanf(file,"%lf",&d1);
+          fscanf(file,"%lf",&d2);
+          plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = d1 + I*d2;
+        }
+      }
+      /* Read in nodes. */
+      for (m = 0; m < plan.M_total; m++)
       {
         fscanf(file,"%lf",&d1);
         fscanf(file,"%lf",&d2);
-        plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = d1 + I*d2;
+        plan.x[2*m] = d1;
+        plan.x[2*m+1] = d2;
       }
-    }
-    /* Read in nodes. */
-    for (m = 0; m < plan.M_total; m++)
-    {
-      fscanf(file,"%lf",&d1);
-      fscanf(file,"%lf",&d2);
-      plan.x[2*m] = d1;
-      plan.x[2*m+1] = d2;
-    }
-    /* Read in reference samples. */
-    f_orig = (complex*) malloc(M*sizeof(complex));
-    for (m = 0; m < M; m++)
-    {
-      fscanf(file,"%lf",&d1);
-      fscanf(file,"%lf",&d2);
-      f_orig[m] = d1 + I*d2;
-    }
-    /* Execute the plan. */
-    ndsft_trafo(&plan);
-    /* Check result */
-    fprintf(stdout,"\n");
-    for (m = 0; m < M; m++)
-    {
-      fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-        m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-      if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
+      /* Read in reference samples. */
+      f_orig = (complex*) malloc(M*sizeof(complex));
+      for (m = 0; m < M; m++)
       {
-        fprintf(stdout," wrong result: f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-          m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-        return;// EXIT_FAILURE;
+        fscanf(file,"%lf",&d1);
+        fscanf(file,"%lf",&d2);
+        f_orig[m] = d1 + I*d2;
       }
-    }    
-    /* Free memory. */
-    free(f_orig);
-    /* Destroy the plan. */
-    nfsft_finalize(&plan);
-    /* CLose the file. */
-    fclose(file);
-    /* Test passed. */
-    fprintf(stdout," ok\n");
-    
-  }
-  else
-  {
-    fprintf(stdout,", Couldn't open file!\n");
-    return;// EXIT_FAILURE;
-  }
+      /* CLose the file. */
+      fclose(file);
+      /* Execute the plan. */
+      ndsft_trafo(&plan);
+      /* Check result */
+      fprintf(stdout,"\n");
+      for (m = 0; m < M; m++)
+      {
+        /*fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
+          m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));*/
+        if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
+        {
+          fprintf(stdout," failed\n  f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
+            m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
+          CU_FAIL("Wrong result");  
+        }
+      }    
+      /* Destroy the plan. */
+      nfsft_finalize(&plan);
+      /* Free memory. */
+      free(f_orig);
+      /* Test passed. */
+      fprintf(stdout," ok/n");
+      CU_PASS("ok");
+    }
+    else
+    {
+      fprintf(stdout," failed: Couldn't open file %s./n",filename);
+      CU_FAIL("Couldn't open file!\n");
+    }
+  }  
 }
 
 /**
