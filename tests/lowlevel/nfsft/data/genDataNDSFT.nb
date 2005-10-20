@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8852,        226]*)
-(*NotebookOutlinePosition[      9701,        255]*)
-(*  CellTagsIndexPosition[      9657,        251]*)
+(*NotebookOptionsPosition[      9106,        241]*)
+(*NotebookOutlinePosition[      9947,        270]*)
+(*  CellTagsIndexPosition[      9903,        266]*)
 (*WindowFrame->Normal*)
 
 
@@ -58,10 +58,21 @@ LegendreP[k, Abs[n],
 \[CurlyPhi]\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
+Cell[CellGroupData[{
+
 Cell[BoxData[{
-    \(NN = {3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\), "\n", 
-    \(M = {1, 10, 100, 1000, 100}\)}], "Input",
+    \(NN = {0, 1, 2, 3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\), "\n", 
+    \(M = {1, 10, 100, 100}\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \({1, 2, 3, 4, 8, 16, 32, 64, 128, 256, 512, 1024}\)], "Output"],
+
+Cell[BoxData[
+    \({1, 10, 100, 100}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[{Do[{fhat = 
@@ -122,9 +133,13 @@ Cell[BoxData[
                 Write[testfile, 
                   Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]]}, {m, 
                 0, M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
-            Close[testfile]; }, {l, 1, Length[M]}]}, {j, 1, 
+            Close[testfile];}, {l, 1, Length[M]}]}, {j, 1, 
         Length[NN]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]],
 
 Cell[BoxData[{
     \(NTOTAL = 5; \), "\n", 
@@ -224,12 +239,12 @@ Cell[BoxData[
     \(N[Re[fv\[LeftDoubleBracket]1\[RightDoubleBracket]]]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1144, 739},
-WindowMargins->{{4, Automatic}, {Automatic, 1}},
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -254,23 +269,32 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 340, 7, 52, "Input"],
-Cell[2097, 60, 160, 3, 43, "Input"],
-Cell[2260, 65, 3307, 61, 231, "Input"],
-Cell[5570, 128, 106, 3, 43, "Input"],
-Cell[5679, 133, 238, 6, 27, "Input"],
-Cell[5920, 141, 173, 4, 42, "Input"],
-Cell[6096, 147, 132, 3, 43, "Input"],
-Cell[6231, 152, 356, 6, 51, "Input"],
-Cell[6590, 160, 361, 8, 27, "Input"],
-Cell[6954, 170, 103, 2, 27, "Input"],
-Cell[7060, 174, 1133, 25, 91, "Input"],
-Cell[8196, 201, 82, 2, 27, "Input"],
-Cell[8281, 205, 128, 3, 27, "Input"],
-Cell[8412, 210, 114, 2, 27, "Input"],
-Cell[8529, 214, 88, 2, 39, "Input"],
-Cell[8620, 218, 107, 2, 39, "Input"],
-Cell[8730, 222, 118, 2, 27, "Input"]
+Cell[1754, 51, 340, 7, 62, "Input"],
+
+Cell[CellGroupData[{
+Cell[2119, 62, 163, 3, 43, "Input"],
+Cell[2285, 67, 82, 1, 27, "Output"],
+Cell[2370, 70, 51, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2458, 76, 3306, 61, 250, "Input"],
+Cell[5767, 139, 42, 1, 27, "Output"]
+}, Open  ]],
+Cell[5824, 143, 106, 3, 43, "Input"],
+Cell[5933, 148, 238, 6, 27, "Input"],
+Cell[6174, 156, 173, 4, 44, "Input"],
+Cell[6350, 162, 132, 3, 43, "Input"],
+Cell[6485, 167, 356, 6, 52, "Input"],
+Cell[6844, 175, 361, 8, 27, "Input"],
+Cell[7208, 185, 103, 2, 27, "Input"],
+Cell[7314, 189, 1133, 25, 91, "Input"],
+Cell[8450, 216, 82, 2, 27, "Input"],
+Cell[8535, 220, 128, 3, 27, "Input"],
+Cell[8666, 225, 114, 2, 27, "Input"],
+Cell[8783, 229, 88, 2, 40, "Input"],
+Cell[8874, 233, 107, 2, 40, "Input"],
+Cell[8984, 237, 118, 2, 27, "Input"]
 }
 ]
 *)
