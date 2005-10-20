@@ -74,12 +74,16 @@ void test_ndsft_trafo(void)
   fprintf(stdout,"ndsft_trafo: Testing ndsft_trafo ...\n");
 
   /* Try to open file containing the names of the test data files. */
-  testfiles = fopen("TESTFILES","r");
+  testfiles = fopen(TESTFILES,"r");
+
+  fprintf(stdout,"%d\n",testfiles);
+  fflush(stdout);
 
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!");      
+    CU_FAIL("Couldn't open %s to read test data filenames!\n");      
+    return;
   }
 
   while (fscanf(testfiles,"%s",filename) == 1)
@@ -126,13 +130,14 @@ void test_ndsft_trafo(void)
         fscanf(file,"%lf",&d1);
         fscanf(file,"%lf",&d2);
         f_orig[m] = d1 + I*d2;
+        //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
       }
+      
       /* CLose the file. */
       fclose(file);
       /* Execute the plan. */
       ndsft_trafo(&plan);
       /* Check result */
-      fprintf(stdout,"\n");
       for (m = 0; m < M; m++)
       {
         /*fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
@@ -146,15 +151,17 @@ void test_ndsft_trafo(void)
       }    
       /* Destroy the plan. */
       nfsft_finalize(&plan);
+      /* Forget precomputed data. */
+      nfsft_forget();
       /* Free memory. */
       free(f_orig);
       /* Test passed. */
-      fprintf(stdout," ok/n");
+      fprintf(stdout," ok\n");
       CU_PASS("ok");
     }
     else
     {
-      fprintf(stdout," failed: Couldn't open file %s./n",filename);
+      fprintf(stdout," failed: Couldn't open file %s.\n",filename);
       CU_FAIL("Couldn't open file!\n");
     }
   }  
