@@ -96,6 +96,7 @@ AC_OUTPUT(Makefile \
           examples/highlevel/fastgauss/Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \
+          examples/radon/Makefile \
           tests/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
