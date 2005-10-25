@@ -1,1 +1,1 @@
-SUBDIRS = correctness regularity performance
+SUBDIRS = correctness regularity performance interpolation

@@ -1,4 +1,5 @@
 AM_CFLAGS = -Wall -I$(top_srcdir)/include
+AM_CPPFLAGS = -D DEBUG_RESIDUUM -D DEBUG_CONVERGENCE_QUALITY -D DEBUG_N
 
 ## The program name
 noinst_PROGRAMS = regularityTest

@@ -93,6 +93,7 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/texture/correctness/Makefile \
           examples/lowlevel/texture/regularity/Makefile \
           examples/lowlevel/texture/performance/Makefile \
+          examples/lowlevel/texture/interpolation/Makefile \
           examples/highlevel/fastgauss/Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \

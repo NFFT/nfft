@@ -18,7 +18,9 @@ typedef struct iteration_param_set_ {
 	int iterations_without_check;
 } iteration_param_set;
 
-const char *grid_id_descr[] = { "equidistant theta - equidistant phi" };
+const char *grid_id_descr[] = { "equidistant theta - equidistant phi",
+	"file"
+};
 const char *starting_point_policy_descr[] = { "zero" };
 const char *solver_algorithm_id_descr[] = { "CGNR" };
 const char *weight_policy_descr[] = { "one" };
@@ -26,6 +28,8 @@ const char *omega_ref_policy_descr[] = { "rectangle" };
 
 typedef struct solver_param_set_ {
 	int grid_id;
+	char grid_file_h[100];
+	char grid_file_r[100];
 	int starting_point_policy;
 	int solver_algorithm_id;
 	int weight_policy;
@@ -124,9 +128,10 @@ inline double equidist(double start, double end, double i, double n,
 	return start + (end - start) * ((double) i) / ((double) (n - 1));
 }
 
-void make_grid_h(double *h_phi, double *h_theta, int N1, int grid_id)
+void make_grid_h(double *h_phi, double *h_theta, int N1,
+								 const solver_param_set * sol_par)
 {
-	switch (grid_id) {
+	switch (sol_par->grid_id) {
 		case 0:
 		{
 			int theta_count = determine_theta_count(N1);
@@ -197,15 +202,33 @@ void make_grid_h(double *h_phi, double *h_theta, int N1, int grid_id)
 
 			break;
 		}
+		case 1:
+		{
+			FILE *inp_file = fopen(sol_par->grid_file_h, "r");
+			int N1_file, i;
+
+			fscanf(inp_file, "%d", &N1_file);
+			if (N1_file != N1) {
+				output_warning("The N1 in the input file for h and the N1 of the ");
+				output_warning("testcase differ!\n");
+			}
+
+			for (i = 0; i < N1; i++) {
+				fscanf(inp_file, "%lg%lg", &(h_phi[i]), &(h_theta[i]));
+			}
+
+			fclose(inp_file);
+			break;
+		}
 		default:
-			printf("Illegal params.solver.grid_id: %d\n", grid_id);
+			printf("Illegal params.solver.grid_id: %d\n", sol_par->grid_id);
 			exit(-1);
 	}
 }
 
-void make_grid_r(double *r, int N1, int N2, int grid_id)
+void make_grid_r(double *r, int N1, int N2, const solver_param_set * sol_par)
 {
-	switch (grid_id) {
+	switch (sol_par->grid_id) {
 		case 0:
 			if (N1 > 0) {
 				int theta_count = determine_theta_count(N2);
@@ -282,8 +305,30 @@ void make_grid_r(double *r, int N1, int N2, int grid_id)
 				}
 			}
 			break;
+		case 1:
+		{
+			FILE *inp_file = fopen(sol_par->grid_file_r, "r");
+			int N2_file, j, i;
+
+			fscanf(inp_file, "%d", &N2_file);
+			if (N2 != N2_file) {
+				output_warning("The N2 in the input file for r and the ");
+				output_warning("N2 of the testcase differ!\n");
+			}
+
+			for (j = 0; j < N2; j++) {
+				fscanf(inp_file, "%lg%lg", &(r[2 * j]), &(r[2 * j + 1]));
+			}
+
+			for (i = 1; i < N1; i++) {
+				memcpy(&(r[2 * i * N2]), r, N2 * 2 * sizeof(double));
+			}
+
+			fclose(inp_file);
+			break;
+		}
 		default:
-			printf("Illegal params.solver.grid_id: %d\n", grid_id);
+			printf("Illegal params.solver.grid_id: %d\n", sol_par->grid_id);
 			exit(-1);
 	}
 }
@@ -386,7 +431,8 @@ double dist_0(const complex * vec, const complex * ref, unsigned int length)
 
 int is_regular_helper(int N1_new, int N2_new, int N,
 											const iteration_param_set * it_par,
-											const solver_param_set * sol_par, int clean_up)
+											const solver_param_set * sol_par, double *max_res,
+											int clean_up)
 {
 	static int N1 = 0, N2 = 0;
 	static double *h_phi = 0, *h_theta = 0, *r = 0;
@@ -421,8 +467,8 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 				N1 = N1_new;
 				N2 = N2_new;
 
-				make_grid_h(h_phi, h_theta, N1, sol_par->grid_id);
-				make_grid_r(r, N1, N2, sol_par->grid_id);
+				make_grid_h(h_phi, h_theta, N1, sol_par);
+				make_grid_r(r, N1, N2, sol_par);
 			}
 
 			make_omega_ref(omega_ref, texture_flat_length(N),
@@ -471,16 +517,22 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 					new_res =
 						res_dist(texture_get_x(&test_plan), iplan.y,
 										 texture_get_x_length(&test_plan));
-					//printf("residuum: %lg\n", new_res);
+#ifdef DEBUG_RESIDUUM
+					printf("residuum: %lg\n", new_res);
+					fflush(0);
+#endif
 				} while (old_res > 0 && new_res > it_par->res_delta
 								 && (old_res - new_res) / old_res >= it_par->min_improve);
 
+#ifdef DEBUG_CONVERGENCE_QUALITY
 				if (new_res > it_par->res_delta) {
 					char message[100];
 
 					sprintf(message, "No convergence, residuum was %lg!", new_res);
 					output_warning(message);
 				}
+#endif
+				*max_res = MAX(*max_res, new_res);
 
 				success =
 					(err_dist
@@ -506,46 +558,58 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 }
 
 int is_regular(int N1, int N2, int N, const iteration_param_set * it_par,
-							 const solver_param_set * sol_par)
+							 const solver_param_set * sol_par, double *max_res)
 {
-	return is_regular_helper(N1, N2, N, it_par, sol_par, 0);
+	return is_regular_helper(N1, N2, N, it_par, sol_par, max_res, 0);
 }
 
 int determine_max_N(int N1, int N2, int N_hint,
 										const iteration_param_set * it_par,
-										const solver_param_set * sol_par)
+										const solver_param_set * sol_par, double *max_res)
 {
 	int N_max = MAX(1, N_hint);
 	int N_min = N_max;
-	if (is_regular(N1, N2, N_max, it_par, sol_par)) {
+	if (is_regular(N1, N2, N_max, it_par, sol_par, max_res)) {
 		do {
+#ifdef DEBUG_N
 			printf("regular: %d\n", N_max);
 			fflush(0);
+#endif
 			N_min = N_max;
 			N_max *= 2;
-		} while (is_regular(N1, N2, N_max, it_par, sol_par));
+		} while (is_regular(N1, N2, N_max, it_par, sol_par, max_res));
+#ifdef DEBUG_N
 		printf("not regular: %d\n", N_max);
 		fflush(0);
+#endif
 	} else {
 		do {
+#ifdef DEBUG_N
 			printf("not regular: %d\n", N_min);
 			fflush(0);
+#endif
 			N_max = N_min;
 			N_min /= 2;
-		} while (!is_regular(N1, N2, N_min, it_par, sol_par));
+		} while (!is_regular(N1, N2, N_min, it_par, sol_par, max_res));
+#ifdef DEBUG_N
 		printf("regular: %d\n", N_min);
 		fflush(0);
+#endif
 	}
 
 	while (N_max - N_min > 1) {
 		int N = (N_max + N_min) / 2;
-		if (is_regular(N1, N2, N, it_par, sol_par)) {
+		if (is_regular(N1, N2, N, it_par, sol_par, max_res)) {
+#ifdef DEBUG_N
 			printf("regular: %d\n", N);
 			fflush(0);
+#endif
 			N_min = N;
 		} else {
+#ifdef DEBUG_N
 			printf("not regular: %d\n", N);
 			fflush(0);
+#endif
 			N_max = N;
 		}
 	}
@@ -572,6 +636,8 @@ void output_preliminaries(const param_set * params)
 	printf("# solver parameters:\n");
 	printf("# grid_id: %d (%s)\n", sol_par->grid_id,
 				 grid_id_descr[sol_par->grid_id]);
+	printf("# grid_file_h: %s\n", sol_par->grid_file_h);
+	printf("# grid_file_r: %s\n", sol_par->grid_file_r);
 	printf("# starting_point_policy: %d (%s)\n",
 				 sol_par->starting_point_policy,
 				 starting_point_policy_descr[sol_par->starting_point_policy]);
@@ -635,22 +701,78 @@ void output_N_curve_point(int x, int y, const param_set * params)
 
 void determine_N_curve_0(const param_set * params)
 {
-	const test_case_param_set_0 *tc_par = &params->test_case.c0;
-	int N1, N2, old_N, new_N, iter_without_improve;
+#ifdef PARALLEL
+	{
+		int N1_num = (tc_par->N1_end - tc_par_N1_start) / tc_par->N1_incr + 1;
+		int N2_num = (tc_par->N2_end - tc_par_N2_start) / tc_par->N2_incr + 1;
+		int curve_size = N1_num * N2_num;
+		int *N_val = (int *) malloc(curve_size * sizeof(int));
+		double *max_res = (double *) malloc(curve_size * sizeof(double));
+		int *calculated = (int *) calloc(curve_size, sizeof(int));
+		int N1_val = (int *) malloc(curve_size * sizeof(int));
+		int N2_val = (int *) malloc(curve_size * sizeof(int));
 
-	output_N_curve_header(params);
 
-	for (N1 = tc_par->N1_start; N1 <= tc_par->N1_end; N1 += tc_par->N1_incr) {
-		output_N_curve_0_subheader(N1, params);
+		free(N_val);
+		free(N1_val);
+		free(N2_val);
+		free(calculated);
+		free(max_res);
+	}
+#else
+	{
+		const test_case_param_set_0 *tc_par = &params->test_case.c0;
+		int N1, N2, old_N, new_N, iter_without_improve;
+		double max_res = 0;
 
+		output_N_curve_header(params);
+
+		for (N1 = tc_par->N1_start; N1 <= tc_par->N1_end; N1 += tc_par->N1_incr) {
+			output_N_curve_0_subheader(N1, params);
+
+			new_N = -tc_par->N_min_improve;
+			for (N2 = tc_par->N2_start, iter_without_improve = 0;
+					 N2 <= tc_par->N2_end
+					 && iter_without_improve <= tc_par->max_iter_without_improve;
+					 N2 += tc_par->N2_incr) {
+				old_N = new_N;
+				new_N =
+					determine_max_N(N1, N2, old_N, &params->iteration, &params->solver,
+													&max_res);
+
+				if (new_N - old_N < tc_par->N_min_improve) {
+					iter_without_improve++;
+				} else {
+					iter_without_improve = 0;
+				}
+
+				output_N_curve_point(N2, new_N, params);
+			}
+		}
+	}
+#endif
+}
+
+void determine_N_curve_1(const param_set * params)
+{
+#ifdef PARALLEL
+#else
+	{
+		const test_case_param_set_1 *tc_par = &params->test_case.c1;
+		int N1, N2, old_N, new_N, iter_without_improve;
+		double max_res = 0;
+
+		output_N_curve_header(params);
 		new_N = -tc_par->N_min_improve;
-		for (N2 = tc_par->N2_start, iter_without_improve = 0;
-				 N2 <= tc_par->N2_end
+		for (N1 = tc_par->N1_start, iter_without_improve = 0;
+				 N1 <= tc_par->N1_end
 				 && iter_without_improve <= tc_par->max_iter_without_improve;
-				 N2 += tc_par->N2_incr) {
+				 N1 += tc_par->N1_incr) {
+			N2 = tc_par->alpha * N1;
 			old_N = new_N;
 			new_N =
-				determine_max_N(N1, N2, old_N, &params->iteration, &params->solver);
+				determine_max_N(N1, N2, old_N, &params->iteration, &params->solver,
+												&max_res);
 
 			if (new_N - old_N < tc_par->N_min_improve) {
 				iter_without_improve++;
@@ -658,35 +780,10 @@ void determine_N_curve_0(const param_set * params)
 				iter_without_improve = 0;
 			}
 
-			output_N_curve_point(N2, new_N, params);
+			output_N_curve_point(N1, new_N, params);
 		}
 	}
-}
-
-void determine_N_curve_1(const param_set * params)
-{
-	const test_case_param_set_1 *tc_par = &params->test_case.c1;
-	int N1, N2, old_N, new_N, iter_without_improve;
-
-	output_N_curve_header(params);
-	new_N = -tc_par->N_min_improve;
-	for (N1 = tc_par->N1_start, iter_without_improve = 0;
-			 N1 <= tc_par->N1_end
-			 && iter_without_improve <= tc_par->max_iter_without_improve;
-			 N1 += tc_par->N1_incr) {
-		N2 = tc_par->alpha * N1;
-		old_N = new_N;
-		new_N =
-			determine_max_N(N1, N2, old_N, &params->iteration, &params->solver);
-
-		if (new_N - old_N < tc_par->N_min_improve) {
-			iter_without_improve++;
-		} else {
-			iter_without_improve = 0;
-		}
-
-		output_N_curve_point(N1, new_N, params);
-	}
+#endif
 }
 
 void determine_N_curve(const param_set * params)
@@ -714,13 +811,13 @@ void init()
 
 void terminate()
 {
-	is_regular_helper(0, 0, 0, 0, 0, 1);
+	is_regular_helper(0, 0, 0, 0, 0, 0, 1);
 	texture_forget();
 }
 
 void usage()
 {
-	//TODO
+	// TODO
 	printf("Some hints about the usage.");
 }
 
@@ -733,7 +830,8 @@ void read_iteration_params(FILE * inp_file, iteration_param_set * param_set)
 
 void read_solver_params(FILE * inp_file, solver_param_set * param_set)
 {
-	fscanf(inp_file, "%d%d%d%d%d", &param_set->grid_id,
+	fscanf(inp_file, "%d\n%s\n%s\n%d%d%d%d", &param_set->grid_id,
+				 param_set->grid_file_h, param_set->grid_file_r,
 				 &param_set->starting_point_policy, &param_set->solver_algorithm_id,
 				 &param_set->weight_policy, &param_set->omega_ref_policy);
 }
@@ -764,13 +862,16 @@ void read_test_case_params(FILE * inp_file, test_case_param_set * param_set)
 void make_grid_test_case()
 {
 	int i, j;
+		solver_param_set sol_par;
+
+		sol_par.grid_id = 0;
 
 	{
 		int N1 = 10;
 		double h_phi[N1];
 		double h_theta[N1];
 
-		make_grid_h(h_phi, h_theta, N1, 0);
+		make_grid_h(h_phi, h_theta, N1, &sol_par);
 
 		for (i = 0; i < N1; i++) {
 			printf("%lg %lg\n", h_phi[i], h_theta[i]);
@@ -782,7 +883,7 @@ void make_grid_test_case()
 		int N1 = 3, N2 = 10;
 		double r[N1 * N2 * 2];
 
-		make_grid_r(r, N1, N2, 0);
+		make_grid_r(r, N1, N2, &sol_par);
 		for (i = 0; i < N1; i++) {
 			for (j = 0; j < N2; j++) {
 				printf("%lg %lg\n", r[2 * (i * N2 + j)], r[2 * (i * N2 + j) + 1]);
@@ -800,7 +901,7 @@ int main(int arglen, char *argv[])
 	const char *iteration_params = "iteration_parameters.inp";
 	const char *solver_params = "solver_parameters.inp";
 
-	//make_grid_test_case();
+	// make_grid_test_case();
 
 	if (arglen >= 2) {
 		test_cases = argv[1];
