@@ -128,10 +128,7 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
 /** user routines
  */
 MACRO_ndft(trafo)
-MACRO_ndft(conjugated)
 MACRO_ndft(adjoint)
-MACRO_ndft(transposed)
-
 
 /** fast computation of non equispaced fourier transforms
  *  require O(N^d log(N) + M_total) arithemtical operations
@@ -475,35 +472,6 @@ void nfft_trafo(nfft_plan *ths)
   T2(3);
 } /* nfft_trafo */
 
-void nfft_conjugated(nfft_plan *ths)
-{
-  /* use ths->my_fftw_plan2 */
-  ths->g_hat=ths->g2;
-  ths->g=ths->g1;
- 
-  /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
-   *  k \in I_N \f$
-   */  
-  T1;
-  nfft_D_A(ths);
-  T2(1);
-
-  /** compute by d-variate discrete Fourier transform
-   *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{+2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for } l \in I_n \f$
-   */
-  T1;
-  fftw_execute(ths->my_fftw_plan2);
-  T2(2);
-
-  /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } j=0,\hdots,M_total-1 \f$
-   */
-  T1;
-  nfft_B_A(ths);
-  T2(3);
-} /* nfft_conjugated */
-
 void nfft_adjoint(nfft_plan *ths)
 {
   /* use ths->my_fftw_plan2 */
@@ -532,36 +500,6 @@ void nfft_adjoint(nfft_plan *ths)
   nfft_D_T(ths);
   T2(3);
 } /* nfft_adjoint */
-
-void nfft_transposed(nfft_plan *ths)
-{
-  /* use ths->my_fftw_plan1 */
-  ths->g_hat=ths->g2;
-  ths->g=ths->g1;
-
-  /** set \f$ g_l = \sum_{j=0}^{M_total-1} f_j \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } l \in I_n,m(x_j) \f$
-   */
-  T1;
-  nfft_B_T(ths);
-  T2(1);
- 
-  /** compute by d-variate discrete Fourier transform
-   *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for }  k \in I_N\f$
-   */ 
-  T1;
-  fftw_execute(ths->my_fftw_plan1);
-  T2(2);
-  
-  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
-   *  k \in I_N \f$
-   */
-  T1;
-  nfft_D_T(ths);
-  T2(3);
-} /* nfft_transposed */
-
 
 /** initialisation of direct transform 
  */
