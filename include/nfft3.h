@@ -16,6 +16,10 @@ int M_total;                          /**< total number of samples        */\
 float_type *f_hat;                    /**< Fourier coefficients           */\
 float_type *f;                        /**< samples                        */\
  
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
 /** @defgroup nfft NFFT
  * Direct and fast computation of the
  * discrete Fourier transform at nonequispaced knots
@@ -257,6 +261,10 @@ void nfft_finalize(nfft_plan *ths);
 /** @} 
  */
 
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
 /** @defgroup nfct NFCT
  * direct and fast computation of the
  * discrete cosine transform at nonequispaced knots in time/spatial domain
@@ -472,6 +480,9 @@ int nfct_fftw_2N_rev( int n);
 /** @}  
  */
 
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
 
 /** @defgroup nfst NFST
  * direct and fast computation of the
@@ -712,8 +723,9 @@ int nfst_fftw_2N_rev( int n);
 /** @} 
  */ 
 
-
-
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
 
 /** @defgroup nnfft NNFFT
  * Direct and fast computation of the
@@ -906,52 +918,115 @@ void nnfft_finalize(nnfft_plan *ths_plan);
 /** @} 
  */
 
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
 /** @defgroup nsfft NSFFT
- * @{ 
+ * Direct and fast computation of the
+ * hyperbolic discrete Fourier transform at nonequispaced knots
+ * @{
  */
 typedef struct nsfft_plan_ 
 {
   MACRO_MV_PLAN(complex);
 
-  int d;                                /**< d=2,3                           */
+  int d;                                /**< dimension, rank; d=2,3          */
+  int J;                                /**< problem size, i.e.,
+                                             d=2: N_total=(J+4) 2^(J+1)
+                                             d=3: N_total=2^J 6(2^((J+1)/2+1)
+                                                          -1)+2^(3(J/2+1))   */
+  int sigma;                            /**< oversampling-factor             */
 
-  int J;                      
-  int sigma;
+  unsigned flags;                       /**< flags for precomputation, malloc*/
 
-  unsigned flags;
+  int *index_sparse_to_full;            /**< index conversation, 
+                                             overflow for d=3, J=9!          */
 
-  int *index_sparse_to_full;            /**< overflow for d=3, J=9!          */
+  int r_act_nfft_plan;                  /**< index of current nfft block     */
+  nfft_plan *act_nfft_plan;             /**< current nfft block              */
+  nfft_plan *center_nfft_plan;          /**< central nfft block              */
 
-  int r_act_nfft_plan;
-  nfft_plan *act_nfft_plan;
-  nfft_plan *center_nfft_plan;
+  fftw_plan* set_fftw_plan1;            /**< fftw plan for the nfft blocks   */
+  fftw_plan* set_fftw_plan2;            /**< fftw plan for the nfft blocks   */
+ 
+  nfft_plan *set_nfft_plan_1d;          /**< nfft plans for short nffts      */
+  nfft_plan *set_nfft_plan_2d;          /**< nfft plans for short nffts      */
 
-  fftw_plan* set_fftw_plan1;
-  fftw_plan* set_fftw_plan2;
-
-  nfft_plan *set_nfft_plan_1d;
-  nfft_plan *set_nfft_plan_2d;          /**< d=3                             */
-
-  double *x_transposed;                 /**< d=2                             */
-  double *x_102,*x_201,*x_120,*x_021;   /**< d=3                             */
+  double *x_transposed;                 /**< coordinate exchanged nodes, d=2 */
+  double *x_102,*x_201,*x_120,*x_021;   /**< coordinate exchanged nodes, d=3 */
   
 } nsfft_plan;
 
+/**
+ * Executes a NSDFT, computes
+ * for j=0,...,M-1                                                             
+ *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nsdft plan
+ *
+ * \author Stefan Kunis
+ */
 void nsdft_trafo(nsfft_plan *ths);
+
+/**
+ * Executes an ajoint NSDFT, computes
+ * for k in H_N^d                                                           
+ *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nsdft plan
+ *
+ * \author Stefan Kunis
+ */
 void nsdft_adjoint(nsfft_plan *ths);
 
+/**
+ * Executes a NSDFT, computes fast
+ * for j=0,...,M-1                                                             
+ *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nsdft plan
+ *
+ * \author Stefan Kunis
+ */
 void nsfft_trafo(nsfft_plan *ths);
+
+/**
+ * Executes a NSDFT, computes fast
+ * for k in H_N^d                                                           
+ *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nsdft plan
+ *
+ * \author Stefan Kunis
+ */
 void nsfft_adjoint(nsfft_plan *ths);
 
 /** Copy coefficients and knots from ths to ths_nfft */
 void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_nfft);
 void nsfft_init_random_nodes_coeffs(nsfft_plan *ths);
 
+/**
+ * Initialisation of a transform plan.
+ *
+ * \arg ths The pointer to a nsfft plan
+ * \arg d The dimension
+ * \arg J The problem size
+ * \arg M_total The number of nodes
+ * \arg m nfft cut-off parameter
+ * \arg flags 
+ *
+ * \author Stefan Kunis
+ */
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags);
 void nsfft_finalize(nsfft_plan *ths);
 
 /** @} 
  */
+
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
 
 /** @defgroup mri_inh MRI_INH 
  * @{ 
@@ -965,10 +1040,10 @@ typedef struct
   /** api */
   MACRO_MV_PLAN(complex);
   
-	nfft_plan plan;
+  nfft_plan plan;
 
   int N3;
-	double sigma3;
+  double sigma3;
   double *t;
   double *w;
 } mri_inh_2d1d_plan;
@@ -984,7 +1059,7 @@ typedef struct
   nfft_plan plan;
   
   int N3;
-	double sigma3;
+  double sigma3;
   double *t;
   double *w;
 } mri_inh_3d_plan;
@@ -1085,6 +1160,10 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 
 /** @} 
  */
+
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
 
 /** @defgroup texture Texture
  * This module provides the basic functions for the Texture Transforms.
@@ -1694,6 +1773,10 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 /** @}
  */
 
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
 /** @}
  */
 
@@ -2116,6 +2199,10 @@ void nfsft_finalize(nfsft_plan* plan);
 
 /** @}
  */
+
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
 
 /** @defgroup solver Group
  * @{ 
