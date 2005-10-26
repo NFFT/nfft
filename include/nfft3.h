@@ -9,7 +9,7 @@
 /** Include header for FFTW3 library. */
 #include <fftw3.h>
 
-/** Macros for public members inherited by all plan structures */
+/** Macros for public members inherited by all plan structures. */
 #define MACRO_MV_PLAN(float_type)                                           \
 int N_total;                          /**< total number of Fourier coeffs.*/\
 int M_total;                          /**< total number of samples        */\
@@ -45,11 +45,11 @@ typedef struct nfft_plan_
   MACRO_MV_PLAN(complex);          
 
   int d;                                /**< dimension, rank                 */
-  int *N;                               /**< cut-off-frequencies             */
-  double *sigma;	                       /**< oversampling-factor             */
+  int *N;                               /**< multi bandwidth                 */
+  double *sigma;	                /**< oversampling-factor             */
   int *n;                               /**< fftw-length = sigma*N           */
   int n_total;                          /**< total size of fftw              */
-  int m;                                /**< cut-off parameter in time-domain*/
+  int m;                                /**< cut-off, window function        */
   double *b;                            /**< shape parameters                */
   int K;                                /**< number of precomp. uniform psi  */
 
@@ -60,10 +60,10 @@ typedef struct nfft_plan_
 
   /** internal*/
   fftw_plan  my_fftw_plan1;             /**< fftw_plan forward               */
-  fftw_plan  my_fftw_plan2;		           /**< fftw_plan backward              */
+  fftw_plan  my_fftw_plan2;		/**< fftw_plan backward              */
 
   double **c_phi_inv;                   /**< precomputed data, matrix D      */
-  double *psi;				                      /**< precomputed data, matrix B      */
+  double *psi;				/**< precomputed data, matrix B      */
   int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
   int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
 
@@ -72,109 +72,190 @@ typedef struct nfft_plan_
   complex *g1;                          /**< input of fftw                   */
   complex *g2;                          /**< output of fftw                  */
 
-  double *spline_coeffs;          	     /**< input for de Boor algorithm, if  
-					                                        B_SPLINE or SINC_2m is defined  */
+  double *spline_coeffs;          	/**< input for de Boor algorithm, if  
+					     B_SPLINE or SINC_2m is defined  */
 } nfft_plan;
 
 
-/** see formula (1.1), computes
+/**
+ * Executes a NDFT, see equation (1.1) in [Guide], computes 
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
  */
 void ndft_trafo(nfft_plan *ths);
 
-/** see formula (1.1), computes
- * for j=0,...,M-1                                                             
- *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
- */
-void ndft_conjugated(nfft_plan *ths);
-
-/** see formula (1.2), computes
+/**
+ * Executes a NDFT, see equation (1.2) in [Guide], computes 
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
  */
 void ndft_adjoint(nfft_plan *ths);
 
-/** see formula (1.2), computes
- * for k in I_N^d
- *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(-2(pi) k x[j])
- */
-void ndft_transposed(nfft_plan *ths);
-
-/** see formula (1.1), computes in a fast and approximative way
+/**
+ * Executes a NFFT, see equation (1.1) in [Guide], computes fast and
+ * approximate
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
  */
 void nfft_trafo(nfft_plan *ths);
 
-/** see formula (1.1), computes in a fast and approximative way
- * for j=0,...,M-1                                                             
- *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
- */
-void nfft_conjugated(nfft_plan *ths);
-
-/** see formula (1.2), computes in a fast and approximative way
+/**
+ * Executes an adjoint  NFFT, see equation (1.2) in [Guide], computes fast and
+ * approximate
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
  */
 void nfft_adjoint(nfft_plan *ths);
 
-/** see formula (1.2), computes in a fast and approximative way
- * for k in I_N^d
- *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
- */
-void nfft_transposed(nfft_plan *ths);
-
-/** wrapper for nfft_init and d=1
+/**
+ * Initialisation of a transform plan, wrapper d=1.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg M_total The number of nodes
+ *
+ * \author Stefan Kunis
  */
 void nfft_init_1d(nfft_plan *ths, int N1, int M);
 
-/** wrapper for nfft_init and d=2
+/**
+ * Initialisation of a transform plan, wrapper d=2.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg N2 bandwidth
+ * \arg M_total The number of nodes
+ *
+ * \author Stefan Kunis
  */
 void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M);
 
-/** wrapper for nfft_init and d=3
+/**
+ * Initialisation of a transform plan, wrapper d=3.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg N2 bandwidth
+ * \arg N3 bandwidth
+ * \arg M_total The number of nodes
+ *
+ * \author Stefan Kunis
  */
 void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
 
-/** initialisation of transform, simple interface
+/**
+ * Initialisation of a transform plan, simple.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M_total The number of nodes
+ *
+ * \author Stefan Kunis
  */
 void nfft_init(nfft_plan *ths, int d, int *N, int M);
 
-/** initialisation of transform, advanced interfacegoogle.de/
+/**
+ * Initialisation of a transform plan, advanced.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M_total The number of nodes
+ * \arg nfft_flags_on NFFT flags to switch on
+ * \arg nfft_flags_off NFFT flags to switch off
+ *
+ * \author Stefan Kunis
  */
 void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
 			unsigned nfft_flags_on, unsigned nfft_flags_off);
 
-/** initialisation of transform, guru interface
+/**
+ * Initialisation of a transform plan, guru.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M_total The number of nodes
+ * \arg n The oversampled multi bandwidth
+ * \arg m The spatial cutoversampled multi bandwidth
+ * \arg nfft_flags_on NFFT flags to switch on
+ * \arg nfft_flags_off NFFT flags to switch off
+ *
+ * \author Stefan Kunis
  */
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
 	            int m, unsigned nfft_flags, unsigned fftw_flags);
 
-/** precomputes equally spaced values of psi
- *  if PRE_LIN_PSI is set the application program has to call this routine
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
+ *
+ * precomputes equally spaced values of the window function psi
+ *
+ * if PRE_LIN_PSI is set the application program has to call this routine
  */
 void nfft_precompute_lin_psi(nfft_plan *ths);
 
-/** precomputes the values psi in a tensor product form
- *  if PRE_PSI is set the application program has to call this routine
- *  after setting the nodes x
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
+ *
+ * precomputes the values of the window function psi in a tensor product form
+ *
+ * if PRE_PSI is set the application program has to call this routine after
+ * setting the nodes x
  */
 void nfft_precompute_psi(nfft_plan *ths);
 
-/** precomputes the values psi and their indices in non tensor product form
- *  if PRE_FULL_PSI is set the application program has to call this routine
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
+ *
+ * precomputes the values of the window function psi and their indices in
+ * non tensor product form
+ *
+ * if PRE_FULL_PSI is set the application program has to call this routine
+ * after setting the nodes x
  */
 void nfft_precompute_full_psi(nfft_plan *ths);
 
-/** finalisation of transform
+/**
+ * Destroys a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis 
  */
 void nfft_finalize(nfft_plan *ths);
 
 /** @} 
  */
-
-
 
 /** @defgroup nfct NFCT
  * direct and fast computation of the
