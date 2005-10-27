@@ -11,8 +11,8 @@
 int linogram_grid(int T, int R, double *x, double *w)
 {
   int t, r;
-  double W=T*((R/2)*(R/2)+1/4);
-  
+  double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
+
   for(t=-T/2; t<T/2; t++)
   {
     for(r=-R/2; r<R/2; r++)
@@ -24,7 +24,7 @@ int linogram_grid(int T, int R, double *x, double *w)
       }
       else
       {
-        x[2*((t+T/2)*R+(r+R/2))+0] = (double)-4*(t-T/4)/T*r/R;
+        x[2*((t+T/2)*R+(r+R/2))+0] = -(double)4*(t-T/4)/T*r/R;
         x[2*((t+T/2)*R+(r+R/2))+1] = (double)r/R;
       }
       if (r==0)
@@ -67,8 +67,8 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
     return -1;
 
   /** init two dimensional NFFT plan */
-  nfft_init_guru(&my_nfft_plan, 2, N, M, n, 6,
-                 PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
+  nfft_init_guru(&my_nfft_plan, 2, N, M, n, 4,
+                 PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                  FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
 
@@ -100,16 +100,22 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   /** FFTW-1Ds */
   for(t=0; t<T; t++)
   {
-    for(r=-R/2; r<R/2; r++)
-      fft[r+R/2] = (1.0-fabs((double)r)/((double)R/2))*my_nfft_plan.f[t*R+(r+R/2)];
     fft[0]=0.0;
+    for(r=-R/2+1; r<R/2; r++)
+      fft[r+R/2] = (1.0-fabs((double)r)/((double)R/2))*my_nfft_plan.f[t*R+(r+R/2)];
+      //fft[r+R/2] = my_nfft_plan.f[t*R+(r+R/2)];
 
+    fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
+    fftshift_complex(fft, 1, &R);
 
-    for(r=0; r<R/2; r++)
-      Rf[t*R+(r+R/2)] = creal(cexp(-I*PI*r)*fft[r]);
-    for(r=0; r<R/2; r++)
-      Rf[t*R+r] = creal(cexp(-I*PI*r)*fft[r+R/2]);
+    for(r=0; r<R; r++)
+      Rf[t*R+r] = creal(fft[r])/R;
+
+//    for(r=0; r<R/2; r++)
+//      Rf[t*R+(r+R/2)] = creal(cexp(-I*PI*r)*fft[r]);
+//    for(r=0; r<R/2; r++)
+//      Rf[t*R+r] = creal(cexp(-I*PI*r)*fft[r+R/2]);
   }
 
   /** finalise the plans and free the variables */
@@ -152,8 +158,8 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
     return -1;
 
   /** init two dimensional NFFT plan */
-  nfft_init_guru(&my_nfft_plan, 2, N, M, n, 6,
-                  PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
+  nfft_init_guru(&my_nfft_plan, 2, N, M, n, 4,
+                  PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
@@ -165,9 +171,11 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   {
     my_nfft_plan.x[2*j+0] = x[2*j+0];
     my_nfft_plan.x[2*j+1] = x[2*j+1];
+    if (j%R)
+      my_infft_plan.w[j]    = w[j];
+    else
+      my_infft_plan.w[j]    = 0.0;
   }
-  for(j=0;j<M;j++)
-    my_infft_plan.w[j]    = w[j];
 
   /** precompute psi, the entries of the matrix B */
   if(my_nfft_plan.nfft_flags & PRE_LIN_PSI)
@@ -182,25 +190,27 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   /** compute 1D-ffts and init given samples and weights */
   for(t=0; t<T; t++)
   {
-    for(r=0; r<R/2; r++)
-      fft[r] = cexp(I*PI*r)*Rf[t*R+(r+R/2)];
-    for(r=0; r<R/2; r++)
-      fft[r+R/2] = cexp(I*PI*r)*Rf[t*R+r];
+//     for(r=0; r<R/2; r++)
+//       fft[r] = cexp(I*PI*r)*Rf[t*R+(r+R/2)];
+//     for(r=0; r<R/2; r++)
+//       fft[r+R/2] = cexp(I*PI*r)*Rf[t*R+r];
 
+    for(r=0; r<R; r++)
+      fft[r] = Rf[t*R+r] + I*0.0;
+
+    fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
+    fftshift_complex(fft, 1, &R);
 
     my_infft_plan.y[t*R] = 0.0;
-
     for(r=-R/2+1; r<R/2; r++)
-    {
-      //my_infft_plan.given_f[t*R+(r+R/2)] = fft[r+R/2]/(1.0-fabs((double)r)/((double)R/2));
-      my_infft_plan.y[t*R+(r+R/2)]  = fft[r+R/2]/(1.0-fabs((double)r)/((double)R/2))/R;
-    }
+      my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2]/(1.0-fabs((double)r)/((double)R/2));
+      //my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2];
   }
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
-    my_infft_plan.f_hat_iter[k] = 0.0;
+    my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
 
   /** solve the system */
   infft_before_loop(&my_infft_plan);
@@ -223,7 +233,6 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
          l-1,sqrt(my_infft_plan.dot_r_iter));
 
   /* copy result */
-  //SWAPC(my_infft_plan.f_hat_iter,my_plan.f_hat);
   for(k=0;k<my_nfft_plan.N_total;k++)
     f[k] = creal(my_infft_plan.f_hat_iter[k]);
 
@@ -239,7 +248,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 int main(int argc,char **argv)
 {
   int T, R;                             /**< number of directions/offsets    */
-  FILE* fp;
+  FILE *fp;
   int N;                                /**< image size                      */
   double *f, *Rf, *iRf;
   int k;
@@ -268,46 +277,33 @@ int main(int argc,char **argv)
   iRf = (double *)malloc(N*N*(sizeof(double)));
 
   /** load data */
-  fp=fopen("input_data.dat","r");
+  fp=fopen("input_data.bin","rb");
   if (fp==NULL)
     return(-1);
-  for(k=0;k<N*N;k++)
-    fscanf(fp,"%le ",&f[k]);
+  fread(f,sizeof(double),N*N,fp);
   fclose(fp);
 
   /** Radon transform */
   Radon_trafo(linogram_grid,T,R,f,N,Rf);
 
   /** write result */
-  fp=fopen("sinogram_data.dat","w+");
+  fp=fopen("sinogram_data.bin","wb+");
   if (fp==NULL)
     return(-1);
-
-  for(k=0;k<T*R;k++)
-  {
-    if ((k>0)&(!(k%R)))
-      fprintf(fp,"\n");
-    fprintf(fp," % 15.7e",Rf[k]);
-  }
+  fwrite(Rf,sizeof(double),T*R,fp);
   fclose(fp);
 
   /** inverse Radon transform */
   Inverse_Radon_trafo(linogram_grid,T,R,Rf,N,iRf,max_i);
 
   /** write result */
-  fp=fopen("output_data.dat","w+");
+  fp=fopen("output_data.bin","wb+");
   if (fp==NULL)
     return(-1);
-
-  for(k=0;k<N*N;k++)
-  {
-    if ((k>0)&(!(k%N)))
-      fprintf(fp,"\n");
-    fprintf(fp," % 15.7e",iRf[k]);
-  }
+  fwrite(iRf,sizeof(double),N*N,fp);
   fclose(fp);
 
-  /** */
+  /** free the variables */
   free(f);
   free(Rf);
   free(iRf);

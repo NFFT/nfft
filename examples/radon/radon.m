@@ -1,24 +1,36 @@
-f=phantom(128);
-save 'input_data.dat' f -ascii
+N=128;
+T=2*N;
+R=2*N;
+it=5;
+
+f=phantom(N);
+
+fp = fopen('input_data.bin','wb+');
+fwrite(fp,f','double');
+fclose(fp);
 
 figure(1);
 imagesc(f);
 axis image
 title('phantom');
 
-!radon 128 256 256 5
+system(sprintf('radon %d %d %d %d',N,T,R,it));
 
-Rf=load('sinogram_data.dat');
+fp = fopen('sinogram_data.bin','rb+');
+Rf = fread(fp,[R,T],'double');
+fclose(fp);
 
 figure(2);
 imagesc(Rf);
 axis image
 title('sinogram');
-xlabel('offset');
-ylabel('angle');
+xlabel('angle');
+ylabel('offset');
 
 
-iRf=load('output_data.dat');
+fp = fopen('output_data.bin','rb+');
+iRf = fread(fp,[N,N],'double')';
+fclose(fp);
 
 figure(3);
 imagesc(iRf);
