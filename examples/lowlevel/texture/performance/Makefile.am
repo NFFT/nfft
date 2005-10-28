@@ -7,4 +7,4 @@ noinst_PROGRAMS = performance
 performance_SOURCES = performance.c
 
 ## Additional libraries for the library
-performance_LDADD = $(top_builddir)/libnfft3.la# -lm -lfftw3
+performance_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3

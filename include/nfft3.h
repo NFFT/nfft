@@ -88,7 +88,7 @@ typedef struct nfft_plan_
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void ndft_trafo(nfft_plan *ths);
 
@@ -99,7 +99,7 @@ void ndft_trafo(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void ndft_adjoint(nfft_plan *ths);
 
@@ -111,7 +111,7 @@ void ndft_adjoint(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_trafo(nfft_plan *ths);
 
@@ -123,7 +123,7 @@ void nfft_trafo(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_adjoint(nfft_plan *ths);
 
@@ -134,7 +134,7 @@ void nfft_adjoint(nfft_plan *ths);
  * \arg N1 bandwidth
  * \arg M_total The number of nodes
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_1d(nfft_plan *ths, int N1, int M);
 
@@ -146,7 +146,7 @@ void nfft_init_1d(nfft_plan *ths, int N1, int M);
  * \arg N2 bandwidth
  * \arg M_total The number of nodes
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M);
 
@@ -159,7 +159,7 @@ void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M);
  * \arg N3 bandwidth
  * \arg M_total The number of nodes
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
 
@@ -171,7 +171,7 @@ void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
  * \arg N The multi bandwidth
  * \arg M_total The number of nodes
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init(nfft_plan *ths, int d, int *N, int M);
 
@@ -185,7 +185,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M);
  * \arg nfft_flags_on NFFT flags to switch on
  * \arg nfft_flags_off NFFT flags to switch off
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
 			unsigned nfft_flags_on, unsigned nfft_flags_off);
@@ -202,7 +202,7 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
  * \arg nfft_flags_on NFFT flags to switch on
  * \arg nfft_flags_off NFFT flags to switch off
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
 	            int m, unsigned nfft_flags, unsigned fftw_flags);
@@ -212,7 +212,7 @@ void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  *
  * precomputes equally spaced values of the window function psi
  *
@@ -225,7 +225,7 @@ void nfft_precompute_lin_psi(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  *
  * precomputes the values of the window function psi in a tensor product form
  *
@@ -239,7 +239,7 @@ void nfft_precompute_psi(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis
+ * \author Stefan Kunis, Daniel Potts
  *
  * precomputes the values of the window function psi and their indices in
  * non tensor product form
@@ -254,7 +254,7 @@ void nfft_precompute_full_psi(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  *
- * \author Stefan Kunis 
+ * \author Stefan Kunis, Daniel Potts
  */
 void nfft_finalize(nfft_plan *ths);
 
@@ -815,18 +815,6 @@ void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total,
 void nndft_trafo(nnfft_plan *ths_plan);
 
 /**
- * Executes a direct conjugated NNDFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
- * \f[
- *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */
-void nndft_conjugated(nnfft_plan *ths_plan);
-
-/**
  * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
  *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
@@ -837,18 +825,6 @@ void nndft_conjugated(nnfft_plan *ths_plan);
  * \author Tobias Knopp
  */
 void nndft_adjoint(nnfft_plan *ths_plan);
-
-/**
- * Executes a direct transposed NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
- * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */
-void nndft_transposed(nnfft_plan *ths_plan);
 
 /**
  * Executes a NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
@@ -863,18 +839,6 @@ void nndft_transposed(nnfft_plan *ths_plan);
 void nnfft_trafo(nnfft_plan *ths_plan);
 
 /**
- * Executes a conjugated NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
- * \f[
- *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */
-void nnfft_conjugated(nnfft_plan *ths_plan);
-
-/**
  * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
  *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
@@ -885,18 +849,6 @@ void nnfft_conjugated(nnfft_plan *ths_plan);
  * \author Tobias Knopp
  */
 void nnfft_adjoint(nnfft_plan *ths_plan);
-
-/**
- * Executes a transposed NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
- * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */
-void nnfft_transposed(nnfft_plan *ths_plan);
 
 void nnfft_precompute_lin_psi(nnfft_plan *ths_plan);
 
@@ -963,9 +915,9 @@ typedef struct nsfft_plan_
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  *
- * \arg ths The pointer to a nsdft plan
+ * \arg ths The pointer to a nsfft plan
  *
- * \author Stefan Kunis
+ * \author Markus Fenn, Stefan Kunis
  */
 void nsdft_trafo(nsfft_plan *ths);
 
@@ -974,36 +926,50 @@ void nsdft_trafo(nsfft_plan *ths);
  * for k in H_N^d                                                           
  *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
  *
- * \arg ths The pointer to a nsdft plan
+ * \arg ths The pointer to a nsfft plan
  *
- * \author Stefan Kunis
+ * \author Markus Fenn, Stefan Kunis
  */
 void nsdft_adjoint(nsfft_plan *ths);
 
 /**
- * Executes a NSDFT, computes fast
+ * Executes a NSDFT, computes fast and approximate
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  *
- * \arg ths The pointer to a nsdft plan
+ * \arg ths The pointer to a nsfft plan
  *
- * \author Stefan Kunis
+ * \author Markus Fenn, Stefan Kunis
  */
 void nsfft_trafo(nsfft_plan *ths);
 
 /**
- * Executes a NSDFT, computes fast
+ * Executes a NSDFT, computes fast and approximate
  * for k in H_N^d                                                           
  *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
  *
- * \arg ths The pointer to a nsdft plan
+ * \arg ths The pointer to a nsfft plan
  *
- * \author Stefan Kunis
+ * \author Markus Fenn, Stefan Kunis
  */
 void nsfft_adjoint(nsfft_plan *ths);
 
-/** Copy coefficients and knots from ths to ths_nfft */
+/**
+ * Copy coefficients and knots from nsfft plan to a nfft plan.
+ *
+ * \arg ths Pointers to a nsfft plan and to a nfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
 void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_nfft);
+
+/**
+ * Initialisation of pseudo random nodes and coefficients.
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
 void nsfft_init_random_nodes_coeffs(nsfft_plan *ths);
 
 /**
@@ -1014,11 +980,19 @@ void nsfft_init_random_nodes_coeffs(nsfft_plan *ths);
  * \arg J The problem size
  * \arg M_total The number of nodes
  * \arg m nfft cut-off parameter
- * \arg flags 
+ * \arg flags
  *
- * \author Stefan Kunis
+ * \author Markus Fenn, Stefan Kunis
  */
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags);
+
+/**
+ * Destroys a transform plan.
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
 void nsfft_finalize(nsfft_plan *ths);
 
 /** @} 
@@ -2236,18 +2210,18 @@ void nfsft_finalize(nfsft_plan* plan);
  */
 #define F(MV, FLT, name, ...) void i ## MV ## _ ## name(__VA_ARGS__)
 
-#define MACRO_SOLVER_PLAN(MV, FLT) \
-typedef struct i ## MV ## _plan_ \
-{	\
-  MV ## _plan *mv;                          /**< matrix vector multiplication   */\
-  unsigned flags;			                     /**< iteration type, ...            */\
- \
-  double *w;                         	      /**< weighting factors              */\
-  double *w_hat;                     	      /**< damping factors                */\
- \
-  FLT *y;                                   /**< right hand side, samples       */\
- \
-  FLT *f_hat_iter;                          /**< iterative solution             */\
+#define MACRO_SOLVER_PLAN(MV, FLT)                                            \
+typedef struct i ## MV ## _plan_                                              \
+{	                                                                      \
+  MV ## _plan *mv;                      /**< matrix vector multiplication   */\
+  unsigned flags;			/**< iteration type, ...            */\
+                                                                              \
+  double *w;                         	/**< weighting factors              */\
+  double *w_hat;                     	/**< damping factors                */\
+                                                                              \
+  FLT *y;                               /**< right hand side, samples       */\
+                                                                              \
+  FLT *f_hat_iter;                      /**< iterative solution             */\
 									      \
   FLT *r_iter;			        /**< iterated residual vector       */\
   FLT *z_hat_iter;             	        /**< residual vector of normal eq.1 */\

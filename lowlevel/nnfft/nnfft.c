@@ -61,9 +61,7 @@ void nndft_ ## which_one (nnfft_plan *ths)                                    \
 } /* nndft_trafo */                                                            \
 
 MACRO_nndft(trafo)
-MACRO_nndft(conjugated)
 MACRO_nndft(adjoint)
-MACRO_nndft(transposed)
 
 /** computes 2m+2 indices for the matrix B
  */
@@ -292,30 +290,6 @@ void nnfft_trafo(nnfft_plan *ths)
   nnfft_D(ths);
 } /* nnfft_trafo */
 
-void nnfft_conjugated(nnfft_plan *ths)
-{
-  int j,t;
-  
-  nnfft_B_T(ths);
-  
-  for(j=0;j<ths->M_total;j++) {  
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
-    }
-  }
-  
-  ths->direct_plan->f = ths->f;
-  nfft_conjugated(ths->direct_plan);
-
-  for(j=0;j<ths->M_total;j++) {  
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
-    }
-  }  
-  
-  nnfft_D(ths);
-} /* nnfft_conjugated */
-
 void nnfft_adjoint(nnfft_plan *ths)
 {
   int j,t;
@@ -339,31 +313,6 @@ void nnfft_adjoint(nnfft_plan *ths)
   
   nnfft_B_A(ths);
 } /* nnfft_adjoint */
-
-void nnfft_transposed(nnfft_plan *ths)
-{
-  int j,t;
-  
-  nnfft_D(ths);
-  
-  for(j=0;j<ths->M_total;j++) {  
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
-    }
-  }
-  
-  ths->direct_plan->f = ths->f;
-  nfft_transposed(ths->direct_plan);
-  
-  for(j=0;j<ths->M_total;j++) {  
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
-    }
-  }  
-  
-  nnfft_B_A(ths);
-} /* nnfft_transposed */
-
 
 /** initialisation of direct transform 
  */
