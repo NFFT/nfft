@@ -416,7 +416,7 @@ void ndct_trafo( nfct_plan *ths_plan);
  *
  * \author Steffen Klatt
  */
-void nfct_transposed( nfct_plan *ths_plan); 
+void nfct_adjoint( nfct_plan *ths_plan); 
 
 /** 
  * executes a direct transposed NDCT (exact,slow), computes for \f$k \in I_0^{N,d}\f$
@@ -426,7 +426,7 @@ void nfct_transposed( nfct_plan *ths_plan);
  *
  * \author Steffen Klatt
  */
-void ndct_transposed( nfct_plan *ths_plan); 
+void ndct_adjoint( nfct_plan *ths_plan); 
  
 /**
  * Destroys a plan.
@@ -651,7 +651,7 @@ void ndst_trafo( nfst_plan *ths_plan);
  *
  * \author Steffen Klatt
  */
-void nfst_transposed( nfst_plan *ths_plan);
+void nfst_adjoint( nfst_plan *ths_plan);
 
 /** 
  * executes a direct transposed NDST (exact,slow), computes for \f$k \in I_1^{N,d}\f$
@@ -661,7 +661,7 @@ void nfst_transposed( nfst_plan *ths_plan);
  *
  * \author Steffen Klatt
  */
-void ndst_transposed( nfst_plan *ths_plan);
+void ndst_adjoint( nfst_plan *ths_plan);
 
 /**
  * Destroys a plan.
