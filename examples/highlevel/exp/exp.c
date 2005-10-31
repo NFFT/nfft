@@ -17,6 +17,8 @@ typedef struct window_funct_plan_ {
 	int n[1];
 	double sigma[1];
 	double *b;
+  double *spline_coeffs;                /**< input for de Boor algorithm, if   
+                                             B_SPLINE or SINC_2m is defined   */ 
 } window_funct_plan;
 
 void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {

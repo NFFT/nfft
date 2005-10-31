@@ -60,10 +60,10 @@
 
 #ifdef SINC_POWER
 #define PHI_HUT(k,d) (bspline(2*ths->m,((double)2*ths->m*(k))/     \
-                      ((2*ths->sigma[(d)]-1)*ths->N[(d)])+             \
+                      ((2*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+             \
                       (double)ths->m,ths->spline_coeffs))
-#define PHI(x,d) ((double)(ths->N[(d)]*(2*ths->sigma[(d)]-1)/          \
-                  (2*ths->m)*pow(sinc(PI*ths->N[(d)]*(x)*            \
+#define PHI(x,d) ((double)(ths->n[(d)]/ths->sigma[(d)]*(2*ths->sigma[(d)]-1)/          \
+                  (2*ths->m)*pow(sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*            \
                   (2*ths->sigma[(d)]-1)/(2*ths->m)),                 \
                   2*ths->m)/ths->n[(d)]))
 #define WINDOW_HELP_INIT {                                                     \
