@@ -15,7 +15,7 @@ void simple_test_nfft_1d()
 
   /** init an one dimensional plan */
  nfft_init_guru(&my_plan, 1, N, 19, n, 6,
-                 PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+                 PRE_PHI_HUT| FG_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
@@ -546,6 +546,8 @@ printf("%d\t%d\t%.1f\t%d\t%.1f\t%d\t",N, M, sigma, m, sigma_taylor, m_taylor);
 int main()
 {
   int l,m;
+
+simple_test_nfft_1d(); exit(-1);
 
   time_accuracy_taylor_nfft_1d((1U<< 4), 100, (1U<< 5), 3, (1U<< 7), 4, 1); exit(-1);
 

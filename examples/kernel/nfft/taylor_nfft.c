@@ -14,6 +14,9 @@
 #include "util.h"
 #include "nfft3.h"
 
+#include "options.h"
+#include "window_defines.h"
+
 typedef struct
 {
   nfft_plan p;                          /**< used for fftw and data          */
@@ -35,10 +38,11 @@ typedef struct
  */
 void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
 {
-  nfft_init_guru((nfft_plan*)ths, 1, &N, M, &n, m,
-		 FFTW_INIT| FFT_OUT_OF_PLACE| MALLOC_X| MALLOC_F_HAT| MALLOC_F,
-		 FFTW_MEASURE| FFTW_PRESERVE_INPUT);
   /* Note: no nfft precomputation! */
+  nfft_init_guru((nfft_plan*)ths, 1, &N, M, &n, m,
+                 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_MEASURE| FFTW_PRESERVE_INPUT);
 
   ths->idx0=(int*)fftw_malloc(M*sizeof(int));
   ths->deltax0=(double*)fftw_malloc(M*sizeof(double));
@@ -59,8 +63,10 @@ void taylor_precompute(taylor_plan *ths)
 
   for(j=0;j<cths->M_total;j++)
     {
-      ths->idx0[j] = ((int)round((cths->x[j]+0.5)*cths->n[0]) + cths->n[0]/2)%cths->n[0];
-      ths->deltax0[j] = cths->x[j] - (round((cths->x[j]+0.5)*cths->n[0]) / cths->n[0] - 0.5);
+      ths->idx0[j] = ((int)round((cths->x[j]+0.5)*cths->n[0]) +
+                                 cths->n[0]/2)%cths->n[0];
+      ths->deltax0[j] = cths->x[j] - (round((cths->x[j]+0.5)*cths->n[0]) /
+                                      cths->n[0] - 0.5);
     }
 }
 
@@ -101,7 +107,7 @@ void taylor_trafo(taylor_plan *ths)
   for(j=0, f=cths->f; j<cths->M_total; j++)
     *f++ = 0;
 
-  for(k=0; k<cths->n[0]; k++)
+  for(k=0; k<cths->n_total; k++)
     cths->g1[k]=0;
 
   for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2, f_hat=cths->f_hat; k<0; k++)
@@ -132,7 +138,7 @@ void taylor_trafo(taylor_plan *ths)
 void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
                           int m_taylor, unsigned test_accuracy)
 {
-  int j,k,l,ll,r;
+  int j,k,r;
 
   double t_ndft, t_nfft, t_taylor, t;
   complex *swapndft;
@@ -143,7 +149,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   taylor_init(&tp,N,M,n_taylor,m_taylor);
 
   nfft_init_guru(&np, 1, &N, M, &n, m,
-                 PRE_PHI_HUT| //PRE_LIN_PSI|
+PRE_PHI_HUT| PRE_PSI|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -215,8 +221,10 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   printf("%d\t%d\t%.1f\t%d\t%.1f\t%d\t",N, M, ((double)n)/N, m, ((double)n_taylor)/N, m_taylor);
 
   if(test_accuracy)
-    printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total,
-                    np.f_hat, np.N_total));
+  
+printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
+
+//error_l_infty_1_complex(swapndft, np.f, np.M_total, np.f_hat, np.N_total));
   else
     printf("--------\t");
 
@@ -234,8 +242,8 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   t_taylor/=r;
 
   if(test_accuracy)
-    printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total,
-                    np.f_hat, np.N_total));
+printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
+//    printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total,                    np.f_hat, np.N_total));
   else
     printf("--------\t");
   
@@ -252,7 +260,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
 void taylor_simple_test()
 {
-  int j,k,l;                            /**< index for nodes and freqencies  */
+  int j,k,l;
   nfft_plan my_plan, tp;       /**< plan for the nfft               */
 
   int N,M,m,n_taylor,facl;
@@ -351,25 +359,157 @@ void taylor_simple_test()
   fftw_free(idx0);
 }
 
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
+void nfft_uo2(nfft_plan *ths,int j,int *up,int *op,int act_dim)
+{
+  double c;
+  int u,o;
+
+  c = ths->x[j*ths->d+act_dim] * ths->n[act_dim];
+  u = c; o = c;
+  if(c < 0)                  
+    u = u-1;                  
+  else
+    o = o+1;
+  
+  u = u - (ths->m); o = o + (ths->m);
+
+  up[0]=u; op[0]=o;
+}
+
+void nfft_precompute_psi_G(nfft_plan *ths)
+{
+  int t;                     /**< index over all dimensions     */
+  int j;                     /**< index over all nodes          */
+  int l;                     /**< index u<=l<=o                 */
+  int lj;                    /**< index 0<=lj<u+o+1             */
+  int u, o;                  /**< depends on x_j                */
+
+
+  double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp0, tmp1, tmp2, tmp3, tmp4;
+  int ipsi;
+
+  for(j=0;j<ths->M_total;j++)
+    for (t=0; t<ths->d; t++)
+      {
+        nfft_uo2(ths,j,&u,&o,t);
+  
+        ipsi = (j*ths->d+t)*(2*ths->m+2)+0;
+        ths->psi[ipsi]= (PHI((ths->x[j*ths->d+t]-((double)u)/ths->n[t]),t));
+
+        tmpEXP1 = exp(2.0*(ths->n[t]*ths->x[j*ths->d+t] - u)/ths->b[t]);
+
+        tmpEXP2 = exp(-1.0/ths->b[t]);
+
+        tmpEXP2sq = tmpEXP2*tmpEXP2;
+        tmp0 = ths->psi[ipsi];
+        tmp1 = 1.0;
+        tmp2 = 1.0;
+        tmp3 = 1.0;
+        tmp4 = 1.0;
+        for(l=u+1, lj=1; l <= o; l++, lj++)
+          {
+            tmp1 *= tmpEXP1;
+            tmp3 = tmp2*tmpEXP2;
+            tmp2 *= tmpEXP2sq;
+            tmp4 *= tmp3;
+            ths->psi[ipsi+lj] = tmp0 * tmp1 * tmp4;
+printf("%d\t%e\n",lj,tmp4);
+          }
+      } /* for(j) */
+  /* for(t) */
+} /* nfft_precompute_psi_G */
+
+void test_init(int d, int N, int M, int n, int m)
+{
+  int j,r;
+  double t,t_pre_psi,t_pre_psi_G,t_pre_full_psi;
+  nfft_plan np;
+
+  nfft_init_guru(&np, d, &N, M, &n, m, MALLOC_X| PRE_FULL_PSI, 0);
+
+  for(j=0;j<np.M_total;j++)
+    np.x[j]=((double)rand())/RAND_MAX-0.5;
+
+  t_pre_psi_G=0;
+  r=0;
+  while(t_pre_psi_G<0.01)
+    {
+      r++;
+      t=second();
+      nfft_precompute_psi_G(&np);
+      t=second()-t;
+      t_pre_psi_G+=t;
+    }
+  t_pre_psi_G/=r;
+
+vpr_double(np.psi,10,"FG");
+
+  t_pre_psi=0;
+  r=0;
+  while(t_pre_psi<0.01)
+    {
+      r++;
+      t=second();
+      nfft_precompute_psi(&np);
+      t=second()-t;
+      t_pre_psi+=t;
+    }
+  t_pre_psi/=r;
+
+vpr_double(np.psi,10,"usual");
+
+  t_pre_full_psi=0;
+  r=0;
+  while(t_pre_full_psi<0.01)
+    {
+      r++;
+      t=second();
+      nfft_precompute_full_psi(&np);
+      t=second()-t;
+      t_pre_full_psi+=t;
+    }
+  t_pre_full_psi/=r;
+
+  printf("%d\t%d\t%d\t%.2e\t%.2e\t%.2e\n",N,M,m,t_pre_psi_G,t_pre_psi,t_pre_full_psi);
+
+  nfft_finalize(&np);
+}
+
 int main()
 {
   int l,m;
+  int d=3;
 
-//  time_accuracy_taylor_nfft_1d((1U<< 4), 100, (1U<< 5), 3, (1U<< 7), 4, 1); exit(-1);
+/*test_init(1,32, 10, 64, 5);
 
+exit(-1);
+
+  for(l=5;l<6;l++)
+    for(m=1;m<15;m++)
+      test_init(d,(1U<< l), (1U<< (d*l)), (1U<< (l+1)), m);
+
+exit(-1);
+*/
 printf("polynomial degree N,\nnumber of nodes M,\nnfft oversampling factor sigma,\nnfft truncation parameter m,\n");
 printf("taylor nfft oversampling factor D,\ntaylor nfft truncation parameter L,\nerrors e=|F-F_approx|_infty/|f|_1, and\ntimes t in sec.\n\n"); 
 
 printf("N\tM\tsigma\tm\tD\tL\te_nfft\t\te_taylornfft\tt_ndft\t\tt_nfft\t\tt_taylornfft\n");
 
-//  for(m=1;m<14;m++)
-//    time_accuracy_taylor_nfft_1d((1U<< 12), 10000, (1U<< 13), m, (1U<< 16), m, 1);
+
+  for(m=0;m<20;m++)
+    taylor_time_accuracy((1U<< 12), (1U<< 12), (1U<< (14)), m, (1U<< (15)), m, 1);
+
+printf("\n");
 
   for(l=4;l<20;l++)
     if(l<13)
-      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+1)), 3, (1U<< (l+3)), 4, 1);
+      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 4, (1U<< (l+3)), 5, 1);
     else
-      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+1)), 3, (1U<< (l+3)), 4, 0);
+      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 4, (1U<< (l+3)), 5, 0);
 
   return 1;
 }
