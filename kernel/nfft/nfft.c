@@ -301,6 +301,8 @@ MACRO_nfft_D(T)
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                            \
 }
 
+#define MACRO_with_FG_PSI fgg_psi[t2][lj[t2]]
+
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
   /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
 #define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*              \
@@ -364,6 +366,9 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   complex *fj;                          /**< local copy                     */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
+  double fgg_psi[ths->d][2*ths->m+2];                                         \
+  int l_fgg,lj_fgg;                                                           \
+  double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3, tmp4;                 \
                                                                               \
   f=ths->f; g=ths->g;                                                         \
                                                                               \
@@ -400,6 +405,47 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
 	} /* for(j) */                                                        \
       return;                                                                 \
     } /* if(PRE_PSI) */                                                       \
+                                                                              \
+  if(ths->nfft_flags & FG_PSI)                                                \
+    {                                                                         \
+      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
+	{                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+          for (t2=0; t2<ths->d; t2++)                                         \
+            {                                                                 \
+              fgg_psi[t2][0] =                                                \
+                (PHI((ths->x[j*ths->d+t2]-((double)u[t2])/ths->n[t2]),t2));   \
+                                                                              \
+              tmpEXP1 = exp(2.0*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])      \
+                      / ths->b[t2]);                                          \
+              tmpEXP2 = exp(-1.0/ths->b[t2]);                                 \
+              tmpEXP2sq = tmpEXP2*tmpEXP2;                                    \
+              tmp1 = 1.0;                                                     \
+              tmp2 = 1.0;                                                     \
+              tmp3 = 1.0;                                                     \
+              tmp4 = 1.0;                                                     \
+              for(l_fgg=u[t2]+1, lj_fgg=1; l_fgg <= o[t2]; l_fgg++, lj_fgg++) \
+                {                                                             \
+                  tmp1 *= tmpEXP1;                                            \
+                  tmp3 = tmp2*tmpEXP2;                                        \
+                  tmp2 *= tmpEXP2sq;                                          \
+                  tmp4 *= tmp3;                                               \
+                  fgg_psi[t2][lj_fgg] = fgg_psi[t2][0] * tmp1 * tmp4;         \
+                }                                                             \
+            }                                                                 \
+                                                                              \
+	  for(l_L=0; l_L<lprod; l_L++)                                        \
+	    {                                                                 \
+              MACRO_update_phi_prod_ll_plain(with_FG_PSI);                    \
+                                                                              \
+	      MACRO_nfft_B_compute_ ## which_one;                             \
+		                                                              \
+	      MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+	} /* for(j) */                                                        \
+      return;                                                                 \
+    } /* if(FG_PSI) */                                                        \
                                                                               \
   if(ths->nfft_flags & PRE_LIN_PSI)                                           \
     {                                                                         \
