@@ -287,7 +287,7 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
             eval_clenshaw(set->xcvecs[tau_stab], a11, plength_stab, degree_stab-2, 
               calpha, cbeta, cgamma);
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-            eval_clnshaw(set->xcvecs[tau_stab], a12, plength_stab, degree_stab-1, 
+            eval_clenshaw(set->xcvecs[tau_stab], a12, plength_stab, degree_stab-1, 
               calpha, cbeta, cgamma);
             calpha--;
             cbeta--;
@@ -331,4 +331,99 @@ void dpt_finalize(dpt_set set)
   
   /* Free DPT set structure. */
   free(set);
+}
+
+inline void eval_clenshaw(double *x, double *y, int size, int k, double *alpha, 
+  double *beta, double *gamma)
+{
+  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
+   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
+   */
+  int i,j;
+  double a,b,x_val_act,a_old;
+  double *x_act, *y_act;  
+  double *alpha_act, *beta_act, *gamma_act;
+  
+  /* Traverse all nodes. */
+  x_act = x;
+  y_act = y;
+  for (i = 0; i < size; i++)
+  {
+    a = 1.0;
+    b = 0.0;
+    x_val_act = *x_act;
+    
+    if (k == 0)
+    {  
+      *y_act = 1.0;
+    }
+    else
+    {
+      alpha_act = &(alpha[k]);
+      beta_act = &(beta[k]);
+      gamma_act = &(gamma[k]);
+      for (j = k; j > 1; j--)
+      {
+        a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
+         b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+    }
+    x_act++;
+    y_act++;
+  }
+}
+
+inline int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha, 
+  double *beta, double *gamma, double threshold)
+{
+  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
+   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
+   */
+  int i,j;
+  double a,b,x_val_act,a_old;
+  double *x_act, *y_act;
+  double *alpha_act, *beta_act, *gamma_act;
+  
+  /* Traverse all nodes. */
+  x_act = x;
+  y_act = y;
+  for (i = 0; i < size; i++)
+  {
+    a = 1.0;
+    b = 0.0;
+    x_val_act = *x_act;
+    
+    if (k == 0)
+    {  
+     *y_act = 1.0;
+    }
+    else
+    {
+      alpha_act = &(alpha[k]);
+      beta_act = &(beta[k]);
+      gamma_act = &(gamma[k]);
+      for (j = k; j > 1; j--)
+      {
+        a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
+         b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+      if (fabs(*y_act) > threshold)
+      {
+        return 1;
+      }
+    }
+    x_act++;
+    y_act++;
+  }
+  return 0;
 }

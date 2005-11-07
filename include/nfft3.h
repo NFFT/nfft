@@ -51,7 +51,7 @@ typedef struct nfft_plan_
 
   int d;                                /**< dimension, rank                 */
   int *N;                               /**< multi bandwidth                 */
-  double *sigma;	                /**< oversampling-factor             */
+  double *sigma;	                      /**< oversampling-factor             */
   int *n;                               /**< fftw-length = sigma*N           */
   int n_total;                          /**< total size of fftw              */
   int m;                                /**< cut-off, window function        */
@@ -65,10 +65,10 @@ typedef struct nfft_plan_
 
   /** internal*/
   fftw_plan  my_fftw_plan1;             /**< fftw_plan forward               */
-  fftw_plan  my_fftw_plan2;		/**< fftw_plan backward              */
+  fftw_plan  my_fftw_plan2;		          /**< fftw_plan backward              */
 
   double **c_phi_inv;                   /**< precomputed data, matrix D      */
-  double *psi;				/**< precomputed data, matrix B      */
+  double *psi;				                  /**< precomputed data, matrix B      */
   int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
   int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
 
