@@ -1,6 +1,11 @@
-#in                                clude "dpt.h"
+#include "dpt.h"
 
+#include <math.h>
 #include <fftw3.h>
+#include "util.h" 
+
+#define FIRST_L (int)floor(k_start_tilde/(double)plength)
+#define LAST_L (int)ceil((N_tilde+1)/(double)plength)-1
 
 dpt_set dpt_init(const int M, const int t, const int flags)
 {
@@ -21,7 +26,7 @@ dpt_set dpt_init(const int M, const int t, const int flags)
   set->N = 1<<t;
   
   /* Allocate memory for L transforms. */
-  set->dpt = malloc(L*sizeof(dpt_data));
+  set->dpt = malloc(M*sizeof(dpt_data));
  
   /* Create arrays with Chebyshev nodes. */  
   
@@ -33,16 +38,16 @@ dpt_set dpt_init(const int M, const int t, const int flags)
   set->xc[1] = 0.5;
   
   /* Allocate memory for array of pointers to node arrays. */
-  set->xvecs = (double**) malloc((set->t-1)*sizeof(double*));
+  set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
   /* For each polynomial length starting with 4, compute the Chebyshev nodes 
    * using a DCT-III. */
   plength = 4;
   for (tau = 1; tau < t; tau++)
   {
     /* Allocate memory for current array. */
-    set->xvecs[tau-1] = (double*) malloc(plength*sizeof(double));
+    set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
     /* Create plan for DCT-III. */
-    plan = fftw_plan_r2r_1d(plength, set->xc, set->xvecs[tau-1], FFTW_REDFT01, 
+    plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
                             FFTW_PRESERVE_INPUT);
     /* Execute it. */
     fftw_execute(plan);
@@ -57,7 +62,8 @@ dpt_set dpt_init(const int M, const int t, const int flags)
 }
 
 void dpt_precompute(dpt_set set, const int m, double const* alpha, 
-                    double const* beta, double const* gamma, int k_start)
+                    double const* beta, double const* gamma, int k_start,
+                    double threshold)
 {
   
   int tau;          /**< Cascade level                                       */
@@ -89,23 +95,23 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   dpt_data *data;
   
   /* Allocate memory for DPT transform data. */
-  set->dpt[m] = malloc(sizeof(dpt_data));
+  //set->dpt[m] = (dpt_data*) malloc(sizeof(dpt_data));
 
   /* Get pointer to DPT data. */
   data = &(set->dpt[m]);
     
-  int k_start_tilde = max(min(k_start,set->N-2));
+  int k_start_tilde = MAX(MIN(k_start,set->N-2),0);
   int N_tilde = set->N-1;
     
   // printf("k_start = %d, k_start_tilde = %d, N = %d, N_tilde = %d\n",
   // k_start,k_start_tilde,set->N,N_tilde);
 
   /* Allocate memory for the cascade with t = log_2(N) many levels. */
-  data->steps = (dpt_step**) fftw_malloc(sizeof(struct dpt_step *) * t);
+  data->steps = (dpt_step**) fftw_malloc(sizeof(struct dpt_step *) * set->t);
     
   /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
   plength = 4;
-  for (tau = 1; tau < t; tau++)
+  for (tau = 1; tau < set->t; tau++)
   {     
     /* Compute auxilliary values. */
     degree = plength>>1;     
@@ -121,7 +127,7 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
       
     /* Allocate memory for current level. This level will contain 2^{t-tau-1} 
      * many matrices. */
-    data->steps[tau] = (struct dpt_step*) fftw_malloc(sizeof(struct dpt_step) 
+    data->steps[tau] = (dpt_step*) fftw_malloc(sizeof(dpt_step) 
                        * (lastl+1)); 
     
     /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
@@ -146,27 +152,27 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
       if (set->flags & DPT_NO_STABILIZATION)
       {
         /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
-        eval_clenshaw(xvecs[tau-1], a11, plength, degree-2, calpha, cbeta, 
+        eval_clenshaw(set->xcvecs[tau-1], a11, plength, degree-2, calpha, cbeta, 
           cgamma);
-        eval_clenshaw(xvecs[tau-1], a12, plength, degree-1, calpha, cbeta, 
+        eval_clenshaw(set->xcvecs[tau-1], a12, plength, degree-1, calpha, cbeta, 
           cgamma);
         calpha--;
         cbeta--;
         cgamma--;
-        eval_clenshaw(xvecs[tau-1], a21, plength, degree-1, calpha, cbeta, 
+        eval_clenshaw(set->xcvecs[tau-1], a21, plength, degree-1, calpha, cbeta, 
           cgamma);
-        eval_clenshaw(xvecs[tau-1], a22, plength, degree, calpha, cbeta, 
+        eval_clenshaw(set->xcvecs[tau-1], a22, plength, degree, calpha, cbeta, 
           cgamma);
         needstab = 0;  
       }
       else
       {
-        needstab = eval_clenshaw_thresh(xvecs[tau-1], a11, plength, degree-2, 
+        needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a11, plength, degree-2, 
           calpha, cbeta, cgamma, threshold);
         if (needstab == 0)
         {
           /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
-          needstab = eval_clenshaw_thresh(xvecs[tau-1], a12, plength, degree-1, 
+          needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a12, plength, degree-1, 
             calpha, cbeta, cgamma, threshold);
           if (needstab == 0)
           { 
@@ -174,12 +180,12 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
             cbeta--;
             cgamma--;
             /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
-            needstab = eval_clenshaw_thresh(xvecs[tau-1], a21, plength, 
+            needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a21, plength, 
               degree-1, calpha, cbeta, cgamma, threshold);
             if (needstab == 0)
             { 
               /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
-              needstab = eval_clenshaw_thresh(xvecs[tau-1], a22, plength, 
+              needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a22, plength, 
                 degree, calpha, cbeta, cgamma, threshold);
             }
           }
@@ -189,16 +195,16 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
       /* Check if stabilization needed. */
       if (needstab == 0)
       {  
-        data->steps[tau][l]->a11 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l]->a12 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l]->a21 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l]->a22 = (double**) fftw_malloc(sizeof(double*)); 
+        data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
+        data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
+        data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
+        data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*)); 
         /* No stabilization needed. */
-        data->steps[tau][l]->a11[0] = a11;
-        data->steps[tau][l]->a12[0] = a12;
-        data->steps[tau][l]->a21[0] = a21;
-        data->steps[tau][l]->a22[0] = a22;
-        data->steps[tau][l]->stable = true;
+        data->steps[tau][l].a11[0] = a11;
+        data->steps[tau][l].a12[0] = a12;
+        data->steps[tau][l].a21[0] = a21;
+        data->steps[tau][l].a22[0] = a22;
+        data->steps[tau][l].stable = true;
       }          
       else 
       {    
@@ -213,12 +219,12 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
 
         if (set->flags & DPT_BANDWIDTH_WINDOW)
         {
-          data->steps[tau][l]->a11 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l]->a12 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l]->a21 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l]->a22 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*)); 
 
-          plength_stab = 1<<t;
+          plength_stab = 1<<set->t;
 
           /* Allocate memory for arrays. */
           a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
@@ -231,39 +237,39 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
           cbeta = &(beta[2]);
           cgamma = &(gamma[2]);         
           /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-          eval_clenshaw(xvecs[t-2], a11, plength_stab, degree_stab-2, calpha, 
-            cbeta, cgamma);
+          eval_clenshaw(set->xcvecs[set->t-2], a11, plength_stab, degree_stab-2, 
+            calpha, cbeta, cgamma);
           /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-          eval_clenshaw(xvecs[t-2], a12, plength_stab, degree_stab-1, calpha, 
-            cbeta, cgamma);
+          eval_clenshaw(set->xcvecs[set->t-2], a12, plength_stab, degree_stab-1, 
+            calpha, cbeta, cgamma);
           calpha--;
           cbeta--;
           cgamma--;
           /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-          eval_clenshaw(xvecs[t-2], a21, plength_stab, degree_stab-1, calpha, 
-            cbeta, cgamma);
+          eval_clenshaw(set->xcvecs[set->t-2], a21, plength_stab, degree_stab-1, 
+            calpha, cbeta, cgamma);
           /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-          eval_clenshaw(xvecs[t-2], a22, plength_stab, degree_stab+0, calpha, 
-            cbeta, cgamma);
+          eval_clenshaw(set->xcvecs[set->t-2], a22, plength_stab, degree_stab+0, 
+            calpha, cbeta, cgamma);
           
-          data->steps[tau][l]->a11[0] = a11;
-          data->steps[tau][l]->a12[0] = a12;
-          data->steps[tau][l]->a21[0] = a21;
-          data->steps[tau][l]->a22[0] = a22;
-          data->steps[tau][l]->stable = false;
+          data->steps[tau][l].a11[0] = a11;
+          data->steps[tau][l].a12[0] = a12;
+          data->steps[tau][l].a21[0] = a21;
+          data->steps[tau][l].a22[0] = a22;
+          data->steps[tau][l].stable = false;
         }  
         else
         {
-          data->steps[tau][l]->a11 = (double**) fftw_malloc((t-tau)*
+          data->steps[tau][l].a11 = (double**) fftw_malloc((set->t-tau)*
             sizeof(double*)); 
-          data->steps[tau][l]->a12 = (double**) fftw_malloc((t-tau)*
+          data->steps[tau][l].a12 = (double**) fftw_malloc((set->t-tau)*
             sizeof(double*)); 
-          data->steps[tau][l]->a21 = (double**) fftw_malloc((t-tau)*
+          data->steps[tau][l].a21 = (double**) fftw_malloc((set->t-tau)*
             sizeof(double*)); 
-          data->steps[tau][l]->a22 = (double**) fftw_malloc((t-tau)*
+          data->steps[tau][l].a22 = (double**) fftw_malloc((set->t-tau)*
             sizeof(double*)); 
 
-          for (tau_stab = tau-1; tau_stab <= t-2; tau_stab++)
+          for (tau_stab = tau-1; tau_stab <= set->t-2; tau_stab++)
           {
             //tau_stab = t-2;
             plength_stab = 1<<(tau_stab+2);
@@ -278,26 +284,26 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
             cbeta = &(beta[2]);
             cgamma = &(gamma[2]);         
             /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-            eval_clenshaw(xvecs[tau_stab], a11, plength_stab, degree_stab-2, 
+            eval_clenshaw(set->xcvecs[tau_stab], a11, plength_stab, degree_stab-2, 
               calpha, cbeta, cgamma);
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-            eval_clnshaw(xvecs[tau_stab], a12, plength_stab, degree_stab-1, 
+            eval_clnshaw(set->xcvecs[tau_stab], a12, plength_stab, degree_stab-1, 
               calpha, cbeta, cgamma);
             calpha--;
             cbeta--;
             cgamma--;
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-            eval_clenshaw(xvecs[tau_stab], a21, plength_stab, degree_stab-1, 
+            eval_clenshaw(set->xcvecs[tau_stab], a21, plength_stab, degree_stab-1, 
               calpha, cbeta, cgamma);
             /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-            eval_clenshaw(xvecs[tau_stab], a22, plength_stab, degree_stab+0, 
+            eval_clenshaw(set->xcvecs[tau_stab], a22, plength_stab, degree_stab+0, 
               calpha, cbeta, cgamma);
             
-            data->steps[tau][l]->a11[tau_stab-tau+1] = a11;
-            data->steps[tau][l]->a12[tau_stab-tau+1] = a12;
-            data->steps[tau][l]->a21[tau_stab-tau+1] = a21;
-            data->steps[tau][l]->a22[tau_stab-tau+1] = a22;
-            data->steps[tau][l]->stable = false;
+            data->steps[tau][l].a11[tau_stab-tau+1] = a11;
+            data->steps[tau][l].a12[tau_stab-tau+1] = a12;
+            data->steps[tau][l].a21[tau_stab-tau+1] = a21;
+            data->steps[tau][l].a22[tau_stab-tau+1] = a22;
+            data->steps[tau][l].stable = false;
           }
         }
       }
@@ -309,6 +315,7 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
 
 void dpt_finalize(dpt_set set)
 {
+  int tau;
   /* TODO Clean up DPT transform data structures. */
   
   /* Delete array of DPT transform data. */
@@ -316,11 +323,11 @@ void dpt_finalize(dpt_set set)
   
   /* Delete arrays of Chebyshev nodes. */
   free(set->xc);
-  for (tau = 1; tau < t; tau++)
+  for (tau = 1; tau < set->t; tau++)
   {
     free(set->xcvecs[tau-1]);
   }
-  free(set->xvecs);  
+  free(set->xcvecs);  
   
   /* Free DPT set structure. */
   free(set);

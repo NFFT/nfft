@@ -329,11 +329,6 @@ void ndsft_trafo(nfsft_plan* plan)
         /* Get Fourier coefficients vector. */
         a = &(plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT]);
         
-        for (k = 0; k <= plan->N; k++)
-        {
-          //fprintf(stdout,"a_%d^%d = %lf +I*%lf\n",k,n,creal(a[k]),cimag(a[k]));
-        }
-        
         /* Take absolute value of n. */
         n_abs = abs(n);
         
@@ -449,7 +444,7 @@ void ndsft_adjoint(nfsft_plan* plan)
     }
     
     for (m = 0; m < plan->M_total; m++)
-     {
+    {
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Take absolute value of n. */
@@ -480,7 +475,7 @@ void ndsft_adjoint(nfsft_plan* plan)
         {
           plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT+k] += temp[k];
         }  
-       }      
+      }      
     }
   }  
   

@@ -1941,6 +1941,19 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *     \end{array}
  * \f]
  * 
+ * \subsection Plan Layout
+ * This section describes the layout of the \ref nfsft_plan structure. The public
+ * members are structured as follows:
+ * \li \c N_total The total number of spherical Fourier coefficients. If the 
+ *        bandwidth is êf$N \in \mathbb{N}_0êf$, the total number of spherical 
+ *        Fourier coefficients is \c N_total \f$= (N+1)^2\f$.
+ * \li \c M_total The total number of samples \f$M\f$.
+ * \li \c f_hat   The flattened array of spherical Fourier coefficents. The array 
+ *                has length () 
+ * \li \c f
+ * \li \c N
+ * \li \c x
+ * \li \c 
  * \subsection Good to know...
  * When using the routines of this module you should bear in mind the following:
  * - The bandwidth \f$N_{\text{max}}\f$ upt to which precomputation is always a 
@@ -2034,11 +2047,12 @@ typedef struct nfsft_plan_
 
   /* Public members */
   int N;                                  /**< The bandwidth \f$N\f$              */
-  double *x;                              /**< The nodes \f$\mathbf{x}(m) \in 
+  double *x;                              /**< The nodes \f$\mathbf{x}(m) = 
+                                               \left(x_1,x_2\right) \in 
                                                [0,\frac{1}{2}] \times 
                                                [-\frac{1}{2},\frac{1}{2}]\f$ for 
                                                \f$m=0,\ldots,M-1\f$,\f$M \in 
-                                               \mathbb{N}\f$                      */
+                                               \mathbb{N},\f$                     */
   
   /* Private members */
   int NPT;                                /**< Next greater power of two with

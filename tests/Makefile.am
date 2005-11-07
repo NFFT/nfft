@@ -1,1 +1,1 @@
-SUBDIRS = lowlevel
+SUBDIRS = kernel lowlevel

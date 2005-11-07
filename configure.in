@@ -99,6 +99,8 @@ AC_OUTPUT(Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \
           tests/Makefile \
+          tests/kernel/Makefile \
+          tests/kernel/dpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
 )

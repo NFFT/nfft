@@ -1,10 +1,12 @@
 #ifndef DPT_H_
 #define DPT_H_
 
+#include <stdlib.h>
 #include <stdbool.h>
+#include <complex.h>
 
-#define DPT_NO_STABILIZATION (1U << 0);
-#define DPT_BANDWIDTH_WINDOW (1U << 1);
+#define DPT_NO_STABILIZATION (1U << 0)
+#define DPT_BANDWIDTH_WINDOW (1U << 1)
 
 typedef struct dpt_step_
 {
@@ -37,8 +39,9 @@ typedef dpt_set_s *dpt_set;
 
 dpt_set dpt_init(const int M, const int t, const int flags);
 
-void dpt_precompute(dpt_set set, const int m, double *alpha, double *beta, 
-                    double *gamma);
+void dpt_precompute(dpt_set set, const int m, double const* alpha, 
+                    double const* beta, double const* gamma, int k_start,
+                    double threshold);
 
 void dpt_trafo(dpt_set set, const int m, complex *x);
 
