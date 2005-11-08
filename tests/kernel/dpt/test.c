@@ -149,10 +149,14 @@ void test_dpt_trafo(void)
       }            
             
       /* Initialize DPT. */
-      set = dpt_init(1,t,0U);
+      set = dpt_init(0,t,0U);
       
       /* Precompute DPT. */
-      dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);      
+      dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
+      
+      /* Execute DPT. */
+      dpt_trafo(set,0,N,x);   
+         
       /* Precompute. */
       //nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
@@ -188,6 +192,7 @@ void test_dpt_trafo(void)
       
       /* CLose the file. */
       fclose(file);
+      file = NULL;
       /* Execute the plan. */
       //ndsft_trafo(&plan);
       /* Check result */
@@ -204,13 +209,22 @@ void test_dpt_trafo(void)
       } */   
       /* Destroy the plan. */
       //nfsft_finalize(&plan);
+      
       /* Forget precomputed data. */
-      //nfsft_forget();
+      dpt_finalize(set);
+      set = NULL;
+      
       /* Free memory. */
       free(alpha);
       free(beta);
       free(gamma);
       free(x);
+      free(y);     
+      alpha = NULL;
+      beta = NULL;
+      gamma = NULL;
+      x = NULL;
+      y = NULL;
       //free(f_orig);
       /* Test passed. */
       fprintf(stdout," ok\n");
@@ -221,7 +235,9 @@ void test_dpt_trafo(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
       CU_FAIL("Couldn't open file!\n");
     }
-  }  
+  }
+  close(testfiles);
+  testfiles = NULL;  
 }
 
 /**

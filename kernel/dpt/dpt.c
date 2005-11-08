@@ -5,8 +5,10 @@
 #include <fftw3.h>
 #include "util.h" 
 
-#define FIRST_L (int)floor(k_start_tilde/(double)plength)
-#define LAST_L (int)ceil((N_tilde+1)/(double)plength)-1
+#define K_START_TILDE(x,y) (MAX(MIN(x,y-2),0))
+#define N_TILDE(y) (y-1)
+#define FIRST_L(x) ((int)floor((x)/(double)plength))
+#define LAST_L(x) ((int)ceil(((x)+1)/(double)plength)-1)
 
 void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
   double* w, int n)
@@ -168,6 +170,8 @@ dpt_set dpt_init(const int M, const int t, const int flags)
   int plength;
   /** Cascade level */
   int tau;
+  /** Index m */
+  int m;
   /** FFTW plan */
   fftw_plan plan;  
   
@@ -181,7 +185,13 @@ dpt_set dpt_init(const int M, const int t, const int flags)
   set->N = 1<<t;
   
   /* Allocate memory for L transforms. */
-  set->dpt = malloc(M*sizeof(dpt_data));
+  set->dpt = malloc((M+1)*sizeof(dpt_data));
+  
+  /* Initialize with NULL pointer. */
+  for (m = 0; m <= set->M; m++)
+  {
+    set->dpt[m].steps = (dpt_step**)NULL;
+  }
  
   /* Create arrays with Chebyshev nodes. */  
   
@@ -208,6 +218,7 @@ dpt_set dpt_init(const int M, const int t, const int flags)
     fftw_execute(plan);
     /* Destroy the plan. */
     fftw_destroy_plan(plan);
+    plan = NULL;
     /* Increase length to next power of two. */
     plength = plength << 1;
   }
@@ -285,6 +296,12 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   /* Get pointer to DPT data. */
   data = &(set->dpt[m]);
   
+  /* Check, if already precomputed. */
+  if (data->steps != NULL)
+  {
+    return;
+  }
+  
   /* Save k_start. */
   data->k_start = k_start;
   
@@ -296,8 +313,8 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   data->beta_0 = beta[1];
   data->gamma_m1 = gamma[0];
     
-  int k_start_tilde = MAX(MIN(data->k_start,set->N-2),0);
-  int N_tilde = set->N-1;
+  int k_start_tilde = K_START_TILDE(data->k_start,set->N);
+  int N_tilde = N_TILDE(set->N);
     
   // printf("k_start = %d, k_start_tilde = %d, N = %d, N_tilde = %d\n",
   // k_start,k_start_tilde,set->N,N_tilde);
@@ -312,9 +329,9 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
     /* Compute auxilliary values. */
     degree = plength>>1;     
     /* Compute first l. */
-    firstl = FIRST_L;
+    firstl = FIRST_L(k_start_tilde);
     /* Compute last l. */
-    lastl = LAST_L;
+    lastl = LAST_L(N_tilde);
     //printf("tau = %d: plength = %d, degree = %d, firstl = %d, lastl = %d\n",
     //  tau, plength, degree, firstl, lastl);
 
@@ -545,6 +562,10 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
   /* Get transformation data. */
   dpt_data *data = &(set->dpt[m]);
   
+  fprintf(stdout,"dpt_trafo: k_start = %d\n",data->k_start);
+  fprintf(stdout,"dpt_trafo: k_end = %d\n",k_end);
+  fprintf(stdout,"dpt_trafo: N = %d\n",set->N);
+  
   int k_start_tilde = MAX(MIN(data->k_start,set->N-2),0);
   int N_tilde = set->N-1;
   
@@ -576,9 +597,9 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
   for (tau = 1; tau < set->t; tau++)
   {    
     /* Compute first l. */
-    firstl = FIRST_L;
+    firstl = FIRST_L(k_start_tilde);
     /* Compute last l. */
-    lastl = LAST_L;
+    lastl = LAST_L(N_tilde);
     
     /* Compute the multiplication steps. */
     for (l = firstl; l <= lastl; l++)
@@ -686,18 +707,100 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
 void dpt_finalize(dpt_set set)
 {
   int tau;
+  int l;
+  int m;
+  dpt_data *data;
+  int k_start_tilde;
+  int N_tilde;  
+  int tau_stab;
+  int firstl, lastl;
+  int plength;
+  
   /* TODO Clean up DPT transform data structures. */
+  for (m = 0; m < set->M; m++)
+  {
+    /* Check if precomputed. */
+    data = &set->dpt[m];
+    if (data->steps != (dpt_step**)NULL)
+    {
+      /* Free precomputed data. */
+      k_start_tilde = K_START_TILDE(data->k_start,set->N);
+      N_tilde = N_TILDE(set->N);
+      plength = 4;
+      for (tau = 1; tau < set->t; tau++)
+      {     
+        /* Compute first l. */
+        firstl = FIRST_L(k_start_tilde);
+        /* Compute last l. */
+        lastl = LAST_L(N_tilde);
+        
+        /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
+        for (l = firstl; l <= lastl; l++)
+        {                     
+          if (set->flags & DPT_NO_STABILIZATION || 
+            data->steps[tau][l].stable == true ||
+            data->steps[tau][l].stable == true && set->flags & 
+              DPT_BANDWIDTH_WINDOW)
+          {
+            /* Free components. */
+            free(data->steps[tau][l].a11[0]);
+            free(data->steps[tau][l].a12[0]);
+            free(data->steps[tau][l].a21[0]);
+            free(data->steps[tau][l].a22[0]);
+            data->steps[tau][l].a11[0] = NULL;
+            data->steps[tau][l].a12[0] = NULL;
+            data->steps[tau][l].a21[0] = NULL;
+            data->steps[tau][l].a22[0] = NULL;
+          }
+          else
+          {  
+            for (tau_stab = tau-1; tau_stab <= set->t-2; tau_stab++)
+            {
+              /* Free components. */
+              free(data->steps[tau][l].a11[tau_stab-tau+1]);
+              free(data->steps[tau][l].a12[tau_stab-tau+1]);
+              free(data->steps[tau][l].a21[tau_stab-tau+1]);
+              free(data->steps[tau][l].a22[tau_stab-tau+1]);
+            }
+          }
+          /* Free components. */
+          free(data->steps[tau][l].a11);
+          free(data->steps[tau][l].a12);
+          free(data->steps[tau][l].a21);
+          free(data->steps[tau][l].a22);
+          free(data->steps[tau][l].gamma);          
+          data->steps[tau][l].a11 = NULL;
+          data->steps[tau][l].a12 = NULL;
+          data->steps[tau][l].a21 = NULL;
+          data->steps[tau][l].a22 = NULL;
+          data->steps[tau][l].gamma = NULL;        
+        }
+        /* Free pointers for current level. */
+        free(data->steps[tau]);
+        data->steps[tau] = NULL;
+        /* Double length of polynomials. */
+        plength = plength<<1;        
+      } 
+      /* Free steps. */
+      free(data->steps);
+      data->steps = NULL;           
+    }
+  }
   
   /* Delete array of DPT transform data. */
   free(set->dpt);
+  set->dpt = NULL;
   
   /* Delete arrays of Chebyshev nodes. */
   free(set->xc);
+  set->xc = NULL;
   for (tau = 1; tau < set->t; tau++)
   {
     free(set->xcvecs[tau-1]);
+    set->xcvecs[tau-1] = NULL;
   }
   free(set->xcvecs);
+  set->xcvecs = NULL;
   
   /* Free auxilliary arrays. */
   free(set->work);  
@@ -705,12 +808,19 @@ void dpt_finalize(dpt_set set)
   free(set->vec3);  
   free(set->vec4);  
   free(set->z);
+  set->work = NULL;
+  set->result = NULL;
+  set->vec3 = NULL;
+  set->vec4 = NULL;
+  set->z = NULL;
   
   /* Free FFTW plans. */
   for(tau = 0; tau < set->t-1; tau++)
   {
     fftw_destroy_plan(set->plans_dct3[tau]);
     fftw_destroy_plan(set->plans_dct2[tau]);
+    set->plans_dct3[tau] = NULL;
+    set->plans_dct2[tau] = NULL;
   }  
    
   free(set->plans_dct3);
@@ -718,6 +828,11 @@ void dpt_finalize(dpt_set set)
   free(set->kinds);
   free(set->kindsr);
   free(set->lengths);
+  set->plans_dct3 = NULL;
+  set->plans_dct2 = NULL;
+  set->kinds = NULL;
+  set->kindsr = NULL;
+  set->lengths = NULL;
     
   /* Free DPT set structure. */
   free(set);
