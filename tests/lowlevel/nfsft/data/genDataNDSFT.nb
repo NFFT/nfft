@@ -41,86 +41,80 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      9141,        243]*)
-(*NotebookOutlinePosition[      9990,        272]*)
-(*  CellTagsIndexPosition[      9946,        268]*)
+(*NotebookOptionsPosition[      8925,        237]*)
+(*NotebookOutlinePosition[      9774,        266]*)
+(*  CellTagsIndexPosition[      9730,        262]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
 Cell[BoxData[
-    \(mySphericalHarmonicY[k_, 
-        n_, \[Theta]_, \[CurlyPhi]_] := \@\(\(2\ k + 1\)\/\(4\ \[Pi]\)\)\ \
-\@\(\(\((k - Abs[n])\)!\)\/\(\((k + Abs[n])\)!\)\)\ \((\(-1\))\)\^n\ \
-LegendreP[k, Abs[n], 
-          Cos[\[Theta]]]\ \[ExponentialE]\^\(\[ImaginaryI]\ n\ \
-\[CurlyPhi]\)\)], "Input",
+    \(myLegendreP[k_, n_, 
+        x_] := \ \@\(\(\((k - Abs[n])\)!\)\/\(\((k + Abs[n])\)!\)\)\ \
+\((\(-1\))\)\^n\ LegendreP[k, n, x]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[CellGroupData[{
 
 Cell[BoxData[{
-    \(NN = {0, 1, 2, 3, 4, 8, 16, 32}\), "\n", 
-    \(M = {10000}\)}], "Input",
+    \(alpha[k_, n_]\  := \ 
+      Piecewise[{0, k \[Equal] \(-1\)}, {\((\(-1\))\)\^\((k + 1)\), 
+          0 \[LessEqual] k < 
+            n}, {\(2  k + 1\)\/\@\(\((k - n + 1)\) \((k + n + 1)\)\), 
+          k \[GreaterEqual] \ n}]\), "\[IndentingNewLine]", 
+    \(beta[k_, n_]\  := \ 
+      Piecewise[{0, k \[Equal] \(-1\)}, {1, 0 \[LessEqual] k < n}, {0, 
+          k \[GreaterEqual] \ n}]\), "\[IndentingNewLine]", 
+    \(gamma[k_, n_]\  := \ 
+      Piecewise[{\@\(\((2  n)\)!\)\/\(\(2\^n\) \(n!\)\), 
+          k \[Equal] \(-1\)}, {0, 
+          0 \[LessEqual] k \[LessEqual] 
+            n}, {\(-\(\@\(\((k - n)\) \((k + n)\)\)\/\@\(\((k - n + 1)\) \((k \
++ n + 1)\)\)\)\), k > \ n}]\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell[BoxData[
-    \({0, 1, 2, 3, 4, 8, 16, 32}\)], "Output"],
-
-Cell[BoxData[
-    \({10000}\)], "Output"]
-}, Open  ]],
+Cell[BoxData[{
+    \(\(t\  = \ {4};\)\), "\[IndentingNewLine]", 
+    \(\(n\  = \ {0};\)\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(Do[{Do[{fhat = 
-              Table[Table[
-                  Random[Complex, {\(-0.5\) - 0.5\ \[ImaginaryI], 
-                      0.5 + 0.5\ \[ImaginaryI]}], {n, \(-k\), k}], {k, 0, 
-                  NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
-            x = Table[{Random[Real, {0, 1\/2}], 
-                  Random[Real, {\(-\(1\/2\)\), 1\/2}]}, {m, 0, 
-                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
-            f[\[Theta]_, \[CurlyPhi]_] := \[Sum]\+\(k = 0\)\%\(NN\
-\[LeftDoubleBracket]j\[RightDoubleBracket]\)\(\[Sum]\+\(n = \(-k\)\)\%k\( 
-                        fhat\[LeftDoubleBracket]k + 
-                          1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                      n + k + 1\[RightDoubleBracket]\ mySphericalHarmonicY[k, 
-                      n, \[Theta], \[CurlyPhi]]\); 
-            fv = Table[
-                f[2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                        m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
-\[RightDoubleBracket], 
-                  2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                        m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
-\[RightDoubleBracket]], {m, 0, 
-                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
+    \(Do[\[IndentingNewLine]{Do[\[IndentingNewLine]{N\  = \ 
+              2^t[\([j]\)]; \[IndentingNewLine]alphav\  = \ 
+              Table[alpha[k, n[\([l]\)]], {k, \(-1\), 
+                  N}]; \[IndentingNewLine]betav\  = \ 
+              Table[beta[k, n[\([l]\)]], {k, \(-1\), 
+                  N}]; \[IndentingNewLine]gammav\  = \ 
+              Table[gamma[k, n[\([l]\)]], {k, \(-1\), 
+                  N}]; \[IndentingNewLine]x = 
+              Table[Random[
+                  Complex, {\(-0.5\) - 0.5\ \[ImaginaryI], 
+                    0.5 + 0.5\ \[ImaginaryI]}], {k, n[\([l]\)], N}]; 
             testfile = 
-              OpenWrite["\<test_ndsft_\>" <> 
+              OpenWrite["\<test_dpt_\>" <> 
                   StringTake[
                     ToString[
-                      PaddedForm[
-                        NN\[LeftDoubleBracket]j\[RightDoubleBracket], 3, 
+                      PaddedForm[N, 3, 
                         NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
 "\<_\>" <> StringTake[
                     ToString[
-                      PaddedForm[M\[LeftDoubleBracket]l\[RightDoubleBracket], 
-                        4, NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \
-\(-5\)] <> "\<.txt\>"]; 
-            Write[testfile, NN\[LeftDoubleBracket]j\[RightDoubleBracket]]; 
-            Write[testfile, M\[LeftDoubleBracket]l\[RightDoubleBracket]]; 
-            Do[Do[{Write[testfile, 
-                    N[Re[\(fhat\[LeftDoubleBracket]
-                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                          n + k + 1\[RightDoubleBracket]], 32]], 
-                  Write[testfile, 
-                    N[Im[\(fhat\[LeftDoubleBracket]
-                            k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                          n + k + 1\[RightDoubleBracket]], 32]]}, {n, \(-k\), 
-                  k}], {k, 0, NN\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
-            Do[{Write[testfile, 
+                      PaddedForm[n[\([l]\)], 4, 
+                        NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-5\)] <> \
+"\<.txt\>"]; \[IndentingNewLine]Write[testfile, N]; \[IndentingNewLine]Write[
+              testfile, 
+              n\[LeftDoubleBracket]
+                l\[RightDoubleBracket]]; \[IndentingNewLine]Do[{Write[
+                  testfile, N[Re[alphav[\([k]\)]], 32]], 
+                Write[testfile, N[Im[alphav[\([k]\)]], 32]]}, {k, 1, 
+                N + 2}]; \[IndentingNewLine]Do[{Write[testfile, 
+                  N[Re[betav[\([k]\)]], 32]], 
+                Write[testfile, N[Im[betav[\([k]\)]], 32]]}, {k, 1, 
+                N + 2}]; \[IndentingNewLine]Do[{Write[testfile, 
+                  N[Re[gammav[\([k]\)]], 32]], 
+                Write[testfile, N[Im[gammav[\([k]\)]], 32]]}, {k, 1, 
+                N + 2}]; \[IndentingNewLine]\[IndentingNewLine]Do[{Write[
+                  testfile, 
                   N[\(x\[LeftDoubleBracket]m + 
                           1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
 \[RightDoubleBracket], 32]], 
@@ -135,8 +129,8 @@ Cell[BoxData[
                   N[Im[fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]], 
                     32]]}, {m, 0, 
                 M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
-            Close[testfile];}, {l, 1, Length[M]}]}, {j, 1, 
-        Length[NN]}]\)], "Input",
+            Close[testfile];}, {l, 1, Length[n]}]}, {j, 1, 
+        Length[t]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
@@ -245,8 +239,8 @@ FrontEndVersion->"5.2 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1016, 694},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowSize->{1144, 739},
+WindowMargins->{{5, Automatic}, {Automatic, 2}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -271,32 +265,28 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 340, 7, 52, "Input"],
+Cell[1754, 51, 194, 4, 51, "Input"],
+Cell[1951, 57, 751, 15, 111, "Input"],
+Cell[2705, 74, 135, 3, 43, "Input"],
 
 Cell[CellGroupData[{
-Cell[2119, 62, 128, 3, 43, "Input"],
-Cell[2250, 67, 60, 1, 27, "Output"],
-Cell[2313, 70, 41, 1, 27, "Output"]
+Cell[2865, 81, 2718, 52, 299, "Input"],
+Cell[5586, 135, 42, 1, 27, "Output"]
 }, Open  ]],
-
-Cell[CellGroupData[{
-Cell[2391, 76, 3408, 63, 260, "Input"],
-Cell[5802, 141, 42, 1, 27, "Output"]
-}, Open  ]],
-Cell[5859, 145, 106, 3, 43, "Input"],
-Cell[5968, 150, 238, 6, 27, "Input"],
-Cell[6209, 158, 173, 4, 42, "Input"],
-Cell[6385, 164, 132, 3, 43, "Input"],
-Cell[6520, 169, 356, 6, 51, "Input"],
-Cell[6879, 177, 361, 8, 27, "Input"],
-Cell[7243, 187, 103, 2, 27, "Input"],
-Cell[7349, 191, 1133, 25, 107, "Input"],
-Cell[8485, 218, 82, 2, 27, "Input"],
-Cell[8570, 222, 128, 3, 27, "Input"],
-Cell[8701, 227, 114, 2, 27, "Input"],
-Cell[8818, 231, 88, 2, 39, "Input"],
-Cell[8909, 235, 107, 2, 39, "Input"],
-Cell[9019, 239, 118, 2, 27, "Input"]
+Cell[5643, 139, 106, 3, 43, "Input"],
+Cell[5752, 144, 238, 6, 27, "Input"],
+Cell[5993, 152, 173, 4, 42, "Input"],
+Cell[6169, 158, 132, 3, 43, "Input"],
+Cell[6304, 163, 356, 6, 51, "Input"],
+Cell[6663, 171, 361, 8, 27, "Input"],
+Cell[7027, 181, 103, 2, 27, "Input"],
+Cell[7133, 185, 1133, 25, 91, "Input"],
+Cell[8269, 212, 82, 2, 27, "Input"],
+Cell[8354, 216, 128, 3, 27, "Input"],
+Cell[8485, 221, 114, 2, 27, "Input"],
+Cell[8602, 225, 88, 2, 39, "Input"],
+Cell[8693, 229, 107, 2, 39, "Input"],
+Cell[8803, 233, 118, 2, 27, "Input"]
 }
 ]
 *)

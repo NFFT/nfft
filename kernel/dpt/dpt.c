@@ -1,15 +1,34 @@
 #include "dpt.h"
 
 #include <math.h>
+#include <string.h>
 #include <fftw3.h>
 #include "util.h" 
 
 #define FIRST_L (int)floor(k_start_tilde/(double)plength)
 #define LAST_L (int)ceil((N_tilde+1)/(double)plength)-1
 
+void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
+  double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
+  
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
+  
+  for (l = 0; l < n; l++)
+  {
+    *u++ = a * ((*v++) * (*x++) + (*w++) * (*y++));
+  }
+}
 
 void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21, 
-                 double *a22, double gamma, int tau, dpt_set *set)
+                 double *a22, double gamma, int tau, dpt_set set)
 { 
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -33,8 +52,8 @@ void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21,
   else 
   {
     /* Perform multiplication for both rows. */
-    auvxpwy(normalize,set->z,b,a22,a,a21,length);
-    auvxpwy(normalize*gamma,a,a,a11,b,a12,length);
+    auvxpwy(norm,set->z,b,a22,a,a21,length);
+    auvxpwy(norm*gamma,a,a,a11,b,a12,length);
     memcpy(b,set->z,length*sizeof(complex));    
     /* Compute Chebyshev-coefficients using a DCT-II. */
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);   
@@ -46,6 +65,101 @@ void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21,
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);  
   /* Compensate for factors introduced by a raw DCT-II. */      
   b[0] *= 0.5;  
+}
+
+void eval_clenshaw(double *x, double *y, int size, int k, double *alpha, 
+  double *beta, double *gamma)
+{
+  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
+   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
+   */
+  int i,j;
+  double a,b,x_val_act,a_old;
+  double *x_act, *y_act;  
+  double *alpha_act, *beta_act, *gamma_act;
+  
+  /* Traverse all nodes. */
+  x_act = x;
+  y_act = y;
+  for (i = 0; i < size; i++)
+  {
+    a = 1.0;
+    b = 0.0;
+    x_val_act = *x_act;
+    
+    if (k == 0)
+    {  
+      *y_act = 1.0;
+    }
+    else
+    {
+      alpha_act = &(alpha[k]);
+      beta_act = &(beta[k]);
+      gamma_act = &(gamma[k]);
+      for (j = k; j > 1; j--)
+      {
+        a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
+         b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+    }
+    x_act++;
+    y_act++;
+  }
+}
+
+int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha, 
+  double *beta, double *gamma, double threshold)
+{
+  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
+   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
+   */
+  int i,j;
+  double a,b,x_val_act,a_old;
+  double *x_act, *y_act;
+  double *alpha_act, *beta_act, *gamma_act;
+  
+  /* Traverse all nodes. */
+  x_act = x;
+  y_act = y;
+  for (i = 0; i < size; i++)
+  {
+    a = 1.0;
+    b = 0.0;
+    x_val_act = *x_act;
+    
+    if (k == 0)
+    {  
+     *y_act = 1.0;
+    }
+    else
+    {
+      alpha_act = &(alpha[k]);
+      beta_act = &(beta[k]);
+      gamma_act = &(gamma[k]);
+      for (j = k; j > 1; j--)
+      {
+        a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
+         b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+      if (fabs(*y_act) > threshold)
+      {
+        return 1;
+      }
+    }
+    x_act++;
+    y_act++;
+  }
+  return 0;
 }
 
 dpt_set dpt_init(const int M, const int t, const int flags)
@@ -521,9 +635,9 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
         }
         else
         {
-          dpt_do_step(set->vec3, set->vec4, step->a11[t-tau-1], 
-            step->a12[t-tau-1], step->a21[t-tau-1], step->a22[t-tau-1], 
-            step->gamma[t-tau-1], t-1, set);
+          dpt_do_step(set->vec3, set->vec4, step->a11[set->t-tau-1], 
+            step->a12[set->t-tau-1], step->a21[set->t-tau-1], 
+            step->a22[set->t-tau-1], step->gamma[set->t-tau-1], set->t-1, set);
         }
 
         if (step->gamma[set->t-tau-1] != 0.0)
@@ -607,118 +721,4 @@ void dpt_finalize(dpt_set set)
     
   /* Free DPT set structure. */
   free(set);
-}
-
-void eval_clenshaw(double *x, double *y, int size, int k, double *alpha, 
-  double *beta, double *gamma)
-{
-  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
-   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
-   */
-  int i,j;
-  double a,b,x_val_act,a_old;
-  double *x_act, *y_act;  
-  double *alpha_act, *beta_act, *gamma_act;
-  
-  /* Traverse all nodes. */
-  x_act = x;
-  y_act = y;
-  for (i = 0; i < size; i++)
-  {
-    a = 1.0;
-    b = 0.0;
-    x_val_act = *x_act;
-    
-    if (k == 0)
-    {  
-      *y_act = 1.0;
-    }
-    else
-    {
-      alpha_act = &(alpha[k]);
-      beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
-      for (j = k; j > 1; j--)
-      {
-        a_old = a;
-        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
-         b = a_old*(*gamma_act);
-        alpha_act--;
-        beta_act--;
-        gamma_act--;
-      }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
-    }
-    x_act++;
-    y_act++;
-  }
-}
-
-int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha, 
-  double *beta, double *gamma, double threshold)
-{
-  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector 
-   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
-   */
-  int i,j;
-  double a,b,x_val_act,a_old;
-  double *x_act, *y_act;
-  double *alpha_act, *beta_act, *gamma_act;
-  
-  /* Traverse all nodes. */
-  x_act = x;
-  y_act = y;
-  for (i = 0; i < size; i++)
-  {
-    a = 1.0;
-    b = 0.0;
-    x_val_act = *x_act;
-    
-    if (k == 0)
-    {  
-     *y_act = 1.0;
-    }
-    else
-    {
-      alpha_act = &(alpha[k]);
-      beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
-      for (j = k; j > 1; j--)
-      {
-        a_old = a;
-        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));           
-         b = a_old*(*gamma_act);
-        alpha_act--;
-        beta_act--;
-        gamma_act--;
-      }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
-      if (fabs(*y_act) > threshold)
-      {
-        return 1;
-      }
-    }
-    x_act++;
-    y_act++;
-  }
-  return 0;
-}
-
-void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
-  double* w, int n)
-{
-  int l;
-  complex *u_ptr, *x_ptr, *y_ptr;
-  double *v_ptr, *w_ptr;
-  
-  u_ptr = u;
-  x_ptr = x;
-  v_ptr = v;
-  y_ptr = y;
-  w_ptr = w;
-  
-  for (l = 0; l < n; l++)
-  {
-    *u++ = a * ((*v++) * (*x++) + (*w++) * (*y++));
-  }
 }
