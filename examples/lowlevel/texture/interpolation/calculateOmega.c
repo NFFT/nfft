@@ -325,6 +325,9 @@ void calculate_omega()
 			fflush(0);
 		}
 #endif
+		printf("# residuum: %lg\n", new_res);
+		printf("#\n");
+
 		memcpy(omega, iplan.f_hat_iter, texture_flat_length(N) * sizeof(complex));
 		itexture_finalize(&iplan);
 		texture_finalize(&plan);
@@ -382,6 +385,7 @@ int main(int argc, char *argv[])
 		read_samples(sample_file);
 		read_grid_h(grid_h_file);
 		read_grid_r(grid_r_file);
+		fflush(0);
 		calculate_omega();
 		output_omega();
 		cleanup();

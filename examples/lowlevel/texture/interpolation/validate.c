@@ -76,6 +76,26 @@ void cleanup()
 	free(x);
 }
 
+void test_abs()
+{
+	int i, j;
+	double maxabs = -1;
+	int i_max = -1, j_max = -1;
+
+	for (i = 0; i < N1; i++) {
+		for (j = 0; j < N2; j++) {
+			double absval = cabs(x[i * N2 + j]);
+			if (absval > maxabs) {
+				maxabs = absval;
+				i_max = i;
+				j_max = j;
+			}
+		}
+	}
+
+	printf("maximum absolute value: %lg at i=%d j=%d\n", maxabs, i_max, j_max);
+}
+
 void test_real()
 {
 	int i, j;
@@ -93,7 +113,7 @@ void test_real()
 		}
 	}
 
-	printf("maximum imaginary part: %lg at i=%d j%d\n", maxim, i_max, j_max);
+	printf("maximum imaginary part: %lg at i=%d j=%d\n", maxim, i_max, j_max);
 }
 
 void test_positiv()
@@ -113,7 +133,7 @@ void test_positiv()
 		}
 	}
 
-	printf("maximum negative part: %lg at i=%d j%d\n", maxneg, i_max, j_max);
+	printf("maximum negative part: %lg at i=%d j=%d\n", maxneg, i_max, j_max);
 }
 
 int main(int argc, char *argv[])
@@ -126,6 +146,7 @@ int main(int argc, char *argv[])
 
 	if (argc <= 2) {
 		read_samples(sample_file);
+		test_abs();
 		test_real();
 		test_positiv();
 		cleanup();
