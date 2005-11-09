@@ -687,20 +687,18 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
  
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
    * polynomials in front of P_0^n and P_1^n. */ 
-  x[0] = data->gamma_m1*(set->result[0]+data->beta_0*set->result[set->N]+
+  x[0] = data->gamma_m1*(set->result[0] + data->beta_0*set->result[set->N] + 
     data->alpha_0*set->result[set->N+1]*0.5);
-  x[1] = data->gamma_m1*(set->result[1]+set->result[set->N+1]+
+  x[1] = data->gamma_m1*(set->result[1] + set->result[set->N+1]+
     data->alpha_0*(set->result[set->N]+set->result[set->N+2]*0.5));
-  x[set->N-1] = data->gamma_m1*(set->result[set->N-1]+
-    data->beta_0*set->result[set->N+set->N-1]+
+  x[set->N-1] = data->gamma_m1*(set->result[set->N-1] +
+    data->beta_0*set->result[set->N+set->N-1] +
     data->alpha_0*set->result[set->N+set->N-2]*0.5);
-    /* !!!!!!!!!!!!!!!!!!! */
-  x[set->N] = data->gamma_m1*(set->result[set->N+set->N]-
-    set->result[set->N+set->N-1]*0.5);
-  for (j = 2; j < set->N-1; j++)
+  x[set->N] = data->gamma_m1*0.5*data->alpha_0*set->result[set->N+set->N-1];
+  for (j = 2; j <= set->N-2; j++)
   {
-    x[j] = data->gamma_m1*(set->result[j]+data->beta_0*set->result[j+set->N]+
-      data->alpha_0*(set->result[j+set->N-1]+set->result[j+set->N+1])*0.5);
+    x[j] = data->gamma_m1*(set->result[j] + data->beta_0*set->result[set->N+j] +
+      data->alpha_0*0.5*(set->result[j+set->N-1]+set->result[j+set->N+1]));
   } 
 }
 
