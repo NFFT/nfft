@@ -15,7 +15,7 @@ void simple_test_nfft_1d()
 
   /** init an one dimensional plan */
  nfft_init_guru(&my_plan, 1, N, 19, n, 6,
-                 PRE_PHI_HUT| FG_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+                 PRE_PHI_HUT| PRE_FG_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
@@ -28,6 +28,9 @@ void simple_test_nfft_1d()
   /** precompute psi, the entries of the matrix B */
     if(my_plan.nfft_flags & PRE_LIN_PSI)
       nfft_precompute_lin_psi(&my_plan);
+
+  if(my_plan.nfft_flags & PRE_FG_PSI)
+      nfft_precompute_fg_psi(&my_plan);
 
   if(my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);

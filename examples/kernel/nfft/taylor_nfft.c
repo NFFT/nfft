@@ -149,7 +149,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   taylor_init(&tp,N,M,n_taylor,m_taylor);
 
   nfft_init_guru(&np, 1, &N, M, &n, m,
-PRE_PHI_HUT| PRE_PSI|
+PRE_PHI_HUT| PRE_LIN_PSI|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -172,6 +172,8 @@ PRE_PHI_HUT| PRE_PSI|
   /** nfft precomputation */
   if(np.nfft_flags & PRE_LIN_PSI)
       nfft_precompute_lin_psi(&np);
+  if(np.nfft_flags & PRE_FG_PSI)
+      nfft_precompute_fg_psi(&np);
   if(np.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&np);
   if(np.nfft_flags & PRE_FULL_PSI)
@@ -221,10 +223,8 @@ PRE_PHI_HUT| PRE_PSI|
   printf("%d\t%d\t%.1f\t%d\t%.1f\t%d\t",N, M, ((double)n)/N, m, ((double)n_taylor)/N, m_taylor);
 
   if(test_accuracy)
-  
-printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
-
-//error_l_infty_1_complex(swapndft, np.f, np.M_total, np.f_hat, np.N_total));
+  printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
+//printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total, np.f_hat, np.N_total));
   else
     printf("--------\t");
 
@@ -242,7 +242,7 @@ printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
   t_taylor/=r;
 
   if(test_accuracy)
-printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
+printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
 //    printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total,                    np.f_hat, np.N_total));
   else
     printf("--------\t");
@@ -359,130 +359,15 @@ void taylor_simple_test()
   fftw_free(idx0);
 }
 
-/*###########################################################################*/
-/*###########################################################################*/
-/*###########################################################################*/
-
-void nfft_uo2(nfft_plan *ths,int j,int *up,int *op,int act_dim)
-{
-  double c;
-  int u,o;
-
-  c = ths->x[j*ths->d+act_dim] * ths->n[act_dim];
-  u = c; o = c;
-  if(c < 0)                  
-    u = u-1;                  
-  else
-    o = o+1;
-  
-  u = u - (ths->m); o = o + (ths->m);
-
-  up[0]=u; op[0]=o;
-}
-
-void nfft_precompute_psi_G(nfft_plan *ths)
-{
-  int t;                     /**< index over all dimensions     */
-  int j;                     /**< index over all nodes          */
-  int l;                     /**< index u<=l<=o                 */
-  int lj;                    /**< index 0<=lj<u+o+1             */
-  int u, o;                  /**< depends on x_j                */
-
-
-  double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp0, tmp1, tmp2, tmp3, tmp4;
-  int ipsi;
-
-  for(j=0;j<ths->M_total;j++)
-    for (t=0; t<ths->d; t++)
-      {
-        nfft_uo2(ths,j,&u,&o,t);
-  
-        ipsi = (j*ths->d+t)*(2*ths->m+2)+0;
-        ths->psi[ipsi]= (PHI((ths->x[j*ths->d+t]-((double)u)/ths->n[t]),t));
-
-        tmpEXP1 = exp(2.0*(ths->n[t]*ths->x[j*ths->d+t] - u)/ths->b[t]);
-
-        tmpEXP2 = exp(-1.0/ths->b[t]);
-
-        tmpEXP2sq = tmpEXP2*tmpEXP2;
-        tmp0 = ths->psi[ipsi];
-        tmp1 = 1.0;
-        tmp2 = 1.0;
-        tmp3 = 1.0;
-        tmp4 = 1.0;
-        for(l=u+1, lj=1; l <= o; l++, lj++)
-          {
-            tmp1 *= tmpEXP1;
-            tmp3 = tmp2*tmpEXP2;
-            tmp2 *= tmpEXP2sq;
-            tmp4 *= tmp3;
-            ths->psi[ipsi+lj] = tmp0 * tmp1 * tmp4;
-printf("%d\t%e\n",lj,tmp4);
-          }
-      } /* for(j) */
-  /* for(t) */
-} /* nfft_precompute_psi_G */
-
-void test_init(int d, int N, int M, int n, int m)
-{
-  int j,r;
-  double t,t_pre_psi,t_pre_psi_G,t_pre_full_psi;
-  nfft_plan np;
-
-  nfft_init_guru(&np, d, &N, M, &n, m, MALLOC_X| PRE_FULL_PSI, 0);
-
-  for(j=0;j<np.M_total;j++)
-    np.x[j]=((double)rand())/RAND_MAX-0.5;
-
-  t_pre_psi_G=0;
-  r=0;
-  while(t_pre_psi_G<0.01)
-    {
-      r++;
-      t=second();
-      nfft_precompute_psi_G(&np);
-      t=second()-t;
-      t_pre_psi_G+=t;
-    }
-  t_pre_psi_G/=r;
-
-vpr_double(np.psi,10,"FG");
-
-  t_pre_psi=0;
-  r=0;
-  while(t_pre_psi<0.01)
-    {
-      r++;
-      t=second();
-      nfft_precompute_psi(&np);
-      t=second()-t;
-      t_pre_psi+=t;
-    }
-  t_pre_psi/=r;
-
-vpr_double(np.psi,10,"usual");
-
-  t_pre_full_psi=0;
-  r=0;
-  while(t_pre_full_psi<0.01)
-    {
-      r++;
-      t=second();
-      nfft_precompute_full_psi(&np);
-      t=second()-t;
-      t_pre_full_psi+=t;
-    }
-  t_pre_full_psi/=r;
-
-  printf("%d\t%d\t%d\t%.2e\t%.2e\t%.2e\n",N,M,m,t_pre_psi_G,t_pre_psi,t_pre_full_psi);
-
-  nfft_finalize(&np);
-}
-
 int main()
 {
   int l,m;
   int d=3;
+
+  for(l=4;l<16;l++)
+    taylor_time_accuracy((1U<< l), 10, (1U<< (l+2)), 16, (1U<< (l+3)), 5, 1);
+
+return 1;
 
 /*test_init(1,32, 10, 64, 5);
 
@@ -500,9 +385,9 @@ printf("taylor nfft oversampling factor D,\ntaylor nfft truncation parameter L,\
 printf("N\tM\tsigma\tm\tD\tL\te_nfft\t\te_taylornfft\tt_ndft\t\tt_nfft\t\tt_taylornfft\n");
 
 
-  for(m=0;m<20;m++)
+/*  for(m=0;m<20;m++)
     taylor_time_accuracy((1U<< 12), (1U<< 12), (1U<< (14)), m, (1U<< (15)), m, 1);
-
+*/
 printf("\n");
 
   for(l=4;l<20;l++)

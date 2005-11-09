@@ -32,17 +32,18 @@ float_type *f;                        /**< samples                        */\
 #define PRE_PHI_HUT      (1U<< 0)
 #define FG_PSI           (1U<< 1)
 #define PRE_LIN_PSI      (1U<< 2)
-#define PRE_PSI          (1U<< 3)
-#define PRE_FULL_PSI     (1U<< 4)
-#define MALLOC_X         (1U<< 5)
-#define MALLOC_F_HAT     (1U<< 6)
-#define MALLOC_F         (1U<< 7)
-#define FFT_OUT_OF_PLACE (1U<< 8)
-#define FFTW_INIT        (1U<< 9)
+#define PRE_FG_PSI       (1U<< 3)
+#define PRE_PSI          (1U<< 4)
+#define PRE_FULL_PSI     (1U<< 5)
+#define MALLOC_X         (1U<< 6)
+#define MALLOC_F_HAT     (1U<< 7)
+#define MALLOC_F         (1U<< 8)
+#define FFT_OUT_OF_PLACE (1U<< 9)
+#define FFTW_INIT        (1U<< 10)
 
-#define MALLOC_V         (1U<< 10)
+#define MALLOC_V         (1U<< 11)
 
-#define SNDFT            (1U<< 11)
+#define SNDFT            (1U<< 12)
 
 typedef struct nfft_plan_ 
 {

@@ -301,7 +301,7 @@ MACRO_nfft_D(T)
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                            \
 }
 
-#define MACRO_with_FG_PSI fgg_psi[t2][lj[t2]]
+#define MACRO_with_FG_PSI fg_psi[t2][lj[t2]]
 
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
   /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
@@ -366,8 +366,9 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   complex *fj;                          /**< local copy                     */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
-  double fgg_psi[ths->d][2*ths->m+2];                                         \
-  int l_fgg,lj_fgg;                                                           \
+  double fg_psi[ths->d][2*ths->m+2];                                          \
+  double fg_exp_l[ths->d][2*ths->m+2];                                        \
+  int l_fg,lj_fg,u_fg,o_fg;                                                   \
   double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3, tmp4;                 \
                                                                               \
   f=ths->f; g=ths->g;                                                         \
@@ -406,32 +407,82 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
       return;                                                                 \
     } /* if(PRE_PSI) */                                                       \
                                                                               \
-  if(ths->nfft_flags & FG_PSI)                                                \
+  if(ths->nfft_flags & PRE_FG_PSI)                                            \
     {                                                                         \
+      for(t2=0; t2<ths->d; t2++)                                              \
+        {                                                                     \
+          tmpEXP2 = exp(-1.0/ths->b[t2]);                                     \
+          tmpEXP2sq = tmpEXP2*tmpEXP2;                                        \
+          tmp2 = 1.0;                                                         \
+          tmp3 = 1.0;                                                         \
+          fg_exp_l[t2][0] = 1.0;                                              \
+          for(lj_fg=1; lj_fg <= (2*ths->m+2); lj_fg++)                        \
+            {                                                                 \
+              tmp3 = tmp2*tmpEXP2;                                            \
+              tmp2 *= tmpEXP2sq;                                              \
+              fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3;               \
+            }                                                                 \
+        }                                                                     \
       for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
 	{                                                                     \
           MACRO_init_uo_l_lj_t;                                               \
                                                                               \
-          for (t2=0; t2<ths->d; t2++)                                         \
+          for(t2=0; t2<ths->d; t2++)                                          \
             {                                                                 \
-              fgg_psi[t2][0] =                                                \
+              fg_psi[t2][0] = ths->psi[2*j*ths->d+t2];                        \
+              tmpEXP1 = ths->psi[2*j*ths->d+t2+1];                            \
+              tmp1 = 1.0;                                                     \
+              for(l_fg=u[t2]+1, lj_fg=1; l_fg <= o[t2]; l_fg++, lj_fg++)      \
+                {                                                             \
+                  tmp1 *= tmpEXP1;                                            \
+                  fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+                }                                                             \
+            }                                                                 \
+                                                                              \
+	  for(l_L=0; l_L<lprod; l_L++)                                        \
+	    {                                                                 \
+              MACRO_update_phi_prod_ll_plain(with_FG_PSI);                    \
+                                                                              \
+	      MACRO_nfft_B_compute_ ## which_one;                             \
+		                                                              \
+	      MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+	} /* for(j) */                                                        \
+      return;                                                                 \
+    } /* if(PRE_FG_PSI) */                                                    \
+                                                                              \
+  if(ths->nfft_flags & FG_PSI)                                                \
+    {                                                                         \
+      for(t2=0; t2<ths->d; t2++)                                              \
+        {                                                                     \
+          tmpEXP2 = exp(-1.0/ths->b[t2]);                                     \
+          tmpEXP2sq = tmpEXP2*tmpEXP2;                                        \
+          tmp2 = 1.0;                                                         \
+          tmp3 = 1.0;                                                         \
+          fg_exp_l[t2][0] = 1.0;                                              \
+          for(lj_fg=1; lj_fg <= (2*ths->m+2); lj_fg++)                        \
+            {                                                                 \
+              tmp3 = tmp2*tmpEXP2;                                            \
+              tmp2 *= tmpEXP2sq;                                              \
+              fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3;               \
+            }                                                                 \
+        }                                                                     \
+      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
+	{                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+          for(t2=0; t2<ths->d; t2++)                                          \
+            {                                                                 \
+              fg_psi[t2][0] =                                                 \
                 (PHI((ths->x[j*ths->d+t2]-((double)u[t2])/ths->n[t2]),t2));   \
                                                                               \
               tmpEXP1 = exp(2.0*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])      \
                       / ths->b[t2]);                                          \
-              tmpEXP2 = exp(-1.0/ths->b[t2]);                                 \
-              tmpEXP2sq = tmpEXP2*tmpEXP2;                                    \
               tmp1 = 1.0;                                                     \
-              tmp2 = 1.0;                                                     \
-              tmp3 = 1.0;                                                     \
-              tmp4 = 1.0;                                                     \
-              for(l_fgg=u[t2]+1, lj_fgg=1; l_fgg <= o[t2]; l_fgg++, lj_fgg++) \
+              for(l_fg=u[t2]+1, lj_fg=1; l_fg <= o[t2]; l_fg++, lj_fg++)      \
                 {                                                             \
                   tmp1 *= tmpEXP1;                                            \
-                  tmp3 = tmp2*tmpEXP2;                                        \
-                  tmp2 *= tmpEXP2sq;                                          \
-                  tmp4 *= tmp3;                                               \
-                  fgg_psi[t2][lj_fgg] = fgg_psi[t2][0] * tmp1 * tmp4;         \
+                  fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
                 }                                                             \
             }                                                                 \
                                                                               \
@@ -567,6 +618,7 @@ void nfft_precompute_phi_hut(nfft_plan *ths)
 /** create a lookup table, but NOT for each node
  *  good idea K=2^xx
  *  TODO: estimate K, call from init
+ *  assumes an EVEN window function
  */
 void nfft_precompute_lin_psi(nfft_plan *ths)
 {
@@ -583,6 +635,26 @@ void nfft_precompute_lin_psi(nfft_plan *ths)
 	} /* for(j) */
     } /* for(t) */
 }
+
+void nfft_precompute_fg_psi(nfft_plan *ths)
+{
+  int t;                                /**< index over all dimensions       */
+  int j;                                /**< index over all nodes            */
+  int u, o;                             /**< depends on x_j                  */
+  
+  for (t=0; t<ths->d; t++)
+    for(j=0;j<ths->M_total;j++)
+      {
+	nfft_uo(ths,j,&u,&o,t);
+
+        ths->psi[2*j*ths->d+t]=
+            (PHI((ths->x[j*ths->d+t]-((double)u)/ths->n[t]),t));
+
+        ths->psi[2*j*ths->d+t+1]=
+            exp(2.0*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);   
+      } /* for(j) */
+  /* for(t) */
+} /* nfft_precompute_fg_psi */
 
 void nfft_precompute_psi(nfft_plan *ths)
 {
@@ -674,9 +746,12 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+      ths->K=10000000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
+
+  if(ths->nfft_flags & PRE_FG_PSI)
+    ths->psi = (double*) fftw_malloc(ths->M_total*ths->d*2*sizeof(double));
 
   if(ths->nfft_flags & PRE_PSI)
     ths->psi = (double*) fftw_malloc(ths->M_total*ths->d*
@@ -807,6 +882,9 @@ void nfft_finalize(nfft_plan *ths)
     }
 
   if(ths->nfft_flags & PRE_PSI)
+    fftw_free(ths->psi);  
+
+  if(ths->nfft_flags & PRE_FG_PSI)
     fftw_free(ths->psi);
 
   if(ths->nfft_flags & PRE_LIN_PSI)
