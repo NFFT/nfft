@@ -45,6 +45,8 @@ float_type *f;                        /**< samples                        */\
 
 #define SNDFT            (1U<< 12)
 
+#define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
+
 typedef struct nfft_plan_ 
 {
   /** api */
@@ -252,6 +254,20 @@ void nfft_precompute_psi(nfft_plan *ths);
  * after setting the nodes x
  */
 void nfft_precompute_full_psi(nfft_plan *ths);
+
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
+ *
+ * wrapper for precompute*_psi
+ *
+ * if PRE_*_PSI is set the application program has to call this routine
+ * (after) setting the nodes x
+ */
+void nfft_precompute_one_psi(nfft_plan *ths);
 
 /**
  * Destroys a transform plan.

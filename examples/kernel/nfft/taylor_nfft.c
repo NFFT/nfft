@@ -15,7 +15,6 @@
 #include "nfft3.h"
 
 #include "options.h"
-#include "window_defines.h"
 
 typedef struct
 {

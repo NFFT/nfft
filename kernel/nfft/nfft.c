@@ -717,6 +717,18 @@ void nfft_precompute_full_psi(nfft_plan *ths)
     } /* for(j) */
 }
 
+void nfft_precompute_one_psi(nfft_plan *ths)
+{
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    nfft_precompute_lin_psi(ths);
+  if(ths->nfft_flags & PRE_FG_PSI)
+    nfft_precompute_fg_psi(ths);
+  if(ths->nfft_flags & PRE_PSI)
+    nfft_precompute_psi(ths);
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    nfft_precompute_full_psi(ths);
+}
+
 
 void nfft_init_help(nfft_plan *ths)
 {
