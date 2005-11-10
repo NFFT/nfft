@@ -156,6 +156,13 @@ void test_dpt_trafo(void)
       
       /* Execute DPT. */
       dpt_trafo(set,0,N,x);   
+      
+      /* Print out computed and reference coefficients. */
+      for (k = 0; k <= N; k++)
+      {
+        fprintf(stdout,"x[%d] = %+1.16le + I*%+1.16le, \t y[%d] = %+1.16le + I*%+1.16le\n",k,
+          creal(x[k]),cimag(x[k]),k,creal(y[k]),cimag(y[k]));
+      }
          
       /* Precompute. */
       //nfsft_precompute(N,THRESHOLD,0U);

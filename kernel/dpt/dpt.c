@@ -320,7 +320,7 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   // k_start,k_start_tilde,set->N,N_tilde);
 
   /* Allocate memory for the cascade with t = log_2(N) many levels. */
-  data->steps = (dpt_step**) fftw_malloc(sizeof(struct dpt_step *) * set->t);
+  data->steps = (dpt_step**) malloc(sizeof(dpt_step*)*set->t);
     
   /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
   plength = 4;
@@ -715,7 +715,7 @@ void dpt_finalize(dpt_set set)
   int plength;
   
   /* TODO Clean up DPT transform data structures. */
-  for (m = 0; m < set->M; m++)
+  for (m = 0; m <= set->M; m++)
   {
     /* Check if precomputed. */
     data = &set->dpt[m];
