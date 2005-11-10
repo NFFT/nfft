@@ -258,6 +258,7 @@ printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
   taylor_finalize(&tp);
 }
 
+
 void taylor_simple_test()
 {
   int j,k,l;

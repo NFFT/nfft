@@ -725,9 +725,9 @@ void nfct_trafo( nfct_plan *ths)
    * k \in I_N \f$
    *
    **/ 
-  T1;
+  TIC(0)
   nfct_D_A( ths);
-  T2(1);
+  TOC(0)
 
 
   /** 
@@ -736,9 +736,9 @@ void nfct_trafo( nfct_plan *ths)
    * \text{ for } l \in I_n \f$
    *
    **/
-  T1;
+  TIC(1)
   fftw_execute( ths->my_fftw_r2r_plan);
-  T2(2);
+  TOC(1)
 
 
   if( ths->nfct_flags & PRE_FULL_PSI)
@@ -750,9 +750,9 @@ void nfct_trafo( nfct_plan *ths)
    *  \text{ for } j=0,\hdots,M-1 \f$
    *
    **/
-  T1;
+  TIC(2)
   nfct_B_A( ths);
-  T2(3);
+  TOC(2)
 
   if(ths->nfct_flags & PRE_FULL_PSI) {
     free( ths->psi_index_g);
@@ -781,9 +781,9 @@ void nfct_adjoint( nfct_plan *ths)
    * \text{ for } l \in I_n,m(x_j) \f$
    *
    **/
-  T1;
+  TIC(2)
   nfct_B_T( ths);
-  T2(1);
+  TOC(2)
 
   if(ths->nfct_flags & PRE_FULL_PSI) {
     free( ths->psi_index_g);
@@ -796,18 +796,18 @@ void nfct_adjoint( nfct_plan *ths)
    * \text{ for }  k \in I_N\f$
    *
    **/ 
-  T1;
+  TIC(1)
   fftw_execute( ths->my_fftw_r2r_plan);
-  T2(2);
+  TOC(1)
 
   /**
    * form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    * k \in I_N \f$
    *
    **/
-  T1;
+  TIC(0)
   nfct_D_T( ths);
-  T2(3);
+  TOC(0)
 
 } /* nfct_adjoint */
 

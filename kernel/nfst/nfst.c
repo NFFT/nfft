@@ -642,9 +642,9 @@ void nfst_trafo( nfst_plan *ths)
    * k \in I_N \f$
    *
    */ 
-  T1;
+  TIC(0)
   nfst_D_A( ths);
-  T2(1);
+  TOC(0)
 
 
   /**
@@ -653,9 +653,9 @@ void nfst_trafo( nfst_plan *ths)
    * \text{ for } l \in I_n \f$
    *
    */
-  T1;
+  TIC(1)
   fftw_execute( ths->my_fftw_r2r_plan);
-  T2(2);
+  TOC(1)
 
 
   /**
@@ -663,9 +663,9 @@ void nfst_trafo( nfst_plan *ths)
    * \text{ for } j=0,\hdots,M-1 \f$
    *
    */
-  T1;
+  TIC(2)
   nfst_B_A( ths);
-  T2(3);
+  TOC(2)
 
 } /* nfst_trafo */
 
@@ -687,9 +687,9 @@ void nfst_adjoint( nfst_plan *ths)
    * \text{ for } l \in I_n,m(x_j) \f$
    *
    */
-  T1;
+  TIC(2)
   nfst_B_T( ths);
-  T2(1);
+  TOC(2)
       
 
   /**
@@ -698,9 +698,9 @@ void nfst_adjoint( nfst_plan *ths)
    * \text{ for }  k \in I_N\f$
    *
    */ 
-  T1;
+  TIC(1)
   fftw_execute( ths->my_fftw_r2r_plan);
-  T2(2);
+  TOC(1)
 
   
   /**
@@ -708,9 +708,9 @@ void nfst_adjoint( nfst_plan *ths)
    * k \in I_N \f$
    *
    */
-  T1;
+  TIC(0)
   nfst_D_T( ths);
-  T2(3);
+  TOC(0)
 
 } /* nfst_adjoint */
 

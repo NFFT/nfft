@@ -52,7 +52,7 @@ typedef struct nfft_plan_
 
   int d;                                /**< dimension, rank                 */
   int *N;                               /**< multi bandwidth                 */
-  double *sigma;	                      /**< oversampling-factor             */
+  double *sigma;                        /**< oversampling-factor             */
   int *n;                               /**< fftw-length = sigma*N           */
   int n_total;                          /**< total size of fftw              */
   int m;                                /**< cut-off, window function        */
@@ -64,12 +64,14 @@ typedef struct nfft_plan_
 
   double *x;                            /**< nodes (in time/spatial domain)  */
 
+  double MEASURE_TIME_t[3];             /**< measured time for each step     */
+
   /** internal*/
   fftw_plan  my_fftw_plan1;             /**< fftw_plan forward               */
-  fftw_plan  my_fftw_plan2;		          /**< fftw_plan backward              */
+  fftw_plan  my_fftw_plan2;             /**< fftw_plan backward              */
 
   double **c_phi_inv;                   /**< precomputed data, matrix D      */
-  double *psi;				                  /**< precomputed data, matrix B      */
+  double *psi;                          /**< precomputed data, matrix B      */
   int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
   int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
 
@@ -292,6 +294,8 @@ typedef struct nfct_plan_
   unsigned fftw_flags;                  /**< flags for the fftw               */ 
  
   double *x;                            /**< nodes (in time/spatial domain)   */ 
+
+  double MEASURE_TIME_t[3];             /**< measured time for each step     */
  
   /** internal */ 
   fftw_plan  my_fftw_r2r_plan;          /**< fftw_plan                        */ 
@@ -511,6 +515,8 @@ typedef struct nfst_plan_
   unsigned fftw_flags;                  /**< flags for the fftw               */
 
   double *x;                            /**< nodes (in time/spatial domain)   */
+
+  double MEASURE_TIME_t[3];             /**< measured time for each step     */
 
   /** internal */
   fftw_plan  my_fftw_r2r_plan;         /**< fftw_plan forward                */
@@ -930,7 +936,7 @@ void nsdft_trafo(nsfft_plan *ths);
  *
  * \arg ths The pointer to a nsfft plan
  *
- * \author Markus Fenn, Stefan Kunis
+ * \author Stefan Kunis
  */
 void nsdft_adjoint(nsfft_plan *ths);
 
@@ -952,7 +958,7 @@ void nsfft_trafo(nsfft_plan *ths);
  *
  * \arg ths The pointer to a nsfft plan
  *
- * \author Markus Fenn, Stefan Kunis
+ * \author Stefan Kunis
  */
 void nsfft_adjoint(nsfft_plan *ths);
 

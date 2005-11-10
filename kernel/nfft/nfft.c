@@ -549,24 +549,24 @@ void nfft_trafo(nfft_plan *ths)
   /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */ 
-  T1;
+  TIC(0)
   nfft_D_A(ths);
-  T2(1);
+  TOC(0)
 
   /** compute by d-variate discrete Fourier transform
    *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
    *  \text{ for } l \in I_n \f$
    */
-  T1;
+  TIC(1)
   fftw_execute(ths->my_fftw_plan1);
-  T2(2);
+  TOC(1)
 
   /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
    *  \text{ for } j=0,\hdots,M_total-1 \f$
    */
-  T1;
+  TIC(2)
   nfft_B_A(ths);
-  T2(3);
+  TOC(2)
 } /* nfft_trafo */
 
 void nfft_adjoint(nfft_plan *ths)
@@ -578,24 +578,24 @@ void nfft_adjoint(nfft_plan *ths)
   /** set \f$ g_l = \sum_{j=0}^{M_total-1} f_j \psi\left(x_j-\frac{l}{n}\right)
    *  \text{ for } l \in I_n,m(x_j) \f$
    */
-  T1;
+  TIC(2)
   nfft_B_T(ths);
-  T2(1);
+  TOC(2)
  
   /** compute by d-variate discrete Fourier transform
    *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{+2\pi {\rm i} \frac{kl}{n}}
    *  \text{ for }  k \in I_N\f$
    */
-  T1;
+  TIC(1)
   fftw_execute(ths->my_fftw_plan2);
-  T2(2);
+  TOC(1)
  
   /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
    */
-  T1;
+  TIC(0)
   nfft_D_T(ths);
-  T2(3);
+  TOC(0)
 } /* nfft_adjoint */
 
 /** initialisation of direct transform 
