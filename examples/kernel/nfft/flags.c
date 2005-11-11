@@ -32,6 +32,8 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
   double t_ndft, t;
   complex *swapndft;
 
+  int NN[d], nn[d];
+
   nfft_plan p;
   nfft_plan p_pre_phi_hut;
   nfft_plan p_fg_psi;
@@ -40,11 +42,17 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
   nfft_plan p_pre_psi;
   nfft_plan p_pre_full_psi;
 
+  for(r=0; r<d; r++)
+    {
+      NN[r]=N;
+      nn[r]=n;
+    }
+
   /** output vector ndft */
   if(test_accuracy)
     swapndft=(complex*)fftw_malloc(M*sizeof(complex));
 
-  nfft_init_guru(&p, d, &N, M, &n, m,
+  nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -53,33 +61,32 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
   for(j=0; j<p.d*p.M_total; j++)
     p.x[j]=((double)rand())/RAND_MAX-0.5;
 
-
-  nfft_init_guru(&p_pre_phi_hut, d, &N, M, &n, m, PRE_PHI_HUT,0);
+  nfft_init_guru(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT,0);
   flags_cp(&p_pre_phi_hut, &p);
   if(p_pre_phi_hut.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_pre_phi_hut);
 
-  nfft_init_guru(&p_fg_psi, d, &N, M, &n, m, FG_PSI,0);
+  nfft_init_guru(&p_fg_psi, d, NN, M, nn, m, FG_PSI,0);
   flags_cp(&p_fg_psi, &p);
   if(p_fg_psi.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_fg_psi);
 
-  nfft_init_guru(&p_pre_lin_psi, d, &N, M, &n, m, PRE_LIN_PSI,0);
+  nfft_init_guru(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI,0);
   flags_cp(&p_pre_lin_psi, &p);
   if(p_pre_lin_psi.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_pre_lin_psi);
 
-  nfft_init_guru(&p_pre_fg_psi, d, &N, M, &n, m, PRE_FG_PSI,0);
+  nfft_init_guru(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI,0);
   flags_cp(&p_pre_fg_psi, &p);
   if(p_pre_fg_psi.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_pre_fg_psi);
 
-  nfft_init_guru(&p_pre_psi, d, &N, M, &n, m, PRE_PSI,0);
+  nfft_init_guru(&p_pre_psi, d, NN, M, nn, m, PRE_PSI,0);
   flags_cp(&p_pre_psi, &p);
   if(p_pre_psi.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_pre_psi);
 
-  nfft_init_guru(&p_pre_full_psi, d, &N, M, &n, m, PRE_FULL_PSI,0);
+  nfft_init_guru(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI,0);
   flags_cp(&p_pre_full_psi, &p);
   if(p_pre_full_psi.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p_pre_full_psi);
@@ -122,7 +129,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
   nfft_trafo(&p_pre_full_psi);
 
   if(test_accuracy)
-  printf("%.2e\t",error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("%.2e\t",error_l_2_complex(swapndft, p.f, p.M_total));
   else
     printf("--------\t");
 
@@ -160,9 +167,9 @@ int main()
 {
   int l,m;
 
-  int d=2;
+  int d=3;
 
-  for(l=4;l<20;l++)
+  for(l=3;l<20;l++)
     if(l<10)
       time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), 5, 1);
     else

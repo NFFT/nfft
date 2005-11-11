@@ -327,7 +327,7 @@ MACRO_nfft_D(T)
     {                                                                         \
       y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])            \
 	  * ((double)ths->K))/(ths->m+1));                                    \
-      y_u[t2] = (int)y[t2];                                                   \
+      y_u[t2] = (int)floor(y[t2]);                                            \
     } /* for(t2) */                                                           \
 }
 
@@ -429,8 +429,8 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
                                                                               \
           for(t2=0; t2<ths->d; t2++)                                          \
             {                                                                 \
-              fg_psi[t2][0] = ths->psi[2*j*ths->d+t2];                        \
-              tmpEXP1 = ths->psi[2*j*ths->d+t2+1];                            \
+              fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)];                      \
+              tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1];                          \
               tmp1 = 1.0;                                                     \
               for(l_fg=u[t2]+1, lj_fg=1; l_fg <= o[t2]; l_fg++, lj_fg++)      \
                 {                                                             \
@@ -647,10 +647,10 @@ void nfft_precompute_fg_psi(nfft_plan *ths)
       {
 	nfft_uo(ths,j,&u,&o,t);
 
-        ths->psi[2*j*ths->d+t]=
+        ths->psi[2*(j*ths->d+t)]=
             (PHI((ths->x[j*ths->d+t]-((double)u)/ths->n[t]),t));
 
-        ths->psi[2*j*ths->d+t+1]=
+        ths->psi[2*(j*ths->d+t)+1]=
             exp(2.0*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);   
       } /* for(j) */
   /* for(t) */
@@ -758,7 +758,7 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=10000000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+      ths->K=50000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 

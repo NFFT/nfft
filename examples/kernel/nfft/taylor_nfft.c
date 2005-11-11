@@ -148,7 +148,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   taylor_init(&tp,N,M,n_taylor,m_taylor);
 
   nfft_init_guru(&np, 1, &N, M, &n, m,
-PRE_PHI_HUT| PRE_LIN_PSI|
+                 PRE_PHI_HUT| PRE_LIN_PSI|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -169,14 +169,8 @@ PRE_PHI_HUT| PRE_LIN_PSI|
   taylor_precompute(&tp);
 
   /** nfft precomputation */
-  if(np.nfft_flags & PRE_LIN_PSI)
-      nfft_precompute_lin_psi(&np);
-  if(np.nfft_flags & PRE_FG_PSI)
-      nfft_precompute_fg_psi(&np);
-  if(np.nfft_flags & PRE_PSI)
-      nfft_precompute_psi(&np);
-  if(np.nfft_flags & PRE_FULL_PSI)
-      nfft_precompute_full_psi(&np);
+  if(np.nfft_flags & PRE_ONE_PSI)
+      nfft_precompute_one_psi(&np);
 
   /** init pseudo random Fourier coefficients */
   for(k=0;k<np.N_total;k++)
@@ -362,23 +356,13 @@ void taylor_simple_test()
 int main()
 {
   int l,m;
-  int d=3;
 
   for(l=4;l<16;l++)
     taylor_time_accuracy((1U<< l), 10, (1U<< (l+2)), 16, (1U<< (l+3)), 5, 1);
 
 return 1;
 
-/*test_init(1,32, 10, 64, 5);
 
-exit(-1);
-
-  for(l=5;l<6;l++)
-    for(m=1;m<15;m++)
-      test_init(d,(1U<< l), (1U<< (d*l)), (1U<< (l+1)), m);
-
-exit(-1);
-*/
 printf("polynomial degree N,\nnumber of nodes M,\nnfft oversampling factor sigma,\nnfft truncation parameter m,\n");
 printf("taylor nfft oversampling factor D,\ntaylor nfft truncation parameter L,\nerrors e=|F-F_approx|_infty/|f|_1, and\ntimes t in sec.\n\n"); 
 
