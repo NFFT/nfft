@@ -194,6 +194,25 @@ complex spherical_harmonic(int k, int n, double phi, double theta, int init)
 	return p * expi(n * phi * 2 * PI / TEXTURE_MAX_ANGLE);
 }
 
+/** A test for the inverse texture transform.
+ * Runs the inverse transformation for a given number of iterations.
+ * Afterwards, if the residuum is not sufficently small, prints an error 
+ * message containing the relative error (see ::two_norm_dist) "diff" and the
+ * absolute error goal "ref".
+ *
+ * The test parameters are read from a parameter file.
+ * The parameters in the file are (in this order):
+ * - the bandwidth N
+ * - the number of longitudes of the pole figures
+ * - the number of latitudes of the pole figures
+ * - the number of nodes per pole figure
+ * - the number of longitudes of nodes
+ * - the number of latitudes of nodes
+ * - the maximum number of iterations
+ * - the relative error goal
+ *
+ * @par inp - the name of the parameter file.
+ */
 void simple_solver_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -208,13 +227,17 @@ void simple_solver_test(const char *inp)
 	char err_prefix[100];
 	unsigned short int seed[] = { 1, 2, 3 };
 
+	// Output user information.
 	printf("*** simple_solver_test (%s)\n", inp);
 	sprintf(err_prefix, "simple_solver_test failed (%s):\n", inp);
+
+	// Read parameters.
 	fscanf(inp_file, "%d%d%d%d%d%d%d%lg", &N, &h_phi_count, &h_theta_count,
 				 &N2, &r_phi_count, &r_theta_count, &max_iter, &delta);
 	N1 = h_phi_count * h_theta_count;
 	seed48(seed);
 
+	// Prepare input parameters.
 	texture_precompute(N);
 	omega = (complex *) malloc(texture_flat_length(N) * sizeof(complex));
 	x = (complex *) malloc(N1 * N2 * sizeof(complex));
@@ -229,6 +252,7 @@ void simple_solver_test(const char *inp)
 		omega_ref[i] = rand() * drand48() + I * rand() * drand48();
 	}
 
+	// Prepare plans.
 	texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
 	texture_trafo(&plan);
 	texture_set_omega(&plan, omega);
@@ -238,6 +262,8 @@ void simple_solver_test(const char *inp)
 	memset(iplan.f_hat_iter, 0,
 				 texture_get_omega_length(&plan) * sizeof(complex));
 	memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(complex));
+
+	// Run the inverse transformation.
 	itexture_before_loop(&iplan);
 	for (i = 0;
 			 i < max_iter &&
@@ -246,6 +272,7 @@ void simple_solver_test(const char *inp)
 		itexture_loop_one_step(&iplan);
 	}
 
+	// If the residuum is not small, print an error message.
 	if (!equal_two_norm_rel(iplan.f_hat_iter, omega_ref,
 													texture_get_omega_length(&plan), delta)) {
 		printf("%sdiff=%lg ref=%lg\n",
@@ -255,6 +282,7 @@ void simple_solver_test(const char *inp)
 					 delta * two_norm(omega_ref, texture_get_omega_length(&plan)));
 	}
 
+	// Clean up.
 	itexture_finalize(&iplan);
 	texture_finalize(&plan);
 
@@ -270,6 +298,28 @@ void simple_solver_test(const char *inp)
 	fclose(inp_file);
 }
 
+/** A test for ::spherical_harmonic.
+ * Computes the spherical harmonic with a given set of parameters and compares
+ * them with given reference values.
+ * In case of error there will be an error message containing degree, order,
+ * longitude, latitude, reference value, computed value and absolute difference
+ * (in this order).
+ *
+ * The parameter file contains (in this order):
+ * - the number of pole figures N1
+ * - the number of nodes per pole figure N2
+ * - the bandwidth N
+ * - the maximum absolute error
+ * - N1 times:
+ *   - the latitude
+ *   - N2 times:
+ *     - the longitude
+ *     - the real part of the reference value
+ *     - the imaginary part of the reference value
+ *
+ * @par inp - the name of the parameter file
+ * 
+ */
 void spherical_harmonic_test(const char *inp)
 {
 	int N1, N2, N;
@@ -278,9 +328,11 @@ void spherical_harmonic_test(const char *inp)
 	char err_prefix[100];
 	FILE *inp_file = fopen(inp, "r");
 
+	// Print user information.
 	sprintf(err_prefix, "spherical_harmonic_test failed (%s):\n", inp);
 	printf("*** spherical_harmonic_test (%s)\n", inp);
 
+	// Read parameters from the input file.
 	fscanf(inp_file, "%d%d%d%lf", &N1, &N2, &N, &delta);
 
 	for (i = 1; i <= N1; i++) {
@@ -306,7 +358,6 @@ void spherical_harmonic_test(const char *inp)
 							printf("%s%d %d %g %g %g%+gi %g%+gi %g\n",
 										 err_prefix, k, n, phi, theta, creal(out), cimag(out),
 										 creal(res), cimag(res), cabs(out - res));
-							return;
 						}
 					}
 				}
@@ -385,7 +436,6 @@ void unit_vector_test(const char *inp)
 								printf("result=%g%+gi reference=%g%+gi difference=%g\n",
 											 creal(res), cimag(res), creal(out), cimag(out),
 											 cabs(out - res));
-								return;
 							}
 						}
 					}
@@ -484,7 +534,6 @@ void nfsft_test(const char *inp)
 					err_prefix, l, m);
 				printf("plan corrupted: expected=%lg%+lg received=%lg%+lg\n",
 					1.0, 0.0, creal(f_hat[m+N][l]), cimag(f_hat[m+N][l]));
-				return;
 			}
 					
 			f_hat[m+N][l] = 0;
@@ -495,7 +544,6 @@ void nfsft_test(const char *inp)
 							err_prefix, l, m);
 						printf("plan corrupted: ll=%d mm=%d expected=0.0 given=%lg%+lg\n", 
 							ll, mm, creal(f_hat[mm+N][ll]), cimag(f_hat[mm+N][ll]));
-						return;
 					}
 				}
 			}*/
@@ -510,7 +558,6 @@ void nfsft_test(const char *inp)
 					printf("out=%lg%+lgi ref=%lg%+lgi diff=%lg\n",
 								 creal(out), cimag(out), creal(ref), cimag(ref),
 								 cabs(ref - out));
-					return;
 				}
 			}
 
@@ -604,7 +651,6 @@ void unit_vector_adjoint_test(const char *inp)
 								printf("result=%g%+gi reference=%g%+gi difference=%g\n",
 											 creal(res), cimag(res), creal(out), cimag(out),
 											 cabs(out - res));
-								return;
 							}
 						}
 					}
