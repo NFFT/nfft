@@ -7,8 +7,60 @@
 
 #define K_START_TILDE(x,y) (MAX(MIN(x,y-2),0))
 #define N_TILDE(y) (y-1)
-#define FIRST_L(x) ((int)floor((x)/(double)plength))
-#define LAST_L(x) ((int)ceil(((x)+1)/(double)plength)-1)
+#define K_END_TILDE(x,y) MIN(x,y-1)
+#define FIRST_L(x,y) ((int)floor((x)/(double)y))
+#define LAST_L(x,y) ((int)ceil(((x)+1)/(double)y)-1)
+
+typedef struct dpt_step_
+{
+  bool stable;                            /**< Indicates if the values 
+                                               contained represent a fast or 
+                                               a slow stabilized step.       */
+  double **a11,**a12,**a21,**a22;         /**< The matrix components         */
+  double *gamma;                          /**<                               */
+} dpt_step;
+
+typedef struct dpt_data_
+{
+  dpt_step **steps;                       /**< The cascade summation steps   */
+  int k_start;
+  double *alphaN;
+  double *betaN;
+  double *gammaN;
+  double alpha_0;
+  double beta_0;
+  double gamma_m1;
+} dpt_data;
+
+typedef struct dpt_set_s_
+{
+  int flags;                              /**< The flags                     */
+  int M;                                  /**< The number of DPT transforms  */
+  int N;                                  /**< The transform length. Must be 
+                                               a power of two.               */
+  int t;                                  /**< The exponent of N             */
+  dpt_data *dpt;                          /**< The DPT transform data        */
+  double **xcvecs;                        /**< Array of pointers to arrays 
+                                               containing the Chebyshev 
+                                               nodes                         */
+  double *xc;                             /**< Array for Chebychev-nodes.    */ 
+  complex *work;                          /**< */
+  complex *result;                        /**< */
+  complex *vec3;
+  complex *vec4;
+  complex *z;
+  fftw_plan *plans_dct3;                  /**< Transform plans for the fftw 
+                                               library                       */
+  fftw_plan *plans_dct2;                  /**< Transform plans for the fftw 
+                                               library                       */  
+  fftw_r2r_kind *kinds;                   /**< Transform kinds for fftw 
+                                               library                       */
+  fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw 
+                                               library                       */
+  
+  int *lengths; /**< Transform lengths for fftw library */  
+} dpt_set_s;
+
 
 void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
   double* w, int n)
@@ -164,7 +216,7 @@ int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha,
   return 0;
 }
 
-dpt_set dpt_init(const int M, const int t, const int flags)
+dpt_set dpt_init(const int M, const int t, const unsigned int flags)
 {
   /** Polynomial length */
   int plength;
@@ -257,9 +309,9 @@ dpt_set dpt_init(const int M, const int t, const int flags)
   return set;
 }
 
-void dpt_precompute(dpt_set set, const int m, double const* alpha, 
-                    double const* beta, double const* gamma, int k_start,
-                    double threshold)
+void dpt_precompute(dpt_set set, const int m, const double const* alpha, 
+                    const double const* beta, const double const* gamma, int k_start,
+                    const double threshold)
 {
   
   int tau;          /**< Cascade level                                       */
@@ -306,9 +358,15 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   data->k_start = k_start;
   
   /* Save recursion coefficients. */
-  data->alphaN = alpha[set->N]; 
-  data->betaN = beta[set->N]; 
-  data->gammaN = gamma[set->N]; 
+  data->alphaN = (double*) malloc((set->t-1)*sizeof(complex));
+  data->betaN = (double*) malloc((set->t-1)*sizeof(complex));
+  data->gammaN = (double*) malloc((set->t-1)*sizeof(complex));
+  for (tau = 2; tau <= set->t; tau++)
+  {
+    data->alphaN[tau-2] = alpha[1<<tau]; 
+    data->betaN[tau-2] = beta[1<<tau]; 
+    data->gammaN[tau-2] = gamma[1<<tau];
+  }   
   data->alpha_0 = alpha[1];
   data->beta_0 = beta[1];
   data->gamma_m1 = gamma[0];
@@ -329,9 +387,9 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
     /* Compute auxilliary values. */
     degree = plength>>1;     
     /* Compute first l. */
-    firstl = FIRST_L(k_start_tilde);
+    firstl = FIRST_L(k_start_tilde,plength);
     /* Compute last l. */
-    lastl = LAST_L(N_tilde);
+    lastl = LAST_L(N_tilde,plength);
     //printf("tau = %d: plength = %d, degree = %d, firstl = %d, lastl = %d\n",
     //  tau, plength, degree, firstl, lastl);
 
@@ -523,8 +581,8 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
             data->steps[tau][l].a21[tau_stab-tau+1] = a21;
             data->steps[tau][l].a22[tau_stab-tau+1] = a22;
             data->steps[tau][l].gamma[tau_stab-tau+1] = gamma[1+1];
-            data->steps[tau][l].stable = false;
           }
+          data->steps[tau][l].stable = false;
         }
       }
     }
@@ -533,8 +591,20 @@ void dpt_precompute(dpt_set set, const int m, double const* alpha,
   }  
 }
 
-void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
+void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags)
 { 
+  /* Get transformation data. */
+  dpt_data *data = &(set->dpt[m]);  
+  /** */
+  const int Nk = next_power_of_2(k_end);
+  /** */
+  const int tk = (int)(ceil(log((double)k_end)/log(2.0)));
+  /** */
+  int const k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  /** */
+  int const k_end_tilde = K_END_TILDE(k_end,Nk);
+   
   /** Level index \f$tau\f$ */
   int tau;
   /** Index of first block at current level */  
@@ -549,57 +619,77 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
   int plength_stab;
   /** Current matrix \f$U_{n,tau,l}\f$ */
   dpt_step *step;
+  /** */
+  fftw_plan plan;
+  int length = k_end+1;
+  fftw_r2r_kind kinds[2] = {FFTW_REDFT01,FFTW_REDFT01};
   
   /** */
   double mygamma;
 
   /** Loop counter */
-  int j;
+  int k;
   
   complex *work_ptr;
-  complex *x_ptr;
+  const complex *x_ptr;
+  complex *y_ptr;
   
-  /* Get transformation data. */
-  dpt_data *data = &(set->dpt[m]);
-  
-  fprintf(stdout,"dpt_trafo: k_start = %d\n",data->k_start);
+  /*fprintf(stdout,"dpt_trafo: k_start = %d\n",data->k_start);
   fprintf(stdout,"dpt_trafo: k_end = %d\n",k_end);
-  fprintf(stdout,"dpt_trafo: N = %d\n",set->N);
+  fprintf(stdout,"dpt_trafo: Nk = %d\n",Nk);
+  fprintf(stdout,"dpt_trafo: tk = %d\n",tk);
+  fprintf(stdout,"dpt_trafo: k_start_tilde = %d\n",k_start_tilde);
+  fprintf(stdout,"dpt_trafo: k_end_tilde = %d\n",k_end_tilde);*/
   
-  int k_start_tilde = MAX(MIN(data->k_start,set->N-2),0);
-  int N_tilde = set->N-1;
-  
-  /* Initialize working arrays. */
-  memset(set->work,0U,2*set->N*sizeof(complex));
-  memset(set->result,0U,2*set->N*sizeof(complex));
+  //int N_tilde = N_TILDE(set->N);
 
-  /* Set first n Fourier coefficients explicitly to zero. */
-  memset(x,0U,data->k_start*sizeof(complex));
-  memset(&(x[k_end+1]),0U,(set->N-k_end)*sizeof(complex));
-  
-  work_ptr = set->work;
-  x_ptr = x;
-  /* First step */ 
-  for (j = 0; j < set->N; j++) 
+  if (flags & DPT_FUNCTION_VALUES)
   {
-    *work_ptr = *x_ptr++;
-    work_ptr += 2;
+    plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1, 
+      (double*)set->work, NULL, 2, 1, kinds, 0U);
   }
   
-  /* Use three-term recurrence to map last coefficient a_N to a_{N-1} and 
-   * a_{N-2}. */
-  set->work[2*(set->N-2)]   += data->gammaN*x[set->N];
-  set->work[2*(set->N-1)]   += data->betaN*x[set->N];
-  set->work[2*(set->N-1)+1]  = data->alphaN*x[set->N];
+  /* Initialize working arrays. */
+  memset(set->result,0U,2*Nk*sizeof(complex));
+
+  /* The first step. */
+  
+  /* Set the first 2*data->k_start coefficients to zero. */
+  memset(set->work,0U,2*data->k_start*sizeof(complex));
+
+  work_ptr = &set->work[2*data->k_start];
+  x_ptr = x;
+
+  for (k = 0; k < k_end_tilde-data->k_start+1; k++) 
+  {
+    *work_ptr++ = *x_ptr++;
+    *work_ptr++ = 0;
+  }
+
+  /* Set the last 2*(set->N-1-k_end_tilde) coefficients to zero. */
+  memset(&set->work[2*(k_end_tilde+1)],0U,2*(Nk-1-k_end_tilde)*sizeof(complex));
+
+  /* Set first n Fourier coefficients explicitly to zero. */
+  //memset(x,0U,data->k_start*sizeof(complex));
+  //memset(&(x[k_end+1]),0U,(set->N-k_end)*sizeof(complex));
+  
+  /* If k_end == Nk, use three-term recurrence to map last coefficient x_{Nk} to 
+   * x_{Nk-1} and x_{Nk-2}. */
+  if (k_end == Nk)
+  { 
+    set->work[2*(Nk-2)]   += data->gammaN[tk-2]*x[Nk];
+    set->work[2*(Nk-1)]   += data->betaN[tk-2]*x[Nk];
+    set->work[2*(Nk-1)+1]  = data->alphaN[tk-2]*x[Nk];
+  }
   
   /* Compute the remaining steps. */
   plength = 4;
-  for (tau = 1; tau < set->t; tau++)
+  for (tau = 1; tau < tk; tau++)
   {    
     /* Compute first l. */
-    firstl = FIRST_L(k_start_tilde);
+    firstl = FIRST_L(k_start_tilde,plength);
     /* Compute last l. */
-    lastl = LAST_L(N_tilde);
+    lastl = LAST_L(k_end_tilde,plength);
     
     /* Compute the multiplication steps. */
     for (l = firstl; l <= lastl; l++)
@@ -627,14 +717,14 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
 
         if (step->gamma[0] != 0.0)
         {  
-          for (j = 0; j < plength; j++)
+          for (k = 0; k < plength; k++)
           {
-            set->work[plength*2*l+j] += set->vec3[j];
+            set->work[plength*2*l+k] += set->vec3[k];
           }          
         }
-        for (j = 0; j < plength; j++)
+        for (k = 0; k < plength; k++)
         {
-          set->work[plength*(2*l+1)+j] += set->vec4[j];
+          set->work[plength*(2*l+1)+k] += set->vec4[k];
         }  
       }
       else
@@ -642,7 +732,7 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
         /* Stabilize. */
 
         /* The lengh of the polynomials */
-        plength_stab = 1<<set->t;
+        plength_stab = 1<<tk;
                 
         /* Set rest of vectors explicitely to zero */
         memset(&set->vec3[plength/2],0U,(plength_stab-plength/2)*sizeof(complex));
@@ -652,25 +742,25 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
         if (set->flags & DPT_BANDWIDTH_WINDOW)
         {
           dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
-            step->a21[0], step->a22[0], step->gamma[0], set->t-1, set);
+            step->a21[0], step->a22[0], step->gamma[0], tk-1, set);
         }
         else
         {
-          dpt_do_step(set->vec3, set->vec4, step->a11[set->t-tau-1], 
-            step->a12[set->t-tau-1], step->a21[set->t-tau-1], 
-            step->a22[set->t-tau-1], step->gamma[set->t-tau-1], set->t-1, set);
+          dpt_do_step(set->vec3, set->vec4, step->a11[tk-tau-1], 
+            step->a12[set->t-tau-1], step->a21[tk-tau-1], 
+            step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
         }
 
-        if (step->gamma[set->t-tau-1] != 0.0)
+        if (step->gamma[tk-tau-1] != 0.0)
         {  
-          for (j = 0; j < plength_stab; j++)
+          for (k = 0; k < plength_stab; k++)
           {
-            set->work[j] += set->vec3[j];
+            set->work[k] += set->vec3[k];
           }          
         }
-        for (j = 0; j < plength_stab; j++)
+        for (k = 0; k < plength_stab; k++)
         {
-          set->work[plength_stab+j] += set->vec4[j];
+          set->work[plength_stab+k] += set->vec4[k];
         }  
       }
     }
@@ -680,26 +770,43 @@ void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x)
   
   /* Add the resulting cascade coeffcients to the coeffcients accumulated from 
    * the stabilization steps. */
-  for (j = 0; j < 2*set->N; j++)
+  for (k = 0; k < 2*Nk; k++)
   {
-    set->result[j] += set->work[j];
+    set->result[k] += set->work[k];
   }  
  
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
-   * polynomials in front of P_0^n and P_1^n. */ 
-  x[0] = data->gamma_m1*(set->result[0] + data->beta_0*set->result[set->N] + 
-    data->alpha_0*set->result[set->N+1]*0.5);
-  x[1] = data->gamma_m1*(set->result[1] + set->result[set->N+1]+
-    data->alpha_0*(set->result[set->N]+set->result[set->N+2]*0.5));
-  x[set->N-1] = data->gamma_m1*(set->result[set->N-1] +
-    data->beta_0*set->result[set->N+set->N-1] +
-    data->alpha_0*set->result[set->N+set->N-2]*0.5);
-  x[set->N] = data->gamma_m1*0.5*data->alpha_0*set->result[set->N+set->N-1];
-  for (j = 2; j <= set->N-2; j++)
+   * polynomials in front of P_0^n and P_1^n. */
+  /*for (j = 0; j < 2*set->N; j++)
   {
-    x[j] = data->gamma_m1*(set->result[j] + data->beta_0*set->result[set->N+j] +
-      data->alpha_0*0.5*(set->result[j+set->N-1]+set->result[j+set->N+1]));
+    fprintf(stdout,"result[%d] = %1.16le +I*%1.16le\n",j,creal(set->result[j]),
+      cimag(set->result[j]));
+  }*/ 
+    
+  y[0] = data->gamma_m1*(set->result[0] + data->beta_0*set->result[Nk] + 
+    data->alpha_0*set->result[Nk+1]*0.5);
+  y[1] = data->gamma_m1*(set->result[1] + data->beta_0*set->result[Nk+1]+
+    data->alpha_0*(set->result[Nk]+set->result[Nk+2]*0.5));
+  y[k_end-1] = data->gamma_m1*(set->result[k_end-1] +
+    data->beta_0*set->result[Nk+k_end-1] +
+    data->alpha_0*set->result[Nk+k_end-2]*0.5);
+  y[k_end] = data->gamma_m1*0.5*data->alpha_0*set->result[Nk+k_end-1];
+  for (k = 2; k <= k_end-2; k++)
+  {
+    y[k] = data->gamma_m1*(set->result[k] + data->beta_0*set->result[Nk+k] +
+      data->alpha_0*0.5*(set->result[Nk+k-1]+set->result[Nk+k+1]));
   } 
+
+  if (flags & DPT_FUNCTION_VALUES)
+  {
+    y[0] *= 2.0;
+    fftw_execute_r2r(plan,(double*)y,(double*)y);
+    fftw_destroy_plan(plan);
+    for (k = 0; k <= k_end; k++)
+    {
+      y[k] *= 0.5;
+    }
+  }  
 }
 
 void dpt_finalize(dpt_set set)
@@ -721,6 +828,10 @@ void dpt_finalize(dpt_set set)
     data = &set->dpt[m];
     if (data->steps != (dpt_step**)NULL)
     {
+      free(data->alphaN);
+      free(data->betaN);
+      free(data->gammaN);
+      
       /* Free precomputed data. */
       k_start_tilde = K_START_TILDE(data->k_start,set->N);
       N_tilde = N_TILDE(set->N);
@@ -728,9 +839,9 @@ void dpt_finalize(dpt_set set)
       for (tau = 1; tau < set->t; tau++)
       {     
         /* Compute first l. */
-        firstl = FIRST_L(k_start_tilde);
+        firstl = FIRST_L(k_start_tilde,plength);
         /* Compute last l. */
-        lastl = LAST_L(N_tilde);
+        lastl = LAST_L(N_tilde,plength);
         
         /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
         for (l = firstl; l <= lastl; l++)

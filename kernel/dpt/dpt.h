@@ -6,70 +6,74 @@
 #include <complex.h>
 #include <fftw3.h>
 
-#define DPT_NO_STABILIZATION (1U << 0)
-#define DPT_BANDWIDTH_WINDOW (1U << 1)
+/* Flags for dpt_init() */
+#define DPT_NO_STABILIZATION (1U << 0) /**< If set, no stabilization will be used. */
+#define DPT_BANDWIDTH_WINDOW (1U << 1) /**< If set, \TODO complete comment here    */
 
-typedef struct dpt_step_
-{
-  bool stable;                            /**< Indicates if the values 
-                                               contained represent a fast or 
-                                               a slow stabilized step.       */
-  double **a11,**a12,**a21,**a22;         /**< The matrix components         */
-  double *gamma;                          /**<                               */
-} dpt_step;
+/* Flags for dpt_trafo(), dpt_transposed(), fpt_trafo(), fpt_transposed() */
+#define DPT_FUNCTION_VALUES  (1U << 2) /**< If set, the output are function values 
+                                            at Chebyshev nodes rather than 
+                                            Chebyshev coefficients.                */
 
-typedef struct dpt_data_
-{
-  dpt_step **steps;                       /**< The cascade summation steps   */
-  int k_start;
-  double alphaN;
-  double betaN;
-  double gammaN;
-  double alpha_0;
-  double beta_0;
-  double gamma_m1;
-} dpt_data;
+/* Data structures */
+typedef struct dpt_set_s_ *dpt_set;    /**< A set of precomputed data for a set 
+                                            of DPT transforms of equal maximum 
+                                            length.                                */
 
-typedef struct dpt_set_
-{
-  int flags;                              /**< The flags                     */
-  int M;                                  /**< The number of DPT transforms  */
-  int N;                                  /**< The transform length. Must be 
-                                               a power of two.               */
-  int t;                                  /**< The exponent of N             */
-  dpt_data *dpt;                          /**< The DPT transform data        */
-  double **xcvecs;                        /**< Array of pointers to arrays 
-                                               containing the Chebyshev 
-                                               nodes                         */
-  double *xc;                             /**< Array for Chebychev-nodes.    */ 
-  complex *work;                          /**< */
-  complex *result;                        /**< */
-  complex *vec3;
-  complex *vec4;
-  complex *z;
-  fftw_plan *plans_dct3;                  /**< Transform plans for the fftw 
-                                               library                       */
-  fftw_plan *plans_dct2;                  /**< Transform plans for the fftw 
-                                               library                       */  
-  fftw_r2r_kind *kinds;                   /**< Transform kinds for fftw 
-                                               library                       */
-  fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw 
-                                               library                       */
-  
-  int *lengths; /**< Transform lengths for fftw library */  
-} dpt_set_s;
+/**
+ * Initializes a set of precomputed data for DPT transforms of equal length.
+ * 
+ * \arg M The maximum DPT transform index \f$M \in \mathbb{N}_0\f$. The individual
+ *        transforms are addressed by and index number \f$m \in \mathbb{N}_0\f$ with 
+ *        range \f$m = 0,\ldots,M\f$. The total number of transforms is therefore 
+ *        \f$M+1\f$.
+ * \arg t The exponent \f$t \in \mathbb{N}, t \ge 2\f$ of the transform length 
+ *        \f$N = 2^t \in \mathbb{N}, N \ge 4\f$ 
+ * \arg flags A bitwise combination of the flags DPT_NO_STABILIZATION, 
+ *            DPT_BANDWIDTH_WINDOW
+ *
+ * \author Jens Keiner
+ */
+dpt_set dpt_init(const int M, const int t, const unsigned int flags);
 
-typedef dpt_set_s *dpt_set;
+/**
+ * Computes the data required for a single DPT transform.
+ * 
+ * \arg set The set of DPT transform data where the computed data will be stored.
+ * \arg m The transform index \f$m \in \mathbb{N}, 0 \le m \le M\f$.
+ * \arg alpha The three-term recurrence coefficients \f$\alpha_k \in \mathbb{R}\f$ 
+ *            for \f$k=0,\ldots,N\f$ such that \verbatim alpha[k] \endverbatim 
+ *            \f$=\alpha_k\f$.
+ * \arg beta The three-term recurrence coefficients \f$\beta_k \in \mathbb{R}\f$ 
+ *            for \f$k=0,\ldots,N\f$ such that \verbatim beta[k] \endverbatim 
+ *            \f$=\beta_k\f$.
+ * \arg gamma The three-term recurrence coefficients \f$\gamma_k \in \mathbb{R}\f$ 
+ *            for \f$k=0,\ldots,N\f$ such that \verbatim gamma[k] \endverbatim 
+ *            \f$=\gamma_k\f$.
+ * \arg k_start The index \f$k_{\text{start}} \in \mathbb{N}_0, 
+ *              0 \le k_{\text{start}} \le N\f$
+ * \arg threshold The treshold \f$\kappa \in \mathbb{R}, \kappa > 0\f$.
+ *
+ * \author Jens Keiner
+ */
+void dpt_precompute(dpt_set set, const int m, const double const* alpha, 
+                    const double const* beta, const double const* gamma, int k_start,
+                    const double threshold);
 
-dpt_set dpt_init(const int M, const int t, const int flags);
+/**
+ * Computes a single DPT transform.
+ * 
+ * \arg set
+ * \arg m
+ * \arg x
+ * \arg y
+ * \arg k_end
+ * \arg flags
+ */
+void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags);
 
-void dpt_precompute(dpt_set set, const int m, double const* alpha, 
-                    double const* beta, double const* gamma, int k_start,
-                    double threshold);
-
-void dpt_trafo(dpt_set set, const int m, const int k_end, complex *x);
-
-void dpt_transposed(dpt_set set, const int m, complex *x);
+//void dpt_transposed(dpt_set set, const int m, complex *x);
 
 void dpt_finalize(dpt_set set); 
 

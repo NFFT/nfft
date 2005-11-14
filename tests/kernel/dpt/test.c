@@ -1,5 +1,6 @@
 #include "nfft3.h"
 #include "dpt.h"
+#include "util.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,6 +25,8 @@ void test_dpt_trafo(void)
   int N;
   /** Start index */
   int k_start;
+  /** End index */
+  int k_end;
   /** The exponent of N */
   int t;
   /** The Legendre coefficients */
@@ -65,7 +68,7 @@ void test_dpt_trafo(void)
 
   while (fscanf(testfiles,"%s",filename) == 1)
   { 
-    fprintf(stdout,"filename = %s,\n",filename);
+    fprintf(stdout,"filename = %s,",filename);
     /* Open input file. */ 
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
@@ -74,13 +77,17 @@ void test_dpt_trafo(void)
       /* Read in transfrom length. */
       fscanf(file,"%d",&t);
       N = 1<<t;
-      fprintf(stdout,"t = %d,\n",t);
-      fprintf(stdout,"N = %d,\n",N);
+      fprintf(stdout," t = %d,",t);
+      fprintf(stdout," N = %d,",N);
       
       /* Read in start index. */
       fscanf(file,"%d",&k_start);
-      fprintf(stdout,"k_start = %d,\n",k_start);
+      fprintf(stdout," k_start = %d,",k_start);
       
+      /* Read in end index. */
+      fscanf(file,"%d",&k_end);
+      fprintf(stdout," k_end = %d,",k_end);
+
       /* Allocate memory for recursion coefficients. */
       alpha = (double*) malloc((N+2)*sizeof(double));
       beta = (double*) malloc((N+2)*sizeof(double));
@@ -101,7 +108,7 @@ void test_dpt_trafo(void)
       }
       
       /* Print out recursion coefficients. */
-      for (k = 0; k < N+2; k++)
+      /*for (k = 0; k < N+2; k++)
       {
         fprintf(stdout,"alpha_%d^%d = %.16le\n",k-1,k_start,alpha[k]);
       }
@@ -112,13 +119,13 @@ void test_dpt_trafo(void)
       for (k = 0; k < N+2; k++)
       {
         fprintf(stdout,"gamma_%d^%d = %.16le\n",k-1,k_start,gamma[k]);
-      }
+      }*/
       
       /* Allocate memory for Legendre coefficients. */
-      x = (complex*) calloc((N+1),sizeof(complex));
+      x = (complex*) calloc((k_end+1),sizeof(complex));
       
       /* Read in Legendre coefficients. */
-      for (k = k_start; k <= N; k++)
+      for (k = k_start; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
@@ -126,16 +133,16 @@ void test_dpt_trafo(void)
       }
       
       /* Print out Legendre coefficients. */
-      for (k = 0; k <= N; k++)
+      /*for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x[%d] = %le + I*%le\n",k,creal(x[k]),cimag(x[k]));
-      }
+      }*/
             
       /* Allocate memory for Chebyshev coefficients. */
-      y = (complex*) calloc((N+1),sizeof(complex));
+      y = (complex*) calloc((k_end+1),sizeof(complex));
       
       /* Read in Chebyshev coefficients. */
-      for (k = 0; k <= N; k++)
+      for (k = 0; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
@@ -143,10 +150,10 @@ void test_dpt_trafo(void)
       }
       
       /* Print out Chebyshev coefficients. */
-      for (k = 0; k <= N; k++)
+      /*for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"y[%d] = %le + I*%le\n",k,creal(y[k]),cimag(y[k]));
-      }            
+      }*/            
             
       /* Initialize DPT. */
       set = dpt_init(0,t,0U);
@@ -155,67 +162,23 @@ void test_dpt_trafo(void)
       dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
-      dpt_trafo(set,0,N,x);   
+      dpt_trafo(set,0,&x[k_start],x,k_end,0U/*DPT_FUNCTION_VALUES*/);   
       
       /* Print out computed and reference coefficients. */
-      for (k = 0; k <= N; k++)
+      /*fprintf(stdout,"\n");
+      for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"x[%d] = %+1.16le + I*%+1.16le, \t y[%d] = %+1.16le + I*%+1.16le\n",k,
           creal(x[k]),cimag(x[k]),k,creal(y[k]),cimag(y[k]));
-      }
-         
-      /* Precompute. */
-      //nfsft_precompute(N,THRESHOLD,0U);
-      /* Initialise plan. */
-      //nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
-      //  NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
-      /* Read in spherical Fourier coefficients. */
-      /*for (k = 0; k <= N; k++)
-      {
-        for (n = -k; n <= k; n++)
-        {
-          fscanf(file,"%lf",&d1);
-          fscanf(file,"%lf",&d2);
-          plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = d1 + I*d2;
-        }
-      }*/
-      /* Read in nodes. */
-      /*for (m = 0; m < plan.M_total; m++)
-      {
-        fscanf(file,"%lf",&d1);
-        fscanf(file,"%lf",&d2);
-        plan.x[2*m] = d1;
-        plan.x[2*m+1] = d2;
-      }*/
-      /* Read in reference samples. */
-      /*f_orig = (complex*) malloc(M*sizeof(complex));
-      for (m = 0; m < M; m++)
-      {
-        fscanf(file,"%lf",&d1);
-        fscanf(file,"%lf",&d2);
-        f_orig[m] = d1 + I*d2;
-        //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
       }*/
       
+      /* Print out the infinity-norm error. */
+      fprintf(stdout," e_infty = %le,",error_l_infty_complex(y,x,k_end+1));
+      fprintf(stdout," e_2 = %le",error_l_2_complex(y,x,k_end+1));
+ 
       /* CLose the file. */
       fclose(file);
       file = NULL;
-      /* Execute the plan. */
-      //ndsft_trafo(&plan);
-      /* Check result */
-      //for (m = 0; m < M; m++)
-      //{
-        /*fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-          m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));*/
-      /*  if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
-        {
-          fprintf(stdout," failed\n  f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-            m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-          CU_FAIL("Wrong result");  
-        }
-      } */   
-      /* Destroy the plan. */
-      //nfsft_finalize(&plan);
       
       /* Forget precomputed data. */
       dpt_finalize(set);
