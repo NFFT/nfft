@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -42,8 +42,8 @@ Wolfram Research.
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
 (*NotebookOptionsPosition[      8989,        244]*)
-(*NotebookOutlinePosition[      9838,        273]*)
-(*  CellTagsIndexPosition[      9794,        269]*)
+(*NotebookOutlinePosition[      9830,        273]*)
+(*  CellTagsIndexPosition[      9786,        269]*)
 (*WindowFrame->Normal*)
 
 
@@ -88,7 +88,7 @@ Cell[BoxData[{
               n, \((\(-1\))\)\^\((k + 1)\), \(2  k + 1\)\/\@\(\((k - n + 1)\) \
 \((k + n + 1)\)\)]]]\), "\[IndentingNewLine]", 
     \(LegendreBeta[k_, n_]\  := 
-      IF[k \[Equal] \(-1\), 0, 
+      If[k \[Equal] \(-1\), 0, 
         If[0 \[LessEqual] k < n, 1, 0]]\), "\[IndentingNewLine]", 
     \(\(\(LegendreGamma[k_, n_]\)\(\ \)\(:=\)\(If[
         k \[Equal] \(-1\), \@\(\((2  n)\)!\)\/\(\(2\^n\) \(n!\)\), 
@@ -242,12 +242,12 @@ VectorX=Table[
       kend[[j]]}],\
 \>", "Text"]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1144, 739},
-WindowMargins->{{4, Automatic}, {Automatic, 1}},
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -280,12 +280,12 @@ Cell[1858, 56, 82, 2, 27, "Input"]
 
 Cell[CellGroupData[{
 Cell[1977, 63, 92, 1, 38, "Subsection"],
-Cell[2072, 66, 240, 5, 54, "Input"]
+Cell[2072, 66, 240, 5, 62, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 Cell[2349, 76, 128, 4, 38, "Subsection"],
-Cell[2480, 82, 763, 15, 111, "Input"]
+Cell[2480, 82, 763, 15, 114, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -312,13 +312,13 @@ Cell[CellGroupData[{
 Cell[4379, 149, 95, 1, 38, "Subsection"],
 
 Cell[CellGroupData[{
-Cell[4499, 154, 4016, 69, 697, "Input"],
+Cell[4499, 154, 4016, 69, 721, "Input"],
 Cell[8518, 225, 42, 1, 27, "Output"]
 }, Open  ]]
 }, Open  ]],
-Cell[8587, 230, 16, 0, 30, "Text"],
+Cell[8587, 230, 16, 0, 32, "Text"],
 Cell[8606, 232, 241, 4, 34, "Text"],
-Cell[8850, 238, 135, 4, 62, "Text"]
+Cell[8850, 238, 135, 4, 68, "Text"]
 }
 ]
 *)
