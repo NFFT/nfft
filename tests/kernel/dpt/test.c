@@ -21,6 +21,8 @@ void test_dpt_trafo(void)
 {
   /** The set of DPTs */
   dpt_set set;
+  /** DPT mode */
+  int function_values;
   /** The transform length (must be a power of two) */
   int N;
   /** Start index */
@@ -74,6 +76,10 @@ void test_dpt_trafo(void)
     /* Check if file was opened successfully. */
     if (file != NULL)
     {
+      /* Read in DPT mode */
+      fscanf(file,"%d",&function_values);
+      fprintf(stdout," function_values = %d,",function_values);      
+      
       /* Read in transfrom length. */
       fscanf(file,"%d",&t);
       N = 1<<t;
@@ -162,7 +168,7 @@ void test_dpt_trafo(void)
       dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
-      dpt_trafo(set,0,&x[k_start],x,k_end,0U/*DPT_FUNCTION_VALUES*/);   
+      dpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
       
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");

@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8866,        244]*)
-(*NotebookOutlinePosition[      9715,        273]*)
-(*  CellTagsIndexPosition[      9671,        269]*)
+(*NotebookOptionsPosition[      8953,        240]*)
+(*NotebookOutlinePosition[      9802,        269]*)
+(*  CellTagsIndexPosition[      9758,        265]*)
 (*WindowFrame->Normal*)
 
 
@@ -128,7 +128,7 @@ Cell["The transform lengths:", "Subsection",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(kend\  = \ Table[k, {k, 4, 64}];\)\)], "Input",
+    \(\(kend\  = \ Table[k, {k, 4, 128}];\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}]
 }, Open  ]],
 
@@ -141,7 +141,7 @@ Chebyshev nodes:\
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(FunctionValues\  = \ False;\)\)], "Input",
+    \(\(FunctionValues\  = \ True;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}]
 }, Open  ]],
 
@@ -149,8 +149,6 @@ Cell[CellGroupData[{
 
 Cell["The algorithm to generate the datasets:", "Subsection",
   ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]{t\  = \ 
@@ -179,21 +177,24 @@ Cell[BoxData[
                         Cos[\(l \((k + 1\/2)\) \[Pi]\)\/\(kend[\([j]\)] + \
 1\)]\), p], {l, 0, kend[\([j]\)]}], 
             VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
-          OpenWrite["\<test_dpt_\>" <> 
+          OpenWrite["\<test_dpt_\>" <> \ 
+              ToString[Piecewise[{{1, FunctionValues}}]]\  <> \ "\<_\>"\  <> 
               StringTake[
-                ToString[
-                  PaddedForm[NN, 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \ StringTake[
                 ToString[
                   PaddedForm[n, 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \[IndentingNewLine]StringTake[
+"\<_\>" <> StringTake[
+                ToString[
+                  PaddedForm[NN, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> \ \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[kend[\([j]\)], 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
-"\<.txt\>"]; \[IndentingNewLine]WriteString[testfile, 
-          t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
+"\<.txt\>"]; \[IndentingNewLine]WriteString[testfile, \ 
+          Piecewise[{{1, 
+                FunctionValues}}], "\<\n\>"], \[IndentingNewLine]WriteString[
+          testfile, t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
           n, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
           kend[\([j]\)], "\<\n\>"]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
@@ -201,9 +202,8 @@ Cell[BoxData[
                   k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
             NN + 2}]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
-              CForm[VectorBeta\[LeftDoubleBracket]
-                  k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
-            NN + 2}]; \[IndentingNewLine]WriteString[
+              CForm[VectorBeta\[LeftDoubleBracket]k\[RightDoubleBracket]], \
+"\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
               CForm[VectorGamma\[LeftDoubleBracket]k\[RightDoubleBracket]], "\
 \<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
@@ -221,11 +221,7 @@ Cell[BoxData[
 \>"]}, {k, 1, kend[\([j]\)] + 1}]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Close[
           testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
-  ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[BoxData[
-    \($Aborted\)], "Output"]
-}, Open  ]]
+  ImageRegion->{{-0, 1}, {0, 1}}]
 }, Open  ]],
 
 Cell["", "Text"],
@@ -300,25 +296,21 @@ Cell[3746, 119, 79, 2, 27, "Input"]
 
 Cell[CellGroupData[{
 Cell[3862, 126, 78, 1, 38, "Subsection"],
-Cell[3943, 129, 103, 2, 27, "Input"]
+Cell[3943, 129, 104, 2, 27, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[4083, 136, 148, 4, 38, "Subsection"],
-Cell[4234, 142, 98, 2, 27, "Input"]
+Cell[4084, 136, 148, 4, 38, "Subsection"],
+Cell[4235, 142, 97, 2, 27, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 Cell[4369, 149, 95, 1, 38, "Subsection"],
-
-Cell[CellGroupData[{
-Cell[4489, 154, 3903, 69, 665, "Input"],
-Cell[8395, 225, 42, 1, 27, "Output"]
-}, Open  ]]
+Cell[4467, 152, 4069, 71, 697, "Input"]
 }, Open  ]],
-Cell[8464, 230, 16, 0, 30, "Text"],
-Cell[8483, 232, 241, 4, 34, "Text"],
-Cell[8727, 238, 135, 4, 62, "Text"]
+Cell[8551, 226, 16, 0, 30, "Text"],
+Cell[8570, 228, 241, 4, 34, "Text"],
+Cell[8814, 234, 135, 4, 62, "Text"]
 }
 ]
 *)
