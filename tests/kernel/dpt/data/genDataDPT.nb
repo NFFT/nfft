@@ -1,0 +1,331 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      8866,        244]*)
+(*NotebookOutlinePosition[      9715,        273]*)
+(*  CellTagsIndexPosition[      9671,        269]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["The internal precision:", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(\(p\  = \ 32;\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The associated  Legendre  functions:", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(myLegendreP[k_, n_, 
+        x_] := \ \@\(\(\((k - Abs[n])\)!\)\/\(\((k + Abs[n])\)!\)\)\ \
+\((\(-1\))\)\^n\ LegendreP[k, n, x]*
+        Piecewise[{{1, EvenQ[n]}, {1\/\@\((1 - x\^2)\), OddQ[n]}}]\)], "Input",\
+
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+The recurrence coefficients for associated Legendre \
+functions:\
+\>", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[{
+    \(LegendreAlpha[k_, n_]\  := \ 
+      Piecewise[{{0, 
+            k \[Equal] \(-1\)}, {Piecewise[{{1, n \[Equal] 0}, {0, 
+                  OddQ[n]}, {\(-1\), EvenQ[n]}}], 
+            k \[Equal] 0}, {\((\(-1\))\)\^\((k + 1)\), 
+            1 \[LessEqual] k < 
+              n}, {\(2  k + 1\)\/\@\(\((k - n + 1)\) \((k + n + 1)\)\), 
+            k \[GreaterEqual] \ n}}]\), "\[IndentingNewLine]", 
+    \(LegendreBeta[k_, n_]\  := \ 
+      Piecewise[{{0, k \[Equal] \(-1\)}, {1, 0 \[LessEqual] k < n}, {0, 
+            k \[GreaterEqual] \ n}}]\), "\[IndentingNewLine]", 
+    \(LegendreGamma[k_, n_]\  := \ 
+      Piecewise[{{\@\(\((2  n)\)!\)\/\(\(2\^n\) \(n!\)\), 
+            k \[Equal] \(-1\)}, {0, 
+            0 \[LessEqual] k \[LessEqual] 
+              n}, {\(-\(\@\(\((k - n)\) \((k + n)\)\)\/\@\(\((k - n + 1)\) \
+\((k + n + 1)\)\)\)\), k > \ n}}]\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The maximum transform length exponent", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(\(t\  = \ 6;\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The order:", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(\(n = \ 0;\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The transform lengths:", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(\(kend\  = \ Table[k, {k, 4, 64}];\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Whether to  generate Chebyshev coefficients or function values at \
+Chebyshev nodes:\
+\>", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \(\(FunctionValues\  = \ False;\)\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The algorithm to generate the datasets:", "Subsection",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Do[\[IndentingNewLine]{t\  = \ 
+          Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
+          2\^t, \[IndentingNewLine]VectorAlpha = 
+          Table[N[LegendreAlpha[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorBeta = 
+          Table[N[LegendreBeta[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorGamma = 
+          Table[N[LegendreGamma[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorX = 
+          Table[N[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                  10\^\(-p\)] + \[ImaginaryI]*
+                  Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                    10\^\(-p\)], p], {k, n, 
+              kend[\([j]\)]}], \[IndentingNewLine]\[IndentingNewLine]f[
+            x_]\  := \ \[Sum]\+\(k = n\)\%\(kend[\([j]\)]\)VectorX[\([k - n + 
+                    1]\)]*myLegendreP[k, n, x]; \[IndentingNewLine]VectorY = 
+          Table[N[f[Cos[\(\[Pi] \((k + 1\/2)\)\)\/\(kend[\([j]\)] + 1\)]], 
+              p], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]If[
+          FunctionValues, {}, {VectorYY\  = \ 
+              Table[N[\(2\/\(kend[\([j]\)] + 1\)\) 
+                    Piecewise[{{1\/2, l \[Equal] 0}, {1, 
+                          l > 0}}] \(\[Sum]\+\(k = \
+0\)\%\(kend[\([j]\)]\)VectorY[\([k + 1]\)] 
+                        Cos[\(l \((k + 1\/2)\) \[Pi]\)\/\(kend[\([j]\)] + \
+1\)]\), p], {l, 0, kend[\([j]\)]}], 
+            VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
+          OpenWrite["\<test_dpt_\>" <> 
+              StringTake[
+                ToString[
+                  PaddedForm[NN, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> \ StringTake[
+                ToString[
+                  PaddedForm[n, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> \[IndentingNewLine]StringTake[
+                ToString[
+                  PaddedForm[kend[\([j]\)], 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
+"\<.txt\>"]; \[IndentingNewLine]WriteString[testfile, 
+          t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
+          n, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
+          kend[\([j]\)], "\<\n\>"]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorAlpha\[LeftDoubleBracket]
+                  k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
+            NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorBeta\[LeftDoubleBracket]
+                  k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
+            NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorGamma\[LeftDoubleBracket]k\[RightDoubleBracket]], "\
+\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[Re[
+                  VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>", CForm[Im[
+                  VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>"]}, {k, 1, kend[\([j]\)] - n + 1}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[Re[
+                  VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>", CForm[Im[
+                  VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>"]}, {k, 1, kend[\([j]\)] + 1}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Close[
+          testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell["", "Text"],
+
+Cell[TextData[Cell[BoxData[
+    \(\(\(VectorX = 
+      Table[N[Piecewise[{{Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                  10\^\(-p\)], k \[Equal] r}}], p], {k, n, 
+          kend[\([\)\(j\)\(]\)]}]\)\(,\)\)\)]]], "Text"],
+
+Cell["\<\
+VectorX=Table[
+    N[Random[Complex,{-0.5-0.5 \[ImaginaryI],0.5+0.5 \[ImaginaryI]}],p],{k,n,
+      kend[[j]]}],\
+\>", "Text"]
+},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 766}},
+WindowToolbars->{},
+CellGrouping->Manual,
+WindowSize->{1144, 739},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
+ShowCellLabel->True,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 79, 1, 38, "Subsection"],
+Cell[1858, 56, 82, 2, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[1977, 63, 92, 1, 38, "Subsection"],
+Cell[2072, 66, 264, 6, 54, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[2373, 77, 128, 4, 38, "Subsection"],
+Cell[2504, 83, 922, 18, 129, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3463, 106, 93, 1, 38, "Subsection"],
+Cell[3559, 109, 81, 2, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3677, 116, 66, 1, 38, "Subsection"],
+Cell[3746, 119, 79, 2, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3862, 126, 78, 1, 38, "Subsection"],
+Cell[3943, 129, 103, 2, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4083, 136, 148, 4, 38, "Subsection"],
+Cell[4234, 142, 98, 2, 27, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4369, 149, 95, 1, 38, "Subsection"],
+
+Cell[CellGroupData[{
+Cell[4489, 154, 3903, 69, 665, "Input"],
+Cell[8395, 225, 42, 1, 27, "Output"]
+}, Open  ]]
+}, Open  ]],
+Cell[8464, 230, 16, 0, 30, "Text"],
+Cell[8483, 232, 241, 4, 34, "Text"],
+Cell[8727, 238, 135, 4, 62, "Text"]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
