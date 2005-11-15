@@ -28,6 +28,7 @@
 //#include <stdlib.h>
 
 #define NFSFT_DEFAULT_NFFT_CUTOFF 6
+#define NFSFT_BREAKTHROUGH 4
 
 /** Global structure for wisdom. */
 static struct nfsft_wisdom wisdom = {false,0U};
@@ -169,7 +170,7 @@ void nfsft_precompute(int N, double kappa,
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
-  else
+  else if ()
   { 
     /* Precompute data for DPT. */
     
@@ -178,29 +179,32 @@ void nfsft_precompute(int N, double kappa,
     {
       /* Use the recursion coefficients to precompute DPT data using persistent 
        * arrays. */
-     /* TODO Add DPT_PERSISTENT_DATA here. */  
-      wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
+      wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,DPT_PERSISTENT_DATA);
+      for (n = 0; n <= wisdom.N_MAX; n++)
+      {
+        alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
+        beta_al_row(wisdom.beta,wisdom.N_MAX,n);
+        gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
+        dpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
+      } 
+    }
+    else
+    {
+      wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*sizeof(double));
+      wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*sizeof(double));
+      wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*sizeof(double));
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
           &wisdom.gamma[ROW(n)],n,kappa);
       } 
-    }
-    /* Set the threshold. */
-    //wisdom.threshold  = threshold;
-  
-    /* Precompute. */
-    //wisdom.U = precomputeU_old(wisdom.t, wisdom.threshold, wisdom.alpha, wisdom.beta, 
-    //                      wisdom.gamma, 
-    //                       (wisdom.flags & NFSFT_BW_WINDOW_OLD) == NFSFT_BW_WINDOW_OLD);
-    
-    /* Delete coefficients direct algorithms are deactivated. */
-    /*if ((wisdom.flags & NFSFT_FAST_ONLY_OLD) == NFSFT_FAST_ONLY_OLD)
-    {
       free(wisdom.alpha);
       free(wisdom.beta);
       free(wisdom.gamma);
-    }*/
+      wisdom.alpha = NULL;
+      wisdom.beta = NULL;
+      wisdom.gamma = NULL;
+    }
     
     /* Check, if bandwidth big enough. */
     /*if (wisdom.N >= 4)
