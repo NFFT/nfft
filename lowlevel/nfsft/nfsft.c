@@ -514,7 +514,7 @@ void ndsft_adjoint(nfsft_plan* plan)
 void nfsft_trafo(nfsft_plan* plan)
 {
   /** Counter for loops */
-  int i,n;
+  /*int i,n;
   
   if (wisdom.initialized == 0 || plan->M > wisdom.N)
   {
@@ -528,41 +528,41 @@ void nfsft_trafo(nfsft_plan* plan)
   else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
   {
     plan->plan_nfft.f = plan->f;
-    
+    */
     /** Check for normalization. */
-    if (plan->flags & NFSFT_NORMALIZED_OLD)
+/*    if (plan->flags & NFSFT_NORMALIZED_OLD)
     {
       normalize_f_hat_old(plan->f_hat, plan->M);
-    }  
+    }*/  
 
     /* Compute FLFT. */
-    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
-    {
+/*    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
+    {*/
 //      fprintf(stderr,"flft: n = %d\n",n);
 //      fflush(stderr);
-      flft_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
-    }
+/*      flft_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
+    }*/
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
 //    fprintf(stderr,"cheb2exp_old\n",n);
 //    fflush(stderr);
-    cheb2exp_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
+    //cheb2exp_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
 
     //norm = norm_nfft_1_old(plan->plan_nfft.f_hat, 2*(plan->N+1));
     //fprintf(stderr,"nfft_norm_1 = %.4E\n",norm);
-    fflush(stderr);
+    //fflush(stderr);
     
     /* Execute NFFT. */
-    if (plan->flags & NFSFT_USE_NDFT_OLD)
+    /*if (plan->flags & NFSFT_USE_NDFT_OLD)
     {
       ndft_trafo(&plan->plan_nfft);
     }
     else
     {
       nfft_trafo(&plan->plan_nfft);
-    }
+    }*/
     
-  } 
+  //} 
 }
 
 void nfsft_adjoint(nfsft_plan* plan)

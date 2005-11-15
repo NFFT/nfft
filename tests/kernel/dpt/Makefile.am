@@ -1,4 +1,4 @@
-AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/dpt -I$(top_srcdir)/lowlevel/nfsft/obsolete
+AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/lowlevel/nfsft/obsolete
 AM_LDFLAGS = -L$(top_srcdir)
 
 TESTS = test

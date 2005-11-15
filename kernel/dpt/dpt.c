@@ -626,7 +626,7 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
   else
   { 
     /* Check, if recurrence coefficients must be copied. */
-    if (set->flags & DPT_PERSISTES_DATA)
+    if (set->flags & DPT_PERSISTENT_DATA)
     {
       data->alpha = alpha;
       data->beta = beta;
@@ -982,7 +982,7 @@ void dpt_finalize(dpt_set set)
     else
     {
       /* Check, if recurrence coefficients must be copied. */
-      if (set->flags & DPT_PERSISTES_DATA)
+      if (set->flags & DPT_PERSISTENT_DATA)
       {
       }
       else
