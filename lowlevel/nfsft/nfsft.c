@@ -115,6 +115,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
     /* Precompute PSI, if necessary. */
     if (plan->plan_nfft.nfft_flags & PRE_PSI) 
     {  
+      // TODO Add precomputation if neccessary and possible.
       //nfft_precompute_psi(&plan->plan_nfft); 
     } 
     
@@ -554,12 +555,13 @@ void nfsft_trafo(nfsft_plan* plan)
     }
 
     /* Compute FLFT. */
-/*    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
-    {*/
+    for (n = -plan->N; n <= plan->N; n++) 
+    {
 //      fprintf(stderr,"flft: n = %d\n",n);
 //      fflush(stderr);
-/*      flft_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
-    }*/
+      dpt_trafo(wisdom.set,abs(n),&plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+abs(n)],
+        &plan->f_hat[(2*plan->NPT+1)*(n+plan->N)],plan->N,0U);
+    }
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
 //    fprintf(stderr,"cheb2exp_old\n",n);
