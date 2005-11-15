@@ -227,7 +227,7 @@ void nfsft_forget()
                      
 void nfsft_finalize(nfsft_plan* plan)
 {
-  nfft_finalize(plan->plan_nfft);
+  nfft_finalize(&plan->plan_nfft);
   
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
