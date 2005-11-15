@@ -1,14 +1,7 @@
-/*gcc -o radon radon.c -lnfft3 -lfftw3 -lm -I/home/mfenn/NFFT3_develop/lib/trunk/include -L/home/mfenn/NFFT3_develop/lib/trunk/.libs -L/usr/local/lib*/
-/** @defgroup radon_example Radon: Examples
- * This module provides some programs that serve the demonstration and
- * analysis of the discrete Radon transform.
- *
- * @author Markus Fenn
- * @ingroup texture
- */
-
-/** \file radon.c
- * NFFT-based discrete Radon transform and inverse.
+/**
+ * \file radon.c
+ * \brief NFFT-based discrete Radon transform and inverse.
+ * 
  * Computes the discrete Radon transform
  * \f[
  *    R_{\theta_t} f\left(\frac{s}{R}\right)
@@ -19,7 +12,8 @@
  * \f]
  * by taking the 2D-NFFT of \f$f_k\f$ (\f$k \in I_N^2\f$)
  * at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
- * followed by a 1D-iFFTs for every direction \f$t \in T\f$.
+ * followed by a 1D-iFFTs for every direction \f$t \in T\f$,
+ * where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel.
  * The inverse transform is computed by 1D-FFTs and the 2D-iNFFT.
  * \author Markus Fenn
  * \date 2005
