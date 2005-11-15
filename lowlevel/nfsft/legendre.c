@@ -66,6 +66,39 @@ inline double gamma_al(int k, int n)
   }
 }							
 
+inline void alpha_al_row(double *alpha, int N, int n)
+{
+  int j;
+  double *alpha_act = alpha;
+  for (j = 0; j <= N; j++)
+  {
+    *alpha_act = alpha_al(j-1,n); 
+    alpha_act++;
+  }  
+}
+
+inline void beta_al_row(double *beta, int N, int n)
+{
+  int j;
+  double *beta_act = beta;
+  for (j = 0; j <= N; j++)
+  {
+    *beta_act = beta_al(j-1,n); 
+    beta_act++;
+  }  
+}
+
+inline void gamma_al_row(double *gamma, int N, int n)
+{
+  int j;
+  double *gamma_act = gamma;
+  for (j = 0; j <= N; j++)
+  {
+    *gamma_act = gamma_al(j-1,n); 
+    gamma_act++;
+  }  
+}
+
 inline void alpha_al_all(double *alpha, int N)
 {
   int i,j;

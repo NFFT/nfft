@@ -48,6 +48,10 @@ double beta_al (int k, int n);
  */ 
 double gamma_al (int k, int n);
 
+void alpha_al_row(double *alpha, int N, int n);
+void beta_al_row(double *beta, int N, int n);
+void gamma_al_row(double *gamma, int N, int n);
+
 /**
  * Compute three-term-recurrence coefficients \f$\alpha_{k-1}^n\f$ of associated 
  * Legendre functions for \f$k,n = 0,1,\ldots,N\f$.

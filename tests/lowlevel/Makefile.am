@@ -1,3 +1,3 @@
 # Subdirectories
-SUBDIRS = 
+SUBDIRS = nfsft 
 #nfsft
