@@ -146,7 +146,7 @@ void test_ndsft_trafo(void)
       fclose(file);
       file = NULL;
       /* Execute the plan. */
-      ndsft_trafo(&plan);
+      nfsft_trafo(&plan);
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
       fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
