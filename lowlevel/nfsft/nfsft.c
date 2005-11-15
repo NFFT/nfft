@@ -232,7 +232,7 @@ void nfsft_finalize(nfsft_plan* plan)
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (complex*) calloc(plan->N_total*sizeof(complex));
+    plan->f_hat = (complex*) malloc(plan->N_total*sizeof(complex));
   }
   
   /* Allocate memory for samples, if neccesary. */
