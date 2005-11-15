@@ -204,39 +204,7 @@ void nfsft_precompute(int N, double kappa,
       wisdom.alpha = NULL;
       wisdom.beta = NULL;
       wisdom.gamma = NULL;
-    }
-    /*
-    wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
-    wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
-    wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
-    wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-    wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
-    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-    wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-    wisdom.kinds[0]   = FFTW_REDFT01;
-    wisdom.kinds[1]   = FFTW_REDFT01;
-    wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-    wisdom.kindsr[0]  = FFTW_REDFT10;
-    wisdom.kindsr[1]  = FFTW_REDFT10;
-    wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
-    for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
-    {
-      wisdom.lengths[i] = ti;
-      wisdom.plans_dct3[i] = 
-        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                           2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
-                           0);
-      wisdom.plans_dct2[i] = 
-        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                           2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
-                           0);
-    } */     
+    }    
   }
 
   /* Wisdom has been initialised. */
@@ -531,26 +499,34 @@ void ndsft_adjoint(nfsft_plan* plan)
 void nfsft_trafo(nfsft_plan* plan)
 {
   /** Counter for loops */
-  /*int i,n;
+  int k,n;
   
-  if (wisdom.initialized == 0 || plan->M > wisdom.N)
+  if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
     return;
   }  
   
-  if (plan->M <= 3)
+  if (plan->N < NFSFT_BREAKTHROUGH)
   {
     ndsft_trafo(plan);
   }
-  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
+  else if ((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
+    plan->N > (wisdom.N_MAX>>1))
   {
     plan->plan_nfft.f = plan->f;
-    */
+    
     /** Check for normalization. */
-/*    if (plan->flags & NFSFT_NORMALIZED_OLD)
+    if (plan->flags & NFSFT_NORMALIZED)
     {
-      normalize_f_hat_old(plan->f_hat, plan->M);
-    }*/  
+      for (k = 0; k <= plan->N; k++)
+      {
+        for (n = -k; n <= k; n++)
+        {
+          plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+            sqrt((2*k+1)/(4.0*PI));
+        }
+      }
+    }
 
     /* Compute FLFT. */
 /*    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
@@ -579,7 +555,7 @@ void nfsft_trafo(nfsft_plan* plan)
       nfft_trafo(&plan->plan_nfft);
     }*/
     
-  //} 
+  } 
 }
 
 void nfsft_adjoint(nfsft_plan* plan)
