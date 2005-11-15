@@ -115,7 +115,7 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
     /* Precompute PSI, if necessary. */
     if (plan->plan_nfft.nfft_flags & PRE_PSI) 
     {  
-      nfft_precompute_psi(&plan->plan_nfft); 
+      //nfft_precompute_psi(&plan->plan_nfft); 
     } 
     
     free(nfft_size);
