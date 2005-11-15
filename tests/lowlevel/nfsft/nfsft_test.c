@@ -147,8 +147,8 @@ void test_ndsft_trafo(void)
       /* Execute the plan. */
       ndsft_trafo(&plan);
       /* Check result */
-      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M+1));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M+1));      
+      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
+      fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
       /*for (m = 0; m < M; m++)
       {
         fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
