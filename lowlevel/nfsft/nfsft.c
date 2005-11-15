@@ -125,6 +125,8 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
 void nfsft_precompute(int N, double kappa, 
                       unsigned int flags)
 { 
+  int n;
+  
   /*  Check if already initialized. */
   if (wisdom.initialized == true)
   {
@@ -143,21 +145,24 @@ void nfsft_precompute(int N, double kappa,
   /* Check, if precomputation for direct algorithms needs to be performed. */    
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
+    wisdom.alpha = NULL;
+    wisdom.beta = NULL;
+    wisdom.gamma = NULL;
   }
   else
   {
     /*fprintf(stdout,"Precomputation for ndsft_trafo done.\n");*/
     /* Precompute three-term recurrence coefficients. */
-    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
       sizeof(double));    
-    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
       sizeof(double));    
-    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
       sizeof(double));
     /** \todo Change to functions which compute only for fixed order n. */       
-    alpha_al_all(wisdom.alpha,wisdom.N_MAX+1);
-    beta_al_all(wisdom.beta,wisdom.N_MAX+1);
-    gamma_al_all(wisdom.gamma,wisdom.N_MAX+1);
+    alpha_al_all(wisdom.alpha,wisdom.N_MAX);
+    beta_al_all(wisdom.beta,wisdom.N_MAX);
+    gamma_al_all(wisdom.gamma,wisdom.N_MAX);
   }
   
   /* Check, if precomputation for direct algorithms needs to be performed. */    
@@ -166,6 +171,21 @@ void nfsft_precompute(int N, double kappa,
   }
   else
   { 
+    /* Precompute data for DPT. */
+    
+    /* Check, if recursion coefficients have already been calculated. */
+    if (wisdom.alpha != NULL)
+    {
+      /* Use the recursion coefficients to precompute DPT data using persistent 
+       * arrays. */
+     /* TODO Add DPT_PERSISTENT_DATA here. */  
+      wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
+      for (n = 0; n <= wisdom.N_MAX; n++)
+      {
+        dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
+          &wisdom.gamma[ROW(n)],n,kappa);
+      } 
+    }
     /* Set the threshold. */
     //wisdom.threshold  = threshold;
   

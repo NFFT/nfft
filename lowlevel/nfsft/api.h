@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "nfft3.h"
+#include "dpt.h"
 #include <fftw3.h>
 
 /* "Default exponent of maximum bandwidth" */
@@ -73,6 +74,6 @@ struct nfsft_wisdom
   /** The threshold /f$\kappa/f$ */
   double threshold;
   /** Structure for \e discrete \e polynomial \e transform (\e DPT) */
-  //struct dpt_wisdom flft_wisdom;
+  dpt_set set;
 };
 #endif
