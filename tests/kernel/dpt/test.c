@@ -168,7 +168,7 @@ void test_dpt_trafo(void)
       dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
-      dpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+      fpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
       
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");

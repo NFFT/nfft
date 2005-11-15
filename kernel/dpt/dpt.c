@@ -30,6 +30,10 @@ typedef struct dpt_data_
   double alpha_0;
   double beta_0;
   double gamma_m1;
+  /* Data for direct transform. */
+  double *alpha;
+  double *beta;
+  double *gamma;
 } dpt_data;
 
 typedef struct dpt_set_s_
@@ -59,8 +63,10 @@ typedef struct dpt_set_s_
                                                library                       */
   
   int *lengths; /**< Transform lengths for fftw library */  
+  
+  /* Data for slow transforms. */
+  double *xc_slow;
 } dpt_set_s;
-
 
 void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
   double* w, int n)
@@ -245,64 +251,79 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
     set->dpt[m].steps = (dpt_step**)NULL;
   }
  
-  /* Create arrays with Chebyshev nodes. */  
-  
-  /* Initialize array with Chebyshev coefficients for the polynomial x. This 
-   * would be trivially an array containing a 1 as second entry with all other 
-   * coefficients set to zero. In order to compensate for the multiplicative 
-   * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
-  set->xc = (double *) calloc(1<<set->t,sizeof(double));
-  set->xc[1] = 0.5;
-  
-  /* Allocate memory for array of pointers to node arrays. */
-  set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
-  /* For each polynomial length starting with 4, compute the Chebyshev nodes 
-   * using a DCT-III. */
-  plength = 4;
-  for (tau = 1; tau < t; tau++)
+  /* Check if fast transform is activated. */
+  if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
-    /* Allocate memory for current array. */
-    set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
-    /* Create plan for DCT-III. */
-    plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
-                            FFTW_PRESERVE_INPUT);
-    /* Execute it. */
-    fftw_execute(plan);
-    /* Destroy the plan. */
-    fftw_destroy_plan(plan);
-    plan = NULL;
-    /* Increase length to next power of two. */
-    plength = plength << 1;
   }
-  
-  /** Allocate memory for auxilliary arrays. */
-  set->work = (complex*) malloc(2*set->N*sizeof(complex));
-  set->result = (complex*) malloc(2*set->N*sizeof(complex));
-  set->vec3 = (complex*) malloc(set->N*sizeof(complex));
-  set->vec4 = (complex*) malloc(set->N*sizeof(complex));
-  set->z = (complex*) malloc(set->N*sizeof(complex));
-  
-  /** Initialize FFTW plans. */
-  set->plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1));
-  set->plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1)); 
-  set->kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-  set->kinds[0]   = FFTW_REDFT01;
-  set->kinds[1]   = FFTW_REDFT01;
-  set->kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-  set->kindsr[0]  = FFTW_REDFT10;
-  set->kindsr[1]  = FFTW_REDFT10;
-  set->lengths    = (int*) malloc((set->t-1)*sizeof(int));
-  for (tau = 0, plength = 4; tau < set->t-1; tau++, plength<<=1)
+  else
   {
-    set->lengths[tau] = plength;
-    set->plans_dct3[tau] = 
-      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
-                         2, 1, (double*)set->vec4, NULL, 2, 1, set->kinds, 
-                         0);
-    set->plans_dct2[tau] = 
-      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
-                         2, 1, (double*)set->vec4, NULL, 2, 1,set->kindsr, 
-                         0);
+    /* Create arrays with Chebyshev nodes. */  
+    
+    /* Initialize array with Chebyshev coefficients for the polynomial x. This 
+     * would be trivially an array containing a 1 as second entry with all other 
+     * coefficients set to zero. In order to compensate for the multiplicative 
+     * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
+    set->xc = (double *) calloc(1<<set->t,sizeof(double));
+    set->xc[1] = 0.5;
+    
+    /* Allocate memory for array of pointers to node arrays. */
+    set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
+    /* For each polynomial length starting with 4, compute the Chebyshev nodes 
+     * using a DCT-III. */
+    plength = 4;
+    for (tau = 1; tau < t; tau++)
+    {
+      /* Allocate memory for current array. */
+      set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
+      /* Create plan for DCT-III. */
+      plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
+                              FFTW_PRESERVE_INPUT);
+      /* Execute it. */
+      fftw_execute(plan);
+      /* Destroy the plan. */
+      fftw_destroy_plan(plan);
+      plan = NULL;
+      /* Increase length to next power of two. */
+      plength = plength << 1;
+    }
+    
+    /** Allocate memory for auxilliary arrays. */
+    set->work = (complex*) malloc(2*set->N*sizeof(complex));
+    set->result = (complex*) malloc(2*set->N*sizeof(complex));
+    set->vec3 = (complex*) malloc(set->N*sizeof(complex));
+    set->vec4 = (complex*) malloc(set->N*sizeof(complex));
+    set->z = (complex*) malloc(set->N*sizeof(complex));
+    
+    /** Initialize FFTW plans. */
+    set->plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1));
+    set->plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1)); 
+    set->kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    set->kinds[0]   = FFTW_REDFT01;
+    set->kinds[1]   = FFTW_REDFT01;
+    set->kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    set->kindsr[0]  = FFTW_REDFT10;
+    set->kindsr[1]  = FFTW_REDFT10;
+    set->lengths    = (int*) malloc((set->t-1)*sizeof(int));
+    for (tau = 0, plength = 4; tau < set->t-1; tau++, plength<<=1)
+    {
+      set->lengths[tau] = plength;
+      set->plans_dct3[tau] = 
+        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
+                           2, 1, (double*)set->vec4, NULL, 2, 1, set->kinds, 
+                           0);
+      set->plans_dct2[tau] = 
+        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
+                           2, 1, (double*)set->vec4, NULL, 2, 1,set->kindsr, 
+                           0);
+    }
+  }  
+  
+  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  {
+  }
+  else
+  { 
+    set->xc_slow = (double*) malloc((set->N+1)*sizeof(double));
   }         
  
   /* Return the newly created DPT set. */ 
@@ -339,6 +360,8 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
   double *cbeta;
   double *cgamma;
   int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
+  int k_start_tilde;
+  int N_tilde;
   
   dpt_data *data;
   
@@ -357,241 +380,289 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
   /* Save k_start. */
   data->k_start = k_start;
   
-  /* Save recursion coefficients. */
-  data->alphaN = (double*) malloc((set->t-1)*sizeof(complex));
-  data->betaN = (double*) malloc((set->t-1)*sizeof(complex));
-  data->gammaN = (double*) malloc((set->t-1)*sizeof(complex));
-  for (tau = 2; tau <= set->t; tau++)
+  /* Check if fast transform is activated. */
+  if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
-    data->alphaN[tau-2] = alpha[1<<tau]; 
-    data->betaN[tau-2] = beta[1<<tau]; 
-    data->gammaN[tau-2] = gamma[1<<tau];
-  }   
-  data->alpha_0 = alpha[1];
-  data->beta_0 = beta[1];
-  data->gamma_m1 = gamma[0];
-    
-  int k_start_tilde = K_START_TILDE(data->k_start,set->N);
-  int N_tilde = N_TILDE(set->N);
-    
-  // printf("k_start = %d, k_start_tilde = %d, N = %d, N_tilde = %d\n",
-  // k_start,k_start_tilde,set->N,N_tilde);
-
-  /* Allocate memory for the cascade with t = log_2(N) many levels. */
-  data->steps = (dpt_step**) malloc(sizeof(dpt_step*)*set->t);
-    
-  /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
-  plength = 4;
-  for (tau = 1; tau < set->t; tau++)
-  {     
-    /* Compute auxilliary values. */
-    degree = plength>>1;     
-    /* Compute first l. */
-    firstl = FIRST_L(k_start_tilde,plength);
-    /* Compute last l. */
-    lastl = LAST_L(N_tilde,plength);
-    //printf("tau = %d: plength = %d, degree = %d, firstl = %d, lastl = %d\n",
-    //  tau, plength, degree, firstl, lastl);
-
-    /* Compute number of matrices for this level. */
-    //nsteps = lastl - firstl + 1;
+  }
+  else
+  { 
+    /* Save recursion coefficients. */
+    data->alphaN = (double*) malloc((set->t-1)*sizeof(complex));
+    data->betaN = (double*) malloc((set->t-1)*sizeof(complex));
+    data->gammaN = (double*) malloc((set->t-1)*sizeof(complex));
+    for (tau = 2; tau <= set->t; tau++)
+    {
+      data->alphaN[tau-2] = alpha[1<<tau]; 
+      data->betaN[tau-2] = beta[1<<tau]; 
+      data->gammaN[tau-2] = gamma[1<<tau];
+    }   
+    data->alpha_0 = alpha[1];
+    data->beta_0 = beta[1];
+    data->gamma_m1 = gamma[0];
       
-    /* Allocate memory for current level. This level will contain 2^{t-tau-1} 
-     * many matrices. */
-    data->steps[tau] = (dpt_step*) fftw_malloc(sizeof(dpt_step) 
-                       * (lastl+1)); 
-    
-    /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
-    for (l = firstl; l <= lastl; l++)
-    {        
-      //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
-
-      /* Allocate memory for the components of U_{n,tau,l}. */
-      a11 = (double*) fftw_malloc(sizeof(double)*plength);
-      a12 = (double*) fftw_malloc(sizeof(double)*plength);
-      a21 = (double*) fftw_malloc(sizeof(double)*plength);
-      a22 = (double*) fftw_malloc(sizeof(double)*plength);               
+    k_start_tilde = K_START_TILDE(data->k_start,set->N);
+    N_tilde = N_TILDE(set->N);
       
-      /* Evaluate the associated polynomials at the 2^{tau+1} Chebyshev 
-       * nodes. */
+    // printf("k_start = %d, k_start_tilde = %d, N = %d, N_tilde = %d\n",
+    // k_start,k_start_tilde,set->N,N_tilde);
+  
+    /* Allocate memory for the cascade with t = log_2(N) many levels. */
+    data->steps = (dpt_step**) malloc(sizeof(dpt_step*)*set->t);
       
-      /* Get the pointers to the three-term recurrence coeffcients. */
-      calpha = &(alpha[plength*l+1+1]);
-      cbeta = &(beta[plength*l+1+1]);
-      cgamma = &(gamma[plength*l+1+1]);
-      
-      if (set->flags & DPT_NO_STABILIZATION)
-      {
-        /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
-        eval_clenshaw(set->xcvecs[tau-1], a11, plength, degree-2, calpha, cbeta, 
-          cgamma);
-        eval_clenshaw(set->xcvecs[tau-1], a12, plength, degree-1, calpha, cbeta, 
-          cgamma);
-        calpha--;
-        cbeta--;
-        cgamma--;
-        eval_clenshaw(set->xcvecs[tau-1], a21, plength, degree-1, calpha, cbeta, 
-          cgamma);
-        eval_clenshaw(set->xcvecs[tau-1], a22, plength, degree, calpha, cbeta, 
-          cgamma);
-        needstab = 0;  
-      }
-      else
-      {
-        needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a11, plength, degree-2, 
-          calpha, cbeta, cgamma, threshold);
-        if (needstab == 0)
-        {
-          /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
-          needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a12, plength, degree-1, 
-            calpha, cbeta, cgamma, threshold);
-          if (needstab == 0)
-          { 
-            calpha--;
-            cbeta--;
-            cgamma--;
-            /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
-            needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a21, plength, 
-              degree-1, calpha, cbeta, cgamma, threshold);
-            if (needstab == 0)
-            { 
-              /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
-              needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a22, plength, 
-                degree, calpha, cbeta, cgamma, threshold);
-            }
-          }
-        }
-      }        
-      
-      /* Check if stabilization needed. */
-      if (needstab == 0)
-      {  
-        data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
-        data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*));
-        data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double)); 
-        /* No stabilization needed. */
-        data->steps[tau][l].a11[0] = a11;
-        data->steps[tau][l].a12[0] = a12;
-        data->steps[tau][l].a21[0] = a21;
-        data->steps[tau][l].a22[0] = a22;
-        data->steps[tau][l].gamma[0] = gamma[plength*l+1+1];
-        data->steps[tau][l].stable = true;
-      }          
-      else 
-      {    
-        /* Stabilize. */
-        degree_stab = degree*(2*l+1);          
+    /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
+    plength = 4;
+    for (tau = 1; tau < set->t; tau++)
+    {     
+      /* Compute auxilliary values. */
+      degree = plength>>1;     
+      /* Compute first l. */
+      firstl = FIRST_L(k_start_tilde,plength);
+      /* Compute last l. */
+      lastl = LAST_L(N_tilde,plength);
+      //printf("tau = %d: plength = %d, degree = %d, firstl = %d, lastl = %d\n",
+      //  tau, plength, degree, firstl, lastl);
+  
+      /* Compute number of matrices for this level. */
+      //nsteps = lastl - firstl + 1;
         
-        /* Old arrays are to small. */
-        fftw_free(a11);
-        fftw_free(a12);
-        fftw_free(a21);
-        fftw_free(a22);
-
-        if (set->flags & DPT_BANDWIDTH_WINDOW)
+      /* Allocate memory for current level. This level will contain 2^{t-tau-1} 
+       * many matrices. */
+      data->steps[tau] = (dpt_step*) fftw_malloc(sizeof(dpt_step) 
+                         * (lastl+1)); 
+      
+      /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
+      for (l = firstl; l <= lastl; l++)
+      {        
+        //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
+  
+        /* Allocate memory for the components of U_{n,tau,l}. */
+        a11 = (double*) fftw_malloc(sizeof(double)*plength);
+        a12 = (double*) fftw_malloc(sizeof(double)*plength);
+        a21 = (double*) fftw_malloc(sizeof(double)*plength);
+        a22 = (double*) fftw_malloc(sizeof(double)*plength);               
+        
+        /* Evaluate the associated polynomials at the 2^{tau+1} Chebyshev 
+         * nodes. */
+        
+        /* Get the pointers to the three-term recurrence coeffcients. */
+        calpha = &(alpha[plength*l+1+1]);
+        cbeta = &(beta[plength*l+1+1]);
+        cgamma = &(gamma[plength*l+1+1]);
+        
+        if (set->flags & DPT_NO_STABILIZATION)
         {
-          data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*)); 
-          data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double)); 
-
-          plength_stab = 1<<set->t;
-
-          /* Allocate memory for arrays. */
-          a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-          a22 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-            
-          /* Get the pointers to the three-term recurrence coeffcients. */
-          calpha = &(alpha[2]);
-          cbeta = &(beta[2]);
-          cgamma = &(gamma[2]);         
-          /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-          eval_clenshaw(set->xcvecs[set->t-2], a11, plength_stab, degree_stab-2, 
-            calpha, cbeta, cgamma);
-          /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-          eval_clenshaw(set->xcvecs[set->t-2], a12, plength_stab, degree_stab-1, 
-            calpha, cbeta, cgamma);
+          /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
+          eval_clenshaw(set->xcvecs[tau-1], a11, plength, degree-2, calpha, cbeta, 
+            cgamma);
+          eval_clenshaw(set->xcvecs[tau-1], a12, plength, degree-1, calpha, cbeta, 
+            cgamma);
           calpha--;
           cbeta--;
           cgamma--;
-          /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-          eval_clenshaw(set->xcvecs[set->t-2], a21, plength_stab, degree_stab-1, 
-            calpha, cbeta, cgamma);
-          /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-          eval_clenshaw(set->xcvecs[set->t-2], a22, plength_stab, degree_stab+0, 
-            calpha, cbeta, cgamma);
-          
+          eval_clenshaw(set->xcvecs[tau-1], a21, plength, degree-1, calpha, cbeta, 
+            cgamma);
+          eval_clenshaw(set->xcvecs[tau-1], a22, plength, degree, calpha, cbeta, 
+            cgamma);
+          needstab = 0;  
+        }
+        else
+        {
+          needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a11, plength, degree-2, 
+            calpha, cbeta, cgamma, threshold);
+          if (needstab == 0)
+          {
+            /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+2). */
+            needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a12, plength, degree-1, 
+              calpha, cbeta, cgamma, threshold);
+            if (needstab == 0)
+            { 
+              calpha--;
+              cbeta--;
+              cgamma--;
+              /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
+              needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a21, plength, 
+                degree-1, calpha, cbeta, cgamma, threshold);
+              if (needstab == 0)
+              { 
+                /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
+                needstab = eval_clenshaw_thresh(set->xcvecs[tau-1], a22, plength, 
+                  degree, calpha, cbeta, cgamma, threshold);
+              }
+            }
+          }
+        }        
+        
+        /* Check if stabilization needed. */
+        if (needstab == 0)
+        {  
+          data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
+          data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*));
+          data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double)); 
+          /* No stabilization needed. */
           data->steps[tau][l].a11[0] = a11;
           data->steps[tau][l].a12[0] = a12;
           data->steps[tau][l].a21[0] = a21;
           data->steps[tau][l].a22[0] = a22;
-          data->steps[tau][l].gamma[0] =  gamma[1+1];
-          data->steps[tau][l].stable = false;
-        }  
-        else
-        {
-          data->steps[tau][l].a11 = (double**) fftw_malloc((set->t-tau)*
-            sizeof(double*)); 
-          data->steps[tau][l].a12 = (double**) fftw_malloc((set->t-tau)*
-            sizeof(double*)); 
-          data->steps[tau][l].a21 = (double**) fftw_malloc((set->t-tau)*
-            sizeof(double*)); 
-          data->steps[tau][l].a22 = (double**) fftw_malloc((set->t-tau)*
-            sizeof(double*)); 
-          data->steps[tau][l].gamma = (double*) fftw_malloc((set->t-tau)*
-            sizeof(double)); 
-
-          for (tau_stab = tau-1; tau_stab <= set->t-2; tau_stab++)
+          data->steps[tau][l].gamma[0] = gamma[plength*l+1+1];
+          data->steps[tau][l].stable = true;
+        }          
+        else 
+        {    
+          /* Stabilize. */
+          degree_stab = degree*(2*l+1);          
+          
+          /* Old arrays are to small. */
+          fftw_free(a11);
+          fftw_free(a12);
+          fftw_free(a21);
+          fftw_free(a22);
+  
+          if (set->flags & DPT_BANDWIDTH_WINDOW)
           {
-            //tau_stab = t-2;
-            plength_stab = 1<<(tau_stab+2);
+            data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
+            data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
+            data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*)); 
+            data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*)); 
+            data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double)); 
+  
+            plength_stab = 1<<set->t;
+  
             /* Allocate memory for arrays. */
             a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-            a12 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             a22 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-            
+              
             /* Get the pointers to the three-term recurrence coeffcients. */
             calpha = &(alpha[2]);
             cbeta = &(beta[2]);
             cgamma = &(gamma[2]);         
             /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
-            eval_clenshaw(set->xcvecs[tau_stab], a11, plength_stab, degree_stab-2, 
+            eval_clenshaw(set->xcvecs[set->t-2], a11, plength_stab, degree_stab-2, 
               calpha, cbeta, cgamma);
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
-            eval_clenshaw(set->xcvecs[tau_stab], a12, plength_stab, degree_stab-1, 
+            eval_clenshaw(set->xcvecs[set->t-2], a12, plength_stab, degree_stab-1, 
               calpha, cbeta, cgamma);
             calpha--;
             cbeta--;
             cgamma--;
             /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
-            eval_clenshaw(set->xcvecs[tau_stab], a21, plength_stab, degree_stab-1, 
+            eval_clenshaw(set->xcvecs[set->t-2], a21, plength_stab, degree_stab-1, 
               calpha, cbeta, cgamma);
             /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
-            eval_clenshaw(set->xcvecs[tau_stab], a22, plength_stab, degree_stab+0, 
+            eval_clenshaw(set->xcvecs[set->t-2], a22, plength_stab, degree_stab+0, 
               calpha, cbeta, cgamma);
             
-            data->steps[tau][l].a11[tau_stab-tau+1] = a11;
-            data->steps[tau][l].a12[tau_stab-tau+1] = a12;
-            data->steps[tau][l].a21[tau_stab-tau+1] = a21;
-            data->steps[tau][l].a22[tau_stab-tau+1] = a22;
-            data->steps[tau][l].gamma[tau_stab-tau+1] = gamma[1+1];
+            data->steps[tau][l].a11[0] = a11;
+            data->steps[tau][l].a12[0] = a12;
+            data->steps[tau][l].a21[0] = a21;
+            data->steps[tau][l].a22[0] = a22;
+            data->steps[tau][l].gamma[0] =  gamma[1+1];
+            data->steps[tau][l].stable = false;
+          }  
+          else
+          {
+            data->steps[tau][l].a11 = (double**) fftw_malloc((set->t-tau)*
+              sizeof(double*)); 
+            data->steps[tau][l].a12 = (double**) fftw_malloc((set->t-tau)*
+              sizeof(double*)); 
+            data->steps[tau][l].a21 = (double**) fftw_malloc((set->t-tau)*
+              sizeof(double*)); 
+            data->steps[tau][l].a22 = (double**) fftw_malloc((set->t-tau)*
+              sizeof(double*)); 
+            data->steps[tau][l].gamma = (double*) fftw_malloc((set->t-tau)*
+              sizeof(double)); 
+  
+            for (tau_stab = tau-1; tau_stab <= set->t-2; tau_stab++)
+            {
+              //tau_stab = t-2;
+              plength_stab = 1<<(tau_stab+2);
+              /* Allocate memory for arrays. */
+              a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              a12 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              a22 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+              
+              /* Get the pointers to the three-term recurrence coeffcients. */
+              calpha = &(alpha[2]);
+              cbeta = &(beta[2]);
+              cgamma = &(gamma[2]);         
+              /* Evaluate P_{2^{tau}(2l+1)-2}^n(\cdot,2). */
+              eval_clenshaw(set->xcvecs[tau_stab], a11, plength_stab, degree_stab-2, 
+                calpha, cbeta, cgamma);
+              /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,2). */
+              eval_clenshaw(set->xcvecs[tau_stab], a12, plength_stab, degree_stab-1, 
+                calpha, cbeta, cgamma);
+              calpha--;
+              cbeta--;
+              cgamma--;
+              /* Evaluate P_{2^{tau}(2l+1)-1}^n(\cdot,1). */
+              eval_clenshaw(set->xcvecs[tau_stab], a21, plength_stab, degree_stab-1, 
+                calpha, cbeta, cgamma);
+              /* Evaluate P_{2^{tau}(2l+1)}^n(\cdot,1). */
+              eval_clenshaw(set->xcvecs[tau_stab], a22, plength_stab, degree_stab+0, 
+                calpha, cbeta, cgamma);
+              
+              data->steps[tau][l].a11[tau_stab-tau+1] = a11;
+              data->steps[tau][l].a12[tau_stab-tau+1] = a12;
+              data->steps[tau][l].a21[tau_stab-tau+1] = a21;
+              data->steps[tau][l].a22[tau_stab-tau+1] = a22;
+              data->steps[tau][l].gamma[tau_stab-tau+1] = gamma[1+1];
+            }
+            data->steps[tau][l].stable = false;
           }
-          data->steps[tau][l].stable = false;
         }
       }
-    }
-    /** Increase polynomial degree to next power of two. */
-    plength = plength << 1;
+      /** Increase polynomial degree to next power of two. */
+      plength = plength << 1;
+    }  
   }  
+
+  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  {
+  }
+  else
+  { 
+    /* Check, if recurrence coefficients must be copied. */
+    if (set->flags & DPT_PERSISTES_DATA)
+    {
+      data->alpha = alpha;
+      data->beta = beta;
+      data->gamma = gamma;
+    }
+    else
+    {
+      data->alpha = (double*) malloc((set->N+1)*sizeof(double));
+      data->beta = (double*) malloc((set->N+1)*sizeof(double));
+      data->gamma = (double*) malloc((set->N+1)*sizeof(double));
+      memcpy(data->alpha,alpha,(set->N+1)*sizeof(double));
+      memcpy(data->beta,beta,(set->N+1)*sizeof(double));
+      memcpy(data->gamma,gamma,(set->N+1)*sizeof(double));
+    }
+  }
 }
 
 void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags)
+{
+  int k;
+  
+  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  {
+    return;
+  }
+  
+  /* Fill array with Chebyshev nodes. */
+  for (k = 0; k <= k_end; k++)
+  {
+    set->xc_slow[k] = cos((PI*(k+0.5))/(k_end+1));
+  }
+  
+}
+
+void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
   const int k_end, const unsigned int flags)
 { 
   /* Get transformation data. */
@@ -634,14 +705,18 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   const complex *x_ptr;
   complex *y_ptr;
   
-  /*fprintf(stdout,"dpt_trafo: k_start = %d\n",data->k_start);
-  fprintf(stdout,"dpt_trafo: k_end = %d\n",k_end);
-  fprintf(stdout,"dpt_trafo: Nk = %d\n",Nk);
-  fprintf(stdout,"dpt_trafo: tk = %d\n",tk);
-  fprintf(stdout,"dpt_trafo: k_start_tilde = %d\n",k_start_tilde);
-  fprintf(stdout,"dpt_trafo: k_end_tilde = %d\n",k_end_tilde);*/
+  /* Check if fast transform is activated. */
+  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  { 
+    return;
+  }  
   
-  //int N_tilde = N_TILDE(set->N);
+  /*fprintf(stdout,"fpt_trafo: k_start = %d\n",data->k_start);
+  fprintf(stdout,"fpt_trafo: k_end = %d\n",k_end);
+  fprintf(stdout,"fpt_trafo: Nk = %d\n",Nk);
+  fprintf(stdout,"fpt_trafo: tk = %d\n",tk);
+  fprintf(stdout,"fpt_trafo: k_start_tilde = %d\n",k_start_tilde);
+  fprintf(stdout,"fpt_trafo: k_end_tilde = %d\n",k_end_tilde);*/
 
   if (flags & DPT_FUNCTION_VALUES)
   {
@@ -669,17 +744,13 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   /* Set the last 2*(set->N-1-k_end_tilde) coefficients to zero. */
   memset(&set->work[2*(k_end_tilde+1)],0U,2*(Nk-1-k_end_tilde)*sizeof(complex));
 
-  /* Set first n Fourier coefficients explicitly to zero. */
-  //memset(x,0U,data->k_start*sizeof(complex));
-  //memset(&(x[k_end+1]),0U,(set->N-k_end)*sizeof(complex));
-  
   /* If k_end == Nk, use three-term recurrence to map last coefficient x_{Nk} to 
    * x_{Nk-1} and x_{Nk-2}. */
   if (k_end == Nk)
   { 
-    set->work[2*(Nk-2)]   += data->gammaN[tk-2]*x[Nk];
-    set->work[2*(Nk-1)]   += data->betaN[tk-2]*x[Nk];
-    set->work[2*(Nk-1)+1]  = data->alphaN[tk-2]*x[Nk];
+    set->work[2*(Nk-2)]   += data->gammaN[tk-2]*x[Nk-data->k_start];
+    set->work[2*(Nk-1)]   += data->betaN[tk-2]*x[Nk-data->k_start];
+    set->work[2*(Nk-1)+1]  = data->alphaN[tk-2]*x[Nk-data->k_start];
   }
   
   /* Compute the remaining steps. */
@@ -777,10 +848,10 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
  
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
    * polynomials in front of P_0^n and P_1^n. */
-  /*for (j = 0; j < 2*set->N; j++)
+  /*for (k = 0; k < 2*set->N; k++)
   {
-    fprintf(stdout,"result[%d] = %1.16le +I*%1.16le\n",j,creal(set->result[j]),
-      cimag(set->result[j]));
+    fprintf(stdout,"result[%d] = %1.16le +I*%1.16le\n",k,creal(set->result[k]),
+      cimag(set->result[k]));
   }*/ 
     
   y[0] = data->gamma_m1*(set->result[0] + data->beta_0*set->result[Nk] + 
@@ -807,6 +878,16 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
       y[k] *= 0.5;
     }
   }  
+}
+
+void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags)
+{
+}
+
+void fpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags)
+{
 }
 
 void dpt_finalize(dpt_set set)
@@ -894,55 +975,90 @@ void dpt_finalize(dpt_set set)
       free(data->steps);
       data->steps = NULL;           
     }
+    
+    if (set->flags & DPT_NO_SLOW_TRANSFORM)
+    {
+    }
+    else
+    {
+      /* Check, if recurrence coefficients must be copied. */
+      if (set->flags & DPT_PERSISTES_DATA)
+      {
+      }
+      else
+      {
+        free(data->alpha); 
+        free(data->beta); 
+        free(data->gamma); 
+      }      
+      data->alpha = NULL;
+      data->beta = NULL;
+      data->gamma = NULL;
+    }
   }
   
   /* Delete array of DPT transform data. */
   free(set->dpt);
   set->dpt = NULL;
   
-  /* Delete arrays of Chebyshev nodes. */
-  free(set->xc);
-  set->xc = NULL;
-  for (tau = 1; tau < set->t; tau++)
+  /* Check if fast transform is activated. */
+  if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
-    free(set->xcvecs[tau-1]);
-    set->xcvecs[tau-1] = NULL;
   }
-  free(set->xcvecs);
-  set->xcvecs = NULL;
-  
-  /* Free auxilliary arrays. */
-  free(set->work);  
-  free(set->result);
-  free(set->vec3);  
-  free(set->vec4);  
-  free(set->z);
-  set->work = NULL;
-  set->result = NULL;
-  set->vec3 = NULL;
-  set->vec4 = NULL;
-  set->z = NULL;
-  
-  /* Free FFTW plans. */
-  for(tau = 0; tau < set->t-1; tau++)
-  {
-    fftw_destroy_plan(set->plans_dct3[tau]);
-    fftw_destroy_plan(set->plans_dct2[tau]);
-    set->plans_dct3[tau] = NULL;
-    set->plans_dct2[tau] = NULL;
-  }  
-   
-  free(set->plans_dct3);
-  free(set->plans_dct2);
-  free(set->kinds);
-  free(set->kindsr);
-  free(set->lengths);
-  set->plans_dct3 = NULL;
-  set->plans_dct2 = NULL;
-  set->kinds = NULL;
-  set->kindsr = NULL;
-  set->lengths = NULL;
+  else
+  { 
+    /* Delete arrays of Chebyshev nodes. */
+    free(set->xc);
+    set->xc = NULL;
+    for (tau = 1; tau < set->t; tau++)
+    {
+      free(set->xcvecs[tau-1]);
+      set->xcvecs[tau-1] = NULL;
+    }
+    free(set->xcvecs);
+    set->xcvecs = NULL;
     
+    /* Free auxilliary arrays. */
+    free(set->work);  
+    free(set->result);
+    free(set->vec3);  
+    free(set->vec4);  
+    free(set->z);
+    set->work = NULL;
+    set->result = NULL;
+    set->vec3 = NULL;
+    set->vec4 = NULL;
+    set->z = NULL;
+    
+    /* Free FFTW plans. */
+    for(tau = 0; tau < set->t-1; tau++)
+    {
+      fftw_destroy_plan(set->plans_dct3[tau]);
+      fftw_destroy_plan(set->plans_dct2[tau]);
+      set->plans_dct3[tau] = NULL;
+      set->plans_dct2[tau] = NULL;
+    }  
+     
+    free(set->plans_dct3);
+    free(set->plans_dct2);
+    free(set->kinds);
+    free(set->kindsr);
+    free(set->lengths);
+    set->plans_dct3 = NULL;
+    set->plans_dct2 = NULL;
+    set->kinds = NULL;
+    set->kindsr = NULL;
+    set->lengths = NULL;
+  }
+  
+  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  {
+  }
+  else
+  { 
+    free(set->xc_slow);
+  }         
+      
   /* Free DPT set structure. */
   free(set);
 }

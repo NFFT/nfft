@@ -8,6 +8,17 @@ inline double alpha_al(int k, int n)
   {
     return (0.0); 
   }
+  else if (k == 0)
+  {
+    if (n == 0)
+    {
+      return 1;
+    }
+    else
+    {
+      return n%2==0?0.0:-1.0;
+    }
+  }
   else if (k < n) 
   {
     return k%2==0?-1.0:1.0;

@@ -22,6 +22,7 @@
 //#include "u.h"
 //#include "direct.h"
 #include "legendre.h"
+#include "dpt.h"
 //#include "flft.h"
 //#include "c2f.h"
 //#include <stdlib.h>
@@ -49,9 +50,9 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
                      int nfft_cutoff)
 {
   /** Array for NFFT sizes */
-  int nfft_size[2] = {0,0};
+  int *nfft_size;
   /** Array for FFTW sizes */
-  int fftw_size[2] = {0,0};
+  int *fftw_size;
 
   /* Save the flags in the plan. */
   plan->flags = flags;
@@ -87,25 +88,38 @@ void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags,
     plan->x = (double*) calloc(2*plan->M_total,sizeof(double));
   }
   
-  /* Initialize NFFT plan. */
-  /** \todo Check NFFT and FFTW sizes. */
-  nfft_size[0] = 2*(plan->NPT+1);
-  nfft_size[1] = 2*(plan->NPT+1);
-  fftw_size[0] = 4*plan->NPT;
-  fftw_size[1] = 4*plan->NPT;
-  /** \todo Check NFFT flags. */
-  nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size, 
-                     nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
-                     FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-  /* Assign angle array. */
-  plan->plan_nfft.x = plan->x;
-  /* Assign result array. */
-  plan->plan_nfft.f = plan->f;
-  /* Precompute PSI, if necessary. */
-  if (plan->plan_nfft.nfft_flags & PRE_PSI) 
-  {  
-    nfft_precompute_psi(&plan->plan_nfft); 
-  } 
+  /* Check if fast algorithm is activated. */
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+  }
+  else
+  {
+    /* Initialize NFFT plan. */
+    nfft_size = (int*) malloc(2*sizeof(int));
+    fftw_size = (int*) malloc(2*sizeof(int));
+    
+    /** TODO Check NFFT and FFTW sizes. */
+    nfft_size[0] = 2*(plan->NPT+1);
+    nfft_size[1] = 2*(plan->NPT+1);
+    fftw_size[0] = 4*plan->NPT;
+    fftw_size[1] = 4*plan->NPT;
+    /** \todo Check NFFT flags. */
+    nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size, 
+                       nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
+                       FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+    /* Assign angle array. */
+    plan->plan_nfft.x = plan->x;
+    /* Assign result array. */
+    plan->plan_nfft.f = plan->f;
+    /* Precompute PSI, if necessary. */
+    if (plan->plan_nfft.nfft_flags & PRE_PSI) 
+    {  
+      nfft_precompute_psi(&plan->plan_nfft); 
+    } 
+    
+    free(nfft_size);
+    free(fftw_size);
+  }
 }
 
 void nfsft_precompute(int N, double kappa, 
@@ -124,33 +138,30 @@ void nfsft_precompute(int N, double kappa,
    * power of two with respect to /f$N/f$. */
   wisdom.N_MAX = next_power_of_2(N);
   /* Save t. */
-  wisdom.T_MAX = log((double)wisdom.N_MAX)/log(2.0);
+  wisdom.T_MAX = (int) log((double)wisdom.N_MAX)/log(2.0);
 
   /* Check, if precomputation for direct algorithms needs to be performed. */    
-  if (wisdom.flags & NFSFT_NO_DIRECT)
+  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
   }
   else
   {
     /*fprintf(stdout,"Precomputation for ndsft_trafo done.\n");*/
     /* Precompute three-term recurrence coefficients. */
-    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));    
-    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));    
-    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+1)*
+    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));
     /** \todo Change to functions which compute only for fixed order n. */       
-    alpha_al_all(wisdom.alpha,wisdom.N_MAX);
-    beta_al_all(wisdom.beta,wisdom.N_MAX);
-    gamma_al_all(wisdom.gamma,wisdom.N_MAX);
-
-    /* Wisdom has been initialised. */
-    wisdom.initialized = true;
+    alpha_al_all(wisdom.alpha,wisdom.N_MAX+1);
+    beta_al_all(wisdom.beta,wisdom.N_MAX+1);
+    gamma_al_all(wisdom.gamma,wisdom.N_MAX+1);
   }
   
   /* Check, if precomputation for direct algorithms needs to be performed. */    
-  if (wisdom.flags & NFSFT_NO_FAST)
+  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
   else
@@ -210,11 +221,14 @@ void nfsft_precompute(int N, double kappa,
     
     wisdom.initialized = 1;*/
   }
+
+  /* Wisdom has been initialised. */
+  wisdom.initialized = true;
 }
  
 void nfsft_forget()
 {
-  if (wisdom.flags & NFSFT_NO_DIRECT == 0)
+  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM == 0)
   {
     /* Free arrays holding three-term recurrence coefficients. */
     free(wisdom.alpha);   
@@ -499,6 +513,56 @@ void ndsft_adjoint(nfsft_plan* plan)
 
 void nfsft_trafo(nfsft_plan* plan)
 {
+  /** Counter for loops */
+  int i,n;
+  
+  if (wisdom.initialized == 0 || plan->M > wisdom.N)
+  {
+    return;
+  }  
+  
+  if (plan->M <= 3)
+  {
+    ndsft_trafo(plan);
+  }
+  else if ((wisdom.flags & NFSFT_BW_WINDOW) == 0U || plan->M > 1<<(wisdom.t-1))
+  {
+    plan->plan_nfft.f = plan->f;
+    
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED_OLD)
+    {
+      normalize_f_hat_old(plan->f_hat, plan->M);
+    }  
+
+    /* Compute FLFT. */
+    for (n = -plan->M, i = 0; n <= plan->M; n++, i++) 
+    {
+//      fprintf(stderr,"flft: n = %d\n",n);
+//      fflush(stderr);
+      flft_old(plan->M, plan->t, abs(n), plan->f_hat[i], &wisdom,&nstab,&ntotal);
+    }
+   
+    /* Convert Chebyshev coefficients to Fourier coefficients. */
+//    fprintf(stderr,"cheb2exp_old\n",n);
+//    fflush(stderr);
+    cheb2exp_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
+
+    //norm = norm_nfft_1_old(plan->plan_nfft.f_hat, 2*(plan->N+1));
+    //fprintf(stderr,"nfft_norm_1 = %.4E\n",norm);
+    fflush(stderr);
+    
+    /* Execute NFFT. */
+    if (plan->flags & NFSFT_USE_NDFT_OLD)
+    {
+      ndft_trafo(&plan->plan_nfft);
+    }
+    else
+    {
+      nfft_trafo(&plan->plan_nfft);
+    }
+    
+  } 
 }
 
 void nfsft_adjoint(nfsft_plan* plan)

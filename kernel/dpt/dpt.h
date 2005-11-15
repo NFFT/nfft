@@ -7,14 +7,18 @@
 #include <fftw3.h>
 
 /* Flags for dpt_init() */
-#define DPT_NO_STABILIZATION (1U << 0) /**< If set, no stabilization will be used. */
-#define DPT_BANDWIDTH_WINDOW (1U << 1) /**< If set, \TODO complete comment here    */
+#define DPT_NO_STABILIZATION  (1U << 0) /**< If set, no stabilization will be 
+                                             used.                                 */
+#define DPT_BANDWIDTH_WINDOW  (1U << 1) /**< If set, \TODO complete comment here   */
+#define DPT_NO_FAST_TRANSFORM (1U << 2) /**< If set, \TODO complete comment here   */
+#define DPT_NO_SLOW_TRANSFORM (1U << 3) /**< If set, \TODO complete comment here   */
+#define DPT_PERSISTENT_DATA   (1U << 4) /**< If set, \TODO complete comment here   */  
 
-/* Flags for dpt_trafo(), dpt_transposed(), fpt_trafo(), fpt_transposed() */
-#define DPT_FUNCTION_VALUES  (1U << 2) /**< If set, the output are function values 
-                                            at Chebyshev nodes rather than 
-                                            Chebyshev coefficients.                */
-
+/* Flags for fpt_trafo(), dpt_transposed(), fpt_trafo(), fpt_transposed() */
+#define DPT_FUNCTION_VALUES   (1U << 5) /**< If set, the output are function values 
+                                             at Chebyshev nodes rather than 
+                                             Chebyshev coefficients.               */
+                                             
 /* Data structures */
 typedef struct dpt_set_s_ *dpt_set;    /**< A set of precomputed data for a set 
                                             of DPT transforms of equal maximum 
@@ -73,7 +77,44 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
 void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
   const int k_end, const unsigned int flags);
 
-//void dpt_transposed(dpt_set set, const int m, complex *x);
+/**
+ * Computes a single DPT transform.
+ * 
+ * \arg set
+ * \arg m
+ * \arg x
+ * \arg y
+ * \arg k_end
+ * \arg flags
+ */
+void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags);
+
+/**
+ * Computes a single DPT transform.
+ * 
+ * \arg set
+ * \arg m
+ * \arg x
+ * \arg y
+ * \arg k_end
+ * \arg flags
+ */
+void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags);
+
+/**
+ * Computes a single DPT transform.
+ * 
+ * \arg set
+ * \arg m
+ * \arg x
+ * \arg y
+ * \arg k_end
+ * \arg flags
+ */
+void fpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+  const int k_end, const unsigned int flags);
 
 void dpt_finalize(dpt_set set); 
 
