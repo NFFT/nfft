@@ -170,7 +170,7 @@ void nfsft_precompute(int N, double kappa,
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
-  else if ()
+  else if (wisdom.N_MAX >= NFSFT_BREAKTHROUGH)
   { 
     /* Precompute data for DPT. */
     
@@ -205,45 +205,38 @@ void nfsft_precompute(int N, double kappa,
       wisdom.beta = NULL;
       wisdom.gamma = NULL;
     }
-    
-    /* Check, if bandwidth big enough. */
-    /*if (wisdom.N >= 4)
-    {  
-      wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
-      wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
-      wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
-      wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
-      wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
-      wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-      wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
-      wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-      wisdom.kinds[0]   = FFTW_REDFT01;
-      wisdom.kinds[1]   = FFTW_REDFT01;
-      wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
-      wisdom.kindsr[0]  = FFTW_REDFT10;
-      wisdom.kindsr[1]  = FFTW_REDFT10;
-      wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
-      for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
-      {
-        wisdom.lengths[i] = ti;
-        wisdom.plans_dct3[i] = 
-          fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                             2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
-                             0);
-        wisdom.plans_dct2[i] = 
-          fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
-                             2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
-                             0);
-      }  
-    }
-    }
-    
-    wisdom.initialized = 1;*/
+    /*
+    wisdom.work       = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));   
+    wisdom.old        = (complex*) malloc(2*(wisdom.N)*sizeof(complex));
+    wisdom.ergeb      = (complex*) calloc(3*(wisdom.N+1),sizeof(complex));
+    wisdom.vec1       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec2       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec3       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.vec4       = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.a2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.b2         = (complex*) fftw_malloc(sizeof(complex)*(wisdom.N+1));
+    wisdom.z          = (complex*) malloc(wisdom.N*sizeof(complex));
+    wisdom.plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(wisdom.t-1));
+    wisdom.kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kinds[0]   = FFTW_REDFT01;
+    wisdom.kinds[1]   = FFTW_REDFT01;
+    wisdom.kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    wisdom.kindsr[0]  = FFTW_REDFT10;
+    wisdom.kindsr[1]  = FFTW_REDFT10;
+    wisdom.lengths    = (int*) malloc((wisdom.t-1)*sizeof(int));
+    for (i = 0, ti = 4; i < wisdom.t-1; i++, ti<<=1)
+    {
+      wisdom.lengths[i] = ti;
+      wisdom.plans_dct3[i] = 
+        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                           2, 1, (double*)wisdom.vec1, NULL, 2, 1, wisdom.kinds, 
+                           0);
+      wisdom.plans_dct2[i] = 
+        fftw_plan_many_r2r(1, &wisdom.lengths[i], 2, (double*)wisdom.vec1, NULL, 
+                           2, 1, (double*)wisdom.vec1, NULL, 2, 1,wisdom.kindsr, 
+                           0);
+    } */     
   }
 
   /* Wisdom has been initialised. */
