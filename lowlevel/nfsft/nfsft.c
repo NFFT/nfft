@@ -213,12 +213,18 @@ void nfsft_precompute(int N, double kappa,
  
 void nfsft_forget()
 {
-  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM == 0)
+  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
+  {
+  }
+  else
   {
     /* Free arrays holding three-term recurrence coefficients. */
     free(wisdom.alpha);   
     free(wisdom.beta);    
     free(wisdom.gamma);
+    wisdom.alpha = NULL;
+    wisdom.beta = NULL;
+    wisdom.gamma = NULL;    
   }
 
   /* Wisdom is now uninitialised. */

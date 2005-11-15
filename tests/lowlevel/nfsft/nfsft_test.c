@@ -144,6 +144,7 @@ void test_ndsft_trafo(void)
       
       /* CLose the file. */
       fclose(file);
+      file = NULL;
       /* Execute the plan. */
       ndsft_trafo(&plan);
       /* Check result */
@@ -166,6 +167,7 @@ void test_ndsft_trafo(void)
       nfsft_forget();
       /* Free memory. */
       free(f_orig);
+      f_orig = NULL;
       /* Test passed. */
       fprintf(stdout," ok\n");
       CU_PASS("ok");
@@ -175,7 +177,9 @@ void test_ndsft_trafo(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
       CU_FAIL("Couldn't open file!\n");
     }
-  }  
+  }
+  close(testfiles);
+  testfiles = NULL;  
 }
 
 void test_ndsft_adjoint(void)
