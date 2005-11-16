@@ -14,7 +14,7 @@ imagesc(f);
 axis image
 title('phantom');
 
-system(sprintf('radon %d %d %d %d',N,T,R,it));
+system(sprintf('./radon %d %d %d %d',N,T,R,it));
 
 fp = fopen('sinogram_data.bin','rb+');
 Rf = fread(fp,[R,T],'double');

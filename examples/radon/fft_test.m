@@ -1,35 +1,41 @@
-f=double(imread('phantom.png'));
+N=128;
+T=2*N;
+R=2*N;
+it=5;
+
+f=phantom(N);
 
 figure(1);
+subplot(2,2,1);
 imagesc(f);
 axis image
 title('phantom');
 
 save 'input_data.dat' f -ascii
 
-!polar_fft_test 128 256 256 5
+system(sprintf('./polar_fft_test %d %d %d %d',N,T,R,it));
 
 f2=load('polar_fft_data.dat');
 
-figure(2);
+subplot(2,2,2);
 imagesc(real(f2));
 axis image
 title('reconstructed phantom (polar grid)');
 
-!mpolar_fft_test 128 256 256 5
+system(sprintf('./mpolar_fft_test %d %d %d %d',N,T,R,it));
 
 f2=load('mpolar_fft_data.dat');
 
-figure(3);
+subplot(2,2,3);
 imagesc(real(f2));
 axis image
 title('reconstructed phantom (modified polar grid)');
 
-!linogram_fft_test 128 256 256 5
+system(sprintf('./linogram_fft_test %d %d %d %d',N,T,R,it));
 
 f2=load('linogram_fft_data.dat');
 
-figure(4);
+subplot(2,2,4);
 imagesc(real(f2));
 axis image
 title('reconstructed phantom (linogram grid)');
