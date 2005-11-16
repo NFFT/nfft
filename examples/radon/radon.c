@@ -1,7 +1,8 @@
+/*gcc -o radon radon.c -lnfft3 -lfftw3 -lm -I/home/mfenn/NFFT3_develop/lib/trunk/include -L/home/mfenn/NFFT3_develop/lib/trunk/.libs -L/usr/local/lib*/
 /**
  * \file radon.c
  * \brief NFFT-based discrete Radon transform and inverse.
- * 
+ *
  * Computes the discrete Radon transform
  * \f[
  *    R_{\theta_t} f\left(\frac{s}{R}\right)
@@ -23,6 +24,33 @@
 #include <stdlib.h>
 #include "util.h"
 #include "nfft3.h"
+
+//#define KERNEL(r) 1.0
+#define KERNEL(r) (1.0-fabs((double)(r))/((double)R/2))
+
+/** generates the points x with weights w
+ *  for the polar grid with T angles and R offsets
+ */
+int polar_grid(int T, int R, double *x, double *w)
+{
+  int t, r;
+  double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
+
+  for(t=-T/2; t<T/2; t++)
+  {
+    for(r=-R/2; r<R/2; r++)
+    {
+      x[2*((t+T/2)*R+(r+R/2))+0] = (double)r/R*cos(PI*t/T);
+      x[2*((t+T/2)*R+(r+R/2))+1] = (double)r/R*sin(PI*t/T);
+      if (r==0)
+        w[(t+T/2)*R+(r+R/2)] = 1.0/4.0/W;
+      else
+        w[(t+T/2)*R+(r+R/2)] = fabs((double)r)/W;
+    }
+  }
+
+  return 0;
+}
 
 /** generates the points x with weights w
  *  for the linogram grid with T slopes and R offsets
@@ -121,8 +149,7 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   {
     fft[0]=0.0;
     for(r=-R/2+1; r<R/2; r++)
-      fft[r+R/2] = (1.0-fabs((double)r)/((double)R/2))*my_nfft_plan.f[t*R+(r+R/2)];
-      //fft[r+R/2] = my_nfft_plan.f[t*R+(r+R/2)];
+      fft[r+R/2] = KERNEL(r)*my_nfft_plan.f[t*R+(r+R/2)];
 
     fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
@@ -223,8 +250,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 
     my_infft_plan.y[t*R] = 0.0;
     for(r=-R/2+1; r<R/2; r++)
-      my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2]/(1.0-fabs((double)r)/((double)R/2));
-      //my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2];
+      my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2]/KERNEL(r);
   }
 
   /** initialise some guess f_hat_0 */
@@ -266,6 +292,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 
 int main(int argc,char **argv)
 {
+  int (*gridfcn)();                     /**< grid generating function        */
   int T, R;                             /**< number of directions/offsets    */
   FILE *fp;
   int N;                                /**< image size                      */
@@ -273,11 +300,11 @@ int main(int argc,char **argv)
   int k;
   int max_i;                            /**< number of iterations            */
 
-  if( argc!=5 )
+  if( argc!=6 )
   {
-    printf("Radon_trafo N T R max_i\n");
+    printf("Radon_trafo gridfcn N T R max_i\n");
     printf("\n");
-    /*printf("gridfcn    \"polar\" or \"linogram\" \n");*/
+    printf("gridfcn    \"polar\" or \"linogram\" \n");
     printf("N          image size NxN            \n");
     printf("T          number of slopes          \n");
     printf("R          number of offsets         \n");
@@ -285,11 +312,16 @@ int main(int argc,char **argv)
     exit(-1);
   }
 
-  N = atoi(argv[1]);
-  T = atoi(argv[2]);
-  R = atoi(argv[3]);
-  printf("N=%d, T=%d, R=%d. \n",N,T,R);
-  max_i = atoi(argv[4]);
+  if (strcmp(argv[1],"polar") == 0)
+    gridfcn = polar_grid;
+  else
+    gridfcn = linogram_grid;
+
+  N = atoi(argv[2]);
+  T = atoi(argv[3]);
+  R = atoi(argv[4]);
+  printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);
+  max_i = atoi(argv[5]);
 
   f   = (double *)malloc(N*N*(sizeof(double)));
   Rf  = (double *)malloc(T*R*(sizeof(double)));
@@ -303,7 +335,7 @@ int main(int argc,char **argv)
   fclose(fp);
 
   /** Radon transform */
-  Radon_trafo(linogram_grid,T,R,f,N,Rf);
+  Radon_trafo(gridfcn,T,R,f,N,Rf);
 
   /** write result */
   fp=fopen("sinogram_data.bin","wb+");
@@ -313,7 +345,7 @@ int main(int argc,char **argv)
   fclose(fp);
 
   /** inverse Radon transform */
-  Inverse_Radon_trafo(linogram_grid,T,R,Rf,N,iRf,max_i);
+  Inverse_Radon_trafo(gridfcn,T,R,Rf,N,iRf,max_i);
 
   /** write result */
   fp=fopen("output_data.bin","wb+");

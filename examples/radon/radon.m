@@ -1,9 +1,8 @@
+f=double(imread('phantom.png'));
 N=128;
-T=2*N;
-R=2*N;
-it=5;
-
 f=phantom(N);
+%grid='polar'; T=2.5*N; R=1.5*N; it=5;
+grid='linogram'; T=2*N; R=2*N; it=5;
 
 fp = fopen('input_data.bin','wb+');
 fwrite(fp,f','double');
@@ -14,7 +13,7 @@ imagesc(f);
 axis image
 title('phantom');
 
-system(sprintf('./radon %d %d %d %d',N,T,R,it));
+system(sprintf('./radon %s %d %d %d %d',grid,N,T,R,it));
 
 fp = fopen('sinogram_data.bin','rb+');
 Rf = fread(fp,[R,T],'double');
@@ -37,4 +36,4 @@ imagesc(iRf);
 axis image
 title('reconstructed image');
 
-disp(sprintf('max(abs(f(:)-iRf(:))) = %g',max(abs(f(:)-iRf(:)))))
+disp(sprintf('max(abs(f(:)-iRf(:))) = %e',max(abs(f(:)-iRf(:)))))
