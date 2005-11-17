@@ -18,9 +18,7 @@ typedef struct iteration_param_set_ {
 	int iterations_without_check;
 } iteration_param_set;
 
-const char *grid_id_descr[] = { "equidistant theta - equidistant phi",
-	"file"
-};
+const char *grid_id_descr[] = { "equidistant angles", "file", "uniformly distributed" };
 const char *starting_point_policy_descr[] = { "zero" };
 const char *solver_algorithm_id_descr[] = { "CGNR" };
 const char *weight_policy_descr[] = { "one" };
@@ -132,7 +130,7 @@ void make_grid_h(double *h_phi, double *h_theta, int N1,
 								 const solver_param_set * sol_par)
 {
 	switch (sol_par->grid_id) {
-		case 0:
+		case 2:
 		{
 			int theta_count = determine_theta_count(N1);
 			int nodes_defined = 0;
@@ -229,7 +227,7 @@ void make_grid_h(double *h_phi, double *h_theta, int N1,
 void make_grid_r(double *r, int N1, int N2, const solver_param_set * sol_par)
 {
 	switch (sol_par->grid_id) {
-		case 0:
+		case 2:
 			if (N1 > 0) {
 				int theta_count = determine_theta_count(N2);
 				int nodes_defined = 0;

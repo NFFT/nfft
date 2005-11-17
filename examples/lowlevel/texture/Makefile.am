@@ -1,1 +1,1 @@
-SUBDIRS = correctness regularity performance interpolation
+SUBDIRS = texture_util correctness regularity performance interpolation data_creator

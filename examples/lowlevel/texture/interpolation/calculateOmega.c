@@ -13,7 +13,12 @@ typedef struct properties_ {
 	double res_delta;
 	int iterations_without_check;
 	double min_improve;
+	int solver_algo;
+	int weight_policy;
 } properties;
+
+const char *solver_algo_descr[] = { "CGNR", "CGNE" };
+const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2" };
 
 properties prop;
 
@@ -35,14 +40,18 @@ void read_properties(const char *propfile)
 {
 	FILE *f = fopen(propfile, "r");
 
-	fscanf(f, "%lg%d%lg", &prop.res_delta, &prop.iterations_without_check,
-				 &prop.min_improve);
+	fscanf(f, "%lg%d%lg%d%d", &prop.res_delta, &prop.iterations_without_check,
+				 &prop.min_improve, &prop.solver_algo, &prop.weight_policy);
 
 	fclose(f);
 
 	printf("# res_delta: %lg\n", prop.res_delta);
 	printf("# iterations_without_check: %d\n", prop.iterations_without_check);
 	printf("# min_improve: %lg\n", prop.min_improve);
+	printf("# solver_algo: %d (%s)\n", prop.solver_algo,
+				 solver_algo_descr[prop.solver_algo]);
+	printf("# weight_policy: %d (%s)\n", prop.weight_policy,
+				 weight_policy_descr[prop.weight_policy]);
 	printf("#\n");
 }
 
@@ -82,13 +91,12 @@ void read_samples(const char *file)
 	x = (complex *) malloc(N1 * N2 * sizeof(complex));
 	for (i = 0; i < N1; i++) {
 		for (j = 0; j < N2; j++) {
-			double r, im;
-			if (!fscanf(f, "%lg", &r)) {
+			double r, im = 0;
+			if (!fscanf(f, "%lg + %lgi", &r, &im)) {
 				fprintf(stderr, "Parse error in sample file!\n");
 				fflush(0);
 				exit(-1);
 			} else {
-				fscanf(f, " + %lgi", &im);
 				x[i * N2 + j] = r + I * im;
 			}
 		}
@@ -276,17 +284,52 @@ double res_dist(const complex * vec, const complex * ref, int length)
 	}
 }
 
+unsigned int calculate_iflags()
+{
+	if (prop.solver_algo == 0) {
+		return CGNR;
+	} else {
+		if (prop.weight_policy == 0) {
+			return CGNE;
+		} else {
+			return CGNE | PRECOMPUTE_DAMP;
+		}
+	}
+}
+
+void set_weights(itexture_plan * iplan)
+{
+	int i;
+	if (prop.weight_policy == 1) {
+		for (i = 1; i <= texture_flat_length(N); i++) {
+			iplan->w_hat[i - 1] = (double) (1) / (double) (i);
+		}
+	} else if (prop.weight_policy == 2) {
+		for (i = 1; i <= texture_flat_length(N); i++) {
+			iplan->w_hat[i - 1] = (double) (1) / ((double) (i) * (double) (i));
+		}
+	}
+//	vpr_double(iplan->w_hat, texture_flat_length(N), "w_hat");
+}
+
 void calculate_omega()
 {
 	itexture_plan iplan;
 	texture_plan plan, test_plan;
+	unsigned int iflags;
 
 	omega = (complex *) malloc(texture_flat_length(N) * sizeof(complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 	texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
-	itexture_init(&iplan, &plan);
+
+	iflags = calculate_iflags();
+
+	itexture_init_advanced(&iplan, &plan, iflags);
+
+	set_weights(&iplan);
+
 	memcpy(iplan.y, x, N1 * N2 * sizeof(complex));
 	memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(complex));
 	itexture_before_loop(&iplan);
@@ -298,6 +341,11 @@ void calculate_omega()
 		new_res =
 			res_dist(texture_get_x(&test_plan), iplan.y,
 							 texture_get_x_length(&test_plan));
+
+#ifdef DEBUG_RESIDUUM
+			fprintf(stderr, "residuum: %lg\n", new_res);
+			fflush(0);
+#endif
 
 		do {
 			int count;
@@ -363,6 +411,7 @@ void usage()
 
 int main(int argc, char *argv[])
 {
+	const char *propfile_name = "propfile_omega";
 	const char *sample_file = "samples.in";
 	const char *grid_h_file = "grid_h.in";
 	const char *grid_r_file = "grid_r.in";
@@ -376,12 +425,14 @@ int main(int argc, char *argv[])
 	if (argc > 3) {
 		grid_r_file = argv[3];
 	}
+	if (argc > 4) {
+		propfile_name = argv[4];
+	}
 
-	if (argc <= 4) {
-
+	if (argc <= 5) {
 		init();
 		read_N();
-		read_properties("propfile_omega");
+		read_properties(propfile_name);
 		read_samples(sample_file);
 		read_grid_h(grid_h_file);
 		read_grid_r(grid_r_file);

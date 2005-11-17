@@ -11,8 +11,8 @@
 
 int grid_type;
 const char *grid_type_descr[] = { "equidistant", "file" };
-char grid_h_file[100];
-char grid_r_file[100];
+const char *grid_h_file;
+const char *grid_r_file;
 
 int N, h_theta_count, h_phi_count, r_theta_count, r_phi_count;
 int N1, N2;
@@ -39,9 +39,6 @@ void read_properties(const char *propfile_name)
 		printf("# r_phi_count: %d r_theta_count: %d\n", r_phi_count,
 					 r_theta_count);
 	}
-	fscanf(f, "%s%s", grid_h_file, grid_r_file);
-	printf("# file with the pole figures: %s, file with the nodes: %s\n",
-				 grid_h_file, grid_r_file);
 	printf("#\n");
 	fclose(f);
 }
@@ -355,12 +352,23 @@ int main(int argc, char *argv[])
 {
 	const char *omega_file = "omega";
 	const char *propfile_name = "propfile_x";
+	grid_h_file = "grid_h";
+	grid_r_file = "grid_r";
 
 	if (argc > 1) {
 		omega_file = argv[1];
 	}
+	if (argc > 2) {
+		grid_h_file = argv[2];
+	}
+	if (argc > 3) {
+		grid_r_file = argv[3];
+	}
+	if (argc > 4) {
+		propfile_name = argv[4];
+	}
 
-	if (argc <= 2) {
+	if (argc <= 5) {
 		init();
 		read_properties(propfile_name);
 		read_omega(omega_file);

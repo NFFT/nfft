@@ -1,0 +1,10 @@
+# An interpolation example with the dubna1 grid.
+# Each pole figure is perturbed by a constant factor.
+DATA_PATH="interpolation/data/artificial4"
+PROP_EXT="_int4"
+
+cd data_creator
+echo 50 | ./data_creator ../$DATA_PATH/grid_h ../$DATA_PATH/grid_r ../$DATA_PATH/omega prop$PROP_EXT > ../$DATA_PATH/x
+
+cd ../interpolation
+echo 50 | ./calculateOmega ../$DATA_PATH/x ../$DATA_PATH/grid_h ../$DATA_PATH/grid_r prop_om$PROP_EXT > ../$DATA_PATH/omega2
