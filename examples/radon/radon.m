@@ -1,4 +1,3 @@
-f=double(imread('phantom.png'));
 N=128;
 f=phantom(N);
 %grid='polar'; T=2.5*N; R=1.5*N; it=5;
