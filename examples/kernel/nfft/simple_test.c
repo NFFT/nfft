@@ -15,7 +15,7 @@ void simple_test_nfft_1d()
 
   /** init an one dimensional plan */
  nfft_init_guru(&my_plan, 1, N, 19, n, 6,
-                 PRE_PHI_HUT| FG_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+                 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 

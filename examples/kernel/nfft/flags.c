@@ -63,33 +63,27 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
 
   nfft_init_guru(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT,0);
   flags_cp(&p_pre_phi_hut, &p);
-  if(p_pre_phi_hut.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_pre_phi_hut);
+  nfft_precompute_one_psi(&p_pre_phi_hut);
 
   nfft_init_guru(&p_fg_psi, d, NN, M, nn, m, FG_PSI,0);
   flags_cp(&p_fg_psi, &p);
-  if(p_fg_psi.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_fg_psi);
+  nfft_precompute_one_psi(&p_fg_psi);
 
   nfft_init_guru(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI,0);
   flags_cp(&p_pre_lin_psi, &p);
-  if(p_pre_lin_psi.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_pre_lin_psi);
+  nfft_precompute_one_psi(&p_pre_lin_psi);
 
   nfft_init_guru(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI,0);
   flags_cp(&p_pre_fg_psi, &p);
-  if(p_pre_fg_psi.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_pre_fg_psi);
+  nfft_precompute_one_psi(&p_pre_fg_psi);
 
   nfft_init_guru(&p_pre_psi, d, NN, M, nn, m, PRE_PSI,0);
   flags_cp(&p_pre_psi, &p);
-  if(p_pre_psi.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_pre_psi);
+  nfft_precompute_one_psi(&p_pre_psi);
 
   nfft_init_guru(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI,0);
   flags_cp(&p_pre_full_psi, &p);
-  if(p_pre_full_psi.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p_pre_full_psi);
+  nfft_precompute_one_psi(&p_pre_full_psi);
 
   /** init pseudo random Fourier coefficients */
   for(k=0; k<p.N_total; k++)
@@ -131,10 +125,12 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_accuracy)
   if(test_accuracy)
     printf("%.2e\t",error_l_2_complex(swapndft, p.f, p.M_total));
   else
-    printf("--------\t");
+    printf("nan\t\t");
 
 
-  printf("%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\n",
+  printf("%d\t%d\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\n",
+         d,
+         N,
          t_ndft,
          p.MEASURE_TIME_t[0],
          p_pre_phi_hut.MEASURE_TIME_t[0],
@@ -167,13 +163,13 @@ int main()
 {
   int l,m;
 
-  int d=3;
+  int d=1;
 
   for(l=3;l<20;l++)
     if(l<10)
-      time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), 5, 1);
+      time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), 4, 1);
     else
-      time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), 5, 0);
+      time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), 4, 0);
 
 
   return 1;
