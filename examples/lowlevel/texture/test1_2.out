@@ -1,0 +1,8 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 1)
+./test1_2: line 21:  7278 Done                    echo "$N $N1_1 $N1_2 $N2_1 $N2_2"
+      7279 Speicherzugriffsfehler  | ./data_creator ../$DATA_PATH/grid_h$EXT ../$DATA_PATH/grid_r$EXT ../$DATA_PATH/omega$EXT prop$TEST_EXT >../$DATA_PATH/x$EXT
+Invalid sample file!
+.test1.2 finished!
