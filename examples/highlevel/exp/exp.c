@@ -11,7 +11,7 @@
  * independent of the nfft
  */
 
-typedef struct window_funct_plan_ {
+typedef struct {
   int d;
 	int m;
 	int n[1];
@@ -39,19 +39,33 @@ void exponential (double k)
   ths = (window_funct_plan*) malloc(sizeof(window_funct_plan));
 
 	N=ceil(k);
-  n=2*N;
+  n=4*N;
   
-  window_funct_init(ths,2, n,n/((double)N));
-
-  result_approx= 0.0;
-  for (xx=-0.5;xx<0.5;xx=xx+0.001)
+  window_funct_init(ths,4, n,n/((double)N));
+  
+	for (xx=-0.5;xx<0.5;xx=xx+0.001)
   {
-    for (l = -n/2;l<n/2;l++)
+    result_approx= 0.0;
+		
+		for (l = -n/2;l<n/2;l++)
     {
-      result_approx += PHI(xx -(((double)l)/((double)n)),0)  * cexp( -2.0*PI*I*k*l/((double)n));
+			double arg_phi=xx-l/((double)n);
+			double offset=0.0;
+			/* use the periodisation of phi */
+			if(arg_phi<-0.5) {
+				arg_phi=arg_phi+1;
+				offset=1.0;
+			}
+			if(arg_phi>0.5) {
+				arg_phi=arg_phi-1;
+				offset=-1.0;
+			}
+      if(fabs(arg_phi)<= (ths->m)/((double)n)) {
+				result_approx += PHI(arg_phi,0)  * cexp( -2.0*PI*I*k*(l/((double)n)-offset));
+			}
     }
-
-    result_approx *= 1.0/(PHI_HUT(k,0));
+    
+		result_approx *= 1.0/(PHI_HUT(k,0));
 
     result_exact = cexp(-2.0*PI*I*k*xx );
 
