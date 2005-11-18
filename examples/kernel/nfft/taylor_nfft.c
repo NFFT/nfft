@@ -4,9 +4,10 @@
  *
  * \author Stefan Kunis
  *
- * XXX References Anderson & Dahleh, Candes...
+ * References: [AnDa96], i.e., Chris Anderson and Marie Dahleh:
+ * Rapid computation on the discrete Fourier transform
+ *
  */
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -14,14 +15,13 @@
 #include "util.h"
 #include "nfft3.h"
 
-#include "options.h"
-
 typedef struct
 {
   nfft_plan p;                          /**< used for fftw and data          */
 
-  double *deltax0;
-  int *idx0;
+  int *idx0;                            /**< index of next neighbour of x_j
+                                             on the oversampled regular grid */
+  double *deltax0;                      /**< distance to the grid point      */
 } taylor_plan;
 
 /**
@@ -85,7 +85,7 @@ void taylor_finalize(taylor_plan *ths)
 }
 
 /**
- * Executes a NFFT, see equation (1.1) in [Guide], computes fast and
+ * Executes a Taylor-NFFT, see equation (1.1) in [Guide], computes fast and
  * approximate by means of a Taylor expansion
  * for j=0,...,M-1                                                             
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
@@ -109,17 +109,20 @@ void taylor_trafo(taylor_plan *ths)
   for(k=0; k<cths->n_total; k++)
     cths->g1[k]=0;
 
-  for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2, f_hat=cths->f_hat; k<0; k++)
+  for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2,
+      f_hat=cths->f_hat; k<0; k++)
     (*g1++)=cpow( - 2*PI*I*k,cths->m)* (*f_hat++);
    
   cths->g1[0]=cths->f_hat[cths->N_total/2];
 
-  for(k=1, g1=cths->g1+1, f_hat=cths->f_hat+cths->N_total/2+1; k<cths->N_total/2; k++)
+  for(k=1, g1=cths->g1+1, f_hat=cths->f_hat+cths->N_total/2+1;
+      k<cths->N_total/2; k++)
     (*g1++)=cpow( - 2*PI*I*k,cths->m)* (*f_hat++);
 
   for(l=cths->m-1; l>=0; l--)
     {
-      for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2; k<0; k++)
+      for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2;
+          k<0; k++)
         (*g1++) /= (-2*PI*I*k);
 
       for(k=1, g1=cths->g1+1; k<cths->N_total/2; k++)
@@ -128,27 +131,42 @@ void taylor_trafo(taylor_plan *ths)
       fftw_execute(cths->my_fftw_plan1);
 
       ll=(l==0?1:l);
-      for(j=0, f=cths->f, deltax=ths->deltax0, idx=ths->idx0; j<cths->M_total; j++)
+      for(j=0, f=cths->f, deltax=ths->deltax0, idx=ths->idx0; j<cths->M_total;
+          j++)
         (*f++) = ((*f) * (*deltax++) + cths->g2[*idx++]) /ll;
     }
 }
 
-
+/**
+ * Compares NDFT, NFFT, and Taylor-NFFT
+ *
+ * \arg N The bandwidth
+ * \arg N The number of nodes
+ * \arg n The FFT-size for the NFFT
+ * \arg m The cut-off for window function
+ * \arg n_taylor The FFT-size for the Taylor-NFFT
+ * \arg m_taylor The order of the Taylor approximation
+ * \arg test_accuracy Flag for NDFT computation
+ *
+ * \author Stefan Kunis
+ */
 void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
                           int m_taylor, unsigned test_accuracy)
 {
   int j,k,r;
 
-  double t_ndft, t_nfft, t_taylor, t;
+  double t_ndft, t_nfft, t_taylor, t, tc;
   complex *swapndft;
 
   taylor_plan tp;
   nfft_plan np;
 
+  printf("%d\t%d\t",N, M);
+
   taylor_init(&tp,N,M,n_taylor,m_taylor);
 
   nfft_init_guru(&np, 1, &N, M, &n, m,
-                 PRE_PHI_HUT| PRE_LIN_PSI|
+                 PRE_PHI_HUT| FG_PSI|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -194,11 +212,10 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       t_ndft/=r;
 
       SWAP_complex(np.f,swapndft);
+      printf("%.2e\t",t_ndft);
     }
   else 
-    {
-      t_ndft=sqrt(-1);
-    }
+    printf("nan\t\t");
 
   /** NFFT */
   t_nfft=0;
@@ -213,17 +230,17 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     }
   t_nfft/=r;
 
-  printf("%d\t%d\t%.1f\t%d\t%.1f\t%d\t",N, M, ((double)n)/N, m, ((double)n_taylor)/N, m_taylor);
+  printf("%.1f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
 
   if(test_accuracy)
-  printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
-//printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total, np.f_hat, np.N_total));
+    printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
   else
-    printf("--------\t");
+    printf("nan\t\t");
 
   /** TAYLOR NFFT */
   t_taylor=0;
   r=0;
+tc=second();
   while(t_taylor<0.01)
     {
       r++;
@@ -232,17 +249,20 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       t=second()-t;
       t_taylor+=t;
     }
+tc=second()-tc;
+tc/=r;
   t_taylor/=r;
 
+
+  printf("%.1f\t%d\t%.2e\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor,tc);
+
   if(test_accuracy)
-printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
-//    printf("%.2e\t",error_l_infty_1_complex(swapndft, np.f, np.M_total,                    np.f_hat, np.N_total));
+    printf("%.2e\n",error_l_infty_complex(swapndft, np.f, np.M_total));
   else
-    printf("--------\t");
+    printf("nan\t\n");
+
+  fflush(stdout);
   
-
-  printf("%.2e\t%.2e\t%.2e\n",t_ndft,t_nfft,t_taylor);
-
   /** finalise */
   if(test_accuracy)
     fftw_free(swapndft);
@@ -251,116 +271,14 @@ printf("%.2e\t",error_l_2_complex(swapndft, np.f, np.M_total));
   taylor_finalize(&tp);
 }
 
-
-void taylor_simple_test()
-{
-  int j,k,l;
-  nfft_plan my_plan, tp;       /**< plan for the nfft               */
-
-  int N,M,m,n_taylor,facl;
-  int* idx0;
-  double* deltax0;
-  int sigma;
-
-  N=4096;
-  M=4096;
-
-  /** Taylor nfft */
-  sigma=8;
-  m=4;
-
-  n_taylor=sigma*N;
-
-  idx0=(int*)fftw_malloc(M*sizeof(int));
-  deltax0=(double*)fftw_malloc(M*sizeof(double));
-
-  /** init an one dimensional plan */
-  nfft_init_1d(&my_plan, N, M);
-
-  /** init pseudo random nodes */
-  for(j=0;j<my_plan.M_total;j++)
-    {
-      my_plan.x[j]=((double)rand())/RAND_MAX-0.5;
-      idx0[j]=((int)round((my_plan.x[j]+0.5)*n_taylor) + n_taylor/2)%n_taylor;
-      deltax0[j]=my_plan.x[j] - (round((my_plan.x[j]+0.5)*n_taylor) / n_taylor - 0.5);
-    }
-
-  /** precompute psi, the entries of the matrix B */
-    if(my_plan.nfft_flags & PRE_LIN_PSI)
-      nfft_precompute_lin_psi(&my_plan);
-
-  if(my_plan.nfft_flags & PRE_PSI)
-      nfft_precompute_psi(&my_plan);
-      
-  if(my_plan.nfft_flags & PRE_FULL_PSI)
-      nfft_precompute_full_psi(&my_plan);
-
-  /** init pseudo random Fourier coefficients and show them */
-  for(k=0;k<my_plan.N_total;k++)
-    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
-
-  vpr_complex(my_plan.f_hat,10,"given Fourier coefficients, vector f_hat"); 
-
-  /** direct trafo and show the result */
-  ndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,10,"ndft, vector f"); 
-
-  /** approx. trafo and show the result */
-  nfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,10,"nfft, vector f");  
-
-  /** Taylor nfft */
-
-  /** init an one dimensional plan */
-  nfft_init_guru(&tp, 1, &N, M, &n_taylor, 0,
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_PRESERVE_INPUT);
-
-  tp.x=my_plan.x;
-  tp.f_hat=my_plan.f_hat;
-  tp.f=my_plan.f;
-
-  for(j=0; j<M; j++)
-    tp.f[j]=0;
-
-  for(k=0; k<n_taylor; k++)
-    tp.g1[k]=0;
-
-  for(l=0; l<m; l++)
-    {
-      facl=((l==0)?1:l*facl);
-
-      for(k=-N/2; k<0; k++)
-        tp.g1[n_taylor+k]=cpow( - 2*PI*I*k,l)*tp.f_hat[k+N/2];
-      
-      tp.g1[0]=tp.f_hat[N/2];
-
-      for(k=1; k<N/2; k++)
-        tp.g1[k]=cpow( - 2*PI*I*k,l)*tp.f_hat[k+N/2];
-
-      fftw_execute(tp.my_fftw_plan1);
-
-      for(j=0; j<M; j++)
-        tp.f[j] += tp.g2[idx0[j]]*pow(deltax0[j],l)/facl;
-
-      vpr_complex(tp.f,10,"taylor, vector f");  
-    } 
-
-  /** finalise the one dimensional plan */
-  nfft_finalize(&tp);
-  nfft_finalize(&my_plan);
-  fftw_free(deltax0);
-  fftw_free(idx0);
-}
-
 int main()
 {
   int l,m;
 
-  for(l=4;l<16;l++)
-    taylor_time_accuracy((1U<< l), 10, (1U<< (l+2)), 16, (1U<< (l+3)), 5, 1);
-
-return 1;
+  for(l=4;l<15;l++)
+    taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 5, (1U<< (l+3)), 5, 1);
+  for(l=15;l<20;l++)
+    taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 5, (1U<< (l+3)), 5, 0);
 
 
 printf("polynomial degree N,\nnumber of nodes M,\nnfft oversampling factor sigma,\nnfft truncation parameter m,\n");
