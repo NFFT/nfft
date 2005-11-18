@@ -1,0 +1,37 @@
+#!/bin/bash
+# test 1, run 1
+DATA_PATH="tmp"
+TEST_EXT=".test2"
+RUN_EXT=".8"
+EXT="$TEST_EXT$RUN_EXT"
+
+N=20
+N1_1=10
+N1_2=10
+N2_1=10
+N2_2=10
+N_TILDE=40
+
+if [ ! -d $DATA_PATH ]
+then
+	mkdir $DATA_PATH
+fi
+
+cd data_creator
+echo "$N $N1_1 $N1_2 $N2_1 $N2_2" | ./data_creator \
+../$DATA_PATH/grid_h$EXT \
+../$DATA_PATH/grid_r$EXT \
+../$DATA_PATH/omega$EXT \
+prop$TEST_EXT \
+> ../$DATA_PATH/x$EXT \
+&& cd ../interpolation \
+&& echo $N_TILDE | ./calculateOmega \
+../$DATA_PATH/x$EXT \
+../$DATA_PATH/grid_h$EXT \
+../$DATA_PATH/grid_r$EXT \
+prop_om$TEST_EXT \
+> ../$DATA_PATH/omega2$EXT \
+&& cd ../$DATA_PATH \
+&& rm *$EXT 
+
+echo "$EXT finished!"

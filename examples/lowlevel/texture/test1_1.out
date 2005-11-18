@@ -4,8 +4,8 @@ rounding error in [1, 1) * 100%
 alpha in [1, 1)
 residuum: 1
 residuum: 0.0485726
-residuum: 0.000971526
-residuum: 1.82167e-05
-residuum: 0.000966664
-No convergence, residuum was 0.000966664!
+residuum: 0.000977169
+residuum: 1.82455e-05
+residuum: 0.00101256
+No convergence, residuum was 0.00101256!
 .test1.1 finished!

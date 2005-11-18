@@ -2,7 +2,14 @@ grid: 0 (equidistant angles)
 omega_policy: 0 (flat)
 rounding error in [1, 1) * 100%
 alpha in [1, 1)
-./test1_2: line 21:  7278 Done                    echo "$N $N1_1 $N1_2 $N2_1 $N2_2"
-      7279 Speicherzugriffsfehler  | ./data_creator ../$DATA_PATH/grid_h$EXT ../$DATA_PATH/grid_r$EXT ../$DATA_PATH/omega$EXT prop$TEST_EXT >../$DATA_PATH/x$EXT
-Invalid sample file!
+residuum: 1
+residuum: 0.677859
+residuum: 0.360526
+residuum: 0.0703951
+residuum: 0.0179468
+residuum: 0.00526938
+residuum: 0.00166749
+residuum: 0.000928711
+residuum: 0.000546911
+residuum: 0.000272177
 .test1.2 finished!

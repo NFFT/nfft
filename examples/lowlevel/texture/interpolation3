@@ -3,6 +3,10 @@
 DATA_PATH="interpolation/data/artificial3"
 PROP_EXT="_int3"
 
+if [ ! -d $DATA_PATH ]; then
+	mkdir $DATA_PATH
+fi
+
 cd data_creator
 echo "4 10 10 10 10" | ./data_creator ../$DATA_PATH/grid_h ../$DATA_PATH/grid_r ../$DATA_PATH/omega prop$PROP_EXT > ../$DATA_PATH/x
 

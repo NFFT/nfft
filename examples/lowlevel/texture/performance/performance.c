@@ -4,6 +4,7 @@
 #include<string.h>
 
 #include<nfft3.h>
+#include<texture_util.h>
 
 /** @defgroup texture_performance Texture: Performance
  * This program tests the velocity of the texture transforms.
@@ -92,16 +93,16 @@ void init()
 {
 	int i;
 	unsigned short int seed[] = { 1, 2, 3 };
-  
+
 	// pseudo random number generator
 	seed48(seed);
 
 	// input / output data
-	omega = (complex *) malloc(texture_flat_length(N) * sizeof(complex));
-	x = (complex *) malloc(N1 * N2 * sizeof(complex));
-	h_phi = (double *) malloc(N1 * sizeof(double));
-	h_theta = (double *) malloc(N1 * sizeof(double));
-	r = (double *) malloc(N1 * N2 * 2 * sizeof(double));
+	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+	x = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
+	h_phi = (double *) smart_malloc(N1 * sizeof(double));
+	h_theta = (double *) smart_malloc(N1 * sizeof(double));
+	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
 
 	for (i = 0; i < texture_flat_length(N); i++) {
 		omega[i] = rand() * drand48() + I * rand() * drand48();
@@ -120,7 +121,7 @@ void init()
 
 	// precompute, plan initialisation, ...
 	texture_precompute(N);
-	
+
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 
 	itexture_init(&iplan, &plan);

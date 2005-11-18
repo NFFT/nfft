@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util
 AM_CPPFLAGS = -D DEBUG_RESIDUUM -D DEBUG_CONVERGENCE_QUALITY
 
 ## The program name
@@ -10,6 +10,6 @@ calculateX_SOURCES = calculateX.c
 validate_SOURCES = validate.c
 
 ## Additional libraries for the library
-calculateOmega_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
-calculateX_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
-validate_LDADD = -lm
+calculateOmega_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 ../texture_util/libtexture_util.la
+calculateX_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 ../texture_util/libtexture_util.la
+validate_LDADD = -lm ../texture_util/libtexture_util.la

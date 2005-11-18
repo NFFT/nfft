@@ -1,0 +1,125 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 1)
+==11460== Memcheck, a memory error detector for x86-linux.
+==11460== Copyright (C) 2002-2004, and GNU GPL'd, by Julian Seward et al.
+==11460== Using valgrind-2.2.0, a program supervision framework for x86-linux.
+==11460== Copyright (C) 2000-2004, and GNU GPL'd, by Julian Seward et al.
+==11460== For more details, rerun with: -v
+==11460== 
+residuum: 1
+residuum: 0.0251849
+residuum: 0.000407517
+residuum: 8.96898e-06
+==11460== 
+==11460== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 15 from 1)
+==11460== malloc/free: in use at exit: 18964 bytes in 457 blocks.
+==11460== malloc/free: 1253809 allocs, 1253352 frees, 347428240 bytes allocated.
+==11460== For counts of detected errors, rerun with: -v
+==11460== searching for pointers to 457 not-freed blocks.
+==11460== checked 2435708 bytes.
+==11460== 
+==11460== LEAK SUMMARY:
+==11460==    definitely lost: 0 bytes in 0 blocks.
+==11460==    possibly lost:   0 bytes in 0 blocks.
+==11460==    still reachable: 18964 bytes in 457 blocks.
+==11460==         suppressed: 0 bytes in 0 blocks.
+==11460== Reachable blocks (those to which a pointer was found) are not shown.
+==11460== To see them, rerun with: --show-reachable=yes
+# From the omega file:
+# This omega has been created by data creator.
+# N=4
+#
+# From the omega file:
+# res_delta: 1e-05
+# iterations_without_check: 10
+# min_improve: 0.001
+# solver_algo: 0 (CGNR)
+# weight_policy: 0 (flat)
+#
+# From the pole figure file:
+# This grid has been created by the data creator.
+# h_phi_count = 10, h_theta_count = 10
+# N1=100
+#
+# From the node file:
+# This grid has been created by the data creator.
+# r_phi_count = 10, r_theta_count = 10
+# N2=100
+#
+# From the sample file:
+# These samples are created by the data creator.
+# N1=100 N2=100
+#
+# residuum: 8.96898e-06
+#
+# N=4
+#
+5.18858e-06
+==13195== Memcheck, a memory error detector for x86-linux.
+==13195== Copyright (C) 2002-2004, and GNU GPL'd, by Julian Seward et al.
+==13195== Using valgrind-2.2.0, a program supervision framework for x86-linux.
+==13195== Copyright (C) 2000-2004, and GNU GPL'd, by Julian Seward et al.
+==13195== For more details, rerun with: -v
+==13195== 
+==13195== 
+==13195== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 15 from 1)
+==13195== malloc/free: in use at exit: 18964 bytes in 457 blocks.
+==13195== malloc/free: 19989 allocs, 19532 frees, 30808364 bytes allocated.
+==13195== For counts of detected errors, rerun with: -v
+==13195== searching for pointers to 457 not-freed blocks.
+==13195== checked 2398844 bytes.
+==13195== 
+==13195== LEAK SUMMARY:
+==13195==    definitely lost: 0 bytes in 0 blocks.
+==13195==    possibly lost:   0 bytes in 0 blocks.
+==13195==    still reachable: 18964 bytes in 457 blocks.
+==13195==         suppressed: 0 bytes in 0 blocks.
+==13195== Reachable blocks (those to which a pointer was found) are not shown.
+==13195== To see them, rerun with: --show-reachable=yes
+# From the sample file:
+# These samples are created by the data creator.
+# N1=100 N2=100
+#
+# From the sample file:
+# grid_type: 1 (file)
+#
+# From the omega file:
+# res_delta: 1e-05
+# iterations_without_check: 10
+# min_improve: 0.001
+# solver_algo: 0 (CGNR)
+# weight_policy: 0 (flat)
+#
+# From the pole figure file:
+# This grid has been created by the data creator.
+# h_phi_count = 10, h_theta_count = 10
+# N1=100
+#
+# From the node file:
+# This grid has been created by the data creator.
+# r_phi_count = 10, r_theta_count = 10
+# N2=100
+#
+# From the sample file:
+# These samples are created by the data creator.
+# N1=100 N2=100
+#
+# residuum: 8.96898e-06
+#
+# N=4
+#
+# From the pole figure file:
+# This grid has been created by the data creator.
+# h_phi_count = 10, h_theta_count = 10
+# N1=100
+#
+# From the node file:
+# This grid has been created by the data creator.
+# r_phi_count = 10, r_theta_count = 10
+# N2=100
+#
+# N1=100 N2=100
+#
+9.17442e-06

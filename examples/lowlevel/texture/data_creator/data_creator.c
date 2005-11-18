@@ -33,7 +33,8 @@ void read_propfile(const char *file)
 					omega_policy_descr[omega_policy]);
 
 	fscanf(f, "%lg%lg%lg%lg", &min_error, &max_error, &min_alpha, &max_alpha);
-	fprintf(stderr, "rounding error in [%lg, %lg) * 100%%\n", min_error, max_error);
+	fprintf(stderr, "rounding error in [%lg, %lg) * 100%%\n", min_error,
+					max_error);
 	fprintf(stderr, "alpha in [%lg, %lg)\n", min_alpha, max_alpha);
 	fclose(f);
 }
@@ -68,9 +69,9 @@ void create_grid(const char *h_file, const char *r_file)
 			N1 = h_phi_count * h_theta_count;
 			N2 = r_phi_count * r_theta_count;
 
-			h_phi = (double *) malloc(N1 * sizeof(double));
-			h_theta = (double *) malloc(N1 * sizeof(double));
-			r = (double *) malloc(N1 * N2 * 2 * sizeof(double));
+			h_phi = (double *) smart_malloc(N1 * sizeof(double));
+			h_theta = (double *) smart_malloc(N1 * sizeof(double));
+			r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
 
 			calculate_grid(h_phi_count, h_theta_count, r_phi_count, r_theta_count,
 										 h_phi, h_theta, r, grid);
@@ -104,10 +105,11 @@ void create_grid(const char *h_file, const char *r_file)
 	}
 }
 
-void create_omega(const char *file) {
+void create_omega(const char *file)
+{
 	FILE *f = fopen(file, "w");
 
-	omega = (complex *) malloc(texture_flat_length(N) * sizeof(complex));
+	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
 	init_omega(omega, N, omega_policy);
 	fprintf(f, "Omega\n");
 	fprintf(f, "# This omega has been created by data creator.\n");
@@ -120,7 +122,7 @@ void create_x()
 {
 	texture_plan plan;
 
-	x = (complex *) malloc(N1 * N2 * sizeof(complex));
+	x = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
@@ -143,8 +145,9 @@ void cleanup()
 	free(x);
 }
 
-void usage() {
-	//TODO
+void usage()
+{
+	// TODO
 }
 
 int main(int argc, char *argv[])
@@ -168,20 +171,20 @@ int main(int argc, char *argv[])
 	}
 
 	if (argc <= 5) {
-	init();
-	read_propfile(propfile_name);
-	read_params();
+		init();
+		read_propfile(propfile_name);
+		read_params();
 
-	printf("Samples\n");
-	printf("# These samples are created by the data creator.\n");
+		printf("Samples\n");
+		printf("# These samples are created by the data creator.\n");
 
-	create_grid(grid_h_def, grid_r_def);
-	create_omega(omega_def);
-	create_x();
-	cleanup();
+		create_grid(grid_h_def, grid_r_def);
+		create_omega(omega_def);
+		create_x();
+		cleanup();
 	} else {
 		usage();
 	}
-	
+
 	return 0;
 }

@@ -9,5 +9,5 @@ libtexture_util_la_SOURCES = texture_util.c
 compare_SOURCES = compare.c
 
 ## Additional libraries for the library
-libtexture_util_la_LIBADD = 
+libtexture_util_la_LIBADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 compare_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 libtexture_util.la
