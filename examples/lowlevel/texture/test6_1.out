@@ -1,0 +1,326 @@
+# iteration parameters:
+# error function: 0 (two norm relativ error)
+# error_delta = 0.01
+# residuum function: 0 (two norm relativ error)
+# residuum_delta = 1e-05
+# min_improve = 0.01
+# iterations_without_check = 10
+# solver parameters:
+# grid_id: 0 (equidistant angles)
+# grid_file_h: dubna1_h
+# grid_file_r: dubna1_r
+# starting_point_policy: 0 (zero)
+# solver_algorithm_id: 1 (CGNE)
+# weight_policy: 2 (1/n^2)
+# omega_ref_policy: 0 (flat)
+# method: 0 (N1, N2 independent)
+# output_policy: 1 (human readable)
+# N1 = 50:50:300
+# N2 = 50:50:300
+# N_min_improve = 0
+# max_iter_without_improve = 1
+# N1 = 50
+regular: 1
+regular: 2
+residuum: 2.43014
+Warning: No convergence, residuum was 2.43014!
+not regular: 4
+residuum: 1.61569
+Warning: No convergence, residuum was 1.61569!
+not regular: 3
+50 2
+regular: 2
+residuum: 2.76443
+Warning: No convergence, residuum was 2.76443!
+not regular: 4
+residuum: 1.27934
+Warning: No convergence, residuum was 1.27934!
+not regular: 3
+100 2
+regular: 2
+residuum: 3.20892
+Warning: No convergence, residuum was 3.20892!
+not regular: 4
+residuum: 1.97907
+Warning: No convergence, residuum was 1.97907!
+not regular: 3
+150 2
+regular: 2
+residuum: 3.11048
+Warning: No convergence, residuum was 3.11048!
+not regular: 4
+residuum: 1.85191
+Warning: No convergence, residuum was 1.85191!
+not regular: 3
+200 2
+regular: 2
+residuum: 3.64433
+Warning: No convergence, residuum was 3.64433!
+not regular: 4
+residuum: 1.83538
+Warning: No convergence, residuum was 1.83538!
+not regular: 3
+250 2
+regular: 2
+residuum: 1.95395
+Warning: No convergence, residuum was 1.95395!
+not regular: 4
+residuum: 1.22021
+Warning: No convergence, residuum was 1.22021!
+not regular: 3
+300 2
+# N1 = 100
+regular: 1
+regular: 2
+residuum: 2.20892
+Warning: No convergence, residuum was 2.20892!
+not regular: 4
+residuum: 1.85887
+Warning: No convergence, residuum was 1.85887!
+not regular: 3
+50 2
+regular: 2
+residuum: 1.56892
+Warning: No convergence, residuum was 1.56892!
+not regular: 4
+residuum: 1.39626
+Warning: No convergence, residuum was 1.39626!
+not regular: 3
+100 2
+regular: 2
+residuum: 2.32778
+Warning: No convergence, residuum was 2.32778!
+not regular: 4
+residuum: 0.982846
+residuum: 0.286336
+residuum: 0.76012
+Warning: No convergence, residuum was 0.76012!
+not regular: 3
+150 2
+regular: 2
+residuum: 2.56305
+Warning: No convergence, residuum was 2.56305!
+not regular: 4
+residuum: 1.90023
+Warning: No convergence, residuum was 1.90023!
+not regular: 3
+200 2
+regular: 2
+residuum: 2.53269
+Warning: No convergence, residuum was 2.53269!
+not regular: 4
+residuum: 1.38912
+Warning: No convergence, residuum was 1.38912!
+not regular: 3
+250 2
+regular: 2
+residuum: 3.07796
+Warning: No convergence, residuum was 3.07796!
+not regular: 4
+residuum: 1.83775
+Warning: No convergence, residuum was 1.83775!
+not regular: 3
+300 2
+# N1 = 150
+regular: 1
+regular: 2
+residuum: 4.53228
+Warning: No convergence, residuum was 4.53228!
+not regular: 4
+residuum: 0.991995
+Warning: No convergence, residuum was 0.991995!
+not regular: 3
+50 2
+regular: 2
+residuum: 2.64914
+Warning: No convergence, residuum was 2.64914!
+not regular: 4
+residuum: 1.3225
+Warning: No convergence, residuum was 1.3225!
+not regular: 3
+100 2
+regular: 2
+residuum: 3.43299
+Warning: No convergence, residuum was 3.43299!
+not regular: 4
+residuum: 1.84825
+Warning: No convergence, residuum was 1.84825!
+not regular: 3
+150 2
+regular: 2
+residuum: 2.71534
+Warning: No convergence, residuum was 2.71534!
+not regular: 4
+residuum: 1.37729
+Warning: No convergence, residuum was 1.37729!
+not regular: 3
+200 2
+regular: 2
+residuum: 2.61222
+Warning: No convergence, residuum was 2.61222!
+not regular: 4
+residuum: 1.02489
+Warning: No convergence, residuum was 1.02489!
+not regular: 3
+250 2
+regular: 2
+residuum: 2.49798
+Warning: No convergence, residuum was 2.49798!
+not regular: 4
+residuum: 1.49
+Warning: No convergence, residuum was 1.49!
+not regular: 3
+300 2
+# N1 = 200
+regular: 1
+regular: 2
+residuum: 2.87687
+Warning: No convergence, residuum was 2.87687!
+not regular: 4
+residuum: 2.02079
+Warning: No convergence, residuum was 2.02079!
+not regular: 3
+50 2
+regular: 2
+residuum: 2.82477
+Warning: No convergence, residuum was 2.82477!
+not regular: 4
+residuum: 2.17278
+Warning: No convergence, residuum was 2.17278!
+not regular: 3
+100 2
+regular: 2
+residuum: 3.16063
+Warning: No convergence, residuum was 3.16063!
+not regular: 4
+residuum: 1.3014
+Warning: No convergence, residuum was 1.3014!
+not regular: 3
+150 2
+regular: 2
+residuum: 2.56149
+Warning: No convergence, residuum was 2.56149!
+not regular: 4
+residuum: 1.86866
+Warning: No convergence, residuum was 1.86866!
+not regular: 3
+200 2
+regular: 2
+residuum: 3.23248
+Warning: No convergence, residuum was 3.23248!
+not regular: 4
+residuum: 1.15327
+Warning: No convergence, residuum was 1.15327!
+not regular: 3
+250 2
+regular: 2
+residuum: 2.66798
+Warning: No convergence, residuum was 2.66798!
+not regular: 4
+residuum: 1.58715
+Warning: No convergence, residuum was 1.58715!
+not regular: 3
+300 2
+# N1 = 250
+regular: 1
+regular: 2
+residuum: 2.77352
+Warning: No convergence, residuum was 2.77352!
+not regular: 4
+residuum: 1.56184
+Warning: No convergence, residuum was 1.56184!
+not regular: 3
+50 2
+regular: 2
+residuum: 2.94009
+Warning: No convergence, residuum was 2.94009!
+not regular: 4
+residuum: 1.75864
+Warning: No convergence, residuum was 1.75864!
+not regular: 3
+100 2
+regular: 2
+residuum: 2.72043
+Warning: No convergence, residuum was 2.72043!
+not regular: 4
+residuum: 1.04838
+Warning: No convergence, residuum was 1.04838!
+not regular: 3
+150 2
+regular: 2
+residuum: 2.91585
+Warning: No convergence, residuum was 2.91585!
+not regular: 4
+residuum: 1.94285
+Warning: No convergence, residuum was 1.94285!
+not regular: 3
+200 2
+regular: 2
+residuum: 2.77836
+Warning: No convergence, residuum was 2.77836!
+not regular: 4
+residuum: 1.58161
+Warning: No convergence, residuum was 1.58161!
+not regular: 3
+250 2
+regular: 2
+residuum: 2.65709
+Warning: No convergence, residuum was 2.65709!
+not regular: 4
+residuum: 1.30695
+Warning: No convergence, residuum was 1.30695!
+not regular: 3
+300 2
+# N1 = 300
+regular: 1
+regular: 2
+residuum: 2.22592
+Warning: No convergence, residuum was 2.22592!
+not regular: 4
+residuum: 2.12633
+Warning: No convergence, residuum was 2.12633!
+not regular: 3
+50 2
+regular: 2
+residuum: 2.61735
+Warning: No convergence, residuum was 2.61735!
+not regular: 4
+residuum: 0.824588
+residuum: 0.225103
+residuum: 0.530464
+Warning: No convergence, residuum was 0.530464!
+not regular: 3
+100 2
+regular: 2
+residuum: 3.81883
+Warning: No convergence, residuum was 3.81883!
+not regular: 4
+residuum: 1.73209
+Warning: No convergence, residuum was 1.73209!
+not regular: 3
+150 2
+regular: 2
+residuum: 3.16035
+Warning: No convergence, residuum was 3.16035!
+not regular: 4
+residuum: 2.40069
+Warning: No convergence, residuum was 2.40069!
+not regular: 3
+200 2
+regular: 2
+residuum: 2.30753
+Warning: No convergence, residuum was 2.30753!
+not regular: 4
+residuum: 1.34384
+Warning: No convergence, residuum was 1.34384!
+not regular: 3
+250 2
+regular: 2
+residuum: 2.58982
+Warning: No convergence, residuum was 2.58982!
+not regular: 4
+residuum: 1.31003
+Warning: No convergence, residuum was 1.31003!
+not regular: 3
+300 2
+.test6.1 finished!

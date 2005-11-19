@@ -1,0 +1,882 @@
+# iteration parameters:
+# error function: 0 (two norm relativ error)
+# error_delta = 0.01
+# residuum function: 0 (two norm relativ error)
+# residuum_delta = 1e-05
+# min_improve = 0.01
+# iterations_without_check = 10
+# solver parameters:
+# grid_id: 0 (equidistant angles)
+# grid_file_h: dubna1_h
+# grid_file_r: dubna1_r
+# starting_point_policy: 0 (zero)
+# solver_algorithm_id: 1 (CGNE)
+# weight_policy: 0 (flat)
+# omega_ref_policy: 0 (flat)
+# method: 0 (N1, N2 independent)
+# output_policy: 1 (human readable)
+# N1 = 50:50:300
+# N2 = 50:50:300
+# N_min_improve = 0
+# max_iter_without_improve = 1
+# N1 = 50
+regular: 1
+regular: 2
+residuum: 0.0459716
+residuum: 0.0243314
+residuum: 0.00472161
+residuum: 0.000335758
+residuum: 4.68438e-08
+regular: 4
+residuum: 0.180867
+residuum: 0.0920011
+residuum: 0.0359169
+residuum: 0.0138263
+residuum: 0.0110273
+residuum: 0.00564577
+residuum: 0.00916817
+Warning: No convergence, residuum was 0.00916817!
+not regular: 8
+residuum: 0.0975006
+residuum: 0.0455323
+residuum: 0.0103098
+residuum: 0.00670775
+residuum: 0.00560643
+residuum: 0.00131236
+residuum: 0.000502448
+residuum: 0.000107806
+residuum: 2.2336e-06
+not regular: 6
+residuum: 0.065326
+residuum: 0.0116144
+residuum: 0.00475797
+residuum: 0.00289581
+residuum: 0.000768298
+residuum: 1.18553e-05
+residuum: 1.38128e-07
+not regular: 5
+50 4
+residuum: 0.0337331
+residuum: 0.000265647
+residuum: 7.50936e-07
+regular: 4
+residuum: 0.159478
+residuum: 0.0269659
+residuum: 0.0124338
+residuum: 0.00288097
+residuum: 0.00277794
+residuum: 0.000175661
+residuum: 4.12578e-05
+residuum: 2.69179e-05
+residuum: 1.69553e-06
+not regular: 8
+residuum: 0.0809627
+residuum: 0.00320863
+residuum: 7.15636e-05
+residuum: 1.54636e-06
+not regular: 6
+residuum: 0.0498786
+residuum: 0.000846775
+residuum: 7.12274e-06
+not regular: 5
+100 4
+residuum: 0.041131
+residuum: 0.000721202
+residuum: 7.64939e-06
+regular: 4
+residuum: 0.180207
+residuum: 0.0496103
+residuum: 0.0217161
+residuum: 0.00456167
+residuum: 0.00371667
+residuum: 0.000356172
+residuum: 0.000100501
+residuum: 3.0818e-05
+residuum: 2.97681e-06
+not regular: 8
+residuum: 0.0980259
+residuum: 0.0063772
+residuum: 0.000210905
+residuum: 5.44359e-06
+not regular: 6
+residuum: 0.076734
+residuum: 0.00178597
+residuum: 3.28069e-05
+residuum: 2.23703e-07
+not regular: 5
+150 4
+residuum: 0.0422241
+residuum: 0.000940027
+residuum: 3.48986e-06
+regular: 4
+residuum: 0.181785
+residuum: 0.0329917
+residuum: 0.0225113
+residuum: 0.00592569
+residuum: 0.00323674
+residuum: 0.00041564
+residuum: 0.000102715
+residuum: 3.13094e-05
+residuum: 4.69783e-06
+not regular: 8
+residuum: 0.0962329
+residuum: 0.00578142
+residuum: 0.000198338
+residuum: 3.06027e-06
+not regular: 6
+residuum: 0.0658119
+residuum: 0.00182821
+residuum: 2.45468e-05
+residuum: 1.29784e-07
+not regular: 5
+200 4
+residuum: 0.036026
+residuum: 0.000780045
+residuum: 4.23776e-06
+regular: 4
+residuum: 0.167055
+residuum: 0.0225768
+residuum: 0.0143439
+residuum: 0.00223745
+residuum: 0.00160625
+residuum: 0.00027937
+residuum: 4.39533e-05
+residuum: 2.58081e-05
+residuum: 2.31947e-06
+not regular: 8
+residuum: 0.0908226
+residuum: 0.00347294
+residuum: 0.00010917
+residuum: 2.85429e-06
+not regular: 6
+residuum: 0.0663308
+residuum: 0.00190657
+residuum: 2.39727e-05
+residuum: 1.44812e-07
+not regular: 5
+250 4
+residuum: 0.0422157
+residuum: 0.000750754
+residuum: 4.14987e-06
+regular: 4
+residuum: 0.219323
+residuum: 0.0252609
+residuum: 0.0254467
+Warning: No convergence, residuum was 0.0254467!
+not regular: 8
+residuum: 0.110609
+residuum: 0.00496458
+residuum: 0.000482648
+residuum: 1.14348e-05
+residuum: 3.51109e-07
+not regular: 6
+residuum: 0.059707
+residuum: 0.00286664
+residuum: 2.09761e-05
+residuum: 3.15994e-07
+not regular: 5
+300 4
+# N1 = 100
+regular: 1
+regular: 2
+residuum: 0.0228079
+residuum: 0.000191656
+residuum: 5.02158e-07
+regular: 4
+residuum: 0.149879
+residuum: 0.0368134
+residuum: 0.0131751
+residuum: 0.00354274
+residuum: 0.00291731
+residuum: 0.000164117
+residuum: 3.87023e-05
+residuum: 1.10906e-05
+residuum: 8.85761e-07
+not regular: 8
+residuum: 0.070619
+residuum: 0.00288709
+residuum: 6.49899e-05
+residuum: 1.36038e-06
+not regular: 6
+residuum: 0.0494228
+residuum: 0.000860262
+residuum: 6.82841e-06
+not regular: 5
+50 4
+residuum: 0.0224581
+residuum: 0.00021075
+residuum: 5.35416e-07
+regular: 4
+residuum: 0.202227
+residuum: 0.0270404
+residuum: 0.0118484
+residuum: 0.0028544
+residuum: 0.004988
+Warning: No convergence, residuum was 0.004988!
+not regular: 8
+residuum: 0.0711452
+residuum: 0.0026392
+residuum: 6.34072e-05
+residuum: 1.41722e-06
+not regular: 6
+residuum: 0.0528976
+residuum: 0.00086853
+residuum: 7.52141e-06
+not regular: 5
+100 4
+residuum: 0.03755
+residuum: 0.00103476
+residuum: 6.71977e-06
+regular: 4
+residuum: 0.185303
+residuum: 0.0621719
+residuum: 0.0234262
+residuum: 0.00425508
+residuum: 0.00445788
+Warning: No convergence, residuum was 0.00445788!
+not regular: 8
+residuum: 0.122575
+residuum: 0.00659207
+residuum: 0.000218432
+residuum: 5.73075e-06
+not regular: 6
+residuum: 0.065603
+residuum: 0.00154576
+residuum: 3.13495e-05
+residuum: 1.78824e-07
+not regular: 5
+150 4
+residuum: 0.043015
+residuum: 0.00085882
+residuum: 6.51255e-06
+regular: 4
+residuum: 0.213319
+residuum: 0.0330193
+residuum: 0.0323286
+residuum: 0.00767286
+residuum: 0.00298896
+residuum: 0.000366894
+residuum: 5.6689e-05
+residuum: 4.76018e-05
+residuum: 4.39728e-06
+not regular: 8
+residuum: 0.086517
+residuum: 0.00775341
+residuum: 0.000223367
+residuum: 3.26261e-06
+not regular: 6
+residuum: 0.0520648
+residuum: 0.00112181
+residuum: 2.32056e-05
+residuum: 8.94419e-08
+not regular: 5
+200 4
+residuum: 0.0395735
+residuum: 0.000539106
+residuum: 4.4718e-06
+regular: 4
+residuum: 0.20296
+residuum: 0.0513179
+residuum: 0.017675
+residuum: 0.00396668
+residuum: 0.00238604
+residuum: 0.000343746
+residuum: 5.62915e-05
+residuum: 3.36412e-05
+residuum: 2.40327e-06
+not regular: 8
+residuum: 0.106153
+residuum: 0.00618565
+residuum: 0.000100243
+residuum: 3.1665e-06
+not regular: 6
+residuum: 0.0618247
+residuum: 0.00215518
+residuum: 2.53901e-05
+residuum: 1.48867e-07
+not regular: 5
+250 4
+residuum: 0.0424187
+residuum: 0.00102242
+residuum: 4.12873e-06
+regular: 4
+residuum: 0.182622
+residuum: 0.0417586
+residuum: 0.00239905
+residuum: 0.000292289
+residuum: 1.37052e-05
+residuum: 9.56713e-07
+not regular: 8
+residuum: 0.120915
+residuum: 0.00957499
+residuum: 0.000287641
+residuum: 9.81977e-06
+not regular: 6
+residuum: 0.0843907
+residuum: 0.00310997
+residuum: 5.25853e-05
+residuum: 3.87828e-07
+not regular: 5
+300 4
+# N1 = 150
+regular: 1
+regular: 2
+residuum: 0.0365098
+residuum: 0.00096589
+residuum: 6.33997e-06
+regular: 4
+residuum: 0.182795
+residuum: 0.0715823
+residuum: 0.0187823
+residuum: 0.0102232
+residuum: 0.00387494
+residuum: 0.000509011
+residuum: 7.6396e-05
+residuum: 1.94805e-05
+residuum: 6.47156e-06
+not regular: 8
+residuum: 0.0811106
+residuum: 0.00717065
+residuum: 0.000149864
+residuum: 4.51109e-06
+not regular: 6
+residuum: 0.0556034
+residuum: 0.0020883
+residuum: 2.58086e-05
+residuum: 1.78371e-07
+not regular: 5
+50 4
+residuum: 0.042988
+residuum: 0.000905591
+residuum: 9.23552e-06
+regular: 4
+residuum: 0.209823
+residuum: 0.0656748
+residuum: 0.0158435
+residuum: 0.00580006
+residuum: 0.00332208
+residuum: 0.000522196
+residuum: 0.000108025
+residuum: 2.90792e-05
+residuum: 8.5192e-06
+not regular: 8
+residuum: 0.0927438
+residuum: 0.00453394
+residuum: 0.000135169
+residuum: 4.30106e-06
+not regular: 6
+residuum: 0.0663126
+residuum: 0.00215746
+residuum: 2.76127e-05
+residuum: 1.73071e-07
+not regular: 5
+100 4
+residuum: 0.0230043
+residuum: 0.000100715
+residuum: 1.32583e-07
+regular: 4
+residuum: 0.151312
+residuum: 0.0258626
+residuum: 0.01063
+residuum: 0.00451931
+residuum: 0.00234486
+residuum: 0.000122454
+residuum: 8.0518e-05
+residuum: 5.00334e-06
+not regular: 8
+residuum: 0.0737233
+residuum: 0.00293259
+residuum: 3.97122e-05
+residuum: 6.46708e-07
+not regular: 6
+residuum: 0.0369739
+residuum: 0.00044536
+residuum: 2.65604e-06
+not regular: 5
+150 4
+residuum: 0.031368
+residuum: 0.000398853
+residuum: 3.06002e-06
+regular: 4
+residuum: 0.20942
+residuum: 0.0579906
+residuum: 0.0199044
+residuum: 0.00697674
+residuum: 0.00237038
+residuum: 0.000230307
+residuum: 5.16363e-05
+residuum: 1.95985e-05
+residuum: 1.01219e-06
+not regular: 8
+residuum: 0.0800829
+residuum: 0.00706082
+residuum: 0.000139865
+residuum: 2.42796e-06
+not regular: 6
+residuum: 0.059591
+residuum: 0.00205191
+residuum: 1.14694e-05
+residuum: 8.97843e-08
+not regular: 5
+200 4
+residuum: 0.0286172
+residuum: 0.000593348
+residuum: 1.70207e-06
+regular: 4
+residuum: 0.200396
+residuum: 0.0343162
+residuum: 0.017298
+residuum: 0.0067977
+residuum: 0.00198881
+residuum: 0.000201954
+residuum: 7.0579e-05
+residuum: 1.87329e-05
+residuum: 1.32519e-06
+not regular: 8
+residuum: 0.0823204
+residuum: 0.00298146
+residuum: 8.10324e-05
+residuum: 1.63326e-06
+not regular: 6
+residuum: 0.0651754
+residuum: 0.00119403
+residuum: 8.48382e-06
+not regular: 5
+250 4
+residuum: 0.0351314
+residuum: 0.000563406
+residuum: 1.81687e-06
+regular: 4
+residuum: 0.169553
+residuum: 0.0198478
+residuum: 0.00151649
+residuum: 0.000200693
+residuum: 7.00156e-06
+not regular: 8
+residuum: 0.103128
+residuum: 0.00850985
+residuum: 0.00020728
+residuum: 7.9028e-06
+not regular: 6
+residuum: 0.0588802
+residuum: 0.0008094
+residuum: 1.19776e-05
+residuum: 2.10802e-07
+not regular: 5
+300 4
+# N1 = 200
+regular: 1
+regular: 2
+residuum: 0.0428352
+residuum: 0.000708458
+residuum: 4.57159e-06
+regular: 4
+residuum: 0.190751
+residuum: 0.0450693
+residuum: 0.0170046
+residuum: 0.00476423
+residuum: 0.00531106
+Warning: No convergence, residuum was 0.00531106!
+not regular: 8
+residuum: 0.0857474
+residuum: 0.00592042
+residuum: 0.000112207
+residuum: 3.32883e-06
+not regular: 6
+residuum: 0.0504616
+residuum: 0.0020314
+residuum: 9.70723e-06
+not regular: 5
+50 4
+residuum: 0.0424113
+residuum: 0.000528384
+residuum: 4.38737e-06
+regular: 4
+residuum: 0.211138
+residuum: 0.0443724
+residuum: 0.0180089
+residuum: 0.00580977
+residuum: 0.00570589
+residuum: 0.000421573
+residuum: 5.24984e-05
+residuum: 2.60535e-05
+residuum: 3.00568e-06
+not regular: 8
+residuum: 0.0904853
+residuum: 0.00703821
+residuum: 0.000108051
+residuum: 2.98726e-06
+not regular: 6
+residuum: 0.0596802
+residuum: 0.00164888
+residuum: 1.90302e-05
+residuum: 1.07977e-07
+not regular: 5
+100 4
+residuum: 0.0304356
+residuum: 0.000648467
+residuum: 2.64864e-06
+regular: 4
+residuum: 0.216582
+residuum: 0.0301232
+residuum: 0.0228896
+residuum: 0.00764436
+residuum: 0.00218683
+residuum: 0.000366424
+residuum: 2.75718e-05
+residuum: 1.39542e-05
+residuum: 1.69166e-06
+not regular: 8
+residuum: 0.105407
+residuum: 0.00414986
+residuum: 0.000107257
+residuum: 2.47954e-06
+not regular: 6
+residuum: 0.0441416
+residuum: 0.00169838
+residuum: 7.10697e-06
+not regular: 5
+150 4
+residuum: 0.0271262
+residuum: 0.000140546
+residuum: 1.5378e-07
+regular: 4
+residuum: 0.163518
+residuum: 0.0379107
+residuum: 0.0145821
+residuum: 0.00688195
+residuum: 0.00229737
+residuum: 9.11012e-05
+residuum: 6.09711e-05
+residuum: 2.63267e-06
+not regular: 8
+residuum: 0.060922
+residuum: 0.00167741
+residuum: 2.22046e-05
+residuum: 3.8896e-07
+not regular: 6
+residuum: 0.038024
+residuum: 0.000224086
+residuum: 2.17334e-06
+not regular: 5
+200 4
+residuum: 0.0387631
+residuum: 0.00050466
+residuum: 1.68738e-06
+regular: 4
+residuum: 0.161104
+residuum: 0.0342552
+residuum: 0.0171238
+residuum: 0.00454673
+residuum: 0.00147844
+residuum: 0.000218969
+residuum: 3.28093e-05
+residuum: 1.49058e-05
+residuum: 5.78697e-07
+not regular: 8
+residuum: 0.0993495
+residuum: 0.00640073
+residuum: 7.55956e-05
+residuum: 1.57744e-06
+not regular: 6
+residuum: 0.0542585
+residuum: 0.000734977
+residuum: 4.46605e-06
+not regular: 5
+250 4
+residuum: 0.0234315
+residuum: 8.90802e-05
+residuum: 1.11398e-07
+regular: 4
+residuum: 0.165513
+residuum: 0.0212563
+residuum: 0.000996468
+residuum: 6.27212e-05
+residuum: 4.40106e-06
+not regular: 8
+residuum: 0.0777625
+residuum: 0.00313644
+residuum: 6.17681e-05
+residuum: 1.50754e-06
+not regular: 6
+residuum: 0.0420352
+residuum: 0.000321785
+residuum: 3.77266e-06
+not regular: 5
+300 4
+# N1 = 250
+regular: 1
+regular: 2
+residuum: 0.0331748
+residuum: 0.00060814
+residuum: 4.36829e-06
+regular: 4
+residuum: 0.195146
+residuum: 0.0487047
+residuum: 0.0168449
+residuum: 0.00422694
+residuum: 0.00270733
+residuum: 0.000452063
+residuum: 6.05791e-05
+residuum: 2.57107e-05
+residuum: 5.30159e-06
+not regular: 8
+residuum: 0.0758393
+residuum: 0.00521142
+residuum: 9.32717e-05
+residuum: 2.73732e-06
+not regular: 6
+residuum: 0.0496889
+residuum: 0.00108442
+residuum: 1.65128e-05
+residuum: 1.44402e-07
+not regular: 5
+50 4
+residuum: 0.0328693
+residuum: 0.000493848
+residuum: 3.3024e-06
+regular: 4
+residuum: 0.184154
+residuum: 0.0482887
+residuum: 0.0140419
+residuum: 0.00482758
+residuum: 0.00471601
+residuum: 0.00038637
+residuum: 4.24245e-05
+residuum: 2.18467e-05
+residuum: 3.16756e-06
+not regular: 8
+residuum: 0.0949213
+residuum: 0.00644821
+residuum: 0.000116815
+residuum: 3.20193e-06
+not regular: 6
+residuum: 0.0760433
+residuum: 0.00167386
+residuum: 2.37624e-05
+residuum: 1.44105e-07
+not regular: 5
+100 4
+residuum: 0.0346861
+residuum: 0.000727662
+residuum: 2.06463e-06
+regular: 4
+residuum: 0.196456
+residuum: 0.0223354
+residuum: 0.00991737
+residuum: 0.00307761
+residuum: 0.00172141
+residuum: 0.000304858
+residuum: 2.39529e-05
+residuum: 1.24779e-05
+residuum: 1.26558e-06
+not regular: 8
+residuum: 0.0979151
+residuum: 0.00291896
+residuum: 8.94828e-05
+residuum: 2.31011e-06
+not regular: 6
+residuum: 0.056553
+residuum: 0.0011673
+residuum: 7.58933e-06
+not regular: 5
+150 4
+residuum: 0.0258689
+residuum: 0.000517046
+residuum: 8.29228e-07
+regular: 4
+residuum: 0.185087
+residuum: 0.0506317
+residuum: 0.0155495
+residuum: 0.00545689
+residuum: 0.00174585
+residuum: 0.000272755
+residuum: 3.91295e-05
+residuum: 1.46531e-05
+residuum: 1.01518e-06
+not regular: 8
+residuum: 0.101836
+residuum: 0.00647767
+residuum: 8.29303e-05
+residuum: 1.40588e-06
+not regular: 6
+residuum: 0.0608412
+residuum: 0.0013493
+residuum: 4.95319e-06
+not regular: 5
+200 4
+residuum: 0.016082
+residuum: 9.05818e-05
+residuum: 1.07657e-07
+regular: 4
+residuum: 0.154894
+residuum: 0.0258786
+residuum: 0.00998673
+residuum: 0.00577183
+residuum: 0.000912827
+residuum: 0.000188381
+residuum: 9.38349e-05
+residuum: 5.58233e-06
+not regular: 8
+residuum: 0.0677418
+residuum: 0.00161052
+residuum: 2.05473e-05
+residuum: 8.00516e-07
+not regular: 6
+residuum: 0.0349365
+residuum: 0.000297307
+residuum: 1.34819e-06
+not regular: 5
+250 4
+residuum: 0.0315255
+residuum: 0.000591664
+residuum: 1.90865e-06
+regular: 4
+residuum: 0.22226
+residuum: 0.0255169
+residuum: 0.00215697
+residuum: 0.000127094
+residuum: 6.85501e-06
+not regular: 8
+residuum: 0.100972
+residuum: 0.00940992
+residuum: 0.000177079
+residuum: 5.2132e-06
+not regular: 6
+residuum: 0.0507887
+residuum: 0.00192624
+residuum: 8.80903e-06
+not regular: 5
+300 4
+# N1 = 300
+regular: 1
+regular: 2
+residuum: 0.0301904
+residuum: 0.000624437
+residuum: 3.30296e-06
+regular: 4
+residuum: 0.177135
+residuum: 0.0484081
+residuum: 0.0102758
+residuum: 0.00457439
+residuum: 0.00421641
+residuum: 0.0362223
+Warning: No convergence, residuum was 0.0362223!
+not regular: 8
+residuum: 0.113269
+residuum: 0.00747548
+residuum: 0.000203933
+residuum: 8.8989e-06
+not regular: 6
+residuum: 0.0701964
+residuum: 0.00225545
+residuum: 4.52442e-05
+residuum: 3.5986e-07
+not regular: 5
+50 4
+residuum: 0.0430016
+residuum: 0.000554487
+residuum: 6.04325e-06
+regular: 4
+residuum: 0.228434
+residuum: 0.0219929
+residuum: 0.00196025
+residuum: 0.000184247
+residuum: 1.39644e-05
+residuum: 1.97889e-06
+not regular: 8
+residuum: 0.11091
+residuum: 0.00544202
+residuum: 0.000266539
+residuum: 1.05639e-05
+residuum: 2.76341e-07
+not regular: 6
+residuum: 0.0724942
+residuum: 0.00151797
+residuum: 3.76482e-05
+residuum: 3.51476e-07
+not regular: 5
+100 4
+residuum: 0.0419672
+residuum: 0.000578147
+residuum: 3.35593e-06
+regular: 4
+residuum: 0.203001
+residuum: 0.0215832
+residuum: 0.00174978
+residuum: 0.000154248
+residuum: 9.4144e-06
+not regular: 8
+residuum: 0.121023
+residuum: 0.0126511
+residuum: 0.00024116
+residuum: 8.5651e-06
+not regular: 6
+residuum: 0.0605126
+residuum: 0.00212429
+residuum: 1.31792e-05
+residuum: 2.4231e-07
+not regular: 5
+150 4
+residuum: 0.0299758
+residuum: 0.000141627
+residuum: 1.35866e-07
+regular: 4
+residuum: 0.152802
+residuum: 0.0136158
+residuum: 0.000876191
+residuum: 6.18271e-05
+residuum: 6.67955e-06
+not regular: 8
+residuum: 0.0807842
+residuum: 0.00290109
+residuum: 6.47215e-05
+residuum: 2.02425e-06
+not regular: 6
+residuum: 0.0470193
+residuum: 0.000464515
+residuum: 4.54513e-06
+not regular: 5
+200 4
+residuum: 0.0294916
+residuum: 0.000418031
+residuum: 1.62347e-06
+regular: 4
+residuum: 0.218894
+residuum: 0.034455
+residuum: 0.00184236
+residuum: 0.000168909
+residuum: 6.19024e-06
+not regular: 8
+residuum: 0.109088
+residuum: 0.00494295
+residuum: 0.000164853
+residuum: 5.16651e-06
+not regular: 6
+residuum: 0.0633576
+residuum: 0.00198532
+residuum: 9.23789e-06
+not regular: 5
+250 4
+residuum: 0.0261816
+residuum: 0.000133528
+residuum: 1.71169e-07
+regular: 4
+residuum: 0.15993
+residuum: 0.0118436
+residuum: 0.00168442
+residuum: 0.0195393
+Warning: No convergence, residuum was 0.0195393!
+not regular: 8
+residuum: 0.0888521
+residuum: 0.00300364
+residuum: 6.4131e-05
+residuum: 1.52269e-06
+regular: 6
+residuum: 0.0997993
+residuum: 0.00549298
+residuum: 0.000198673
+residuum: 8.69632e-06
+regular: 7
+300 7
+.test5.1 finished!

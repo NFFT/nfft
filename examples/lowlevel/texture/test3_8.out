@@ -1,0 +1,13 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 1)
+residuum: 1
+residuum: 0.104286
+residuum: 0.00658481
+residuum: 0.000672782
+residuum: 0.000138557
+residuum: 3.94153e-05
+residuum: 1.01976e-05
+residuum: 8.66031e-06
+.test3.8 finished!
