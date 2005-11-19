@@ -85,7 +85,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 		if (N <= 2) {
 			return 1;
 		} else {
-			texture_plan plan, test_plan;
+			texture_plan plan;				// , test_plan;
 			itexture_plan iplan;
 			complex *omega =
 				(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
@@ -127,7 +127,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 			init_omega(omega_ref, N, sol_par->omega_ref_policy);
 			texture_precompute(N);
 			texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
-			texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
+			// texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 			texture_trafo(&plan);
 			texture_set_omega(&plan, omega);
 
@@ -141,22 +141,24 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 
 			itexture_before_loop(&iplan);
 			{
-				double (*dist_arr[]) (const complex * vec, const complex * ref,
+				double (*res_dist_arr[]) (const complex * vec, const complex * ref,
+															unsigned int length) = {
+				l_2_rel_norm};
+				double (*err_dist_arr[]) (const complex * vec, const complex * ref,
 															unsigned int length) = {
 				l_2_rel_dist};
 				double (*err_dist) (const complex * vec, const complex * ref,
 														unsigned int length) =
-					dist_arr[it_par->err_fun_id];
+					err_dist_arr[it_par->err_fun_id];
 				double (*res_dist) (const complex * vec, const complex * ref,
 														unsigned int length) =
-					dist_arr[it_par->res_fun_id];
+					res_dist_arr[it_par->res_fun_id];
 				double old_res, new_res;
 
-				texture_set_omega(&test_plan, iplan.f_hat_iter);
-				texture_trafo(&test_plan);
+				/* texture_set_omega(&test_plan, iplan.f_hat_iter);
+				   texture_trafo(&test_plan); */
 				new_res =
-					res_dist(texture_get_x(&test_plan), iplan.y,
-									 texture_get_x_length(&test_plan));
+					res_dist(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
 
 				do {
 					int count;
@@ -166,13 +168,15 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 					}
 
 					old_res = new_res;
-					texture_set_omega(&test_plan, iplan.f_hat_iter);
-					texture_trafo(&test_plan);
+					/* texture_set_omega(&test_plan, iplan.f_hat_iter);
+					   texture_trafo(&test_plan); */
 					new_res =
-						res_dist(texture_get_x(&test_plan), iplan.y,
-										 texture_get_x_length(&test_plan));
+						res_dist(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
 #ifdef DEBUG_RESIDUUM
 					printf("residuum: %lg\n", new_res);
+					printf("error: %lg\n",
+								 err_dist(iplan.f_hat_iter, omega_ref,
+													texture_get_omega_length(&plan)));
 					fflush(0);
 #endif
 				} while (old_res > 0 && new_res > it_par->res_delta
@@ -196,7 +200,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 
 			itexture_finalize(&iplan);
 			texture_finalize(&plan);
-			texture_finalize(&test_plan);
+			// texture_finalize(&test_plan);
 			free(omega);
 			free(omega_ref);
 

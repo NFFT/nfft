@@ -419,7 +419,8 @@ void nfsft_test(const char *inp)
 					i++;
 				}
 			}
-			plan = nfsft_init_old(N, N1, f_hat, x, f, 0U);
+			plan =
+				nfsft_init_guru_old(N, N1, f_hat, x, f, 0U, TEXTURE_DEF_NFFT_CUTOFF);
 			nfsft_trafo_old(plan);
 
 			/* if(cabs(f_hat[m+N][l] - 1.0) > 1E-15) { printf("%sl=%d m=%d\n",
@@ -838,11 +839,14 @@ int main(int arglen, char *argv[])
 		// precompute_extreme_values_test(); //reveals a bug in nfsft
 
 		// texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_1.inp"); 
+		// 
 		// //reveals a bug in nfsft
 		// texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_2.inp"); 
+		// 
 		// //reveals a bug in nfsft
 		// texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_3.inp");
 		// texture_trafo_extreme_values_test("texture_trafo_extreme_values_test_4.inp"); 
+		// 
 		// //reveals a bug in nfsft
 
 		// simple_solver_test("simple_solver_moderate_test.inp");

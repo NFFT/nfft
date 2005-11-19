@@ -387,6 +387,18 @@ double l_2_rel_dist(const complex * vec, const complex * ref,
 	}
 }
 
+inline double l_2_rel_norm(const complex * vec, const complex * ref,
+													 unsigned int length)
+{
+	double dist = l_2_norm(vec, length);
+	double base = l_2_norm(ref, length);
+	if (base != 0.0 || dist != 0.0) {
+		return dist / base;
+	} else {
+		return 0.0;
+	}
+}
+
 void mult_error(int N1, int N2, complex * x, double min_err, double max_err)
 {
 	int i, j;

@@ -78,6 +78,9 @@ inline double l_2_rel_dist(const complex * vec, const complex * ref,
  */
 inline double l_2_norm(const complex * vec, unsigned int length);
 
+inline double l_2_rel_norm(const complex * vec, const complex * ref,
+													 unsigned int length);
+
 inline void *smart_calloc(size_t nmemb, size_t size);
 
 inline void *smart_malloc(size_t size);

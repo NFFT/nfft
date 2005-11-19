@@ -50,17 +50,28 @@ void read_properties(const char *propfile)
 	printf("#\n");
 }
 
+void update_test_omega(complex *omega, int N_total, itexture_plan *iplan)
+{
+	int i;
+	for (i = 0; i < N_total; i++) {
+		omega[i] = iplan->f_hat_iter[i];
+	}
+}
+
 void calculate_omega()
 {
 	itexture_plan iplan;
 	texture_plan plan, test_plan;
 	unsigned int iflags;
+	complex *test_omega;
 
 	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+	test_omega =
+		(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
-	texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
+	texture_init(&test_plan, N, N1, N2, test_omega, x, h_phi, h_theta, r);
 
 	iflags = solver_flags(prop.solver_algo, prop.weight_policy);
 
@@ -73,15 +84,20 @@ void calculate_omega()
 	itexture_before_loop(&iplan);
 	{
 		double new_res, old_res;
+//		double alt_res;
 
-		texture_set_omega(&test_plan, iplan.f_hat_iter);
+/*		update_test_omega(test_omega, texture_get_omega_length(&test_plan),
+											&iplan);
+		texture_set_omega(&test_plan, test_omega);
 		texture_trafo(&test_plan);
-		new_res =
+		alt_res =
 			l_2_rel_dist(texture_get_x(&test_plan), iplan.y,
-									 texture_get_x_length(&test_plan));
+									 texture_get_x_length(&test_plan));*/
+		new_res = l_2_rel_norm(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
 
 #ifdef DEBUG_RESIDUUM
-		fprintf(stderr, "residuum: %lg\n", new_res);
+		fprintf(stderr, "residuum:        %lg\n", new_res);
+//		fprintf(stderr, "rediduum (real): %lg\n", alt_res);
 		fflush(0);
 #endif
 
@@ -93,13 +109,17 @@ void calculate_omega()
 			}
 
 			old_res = new_res;
-			texture_set_omega(&test_plan, iplan.f_hat_iter);
+/*			update_test_omega(test_omega, texture_get_omega_length(&test_plan),
+												&iplan);
+			texture_set_omega(&test_plan, test_omega);
 			texture_trafo(&test_plan);
-			new_res =
+			alt_res =
 				l_2_rel_dist(texture_get_x(&test_plan), iplan.y,
-										 texture_get_x_length(&test_plan));
+										 texture_get_x_length(&test_plan));*/
+			new_res = l_2_rel_norm(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
 #ifdef DEBUG_RESIDUUM
-			fprintf(stderr, "residuum: %lg\n", new_res);
+			fprintf(stderr, "residuum:       %lg\n", new_res);
+//			fprintf(stderr, "rediduum (real): %lg\n", alt_res);
 			fflush(0);
 #endif
 		} while (old_res > 0 && new_res > prop.res_delta
@@ -120,6 +140,8 @@ void calculate_omega()
 		texture_finalize(&test_plan);
 	}
 
+
+	free(test_omega);
 	texture_forget();
 }
 
