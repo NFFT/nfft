@@ -1,0 +1,12 @@
+#!/bin/bash
+# test 1, run 1
+DATA_PATH="tmp"
+TEST_EXT=".test12"
+RUN_EXT=".1"
+EXT="$TEST_EXT$RUN_EXT"
+
+cd regularity
+./regularityTest test_cases$TEST_EXT \
+solver_parameters$TEST_EXT \
+iteration_parameters$TEST_EXT \
+&& echo "$EXT finished!"

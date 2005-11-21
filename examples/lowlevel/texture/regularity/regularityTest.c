@@ -85,7 +85,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 		if (N <= 2) {
 			return 1;
 		} else {
-			texture_plan plan;				// , test_plan;
+			texture_plan plan, test_plan;
 			itexture_plan iplan;
 			complex *omega =
 				(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
@@ -127,7 +127,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 			init_omega(omega_ref, N, sol_par->omega_ref_policy);
 			texture_precompute(N);
 			texture_init(&plan, N, N1, N2, omega_ref, x, h_phi, h_theta, r);
-			// texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
+			texture_init(&test_plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 			texture_trafo(&plan);
 			texture_set_omega(&plan, omega);
 
@@ -142,10 +142,10 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 			itexture_before_loop(&iplan);
 			{
 				double (*res_dist_arr[]) (const complex * vec, const complex * ref,
-															unsigned int length) = {
+																	unsigned int length) = {
 				l_2_rel_norm};
 				double (*err_dist_arr[]) (const complex * vec, const complex * ref,
-															unsigned int length) = {
+																	unsigned int length) = {
 				l_2_rel_dist};
 				double (*err_dist) (const complex * vec, const complex * ref,
 														unsigned int length) =
@@ -154,33 +154,48 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 														unsigned int length) =
 					res_dist_arr[it_par->res_fun_id];
 				double old_res, new_res;
+#ifdef DEBUG_TRUE_RESIDUUM
+				double true_res;
+#endif
+				int count = 0;
 
-				/* texture_set_omega(&test_plan, iplan.f_hat_iter);
-				   texture_trafo(&test_plan); */
 				new_res =
 					res_dist(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
+				old_res = new_res;
 
 				do {
-					int count;
-
-					for (count = 0; count < it_par->iterations_without_check; count++) {
-						itexture_loop_one_step(&iplan);
+					if (count % it_par->iterations_without_check == 0) {
+						old_res = new_res;
 					}
 
-					old_res = new_res;
-					/* texture_set_omega(&test_plan, iplan.f_hat_iter);
-					   texture_trafo(&test_plan); */
+					itexture_loop_one_step(&iplan);
+					count++;
+
 					new_res =
 						res_dist(iplan.r_iter, iplan.y, texture_get_x_length(&plan));
 #ifdef DEBUG_RESIDUUM
-					printf("residuum: %lg\n", new_res);
-					printf("error: %lg\n",
+					printf("residuum (%d): %lg\n", count, new_res);
+					printf("error (%d):    %lg\n", count,
 								 err_dist(iplan.f_hat_iter, omega_ref,
 													texture_get_omega_length(&plan)));
 					fflush(0);
 #endif
-				} while (old_res > 0 && new_res > it_par->res_delta
-								 && (old_res - new_res) / old_res >= it_par->min_improve);
+#ifdef DEBUG_TRUE_RESIDUUM
+					if (count % it_par->iterations_without_check == 0) {
+						texture_set_omega(&test_plan, iplan.f_hat_iter);
+						texture_trafo(&test_plan);
+						true_res =
+							err_dist(texture_get_x(&test_plan), iplan.y,
+											 texture_get_x_length(&test_plan));
+						fprintf(stderr, "residuum (true) (%d): %lg\n", count, true_res);
+						fflush(0);
+					}
+#endif
+				} while (new_res > it_par->res_delta
+								 && !(count % it_par->iterations_without_check == 0 &&
+											old_res > 0
+											&& (old_res - new_res) / old_res <
+											it_par->min_improve));
 
 #ifdef DEBUG_CONVERGENCE_QUALITY
 				if (new_res > it_par->res_delta) {
