@@ -1,0 +1,66 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 1)
+residuum:        1
+residuum:       2.51931
+residuum:       2.09364
+residuum:       3.70339
+residuum:       2.85963
+residuum:       4.40225
+residuum:       4.15835
+residuum:       3.19276
+residuum:       19.3214
+residuum:       3.20064
+residuum:       3.20558
+residuum:       4.11328
+residuum:       2.96432
+residuum:       7.45137
+residuum:       2.60239
+residuum:       1.46859
+residuum:       1.76751
+residuum:       1.80546
+residuum:       99.3968
+residuum:       11.8473
+residuum:       1.54593
+residuum:       3.2297
+residuum:       7.71411
+residuum:       1.73027
+residuum:       26.664
+residuum:       1.95444
+residuum:       8.24738
+residuum:       1.39431
+residuum:       1.18568
+residuum:       45.7369
+residuum:       4.71884
+residuum:       1.39735
+residuum:       1.53642
+residuum:       2.2145
+residuum:       1.55231
+residuum:       40.2147
+residuum:       6.76088
+residuum:       2.63898
+residuum:       1.18667
+residuum:       4.87804
+residuum:       1.30335
+residuum:       8.74919
+residuum:       1.00447
+residuum:       1.61861
+residuum:       2.40043
+residuum:       1.30949
+residuum:       30.683
+residuum:       0.941077
+residuum:       2.7989
+residuum:       0.916849
+residuum:       6.60441
+residuum:       5.49476
+residuum:       0.982099
+residuum:       1.55843
+residuum:       3.96262
+residuum:       1.46157
+residuum:       1.58374
+residuum:       13.6997
+residuum:       1.11161
+./test8_2: line 34: 17430 Done                    echo $N_TILDE
+     17431 Beendet                 | ./calculateOmega ../$DATA_PATH/x$EXT ../$DATA_PATH/grid_h$EXT ../$DATA_PATH/grid_r$EXT prop_om$TEST_EXT >../$DATA_PATH/omega2$EXT
+.test8.2 finished!
