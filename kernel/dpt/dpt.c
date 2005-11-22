@@ -756,33 +756,15 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   /* Compute the remaining steps. */
   plength = 4;
   for (tau = 1; tau < tk; tau++)
-  {    
-    /*for (k = 0; k < 2*Nk; k++)
-    {
-      fprintf(stdout,"temp[%d] = %le + I*%le\n",k,creal(set->work[k]),cimag(set->work[k]));
-    }
-    fprintf(stdout,"\n");*/   
-    
+  {     
     /* Compute first l. */
     firstl = FIRST_L(k_start_tilde,plength);
     /* Compute last l. */
     lastl = LAST_L(k_end_tilde,plength);
     
-    fprintf(stdout,"tau = %d, firstl = %d, lastl = %d\n",
-      tau,firstl,lastl);
-    
     /* Compute the multiplication steps. */
     for (l = firstl; l <= lastl; l++)
     {      
-      fprintf(stdout,"l = %d\n",
-        l);
-      for (k = 0; k < 2*plength; k++)
-      {
-        fprintf(stdout,"temp[%d] = %le + I*%le\n",(plength/2)*4*l+k,
-          creal(set->work[(plength/2)*4*l+k]),cimag(set->work[(plength/2)*4*l+k]));
-      }
-      fprintf(stdout,"\n");   
-
       /* Copy vectors to multiply into working arrays zero-padded to twice the length. */
       memcpy(set->vec3,&(set->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(complex));
       memcpy(set->vec4,&(set->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(complex));     
@@ -819,7 +801,6 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
       else
       {        
         /* Stabilize. */
-        fprintf(stdout,"stabilized: %d,%d,%d\n",k_start_tilde,tau,l);
 
         /* The lengh of the polynomials */
         plength_stab = 1<<tk;
