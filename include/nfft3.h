@@ -1371,7 +1371,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /** Default value for nfft_cutoff.
  * @see texture_init_advanced
  */
-#define TEXTURE_DEF_NFFT_CUTOFF 9
+#define TEXTURE_DEF_NFFT_CUTOFF 8
 
 /**
  * @}
