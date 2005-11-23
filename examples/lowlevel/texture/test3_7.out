@@ -2,33 +2,285 @@ grid: 0 (equidistant angles)
 omega_policy: 0 (flat)
 rounding error in [1, 1) * 100%
 alpha in [1, 1)
-residuum: 1
-residuum: 0.183871
-residuum: 0.0455312
-residuum: 0.0153726
-residuum: 0.00637837
-residuum: 0.00320873
-residuum: 0.0019349
-residuum: 0.0013943
-residuum: 0.0011874
-residuum: 0.00104244
-residuum: 0.000873486
-residuum: 0.000618053
-residuum: 0.000399615
-residuum: 0.000291235
-residuum: 0.000234654
-residuum: 0.000183031
-residuum: 0.000111697
-residuum: 7.64341e-05
-residuum: 4.79872e-05
-residuum: 3.06408e-05
-residuum: 2.41156e-05
-residuum: 2.08161e-05
-residuum: 2.00351e-05
-residuum: 1.87908e-05
-residuum: 1.7132e-05
-residuum: 1.54601e-05
-residuum: 1.5068e-05
-residuum: 1.49274e-05
-No convergence, residuum was 1.49274e-05!
+residuum (1):        0.880767
+residuum (2):        0.805762
+residuum (3):        0.634427
+residuum (4):        0.576079
+residuum (5):        0.508543
+residuum (6):        0.443947
+residuum (7):        0.365826
+residuum (8):        0.284645
+residuum (9):        0.226822
+residuum (10):        0.183871
+residuum (11):        0.148253
+residuum (12):        0.129729
+residuum (13):        0.10766
+residuum (14):        0.104464
+residuum (15):        0.090758
+residuum (16):        0.0775631
+residuum (17):        0.0651899
+residuum (18):        0.0547119
+residuum (19):        0.0472327
+residuum (20):        0.045501
+residuum (21):        0.0381863
+residuum (22):        0.034159
+residuum (23):        0.032673
+residuum (24):        0.029672
+residuum (25):        0.0269601
+residuum (26):        0.0263534
+residuum (27):        0.0234259
+residuum (28):        0.0201711
+residuum (29):        0.017711
+residuum (30):        0.0154014
+residuum (31):        0.014651
+residuum (32):        0.0130888
+residuum (33):        0.011441
+residuum (34):        0.0104929
+residuum (35):        0.00949747
+residuum (36):        0.00924788
+residuum (37):        0.00853538
+residuum (38):        0.0082204
+residuum (39):        0.00727316
+residuum (40):        0.00637869
+residuum (41):        0.00611751
+residuum (42):        0.00569007
+residuum (43):        0.00506898
+residuum (44):        0.00484372
+residuum (45):        0.00448944
+residuum (46):        0.0040462
+residuum (47):        0.00378859
+residuum (48):        0.00361196
+residuum (49):        0.00350065
+residuum (50):        0.00319653
+residuum (51):        0.00300625
+residuum (52):        0.00288326
+residuum (53):        0.00283397
+residuum (54):        0.00261819
+residuum (55):        0.002413
+residuum (56):        0.00236578
+residuum (57):        0.00220735
+residuum (58):        0.00209356
+residuum (59):        0.00202492
+residuum (60):        0.0019495
+residuum (61):        0.00193565
+residuum (62):        0.00189159
+residuum (63):        0.00179222
+residuum (64):        0.00168313
+residuum (65):        0.00160137
+residuum (66):        0.00152869
+residuum (67):        0.00149096
+residuum (68):        0.001463
+residuum (69):        0.00144932
+residuum (70):        0.00139449
+residuum (71):        0.00135898
+residuum (72):        0.00135537
+residuum (73):        0.00133182
+residuum (74):        0.00129614
+residuum (75):        0.00126661
+residuum (76):        0.00123934
+residuum (77):        0.00123136
+residuum (78):        0.00121206
+residuum (79):        0.00120384
+residuum (80):        0.00118741
+residuum (81):        0.00116285
+residuum (82):        0.00114251
+residuum (83):        0.00114115
+residuum (84):        0.00112514
+residuum (85):        0.00111809
+residuum (86):        0.0011078
+residuum (87):        0.00109153
+residuum (88):        0.00108242
+residuum (89):        0.0010649
+residuum (90):        0.00104269
+residuum (91):        0.00102691
+residuum (92):        0.00101386
+residuum (93):        0.000997299
+residuum (94):        0.000986907
+residuum (95):        0.000983786
+residuum (96):        0.000979726
+residuum (97):        0.000952108
+residuum (98):        0.00092899
+residuum (99):        0.000891468
+residuum (100):        0.000888019
+residuum (101):        0.000867658
+residuum (102):        0.000847682
+residuum (103):        0.0008283
+residuum (104):        0.00079882
+residuum (105):        0.000768467
+residuum (106):        0.000750536
+residuum (107):        0.000745868
+residuum (108):        0.000706502
+residuum (109):        0.000660309
+residuum (110):        0.000618491
+residuum (111):        0.000584396
+residuum (112):        0.000553226
+residuum (113):        0.000547495
+residuum (114):        0.000518057
+residuum (115):        0.000487698
+residuum (116):        0.000480982
+residuum (117):        0.00044712
+residuum (118):        0.000444674
+residuum (119):        0.000416365
+residuum (120):        0.000402331
+residuum (121):        0.000384058
+residuum (122):        0.000362714
+residuum (123):        0.000353339
+residuum (124):        0.000345895
+residuum (125):        0.000333708
+residuum (126):        0.000327378
+residuum (127):        0.00031368
+residuum (128):        0.000299878
+residuum (129):        0.000298893
+residuum (130):        0.000295211
+residuum (131):        0.000289161
+residuum (132):        0.000287289
+residuum (133):        0.000279556
+residuum (134):        0.000273955
+residuum (135):        0.000262901
+residuum (136):        0.000256171
+residuum (137):        0.00025081
+residuum (138):        0.00024321
+residuum (139):        0.000239722
+residuum (140):        0.00023253
+residuum (141):        0.000232033
+residuum (142):        0.000228641
+residuum (143):        0.000225231
+residuum (144):        0.000215718
+residuum (145):        0.000209435
+residuum (146):        0.000203123
+residuum (147):        0.000200777
+residuum (148):        0.000198024
+residuum (149):        0.00019398
+residuum (150):        0.000191298
+residuum (151):        0.000183381
+residuum (152):        0.00017525
+residuum (153):        0.000167934
+residuum (154):        0.000162668
+residuum (155):        0.000152792
+residuum (156):        0.000146863
+residuum (157):        0.000137575
+residuum (158):        0.000127427
+residuum (159):        0.000119759
+residuum (160):        0.000110874
+residuum (161):        0.000108714
+residuum (162):        0.000105702
+residuum (163):        0.000101163
+residuum (164):        9.7223e-05
+residuum (165):        9.47275e-05
+residuum (166):        8.88205e-05
+residuum (167):        8.76976e-05
+residuum (168):        8.37391e-05
+residuum (169):        7.93048e-05
+residuum (170):        7.75114e-05
+residuum (171):        7.34996e-05
+residuum (172):        7.0285e-05
+residuum (173):        6.80923e-05
+residuum (174):        6.44302e-05
+residuum (175):        6.23243e-05
+residuum (176):        6.21667e-05
+residuum (177):        5.85432e-05
+residuum (178):        5.58756e-05
+residuum (179):        5.34393e-05
+residuum (180):        5.12292e-05
+residuum (181):        4.77837e-05
+residuum (182):        4.36508e-05
+residuum (183):        4.24881e-05
+residuum (184):        3.96263e-05
+residuum (185):        3.87003e-05
+residuum (186):        3.72693e-05
+residuum (187):        3.63e-05
+residuum (188):        3.45079e-05
+residuum (189):        3.3323e-05
+residuum (190):        3.21457e-05
+residuum (191):        3.04301e-05
+residuum (192):        2.94399e-05
+residuum (193):        2.92065e-05
+residuum (194):        2.78265e-05
+residuum (195):        2.74483e-05
+residuum (196):        2.6294e-05
+residuum (197):        2.51028e-05
+residuum (198):        2.47517e-05
+residuum (199):        2.44716e-05
+residuum (200):        2.41073e-05
+residuum (201):        2.344e-05
+residuum (202):        2.32005e-05
+residuum (203):        2.26599e-05
+residuum (204):        2.22936e-05
+residuum (205):        2.19178e-05
+residuum (206):        2.16182e-05
+residuum (207):        2.13587e-05
+residuum (208):        2.12757e-05
+residuum (209):        2.11222e-05
+residuum (210):        2.10273e-05
+residuum (211):        2.08299e-05
+residuum (212):        2.07978e-05
+residuum (213):        2.07083e-05
+residuum (214):        2.04597e-05
+residuum (215):        2.04117e-05
+residuum (216):        2.03115e-05
+residuum (217):        2.01658e-05
+residuum (218):        2.00924e-05
+residuum (219):        2.00232e-05
+residuum (220):        1.98943e-05
+residuum (221):        1.98621e-05
+residuum (222):        1.98268e-05
+residuum (223):        1.97593e-05
+residuum (224):        1.9577e-05
+residuum (225):        1.94678e-05
+residuum (226):        1.93453e-05
+residuum (227):        1.91998e-05
+residuum (228):        1.91744e-05
+residuum (229):        1.90895e-05
+residuum (230):        1.87998e-05
+residuum (231):        1.86204e-05
+residuum (232):        1.85813e-05
+residuum (233):        1.83255e-05
+residuum (234):        1.80972e-05
+residuum (235):        1.79953e-05
+residuum (236):        1.78947e-05
+residuum (237):        1.77256e-05
+residuum (238):        1.75602e-05
+residuum (239):        1.73673e-05
+residuum (240):        1.71305e-05
+residuum (241):        1.67744e-05
+residuum (242):        1.65332e-05
+residuum (243):        1.65081e-05
+residuum (244):        1.64467e-05
+residuum (245):        1.62989e-05
+residuum (246):        1.6104e-05
+residuum (247):        1.59505e-05
+residuum (248):        1.56892e-05
+residuum (249):        1.55844e-05
+residuum (250):        1.54532e-05
+residuum (251):        1.54219e-05
+residuum (252):        1.53796e-05
+residuum (253):        1.53655e-05
+residuum (254):        1.52928e-05
+residuum (255):        1.52835e-05
+residuum (256):        1.52313e-05
+residuum (257):        1.51836e-05
+residuum (258):        1.51218e-05
+residuum (259):        1.51112e-05
+residuum (260):        1.51066e-05
+residuum (261):        1.50748e-05
+residuum (262):        1.50359e-05
+residuum (263):        1.50135e-05
+residuum (264):        1.49961e-05
+residuum (265):        1.49861e-05
+residuum (266):        1.4983e-05
+residuum (267):        1.49693e-05
+residuum (268):        1.49496e-05
+residuum (269):        1.49372e-05
+residuum (270):        1.49253e-05
+residuum (271):        1.49237e-05
+residuum (272):        1.49214e-05
+residuum (273):        1.49164e-05
+residuum (274):        1.49101e-05
+residuum (275):        1.4908e-05
+residuum (276):        1.49059e-05
+residuum (277):        1.49018e-05
+residuum (278):        1.49011e-05
+residuum (279):        1.48993e-05
+residuum (280):        1.48967e-05
+No convergence, residuum was 1.48967e-05!
 .test3.7 finished!

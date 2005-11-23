@@ -1,0 +1,66 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 4)
+residuum (1):        0.879804
+residuum (2):        0.742539
+residuum (3):        0.593033
+residuum (4):        0.501277
+residuum (5):        0.440387
+residuum (6):        0.388159
+residuum (7):        0.367935
+residuum (8):        0.343129
+residuum (9):        0.330825
+residuum (10):        0.326607
+residuum (11):        0.322356
+residuum (12):        0.318558
+residuum (13):        0.317257
+residuum (14):        0.316286
+residuum (15):        0.313278
+residuum (16):        0.309173
+residuum (17):        0.303441
+residuum (18):        0.298521
+residuum (19):        0.296611
+residuum (20):        0.294551
+residuum (21):        0.293237
+residuum (22):        0.292044
+residuum (23):        0.290881
+residuum (24):        0.290655
+residuum (25):        0.289816
+residuum (26):        0.288443
+residuum (27):        0.287393
+residuum (28):        0.286805
+residuum (29):        0.28512
+residuum (30):        0.284214
+residuum (31):        0.283411
+residuum (32):        0.282743
+residuum (33):        0.28234
+residuum (34):        0.281701
+residuum (35):        0.281611
+residuum (36):        0.280864
+residuum (37):        0.280075
+residuum (38):        0.2799
+residuum (39):        0.279293
+residuum (40):        0.278645
+residuum (41):        0.278341
+residuum (42):        0.278089
+residuum (43):        0.277634
+residuum (44):        0.277393
+residuum (45):        0.27733
+residuum (46):        0.277044
+residuum (47):        0.276541
+residuum (48):        0.276163
+residuum (49):        0.276061
+residuum (50):        0.275707
+residuum (51):        0.275352
+residuum (52):        0.274943
+residuum (53):        0.274681
+residuum (54):        0.274572
+residuum (55):        0.274517
+residuum (56):        0.274451
+residuum (57):        0.274332
+residuum (58):        0.274102
+residuum (59):        0.273945
+residuum (60):        0.273636
+No convergence, residuum was 0.273636!
+.test9.7 finished!

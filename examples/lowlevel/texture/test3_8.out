@@ -2,12 +2,95 @@ grid: 0 (equidistant angles)
 omega_policy: 0 (flat)
 rounding error in [1, 1) * 100%
 alpha in [1, 1)
-residuum: 1
-residuum: 0.104286
-residuum: 0.00658481
-residuum: 0.000672782
-residuum: 0.000138557
-residuum: 3.94153e-05
-residuum: 1.01976e-05
-residuum: 8.66031e-06
+residuum (1):        0.857128
+residuum (2):        0.750646
+residuum (3):        0.599768
+residuum (4):        0.548543
+residuum (5):        0.48746
+residuum (6):        0.393326
+residuum (7):        0.252775
+residuum (8):        0.188853
+residuum (9):        0.143393
+residuum (10):        0.104286
+residuum (11):        0.0738541
+residuum (12):        0.0575659
+residuum (13):        0.0388025
+residuum (14):        0.0282536
+residuum (15):        0.0203813
+residuum (16):        0.0194996
+residuum (17):        0.0137067
+residuum (18):        0.00949837
+residuum (19):        0.00904399
+residuum (20):        0.00658544
+residuum (21):        0.00529765
+residuum (22):        0.00494699
+residuum (23):        0.00350465
+residuum (24):        0.00257131
+residuum (25):        0.00196082
+residuum (26):        0.00155632
+residuum (27):        0.00124761
+residuum (28):        0.000967837
+residuum (29):        0.000820586
+residuum (30):        0.000673312
+residuum (31):        0.000570393
+residuum (32):        0.000516373
+residuum (33):        0.000383104
+residuum (34):        0.000316299
+residuum (35):        0.000307888
+residuum (36):        0.000239354
+residuum (37):        0.000199521
+residuum (38):        0.000193768
+residuum (39):        0.000160328
+residuum (40):        0.000138557
+residuum (41):        0.000117991
+residuum (42):        0.000102298
+residuum (43):        0.000100854
+residuum (44):        9.10997e-05
+residuum (45):        7.86305e-05
+residuum (46):        6.90423e-05
+residuum (47):        6.26197e-05
+residuum (48):        5.13971e-05
+residuum (49):        3.9963e-05
+residuum (50):        3.59307e-05
+residuum (51):        3.16342e-05
+residuum (52):        2.30775e-05
+residuum (53):        1.95103e-05
+residuum (54):        1.87032e-05
+residuum (55):        1.7031e-05
+residuum (56):        1.48035e-05
+residuum (57):        1.35432e-05
+residuum (58):        1.30281e-05
+residuum (59):        1.17006e-05
+residuum (60):        1.02014e-05
+residuum (61):        9.76518e-06
+residuum (62):        9.27301e-06
+residuum (63):        9.08547e-06
+residuum (64):        8.97867e-06
+residuum (65):        8.87639e-06
+residuum (66):        8.86196e-06
+residuum (67):        8.78191e-06
+residuum (68):        8.71364e-06
+residuum (69):        8.68381e-06
+residuum (70):        8.66097e-06
+residuum (71):        8.62562e-06
+residuum (72):        8.6122e-06
+residuum (73):        8.58832e-06
+residuum (74):        8.56616e-06
+residuum (75):        8.53882e-06
+residuum (76):        8.52439e-06
+residuum (77):        8.51582e-06
+residuum (78):        8.51257e-06
+residuum (79):        8.50899e-06
+residuum (80):        8.50645e-06
+residuum (81):        8.50616e-06
+residuum (82):        8.50505e-06
+residuum (83):        8.50477e-06
+residuum (84):        8.50431e-06
+residuum (85):        8.50379e-06
+residuum (86):        8.50332e-06
+residuum (87):        8.50322e-06
+residuum (88):        8.50319e-06
+residuum (89):        8.50308e-06
+residuum (90):        8.50305e-06
+No convergence, residuum was 8.50305e-06!
 .test3.8 finished!

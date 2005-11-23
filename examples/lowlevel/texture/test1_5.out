@@ -2,14 +2,105 @@ grid: 0 (equidistant angles)
 omega_policy: 0 (flat)
 rounding error in [1, 1) * 100%
 alpha in [1, 1)
-residuum: 1
-residuum: 0.841157
-residuum: 0.408178
-residuum: 0.142743
-residuum: 0.0928629
-residuum: 0.0636437
-residuum: 0.0496179
-residuum: 0.0275889
-residuum: 0.031357
-No convergence, residuum was 0.031357!
+residuum (1):        2.68112
+residuum (2):        2.31671
+residuum (3):        1.84067
+residuum (4):        1.53557
+residuum (5):        1.48354
+residuum (6):        1.22002
+residuum (7):        1.09765
+residuum (8):        0.971714
+residuum (9):        0.885222
+residuum (10):        0.841157
+residuum (11):        0.675871
+residuum (12):        0.555525
+residuum (13):        0.727785
+residuum (14):        0.827186
+residuum (15):        0.431479
+residuum (16):        0.427272
+residuum (17):        0.353219
+residuum (18):        0.34292
+residuum (19):        0.405231
+residuum (20):        0.415804
+residuum (21):        0.578942
+residuum (22):        0.253133
+residuum (23):        0.260054
+residuum (24):        0.741916
+residuum (25):        0.228368
+residuum (26):        0.201849
+residuum (27):        0.190363
+residuum (28):        0.365632
+residuum (29):        0.17397
+residuum (30):        0.142746
+residuum (31):        0.170283
+residuum (32):        0.133469
+residuum (33):        0.120372
+residuum (34):        0.533106
+residuum (35):        0.169128
+residuum (36):        0.12038
+residuum (37):        0.188721
+residuum (38):        0.102622
+residuum (39):        0.0895699
+residuum (40):        0.109168
+residuum (41):        0.113136
+residuum (42):        0.0969332
+residuum (43):        0.073185
+residuum (44):        0.101927
+residuum (45):        0.18657
+residuum (46):        0.0844589
+residuum (47):        0.0645759
+residuum (48):        0.0645473
+residuum (49):        0.105375
+residuum (50):        0.0707156
+residuum (51):        0.0550171
+residuum (52):        0.0730297
+residuum (53):        0.064622
+residuum (54):        0.0992224
+residuum (55):        0.0480517
+residuum (56):        0.195544
+residuum (57):        0.0518781
+residuum (58):        0.0398747
+residuum (59):        0.0517367
+residuum (60):        0.0421695
+residuum (61):        0.0333159
+residuum (62):        0.0337993
+residuum (63):        0.0602542
+residuum (64):        0.0428962
+residuum (65):        0.0347425
+residuum (66):        0.0860928
+residuum (67):        0.0303907
+residuum (68):        0.0352379
+residuum (69):        0.0366863
+residuum (70):        0.0297981
+residuum (71):        0.0388396
+residuum (72):        0.0271917
+residuum (73):        0.0220984
+residuum (74):        0.0203868
+residuum (75):        0.0396883
+residuum (76):        0.074954
+residuum (77):        0.0244079
+residuum (78):        0.0224672
+residuum (79):        0.0312882
+residuum (80):        0.0239317
+residuum (81):        0.0289121
+residuum (82):        0.0181551
+residuum (83):        0.0171791
+residuum (84):        0.0261461
+residuum (85):        0.0341243
+residuum (86):        0.0342805
+residuum (87):        0.0263611
+residuum (88):        0.0188731
+residuum (89):        0.0286015
+residuum (90):        0.0168943
+residuum (91):        0.0224434
+residuum (92):        0.0187287
+residuum (93):        0.0300982
+residuum (94):        0.0161647
+residuum (95):        0.0184938
+residuum (96):        0.0162403
+residuum (97):        0.0641446
+residuum (98):        0.0192169
+residuum (99):        0.0146911
+residuum (100):        0.021592
+No convergence, residuum was 0.021592!
 .test1.5 finished!

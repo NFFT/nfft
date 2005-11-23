@@ -1,0 +1,66 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 4)
+residuum (1):        0.879804
+residuum (2):        0.742539
+residuum (3):        0.593033
+residuum (4):        0.501277
+residuum (5):        0.440387
+residuum (6):        0.388159
+residuum (7):        0.367935
+residuum (8):        0.343129
+residuum (9):        0.330825
+residuum (10):        0.326607
+residuum (11):        0.322356
+residuum (12):        0.318557
+residuum (13):        0.316635
+residuum (14):        0.316275
+residuum (15):        0.313278
+residuum (16):        0.309173
+residuum (17):        0.303441
+residuum (18):        0.298521
+residuum (19):        0.296611
+residuum (20):        0.29455
+residuum (21):        0.293083
+residuum (22):        0.292044
+residuum (23):        0.290879
+residuum (24):        0.289896
+residuum (25):        0.289813
+residuum (26):        0.288442
+residuum (27):        0.287035
+residuum (28):        0.286692
+residuum (29):        0.285119
+residuum (30):        0.284213
+residuum (31):        0.283397
+residuum (32):        0.282467
+residuum (33):        0.282266
+residuum (34):        0.281627
+residuum (35):        0.281382
+residuum (36):        0.280864
+residuum (37):        0.280077
+residuum (38):        0.279938
+residuum (39):        0.279299
+residuum (40):        0.278866
+residuum (41):        0.278496
+residuum (42):        0.278119
+residuum (43):        0.277633
+residuum (44):        0.277342
+residuum (45):        0.277054
+residuum (46):        0.277027
+residuum (47):        0.276541
+residuum (48):        0.27612
+residuum (49):        0.276033
+residuum (50):        0.275707
+residuum (51):        0.275353
+residuum (52):        0.274968
+residuum (53):        0.274869
+residuum (54):        0.274623
+residuum (55):        0.274543
+residuum (56):        0.274344
+residuum (57):        0.274332
+residuum (58):        0.274005
+residuum (59):        0.273924
+residuum (60):        0.273662
+No convergence, residuum was 0.273662!
+.test9.7 finished!

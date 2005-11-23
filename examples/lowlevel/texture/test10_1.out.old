@@ -1,0 +1,16 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 4)
+residuum (1):        1.8788
+residuum (2):        1.36984
+residuum (3):        0.984632
+residuum (4):        0.857726
+residuum (5):        0.74639
+residuum (6):        1.11306
+residuum (7):        0.941463
+residuum (8):        1.3237
+residuum (9):        2.1559
+residuum (10):        2.81419
+No convergence, residuum was 2.81419!
+.test10.1 finished!
