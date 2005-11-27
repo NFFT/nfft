@@ -47,7 +47,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
   nfsft_init_guru(plan, N, M, flags, NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
-void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int flags, 
+void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags, 
                      int nfft_cutoff)
 {
   /** Array for NFFT sizes */
@@ -232,7 +232,7 @@ void nfsft_forget()
   wisdom.initialized = false;
 }
                      
-void nfsft_finalize(nfsft_plan* plan)
+void nfsft_finalize(nfsft_plan *plan)
 {
   nfft_finalize(&plan->plan_nfft);
   
@@ -255,7 +255,7 @@ void nfsft_finalize(nfsft_plan* plan)
   }  
 }
 
-void ndsft_trafo(nfsft_plan* plan)
+void ndsft_trafo(nfsft_plan *plan)
 {
   /** Node index */
   int m;
@@ -398,7 +398,7 @@ void ndsft_trafo(nfsft_plan* plan)
   free(temp);
 }
 
-void ndsft_adjoint(nfsft_plan* plan)
+void ndsft_adjoint(nfsft_plan *plan)
 { 
   /** Node index */
   int m;
@@ -522,7 +522,7 @@ void ndsft_adjoint(nfsft_plan* plan)
   free(temp);
 }
 
-void nfsft_trafo(nfsft_plan* plan)
+void nfsft_trafo(nfsft_plan *plan)
 {
   /** Counter for loops */
   int k,n;
@@ -585,6 +585,6 @@ void nfsft_trafo(nfsft_plan* plan)
   } 
 }
 
-void nfsft_adjoint(nfsft_plan* plan)
+void nfsft_adjoint(nfsft_plan *plan)
 {
 }
