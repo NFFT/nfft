@@ -162,11 +162,12 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
 
   c = ths->x[j*ths->d+act_dim] * ths->n[act_dim];
   u = c; o = c;
+
   if(c < 0)                  
     u = u-1;                  
   else
     o = o+1;
-  
+
   u = u - (ths->m); o = o + (ths->m);
 
   up[0]=u; op[0]=o;
@@ -328,6 +329,7 @@ MACRO_nfft_D(T)
       y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])            \
 	  * ((double)ths->K))/(ths->m+1));                                    \
       y_u[t2] = (int)floor(y[t2]);                                            \
+      if(y_u[t2]>=ths->K) { printf("%d>K=%d\n",y_u[t2],ths->K); exit(-1);}\
     } /* for(t2) */                                                           \
 }
 
@@ -370,6 +372,9 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   double fg_exp_l[ths->d][2*ths->m+2];                                        \
   int l_fg,lj_fg,u_fg,o_fg;                                                   \
   double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3, tmp4;                 \
+  double ip_w;                                                                \
+  int ip_u;                                                                   \
+  int ip_s=ths->K/(ths->m+1);                                                 \
                                                                               \
   f=ths->f; g=ths->g;                                                         \
                                                                               \
@@ -498,7 +503,7 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
       return;                                                                 \
     } /* if(FG_PSI) */                                                        \
                                                                               \
-  if(ths->nfft_flags & PRE_LIN_PSI)                                           \
+if(0)/*ths->nfft_flags & PRE_LIN_PSI)*/\
     {                                                                         \
       for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
 	{                                                                     \
@@ -509,6 +514,39 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
               MACRO_update_with_PRE_PSI_LIN;                                  \
                                                                               \
               MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);               \
+                                                                              \
+	      MACRO_nfft_B_compute_ ## which_one;                             \
+		                                                              \
+	      MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+	} /* for(j) */                                                        \
+      return;                                                                 \
+} /* if(PRE_LIN_PSI) */                                                         /*     OLD-----------*/ \
+                                                                              \
+if(ths->nfft_flags & PRE_LIN_PSI)\
+    {                                                                         \
+      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
+	{                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+          for(t2=0; t2<ths->d; t2++)                                          \
+            {                                                                 \
+              y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-                       \
+                          (double)u[t2]) * ((double)ths->K))/(ths->m+1);      \
+              ip_u  = (int)floor(y[t2]);                                      \
+              ip_w  = y[t2]-ip_u;                                             \
+              for(l_fg=u[t2], lj_fg=0; l_fg <= o[t2]; l_fg++, lj_fg++)        \
+                {                                                             \
+                  fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2+abs(ip_u-lj_fg*ip_s)]*         \
+                                       (1-ip_w) +                                           \
+                                      ths->psi[(ths->K+1)*t2+abs(ip_u-lj_fg*ip_s+1)]*       \
+                                       (ip_w);                                              \
+              }                                                               \
+            }                                                                 \
+                                                                              \
+	  for(l_L=0; l_L<lprod; l_L++)                                        \
+	    {                                                                 \
+              MACRO_update_phi_prod_ll_plain(with_FG_PSI);                    \
                                                                               \
 	      MACRO_nfft_B_compute_ ## which_one;                             \
 		                                                              \
@@ -557,9 +595,9 @@ void nfft_trafo(nfft_plan *ths)
    *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
    *  \text{ for } l \in I_n \f$
    */
-  TIC(1)
+  TIC_FFTW(1)
   fftw_execute(ths->my_fftw_plan1);
-  TOC(1)
+  TOC_FFTW(1)
 
   /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
    *  \text{ for } j=0,\hdots,M_total-1 \f$
@@ -586,9 +624,9 @@ void nfft_adjoint(nfft_plan *ths)
    *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{+2\pi {\rm i} \frac{kl}{n}}
    *  \text{ for }  k \in I_N\f$
    */
-  TIC(1)
+  TIC_FFTW(1)
   fftw_execute(ths->my_fftw_plan2);
-  TOC(1)
+  TOC_FFTW(1)
  
   /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
    *  k \in I_N \f$
@@ -758,7 +796,7 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=50000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+      ths->K=(1U<< 10)*(ths->m+1); /* estimate is badly needed, multiple of m+1 for equal interpolation weights !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
