@@ -58,7 +58,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
   for(j=0; j<p.d*p.M_total; j++)
@@ -148,6 +148,8 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
          p_pre_fg_psi.MEASURE_TIME_t[2],
          p_pre_psi.MEASURE_TIME_t[2],
          p_pre_full_psi.MEASURE_TIME_t[2]);
+
+  fflush(stdout);
 
   /** finalise */
   if(test_pre_full_psi)
