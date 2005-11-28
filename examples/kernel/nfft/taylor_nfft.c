@@ -41,7 +41,7 @@ void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
   nfft_init_guru((nfft_plan*)ths, 1, &N, M, &n, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_MEASURE| FFTW_PRESERVE_INPUT);
+		 FFTW_ESTIMATE| FFTW_PRESERVE_INPUT);
 
   ths->idx0=(int*)fftw_malloc(M*sizeof(int));
   ths->deltax0=(double*)fftw_malloc(M*sizeof(double));
@@ -155,7 +155,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 {
   int j,k,r;
 
-  double t_ndft, t_nfft, t_taylor, t, tc;
+  double t_ndft, t_nfft, t_taylor, t;
   complex *swapndft;
 
   taylor_plan tp;
@@ -166,9 +166,9 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   taylor_init(&tp,N,M,n_taylor,m_taylor);
 
   nfft_init_guru(&np, 1, &N, M, &n, m,
-                 PRE_PHI_HUT| FG_PSI|
+                 PRE_PHI_HUT| PRE_FG_PSI|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** share nodes, input, and output vectors */
   np.x=tp.p.x;
@@ -181,7 +181,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
   /** init pseudo random nodes */
   for(j=0;j<np.M_total;j++)
-    np.x[j]=((double)rand())/RAND_MAX-0.5;
+    np.x[j]=drand48()-0.5;
 
   /** nfft precomputation */
   taylor_precompute(&tp);
@@ -192,7 +192,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
   /** init pseudo random Fourier coefficients */
   for(k=0;k<np.N_total;k++)
-    np.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
+    np.f_hat[k] = drand48() + I* drand48();
 
   /** NDFT */
   if(test_accuracy)
@@ -230,7 +230,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     }
   t_nfft/=r;
 
-  printf("%.1f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
+  printf("%.2f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
 
   if(test_accuracy)
     printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
@@ -240,7 +240,6 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   /** TAYLOR NFFT */
   t_taylor=0;
   r=0;
-tc=second();
   while(t_taylor<0.01)
     {
       r++;
@@ -249,12 +248,10 @@ tc=second();
       t=second()-t;
       t_taylor+=t;
     }
-tc=second()-tc;
-tc/=r;
   t_taylor/=r;
 
 
-  printf("%.1f\t%d\t%.2e\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor,tc);
+  printf("%.2f\t%d\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor);
 
   if(test_accuracy)
     printf("%.2e\n",error_l_infty_complex(swapndft, np.f, np.M_total));
@@ -271,32 +268,46 @@ tc/=r;
   taylor_finalize(&tp);
 }
 
-int main()
+int main(int argc,char **argv)
 {
-  int l,m;
+  int l,m,trial,sigma;
+  int N=(1U<< 10);
 
-  for(l=4;l<15;l++)
-    taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 5, (1U<< (l+3)), 5, 1);
-  for(l=15;l<20;l++)
-    taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 5, (1U<< (l+3)), 5, 0);
+  if(argc<=2)
+    {
+      fprintf(stderr,"taylor_nfft type first last trials sigma_nfft sigma_taylor.\n");
+      return -1;
+    }
+  
+  fprintf(stderr,"Testing the Nfft & a Taylor expansion based version.\n\n");
+  fprintf(stderr,"Columns: N, M, t_ndft, sigma_nfft, m_nfft, t_nfft, e_nfft");
+  fprintf(stderr,", sigma_taylor, m_taylor, t_taylor, e_taylor\n");
 
+  /* time vs. N=M */
+  if(atoi(argv[1])==0)
+    {
+      fprintf(stderr,"Fixed target accuracy, timings.\n\n");
+      for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
+        for(trial=0; trial<atoi(argv[4]); trial++)
+          if(l<15)
+            taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
+                                 (1U<< l)), 5, (int)(atof(argv[6])*(1U<< l)),
+                                 5, 1);
+          else
+            taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
+                                 (1U<< l)), 5, (int)(atof(argv[6])*(1U<< l)),
+                                 5, 0);
+    }
 
-printf("polynomial degree N,\nnumber of nodes M,\nnfft oversampling factor sigma,\nnfft truncation parameter m,\n");
-printf("taylor nfft oversampling factor D,\ntaylor nfft truncation parameter L,\nerrors e=|F-F_approx|_infty/|f|_1, and\ntimes t in sec.\n\n"); 
-
-printf("N\tM\tsigma\tm\tD\tL\te_nfft\t\te_taylornfft\tt_ndft\t\tt_nfft\t\tt_taylornfft\n");
-
-
-/*  for(m=0;m<20;m++)
-    taylor_time_accuracy((1U<< 12), (1U<< 12), (1U<< (14)), m, (1U<< (15)), m, 1);
-*/
-printf("\n");
-
-  for(l=4;l<20;l++)
-    if(l<13)
-      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 4, (1U<< (l+3)), 5, 1);
-    else
-      taylor_time_accuracy((1U<< l), (1U<< l), (1U<< (l+2)), 4, (1U<< (l+3)), 5, 0);
+  /* error vs. m */
+  if(atoi(argv[1])==1)
+    {
+      fprintf(stderr,"Fixed N=M=%d, error vs. m.\n\n",N);
+      for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
+        for(trial=0; trial<atoi(argv[4]); trial++)
+          taylor_time_accuracy(N,N, (int)(atof(argv[5])*N), m,
+                                    (int)(atof(argv[6])*N), m, 1);
+    }
 
   return 1;
 }

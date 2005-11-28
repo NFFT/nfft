@@ -67,7 +67,7 @@ void simple_test_nfft_2d()
   /** init an one dimensional plan */
   //nfft_init_2d(&my_plan,12,12,19);
   nfft_init_guru(&my_plan, 2, N, 19, n, 4,
-		 PRE_PHI_HUT| PRE_FG_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+		 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT, FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
