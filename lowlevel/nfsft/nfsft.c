@@ -69,24 +69,24 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+1)(2NPT) */
-  plan->N_total = (2*plan->N+1)*(2*plan->NPT+1);
+  plan->N_total = (2*plan->N+1)*(2*plan->N+1);
   
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (complex*) malloc(plan->N_total*sizeof(complex));
+    plan->f_hat = (complex*) calloc(plan->N_total,sizeof(complex));
   }
   
   /* Allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
-    plan->f = (complex*) malloc(plan->M_total*sizeof(complex));
+    plan->f = (complex*) calloc(plan->M_total,sizeof(complex));
   }
   
   /* Allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
-    plan->x = (double*) malloc(2*plan->M_total*sizeof(double));
+    plan->x = (double*) calloc(2*plan->M_total,sizeof(double));
   }
   
   /* Check if fast algorithm is activated. */
@@ -100,10 +100,10 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
     fftw_size = (int*) malloc(2*sizeof(int));
     
     /** TODO Check NFFT and FFTW sizes. */
-    nfft_size[0] = 2*(plan->NPT+1);
-    nfft_size[1] = 2*(plan->NPT+1);
-    fftw_size[0] = 4*plan->NPT;
-    fftw_size[1] = 4*plan->NPT;
+    nfft_size[0] = 2*plan->N+1;
+    nfft_size[1] = 2*plan->N+1;
+    fftw_size[0] = 4*plan->N;
+    fftw_size[1] = 4*plan->N;
     /** \todo Check NFFT flags. */
     nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size, 
                        nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
@@ -167,7 +167,11 @@ void nfsft_precompute(int N, double kappa,
     gamma_al_all(wisdom.gamma,wisdom.N_MAX);
   }
   
-  /* Check, if precomputation for direct algorithms needs to be performed. */    
+  /* Check, if precomputation for direct algorithms needs to be performed. */ 
+  /*fprintf(stdout,"wisdom.flags & NFSFT_NO_FAST_ALGORITHM = %d\n",
+    wisdom.flags & NFSFT_NO_FAST_ALGORITHM);   
+  fprintf(stdout,"wisdom.N_MAX = %d\n",wisdom.N_MAX);
+  fprintf(stdout,"NFSFT_BREAKTHROUGH = %d\n",NFSFT_BREAKTHROUGH);*/
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
@@ -183,10 +187,8 @@ void nfsft_precompute(int N, double kappa,
       wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,DPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
-        alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
-        beta_al_row(wisdom.beta,wisdom.N_MAX,n);
-        gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
-        dpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
+        dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
+          &wisdom.gamma[ROW(n)],n,kappa);
       } 
     }
     else
@@ -196,8 +198,11 @@ void nfsft_precompute(int N, double kappa,
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*sizeof(double));
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
-        dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
-          &wisdom.gamma[ROW(n)],n,kappa);
+        //fprintf(stdout,"DPT precomputation: n = %d\n",n);
+        alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
+        beta_al_row(wisdom.beta,wisdom.N_MAX,n);
+        gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
+        dpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
       } 
       free(wisdom.alpha);
       free(wisdom.beta);
@@ -265,6 +270,7 @@ void ndsft_trafo(nfsft_plan *plan)
   int n;
   /** n_abs = |n| */
   int n_abs;
+  int j;
   
   /**
    * Pointer to current three-term recurrence coefficient \f$\alpha_k^n\f$
@@ -303,19 +309,19 @@ void ndsft_trafo(nfsft_plan *plan)
     {
       for (n = -k; n <= k; n++)
       {
-        plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+        plan->f_hat[NFSFT_INDEX(k,n,plan->N)] *= 
           sqrt((2*k+1)/(4.0*PI));
       }
     }
   }
    
-   /* Distinguish by bandwidth M. */
+  /* Distinguish by bandwidth M. */
   if (plan->N == 0)
   {
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
-      plan->f[m] = plan->f_hat[plan->NPT+0];
+      plan->f[m] = plan->f_hat[NFSFT_INDEX(0,0,plan->N)];
     }
   }
   else
@@ -352,20 +358,18 @@ void ndsft_trafo(nfsft_plan *plan)
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Get Fourier coefficients vector. */
-        a = &(plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT]);
+        a = &(plan->f_hat[NFSFT_INDEX(0,n,plan->N)]);
         
         /* Take absolute value of n. */
         n_abs = abs(n);
         
         /* Get three-term recurrence coefficients vectors. */
-        //alpha = wisdom.alpha + plan->N - n_abs;
-        //gamma = wisdom.gamma + plan->N - n_abs;
         alpha = &(wisdom.alpha[ROWK(n_abs)]);
         gamma = &(wisdom.gamma[ROWK(n_abs)]);
          
         /* Make copy of array a. */ 
         memcpy(temp,a,(plan->N+1)*sizeof(complex));
-        
+                
         /* Clenshaw's algorithm */        
         for (k = plan->N; k > n_abs + 1; k--)
         {
@@ -373,14 +377,13 @@ void ndsft_trafo(nfsft_plan *plan)
           temp[k-1] += temp[k] * alpha[index] * theta[m]; 
           temp[k-2] += temp[k] * gamma[index];
         }
-        //fprintf(stdout,"\n");
         
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)
         {  
           temp[0+n_abs] += temp[1+n_abs] * wisdom.alpha[ROWK(n_abs)+1] * theta[m];
         }
-        
+
         /* Write final result b_n of multiplication by normalization constant to 
          * array b  = (b_{-M},...,b_M). */
         f_m += temp[0+n_abs] * wisdom.gamma[ROW(n_abs)] *
@@ -447,7 +450,7 @@ void ndsft_adjoint(nfsft_plan *plan)
   {
     for (k = abs(n); k <= plan->N; k++)
     {
-      plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] = 0.0;
+      plan->f_hat[NFSFT_INDEX(k,n,plan->N)] = 0.0;
     }  
   }
   
@@ -457,7 +460,7 @@ void ndsft_adjoint(nfsft_plan *plan)
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
-      plan->f_hat[1] += plan->f[m];
+      plan->f_hat[NFSFT_INDEX(0,0,plan->N)] += plan->f[m];
     }
   }
   else
@@ -480,7 +483,7 @@ void ndsft_adjoint(nfsft_plan *plan)
         gamma = &(wisdom.gamma[ROWK(n_abs)]);
         
         temp[n_abs] = plan->f[m] * cexp(-I*n*phi[m]) * wisdom.gamma[ROW(n_abs)] *
-          pow(1- theta[m] * theta[m], 0.5*n_abs);
+          pow(1 - theta[m] * theta[m], 0.5*n_abs);
                 
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)
@@ -498,7 +501,7 @@ void ndsft_adjoint(nfsft_plan *plan)
         /* Copy result */
         for (k = n_abs; k <= plan->N; k++)
         {
-          plan->f_hat[(n+plan->N)*(2*plan->NPT+1)+plan->NPT+k] += temp[k];
+          plan->f_hat[NFSFT_INDEX(k,n,plan->N)] += temp[k];
         }  
       }      
     }
@@ -510,7 +513,7 @@ void ndsft_adjoint(nfsft_plan *plan)
     {
       for (n = -k; n <= k; n++)
       {
-        plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+        plan->f_hat[NFSFT_INDEX(k,n,plan->N)] *= 
           sqrt((2*k+1)/(4.0*PI));
       }
     }
@@ -536,10 +539,11 @@ void nfsft_trafo(nfsft_plan *plan)
   {
     ndsft_trafo(plan);
   }
-  else if ((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
-    plan->N > (wisdom.N_MAX>>1))
+  else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
+    plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
   {
     plan->plan_nfft.f = plan->f;
+    plan->plan_nfft.f_hat = plan->f_hat;
     
     /** Check for normalization. */
     if (plan->flags & NFSFT_NORMALIZED)
@@ -548,40 +552,47 @@ void nfsft_trafo(nfsft_plan *plan)
       {
         for (n = -k; n <= k; n++)
         {
-          plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+plan->NPT+k] *= 
+          plan->f_hat[NFSFT_INDEX(k,n,plan->N)] * 
             sqrt((2*k+1)/(4.0*PI));
         }
       }
     }
 
-    /* Compute FLFT. */
-    for (n = -plan->N; n <= plan->N; n++) 
+    if (plan->flags & NFSFT_USE_DPT)
     {
-//      fprintf(stderr,"flft: n = %d\n",n);
-//      fflush(stderr);
-      dpt_trafo(wisdom.set,abs(n),&plan->f_hat[(2*plan->NPT+1)*(n+plan->N)+abs(n)],
-        &plan->f_hat[(2*plan->NPT+1)*(n+plan->N)],plan->N,0U);
+      /* Compute DPT. */
+      for (n = -plan->N; n <= plan->N; n++) 
+      {
+        dpt_trafo(wisdom.set,abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan->N)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan->N)],
+          plan->N,0U);
+      }
+    }
+    else
+    {
+      /* Compute FPT. */
+      for (n = -plan->N; n <= plan->N; n++) 
+      {
+        fpt_trafo(wisdom.set,abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan->N)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan->N)],
+          plan->N,0U);
+      }
     }
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
-//    fprintf(stderr,"cheb2exp_old\n",n);
-//    fflush(stderr);
-    //cheb2exp_old(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
-
-    //norm = norm_nfft_1_old(plan->plan_nfft.f_hat, 2*(plan->N+1));
-    //fprintf(stderr,"nfft_norm_1 = %.4E\n",norm);
-    //fflush(stderr);
+    //c2e(plan->plan_nfft.f_hat, plan->f_hat, plan->M, plan->N); 
     
     /* Execute NFFT. */
-    /*if (plan->flags & NFSFT_USE_NDFT_OLD)
+    if (plan->flags & NFSFT_USE_NDFT)
     {
       ndft_trafo(&plan->plan_nfft);
     }
     else
     {
       nfft_trafo(&plan->plan_nfft);
-    }*/
-    
+    }    
   } 
 }
 
