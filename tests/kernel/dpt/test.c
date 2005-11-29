@@ -11,6 +11,8 @@
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
 
+#define REPEAT 100 
+
 /** Name of the file containing the test data filenames for NDSFT. */
 const char TESTFILES_DPT[] = "dpt.txt\0";
 
@@ -171,8 +173,11 @@ void test_dpt_trafo(void)
       
       /* Execute DPT. */
       time = second();
-      fpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
-      time = second() - time;
+      for (k = 0; k < REPEAT; k++)
+      {
+        fpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+      }
+      time = (second() - time)/((double)REPEAT);
       
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");
