@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.0'
+                     CreatedBy='Mathematica 5.2'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8396,        197]*)
-(*NotebookOutlinePosition[      9237,        226]*)
-(*  CellTagsIndexPosition[      9193,        222]*)
+(*NotebookOptionsPosition[      8959,        207]*)
+(*NotebookOutlinePosition[      9808,        236]*)
+(*  CellTagsIndexPosition[      9764,        232]*)
 (*WindowFrame->Normal*)
 
 
@@ -83,102 +83,112 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(n = \ 20;\)\)], "Input",
+    \(\(n = \ 0;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(kend\  = \ {96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 
-          640, 768, 896, 1024};\)\)], "Input",
+    \(\(kend\  = \ {7};\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
     \(\(FunctionValues\  = \ True;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
+Cell[CellGroupData[{
+
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{Do[\[IndentingNewLine]{n\  = \ 
-              Floor[kend[\([j]\)]\/4], \[IndentingNewLine]t\  = \ 
-              Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
-              2\^t, \[IndentingNewLine]VectorAlpha = 
-              Table[N[LegendreAlpha[k, n], p], {k, \(-1\), 
-                  NN}], \[IndentingNewLine]VectorBeta = 
-              Table[N[LegendreBeta[k, n], p], {k, \(-1\), 
-                  NN}], \[IndentingNewLine]VectorGamma = 
-              Table[N[LegendreGamma[k, n], p], {k, \(-1\), 
-                  NN}], \[IndentingNewLine]VectorX = 
-              Table[If[k \[Equal] r, 1, 0], {k, n, 
-                  kend[\([j]\)]}], \[IndentingNewLine]\[IndentingNewLine]f[
-                x_]\  := \ \[Sum]\+\(k = n\)\%\(kend[\([j]\)]\)VectorX[\([k - 
-                        n + 1]\)]*
-                  myLegendreP[k, n, x]; \[IndentingNewLine]VectorY = 
-              Table[N[f[
-                    Cos[\(\[Pi] \((k + 1\/2)\)\)\/\(kend[\([j]\)] + 1\)]], 
-                  p], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]If[
-              FunctionValues, {}, {VectorYY\  = \ 
-                  Table[N[\(2\/\(kend[\([j]\)] + 1\)\) 
-                        If[l \[Equal] 0, 1\/2, 
-                          1] \(\[Sum]\+\(k = \
-0\)\%\(kend[\([j]\)]\)VectorY[\([k + 1]\)] 
-                            Cos[\(l \((k + 1\/2)\) \[Pi]\)\/\(kend[\([j]\)] + \
-1\)]\), p], {l, 0, kend[\([j]\)]}], 
-                VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
-              OpenWrite["\<test_dpt_\>" <> \ 
-                  ToString[If[FunctionValues, 1, 0]]\  <> \ "\<_\>"\  <> 
-                  StringTake[
-                    ToString[
-                      PaddedForm[n, 3, 
-                        NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+    \(Do[\[IndentingNewLine]{\[IndentingNewLine]t\  = \ 
+          Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
+          2\^t, \[IndentingNewLine]VectorAlpha = 
+          Table[N[LegendreAlpha[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorBeta = 
+          Table[N[LegendreBeta[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorGamma = 
+          Table[N[LegendreGamma[k, n], p], {k, \(-1\), 
+              NN}], \[IndentingNewLine]VectorX = 
+          Table[N[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                  10\^\(-p\)] + \[ImaginaryI]*
+                  Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                    10\^\(-p\)], p], {k, n, 
+              kend[\([j]\)]}], \[IndentingNewLine]\[IndentingNewLine]f[
+            x_]\  := \ \[Sum]\+\(k = n\)\%\(kend[\([j]\)]\)VectorX[\([k - n + 
+                    1]\)]*myLegendreP[k, n, x]; \[IndentingNewLine]VectorY = 
+          Table[N[f[Cos[\(\[Pi] \((k + 1\/2)\)\)\/\(kend[\([j]\)] + 1\)]], 
+              p], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]If[
+          FunctionValues, {}, {VectorYY\  = \ 
+              Table[N[\(2\/\(kend[\([j]\)] + 1\)\) 
+                    If[l \[Equal] 0, 1\/2, 
+                      1] \(\[Sum]\+\(k = 0\)\%\(kend[\([j]\)]\)VectorY[\([k + 
+                              1]\)] Cos[\(l \((k + 1\/2)\) \
+\[Pi]\)\/\(kend[\([j]\)] + 1\)]\), p], {l, 0, kend[\([j]\)]}], 
+            VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
+          OpenWrite["\<test_dpt_\>" <> \ 
+              ToString[
+                If[FunctionValues, 1, 0]]\  <> \ "\<_\>"\  <> \ "\<\>"\  <> 
+              StringTake[
+                ToString[
+                  PaddedForm[n, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
 "\<_\>" <> StringTake[
-                    ToString[
-                      PaddedForm[NN, 3, 
-                        NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+                ToString[
+                  PaddedForm[NN, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
 "\<_\>" <> \ \[IndentingNewLine]StringTake[
-                    ToString[
-                      PaddedForm[kend[\([j]\)], 3, 
-                        NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
-"\<_\>"\  <> \[IndentingNewLine]StringTake[
-                    ToString[
-                      PaddedForm[r, 3, 
-                        NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
+                ToString[
+                  PaddedForm[kend[\([j]\)], 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \ \
 "\<.txt\>"]; \[IndentingNewLine]WriteString[testfile, \ 
-              If[FunctionValues, 1, 
-                0], "\<\n\>"], \[IndentingNewLine]WriteString[testfile, 
-              t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
-              n, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
-              kend[\([j]\)], "\<\n\>"]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[
-                  testfile, 
-                  CForm[VectorAlpha\[LeftDoubleBracket]
-                      k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
-                NN + 2}]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[
-                  testfile, 
-                  CForm[VectorBeta\[LeftDoubleBracket]k\[RightDoubleBracket]],\
- "\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[
-                  testfile, 
-                  CForm[VectorGamma\[LeftDoubleBracket]k\[RightDoubleBracket]]\
-, "\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[
-                  testfile, 
-                  CForm[Re[
-                      VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], \
-"\<\n\>", 
-                  CForm[Im[
-                      VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], \
-"\<\n\>"]}, {k, 1, kend[\([j]\)] - n + 1}]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[
-                  testfile, 
-                  CForm[Re[
-                      VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], \
-"\<\n\>", 
-                  CForm[Im[
-                      VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], \
-"\<\n\>"]}, {k, 1, kend[\([j]\)] + 1}]; \[IndentingNewLine]WriteString[
-              testfile, "\<\n\>"]; \[IndentingNewLine]Close[
-              testfile];}, \[IndentingNewLine]{r, n, n}]}, {j, 1, 
-        Length[kend]}]\)], "Input",
+          If[FunctionValues, 1, 0], "\<\n\>"], \[IndentingNewLine]WriteString[
+          testfile, t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
+          n, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
+          kend[\([j]\)], "\<\n\>"]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorAlpha\[LeftDoubleBracket]
+                  k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
+            NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorBeta\[LeftDoubleBracket]k\[RightDoubleBracket]], \
+"\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[VectorGamma\[LeftDoubleBracket]k\[RightDoubleBracket]], "\
+\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[Re[
+                  VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>", CForm[Im[
+                  VectorX\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>"]}, {k, 1, kend[\([j]\)] - n + 1}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
+              CForm[Re[
+                  VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>", CForm[Im[
+                  VectorY\[LeftDoubleBracket]k\[RightDoubleBracket]]], "\<\n\
+\>"]}, {k, 1, kend[\([j]\)] + 1}]; \[IndentingNewLine]WriteString[
+          testfile, "\<\n\>"]; \[IndentingNewLine]Close[
+          testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorX\\)\\\" is similar to existing symbol \
+\\\"\\!\\(VectorQ\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorY\\)\\\" is similar to existing \
+symbols \\!\\({VectorQ, VectorX}\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\
+\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorYY\\)\\\" is similar to existing \
+symbol \\\"\\!\\(VectorY\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"]
+}, Open  ]],
 
 Cell["", "Text"],
 
@@ -193,10 +203,10 @@ Cell[BoxData[
       Table[N[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
               10\^\(-p\)] + \[ImaginaryI]*
               Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 10\^\(-p\)], 
-          p], {k, n, kend[\([\)\(j\)\(]\)]}]\)], "Text"]
+          p], {k, n, kend[\([j]\)]}]\)], "Text"]
 },
-FrontEndVersion->"5.0 for X",
-ScreenRectangle->{{0, 1024}, {0, 768}},
+FrontEndVersion->"5.2 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowToolbars->{},
 CellGrouping->Manual,
 WindowSize->{1006, 684},
@@ -226,16 +236,22 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 240, 5, 62, "Input"],
-Cell[2147, 63, 729, 15, 114, "Input"],
+Cell[1904, 56, 240, 5, 54, "Input"],
+Cell[2147, 63, 729, 15, 129, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
-Cell[2963, 84, 80, 2, 27, "Input"],
-Cell[3046, 88, 169, 3, 27, "Input"],
-Cell[3218, 93, 97, 2, 27, "Input"],
-Cell[3318, 97, 4545, 83, 750, "Input"],
-Cell[7866, 182, 16, 0, 32, "Text"],
-Cell[7885, 184, 233, 4, 34, "Text"],
-Cell[8121, 190, 271, 5, 46, "Text"]
+Cell[2963, 84, 79, 2, 27, "Input"],
+Cell[3045, 88, 86, 2, 27, "Input"],
+Cell[3134, 92, 97, 2, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[3256, 98, 4068, 70, 733, "Input"],
+Cell[7327, 170, 362, 5, 21, "Message"],
+Cell[7692, 177, 364, 5, 21, "Message"],
+Cell[8059, 184, 363, 5, 21, "Message"]
+}, Open  ]],
+Cell[8437, 192, 16, 0, 30, "Text"],
+Cell[8456, 194, 233, 4, 34, "Text"],
+Cell[8692, 200, 263, 5, 44, "Text"]
 }
 ]
 *)

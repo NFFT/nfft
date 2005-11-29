@@ -51,6 +51,8 @@ void test_dpt_trafo(void)
   FILE *file;
   /** Name of file containing test data. */
   char filename[FILENAME_LENGTH_MAX+1];
+  /** For time measurements. */
+  double time;
 
   /* Tell what we're doing. */
   fprintf(stdout,"dpt_trafo: Testing dpt_trafo ...\n");
@@ -70,7 +72,7 @@ void test_dpt_trafo(void)
 
   while (fscanf(testfiles,"%s",filename) == 1)
   { 
-    fprintf(stdout,"filename = %s,",filename);
+    fprintf(stdout,"filename = %s\t,",filename);
     /* Open input file. */ 
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
@@ -78,21 +80,21 @@ void test_dpt_trafo(void)
     {
       /* Read in DPT mode */
       fscanf(file,"%d",&function_values);
-      fprintf(stdout," function_values = %d,",function_values);      
+      fprintf(stdout," function_values = %1d,",function_values);      
       
       /* Read in transfrom length. */
       fscanf(file,"%d",&t);
       N = 1<<t;
-      fprintf(stdout," t = %d,",t);
-      fprintf(stdout," N = %d,",N);
+      fprintf(stdout," t = %2d,",t);
+      fprintf(stdout," N = %4d,",N);
       
       /* Read in start index. */
       fscanf(file,"%d",&k_start);
-      fprintf(stdout," k_start = %d,",k_start);
+      fprintf(stdout," k_start = %4d,",k_start);
       
       /* Read in end index. */
       fscanf(file,"%d",&k_end);
-      fprintf(stdout," k_end = %d,",k_end);
+      fprintf(stdout," k_end = %4d,",k_end);
 
       /* Allocate memory for recursion coefficients. */
       alpha = (double*) malloc((N+2)*sizeof(double));
@@ -168,7 +170,9 @@ void test_dpt_trafo(void)
       dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
+      time = second();
       fpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+      time = second() - time;
       
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");
@@ -179,8 +183,9 @@ void test_dpt_trafo(void)
       }*/
       
       /* Print out the infinity-norm error. */
-      fprintf(stdout," e_infty = %le,",error_l_infty_complex(y,x,k_end+1));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(y,x,k_end+1));
+      fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y,x,k_end+1));
+      fprintf(stdout," e_2 = %11le",error_l_2_complex(y,x,k_end+1));
+      fprintf(stdout," time = %11le",time);
  
       /* CLose the file. */
       fclose(file);

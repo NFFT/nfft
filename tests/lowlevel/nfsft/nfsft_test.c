@@ -52,7 +52,7 @@ void test_ndsft_trafo(void)
   /** The plan */
   nfsft_plan plan;
   /** */
-  int t;
+  //int t;
   /** The bandwidth */
   int N;
   /** The number of nodes */
@@ -101,8 +101,8 @@ void test_ndsft_trafo(void)
     if (file != NULL)
     {
       /* Read in exponent. */
-      fscanf(file,"%d",&t);
-      fprintf(stdout,", t = %d",t);
+      //fscanf(file,"%d",&t);
+      //fprintf(stdout,", t = %d",t);
       /* Read in bandwidth. */
       fscanf(file,"%d",&N);
       fprintf(stdout,", N = %d",N);
@@ -110,7 +110,7 @@ void test_ndsft_trafo(void)
       fscanf(file,"%d",&M);
       fprintf(stdout,", M = %d ...",M);
       /* Precompute. */
-      nfsft_precompute(N,THRESHOLD,NFSFT_NO_FAST_ALGORITHM);
+      nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
       nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
         NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
@@ -121,9 +121,20 @@ void test_ndsft_trafo(void)
         {
           fscanf(file,"%lf",&d1);
           fscanf(file,"%lf",&d2);
-          plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k] = d1 + I*d2;
+          plan.f_hat[NFSFT_INDEX(k,n,N)] = d1 + I*d2;
         }
       }
+      
+      /*fprintf(stdout,"\n");
+      for (k = 0; k < 2*N+1; k++)
+      {
+        for (n = 0; n < 2*N+1; n++)
+        {
+          fprintf(stdout,"%d ",(cabs(plan.f_hat[k*(2*N+1)+n])<1e-10)?0:1);
+        }
+        fprintf(stdout,"\n");
+      }*/
+      
       /* Read in nodes. */
       for (m = 0; m < plan.M_total; m++)
       {
@@ -146,7 +157,7 @@ void test_ndsft_trafo(void)
       fclose(file);
       file = NULL;
       /* Execute the plan. */
-      nfsft_trafo(&plan);
+      ndsft_trafo(&plan);
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
       fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
@@ -277,26 +288,31 @@ void test_ndsft_adjoint(void)
       /* Execute the plan. */
       ndsft_adjoint(&plan);
       /* Check result */
-      //fprintf(stdout,"\n");
+      fprintf(stdout,"\n");
       for (k = 0; k <= N; k++)
       {
         for (n = -k; n <= k; n++)
         {
+            fprintf(stdout,"f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
+              NFSFT_INDEX(k,n,plan.N),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
+              k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));
             /*fprintf(stdout,"f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
-              (2*plan.NPT+1)*(n+plan.N)+plan.NPT+k,
-              creal(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]),
-              cimag(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]),
+              NFSFT_INDEX(k,n,plan->N),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,plan->N)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan->N)]),
               k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));*/
-          if (cabs(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]-
+          /*if (cabs(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]-
             f_hat_orig[k*k+n+k]) > 0.0001)
           {
             fprintf(stdout," failed\n  f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
-              (2*plan.NPT+1)*(n+plan.N)+plan.NPT+k,
-              creal(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]),
-              cimag(plan.f_hat[(2*plan.NPT+1)*(n+plan.N)+plan.NPT+k]),
+              NFSFT_INDEX(k,n,plan.N),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
               k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));
             CU_FAIL("Wrong result");  
-          }
+          }*/
         }
       }    
       /* Destroy the plan. */

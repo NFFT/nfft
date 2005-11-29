@@ -41,17 +41,16 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7239,        178]*)
-(*NotebookOutlinePosition[      8088,        207]*)
-(*  CellTagsIndexPosition[      8044,        203]*)
+(*NotebookOptionsPosition[      7113,        171]*)
+(*NotebookOutlinePosition[      7962,        200]*)
+(*  CellTagsIndexPosition[      7918,        196]*)
 (*WindowFrame->Normal*)
 
 
 
 Notebook[{
-Cell[BoxData[{
-    \(\(p\  = \ 32;\)\), "\[IndentingNewLine]", 
-    \(\($MaxExtraPrecision = 750;\)\)}], "Input",
+Cell[BoxData[
+    \(\(p\  = \ 32;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
@@ -81,12 +80,10 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[{
-    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 
-          64};\)\), "\[IndentingNewLine]", 
+    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 
+          80, 96, 112, 128};\)\), "\[IndentingNewLine]", 
     \(\(M\  = \ 1;\)\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]{\[IndentingNewLine]\[IndentingNewLine]t\  = \ 
@@ -155,10 +152,6 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \($Aborted\)], "Output"]
-}, Open  ]],
-
-Cell[BoxData[
     \(\(\(fhat = 
       Table[Table[
           Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
@@ -206,20 +199,16 @@ CellTagsIndex->{}
 
 (*NotebookFileOutline
 Notebook[{
-Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 340, 7, 52, "Input"],
-Cell[2247, 65, 729, 15, 111, "Input"],
-Cell[2979, 82, 200, 4, 43, "Input"],
+Cell[1754, 51, 82, 2, 27, "Input"],
+Cell[1839, 55, 340, 7, 52, "Input"],
+Cell[2182, 64, 729, 15, 111, "Input"],
+Cell[2914, 81, 218, 4, 43, "Input"],
+Cell[3135, 87, 3502, 64, 459, "Input"],
+Cell[6640, 153, 318, 7, 44, "Text"],
 
 Cell[CellGroupData[{
-Cell[3204, 90, 3502, 64, 459, "Input"],
-Cell[6709, 156, 42, 1, 27, "Output"]
-}, Open  ]],
-Cell[6766, 160, 318, 7, 44, "Text"],
-
-Cell[CellGroupData[{
-Cell[7109, 171, 57, 1, 51, "Input"],
-Cell[7169, 174, 54, 1, 27, "Output"]
+Cell[6983, 164, 57, 1, 51, "Input"],
+Cell[7043, 167, 54, 1, 27, "Output"]
 }, Open  ]]
 }
 ]
