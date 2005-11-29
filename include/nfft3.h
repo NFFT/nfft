@@ -2006,7 +2006,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_init
  * \author Jens Keiner
  */
-#define NFSFT_NORMALIZED   (1U << 0)
+#define NFSFT_NORMALIZED    (1U << 0)
 
 /**
  * If this flag is set, the \e direct \e NDFT algorithm will be used internally 
@@ -2015,11 +2015,16 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_init
  * \author Jens Keiner
  */
-#define NFSFT_USE_NDFT     (1U << 1)
+#define NFSFT_USE_NDFT      (1U << 1)
+#define NFSFT_USE_DPT       (1U << 2)
 
-#define NFSFT_MALLOC_X     (1U << 2)
-#define NFSFT_MALLOC_F_HAT (1U << 3)
-#define NFSFT_MALLOC_F     (1U << 4)
+#define NFSFT_MALLOC_X      (1U << 3)
+#define NFSFT_MALLOC_F_HAT  (1U << 4)
+#define NFSFT_MALLOC_F      (1U << 5)
+
+//#define NSFT_PRESERVE_F_HAT (1U << 6)
+//#define NSFT_PRESERVE_X     (1U << 7)
+//#define NSFT_PRESERVE_F     (1U << 8)
 
 
 /* Precomputation flags */
@@ -2034,7 +2039,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see ndsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 5)
+#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 9)
 
 /**
  * If this flag is set, the algorithms \e NFSFT and \e adjoint \e \e NFSFT do 
@@ -2045,7 +2050,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_FAST_ALGORITHM      (1U << 6)
+#define NFSFT_NO_FAST_ALGORITHM      (1U << 10)
 
 /**
  * If this flag is set, the fast algorithms \e NFSFT and \e adjoint \e NFSFT only 
@@ -2060,7 +2065,9 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_BANDWIDTH_WINDOW       (1U << 7)
+#define NFSFT_BANDWIDTH_WINDOW       (1U << 11)
+
+#define NFSFT_INDEX(k,n,N)           (2*N+1)*(n+N)+N+k
 
 /** Structure for a transform plan */
 typedef struct nfsft_plan_
