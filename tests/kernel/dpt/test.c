@@ -37,6 +37,7 @@ void test_dpt_trafo(void)
   complex* x;
   /** The reference Chebyshev coefficients */
   complex* y;
+  complex* y_ref;
   /** The degree \f$k\f$ */
   int k;
   /** Auxilliary variables used to read in complex numbers. */
@@ -150,13 +151,14 @@ void test_dpt_trafo(void)
             
       /* Allocate memory for Chebyshev coefficients. */
       y = (complex*) calloc((k_end+1),sizeof(complex));
+      y_ref = (complex*) calloc((k_end+1),sizeof(complex));
       
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
-        y[k] = d1 + I*d2;
+        y_ref[k] = d1 + I*d2;
       }
       
       /* Print out Chebyshev coefficients. */
@@ -175,7 +177,7 @@ void test_dpt_trafo(void)
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        fpt_trafo(set,0,&x[k_start],x,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+        fpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
       }
       time = (second() - time)/((double)REPEAT);
       
@@ -188,8 +190,8 @@ void test_dpt_trafo(void)
       }*/
       
       /* Print out the infinity-norm error. */
-      fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y,x,k_end+1));
-      fprintf(stdout," e_2 = %11le",error_l_2_complex(y,x,k_end+1));
+      fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y_ref,y,k_end+1));
+      fprintf(stdout," e_2 = %11le",error_l_2_complex(y_ref,y,k_end+1));
       fprintf(stdout," time = %11le",time);
  
       /* CLose the file. */
@@ -206,6 +208,7 @@ void test_dpt_trafo(void)
       free(gamma);
       free(x);
       free(y);     
+      free(y_ref);     
       alpha = NULL;
       beta = NULL;
       gamma = NULL;
