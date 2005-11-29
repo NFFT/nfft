@@ -68,7 +68,26 @@ typedef struct dpt_set_s_
   double *xc_slow;
 } dpt_set_s;
 
-void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
+inline void abuvxpwy(double a, double b, complex* u, complex* x, double* v, 
+  complex* y, double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
+  
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
+  
+  for (l = 0; l < n; l++)
+  {
+    *u++ = a * (b * (*v++) * (*x++) + (*w++) * (*y++));
+  }
+}
+
+inline void auvxpwy(double a, complex* u, complex* x, double* v, complex* y, 
   double* w, int n)
 {
   int l;
@@ -87,7 +106,7 @@ void auvxpwy(double a, complex* u, complex* x, double* v, complex* y,
   }
 }
 
-void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21, 
+inline void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21, 
                  double *a22, double gamma, int tau, dpt_set set)
 { 
   /** The length of the coefficient arrays. */
@@ -125,6 +144,28 @@ void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21,
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);  
   /* Compensate for factors introduced by a raw DCT-II. */      
   b[0] *= 0.5;  
+}
+
+inline void dpt_do_step_transposed(complex  *a, complex *b, double *a11, double *a12, 
+  double *a21, double *a22, double gamma, int tau, dpt_set set)
+{ 
+  /** The length of the coefficient arrays. */
+  int length = 1<<(tau+1);
+  /** Twice the length of the coefficient arrays. */
+  double norm = 1.0/(length<<1);
+    
+  /* Compute function values from Chebyshev-coefficients using a DCT-III. */
+  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)a,(double*)a);
+  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)b,(double*)b);
+  
+  /* Perform matrix multiplication. */
+  abuvxpwy(norm,gamma,set->z,a,a11,b,a21,length);
+  abuvxpwy(norm,gamma,b,a,a12,b,a22,length);
+  memcpy(a,set->z,length*sizeof(complex));
+  
+  /* Compute Chebyshev-coefficients using a DCT-II. */
+  fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);   
+  fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);   
 }
 
 void eval_clenshaw(double *x, double *y, int size, int k, double *alpha, 
@@ -847,13 +888,7 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   }  
  
   /* The last step. Compute the Chebyshev coeffcients c_k^n from the 
-   * polynomials in front of P_0^n and P_1^n. */
-  /*for (k = 0; k < 2*set->N; k++)
-  {
-    fprintf(stdout,"result[%d] = %1.16le +I*%1.16le\n",k,creal(set->result[k]),
-      cimag(set->result[k]));
-  }*/ 
-    
+   * polynomials in front of P_0^n and P_1^n. */    
   y[0] = data->gamma_m1*(set->result[0] + data->beta_0*set->result[Nk] + 
     data->alpha_0*set->result[Nk+1]*0.5);
   y[1] = data->gamma_m1*(set->result[1] + data->beta_0*set->result[Nk+1]+
@@ -861,7 +896,7 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   y[k_end-1] = data->gamma_m1*(set->result[k_end-1] +
     data->beta_0*set->result[Nk+k_end-1] +
     data->alpha_0*set->result[Nk+k_end-2]*0.5);
-  y[k_end] = data->gamma_m1*0.5*data->alpha_0*set->result[Nk+k_end-1];
+  y[k_end] = data->gamma_m1*(0.5*data->alpha_0*set->result[Nk+k_end-1]);
   for (k = 2; k <= k_end-2; k++)
   {
     y[k] = data->gamma_m1*(set->result[k] + data->beta_0*set->result[Nk+k] +
@@ -885,9 +920,166 @@ void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y
 {
 }
 
-void fpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+void fpt_transposed(dpt_set set, const int m, complex *x, const complex const* y, 
   const int k_end, const unsigned int flags)
 {
+  /* Get transformation data. */
+  dpt_data *data = &(set->dpt[m]);  
+  /** */
+  const int Nk = next_power_of_2(k_end);
+  /** */
+  const int tk = (int)(ceil(log((double)k_end)/log(2.0)));
+  /** */
+  int const k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  /** */
+  int const k_end_tilde = K_END_TILDE(k_end,Nk);
+   
+  /** Level index \f$tau\f$ */
+  int tau;
+  /** Index of first block at current level */  
+  int firstl;
+  /** Index of last block at current level */
+  int lastl;
+  /** Block index \f$l\f$ */
+  int l;
+  /** Length of polynomial coefficient arrays at next level */
+  int plength;
+  /** Polynomial array length for stabilization */
+  int plength_stab;
+  /** Current matrix \f$U_{n,tau,l}\f$ */
+  dpt_step *step;
+  /** */
+  fftw_plan plan;
+  int length = k_end+1;
+  fftw_r2r_kind kinds[2] = {FFTW_REDFT10,FFTW_REDFT10};
+  /** Loop counter */
+  int k;
+  
+  /* Check if fast transform is activated. */
+  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  { 
+    return;
+  }  
+
+  if (flags & DPT_FUNCTION_VALUES)
+  {
+    plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1, 
+      (double*)set->work, NULL, 2, 1, kinds, 0U);
+    fftw_execute_r2r(plan,(double*)y,(double*)set->result);
+    fftw_destroy_plan(plan);
+    for (k = 0; k <= k_end; k++)
+    {
+      set->result[k] *= 0.5;
+    }
+  }  
+  
+  /* Initialize working arrays. */
+  //memset(set->work,0U,2*Nk*sizeof(complex));
+  
+  /* The last step is now the first step. */
+  for (k = 0; k <= k_end-2; k++)
+  {
+    set->work[k] = data->gamma_m1*set->result[k];
+  }
+  memset(&set->work[k_end-1],0U,(Nk+1-k_end)*sizeof(complex));
+  
+  set->work[Nk] = data->gamma_m1*(data->beta_0*set->result[0] + 
+    data->alpha_0*set->result[1]);
+  for (k = 1; k < k_end; k++)
+  {
+    set->work[Nk+k] = data->gamma_m1*(data->beta_0*set->result[k] +
+      data->alpha_0*0.5*(set->result[k-1]+set->result[k+1]));
+  } 
+  if (k_end<Nk)
+  {
+    memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(complex));
+  }  
+      
+  /** Save copy of inpute data for stabilization steps. */
+  memcpy(set->result,set->work,2*Nk*sizeof(complex));
+  
+  /* Compute the remaining steps. */
+  plength = Nk;
+  for (tau = tk-1; tau >= 1; tau--)
+  {    
+    /* Compute first l. */
+    firstl = FIRST_L(k_start_tilde,plength);
+    /* Compute last l. */
+    lastl = LAST_L(k_end_tilde,plength);
+    
+    /* Compute the multiplication steps. */
+    for (l = firstl; l <= lastl; l++)
+    {  
+      /* Initialize second half of coefficient arrays with zeros. */
+      memcpy(set->vec3,&(set->work[(plength/2)*(4*l+0)]),plength*sizeof(complex));
+      memcpy(set->vec4,&(set->work[(plength/2)*(4*l+2)]),plength*sizeof(complex));     
+
+      memcpy(&set->work[(plength/2)*(4*l+1)],&(set->work[(plength/2)*(4*l+2)]),
+        (plength/2)*sizeof(complex));
+           
+      /* Get matrix U_{n,tau,l} */
+      step = &(data->steps[tau][l]);
+      
+      /* Check if step is stable. */
+      if (step->stable)
+      {
+        dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+          step->a21[0], step->a22[0], step->gamma[0], tau, set);
+
+        /* Multiply third and fourth polynomial with matrix U. */
+        dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+          step->a21[0], step->a22[0], step->gamma[0], tau, set);
+        memcpy(&(set->vec3[plength/2]), set->vec4,(plength/2)*sizeof(complex));
+        
+        for (k = 0; k < plength; k++)
+        {
+          set->work[plength*(4*l+2)/2+k] = set->vec3[k];
+        }
+      }
+      else
+      { 
+        /* Stabilize. */
+        plength_stab = 1<<tk;
+        
+        memcpy(set->vec3,set->result,plength_stab*sizeof(complex));
+        memcpy(set->vec4,&(set->result[plength_stab]),plength_stab*sizeof(complex));
+
+        /* Multiply third and fourth polynomial with matrix U. */
+        if (set->flags & DPT_BANDWIDTH_WINDOW)
+        {
+          dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+            step->a21[0], step->a22[0], step->gamma[0], tk-1, set);
+        }
+        else
+        {
+          dpt_do_step_transposed(set->vec3, set->vec4, step->a11[tk-tau-1], 
+            step->a12[set->t-tau-1], step->a21[tk-tau-1], 
+            step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
+        }
+
+        memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(complex));
+        for (k = 0; k < plength; k++)
+        {
+          set->work[(plength/2)*(4*l+2)+k] = set->vec3[k];
+        }        
+       }
+    }
+    /* Half the length of polynomial arrays. */
+    plength = plength>>1;    
+  }    
+
+  /* First step */ 
+  for (k = 0; k <= k_end_tilde-data->k_start; k++) 
+  {
+    x[k] = set->work[2*(data->k_start+k)];
+  }  
+  if (k_end == Nk)
+  { 
+    x[Nk-data->k_start] = 
+        data->gammaN[tk-2]*set->work[2*(Nk-2)] 
+      + data->betaN[tk-2] *set->work[2*(Nk-1)] 
+      + data->alphaN[tk-2]*set->work[2*(Nk-1)+1];  
+  }
 }
 
 void dpt_finalize(dpt_set set)
