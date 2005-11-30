@@ -113,7 +113,7 @@ void test_ndsft_trafo(void)
       nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
       nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X | 
-        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
+        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_USE_NDFT);
       /* Read in spherical Fourier coefficients. */
       for (k = 0; k <= N; k++)
       {
@@ -140,8 +140,8 @@ void test_ndsft_trafo(void)
       {
         fscanf(file,"%lf",&d1);
         fscanf(file,"%lf",&d2);
-        plan.x[2*m] = d1;
-        plan.x[2*m+1] = d2;
+        plan.x[2*m+1] = d1;
+        plan.x[2*m] = d2;
       }
       /* Read in reference samples. */
       f_orig = (complex*) malloc(M*sizeof(complex));
@@ -161,17 +161,17 @@ void test_ndsft_trafo(void)
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
       fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
-      /*for (m = 0; m < M; m++)
+      for (m = 0; m < M; m++)
       {
-        fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-          m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));*/
+        //fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
+        //  m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
         /*if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
         {
           fprintf(stdout," failed\n  f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
             m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
           CU_FAIL("Wrong result");  
         }*/
-      //}    
+      }    
       /* Destroy the plan. */
       nfsft_finalize(&plan);
       /* Forget precomputed data. */

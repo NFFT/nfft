@@ -11,7 +11,7 @@
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
 
-#define REPEAT 100 
+#define REPEAT 10000 
 
 /** Name of the file containing the test data filenames for NDSFT. */
 const char TESTFILES_DPT[] = "dpt.txt\0";

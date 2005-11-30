@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7113,        171]*)
-(*NotebookOutlinePosition[      7962,        200]*)
-(*  CellTagsIndexPosition[      7918,        196]*)
+(*NotebookOptionsPosition[      7312,        177]*)
+(*NotebookOutlinePosition[      8153,        206]*)
+(*  CellTagsIndexPosition[      8109,        202]*)
 (*WindowFrame->Normal*)
 
 
@@ -80,21 +80,18 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[{
-    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 
-          80, 96, 112, 128};\)\), "\[IndentingNewLine]", 
-    \(\(M\  = \ 1;\)\)}], "Input",
+    \(\(kend = \ {4, 5, 6, 7, 8};\)\), "\[IndentingNewLine]", 
+    \(\(M\  = \ 10;\)\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{\[IndentingNewLine]\[IndentingNewLine]t\  = \ 
+    \(Do[\[IndentingNewLine]{\[IndentingNewLine]r = 
+          3, \[IndentingNewLine]s\  = \ 1, \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]fhat = 
           Table[Table[
-              Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                  10\^\(-p\)] + \[ImaginaryI]*
-                  Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                    10\^\(-p\)], {n, \(-k\), k}], {k, 0, 
-              kend[\([j]\)]}], \[IndentingNewLine]x = 
+              If[k \[Equal] r\  && \ n\  \[Equal] \ s, 1, 0], {n, \(-k\), 
+                k}], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]x = 
           Table[{Rationalize[Random[Real, {0, 1\/2}], 10\^\(-p\)], 
               Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
                 10\^\(-p\)]}, {m, 0, 
@@ -111,11 +108,20 @@ Cell[BoxData[
                 2\ \[Pi]\ \(x\[LeftDoubleBracket]
                       m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
 \[RightDoubleBracket]], p], {m, 0, M - 1}], \[IndentingNewLine]testfile = 
-          OpenWrite["\<test_nfsft_\>" <> \ \[IndentingNewLine]StringTake[
+          OpenWrite["\<test_nfsft_debug_\>" <> \ \
+\[IndentingNewLine]StringTake[
+                ToString[
+                  PaddedForm[r, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> \[IndentingNewLine]StringTake[
+                ToString[
+                  PaddedForm[s, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> \ \ \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[kend[\([j]\)], 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \ \ \[IndentingNewLine]StringTake[
+"\<_\>" <> \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[M, 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
@@ -133,8 +139,8 @@ Cell[BoxData[
               k}], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"], \[IndentingNewLine]Do[
           WriteString[testfile, 
-            CForm[\(x\[LeftDoubleBracket]
-                  m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+            CForm[\(x\[LeftDoubleBracket]m + 
+                    1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
 \[RightDoubleBracket]], "\<\n\>", 
             CForm[\(x\[LeftDoubleBracket]m + 
                     1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
@@ -169,12 +175,12 @@ Cell[BoxData[
     \(0.28209479177387814`\)], "Output"]
 }, Open  ]]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1144, 739},
-WindowMargins->{{5, Automatic}, {Automatic, 2}},
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -200,15 +206,15 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 82, 2, 27, "Input"],
-Cell[1839, 55, 340, 7, 52, "Input"],
-Cell[2182, 64, 729, 15, 111, "Input"],
-Cell[2914, 81, 218, 4, 43, "Input"],
-Cell[3135, 87, 3502, 64, 459, "Input"],
-Cell[6640, 153, 318, 7, 44, "Text"],
+Cell[1839, 55, 340, 7, 62, "Input"],
+Cell[2182, 64, 729, 15, 114, "Input"],
+Cell[2914, 81, 147, 3, 43, "Input"],
+Cell[3064, 86, 3772, 71, 473, "Input"],
+Cell[6839, 159, 318, 7, 71, "Text"],
 
 Cell[CellGroupData[{
-Cell[6983, 164, 57, 1, 51, "Input"],
-Cell[7043, 167, 54, 1, 27, "Output"]
+Cell[7182, 170, 57, 1, 50, "Input"],
+Cell[7242, 173, 54, 1, 27, "Output"]
 }, Open  ]]
 }
 ]
