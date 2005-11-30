@@ -60,8 +60,8 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags);
  *
  * \author Jens Keiner
  */
-void dpt_precompute(dpt_set set, const int m, const double const* alpha, 
-                    const double const* beta, const double const* gamma, int k_start,
+void dpt_precompute(dpt_set set, const int m, const double *alpha, 
+                    const double *beta, const double *gamma, int k_start,
                     const double threshold);
 
 /**
@@ -74,7 +74,7 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
  * \arg k_end
  * \arg flags
  */
-void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags);
 
 /**
@@ -87,7 +87,7 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
  * \arg k_end
  * \arg flags
  */
-void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags);
 
 /**
@@ -100,7 +100,7 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
  * \arg k_end
  * \arg flags
  */
-void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags);
 
 /**
@@ -113,7 +113,7 @@ void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y
  * \arg k_end
  * \arg flags
  */
-void fpt_transposed(dpt_set set, const int m, complex *x, const complex const* y, 
+void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags);
 
 void dpt_finalize(dpt_set set); 

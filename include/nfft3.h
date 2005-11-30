@@ -1968,7 +1968,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * This section describes the layout of the \ref nfsft_plan structure. The public
  * members are structured as follows:
  * \li \c N_total The total number of spherical Fourier coefficients. If the 
- *        bandwidth is êf$N \in \mathbb{N}_0êf$, the total number of spherical 
+ *        bandwidth is ï¿½f$N \in \mathbb{N}_0ï¿½f$, the total number of spherical 
  *        Fourier coefficients is \c N_total \f$= (N+1)^2\f$.
  * \li \c M_total The total number of samples \f$M\f$.
  * \li \c f_hat   The flattened array of spherical Fourier coefficents. The array 
@@ -2070,7 +2070,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 #ifdef NFSFT_OPTIMIZED
   #define NFSFT_INDEX(k,n,plan)        ((plan)->maxMN)*(n+(plan)->N)+k
 #else
-  #define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+1)*(n+(plan)->N)+(plan)->N+k
+  #define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1
 #endif
   
 /** Structure for a transform plan */
@@ -2139,7 +2139,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int
  *
  * \author Jens Keiner
  */
-void nfsft_init_guru(nfsft_plan* plan, int N, int M, unsigned int nfsft_flags, 
+void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags, 
                      int nfft_cutoff);
 
 /**
