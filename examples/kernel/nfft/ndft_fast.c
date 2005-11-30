@@ -64,13 +64,13 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
   nfft_plan np;
   int j,k,r;
-  double t, t_ndft, t_horner, t_pre_full;
+  double t, t_ndft, t_horner, t_pre_full, t_nfft;
   complex *A;
+  int n=2*N;
 
   printf("%d\t%d\t",N, M);
 
-  /* Note: no nfft precomputation, n=N dummy pointer! */
-  nfft_init_guru(&np, 1, &N, M, &N, 0, MALLOC_X| MALLOC_F_HAT| MALLOC_F,0);
+  nfft_init_1d(&np, N, M);
 
   /** init pseudo random nodes */
   for(j=0;j<np.M_total;j++)
@@ -136,10 +136,24 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
         }
       t_pre_full/=r;
 
-      printf("%.2e\n", t_pre_full);
+      printf("%.2e\t", t_pre_full);
     }
   else
-    printf("nan\n"); 
+    printf("nan\t\t");
+
+  t_nfft=0;
+  r=0;
+  while(t_nfft<0.1)
+    {
+      r++;
+      t=second();
+      nfft_trafo(&np);
+      t=second()-t;
+      t_nfft+=t;
+    }
+  t_nfft/=r;
+
+  printf("%.2e\n", t_nfft);
 
   fflush(stdout);
 
@@ -161,7 +175,7 @@ int main(int argc,char **argv)
     }
   
   fprintf(stderr,"Testing ndft, Horner-like ndft, fully precomputed ndft.\n");
-  fprintf(stderr,"Columns: N, M, t_ndft, t_horner, t_pre_full\n\n");
+  fprintf(stderr,"Columns: N, M, t_ndft, t_horner, t_pre_full, t_nfft\n\n");
 
   /* time vs. N=M */
   if(atoi(argv[1])==0)

@@ -15,7 +15,7 @@
 trials=2;
 first=4;
 last=20;
-system(sprintf('./flags %d %d %d %d %f %f > flags1.dat',0,first,last,trials,1,4));
+%system(sprintf('./flags %d %d %d %d %f %f > flags1.dat',0,first,last,trials,1,4));
 data=load('flags1.dat');
 
 N=data(:,2);

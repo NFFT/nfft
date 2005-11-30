@@ -289,14 +289,14 @@ int main(int argc,char **argv)
       fprintf(stderr,"Fixed target accuracy, timings.\n\n");
       for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
         for(trial=0; trial<atoi(argv[4]); trial++)
-          if(l<15)
+          if(l<13)
             taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
-                                 (1U<< l)), 5, (int)(atof(argv[6])*(1U<< l)),
-                                 5, 1);
+                                 (1U<< l)), 6, (int)(atof(argv[6])*(1U<< l)),
+                                 6, 1);
           else
             taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
-                                 (1U<< l)), 5, (int)(atof(argv[6])*(1U<< l)),
-                                 5, 0);
+                                 (1U<< l)), 6, (int)(atof(argv[6])*(1U<< l)),
+                                 6, 0);
     }
 
   /* error vs. m */
