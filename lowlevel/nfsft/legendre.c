@@ -16,7 +16,7 @@ inline double alpha_al(int k, int n)
     }
     else
     {
-      return n%2==0?0.0:-1.0;
+      return n%2==0?-1.0:0.0;
     }
   }
   else if (k < n) 
@@ -70,9 +70,9 @@ inline void alpha_al_row(double *alpha, int N, int n)
 {
   int j;
   double *alpha_act = alpha;
-  for (j = 0; j <= N; j++)
+  for (j = -1; j <= N; j++)
   {
-    *alpha_act = alpha_al(j-1,n); 
+    *alpha_act = alpha_al(j,n); 
     alpha_act++;
   }  
 }
@@ -81,9 +81,9 @@ inline void beta_al_row(double *beta, int N, int n)
 {
   int j;
   double *beta_act = beta;
-  for (j = 0; j <= N; j++)
+  for (j = -1; j <= N; j++)
   {
-    *beta_act = beta_al(j-1,n); 
+    *beta_act = beta_al(j,n); 
     beta_act++;
   }  
 }
@@ -92,9 +92,9 @@ inline void gamma_al_row(double *gamma, int N, int n)
 {
   int j;
   double *gamma_act = gamma;
-  for (j = 0; j <= N; j++)
+  for (j = -1; j <= N; j++)
   {
-    *gamma_act = gamma_al(j-1,n); 
+    *gamma_act = gamma_al(j,n); 
     gamma_act++;
   }  
 }
@@ -105,9 +105,9 @@ inline void alpha_al_all(double *alpha, int N)
   double *alpha_act = alpha;
   for (i = 0; i <= N; i++)
   {
-    for (j = 0; j <= N; j++)
+    for (j = -1; j <= N; j++)
     {
-      *alpha_act = alpha_al(j-1,i); 
+      *alpha_act = alpha_al(j,i); 
       alpha_act++;
     }  
   }  
@@ -119,9 +119,9 @@ inline void beta_al_all(double *alpha, int N)
   double *alpha_act = alpha;
   for (i = 0; i <= N; i++)
   {
-    for (j = 0; j <= N; j++)
+    for (j = -1; j <= N; j++)
     {
-      *alpha_act = beta_al(j-1,i); 
+      *alpha_act = beta_al(j,i); 
       alpha_act++;
     }  
   }  
@@ -133,9 +133,9 @@ inline void gamma_al_all(double *alpha, int N)
   double *alpha_act = alpha;
   for (i = 0; i <= N; i++)
   {
-    for (j = 0; j <= N; j++)
+    for (j = -1; j <= N; j++)
     {
-      *alpha_act = gamma_al(j-1,i); 
+      *alpha_act = gamma_al(j,i); 
       alpha_act++;
     }  
   }  

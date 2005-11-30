@@ -17,8 +17,8 @@
 /* "Default maximum bandwidth" */
 #define BW_MAX 1024
 
-#define ROW(k) (k*(wisdom.N_MAX+1))
-#define ROWK(k) (k*(wisdom.N_MAX+1)+k)
+#define ROW(k) (k*(wisdom.N_MAX+2))
+#define ROWK(k) (k*(wisdom.N_MAX+2)+k)
 
 #ifdef HAVE_STDBOOL_H
 #  include <stdbool.h>
