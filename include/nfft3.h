@@ -2019,12 +2019,12 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 #define NFSFT_USE_DPT       (1U << 2)
 
 #define NFSFT_MALLOC_X      (1U << 3)
-#define NFSFT_MALLOC_F_HAT  (1U << 4)
-#define NFSFT_MALLOC_F      (1U << 5)
+#define NFSFT_MALLOC_F_HAT  (1U << 5)
+#define NFSFT_MALLOC_F      (1U << 6)
 
-//#define NSFT_PRESERVE_F_HAT (1U << 6)
-//#define NSFT_PRESERVE_X     (1U << 7)
-//#define NSFT_PRESERVE_F     (1U << 8)
+//#define NSFT_PRESERVE_F_HAT (1U << 7)
+//#define NSFT_PRESERVE_X     (1U << 8)
+//#define NSFT_PRESERVE_F     (1U << 9)
 
 
 /* Precomputation flags */
@@ -2039,7 +2039,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see ndsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 9)
+#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 10)
 
 /**
  * If this flag is set, the algorithms \e NFSFT and \e adjoint \e \e NFSFT do 
@@ -2050,7 +2050,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_FAST_ALGORITHM      (1U << 10)
+#define NFSFT_NO_FAST_ALGORITHM      (1U << 11)
 
 /**
  * If this flag is set, the fast algorithms \e NFSFT and \e adjoint \e NFSFT only 
@@ -2065,10 +2065,14 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_BANDWIDTH_WINDOW       (1U << 11)
+#define NFSFT_BANDWIDTH_WINDOW       (1U << 12)
 
-#define NFSFT_INDEX(k,n,N)           (2*N+1)*(n+N)+N+k
-
+#ifdef NFSFT_OPTIMIZED
+  #define NFSFT_INDEX(k,n,plan)        ((plan)->maxMN)*(n+(plan)->N)+k
+#else
+  #define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+1)*(n+(plan)->N)+(plan)->N+k
+#endif
+  
 /** Structure for a transform plan */
 typedef struct nfsft_plan_
 {
@@ -2078,19 +2082,26 @@ typedef struct nfsft_plan_
   /* Public members */
   int N;                                  /**< The bandwidth \f$N\f$              */
   double *x;                              /**< The nodes \f$\mathbf{x}(m) = 
-                                               \left(x_1,x_2\right) \in 
-                                               [0,\frac{1}{2}] \times 
-                                               [-\frac{1}{2},\frac{1}{2}]\f$ for 
-                                               \f$m=0,\ldots,M-1\f$,\f$M \in 
-                                               \mathbb{N},\f$                     */
+                                                 \left(x_1,x_2\right) \in 
+                                                 [0,\frac{1}{2}] \times 
+                                                 [-\frac{1}{2},\frac{1}{2}]\f$ for 
+                                                 \f$m=0,\ldots,M-1\f$,\f$M \in 
+                                                 \mathbb{N},\f$                   */
   
   /* Private members */
   int NPT;                                /**< Next greater power of two with
                                                respect to \f$N\f$                 */
   int t;                                  /**< The logaritm of NPT with 
-                                               respect to the basis 2             */  
+                                               respect to the basis 2             */
   unsigned int flags;                     /**< The planner flags                  */
   nfft_plan plan_nfft;                    /**< The internal NFFT plan             */
+  
+  #ifdef NFSFT_OPTIMIZED
+    int maxMN;                            /**< max{M,N}                           */                                               
+    nfct_plan plan_nfct;                  /**< The internal NFCT plan             */
+    nfst_plan plan_nfst;                  /**< The internal NFST plan             */
+  #endif
+  
 } nfsft_plan;
 
 /**

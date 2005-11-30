@@ -112,8 +112,8 @@ void test_ndsft_trafo(void)
       /* Precompute. */
       nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
-      nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
-        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
+      nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X | 
+        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
       /* Read in spherical Fourier coefficients. */
       for (k = 0; k <= N; k++)
       {
@@ -121,7 +121,7 @@ void test_ndsft_trafo(void)
         {
           fscanf(file,"%lf",&d1);
           fscanf(file,"%lf",&d2);
-          plan.f_hat[NFSFT_INDEX(k,n,N)] = d1 + I*d2;
+          plan.f_hat[NFSFT_INDEX(k,n,&plan)] = d1 + I*d2;
         }
       }
       
@@ -157,7 +157,7 @@ void test_ndsft_trafo(void)
       fclose(file);
       file = NULL;
       /* Execute the plan. */
-      ndsft_trafo(&plan);
+      nfsft_trafo(&plan);
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
       fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
@@ -253,8 +253,8 @@ void test_ndsft_adjoint(void)
       /* Precompute. */
       nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
-      nfsft_init_advanced(&plan,N,M,NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
-        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
+      nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X | 
+        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED);
       /* Read in function samples. */
       for (m = 0; m < M; m++)
       {
@@ -294,22 +294,22 @@ void test_ndsft_adjoint(void)
         for (n = -k; n <= k; n++)
         {
             fprintf(stdout,"f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
-              NFSFT_INDEX(k,n,plan.N),
-              creal(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
-              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
+              NFSFT_INDEX(k,n,&plan),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
               k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));
             /*fprintf(stdout,"f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
-              NFSFT_INDEX(k,n,plan->N),
-              creal(plan.f_hat[NFSFT_INDEX(k,n,plan->N)]),
-              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan->N)]),
+              NFSFT_INDEX(k,n,&plan),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
               k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));*/
-          /*if (cabs(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]-
+          /*if (cabs(plan.f_hat[NFSFT_INDEX(k,n,&plan)]-
             f_hat_orig[k*k+n+k]) > 0.0001)
           {
             fprintf(stdout," failed\n  f_hat[%d] = %lf + I*%lf, f_hat_orig[%d] = %lf + I*%lf\n",
-              NFSFT_INDEX(k,n,plan.N),
-              creal(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
-              cimag(plan.f_hat[NFSFT_INDEX(k,n,plan.N)]),
+              NFSFT_INDEX(k,n,&plan),
+              creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+              cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
               k*k+n+k,creal(f_hat_orig[k*k+n+k]),cimag(f_hat_orig[k*k+n+k]));
             CU_FAIL("Wrong result");  
           }*/
