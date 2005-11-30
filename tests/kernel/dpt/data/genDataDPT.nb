@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8959,        207]*)
-(*NotebookOutlinePosition[      9808,        236]*)
-(*  CellTagsIndexPosition[      9764,        232]*)
+(*NotebookOptionsPosition[      8009,        200]*)
+(*NotebookOutlinePosition[      8849,        229]*)
+(*  CellTagsIndexPosition[      8805,        225]*)
 (*WindowFrame->Normal*)
 
 
@@ -87,17 +87,20 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(kend\  = \ {7};\)\)], "Input",
+    \(\(kend\  = \ 
+        Join[Table[k, {k, 4, 32, 4}], Table[k, {k, 40, 64, 8}], 
+          Table[k, {k, 80, 128, 16}], Table[k, {k, 160, 256, 32}], 
+          Table[k, {k, 320, 512, 64}], 
+          Table[k, {k, 640, 1024, 128}]];\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
     \(\(FunctionValues\  = \ True;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell[CellGroupData[{
-
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{\[IndentingNewLine]t\  = \ 
+    \(Do[\[IndentingNewLine]{n\  = \ 
+          Floor[kend[\([j]\)]/4], \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]VectorAlpha = 
           Table[N[LegendreAlpha[k, n], p], {k, \(-1\), 
@@ -124,8 +127,9 @@ Cell[BoxData[
             VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
           OpenWrite["\<test_dpt_\>" <> \ 
               ToString[
-                If[FunctionValues, 1, 0]]\  <> \ "\<_\>"\  <> \ "\<\>"\  <> 
-              StringTake[
+                If[FunctionValues, 1, 
+                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<n4_\>"\  \
+<> \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[n, 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
@@ -136,16 +140,15 @@ Cell[BoxData[
 "\<_\>" <> \ \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[kend[\([j]\)], 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \ \
+                    NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
 "\<.txt\>"]; \[IndentingNewLine]WriteString[testfile, \ 
           If[FunctionValues, 1, 0], "\<\n\>"], \[IndentingNewLine]WriteString[
           testfile, t, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
           n, "\<\n\>"]; \[IndentingNewLine]WriteString[testfile, 
           kend[\([j]\)], "\<\n\>"]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
-              CForm[VectorAlpha\[LeftDoubleBracket]
-                  k\[RightDoubleBracket]], "\<\n\>"]}, {k, 1, 
-            NN + 2}]; \[IndentingNewLine]WriteString[
+              CForm[VectorAlpha\[LeftDoubleBracket]k\[RightDoubleBracket]], "\
+\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
           testfile, "\<\n\>"]; \[IndentingNewLine]Do[{WriteString[testfile, 
               CForm[VectorBeta\[LeftDoubleBracket]k\[RightDoubleBracket]], \
 "\<\n\>"]}, {k, 1, NN + 2}]; \[IndentingNewLine]WriteString[
@@ -168,48 +171,38 @@ Cell[BoxData[
           testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell[BoxData[
-    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
-error: new symbol name \\\"\\!\\(VectorX\\)\\\" is similar to existing symbol \
-\\\"\\!\\(VectorQ\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
-ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
-ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+Cell[CellGroupData[{
 
 Cell[BoxData[
-    RowBox[{\(General::"spell"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
-error: new symbol name \\\"\\!\\(VectorY\\)\\\" is similar to existing \
-symbols \\!\\({VectorQ, VectorX}\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\
-\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
-ButtonData:>\\\"General::spell\\\"]\\)\"\>"}]], "Message"],
+    \(Sqrt[137]*N[Cos[35\/22*Pi]]\)], "Input"],
 
 Cell[BoxData[
-    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
-error: new symbol name \\\"\\!\\(VectorYY\\)\\\" is similar to existing \
-symbol \\\"\\!\\(VectorY\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
-ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
-ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"]
+    \(3.29759503290869`\)], "Output"]
 }, Open  ]],
 
-Cell["", "Text"],
-
-Cell[TextData[Cell[BoxData[
-    \(\(\(VectorX = 
-      Table[N[Piecewise[{{Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                  10\^\(-p\)], k \[Equal] r}}], p], {k, n, 
-          kend[\([j]\)]}]\)\(,\)\)\)]]], "Text"],
+Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(VectorX = 
-      Table[N[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-              10\^\(-p\)] + \[ImaginaryI]*
-              Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 10\^\(-p\)], 
-          p], {k, n, kend[\([j]\)]}]\)], "Text"]
+    \(N[ArcCos[\(-\(3\/5\)\)]]\)], "Input"],
+
+Cell[BoxData[
+    \(2.214297435588181`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(N[8\/11*Pi]\)], "Input"],
+
+Cell[BoxData[
+    \(2.284794657156213`\)], "Output"]
+}, Open  ]]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1006, 684},
+WindowSize->{807, 694},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
@@ -236,22 +229,28 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 240, 5, 54, "Input"],
-Cell[2147, 63, 729, 15, 129, "Input"],
+Cell[1904, 56, 240, 5, 62, "Input"],
+Cell[2147, 63, 729, 15, 152, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
-Cell[3045, 88, 86, 2, 27, "Input"],
-Cell[3134, 92, 97, 2, 27, "Input"],
+Cell[3045, 88, 297, 6, 43, "Input"],
+Cell[3345, 96, 97, 2, 27, "Input"],
+Cell[3445, 100, 4124, 71, 802, "Input"],
 
 Cell[CellGroupData[{
-Cell[3256, 98, 4068, 70, 733, "Input"],
-Cell[7327, 170, 362, 5, 21, "Message"],
-Cell[7692, 177, 364, 5, 21, "Message"],
-Cell[8059, 184, 363, 5, 21, "Message"]
+Cell[7594, 175, 60, 1, 44, "Input"],
+Cell[7657, 178, 51, 1, 27, "Output"]
 }, Open  ]],
-Cell[8437, 192, 16, 0, 30, "Text"],
-Cell[8456, 194, 233, 4, 34, "Text"],
-Cell[8692, 200, 263, 5, 44, "Text"]
+
+Cell[CellGroupData[{
+Cell[7745, 184, 57, 1, 44, "Input"],
+Cell[7805, 187, 52, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7894, 193, 44, 1, 44, "Input"],
+Cell[7941, 196, 52, 1, 27, "Output"]
+}, Open  ]]
 }
 ]
 *)
