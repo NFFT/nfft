@@ -27,7 +27,8 @@
 //#include "c2f.h"
 //#include <stdlib.h>
 
-#define NFSFT_DEFAULT_NFFT_CUTOFF 6
+#define NFSFT_DEFAULT_NFFT_CUTOFF 12
+#define NFSFT_DEFAULT_THRESHOLD 1000
 #define NFSFT_BREAKTHROUGH 4
 
 /** Global structure for wisdom. */
@@ -63,20 +64,18 @@ inline void c2e(nfsft_plan *plan)
   for (n = low; n <= up; n += 2)
   {
     xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
+    xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
     last = *xp;
-    //last = f_hat[rowz+n*dim+colz-N];
-    *xp++ = -0.5 * I * xp[1];
-    //f_hat[rowz+n*dim+colz-N] = 0.5 * I * f_hat[rowz+n*dim+colz-N+1];
-    for (k = -plan->N+1; k <= plan->N-1; k++)
+    *xp = -0.5 * I * xp[1];
+    *xm-- = -(*xp++);
+    for (k = -plan->N+1; k < 0; k++)
     {
       act = *xp;
-      //act = f_hat[rowz+n*dim+colz+k];
-      *xp++ = -0.5 * I * (xp[1] - last);
-      //f_hat[rowz+n*dim+colz+k] = 0.5 * I * (f_hat[rowz+n*dim+colz+k+1] - last);
+      *xp = -0.5 * I * (xp[1] - last);
+      *xm-- = -(*xp++);
       last = act;
     }
-    *xp = -0.5 * I * last;
-    //f_hat[rowz+n*dim+colz+N] = - 0.5 * I * last;
+    *xp = 0.0;
   }
 }
 
@@ -650,12 +649,12 @@ void nfsft_trafo(nfsft_plan *plan)
     plan->plan_nfft.f = plan->f;
     plan->plan_nfft.f_hat = plan->f_hat;
 
-    /*fprintf(stdout,"\n");
-    for (n = -plan->N; n <= plan->N; n++)
+    //fprintf(stdout,"\n");
+    /*for (n = -plan->N; n <= plan->N; n++)
     {
       for (k = -plan->N; k <= plan->N; k++)
-      {
-        if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
+      {*/
+        /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
         {
           fprintf(stdout,"0");
         }
@@ -665,8 +664,8 @@ void nfsft_trafo(nfsft_plan *plan)
         }*/
         /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
           creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
-          cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));*/
-      /*}
+          cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
+      }
       fprintf(stdout,"\n");
     }*/
     
@@ -708,10 +707,11 @@ void nfsft_trafo(nfsft_plan *plan)
       }
     }
 
-    /*fprintf(stdout,"\n");
-    for (n = -plan->N; n <= plan->N; n++)
-    {
-      for (k = -plan->N; k <= plan->N; k++)
+    //fprintf(stdout,"\n");
+    //for (n = -plan->N; n <= plan->N+1; n++)
+    //{
+      /*n = 3;
+      for (k = -plan->N-1; k <= plan->N; k++)
       {*/
         /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
         {
@@ -724,17 +724,18 @@ void nfsft_trafo(nfsft_plan *plan)
         /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
           creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
           cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
-      }
-      fprintf(stdout,"\n");
-    }*/
+      }*/
+      //fprintf(stdout,"\n");
+    //}
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan); 
     
-    /*fprintf(stdout,"\n");
-    for (n = -plan->N; n <= plan->N; n++)
-    {
-      for (k = -plan->N; k <= plan->N; k++)
+    //fprintf(stdout,"\n");
+    //for (n = -plan->N; n <= plan->N; n++)
+    //{
+      /*n = 3;
+      for (k = -plan->N-1; k <= plan->N; k++)
       {*/
         /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
         {
@@ -747,9 +748,9 @@ void nfsft_trafo(nfsft_plan *plan)
         /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
           creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
           cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
-      }
-      fprintf(stdout,"\n");
-    }*/
+      }*/
+      //fprintf(stdout,"\n");
+    //}
         
     /* Execute NFFT. */
     if (plan->flags & NFSFT_USE_NDFT)

@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7239,        178]*)
-(*NotebookOutlinePosition[      8088,        207]*)
-(*  CellTagsIndexPosition[      8044,        203]*)
+(*NotebookOptionsPosition[      7330,        179]*)
+(*NotebookOutlinePosition[      8171,        208]*)
+(*  CellTagsIndexPosition[      8127,        204]*)
 (*WindowFrame->Normal*)
 
 
@@ -81,9 +81,10 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[{
-    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 
-          64};\)\), "\[IndentingNewLine]", 
-    \(\(M\  = \ 1;\)\)}], "Input",
+    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 
+          80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 
+          896, 1024};\)\), "\[IndentingNewLine]", 
+    \(\(M\  = \ 10;\)\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[CellGroupData[{
@@ -176,12 +177,12 @@ Cell[BoxData[
     \(0.28209479177387814`\)], "Output"]
 }, Open  ]]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1144, 739},
-WindowMargins->{{5, Automatic}, {Automatic, 2}},
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -207,19 +208,19 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 340, 7, 52, "Input"],
-Cell[2247, 65, 729, 15, 111, "Input"],
-Cell[2979, 82, 200, 4, 43, "Input"],
+Cell[1904, 56, 340, 7, 62, "Input"],
+Cell[2247, 65, 729, 15, 114, "Input"],
+Cell[2979, 82, 291, 5, 59, "Input"],
 
 Cell[CellGroupData[{
-Cell[3204, 90, 3502, 64, 459, "Input"],
-Cell[6709, 156, 42, 1, 27, "Output"]
+Cell[3295, 91, 3502, 64, 464, "Input"],
+Cell[6800, 157, 42, 1, 27, "Output"]
 }, Open  ]],
-Cell[6766, 160, 318, 7, 44, "Text"],
+Cell[6857, 161, 318, 7, 71, "Text"],
 
 Cell[CellGroupData[{
-Cell[7109, 171, 57, 1, 51, "Input"],
-Cell[7169, 174, 54, 1, 27, "Output"]
+Cell[7200, 172, 57, 1, 50, "Input"],
+Cell[7260, 175, 54, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

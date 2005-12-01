@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7312,        177]*)
-(*NotebookOutlinePosition[      8153,        206]*)
-(*  CellTagsIndexPosition[      8109,        202]*)
+(*NotebookOptionsPosition[      7927,        189]*)
+(*NotebookOutlinePosition[      8768,        218]*)
+(*  CellTagsIndexPosition[      8724,        214]*)
 (*WindowFrame->Normal*)
 
 
@@ -80,80 +80,83 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[{
-    \(\(kend = \ {4, 5, 6, 7, 8};\)\), "\[IndentingNewLine]", 
+    \(\(kend = \ {4};\)\), "\[IndentingNewLine]", 
     \(\(M\  = \ 10;\)\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{\[IndentingNewLine]r = 
-          3, \[IndentingNewLine]s\  = \ 1, \[IndentingNewLine]t\  = \ 
-          Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
-          2\^t, \[IndentingNewLine]fhat = 
-          Table[Table[
-              If[k \[Equal] r\  && \ n\  \[Equal] \ s, 1, 0], {n, \(-k\), 
-                k}], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]x = 
-          Table[{Rationalize[Random[Real, {0, 1\/2}], 10\^\(-p\)], 
-              Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                10\^\(-p\)]}, {m, 0, 
-              M - 1}], \[IndentingNewLine]f[\[Theta]_, \[CurlyPhi]_] := \
+    \(Do[\[IndentingNewLine]{\[IndentingNewLine]Do[{Do[{\[IndentingNewLine]t\ \
+ = \ Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
+                  2\^t, \[IndentingNewLine]fhat = 
+                  Table[Table[
+                      If[k \[Equal] r\  && \ n\  \[Equal] \ s, 1, 
+                        0], {n, \(-k\), k}], {k, 0, 
+                      kend[\([j]\)]}], \[IndentingNewLine]x = 
+                  Table[{Rationalize[Random[Real, {0, 1\/2}], 10\^\(-p\)], 
+                      Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+                        10\^\(-p\)]}, {m, 0, 
+                      M - 1}], \[IndentingNewLine]f[\[Theta]_, \[CurlyPhi]_] := \
 \[Sum]\+\(k = 0\)\%\(kend[\([j]\)]\)\(\[Sum]\+\(n = \(-k\)\)\%k\( 
-                    fhat\[LeftDoubleBracket]k + 
-                      1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                  n + k + 1\[RightDoubleBracket]\ mySphericalHarmonicY[k, 
-                  n, \[Theta], \[CurlyPhi]]\), \[IndentingNewLine]fv = 
-          Table[N[f[
-                2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
-\[RightDoubleBracket], 
-                2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                      m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
-\[RightDoubleBracket]], p], {m, 0, M - 1}], \[IndentingNewLine]testfile = 
-          OpenWrite["\<test_nfsft_debug_\>" <> \ \
+                            fhat\[LeftDoubleBracket]k + 
+                              1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                          n + k + 
+                            1\[RightDoubleBracket]\ mySphericalHarmonicY[k, 
+                          n, \[Theta], \[CurlyPhi]]\), \[IndentingNewLine]fv \
+= Table[N[f[2\ \[Pi]\ \(x\[LeftDoubleBracket]m + 
+                                1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+\[RightDoubleBracket], 2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                              m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]\
+2\[RightDoubleBracket]], p], {m, 0, M - 1}], \[IndentingNewLine]testfile = 
+                  OpenWrite["\<test_nfsft_debug_\>" <> \ \
 \[IndentingNewLine]StringTake[
-                ToString[
-                  PaddedForm[r, 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \[IndentingNewLine]StringTake[
-                ToString[
-                  PaddedForm[s, 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \ \ \[IndentingNewLine]StringTake[
-                ToString[
-                  PaddedForm[kend[\([j]\)], 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
-"\<_\>" <> \[IndentingNewLine]StringTake[
-                ToString[
-                  PaddedForm[M, 3, 
-                    NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
-"\<.txt\>"], \[IndentingNewLine]WriteString[testfile, 
-          kend[\([j]\)], "\<\n\>"], \[IndentingNewLine]WriteString[testfile, 
-          M, "\<\n\>"], \[IndentingNewLine]WriteString[
-          testfile, "\<\n\>"], \[IndentingNewLine]Do[
-          Do[WriteString[testfile, 
-              CForm[Re[\(fhat\[LeftDoubleBracket]
-                      k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                    n + k + 1\[RightDoubleBracket]]], "\<\n\>", 
-              CForm[Im[\(fhat\[LeftDoubleBracket]
-                      k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
-                    n + k + 1\[RightDoubleBracket]]], "\<\n\>"], {n, \(-k\), 
-              k}], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]WriteString[
-          testfile, "\<\n\>"], \[IndentingNewLine]Do[
-          WriteString[testfile, 
-            CForm[\(x\[LeftDoubleBracket]m + 
-                    1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+                        ToString[
+                          PaddedForm[r, 3, 
+                            NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \
+\(-4\)] <> "\<_\>" <> \[IndentingNewLine]StringTake[
+                        ToString[
+                          PaddedForm[s, 3, 
+                            NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \
+\(-4\)] <> "\<_\>" <> \ \ \[IndentingNewLine]StringTake[
+                        ToString[
+                          PaddedForm[kend[\([j]\)], 3, 
+                            NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \
+\(-4\)] <> "\<_\>" <> \[IndentingNewLine]StringTake[
+                        ToString[
+                          PaddedForm[M, 3, 
+                            NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \
+\(-4\)] <> "\<.txt\>"], \[IndentingNewLine]WriteString[testfile, 
+                  kend[\([j]\)], "\<\n\>"], \[IndentingNewLine]WriteString[
+                  testfile, M, "\<\n\>"], \[IndentingNewLine]WriteString[
+                  testfile, "\<\n\>"], \[IndentingNewLine]Do[
+                  Do[WriteString[testfile, 
+                      CForm[Re[\(fhat\[LeftDoubleBracket]
+                              k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                            n + k + 1\[RightDoubleBracket]]], "\<\n\>", 
+                      CForm[
+                        Im[\(fhat\[LeftDoubleBracket]
+                              k + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]
+                            n + k + 
+                              1\[RightDoubleBracket]]], "\<\n\>"], {n, \
+\(-k\), k}], {k, 0, kend[\([j]\)]}], \[IndentingNewLine]WriteString[
+                  testfile, "\<\n\>"], \[IndentingNewLine]Do[
+                  WriteString[testfile, 
+                    CForm[\(x\[LeftDoubleBracket]m + 
+                            1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
 \[RightDoubleBracket]], "\<\n\>", 
-            CForm[\(x\[LeftDoubleBracket]m + 
-                    1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+                    CForm[\(x\[LeftDoubleBracket]m + 
+                            1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
 \[RightDoubleBracket]], "\<\n\>"], {m, 0, 
-            M - 1}], \[IndentingNewLine]WriteString[
-          testfile, "\<\n\>"], \[IndentingNewLine]Do[
-          WriteString[testfile, 
-            CForm[Re[
-                fv\[LeftDoubleBracket]m + 1\[RightDoubleBracket]]], "\<\n\>", 
-            CForm[Im[
-                fv\[LeftDoubleBracket]m + 
-                    1\[RightDoubleBracket]]], "\<\n\>"], {m, 0, 
-            M - 1}], \[IndentingNewLine]Close[testfile]}, {j, 1, 
+                    M - 1}], \[IndentingNewLine]WriteString[
+                  testfile, "\<\n\>"], \[IndentingNewLine]Do[
+                  WriteString[testfile, 
+                    CForm[Re[
+                        fv\[LeftDoubleBracket]m + 
+                            1\[RightDoubleBracket]]], "\<\n\>", 
+                    CForm[Im[
+                        fv\[LeftDoubleBracket]m + 
+                            1\[RightDoubleBracket]]], "\<\n\>"], {m, 0, 
+                    M - 1}], \[IndentingNewLine]Close[testfile]}, {s, \(-r\), 
+                r}]}, {r, 0, kend[\([\)\(j\)\(]\)]}]}, {j, 1, 
         Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
@@ -173,6 +176,15 @@ Cell[BoxData[
 
 Cell[BoxData[
     \(0.28209479177387814`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(4\)], "Input"],
+
+Cell[BoxData[
+    \(4\)], "Output"]
 }, Open  ]]
 },
 FrontEndVersion->"5.0 for X",
@@ -208,13 +220,18 @@ Notebook[{
 Cell[1754, 51, 82, 2, 27, "Input"],
 Cell[1839, 55, 340, 7, 62, "Input"],
 Cell[2182, 64, 729, 15, 114, "Input"],
-Cell[2914, 81, 147, 3, 43, "Input"],
-Cell[3064, 86, 3772, 71, 473, "Input"],
-Cell[6839, 159, 318, 7, 71, "Text"],
+Cell[2914, 81, 135, 3, 43, "Input"],
+Cell[3052, 86, 4290, 74, 460, "Input"],
+Cell[7345, 162, 318, 7, 71, "Text"],
 
 Cell[CellGroupData[{
-Cell[7182, 170, 57, 1, 50, "Input"],
-Cell[7242, 173, 54, 1, 27, "Output"]
+Cell[7688, 173, 57, 1, 50, "Input"],
+Cell[7748, 176, 54, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7839, 182, 34, 1, 27, "Input"],
+Cell[7876, 185, 35, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

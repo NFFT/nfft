@@ -282,7 +282,9 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   set->M = M;
   set->t = t;
   set->N = 1<<t;
-  
+  //fprintf(stdout,"M = %d, t = %d, N = %d\n",set->M,set->t,set->N);
+  //fflush(stdout);
+    
   /* Allocate memory for L transforms. */
   set->dpt = malloc((M+1)*sizeof(dpt_data));
   
@@ -357,6 +359,12 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
                            2, 1, (double*)set->vec4, NULL, 2, 1,set->kindsr, 
                            0);
     }
+    free(set->lengths);
+    free(set->kinds);
+    free(set->kindsr);
+    set->lengths = NULL;
+    set->kinds = NULL;
+    set->kindsr = NULL;
   }  
   
   if (set->flags & DPT_NO_SLOW_TRANSFORM)
@@ -371,8 +379,8 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   return set;
 }
 
-void dpt_precompute(dpt_set set, const int m, const double const* alpha, 
-                    const double const* beta, const double const* gamma, int k_start,
+void dpt_precompute(dpt_set set, const int m, const double *alpha, 
+                    const double *beta, const double *gamma, int k_start,
                     const double threshold)
 {
   
@@ -685,7 +693,7 @@ void dpt_precompute(dpt_set set, const int m, const double const* alpha,
   }
 }
 
-void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags)
 {
   int k;
@@ -703,7 +711,7 @@ void dpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   
 }
 
-void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y, 
+void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags)
 { 
   /* Get transformation data. */
@@ -915,12 +923,12 @@ void fpt_trafo(dpt_set set, const int m, const complex const* x, complex *y,
   }  
 }
 
-void dpt_transposed(dpt_set set, const int m, const complex const* x, complex *y, 
+void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags)
 {
 }
 
-void fpt_transposed(dpt_set set, const int m, complex *x, const complex const* y, 
+void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
@@ -1233,14 +1241,8 @@ void dpt_finalize(dpt_set set)
      
     free(set->plans_dct3);
     free(set->plans_dct2);
-    free(set->kinds);
-    free(set->kindsr);
-    free(set->lengths);
     set->plans_dct3 = NULL;
     set->plans_dct2 = NULL;
-    set->kinds = NULL;
-    set->kindsr = NULL;
-    set->lengths = NULL;
   }
   
   if (set->flags & DPT_NO_SLOW_TRANSFORM)
