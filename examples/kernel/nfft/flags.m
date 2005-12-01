@@ -1,72 +1,66 @@
-%% File: flags.m
+%% File: flags1.m
 %%
-%% Testing the Testing different precomputation schemes for the nfft.
+%% Testing different precomputation schemes for the nfft.
+%% 1. Computation time vs. problem size
 %%
 %% Author Stefan Kunis
 %%
-%% References: [flags], i.e., Draft:
-%% Time and memory requirements of the Nonequispaced FFT
+%% References: Time and memory requirements of the Nonequispaced FFT
 %%
-%% Calls repeatedly the executable flags.
+%% Loads flags.data0.gaussian, ...
 
-%%
-%% Testing time vs. problem size.
-%%
-trials=2;
+% see flags.readme
+trials=10;
 first=4;
 last=20;
-%system(sprintf('./flags %d %d %d %d %f %f > flags1.dat',0,first,last,trials,1,4));
-data=load('flags1.dat');
 
-N=data(:,2);
-avg_N=N(1:trials:end);
-t_D=data(:,5);
-avg_t_D=(mean(reshape(t_D,trials,last-first+1)))';
-t_pre_phi_hut=data(:,6);
-avg_t_pre_phi_hut=(mean(reshape(t_pre_phi_hut,trials,last-first+1)))';
-t_fftw=data(:,7);
-avg_t_fftw=(mean(reshape(t_fftw,trials,last-first+1)))';
-t_B=data(:,8);
-avg_t_B=(mean(reshape(t_B,trials,last-first+1)))';
-t_fg_psi=data(:,9);
-avg_t_fg_psi=(mean(reshape(t_fg_psi,trials,last-first+1)))';
-t_pre_lin_psi=data(:,10);
-avg_t_pre_lin_psi=(mean(reshape(t_pre_lin_psi,trials,last-first+1)))';
-t_pre_fg_psi=data(:,11);
-avg_t_pre_fg_psi=(mean(reshape(t_pre_fg_psi,trials,last-first+1)))';
-t_pre_psi=data(:,12);
-avg_t_pre_psi=(mean(reshape(t_pre_psi,trials,last-first+1)))';
-t_pre_full_psi=data(:,5);
-avg_t_pre_full_psi=(mean(reshape(t_pre_full_psi,trials,last-first+1)))';
+% load already computed data, times for precomputed D/B differ only negligible
+dg=load('flags.data0.gaussian');
+dk=load('flags.data0.kaiser_bessel');
+ds=load('flags.data0.sinc_power');
+db=load('flags.data0.b_spline');
 
-h=loglog(N,t_D,'go',avg_N,avg_t_D,'g',...
-         N,t_pre_phi_hut,'go',avg_N,avg_t_pre_phi_hut,'g:',...
-         N,t_fftw,'ro',avg_N,avg_t_fftw,'r',...
-         N,t_B,'ko',avg_N,avg_t_B,'k',...
-         N,t_fg_psi,'kx',avg_N,avg_t_fg_psi,'k:',...
-         N,t_pre_lin_psi,'k+',avg_N,avg_t_pre_lin_psi,'k-.',...
-         N,t_pre_fg_psi,'k*',avg_N,avg_t_pre_fg_psi,'k--',...
-         N,t_pre_psi,'ks',avg_N,avg_t_pre_psi,'k:',...
-         N,t_pre_full_psi,'k*',avg_N,avg_t_pre_full_psi,'k-.');
+N=dg(1:trials:end,2);
+
+t_Dg=(mean(reshape(dg(:,6),trials,last-first+1)))';
+t_Dk=(mean(reshape(dk(:,6),trials,last-first+1)))';
+t_Ds=(mean(reshape(ds(:,6),trials,last-first+1)))';
+t_Db=(mean(reshape(db(:,6),trials,last-first+1)))';
+t_pre_phi_hut=(mean(reshape(dg(:,7),trials,last-first+1)))';
+
+t_fftw=(mean(reshape(dg(:,8),trials,last-first+1)))';
+
+t_Bg=(mean(reshape(dg(:,9),trials,last-first+1)))';
+t_Bk=(mean(reshape(dk(:,9),trials,last-first+1)))';
+t_Bs=(mean(reshape(ds(:,9),trials,last-first+1)))';
+t_Bb=(mean(reshape(db(:,9),trials,last-first+1)))';
+
+t_fg_psi=(mean(reshape(dg(:,10),trials,last-first+1)))';
+t_pre_lin_psi=(mean(reshape(dg(:,11),trials,last-first+1)))';
+t_pre_fg_psi=(mean(reshape(dg(:,12),trials,last-first+1)))';
+t_pre_psi=(mean(reshape(dg(:,13),trials,last-first+1)))';
+t_pre_full_psi=(mean(reshape(dg(:,14),trials,last-first+1)))';
+
+h=loglog(N,t_Dg,'k',...
+         N,t_Dk,'k--',...
+         N,t_Ds,'k-.',...
+         N,t_Db,'k:',...
+         N,t_pre_phi_hut,'k.');
   
 set(h,'LineWidth',1.8); set(h,'MarkerSize',6); 
 set(gca,'YTick',[10^-6,10^-4,10^-2,1,10^2]);
 set(gca,'XTick',[10^2,10^3,10^4,10^5,10^6]);
 set(gca,'FontSize',20);
-axis([N(1),N(end),10^-6,10^0]);
+axis([N(1),N(end),10^-6,10^1]);
 
-print temp.eps -deps
-!ps2pdf temp.eps flags1.pdf 
-!rm temp.eps
+if(to_pdf)
+  !ps2pdf temp.eps flags1.pdf 
+  !rm temp.eps
+else
+  !mv temp.eps flags1.eps
+end;
 
 return
-
-
-
-
-
-
-
 
 %%
 %% Testing accuracy vs. cut-off/Taylor degree m.
