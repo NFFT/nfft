@@ -1,1 +1,2 @@
-SUBDIRS = obsolete
+SUBDIRS = 
+#obsolete

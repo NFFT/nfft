@@ -6,13 +6,31 @@
  *
  * References: Time and Memory Requirements of the Nonequispaced FFT
  */
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include "util.h"
 #include "nfft3.h"
+#include "options.h"
+
+#ifdef GAUSSIAN
+  unsigned test_fg=1;
+#else
+  unsigned test_fg=0;
+#endif
+
+#ifdef MEASURE_TIME_FFTW
+  unsigned test_fftw=1;
+#else
+  unsigned test_fftw=0;
+#endif
+
+#ifdef MEASURE_TIME
+  unsigned test=1;
+#else
+  unsigned test=0;
+#endif
 
 void flags_cp(nfft_plan *dst, nfft_plan *src)
 {
@@ -30,7 +48,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 {
   int j,k,r;
 
-  double t_ndft, t;
+  double t_ndft, t, e;
   complex *swapndft;
 
   int NN[d], nn[d];
@@ -68,17 +86,23 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   flags_cp(&p_pre_phi_hut, &p);
   nfft_precompute_one_psi(&p_pre_phi_hut);
 
-  nfft_init_guru(&p_fg_psi, d, NN, M, nn, m, FG_PSI,0);
-  flags_cp(&p_fg_psi, &p);
-  nfft_precompute_one_psi(&p_fg_psi);
+  if(test_fg)
+    {
+      nfft_init_guru(&p_fg_psi, d, NN, M, nn, m, FG_PSI,0);
+      flags_cp(&p_fg_psi, &p);
+      nfft_precompute_one_psi(&p_fg_psi);
+    }
 
   nfft_init_guru(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI,0);
   flags_cp(&p_pre_lin_psi, &p);
   nfft_precompute_one_psi(&p_pre_lin_psi);
 
-  nfft_init_guru(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI,0);
-  flags_cp(&p_pre_fg_psi, &p);
-  nfft_precompute_one_psi(&p_pre_fg_psi);
+  if(test_fg)
+    {
+      nfft_init_guru(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI,0);
+      flags_cp(&p_pre_fg_psi, &p);
+      nfft_precompute_one_psi(&p_pre_fg_psi);
+    }
 
   nfft_init_guru(&p_pre_psi, d, NN, M, nn, m, PRE_PSI,0);
   flags_cp(&p_pre_psi, &p);
@@ -113,30 +137,40 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
       t_ndft/=r;
 
       SWAP_complex(p.f,swapndft);
-      printf("%.2e\t", t_ndft);
     }
-  else 
-    {
-      printf("nan\t\t");
-    }
+  else
+    t_ndft=nan("");
 
-  /** NFFT */
+  /** NFFTs */
   nfft_trafo(&p);
   nfft_trafo(&p_pre_phi_hut);
-  nfft_trafo(&p_fg_psi);
+  if(test_fg)
+    nfft_trafo(&p_fg_psi);
+  else
+    p_fg_psi.MEASURE_TIME_t[2]=nan("");
   nfft_trafo(&p_pre_lin_psi);
-  nfft_trafo(&p_pre_fg_psi);
+  if(test_fg)
+    nfft_trafo(&p_pre_fg_psi);
+  else
+    p_pre_fg_psi.MEASURE_TIME_t[2]=nan("");
   nfft_trafo(&p_pre_psi);
   if(test_pre_full_psi)
     nfft_trafo(&p_pre_full_psi);
+  else
+    p_pre_full_psi.MEASURE_TIME_t[2]=nan("");
+
+  if(test_fftw==0)
+    p.MEASURE_TIME_t[1]=nan("");
 
   if(test_ndft)
-    printf("%.2e\t",error_l_2_complex(swapndft, p.f, p.M_total));
+    e=error_l_2_complex(swapndft, p.f, p.M_total);
   else
-    printf("nan\t\t");
+    e=nan("");
 
-
-  printf("%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\n",
+  printf("%.2e\t%d\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\n",
+         t_ndft,
+         m,
+         e,
          p.MEASURE_TIME_t[0],
          p_pre_phi_hut.MEASURE_TIME_t[0],
 
@@ -155,9 +189,11 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   if(test_pre_full_psi)
     nfft_finalize(&p_pre_full_psi);
   nfft_finalize(&p_pre_psi);
-  nfft_finalize(&p_pre_fg_psi);
+  if(test_fg)
+    nfft_finalize(&p_pre_fg_psi);
   nfft_finalize(&p_pre_lin_psi);
-  nfft_finalize(&p_fg_psi);
+  if(test_fg)
+    nfft_finalize(&p_fg_psi);
   nfft_finalize(&p_pre_phi_hut);
   nfft_finalize(&p);
 
@@ -174,6 +210,12 @@ int main(int argc,char **argv)
   if(argc<=2)
     {
       fprintf(stderr,"flags type first last trials d m\n");
+      return -1;
+    }
+
+  if(test==0)
+    {
+      fprintf(stderr,"MEASURE_TIME in options.h not set\n");
       return -1;
     }
 
