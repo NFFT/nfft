@@ -2309,7 +2309,7 @@ MACRO_SOLVER_PLAN(nfst, double)
 MACRO_SOLVER_PLAN(nnfft, complex)
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex)
-/*MACRO_SOLVER_PLAN(texture, complex)*/
+MACRO_SOLVER_PLAN(texture, complex)
 /** @} 
  */
 
