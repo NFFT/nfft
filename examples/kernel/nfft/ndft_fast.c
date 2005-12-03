@@ -182,10 +182,10 @@ int main(int argc,char **argv)
     {
       for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
         for(trial=0; trial<atoi(argv[4]); trial++)
-          if(l<13)
+          if(l<=13)
             ndft_time((1U<< l), (1U<< l), 1, 1);
           else
-            if(l<15)
+            if(l<=15)
               ndft_time((1U<< l), (1U<< l), 1, 0);
             else
               ndft_time((1U<< l), (1U<< l), 0, 0);

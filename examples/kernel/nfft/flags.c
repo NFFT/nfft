@@ -201,11 +201,70 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     fftw_free(swapndft);
 }
 
+void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
+{
+  int j,k,r;
+
+  double t_ndft, t, e;
+  complex *swapndft;
+
+  int NN[d], nn[d];
+
+  nfft_plan p;
+
+  for(r=0; r<d; r++)
+    {
+      NN[r]=N;
+      nn[r]=n;
+    }
+
+  /** output vector ndft */
+  swapndft=(complex*)fftw_malloc(M*sizeof(complex));
+
+  nfft_init_guru(&p, d, NN, M, nn, m,
+                 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+                 PRE_PHI_HUT| PRE_LIN_PSI|
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+
+  /** realloc psi */
+  fftw_free(p.psi);
+  p.K=K;
+  p.psi=(double*) fftw_malloc((p.K+1)*p.d*sizeof(double));
+
+  /** precomputation can be done before the nodes are initialised */
+  nfft_precompute_one_psi(&p);
+
+  /** init pseudo random nodes */
+  for(j=0; j<p.d*p.M_total; j++)
+    p.x[j]=drand48()-0.5;
+
+  /** init pseudo random Fourier coefficients */
+  for(k=0; k<p.N_total; k++)
+    p.f_hat[k] = drand48() + I* drand48();
+
+  /** compute exact result */
+  SWAP_complex(p.f,swapndft);
+  ndft_trafo(&p);
+  SWAP_complex(p.f,swapndft);
+
+  /** NFFT */
+  nfft_trafo(&p);
+  e=error_l_2_complex(swapndft, p.f, p.M_total);
+
+  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
+
+  fflush(stdout);
+
+  /** finalise */
+  nfft_finalize(&p);
+  fftw_free(swapndft);
+}
 
 
 int main(int argc,char **argv)
 {
-  int l,m,d,trial,N;
+  int l,m,d,trial,N,K;
 
   if(argc<=2)
     {
@@ -244,6 +303,16 @@ int main(int argc,char **argv)
     for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
       for(trial=0; trial<atoi(argv[4]); trial++)
         time_accuracy(d, N, (int)pow(N,d), 2*N, m, 1, 1);
+
+  d=atoi(argv[5]);
+  N=atoi(argv[6]);
+  m=atoi(argv[7]);
+
+  /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
+  if(atoi(argv[1])==2)
+    for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
+      for(trial=0; trial<atoi(argv[4]); trial++)
+        accuracy_pre_lin_psi(d, N, (int)pow(N,d), 2*N, m, (m+1)*(1U<< l));
 
 
   return 1;
