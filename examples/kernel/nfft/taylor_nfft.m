@@ -4,8 +4,7 @@
 %%
 %% Author Stefan Kunis
 %%
-%% References: [AnDa96], i.e., Chris Anderson and Marie Dahleh:
-%% Rapid computation on the discrete Fourier transform
+%% References: Time and memory requirements of the Nonequispaced FFT
 %%
 %% Calls repeatedly the executable taylor_nfft.
 
@@ -16,20 +15,17 @@ to_pdf=0;
 %%
 trials=10;
 first=4;
-last=20;
-%system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft1.dat',0,first,last,trials,2,4));
-data=load('taylor_nfft1.dat');
+last=22;
+%system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data0',0,first,last,trials,2,4));
+data=load('taylor_nfft.data0');
 
-N=data(:,1);
-avg_N=N(1:trials:end);
-t_nfft=data(:,6);
-avg_t_nfft=(mean(reshape(t_nfft,trials,last-first+1)))';
-t_taylor=data(:,10);
-avg_t_taylor=(mean(reshape(t_taylor,trials,last-first+1)))';
+N=data(1:trials:end,1);
+t_nfft=(mean(reshape(data(:,6),trials,last-first+1)))';
+t_taylor=(mean(reshape(data(:,10),trials,last-first+1)))';
 
-h=loglog(avg_N,avg_t_taylor,'ko',...
-         avg_N,avg_t_nfft,'kx',...
-         avg_N,10^-7*avg_N.*log(avg_N),'k:');
+h=loglog(N,t_taylor,'k',...
+         N,t_nfft,'k--',...
+         N,10^-7*N.*log(N),'k:');
 set(h,'LineWidth',1.8); set(h,'MarkerSize',6); 
 set(gca,'YTick',[10^-6,10^-4,10^-2,1,10^2]);
 set(gca,'XTick',[10^2,10^3,10^4,10^5,10^6]);
@@ -38,11 +34,13 @@ axis([N(1),N(end),10^-6,10^2]);
 
 print temp.eps -deps
 if(to_pdf)
-  !ps2pdf temp.eps taylor_nfft1.pdf 
+  !ps2pdf temp.eps taylor_nfft0.pdf 
   !rm temp.eps
 else
-  !mv temp.eps taylor_nfft1.eps
+  !mv temp.eps taylor_nfft0.eps
 end;
+
+return;
 
 %%
 %% Testing accuracy vs. cut-off/Taylor degree m.

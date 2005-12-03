@@ -13,7 +13,7 @@ to_pdf=0;
 
 trials=10;
 first=4;
-last=16;
+last=17;
 %system(sprintf('./ndft_fast %d %d %d %d > ndft_fast.data',0,first,last,trials));
 data=load('ndft_fast.data');
 

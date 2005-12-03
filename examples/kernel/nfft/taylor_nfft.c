@@ -4,8 +4,7 @@
  *
  * \author Stefan Kunis
  *
- * References: [AnDa96], i.e., Chris Anderson and Marie Dahleh:
- * Rapid computation on the discrete Fourier transform
+ * References: Time and memory requirements of the Nonequispaced FFT
  *
  */
 #include <stdio.h>
@@ -289,7 +288,7 @@ int main(int argc,char **argv)
       fprintf(stderr,"Fixed target accuracy, timings.\n\n");
       for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
         for(trial=0; trial<atoi(argv[4]); trial++)
-          if(l<13)
+          if(l<=10)
             taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
                                  (1U<< l)), 6, (int)(atof(argv[6])*(1U<< l)),
                                  6, 1);
