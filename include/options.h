@@ -8,16 +8,16 @@
 
 /** window
  */	
-#define GAUSSIAN
+#define KAISER_BESSEL
                                         /* one of KAISER_BESSEL,SINC_POWER   */
 					/* B_SPLINE,GAUSSIAN,                */
 
 /** timing
  */
-/*#define MEASURE_TIME*/
+#define MEASURE_TIME
                                         /* measure time for the deconvolution
                                            and convolution/evaluation step   */
-/*#define MEASURE_TIME_FFTW*/
+#define MEASURE_TIME_FFTW
                                         /* the same for the fftw step        */
 
 
