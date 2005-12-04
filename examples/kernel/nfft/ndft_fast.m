@@ -36,8 +36,8 @@ axis([N(1),N(end),10^-6,10^2]);
 
 print temp.eps -deps
 if(to_pdf)
-  !ps2pdf temp.eps ndft_fast1.pdf 
+  !ps2pdf temp.eps ndft_fast.pdf 
   !rm temp.eps
 else
-  !mv temp.eps ndft_fast1.eps
+  !mv temp.eps ndft_fast.eps
 end;
