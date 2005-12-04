@@ -291,7 +291,7 @@ int main(int argc,char **argv)
     for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
       for(trial=0; trial<atoi(argv[4]); trial++)
         if(l<=20)
-          time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 1, 1);
+          time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
         else
           time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
 
