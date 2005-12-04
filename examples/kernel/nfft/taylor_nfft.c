@@ -269,8 +269,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
 int main(int argc,char **argv)
 {
-  int l,m,trial,sigma;
-  int N=(1U<< 10);
+  int l,m,trial,sigma,N;
 
   if(argc<=2)
     {
@@ -301,6 +300,7 @@ int main(int argc,char **argv)
   /* error vs. m */
   if(atoi(argv[1])==1)
     {
+N=atoi(argv[7]);
       fprintf(stderr,"Fixed N=M=%d, error vs. m.\n\n",N);
       for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
         for(trial=0; trial<atoi(argv[4]); trial++)

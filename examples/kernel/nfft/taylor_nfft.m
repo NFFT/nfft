@@ -40,74 +40,71 @@ else
   !mv temp.eps taylor_nfft0.eps
 end;
 
-return;
-
 %%
 %% Testing accuracy vs. cut-off/Taylor degree m.
 %%
-trials=20;
+trials=10;
 first=1;
 last=20;
-sigma_nfft=2;
-sigma_taylor=2;
-sigma_nfft1=1.5;
-sigma_taylor1=1.5;
-sigma_nfft2=16;
-sigma_taylor2=16;
+sigma_nfft_a=2;
+sigma_taylor_a=2;
+sigma_nfft_b=1.5;
+sigma_taylor_b=1.5;
+sigma_nfft_c=16;
+sigma_taylor_c=16;
 
 % typical sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2a.dat',1,first,...
-	       last,trials,sigma_nfft,sigma_taylor));
-data=load('taylor_nfft2a.dat');
+system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data1a',1,first,...
+	       last,trials,sigma_nfft_a,sigma_taylor_a));
+data=load('taylor_nfft.data1a');
 
-m_nfft=data(:,5);
-e_nfft=data(:,7);
-max_e_nfft=(max(reshape(e_nfft,trials,last-first+1)))';
+m_nfft=data(1:trials:end,5);
+e_nfft_a=(max(reshape(data(:,7),trials,last-first+1)))';
+t_nfft_a=(mean(reshape(data(:,6),trials,last-first+1)))';
 
-m_taylor=data(:,9);
-e_taylor=data(:,11);
-max_e_taylor=(max(reshape(e_taylor,trials,last-first+1)))';
+m_taylor=data(1:trials:end,9);
+e_taylor_a=(max(reshape(data(:,11),trials,last-first+1)))';
+t_taylor_a=(mean(reshape(data(:,10),trials,last-first+1)))';
 
 % small sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2b.dat',1,first,...
-	       last,trials,sigma_nfft1,sigma_taylor1));
-data1=load('taylor_nfft2b.dat');
-max_e_nfft_sigma=(max(reshape(data1(:,7),trials,last-first+1)))';
-max_e_taylor_sigma=(max(reshape(data1(:,11),trials,last-first+1)))';
+system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data1b',1,first,...
+	       last,trials,sigma_nfft_b,sigma_taylor_b));
+data=load('taylor_nfft.data1b');
+
+e_nfft_b=(max(reshape(data1(:,7),trials,last-first+1)))';
+e_taylor_b=(max(reshape(data1(:,11),trials,last-first+1)))';
 
 % large sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2c.dat',1,first,...
-	       last,trials,sigma_nfft2,sigma_taylor2));
-data2=load('taylor_nfft2c.dat');
-max_e_nfft_sigma2=(max(reshape(data2(:,7),trials,last-first+1)))';
-max_e_taylor_sigma2=(max(reshape(data2(:,11),trials,last-first+1)))';
+system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data1c',1,first,...
+	       last,trials,sigma_nfft_c,sigma_taylor_c));
+data=load('taylor_nfft.data1c');
 
-h=semilogy(first:last,max_e_taylor,'ko',...
-           first:last,max_e_taylor_sigma,'k',...
-           first:last,max_e_taylor_sigma2,'k--',...
-           first:last,max_e_nfft,'kx',...
-           first:last,max_e_nfft_sigma,'k-.',...
-           first:last,max_e_nfft_sigma2,'k:');
+e_nfft_c=(max(reshape(data2(:,7),trials,last-first+1)))';
+e_taylor_c=(max(reshape(data2(:,11),trials,last-first+1)))';
+
+h=semilogy(m_taylor,e_taylor_a,'kd',...
+	   m_nfft,e_nfft_a,'kx',...
+	   m_taylor,e_taylor_b,'k',...
+	   m_nfft,e_nfft_b,'k--',...
+	   m_taylor,e_taylor,'k-.',...
+	   m_nfft,e_nfft,'k:');
 set(h,'LineWidth',1.8); set(h,'MarkerSize',6); 
 set(gca,'YTick',[10^-15,10^-10,10^-5,1]);
 set(gca,'FontSize',20);
-axis([first,last,10^-16,1]);
+axis([m(1),m(end),10^-13,10^-1]);
 
 print temp.eps -deps
 if(to_pdf)
-  !ps2pdf temp.eps taylor_nfft2.pdf 
+  !ps2pdf temp.eps taylor_nfft1.pdf 
   !rm temp.eps
 else
-  !mv temp.eps taylor_nfft2.eps
+  !mv temp.eps taylor_nfft1.eps
 end;
 
 %%
 %% Testing accuracy vs. time.
 %%
-t_nfft=data(:,6);
-avg_t_nfft=(mean(reshape(t_nfft,trials,last-first+1)))';
-t_taylor=data(:,10);
-avg_t_taylor=(mean(reshape(t_taylor,trials,last-first+1)))';
+
 
 h=semilogy(avg_t_taylor,max_e_taylor,'ko',...
            avg_t_nfft,max_e_nfft,'kx');
