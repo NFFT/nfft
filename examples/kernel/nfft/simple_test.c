@@ -259,6 +259,9 @@ int main()
 {
   int l,m;
 
+printf("%d, %d\n",sizeof(int), sizeof(double));
+exit(-1);
+
   system("clear");
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
