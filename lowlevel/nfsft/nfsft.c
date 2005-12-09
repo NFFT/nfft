@@ -79,6 +79,58 @@ inline void c2e(nfsft_plan *plan)
   }
 }
 
+inline void c2e_transposed(nfsft_plan *plan)
+{
+  int k;             /**< Degree \f$k\f$                           */
+  int n;             /**< Order \f$k\f$                            */
+  complex last;      /**< Stores temporary values                  */
+  complex act;       /**< Stores temporary values                  */
+  complex *xp;       /**< Auxilliary pointer                       */
+  complex *xm;       /**< Auxilliary pointer                       */
+  int low, up;
+  
+  for (n = -plan->N; n <= plan->N; n++)
+  {
+    xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
+    xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);
+    if (n%2==0)
+    {       
+      for(k = 1; k <= plan->N; k++)
+      {
+        *xm-- += *xp++;
+      }
+    }
+    {
+      for(k = 1; k <= plan->N; k++)
+      {
+        *xm-- -= *xp++;
+      }
+    }
+  }
+  
+  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  low = -plan->N + (1-plan->N%2);
+  up = -low;
+  
+  /* Process odd terms. */
+  /* Incorporate sine term. */
+  /*for (n = low; n <= up; n += 2)
+  {
+    xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
+    xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
+    last = *xp;
+    *xp = -0.5 * I * xp[1];
+    *xm-- = -(*xp++);
+    for (k = -plan->N+1; k < 0; k++)
+    {
+      act = *xp;
+      *xp = -0.5 * I * (xp[1] - last);
+      *xm-- = -(*xp++);
+      last = act;
+    }
+    *xp = 0.0;
+  }*/
+}
 
 void nfsft_init(nfsft_plan *plan, int N, int M)
 {
@@ -648,31 +700,10 @@ void nfsft_trafo(nfsft_plan *plan)
     plan->plan_nfft.x = plan->x;
     plan->plan_nfft.f = plan->f;
     plan->plan_nfft.f_hat = plan->f_hat;
-
-    //fprintf(stdout,"\n");
-    /*for (n = -plan->N; n <= plan->N; n++)
-    {
-      for (k = -plan->N; k <= plan->N; k++)
-      {*/
-        /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
-        {
-          fprintf(stdout,"0");
-        }
-        else
-        {
-          fprintf(stdout,"*");
-        }*/
-        /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
-          creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
-          cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
-      }
-      fprintf(stdout,"\n");
-    }*/
     
     /** Check for normalization. */
     if (plan->flags & NFSFT_NORMALIZED)
     {
-      //fprintf(stdout,"Normalizing!\n");
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)
@@ -699,7 +730,6 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Compute FPT. */
       for (n = -plan->N; n <= plan->N; n++) 
       {
-        //fprintf(stdout,"DPT usage: n = %d\n",n);
         fpt_trafo(wisdom.set,abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
@@ -707,51 +737,9 @@ void nfsft_trafo(nfsft_plan *plan)
       }
     }
 
-    //fprintf(stdout,"\n");
-    //for (n = -plan->N; n <= plan->N+1; n++)
-    //{
-      /*n = 3;
-      for (k = -plan->N-1; k <= plan->N; k++)
-      {*/
-        /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
-        {
-          fprintf(stdout,"0");
-        }
-        else
-        {
-          fprintf(stdout,"*");
-        }*/
-        /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
-          creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
-          cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
-      }*/
-      //fprintf(stdout,"\n");
-    //}
-   
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan); 
     
-    //fprintf(stdout,"\n");
-    //for (n = -plan->N; n <= plan->N; n++)
-    //{
-      /*n = 3;
-      for (k = -plan->N-1; k <= plan->N; k++)
-      {*/
-        /*if (cabs(plan->f_hat[NFSFT_INDEX(k,n,plan)]) < 1e-10)
-        {
-          fprintf(stdout,"0");
-        }
-        else
-        {
-          fprintf(stdout,"*");
-        }*/
-        /*fprintf(stdout,"f[%d,%d] = %le + I*%le\n",k,n,
-          creal(plan->f_hat[NFSFT_INDEX(k,n,plan)]),
-          cimag(plan->f_hat[NFSFT_INDEX(k,n,plan)]));
-      }*/
-      //fprintf(stdout,"\n");
-    //}
-        
     /* Execute NFFT. */
     if (plan->flags & NFSFT_USE_NDFT)
     {
@@ -766,4 +754,72 @@ void nfsft_trafo(nfsft_plan *plan)
 
 void nfsft_adjoint(nfsft_plan *plan)
 {
+    /** Counter for loops */
+  int k,n;
+  
+  if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
+  {
+    return;
+  }  
+  
+  if (plan->N < NFSFT_BREAKTHROUGH)
+  {
+    ndsft_adjoint(plan);
+  }
+  else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
+    plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
+  {
+    plan->plan_nfft.x = plan->x;
+    plan->plan_nfft.f = plan->f;
+    plan->plan_nfft.f_hat = plan->f_hat;
+    
+    /* Execute NFFT. */
+    if (plan->flags & NFSFT_USE_NDFT)
+    {
+      ndft_adjoint(&plan->plan_nfft);
+    }
+    else
+    {
+      nfft_adjoint(&plan->plan_nfft);
+    }    
+
+    /* Convert Chebyshev coefficients to Fourier coefficients. */
+    c2e_transposed(plan); 
+    
+    if (plan->flags & NFSFT_USE_DPT)
+    {
+      /* Compute DPT. */
+      for (n = -plan->N; n <= plan->N; n++) 
+      {
+        dpt_transposed(wisdom.set,abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
+    }
+    else
+    {
+      /* Compute FPT. */
+      for (n = -plan->N; n <= plan->N; n++) 
+      {
+        fpt_transposed(wisdom.set,abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
+    }    
+
+    /** Check for normalization. */
+    if (plan->flags & NFSFT_NORMALIZED)
+    {
+      for (k = 0; k <= plan->N; k++)
+      {
+        for (n = -k; n <= k; n++)
+        {
+          plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
+            sqrt((2*k+1)/(4.0*PI));
+        }
+      }
+    }
+  } 
 }

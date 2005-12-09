@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8141,        203]*)
-(*NotebookOutlinePosition[      8990,        232]*)
-(*  CellTagsIndexPosition[      8946,        228]*)
+(*NotebookOptionsPosition[      8632,        222]*)
+(*NotebookOutlinePosition[      9481,        251]*)
+(*  CellTagsIndexPosition[      9437,        247]*)
 (*WindowFrame->Normal*)
 
 
@@ -87,20 +87,16 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(kend\  = \ 
-        Join[Table[k, {k, 4, 32, 4}], Table[k, {k, 40, 64, 8}], 
-          Table[k, {k, 80, 128, 16}], Table[k, {k, 160, 256, 32}], 
-          Table[k, {k, 320, 512, 64}], 
-          Table[k, {k, 640, 1024, 128}]];\)\)], "Input",
+    \(\(kend\  = \ {4, 5, 6, 7, 8};\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(FunctionValues\  = \ True;\)\)], "Input",
+    \(\(FunctionValues\  = \ False;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{n\  = \ 
-          Floor[kend[\([j]\)]/4], \[IndentingNewLine]t\  = \ 
+    \(Do[\[IndentingNewLine]{n\  = \ 1, \[IndentingNewLine]r = 
+          4, \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]VectorAlpha = 
           Table[LegendreAlpha[k, n], {k, \(-1\), 
@@ -109,10 +105,7 @@ Cell[BoxData[
               NN}], \[IndentingNewLine]VectorGamma = 
           Table[LegendreGamma[k, n], {k, \(-1\), 
               NN}], \[IndentingNewLine]VectorX = 
-          Table[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                10\^\(-p\)] + \[ImaginaryI]*
-                Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                  10\^\(-p\)], {k, n, 
+          Table[If[k \[Equal] r, 1, 0], {k, n, 
               kend[\([j]\)]}], \[IndentingNewLine]\[IndentingNewLine]f[
             x_]\  := \ \[Sum]\+\(k = n\)\%\(kend[\([j]\)]\)VectorX[\([k - n + 
                     1]\)]*myLegendreP[k, n, x]; \[IndentingNewLine]VectorY = 
@@ -125,11 +118,10 @@ Cell[BoxData[
                             1]\)] Cos[\(l \((k + 1\/2)\) \
 \[Pi]\)\/\(kend[\([j]\)] + 1\)]\), {l, 0, kend[\([j]\)]}], 
             VectorY\  = \ VectorYY}], \[IndentingNewLine]testfile = 
-          OpenWrite["\<test_dpt_\>" <> \ 
+          OpenWrite["\<test_dpt_debug\>" <> \ 
               ToString[
                 If[FunctionValues, 1, 
-                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<n4_\>"\  \
-<> \[IndentingNewLine]StringTake[
+                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[n, 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
@@ -138,6 +130,10 @@ Cell[BoxData[
                   PaddedForm[NN, 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
 "\<_\>" <> \ \[IndentingNewLine]StringTake[
+                ToString[
+                  PaddedForm[r, 3, 
+                    NumberPadding \[Rule] {"\<0\>", "\<\>"}]], \(-4\)] <> \
+"\<_\>" <> StringTake[
                 ToString[
                   PaddedForm[kend[\([j]\)], 3, 
                     NumberPadding \[Rule] {"\<0\>", "\<0\>"}]], \(-4\)] <> \
@@ -180,7 +176,7 @@ Cell[BoxData[
     \(Sqrt[137]*N[Cos[35\/22*Pi]]\)], "Input"],
 
 Cell[BoxData[
-    \(3.29759503290869`\)], "Output"]
+    \(3.2975950329086903`\)], "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -199,13 +195,36 @@ Cell[BoxData[
 
 Cell[BoxData[
     \(2.284794657156213`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+    \(Table[
+      N[LegendreAlpha[k, 4], p], {k, \(-1\), 4}]\), "\[IndentingNewLine]", 
+    \(Table[
+      N[LegendreBeta[k, 4], p], {k, \(-1\), 4}]\), "\[IndentingNewLine]", 
+    \(Table[N[LegendreGamma[k, 4], p], {k, \(-1\), 4}]\)}], "Input"],
+
+Cell[BoxData[
+    \({0, \(-1.`31.999999999999993\), 
+      1.`31.999999999999993, \(-1.`31.999999999999993\), 
+      1.`31.999999999999993, 3.`32. }\)], "Output"],
+
+Cell[BoxData[
+    \({0, 1.`31.999999999999993, 1.`31.999999999999993, 
+      1.`31.999999999999993, 1.`31.999999999999993, 0}\)], "Output"],
+
+Cell[BoxData[
+    \({0.522912516583797217486357516115742180870509605811`32. , 0, 0, 0, 0, 
+      0}\)], "Output"]
 }, Open  ]]
 },
 FrontEndVersion->"5.2 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1251, 745},
+WindowSize->{1012, 693},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
@@ -233,26 +252,33 @@ CellTagsIndex->{}
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
 Cell[1904, 56, 240, 5, 54, "Input"],
-Cell[2147, 63, 729, 15, 111, "Input"],
+Cell[2147, 63, 729, 15, 129, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
-Cell[3045, 88, 297, 6, 43, "Input"],
-Cell[3345, 96, 97, 2, 27, "Input"],
-Cell[3445, 100, 4256, 74, 712, "Input"],
+Cell[3045, 88, 98, 2, 27, "Input"],
+Cell[3146, 92, 98, 2, 27, "Input"],
+Cell[3247, 96, 4223, 74, 759, "Input"],
 
 Cell[CellGroupData[{
-Cell[7726, 178, 60, 1, 42, "Input"],
-Cell[7789, 181, 51, 1, 27, "Output"]
+Cell[7495, 174, 60, 1, 42, "Input"],
+Cell[7558, 177, 53, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[7877, 187, 57, 1, 42, "Input"],
-Cell[7937, 190, 52, 1, 27, "Output"]
+Cell[7648, 183, 57, 1, 42, "Input"],
+Cell[7708, 186, 52, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[8026, 196, 44, 1, 42, "Input"],
-Cell[8073, 199, 52, 1, 27, "Output"]
+Cell[7797, 192, 44, 1, 42, "Input"],
+Cell[7844, 195, 52, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7933, 201, 260, 5, 59, "Input"],
+Cell[8196, 208, 162, 3, 43, "Output"],
+Cell[8361, 213, 139, 2, 43, "Output"],
+Cell[8503, 217, 113, 2, 27, "Output"]
 }, Open  ]]
 }
 ]

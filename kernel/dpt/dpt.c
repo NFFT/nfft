@@ -979,17 +979,27 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
     {
       set->result[k] *= 0.5;
     }
-  }  
+  }
+  else
+  {
+    memcpy(set->result,y,(k_end+1)*sizeof(complex));
+  }
+  
+  /*fprintf(stdout,"\n");
+  for (k = 0; k <= k_end; k++)
+  {
+    fprintf(stdout,"result[%d] = %le + I*%le\n",k,creal(set->result[k]),cimag(set->result[k]));
+  }*/  
   
   /* Initialize working arrays. */
-  //memset(set->work,0U,2*Nk*sizeof(complex));
+  memset(set->work,0U,2*Nk*sizeof(complex));
   
   /* The last step is now the first step. */
-  for (k = 0; k <= k_end-2; k++)
+  for (k = 0; k <= k_end; k++)
   {
     set->work[k] = data->gamma_m1*set->result[k];
   }
-  memset(&set->work[k_end-1],0U,(Nk+1-k_end)*sizeof(complex));
+  //memset(&set->work[k_end+1],0U,(Nk+1-k_end)*sizeof(complex));
   
   set->work[Nk] = data->gamma_m1*(data->beta_0*set->result[0] + 
     data->alpha_0*set->result[1]);
@@ -1002,7 +1012,13 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
   {
     memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(complex));
   }  
-      
+
+  /*fprintf(stdout,"\n");
+  for (k = 0; k < 2*Nk; k++)
+  {
+    fprintf(stdout,"work[%d] = %le + I*%le\n",k,creal(set->work[k]),cimag(set->work[k]));
+  }*/  
+        
   /** Save copy of inpute data for stabilization steps. */
   memcpy(set->result,set->work,2*Nk*sizeof(complex));
   
@@ -1031,8 +1047,8 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
       /* Check if step is stable. */
       if (step->stable)
       {
-        dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
-          step->a21[0], step->a22[0], step->gamma[0], tau, set);
+        //dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+        //  step->a21[0], step->a22[0], step->gamma[0], tau, set);
 
         /* Multiply third and fourth polynomial with matrix U. */
         dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
