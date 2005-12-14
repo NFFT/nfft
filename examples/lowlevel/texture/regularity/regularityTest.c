@@ -249,7 +249,7 @@ int determine_max_N(int N1, int N2, int N_hint,
 			fflush(0);
 #endif
 			N_min = N_max;
-			N_max *= 2;
+			N_max++;
 		} while (is_regular(N1, N2, N_max, it_par, sol_par, max_res));
 #ifdef DEBUG_N
 		printf("not regular: %d\n", N_max);
