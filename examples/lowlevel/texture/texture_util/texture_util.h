@@ -9,6 +9,25 @@
 
 #define MAX_LINE 1000
 
+// data types
+
+typedef struct sample_dim_ {
+	int N1;
+	int N2;
+} sample_dim;
+
+typedef struct angle_dim_ {
+	int h_phi_count;
+	int h_theta_count;
+	int r_phi_count;
+	int r_theta_count;
+} angle_dim;
+
+typedef union grid_dim_ {
+	sample_dim samples;
+	angle_dim angles;
+} grid_dim;
+
 // input
 
 void read_h(int *N1_ptr, double **h_phi_ptr, double **h_theta_ptr, FILE * in,
@@ -102,8 +121,7 @@ void block_mult_error(int N1, int N2, complex * x, double min_err,
 
 const char *grid_descr[3];
 
-void calculate_grid(int h_phi_count, int h_theta_count, int r_phi_count,
-										int r_theta_count, double *h_phi, double *h_theta,
+void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 										double *r, int grid);
 
 const char *omega_policy_descr[2];

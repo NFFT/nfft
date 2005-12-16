@@ -22,7 +22,7 @@
  */
 typedef struct precompute_params_type_ {
 
-	/** Stores the precomputed pseudo bandwidth.
+	/** Stores the precomputed bandwidth.
 	 */
 	int N;
 
@@ -71,10 +71,10 @@ static nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i);
 
 /** Helper method for texture_adjoint.
  * Adds the result of the adjoined transformation restricted to a single pole
- * figure to the pseudo frequencies in a plan.
+ * figure to the frequencies in a plan.
  *
  * @par ths is the plan giving the sample values and providing the storage for
- * the pseudo frequencies.
+ * the frequencies.
  * @par i specifies the pole figure.
  *
  * @pre ths->nfsft_f_hat has to contain the result of nfsft_adjoint applied to

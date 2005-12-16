@@ -10,29 +10,29 @@ test3
 Convergence test of the CGNR algorithm for samples
 created from uniformly distributed frequencies.
 
-test4
+test4 (deprecated)
 Regularity test with the CGNR algorithm.
 For some uniformly distributed frequencies, it will be tested, if they can
 be reconstructed from its samples.
 This setting is repeated for various N, N1, N2.
 
-test5
+test5 (deprecated)
 Regularity test with the CGNE algorithm without damping factors.
 For some uniformly distributed frequencies, it will be tested, if they can
 be reconstructed from its samples.
 This setting is repeated for various N, N1, N2.
 
-test6
+test6 (deprecated)
 Regularity test with the CGNE algorithm with 1/i^2 damping factors.
 For some uniformly distributed frequencies, it will be tested, if they can
 be reconstructed from its samples.
 This setting is repeated for various N, N1, N2.
 
-test7
+test7 (deprecated)
 Monitors the residuum of the CGNE algorithm without damping factors on samples
 created from uniformly distributed frequencies.
 
-test8
+test8 (deprecated)
 Monitors the residuum of the CGNE algorithm with 1/i^2 damping factors on 
 samples created from uniformly distributed frequencies.
 

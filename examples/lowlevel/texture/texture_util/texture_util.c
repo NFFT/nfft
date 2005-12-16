@@ -85,24 +85,26 @@ void block_mult_error(int N1, int N2, complex * x, double min_err,
 	}
 }
 
-void calculate_grid(int h_phi_count, int h_theta_count, int r_phi_count,
-										int r_theta_count, double *h_phi, double *h_theta,
+void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 										double *r, int grid)
 {
-	int N1, N2;
-
-	N1 = h_phi_count * h_theta_count;
-	N2 = r_phi_count * r_theta_count;
-
 	switch (grid) {
 		case 0:
 		{
 			int i, j;
 			int s, t;
+			int N1, N2;
+			int h_phi_count = dims.angles.h_phi_count;
+			int h_theta_count = dims.angles.h_theta_count;
+			int r_phi_count = dims.angles.r_phi_count;
+			int r_theta_count = dims.angles.r_theta_count;
 
-			for (s = 0; s < h_theta_count; s++) {
+			N1 = h_phi_count * (h_theta_count - 2) + 2;
+			N2 = r_phi_count * (r_theta_count - 2) + 2;
+
+			for (s = 0; s < h_theta_count - 2; s++) {
 				double theta =
-					equidist(0, TEXTURE_MAX_ANGLE / 2, s, h_theta_count, 1);
+					equidist(0, TEXTURE_MAX_ANGLE / 2, s + 1, h_theta_count, 1);
 				for (t = 0; t < h_phi_count; t++) {
 					double phi =
 						equidist(-TEXTURE_MAX_ANGLE / 2, TEXTURE_MAX_ANGLE / 2, t,
@@ -112,10 +114,15 @@ void calculate_grid(int h_phi_count, int h_theta_count, int r_phi_count,
 				}
 			}
 
+			h_phi[N1 - 2] = 0;
+			h_theta[N1 - 2] = 0;
+			h_phi[N1 - 1] = 0;
+			h_theta[N1 - 1] = TEXTURE_MAX_ANGLE / 2;
+
 			j = 0;
-			for (s = 0; s < r_theta_count; s++) {
+			for (s = 0; s < r_theta_count - 2; s++) {
 				double theta =
-					equidist(0, TEXTURE_MAX_ANGLE / 2, s, r_theta_count, 1);
+					equidist(0, TEXTURE_MAX_ANGLE / 2, s + 1, r_theta_count, 1);
 				for (t = 0; t < r_phi_count; t++) {
 					double phi =
 						equidist(-TEXTURE_MAX_ANGLE / 2, TEXTURE_MAX_ANGLE / 2, t,
@@ -124,6 +131,11 @@ void calculate_grid(int h_phi_count, int h_theta_count, int r_phi_count,
 					r[j++] = theta;
 				}
 			}
+
+			r[j++] = 0;
+			r[j++] = 0;
+			r[j++] = 0;
+			r[j++] = TEXTURE_MAX_ANGLE / 2;
 
 			for (i = 1; i < N1; i++) {
 				memcpy(&(r[2 * i * N2]), r, 2 * N2 * sizeof(double));
@@ -134,6 +146,8 @@ void calculate_grid(int h_phi_count, int h_theta_count, int r_phi_count,
 			error("Cannot calculate a grid from type file!\n");
 		case 2:
 		{
+			int N1 = dims.samples.N1;
+			int N2 = dims.samples.N2;
 			int theta_count = determine_theta_count(N1);
 			int nodes_defined = 0;
 			double remaining_circle_length =
@@ -705,22 +719,6 @@ complex spherical_harmonic(int k, int n, double phi, double theta)
 	return p * expi(n * phi * 2 * PI / TEXTURE_MAX_ANGLE);
 }
 
-inline void split(int n, int *t1, int *t2)
-{
-	if (n == 0) {
-		*t1 = 0;
-		*t2 = 0;
-	} else if (n > 0) {
-		*t1 = ceil(sqrt(n));
-		while (n % *t1 != 0) {
-			(*t1)--;
-		}
-		*t2 = n / *t1;
-	} else {
-		error("Try to split a negative number!\n");
-	}
-}
-
 void set_weights(itexture_plan * iplan, int weight_policy)
 {
 	int i;
@@ -756,6 +754,25 @@ unsigned int solver_flags(int solver_algo, int weight_policy)
 		} else {
 			return CGNE | PRECOMPUTE_DAMP;
 		}
+	}
+}
+
+inline void split(int n, int *t1, int *t2)
+{
+	n -= 2;
+	if (n == 0) {
+		*t1 = 0;
+		*t2 = 2;
+	} else if (n > 0) {
+		*t1 = ceil(sqrt(n));
+		while (n % *t1 != 0) {
+			(*t1)++;
+		}
+		*t2 = n / *t1;
+
+		(*t2) += 2;
+	} else {
+		error("Try to split a number less than 2!\n");
 	}
 }
 

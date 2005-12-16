@@ -5,9 +5,47 @@
 #include<nfft3.h>
 #include<texture_util.h>
 
+/** @defgroup data_creator Texture: Data Creator
+ * This program was designed to create some samples based on random frequencies.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
+
+/** @var omega
+ * Stores the frequencies.
+ */
+/** @var x 
+ * Stores the intensities.
+ */
 complex *omega, *x;
+
+/** @var h_phi
+ * Stores the longitudes of the pole figures.
+ */
+/** @var h_theta
+ * Stores the latitudes of the pole figures.
+ */
+/** @var r
+ * Stores the nodes.
+ */
 double *h_phi, *h_theta, *r;
+
+/** @var N
+ * Stores the bandwidth.
+ */
+/** @var N1
+ * Stores the number of pole figures.
+ */
+/** @var N2
+ * Stores the number of nodes per pole figure.
+ */
 int N, N1, N2;
+
+/** @var h_phi_count
+ * Stores the number of different longitudes for the pole figures.
+ */
 int h_phi_count, h_theta_count, r_phi_count, r_theta_count;
 
 int grid;
@@ -65,16 +103,21 @@ void create_grid(const char *h_file, const char *r_file)
 		{
 			FILE *hf = fopen(h_file, "w");
 			FILE *rf = fopen(r_file, "w");
+			grid_dim dims;
 
-			N1 = h_phi_count * h_theta_count;
-			N2 = r_phi_count * r_theta_count;
+			dims.angles.h_phi_count = h_phi_count;
+			dims.angles.h_theta_count = h_theta_count;
+			dims.angles.r_phi_count = r_phi_count;
+			dims.angles.r_theta_count = r_theta_count;
+
+			N1 = h_phi_count * (h_theta_count - 2) + 2;
+			N2 = r_phi_count * (r_theta_count - 2) + 2;
 
 			h_phi = (double *) smart_malloc(N1 * sizeof(double));
 			h_theta = (double *) smart_malloc(N1 * sizeof(double));
 			r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
 
-			calculate_grid(h_phi_count, h_theta_count, r_phi_count, r_theta_count,
-										 h_phi, h_theta, r, grid);
+			calculate_grid(dims, h_phi, h_theta, r, grid);
 
 			fprintf(hf, "Polefigures\n");
 			fprintf(hf, "# This grid has been created by the data creator.\n");
@@ -188,3 +231,7 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+/**
+ * @}
+ */

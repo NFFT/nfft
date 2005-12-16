@@ -95,6 +95,8 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 
 			if (N1 != N1_new || N2 != N2_new) {
 				int h_phi_count, h_theta_count, r_phi_count, r_theta_count;
+				grid_dim dims;
+
 				if (N1_new > N1) {
 					free(h_phi);
 					free(h_theta);
@@ -110,18 +112,29 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 
 				N1 = N1_new;
 				N2 = N2_new;
-				if (sol_par->grid_id == 2) {
-					h_phi_count = N1;
-					h_theta_count = 1;
-					r_phi_count = N2;
-					r_theta_count = 1;
-				} else if (sol_par->grid_id == 0) {
-					split(N1, &h_phi_count, &h_theta_count);
-					split(N2, &r_phi_count, &r_theta_count);
-				}
 
-				calculate_grid(h_phi_count, h_theta_count, r_phi_count, r_theta_count,
-											 h_phi, h_theta, r, sol_par->grid_id);
+				switch (sol_par->grid_id) {
+					case 2:
+					{
+						dims.samples.N1 = N1;
+						dims.samples.N2 = N2;
+						calculate_grid(dims, h_phi, h_theta, r, sol_par->grid_id);
+						break;
+					}
+					case 0:
+					{
+						split(N1, &h_phi_count, &h_theta_count);
+						split(N2, &r_phi_count, &r_theta_count);
+						dims.angles.h_phi_count = h_phi_count;
+						dims.angles.h_theta_count = h_theta_count;
+						dims.angles.r_phi_count = r_phi_count;
+						dims.angles.r_theta_count = r_theta_count;
+						calculate_grid(dims, h_phi, h_theta, r, sol_par->grid_id);
+						break;
+					}
+					default:
+						error("Illegal grid type!\n");
+				}
 			}
 
 			init_omega(omega_ref, N, sol_par->omega_ref_policy);
@@ -240,54 +253,35 @@ int determine_max_N(int N1, int N2, int N_hint,
 										const iteration_param_set * it_par,
 										const solver_param_set * sol_par, double *max_res)
 {
-	int N_max = MAX(1, N_hint);
-	int N_min = N_max;
-	if (is_regular(N1, N2, N_max, it_par, sol_par, max_res)) {
+	int N = N_hint;
+	if (is_regular(N1, N2, N, it_par, sol_par, max_res)) {
 		do {
-#ifdef DEBUG_N
-			printf("regular: %d\n", N_max);
-			fflush(0);
-#endif
-			N_min = N_max;
-			N_max++;
-		} while (is_regular(N1, N2, N_max, it_par, sol_par, max_res));
-#ifdef DEBUG_N
-		printf("not regular: %d\n", N_max);
-		fflush(0);
-#endif
-	} else {
-		do {
-#ifdef DEBUG_N
-			printf("not regular: %d\n", N_min);
-			fflush(0);
-#endif
-			N_max = N_min;
-			N_min /= 2;
-		} while (!is_regular(N1, N2, N_min, it_par, sol_par, max_res));
-#ifdef DEBUG_N
-		printf("regular: %d\n", N_min);
-		fflush(0);
-#endif
-	}
-
-	while (N_max - N_min > 1) {
-		int N = (N_max + N_min) / 2;
-		if (is_regular(N1, N2, N, it_par, sol_par, max_res)) {
 #ifdef DEBUG_N
 			printf("regular: %d\n", N);
 			fflush(0);
 #endif
-			N_min = N;
-		} else {
+			N++;
+		} while (is_regular(N1, N2, N, it_par, sol_par, max_res));
+#ifdef DEBUG_N
+		printf("not regular: %d\n", N);
+		fflush(0);
+#endif
+		N--;
+	} else {
+		do {
 #ifdef DEBUG_N
 			printf("not regular: %d\n", N);
 			fflush(0);
 #endif
-			N_max = N;
-		}
+			N--;
+		} while (!is_regular(N1, N2, N, it_par, sol_par, max_res));
+#ifdef DEBUG_N
+		printf("regular: %d\n", N);
+		fflush(0);
+#endif
 	}
 
-	return MAX(2, N_min);
+	return N;
 }
 
 void output_preliminaries(const param_set * params)

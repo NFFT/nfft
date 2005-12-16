@@ -1180,7 +1180,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  * \begin{array}{rcll}
  * 
  * \text{\textbf{Input}} & : &
- * \text{pseudo frequency coefficients (pseudo frequencies): } &
+ * \text{frequency coefficients (frequencies): } &
  * \omega_{l, m, n} \in \mathbb{C} \quad \text{for } 
  * l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],\\[1ex]&&
  * \text{pole figures: } &
@@ -1219,7 +1219,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  * i \in [1 \ldots N_1],\ j \in [1 \ldots N_2].\\[1em]
  *
  * \text{\textbf{Ouput}} & : &
- * \text{pseudo frequency coefficients (pseudo frequencies): } &
+ * \text{frequency coefficients (frequencies): } &
  * \omega_{l, m, n} \in \mathbb{C} \quad \text{for } 
  * l \in [0 \ldots N],\ m \in [-l \ldots l],\ n \in [-l \ldots l],
  * \text{ where}\\[1ex]&&&
@@ -1250,12 +1250,12 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  *     initialise the precomputed data.
  *   - There is no memory allocated for precomputed data.
  *  - State 2:
- *   - The transform functions yield the correct result, if the pseudo 
+ *   - The transform functions yield the correct result, if the 
  *     bandwidth of the transform plan is in the valid range according to 
  *     the precomputed data.
  *     Otherwise their behaviour is undefined.
  *   - The precomputation functions change the precomputed data.
- *   - ::texture_foget causes a state change to state 1 and frees all memory
+ *   - ::texture_forget causes a state change to state 1 and frees all memory
  *     for precomputed data.
  *   - There is some memory allocated for precomputed data.
  * -# Manipulation of Transform Plans
@@ -1397,7 +1397,7 @@ typedef struct texture_plan_ {
 	 */
 
 	/** @var f_hat
-	 * @brief Used to store the pseudo frequencies omega.
+	 * @brief Used to store the frequencies omega.
 	 * @see texture_init
 	 */
 
@@ -1410,7 +1410,7 @@ typedef struct texture_plan_ {
 	 */
 	MACRO_MV_PLAN(complex);
 
-	/** The pseudo bandwidth.
+	/** The bandwidth.
 	 * @see texture_init
 	 */
 	int N;
@@ -1473,11 +1473,11 @@ typedef struct texture_plan_ {
 
 /** Performes precomputations with default values for all parameters.
  * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
- * having a pseudo bandwidth equal or less than N.
+ * having a bandwidth equal or less than N.
  *
  * @attention To free allocated memory ::texture_forget has to be called.
  *
- * @param N - the maximum pseudo bandwidth
+ * @param N - the maximum bandwidth
  *
  * @see TEXTURE_DEF_PRECOMPUTE_FLAGS
  * @see TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS
@@ -1487,13 +1487,13 @@ void texture_precompute(int N);
 
 /** Performes precomputations.
  * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
- * having a pseudo bandwidth equal or less than N.
+ * having a bandwidth equal or less than N.
  *
  * @attention To free allocated memory ::texture_forget has to be called.
  * @remark Use ::texture_precompute instead if you do not know, what you are 
  * doing.
  * 
- * @param N - the maximum pseudo bandwidth
+ * @param N - the maximum bandwidth
  * @param texture_precompute_flags - does not have any effect
  * @param nfsft_precompute_flags - flags for the precomputation of the nfsft
  * @param nfsft_threshold - a parameter for the precomputation of the nfsft
@@ -1505,10 +1505,10 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
  * The arguments after ths will be stored in the plan ths.
  *
  * @par ths - Points to the transformation plan.
- * @par N - the pseudo bandwidth
+ * @par N - the bandwidth
  * @par N1 - the number of pole figures
  * @par N2 - the number of samples per pole figure
- * @par omega - the pseudo frequencies
+ * @par omega - the frequencies
  * @par x - the samples
  * @par h_phi - the latitudes of the pole figures
  * @par h_theta - the longitudes of the pole figures
@@ -1536,10 +1536,10 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, complex* omega,
  * The arguments after ths will be stored in the plan ths.
  *
  * @par ths - Points to the transformation plan.
- * @par N - the pseudo bandwidth
+ * @par N - the bandwidth
  * @par N1 - the number of pole figures
  * @par N2 - the number of samples per pole figure
- * @par omega - the pseudo frequencies
+ * @par omega - the frequencies
  * @par x - the samples
  * @par h_phi - the latitudes of the pole figures
  * @par h_theta - the longitudes of the pole figures
@@ -1573,7 +1573,7 @@ void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
 		unsigned int nfsft_init_flags, int nfft_cutoff);
 
 /** Carries out the direct transform.
- * Maps the pseudo frequencies on the samples.
+ * Maps the frequencies on the samples.
  * Therefore the samples will be changed,
  * everything else will be preserved.
  *
@@ -1587,8 +1587,8 @@ void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
 void texture_trafo(texture_plan *ths);
 
 /** Carries out the adjoint transform.
- * Maps the samples on the pseudo frequencies.
- * Therefor the pseudo frequencies change, everything else is
+ * Maps the samples on the frequencies.
+ * Therefor the frequencies change, everything else is
  * preserved.
  *
  * @par ths - Points to the transformation plan.
@@ -1613,7 +1613,7 @@ void texture_forget();
  * @{
  */
 
-/** Convert a non-flat index of the pseudo frequencies @f$ \omega @f$ to a 
+/** Convert a non-flat index of the frequencies @f$ \omega @f$ to a 
  * flat index.
  * See @ref texture_data_rep for more information.
  * 
@@ -1629,16 +1629,16 @@ void texture_forget();
  */
 inline int texture_flat_index(int l, int m, int n);
 
-/** Determines the length of an array omega storing pseudo frequencies in a 
- * given pseudo
+/** Determines the length of an array omega storing frequencies in a 
+ * given 
  * bandwidth.
  *
- * @par N - the pseudo bandwidth.
+ * @par N - the bandwidth.
  * @return the length of the corresponding omega 
  */
 inline int texture_flat_length(int N);
 
-/** Returns the length of the pseudo frequency array stored in a plan.
+/** Returns the length of the frequency array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
@@ -1650,7 +1650,7 @@ inline int texture_get_omega_length(texture_plan *ths);
  */
 inline int texture_get_x_length(texture_plan *ths);
 
-/** Returns the pseudo bandwidth stored in a plan.
+/** Returns the bandwidth stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
@@ -1668,16 +1668,16 @@ inline int texture_get_N1(texture_plan *ths);
  */
 inline int texture_get_N2(texture_plan *ths);
 
-/** Returns a pointer to the pseudo frequencies stored in a plan.
+/** Returns a pointer to the frequencies stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
 inline const complex *texture_get_omega(texture_plan *ths);
 
-/** Sets the pseudo frequencies in a plan.
+/** Sets the frequencies in a plan.
  *
  * @par ths - a pointer to the transformation plan
- * @par omega - a pointer to the new pseudo frequencies.
+ * @par omega - a pointer to the new frequencies.
  * @pre omega has to point to an array of appropriate length.
  */
 inline void texture_set_omega(texture_plan *ths, complex* omega);

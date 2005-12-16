@@ -6,7 +6,7 @@ RUN_EXT=".1"
 EXT="$TEST_EXT$RUN_EXT"
 
 cd regularity
-./regularityTest test_cases$TEST_EXT \
+./regularityTest test_cases$EXT \
 solver_parameters$TEST_EXT \
 iteration_parameters$TEST_EXT \
 && echo "$EXT finished!"

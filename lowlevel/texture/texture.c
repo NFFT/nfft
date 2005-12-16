@@ -296,7 +296,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 					 (ths->N - abs(n) + 1) * sizeof(complex));
 	}
 
-	// Sum up the pseudo frequencies for n = 0.
+	// Sum up the frequencies for n = 0.
 	{
 		// Stores the values with lower index in the three term recurrency
 		// relation for the associated legendre polynomials.
@@ -304,11 +304,11 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 		double p_old1 = p_diag;
 		int l;
 
-		// Add the pseudo frequency with m = l = 0.
+		// Add the frequency with m = l = 0.
 		ths->nfsft_f_hat[0 + ths->N][0] +=
 			ths->f_hat[texture_flat_index(0, 0, 0)];
 
-		// Add the pseudo frequencies with 0 < l <= N.
+		// Add the frequencies with 0 < l <= N.
 		for (l = 1; l <= ths->N; l++) {
 			int m;
 			// Stores the associated legendre polynomial of order 0 and degree l.
@@ -320,7 +320,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 			p_old2 = p_old1;
 			p_old1 = p;
 
-			// Add the pseudo frequencies with -l <= m <= l.
+			// Add the frequencies with -l <= m <= l.
 			for (m = -l; m <= l; m++) {
 				ths->nfsft_f_hat[m + ths->N][l]
 					+= p * ths->f_hat[texture_flat_index(l, m, 0)];
@@ -328,7 +328,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 		}
 	}
 
-	// Sum up the pseudo frequencies for 0 < |n| <= N.
+	// Sum up the frequencies for 0 < |n| <= N.
 	for (n = 1; n <= ths->N; n++) {
 		// Stores the values with lower index in the three term recurrency
 		// relation for the associated legendre polynomials.
@@ -341,7 +341,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 
 		p_old1 = p_diag;
 
-		// Add the pseudo frequencies for l = |n|, -l <= m <= l.
+		// Add the frequencies for l = |n|, -l <= m <= l.
 		for (m = -n; m <= n; m++) {
 			ths->nfsft_f_hat[m + ths->N][n]
 				+= p_diag * (ths->f_hat[texture_flat_index(n, m, n)]
@@ -350,7 +350,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 										 * (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i])));
 		}
 
-		// Add the pseudo frequencies for |n| < l <= N.
+		// Add the frequencies for |n| < l <= N.
 		for (l = n + 1; l <= ths->N; l++) {
 			// Stores the associated legendre polynomial of order |n| and degree l.
 			// p = p_l^{|n|}(cos_h_theta[i])
@@ -363,7 +363,7 @@ nfsft_plan_old prepare_nfsft_plan(texture_plan * ths, int i)
 			p_old2 = p_old1;
 			p_old1 = p;
 
-			// Add the pseudo frequencies for -l <= m <= l.
+			// Add the frequencies for -l <= m <= l.
 			for (m = -l; m <= l; m++) {
 				ths->nfsft_f_hat[m + ths->N][l] += p
 					* (ths->f_hat[texture_flat_index(l, m, n)]

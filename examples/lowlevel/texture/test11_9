@@ -1,8 +1,8 @@
 #!/bin/bash
 # test 1, run 1
 DATA_PATH="tmp"
-TEST_EXT=".test12"
-RUN_EXT=".1"
+TEST_EXT=".test11"
+RUN_EXT=".9"
 EXT="$TEST_EXT$RUN_EXT"
 
 cd regularity

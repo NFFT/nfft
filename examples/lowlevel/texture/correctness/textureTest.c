@@ -191,7 +191,8 @@ void simple_solver_test(const char *inp)
 /** A test for ::spherical_harmonic.
  * Computes the spherical harmonic with a given set of parameters and compares
  * them with given reference values.
- * In case of error there will be an error message containing degree, order,
+ * In case of error the execution will be interrupted and there will be an 
+ * error message containing degree, order,
  * longitude, latitude, reference value, computed value and absolute difference
  * (in this order).
  *
@@ -208,7 +209,6 @@ void simple_solver_test(const char *inp)
  *     - the imaginary part of the reference value
  *
  * @par inp - the name of the parameter file
- * 
  */
 void spherical_harmonic_test(const char *inp)
 {
@@ -258,7 +258,26 @@ void spherical_harmonic_test(const char *inp)
 	fclose(inp_file);
 }
 
-// TODO Parameter
+/** A test of the texture transform.
+ * The texture transform will be executed on unit vectors.
+ * The output is compared with the results produced by ::spherical_harmonic.
+ * In case of error the execution will be interrupted and an error message 
+ * will be printed containing
+ * - the indices l, m, n of the unit vector,
+ * - the pole figure and node of the erroneos intensity,
+ * - the intensity calculated by the texture transform,
+ * - the intensity calculated by ::spherical_harmonic and
+ * - the absolute difference.
+ * 
+ * The parameter file contains (in this order):
+ * - the bandwidth N,
+ * - the number of different longitudes and latitudes of the pole figures,
+ * - the number of nodes,
+ * - the number of different longitudes and latitudes of the nodes and
+ * - the maximum difference between intensities that is not an error.
+ * 
+ * @par inp - the filename of the parameter file.
+ */
 void unit_vector_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -349,6 +368,37 @@ void unit_vector_test(const char *inp)
 	fclose(inp_file);
 }
 
+/** A test of the nfsft.
+ * The nfsft will be executed on unit vectors.
+ * The output is compared with the results produced by ::spherical_harmonic.
+ * In case of an erroneos sample value the execution will be interrupted and 
+ * an error message 
+ * will be printed containing
+ * - the indices l, m of the unit vector,
+ * - the index i of the node
+ * - the node itself,
+ * - the intensity calculated by the nfsft,
+ * - the intensity calculated by ::spherical_harmonic and
+ * - the absolute difference.
+ *
+ * If the nfsft destroys the nodes in the plan, an error message will be printed
+ * containing
+ * - the indices l, m of the unit vector,
+ * - the index i of the node,
+ * - the expected node,
+ * - the node stored in the plan and
+ * - the absolute differences of angles.
+ *
+ * In both cases the execution will be interrupted.
+ * 
+ * The parameter file contains (in this order):
+ * - the bandwidth N,
+ * - the number of different longitudes and latitudes of the nodes,
+ * - the threshold and
+ * - the maximum difference between samples that is not an error.
+ * 
+ * @par inp - the filename of the parameter file.
+ */
 void nfsft_test(const char *inp)
 {
 	int N, theta_count, phi_count, N1;
@@ -466,6 +516,26 @@ void nfsft_test(const char *inp)
 	nfsft_forget_old();
 }
 
+/** A test of the adjoint texture transform.
+ * The adjoint texture transform will be executed on unit vectors.
+ * The output is compared with the results produced by ::spherical_harmonic.
+ * In case of error the execution will be interrupted and an error message 
+ * will be printed containing
+ * - the indices l, m, n of the erroneous frequency,
+ * - the pole figure and node of the intensity beeing one,
+ * - the frequency calculated by the texture transform,
+ * - the frequency calculated by ::spherical_harmonic and
+ * - the absolute difference.
+ * 
+ * The parameter file contains (in this order):
+ * - the bandwidth N,
+ * - the number of different longitudes and latitudes of the pole figures,
+ * - the number of nodes,
+ * - the number of different longitudes and latitudes of the nodes and
+ * - the maximum difference between frequencies that is not an error.
+ * 
+ * @par inp - the filename of the parameter file.
+ */
 void unit_vector_adjoint_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -560,6 +630,26 @@ void unit_vector_adjoint_test(const char *inp)
 	fclose(inp_file);
 }
 
+/** A test of the texture transform.
+ * The texture transform will be executed on various sparse vectors.
+ * The output is compared with the results produced by ::spherical_harmonic.
+ * In case of error the execution will be interrupted and an error message 
+ * will be printed containing
+ * - the index of the test,
+ * - the error (see ::l_2_dist) and
+ * - the maximum absolute error in this case.
+ * 
+ * The parameter file contains (in this order):
+ * - the bandwidth N,
+ * - the number of non-zero components in the transformed vectors,
+ * - the number of different longitudes and latitudes of the pole figures,
+ * - the number of nodes,
+ * - the number of different longitudes and latitudes of the nodes,
+ * - the number of tests ands
+ * - the maximum relative error. (see ::l_2_rel_dist)
+ * 
+ * @par inp - the filename of the parameter file.
+ */
 void linearity_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -651,6 +741,26 @@ void linearity_test(const char *inp)
 	texture_forget();
 }
 
+/** A test of the adjoint texture transform.
+ * The adjoint texture transform will be executed on various sparse vectors.
+ * The output is compared with the results produced by ::spherical_harmonic.
+ * In case of error the execution will be interrupted and an error message 
+ * will be printed containing
+ * - the index of the test,
+ * - the error (see ::l_2_dist) and
+ * - the maximum absolute error in this case.
+ * 
+ * The parameter file contains (in this order):
+ * - the bandwidth N,
+ * - the number of non-zero components in the transformed vectors,
+ * - the number of different longitudes and latitudes of the pole figures,
+ * - the number of nodes,
+ * - the number of different longitudes and latitudes of the nodes,
+ * - the number of tests ands
+ * - the maximum relative error. (see ::l_2_rel_dist)
+ * 
+ * @par inp - the filename of the parameter file.
+ */
 void linearity_adjoint_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -747,6 +857,9 @@ void linearity_adjoint_test(const char *inp)
 	texture_forget();
 }
 
+/** A test for ::texture_precompute.
+ * The function will be called with small values.
+ */
 void precompute_extreme_values_test()
 {
 	printf("*** precompute_extreme_values_test\n");
@@ -761,6 +874,9 @@ void precompute_extreme_values_test()
 	texture_forget();
 }
 
+/** A test for ::texture_trafo.
+ * The function will be called with plans having small values for N, N1 or N2.
+ */
 void texture_trafo_extreme_values_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
@@ -798,10 +914,8 @@ void texture_trafo_extreme_values_test(const char *inp)
 	fclose(inp_file);
 }
 
-void init()
-{
-}
-
+/** Print a message explaining how to run the tests.
+ */
 void usage()
 {
 	printf("A test for the texture transform.\n");
@@ -810,6 +924,10 @@ void usage()
 	printf("-val : use small input values for usage with valgrind\n");
 }
 
+/** The testsuite.
+ * See usage or run the programm with "-help" for more information about 
+ * command line arguments.
+ */
 int main(int arglen, char *argv[])
 {
 
@@ -819,8 +937,6 @@ int main(int arglen, char *argv[])
 		printf("*** Test for usage with valgrind.\n");
 		printf("*** If some output not preceded by *** is produced, ");
 		printf("there is some error.\n");
-
-		init();
 
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
@@ -849,15 +965,13 @@ int main(int arglen, char *argv[])
 		// 
 		// //reveals a bug in nfsft
 
-		// simple_solver_test("simple_solver_moderate_test.inp");
+		simple_solver_test("simple_solver_moderate_test.inp");
 	} else if (arglen == 1) {
 		// default usage
 
 		printf("*** Test with default parameters.\n");
 		printf("*** If some output not preceded by *** is produced, ");
 		printf("there is some error.\n");
-
-		init();
 
 		spherical_harmonic_test("spherical_harmonic_test.inp");
 
