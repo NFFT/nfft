@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      6490,        157]*)
-(*NotebookOutlinePosition[      7340,        186]*)
-(*  CellTagsIndexPosition[      7296,        182]*)
+(*NotebookOptionsPosition[      7130,        188]*)
+(*NotebookOutlinePosition[      7981,        217]*)
+(*  CellTagsIndexPosition[      7937,        213]*)
 (*WindowFrame->Normal*)
 
 
@@ -72,33 +72,31 @@ Cell[BoxData[{
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \({0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 
-      128}\)], "Output"],
+    \({0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64}\)], "Output"],
 
 Cell[BoxData[
     \({1}\)], "Output"]
 }, Open  ]],
 
+Cell[CellGroupData[{
+
 Cell[BoxData[
     \(Do[{Do[\[IndentingNewLine]{f = 
-              Table[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                    10\^\(-p\)] + \[ImaginaryI]*
-                    Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                      10\^\(-p\)], {m, 0, 
-                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}], 
-            x = Table[{Rationalize[Random[Real, {0, 1\/2}], 10\^\(-p\)], 
-                  Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
-                    10\^\(-p\)]}, {m, 0, M[\([l]\)] - 1}], 
-            fhat[k_, 
+              Table[1, {m, 0, 
+                  M\[LeftDoubleBracket]l\[RightDoubleBracket] - 
+                    1}], \[IndentingNewLine]x = 
+              Table[{1/4, 1/2}, {m, 0, 
+                  M[\([l]\)] - 1}], \[IndentingNewLine]fhat[k_, 
                 n_] := \[Sum]\+\(m = 0\)\%\(M\[LeftDoubleBracket]l\
 \[RightDoubleBracket] - 1\)f\[LeftDoubleBracket]m + 1\[RightDoubleBracket]*\ 
-                  mySphericalHarmonicY[k, n, 
-                    2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                          m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
+                  Conjugate[
+                    mySphericalHarmonicY[k, n, 
+                      2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                            m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]1\
 \[RightDoubleBracket], 
-                    2\ \[Pi]\ \(x\[LeftDoubleBracket]
-                          m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
-\[RightDoubleBracket]]; 
+                      2\ \[Pi]\ \(x\[LeftDoubleBracket]
+                            m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
+\[RightDoubleBracket]]]; 
             fhatv = Table[
                 Table[N[fhat[k, n], p], {n, \(-k\), k}], {k, 0, 
                   kend\[LeftDoubleBracket]j\[RightDoubleBracket]}]; 
@@ -127,9 +125,9 @@ Cell[BoxData[
                           1\[RightDoubleBracket]]], "\<\n\>", 
                   CForm[Im[
                       f\[LeftDoubleBracket]m + 
-                          1\[RightDoubleBracket]]]]}, {m, 0, 
+                          1\[RightDoubleBracket]]], "\<\n\>"]}, {m, 0, 
                 M\[LeftDoubleBracket]l\[RightDoubleBracket] - 
-                  1}]; \[IndentingNewLine]WriteString[
+                  1}], \[IndentingNewLine]WriteString[
               testfile, "\<\n\>"], \[IndentingNewLine]Do[{WriteString[
                   testfile, 
                   CForm[\(x\[LeftDoubleBracket]
@@ -137,30 +135,63 @@ Cell[BoxData[
 \[RightDoubleBracket]], "\<\n\>", 
                   CForm[\(x\[LeftDoubleBracket]
                         m + 1\[RightDoubleBracket]\)\[LeftDoubleBracket]2\
-\[RightDoubleBracket]]]}, {m, 0, 
-                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}]; 
-            WriteString[testfile, "\<\n\>"], \[IndentingNewLine]Do[
+\[RightDoubleBracket]], "\<\n\>"]}, {m, 0, 
+                M\[LeftDoubleBracket]l\[RightDoubleBracket] - 
+                  1}], \[IndentingNewLine]WriteString[
+              testfile, "\<\n\>"], \[IndentingNewLine]Do[
               Do[{WriteString[testfile, 
                     CForm[Re[\(fhatv\[LeftDoubleBracket]k + 
                               1\[RightDoubleBracket]\)\[LeftDoubleBracket]n + 
                             k + 1\[RightDoubleBracket]]], "\<\n\>", 
                     CForm[Im[\(fhatv\[LeftDoubleBracket]k + 
                               1\[RightDoubleBracket]\)\[LeftDoubleBracket]n + 
-                            k + 1\[RightDoubleBracket]]]]}, {n, \(-k\), 
-                  k}], {k, 0, 
+                            k + 1\[RightDoubleBracket]]], "\<\n\>"]}, {n, \
+\(-k\), k}], {k, 0, 
                 kend\[LeftDoubleBracket]j\[RightDoubleBracket]}]; \
 \[IndentingNewLine]Close[testfile];\[IndentingNewLine]}, {l, 1, 
             Length[M]}]}, {j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell[BoxData[""], "Input"]
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[""], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(N[\@\(1\/\(4  \[Pi]\)\)]\)], "Input"],
+
+Cell[BoxData[
+    \(0.28209479177387814`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\((\(-1\))\)\^1\ LegendreP[1, 1, y]\)], "Input"],
+
+Cell[BoxData[
+    \(\@\(1 - y\^2\)\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(f = 
+      Table[Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 
+            10\^\(-p\)] + \[ImaginaryI]*
+            Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 10\^\(-p\)], {m, 
+          0, M\[LeftDoubleBracket]l\[RightDoubleBracket] - 1}], 
+    x = Table[{Rationalize[Random[Real, {0, 1\/2}], 10\^\(-p\)], 
+          Rationalize[Random[Real, {\(-\(1\/2\)\), 1\/2}], 10\^\(-p\)]}, {m, 
+          0, M[\([l]\)] - 1}], \)], "Text"]
 },
 FrontEndVersion->"5.2 for Macintosh",
 ScreenRectangle->{{0, 1280}, {0, 766}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1016, 694},
-WindowMargins->{{0, Automatic}, {Automatic, 22}},
+WindowSize->{1197, 692},
+WindowMargins->{{-24, Automatic}, {Automatic, 6}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -190,11 +221,26 @@ Cell[1887, 56, 340, 7, 52, "Input"],
 
 Cell[CellGroupData[{
 Cell[2252, 67, 167, 4, 43, "Input"],
-Cell[2422, 73, 117, 2, 27, "Output"],
-Cell[2542, 77, 37, 1, 27, "Output"]
+Cell[2422, 73, 92, 1, 27, "Output"],
+Cell[2517, 76, 37, 1, 27, "Output"]
 }, Open  ]],
-Cell[2594, 81, 3863, 72, 387, "Input"],
-Cell[6460, 155, 26, 0, 27, "Input"]
+
+Cell[CellGroupData[{
+Cell[2591, 82, 3680, 70, 323, "Input"],
+Cell[6274, 154, 42, 1, 27, "Output"]
+}, Open  ]],
+Cell[6331, 158, 26, 0, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[6382, 162, 57, 1, 51, "Input"],
+Cell[6442, 165, 54, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6533, 171, 68, 1, 29, "Input"],
+Cell[6604, 174, 48, 1, 35, "Output"]
+}, Open  ]],
+Cell[6667, 178, 459, 8, 78, "Text"]
 }
 ]
 *)

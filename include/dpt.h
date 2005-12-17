@@ -18,6 +18,7 @@
 #define DPT_FUNCTION_VALUES   (1U << 5) /**< If set, the output are function values 
                                              at Chebyshev nodes rather than 
                                              Chebyshev coefficients.               */
+#define DPT_ODD_EVEN_SYMMETRY (1U << 6)    
                                              
 /* Data structures */
 typedef struct dpt_set_s_ *dpt_set;    /**< A set of precomputed data for a set 

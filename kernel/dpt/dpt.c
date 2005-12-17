@@ -106,45 +106,74 @@ inline void auvxpwy(double a, complex* u, complex* x, double* v, complex* y,
   }
 }
 
-inline void dpt_do_step(complex  *a, complex *b, double *a11, double *a12, double *a21, 
-                 double *a22, double gamma, int tau, dpt_set set)
-{ 
-  /** The length of the coefficient arrays. */
-  int length = 1<<(tau+1);
-  /** Twice the length of the coefficient arrays. */
-  double norm = 1.0/(length<<1);
+/*inline void auvxpwy_symmetric(double a, complex* u, complex* x, double* v, 
+  complex* y, double* w, int n)
+{
+  int l;
+  complex *u_ptr, *x_ptr, *y_ptr;
+  double *v_ptr, *w_ptr;
   
-  /* Compensate for factors introduced by a raw DCT-III. */
-  a[0] *= 2.0;
-  b[0] *= 2.0;   
+  u_ptr = u;
+  x_ptr = x;
+  v_ptr = v;
+  y_ptr = y;
+  w_ptr = w;
   
-  /* Compute function values from Chebyshev-coefficients using a DCT-III. */
-  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)a,(double*)a);
-  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)b,(double*)b);
-  
-  /* Check, if gamma is zero. */
-  if (gamma == 0.0)
+  for (l = 0; l < n/2; l++)
   {
-    /* Perform multiplication only for second row. */
-    auvxpwy(norm,b,b,a22,a,a21,length);
+    *u++ = a * ((*v++) * (*x++) + (*w++) * (*y++));
   }
-  else 
+  v--;
+  w--;
+  for (l = 0; l < n/2; l++)
   {
-    /* Perform multiplication for both rows. */
-    auvxpwy(norm,set->z,b,a22,a,a21,length);
-    auvxpwy(norm*gamma,a,a,a11,b,a12,length);
-    memcpy(b,set->z,length*sizeof(complex));    
-    /* Compute Chebyshev-coefficients using a DCT-II. */
-    fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);   
-    /* Compensate for factors introduced by a raw DCT-II. */    
-    a[0] *= 0.5;
-  }  
+    *u++ = a * ((*v++) * (*x++) + (*w++) * (*y++));
+  }
+}*/
 
-  /* Compute Chebyshev-coefficients using a DCT-II. */
-  fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);  
-  /* Compensate for factors introduced by a raw DCT-II. */      
-  b[0] *= 0.5;  
+#define DPT_DO_STEP(NAME,M_FUNCTION) \
+inline void NAME(complex  *a, complex *b, double *a11, double *a12, \
+  double *a21, double *a22, double gamma, int tau, dpt_set set) \
+{ \
+  /** The length of the coefficient arrays. */ \
+  int length = 1<<(tau+1); \
+  /** Twice the length of the coefficient arrays. */ \
+  double norm = 1.0/(length<<1); \
+  \
+  /* Compensate for factors introduced by a raw DCT-III. */ \
+  a[0] *= 2.0; \
+  b[0] *= 2.0; \
+  \
+  /* Compute function values from Chebyshev-coefficients using a DCT-III. */ \
+  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)a,(double*)a); \
+  fftw_execute_r2r(set->plans_dct3[tau-1],(double*)b,(double*)b); \
+  \
+  /* Check, if gamma is zero. */ \
+  if (gamma == 0.0) \
+  { \
+    /* Perform multiplication only for second row. */ \
+    M_FUNCTION(norm,b,b,a22,a,a21,length); \
+  } \
+  else \
+  { \
+    /* Perform multiplication for both rows. */ \
+    M_FUNCTION(norm,set->z,b,a22,a,a21,length); \
+    M_FUNCTION(norm*gamma,a,a,a11,b,a12,length); \
+    memcpy(b,set->z,length*sizeof(complex)); \
+    /* Compute Chebyshev-coefficients using a DCT-II. */ \
+    fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a); \
+    /* Compensate for factors introduced by a raw DCT-II. */ \
+    a[0] *= 0.5; \
+  } \
+  \
+  /* Compute Chebyshev-coefficients using a DCT-II. */ \
+  fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b); \
+  /* Compensate for factors introduced by a raw DCT-II. */ \
+  b[0] *= 0.5; \
 }
+
+DPT_DO_STEP(dpt_do_step,auvxpwy)
+//DPT_DO_STEP(dpt_do_step_symmetric,auvxpwy_symmetric)
 
 inline void dpt_do_step_transposed(complex  *a, complex *b, double *a11, double *a12, 
   double *a21, double *a22, double gamma, int tau, dpt_set set)
@@ -272,7 +301,8 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   /** Index m */
   int m;
   /** FFTW plan */
-  fftw_plan plan;  
+  fftw_plan plan;
+  int k;  
   
   /* Allocate memory for new DPT set. */
   dpt_set_s *set = malloc(sizeof(dpt_set_s));
@@ -306,8 +336,8 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
      * would be trivially an array containing a 1 as second entry with all other 
      * coefficients set to zero. In order to compensate for the multiplicative 
      * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
-    set->xc = (double *) calloc(1<<set->t,sizeof(double));
-    set->xc[1] = 0.5;
+    //set->xc = (double *) calloc(1<<set->t,sizeof(double));
+    //set->xc[1] = 0.5;
     
     /* Allocate memory for array of pointers to node arrays. */
     set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
@@ -318,14 +348,18 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
     {
       /* Allocate memory for current array. */
       set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
+      for (k = 0; k < plength; k++)
+      {
+        set->xcvecs[tau-1][k] = cos(((k+0.5)*PI)/plength);
+      }
       /* Create plan for DCT-III. */
-      plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
-                              FFTW_PRESERVE_INPUT);
+      //plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
+      //                        FFTW_PRESERVE_INPUT);
       /* Execute it. */
-      fftw_execute(plan);
+      //fftw_execute(plan);
       /* Destroy the plan. */
-      fftw_destroy_plan(plan);
-      plan = NULL;
+      //fftw_destroy_plan(plan);
+      //plan = NULL;
       /* Increase length to next power of two. */
       plength = plength << 1;
     }
@@ -411,6 +445,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
   int k_start_tilde;
   int N_tilde;
+  int k;
   
   dpt_data *data;
   
@@ -425,7 +460,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   {
     return;
   }
-  
+    
   /* Save k_start. */
   data->k_start = k_start;
   
@@ -554,6 +589,18 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
           data->steps[tau][l].a12[0] = a12;
           data->steps[tau][l].a21[0] = a21;
           data->steps[tau][l].a22[0] = a22;
+          /*fprintf(stdout,"m = %d, tau = %d, l= %d, s = %d%d%d%d\n",m,tau,l,
+            ((abs(abs(data->steps[tau][l].a11[0][k])-abs(data->steps[tau][l].a11[0][plength-1]))<1E-10)?1:0),
+            ((abs(abs(data->steps[tau][l].a12[0][k])-abs(data->steps[tau][l].a12[0][plength-1]))<1E-10)?1:0),
+            ((abs(abs(data->steps[tau][l].a21[0][k])-abs(data->steps[tau][l].a21[0][plength-1]))<1E-10)?1:0),
+            ((abs(abs(data->steps[tau][l].a22[0][k])-abs(data->steps[tau][l].a22[0][plength-1]))<1E-10)?1:0));*/
+          /*fprintf(stdout,"m = %d, tau = %d, l= %d\n",m,tau,l);
+          for (k=0; k < plength; k++)
+          {
+            fprintf(stdout,"%le\t%le\t%le\t%le\n",data->steps[tau][l].a11[0][k],
+              data->steps[tau][l].a12[0][k],data->steps[tau][l].a21[0][k],
+              data->steps[tau][l].a22[0][k]);
+          }*/
           data->steps[tau][l].gamma[0] = gamma[plength*l+1+1];
           data->steps[tau][l].stable = true;
         }          

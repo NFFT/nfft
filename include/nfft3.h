@@ -2067,6 +2067,8 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  */
 #define NFSFT_BANDWIDTH_WINDOW       (1U << 12)
 
+#define NFSFT_ZERO_F_HAT             (1U << 13)
+
 #ifdef NFSFT_OPTIMIZED
   #define NFSFT_INDEX(k,n,plan)        ((plan)->maxMN)*(n+(plan)->N)+k
 #else

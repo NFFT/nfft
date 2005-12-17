@@ -26,10 +26,11 @@
 //#include "flft.h"
 //#include "c2f.h"
 //#include <stdlib.h>
+#include <string.h>
 
 #define NFSFT_DEFAULT_NFFT_CUTOFF 12
 #define NFSFT_DEFAULT_THRESHOLD 1000
-#define NFSFT_BREAKTHROUGH 4
+#define NFSFT_BREAKTHROUGH 5
 
 /** Global structure for wisdom. */
 static struct nfsft_wisdom wisdom = {false,0U};
@@ -43,8 +44,14 @@ inline void c2e(nfsft_plan *plan)
   complex *xp;       /**< Auxilliary pointer                       */
   complex *xm;       /**< Auxilliary pointer                       */
   int low, up;
+  int lowe, upe;
   
-  for (n = -plan->N; n <= plan->N; n++)
+  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  lowe = -plan->N + (plan->N%2);
+  upe = -lowe;
+
+  //for (n = -plan->N; n <= plan->N; n++)
+  for (n = lowe; n <= upe; n += 2)
   {
     xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
     xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
@@ -63,19 +70,20 @@ inline void c2e(nfsft_plan *plan)
   /* Incorporate sine term. */
   for (n = low; n <= up; n += 2)
   {
+    plan->f_hat[NFSFT_INDEX(0,n,plan)] *= 2.0;
     xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
     xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
-    last = *xp;
-    *xp = -0.5 * I * xp[1];
-    *xm-- = -(*xp++);
-    for (k = -plan->N+1; k < 0; k++)
+    last = *xm;
+    *xm = 0.5 * I * (0.5*xm[-1]);
+    *xp++ = -(*xm--);
+    for (k = plan->N-1; k > 0; k--)
     {
-      act = *xp;
-      *xp = -0.5 * I * (xp[1] - last);
-      *xm-- = -(*xp++);
+      act = *xm;
+      *xm = 0.5 * I * (0.5*(xm[-1] - last));
+      *xp++ = -(*xm--);
       last = act;
     }
-    *xp = 0.0;
+    *xm = 0.0;
   }
 }
 
@@ -88,23 +96,21 @@ inline void c2e_transposed(nfsft_plan *plan)
   complex *xp;       /**< Auxilliary pointer                       */
   complex *xm;       /**< Auxilliary pointer                       */
   int low, up;
+  int lowe, upe;
   
-  for (n = -plan->N; n <= plan->N; n++)
+  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  lowe = -plan->N + (plan->N%2);
+  upe = -lowe;
+
+  //for (n = -plan->N; n <= plan->N; n++)
+  for (n = lowe; n <= upe; n += 2)
   {
     xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
-    xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);
-    if (n%2==0)
-    {       
-      for(k = 1; k <= plan->N; k++)
-      {
-        *xm-- += *xp++;
-      }
-    }
+    xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
+    for(k = 1; k <= plan->N; k++)
     {
-      for(k = 1; k <= plan->N; k++)
-      {
-        *xm-- -= *xp++;
-      }
+      *xp += *xm--;
+      *xp++ *= 0.5;;
     }
   }
   
@@ -114,22 +120,29 @@ inline void c2e_transposed(nfsft_plan *plan)
   
   /* Process odd terms. */
   /* Incorporate sine term. */
-  /*for (n = low; n <= up; n += 2)
+  for (n = low; n <= up; n += 2)
   {
-    xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
-    xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
-    last = *xp;
-    *xp = -0.5 * I * xp[1];
-    *xm-- = -(*xp++);
-    for (k = -plan->N+1; k < 0; k++)
+    xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
+    xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
+    for(k = 1; k <= plan->N; k++)
+    {
+      *xp++ -= *xm--;
+    }
+
+    plan->f_hat[NFSFT_INDEX(0,n,plan)] = -0.25*I*plan->f_hat[NFSFT_INDEX(1,n,plan)];
+    last = plan->f_hat[NFSFT_INDEX(1,n,plan)];
+    plan->f_hat[NFSFT_INDEX(1,n,plan)] = -0.25*I*plan->f_hat[NFSFT_INDEX(2,n,plan)];
+    xp = &(plan->f_hat[NFSFT_INDEX(2,n,plan)]);
+    for (k = 2; k < plan->N; k++)
     {
       act = *xp;
-      *xp = -0.5 * I * (xp[1] - last);
-      *xm-- = -(*xp++);
+      *xp++ = -0.25 * I * (xp[1] - last);
       last = act;
     }
-    *xp = 0.0;
-  }*/
+    *xp = 0.25 * I * last;
+
+    plan->f_hat[NFSFT_INDEX(0,n,plan)] *= 2.0;
+  }
 }
 
 void nfsft_init(nfsft_plan *plan, int N, int M)
@@ -580,34 +593,23 @@ void ndsft_adjoint(nfsft_plan *plan)
   /** Index used in Clenshaw algorithm. */
   int index;
   /** Pointer to auxilliary array for Clenshaw algorithm. */
-  complex *temp;
-   
-  /** Used to store the angles theta_d */
-  double *theta;
-  /** Used to store the angles phi_d */
-  double *phi;
+  complex *a;
+  /** Pointer to auxilliary array for Clenshaw algorithm. */
+  complex it1;
+  complex it2;
+  complex temp;
   
-  /* Allocate memory for auxilliary arrays. */
-  temp = (complex*) malloc (sizeof(complex) * (plan->N+1));
-  theta = (double*) malloc (sizeof(double) * plan->M_total);    
-  phi = (double*) malloc (sizeof(double) * plan->M_total);    
+  double stheta;
+  double sphi;
   
-  /* Scale angles phi_j from [-0.5,0.5) to [-pi,pi) and angles \theta_j from 
-   * [0,0.5] to and [0,pi], respectively. */ 
-  for (m = 0; m < plan->M_total; m++)
-  {
-    // TODO Correct this!
-    //theta[m] = 2.0*PI*plan->x[2*m];
-    //phi[m] = 2.0*PI*plan->x[2*m+1];
-  }
-
-  for (n = -plan->N; n <= plan->N; n++)
+  /*for (n = -plan->N; n <= plan->N; n++)
   {
     for (k = abs(n); k <= plan->N; k++)
     {
       plan->f_hat[NFSFT_INDEX(k,n,plan)] = 0.0;
     }  
-  }
+  }*/
+  memset(plan->f_hat,0U,plan->N_total*sizeof(complex));
   
   /* Distinguish by bandwidth N. */
   if (plan->N == 0)
@@ -619,45 +621,49 @@ void ndsft_adjoint(nfsft_plan *plan)
     }
   }
   else
-  { 
-    /* Apply cosine to angles theta_j. */
+  {   
     for (m = 0; m < plan->M_total; m++)
     {
-       theta[m] = cos(theta[m]);
-    }
-    
-    for (m = 0; m < plan->M_total; m++)
-    {
+      stheta = cos(2.0*PI*plan->x[2*m+1]);
+      sphi = 2.0*PI*plan->x[2*m];
+      
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Take absolute value of n. */
         n_abs = abs(n);
 
         /* Get three-term recurrence coefficients vectors. */
-        alpha = &(wisdom.alpha[ROWK(n_abs)]);
-        gamma = &(wisdom.gamma[ROWK(n_abs)]);
+        alpha = &(wisdom.alpha[ROW(n_abs)]);
+        gamma = &(wisdom.gamma[ROW(n_abs)]);
         
-        temp[n_abs] = plan->f[m] * cexp(-I*n*phi[m]) * wisdom.gamma[ROW(n_abs)] *
-          pow(1 - theta[m] * theta[m], 0.5*n_abs);
+        it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+          pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-I*n*sphi);
+        plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1; 
+        /*fprintf(stdout,"\nndsft_adjoint: cos(theta) = %le\n",stheta);
+        fprintf(stdout,"\nndsft_adjoint: phi = %le\n",sphi);
+        fprintf(stdout,"\nndsft_adjoint: gamma = %le\n",wisdom.gamma[ROW(n_abs)]);
+        fprintf(stdout,"\nndsft_adjoint: f[%d] = %le + I*%le\n",m,plan->f[m]);
+        fprintf(stdout,"\nndsft_adjoint: (1-%le^2)^0.5*%d = %le\n",stheta,n_abs,
+          pow(1 - stheta * stheta, 0.5*n_abs));
+        fprintf(stdout,"\nndsft_adjoint: e^-I*%d*%le = %le + I*%le\n",n,sphi,
+          creal(cexp(-I*n*sphi)),
+          cimag(cexp(-I*n*sphi)));*/
                 
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)
         {  
-          temp[n_abs+1] = temp[n_abs] * wisdom.alpha[ROWK(n_abs)+1] * theta[m];
-        }
+          it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+          plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2; 
+        } 
 
-        /* Clenshaw's algorithm */        
+        /* Transposed Clenshaw algorithm */        
         for (k = n_abs+2; k <= plan->N; k++)
         {
-          index = k - n_abs;
-          temp[k] = alpha[index] * theta[m] * temp[k-1] + gamma[index] * temp[k-2];
+          temp = it2;
+          it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+          it1 = temp;
+          plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2; 
         }
-        
-        /* Copy result */
-        for (k = n_abs; k <= plan->N; k++)
-        {
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] += temp[k];
-        }  
       }      
     }
   }  
@@ -673,11 +679,6 @@ void ndsft_adjoint(nfsft_plan *plan)
       }
     }
   }
-    
-  /* Free auxilliary arrays. */
-  free(phi);
-  free(theta);
-  free(temp);
 }
 
 void nfsft_trafo(nfsft_plan *plan)
@@ -821,5 +822,18 @@ void nfsft_adjoint(nfsft_plan *plan)
         }
       }
     }
+    
+    if (plan->flags & NFSFT_ZERO_F_HAT)
+    {
+      for (n = -plan->N; n <= plan->N+1; n++)
+      {
+        memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,(plan->N+1+abs(n))*
+          sizeof(complex));
+        /*for (k = -plan->N-1; k < abs(n); k++)
+        {
+          plan->f_hat[NFSFT_INDEX(k,n,plan)] = 0.0;
+        }*/
+      }
+    }  
   } 
 }
