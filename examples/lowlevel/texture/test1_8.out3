@@ -1,0 +1,56 @@
+grid: 0 (equidistant angles)
+omega_policy: 0 (flat)
+rounding error in [1, 1) * 100%
+alpha in [1, 1)
+residuum (1):        1.918
+residuum (2):        1.07811
+residuum (3):        0.723439
+residuum (4):        0.462425
+residuum (5):        0.271823
+residuum (6):        0.16037
+residuum (7):        0.109217
+residuum (8):        0.075423
+residuum (9):        0.0407055
+residuum (10):        0.0230283
+residuum (11):        0.0375726
+residuum (12):        0.0123378
+residuum (13):        0.00717869
+residuum (14):        0.00803029
+residuum (15):        0.00417704
+residuum (16):        0.00336042
+residuum (17):        0.0041951
+residuum (18):        0.0063657
+residuum (19):        0.0126993
+residuum (20):        0.0154252
+residuum (21):        0.0270723
+residuum (22):        0.0145279
+residuum (23):        0.0124571
+residuum (24):        0.00809542
+residuum (25):        0.00378751
+residuum (26):        0.00183201
+residuum (27):        0.00167771
+residuum (28):        0.000661887
+residuum (29):        0.00218578
+residuum (30):        0.000366843
+residuum (31):        0.000212692
+residuum (32):        0.000181855
+residuum (33):        9.87063e-05
+residuum (34):        0.000126257
+residuum (35):        4.46066e-05
+residuum (36):        7.93043e-05
+residuum (37):        2.83579e-05
+residuum (38):        3.62883e-05
+residuum (39):        5.36275e-05
+residuum (40):        3.99522e-05
+residuum (41):        2.86486e-05
+residuum (42):        4.61557e-05
+residuum (43):        7.49888e-05
+residuum (44):        9.44882e-05
+residuum (45):        0.000193152
+residuum (46):        0.000188562
+residuum (47):        0.000574136
+residuum (48):        0.000401503
+residuum (49):        0.000513267
+residuum (50):        0.000707453
+No convergence, residuum was 0.000707453!
+.test1.8 finished!
