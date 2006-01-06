@@ -556,7 +556,7 @@ void init_index_sparse_to_full_3d(nsfft_plan *ths)
 }
 
 /* copies ths->f_hat to ths_plan->f_hat */
-void nsfft_cp_to_full(nsfft_plan *ths, nfft_plan *ths_full_plan)
+void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_full_plan)
 {
   int k; 
 
@@ -582,7 +582,7 @@ void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
   const int N_B=int_2_pow(J);        /* size of small blocks   */
 
   /* copy sparse plan to full plan */
-  nsfft_cp_to_full_2d(ths, ths_full_plan);
+  nsfft_cp(ths, ths_full_plan);
 
   /* show blockwise f_hat */
   printf("f_hat blockwise\n");
@@ -1541,10 +1541,10 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   N[0]=1;            n[0]=ths->sigma*N[0];
   N[1]=int_2_pow(J); n[1]=ths->sigma*N[1];
   
-  nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, PRE_LIN_PSI| MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+  nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
   
-  if(ths->act_nfft_plan->nfft_flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi(ths->act_nfft_plan);
+  if(ths->act_nfft_plan->nfft_flags & PRE_ONE_PSI)
+    nfft_precompute_one_psi(ths->act_nfft_plan);
 
   ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
   ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
@@ -1568,7 +1568,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
       N[0]=int_2_pow(J-r); n[0]=ths->sigma*N[0]; /* ==N[1] of the 2 dimensional plan */
 
       nfft_init_guru(&(ths->set_nfft_plan_1d[r]),1,N,M,n,m, MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
-      ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags | PRE_LIN_PSI;
+      ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags | FG_PSI;
       ths->set_nfft_plan_1d[r].K=ths->act_nfft_plan->K;
       ths->set_nfft_plan_1d[r].psi=ths->act_nfft_plan->psi;
     }
@@ -1581,7 +1581,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
                      FFTW_MEASURE);
   ths->center_nfft_plan->x= ths->act_nfft_plan->x;
   ths->center_nfft_plan->nfft_flags = ths->center_nfft_plan->nfft_flags|
-                                      PRE_LIN_PSI;
+                                      FG_PSI;
   ths->center_nfft_plan->K=ths->act_nfft_plan->K;
   ths->center_nfft_plan->psi=ths->act_nfft_plan->psi;
 
@@ -1630,10 +1630,10 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   N[1]=1;            n[1]=ths->sigma*N[1];
   N[2]=int_2_pow(J); n[2]=ths->sigma*N[2];
   
-  nfft_init_guru(ths->act_nfft_plan,3,N,M,n,m, PRE_LIN_PSI| MALLOC_X| MALLOC_F, FFTW_MEASURE);
+  nfft_init_guru(ths->act_nfft_plan,3,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F, FFTW_MEASURE);
 
-  if(ths->act_nfft_plan->nfft_flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi(ths->act_nfft_plan);
+  if(ths->act_nfft_plan->nfft_flags & PRE_ONE_PSI)
+    nfft_precompute_one_psi(ths->act_nfft_plan);
 
   /* malloc g1, g2 for maximal size */
   ths->act_nfft_plan->g1 = fftw_malloc(ths->sigma*ths->sigma*ths->sigma*int_2_pow(J+(J+1)/2)*sizeof(complex));
@@ -1680,11 +1680,11 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
       if(N[0]>m)
 	{
 	  nfft_init_guru(&(ths->set_nfft_plan_1d[r]),1,N,M,n,m, MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
-	  ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags | PRE_LIN_PSI;
+	  ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags | FG_PSI;
 	  ths->set_nfft_plan_1d[r].K=ths->act_nfft_plan->K;
 	  ths->set_nfft_plan_1d[r].psi=ths->act_nfft_plan->psi;
 	  nfft_init_guru(&(ths->set_nfft_plan_2d[r]),2,N,M,n,m, MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
-	  ths->set_nfft_plan_2d[r].nfft_flags = ths->set_nfft_plan_2d[r].nfft_flags | PRE_LIN_PSI;
+	  ths->set_nfft_plan_2d[r].nfft_flags = ths->set_nfft_plan_2d[r].nfft_flags | FG_PSI;
 	  ths->set_nfft_plan_2d[r].K=ths->act_nfft_plan->K;
 	  ths->set_nfft_plan_2d[r].psi=ths->act_nfft_plan->psi;
 	}
@@ -1699,7 +1699,7 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
                      FFTW_MEASURE);
   ths->center_nfft_plan->x= ths->act_nfft_plan->x;
   ths->center_nfft_plan->nfft_flags = ths->center_nfft_plan->nfft_flags|
-                                      PRE_LIN_PSI;
+                                      FG_PSI;
   ths->center_nfft_plan->K=ths->act_nfft_plan->K;
   ths->center_nfft_plan->psi=ths->act_nfft_plan->psi;
 
@@ -1729,14 +1729,14 @@ void nsfft_finalize_2d(nsfft_plan *ths)
 
   /* center plan */
   ths->center_nfft_plan->nfft_flags = ths->center_nfft_plan->nfft_flags^
-                                      PRE_LIN_PSI;
+                                      FG_PSI;
   nfft_finalize(ths->center_nfft_plan);
 
   /* the 1d nffts */
   for(r=0;r<=ld(ths->act_nfft_plan->m);r++)
     {
       ths->set_nfft_plan_1d[r].nfft_flags =
-        ths->set_nfft_plan_1d[r].nfft_flags ^ PRE_LIN_PSI;
+        ths->set_nfft_plan_1d[r].nfft_flags ^ FG_PSI;
       nfft_finalize(&(ths->set_nfft_plan_1d[r]));
     }
   
@@ -1772,7 +1772,7 @@ void nsfft_finalize_3d(nsfft_plan *ths)
     fftw_free(ths->index_sparse_to_full);
 
   /* center plan */
-  ths->center_nfft_plan->nfft_flags = ths->center_nfft_plan->nfft_flags ^ PRE_LIN_PSI;
+  ths->center_nfft_plan->nfft_flags = ths->center_nfft_plan->nfft_flags ^ FG_PSI;
   nfft_finalize(ths->center_nfft_plan);
 
   /* the 1d and 2d nffts */
@@ -1780,9 +1780,9 @@ void nsfft_finalize_3d(nsfft_plan *ths)
     {
       if(int_2_pow(ths->J-r)>ths->act_nfft_plan->m)
 	{
-	  ths->set_nfft_plan_2d[r].nfft_flags = ths->set_nfft_plan_2d[r].nfft_flags ^ PRE_LIN_PSI;
+	  ths->set_nfft_plan_2d[r].nfft_flags = ths->set_nfft_plan_2d[r].nfft_flags ^ FG_PSI;
 	  nfft_finalize(&(ths->set_nfft_plan_2d[r]));
-	  ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags ^ PRE_LIN_PSI;
+	  ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags ^ FG_PSI;
 	  nfft_finalize(&(ths->set_nfft_plan_1d[r]));
 	}
     }

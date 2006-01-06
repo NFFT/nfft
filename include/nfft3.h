@@ -979,7 +979,7 @@ void nsfft_trafo(nsfft_plan *ths);
 void nsfft_adjoint(nsfft_plan *ths);
 
 /**
- * Copy coefficients and knots from nsfft plan to a nfft plan.
+ * Copy coefficients from nsfft plan to a nfft plan.
  *
  * \arg ths Pointers to a nsfft plan and to a nfft plan
  *
