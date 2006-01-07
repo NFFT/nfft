@@ -110,9 +110,11 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   nsfft_cp(&p, &np);
 
   /* transforms */
-  t_nsdft=0;
-  r=0;
-  while(t_nsdft<0.1)
+  if(test_nsdft)
+  {
+    t_nsdft=0;
+    r=0;
+    while(t_nsdft<0.1)
     {
       r++;
       t=second();
@@ -120,11 +122,16 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
       t=second()-t;
       t_nsdft+=t;
     }
-  t_nsdft/=r;
+    t_nsdft/=r;
+  }
+  else
+    t_nsdft=nan("");   
 
-  t_nfft=0;
-  r=0;
-  while(t_nfft<0.1)
+  if(test_nfft)
+  {
+    t_nfft=0;
+    r=0;
+    while(t_nfft<0.1)
     {
       r++;
       t=second();
@@ -132,7 +139,10 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
       t=second()-t;
       t_nfft+=t;
     }
-  t_nfft/=r;
+    t_nfft/=r;
+  }
+  else
+    t_nfft=nan(""); 
 
   t_nsfft=0;
   r=0;
@@ -197,8 +207,14 @@ int main(int argc,char **argv)
 	M=(J+4)*int_2_pow(J+1);
       else
 	M=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
-
-      time_nsfft(d, J, M, 1, 1);
+      
+      if(d*(J+2)<=24)
+	time_nsfft(d, J, M, 1, 1);
+      else
+	if(d*(J+2)<=24)
+	  time_nsfft(d, J, M, 0, 1);
+	else
+	  time_nsfft(d, J, M, 0, 0);  
     }
   }
 
