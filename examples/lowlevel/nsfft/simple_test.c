@@ -95,12 +95,15 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   nfft_plan np;                         /**< plan for the nfft               */
 
   double t,t_nsdft,t_nfft,t_nsfft;
+  int m,m_nfft,m_nsfft;
 
   int N[2]={int_2_pow(J+2),int_2_pow(J+2)};
   int n[2]={2*N[0],2*N[1]};
 
   /** init */
+  m=total_used_memory();
   nsfft_init(&p, d, J, M, 4, SNDFT);
+  m_nsfft=total_used_memory()-m;
   nsfft_init_random_nodes_coeffs(&p);
 
   /* transforms */
@@ -123,7 +126,9 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   if(test_nfft)
   {
+    m=total_used_memory();
     nfft_init_guru(&np,d,N,M,n,4, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+    m_nfft=total_used_memory()-m;
     np.x=p.act_nfft_plan->x;
     if(np.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&np);
@@ -158,11 +163,13 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     }
   t_nsfft/=r;
 
-  printf("%d\t%.2e\t%.2e\t%.2e\n",
+  printf("%d\t%.2e\t%.2e\t%.2e\t%d\t%d\n",
 	 J,
          t_nsdft,
 	 t_nfft,
-	 t_nsfft);
+	 t_nsfft,
+         m_nfft,
+	 m_nsfft);
 
   fflush(stdout);
 
