@@ -103,12 +103,6 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   nsfft_init(&p, d, J, M, 4, SNDFT);
   nsfft_init_random_nodes_coeffs(&p);
 
-  nfft_init_guru(&np,d,N,M,n,4, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
-  np.x=p.act_nfft_plan->x;
-  if(np.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&np);
-  nsfft_cp(&p, &np);
-
   /* transforms */
   if(test_nsdft)
   {
@@ -129,6 +123,12 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   if(test_nfft)
   {
+    nfft_init_guru(&np,d,N,M,n,4, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+    np.x=p.act_nfft_plan->x;
+    if(np.nfft_flags & PRE_ONE_PSI)
+      nfft_precompute_one_psi(&np);
+    nsfft_cp(&p, &np);
+
     t_nfft=0;
     r=0;
     while(t_nfft<0.1)
@@ -140,6 +140,8 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
       t_nfft+=t;
     }
     t_nfft/=r;
+
+    nfft_finalize(&np);
   }
   else
     t_nfft=nan(""); 
@@ -165,7 +167,6 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   fflush(stdout);
 
   /** finalise */
-  nfft_finalize(&np);
   nsfft_finalize(&p);
 }
 
