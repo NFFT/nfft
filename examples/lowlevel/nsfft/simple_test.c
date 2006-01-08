@@ -134,7 +134,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   if(test_nfft)
   {
     m=total_used_memory();
-    nfft_init_guru(&np,d,N,M,n,4, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+    nfft_init_guru(&np,d,N,M,n,5, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
     m_nfft=total_used_memory()-m;
     np.x=p.act_nfft_plan->x;
     if(np.nfft_flags & PRE_ONE_PSI)
@@ -156,7 +156,10 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     nfft_finalize(&np);
   }
   else
+  {
     t_nfft=nan(""); 
+    m_nfft=nan("");
+  }
 
   t_nsfft=0;
   r=0;
