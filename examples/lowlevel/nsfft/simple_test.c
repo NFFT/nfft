@@ -103,6 +103,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   for(j=0;j<d;j++)
   {
     N[j]=int_2_pow(J+2);
+    //n[j]=(5*N[j])/4;
     n[j]=2*N[j];
   }
 
