@@ -103,7 +103,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   for(j=0;j<d;j++)
   {
     N[j]=int_2_pow(J+2);
-    n[j]=(5*N[j])/4;
+    n[j]=(3*N[j])/2;
     /*n[j]=2*N[j];*/
   }
 
@@ -134,7 +134,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   if(test_nfft)
   {
     m=total_used_memory();
-    nfft_init_guru(&np,d,N,M,n,5, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+    nfft_init_guru(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
     m_nfft=total_used_memory()-m;
     np.x=p.act_nfft_plan->x;
     if(np.nfft_flags & PRE_ONE_PSI)
