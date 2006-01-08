@@ -97,8 +97,14 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   double t,t_nsdft,t_nfft,t_nsfft;
   int m,m_nfft,m_nsfft;
 
-  int N[2]={int_2_pow(J+2),int_2_pow(J+2)};
-  int n[2]={2*N[0],2*N[1]};
+  int N[d];
+  int n[d];
+
+  for(j=0;j<d;j++)
+  {
+    N[j]=int_2_pow(J+2);
+    n[j]=2*N[j];
+  }
 
   /** init */
   m=total_used_memory();
