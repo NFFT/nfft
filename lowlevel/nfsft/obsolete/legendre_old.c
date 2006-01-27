@@ -1,5 +1,5 @@
-#include "legendre.h"
-#include "api.h"
+#include "legendre_old.h"
+#include "api_old.h"
 
 inline double alpha_al_old(int k, int n)
 { 

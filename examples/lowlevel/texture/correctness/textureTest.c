@@ -5,7 +5,7 @@
 
 #include <nfft3.h>
 #include <util.h>
-#include <nfsft.h>
+#include <nfsft_old.h>
 #include <texture_util.h>
 
 /** @defgroup texture_correctness Texture: Correctness

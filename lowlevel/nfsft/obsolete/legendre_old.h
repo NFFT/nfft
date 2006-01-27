@@ -7,7 +7,7 @@
 #ifndef LEGENDRE_H
 #define LEGENDRE_H
 
-#include "api.h"
+#include "api_old.h"
 
 /** 
  * \defgroup nfsft_legendre NFSFT: Functions related to associated Legendre 

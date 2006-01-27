@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7330,        179]*)
-(*NotebookOutlinePosition[      8171,        208]*)
-(*  CellTagsIndexPosition[      8127,        204]*)
+(*NotebookOptionsPosition[      7457,        180]*)
+(*NotebookOutlinePosition[      8298,        209]*)
+(*  CellTagsIndexPosition[      8254,        205]*)
 (*WindowFrame->Normal*)
 
 
@@ -81,9 +81,8 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[{
-    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 
-          80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 
-          896, 1024};\)\), "\[IndentingNewLine]", 
+    \(\(kend = \ {320, 384, 448, 512, 640, 768, 896, 
+          1024};\)\), "\[IndentingNewLine]", 
     \(\(M\  = \ 10;\)\)}], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
@@ -155,8 +154,12 @@ Cell[BoxData[
         Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
-Cell[BoxData[
-    \($Aborted\)], "Output"]
+Cell["\<\
+
+No more memory available.
+Mathematica kernel has shut down.
+Try quitting other applications and then retry.\
+\>", "Print"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -168,14 +171,12 @@ Cell[BoxData[
                 10\^\(-p\)], {n, \(-k\), k}], {k, 0, 
           kend[\([j]\)]}]\)\(,\)\)\)], "Text"],
 
-Cell[CellGroupData[{
-
-Cell[BoxData[
-    \(N[\@\(1\/\(4  \[Pi]\)\)]\)], "Input"],
-
-Cell[BoxData[
-    \(0.28209479177387814`\)], "Output"]
-}, Open  ]]
+Cell[BoxData[{
+    \(\(kend = \ {0, 1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 
+          80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 
+          896, 1024};\)\), "\[IndentingNewLine]", 
+    \(\(M\  = \ 10;\)\)}], "Input",
+  ImageRegion->{{-0, 1}, {0, 1}}]
 },
 FrontEndVersion->"5.0 for X",
 ScreenRectangle->{{0, 1024}, {0, 768}},
@@ -210,18 +211,14 @@ Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
 Cell[1904, 56, 340, 7, 62, "Input"],
 Cell[2247, 65, 729, 15, 114, "Input"],
-Cell[2979, 82, 291, 5, 59, "Input"],
+Cell[2979, 82, 184, 4, 43, "Input"],
 
 Cell[CellGroupData[{
-Cell[3295, 91, 3502, 64, 464, "Input"],
-Cell[6800, 157, 42, 1, 27, "Output"]
+Cell[3188, 90, 3502, 64, 464, "Input"],
+Cell[6693, 156, 133, 5, 68, "Print"]
 }, Open  ]],
-Cell[6857, 161, 318, 7, 71, "Text"],
-
-Cell[CellGroupData[{
-Cell[7200, 172, 57, 1, 50, "Input"],
-Cell[7260, 175, 54, 1, 27, "Output"]
-}, Open  ]]
+Cell[6841, 164, 318, 7, 71, "Text"],
+Cell[7162, 173, 291, 5, 59, "Input"]
 }
 ]
 *)

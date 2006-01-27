@@ -1,7 +1,7 @@
 #ifndef INFSFT_H
 #define INFSFT_H
 
-#include "nfsft.h"
+#include "nfsft_old.h"
 
 #define NFSFT_CGNR_E            (1U<<0)
 #define NFSFT_CGNE_R            (1U<<1)

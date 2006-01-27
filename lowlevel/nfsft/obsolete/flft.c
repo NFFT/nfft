@@ -1,8 +1,8 @@
 #include "flft.h"
 #include "u.h"
 #include "util.h"
-#include "legendre.h"
-#include "api.h"
+#include "legendre_old.h"
+#include "api_old.h"
 
 void flft_old(const int M, const int t, const int n, complex *const f_hat, 
           struct nfsft_wisdom_old *const wisdom, int *nstab, int *ntotal)

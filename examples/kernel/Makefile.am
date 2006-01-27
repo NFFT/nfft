@@ -1,1 +1,1 @@
-SUBDIRS = nfft nfct nfst
+SUBDIRS = nfft nfct nfst dpt

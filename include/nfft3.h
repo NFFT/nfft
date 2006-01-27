@@ -204,7 +204,7 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
  * \arg N The multi bandwidth
  * \arg M_total The number of nodes
  * \arg n The oversampled multi bandwidth
- * \arg m The spatial cutoversampled multi bandwidth
+ * \arg m The spatial cut-off
  * \arg nfft_flags_on NFFT flags to switch on
  * \arg nfft_flags_off NFFT flags to switch off
  *
@@ -1782,7 +1782,9 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * @defgroup nfsft NFSFT
  * @{ 
  * 
- * This module implements nonuniform fast spherical Fourier transforms (NFSFT).
+ * This module implements nonuniform fast spherical Fourier transforms. In the
+ * following, we abbreviate the term "nonuniform fast spherical Fourier 
+ * transform" by NFSFT.
  *
  * \section Preliminaries
  * This section summarises basic definitions and properties related to spherical 
@@ -1791,7 +1793,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \subsection sc Spherical Coordinates
  * Every point in \f$\mathbb{R}^3\f$ can be described in \e spherical \e 
  * coordinates by a vector \f$(r,\vartheta,\varphi)^{\mathrm{T}}\f$ with the 
- * radius \f$r \in \mathbb{R}^{+}\f$ and the angles \f$\vartheta \in [0,\pi]\f$, 
+ * radius \f$r \in \mathbb{R}^{+}\f$ and two angles \f$\vartheta \in [0,\pi]\f$, 
  * \f$\varphi \in [-\pi,\pi)\f$. 
  * We denote by \f$\mathbb{S}^2\f$ the two-dimensional unit sphere embedded 
  * into \f$\mathbb{R}^3\f$, i.e. 
@@ -1802,12 +1804,14 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * and identify a point from \f$\mathbb{S}^2\f$ with the corresponding vector 
  * \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The 
  * spherical coordinate system is illustrated in the following figure:
- * \image html sphere.png "" width=0.45\textwidth
+ * \image html sphere.png "" 
+ * \image latex sphere.pdf "" width=0.45\textwidth 
  * For consistency with the other modules and the conventions used there, we 
- * also use \e scaled \e spherical \e coordinates \f$x_1 := 
- * \frac{\vartheta}{2\pi}\f$, \f$x_2 := \frac{\varphi}{2\pi}\f$ and identify a point 
- * from \f$\mathbb{S}^2\f$ with the vector \f$\mathbf{x} := \left(x_1,x_2\right) \in 
- * [0,\frac{1}{2}] \times [-\frac{1}{2}, \frac{1}{2})\f$.
+ * also use \e swapped \e scaled \e spherical \e coordinates \f$x_1 := 
+ * \frac{\varphi}{2\pi}\f$, \f$x_2 := \frac{\vartheta}{2\pi}\f$ and identify a 
+ * point from \f$\mathbb{S}^2\f$ with the vector 
+ * \f$\mathbf{x} := \left(x_1,x_2\right) \in 
+ *  [-\frac{1}{2}, \frac{1}{2}) \times [0,\frac{1}{2}]\f$.
  *
  * \subsection lp Legendre Polynomials
  * The \e Legendre \e polynomials \f$P_k : [-1,1] 
@@ -1840,8 +1844,8 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
  * \f[
  *   \|f\|_{\text{L}^2\left([-1,1]\right)} := 
- *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
- *   \sqrt{\int_{-1}^{1} |f(t)|^2 \; \text{d} t}.
+ *   \left(<f,f>_{\text{L}^2\left([-1,1]\right)}\right)^{1/2} =
+ *   \left(\int_{-1}^{1} |f(t)|^2 \; \text{d} t\right)^{1/2}.
  * \f]
  * 
  * \subsection alf Associated Legendre Functions
@@ -1851,7 +1855,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *   P_k^n(t) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2} 
  *   \left(1-t^2\right)^{n/2} \frac{\text{d}^n}{\text{d} t^n} P_k(t).
  * \f]
- * For \f$n = 0\f$ they coincide with the Legendre polynomials, i.e. 
+ * For \f$n = 0\f$, they coincide with the Legendre polynomials, i.e. 
  * \f$P_k^0 = P_k\f$. 
  * The associated Legendre functions obey the three-term recurrence relation
  * \f[  
@@ -1864,7 +1868,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *   w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
  * \f]
  * For fixed \f$n\f$, the set \f$\left\{P_k^n:\: k 
- * \ge n\right\}\f$ forms a complete set of orthogonal functions for 
+ * \ge n\right\}\f$ forms a complete set of orthogonal functions in 
  * \f$\text{L}^2\left([-1,1]\right)\f$ 
  * with
  * \f[ 
@@ -1876,9 +1880,9 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * renders the scaled associated Legendre functions \f$c_k P_k^n\f$ orthonormal 
  * with respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
  * \f[
- *   \|f\|_{\text{L}^2\left([-1,1]\right)} = 
- *   \sqrt{<f,f>_{\text{L}^2\left([-1,1]\right)}} =
- *   \sqrt{\int_{-1}^{1} |f(t)|^2 \; \text{d} t}.
+ *   \|f\|_{\text{L}^2\left([-1,1]\right)} := 
+ *   \left(<f,f>_{\text{L}^2\left([-1,1]\right)}\right)^{1/2} =
+ *   \left(\int_{-1}^{1} |f(t)|^2 \; \text{d} t\right)^{1/2}.
  * \f]
  *
  * \subsection sh Spherical Harmonics
@@ -1892,7 +1896,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * with the usual \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ inner product
  * \f[
  *   \left< f,g \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)} := 
- *   \int_{\mathbb{S^2}} f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} 
+ *   \int_{\mathbb{S}^2} f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} 
  *   \: \mathrm{d} \mathbf{\xi} := \int_{-\pi}^{\pi} \int_{0}^{\pi} 
  *   f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} \sin \vartheta 
  *   \; \mathrm{d} \vartheta \; \mathrm{d} \varphi.
@@ -1907,9 +1911,9 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \right)\f$ norm
  * \f[
  *   \|f\|_{\text{L}^2\left(\mathbb{S}^2\right)} = 
- *   \sqrt{<f,f>_{\text{L}^2\left(\mathbb{S}^2\right)}} =
- *   \sqrt{\int_{-\pi}^{\pi} \int_{0}^{\pi} |f(\vartheta,\varphi)|^2 \sin 
- *   \vartheta \; \mathrm{d} \vartheta \; \mathrm{d} \varphi}.
+ *   \left(<f,f>_{\text{L}^2\left(\mathbb{S}^2\right)}\right)^{1/2} =
+ *   \left(\int_{-\pi}^{\pi} \int_{0}^{\pi} |f(\vartheta,\varphi)|^2 \sin 
+ *   \vartheta \; \mathrm{d} \vartheta \; \mathrm{d} \varphi\right)^{1/2}.
  * \f]
  * A function \f$f \in \mathrm{L}^2\left(\mathbb{S}^2\right)\f$ has the 
  * orthogonal expansion
@@ -1924,6 +1928,10 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *
  * \section nfsfts Nonuniform Fast Spherical Fourier Transforms
  * 
+ * This section describes the input and output relation of the spherical 
+ * Fourier transform algorithms and the layout of the corresponding plan 
+ * structure.
+ * 
  * \subsection ndsft Nonuniform Discrete Spherical Fourier Transform
  * The \e nonuniform \e discrete \e spherical \e Fourier \e transform (\e NDSFT)
  * is defined as follows:
@@ -1933,7 +1941,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *         \hat{f}(k,n) \in \mathbb{C} \text{ for } k=0,\ldots,N,\;n=-k,
  *         \ldots,k,\; N \in \mathbb{N}_0,\\[1ex]
  *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in 
- *         [0,\frac{1}{2}] \times [-\frac{1}{2},\frac{1}{2}] 
+ *         [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}] 
  *         \text{ for } m=0,\ldots,M-1, M \in \mathbb{N}. \\[1ex]
  *       \text{\textbf{Task}}  & : & \text{evaluate } f(m) := f\left(
  *       \mathbf{x}(m)\right) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}_k^n 
@@ -1951,10 +1959,10 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \f[
  *     \begin{array}{rcl}
  *       \text{\textbf{Input}} & : & \text{coefficients } f(m) \in 
- *         \mathbb{C} \text{ for } m=0,\ldots,M-1,\\
+ *         \mathbb{C} \text{ for } m=0,\ldots,M-1, M \in \mathbb{N},\\
  *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in 
- *         [0,\frac{1}{2}] \times [-\frac{1}{2},\frac{1}{2}] \text{ for } 
- *         m=0,\ldots,M-1, M \in \mathbb{N}, N \in \mathbb{N}_0.\\[1ex]
+ *         [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}] \text{ for } 
+ *         m=0,\ldots,M-1, N \in \mathbb{N}_0.\\[1ex]
  *       \text{\textbf{Task}}  & : & \text{evaluate } \hat{f}(k,n) 
  *         := \sum_{m=0}^{M-1} f(m) \overline{Y_k^n\left(\mathbf{x}(m)\right)}cd Do 
  *         \text{ for } k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
@@ -1964,34 +1972,70 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *     \end{array}
  * \f]
  * 
- * \subsection Plan Layout
- * This section describes the layout of the \ref nfsft_plan structure. The public
- * members are structured as follows:
- * \li \c N_total The total number of spherical Fourier coefficients. If the 
- *        bandwidth is �f$N \in \mathbb{N}_0�f$, the total number of spherical 
+ * \subsection dl Data Layout
+ * This section describes the public  layout of the \ref nfsft_plan structure 
+ * which
+ * contains all data for the computation of the aforementioned spherical Fourier 
+ * transforms. The structure contains private (no read or write allowed), public 
+ * read-only (only
+ * read access permitted), and public read-write (read and write access allowed)
+ * members. In the following, we indicate read and write access by \c read and 
+ * \c write. The public members are structured as follows:
+ * \li \c N_total (\c read) 
+ *        The total number of spherical Fourier coefficients. If the 
+ *        bandwidth is \f$N \in \mathbb{N}_0\f$, the total number of spherical 
  *        Fourier coefficients is \c N_total \f$= (N+1)^2\f$.
- * \li \c M_total The total number of samples \f$M\f$.
- * \li \c f_hat   The flattened array of spherical Fourier coefficents. The array 
- *                has length () 
- * \li \c f
- * \li \c N
+ * \li \c M_total (\c read)
+ *        the total number of samples \f$M\f$
+ * \li \c f_hat (\c read-write) 
+ *        The flattened array of spherical Fourier coefficents. The array 
+ *        has length \f$(2N+2)^2\f$ such that valid indices \f$i \in 
+ *        \mathbb{N}_0\f$ for array access \c f_hat \c[ \f$i\f$ \c] are 
+ *        \f$i=0,1,\ldots,(2N+2)^2-1\f$.
+ *        However, only read and write access to indices corresponding to
+ *        spherical Fourier coefficients \f$\hat{f}(k,n)\f$ is defined. The index 
+ *        \f$i\f$ corresponding to the spherical Fourier coefficient 
+ *        \f$\hat{f}(k,n)\f$ with \f$0 \le k \le M\f$, \f$-k \le n \le k\f$ is
+ *        \f$i = (N+2)(N-n+1)+N+k+1\f$. For convenience, the helper macro 
+ *        \ref NFSFT_INDEX(k,n) provides the necessary index calculations such 
+ *        that
+ *        one can write \c f_hat[ \c NFSFT_INDEX(\f$k,n\f$\c)] \c = 
+ *        \c ... to access
+ *        the component corresponding to \f$\hat{f}(k,n)\f$. 
+ *        The data layout is due to implementation details.  
+ * \li \c f (\c read-write)
+ *        the array of coefficients \f$f(m)\f$ for \f$m=0,\ldots,M-1\f$ such 
+ *        that \c f[\f$m\f$\c] = \f$f(m)\f$
+ * \li \c N (\c read)
+ *        the bandwidth \f$N \in \mathbb{N}_0\f$
  * \li \c x
- * \li \c 
- * \subsection Good to know...
+ *        the array of nodes \f$\mathbf{x}(m) \in
+ *        [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}]\f$ for \f$m = 0,
+ *        \ldots,M-1\f$ such that \c f[\f$2m\f$\c] = \f$x_1\f$ and
+ *        \c f[\f$2m+1\f$\c] = \f$x_2\f$
+ * 
+ * \subsection gtn Good to know...
  * When using the routines of this module you should bear in mind the following:
- * - The bandwidth \f$N_{\text{max}}\f$ upt to which precomputation is always a 
- *   power of two.
- * - The \e NFSFT transform is \e in \e place, i.e. the coefficients 
- *   \f$\hat{f}(k,n)\f$ are destroyed.
- * - The \e adjoint \e NFSFT transform is \e out \e of \e place, i.e. the 
- *   coefficients \f$f(m)\f$ are not destroyed.
+ * \li The bandwidth \f$N_{\text{max}}\f$ up to which precomputation is 
+ *   performed is always chosen as the next power of two with respect to the
+ *   specified maximum bandwidth.
+ * \li By default, the NDSFT transforms (see \ref ndsft_trafo, \ref nfsft_trafo) 
+ *   are allowed to destroy the input \c f_hat while the input \c x is 
+ *   preserved. The desired behaviour can be assured by using the \ref 
+ *   NFSFT_PRESERVE_F_HAT, \ref NFSFT_PRESERVE_X, \ref NFSFT_PRESERVE_F and 
+ *   \ref NFSFT_DESTROY_F_HAT,\ref NFSFT_DESTROY_X,\ref NFSFT_DESTROY_F 
+ *   flags.
+ * \li By default, the adjoint NDSFT transforms (see \ref ndsft_adjoint, 
+ *   \ref nfsft_adjoint) do not destroy the input \c f and \c x. The desired 
+ *   behaviour can be assured by using the \ref NFSFT_PRESERVE_INPUT and 
+ *   \ref NFSFT_DESTROY_INPUT flags.
  */
 
 /* Planner flags */
 
 /** 
- * By default, all computations are performed with respect to the unnormalized basis
- * functions
+ * By default, all computations are performed with respect to the 
+ * unnormalized basis functions
  * \f[
  *   \tilde{Y}_k^n(\vartheta,\varphi) = P_k^{|n|}(\cos\vartheta) 
  *   \mathrm{e}^{\mathrm{i} n \varphi}.
@@ -2001,79 +2045,216 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \f[
  *   Y_k^n(\vartheta,\varphi) = \sqrt{\frac{2k+1}{4\pi}} P_k^{|n|}(\cos\vartheta) 
  *   \mathrm{e}^{\mathrm{i} n \varphi}.
- * \f]  
+ * \f]
  * 
  * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
  * \author Jens Keiner
  */
 #define NFSFT_NORMALIZED    (1U << 0)
 
 /**
- * If this flag is set, the \e direct \e NDFT algorithm will be used internally 
- * instead of the fast approximative \e NFFT algorithm.
+ * If this flag is set, the fast NFSFT algorithms (see \ref nfsft_trafo, 
+ * \ref nfsft_adjoint) will use internally the exact but usually slower direct 
+ * NDFT algorithm in favor of fast but approximative NFFT algorithm.
  *
  * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
  * \author Jens Keiner
  */
 #define NFSFT_USE_NDFT      (1U << 1)
+
+/**
+ * If this flag is set, the fast NFSFT algorithms (see \ref nfsft_trafo, 
+ * \ref nfsft_adjoint) will use internally the usually slower direct 
+ * DPT algorithm in favor of the fast FPT algorithm.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ * \warning This feature is not implemented yet!
+ */
 #define NFSFT_USE_DPT       (1U << 2)
 
+/**
+ * If this flag is set, the init methods (see \ref nfsft_init , \ref 
+ * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the 
+ * method \ref nfsft_finalize will free the array \c x for you. Otherwise, 
+ * you have to assure by yourself that \c x points to an array of
+ * proper size before excuting a transform and you are responsible for freeing 
+ * the corresponding memory before program termination. 
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner 
+ */ 
 #define NFSFT_MALLOC_X      (1U << 3)
+
+/**
+ * If this flag is set, the init methods (see \ref nfsft_init , \ref 
+ * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the 
+ * method \ref nfsft_finalize will free the array \c f_hat for you. Otherwise, 
+ * you have to assure by yourself that \c f_hat points to an array of
+ * proper size before excuting a transform and you are responsible for freeing 
+ * the corresponding memory before program termination. 
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner 
+ */ 
 #define NFSFT_MALLOC_F_HAT  (1U << 5)
+
+/**
+ * If this flag is set, the init methods (see \ref nfsft_init , \ref 
+ * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the 
+ * method \ref nfsft_finalize will free the array \c f for you. Otherwise, 
+ * you have to assure by yourself that \c f points to an array of
+ * proper size before excuting a transform and you are responsible for freeing 
+ * the corresponding memory before program termination. 
+ * 
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner 
+ */ 
 #define NFSFT_MALLOC_F      (1U << 6)
 
-//#define NSFT_PRESERVE_F_HAT (1U << 7)
-//#define NSFT_PRESERVE_X     (1U << 8)
-//#define NSFT_PRESERVE_F     (1U << 9)
+/**
+ * If this flag is set, it is guaranteed that during an execution of 
+ * \ref ndsft_trafo or \ref nfsft_trafo the content of \c f_hat remains 
+ * unchanged.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_PRESERVE_F_HAT (1U << 7)
 
+/**
+ * If this flag is set, it is guaranteed that during an execution of 
+ * \ref ndsft_trafo, \ref nfsft_trafo or \ref ndsft_adjoint, \ref nfsft_adjoint 
+ * the content of \c x remains 
+ * unchanged.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_PRESERVE_X     (1U << 8)
+
+/**
+ * If this flag is set, it is guaranteed that during an execution of 
+ * \ref ndsft_adjoint or \ref nfsft_adjoint the content of \c f remains 
+ * unchanged.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_PRESERVE_F     (1U << 9)
+
+/**
+ * If this flag is set, it is explicitely allowed that during an execution of 
+ * \ref ndsft_trafo or \ref nfsft_trafo the content of \c f_hat may be changed.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_DESTROY_HAT    (1U << 10)
+
+/**
+ * If this flag is set, it is explicitely allowed that during an execution of 
+ * \ref ndsft_trafo, \ref nfsft_trafo or \ref ndsft_adjoint, \ref nfsft_adjoint 
+ * the content of \c x may be changed.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_DESTROY_X      (1U << 11)
+
+/**
+ * If this flag is set, it is explicitely allowed that during an execution of 
+ * \ref ndsft_adjoint or \ref nfsft_adjoint the content of \c f may be changed.
+ *
+ * \see nfsft_init
+ * \see nfsft_init_advanced
+ * \see nfsft_init_guru
+ * \author Jens Keiner
+ */
+#define NFSFT_DESTROY_F      (1U << 12)
 
 /* Precomputation flags */
 
 /**
- * If this flag is set, the algorithms \e direct \e NDSFT and \e adjoint \e 
- * direct \e NDSFT do not work. Setting this flag saves some memory for 
- * precomputed data.
+ * If this flag is set, the transforms \ref ndsft_trafo and \ref ndsft_adjoint 
+ * do not work. Setting this flag saves some memory for precomputed data.
  * 
  * \see nfsft_precompute
  * \see ndsft_trafo
  * \see ndsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 10)
+#define NFSFT_NO_DIRECT_ALGORITHM    (1U << 13)
 
 /**
- * If this flag is set, the algorithms \e NFSFT and \e adjoint \e \e NFSFT do 
- * not work. Setting this flag saves some memory for precomputed data.
+ * If this flag is set, the transforms \ref nfsft_trafo and \ref nfsft_adjoint 
+ * do not work. Setting this flag saves memory for precomputed data.
  * 
  * \see nfsft_precompute
  * \see nfsft_trafo
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_NO_FAST_ALGORITHM      (1U << 11)
+#define NFSFT_NO_FAST_ALGORITHM      (1U << 14)
 
 /**
- * If this flag is set, the fast algorithms \e NFSFT and \e adjoint \e NFSFT only 
- * work in a defined bandwidth window. If \f$N_{\text{max}}\f$ is the power of two 
- * up to which precomputation is performed, only fast transformations for bandwidths 
- * \f$N\f$ with \f$N_{\text{max}}/2 < N \le N_{\text{max}}\f$ will work. The slow 
- * algorithms \e direct \e NDSFT and \e adjoint \e direct \e NDSFT are unaffected. 
- * Using this flag saves memory for precomputed data.
+ * If this flag is set, the fast transforms \ref nfsft_trafo and 
+ * \ref nfsft_adjoint only 
+ * work in a defined bandwidth window. If \f$N_{\text{max}}\f$ is the power of 
+ * two up to which precomputation is performed, only fast transformations for 
+ * bandwidths \f$N\f$ with \f$N_{\text{max}}/2 < N \le N_{\text{max}}\f$ will 
+ * work. The direct but usually slow transforms \ref ndsft_trafo and 
+ * \ref ndsft_adjoint are unaffected. Setting this flag saves memory for 
+ * precomputed data.
  *
  * \see nfsft_precompute
  * \see nfsft_trafo
  * \see nfsft_adjoint
  * \author Jens Keiner
  */
-#define NFSFT_BANDWIDTH_WINDOW       (1U << 12)
+#define NFSFT_BANDWIDTH_WINDOW       (1U << 15)
 
-#define NFSFT_ZERO_F_HAT             (1U << 13)
+/**
+ * This flag is for internal use only!
+ *
+ * \warning Don't use this flag!
+ * \author Jens Keiner
+ */ 
+#define NFSFT_ZERO_F_HAT             (1U << 16)
 
-#ifdef NFSFT_OPTIMIZED
-  #define NFSFT_INDEX(k,n,plan)        ((plan)->maxMN)*(n+(plan)->N)+k
-#else
-  #define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1
-#endif
+/* */
+
+/**
+ * This helper macro expands to the index \f$i\f$
+ * corresponding to the spherical Fourier coefficient 
+ * \f$f_hat(k,n)\f$ for \f$0 \le k \le N\f$, \f$-k \le n \le k\f$ with
+ * \f[
+ *   (N+2)(N-n+1)+N+k+1
+ * \f]
+ */
+#define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1
   
 /** Structure for a transform plan */
 typedef struct nfsft_plan_
@@ -2082,36 +2263,29 @@ typedef struct nfsft_plan_
   MACRO_MV_PLAN(complex);          
 
   /* Public members */
-  int N;                                  /**< The bandwidth \f$N\f$              */
-  double *x;                              /**< The nodes \f$\mathbf{x}(m) = 
-                                                 \left(x_1,x_2\right) \in 
-                                                 [0,\frac{1}{2}] \times 
-                                                 [-\frac{1}{2},\frac{1}{2}]\f$ for 
-                                                 \f$m=0,\ldots,M-1\f$,\f$M \in 
-                                                 \mathbb{N},\f$                   */
+  int N;                              /**< the bandwidth \f$N\f$              */
+  double *x;                          /**< the nodes \f$\mathbf{x}(m) = 
+                                           \left(x_1,x_2\right) \in 
+                                           [0,\frac{1}{2}] \times 
+                                           [-\frac{1}{2},\frac{1}{2}]\f$ for 
+                                           \f$m=0,\ldots,M-1\f$,\f$M \in 
+                                           \mathbb{N},\f$                     */
   
   /* Private members */
-  int NPT;                                /**< Next greater power of two with
-                                               respect to \f$N\f$                 */
-  int t;                                  /**< The logaritm of NPT with 
-                                               respect to the basis 2             */
-  unsigned int flags;                     /**< The planner flags                  */
-  nfft_plan plan_nfft;                    /**< The internal NFFT plan             */
-  
-  #ifdef NFSFT_OPTIMIZED
-    int maxMN;                            /**< max{M,N}                           */                                               
-    nfct_plan plan_nfct;                  /**< The internal NFCT plan             */
-    nfst_plan plan_nfst;                  /**< The internal NFST plan             */
-  #endif
-  
+  int NPT;                            /**< the next greater power of two with
+                                           respect to \f$N\f$                 */
+  int t;                              /**< the logaritm of NPT with 
+                                           respect to the basis 2             */
+  unsigned int flags;                 /**< the planner flags                  */
+  nfft_plan plan_nfft;                /**< the internal NFFT plan             */  
 } nfsft_plan;
 
 /**
  * Creates a transform plan.
  *
- * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
- * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M The number of nodes \f$M \in \mathbb{N}\f$
+ * \arg plan a pointer to a \ref nfsft_plan structure
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
  *
  * \author Jens Keiner
  */
@@ -2121,9 +2295,9 @@ void nfsft_init(nfsft_plan *plan, int N, int M);
  * Creates a transform plan.
  *
  * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
- * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M The number of nodes \f$M \in \mathbb{N}\f$
- * \arg nfsft_flags The NFSFT flags 
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ * \arg nfsft_flags the NFSFT flags 
  *
  * \author Jens Keiner
  */
@@ -2134,10 +2308,10 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int
  * Creates a transform plan.
  *
  * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
- * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M The number of nodes \f$M \in \mathbb{N}\f$
- * \arg nfsft_flags The NFSFT flags 
- * \arg nfft_cutoff The NFFT cutoff parameter
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ * \arg nfsft_flags the NFSFT flags 
+ * \arg nfft_cutoff the NFFT cutoff parameter
  *
  * \author Jens Keiner
  */
@@ -2147,12 +2321,12 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
 /**
  * Performes precomputation up to the next power of two with respect to a given 
  * bandwidth \f$N \in \mathbb{N}_2\f$. The threshold parameter \f$\kappa \in 
- * \mathbb{R}^{+}\f$ determines the number of stabilization steps computed in the 
- * discrete polynomial transform and thereby its accuracy.
+ * \mathbb{R}^{+}\f$ determines the number of stabilization steps computed in 
+ * the discrete polynomial transform and thereby its accuracy.
  *
- * \arg N The bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg threshold The threshold \f$\kappa \in \mathbb{R}^{+}\f$
- * \arg nfsft_precomputation_flags The precomputation flags
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg threshold the threshold \f$\kappa \in \mathbb{R}^{+}\f$
+ * \arg nfsft_precomputation_flags the precomputation flags
  *
  * \author Jens Keiner
  */
@@ -2173,7 +2347,7 @@ void nfsft_forget();
  *   2\pi x_2(m)\right).  
  * \f]
  *
- * \arg plan The plan
+ * \arg plan the plan
  *
  * \author Jens Keiner
  */
@@ -2187,7 +2361,7 @@ void ndsft_trafo(nfsft_plan* plan);
  *   2\pi x_2(m)\right).  
  * \f]
  *
- * \arg plan The plan
+ * \arg plan the plan
  *
  * \author Jens Keiner
  */
@@ -2200,7 +2374,7 @@ void ndsft_adjoint(nfsft_plan* plan);
  *   2\pi x_2(m)\right).  
  * \f]
  *
- * \arg plan The plan
+ * \arg plan the plan
  *
  * \author Jens Keiner
  */
@@ -2214,7 +2388,7 @@ void nfsft_trafo(nfsft_plan* plan);
  *   2\pi x_2(m)\right).  
  * \f]
  *
- * \arg plan The plan
+ * \arg plan the plan
  *
  * \author Jens Keiner
  */
@@ -2223,7 +2397,7 @@ void nfsft_adjoint(nfsft_plan* plan);
 /**
  * Destroys a plan.
  *
- * \arg plan The plan to be destroyed
+ * \arg plan the plan to be destroyed
  *
  * \author Jens Keiner
  */

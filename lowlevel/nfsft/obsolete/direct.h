@@ -4,7 +4,7 @@
 #ifndef DIRECT_H
 #define DIRECT_H
 
-#include "api.h"
+#include "api_old.h"
 
 /** 
  * \defgroup nfsft_direct NFSFT: Direct algorithms 

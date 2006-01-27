@@ -1,4 +1,4 @@
-SUBDIRS = solver .
+SUBDIRS = solver fastsum .
 
 noinst_LTLIBRARIES = libhighlevel.la     
 

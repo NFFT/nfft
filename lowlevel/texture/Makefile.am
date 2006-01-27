@@ -4,4 +4,4 @@ AM_CFLAGS = -Wall -I$(top_srcdir)/include -I$(top_srcdir)/lowlevel/nfsft/obsolet
 noinst_LTLIBRARIES = libtexture.la
 
 ## The source files for the library
-libtexture_la_SOURCES = texture.c
+libtexture_la_SOURCES = texture.c texture.h

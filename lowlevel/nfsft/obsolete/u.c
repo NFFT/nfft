@@ -1,5 +1,5 @@
-#include "legendre.h"
-#include "api.h"
+#include "legendre_old.h"
+#include "api_old.h"
 #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>

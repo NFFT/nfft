@@ -12,10 +12,7 @@
 #include <math.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-
-#ifdef HAVE_MALLINFO
-#  include <malloc.h>
-#endif
+#include <malloc.h>
 //#include <time.h>
 
 
@@ -33,14 +30,12 @@ double second()
   return  foo  + (foo1/1000000.0);      /* milliseconds                      */
 }
 
-#ifdef HAVE_TOTAL_USED_MEMORY
 int total_used_memory()
 {
   struct mallinfo m;
   m=mallinfo();
   return m.hblkhd + m.uordblks;
 }
-#endif
 
 int int_2_pow(int a)
 {

@@ -4,55 +4,100 @@
  * \author Jens Keiner
  */
 
-/* Include library header. */
-#include "nfft3.h"
-
-/* Include private API header. */
-#include "api.h"
-
-/* Include utilities header. */
-#include "util.h"
-
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
-//#include "util.h"
-//#include "u.h"
-//#include "direct.h"
-#include "legendre.h"
-#include "dpt.h"
-//#include "flft.h"
-//#include "c2f.h"
-//#include <stdlib.h>
 #include <string.h>
 
-#define NFSFT_DEFAULT_NFFT_CUTOFF 12
-#define NFSFT_DEFAULT_THRESHOLD 1000
-#define NFSFT_BREAKTHROUGH 5
+/* Include NFFT3 library header. */
+#include "nfft3.h"
 
-/** Global structure for wisdom. */
+/* Include private FPT header. */
+#include "dpt.h"
+
+/* Include private associated Legendre functions header. */
+#include "legendre.h"
+
+/* Include private API header. */
+#include "api.h"
+
+/* Include NFFT3 utilities header. */
+#include "util.h"
+ 
+/** 
+ * The default NFFT cutoff parameter 
+ * 
+ * \author Jens Keiner
+ */
+#define NFSFT_DEFAULT_NFFT_CUTOFF 6
+
+/** 
+ * The default threshold for the FPT
+ * 
+ * \author Jens Keiner
+ */
+#define NFSFT_DEFAULT_THRESHOLD 1000
+
+/** 
+ * The break-even bandwidth \f$N \in \mathbb{N}_0\f$
+ * 
+ * \author Jens Keiner
+ */
+#define NFSFT_BREAK_EVEN 5
+
+/** 
+ * The global wisdom structure for precomputed data. \c wisdom.initialized 
+ * is set to \c false and \c wisdom.flags is set to \c 0U.
+ * 
+ * \author Jens Keiner
+ */
 static struct nfsft_wisdom wisdom = {false,0U};
 
+/**
+ * Converts coefficients \f$\left(b_k^n\right)_{k=0}^M\f$ with 
+ * \f$M \in \mathbb{N}_0\f$, \f$-M \le n \le M\f$ from a linear combination 
+ * of Chebyshev polynomials
+ * \f[
+ *   f(\cos\vartheta) = \sum_{k=0}^{2\lfloor\frac{M}{2}\rfloor} 
+ *   a_k (\sin\vartheta)^{n\;\mathrm{mod}\;2} T_k(\cos\vartheta)
+ * \f] 
+ * to coefficients \f$\left(c_k^n\right)_{k=0}^M\f$ matching the representation 
+ * by complex exponentials
+ * \f[
+ *   f(\cos\vartheta) = \sum_{k=-M}^{M} c_k \mathrm{e}^{\mathrm{i}k\vartheta}
+ * \f]
+ * for each order \f$n=-M,\ldots,M\f$.
+ * 
+ * \arg plan The \c nfsft_plan containing the coefficients 
+ *      \f$\left(b_k^n\right)_{k=0,\ldots,M;n=-M,\ldots,M}
+ * 
+ * \remark The transformation is computed in place.
+ * 
+ * \author Jens Keiner
+ */
 inline void c2e(nfsft_plan *plan)
 {
-  int k;             /**< Degree \f$k\f$                           */
-  int n;             /**< Order \f$k\f$                            */
-  complex last;      /**< Stores temporary values                  */
-  complex act;       /**< Stores temporary values                  */
-  complex *xp;       /**< Auxilliary pointer                       */
-  complex *xm;       /**< Auxilliary pointer                       */
-  int low, up;
-  int lowe, upe;
+  int k;             /**< The degree k                                        */
+  int n;             /**< The order k                                         */
+  complex last;      /**< Stores temporary values                             */
+  complex act;       /**< Stores temporary values                             */
+  complex *xp;       /**< Auxilliary pointer                                  */
+  complex *xm;       /**< Auxilliary pointer                                  */
+  int low;           /**< Lower loop bound                                    */
+  int up;            /**< Upper loop bound                                    */
+  int lowe;          /**< Lower loop bound for even terms                     */
+  int upe;           /**< Upper loop bound for even terms                     */
   
-  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  /* Determine lower and upper bounds for loop processing even terms. */
   lowe = -plan->N + (plan->N%2);
   upe = -lowe;
 
-  //for (n = -plan->N; n <= plan->N; n++)
+  /* Process even terms. */
   for (n = lowe; n <= upe; n += 2)
   {
+    /* Compute new coefficients \f$\left(c_k^n\right)_{k=-M,\ldots,M}\f$ from 
+     * old coefficients $\left(b_k^n\right)_{k=0,\ldots,M}$. */
     xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
     xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
     for(k = 1; k <= plan->N; k++)
@@ -62,14 +107,17 @@ inline void c2e(nfsft_plan *plan)
     }
   }
   
-  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  /* Determine lower and upper bounds for loop processing odd terms. */
   low = -plan->N + (1-plan->N%2);
   up = -low;
   
-  /* Process odd terms. */
-  /* Incorporate sine term. */
+  /* Process odd terms incorporating the additional sine term 
+   * \f$\sin \vartheta\f$. */
   for (n = low; n <= up; n += 2)
   {
+    /* Compute new coefficients \f$\left(c_k^n\right)_{k=-M,\ldots,M}\f$ from 
+     * old coefficients $\left(b_k^n\right)_{k=0,\ldots,M-1}$ incorporating
+     * the additional term \f$\sin \vartheta\f$. */
     plan->f_hat[NFSFT_INDEX(0,n,plan)] *= 2.0;
     xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
     xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
@@ -87,24 +135,38 @@ inline void c2e(nfsft_plan *plan)
   }
 }
 
+/**
+ * Transposed version of the function \ref c2e
+ *  
+ * \arg plan The \c nfsft_plan containing the coefficients 
+ *      \f$\left(c_k^n\right)_{k=-M,\ldots,M;n=-M,\ldots,M}
+ * 
+ * \remark The transformation is computed in place.
+ * 
+ * \author Jens Keiner
+ */
 inline void c2e_transposed(nfsft_plan *plan)
 {
-  int k;             /**< Degree \f$k\f$                           */
-  int n;             /**< Order \f$k\f$                            */
-  complex last;      /**< Stores temporary values                  */
-  complex act;       /**< Stores temporary values                  */
-  complex *xp;       /**< Auxilliary pointer                       */
-  complex *xm;       /**< Auxilliary pointer                       */
-  int low, up;
-  int lowe, upe;
+  int k;             /**< The degree k                                        */
+  int n;             /**< The order k                                         */
+  complex last;      /**< Stores temporary values                             */
+  complex act;       /**< Stores temporary values                             */
+  complex *xp;       /**< Auxilliary pointer                                  */
+  complex *xm;       /**< Auxilliary pointer                                  */
+  int low;           /**< Lower loop bound                                    */
+  int up;            /**< Upper loop bound                                    */
+  int lowe;          /**< Lower loop bound for even terms                     */
+  int upe;           /**< Upper loop bound for even terms                     */
   
-  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  /* Determine lower and upper bounds for loop processing even terms. */
   lowe = -plan->N + (plan->N%2);
   upe = -lowe;
 
-  //for (n = -plan->N; n <= plan->N; n++)
+  /* Process even terms. */
   for (n = lowe; n <= upe; n += 2)
   {
+    /* Compute new coefficients \f$\left(b_k^n\right)_{k=0,\ldots,M}\f$ from 
+     * old coefficients $\left(c_k^n\right)_{k=-M,\ldots,M}$. */
     xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
     xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
     for(k = 1; k <= plan->N; k++)
@@ -114,14 +176,15 @@ inline void c2e_transposed(nfsft_plan *plan)
     }
   }
   
-  /* Determine lower and upper bounds for loops processing even and odd terms. */
+  /* Determine lower and upper bounds for loop processing odd terms. */
   low = -plan->N + (1-plan->N%2);
   up = -low;
   
   /* Process odd terms. */
-  /* Incorporate sine term. */
   for (n = low; n <= up; n += 2)
   {
+    /* Compute new coefficients \f$\left(b_k^n\right)_{k=0,\ldots,M-1}\f$ from 
+     * old coefficients $\left(c_k^n\right)_{k=0,\ldots,M-1}$. */
     xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
     xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
     for(k = 1; k <= plan->N; k++)
@@ -129,9 +192,12 @@ inline void c2e_transposed(nfsft_plan *plan)
       *xp++ -= *xm--;
     }
 
-    plan->f_hat[NFSFT_INDEX(0,n,plan)] = -0.25*I*plan->f_hat[NFSFT_INDEX(1,n,plan)];
+    plan->f_hat[NFSFT_INDEX(0,n,plan)] = 
+      -0.25*I*plan->f_hat[NFSFT_INDEX(1,n,plan)];
     last = plan->f_hat[NFSFT_INDEX(1,n,plan)];
-    plan->f_hat[NFSFT_INDEX(1,n,plan)] = -0.25*I*plan->f_hat[NFSFT_INDEX(2,n,plan)];
+    plan->f_hat[NFSFT_INDEX(1,n,plan)] = 
+      -0.25*I*plan->f_hat[NFSFT_INDEX(2,n,plan)];
+
     xp = &(plan->f_hat[NFSFT_INDEX(2,n,plan)]);
     for (k = 2; k < plan->N; k++)
     {
@@ -147,8 +213,9 @@ inline void c2e_transposed(nfsft_plan *plan)
 
 void nfsft_init(nfsft_plan *plan, int N, int M)
 {
-  /* Call nfsft_init_advanced with flags to allocate memory. */
-  nfsft_init_advanced(plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT);
+  /* Call nfsft_init_advanced with default flags. */
+  nfsft_init_advanced(plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
+    NFSFT_MALLOC_F_HAT);
 } 
   
 void nfsft_init_advanced(nfsft_plan* plan, int N, int M, 
@@ -161,21 +228,8 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags, 
                      int nfft_cutoff)
 {
-  #ifdef NFSFT_OPTIMIZED
-    /** NFFT size */
-    int nfft_size;
-    /** NFFT size */
-    int nfct_size;
-    /** FFTW size */
-    int fftw_size;
-    /** FFTW size */
-    int fctw_size;
-  #else
-    /** NFFT size */
-    int *nfft_size;    
-    /** FFTW size */
-    int *fftw_size;
-  #endif  
+  int *nfft_size; /*< NFFT size                                                */
+  int *fftw_size; /*< FFTW size                                                */
 
   /* Save the flags in the plan. */
   plan->flags = flags;
@@ -189,17 +243,9 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   plan->NPT = next_power_of_2(plan->N);
   plan->t = (int)(log((double)plan->NPT)/log(2.0));
   
-  #ifdef NFSFT_OPTIMIZED
-    plan->maxMN = max(plan->M_total, plan->N+1);
-  #endif
-  
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
-   * length is (2N+1)(2NPT) */
-  #ifdef NFSFT_OPTIMIZED
-    plan->N_total = (2*plan->N+1)*(plan->maxMN);
-  #else
-    plan->N_total = (2*plan->N+2)*(2*plan->N+2);
-  #endif
+   * length is (2N+2)(2N+2) */
+  plan->N_total = (2*plan->NPT+2)*(2*plan->N+2);
   
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
@@ -225,73 +271,45 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
   else
   {
-    #ifdef NFSFT_OPTIMIZED
-      /** TODO Check NFFT and FFTW sizes. */
-      nfft_size = 2*plan->N+2;
-      fftw_size = 4*plan->N;
-      nfct_size = plan->N+2;
-      fctw_size = 2*plan->N;
-  
-      /** \todo Check NFFT flags. */
-      nfft_init_guru(&plan->plan_nfft, 1, &nfft_size, plan->M_total, &fftw_size, 
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
-                         FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-      nfct_init_guru(&plan->plan_nfct, 2, &nfct_size, plan->M_total, &fctw_size, 
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
-                         FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-      nfst_init_guru(&plan->plan_nfst, 2, &nfct_size, plan->M_total, &fctw_size, 
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE | 
-                         FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-      /* Assign angle array. */
-      plan->plan_nfft.x = plan->phi;
-      /* Assign angle array. */
-      plan->plan_nfct.x = plan->theta;
-      /* Assign angle array. */
-      plan->plan_nfst.x = plan->theta;
-      /* Assign result array. */
-      plan->plan_nfft.f = plan->f;
-      /* Assign result array. Will be updated later anyway. */
-      plan->plan_nfct.f = plan->f;
-      /* Assign result array. Will be updated later anyway.  */
-      plan->plan_nfst.f = plan->f;
-      /* Precompute PSI, if necessary. */
-    #else
-      nfft_size = (int*) malloc(2*sizeof(int));
-      fftw_size = (int*) malloc(2*sizeof(int));
+      nfft_size = (int*)malloc(2*sizeof(int));
+      fftw_size = (int*)malloc(2*sizeof(int));
     
-      /** TODO Check NFFT and FFTW sizes. */
+      /** \todo Replace 4*plan->N by next_power_of_2(2*this->n). */
       nfft_size[0] = 2*plan->N+2;
       nfft_size[1] = 2*plan->N+2;
       fftw_size[0] = 4*plan->N;
       fftw_size[1] = 4*plan->N;
   
-      /** \todo Check NFFT flags. */
+      /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size, 
                          nfft_cutoff, FFT_OUT_OF_PLACE | 
                          FFTW_INIT, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+      
       /* Assign angle array. */
       plan->plan_nfft.x = plan->x;
       /* Assign result array. */
       plan->plan_nfft.f = plan->f;
       /* Assign Fourier coefficients array. */
       plan->plan_nfft.f_hat = plan->f_hat;
+      
+      /** \todo Add precomputation if neccessary and possible. */
+      
       /* Precompute. */     
       //if (plan->plan_nfft.nfft_flags & PRE_PSI) 
       //{  
-        // TODO Add precomputation if neccessary and possible.
         //nfft_precompute_psi(&plan->plan_nfft); 
       //} 
+      
+      /* Free auxilliary arrays. */
       free(nfft_size);
       free(fftw_size);
-    #endif
   }
 }
 
-void nfsft_precompute(int N, double kappa, 
-                      unsigned int flags)
+void nfsft_precompute(int N, double kappa, unsigned int flags)
 { 
-  int n;
-  int k;
+  int k; /*< The degree k                                                     */
+  int n; /*< The order n                                                      */
   
   /*  Check if already initialized. */
   if (wisdom.initialized == true)
@@ -302,15 +320,12 @@ void nfsft_precompute(int N, double kappa,
   /* Save the precomputation flags. */
   wisdom.flags = flags;
 
-  /* Compute and save /f$N_{\text{max}} = 2^{\ceil{\log_2 N}}/f$ as next greater 
-   * power of two with respect to /f$N/f$. */
+  /* Compute and save N_max = 2^{\ceil{log_2 N}} as next greater 
+   * power of two with respect to N. */
   wisdom.N_MAX = next_power_of_2(N);
-  /* Save t. */
+  /* Save the corresponding exponent t=log_2 N_max. */
   wisdom.T_MAX = (int) (log((double)wisdom.N_MAX)/log(2.0));
   
-  //fprintf(stdout,"\nnfsft_precompute: N = %d, N_MAX = %d, T_MAX = %d\n",N,wisdom.
-  //  N_MAX,wisdom.T_MAX);
-
   /* Check, if precomputation for direct algorithms needs to be performed. */    
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
@@ -320,69 +335,62 @@ void nfsft_precompute(int N, double kappa,
   }
   else
   {
-    /*fprintf(stdout,"Precomputation for ndsft_trafo done.\n");*/
-    /* Precompute three-term recurrence coefficients. */
+    /* Allocate memory for three-term recursion coefficients. */
     wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));    
     wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));    
     wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));
-    /** \todo Change to functions which compute only for fixed order n. */   
-    //fflush(stdout);    
+    /** \todo Change to functions which compute only for fixed order n. */
+    /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and 
+     * gamma_k^n. */   
     alpha_al_all(wisdom.alpha,wisdom.N_MAX);
     beta_al_all(wisdom.beta,wisdom.N_MAX);
     gamma_al_all(wisdom.gamma,wisdom.N_MAX);
   }
   
   /* Check, if precomputation for direct algorithms needs to be performed. */ 
-  /*fprintf(stdout,"wisdom.flags & NFSFT_NO_FAST_ALGORITHM = %d\n",
-    wisdom.flags & NFSFT_NO_FAST_ALGORITHM);   
-  fprintf(stdout,"wisdom.N_MAX = %d\n",wisdom.N_MAX);
-  fprintf(stdout,"NFSFT_BREAKTHROUGH = %d\n",NFSFT_BREAKTHROUGH);*/
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
-  else if (wisdom.N_MAX >= NFSFT_BREAKTHROUGH)
+  else if (wisdom.N_MAX >= NFSFT_BREAK_EVEN)
   { 
-    /* Precompute data for DPT. */
+    /* Precompute data for FPT. */
     
     /* Check, if recursion coefficients have already been calculated. */
     if (wisdom.alpha != NULL)
     {
-      /* Use the recursion coefficients to precompute DPT data using persistent 
+      /* Use the recursion coefficients to precompute FPT data using persistent 
        * arrays. */
       wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,DPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
-        //fprintf(stdout,"DPT precomputation: n = %d\n",n);
-        /*for (k = 0; k < wisdom.N_MAX+2; k++)
-        {
-          /*fprintf(stdout,"alpha[%d] = %le, beta[%d] = %le, gamma[%d] = %le\n",
-            k,
-            wisdom.alpha[ROW(n)+k],
-            k,
-            wisdom.beta[ROW(n)+k],
-            k,
-            wisdom.gamma[ROW(n)+k]);
-        }*/
+        /* Precompute data for FPT transformation for order n. */
         dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
           &wisdom.gamma[ROW(n)],n,kappa);
       } 
     }
     else
     {
+    /* Allocate memory for three-term recursion coefficients. */
       wisdom.alpha = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
+      
       wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
+        /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and 
+         * gamma_k^n. */   
         alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
         beta_al_row(wisdom.beta,wisdom.N_MAX,n);
         gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
+
+        /* Precompute data for FPT transformation for order n. */
         dpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
       } 
+      /* Free auxilliary arrays. */
       free(wisdom.alpha);
       free(wisdom.beta);
       free(wisdom.gamma);
@@ -398,6 +406,7 @@ void nfsft_precompute(int N, double kappa,
  
 void nfsft_forget()
 {
+  /* Check, if precomputation for direct algorithms has been performed. */ 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
   }
@@ -412,11 +421,13 @@ void nfsft_forget()
     wisdom.gamma = NULL;    
   }
   
+  /* Check, if precomputation for fast algorithms has been performed. */ 
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
-  else if (wisdom.N_MAX >= NFSFT_BREAKTHROUGH)
+  else if (wisdom.N_MAX >= NFSFT_BREAK_EVEN)
   {
+    /* Free precomputed data for FPT transformation. */
     dpt_finalize(wisdom.set); 
   }    
 
@@ -426,21 +437,22 @@ void nfsft_forget()
                      
 void nfsft_finalize(nfsft_plan *plan)
 {
+  /* Finalise the nfft plan. */
   nfft_finalize(&plan->plan_nfft);
   
-  /* Allocate memory for spherical Fourier coefficients, if neccesary. */
+  /* De-allocate memory for spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
     free(plan->f_hat);
   }
   
-  /* Allocate memory for samples, if neccesary. */
+  /* De-allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
     free(plan->f);
   }
   
-  /* Allocate memory for nodes, if neccesary. */
+  /* De-allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
     free(plan->x);
@@ -449,49 +461,34 @@ void nfsft_finalize(nfsft_plan *plan)
 
 void ndsft_trafo(nfsft_plan *plan)
 {
-  /** Node index */
-  int m;
-  /** Legendre index k */
-  int k;
-  /** Legendre index n */
-  int n;
-  /** n_abs = |n| */
-  int n_abs;
-  int j;
+  int m;         /*< The node index                                           */
+  int k;         /*< The degree k                                             */
+  int n;         /*< The order n                                              */
+  int n_abs;     /*< The absolute value of the order n, i.e. n_abs = |n|      */
+  double *alpha; /*< Pointer to current three-term recurrence coefficient 
+                     alpha_k^n for associated Legendre functions P_k^n        */
+  double *gamma; /*< Pointer to current three-term recurrence coefficient 
+                     beta_k^n for associated Legendre functions P_k^n         */ 
+  int index;     /*< Index used in Clenshaw algorithm.                        */
+  complex *a;    /*< Pointer to auxilliary array for Clenshaw algorithm.      */
+  complex it1;   /*< Auxilliary variable for Clenshaw algorithm               */
+  complex it2;   /*< Auxilliary variable for Clenshaw algorithm               */
+  complex temp;  /*< Auxilliary variable for Clenshaw algorithm               */
+  complex f_m;   /*< The final function value f_m = f(x_m) for a single node. */
+  double stheta; /*< Current angle theta for Clenshaw algorithm               */
+  double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
   
-  /**
-   * Pointer to current three-term recurrence coefficient \f$\alpha_k^n\f$
-   * for associated Legendre functions \f$P_k^n\f$. 
-   */
-  double *alpha;
-  /**
-   * Pointer to current three-term recurrence coefficient \f$\beta_k^n\f$
-   * for associated Legendre functions \f$P_k^n\f$. 
-   */
-  double *gamma;
-  
-  /** Index used in Clenshaw algorithm. */
-  int index;
-  /** Pointer to auxilliary array for Clenshaw algorithm. */
-  complex *a;
-  /** Pointer to auxilliary array for Clenshaw algorithm. */
-  //complex *temp;
-  complex it1;
-  complex it2;
-  complex temp;
-  
-  /** The final result for a single node. */
-  complex f_m;
-  
-  double stheta;
-  double sphi;
-  
+  /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
+   * multiply spherical Fourier coefficients with corresponding normalization 
+   * weight. */
   if (plan->flags & NFSFT_NORMALIZED)
   {
+    /* Traverse Fourier coefficients array. */
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
       {
+        /* Multiply with normalization weight. */
         plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
           sqrt((2*k+1)/(4.0*PI));
       }
@@ -501,6 +498,8 @@ void ndsft_trafo(nfsft_plan *plan)
   /* Distinguish by bandwidth M. */
   if (plan->N == 0)
   {
+    /* N = 0 */
+      
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
@@ -509,33 +508,36 @@ void ndsft_trafo(nfsft_plan *plan)
   }
   else
   {   
+    /* N > 0 */
+    
     /* Evaluate 
-     * \[
-     *   \sum_{k=0}^N \sum_{n=-k}^k a_k^n P_k^{|n|}(\cos\theta_m) e^{i n \phi_m} 
-     *     = \sum_{n=-N}^N \sum_{k=|n|}^N a_k^n P_k^{|n|}(\cos\theta_m) 
-     *     e^{i n \phi_m}. 
-     * \] */
+     *     \sum_{k=0}^N \sum_{n=-k}^k a_k^n P_k^{|n|}(cos theta_m) e^{i n phi_m} 
+     *   = \sum_{n=-N}^N \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m) 
+     *     e^{i n phi_m}. 
+     */
     for (m = 0; m < plan->M_total; m++)
     {
+      /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */ 
       stheta = cos(2.0*PI*plan->x[2*m+1]);
+      /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
       sphi = 2.0*PI*plan->x[2*m];
       
       /* Initialize result for current node. */
       f_m = 0.0;
 
       /* For n = -N,...,N, evaluate 
-       * \[
-       *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(\cos\vartheta_m)
-       * using Clenshaw's algorithm. */
+       *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
+       * using Clenshaw's algorithm. 
+       */
       for (n = -plan->N; n <= plan->N; n++)
       {
-        /* Get Fourier coefficients vector. */
+        /* Get pointer to Fourier coefficients vector for current order n. */
         a = &(plan->f_hat[NFSFT_INDEX(0,n,plan)]);
         
         /* Take absolute value of n. */
         n_abs = abs(n);
         
-        /* Get three-term recurrence coefficients vectors. */
+        /* Get pointers to three-term recurrence coefficients arrays. */
         alpha = &(wisdom.alpha[ROW(n_abs)]);
         gamma = &(wisdom.gamma[ROW(n_abs)]);
          
@@ -552,17 +554,20 @@ void ndsft_trafo(nfsft_plan *plan)
         /* Compute final step if neccesary. */
         if (n_abs < plan->N)
         {  
-          //temp[0+n_abs] += temp[1+n_abs] * wisdom.alpha[ROWK(n_abs)+1] * stheta;
           it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
         }
 
-        /* Write final result b_n of multiplication by normalization constant to 
-         * array b  = (b_{-M},...,b_M). */
+        /* Compute final result by multiplying the fixed part 
+         *   gamma_|n| (1-cos^2(theta))^{|n|/2}
+         * for order n and the exponential part
+         *   e^{i n phi}
+         * and add the result to f_m.
+         */  
         f_m += it2 * wisdom.gamma[ROW(n_abs)] *
           pow(1- stheta * stheta, 0.5*n_abs) * cexp(I*n*sphi);
       }
             
-      /* Write result to vector f. */
+      /* Write result f_m for current node to array f. */
       plan->f[m] = f_m;                
     }
   }  
@@ -570,50 +575,30 @@ void ndsft_trafo(nfsft_plan *plan)
 
 void ndsft_adjoint(nfsft_plan *plan)
 { 
-  /** Node index */
-  int m;
-   /** Legendre index k */
-  int k;
-  /** Legendre index n */
-  int n;
-  /** nleg = |n| */
-  int n_abs;
-  
-  /**
-   * Pointer to current three-term recurrence coefficient \f$\alpha_k^n\f$
-   * for associated Legendre functions \f$P_k^n\f$. 
-   */
-  double *alpha;
-  /**
-   * Pointer to current three-term recurrence coefficient \f$\beta_k^n\f$
-   * for associated Legendre functions \f$P_k^n\f$. 
-   */
-  double *gamma;
-  
-  /** Index used in Clenshaw algorithm. */
-  int index;
-  /** Pointer to auxilliary array for Clenshaw algorithm. */
-  complex *a;
-  /** Pointer to auxilliary array for Clenshaw algorithm. */
-  complex it1;
-  complex it2;
-  complex temp;
-  
-  double stheta;
-  double sphi;
-  
-  /*for (n = -plan->N; n <= plan->N; n++)
-  {
-    for (k = abs(n); k <= plan->N; k++)
-    {
-      plan->f_hat[NFSFT_INDEX(k,n,plan)] = 0.0;
-    }  
-  }*/
+  int m;         /*< The node index                                           */
+  int k;         /*< The degree k                                             */
+  int n;         /*< The order n                                              */
+  int n_abs;     /*< The absolute value of the order n, i.e. n_abs = |n|      */
+  double *alpha; /*< Pointer to current three-term recurrence coefficient 
+                     alpha_k^n for associated Legendre functions P_k^n        */
+  double *gamma; /*< Pointer to current three-term recurrence coefficient 
+                     beta_k^n for associated Legendre functions P_k^n         */  
+  int index;     /*< Index used in Clenshaw algorithm.                        */
+  complex *a;    /*< Pointer to auxilliary array for Clenshaw algorithm.      */
+  complex it1;   /*< Auxilliary variable for Clenshaw algorithm               */
+  complex it2;   /*< Auxilliary variable for Clenshaw algorithm               */
+  complex temp;  /*< Auxilliary variable for Clenshaw algorithm               */
+  double stheta; /*< Current angle theta for Clenshaw algorithm               */
+  double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
+
+  /* Initialise spherical Fourier coefficients array with zeros. */  
   memset(plan->f_hat,0U,plan->N_total*sizeof(complex));
   
   /* Distinguish by bandwidth N. */
   if (plan->N == 0)
   {
+    /* N == 0 */
+    
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
@@ -622,41 +607,40 @@ void ndsft_adjoint(nfsft_plan *plan)
   }
   else
   {   
+    /* N > 0 */
+    
+    /* Traverse all nodes. */    
     for (m = 0; m < plan->M_total; m++)
     {
+      /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */ 
       stheta = cos(2.0*PI*plan->x[2*m+1]);
+      /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
       sphi = 2.0*PI*plan->x[2*m];
-      
+
+      /* Traverse all orders n. */      
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Take absolute value of n. */
         n_abs = abs(n);
 
-        /* Get three-term recurrence coefficients vectors. */
+        /* Get pointers to three-term recurrence coefficients arrays. */
         alpha = &(wisdom.alpha[ROW(n_abs)]);
         gamma = &(wisdom.gamma[ROW(n_abs)]);
+
+        /* Transposed Clenshaw algorithm */
         
+        /* Initial step */        
         it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
           pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-I*n*sphi);
         plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1; 
-        /*fprintf(stdout,"\nndsft_adjoint: cos(theta) = %le\n",stheta);
-        fprintf(stdout,"\nndsft_adjoint: phi = %le\n",sphi);
-        fprintf(stdout,"\nndsft_adjoint: gamma = %le\n",wisdom.gamma[ROW(n_abs)]);
-        fprintf(stdout,"\nndsft_adjoint: f[%d] = %le + I*%le\n",m,plan->f[m]);
-        fprintf(stdout,"\nndsft_adjoint: (1-%le^2)^0.5*%d = %le\n",stheta,n_abs,
-          pow(1 - stheta * stheta, 0.5*n_abs));
-        fprintf(stdout,"\nndsft_adjoint: e^-I*%d*%le = %le + I*%le\n",n,sphi,
-          creal(cexp(-I*n*sphi)),
-          cimag(cexp(-I*n*sphi)));*/
                 
-        /* Compute final step if neccesary. */
         if (n_abs < plan->N)
         {  
           it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
           plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2; 
         } 
 
-        /* Transposed Clenshaw algorithm */        
+        /* Loop for transposed Clenshaw algorithm */        
         for (k = n_abs+2; k <= plan->N; k++)
         {
           temp = it2;
@@ -668,12 +652,17 @@ void ndsft_adjoint(nfsft_plan *plan)
     }
   }  
   
+  /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
+   * multiply spherical Fourier coefficients with corresponding normalization 
+   * weight. */
   if (plan->flags & NFSFT_NORMALIZED)
   {
+    /* Traverse Fourier coefficients array. */
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
       {
+        /* Multiply with normalization weight. */
         plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
           sqrt((2*k+1)/(4.0*PI));
       }
@@ -683,41 +672,55 @@ void ndsft_adjoint(nfsft_plan *plan)
 
 void nfsft_trafo(nfsft_plan *plan)
 {
-  /** Counter for loops */
-  int k,n;
+  int k; /*< The degree k                                                     */
+  int n; /*< The order n                                                      */
   
+  /* Check, if precomputation was done and that the bandwidth N is not too 
+   * big. 
+   */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
     return;
   }  
   
-  if (plan->N < NFSFT_BREAKTHROUGH)
+  /* Check, if slow transformation should be used due to small bandwidth. */
+  if (plan->N < NFSFT_BREAK_EVEN)
   {
+    /* Use NDSFT. */
     ndsft_trafo(plan);
   }
+  /* Check for correct value of the bandwidth N. */
   else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
     plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
   {
+    /* Propagate pointer values to the internal NFFT plan to assure consistency. 
+     * Pointers may have been modified externally. 
+     */
     plan->plan_nfft.x = plan->x;
     plan->plan_nfft.f = plan->f;
     plan->plan_nfft.f_hat = plan->f_hat;
     
-    /** Check for normalization. */
+    /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
+     * multiply spherical Fourier coefficients with corresponding normalization 
+     * weight. */
     if (plan->flags & NFSFT_NORMALIZED)
     {
+      /* Traverse Fourier coefficients array. */
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)
         {
+          /* Multiply with normalization weight. */
           plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
             sqrt((2*k+1)/(4.0*PI));
         }
       }
     }
-    
+  
+    /* Check, which polynomial transform algorithm should be used. */  
     if (plan->flags & NFSFT_USE_DPT)
     {
-      /* Compute DPT. */
+      /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++) 
       {
         dpt_trafo(wisdom.set,abs(n),
@@ -728,7 +731,7 @@ void nfsft_trafo(nfsft_plan *plan)
     }
     else
     {
-      /* Compute FPT. */
+      /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++) 
       {
         fpt_trafo(wisdom.set,abs(n),
@@ -741,13 +744,17 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan); 
     
-    /* Execute NFFT. */
+    /* Check, which nonequispaced discrete Fourier transform algorithm should 
+     * be used. 
+     */
     if (plan->flags & NFSFT_USE_NDFT)
     {
+      /* Use NDFT. */
       ndft_trafo(&plan->plan_nfft);
     }
     else
     {
+      /* Use NFFT. */
       nfft_trafo(&plan->plan_nfft);
     }    
   } 
@@ -755,41 +762,55 @@ void nfsft_trafo(nfsft_plan *plan)
 
 void nfsft_adjoint(nfsft_plan *plan)
 {
-    /** Counter for loops */
-  int k,n;
+  int k; /*< The degree k                                                     */
+  int n; /*< The order n                                                      */
   
+  /* Check, if precomputation was done and that the bandwidth N is not too 
+   * big. 
+   */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
     return;
   }  
   
-  if (plan->N < NFSFT_BREAKTHROUGH)
+  /* Check, if slow transformation should be used due to small bandwidth. */
+  if (plan->N < NFSFT_BREAK_EVEN)
   {
+    /* Use adjoint NDSFT. */
     ndsft_adjoint(plan);
   }
+  /* Check for correct value of the bandwidth N. */
   else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
     plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
   {
+    /* Propagate pointer values to the internal NFFT plan to assure consistency. 
+     * Pointers may have been modified externally. 
+     */
     plan->plan_nfft.x = plan->x;
     plan->plan_nfft.f = plan->f;
     plan->plan_nfft.f_hat = plan->f_hat;
     
-    /* Execute NFFT. */
+    /* Check, which adjoint nonequispaced discrete Fourier transform algorithm 
+     * should be used. 
+     */
     if (plan->flags & NFSFT_USE_NDFT)
     {
+      /* Use adjoint NDFT. */
       ndft_adjoint(&plan->plan_nfft);
     }
     else
     {
+      /* Use adjoint NFFT. */
       nfft_adjoint(&plan->plan_nfft);
     }    
 
-    /* Convert Chebyshev coefficients to Fourier coefficients. */
+    /* Convert Fourier coefficients to Chebyshev coefficients. */
     c2e_transposed(plan); 
     
+    /* Check, which transposed polynomial transform algorithm should be used. */  
     if (plan->flags & NFSFT_USE_DPT)
     {
-      /* Compute DPT. */
+      /* Use transposed DPT. */
       for (n = -plan->N; n <= plan->N; n++) 
       {
         dpt_transposed(wisdom.set,abs(n),
@@ -800,7 +821,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
-      /* Compute FPT. */
+      /* Use transposed FPT. */
       for (n = -plan->N; n <= plan->N; n++) 
       {
         fpt_transposed(wisdom.set,abs(n),
@@ -810,29 +831,30 @@ void nfsft_adjoint(nfsft_plan *plan)
       }
     }    
 
-    /** Check for normalization. */
+    /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
+     * multiply spherical Fourier coefficients with corresponding normalization 
+     * weight. */
     if (plan->flags & NFSFT_NORMALIZED)
     {
+      /* Traverse Fourier coefficients array. */
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)
         {
+          /* Multiply with normalization weight. */
           plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
             sqrt((2*k+1)/(4.0*PI));
         }
       }
     }
     
+    /* Set unused coefficients to zero. */
     if (plan->flags & NFSFT_ZERO_F_HAT)
     {
       for (n = -plan->N; n <= plan->N+1; n++)
       {
         memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,(plan->N+1+abs(n))*
           sizeof(complex));
-        /*for (k = -plan->N-1; k < abs(n); k++)
-        {
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] = 0.0;
-        }*/
       }
     }  
   } 

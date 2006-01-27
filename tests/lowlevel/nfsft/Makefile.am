@@ -1,12 +1,12 @@
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = -L$(top_srcdir)
+AM_LDFLAGS = -L$(top_builddir)/.libs
 
-TESTS = nfsft_test
+TESTS = test
 
 ## The program name
-noinst_PROGRAMS = nfsft_test
+noinst_PROGRAMS = test
 
 ## The source files.
-nfsft_test_SOURCES = nfsft_test.c
+test_SOURCES = test.c
 
-nfsft_test_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 -lcunit
+test_LDADD = -lnfft3 -lm -lfftw3 -lcunit

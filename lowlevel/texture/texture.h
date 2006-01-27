@@ -2,7 +2,7 @@
 #define TRANSFORM_H
 
 #include<nfft3.h>
-#include<nfsft.h>
+#include<nfsft_old.h>
 
 /**
  * @addtogroup texture_private

@@ -324,46 +324,36 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
     set->dpt[m].steps = (dpt_step**)NULL;
   }
  
+  /* Create arrays with Chebyshev nodes. */  
+  
+  /* Initialize array with Chebyshev coefficients for the polynomial x. This 
+   * would be trivially an array containing a 1 as second entry with all other 
+   * coefficients set to zero. In order to compensate for the multiplicative 
+   * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
+  
+  /* Allocate memory for array of pointers to node arrays. */
+  set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
+  /* For each polynomial length starting with 4, compute the Chebyshev nodes 
+   * using a DCT-III. */
+  plength = 4;
+  for (tau = 1; tau < t; tau++)
+  {
+    /* Allocate memory for current array. */
+    set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
+    for (k = 0; k < plength; k++)
+    {
+      set->xcvecs[tau-1][k] = cos(((k+0.5)*PI)/plength);
+    }
+    plength = plength << 1;
+  }
+ 
+ 
   /* Check if fast transform is activated. */
   if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
   }
   else
-  {
-    /* Create arrays with Chebyshev nodes. */  
-    
-    /* Initialize array with Chebyshev coefficients for the polynomial x. This 
-     * would be trivially an array containing a 1 as second entry with all other 
-     * coefficients set to zero. In order to compensate for the multiplicative 
-     * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
-    //set->xc = (double *) calloc(1<<set->t,sizeof(double));
-    //set->xc[1] = 0.5;
-    
-    /* Allocate memory for array of pointers to node arrays. */
-    set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
-    /* For each polynomial length starting with 4, compute the Chebyshev nodes 
-     * using a DCT-III. */
-    plength = 4;
-    for (tau = 1; tau < t; tau++)
-    {
-      /* Allocate memory for current array. */
-      set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
-      for (k = 0; k < plength; k++)
-      {
-        set->xcvecs[tau-1][k] = cos(((k+0.5)*PI)/plength);
-      }
-      /* Create plan for DCT-III. */
-      //plan = fftw_plan_r2r_1d(plength, set->xc, set->xcvecs[tau-1], FFTW_REDFT01, 
-      //                        FFTW_PRESERVE_INPUT);
-      /* Execute it. */
-      //fftw_execute(plan);
-      /* Destroy the plan. */
-      //fftw_destroy_plan(plan);
-      //plan = NULL;
-      /* Increase length to next power of two. */
-      plength = plength << 1;
-    }
-    
+  {   
     /** Allocate memory for auxilliary arrays. */
     set->work = (complex*) malloc(2*set->N*sizeof(complex));
     set->result = (complex*) malloc(2*set->N*sizeof(complex));
@@ -406,7 +396,6 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   }
   else
   { 
-    set->xc_slow = (double*) malloc((set->N+1)*sizeof(double));
   }         
  
   /* Return the newly created DPT set. */ 
@@ -751,10 +740,12 @@ void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   }
   
   /* Fill array with Chebyshev nodes. */
-  for (k = 0; k <= k_end; k++)
+  /*for (k = 0; k <= k_end; k++)
   {
     set->xc_slow[k] = cos((PI*(k+0.5))/(k_end+1));
-  }
+  }*/
+  
+  
   
 }
 
@@ -1264,23 +1255,23 @@ void dpt_finalize(dpt_set set)
   free(set->dpt);
   set->dpt = NULL;
   
+  /* Delete arrays of Chebyshev nodes. */
+  free(set->xc);
+  set->xc = NULL;
+  for (tau = 1; tau < set->t; tau++)
+  {
+    free(set->xcvecs[tau-1]);
+    set->xcvecs[tau-1] = NULL;
+  }
+  free(set->xcvecs);
+  set->xcvecs = NULL;
+  
   /* Check if fast transform is activated. */
   if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
   }
   else
-  { 
-    /* Delete arrays of Chebyshev nodes. */
-    free(set->xc);
-    set->xc = NULL;
-    for (tau = 1; tau < set->t; tau++)
-    {
-      free(set->xcvecs[tau-1]);
-      set->xcvecs[tau-1] = NULL;
-    }
-    free(set->xcvecs);
-    set->xcvecs = NULL;
-    
+  {    
     /* Free auxilliary arrays. */
     free(set->work);  
     free(set->result);
@@ -1313,7 +1304,6 @@ void dpt_finalize(dpt_set set)
   }
   else
   { 
-    free(set->xc_slow);
   }         
       
   /* Free DPT set structure. */

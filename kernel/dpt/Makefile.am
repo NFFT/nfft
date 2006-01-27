@@ -1,5 +1,7 @@
-noinst_LTLIBRARIES = libdpt.la     
+AM_CFLAGS = -I$(top_srcdir)/include
+
+noinst_LTLIBRARIES = libdpt.la
 
 libdpt_la_SOURCES = dpt.c
 
-libdpt_la_LIBADD = 
+

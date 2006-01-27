@@ -5,7 +5,7 @@ noinst_LTLIBRARIES = libtexture_util.la
 noinst_PROGRAMS = compare
 
 ## The source files for the library
-libtexture_util_la_SOURCES = texture_util.c
+libtexture_util_la_SOURCES = texture_util.c texture_util.h
 compare_SOURCES = compare.c
 
 ## Additional libraries for the library

@@ -2,7 +2,7 @@
 #define FLFT_H
 
 /* Internal API */
-#include "api.h"
+#include "api_old.h"
 
 /**
  * \brief Fast Legendre function transform

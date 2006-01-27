@@ -6,7 +6,7 @@
 
 #include "config.h"
 
-#include "nfsft.h"
+#include "nfsft_old.h"
 
 #ifdef STDC_HEADERS
 #  include <stdio.h>

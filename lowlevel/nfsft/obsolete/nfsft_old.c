@@ -4,11 +4,11 @@
 * \author Jens Keiner
 */
 
-#include "api.h"
+#include "api_old.h"
 #include "util.h"
 #include "u.h"
 #include "direct.h"
-#include "legendre.h"
+#include "legendre_old.h"
 #include "flft.h"
 #include "c2f.h"
 #include <stdlib.h>

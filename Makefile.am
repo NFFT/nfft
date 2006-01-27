@@ -1,6 +1,7 @@
 # Subdirectories
 if WITH_TESTS
   SUBDIRS = include util kernel lowlevel highlevel . examples tests
+#  DIST_SUBDIRS = include util kernel lowlevel highlevel . examples
 else
   SUBDIRS = include util kernel lowlevel highlevel . examples
 endif  
@@ -11,3 +12,7 @@ libnfft3_la_SOURCES =
 
 libnfft3_la_LIBADD = util/libutil.la kernel/libkernel.la lowlevel/liblowlevel.la highlevel/libhighlevel.la
 
+dist-hook:
+	doxygen ./doxygen.Doxyfile
+	mkdir $(distdir)/doc
+	cp -R doc/html $(distdir)/doc/

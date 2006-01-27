@@ -41,7 +41,7 @@
 #include <complex.h>
 #include <time.h>
 #include <fftw3.h>
-#include "nfsft.h"
+#include "nfsft_old.h"
 #include "../../../../lowlevel/nfsft/obsolete/util.h"
 
 #define M 256
