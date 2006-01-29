@@ -47,21 +47,18 @@ void exponential (double k)
   {
     result_approx= 0.0;
 		
-		for (l = -n/2;l<n/2;l++)
+		for (l = -n/2;l<n/2-1;l++)
     {
 			double arg_phi=xx-l/((double)n);
-			double offset=0.0;
-			/* use the periodisation of phi */
+			/* use the "periodisation" of phi */
 			if(arg_phi<-0.5) {
 				arg_phi=arg_phi+1;
-				offset=1.0;
 			}
 			if(arg_phi>0.5) {
 				arg_phi=arg_phi-1;
-				offset=-1.0;
 			}
       if(fabs(arg_phi)<= (ths->m)/((double)n)) {
-				result_approx += PHI(arg_phi,0)  * cexp( -2.0*PI*I*k*(l/((double)n)-offset));
+				result_approx += PHI(arg_phi,0)  * cexp( -2.0*PI*I*k*arg_phi);
 			}
     }
     
