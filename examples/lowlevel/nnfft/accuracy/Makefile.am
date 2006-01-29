@@ -7,4 +7,4 @@ noinst_PROGRAMS = accuracy
 ## The source files.
 accuracy_SOURCES = accuracy.c
 
-accuracy_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
+accuracy_LDADD = -lm -lfftw3 -lnfft3

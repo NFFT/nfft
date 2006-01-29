@@ -61,9 +61,6 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   
 	T=((max_time-min_time)/2.0)/(0.5-((double) (m))/N3);
   W=N3/T;
-  
-  fprintf(stderr,"3:  %i %e %e %e %e %e %e %e\n",N3,W,T,min_inh,max_inh,min_time,max_time,Ts);
-  
 
   my_N[0]=N; my_n[0]=ceil(N*sigma);
   my_N[1]=N; my_n[1]=ceil(N*sigma);

@@ -10,7 +10,9 @@ http://www.math.mu-luebeck.de/potts/projekte/mri.sql
 
 --------------------------------------------------------------------
 
-Open MATLAB and run the script file mri.m. 
-mri.m is an example for the usage of the programs.
+Open MATLAB and run the script file mri.m or mri_inh.m.
+mri.m and mri_inh are an examples for the usage of the programs.
+mri.m uses a simple model without considering  a field inhomogenity
+against what mri_inh.m considers the field inhomogeneity
 
 For questions mail us: tobias.knopp@informatik.uni-luebeck.de 

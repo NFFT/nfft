@@ -1,3 +1,5 @@
+% This script file is an example of the usage 
+
 N=128;   % points per row / column
 arms=1;  % number of spiral arms
 
@@ -5,10 +7,10 @@ arms=1;  % number of spiral arms
 % M is the number of knots
 M = construct_knots_spiral(N,arms);
 
-% Construct a the file time.dat which contains the readout time 
+% Construct the file time.dat which contains the readout time
 construct_readout_time( M, 2, arms,0.0004);
 
-% Construct a fieldmap an write the output to inh.dat
+% Construct a fieldmap and write the output to inh.dat
 construct_inh(N);
 
 % Construct the raw data of the phantom
@@ -21,7 +23,7 @@ save input_f.dat -ascii out
 % Construct the k-space data considering the fieldmap
 % and write the output to output_data_phantom_nfft.dat
 system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)])
+         int2str(N) ' ' int2str(M)]);
 
 % Precompute the weights using voronoi cells
 % and write them to weights.dat
@@ -34,7 +36,7 @@ precompute_weights('output_phantom_nfft.dat',M);
 % if the weights are used 0 else
 % The other methods can be used by replacing 2d1d with 3d or nnfft
 system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
-         int2str(N) ' ' int2str(M)  ' 3 1'])
+         int2str(N) ' ' int2str(M)  ' 3 1']);
 
 % Visualize the two dimensional phantom. Make a pic
 % and one plot of the N/2 row
@@ -44,7 +46,7 @@ visualize_data('pics/pic_2d1d',N);
 snr('pics/snr_2d1d.txt');
 
 % Reconstruct without considering the fildmap
-%system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
-%         int2str(N) ' ' int2str(M)  ' 3 1']);
-%visualize_data('pics/pic_2d', N);
-%snr('pics/snr_2d.txt');
+system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 3 1']);
+visualize_data('pics/pic_2d', N);
+snr('pics/snr_2d.txt');
