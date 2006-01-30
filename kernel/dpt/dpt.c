@@ -48,6 +48,7 @@ typedef struct dpt_set_s_
                                                containing the Chebyshev 
                                                nodes                         */
   double *xc;                             /**< Array for Chebychev-nodes.    */ 
+  complex *temp;                          /**< */
   complex *work;                          /**< */
   complex *result;                        /**< */
   complex *vec3;
@@ -292,6 +293,169 @@ int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha,
   return 0;
 }
 
+/**
+ * Clenshaw algorithm
+ * 
+ * Evaluates a sum of real-valued functions \f$P_k : \mathbb{R} \rightarrow 
+ * \mathbb{R}\f$
+ * \f[
+ *   f(x) = \sum_{k=0}^N a_k P_k(x) \quad (N \in \mathbb{N}_0)
+ * \f]
+ * obeying a three-term recurrence relation
+ * \f[
+ *   P_{k+1}(x) = (alpha_k * x + beta_k)*P_{k}(x) + gamma_k P_{k-1}(x) \quad
+ *   (alpha_k, beta_k, gamma_k \in \mathbb{R},\; k \ge 0)
+ * \f]
+ * with initial conditions \f$P_{-1}(x) := 0\f$, \f$P_0(x) := \lambda\f$ 
+ * for given complex coefficients \f$\left(a_k\right)_{k=0}^N \in 
+ * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in 
+ * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
+ */ 
+void eval_sum_clenshaw(int N, int M, complex* a, double *x, complex *y, 
+  complex *temp, double *alpha, double *beta, double *gamma, double lambda)
+{ 
+  int j,k;
+  complex* it1 = temp;
+  complex* it2 = y;
+  complex aux;
+   
+  /* Clenshaw's algorithm */    
+  for (j = 0; j <= M; j++)
+  {
+    it2[j] = a[N];
+  }           
+
+  if (N > 0)
+  {
+    for (j = 0; j <= M; j++)
+    {
+      it1[j] = a[N-1];    
+    }
+
+    //fprintf(stdout,"N = %d\n",N);
+    for (k = N; k > 1; k--)
+    {
+      
+      for (j = 0; j <= M; j++)
+      {
+        /*fprintf(stdout,"a[%d] = %le\n",k-2,a[k-2]);
+        fprintf(stdout,"alpha[%d] = %le\n",k-1,alpha[k-1]);
+        fprintf(stdout,"beta[%d] = %le\n",k-1,beta[k-1]);
+        fprintf(stdout,"gamma[%d] = %le\n",k-1,gamma[k-1]);
+        fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+        fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+        aux = a[k-2] + it2[j] * gamma[k-1];
+        it2[j] = it1[j] + it2[j] * (alpha[k-1] * x[j] + beta[k-1]);
+        it1[j] = aux;
+        /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+        fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+      }   
+    }
+    
+    
+    /* Compute final step. */
+    for (j = 0; j <= M; j++)
+    {
+      //fprintf(stdout,"it1[%d] = %le, it2[%d] = %le, alpha[%d] = %le, x[%d] = %le\n",
+      //  j,creal(it1[j]),j,creal(it2[j]),0,alpha[0],j,x[j]);      
+      /*fprintf(stdout,"alpha[0] = %le\n",k-1,alpha[0]);
+      fprintf(stdout,"beta[0] = %le\n",k-1,beta[0]);
+      fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+      fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+      it2[j] = it1[j] + it2[j] * (alpha[0] * x[j] + beta[0]);
+      /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+      fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+    } 
+  }             
+      
+  /* Compute final result by multiplying with the constant lambda */  
+  for (j = 0; j <= M; j++)
+  {
+    y[j] = lambda * it2[j];
+  }  
+}  
+
+/**
+ * Clenshaw algorithm
+ * 
+ * Evaluates a sum of real-valued functions \f$P_k : \mathbb{R} \rightarrow 
+ * \mathbb{R}\f$
+ * \f[
+ *   f(x) = \sum_{k=0}^N a_k P_k(x) \quad (N \in \mathbb{N}_0)
+ * \f]
+ * obeying a three-term recurrence relation
+ * \f[
+ *   P_{k+1}(x) = (alpha_k * x + beta_k)*P_{k}(x) + gamma_k P_{k-1}(x) \quad
+ *   (alpha_k, beta_k, gamma_k \in \mathbb{R},\; k \ge 0)
+ * \f]
+ * with initial conditions \f$P_{-1}(x) := 0\f$, \f$P_0(x) := \lambda\f$ 
+ * for given complex coefficients \f$\left(a_k\right)_{k=0}^N \in 
+ * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in 
+ * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
+ */ 
+void eval_sum_clenshaw_transposed(int N, int M, complex* a, double *x, 
+  complex *y, complex *temp, double *alpha, double *beta, double *gamma, 
+  double lambda)
+{ 
+  int j,k;
+  complex* it1 = temp;
+  complex* it2 = y;
+  complex aux;
+  
+  /* Compute final result by multiplying with the constant lambda */  
+  a[0] = 0.0;
+  for (j = 0; j <= M; j++)
+  {
+    it2[j] = lambda * y[j];
+    a[0] += it2[j];
+  }
+     
+  if (N > 0)
+  {   
+    /* Compute final step. */
+    a[1] = 0.0;
+    for (j = 0; j <= M; j++)
+    {
+      //fprintf(stdout,"it1[%d] = %le, it2[%d] = %le, alpha[%d] = %le, x[%d] = %le\n",
+      //  j,creal(it1[j]),j,creal(it2[j]),0,alpha[0],j,x[j]);      
+      /*fprintf(stdout,"alpha[0] = %le\n",k-1,alpha[0]);
+      fprintf(stdout,"beta[0] = %le\n",k-1,beta[0]);
+      fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+      fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+      it1[j] = it2[j];
+      it2[j] = it2[j] * (alpha[0] * x[j] + beta[0]);
+      a[1] += it2[j];
+      /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+      fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+    } 
+
+
+    //fprintf(stdout,"N = %d\n",N);
+    for (k = 2; k <= N; k++)
+    {
+      a[k] = 0.0;
+      for (j = 0; j <= M; j++)
+      {
+        /*fprintf(stdout,"a[%d] = %le\n",k-2,a[k-2]);
+        fprintf(stdout,"alpha[%d] = %le\n",k-1,alpha[k-1]);
+        fprintf(stdout,"beta[%d] = %le\n",k-1,beta[k-1]);
+        fprintf(stdout,"gamma[%d] = %le\n",k-1,gamma[k-1]);
+        fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+        fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+        aux = it1[j];
+        it1[j] = it2[j];
+        it2[j] = it2[j]*(alpha[k-1] * x[j] + beta[k-1]) + gamma[k-1] * aux;
+        a[k] += it2[j];
+        //aux = a[k-2] + it2[j] * gamma[k-1];
+        //it2[j] = it1[j] + it2[j] * (alpha[k-1] * x[j] + beta[k-1]);
+        //it1[j] = aux;
+        /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
+        fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
+      }   
+    }
+  }             
+}  
+
 dpt_set dpt_init(const int M, const int t, const unsigned int flags)
 {
   /** Polynomial length */
@@ -330,13 +494,13 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
    * would be trivially an array containing a 1 as second entry with all other 
    * coefficients set to zero. In order to compensate for the multiplicative 
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
-  
+   
   /* Allocate memory for array of pointers to node arrays. */
-  set->xcvecs = (double**) malloc((set->t-1)*sizeof(double*));
+  set->xcvecs = (double**) malloc((set->t/*-1*/)*sizeof(double*));
   /* For each polynomial length starting with 4, compute the Chebyshev nodes 
    * using a DCT-III. */
   plength = 4;
-  for (tau = 1; tau < t; tau++)
+  for (tau = 1; tau < /*t*/t+1; tau++)
   {
     /* Allocate memory for current array. */
     set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
@@ -347,7 +511,10 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
     plength = plength << 1;
   }
  
- 
+  /** Allocate memory for auxilliary arrays. */
+  set->work = (complex*) malloc((2*set->N)*sizeof(complex));
+  set->result = (complex*) malloc((2*set->N)*sizeof(complex));
+
   /* Check if fast transform is activated. */
   if (set->flags & DPT_NO_FAST_TRANSFORM)
   {
@@ -355,32 +522,30 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   else
   {   
     /** Allocate memory for auxilliary arrays. */
-    set->work = (complex*) malloc(2*set->N*sizeof(complex));
-    set->result = (complex*) malloc(2*set->N*sizeof(complex));
     set->vec3 = (complex*) malloc(set->N*sizeof(complex));
     set->vec4 = (complex*) malloc(set->N*sizeof(complex));
     set->z = (complex*) malloc(set->N*sizeof(complex));
     
     /** Initialize FFTW plans. */
-    set->plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1));
-    set->plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t-1)); 
+    set->plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
+    set->plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t/*-1*/)); 
     set->kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
     set->kinds[0]   = FFTW_REDFT01;
     set->kinds[1]   = FFTW_REDFT01;
     set->kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
     set->kindsr[0]  = FFTW_REDFT10;
     set->kindsr[1]  = FFTW_REDFT10;
-    set->lengths    = (int*) malloc((set->t-1)*sizeof(int));
-    for (tau = 0, plength = 4; tau < set->t-1; tau++, plength<<=1)
+    set->lengths    = (int*) malloc((set->t/*-1*/)*sizeof(int));
+    for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
     {
       set->lengths[tau] = plength;
       set->plans_dct3[tau] = 
-        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
-                           2, 1, (double*)set->vec4, NULL, 2, 1, set->kinds, 
+        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL, 
+                           2, 1, (double*)set->result, NULL, 2, 1, set->kinds, 
                            0);
       set->plans_dct2[tau] = 
-        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->vec3, NULL, 
-                           2, 1, (double*)set->vec4, NULL, 2, 1,set->kindsr, 
+        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL, 
+                           2, 1, (double*)set->result, NULL, 2, 1,set->kindsr, 
                            0);
     }
     free(set->lengths);
@@ -396,6 +561,8 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   }
   else
   { 
+    set->xc_slow = (double*) malloc((set->N+1)*sizeof(double));
+    set->temp = (complex*) malloc((set->N+1)*sizeof(complex));
   }         
  
   /* Return the newly created DPT set. */ 
@@ -732,21 +899,55 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
 void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags)
 {
-  int k;
+  int j;
+  dpt_data *data = &(set->dpt[m]); 
+  const int Nk = next_power_of_2(k_end+1);
+  const int tk = (int)(ceil(log((double)k_end+1)/log(2.0)));
+  double norm = 2.0/(Nk<<1);  
   
   if (set->flags & DPT_NO_SLOW_TRANSFORM)
   {
     return;
   }
-  
-  /* Fill array with Chebyshev nodes. */
-  /*for (k = 0; k <= k_end; k++)
+
+  if (flags & DPT_FUNCTION_VALUES)
   {
-    set->xc_slow[k] = cos((PI*(k+0.5))/(k_end+1));
-  }*/
-  
-  
-  
+    /* Fill array with Chebyshev nodes. */
+    for (j = 0; j <= k_end; j++)
+    {
+      set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
+    }
+
+    memset(set->result,0U,data->k_start*sizeof(complex));
+    memcpy(&set->result[data->k_start],x,(k_end-data->k_start+1)*sizeof(complex));
+
+    eval_sum_clenshaw(k_end, k_end, set->result, set->xc_slow, 
+      y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1], 
+      data->gamma_m1);  
+  }
+  else
+  {
+    memset(set->temp,0U,data->k_start*sizeof(complex));
+    memcpy(&set->temp[data->k_start],x,(k_end-data->k_start+1)*sizeof(complex));
+        
+    eval_sum_clenshaw(k_end, Nk-1, set->temp, set->xcvecs[tk-2], 
+      set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1], 
+      data->gamma_m1);  
+    
+    fftw_execute_r2r(set->plans_dct2[tk-2],(double*)set->result,
+      (double*)set->result);
+
+    //fprintf(stdout,"\n");
+    set->result[0] *= 0.5;
+    for (j = 0; j < Nk; j++)
+    {
+      set->result[j] *= norm;
+      /*fprintf(stdout,"result[j] = %le + I*%le\n",creal(set->result[j]),
+        cimag(set->result[j]));*/
+    }
+
+    memcpy(y,set->result,(k_end+1)*sizeof(complex));
+  }  
 }
 
 void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
@@ -964,6 +1165,59 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
 void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags)
 {
+  int j;
+  dpt_data *data = &(set->dpt[m]); 
+  const int Nk = next_power_of_2(k_end+1);
+  const int tk = (int)(ceil(log((double)k_end+1)/log(2.0)));
+  double norm = 2.0/(Nk<<1);  
+  
+  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  {
+    return;
+  }
+
+  if (flags & DPT_FUNCTION_VALUES)
+  {
+    for (j = 0; j <= k_end; j++)
+    {
+      set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
+    }
+
+    eval_sum_clenshaw_transposed(k_end, k_end, set->result, set->xc_slow, 
+      y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1], 
+      data->gamma_m1);  
+
+    memcpy(x,&set->result[data->k_start],(k_end-data->k_start+1)*
+      sizeof(complex));
+  }
+  else
+  {
+    memcpy(set->result,y,(k_end+1)*sizeof(complex));
+    memset(&set->result[k_end+1],0U,(Nk-k_end-1)*sizeof(complex));
+
+    for (j = 0; j < Nk; j++)
+    {
+      set->result[j] *= norm;
+    }
+    //set->result[0] *= 0.5;
+
+    //set->result[0] *= 2.0;
+    
+    /*for (j = 0; j <Nk; j++)
+    {
+        fprintf(stdout,"result[%d] = %le +I*%le\n",j,creal(set->result[j]),
+        cimag(set->result[j]));
+    }*/
+
+    fftw_execute_r2r(set->plans_dct3[tk-2],(double*)set->result,
+      (double*)set->result);
+
+    eval_sum_clenshaw_transposed(k_end, Nk-1, set->temp, set->xcvecs[tk-2], 
+      set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1], 
+      data->gamma_m1);  
+
+    memcpy(x,&set->temp[data->k_start],(k_end-data->k_start+1)*sizeof(complex));
+  }  
 }
 
 void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
@@ -1255,16 +1509,17 @@ void dpt_finalize(dpt_set set)
   free(set->dpt);
   set->dpt = NULL;
   
-  /* Delete arrays of Chebyshev nodes. */
-  free(set->xc);
-  set->xc = NULL;
-  for (tau = 1; tau < set->t; tau++)
+  for (tau = 1; tau < /*set->t*/set->t+1; tau++)
   {
     free(set->xcvecs[tau-1]);
     set->xcvecs[tau-1] = NULL;
   }
   free(set->xcvecs);
   set->xcvecs = NULL;
+
+  /* Free auxilliary arrays. */
+  free(set->work);  
+  free(set->result);
   
   /* Check if fast transform is activated. */
   if (set->flags & DPT_NO_FAST_TRANSFORM)
@@ -1273,8 +1528,6 @@ void dpt_finalize(dpt_set set)
   else
   {    
     /* Free auxilliary arrays. */
-    free(set->work);  
-    free(set->result);
     free(set->vec3);  
     free(set->vec4);  
     free(set->z);
@@ -1285,7 +1538,7 @@ void dpt_finalize(dpt_set set)
     set->z = NULL;
     
     /* Free FFTW plans. */
-    for(tau = 0; tau < set->t-1; tau++)
+    for(tau = 0; tau < set->t/*-1*/; tau++)
     {
       fftw_destroy_plan(set->plans_dct3[tau]);
       fftw_destroy_plan(set->plans_dct2[tau]);
@@ -1304,6 +1557,11 @@ void dpt_finalize(dpt_set set)
   }
   else
   { 
+    /* Delete arrays of Chebyshev nodes. */
+    free(set->xc_slow);
+    set->xc_slow = NULL;
+    free(set->temp);
+    set->temp = NULL;
   }         
       
   /* Free DPT set structure. */

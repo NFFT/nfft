@@ -167,7 +167,7 @@ void test_dpt_trafo(void)
       /* Print out Chebyshev coefficients. */
       /*for (k = 0; k <= k_end; k++)
       {
-        fprintf(stdout,"y[%d] = %le + I*%le\n",k,creal(y[k]),cimag(y[k]));
+        fprintf(stdout,"y_ref[%d] = %le + I*%le\n",k,creal(y_ref[k]),cimag(y_ref[k]));
       }*/            
             
       /* Initialize DPT. */
@@ -180,7 +180,7 @@ void test_dpt_trafo(void)
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        fpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+        dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
       }
       time = (second() - time)/((double)REPEAT);
       
@@ -188,8 +188,8 @@ void test_dpt_trafo(void)
       /*fprintf(stdout,"\n");
       for (k = 0; k <= k_end; k++)
       {
-        fprintf(stdout,"x[%d] = %+1.16le + I*%+1.16le, \t y[%d] = %+1.16le + I*%+1.16le\n",k,
-          creal(x[k]),cimag(x[k]),k,creal(y[k]),cimag(y[k]));
+        fprintf(stdout,"y_ref[%d] = %+1.10le + I*%+1.10le, \t y[%d] = %+1.10le + I*%+1.10le\n",k,
+          creal(y_ref[k]),cimag(y_ref[k]),k,creal(y[k]),cimag(y[k]));
       }*/
       
       /* Print out the infinity-norm error. */
@@ -393,13 +393,13 @@ void test_dpt_transposed(void)
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        fpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+        dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?DPT_FUNCTION_VALUES:0U));   
       }
       time = (second() - time)/((double)REPEAT);
       
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");
-      for (k = 0; k <= k_end; k++)
+      for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x[%d] = %+1.16le + I*%+1.16le, \t x_ref[%d] = %+1.16le + I*%+1.16le\n",k,
           creal(x[k]),cimag(x[k]),k,creal(x_ref[k]),cimag(x_ref[k]));

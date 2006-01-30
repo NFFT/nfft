@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8632,        222]*)
-(*NotebookOutlinePosition[      9481,        251]*)
-(*  CellTagsIndexPosition[      9437,        247]*)
+(*NotebookOptionsPosition[     11495,        262]*)
+(*NotebookOutlinePosition[     12336,        291]*)
+(*  CellTagsIndexPosition[     12292,        287]*)
 (*WindowFrame->Normal*)
 
 
@@ -79,23 +79,17 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(t\  = \ 6;\)\)], "Input",
-  ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[BoxData[
-    \(\(n = \ 0;\)\)], "Input",
-  ImageRegion->{{-0, 1}, {0, 1}}],
-
-Cell[BoxData[
-    \(\(kend\  = \ {4, 5, 6, 7, 8};\)\)], "Input",
+    \(\(kend\  = \ {4};\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
     \(\(FunctionValues\  = \ False;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
+Cell[CellGroupData[{
+
 Cell[BoxData[
-    \(Do[\[IndentingNewLine]{n\  = \ 1, \[IndentingNewLine]r = 
+    \(Do[\[IndentingNewLine]{n\  = \ 0, \[IndentingNewLine]r = 
           4, \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]VectorAlpha = 
@@ -170,13 +164,62 @@ Cell[BoxData[
           testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
+Cell[BoxData[
+    RowBox[{\(N::"meprec"\), \(\(:\)\(\ \)\), "\<\"Internal precision limit \
+$MaxExtraPrecision = \\!\\(750.`\\) reached while evaluating \\!\\(2\\/5\\\\ \
+\\(\\((\\(\\(1\\/4\\\\ \\(\\((1 - \\@5)\\)\\)\\\\ \\(\\((\\(\\(1\\/32\\\\ \\@\
+\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\
+\\)\\)\\) - \\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] \
+2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \\(\\(1\\/4\\\\ \
+\\(\\((1 - \\@5)\\)\\)\\\\ \\(\\((\\(\\(\\(\\(-\\(\\(1\\/32\\)\\)\\)\\)\\\\ \
+\\@\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\
+\\)\\)\\)\\) + \\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \
+\\(\\(1\\/4\\\\ \\(\\((1 + \\@5)\\)\\)\\\\ \
+\\(\\((\\(\\(\\(\\(-\\(\\(1\\/32\\)\\)\\)\\)\\\\ \\@\\(1\\/2\\\\ \
+\\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\) - \
+\\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(\[LeftSkeleton] 1 \
+\[RightSkeleton]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \\(\\(1\\/4\\\\ \\(\\((1 + \
+\\@5)\\)\\)\\\\ \\(\\((\\(\\(1\\/32\\\\ \\@\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\) + \\(\\(5\\/32\\\\ \
+\\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\
+\\)\\)\\)\\))\\)\\)\\)\\))\\)\\)\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\
+\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::meprec\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(N::"meprec"\), \(\(:\)\(\ \)\), "\<\"Internal precision limit \
+$MaxExtraPrecision = \\!\\(750.`\\) reached while evaluating \\!\\(2\\/5\\\\ \
+\\(\\((\\(\\(1\\/4\\\\ \\(\\((\\(\\(-1\\)\\) - \\@5)\\)\\)\\\\ \\(\\((\\(\\(1\
+\\/32\\\\ \\@\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\
+\\)\\)]\\)\\)\\)\\)\\) - \\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \
+\\(\\(1\\/4\\\\ \\(\\((\\(\\(-1\\)\\) - \\@5)\\)\\)\\\\ \
+\\(\\((\\(\\(\\(\\(-\\(\\(1\\/32\\)\\)\\)\\)\\\\ \\@\\(1\\/2\\\\ \
+\\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\) + \
+\\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \
+\[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \\(\\(1\\/4\\\\ \\(\\((\
+\\(\\(-1\\)\\) + \\@5)\\)\\)\\\\ \\(\\((\\(\\(\\(\\(-\\(\\(1\\/32\\)\\)\\)\\)\
+\\\\ \\@\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \
+\[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\) - \\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\
+\\(\[LeftSkeleton] 1 \[RightSkeleton]\\)\\)\\)\\)\\))\\)\\)\\)\\) + \
+\\(\\(1\\/4\\\\ \\(\\((\\(\\(-1\\)\\) + \\@5)\\)\\)\\\\ \\(\\((\\(\\(1\\/32\\\
+\\ \\@\\(1\\/2\\\\ \\(\\(Plus[\\(\\(\[LeftSkeleton] 2 \[RightSkeleton]\\)\\)]\
+\\)\\)\\)\\)\\) + \\(\\(5\\/32\\\\ \\@\\(5\\/2\\\\ \\(\\(Plus[\\(\\(\
+\[LeftSkeleton] 2 \
+\[RightSkeleton]\\)\\)]\\)\\)\\)\\)\\))\\)\\)\\)\\))\\)\\)\\). \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::meprec\\\"]\\)\"\>"}]], \
+"Message"]
+}, Open  ]],
+
 Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Sqrt[137]*N[Cos[35\/22*Pi]]\)], "Input"],
 
 Cell[BoxData[
-    \(3.2975950329086903`\)], "Output"]
+    \(3.29759503290869`\)], "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -207,21 +250,18 @@ Cell[BoxData[{
     \(Table[N[LegendreGamma[k, 4], p], {k, \(-1\), 4}]\)}], "Input"],
 
 Cell[BoxData[
-    \({0, \(-1.`31.999999999999993\), 
-      1.`31.999999999999993, \(-1.`31.999999999999993\), 
-      1.`31.999999999999993, 3.`32. }\)], "Output"],
+    \({0, \(-1.`32. \), 1.`32. , \(-1.`32. \), 1.`32. , 3.`32. }\)], "Output"],
 
 Cell[BoxData[
-    \({0, 1.`31.999999999999993, 1.`31.999999999999993, 
-      1.`31.999999999999993, 1.`31.999999999999993, 0}\)], "Output"],
+    \({0, 1.`32. , 1.`32. , 1.`32. , 1.`32. , 0}\)], "Output"],
 
 Cell[BoxData[
     \({0.522912516583797217486357516115742180870509605811`32. , 0, 0, 0, 0, 
       0}\)], "Output"]
 }, Open  ]]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
 WindowSize->{1012, 693},
@@ -251,34 +291,37 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 240, 5, 54, "Input"],
-Cell[2147, 63, 729, 15, 129, "Input"],
-Cell[2879, 80, 81, 2, 27, "Input"],
-Cell[2963, 84, 79, 2, 27, "Input"],
-Cell[3045, 88, 98, 2, 27, "Input"],
-Cell[3146, 92, 98, 2, 27, "Input"],
-Cell[3247, 96, 4223, 74, 759, "Input"],
+Cell[1904, 56, 240, 5, 62, "Input"],
+Cell[2147, 63, 729, 15, 114, "Input"],
+Cell[2879, 80, 86, 2, 27, "Input"],
+Cell[2968, 84, 98, 2, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[7495, 174, 60, 1, 42, "Input"],
-Cell[7558, 177, 53, 1, 27, "Output"]
+Cell[3091, 90, 4223, 74, 730, "Input"],
+Cell[7317, 166, 1540, 21, 122, "Message"],
+Cell[8860, 189, 1596, 23, 122, "Message"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[7648, 183, 57, 1, 42, "Input"],
-Cell[7708, 186, 52, 1, 27, "Output"]
+Cell[10493, 217, 60, 1, 44, "Input"],
+Cell[10556, 220, 51, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[7797, 192, 44, 1, 42, "Input"],
-Cell[7844, 195, 52, 1, 27, "Output"]
+Cell[10644, 226, 57, 1, 44, "Input"],
+Cell[10704, 229, 52, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[7933, 201, 260, 5, 59, "Input"],
-Cell[8196, 208, 162, 3, 43, "Output"],
-Cell[8361, 213, 139, 2, 43, "Output"],
-Cell[8503, 217, 113, 2, 27, "Output"]
+Cell[10793, 235, 44, 1, 44, "Input"],
+Cell[10840, 238, 52, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10929, 244, 260, 5, 59, "Input"],
+Cell[11192, 251, 92, 1, 43, "Output"],
+Cell[11287, 254, 76, 1, 43, "Output"],
+Cell[11366, 257, 113, 2, 27, "Output"]
 }, Open  ]]
 }
 ]

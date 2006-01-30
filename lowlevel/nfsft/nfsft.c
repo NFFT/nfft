@@ -228,8 +228,8 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags, 
                      int nfft_cutoff)
 {
-  int *nfft_size; /*< NFFT size                                                */
-  int *fftw_size; /*< FFTW size                                                */
+  int *nfft_size; /*< NFFT size                                               */
+  int *fftw_size; /*< FFTW size                                               */
 
   /* Save the flags in the plan. */
   plan->flags = flags;
