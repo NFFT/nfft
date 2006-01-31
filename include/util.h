@@ -31,6 +31,8 @@ double second();
  */
 int next_power_of_2(int N);
 
+void next_power_of_2_exp(int N, int *N2, int *t);
+
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
  */
 int nfft_prod_int(int *vec, int d);

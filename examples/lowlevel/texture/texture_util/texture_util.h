@@ -1,6 +1,6 @@
-#include<stdio.h>
+#include <stdio.h>
 
-#include<nfft3.h>
+#include "nfft3.h"
 
 // macros
 

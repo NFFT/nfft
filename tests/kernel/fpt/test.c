@@ -24,7 +24,7 @@ const char TESTFILES_DPT_TRANSPOSED[] = "dpt_transposed.txt\0";
 void test_dpt_trafo(void)
 {
   /** The set of DPTs */
-  dpt_set set;
+  fpt_set set;
   /** DPT mode */
   int function_values;
   /** The transform length (must be a power of two) */
@@ -170,16 +170,16 @@ void test_dpt_trafo(void)
       }*/            
             
       /* Initialize DPT. */
-      set = dpt_init(0,t,0U);
+      set = fpt_init(0,t,0U);
       
       /* Precompute DPT. */
-      dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
+      fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+        dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));   
       }
       time = (second() - time)/((double)REPEAT);
       
@@ -201,7 +201,7 @@ void test_dpt_trafo(void)
       file = NULL;
       
       /* Forget precomputed data. */
-      dpt_finalize(set);
+      fpt_finalize(set);
       set = NULL;
       
       /* Free memory. */
@@ -235,7 +235,7 @@ void test_dpt_trafo(void)
 void test_dpt_transposed(void)
 {
   /** The set of DPTs */
-  dpt_set set;
+  fpt_set set;
   /** DPT mode */
   int function_values;
   /** The transform length (must be a power of two) */
@@ -383,16 +383,16 @@ void test_dpt_transposed(void)
       }*/            
             
       /* Initialize DPT. */
-      set = dpt_init(0,t,0U);
+      set = fpt_init(0,t,0U);
       
       /* Precompute DPT. */
-      dpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
+      fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
       
       /* Execute DPT. */
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?DPT_FUNCTION_VALUES:0U));   
+        dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));   
       }
       time = (second() - time)/((double)REPEAT);
       
@@ -414,7 +414,7 @@ void test_dpt_transposed(void)
       file = NULL;
       
       /* Forget precomputed data. */
-      dpt_finalize(set);
+      fpt_finalize(set);
       set = NULL;
       
       /* Free memory. */

@@ -95,8 +95,8 @@ inline void c2e(nfsft_plan *plan)
   {
     /* Compute new coefficients \f$\left(c_k^n\right)_{k=-M,\ldots,M}\f$ from 
      * old coefficients $\left(b_k^n\right)_{k=0,\ldots,M}$. */
-    xm = &(plan->f_hat[NFSFT_INDEX(-1,n,plan)]);
-    xp = &(plan->f_hat[NFSFT_INDEX(+1,n,plan)]);       
+    xm = &(plan->f_hat_intern[NFSFT_INDEX(-1,n,plan)]);
+    xp = &(plan->f_hat_intern[NFSFT_INDEX(+1,n,plan)]);       
     for(k = 1; k <= plan->N; k++)
     {
       *xp *= 0.5;
@@ -115,9 +115,9 @@ inline void c2e(nfsft_plan *plan)
     /* Compute new coefficients \f$\left(c_k^n\right)_{k=-M,\ldots,M}\f$ from 
      * old coefficients $\left(b_k^n\right)_{k=0,\ldots,M-1}$ incorporating
      * the additional term \f$\sin \vartheta\f$. */
-    plan->f_hat[NFSFT_INDEX(0,n,plan)] *= 2.0;
-    xp = &(plan->f_hat[NFSFT_INDEX(-plan->N,n,plan)]);
-    xm = &(plan->f_hat[NFSFT_INDEX(plan->N,n,plan)]);
+    plan->f_hat_intern[NFSFT_INDEX(0,n,plan)] *= 2.0;
+    xp = &(plan->f_hat_intern[NFSFT_INDEX(-plan->N,n,plan)]);
+    xm = &(plan->f_hat_intern[NFSFT_INDEX(plan->N,n,plan)]);
     last = *xm;
     *xm = 0.5 * I * (0.5*xm[-1]);
     *xp++ = -(*xm--);
@@ -237,12 +237,18 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   
   /* Calculate the next greater power of two with respect to the bandwidth N and
    * the corresponding exponent. */
-  plan->NPT = next_power_of_2(plan->N);
-  plan->t = (int)(log((double)plan->NPT)/log(2.0));
+  next_power_of_2_exp(plan->N,&plan->NPT,&plan->t); 
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+2)(2N+2) */
   plan->N_total = (2*plan->NPT+2)*(2*plan->N+2);
+
+  /* Allocate memory for auxilliary array of spherical Fourier coefficients, 
+   * if neccesary. */
+  if (plan->flags & NFSFT_PRESERVE_F_HAT)
+  {
+    plan->f_hat_intern = (complex*) calloc(plan->N_total,sizeof(complex));
+  }
   
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
@@ -319,9 +325,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
 
   /* Compute and save N_max = 2^{\ceil{log_2 N}} as next greater 
    * power of two with respect to N. */
-  wisdom.N_MAX = next_power_of_2(N);
-  /* Save the corresponding exponent t=log_2 N_max. */
-  wisdom.T_MAX = (int) (log((double)wisdom.N_MAX)/log(2.0));
+  next_power_of_2_exp(N,&wisdom.N_MAX,&wisdom.T_MAX);   
   
   /* Check, if precomputation for direct algorithms needs to be performed. */    
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
@@ -360,11 +364,11 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
     {
       /* Use the recursion coefficients to precompute FPT data using persistent 
        * arrays. */
-      wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,DPT_PERSISTENT_DATA);
+      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         /* Precompute data for FPT transformation for order n. */
-        dpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
+        fpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
           &wisdom.gamma[ROW(n)],n,kappa);
       } 
     }
@@ -375,7 +379,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       
-      wisdom.set = dpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
+      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and 
@@ -385,7 +389,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
         gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
 
         /* Precompute data for FPT transformation for order n. */
-        dpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
+        fpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,kappa);
       } 
       /* Free auxilliary arrays. */
       free(wisdom.alpha);
@@ -425,7 +429,7 @@ void nfsft_forget()
   else if (wisdom.N_MAX >= NFSFT_BREAK_EVEN)
   {
     /* Free precomputed data for FPT transformation. */
-    dpt_finalize(wisdom.set); 
+    fpt_finalize(wisdom.set); 
   }    
 
   /* Wisdom is now uninitialised. */
@@ -436,6 +440,13 @@ void nfsft_finalize(nfsft_plan *plan)
 {
   /* Finalise the nfft plan. */
   nfft_finalize(&plan->plan_nfft);
+  
+  /* De-allocate memory for auxilliary array of spherical Fourier coefficients, 
+   * if neccesary. */
+  if (plan->flags & NFSFT_PRESERVE_F_HAT)
+  {
+    free(plan->f_hat_intern);
+  }
   
   /* De-allocate memory for spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
@@ -475,6 +486,16 @@ void ndsft_trafo(nfsft_plan *plan)
   double stheta; /*< Current angle theta for Clenshaw algorithm               */
   double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
   
+  /* Copy spherical Fourier coefficients, if necessary. */
+  if (plan->flags & NFSFT_PRESERVE_F_HAT)
+  {
+    memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*sizeof(complex));
+  }
+  else
+  {
+    plan->f_hat_intern = plan->f_hat;
+  }
+  
   /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
    * multiply spherical Fourier coefficients with corresponding normalization 
    * weight. */
@@ -486,7 +507,7 @@ void ndsft_trafo(nfsft_plan *plan)
       for (n = -k; n <= k; n++)
       {
         /* Multiply with normalization weight. */
-        plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
+        plan->f_hat_intern[NFSFT_INDEX(k,n,plan)] *= 
           sqrt((2*k+1)/(4.0*PI));
       }
     }
@@ -500,7 +521,7 @@ void ndsft_trafo(nfsft_plan *plan)
     /* Constant function */
     for (m = 0; m < plan->M_total; m++)
     {
-      plan->f[m] = plan->f_hat[NFSFT_INDEX(0,0,plan)];
+      plan->f[m] = plan->f_hat_intern[NFSFT_INDEX(0,0,plan)];
     }
   }
   else
@@ -529,7 +550,7 @@ void ndsft_trafo(nfsft_plan *plan)
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Get pointer to Fourier coefficients vector for current order n. */
-        a = &(plan->f_hat[NFSFT_INDEX(0,n,plan)]);
+        a = &(plan->f_hat_intern[NFSFT_INDEX(0,n,plan)]);
         
         /* Take absolute value of n. */
         n_abs = abs(n);
@@ -690,12 +711,22 @@ void nfsft_trafo(nfsft_plan *plan)
   else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U || 
     plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
   {
+    /* Copy spherical Fourier coefficients, if necessary. */
+    if (plan->flags & NFSFT_PRESERVE_F_HAT)
+    {
+      memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*sizeof(complex));
+    }
+    else
+    {
+      plan->f_hat_intern = plan->f_hat;
+    }
+    
     /* Propagate pointer values to the internal NFFT plan to assure consistency. 
      * Pointers may have been modified externally. 
      */
     plan->plan_nfft.x = plan->x;
     plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat;
+    plan->plan_nfft.f_hat = plan->f_hat_intern;
     
     /* Check, if we compute with L^2-normalized spherical harmonics. If so, 
      * multiply spherical Fourier coefficients with corresponding normalization 
@@ -708,7 +739,7 @@ void nfsft_trafo(nfsft_plan *plan)
         for (n = -k; n <= k; n++)
         {
           /* Multiply with normalization weight. */
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] *= 
+          plan->f_hat_intern[NFSFT_INDEX(k,n,plan)] *= 
             sqrt((2*k+1)/(4.0*PI));
         }
       }
@@ -721,8 +752,8 @@ void nfsft_trafo(nfsft_plan *plan)
       for (n = -plan->N; n <= plan->N; n++) 
       {
         dpt_trafo(wisdom.set,abs(n),
-          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
-          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
     }
@@ -732,12 +763,12 @@ void nfsft_trafo(nfsft_plan *plan)
       for (n = -plan->N; n <= plan->N; n++) 
       {
         fpt_trafo(wisdom.set,abs(n),
-          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
-          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
     }
-
+   
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan); 
     

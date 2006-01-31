@@ -37,21 +37,21 @@
 /**
  * Holds data for a single multiplication step in the cascade summation.
  */
-typedef struct dpt_step_
+typedef struct fpt_step_
 {
   bool stable;                            /**< Indicates if the values 
                                                contained represent a fast or 
                                                a slow stabilized step.       */
   double **a11,**a12,**a21,**a22;         /**< The matrix components         */
   double *gamma;                          /**<                               */
-} dpt_step;
+} fpt_step;
 
 /**
  * Holds data for a single cascade summation.
  */
-typedef struct dpt_data_
+typedef struct fpt_data_
 {
-  dpt_step **steps;                       /**< The cascade summation steps   */
+  fpt_step **steps;                       /**< The cascade summation steps   */
   int k_start;
   double *alphaN;
   double *betaN;
@@ -63,19 +63,19 @@ typedef struct dpt_data_
   double *alpha;
   double *beta;
   double *gamma;
-} dpt_data;
+} fpt_data;
 
 /**
  * Holds data for a set of cascade summations.
  */
-typedef struct dpt_set_s_
+typedef struct fpt_set_s_
 {
   int flags;                              /**< The flags                     */
   int M;                                  /**< The number of DPT transforms  */
   int N;                                  /**< The transform length. Must be 
                                                a power of two.               */
   int t;                                  /**< The exponent of N             */
-  dpt_data *dpt;                          /**< The DPT transform data        */
+  fpt_data *dpt;                          /**< The DPT transform data        */
   double **xcvecs;                        /**< Array of pointers to arrays 
                                                containing the Chebyshev 
                                                nodes                         */
@@ -99,7 +99,7 @@ typedef struct dpt_set_s_
   
   /* Data for slow transforms. */
   double *xc_slow;
-} dpt_set_s;
+} fpt_set_s;
 
 inline void abuvxpwy(double a, double b, complex* u, complex* x, double* v, 
   complex* y, double* w, int n)
@@ -164,9 +164,9 @@ inline void auvxpwy(double a, complex* u, complex* x, double* v, complex* y,
   }
 }*/
 
-#define DPT_DO_STEP(NAME,M_FUNCTION) \
+#define FPT_DO_STEP(NAME,M_FUNCTION) \
 inline void NAME(complex  *a, complex *b, double *a11, double *a12, \
-  double *a21, double *a22, double gamma, int tau, dpt_set set) \
+  double *a21, double *a22, double gamma, int tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
   int length = 1<<(tau+1); \
@@ -205,11 +205,11 @@ inline void NAME(complex  *a, complex *b, double *a11, double *a12, \
   b[0] *= 0.5; \
 }
 
-DPT_DO_STEP(dpt_do_step,auvxpwy)
+FPT_DO_STEP(fpt_do_step,auvxpwy)
 //DPT_DO_STEP(dpt_do_step_symmetric,auvxpwy_symmetric)
 
-inline void dpt_do_step_transposed(complex  *a, complex *b, double *a11, 
-  double *a12, double *a21, double *a22, double gamma, int tau, dpt_set set)
+inline void fpt_do_step_transposed(complex  *a, complex *b, double *a11, 
+  double *a12, double *a21, double *a22, double gamma, int tau, fpt_set set)
 { 
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -451,7 +451,7 @@ void eval_sum_clenshaw_transposed(int N, int M, complex* a, double *x,
   }             
 }  
 
-dpt_set dpt_init(const int M, const int t, const unsigned int flags)
+fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 {
   /** Polynomial length */
   int plength;
@@ -464,7 +464,7 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   int k;  
   
   /* Allocate memory for new DPT set. */
-  dpt_set_s *set = malloc(sizeof(dpt_set_s));
+  fpt_set_s *set = malloc(sizeof(fpt_set_s));
   
   /* Save parameters in structure. */
   set->flags = flags;
@@ -473,12 +473,12 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   set->N = 1<<t;
     
   /* Allocate memory for L transforms. */
-  set->dpt = malloc((M+1)*sizeof(dpt_data));
+  set->dpt = malloc((M+1)*sizeof(fpt_data));
   
   /* Initialize with NULL pointer. */
   for (m = 0; m <= set->M; m++)
   {
-    set->dpt[m].steps = (dpt_step**)NULL;
+    set->dpt[m].steps = (fpt_step**)NULL;
   }
  
   /* Create arrays with Chebyshev nodes. */  
@@ -509,7 +509,7 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   set->result = (complex*) malloc((2*set->N)*sizeof(complex));
 
   /* Check if fast transform is activated. */
-  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_TRANSFORM)
   {
   }
   else
@@ -549,20 +549,20 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
     set->kindsr = NULL;
   }  
   
-  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
   }
   else
   { 
     set->xc_slow = (double*) malloc((set->N+1)*sizeof(double));
-    set->temp = (complex*) malloc((set->N+1)*sizeof(complex));
+    set->temp = (complex*) calloc((set->N+1),sizeof(complex));
   }         
  
   /* Return the newly created DPT set. */ 
   return set;
 }
 
-void dpt_precompute(dpt_set set, const int m, const double *alpha, 
+void fpt_precompute(fpt_set set, const int m, const double *alpha, 
                     const double *beta, const double *gamma, int k_start,
                     const double threshold)
 {
@@ -596,10 +596,10 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   int N_tilde;
   int k;
   
-  dpt_data *data;
+  fpt_data *data;
   
   /* Allocate memory for DPT transform data. */
-  //set->dpt[m] = (dpt_data*) malloc(sizeof(dpt_data));
+  //set->dpt[m] = (fpt_data*) malloc(sizeof(fpt_data));
 
   /* Get pointer to DPT data. */
   data = &(set->dpt[m]);
@@ -614,7 +614,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   data->k_start = k_start;
   
   /* Check if fast transform is activated. */
-  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_TRANSFORM)
   {
   }
   else
@@ -637,7 +637,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
     N_tilde = N_TILDE(set->N);
        
     /* Allocate memory for the cascade with t = log_2(N) many levels. */
-    data->steps = (dpt_step**) malloc(sizeof(dpt_step*)*set->t);
+    data->steps = (fpt_step**) malloc(sizeof(fpt_step*)*set->t);
       
     /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
     plength = 4;
@@ -652,7 +652,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
          
       /* Allocate memory for current level. This level will contain 2^{t-tau-1} 
        * many matrices. */
-      data->steps[tau] = (dpt_step*) fftw_malloc(sizeof(dpt_step) 
+      data->steps[tau] = (fpt_step*) fftw_malloc(sizeof(fpt_step) 
                          * (lastl+1)); 
       
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
@@ -672,7 +672,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
         cbeta = &(beta[plength*l+1+1]);
         cgamma = &(gamma[plength*l+1+1]);
         
-        if (set->flags & DPT_NO_STABILIZATION)
+        if (set->flags & FPT_NO_STABILIZATION)
         {
           /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
           eval_clenshaw(set->xcvecs[tau-1], a11, plength, degree-2, calpha, cbeta, 
@@ -742,7 +742,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
           fftw_free(a21);
           fftw_free(a22);
   
-          if (set->flags & DPT_BANDWIDTH_WINDOW)
+          if (set->flags & FPT_BANDWIDTH_WINDOW)
           {
             data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*)); 
             data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*)); 
@@ -842,13 +842,13 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
     }  
   }  
 
-  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
   }
   else
   { 
     /* Check, if recurrence coefficients must be copied. */
-    if (set->flags & DPT_PERSISTENT_DATA)
+    if (set->flags & FPT_PERSISTENT_DATA)
     {
       data->alpha = alpha;
       data->beta = beta;
@@ -866,21 +866,24 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   }
 }
 
-void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
+void dpt_trafo(fpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags)
 {
   int j;
-  dpt_data *data = &(set->dpt[m]); 
-  const int Nk = next_power_of_2(k_end+1);
-  const int tk = (int)(ceil(log((double)k_end+1)/log(2.0)));
-  double norm = 2.0/(Nk<<1);  
+  fpt_data *data = &(set->dpt[m]); 
+  int Nk;
+  int tk;
+  double norm;
   
-  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  next_power_of_2_exp(k_end+1,&Nk,&tk);
+  norm = 2.0/(Nk<<1);  
+  
+  if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
     return;
   }
 
-  if (flags & DPT_FUNCTION_VALUES)
+  if (flags & FPT_FUNCTION_VALUES)
   {
     /* Fill array with Chebyshev nodes. */
     for (j = 0; j <= k_end; j++)
@@ -917,19 +920,19 @@ void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   }  
 }
 
-void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y, 
+void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y, 
   const int k_end, const unsigned int flags)
 { 
   /* Get transformation data. */
-  dpt_data *data = &(set->dpt[m]);  
+  fpt_data *data = &(set->dpt[m]);  
   /** */
-  const int Nk = next_power_of_2(k_end);
+  int Nk;
   /** */
-  const int tk = (int)(ceil(log((double)k_end)/log(2.0)));
+  int tk;
   /** */
-  int const k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  int k_start_tilde;
   /** */
-  int const k_end_tilde = K_END_TILDE(k_end,Nk);
+  int k_end_tilde;
    
   /** Level index \f$tau\f$ */
   int tau;
@@ -944,7 +947,7 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   /** Polynomial array length for stabilization */
   int plength_stab;
   /** Current matrix \f$U_{n,tau,l}\f$ */
-  dpt_step *step;
+  fpt_step *step;
   /** */
   fftw_plan plan;
   int length = k_end+1;
@@ -959,14 +962,18 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   complex *work_ptr;
   const complex *x_ptr;
   complex *y_ptr;
+
+  next_power_of_2_exp(k_end,&Nk,&tk);
+  k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  k_end_tilde = K_END_TILDE(k_end,Nk);
   
   /* Check if fast transform is activated. */
-  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_TRANSFORM)
   { 
     return;
   }  
 
-  if (flags & DPT_FUNCTION_VALUES)
+  if (flags & FPT_FUNCTION_VALUES)
   {
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1, 
       (double*)set->work, NULL, 2, 1, kinds, 0U);
@@ -1031,7 +1038,7 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
       if (step->stable)
       {        
         /* Multiply third and fourth polynomial with matrix U. */       
-        dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+        fpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
           step->a21[0], step->a22[0], step->gamma[0], tau, set);
 
         if (step->gamma[0] != 0.0)
@@ -1058,14 +1065,14 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
         memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(complex));
         
         /* Multiply third and fourth polynomial with matrix U. */
-        if (set->flags & DPT_BANDWIDTH_WINDOW)
+        if (set->flags & FPT_BANDWIDTH_WINDOW)
         {
-          dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+          fpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
             step->a21[0], step->a22[0], step->gamma[0], tk-1, set);
         }
         else
         {
-          dpt_do_step(set->vec3, set->vec4, step->a11[tk-tau-1], 
+          fpt_do_step(set->vec3, set->vec4, step->a11[tk-tau-1], 
             step->a12[set->t-tau-1], step->a21[tk-tau-1], 
             step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
         }
@@ -1110,7 +1117,7 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
       data->alpha_0*0.5*(set->result[Nk+k-1]+set->result[Nk+k+1]));
   } 
 
-  if (flags & DPT_FUNCTION_VALUES)
+  if (flags & FPT_FUNCTION_VALUES)
   {
     y[0] *= 2.0;
     fftw_execute_r2r(plan,(double*)y,(double*)y);
@@ -1122,21 +1129,24 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   }  
 }
 
-void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
+void dpt_transposed(fpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags)
 {
   int j;
-  dpt_data *data = &(set->dpt[m]); 
-  const int Nk = next_power_of_2(k_end+1);
-  const int tk = (int)(ceil(log((double)k_end+1)/log(2.0)));
-  double norm = 2.0/(Nk<<1);  
+  fpt_data *data = &(set->dpt[m]); 
+  int Nk;
+  int tk;
+  double norm;
   
-  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  next_power_of_2_exp(k_end+1,&Nk,&tk);
+  norm = 2.0/(Nk<<1);  
+
+  if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
     return;
   }
 
-  if (flags & DPT_FUNCTION_VALUES)
+  if (flags & FPT_FUNCTION_VALUES)
   {
     for (j = 0; j <= k_end; j++)
     {
@@ -1171,19 +1181,19 @@ void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
   }  
 }
 
-void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y, 
+void fpt_transposed(fpt_set set, const int m, complex *x, const complex *y, 
   const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
-  dpt_data *data = &(set->dpt[m]);  
+  fpt_data *data = &(set->dpt[m]);  
   /** */
-  const int Nk = next_power_of_2(k_end);
+  int Nk;
   /** */
-  const int tk = (int)(ceil(log((double)k_end)/log(2.0)));
+  int tk;
   /** */
-  int const k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  int k_start_tilde;
   /** */
-  int const k_end_tilde = K_END_TILDE(k_end,Nk);
+  int k_end_tilde;
    
   /** Level index \f$tau\f$ */
   int tau;
@@ -1198,7 +1208,7 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
   /** Polynomial array length for stabilization */
   int plength_stab;
   /** Current matrix \f$U_{n,tau,l}\f$ */
-  dpt_step *step;
+  fpt_step *step;
   /** */
   fftw_plan plan;
   int length = k_end+1;
@@ -1206,13 +1216,17 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
   /** Loop counter */
   int k;
   
+  next_power_of_2_exp(k_end,&Nk,&tk);
+  k_start_tilde = K_START_TILDE(data->k_start,Nk);
+  k_end_tilde = K_END_TILDE(k_end,Nk);
+  
   /* Check if fast transform is activated. */
-  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_TRANSFORM)
   { 
     return;
   }  
 
-  if (flags & DPT_FUNCTION_VALUES)
+  if (flags & FPT_FUNCTION_VALUES)
   {
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1, 
       (double*)set->work, NULL, 2, 1, kinds, 0U);
@@ -1279,7 +1293,7 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
       if (step->stable)
       {
         /* Multiply third and fourth polynomial with matrix U. */
-        dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+        fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
           step->a21[0], step->a22[0], step->gamma[0], tau, set);
         memcpy(&(set->vec3[plength/2]), set->vec4,(plength/2)*sizeof(complex));
         
@@ -1297,14 +1311,14 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
         memcpy(set->vec4,&(set->result[plength_stab]),plength_stab*sizeof(complex));
 
         /* Multiply third and fourth polynomial with matrix U. */
-        if (set->flags & DPT_BANDWIDTH_WINDOW)
+        if (set->flags & FPT_BANDWIDTH_WINDOW)
         {
-          dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
+          fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
             step->a21[0], step->a22[0], step->gamma[0], tk-1, set);
         }
         else
         {
-          dpt_do_step_transposed(set->vec3, set->vec4, step->a11[tk-tau-1], 
+          fpt_do_step_transposed(set->vec3, set->vec4, step->a11[tk-tau-1], 
             step->a12[set->t-tau-1], step->a21[tk-tau-1], 
             step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
         }
@@ -1334,12 +1348,12 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
   }
 }
 
-void dpt_finalize(dpt_set set)
+void fpt_finalize(fpt_set set)
 {
   int tau;
   int l;
   int m;
-  dpt_data *data;
+  fpt_data *data;
   int k_start_tilde;
   int N_tilde;  
   int tau_stab;
@@ -1351,7 +1365,7 @@ void dpt_finalize(dpt_set set)
   {
     /* Check if precomputed. */
     data = &set->dpt[m];
-    if (data->steps != (dpt_step**)NULL)
+    if (data->steps != (fpt_step**)NULL)
     {
       free(data->alphaN);
       free(data->betaN);
@@ -1371,10 +1385,10 @@ void dpt_finalize(dpt_set set)
         /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
         for (l = firstl; l <= lastl; l++)
         {                     
-          if (set->flags & DPT_NO_STABILIZATION || 
+          if (set->flags & FPT_NO_STABILIZATION || 
             data->steps[tau][l].stable == true ||
             data->steps[tau][l].stable == true && set->flags & 
-              DPT_BANDWIDTH_WINDOW)
+              FPT_BANDWIDTH_WINDOW)
           {
             /* Free components. */
             free(data->steps[tau][l].a11[0]);
@@ -1420,13 +1434,13 @@ void dpt_finalize(dpt_set set)
       data->steps = NULL;           
     }
     
-    if (set->flags & DPT_NO_SLOW_TRANSFORM)
+    if (set->flags & FPT_NO_SLOW_TRANSFORM)
     {
     }
     else
     {
       /* Check, if recurrence coefficients must be copied. */
-      if (set->flags & DPT_PERSISTENT_DATA)
+      if (set->flags & FPT_PERSISTENT_DATA)
       {
       }
       else
@@ -1458,7 +1472,7 @@ void dpt_finalize(dpt_set set)
   free(set->result);
   
   /* Check if fast transform is activated. */
-  if (set->flags & DPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_TRANSFORM)
   {
   }
   else
@@ -1488,7 +1502,7 @@ void dpt_finalize(dpt_set set)
     set->plans_dct2 = NULL;
   }
   
-  if (set->flags & DPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
   }
   else

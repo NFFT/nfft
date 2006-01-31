@@ -9,4 +9,4 @@ noinst_PROGRAMS = test
 ## The source files.
 test_SOURCES = test.c
 
-test_LDADD = -lnfft3 -lm -lfftw3 -lcunit
+test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3 -lcunit

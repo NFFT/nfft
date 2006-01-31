@@ -94,6 +94,46 @@ int next_power_of_2(int N)
   }  
 }
  
+/** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
+ */
+void next_power_of_2_exp(int N, int *N2, int *t)
+{
+  int n,i,logn;
+  int N_is_not_power_of_2=0;
+
+  if (N == 0)
+  {
+    return 1;
+  }
+  else
+  {
+    n=N;
+    logn=0;
+    while (n != 1)
+    {
+      if (n%2 == 1)
+      {
+          N_is_not_power_of_2=1;
+      }
+      n = n/2;
+      logn++;
+    }
+  
+    if (!N_is_not_power_of_2)
+    {
+      logn--;
+    }
+  
+    for (i = 0; i <= logn; i++)
+    {
+      n = n*2;
+    }
+  
+    *N2 = n;
+    *t = logn+1;
+  }  
+}
+ 
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
  */
 int nfft_prod_int(int *vec, int d)
