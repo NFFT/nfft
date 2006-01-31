@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -42,8 +42,8 @@ Wolfram Research.
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
 (*NotebookOptionsPosition[      8141,        203]*)
-(*NotebookOutlinePosition[      8990,        232]*)
-(*  CellTagsIndexPosition[      8946,        228]*)
+(*NotebookOutlinePosition[      8982,        232]*)
+(*  CellTagsIndexPosition[      8938,        228]*)
 (*WindowFrame->Normal*)
 
 
@@ -201,11 +201,11 @@ Cell[BoxData[
     \(2.284794657156213`\)], "Output"]
 }, Open  ]]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1251, 745},
+WindowSize->{1016, 694},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
@@ -232,13 +232,13 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 240, 5, 54, "Input"],
-Cell[2147, 63, 729, 15, 111, "Input"],
+Cell[1904, 56, 240, 5, 62, "Input"],
+Cell[2147, 63, 729, 15, 114, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
 Cell[3045, 88, 297, 6, 43, "Input"],
 Cell[3345, 96, 97, 2, 27, "Input"],
-Cell[3445, 100, 4256, 74, 712, "Input"],
+Cell[3445, 100, 4256, 74, 735, "Input"],
 
 Cell[CellGroupData[{
 Cell[7726, 178, 60, 1, 42, "Input"],

@@ -1,16 +1,42 @@
-#include "dpt.h"
+/** 
+ * \file fpt.c
+ * \brief Implementation file for the FPT module
+ * \author Jens Keiner
+ */
 
+/* Include standard C headers. */
 #include <math.h>
 #include <string.h>
-#include <fftw3.h>
+#include <stdbool.h>
+
+/* Include FPT module header. */
+#include "nfft3.h"
+
+/* Include NFFT3 utilities header. */
 #include "util.h" 
 
+/* Some macros for index calculation. */
+
+/** Computes the minimum degree at the top of a cascade. */
 #define K_START_TILDE(x,y) (MAX(MIN(x,y-2),0))
-#define N_TILDE(y) (y-1)
+/** Computes the maximum degree at the top of a cascade. */
 #define K_END_TILDE(x,y) MIN(x,y-1)
+/** 
+ * Computes the index of the first block of four functions in a cascade 
+ * level. 
+ */
 #define FIRST_L(x,y) ((int)floor((x)/(double)y))
+/** 
+ * Computes the index of the last block of four functions in a cascade 
+ * level. 
+ */
 #define LAST_L(x,y) ((int)ceil(((x)+1)/(double)y)-1)
 
+#define N_TILDE(y) (y-1)
+
+/**
+ * Holds data for a single multiplication step in the cascade summation.
+ */
 typedef struct dpt_step_
 {
   bool stable;                            /**< Indicates if the values 
@@ -20,6 +46,9 @@ typedef struct dpt_step_
   double *gamma;                          /**<                               */
 } dpt_step;
 
+/**
+ * Holds data for a single cascade summation.
+ */
 typedef struct dpt_data_
 {
   dpt_step **steps;                       /**< The cascade summation steps   */
@@ -36,6 +65,9 @@ typedef struct dpt_data_
   double *gamma;
 } dpt_data;
 
+/**
+ * Holds data for a set of cascade summations.
+ */
 typedef struct dpt_set_s_
 {
   int flags;                              /**< The flags                     */
@@ -176,8 +208,8 @@ inline void NAME(complex  *a, complex *b, double *a11, double *a12, \
 DPT_DO_STEP(dpt_do_step,auvxpwy)
 //DPT_DO_STEP(dpt_do_step_symmetric,auvxpwy_symmetric)
 
-inline void dpt_do_step_transposed(complex  *a, complex *b, double *a11, double *a12, 
-  double *a21, double *a22, double gamma, int tau, dpt_set set)
+inline void dpt_do_step_transposed(complex  *a, complex *b, double *a11, 
+  double *a12, double *a21, double *a22, double gamma, int tau, dpt_set set)
 { 
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -338,17 +370,9 @@ void eval_sum_clenshaw(int N, int M, complex* a, double *x, complex *y,
       
       for (j = 0; j <= M; j++)
       {
-        /*fprintf(stdout,"a[%d] = %le\n",k-2,a[k-2]);
-        fprintf(stdout,"alpha[%d] = %le\n",k-1,alpha[k-1]);
-        fprintf(stdout,"beta[%d] = %le\n",k-1,beta[k-1]);
-        fprintf(stdout,"gamma[%d] = %le\n",k-1,gamma[k-1]);
-        fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-        fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
         aux = a[k-2] + it2[j] * gamma[k-1];
         it2[j] = it1[j] + it2[j] * (alpha[k-1] * x[j] + beta[k-1]);
         it1[j] = aux;
-        /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-        fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
       }   
     }
     
@@ -356,15 +380,7 @@ void eval_sum_clenshaw(int N, int M, complex* a, double *x, complex *y,
     /* Compute final step. */
     for (j = 0; j <= M; j++)
     {
-      //fprintf(stdout,"it1[%d] = %le, it2[%d] = %le, alpha[%d] = %le, x[%d] = %le\n",
-      //  j,creal(it1[j]),j,creal(it2[j]),0,alpha[0],j,x[j]);      
-      /*fprintf(stdout,"alpha[0] = %le\n",k-1,alpha[0]);
-      fprintf(stdout,"beta[0] = %le\n",k-1,beta[0]);
-      fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-      fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
       it2[j] = it1[j] + it2[j] * (alpha[0] * x[j] + beta[0]);
-      /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-      fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
     } 
   }             
       
@@ -416,41 +432,20 @@ void eval_sum_clenshaw_transposed(int N, int M, complex* a, double *x,
     a[1] = 0.0;
     for (j = 0; j <= M; j++)
     {
-      //fprintf(stdout,"it1[%d] = %le, it2[%d] = %le, alpha[%d] = %le, x[%d] = %le\n",
-      //  j,creal(it1[j]),j,creal(it2[j]),0,alpha[0],j,x[j]);      
-      /*fprintf(stdout,"alpha[0] = %le\n",k-1,alpha[0]);
-      fprintf(stdout,"beta[0] = %le\n",k-1,beta[0]);
-      fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-      fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
       it1[j] = it2[j];
       it2[j] = it2[j] * (alpha[0] * x[j] + beta[0]);
       a[1] += it2[j];
-      /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-      fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
     } 
 
-
-    //fprintf(stdout,"N = %d\n",N);
     for (k = 2; k <= N; k++)
     {
       a[k] = 0.0;
       for (j = 0; j <= M; j++)
       {
-        /*fprintf(stdout,"a[%d] = %le\n",k-2,a[k-2]);
-        fprintf(stdout,"alpha[%d] = %le\n",k-1,alpha[k-1]);
-        fprintf(stdout,"beta[%d] = %le\n",k-1,beta[k-1]);
-        fprintf(stdout,"gamma[%d] = %le\n",k-1,gamma[k-1]);
-        fprintf(stdout,"it1[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-        fprintf(stdout,"it2[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
         aux = it1[j];
         it1[j] = it2[j];
         it2[j] = it2[j]*(alpha[k-1] * x[j] + beta[k-1]) + gamma[k-1] * aux;
         a[k] += it2[j];
-        //aux = a[k-2] + it2[j] * gamma[k-1];
-        //it2[j] = it1[j] + it2[j] * (alpha[k-1] * x[j] + beta[k-1]);
-        //it1[j] = aux;
-        /*fprintf(stdout,"it1*[%d] = %le + I*%le\n",j,creal(it1[j]),cimag(it1[j]));
-        fprintf(stdout,"it2*[%d] = %le + I*%le\n",j,creal(it2[j]),cimag(it2[j]));*/
       }   
     }
   }             
@@ -476,8 +471,6 @@ dpt_set dpt_init(const int M, const int t, const unsigned int flags)
   set->M = M;
   set->t = t;
   set->N = 1<<t;
-  //fprintf(stdout,"M = %d, t = %d, N = %d\n",set->M,set->t,set->N);
-  //fflush(stdout);
     
   /* Allocate memory for L transforms. */
   set->dpt = malloc((M+1)*sizeof(dpt_data));
@@ -642,10 +635,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
       
     k_start_tilde = K_START_TILDE(data->k_start,set->N);
     N_tilde = N_TILDE(set->N);
-      
-    // printf("k_start = %d, k_start_tilde = %d, N = %d, N_tilde = %d\n",
-    // k_start,k_start_tilde,set->N,N_tilde);
-  
+       
     /* Allocate memory for the cascade with t = log_2(N) many levels. */
     data->steps = (dpt_step**) malloc(sizeof(dpt_step*)*set->t);
       
@@ -659,12 +649,7 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
       firstl = FIRST_L(k_start_tilde,plength);
       /* Compute last l. */
       lastl = LAST_L(N_tilde,plength);
-      //printf("tau = %d: plength = %d, degree = %d, firstl = %d, lastl = %d\n",
-      //  tau, plength, degree, firstl, lastl);
-  
-      /* Compute number of matrices for this level. */
-      //nsteps = lastl - firstl + 1;
-        
+         
       /* Allocate memory for current level. This level will contain 2^{t-tau-1} 
        * many matrices. */
       data->steps[tau] = (dpt_step*) fftw_malloc(sizeof(dpt_step) 
@@ -673,8 +658,6 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
       for (l = firstl; l <= lastl; l++)
       {        
-        //fprintf(stderr,"n = %d [%d,%d], tau = %d [%d,%d], l = %d [%d,%d]\n",n,0,M,tau,1,t-1,l,firstl,lastl);
-  
         /* Allocate memory for the components of U_{n,tau,l}. */
         a11 = (double*) fftw_malloc(sizeof(double)*plength);
         a12 = (double*) fftw_malloc(sizeof(double)*plength);
@@ -745,18 +728,6 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
           data->steps[tau][l].a12[0] = a12;
           data->steps[tau][l].a21[0] = a21;
           data->steps[tau][l].a22[0] = a22;
-          /*fprintf(stdout,"m = %d, tau = %d, l= %d, s = %d%d%d%d\n",m,tau,l,
-            ((abs(abs(data->steps[tau][l].a11[0][k])-abs(data->steps[tau][l].a11[0][plength-1]))<1E-10)?1:0),
-            ((abs(abs(data->steps[tau][l].a12[0][k])-abs(data->steps[tau][l].a12[0][plength-1]))<1E-10)?1:0),
-            ((abs(abs(data->steps[tau][l].a21[0][k])-abs(data->steps[tau][l].a21[0][plength-1]))<1E-10)?1:0),
-            ((abs(abs(data->steps[tau][l].a22[0][k])-abs(data->steps[tau][l].a22[0][plength-1]))<1E-10)?1:0));*/
-          /*fprintf(stdout,"m = %d, tau = %d, l= %d\n",m,tau,l);
-          for (k=0; k < plength; k++)
-          {
-            fprintf(stdout,"%le\t%le\t%le\t%le\n",data->steps[tau][l].a11[0][k],
-              data->steps[tau][l].a12[0][k],data->steps[tau][l].a21[0][k],
-              data->steps[tau][l].a22[0][k]);
-          }*/
           data->steps[tau][l].gamma[0] = gamma[plength*l+1+1];
           data->steps[tau][l].stable = true;
         }          
@@ -829,7 +800,6 @@ void dpt_precompute(dpt_set set, const int m, const double *alpha,
   
             for (tau_stab = tau-1; tau_stab <= set->t-2; tau_stab++)
             {
-              //tau_stab = t-2;
               plength_stab = 1<<(tau_stab+2);
               /* Allocate memory for arrays. */
               a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
@@ -937,13 +907,10 @@ void dpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
     fftw_execute_r2r(set->plans_dct2[tk-2],(double*)set->result,
       (double*)set->result);
 
-    //fprintf(stdout,"\n");
     set->result[0] *= 0.5;
     for (j = 0; j < Nk; j++)
     {
       set->result[j] *= norm;
-      /*fprintf(stdout,"result[j] = %le + I*%le\n",creal(set->result[j]),
-        cimag(set->result[j]));*/
     }
 
     memcpy(y,set->result,(k_end+1)*sizeof(complex));
@@ -998,13 +965,6 @@ void fpt_trafo(dpt_set set, const int m, const complex *x, complex *y,
   { 
     return;
   }  
-  
-  /*fprintf(stdout,"fpt_trafo: k_start = %d\n",data->k_start);
-  fprintf(stdout,"fpt_trafo: k_end = %d\n",k_end);
-  fprintf(stdout,"fpt_trafo: Nk = %d\n",Nk);
-  fprintf(stdout,"fpt_trafo: tk = %d\n",tk);
-  fprintf(stdout,"fpt_trafo: k_start_tilde = %d\n",k_start_tilde);
-  fprintf(stdout,"fpt_trafo: k_end_tilde = %d\n",k_end_tilde);*/
 
   if (flags & DPT_FUNCTION_VALUES)
   {
@@ -1199,15 +1159,6 @@ void dpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
     {
       set->result[j] *= norm;
     }
-    //set->result[0] *= 0.5;
-
-    //set->result[0] *= 2.0;
-    
-    /*for (j = 0; j <Nk; j++)
-    {
-        fprintf(stdout,"result[%d] = %le +I*%le\n",j,creal(set->result[j]),
-        cimag(set->result[j]));
-    }*/
 
     fftw_execute_r2r(set->plans_dct3[tk-2],(double*)set->result,
       (double*)set->result);
@@ -1277,12 +1228,6 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
     memcpy(set->result,y,(k_end+1)*sizeof(complex));
   }
   
-  /*fprintf(stdout,"\n");
-  for (k = 0; k <= k_end; k++)
-  {
-    fprintf(stdout,"result[%d] = %le + I*%le\n",k,creal(set->result[k]),cimag(set->result[k]));
-  }*/  
-  
   /* Initialize working arrays. */
   memset(set->work,0U,2*Nk*sizeof(complex));
   
@@ -1305,12 +1250,6 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
     memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(complex));
   }  
 
-  /*fprintf(stdout,"\n");
-  for (k = 0; k < 2*Nk; k++)
-  {
-    fprintf(stdout,"work[%d] = %le + I*%le\n",k,creal(set->work[k]),cimag(set->work[k]));
-  }*/  
-        
   /** Save copy of inpute data for stabilization steps. */
   memcpy(set->result,set->work,2*Nk*sizeof(complex));
   
@@ -1339,9 +1278,6 @@ void fpt_transposed(dpt_set set, const int m, complex *x, const complex *y,
       /* Check if step is stable. */
       if (step->stable)
       {
-        //dpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0], 
-        //  step->a21[0], step->a22[0], step->gamma[0], tau, set);
-
         /* Multiply third and fourth polynomial with matrix U. */
         dpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0], 
           step->a21[0], step->a22[0], step->gamma[0], tau, set);

@@ -13,9 +13,6 @@
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 
-/* Include private FPT header. */
-#include "dpt.h"
-
 /* Include private associated Legendre functions header. */
 #include "legendre.h"
 
