@@ -1,2 +1,2 @@
 # Subdirectories
-SUBDIRS = dpt
+SUBDIRS = fpt

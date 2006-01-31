@@ -78,7 +78,7 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/Makefile \
           examples/highlevel/Makefile \
           examples/radon/Makefile \
-          examples/kernel/dpt/Makefile \
+          examples/kernel/fpt/Makefile \
           examples/kernel/nfft/Makefile \
           examples/lowlevel/nnfft/Makefile \
           examples/lowlevel/nnfft/accuracy/Makefile \
@@ -102,7 +102,7 @@ AC_OUTPUT(Makefile \
           examples/kernel/nfst/Makefile \
           tests/Makefile \
           tests/kernel/Makefile \
-          tests/kernel/dpt/Makefile \
+          tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
 )
