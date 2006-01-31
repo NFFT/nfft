@@ -1,7 +1,7 @@
 /**
  * Library.
  * Includes simple and fast computation of the NFCT (direct problem)
- * authors: D. Potts, S. Kunis, S. Klatt (c) 2002,2003-2005
+ * authors: S. Klatt (c) 2004-2006
  */
 
 #include <stdio.h>
