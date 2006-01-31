@@ -33,7 +33,7 @@ system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
 
 % Visualize the two dimensional phantom. Make a pic
 % and one plot of the N/2 row
-visualize_data('pics/pic_2d', N);
+visualize_data('pics/pic_2d', N, 1, 'Inverse 2d-NFFT - 3. iteration');
 
 % Compute the signal to noise ratio 
 snr('pics/snr_2d.txt');
@@ -41,12 +41,12 @@ snr('pics/snr_2d.txt');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % The same as above but reconstructed with gridding
-% That means an adjoint 2d NFFT
+% That means an adjoint 2d-NFFT
 % The ITER parameter is unused and just for compatibility
-%system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
-%         int2str(N) ' ' int2str(M)  ' 5 1']);
-%visualize_data('pics/pic_gridding', N);
-%snr('pics/snr_gridding.txt');
+system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
+         int2str(N) ' ' int2str(M)  ' 5 1']);
+visualize_data('pics/pic_gridding', N, 2, '2d-NFFT (Gridding)');
+snr('pics/snr_gridding.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

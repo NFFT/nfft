@@ -50,8 +50,6 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
     }
     fclose(fin);
   }
-
-	fclose(fin);
   
   /* get the damping factors */
   if(my_iplan.flags & PRECOMPUTE_DAMP)
