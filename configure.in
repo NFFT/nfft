@@ -59,7 +59,7 @@ AC_OUTPUT(Makefile \
           include/Makefile \
           util/Makefile \
           kernel/Makefile \
-          kernel/dpt/Makefile \
+          kernel/fpt/Makefile \
           kernel/nfft/Makefile \
           lowlevel/Makefile \
           lowlevel/nnfft/Makefile \
