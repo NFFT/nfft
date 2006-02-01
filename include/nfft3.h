@@ -213,46 +213,6 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
 	            int m, unsigned nfft_flags, unsigned fftw_flags);
 
-/**
- * Precomputation for a transform plan.
- *
- * \arg ths The pointer to a nfft plan
- *
- * \author Stefan Kunis, Daniel Potts
- *
- * precomputes equally spaced values of the window function psi
- *
- * if PRE_LIN_PSI is set the application program has to call this routine
- */
-void nfft_precompute_lin_psi(nfft_plan *ths);
-
-/**
- * Precomputation for a transform plan.
- *
- * \arg ths The pointer to a nfft plan
- *
- * \author Stefan Kunis, Daniel Potts
- *
- * precomputes the values of the window function psi in a tensor product form
- *
- * if PRE_PSI is set the application program has to call this routine after
- * setting the nodes x
- */
-void nfft_precompute_psi(nfft_plan *ths);
-
-/**
- * Precomputation for a transform plan.
- *
- * \arg ths The pointer to a nfft plan
- *
- * \author Stefan Kunis, Daniel Potts
- *
- * precomputes the values of the window function psi and their indices in
- * non tensor product form
- *
- * if PRE_FULL_PSI is set the application program has to call this routine
- * after setting the nodes x
- */
 void nfft_precompute_full_psi(nfft_plan *ths);
 
 /**
@@ -874,12 +834,60 @@ void nnfft_trafo(nnfft_plan *ths_plan);
  */
 void nnfft_adjoint(nnfft_plan *ths_plan);
 
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes equally spaced values of the window function psi
+ *
+ * if PRE_LIN_PSI is set the application program has to call this routine
+ */
 void nnfft_precompute_lin_psi(nnfft_plan *ths_plan);
 
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the window function psi in a tensor product form
+ *
+ * if PRE_PSI is set the application program has to call this routine after
+ * setting the nodes x
+ */
 void nnfft_precompute_psi(nnfft_plan *ths_plan);
 
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the window function psi and their indices in
+ * non tensor product form
+ *
+ * if PRE_FULL_PSI is set the application program has to call this routine
+ * after setting the nodes x
+ */
 void nnfft_precompute_full_psi(nnfft_plan *ths_plan);
 
+/**
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the fourier transformed window function, i.e. phi_hut 
+ *
+ * if PRE_PHI_HUT is set the application program has to call this routine
+ * after setting the nodes v
+ */
 void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
 
 /**
@@ -1064,7 +1072,7 @@ typedef struct
 
 
 /**
- * Executes a mri transformation considering field inhomogenities using the 2d1d method, 
+ * Executes a mri transformation considering the field inhomogeneity with the 2d1d method,
  * i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
  *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
@@ -1078,7 +1086,7 @@ typedef struct
 void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *ths);
 
 /**
- * Executes an adjoint mri transformation considering field inhomogenities using the 2d1d method, 
+ * Executes an adjoint mri transformation considering the field inhomogeneity with the 2d1d method,
  * i.e. computes for \f$k \in I_N^2\f$
  * \f[
  *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
@@ -1117,7 +1125,7 @@ void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
 void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths);
 
 /**
- * Executes a mri transformation considering field inhomogenities using the 3d method, 
+ * Executes a mri transformation considering the field inhomogeneity with the 3d method,
  * i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
  *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
@@ -1131,7 +1139,7 @@ void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths);
 void mri_inh_3d_trafo(mri_inh_3d_plan *ths);
 
 /**
- * Executes an adjoint mri transformation considering field inhomogenities using the 3d method, 
+ * Executes an adjoint mri transformation considering the field inhomogeneity with the 3d method,
  * i.e. computes for \f$k \in I_N^2\f$
  * \f[
  *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
