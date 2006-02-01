@@ -10,8 +10,8 @@
 int mpolar_grid(int T, int R, double *x, double *w)
 {
   int t, r;
-  double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
-  //double W=1.0;
+  //double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
+  double W=1.0;
   int R2=2*ceil(sqrt(2)*R/2);
   double xx, yy;
   int M=0;
@@ -23,7 +23,7 @@ int mpolar_grid(int T, int R, double *x, double *w)
       xx = (double)r/R*cos(PI*t/T);
       yy = (double)r/R*sin(PI*t/T);
 
-      if ( (-0.5<=xx) & (xx<0.5) & (-0.5<=yy) & (yy<0.5) )
+      if ( (-0.5-1.0/(double)R<=xx) & (xx<=0.5+1.0/(double)R & (-0.5-1.0/(double)R)<=yy) & (yy<=0.5+1.0/(double)R) )
       {
         x[2*M+0] = xx;
         x[2*M+1] = yy;
@@ -38,13 +38,13 @@ int mpolar_grid(int T, int R, double *x, double *w)
     }
   }
 
-//   W=0.0;
-//   for (t=0; t<M; t++)
-//     W+=w[t];
-//   printf("W=%g\n",W);
-// 
-//   for (t=0; t<M; t++)
-//     w[t]/=W;
+     W=0.0;
+  for (t=0; t<M; t++)
+     W+=w[t];
+  //     printf("W=%g\n",W);
+   
+  for (t=0; t<M; t++)
+   w[t]/=W;
 
   return M;
 }
@@ -135,6 +135,8 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
   w = (double *)malloc(1.25*T*R*(sizeof(double)));
   if (w==NULL)
     return -1;
+/*----- Initialisierung des Zufallszahlengenerators ------------------*/
+  srand((unsigned)time(NULL));
 
   /** init two dimensional NFFT plan */
   M=mpolar_grid(T,R,x,w);
@@ -143,7 +145,8 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT);
+  //  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT );
+   infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
 
   /** init nodes, given samples and weights */
   for(j=0;j<my_nfft_plan.M_total;j++)
@@ -151,7 +154,8 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
     my_nfft_plan.x[2*j+0] = x[2*j+0];
     my_nfft_plan.x[2*j+1] = x[2*j+1];
     my_infft_plan.y[j]    = f[j];
-    my_infft_plan.w[j]    = w[j];
+    my_infft_plan.w[j]    = w[j]; 
+    /* my_infft_plan.w[j]    = 1.0; */
   }
 
   /** precompute psi, the entries of the matrix B */
@@ -164,9 +168,22 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
   if(my_nfft_plan.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_nfft_plan);
 
+
+ /* initialise damping factors */
+ if(my_infft_plan.flags & PRECOMPUTE_DAMP)
+     for(j=0;j<my_infft_plan.mv->N[0];j++)
+     for(k=0;k<my_infft_plan.mv->N[1];k++)
+ 	{
+   my_infft_plan.w_hat[j*my_infft_plan.mv->N[1]+k]=
+     (sqrt(pow(j-my_infft_plan.mv->N[0]/2,2)+pow(k-my_infft_plan.mv->N[1]/2,2))>(my_infft_plan.mv->N[0]/2)?0:1);
+ }
+
+
+
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
-    my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
+    /*   my_infft_plan.f_hat_iter[k]=(double)rand()/(double)RAND_MAX+I*(double)rand()/(double)RAND_MAX; */
+      my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0; 
 
   /** solve the system */
   infft_before_loop(&my_infft_plan);
@@ -182,7 +199,7 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
     for(l=1;l<=max_i;l++)
     {
       infft_loop_one_step(&my_infft_plan);
-      //if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;
+      if (sqrt(my_infft_plan.dot_r_iter)<=1e-5) break;
     }
   }
   printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",
