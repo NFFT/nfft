@@ -1,7 +1,7 @@
 N=128;
 T=2*N;
-R=2*N;
-it=5;
+R=N;
+it=10;
 
 f=phantom(N);
 

@@ -122,6 +122,9 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
   if (w==NULL)
     return -1;
 
+/*----- Initialisierung des Zufallszahlengenerators ------------------*/
+  srand((unsigned)time(NULL));
+
   /** init two dimensional NFFT plan */
   nfft_init_guru(&my_nfft_plan, 2, N, M, n, 4,
                   PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
@@ -137,6 +140,7 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
     my_nfft_plan.x[2*j+0] = x[2*j+0];
     my_nfft_plan.x[2*j+1] = x[2*j+1];
     my_infft_plan.y[j]    = f[j];
+    /*my_infft_plan.w[j]    = 1.0; */
     my_infft_plan.w[j]    = w[j];
   }
 
@@ -152,6 +156,7 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
+    /*  my_infft_plan.f_hat_iter[k]=(double)rand()/(double)RAND_MAX+I*(double)rand()/(double)RAND_MAX; */
     my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
 
   /** solve the system */
@@ -168,7 +173,7 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
     for(l=1;l<=max_i;l++)
     {
       infft_loop_one_step(&my_infft_plan);
-      //if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;
+      if (sqrt(my_infft_plan.dot_r_iter)<=1e-5) break;
     }
   }
   printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",
