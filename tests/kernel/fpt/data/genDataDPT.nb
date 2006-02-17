@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      8141,        203]*)
-(*NotebookOutlinePosition[      8982,        232]*)
-(*  CellTagsIndexPosition[      8938,        228]*)
+(*NotebookOptionsPosition[     12376,        282]*)
+(*NotebookOutlinePosition[     13217,        311]*)
+(*  CellTagsIndexPosition[     13173,        307]*)
 (*WindowFrame->Normal*)
 
 
@@ -95,8 +95,10 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(FunctionValues\  = \ True;\)\)], "Input",
+    \(\(FunctionValues\  = \ False;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]{n\  = \ 
@@ -174,6 +176,83 @@ Cell[BoxData[
           testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorX\\)\\\" is similar to existing symbol \
+\\\"\\!\\(VectorQ\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorY\\)\\\" is similar to existing \
+symbols \\!\\({VectorQ, VectorX}\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\
+\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorYY\\)\\\" is similar to existing \
+symbol \\\"\\!\\(VectorY\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(N::"meprec"\), \(\(:\)\(\ \)\), "\<\"Internal precision limit \
+$MaxExtraPrecision = \\!\\(750.`\\) reached while evaluating RowBox[{\\\\(2\\\
+\\/5\\\\), \\\" \\\", RowBox[{\\\"(\\\", RowBox[{\\\\(-\\\\(\\\\(6491494\\\\ \
+\\\\@2\\\\)\\\\/232724227\\\\)\\\\), \\\"+\\\", \\\\(\[LeftSkeleton] 4 \
+\[RightSkeleton]\\\\), \\\"+\\\", RowBox[{\\\\(1\\\\/4\\\\), \\\" \\\", \
+\\\\((\\\\(\[LeftSkeleton] 1 \[RightSkeleton]\\\\))\\\\), \\\" \\\", RowBox[{\
+\\\"(\\\", RowBox[{\\\\(\\\\(6491494\\\\ \\\\((\\\\(-1\\\\) + \
+\\\\(1\\\\/2\\\\ \\\\(Power[\\\\(\[LeftSkeleton] 2 \
+\[RightSkeleton]\\\\)]\\\\)\\\\))\\\\)\\\\ \\\\@\\\\(2\\\\ \\\\(Power[\\\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\\\)]\\\\)\\\\ \\\\(Power[\\\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\\\)]\\\\)\\\\ \\\\(Plus[\\\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\\\)]\\\\)\\\\)\\\\)\\\\/232724227\\\\), \
+\\\"-\\\", \\\\(\\\\(27490287\\\\ \\\\(\[LeftSkeleton] 1 \
+\[RightSkeleton]\\\\)\\\\ \\\\@\\\\(\[LeftSkeleton] 1 \[RightSkeleton]\\\\)\\\
+\\)\\\\/1866540304\\\\), \\\"-\\\", FractionBox[\\\\(\[LeftSkeleton] 1 \
+\[RightSkeleton]\\\\), RowBox[{\\\"\\\", \\\\(\[LeftSkeleton] 7 \
+\[RightSkeleton]\\\\), \\\"3\\\"}]], \\\"-\\\", \\\\(\\\\(3440459\\\\ \\\\@\\\
+\\(5\\\\ \\\\(\[LeftSkeleton] 1 \[RightSkeleton]\\\\)\\\\ \
+\\\\(\[LeftSkeleton] 1 \[RightSkeleton]\\\\)\\\\ \\\\(Plus[\\\\(\
+\[LeftSkeleton] 2 \[RightSkeleton]\\\\)]\\\\)\\\\)\\\\ \\\\((\\\\(\
+\[LeftSkeleton] 1 \[RightSkeleton]\\\\))\\\\)\\\\)\\\\/2591528992\\\\)}], \
+\\\")\\\"}]}]}], \\\")\\\"}]}]. \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::meprec\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(N::"meprec"\), \(\(:\)\(\ \)\), "\<\"Internal precision limit \
+$MaxExtraPrecision = \\!\\(750.`\\) reached while evaluating \\!\\(2\\/5\\\\ \
+\\(\\((\\(\\(-\\(\\(\\(20159208\\\\ \\@2\\)\\/1370243831\\)\\)\\)\\) + \\(\\(\
+\[LeftSkeleton] 5 \[RightSkeleton]\\)\\))\\)\\)\\). \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::meprec\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(N::"meprec"\), \(\(:\)\(\ \)\), "\<\"Internal precision limit \
+$MaxExtraPrecision = \\!\\(750.`\\) reached while evaluating \\!\\(2\\/13\\\\ \
+\\(\\((\\(14941687\\\\ \\@\\(5\\/7\\)\\)\\/104932736 - \\(26423973\\\\ \
+\\@5\\)\\/326196362 + \\(\\(\[LeftSkeleton] 9 \[RightSkeleton]\\)\\) + \\(\\(\
+\[LeftSkeleton] 7 \[RightSkeleton]\\)\\))\\)\\)\\). \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::meprec\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"stop"\), \(\(:\)\(\ \)\), "\<\"Further output of \
+\\!\\(N :: \\\"meprec\\\"\\) will be suppressed during this calculation. \
+\\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", ButtonStyle->\\\"RefGuideLinkText\
+\\\", ButtonFrame->None, ButtonData:>\\\"General::stop\\\"]\\)\"\>"}]], \
+"Message"],
+
+Cell[BoxData[
+    \($Aborted\)], "Output"]
+}, Open  ]],
+
 Cell[CellGroupData[{
 
 Cell[BoxData[
@@ -237,22 +316,33 @@ Cell[2147, 63, 729, 15, 114, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
 Cell[3045, 88, 297, 6, 43, "Input"],
-Cell[3345, 96, 97, 2, 27, "Input"],
-Cell[3445, 100, 4256, 74, 735, "Input"],
+Cell[3345, 96, 98, 2, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[7726, 178, 60, 1, 42, "Input"],
-Cell[7789, 181, 51, 1, 27, "Output"]
+Cell[3468, 102, 4256, 74, 735, "Input"],
+Cell[7727, 178, 362, 5, 20, "Message"],
+Cell[8092, 185, 364, 5, 20, "Message"],
+Cell[8459, 192, 363, 5, 20, "Message"],
+Cell[8825, 199, 1706, 24, 85, "Message"],
+Cell[10534, 225, 469, 7, 49, "Message"],
+Cell[11006, 234, 543, 8, 73, "Message"],
+Cell[11552, 244, 327, 5, 20, "Message"],
+Cell[11882, 251, 42, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[7877, 187, 57, 1, 42, "Input"],
-Cell[7937, 190, 52, 1, 27, "Output"]
+Cell[11961, 257, 60, 1, 44, "Input"],
+Cell[12024, 260, 51, 1, 27, "Output"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[8026, 196, 44, 1, 42, "Input"],
-Cell[8073, 199, 52, 1, 27, "Output"]
+Cell[12112, 266, 57, 1, 44, "Input"],
+Cell[12172, 269, 52, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12261, 275, 44, 1, 44, "Input"],
+Cell[12308, 278, 52, 1, 27, "Output"]
 }, Open  ]]
 }
 ]

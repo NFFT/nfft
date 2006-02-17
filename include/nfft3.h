@@ -1990,9 +1990,9 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * members. In the following, we indicate read and write access by \c read and 
  * \c write. The public members are structured as follows:
  * \li \c N_total (\c read) 
- *        The total number of spherical Fourier coefficients. If the 
- *        bandwidth is \f$N \in \mathbb{N}_0\f$, the total number of spherical 
- *        Fourier coefficients is \c N_total \f$= (N+1)^2\f$.
+ *        The total number of components in \c f_hat. If the bandwidth is 
+ *        \f$N \in \mathbb{N}_0\f$, the total number of components in \c f_hat
+ *        is \c N_total \f$ = (2N+2)^2\f$.
  * \li \c M_total (\c read)
  *        the total number of samples \f$M\f$
  * \li \c f_hat (\c read-write) 
@@ -2029,14 +2029,12 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *   specified maximum bandwidth.
  * \li By default, the NDSFT transforms (see \ref ndsft_trafo, \ref nfsft_trafo) 
  *   are allowed to destroy the input \c f_hat while the input \c x is 
- *   preserved. The desired behaviour can be assured by using the \ref 
- *   NFSFT_PRESERVE_F_HAT, \ref NFSFT_PRESERVE_X, \ref NFSFT_PRESERVE_F and 
- *   \ref NFSFT_DESTROY_F_HAT,\ref NFSFT_DESTROY_X,\ref NFSFT_DESTROY_F 
+ *   preserved. On the contrary, the adjoint NDSFT transforms 
+ *   (see \ref ndsft_adjoint, \ref nfsft_adjoint) do not destroy the input 
+ *   \c f and \c x by default. The desired behaviour can be assured by using the 
+ *   \ref NFSFT_PRESERVE_F_HAT, \ref NFSFT_PRESERVE_X, \ref NFSFT_PRESERVE_F and 
+ *   \ref NFSFT_DESTROY_F_HAT, \ref NFSFT_DESTROY_X, \ref NFSFT_DESTROY_F 
  *   flags.
- * \li By default, the adjoint NDSFT transforms (see \ref ndsft_adjoint, 
- *   \ref nfsft_adjoint) do not destroy the input \c f and \c x. The desired 
- *   behaviour can be assured by using the \ref NFSFT_PRESERVE_INPUT and 
- *   \ref NFSFT_DESTROY_INPUT flags.
  */
 
 /* Planner flags */
@@ -2178,7 +2176,7 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  * \see nfsft_init_guru
  * \author Jens Keiner
  */
-#define NFSFT_DESTROY_HAT    (1U << 10)
+#define NFSFT_DESTROY_F_HAT    (1U << 10)
 
 /**
  * If this flag is set, it is explicitely allowed that during an execution of 
@@ -2245,9 +2243,10 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 #define NFSFT_BANDWIDTH_WINDOW       (1U << 15)
 
 /**
- * This flag is for internal use only!
- *
- * \warning Don't use this flag!
+ * If this flag is set, the transforms \ref nfsft_adjoint and 
+ * \ref ndsft_adjoint set all unused entries in \c f_hat not corresponding to
+ * spherical Fourier coefficients to zero. 
+ * 
  * \author Jens Keiner
  */ 
 #define NFSFT_ZERO_F_HAT             (1U << 16)
@@ -2441,6 +2440,7 @@ void nfsft_finalize(nfsft_plan* plan);
                                              values at Chebyshev nodes rather 
                                              than Chebyshev coefficients.     */
 #define FPT_ODD_EVEN_SYMMETRY (1U << 6) /**< TODO complete comment.           */   
+#define FPT_NEW_STABILIZATION (1U << 7) /**< TODO complete comment.           */   
                                              
 /* Data structures */
 typedef struct fpt_set_s_ *fpt_set;    /**< A set of precomputed data for a set 

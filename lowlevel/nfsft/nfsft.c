@@ -241,7 +241,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+2)(2N+2) */
-  plan->N_total = (2*plan->NPT+2)*(2*plan->N+2);
+  plan->N_total = (2*plan->N+2)*(2*plan->N+2);
 
   /* Allocate memory for auxilliary array of spherical Fourier coefficients, 
    * if neccesary. */
@@ -686,6 +686,16 @@ void ndsft_adjoint(nfsft_plan *plan)
       }
     }
   }
+    
+  /* Set unused coefficients to zero. */
+  if (plan->flags & NFSFT_ZERO_F_HAT)
+  {
+    for (n = -plan->N; n <= plan->N+1; n++)
+    {
+      memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,
+        (plan->N+1+abs(n))*sizeof(complex));
+    }
+  }   
 }
 
 void nfsft_trafo(nfsft_plan *plan)
@@ -881,8 +891,8 @@ void nfsft_adjoint(nfsft_plan *plan)
     {
       for (n = -plan->N; n <= plan->N+1; n++)
       {
-        memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,(plan->N+1+abs(n))*
-          sizeof(complex));
+        memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,
+          (plan->N+1+abs(n))*sizeof(complex));
       }
     }  
   } 
