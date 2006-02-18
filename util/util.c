@@ -12,7 +12,9 @@
 #include <math.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <malloc.h>
+#ifdef HAVE_MALLOC_H
+  #include <malloc.h>
+#endif
 //#include <time.h>
 
 
@@ -30,12 +32,19 @@ double second()
   return  foo  + (foo1/1000000.0);      /* milliseconds                      */
 }
 
+#ifdef HAVE_MALLOC_H
 int total_used_memory()
 {
   struct mallinfo m;
   m=mallinfo();
   return m.hblkhd + m.uordblks;
 }
+#else
+int total_used_memory()
+{
+  return 0;
+}
+#endif
 
 int int_2_pow(int a)
 {
@@ -103,7 +112,8 @@ void next_power_of_2_exp(int N, int *N2, int *t)
 
   if (N == 0)
   {
-    return 1;
+    *N2 = 1;
+    t = 0;
   }
   else
   {

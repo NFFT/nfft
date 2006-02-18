@@ -93,6 +93,7 @@ AC_OUTPUT(Makefile \
           examples/highlevel/fastgauss/Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \
+          examples/fastsumS2/Makefile \
           tests/Makefile \
           tests/kernel/Makefile \
           tests/kernel/fpt/Makefile \

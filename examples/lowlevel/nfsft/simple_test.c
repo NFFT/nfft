@@ -5,21 +5,21 @@
 #include <stdlib.h>
 
 /* Include NFFT3 library header. */
-#include "util.h"
+#include "nfft3.h"
 
 /* Include NFFT 3 utilities headers. */
-#include "nfft3.h"
+#include "util.h"
 
 void simple_test_nfsft()
 {
-  int j;                      /**< Index for nodes                            */
-  int k;                      /**< Index for freqency degree                  */
-  int n;                      /**< Index for freqency degree                  */
-  nfsft_plan plan;            /**< Plan for the nfft                          */
-  const int N = 512;            /**< The bandwidth M                            */
-  const int M = 512;            /**< The number of nodes M                      */
+  int j;                      /**< Index for nodes                                 */
+  int k;                      /**< Index for freqency degree                       */
+  int n;                      /**< Index for freqency degree                       */
+  nfsft_plan plan;            /**< Plan for the nfft                               */
+  const int N = 5;            /**< The bandwidth M                                 */
+  const int M = 5;            /**< The number of nodes M                           */
   const int THRESHOLD = 1000; /**< The threshold for the NFSFT stabilization 
-                                   procedure.                                 */
+                                   procedure.                                      */
 
   /* Init a transform plan using the guru interface. All arrays for input and 
    * output variables are allocated by nfsft_init_guru(). Computations are 
@@ -41,6 +41,11 @@ void simple_test_nfsft()
   /* Precompute. */
   nfsft_precompute(N,THRESHOLD,0U);
 
+  for (k = 0; k < plan.N_total; k++)
+  {
+     plan.f_hat[k] = 0.0; 
+  }
+
   /* Init pseudo random Fourier coefficients and display them. */
   for (k = 0; k <= plan.N; k++)
   {
@@ -50,16 +55,27 @@ void simple_test_nfsft()
         ((double)rand())/RAND_MAX - 0.5 +  I*(((double)rand())/RAND_MAX - 0.5);
     }
   }
-
+  
+  /*for (k = 0; k < plan.N_total; k++)
+  {
+     fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
+       cimag(plan.f_hat[k])); 
+  }*/
+  
   //vpr_complex(plan.f_hat,plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /* Compute direct transformation and display the result. */
-  ndsft_trafo(&plan);
+  //ndsft_trafo(&plan);
   //vpr_complex(plan.f,plan.M_total,"ndsft, vector f"); 
 
   /* Compute approximate transformation and display the result. */
-  nfsft_trafo(&plan);
-  //vpr_complex(plan.f,plan.M_total,"nfsft, vector f");
+  nfsft_trafo(&plan);  
+  vpr_complex(plan.f,plan.M_total,"nfsft, vector f");
+  /*for (k = 0; k < plan.N_total; k++)
+  {
+     fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
+       cimag(plan.f_hat[k])); 
+  }*/
 
   /* Compute direct adjoint transformation and display the result. */
   ndsft_adjoint(&plan);

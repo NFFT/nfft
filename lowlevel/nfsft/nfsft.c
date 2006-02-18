@@ -86,6 +86,9 @@ inline void c2e(nfsft_plan *plan)
   int lowe;          /**< Lower loop bound for even terms                     */
   int upe;           /**< Upper loop bound for even terms                     */
   
+  /* Set the first row to order to zero since it is unused. */
+  memset(plan->f_hat_intern,0U,(2*plan->N+2)*sizeof(complex));
+
   /* Determine lower and upper bounds for loop processing even terms. */
   lowe = -plan->N + (plan->N%2);
   upe = -lowe;
@@ -102,6 +105,9 @@ inline void c2e(nfsft_plan *plan)
       *xp *= 0.5;
       *xm-- = *xp++;
     }
+    /* Set the first coefficient in the array corresponding to this order to zero 
+     * since it is unused. */
+    *xm = 0.0; 
   }
   
   /* Determine lower and upper bounds for loop processing odd terms. */
@@ -116,7 +122,10 @@ inline void c2e(nfsft_plan *plan)
      * old coefficients $\left(b_k^n\right)_{k=0,\ldots,M-1}$ incorporating
      * the additional term \f$\sin \vartheta\f$. */
     plan->f_hat_intern[NFSFT_INDEX(0,n,plan)] *= 2.0;
-    xp = &(plan->f_hat_intern[NFSFT_INDEX(-plan->N,n,plan)]);
+    xp = &(plan->f_hat_intern[NFSFT_INDEX(-plan->N-1,n,plan)]);
+    /* Set the first coefficient in the array corresponding to this order to zero 
+     * since it is unused. */
+    *xp++ = 0.0; 
     xm = &(plan->f_hat_intern[NFSFT_INDEX(plan->N,n,plan)]);
     last = *xm;
     *xm = 0.5 * I * (0.5*xm[-1]);
@@ -237,7 +246,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   
   /* Calculate the next greater power of two with respect to the bandwidth N and
    * the corresponding exponent. */
-  next_power_of_2_exp(plan->N,&plan->NPT,&plan->t); 
+  //next_power_of_2_exp(plan->N,&plan->NPT,&plan->t); 
   
   /* Save length of array of Fourier coefficients. Owing to the data layout the 
    * length is (2N+2)(2N+2) */
@@ -378,7 +387,6 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.alpha = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
-      
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
@@ -407,6 +415,13 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
  
 void nfsft_forget()
 {
+  /* Check if wisdom has been initialised. */
+  if (wisdom.initialized == false)
+  {
+    /* Nothing to do. */
+    return;
+  }
+  
   /* Check, if precomputation for direct algorithms has been performed. */ 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
@@ -781,6 +796,7 @@ void nfsft_trafo(nfsft_plan *plan)
    
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan); 
+
     
     /* Check, which nonequispaced discrete Fourier transform algorithm should 
      * be used. 

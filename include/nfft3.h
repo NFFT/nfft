@@ -2261,7 +2261,13 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  *   (N+2)(N-n+1)+N+k+1
  * \f]
  */
-#define NFSFT_INDEX(k,n,plan)        (2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1
+#define NFSFT_INDEX(k,n,plan)        ((2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1)
+
+/**
+ * This helper macro expands to the logical size of a spherical Fourier coefficients 
+ * array for a bandwidth N.
+ */
+#define NFSFT_F_HAT_SIZE(N)          ((2*N+2)*(2*N+2))
   
 /** Structure for a transform plan */
 typedef struct nfsft_plan_
@@ -2270,23 +2276,23 @@ typedef struct nfsft_plan_
   MACRO_MV_PLAN(complex);          
 
   /* Public members */
-  int N;                              /**< the bandwidth \f$N\f$              */
+  int N;                              /**< the bandwidth \f$N\f$                   */
   double *x;                          /**< the nodes \f$\mathbf{x}(m) = 
                                            \left(x_1,x_2\right) \in 
                                            [-\frac{1}{2},\frac{1}{2}) \times 
                                            [0,\frac{1}{2}]\f$ for 
                                            \f$m=0,\ldots,M-1\f$,\f$M \in 
-                                           \mathbb{N},\f$                     */
+                                           \mathbb{N},\f$                          */
   
   /* Private members */
-  int NPT;                            /**< the next greater power of two with
-                                           respect to \f$N\f$                 */
+  /*int NPT;*/                        /**< the next greater power of two with
+                                           respect to \f$N\f$                      */
   int t;                              /**< the logaritm of NPT with 
-                                           respect to the basis 2             */
-  unsigned int flags;                 /**< the planner flags                  */
-  nfft_plan plan_nfft;                /**< the internal NFFT plan             */
+                                           respect to the basis 2                  */
+  unsigned int flags;                 /**< the planner flags                       */
+  nfft_plan plan_nfft;                /**< the internal NFFT plan                  */
   complex *f_hat_intern;              /**< Internally used pointer to 
-                                           spherical Fourier coefficients     */
+                                           spherical Fourier coefficients          */
 } nfsft_plan;
 
 /**

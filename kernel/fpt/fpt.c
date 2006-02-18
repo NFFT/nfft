@@ -468,7 +468,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   int k;  
   
   /* Allocate memory for new DPT set. */
-  fpt_set_s *set = malloc(sizeof(fpt_set_s));
+  fpt_set_s *set = (fpt_set*) malloc(sizeof(fpt_set_s));
   
   /* Save parameters in structure. */
   set->flags = flags;
