@@ -6,4 +6,4 @@ noinst_PROGRAMS = fastsumS2
 
 ## The source files.
 fastsumS2_SOURCES = fastsumS2.c
-fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3 -lgsl
+fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
