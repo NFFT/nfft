@@ -466,18 +466,21 @@ void nfsft_finalize(nfsft_plan *plan)
   /* De-allocate memory for spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
+    fprintf(stderr,"deallocating f_hat\n");
     free(plan->f_hat);
   }
   
   /* De-allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
+    fprintf(stderr,"deallocating f\n");
     free(plan->f);
   }
   
   /* De-allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
+    fprintf(stderr,"deallocating x\n");
     free(plan->x);
   }  
 }
