@@ -85,7 +85,7 @@ inline double innerProduct(const double phi1, const double theta1,
  */
 inline double poissonKernel(const double x, const double h)
 {
- 	return (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);
+   return (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);
 }
 
 /**
@@ -114,7 +114,7 @@ inline double singularityKernel(const double x, const double h)
  */
 inline double locSuppKernel(const double x, const double h, const double lambda)
 {
- 	return (x<=h)?(0.0):(pow((x-h),lambda));
+   return (x<=h)?(0.0):(pow((x-h),lambda));
 }
 
 /**
@@ -129,7 +129,7 @@ inline double locSuppKernel(const double x, const double h, const double lambda)
  */
 inline double gaussianKernel(const double x, const double sigma)
 {
- 	return exp(2*sigma*(x-1));
+   return exp(2*sigma*(x-1));
 }
 
 /**
@@ -142,56 +142,59 @@ inline double gaussianKernel(const double x, const double sigma)
  */
 int main (int argc, char **argv)
 {
-  double **p;                  /**< The array containing the parameter sets for the
-                                    kernels.                                       */
+  double **p;                  /**< The array containing the parameter sets for
+                                    the kernels.                              */
   int *m;                      /**< The array containing the cut-off degrees
-                                    \f$M\f$.                                       */
-  int **ld;                    /**< The array containing the numbers of source and
-                                    target nodes, \f$L\f$ and \f$D\f$,
-                                    respectively.                                  */
-  int ip;                      /**< Index variable for p                           */
-  int im;                      /**< Index variable for m                           */
-  int ild;                     /**< Index variable for l                           */
-  int ip_max;                  /**< The maximum index for p                        */
-  int im_max;                  /**< The maximum index for m                        */
-  int ild_max;                 /**< The maximum index for l                        */
-  int tc_max;                  /**< The number of testcases                        */
+                                    \f$M\f$.                                  */
+  int **ld;                    /**< The array containing the numbers of source
+                                    and target nodes, \f$L\f$ and \f$D\f$,
+                                    respectively.                             */
+  int ip;                      /**< Index variable for p                      */
+  int im;                      /**< Index variable for m                      */
+  int ild;                     /**< Index variable for l                      */
+  int ip_max;                  /**< The maximum index for p                   */
+  int im_max;                  /**< The maximum index for m                   */
+  int ild_max;                 /**< The maximum index for l                   */
+  int tc_max;                  /**< The number of testcases                   */
   int m_max;                   /**< The maximum cut-off degree \f$M\f$ for the
-                                    current dataset                                */
-  int l_max;                   /**< The maximum number of source nodes \f$L\f$ for
-                                    the current dataset                            */
-  int d_max;                   /**< The maximum number of target nodes \f$D\f$ for
-                                    the current dataset                            */
-	long ld_max_prec;            /**< */
-	long l_max_prec;             /**< */
-  int tc;                      /**< Index variable for testcases.                  */
-  int kt;                      /**< The kernel type                                */
+                                    current dataset                           */
+  int l_max;                   /**< The maximum number of source nodes \f$L\f$
+                                    for the current dataset                   */
+  int d_max;                   /**< The maximum number of target nodes \f$D\f$
+                                    for the current dataset                   */
+  int ipp_max;                 /**< */
+  int ipp;                     /**< */
+  long ld_max_prec;            /**< */
+  long l_max_prec;             /**< */
+  int tc;                      /**< Index variable for testcases.             */
+  int kt;                      /**< The kernel type                           */
   int cutoff;                  /**< */
   double threshold;            /**< */
   int n_max;                   /**< Next greater power of two with respect to
-                                    m_max                                          */
+                                    m_max                                     */
   double t_d;                  /**< */
   double t_dp;                 /**< */
   double t_fd;                 /**< */
   double t_f;                  /**< */
   double nfactor;              /**< */
   double temp;                 /**< */
-	double err_f;                /**< */
+  double err_f;                /**< */
   double err_fd;               /**< */
-	double t;                    /**< */
-	int precompute = NO;         /**< */
-	complex *ptr;                /**< */
+  double t;                    /**< */
+  int precompute = NO;         /**< */
+  complex *ptr;                /**< */
   double* steed;               /**< */
-	complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}^{L-1}\f$ */
-  complex *f_hat;              /**< The spherical Fourier coefficients             */
-  complex *a;                  /**< The Fourier-Legendre coefficients              */
-  double *xi;                  /**< Target nodes                                   */
-  double *eta;                 /**< Source nodes                                   */
-  complex *f_m;                /**< Approximate function values                    */
-  complex *f;                  /**< Exact function values                          */
+  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}
+                                    ^{L-1}\f$                                 */
+  complex *f_hat;              /**< The spherical Fourier coefficients        */
+  complex *a;                  /**< The Fourier-Legendre coefficients         */
+  double *xi;                  /**< Target nodes                              */
+  double *eta;                 /**< Source nodes                              */
+  complex *f_m;                /**< Approximate function values               */
+  complex *f;                  /**< Exact function values                     */
   complex *prec;               /**< */
-  nfsft_plan plan;             /**< NFSFT plan                                     */
-  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                             */
+  nfsft_plan plan;             /**< NFSFT plan                                */
+  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                        */
   int i;                       /** */
   int j;                       /** */
   int k;                       /** */
@@ -200,16 +203,17 @@ int main (int argc, char **argv)
   int l;                       /** */
   int use_nfsft;               /** */
   int use_nfft;                /** */
+  int use_fpt;                 /** */
   int nsymbols;                /** */
-	long index;                  /** */
-	int rinc;                    /** */
+  long index;                  /** */
+  int rinc;                    /** */
   FILE *file_tex;              /** */
   FILE *file_dat;              /** */
   FILE *file_gaussian;         /** */
   char filename_tex[100];      /** */
   char filename_dat[100];      /** */
   char filename_gaussian[100]; /** */
-	double constant;             /** */
+  double constant;             /** */
 
   /* Read number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -227,39 +231,43 @@ int main (int argc, char **argv)
 
     /* Check if fast transform shall be used. */
     fscanf(stdin,"nfsft=%d\n",&use_nfsft);
-    fprintf(file_dat,"nfsft=%d\n",use_nfsft);
+    fprintf(file_dat,"%d\n",use_nfsft);
     if (use_nfsft != NO)
-  	  {
+      {
       fprintf(stdout,"  NFSFT = yes\n");
       /* Check if the NFFT shall be used. */
       fscanf(stdin,"nfft=%d\n",&use_nfft);
-      fprintf(file_dat,"nfft=%d\n",use_nfsft);
+      fprintf(file_dat,"%d\n",use_nfsft);
       fprintf(stdout,"  NFFT = %d\n",use_nfft);
-		 	if (use_nfft != NO)
+       if (use_nfft != NO)
       {
         fprintf(stdout,"  NFFT = yes\n");
         /* Read the cut-off parameter. */
         fscanf(stdin,"cutoff=%d\n",&cutoff);
-        fprintf(file_dat,"cutoff=%d\n",cutoff);
+        fprintf(file_dat,"%d\n",cutoff);
         fprintf(stdout,"  Cutoff = %d\n",cutoff);
-			}
+      }
       else
       {
         fprintf(stdout,"  NFFT = no\n");
         cutoff = 3;
       }
+      /* Check if the FPT shall be used. */
+      fscanf(stdin,"fpt=%d\n",&use_fpt);
+      fprintf(file_dat,"%d\n",use_fpt);
+      fprintf(stdout,"  FPT = %d\n",use_fpt);
       /* Read the threshold. */
       fscanf(stdin,"threshold=%lf\n",&threshold);
-      fprintf(file_dat,"threshold=%lf\n",threshold);
+      fprintf(file_dat,"%lf\n",threshold);
       fprintf(stdout,"  Threshold = %E\n",threshold);
-  	  }
-	  else
-	  {
+      }
+    else
+    {
       /* Set dummy values. */
       cutoff = 3;
-			threshold = 1000000000000.0;
+      threshold = 1000000000000.0;
       fprintf(stdout,"  NFSFT = no\n");
-	  }
+    }
 
     /* Initialize bandwidth bound. */
     m_max = 0;
@@ -268,19 +276,20 @@ int main (int argc, char **argv)
     /* Initialize target node bound. */
     d_max = 0;
 
-		ld_max_prec = 0;
-		l_max_prec = 0;
+    ld_max_prec = 0;
+    l_max_prec = 0;
 
     /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP
      * or KT_GAUSSIAN. */
     fscanf(stdin,"kernel=%d\n",&kt);
-    fprintf(file_dat,"kernel=%d\n",kt);
+    fprintf(file_dat,"%d\n",kt);
 
     /* Print out the kernel type. */
     fprintf(stdout,"  Kernel type: %d\n",kt);
 
     /* Read the number of parameter sets. */
     fscanf(stdin,"parameter_sets=%d\n",&ip_max);
+    fprintf(file_dat,"%d\n",ip_max);
 
     /* Allocate memory for pointers to parameter sets. */
     p = (double**) malloc(ip_max*sizeof(double*));
@@ -288,60 +297,37 @@ int main (int argc, char **argv)
     /* We now read in the parameter sets. */
     fprintf(stdout,"  Parameter sets: %d\n",ip_max);
 
-    switch (kt)
+    fscanf(stdin,"parameters=%d\n",&ipp_max);
+    fprintf(file_dat,"%d\n",ipp_max);
+    fprintf(stdout,"  Parameters=%d\n",ipp_max);
+
+    for (ip = 0; ip < ip_max; ip++)
     {
-      case KT_ABEL_POISSON:
-      case KT_SINGULARITY:
-        /* Abel-Poisson or singularity kernel */
-        for (ip = 0; ip < ip_max; ip++)
-        {
-          p[ip] = (double*) malloc(1*sizeof(double));
-          /* Read parameter h. */
-          fscanf(stdin,"h=%lf\n",&p[ip][0]);
-          /* Print out parameter h. */
-          fprintf(stdout,"    h = %lf\n",p[ip][0]);
-        }
-			  break;
-      case KT_GAUSSIAN:
-        /* Spherical Gaussian kernel */
-        for (ip = 0; ip < ip_max; ip++)
-        {
-          p[ip] = (double*) malloc(1*sizeof(double));
-          /* Read parameter sigma. */
-          fscanf(stdin,"sigma=%lf\n",&p[ip][0]);
-          /* Print out parameter sigma. */
-          fprintf(stdout,"    sigma = %lf\n",p[ip][0]);
-        }
-        break;
-      case KT_LOC_SUPP:
-        /* Locally supported kernel */
-        for (ip = 0; ip < ip_max; ip++)
-        {
-          p[ip] = (double*) malloc(2*sizeof(double));
-          /* Read parameter h. */
-          fscanf(stdin,"h=%lf ",&p[ip][0]);
-          /* Read parameter lambda. */
-          fscanf(stdin,"lambda=%lf\n",&p[ip][1]);
-          /* Print out parameters h and lambda. */
-          fprintf(stdout,"    h = %lf, lambda = %lf\n",p[ip][0],p[ip][1]);
-        }
-        break;
-    };
+      p[ip] = (double*) malloc(ipp_max*sizeof(double));
+      for (ipp = 0; ipp < ipp_max; ipp++)
+      {
+        /* Read parameter. */
+        fscanf(stdin,"%lf\n",&p[ip][ipp]);
+        fprintf(file_dat,"%lf\n",p[ip][ipp]);
+        /* Print out parameter. */
+        fprintf(stdout,"    %lf\n",p[ip][ipp]);
+      }
+    }
 
     /* Read number of cut-off degrees. */
     fscanf(stdin,"bandwidths=%d\n",&im_max);
     m = (int*) malloc(im_max*sizeof(int));
 
     /* Print out number of cut-off degrees. */
-    fprintf(file_dat,"bandwidths=%d\n",im_max);
+    fprintf(file_dat,"%d\n",im_max);
     fprintf(stdout,"  Bandwidths: %d\n",im_max);
 
     /* Read cut-off degrees. */
     for (im = 0; im < im_max; im++)
     {
       /* Read cut-off degree. */
-      fscanf(stdin,"M=%d\n",&m[im]);
-      fprintf(file_dat,"M=%d\n",m[im]);
+      fscanf(stdin,"%d\n",&m[im]);
+      fprintf(file_dat,"%d\n",m[im]);
       m_max = MAX(m_max,m[im]);
       /* Print out cut-off degree. */
       fprintf(stdout,"    M = %d\n",m[im]);
@@ -349,52 +335,53 @@ int main (int argc, char **argv)
 
     /* Read number of node specifications. */
     fscanf(stdin,"node_sets=%d\n",&ild_max);
-    fprintf(file_dat,"node_sets=%d\n",ild_max);
+    fprintf(file_dat,"%d\n",ild_max);
     ld = (int**) malloc(ild_max*sizeof(int*));
 
     /* Print out number of node specifications. */
     fprintf(stdout,"  Nodes: %d\n",ild_max);
 
-  	  ld_max_prec = 0;
-  	  l_max_prec = 0;
+      ld_max_prec = 0;
+      l_max_prec = 0;
     for (ild = 0; ild < ild_max; ild++)
     {
       ld[ild] = (int*) malloc(5*sizeof(int));
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
-      fprintf(file_dat,"L=%d\n",ld[ild][0]);
+      fprintf(file_dat,"%d\n",ld[ild][0]);
       l_max = MAX(l_max,ld[ild][0]);
       /* Read number of target nodes. */
       fscanf(stdin,"D=%d ",&ld[ild][1]);
-      fprintf(file_dat,"D=%d\n",ld[ild][1]);
+      fprintf(file_dat,"%d\n",ld[ild][1]);
       d_max = MAX(d_max,ld[ild][1]);
       /* Determine whether direct and fast algorithm shall be compared. */
       fscanf(stdin,"compare=%d ",&ld[ild][2]);
-      fprintf(file_dat,"compare=%d\n",&ld[ild][2]);
+      fprintf(file_dat,"%d\n",ld[ild][2]);
       /* Print out parameters. */
-      fprintf(stdout,"    L = %d, D = %d, compare = %d",ld[ild][0],ld[ild][1],ld[ild][2]);
-			if (ld[ild][2] == YES)
+      fprintf(stdout,"    L = %d, D = %d, compare = %d",ld[ild][0],ld[ild][1],
+        ld[ild][2]);
+      if (ld[ild][2] == YES)
       {
         /* Read whether the precomputed version shall also be used. */
         fscanf(stdin,"precomputed=%d\n",&ld[ild][3]);
-        fprintf(file_dat,"precomputed=%d\n",ld[ild][3]);
+        fprintf(file_dat,"%d\n",ld[ild][3]);
         /* Read the number of repetitions over which measurements are averaged. */
         fscanf(stdin,"repetitions=%d\n",&ld[ild][4]);
-        fprintf(file_dat,"repetitions=%d\n",ld[ild][4]);
-        fprintf(stdout,", precomputed = %d, %repetitions = %d",ld[ild][3],ld[ild][4]);
-  			  if (ld[ild][3] == YES)
+        fprintf(file_dat,"%d\n",ld[ild][4]);
+        fprintf(stdout,", precomputed = %d, repetitions = %d",ld[ild][3],ld[ild][4]);
+          if (ld[ild][3] == YES)
         {
-				  ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
-				  l_max_prec = MAX(l_max_prec,ld[ild][0]);
-			    precompute = YES;
-			  }
-			}
-			else
-			{
+          ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
+          l_max_prec = MAX(l_max_prec,ld[ild][0]);
+          precompute = YES;
+        }
+      }
+      else
+      {
         /* Set default value for the number of repetitions. */
-			  ld[ild][4] = 1;
-			}
-			fprintf(stdout,"\n");
+        ld[ild][4] = 1;
+      }
+      fprintf(stdout,"\n");
     }
     fclose(file_dat);
 
@@ -416,9 +403,9 @@ int main (int argc, char **argv)
     f_m = (complex*) malloc(d_max*sizeof(complex));
     f = (complex*) malloc(d_max*sizeof(complex));
     if (precompute == YES)
-		{
-		  prec = (complex*) malloc(ld_max_prec*sizeof(complex));
-		}
+    {
+      prec = (complex*) malloc(ld_max_prec*sizeof(complex));
+    }
 
     /* Generate random source nodes and weights. */
     for (l = 0; l < l_max; l++)
@@ -441,12 +428,12 @@ int main (int argc, char **argv)
     }
 
     //sprintf(filename_tex,"testcase%d.tex",tc);
-    //fprintf(stderr,"reached: m_max = %d\n",m_max);
-    //fflush(stderr);
+    fprintf(stderr,"reached: m_max = %d, threshold = %lf\n",m_max,threshold);
+    fflush(stderr);
 
     nfsft_precompute(m_max,threshold,0U);
-    //fprintf(stderr,"reached2!\n");
-    //fflush(stderr);
+    fprintf(stderr,"reached2!\n");
+    fflush(stderr);
 
     for (ip = 0; ip < ip_max; ip++)
     {
@@ -468,39 +455,39 @@ int main (int argc, char **argv)
       }
 
       /* Kernel coeffcients up to m_max */
-			switch (kt)
-			{
+      switch (kt)
+      {
          case KT_ABEL_POISSON:
-					for (k = 0; k <= m_max; k++)
-					{
+          for (k = 0; k <= m_max; k++)
+          {
             //fprintf(stderr,"a[%d] = %2.8lf\n",k,SYMBOL_ABEL_POISSON(k,p[ip][0]));
-						a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);
-					}
-					break;
-				case KT_SINGULARITY:
-					for (k = 0; k <= m_max; k++)
-					{
-						a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
-					}
-					break;
-				case KT_LOC_SUPP:
-					for (k = 0; k <= m_max; k++)
-					{
-						if (k == 0)
-						{
-							a[k] = 1.0;
-						}
-						else if (k == 1)
-						{
-							a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
-						}
-						else
-						{
-							a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);
-						}
-					}
-					break;
-				case KT_GAUSSIAN:
+            a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);
+          }
+          break;
+        case KT_SINGULARITY:
+          for (k = 0; k <= m_max; k++)
+          {
+            a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
+          }
+          break;
+        case KT_LOC_SUPP:
+          for (k = 0; k <= m_max; k++)
+          {
+            if (k == 0)
+            {
+              a[k] = 1.0;
+            }
+            else if (k == 1)
+            {
+              a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
+            }
+            else
+            {
+              a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] - (k-p[ip][1]-2)*a[k-2]);
+            }
+          }
+          break;
+        case KT_GAUSSIAN:
           /*steed = (double*) malloc(m_max*sizeof(double));
           gsl_sf_bessel_il_scaled_array(m_max,2*p[ip][0],steed);
           for (k = 0; k <= m_max; k++)
@@ -509,7 +496,7 @@ int main (int argc, char **argv)
           }
           free(steed);*/
           sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
-    					 fprintf(stderr,"filename = %s\n",filename_gaussian);
+               fprintf(stderr,"filename = %s\n",filename_gaussian);
           file_gaussian = fopen(filename_gaussian,"r");
           if (file_gaussian != NULL)
           {
@@ -559,139 +546,139 @@ int main (int argc, char **argv)
                   {
                     case KT_ABEL_POISSON:
                       *ptr++ = poissonKernel(temp,p[ip][0]);
-										 break;
-									 case KT_SINGULARITY:
-										 *ptr++ = singularityKernel(temp,p[ip][0]);
-										 break;
-									 case KT_LOC_SUPP:
-										 *ptr++ = locSuppKernel(temp,p[ip][0],p[ip][1]);
-										 break;
-									 case KT_GAUSSIAN:
-										 *ptr++ = gaussianKernel(temp,p[ip][0]);
+                     break;
+                   case KT_SINGULARITY:
+                     *ptr++ = singularityKernel(temp,p[ip][0]);
+                     break;
+                   case KT_LOC_SUPP:
+                     *ptr++ = locSuppKernel(temp,p[ip][0],p[ip][1]);
+                     break;
+                   case KT_GAUSSIAN:
+                     *ptr++ = gaussianKernel(temp,p[ip][0]);
                       break;
-								 }
-							 }
-							 ptr += rinc;
-						 }
-						 ptr = prec;
-						 rinc = l_max_prec-ld[ild][0];
-						 if (kt == KT_LOC_SUPP)
-						 {
-						   constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-								 f[d] = 0.0;
-								 for (l = 0; l < ld[ild][0]; l++)
-								 {
-							     f[d] += b[l]*(*ptr++);
-								 }
-								 f[d] *= constant;
-								 ptr += rinc;
-							 }
-							 t_dp += second() - t;
-						 }
-						 else
-						 {
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-								 f[d] = 0.0;
-								 for (l = 0; l < ld[ild][0]; l++)
-								 {
-									 f[d] += b[l]*(*ptr++);
-								 }
-								 ptr += rinc;
-							 }
-							 t_dp += second() - t;
-						 }
-					 }
-					 t_dp = t_dp/((double)ld[ild][4]);
-					 printf("      t_dp = %f\n",t_dp);
-		  		 }
-				 else
-				 {
-				   t_dp = -1.0;
-				 }
+                 }
+               }
+               ptr += rinc;
+             }
+             ptr = prec;
+             rinc = l_max_prec-ld[ild][0];
+             if (kt == KT_LOC_SUPP)
+             {
+               constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                 f[d] = 0.0;
+                 for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   f[d] += b[l]*(*ptr++);
+                 }
+                 f[d] *= constant;
+                 ptr += rinc;
+               }
+               t_dp += second() - t;
+             }
+             else
+             {
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                 f[d] = 0.0;
+                 for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   f[d] += b[l]*(*ptr++);
+                 }
+                 ptr += rinc;
+               }
+               t_dp += second() - t;
+             }
+           }
+           t_dp = t_dp/((double)ld[ild][4]);
+           printf("      t_dp = %f\n",t_dp);
+           }
+         else
+         {
+           t_dp = -1.0;
+         }
 
-				 t_d = 0.0;
+         t_d = 0.0;
          for (i = 0; i < ld[ild][4]; i++)
          {
            switch (kt)
-					 {
+           {
               case KT_ABEL_POISSON:
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-							 	 f[d] = 0.0;
-							 	 for (l = 0; l < ld[ild][0]; l++)
-								 {
-									 temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-									 f[d] += b[l]*poissonKernel(temp,p[ip][0]);
-								 }
-							 }
-							 t_d += second() - t;
-							 break;
-						 case KT_SINGULARITY:
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-								 f[d] = 0.0;
-								 for (l = 0; l < ld[ild][0]; l++)
-								 {
-									 temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-									 f[d] += b[l]*singularityKernel(temp,p[ip][0]);
-								 }
-							 }
-							 t_d += second() - t;
-							 break;
-						 case KT_LOC_SUPP:
-							 constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-								 f[d] = 0.0;
-								 for (l = 0; l < ld[ild][0]; l++)
-								 {
-									 temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-									 f[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);
-								 }
-								 f[d] *= constant;
-							 }
-							 t_d += second() - t;
-							 break;
-						 case KT_GAUSSIAN:
-							 t = second();
-							 for (d = 0; d < ld[ild][1]; d++)
-							 {
-								 f[d] = 0.0;
-								 for (l = 0; l < ld[ild][0]; l++)
-								 {
-									 temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
-									 f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
-								 }
-							 }
-							 t_d = second() - t;
-							 break;
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                  f[d] = 0.0;
+                  for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                   f[d] += b[l]*poissonKernel(temp,p[ip][0]);
+                 }
+               }
+               t_d += second() - t;
+               break;
+             case KT_SINGULARITY:
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                 f[d] = 0.0;
+                 for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                   f[d] += b[l]*singularityKernel(temp,p[ip][0]);
+                 }
+               }
+               t_d += second() - t;
+               break;
+             case KT_LOC_SUPP:
+               constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                 f[d] = 0.0;
+                 for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                   f[d] += b[l]*locSuppKernel(temp,p[ip][0],p[ip][1]);
+                 }
+                 f[d] *= constant;
+               }
+               t_d += second() - t;
+               break;
+             case KT_GAUSSIAN:
+               t = second();
+               for (d = 0; d < ld[ild][1]; d++)
+               {
+                 f[d] = 0.0;
+                 for (l = 0; l < ld[ild][0]; l++)
+                 {
+                   temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                   f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+                 }
+               }
+               t_d = second() - t;
+               break;
             }
-				 }
-				 t_d = t_d/((double)ld[ild][4]);
-  				 printf("      t_d = %f\n",t_d);
+         }
+         t_d = t_d/((double)ld[ild][4]);
+           printf("      t_d = %f\n",t_d);
        }
-			else
-			{
-			  t_d = -1.0;
-				t_dp = -1.0;
-			}
+      else
+      {
+        t_d = -1.0;
+        t_dp = -1.0;
+      }
 
       err_fd = -1.0;
       err_f = -1.0;
       t_fd = -1.0;
       t_f = -1.0;
 
-      file_dat = fopen(filename_dat,"a");
-      fprintf(file_dat,"\n");
-      fclose(file_dat);
+      //file_dat = fopen(filename_dat,"a");
+      //fprintf(file_dat,"\n");
+      //fclose(file_dat);
 
       for (im = 0; im < im_max; im++)
       {
@@ -699,9 +686,11 @@ int main (int argc, char **argv)
 
         /* Init transform plans. */
         nfsft_init_guru(&plan_adjoint,m[im],ld[ild][0],
-          (use_nfft!=0)?(0U):(NFSFT_USE_NDFT),cutoff);
-        nfsft_init_guru(&plan,m[im],ld[ild][1],(use_nfft!=0)?(0U):(NFSFT_USE_NDFT),
-          cutoff);
+          ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
+          ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+        nfsft_init_guru(&plan,m[im],ld[ild][1],
+          ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
+          ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
         plan_adjoint.f_hat = f_hat;
         plan_adjoint.x = eta;
         plan_adjoint.f = b;
@@ -709,21 +698,21 @@ int main (int argc, char **argv)
         plan.x = xi;
         plan.f = f_m;
 
-			 if (use_nfsft == BOTH)
-			 {
-  			   t_fd = 0.0;
-         for (i = 0; i < ld[ild][4]; i++)
-         {
-           t = second();
-           ndsft_adjoint(&plan_adjoint);
-					/* Multiplication with diagonal matrix. */
-					for (k = 0; k <= m[im]; k++)
-					{
-						for (n = -k; n <= k; n++)
-						{
-							f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
-						}
-					}
+        if (use_nfsft == BOTH)
+        {
+          t_fd = 0.0;
+          for (i = 0; i < ld[ild][4]; i++)
+          {
+            t = second();
+            ndsft_adjoint(&plan_adjoint);
+           /* Multiplication with diagonal matrix. */
+           for (k = 0; k <= m[im]; k++)
+           {
+             for (n = -k; n <= k; n++)
+             {
+               f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
+             }
+           }
           ndsft_trafo(&plan);
           t_fd += second() - t;
           if (ld[ild][2] != NO)
@@ -731,10 +720,10 @@ int main (int argc, char **argv)
             err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b, ld[ild][0]);
             printf("\terr_fd = %le\n",err_fd);
           }
-				}
-  				t_fd = t_fd/((double)ld[ild][4]);
-				printf("\tt_fd = %f",t_fd);
-			}
+        }
+          t_fd = t_fd/((double)ld[ild][4]);
+        printf("\tt_fd = %f",t_fd);
+      }
 
       if (use_nfsft != NO)
       {
@@ -745,34 +734,34 @@ int main (int argc, char **argv)
         t_fd = 0.0;
       }
       for (i = 0; i < ld[ild][4]; i++)
-    		{
+        {
          /* Adjoint transform */
          t = second();
-		     if (use_nfsft != NO)
+         if (use_nfsft != NO)
          {
-				   nfsft_adjoint(&plan_adjoint);
+           nfsft_adjoint(&plan_adjoint);
          }
          else
-				{
-				  ndsft_adjoint(&plan_adjoint);
+        {
+          ndsft_adjoint(&plan_adjoint);
          }
 
          /* Multiplication with diagonal matrix. */
          for (k = 0; k <= m[im]; k++)
-				{
-					for (n = -k; n <= k; n++)
-					{
-						f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
+        {
+          for (n = -k; n <= k; n++)
+          {
+            f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
            }
          }
 
-				/* Forward transform */
-				if (use_nfsft != NO)
-				{
-				  nfsft_trafo(&plan);
-         }
-         else
-         {
+        /* Forward transform */
+        if (use_nfsft != NO)
+        {
+          nfsft_trafo(&plan);
+        }
+        else
+        {
            ndsft_trafo(&plan);
          }
          if (use_nfsft != NO)
@@ -814,7 +803,7 @@ int main (int argc, char **argv)
          fprintf(stderr,"%+5.16f, %+5.16f, %+.3E\n",creal(f_m[d]),creal(f[d]),creal(f_m[d]-f[d]));
          fflush(stderr);
        }*/
-			/*fprintf(stderr,"\n");
+      /*fprintf(stderr,"\n");
       for (l = 0; l < ld[ild][0]; l++)
       {
         fprintf(stderr,"%+5.16f\n",creal(b[l]));
@@ -827,7 +816,7 @@ int main (int argc, char **argv)
           k,creal(f[k]),cimag(f[k]),k,creal(f_m[k]),cimag(f_m[k]));
       }*/
 
-	    //fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
+      //fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
 
       //file_tex = fopen(filename_tex,"a");
       file_dat = fopen(filename_dat,"a");
@@ -835,9 +824,9 @@ int main (int argc, char **argv)
       /*fprintf(file_tex,"%6d & %6d & %.1E & %.1E & %.1E & %.1E & %.1E\\\\\n",
       ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_l_infty_1_complex(f, f_m,
       b, ld[ild][1], ld[ild][0]));*/
-      fprintf(file_dat,"%.4e %.4e %.4e %.4e %.4e %.4e\n",t_d,t_dp,t_fd,t_f,
+      fprintf(file_dat,"%e\n%e\n%e\n%e\n%e\n%e\n",t_d,t_dp,t_fd,t_f,
         err_fd,err_f);
-	    fclose(file_dat);
+      fclose(file_dat);
 
       /* Finalize plans */
       nfsft_finalize(&plan_adjoint);
@@ -849,9 +838,9 @@ int main (int argc, char **argv)
 nfsft_forget();
 
     if (precompute == YES)
-		{
-		  free(prec);
-		}
+    {
+      free(prec);
+    }
     free(f);
     free(f_m);
     free(xi);

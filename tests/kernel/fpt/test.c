@@ -10,7 +10,7 @@
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
 
-#define REPEAT 1 
+#define REPEAT 1
 
 /** Name of the file containing the test data filenames for NDSFT. */
 const char TESTFILES_DPT[] = "dpt.txt\0";
@@ -71,32 +71,32 @@ void test_dpt_trafo(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");      
+    CU_FAIL("Couldn't open %s to read test data filenames!\n");
     return;
   }
 
   while (fscanf(testfiles,"%s",filename) == 1)
-  { 
+  {
     fprintf(stdout,"filename = %s\t,",filename);
-    /* Open input file. */ 
+    /* Open input file. */
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
     if (file != NULL)
     {
       /* Read in DPT mode */
       fscanf(file,"%d",&function_values);
-      fprintf(stdout," function_values = %1d,",function_values);      
-      
+      fprintf(stdout," function_values = %1d,",function_values);
+
       /* Read in transfrom length. */
       fscanf(file,"%d",&t);
       N = 1<<t;
       fprintf(stdout," t = %2d,",t);
       fprintf(stdout," N = %4d,",N);
-      
+
       /* Read in start index. */
       fscanf(file,"%d",&k_start);
       fprintf(stdout," k_start = %4d,",k_start);
-      
+
       /* Read in end index. */
       fscanf(file,"%d",&k_end);
       fprintf(stdout," k_end = %4d,",k_end);
@@ -105,7 +105,7 @@ void test_dpt_trafo(void)
       alpha = (double*) malloc((N+2)*sizeof(double));
       beta = (double*) malloc((N+2)*sizeof(double));
       gamma = (double*) malloc((N+2)*sizeof(double));
-      
+
       /* Read in recursion coeffcients. */
       for (k = 0; k < N+2; k++)
       {
@@ -119,7 +119,7 @@ void test_dpt_trafo(void)
       {
         fscanf(file,"%le\n",&gamma[k]);
       }
-      
+
       /* Print out recursion coefficients. */
       /*for (k = 0; k < N+2; k++)
       {
@@ -133,10 +133,10 @@ void test_dpt_trafo(void)
       {
         fprintf(stdout,"gamma_%d^%d = %.16le\n",k-1,k_start,gamma[k]);
       }*/
-      
+
       /* Allocate memory for Legendre coefficients. */
       x = (complex*) calloc((k_end+1),sizeof(complex));
-      
+
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
       {
@@ -144,17 +144,17 @@ void test_dpt_trafo(void)
         fscanf(file,"%le",&d2);
         x[k] = d1 + I*d2;
       }
-      
+
       /* Print out Legendre coefficients. */
       /*for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x[%d] = %le + I*%le\n",k,creal(x[k]),cimag(x[k]));
       }*/
-            
+
       /* Allocate memory for Chebyshev coefficients. */
       y = (complex*) calloc((k_end+1),sizeof(complex));
       y_ref = (complex*) calloc((k_end+1),sizeof(complex));
-      
+
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
       {
@@ -162,27 +162,29 @@ void test_dpt_trafo(void)
         fscanf(file,"%le",&d2);
         y_ref[k] = d1 + I*d2;
       }
-      
+
       /* Print out Chebyshev coefficients. */
       /*for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"y_ref[%d] = %le + I*%le\n",k,creal(y_ref[k]),cimag(y_ref[k]));
-      }*/            
-            
+      }*/
+
       /* Initialize DPT. */
+      //fprintf(stderr,"t = %d -> N = %d\n",t,1<<t);
+      //fflush(stderr);
       set = fpt_init(0,t,0U);
-      
+
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
-      
+
       /* Execute DPT. */
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));   
+        fpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
       time = (second() - time)/((double)REPEAT);
-      
+
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");
       for (k = 0; k <= k_end; k++)
@@ -190,27 +192,27 @@ void test_dpt_trafo(void)
         fprintf(stdout,"y_ref[%d] = %+1.10le + I*%+1.10le, \t y[%d] = %+1.10le + I*%+1.10le\n",k,
           creal(y_ref[k]),cimag(y_ref[k]),k,creal(y[k]),cimag(y[k]));
       }*/
-      
+
       /* Print out the infinity-norm error. */
       fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y_ref,y,k_end+1));
       fprintf(stdout," e_2 = %11le",error_l_2_complex(y_ref,y,k_end+1));
       fprintf(stdout," time = %11le",time);
- 
+
       /* CLose the file. */
       fclose(file);
       file = NULL;
-      
+
       /* Forget precomputed data. */
       fpt_finalize(set);
       set = NULL;
-      
+
       /* Free memory. */
       free(alpha);
       free(beta);
       free(gamma);
       free(x);
-      free(y);     
-      free(y_ref);     
+      free(y);
+      free(y_ref);
       alpha = NULL;
       beta = NULL;
       gamma = NULL;
@@ -229,7 +231,7 @@ void test_dpt_trafo(void)
     }
   }
   close(testfiles);
-  testfiles = NULL;  
+  testfiles = NULL;
 }
 
 void test_dpt_transposed(void)
@@ -282,32 +284,32 @@ void test_dpt_transposed(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");      
+    CU_FAIL("Couldn't open %s to read test data filenames!\n");
     return;
   }
 
   while (fscanf(testfiles,"%s",filename) == 1)
-  { 
+  {
     fprintf(stdout,"filename = %s\t,",filename);
-    /* Open input file. */ 
+    /* Open input file. */
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
     if (file != NULL)
     {
       /* Read in DPT mode */
       fscanf(file,"%d",&function_values);
-      fprintf(stdout," function_values = %1d,",function_values);      
-      
+      fprintf(stdout," function_values = %1d,",function_values);
+
       /* Read in transfrom length. */
       fscanf(file,"%d",&t);
       N = 1<<t;
       fprintf(stdout," t = %2d,",t);
       fprintf(stdout," N = %4d,",N);
-      
+
       /* Read in start index. */
       fscanf(file,"%d",&k_start);
       fprintf(stdout," k_start = %4d,",k_start);
-      
+
       /* Read in end index. */
       fscanf(file,"%d",&k_end);
       fprintf(stdout," k_end = %4d,",k_end);
@@ -316,7 +318,7 @@ void test_dpt_transposed(void)
       alpha = (double*) malloc((N+2)*sizeof(double));
       beta = (double*) malloc((N+2)*sizeof(double));
       gamma = (double*) malloc((N+2)*sizeof(double));
-      
+
       /* Read in recursion coeffcients. */
       for (k = 0; k < N+2; k++)
       {
@@ -330,7 +332,7 @@ void test_dpt_transposed(void)
       {
         fscanf(file,"%le\n",&gamma[k]);
       }
-      
+
       /* Print out recursion coefficients. */
       /*for (k = 0; k < N+2; k++)
       {
@@ -344,11 +346,11 @@ void test_dpt_transposed(void)
       {
         fprintf(stdout,"gamma_%d^%d = %.16le\n",k-1,k_start,gamma[k]);
       }*/
-      
+
       /* Allocate memory for reference Legendre coefficients. */
       x = (complex*) calloc((k_end+1),sizeof(complex));
       x_ref = (complex*) calloc((k_end+1),sizeof(complex));
-      
+
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
       {
@@ -356,17 +358,17 @@ void test_dpt_transposed(void)
         fscanf(file,"%le",&d2);
         x_ref[k] = d1 + I*d2;
       }
-      
+
       /* Print out reference Legendre coefficients. */
       /*fprintf(stdout,"\n");
       for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x_ref[%d] = %le + I*%le\n",k,creal(x_ref[k]),cimag(x_ref[k]));
       }*/
-            
+
       /* Allocate memory for Chebyshev coefficients. */
       y = (complex*) calloc((k_end+1),sizeof(complex));
-      
+
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
       {
@@ -374,28 +376,28 @@ void test_dpt_transposed(void)
         fscanf(file,"%le",&d2);
         y[k] = d1 + I*d2;
       }
-      
+
       /* Print out Chebyshev coefficients. */
       /*fprintf(stdout,"\n");
       for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"y[%d] = %le + I*%le\n",k,creal(y[k]),cimag(y[k]));
-      }*/            
-            
+      }*/
+
       /* Initialize DPT. */
       set = fpt_init(0,t,0U);
-      
+
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
-      
+
       /* Execute DPT. */
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));   
+        fpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
       time = (second() - time)/((double)REPEAT);
-      
+
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");
       for (k = k_start; k <= k_end; k++)
@@ -403,27 +405,27 @@ void test_dpt_transposed(void)
         fprintf(stdout,"x[%d] = %+1.16le + I*%+1.16le, \t x_ref[%d] = %+1.16le + I*%+1.16le\n",k,
           creal(x[k]),cimag(x[k]),k,creal(x_ref[k]),cimag(x_ref[k]));
       }*/
-      
+
       /* Print out the infinity-norm error. */
       fprintf(stdout," e_infty = %11le,",error_l_infty_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
       fprintf(stdout," e_2 = %11le",error_l_2_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
       fprintf(stdout," time = %11le",time);
- 
+
       /* CLose the file. */
       fclose(file);
       file = NULL;
-      
+
       /* Forget precomputed data. */
       fpt_finalize(set);
       set = NULL;
-      
+
       /* Free memory. */
       free(alpha);
       free(beta);
       free(gamma);
       free(x);
-      free(x_ref);     
-      free(y);     
+      free(x_ref);
+      free(y);
       alpha = NULL;
       beta = NULL;
       gamma = NULL;
@@ -442,7 +444,7 @@ void test_dpt_transposed(void)
     }
   }
   close(testfiles);
-  testfiles = NULL;  
+  testfiles = NULL;
 }
 
 /**
@@ -451,10 +453,10 @@ void test_dpt_transposed(void)
  * \param argc The number of arguments
  * \param argv An array containing the arguments as C-strings
  *
- * \return Exit code 
+ * \return Exit code
  */
 int main (int argc, char **argv)
-{  
+{
   /* Initialise registry. */
   CU_initialize_registry();
   /* Create test suite. */
@@ -466,6 +468,6 @@ int main (int argc, char **argv)
   /* Run the tests. */
   CU_automated_run_tests();
   /* Cleanup registry. */
-  CU_cleanup_registry();   
+  CU_cleanup_registry();
   return EXIT_SUCCESS;
 }

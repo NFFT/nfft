@@ -646,7 +646,8 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     data->beta_0 = beta[1];
     data->gamma_m1 = gamma[0];
 
-    k_start_tilde = K_START_TILDE(data->k_start,set->N);
+    k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)
+      /*set->N*/);
     N_tilde = N_TILDE(set->N);
 
     /* Allocate memory for the cascade with t = log_2(N) many levels. */
@@ -1183,6 +1184,15 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
     set->work[2*(Nk-1)+1]  = data->alphaN[tk-2]*x[Nk-data->k_start];
   }
 
+  /*--------*/
+  /*for (k = 0; k < 2*Nk; k++)
+  {
+    fprintf(stderr,"work[%2d] = %le + I*%le\tresult[%2d] = %le + I*%le\n",
+      k,creal(set->work[k]),cimag(set->work[k]),k,creal(set->result[k]),
+      cimag(set->result[k]));
+  }*/
+  /*--------*/
+
   /* Compute the remaining steps. */
   plength = 4;
   for (tau = 1; tau < tk; tau++)
@@ -1235,6 +1245,13 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
         /* The lengh of the polynomials */
         plength_stab = 1<<tk;
 
+        /*---------*/
+        /*fprintf(stderr,"\nfpt_trafo: stabilizing at tau = %d, l = %d.\n",tau,l);
+        fprintf(stderr,"\nfpt_trafo: plength_stab = %d.\n",plength_stab);
+        fprintf(stderr,"\nfpt_trafo: tk = %d.\n",tk);
+        fprintf(stderr,"\nfpt_trafo: index = %d.\n",tk-tau-1);*/
+        /*---------*/
+
         /* Set rest of vectors explicitely to zero */
         memset(&set->vec3[plength/2],0U,(plength_stab-plength/2)*sizeof(complex));
         memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(complex));
@@ -1248,8 +1265,8 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
         else
         {
           fpt_do_step(set->vec3, set->vec4, step->a11[tk-tau-1],
-            step->a12[set->t-tau-1], step->a21[tk-tau-1],
-            step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
+            step->a12[tk-tau-1], step->a21[tk-tau-1],
+            step->a22[tk-tau-1], step->gamma[tk-tau-1], tk-1, set);
         }
 
         if (step->gamma[tk-tau-1] != 0.0)
@@ -1267,6 +1284,15 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
     }
     /* Double length of polynomials. */
     plength = plength<<1;
+
+    /*--------*/
+    /*for (k = 0; k < 2*Nk; k++)
+    {
+      fprintf(stderr,"work[%2d] = %le + I*%le\tresult[%2d] = %le + I*%le\n",
+        k,creal(set->work[k]),cimag(set->work[k]),k,creal(set->result[k]),
+        cimag(set->result[k]));
+    }*/
+    /*--------*/
   }
 
   /* Add the resulting cascade coeffcients to the coeffcients accumulated from
@@ -1494,8 +1520,8 @@ void fpt_transposed(fpt_set set, const int m, complex *x, const complex *y,
         else
         {
           fpt_do_step_transposed(set->vec3, set->vec4, step->a11[tk-tau-1],
-            step->a12[set->t-tau-1], step->a21[tk-tau-1],
-            step->a22[set->t-tau-1], step->gamma[tk-tau-1], tk-1, set);
+            step->a12[tk-tau-1], step->a21[tk-tau-1],
+            step->a22[tk-tau-1], step->gamma[tk-tau-1], tk-1, set);
         }
 
         memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(complex));
@@ -1547,7 +1573,8 @@ void fpt_finalize(fpt_set set)
       free(data->gammaN);
 
       /* Free precomputed data. */
-      k_start_tilde = K_START_TILDE(data->k_start,set->N);
+      k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)
+        /*set->N*/);
       N_tilde = N_TILDE(set->N);
       plength = 4;
       for (tau = 1; tau < set->t; tau++)

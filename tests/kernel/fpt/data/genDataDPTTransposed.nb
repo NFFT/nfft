@@ -1,5 +1,5 @@
 (************** Content-type: application/mathematica **************
-                     CreatedBy='Mathematica 5.2'
+                     CreatedBy='Mathematica 5.0'
 
                     Mathematica-Compatible Notebook
 
@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7939,        190]*)
-(*NotebookOutlinePosition[      8788,        219]*)
-(*  CellTagsIndexPosition[      8744,        215]*)
+(*NotebookOptionsPosition[      7902,        189]*)
+(*NotebookOutlinePosition[      8743,        218]*)
+(*  CellTagsIndexPosition[      8699,        214]*)
 (*WindowFrame->Normal*)
 
 
@@ -88,21 +88,20 @@ Cell[BoxData[
 
 Cell[BoxData[
     \(\(kend\  = \ 
-        Join[Table[k, {k, 4, 32, 4}], Table[k, {k, 40, 64, 8}], 
-          Table[k, {k, 80, 128, 16}], Table[k, {k, 160, 256, 32}], 
-          Table[k, {k, 320, 512, 64}], 
+        Join[Table[k, {k, 48, 64, 8}], Table[k, {k, 112, 128, 16}], 
+          Table[k, {k, 160, 256, 32}], Table[k, {k, 320, 512, 64}], 
           Table[k, {k, 640, 1024, 128}]];\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(FunctionValues\  = \ True;\)\)], "Input",
+    \(\(FunctionValues\  = \ False;\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]{\[IndentingNewLine]n\  = \ 
-          Floor[3*kend[\([j]\)]/4], \[IndentingNewLine]t\  = \ 
+          Floor[kend[\([j]\)]/2], \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]VectorAlpha = 
           Table[LegendreAlpha[k, n], {k, \(-1\), 
@@ -129,7 +128,7 @@ Cell[BoxData[
           OpenWrite["\<test_dpt_transposed_\>" <> \ 
               ToString[
                 If[FunctionValues, 1, 
-                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<3n4_\>"\  \
+                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<n2_\>"\  \
 <> \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[n, 3, 
@@ -188,12 +187,12 @@ Cell[BoxData[
 Cell[BoxData[
     \(N[8\/11*Pi]\)], "Input"]
 },
-FrontEndVersion->"5.2 for Macintosh",
-ScreenRectangle->{{0, 1280}, {0, 766}},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1024}, {0, 768}},
 WindowToolbars->{},
 CellGrouping->Manual,
-WindowSize->{1144, 739},
-WindowMargins->{{4, Automatic}, {Automatic, 1}},
+WindowSize->{1016, 694},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
 PrivateNotebookOptions->{"ColorPalette"->{RGBColor, -1}},
 ShowCellLabel->True,
 ShowCellTags->False,
@@ -219,20 +218,20 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[1754, 51, 147, 3, 43, "Input"],
-Cell[1904, 56, 240, 5, 54, "Input"],
-Cell[2147, 63, 729, 15, 111, "Input"],
+Cell[1904, 56, 240, 5, 62, "Input"],
+Cell[2147, 63, 729, 15, 114, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
-Cell[3045, 88, 297, 6, 43, "Input"],
-Cell[3345, 96, 97, 2, 27, "Input"],
+Cell[3045, 88, 262, 5, 43, "Input"],
+Cell[3310, 95, 98, 2, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[3467, 102, 4241, 73, 691, "Input"],
-Cell[7711, 177, 42, 1, 27, "Output"]
+Cell[3433, 101, 4238, 73, 696, "Input"],
+Cell[7674, 176, 42, 1, 27, "Output"]
 }, Open  ]],
-Cell[7768, 181, 60, 1, 42, "Input"],
-Cell[7831, 184, 57, 1, 42, "Input"],
-Cell[7891, 187, 44, 1, 42, "Input"]
+Cell[7731, 180, 60, 1, 44, "Input"],
+Cell[7794, 183, 57, 1, 44, "Input"],
+Cell[7854, 186, 44, 1, 44, "Input"]
 }
 ]
 *)
