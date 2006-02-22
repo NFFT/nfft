@@ -3,14 +3,14 @@
 /* options for the direct and fast computation of the NDFT                   */
 /*                                                                           */
 /* authors: D. Potts                                                         */
-/*	    S. Kunis 2002                                                    */
+/*      S. Kunis 2002                                                    */
 /*****************************************************************************/
 
 /** window
- */	
-#define GAUSSIAN
+ */
+#define KAISER_BESSEL
                                         /* one of KAISER_BESSEL,SINC_POWER   */
-					/* B_SPLINE,GAUSSIAN,                */
+          /* B_SPLINE,GAUSSIAN,                */
 
 /** timing
  */
@@ -21,7 +21,7 @@
                                         /* the same for the fftw step        */
 
 
-/** Timing, method works since the inaccurate timer is updated mostly in the 
+/** Timing, method works since the inaccurate timer is updated mostly in the
  *  measured function. For small times not every call of the measured function
  *  will also produce a 'unit' time step.
  *  Measuring the fftw might cause a wrong output vector due to the repeated

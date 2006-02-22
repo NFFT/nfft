@@ -207,8 +207,8 @@ int main (int argc, char **argv)
   int nsymbols;                /** */
   long index;                  /** */
   int rinc;                    /** */
-  FILE *file_tex;              /** */
-  FILE *file_dat;              /** */
+  //FILE *file_tex;              /** */
+  //FILE *file_dat;              /** */
   FILE *file_gaussian;         /** */
   char filename_tex[100];      /** */
   char filename_dat[100];      /** */
@@ -217,56 +217,56 @@ int main (int argc, char **argv)
 
   /* Read number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
-
+  fprintf(stdout,"%d\n",tc_max);
   /* Printf out number of testcases. */
-  fprintf(stdout,"Number of testcases: %d\n\n",tc_max);
+  //fprintf(stdout,"Number of testcases: %d\n\n",tc_max);
 
   /* Process each testcase. */
   for (tc = 0; tc < tc_max; tc++)
   {
-    fprintf(stdout,"Testcase %d:\n",tc);
+    //fprintf(stdout,"Testcase %d:\n",tc);
 
-    sprintf(filename_dat,"testcase%d.dat",tc);
-    file_dat = fopen(filename_dat,"w");
+    //sprintf(filename_dat,"testcase%d.dat",tc);
+    //file_dat = fopen(filename_dat,"w");
 
     /* Check if fast transform shall be used. */
     fscanf(stdin,"nfsft=%d\n",&use_nfsft);
-    fprintf(file_dat,"%d\n",use_nfsft);
+    fprintf(stdout,"%d\n",use_nfsft);
     if (use_nfsft != NO)
       {
-      fprintf(stdout,"  NFSFT = yes\n");
+      //fprintf(stdout,"  NFSFT = yes\n");
       /* Check if the NFFT shall be used. */
       fscanf(stdin,"nfft=%d\n",&use_nfft);
-      fprintf(file_dat,"%d\n",use_nfsft);
-      fprintf(stdout,"  NFFT = %d\n",use_nfft);
+      fprintf(stdout,"%d\n",use_nfsft);
+      //fprintf(stdout,"  NFFT = %d\n",use_nfft);
        if (use_nfft != NO)
       {
-        fprintf(stdout,"  NFFT = yes\n");
+        //fprintf(stdout,"  NFFT = yes\n");
         /* Read the cut-off parameter. */
         fscanf(stdin,"cutoff=%d\n",&cutoff);
-        fprintf(file_dat,"%d\n",cutoff);
-        fprintf(stdout,"  Cutoff = %d\n",cutoff);
+        fprintf(stdout,"%d\n",cutoff);
+        //fprintf(stdout,"  Cutoff = %d\n",cutoff);
       }
       else
       {
-        fprintf(stdout,"  NFFT = no\n");
+        //fprintf(stdout,"  NFFT = no\n");
         cutoff = 3;
       }
       /* Check if the FPT shall be used. */
       fscanf(stdin,"fpt=%d\n",&use_fpt);
-      fprintf(file_dat,"%d\n",use_fpt);
-      fprintf(stdout,"  FPT = %d\n",use_fpt);
+      fprintf(stdout,"%d\n",use_fpt);
+      //fprintf(stdout,"  FPT = %d\n",use_fpt);
       /* Read the threshold. */
       fscanf(stdin,"threshold=%lf\n",&threshold);
-      fprintf(file_dat,"%lf\n",threshold);
-      fprintf(stdout,"  Threshold = %E\n",threshold);
+      fprintf(stdout,"%lf\n",threshold);
+      //fprintf(stdout,"  Threshold = %E\n",threshold);
       }
     else
     {
       /* Set dummy values. */
       cutoff = 3;
       threshold = 1000000000000.0;
-      fprintf(stdout,"  NFSFT = no\n");
+      //fprintf(stdout,"  NFSFT = no\n");
     }
 
     /* Initialize bandwidth bound. */
@@ -282,24 +282,24 @@ int main (int argc, char **argv)
     /* Read kernel type. One of KT_ABEL_POISSON, KT_SINGULARITY, KT_LOC_SUPP
      * or KT_GAUSSIAN. */
     fscanf(stdin,"kernel=%d\n",&kt);
-    fprintf(file_dat,"%d\n",kt);
+    fprintf(stdout,"%d\n",kt);
 
     /* Print out the kernel type. */
-    fprintf(stdout,"  Kernel type: %d\n",kt);
+    //fprintf(stdout,"  Kernel type: %d\n",kt);
 
     /* Read the number of parameter sets. */
     fscanf(stdin,"parameter_sets=%d\n",&ip_max);
-    fprintf(file_dat,"%d\n",ip_max);
+    fprintf(stdout,"%d\n",ip_max);
 
     /* Allocate memory for pointers to parameter sets. */
     p = (double**) malloc(ip_max*sizeof(double*));
 
     /* We now read in the parameter sets. */
-    fprintf(stdout,"  Parameter sets: %d\n",ip_max);
+    //fprintf(stdout,"  Parameter sets: %d\n",ip_max);
 
     fscanf(stdin,"parameters=%d\n",&ipp_max);
-    fprintf(file_dat,"%d\n",ipp_max);
-    fprintf(stdout,"  Parameters=%d\n",ipp_max);
+    fprintf(stdout,"%d\n",ipp_max);
+    //fprintf(stdout,"  Parameters=%d\n",ipp_max);
 
     for (ip = 0; ip < ip_max; ip++)
     {
@@ -308,9 +308,9 @@ int main (int argc, char **argv)
       {
         /* Read parameter. */
         fscanf(stdin,"%lf\n",&p[ip][ipp]);
-        fprintf(file_dat,"%lf\n",p[ip][ipp]);
+        fprintf(stdout,"%lf\n",p[ip][ipp]);
         /* Print out parameter. */
-        fprintf(stdout,"    %lf\n",p[ip][ipp]);
+        //fprintf(stdout,"    %lf\n",p[ip][ipp]);
       }
     }
 
@@ -319,27 +319,27 @@ int main (int argc, char **argv)
     m = (int*) malloc(im_max*sizeof(int));
 
     /* Print out number of cut-off degrees. */
-    fprintf(file_dat,"%d\n",im_max);
-    fprintf(stdout,"  Bandwidths: %d\n",im_max);
+    fprintf(stdout,"%d\n",im_max);
+    //fprintf(stdout,"  Bandwidths: %d\n",im_max);
 
     /* Read cut-off degrees. */
     for (im = 0; im < im_max; im++)
     {
       /* Read cut-off degree. */
       fscanf(stdin,"%d\n",&m[im]);
-      fprintf(file_dat,"%d\n",m[im]);
+      fprintf(stdout,"%d\n",m[im]);
       m_max = MAX(m_max,m[im]);
       /* Print out cut-off degree. */
-      fprintf(stdout,"    M = %d\n",m[im]);
+      //fprintf(stdout,"    M = %d\n",m[im]);
     }
 
     /* Read number of node specifications. */
     fscanf(stdin,"node_sets=%d\n",&ild_max);
-    fprintf(file_dat,"%d\n",ild_max);
+    fprintf(stdout,"%d\n",ild_max);
     ld = (int**) malloc(ild_max*sizeof(int*));
 
     /* Print out number of node specifications. */
-    fprintf(stdout,"  Nodes: %d\n",ild_max);
+    //fprintf(stdout,"  Nodes: %d\n",ild_max);
 
       ld_max_prec = 0;
       l_max_prec = 0;
@@ -348,27 +348,27 @@ int main (int argc, char **argv)
       ld[ild] = (int*) malloc(5*sizeof(int));
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
-      fprintf(file_dat,"%d\n",ld[ild][0]);
+      fprintf(stdout,"%d\n",ld[ild][0]);
       l_max = MAX(l_max,ld[ild][0]);
       /* Read number of target nodes. */
       fscanf(stdin,"D=%d ",&ld[ild][1]);
-      fprintf(file_dat,"%d\n",ld[ild][1]);
+      fprintf(stdout,"%d\n",ld[ild][1]);
       d_max = MAX(d_max,ld[ild][1]);
       /* Determine whether direct and fast algorithm shall be compared. */
       fscanf(stdin,"compare=%d ",&ld[ild][2]);
-      fprintf(file_dat,"%d\n",ld[ild][2]);
+      fprintf(stdout,"%d\n",ld[ild][2]);
       /* Print out parameters. */
-      fprintf(stdout,"    L = %d, D = %d, compare = %d",ld[ild][0],ld[ild][1],
-        ld[ild][2]);
+      //fprintf(stdout,"    L = %d, D = %d, compare = %d",ld[ild][0],ld[ild][1],
+      //  ld[ild][2]);
       if (ld[ild][2] == YES)
       {
         /* Read whether the precomputed version shall also be used. */
         fscanf(stdin,"precomputed=%d\n",&ld[ild][3]);
-        fprintf(file_dat,"%d\n",ld[ild][3]);
+        fprintf(stdout,"%d\n",ld[ild][3]);
         /* Read the number of repetitions over which measurements are averaged. */
         fscanf(stdin,"repetitions=%d\n",&ld[ild][4]);
-        fprintf(file_dat,"%d\n",ld[ild][4]);
-        fprintf(stdout,", precomputed = %d, repetitions = %d",ld[ild][3],ld[ild][4]);
+        fprintf(stdout,"%d\n",ld[ild][4]);
+        //fprintf(stdout,", precomputed = %d, repetitions = %d",ld[ild][3],ld[ild][4]);
           if (ld[ild][3] == YES)
         {
           ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
@@ -381,16 +381,16 @@ int main (int argc, char **argv)
         /* Set default value for the number of repetitions. */
         ld[ild][4] = 1;
       }
-      fprintf(stdout,"\n");
+      //fprintf(stdout,"\n");
     }
-    fclose(file_dat);
+    //fclose(file_dat);
 
     /* Print out the maximum cut-off degree. */
-    fprintf(stdout,"  Maximum M = %d\n",m_max);
+    //fprintf(stdout,"  Maximum M = %d\n",m_max);
     /* Print out the maximum number of source nodes. */
-    fprintf(stdout,"  Maximum L = %d\n",l_max);
+    //fprintf(stdout,"  Maximum L = %d\n",l_max);
     /* Print out the maximum number of target nodes. */
-    fprintf(stdout,"  Maximum D = %d\n",d_max);
+    //fprintf(stdout,"  Maximum D = %d\n",d_max);
 
     //n_max = 1<<ngpt(m_max);
 
@@ -428,29 +428,29 @@ int main (int argc, char **argv)
     }
 
     //sprintf(filename_tex,"testcase%d.tex",tc);
-    fprintf(stderr,"reached: m_max = %d, threshold = %lf\n",m_max,threshold);
-    fflush(stderr);
+    //fprintf(stderr,"reached: m_max = %d, threshold = %lf\n",m_max,threshold);
+    //fflush(stderr);
 
     nfsft_precompute(m_max,threshold,0U);
-    fprintf(stderr,"reached2!\n");
-    fflush(stderr);
+    //fprintf(stderr,"reached2!\n");
+    //fflush(stderr);
 
     for (ip = 0; ip < ip_max; ip++)
     {
-      fprintf(stdout,"  Parameter set %d: ",ip);
+      //fprintf(stdout,"  Parameter set %d: ",ip);
       switch (kt)
       {
         case KT_ABEL_POISSON:
-          fprintf(stdout," h = %lf\n",p[ip][0]);
+          //fprintf(stdout," h = %lf\n",p[ip][0]);
           break;
         case KT_SINGULARITY:
-          fprintf(stdout," h = %lf\n",p[ip][0]);
+          //fprintf(stdout," h = %lf\n",p[ip][0]);
           break;
         case KT_LOC_SUPP:
-          fprintf(stdout," h = %lf, lambda = %lf\n",p[ip][0],p[ip][1]);
+          //fprintf(stdout," h = %lf, lambda = %lf\n",p[ip][0],p[ip][1]);
           break;
         case KT_GAUSSIAN:
-          fprintf(stdout," rho = %lf\n",p[ip][0]);
+          //fprintf(stdout," rho = %lf\n",p[ip][0]);
           break;
       }
 
@@ -496,7 +496,7 @@ int main (int argc, char **argv)
           }
           free(steed);*/
           sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
-               fprintf(stderr,"filename = %s\n",filename_gaussian);
+          //fprintf(stderr,"filename = %s\n",filename_gaussian);
           file_gaussian = fopen(filename_gaussian,"r");
           if (file_gaussian != NULL)
           {
@@ -504,7 +504,7 @@ int main (int argc, char **argv)
             for (k = 0; k <= MIN(nsymbols,m_max); k++)
             {
               fscanf(file_gaussian,"%lf\n",&a[k]);
-              fprintf(stderr,"a[%d] = %.16E\n",k,a[k]);
+              //fprintf(stderr,"a[%d] = %.16E\n",k,a[k]);
             }
             for (k = nsymbols+1; k <= m_max; k++)
             {
@@ -513,7 +513,7 @@ int main (int argc, char **argv)
           }
           else
           {
-            fprintf(stderr,"Couldn't open file %s for reading!\n",filename_gaussian);
+            //fprintf(stderr,"Couldn't open file %s for reading!\n",filename_gaussian);
           }
           break;
       }
@@ -525,8 +525,8 @@ int main (int argc, char **argv)
 
       for (ild = 0; ild < ild_max; ild++)
       {
-        fprintf(stdout,"    L = %d, D = %d, ld_max_prec = %d, l_max_prec = %d\n",
-        ld[ild][0],ld[ild][1],ld_max_prec,l_max_prec);
+        //fprintf(stdout,"    L = %d, D = %d, ld_max_prec = %d, l_max_prec = %d\n",
+        //ld[ild][0],ld[ild][1],ld_max_prec,l_max_prec);
         if (ld[ild][2] != NO)
         {
           /* Check if direct algorithm with precomputation should be tested. */
@@ -594,7 +594,7 @@ int main (int argc, char **argv)
              }
            }
            t_dp = t_dp/((double)ld[ild][4]);
-           printf("      t_dp = %f\n",t_dp);
+           //printf("      t_dp = %f\n",t_dp);
            }
          else
          {
@@ -663,7 +663,7 @@ int main (int argc, char **argv)
             }
          }
          t_d = t_d/((double)ld[ild][4]);
-           printf("      t_d = %f\n",t_d);
+           //printf("      t_d = %f\n",t_d);
        }
       else
       {
@@ -682,7 +682,7 @@ int main (int argc, char **argv)
 
       for (im = 0; im < im_max; im++)
       {
-        fprintf(stderr,"      M = %d:",m[im]);
+        //fprintf(stderr,"      M = %d:",m[im]);
 
         /* Init transform plans. */
         nfsft_init_guru(&plan_adjoint,m[im],ld[ild][0],
@@ -718,11 +718,11 @@ int main (int argc, char **argv)
           if (ld[ild][2] != NO)
           {
             err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b, ld[ild][0]);
-            printf("\terr_fd = %le\n",err_fd);
+            //printf("\terr_fd = %le\n",err_fd);
           }
         }
           t_fd = t_fd/((double)ld[ild][4]);
-        printf("\tt_fd = %f",t_fd);
+        //printf("\tt_fd = %f",t_fd);
       }
 
       if (use_nfsft != NO)
@@ -778,24 +778,24 @@ int main (int argc, char **argv)
            if (use_nfsft != NO)
            {
              err_f = error_l_infty_1_complex(f, f_m, ld[ild][1], b, ld[ild][0]);
-             printf("\terr_f = %le\n",err_f);
+             //printf("\terr_f = %le\n",err_f);
            }
            else
            {
              err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b, ld[ild][0]);
-             printf("\terr_fd = %le\n",err_fd);
+             ///printf("\terr_fd = %le\n",err_fd);
            }
          }
        }
        if (use_nfsft != NO)
        {
          t_f = t_f/((double)ld[ild][4]);
-         printf("\tt_f = %f",t_f);
+         //printf("\tt_f = %f",t_f);
        }
        else
        {
          t_fd = t_fd/((double)ld[ild][4]);
-         printf("\tt_f = %f",t_fd);
+         //printf("\tt_f = %f",t_fd);
        }
 
        /*for (d = 0; d < ld[ild][1]; d++)
@@ -819,14 +819,14 @@ int main (int argc, char **argv)
       //fprintf(stderr,"||b||_1 = %E, L = %d\n",norm_complex_1(b,ld[ild][0]),ld[ild][0]);
 
       //file_tex = fopen(filename_tex,"a");
-      file_dat = fopen(filename_dat,"a");
+      //file_dat = fopen(filename_dat,"a");
 
       /*fprintf(file_tex,"%6d & %6d & %.1E & %.1E & %.1E & %.1E & %.1E\\\\\n",
       ld[ild][0],ld[ild][1],t_d,t_dp,t_fd,t_f,error_l_infty_1_complex(f, f_m,
       b, ld[ild][1], ld[ild][0]));*/
-      fprintf(file_dat,"%e\n%e\n%e\n%e\n%e\n%e\n",t_d,t_dp,t_fd,t_f,
+      fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n",t_d,t_dp,t_fd,t_f,
         err_fd,err_f);
-      fclose(file_dat);
+      //fclose(file_dat);
 
       /* Finalize plans */
       nfsft_finalize(&plan_adjoint);
@@ -863,7 +863,7 @@ nfsft_forget();
     }
     free(p);
 
-    fprintf(stdout,"\n");
+    //fprintf(stdout,"\n");
   }
 
   return EXIT_SUCCESS;

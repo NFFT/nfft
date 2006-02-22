@@ -8,10 +8,10 @@
 #include "nfft3.h"
 
 
-#define MACRO_SOLVER_IMPL(MV, FLT)			                      \
+#define MACRO_SOLVER_IMPL(MV, FLT)                            \
                                                                               \
 F(MV, FLT, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
-		     	  unsigned i ## MV ## _flags)		              \
+             unsigned i ## MV ## _flags)                  \
 {                                                                             \
   ths->mv = mv;                                                               \
   ths->flags = i ## MV ## _flags;                                             \
@@ -66,10 +66,10 @@ F(MV, FLT, before_loop,   i ## MV ## _plan *ths)                              \
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))       \
     {                                                                         \
       if(ths->flags & PRECOMPUTE_WEIGHT)                                      \
-	ths->dot_r_iter =                                                     \
-	    dot_w_ ## FLT(ths->r_iter, ths->w, ths->mv->M_total);             \
+  ths->dot_r_iter =                                                     \
+      dot_w_ ## FLT(ths->r_iter, ths->w, ths->mv->M_total);             \
       else                                                                    \
-	ths->dot_r_iter = dot_ ## FLT(ths->r_iter, ths->mv->M_total);         \
+  ths->dot_r_iter = dot_ ## FLT(ths->r_iter, ths->mv->M_total);         \
     }                                                                         \
                                                                               \
   /*-----------------*/                                                       \
@@ -85,10 +85,10 @@ F(MV, FLT, before_loop,   i ## MV ## _plan *ths)                              \
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))       \
     {                                                                         \
       if(ths->flags & PRECOMPUTE_DAMP)                                        \
-	ths->dot_z_hat_iter =                                                 \
-	  dot_w_ ## FLT(ths->z_hat_iter, ths->w_hat, ths->mv->N_total);       \
+  ths->dot_z_hat_iter =                                                 \
+    dot_w_ ## FLT(ths->z_hat_iter, ths->w_hat, ths->mv->N_total);       \
       else                                                                    \
-	ths->dot_z_hat_iter = dot_ ## FLT(ths->z_hat_iter, ths->mv->N_total); \
+  ths->dot_z_hat_iter = dot_ ## FLT(ths->z_hat_iter, ths->mv->N_total); \
     }                                                                         \
                                                                               \
   if(ths->flags & CGNE)                                                       \
@@ -103,10 +103,10 @@ F(MV, FLT, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     upd_xpawy_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,           \
-		      ths->z_hat_iter, ths->mv->N_total);                     \
+          ths->z_hat_iter, ths->mv->N_total);                     \
   else                                                                        \
     upd_xpay_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->z_hat_iter,       \
-		     ths->mv->N_total);                                       \
+         ths->mv->N_total);                                       \
                                                                               \
   /*-----------------*/                                                       \
   cp_ ## FLT(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);              \
@@ -120,9 +120,9 @@ F(MV, FLT, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
   if(ths->flags & NORMS_FOR_LANDWEBER)                                        \
     {                                                                         \
       if(ths->flags & PRECOMPUTE_WEIGHT)                                      \
-	ths->dot_r_iter = dot_w_ ## FLT(ths->r_iter,ths->w, ths->mv->M_total);\
+  ths->dot_r_iter = dot_w_ ## FLT(ths->r_iter,ths->w, ths->mv->M_total);\
       else                                                                    \
-	ths->dot_r_iter = dot_ ## FLT(ths->r_iter, ths->mv->M_total);         \
+  ths->dot_r_iter = dot_ ## FLT(ths->r_iter, ths->mv->M_total);         \
     }                                                                         \
                                                                               \
   /*-----------------*/                                                       \
@@ -138,10 +138,10 @@ F(MV, FLT, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
   if(ths->flags & NORMS_FOR_LANDWEBER)                                        \
     {                                                                         \
       if(ths->flags & PRECOMPUTE_DAMP)                                        \
-	ths->dot_z_hat_iter =                                                 \
-	  dot_w_ ## FLT(ths->z_hat_iter, ths->w_hat, ths->mv->N_total);       \
+  ths->dot_z_hat_iter =                                                 \
+    dot_w_ ## FLT(ths->z_hat_iter, ths->w_hat, ths->mv->N_total);       \
       else                                                                    \
-	ths->dot_z_hat_iter = dot_ ## FLT(ths->z_hat_iter, ths->mv->N_total); \
+  ths->dot_z_hat_iter = dot_ ## FLT(ths->z_hat_iter, ths->mv->N_total); \
     }                                                                         \
 } /* void i<mv>_loop_one_step_landweber */                                    \
                                                                               \
@@ -150,7 +150,7 @@ F(MV, FLT, loop_one_step_steepest_descent, i ## MV ## _plan *ths)             \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     cp_w_ ## FLT(ths->mv->f_hat, ths->w_hat, ths->z_hat_iter,                 \
-		 ths->mv->N_total);                                           \
+     ths->mv->N_total);                                           \
   else                                                                        \
     cp_ ## FLT(ths->mv->f_hat, ths->z_hat_iter, ths->mv->N_total);            \
                                                                               \
@@ -169,14 +169,14 @@ F(MV, FLT, loop_one_step_steepest_descent, i ## MV ## _plan *ths)             \
   /*-----------------*/                                                       \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     upd_xpawy_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,           \
-		      ths->z_hat_iter, ths->mv->N_total);                     \
+          ths->z_hat_iter, ths->mv->N_total);                     \
   else                                                                        \
     upd_xpay_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->z_hat_iter,       \
-		     ths->mv->N_total);                                       \
+         ths->mv->N_total);                                       \
                                                                               \
   /*-----------------*/                                                       \
   upd_xpay_ ## FLT(ths->r_iter, -ths->alpha_iter, ths->v_iter,                \
-		   ths->mv->M_total);                                         \
+       ths->mv->M_total);                                         \
                                                                               \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
     ths->dot_r_iter = dot_w_ ## FLT(ths->r_iter, ths->w, ths->mv->M_total);   \
@@ -205,7 +205,7 @@ F(MV, FLT, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     cp_w_ ## FLT(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,                 \
-		 ths->mv->N_total);                                           \
+     ths->mv->N_total);                                           \
   else                                                                        \
     cp_ ## FLT(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);            \
                                                                               \
@@ -224,14 +224,14 @@ F(MV, FLT, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
   /*-----------------*/                                                       \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     upd_xpawy_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,           \
-		      ths->p_hat_iter, ths->mv->N_total);                     \
+          ths->p_hat_iter, ths->mv->N_total);                     \
   else                                                                        \
     upd_xpay_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->p_hat_iter,       \
-		     ths->mv->N_total);                                       \
+         ths->mv->N_total);                                       \
                                                                               \
   /*-----------------*/                                                       \
   upd_xpay_ ## FLT(ths->r_iter, -ths->alpha_iter, ths->v_iter,                \
-		   ths->mv->M_total);                                         \
+       ths->mv->M_total);                                         \
                                                                               \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
     ths->dot_r_iter = dot_w_ ## FLT(ths->r_iter, ths->w, ths->mv->M_total);   \
@@ -260,7 +260,7 @@ F(MV, FLT, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
                                                                               \
   /*-----------------*/                                                       \
   upd_axpy_ ## FLT(ths->p_hat_iter, ths->beta_iter, ths->z_hat_iter,          \
-		   ths->mv->N_total);                                         \
+       ths->mv->N_total);                                         \
 } /* void i<mv>_loop_one_step_cgnr */                                         \
                                                                               \
 /** void i<mv>_loop_one_step_cgne */                                          \
@@ -271,22 +271,22 @@ F(MV, FLT, loop_one_step_cgne, i ## MV ## _plan *ths)                         \
   /*-----------------*/                                                       \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     upd_xpawy_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,           \
-		      ths->p_hat_iter, ths->mv->N_total);                     \
+          ths->p_hat_iter, ths->mv->N_total);                     \
   else                                                                        \
     upd_xpay_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->p_hat_iter,       \
-		     ths->mv->N_total);                                       \
+         ths->mv->N_total);                                       \
                                                                               \
   /*-----------------*/                                                       \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     cp_w_ ## FLT(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,                 \
-		 ths->mv->N_total);                                           \
+     ths->mv->N_total);                                           \
   else                                                                        \
     cp_ ## FLT(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);            \
                                                                               \
   MV ## _trafo(ths->mv);                                                      \
                                                                               \
   upd_xpay_ ## FLT(ths->r_iter, -ths->alpha_iter, ths->mv->f,                 \
-		   ths->mv->M_total);                                         \
+       ths->mv->M_total);                                         \
                                                                               \
   ths->dot_r_iter_old = ths->dot_r_iter;                                      \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
@@ -306,7 +306,7 @@ F(MV, FLT, loop_one_step_cgne, i ## MV ## _plan *ths)                         \
   MV ## _adjoint(ths->mv);                                                    \
                                                                               \
   upd_axpy_ ## FLT(ths->p_hat_iter, ths->beta_iter, ths->mv->f_hat,           \
-		   ths->mv->N_total);                                         \
+       ths->mv->N_total);                                         \
                                                                               \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     ths->dot_p_hat_iter =                                                     \
@@ -362,5 +362,6 @@ MACRO_SOLVER_IMPL(nfst, double)*/
 MACRO_SOLVER_IMPL(nnfft, complex)
 MACRO_SOLVER_IMPL(mri_inh_2d1d, complex)
 MACRO_SOLVER_IMPL(mri_inh_3d, complex)
+MACRO_SOLVER_IMPL(nfsft, complex)
 MACRO_SOLVER_IMPL(texture, complex)
 
