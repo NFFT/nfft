@@ -145,8 +145,8 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  //  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT );
-   infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
+   infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT );
+   // infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
 
   /** init nodes, given samples and weights */
   for(j=0;j<my_nfft_plan.M_total;j++)
@@ -277,6 +277,9 @@ int main(int argc,char **argv)
     if (temp>E_max) E_max=temp;
   }
   printf("E_max = %g\n",E_max);
+
+ E_max=error_l_infty_complex(f_hat,f_hat2,N*N);
+ printf("E_max relativ  = %g\n",E_max);
 
   /** write result */
   fp=fopen("mpolar_fft_data.dat","w+");
