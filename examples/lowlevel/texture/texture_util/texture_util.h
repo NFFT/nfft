@@ -1,11 +1,10 @@
-#include <stdio.h>
-
-#include "nfft3.h"
+#include<stdio.h>
+#include<nfft3.h>
 
 // macros
 
 #define malloc(a) call_smart_malloc_instead(a)
-#define calloc(a) call_smart_calloc_instead(a)
+#define calloc(a, b) call_smart_calloc_instead(a)
 
 #define MAX_LINE 1000
 
@@ -124,7 +123,7 @@ const char *grid_descr[3];
 void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 										double *r, int grid);
 
-const char *omega_policy_descr[2];
+const char *omega_policy_descr[3];
 
 void init_omega(complex * omega, int N, int omega_policy);
 
@@ -134,6 +133,6 @@ const char *solver_algo_descr[2];
 
 unsigned int solver_flags(int solver_algo, int weight_policy);
 
-const char *weight_policy_descr[3];
+const char *weight_policy_descr[4];
 
 void set_weights(itexture_plan * iplan, int weight_policy);

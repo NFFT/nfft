@@ -1,4 +1,4 @@
-AM_CFLAGS = "-Wall -I$(top_srcdir)/include -I../texture_util"
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util
 
 ## The program name
 noinst_PROGRAMS = performance

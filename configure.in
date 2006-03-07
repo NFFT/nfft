@@ -88,8 +88,16 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/mri/mri3d/Makefile \
           examples/highlevel/exp/Makefile \
           examples/lowlevel/nsfft/Makefile \
-          examples/lowlevel/nfsft/Makefile
-          examples/lowlevel/nfsft/obsolete/Makefile
+          examples/lowlevel/nfsft/Makefile \
+          examples/lowlevel/nfsft/obsolete/Makefile \
+          examples/lowlevel/texture/Makefile \
+          examples/lowlevel/texture/correctness/Makefile \
+          examples/lowlevel/texture/data_creator/Makefile \
+          examples/lowlevel/texture/interpolation/Makefile \
+          examples/lowlevel/texture/matrix/Makefile \
+          examples/lowlevel/texture/performance/Makefile \
+          examples/lowlevel/texture/regularity/Makefile \
+          examples/lowlevel/texture/texture_util/Makefile \
           examples/highlevel/fastgauss/Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \

@@ -107,7 +107,7 @@ void calculate_omega()
 				true_res =
 					l_2_rel_dist(texture_get_x(&test_plan), iplan.y,
 											 texture_get_x_length(&test_plan));
-				fprintf(stderr, "rediduum (true) (%d): %lg\n", count, true_res);
+				fprintf(stderr, "residuum (true) (%d): %lg\n", count, true_res);
 				fflush(0);
 			}
 #endif

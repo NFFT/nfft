@@ -4,19 +4,20 @@
 #include<string.h>
 #include<math.h>
 
-#include "texture_util.h"
-#include "util.h"
+#include<nfft3.h>
+#include"texture_util.h"
+#include<util.h>
 // macros
 
 // descriptors
 const char *grid_descr[] =
 	{ "equidistant angles", "file", "uniformly distributed" };
 
-const char *omega_policy_descr[] = { "flat", "1/n" };
+const char *omega_policy_descr[] = { "flat", "1/n", "one" };
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
-const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2" };
+const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2", "1/n^?" };
 
 // internal functions
 
@@ -352,6 +353,13 @@ void init_omega(complex * omega, int N, int omega_policy)
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
 				omega[i] = (drand48() * rand() + I * drand48() * rand()) / (i + 1);
+			}
+			break;
+		}
+		case 2:
+		{
+			for (i = 0; i < texture_flat_length(N); i++) {
+				omega[i] = 1;
 			}
 			break;
 		}
@@ -734,6 +742,13 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 		{
 			for (i = 1; i <= iplan->mv->N_total; i++) {
 				iplan->w_hat[i - 1] = (double) (1) / ((double) (i) * (double) (i));
+			}
+			break;
+		}
+		case 3:
+		{
+			for (i = 1; i <= iplan->mv->N_total; i++) {
+				iplan->w_hat[i - 1] = pow(i, 2);
 			}
 			break;
 		}

@@ -1,1 +1,1 @@
-SUBDIRS = mri nnfft nsfft nfsft
+SUBDIRS = mri nnfft nsfft nfsft texture

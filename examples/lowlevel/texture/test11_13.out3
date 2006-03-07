@@ -1,0 +1,93 @@
+# iteration parameters:
+# error function: 0 (two norm relativ error)
+# error_delta = 0.01
+# residuum function: 0 (two norm relativ error)
+# residuum_delta = 1e-05
+# min_improve = 0.01
+# iterations_without_check = 10
+# solver parameters:
+# grid_id: 0 (equidistant angles)
+# grid_file_h: dubna1_h
+# grid_file_r: dubna1_r
+# starting_point_policy: 0 (zero)
+# solver_algorithm_id: 0 (CGNR)
+# weight_policy: 0 (flat)
+# omega_ref_policy: 0 (flat)
+# method: 0 (N1, N2 independent)
+# output_policy: 1 (human readable)
+# N1 = 50:100:50
+# N2 = 50:100:50
+# N_min_improve = 0
+# max_iter_without_improve = 1
+# N1 = 50
+regular: 0
+regular: 1
+regular: 2
+residuum (1): 0.835995
+error (1):    0.950922
+residuum (2): 0.538121
+error (2):    0.69528
+residuum (3): 0.330304
+error (3):    0.451893
+residuum (4): 0.182214
+error (4):    0.250844
+residuum (5): 0.0931076
+error (5):    0.140812
+residuum (6): 0.0434142
+error (6):    0.0659257
+residuum (7): 0.0168479
+error (7):    0.0275869
+residuum (8): 0.0072375
+error (8):    0.0106608
+residuum (9): 0.00325674
+error (9):    0.00484807
+residuum (10): 0.00132644
+error (10):    0.00207939
+residuum (11): 0.0004658
+error (11):    0.000654635
+residuum (12): 0.000388643
+error (12):    0.000615921
+residuum (13): 0.000118722
+error (13):    0.000178687
+residuum (14): 3.81518e-05
+error (14):    5.16131e-05
+residuum (15): 6.13791e-06
+error (15):    9.33903e-06
+regular: 3
+residuum (1): 0.87744
+error (1):    0.95893
+residuum (2): 0.647985
+error (2):    0.785531
+residuum (3): 0.360829
+error (3):    0.471805
+residuum (4): 0.215646
+error (4):    0.323005
+residuum (5): 0.121723
+error (5):    0.230797
+residuum (6): 0.0627081
+error (6):    0.183758
+residuum (7): 0.0299388
+error (7):    0.166636
+residuum (8): 0.014104
+error (8):    0.162197
+residuum (9): 0.00695755
+error (9):    0.161216
+residuum (10): 0.00375544
+error (10):    0.161004
+residuum (11): 0.00140751
+error (11):    0.160923
+residuum (12): 0.00135165
+error (12):    0.160921
+residuum (13): 0.00052103
+error (13):    0.160911
+residuum (14): 0.000214827
+error (14):    0.160909
+residuum (15): 7.46705e-05
+error (15):    0.160909
+residuum (16): 1.76088e-05
+error (16):    0.160909
+residuum (17): 4.43968e-06
+error (17):    0.160909
+not regular: 4
+50 3
+.test11.13 finished!
