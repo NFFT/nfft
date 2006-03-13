@@ -123,7 +123,7 @@ const char *grid_descr[3];
 void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 										double *r, int grid);
 
-const char *omega_policy_descr[3];
+const char *omega_policy_descr[4];
 
 void init_omega(complex * omega, int N, int omega_policy);
 

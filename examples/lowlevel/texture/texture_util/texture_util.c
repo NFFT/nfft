@@ -13,11 +13,11 @@
 const char *grid_descr[] =
 	{ "equidistant angles", "file", "uniformly distributed" };
 
-const char *omega_policy_descr[] = { "flat", "1/n", "one" };
+const char *omega_policy_descr[] = { "flat", "1/n", "one", "1/n^2" };
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
-const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2", "1/n^?" };
+const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2", "1/n^3" };
 
 // internal functions
 
@@ -360,6 +360,15 @@ void init_omega(complex * omega, int N, int omega_policy)
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
 				omega[i] = 1;
+			}
+			break;
+		}
+		case 3:
+		{
+			for (i = 0; i < texture_flat_length(N); i++) {
+				omega[i] = (drand48() * rand() + I * drand48() * rand());
+				omega[i] /= (i + 1);
+				omega[i] /= (i + 1);
 			}
 			break;
 		}
@@ -748,7 +757,7 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 		case 3:
 		{
 			for (i = 1; i <= iplan->mv->N_total; i++) {
-				iplan->w_hat[i - 1] = pow(i, 2);
+				iplan->w_hat[i - 1] = pow(i, -3);
 			}
 			break;
 		}
@@ -759,15 +768,16 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 
 unsigned int solver_flags(int solver_algo, int weight_policy)
 {
+	unsigned int flags;
 	if (solver_algo == 0) {
-		return CGNR;
+		flags = CGNR;
 	} else {
-		if (weight_policy == 0) {
-			return CGNE;
-		} else {
-			return CGNE | PRECOMPUTE_DAMP;
-		}
+		flags = CGNE;
 	}
+	if (weight_policy != 0) {
+		flags |= PRECOMPUTE_DAMP;
+	}
+	return flags;
 }
 
 inline void split(int n, int *t1, int *t2)

@@ -97,6 +97,7 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/texture/matrix/Makefile \
           examples/lowlevel/texture/performance/Makefile \
           examples/lowlevel/texture/regularity/Makefile \
+          examples/lowlevel/texture/regularity2/Makefile \
           examples/lowlevel/texture/texture_util/Makefile \
           examples/highlevel/fastgauss/Makefile \
           examples/kernel/nfct/Makefile \
