@@ -2,7 +2,7 @@ AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
 ## The program name
-noinst_PROGRAMS = polar_fft_test mpolar_fft_test.c linogram_fft_test
+noinst_PROGRAMS = polar_fft_test mpolar_fft_test linogram_fft_test
 
 ## The source files.
 polar_fft_test_SOURCES = polar_fft_test.c

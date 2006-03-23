@@ -78,6 +78,7 @@ AC_OUTPUT(Makefile \
           examples/lowlevel/Makefile \
           examples/highlevel/Makefile \
           examples/radon/Makefile \
+          examples/polarFFT/Makefile \
           examples/kernel/fpt/Makefile \
           examples/kernel/nfft/Makefile \
           examples/lowlevel/nnfft/Makefile \
