@@ -25,6 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** define weights of kernel function for discrete Radon transform */
 //#define KERNEL(r) 1.0
 #define KERNEL(r) (1.0-fabs((double)(r))/((double)R/2))
 
@@ -84,6 +85,9 @@ int linogram_grid(int T, int R, double *x, double *w)
   return 0;
 }
 
+/** computes the NFFT-based discrete Radon transform of f
+ *  on the grid given by gridfcn() with T angles and R offsets
+ */
 int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
 {
   int j,k;                              /**< index for nodes and freqencies   */
@@ -172,6 +176,10 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   free(w);
 }
 
+/** computes the inverse discrete Radon transform of Rf
+ *  on the grid given by gridfcn() with T angles and R offsets
+ *  by a NFFT-based CG-type algorithm
+ */
 int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, double *f, int max_i)
 {
   int j,k;                              /**< index for nodes and freqencies   */
@@ -290,6 +298,8 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   free(w);
 }
 
+/** simple test program for the discrete Radon transform and its inverse
+ */
 int main(int argc,char **argv)
 {
   int (*gridfcn)();                     /**< grid generating function        */
