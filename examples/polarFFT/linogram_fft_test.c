@@ -1,8 +1,8 @@
 /**
- * \file linogram_fft_test.c
+ * \file polarFFT/linogram_fft_test.c
  * \brief NFFT-based pseudo-polar FFT and inverse.
  *
- * Computes the NFFT-based pseudo-polar FFT and its inverse for various parameters.
+ * Computes the NFFT-based pseudo-polar FFT and its inverse.
  * \author Markus Fenn
  * \date 2006
  */
@@ -11,8 +11,8 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** generates the points x with weights w
- *  for the linogram grid with T slopes and R offsets
+/** Generates the points x with weights w
+ *  for the linogram grid with T slopes and R offsets.
  */
 int linogram_grid(int T, int R, double *x, double *w)
 {

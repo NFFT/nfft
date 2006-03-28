@@ -1,5 +1,5 @@
 /**
- * \file mpolar_fft_test.c
+ * \file polarFFT/mpolar_fft_test.c
  * \brief NFFT-based polar FFT and inverse on  modified polar grid.
  *
  * Computes the NFFT-based polar FFT and its inverse
@@ -14,8 +14,18 @@
 
 double GLOBAL_elapsed_time;
 
-/** generates the points x with weights w
- *  for the mpolar grid with T angles and R offsets
+/** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
+ *  for the modified polar grid with \f$T\f$ angles and \f$R\f$ offsets.
+ *
+ *  We add more concentric circles to the polar grid
+ *  and exclude those nodes not located in the unit square, i.e., 
+ *  \f[
+ *    x_{t,j} := r_j\left(\cos\theta_t, \sin\theta_t\right)^{\top}\,,\qquad
+ *    (j,t)^{\top}\in I_{\sqrt{2}R}\times I_T\,.
+ *  \f]
+ *  with \f$r_j\f$ and \f$\theta_t\f$ as for the polar grid.
+ *  The number of nodes for the modified polar grid can be estimated as 
+ *  \f$M \approx \frac{4}{\pi}\log(1+\sqrt{2}) T R\f$.
  */
 int mpolar_grid(int T, int R, double *x, double *w)
 {

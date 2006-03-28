@@ -1,5 +1,5 @@
 /**
- * \file polar_fft_test.c
+ * \file polarFFT/polar_fft_test.c
  * \brief NFFT-based polar FFT and inverse.
  *
  * Computes the NFFT-based polar FFT and its inverse for various parameters.
@@ -11,8 +11,36 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** generates the points x with weights w
- *  for the polar grid with T angles and R offsets
+/** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
+ *  for the polar grid with \f$T\f$ angles and \f$R\f$ offsets.
+ *
+ *  The nodes of the polar grid lie on concentric circles around the origin.
+ *  They are given for \f$(j,t)^{\top}\in I_R\times I_T\f$ by
+ *  a signed radius \f$r_j := \frac{j}{R} \in [-\frac{1}{2},\frac{1}{2})\f$ and
+ *  an angle \f$\theta_t := \frac{\pi t}{T} \in [-\frac{\pi}{2},\frac{\pi}{2})\f$
+ *  as 
+ *  \f[
+ *    x_{t,j} := r_j\left(\cos\theta_t, \sin\theta_t\right)^{\top}\,.
+ *  \f]
+ *  The total number of nodes is \f$M=TR\f$,
+ *  whereas the origin is included multiple times.
+ *
+ *  Weights are introduced to compensate for local sampling density variations.
+ *  For every point in the sampling set, we associate a small surrounding area.
+ *  In case of the polar grid, we choose small ring segments.
+ *  The area of such a ring segment around \f$x_{t,j}\f$ (\f$j \ne 0\f$) is
+ *  \f[
+ *    w_{t,j}
+ *    = \frac{\pi}{2TR^2}\left(\left(|j|+\frac{1}{2}\right)^2-
+ *      \left(|j|-\frac{1}{2}\right)^2\right)
+ *    = \frac{\pi |j| }{TR^2}\, .
+ *  \f]
+ *  The area of the small circle of radius \f$\frac{1}{2R}\f$ around the origin is
+ *  \f$\frac{\pi}{4R^2}\f$.
+ *  Divided by the multiplicity of the origin in the sampling set, we get
+ *  \f$w_{t,0} := \frac{\pi}{4TR^2}\f$.
+ *  Thus, the sum of all weights is \f$\frac{\pi}{4}(1+\frac{1}{R^2})\f$ and
+ *  we divide by this value for normalization.
  */
 int polar_grid(int T, int R, double *x, double *w)
 {
