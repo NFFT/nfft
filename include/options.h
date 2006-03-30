@@ -14,7 +14,7 @@
 
 /** timing
  */
-/*#define MEASURE_TIME*/
+#define MEASURE_TIME
                                         /* measure time for the deconvolution
                                            and convolution/evaluation step   */
 /*#define MEASURE_TIME_FFTW*/

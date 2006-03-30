@@ -1635,7 +1635,7 @@ void texture_forget();
  * - @f$ m \in [-l \dots l] @f$
  * - @f$ n \in [-l \dots l] @f$
  */
-inline int texture_flat_index(int l, int m, int n);
+int texture_flat_index(int l, int m, int n);
 
 /** Determines the length of an array omega storing frequencies in a
  * given
@@ -1644,43 +1644,43 @@ inline int texture_flat_index(int l, int m, int n);
  * @par N - the bandwidth.
  * @return the length of the corresponding omega
  */
-inline int texture_flat_length(int N);
+int texture_flat_length(int N);
 
 /** Returns the length of the frequency array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_omega_length(texture_plan *ths);
+int texture_get_omega_length(texture_plan *ths);
 
 /** Returns the length of the sample array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_x_length(texture_plan *ths);
+int texture_get_x_length(texture_plan *ths);
 
 /** Returns the bandwidth stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N(texture_plan *ths);
+int texture_get_N(texture_plan *ths);
 
 /** Returns the number of pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N1(texture_plan *ths);
+int texture_get_N1(texture_plan *ths);
 
 /** Returns the number of samples per pole figure stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N2(texture_plan *ths);
+int texture_get_N2(texture_plan *ths);
 
 /** Returns a pointer to the frequencies stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const complex *texture_get_omega(texture_plan *ths);
+const complex *texture_get_omega(texture_plan *ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -1688,13 +1688,13 @@ inline const complex *texture_get_omega(texture_plan *ths);
  * @par omega - a pointer to the new frequencies.
  * @pre omega has to point to an array of appropriate length.
  */
-inline void texture_set_omega(texture_plan *ths, complex* omega);
+void texture_set_omega(texture_plan *ths, complex* omega);
 
 /** Returns a pointer to the samples stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const complex *texture_get_x(texture_plan *ths);
+const complex *texture_get_x(texture_plan *ths);
 
 /** Sets the samples in a plan.
  *
@@ -1702,13 +1702,13 @@ inline const complex *texture_get_x(texture_plan *ths);
  * @par x - a pointer to the new samples
  * @pre x has to point to an array of appropriate length.
  */
-inline void texture_set_x(texture_plan *ths, complex* x);
+void texture_set_x(texture_plan *ths, complex* x);
 
 /** Returns a pointer to the latitudes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_h_phi(texture_plan *ths);
+const double *texture_get_h_phi(texture_plan *ths);
 
 /** Sets the latitudes of the pole figures in a plan.
  *
@@ -1716,13 +1716,13 @@ inline const double *texture_get_h_phi(texture_plan *ths);
  * @par h_phi - a pointer to the new latitudes
  * @pre h_phi has to point to an array of appropriate length.
  */
-inline void texture_set_h_phi(texture_plan *ths, const double* h_phi);
+void texture_set_h_phi(texture_plan *ths, const double* h_phi);
 
 /** Returns the longitudes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_h_theta(texture_plan *ths);
+const double *texture_get_h_theta(texture_plan *ths);
 
 /** Sets the longitudes of the pole figures in a plan.
  *
@@ -1730,13 +1730,13 @@ inline const double *texture_get_h_theta(texture_plan *ths);
  * @par h_theta - a pointer to the longitudes
  * @pre h_theta has to point to an array of appropriate length.
  */
-inline void texture_set_h_theta(texture_plan *ths, const double* h_theta);
+void texture_set_h_theta(texture_plan *ths, const double* h_theta);
 
 /** Returns the nodes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_r(texture_plan *ths);
+const double *texture_get_r(texture_plan *ths);
 
 /** Sets the nodes of the pole figures in a plan.
  *
@@ -1744,21 +1744,21 @@ inline const double *texture_get_r(texture_plan *ths);
  * @par r - a pointer to the nodes
  * @pre r has to point to an array of appropriate length.
  */
-inline void texture_set_r(texture_plan *ths, const double* r);
+void texture_set_r(texture_plan *ths, const double* r);
 
 /** Returnes the flags used for the initialisation of the nfsft stored in a
  * plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
+unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
 
 /** Sets the flags used for the initialisation of the nfsft in a plan.
  *
  * @par ths - a pointer to the transformation plan
  * @par nfsft_init_flags - the nfsft flags
  */
-inline void texture_set_nfsft_init_flags(texture_plan *ths,
+void texture_set_nfsft_init_flags(texture_plan *ths,
     unsigned int nfsft_init_flags);
 
 /** Returns the nfft_cutoff parameter used for the initialisation of the nfsft
@@ -1766,7 +1766,7 @@ inline void texture_set_nfsft_init_flags(texture_plan *ths,
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_nfft_cutoff(texture_plan *ths);
+int texture_get_nfft_cutoff(texture_plan *ths);
 
 /** Sets the nfft_cutoff parameter used for the initialisation of the nfsft
  * in a plan.
@@ -1774,7 +1774,7 @@ inline int texture_get_nfft_cutoff(texture_plan *ths);
  * @par ths - a pointer to the transformation plan
  * @par nfft_cutoff - the parameter
  */
-inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
+void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 
 /** @}
  */
@@ -2269,30 +2269,30 @@ inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
  */
 #define NFSFT_F_HAT_SIZE(N)          ((2*N+2)*(2*N+2))
 
-/** Structure for a transform plan */
+/** Structure for a NFSFT transform plan */
 typedef struct nfsft_plan_
 {
   /** Inherited public members */
   MACRO_MV_PLAN(complex);
 
   /* Public members */
-  int N;                              /**< the bandwidth \f$N\f$                   */
-  double *x;                          /**< the nodes \f$\mathbf{x}(m) =
-                                           \left(x_1,x_2\right) \in
-                                           [-\frac{1}{2},\frac{1}{2}) \times
-                                           [0,\frac{1}{2}]\f$ for
-                                           \f$m=0,\ldots,M-1\f$,\f$M \in
-                                           \mathbb{N},\f$                          */
+  int N;                              /**< the bandwidth \f$N\f$              */
+  double *x;                          /**< the nodes \f$\mathbf{x}(m) =       *
+                                           \left(x_1,x_2\right) \in           *
+                                           [-\frac{1}{2},\frac{1}{2}) \times  *
+                                           [0,\frac{1}{2}]\f$ for             *
+                                           \f$m=0,\ldots,M-1\f$,\f$M \in      *
+                                           \mathbb{N},\f$                     */
 
   /* Private members */
-  /*int NPT;*/                        /**< the next greater power of two with
-                                           respect to \f$N\f$                      */
-  int t;                              /**< the logaritm of NPT with
-                                           respect to the basis 2                  */
-  unsigned int flags;                 /**< the planner flags                       */
-  nfft_plan plan_nfft;                /**< the internal NFFT plan                  */
-  complex *f_hat_intern;              /**< Internally used pointer to
-                                           spherical Fourier coefficients          */
+  /*int NPT;*/                        /**< the next greater power of two with *
+                                           respect to \f$N\f$                 */
+  int t;                              /**< the logaritm of NPT with           *
+                                           respect to the basis 2             */
+  unsigned int flags;                 /**< the planner flags                  */
+  nfft_plan plan_nfft;                /**< the internal NFFT plan             */
+  complex *f_hat_intern;              /**< Internally used pointer to         *
+                                           spherical Fourier coefficients     */
 } nfsft_plan;
 
 /**
