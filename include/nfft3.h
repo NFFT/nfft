@@ -2418,7 +2418,7 @@ void nfsft_adjoint(nfsft_plan* plan);
  */
 void nfsft_finalize(nfsft_plan* plan);
 
-void nfsft_precompute_trafo(nfsft_plan *plan);
+void nfsft_precompute_x(nfsft_plan *plan);
 
 
 /** @}

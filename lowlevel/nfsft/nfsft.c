@@ -915,8 +915,12 @@ void nfsft_adjoint(nfsft_plan *plan)
   }
 }
 
-void nfsft_precompute_trafo(nfsft_plan *plan)
+void nfsft_precompute_x(nfsft_plan *plan)
 {
+  /* Pass angle array to NFFT plan. */
+  plan->plan_nfft.x = plan->x;
+
+  /* Precompute. */
   if(plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(plan);
+    nfft_precompute_one_psi(&plan->plan_nfft);
 }

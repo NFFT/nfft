@@ -1,6 +1,6 @@
 /* $Id$
  *
- * FastsumS2 - Fast summation of spherical radial functions
+ * fastsumS2 - Fast summation of spherical radial functions
  *
  * Copyright (C) 2005 Jens Keiner
  *
@@ -791,8 +791,8 @@ int main (int argc, char **argv)
           plan.f_hat = f_hat;
           plan.x = xi;
           plan.f = f_m;
-          nfsft_precompute_trafo(&plan_adjoint);
-          nfsft_precompute_trafo(&plan);
+          nfsft_precompute_x(&plan_adjoint);
+          nfsft_precompute_x(&plan);
 
           /* Check if direct algorithm shall also be tested. */
           if (use_nfsft == BOTH)
