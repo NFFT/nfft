@@ -1,25 +1,29 @@
-function generateNodes(M)
-% ACCURACY Generate Gauss-Legendre weights.
+function writeWeights(file,m)
+% $Id$
+%
+% generateNodes - Generate Gauss-Legendre quadrature weights
+%
+% Copyright (C) 2006 Jens Keiner
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2, or (at your option)
+% any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software Foundation,
+% Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-prefix = 'gl';
-suffix = '.dat';
-
-for k = M
+for k = m
   % Generate Gauss-Legendre nodes in latitudinal direction.
   [theta,w] = lgwt(k+1,-1,1);
-  theta = (1/(2*pi))*acos(theta);
-  
-  % Generate nodes in colatitudinal direction.
-  phi = (1/(2*pi))*(0:2*k+1).*(pi/(k+1));
-  
-  % Open file for writing. */
-  file = fopen([prefix,int2str(k),suffix],'w');
-  
+
   % Write data to file.
-  fprintf(file,'%.30f\n',theta);
-  fprintf(file,'%.30f\n',phi);
-  fprintf(file,'%.30f\n',w);
-  
-  % Close datafile.
-  fclose(file);
+  fprintf(file,'\n');
+  fprintf(file,'%e\n',w);
 end
