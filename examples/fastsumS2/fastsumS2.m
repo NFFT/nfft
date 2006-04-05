@@ -41,7 +41,7 @@ end
 if (selection == 4)
   return
 end
-writeTestcase(file,1,1,1,0,1000,kernel,parameters,m,nodes);
+writeTestcase(file,1,0,0,1,1000,kernel,parameters,m,nodes);
 writeTestcase(file,1,1,3,1,1000,kernel,parameters,m,nodes);
 writeTestcase(file,1,1,6,1,1000,kernel,parameters,m,nodes);
 fclose(file);
@@ -49,7 +49,7 @@ system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
 file = fopen(outfilename,'r');
 T = readTestcase(file);
 fclose(file);
-y4 = feval(bound,T{1}.bandwidths)
+y4 = feval(bound,T{1}.bandwidths);
 figure('Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
 axes('FontSize',16);
 semilogy(T{1}.bandwidths,T{1}.data{1}(:,6),'-','LineWidth',2,'Color',[0,0,0]);

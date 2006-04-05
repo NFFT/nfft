@@ -406,8 +406,8 @@ int main (int argc, char **argv)
     }
 
     /* Do precomputation. */
-    nfsft_precompute(m_max,threshold,
-      0U | ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
+    nfsft_precompute(m_max,threshold, 0U |
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
 
     /* Process all parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
@@ -791,6 +791,8 @@ int main (int argc, char **argv)
           plan.f_hat = f_hat;
           plan.x = xi;
           plan.f = f_m;
+          nfsft_precompute_trafo(&plan_adjoint);
+          nfsft_precompute_trafo(&plan);
 
           /* Check if direct algorithm shall also be tested. */
           if (use_nfsft == BOTH)

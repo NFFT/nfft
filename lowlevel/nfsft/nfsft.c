@@ -294,7 +294,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
       /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-                         nfft_cutoff, 0U, 0U);
+                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
+                         FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
       /* Assign angle array. */
       plan->plan_nfft.x = plan->x;
@@ -408,6 +409,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
   /* Wisdom has been initialised. */
   wisdom.initialized = true;
 }
+
 
 void nfsft_forget()
 {
@@ -911,4 +913,10 @@ void nfsft_adjoint(nfsft_plan *plan)
       }
     }
   }
+}
+
+void nfsft_precompute_trafo(nfsft_plan *plan)
+{
+  if(plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
+    nfft_precompute_one_psi(plan);
 }
