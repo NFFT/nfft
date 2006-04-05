@@ -49,5 +49,5 @@ fprintf(file,'%d\n',bandwidths);
 % Check if we need to provide also quadrature weights. This is the case if
 % the Gauss-Legendre quadrature grid is used.
 if (gridtype==0)
-  writeWeights(file,m);
+  writeWeights(file,bandwidths);
 end

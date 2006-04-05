@@ -20,10 +20,14 @@ function writeWeights(file,m)
 % Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 for k = m
-  % Generate Gauss-Legendre nodes in latitudinal direction.
+  % Generate Gauss-Legendre nodes in co-latitudinal direction.
   [theta,w] = lgwt(k+1,-1,1);
+  theta = (1/(2*pi))*acos(theta);
 
   % Write data to file.
   fprintf(file,'\n');
+  fprintf(file,'\n');
   fprintf(file,'%e\n',w);
+  fprintf(file,'\n');
+  fprintf(file,'%e\n',theta);
 end

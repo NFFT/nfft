@@ -36,16 +36,23 @@ file = fopen(infilename,'w');
 % Write the number of testcases.
 fprintf(file,'testcases=1\n');
 
-% Set the grid type. Up to now always Gauss-Legendre...
-% 0 = Gauss-Legendre
-% 1 = Clenshaw-Curtis
-gridtype=0;
+if (selection == 1)
+  % Set the grid type.
+  % 0 = Gauss-Legendre
+  gridtype=0;
+elseif (selection == 2)
+  % Set the grid type.
+  % 1 = Clenshaw-Curtis
+  gridtype=1;
+else
+  error('Wrong selection!');
+end
 
 % Set the number of repetitions. Up to now always 1
 repetitions=1;
 
 % Set the bandwidths
-m = 4:4:96;
+m = 4:4:16;
 
 % Write the testcase.
 writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);

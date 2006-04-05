@@ -32,7 +32,7 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Additional command-line options
 AC_ARG_WITH(
-  tests, 
+  tests,
   AC_HELP_STRING(
     [--with-tests],
     [Compile with unit tests. Run 'make test' to execute the tests.]),
@@ -42,16 +42,16 @@ AC_ARG_WITH(
         AC_CHECK_LIB(cunit,CU_initialize_registry,[found_cunit=true],[found_cunit=false])
         if test "$found_cunit" = "true"; then
           AM_CONDITIONAL(WITH_TESTS,true)
-        else  
+        else
           AC_MSG_NOTICE([Couldn't find CUnit library. Tests won't be compiled.])
           AM_CONDITIONAL(WITH_TESTS,false)
-	      fi
-	    else  
+        fi
+      else
         AC_MSG_NOTICE([Couldn't find CUnit library headers. Tests won't be compiled.])
         AM_CONDITIONAL(WITH_TESTS,false)
       fi
     ],
-	  [AM_CONDITIONAL(WITH_TESTS,false)])
+    [AM_CONDITIONAL(WITH_TESTS,false)])
 
 
 # The output files to be generated
@@ -104,6 +104,7 @@ AC_OUTPUT(Makefile \
           examples/kernel/nfct/Makefile \
           examples/kernel/nfst/Makefile \
           examples/fastsumS2/Makefile \
+          examples/quadratureS2/Makefile \
           tests/Makefile \
           tests/kernel/Makefile \
           tests/kernel/fpt/Makefile \
