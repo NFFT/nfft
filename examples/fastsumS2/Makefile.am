@@ -1,4 +1,4 @@
-AM_CFLAGS = -I$(top_srcdir)/include -ansi
+AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
 ## The program name

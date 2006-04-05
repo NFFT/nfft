@@ -294,7 +294,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
       /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
+                         nfft_cutoff, /*PRE_PHI_HUT | PRE_PSI |*/ FFTW_INIT |
                          FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
       /* Assign angle array. */

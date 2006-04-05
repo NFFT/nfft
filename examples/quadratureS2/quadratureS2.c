@@ -1,6 +1,6 @@
-/* $Id: fastsumS2.c 734 2006-03-30 13:31:47Z keiner $
+/* $Id: fastsumS2.c 741 2006-04-05 07:00:11Z keiner $
  *
- * quadratureS2 - Fast evaluation of quadrature formulae on the sphere
+ * fastsumS2 - Fast summation of spherical radial functions
  *
  * Copyright (C) 2005 Jens Keiner
  *
@@ -31,19 +31,109 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
-#define M_MIN 1
-#define M_STRIDE 1
-#define M_MAX 128
+/* Include GSL header. */
+/*#include <gsl/gsl_sf_bessel.h>*/
 
-#define T_MIN 1000
-#define T_MAX 1000
-#define T_STRIDE 1000
 
-#define TWISE 0
-#define MWISE 1
+/** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
+#define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
 
-#define GL 0
-#define CC 1
+/** The Fourier-Legendre coefficients of the singularity kernel */
+#define SYMBOL_SINGULARITY(k,h) ((2.0/(2*k+1))*pow(h,k))
+
+
+/* Flags for the different kernel types */
+
+/** Abel-Poisson kernel */
+#define KT_ABEL_POISSON (0)
+/** Singularity kernel */
+#define KT_SINGULARITY  (1)
+/** Locally supported kernel */
+#define KT_LOC_SUPP     (2)
+/** Gaussian kernel */
+#define KT_GAUSSIAN     (3)
+
+/** Enumerations for parameter values */
+enum pvalue {NO = 0, YES = 1, BOTH = 2};
+
+/**
+ * Computes the \f$\mathbb{R}^3\f$ standard inner product between two vectors
+ * given in spherical coordinates.
+ *
+ * \arg phi1   The angle \f$\varphi_1 \in [-\pi,\pi)\f$ of the first vector
+ * \arg theta1 The angle \f$\vartheta_1 \in [0,\pi]\f$ of the first vector
+ * \arg phi2   The angle \f$\varphi_" \in [-\pi,\pi)\f$ of the second vector
+ * \arg theta2 The angle \f$\vartheta_" \in [0,\pi]\f$ of the second vector
+ *
+ * \return The inner product \f$\cos\vartheta_1\cos\vartheta_2 +
+ *   \sin\vartheta_1\sin(\vartheta_2\cos(\varphi_1-\varphi_2)\f$
+ */
+double innerProduct(const double phi1, const double theta1, const double phi2,
+  const double theta2)
+{
+  return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
+}
+
+/**
+ * Evaluates the Poisson kernel \f$Q_h: [-1,1] \rightarrow \mathbb{R}\f$ at a
+ * node \f$x \in [-1,1]\f$.
+ *
+ * \arg x The node \f$x \in [-1,1]\f$
+ * \arg h The parameter \f$h \in (0,1)\f$
+ *
+ * \return The value of the Poisson kernel \f$Q_h(x)\f$ at the node \f$x\f$
+ */
+double poissonKernel(const double x, const double h)
+{
+  return (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);
+}
+
+/**
+ * Evaluates the singularity kernel \f$S_h: [-1,1] \rightarrow \mathbb{R}\f$ at
+ * a node \f$x \in [-1,1]\f$.
+ *
+ * \arg x The node \f$x \in [-1,1]\f$
+ * \arg h The parameter \f$h \in (0,1)\f$
+ *
+ * \return The value of the Poisson kernel \f$S_h(x)\f$ at the node \f$x\f$
+ */
+double singularityKernel(const double x, const double h)
+{
+  return (1.0/(2*PI))/sqrt(1-2*h*x+h*h);
+}
+
+/**
+ * Evaluates the locally supported kernel \f$L_{h,\lambda}: [-1,1] \rightarrow
+ * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
+ *
+ * \arg x The node \f$x \in [-1,1]\f$
+ * \arg h The parameter \f$h \in (0,1)\f$
+ * \arg lambda The parameter \f$lambda \in \mathbb{N}_0\f$
+ *
+ * \return The value of the locally supported kernel \f$L_{h,\lambda}(x)\f$ at
+ *   the node \f$x\f$
+ */
+double locallySupportedKernel(const double x, const double h,
+  const double lambda)
+{
+  return (x<=h)?(0.0):(pow((x-h),lambda));
+}
+
+/**
+ * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
+ * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
+ *
+ * \arg x The node \f$x \in [-1,1]\f$
+ * \arg h The parameter \f$\sigma \in \mathbb{R}_+\f$
+ *
+ * \return The value of the pherical Gaussian kernel \f$G_\sigma(x)\f$ at the
+ *   node \f$x\f$
+ */
+double gaussianKernel(const double x, const double sigma)
+{
+   return exp(2*sigma*(x-1));
+}
+
 
 /**
  * The main program.
@@ -55,466 +145,841 @@
  */
 int main (int argc, char **argv)
 {
-  int m_min;
-  int m_max;
-  int m_stride;
-  int t_min;
-  int t_max;
-  int t_stride;
-  int mode;
+  double **p;                  /**< The array containing the parameter sets   *
+                                    for the kernels.                          */
+  int *m;                      /**< The array containing the cut-off degrees  *
+                                    \f$M\f$.                                  */
+  int **ld;                    /**< The array containing the numbers of       *
+                                    source and target nodes, \f$L \in         *
+                                    \mathbb{N}\f$ and \f$D \in \mathbb{N}\f$, *
+                                    respectively.                             */
+  int ip;                      /**< Index variable for \code p                */
+  int im;                      /**< Index variable for \code m                */
+  int ild;                     /**< Index variable for \code l                */
+  int ipp;                     /**< Index for kernel parameters               */
+  int ip_max;                  /**< The maximum index for \code p             */
+  int im_max;                  /**< The maximum index for \code m             */
+  int ild_max;                 /**< The maximum index for \code l             */
+  int ipp_max;                 /**< The maximum index for \code ipp           */
+  int tc_max;                  /**< The number of testcases                   */
+  int m_max;                   /**< The maximum cut-off degree \f$M\f$ for the*
+                                    current dataset                           */
+  int l_max;                   /**< The maximum number of source nodes        *
+                                    \f$L\f$ for the current dataset           */
+  int d_max;                   /**< The maximum number of target nodes \f$D\f$*
+                                    for the current dataset                   */
+  long ld_max_prec;            /**< The maximum number of source and target   *
+                                    nodes for precomputation multiplied       */
+  long l_max_prec;             /**< The maximum number of source nodes for    *
+                                    precomputation                            */
+  int tc;                      /**< Index variable for testcases              */
+  int kt;                      /**< The kernel type                           */
+  int cutoff;                  /**< The current NFFT cut-off parameter        */
+  double threshold;            /**< The current NFSFT threshold parameter     */
+  int n_max;                   /**< Next greater power of two with respect to *
+                                    m_max                                     */
+  double t_d;                  /**< Time for direct algorithm in seconds      */
+  double t_dp;                 /**< Time for direct algorithm with
+                                    precomputation in seconds                 */
+  double t_fd;                 /**< Time for fast direct algorithm in seconds */
+  double t_f;                  /**< Time for fast algorithm in seconds        */
+  double nfactor;              /**< */
+  double temp;                 /**< */
+  double err_f;                /**< Error \f$E_\infty\f$ for fast algorithm   */
+  double err_fd;               /**< Error \f$E_\infty\f$ for fast direct      *
+                                    algorithm                                 */
+  double t;                    /**< */
+  int precompute = NO;         /**< */
+  complex *ptr;                /**< */
+  double* steed;               /**< */
+  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}     *
+                                    ^{L-1}\f$                                 */
+  complex *f_hat;              /**< The spherical Fourier coefficients        */
+  complex *a;                  /**< The Fourier-Legendre coefficients         */
+  double *xi;                  /**< Target nodes                              */
+  double *eta;                 /**< Source nodes                              */
+  complex *f_m;                /**< Approximate function values               */
+  complex *f;                  /**< Exact function values                     */
+  complex *prec;               /**< */
+  nfsft_plan plan;             /**< NFSFT plan                                */
+  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                        */
+  int i;                       /** */
+  int j;                       /** */
+  int k;                       /** */
+  int n;                       /** */
+  int d;                       /** */
+  int l;                       /** */
+  int use_nfsft;               /** */
+  int use_nfft;                /** */
+  int use_fpt;                 /** */
+  int nsymbols;                /** */
+  long index;                  /** */
+  int rinc;                    /** */
+  FILE *file_gaussian;         /** */
+  char filename_tex[100];      /** */
+  char filename_dat[100];      /** */
+  char filename_gaussian[100]; /** */
+  double constant;             /** */
 
-  /** Next greater power of two with respect to M_MAX */
-  int N_MAX;
-  /** Maximum number of nodes */
-  int D_MAX;
-  /** The current bandwidth */
-  int M;
-  /** Next greater power of two with respect to M_MAX */
-  int N;
-  /** Loop counter for Legendre index k. */
-  int k;
-  /** Loop counter for Legendre index n. */
-  int n;
-  /** The current number of nodes */
-  int D;
-  /** Loop counter for nodes. */
-  int d;
-  /** Current threshold */
-  int t;
+  /* Read the number of testcases. */
+  fscanf(stdin,"testcases=%d\n",&tc_max);
+  fprintf(stdout,"%d\n",tc_max);
 
-  /** Arrays for complex Fourier coefficients. */
-  complex **f_hat;
-  /** Copy the original Fourier coefficients. */
-  complex **f_hat_orig;
-
-  /** Array of angles defining the nodes. */
-  double *angles;
-  /** Array for angles \f$\theta\f$ of a grid. */
-  double *theta;
-  /** Array for angles \f$\phi\f$ of a grid. */
-  double* phi;
-  /** Array for Gauss-Legendre weights. */
-  double *w;
-  /** Array for function values. */
-  complex *f;
-  double err_infty, err_1, err_2;
-
-  /** Plan for fast spherical fourier transform. */
-  nfsft_plan plan;
-
-  /** Used to measure computation time. */
-  double ctime;
-  /**
-    * Used to store the filename of a file containing Gauss-Legendre nodes and
-    * weights.
-    */
-  char filename_gl[100];
-  char filename_cc[100];
-  char filename[100];
-  unsigned short seed[3]={1,2,3};
-  /** File handle for reading quadrature nodes and weights. */
-  FILE *file;
-  /** FFTW plan for Clenshaw-Curtis quadrature */
-  fftw_plan fplan;
-
-  if (argc == 1)
+  /* Process each testcase. */
+  for (tc = 0; tc < tc_max; tc++)
   {
-    m_min = M_MIN;
-    m_max = M_MAX;
-    m_stride = M_STRIDE;
-    t_min = T_MIN;
-    t_max = T_MAX;
-    t_stride = T_STRIDE;
-    mode = TWISE;
-  }
-  else if (argc == 8)
-  {
-    sscanf(argv[1],"%d",&m_min);
-    sscanf(argv[2],"%d",&m_max);
-    sscanf(argv[3],"%d",&m_stride);
-    sscanf(argv[4],"%d",&t_min);
-    sscanf(argv[5],"%d",&t_max);
-    sscanf(argv[6],"%d",&t_stride);
-    sscanf(argv[7],"%d",&mode);
-  }
-  else
-  {
-    fprintf(stderr,"Accuracy - Accuracy test for NFSFT\n");
-    fprintf(stderr,"Usage: performance M_MIN M_MAX M_STRIDE T_MIN T_MAX T_STRIDE MODE\n");
-    return -1;
-  }
-
-  N_MAX = 1<<ngpt(m_max);
-  D_MAX = (2*m_max+1)*(2*m_max+2);
-
-  /* Initialize random number generator. */
-  srand48(time(NULL));
-
-  /* Allocate memory. */
-  f_hat = (complex**) malloc((2*m_max+1)*sizeof(complex*));
-  f_hat_orig = (complex**) malloc((2*m_max+1)*sizeof(complex*));
-  for (n = -m_max; n <= m_max; n++)
-  {
-    f_hat[n+m_max] = (complex*) fftw_malloc((N_MAX+1)*sizeof(complex));
-    f_hat_orig[n+m_max] = (complex*) fftw_malloc((N_MAX+1)*sizeof(complex));
-  }
-
-  angles = (double*) malloc(2*D_MAX*sizeof(double));
-  theta = (double*) malloc((2*m_max+1)*sizeof(double));
-  phi = (double*) malloc((2*m_max+2)*sizeof(double));
-  w = (double*) malloc((2*m_max+1)*sizeof(double));
-  f = (complex*) malloc(2*D_MAX*sizeof(complex));
-
-  if (mode == MWISE)
-  {
-    for (M = m_min; M <= m_max; M = M + m_stride)
+    /* Check if the fast transform shall be used. */
+    fscanf(stdin,"nfsft=%d\n",&use_nfsft);
+    fprintf(stdout,"%d\n",use_nfsft);
+    if (use_nfsft != NO)
     {
-      sprintf(filename_gl,"gl_m%04d.dat",M);
-      sprintf(filename_cc,"cc_m%04d.dat",M);
-      file = fopen(filename_gl,"w");
-      if (file != NULL)
+      /* Check if the NFFT shall be used. */
+      fscanf(stdin,"nfft=%d\n",&use_nfft);
+      fprintf(stdout,"%d\n",use_nfsft);
+      if (use_nfft != NO)
       {
-        fprintf(file,"%d\n",GL);
-        fprintf(file,"%d\n",mode);
-        fprintf(file,"%d\n",M);
-        fprintf(file,"%d\n",(t_max-t_min)/t_stride+1);
-        fclose(file);
+        /* Read the cut-off parameter. */
+        fscanf(stdin,"cutoff=%d\n",&cutoff);
+        fprintf(stdout,"%d\n",cutoff);
       }
-      file = fopen(filename_cc,"w");
-      if (file != NULL)
+      else
       {
-        fprintf(file,"%d\n",CC);
-        fprintf(file,"%d\n",mode);
-        fprintf(file,"%d\n",M);
-        fprintf(file,"%d\n",(t_max-t_min)/t_stride+1);
-        fclose(file);
+        /* TODO remove this */
+        /* Initialize unused variable with dummy value. */
+        cutoff = 1;
       }
+      /* Check if the fast polynomial transform shall be used. */
+      fscanf(stdin,"fpt=%d\n",&use_fpt);
+      fprintf(stdout,"%d\n",use_fpt);
+      /* Read the NFSFT threshold parameter. */
+      fscanf(stdin,"threshold=%lf\n",&threshold);
+      fprintf(stdout,"%lf\n",threshold);
     }
-  }
-
-  for (t = t_min; t <= t_max; t = t + t_stride)
-  {
-    if (mode == TWISE)
+    else
     {
-      sprintf(filename_gl,"gl_t%07d.dat",t);
-      sprintf(filename_cc,"cc_t%07d.dat",t);
-      file = fopen(filename_gl,"w");
-      if (file != NULL)
+      /* TODO remove this */
+      /* Set dummy values. */
+      cutoff = 3;
+      threshold = 1000000000000.0;
+    }
+
+    /* Initialize bandwidth bound. */
+    m_max = 0;
+    /* Initialize source nodes bound. */
+    l_max = 0;
+    /* Initialize target nodes bound. */
+    d_max = 0;
+    /* Initialize source nodes bound for precomputation. */
+    l_max_prec = 0;
+    /* Initialize source and target nodes bound for precomputation. */
+    ld_max_prec = 0;
+
+    /* Read the kernel type. This is one of KT_ABEL_POISSON, KT_SINGULARITY,
+     * KT_LOC_SUPP and KT_GAUSSIAN. */
+    fscanf(stdin,"kernel=%d\n",&kt);
+    fprintf(stdout,"%d\n",kt);
+
+    /* Read the number of parameter sets. */
+    fscanf(stdin,"parameter_sets=%d\n",&ip_max);
+    fprintf(stdout,"%d\n",ip_max);
+
+    /* Allocate memory for pointers to parameter sets. */
+    p = (double**) malloc(ip_max*sizeof(double*));
+
+    /* We now read in the parameter sets. */
+
+    /* Read number of parameters. */
+    fscanf(stdin,"parameters=%d\n",&ipp_max);
+    fprintf(stdout,"%d\n",ipp_max);
+
+    for (ip = 0; ip < ip_max; ip++)
+    {
+      /* Allocate memory for the parameters. */
+      p[ip] = (double*) malloc(ipp_max*sizeof(double));
+
+      /* Read the parameters. */
+      for (ipp = 0; ipp < ipp_max; ipp++)
       {
-        fprintf(file,"%d\n",GL);
-        fprintf(file,"%d\n",mode);
-        fprintf(file,"%d\n",t);
-        fprintf(file,"%d\n",(m_max-m_min)/m_stride+1);
-        fclose(file);
-      }
-      file = fopen(filename_cc,"w");
-      if (file != NULL)
-      {
-        fprintf(file,"%d\n",CC);
-        fprintf(file,"%d\n",mode);
-        fprintf(file,"%d\n",t);
-        fprintf(file,"%d\n",(m_max-m_min)/m_stride+1);
-        fclose(file);
+        /* Read the next parameter. */
+        fscanf(stdin,"%lf\n",&p[ip][ipp]);
+        fprintf(stdout,"%lf\n",p[ip][ipp]);
       }
     }
 
-    printf("Threshold: %d\n",t);
-    /* Precompute wisdom */
-    printf("Precomputing wisdom up to M = %d ...",m_max);
-    fflush(stdout);
-    ctime = second();
-    nfsft_precompute(m_max,t, NFSFT_FAST_ONLY | NFSFT_BW_WINDOW);
-    printf(" needed %7.2f secs.\n",second()-ctime);
+    /* Read the number of cut-off degrees. */
+    fscanf(stdin,"bandwidths=%d\n",&im_max);
+    fprintf(stdout,"%d\n",im_max);
+    m = (int*) malloc(im_max*sizeof(int));
 
-    printf("Bandwidth         Time err(infty)     err(1)     err(2)         Time err(infty)     err(1)     err(2)\n");
-
-    /* Test backward stability of NDSFT. */
-    for (M = m_min; M <= m_max; M = M + m_stride)
+    /* Read the cut-off degrees. */
+    for (im = 0; im < im_max; im++)
     {
-      /* Perform backward stability test:
-       * 1. For \f$k = 0,...,M\f$ and \f$n = -k,...,k\f$ compute random Fourier
-       *    coefficients \f$a_k^n \in \[0,1\] x i \[0,1\]\f$.
-       * 2. Evaluate \f$f := \sum_{k=0}^M \sum_{n=-k}^n a_k^n Y_k^n\f$ at
-       *    Gauss-Legendre nodes \f$\left(\xi_d\right)_{d=0}^{(M+1)^2-1}\f$ by a
-       *    NDSFT.
-       * 3. Multiply each function value \f$f_d := f\left(\xi_d\right)\f$ by it's
-       *    corresponding Gauss-Legendre weight w_d.
-       * 4. Compute the Fourier coefficients \f$\tilde{a}_k^n\$f by Gauss-Legendre
-       *    quadrature rule using a adjoint NDSFT.
-       */
+      /* Read cut-off degree. */
+      fscanf(stdin,"%d\n",&m[im]);
+      fprintf(stdout,"%d\n",m[im]);
+      m_max = MAX(m_max,m[im]);
+    }
 
-      printf("%8d: ",M);
+    /* Read number of node specifications. */
+    fscanf(stdin,"node_sets=%d\n",&ild_max);
+    fprintf(stdout,"%d\n",ild_max);
+    ld = (int**) malloc(ild_max*sizeof(int*));
 
-      /* Compute next greater power of two. */
-      N = 1<<ngpt(M);
+    /* Read the run specification. */
+    for (ild = 0; ild < ild_max; ild++)
+    {
+      /* Allocate memory for the run parameters. */
+      ld[ild] = (int*) malloc(5*sizeof(int));
 
-      seed48(seed);
+      /* Read number of source nodes. */
+      fscanf(stdin,"L=%d ",&ld[ild][0]);
+      fprintf(stdout,"%d\n",ld[ild][0]);
+      l_max = MAX(l_max,ld[ild][0]);
 
-      /* Compute random Fourier coefficients. */
-      for (n = -M; n <= M; n++)
+      /* Read number of target nodes. */
+      fscanf(stdin,"D=%d ",&ld[ild][1]);
+      fprintf(stdout,"%d\n",ld[ild][1]);
+      d_max = MAX(d_max,ld[ild][1]);
+
+      /* Determine whether direct and fast algorithm shall be compared. */
+      fscanf(stdin,"compare=%d ",&ld[ild][2]);
+      fprintf(stdout,"%d\n",ld[ild][2]);
+
+      /* Check if precomputation for the direct algorithm is used. */
+      if (ld[ild][2] == YES)
       {
-        for (k = abs(n); k <= M; k++)
+        /* Read whether the precomputed version shall also be used. */
+        fscanf(stdin,"precomputed=%d\n",&ld[ild][3]);
+        fprintf(stdout,"%d\n",ld[ild][3]);
+
+        /* Read the number of repetitions over which measurements are
+         * averaged. */
+        fscanf(stdin,"repetitions=%d\n",&ld[ild][4]);
+        fprintf(stdout,"%d\n",ld[ild][4]);
+
+        /* Update ld_max_prec and l_max_prec. */
+        if (ld[ild][3] == YES)
         {
-          f_hat[n+M][k] = drand48()-0.5 + I*(drand48()-0.5);
+          /* Update ld_max_prec. */
+          ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
+          /* Update l_max_prec. */
+          l_max_prec = MAX(l_max_prec,ld[ild][0]);
+          /* Turn on the precomputation for the direct algorithm. */
+          precompute = YES;
         }
-        /* Save a copy. */
-        memcpy(f_hat_orig[n+M],f_hat[n+M],(M+1)*sizeof(complex));
+      }
+      else
+      {
+        /* Set default value for the number of repetitions. */
+        ld[ild][4] = 1;
+      }
+    }
+
+    /* Allocate memory for data structures. */
+    b = (complex*) malloc(l_max*sizeof(complex));
+    eta = (double*) malloc(2*l_max*sizeof(double));
+    f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex));
+    a = (complex*) malloc((m_max+1)*sizeof(complex));
+    xi = (double*) malloc(2*d_max*sizeof(double));
+    f_m = (complex*) malloc(d_max*sizeof(complex));
+    f = (complex*) malloc(d_max*sizeof(complex));
+
+    /* Allocate memory for precomputed data. */
+    if (precompute == YES)
+    {
+      prec = (complex*) malloc(ld_max_prec*sizeof(complex));
+    }
+
+    /* Generate random source nodes and weights. */
+    for (l = 0; l < l_max; l++)
+    {
+      b[l] = drand48() - 0.5;
+      eta[2*l] = drand48() - 0.5;
+      eta[2*l+1] = 0.5*drand48();
+    }
+
+    /* Generate random target nodes. */
+    for (d = 0; d < d_max; d++)
+    {
+      xi[2*d] = drand48() - 0.5;
+      xi[2*d+1] = 0.5*drand48();
+    }
+
+    /* Do precomputation. */
+    nfsft_precompute(m_max,threshold, 0U |
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
+
+    /* Process all parameter sets. */
+    for (ip = 0; ip < ip_max; ip++)
+    {
+      /* Compute kernel coeffcients up to the maximum cut-off degree m_max. */
+      switch (kt)
+      {
+        case KT_ABEL_POISSON:
+          /* Compute Fourier-Legendre coefficients for the Poisson kernel. */
+          for (k = 0; k <= m_max; k++)
+          {
+            a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);
+          }
+          break;
+
+        case KT_SINGULARITY:
+          /* Compute Fourier-Legendre coefficients for the singularity
+           * kernel. */
+          for (k = 0; k <= m_max; k++)
+          {
+            a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
+          }
+          break;
+
+        case KT_LOC_SUPP:
+          /* Compute Fourier-Legendre coefficients for the locally supported
+           * kernel. */
+          for (k = 0; k <= m_max; k++)
+          {
+            /* First case k = 0 for initialization of three-term recurrence. */
+            if (k == 0)
+            {
+              a[k] = 1.0;
+            }
+            /* Second case k = 1 for initialization of three-term recurrence. */
+            else if (k == 1)
+            {
+              a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
+            }
+            /* Apply three-term recurrence. */
+            else
+            {
+              a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] -
+                (k-p[ip][1]-2)*a[k-2]);
+            }
+          }
+          break;
+
+        case KT_GAUSSIAN:
+          /* Compute Fourier-Legendre coefficients for the locally supported
+           * kernel. */
+          /* TODO Use GSL library. */
+          /*steed = (double*) malloc(m_max*sizeof(double));
+          gsl_sf_bessel_il_scaled_array(m_max,2*p[ip][0],steed);
+          for (k = 0; k <= m_max; k++)
+          {
+            a[k] = 4*PI*steed[k];
+          }
+          free(steed);*/
+          sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
+          file_gaussian = fopen(filename_gaussian,"r");
+          if (file_gaussian != NULL)
+          {
+            fscanf(file_gaussian,"%d\n",&nsymbols);
+            for (k = 0; k <= MIN(nsymbols,m_max); k++)
+            {
+              fscanf(file_gaussian,"%lf\n",&a[k]);
+            }
+            for (k = nsymbols+1; k <= m_max; k++)
+            {
+              a[k] = 0.0;
+            }
+          }
+          else
+          {
+          }
+          break;
       }
 
-
-      /* Test Gauss-Legendre quadrature */
-
-      if (1 == 0)
-  {
-
-      /* Compute number of nodes. */
-      D = (M+1)*(2*M+2);
-
-      /* Read Gauss-Legendre nodes and weights. */
-      sprintf(filename,"gl%d.dat",M);
-      file = fopen(filename,"r");
-
-      if (file != NULL)
+      /* Normalize Fourier-Legendre coefficients. */
+      for (k = 0; k <= m_max; k++)
       {
-         for (n = 0; n < M+1; n++)
-        {
-          fscanf(file,"%lf\n",&theta[n]);
-        }
-        for (k = 0; k < 2*M+2; k++)
-        {
-          fscanf(file,"%lf\n",&phi[k]);
-        }
-        for (n = 0; n < M+1; n++)
-        {
-          fscanf(file,"%lf\n",&w[n]);
-        }
-        fclose(file);
+        a[k] *= (2*k+1)/(4*PI);
+      }
 
-        /* Create grid nodes. */
-        d = 0;
-        for (n = 0; n < M+1; n++)
+      /* Process all node sets. */
+      for (ild = 0; ild < ild_max; ild++)
+      {
+        /* Check if the fast algorithm shall be used. */
+        if (ld[ild][2] != NO)
         {
-          for (k = 0; k < 2*M+2; k++)
+          /* Check if the direct algorithm with precomputation should be
+           * tested. */
+          if (ld[ild][3] != NO)
           {
-            angles[2*d] = phi[k];
-            angles[2*d+1] = theta[n];
-            d++;
+            /* Initialize cumulative time variable. */
+            t_dp = 0.0;
+
+            /* Cycle through all runs. */
+            for (i = 0; i < ld[ild][4]; i++)
+            {
+              /* Get pointer to start of data. */
+              ptr = prec;
+              /* Calculate increment from one row to the next. */
+              rinc = l_max_prec-ld[ild][0];
+
+              /* Process al target nodes. */
+              for (d = 0; d < ld[ild][1]; d++)
+              {
+                /* Process all source nodes. */
+                for (l = 0; l < ld[ild][0]; l++)
+                {
+                  /* Compute inner product between current source and target
+                   * node. */
+                  temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                    2*PI*xi[2*d],2*PI*xi[2*d+1]);
+
+                  /* Switch by the kernel type. */
+                  switch (kt)
+                  {
+                    case KT_ABEL_POISSON:
+                      /* Evaluate the Poisson kernel for the current value. */
+                      *ptr++ = poissonKernel(temp,p[ip][0]);
+                     break;
+
+                    case KT_SINGULARITY:
+                      /* Evaluate the singularity kernel for the current
+                       * value. */
+                      *ptr++ = singularityKernel(temp,p[ip][0]);
+                      break;
+
+                    case KT_LOC_SUPP:
+                       /* Evaluate the localized kernel for the current
+                        * value. */
+                      *ptr++ = locallySupportedKernel(temp,p[ip][0],p[ip][1]);
+                      break;
+
+                    case KT_GAUSSIAN:
+                       /* Evaluate the spherical Gaussian kernel for the current
+                        * value. */
+                      *ptr++ = gaussianKernel(temp,p[ip][0]);
+                       break;
+                  }
+                }
+                /* Increment pointer for next row. */
+                ptr += rinc;
+              }
+
+              /* Reset pointer to start of precomputed data. */
+              ptr = prec;
+              /* Calculate increment from one row to the next. */
+              rinc = l_max_prec-ld[ild][0];
+
+              /* Check if the localized kernel is used. */
+              if (kt == KT_LOC_SUPP)
+              {
+                /* Perform final summation */
+
+                /* Calculate the multiplicative constant. */
+                constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+
+                /* Initialize time measurement. */
+                t = second();
+
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
+
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    f[d] += b[l]*(*ptr++);
+                  }
+
+                  /* Multiply with the constant. */
+                  f[d] *= constant;
+
+                  /* Proceed to next row. */
+                  ptr += rinc;
+                }
+
+                /* Calculate the time needed. */
+                t_dp += second() - t;
+              }
+              else
+              {
+                /* Initialize time measurement. */
+                t = second();
+
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
+
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    f[d] += b[l]*(*ptr++);
+                  }
+
+                  /* Proceed to next row. */
+                  ptr += rinc;
+                }
+
+                /* Calculate and add the time needed. */
+                t_dp += second() - t;
+              }
+            }
+
+            /* Calculate average time needed. */
+            t_dp = t_dp/((double)ld[ild][4]);
           }
-        }
-
-        plan = nfsft_init_guru(M, D, f_hat, angles, f, NFSFT_NORMALIZED,6);
-
-        /* Compute forward transform. */
-        ctime = second();
-        //ndsft_trafo(plan);
-        nfsft_trafo(plan);
-
-        /* Multiply with quadrature weights. */
-        d = 0;
-        for (n = 0; n < M+1; n++)
-        {
-          for (k = 0; k < 2*M+2; k++)
+          else
           {
-            f[d] *= w[n];
-            d++;
+            /* Initialize cumulative time variable with dummy value. */
+            t_dp = -1.0;
           }
-        }
 
-        //plan = nfsft_init(M, D, f_hat, angles, f, 0U);
+          /* Initialize cumulative time variable. */
+          t_d = 0.0;
 
-        /* Compute adjoint transform. */
-        //ndsft_adjoint(plan);
-        nfsft_adjoint(plan);
-        printf("%7.2f secs ",second()-ctime);
-
-        nfsft_finalize(plan);
-
-        /* Respect normalization. */
-        for (n = -M; n <= M; n++)
-        {
-          for (k = abs(n); k <= M; k++)
+          /* Cycle through all runs. */
+          for (i = 0; i < ld[ild][4]; i++)
           {
-            f_hat[n+M][k] *= (1.0/(2*M+2))/**sqrt((2*k+1)/2.0)*/;
-          }
-        }
+            /* Switch by the kernel type. */
+            switch (kt)
+            {
+              case KT_ABEL_POISSON:
+                /* Initialize time measurement. */
+                t = second();
 
-        err_infty = err_f_hat_infty(f_hat_orig,f_hat,M);
-        err_1 = err_f_hat_1(f_hat_orig,f_hat,M);
-        err_2 = err_f_hat_2(f_hat_orig,f_hat,M);
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
 
-        if (mode == TWISE)
-        {
-          sprintf(filename_gl,"gl_t%07d.dat",t);
-          file = fopen(filename_gl,"a");
-          if (file != NULL)
-          {
-            fprintf(file,"%4d %6.4E %6.4E %6.4E\n",M,err_infty, err_1, err_2);
-            fclose(file);
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    /* Compute the inner product for the current source and
+                     * target nodes. */
+                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+
+                    /* Evaluate the Poisson kernel for the current value and add
+                     * to the result. */
+                    f[d] += b[l]*poissonKernel(temp,p[ip][0]);
+                  }
+                }
+
+                /* Calculate and add the time needed. */
+                t_d += second() - t;
+                break;
+
+              case KT_SINGULARITY:
+                /* Initialize time measurement. */
+                t = second();
+
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
+
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    /* Compute the inner product for the current source and
+                     * target nodes. */
+                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+
+                    /* Evaluate the Poisson kernel for the current value and add
+                     * to the result. */
+                    f[d] += b[l]*singularityKernel(temp,p[ip][0]);
+                  }
+                }
+
+                /* Calculate and add the time needed. */
+                t_d += second() - t;
+                break;
+
+              case KT_LOC_SUPP:
+                /* Calculate the multiplicative constant. */
+                constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+
+                /* Initialize time measurement. */
+                t = second();
+
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
+
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    /* Compute the inner product for the current source and
+                     * target nodes. */
+                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+
+                    /* Evaluate the Poisson kernel for the current value and add
+                     * to the result. */
+                    f[d] += b[l]*locallySupportedKernel(temp,p[ip][0],p[ip][1]);
+                  }
+
+                  /* Multiply result with constant. */
+                  f[d] *= constant;
+                }
+
+                /* Calculate and add the time needed. */
+                t_d += second() - t;
+                break;
+
+              case KT_GAUSSIAN:
+
+                /* Initialize time measurement. */
+                t = second();
+
+                /* Process all target nodes. */
+                for (d = 0; d < ld[ild][1]; d++)
+                {
+                  /* Initialize function value. */
+                  f[d] = 0.0;
+
+                  /* Process all source nodes. */
+                  for (l = 0; l < ld[ild][0]; l++)
+                  {
+                    /* Compute the inner product for the current source and
+                     * target nodes. */
+                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                    /* Evaluate the Poisson kernel for the current value and add
+                     * to the result. */
+                    f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+                  }
+                }
+
+                /* Calculate and add the time needed. */
+                t_d = second() - t;
+                break;
+            }
           }
+
+          /* Calculate average time needed. */
+          t_d = t_d/((double)ld[ild][4]);
         }
         else
         {
-          sprintf(filename_gl,"gl_m%04d.dat",M);
-          file = fopen(filename_gl,"a");
-          if (file != NULL)
+          /* Initialize cumulative time variable with dummy value. */
+          t_d = -1.0;
+          t_dp = -1.0;
+        }
+
+        /* Initialize error and cumulative time variables for the fast
+         * algorithm. */
+        err_fd = -1.0;
+        err_f = -1.0;
+        t_fd = -1.0;
+        t_f = -1.0;
+
+        /* Process all cut-off bandwidths. */
+        for (im = 0; im < im_max; im++)
+        {
+          /* Init transform plans. */
+          nfsft_init_guru(&plan_adjoint,m[im],ld[ild][0],
+            ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
+            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+          nfsft_init_guru(&plan,m[im],ld[ild][1],
+            ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
+            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+          plan_adjoint.f_hat = f_hat;
+          plan_adjoint.x = eta;
+          plan_adjoint.f = b;
+          plan.f_hat = f_hat;
+          plan.x = xi;
+          plan.f = f_m;
+          /*nfsft_precompute_x(&plan_adjoint);
+          nfsft_precompute_x(&plan);*/
+
+          /* Check if direct algorithm shall also be tested. */
+          if (use_nfsft == BOTH)
           {
-            fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
-            fclose(file);
+            /* Initialize cumulative time variable. */
+            t_fd = 0.0;
+
+            /* Cycle through all runs. */
+            for (i = 0; i < ld[ild][4]; i++)
+            {
+              /* Initialize time measurement. */
+              t = second();
+
+              /* Execute adjoint direct NDSFT transformation. */
+              ndsft_adjoint(&plan_adjoint);
+
+              /* Multiplication with the Fourier-Legendre coefficients. */
+              for (k = 0; k <= m[im]; k++)
+              {
+                for (n = -k; n <= k; n++)
+                {
+                  f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
+                }
+              }
+
+              /* Execute direct NDSFT transformation. */
+              ndsft_trafo(&plan);
+
+              /* Calculate and add the time needed. */
+              t_fd += second() - t;
+
+              /* Check if error E_infty should be computed. */
+              if (ld[ild][2] != NO)
+              {
+                /* Compute the error E_infinity. */
+                err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                  ld[ild][0]);
+              }
+            }
+            /* Calculate average time needed. */
+            t_fd = t_fd/((double)ld[ild][4]);
           }
-        }
 
-        /* Print relative error in various norms. */
-        printf("%6.4E %6.4E %6.4E\t\n",err_infty, err_1, err_2);
-      }
-      else
-      {
-        printf("   File %s not found.\t\t\t",filename);
-      }
-  }
+          /* Check if the fast NFSFT algorithm shall also be tested. */
+          if (use_nfsft != NO)
+          {
+            /* Initialize cumulative time variable for the NFSFT algorithm. */
+            t_f = 0.0;
+          }
+          else
+          {
+            /* Initialize cumulative time variable for the direct NDSFT
+             * algorithm. */
+            t_fd = 0.0;
+          }
 
-      if (1 == 1)
-  {
+          /* Cycle through all runs. */
+          for (i = 0; i < ld[ild][4]; i++)
+          {
+            /* Initialize time measurement. */
+            t = second();
 
-      /* Test Clenshaw-Curtis quadrature */
+            /* Check if the fast NFSFT algorithm shall also be tested. */
+            if (use_nfsft != NO)
+            {
+              /* Execute the adjoint NFSFT transformation. */
+              nfsft_adjoint(&plan_adjoint);
+            }
+            else
+            {
+              /* Execute the adjoint direct NDSFT transformation. */
+              ndsft_adjoint(&plan_adjoint);
+            }
 
-      /* Compute number of nodes. */
-      D = (2*M+1)*(2*M+2);
+            /* Multiplication with the Fourier-Legendre coefficients. */
+            for (k = 0; k <= m[im]; k++)
+            {
+              for (n = -k; n <= k; n++)
+              {
+                f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
+               }
+             }
 
-      /* Reset Fourier coefficients. */
-      for (n = -M; n <= M; n++)
-      {
-        memcpy(f_hat[n+M],f_hat_orig[n+M],(M+1)*sizeof(complex));
-      }
+            /* Check if the fast NFSFT algorithm shall also be tested. */
+            if (use_nfsft != NO)
+            {
+              /* Execute the NFSFT transformation. */
+              nfsft_trafo(&plan);
+            }
+            else
+            {
+              /* Execute the NDSFT transformation. */
+              ndsft_trafo(&plan);
+            }
 
-      /* Respect normalization. */
-      for (n = -M; n <= M; n++)
-      {
-        for (k = abs(n); k <= M; k++)
-        {
-          f_hat[n+M][k] *= sqrt((2*k+1)/2.0);
-        }
-      }
+            /* Check if the fast NFSFT algorithm has been used. */
+            if (use_nfsft != NO)
+            {
+              /* Calculate and add the time needed. */
+              t_f += second() - t;
+            }
+            else
+            {
+              /* Calculate and add the time needed. */
+              t_fd += second() - t;
+            }
 
-      /* Compute Clenshaw-Curtis nodes and weights. */
-      for (k = 0; k < 2*M+2; k++)
-      {
-        phi[k] = k/((double)2*M+2);
-      }
-      for (n = 0; n < 2*M+1; n++)
-      {
-        theta[n] = n/((double)4*M);
-      }
-      fplan = fftw_plan_r2r_1d(M+1, w, w, FFTW_REDFT00, 0U);
-      for (n = 0; n < M+1; n++)
-      {
-        w[n] = -2.0/(4*n*n-1);
-      }
-      fftw_execute(fplan);
-      w[0] *= 0.5;
+            /* Check if error E_infty should be computed. */
+            if (ld[ild][2] != NO)
+            {
+              /* Check if the fast NFSFT algorithm has been used. */
+              if (use_nfsft != NO)
+              {
+                /* Compute the error E_infinity. */
+                err_f = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                  ld[ild][0]);
+              }
+              else
+              {
+                /* Compute the error E_infinity. */
+                err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                  ld[ild][0]);
+              }
+            }
+          }
 
-      for (n = 0; n < M+1; n++)
-      {
-        w[n] *= 1/((double)2*M);
-        w[2*M-n] = w[n];
-      }
-      fftw_destroy_plan(fplan);
-      //fprintf(stderr,"CC-weights for M = %d:\n",M);
-      /*for (n = 0; n < 2*M+1; n++)
-      {
-        fprintf(stderr,"w[%d] = %lf\n",n,w[n]);
-      }*/
+          /* Check if the fast NFSFT algorithm has been used. */
+          if (use_nfsft != NO)
+          {
+            /* Calculate average time needed. */
+            t_f = t_f/((double)ld[ild][4]);
+          }
+          else
+          {
+            /* Calculate average time needed. */
+            t_fd = t_fd/((double)ld[ild][4]);
+          }
 
-      /* Create grid nodes. */
-      d = 0;
-      for (n = 0; n < 2*M+1; n++)
-      {
-        for (k = 0; k < 2*M+2; k++)
-        {
-          angles[2*d] = phi[k];
-          angles[2*d+1] = theta[n];
-          d++;
-        }
-      }
+          /* Print out the error measurements. */
+          fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n",t_d,t_dp,t_fd,t_f,err_fd,
+            err_f);
 
-      plan = nfsft_init(M, D, f_hat, angles, f, 0U/*NFSFT_NORMALIZED*/);
+          /* Finalize the NFSFT plans */
+          nfsft_finalize(&plan_adjoint);
+          nfsft_finalize(&plan);
+        } /* for (im = 0; im < im_max; im++) - Process all cut-off
+           * bandwidths.*/
+      } /* for (ild = 0; ild < ild_max; ild++) - Process all node sets. */
+    } /* for (ip = 0; ip < ip_max; ip++) - Process all parameter sets. */
 
-      /* Compute forward transform. */
-      ctime = second();
-      //ndsft_trafo(plan);
-      nfsft_trafo(plan);
+    /* Delete precomputed data. */
+    nfsft_forget();
 
-      /* Multiply with quadrature weights. */
-      d = 0;
-      for (n = 0; n < 2*M+1; n++)
-      {
-        for (k = 0; k < 2*M+2; k++)
-        {
-          f[d] *= w[n];
-          d++;
-        }
-      }
-
-      /* Compute adjoint transform. */
-      //ndsft_adjoint(plan);
-      nfsft_adjoint(plan);
-      printf("%7.2f secs ",second()-ctime);
-
-      nfsft_finalize(plan);
-
-      /* Respect normalization. */
-      for (n = -M; n <= M; n++)
-      {
-        for (k = abs(n); k <= M; k++)
-        {
-          f_hat[n+M][k] *= 1.0/(2*M+2)*sqrt((2*k+1)/2.0);
-        }
-      }
-
-      err_infty = err_f_hat_infty(f_hat_orig,f_hat,M);
-      err_1 = err_f_hat_1(f_hat_orig,f_hat,M);
-      err_2 = err_f_hat_2(f_hat_orig,f_hat,M);
-
-      if (mode == TWISE)
-      {
-        sprintf(filename_cc,"cc_t%07d.dat",t);
-        file = fopen(filename_cc,"a");
-        if (file != NULL)
-        {
-          fprintf(file,"%4d %6.4E %6.4E %6.4E\n",M, err_infty, err_1, err_2);
-          fclose(file);
-        }
-      }
-      else
-      {
-        sprintf(filename_cc,"cc_m%04d.dat",M);
-        file = fopen(filename_cc,"a");
-        if (file != NULL)
-        {
-          fprintf(file,"%10d %6.4E %6.4E %6.4E\n",t,err_infty, err_1, err_2);
-          fclose(file);
-        }
-      }
-
-      /* Print relative error in various norms. */
-      printf("%6.4E %6.4E %6.4E\n",err_infty,err_1,err_2);
+    /* Check if memory for precomputed data of the matrix K has been
+     * allocated. */
+    if (precompute == YES)
+    {
+      /* Free memory for precomputed matrix K. */
+      free(prec);
     }
+    /* Free data arrays. */
+    free(f);
+    free(f_m);
+    free(xi);
+    free(eta);
+    free(a);
+    free(f_hat);
+    free(b);
+
+    /* Free memory for node sets. */
+    for (ild = 0; ild < ild_max; ild++)
+    {
+      free(ld[ild]);
     }
-    printf("\n");
-  }
+    free(ld);
 
-  nfsft_forget();
-  for (n = -m_max; n <= m_max; n++)
-  {
-    free(f_hat[n+m_max]);
-    free(f_hat_orig[n+m_max]);
-  }
-  free(f_hat);
-  free(f_hat_orig);
+    /* Free memory for cut-off bandwidths. */
+    free(m);
 
-  free(angles);
-  free(theta);
-  free(phi);
-  free(w);
-  free(f);
+    /* Free memory for parameter sets. */
+    for (ip = 0; ip < ip_max; ip++)
+    {
+      free(p[ip]);
+    }
+    free(p);
+  } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */
+
+  /* Return exit code for successful run. */
   return EXIT_SUCCESS;
 }
