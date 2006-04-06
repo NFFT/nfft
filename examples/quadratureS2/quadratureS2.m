@@ -49,10 +49,10 @@ else
 end
 
 % Set the number of repetitions. Up to now always 1
-repetitions=1;
+repetitions=10;
 
 % Set the bandwidths
-m = 4:4:16;
+m = 4:4:128;
 
 % Write the testcase.
 writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);

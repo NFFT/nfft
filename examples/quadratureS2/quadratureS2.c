@@ -25,6 +25,9 @@
 #include <stdio.h>
 #include <time.h>
 
+/* Include FFTW header. */
+#include <fftw3.h>
+
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 
@@ -99,6 +102,7 @@ int main (int argc, char **argv)
   int grid_total;              /**< The total maximum number of grid nodes.   */
   double *theta;               /**< */
   double *phi;                 /**< */
+  fftw_plan fplan;             /**< */
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -147,15 +151,19 @@ int main (int argc, char **argv)
     {
       /* TODO remove this */
       /* Set dummy values. */
+      use_nfft = NO;
+      use_fpt = NO;
       cutoff = 3;
       threshold = 1000000000000.0;
     }
 
     /* Read the quadrature grid type. */
     fscanf(stdin,"gridtype=%d\n",&gridtype);
+    fprintf(stdout,"%d\n",gridtype);
 
     /* Read the number of repetitions. */
     fscanf(stdin,"repetitions=%d\n",&repetitions);
+    fprintf(stdout,"%d\n",repetitions);
 
     /* Initialize bandwidth bound. */
     m_max = 0;
@@ -230,76 +238,115 @@ int main (int argc, char **argv)
           grid_phi = 2*m[im] + 2;
           grid_total = grid_theta*grid_phi;
 
-          fprintf(stdout,"\n");
+          /*fprintf(stdout,"\n");*/
 
           /* Read quadrature weights. */
+          /*fprintf(stdout,"Weights:\n");*/
           for (k = 0; k < grid_theta; k++)
           {
             fscanf(stdin,"%le\n",&w[k]);
-            fprintf(stdout,"%le\n",w[k]);
+            //fprintf(stdout,"%le\n",w[k]);
           }
 
-          fprintf(stdout,"\n");
+          /*fprintf(stdout,"\n");*/
 
           /* Read grid angles theta. */
+          //fprintf(stdout,"Theta:\n");
           for (k = 0; k < grid_theta; k++)
           {
             fscanf(stdin,"%le\n",&theta[k]);
-            fprintf(stdout,"%le\n",theta[k]);
+            //fprintf(stdout,"%le\n",theta[k]);
           }
 
-          fprintf(stdout,"\n");
+          /*fprintf(stdout,"\n");*/
 
           /* Read grid angles phi. */
+          /*fprintf(stdout,"Phi:\n");*/
           for (n = 0; n < grid_phi; n++)
           {
             phi[n] = n/((double)grid_phi)-0.5;
-            fprintf(stdout,"%le\n",phi[n]);
+            //fprintf(stdout,"%le\n",phi[n]);
           }
+          /*fprintf(stdout,"Phi:\n");
+          phi[0] = 0.0;
+          fprintf(stdout,"%le\n",phi[0]);*/
+
+          //fprintf(stdout,"\n");
 
           /* Generate grid nodes. */
-          d = 0;
-          for (k = 0; k < grid_theta; k++)
-          {
-            for (n = 0; n < grid_phi; n++)
-            {
-              x[2*d] = phi[n];
-              x[2*d+1] = theta[k];
-              d++;
-            }
-          }
+          //fprintf(stdout,"Phi:\n");
           break;
+
         case GRID_CLENSHAW_CURTIS:
           /* Calculate grid dimensions. */
           grid_theta = 2*m[im] + 1;
           grid_phi = 2*m[im] + 2;
           grid_total = grid_theta*grid_phi;
+
           /* Generate quadrature nodes. */
-          /*x = ...;/
+          for (n = 0; n < 2*m[im]+2; n++)
+          {
+            phi[n] = n/((double)2*m[im]+2)-0.5;
+          }
+
+          for (k = 0; k < 2*m[im]+1; k++)
+          {
+            theta[k] = k/((double)4*m[im]);
+          }
+
           /* Generate quadrature weights. */
-          /*w = ...;*/
+          fplan = fftw_plan_r2r_1d(m[im]+1, w, w, FFTW_REDFT00, 0U);
+          for (k = 0; k < m[im]+1; k++)
+          {
+            w[k] = -2.0/(4*k*k-1);
+          }
+          fftw_execute(fplan);
+          w[0] *= 0.5;
+
+          for (k = 0; k < m[im]+1; k++)
+          {
+            w[k] *= 1/((double)2*m[im]);
+            w[2*m[im]-k] = w[k];
+          }
+          fftw_destroy_plan(fplan);
           break;
+      }
+
+      d = 0;
+      for (k = 0; k < grid_theta; k++)
+      {
+        for (n = 0; n < grid_phi; n++)
+        {
+          x[2*d] = phi[n];
+          x[2*d+1] = theta[k];
+          /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
+            x[2*d+1]);*/
+          d++;
+        }
       }
 
       /* Generate random function samples. */
       for (d = 0; d < grid_total; d++)
       {
-        f_bak[d] = drand48() - 0.5 + I*(drand48() - 0.5);
+        f_bak[d] = /*sqrt(1.0/(4*PI));*/
+          sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);/*drand48() - 0.5 + I*(drand48() - 0.5);*/
       }
 
       /* Init transform plans. */
       nfsft_init_guru(&plan_adjoint,m[im],grid_total,
-        ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
-        ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+        NFSFT_NORMALIZED | ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
+        ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)), cutoff);
       nfsft_init_guru(&plan,m[im],grid_total,
-        ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
-        ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+        NFSFT_NORMALIZED | ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
+        ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)), cutoff);
       plan_adjoint.f_hat = f_hat;
       plan_adjoint.x = x;
       plan_adjoint.f = f;
       plan.f_hat = f_hat;
       plan.x = x;
       plan.f = f;
+      nfsft_precompute_x(&plan_adjoint);
+      nfsft_precompute_x(&plan);
       /*nfsft_precompute_x(&plan_adjoint);
       nfsft_precompute_x(&plan);*/
 
@@ -310,42 +357,81 @@ int main (int argc, char **argv)
       /* Cycle through all runs. */
       for (i = 0; i < repetitions; i++)
       {
+        /*fprintf(stderr,"\n");
+        fprintf(stderr,"Repetition: %d\n",i);*/
+
         /* Copy exact funtion values to working array. */
-//        memcpy(f,f_bak,grid_total*sizeof(complex));
+        memcpy(f,f_bak,grid_total*sizeof(complex));
 
         /* Initialize time measurement. */
-//        t = second();
+        t = second();
 
         /* Multiplication with the quadrature weights. */
-/*        d = 0;
+        /*fprintf(stderr,"\n");*/
+        d = 0;
         for (k = 0; k < grid_theta; k++)
         {
           for (n = 0; n < grid_phi; n++)
           {
-            f[d] *= w[k];
+            /*fprintf(stderr,"f_bak[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
+              d,creal(f_bak[d]),cimag(f_bak[d]),d,creal(f[d]),cimag(f[d]),k,
+              w[k]);*/
+            f[d] *= 2*PI*w[k]/(2*m[im]+2);
+            d++;
           }
-          d++;
+        }
+
+        /*fprintf(stderr,"\n");
+        d = 0;
+        for (d = 0; d < grid_total; d++)
+        {
+          fprintf(stderr,"f[%d] = %le + I*%le, theta[%d] = %le, phi[%d] = %le\n",
+            d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
         }*/
 
         /* Check if the fast NFSFT algorithm shall be tested. */
-//        if (use_nfsft != NO)
-//        {
+        if (use_nfsft != NO)
+        {
           /* Execute the adjoint NFSFT transformation. */
-//          nfsft_adjoint(&plan_adjoint);
-          /* Execute the NFSFT transformation. */
-/*          nfsft_trafo(&plan);
+          nfsft_adjoint(&plan_adjoint);
         }
         else
-        {*/
+        {
           /* Execute the adjoint direct NDSFT transformation. */
-//          ndsft_adjoint(&plan_adjoint);
+          ndsft_adjoint(&plan_adjoint);
+        }
+
+        /* Multiplication with the Fourier-Legendre coefficients. */
+        /*for (k = 0; k <= m[im]; k++)
+        {
+          for (n = -k; n <= k; n++)
+          {
+            fprintf(stderr,"f_hat[%d,%d] = %le\t + I*%le\n",k,n,
+              creal(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
+              cimag(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
+          }
+        }*/
+
+        if (use_nfsft != NO)
+        {
+          /* Execute the NFSFT transformation. */
+          nfsft_trafo(&plan);
+        }
+        else
+        {
           /* Execute the direct NDSFT transformation. */
-//          ndsft_trafo(&plan);
-//        }
+          ndsft_trafo(&plan);
+        }
 
-/*        t_avg += second() - t;
+        t_avg += second() - t;
 
-        err += error_l_2_complex(f, f_bak, grid_total);*/
+        err += error_l_2_complex(f, f_bak, grid_total);
+
+        /*for (d = 0; d < grid_total; d++)
+        {
+          fprintf(stderr,"f_bak[%d] = %le + I*%le,\t f[%d] = %le + I*%le\n",
+            d,creal(f_bak[d]),cimag(f_bak[d]),d,creal(f[d]),cimag(f[d]));
+        }*/
       }
 
       /* Calculate average time needed. */
@@ -355,7 +441,7 @@ int main (int argc, char **argv)
       err = err/((double)repetitions);
 
       /* Print out the error measurements. */
-      fprintf(stdout,"%e\n%e\n", t_avg, err);
+      fprintf(stdout,"%4d: %e\t%e\n", m[im], t_avg, err);
 
       /* Finalize the NFSFT plans */
       nfsft_finalize(&plan_adjoint);

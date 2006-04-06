@@ -294,7 +294,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
       /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-                         nfft_cutoff, /*PRE_PHI_HUT | PRE_PSI |*/ FFTW_INIT |
+                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
                          FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
       /* Assign angle array. */
@@ -718,6 +718,14 @@ void nfsft_trafo(nfsft_plan *plan)
 {
   int k; /*< The degree k                                                     */
   int n; /*< The order n                                                      */
+  #ifdef DEBUG
+    double t, t_pre, t_nfft, t_fpt, t_c2e, t_norm;
+    t_pre = 0.0;
+    t_norm = 0.0;
+    t_fpt = 0.0;
+    t_c2e = 0.0;
+    t_nfft = 0.0;
+  #endif
 
   /* Check, if precomputation was done and that the bandwidth N is not too
    * big.
@@ -785,6 +793,7 @@ void nfsft_trafo(nfsft_plan *plan)
     }
     else
     {
+      //fprintf(stderr,"nfsft_adjoint: fpt_trafo\n");
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
@@ -798,7 +807,6 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan);
 
-
     /* Check, which nonequispaced discrete Fourier transform algorithm should
      * be used.
      */
@@ -810,6 +818,7 @@ void nfsft_trafo(nfsft_plan *plan)
     else
     {
       /* Use NFFT. */
+      //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
       nfft_trafo(&plan->plan_nfft);
     }
   }
@@ -855,6 +864,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
+      //fprintf(stderr,"nfsft_adjoint: nfft_adjoint\n");
       /* Use adjoint NFFT. */
       nfft_adjoint(&plan->plan_nfft);
     }
@@ -876,6 +886,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
+      //fprintf(stderr,"nfsft_adjoint: fpt_transposed\n");
       /* Use transposed FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
