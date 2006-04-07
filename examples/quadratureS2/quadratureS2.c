@@ -34,12 +34,6 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
-/** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
-#define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
-
-/** The Fourier-Legendre coefficients of the singularity kernel */
-#define SYMBOL_SINGULARITY(k,h) ((2.0/(2*k+1))*pow(h,k))
-
 /* Flags for the different quadrature grid types */
 
 /** Enumeration for parameter values */
@@ -103,6 +97,8 @@ int main (int argc, char **argv)
   double *theta;               /**< */
   double *phi;                 /**< */
   fftw_plan fplan;             /**< */
+  int nside;                   /**< */
+  int d2;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -245,6 +241,7 @@ int main (int argc, char **argv)
           for (k = 0; k < grid_theta; k++)
           {
             fscanf(stdin,"%le\n",&w[k]);
+            w[k] *= 2.0*PI/(2*m[im]+2);
             //fprintf(stdout,"%le\n",w[k]);
           }
 
@@ -275,6 +272,19 @@ int main (int argc, char **argv)
 
           /* Generate grid nodes. */
           //fprintf(stdout,"Phi:\n");
+
+          d = 0;
+          for (k = 0; k < grid_theta; k++)
+          {
+            for (n = 0; n < grid_phi; n++)
+            {
+              x[2*d] = phi[n];
+              x[2*d+1] = theta[k];
+              /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
+                x[2*d+1]);*/
+              d++;
+            }
+          }
           break;
 
         case GRID_CLENSHAW_CURTIS:
@@ -307,22 +317,75 @@ int main (int argc, char **argv)
           {
             w[k] *= 1/((double)2*m[im]);
             w[2*m[im]-k] = w[k];
+            w[k] *= 2.0*PI/(2*m[im]+2);
+            w[2*m[im]-k] *= 2.0*PI/(2*m[im]+2);
           }
           fftw_destroy_plan(fplan);
-          break;
-      }
 
-      d = 0;
-      for (k = 0; k < grid_theta; k++)
-      {
-        for (n = 0; n < grid_phi; n++)
-        {
-          x[2*d] = phi[n];
-          x[2*d+1] = theta[k];
-          /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
-            x[2*d+1]);*/
-          d++;
-        }
+          d = 0;
+          for (k = 0; k < grid_theta; k++)
+          {
+            for (n = 0; n < grid_phi; n++)
+            {
+              x[2*d] = phi[n];
+              x[2*d+1] = theta[k];
+              /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
+                x[2*d+1]);*/
+              d++;
+            }
+          }
+          break;
+
+        case GRID_HEALPIX:
+          /* Calculate grid dimensions. */
+          nside = next_power_of_2(ceil((3.0*m[im])/2.0));
+          grid_theta = 1;
+          /* TODO coreect this. */
+          grid_phi = 12*nside*nside;
+          grid_total = grid_theta*grid_phi;
+
+          d = 0;
+          for (k = 1; k <= nside-1; k++)
+          {
+            for (n = 0; n <= 4*k-1; n++)
+            {
+              x[2*d+1] = 1 - (k*k)/((double)(3.0*nside*nside));
+              x[2*d] =  ((n+0.5)/(4*k));
+              x[2*d] -= (x[2*d]>=0.5)?(-1.0):(0.0);
+              d++;
+            }
+          }
+
+          d2 = d-1;
+
+          for (k = nside; k <= 3*nside; k++)
+          {
+            for (n = 0; n <= 4*nside-1; n++)
+            {
+              x[2*d+1] = 2.0/(3*nside)*(2*nside-k);
+              x[2*d] = (n+((k%2==0)?(0.5):(0.0)))/(4*nside);
+              x[2*d] -= (x[2*d]>=0.5)?(-1.0):(0.0);
+              d++;
+            }
+          }
+
+          for (k = 1; k <= nside-1; k++)
+          {
+            for (n = 0; n <= 4*k-1; n++)
+            {
+              x[2*d+1] = -x[2*d2+1];
+              x[2*d] =  x[2*d2];
+              d++;
+              d2--;
+            }
+          }
+
+          for (d = 0; d < grid_total; d++)
+          {
+            x[2*d+1] = acos(x[2*d+1])/(2.0*PI);
+          }
+
+          w[0] = 1.0;
       }
 
       /* Generate random function samples. */
@@ -376,7 +439,7 @@ int main (int argc, char **argv)
             /*fprintf(stderr,"f_bak[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
               d,creal(f_bak[d]),cimag(f_bak[d]),d,creal(f[d]),cimag(f[d]),k,
               w[k]);*/
-            f[d] *= 2*PI*w[k]/(2*m[im]+2);
+            f[d] *= w[k];
             d++;
           }
         }
