@@ -44,15 +44,23 @@ elseif (selection == 2)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
   gridtype=1;
+elseif (selection == 3)
+  % Set the grid type.
+  % 2 = HEALPix
+  gridtype=2;
+elseif (selection == 4)
+  % Set the grid type.
+  % 4 = Equidistribution Example 7.1.11
+  gridtype=3;
 else
   error('Wrong selection!');
 end
 
 % Set the number of repetitions. Up to now always 1
-repetitions=10;
+repetitions=1;
 
 % Set the bandwidths
-m = 4:4:128;
+m = 4:4:8;
 
 % Write the testcase.
 writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);

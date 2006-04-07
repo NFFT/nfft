@@ -41,7 +41,7 @@ enum boolean {NO = 0, YES = 1};
 
 /** Enumeration for quadrature grid types */
 enum gridtype {GRID_GAUSS_LEGENDRE = 0, GRID_CLENSHAW_CURTIS = 1,
-  GRID_HEALPIX = 2, GRID_EQUIDISTRIBUTION = 3};
+  GRID_HEALPIX = 2, GRID_EQUIDISTRIBUTION_7_1_11 = 3};
 
 /**
  * The main program.
@@ -99,6 +99,9 @@ int main (int argc, char **argv)
   fftw_plan fplan;             /**< */
   int nside;                   /**< */
   int d2;
+  int gamma;
+  double thetai;
+  double gammai;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -241,7 +244,7 @@ int main (int argc, char **argv)
           for (k = 0; k < grid_theta; k++)
           {
             fscanf(stdin,"%le\n",&w[k]);
-            w[k] *= 2.0*PI/(2*m[im]+2);
+            w[k] *= PI/(m[im]+1);
             //fprintf(stdout,"%le\n",w[k]);
           }
 
@@ -261,7 +264,8 @@ int main (int argc, char **argv)
           /*fprintf(stdout,"Phi:\n");*/
           for (n = 0; n < grid_phi; n++)
           {
-            phi[n] = n/((double)grid_phi)-0.5;
+            phi[n] = n/((double)grid_phi);
+
             //fprintf(stdout,"%le\n",phi[n]);
           }
           /*fprintf(stdout,"Phi:\n");
@@ -279,6 +283,7 @@ int main (int argc, char **argv)
             for (n = 0; n < grid_phi; n++)
             {
               x[2*d] = phi[n];
+              x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
               x[2*d+1] = theta[k];
               /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
                 x[2*d+1]);*/
@@ -338,9 +343,8 @@ int main (int argc, char **argv)
 
         case GRID_HEALPIX:
           /* Calculate grid dimensions. */
-          nside = next_power_of_2(ceil((3.0*m[im])/2.0));
+          nside = next_power_of_2(ceil((2.0*m[im])));
           grid_theta = 1;
-          /* TODO coreect this. */
           grid_phi = 12*nside*nside;
           grid_total = grid_theta*grid_phi;
 
@@ -351,7 +355,7 @@ int main (int argc, char **argv)
             {
               x[2*d+1] = 1 - (k*k)/((double)(3.0*nside*nside));
               x[2*d] =  ((n+0.5)/(4*k));
-              x[2*d] -= (x[2*d]>=0.5)?(-1.0):(0.0);
+              x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
               d++;
             }
           }
@@ -364,7 +368,7 @@ int main (int argc, char **argv)
             {
               x[2*d+1] = 2.0/(3*nside)*(2*nside-k);
               x[2*d] = (n+((k%2==0)?(0.5):(0.0)))/(4*nside);
-              x[2*d] -= (x[2*d]>=0.5)?(-1.0):(0.0);
+              x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
               d++;
             }
           }
@@ -385,14 +389,45 @@ int main (int argc, char **argv)
             x[2*d+1] = acos(x[2*d+1])/(2.0*PI);
           }
 
-          w[0] = 1.0;
+          w[0] = (4.0*PI)/(grid_total);
+          break;
+
+        case GRID_EQUIDISTRIBUTION_7_1_11:
+          /* Calculate grid dimensions. */
+          gamma = 2*m[im];
+          grid_theta = 1;
+          grid_phi = 2+4*((int)floor((gamma+1)/2.0))*((int)floor(gamma/2.0));
+          grid_total = grid_theta*grid_phi;
+          x[0] = 0.0;
+          x[1] = 0.0;
+          d = 1;
+          for (k = 1; k <= gamma-1; k++)
+          {
+            thetai = (k*PI)/gamma;
+            gammai = ((k<=(gamma/2.0))?(4*k):(4*(gamma-k)));
+            for(n = 1; n <= gammai; n++)
+            {
+              x[2*d+1] = thetai/(2.0*PI);
+              x[2*d] = ((n-0.5)*((2.0*PI)/gammai))/(2.0*PI);
+              x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
+              d++;
+            }
+          }
+          x[2*d+1] = 0.5;
+          x[2*d] = 0.0;
+          w[0] = (4.0*PI)/(grid_total);
+          break;
+
+        default:
+          break;
       }
 
       /* Generate random function samples. */
       for (d = 0; d < grid_total; d++)
       {
         f_bak[d] = /*sqrt(1.0/(4*PI));*/
-          sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);/*drand48() - 0.5 + I*(drand48() - 0.5);*/
+          /*sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);*/
+          drand48() - 0.5 + I*(drand48() - 0.5);
       }
 
       /* Init transform plans. */
@@ -410,8 +445,6 @@ int main (int argc, char **argv)
       plan.f = f;
       nfsft_precompute_x(&plan_adjoint);
       nfsft_precompute_x(&plan);
-      /*nfsft_precompute_x(&plan_adjoint);
-      nfsft_precompute_x(&plan);*/
 
       /* Initialize cumulative time variable. */
       t_avg = 0.0;
@@ -420,8 +453,16 @@ int main (int argc, char **argv)
       /* Cycle through all runs. */
       for (i = 0; i < repetitions; i++)
       {
-        /*fprintf(stderr,"\n");
-        fprintf(stderr,"Repetition: %d\n",i);*/
+        /*d = 0;
+        for (k = 0; k < grid_theta; k++)
+        {
+          for (n = 0; n < grid_phi; n++)
+          {
+            fprintf(stderr,"theta[%2d] = %le,\t phi[%2d] = %le,\t w[%2d] = %le\n",
+              d,x[2*d+1],d,x[2*d],d,w[k]);
+            d++;
+          }
+        }*/
 
         /* Copy exact funtion values to working array. */
         memcpy(f,f_bak,grid_total*sizeof(complex));
@@ -430,27 +471,15 @@ int main (int argc, char **argv)
         t = second();
 
         /* Multiplication with the quadrature weights. */
-        /*fprintf(stderr,"\n");*/
         d = 0;
         for (k = 0; k < grid_theta; k++)
         {
           for (n = 0; n < grid_phi; n++)
           {
-            /*fprintf(stderr,"f_bak[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
-              d,creal(f_bak[d]),cimag(f_bak[d]),d,creal(f[d]),cimag(f[d]),k,
-              w[k]);*/
             f[d] *= w[k];
             d++;
           }
         }
-
-        /*fprintf(stderr,"\n");
-        d = 0;
-        for (d = 0; d < grid_total; d++)
-        {
-          fprintf(stderr,"f[%d] = %le + I*%le, theta[%d] = %le, phi[%d] = %le\n",
-            d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
-        }*/
 
         /* Check if the fast NFSFT algorithm shall be tested. */
         if (use_nfsft != NO)
@@ -469,9 +498,7 @@ int main (int argc, char **argv)
         {
           for (n = -k; n <= k; n++)
           {
-            fprintf(stderr,"f_hat[%d,%d] = %le\t + I*%le\n",k,n,
-              creal(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
-              cimag(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
+            f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= (2.0*PI)/(2.0*m[im]+2.0);
           }
         }*/
 
