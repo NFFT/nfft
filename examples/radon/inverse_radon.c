@@ -1,9 +1,9 @@
 /*gcc -o radon radon.c -lnfft3 -lfftw3 -lm -I/home/mfenn/NFFT3_develop/lib/trunk/include -L/home/mfenn/NFFT3_develop/lib/trunk/.libs -L/usr/local/lib*/
 /**
- * \file radon.c
- * \brief NFFT-based discrete Radon transform.
+ * \file inverse_radon.c
+ * \brief NFFT-based discrete inverse Radon transform.
  *
- * Computes the discrete Radon transform
+ * Computes the inverse of the discrete Radon transform
  * \f[
  *    R_{\theta_t} f\left(\frac{s}{R}\right)
  *    = \sum_{r \in I_R} w_r \; \sum_{k \in I_N^2} f_{k}
@@ -11,10 +11,9 @@
  *        \, \mathrm{e}^{2\pi\mathrm{i} r s / R}
  *    \qquad(t \in I_T, s \in I_R).
  * \f]
- * by taking the 2D-NFFT of \f$f_k\f$ (\f$k \in I_N^2\f$)
- * at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
- * followed by a 1D-iFFTs for every direction \f$t \in T\f$,
- * where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel.
+ * given at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
+ * and where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel
+ * by 1D-FFTs and the 2D-iNFFT.
  * \author Markus Fenn
  * \date 2005
  */
@@ -84,13 +83,15 @@ int linogram_grid(int T, int R, double *x, double *w)
   return 0;
 }
 
-/** computes the NFFT-based discrete Radon transform of f
+/** computes the inverse discrete Radon transform of Rf
  *  on the grid given by gridfcn() with T angles and R offsets
+ *  by a NFFT-based CG-type algorithm
  */
-int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
+int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, double *f, int max_i)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
+  infft_plan my_infft_plan;             /**< plan for the inverse nfft        */
 
   fftw_complex *fft;                    /**< variable for the fftw-1Ds        */
   fftw_plan my_fftw_plan;               /**< plan for the fftw-1Ds            */
@@ -98,6 +99,7 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   int t,r;                              /**< index for directions and offsets */
   double *x, *w;                        /**< knots and associated weights     */
   double W;
+  int l;                                /**< index for iterations             */
 
   int N[2],n[2];
   int M=T*R;
@@ -106,7 +108,7 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   N[1]=NN; n[1]=2*N[1];
 
   fft = (fftw_complex *)fftw_malloc(R*sizeof(fftw_complex));
-  my_fftw_plan = fftw_plan_dft_1d(R,fft,fft,FFTW_BACKWARD,FFTW_MEASURE);
+  my_fftw_plan = fftw_plan_dft_1d(R,fft,fft,FFTW_FORWARD,FFTW_MEASURE);
 
   x = (double *)malloc(2*T*R*(sizeof(double)));
   if (x==NULL)
@@ -118,16 +120,22 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
 
   /** init two dimensional NFFT plan */
   nfft_init_guru(&my_nfft_plan, 2, N, M, n, 4,
-                 PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
-                 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+                  PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
+                  FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
+  /** init two dimensional infft plan */
+  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT);
 
-  /** init nodes from grid*/
+  /** init nodes and weights of grid*/
   gridfcn(T,R,x,w);
   for(j=0;j<my_nfft_plan.M_total;j++)
   {
     my_nfft_plan.x[2*j+0] = x[2*j+0];
     my_nfft_plan.x[2*j+1] = x[2*j+1];
+    if (j%R)
+      my_infft_plan.w[j]    = w[j];
+    else
+      my_infft_plan.w[j]    = 0.0;
   }
 
   /** precompute psi, the entries of the matrix B */
@@ -140,42 +148,63 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   if(my_nfft_plan.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_nfft_plan);
 
-  /** init Fourier coefficients from given image */
-  for(k=0;k<my_nfft_plan.N_total;k++)
-    my_nfft_plan.f_hat[k] = f[k] + I*0.0;
-
-  /** NFFT-2D */
-  nfft_trafo(&my_nfft_plan);
-
-  /** FFTW-1Ds */
+  /** compute 1D-ffts and init given samples and weights */
   for(t=0; t<T; t++)
   {
-    fft[0]=0.0;
-    for(r=-R/2+1; r<R/2; r++)
-      fft[r+R/2] = KERNEL(r)*my_nfft_plan.f[t*R+(r+R/2)];
+//     for(r=0; r<R/2; r++)
+//       fft[r] = cexp(I*PI*r)*Rf[t*R+(r+R/2)];
+//     for(r=0; r<R/2; r++)
+//       fft[r+R/2] = cexp(I*PI*r)*Rf[t*R+r];
+
+    for(r=0; r<R; r++)
+      fft[r] = Rf[t*R+r] + I*0.0;
 
     fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
     fftshift_complex(fft, 1, &R);
 
-    for(r=0; r<R; r++)
-      Rf[t*R+r] = creal(fft[r])/R;
-
-//    for(r=0; r<R/2; r++)
-//      Rf[t*R+(r+R/2)] = creal(cexp(-I*PI*r)*fft[r]);
-//    for(r=0; r<R/2; r++)
-//      Rf[t*R+r] = creal(cexp(-I*PI*r)*fft[r+R/2]);
+    my_infft_plan.y[t*R] = 0.0;
+    for(r=-R/2+1; r<R/2; r++)
+      my_infft_plan.y[t*R+(r+R/2)] = fft[r+R/2]/KERNEL(r);
   }
+
+  /** initialise some guess f_hat_0 */
+  for(k=0;k<my_nfft_plan.N_total;k++)
+    my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
+
+  /** solve the system */
+  infft_before_loop(&my_infft_plan);
+
+  if (max_i<1)
+  {
+    l=1;
+    for(k=0;k<my_nfft_plan.N_total;k++)
+      my_infft_plan.f_hat_iter[k] = my_infft_plan.p_hat_iter[k];
+  }
+  else
+  {
+    for(l=1;l<=max_i;l++)
+    {
+      infft_loop_one_step(&my_infft_plan);
+      //if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;
+    }
+  }
+  //printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));
+
+  /* copy result */
+  for(k=0;k<my_nfft_plan.N_total;k++)
+    f[k] = creal(my_infft_plan.f_hat_iter[k]);
 
   /** finalise the plans and free the variables */
   fftw_destroy_plan(my_fftw_plan);
   fftw_free(fft);
+  infft_finalize(&my_infft_plan);
   nfft_finalize(&my_nfft_plan);
   free(x);
   free(w);
 }
 
-/** simple test program for the discrete Radon transform
+/** simple test program for the inverse discrete Radon transform
  */
 int main(int argc,char **argv)
 {
@@ -183,17 +212,19 @@ int main(int argc,char **argv)
   int T, R;                             /**< number of directions/offsets    */
   FILE *fp;
   int N;                                /**< image size                      */
-  double *f, *Rf;
+  double *Rf, *iRf;
   int k;
+  int max_i;                            /**< number of iterations            */
 
-  if( argc!=5 )
+  if( argc!=6 )
   {
-    printf("radon gridfcn N T R\n");
+    printf("inverse_radon gridfcn N T R max_i\n");
     printf("\n");
     printf("gridfcn    \"polar\" or \"linogram\" \n");
     printf("N          image size NxN            \n");
     printf("T          number of slopes          \n");
     printf("R          number of offsets         \n");
+    printf("max_i      number of iterations      \n");
     exit(-1);
   }
 
@@ -206,30 +237,31 @@ int main(int argc,char **argv)
   T = atoi(argv[3]);
   R = atoi(argv[4]);
   //printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);
+  max_i = atoi(argv[5]);
 
-  f   = (double *)malloc(N*N*(sizeof(double)));
   Rf  = (double *)malloc(T*R*(sizeof(double)));
+  iRf = (double *)malloc(N*N*(sizeof(double)));
 
   /** load data */
-  fp=fopen("input_data.bin","rb");
+  fp=fopen("sinogram_data.bin","rb");
   if (fp==NULL)
     return(-1);
-  fread(f,sizeof(double),N*N,fp);
+  fread(Rf,sizeof(double),T*R,fp);
   fclose(fp);
 
-  /** Radon transform */
-  Radon_trafo(gridfcn,T,R,f,N,Rf);
+  /** inverse Radon transform */
+  Inverse_Radon_trafo(gridfcn,T,R,Rf,N,iRf,max_i);
 
   /** write result */
-  fp=fopen("sinogram_data.bin","wb+");
+  fp=fopen("output_data.bin","wb+");
   if (fp==NULL)
     return(-1);
-  fwrite(Rf,sizeof(double),T*R,fp);
+  fwrite(iRf,sizeof(double),N*N,fp);
   fclose(fp);
 
   /** free the variables */
-  free(f);
   free(Rf);
+  free(iRf);
 
   return 0;
 }
