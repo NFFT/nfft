@@ -245,7 +245,7 @@ int main (int argc, char **argv)
           for (k = 0; k < grid_theta; k++)
           {
             fscanf(stdin,"%le\n",&w[k]);
-            w[k] *= PI/(m[im]+1);
+            w[k] *= 2.0*PI/(2*m[im]+2);
             //fprintf(stdout,"%le\n",w[k]);
           }
             
@@ -283,7 +283,6 @@ int main (int argc, char **argv)
             for (n = 0; n < grid_phi; n++)
             {
               x[2*d] = phi[n];
-              x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
               x[2*d+1] = theta[k];
               /*fprintf(stdout,"x[%d] = %le, x[%d] = %le\n",2*d,x[2*d],2*d+1,
                 x[2*d+1]);*/
@@ -426,8 +425,7 @@ int main (int argc, char **argv)
       for (d = 0; d < grid_total; d++)
       {
         f_bak[d] = /*sqrt(1.0/(4*PI));*/
-          /*sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);*/
-          drand48() - 0.5 + I*(drand48() - 0.5);
+        sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);/*drand48() - 0.5 + I*(drand48() - 0.5);*/
       }
       
       /* Init transform plans. */
@@ -445,6 +443,8 @@ int main (int argc, char **argv)
       plan.f = f;
       nfsft_precompute_x(&plan_adjoint);
       nfsft_precompute_x(&plan);
+      /*nfsft_precompute_x(&plan_adjoint);
+      nfsft_precompute_x(&plan);*/
       
       /* Initialize cumulative time variable. */
       t_avg = 0.0;
@@ -453,16 +453,8 @@ int main (int argc, char **argv)
       /* Cycle through all runs. */
       for (i = 0; i < repetitions; i++)
       {
-        /*d = 0;
-        for (k = 0; k < grid_theta; k++)
-        {
-          for (n = 0; n < grid_phi; n++)
-          {
-            fprintf(stderr,"theta[%2d] = %le,\t phi[%2d] = %le,\t w[%2d] = %le\n",
-              d,x[2*d+1],d,x[2*d],d,w[k]);
-            d++;
-          }
-        }*/
+        /*fprintf(stderr,"\n");
+        fprintf(stderr,"Repetition: %d\n",i);*/
         
         /* Copy exact funtion values to working array. */
         memcpy(f,f_bak,grid_total*sizeof(complex));
@@ -471,15 +463,27 @@ int main (int argc, char **argv)
         t = second();
         
         /* Multiplication with the quadrature weights. */
+        /*fprintf(stderr,"\n");*/
         d = 0;
         for (k = 0; k < grid_theta; k++)
         {
           for (n = 0; n < grid_phi; n++)
           {
+            /*fprintf(stderr,"f_bak[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
+            d,creal(f_bak[d]),cimag(f_bak[d]),d,creal(f[d]),cimag(f[d]),k,
+            w[k]);*/
             f[d] *= w[k];
             d++;
           }
         }
+        
+        /*fprintf(stderr,"\n");
+        d = 0;
+        for (d = 0; d < grid_total; d++)
+        {
+          fprintf(stderr,"f[%d] = %le + I*%le, theta[%d] = %le, phi[%d] = %le\n",
+                  d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
+        }*/
         
         /* Check if the fast NFSFT algorithm shall be tested. */
         if (use_nfsft != NO)
@@ -498,7 +502,9 @@ int main (int argc, char **argv)
         {
           for (n = -k; n <= k; n++)
           {
-            f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= (2.0*PI)/(2.0*m[im]+2.0);
+            fprintf(stderr,"f_hat[%d,%d] = %le\t + I*%le\n",k,n,
+                    creal(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
+                    cimag(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
           }
         }*/
         
