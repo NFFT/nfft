@@ -1,4 +1,4 @@
-/* 
+/*
    accuracy - Accuracy test for the NFSFT
 
    Copyright (C) 2005 Jens Keiner
@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software Foundation,
-   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include <termios.h>
 #include <grp.h>
@@ -88,14 +88,14 @@ void test_ndsft_trafo(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");      
+    CU_FAIL("Couldn't open %s to read test data filenames!\n");
     return;
   }
 
   while (fscanf(testfiles,"%s",filename) == 1)
-  { 
+  {
     fprintf(stdout,"filename = %s",filename);
-    /* Open input file. */ 
+    /* Open input file. */
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
     if (file != NULL)
@@ -112,8 +112,9 @@ void test_ndsft_trafo(void)
       /* Precompute. */
       nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
-      nfsft_init_guru(&plan,N,M, NFSFT_MALLOC_X | NFSFT_MALLOC_F | 
-        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED /*| NFSFT_USE_NDFT*/,3);
+      nfsft_init_guru(&plan,N,M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
+        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED /*| NFSFT_USE_NDFT*/,6);
+
       /* Read in spherical Fourier coefficients. */
       for (k = 0; k <= N; k++)
       {
@@ -124,7 +125,7 @@ void test_ndsft_trafo(void)
           plan.f_hat[NFSFT_INDEX(k,n,&plan)] = d1 + I*d2;
         }
       }
-      
+
       /*fprintf(stdout,"\n");
       for (k = 0; k < 2*N+1; k++)
       {
@@ -134,7 +135,7 @@ void test_ndsft_trafo(void)
         }
         fprintf(stdout,"\n");
       }*/
-      
+
       /* Read in nodes. */
       for (m = 0; m < plan.M_total; m++)
       {
@@ -143,6 +144,7 @@ void test_ndsft_trafo(void)
         plan.x[2*m+1] = d1;
         plan.x[2*m] = d2;
       }
+
       /* Read in reference samples. */
       f_orig = (complex*) malloc(M*sizeof(complex));
       for (m = 0; m < M; m++)
@@ -152,34 +154,41 @@ void test_ndsft_trafo(void)
         f_orig[m] = d1 + I*d2;
         //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
       }
-      
-      /* CLose the file. */
+
+      /* Close the file. */
       fclose(file);
       file = NULL;
+
       /* Execute the plan. */
       nfsft_trafo(&plan);
+
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));      
-      //fprintf(stdout,"\n");
+      fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));
+
+      fprintf(stdout,"\n");
       for (m = 0; m < M; m++)
       {
-        //fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
-        //  m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
+        fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
+          m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
         /*if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
         {
           fprintf(stdout," failed\n  f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
             m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-          CU_FAIL("Wrong result");  
+          CU_FAIL("Wrong result");
         }*/
-      }    
+      }
+
       /* Destroy the plan. */
       nfsft_finalize(&plan);
+
       /* Forget precomputed data. */
       nfsft_forget();
+
       /* Free memory. */
       free(f_orig);
       f_orig = NULL;
+
       /* Test passed. */
       fprintf(stdout,"\n");
       CU_PASS("ok");
@@ -191,7 +200,7 @@ void test_ndsft_trafo(void)
     }
   }
   close(testfiles);
-  testfiles = NULL;  
+  testfiles = NULL;
 }
 
 void test_ndsft_adjoint(void)
@@ -233,14 +242,14 @@ void test_ndsft_adjoint(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");      
+    CU_FAIL("Couldn't open %s to read test data filenames!\n");
     return;
   }
 
   while (fscanf(testfiles,"%s",filename) == 1)
-  { 
+  {
     fprintf(stdout,"filename = %s",filename);
-    /* Open input file. */ 
+    /* Open input file. */
     file = fopen(filename,"r");
     /* Check if file was opened successfully. */
     if (file != NULL)
@@ -254,7 +263,7 @@ void test_ndsft_adjoint(void)
       /* Precompute. */
       nfsft_precompute(N,THRESHOLD,0U);
       /* Initialise plan. */
-      nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X | 
+      nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X |
         NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_ZERO_F_HAT);
       /* Read in function samples. */
       for (m = 0; m < M; m++)
@@ -283,14 +292,14 @@ void test_ndsft_adjoint(void)
           //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
         }
       }
-      
+
       /* CLose the file. */
       fclose(file);
       /* Execute the plan. */
       nfsft_adjoint(&plan);
       /* Check result */
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_hat_orig,plan.f_hat,plan.N_total));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_hat_orig,plan.f_hat,plan.N_total));      
+      fprintf(stdout," e_2 = %le",error_l_2_complex(f_hat_orig,plan.f_hat,plan.N_total));
       //fprintf(stdout,"\n");
       /*for (n = -N; n <= N; n++)
       {
@@ -307,7 +316,7 @@ void test_ndsft_adjoint(void)
               cabs(plan.f_hat[NFSFT_INDEX(k,n,&plan)]-f_hat_orig[NFSFT_INDEX(k,n,&plan)]));
         }
       }*/
-      /*fprintf(stdout,"\n");    
+      /*fprintf(stdout,"\n");
       for (n = 0; n < plan.N_total; n++)
       {
         fprintf(stdout,"f_hat[%3d] = %+lf + I*%+lf,\tf_hat_orig[%3d] = %+lf + I*%+lf,\teps=%le\n",
@@ -318,7 +327,7 @@ void test_ndsft_adjoint(void)
           creal(f_hat_orig[n]),
           cimag(f_hat_orig[n]),
           cabs(plan.f_hat[n]-f_hat_orig[n]));
-      }*/    
+      }*/
       /* Destroy the plan. */
       nfsft_finalize(&plan);
       /* Forget precomputed data. */
@@ -334,7 +343,7 @@ void test_ndsft_adjoint(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
       CU_FAIL("Couldn't open file!\n");
     }
-  }  
+  }
 }
 
 /**
@@ -343,10 +352,10 @@ void test_ndsft_adjoint(void)
  * \param argc The number of arguments
  * \param argv An array containing the arguments as C-strings
  *
- * \return Exit code 
+ * \return Exit code
  */
 int main (int argc, char **argv)
-{  
+{
   /* Initialise registry. */
   CU_initialize_registry();
   /* Create test suite. */
@@ -358,6 +367,6 @@ int main (int argc, char **argv)
   /* Run the tests. */
   CU_automated_run_tests();
   /* Cleanup registry. */
-  CU_cleanup_registry();   
+  CU_cleanup_registry();
   return EXIT_SUCCESS;
 }

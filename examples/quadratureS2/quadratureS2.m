@@ -33,37 +33,63 @@ selection = menu('quadratureS2 - Fast evaluation of quadrature formulae on the s
 % Open input data file.
 file = fopen(infilename,'w');
 
-% Write the number of testcases.
-fprintf(file,'testcases=1\n');
-
 if (selection == 1)
   % Set the grid type.
   % 0 = Gauss-Legendre
   gridtype=0;
+  % Set the number of repetitions.
+  repetitions=10;
+  % Write the number of testcases.
+  fprintf(file,'testcases=3\n');
+  % Write the testcase.
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:512);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,4:4:512);
+  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
 elseif (selection == 2)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
   gridtype=1;
+  % Set the bandwidths
+  m = 4:4:4;
+  % Set the number of repetitions. Up to now always 1
+  repetitions=1;
+  % Write the number of testcases.
+  fprintf(file,'testcases=1\n');
+  % Write the testcase.
+  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
+  %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
 elseif (selection == 3)
   % Set the grid type.
   % 2 = HEALPix
   gridtype=2;
+  % Set the bandwidths
+  m = 4:4:8;
+  % Set the number of repetitions. Up to now always 1
+  repetitions=5;
+  % Write the number of testcases.
+  fprintf(file,'testcases=3\n');
+  % Write the testcase.
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
 elseif (selection == 4)
   % Set the grid type.
   % 4 = Equidistribution Example 7.1.11
   gridtype=3;
+  % Set the bandwidths
+  m = 4:4:8;
+  % Set the number of repetitions. Up to now always 1
+  repetitions=5;
+  % Write the number of testcases.
+  fprintf(file,'testcases=3\n');
+  % Write the testcase.
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
 else
   error('Wrong selection!');
 end
-
-% Set the number of repetitions. Up to now always 1
-repetitions=1;
-
-% Set the bandwidths
-m = 4:4:8;
-
-% Write the testcase.
-writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
 
 fclose(file);
 

@@ -28,8 +28,7 @@ void simple_test_nfsft()
    * transformations. The internal NFFT uses a cut-off parameter of 6.
    */
   nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT |
-    NFSFT_PRESERVE_F | NFSFT_PRESERVE_X | NFSFT_USE_DPT | NFSFT_ZERO_F_HAT, 6);
+    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED, 6);
 
   /* Init pseudo random nodes. */
   for (j = 0; j < plan.M_total; j++)
@@ -40,11 +39,6 @@ void simple_test_nfsft()
 
   /* Precompute. */
   nfsft_precompute(N,THRESHOLD,0U);
-
-  for (k = 0; k < plan.N_total; k++)
-  {
-     plan.f_hat[k] = 0.0;
-  }
 
   /* Init pseudo random Fourier coefficients and display them. */
   for (k = 0; k <= plan.N; k++)
@@ -70,7 +64,7 @@ void simple_test_nfsft()
 
   /* Compute approximate transformation and display the result. */
   nfsft_trafo(&plan);
-  vpr_complex(plan.f,plan.M_total,"nfsft, vector f");
+  vpr_complex(plan.f, plan.M_total,"nfsft, vector f");
   /*for (k = 0; k < plan.N_total; k++)
   {
      fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
