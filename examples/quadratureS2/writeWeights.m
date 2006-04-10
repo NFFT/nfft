@@ -27,7 +27,7 @@ for k = m
   % Write data to file.
   fprintf(file,'\n');
   fprintf(file,'\n');
-  fprintf(file,'%e\n',w);
+  fprintf(file,'%.30f\n',w);
   fprintf(file,'\n');
-  fprintf(file,'%e\n',theta);
+  fprintf(file,'%.30f\n',theta);
 end
