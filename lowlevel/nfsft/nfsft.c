@@ -234,6 +234,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
                      int nfft_cutoff)
 {
+  int k;
   int *nfft_size; /*< NFFT size                                               */
   int *fftw_size; /*< FFTW size                                               */
 
@@ -256,13 +257,14 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
    * if neccesary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
+    fprintf(stderr,"f_hat_intern allocated");
     plan->f_hat_intern = (complex*) calloc(plan->N_total,sizeof(complex));
   }
 
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (complex*) calloc(plan->N_total,sizeof(complex));
+    plan->f_hat = (complex*) malloc(plan->N_total*sizeof(complex));
   }
 
   /* Allocate memory for samples, if neccesary. */
@@ -283,35 +285,35 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
   else
   {
-      nfft_size = (int*)malloc(2*sizeof(int));
-      fftw_size = (int*)malloc(2*sizeof(int));
+    nfft_size = (int*)malloc(2*sizeof(int));
+    fftw_size = (int*)malloc(2*sizeof(int));
 
-      /** \todo Replace 4*plan->N by next_power_of_2(2*this->n). */
-      nfft_size[0] = 2*plan->N+2;
-      nfft_size[1] = 2*plan->N+2;
-      fftw_size[0] = 4*plan->N;
-      fftw_size[1] = 4*plan->N;
+    /** \todo Replace 4*plan->N by next_power_of_2(2*this->n). */
+    nfft_size[0] = 2*plan->N+2;
+    nfft_size[1] = 2*plan->N+2;
+    fftw_size[0] = 4*plan->N;
+    fftw_size[1] = 4*plan->N;
 
-      /** \todo NFSFT: Check NFFT flags. */
-      nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
-                         FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+    /** \todo NFSFT: Check NFFT flags. */
+    nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
+      nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
+      FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
-      /* Assign angle array. */
-      plan->plan_nfft.x = plan->x;
-      /* Assign result array. */
-      plan->plan_nfft.f = plan->f;
-      /* Assign Fourier coefficients array. */
-      plan->plan_nfft.f_hat = plan->f_hat;
+    /* Assign angle array. */
+    //plan->plan_nfft.x = plan->x;
+    /* Assign result array. */
+    //plan->plan_nfft.f = plan->f;
+    /* Assign Fourier coefficients array. */
+    //plan->plan_nfft.f_hat = plan->f_hat;
 
-      /** \todo Add precomputation if neccessary and possible. */
+    /** \todo Add precomputation if neccessary and possible. */
 
-      /* Precompute. */
-      //nfft_precompute_one_psi(&plan->plan_nfft);
+    /* Precompute. */
+    //nfft_precompute_one_psi(&plan->plan_nfft);
 
-      /* Free auxilliary arrays. */
-      free(nfft_size);
-      free(fftw_size);
+    /* Free auxilliary arrays. */
+    free(nfft_size);
+    free(fftw_size);
   }
 }
 
@@ -410,7 +412,6 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
   wisdom.initialized = true;
 }
 
-
 void nfsft_forget()
 {
   /* Check if wisdom has been initialised. */
@@ -482,6 +483,7 @@ void nfsft_finalize(nfsft_plan *plan)
     free(plan->x);
   }
 }
+
 
 void ndsft_trafo(nfsft_plan *plan)
 {
@@ -607,6 +609,7 @@ void ndsft_trafo(nfsft_plan *plan)
   }
 }
 
+
 void ndsft_adjoint(nfsft_plan *plan)
 {
   int m;         /*< The node index                                           */
@@ -625,15 +628,13 @@ void ndsft_adjoint(nfsft_plan *plan)
   double stheta; /*< Current angle theta for Clenshaw algorithm               */
   double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
 
-  /* Initialise spherical Fourier coefficients array with zeros. */
-  memset(plan->f_hat,0U,plan->N_total*sizeof(complex));
-
   /* Distinguish by bandwidth N. */
   if (plan->N == 0)
   {
     /* N == 0 */
 
     /* Constant function */
+    plan->f_hat[NFSFT_INDEX(0,0,plan)] = 0.0;
     for (m = 0; m < plan->M_total; m++)
     {
       plan->f_hat[NFSFT_INDEX(0,0,plan)] += plan->f[m];
@@ -666,12 +667,12 @@ void ndsft_adjoint(nfsft_plan *plan)
         /* Initial step */
         it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
           pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-I*n*sphi);
-        plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+        plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] = it1;
 
         if (n_abs < plan->N)
         {
           it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-          plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] = it2;
         }
 
         /* Loop for transposed Clenshaw algorithm */
@@ -680,7 +681,7 @@ void ndsft_adjoint(nfsft_plan *plan)
           temp = it2;
           it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
           it1 = temp;
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          plan->f_hat[NFSFT_INDEX(k,n,plan)] = it2;
         }
       }
     }
@@ -703,7 +704,7 @@ void ndsft_adjoint(nfsft_plan *plan)
     }
   }
 
-  /* Set unused coefficients to zero. */
+  /* Set unused coefficients to zero if necessary */
   if (plan->flags & NFSFT_ZERO_F_HAT)
   {
     for (n = -plan->N; n <= plan->N+1; n++)
@@ -718,14 +719,6 @@ void nfsft_trafo(nfsft_plan *plan)
 {
   int k; /*< The degree k                                                     */
   int n; /*< The order n                                                      */
-  #ifdef DEBUG
-    double t, t_pre, t_nfft, t_fpt, t_c2e, t_norm;
-    t_pre = 0.0;
-    t_norm = 0.0;
-    t_fpt = 0.0;
-    t_c2e = 0.0;
-    t_nfft = 0.0;
-  #endif
 
   /* Check, if precomputation was done and that the bandwidth N is not too
    * big.
@@ -754,13 +747,6 @@ void nfsft_trafo(nfsft_plan *plan)
     {
       plan->f_hat_intern = plan->f_hat;
     }
-
-    /* Propagate pointer values to the internal NFFT plan to assure consistency.
-     * Pointers may have been modified externally.
-     */
-    plan->plan_nfft.x = plan->x;
-    plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat_intern;
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,
      * multiply spherical Fourier coefficients with corresponding normalization
@@ -806,6 +792,13 @@ void nfsft_trafo(nfsft_plan *plan)
 
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan);
+
+    /* Propagate pointer values to the internal NFFT plan to assure consistency.
+     * Pointers may have been modified externally.
+     */
+    plan->plan_nfft.x = plan->x;
+    plan->plan_nfft.f = plan->f;
+    plan->plan_nfft.f_hat = plan->f_hat_intern;
 
     /* Check, which nonequispaced discrete Fourier transform algorithm should
      * be used.
@@ -926,12 +919,15 @@ void nfsft_adjoint(nfsft_plan *plan)
   }
 }
 
+
 void nfsft_precompute_x(nfsft_plan *plan)
 {
-  /* Pass angle array to NFFT plan. */
-  plan->plan_nfft.x = plan->x;
-
   /* Precompute. */
   if(plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
+  {
+    /* Pass angle array to NFFT plan. */
+    plan->plan_nfft.x = plan->x;
+
     nfft_precompute_one_psi(&plan->plan_nfft);
+  }
 }

@@ -145,6 +145,9 @@ void test_ndsft_trafo(void)
         plan.x[2*m] = d2;
       }
 
+      /* Do precomputation for nodes. */
+      nfsft_precompute_x(&plan);
+
       /* Read in reference samples. */
       f_orig = (complex*) malloc(M*sizeof(complex));
       for (m = 0; m < M; m++)
@@ -166,18 +169,18 @@ void test_ndsft_trafo(void)
       fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
       fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));
 
-      fprintf(stdout,"\n");
-      for (m = 0; m < M; m++)
+      //fprintf(stdout,"\n");
+      /*for (m = 0; m < M; m++)
       {
         fprintf(stdout,"f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
           m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
-        /*if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
+        if (cabs(plan.f[m]-f_orig[m]) > 0.0001)
         {
           fprintf(stdout," failed\n  f[%d] = %lf + I*%lf, f_orig[%d] = %lf + I*%lf\n",
             m,creal(plan.f[m]),cimag(plan.f[m]),m,creal(f_orig[m]),cimag(f_orig[m]));
           CU_FAIL("Wrong result");
-        }*/
-      }
+        }
+      }*/
 
       /* Destroy the plan. */
       nfsft_finalize(&plan);
@@ -257,14 +260,19 @@ void test_ndsft_adjoint(void)
       /* Read in bandwidth. */
       fscanf(file,"%d",&N);
       fprintf(stdout,", N = %4d",N);
+
       /* Read in number of nodes. */
       fscanf(file,"%d",&M);
       fprintf(stdout,", M = %5d ...",M);
+
       /* Precompute. */
       nfsft_precompute(N,THRESHOLD,0U);
+
       /* Initialise plan. */
       nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X |
-        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_ZERO_F_HAT);
+        NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED |
+        NFSFT_ZERO_F_HAT);
+
       /* Read in function samples. */
       for (m = 0; m < M; m++)
       {
@@ -272,6 +280,7 @@ void test_ndsft_adjoint(void)
         fscanf(file,"%lf",&d2);
         plan.f[m] = d1 + I*d2;
       }
+
       /* Read in nodes. */
       for (m = 0; m < plan.M_total; m++)
       {
@@ -280,6 +289,10 @@ void test_ndsft_adjoint(void)
         plan.x[2*m+1] = d1;
         plan.x[2*m] = d2;
       }
+
+      /* Do precomputation for nodes. */
+      nfsft_precompute_x(&plan);
+
       /* Read in reference Fourier coefficients. */
       f_hat_orig = (complex*) calloc(plan.N_total,sizeof(complex));
       for (k = 0; k <= N; k++)
@@ -295,11 +308,15 @@ void test_ndsft_adjoint(void)
 
       /* CLose the file. */
       fclose(file);
+
       /* Execute the plan. */
       nfsft_adjoint(&plan);
+
       /* Check result */
-      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_hat_orig,plan.f_hat,plan.N_total));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_hat_orig,plan.f_hat,plan.N_total));
+      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_hat_orig,
+        plan.f_hat, plan.N_total));
+      fprintf(stdout," e_2 = %le",error_l_2_complex(f_hat_orig,plan.f_hat,
+        plan.N_total));
       //fprintf(stdout,"\n");
       /*for (n = -N; n <= N; n++)
       {
@@ -316,6 +333,9 @@ void test_ndsft_adjoint(void)
               cabs(plan.f_hat[NFSFT_INDEX(k,n,&plan)]-f_hat_orig[NFSFT_INDEX(k,n,&plan)]));
         }
       }*/
+      //vpr_complex(f_hat_orig, plan.N_total, "f_hat_orig");
+      //vpr_complex(plan.f_hat, plan.N_total, "f_hat");
+
       /*fprintf(stdout,"\n");
       for (n = 0; n < plan.N_total; n++)
       {

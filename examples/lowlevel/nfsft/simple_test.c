@@ -21,6 +21,9 @@ void simple_test_nfsft()
   const int THRESHOLD = 1000; /**< The threshold for the NFSFT stabilization
                                    procedure.                                      */
 
+  /* Precompute. */
+  nfsft_precompute(N,THRESHOLD,0U);
+
   /* Init a transform plan using the guru interface. All arrays for input and
    * output variables are allocated by nfsft_init_guru(). Computations are
    * performed with respect to L^2-normalized spherical harmonics Y_k^n. The
@@ -28,7 +31,7 @@ void simple_test_nfsft()
    * transformations. The internal NFFT uses a cut-off parameter of 6.
    */
   nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED, 6);
+    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT, 6);
 
   /* Init pseudo random nodes. */
   for (j = 0; j < plan.M_total; j++)
@@ -37,8 +40,8 @@ void simple_test_nfsft()
     plan.x[2*j+1]=0.5*((double)rand())/RAND_MAX;
   }
 
-  /* Precompute. */
-  nfsft_precompute(N,THRESHOLD,0U);
+  /* Do precomputation for nodes. */
+  nfsft_precompute_x(&plan);
 
   /* Init pseudo random Fourier coefficients and display them. */
   for (k = 0; k <= plan.N; k++)
