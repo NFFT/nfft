@@ -43,7 +43,7 @@ void simple_test_nfsft()
   /* Do precomputation for nodes. */
   nfsft_precompute_x(&plan);
 
-  /* Init pseudo random Fourier coefficients and display them. */
+  /* Init pseudo random Fourier coefficients. */
   for (k = 0; k <= plan.N; k++)
   {
     for (n = -k; n <= k; n++)
@@ -75,8 +75,8 @@ void simple_test_nfsft()
   }*/
 
   /* Compute direct adjoint transformation and display the result. */
-  ndsft_adjoint(&plan);
-  /*for (k = 0; k <= plan.N; k++)
+  nfsft_adjoint(&plan);
+  for (k = 0; k <= plan.N; k++)
   {
     for (n = -k; n <= k; n++)
     {
@@ -84,12 +84,12 @@ void simple_test_nfsft()
         creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
-  }*/
-  vpr_complex(plan.f_hat,plan.N_total,"adjoint ndsft, vector f_hat");
+  }
+  //vpr_complex(plan.f_hat,plan.N_total,"adjoint ndsft, vector f_hat");
 
   /* COmpute approximate adjoint transformation and display the result */
-  nfsft_adjoint(&plan);
-  /*for (k = 0; k <= plan.N; k++)
+  ndsft_adjoint(&plan);
+  for (k = 0; k <= plan.N; k++)
   {
     for (n = -k; n <= k; n++)
     {
@@ -97,8 +97,8 @@ void simple_test_nfsft()
         creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
-  }*/
-  vpr_complex(plan.f_hat,plan.N_total,"adjoint nfsft, vector f_hat");
+  }
+  //vpr_complex(plan.f_hat,plan.N_total,"adjoint nfsft, vector f_hat");
 
   /* Finalise the plan. */
   nfsft_finalize(&plan);

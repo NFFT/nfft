@@ -28,7 +28,7 @@ programname = 'quadratureS2';
 
 % Display the menu.
 selection = menu('quadratureS2 - Fast evaluation of quadrature formulae on the sphere',...
-  'Gauss-Legendre','Clenshaw-Curtis','HEALPix','Equidistribution')
+  'Gauss-Legendre','Gauss-Legendre Test','Clenshaw-Curtis','HEALPix','Equidistribution')
 
 % Open input data file.
 file = fopen(infilename,'w');
@@ -44,8 +44,20 @@ if (selection == 1)
   % Write the testcase.
   writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:512);
   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,4:4:512);
-  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
+  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32,64]);
 elseif (selection == 2)
+  % Set the grid type.
+  % 0 = Gauss-Legendre
+  gridtype=0;
+  % Set the number of repetitions.
+  repetitions=1;
+  % Write the number of testcases.
+  fprintf(file,'testcases=3\n');
+  % Write the testcase.
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:32);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,4:4:32);
+  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32]);
+elseif (selection == 3)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
   gridtype=1;
@@ -59,7 +71,7 @@ elseif (selection == 2)
   %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
   %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
-elseif (selection == 3)
+elseif (selection == 4)
   % Set the grid type.
   % 2 = HEALPix
   gridtype=2;
@@ -73,7 +85,7 @@ elseif (selection == 3)
   writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
   writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
-elseif (selection == 4)
+elseif (selection == 5)
   % Set the grid type.
   % 4 = Equidistribution Example 7.1.11
   gridtype=3;
@@ -86,7 +98,7 @@ elseif (selection == 4)
   % Write the testcase.
   writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
-  writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
+  writeTestcase(file,0,1,6,1,1000,gridtype,repetitions,m);
 else
   error('Wrong selection!');
 end

@@ -271,7 +271,7 @@ void test_ndsft_adjoint(void)
       /* Initialise plan. */
       nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X |
         NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED |
-        NFSFT_ZERO_F_HAT);
+        NFSFT_ZERO_F_HAT | NFSFT_PRESERVE_F_HAT);
 
       /* Read in function samples. */
       for (m = 0; m < M; m++)
