@@ -1,4 +1,3 @@
-/*gcc -o radon radon.c -lnfft3 -lfftw3 -lm -I/home/mfenn/NFFT3_develop/lib/trunk/include -L/home/mfenn/NFFT3_develop/lib/trunk/.libs -L/usr/local/lib*/
 /**
  * \file inverse_radon.c
  * \brief NFFT-based discrete inverse Radon transform.
@@ -24,7 +23,7 @@
 #include "nfft3.h"
 
 /** define weights of kernel function for discrete Radon transform */
-//#define KERNEL(r) 1.0
+/*#define KERNEL(r) 1.0 */
 #define KERNEL(r) (1.0-fabs((double)(r))/((double)R/2))
 
 /** generates the points x with weights w
@@ -151,10 +150,11 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   /** compute 1D-ffts and init given samples and weights */
   for(t=0; t<T; t++)
   {
-//     for(r=0; r<R/2; r++)
-//       fft[r] = cexp(I*PI*r)*Rf[t*R+(r+R/2)];
-//     for(r=0; r<R/2; r++)
-//       fft[r+R/2] = cexp(I*PI*r)*Rf[t*R+r];
+/*    for(r=0; r<R/2; r++)
+       fft[r] = cexp(I*PI*r)*Rf[t*R+(r+R/2)];
+      for(r=0; r<R/2; r++)
+       fft[r+R/2] = cexp(I*PI*r)*Rf[t*R+r];
+ */
 
     for(r=0; r<R; r++)
       fft[r] = Rf[t*R+r] + I*0.0;
@@ -186,12 +186,12 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
     for(l=1;l<=max_i;l++)
     {
       infft_loop_one_step(&my_infft_plan);
-      //if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;
+      /*if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;*/
     }
   }
-  //printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));
+  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));*/
 
-  /* copy result */
+  /** copy result */
   for(k=0;k<my_nfft_plan.N_total;k++)
     f[k] = creal(my_infft_plan.f_hat_iter[k]);
 
@@ -236,7 +236,7 @@ int main(int argc,char **argv)
   N = atoi(argv[2]);
   T = atoi(argv[3]);
   R = atoi(argv[4]);
-  //printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);
+  /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
   max_i = atoi(argv[5]);
 
   Rf  = (double *)malloc(T*R*(sizeof(double)));
@@ -263,5 +263,5 @@ int main(int argc,char **argv)
   free(Rf);
   free(iRf);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

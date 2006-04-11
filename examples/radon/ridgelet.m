@@ -1,10 +1,25 @@
+%file: ridgelet.m
+%
+%  Simple test program for denoising an image
+%  by hard thresholding the ridgelet coefficients.
+%  It uses the NFFT-based discrete Radon transform
+%  and translationinvariant discrete Wavelet transform.
+%  Requires Matlab-Toolbox WaveLab802.
+%
+%references: D. Donoho et al.,
+%  WaveLab802 - A collection of Matlab functions.
+%  http://www-stat.stanford.edu/~wavelab/, 1999.
+%
+%author: Markus Fenn
+%date: April 2006
+
 N=128;
-grid='linogram'; T=2*N; R=2*N; it=5;  %grid for Radon transform
+grid='linogram'; T=2*N; R=2*N; it=5;  %grid and parameters for Radon transform
 SNR=1;                                %noise level
 qmf=MakeONFilter('Battle',3);         %filter for translation invariant DWT
 threshold=17;                         %threshhold for denoising
 
-%input image
+%original input image
 f=ones(N,N);
 for j=1:N
   for k=j:(N-j)
@@ -71,10 +86,9 @@ iRf2d = fread(fp,[N,N],'double')';
 fclose(fp);
 
 figure(3);
-imagesc(iRf2d,[0 1]);
+imagesc(iRf2d);
 colormap(gray);
 axis image
-title('reconstructed image');
+title(sprintf('reconstructed image (SNR=%g)',20*log10( norm(f - mean(f(:)),'fro') / norm(f-iRf2d,'fro') )));
 
-%compute SNR
-disp(sprintf('SNR = %f',20*log10( norm(f - mean(f(:)),'fro') / norm(f-iRf2d,'fro') )));
+%end: ridgelet.m

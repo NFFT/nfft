@@ -1,4 +1,3 @@
-/*gcc -o radon radon.c -lnfft3 -lfftw3 -lm -I/home/mfenn/NFFT3_develop/lib/trunk/include -L/home/mfenn/NFFT3_develop/lib/trunk/.libs -L/usr/local/lib*/
 /**
  * \file radon.c
  * \brief NFFT-based discrete Radon transform.
@@ -13,7 +12,7 @@
  * \f]
  * by taking the 2D-NFFT of \f$f_k\f$ (\f$k \in I_N^2\f$)
  * at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
- * followed by a 1D-iFFTs for every direction \f$t \in T\f$,
+ * followed by 1D-iFFTs for every direction \f$t \in T\f$,
  * where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel.
  * \author Markus Fenn
  * \date 2005
@@ -25,7 +24,7 @@
 #include "nfft3.h"
 
 /** define weights of kernel function for discrete Radon transform */
-//#define KERNEL(r) 1.0
+/*#define KERNEL(r) 1.0 */
 #define KERNEL(r) (1.0-fabs((double)(r))/((double)R/2))
 
 /** generates the points x with weights w
@@ -161,10 +160,11 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
     for(r=0; r<R; r++)
       Rf[t*R+r] = creal(fft[r])/R;
 
-//    for(r=0; r<R/2; r++)
-//      Rf[t*R+(r+R/2)] = creal(cexp(-I*PI*r)*fft[r]);
-//    for(r=0; r<R/2; r++)
-//      Rf[t*R+r] = creal(cexp(-I*PI*r)*fft[r+R/2]);
+/*    for(r=0; r<R/2; r++)
+      Rf[t*R+(r+R/2)] = creal(cexp(-I*PI*r)*fft[r]);
+    for(r=0; r<R/2; r++)
+      Rf[t*R+r] = creal(cexp(-I*PI*r)*fft[r+R/2]);
+ */
   }
 
   /** finalise the plans and free the variables */
@@ -205,7 +205,7 @@ int main(int argc,char **argv)
   N = atoi(argv[2]);
   T = atoi(argv[3]);
   R = atoi(argv[4]);
-  //printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);
+  /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
 
   f   = (double *)malloc(N*N*(sizeof(double)));
   Rf  = (double *)malloc(T*R*(sizeof(double)));
@@ -231,5 +231,5 @@ int main(int argc,char **argv)
   free(f);
   free(Rf);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

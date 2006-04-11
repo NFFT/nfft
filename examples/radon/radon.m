@@ -1,3 +1,13 @@
+%file: radon.m
+%
+%  Simple test program for NFFT-based discrete
+%  Radon transform and its inverse.
+%
+%  See radon.c, inverse_radon.c and refman.pdf for details.
+%
+%author: Markus Fenn
+%date: February 2006
+
 N=128;
 f=phantom(N);
 %grid='polar'; T=2.5*N; R=1.5*N; it=5;
@@ -46,3 +56,5 @@ title('reconstructed image');
 
 %compute error
 disp(sprintf('max(abs(f(:)-iRf(:))) = %e',max(abs(f(:)-iRf(:)))))
+
+%end: radon.m
