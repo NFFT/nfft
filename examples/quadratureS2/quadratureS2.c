@@ -103,6 +103,7 @@ int main (int argc, char **argv)
   int gamma;
   double thetai;
   double gammai;
+  FILE *file;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -243,20 +244,35 @@ int main (int argc, char **argv)
           /* Generate the grid angles phi. */
           for (n = 0; n < grid_phi; n++)
           {
-            phi[n] = n/((double)grid_phi)-0.5;
+            phi[n] = n/((double)grid_phi);
+            phi[n] -= ((phi[n]>=0.5)?(1.0):(0.0));
           }
 
           /* Generate the grid. */
           d = 0;
+          file = fopen("nodes.txt","w");
           for (k = 0; k < grid_theta; k++)
           {
             for (n = 0; n < grid_phi; n++)
             {
               x[2*d] = phi[n];
               x[2*d+1] = theta[k];
+              fprintf(file,"%.30f %.30f\n",x[2*d],x[2*d+1]);
               d++;
             }
           }
+          fclose(file);
+          d = 0;
+          file = fopen("weights.txt","w");
+          for (k = 0; k < grid_theta; k++)
+          {
+            for (n = 0; n < grid_phi; n++)
+            {
+              fprintf(file,"%.30f\n",w[k]);
+              d++;
+            }
+          }
+          fclose(file);
           break;
 
         case GRID_CLENSHAW_CURTIS:
@@ -428,6 +444,12 @@ int main (int argc, char **argv)
         //sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);
         drand48() - 0.5 + I*(drand48() - 0.5);
       }
+      file = fopen("values.txt","w");
+      for (d = 0; d < grid_total; d++)
+      {
+        fprintf(file,"%.30f %.30f\n",creal(f_bak[d]),cimag(f_bak[d]));
+      }
+      fclose(file);
 
       /* Init transform plans. */
       nfsft_init_guru(&plan,m[im],grid_total, NFSFT_NORMALIZED | ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |

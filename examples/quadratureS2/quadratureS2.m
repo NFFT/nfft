@@ -52,11 +52,11 @@ elseif (selection == 2)
   % Set the number of repetitions.
   repetitions=1;
   % Write the number of testcases.
-  fprintf(file,'testcases=3\n');
+  fprintf(file,'testcases=1\n');
   % Write the testcase.
-  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:32);
-  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,4:4:32);
-  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32]);
+  % writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:32);
+   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[2]);
+  % writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32]);
 elseif (selection == 3)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
