@@ -77,9 +77,9 @@ int main (int argc, char **argv)
   double *x;                   /**< The quadrature nodes                      *
                                     \f$\left(w_k\right)_{k=0}^{M}\f$          */
   complex *f_hat;              /**< The spherical Fourier coefficients        */
-  complex *f_hat_gen;          /**< The spherical Fourier coefficients        */
+  complex *f_hat_ref;          /**< The spherical Fourier coefficients        */
   complex *f;                  /**< The function values                       */
-  complex *f_bak;              /**< A copy of the exact function values       */
+  complex *f_ref;              /**< A copy of the exact function values       */
   nfsft_plan plan;             /**< The NFSFT plan                            */
   nfsft_plan plan_gen;         /**< The NFSFT plan                            */
   int i;                       /**< A loop variable                           */
@@ -209,9 +209,9 @@ int main (int argc, char **argv)
     x = (double*) malloc(2*grid_max_total*sizeof(double));
     w = (double*) malloc(grid_max_theta*sizeof(double));
     f = (complex*) malloc(grid_max_total*sizeof(complex));
-    f_bak = (complex*) malloc(grid_max_total*sizeof(complex));
+    f_ref = (complex*) malloc(grid_max_total*sizeof(complex));
     f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex));
-    f_hat_gen = (complex*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex));
+    f_hat_ref = (complex*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex));
 
     /* Do precomputation. */
     nfsft_precompute(m_max,threshold, 0U |
@@ -250,29 +250,23 @@ int main (int argc, char **argv)
 
           /* Generate the grid. */
           d = 0;
-          file = fopen("nodes.txt","w");
           for (k = 0; k < grid_theta; k++)
           {
             for (n = 0; n < grid_phi; n++)
             {
               x[2*d] = phi[n];
               x[2*d+1] = theta[k];
-              fprintf(file,"%.30f %.30f\n",x[2*d],x[2*d+1]);
               d++;
             }
           }
-          fclose(file);
           d = 0;
-          file = fopen("weights.txt","w");
           for (k = 0; k < grid_theta; k++)
           {
             for (n = 0; n < grid_phi; n++)
             {
-              fprintf(file,"%.30f\n",w[k]);
               d++;
             }
           }
-          fclose(file);
           break;
 
         case GRID_CLENSHAW_CURTIS:
@@ -411,19 +405,19 @@ int main (int argc, char **argv)
       nfsft_init_guru(&plan_gen,m[im],grid_total,
         NFSFT_NORMALIZED | ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
                       ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)), cutoff);
-      plan_gen.f_hat = f_hat_gen;
+      plan_gen.f_hat = f_hat_ref;
       plan_gen.x = x;
-      plan_gen.f = f_bak;
+      plan_gen.f = f_ref;
       nfsft_precompute_x(&plan_gen);
       for (k = 0; k < plan_gen.N_total; k++)
       {
-        f_hat_gen[k] = 0.0;
+        f_hat_ref[k] = 0.0;
       }
       for (k = 0; k < m[im]; k++)
       {
         for (n = -k; n <= k; n++)
         {
-          f_hat_gen[NFSFT_INDEX(k,n,&plan_gen)] = drand48()-0.5 + I*(drand48()-0.5);
+          f_hat_ref[NFSFT_INDEX(k,n,&plan_gen)] = drand48()-0.5 + I*(drand48()-0.5);
         }
       }
         if (use_nfsft != NO)
@@ -437,19 +431,6 @@ int main (int argc, char **argv)
           ndsft_trafo(&plan_gen);
         }
       nfsft_finalize(&plan_gen);
-      for (d = 0; d < grid_total; d++)
-      {
-        f_bak[d] =
-        //sqrt(1.0/(4*PI));
-        //sqrt(3.0/(4.0*PI))*cos(2*PI*x[2*d+1]);
-        drand48() - 0.5 + I*(drand48() - 0.5);
-      }
-      file = fopen("values.txt","w");
-      for (d = 0; d < grid_total; d++)
-      {
-        fprintf(file,"%.30f %.30f\n",creal(f_bak[d]),cimag(f_bak[d]));
-      }
-      fclose(file);
 
       /* Init transform plans. */
       nfsft_init_guru(&plan,m[im],grid_total, NFSFT_NORMALIZED | ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
@@ -468,7 +449,7 @@ int main (int argc, char **argv)
       for (i = 0; i < repetitions; i++)
       {
         /* Copy exact funtion values to working array. */
-        memcpy(f,f_bak,grid_total*sizeof(complex));
+        memcpy(f,f_ref,grid_total*sizeof(complex));
 
         /* Initialize time measurement. */
         t = second();
@@ -532,8 +513,8 @@ int main (int argc, char **argv)
 
         t_avg += second() - t;
 
-        err_infty += error_l_infty_complex(f, f_bak, grid_total);
-        err_2 += error_l_2_complex(f, f_bak, grid_total);
+        err_infty += error_l_infty_complex(f, f_ref, grid_total);
+        err_2 += error_l_2_complex(f, f_ref, grid_total);
 
         /*for (d = 0; d < grid_total; d++)
         {
@@ -568,7 +549,7 @@ int main (int argc, char **argv)
     free(x);
     free(w);
     free(f);
-    free(f_bak);
+    free(f_ref);
     free(f_hat);
 
     /* Free memory for cut-off bandwidths. */

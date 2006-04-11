@@ -42,8 +42,8 @@ if (selection == 1)
   % Write the number of testcases.
   fprintf(file,'testcases=3\n');
   % Write the testcase.
-  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:512);
-  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,4:4:512);
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
   writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32,64]);
 elseif (selection == 2)
   % Set the grid type.
