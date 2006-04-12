@@ -44,10 +44,10 @@ fprintf(file,'repetitions=%d\n',repetitions);
 % Write number of bandwidths
 fprintf(file,'bandwidths=%d\n',length(bandwidths));
 % Write bandwidths
-fprintf(file,'%d\n',bandwidths);
+fprintf(file,'%d %d\n',bandwidths);
 
 % Check if we need to provide also quadrature weights. This is the case if
 % the Gauss-Legendre quadrature grid is used.
 if (gridtype==0)
-  writeWeights(file,bandwidths);
+  writeWeights(file,bandwidths(2,:));
 end

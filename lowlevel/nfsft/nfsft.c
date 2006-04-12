@@ -741,6 +741,7 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Use NDSFT. */
     ndsft_trafo(plan);
   }
+
   /* Check for correct value of the bandwidth N. */
   else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U ||
     plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
@@ -767,8 +768,6 @@ void nfsft_trafo(nfsft_plan *plan)
      * weight. */
     if (plan->flags & NFSFT_NORMALIZED)
     {
-      fprintf(stderr,"nfsft_trafo: normalizing\n");
-      fflush(stderr);
       /* Traverse Fourier coefficients array. */
       for (k = 0; k <= plan->N; k++)
       {
@@ -784,8 +783,6 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Check, which polynomial transform algorithm should be used. */
     if (plan->flags & NFSFT_USE_DPT)
     {
-      fprintf(stderr,"nfsft_trafo: Using DPT\n");
-      fflush(stderr);
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
@@ -797,8 +794,6 @@ void nfsft_trafo(nfsft_plan *plan)
     }
     else
     {
-      fprintf(stderr,"nfsft_trafo: Using FPT\n");
-      fflush(stderr);
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
@@ -817,15 +812,11 @@ void nfsft_trafo(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
-      fprintf(stderr,"nfsft_trafo: Using NDFT\n");
-      fflush(stderr);
       /* Use NDFT. */
       ndft_trafo(&plan->plan_nfft);
     }
     else
     {
-      fprintf(stderr,"nfsft_trafo: Using NFFT\n");
-      fflush(stderr);
       /* Use NFFT. */
       //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
       nfft_trafo(&plan->plan_nfft);

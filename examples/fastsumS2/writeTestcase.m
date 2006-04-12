@@ -7,12 +7,12 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,para
     if (usenfft == 1)
       % NFFT cut-off parameter
       fprintf(file,'cutoff=%d\n',cutoff);
-    end  
+    end
     % Use FPT
     fprintf(file,'fpt=%d\n',usefpt);
     % NFSFT threshold
     fprintf(file,'threshold=%e\n',threshold);
-  end  
+  end
   % Kernel type
   fprintf(file,'kernel=%d\n',kernel);
   % Parameter sets
@@ -24,9 +24,10 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,para
       % Parameter h
       fprintf(file,'%f\n',parameters(j,k));
     end
-  end  
+  end
   % Number of bandwidths
-  fprintf(file,'bandwidths=%d\n',length(bandwidths));
+  bandwidths
+  fprintf(file,'bandwidths=%d\n',length(bandwidths(:,1)));
   % Bandwidths
   fprintf(file,'%d\n',bandwidths);
   % Node sets
@@ -40,4 +41,4 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,para
       fprintf(file,'precomputed=%d\n',nodes(j,4));
       fprintf(file,'repetitions=%d\n',nodes(j,5));
     end
-  end  
+  end

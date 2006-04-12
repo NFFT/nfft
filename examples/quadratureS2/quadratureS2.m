@@ -28,7 +28,7 @@ programname = 'quadratureS2';
 
 % Display the menu.
 selection = menu('quadratureS2 - Fast evaluation of quadrature formulae on the sphere',...
-  'Gauss-Legendre','Gauss-Legendre Test','Clenshaw-Curtis','HEALPix','Equidistribution')
+  'Gauss-Legendre','Gauss-Legendre (N=64,128,256, N_Q=4:4:512)','Clenshaw-Curtis','Clenshaw-Curtis (N=64,128,256, N_Q=4:4:512)','HEALPix','Equidistribution')
 
 % Open input data file.
 file = fopen(infilename,'w');
@@ -42,9 +42,9 @@ if (selection == 1)
   % Write the number of testcases.
   fprintf(file,'testcases=3\n');
   % Write the testcase.
-  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[8,16,32,64,128,256,512]);
-  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32,64]);
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[2.^(2:10);2.^(2:10)]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[2.^(2:10);2.^(2:10)]);
+  writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[2.^(2:6);2.^(2:6)]);
 elseif (selection == 2)
   % Set the grid type.
   % 0 = Gauss-Legendre
@@ -52,11 +52,14 @@ elseif (selection == 2)
   % Set the number of repetitions.
   repetitions=1;
   % Write the number of testcases.
-  fprintf(file,'testcases=1\n');
+  fprintf(file,'testcases=3\n');
   % Write the testcase.
-  % writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,4:4:32);
-   writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[2]);
-  % writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[8,16,32]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [64*ones(1,length(4:4:512));4:4:512]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [128*ones(1,length(4:4:512));4:4:512]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [256*ones(1,length(4:4:512));4:4:512]);
 elseif (selection == 3)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
@@ -68,10 +71,25 @@ elseif (selection == 3)
   % Write the number of testcases.
   fprintf(file,'testcases=1\n');
   % Write the testcase.
-  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
-  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
-  %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
+  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[m;m]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[m;m]);
+  %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,[m;m]);
 elseif (selection == 4)
+  % Set the grid type.
+  % 1 = Gauss-Legendre
+  gridtype = 1;
+  % Set the number of repetitions.
+  repetitions = 1;
+  % Write the number of testcases.
+  fprintf(file,'testcases=3\n');
+  % Write the testcase.
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [16*ones(1,length(4:4:128));4:4:128]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [32*ones(1,length(4:4:128));4:4:128]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,...
+    [64*ones(1,length(4:4:128));4:4:128]);
+elseif (selection == 5)
   % Set the grid type.
   % 2 = HEALPix
   gridtype=2;
@@ -82,10 +100,10 @@ elseif (selection == 4)
   % Write the number of testcases.
   fprintf(file,'testcases=3\n');
   % Write the testcase.
-  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,m);
-  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,m);
-  writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,m);
-elseif (selection == 5)
+  writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[m;m]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[m;m]);
+  writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,[m;m]);
+elseif (selection == 6)
   % Set the grid type.
   % 4 = Equidistribution Example 7.1.11
   gridtype=3;
@@ -105,19 +123,20 @@ end
 
 fclose(file);
 
-%system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
-%file = fopen(outfilename,'r');
-%T = readTestcase(file);
-%fclose(file);
-%y4 = feval(bound,T{1}.bandwidths);
-%figure('Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
-%axes('FontSize',16);
-%semilogy(T{1}.bandwidths,T{1}.data{1}(:,6),'-','LineWidth',2,'Color',[0,0,0]);
-%hold on
-%x = T{1}.bandwidths;
-%semilogy(x,T{2}.data{1}(:,6),'-.','LineWidth',2,'Color',[0,0,0]);
-%semilogy(x,T{3}.data{1}(:,6),'--','LineWidth',2,'Color',[0,0,0]);
-%semilogy(x,y4,':','LineWidth',2,'Color',[0,0,0]);
-%axis([x(1) x(end) 1e-16 1])
-%xlabel('M');
-%ylabel('E_{\infty}','Rotation',0);
+if (selection == 2 || selection == 4)
+  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+  file = fopen(outfilename,'r');
+  T = readTestcase(file);
+  fclose(file);
+  figure();
+  %'Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
+  %axes('FontSize',16);
+  x = T{1}.m(:,2);
+  semilogy(x,T{1}.data(:,2),'-','LineWidth',2,'Color',[0,0,0]);
+  hold on
+  semilogy(x,T{2}.data(:,2),'--','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{3}.data(:,2),'-.','LineWidth',2,'Color',[0,0,0]);
+  axis([x(1) x(end) 1e-16 1])
+  xlabel('N_q');
+  ylabel('E_{\infty}','Rotation',0);
+end
