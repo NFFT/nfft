@@ -339,6 +339,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   t_nfft/=r;
   printf("$%.2e$\\\\\n",t_nfft);
 
+  fflush(stdout);
+
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
