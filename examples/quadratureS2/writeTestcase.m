@@ -1,5 +1,5 @@
 function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,gridtype,...
-  repetitions,bandwidths)
+  testfunction,repetitions,bandwidths)
 % $Id$
 %
 % writeTestcase - Write qudratureS2 testcases
@@ -39,6 +39,11 @@ end
 
 % Write grid type
 fprintf(file,'gridtype=%d\n',gridtype);
+% Write grid type
+fprintf(file,'testfunction=%d\n',testfunction(1));
+if (testfunction(1) == 0)
+  fprintf(file,'bandlimit=%d\n');
+end  
 % Write number of repetitions
 fprintf(file,'repetitions=%d\n',repetitions);
 % Write number of bandwidths
