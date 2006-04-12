@@ -1,1 +1,1 @@
-SUBDIRS = kernel lowlevel highlevel radon fastsumS2 polarFFT quadratureS2
+SUBDIRS = kernel lowlevel highlevel radon fastsumS2 polarFFT quadratureS2 fastsum
