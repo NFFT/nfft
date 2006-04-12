@@ -105,6 +105,7 @@ AC_OUTPUT(Makefile \
           examples/kernel/nfst/Makefile \
           examples/fastsumS2/Makefile \
           examples/quadratureS2/Makefile \
+          examples/fastsum/Makefile \
           tests/Makefile \
           tests/kernel/Makefile \
           tests/kernel/fpt/Makefile \
