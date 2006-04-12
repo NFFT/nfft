@@ -383,7 +383,7 @@ int main(int argc,char **argv)
     printf("R          number of offsets         \n");
 
     /** Hence, comparison of the FFTW, mpolar FFT, and inverse mpolar FFT */
-    printf("\nHence, comparison FFTW, linogram FFT and inverse linogram FFT\n");
+    printf("\nHence, comparison FFTW, mpolar FFT and inverse mpolar FFT\n");
     fp=fopen("mpolar_comparison_fft.dat","w");
     if (fp==NULL)
 	return(-1);
