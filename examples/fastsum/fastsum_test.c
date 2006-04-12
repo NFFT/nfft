@@ -14,6 +14,7 @@ int main(int argc, char **argv)
   int N;                                             /**< number of source nodes  */
   int M;                                             /**< number of target nodes  */
   int n;                                             /**< expansion degree        */
+  int m;                                             /**< cut-off parameter       */
   int p;                                             /**< degree of smoothness    */
   char *s;                                           /**< name of kernel          */
   complex (*kernel)(double , int , const double *);  /**< kernel function         */
@@ -24,13 +25,14 @@ int main(int argc, char **argv)
   double error=0.0;                                  /**< for error computation   */
   double *temp;                                      /**< for temporary things    */
 
-  if (argc!=8)
+  if (argc!=9)
   {
-    printf("\nfastsum_test d N M n p kernel c\n\n");
+    printf("\nfastsum_test d N M n m p kernel c\n\n");
     printf("  d       dimension                 \n");
     printf("  N       number of source nodes    \n");
     printf("  M       number of target nodes    \n");
     printf("  n       expansion degree          \n");
+    printf("  m       cut-off parameter         \n");
     printf("  p       degree of smoothness      \n");
     printf("  kernel  kernel function  (e.g., gaussian)\n");
     printf("  c       kernel parameter          \n\n");
@@ -42,9 +44,10 @@ int main(int argc, char **argv)
     N=atoi(argv[2]); c=1.0/pow((double)N,1.0/(double)d);
     M=atoi(argv[3]);
     n=atoi(argv[4]);
-    p=atoi(argv[5]);
-    s=argv[6];
-    c=atof(argv[7]);
+    m=atoi(argv[5]);
+    p=atoi(argv[6]);
+    s=argv[7];
+    c=atof(argv[8]);
     if (strcmp(s,"gaussian")==0)
       kernel = gaussian;
     else if (strcmp(s,"multiquadric")==0)
@@ -75,12 +78,12 @@ int main(int argc, char **argv)
       kernel = multiquadric;
     }
   }
-  printf("d=%d, N=%d, M=%d, n=%d, p=%d, kernel=%s, c=%g \n",d,N,M,n,p,s,c);
+  printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g \n",d,N,M,n,m,p,s,c);
 
   temp = (double *)malloc(N*(sizeof(double)));
 
   /** init two dimensional fastsum plan */
-  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, p);
+  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p);
 
   /** init source knots in a d-ball with radius 0.25-eps_b/2 */
   for (k=0; k<N; k++)

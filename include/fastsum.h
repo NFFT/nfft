@@ -69,7 +69,7 @@ typedef struct fastsum_plan_
 } fastsum_plan;
 
 /** initialize fast summation plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int p);
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p);
 
 /** finalize plan */
 void fastsum_finalize(fastsum_plan *ths);

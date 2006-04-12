@@ -381,7 +381,7 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
 
 /**********************************************************************
  **********************************************************************/
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int p)
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p)
 {
   int t;
   int N[d], n[d];
@@ -427,10 +427,10 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
     N[t] = nn;
     n[t] = 2*nn;
   }
-  nfft_init_guru(&(ths->mv1), d, N, N_total, n, 4,
+  nfft_init_guru(&(ths->mv1), d, N, N_total, n, m,
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
-  nfft_init_guru(&(ths->mv2), d, N, M_total, n, 4,
+  nfft_init_guru(&(ths->mv2), d, N, M_total, n, m,
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
