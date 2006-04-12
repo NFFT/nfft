@@ -255,12 +255,106 @@ void simple_test_infft_1d()
   nfft_finalize(&my_plan);  
 }
 
+void measure_time_nfft(int d, int N, unsigned test_ndft)
+{
+  int j,k,r;
+  int M,NN[d],nn[d];
+
+  nfft_plan p;
+  fftw_plan p_fft;
+
+  double t,t_fft,t_ndft,t_nfft;
+
+  printf("$%d$&\t$%d$&\t",d,(int)(log(N)/log(2)+0.5));
+
+  for(j=0,M=1;j<d;j++)
+    {
+      M=N*M;
+      NN[j]=N;
+      nn[j]=2*N;
+    }
+
+  nfft_init_guru(&p, d, NN, M, nn, 4, 
+		 PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+  /*  nfft_init(&p, d, NN, M);*/
+  p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
+
+  /** init pseudo random nodes */
+  for(j=0;j<p.d*p.M_total;j++)
+      p.x[j]=drand48()-0.5;
+
+  nfft_precompute_one_psi(&p);
+
+  /** init pseudo random Fourier coefficients */
+  for(k=0;k<p.N_total;k++)
+    p.f_hat[k] = drand48() + I* drand48();
+
+  /** FFT */
+  t_fft=0;
+  r=0;
+  while(t_fft<0.1)
+    {
+      r++;
+      t=second();
+      fftw_execute(p_fft);
+      t=second()-t;
+      t_fft+=t;
+    }
+  t_fft/=r;
+  printf("$%.2e$&\t",t_fft);
+
+  /** NDFT */
+  if(test_ndft)
+    {
+      t_ndft=0;
+      r=0;
+      while(t_ndft<0.1)
+        {
+          r++;
+          t=second();
+          ndft_trafo(&p);
+          t=second()-t;
+          t_ndft+=t;
+        }
+      t_ndft/=r;
+      printf("$%.2e$&\t",t_ndft);
+    }
+  else
+    printf("*\t\t");
+
+  
+  /** NFFT */
+  t_nfft=0;
+  r=0;
+  while(t_nfft<0.1)
+    {
+      r++;
+      t=second();
+      nfft_trafo(&p);
+      t=second()-t;
+      t_nfft+=t;
+    }
+  t_nfft/=r;
+  printf("$%.2e$\\\\\n",t_nfft);
+
+  fftw_destroy_plan(p_fft);
+  nfft_finalize(&p);
+} 
+
 int main()
 {
-  int l,m;
+  int l,m,d,logN;
 
-printf("%d, %d\n",sizeof(int), sizeof(double));
-exit(-1);
+  for(d=1;d<=3;d++)
+    for(logN=3;logN<=22/d;logN++)
+      if(logN*d<=12)
+	measure_time_nfft(d,(1U<< logN),1);
+      else
+	measure_time_nfft(d,(1U<< logN),0);
+  
+  exit(-1);
 
   system("clear");
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
