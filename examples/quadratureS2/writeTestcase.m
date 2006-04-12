@@ -47,7 +47,7 @@ end
 % Write number of repetitions
 fprintf(file,'repetitions=%d\n',repetitions);
 % Write number of bandwidths
-fprintf(file,'bandwidths=%d\n',length(bandwidths));
+fprintf(file,'bandwidths=%d\n',size(bandwidths,2));
 % Write bandwidths
 fprintf(file,'%d %d\n',bandwidths);
 
