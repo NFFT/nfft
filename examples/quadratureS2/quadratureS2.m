@@ -52,16 +52,16 @@ elseif (selection == 2)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=4:4:256;
+  N=16:16:512;
   % Set the size parameters.
   Q=N;
   % Write the number of testcases.
-  fprintf(file,'testcases=4\n');
+  fprintf(file,'testcases=2\n');
   % Write the testcases.
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,16],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,32],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,64],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,128],repetitions,[N;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,250],repetitions,[N;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N;Q]);
 elseif (selection == 3)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
@@ -136,10 +136,11 @@ if (selection == 2 || selection == 4)
   %'Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
   %axes('FontSize',16);
   x = T{1}.m(:,2);
-  semilogy(x,T{1}.data(:,2),'-','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{1}.data(:,2),':','LineWidth',2,'Color',[0,0,0]);
   hold on
-  semilogy(x,T{2}.data(:,2),'--','LineWidth',2,'Color',[0,0,0]);
-  semilogy(x,T{3}.data(:,2),'-.','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{2}.data(:,2),'-.','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{3}.data(:,2),'--','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{4}.data(:,2),'-','LineWidth',2,'Color',[0,0,0]);
   axis([x(1) x(end) 1e-16 1])
   xlabel('N_q');
   ylabel('E_{\infty}','Rotation',0);

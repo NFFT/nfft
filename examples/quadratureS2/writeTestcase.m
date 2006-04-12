@@ -42,8 +42,8 @@ fprintf(file,'gridtype=%d\n',gridtype);
 % Write grid type
 fprintf(file,'testfunction=%d\n',testfunction(1));
 if (testfunction(1) == 0)
-  fprintf(file,'bandlimit=%d\n');
-end  
+  fprintf(file,'bandlimit=%d\n',testfunction(2));
+end
 % Write number of repetitions
 fprintf(file,'repetitions=%d\n',repetitions);
 % Write number of bandwidths

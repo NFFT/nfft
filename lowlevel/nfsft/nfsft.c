@@ -373,6 +373,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
+        //fprintf(stderr,"%d\n",n);
         /* Precompute data for FPT transformation for order n. */
         fpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
           &wisdom.gamma[ROW(n)],n,kappa);
@@ -387,6 +388,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
+        //fprintf(stderr,"%d\n",n);
         /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
          * gamma_k^n. */
         alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
@@ -847,6 +849,8 @@ void nfsft_adjoint(nfsft_plan *plan)
   else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U ||
     plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
   {
+    //fprintf(stderr,"nfsft_adjoint: Starting\n");
+    //fflush(stderr);
     /* Propagate pointer values to the internal NFFT plan to assure consistency.
      * Pointers may have been modified externally.
      */
@@ -859,16 +863,22 @@ void nfsft_adjoint(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
+      //fprintf(stderr,"nfsft_adjoint: Executing ndft_adjoint\n");
+      //fflush(stderr);
       /* Use adjoint NDFT. */
       ndft_adjoint(&plan->plan_nfft);
     }
     else
     {
+      //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint\n");
+      //fflush(stderr);
       //fprintf(stderr,"nfsft_adjoint: nfft_adjoint\n");
       /* Use adjoint NFFT. */
       nfft_adjoint(&plan->plan_nfft);
     }
 
+    //fprintf(stderr,"nfsft_adjoint: Executing c2e_transposed\n");
+    //fflush(stderr);
     /* Convert Fourier coefficients to Chebyshev coefficients. */
     c2e_transposed(plan);
 
@@ -878,6 +888,8 @@ void nfsft_adjoint(nfsft_plan *plan)
       /* Use transposed DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
+        //fprintf(stderr,"nfsft_adjoint: Executing dpt_transposed\n");
+        //fflush(stderr);
         dpt_transposed(wisdom.set,abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
@@ -890,6 +902,8 @@ void nfsft_adjoint(nfsft_plan *plan)
       /* Use transposed FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
+        //fprintf(stderr,"nfsft_adjoint: Executing fpt_transposed\n");
+        //fflush(stderr);
         fpt_transposed(wisdom.set,abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
@@ -902,6 +916,8 @@ void nfsft_adjoint(nfsft_plan *plan)
      * weight. */
     if (plan->flags & NFSFT_NORMALIZED)
     {
+      //fprintf(stderr,"nfsft_adjoint: Normalizing\n");
+      //fflush(stderr);
       /* Traverse Fourier coefficients array. */
       for (k = 0; k <= plan->N; k++)
       {
@@ -917,12 +933,16 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Set unused coefficients to zero. */
     if (plan->flags & NFSFT_ZERO_F_HAT)
     {
+      //fprintf(stderr,"nfsft_adjoint: Setting to zero\n");
+      //fflush(stderr);
       for (n = -plan->N; n <= plan->N+1; n++)
       {
         memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,
           (plan->N+1+abs(n))*sizeof(complex));
       }
     }
+    //fprintf(stderr,"nfsft_adjoint: Finished\n");
+    //fflush(stderr);
   }
 }
 
