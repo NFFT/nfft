@@ -351,7 +351,7 @@ int main()
 
   for(d=1;d<=3;d++)
     for(logN=3;logN<=22/d;logN++)
-      if(logN*d<=12)
+      if(logN*d<=15)
 	measure_time_nfft(d,(1U<< logN),1);
       else
 	measure_time_nfft(d,(1U<< logN),0);
