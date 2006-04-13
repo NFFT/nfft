@@ -250,30 +250,26 @@ int main (int argc, char **argv)
     x = (double*) malloc(2*m_total_max*sizeof(double));
     f_ref = (complex*) malloc(m_total_max*sizeof(complex));
     f = (complex*) malloc(m_total_max*sizeof(complex));
-    if (testfunction == FUNCTION_RANDOM_BANDLIMITED)
-    {
-      f_hat_ref = (complex*) malloc(NFSFT_F_HAT_SIZE(N)*sizeof(complex));
-    }
-    f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(complex));
 
     /* Do precomputation. */
-    //fprintf(stderr,"NFSFT Precomputation\n");
-    //fflush(stderr);
-    nfsft_precompute(NQ_max, threshold, NFSFT_BANDWIDTH_WINDOW |
+    fprintf(stderr,"NFSFT Precomputation\n");
+    fflush(stderr);
+    nfsft_precompute(NQ_max, threshold,  NFSFT_NO_DIRECT_ALGORITHM |
+      NFSFT_BANDWIDTH_WINDOW |
       ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
 
-    //fprintf(stderr,"Entering loop\n");
-    //fflush(stderr);
+    fprintf(stderr,"Entering loop\n");
+    fflush(stderr);
     /* Process all cut-off bandwidths. */
     for (iNQ = 0; iNQ < iNQ_max; iNQ++)
     {
-      //fprintf(stderr,"NQ = %d\n",NQ[iNQ]);
-      //fflush(stderr);
+      fprintf(stderr,"NQ = %d\n",NQ[iNQ]);
+      fflush(stderr);
       switch (gridtype)
       {
         case GRID_GAUSS_LEGENDRE:
-          //fprintf(stderr,"Generating grid for NQ = %d, SQ = %d\n",NQ[iNQ],SQ[iNQ]);
-          //fflush(stderr);
+          fprintf(stderr,"Generating grid for NQ = %d, SQ = %d\n",NQ[iNQ],SQ[iNQ]);
+          fflush(stderr);
           /* Calculate grid dimensions. */
           m_theta = SQ[iNQ] + 1;
           m_phi = 2*SQ[iNQ] + 2;
@@ -286,17 +282,17 @@ int main (int argc, char **argv)
             w[k] *= (2.0*PI)/((double)m_phi);
           }
 
-          //fprintf(stderr,"Allocating theta and phi\n");
-          //fflush(stderr);
+          fprintf(stderr,"Allocating theta and phi\n");
+          fflush(stderr);
           /* Allocate memory to store the grid's angles. */
           theta = (double*) malloc(m_theta*sizeof(double));
           phi = (double*) malloc(m_phi*sizeof(double));
 
-          //if (theta == NULL || phi == NULL)
-          //{
-            //fprintf(stderr,"Couldn't allocate theta and phi\n");
-            //fflush(stderr);
-          //}
+          if (theta == NULL || phi == NULL)
+          {
+            fprintf(stderr,"Couldn't allocate theta and phi\n");
+            fflush(stderr);
+          }
 
 
           /* Read angles theta. */
@@ -312,8 +308,8 @@ int main (int argc, char **argv)
             phi[n] -= ((phi[n]>=0.5)?(1.0):(0.0));
           }
 
-          //fprintf(stderr,"Generating grid nodes\n");
-          //fflush(stderr);
+          fprintf(stderr,"Generating grid nodes\n");
+          fflush(stderr);
 
           /* Generate the grid's nodes. */
           d = 0;
@@ -327,8 +323,8 @@ int main (int argc, char **argv)
             }
           }
 
-          //fprintf(stderr,"Freeing theta and phi\n");
-          //fflush(stderr);
+          fprintf(stderr,"Freeing theta and phi\n");
+          fflush(stderr);
           /* Free the arrays for the grid's angles. */
           free(theta);
           free(phi);
@@ -473,15 +469,16 @@ int main (int argc, char **argv)
           break;
       }
 
-      //fprintf(stderr,"Generating test function\n");
-      //fflush(stderr);
+      fprintf(stderr,"Generating test function\n");
+      fflush(stderr);
       switch (testfunction)
       {
         case FUNCTION_RANDOM_BANDLIMITED:
-          //fprintf(stderr,"Generating random test function\n");
-          //fflush(stderr);
+          fprintf(stderr,"Generating random test function\n");
+          fflush(stderr);
           /* Generate random function samples by sampling a bandlimited
            * function. */
+          f_hat_ref = (complex*) malloc(NFSFT_F_HAT_SIZE(N)*sizeof(complex));
           nfsft_init_guru(&plan_gen,N,m_total, NFSFT_NORMALIZED |
             ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)), cutoff);
@@ -512,11 +509,12 @@ int main (int argc, char **argv)
             ndsft_trafo(&plan_gen);
           }
           nfsft_finalize(&plan_gen);
+          free(f_hat_ref);
           break;
 
         default:
-          //fprintf(stderr,"Generating one function\n");
-          //fflush(stderr);
+          fprintf(stderr,"Generating one function\n");
+          fflush(stderr);
           for (d = 0; k < m_total; d++)
           {
             f_ref[d] = 1.0;
@@ -524,8 +522,8 @@ int main (int argc, char **argv)
           break;
       }
 
-      //fprintf(stderr,"Initializing trafo\n");
-      //fflush(stderr);
+      fprintf(stderr,"Initializing trafo\n");
+      fflush(stderr);
       /* Init transform plan. */
       nfsft_init_guru(&plan,NQ[iNQ],m_total, NFSFT_NORMALIZED |
         ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
@@ -533,8 +531,8 @@ int main (int argc, char **argv)
       plan.f_hat = f_hat;
       plan.x = x;
       plan.f = f;
-      //fprintf(stderr,"Precomputing for x\n");
-      //fflush(stderr);
+      fprintf(stderr,"Precomputing for x\n");
+      fflush(stderr);
       nfsft_precompute_x(&plan);
 
       /* Initialize cumulative time variable. */
@@ -545,16 +543,16 @@ int main (int argc, char **argv)
       /* Cycle through all runs. */
       for (i = 0; i < repetitions; i++)
       {
-        //fprintf(stderr,"Copying original values\n");
-        //fflush(stderr);
+        fprintf(stderr,"Copying original values\n");
+        fflush(stderr);
         /* Copy exact funtion values to working array. */
         memcpy(f,f_ref,m_total*sizeof(complex));
 
         /* Initialize time measurement. */
         t = second();
 
-        //fprintf(stderr,"Multiplying with quadrature weights\n");
-        //fflush(stderr);
+        fprintf(stderr,"Multiplying with quadrature weights\n");
+        fflush(stderr);
         /* Multiplication with the quadrature weights. */
         /*fprintf(stderr,"\n");*/
         d = 0;
@@ -578,8 +576,8 @@ int main (int argc, char **argv)
                   d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
         }*/
 
-        //fprintf(stderr,"Executing adjoint\n");
-        //fflush(stderr);
+        fprintf(stderr,"Executing adjoint\n");
+        fflush(stderr);
         /* Check if the fast NFSFT algorithm shall be tested. */
         if (use_nfsft != NO)
         {
@@ -603,8 +601,8 @@ int main (int argc, char **argv)
           }
         }*/
 
-        //fprintf(stderr,"Executing trafo\n");
-        //fflush(stderr);
+        fprintf(stderr,"Executing trafo\n");
+        fflush(stderr);
         if (use_nfsft != NO)
         {
           /* Execute the NFSFT transformation. */
@@ -616,8 +614,8 @@ int main (int argc, char **argv)
           ndsft_trafo(&plan);
         }
 
-        //fprintf(stderr,"Adding to the error\n");
-        //fflush(stderr);
+        fprintf(stderr,"Adding to the error\n");
+        fflush(stderr);
         t_avg += second() - t;
 
         err_infty_avg += error_l_infty_complex(f_ref, f, m_total);
@@ -630,8 +628,8 @@ int main (int argc, char **argv)
         }*/
       }
 
-      //fprintf(stderr,"Calculating the error\n");
-      //fflush(stderr);
+      fprintf(stderr,"Calculating the error\n");
+      fflush(stderr);
       /* Calculate average time needed. */
       t_avg = t_avg/((double)repetitions);
 
@@ -643,11 +641,13 @@ int main (int argc, char **argv)
 
       /* Print out the error measurements. */
       fprintf(stdout,"%+le %+le %+le\n", t_avg, err_infty_avg, err_2_avg);
+      fflush(stdout);
       fprintf(stderr,"%d: %4d %4d %+le %+le %+le\n", tc, NQ[iNQ], SQ[iNQ],
         t_avg, err_infty_avg, err_2_avg);
+      fflush(stderr);
 
-      //fprintf(stderr,"Finalizing\n");
-      //fflush(stderr);
+      fprintf(stderr,"Finalizing\n");
+      fflush(stderr);
       /* Finalize the NFSFT plans */
       nfsft_finalize(&plan);
     } /* for (im = 0; im < im_max; im++) - Process all cut-off
@@ -662,11 +662,6 @@ int main (int argc, char **argv)
     free(x);
     free(f_ref);
     free(f);
-    if (testfunction == FUNCTION_RANDOM_BANDLIMITED)
-    {
-      free(f_hat_ref);
-    }
-    free(f_hat);
 
     /* Free memory for cut-off bandwidths and grid size parameters. */
     free(NQ);
