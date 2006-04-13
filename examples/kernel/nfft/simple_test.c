@@ -265,7 +265,15 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 
   double t,t_fft,t_ndft,t_nfft;
 
-  printf("$%d$&\t$%d$&\t",d,(int)(log(N)/log(2)+0.5));
+  //  printf("%% d=%d\n",d);
+
+  if(d==1)
+    if(N<=(1U<<13))
+      printf("$%d$&\t\t",N);
+    else
+      printf("$%d$&\t",N);
+
+    //printf("$%d$&\t$%d$&\t",d,(int)(log(N)/log(2)+0.5));
 
   for(j=0,M=1;j<d;j++)
     {
@@ -322,7 +330,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       printf("$%.2e$&\t",t_ndft);
     }
   else
-    printf("*\t\t");
+    printf("*&\t\t");
 
   
   /** NFFT */
@@ -337,9 +345,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       t_nfft+=t;
     }
   t_nfft/=r;
-  printf("$%.2e$\\\\\n",t_nfft);
 
-  fflush(stdout);
+  printf("$%.2e$&\t",t_nfft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
@@ -347,15 +354,40 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 
 int main()
 {
-  int l,m,d,logN;
+  int l,m,d,logIN;
 
-  for(d=1;d<=3;d++)
-    for(logN=3;logN<=22/d;logN++)
-      if(logN*d<=15)
-	measure_time_nfft(d,(1U<< logN),1);
+  for(logIN=3;logIN<=22;logIN++)
+    {
+      d=1;
+      if(logIN<=15)
+	measure_time_nfft(d,(1U<< logIN),1);
       else
-	measure_time_nfft(d,(1U<< logN),0);
-  
+	measure_time_nfft(d,(1U<< logIN),0);
+
+      d=2;
+      if((logIN%d==0) && (logIN/d>=3))
+	if(logIN<=15)
+	  measure_time_nfft(d,(1U<< (logIN/d)),1);
+	else
+	  measure_time_nfft(d,(1U<< (logIN/d)),0);
+      else
+	printf("*&\t\t*&\t\t*&\t\t");
+      
+
+      d=3;
+      if((logIN%d==0) && (logIN/d>=3))
+	if(logIN<=15)
+	  measure_time_nfft(d,(1U<< (logIN/d)),1);
+	else
+	  measure_time_nfft(d,(1U<< (logIN/d)),0);
+      else
+	printf("*&\t\t*&\t\t*&\t\t");
+
+      printf("\\\\\n");
+
+      fflush(stdout);
+    }
+      
   exit(-1);
 
   system("clear");
