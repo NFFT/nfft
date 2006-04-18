@@ -268,7 +268,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   //  printf("%% d=%d\n",d);
 
   if(d==1)
-    printf("$%d$&\t\t",(int)(log(N)/log(2)+0.5));
+    printf("%d&\t\t",(int)(log(N)/log(2)+0.5));
+    //printf("$%d$&\t\t",(int)(log(N)/log(2)+0.5));
      
   for(j=0,M=1;j<d;j++)
     {
@@ -306,7 +307,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       t_fft+=t;
     }
   t_fft/=r;
-  printf("$%.2e$&\t",t_fft);
+
+  printf("%.1e&\t",t_fft);
+  //  printf("$%.1e$&\t",t_fft);
 
   /** NDFT */
   if(test_ndft)
@@ -322,7 +325,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("$%.2e$&\t",t_ndft);
+      printf("%.1e&\t",t_ndft);
+      //printf("$%.1e$&\t",t_ndft);
     }
   else
     printf("*&\t\t");
@@ -342,9 +346,11 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   t_nfft/=r;
 
   if(d<3)
-    printf("$%.2e$&\t",t_nfft);
+    printf("%.1e&\t",t_nfft);
+    //printf("$%.1e$&\t",t_nfft);
   else
-    printf("$%.2e$ \t",t_nfft);
+    printf("%.1e \t",t_nfft);
+  //printf("$%.1e$ \t",t_nfft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
