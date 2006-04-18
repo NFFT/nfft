@@ -268,13 +268,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   //  printf("%% d=%d\n",d);
 
   if(d==1)
-    if(N<=(1U<<13))
-      printf("$%d$&\t\t",N);
-    else
-      printf("$%d$&\t",N);
-
-    //printf("$%d$&\t$%d$&\t",d,(int)(log(N)/log(2)+0.5));
-
+    printf("$%d$&\t\t",(int)(log(N)/log(2)+0.5));
+     
   for(j=0,M=1;j<d;j++)
     {
       M=N*M;
