@@ -341,7 +341,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_nfft/=r;
 
-  printf("$%.2e$&\t",t_nfft);
+  if(d<3)
+    printf("$%.2e$&\t",t_nfft);
+  else
+    printf("$%.2e$ \t",t_nfft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
@@ -376,7 +379,7 @@ int main()
 	else
 	  measure_time_nfft(d,(1U<< (logIN/d)),0);
       else
-	printf("*&\t\t*&\t\t*&\t\t");
+	printf("*&\t\t*&\t\t* \t\t");
 
       printf("\\\\\n");
 
