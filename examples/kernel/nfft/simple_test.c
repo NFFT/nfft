@@ -380,7 +380,7 @@ int main()
       if(l>12)
 	{
 	  d=3;
-	  logIN=d*l;
+	  logIN=d*(l-10);
 	  if(logIN<=15)
 	    measure_time_nfft(d,(1U<< (logIN/d)),1);
 	  else
