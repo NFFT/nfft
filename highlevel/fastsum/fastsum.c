@@ -13,23 +13,20 @@
 #include "nfft3.h"
 #include "fastsum.h"
 
-/**********************************************************************
- **********************************************************************/
+/** factorial */
 double fak(int n)
 {
   if (n<=1) return 1.0;
   else return (double)n*fak(n-1);
 }
 
-/**********************************************************************
- **********************************************************************/
+/** binomial coefficient */
 double binom(int n, int m)
 {
   return fak(n)/fak(m)/fak(n-m);
 }
 
-/**********************************************************************
- **********************************************************************/
+/** basis polynomial for regularized kernel */
 double BasisPoly(int m, int r, double xx)
 {
   int k;
@@ -38,21 +35,10 @@ double BasisPoly(int m, int r, double xx)
   for (k=0; k<=m-r; k++) {
     sum+=binom(m+k,k)*pow((xx+1.0)/2.0,(double)k);
   }
-  return sum*pow((xx+1.0),(double)r)*pow(1.0-xx,(double)(m+1))/(1<<(m+1))/fak(r); // 1<<(m+1) = 2^(m+1)
+  return sum*pow((xx+1.0),(double)r)*pow(1.0-xx,(double)(m+1))/(1<<(m+1))/fak(r); /* 1<<(m+1) = 2^(m+1) */
 }
 
-/**********************************************************************
- *                                                                    *
- *  Funktion regkern                                                  *
- *                                                                    *
- *  berechnet die Werte des regularisierten Kerns K_R                 *
- *                                                                    *
- *  (c) Markus Fenn, Januar 2003                                      *
- *                                                                    *
- **********************************************************************/
-/**********************************************************************
- * regkern mit K_I bel. und K_B geht auf beiden Seiten glatt auf Null *
- **********************************************************************/
+/** regularized kernel with K_I arbitrary and K_B smooth to zero */
 double regkern(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
@@ -96,9 +82,9 @@ double regkern(complex (*kernel)(double , int , const double *), double xx, int 
   return kernel(xx,0,param);
 }
 
-/**********************************************************************
- * regkern mit K_I bel. und K_B periodisiert                          *
- **********************************************************************/
+/** regularized kernel with K_I arbitrary and K_B periodized
+ *  (used in 1D)
+ */
 double regkern1(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
@@ -142,9 +128,7 @@ double regkern1(complex (*kernel)(double , int , const double *), double xx, int
   return kernel(xx,0,param);
 }
 
-/**********************************************************************
- * regkern fuer gerade Kerne mit geradem K_I und K_B gespiegelt       *
- **********************************************************************/
+/** regularized kernel for even kernels with K_I even and K_B mirrored */
 double regkern2(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
@@ -179,10 +163,9 @@ double regkern2(complex (*kernel)(double , int , const double *), double xx, int
   return 0.0;
 }
 
-/**********************************************************************
- * regkern fuer gerade Kerne mit geradem K_I                          *
- * und K_B geht glatt nach K(0.5)                                     *
- **********************************************************************/
+/** regularized kernel for even kernels with K_I even
+ *  and K_B mirrored smooth to K(1/2) (used in dD, d>1)
+ */
 double regkern3(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
@@ -191,10 +174,10 @@ double regkern3(complex (*kernel)(double , int , const double *), double xx, int
   xx=fabs(xx);
 
   if (xx>=0.5) {
-    //return kern(typ,c,0,0.5);
+    /*return kern(typ,c,0,0.5);*/
     xx=0.5;
   }
-  //else
+  /* else */
   if ((a<=xx) && (xx<=0.5-b)) {
     return kernel(xx,0,param);
   }
@@ -203,12 +186,12 @@ double regkern3(complex (*kernel)(double , int , const double *), double xx, int
       sum+=pow(-a,(double)r)*kernel(a,r,param)
           *(BasisPoly(p-1,r,xx/a)+BasisPoly(p-1,r,-xx/a));
     }
-    //sum=kern(typ,c,0,xx);
+    /*sum=kern(typ,c,0,xx); */
     return sum;
   }
   else if ((0.5-b<xx) && (xx<=0.5)) {
     sum=kernel(0.5,0,param)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b);
-    //sum=regkern2(typ,c,p,a,b, 0.5)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b);
+    /* sum=regkern2(typ,c,p,a,b, 0.5)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b); */
     for (r=0; r<p; r++) {
       sum+=pow(b/2.0,(double)r)
           *kernel(0.5-b,r,param)
@@ -220,9 +203,7 @@ double regkern3(complex (*kernel)(double , int , const double *), double xx, int
   return 0.0;
 }
 
-/**********************************************************************
- * cubic spline interpolation in near field with even kernels
- **********************************************************************/
+/** cubic spline interpolation in near field with even kernels */
 double kubintkern(double x, double *Add, int Ad, double a)
 {
   double c;
@@ -237,14 +218,12 @@ double kubintkern(double x, double *Add, int Ad, double a)
   c2=c1+1.0;
   c3=c1-1.0;
   c4=c1-2.0;
-  //return(-f0*(c-r)*(c-r-1.0)*(c-r-2.0)/6.0+f1*(c-r+1.0)*(c-r-1.0)*(c-r-2.0)/2-
-  //f2*(c-r+1.0)*(c-r)*(c-r-2.0)/2+f3*(c-r+1.0)*(c-r)*(c-r-1.0)/6.0);
+  /* return(-f0*(c-r)*(c-r-1.0)*(c-r-2.0)/6.0+f1*(c-r+1.0)*(c-r-1.0)*(c-r-2.0)/2-
+     f2*(c-r+1.0)*(c-r)*(c-r-2.0)/2+f3*(c-r+1.0)*(c-r)*(c-r-1.0)/6.0); */
   return(-f0*c1*c3*c4/6.0+f1*c2*c3*c4/2.0-f2*c2*c1*c4/2.0+f3*c2*c1*c3/6.0);
 }
 
-/**********************************************************************
- * cubic spline interpolation in near field with arbitrary kernels
- **********************************************************************/
+/** cubic spline interpolation in near field with arbitrary kernels */
 double kubintkern1(double x, double *Add, int Ad, double a)
 {
   double c;
@@ -253,26 +232,25 @@ double kubintkern1(double x, double *Add, int Ad, double a)
   Add+=2;
   c=(x+a)*Ad/2/a;
   r=c; r=abs(r);
-  //if (r==0) {f0=Add[r];f1=Add[r];f2=Add[r+1];f3=Add[r+2];}
-  //else
+  /*if (r==0) {f0=Add[r];f1=Add[r];f2=Add[r+1];f3=Add[r+2];}
+  else */
   { f0=Add[r-1];f1=Add[r];f2=Add[r+1];f3=Add[r+2];}
   c=fabs(c);
   c1=c-r;
   c2=c1+1.0;
   c3=c1-1.0;
   c4=c1-2.0;
-  //return(-f0*(c-r)*(c-r-1.0)*(c-r-2.0)/6.0+f1*(c-r+1.0)*(c-r-1.0)*(c-r-2.0)/2-
-  //f2*(c-r+1.0)*(c-r)*(c-r-2.0)/2+f3*(c-r+1.0)*(c-r)*(c-r-1.0)/6.0);
+  /* return(-f0*(c-r)*(c-r-1.0)*(c-r-2.0)/6.0+f1*(c-r+1.0)*(c-r-1.0)*(c-r-2.0)/2-
+     f2*(c-r+1.0)*(c-r)*(c-r-2.0)/2+f3*(c-r+1.0)*(c-r)*(c-r-1.0)/6.0); */
   return(-f0*c1*c3*c4/6.0+f1*c2*c3*c4/2.0-f2*c2*c1*c4/2.0+f3*c2*c1*c3/6.0);
 }
 
-/**********************************************************************
- **********************************************************************/
+/** quicksort algorithm for source knots and associated coefficients */
 void quicksort(int d, int t, double *x, complex *alpha, int N)
 {
   int lpos=0;
   int rpos=N-1;
-  //double pivot=x[((N-1)/2)*d+t];
+  /*double pivot=x[((N-1)/2)*d+t];*/
   double pivot=x[(N/2)*d+t];
 
   int k;
@@ -307,8 +285,7 @@ void quicksort(int d, int t, double *x, complex *alpha, int N)
     quicksort(d,t,x+lpos*d,alpha+lpos,N-lpos);
 }
 
-/**********************************************************************
- **********************************************************************/
+/** recursive sort of source knots dimension by dimension to get tree structure */
 void BuildTree(int d, int t, double *x, complex *alpha, int N)
 {
   if (N>1)
@@ -322,9 +299,8 @@ void BuildTree(int d, int t, double *x, complex *alpha, int N)
   }
 }
 
-/**********************************************************************
- **********************************************************************/
-complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double *xmax, int N, complex (*kernel)(double , int , const double *), const double *param, int Ad, double *Add, int p)
+/** fast search in tree of source knots for near field computation*/
+complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double *xmax, int N, complex (*kernel)(double , int , const double *), const double *param, int Ad, double *Add, int p, unsigned flags)
 {
   int m=N/2;
   double Min=xmin[t], Max=xmax[t], Median=x[m*d+t];
@@ -333,16 +309,14 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
   int E=0;
   double r;
   complex result=0.0;
-  double temp;
 
   if (N==0)
     return 0.0;
 
-  //printf("hier\n");
   if (Min>Median)
-    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p);
+    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p,flags);
   else if (Max<Median)
-    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p);
+    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p,flags);
   else
   {
     E=0;
@@ -364,23 +338,26 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
       }
       if (fabs(r)<a)
       {
-        temp = kernel(r,0,param);
-        result += alpha[m]*temp; /* alpha*(kern-regkern)  */
+        result += alpha[m]*kernel(r,0,param);                         /* alpha*(kern-regkern) */
         if (d==1)
-          result -= alpha[m]*kubintkern1(r,Add,Ad,a);
+          if (flags & EXACT_NEARFIELD)
+            result -= alpha[m]*regkern1(kernel,r,p,param,a,1.0/16.0); /* exact value (in 1D)  */
+          else
+            result -= alpha[m]*kubintkern1(r,Add,Ad,a);               /* spline approximation */
         else
-          result -= alpha[m]*kubintkern(r,Add,Ad,a);
-        //result -= alpha[m]*regkern1(kernel,r,p,param,a,1.0/16.0);
+          if (flags & EXACT_NEARFIELD)
+            result -= alpha[m]*regkern(kernel,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
+          else
+            result -= alpha[m]*kubintkern(r,Add,Ad,a);                /* spline approximation */
       }
     }
-    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p);
-    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p);
+    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p,flags);
+    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p,flags);
   }
   return result;
 }
 
-/**********************************************************************
- **********************************************************************/
+/** initialization of fastsum plan */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p)
 {
   int t;
@@ -404,21 +381,22 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
   ths->flags = flags;
 
   ths->p = p;
-  ths->eps_I = (double)ths->p/(double)nn;
-  //ths->eps_B = (double)ths->p/(double)nn;
-  ths->eps_B = 1.0/16.0;
+  ths->eps_I = (double)ths->p/(double)nn;         /** inner boundary */
+  /*ths->eps_B = (double)ths->p/(double)nn;*/
+  ths->eps_B = 1.0/16.0;                          /** outer boundary */
 
   /** init spline for near field computation */
-  if (ths->d==1)
-  {
-    ths->Ad = 4*(ths->p)*(ths->p);
-    ths->Add = (double *)malloc((ths->Ad+5)*(sizeof(double)));
-  }
-  else
-  {
-    ths->Ad = 2*(ths->p)*(ths->p);
-    ths->Add = (double *)malloc((ths->Ad+3)*(sizeof(double)));
-  }
+  if !(ths-flags & EXACT_NEARFIELD)
+    if (ths->d==1)
+    {
+      ths->Ad = 4*(ths->p)*(ths->p);
+      ths->Add = (double *)malloc((ths->Ad+5)*(sizeof(double)));
+    }
+    else
+    {
+      ths->Ad = 2*(ths->p)*(ths->p);
+      ths->Add = (double *)malloc((ths->Ad+3)*(sizeof(double)));
+    }
 
   /** init d-dimensional NFFT plan */
   ths->n = nn;
@@ -444,8 +422,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
 
 }
 
-/**********************************************************************
- **********************************************************************/
+/** finalization of fastsum plan */
 void fastsum_finalize(fastsum_plan *ths)
 {
   free(ths->x);
@@ -453,7 +430,8 @@ void fastsum_finalize(fastsum_plan *ths)
   free(ths->y);
   free(ths->f);
 
-  free(ths->Add);
+  if !(ths-flags & EXACT_NEARFIELD)
+    free(ths->Add);
 
   nfft_finalize(&(ths->mv1));
   nfft_finalize(&(ths->mv2));
@@ -462,8 +440,7 @@ void fastsum_finalize(fastsum_plan *ths)
   fftw_free(ths->b);
 }
 
-/**********************************************************************
- **********************************************************************/
+/** direct computation of sums */
 void fastsum_exact(fastsum_plan *ths)
 {
   int j,k;
@@ -489,8 +466,7 @@ void fastsum_exact(fastsum_plan *ths)
   }
 }
 
-/**********************************************************************
- **********************************************************************/
+/** precomputation for fastsum */
 void fastsum_precompute(fastsum_plan *ths)
 {
   int j,k,t;
@@ -500,13 +476,13 @@ void fastsum_precompute(fastsum_plan *ths)
   BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
 
   /** precompute spline values for near field*/
-  if (ths->d==1)
-    for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
-      ths->Add[k+ths->Ad/2+2] = regkern1(ths->kernel, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
-  else
-    for (k=0; k <= ths->Ad+2; k++)
-      ths->Add[k] = regkern3(ths->kernel, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
-
+  if !(ths-flags & EXACT_NEARFIELD)
+    if (ths->d==1)
+      for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
+        ths->Add[k+ths->Ad/2+2] = regkern1(ths->kernel, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
+    else
+      for (k=0; k <= ths->Ad+2; k++)
+        ths->Add[k] = regkern3(ths->kernel, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
 
   /** init NFFT plan for transposed transform in first step*/
   for (k=0; k<ths->mv1.M_total; k++)
@@ -571,17 +547,16 @@ void fastsum_precompute(fastsum_plan *ths)
 
 }
 
-/**********************************************************************
- **********************************************************************/
+/** fast NFFT-based summation */
 void fastsum_trafo(fastsum_plan *ths)
 {
   int j,k,t;
-  double *ymin, *ymax;
+  double *ymin, *ymax;   /** limits for d-dimensional near field box */
 
   ymin = (double *)malloc(ths->d*(sizeof(double)));
   ymax = (double *)malloc(ths->d*(sizeof(double)));
 
-  /** first step of algorithm*/
+  /** first step of algorithm */
   nfft_adjoint(&(ths->mv1));
 
   /** second step of algorithm */
@@ -599,9 +574,9 @@ void fastsum_trafo(fastsum_plan *ths)
       ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
       ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
     }
-    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p);
-    //ths->f[j] = ths->mv2.f[j];
-    //ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p);
+    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
+    /* ths->f[j] = ths->mv2.f[j]; */
+    /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
 }
 

@@ -12,17 +12,19 @@
 #ifndef fastsum_h_inc
 #define fastsum_h_inc
 
+/** Include header for C99 complex datatype. */
 #include <complex.h>
+/** Include header for utils from NFFT3 library. */
 #include "util.h"
+/** Include header for NFFT3 library. */
 #include "nfft3.h"
 
 /**
  * Constant symbols
  */
+#define EXACT_NEARFIELD  (1U<< 0)
 
-/**********************************************************************
- * plan for fast summation algorithm
- **********************************************************************/
+/** plan for fast summation algorithm */
 typedef struct fastsum_plan_
 {
   /** api */
@@ -41,7 +43,7 @@ typedef struct fastsum_plan_
   complex (*kernel)(double , int , const double *);  /**< kernel function    */
   double *kernel_param;                 /**< parameters for kernel function  */
 
-  unsigned flags;                       /**< flags precomp. and approx.type  */
+  unsigned flags;                       /**< flags precomp. and approx.type  */ /* not used so far */
 
   /** internal */
 
@@ -56,8 +58,8 @@ typedef struct fastsum_plan_
   fftw_complex *b;                      /**< expansion coefficients          */
 
   int p;                                /**< degree of smoothness of regularization */
-  double eps_I;                         /**< inner boundary */
-  double eps_B;                         /**< outer boundary */
+  double eps_I;                         /**< inner boundary                  */  /* fixed to p/n so far  */
+  double eps_B;                         /**< outer boundary                  */  /* fixed to 1/16 so far */
 
   nfft_plan mv1;                        /**< source nfft plan                */
   nfft_plan mv2;                        /**< target nfft plan                */
