@@ -265,11 +265,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 
   double t,t_fft,t_ndft,t_nfft;
 
-  //  printf("%% d=%d\n",d);
-
-  if(d==1)
-    printf("%d&\t\t",(int)(log(N)/log(2)+0.5));
-    //printf("$%d$&\t\t",(int)(log(N)/log(2)+0.5));
+  printf("$%d$&\t",(int)(log(N)/log(2)*d+0.5));
      
   for(j=0,M=1;j<d;j++)
     {
@@ -283,6 +279,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
   /*  nfft_init(&p, d, NN, M);*/
+
   p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   /** init pseudo random nodes */
@@ -308,8 +305,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_fft/=r;
 
-  printf("%.1e&\t",t_fft);
-  //  printf("$%.1e$&\t",t_fft);
+  printf("$%.1e$&\t",t_fft);
 
   /** NDFT */
   if(test_ndft)
@@ -325,8 +321,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("%.1e&\t",t_ndft);
-      //printf("$%.1e$&\t",t_ndft);
+      printf("$%.1e$&\t",t_ndft);
     }
   else
     printf("*&\t\t");
@@ -344,13 +339,11 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       t_nfft+=t;
     }
   t_nfft/=r;
-
-  if(d<3)
-    printf("%.1e&\t",t_nfft);
-    //printf("$%.1e$&\t",t_nfft);
+  
+  if(d==1)
+    printf("$%.1e$&\t",t_nfft);
   else
-    printf("%.1e \t",t_nfft);
-  //printf("$%.1e$ \t",t_nfft);
+    printf("$%.1e$ \\\\\n",t_nfft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
@@ -360,37 +353,42 @@ int main()
 {
   int l,m,d,logIN;
 
-  for(logIN=3;logIN<=22;logIN++)
+
+  printf("\\multicolumn{4}{c|}{$d=1$}&\t\\multicolumn{4}{c|}{$d=2$}\\\\\n");
+  for(l=3;l<=22;l++)
     {
       d=1;
+      logIN=l;
       if(logIN<=15)
-	measure_time_nfft(d,(1U<< logIN),1);
+	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
-	measure_time_nfft(d,(1U<< logIN),0);
+	measure_time_nfft(d,(1U<< (logIN/d)),0);
 
-      d=2;
-      if((logIN%d==0) && (logIN/d>=3))
-	if(logIN<=15)
-	  measure_time_nfft(d,(1U<< (logIN/d)),1);
-	else
-	  measure_time_nfft(d,(1U<< (logIN/d)),0);
-      else
-	printf("*&\t\t*&\t\t*&\t\t");
-      
+      if(l<12)
+	{
+	  d=2;
+	  logIN=d*l;
+	  if(logIN<=15)
+	    measure_time_nfft(d,(1U<< (logIN/d)),1);
+	  else
+	    measure_time_nfft(d,(1U<< (logIN/d)),0);
+	}
 
-      d=3;
-      if((logIN%d==0) && (logIN/d>=3))
-	if(logIN<=15)
-	  measure_time_nfft(d,(1U<< (logIN/d)),1);
-	else
-	  measure_time_nfft(d,(1U<< (logIN/d)),0);
-      else
-	printf("*&\t\t*&\t\t* \t\t");
-
-      printf("\\\\\n");
-
-      fflush(stdout);
-    }
+      if(l==12)
+	printf("\\multicolumn{4}{c|}{$d=3$}\\\\\n");
+       
+      if(l>12)
+	{
+	  d=3;
+	  logIN=d*l;
+	  if(logIN<=15)
+	    measure_time_nfft(d,(1U<< (logIN/d)),1);
+	  else
+	    measure_time_nfft(d,(1U<< (logIN/d)),0);
+	}
+	
+	fflush(stdout);
+      }
       
   exit(-1);
 

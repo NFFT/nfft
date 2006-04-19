@@ -252,7 +252,8 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   nfft_trafo(&p);
   e=error_l_2_complex(swapndft, p.f, p.M_total);
 
-  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
+  //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
+  printf("%.1e&\t",e);
 
   fflush(stdout);
 
@@ -272,7 +273,7 @@ int main(int argc,char **argv)
       return -1;
     }
 
-  if(test==0)
+  if((test==0)&&(atoi(argv[1])<2))
     {
       fprintf(stderr,"MEASURE_TIME in options.h not set\n");
       return -1;
