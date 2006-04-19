@@ -1539,8 +1539,8 @@ void fpt_finalize(fpt_set set)
         {
           if (set->flags & FPT_NO_STABILIZATION ||
             data->steps[tau][l].stable == true ||
-            (data->steps[tau][l].stable == false && (set->flags &
-              FPT_BANDWIDTH_WINDOW == true)))
+            ((data->steps[tau][l].stable == false) && (set->flags &
+              FPT_BANDWIDTH_WINDOW)))
           {
             /* Free components. */
             free(data->steps[tau][l].a11[0]);
