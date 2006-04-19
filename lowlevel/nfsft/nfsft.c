@@ -372,7 +372,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
        * arrays. */
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
         ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
-        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        FPT_NO_SLOW_TRANSFORM | /*FPT_AL_SYMMETRY |*/ FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         //fprintf(stderr,"%d\n",n);
@@ -390,7 +390,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
         ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
-        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY);
+        FPT_NO_SLOW_TRANSFORM /*| FPT_AL_SYMMETRY*/);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         //fprintf(stderr,"%d NO_DIRECT\n",n);
