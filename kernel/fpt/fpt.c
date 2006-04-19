@@ -1195,21 +1195,28 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
         {
           fpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0],
             step->a21[0], step->a22[0], step->gamma[0], tk-1, set);
+          if (step->gamma[0] != 0.0)
+          {
+            for (k = 0; k < plength_stab; k++)
+            {
+              set->result[k] += set->vec3[k];
+            }
+          }
         }
         else
         {
           fpt_do_step(set->vec3, set->vec4, step->a11[tk-tau-1],
             step->a12[tk-tau-1], step->a21[tk-tau-1],
             step->a22[tk-tau-1], step->gamma[tk-tau-1], tk-1, set);
-        }
-
-        if (step->gamma[tk-tau-1] != 0.0)
-        {
-          for (k = 0; k < plength_stab; k++)
+          if (step->gamma[tk-tau-1] != 0.0)
           {
-            set->result[k] += set->vec3[k];
+            for (k = 0; k < plength_stab; k++)
+            {
+              set->result[k] += set->vec3[k];
+            }
           }
         }
+
         for (k = 0; k < plength_stab; k++)
         {
           set->result[plength_stab+k] += set->vec4[k];
@@ -1532,8 +1539,8 @@ void fpt_finalize(fpt_set set)
         {
           if (set->flags & FPT_NO_STABILIZATION ||
             data->steps[tau][l].stable == true ||
-            data->steps[tau][l].stable == true && set->flags &
-              FPT_BANDWIDTH_WINDOW)
+            (data->steps[tau][l].stable == false && (set->flags &
+              FPT_BANDWIDTH_WINDOW) == true))
           {
             /* Free components. */
             free(data->steps[tau][l].a11[0]);
