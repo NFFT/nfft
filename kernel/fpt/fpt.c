@@ -822,135 +822,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
         }
         else
         {
-          #ifdef TEST_STAB
-            stab++;
-
-            fprintf(stderr,"Stabilisierungsschritt: m = %d, tau = %d, l = %d, l_start = %d\n",m,tau,l,firstl);
-
-            /* Evaluate again - this time without thresholding. */
-
-            /* Get the pointers to the three-term recurrence coeffcients. */
-            calpha = &(alpha[plength*l+1+1]);
-            cbeta = &(beta[plength*l+1+1]);
-            cgamma = &(gamma[plength*l+1+1]);
-
-            //if (set->flags & FPT_NO_STABILIZATION)
-            //{
-              /* Evaluate P_{2^{tau}-2}^n(\cdot,2^{tau+1}l+2). */
-              eval_clenshaw(set->xcvecs[tau-1], a11, plength, degree-2, calpha, cbeta,
-                cgamma);
-              eval_clenshaw(set->xcvecs[tau-1], a12, plength, degree-1, calpha, cbeta,
-                cgamma);
-              calpha--;
-              cbeta--;
-              cgamma--;
-              eval_clenshaw(set->xcvecs[tau-1], a21, plength, degree-1, calpha, cbeta,
-                cgamma);
-              eval_clenshaw(set->xcvecs[tau-1], a22, plength, degree, calpha, cbeta,
-                cgamma);
-            //}
-
-            mmax = 0.0;
-            //fprintf(stderr,"a11\n");
-            for (j = 0; j < plength; j++)
-            {
-              /*temp[j] = (abs(a11[j])>threshold)?(
-                (log(threshold)-log(abs(a11[j])))/
-                log(1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j])):0.0;*/
-              mmax = MAX(mmax,abs(a11[j]));
-              //fprintf(stdout,"a11[%3d] = %le\n",j,a11[j]);
-              /*fprintf(stderr,"x = %le, 1-x^2 = %le, f(x) = %le, l = %le\n",
-                set->xcvecs[tau-1][j],1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j],
-                a11[j],temp[j]);*/
-            }
-            if (mmax > 1E9)
-            {
-            for (b = 0; b < plength>>2; b++)
-            {
-              mmax = 0.0;
-              for (j = 0; j < 4; j++)
-              {
-                mmax = MAX(mmax,abs(a11[b*4+j]));
-              }
-              fprintf(stderr,"  m[%d] = %le\n",b,mmax);
-              if (mmax > threshold)
-              {
-                for (j = 0; j < plength; j++)
-                {
-                  a11[j] *= (set->xcvecs[tau-1][b*4+0]-set->xcvecs[tau-1][j])*
-                    (set->xcvecs[tau-1][b*4+2]+set->xcvecs[tau-1][j]);
-                }
-              }
-            }
-            fprintf(stderr,"Now stabilized\n");
-            for (j = 0; j < plength; j++)
-            {
-              fprintf(stdout,"a11[%3d] = %le\n",j,a11[j]);
-            }
-            fprintf(stderr,"\n");
-            }
-
-
-            //fprintf(stderr,", a11: %le",mmax);
-            //fprintf(stdout,"\n");
-
-            //mmax = 0.0;
-            //fprintf(stderr,"a12\n");
-            for (j = 0; j < plength; j++)
-            {
-              /*temp[j] = (abs(a12[j])>threshold)?(
-                (log(threshold)-log(abs(a12[j])))/
-                log(1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j])):0.0;
-              mmax = MAX(mmax,temp[j]);*/
-              mmax = MAX(mmax,abs(a12[j]));
-              //fprintf(stdout,"a12[%3d] = %le\n",j,a12[j]);
-              /*fprintf(stderr,"x = %le, 1-x^2 = %le, f(x) = %le, l = %le\n",
-                set->xcvecs[tau-1][j],1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j],
-                a12[j],temp[j]);*/
-            }
-            //fprintf(stderr,", a12: %le",mmax);
-            //fprintf(stdout,"\n");
-
-            //mmax = 0.0;
-            //fprintf(stderr,"a21\n");
-            for (j = 0; j < plength; j++)
-            {
-              /*temp[j] = (abs(a21[j])>threshold)?(
-                (log(threshold)-log(abs(a21[j])))/
-                log(1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j])):0.0;
-              mmax = MAX(mmax,temp[j]);*/
-              mmax = MAX(mmax,abs(a21[j]));
-              //fprintf(stdout,"a21[%3d] = %le\n",j,a21[j]);
-              /*fprintf(stderr,"x = %le, 1-x^2 = %le, f(x) = %le, l = %le\n",
-                set->xcvecs[tau-1][j],1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j],
-                a21[j],temp[j]);*/
-            }
-            //fprintf(stderr,", a21: %le",mmax);
-            //fprintf(stdout,"\n");
-
-            //mmax = 0.0;
-            //fprintf(stderr,"a22\n");
-            for (j = 0; j < plength; j++)
-            {
-              /*temp[j] = (abs(a22[j])>threshold)?(
-                (log(threshold)-log(abs(a22[j])))/
-                log(1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j])):0.0;
-              mmax = MAX(mmax,temp[j]);*/
-              mmax = MAX(mmax,abs(a22[j]));
-              //fprintf(stdout,"a22[%3d] = %le\n",j,a22[j]);
-              /*fprintf(stderr,"x = %le, 1-x^2 = %le, f(x) = %le, l = %le\n",
-                set->xcvecs[tau-1][j],1-set->xcvecs[tau-1][j]*set->xcvecs[tau-1][j],
-                a22[j],temp[j]);*/
-            }
-            //fprintf(stdout,"\n");
-            //fprintf(stderr,", a22: %le\n",mmax);
-            //fprintf(stderr,"\tv =  %le\n",mmax);
-            //fprintf(stderr,"l = %le\n",mmax);
-            #ifdef MOEMPF
-            #endif
-          #endif
-          /* Check for new stabilization scheme. */
-
           /* Stabilize. */
           degree_stab = degree*(2*l+1);
 
@@ -1045,27 +916,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
               eval_clenshaw(set->xcvecs[tau_stab], a22, plength_stab, degree_stab+0,
                 calpha, cbeta, cgamma);
 
-              #ifdef TEST_STAB
-              /*mmax = 0.0;
-              for (j = 0; j < plength_stab; j++)
-              {
-                mmax = MAX(mmax,abs(a11[j]));
-              }
-              for (j = 0; j < plength_stab; j++)
-              {
-                mmax = MAX(mmax,abs(a12[j]));
-              }
-              for (j = 0; j < plength_stab; j++)
-              {
-                mmax = MAX(mmax,abs(a21[j]));
-              }
-              for (j = 0; j < plength_stab; j++)
-              {
-                mmax = MAX(mmax,abs(a22[j]));
-              }*/
-              //fprintf(stderr,"w =  %le\n",mmax);
-              #endif
-
               data->steps[tau][l].a11[tau_stab-tau+1] = a11;
               data->steps[tau][l].a12[tau_stab-tau+1] = a12;
               data->steps[tau][l].a21[tau_stab-tau+1] = a21;
@@ -1080,10 +930,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
       plength = plength << 1;
     }
   }
-
-  #ifdef TEST_STAB
-    fprintf(stdout,"m = %d: stab: %d, total = %d\n",m,stab,total);
-  #endif
 
   if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
