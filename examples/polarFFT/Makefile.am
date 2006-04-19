@@ -12,3 +12,6 @@ linogram_fft_test_SOURCES = linogram_fft_test.c
 polar_fft_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 mpolar_fft_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 linogram_fft_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
+
+## extra files to include in distribution
+EXTRA_DIST = phantom.m fft_test.m
