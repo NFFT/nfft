@@ -377,7 +377,7 @@ int main()
       if(l==12)
 	printf("\\multicolumn{4}{c|}{$d=3$}\\\\\n");
        
-      if(l>12)
+      if((l>12)&&(l<=17))
 	{
 	  d=3;
 	  logIN=d*(l-10);
@@ -386,6 +386,9 @@ int main()
 	  else
 	    measure_time_nfft(d,(1U<< (logIN/d)),0);
 	}
+
+      if(l>17)
+	printf(" & & & \\\\\n");
 	
 	fflush(stdout);
       }
