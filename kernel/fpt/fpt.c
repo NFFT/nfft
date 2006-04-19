@@ -743,6 +743,8 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
         if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
+          fprintf(stderr,"fpt_precompute(%d): symmetric step\n",m);
+          fflush(stderr);
           clength = plength/2;
         }
         else
