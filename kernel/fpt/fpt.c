@@ -34,6 +34,9 @@
 
 #define N_TILDE(y) (y-1)
 
+#define IS_SYMMETRIC(x,y,z) (n == 0 && x >= ((y-1.0)/z))
+//#define IS_SYMMETRIC(x,y,z) (x >= ((y-1.0)/z))
+
 #ifdef TEST_STAB
   #define MAX(a,b) ((a>b)?(a):(b))
 #endif
@@ -738,7 +741,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
           total++;
         #endif
 
-        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
+        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           clength = plength/2;
         }
@@ -1141,7 +1144,7 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
       if (step->stable)
       {
         /* Check, if we should do a symmetrizised step. */
-        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
+        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           /*for (k = 0; k < plength; k++)
           {
@@ -1434,7 +1437,7 @@ void fpt_transposed(fpt_set set, const int m, complex *x, const complex *y,
       /* Check if step is stable. */
       if (step->stable)
       {
-        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
+        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           /* Multiply third and fourth polynomial with matrix U. */
           fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
