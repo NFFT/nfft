@@ -794,7 +794,7 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
-        fprintf(stderr,"nfsft_trafo: n = %d\n",n);
+        //fprintf(stderr,"nfsft_trafo: n = %d\n",n);
         fflush(stderr);
         dpt_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
@@ -807,7 +807,7 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
-        fprintf(stderr,"nfsft_trafo: n = %d\n",n);
+        //fprintf(stderr,"nfsft_trafo: n = %d\n",n);
         fflush(stderr);
         fpt_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
