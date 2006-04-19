@@ -375,7 +375,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
         FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
-        //fprintf(stderr,"%d\n",n);
+        fprintf(stderr,"%d\n",n);
         fflush(stderr);
         /* Precompute data for FPT transformation for order n. */
         fpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
@@ -393,7 +393,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
         FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
-        //fprintf(stderr,"%d NO_DIRECT\n",n);
+        fprintf(stderr,"%d NO_DIRECT\n",n);
         fflush(stderr);
         /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
          * gamma_k^n. */
