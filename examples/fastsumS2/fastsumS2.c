@@ -779,12 +779,17 @@ int main (int argc, char **argv)
         for (im = 0; im < im_max; im++)
         {
           /* Init transform plans. */
-          nfsft_init_guru(&plan_adjoint,m[im],ld[ild][0],
+          nfsft_init_guru(&plan_adjoint, m[im],ld[ild][0],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
-            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), 
+            ((m[im]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+            FFT_OUT_OF_PLACE, cutoff);
           nfsft_init_guru(&plan,m[im],ld[ild][1],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
-            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), cutoff);
+            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
+            ((m[im]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+            FFT_OUT_OF_PLACE,
+             cutoff);
           plan_adjoint.f_hat = f_hat;
           plan_adjoint.x = eta;
           plan_adjoint.f = b;

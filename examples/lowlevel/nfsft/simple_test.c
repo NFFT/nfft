@@ -31,7 +31,9 @@ void simple_test_nfsft()
    * transformations. The internal NFFT uses a cut-off parameter of 6.
    */
   nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT, 6);
+    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT, 
+    ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+    FFT_OUT_OF_PLACE, 6);
 
   /* Init pseudo random nodes. */
   for (j = 0; j < plan.M_total; j++)

@@ -227,12 +227,13 @@ void nfsft_init(nfsft_plan *plan, int N, int M)
 void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
                          unsigned int flags)
 {
-  /* Call nfsft_init_guro with the flags and default NFFT cut-off. */
-  nfsft_init_guru(plan, N, M, flags, NFSFT_DEFAULT_NFFT_CUTOFF);
+  /* Call nfsft_init_guru with the flags and default NFFT cut-off. */
+  nfsft_init_guru(plan, N, M, flags, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
+                         FFT_OUT_OF_PLACE, NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
-                     int nfft_cutoff)
+  int nfft_flags, int nfft_cutoff)
 {
   int *nfft_size; /*< NFFT size                                               */
   int *fftw_size; /*< FFTW size                                               */
@@ -294,8 +295,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
       /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-                         nfft_cutoff, PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
-                         FFT_OUT_OF_PLACE, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+                         nfft_cutoff, nfft_flags, FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
       /* Assign angle array. */
       plan->plan_nfft.x = plan->x;
@@ -370,7 +370,9 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
     {
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
-      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,FPT_PERSISTENT_DATA);
+      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
+        ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
+        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         fprintf(stderr,"%d\n",n);
@@ -386,7 +388,9 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.alpha = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,0U);
+      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
+        ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
+        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         fprintf(stderr,"%d NO_DIRECT\n",n);
@@ -790,6 +794,8 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
+        fprintf(stderr,"nfsft_trafo: n = %d\n",n);
+        fflush(stderr);
         dpt_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
@@ -801,6 +807,8 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
+        fprintf(stderr,"nfsft_trafo: n = %d\n",n);
+        fflush(stderr);
         fpt_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],

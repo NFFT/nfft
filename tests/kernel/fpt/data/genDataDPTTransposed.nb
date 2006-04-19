@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[      7902,        189]*)
-(*NotebookOutlinePosition[      8743,        218]*)
-(*  CellTagsIndexPosition[      8699,        214]*)
+(*NotebookOptionsPosition[      8851,        207]*)
+(*NotebookOutlinePosition[      9692,        236]*)
+(*  CellTagsIndexPosition[      9648,        232]*)
 (*WindowFrame->Normal*)
 
 
@@ -87,10 +87,7 @@ Cell[BoxData[
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
-    \(\(kend\  = \ 
-        Join[Table[k, {k, 48, 64, 8}], Table[k, {k, 112, 128, 16}], 
-          Table[k, {k, 160, 256, 32}], Table[k, {k, 320, 512, 64}], 
-          Table[k, {k, 640, 1024, 128}]];\)\)], "Input",
+    \(\(kend\  = \ Join[Table[k, {k, 4, 64, 4}]];\)\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
 
 Cell[BoxData[
@@ -101,7 +98,7 @@ Cell[CellGroupData[{
 
 Cell[BoxData[
     \(Do[\[IndentingNewLine]{\[IndentingNewLine]n\  = \ 
-          Floor[kend[\([j]\)]/2], \[IndentingNewLine]t\  = \ 
+          Floor[0*kend[\([j]\)]/2], \[IndentingNewLine]t\  = \ 
           Ceiling[Log[2, kend[\([j]\)]]], \[IndentingNewLine]NN\  = \ 
           2\^t, \[IndentingNewLine]VectorAlpha = 
           Table[LegendreAlpha[k, n], {k, \(-1\), 
@@ -128,7 +125,7 @@ Cell[BoxData[
           OpenWrite["\<test_dpt_transposed_\>" <> \ 
               ToString[
                 If[FunctionValues, 1, 
-                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<n2_\>"\  \
+                  0]]\  <> \ "\<_\>"\  <> \[IndentingNewLine]"\<0_\>"\  \
 <> \[IndentingNewLine]StringTake[
                 ToString[
                   PaddedForm[n, 3, 
@@ -173,6 +170,27 @@ Cell[BoxData[
           testfile, "\<\n\>"]; \[IndentingNewLine]Close[
           testfile];}, \[IndentingNewLine]{j, 1, Length[kend]}]\)], "Input",
   ImageRegion->{{-0, 1}, {0, 1}}],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorY\\)\\\" is similar to existing symbol \
+\\\"\\!\\(VectorQ\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell1"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorYY\\)\\\" is similar to existing \
+symbol \\\"\\!\\(VectorY\\)\\\". \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\", \
+ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell1\\\"]\\)\"\>"}]], "Message"],
+
+Cell[BoxData[
+    RowBox[{\(General::"spell"\), \(\(:\)\(\ \)\), "\<\"Possible spelling \
+error: new symbol name \\\"\\!\\(VectorX\\)\\\" is similar to existing \
+symbols \\!\\({VectorQ, VectorY}\\). \\!\\(\\*ButtonBox[\\\"More\[Ellipsis]\\\
+\", ButtonStyle->\\\"RefGuideLinkText\\\", ButtonFrame->None, \
+ButtonData:>\\\"General::spell\\\"]\\)\"\>"}]], "Message"],
 
 Cell[BoxData[
     \($Aborted\)], "Output"]
@@ -222,16 +240,19 @@ Cell[1904, 56, 240, 5, 62, "Input"],
 Cell[2147, 63, 729, 15, 114, "Input"],
 Cell[2879, 80, 81, 2, 27, "Input"],
 Cell[2963, 84, 79, 2, 27, "Input"],
-Cell[3045, 88, 262, 5, 43, "Input"],
-Cell[3310, 95, 98, 2, 27, "Input"],
+Cell[3045, 88, 112, 2, 27, "Input"],
+Cell[3160, 92, 98, 2, 27, "Input"],
 
 Cell[CellGroupData[{
-Cell[3433, 101, 4238, 73, 696, "Input"],
-Cell[7674, 176, 42, 1, 27, "Output"]
+Cell[3283, 98, 4239, 73, 696, "Input"],
+Cell[7525, 173, 362, 5, 20, "Message"],
+Cell[7890, 180, 363, 5, 20, "Message"],
+Cell[8256, 187, 364, 5, 20, "Message"],
+Cell[8623, 194, 42, 1, 27, "Output"]
 }, Open  ]],
-Cell[7731, 180, 60, 1, 44, "Input"],
-Cell[7794, 183, 57, 1, 44, "Input"],
-Cell[7854, 186, 44, 1, 44, "Input"]
+Cell[8680, 198, 60, 1, 44, "Input"],
+Cell[8743, 201, 57, 1, 44, "Input"],
+Cell[8803, 204, 44, 1, 44, "Input"]
 }
 ]
 *)

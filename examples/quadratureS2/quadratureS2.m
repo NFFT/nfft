@@ -20,7 +20,7 @@ function fastsumS2()
 % Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 % The name of the input file
-infilename = 'data.in';
+infilename = 'data.in2';
 % The name of the output file
 outfilename = 'data.out';
 % The name of the program
@@ -36,77 +36,100 @@ file = fopen(infilename,'w');
 if (selection == 1)
   % Set the grid type.
   % 0 = Gauss-Legendre
-  %gridtype=0;
+  gridtype=0;
   % Set the number of repetitions.
-  %repetitions=10;
+  repetitions=1;
+  % Set the size parameters.
+  Q1=16:16:1024;
+  Q2=16:16:1024;
+  % Set the bandwidhts.
+  N1=1024*ones(1,length(Q1));
+  N2=1024*ones(1,length(Q2));
   % Write the number of testcases.
-  %fprintf(file,'testcases=3\n');
-  % Write the testcase.
-  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[2.^(2:10);2.^(2:10)]);
-  %writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[2.^(2:10);2.^(2:10)]);
-  %writeTestcase(file,0,0,0,0,1000,gridtype,repetitions,[2.^(2:6);2.^(2:6)]);
+  fprintf(file,'testcases=2\n');
+  % Write the testcases.
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N1;Q1]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,1000],repetitions,[N2;Q2]);
 elseif (selection == 2)
   % Set the grid type.
   % 0 = Gauss-Legendre
   gridtype=0;
   % Set the number of repetitions.
   repetitions=1;
-  % Set the bandwidhts.
-  N=16:16:512;
   % Set the size parameters.
-  Q=N;
+  Q=16:16:1024;
+  % Set the bandwidhts.
+  N1=250*ones(1,length(Q));
+  N2=500*ones(1,length(Q));
+  N3=750*ones(1,length(Q));
+  N4=1000*ones(1,length(Q));
   % Write the number of testcases.
-  fprintf(file,'testcases=2\n');
+  fprintf(file,'testcases=4\n');
   % Write the testcases.
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,250],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N;Q]);
-  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N;Q]);
-  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,250],repetitions,[N1;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N2;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N3;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N4;Q]);
 elseif (selection == 3)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
-  %gridtype=1;
-  % Set the bandwidths
-  %m = 4:4:4;
-  % Set the number of repetitions. Up to now always 1
-  %repetitions=1;
+  gridtype=1;
+  % Set the number of repetitions.
+  repetitions=1;
+  % Set the size parameters.
+  Q=16:16:1024;
+  % Set the bandwidhts.
+  %N1=250*ones(1,length(Q));
+  %N2=500*ones(1,length(Q));
+  N3=750*ones(1,length(Q));
+  %N4=1000*ones(1,length(Q));
   % Write the number of testcases.
-  %fprintf(file,'testcases=1\n');
-  % Write the testcase.
-  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[m;m]);
-  %writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[m;m]);
-  %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,[m;m]);
+  fprintf(file,'testcases=1\n');
+  % Write the testcases.
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,250],repetitions,[N1;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N2;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N3;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N4;Q]);
 elseif (selection == 4)
   % Set the grid type.
   % 1 = Clenshaw-Curtis
   gridtype=1;
   % Set the number of repetitions.
   repetitions=1;
-  % Set the bandwidhts.
-  N=4:4:256;
   % Set the size parameters.
-  Q=N;
+  Q=16:16:1024;
+  % Set the bandwidhts.
+  N1=250*ones(1,length(Q));
+  N2=500*ones(1,length(Q));
+  N3=750*ones(1,length(Q));
+  N4=1000*ones(1,length(Q));
   % Write the number of testcases.
   fprintf(file,'testcases=4\n');
   % Write the testcases.
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,16],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,32],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,64],repetitions,[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,gridtype,[0,128],repetitions,[N;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,250],repetitions,[N1;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N2;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N3;Q]);
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N4;Q]);
 elseif (selection == 5)
   % Set the grid type.
   % 2 = HEALPix
-  %gridtype=2;
-  % Set the bandwidths
-  %m = 4:4:8;
-  % Set the number of repetitions. Up to now always 1
-  %repetitions=5;
+  gridtype=2;
+  % Set the number of repetitions.
+  repetitions=1;
+  % Set the size parameters.
+  Q=2.^(1:8);
+  % Set the bandwidhts.
+  N1=64*ones(1,length(Q));
+  %N2=500*ones(1,length(Q));
+  %N3=750*ones(1,length(Q));
+  %N4=1000*ones(1,length(Q));
   % Write the number of testcases.
-  %fprintf(file,'testcases=3\n');
-  % Write the testcase.
-  %writeTestcase(file,1,1,3,1,1000,gridtype,repetitions,[m;m]);
-  %writeTestcase(file,1,1,6,1,1000,gridtype,repetitions,[m;m]);
-  %writeTestcase(file,1,0,6,1,1000,gridtype,repetitions,[m;m]);
+  fprintf(file,'testcases=1\n');
+  % Write the testcases.
+  writeTestcase(file,1,1,6,1,1000,gridtype,[0,64],repetitions,[N1;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,500],repetitions,[N2;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,750],repetitions,[N3;Q]);
+  %writeTestcase(file,1,1,6,1,1000,gridtype,[0,1024],repetitions,[N4;Q]);
 elseif (selection == 6)
   % Set the grid type.
   % 4 = Equidistribution Example 7.1.11
@@ -127,7 +150,8 @@ end
 
 fclose(file);
 
-if (selection == 2 || selection == 4)
+%if (selection == 2 || selection == 4)
+if (false)
   system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
   file = fopen(outfilename,'r');
   T = readTestcase(file);

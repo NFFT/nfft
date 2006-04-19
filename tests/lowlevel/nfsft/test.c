@@ -113,7 +113,9 @@ void test_ndsft_trafo(void)
       nfsft_precompute(N, THRESHOLD, NFSFT_BANDWIDTH_WINDOW);
       /* Initialise plan. */
       nfsft_init_guru(&plan,N,M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED /*| NFSFT_USE_NDFT*/,6);
+        NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED /*| NFSFT_USE_NDFT*/,
+        ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+        FFT_OUT_OF_PLACE, 6);
 
       /* Read in spherical Fourier coefficients. */
       for (k = 0; k <= N; k++)

@@ -2331,7 +2331,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int
  * \author Jens Keiner
  */
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
-                     int nfft_cutoff);
+  int nfft_flags, int nfft_cutoff);
 
 /**
  * Performes precomputation up to the next power of two with respect to a given
@@ -2345,8 +2345,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
  *
  * \author Jens Keiner
  */
-void nfsft_precompute(int N, double kappa,
-                      unsigned int flags);
+void nfsft_precompute(int N, double kappa, unsigned int flags);
 
 /**
  * Forgets all precomputed data.
@@ -2448,7 +2447,7 @@ void nfsft_precompute_x(nfsft_plan *plan);
 #define FPT_FUNCTION_VALUES   (1U << 5) /**< If set, the output are function
                                              values at Chebyshev nodes rather
                                              than Chebyshev coefficients.     */
-#define FPT_ODD_EVEN_SYMMETRY (1U << 6) /**< TODO Don't use this flag!        */
+#define FPT_AL_SYMMETRY       (1U << 6) /**< TODO Don't use this flag!        */
 #define FPT_NEW_STABILIZATION (1U << 7) /**< TODO Don't use this flag!        */
 
 /* Data structures */
