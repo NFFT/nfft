@@ -34,7 +34,7 @@
 
 #define N_TILDE(y) (y-1)
 
-#define IS_SYMMETRIC(x,y,z) (n == 0 && x >= ((y-1.0)/z))
+#define IS_SYMMETRIC(x,y,z) (y == 0 && x >= ((y-1.0)/z))
 //#define IS_SYMMETRIC(x,y,z) (x >= ((y-1.0)/z))
 
 #ifdef TEST_STAB
