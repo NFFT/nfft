@@ -340,15 +340,19 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
       {
         result += alpha[m]*kernel(r,0,param);                         /* alpha*(kern-regkern) */
         if (d==1)
+        {
           if (flags & EXACT_NEARFIELD)
             result -= alpha[m]*regkern1(kernel,r,p,param,a,1.0/16.0); /* exact value (in 1D)  */
           else
             result -= alpha[m]*kubintkern1(r,Add,Ad,a);               /* spline approximation */
+        }
         else
+        {
           if (flags & EXACT_NEARFIELD)
             result -= alpha[m]*regkern(kernel,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
           else
             result -= alpha[m]*kubintkern(r,Add,Ad,a);                /* spline approximation */
+        }
       }
     }
     result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p,flags);
@@ -386,7 +390,8 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
   ths->eps_B = 1.0/16.0;                          /** outer boundary */
 
   /** init spline for near field computation */
-  if !(ths-flags & EXACT_NEARFIELD)
+  if (!(ths->flags & EXACT_NEARFIELD))
+  {
     if (ths->d==1)
     {
       ths->Ad = 4*(ths->p)*(ths->p);
@@ -397,6 +402,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
       ths->Ad = 2*(ths->p)*(ths->p);
       ths->Add = (double *)malloc((ths->Ad+3)*(sizeof(double)));
     }
+  }
 
   /** init d-dimensional NFFT plan */
   ths->n = nn;
@@ -430,7 +436,7 @@ void fastsum_finalize(fastsum_plan *ths)
   free(ths->y);
   free(ths->f);
 
-  if !(ths-flags & EXACT_NEARFIELD)
+  if (!(ths->flags & EXACT_NEARFIELD))
     free(ths->Add);
 
   nfft_finalize(&(ths->mv1));
@@ -476,13 +482,15 @@ void fastsum_precompute(fastsum_plan *ths)
   BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
 
   /** precompute spline values for near field*/
-  if !(ths-flags & EXACT_NEARFIELD)
+  if (!(ths->flags & EXACT_NEARFIELD))
+  {
     if (ths->d==1)
       for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
         ths->Add[k+ths->Ad/2+2] = regkern1(ths->kernel, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
     else
       for (k=0; k <= ths->Ad+2; k++)
         ths->Add[k] = regkern3(ths->kernel, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
+  }
 
   /** init NFFT plan for transposed transform in first step*/
   for (k=0; k<ths->mv1.M_total; k++)

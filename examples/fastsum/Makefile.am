@@ -5,8 +5,7 @@ AM_LDFLAGS = -L$(top_srcdir)
 noinst_PROGRAMS = fastsum_test
 
 ## The source files
-fastsum_test_SOURCES = fastsum_test.c
-fastsum_test_include_HEADERS = kernels.h
+dist_fastsum_test_SOURCES = kernels.h kernels.c fastsum_test.c
 fastsum_test_LDADD = $(top_builddir)/highlevel/fastsum/libfastsum.la $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 ## extra files to include in distribution
