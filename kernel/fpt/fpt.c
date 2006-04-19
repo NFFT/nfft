@@ -972,7 +972,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
             /* Allocate memory for arrays. */
             a11 = (double*) fftw_malloc(sizeof(double)*plength_stab);
-            a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
+            a12 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             a21 = (double*) fftw_malloc(sizeof(double)*plength_stab);
             a22 = (double*) fftw_malloc(sizeof(double)*plength_stab);
 
