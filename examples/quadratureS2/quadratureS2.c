@@ -224,8 +224,7 @@ int main (int argc, char **argv)
     //fprintf(stderr,"NFSFT Precomputation\n");
     //fflush(stderr);
     nfsft_precompute(NQ_max, threshold, NFSFT_BANDWIDTH_WINDOW |
-      NFSFT_NO_DIRECT_ALGORITHM |
-      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(NFSFT_NO_DIRECT_ALGORITHM)));
 
     //fprintf(stderr,"Entering loop\n");
     //fflush(stderr);
