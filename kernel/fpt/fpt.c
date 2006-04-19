@@ -531,7 +531,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   /* Save parameters in structure. */
   set->flags = flags;
 
-  fprintf(stderr,"\nfpt_init: flags = %d \t %d\n",set->flags,flags);
+  //fprintf(stderr,"\nfpt_init: flags = %d \t %d\n",set->flags,flags);
 
   set->M = M;
   set->t = t;
@@ -658,8 +658,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   double *cgamma;
   int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
   int k_start_tilde;
-  int k_start_tilde_s;
-  int firstl_s;
   int N_tilde;
   int k;
   int clength;
@@ -712,7 +710,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
     k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)
       /*set->N*/);
-    k_start_tilde_s = K_START_TILDE(data->k_start,set->N);
     N_tilde = N_TILDE(set->N);
 
     /* Allocate memory for the cascade with t = log_2(N) many levels. */
@@ -726,7 +723,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
       degree = plength>>1;
       /* Compute first l. */
       firstl = FIRST_L(k_start_tilde,plength);
-      firstl_s = FIRST_L(k_start_tilde_s,plength);
       /* Compute last l. */
       lastl = LAST_L(N_tilde,plength);
 
@@ -742,7 +738,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
           total++;
         #endif
 
-        if (set->flags & FPT_AL_SYMMETRY && l > firstl_s)
+        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
         {
           clength = plength/2;
         }
@@ -1299,7 +1295,7 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
       if (step->stable)
       {
         /* Check, if we should do a symmetrizised step. */
-        if (set->flags & FPT_AL_SYMMETRY && l > firstl)
+        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
         {
           /*for (k = 0; k < plength; k++)
           {
@@ -1585,7 +1581,7 @@ void fpt_transposed(fpt_set set, const int m, complex *x, const complex *y,
       /* Check if step is stable. */
       if (step->stable)
       {
-        if (set->flags & FPT_AL_SYMMETRY && l > firstl)
+        if (set->flags & FPT_AL_SYMMETRY && l >= ((int)(ceil((m-1)/plength))))
         {
           /* Multiply third and fourth polynomial with matrix U. */
           fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
@@ -1743,7 +1739,7 @@ void fpt_finalize(fpt_set set)
     else
     {
       /* Check, if recurrence coefficients must be copied. */
-      fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
+      //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
       if (set->flags & FPT_PERSISTENT_DATA)
       {
       }
@@ -1806,7 +1802,7 @@ void fpt_finalize(fpt_set set)
     set->plans_dct2 = NULL;
   }
 
-  fprintf(stderr,"fpt_finalize: flags = %d\n",set->flags);
+  //fprintf(stderr,"fpt_finalize: flags = %d\n",set->flags);
 
   if (set->flags & FPT_NO_SLOW_TRANSFORM)
   {
