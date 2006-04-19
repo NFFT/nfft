@@ -1,11 +1,19 @@
+/*! \file fastsum_test.c
+ *  \brief Simple test program for the fast NFFT-based summation algorithm.
+ *
+ *  \author Markus Fenn
+ *  \date 2006
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <complex.h>
+#include <math.h>
 
 #include "fastsum.h"
 #include "kernels.h"
 
-/** simple test program for fast NFFT-based summation algorithm */
 int main(int argc, char **argv)
 {
   int j,k,t;                                         /**< indices                 */
@@ -22,7 +30,6 @@ int main(int argc, char **argv)
   complex *direct;                                   /**< array for direct computation */
   double time;                                       /**< for time measurement    */
   double error=0.0;                                  /**< for error computation   */
-  double *temp;                                      /**< for temporary things    */
 
   if (argc!=9)
   {
@@ -78,8 +85,6 @@ int main(int argc, char **argv)
     }
   }
   printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g \n",d,N,M,n,m,p,s,c);
-
-  temp = (double *)malloc(N*(sizeof(double)));
 
   /** init two dimensional fastsum plan */
   fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p);

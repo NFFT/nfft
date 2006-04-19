@@ -3,7 +3,7 @@
  */
 #ifndef KERNELS_H
 #define KERNELS_H
-#include "kernels.c"
+//#include "kernels.c"
 
 complex gaussian(double x, int der, const double *param);              /* K(x)=exp(-x^2/c^2) */
 complex multiquadric(double x, int der, const double *param);          /* K(x)=sqrt(x^2+c^2) */
