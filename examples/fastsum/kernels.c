@@ -89,6 +89,8 @@ complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
 {
   double value=0.0;
 
+  (void)param;
+
   if (fabs(x)<DBL_MIN) value=0.0;
   else switch (der)
   {
@@ -120,6 +122,8 @@ complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^
 {
   double value=0.0;
 
+  (void)param;
+
   if (fabs(x)<DBL_MIN) value=0.0;
   else switch (der)
   {
@@ -145,6 +149,8 @@ complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^
 complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
 {
   double value=0.0;
+
+  (void)param;
 
   if (fabs(x)<DBL_MIN) value=0.0;
   else switch (der)
@@ -172,6 +178,8 @@ complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/
 {
   double value=0.0;
 
+  (void)param;
+
   if (fabs(x)<DBL_MIN) value=0.0;
   else switch (der)
   {
@@ -197,6 +205,8 @@ complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/
 complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
 {
   double value=0.0;
+
+  (void)param;
 
   if (fabs(x)<DBL_MIN) value=0.0;
   else switch (der)

@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
   /** init two dimensional fastsum plan */
   fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p);
-  //fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);
+  /*fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);*/
 
   /** init source knots in a d-ball with radius 0.25-eps_b/2 */
   for (k=0; k<N; k++)
