@@ -312,13 +312,17 @@ int main(int argc,char **argv)
   /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
   if(atoi(argv[1])==2)
     {
+      printf("$\\log_2(K/(m+1))$&\t");
       for(l=atoi(argv[2]); l<atoi(argv[3]); l++)
-	printf("$%d$\t",l);
+	printf("$%d$&\t",l);
 
       printf("$%d$\\\\\n",atoi(argv[3]));
 
+      printf("$\\tilde E_2$&\t");
       for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
 	accuracy_pre_lin_psi(d, N, (int)pow(N,d), 2*N, m, (m+1)*(1U<< l));
+
+      printf("\n");
     }
       
   return 1;
