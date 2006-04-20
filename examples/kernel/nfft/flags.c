@@ -253,7 +253,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   e=error_l_2_complex(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
-  printf("%.1e&\t",e);
+  printf("$%.1e$&\t",e);
 
   fflush(stdout);
 
@@ -311,10 +311,15 @@ int main(int argc,char **argv)
 
   /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
   if(atoi(argv[1])==2)
-    for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
-      for(trial=0; trial<atoi(argv[4]); trial++)
-        accuracy_pre_lin_psi(d, N, (int)pow(N,d), 2*N, m, (m+1)*(1U<< l));
+    {
+      for(l=atoi(argv[2]); l<atoi(argv[3]); l++)
+	printf("$%d$\t",l);
 
+      printf("$%d$\\\\\n",atoi(argv[3]));
 
+      for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
+	accuracy_pre_lin_psi(d, N, (int)pow(N,d), 2*N, m, (m+1)*(1U<< l));
+    }
+      
   return 1;
 }
