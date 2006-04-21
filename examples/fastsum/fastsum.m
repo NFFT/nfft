@@ -1,4 +1,4 @@
-function f=fastsum(x,alpha,y,kernel,c,m,n,p)
+function f=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 
 % f=fastsum(x,alpha,y,kernel,c,m,n,p)
 %
@@ -30,7 +30,7 @@ save -ascii -double alpha.dat alpha2
 save -ascii -double y.dat y
 
 %execute C-program for fast summation
-system(sprintf('./fastsum_matlab %d %d %d %d %d %d %s %e',d,N,M,n,m,p,kernel,c));
+system(sprintf('./fastsum_matlab %d %d %d %d %d %d %s %e %e %e',d,N,M,n,m,p,kernel,c,eps_I,eps_B));
 
 %read result from file
 f2=load('f.dat');

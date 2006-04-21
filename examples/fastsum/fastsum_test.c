@@ -30,10 +30,12 @@ int main(int argc, char **argv)
   complex *direct;                                   /**< array for direct computation */
   double time;                                       /**< for time measurement    */
   double error=0.0;                                  /**< for error computation   */
+  double eps_I;                                      /**< inner boundary          */
+  double eps_B;                                      /**< outer boundary          */
 
-  if (argc!=9)
+  if (argc!=11)
   {
-    printf("\nfastsum_test d N M n m p kernel c\n\n");
+    printf("\nfastsum_test d N M n m p kernel c eps_I eps_B\n\n");
     printf("  d       dimension                 \n");
     printf("  N       number of source nodes    \n");
     printf("  M       number of target nodes    \n");
@@ -41,7 +43,9 @@ int main(int argc, char **argv)
     printf("  m       cut-off parameter         \n");
     printf("  p       degree of smoothness      \n");
     printf("  kernel  kernel function  (e.g., gaussian)\n");
-    printf("  c       kernel parameter          \n\n");
+    printf("  c       kernel parameter          \n");
+    printf("  eps_I   inner boundary            \n");
+    printf("  eps_B   outer boundary            \n\n");
     exit(-1);
   }
   else
@@ -54,6 +58,8 @@ int main(int argc, char **argv)
     p=atoi(argv[6]);
     s=argv[7];
     c=atof(argv[8]);
+    eps_I=atof(argv[9]);
+    eps_B=atof(argv[10]);
     if (strcmp(s,"gaussian")==0)
       kernel = gaussian;
     else if (strcmp(s,"multiquadric")==0)
@@ -84,10 +90,10 @@ int main(int argc, char **argv)
       kernel = multiquadric;
     }
   }
-  printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g \n",d,N,M,n,m,p,s,c);
+  printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g, eps_I=%g, eps_B=%g \n",d,N,M,n,m,p,s,c,eps_I,eps_B);
 
   /** init two dimensional fastsum plan */
-  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p);
+  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p, eps_I, eps_B);
   /*fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);*/
 
   /** init source knots in a d-ball with radius 0.25-eps_b/2 */

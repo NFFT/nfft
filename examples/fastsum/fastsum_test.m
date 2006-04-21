@@ -12,21 +12,23 @@
 %
 %  system(sprintf('./fastsum_test %d %d %d %d %d %d %s %e',d,N,M,n,m,p,kernel,c));
 
-N=2000;
-M=2000;
-kernel='multiquadric';
-c=1/sqrt(N);
-m=4;
-p=3;
-n=156;
+N = 2000;
+M = 2000;
+kernel = 'multiquadric';
+c = 1/sqrt(N);
+m = 4;
+p = 3;
+n = 156;
+eps_I = p/n;
+eps_B = 1/16;
 
 %random points in circle of radius 0.25-eps_B/2
-r=sqrt(rand(N,1))*(0.25-1/32);
-phi=rand(N,1)*2*pi;
-x=[r.*cos(phi) r.*sin(phi)];
+r = sqrt(rand(N,1))*(0.25-eps_B/2);
+phi = rand(N,1)*2*pi;
+x = [r.*cos(phi) r.*sin(phi)];
 
 %random coefficients
-alpha=rand(N,1)+i*rand(N,1);
+alpha = rand(N,1)+i*rand(N,1);
 
 %fast NFFT-based summation
-f=fastsum(x,alpha,x,kernel,c,m,n,p);
+f = fastsum(x,alpha,x,kernel,c,m,n,p,eps_I,eps_B);

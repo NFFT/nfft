@@ -37,18 +37,15 @@ typedef struct fastsum_plan_
   complex *alpha;                       /**< source coefficients             */
   complex *f;                           /**< target evaluations              */
 
-  double *x;                            /**< source knots in [-1/4,1/4]      */
-  double *y;                            /**< target knots in [-1/4,1/4]      */
+  double *x;                            /**< source knots in d-ball with radius 1/4-eps_b/2 */
+  double *y;                            /**< target knots in d-ball with radius 1/4-eps_b/2 */
 
   complex (*kernel)(double , int , const double *);  /**< kernel function    */
   double *kernel_param;                 /**< parameters for kernel function  */
 
-  unsigned flags;                       /**< flags precomp. and approx.type  */ /* not used so far */
+  unsigned flags;                       /**< flags precomp. and approx.type  */
 
   /** internal */
-
-  int Ad;                               /**< number of spline knots for nearfield computation of regularized kernel*/
-  double *Add;                          /**< spline values */
 
   /** DS_PRE - direct summation */
   complex *pre_K;                       /**< precomputed K(x_j-y_l)          */
@@ -64,25 +61,54 @@ typedef struct fastsum_plan_
   nfft_plan mv1;                        /**< source nfft plan                */
   nfft_plan mv2;                        /**< target nfft plan                */
 
-  /* near field??? */
+  /** near field */
+  int Ad;                               /**< number of spline knots for nearfield computation of regularized kernel */
+  double *Add;                          /**< spline values */
 
   /* things for computing *b - are they used only once?? */
   fftw_plan fft_plan;
 } fastsum_plan;
 
-/** initialize fast summation plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p);
+/** initialize fast summation plan
+ *
+ * \arg ths The pointer to a fastsum plan.
+ * \arg d The dimension of the problem.
+ * \arg N_total The number of source knots x.
+ * \arg M_total The number of target knots y.
+ * \arg kernel The kernel function.
+ * \arg param The parameters for the kernel function.
+ * \arg flags Fastsum flags.
+ * \arg nn The expansion degree.
+ * \arg m The cut-off parameter for the NFFT.
+ * \arg p The degree of smoothness.
+ * \arg eps_I The inner boundary.
+ * \arg eps_B the outer boundary.
+ *
+ */
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B);
 
-/** finalize plan */
+/** finalize plan
+ *
+ * \arg ths The pointer to a fastsum plan.
+ */
 void fastsum_finalize(fastsum_plan *ths);
 
-/** direct summation */
+/** direct summation
+ *
+ * \arg ths The pointer to a fastsum plan.
+ */
 void fastsum_exact(fastsum_plan *ths);
 
-/** sort source nodes, precompute Fourier coefficients, etc. */
+/** sort source nodes, precompute Fourier coefficients, etc.
+ *
+ * \arg ths The pointer to a fastsum plan.
+ */
 void fastsum_precompute(fastsum_plan *ths);
 
-/** fast NFFT-based summation algorithm */
+/** fast NFFT-based summation algorithm
+ *
+ * \arg ths The pointer to a fastsum plan.
+ */
 void fastsum_trafo(fastsum_plan *ths);
 
 #endif

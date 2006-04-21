@@ -362,7 +362,7 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
 }
 
 /** initialization of fastsum plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p)
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B)
 {
   int t;
   int N[d], n[d];
@@ -385,9 +385,8 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
   ths->flags = flags;
 
   ths->p = p;
-  ths->eps_I = (double)ths->p/(double)nn;         /** inner boundary */
-  /*ths->eps_B = (double)ths->p/(double)nn;*/
-  ths->eps_B = 1.0/16.0;                          /** outer boundary */
+  ths->eps_I = eps_I; /* =(double)ths->p/(double)nn; */  /** inner boundary */
+  ths->eps_B = eps_B; /* =1.0/16.0; */                   /** outer boundary */
 
   /** init spline for near field computation */
   if (!(ths->flags & EXACT_NEARFIELD))
