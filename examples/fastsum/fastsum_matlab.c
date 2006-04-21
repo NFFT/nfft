@@ -154,7 +154,7 @@ int main(int argc, char **argv)
   error=0.0;
   for (j=0; j<my_fastsum_plan.M_total; j++)
   {
-    if (cabs(direct[j]-my_fastsum_plan.f[j])/cabs(direct[j])>error)
+   if (cabs(direct[j]-my_fastsum_plan.f[j])/cabs(direct[j])>error)
       error=cabs(direct[j]-my_fastsum_plan.f[j])/cabs(direct[j]);
   }
   printf("max relative error: %e\n",error);

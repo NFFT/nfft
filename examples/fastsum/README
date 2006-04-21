@@ -1,0 +1,41 @@
+fastsum - fast NFFT-based summation
+
+  This library of C functions computes approximations of sums of the form
+
+            N
+            -
+  f(y )  =  >  alpha   K(y - x )       (j=1,...,M)
+     j      -       k     j   k
+           k=1
+
+  where x_k, y_j are arbitrary nodes in [-1/4+eps_B/2, 1/4-eps_B/2]^d, alpha_k
+  are complex coefficients and K: R^d -> C is a kernel function which is C^oo
+  except of the origin. Such kernels include log|x| and 1/|x|^b (b \in N) or
+  the parameter dependent Hardy's multiquadric (x^2+c^2)^(1/2) and generalized
+  multiquadrics (x^2+c^2)^(-b/2) (b \in N).
+
+  It is based on the fast Fourier transform for nonequispaced nodes (NFFT) and
+  therefore depends on the NFFT C-library. New kernels are easily incorporated
+  by defining an appropriate C-function (see kernels.c for some examples).
+
+  fastsum_test.c is an example for the usage of the library. The MATLAB script
+  file fastsum_test.m calls the MATLAB function fastsum.m, which is a simple
+  example for the usage in MATLAB.
+
+
+
+  References:
+
+  [1] D. Potts, and G. Steidl. Fast summation at nonequispaced knots by NFFTs.
+      SIAM J. Sci. Comput., 24:2013-2037, 2003.
+
+  [2] D. Potts, G. Steidl, and A. Nieslony. Fast convolution with radial
+      kernels at nonequispaced knots. Numer. Math., 98:329-351, 2004.
+
+  [3] M. Fenn, and G. Steidl. Fast NFFT-based summation of radial functions.
+      Sampl. Theory Signal Image Process., 3:1-28, 2004.
+
+  [4] M. Fenn, and D. Potts. Fast summation based on fast trigonometric
+      transforms at non-equispaced nodes. Numer. Linear Algebra. Appl.,
+      12:161-169, 2005.
+
