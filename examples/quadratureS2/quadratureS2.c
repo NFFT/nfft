@@ -43,7 +43,8 @@ enum gridtype {GRID_GAUSS_LEGENDRE = 0, GRID_CLENSHAW_CURTIS = 1,
   GRID_HEALPIX = 2, GRID_EQUIDISTRIBUTION_7_1_11 = 3};
 
 /** Enumeration for test functions */
-enum functiontype {FUNCTION_RANDOM_BANDLIMITED = 0};
+enum functiontype {FUNCTION_RANDOM_BANDLIMITED = 0, FUNCTION_F1 = 1,
+  FUNCTION_F2 = 2, FUNCTION_F3 = 3, FUNCTION_F4 = 4, FUNCTION_F5 = 5};
 
 /**
  * The main program.
@@ -124,6 +125,9 @@ int main (int argc, char **argv)
   double thetai;
   double gammai;
   FILE *file;
+  int M;
+  double theta_s;
+  double x1,x2,x3;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -254,8 +258,17 @@ int main (int argc, char **argv)
           //fprintf("HEALPix: SQ = %d, m_theta = %d, m_phi= %d, m");
           break;
         case GRID_EQUIDISTRIBUTION_7_1_11:
-          m_theta_max = 1;
-          m_phi_max = 2+4*((int)floor((SQ_max+1)/2.0))*((int)floor(SQ_max/2.0));
+          m_theta_max = 2;
+          fprintf(stderr,"ed: m_theta_max = %d\n",m_theta_max);
+          for (k = 1; k < SQ[iNQ]; k++)
+          {
+            m_theta_max += (int)floor((2*PI)/acos((cos(PI/(double)SQ[iNQ])-
+              cos(k*PI/(double)SQ[iNQ])*cos(k*PI/(double)SQ[iNQ]))/
+              (sin(k*PI/(double)SQ[iNQ])*sin(k*PI/(double)SQ[iNQ]))));
+            fprintf(stderr,"ed: m_theta_max = %d\n",m_theta_max);
+          }
+          fprintf(stderr,"ed: m_theta_max final = %d\n",m_theta_max);
+          m_phi_max = 1;
           m_total_max = m_theta_max * m_phi_max;
           break;
       }
@@ -428,29 +441,34 @@ int main (int argc, char **argv)
           break;
 
         case GRID_EQUIDISTRIBUTION_7_1_11:
-          /* Calculate grid dimensions. */
-          gamma = 2*NQ[iNQ];
-          m_theta = 1;
-          m_phi = 2+4*((int)floor((gamma+1)/2.0))*((int)floor(gamma/2.0));
-          m_total = m_theta*m_phi;
-          x[0] = 0.0;
-          x[1] = 0.0;
+          d = 0;
+          x[2*d] = -0.5;
+          x[2*d+1] = 0.0;
           d = 1;
-          for (k = 1; k <= gamma-1; k++)
+          x[2*d] = -0.5;
+          x[2*d+1] = 0.5;
+          d = 2;
+
+          for (k = 1; k < SQ[iNQ]; k++)
           {
-            thetai = (k*PI)/gamma;
-            gammai = ((k<=(gamma/2.0))?(4*k):(4*(gamma-k)));
-            for(n = 1; n <= gammai; n++)
+            theta_s = (double)k*PI/(double)SQ[iNQ];
+            M = (int)floor((2.0*PI)/acos((cos(PI/(double)SQ[iNQ])-
+              cos(theta_s)*cos(theta_s))/(sin(theta_s)*sin(theta_s))));
+
+            for (n = 0; n < M; n++)
             {
-              x[2*d+1] = thetai/(2.0*PI);
-              x[2*d] = ((n-0.5)*((2.0*PI)/gammai))/(2.0*PI);
+              x[2*d] = (n + 0.5)/M;
               x[2*d] -= (x[2*d]>=0.5)?(1.0):(0.0);
+              x[2*d+1] = theta_s/(2.0*PI);
               d++;
             }
           }
-          x[2*d+1] = 0.5;
-          x[2*d] = 0.0;
-          w[0] = (4.0*PI)/(m_total);
+
+          m_theta = 2;
+          m_phi = d;
+
+          /* TODO Compute the weights. */
+
           break;
 
         default:
@@ -510,6 +528,53 @@ int main (int argc, char **argv)
 
           free(f_hat_ref);
 
+          break;
+
+        case FUNCTION_F1:
+          x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
+          x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
+          x3 = cos(x[2*d+1]*2.0*PI);
+          for (d = 0; k < m_total; d++)
+          {
+            f_ref[d] = x1*x2*x3;
+          }
+          break;
+        case FUNCTION_F2:
+          x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
+          x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
+          x3 = cos(x[2*d+1]*2.0*PI);
+          for (d = 0; k < m_total; d++)
+          {
+            f_ref[d] = 0.1*exp(x1+x2+x3);
+          }
+          break;
+        case FUNCTION_F3:
+          x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
+          x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
+          x3 = cos(x[2*d+1]*2.0*PI);
+          for (d = 0; k < m_total; d++)
+          {
+            f_ref[d] = 0.1*abs(x1)+abs(x2)+abs(x3);
+          }
+          break;
+        case FUNCTION_F4:
+          x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
+          x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
+          x3 = cos(x[2*d+1]*2.0*PI);
+          for (d = 0; k < m_total; d++)
+          {
+            f_ref[d] = 1.0/(abs(x1)+abs(x2)+abs(x3));
+          }
+          break;
+        case FUNCTION_F5:
+          x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
+          x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
+          x3 = cos(x[2*d+1]*2.0*PI);
+          for (d = 0; k < m_total; d++)
+          {
+            f_ref[d] = 0.1*sin(1+abs(x1)+abs(x2)+abs(x3))*
+              sin(1+abs(x1)+abs(x2)+abs(x3));
+          }
           break;
 
         default:
