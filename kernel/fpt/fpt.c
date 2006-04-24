@@ -981,10 +981,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
       memcpy(data->gamma,gamma,(set->N+1)*sizeof(double));
     }
   }
-
-  #ifdef TEST_STAB
-    free(temp);
-  #endif
 }
 
 void dpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
@@ -1557,6 +1553,9 @@ void fpt_finalize(fpt_set set)
       free(data->alphaN);
       free(data->betaN);
       free(data->gammaN);
+      data->alphaN = NULL;
+      data->betaN = NULL;
+      data->gammaN = NULL;
 
       /* Free precomputed data. */
       k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)

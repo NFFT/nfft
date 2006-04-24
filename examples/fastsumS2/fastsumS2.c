@@ -32,7 +32,7 @@
 #include "util.h"
 
 /* Include GSL header. */
-/*#include <gsl/gsl_sf_bessel.h>*/
+#include <gsl/gsl_sf_bessel.h>
 
 
 /** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
@@ -131,7 +131,7 @@ double locallySupportedKernel(const double x, const double h,
  */
 double gaussianKernel(const double x, const double sigma)
 {
-   return exp(sigma*(x-1));
+   return exp(2.0*sigma*(x-1));
 }
 
 
@@ -235,7 +235,7 @@ int main (int argc, char **argv)
     {
       /* Check if the NFFT shall be used. */
       fscanf(stdin,"nfft=%d\n",&use_nfft);
-      fprintf(stdout,"%d\n",use_nfsft);
+      fprintf(stdout,"%d\n",use_nfft);
       if (use_nfft != NO)
       {
         /* Read the cut-off parameter. */
@@ -407,7 +407,7 @@ int main (int argc, char **argv)
 
     /* Do precomputation. */
     nfsft_precompute(m_max,threshold,
-      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(NFSFT_NO_DIRECT_ALGORITHM)), 0U);
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
 
     /* Process all parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
@@ -459,31 +459,15 @@ int main (int argc, char **argv)
         case KT_GAUSSIAN:
           /* Compute Fourier-Legendre coefficients for the locally supported
            * kernel. */
-          /* TODO Use GSL library. */
-          /*steed = (double*) malloc(m_max*sizeof(double));
-          gsl_sf_bessel_il_scaled_array(m_max,2*p[ip][0],steed);
+          steed = (double*) malloc((m_max+1)*sizeof(double));
+          gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
           for (k = 0; k <= m_max; k++)
           {
-            a[k] = 4*PI*steed[k];
+            steed[k] *= 4.0*PI;
+            a[k] = steed[k];
           }
-          free(steed);*/
-          sprintf(filename_gaussian,"gaussian%.0f.dat",p[ip][0]);
-          file_gaussian = fopen(filename_gaussian,"r");
-          if (file_gaussian != NULL)
-          {
-            fscanf(file_gaussian,"%d\n",&nsymbols);
-            for (k = 0; k <= MIN(nsymbols,m_max); k++)
-            {
-              fscanf(file_gaussian,"%lf\n",&a[k]);
-            }
-            for (k = nsymbols+1; k <= m_max; k++)
-            {
-              a[k] = 0.0;
-            }
-          }
-          else
-          {
-          }
+
+          free(steed);
           break;
       }
 
@@ -503,9 +487,6 @@ int main (int argc, char **argv)
            * tested. */
           if (ld[ild][3] != NO)
           {
-            /* Initialize cumulative time variable. */
-            t_dp = 0.0;
-
             /* Get pointer to start of data. */
             ptr = prec;
             /* Calculate increment from one row to the next. */
@@ -552,6 +533,9 @@ int main (int argc, char **argv)
               /* Increment pointer for next row. */
               ptr += rinc;
             }
+
+            /* Initialize cumulative time variable. */
+            t_dp = 0.0;
 
             /* Initialize time measurement. */
             t = second();
@@ -613,7 +597,7 @@ int main (int argc, char **argv)
             }
 
             /* Calculate the time needed. */
-            t_dp += second() - t;
+            t_dp = second() - t;
 
             /* Calculate average time needed. */
             t_dp = t_dp/((double)ld[ild][4]);
@@ -627,6 +611,9 @@ int main (int argc, char **argv)
           /* Initialize cumulative time variable. */
           t_d = 0.0;
 
+          /* Initialize time measurement. */
+          t = second();
+
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
           {
@@ -634,8 +621,6 @@ int main (int argc, char **argv)
             switch (kt)
             {
               case KT_ABEL_POISSON:
-                /* Initialize time measurement. */
-                t = second();
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -656,15 +641,9 @@ int main (int argc, char **argv)
                     f[d] += b[l]*poissonKernel(temp,p[ip][0]);
                   }
                 }
-
-                /* Calculate and add the time needed. */
-                t_d += second() - t;
                 break;
 
               case KT_SINGULARITY:
-                /* Initialize time measurement. */
-                t = second();
-
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
                 {
@@ -684,17 +663,11 @@ int main (int argc, char **argv)
                     f[d] += b[l]*singularityKernel(temp,p[ip][0]);
                   }
                 }
-
-                /* Calculate and add the time needed. */
-                t_d += second() - t;
                 break;
 
               case KT_LOC_SUPP:
                 /* Calculate the multiplicative constant. */
                 constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-
-                /* Initialize time measurement. */
-                t = second();
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -718,16 +691,9 @@ int main (int argc, char **argv)
                   /* Multiply result with constant. */
                   f[d] *= constant;
                 }
-
-                /* Calculate and add the time needed. */
-                t_d += second() - t;
                 break;
 
               case KT_GAUSSIAN:
-
-                /* Initialize time measurement. */
-                t = second();
-
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
                 {
@@ -746,13 +712,12 @@ int main (int argc, char **argv)
                     f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
                   }
                 }
-
-                /* Calculate and add the time needed. */
-                t_d = second() - t;
                 break;
             }
           }
 
+          /* Calculate and add the time needed. */
+          t_d = second() - t;
           /* Calculate average time needed. */
           t_d = t_d/((double)ld[ild][4]);
         }
@@ -800,11 +765,12 @@ int main (int argc, char **argv)
             /* Initialize cumulative time variable. */
             t_fd = 0.0;
 
+            /* Initialize time measurement. */
+            t = second();
+
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
             {
-              /* Initialize time measurement. */
-              t = second();
 
               /* Execute adjoint direct NDSFT transformation. */
               ndsft_adjoint(&plan_adjoint);
@@ -821,19 +787,21 @@ int main (int argc, char **argv)
               /* Execute direct NDSFT transformation. */
               ndsft_trafo(&plan);
 
-              /* Calculate and add the time needed. */
-              t_fd += second() - t;
-
-              /* Check if error E_infty should be computed. */
-              if (ld[ild][2] != NO)
-              {
-                /* Compute the error E_infinity. */
-                err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
-                  ld[ild][0]);
-              }
             }
+
+            /* Calculate and add the time needed. */
+            t_fd = second() - t;
+
             /* Calculate average time needed. */
             t_fd = t_fd/((double)ld[ild][4]);
+
+            /* Check if error E_infty should be computed. */
+            if (ld[ild][2] != NO)
+            {
+              /* Compute the error E_infinity. */
+              err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                ld[ild][0]);
+            }
           }
 
           /* Check if the fast NFSFT algorithm shall also be tested. */
@@ -849,12 +817,12 @@ int main (int argc, char **argv)
             t_fd = 0.0;
           }
 
+          /* Initialize time measurement. */
+          t = second();
+
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
           {
-            /* Initialize time measurement. */
-            t = second();
-
             /* Check if the fast NFSFT algorithm shall also be tested. */
             if (use_nfsft != NO)
             {
@@ -888,41 +856,23 @@ int main (int argc, char **argv)
               ndsft_trafo(&plan);
             }
 
-            /* Check if the fast NFSFT algorithm has been used. */
-            if (use_nfsft != NO)
-            {
-              /* Calculate and add the time needed. */
-              t_f += second() - t;
-            }
-            else
-            {
-              /* Calculate and add the time needed. */
-              t_fd += second() - t;
-            }
-
-            /* Check if error E_infty should be computed. */
-            if (ld[ild][2] != NO)
-            {
-              /* Check if the fast NFSFT algorithm has been used. */
-              if (use_nfsft != NO)
-              {
-                /* Compute the error E_infinity. */
-                err_f = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
-                  ld[ild][0]);
-              }
-              else
-              {
-                /* Compute the error E_infinity. */
-                err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
-                  ld[ild][0]);
-              }
-            }
-
             /*for (d = 0; d < ld[ild][1]; d++)
             {
               fprintf(stderr,"f_ref[%d] = %le + I*%le, f[%d] = %le + I*%le\n",
                 d,creal(f[d]),cimag(f[d]),d,creal(f_m[d]),cimag(f_m[d]));
             }*/
+          }
+
+          /* Check if the fast NFSFT algorithm has been used. */
+          if (use_nfsft != NO)
+          {
+            /* Calculate and add the time needed. */
+            t_f = second() - t;
+          }
+          else
+          {
+            /* Calculate and add the time needed. */
+            t_fd = second() - t;
           }
 
           /* Check if the fast NFSFT algorithm has been used. */
@@ -935,6 +885,24 @@ int main (int argc, char **argv)
           {
             /* Calculate average time needed. */
             t_fd = t_fd/((double)ld[ild][4]);
+          }
+
+          /* Check if error E_infty should be computed. */
+          if (ld[ild][2] != NO)
+          {
+            /* Check if the fast NFSFT algorithm has been used. */
+            if (use_nfsft != NO)
+            {
+              /* Compute the error E_infinity. */
+              err_f = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                ld[ild][0]);
+            }
+            else
+            {
+              /* Compute the error E_infinity. */
+              err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+                ld[ild][0]);
+            }
           }
 
           /* Print out the error measurements. */

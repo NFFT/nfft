@@ -53,6 +53,21 @@ AC_ARG_WITH(
     ],
     [AM_CONDITIONAL(WITH_TESTS,false)])
 
+AC_CHECK_HEADERS(gsl/gsl_sf_bessel.h,[found_gsl=true],[found_gsl=false])
+if test "$found_gsl" = "true"; then
+  AC_CHECK_LIB(gsl,gsl_sf_bessel_il_scaled_array,[found_gsl=true],[found_gsl=false],[-lgslcblas])
+  if test "$found_gsl" = "true"; then
+    AM_CONDITIONAL(WITH_FASTSUMS2,true)
+  else
+    AC_MSG_NOTICE([Couldn't find GSL library. FastsumS2 example won't be compiled.])
+    AM_CONDITIONAL(WITH_FASTSUMS2,false)
+  fi
+else
+  AC_MSG_NOTICE([Couldn't find GSL library headers. FastsumS2 example won't be compiled.])
+  AM_CONDITIONAL(WITH_FASTSUMS2,false)
+fi
+
+
 
 # The output files to be generated
 AC_OUTPUT(Makefile \

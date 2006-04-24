@@ -8,7 +8,7 @@ function C = readTestcase(file)
     % Use NFSFT
     v = fscanf(file,'%d',1);
     T.usenfsft = [v];
-    if (T.usenfsft == 1)
+    if (T.usenfsft >= 1)
       % Use NFFT
       v = fscanf(file,'%d',1);
       T.usenfft = [v];

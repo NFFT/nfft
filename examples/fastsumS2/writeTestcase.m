@@ -1,7 +1,7 @@
 function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,parameters,bandwidths,nodes)
   % Use NFSFT
   fprintf(file,'nfsft=%d\n',usenfsft);
-  if (usenfsft == 1)
+  if (usenfsft >= 1)
     % Use NFFT
     fprintf(file,'nfft=%d\n',usenfft);
     if (usenfft == 1)

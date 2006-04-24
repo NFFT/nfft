@@ -358,7 +358,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     gamma_al_all(wisdom.gamma,wisdom.N_MAX);
   }
 
-  /* Check, if precomputation for direct algorithms needs to be performed. */
+  /* Check, if precomputation for fast algorithms needs to be performed. */
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
   }
@@ -371,7 +371,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     {
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
-      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
+      wisdom.set = fpt_init(wisdom.N_MAX, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
@@ -388,7 +388,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       wisdom.alpha = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
+      wisdom.set = fpt_init(wisdom.N_MAX, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
