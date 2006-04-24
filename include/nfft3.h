@@ -2226,23 +2226,6 @@ void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 #define NFSFT_NO_FAST_ALGORITHM      (1U << 14)
 
 /**
- * If this flag is set, the fast transforms \ref nfsft_trafo and
- * \ref nfsft_adjoint only
- * work in a defined bandwidth window. If \f$N_{\text{max}}\f$ is the power of
- * two up to which precomputation is performed, only fast transformations for
- * bandwidths \f$N\f$ with \f$N_{\text{max}}/2 < N \le N_{\text{max}}\f$ will
- * work. The direct but usually slow transforms \ref ndsft_trafo and
- * \ref ndsft_adjoint are unaffected. Setting this flag saves memory for
- * precomputed data.
- *
- * \see nfsft_precompute
- * \see nfsft_trafo
- * \see nfsft_adjoint
- * \author Jens Keiner
- */
-#define NFSFT_BANDWIDTH_WINDOW       (1U << 15)
-
-/**
  * If this flag is set, the transforms \ref nfsft_adjoint and
  * \ref ndsft_adjoint set all unused entries in \c f_hat not corresponding to
  * spherical Fourier coefficients to zero.
@@ -2345,7 +2328,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
  *
  * \author Jens Keiner
  */
-void nfsft_precompute(int N, double kappa, unsigned int flags);
+void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
+  unsigned int fpt_flags);
 
 /**
  * Forgets all precomputed data.
@@ -2436,11 +2420,11 @@ void nfsft_precompute_x(nfsft_plan *plan);
  */
 
 /* Flags for fpt_init() */
+#define FPT_NO_FAST_ALGORITHM (1U << 2) /**< If set, TODO complete comment.   */
+#define FPT_NO_DIRECT_ALGORITHM (1U << 3) /**< If set, TODO complete comment.   */
 #define FPT_NO_STABILIZATION  (1U << 0) /**< If set, no stabilization will be
                                              used.                            */
-#define FPT_BANDWIDTH_WINDOW  (1U << 1) /**< If set, TODO complete comment.   */
-#define FPT_NO_FAST_TRANSFORM (1U << 2) /**< If set, TODO complete comment.   */
-#define FPT_NO_SLOW_TRANSFORM (1U << 3) /**< If set, TODO complete comment.   */
+
 #define FPT_PERSISTENT_DATA   (1U << 4) /**< If set, TODO complete comment.   */
 
 /* Flags for fpt_trafo(), dpt_transposed(), fpt_trafo(), fpt_transposed() */
@@ -2448,7 +2432,6 @@ void nfsft_precompute_x(nfsft_plan *plan);
                                              values at Chebyshev nodes rather
                                              than Chebyshev coefficients.     */
 #define FPT_AL_SYMMETRY       (1U << 6) /**< TODO Don't use this flag!        */
-#define FPT_NEW_STABILIZATION (1U << 7) /**< TODO Don't use this flag!        */
 
 /* Data structures */
 typedef struct fpt_set_s_ *fpt_set;     /**< A set of precomputed data for a
@@ -2465,7 +2448,6 @@ typedef struct fpt_set_s_ *fpt_set;     /**< A set of precomputed data for a
  * \arg t The exponent \f$t \in \mathbb{N}, t \ge 2\f$ of the transform length
  *        \f$N = 2^t \in \mathbb{N}, N \ge 4\f$
  * \arg flags A bitwise combination of the flags FPT_NO_STABILIZATION,
- *            FPT_BANDWIDTH_WINDOW
  *
  * \author Jens Keiner
  */

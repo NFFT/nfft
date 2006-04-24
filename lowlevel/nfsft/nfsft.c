@@ -315,7 +315,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
 }
 
-void nfsft_precompute(int N, double kappa, unsigned int flags)
+void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
+  unsigned int fpt_flags)
 {
   int k; /*< The degree k                                                     */
   int n; /*< The order n                                                      */
@@ -327,7 +328,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
   }
 
   /* Save the precomputation flags. */
-  wisdom.flags = flags;
+  wisdom.flags = nfsft_flags;
 
   /* Compute and save N_max = 2^{\ceil{log_2 N}} as next greater
    * power of two with respect to N. */
@@ -363,7 +364,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
   }
   else if (wisdom.N_MAX >= NFSFT_BREAK_EVEN)
   {
-    /* Precompute data for FPT. */
+    /* Precompute data for DPT/FPT. */
 
     /* Check, if recursion coefficients have already been calculated. */
     if (wisdom.alpha != NULL)
@@ -371,8 +372,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
-        ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
-        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         fprintf(stderr,"%d\n",n);
@@ -389,8 +389,7 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
       wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.set = fpt_init(wisdom.N_MAX+1,wisdom.T_MAX,
-        ((flags & NFSFT_BANDWIDTH_WINDOW)?(FPT_BANDWIDTH_WINDOW):(0U)) |
-        FPT_NO_SLOW_TRANSFORM | FPT_AL_SYMMETRY);
+        fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
         fprintf(stderr,"%d NO_DIRECT\n",n);
@@ -417,7 +416,6 @@ void nfsft_precompute(int N, double kappa, unsigned int flags)
   /* Wisdom has been initialised. */
   wisdom.initialized = true;
 }
-
 
 void nfsft_forget()
 {
@@ -456,6 +454,7 @@ void nfsft_forget()
   /* Wisdom is now uninitialised. */
   wisdom.initialized = false;
 }
+
 
 void nfsft_finalize(nfsft_plan *plan)
 {
@@ -509,6 +508,11 @@ void ndsft_trafo(nfsft_plan *plan)
   complex f_m;   /*< The final function value f_m = f(x_m) for a single node. */
   double stheta; /*< Current angle theta for Clenshaw algorithm               */
   double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
+
+  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
+  {
+    return;
+  }
 
   /* Copy spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
@@ -633,6 +637,11 @@ void ndsft_adjoint(nfsft_plan *plan)
   double stheta; /*< Current angle theta for Clenshaw algorithm               */
   double sphi;   /*< Current angle phi for Clenshaw algorithm                 */
 
+  if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
+  {
+    return;
+  }
+
   /* Initialise spherical Fourier coefficients array with zeros. */
   memset(plan->f_hat,0U,plan->N_total*sizeof(complex));
 
@@ -735,6 +744,11 @@ void nfsft_trafo(nfsft_plan *plan)
     t_nfft = 0.0;
   #endif
 
+  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    return;
+  }
+
   /* Check, if precomputation was done and that the bandwidth N is not too
    * big.
    */
@@ -751,8 +765,7 @@ void nfsft_trafo(nfsft_plan *plan)
   }
 
   /* Check for correct value of the bandwidth N. */
-  else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U ||
-    plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
+  else if (plan->N <= wisdom.N_MAX)
   {
     /* Copy spherical Fourier coefficients, if necessary. */
     if (plan->flags & NFSFT_PRESERVE_F_HAT)
@@ -841,6 +854,11 @@ void nfsft_adjoint(nfsft_plan *plan)
   int k; /*< The degree k                                                     */
   int n; /*< The order n                                                      */
 
+  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    return;
+  }
+
   /* Check, if precomputation was done and that the bandwidth N is not too
    * big.
    */
@@ -856,8 +874,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     ndsft_adjoint(plan);
   }
   /* Check for correct value of the bandwidth N. */
-  else if (((wisdom.flags & NFSFT_BANDWIDTH_WINDOW) == 0U ||
-    plan->N > (wisdom.N_MAX>>1)) && plan->N <= wisdom.N_MAX)
+  else if (plan->N <= wisdom.N_MAX)
   {
     //fprintf(stderr,"nfsft_adjoint: Starting\n");
     //fflush(stderr);

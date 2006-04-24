@@ -131,7 +131,7 @@ double locallySupportedKernel(const double x, const double h,
  */
 double gaussianKernel(const double x, const double sigma)
 {
-   return exp(2*sigma*(x-1));
+   return exp(sigma*(x-1));
 }
 
 
@@ -145,81 +145,81 @@ double gaussianKernel(const double x, const double sigma)
  */
 int main (int argc, char **argv)
 {
-  double **p;                  /**< The array containing the parameter sets   *
-                                    for the kernels.                          */
-  int *m;                      /**< The array containing the cut-off degrees  *
-                                    \f$M\f$.                                  */
-  int **ld;                    /**< The array containing the numbers of       *
-                                    source and target nodes, \f$L \in         *
-                                    \mathbb{N}\f$ and \f$D \in \mathbb{N}\f$, *
-                                    respectively.                             */
-  int ip;                      /**< Index variable for \code p                */
-  int im;                      /**< Index variable for \code m                */
-  int ild;                     /**< Index variable for \code l                */
-  int ipp;                     /**< Index for kernel parameters               */
-  int ip_max;                  /**< The maximum index for \code p             */
-  int im_max;                  /**< The maximum index for \code m             */
-  int ild_max;                 /**< The maximum index for \code l             */
-  int ipp_max;                 /**< The maximum index for \code ipp           */
-  int tc_max;                  /**< The number of testcases                   */
-  int m_max;                   /**< The maximum cut-off degree \f$M\f$ for the*
-                                    current dataset                           */
-  int l_max;                   /**< The maximum number of source nodes        *
-                                    \f$L\f$ for the current dataset           */
-  int d_max;                   /**< The maximum number of target nodes \f$D\f$*
-                                    for the current dataset                   */
-  long ld_max_prec;            /**< The maximum number of source and target   *
-                                    nodes for precomputation multiplied       */
-  long l_max_prec;             /**< The maximum number of source nodes for    *
-                                    precomputation                            */
-  int tc;                      /**< Index variable for testcases              */
-  int kt;                      /**< The kernel type                           */
-  int cutoff;                  /**< The current NFFT cut-off parameter        */
-  double threshold;            /**< The current NFSFT threshold parameter     */
-  int n_max;                   /**< Next greater power of two with respect to *
-                                    m_max                                     */
-  double t_d;                  /**< Time for direct algorithm in seconds      */
-  double t_dp;                 /**< Time for direct algorithm with
-                                    precomputation in seconds                 */
-  double t_fd;                 /**< Time for fast direct algorithm in seconds */
-  double t_f;                  /**< Time for fast algorithm in seconds        */
-  double nfactor;              /**< */
-  double temp;                 /**< */
-  double err_f;                /**< Error \f$E_\infty\f$ for fast algorithm   */
-  double err_fd;               /**< Error \f$E_\infty\f$ for fast direct      *
-                                    algorithm                                 */
-  double t;                    /**< */
-  int precompute = NO;         /**< */
-  complex *ptr;                /**< */
-  double* steed;               /**< */
-  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}     *
-                                    ^{L-1}\f$                                 */
-  complex *f_hat;              /**< The spherical Fourier coefficients        */
-  complex *a;                  /**< The Fourier-Legendre coefficients         */
-  double *xi;                  /**< Target nodes                              */
-  double *eta;                 /**< Source nodes                              */
-  complex *f_m;                /**< Approximate function values               */
-  complex *f;                  /**< Exact function values                     */
-  complex *prec;               /**< */
-  nfsft_plan plan;             /**< NFSFT plan                                */
-  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                        */
-  int i;                       /** */
-  int j;                       /** */
-  int k;                       /** */
-  int n;                       /** */
-  int d;                       /** */
-  int l;                       /** */
-  int use_nfsft;               /** */
-  int use_nfft;                /** */
-  int use_fpt;                 /** */
-  int nsymbols;                /** */
-  long index;                  /** */
-  int rinc;                    /** */
-  FILE *file_gaussian;         /** */
-  char filename_tex[100];      /** */
-  char filename_dat[100];      /** */
-  char filename_gaussian[100]; /** */
-  double constant;             /** */
+  double **p;                  /**< The array containing the parameter sets        *
+                                    for the kernels.                               */
+  int *m;                      /**< The array containing the cut-off degrees       *
+                                    \f$M\f$.                                       */
+  int **ld;                    /**< The array containing the numbers of            *
+                                    source and target nodes, \f$L \in              *
+                                    \mathbb{N}\f$ and \f$D \in \mathbb{N}\f$,      *
+                                    respectively.                                  */
+  int ip;                      /**< Index variable for \code p                     */
+  int im;                      /**< Index variable for \code m                     */
+  int ild;                     /**< Index variable for \code l                     */
+  int ipp;                     /**< Index for kernel parameters                    */
+  int ip_max;                  /**< The maximum index for \code p                  */
+  int im_max;                  /**< The maximum index for \code m                  */
+  int ild_max;                 /**< The maximum index for \code l                  */
+  int ipp_max;                 /**< The maximum index for \code ipp                */
+  int tc_max;                  /**< The number of testcases                        */
+  int m_max;                   /**< The maximum cut-off degree \f$M\f$ for the     *
+                                    current dataset                                */
+  int l_max;                   /**< The maximum number of source nodes             *
+                                    \f$L\f$ for the current dataset                */
+  int d_max;                   /**< The maximum number of target nodes \f$D\f$     *
+                                    for the current dataset                        */
+  long ld_max_prec;            /**< The maximum number of source and target        *
+                                    nodes for precomputation multiplied            */
+  long l_max_prec;             /**< The maximum number of source nodes for         *
+                                    precomputation                                 */
+  int tc;                      /**< Index variable for testcases                   */
+  int kt;                      /**< The kernel type                                */
+  int cutoff;                  /**< The current NFFT cut-off parameter             */
+  double threshold;            /**< The current NFSFT threshold parameter          */
+  int n_max;                   /**< Next greater power of two with respect to      *
+                                    m_max                                          */
+  double t_d;                  /**< Time for direct algorithm in seconds           */
+  double t_dp;                 /**< Time for direct algorithm with                 *
+                                    precomputation in seconds                      */
+  double t_fd;                 /**< Time for fast direct algorithm in seconds      */
+  double t_f;                  /**< Time for fast algorithm in seconds             */
+  double nfactor;              /**<                                                */
+  double temp;                 /**<                                                */
+  double err_f;                /**< Error \f$E_\infty\f$ for fast algorithm        */
+  double err_fd;               /**< Error \f$E_\infty\f$ for fast direct           *
+                                    algorithm                                      */
+  double t;                    /**<                                                */
+  int precompute = NO;         /**<                                                */
+  complex *ptr;                /**<                                                */
+  double* steed;               /**<                                                */
+  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}          *
+                                    ^{L-1}\f$                                      */
+  complex *f_hat;              /**< The spherical Fourier coefficients             */
+  complex *a;                  /**< The Fourier-Legendre coefficients              */
+  double *xi;                  /**< Target nodes                                   */
+  double *eta;                 /**< Source nodes                                   */
+  complex *f_m;                /**< Approximate function values                    */
+  complex *f;                  /**< Exact function values                          */
+  complex *prec;               /**<                                                */
+  nfsft_plan plan;             /**< NFSFT plan                                     */
+  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                             */
+  int i;                       /**                                                 */
+  int j;                       /**                                                 */
+  int k;                       /**                                                 */
+  int n;                       /**                                                 */
+  int d;                       /**                                                 */
+  int l;                       /**                                                 */
+  int use_nfsft;               /**                                                 */
+  int use_nfft;                /**                                                 */
+  int use_fpt;                 /**                                                 */
+  int nsymbols;                /**                                                 */
+  long index;                  /**                                                 */
+  int rinc;                    /**                                                 */
+  FILE *file_gaussian;         /**                                                 */
+  char filename_tex[100];      /**                                                 */
+  char filename_dat[100];      /**                                                 */
+  char filename_gaussian[100]; /**                                                 */
+  double constant;             /**                                                 */
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -406,8 +406,8 @@ int main (int argc, char **argv)
     }
 
     /* Do precomputation. */
-    nfsft_precompute(m_max,threshold, 0U |
-      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)));
+    nfsft_precompute(m_max,threshold,
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(NFSFT_NO_DIRECT_ALGORITHM)), 0U);
 
     /* Process all parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
@@ -506,55 +506,59 @@ int main (int argc, char **argv)
             /* Initialize cumulative time variable. */
             t_dp = 0.0;
 
+            /* Get pointer to start of data. */
+            ptr = prec;
+            /* Calculate increment from one row to the next. */
+            rinc = l_max_prec-ld[ild][0];
+
+            /* Process al target nodes. */
+            for (d = 0; d < ld[ild][1]; d++)
+            {
+              /* Process all source nodes. */
+              for (l = 0; l < ld[ild][0]; l++)
+              {
+                /* Compute inner product between current source and target
+                 * node. */
+                temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                  2*PI*xi[2*d],2*PI*xi[2*d+1]);
+
+                /* Switch by the kernel type. */
+                switch (kt)
+                {
+                  case KT_ABEL_POISSON:
+                    /* Evaluate the Poisson kernel for the current value. */
+                    *ptr++ = poissonKernel(temp,p[ip][0]);
+                   break;
+
+                  case KT_SINGULARITY:
+                    /* Evaluate the singularity kernel for the current
+                     * value. */
+                    *ptr++ = singularityKernel(temp,p[ip][0]);
+                    break;
+
+                  case KT_LOC_SUPP:
+                     /* Evaluate the localized kernel for the current
+                      * value. */
+                    *ptr++ = locallySupportedKernel(temp,p[ip][0],p[ip][1]);
+                    break;
+
+                  case KT_GAUSSIAN:
+                     /* Evaluate the spherical Gaussian kernel for the current
+                      * value. */
+                    *ptr++ = gaussianKernel(temp,p[ip][0]);
+                     break;
+                }
+              }
+              /* Increment pointer for next row. */
+              ptr += rinc;
+            }
+
+            /* Initialize time measurement. */
+            t = second();
+
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
             {
-              /* Get pointer to start of data. */
-              ptr = prec;
-              /* Calculate increment from one row to the next. */
-              rinc = l_max_prec-ld[ild][0];
-
-              /* Process al target nodes. */
-              for (d = 0; d < ld[ild][1]; d++)
-              {
-                /* Process all source nodes. */
-                for (l = 0; l < ld[ild][0]; l++)
-                {
-                  /* Compute inner product between current source and target
-                   * node. */
-                  temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                    2*PI*xi[2*d],2*PI*xi[2*d+1]);
-
-                  /* Switch by the kernel type. */
-                  switch (kt)
-                  {
-                    case KT_ABEL_POISSON:
-                      /* Evaluate the Poisson kernel for the current value. */
-                      *ptr++ = poissonKernel(temp,p[ip][0]);
-                     break;
-
-                    case KT_SINGULARITY:
-                      /* Evaluate the singularity kernel for the current
-                       * value. */
-                      *ptr++ = singularityKernel(temp,p[ip][0]);
-                      break;
-
-                    case KT_LOC_SUPP:
-                       /* Evaluate the localized kernel for the current
-                        * value. */
-                      *ptr++ = locallySupportedKernel(temp,p[ip][0],p[ip][1]);
-                      break;
-
-                    case KT_GAUSSIAN:
-                       /* Evaluate the spherical Gaussian kernel for the current
-                        * value. */
-                      *ptr++ = gaussianKernel(temp,p[ip][0]);
-                       break;
-                  }
-                }
-                /* Increment pointer for next row. */
-                ptr += rinc;
-              }
 
               /* Reset pointer to start of precomputed data. */
               ptr = prec;
@@ -568,9 +572,6 @@ int main (int argc, char **argv)
 
                 /* Calculate the multiplicative constant. */
                 constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
-
-                /* Initialize time measurement. */
-                t = second();
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -590,15 +591,9 @@ int main (int argc, char **argv)
                   /* Proceed to next row. */
                   ptr += rinc;
                 }
-
-                /* Calculate the time needed. */
-                t_dp += second() - t;
               }
               else
               {
-                /* Initialize time measurement. */
-                t = second();
-
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
                 {
@@ -614,11 +609,11 @@ int main (int argc, char **argv)
                   /* Proceed to next row. */
                   ptr += rinc;
                 }
-
-                /* Calculate and add the time needed. */
-                t_dp += second() - t;
               }
             }
+
+            /* Calculate the time needed. */
+            t_dp += second() - t;
 
             /* Calculate average time needed. */
             t_dp = t_dp/((double)ld[ild][4]);
@@ -781,13 +776,13 @@ int main (int argc, char **argv)
           /* Init transform plans. */
           nfsft_init_guru(&plan_adjoint, m[im],ld[ild][0],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
-            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)), 
-            ((m[im]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+            ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
+            PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
             FFT_OUT_OF_PLACE, cutoff);
           nfsft_init_guru(&plan,m[im],ld[ild][1],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
-            ((m[im]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
+            PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
             FFT_OUT_OF_PLACE,
              cutoff);
           plan_adjoint.f_hat = f_hat;
@@ -796,8 +791,8 @@ int main (int argc, char **argv)
           plan.f_hat = f_hat;
           plan.x = xi;
           plan.f = f_m;
-          /*nfsft_precompute_x(&plan_adjoint);
-          nfsft_precompute_x(&plan);*/
+          nfsft_precompute_x(&plan_adjoint);
+          nfsft_precompute_x(&plan);
 
           /* Check if direct algorithm shall also be tested. */
           if (use_nfsft == BOTH)
@@ -922,6 +917,12 @@ int main (int argc, char **argv)
                   ld[ild][0]);
               }
             }
+
+            /*for (d = 0; d < ld[ild][1]; d++)
+            {
+              fprintf(stderr,"f_ref[%d] = %le + I*%le, f[%d] = %le + I*%le\n",
+                d,creal(f[d]),cimag(f[d]),d,creal(f_m[d]),cimag(f_m[d]));
+            }*/
           }
 
           /* Check if the fast NFSFT algorithm has been used. */
@@ -937,8 +938,10 @@ int main (int argc, char **argv)
           }
 
           /* Print out the error measurements. */
-          fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n",t_d,t_dp,t_fd,t_f,err_fd,
+          fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n\n",t_d,t_dp,t_fd,t_f,err_fd,
             err_f);
+          fprintf(stderr,"%d: %e\t%e\t%e\t%e\t%e\t%e\n",m[im],t_d,t_dp,t_fd,t_f,
+            err_fd,err_f);
 
           /* Finalize the NFSFT plans */
           nfsft_finalize(&plan_adjoint);

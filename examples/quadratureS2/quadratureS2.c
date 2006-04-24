@@ -197,6 +197,10 @@ int main (int argc, char **argv)
       fscanf(stdin,"bandlimit=%d\n",&N);
       fprintf(stdout,"%d\n",N);
     }
+    else
+    {
+      N = 1;
+    }
 
     /* Read the number of repetitions. */
     fscanf(stdin,"repetitions=%d\n",&repetitions);
@@ -227,8 +231,8 @@ int main (int argc, char **argv)
     /* Do precomputation. */
     //fprintf(stderr,"NFSFT Precomputation\n");
     //fflush(stderr);
-    nfsft_precompute(NQ_max, threshold, NFSFT_BANDWIDTH_WINDOW |
-      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(NFSFT_NO_DIRECT_ALGORITHM)));
+    nfsft_precompute(NQ_max, threshold,
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(NFSFT_NO_DIRECT_ALGORITHM)), 0U);
 
     //fprintf(stderr,"Entering loop\n");
     //fflush(stderr);
@@ -534,7 +538,7 @@ int main (int argc, char **argv)
           x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
           x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
           x3 = cos(x[2*d+1]*2.0*PI);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = x1*x2*x3;
           }
@@ -543,7 +547,7 @@ int main (int argc, char **argv)
           x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
           x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
           x3 = cos(x[2*d+1]*2.0*PI);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = 0.1*exp(x1+x2+x3);
           }
@@ -552,7 +556,7 @@ int main (int argc, char **argv)
           x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
           x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
           x3 = cos(x[2*d+1]*2.0*PI);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = 0.1*abs(x1)+abs(x2)+abs(x3);
           }
@@ -561,7 +565,7 @@ int main (int argc, char **argv)
           x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
           x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
           x3 = cos(x[2*d+1]*2.0*PI);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = 1.0/(abs(x1)+abs(x2)+abs(x3));
           }
@@ -570,7 +574,7 @@ int main (int argc, char **argv)
           x1 = sin(x[2*d+1]*2.0*PI)*cos(x[2*d]*2.0*PI);
           x2 = sin(x[2*d+1]*2.0*PI)*sin(x[2*d]*2.0*PI);
           x3 = cos(x[2*d+1]*2.0*PI);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = 0.1*sin(1+abs(x1)+abs(x2)+abs(x3))*
               sin(1+abs(x1)+abs(x2)+abs(x3));
@@ -580,7 +584,7 @@ int main (int argc, char **argv)
         default:
           //fprintf(stderr,"Generating one function\n");
           //fflush(stderr);
-          for (d = 0; k < m_total; d++)
+          for (d = 0; d < m_total; d++)
           {
             f_ref[d] = 1.0;
           }

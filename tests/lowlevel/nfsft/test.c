@@ -110,7 +110,7 @@ void test_ndsft_trafo(void)
       fscanf(file,"%d",&M);
       fprintf(stdout,", M = %5d ...",M);
       /* Precompute. */
-      nfsft_precompute(N, THRESHOLD, NFSFT_BANDWIDTH_WINDOW);
+      nfsft_precompute(N, THRESHOLD, 0U, 0U);
       /* Initialise plan. */
       nfsft_init_guru(&plan,N,M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED /*| NFSFT_USE_NDFT*/,
@@ -268,7 +268,7 @@ void test_ndsft_adjoint(void)
       fprintf(stdout,", M = %5d ...",M);
 
       /* Precompute. */
-      nfsft_precompute(N,THRESHOLD,0U);
+      nfsft_precompute(N,THRESHOLD,0U,0U);
 
       /* Initialise plan. */
       nfsft_init_advanced(&plan,N,M, NFSFT_MALLOC_X |

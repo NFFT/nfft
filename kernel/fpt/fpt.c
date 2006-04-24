@@ -641,7 +641,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->result = (complex*) malloc((2*set->N)*sizeof(complex));
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_ALGORITHM)
   {
   }
   else
@@ -681,7 +681,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     set->kindsr = NULL;
   }
 
-  if (set->flags & FPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
   }
   else
@@ -750,7 +750,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   data->k_start = k_start;
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_ALGORITHM)
   {
   }
   else
@@ -959,7 +959,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     }
   }
 
-  if (set->flags & FPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
   }
   else
@@ -999,7 +999,7 @@ void dpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
   next_power_of_2_exp(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
-  if (set->flags & FPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
     return;
   }
@@ -1040,7 +1040,6 @@ void dpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
     memcpy(y,set->result,(k_end+1)*sizeof(complex));
   }
 }
-
 
 void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
   const int k_end, const unsigned int flags)
@@ -1091,7 +1090,7 @@ void fpt_trafo(fpt_set set, const int m, const complex *x, complex *y,
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_ALGORITHM)
   {
     return;
   }
@@ -1313,7 +1312,7 @@ void dpt_transposed(fpt_set set, const int m, complex *x, const complex *y,
   next_power_of_2_exp(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
-  if (set->flags & FPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
     return;
   }
@@ -1394,7 +1393,7 @@ void fpt_transposed(fpt_set set, const int m, complex *x, const complex *y,
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_ALGORITHM)
   {
     return;
   }
@@ -1606,7 +1605,7 @@ void fpt_finalize(fpt_set set)
       data->steps = NULL;
     }
 
-    if (set->flags & FPT_NO_SLOW_TRANSFORM)
+    if (set->flags & FPT_NO_DIRECT_ALGORITHM)
     {
     }
     else
@@ -1645,7 +1644,7 @@ void fpt_finalize(fpt_set set)
   free(set->result);
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_TRANSFORM)
+  if (set->flags & FPT_NO_FAST_ALGORITHM)
   {
   }
   else
@@ -1677,7 +1676,7 @@ void fpt_finalize(fpt_set set)
 
   //fprintf(stderr,"fpt_finalize: flags = %d\n",set->flags);
 
-  if (set->flags & FPT_NO_SLOW_TRANSFORM)
+  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
   }
   else

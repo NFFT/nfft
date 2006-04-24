@@ -22,7 +22,7 @@ void simple_test_nfsft()
                                    procedure.                                      */
 
   /* Precompute. */
-  nfsft_precompute(N,THRESHOLD,0U);
+  nfsft_precompute(N,THRESHOLD,0U,0U);
 
   /* Init a transform plan using the guru interface. All arrays for input and
    * output variables are allocated by nfsft_init_guru(). Computations are
@@ -31,7 +31,7 @@ void simple_test_nfsft()
    * transformations. The internal NFFT uses a cut-off parameter of 6.
    */
   nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT, 
+    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
     ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
     FFT_OUT_OF_PLACE, 6);
 

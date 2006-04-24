@@ -27,7 +27,7 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,para
   end
   % Number of bandwidths
   bandwidths
-  fprintf(file,'bandwidths=%d\n',length(bandwidths(:,1)));
+  fprintf(file,'bandwidths=%d\n',length(bandwidths));
   % Bandwidths
   fprintf(file,'%d\n',bandwidths);
   % Node sets
