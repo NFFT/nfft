@@ -1,13 +1,26 @@
-	sfft - SPherical Fourier transform of regularly and irregularly sampled data
+NFFT3 - Nonequispaced FFT and its generalisation, inversion, and application
 
+ Copyright (C) 2002-2006 Daniel Potts
 
+ The NFFT package was developed at the Mathematical Institute, University of
+ Luebeck, and at the Faculty of Mathematics, Chemnitz University of Technology.
 
-  Copyright (C) 2004 Jens Keiner
+This is the README file for NFFT3, a C library that implements
+ 1) the nonequispaced fast Fourier transform (nfft)
+ 2) generalisations to NFFTs
+    - on the sphere (nfsft)
+    - on the hyperbolic cross (nsfft)
+    - for real-valued data, i.e. (co)sine transforms, (nfct, nfst)
+ 3) their generalised inverses
+ 4) applications to
+    - magnetic resonance imaging
+    - summation schemes (fast Gauss transform, singular kernels, zonal kernels)
+    - polar FFT, discrete Radon transform, ridgelet transform
 
-  sfft is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+ NFFT3 is free software;
+  You can redistribute it and/or modify it under the terms of the GNU General
+  Public License as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
 
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,5 +32,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Comments are welcome.
+ This is the third version of the library and may not be as robust or well
+ documented as it should be. Please keep track of bugs or missing/confusing
+ instructions and report them to
 
-	- Jens Keiner <keiner@math.uni-luebeck.de>
+  Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
+   TU Chemnitz, Fakultaet für Mathematik
+   Reichenhainer Str. 39
+   09107 Chemnitz, GERMANY
+
+  Stefan Kunis           <kunis@mathematik.tu-chemnitz.de>
+  Jens Keiner            <keiner@math.uni-luebeck.de>

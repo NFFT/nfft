@@ -1,2 +1,32 @@
-Jens Keiner <keiner@math.uni-luebeck.de>
+Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
+ TU Chemnitz, Fakultaet für Mathematik
+ Reichenhainer Str. 39
+ 09107 Chemnitz, GERMANY
 
+Authors of project parts and applications/examples.
+
+Dr. Markus Fenn <Markus.Fenn@uni-mannheim.de>
+ - nfft on the hyperbolic cross (/lowlevel/nsfft)
+ - polar fft (/examples/polarFFT)
+ - discrete Radon transform and ridgelet transform (/examples/radon)
+ - fast summation (/examples/fastsum)
+
+Jens Keiner <keiner@math.uni-luebeck.de>
+ - fast polynomial transform (/kernel/fpt)
+ - nfft on the sphere (/lowlevel/nfsft)
+ - fast summation on the sphere (/examples/fastsumS2)
+
+Steffen Klatt <steffen.klatt@informatik.uni-luebeck.de>
+ - nonequispaced cosine transform (/kernel/nfct)
+ - nonequispaced sine transform (/kernel/nfst)
+
+Tobias Knopp <tobias.knopp@informatik.uni-luebeck.de>
+ - transforms in magnetic resonance imaging (/lowlevel/mri_inh)
+ - nonequispaced in time and frequency fft (/lowlevel/nnfft)
+ - reconstruction in magnetic resonance imaging (/examples/lowlevel/mri)
+
+Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+ - nfft (/kernel/nfft)
+ - nfft on the hyperbolic cross (/lowlevel/nsfft)
+ - inverse transforms (/solver)
+ - fast Gauss transform (/examples/fastgauss)
