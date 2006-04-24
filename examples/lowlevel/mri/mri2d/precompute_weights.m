@@ -25,8 +25,12 @@ for j= 1:length(kxy)
   x = V(C{j},1);
   y = V(C{j},2);
   lxy = length(x);
-  A = abs(sum(0.5*(x([2:lxy 1])-x(:)).* ...
+  if(lxy==0) % a knot exists more than one time
+    A=0;
+  else
+    A = abs(sum(0.5*(x([2:lxy 1])-x(:)).* ...
         (y([2:lxy 1]) + y(:))));
+  end
   area = [area A];
   min_distance = min((2*(x-kxy(j,1))).^2+(2*(y-kxy(j,2))).^2);
   max_distance = max([max_distance min_distance]);

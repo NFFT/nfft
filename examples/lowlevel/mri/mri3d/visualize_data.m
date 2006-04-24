@@ -33,5 +33,5 @@ figure(2*num_fig)
 file_out = [file 'row' '.png'];
 plot(1:N,A(:,N/2,Z/2));
 axis([1 N 0 1.2]);
-title([caption ' - The 64th row']);
+title([caption ' - The ' int2str(N/2) 'th row']);
 print('-djpeg',file_out);

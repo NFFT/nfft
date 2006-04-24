@@ -3,14 +3,22 @@
 
 void construct(char * file, int N, int M, int Z)
 {
-  int j,k,l;
+  int j,k,l;                /* some variables */
   double real;
-  nfft_plan my_plan;
-  FILE* fp;
-  FILE* fk;
+  nfft_plan my_plan;        /* plan for the three dimensional nfft  */
+  FILE* fp,*fk;
+  int my_N[3],my_n[3];      /* to init the nfft */
 
 
-  nfft_init_3d(&my_plan,Z,N,N,M);
+  /* initialise my_plan */
+  //nfft_init_3d(&my_plan,Z,N,N,M);
+  my_N[0]=Z; my_n[0]=ceil(Z*1.2);
+  my_N[1]=N; my_n[1]=ceil(N*1.2);
+  my_N[2]=N; my_n[2]=ceil(N*1.2);
+  nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,
+                      PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
+                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
+                      FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   fp=fopen("knots.dat","r");
    
