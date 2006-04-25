@@ -17,3 +17,11 @@ radon - Fast discrete NFFT-based Radon transform
 
   [2] M. Fenn, and J. Ma. Combined complex ridgelet shrinkage and total
       variation minimization. SIAM J. Sci. Comput., accepted.
+
+  [3] D. Potts, and G. Steidl, G. A new linogram algorithm for computerized 
+      tomography. IMA J. Numer. Anal. 21, 769-782, 2001
+
+  [4] D. Potts, and G. Steidl,  New Fourier reconstruction algorithms for 
+      computerized tomography. in: Proceedings of SPIE: Wavelet Applications 
+      in Signal and Image Processing VIII,A. Aldroubi,A.F. Laine,
+      M.A. Unser (Eds.), Vol.:4119, pages 13-23,   2000

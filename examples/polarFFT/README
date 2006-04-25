@@ -13,5 +13,8 @@ polarFFT
 
   Reference:
 
-  M. Fenn, S. Kunis, and D. Potts. A note on the polar FFT.
-  Appl. Comput. Harmon. Anal., submitted.
+ [1]  M. Fenn, S. Kunis, and D. Potts. A note on the polar FFT.
+      Appl. Comput. Harmon. Anal., submitted.
+
+ [2]  D. Potts, and G. Steidl, G. A new linogram algorithm for computerized 
+      tomography. IMA J. Numer. Anal. 21, 769-782, 2001
