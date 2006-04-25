@@ -71,43 +71,43 @@ typedef struct fastsum_plan_
 
 /** initialize fast summation plan
  *
- * \arg ths The pointer to a fastsum plan.
- * \arg d The dimension of the problem.
- * \arg N_total The number of source knots x.
- * \arg M_total The number of target knots y.
- * \arg kernel The kernel function.
- * \arg param The parameters for the kernel function.
- * \arg flags Fastsum flags.
- * \arg nn The expansion degree.
- * \arg m The cut-off parameter for the NFFT.
- * \arg p The degree of smoothness.
- * \arg eps_I The inner boundary.
- * \arg eps_B the outer boundary.
+ * \param ths The pointer to a fastsum plan.
+ * \param d The dimension of the problem.
+ * \param N_total The number of source knots x.
+ * \param M_total The number of target knots y.
+ * \param kernel The kernel function.
+ * \param param The parameters for the kernel function.
+ * \param flags Fastsum flags.
+ * \param nn The expansion degree.
+ * \param m The cut-off parameter for the NFFT.
+ * \param p The degree of smoothness.
+ * \param eps_I The inner boundary.
+ * \param eps_B the outer boundary.
  *
  */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B);
 
 /** finalize plan
  *
- * \arg ths The pointer to a fastsum plan.
+ * \param ths The pointer to a fastsum plan.
  */
 void fastsum_finalize(fastsum_plan *ths);
 
 /** direct summation
  *
- * \arg ths The pointer to a fastsum plan.
+ * \param ths The pointer to a fastsum plan.
  */
 void fastsum_exact(fastsum_plan *ths);
 
 /** sort source nodes, precompute Fourier coefficients, etc.
  *
- * \arg ths The pointer to a fastsum plan.
+ * \param ths The pointer to a fastsum plan.
  */
 void fastsum_precompute(fastsum_plan *ths);
 
 /** fast NFFT-based summation algorithm
  *
- * \arg ths The pointer to a fastsum plan.
+ * \param ths The pointer to a fastsum plan.
  */
 void fastsum_trafo(fastsum_plan *ths);
 

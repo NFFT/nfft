@@ -1,0 +1,19 @@
+radon - Fast discrete NFFT-based Radon transform
+
+  This folder includes simple C programs (radon.c, inverse_radon.c) for the
+  computation of a fast discrete NFFT-based Radon transform and its inverse.
+  Use the Matlab script file radon.m for a simple demonstration.
+
+  The Matlab script file ridgelet.m contains an example of denoising by hard
+  thresholding the discrete ridgelet coefficients of a noisy image. The
+  discrete ridgelet transform is based on the fast discrete NFFT-based Radon
+  transform.
+
+
+  References:
+
+  [1] M. Fenn. Fast Fourier Transform at Nonequispaced Nodes and Applications,
+      PhD Thesis, University of Mannheim, 2005.
+
+  [2] M. Fenn, and J. Ma. Combined complex ridgelet shrinkage and total
+      variation minimization. SIAM J. Sci. Comput., accepted.

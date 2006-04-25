@@ -1,0 +1,17 @@
+polarFFT
+
+  These are examples of the application of the NFFT for the computation of the
+
+  - polar FFT: polar_fft_test.c,
+
+  - modified polar FFT: mpolar_fft_test.c
+
+  - pseudopolar (linogram) FFT: linogram_fft_test.c.
+
+  Use the Matlab script file fft_test.m for a demonstration.
+
+
+  Reference:
+
+  M. Fenn, S. Kunis, and D. Potts. A note on the polar FFT.
+  Appl. Comput. Harmon. Anal., submitted.
