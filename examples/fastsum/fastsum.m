@@ -1,4 +1,4 @@
-function f=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
+function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 
 % f=fastsum(x,alpha,y,kernel,c,m,n,p)
 %
@@ -34,5 +34,7 @@ system(sprintf('./fastsum_matlab %d %d %d %d %d %d %s %e %e %e',d,N,M,n,m,p,kern
 
 %read result from file
 f2=load('f.dat');
-
 f=f2(:,1)+i*f2(:,2);
+
+f2=load('f_direct.dat');
+f_direct=f2(:,1)+i*f2(:,2);

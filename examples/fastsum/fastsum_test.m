@@ -22,7 +22,7 @@ n = 156;
 eps_I = p/n;
 eps_B = 1/16;
 
-%random points in circle of radius 0.25-eps_B/2
+%random source nodes in circle of radius 0.25-eps_B/2
 r = sqrt(rand(N,1))*(0.25-eps_B/2);
 phi = rand(N,1)*2*pi;
 x = [r.*cos(phi) r.*sin(phi)];
@@ -30,5 +30,10 @@ x = [r.*cos(phi) r.*sin(phi)];
 %random coefficients
 alpha = rand(N,1)+i*rand(N,1);
 
+%random target nodes in circle of radius 0.25-eps_B/2
+r = sqrt(rand(M,1))*(0.25-eps_B/2);
+phi = rand(M,1)*2*pi;
+y = [r.*cos(phi) r.*sin(phi)];
+
 %fast NFFT-based summation
-f = fastsum(x,alpha,x,kernel,c,m,n,p,eps_I,eps_B);
+[f,f_direct] = fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B);

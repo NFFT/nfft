@@ -161,19 +161,26 @@ int main(int argc, char **argv)
 
   /** write result to file */
   fid1=fopen("f.dat","w+");
+  fid2=fopen("f_direct.dat","w+");
   if (fid1==NULL)
   {
     printf("Fehler!\n");
     exit(-1);
   }
-  for (k=0; k<N; k++)
+  for (j=0; j<M; j++)
   {
-    temp=creal(my_fastsum_plan.f[k]);
+    temp=creal(my_fastsum_plan.f[j]);
     fprintf(fid1,"  % .16e",temp);
-    temp=cimag(my_fastsum_plan.f[k]);
+    temp=cimag(my_fastsum_plan.f[j]);
     fprintf(fid1,"  % .16e\n",temp);
+
+    temp=creal(direct[j]);
+    fprintf(fid2,"  % .16e",temp);
+    temp=cimag(direct[j]);
+    fprintf(fid2,"  % .16e\n",temp);
   }
   fclose(fid1);
+  fclose(fid2);
 
   /** finalise the plan */
   fastsum_finalize(&my_fastsum_plan);
