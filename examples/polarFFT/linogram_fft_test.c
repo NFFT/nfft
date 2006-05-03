@@ -306,7 +306,7 @@ int comparison_fft(FILE *fp, int N, int T, int R)
         if(m==3)
 	  fprintf(fp,"%d\t&\t&\t%1.1e&\t       &\t%d\t",N,t_fft,m);
 	else
-	  fprintf(fp,"  \t&\t&\t       &\t       &\t%\t",m);  
+	  fprintf(fp,"  \t&\t&\t       &\t       &\t%d\t",m);  
 
       printf("N=%d\tt_fft=%1.1e\tt_dft_linogram=%1.1e\tm=%d\t",N,t_fft,t_dft_linogram,m);              
    
@@ -340,8 +340,8 @@ int main(int argc,char **argv)
   int k;
   int max_i;                            /**< number of iterations             */
   int m;
-  double temp, E_max=0.0;
-  FILE *fp;
+  double temp1, temp2, E_max=0.0;
+  FILE *fp1, *fp2;
   char filename[30];
   int logN;
 
@@ -355,12 +355,12 @@ int main(int argc,char **argv)
 
     /** Hence, comparison of the FFTW, linogram FFT, and inverse linogram FFT */
     printf("\nHence, comparison FFTW, linogram FFT and inverse linogram FFT\n");
-    fp=fopen("linogram_comparison_fft.dat","w");
-    if (fp==NULL)
+    fp1=fopen("linogram_comparison_fft.dat","w");
+    if (fp1==NULL)
 	return(-1);
     for (logN=4; logN<=8; logN++)
-	comparison_fft(fp,(1U<< logN), 3*(1U<< logN), 3*(1U<< (logN-1)));
-    fclose(fp);
+	comparison_fft(fp1,(1U<< logN), 3*(1U<< logN), 3*(1U<< (logN-1)));
+    fclose(fp1);
 
     exit(-1);
   }
@@ -382,15 +382,18 @@ int main(int argc,char **argv)
   M=linogram_grid(T,R,x,w); printf("M=%d.\n",M);
 
   /** load data */
-  fp=fopen("input_data.dat","r");
-  if (fp==NULL)
+  fp1=fopen("input_data_r.dat","r");
+  fp2=fopen("input_data_i.dat","r");
+  if ((fp1==NULL) || (fp2==NULL))
     return(-1);
   for(k=0;k<N*N;k++)
   {
-    fscanf(fp,"%le ",&temp);
-    f_hat[k]=temp;
+    fscanf(fp1,"%le ",&temp1);
+    fscanf(fp2,"%le ",&temp2);
+    f_hat[k]=temp1+I*temp2;
   }
-  fclose(fp);
+  fclose(fp1);
+  fclose(fp2);
 
   /** direct linogram FFT */
       linogram_dft(f_hat,N,f_direct,T,R,m);
@@ -398,7 +401,7 @@ int main(int argc,char **argv)
 
   /** Test of the linogram FFT with different m */
   printf("\nTest of the linogram FFT: \n");
-  fp=fopen("linogram_fft_error.dat","w+");
+  fp1=fopen("linogram_fft_error.dat","w+");
   for (m=1; m<=12; m++)
   {
     /** fast linogram FFT */
@@ -409,16 +412,16 @@ int main(int argc,char **argv)
     //E_max=error_l_2_complex(f_direct,f,M);
 
     printf("m=%2d: E_max = %e\n",m,E_max);
-    fprintf(fp,"%e\n",E_max);
+    fprintf(fp1,"%e\n",E_max);
   }
-  fclose(fp);
+  fclose(fp1);
 
   /** Test of the inverse linogram FFT for different m in dependece of the iteration number*/
   for (m=3; m<=9; m+=3)
   {
     printf("\nTest of the inverse linogram FFT for m=%d: \n",m);
     sprintf(filename,"linogram_ifft_error%d.dat",m);
-    fp=fopen(filename,"w+");
+    fp1=fopen(filename,"w+");
     for (max_i=0; max_i<=20; max_i+=2)
     {
       /** inverse linogram FFT */
@@ -427,9 +430,9 @@ int main(int argc,char **argv)
       /** compute maximum error */
       E_max=error_l_infty_complex(f_hat,f_tilde,N*N);
       printf("%3d iterations: E_max = %e\n",max_i,E_max);
-      fprintf(fp,"%e\n",E_max);
+      fprintf(fp1,"%e\n",E_max);
     }
-    fclose(fp);
+    fclose(fp1);
   }
 
   /** free the variables */

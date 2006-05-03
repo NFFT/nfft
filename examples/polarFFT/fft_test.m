@@ -3,9 +3,11 @@ T=3*N; %T=5*N/2;
 R=3*N/2;
 
 
-f=phantom(N);
+f=fft2(phantom(N));
 %f=imresize(im2double(imread('trui.png')),N/256);
-save 'input_data.dat' f -ascii -double
+fr=real(f); fi=imag(f);
+save 'input_data_r.dat' fr -ascii -double
+save 'input_data_i.dat' fi -ascii -double
 
 
 system(sprintf('./polar_fft_test %d %d %d',N,T,R));

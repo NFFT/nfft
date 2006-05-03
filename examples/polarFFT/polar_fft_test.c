@@ -287,8 +287,8 @@ int main(int argc,char **argv)
   int k;
   int max_i;                            /**< number of iterations             */
   int m;
-  double temp, E_max=0.0;
-  FILE *fp;
+  double temp1, temp2, E_max=0.0;
+  FILE *fp1, *fp2;
   char filename[30];
 
   if( argc!=4 )
@@ -318,15 +318,18 @@ int main(int argc,char **argv)
   M=polar_grid(T,R,x,w); printf("M=%d.\n",M);
 
   /** load data */
-  fp=fopen("input_data.dat","r");
-  if (fp==NULL)
+  fp1=fopen("input_data_r.dat","r");
+  fp2=fopen("input_data_i.dat","r");
+  if (fp1==NULL)
     return(-1);
   for(k=0;k<N*N;k++)
   {
-    fscanf(fp,"%le ",&temp);
-    f_hat[k]=temp;
+    fscanf(fp1,"%le ",&temp1);
+    fscanf(fp2,"%le ",&temp2);
+    f_hat[k]=temp1+I*temp2;
   }
-  fclose(fp);
+  fclose(fp1);
+  fclose(fp2);
 
   /** direct polar FFT */
     polar_dft(f_hat,N,f_direct,T,R,m);
@@ -334,7 +337,7 @@ int main(int argc,char **argv)
 
   /** Test of the polar FFT with different m */
   printf("\nTest of the polar FFT: \n");
-  fp=fopen("polar_fft_error.dat","w+");
+  fp1=fopen("polar_fft_error.dat","w+");
   for (m=1; m<=12; m++)
   {
     /** fast polar FFT */
@@ -343,16 +346,16 @@ int main(int argc,char **argv)
     /** compute error of fast polar FFT */
     E_max=error_l_infty_complex(f_direct,f,M);
     printf("m=%2d: E_max = %e\n",m,E_max);
-    fprintf(fp,"%e\n",E_max);
+    fprintf(fp1,"%e\n",E_max);
   }
-  fclose(fp);
+  fclose(fp1);
 
   /** Test of the inverse polar FFT for different m in dependece of the iteration number*/
   for (m=3; m<=9; m+=3)
   {
     printf("\nTest of the inverse polar FFT for m=%d: \n",m);
     sprintf(filename,"polar_ifft_error%d.dat",m);
-    fp=fopen(filename,"w+");
+    fp1=fopen(filename,"w+");
     for (max_i=0; max_i<=100; max_i+=10)
     {
       /** inverse polar FFT */
@@ -368,9 +371,9 @@ int main(int argc,char **argv)
       */
        E_max=error_l_infty_complex(f_hat,f_tilde,N*N);
       printf("%3d iterations: E_max = %e\n",max_i,E_max);
-      fprintf(fp,"%e\n",E_max);
+      fprintf(fp1,"%e\n",E_max);
     }
-    fclose(fp);
+    fclose(fp1);
   }
 
   /** free the variables */
