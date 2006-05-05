@@ -1,4 +1,4 @@
-function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,gridtype,...
+function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,testmode,gridtype,...
   testfunction,repetitions,bandwidths)
 % $Id$
 %
@@ -37,19 +37,30 @@ if (usenfsft == 1)
   end
 end
 
-% Write grid type
-fprintf(file,'gridtype=%d\n',gridtype);
-% Write grid type
-fprintf(file,'testfunction=%d\n',testfunction(1));
-if (testfunction(1) == 0)
-  fprintf(file,'bandlimit=%d\n',testfunction(2));
+fprintf(file,'testmode=%d\n',testmode);
+
+if (testmode == 0)
+  % Write grid type
+  fprintf(file,'gridtype=%d\n',gridtype);
+  % Write grid type
+  fprintf(file,'testfunction=%d\n',testfunction(1));
+  if (testfunction(1) == 0)
+    fprintf(file,'bandlimit=%d\n',testfunction(2));
+  end
+  % Write number of repetitions
+  fprintf(file,'repetitions=%d\n',repetitions);
 end
-% Write number of repetitions
-fprintf(file,'repetitions=%d\n',repetitions);
+
 % Write number of bandwidths
 fprintf(file,'bandwidths=%d\n',size(bandwidths,2));
-% Write bandwidths
-fprintf(file,'%d %d\n',bandwidths);
+
+if (testmode == 0)
+  % Write bandwidths
+  fprintf(file,'%d %d\n',bandwidths);
+else
+  % Write bandwidths
+  fprintf(file,'%d %d %d\n',bandwidths);
+end
 
 % Check if we need to provide also quadrature weights. This is the case if
 % the Gauss-Legendre quadrature grid is used.

@@ -31,8 +31,10 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
-/* Include GSL header. */
-#include <gsl/gsl_sf_bessel.h>
+#ifdef WITH_FASTSUMS2_GAUSSIAN
+  /* Include GSL header. */
+  #include <gsl/gsl_sf_bessel.h>
+#endif
 
 
 /** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
@@ -50,8 +52,10 @@
 #define KT_SINGULARITY  (1)
 /** Locally supported kernel */
 #define KT_LOC_SUPP     (2)
-/** Gaussian kernel */
-#define KT_GAUSSIAN     (3)
+#ifdef WITH_FASTSUMS2_GAUSSIAN
+  /** Gaussian kernel */
+  #define KT_GAUSSIAN     (3)
+#endif
 
 /** Enumerations for parameter values */
 enum pvalue {NO = 0, YES = 1, BOTH = 2};
@@ -119,21 +123,22 @@ double locallySupportedKernel(const double x, const double h,
   return (x<=h)?(0.0):(pow((x-h),lambda));
 }
 
-/**
- * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
- * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
- *
- * \arg x The node \f$x \in [-1,1]\f$
- * \arg h The parameter \f$\sigma \in \mathbb{R}_+\f$
- *
- * \return The value of the pherical Gaussian kernel \f$G_\sigma(x)\f$ at the
- *   node \f$x\f$
- */
-double gaussianKernel(const double x, const double sigma)
-{
-   return exp(2.0*sigma*(x-1));
-}
-
+#ifdef WITH_FASTSUMS2_GAUSSIAN
+  /**
+   * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
+   * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
+   *
+   * \arg x The node \f$x \in [-1,1]\f$
+   * \arg h The parameter \f$\sigma \in \mathbb{R}_+\f$
+   *
+   * \return The value of the pherical Gaussian kernel \f$G_\sigma(x)\f$ at the
+   *   node \f$x\f$
+   */
+  double gaussianKernel(const double x, const double sigma)
+  {
+     return exp(2.0*sigma*(x-1));
+  }
+#endif
 
 /**
  * The main program.
@@ -456,19 +461,21 @@ int main (int argc, char **argv)
           }
           break;
 
-        case KT_GAUSSIAN:
-          /* Compute Fourier-Legendre coefficients for the locally supported
-           * kernel. */
-          steed = (double*) malloc((m_max+1)*sizeof(double));
-          gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
-          for (k = 0; k <= m_max; k++)
-          {
-            steed[k] *= 4.0*PI;
-            a[k] = steed[k];
-          }
+        #ifdef WITH_FASTSUMS2_GAUSSIAN
+          case KT_GAUSSIAN:
+            /* Compute Fourier-Legendre coefficients for the locally supported
+             * kernel. */
+            steed = (double*) malloc((m_max+1)*sizeof(double));
+            gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
+            for (k = 0; k <= m_max; k++)
+            {
+              steed[k] *= 4.0*PI;
+              a[k] = steed[k];
+            }
 
-          free(steed);
-          break;
+            free(steed);
+            break;
+        #endif
       }
 
       /* Normalize Fourier-Legendre coefficients. */
@@ -523,11 +530,13 @@ int main (int argc, char **argv)
                     *ptr++ = locallySupportedKernel(temp,p[ip][0],p[ip][1]);
                     break;
 
-                  case KT_GAUSSIAN:
-                     /* Evaluate the spherical Gaussian kernel for the current
-                      * value. */
-                    *ptr++ = gaussianKernel(temp,p[ip][0]);
-                     break;
+                  #ifdef WITH_FASTSUMS2_GAUSSIAN
+                    case KT_GAUSSIAN:
+                       /* Evaluate the spherical Gaussian kernel for the current
+                        * value. */
+                      *ptr++ = gaussianKernel(temp,p[ip][0]);
+                       break;
+                  #endif
                 }
               }
               /* Increment pointer for next row. */
@@ -693,26 +702,28 @@ int main (int argc, char **argv)
                 }
                 break;
 
-              case KT_GAUSSIAN:
-                /* Process all target nodes. */
-                for (d = 0; d < ld[ild][1]; d++)
-                {
-                  /* Initialize function value. */
-                  f[d] = 0.0;
-
-                  /* Process all source nodes. */
-                  for (l = 0; l < ld[ild][0]; l++)
+              #ifdef WITH_FASTSUMS2_GAUSSIAN
+                case KT_GAUSSIAN:
+                  /* Process all target nodes. */
+                  for (d = 0; d < ld[ild][1]; d++)
                   {
-                    /* Compute the inner product for the current source and
-                     * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
-                    /* Evaluate the Poisson kernel for the current value and add
-                     * to the result. */
-                    f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+                    /* Initialize function value. */
+                    f[d] = 0.0;
+
+                    /* Process all source nodes. */
+                    for (l = 0; l < ld[ild][0]; l++)
+                    {
+                      /* Compute the inner product for the current source and
+                       * target nodes. */
+                      temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                        2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                      /* Evaluate the Poisson kernel for the current value and add
+                       * to the result. */
+                      f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
+                    }
                   }
-                }
-                break;
+                  break;
+              #endif
             }
           }
 

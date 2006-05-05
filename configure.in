@@ -28,6 +28,22 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for library functions.
 
+# Check for GSL library used in the fastsumS2 example.
+AC_CHECK_HEADERS(gsl/gsl_sf_bessel.h,[found_gsl=true],[found_gsl=false])
+if test "$found_gsl" = "true"; then
+  AC_CHECK_LIB(gsl,gsl_sf_bessel_il_scaled_array,[found_gsl=true],[found_gsl=false],[-lgslcblas])
+  if test "$found_gsl" = "true"; then
+    AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,true)
+    AC_DEFINE(WITH_FASTSUMS2_GAUSSIAN, 1, "Compile fsatsumS2 with Gaussian kernel")
+  else
+    AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,false)
+    AC_MSG_NOTICE([Couldn't find GSL library. FastsumS2 example will be compiled without Gaussian kernel.])
+  fi
+else
+  AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,false)
+  AC_MSG_NOTICE([Couldn't find GSL library headers. FastsumS2 example will be compiled without Gaussian kernel.])
+fi
+
 # Checks for typedefs, structures, and compiler characteristics
 
 # Additional command-line options
@@ -37,37 +53,9 @@ AC_ARG_WITH(
     [--with-tests],
     [Compile with unit tests. Run 'make test' to execute the tests.]),
     [
-      AC_CHECK_HEADERS(CUnit/CUnit.h,[found_cunit=true],[found_cunit=false])
-      if test "$found_cunit" = "true"; then
-        AC_CHECK_LIB(cunit,CU_initialize_registry,[found_cunit=true],[found_cunit=false])
-        if test "$found_cunit" = "true"; then
-          AM_CONDITIONAL(WITH_TESTS,true)
-        else
-          AC_MSG_NOTICE([Couldn't find CUnit library. Tests won't be compiled.])
-          AM_CONDITIONAL(WITH_TESTS,false)
-        fi
-      else
-        AC_MSG_NOTICE([Couldn't find CUnit library headers. Tests won't be compiled.])
-        AM_CONDITIONAL(WITH_TESTS,false)
-      fi
+      AM_CONDITIONAL(WITH_TESTS,true)
     ],
     [AM_CONDITIONAL(WITH_TESTS,false)])
-
-AC_CHECK_HEADERS(gsl/gsl_sf_bessel.h,[found_gsl=true],[found_gsl=false])
-if test "$found_gsl" = "true"; then
-  AC_CHECK_LIB(gsl,gsl_sf_bessel_il_scaled_array,[found_gsl=true],[found_gsl=false],[-lgslcblas])
-  if test "$found_gsl" = "true"; then
-    AM_CONDITIONAL(WITH_FASTSUMS2,true)
-  else
-    AC_MSG_NOTICE([Couldn't find GSL library. FastsumS2 example won't be compiled.])
-    AM_CONDITIONAL(WITH_FASTSUMS2,false)
-  fi
-else
-  AC_MSG_NOTICE([Couldn't find GSL library headers. FastsumS2 example won't be compiled.])
-  AM_CONDITIONAL(WITH_FASTSUMS2,false)
-fi
-
-
 
 # The output files to be generated
 AC_OUTPUT(Makefile \

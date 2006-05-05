@@ -88,7 +88,7 @@ void test_ndsft_trafo(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
     return;
   }
 
@@ -196,12 +196,11 @@ void test_ndsft_trafo(void)
 
       /* Test passed. */
       fprintf(stdout,"\n");
-      CU_PASS("ok");
+      fprintf(stderr,"ok");
     }
     else
     {
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
-      CU_FAIL("Couldn't open file!\n");
     }
   }
   close(testfiles);
@@ -247,7 +246,7 @@ void test_ndsft_adjoint(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
     return;
   }
 
@@ -358,12 +357,11 @@ void test_ndsft_adjoint(void)
       free(f_hat_orig);
       /* Test passed. */
       fprintf(stdout,"\n");
-      CU_PASS("ok");
+      fprintf(stderr,"ok");
     }
     else
     {
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
-      CU_FAIL("Couldn't open file!\n");
     }
   }
 }
@@ -378,17 +376,10 @@ void test_ndsft_adjoint(void)
  */
 int main (int argc, char **argv)
 {
-  /* Initialise registry. */
-  CU_initialize_registry();
-  /* Create test suite. */
-  CU_pSuite suite = CU_add_suite("NDSFT", NULL, NULL);
   /* Add test for ndsft_trafo. */
-  CU_add_test(suite,"NDSFT",test_ndsft_trafo);
+  test_ndsft_trafo();
   /* Add test for ndsft_adjoint. */
-  CU_add_test(suite,"adjoint NDSFT",test_ndsft_adjoint);
-  /* Run the tests. */
-  CU_automated_run_tests();
-  /* Cleanup registry. */
-  CU_cleanup_registry();
+  test_ndsft_adjoint();
+  /* Exit the program. */
   return EXIT_SUCCESS;
 }

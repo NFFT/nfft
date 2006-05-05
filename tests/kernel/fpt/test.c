@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* Include CUnit header. */
-#include <CUnit/CUnit.h>
-
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
 
@@ -71,7 +68,7 @@ void test_dpt_trafo(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
     return;
   }
 
@@ -221,13 +218,11 @@ void test_dpt_trafo(void)
       y_ref = NULL;
       //free(f_orig);
       /* Test passed. */
-      fprintf(stdout," ok\n");
-      CU_PASS("ok");
+      fprintf(stderr,"ok");
     }
     else
     {
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
-      CU_FAIL("Couldn't open file!\n");
     }
   }
   close(testfiles);
@@ -284,7 +279,7 @@ void test_dpt_transposed(void)
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    CU_FAIL("Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
     return;
   }
 
@@ -435,12 +430,11 @@ void test_dpt_transposed(void)
       //free(f_orig);
       /* Test passed. */
       fprintf(stdout," ok\n");
-      CU_PASS("ok");
+      fprintf(stderr,"ok");
     }
     else
     {
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
-      CU_FAIL("Couldn't open file!\n");
     }
   }
   close(testfiles);
@@ -457,17 +451,10 @@ void test_dpt_transposed(void)
  */
 int main (int argc, char **argv)
 {
-  /* Initialise registry. */
-  CU_initialize_registry();
-  /* Create test suite. */
-  CU_pSuite suite = CU_add_suite("NDSFT", NULL, NULL);
   /* Add test for ndsft_trafo. */
-  CU_add_test(suite,"fpt_trafo",test_dpt_trafo);
+  test_dpt_trafo();
   /* Add test for ndsft_trafo. */
-  CU_add_test(suite,"fpt_transposed",test_dpt_transposed);
-  /* Run the tests. */
-  CU_automated_run_tests();
-  /* Cleanup registry. */
-  CU_cleanup_registry();
+  test_dpt_transposed();
+  /* Exit the program. */
   return EXIT_SUCCESS;
 }
