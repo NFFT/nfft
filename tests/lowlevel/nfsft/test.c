@@ -32,9 +32,6 @@
 #include <float.h>
 #include <math.h>
 
-/* Include CUnit header. */
-#include <CUnit/CUnit.h>
-
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
 
