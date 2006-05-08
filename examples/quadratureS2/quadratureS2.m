@@ -42,18 +42,18 @@ if (selection == 1)
   % Set the number of repetitions.
   repetitions=1;
   % Set the size parameters.
-  Q1=16:16:1024;
-  Q2=16:16:1024;
-  Q3=[16,32,64,128,256];
+  %Q1=16:16:1024;
+  %Q2=16:16:1024;
+  Q3=[512];
   % Set the bandwidhts.
-  N1=16:16:1024;
-  N2=16:16:1024;
-  N3=[16,32,64,128,256];
+  %N1=16:16:1024;
+  %N2=16:16:1024;
+  N3=[512];
   % Write the number of testcases.
-  fprintf(file,'testcases=3\n');
+  fprintf(file,'testcases=1\n');
   % Write the testcases.
-  writeTestcase(file,1,1,3,1,1000,0,gridtype,[1],repetitions,[N1;Q1]);
-  writeTestcase(file,1,1,6,1,1000,0,gridtype,[1],repetitions,[N2;Q2]);
+  %writeTestcase(file,1,1,3,1,1000,0,gridtype,[1],repetitions,[N1;Q1]);
+  %writeTestcase(file,1,1,6,1,1000,0,gridtype,[1],repetitions,[N2;Q2]);
   writeTestcase(file,0,0,0,0,1000,0,gridtype,[1],repetitions,[N3;Q3]);
 elseif (selection == 2)
   % Set the grid type.

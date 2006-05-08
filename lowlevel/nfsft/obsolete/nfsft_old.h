@@ -6,8 +6,7 @@
 #ifndef NFSFT_H
 #define NFSFT_H
 
-#include <complex.h>
-#include <fftw3.h>
+#include "nfft3.h"
 
 /** \defgroup nfsft NFSFT */
 

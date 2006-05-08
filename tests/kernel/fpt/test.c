@@ -169,7 +169,7 @@ void test_dpt_trafo(void)
       /* Initialize DPT. */
       //fprintf(stderr,"t = %d -> N = %d\n",t,1<<t);
       //fflush(stderr);
-      set = fpt_init(0,t,FPT_AL_SYMMETRY);
+      set = fpt_init(0,t,0U/*FPT_AL_SYMMETRY*/);
 
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
@@ -178,7 +178,7 @@ void test_dpt_trafo(void)
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        fpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
+        dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
       time = (second() - time)/((double)REPEAT);
 
@@ -218,7 +218,7 @@ void test_dpt_trafo(void)
       y_ref = NULL;
       //free(f_orig);
       /* Test passed. */
-      fprintf(stderr,"ok");
+      fprintf(stdout,"\n");
     }
     else
     {
@@ -380,7 +380,7 @@ void test_dpt_transposed(void)
       }*/
 
       /* Initialize DPT. */
-      set = fpt_init(0,t,FPT_AL_SYMMETRY);
+      set = fpt_init(0,t,0U/*FPT_AL_SYMMETRY*/);
 
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
@@ -389,7 +389,7 @@ void test_dpt_transposed(void)
       time = second();
       for (k = 0; k < REPEAT; k++)
       {
-        fpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));
+        dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
       time = (second() - time)/((double)REPEAT);
 
@@ -429,8 +429,7 @@ void test_dpt_transposed(void)
       y = NULL;
       //free(f_orig);
       /* Test passed. */
-      fprintf(stdout," ok\n");
-      fprintf(stderr,"ok");
+      fprintf(stdout,"\n");
     }
     else
     {

@@ -8,19 +8,9 @@
 
 #include "nfsft_old.h"
 
-#ifdef STDC_HEADERS
-#  include <stdio.h>
-#  include <math.h>
-#  include <string.h>
-#else
-#  error Need ANSI-C headers.
-#endif
-
-#ifdef HAVE_FFTW3_H
-# include <fftw3.h>
-#else
-# error Need fftw3.h
-#endif
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
 
 #include "nfft3.h"
 
