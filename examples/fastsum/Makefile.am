@@ -12,4 +12,4 @@ dist_fastsum_matlab_SOURCES = kernels.h kernels.c fastsum_matlab.c
 fastsum_matlab_LDADD = $(top_builddir)/highlevel/fastsum/libfastsum.la $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 ## extra files to include in distribution
-EXTRA_DIST = fastsum_test.m fastsum.m
+EXTRA_DIST = fastsum_test.m fastsum.m README

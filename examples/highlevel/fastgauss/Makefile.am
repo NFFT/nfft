@@ -1,5 +1,6 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
+EXTRA_DIST = levelplots.m  output_error.m  output_error_p.m  show_results.m README
 
 ## The program name
 noinst_PROGRAMS = fastgauss

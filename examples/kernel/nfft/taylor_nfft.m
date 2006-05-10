@@ -16,7 +16,7 @@ to_pdf=0;
 trials=10;
 first=4;
 last=22;
-%system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data0',0,first,last,trials,2,4));
+system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data0',0,first,last,trials,2,4));
 data=load('taylor_nfft.data0');
 
 N=data(1:trials:end,1);
@@ -40,6 +40,7 @@ else
   !mv temp.eps taylor_nfft0.eps
 end;
 
+return
 %%
 %% Testing accuracy vs. cut-off/Taylor degree m.
 %%
