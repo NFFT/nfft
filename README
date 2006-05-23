@@ -7,13 +7,19 @@ NFFT3 - Nonequispaced FFT and its generalisation, inversion, and application
 
 This is the README file for NFFT3, a C library that implements
  1) the nonequispaced fast Fourier transform (nfft)
+    - the forward transform
+    - the adjoint transform
  2) generalisations to NFFTs
+    - on arbitrary knots in time or frequency domain (nnfft)
     - on the sphere (nfsft)
     - on the hyperbolic cross (nsfft)
     - for real-valued data, i.e. (co)sine transforms, (nfct, nfst)
  3) their generalised inverses
+    - based on iterative methods, e.g. CGNR, CGNE 
  4) applications to
-    - magnetic resonance imaging
+    - medical imaging
+        - magnetic resonance imaging
+        - computerised tomography
     - summation schemes (fast Gauss transform, singular kernels, zonal kernels)
     - polar FFT, discrete Radon transform, ridgelet transform
 
