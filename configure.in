@@ -77,7 +77,6 @@ AC_OUTPUT(Makefile \
           kernel/nfst/Makefile \
           lowlevel/texture/Makefile \
           examples/Makefile \
-          examples/docking/Makefile \
           examples/kernel/Makefile \
           examples/lowlevel/Makefile \
           examples/highlevel/Makefile \
