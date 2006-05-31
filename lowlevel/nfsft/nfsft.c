@@ -979,6 +979,6 @@ void nfsft_precompute_x(nfsft_plan *plan)
   plan->plan_nfft.x = plan->x;
 
   /* Precompute. */
-  if(plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
+  if (plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&plan->plan_nfft);
 }

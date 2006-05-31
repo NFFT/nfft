@@ -334,39 +334,41 @@ int main (int argc, char **argv)
         nfsft_init_guru(&plan,NQ[iNQ],SQ[iNQ], NFSFT_NORMALIZED |
           ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
           ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-          PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, cutoff);
+          PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFTW_MEASURE | FFT_OUT_OF_PLACE,
+          cutoff);
 
-          plan.f_hat = f_hat;
-          plan.x = x_grid;
-          plan.f = f;
+        plan.f_hat = f_hat;
+        plan.x = x_grid;
+        plan.f = f;
 
-          nfsft_precompute_x(&plan_gen);
+        nfsft_precompute_x(&plan);
 
-          t_avg = 0.0;
+        t_avg = 0.0;
 
-          for (i = 0; i < RQ[iNQ]; i++)
+        for (i = 0; i < RQ[iNQ]; i++)
+        {
+          t = second();
+
+          if (use_nfsft != NO)
           {
-            t = second();
-
-            if (use_nfsft != NO)
-            {
-              /* Execute the adjoint NFSFT transformation. */
-              nfsft_adjoint(&plan);
-            }
-            else
-            {
-              /* Execute the adjoint direct NDSFT transformation. */
-              ndsft_adjoint(&plan);
-            }
-
-            t_avg += second() - t;
+            /* Execute the adjoint NFSFT transformation. */
+            nfsft_adjoint(&plan);
+          }
+          else
+          {
+            /* Execute the adjoint direct NDSFT transformation. */
+            ndsft_adjoint(&plan);
           }
 
-          t_avg = t_avg/((double)RQ[iNQ]);
+          t_avg += second() - t;
+        }
 
+        t_avg = t_avg/((double)RQ[iNQ]);
 
-          fprintf(stdout,"%+le\n", t_avg);
-          fprintf(stderr,"%d: %4d %4d %+le\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
+        nfsft_finalize(&plan);
+
+        fprintf(stdout,"%+le\n", t_avg);
+        fprintf(stderr,"%d: %4d %4d %+le\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
       }
       else
       {
@@ -627,7 +629,6 @@ int main (int argc, char **argv)
 
         /* Allocate memory for grid values. */
         f_grid = (complex*) malloc(m_total*sizeof(complex));
-
 
         if (mode == RANDOM)
         {
