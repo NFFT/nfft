@@ -1,12 +1,14 @@
 Based on the research paper:
-Fast Iterative Reconstruction for MRI
+A note on the iterative MRI reconstruction from nonuniform k-space data
+
  
 by Tobias Knopp, Stefan Kunis and Daniel Potts
 Available from:
 http://www.mathematik.tu-chemnitz.de/~potts
 
 see also: 
-http://www.mathematik.tu-chemnitz.de/~potts/projekte/projekt_mri.php
+http://www.mathematik.tu-chemnitz.de/~potts/projecte/projekt_mri.php
+http://www.mathematik.tu-chemnitz.de/~potts/projecte/ijbi
 
 --------------------------------------------------------------------
 

@@ -1,12 +1,18 @@
 Based on the research paper:
-Fast Iterative Reconstruction for MRI
+A note on the iterative MRI reconstruction from nonuniform k-space data
  
 by Tobias Knopp, Stefan Kunis and Daniel Potts
 Available from:
 http://www.mathematik.tu-chemnitz.de/~potts
 
 see also: 
-http://www.math.mathematik.tu-chemnitz.de/~potts/projekte/projekt_mri.php
+http://www.math.mathematik.tu-chemnitz.de/~potts/projecte/projekt_mri.php
+http://www-user.tu-chemnitz.de/~potts/projects/ijbi/
+
+Furthermore see the Paper
+Field Inhomogeneity Correction based on Gridding Reconstruction for Magnetic Resonance Imaging
+
+by H. Eggers, Tobias Knopp, and Daniel Potts
 
 --------------------------------------------------------------------
 
