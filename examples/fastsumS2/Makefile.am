@@ -6,10 +6,7 @@ noinst_PROGRAMS = fastsumS2
 
 ## The source files.
 fastsumS2_SOURCES = fastsumS2.c
-if WITH_FASTSUMS2_GAUSSIAN
-  fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3 -lgsl -lgslcblas
-else
-  fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
-endif
+
+fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 EXTRA_DIST = fastsumS2.m writeTestcase.m readTestcase.m

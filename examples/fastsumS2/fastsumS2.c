@@ -31,10 +31,7 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
-#ifdef WITH_FASTSUMS2_GAUSSIAN
-  /* Include GSL header. */
-  #include <gsl/gsl_sf_bessel.h>
-#endif
+#include "../3rdparty/gsl/specfunc/gsl_sf_bessel.h"
 
 
 /** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
@@ -52,10 +49,8 @@
 #define KT_SINGULARITY  (1)
 /** Locally supported kernel */
 #define KT_LOC_SUPP     (2)
-#ifdef WITH_FASTSUMS2_GAUSSIAN
-  /** Gaussian kernel */
-  #define KT_GAUSSIAN     (3)
-#endif
+/** Gaussian kernel */
+#define KT_GAUSSIAN     (3)
 
 /** Enumerations for parameter values */
 enum pvalue {NO = 0, YES = 1, BOTH = 2};
@@ -123,7 +118,6 @@ double locallySupportedKernel(const double x, const double h,
   return (x<=h)?(0.0):(pow((x-h),lambda));
 }
 
-#ifdef WITH_FASTSUMS2_GAUSSIAN
   /**
    * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
    * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
@@ -138,7 +132,6 @@ double locallySupportedKernel(const double x, const double h,
   {
      return exp(2.0*sigma*(x-1));
   }
-#endif
 
 /**
  * The main program.
@@ -197,6 +190,7 @@ int main (int argc, char **argv)
   int precompute = NO;         /**<                                                */
   complex *ptr;                /**<                                                */
   double* steed;               /**<                                                */
+  double* steed2;               /**<                                                */
   complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}          *
                                     ^{L-1}\f$                                      */
   complex *f_hat;              /**< The spherical Fourier coefficients             */
@@ -461,12 +455,17 @@ int main (int argc, char **argv)
           }
           break;
 
-        #ifdef WITH_FASTSUMS2_GAUSSIAN
           case KT_GAUSSIAN:
             /* Compute Fourier-Legendre coefficients for the locally supported
              * kernel. */
             steed = (double*) malloc((m_max+1)*sizeof(double));
+            steed2 = (double*) malloc((m_max+1)*sizeof(double));
             gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
+            for (k = 0; k <= m_max; k++)
+            {
+              steed[k] = 4.0*PI;
+              a[k] = steed[k];
+            }
             for (k = 0; k <= m_max; k++)
             {
               steed[k] *= 4.0*PI;
@@ -475,7 +474,6 @@ int main (int argc, char **argv)
 
             free(steed);
             break;
-        #endif
       }
 
       /* Normalize Fourier-Legendre coefficients. */
@@ -530,13 +528,11 @@ int main (int argc, char **argv)
                     *ptr++ = locallySupportedKernel(temp,p[ip][0],p[ip][1]);
                     break;
 
-                  #ifdef WITH_FASTSUMS2_GAUSSIAN
                     case KT_GAUSSIAN:
                        /* Evaluate the spherical Gaussian kernel for the current
                         * value. */
                       *ptr++ = gaussianKernel(temp,p[ip][0]);
                        break;
-                  #endif
                 }
               }
               /* Increment pointer for next row. */
@@ -702,7 +698,6 @@ int main (int argc, char **argv)
                 }
                 break;
 
-              #ifdef WITH_FASTSUMS2_GAUSSIAN
                 case KT_GAUSSIAN:
                   /* Process all target nodes. */
                   for (d = 0; d < ld[ild][1]; d++)
@@ -723,7 +718,6 @@ int main (int argc, char **argv)
                     }
                   }
                   break;
-              #endif
             }
           }
 

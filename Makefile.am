@@ -1,16 +1,16 @@
 # Subdirectories
 if WITH_TESTS
-  SUBDIRS = include util kernel lowlevel highlevel . examples tests
+  SUBDIRS =  3rdparty include util kernel lowlevel highlevel . examples tests
 #  DIST_SUBDIRS = include util kernel lowlevel highlevel . examples
 else
-  SUBDIRS = include util kernel lowlevel highlevel . examples
+  SUBDIRS = 3rdparty include util kernel lowlevel highlevel . examples
 endif  
 
 lib_LTLIBRARIES = libnfft3.la      
 
 libnfft3_la_SOURCES =
 
-libnfft3_la_LIBADD = util/libutil.la kernel/libkernel.la lowlevel/liblowlevel.la highlevel/libhighlevel.la
+libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la lowlevel/liblowlevel.la highlevel/libhighlevel.la
 
 dist-hook:
 	doxygen ./doxygen.Doxyfile
