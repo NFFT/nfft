@@ -18,7 +18,7 @@ void construct(char * file, int N, int M, int Z, fftw_complex *mem)
   
   for(j=0;j<my_plan.M_total;j++)
   {
-    fscanf(fp,"%le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],tmp);
+    fscanf(fp,"%le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],&tmp);
   }
   fclose(fp);
 

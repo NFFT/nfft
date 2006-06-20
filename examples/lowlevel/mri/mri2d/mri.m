@@ -35,8 +35,8 @@ system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
 % and one plot of the N/2 row
 visualize_data('pics/pic_2d', N, 1, 'Inverse 2d-NFFT - 3. iteration');
 
-% Compute the signal to noise ratio 
-snr('pics/snr_2d.txt');
+% Compute the root mean square 
+rms('pics/rms_2d.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -46,15 +46,7 @@ snr('pics/snr_2d.txt');
 system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 5 1']);
 visualize_data('pics/pic_gridding', N, 2, '2d-NFFT (Gridding)');
-snr('pics/snr_gridding.txt');
+rms('pics/rms_gridding.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%!rm knots.dat
-%!rm weights.dat
-%!rm input_f.dat
-%!rm output_phantom_nfft.dat
-%!rm output_imag.dat
-%!rm output_real.dat
 

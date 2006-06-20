@@ -42,11 +42,11 @@ system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
 % and one plot of the N/2 row
 visualize_data('pics/pic_2d1d', N, 1, 'Reconstruction considering the fieldmap');
 
-% Compute the signal to noise ratio 
-snr('pics/snr_2d1d.txt');
+% Compute the root mean square
+rms('pics/rms_2d1d.txt');
 
 % Reconstruct without considering the fieldmap
 system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 3 1']);
 visualize_data('pics/pic_2d', N, 2, 'Inverse 2d-NFFT - 3. iteration');
-snr('pics/snr_2d.txt');
+rms('pics/rms_2d.txt');
