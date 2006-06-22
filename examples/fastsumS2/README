@@ -1,0 +1,32 @@
+fastsumS2 - Fast summation of radial functions on the sphere
+
+  This program computes approximations of sums of the form
+
+            L-1
+             -
+  f(xi_d) =  >  b_l  K(eta_l - xi_d)       (d=0,...,D-1)
+             -          
+            l=0
+
+  where xi_d, eta_l are arbitrary nodes on the sphere given in spherical 
+  coordinates (theta,phi) from [0,pi]x[-pi,pi), b_l are complex coefficients 
+  and K: [-1,1] -> C is a kernel function. Such kernels include the Poisson and 
+  the Singularity kernel as well as locally supported kernels and the spherical
+  Gaussian kernel (see [1]).
+
+  The algorithm used is based on the fast spherical Fourier transform for
+  arbitrary nodes (NFSFT) and therefore depends on the NFFT C-library. New 
+  kernels can be incorporated easily by defining an appropriate C-function 
+  (see kernels.c for some examples).
+
+  fastsumS2.c is an example for the usage of the library. The MATLAB script
+  file fastsumS2.m calls the MATLAB function fastsum.m, which is a simple
+  example for the usage in MATLAB.
+
+
+
+  References:
+
+  [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions 
+      on the sphere, Computing, to appear, 2005
+
