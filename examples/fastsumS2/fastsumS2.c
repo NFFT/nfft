@@ -20,9 +20,9 @@
  */
 
 /* Include standard C headers. */
-#include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <time.h>
 
 /* Include NFFT3 library header. */
@@ -195,18 +195,18 @@ int main (int argc, char **argv)
                                     algorithm                                 */
   double t;                    /**<                                           */
   int precompute = NO;         /**<                                           */
-  complex *ptr;                /**<                                           */
+  complex double *ptr;         /**<                                           */
   double* steed;               /**<                                           */
-  double* steed2;               /**<                                          */
-  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}     *
+  double* steed2;              /**<                                          */
+  complex double *b;           /**< The weights \f$\left(b_l\right)_{l=0}     *
                                     ^{L-1}\f$                                 */
-  complex *f_hat;              /**< The spherical Fourier coefficients        */
-  complex *a;                  /**< The Fourier-Legendre coefficients         */
+  complex double *f_hat;       /**< The spherical Fourier coefficients        */
+  complex double *a;           /**< The Fourier-Legendre coefficients         */
   double *xi;                  /**< Target nodes                              */
   double *eta;                 /**< Source nodes                              */
-  complex *f_m;                /**< Approximate function values               */
-  complex *f;                  /**< Exact function values                     */
-  complex *prec;               /**<                                           */
+  complex double *f_m;         /**< Approximate function values               */
+  complex double *f;           /**< Exact function values                     */
+  complex double *prec = NULL; /**<                                           */
   nfsft_plan plan;             /**< NFSFT plan                                */
   nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                        */
   int i;                       /**                                            */
@@ -375,18 +375,18 @@ int main (int argc, char **argv)
     }
 
     /* Allocate memory for data structures. */
-    b = (complex*) malloc(l_max*sizeof(complex));
+    b = (complex double*) malloc(l_max*sizeof(complex double));
     eta = (double*) malloc(2*l_max*sizeof(double));
-    f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex));
-    a = (complex*) malloc((m_max+1)*sizeof(complex));
+    f_hat = (complex double*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex double));
+    a = (complex double*) malloc((m_max+1)*sizeof(complex double));
     xi = (double*) malloc(2*d_max*sizeof(double));
-    f_m = (complex*) malloc(d_max*sizeof(complex));
-    f = (complex*) malloc(d_max*sizeof(complex));
+    f_m = (complex double*) malloc(d_max*sizeof(complex double));
+    f = (complex double*) malloc(d_max*sizeof(complex double));
 
     /* Allocate memory for precomputed data. */
     if (precompute == YES)
     {
-      prec = (complex*) malloc(ld_max_prec*sizeof(complex));
+      prec = (complex double*) malloc(ld_max_prec*sizeof(complex double));
     }
 
     /* Generate random source nodes and weights. */
@@ -913,8 +913,8 @@ int main (int argc, char **argv)
           /* Print out the error measurements. */
           fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n\n",t_d,t_dp,t_fd,t_f,err_fd,
             err_f);
-          fprintf(stderr,"%d: %e\t%e\t%e\t%e\t%e\t%e\n",m[im],t_d,t_dp,t_fd,t_f,
-            err_fd,err_f);
+          /*fprintf(stderr,"%d: %e\t%e\t%e\t%e\t%e\t%e\n",m[im],t_d,t_dp,t_fd,t_f,
+            err_fd,err_f);*/
 
           /* Finalize the NFSFT plans */
           nfsft_finalize(&plan_adjoint);
