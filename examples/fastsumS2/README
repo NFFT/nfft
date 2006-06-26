@@ -58,8 +58,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
   fpt=1
   threshold=1.000000e+03
   kernel=0
-  parameter_sets=1
-  parameters=3
+  parameter_sets=3
+  parameters=1
   0.800000
   0.700000
   0.600000
@@ -80,8 +80,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   nfsft=0
   kernel=0
-  parameter_sets=1
-  parameters=2
+  parameter_sets=2
+  parameters=1
   0.700000
   0.600000
   bandwidths=4
@@ -154,9 +154,10 @@ fastsumS2 - Fast summation of radial functions on the sphere
     very small computation times.
 
   The output of the program containes all the input but without the parameter
-  names and in addition the results of time and error measurements
+  names and, in addition, the results of time and error measurements after each
+  testcase.
 
-  Example output
+  Example output (see example input from above):
 
   2
   1
@@ -164,8 +165,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
   1
   1000.000000
   0
-  1
   3
+  1
   0.800000
   0.700000
   0.600000
@@ -183,66 +184,178 @@ fastsumS2 - Fast summation of radial functions on the sphere
   2000
   2000
   0
-  4.649290e-01
+  5.399180e-01
   -1.000000e+00
   -1.000000e+00
-  3.439480e-01
+  3.829420e-01
   -1.000000e+00
   4.652502e-03
-
-  4.649290e-01
+  
+  5.399180e-01
   -1.000000e+00
   -1.000000e+00
-  1.310801e+00
+  1.443780e+00
   -1.000000e+00
   1.512698e-04
-
-  4.649290e-01
+  
+  5.399180e-01
   -1.000000e+00
   -1.000000e+00
-  5.215208e+00
+  5.714131e+00
   -1.000000e+00
   2.175886e-07
-
-  4.649290e-01
+  
+  5.399180e-01
   -1.000000e+00
   -1.000000e+00
-  2.071185e+01
+  2.274454e+01
   -1.000000e+00
   1.785035e-13
-
+  
   -1.000000e+00
   -1.000000e+00
   -1.000000e+00
-  6.868950e-01
+  7.618840e-01
   -1.000000e+00
   -1.000000e+00
-
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  2.616603e+00
-  -1.000000e+00
-  -1.000000e+00
-
+  
   -1.000000e+00
   -1.000000e+00
   -1.000000e+00
-  1.032143e+01
+  2.880562e+00
   -1.000000e+00
   -1.000000e+00
-
+  
   -1.000000e+00
   -1.000000e+00
   -1.000000e+00
-  4.086879e+01
+  1.140527e+01
   -1.000000e+00
   -1.000000e+00
-
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  4.528512e+01
+  -1.000000e+00
+  -1.000000e+00
+  
+  5.389180e-01
+  -1.000000e+00
+  -1.000000e+00
+  3.819420e-01
+  -1.000000e+00
+  3.455232e-04
+  
+  5.389180e-01
+  -1.000000e+00
+  -1.000000e+00
+  1.444780e+00
+  -1.000000e+00
+  1.429985e-06
+  
+  5.389180e-01
+  -1.000000e+00
+  -1.000000e+00
+  5.714131e+00
+  -1.000000e+00
+  2.852419e-11
+  
+  5.389180e-01
+  -1.000000e+00
+  -1.000000e+00
+  2.274054e+01
+  -1.000000e+00
+  3.223444e-16
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  7.618840e-01
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  2.887561e+00
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  1.138027e+01
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  4.528711e+01
+  -1.000000e+00
+  -1.000000e+00
+  
+  5.389190e-01
+  -1.000000e+00
+  -1.000000e+00
+  3.819420e-01
+  -1.000000e+00
+  2.010003e-05
+  
+  5.389190e-01
+  -1.000000e+00
+  -1.000000e+00
+  1.443781e+00
+  -1.000000e+00
+  7.290371e-09
+  
+  5.389190e-01
+  -1.000000e+00
+  -1.000000e+00
+  5.723130e+00
+  -1.000000e+00
+  1.110297e-15
+  
+  5.389190e-01
+  -1.000000e+00
+  -1.000000e+00
+  2.276654e+01
+  -1.000000e+00
+  1.378917e-16
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  7.628840e-01
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  2.880562e+00
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  1.137827e+01
+  -1.000000e+00
+  -1.000000e+00
+  
+  -1.000000e+00
+  -1.000000e+00
+  -1.000000e+00
+  4.529611e+01
+  -1.000000e+00
+  -1.000000e+00
+  
   0
   0
-  1
   2
+  1
   0.700000
   0.600000
   4
@@ -256,33 +369,87 @@ fastsumS2 - Fast summation of radial functions on the sphere
   1
   0
   1
-  4.629290e-01
+  5.379190e-01
   -1.000000e+00
-  2.899600e-02
+  3.699400e-02
   -1.000000e+00
   2.455525e-04
   -1.000000e+00
-
-  4.629290e-01
+  
+  5.379190e-01
   -1.000000e+00
-  6.999000e-02
+  1.049840e-01
   -1.000000e+00
   1.328986e-06
   -1.000000e+00
+  
+  5.379190e-01
+  -1.000000e+00
+  3.389480e-01
+  -1.000000e+00
+  1.611594e-11
+  -1.000000e+00
+  
+  5.379190e-01
+  -1.000000e+00
+  1.707741e+00
+  -1.000000e+00
+  4.206773e-16
+  -1.000000e+00
+  
+  5.369180e-01
+  -1.000000e+00
+  3.799400e-02
+  -1.000000e+00
+  1.530038e-05
+  -1.000000e+00
+  
+  5.369180e-01
+  -1.000000e+00
+  1.039840e-01
+  -1.000000e+00
+  6.869470e-09
+  -1.000000e+00
+  
+  5.369180e-01
+  -1.000000e+00
+  3.399490e-01
+  -1.000000e+00
+  5.766784e-16
+  -1.000000e+00
+  
+  5.369180e-01
+  -1.000000e+00
+  1.708740e+00
+  -1.000000e+00
+  1.893048e-16
+  -1.000000e+00
 
-  4.629290e-01
-  -1.000000e+00
-  2.039690e-01
-  -1.000000e+00
-  1.611595e-11
-  -1.000000e+00
+  To each combination of kernel function, cut-off degree and node set
+  corresponds a single run of the summation algorithm and therefore a set of
+  six result values group together. These are
+  - the time needed for direct evaluation of the sums (1),
+  - the time needed for direct evaluation of the sums (1) with the values of
+    the kernel functions precomputed,
+  - the time needed by the fast summation algorithm using the direct NDSFT
+    algorithm,
+  - the time needed by the fast summation algorithm using the NFSFT algorithm,
+  - the error E_infty for the fast summation algorithm using the direct NDSFT
+    algorithm,
+  - the error E_infty for the fast summation algorithm using the NFSFT
+    algorithm.
 
-  4.629290e-01
-  -1.000000e+00
-  1.353794e+00
-  -1.000000e+00
-  6.555554e-16
-  -1.000000e+00
+  Here the error E_infty is defined as ||f - f_M||_infty / ||b||_1 with the
+  infinity norm ||.||_infty, the one norm ||.||_1, the vector f of function
+  values computed by direct evaluation of the sums in (1), f_M the vector
+  computed by the fast summation algorithm, using either the direct NDSFT or
+  the NFSFT algorithm, and the vector b containing the coefficients b_l from
+  (1).
+  Depending on the parameter combination some of these (positive) values might
+  be undefined which is indicated by a value of -1.0.
+  The blocks of result values for a single run are grouped for each testcase
+  first by the kernel parameters, second by the node set and third by the
+  cut-off bandwidth ordered as in the input.
 
 
 
