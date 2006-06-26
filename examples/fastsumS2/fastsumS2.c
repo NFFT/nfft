@@ -31,17 +31,16 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
+/* Include GSL header for spherical Bessel functions. */
 #include "../3rdparty/gsl/specfunc/gsl_sf_bessel.h"
 
-
-/** The Fourier-Legendre coefficients of the Abel-Poisson kernel */
+/** Macro for the Fourier-Legendre coefficients of the Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
 
-/** The Fourier-Legendre coefficients of the singularity kernel */
+/** Macro for the Fourier-Legendre coefficients of the singularity kernel */
 #define SYMBOL_SINGULARITY(k,h) ((2.0/(2*k+1))*pow(h,k))
 
-
-/* Flags for the different kernel types */
+/* Flags for the different kernel functions */
 
 /** Abel-Poisson kernel */
 #define KT_ABEL_POISSON (0)
@@ -52,12 +51,12 @@
 /** Gaussian kernel */
 #define KT_GAUSSIAN     (3)
 
-/** Enumerations for parameter values */
+/** Enumeration type for yes/no/both-type parameters */
 enum pvalue {NO = 0, YES = 1, BOTH = 2};
 
 /**
  * Computes the \f$\mathbb{R}^3\f$ standard inner product between two vectors
- * given in spherical coordinates.
+ * on the unit sphere \$f\mathbb{S}^2\f$ given in spherical coordinates.
  *
  * \arg phi1   The angle \f$\varphi_1 \in [-\pi,\pi)\f$ of the first vector
  * \arg theta1 The angle \f$\vartheta_1 \in [0,\pi]\f$ of the first vector
@@ -66,6 +65,8 @@ enum pvalue {NO = 0, YES = 1, BOTH = 2};
  *
  * \return The inner product \f$\cos\vartheta_1\cos\vartheta_2 +
  *   \sin\vartheta_1\sin(\vartheta_2\cos(\varphi_1-\varphi_2)\f$
+ *
+ * \author Jens Keiner
  */
 double innerProduct(const double phi1, const double theta1, const double phi2,
   const double theta2)
@@ -81,6 +82,8 @@ double innerProduct(const double phi1, const double theta1, const double phi2,
  * \arg h The parameter \f$h \in (0,1)\f$
  *
  * \return The value of the Poisson kernel \f$Q_h(x)\f$ at the node \f$x\f$
+ *
+ * \author Jens Keiner
  */
 double poissonKernel(const double x, const double h)
 {
@@ -95,6 +98,8 @@ double poissonKernel(const double x, const double h)
  * \arg h The parameter \f$h \in (0,1)\f$
  *
  * \return The value of the Poisson kernel \f$S_h(x)\f$ at the node \f$x\f$
+ *
+ * \author Jens Keiner
  */
 double singularityKernel(const double x, const double h)
 {
@@ -111,6 +116,8 @@ double singularityKernel(const double x, const double h)
  *
  * \return The value of the locally supported kernel \f$L_{h,\lambda}(x)\f$ at
  *   the node \f$x\f$
+ *
+ * \author Jens Keiner
  */
 double locallySupportedKernel(const double x, const double h,
   const double lambda)
@@ -118,20 +125,22 @@ double locallySupportedKernel(const double x, const double h,
   return (x<=h)?(0.0):(pow((x-h),lambda));
 }
 
-  /**
-   * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
-   * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
-   *
-   * \arg x The node \f$x \in [-1,1]\f$
-   * \arg h The parameter \f$\sigma \in \mathbb{R}_+\f$
-   *
-   * \return The value of the pherical Gaussian kernel \f$G_\sigma(x)\f$ at the
-   *   node \f$x\f$
-   */
-  double gaussianKernel(const double x, const double sigma)
-  {
-     return exp(2.0*sigma*(x-1));
-  }
+/**
+ * Evaluates the spherical Gaussian kernel \f$G_\sigma: [-1,1] \rightarrow
+ * \mathbb{R}\f$ at a node \f$x \in [-1,1]\f$.
+ *
+ * \arg x The node \f$x \in [-1,1]\f$
+ * \arg h The parameter \f$\sigma \in \mathbb{R}_+\f$
+ *
+ * \return The value of the pherical Gaussian kernel \f$G_\sigma(x)\f$ at the
+ *   node \f$x\f$
+ *
+ * \author Jens Keiner
+ */
+double gaussianKernel(const double x, const double sigma)
+{
+   return exp(2.0*sigma*(x-1));
+}
 
 /**
  * The main program.
@@ -140,85 +149,76 @@ double locallySupportedKernel(const double x, const double h,
  * \param argv An array containing the arguments as C-strings
  *
  * \return Exit code
+ *
+ * \author Jens Keiner
  */
 int main (int argc, char **argv)
 {
-  double **p;                  /**< The array containing the parameter sets        *
-                                    for the kernels.                               */
-  int *m;                      /**< The array containing the cut-off degrees       *
-                                    \f$M\f$.                                       */
-  int **ld;                    /**< The array containing the numbers of            *
-                                    source and target nodes, \f$L \in              *
-                                    \mathbb{N}\f$ and \f$D \in \mathbb{N}\f$,      *
-                                    respectively.                                  */
-  int ip;                      /**< Index variable for \code p                     */
-  int im;                      /**< Index variable for \code m                     */
-  int ild;                     /**< Index variable for \code l                     */
-  int ipp;                     /**< Index for kernel parameters                    */
-  int ip_max;                  /**< The maximum index for \code p                  */
-  int im_max;                  /**< The maximum index for \code m                  */
-  int ild_max;                 /**< The maximum index for \code l                  */
-  int ipp_max;                 /**< The maximum index for \code ipp                */
-  int tc_max;                  /**< The number of testcases                        */
-  int m_max;                   /**< The maximum cut-off degree \f$M\f$ for the     *
-                                    current dataset                                */
-  int l_max;                   /**< The maximum number of source nodes             *
-                                    \f$L\f$ for the current dataset                */
-  int d_max;                   /**< The maximum number of target nodes \f$D\f$     *
-                                    for the current dataset                        */
-  long ld_max_prec;            /**< The maximum number of source and target        *
-                                    nodes for precomputation multiplied            */
-  long l_max_prec;             /**< The maximum number of source nodes for         *
-                                    precomputation                                 */
-  int tc;                      /**< Index variable for testcases                   */
-  int kt;                      /**< The kernel type                                */
-  int cutoff;                  /**< The current NFFT cut-off parameter             */
-  double threshold;            /**< The current NFSFT threshold parameter          */
-  int n_max;                   /**< Next greater power of two with respect to      *
-                                    m_max                                          */
-  double t_d;                  /**< Time for direct algorithm in seconds           */
-  double t_dp;                 /**< Time for direct algorithm with                 *
-                                    precomputation in seconds                      */
-  double t_fd;                 /**< Time for fast direct algorithm in seconds      */
-  double t_f;                  /**< Time for fast algorithm in seconds             */
-  double nfactor;              /**<                                                */
-  double temp;                 /**<                                                */
-  double err_f;                /**< Error \f$E_\infty\f$ for fast algorithm        */
-  double err_fd;               /**< Error \f$E_\infty\f$ for fast direct           *
-                                    algorithm                                      */
-  double t;                    /**<                                                */
-  int precompute = NO;         /**<                                                */
-  complex *ptr;                /**<                                                */
-  double* steed;               /**<                                                */
-  double* steed2;               /**<                                                */
-  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}          *
-                                    ^{L-1}\f$                                      */
-  complex *f_hat;              /**< The spherical Fourier coefficients             */
-  complex *a;                  /**< The Fourier-Legendre coefficients              */
-  double *xi;                  /**< Target nodes                                   */
-  double *eta;                 /**< Source nodes                                   */
-  complex *f_m;                /**< Approximate function values                    */
-  complex *f;                  /**< Exact function values                          */
-  complex *prec;               /**<                                                */
-  nfsft_plan plan;             /**< NFSFT plan                                     */
-  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                             */
-  int i;                       /**                                                 */
-  int j;                       /**                                                 */
-  int k;                       /**                                                 */
-  int n;                       /**                                                 */
-  int d;                       /**                                                 */
-  int l;                       /**                                                 */
-  int use_nfsft;               /**                                                 */
-  int use_nfft;                /**                                                 */
-  int use_fpt;                 /**                                                 */
-  int nsymbols;                /**                                                 */
-  long index;                  /**                                                 */
-  int rinc;                    /**                                                 */
-  FILE *file_gaussian;         /**                                                 */
-  char filename_tex[100];      /**                                                 */
-  char filename_dat[100];      /**                                                 */
-  char filename_gaussian[100]; /**                                                 */
-  double constant;             /**                                                 */
+  double **p;                  /**< The array containing the parameter sets   *
+                                    for the kernel functions                  */
+  int *m;                      /**< The array containing the cut-off degrees  *
+                                    \f$M\f$.                                  */
+  int **ld;                    /**< The array containing the numbers of       *
+                                    source and target nodes, \f$L \in         *
+                                    \mathbb{N}\f$ and \f$D \in \mathbb{N}\f$  */
+  int ip;                      /**< Index variable for \code p                */
+  int im;                      /**< Index variable for \code m                */
+  int ild;                     /**< Index variable for \code l                */
+  int ipp;                     /**< Index for kernel parameters               */
+  int ip_max;                  /**< The maximum index for \code p             */
+  int im_max;                  /**< The maximum index for \code m             */
+  int ild_max;                 /**< The maximum index for \code l             */
+  int ipp_max;                 /**< The maximum index for \code ip            */
+  int tc_max;                  /**< The number of testcases                   */
+  int m_max;                   /**< The maximum cut-off degree \f$M\f$ for    *
+                                    the current dataset                       */
+  int l_max;                   /**< The maximum number of source nodes        *
+                                    \f$L\f$ for the current dataset           */
+  int d_max;                   /**< The maximum number of target nodes        *
+                                    \f$D\f$ for the current dataset           */
+  long ld_max_prec;            /**< The maximum number of source and target   *
+                                    nodes for precomputation multiplied       */
+  long l_max_prec;             /**< The maximum number of source nodes for    *
+                                    precomputation                            */
+  int tc;                      /**< Index variable for testcases              */
+  int kt;                      /**< The kernel function                       */
+  int cutoff;                  /**< The current NFFT cut-off parameter        */
+  double threshold;            /**< The current NFSFT threshold parameter     */
+  double t_d;                  /**< Time for direct algorithm in seconds      */
+  double t_dp;                 /**< Time for direct algorithm with            *
+                                    precomputation in seconds                 */
+  double t_fd;                 /**< Time for fast direct algorithm in seconds */
+  double t_f;                  /**< Time for fast algorithm in seconds        */
+  double temp;                 /**<                                           */
+  double err_f;                /**< Error \f$E_\infty\f$ for fast algorithm   */
+  double err_fd;               /**< Error \f$E_\infty\f$ for fast direct      *
+                                    algorithm                                 */
+  double t;                    /**<                                           */
+  int precompute = NO;         /**<                                           */
+  complex *ptr;                /**<                                           */
+  double* steed;               /**<                                           */
+  double* steed2;               /**<                                          */
+  complex *b;                  /**< The weights \f$\left(b_l\right)_{l=0}     *
+                                    ^{L-1}\f$                                 */
+  complex *f_hat;              /**< The spherical Fourier coefficients        */
+  complex *a;                  /**< The Fourier-Legendre coefficients         */
+  double *xi;                  /**< Target nodes                              */
+  double *eta;                 /**< Source nodes                              */
+  complex *f_m;                /**< Approximate function values               */
+  complex *f;                  /**< Exact function values                     */
+  complex *prec;               /**<                                           */
+  nfsft_plan plan;             /**< NFSFT plan                                */
+  nfsft_plan plan_adjoint;     /**< adjoint NFSFT plan                        */
+  int i;                       /**                                            */
+  int k;                       /**                                            */
+  int n;                       /**                                            */
+  int d;                       /**                                            */
+  int l;                       /**                                            */
+  int use_nfsft;               /**                                            */
+  int use_nfft;                /**                                            */
+  int use_fpt;                 /**                                            */
+  int rinc;                    /**                                            */
+  double constant;             /**                                            */
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);

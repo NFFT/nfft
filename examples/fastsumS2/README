@@ -28,12 +28,14 @@ fastsumS2 - Fast summation of radial functions on the sphere
   ------------------
 
   fastsumS2.c     Example C program
+  example.in      Example input for fastsum.c
+  example.out     Example output of fastsum.c for example.in
   README          This file
   Makefile.am     Automake template
-  fastsumS2.m     Matlab example file that preproduces figures from [1] using
+  fastsumS2.m     MATLAB example file that preproduces figures from [1] using
                   fastsumS2.c
-  readTestcase.m  Matlab function that reads output of fastsumS2.c
-  writeTestcase.m Matlab function that writes input for fastsumS2.c
+  readTestcase.m  MATLAB function that reads output of fastsumS2.c
+  writeTestcase.m MATLAB function that writes input for fastsumS2.c
 
   fastsumS2.C
   -----------
@@ -49,53 +51,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
   sphere S^2. The coefficients b_l are chosen uniformly randomly distributed
   in the complex square [-1/2,1/2] x [-1/2,1/2]i.
 
-  Example input:
-
-  testcases=2
-
-  nfsft=1
-  nfft=0
-  fpt=1
-  threshold=1.000000e+03
-  kernel=0
-  parameter_sets=3
-  parameters=1
-  0.800000
-  0.700000
-  0.600000
-  bandwidths=4
-  16
-  32
-  64
-  128
-  node_sets=2
-  L=1000
-  D=1000
-  compare=1
-  precomputed=0
-  repetitions=1
-  L=2000
-  D=2000
-  compare=0
-
-  nfsft=0
-  kernel=0
-  parameter_sets=2
-  parameters=1
-  0.700000
-  0.600000
-  bandwidths=4
-  16
-  32
-  64
-  128
-  node_sets=1
-  L=1000
-  D=1000
-  compare=1
-  precomputed=0
-  repetitions=1
-
+  See the file example.in for an example input.
+  
   Each parameter is specified by an assignment of the form 'name=value'. All
   parameter values are integer or floating point numbers. There are basic
   parameters which have to be specified in every testcase and extra parameters
@@ -157,273 +114,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   names and, in addition, the results of time and error measurements after each
   testcase.
 
-  Example output (see example input from above):
-
-  2
-  1
-  0
-  1
-  1000.000000
-  0
-  3
-  1
-  0.800000
-  0.700000
-  0.600000
-  4
-  16
-  32
-  64
-  128
-  2
-  1000
-  1000
-  1
-  0
-  1
-  2000
-  2000
-  0
-  5.399180e-01
-  -1.000000e+00
-  -1.000000e+00
-  3.829420e-01
-  -1.000000e+00
-  4.652502e-03
-  
-  5.399180e-01
-  -1.000000e+00
-  -1.000000e+00
-  1.443780e+00
-  -1.000000e+00
-  1.512698e-04
-  
-  5.399180e-01
-  -1.000000e+00
-  -1.000000e+00
-  5.714131e+00
-  -1.000000e+00
-  2.175886e-07
-  
-  5.399180e-01
-  -1.000000e+00
-  -1.000000e+00
-  2.274454e+01
-  -1.000000e+00
-  1.785035e-13
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  7.618840e-01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  2.880562e+00
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  1.140527e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  4.528512e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  5.389180e-01
-  -1.000000e+00
-  -1.000000e+00
-  3.819420e-01
-  -1.000000e+00
-  3.455232e-04
-  
-  5.389180e-01
-  -1.000000e+00
-  -1.000000e+00
-  1.444780e+00
-  -1.000000e+00
-  1.429985e-06
-  
-  5.389180e-01
-  -1.000000e+00
-  -1.000000e+00
-  5.714131e+00
-  -1.000000e+00
-  2.852419e-11
-  
-  5.389180e-01
-  -1.000000e+00
-  -1.000000e+00
-  2.274054e+01
-  -1.000000e+00
-  3.223444e-16
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  7.618840e-01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  2.887561e+00
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  1.138027e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  4.528711e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  5.389190e-01
-  -1.000000e+00
-  -1.000000e+00
-  3.819420e-01
-  -1.000000e+00
-  2.010003e-05
-  
-  5.389190e-01
-  -1.000000e+00
-  -1.000000e+00
-  1.443781e+00
-  -1.000000e+00
-  7.290371e-09
-  
-  5.389190e-01
-  -1.000000e+00
-  -1.000000e+00
-  5.723130e+00
-  -1.000000e+00
-  1.110297e-15
-  
-  5.389190e-01
-  -1.000000e+00
-  -1.000000e+00
-  2.276654e+01
-  -1.000000e+00
-  1.378917e-16
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  7.628840e-01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  2.880562e+00
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  1.137827e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  -1.000000e+00
-  -1.000000e+00
-  -1.000000e+00
-  4.529611e+01
-  -1.000000e+00
-  -1.000000e+00
-  
-  0
-  0
-  2
-  1
-  0.700000
-  0.600000
-  4
-  16
-  32
-  64
-  128
-  1
-  1000
-  1000
-  1
-  0
-  1
-  5.379190e-01
-  -1.000000e+00
-  3.699400e-02
-  -1.000000e+00
-  2.455525e-04
-  -1.000000e+00
-  
-  5.379190e-01
-  -1.000000e+00
-  1.049840e-01
-  -1.000000e+00
-  1.328986e-06
-  -1.000000e+00
-  
-  5.379190e-01
-  -1.000000e+00
-  3.389480e-01
-  -1.000000e+00
-  1.611594e-11
-  -1.000000e+00
-  
-  5.379190e-01
-  -1.000000e+00
-  1.707741e+00
-  -1.000000e+00
-  4.206773e-16
-  -1.000000e+00
-  
-  5.369180e-01
-  -1.000000e+00
-  3.799400e-02
-  -1.000000e+00
-  1.530038e-05
-  -1.000000e+00
-  
-  5.369180e-01
-  -1.000000e+00
-  1.039840e-01
-  -1.000000e+00
-  6.869470e-09
-  -1.000000e+00
-  
-  5.369180e-01
-  -1.000000e+00
-  3.399490e-01
-  -1.000000e+00
-  5.766784e-16
-  -1.000000e+00
-  
-  5.369180e-01
-  -1.000000e+00
-  1.708740e+00
-  -1.000000e+00
-  1.893048e-16
-  -1.000000e+00
+  See the file example.out for an example output for the input from above.
 
   To each combination of kernel function, cut-off degree and node set
   corresponds a single run of the summation algorithm and therefore a set of
@@ -451,13 +142,48 @@ fastsumS2 - Fast summation of radial functions on the sphere
   first by the kernel parameters, second by the node set and third by the
   cut-off bandwidth ordered as in the input.
 
+  fastsumS2.m
+  -----------
 
+  This MATLAB function demonstrates the fast summation algorithm using the C
+  program fastsumS2.c It allows for selecting different testcases to reproduce
+  the figures and tables from [1]. On choosing a testcase, input for the C
+  program fastsumS2.c is generated and written to the file "data.in",
+  fastsumS2.c is called with the generated input writing the result to the file
+  "data.out" where it is read again into MATLAB. In MATLAB, type "help fatsumS2"
+  for more information.
 
-  References:
+  readTestcase.m
+  --------------
+
+  This MATLAB function is used by fatsumS2.m and allows for reading testcase
+  specifications and results from a file. In MATLAB, type "help readTestcase"
+  for more information.
+
+  writeTestcase.m
+  ---------------
+
+  This MATLAB function is used by fatsumS2.m and allows for writing testcase
+  specifications to a file. In MATLAB, type "help readTestcase" for more
+  information.
+
+  References
+  ----------
 
   [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions 
       on the sphere, Computing, to appear, 2005
 
   [2] Kunis, S. and Potts, D., Fast spherical Fourier algorithms, J. Comput.
       Appl. Math. 161, 75-98, 2003
+
+
+  Feedback
+  --------
+
+  If you have comments, questions, or suggestions regarding NFFT, dont't
+  hesitate to contact us. For more information, new and updates see the NFFt
+  website at
+
+                 http://www-user.tu-chemnitz.de/~potts/nfft/
+
 
