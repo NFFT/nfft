@@ -19,9 +19,34 @@ function T = readTestcase(file)
 %     m is the number of parameter sets and n is the number of kernel function
 %     parameters (1 for Abel-Poisson, singularity and spherical Gaussian kernel,
 %     2 for the locally supported kernel)
-%   - bandwidths The vector of cut-off degrees for the approximation
-%   - nodes The node sets.
-%   - The result data
+%   - bandwidths A vector containing the cut-off degrees for the approximation
+%   - nodes A m x 5 matrix containing the node sets used, where m is the number
+%     of different node sets. Each row contains a node set specification
+%     containing
+%     - in the first column the number of source nodes,
+%     - in the second colum the number of target nodes,
+%     - in the third column whether the direct sum evaluation has been performed
+%       to compute the error E_infty,
+%     - in the fourth column whether the precomputed direct sum evaluation has
+%       been used (undefined if direct sum evaluation has not been used),
+%     - in the fifth column the error E_infty (undefined if direct sum
+%       evaluation has not been used).
+%   - data A m x n cell array containing the result data where m is the number
+%     of parameter sets and n is the number of node sets. Cell (m,n) correspond
+%     to the given ordering of parameter sets and node sets and is
+%     a j x 6 matrix, where j is the number of cut-off degrees. Each row
+%     represents the result data for a single cut-off degree and contains
+%     - in the first column the time needed for direct sum evaluation,
+%     - in the second column the time needed for direct sum evaluation with
+%       precomputation,
+%     - in the third column the time needed by the fast summation algorithm
+%       using the direct NDSFT algorithm,
+%     - in the fourth column the time needed by the fast summation algorithm
+%       using the NFSFT algorithm,
+%     - in the fifth column the error E_infty for the fast summation algorithm
+%       using the direct NDSFT algorithm,
+%     - in the sixth column the error E_infty for the fast summation algorithm
+%       using the NFSFT algorithm.
 
 % $Id$
 %
