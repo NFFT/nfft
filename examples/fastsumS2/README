@@ -11,8 +11,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
              -
             l=0
 
-  where xi_d, eta_l are arbitrary nodes on the sphere S^2 given in spherical 
-  coordinates (theta,phi) from [0,pi] x [-pi,pi), b_l are complex coefficients 
+  where xi_d, eta_l are arbitrary nodes on the sphere S^2 given in spherical
+  coordinates (theta,phi) from [0,pi] x [-pi,pi), b_l are complex coefficients
   and K: [-1,1] -> C is a kernel function. Such kernels include the Abel-Poisson
   and singularity kernels as well as locally supported kernels and the spherical
   Gaussian kernel. See for example [1].
@@ -52,7 +52,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   in the complex square [-1/2,1/2] x [-1/2,1/2]i.
 
   See the file example.in for an example input.
-  
+
   Each parameter is specified by an assignment of the form 'name=value'. All
   parameter values are integer or floating point numbers. There are basic
   parameters which have to be specified in every testcase and extra parameters
@@ -170,7 +170,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   References
   ----------
 
-  [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions 
+  [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
       on the sphere, Computing, to appear, 2005
 
   [2] Kunis, S. and Potts, D., Fast spherical Fourier algorithms, J. Comput.
@@ -181,7 +181,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   --------
 
   If you have comments, questions, or suggestions regarding NFFT, dont't
-  hesitate to contact us. For more information, new and updates see the NFFt
+  hesitate to contact us. For more information, news and updates see the NFFt
   website at
 
                  http://www-user.tu-chemnitz.de/~potts/nfft/

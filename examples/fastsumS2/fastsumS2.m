@@ -9,7 +9,23 @@ function fastsumS2()
 %   [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
 %       on the sphere, Computing, to appear, 2005
 
-% $Id:$
+% $Id$
+%
+% Copyright (C) 2005 Jens Keiner
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2, or (at your option)
+% any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software Foundation,
+% Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 % The input file's name for fastsumS2.c
 infilename = 'data.in';
@@ -22,10 +38,10 @@ texfilename = 'table.tex';
 
 % Create the menu
 selection = menu(...
-  'fastsumS2 - Fast summation of radial functions on the sphere',...
+  ['fastsumS2 - Fast summation of radial functions on the sphere'],...
   'Generate Figure 5.1 (a)','Generate Figure 5.1 (b)',...
   'Generate Figure 5.1 (c)','Generate Figure 5.1 (d)',...
-  'Generate Table 5.2')
+  'Generate Table 5.1')
 
 % Open the file for the input to fastsumS2.c
 file = fopen(infilename,'w');
