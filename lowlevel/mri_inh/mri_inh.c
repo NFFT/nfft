@@ -39,8 +39,8 @@ void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
 																																			 
 void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   int l,j;
-  complex *f = (complex*) fftw_malloc(that->M_total*sizeof(complex));
-  complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
+  complex double *f = (complex double*) fftw_malloc(that->M_total*sizeof(complex double));
+  complex double *f_hat = (complex double*) fftw_malloc(that->N_total*sizeof(complex double));
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
@@ -50,7 +50,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   that->plan.f_hat = that->f_hat;
 
 	
-	memset(f,0,that->M_total*sizeof(complex));
+	memset(f,0,that->M_total*sizeof(complex double));
   for(j=0;j<that->N_total;j++)
   {
     f_hat[j]=that->f_hat[j];
@@ -81,13 +81,13 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
 void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   int l,j;
-  complex *f = (complex*) fftw_malloc(that->M_total*sizeof(complex));
-  complex *f_hat = (complex*) fftw_malloc(that->N_total*sizeof(complex));
+  complex double *f = (complex double*) fftw_malloc(that->M_total*sizeof(complex double));
+  complex double *f_hat = (complex double*) fftw_malloc(that->N_total*sizeof(complex double));
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
   
-	memset(f_hat,0,that->N_total*sizeof(complex));
+	memset(f_hat,0,that->N_total*sizeof(complex double));
 	
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
@@ -231,7 +231,7 @@ void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
   ths->N_total = N[0]*N[1];
   ths->M_total = ths->plan.M_total;
   ths->f = ths->plan.f;
-  ths->f_hat = (complex*) fftw_malloc(ths->N_total*sizeof(complex));
+  ths->f_hat = (complex double*) fftw_malloc(ths->N_total*sizeof(complex double));
   ths->w = (double*) fftw_malloc(ths->N_total*sizeof(double));
 }
 

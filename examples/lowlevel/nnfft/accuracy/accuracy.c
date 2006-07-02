@@ -7,13 +7,13 @@ void accuracy(int d)
 {
   int j,k,t,m;                         
   nnfft_plan my_plan;                   
-  complex *slow;
+  complex double *slow;
 
   int N[d],n[d];
   int M_total,N_total;
   M_total=10000;N_total=1;
 
-  slow=(complex*)fftw_malloc(M_total*sizeof(complex));
+  slow=(complex double*)fftw_malloc(M_total*sizeof(complex double));
 
   for(t=0; t<d; t++)
     {

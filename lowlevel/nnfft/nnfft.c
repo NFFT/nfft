@@ -10,10 +10,10 @@
 #include "nfft3.h"
 
 
-#define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(complex));
+#define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(complex double));
 #define MACRO_nndft_init_result_conjugated MACRO_nndft_init_result_trafo
 #define MACRO_nndft_init_result_adjoint memset(f_hat,0,ths->N_total*               \
-                                              sizeof(complex));
+                                              sizeof(complex double));
 #define MACRO_nndft_init_result_transposed MACRO_nndft_init_result_adjoint
 
 #define MACRO_nndft_sign_trafo      (+2.0*PI)
@@ -35,9 +35,9 @@ void nndft_ ## which_one (nnfft_plan *ths)                                    \
   int j;                                /**< index over all nodes (time)     */\
   int t;                                /**< index for dimensions            */\
   int l;                                /**< index over all nodes (fourier)  */\
-  complex *f_hat, *f;                   /**< dito                            */\
-  complex *f_hat_k;                     /**< actual Fourier coefficient      */\
-  complex *fj;                          /**< actual sample                   */\
+  complex double *f_hat, *f;                   /**< dito                            */\
+  complex double *f_hat_k;                     /**< actual Fourier coefficient      */\
+  complex double *fj;                          /**< actual sample                   */\
   double omega;                         /**< sign times 2*pi*k*x             */\
                                                                                \
   f_hat=ths->f_hat; f=ths->f;                                                \
@@ -86,8 +86,8 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 /** sub routines for the fast transforms
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */
-#define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(complex));
-#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_total*sizeof(complex));
+#define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(complex double));
+#define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_total*sizeof(complex double));
 
 #define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                  \
   (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];                           \
@@ -164,8 +164,8 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
   int lj[ths->d];                      /**< multi index 0<=lj<u+o+1         */\
   int ll_plain[ths->d+1];              /**< postfix plain index in g        */\
   double phi_prod[ths->d+1];           /**< postfix product of PHI          */\
-  complex *f, *g;                  /**< local copy                      */\
-  complex *fj;                     /**< local copy                      */\
+  complex double *f, *g;                  /**< local copy                      */\
+  complex double *fj;                     /**< local copy                      */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
                                                                                \
@@ -497,10 +497,10 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
                                         sizeof(double));
 
   if(ths->nnfft_flags & MALLOC_F_HAT)
-    ths->f_hat = (complex*)fftw_malloc(ths->N_total*
-                                                  sizeof(complex));
+    ths->f_hat = (complex double*)fftw_malloc(ths->N_total*
+                                                  sizeof(complex double));
   if(ths->nnfft_flags & MALLOC_F)
-    ths->f=(complex*)fftw_malloc(ths->M_total*sizeof(complex));
+    ths->f=(complex double*)fftw_malloc(ths->M_total*sizeof(complex double));
     
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {

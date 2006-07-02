@@ -34,7 +34,7 @@ void exponential (double k)
   int l,n,N;
   double xx;
   window_funct_plan  *ths;
-  complex result_exact,result_approx;
+  complex double result_exact,result_approx;
 
   ths = (window_funct_plan*) malloc(sizeof(window_funct_plan));
 
