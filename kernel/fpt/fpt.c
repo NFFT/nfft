@@ -759,12 +759,18 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     data->alphaN = (double*) malloc((set->t-1)*sizeof(complex));
     data->betaN = (double*) malloc((set->t-1)*sizeof(complex));
     data->gammaN = (double*) malloc((set->t-1)*sizeof(complex));
+
+ fflush(stdout);
+fprintf(stdout,"set-t: %f \n",set->t);
+      fflush(stdout);
     for (tau = 2; tau <= set->t; tau++)
     {
+
       data->alphaN[tau-2] = alpha[1<<tau];
       data->betaN[tau-2] = beta[1<<tau];
       data->gammaN[tau-2] = gamma[1<<tau];
     }
+
     data->alpha_0 = alpha[1];
     data->beta_0 = beta[1];
     data->gamma_m1 = gamma[0];
@@ -780,6 +786,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     plength = 4;
     for (tau = 1; tau < set->t; tau++)
     {
+fprintf(stdout,"tau: %f \n",tau);
       /* Compute auxilliary values. */
       degree = plength>>1;
       /* Compute first l. */
@@ -795,6 +802,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
       for (l = firstl; l <= lastl; l++)
       {
+fprintf(stdout, "l=%f\n",l);
         if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           //fprintf(stderr,"fpt_precompute(%d): symmetric step\n",m);

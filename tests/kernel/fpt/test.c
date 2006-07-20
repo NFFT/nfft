@@ -4,18 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
-
 #define REPEAT 1
-
-/** Name of the file containing the test data filenames for NDSFT. */
 const char TESTFILES_DPT[] = "dpt.txt\0";
-
-/** Name of the file containing the test data filenames for NDSFT. */
 const char TESTFILES_DPT_TRANSPOSED[] = "dpt_transposed.txt\0";
-
-/* Default threshold. Not important here since NDSFT-algorithm is used. */
 #define THRESHOLD 1000.0
 
 void test_dpt_trafo(void)
@@ -118,7 +110,7 @@ void test_dpt_trafo(void)
       }
 
       /* Print out recursion coefficients. */
-      /*for (k = 0; k < N+2; k++)
+      for (k = 0; k < N+2; k++)
       {
         fprintf(stdout,"alpha_%d^%d = %.16le\n",k-1,k_start,alpha[k]);
       }
@@ -129,7 +121,7 @@ void test_dpt_trafo(void)
       for (k = 0; k < N+2; k++)
       {
         fprintf(stdout,"gamma_%d^%d = %.16le\n",k-1,k_start,gamma[k]);
-      }*/
+      }
 
       /* Allocate memory for Legendre coefficients. */
       x = (complex*) calloc((k_end+1),sizeof(complex));
@@ -143,10 +135,11 @@ void test_dpt_trafo(void)
       }
 
       /* Print out Legendre coefficients. */
-      /*for (k = k_start; k <= k_end; k++)
+     fprintf(stdout,"\n Legendre coeffs \n");
+      for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x[%d] = %le + I*%le\n",k,creal(x[k]),cimag(x[k]));
-      }*/
+      }
 
       /* Allocate memory for Chebyshev coefficients. */
       y = (complex*) calloc((k_end+1),sizeof(complex));
@@ -161,10 +154,11 @@ void test_dpt_trafo(void)
       }
 
       /* Print out Chebyshev coefficients. */
-      /*for (k = 0; k <= k_end; k++)
+     fprintf(stdout,"\n Chebychev coeffs \n");
+      for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"y_ref[%d] = %le + I*%le\n",k,creal(y_ref[k]),cimag(y_ref[k]));
-      }*/
+      }
 
       /* Initialize DPT. */
       //fprintf(stderr,"t = %d -> N = %d\n",t,1<<t);
@@ -183,12 +177,12 @@ void test_dpt_trafo(void)
       time = (second() - time)/((double)REPEAT);
 
       /* Print out computed and reference coefficients. */
-      /*fprintf(stdout,"\n");
+      fprintf(stdout,"\ncomputed and reference:\n");
       for (k = 0; k <= k_end; k++)
       {
         fprintf(stdout,"y_ref[%d] = %+1.10le + I*%+1.10le, \t y[%d] = %+1.10le + I*%+1.10le\n",k,
           creal(y_ref[k]),cimag(y_ref[k]),k,creal(y[k]),cimag(y[k]));
-      }*/
+      }
 
       /* Print out the infinity-norm error. */
       fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y_ref,y,k_end+1));
@@ -355,7 +349,7 @@ void test_dpt_transposed(void)
       }
 
       /* Print out reference Legendre coefficients. */
-      /*fprintf(stdout,"\n");
+      /*fprintf(stdout,"\n Legendre coefficients \n");
       for (k = k_start; k <= k_end; k++)
       {
         fprintf(stdout,"x_ref[%d] = %le + I*%le\n",k,creal(x_ref[k]),cimag(x_ref[k]));

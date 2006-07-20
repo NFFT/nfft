@@ -485,6 +485,7 @@ AC_OUTPUT(Makefile \
           lowlevel/Makefile \
           lowlevel/nnfft/Makefile \
           lowlevel/nsfft/Makefile \
+	 lowlevel/nsofft/Makefile \
           lowlevel/mri_inh/Makefile \
           highlevel/Makefile \
           highlevel/solver/Makefile \
@@ -532,4 +533,5 @@ AC_OUTPUT(Makefile \
           tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
+          tests/lowlevel/nsofft/Makefile \
 )
