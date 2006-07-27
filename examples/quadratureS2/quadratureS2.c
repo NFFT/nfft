@@ -22,6 +22,7 @@
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
+extern double drand48 (void) __THROW;
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -43,7 +44,7 @@ enum testtype {ERROR = 0, TIMING = 1};
 
 /** Enumeration for quadrature grid types */
 enum gridtype {GRID_GAUSS_LEGENDRE = 0, GRID_CLENSHAW_CURTIS = 1,
-  GRID_HEALPIX = 2, GRID_EQUIDISTRIBUTION = 3};
+  GRID_HEALPIX = 2, GRID_EQUIDISTRIBUTION = 3, GRID_EQUIDISTRIBUTION_UNIFORM = 4};
 
 /** Enumeration for test functions */
 enum functiontype {FUNCTION_RANDOM_BANDLIMITED = 0, FUNCTION_F1 = 1,
@@ -93,12 +94,12 @@ int main (int argc, char **argv)
   double *w;                   /**< The quadrature weights                    */
   double *x_grid;              /**< The quadrature nodes                      */
   double *x_compare;           /**< The quadrature nodes                      */
-  complex *f_grid;             /**< The reference function values             */
-  complex *f_compare;          /**< The function values                       */
-  complex *f;                  /**< The function values                       */
-  complex *f_hat_gen;         /**< The reference spherical Fourier           *
+  double complex *f_grid;             /**< The reference function values             */
+  double complex *f_compare;          /**< The function values                       */
+  double complex *f;                  /**< The function values                       */
+  double complex *f_hat_gen;         /**< The reference spherical Fourier           *
                                     coefficients                              */
-  complex *f_hat;              /**< The spherical Fourier coefficients        */
+  double complex *f_hat;              /**< The spherical Fourier coefficients        */
 
   nfsft_plan plan_adjoint;     /**< The NFSFT plan                            */
   nfsft_plan plan;             /**< The NFSFT plan                            */
@@ -262,8 +263,8 @@ int main (int argc, char **argv)
             d++;
           }
         }
-        f_compare = (complex*) malloc(m_compare*sizeof(complex));
-        f = (complex*) malloc(m_compare*sizeof(complex));
+        f_compare = (double complex*) malloc(m_compare*sizeof(double complex));
+        f = (double complex*) malloc(m_compare*sizeof(double complex));
       }
     }
 
@@ -313,8 +314,8 @@ int main (int argc, char **argv)
     if (testmode == TIMING)
     {
       /* Allocate data structures. */
-      f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(complex));
-      f = (complex*) malloc(SQ_max*sizeof(complex));
+      f_hat = (double complex*) malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(double complex));
+      f = (double complex*) malloc(SQ_max*sizeof(double complex));
       x_grid = (double*) malloc(2*SQ_max*sizeof(double));
       for (d = 0; d < SQ_max; d++)
       {
@@ -394,6 +395,7 @@ int main (int argc, char **argv)
             //fprintf("HEALPix: SQ = %d, m_theta = %d, m_phi= %d, m");
             break;
           case GRID_EQUIDISTRIBUTION:
+          case GRID_EQUIDISTRIBUTION_UNIFORM:
             m_theta = 2;
             //fprintf(stderr,"ed: m_theta = %d\n",m_theta);
             for (k = 1; k < SQ[iNQ]; k++)
@@ -577,31 +579,50 @@ int main (int argc, char **argv)
             break;
 
           case GRID_EQUIDISTRIBUTION:
+          case GRID_EQUIDISTRIBUTION_UNIFORM:
             /* TODO Compute the weights. */
-            w_temp = (double*) malloc((SQ[iNQ]+1)*sizeof(double));
-            fplan = fftw_plan_r2r_1d(SQ[iNQ]/2+1, w_temp, w_temp, FFTW_REDFT00, 0U);
-            for (k = 0; k < SQ[iNQ]/2+1; k++)
-            {
-              w_temp[k] = -2.0/(4*k*k-1);
-            }
-            fftw_execute(fplan);
-            w_temp[0] *= 0.5;
 
-            for (k = 0; k < SQ[iNQ]/2+1; k++)
+            if (gridtype == GRID_EQUIDISTRIBUTION)
             {
-              w_temp[k] *= (2.0*PI)/((double)(SQ[iNQ]));
-              w_temp[SQ[iNQ]-k] = w_temp[k];
+              w_temp = (double*) malloc((SQ[iNQ]+1)*sizeof(double));
+              fplan = fftw_plan_r2r_1d(SQ[iNQ]/2+1, w_temp, w_temp, FFTW_REDFT00, 0U);
+              for (k = 0; k < SQ[iNQ]/2+1; k++)
+              {
+                w_temp[k] = -2.0/(4*k*k-1);
+              }
+              fftw_execute(fplan);
+              w_temp[0] *= 0.5;
+
+              for (k = 0; k < SQ[iNQ]/2+1; k++)
+              {
+                w_temp[k] *= (2.0*PI)/((double)(SQ[iNQ]));
+                w_temp[SQ[iNQ]-k] = w_temp[k];
+              }
+              fftw_destroy_plan(fplan);
             }
-            fftw_destroy_plan(fplan);
 
             d = 0;
             x_grid[2*d] = -0.5;
             x_grid[2*d+1] = 0.0;
-            w[d] = w_temp[0];
+            if (gridtype == GRID_EQUIDISTRIBUTION)
+            {
+              w[d] = w_temp[0];
+            }
+            else
+            {
+              w[d] = (4.0*PI)/(m_total);
+            }
             d = 1;
             x_grid[2*d] = -0.5;
             x_grid[2*d+1] = 0.5;
-            w[d] = w_temp[SQ[iNQ]];
+            if (gridtype == GRID_EQUIDISTRIBUTION)
+            {
+              w[d] = w_temp[SQ[iNQ]];
+            }
+            else
+            {
+              w[d] = (4.0*PI)/(m_total);
+            }
             d = 2;
 
             for (k = 1; k < SQ[iNQ]; k++)
@@ -615,12 +636,22 @@ int main (int argc, char **argv)
                 x_grid[2*d] = (n + 0.5)/M;
                 x_grid[2*d] -= (x_grid[2*d]>=0.5)?(1.0):(0.0);
                 x_grid[2*d+1] = theta_s/(2.0*PI);
-                w[d] = w_temp[k]/((double)(M));
+                if (gridtype == GRID_EQUIDISTRIBUTION)
+                {
+                  w[d] = w_temp[k]/((double)(M));
+                }
+                else
+                {
+                  w[d] = (4.0*PI)/(m_total);
+                }
                 d++;
               }
             }
 
-            free(w_temp);
+            if (gridtype == GRID_EQUIDISTRIBUTION)
+            {
+              free(w_temp);
+            }
             break;
 
           default:
@@ -628,7 +659,7 @@ int main (int argc, char **argv)
         }
 
         /* Allocate memory for grid values. */
-        f_grid = (complex*) malloc(m_total*sizeof(complex));
+        f_grid = (double complex*) malloc(m_total*sizeof(double complex));
 
         if (mode == RANDOM)
         {
@@ -636,7 +667,7 @@ int main (int argc, char **argv)
         else
         {
           m_compare = m_total;
-          f_compare = (complex*) malloc(m_compare*sizeof(complex));
+          f_compare = (double complex*) malloc(m_compare*sizeof(double complex));
           x_compare = x_grid;
           f = f_grid;
         }
@@ -646,7 +677,7 @@ int main (int argc, char **argv)
         switch (testfunction)
         {
           case FUNCTION_RANDOM_BANDLIMITED:
-            f_hat_gen = (complex*) malloc(NFSFT_F_HAT_SIZE(N)*sizeof(complex));
+            f_hat_gen = (double complex*) malloc(NFSFT_F_HAT_SIZE(N)*sizeof(double complex));
             //fprintf(stderr,"Generating random test function\n");
             //fflush(stderr);
             /* Generate random function samples by sampling a bandlimited
@@ -719,7 +750,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
 
             free(f_hat_gen);
@@ -746,7 +777,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           case FUNCTION_F2:
@@ -769,7 +800,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           case FUNCTION_F3:
@@ -794,7 +825,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           case FUNCTION_F4:
@@ -819,7 +850,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           case FUNCTION_F5:
@@ -844,7 +875,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           case FUNCTION_F6:
@@ -875,7 +906,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
           default:
@@ -894,7 +925,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
             break;
         }
@@ -924,7 +955,7 @@ int main (int argc, char **argv)
           plan_ptr = &plan_adjoint;
         }
 
-        f_hat = (complex*) malloc(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(complex));
+        f_hat = (double complex*) malloc(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(double complex));
 
         plan_adjoint_ptr->f_hat = f_hat;
         plan_adjoint_ptr->x = x_grid;
@@ -953,7 +984,7 @@ int main (int argc, char **argv)
           //fprintf(stderr,"Copying original values\n");
           //fflush(stderr);
           /* Copy exact funtion values to working array. */
-          //memcpy(f,f_grid,m_total*sizeof(complex));
+          //memcpy(f,f_grid,m_total*sizeof(double complex));
 
           /* Initialize time measurement. */
           t = second();
