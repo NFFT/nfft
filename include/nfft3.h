@@ -50,7 +50,7 @@ float_type *f;                        /**< samples                        */\
 typedef struct nfft_plan_
 {
   /** api */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   int d;                                /**< dimension, rank                 */
   int *N;                               /**< multi bandwidth                 */
@@ -77,10 +77,10 @@ typedef struct nfft_plan_
   int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
   int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
 
-  complex double *g;
-  complex double *g_hat;
-  complex double *g1;                          /**< input of fftw                   */
-  complex double *g2;                          /**< output of fftw                  */
+  double complex *g;
+  double complex *g_hat;
+  double complex *g1;                          /**< input of fftw                   */
+  double complex *g2;                          /**< output of fftw                  */
 
   double *spline_coeffs;            /**< input for de Boor algorithm, if
                B_SPLINE or SINC_2m is defined  */
@@ -723,7 +723,7 @@ int nfst_fftw_2N_rev( int n);
 typedef struct
 {
   /** api */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   int d;                                /**< dimension, rank                 */
   double *sigma;                        /**< oversampling-factor            */
@@ -749,7 +749,7 @@ typedef struct
   int size_psi;                         /**< only for thin B                 */
   int *psi_index_g;                     /**< only for thin B                 */
   int *psi_index_f;                     /**< only for thin B                 */
-  complex double *F;
+  double complex *F;
 
   double *spline_coeffs;                /**< input for de Boor algorithm, if
                                              B_SPLINE or SINC_2m is defined  */
@@ -913,7 +913,7 @@ void nnfft_finalize(nnfft_plan *ths_plan);
  */
 typedef struct nsfft_plan_
 {
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   int d;                                /**< dimension, rank; d=2,3          */
   int J;                                /**< problem size, i.e.,
@@ -1044,7 +1044,7 @@ void nsfft_finalize(nsfft_plan *ths);
 typedef struct
 {
   /** api */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   nfft_plan plan;
 
@@ -1060,7 +1060,7 @@ typedef struct
 typedef struct
 {
   /** api */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   nfft_plan plan;
 
@@ -1416,7 +1416,7 @@ typedef struct texture_plan_ {
   /** The total length of f.
    * @var M_total
    */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   /** The bandwidth.
    * @see texture_init
@@ -1468,11 +1468,11 @@ typedef struct texture_plan_ {
 
   /** Stores the frequencies for the nfsft transformation.
    */
-  complex double **nfsft_f_hat;
+  double complex **nfsft_f_hat;
 
   /** Stores the samples for the nfsft transformation.
    */
-  complex double *nfsft_f;
+  double complex *nfsft_f;
 
   /** Stores the nodes for the nfsft transformation.
    */
@@ -1537,8 +1537,8 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
  * @note
  * For details about data representation see @ref texture_data_rep.
  */
-void texture_init(texture_plan *ths, int N, int N1, int N2, complex double* omega,
-    complex double* x, const double* h_phi, const double* h_theta, const double* r);
+void texture_init(texture_plan *ths, int N, int N1, int N2, double complex* omega,
+    double complex* x, const double* h_phi, const double* h_theta, const double* r);
 
 /** Initialisation of a plan.
  * The arguments after ths will be stored in the plan ths.
@@ -1576,7 +1576,7 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, complex double* omeg
  * For details about data representation see @ref texture_data_rep.
  */
 void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
-    complex double* omega, complex double* x, const double* h_phi, const double* h_theta,
+    double complex* omega, double complex* x, const double* h_phi, const double* h_theta,
     const double *r, unsigned int texture_init_flags,
     unsigned int nfsft_init_flags, int nfft_cutoff);
 
@@ -1680,7 +1680,7 @@ int texture_get_N2(texture_plan *ths);
  *
  * @par ths - a pointer to the transformation plan
  */
-const complex double *texture_get_omega(texture_plan *ths);
+const double complex *texture_get_omega(texture_plan *ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -1688,13 +1688,13 @@ const complex double *texture_get_omega(texture_plan *ths);
  * @par omega - a pointer to the new frequencies.
  * @pre omega has to point to an array of appropriate length.
  */
-void texture_set_omega(texture_plan *ths, complex double* omega);
+void texture_set_omega(texture_plan *ths, double complex* omega);
 
 /** Returns a pointer to the samples stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-const complex double *texture_get_x(texture_plan *ths);
+const double complex *texture_get_x(texture_plan *ths);
 
 /** Sets the samples in a plan.
  *
@@ -1702,7 +1702,7 @@ const complex double *texture_get_x(texture_plan *ths);
  * @par x - a pointer to the new samples
  * @pre x has to point to an array of appropriate length.
  */
-void texture_set_x(texture_plan *ths, complex double* x);
+void texture_set_x(texture_plan *ths, double complex* x);
 
 /** Returns a pointer to the latitudes of the pole figures stored in a plan.
  *
@@ -2256,7 +2256,7 @@ void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
 typedef struct nfsft_plan_
 {
   /** Inherited public members */
-  MACRO_MV_PLAN(complex double)
+  MACRO_MV_PLAN(double complex)
 
   /* Public members */
   int N;                              /**< the bandwidth \f$N\f$              */
@@ -2274,7 +2274,7 @@ typedef struct nfsft_plan_
                                            respect to the basis 2             */
   unsigned int flags;                 /**< the planner flags                  */
   nfft_plan plan_nfft;                /**< the internal NFFT plan             */
-  complex double *f_hat_intern;              /**< Internally used pointer to         *
+  double complex *f_hat_intern;              /**< Internally used pointer to         *
                                            spherical Fourier coefficients     */
 } nfsft_plan;
 
@@ -2487,7 +2487,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
  * \arg k_end
  * \arg flags
  */
-void dpt_trafo(fpt_set set, const int m, const complex double *x, complex double *y,
+void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
   const int k_end, const unsigned int flags);
 
 /**
@@ -2500,7 +2500,7 @@ void dpt_trafo(fpt_set set, const int m, const complex double *x, complex double
  * \arg k_end
  * \arg flags
  */
-void fpt_trafo(fpt_set set, const int m, const complex double *x, complex double *y,
+void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
   const int k_end, const unsigned int flags);
 
 /**
@@ -2513,7 +2513,7 @@ void fpt_trafo(fpt_set set, const int m, const complex double *x, complex double
  * \arg k_end
  * \arg flags
  */
-void dpt_transposed(fpt_set set, const int m, complex double *x, const complex double *y,
+void dpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
   const int k_end, const unsigned int flags);
 
 /**
@@ -2526,7 +2526,7 @@ void dpt_transposed(fpt_set set, const int m, complex double *x, const complex d
  * \arg k_end
  * \arg flags
  */
-void fpt_transposed(fpt_set set, const int m, complex double *x, const complex double *y,
+void fpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
   const int k_end, const unsigned int flags);
 
 void fpt_finalize(fpt_set set);
@@ -2607,14 +2607,14 @@ F(MV, FLT, loop_one_step, i ## MV ## _plan *ths);                             \
 F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
 
 
-MACRO_SOLVER_PLAN(nfft, complex double)
+MACRO_SOLVER_PLAN(nfft, double complex)
 MACRO_SOLVER_PLAN(nfct, double)
 MACRO_SOLVER_PLAN(nfst, double)
-MACRO_SOLVER_PLAN(nnfft, complex double)
-MACRO_SOLVER_PLAN(mri_inh_2d1d, complex double)
-MACRO_SOLVER_PLAN(mri_inh_3d, complex double)
-MACRO_SOLVER_PLAN(nfsft, complex double)
-MACRO_SOLVER_PLAN(texture, complex double)
+MACRO_SOLVER_PLAN(nnfft, double complex)
+MACRO_SOLVER_PLAN(mri_inh_2d1d, double complex)
+MACRO_SOLVER_PLAN(mri_inh_3d, double complex)
+MACRO_SOLVER_PLAN(nfsft, double complex)
+MACRO_SOLVER_PLAN(texture, double complex)
 /** @}
  */
 
