@@ -481,55 +481,50 @@ AC_OUTPUT(Makefile \
           util/Makefile \
           kernel/Makefile \
           kernel/fpt/Makefile \
-          kernel/nfft/Makefile \
-          lowlevel/Makefile \
-          lowlevel/nnfft/Makefile \
-          lowlevel/nsfft/Makefile \
-          lowlevel/mri_inh/Makefile \
-          highlevel/Makefile \
-          highlevel/solver/Makefile \
-          highlevel/fastsum/Makefile \
-          lowlevel/nfsft/Makefile \
-          lowlevel/nfsft/obsolete/Makefile \
+          kernel/mri/Makefile \
           kernel/nfct/Makefile \
+          kernel/nfft/Makefile \
+          kernel/nfsft/Makefile \
+          kernel/nfsft/obsolete/Makefile \
           kernel/nfst/Makefile \
-          lowlevel/texture/Makefile \
-          examples/Makefile \
-          examples/kernel/Makefile \
-          examples/lowlevel/Makefile \
-          examples/highlevel/Makefile \
-          examples/radon/Makefile \
-          examples/polarFFT/Makefile \
-          examples/kernel/fpt/Makefile \
-          examples/kernel/nfft/Makefile \
-          examples/lowlevel/nnfft/Makefile \
-          examples/lowlevel/nnfft/accuracy/Makefile \
-          examples/lowlevel/nnfft/simple_test/Makefile \
-          examples/lowlevel/mri/Makefile \
-          examples/lowlevel/mri/mri2d/Makefile \
-          examples/lowlevel/mri/mri3d/Makefile \
-          examples/highlevel/exp/Makefile \
-          examples/lowlevel/nsfft/Makefile \
-          examples/lowlevel/nfsft/Makefile \
-          examples/lowlevel/nfsft/obsolete/Makefile \
-          examples/lowlevel/texture/Makefile \
-          examples/lowlevel/texture/correctness/Makefile \
-          examples/lowlevel/texture/data_creator/Makefile \
-          examples/lowlevel/texture/interpolation/Makefile \
-          examples/lowlevel/texture/matrix/Makefile \
-          examples/lowlevel/texture/performance/Makefile \
-          examples/lowlevel/texture/regularity/Makefile \
-          examples/lowlevel/texture/regularity2/Makefile \
-          examples/lowlevel/texture/texture_util/Makefile \
-          examples/highlevel/fastgauss/Makefile \
-          examples/kernel/nfct/Makefile \
-          examples/kernel/nfst/Makefile \
-          examples/fastsumS2/Makefile \
-          examples/quadratureS2/Makefile \
-          examples/fastsum/Makefile \
+          kernel/nnfft/Makefile \
+          kernel/nsfft/Makefile \
+          kernel/solver/Makefile \
+          kernel/texture/Makefile \
           tests/Makefile \
           tests/kernel/Makefile \
           tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
+          examples/Makefile \
+          examples/kernel/Makefile \
+          examples/kernel/Makefile \
+          examples/kernel/fpt/Makefile \
+          examples/kernel/nfft/Makefile \
+          examples/kernel/nnfft/Makefile \
+          examples/kernel/nnfft/accuracy/Makefile \
+          examples/kernel/nnfft/simple_test/Makefile \
+          examples/kernel/mri/Makefile \
+          examples/kernel/mri/mri2d/Makefile \
+          examples/kernel/mri/mri3d/Makefile \
+          examples/kernel/nsfft/Makefile \
+          examples/kernel/nfsft/Makefile \
+          examples/kernel/nfsft/obsolete/Makefile \
+          examples/kernel/texture/Makefile \
+          examples/kernel/texture/correctness/Makefile \
+          examples/kernel/texture/data_creator/Makefile \
+          examples/kernel/texture/interpolation/Makefile \
+          examples/kernel/texture/matrix/Makefile \
+          examples/kernel/texture/performance/Makefile \
+          examples/kernel/texture/regularity/Makefile \
+          examples/kernel/texture/regularity2/Makefile \
+          examples/kernel/texture/texture_util/Makefile \
+          applications/radon/Makefile \
+          applications/polarFFT/Makefile \
+          applications/fastgauss/Makefile \
+          examples/kernel/nfct/Makefile \
+          examples/kernel/nfst/Makefile \
+          applications/fastsumS2/Makefile \
+          applications/quadratureS2/Makefile \
+          applications/fastsum/Makefile \
 )
