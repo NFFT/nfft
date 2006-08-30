@@ -1,6 +1,6 @@
-NDFT for nonequispaced data either in time and frequency domain
+NDFT for nonequispaced data in time and frequency domain
 
-the algorithms written by Tobias Knopp 
+the algorithms are written by Tobias Knopp 
 based on the paper
 Potts, D., Steidl G., and Tasche M.
  Fast Fourier transforms for nonequispaced data: A tutorial.
