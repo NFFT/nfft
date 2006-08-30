@@ -1,5 +1,5 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 
-noinst_LTLIBRARIES = libmri_inh.la
+noinst_LTLIBRARIES = libmri.la
 
-libmri_inh_la_SOURCES = mri_inh.c 
+libmri_la_SOURCES = mri.c 

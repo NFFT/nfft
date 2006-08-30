@@ -495,4 +495,16 @@ AC_OUTPUT(Makefile \
           tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
+          examples/Makefile \
+          examples/fpt/Makefile \
+          examples/mri/Makefile \
+          examples/mri/mri2d/Makefile \
+          examples/mri/mri3d/Makefile \
+          examples/nfct/Makefile \
+          examples/nfft/Makefile \
+          examples/nfsft/Makefile \
+          examples/nfsft/obsolete/Makefile \
+          examples/nfst/Makefile \
+          examples/nnfft/Makefile \
+          examples/nsfft/Makefile
 )
