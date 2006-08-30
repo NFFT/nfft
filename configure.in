@@ -485,7 +485,6 @@ AC_OUTPUT(Makefile \
           kernel/nfct/Makefile \
           kernel/nfft/Makefile \
           kernel/nfsft/Makefile \
-          kernel/nfsft/obsolete/Makefile \
           kernel/nfst/Makefile \
           kernel/nnfft/Makefile \
           kernel/nsfft/Makefile \
@@ -503,8 +502,14 @@ AC_OUTPUT(Makefile \
           examples/nfct/Makefile \
           examples/nfft/Makefile \
           examples/nfsft/Makefile \
-          examples/nfsft/obsolete/Makefile \
           examples/nfst/Makefile \
           examples/nnfft/Makefile \
-          examples/nsfft/Makefile
+          examples/nnfft/accuracy/Makefile \
+          examples/nnfft/simple_test/Makefile \
+          examples/nsfft/Makefile \
+	  applications/fastgauss/Makefile \
+	  applications/fastsumS2/Makefile \
+	  applications/polarFFT/Makefile \
+	  applications/quadratureS2/Makefile \
+	  applications/radon/Makefile
 )
