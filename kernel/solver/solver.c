@@ -363,5 +363,3 @@ MACRO_SOLVER_IMPL(nnfft, complex)
 MACRO_SOLVER_IMPL(mri_inh_2d1d, complex)
 MACRO_SOLVER_IMPL(mri_inh_3d, complex)
 MACRO_SOLVER_IMPL(nfsft, complex)
-MACRO_SOLVER_IMPL(texture, complex)
-
