@@ -85,7 +85,8 @@ void fgt_trafo(fgt_plan *ths)
     }
 }
 
-void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p, int m, unsigned flags)
+void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
+		   int m, unsigned flags)
 {
   int j,k,l,n_fftw;
   fftw_plan fplan;
@@ -100,9 +101,6 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p, 
   ths->alpha = (complex*)fftw_malloc(ths->N*sizeof(complex));
   ths->f = (complex*)fftw_malloc(ths->M*sizeof(complex));
 
-
-
-/* TODO: ESTIMATE n, p for simple init !!!!!!!!!!!!!!!!!!!!!!*/
   ths->n = n;
   ths->p = p;
 
@@ -113,7 +111,11 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p, 
 
   n_fftw=next_power_of_2(2*ths->n);
 
-/* TODO: PRE_PHI_HUT only once?, FFTW_INIT only once?, PRE_LIN_PSI instead of PRE_PSI and only once? */
+  /* 
+     TODO: PRE_PHI_HUT only once?, FFTW_INIT only once?, PRE_LIN_PSI instead of
+     PRE_PSI and only once?
+  */
+
   nfft_init_guru(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT|
                  PRE_PSI| MALLOC_X| MALLOC_F_HAT| FFTW_INIT, FFTW_MEASURE);
   nfft_init_guru(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, m, PRE_PHI_HUT|
@@ -161,7 +163,7 @@ void fgt_init(fgt_plan *ths, int N, int M, complex sigma, double eps)
   if(N*M<=((int)(1U<<20)))
     fgt_init_guru(ths, N, M, sigma, n, p, 7, DGT_PRE_CEXP);
   else
-   fgt_init_guru(ths, N, M, sigma, n, p, 7, 0);
+    fgt_init_guru(ths, N, M, sigma, n, p, 7, 0);
 }
 
 void fgt_init_knot_dependent(fgt_plan *ths)
@@ -443,18 +445,17 @@ void fgt_test_error_p()
 
 int main()
 {
-  /**  pipe to output_andersson.tex */
-/* Jens: Hat nicht durchkompiliert. Deswegen auskommentiert. */
-/*  fgt_test_simple(); */
+  /** simple test */
+  fgt_test_simple(10, 10, 5+3*I, 0.001);
 
-  /**  pipe to output_andersson.tex */
-//fgt_test_andersson();
+  /** pipe to output_andersson.tex */
+  /* fgt_test_andersson(); */
 
   /** pipe to output_error.m */
-//fgt_test_error();
+  /* fgt_test_error(); */
 
   /** pipe to output_error_p.m */
-//fgt_test_error_p();
+  /* fgt_test_error_p(); */
 
   return 1;
 }

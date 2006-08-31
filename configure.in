@@ -507,6 +507,7 @@ AC_OUTPUT(Makefile \
           examples/nnfft/accuracy/Makefile \
           examples/nnfft/simple_test/Makefile \
           examples/nsfft/Makefile \
+	  applications/Makefile \
 	  applications/fastgauss/Makefile \
 	  applications/fastsumS2/Makefile \
 	  applications/polarFFT/Makefile \

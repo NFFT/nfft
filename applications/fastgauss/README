@@ -1,6 +1,12 @@
-Based on the research paper:
-Fast Gauss transforms with complex parameters
-by Stefan Kunis, Daniel Potts, and Gabriele Steidl
+The executable produces by default a simple test and prints to stdout.
+By changing the subroutine call in the source code, different tests are
+performed. Piped to files and used by the MATLAB file show_results, the figures
+in our joint paper have been produced.
 
-Available from:
+Based on the research paper:
+Fast Gauss transforms with complex parameters using NFFTs.
+by Stefan Kunis, Daniel Potts, and Gabriele Steidl
+J. Numer. Math., to appear. 2006
+
+Preprint available online
 http://www.mathematik.tu-chemnitz.de/~potts/paper/fastgauss.pdf
