@@ -39,7 +39,8 @@
 
 /** macros and small sub routines for the direct transforms
  */
-#define MACRO_ndft_init_result_trafo memset(f,0,ths->M_total*sizeof(double complex));
+#define MACRO_ndft_init_result_trafo memset(f,0,ths->M_total*                 \
+                                            sizeof(double complex));
 #define MACRO_ndft_init_result_conjugated MACRO_ndft_init_result_trafo
 #define MACRO_ndft_init_result_adjoint memset(f_hat,0,ths->N_total*           \
 					      sizeof(double complex));
@@ -173,7 +174,6 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
   up[0]=u; op[0]=o;
 }
 
-//printf("k_plain=%d, \t ks_plain=%d\n",k_plain[ths->d],ks_plain[ths->d]); fflush(stdout);
 #define MACRO_nfft_D_compute_A {                                              \
  g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];      \
 }
@@ -283,8 +283,10 @@ MACRO_nfft_D(T)
 /** sub routines for the fast transforms
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */ 
-#define MACRO_nfft_B_init_result_A  memset(f,0,ths->M_total*sizeof(double complex));
-#define MACRO_nfft_B_init_result_T memset(g,0,ths->n_total*sizeof(double complex));
+#define MACRO_nfft_B_init_result_A  memset(f,0,ths->M_total*                  \
+                                           sizeof(double complex));
+#define MACRO_nfft_B_init_result_T memset(g,0,ths->n_total*                   \
+                                          sizeof(double complex));
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_A {                                 \
   (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			      \
@@ -820,7 +822,8 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & FFTW_INIT)
       {  
-	ths->g1=(double complex*)fftw_malloc(ths->n_total*sizeof(double complex));
+	ths->g1=(double complex*)fftw_malloc(ths->n_total*
+					     sizeof(double complex));
 
 	if(ths->nfft_flags & FFT_OUT_OF_PLACE)
 	    ths->g2 = (double complex*) fftw_malloc(ths->n_total*
@@ -907,6 +910,29 @@ void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M_total)
   N[1]=N2;
   N[2]=N3;
   nfft_init(ths,3,N,M_total);
+}
+
+void nfft_check(nfft_plan *ths)
+{
+  int j;
+ 
+  for(j=0;j<ths->M_total*ths->d;j++)
+    if((ths->x[j]<-0.5) || (ths->x[j]>=0.5))
+      fprintf(stderr,"nfft_check: ths->x[%d]=%e out of range [-0.5,0.5)\n",
+	      j,ths->x[j]);
+
+  for(j=0;j<ths->d;j++)
+    {
+      if(ths->sigma[j]<=1)
+	fprintf(stderr,"nfft_check: oversampling factor too small\n");
+
+      if(ths->N[j]<=ths->m)
+	fprintf(stderr,
+		"nfft_check: polynomial degree N is smaller than cut-off m\n");
+
+      if(ths->N[j]%2==1)
+	fprintf(stderr,"nfft_check: polynomial degree N has to be even\n");
+    }
 }
 
 void nfft_finalize(nfft_plan *ths)

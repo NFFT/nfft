@@ -6,15 +6,16 @@
 
 /** Include header for C99 complex datatype. */
 #include <complex.h>
+
 /** Include header for FFTW3 library. */
 #include <fftw3.h>
 
 /** Macros for public members inherited by all plan structures. */
-#define MACRO_MV_PLAN(float_type)                                           \
-int N_total;                          /**< total number of Fourier coeffs.*/\
-int M_total;                          /**< total number of samples        */\
-float_type *f_hat;                    /**< Fourier coefficients           */\
-float_type *f;                        /**< samples                        */\
+#define MACRO_MV_PLAN(float_type)                                             \
+  int N_total;                          /**< total number of Fourier coeffs.*/\
+  int M_total;                          /**< total number of samples        */\
+  float_type *f_hat;                    /**< Fourier coefficients           */\
+  float_type *f;                        /**< samples                        */\
 
 /*###########################################################################*/
 /*###########################################################################*/
@@ -79,11 +80,11 @@ typedef struct nfft_plan_
 
   double complex *g;
   double complex *g_hat;
-  double complex *g1;                          /**< input of fftw                   */
-  double complex *g2;                          /**< output of fftw                  */
+  double complex *g1;                   /**< input of fftw                   */
+  double complex *g2;                   /**< output of fftw                  */
 
-  double *spline_coeffs;            /**< input for de Boor algorithm, if
-               B_SPLINE or SINC_2m is defined  */
+  double *spline_coeffs;                /**< input for de Boor algorithm, if
+                                             B_SPLINE or SINC_2m is defined  */
 } nfft_plan;
 
 
@@ -194,7 +195,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M);
  * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
-      unsigned nfft_flags_on, unsigned nfft_flags_off);
+                        unsigned nfft_flags_on, unsigned nfft_flags_off);
 
 /**
  * Initialisation of a transform plan, guru.
@@ -211,7 +212,7 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
  * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
-              int m, unsigned nfft_flags, unsigned fftw_flags);
+                    int m, unsigned nfft_flags, unsigned fftw_flags);
 
 void nfft_precompute_full_psi(nfft_plan *ths);
 
@@ -228,6 +229,15 @@ void nfft_precompute_full_psi(nfft_plan *ths);
  * (after) setting the nodes x
  */
 void nfft_precompute_one_psi(nfft_plan *ths);
+
+/**
+ * Checks a transform plan for frequently used bad parameter.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+void nfft_check(nfft_plan *ths);
 
 /**
  * Destroys a transform plan.
@@ -726,8 +736,8 @@ typedef struct
   MACRO_MV_PLAN(double complex)
 
   int d;                                /**< dimension, rank                 */
-  double *sigma;                        /**< oversampling-factor            */
-  double *a;                            /**< 1 + 2*m/N1                     */
+  double *sigma;                        /**< oversampling-factor             */
+  double *a;                            /**< 1 + 2*m/N1                      */
   int *N;                               /**< cut-off-frequencies             */
   int *N1;                              /**< sigma*N                         */
   int *aN1;                             /**< sigma*a*N                       */
@@ -739,7 +749,7 @@ typedef struct
 
   nfft_plan *direct_plan;               /**< plan for the nfft               */
   unsigned nnfft_flags;                 /**< flags for precomputation, malloc*/
-  int *n;                               /**<  n=N1, just for the window function */
+  int *n;                               /**< n=N1, for the window function   */
 
   double *x;                            /**< nodes (in time/spatial domain)  */
   double *v;                            /**< nodes (in fourier domain)       */
@@ -789,7 +799,8 @@ void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total,
 /**
  * Executes a direct NNDFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi
+ *            \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -801,7 +812,8 @@ void nndft_trafo(nnfft_plan *ths_plan);
 /**
  * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{2 \pi
+ *                  \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -813,7 +825,8 @@ void nndft_adjoint(nnfft_plan *ths_plan);
 /**
  * Executes a NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
  * \f[
- *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi
+ *            \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
@@ -825,7 +838,8 @@ void nnfft_trafo(nnfft_plan *ths_plan);
 /**
  * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
  * \f[
- *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi
+ *                  \mbox{\rm\scriptsize i} v_k x_j \odot N}
  * \f]
  *
  * \arg ths_plan The plan
