@@ -1,1 +1,1 @@
-SUBDIRS = fastgauss fastsumS2 polarFFT quadratureS2 radon
+SUBDIRS = fastgauss fastsumS2 mri polarFFT quadratureS2 radon

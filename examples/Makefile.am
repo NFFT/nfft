@@ -1,1 +1,1 @@
-SUBDIRS = fpt mri nfct nfft nfsft nfst nnfft nsfft
+SUBDIRS = fpt mri nfct nfft nfsft nfst nnfft nsfft solver

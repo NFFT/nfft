@@ -497,8 +497,6 @@ AC_OUTPUT(Makefile \
           examples/Makefile \
           examples/fpt/Makefile \
           examples/mri/Makefile \
-          examples/mri/mri2d/Makefile \
-          examples/mri/mri3d/Makefile \
           examples/nfct/Makefile \
           examples/nfft/Makefile \
           examples/nfsft/Makefile \
@@ -507,9 +505,13 @@ AC_OUTPUT(Makefile \
           examples/nnfft/accuracy/Makefile \
           examples/nnfft/simple_test/Makefile \
           examples/nsfft/Makefile \
+          examples/solver/Makefile \
 	  applications/Makefile \
 	  applications/fastgauss/Makefile \
 	  applications/fastsumS2/Makefile \
+	  applications/mri/Makefile \
+          applications/mri/mri2d/Makefile \
+          applications/mri/mri3d/Makefile \
 	  applications/polarFFT/Makefile \
 	  applications/quadratureS2/Makefile \
 	  applications/radon/Makefile
