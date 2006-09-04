@@ -3,22 +3,22 @@
  * \brief Testing ndft, Horner-like ndft, and fully precomputed ndft.
  *
  * \author Stefan Kunis
- *
- * References: [BaMi], i.e., Bagchi Mitra XXXXXXXX:
- *
  */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
 
 void ndft_horner_trafo(nfft_plan *ths)
 {
   int j,k;
-  complex *f_hat_k, *f_j;
-  complex exp_omega_0, exp_omega;
+  double complex *f_hat_k, *f_j;
+  double complex exp_omega_0;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     (*f_j) =0;
@@ -35,11 +35,11 @@ void ndft_horner_trafo(nfft_plan *ths)
     }
 } /* ndft_horner_trafo */
 
-void ndft_pre_full_trafo(nfft_plan *ths, complex *A)
+void ndft_pre_full_trafo(nfft_plan *ths, double complex *A)
 {
   int j,k;
-  complex *f_hat_k, *f_j;
-  complex *A_local;
+  double complex *f_hat_k, *f_j;
+  double complex *A_local;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     (*f_j) =0;
@@ -49,10 +49,10 @@ void ndft_pre_full_trafo(nfft_plan *ths, complex *A)
       (*f_j) += (*f_hat_k)*(*A_local);
 } /* ndft_pre_full_trafo */
 
-void ndft_pre_full_init(nfft_plan *ths, complex *A)
+void ndft_pre_full_init(nfft_plan *ths, double complex *A)
 {
   int j,k;
-  complex *f_hat_k, *f_j, *A_local;
+  double complex *f_hat_k, *f_j, *A_local;
 
   for(j=0, f_j=ths->f, A_local=A; j<ths->M_total; j++, f_j++)
     for(k=0, f_hat_k= ths->f_hat; k<ths->N[0]; k++, f_hat_k++, A_local++)
@@ -62,30 +62,28 @@ void ndft_pre_full_init(nfft_plan *ths, complex *A)
 
 void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
-  nfft_plan np;
-  int j,k,r;
+  int r;
   double t, t_ndft, t_horner, t_pre_full, t_nfft;
-  complex *A;
-  int n=2*N;
+  double complex *A;
+
+  nfft_plan np;
 
   printf("%d\t%d\t",N, M);
 
   nfft_init_1d(&np, N, M);
 
   /** init pseudo random nodes */
-  for(j=0;j<np.M_total;j++)
-    np.x[j]=drand48()-0.5;
+  vrand_shifted_unit_double(np.x, np.M_total);
 
   if(test_pre_full)
    {
-     A=(complex*)fftw_malloc(N*M*sizeof(complex));
+     A=(double complex*)fftw_malloc(N*M*sizeof(double complex));
      ndft_pre_full_init(&np, A);
    }
 
   /** init pseudo random Fourier coefficients */
-  for(k=0;k<np.N_total;k++)
-    np.f_hat[k] = drand48() + I* drand48();
-
+  vrand_unit_complex(np.f_hat, np.N_total);
+ 
   /** NDFT */
   if(test_ndft)
     {
@@ -165,8 +163,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 
 int main(int argc,char **argv)
 {
-  int l,m,trial,sigma;
-  int N=(1U<< 10);
+  int l,trial;
 
   if(argc<=2)
     {

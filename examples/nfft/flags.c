@@ -46,12 +46,9 @@ void flags_cp(nfft_plan *dst, nfft_plan *src)
 void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
                    unsigned test_pre_full_psi)
 {
-  int j,k,r;
-
+  int r, NN[d], nn[d];
   double t_ndft, t, e;
-  complex *swapndft;
-
-  int NN[d], nn[d];
+  double complex *swapndft;
 
   nfft_plan p;
   nfft_plan p_pre_phi_hut;
@@ -71,7 +68,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /** output vector ndft */
   if(test_ndft)
-    swapndft=(complex*)fftw_malloc(M*sizeof(complex));
+    swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -79,8 +76,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  for(j=0; j<p.d*p.M_total; j++)
-    p.x[j]=drand48()-0.5;
+  vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   nfft_init_guru(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT,0);
   flags_cp(&p_pre_phi_hut, &p);
@@ -116,8 +112,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     }
 
   /** init pseudo random Fourier coefficients */
-  for(k=0; k<p.N_total; k++)
-    p.f_hat[k] = drand48() + I* drand48();
+  vrand_unit_complex(p.f_hat, p.N_total);
 
   /** NDFT */
   if(test_ndft)
@@ -203,12 +198,9 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
 void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 {
-  int j,k,r;
-
-  double t_ndft, t, e;
-  complex *swapndft;
-
-  int NN[d], nn[d];
+  int r, NN[d], nn[d];
+  double e;
+  double complex *swapndft;
 
   nfft_plan p;
 
@@ -219,7 +211,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
     }
 
   /** output vector ndft */
-  swapndft=(complex*)fftw_malloc(M*sizeof(complex));
+  swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -236,12 +228,10 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   nfft_precompute_one_psi(&p);
 
   /** init pseudo random nodes */
-  for(j=0; j<p.d*p.M_total; j++)
-    p.x[j]=drand48()-0.5;
+  vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   /** init pseudo random Fourier coefficients */
-  for(k=0; k<p.N_total; k++)
-    p.f_hat[k] = drand48() + I* drand48();
+  vrand_unit_complex(p.f_hat, p.N_total);
 
   /** compute exact result */
   SWAP_complex(p.f,swapndft);
@@ -265,7 +255,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 
 int main(int argc,char **argv)
 {
-  int l,m,d,trial,N,K;
+  int l,m,d,trial,N;
 
   if(argc<=2)
     {
@@ -291,10 +281,12 @@ int main(int argc,char **argv)
   if(atoi(argv[1])==0)
     for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
       for(trial=0; trial<atoi(argv[4]); trial++)
-        if(l<=20)
-          time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
-        else
-          time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
+	{
+	  if(l<=20)
+	    time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
+	  else
+	    time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
+	}
 
   d=atoi(argv[5]);
   N=atoi(argv[6]);

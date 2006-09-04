@@ -96,7 +96,7 @@ void taylor_finalize(taylor_plan *ths)
 void taylor_trafo(taylor_plan *ths)
 {
   int j,k,l,ll;
-  complex *f, *f_hat, *g1;
+  double complex *f, *f_hat, *g1;
   double *deltax;
   int *idx;
 
@@ -131,8 +131,8 @@ void taylor_trafo(taylor_plan *ths)
 
       ll=(l==0?1:l);
       for(j=0, f=cths->f, deltax=ths->deltax0, idx=ths->idx0; j<cths->M_total;
-          j++)
-        (*f++) = ((*f) * (*deltax++) + cths->g2[*idx++]) /ll;
+          j++, f++)
+	(*f) = ((*f) * (*deltax++) + cths->g2[*idx++]) /ll;
     }
 }
 
@@ -152,10 +152,9 @@ void taylor_trafo(taylor_plan *ths)
 void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
                           int m_taylor, unsigned test_accuracy)
 {
-  int j,k,r;
-
+  int r;
   double t_ndft, t_nfft, t_taylor, t;
-  complex *swapndft;
+  double complex *swapndft;
 
   taylor_plan tp;
   nfft_plan np;
@@ -176,22 +175,20 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   
   /** output vector ndft */
   if(test_accuracy)
-    swapndft=(complex*)fftw_malloc(M*sizeof(complex));
+    swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
 
   /** init pseudo random nodes */
-  for(j=0;j<np.M_total;j++)
-    np.x[j]=drand48()-0.5;
+  vrand_shifted_unit_double(np.x, np.M_total);
 
   /** nfft precomputation */
   taylor_precompute(&tp);
 
   /** nfft precomputation */
   if(np.nfft_flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&np);
+    nfft_precompute_one_psi(&np);
 
   /** init pseudo random Fourier coefficients */
-  for(k=0;k<np.N_total;k++)
-    np.f_hat[k] = drand48() + I* drand48();
+  vrand_unit_complex(np.f_hat, np.N_total);
 
   /** NDFT */
   if(test_accuracy)
@@ -269,7 +266,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
 int main(int argc,char **argv)
 {
-  int l,m,trial,sigma,N;
+  int l,m,trial,N;
 
   if(argc<=2)
     {
@@ -300,7 +297,7 @@ int main(int argc,char **argv)
   /* error vs. m */
   if(atoi(argv[1])==1)
     {
-N=atoi(argv[7]);
+      N=atoi(argv[7]);
       fprintf(stderr,"Fixed N=M=%d, error vs. m.\n\n",N);
       for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
         for(trial=0; trial<atoi(argv[4]); trial++)
