@@ -345,14 +345,14 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 0:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = drand48() * rand() + I * drand48() * rand();
+				omega[i] = (drand48()-0.5) * rand() + I * (drand48()-0.5) * rand();
 			}
 			break;
 		}
 		case 1:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = (drand48() * rand() + I * drand48() * rand()) / (i + 1);
+				omega[i] = ((drand48()-0.5) * rand() + I * (drand48()-0.5) * rand()) / (i + 1);
 			}
 			break;
 		}
@@ -366,7 +366,7 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 3:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = (drand48() * rand() + I * drand48() * rand());
+				omega[i] = ((drand48()-0.5) * rand() + I * (drand48()-0.5) * rand());
 				omega[i] /= (i + 1);
 				omega[i] /= (i + 1);
 			}

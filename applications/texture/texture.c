@@ -162,6 +162,40 @@ void texture_forget()
 	nfsft_forget_old();
 	is_precomputed = 0;
 }
+/*
+void initialize_itexture_params(itexture_params * pars, int N)
+{
+	pars->omega_ref = 0;
+
+	pars->max_epochs = 0;
+	pars->max_time = 0;
+	pars->residuum_goal = 1e-16;
+	pars->min_improve = 0.01;
+	pars->max_epochs_without_improve = 10;
+	pars->max_fail = -1;
+	pars->steps_per_epoch = 1;
+	pars->suppose_monotone_residuum = 0;
+	pars->use_updated_residuum = 0;
+	pars->monitor_error = 0;
+
+	pars->messages_on = 0;
+	pars->message_interval = 1;
+
+	pars->omega_min_res = malloc(texture_flat_length(N) * sizeof(complex));
+	pars->assert(omega_min_res != 0);
+	pars->omega_min_err = 0;
+
+	pars->status = "initialized";
+}
+*/
+void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
+{
+}
+
+void destroy_itexture_params(itexture_params * pars)
+{
+	free(pars->omega_min_res);
+}
 
 inline int texture_flat_index(int l, int m, int n)
 {

@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<complex.h>
 #include<stdlib.h>
+#include<math.h>
 
 #include<nfft3.h>
 #include<texture_util.h>
@@ -9,6 +10,7 @@ int N;
 int h_phi_count, h_theta_count, r_phi_count, r_theta_count;
 int adjoint;
 int N1, N2;
+double weight;
 
 void read_input()
 {
@@ -19,6 +21,8 @@ void read_input()
 				&r_theta_count);
 	fprintf(stderr, "Output adjoint matrix (0 = no, 1 = yes)? ");
 	scanf("%d", &adjoint);
+	fprintf(stderr, "weight factors (input i -> 1/n^i): ");
+	scanf("%lg", &weight);
 
 	N1 = h_phi_count * (h_theta_count - 2) + 2;
 	N2 = r_phi_count * (r_theta_count - 2) + 2;
@@ -76,7 +80,7 @@ int main()
 			for (r = 0; r < texture_flat_length(N); r++) {
 				int s;
 
-				omega[r] = 1;
+				omega[r] = ((double) 1)/(pow(r+1, weight/2));
 				texture_set_omega(&plan, omega);
 
 				texture_trafo(&plan);
@@ -100,6 +104,7 @@ int main()
 				texture_adjoint(&plan);
 
 				for (s = 0; s < texture_flat_length(N); s++) {
+					omega[s] /= (pow(s+1, weight/2));
 					printf("%lg + %lgi ", creal(omega[s]), -cimag(omega[s]));
 				}
 				printf("\n");

@@ -1,5 +1,5 @@
 AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util
-AM_CPPFLAGS = -D DEBUG_RESIDUUM -D DEBUG_CONVERGENCE_QUALITY #-D DEBUG_TRUE_RESIDUUM
+AM_CPPFLAGS = -D DEBUG_RESIDUUM -D DEBUG_CONVERGENCE_QUALITY -D DEBUG_TRUE_RESIDUUM
 
 ## The program name
 noinst_PROGRAMS = calculateOmega calculateX validate

@@ -9,47 +9,65 @@
 
 // constants
 const double min_improve = 0.01;
-const int max_iter_without_improve = 20;
+const int max_iter_without_improve = 10;
 unsigned short int dseed[3] = { 1, 2, 3 };
 unsigned int iseed = 0;
 
-// parameters influences by the command line arguments
+// parameters influenced by the command line arguments
 
-char *output_file_prefix = "output/out2";
+char *output_file_prefix = "output/out3";
 
 // parameters given by the user
 int N;
 int grid_size;
-char grid_type = 'd';
+char grid_type = 'e';
 // char solver_type = 'n';
-int weight_type = 2;
+char h_file_name[100] = "dubna1_h";
+char r_file_name[100] = "dubna1_r";
+int weight_type = 1;
+int omega_type = 3;
 int cases = 100;
 
 void read_params()
 {
 	int use_default;
 
+	fprintf(stderr, "Use default values for most of the options (0 = no)? ");
+	scanf("%d", &use_default);
+
 	fprintf(stderr, "N: ");
 	scanf("%d", &N);
-
-	fprintf(stderr, "grid_size: ");
-	scanf("%d", &grid_size);
-
-	fprintf(stderr, "Use default values for rest of the options (0 = no)? ");
-	scanf("%d", &use_default);
 
 	if (!use_default) {
 		fprintf(stderr, "grid_type\n(e = all parameters are equal,\n");
 		fprintf(stderr,
-						"d = dense, i.e. about 16 times more nodes than pole figures): ");
+						"d = dense, i.e. about 16 times more nodes than pole figures,\n");
+		fprintf(stderr, "f = file): ");
 		scanf(" %c", &grid_type);
 
+		if (grid_type == 'f') {
+			fprintf(stderr, "file with pole figures: ");
+			scanf(" %s", h_file_name);
+			fprintf(stderr, "file with nodes: ");
+			scanf(" %s", r_file_name);
+		}
+	}
+
+	if (grid_type != 'f') {
+		fprintf(stderr, "grid_size: ");
+		scanf("%d", &grid_size);
+	}
+
+	if (!use_default) {
 		// fprintf(stderr, "solver_type (n = normal, r = with regularization):
 		// ");
 		// scanf("%c", &solver_type);
 
+		fprintf(stderr, "omega_type (0 = flat, 1 = 1/n, 2 = one, 3 = 1/n^2): ");
+		scanf("%d", &omega_type);
+
 		fprintf(stderr,
-						"weight_type (1 = linear, 0 = flat, 2 = quadratic, 3 = cubic): ");
+						"weight_type (0 = flat, 1 = linear, 2 = quadratic, 3 = cubic): ");
 		scanf("%d", &weight_type);
 
 		fprintf(stderr, "number of testcases: ");
@@ -61,47 +79,63 @@ void read_params()
 grid_dim gdim;
 int N1, N2;
 char output_path[500];
+double *h_phi, *h_theta, *r;
 
 void calculate_dependent_params()
 {
-	gdim.angles.h_phi_count = grid_size;
-	gdim.angles.h_theta_count = grid_size;
-	gdim.angles.r_phi_count = grid_size;
-	gdim.angles.r_theta_count = grid_size;
-	if (grid_type == 'd') {
-		gdim.angles.r_phi_count *= 4;
-		gdim.angles.r_theta_count *= 4;
+	if (grid_type != 'f') {
+		gdim.angles.h_phi_count = grid_size;
+		gdim.angles.h_theta_count = grid_size;
+		gdim.angles.r_phi_count = grid_size;
+		gdim.angles.r_theta_count = grid_size;
+		if (grid_type == 'd') {
+			gdim.angles.r_phi_count *= 4;
+			gdim.angles.r_theta_count *= 4;
+		}
+
+		N1 = gdim.angles.h_phi_count * (gdim.angles.h_theta_count - 2) + 2;
+		N2 = gdim.angles.r_phi_count * (gdim.angles.r_theta_count - 2) + 2;
+
+		h_phi = smart_malloc(N1 * sizeof(double));
+		h_theta = smart_malloc(N1 * sizeof(double));
+		r = smart_malloc(N1 * N2 * 2 * sizeof(double));
+
+		calculate_grid(gdim, h_phi, h_theta, r, 0);
+
+		sprintf(output_path, "%s.omega%d.weight%d.%c.%02d.%02d.%04d",
+						output_file_prefix, omega_type, weight_type, grid_type, N,
+						grid_size, cases);
+	} else {
+		FILE *h_file = fopen(h_file_name, "r");
+		FILE *r_file = fopen(r_file_name, "r");
+
+		read_grid(&N1, &N2, &h_phi, &h_theta, &r, h_file, r_file, stderr);
+
+		sprintf(output_path, "%s.omega%d.weight%d.%s.%s.%02d.%04d",
+						output_file_prefix, omega_type, weight_type, h_file_name,
+						r_file_name, N, cases);
+
+		fclose(h_file);
+		fclose(r_file);
 	}
-
-	N1 = gdim.angles.h_phi_count * (gdim.angles.h_theta_count - 2) + 2;
-	N2 = gdim.angles.r_phi_count * (gdim.angles.r_theta_count - 2) + 2;
-
-	sprintf(output_path, "%s.weight%d.%c.%02d.%02d.%04d", output_file_prefix,
-					weight_type, grid_type, N, grid_size, cases);
 }
 
 texture_plan plan;
 itexture_plan iplan;
 complex *omega, *omega_ref, *omega_min, *x;
-double *h_phi, *h_theta, *r;
 FILE *out;
-double *residuums, *errors; 
+double *residuums, *errors;
 int *iterations;
 
 void init()
 {
-	int sol_alg = ((N1 * N2) > texture_flat_length(N)) ? 0 : 1;
+	int sol_alg = ((N1 * N2) >= texture_flat_length(N)) ? 0 : 1;
 	unsigned int iflags = solver_flags(sol_alg, weight_type);
 
 	omega = smart_malloc(texture_flat_length(N) * sizeof(complex));
 	omega_ref = smart_malloc(texture_flat_length(N) * sizeof(complex));
 	omega_min = smart_malloc(texture_flat_length(N) * sizeof(complex));
 	x = smart_malloc(N1 * N2 * sizeof(complex));
-	h_phi = smart_malloc(N1 * sizeof(double));
-	h_theta = smart_malloc(N1 * sizeof(double));
-	r = smart_malloc(N1 * N2 * 2 * sizeof(double));
-
-	calculate_grid(gdim, h_phi, h_theta, r, 0);
 
 	residuums = smart_malloc(cases * sizeof(double));
 	errors = smart_malloc(cases * sizeof(double));
@@ -121,8 +155,14 @@ void init()
 
 void output_params()
 {
-	fprintf(out, "# weights: %d, testcases: %d\n", weight_type, cases);
+	fprintf(out, "# omega: %d, weights: %d, testcases: %d\n", omega_type,
+					weight_type, cases);
 	fprintf(out, "# dim(J_N): %d, N: %d\n", texture_flat_length(N), N);
+
+	if (grid_type == 'f') {
+		fprintf(out, "# h: %s, r: %s\n", h_file_name, r_file_name);
+	}
+
 	fprintf(out, "# N1*N2: %d\n", N1 * N2);
 	fprintf(out, "# N1: %d (phi: %d, theta: %d)\n", N1, gdim.angles.h_phi_count,
 					gdim.angles.h_theta_count);
@@ -141,7 +181,7 @@ void calculate_results()
 		int iter_without_improve = 0;
 		int min_iter = 0;
 
-		init_omega(omega_ref, N, 3);
+		init_omega(omega_ref, N, omega_type);
 		texture_set_omega(&plan, omega_ref);
 		texture_trafo(&plan);
 		texture_set_omega(&plan, omega);
@@ -183,7 +223,7 @@ void calculate_results()
 		residuums[count] = min_res;
 		iterations[count] = min_iter;
 
-		fprintf(stderr, "case %d complete!\n", count+1);
+		fprintf(stderr, "case %d complete!\n", count + 1);
 		fprintf(stderr, "res: %lg, err: %lg, iter: %d\n", residuums[count],
 						errors[count], min_iter);
 
@@ -255,17 +295,18 @@ void output_results()
 
 		fprintf(out, "%6.0f ", ((float) iter) / count);
 	}
+	fprintf(out, "\n\n");
+
 	fprintf(out,
-					"\n\n");
-	
-	fprintf(out, "# For the class 10^%03d we give the distribution of errors:\n",
+					"# For the class 10^%03d we give the distribution of errors:\n",
 					maxcountbin);
 
 	for (i = 0; i < cases; i++) {
 		if (getBin(residuums[i]) == maxcountbin) {
 			if (errors[i] < minerr) {
 				minerr = errors[i];
-			} else if (errors[i] > maxerr) {
+			}
+			if (errors[i] > maxerr) {
 				maxerr = errors[i];
 			}
 		}

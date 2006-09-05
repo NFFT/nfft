@@ -397,7 +397,7 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, double complex* omeg
  * @attention
  * - ::texture_init_advanced performes only a flat copy. If you change the
  *   storage
- * referenced to by any of the pointer arguments, the plan can get an
+ * referenced to by any of the pointer arguments, the plan can get into an
  * inconsistent
  * state.
  * - Use ::texture_finalize to free allocated memory.
@@ -454,6 +454,46 @@ void texture_finalize(texture_plan *ths);
  * ::texture_precompute_advanced.
  */
 void texture_forget();
+
+typedef struct itexture_params_ {
+	// data input
+	complex * omega_ref;
+	
+	// input parameters
+	int max_epochs;
+	double max_time;
+	double residuum_goal;
+	double min_improve;
+	int max_epochs_without_improve;
+	int max_fail;
+	int steps_per_epoch;
+	int suppose_monotone_residuum;
+	int use_updated_residuum;
+	int monitor_error;
+
+	// parameters concerning status messages
+	int messages_on;
+	int message_interval;
+
+	// data output
+	complex * omega_min_res;
+	int epochs_until_min_res;
+	double min_residuum;
+	double error_during_min_residuum;
+	
+	complex * omega_min_err;
+	double min_error;
+	int epochs_until_min_err;
+
+	char * status;
+	
+} itexture_params;
+
+void initialize_itexture_params(itexture_params * pars, int N);
+
+//void texture_itrafo(itexture_plan * iplan, itexture_params * pars);
+
+void destroy_itexture_params(itexture_params * pars);
 
 /** @addtogroup texture_util
  * @{
