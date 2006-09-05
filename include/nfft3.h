@@ -1967,29 +1967,29 @@ void fpt_finalize(fpt_set set);
  * \arg name name of the function
  * \arg ...  argument list of the function
  */
-#define F(MV, FLT, name, ...) void i ## MV ## _ ## name(__VA_ARGS__)
+#define F(MV, FLT, FLT_TYPE, name, ...) void i ## MV ## _ ## name(__VA_ARGS__)
 
-#define MACRO_SOLVER_PLAN(MV, FLT)                                            \
+#define MACRO_SOLVER_PLAN(MV, FLT, FLT_TYPE)                                  \
 typedef struct i ## MV ## _plan_                                              \
-{                                                                        \
+{                                                                             \
   MV ## _plan *mv;                      /**< matrix vector multiplication   */\
-  unsigned flags;      /**< iteration type, ...            */\
+  unsigned flags;                       /**< iteration type, ...            */\
                                                                               \
-  double *w;                           /**< weighting factors              */\
-  double *w_hat;                       /**< damping factors                */\
+  double *w;                            /**< weighting factors              */\
+  double *w_hat;                        /**< damping factors                */\
                                                                               \
-  FLT *y;                               /**< right hand side, samples       */\
+  FLT_TYPE *y;                               /**< right hand side, samples  */\
                                                                               \
-  FLT *f_hat_iter;                      /**< iterative solution             */\
-                        \
-  FLT *r_iter;              /**< iterated residual vector       */\
-  FLT *z_hat_iter;                       /**< residual vector of normal eq.1 */\
-  FLT *p_hat_iter;                       /**< search direction               */\
-  FLT *v_iter;                           /**< residual vector update         */\
-                        \
+  FLT_TYPE *f_hat_iter;                      /**< iterative solution        */\
+                                                                              \
+  FLT_TYPE *r_iter;                          /**< iterated residual vector  */\
+  FLT_TYPE *z_hat_iter;                      /**< residual of normal eq. 1  */\
+  FLT_TYPE *p_hat_iter;                      /**< search direction          */\
+  FLT_TYPE *v_iter;                          /**< residual vector update    */\
+                                                                              \
   double alpha_iter;                    /**< step size for search direction */\
   double beta_iter;                     /**< step size for search correction*/\
-                        \
+                                                                              \
   double dot_r_iter;                    /**< dotproductc{_w}(r_iter)        */\
   double dot_r_iter_old;                /**< old dotproductc{_w}(r_iter)    */\
   double dot_z_hat_iter;                /**< dotproductc{_w}(z_hat_iter)    */\
@@ -1997,22 +1997,22 @@ typedef struct i ## MV ## _plan_                                              \
   double dot_p_hat_iter;                /**< dotproductc{_w}(p_hat_iter)    */\
   double dot_v_iter;                    /**< dotproductc{_w}(v_iter)        */\
 } i ## MV ## _plan;                                                           \
-                        \
-F(MV, FLT, init,    i ## MV ## _plan *ths, MV ## _plan *mv);            \
-F(MV, FLT, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
-             unsigned i ## MV ## _flags);                  \
-F(MV, FLT, before_loop,   i ## MV ## _plan *ths);                             \
-F(MV, FLT, loop_one_step, i ## MV ## _plan *ths);                             \
-F(MV, FLT, finalize,      i ## MV ## _plan *ths);                             \
+                                                                              \
+F(MV, FLT, FLT_TYPE, init,    i ## MV ## _plan *ths, MV ## _plan *mv);        \
+F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
+                          unsigned i ## MV ## _flags);                        \
+F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths);                   \
+F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths);                   \
+F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);                   \
 
 
-MACRO_SOLVER_PLAN(nfft, double complex)
-MACRO_SOLVER_PLAN(nfct, double)
-MACRO_SOLVER_PLAN(nfst, double)
-MACRO_SOLVER_PLAN(nnfft, double complex)
-MACRO_SOLVER_PLAN(mri_inh_2d1d, double complex)
-MACRO_SOLVER_PLAN(mri_inh_3d, double complex)
-MACRO_SOLVER_PLAN(nfsft, double complex)
+MACRO_SOLVER_PLAN(nfft, complex, double complex)
+MACRO_SOLVER_PLAN(nfct, double, double)
+MACRO_SOLVER_PLAN(nfst, double, double)
+MACRO_SOLVER_PLAN(nnfft, complex, double complex)
+MACRO_SOLVER_PLAN(mri_inh_2d1d, complex, double complex)
+MACRO_SOLVER_PLAN(mri_inh_3d, complex, double complex)
+MACRO_SOLVER_PLAN(nfsft, complex, double complex)
 /** @}
  */
 

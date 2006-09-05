@@ -27,6 +27,15 @@
  */
 double second();
 
+/** Actual used memory in bytes.
+ *  Calls mallinfo, relies on HAVE_MALLOC_H
+ */
+int total_used_memory();
+
+int ld(int m);
+
+int int_2_pow(int a);
+
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
 int next_power_of_2(int N);
@@ -219,13 +228,6 @@ double modified_sobolev(double mu,int kk);
  */
 double modified_multiquadric(double mu,double c,int kk);
 
-#ifdef HAVE_MALLINFO
-#define HAVE_TOTAL_USED_MEMORY
-/**
- *
- */
-int total_used_memory();
-#endif
 /** @}
  */
 #endif

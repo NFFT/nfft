@@ -71,12 +71,12 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
   fftw_free(that->plan.f);
   that->f=f;
-	that->plan.f = that->f;
-	
-	fftw_free(f_hat);
+  that->plan.f = that->f;
   
-	WINDOW_HELP_FINALIZE
-  free(ths);
+  fftw_free(f_hat);
+  
+  WINDOW_HELP_FINALIZE
+  fftw_free(ths);
 }
 
 void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
@@ -128,7 +128,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 	fftw_free(f);
   
 	WINDOW_HELP_FINALIZE
-  free(ths);
+  fftw_free(ths);
 }
 
 void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
@@ -190,7 +190,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
   }
 
 	WINDOW_HELP_FINALIZE
-  free(ths);
+  fftw_free(ths);
 }
 
 void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
@@ -220,7 +220,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
 
   
 	WINDOW_HELP_FINALIZE
-  free(ths);
+  fftw_free(ths);
 }
 
 void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,

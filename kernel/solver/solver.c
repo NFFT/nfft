@@ -8,18 +8,18 @@
 #include "nfft3.h"
 
 
-#define MACRO_SOLVER_IMPL(MV, FLT)                            \
+#define MACRO_SOLVER_IMPL(MV, FLT, FLT_TYPE)                                  \
                                                                               \
-F(MV, FLT, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
+F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
              unsigned i ## MV ## _flags)                  \
 {                                                                             \
   ths->mv = mv;                                                               \
   ths->flags = i ## MV ## _flags;                                             \
                                                                               \
-  ths->y          = (FLT*)fftw_malloc(ths->mv->M_total*sizeof(FLT));          \
-  ths->r_iter     = (FLT*)fftw_malloc(ths->mv->M_total*sizeof(FLT));          \
-  ths->f_hat_iter = (FLT*)fftw_malloc(ths->mv->N_total*sizeof(FLT));          \
-  ths->p_hat_iter = (FLT*)fftw_malloc(ths->mv->N_total*sizeof(FLT));          \
+  ths->y          = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));          \
+  ths->r_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));          \
+  ths->f_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*sizeof(FLT_TYPE));          \
+  ths->p_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*sizeof(FLT_TYPE));          \
                                                                               \
   if(ths->flags & LANDWEBER)                                                  \
     ths->z_hat_iter = ths->p_hat_iter;                                        \
@@ -27,13 +27,13 @@ F(MV, FLT, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
   if(ths->flags & STEEPEST_DESCENT)                                           \
     {                                                                         \
       ths->z_hat_iter = ths->p_hat_iter;                                      \
-      ths->v_iter     = (FLT*)fftw_malloc(ths->mv->M_total*sizeof(FLT));      \
+      ths->v_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));      \
     }                                                                         \
                                                                               \
   if(ths->flags & CGNR)                                                       \
     {                                                                         \
-      ths->z_hat_iter = (FLT*)fftw_malloc(ths->mv->N_total*sizeof(FLT));      \
-      ths->v_iter     = (FLT*)fftw_malloc(ths->mv->M_total*sizeof(FLT));      \
+      ths->z_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*sizeof(FLT_TYPE));      \
+      ths->v_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));      \
     }                                                                         \
                                                                               \
   if(ths->flags & CGNE)                                                       \
@@ -47,13 +47,13 @@ F(MV, FLT, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,             \
 }                                                                             \
                                                                               \
 /** void i<mv>_init */                                                        \
-F(MV, FLT, init, i ## MV ## _plan *ths, MV ## _plan *mv)                      \
+F(MV, FLT, FLT_TYPE, init, i ## MV ## _plan *ths, MV ## _plan *mv)                      \
 {                                                                             \
   i ## MV ## _init_advanced(ths, mv, CGNR);                                   \
 } /* void i<mv>_init */                                                       \
                                                                               \
 /** void i<mv>_before_loop */                                                 \
-F(MV, FLT, before_loop,   i ## MV ## _plan *ths)                              \
+F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths)                              \
 {                                                                             \
   cp_ ## FLT(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);              \
                                                                               \
@@ -99,7 +99,7 @@ F(MV, FLT, before_loop,   i ## MV ## _plan *ths)                              \
 } /* void i<mv>_before_loop */                                                \
                                                                               \
 /** void i<mv>_loop_one_step_landweber */                                     \
-F(MV, FLT, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
+F(MV, FLT, FLT_TYPE, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     upd_xpawy_ ## FLT(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,           \
@@ -146,7 +146,7 @@ F(MV, FLT, loop_one_step_landweber, i ## MV ## _plan *ths)                    \
 } /* void i<mv>_loop_one_step_landweber */                                    \
                                                                               \
 /** void i<mv>_loop_one_step_steepest_descent */                              \
-F(MV, FLT, loop_one_step_steepest_descent, i ## MV ## _plan *ths)             \
+F(MV, FLT, FLT_TYPE, loop_one_step_steepest_descent, i ## MV ## _plan *ths)             \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     cp_w_ ## FLT(ths->mv->f_hat, ths->w_hat, ths->z_hat_iter,                 \
@@ -201,7 +201,7 @@ F(MV, FLT, loop_one_step_steepest_descent, i ## MV ## _plan *ths)             \
 } /* void i<mv>_loop_one_step_steepest_descent */                             \
                                                                               \
 /** void i<mv>_loop_one_step_cgnr */                                          \
-F(MV, FLT, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
+F(MV, FLT, FLT_TYPE, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
     cp_w_ ## FLT(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,                 \
@@ -264,7 +264,7 @@ F(MV, FLT, loop_one_step_cgnr, i ## MV ## _plan *ths)                         \
 } /* void i<mv>_loop_one_step_cgnr */                                         \
                                                                               \
 /** void i<mv>_loop_one_step_cgne */                                          \
-F(MV, FLT, loop_one_step_cgne, i ## MV ## _plan *ths)                         \
+F(MV, FLT, FLT_TYPE, loop_one_step_cgne, i ## MV ## _plan *ths)                         \
 {                                                                             \
   ths->alpha_iter = ths->dot_r_iter / ths->dot_p_hat_iter;                    \
                                                                               \
@@ -316,7 +316,7 @@ F(MV, FLT, loop_one_step_cgne, i ## MV ## _plan *ths)                         \
 } /* void i<mv>_loop_one_step_cgne */                                         \
                                                                               \
 /** void i<mv>_loop_one_step */                                               \
-F(MV, FLT, loop_one_step, i ## MV ## _plan *ths)                              \
+F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths)                              \
 {                                                                             \
   if(ths->flags & LANDWEBER)                                                  \
     i ## MV ## _loop_one_step_landweber(ths);                                 \
@@ -332,7 +332,7 @@ F(MV, FLT, loop_one_step, i ## MV ## _plan *ths)                              \
 } /* void i<mv>_loop_one_step */                                              \
                                                                               \
 /** void i<mv>_finalize */                                                    \
-F(MV, FLT, finalize, i ## MV ## _plan *ths)                                   \
+F(MV, FLT, FLT_TYPE, finalize, i ## MV ## _plan *ths)                                   \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
     fftw_free(ths->w);                                                        \
@@ -356,10 +356,10 @@ F(MV, FLT, finalize, i ## MV ## _plan *ths)                                   \
   fftw_free(ths->y);                                                          \
 } /** void i<mv>_finalize */
 
-MACRO_SOLVER_IMPL(nfft, complex)
-/*MACRO_SOLVER_IMPL(nfct, double)
-MACRO_SOLVER_IMPL(nfst, double)*/
-MACRO_SOLVER_IMPL(nnfft, complex)
-MACRO_SOLVER_IMPL(mri_inh_2d1d, complex)
-MACRO_SOLVER_IMPL(mri_inh_3d, complex)
-MACRO_SOLVER_IMPL(nfsft, complex)
+MACRO_SOLVER_IMPL(nfft, complex, double complex)
+MACRO_SOLVER_IMPL(nfct, double, double)
+MACRO_SOLVER_IMPL(nfst, double, double)
+MACRO_SOLVER_IMPL(nnfft, complex, double complex)
+MACRO_SOLVER_IMPL(mri_inh_2d1d, complex, double complex)
+MACRO_SOLVER_IMPL(mri_inh_3d, complex, double complex)
+MACRO_SOLVER_IMPL(nfsft, complex, double complex)

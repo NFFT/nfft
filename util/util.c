@@ -15,7 +15,8 @@
 #ifdef HAVE_MALLOC_H
   #include <malloc.h>
 #endif
-//#include <time.h>
+
+/*#include <time.h>*/
 
 
 /** Actual used CPU time in seconds.
@@ -42,6 +43,8 @@ int total_used_memory()
 #else
 int total_used_memory()
 {
+  fprintf(stderr,
+	  "\nWarning in util/total_used_memory: mallinfo() not available\n");
   return 0;
 }
 #endif
@@ -161,7 +164,7 @@ int nfft_prod_int(int *vec, int d)
  */
 int nfct_prod_int(int *vec, int d)
 {
-  nfft_prod_int( vec, d);
+  return nfft_prod_int(vec, d);
 }
 
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$.
@@ -875,7 +878,7 @@ double i0(double x)
 
 /** Computes the inner/dot product \f$x^H x\f$.
  */
-double dot_complex(complex *x, int n)
+double dot_complex(double complex *x, int n)
 {
   int k;
   double dot;
@@ -902,7 +905,7 @@ double dot_double(double *x, int n)
 
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
-double dot_w_complex(complex *x, double *w, int n)
+double dot_w_complex(double complex *x, double *w, int n)
 {
   int k;
   double dot;
@@ -930,7 +933,7 @@ double dot_w_double(double *x, double *w, int n)
 /** Computes the weighted inner/dot product 
     \f$x^H (w\odot w2\odot w2 \odot x)\f$.
  */
-double dot_w_w2_complex(complex *x, double *w, double *w2, int n)
+double dot_w_w2_complex(double complex *x, double *w, double *w2, int n)
 {
   int k;
   double dot;
@@ -944,7 +947,7 @@ double dot_w_w2_complex(complex *x, double *w, double *w2, int n)
 /** Computes the weighted inner/dot product 
     \f$x^H (w2\odot w2 \odot x)\f$.
  */
-double dot_w2_complex(complex *x, double *w2, int n)
+double dot_w2_complex(double complex *x, double *w2, int n)
 {
   int k;
   double dot;
@@ -957,7 +960,7 @@ double dot_w2_complex(complex *x, double *w2, int n)
 
 /** Copies \f$x \leftarrow y\f$.
  */
-void cp_complex(complex *x, complex *y, int n)
+void cp_complex(double complex *x, double complex *y, int n)
 {
   int k;
 
@@ -977,7 +980,7 @@ void cp_double(double *x, double *y, int n)
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-void cp_a_complex(complex *x, double a, complex *y, int n)
+void cp_a_complex(double complex *x, double a, double complex *y, int n)
 {
   int k;
 
@@ -998,7 +1001,7 @@ void cp_a_double(double *x, double a, double *y, int n)
 
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
-void cp_w_complex(complex *x, double *w, complex *y, int n)
+void cp_w_complex(double complex *x, double *w, double complex *y, int n)
 {
   int k;
 
@@ -1020,7 +1023,7 @@ void cp_w_double(double *x, double *w, double *y, int n)
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
-void upd_axpy_complex(complex *x, double a, complex *y, int n)
+void upd_axpy_complex(double complex *x, double a, double complex *y, int n)
 {
   int k;
 
@@ -1041,7 +1044,7 @@ void upd_axpy_double(double *x, double a, double *y, int n)
 
 /** Updates \f$x \leftarrow x + a y\f$.
  */
-void upd_xpay_complex(complex *x, double a, complex *y, int n)
+void upd_xpay_complex(double complex *x, double a, double complex *y, int n)
 {
   int k;
 
@@ -1063,7 +1066,7 @@ void upd_xpay_double(double *x, double a, double *y, int n)
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
-void upd_axpby_complex(complex *x, double a, complex *y, double b, int n)
+void upd_axpby_complex(double complex *x, double a, double complex *y, double b, int n)
 {
   int k;
 
@@ -1084,7 +1087,7 @@ void upd_axpby_double(double *x, double a, double *y, double b, int n)
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
-void upd_xpawy_complex(complex *x, double a, double *w, complex *y, int n)
+void upd_xpawy_complex(double complex *x, double a, double *w, double complex *y, int n)
 {
   int k;
 
@@ -1106,7 +1109,7 @@ void upd_xpawy_double(double *x, double a, double *w, double *y, int n)
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
-void upd_axpwy_complex(complex *x, double a, double *w, complex *y, int n)
+void upd_axpwy_complex(double complex *x, double a, double *w, double complex *y, int n)
 {
   int k;
 
@@ -1125,14 +1128,14 @@ void upd_axpwy_double(double *x, double a, double *w, double *y, int n)
 }
 
 
-void fftshift_complex(complex *x, int d, int* N)
+void fftshift_complex(double complex *x, int d, int* N)
 {
   int d_pre, d_act, d_post;
   int N_pre, N_act, N_post;
   int k_pre, k_act, k_post;
   int k,k_swap;
 
-  complex x_swap;
+  double complex x_swap;
 
   for(d_act=0;d_act<d;d_act++)
     {
@@ -1158,7 +1161,7 @@ void fftshift_complex(complex *x, int d, int* N)
     }
 }
 
-double l_1_complex(complex *x, complex *y, int n)
+double l_1_complex(double complex *x, double complex *y, int n)
 {
   int k;
   double l1;
@@ -1191,7 +1194,7 @@ double l_1_double(double *x, double *y, int n)
 
 
 
-double l_2_complex(complex *x, complex *y, int n)
+double l_2_complex(double complex *x, double complex *y, int n)
 {
   int k;
   double l22;  
@@ -1224,7 +1227,7 @@ double l_2_double(double *x, double *y, int n)
 
 
 
-double l_infty_complex(complex *x, complex *y, int n)
+double l_infty_complex(double complex *x, double complex *y, int n)
 {
   int k;
   double linfty;
@@ -1261,7 +1264,7 @@ double l_infty_double(double *x, double *y, int n)
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-double error_l_infty_complex(complex *x, complex *y, int n)
+double error_l_infty_complex(double complex *x, double complex *y, int n)
 {
   return (l_infty_complex(x, y, n)/l_infty_complex(x, NULL, n));
 }
@@ -1277,8 +1280,8 @@ double error_l_infty_double(double *x, double *y, int n)
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-double error_l_infty_1_complex(complex *x, complex *y, int n,
-			       complex *z, int m)
+double error_l_infty_1_complex(double complex *x, double complex *y, int n,
+			       double complex *z, int m)
 {
   return (l_infty_complex(x, y, n)/l_1_complex(z, NULL, m));
 }
@@ -1295,7 +1298,7 @@ double error_l_infty_1_double(double *x, double *y, int n,
 
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-double error_l_2_complex(complex *x, complex *y, int n)
+double error_l_2_complex(double complex *x, double complex *y, int n)
 {
   return (l_2_complex(x, y, n)/l_2_complex(x, NULL, n));
 }
@@ -1370,7 +1373,7 @@ void vpr_double(double *x, int n, char *text)
 
 /** vector print
  */
-void vpr_complex(complex *x, int n, char *text)
+void vpr_complex(double complex *x, int n, char *text)
 {
   int k;
 
@@ -1394,7 +1397,7 @@ void vpr_complex(complex *x, int n, char *text)
   fflush(stdout);
 }
 
-void vrand_unit_complex(complex *x, int n)
+void vrand_unit_complex(double complex *x, int n)
 {
   int k;
 
