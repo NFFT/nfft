@@ -5,6 +5,7 @@
 
 #include "util.h"
 #include "nfft3.h"
+#include "options.h"
 
 /* computes a 2d ndft by 1d nfft along the dimension 1 times
    1d ndft along dimension 0
@@ -1715,6 +1716,7 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
     }
 }
 
+#ifdef GAUSSIAN
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
 {
   ths->d=d;
@@ -1724,6 +1726,13 @@ void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
   else
     nsfft_init_3d(ths, J, M, m, flags);
 }
+#else
+void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
+{
+  fprintf(stderr,
+	  "\nError in kernel/nsfft_init: require GAUSSIAN window function\n");
+}
+#endif
 
 void nsfft_finalize_2d(nsfft_plan *ths)
 {
