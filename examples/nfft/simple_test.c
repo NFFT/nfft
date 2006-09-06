@@ -7,32 +7,26 @@
 
 void simple_test_nfft_1d()
 {
-  int j,k;                              /**< index for nodes and freqencies  */
-  nfft_plan p;                    /**< plan for the nfft               */
-
   int N[1],n[1];
+  nfft_plan p;
+
   N[0]=14; n[0]=32;
 
   /** init an one dimensional plan */
-  nfft_init_guru(&p, 1, N, 19, n, 6,
-                 PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+  nfft_init_guru(&p, 1, N, 19, n, 12,
+                 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  for(j=0;j<p.M_total;j++)
-    {
-      p.x[j]=((double)rand())/RAND_MAX-0.5;
-    }
+  vrand_shifted_unit_double(p.x,p.M_total);
 
- /** precompute psi, the entries of the matrix B */
+  /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  for(k=0;k<p.N_total;k++)
-    p.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
-
+  vrand_unit_complex(p.f_hat,p.N_total);
   vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /** direct trafo and show the result */
@@ -42,7 +36,7 @@ void simple_test_nfft_1d()
   /** approx. trafo and show the result */
   nfft_trafo(&p);
   vpr_complex(p.f,p.M_total,"nfft, vector f");
-
+  
   /** approx. adjoint and show the result */
   ndft_adjoint(&p);
   vpr_complex(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
@@ -57,15 +51,14 @@ void simple_test_nfft_1d()
 
 void simple_test_nfft_2d()
 {
-  int j,k;                              /**< index for nodes and freqencies   */
-  nfft_plan p;                          /**< plan for the nfft                */
+  int K,N[2],n[2];
   double t;
 
-  int N[2],n[2];
+  nfft_plan p;
+   
   N[0]=70; n[0]=128;
   N[1]=50; n[1]=128;
-
-  int K=12;
+  K=12;
 
   t=second();
   /** init a two dimensional plan */
@@ -75,19 +68,14 @@ void simple_test_nfft_2d()
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  for(j=0;j<p.M_total;j++)
-    {
-      p.x[2*j]=((double)rand())/RAND_MAX-0.5;
-      p.x[2*j+1]=((double)rand())/RAND_MAX-0.5;
-    }
+  vrand_shifted_unit_double(p.x,p.d*p.M_total);
 
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  for(k=0;k<p.N_total;k++)
-    p.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
+  vrand_unit_complex(p.f_hat,p.N_total);
 
   t=second()-t;
   vpr_complex(p.f_hat,K,

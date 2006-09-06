@@ -14,8 +14,6 @@
 
 #include "nfft3.h"
 
-
-
 /** direct computation of non equispaced fourier transforms
  *  ndft_trafo, ndft_conjugated, ndft_adjoint, ndft_transposed
  *  require O(M_total N^d) arithemtical operations
