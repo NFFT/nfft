@@ -4,7 +4,6 @@
 #include<string.h>
 #include<math.h>
 
-#include<nfft3.h>
 #include"texture_util.h"
 #include<util.h>
 // macros

@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<nfft3.h>
+#include<nfft3_texture.h>
 
 // macros
 

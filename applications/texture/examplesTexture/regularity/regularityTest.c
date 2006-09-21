@@ -3,7 +3,7 @@
 #include<string.h>
 #include<math.h>
 
-#include<nfft3.h>
+#include<nfft3_texture.h>
 #include<util.h>
 #include<texture_util.h>
 

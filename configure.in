@@ -514,5 +514,15 @@ AC_OUTPUT(Makefile \
           applications/mri/mri3d/Makefile \
 	  applications/polarFFT/Makefile \
 	  applications/quadratureS2/Makefile \
-	  applications/radon/Makefile
+	  applications/radon/Makefile \
+		applications/texture/Makefile \
+		applications/texture/examplesTexture/Makefile \
+		applications/texture/examplesTexture/texture_util/Makefile \
+		applications/texture/examplesTexture/correctness/Makefile \
+		applications/texture/examplesTexture/regularity/Makefile \
+		applications/texture/examplesTexture/performance/Makefile \
+		applications/texture/examplesTexture/interpolation/Makefile \
+		applications/texture/examplesTexture/data_creator/Makefile \
+		applications/texture/examplesTexture/matrix/Makefile \
+		applications/texture/examplesTexture/regularity2/Makefile 
 )

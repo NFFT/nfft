@@ -5,7 +5,7 @@
 #include <math.h>
 #include <ctype.h>
 
-#include <nfft3.h>
+#include <nfft3_texture.h>
 #include <texture_util.h>
 
 typedef struct properties_ {

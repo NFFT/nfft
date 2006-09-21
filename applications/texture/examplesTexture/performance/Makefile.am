@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util -I../..
 
 ## The program name
 noinst_PROGRAMS = performance
@@ -7,4 +7,4 @@ noinst_PROGRAMS = performance
 performance_SOURCES = performance.c
 
 ## Additional libraries for the library
-performance_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3 ../texture_util/libtexture_util.la
+performance_LDADD = ../texture_util/libtexture_util.la

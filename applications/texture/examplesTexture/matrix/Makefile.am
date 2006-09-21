@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util -I../..
 
 ## The program name
 noinst_PROGRAMS = matrix
@@ -7,4 +7,4 @@ noinst_PROGRAMS = matrix
 matrix_SOURCES = matrix.c
 
 ## Additional libraries for the library
-matrix_LDADD = ../texture_util/libtexture_util.la $(top_builddir)/libnfft3.la -lm -lfftw3
+matrix_LDADD = ../texture_util/libtexture_util.la 

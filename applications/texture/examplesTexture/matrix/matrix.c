@@ -3,7 +3,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-#include<nfft3.h>
+#include<nfft3_texture.h>
 #include<texture_util.h>
 
 int N;

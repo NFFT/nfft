@@ -760,9 +760,11 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     data->betaN = (double*) malloc((set->t-1)*sizeof(double complex));
     data->gammaN = (double*) malloc((set->t-1)*sizeof(double complex));
 
+#ifndef NO_NFSFT_DEBUG
  fflush(stdout);
 fprintf(stdout,"set-t: %f \n",set->t);
       fflush(stdout);
+#endif
     for (tau = 2; tau <= set->t; tau++)
     {
 
@@ -786,7 +788,9 @@ fprintf(stdout,"set-t: %f \n",set->t);
     plength = 4;
     for (tau = 1; tau < set->t; tau++)
     {
+#ifndef NO_NFSFT_DEBUG
 fprintf(stdout,"tau: %f \n",tau);
+#endif
       /* Compute auxilliary values. */
       degree = plength>>1;
       /* Compute first l. */
@@ -802,7 +806,9 @@ fprintf(stdout,"tau: %f \n",tau);
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
       for (l = firstl; l <= lastl; l++)
       {
+#ifndef NO_NFSFT_DEBUG
 fprintf(stdout, "l=%f\n",l);
+#endif
         if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           //fprintf(stderr,"fpt_precompute(%d): symmetric step\n",m);

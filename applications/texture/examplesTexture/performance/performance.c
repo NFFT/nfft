@@ -3,7 +3,7 @@
 #include<stdio.h>
 #include<string.h>
 
-#include<nfft3.h>
+#include<nfft3_texture.h>
 #include<texture_util.h>
 
 /** @defgroup texture_performance Texture: Performance
