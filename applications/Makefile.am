@@ -1,2 +1,1 @@
-#SUBDIRS = fastgauss fastsumS2 mri polarFFT quadratureS2 radon texture
-SUBDIRS = fastsumS2 mri polarFFT quadratureS2 radon texture
+SUBDIRS = fastgauss fastsumS2 mri polarFFT quadratureS2 radon texture
