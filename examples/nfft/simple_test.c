@@ -7,16 +7,13 @@
 
 void simple_test_nfft_1d()
 {
-  int N[1],n[1];
   nfft_plan p;
 
-  N[0]=14; n[0]=32;
+  int N=14;
+  int M=19;
 
   /** init an one dimensional plan */
-  nfft_init_guru(&p, 1, N, 19, n, 12,
-                 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+  nfft_init_1d(&p,N,M);
 
   /** init pseudo random nodes */
   vrand_shifted_unit_double(p.x,p.M_total);
