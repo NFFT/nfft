@@ -1,5 +1,5 @@
-#ifndef TRANSFORM_H
-#define TRANSFORM_H
+#ifndef TEXTURE_H
+#define TEXTURE_H
 
 #include<assert.h>
 #include"nfft3_texture.h"

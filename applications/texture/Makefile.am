@@ -1,5 +1,5 @@
 SUBDIRS = . examplesTexture
-AM_CFLAGS = -Wall -I$(top_srcdir)/include -I$(top_srcdir)/kernel/solver
+AM_CFLAGS = -Wall -I$(top_srcdir)/include -I$(top_srcdir)/kernel/solver 
 
 ## The library name
 noinst_LTLIBRARIES = libtexture.la

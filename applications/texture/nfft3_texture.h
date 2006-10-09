@@ -472,46 +472,6 @@ void texture_finalize(texture_plan *ths);
  */
 void texture_forget();
 
-typedef struct itexture_params_ {
-	// data input
-	double complex * omega_ref;
-	
-	// input parameters
-	int max_epochs;
-	double max_time;
-	double residuum_goal;
-	double min_improve;
-	int max_epochs_without_improve;
-	int max_fail;
-	int steps_per_epoch;
-	int suppose_monotone_residuum;
-	int use_updated_residuum;
-	int monitor_error;
-
-	// parameters concerning status messages
-	int messages_on;
-	int message_interval;
-
-	// data output
-	double complex * omega_min_res;
-	int epochs_until_min_res;
-	double min_residuum;
-	double error_during_min_residuum;
-	
-	double complex * omega_min_err;
-	double min_error;
-	int epochs_until_min_err;
-
-	char * status;
-	
-} itexture_params;
-
-void initialize_itexture_params(itexture_params * pars, int N);
-
-void texture_itrafo(itexture_plan * iplan, itexture_params * pars);
-
-void destroy_itexture_params(itexture_params * pars);
-
 /** @addtogroup texture_util
  * @{
  */
@@ -530,7 +490,7 @@ void destroy_itexture_params(itexture_params * pars);
  * - @f$ m \in [-l \dots l] @f$
  * - @f$ n \in [-l \dots l] @f$
  */
-int texture_flat_index(int l, int m, int n);
+inline int texture_flat_index(int l, int m, int n);
 
 /** Determines the length of an array omega storing frequencies in a
  * given
@@ -545,37 +505,37 @@ inline int texture_flat_length(int N);
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_omega_length(texture_plan *ths);
+inline int texture_get_omega_length(texture_plan *ths);
 
 /** Returns the length of the sample array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_x_length(texture_plan *ths);
+inline int texture_get_x_length(texture_plan *ths);
 
 /** Returns the bandwidth stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_N(texture_plan *ths);
+inline int texture_get_N(texture_plan *ths);
 
 /** Returns the number of pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_N1(texture_plan *ths);
+inline int texture_get_N1(texture_plan *ths);
 
 /** Returns the number of samples per pole figure stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_N2(texture_plan *ths);
+inline int texture_get_N2(texture_plan *ths);
 
 /** Returns a pointer to the frequencies stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-const double complex *texture_get_omega(texture_plan *ths);
+inline const double complex *texture_get_omega(texture_plan *ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -589,7 +549,7 @@ inline void texture_set_omega(texture_plan *ths, double complex* omega);
  *
  * @par ths - a pointer to the transformation plan
  */
-const double complex *texture_get_x(texture_plan *ths);
+inline const double complex *texture_get_x(texture_plan *ths);
 
 /** Sets the samples in a plan.
  *
@@ -603,7 +563,7 @@ inline void texture_set_x(texture_plan *ths, double complex* x);
  *
  * @par ths - a pointer to the transformation plan
  */
-const double *texture_get_h_phi(texture_plan *ths);
+inline const double *texture_get_h_phi(texture_plan *ths);
 
 /** Sets the latitudes of the pole figures in a plan.
  *
@@ -617,7 +577,7 @@ inline void texture_set_h_phi(texture_plan *ths, const double* h_phi);
  *
  * @par ths - a pointer to the transformation plan
  */
-const double *texture_get_h_theta(texture_plan *ths);
+inline const double *texture_get_h_theta(texture_plan *ths);
 
 /** Sets the longitudes of the pole figures in a plan.
  *
@@ -631,7 +591,7 @@ inline void texture_set_h_theta(texture_plan *ths, const double* h_theta);
  *
  * @par ths - a pointer to the transformation plan
  */
-const double *texture_get_r(texture_plan *ths);
+inline const double *texture_get_r(texture_plan *ths);
 
 /** Sets the nodes of the pole figures in a plan.
  *
@@ -646,7 +606,7 @@ inline void texture_set_r(texture_plan *ths, const double* r);
  *
  * @par ths - a pointer to the transformation plan
  */
-unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
+inline unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
 
 /** Sets the flags used for the initialisation of the nfsft in a plan.
  *
@@ -669,7 +629,7 @@ inline void texture_set_nfft_init_flags(texture_plan *ths,
  *
  * @par ths - a pointer to the transformation plan
  */
-int texture_get_nfft_cutoff(texture_plan *ths);
+inline int texture_get_nfft_cutoff(texture_plan *ths);
 
 /** Sets the nfft_cutoff parameter used for the initialisation of the nfsft
  * in a plan.

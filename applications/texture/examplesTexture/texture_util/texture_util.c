@@ -312,6 +312,12 @@ static void check_eof(FILE * f, const char *location)
 	}
 }
 
+void destroy_itexture_params(itexture_params * pars)
+{
+	free(pars->omega_min_res);
+	pars->status = "destroyed";
+}
+
 inline int equal(complex x, complex y, double delta)
 {
 	return cabs(x - y) <= delta;
@@ -344,14 +350,17 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 0:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = (drand48()-0.5) * rand() + I * (drand48()-0.5) * rand();
+				omega[i] =
+					(drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand();
 			}
 			break;
 		}
 		case 1:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = ((drand48()-0.5) * rand() + I * (drand48()-0.5) * rand()) / (i + 1);
+				omega[i] =
+					((drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand()) / (i +
+																																					 1);
 			}
 			break;
 		}
@@ -365,7 +374,8 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 3:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = ((drand48()-0.5) * rand() + I * (drand48()-0.5) * rand());
+				omega[i] =
+					((drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand());
 				omega[i] /= (i + 1);
 				omega[i] /= (i + 1);
 			}
@@ -374,6 +384,35 @@ void init_omega(complex * omega, int N, int omega_policy)
 		default:
 			error("illegal omega policy\n");
 	}
+}
+
+void initialize_itexture_params(itexture_params * pars, int N)
+{
+	pars->omega_ref = 0;
+
+	pars->max_epochs = 10000;
+	pars->stop_file_name = "stop_solver";
+	pars->residuum_goal = 1e-16;
+	pars->updated_residuum_limit = 1e-16;
+	pars->min_improve = 0.01;
+	pars->max_epochs_without_improve = 10;
+	pars->max_fail = 0;
+	pars->steps_per_epoch = 1;
+	pars->use_updated_residuum = 0;
+	pars->monitor_error = 0;
+
+	pars->messages_on = 1;
+	pars->message_interval = 1;
+
+	pars->omega_min_res =
+		smart_malloc(texture_flat_length(N) * sizeof(double complex));
+	assert(pars->omega_min_res != 0);
+	pars->epochs_until_min_res = -1;
+
+	pars->omega_min_err = 0;
+	pars->epochs_until_min_err = -1;
+
+	pars->status = "initialized";
 }
 
 inline double l_2_norm(const complex * vec, unsigned int length)
@@ -795,6 +834,169 @@ inline void split(int n, int *t1, int *t2)
 		(*t2) += 2;
 	} else {
 		error("Try to split a number less than 2!\n");
+	}
+}
+
+void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
+{
+	int stop = 0;
+	int epoch = 0, epochs_without_improve = 0, epochs_with_fail = 0;
+	texture_plan *test_plan = iplan->mv;
+	double y_norm = l_2_norm(iplan->y, texture_get_x_length(test_plan));
+
+	memset(iplan->f_hat_iter, 0,
+				 texture_get_omega_length(test_plan) * sizeof(double complex));
+
+	itexture_before_loop(iplan);
+
+	memcpy(pars->omega_min_res, iplan->f_hat_iter,
+				 texture_get_omega_length(test_plan) * sizeof(double complex));
+	pars->epochs_until_min_res = 0;
+	pars->min_residuum = 1;
+
+	if (pars->monitor_error) {
+		pars->error_during_min_residuum = 1;
+		memcpy(pars->omega_min_err, iplan->f_hat_iter,
+					 texture_get_omega_length(test_plan) * sizeof(double complex));
+		pars->min_error = 1;
+		pars->epochs_until_min_err = 0;
+	}
+
+	if (pars->messages_on) {
+		fprintf(stderr, "Create \"%s\" to exit.\n", pars->stop_file_name);
+	}
+	// Loop performing iterations of the solver.
+	do {
+		int count;
+		double err, res_upd;
+		static double res = 1, res_old;
+		FILE *stop_file;
+		int better_err = 0, better_res = 0;
+		const char *marker[] = { "-", "*", ":" };
+
+		for (count = 0; count < pars->steps_per_epoch; count++) {
+			itexture_loop_one_step(iplan);
+		}
+		epoch++;
+
+		// Calculate residuum and error.
+
+		res_old = res;
+		res_upd = sqrt(iplan->dot_r_iter) / y_norm;
+
+		if (pars->use_updated_residuum) {
+			res = res_upd;
+		} else {
+			double complex * tmp = test_plan->f_hat;
+			
+			texture_set_omega(test_plan, iplan->f_hat_iter);
+			texture_trafo(test_plan);
+			texture_set_omega(test_plan, tmp);
+			
+			res =
+				l_2_rel_dist(texture_get_x(test_plan), iplan->y,
+										 texture_get_x_length(test_plan));
+		}
+
+		if ((pars->min_residuum - res) / pars->min_residuum < pars->min_improve) {
+			epochs_without_improve++;
+		} else {
+			better_res = 2;
+			epochs_without_improve = 0;
+		}
+
+		if (res_old < res) {
+			epochs_with_fail++;
+		} else {
+			epochs_with_fail = 0;
+		}
+
+		if (pars->monitor_error) {
+			err =
+				l_2_rel_dist(iplan->f_hat_iter, pars->omega_ref,
+										 texture_get_omega_length(test_plan));
+		}
+
+		if (res < pars->min_residuum) {
+			better_res = MAX(1, better_res);
+			memcpy(pars->omega_min_res, iplan->f_hat_iter,
+						 texture_get_omega_length(test_plan));
+			pars->epochs_until_min_res = epoch;
+			pars->min_residuum = res;
+			if (pars->monitor_error) {
+				pars->error_during_min_residuum = err;
+			}
+		}
+
+		if (pars->monitor_error && err < pars->min_error) {
+			better_err = 2;
+			memcpy(pars->omega_min_err, iplan->f_hat_iter,
+						 texture_get_omega_length(test_plan));
+			pars->min_error = err;
+			pars->epochs_until_min_err = epoch;
+		}
+		// Messages
+
+		if (pars->messages_on && epoch % pars->message_interval == 0) {
+			fprintf(stderr, "step: %4d, ", pars->steps_per_epoch * epoch);
+			if (!pars->use_updated_residuum) {
+				fprintf(stderr, "res%s %.2e, ", marker[better_res], res);
+			}
+			fprintf(stderr, "upd res%s %.2e", marker[better_res], res_upd);
+			if (pars->monitor_error) {
+				fprintf(stderr, ", err%s %.2e", marker[better_err], err);
+			}
+			fprintf(stderr, "\n");
+		}
+		// Check abort conditions.
+
+		stop_file = fopen(pars->stop_file_name, "r");
+		if (stop_file) {
+			fclose(stop_file);
+			stop = 1;
+			pars->status = "stopped";
+		}
+
+		if (epoch >= pars->max_epochs) {
+			pars->status = "max epochs reached";
+			stop = 1;
+		}
+
+		if (res_upd <= pars->updated_residuum_limit) {
+			pars->status = "stopped to prevent an underflow";
+			stop = 1;
+		}
+
+		if (epochs_without_improve > pars->max_epochs_without_improve) {
+			pars->status = "stagnation";
+			stop = 1;
+		}
+
+		if (epochs_with_fail > pars->max_fail) {
+			pars->status = "degradation";
+			stop = 1;
+		}
+
+		if (res <= pars->residuum_goal) {
+			pars->status = "residuum goal reached";
+			stop = 1;
+		}
+
+	} while (!stop);
+
+	if (pars->messages_on) {
+		fprintf(stderr, "Abort: %s\n", pars->status);
+		if (pars->monitor_error) {
+			fprintf(stderr, "minimal residuum: %.2e, error: %.2e (steps: %d)\n",
+							pars->min_residuum, pars->error_during_min_residuum,
+							pars->epochs_until_min_res * pars->steps_per_epoch);
+			fprintf(stderr, "minimal error: %.2e, (steps: %d)\n", pars->min_error,
+							pars->epochs_until_min_err * pars->steps_per_epoch);
+		} else {
+			fprintf(stderr, "minimal residuum: %.2e, (steps: %d)\n",
+							pars->min_residuum,
+							pars->epochs_until_min_res * pars->steps_per_epoch);
+		}
 	}
 }
 

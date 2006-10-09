@@ -525,5 +525,6 @@ AC_OUTPUT(Makefile \
 		applications/texture/examplesTexture/interpolation/Makefile \
 		applications/texture/examplesTexture/data_creator/Makefile \
 		applications/texture/examplesTexture/matrix/Makefile \
-		applications/texture/examplesTexture/regularity2/Makefile 
+		applications/texture/examplesTexture/regularity2/Makefile \
+		applications/texture/examplesTexture/regularity3/Makefile 
 )

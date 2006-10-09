@@ -5,4 +5,5 @@ performance \
 interpolation \
 data_creator \
 matrix \
-regularity2
+regularity2 \
+regularity3

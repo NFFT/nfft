@@ -1,4 +1,6 @@
 #include<stdio.h>
+#include<assert.h>
+
 #include<nfft3_texture.h>
 
 // macros
@@ -26,6 +28,135 @@ typedef union grid_dim_ {
 	sample_dim samples;
 	angle_dim angles;
 } grid_dim;
+
+typedef struct itexture_params_ {
+	// data input
+	/**
+	 * The expected result.
+	 */
+	double complex *omega_ref;
+
+	// input parameters
+	/**
+	 * The maximum number of epochs.
+	 */
+	int max_epochs;
+
+	/** 
+	 * If after some epoch a file with the specified name appears, the solver 
+	 * stops.
+	 */
+	char *stop_file_name;
+
+	/**
+	 * If the relative @f$l_2@f$ residuum reaches this value, the solver stops.
+	 */
+	double residuum_goal;
+
+	/**
+	 * If the relative @f$l_2@f$ residuum calculated via iplan.dot_r_iter becomes
+	 * equal or less than this value, the solver stops.
+	 * Otherwise there would be the risc of an underflow.
+	 */
+	double updated_residuum_limit;
+	
+	/**
+	 * Let @f$res@f$ be the current relative @f$l_2@f$ residuum and 
+	 * @f$res_{min}@f$ the minimal observed @f$l_2@f$ residuum after some epoch.
+	 * If @f$res \leq (1 - min\_improve) \cdot res_{min}@f$, we say that
+	 * the residuum has improved.
+	 */
+	double min_improve;
+
+	/**
+	 * If the residuum does not improve for the specified number of epochs, the 
+	 * solver stops.
+	 * Note that the epochs without improvement have to be contiguous.
+	 */
+	int max_epochs_without_improve;
+
+	/**
+	 * If the relative @f$l_2@f$ residuum degrades for the specified 
+	 * number of (contiguous) epochs, the solver stops.
+	 */
+	int max_fail;
+
+	/**
+	 * The number of iterations in one epoch.
+	 */
+	int steps_per_epoch;
+
+	/**
+	 * If this is set to true, the solver does not calculate the residuum and 
+	 * uses dot_r_iter instead.
+	 * However, this could result in undesired behaviour due to numerical errors.
+	 */
+	int use_updated_residuum;
+
+	/**
+	 * If this is set to true, the relative @f$l_2@f$ error between omega_ref 
+	 * and f_hat_iter will be monitored.
+	 */
+	int monitor_error;
+
+	// parameters concerning status messages
+	/**
+	 * If this is set to true, the solver prints status messages on stderr.
+	 */
+	int messages_on;
+
+	/**
+	 * The interval between status messages (in epochs).
+	 */
+	int message_interval;
+
+	// data output
+	/**
+	 * The frequencies at the minimal residuum.
+	 */
+	double complex *omega_min_res;
+
+	/**
+	 * The number of epochs after which the minimum residuum occured.
+	 */
+	int epochs_until_min_res;
+
+	/**
+	 * The relative @f$l_2@f$ value of the minimal residuum.
+	 */
+	double min_residuum;
+
+	/**
+	 * The relative @f$l_2@f$ error at the minimal residuum.
+	 */
+	double error_during_min_residuum;
+
+	/**
+	 * The frequencies at the minimal error.
+	 */
+	double complex *omega_min_err;
+
+	/**
+	 * The relative @f$l_2@f$ value of the minimal error.
+	 */
+	double min_error;
+
+	/**
+	 * The number of epochs after which the minimal error occured.
+	 */
+	int epochs_until_min_err;
+
+	/**
+	 * The status of the itexture_params.
+	 * ("initialized", "destroyed",
+	 * "residuum goal reached", "degradation", "stagnation", 
+	 * "stopped to prevent an underflow",
+	 * "max epochs reached", "stopped")
+	 * The solver sets status to the first applying value in the list.
+	 */
+	const char *status;
+
+} itexture_params;
 
 // input
 
@@ -136,3 +267,11 @@ unsigned int solver_flags(int solver_algo, int weight_policy);
 const char *weight_policy_descr[4];
 
 void set_weights(itexture_plan * iplan, int weight_policy);
+
+// helper for the solver
+
+void initialize_itexture_params(itexture_params * pars, int N);
+
+void texture_itrafo(itexture_plan * iplan, itexture_params * pars);
+
+void destroy_itexture_params(itexture_params * pars);
