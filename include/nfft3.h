@@ -2193,7 +2193,7 @@ void fpt_finalize(fpt_set set);
  *
  * \author Stefan Kunis
  */
-#define F(MV, FLT, FLT_TYPE, NAME, ...) void i ## MV ## _ ## name(__VA_ARGS__)
+#define F(MV, FLT, FLT_TYPE, NAME, ...) void i ## MV ## _ ## NAME(__VA_ARGS__)
 
 /**
  * Complete macro for mangling an inverse transform.
