@@ -12,79 +12,263 @@
 
 /** Macros for public members inherited by all plan structures. */
 #define MACRO_MV_PLAN(float_type)                                             \
-  int N_total;                          /**< total number of Fourier coeffs.*/\
-  int M_total;                          /**< total number of samples        */\
-  float_type *f_hat;                    /**< Fourier coefficients           */\
-  float_type *f;                        /**< samples                        */\
+  int N_total;                          /**< Total number of Fourier          \
+					     coefficients                   */\
+  int M_total;                          /**< Total number of samples        */\
+                                                                              \
+  float_type *f_hat;                    /**< Vector of Fourier coefficients */\
+  float_type *f;                        /**< Vector of samples              */\
 
 /*###########################################################################*/
 /*###########################################################################*/
 /*###########################################################################*/
-
-/** @defgroup nfft NFFT
- * Direct and fast computation of the
- * discrete Fourier transform at nonequispaced knots
- * @{
- */
 
 /**
- * Constant symbols for precomputation and memory usage
+ * @defgroup nfft NFFT - Nonequispaced fast Fourier transform
+ * Direct and fast computation of the nonequispaced discrete Fourier transform.
+ * @{
+ *
+ * This module implements the nonequispaced fast Fourier transforms.
+ * In the following, we abbreviate the term "nonequispaced fast Fourier
+ * transform" by NFFT.
+ *
+ * We introduce our notation and nomenclature for discrete Fourier transforms.
+ * Let the torus
+ * \f[
+ *   \mathbb{T}^d
+ *    := \left\{ \mathbf{x}=\left(x_t\right)_{t=0,\hdots,d-1}\in\mathbb{R}^{d}:
+ *    \; - \frac{1}{2} \le x_t < \frac{1}{2},\; t=0,\hdots,d-1 \right\}
+ * \f]
+ * of dimension \f$d\f$ be given.
+ * It will serve as domain from which the nonequispaced nodes \f$\mathbf{x}\f$
+ * are taken.
+ * The sampling set is given by \f${\cal X}:=\{\mathbf{x}_j \in {\mathbb T}^d:
+ * \,j=0,\hdots,M-1\}\f$.
+ * Possible frequencies \f$\mathbf{k}\f$ are collected in the multi index set
+ * \f[
+ *   I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}\in
+ *   \mathbb{Z}^d: - \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1
+ * \right\}.
+ * \f]
+ *
+ * Our concern is the computation of the
+ * \e nonequispaced discrete Fourier transform \e (NDFT)
+ * \f[
+ * f_j = \sum_{\mathbf{k}\in I_{\mathbf{N}}}
+ * \hat{f}_{\mathbf{k}} {\rm e}^{-2\pi{\rm i} \mathbf{k}\mathbf{x}_j}, \qquad
+ * j=0,\hdots,M-1.
+ * \f]
+ * The corresponding adjoint NDFT is the computation of
+ * \f[
+ *   \hat f_{\mathbf{k}}=\sum_{j=0}^{M-1} f_j {\rm e}^{+2\pi{\rm i}
+ *    \mathbf{k}\mathbf{x}_j}, \qquad \mathbf{k}\in I_{\mathbf{N}}.
+ * \f]
+ * Direct implementations are given by \ref ndft_trafo and \ref ndft_adjoint
+ * taking \f${\cal O}(|I_{\mathbf{N}}|M)\f$ floating point operations.
+ * Approximative realisations take only
+ * \f${\cal O}(|I_{\mathbf{N}}|\log|I_{\mathbf{N}}|+M)\f$ floating point operations.
+ * These are provided by \ref nfft_trafo and \ref nfft_adjoint, respectively.
+ */
+
+/* Planner flags, i.e. constant symbols for precomputation and memory usage */
+
+/**
+ * If this flag is set, the deconvolution step (the multiplication with the
+ * diagonal matrix \f$\mathbf{D}\f$) uses precomputed values of the Fourier
+ * transformed window function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
  */
 #define PRE_PHI_HUT      (1U<< 0)
+
+/**
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses particular properties of the Gaussian
+ * window function to trade multiplications for direct calls to exponential
+ * function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
 #define FG_PSI           (1U<< 1)
+
+/**
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses linear interpolation from a lookup
+ * table of equispaced samples of the window function instead of exact values
+ * of the window function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
 #define PRE_LIN_PSI      (1U<< 2)
+
+/**
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses particular properties of the Gaussian
+ * window function to trade multiplications for direct calls to exponential
+ * function (the remaining \f$2dM\f$ direct calls are precomputed).
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
 #define PRE_FG_PSI       (1U<< 3)
+
+/**
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses \f$(2m+2)dM\f$ precomputed values of
+ * the window function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
 #define PRE_PSI          (1U<< 4)
+
+/**
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses \f$(2m+2)^dM\f$ precomputed values of
+ * the window function, in addition indices of source and target vectors are
+ * stored.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
 #define PRE_FULL_PSI     (1U<< 5)
+
+/**
+ * If this flag is set, (de)allocation of the node vector is done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define MALLOC_X         (1U<< 6)
+
+/**
+ * If this flag is set, (de)allocation of the vector of Fourier coefficients is
+ * done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define MALLOC_F_HAT     (1U<< 7)
+
+/**
+ * If this flag is set, (de)allocation of the vector of samples is done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define MALLOC_F         (1U<< 8)
+
+/**
+ * If this flag is set, FFTW uses disjoint input/output vectors.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define FFT_OUT_OF_PLACE (1U<< 9)
+
+/**
+ * If this flag is set, fftw_init/fftw_finalize is called.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define FFTW_INIT        (1U<< 10)
 
-#define MALLOC_V         (1U<< 11)
-
-#define SNDFT            (1U<< 12)
-
+/**
+ * Summarises if precomputation is used within the convolution step (the
+ * multiplication with the sparse matrix \f$\mathbf{B}\f$).
+ * If testing against this flag is positive, \ref nfft_precompute_one_psi has
+ * to be called.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_precompute_one_psi
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
-typedef struct nfft_plan_
+/** Structure for a NFFT plan */
+typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double complex)
 
-  int d;                                /**< dimension, rank                 */
-  int *N;                               /**< multi bandwidth                 */
-  double *sigma;                        /**< oversampling-factor             */
-  int *n;                               /**< fftw-length = sigma*N           */
-  int n_total;                          /**< total size of fftw              */
-  int m;                                /**< cut-off, window function        */
-  double *b;                            /**< shape parameters                */
-  int K;                                /**< number of precomp. uniform psi  */
+  int d;                                /**< Dimension, rank                 */
+  int *N;                               /**< Multi bandwidth                 */
+  double *sigma;                        /**< Oversampling-factor             */
+  int *n;                               /**< FFTW length, equal to sigma*N   */
+  int n_total;                          /**< Total size of FFTW              */
+  int m;                                /**< Cut-off parameter of the window
+                                             function                        */
+  double *b;                            /**< Shape parameter of the window
+                                             function                        */
+  int K;                                /**< Number of equispaced samples of
+					     the window function for \ref
+					     PRE_LIN_PSI                     */
 
-  unsigned nfft_flags;                  /**< flags for precomputation, malloc*/
-  unsigned fftw_flags;                  /**< flags for the fftw              */
+  unsigned nfft_flags;                  /**< Flags for precomputation,
+                                             (de)allocation, and FFTW usage  */
+  unsigned fftw_flags;                  /**< Flags for the FFTW              */
 
-  double *x;                            /**< nodes (in time/spatial domain)  */
+  double *x;                            /**< Nodes in time/spatial domain    */
 
-  double MEASURE_TIME_t[3];             /**< measured time for each step     */
+  double MEASURE_TIME_t[3];             /**< Measured time for each step if
+					     MEASURE_TIME is set             */
 
-  /** internal*/
-  fftw_plan  my_fftw_plan1;             /**< fftw_plan forward               */
-  fftw_plan  my_fftw_plan2;             /**< fftw_plan backward              */
+  /* internal*/
+  fftw_plan  my_fftw_plan1;             /**< Forward FFTW plan               */
+  fftw_plan  my_fftw_plan2;             /**< Backward FFTW plan              */
 
-  double **c_phi_inv;                   /**< precomputed data, matrix D      */
-  double *psi;                          /**< precomputed data, matrix B      */
-  int *psi_index_g;                     /**< only for PRE_FULL_PSI           */
-  int *psi_index_f;                     /**< only for PRE_FULL_PSI           */
+  double **c_phi_inv;                   /**< Precomputed data for the
+                                             diagonal matrix \f$D\f$         */
+  double *psi;                          /**< Precomputed data for the sparse
+                                             matrix \f$B\f$                  */
+  int *psi_index_g;                     /**< Indices in source/target vector
+					     for \ref PRE_FULL_PSI           */
+  int *psi_index_f;                     /**< Indices in source/target vector
+					     for \ref PRE_FULL_PSI           */
 
-  double complex *g;
-  double complex *g_hat;
-  double complex *g1;                   /**< input of fftw                   */
-  double complex *g2;                   /**< output of fftw                  */
+  double complex *g;                    /**< Oversampled vector of samples   */
+  double complex *g_hat;                /**< Zero-padded vector of Fourier
+                                             coefficients */
+  double complex *g1;                   /**< Input of fftw                   */
+  double complex *g2;                   /**< Output of fftw                  */
 
-  double *spline_coeffs;                /**< input for de Boor algorithm, if
-                                             B_SPLINE or SINC_2m is defined  */
+  double *spline_coeffs;                /**< Input for de Boor algorithm if
+                                             B_SPLINE or SINC_POWER is
+                                             defined                         */
 } nfft_plan;
 
 
@@ -255,16 +439,16 @@ void nfft_finalize(nfft_plan *ths);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup nfct NFCT
- * direct and fast computation of the
- * discrete cosine transform at nonequispaced knots in time/spatial domain
+/** @defgroup nfsct NFCT/NFST - Nonequispaced fast (co)sine transform
+ * Direct and fast computation of the discrete nonequispaced (co)sine
+ * transform.
  * @{
  */
 
 /** Structure for a transform plan */
-typedef struct nfct_plan_
+typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double)
 
   int d;                                /**< dimension, rank                  */
@@ -467,25 +651,14 @@ int nfct_fftw_2N( int n);
  *
  * \author Steffen Klatt
  */
-int nfct_fftw_2N_rev( int n);
-
-/** @}
- */
+int nfct_fftw_2N_rev(int n);
 
 /*###########################################################################*/
-/*###########################################################################*/
-/*###########################################################################*/
-
-/** @defgroup nfst NFST
- * direct and fast computation of the
- * discrete sine transform at nonequispaced knots in time/spatial domain
- * @{
- */
 
 /** Structure for a transform plan */
-typedef struct nfst_plan_
+typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double)
 
   int d;                                /**< dimension, rank                  */
@@ -721,18 +894,22 @@ int nfst_fftw_2N_rev( int n);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup nnfft NNFFT
- * Direct and fast computation of the
- * discrete Fourier transform at nonequispaced knots in time and Fourier domain
+/** @defgroup nnfft NNFFT - Nonequispaced in time and frequency FFT
+ * Direct and fast computation of the discrete nonequispaced in time and
+ * frequency Fourier transform.
  * @{
  */
+
+
+#define MALLOC_V         (1U<< 11)
+
 
 /**
  * Structure for a transform plan
  */
 typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double complex)
 
   int d;                                /**< dimension, rank                 */
@@ -925,6 +1102,10 @@ void nnfft_finalize(nnfft_plan *ths_plan);
  * hyperbolic discrete Fourier transform at nonequispaced knots
  * @{
  */
+
+#define SNDFT            (1U<< 12)
+
+
 typedef struct nsfft_plan_
 {
   MACRO_MV_PLAN(double complex)
@@ -1048,7 +1229,7 @@ void nsfft_finalize(nsfft_plan *ths);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup mri_inh MRI_INH
+/** @defgroup mri MRI - Transforms in magnetic resonance imaging
  * @{
  */
 
@@ -1057,7 +1238,7 @@ void nsfft_finalize(nsfft_plan *ths);
  */
 typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double complex)
 
   nfft_plan plan;
@@ -1073,7 +1254,7 @@ typedef struct
  */
 typedef struct
 {
-  /** api */
+  /* api */
   MACRO_MV_PLAN(double complex)
 
   nfft_plan plan;
@@ -1186,7 +1367,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 /*###########################################################################*/
 
 /**
- * @defgroup nfsft NFSFT
+ * @defgroup nfsft NFSFT - Nonequispaced fast spherical Fourier transform
  * @{
  *
  * This module implements nonuniform fast spherical Fourier transforms. In the
@@ -1811,7 +1992,7 @@ void nfsft_precompute_x(nfsft_plan *plan);
 /*###########################################################################*/
 
 /**
- * @defgroup fpt FPT
+ * @defgroup fpt FPT - Fast polynomial transform
  * @{
  *
  * This module implements fast polynomial transforms. In the following, we
@@ -1937,38 +2118,92 @@ void fpt_finalize(fpt_set set);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup solver Group
+/** @defgroup solver Solver - Inverse transforms
  * @{
  */
 
+/* Planner flags, i.e. constant symbols for methods */
+
 /**
- * Constant symbols for precomputation and memory usage (inverse problem)
+ * If this flag is set, the Landweber (Richardson) iteration is used to compute
+ * an inverse transform.
+ *
+ * \author Stefan Kunis
  */
 #define LANDWEBER             (1U<< 0)
-#define STEEPEST_DESCENT      (1U<< 1)
-#define CGNR                  (1U<< 2)
-#define CGNE                  (1U<< 3)
-#define NORMS_FOR_LANDWEBER   (1U<< 4)
-#define PRECOMPUTE_WEIGHT     (1U<< 5)
-#define PRECOMPUTE_DAMP       (1U<< 6)
-/** will come in again, as method by their own, together with some new method for
-    the minimal seminorm interpolation
-    #define REGULARIZE_CGNR       (1U<< 7)
-    #define REGULARIZE_CGNR_R_HAT   (1U<< 8)
- double *r_hat;                        regularisation weights
-  double lambda;                        regularisation parameter
-*/
 
 /**
- * \brief function mangling macro
+ * If this flag is set, the method of steepest descent (gradient) is used to
+ * compute an inverse transform.
  *
- * \arg MV matrix vector multiplication type
- * \arg FLT float type, i.e., double resp. complex
- * \arg name name of the function
- * \arg ...  argument list of the function
+ * \author Stefan Kunis
  */
-#define F(MV, FLT, FLT_TYPE, name, ...) void i ## MV ## _ ## name(__VA_ARGS__)
+#define STEEPEST_DESCENT      (1U<< 1)
 
+/**
+ * If this flag is set, the conjugate gradient method for the normal equation
+ * of first kind is used to compute an inverse transform.
+ * Each iterate minimises the residual in the current Krylov subspace.
+ *
+ * \author Stefan Kunis
+ */
+#define CGNR                  (1U<< 2)
+
+/**
+ * If this flag is set, the conjugate gradient method for the normal equation
+ * of second kind is used to compute an inverse transform.
+ * Each iterate minimises the error in the current Krylov subspace.
+ *
+ * \author Stefan Kunis
+ */
+#define CGNE                  (1U<< 3)
+
+/**
+ * If this flag is set, the Landweber iteration updates the member
+ * \ref dot_r_iter.
+ *
+ * \author Stefan Kunis
+ */
+#define NORMS_FOR_LANDWEBER   (1U<< 4)
+
+/**
+ * If this flag is set, the samples are weighted, eg to cope with varying
+ * sampling density.
+ *
+ * \author Stefan Kunis
+ */
+#define PRECOMPUTE_WEIGHT     (1U<< 5)
+
+/**
+ * If this flag is set, the Fourier coefficients are damped, eg to favour
+ * fast decaying coefficients.
+ *
+ * \author Stefan Kunis
+ */
+#define PRECOMPUTE_DAMP       (1U<< 6)
+
+/**
+ * Function mangling macro.
+ * 
+ * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
+ * \arg FLT Float used as prefix for function names (double or complex)
+ * \arg FLT_TYPE Float type (double or double complex)
+ * \arg NAME Name of the functions suffix
+ * \arg ...  argument list of the function
+ *
+ * \author Stefan Kunis
+ */
+#define F(MV, FLT, FLT_TYPE, NAME, ...) void i ## MV ## _ ## name(__VA_ARGS__)
+
+/**
+ * Complete macro for mangling an inverse transform.
+ * 
+ * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
+ * \arg FLT Float used as prefix for function names (double or complex)
+ * \arg FLT_TYPE Float type (double or double complex)
+ *
+ * \author Stefan Kunis
+ */
 #define MACRO_SOLVER_PLAN(MV, FLT, FLT_TYPE)                                  \
 typedef struct i ## MV ## _plan_                                              \
 {                                                                             \
@@ -1978,14 +2213,14 @@ typedef struct i ## MV ## _plan_                                              \
   double *w;                            /**< weighting factors              */\
   double *w_hat;                        /**< damping factors                */\
                                                                               \
-  FLT_TYPE *y;                               /**< right hand side, samples  */\
+  FLT_TYPE *y;                          /**< right hand side, samples       */\
                                                                               \
-  FLT_TYPE *f_hat_iter;                      /**< iterative solution        */\
+  FLT_TYPE *f_hat_iter;                 /**< iterative solution             */\
                                                                               \
-  FLT_TYPE *r_iter;                          /**< iterated residual vector  */\
-  FLT_TYPE *z_hat_iter;                      /**< residual of normal eq. 1  */\
-  FLT_TYPE *p_hat_iter;                      /**< search direction          */\
-  FLT_TYPE *v_iter;                          /**< residual vector update    */\
+  FLT_TYPE *r_iter;                     /**< iterated residual vector       */\
+  FLT_TYPE *z_hat_iter;                 /**< residual of normal eq. 1       */\
+  FLT_TYPE *p_hat_iter;                 /**< search direction               */\
+  FLT_TYPE *v_iter;                     /**< residual vector update         */\
                                                                               \
   double alpha_iter;                    /**< step size for search direction */\
   double beta_iter;                     /**< step size for search correction*/\

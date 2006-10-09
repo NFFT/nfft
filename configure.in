@@ -508,6 +508,7 @@ AC_OUTPUT(Makefile \
           examples/solver/Makefile \
 	  applications/Makefile \
 	  applications/fastgauss/Makefile \
+	  applications/fastsum/Makefile \
 	  applications/fastsumS2/Makefile \
 	  applications/mri/Makefile \
           applications/mri/mri2d/Makefile \
