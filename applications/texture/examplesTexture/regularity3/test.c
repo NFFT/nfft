@@ -224,26 +224,40 @@ void calculate_results()
 	double ref = l_2_norm(omega_ref, texture_flat_length(N));
 	double sum = 0;
 
-	error_harm = smart_malloc(N * sizeof(double));
-	for (l = 0; l <= N; l++) {
+	error_harm = smart_malloc((N+1) * sizeof(double));
+	for (l = 0; l <= new_N; l++) {
 		int start = texture_flat_index(l, -l, -l);
 		int end = texture_flat_index(l, l, l);
 		int len = end - start + 1;
 		error_harm[l] =
 			l_2_dist(&(pars.omega_min_err[start]), &(omega_ref[start]), len);
 	}
+	for (l = new_N+1; l <= N; l++) {
+		int start = texture_flat_index(l, -l, -l);
+		int end = texture_flat_index(l, l, l);
+		int len = end - start + 1;
+		error_harm[l] =
+			l_2_norm(&(omega_ref[start]), len);
+	}
 	for (l = 0; l <= N; l++) {
 		error_harm[l] /= ref;
+	}
+
+	for (l = 0; l <= new_N; l++) {
 		sum += error_harm[l] * error_harm[l];
 	}
 	sum = sqrt(sum);
-	fprintf(stderr, "Error sum: %lg, Minimal error: %lg, Difference: %lg\n",
+	sum *= ref;
+	sum /= l_2_norm(omega_ref, texture_flat_length(new_N));
+	
+	fprintf(stderr, "Error sum: %.4e, Minimal error: %.4e, Difference: %.4e\n",
 					sum, pars.min_error, sum - pars.min_error);
+	fprintf(stderr, "new error sum: %.4e\n", l_2_rel_dist(pars.omega_min_err, omega_ref, texture_flat_length(new_N)));
 }
 
 void output_results()
 {
-	int width1 = 8, width2 = 8;
+	int width1 = 8, width2 = 9;
 	int l;
 
 	fprintf(output, "#\n");
@@ -264,7 +278,7 @@ void output_results()
 	fprintf(output,
 					"# sqrt(sum_{m,n} (omega_min[l,m,n]-omega_ref[l,m,n])^2) / norm_2(omega_ref).\n");
 
-	fprintf(output, "# %*s %*s", width1 - 2, "degree", width2, "error");
+	fprintf(output, "# %*s %*s\n", width1 - 2, "degree", width2, "error");
 	for (l = 0; l <= N; l++) {
 		fprintf(output, "%*d %*.2e\n", width1, l, width2, error_harm[l]);
 	}

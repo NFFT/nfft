@@ -920,7 +920,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 		if (res < pars->min_residuum) {
 			better_res = MAX(1, better_res);
 			memcpy(pars->omega_min_res, iplan->f_hat_iter,
-						 texture_get_omega_length(test_plan));
+						 texture_get_omega_length(test_plan) * sizeof(double complex));
 			pars->epochs_until_min_res = epoch;
 			pars->min_residuum = res;
 			if (pars->monitor_error) {
@@ -931,7 +931,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 		if (pars->monitor_error && err < pars->min_error) {
 			better_err = 2;
 			memcpy(pars->omega_min_err, iplan->f_hat_iter,
-						 texture_get_omega_length(test_plan));
+						 texture_get_omega_length(test_plan) * sizeof(double complex));
 			pars->min_error = err;
 			pars->epochs_until_min_err = epoch;
 		}
