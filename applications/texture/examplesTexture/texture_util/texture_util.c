@@ -868,7 +868,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 	// Loop performing iterations of the solver.
 	do {
 		int count;
-		double err, res_upd;
+		double err = 10, res_upd;
 		static double res = 1, res_old;
 		FILE *stop_file;
 		int better_err = 0, better_res = 0;
