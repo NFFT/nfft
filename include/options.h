@@ -8,7 +8,9 @@
 
 /** window
  */
-#define GAUSSIAN
+#ifndef CUSTOM_WINDOW
+#define KAISER_BESSEL
+#endif
                                         /* one of KAISER_BESSEL,SINC_POWER   */
           /* B_SPLINE,GAUSSIAN,                */
 
