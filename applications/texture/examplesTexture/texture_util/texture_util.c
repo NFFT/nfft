@@ -1014,7 +1014,7 @@ void write_h(int N1, double *h_phi, double *h_theta, FILE * out)
 	fprintf(out, "%d\n", N1);
 
 	for (i = 0; i < N1; i++) {
-		fprintf(out, "%lg %lg\n", h_phi[i], h_theta[i]);
+		fprintf(out, "%24.16e %24.16e\n", h_phi[i], h_theta[i]);
 	}
 }
 
@@ -1025,7 +1025,7 @@ void write_omega(int N, complex * omega, FILE * out)
 	fprintf(out, "\n");
 	fprintf(out, "%d\n", N);
 	for (i = 0; i < texture_flat_length(N); i++) {
-		fprintf(out, "%lg + %lgi\n", creal(omega[i]), cimag(omega[i]));
+		fprintf(out, "%24.16e + %24.16ei\n", creal(omega[i]), cimag(omega[i]));
 	}
 }
 
@@ -1037,7 +1037,7 @@ void write_r(int N2, double *r, FILE * out)
 	fprintf(out, "%d\n", N2);
 
 	for (j = 0; j < N2; j++) {
-		fprintf(out, "%lg %lg\n", r[2 * j], r[2 * j + 1]);
+		fprintf(out, "%24.16e %24.16e\n", r[2 * j], r[2 * j + 1]);
 	}
 }
 
@@ -1049,7 +1049,7 @@ void write_x(int N1, int N2, complex * x, FILE * out)
 	fprintf(out, "%d %d\n", N1, N2);
 	for (i = 0; i < N1; i++) {
 		for (j = 0; j < N2; j++) {
-			fprintf(out, "%lg + %lgi\n", creal(x[i * N2 + j]),
+			fprintf(out, "%24.16e + %24.16ei\n", creal(x[i * N2 + j]),
 							cimag(x[i * N2 + j]));
 		}
 	}

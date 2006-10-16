@@ -6,4 +6,5 @@ interpolation \
 data_creator \
 matrix \
 regularity2 \
-regularity3
+regularity3 \
+data
