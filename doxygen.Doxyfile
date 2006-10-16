@@ -416,7 +416,10 @@ WARN_LOGFILE =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = include kernel util examples applications/texture
+INPUT = include/nfft3.h kernel examples applications/fastsum
+
+#applications
+#applications/texture
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
