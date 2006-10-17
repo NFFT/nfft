@@ -1,14 +1,23 @@
-/** Header for utilities.
- *  functions for vectors, window functions, ...
+/*! \file util.h
+ *  \brief Header file for utility functions used by the nfft3 library.
  */
-
 #ifndef utils_h_inc
 #define utils_h_inc
 
+/** Include header for C99 complex datatype. */
 #include <complex.h>
 
-/** Macros
+/*###########################################################################*/
+/*###########################################################################*/
+/*###########################################################################*/
+
+/**
+ * @defgroup nfftutil UTIL - Utility functions for the NFFT library
+ * @{
+ *
+ * This module implements frequently used utility functions.
  */
+
 #define SWAPC(x,y) {double complex* temp; temp=(x); (x)=(y); (y)=temp;}
 #define SWAP_double(x,y) {double* temp; temp=(x); (x)=(y); (y)=temp;}
 #define SWAP_complex(x,y) {double complex* temp; temp=(x); (x)=(y); (y)=temp;}
@@ -16,11 +25,9 @@
 #define MAX(a,b) ((a)>(b)? (a) : (b))
 #define MIN(a,b) ((a)<(b)? (a) : (b))
 
-/** @defgroup little_group Group for little helpers
- * This group contains little helpers, e.g. for
- * timing, ...
- * @{
- */
+/* ######################################################################### */
+/* ########## Little helpers ############################################### */
+/* ######################################################################### */
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
@@ -59,13 +66,9 @@ int nfft_plain_loop(int *idx,int *N,int d);
  */
 double nfft_prod_real(double *vec,int d);
 
-/** @}
- */
-
-/** @defgroup window_group Group for window function routines
- * This group contains routines regarding window functions
- * @{
- */
+/* ######################################################################### */
+/* ########## Window function related ###################################### */
+/* ######################################################################### */
 
 /** Sinus cardinalis
  *  \f$\frac{sin\left(x\right)}{x}$
@@ -87,13 +90,9 @@ double bspline(int k, double x, double *scratch);
  */
 double i0(double x);
 
-/** @}
- */
-
-/** @defgroup vector_group Group for vector routines
- * This group contains routines for handling vectors
- * @{
- */
+/* ######################################################################### */
+/* ########## BLAS like routines ########################################### */
+/* ######################################################################### */
 
 /** Computes the inner/dot product \f$x^H x\f$.
  */
@@ -194,14 +193,11 @@ void vpr_complex(double complex *x, int n, char *text);
 void vrand_unit_complex(double complex *x, int n);
 
 void vrand_shifted_unit_double(double *x, int n);
-/** @}
- */
 
-/** @defgroup dampinggroup Group for damping factors in iterative reconstruction
- * This group contains sub routines for different one dimensional damping
- * factors.
- * @{
- */
+
+/* ######################################################################### */
+/* ########## Helpers for inverse transforms ############################### */
+/* ######################################################################### */
 
 /** Computes non periodic voronoi weights
  *  assumes ordered x_j */

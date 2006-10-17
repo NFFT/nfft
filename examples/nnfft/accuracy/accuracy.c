@@ -67,7 +67,7 @@ void accuracy(int d)
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
 
-      SWAPC(my_plan.f,slow);
+      SWAP_complex(my_plan.f,slow);
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
