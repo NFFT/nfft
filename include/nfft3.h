@@ -2205,7 +2205,7 @@ void fpt_finalize(fpt_set set);
  * \author Stefan Kunis
  */
 #define MACRO_SOLVER_PLAN(MV, FLT, FLT_TYPE)                                  \
-typedef struct i ## MV ## _plan_                                              \
+typedef struct                                                                \
 {                                                                             \
   MV ## _plan *mv;                      /**< matrix vector multiplication   */\
   unsigned flags;                       /**< iteration type, ...            */\
@@ -2233,11 +2233,16 @@ typedef struct i ## MV ## _plan_                                              \
   double dot_v_iter;                    /**< dotproductc{_w}(v_iter)        */\
 } i ## MV ## _plan;                                                           \
                                                                               \
+/** Simple initialisation. */                                                 \
 F(MV, FLT, FLT_TYPE, init,    i ## MV ## _plan *ths, MV ## _plan *mv);        \
+/** Advanced initialisation. */                                               \
 F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
                           unsigned i ## MV ## _flags);                        \
+/** Setting up residuals before the actual iteration. */                      \
 F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths);                   \
+/** Doing one step in the iteration. */                                       \
 F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths);                   \
+/** Destroys the plan for the inverse transform. */                           \
 F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);                   \
 
 
