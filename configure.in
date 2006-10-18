@@ -8,13 +8,17 @@ AC_CONFIG_SRCDIR(include/nfft3.h)
 # Initialise automake
 AM_INIT_AUTOMAKE
 
-# TO hell with shared libraries
+# To hell with shared libraries
 AM_ENABLE_SHARED(no)
 
 AC_PROG_MAKE_SET
 
 # Get canocical host identifier
 AC_CANONICAL_HOST
+
+# Flags for Compiler
+CFLAGS="$CFLAGS -std=c99 -Wall"
+AC_SUBST(CFLAGS)
 
 # Checks for programs
 AC_LANG(C)
