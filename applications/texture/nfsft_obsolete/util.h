@@ -13,9 +13,9 @@
  */
 inline int ngpt(int n);
 
-#define SWAPCT(x,y,temp) {temp=(x); (x)=(y); (y)=temp;}
+#define NFFT_SWAPCT(x,y,temp) {temp=(x); (x)=(y); (y)=temp;}
 
-void vpr_c_hat (complex **x, int n, char * text);
+void nfft_vpr_c_hat (complex **x, int n, char * text);
 
 double error_complex_inf_old(complex *x0, complex *x, int n);
 double error_complex_inf_r_old(complex *x0, complex *x, int n);

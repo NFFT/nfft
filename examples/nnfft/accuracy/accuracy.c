@@ -31,8 +31,8 @@ void accuracy(int d)
       
       
       /** init pseudo random nodes */
-      vrand_shifted_unit_double(my_plan.x, d*my_plan.M_total);
-      vrand_shifted_unit_double(my_plan.v, d*my_plan.N_total);
+      nfft_vrand_shifted_unit_double(my_plan.x, d*my_plan.M_total);
+      nfft_vrand_shifted_unit_double(my_plan.v, d*my_plan.N_total);
       
       /** precompute psi, the entries of the matrix B */
       if(my_plan.nnfft_flags & PRE_PSI)
@@ -49,19 +49,19 @@ void accuracy(int d)
         nnfft_precompute_phi_hut(&my_plan);
       
       /** init pseudo random Fourier coefficients */
-      vrand_unit_complex(my_plan.f_hat, my_plan.N_total);
+      nfft_vrand_unit_complex(my_plan.f_hat, my_plan.N_total);
       
       /** direct trafo and show the result */
       nndft_trafo(&my_plan);
       
-      SWAP_complex(my_plan.f,slow);
+      NFFT_SWAP_complex(my_plan.f,slow);
       
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);
       
       printf("%e, %e\n",
-	     error_l_infty_complex(slow, my_plan.f, M_total),
-	     error_l_infty_1_complex(slow, my_plan.f, M_total, my_plan.f_hat,
+	     nfft_error_l_infty_complex(slow, my_plan.f, M_total),
+	     nfft_error_l_infty_1_complex(slow, my_plan.f, M_total, my_plan.f_hat,
 				     my_plan.N_total));
       
       /** finalise the one dimensional plan */

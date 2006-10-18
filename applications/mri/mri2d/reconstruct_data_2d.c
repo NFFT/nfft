@@ -108,7 +108,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   
   t=nfft_second()-t;
 #ifdef HAVE_MALLINFO
-  fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
+  fprintf(stderr,"time: %e seconds mem: %i \n",t,nfft_total_used_memory());
 #else
   fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
 #endif

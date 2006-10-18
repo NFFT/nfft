@@ -548,9 +548,9 @@ void fastsum_precompute(fastsum_plan *ths)
     }
   }
 
-  fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
+  nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
   fftw_execute(ths->fft_plan);
-  fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
+  nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
 
 }
 

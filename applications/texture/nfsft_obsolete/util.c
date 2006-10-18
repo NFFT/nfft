@@ -21,7 +21,7 @@ inline int ngpt(int n)
   return e;  
 }
 
-inline void vpr_c_hat (complex **x, int n, char *text)
+inline void nfft_vpr_c_hat (complex **x, int n, char *text)
 {
   int k,m,d;
   
@@ -56,9 +56,9 @@ double error_complex_inf_r_old(complex *x0, complex *x, int n)
   {
     x0a = cabs(x0[k]);
     xa = cabs(x[k]);
-    max_oldimum = MAX(MAX(x0a,xa),max_oldimum);
+    max_oldimum = NFFT_MAX(NFFT_MAX(x0a,xa),max_oldimum);
     xda = cabs(x0[k]-x[k]);
-    max_olddiff = MAX(max_olddiff,xda);
+    max_olddiff = NFFT_MAX(max_olddiff,xda);
   }
   
   res = (max_oldimum<2*DBL_EPSILON ? max_olddiff : max_olddiff / max_oldimum);
@@ -74,8 +74,8 @@ double error_complex_inf_old(complex *x0, complex *x, int n)
   
   for (k = 0; k < n; k++) 
   {
-    maximum1 = MAX(maximum1,cabs(x0[k]-x[k]));
-    maximum2 = MAX(maximum2,cabs(x0[k]));
+    maximum1 = NFFT_MAX(maximum1,cabs(x0[k]-x[k]));
+    maximum2 = NFFT_MAX(maximum2,cabs(x0[k]));
   }
     
   return maximum1/maximum2;
@@ -88,7 +88,7 @@ double norm_complex_inf_old(complex *x, int n)
   
   for (k = 0; k < n; k++) 
   {
-    max_oldimum = MAX(max_oldimum,cabs(x[k]));
+    max_oldimum = NFFT_MAX(max_oldimum,cabs(x[k]));
   }
   
   return max_oldimum;
@@ -163,7 +163,7 @@ double error_complex3_old(complex *a, complex *b, int n)
   
   for (k = 0; k < n; k++) 
   {
-    m = MAX(m,cabs(a[k]-b[k])/cabs(a[k]));
+    m = NFFT_MAX(m,cabs(a[k]-b[k])/cabs(a[k]));
   }
   
   return m;
@@ -182,8 +182,8 @@ double err_f_hat_infty_old(complex **f_hat, complex **f_hat2, int M)
   {
     for (n = -k; n <= k; n++) 
     {
-      absmax_old = MAX(absmax_old,cabs(f_hat[n+M][k]));
-      err = MAX(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
+      absmax_old = NFFT_MAX(absmax_old,cabs(f_hat[n+M][k]));
+      err = NFFT_MAX(err,cabs(f_hat[n+M][k]-f_hat2[n+M][k]));
     }
   }  
   return err/absmax_old;

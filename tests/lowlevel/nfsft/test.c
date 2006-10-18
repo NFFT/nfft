@@ -159,8 +159,8 @@ void test_ndsft_trafo(void)
       nfsft_trafo(&plan);
 
       /* Check result */
-      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_orig,plan.f,M));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_orig,plan.f,M));
+      fprintf(stdout," e_infty = %le,",nfft_error_l_infty_complex(f_orig,plan.f,M));
+      fprintf(stdout," e_2 = %le",nfft_error_l_2_complex(f_orig,plan.f,M));
 
       //fprintf(stdout,"\n");
       /*for (m = 0; m < M; m++)
@@ -305,9 +305,9 @@ void test_ndsft_adjoint(void)
       nfsft_adjoint(&plan);
 
       /* Check result */
-      fprintf(stdout," e_infty = %le,",error_l_infty_complex(f_hat_orig,
+      fprintf(stdout," e_infty = %le,",nfft_error_l_infty_complex(f_hat_orig,
         plan.f_hat, plan.N_total));
-      fprintf(stdout," e_2 = %le",error_l_2_complex(f_hat_orig,plan.f_hat,
+      fprintf(stdout," e_2 = %le",nfft_error_l_2_complex(f_hat_orig,plan.f_hat,
         plan.N_total));
       //fprintf(stdout,"\n");
       /*for (n = -N; n <= N; n++)
@@ -325,8 +325,8 @@ void test_ndsft_adjoint(void)
               cabs(plan.f_hat[NFSFT_INDEX(k,n,&plan)]-f_hat_orig[NFSFT_INDEX(k,n,&plan)]));
         }
       }*/
-      //vpr_complex(f_hat_orig, plan.N_total, "f_hat_orig");
-      //vpr_complex(plan.f_hat, plan.N_total, "f_hat");
+      //nfft_vpr_complex(f_hat_orig, plan.N_total, "f_hat_orig");
+      //nfft_vpr_complex(plan.f_hat, plan.N_total, "f_hat");
 
       /*fprintf(stdout,"\n");
       for (n = 0; n < plan.N_total; n++)

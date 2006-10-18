@@ -73,7 +73,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   nfft_init_1d(&np, N, M);
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(np.x, np.M_total);
+  nfft_vrand_shifted_unit_double(np.x, np.M_total);
 
   if(test_pre_full)
    {
@@ -82,7 +82,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
    }
 
   /** init pseudo random Fourier coefficients */
-  vrand_unit_complex(np.f_hat, np.N_total);
+  nfft_vrand_unit_complex(np.f_hat, np.N_total);
  
   /** NDFT */
   if(test_ndft)

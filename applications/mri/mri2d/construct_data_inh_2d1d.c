@@ -54,7 +54,7 @@ void construct(char * file, int N, int M)
   fclose(finh);
 
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
+  N3=ceil((NFFT_MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
   T=((max_time-min_time)/2.0)/(0.5-((double) m)/N3);
   W=N3/T;
 

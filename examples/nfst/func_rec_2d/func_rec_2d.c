@@ -126,9 +126,9 @@ void func_rec_2d( int my_N,
   if( my_other_cplan.nfst_flags & PRE_PSI)
     nfst_precompute_psi( &my_other_cplan);
 
-  SWAP_double( my_icplan.f_hat_iter, my_other_cplan.f_hat);
+  NFFT_SWAP_double( my_icplan.f_hat_iter, my_other_cplan.f_hat);
   nfst_trafo( &my_other_cplan);
-  SWAP_double( my_icplan.f_hat_iter, my_other_cplan.f_hat);
+  NFFT_SWAP_double( my_icplan.f_hat_iter, my_other_cplan.f_hat);
 
   
   if( (fp_out = fopen( fout_name, "w")) == NULL)

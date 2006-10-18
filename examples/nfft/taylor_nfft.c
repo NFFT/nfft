@@ -178,7 +178,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(np.x, np.M_total);
+  nfft_vrand_shifted_unit_double(np.x, np.M_total);
 
   /** nfft precomputation */
   taylor_precompute(&tp);
@@ -188,12 +188,12 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     nfft_precompute_one_psi(&np);
 
   /** init pseudo random Fourier coefficients */
-  vrand_unit_complex(np.f_hat, np.N_total);
+  nfft_vrand_unit_complex(np.f_hat, np.N_total);
 
   /** NDFT */
   if(test_accuracy)
     {
-      SWAP_complex(np.f,swapndft);
+      NFFT_SWAP_complex(np.f,swapndft);
       
       t_ndft=0;
       r=0; 
@@ -207,7 +207,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
         }
       t_ndft/=r;
 
-      SWAP_complex(np.f,swapndft);
+      NFFT_SWAP_complex(np.f,swapndft);
       printf("%.2e\t",t_ndft);
     }
   else 
@@ -229,7 +229,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   printf("%.2f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
 
   if(test_accuracy)
-    printf("%.2e\t",error_l_infty_complex(swapndft, np.f, np.M_total));
+    printf("%.2e\t",nfft_error_l_infty_complex(swapndft, np.f, np.M_total));
   else
     printf("nan\t\t");
 
@@ -250,7 +250,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   printf("%.2f\t%d\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor);
 
   if(test_accuracy)
-    printf("%.2e\n",error_l_infty_complex(swapndft, np.f, np.M_total));
+    printf("%.2e\n",nfft_error_l_infty_complex(swapndft, np.f, np.M_total));
   else
     printf("nan\t\n");
 

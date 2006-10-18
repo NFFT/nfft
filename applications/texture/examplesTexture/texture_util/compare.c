@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 		read_h(&N1, &h_phi, &h_theta, f1, stderr);
 		read_h(&N1_2, &h_phi_2, &h_theta_2, f2, stderr);
 		if (N1 == N1_2) {
-			printf("%lg\n", error_l_2_double(h_phi, h_phi_2, N1));
-			printf("%lg\n", error_l_2_double(h_theta, h_theta, N1));
+			printf("%lg\n", nfft_error_l_2_double(h_phi, h_phi_2, N1));
+			printf("%lg\n", nfft_error_l_2_double(h_theta, h_theta, N1));
 		} else {
 			printf("different N1\n");
 		}
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 		read_r(1, &N2, &r, f1, stderr);
 		read_r(1, &N2_2, &r_2, f2, stderr);
 		if (N2 == N2_2) {
-			printf("%lg\n", error_l_2_double(r, r_2, N2 * 2));
+			printf("%lg\n", nfft_error_l_2_double(r, r_2, N2 * 2));
 		} else {
 			printf("different N2\n");
 		}
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 		read_omega(&N_2, &omega_2, f2, stderr);
 		if (N == N_2) {
 			printf("%lg\n",
-						 error_l_2_complex(omega, omega_2, texture_flat_length(N)));
+						 nfft_error_l_2_complex(omega, omega_2, texture_flat_length(N)));
 		} else {
 			printf("different N\n");
 		}
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 		read_x(&N1, &N2, &x, f1, stderr);
 		read_x(&N1_2, &N2_2, &x_2, f2, stderr);
 		if (N1 == N1_2 && N2 == N2_2) {
-			printf("%lg\n", error_l_2_complex(x, x_2, N1 * N2));
+			printf("%lg\n", nfft_error_l_2_complex(x, x_2, N1 * N2));
 		} else {
 			printf("different N1 / N2\n");
 		}

@@ -23,28 +23,28 @@ void accuracy_nsfft(int d, int J, int M, int m)
   /** direct trafo */
   nsdft_trafo(&p);
   
-  SWAP_complex(swap_sndft_trafo,p.f);
+  NFFT_SWAP_complex(swap_sndft_trafo,p.f);
 
   /** approx. trafo */
   nsfft_trafo(&p);
   
   printf("%5d\t %+.5E\t",J, 
-         error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
+         nfft_error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
                                  p.f_hat, p.N_total));
   fflush(stdout);
 
-  vrand_unit_complex(p.f, p.M_total);
+  nfft_vrand_unit_complex(p.f, p.M_total);
 
   /** direct adjoint */
   nsdft_adjoint(&p);
   
-  SWAP_complex(swap_sndft_adjoint,p.f_hat);
+  NFFT_SWAP_complex(swap_sndft_adjoint,p.f_hat);
 
   /** approx. adjoint */
   nsfft_adjoint(&p);
   
   printf("%+.5E\n", 
-         error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
+         nfft_error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
                                  p.N_total,
                                  p.f, p.M_total));
   fflush(stdout);
@@ -67,15 +67,15 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   for(r=0;r<d;r++)
   {
-    N[r]=int_2_pow(J+2);
+    N[r]=nfft_int_2_pow(J+2);
     n[r]=(3*N[r])/2;
     /*n[r]=2*N[r];*/
   }
 
   /** init */
-  m=total_used_memory();
+  m=nfft_total_used_memory();
   nsfft_init(&p, d, J, M, 4, SNDFT);
-  m_nsfft=total_used_memory()-m;
+  m_nsfft=nfft_total_used_memory()-m;
   nsfft_init_random_nodes_coeffs(&p);
 
   /* transforms */
@@ -98,10 +98,10 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   if(test_nfft)
   {
-    m=total_used_memory();
+    m=nfft_total_used_memory();
     nfft_init_guru(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
 		   FFTW_MEASURE);
-    m_nfft=total_used_memory()-m;
+    m_nfft=nfft_total_used_memory()-m;
     np.x=p.act_nfft_plan->x;
     if(np.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&np);
@@ -182,9 +182,9 @@ int main(int argc,char **argv)
     for(J=atoi(argv[3]); J<=atoi(argv[4]); J++)
     {
       if(d==2)
-	M=(J+4)*int_2_pow(J+1);
+	M=(J+4)*nfft_int_2_pow(J+1);
       else
-	M=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
+	M=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
       
       if(d*(J+2)<=24)
 	time_nsfft(d, J, M, 1, 1);

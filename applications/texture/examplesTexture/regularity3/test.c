@@ -6,7 +6,7 @@
 
 #include<texture_util.h>
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define NFFT_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 double complex *omega_ref, *omega, *x_ref, *x;
 double *h_phi, *h_theta, *r;
@@ -199,7 +199,7 @@ void output_params()
 void calculate_x()
 {
 	x_ref = smart_malloc(N1 * N2 * sizeof(double complex));
-	texture_precompute(MAX(N, new_N));
+	texture_precompute(NFFT_MAX(N, new_N));
 	texture_init(&plan, N, N1, N2, omega_ref, x_ref, h_phi, h_theta, r);
 	texture_trafo(&plan);
 }

@@ -24,7 +24,7 @@
 #endif
 
 #ifdef KAISER_BESSEL
-#define PHI_HUT(k,d) ((double)i0( ths->m*sqrt( pow(ths->b[d],2) -  \
+#define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt( pow(ths->b[d],2) -  \
                                pow(2*PI*(k)/ths->n[d],2)))) 
 #define PHI(x,d) ((double)((pow(ths->m,2)-pow((x)*ths->n[d],2))>0)?\
                    sinh(ths->b[d]*sqrt(pow(ths->m,2)-              \
@@ -48,7 +48,7 @@
 #define PHI_HUT(k,d) ((double)(((k)==0)? 1.0/ths->n[(d)] :                 \
                        pow(sin((k)*PI/ths->n[(d)])/((k)*PI/ths->n[(d)])\
                        ,2*ths->m)/ths->n[(d)]))
-#define PHI(x,d) (bspline(2*ths->m,((x)*ths->n[(d)])+                \
+#define PHI(x,d) (nfft_bspline(2*ths->m,((x)*ths->n[(d)])+                \
                  (double)ths->m,ths->spline_coeffs)/ths->n[(d)])
 /* wo die /n herkommt ??????????????????? */
 #define WINDOW_HELP_INIT {                                                     \
@@ -59,11 +59,11 @@
 #endif
 
 #ifdef SINC_POWER
-#define PHI_HUT(k,d) (bspline(2*ths->m,((double)2*ths->m*(k))/     \
+#define PHI_HUT(k,d) (nfft_bspline(2*ths->m,((double)2*ths->m*(k))/     \
                       ((2*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+             \
                       (double)ths->m,ths->spline_coeffs))
 #define PHI(x,d) ((double)(ths->n[(d)]/ths->sigma[(d)]*(2*ths->sigma[(d)]-1)/          \
-                  (2*ths->m)*pow(sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*            \
+                  (2*ths->m)*pow(nfft_sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*            \
                   (2*ths->sigma[(d)]-1)/(2*ths->m)),                 \
                   2*ths->m)/ths->n[(d)]))
 #define WINDOW_HELP_INIT {                                                     \

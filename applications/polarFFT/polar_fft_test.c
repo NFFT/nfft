@@ -344,7 +344,7 @@ int main(int argc,char **argv)
     polar_fft(f_hat,N,f,T,R,m);
 
     /** compute error of fast polar FFT */
-    E_max=error_l_infty_complex(f_direct,f,M);
+    E_max=nfft_error_l_infty_complex(f_direct,f,M);
     printf("m=%2d: E_max = %e\n",m,E_max);
     fprintf(fp1,"%e\n",E_max);
   }
@@ -369,7 +369,7 @@ int main(int argc,char **argv)
         if (temp>E_max) E_max=temp;
       }
       */
-       E_max=error_l_infty_complex(f_hat,f_tilde,N*N);
+       E_max=nfft_error_l_infty_complex(f_hat,f_tilde,N*N);
       printf("%3d iterations: E_max = %e\n",max_i,E_max);
       fprintf(fp1,"%e\n",E_max);
     }

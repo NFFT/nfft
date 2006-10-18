@@ -316,7 +316,7 @@ int main (int argc, char **argv)
       /* Read cut-off degree. */
       fscanf(stdin,"%d\n",&m[im]);
       fprintf(stdout,"%d\n",m[im]);
-      m_max = MAX(m_max,m[im]);
+      m_max = NFFT_MAX(m_max,m[im]);
     }
 
     /* Read number of node specifications. */
@@ -333,12 +333,12 @@ int main (int argc, char **argv)
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
       fprintf(stdout,"%d\n",ld[ild][0]);
-      l_max = MAX(l_max,ld[ild][0]);
+      l_max = NFFT_MAX(l_max,ld[ild][0]);
 
       /* Read number of target nodes. */
       fscanf(stdin,"D=%d ",&ld[ild][1]);
       fprintf(stdout,"%d\n",ld[ild][1]);
-      d_max = MAX(d_max,ld[ild][1]);
+      d_max = NFFT_MAX(d_max,ld[ild][1]);
 
       /* Determine whether direct and fast algorithm shall be compared. */
       fscanf(stdin,"compare=%d ",&ld[ild][2]);
@@ -360,9 +360,9 @@ int main (int argc, char **argv)
         if (ld[ild][3] == YES)
         {
           /* Update ld_max_prec. */
-          ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
+          ld_max_prec = NFFT_MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
           /* Update l_max_prec. */
-          l_max_prec = MAX(l_max_prec,ld[ild][0]);
+          l_max_prec = NFFT_MAX(l_max_prec,ld[ild][0]);
           /* Turn on the precomputation for the direct algorithm. */
           precompute = YES;
         }
@@ -804,7 +804,7 @@ int main (int argc, char **argv)
             if (ld[ild][2] != NO)
             {
               /* Compute the error E_infinity. */
-              err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_fd = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }
@@ -899,13 +899,13 @@ int main (int argc, char **argv)
             if (use_nfsft != NO)
             {
               /* Compute the error E_infinity. */
-              err_f = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_f = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
             else
             {
               /* Compute the error E_infinity. */
-              err_fd = error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_fd = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }

@@ -15,23 +15,23 @@ void simple_test_nsfft(int d, int J, int M)
 
   nsfft_init_random_nodes_coeffs(&p);
 
-  vpr_complex(p.f_hat, K, "frequencies, vector f_hat (first few entries)");
+  nfft_vpr_complex(p.f_hat, K, "frequencies, vector f_hat (first few entries)");
 
   /** direct trafo and show the result */
   nsdft_trafo(&p);
-  vpr_complex(p.f, K, "nsdft, vector f (first few entries)"); 
+  nfft_vpr_complex(p.f, K, "nsdft, vector f (first few entries)"); 
 
   /** approx. trafo and show the result */
   nsfft_trafo(&p);
-  vpr_complex(p.f, K, "nsfft, vector f (first few entries)");
+  nfft_vpr_complex(p.f, K, "nsfft, vector f (first few entries)");
 
   /** direct adjoint and show the result */
   nsdft_adjoint(&p);
-  vpr_complex(p.f_hat, K, "adjoint nsdft, vector f_hat, (first few entries)");
+  nfft_vpr_complex(p.f_hat, K, "adjoint nsdft, vector f_hat, (first few entries)");
 
   /** approx. adjoint and show the result */
   nsfft_adjoint(&p);
-  vpr_complex(p.f_hat, K, "adjoint nsfft, vector f_hat, (first few entries)");
+  nfft_vpr_complex(p.f_hat, K, "adjoint nsfft, vector f_hat, (first few entries)");
 
   /** finalise the one dimensional plan */
   nsfft_finalize(&p);
@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   printf("1) computing a two dimensional nsdft, nsfft and adjoints\n\n");
   d=2;
   J=5;
-  M=(J+4)*int_2_pow(J+1);
+  M=(J+4)*nfft_int_2_pow(J+1);
   simple_test_nsfft(d,J,M);
   getc(stdin);
 
@@ -53,7 +53,7 @@ int main(int argc,char **argv)
   printf("2) computing a three dimensional nsdft, nsfft and adjoints\n\n");
   d=3;
   J=5;
-  M=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
+  M=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
   simple_test_nsfft(d,J,M);
     
   return 1;

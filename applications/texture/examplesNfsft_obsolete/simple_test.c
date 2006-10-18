@@ -128,8 +128,8 @@ int main (int argc, char **argv)
     fprintf(stdout,"%.4E %.4E\n",cabs(f[d]),cabs(f_direct[d]));
   }
 
-  err_infty = error_l_infty_complex(f,f_direct,D);
-  err_2 = error_l_2_complex(f,f_direct,D);
+  err_infty = nfft_error_l_infty_complex(f,f_direct,D);
+  err_2 = nfft_error_l_2_complex(f,f_direct,D);
             
   fprintf(stdout,"M = %d, D = %d: %.4E %.4E\n",M,D,err_infty, err_2);
 

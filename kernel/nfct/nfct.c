@@ -945,7 +945,7 @@ void nfct_init( nfct_plan *ths, int d, int *N, int M_total)
   ths->n = (int*) fftw_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++)
-    ths->n[t] = nfct_fftw_2N( next_power_of_2( ths->N[t]));
+    ths->n[t] = nfct_fftw_2N( nfft_next_power_of_2( ths->N[t]));
 
   WINDOW_HELP_ESTIMATE_m;
 
@@ -961,7 +961,7 @@ void nfct_init_m( nfct_plan *ths, int d, int *N, int M_total, int m)
   int t, n[d]; 
  
   for( t = 0; t < d; t++)  
-    n[t] = nfct_fftw_2N( next_power_of_2( N[t]));  
+    n[t] = nfct_fftw_2N( nfft_next_power_of_2( N[t]));  
  
   nfct_init_guru( ths, d, N, M_total, n, m, NFCT_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS); 
 } 

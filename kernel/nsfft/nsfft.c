@@ -169,8 +169,8 @@ void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 
 int index_sparse_to_full_direct_2d(int J, int k)
 {
-    int N=int_2_pow(J+2);               /* number of full coeffs             */
-    int N_B=int_2_pow(J);               /* number in each sparse block       */
+    int N=nfft_int_2_pow(J+2);               /* number of full coeffs             */
+    int N_B=nfft_int_2_pow(J);               /* number in each sparse block       */
 
     int j=k/N_B;                        /* consecutive number of Block       */
     int r=j/4;                          /* level of block                    */
@@ -178,7 +178,7 @@ int index_sparse_to_full_direct_2d(int J, int k)
     int i, o, a, b,s,l,m1,m2;
     int k1,k2;
 
-    if (k>=(J+4)*int_2_pow(J+1))
+    if (k>=(J+4)*nfft_int_2_pow(J+1))
       {
 	printf("Fehler!\n");
 	return(-1);
@@ -188,7 +188,7 @@ int index_sparse_to_full_direct_2d(int J, int k)
 	if (r>(J+1)/2)                  /* center block                      */
 	  {
 	    i=k-4*((J+1)/2+1)*N_B;
-	    a=int_2_pow(J/2+1);
+	    a=nfft_int_2_pow(J/2+1);
 	    m1=i/a;
 	    m2=i%a;
 	    k1=N/2-a/2+m1;
@@ -198,10 +198,10 @@ int index_sparse_to_full_direct_2d(int J, int k)
 	  {
 	    i=k-j*N_B;                  /* index in specific block           */
 	    o=j%4;                      /* kind of specific block            */
-	    a=int_2_pow(r);
-	    b=int_2_pow(J-r);
-	    l=MAX(a,b);                 /* long dimension of block           */
-	    s=MIN(a,b);                 /* short dimension of block          */
+	    a=nfft_int_2_pow(r);
+	    b=nfft_int_2_pow(J-r);
+	    l=NFFT_MAX(a,b);                 /* long dimension of block           */
+	    s=NFFT_MIN(a,b);                 /* short dimension of block          */
 	    m1=i/l;
 	    m2=i%l;
 	    
@@ -298,15 +298,15 @@ inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
  
 int index_full_to_sparse_2d(int J, int k)
 {
-    int N=int_2_pow(J+2);               /* number of full coeffs       */
-    int N_B=int_2_pow(J);               /* number in each sparse block */
+    int N=nfft_int_2_pow(J+2);               /* number of full coeffs       */
+    int N_B=nfft_int_2_pow(J);               /* number in each sparse block */
 
     int k1=k/N-N/2;                     /* coordinates in the full grid */
     int k2=k%N-N/2;                     /* k1: row, k2: column          */
 
     int r,a,b;
 
-    a=int_2_pow(J/2+1);
+    a=nfft_int_2_pow(J/2+1);
 
     if ( (k1>=-(a/2)) && (k1<a/2) && (k2>=(-a/2)) && (k2<a/2) )
       {
@@ -315,8 +315,8 @@ int index_full_to_sparse_2d(int J, int k)
 
     for (r=0; r<=(J+1)/2; r++)
       {
-	b=int_2_pow(r);
-	a=int_2_pow(J-r);
+	b=nfft_int_2_pow(r);
+	a=nfft_int_2_pow(J-r);
 	if ( (k1>=-(b/2)) && (k1<(b+1)/2) && (k2>=a) && (k2<2*a) )
 	  {
             if (a>=b)
@@ -369,7 +369,7 @@ inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
 
 int index_full_to_sparse_3d(int J, int k)
 {
-  int N=int_2_pow(J+2);                 /* length of the full grid           */
+  int N=nfft_int_2_pow(J+2);                 /* length of the full grid           */
   int N_B_r;                            /* size of a sparse block in level r */
   int sum_N_B_less_r;                   /* sum N_B_r                         */
 
@@ -379,20 +379,20 @@ int index_full_to_sparse_3d(int J, int k)
   int k2=((k/N)%N)-N/2;
   int k1=k/(N*N)-N/2;
     
-  a=int_2_pow(J/2+1);                   /* length of center block            */
+  a=nfft_int_2_pow(J/2+1);                   /* length of center block            */
 
   if((k1>=-(a/2)) && (k1<a/2) && (k2>=(-a/2)) && (k2<a/2) && (k3>=(-a/2)) &&
      (k3<a/2))  
     {
-      return(6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+((k1+a/2)*a+(k2+a/2))*a+
+      return(6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+((k1+a/2)*a+(k2+a/2))*a+
              (k3+a/2));
     }
 
   sum_N_B_less_r=0;
   for (r=0; r<=(J+1)/2; r++)
     {
-      a=int_2_pow(J-r);
-      b=int_2_pow(r);
+      a=nfft_int_2_pow(J-r);
+      b=nfft_int_2_pow(r);
 
       N_B_r=a*b*b;
 
@@ -461,13 +461,13 @@ void init_index_sparse_to_full_3d(nsfft_plan *ths)
 {
   int k1,k2,k3,k_s,r;
   int a,b;
-  int N=int_2_pow(ths->J+2);            /* length of the full grid           */
+  int N=nfft_int_2_pow(ths->J+2);            /* length of the full grid           */
   int Nc=ths->center_nfft_plan->N[0];   /* length of the center block        */
 
   for (k_s=0, r=0; r<=(ths->J+1)/2; r++)
     {
-      a=int_2_pow(ths->J-r);
-      b=int_2_pow(r);
+      a=nfft_int_2_pow(ths->J-r);
+      b=nfft_int_2_pow(r);
 
       /* right - rear - top - left - front - bottom */
 
@@ -585,7 +585,7 @@ void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
   int a,b;
   const int J=ths->J;   /* N=2^J                  */
   const int N=ths_full_plan->N[0];  /* size of full NFFT      */
-  const int N_B=int_2_pow(J);        /* size of small blocks   */
+  const int N_B=nfft_int_2_pow(J);        /* size of small blocks   */
 
   /* copy sparse plan to full plan */
   nsfft_cp(ths, ths_full_plan);
@@ -593,7 +593,7 @@ void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
   /* show blockwise f_hat */
   printf("f_hat blockwise\n");
   for (r=0; r<=(J+1)/2; r++){
-    a=int_2_pow(J-r); b=int_2_pow(r);
+    a=nfft_int_2_pow(J-r); b=nfft_int_2_pow(r);
 
     printf("top\n");
     for (k1=0; k1<a; k1++){
@@ -647,7 +647,7 @@ void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
 void test_sparse_to_full_2d(nsfft_plan* ths)
 {
   int k_S,k1,k2;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
 
   printf("N=%d\n\n",N);
 
@@ -664,7 +664,7 @@ void test_sparse_to_full_2d(nsfft_plan* ths)
 void test_sparse_to_full_3d(nsfft_plan* ths)
 {
   int k_S,k1,k2,k3;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
 
   printf("N=%d\n\n",N);
 
@@ -685,10 +685,10 @@ void nsfft_init_random_nodes_coeffs(nsfft_plan *ths)
   int j;
 
   /* init frequencies */
-  vrand_unit_complex(ths->f_hat, ths->N_total);
+  nfft_vrand_unit_complex(ths->f_hat, ths->N_total);
 
   /* init nodes */
-  vrand_shifted_unit_double(ths->act_nfft_plan->x, ths->d * ths->M_total);
+  nfft_vrand_shifted_unit_double(ths->act_nfft_plan->x, ths->d * ths->M_total);
 
   if(ths->d==2)
     for(j=0;j<ths->M_total;j++) 
@@ -721,7 +721,7 @@ void nsdft_trafo_2d(nsfft_plan *ths)
 {
   int j,k_S,k_L,k0,k1;
   double omega;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
 
   memset(ths->f,0,ths->M_total*sizeof(double complex));
 
@@ -745,7 +745,7 @@ void nsdft_trafo_3d(nsfft_plan *ths)
 {
   int j,k_S,k0,k1,k2;
   double omega;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
   int k_L;
 
   memset(ths->f,0,ths->M_total*sizeof(double complex));
@@ -781,7 +781,7 @@ void nsdft_adjoint_2d(nsfft_plan *ths)
 {
   int j,k_S,k_L,k0,k1;
   double omega;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
 
   memset(ths->f_hat,0,ths->N_total*sizeof(double complex));
 
@@ -805,7 +805,7 @@ void nsdft_adjoint_3d(nsfft_plan *ths)
 {
   int j,k_S,k0,k1,k2;
   double omega;
-  int N=int_2_pow(ths->J+2);
+  int N=nfft_int_2_pow(ths->J+2);
   int k_L;
 
   memset(ths->f_hat,0,ths->N_total*sizeof(double complex));
@@ -846,7 +846,7 @@ void nsfft_trafo_2d(nsfft_plan *ths)
   int J=ths->J;
 
   /* center */
-  ths->center_nfft_plan->f_hat=ths->f_hat+4*((J+1)/2+1)*int_2_pow(J);
+  ths->center_nfft_plan->f_hat=ths->f_hat+4*((J+1)/2+1)*nfft_int_2_pow(J);
   
   if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m) 
     ndft_trafo(ths->center_nfft_plan);
@@ -858,20 +858,20 @@ void nsfft_trafo_2d(nsfft_plan *ths)
 
   for(rr=0;rr<=(J+1)/2;rr++)
     {
-      r=MIN(rr,J-rr);
+      r=NFFT_MIN(rr,J-rr);
       ths->act_nfft_plan->my_fftw_plan1 = ths->set_fftw_plan1[r];
-      ths->act_nfft_plan->N[0]=int_2_pow(r); ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
-      ths->act_nfft_plan->N[1]=int_2_pow(J-r); ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
+      ths->act_nfft_plan->N[0]=nfft_int_2_pow(r); ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
+      ths->act_nfft_plan->N[1]=nfft_int_2_pow(J-r); ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
 
       /*printf("%d x %d\n",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1]);*/
 
-      temp=-3.0*PI*int_2_pow(J-rr);
+      temp=-3.0*PI*nfft_int_2_pow(J-rr);
 
       /* right */      
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*nfft_int_2_pow(J);
       
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -882,17 +882,17 @@ void nsfft_trafo_2d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
       
       for (j=0; j<M; j++)
         ths->f[j] +=  ths->act_nfft_plan->f[j] *
                       cexp( + I*temp*ths->act_nfft_plan->x[2*j+1]);
 
       /* top */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+1)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+1)*nfft_int_2_pow(J);
       
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -903,17 +903,17 @@ void nsfft_trafo_2d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
 
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
                      cexp( + I*temp*ths->act_nfft_plan->x[2*j+0]);
 
       /* left */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+2)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+2)*nfft_int_2_pow(J);
       
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -924,17 +924,17 @@ void nsfft_trafo_2d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
 
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
                      cexp( - I*temp*ths->act_nfft_plan->x[2*j+1]);
 
       /* bottom */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+3)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+3)*nfft_int_2_pow(J);
       
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -945,7 +945,7 @@ void nsfft_trafo_2d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -965,7 +965,7 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
   for (j=0; j<M; j++) 
     ths->center_nfft_plan->f[j] = ths->f[j];
 
-  ths->center_nfft_plan->f_hat=ths->f_hat+4*((J+1)/2+1)*int_2_pow(J);
+  ths->center_nfft_plan->f_hat=ths->f_hat+4*((J+1)/2+1)*nfft_int_2_pow(J);
   
   if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m) 
     ndft_adjoint(ths->center_nfft_plan);
@@ -974,24 +974,24 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
 
   for(rr=0;rr<=(J+1)/2;rr++)
     {
-      r=MIN(rr,J-rr);
+      r=NFFT_MIN(rr,J-rr);
       ths->act_nfft_plan->my_fftw_plan2 = ths->set_fftw_plan2[r];
-      ths->act_nfft_plan->N[0]=int_2_pow(r); ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
-      ths->act_nfft_plan->N[1]=int_2_pow(J-r); ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
+      ths->act_nfft_plan->N[0]=nfft_int_2_pow(r); ths->act_nfft_plan->n[0]=ths->sigma*ths->act_nfft_plan->N[0];
+      ths->act_nfft_plan->N[1]=nfft_int_2_pow(J-r); ths->act_nfft_plan->n[1]=ths->sigma*ths->act_nfft_plan->N[1];
 
       /*printf("%d x %d\n",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1]);*/
 
-      temp=-3.0*PI*int_2_pow(J-rr);
+      temp=-3.0*PI*nfft_int_2_pow(J-rr);
 
       /* right */      
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*nfft_int_2_pow(J);
       
       for (j=0; j<M; j++)
         ths->act_nfft_plan->f[j]= ths->f[j] * 
                                   cexp( - I*temp*ths->act_nfft_plan->x[2*j+1]);
 
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1002,17 +1002,17 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       /* top */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+1)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+1)*nfft_int_2_pow(J);
 
       for (j=0; j<M; j++)
         ths->act_nfft_plan->f[j]= ths->f[j] *
                                   cexp( - I*temp*ths->act_nfft_plan->x[2*j+0]);
       
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1023,17 +1023,17 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
 
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       /* left */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+2)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+2)*nfft_int_2_pow(J);
 
       for (j=0; j<M; j++)
         ths->act_nfft_plan->f[j]= ths->f[j] *
                                   cexp( + I*temp*ths->act_nfft_plan->x[2*j+1]);
       
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1044,17 +1044,17 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
 
       if(r<rr)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       /* bottom */
-      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+3)*int_2_pow(J);
+      ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+3)*nfft_int_2_pow(J);
       
       for (j=0; j<M; j++)
         ths->act_nfft_plan->f[j]= ths->f[j] *
                                   cexp( + I*temp*ths->act_nfft_plan->x[2*j+0]);
 
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1065,7 +1065,7 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if((r==rr)&&(J-rr!=rr))
-	SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_transposed);
     } /* for(rr) */
 } /* void nsfft_adjoint_2d */
 
@@ -1079,7 +1079,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
   int J=ths->J;
 
   /* center */
-  ths->center_nfft_plan->f_hat=ths->f_hat+6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1);
+  ths->center_nfft_plan->f_hat=ths->f_hat+6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1);
   
   if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m)
     ndft_trafo(ths->center_nfft_plan);
@@ -1092,20 +1092,20 @@ void nsfft_trafo_3d(nsfft_plan *ths)
   sum_N_B_less_r=0;
   for(rr=0;rr<=(J+1)/2;rr++)
     {
-      a=int_2_pow(J-rr);
-      b=int_2_pow(rr);
+      a=nfft_int_2_pow(J-rr);
+      b=nfft_int_2_pow(rr);
 
       N_B_r=a*b*b;
 
-      r=MIN(rr,J-rr);
+      r=NFFT_MIN(rr,J-rr);
       ths->act_nfft_plan->my_fftw_plan1 = ths->set_fftw_plan1[rr];
 
-      ths->act_nfft_plan->N[0]=int_2_pow(r);
+      ths->act_nfft_plan->N[0]=nfft_int_2_pow(r);
       if(a<b)
-	ths->act_nfft_plan->N[1]=int_2_pow(J-r);
+	ths->act_nfft_plan->N[1]=nfft_int_2_pow(J-r);
       else
-	ths->act_nfft_plan->N[1]=int_2_pow(r);
-      ths->act_nfft_plan->N[2]=int_2_pow(J-r);
+	ths->act_nfft_plan->N[1]=nfft_int_2_pow(r);
+      ths->act_nfft_plan->N[2]=nfft_int_2_pow(J-r);
 
       /*printf("\n\n%d x %d x %d:\t",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1],ths->act_nfft_plan->N[2]); fflush(stdout);*/
 
@@ -1119,13 +1119,13 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       if((J==0)||((J==1)&&(rr==1)))
 	temp=-2.0*PI;
       else
-	temp=-3.0*PI*int_2_pow(J-rr);
+	temp=-3.0*PI*nfft_int_2_pow(J-rr);
 	
       /* right */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*0;
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1139,7 +1139,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1149,9 +1149,9 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*1;
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1165,9 +1165,9 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1177,7 +1177,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*2;
 
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1191,7 +1191,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1201,13 +1201,13 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       if((J==0)||((J==1)&&(rr==1)))
 	temp=-4.0*PI;
       else
-	temp=-3.0*PI*int_2_pow(J-rr);
+	temp=-3.0*PI*nfft_int_2_pow(J-rr);
 
       /* left */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*3;
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1221,7 +1221,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1231,9 +1231,9 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*4;
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1247,9 +1247,9 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1259,7 +1259,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*5;
 
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1273,7 +1273,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
 	nfft_trafo(ths->act_nfft_plan);
       
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       for (j=0; j<M; j++)
         ths->f[j] += ths->act_nfft_plan->f[j] *
@@ -1296,7 +1296,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
   for (j=0; j<M; j++) 
     ths->center_nfft_plan->f[j] = ths->f[j];
 
-  ths->center_nfft_plan->f_hat=ths->f_hat+6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1);
+  ths->center_nfft_plan->f_hat=ths->f_hat+6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1);
   
   if (ths->center_nfft_plan->N[0]<=ths->center_nfft_plan->m)
     ndft_adjoint(ths->center_nfft_plan);
@@ -1306,21 +1306,21 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
   sum_N_B_less_r=0;
   for(rr=0;rr<=(J+1)/2;rr++)
     {
-      a=int_2_pow(J-rr);
-      b=int_2_pow(rr);
+      a=nfft_int_2_pow(J-rr);
+      b=nfft_int_2_pow(rr);
 
       N_B_r=a*b*b;
 
-      r=MIN(rr,J-rr);
+      r=NFFT_MIN(rr,J-rr);
       ths->act_nfft_plan->my_fftw_plan1 = ths->set_fftw_plan1[rr];
       ths->act_nfft_plan->my_fftw_plan2 = ths->set_fftw_plan2[rr];
 
-      ths->act_nfft_plan->N[0]=int_2_pow(r);
+      ths->act_nfft_plan->N[0]=nfft_int_2_pow(r);
       if(a<b)
-	ths->act_nfft_plan->N[1]=int_2_pow(J-r);
+	ths->act_nfft_plan->N[1]=nfft_int_2_pow(J-r);
       else
-	ths->act_nfft_plan->N[1]=int_2_pow(r);
-      ths->act_nfft_plan->N[2]=int_2_pow(J-r);
+	ths->act_nfft_plan->N[1]=nfft_int_2_pow(r);
+      ths->act_nfft_plan->N[2]=nfft_int_2_pow(J-r);
 
       /*printf("\n\n%d x %d x %d:\t",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1],ths->act_nfft_plan->N[2]); fflush(stdout);*/
 
@@ -1334,7 +1334,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
       if((J==0)||((J==1)&&(rr==1)))
 	temp=-2.0*PI;
       else
-	temp=-3.0*PI*int_2_pow(J-rr);
+	temp=-3.0*PI*nfft_int_2_pow(J-rr);
 	
       /* right */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*0;
@@ -1344,7 +1344,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( - I*temp*ths->act_nfft_plan->x[3*j+0]);
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1358,7 +1358,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       /* rear */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*1;
@@ -1368,9 +1368,9 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( - I*temp*ths->act_nfft_plan->x[3*j+1]);
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1384,9 +1384,9 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
 
       /* top */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*2;
@@ -1396,7 +1396,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( - I*temp*ths->act_nfft_plan->x[3*j+2]);
 
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1410,13 +1410,13 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
 
       /* only for left - front - bottom */
       if((J==0)||((J==1)&&(rr==1)))
 	temp=-4.0*PI;
       else
-	temp=-3.0*PI*int_2_pow(J-rr);
+	temp=-3.0*PI*nfft_int_2_pow(J-rr);
 
       /* left */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*3;
@@ -1426,7 +1426,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( + I*temp*ths->act_nfft_plan->x[3*j+0]);
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1440,7 +1440,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_120);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_120);
 
       /* front */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*4;
@@ -1450,9 +1450,9 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( + I*temp*ths->act_nfft_plan->x[3*j+1]);
 
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1466,9 +1466,9 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a>b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_021);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_021);
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_102);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_102);
 
       /* bottom */      
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*5;
@@ -1478,7 +1478,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
                                   cexp( + I*temp*ths->act_nfft_plan->x[3*j+2]);
 
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
       
       if(ths->act_nfft_plan->N[0]<=ths->act_nfft_plan->m)
 	if(ths->act_nfft_plan->N[1]<=ths->act_nfft_plan->m)
@@ -1492,7 +1492,7 @@ void nsfft_adjoint_3d(nsfft_plan *ths)
 	nfft_adjoint(ths->act_nfft_plan);
       
       if(a<b)
-	SWAP_double(ths->act_nfft_plan->x,ths->x_201);
+	NFFT_SWAP_double(ths->act_nfft_plan->x,ths->x_201);
 
       sum_N_B_less_r+=6*N_B_r; 
     } /* for(rr) */
@@ -1527,7 +1527,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->sigma=2;
   ths->J=J;
   ths->M_total=M;
-  ths->N_total=(J+4)*int_2_pow(J+1);
+  ths->N_total=(J+4)*nfft_int_2_pow(J+1);
   
   /* memory allocation */
   ths->f = (double complex *)fftw_malloc(M*sizeof(double complex));
@@ -1540,12 +1540,12 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->set_fftw_plan1=(fftw_plan*) fftw_malloc((J/2+1)*sizeof(fftw_plan));
   ths->set_fftw_plan2=(fftw_plan*) fftw_malloc((J/2+1)*sizeof(fftw_plan));
 
-  ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
+  ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((nfft_ld(m)+1)*(sizeof(nfft_plan)));
   
   /* planning the small nffts */
   /* r=0 */
   N[0]=1;            n[0]=ths->sigma*N[0];
-  N[1]=int_2_pow(J); n[1]=ths->sigma*N[1];
+  N[1]=nfft_int_2_pow(J); n[1]=ths->sigma*N[1];
   
   nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
   
@@ -1557,8 +1557,8 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 
   for(r=1;r<=J/2;r++)
     {
-      N[0]=int_2_pow(r);   n[0]=ths->sigma*N[0];
-      N[1]=int_2_pow(J-r); n[1]=ths->sigma*N[1];
+      N[0]=nfft_int_2_pow(r);   n[0]=ths->sigma*N[0];
+      N[1]=nfft_int_2_pow(J-r); n[1]=ths->sigma*N[1];
       ths->set_fftw_plan1[r] = 
 	fftw_plan_dft(2, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		      FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
@@ -1569,9 +1569,9 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
     }
 
   /* planning the 1d nffts */
-  for(r=0;r<=ld(m);r++)
+  for(r=0;r<=nfft_ld(m);r++)
     {
-      N[0]=int_2_pow(J-r); n[0]=ths->sigma*N[0]; /* ==N[1] of the 2 dimensional plan */
+      N[0]=nfft_int_2_pow(J-r); n[0]=ths->sigma*N[0]; /* ==N[1] of the 2 dimensional plan */
 
       nfft_init_guru(&(ths->set_nfft_plan_1d[r]),1,N,M,n,m, MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
       ths->set_nfft_plan_1d[r].nfft_flags = ths->set_nfft_plan_1d[r].nfft_flags | FG_PSI;
@@ -1581,8 +1581,8 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 
   /* center plan */
   /* J/2 == floor(((double)J) / 2.0) */
-  N[0]=int_2_pow(J/2+1); n[0]=ths->sigma*N[0];
-  N[1]=int_2_pow(J/2+1); n[1]=ths->sigma*N[1];
+  N[0]=nfft_int_2_pow(J/2+1); n[0]=ths->sigma*N[0];
+  N[1]=nfft_int_2_pow(J/2+1); n[1]=ths->sigma*N[1];
   nfft_init_guru(ths->center_nfft_plan,2,N,M,n, m, MALLOC_F| FFTW_INIT,
                      FFTW_MEASURE);
   ths->center_nfft_plan->x= ths->act_nfft_plan->x;
@@ -1610,7 +1610,7 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->sigma=2;
   ths->J=J;
   ths->M_total=M;
-  ths->N_total=6*int_2_pow(J)*(int_2_pow((J+1)/2+1)-1)+int_2_pow(3*(J/2+1));
+  ths->N_total=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
   
   /* memory allocation */
   ths->f =     (double complex *)fftw_malloc(M*sizeof(double complex));
@@ -1627,14 +1627,14 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->set_fftw_plan1=(fftw_plan*) fftw_malloc(((J+1)/2+1)*sizeof(fftw_plan));
   ths->set_fftw_plan2=(fftw_plan*) fftw_malloc(((J+1)/2+1)*sizeof(fftw_plan));
 
-  ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
-  ths->set_nfft_plan_2d = (nfft_plan*) fftw_malloc((ld(m)+1)*(sizeof(nfft_plan)));
+  ths->set_nfft_plan_1d = (nfft_plan*) fftw_malloc((nfft_ld(m)+1)*(sizeof(nfft_plan)));
+  ths->set_nfft_plan_2d = (nfft_plan*) fftw_malloc((nfft_ld(m)+1)*(sizeof(nfft_plan)));
   
   /* planning the small nffts */
   /* r=0 */
   N[0]=1;            n[0]=ths->sigma*N[0];
   N[1]=1;            n[1]=ths->sigma*N[1];
-  N[2]=int_2_pow(J); n[2]=ths->sigma*N[2];
+  N[2]=nfft_int_2_pow(J); n[2]=ths->sigma*N[2];
   
   nfft_init_guru(ths->act_nfft_plan,3,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F, FFTW_MEASURE);
 
@@ -1642,8 +1642,8 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
     nfft_precompute_one_psi(ths->act_nfft_plan);
 
   /* malloc g1, g2 for maximal size */
-  ths->act_nfft_plan->g1 = fftw_malloc(ths->sigma*ths->sigma*ths->sigma*int_2_pow(J+(J+1)/2)*sizeof(double complex));
-  ths->act_nfft_plan->g2 = fftw_malloc(ths->sigma*ths->sigma*ths->sigma*int_2_pow(J+(J+1)/2)*sizeof(double complex));
+  ths->act_nfft_plan->g1 = fftw_malloc(ths->sigma*ths->sigma*ths->sigma*nfft_int_2_pow(J+(J+1)/2)*sizeof(double complex));
+  ths->act_nfft_plan->g2 = fftw_malloc(ths->sigma*ths->sigma*ths->sigma*nfft_int_2_pow(J+(J+1)/2)*sizeof(double complex));
 
   ths->act_nfft_plan->my_fftw_plan1 =
     fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
@@ -1657,17 +1657,17 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 
   for(rr=1;rr<=(J+1)/2;rr++)
     {
-      a=int_2_pow(J-rr);
-      b=int_2_pow(rr);
+      a=nfft_int_2_pow(J-rr);
+      b=nfft_int_2_pow(rr);
 
-      r=MIN(rr,J-rr);
+      r=NFFT_MIN(rr,J-rr);
 
-      n[0]=ths->sigma*int_2_pow(r);
+      n[0]=ths->sigma*nfft_int_2_pow(r);
       if(a<b)
-	n[1]=ths->sigma*int_2_pow(J-r);
+	n[1]=ths->sigma*nfft_int_2_pow(J-r);
       else
-	n[1]=ths->sigma*int_2_pow(r);
-      n[2]=ths->sigma*int_2_pow(J-r);
+	n[1]=ths->sigma*nfft_int_2_pow(r);
+      n[2]=ths->sigma*nfft_int_2_pow(J-r);
 
       ths->set_fftw_plan1[rr] =
 	fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
@@ -1678,10 +1678,10 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
     }
 
   /* planning the 1d nffts */
-  for(r=0;r<=ld(m);r++)
+  for(r=0;r<=nfft_ld(m);r++)
     {
-      N[0]=int_2_pow(J-r); n[0]=ths->sigma*N[0];
-      N[1]=int_2_pow(J-r); n[1]=ths->sigma*N[1];
+      N[0]=nfft_int_2_pow(J-r); n[0]=ths->sigma*N[0];
+      N[1]=nfft_int_2_pow(J-r); n[1]=ths->sigma*N[1];
 
       if(N[0]>m)
 	{
@@ -1698,9 +1698,9 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 
   /* center plan */
   /* J/2 == floor(((double)J) / 2.0) */
-  N[0]=int_2_pow(J/2+1); n[0]=ths->sigma*N[0];
-  N[1]=int_2_pow(J/2+1); n[1]=ths->sigma*N[1];
-  N[2]=int_2_pow(J/2+1); n[2]=ths->sigma*N[2];
+  N[0]=nfft_int_2_pow(J/2+1); n[0]=ths->sigma*N[0];
+  N[1]=nfft_int_2_pow(J/2+1); n[1]=ths->sigma*N[1];
+  N[2]=nfft_int_2_pow(J/2+1); n[2]=ths->sigma*N[2];
   nfft_init_guru(ths->center_nfft_plan,3,N,M,n, m, MALLOC_F| FFTW_INIT,
                      FFTW_MEASURE);
   ths->center_nfft_plan->x= ths->act_nfft_plan->x;
@@ -1746,7 +1746,7 @@ void nsfft_finalize_2d(nsfft_plan *ths)
   nfft_finalize(ths->center_nfft_plan);
 
   /* the 1d nffts */
-  for(r=0;r<=ld(ths->act_nfft_plan->m);r++)
+  for(r=0;r<=nfft_ld(ths->act_nfft_plan->m);r++)
     {
       ths->set_nfft_plan_1d[r].nfft_flags =
         ths->set_nfft_plan_1d[r].nfft_flags ^ FG_PSI;
@@ -1789,9 +1789,9 @@ void nsfft_finalize_3d(nsfft_plan *ths)
   nfft_finalize(ths->center_nfft_plan);
 
   /* the 1d and 2d nffts */
-  for(r=0;r<=ld(ths->act_nfft_plan->m);r++)
+  for(r=0;r<=nfft_ld(ths->act_nfft_plan->m);r++)
     {
-      if(int_2_pow(ths->J-r)>ths->act_nfft_plan->m)
+      if(nfft_int_2_pow(ths->J-r)>ths->act_nfft_plan->m)
 	{
 	  ths->set_nfft_plan_2d[r].nfft_flags = ths->set_nfft_plan_2d[r].nfft_flags ^ FG_PSI;
 	  nfft_finalize(&(ths->set_nfft_plan_2d[r]));

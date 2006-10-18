@@ -42,15 +42,15 @@ void simple_test_nnfft_1d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX +I*((double)rand())/RAND_MAX;
 
-  vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
+  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /** direct trafo and show the result */
   nndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nndft, vector f"); 
 
   /** approx. trafo and show the result */
   nnfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nnfft, vector f");
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nnfft, vector f");
 
   /** finalise the one dimensional plan */
   nnfft_finalize(&my_plan);
@@ -100,16 +100,16 @@ void simple_test_nnfft_2d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
 
-  vpr_complex(my_plan.f_hat,12,
+  nfft_vpr_complex(my_plan.f_hat,12,
         "given Fourier coefficients, vector f_hat (first 12 entries)");
 
   /** direct trafo and show the result */
   nndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
 
   /** approx. trafo and show the result */
   nnfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
 
   /** finalise the one dimensional plan */
   nnfft_finalize(&my_plan);
@@ -150,13 +150,13 @@ void simple_test_innfft_1d()
   for(j=0;j<my_plan.M_total;j++)
     my_iplan.y[j] = ((double)rand())/RAND_MAX;
 
-  vpr_complex(my_iplan.y,my_plan.M_total,"given data, vector given_f");
+  nfft_vpr_complex(my_iplan.y,my_plan.M_total,"given data, vector given_f");
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k] = 0.0;
 
-  vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
+  nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
         "approximate solution, vector f_hat_iter");
 
   /** solve the system */
@@ -165,13 +165,13 @@ void simple_test_innfft_1d()
   {
     printf("iteration l=%d\n",l);
     innfft_loop_one_step(&my_iplan);
-    vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
+    nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
           "approximate solution, vector f_hat_iter");
       
-    SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
+    NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
     nnfft_trafo(&my_plan);
-    vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
-    SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
+    nfft_vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
+    NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
   }
   
   innfft_finalize(&my_iplan);  
@@ -222,7 +222,6 @@ void measure_time_nnfft_1d()
     nnfft_finalize(&my_plan);  
   }
 } 
-
 
 int main()
 { 

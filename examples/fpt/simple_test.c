@@ -33,23 +33,23 @@ void simple_test_nfft_1d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
 
-  vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
+  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
 
   /** approx. adjoint and show the result */
   ndft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,my_plan.N_total,"adjoint ndft, vector f_hat");
+  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"adjoint ndft, vector f_hat");
 
   /** approx. adjoint and show the result */
   nfft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,my_plan.N_total,"adjoint nfft, vector f_hat");
+  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"adjoint nfft, vector f_hat");
 
   /** finalise the one dimensional plan */
   nfft_finalize(&my_plan);
@@ -85,24 +85,24 @@ void simple_test_nfft_2d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
 
-  vpr_complex(my_plan.f_hat,12,
+  nfft_vpr_complex(my_plan.f_hat,12,
 	"given Fourier coefficients, vector f_hat (first 12 entries)");
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
 
   /** direct adjoint and show the result */
   ndft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,12,"adjoint ndft, vector f_hat (first 12 entries)");
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint ndft, vector f_hat (first 12 entries)");
 
   /** approx. adjoint and show the result */
   nfft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
 
   /** finalise the one dimensional plan */
   nfft_finalize(&my_plan);
@@ -139,24 +139,24 @@ void simple_test_nfft_2d_huge()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I* ((double)rand())/RAND_MAX;
 
-  vpr_complex(my_plan.f_hat,12,
+  nfft_vpr_complex(my_plan.f_hat,12,
 	"given Fourier coefficients, vector f_hat (first 12 entries)");
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"nfft, vector f");
 
   /** direct adjoint and show the result */
   ndft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,12,"adjoint ndft, vector f_hat (first 12 entries)");
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint ndft, vector f_hat (first 12 entries)");
 
   /** approx. adjoint and show the result */
   nfft_adjoint(&my_plan);
-  vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
 
   /** finalise the one dimensional plan */
   nfft_finalize(&my_plan);
@@ -218,22 +218,22 @@ void simple_test_infft_1d()
   infft_init(&my_iplan,&my_plan);
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(my_plan.x,my_plan.M_total);
+  nfft_vrand_shifted_unit_double(my_plan.x,my_plan.M_total);
   
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&my_plan);
 
   /** init pseudo random samples and show them */
-  vrand_unit_complex(my_iplan.y,my_plan.M_total);
+  nfft_vrand_unit_complex(my_iplan.y,my_plan.M_total);
 
-  vpr_complex(my_iplan.y,my_plan.M_total,"given data, vector y");
+  nfft_vpr_complex(my_iplan.y,my_plan.M_total,"given data, vector y");
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_plan.N_total;k++)
       my_iplan.f_hat_iter[k]=0; 
 
-  vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
+  nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
 	"approximate solution, vector f_hat_iter");
 
   /** solve the system */
@@ -242,13 +242,13 @@ void simple_test_infft_1d()
     {
       printf("iteration l=%d\n",l);
       infft_loop_one_step(&my_iplan);
-      vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
+      nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
 	    "approximate solution, vector f_hat_iter");
       
-      SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
+      NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
       nfft_trafo(&my_plan);
-      vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
-      SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
+      nfft_vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
+      NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
     }
   
   infft_finalize(&my_iplan);  

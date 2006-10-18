@@ -232,7 +232,7 @@ void calculate_results()
 
 inline int getBin(double x)
 {
-	return MAX(ceil(log10(x)), -16);
+	return NFFT_MAX(ceil(log10(x)), -16);
 }
 
 void output_results()

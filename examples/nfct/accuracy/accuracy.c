@@ -20,7 +20,7 @@ void accuracy(int d, int M, int m1, int m2)
 
   for( t = 0; t < d; t++) {
     N[t] = (1<<(12/d - 1)<<1);
-    n[t] = 2 * next_power_of_2( N[t]) + 1;
+    n[t] = 2 * nfft_next_power_of_2( N[t]) + 1;
     
     printf( "N[%d]=%d\n", t, N[t]);
   }
@@ -79,8 +79,8 @@ void accuracy(int d, int M, int m1, int m2)
     nfct_trafo( &my_plan);
 
     printf( "%d  %e, %e\n", m,
-      error_l_2_double( slow, my_plan.f, M),
-      error_l_infty_1_double( slow, my_plan.f, M, my_plan.f_hat, my_plan.N_total));
+      nfft_error_l_2_double( slow, my_plan.f, M),
+      nfft_error_l_infty_1_double( slow, my_plan.f, M, my_plan.f_hat, my_plan.N_total));
       
     /** finalize the one dimensional plan */
     nfct_finalize(&my_plan);

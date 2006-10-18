@@ -292,16 +292,16 @@ int main (int argc, char **argv)
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d %d\n",&NQ[iNQ],&SQ[iNQ],&RQ[iNQ]);
         fprintf(stdout,"%d %d %d\n",NQ[iNQ],SQ[iNQ],RQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
       else
       {
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d\n",&NQ[iNQ],&SQ[iNQ]);
         fprintf(stdout,"%d %d\n",NQ[iNQ],SQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
     }
 
@@ -1073,8 +1073,8 @@ int main (int argc, char **argv)
           free(f_hat);
           free(x_grid);
 
-          err_infty_avg += error_l_infty_complex(f, f_compare, m_compare);
-          err_2_avg += error_l_2_complex(f, f_compare, m_compare);
+          err_infty_avg += nfft_error_l_infty_complex(f, f_compare, m_compare);
+          err_2_avg += nfft_error_l_2_complex(f, f_compare, m_compare);
 
           free(f_grid);
 

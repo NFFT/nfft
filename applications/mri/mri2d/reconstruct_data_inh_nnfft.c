@@ -61,10 +61,10 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   }
   fclose(finh);
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0)*4);
+  N3=ceil((NFFT_MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0)*4);
 
 
-  W=MAX(fabs(min_inh),fabs(max_inh))*2.0;
+  W=NFFT_MAX(fabs(min_inh),fabs(max_inh))*2.0;
   
   fprintf(stderr,"3:  %i %e %e %e %e %e %e\n",N3,W,min_inh,max_inh,min_time,max_time,Ts);
 
@@ -168,7 +168,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
 
   t=nfft_second()-t;
 #ifdef HAVE_TOTAL_USED_MEMORY
-fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
+fprintf(stderr,"time: %e seconds mem: %i \n",t,nfft_total_used_memory());
 #else
 fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
 #endif

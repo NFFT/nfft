@@ -218,7 +218,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 					warning(message);
 				}
 #endif
-				*max_res = MAX(*max_res, new_res);
+				*max_res = NFFT_MAX(*max_res, new_res);
 
 				success =
 					(err_dist

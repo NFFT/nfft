@@ -31,12 +31,12 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(p.x, p.d*p.M_total);
+  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients */
-  vrand_unit_complex(p.f_hat, p.N_total);
+  nfft_vrand_unit_complex(p.f_hat, p.N_total);
 
   /** FFT */
   t_fft=0;

@@ -76,7 +76,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(p.x, p.d*p.M_total);
+  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   nfft_init_guru(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT,0);
   flags_cp(&p_pre_phi_hut, &p);
@@ -112,12 +112,12 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     }
 
   /** init pseudo random Fourier coefficients */
-  vrand_unit_complex(p.f_hat, p.N_total);
+  nfft_vrand_unit_complex(p.f_hat, p.N_total);
 
   /** NDFT */
   if(test_ndft)
     {
-      SWAP_complex(p.f,swapndft);
+      NFFT_SWAP_complex(p.f,swapndft);
       
       t_ndft=0;
       r=0; 
@@ -131,7 +131,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
         }
       t_ndft/=r;
 
-      SWAP_complex(p.f,swapndft);
+      NFFT_SWAP_complex(p.f,swapndft);
     }
   else
     t_ndft=nan("");
@@ -158,7 +158,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     p.MEASURE_TIME_t[1]=nan("");
 
   if(test_ndft)
-    e=error_l_2_complex(swapndft, p.f, p.M_total);
+    e=nfft_error_l_2_complex(swapndft, p.f, p.M_total);
   else
     e=nan("");
 
@@ -228,19 +228,19 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   nfft_precompute_one_psi(&p);
 
   /** init pseudo random nodes */
-  vrand_shifted_unit_double(p.x, p.d*p.M_total);
+  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   /** init pseudo random Fourier coefficients */
-  vrand_unit_complex(p.f_hat, p.N_total);
+  nfft_vrand_unit_complex(p.f_hat, p.N_total);
 
   /** compute exact result */
-  SWAP_complex(p.f,swapndft);
+  NFFT_SWAP_complex(p.f,swapndft);
   ndft_trafo(&p);
-  SWAP_complex(p.f,swapndft);
+  NFFT_SWAP_complex(p.f,swapndft);
 
   /** NFFT */
   nfft_trafo(&p);
-  e=error_l_2_complex(swapndft, p.f, p.M_total);
+  e=nfft_error_l_2_complex(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
   printf("$%.1e$&\t",e);

@@ -317,7 +317,7 @@ void unit_vector_test(const char *inp)
 
 	for (m0 = 0; m0 <= N; m0++) {
 		for (n0 = 0; n0 <= N; n0++) {
-			for (l = MAX(m0, n0); l <= N; l++) {
+			for (l = NFFT_MAX(m0, n0); l <= N; l++) {
 				int sign;
 				int m_sign[] = { -1, 1, -1, 1 };
 				int n_sign[] = { -1, -1, 1, 1 };
@@ -582,7 +582,7 @@ void unit_vector_adjoint_test(const char *inp)
 
 			for (m0 = 0; m0 <= N; m0++) {
 				for (n0 = 0; n0 <= N; n0++) {
-					for (l = MAX(m0, n0); l <= N; l++) {
+					for (l = NFFT_MAX(m0, n0); l <= N; l++) {
 						int sign;
 						int m_sign[] = { 1, 1, -1, -1 };
 						int n_sign[] = { 1, -1, 1, -1 };

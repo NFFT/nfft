@@ -109,7 +109,7 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
   ths->nplan1 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
   ths->nplan2 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
 
-  n_fftw=next_power_of_2(2*ths->n);
+  n_fftw=nfft_next_power_of_2(2*ths->n);
 
   /* 
      TODO: PRE_PHI_HUT only once?, FFTW_INIT only once?, PRE_LIN_PSI instead of
@@ -134,9 +134,9 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
 	ths->b[j] = cexp(-ths->p*ths->p*ths->sigma*(j-ths->n/2)*(j-ths->n/2)/
                           ((double)ths->n*ths->n)) / ths->n;
       
-      fftshift_complex(ths->b, 1, &ths->n);  
+      nfft_fftshift_complex(ths->b, 1, &ths->n);  
       fftw_execute(fplan);
-      fftshift_complex(ths->b, 1, &ths->n);
+      nfft_fftshift_complex(ths->b, 1, &ths->n);
       
       fftw_destroy_plan(fplan);
     }
@@ -269,15 +269,15 @@ void fgt_test_simple(int N, int M, complex sigma, double eps)
   fgt_test_init_rand(&my_plan);
   fgt_init_knot_dependent(&my_plan);   
 
-  SWAP_complex(swap_dgt,my_plan.f);
+  NFFT_SWAP_complex(swap_dgt,my_plan.f);
   dgt_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M,"discrete gauss transform");
-  SWAP_complex(swap_dgt,my_plan.f);
+  nfft_vpr_complex(my_plan.f,my_plan.M,"discrete gauss transform");
+  NFFT_SWAP_complex(swap_dgt,my_plan.f);
 
   fgt_trafo(&my_plan);
-  vpr_complex(my_plan.f,my_plan.M,"fast gauss transform");
+  nfft_vpr_complex(my_plan.f,my_plan.M,"fast gauss transform");
 
-  printf("\n relative error: %1.3e\n", error_l_infty_1_complex(swap_dgt,
+  printf("\n relative error: %1.3e\n", nfft_error_l_infty_1_complex(swap_dgt,
          my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
 
   fftw_free(swap_dgt);
@@ -320,14 +320,14 @@ void fgt_test_andersson()
 
       if(N<N_dgt)
 	{
-          SWAP_complex(swap_dgt,my_plan.f);
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
  
 	  printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
-          SWAP_complex(swap_dgt,my_plan.f);  
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);  
 	}
       else
 	printf("\t\t & ");	
@@ -343,7 +343,7 @@ void fgt_test_andersson()
 
       printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
 
-      printf("$%1.1e$\t \\\\ \n", error_l_infty_1_complex(swap_dgt, my_plan.f,
+      printf("$%1.1e$\t \\\\ \n", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
              my_plan.M, my_plan.alpha, my_plan.N));
       fflush(stdout);
 
@@ -378,13 +378,13 @@ void fgt_test_error()
           fgt_test_init_rand(&my_plan);    
           fgt_init_knot_dependent(&my_plan);    
 
-          SWAP_complex(swap_dgt,my_plan.f);
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
-          SWAP_complex(swap_dgt,my_plan.f);
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
 
           fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", error_l_infty_1_complex(swap_dgt, my_plan.f,
+          printf("%1.3e\t", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
                  my_plan.M, my_plan.alpha, my_plan.N));
           fflush(stdout);
 
@@ -423,13 +423,13 @@ void fgt_test_error_p()
           fgt_test_init_rand(&my_plan);    
           fgt_init_knot_dependent(&my_plan);    
 
-          SWAP_complex(swap_dgt,my_plan.f);
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
-          SWAP_complex(swap_dgt,my_plan.f);
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
 
           fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", error_l_infty_1_complex(swap_dgt, my_plan.f,
+          printf("%1.3e\t", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
                  my_plan.M, my_plan.alpha, my_plan.N));
           fflush(stdout);
 

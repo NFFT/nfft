@@ -153,9 +153,9 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
     for(r=-R/2+1; r<R/2; r++)
       fft[r+R/2] = KERNEL(r)*my_nfft_plan.f[t*R+(r+R/2)];
 
-    fftshift_complex(fft, 1, &R);
+    nfft_fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
-    fftshift_complex(fft, 1, &R);
+    nfft_fftshift_complex(fft, 1, &R);
 
     for(r=0; r<R; r++)
       Rf[t*R+r] = creal(fft[r])/R;

@@ -408,8 +408,8 @@ int main(int argc,char **argv)
     linogram_fft(f_hat,N,f,T,R,m);
 
     /** error of fast linogram FFT */
-    E_max=error_l_infty_complex(f_direct,f,M);
-    //E_max=error_l_2_complex(f_direct,f,M);
+    E_max=nfft_error_l_infty_complex(f_direct,f,M);
+    //E_max=nfft_error_l_2_complex(f_direct,f,M);
 
     printf("m=%2d: E_max = %e\n",m,E_max);
     fprintf(fp1,"%e\n",E_max);
@@ -428,7 +428,7 @@ int main(int argc,char **argv)
       inverse_linogram_fft(f_direct,T,R,f_tilde,N,max_i,m);
 
       /** compute maximum error */
-      E_max=error_l_infty_complex(f_hat,f_tilde,N*N);
+      E_max=nfft_error_l_infty_complex(f_hat,f_tilde,N*N);
       printf("%3d iterations: E_max = %e\n",max_i,E_max);
       fprintf(fp1,"%e\n",E_max);
     }

@@ -61,15 +61,15 @@ void simple_test_nfsft()
        cimag(plan.f_hat[k]));
   }*/
 
-  //vpr_complex(plan.f_hat,plan.N_total,"given Fourier coefficients, vector f_hat");
+  //nfft_vpr_complex(plan.f_hat,plan.N_total,"given Fourier coefficients, vector f_hat");
 
   /* Compute direct transformation and display the result. */
   ndsft_trafo(&plan);
-  vpr_complex(plan.f,plan.M_total,"ndsft, vector f");
+  nfft_vpr_complex(plan.f,plan.M_total,"ndsft, vector f");
 
   /* Compute approximate transformation and display the result. */
   nfsft_trafo(&plan);
-  vpr_complex(plan.f, plan.M_total,"nfsft, vector f");
+  nfft_vpr_complex(plan.f, plan.M_total,"nfsft, vector f");
   /*for (k = 0; k < plan.N_total; k++)
   {
      fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
@@ -87,7 +87,7 @@ void simple_test_nfsft()
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
   }
-  //vpr_complex(plan.f_hat,plan.N_total,"adjoint ndsft, vector f_hat");
+  //nfft_vpr_complex(plan.f_hat,plan.N_total,"adjoint ndsft, vector f_hat");
 
   /* COmpute approximate adjoint transformation and display the result */
   ndsft_adjoint(&plan);
@@ -100,7 +100,7 @@ void simple_test_nfsft()
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
   }
-  //vpr_complex(plan.f_hat,plan.N_total,"adjoint nfsft, vector f_hat");
+  //nfft_vpr_complex(plan.f_hat,plan.N_total,"adjoint nfsft, vector f_hat");
 
   /* Finalise the plan. */
   nfsft_finalize(&plan);

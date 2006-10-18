@@ -18,9 +18,9 @@
 /* Some macros for index calculation. */
 
 /** Computes the minimum degree at the top of a cascade. */
-#define K_START_TILDE(x,y) (MAX(MIN(x,y-2),0))
+#define K_START_TILDE(x,y) (NFFT_MAX(NFFT_MIN(x,y-2),0))
 /** Computes the maximum degree at the top of a cascade. */
-#define K_END_TILDE(x,y) MIN(x,y-1)
+#define K_END_TILDE(x,y) NFFT_MIN(x,y-1)
 /**
  * Computes the index of the first block of four functions in a cascade
  * level.
@@ -38,7 +38,7 @@
 //#define IS_SYMMETRIC(x,y,z) (x >= ((y-1.0)/z))
 
 #ifdef TEST_STAB
-  #define MAX(a,b) ((a>b)?(a):(b))
+  #define NFFT_MAX(a,b) ((a>b)?(a):(b))
 #endif
 
 /**
@@ -777,7 +777,7 @@ fprintf(stdout,"set-t: %f \n",set->t);
     data->beta_0 = beta[1];
     data->gamma_m1 = gamma[0];
 
-    k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)
+    k_start_tilde = K_START_TILDE(data->k_start,nfft_next_power_of_2(data->k_start)
       /*set->N*/);
     N_tilde = N_TILDE(set->N);
 
@@ -897,7 +897,7 @@ fprintf(stdout, "l=%f\n",l);
         {
           /* Stabilize. */
           degree_stab = degree*(2*l+1);
-          next_power_of_2_exp((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
+          nfft_next_power_of_2_exp((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
           /*fprintf(stderr,"(l+1)*(1<<(tau+2)) = %d, N_stab = %d, t_stab = %d\n",
             (l+1)*(1<<(tau+2)),N_stab,t_stab);*/
 
@@ -1006,7 +1006,7 @@ void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   int tk;
   double norm;
 
-  next_power_of_2_exp(k_end+1,&Nk,&tk);
+  nfft_next_power_of_2_exp(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
   if (set->flags & FPT_NO_DIRECT_ALGORITHM)
@@ -1095,7 +1095,7 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   const double complex *x_ptr;
   double complex *y_ptr;
 
-  next_power_of_2_exp(k_end,&Nk,&tk);
+  nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
@@ -1319,7 +1319,7 @@ void dpt_transposed(fpt_set set, const int m, double complex *x, const double co
   int tk;
   double norm;
 
-  next_power_of_2_exp(k_end+1,&Nk,&tk);
+  nfft_next_power_of_2_exp(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
   if (set->flags & FPT_NO_DIRECT_ALGORITHM)
@@ -1398,7 +1398,7 @@ void fpt_transposed(fpt_set set, const int m, double complex *x, const double co
   int k;
   int t_stab;
 
-  next_power_of_2_exp(k_end,&Nk,&tk);
+  nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
@@ -1572,7 +1572,7 @@ void fpt_finalize(fpt_set set)
       data->gammaN = NULL;
 
       /* Free precomputed data. */
-      k_start_tilde = K_START_TILDE(data->k_start,next_power_of_2(data->k_start)
+      k_start_tilde = K_START_TILDE(data->k_start,nfft_next_power_of_2(data->k_start)
         /*set->N*/);
       N_tilde = N_TILDE(set->N);
       plength = 4;

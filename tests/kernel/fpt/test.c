@@ -185,8 +185,8 @@ void test_dpt_trafo(void)
       }
 
       /* Print out the infinity-norm error. */
-      fprintf(stdout," e_infty = %11le,",error_l_infty_complex(y_ref,y,k_end+1));
-      fprintf(stdout," e_2 = %11le",error_l_2_complex(y_ref,y,k_end+1));
+      fprintf(stdout," e_infty = %11le,",nfft_error_l_infty_complex(y_ref,y,k_end+1));
+      fprintf(stdout," e_2 = %11le",nfft_error_l_2_complex(y_ref,y,k_end+1));
       fprintf(stdout," time = %11le",time);
 
       /* CLose the file. */
@@ -396,8 +396,8 @@ void test_dpt_transposed(void)
       }*/
 
       /* Print out the infinity-norm error. */
-      fprintf(stdout," e_infty = %11le,",error_l_infty_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
-      fprintf(stdout," e_2 = %11le",error_l_2_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
+      fprintf(stdout," e_infty = %11le,",nfft_error_l_infty_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
+      fprintf(stdout," e_2 = %11le",nfft_error_l_2_complex(&x_ref[k_start],&x[k_start],k_end-k_start+1));
       fprintf(stdout," time = %11le",time);
 
       /* CLose the file. */

@@ -159,9 +159,9 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
     for(r=0; r<R; r++)
       fft[r] = Rf[t*R+r] + I*0.0;
 
-    fftshift_complex(fft, 1, &R);
+    nfft_fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
-    fftshift_complex(fft, 1, &R);
+    nfft_fftshift_complex(fft, 1, &R);
 
     my_infft_plan.y[t*R] = 0.0;
     for(r=-R/2+1; r<R/2; r++)
