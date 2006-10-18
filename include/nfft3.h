@@ -1833,7 +1833,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 #define NFSFT_F_HAT_SIZE(N)          ((2*N+2)*(2*N+2))
 
 /** Structure for a NFSFT transform plan */
-typedef struct nfsft_plan_
+typedef struct
 {
   /** Inherited public members */
   MACRO_MV_PLAN(double complex)
@@ -2160,7 +2160,7 @@ void fpt_finalize(fpt_set set);
 
 /**
  * If this flag is set, the Landweber iteration updates the member
- * \ref dot_r_iter.
+ * dot_r_iter.
  *
  * \author Stefan Kunis
  */
@@ -2198,17 +2198,19 @@ void fpt_finalize(fpt_set set);
 /**
  * Complete macro for mangling an inverse transform.
  * 
- * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
+ * \arg MV Matrix vector multiplication type (eg nfft, nfct)
  * \arg FLT Float used as prefix for function names (double or complex)
  * \arg FLT_TYPE Float type (double or double complex)
  *
  * \author Stefan Kunis
  */
 #define MACRO_SOLVER_PLAN(MV, FLT, FLT_TYPE)                                  \
+                                                                              \
+/** Structure for an inverse transform plan. */                               \
 typedef struct                                                                \
 {                                                                             \
   MV ## _plan *mv;                      /**< matrix vector multiplication   */\
-  unsigned flags;                       /**< iteration type, ...            */\
+  unsigned flags;                       /**< iteration type                 */\
                                                                               \
   double *w;                            /**< weighting factors              */\
   double *w_hat;                        /**< damping factors                */\
@@ -2218,19 +2220,22 @@ typedef struct                                                                \
   FLT_TYPE *f_hat_iter;                 /**< iterative solution             */\
                                                                               \
   FLT_TYPE *r_iter;                     /**< iterated residual vector       */\
-  FLT_TYPE *z_hat_iter;                 /**< residual of normal eq. 1       */\
+  FLT_TYPE *z_hat_iter;                 /**< residual of normal equation of   \
+					     first kind                     */\
   FLT_TYPE *p_hat_iter;                 /**< search direction               */\
   FLT_TYPE *v_iter;                     /**< residual vector update         */\
                                                                               \
   double alpha_iter;                    /**< step size for search direction */\
   double beta_iter;                     /**< step size for search correction*/\
                                                                               \
-  double dot_r_iter;                    /**< dotproductc{_w}(r_iter)        */\
-  double dot_r_iter_old;                /**< old dotproductc{_w}(r_iter)    */\
-  double dot_z_hat_iter;                /**< dotproductc{_w}(z_hat_iter)    */\
-  double dot_z_hat_iter_old;            /**< old dotproductc{_w}(z_hat_iter)*/\
-  double dot_p_hat_iter;                /**< dotproductc{_w}(p_hat_iter)    */\
-  double dot_v_iter;                    /**< dotproductc{_w}(v_iter)        */\
+  double dot_r_iter;                    /**< weighted dotproduct of r_iter  */\
+  double dot_r_iter_old;                /**< previous dot_r_iter            */\
+  double dot_z_hat_iter;                /**< weighted dotproduct of           \
+					     z_hat_iter                     */\
+  double dot_z_hat_iter_old;            /**< previous dot_z_hat_iter        */\
+  double dot_p_hat_iter;                /**< weighted dotproduct of           \
+					     p_hat_iter                     */\
+  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */\
 } i ## MV ## _plan;                                                           \
                                                                               \
 /** Simple initialisation. */                                                 \

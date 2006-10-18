@@ -416,7 +416,7 @@ WARN_LOGFILE =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = include/nfft3.h include/util.h
+INPUT = include/nfft3.h include/util.h applications/fastsum
 
 #kernel examples applications/fastsum
 #applications
