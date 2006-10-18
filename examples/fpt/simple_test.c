@@ -186,17 +186,17 @@ void measure_time_nfft_1d()
 
       if(my_N<=8192)
 	{
-	  t=second();
+	  t=nfft_second();
 	  ndft_trafo(&my_plan);
-	  t=second()-t;
+	  t=nfft_second()-t;
 	  printf("t_ndft=%e,\t",t);
 	}
       else
 	printf("t_ndft=nan\t");
 
-      t=second();
+      t=nfft_second();
       nfft_trafo(&my_plan);
-      t=second()-t;
+      t=nfft_second()-t;
       printf("t_nfft=%e\t",t);
       
       printf("(N=M_total=%d)\n",my_N);

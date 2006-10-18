@@ -39,12 +39,12 @@
   while(ths->MEASURE_TIME_t[(a)]<0.01)                                        \
     {                                                                         \
       MEASURE_TIME_r++;                                                       \
-      MEASURE_TIME_tt=second();                                               \
+      MEASURE_TIME_tt=nfft_second();                                               \
 
 /* THE MEASURED FUNCTION IS CALLED REPEATEDLY */
 
 #define TOC(a)                                                                \
-      MEASURE_TIME_tt=second()-MEASURE_TIME_tt;                               \
+      MEASURE_TIME_tt=nfft_second()-MEASURE_TIME_tt;                               \
       ths->MEASURE_TIME_t[(a)]+=MEASURE_TIME_tt;                              \
     }                                                                         \
   ths->MEASURE_TIME_t[(a)]/=MEASURE_TIME_r;                                   \

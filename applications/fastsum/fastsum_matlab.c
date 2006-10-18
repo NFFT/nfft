@@ -126,9 +126,9 @@ int main(int argc, char **argv)
 
   /** direct computation */
   printf("direct computation: "); fflush(NULL);
-  time=second();
+  time=nfft_second();
   fastsum_exact(&my_fastsum_plan);
-  time=second()-time;
+  time=nfft_second()-time;
   printf("%fsec\n",time);
 
   /** copy result */
@@ -138,16 +138,16 @@ int main(int argc, char **argv)
 
   /** precomputation */
   printf("pre-computation:    "); fflush(NULL);
-  time=second();
+  time=nfft_second();
   fastsum_precompute(&my_fastsum_plan);
-  time=second()-time;
+  time=nfft_second()-time;
   printf("%fsec\n",time);
 
   /** fast computation */
   printf("fast computation:   "); fflush(NULL);
-  time=second();
+  time=nfft_second();
   fastsum_trafo(&my_fastsum_plan);
-  time=second()-time;
+  time=nfft_second()-time;
   printf("%fsec\n",time);
 
   /** compute max error */

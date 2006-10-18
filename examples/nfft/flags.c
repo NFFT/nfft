@@ -124,9 +124,9 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
       while(t_ndft<0.01)
         {
           r++;
-          t=second();
+          t=nfft_second();
           ndft_trafo(&p);
-          t=second()-t;
+          t=nfft_second()-t;
           t_ndft+=t;
         }
       t_ndft/=r;

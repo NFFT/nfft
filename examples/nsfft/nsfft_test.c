@@ -86,9 +86,9 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     while(t_nsdft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nsdft_trafo(&p);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nsdft+=t;
     }
     t_nsdft/=r;
@@ -112,9 +112,9 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     while(t_nfft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nfft_trafo(&np);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nfft+=t;
     }
     t_nfft/=r;
@@ -132,9 +132,9 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   while(t_nsfft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nsfft_trafo(&p);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nsfft+=t;
     }
   t_nsfft/=r;

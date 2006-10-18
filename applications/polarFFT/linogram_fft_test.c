@@ -86,9 +86,9 @@ int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
     my_nfft_plan.f_hat[k] = f_hat[k];
 
   /** NFFT-2D */
-  GLOBAL_elapsed_time=second();
+  GLOBAL_elapsed_time=nfft_second();
   ndft_trafo(&my_nfft_plan);
-  GLOBAL_elapsed_time=second()-GLOBAL_elapsed_time;
+  GLOBAL_elapsed_time=nfft_second()-GLOBAL_elapsed_time;
 
   /** copy result */
   for(j=0;j<my_nfft_plan.M_total;j++)
@@ -152,9 +152,9 @@ int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
     my_nfft_plan.f_hat[k] = f_hat[k];
 
   /** NFFT-2D */
-  GLOBAL_elapsed_time=second();
+  GLOBAL_elapsed_time=nfft_second();
   nfft_trafo(&my_nfft_plan);
-  GLOBAL_elapsed_time=second()-GLOBAL_elapsed_time;
+  GLOBAL_elapsed_time=nfft_second()-GLOBAL_elapsed_time;
 
   /** copy result */
   for(j=0;j<my_nfft_plan.M_total;j++)
@@ -233,7 +233,7 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
   for(k=0;k<my_nfft_plan.N_total;k++)
     my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
 
-  GLOBAL_elapsed_time=second();
+  GLOBAL_elapsed_time=nfft_second();
   /** solve the system */
   infft_before_loop(&my_infft_plan);
 
@@ -251,7 +251,7 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
     }
   }
 
-  GLOBAL_elapsed_time=second()-GLOBAL_elapsed_time;
+  GLOBAL_elapsed_time=nfft_second()-GLOBAL_elapsed_time;
 
   /** copy result */
   for(k=0;k<my_nfft_plan.N_total;k++)
@@ -282,14 +282,14 @@ int comparison_fft(FILE *fp, int N, int T, int R)
   for(k=0; k<N*N; k++)
     f_hat[k] = drand48() + I* drand48();
   
-  GLOBAL_elapsed_time=second();
+  GLOBAL_elapsed_time=nfft_second();
   for(m=0;m<65536/N;m++)
     {
       fftw_execute(my_fftw_plan);
       /* touch */
       f_hat[2]=2*f_hat[0];
     }
-  GLOBAL_elapsed_time=second()-GLOBAL_elapsed_time;
+  GLOBAL_elapsed_time=nfft_second()-GLOBAL_elapsed_time;
   t_fft=N*GLOBAL_elapsed_time/65536;
 
   if(N<256)

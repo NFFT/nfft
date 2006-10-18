@@ -169,12 +169,12 @@ void test_dpt_trafo(void)
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
 
       /* Execute DPT. */
-      time = second();
+      time = nfft_second();
       for (k = 0; k < REPEAT; k++)
       {
         dpt_trafo(set,0,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
-      time = (second() - time)/((double)REPEAT);
+      time = (nfft_second() - time)/((double)REPEAT);
 
       /* Print out computed and reference coefficients. */
       fprintf(stdout,"\ncomputed and reference:\n");
@@ -380,12 +380,12 @@ void test_dpt_transposed(void)
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
 
       /* Execute DPT. */
-      time = second();
+      time = nfft_second();
       for (k = 0; k < REPEAT; k++)
       {
         dpt_transposed(set,0,&x[k_start],y,k_end, 0U | (function_values?FPT_FUNCTION_VALUES:0U));
       }
-      time = (second() - time)/((double)REPEAT);
+      time = (nfft_second() - time)/((double)REPEAT);
 
       /* Print out computed and reference coefficients. */
       /*fprintf(stdout,"\n");

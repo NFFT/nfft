@@ -22,7 +22,7 @@
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
-extern double drand48 (void) __THROW;
+/* extern double drand48 (void) __THROW; */
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -348,7 +348,7 @@ int main (int argc, char **argv)
 
         for (i = 0; i < RQ[iNQ]; i++)
         {
-          t = second();
+          t = nfft_second();
 
           if (use_nfsft != NO)
           {
@@ -361,7 +361,7 @@ int main (int argc, char **argv)
             ndsft_adjoint(&plan);
           }
 
-          t_avg += second() - t;
+          t_avg += nfft_second() - t;
         }
 
         t_avg = t_avg/((double)RQ[iNQ]);
@@ -987,7 +987,7 @@ int main (int argc, char **argv)
           //memcpy(f,f_grid,m_total*sizeof(double complex));
 
           /* Initialize time measurement. */
-          t = second();
+          t = nfft_second();
 
           //fprintf(stderr,"Multiplying with quadrature weights\n");
           //fflush(stderr);
@@ -1006,11 +1006,11 @@ int main (int argc, char **argv)
             }
           }
 
-          t_avg += second() - t;
+          t_avg += nfft_second() - t;
 
           free(w);
 
-          t = second();
+          t = nfft_second();
 
           /*fprintf(stderr,"\n");
           d = 0;
@@ -1058,7 +1058,7 @@ int main (int argc, char **argv)
             ndsft_trafo(plan_ptr);
           }
 
-          t_avg += second() - t;
+          t_avg += nfft_second() - t;
 
           //fprintf(stderr,"Finalizing\n");
           //fflush(stderr);

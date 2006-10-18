@@ -22,7 +22,7 @@
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
  */
-double second()
+double nfft_second()
 {
   static struct rusage temp;
   double foo, foo1;

@@ -92,9 +92,9 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       while(t_ndft<0.1)
         {
           r++;
-          t=second();
+          t=nfft_second();
           ndft_trafo(&np);
-          t=second()-t;
+          t=nfft_second()-t;
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -110,9 +110,9 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   while(t_horner<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       ndft_horner_trafo(&np);
-      t=second()-t;
+      t=nfft_second()-t;
       t_horner+=t;
     }
   t_horner/=r;
@@ -127,9 +127,9 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       while(t_pre_full<0.1)
         {
           r++;
-          t=second();
+          t=nfft_second();
           ndft_pre_full_trafo(&np,A);
-          t=second()-t;
+          t=nfft_second()-t;
           t_pre_full+=t;
         }
       t_pre_full/=r;
@@ -144,9 +144,9 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   while(t_nfft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nfft_trafo(&np);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nfft+=t;
     }
   t_nfft/=r;

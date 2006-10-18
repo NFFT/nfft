@@ -48,7 +48,7 @@
 
 /** Actual used CPU time in seconds; calls getrusage, limited accuracy.
  */
-double second();
+double nfft_second();
 
 /** Actual used memory in bytes; calls mallinfo if define HAVE_MALLOC_H.
  */

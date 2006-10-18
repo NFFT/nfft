@@ -57,7 +57,7 @@ void simple_test_nfft_2d()
   N[1]=50; n[1]=128;
   K=12;
 
-  t=second();
+  t=nfft_second();
   /** init a two dimensional plan */
   nfft_init_guru(&p, 2, N, N[0]*N[1], n, 4,
 		 PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
@@ -74,36 +74,36 @@ void simple_test_nfft_2d()
   /** init pseudo random Fourier coefficients and show them */
   vrand_unit_complex(p.f_hat,p.N_total);
 
-  t=second()-t;
+  t=nfft_second()-t;
   vpr_complex(p.f_hat,K,
               "given Fourier coefficients, vector f_hat (first few entries)");
   printf(" ... initialisation took %e seconds.\n",t);
 
   /** direct trafo and show the result */
-  t=second();
+  t=nfft_second();
   ndft_trafo(&p);
-  t=second()-t;
+  t=nfft_second()-t;
   vpr_complex(p.f,K,"ndft, vector f (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** approx. trafo and show the result */
-  t=second();
+  t=nfft_second();
   nfft_trafo(&p);
-  t=second()-t;
+  t=nfft_second()-t;
   vpr_complex(p.f,K,"nfft, vector f (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** direct adjoint and show the result */
-  t=second();
+  t=nfft_second();
   ndft_adjoint(&p);
-  t=second()-t;
+  t=nfft_second()-t;
   vpr_complex(p.f_hat,K,"adjoint ndft, vector f_hat (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** approx. adjoint and show the result */
-  t=second();
+  t=nfft_second();
   nfft_adjoint(&p);
-  t=second()-t;
+  t=nfft_second()-t;
   vpr_complex(p.f_hat,K,"adjoint nfft, vector f_hat (first few entries)"); 
   printf(" took %e seconds.\n",t);
 

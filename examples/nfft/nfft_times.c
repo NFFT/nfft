@@ -44,9 +44,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       fftw_execute(p_fft);
-      t=second()-t;
+      t=nfft_second()-t;
       t_fft+=t;
     }
   t_fft/=r;
@@ -61,9 +61,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=second();
+          t=nfft_second();
           ndft_trafo(&p);
-          t=second()-t;
+          t=nfft_second()-t;
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -78,9 +78,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nfft_trafo(&p);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nfft+=t;
     }
   t_nfft/=r;

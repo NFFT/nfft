@@ -152,7 +152,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
     my_iplan.f_hat_iter[k]=0.0;
   }
  
-  t=second();
+  t=nfft_second();
   
   /* inverse trafo */
   innfft_before_loop(&my_iplan);
@@ -166,7 +166,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
     innfft_loop_one_step(&my_iplan);
   }
 
-  t=second()-t;
+  t=nfft_second()-t;
 #ifdef HAVE_TOTAL_USED_MEMORY
 fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
 #else

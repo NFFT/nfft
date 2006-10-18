@@ -543,7 +543,7 @@ int main (int argc, char **argv)
             t_dp = 0.0;
 
             /* Initialize time measurement. */
-            t = second();
+            t = nfft_second();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -602,7 +602,7 @@ int main (int argc, char **argv)
             }
 
             /* Calculate the time needed. */
-            t_dp = second() - t;
+            t_dp = nfft_second() - t;
 
             /* Calculate average time needed. */
             t_dp = t_dp/((double)ld[ild][4]);
@@ -617,7 +617,7 @@ int main (int argc, char **argv)
           t_d = 0.0;
 
           /* Initialize time measurement. */
-          t = second();
+          t = nfft_second();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -722,7 +722,7 @@ int main (int argc, char **argv)
           }
 
           /* Calculate and add the time needed. */
-          t_d = second() - t;
+          t_d = nfft_second() - t;
           /* Calculate average time needed. */
           t_d = t_d/((double)ld[ild][4]);
         }
@@ -771,7 +771,7 @@ int main (int argc, char **argv)
             t_fd = 0.0;
 
             /* Initialize time measurement. */
-            t = second();
+            t = nfft_second();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -795,7 +795,7 @@ int main (int argc, char **argv)
             }
 
             /* Calculate and add the time needed. */
-            t_fd = second() - t;
+            t_fd = nfft_second() - t;
 
             /* Calculate average time needed. */
             t_fd = t_fd/((double)ld[ild][4]);
@@ -823,7 +823,7 @@ int main (int argc, char **argv)
           }
 
           /* Initialize time measurement. */
-          t = second();
+          t = nfft_second();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -872,12 +872,12 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Calculate and add the time needed. */
-            t_f = second() - t;
+            t_f = nfft_second() - t;
           }
           else
           {
             /* Calculate and add the time needed. */
-            t_fd = second() - t;
+            t_fd = nfft_second() - t;
           }
 
           /* Check if the fast NFSFT algorithm has been used. */

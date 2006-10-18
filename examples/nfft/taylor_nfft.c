@@ -200,9 +200,9 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       while(t_ndft<0.01)
         {
           r++;
-          t=second();
+          t=nfft_second();
           ndft_trafo(&np);
-          t=second()-t;
+          t=nfft_second()-t;
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -219,9 +219,9 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   while(t_nfft<0.01)
     {
       r++;
-      t=second();
+      t=nfft_second();
       nfft_trafo(&np);
-      t=second()-t;
+      t=nfft_second()-t;
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -239,9 +239,9 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   while(t_taylor<0.01)
     {
       r++;
-      t=second();
+      t=nfft_second();
       taylor_trafo(&tp);
-      t=second()-t;
+      t=nfft_second()-t;
       t_taylor+=t;
     }
   t_taylor/=r;

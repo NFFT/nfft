@@ -207,14 +207,14 @@ void measure_time_nnfft_1d()
     for(k=0;k<my_plan.N_total;k++)
       my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
 
-    t=second();
+    t=nfft_second();
     nndft_trafo(&my_plan);
-    t=second()-t;
+    t=nfft_second()-t;
     printf("t_nndft=%e,\t",t);
 
-    t=second();
+    t=nfft_second();
     nnfft_trafo(&my_plan);
-    t=second()-t;
+    t=nfft_second()-t;
     printf("t_nnfft=%e\t",t);
       
     printf("(N=M=%d)\n",my_N);

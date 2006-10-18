@@ -243,15 +243,15 @@ double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
       r++;
       if(dgt)
         {
-          t=second();
+          t=nfft_second();
           dgt_trafo(ths);
         }
       else
         {
-          t=second();
+          t=nfft_second();
           fgt_trafo(ths);
         }
-      t_out+=second()-t;
+      t_out+=nfft_second()-t;
     }
   t_out/=r;
 

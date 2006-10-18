@@ -91,7 +91,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
 
-  t=second();
+  t=nfft_second();
     
   /* inverse trafo */
   infft_before_loop(&my_iplan);
@@ -106,7 +106,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   }
 
   
-  t=second()-t;
+  t=nfft_second()-t;
 #ifdef HAVE_MALLINFO
   fprintf(stderr,"time: %e seconds mem: %i \n",t,total_used_memory());
 #else
