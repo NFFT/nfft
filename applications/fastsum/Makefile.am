@@ -5,6 +5,9 @@ AM_LDFLAGS = -L$(top_srcdir)
 noinst_LTLIBRARIES = libfastsum.la libkernels.la
 noinst_PROGRAMS = fastsum_test fastsum_matlab
 
+## The library header.
+include_HEADERS = fastsum.h kernels.h
+
 ## The source files.
 libfastsum_la_SOURCES = fastsum.c
 
@@ -17,4 +20,4 @@ fastsum_matlab_SOURCES = fastsum_matlab.c
 fastsum_matlab_LDADD = .libs/libfastsum.a .libs/libkernels.a $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 ## Include these extra files in the distribution.
-EXTRA_DIST = fastsum.h kernels.h fastsum.m fastsum_test.m README
+EXTRA_DIST = fastsum.m fastsum_test.m README
