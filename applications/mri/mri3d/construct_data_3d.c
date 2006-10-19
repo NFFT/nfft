@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <math.h>
 #include "util.h"
 #include "nfft3.h"
 

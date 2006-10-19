@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "util.h"
 #include "nfft3.h"
 
@@ -173,6 +175,7 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   nfft_finalize(&my_nfft_plan);
   free(x);
   free(w);
+  return 0;
 }
 
 /** simple test program for the discrete Radon transform

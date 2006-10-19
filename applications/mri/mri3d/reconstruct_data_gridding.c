@@ -1,6 +1,7 @@
+#include <stdlib.h>
+#include <math.h>
 #include "util.h"
 #include "nfft3.h"
-#include "math.h"
 
 /**
  * reconstruct makes an 2d-adjoint-nfft for every slice

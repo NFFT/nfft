@@ -7,6 +7,7 @@
 /* Include standard C headers. */
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 /* Include FPT module header. */
@@ -283,7 +284,6 @@ inline void NAME(double complex  *a, double complex *b, double *a11, double *a12
   int length = 1<<(tau+1); \
   /** Twice the length of the coefficient arrays. */ \
   double norm = 1.0/(length<<1); \
-  int k;\
   \
   /* Compensate for factors introduced by a raw DCT-III. */ \
   a[0] *= 2.0; \
@@ -588,8 +588,6 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   int tau;
   /** Index m */
   int m;
-  /** FFTW plan */
-  fftw_plan plan;
   int k;
 
   /* Allocate memory for new DPT set. */
@@ -707,7 +705,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
                          cascade                                             */
   int firstl;       /**< First index l for current cascade level             */
   int lastl;        /**< Last index l for current cascade level and current  */
-  int tau_stab;     /**< Cascade level for stabilization                     */
   int plength_stab; /**< Length of polynomials for the next level in the
                          cascade for stabilization                           */
   int degree_stab;  /**< Degree of polynomials for the current level in the
@@ -726,7 +723,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
   int k_start_tilde;
   int N_tilde;
-  int k;
   int clength;
   int clength_1;
   int clength_2;
@@ -760,11 +756,6 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     data->betaN = (double*) malloc((set->t-1)*sizeof(double complex));
     data->gammaN = (double*) malloc((set->t-1)*sizeof(double complex));
 
-#ifndef NO_NFSFT_DEBUG
- fflush(stdout);
-fprintf(stdout,"set-t: %f \n",set->t);
-      fflush(stdout);
-#endif
     for (tau = 2; tau <= set->t; tau++)
     {
 
@@ -788,9 +779,6 @@ fprintf(stdout,"set-t: %f \n",set->t);
     plength = 4;
     for (tau = 1; tau < set->t; tau++)
     {
-#ifndef NO_NFSFT_DEBUG
-fprintf(stdout,"tau: %f \n",tau);
-#endif
       /* Compute auxilliary values. */
       degree = plength>>1;
       /* Compute first l. */
@@ -806,9 +794,6 @@ fprintf(stdout,"tau: %f \n",tau);
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
       for (l = firstl; l <= lastl; l++)
       {
-#ifndef NO_NFSFT_DEBUG
-fprintf(stdout, "l=%f\n",l);
-#endif
         if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           //fprintf(stderr,"fpt_precompute(%d): symmetric step\n",m);
@@ -1085,15 +1070,11 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   int length = k_end+1;
   fftw_r2r_kind kinds[2] = {FFTW_REDFT01,FFTW_REDFT01};
 
-  /** */
-  double mygamma;
-
   /** Loop counter */
   int k;
 
   double complex *work_ptr;
   const double complex *x_ptr;
-  double complex *y_ptr;
 
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
@@ -1553,7 +1534,6 @@ void fpt_finalize(fpt_set set)
   fpt_data *data;
   int k_start_tilde;
   int N_tilde;
-  int tau_stab;
   int firstl, lastl;
   int plength;
 

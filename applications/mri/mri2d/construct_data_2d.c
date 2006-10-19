@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "util.h"
 #include "nfft3.h"
 
@@ -29,7 +31,7 @@ void construct(char * file, int N, int M)
   for(j=0;j<N;j++)
   {
     for(k=0;k<N;k++)
-      fscanf(fi,"%le ",&my_plan.f_hat[(N*j+k)]);
+      fscanf(fi,"%p ",&my_plan.f_hat[(N*j+k)]);
   }
     
   if(my_plan.nfft_flags & PRE_PSI)

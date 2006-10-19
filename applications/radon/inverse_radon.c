@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "util.h"
 #include "nfft3.h"
 
@@ -202,6 +204,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   nfft_finalize(&my_nfft_plan);
   free(x);
   free(w);
+  return 0;
 }
 
 /** simple test program for the inverse discrete Radon transform

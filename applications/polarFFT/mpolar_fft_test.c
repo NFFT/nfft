@@ -42,7 +42,8 @@ int mpolar_grid(int T, int R, double *x, double *w)
       xx = (double)r/R*cos(PI*t/T);
       yy = (double)r/R*sin(PI*t/T);
 
-      if ( (-0.5-1.0/(double)R<=xx) & (xx<=0.5+1.0/(double)R & (-0.5-1.0/(double)R)<=yy) & (yy<=0.5+1.0/(double)R) )
+      if ( ((-0.5-1.0/(double)R)<=xx) & (xx<=(0.5+1.0/(double)R)) & 
+        ((-0.5-1.0/(double)R)<=yy) & (yy<=(0.5+1.0/(double)R)) )
       {
         x[2*M+0] = xx;
         x[2*M+1] = yy;

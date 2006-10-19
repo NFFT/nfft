@@ -414,6 +414,10 @@ void nfft_precompute_full_psi(nfft_plan *ths);
  */
 void nfft_precompute_one_psi(nfft_plan *ths);
 
+void nfft_precompute_psi(nfft_plan *ths);
+
+void nfft_precompute_lin_psi(nfft_plan *ths);
+
 /**
  * Checks a transform plan for frequently used bad parameter.
  *

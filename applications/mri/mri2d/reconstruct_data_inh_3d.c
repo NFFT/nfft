@@ -1,7 +1,8 @@
+#include <stdlib.h>
+#include <math.h>
+#include <limits.h>
 #include "nfft3.h"
 #include "util.h"
-#include "math.h"
-#include "limits.h"
 
 void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {

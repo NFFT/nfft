@@ -1,6 +1,6 @@
+#include <math.h>
 #include "util.h"
 #include "nfft3.h"
-#include "math.h"
 
 /**
  * reconstruct makes an inverse 2d nfft
