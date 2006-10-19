@@ -12,7 +12,7 @@
 /*###########################################################################*/
 
 /**
- * @defgroup nfftutil UTIL - Utility functions for the NFFT library
+ * @defgroup nfftutil Util - Auxilliary functions
  * @{
  *
  * This module implements frequently used utility functions.

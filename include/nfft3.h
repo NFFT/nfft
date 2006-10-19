@@ -1101,7 +1101,7 @@ void nnfft_finalize(nnfft_plan *ths_plan);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup nsfft NSFFT
+/** @defgroup nsfft NSFFT - Nonequispaced sparse fast Fourier transform
  * Direct and fast computation of the
  * hyperbolic discrete Fourier transform at nonequispaced knots
  * @{
