@@ -2,6 +2,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri2d_reconstruct_data_2d reconstruct_data_2d
+ * \ingroup applications_mri2d
+ * \{
+ */
+
 /**
  * reconstruct makes an inverse 2d nfft
  */
@@ -143,3 +149,4 @@ int main(int argc, char **argv)
    
   return 1;
 }
+/* \} */

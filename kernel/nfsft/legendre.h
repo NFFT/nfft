@@ -1,7 +1,9 @@
 /** 
  * \file nfsft.h
+ * 
  * \brief Header file for functions related to associated Legendre 
- *   functions/polynomials
+ *        functions/polynomials
+ * 
  * \author Jens Keiner
  */
 #ifndef LEGENDRE_H
@@ -9,10 +11,8 @@
 
 #include "api.h"
 
-/** 
- * \defgroup nfsft_legendre NFSFT: Functions related to associated Legendre 
- *   functions/polynomials 
- * \ingroup nfsft
+/** \addtogroup nfsft
+ * \{
  */
 
 /**
@@ -21,8 +21,6 @@
  *
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
- *
- * \ingroup nfsft_legendre
  */ 
 double alpha_al (int k, int n);
 
@@ -32,8 +30,6 @@ double alpha_al (int k, int n);
  *
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
- *
- * \ingroup nfsft_legendre
  */ 
 double beta_al (int k, int n);
 
@@ -43,8 +39,6 @@ double beta_al (int k, int n);
  *
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
- *
- * \ingroup nfsft_legendre
  */ 
 double gamma_al (int k, int n);
 
@@ -60,8 +54,6 @@ void gamma_al_row(double *gamma, int N, int n);
  *   coefficients will be stored such that alpha[n+(N+1)+k] = 
  *   \f$\alpha_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
- * 
- * \ingroup nfsft_legendre
  */
 void alpha_al_all(double *alpha, int N);
 
@@ -73,8 +65,6 @@ void alpha_al_all(double *alpha, int N);
  *   coefficients will be stored such that beta[n+(N+1)+k] = 
  *   \f$\beta_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
- * 
- * \ingroup nfsft_legendre
  */
 void beta_al_all(double *beta, int N);
 
@@ -86,8 +76,6 @@ void beta_al_all(double *beta, int N);
  *   coefficients will be stored such that gamma[n+(N+1)+k] = 
  *   \f$\gamma_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
- * 
- * \ingroup nfsft_legendre
  */
 void gamma_al_all(double *gamma, int N);
 
@@ -105,8 +93,6 @@ void gamma_al_all(double *gamma, int N);
  *   \f$\beta_c^n,\ldots,\beta_{c+k}^n\f$
  * \arg gamma A pointer to an array containing the recurrence coefficients 
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
- *
- * \ingroup nfsft_legendre
  */
 void eval_al(double *x, double *y, int size, int k, double *alpha, 
   double *beta, double *gamma);
@@ -126,9 +112,8 @@ void eval_al(double *x, double *y, int size, int k, double *alpha,
  * \arg gamma A pointer to an array containing the recurrence coefficients 
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
  * \arg threshold The threshold
- *
- * \ingroup nfsft_legendre
  */
 int eval_al_thresh(double *x, double *y, int size, int k, double *alpha, 
   double *beta, double *gamma, double threshold);
+/* \} */
 #endif

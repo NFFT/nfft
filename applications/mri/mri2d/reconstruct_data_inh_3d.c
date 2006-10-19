@@ -4,6 +4,12 @@
 #include "nfft3.h"
 #include "util.h"
 
+/** 
+ * \defgroup applications_mri2d_reconstruct_data_inh_3d reconstruct_data_inh_3d
+ * \ingroup applications_mri2d
+ * \{
+ */
+
 void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
@@ -192,4 +198,4 @@ int main(int argc, char **argv)
 
   return 1;
 }
-
+/* \} */

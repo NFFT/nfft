@@ -17,7 +17,6 @@
  * \arg N
  *
  * \author Jens Keiner
- * \ingroup nfsft_internal
  */
 void cheb2exp_old(complex *f_hat, complex **cheb, int M, int N);
 
@@ -30,7 +29,7 @@ void cheb2exp_old(complex *f_hat, complex **cheb, int M, int N);
  * \arg N
  *
  * \author Jens Keiner
- * \ingroup nfsft_internal
+ * 
  */
 void cheb2exp_adjoint_old(complex *f_hat, complex **cheb, int M, int N);
 

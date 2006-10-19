@@ -14,6 +14,12 @@
 #include "fastsum.h"
 #include "kernels.h"
 
+/** 
+ * \defgroup applications_fastsum_matlab fastsum_matlab
+ * \ingroup applications_fastsum
+ * \{
+ */
+
 int main(int argc, char **argv)
 {
   int j,k,t;                                         /**< indices                 */
@@ -187,3 +193,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+/* \} */

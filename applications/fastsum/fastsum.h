@@ -9,6 +9,12 @@
  *  \date 2003-2006
  */
 
+/** 
+ * \defgroup applications_fastsum Fast summation
+ * \ingroup applications
+ * \{
+ */
+
 #ifndef fastsum_h_inc
 #define fastsum_h_inc
 
@@ -110,6 +116,7 @@ void fastsum_precompute(fastsum_plan *ths);
  * \param ths The pointer to a fastsum plan.
  */
 void fastsum_trafo(fastsum_plan *ths);
+/* \} */
 
 #endif
 /* fastsum.h */

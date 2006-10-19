@@ -7,6 +7,11 @@
 #include <math.h>
 #include <float.h>
 
+/** 
+ * \addtogroup applications_fastsum
+ * \{
+ */
+
 complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
 {
   double c=param[0];
@@ -341,5 +346,7 @@ complex cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
 
   return value;
 }
+
+/* \} */
 
 /* kernels.c */

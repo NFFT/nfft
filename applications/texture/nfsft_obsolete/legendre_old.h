@@ -9,12 +9,6 @@
 
 #include "api_old.h"
 
-/** 
- * \defgroup nfsft_legendre NFSFT: Functions related to associated Legendre 
- *   functions/polynomials 
- * \ingroup nfsft
- */
-
 /**
  * Computes three-term recurrence coefficients \f$\alpha_k^n\f$ of associated 
  * Legendre functions.
@@ -22,7 +16,7 @@
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
  *
- * \ingroup nfsft_legendre
+ * 
  */ 
 double alpha_al_old (int k, int n);
 
@@ -33,7 +27,7 @@ double alpha_al_old (int k, int n);
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
  *
- * \ingroup nfsft_legendre
+ * 
  */ 
 double beta_al_old (int k, int n);
 
@@ -44,7 +38,7 @@ double beta_al_old (int k, int n);
  * \arg k The index \f$k\f$
  * \arg n The index \f$n\f$
  *
- * \ingroup nfsft_legendre
+ * 
  */ 
 double gamma_al_old (int k, int n);
 
@@ -57,7 +51,7 @@ double gamma_al_old (int k, int n);
  *   \f$\alpha_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  * 
- * \ingroup nfsft_legendre
+ * 
  */
 void alpha_al_all_old(double *alpha, int N);
 
@@ -70,7 +64,7 @@ void alpha_al_all_old(double *alpha, int N);
  *   \f$\beta_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  * 
- * \ingroup nfsft_legendre
+ * 
  */
 void beta_al_all_old(double *beta, int N);
 
@@ -83,7 +77,7 @@ void beta_al_all_old(double *beta, int N);
  *   \f$\gamma_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  * 
- * \ingroup nfsft_legendre
+ * 
  */
 void gamma_al_all_old(double *gamma, int N);
 
@@ -102,7 +96,7 @@ void gamma_al_all_old(double *gamma, int N);
  * \arg gamma A pointer to an array containing the recurrence coefficients 
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
  *
- * \ingroup nfsft_legendre
+ * 
  */
 void eval_al_old(double *x, double *y, int size, int k, double *alpha, 
   double *beta, double *gamma);
@@ -123,7 +117,7 @@ void eval_al_old(double *x, double *y, int size, int k, double *alpha,
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
  * \arg threshold The threshold
  *
- * \ingroup nfsft_legendre
+ * 
  */
 int eval_al_thresh_old(double *x, double *y, int size, int k, double *alpha, 
   double *beta, double *gamma, double threshold);

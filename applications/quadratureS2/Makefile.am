@@ -8,4 +8,4 @@ noinst_PROGRAMS = quadratureS2
 quadratureS2_SOURCES = quadratureS2.c
 quadratureS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
-EXTRA_DIST = quadratureS2.m writeTestcase.m writeWeights.m
+EXTRA_DIST = quadratureS2.m writeTestcase.m writeWeights.m doxygen.c

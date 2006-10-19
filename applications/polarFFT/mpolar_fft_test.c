@@ -12,6 +12,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_polarFFT_mpolar mpolar_fft_test
+ * \ingroup applications_polarFFT
+ * \{
+ */
+
 double GLOBAL_elapsed_time;
 
 /** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
@@ -473,3 +479,4 @@ int main(int argc,char **argv)
 
   return 0;
 }
+/* \} */

@@ -3,6 +3,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri2d_construct_data_2d construct_data_2d
+ * \ingroup applications_mri2d
+ * \{
+ */
+
 /**
  * construct makes an 2d-nfft
  */
@@ -60,3 +66,4 @@ int main(int argc, char **argv)
   
   return 1;
 }
+/* \} */

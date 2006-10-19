@@ -10,10 +10,6 @@
 
 /** \defgroup nfsft NFSFT */
 
-/** \defgroup nfsft_public_api Public API
- *  \ingroup nfsft
- */
-
 /** 
  * If set, all computations are carried out with spherical harmonics normalized 
  * with respect to the \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ standard inner 
@@ -30,7 +26,7 @@
  * \see ndsft_trafo_old
  * \see ndsft_adjoint_old
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 #define NFSFT_NORMALIZED_OLD 1<<0
 
@@ -41,7 +37,7 @@
  * \see nfsft_trafo_old
  * \see nfsft_adjoint_old
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 #define NFSFT_FAST_ONLY_OLD  1<<1
 
@@ -55,7 +51,7 @@
  * \see nfsft_trafo_old
  * \see nfsft_adjoint_old
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 #define NFSFT_BW_WINDOW_OLD  1<<2
 
@@ -65,7 +61,7 @@
  * \see nfsft_trafo_old
  * \see nfsft_adjoint_old
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 #define NFSFT_USE_NDFT_OLD 1<<3
 
@@ -74,35 +70,35 @@
  * Typedef for transform plans
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 typedef struct nfsft_plan_s_old *nfsft_plan_old;
 
 /** 
  * Typedef for precomputation flags 
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 typedef int nfsft_precompute_flags_old;
 
 /** 
  * Typedef for transform flags 
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 typedef int nfsft_flags_old;
 
 /** 
  * Typedef for inverse transform plans 
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 typedef struct infsft_plan_s_old *infsft_plan_old;
 
 /** 
  * Typedef for inverse transform flags 
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 typedef int infsft_flags_old;
 
@@ -121,7 +117,7 @@ typedef int infsft_flags_old;
  * \return The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 nfsft_plan_old nfsft_init_old(int M, int D, complex **f_hat, double *x, complex *f, 
                       nfsft_flags_old flags);
@@ -138,7 +134,7 @@ nfsft_plan_old nfsft_init_guru_old(int M, int D, complex **f_hat, double *x, com
  * \arg flags Flags
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void nfsft_precompute_old(int M, double threshold, nfsft_precompute_flags_old flags);
 
@@ -146,7 +142,7 @@ void nfsft_precompute_old(int M, double threshold, nfsft_precompute_flags_old fl
  * Forget all wisdom.
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void nfsft_forget_old();
 
@@ -161,7 +157,7 @@ void nfsft_forget_old();
  * \arg plan The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void ndsft_trafo_old(nfsft_plan_old plan);
 
@@ -176,7 +172,7 @@ void ndsft_trafo_old(nfsft_plan_old plan);
  * \arg plan The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void ndsft_adjoint_old(nfsft_plan_old plan);
 
@@ -191,7 +187,7 @@ void ndsft_adjoint_old(nfsft_plan_old plan);
  * \arg plan The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void nfsft_trafo_old(nfsft_plan_old plan);
 
@@ -206,7 +202,7 @@ void nfsft_trafo_old(nfsft_plan_old plan);
  * \arg plan The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void nfsft_adjoint_old(nfsft_plan_old plan);
 
@@ -216,7 +212,7 @@ void nfsft_adjoint_old(nfsft_plan_old plan);
  * \arg plan The plan
  *
  * \author Jens Keiner
- * \ingroup nfsft_public_api 
+ *  
  */
 void nfsft_finalize_old(nfsft_plan_old plan);
 #endif

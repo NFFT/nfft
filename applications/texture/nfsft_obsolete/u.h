@@ -12,7 +12,7 @@
  * 
  * \return 4-dimensional array containing the matrics 
  *
- * \ingroup nfsft_internal
+ * 
  */
 struct U_type_old**** precomputeU_old(int t, double threshold, double *walpha, 
                              double *wbeta, double *wgamma, int window);
@@ -20,7 +20,7 @@ struct U_type_old**** precomputeU_old(int t, double threshold, double *walpha,
 /**
  * Forget U
  *
- * \ingroup nfsft_internal
+ * 
  */
 void forgetU_old(struct U_type_old**** U, int M, int t, int window);
 
@@ -34,7 +34,7 @@ void forgetU_old(struct U_type_old**** U, int M, int t, int window);
  * \param n The parameter n
  * \param l The parameter l
  *
- * \ingroup nfsft_internal
+ * 
  */
 void multiplyU_old(complex  *a, complex *b, struct U_type_old u, int tau, int n, int l, 
                struct nfsft_wisdom_old *tw, double gamma);
@@ -49,7 +49,7 @@ void multiplyU_old(complex  *a, complex *b, struct U_type_old u, int tau, int n,
  * \param n The parameter n
  * \param l The parameter l
  *
- * \ingroup nfsft_internal
+ * 
  */
 void multiplyU_adjoint_old(complex  *a, complex *b, 
                        struct U_type_old u, int tau, int n, int l, 

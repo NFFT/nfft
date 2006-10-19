@@ -3,6 +3,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri3d_reconstruct_data_3d reconstruct_data_3d
+ * \ingroup applications_mri3d
+ * \{
+ */
+
 /**
  * reconstruct makes an inverse 3d-nfft
  */
@@ -139,3 +145,4 @@ int main(int argc, char **argv)
   reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]));
   return 1;
 }
+/* \} */

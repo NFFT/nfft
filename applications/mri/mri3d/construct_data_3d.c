@@ -3,6 +3,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri3d_construct_data_3d construct_data_3d
+ * \ingroup applications_mri3d
+ * \{
+ */
+
 void construct(char * file, int N, int M, int Z)
 {
   int j,k,l;                /* some variables */
@@ -74,3 +80,4 @@ int main(int argc, char **argv)
   
 	return 1;
 }
+/* \} */

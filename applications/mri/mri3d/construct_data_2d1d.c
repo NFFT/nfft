@@ -2,6 +2,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri3d_construct_data_1d2d construct_data_1d2d
+ * \ingroup applications_mri3d
+ * \{
+ */
+
 /**
  * construct makes an 2d-nfft for every slice
  */
@@ -108,3 +114,4 @@ int main(int argc, char **argv)
   
   return 1;
 }
+/* \} */

@@ -19,6 +19,12 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/** 
+ * \defgroup applications_quadratureS2_test quadratureS2_test
+ * \ingroup applications_quadratureS2
+ * \{
+ */
+
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
@@ -1144,3 +1150,4 @@ int main (int argc, char **argv)
   /* Return exit code for successful run. */
   return EXIT_SUCCESS;
 }
+/* \} */

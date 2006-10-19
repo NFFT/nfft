@@ -11,4 +11,4 @@ fastsumS2_SOURCES = fastsumS2.c
 fastsumS2_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 ## Include these extra files in the distribution.
-EXTRA_DIST = fastsumS2.m writeTestcase.m readTestcase.m README
+EXTRA_DIST = fastsumS2.m writeTestcase.m readTestcase.m README doxygen.c

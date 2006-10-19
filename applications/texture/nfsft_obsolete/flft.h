@@ -18,7 +18,7 @@
  *        \f$a_k^n \quad (k=|n|,\dots,M)\f$
  * \arg wisdom The wisdom structure with precomputed data
  * 
- * \ingroup nfsft_internal
+ * 
  */
 void flft_old(const int M, const int t, const int n, complex *const f_hat, 
           struct nfsft_wisdom_old *const wisdom, int *nstab, int *ntotal);
@@ -37,7 +37,7 @@ void flft_old(const int M, const int t, const int n, complex *const f_hat,
  *        f_hat[n+M][k] = \f$b_k^n \quad (k=0\dots,M)\f$
  * \arg wisdom The wisdom structure with precomputed data
  * 
- * \ingroup nfsft_internal
+ * 
  */
 void flft_adjoint_old(const int M, const int t, const int n, complex *const f_hat, 
                   struct nfsft_wisdom_old *const wisdom);

@@ -6,11 +6,6 @@
 
 #include "api_old.h"
 
-/** 
- * \defgroup nfsft_direct NFSFT: Direct algorithms 
- * \ingroup nfsft
- */
-
 /*
  * Spherical Fourier transform and adjoint spherical Fourier transform 
  * implemented by means of the direct algorithms.
@@ -37,7 +32,7 @@
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
  *
- * \ingroup nfsft_direct
+ * 
  */
 void ndsft_old(int D, double *angles, complex *f, int M, complex **f_hat,
            struct nfsft_wisdom_old *wisdom);
@@ -68,7 +63,7 @@ void ndsft_old(int D, double *angles, complex *f, int M, complex **f_hat,
  * \param wisdom Structure containing precomputed values of associated Legendre 
  *   functions.
  *
- * \ingroup nfsft_direct
+ * 
  */	
 void adjoint_ndsft_old(int D, double *angles, complex *f, int M, complex **f_hat,
                    struct nfsft_wisdom_old *wisdom);

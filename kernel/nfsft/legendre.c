@@ -2,6 +2,10 @@
 #include "api.h"
 #include <math.h>
 
+/** \addtogroup nfsft
+ * \{
+ */
+
 inline double alpha_al(int k, int n)
 { 
   if (k == -1)
@@ -235,3 +239,4 @@ inline int eval_al_thresh(double *x, double *y, int size, int k, double *alpha,
   }
   return 0;
 }
+/* \} */

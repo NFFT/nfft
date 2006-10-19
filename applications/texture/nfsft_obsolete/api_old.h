@@ -35,12 +35,10 @@
 
 #define MYEPS (1E-14)
 
-/** \defgroup nfsft_internal NFSFT: Internal API and functions */
-
 /** 
  * Datatype for a set of real 2x2 matrices used in FLT. 
  *
- * \ingroup nfsft_internal
+ * 
  */
 struct U_type_old
 {
@@ -56,7 +54,7 @@ struct U_type_old
 /** 
  * Structure for a transform plan. 
  *
- * \ingroup nfsft_internal
+ * 
  */
 struct nfsft_plan_s_old
 {
@@ -82,7 +80,7 @@ struct nfsft_plan_s_old
 /** 
 * Structure for an inverse transform plan. 
 *
-* \ingroup nfsft_internal
+* 
 */
 struct infsft_plan_s_old
 {
@@ -115,7 +113,7 @@ struct infsft_plan_s_old
 /** 
  * Toplevel wisdom structure. 
  *
- * \ingroup nfsft_internal
+ * 
  */
 struct nfsft_wisdom_old
 {

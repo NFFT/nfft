@@ -8,10 +8,12 @@
 #include "nfft3.h"
 #include "util.h"
 
-/** @defgroup fast gauss transform
- * 
- * @{ 
+/** 
+ * \defgroup applications_fastgauss Fast Gauss transform
+ * \ingroup applications
+ * \{
  */
+
 #define DGT_PRE_CEXP     (1U<< 0)
 #define FGT_NDFT         (1U<< 1)
 #define FGT_APPROX_B     (1U<< 2)
@@ -207,12 +209,12 @@ void fgt_finalize(fgt_plan *ths)
   fftw_free(ths->alpha);
   fftw_free(ths->x);
 }
-/** @} 
- */
+/* \} */
 
-/** @defgroup test gauss transform
- * contains the tests
- * @{ 
+/** \defgroup applications_fastgauss_test fastgauss_test
+ * Contains the tests
+ * \ingroup applications_fastgauss
+ * \{ 
  */
 
 void fgt_test_init_rand(fgt_plan *ths)
@@ -440,8 +442,6 @@ void fgt_test_error_p()
     }
   printf("];\n");  
 }
-/** @} 
- */
 
 int main()
 {
@@ -459,3 +459,4 @@ int main()
 
   return 1;
 }
+/* \} */

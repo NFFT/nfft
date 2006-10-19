@@ -4,6 +4,12 @@
 #include "nfft3.h"
 #include "util.h"
 
+/** 
+ * \defgroup applications_mri2d_construct_data_inh_3d construct_data_inh_3d
+ * \ingroup applications_mri2d
+ * \{
+ */
+
 /**
  * construct 
  */
@@ -122,3 +128,4 @@ int main(int argc, char **argv)
   
   return 1;
 }
+/* \} */

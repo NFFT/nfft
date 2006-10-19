@@ -13,6 +13,11 @@
 #include "nfft3.h"
 #include "fastsum.h"
 
+/** 
+ * \addtogroup applications_fastsum
+ * \{
+ */
+
 /** factorial */
 double fak(int n)
 {
@@ -586,5 +591,6 @@ void fastsum_trafo(fastsum_plan *ths)
     /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
 }
+/* \} */
 
 /* fastsum.c */

@@ -10,6 +10,10 @@
 #include "nfft3.h"
 #include <fftw3.h>
 
+/** \addtogroup nfsft
+ * \{
+ */
+
 /* "Default exponent of maximum bandwidth" */
 #define BWEXP_MAX 10
 
@@ -29,12 +33,9 @@ typedef enum {false = 0,true = 1} bool;
 //#define FIRST_L (int)floor(ntilde/(double)plength)
 //#define LAST_L (int)ceil((Mtilde+1)/(double)plength)-1
 
-/** \defgroup nfsft_internal NFSFT: Internal API and functions */
 
 /** 
  * Wisdom structure 
- *
- * \ingroup nfsft_internal
  */
 struct nfsft_wisdom
 {
@@ -75,4 +76,5 @@ struct nfsft_wisdom
   /** Structure for \e discrete \e polynomial \e transform (\e DPT) */
   fpt_set set;
 };
+/* \} */
 #endif

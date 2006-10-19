@@ -3,6 +3,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri2d_construct_data_gridding construct_data_gridding
+ * \ingroup applications_mri2d
+ * \{
+ */
+
 /**
  * reconstruct makes a 2d-adjoint-nfft
  */
@@ -78,4 +84,4 @@ int main(int argc, char **argv)
 
   return 1;
 }
-
+/* \} */

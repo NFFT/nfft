@@ -11,6 +11,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_polarFFT_linogramm linogram_fft_test
+ * \ingroup applications_polarFFT
+ * \{
+ */
+
 double GLOBAL_elapsed_time;
 
 /** Generates the points x with weights w
@@ -445,3 +451,4 @@ int main(int argc,char **argv)
 
   return 0;
 }
+/* \} */

@@ -11,6 +11,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_polarFFT_polar polar_fft_test
+ * \ingroup applications_polarFFT
+ * \{
+ */
+
 /** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
  *  for the polar grid with \f$T\f$ angles and \f$R\f$ offsets.
  *
@@ -386,3 +392,4 @@ int main(int argc,char **argv)
 
   return 0;
 }
+/* \} */

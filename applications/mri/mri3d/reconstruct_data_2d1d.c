@@ -3,6 +3,12 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \defgroup applications_mri3d_reconstruct_data_1d2d reconstruct_data_1d2d
+ * \ingroup applications_mri3d
+ * \{
+ */
+
 /**
  * reconstruct makes an inverse 2d-nfft for every slice
  */
@@ -184,3 +190,4 @@ int main(int argc, char **argv)
   fftw_destroy_plan(plan);
   return 1;
 }
+/* \} */

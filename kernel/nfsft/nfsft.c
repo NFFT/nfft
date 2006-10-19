@@ -22,6 +22,10 @@
 /* Include NFFT3 utilities header. */
 #include "util.h"
 
+/** \addtogroup nfsft
+ * \{
+ */
+
 /**
  * The default NFFT cutoff parameter
  *
@@ -993,3 +997,4 @@ void nfsft_precompute_x(nfsft_plan *plan)
   if (plan->plan_nfft.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&plan->plan_nfft);
 }
+/* \} */
