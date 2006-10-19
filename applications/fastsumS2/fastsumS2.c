@@ -28,7 +28,7 @@
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 
-/* Include NFFT 3 utilities headers. */
+/* Include NFFT 3 utilities header. */
 #include "util.h"
 
 /* Include GSL header for spherical Bessel functions. */
@@ -55,33 +55,32 @@
 enum pvalue {NO = 0, YES = 1, BOTH = 2};
 
 /**
- * Computes the \f$\mathbb{R}^3\f$ standard inner product between two vectors
- * on the unit sphere \$f\mathbb{S}^2\f$ given in spherical coordinates.
+ * Computes the R^3 standard inner product between two vectors on the unit 
+ * sphere S^2 given in spherical coordinates.
  *
- * \arg phi1   The angle \f$\varphi_1 \in [-\pi,\pi)\f$ of the first vector
- * \arg theta1 The angle \f$\vartheta_1 \in [0,\pi]\f$ of the first vector
- * \arg phi2   The angle \f$\varphi_" \in [-\pi,\pi)\f$ of the second vector
- * \arg theta2 The angle \f$\vartheta_" \in [0,\pi]\f$ of the second vector
+ * \arg phi1   The angle varphi_1 in [0,2\pi) of the first vector
+ * \arg theta1 The angle vartheta_1 in [0,\pi] of the first vector
+ * \arg phi2   The angle varphi_2 in [0,2\pi) of the second vector
+ * \arg theta2 The angle vartheta_2 in [0,\pi] of the second vector
  *
- * \return The inner product \f$\cos\vartheta_1\cos\vartheta_2 +
- *   \sin\vartheta_1\sin(\vartheta_2\cos(\varphi_1-\varphi_2)\f$
+ * \return The inner product \cos \vartheta_1 \cos \vartheta_2 +
+ *   \sin \vartheta_1 \sin(\vartheta_2 \cos(\varphi_1 - \varphi_2)
  *
  * \author Jens Keiner
  */
-double innerProduct(const double phi1, const double theta1, const double phi2,
-  const double theta2)
+double innerProductS2(const double phi1, const double theta1, 
+  const double phi2, const double theta2)
 {
   return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
 }
 
 /**
- * Evaluates the Poisson kernel \f$Q_h: [-1,1] \rightarrow \mathbb{R}\f$ at a
- * node \f$x \in [-1,1]\f$.
+ * Evaluates the Poisson kernel Q_h: [-1,1] -> R at a node x in [-1,1].
  *
- * \arg x The node \f$x \in [-1,1]\f$
- * \arg h The parameter \f$h \in (0,1)\f$
+ * \arg x The node x in [-1,1]
+ * \arg h The parameter h in (0,1)
  *
- * \return The value of the Poisson kernel \f$Q_h(x)\f$ at the node \f$x\f$
+ * \return The value of the Poisson kernel Q_h(x) at the node x
  *
  * \author Jens Keiner
  */
@@ -505,7 +504,7 @@ int main (int argc, char **argv)
               {
                 /* Compute inner product between current source and target
                  * node. */
-                temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                temp = innerProductS2(2*PI*eta[2*l],2*PI*eta[2*l+1],
                   2*PI*xi[2*d],2*PI*xi[2*d+1]);
 
                 /* Switch by the kernel type. */
@@ -638,7 +637,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                    temp = innerProductS2(2*PI*eta[2*l],2*PI*eta[2*l+1],
                       2*PI*xi[2*d],2*PI*xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
@@ -660,7 +659,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                    temp = innerProductS2(2*PI*eta[2*l],2*PI*eta[2*l+1],
                       2*PI*xi[2*d],2*PI*xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
@@ -685,7 +684,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                    temp = innerProductS2(2*PI*eta[2*l],2*PI*eta[2*l+1],
                       2*PI*xi[2*d],2*PI*xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
@@ -710,7 +709,7 @@ int main (int argc, char **argv)
                     {
                       /* Compute the inner product for the current source and
                        * target nodes. */
-                      temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
+                      temp = innerProductS2(2*PI*eta[2*l],2*PI*eta[2*l+1],
                         2*PI*xi[2*d],2*PI*xi[2*d+1]);
                       /* Evaluate the Poisson kernel for the current value and add
                        * to the result. */
