@@ -534,4 +534,5 @@ AC_OUTPUT(Makefile \
 		applications/texture/examplesTexture/data/Makefile \
 		applications/texture/examplesTexture/data/util/Makefile \
 		applications/texture/examplesTexture/data/data_publication/Makefile 
+		doxygen/doxygen.Doxyfile
 )
