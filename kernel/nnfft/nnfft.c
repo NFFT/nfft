@@ -539,7 +539,6 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
 {
   int t;                             /**< index over all dimensions        */
   
-  int N2[d];
   unsigned nfft_flags;
   unsigned fftw_flags;
   
@@ -574,7 +573,6 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 {
   int t;                            /**< index over all dimensions        */
 
-  int N2[d];
   unsigned nfft_flags;
   unsigned fftw_flags;
 

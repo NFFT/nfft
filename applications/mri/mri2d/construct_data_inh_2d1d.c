@@ -16,8 +16,8 @@
  */
 void construct(char * file, int N, int M)
 {
-  int j,k,l;                  /* some variables */
-  double real,imag;
+  int j;                  /* some variables */
+  double real;
   double w;
   double time,min_time,max_time,min_inh,max_inh;
   mri_inh_2d1d_plan my_plan;  

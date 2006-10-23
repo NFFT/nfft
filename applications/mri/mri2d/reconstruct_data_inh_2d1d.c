@@ -13,7 +13,6 @@
 void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
-  double weights;
   double time,min_time,max_time,min_inh,max_inh;
   double t,real,imag;
   double w,epsilon=0.0000003;     /* epsilon is a the break criterium for
