@@ -19,3 +19,6 @@ flags_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 nfft_times_SOURCES = nfft_times.c
 nfft_times_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
+
+## Include these extra files in the distribution.
+EXTRA_DIST = flags.m ndft_fast.m taylor_nfft.m README

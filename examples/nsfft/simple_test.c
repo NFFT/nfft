@@ -11,7 +11,7 @@ void simple_test_nsfft(int d, int J, int M)
   int K=12;
   nsfft_plan p;
 
-  nsfft_init(&p, d, J, M, 6, SNDFT);
+  nsfft_init(&p, d, J, M, 6, NSDFT);
 
   nsfft_init_random_nodes_coeffs(&p);
 

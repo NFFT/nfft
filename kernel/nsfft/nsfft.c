@@ -1591,7 +1591,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->center_nfft_plan->K=ths->act_nfft_plan->K;
   ths->center_nfft_plan->psi=ths->act_nfft_plan->psi;
 
-  if(ths->flags & SNDFT)
+  if(ths->flags & NSDFT)
     {
       ths->index_sparse_to_full=(int*)fftw_malloc(ths->N_total*sizeof(int));
       init_index_sparse_to_full_2d(ths);
@@ -1709,7 +1709,7 @@ void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
   ths->center_nfft_plan->K=ths->act_nfft_plan->K;
   ths->center_nfft_plan->psi=ths->act_nfft_plan->psi;
 
-  if(ths->flags & SNDFT)
+  if(ths->flags & NSDFT)
     {
       ths->index_sparse_to_full=(int*)fftw_malloc(ths->N_total*sizeof(int));
       init_index_sparse_to_full_3d(ths);
@@ -1738,7 +1738,7 @@ void nsfft_finalize_2d(nsfft_plan *ths)
 {
   int r;
 
-  if(ths->flags & SNDFT)
+  if(ths->flags & NSDFT)
     fftw_free(ths->index_sparse_to_full);
 
   /* center plan */
@@ -1781,7 +1781,7 @@ void nsfft_finalize_3d(nsfft_plan *ths)
 {
   int r;
 
-  if(ths->flags & SNDFT)
+  if(ths->flags & NSDFT)
     fftw_free(ths->index_sparse_to_full);
 
   /* center plan */

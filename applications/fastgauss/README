@@ -1,3 +1,28 @@
+Examples to the fast Gauss transform with complex parameters
+
+Author
+
+  Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+
+List of files and purpose
+
+  README            this file
+  fastgauss.c       univariate Gauss transform and tests
+  levelplots.m	    visualisation with MATLAB of error estimates
+
+....
+
+  ndft_fast.m       visualisation with MATLAB, calls the executable ndft_fast
+  nfft_times.c      compares 1d, 2d, and 3d times to compute nffts and ffts,
+                    outputs a latex-table
+  taylor_nfft.c     compares the nfft with a taylor expansion based one
+  taylor_nfft.m     visualisation with MATLAB, calls the executable taylor_nfft
+
+References
+
+  Kunis, S. and Potts, D. Time and memory requirements of the nonequispaced FFT
+  Preprint 2006-1, Chemnitz University of Technology, Faculty of Mathematics
+
 The executable produces by default a simple test and prints to stdout.
 By changing the subroutine call in the source code, different tests are
 performed. Piped to files and used by the MATLAB file show_results, the figures

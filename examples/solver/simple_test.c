@@ -14,15 +14,15 @@ void simple_test_infft_1d(int N, int M, int iter)
   /** initialise an one dimensional plan */
   nfft_init_1d(&p, N, M);
 
-  /** initialise inverse plan */
-  infft_init(&ip,&p);
-
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
   
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
+
+  /** initialise inverse plan */
+  infft_init(&ip,&p);
 
   /** init pseudo random samples and show them */
   nfft_vrand_unit_complex(ip.y,p.M_total);

@@ -469,7 +469,7 @@ typedef struct
 
   double *x;                            /**< nodes (in time/spatial domain)   */
 
-  double MEASURE_TIME_t[3];             /**< measured time for each step     */
+  double MEASURE_TIME_t[3];             /**< measured time for each step      */
 
   /** internal */
   fftw_plan  my_fftw_r2r_plan;          /**< fftw_plan                        */
@@ -904,13 +904,17 @@ int nfst_fftw_2N_rev( int n);
  * @{
  */
 
-
+/**
+ * If this flag is set, (de)allocation of the frequency node vector is done.
+ *
+ * \see nnfft_init
+ * \see nnfft_init_guru
+ * \see nnfft_finalize
+ * \author Tobias Knopp
+ */
 #define MALLOC_V         (1U<< 11)
 
-
-/**
- * Structure for a transform plan
- */
+/** Structure for a transform plan */
 typedef struct
 {
   /* api */
@@ -1101,16 +1105,24 @@ void nnfft_finalize(nnfft_plan *ths_plan);
 /*###########################################################################*/
 /*###########################################################################*/
 
-/** @defgroup nsfft NSFFT - Nonequispaced sparse fast Fourier transform
- * Direct and fast computation of the
- * hyperbolic discrete Fourier transform at nonequispaced knots
+/** @defgroup nsfft NSFFT - Nonequispaced sparse FFT
+ * Direct and fast computation of the nonequispaced FFT on the hyperbolic
+ * cross.
  * @{
  */
 
-#define SNDFT            (1U<< 12)
+/**
+ * If this flag is set, the member \ref index_sparse_to_full is (de)allocated
+ * and initialised for the use in the routine \ref nsdft_trafo and
+ * \ref nsdft_adjoint.
+ *
+ * \see nsfft_init
+ * \author Stefan Kunis
+ */
+#define NSDFT            (1U<< 12)
 
-
-typedef struct nsfft_plan_
+/** Structure for a NFFT plan */
+typedef struct
 {
   MACRO_MV_PLAN(double complex)
 
@@ -2187,19 +2199,6 @@ void fpt_finalize(fpt_set set);
 #define PRECOMPUTE_DAMP       (1U<< 6)
 
 /**
- * Function mangling macro.
- * 
- * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
- * \arg FLT Float used as prefix for function names (double or complex)
- * \arg FLT_TYPE Float type (double or double complex)
- * \arg NAME Name of the functions suffix
- * \arg ...  argument list of the function
- *
- * \author Stefan Kunis
- */
-#define F(MV, FLT, FLT_TYPE, NAME, ...) void i ## MV ## _ ## NAME(__VA_ARGS__)
-
-/**
  * Complete macro for mangling an inverse transform.
  * 
  * \arg MV Matrix vector multiplication type (eg nfft, nfct)
@@ -2243,16 +2242,25 @@ typedef struct                                                                \
 } i ## MV ## _plan;                                                           \
                                                                               \
 /** Simple initialisation. */                                                 \
-F(MV, FLT, FLT_TYPE, init,    i ## MV ## _plan *ths, MV ## _plan *mv);        \
+void i ## MV ## _init(i ## MV ## _plan *ths, MV ## _plan *mv);                \
 /** Advanced initialisation. */                                               \
-F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
-                          unsigned i ## MV ## _flags);                        \
+void i ## MV ## _init_advanced(i ## MV ## _plan *ths, MV ## _plan *mv,        \
+                               unsigned i ## MV ## _flags);                   \
 /** Setting up residuals before the actual iteration. */                      \
-F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths);                   \
+void i ## MV ## _before_loop(i ## MV ## _plan *ths);                          \
 /** Doing one step in the iteration. */                                       \
-F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths);                   \
+void i ## MV ## _loop_one_step(i ## MV ## _plan *ths);                        \
 /** Destroys the plan for the inverse transform. */                           \
-F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);                   \
+void i ## MV ## _finalize(i ## MV ## _plan *ths);                             \
+
+/* previous function declarations didn't work with doxygen ....
+  F(MV, FLT, FLT_TYPE, init,    i ## MV ## _plan *ths, MV ## _plan *mv);
+  F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,
+                                      unsigned i ## MV ## _flags);
+  F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths);
+  F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths);
+  F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);
+*/
 
 
 MACRO_SOLVER_PLAN(nfft, complex, double complex)

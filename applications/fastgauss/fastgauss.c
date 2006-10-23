@@ -8,37 +8,31 @@
 #include "nfft3.h"
 #include "util.h"
 
-/** 
- * \defgroup applications_fastgauss Fast Gauss transform
- * \ingroup applications
- * \{
- */
-
 #define DGT_PRE_CEXP     (1U<< 0)
 #define FGT_NDFT         (1U<< 1)
 #define FGT_APPROX_B     (1U<< 2)
 
-typedef struct fgt_plan_ 
+typedef struct
 {
   int N;                                /**< number of source knots          */
   int M;                                /**< number of target knots          */
 
-  complex *alpha;                       /**< source coefficients             */
-  complex *f;                           /**< target evaluations              */
+  double complex *alpha;                       /**< source coefficients             */
+  double complex *f;                           /**< target evaluations              */
 
   unsigned flags;                       /**< flags precomp. and approx.type  */
 
-  complex sigma;                        /**< parameter of the Gaussian       */
+  double complex sigma;                        /**< parameter of the Gaussian       */
 
-  double *x;                            /**< source knots in [-1/4,1/4]      */
-  double *y;                            /**< target knots in [-1/4,1/4]      */
+  double *x;                            /**< source knots in \f$[-1/4,1/4]\f$*/
+  double *y;                            /**< target knots in \f$[-1/4,1/4]\f$*/
 
-  complex *pre_cexp;                    /**< precomputed values for dgt      */
+  double complex *pre_cexp;                    /**< precomputed values for dgt      */
 
   int n;                                /**< expansion degree                */
   double p;                             /**< period, at least 1              */
 
-  complex *b;                           /**< expansion coefficients          */
+  double complex *b;                           /**< expansion coefficients          */
 
   nfft_plan *nplan1;                    /**< source nfft plan                */
   nfft_plan *nplan2;                    /**< target nfft plan                */
@@ -87,7 +81,7 @@ void fgt_trafo(fgt_plan *ths)
     }
 }
 
-void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
+void fgt_init_guru(fgt_plan *ths, int N, int M, double complex sigma, int n, double p,
 		   int m, unsigned flags)
 {
   int j,k,l,n_fftw;
@@ -100,23 +94,18 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
 
   ths->x = (double*)fftw_malloc(ths->N*sizeof(double));
   ths->y = (double*)fftw_malloc(ths->M*sizeof(double));
-  ths->alpha = (complex*)fftw_malloc(ths->N*sizeof(complex));
-  ths->f = (complex*)fftw_malloc(ths->M*sizeof(complex));
+  ths->alpha = (double complex*)fftw_malloc(ths->N*sizeof(double complex));
+  ths->f = (double complex*)fftw_malloc(ths->M*sizeof(double complex));
 
   ths->n = n;
   ths->p = p;
 
-  ths->b = (complex*)fftw_malloc(ths->n*sizeof(complex));
+  ths->b = (double complex*)fftw_malloc(ths->n*sizeof(double complex));
 
   ths->nplan1 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
   ths->nplan2 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
 
   n_fftw=nfft_next_power_of_2(2*ths->n);
-
-  /* 
-     TODO: PRE_PHI_HUT only once?, FFTW_INIT only once?, PRE_LIN_PSI instead of
-     PRE_PSI and only once?
-  */
 
   nfft_init_guru(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT|
                  PRE_PSI| MALLOC_X| MALLOC_F_HAT| FFTW_INIT, FFTW_MEASURE);
@@ -151,7 +140,7 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, complex sigma, int n, double p,
     }
 }
 
-void fgt_init(fgt_plan *ths, int N, int M, complex sigma, double eps)
+void fgt_init(fgt_plan *ths, int N, int M, double complex sigma, double eps)
 {
   double p;
   int n;
@@ -174,7 +163,7 @@ void fgt_init_knot_dependent(fgt_plan *ths)
 
   if(ths->flags & DGT_PRE_CEXP)
    {
-     ths->pre_cexp=(complex*)fftw_malloc(ths->M*ths->N*sizeof(complex));
+     ths->pre_cexp=(double complex*)fftw_malloc(ths->M*ths->N*sizeof(double complex));
 
      for(j=0,l=0; j<ths->M; j++)
        for(k=0; k<ths->N; k++,l++)
@@ -209,13 +198,6 @@ void fgt_finalize(fgt_plan *ths)
   fftw_free(ths->alpha);
   fftw_free(ths->x);
 }
-/* \} */
-
-/** \defgroup applications_fastgauss_test fastgauss_test
- * Contains the tests
- * \ingroup applications_fastgauss
- * \{ 
- */
 
 void fgt_test_init_rand(fgt_plan *ths)
 {
@@ -260,13 +242,13 @@ double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
   return t_out;
 }
 
-void fgt_test_simple(int N, int M, complex sigma, double eps)
+void fgt_test_simple(int N, int M, double complex sigma, double eps)
 {
   fgt_plan my_plan;
-  complex *swap_dgt;
+  double complex *swap_dgt;
      
   fgt_init(&my_plan, N, M, sigma, eps);
-  swap_dgt = (complex*)fftw_malloc(my_plan.M*sizeof(complex));
+  swap_dgt = (double complex*)fftw_malloc(my_plan.M*sizeof(double complex));
 
   fgt_test_init_rand(&my_plan);
   fgt_init_knot_dependent(&my_plan);   
@@ -288,17 +270,17 @@ void fgt_test_simple(int N, int M, complex sigma, double eps)
 
 /** fgt_andersson_test similar to the test in
  *  F. Andersson and G. Beylkin.
- *  The fast Gauss transform with complex parameters.
+ *  The fast Gauss transform with double complex parameters.
  *  J. Comput. Physics 203 (2005) 274-286
  */
 void fgt_test_andersson()
 {
   fgt_plan my_plan;
-  complex *swap_dgt;
+  double complex *swap_dgt;
   int N;
   int r,k,j;
 
-  complex sigma=4*(138+I*100);
+  double complex sigma=4*(138+I*100);
   int n=128;
   int N_dgt_pre_exp=(int)(1U<<11);
   int N_dgt=(int)(1U<<19);
@@ -314,7 +296,7 @@ void fgt_test_andersson()
       else
         fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, 0);
 
-      swap_dgt = (complex*)fftw_malloc(my_plan.M*sizeof(complex));
+      swap_dgt = (double complex*)fftw_malloc(my_plan.M*sizeof(double complex));
 
       fgt_test_init_rand(&my_plan);
       
@@ -358,10 +340,10 @@ void fgt_test_andersson()
 void fgt_test_error()
 {
   fgt_plan my_plan;
-  complex *swap_dgt;
+  double complex *swap_dgt;
   int n,mi;
 
-  complex sigma=4*(138+I*100);
+  double complex sigma=4*(138+I*100);
   int N=1000;
   int M=1000;
   int m[2]={7,3};
@@ -369,7 +351,7 @@ void fgt_test_error()
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
-  swap_dgt = (complex*)fftw_malloc(M*sizeof(complex));
+  swap_dgt = (double complex*)fftw_malloc(M*sizeof(double complex));
 
   for(n=8; n<=128; n+=4)
     {
@@ -403,10 +385,10 @@ void fgt_test_error()
 void fgt_test_error_p()
 {
   fgt_plan my_plan;
-  complex *swap_dgt;
+  double complex *swap_dgt;
   int n,pi;
 
-  complex sigma=20+40I;
+  double complex sigma=20+40I;
   int N=1000;
   int M=1000;
   double p[3]={1,1.5,2};
@@ -414,7 +396,7 @@ void fgt_test_error_p()
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
-  swap_dgt = (complex*)fftw_malloc(M*sizeof(complex));
+  swap_dgt = (double complex*)fftw_malloc(M*sizeof(double complex));
 
   for(n=8; n<=128; n+=4)
     {

@@ -11,7 +11,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_plan p;
   double complex *swap_sndft_trafo, *swap_sndft_adjoint;
 
-  nsfft_init(&p, d, J, M, m, SNDFT);
+  nsfft_init(&p, d, J, M, m, NSDFT);
 
   swap_sndft_trafo=(double complex*) fftw_malloc(p.M_total*
 						 sizeof(double complex));
@@ -74,7 +74,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   /** init */
   m=nfft_total_used_memory();
-  nsfft_init(&p, d, J, M, 4, SNDFT);
+  nsfft_init(&p, d, J, M, 4, NSDFT);
   m_nsfft=nfft_total_used_memory()-m;
   nsfft_init_random_nodes_coeffs(&p);
 
