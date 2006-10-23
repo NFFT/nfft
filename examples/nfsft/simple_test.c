@@ -104,6 +104,7 @@ void simple_test_nfsft()
 
   /* Finalise the plan. */
   nfsft_finalize(&plan);
+	nfsft_forget();
 }
 
 int main()
