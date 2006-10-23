@@ -1,0 +1,5027 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.0'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[    155609,       4835]*)
+(*NotebookOutlinePosition[    156238,       4857]*)
+(*  CellTagsIndexPosition[    156194,       4853]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Definition", "Subsection"],
+
+Cell[BoxData[
+    \(eps[m_, n_] := If[m > n, \((\(-1\))\)^\((m - n)\), 1]\)], "Input"],
+
+Cell[BoxData[
+    \(\[Mu][m_, n_] := \ Abs[m - n]\)], "Input"],
+
+Cell[BoxData[
+    \(\[Nu][m_, n_] := Abs[m + n]\)], "Input"],
+
+Cell[BoxData[
+    \(\[Xi][l_, m_, n_] := l - 1/2*\((\[Mu][m, n] + \[Nu][m, n])\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\[Xi][l, m, n]\)], "Input"],
+
+Cell[BoxData[
+    \(l + 1\/2\ \((\(-Abs[m - n]\) - Abs[m + n])\)\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[{
+    \(\(PowSin[\[Omega]_, p_] := 
+        Sin[\[Omega]]\^p /; p \[NotEqual] 0;\)\), "\[IndentingNewLine]", 
+    \(\(PowSin[\[Omega]_, p_] := 
+        1 /; p \[Equal] 0;\)\), "\[IndentingNewLine]", 
+    \(\(PowCos[\[Omega]_, p_] := 
+        Cos[\[Omega]]\^p /; p \[NotEqual] 0;\)\), "\n", 
+    \(\(PowCos[\[Omega]_, p_] := 1 /; p \[Equal] 0;\)\)}], "Input"],
+
+Cell[BoxData[
+    \(wignerd[l_, m_, n_, beta_] := 
+      eps[m, n]*\@\(\(\(\[Xi][l, m, n]!\) \(\((\[Xi][l, m, n] + \[Mu][m, n] + \
+\[Nu][m, n])\)!\)\)\/\(\(\((\[Xi][l, m, n] + \[Mu][m, n])\)!\) \(\((\[Xi][l, \
+m, n] + \[Nu][m, n])\)!\)\)\)*PowSin[beta/2, \[Mu][m, n]]*
+        PowCos[beta/2, \[Nu][m, n]]*
+        JacobiP[\[Xi][l, m, n], \[Mu][m, n], \[Nu][m, n], 
+          Cos[beta]]\)], "Input"],
+
+Cell[BoxData[
+    \(WignerD[l_, m_, 
+        n_, {alpha_, beta_, 
+          gamma_}] := \[ExponentialE]\^\(\(-\[ImaginaryI]\)*m*alpha\)*
+        wignerd[l, m, n, 
+          beta]*\[ExponentialE]\^\(\(-\[ImaginaryI]\)*n*gamma\)\)], "Input",
+  FontSize->16]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Normalization", "Subsection"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(1\/\(8  \[Pi]\^2\)\) \(\[Integral]\_0\%\(2  \[Pi]\)\(\[Integral]\_0\%\
+\[Pi]\(\[Integral]\_0\%\(2  \[Pi]\)WignerD[l, 0, 
+                  0, {\[Alpha], \[Beta], \[Gamma]}] 
+                Sin[\[Beta]] \[DifferentialD]\[Alpha] \[DifferentialD]\[Beta] \
+\[DifferentialD]\[Gamma]\)\)\) /. l \[Rule] 0\)], "Input"],
+
+Cell[BoxData[
+    \(1\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(\(2  l + 
+              1\)\/\(8  \[Pi]\^2\)\) \(\[Integral]\_0\%\(2  \[Pi]\)\(\
+\[Integral]\_0\%\[Pi]\(\[Integral]\_0\%\(2  \[Pi]\)\(Abs[
+                      WignerD[l, \(-3\), 
+                        0, {\[Alpha], \[Beta], \[Gamma]}]]\^2\) 
+                Sin[\[Beta]] \[DifferentialD]\[Alpha] \[DifferentialD]\[Beta] \
+\[DifferentialD]\[Gamma]\)\)\) /. l \[Rule] 3\)], "Input",
+  FontSize->14],
+
+Cell[BoxData[
+    \(1\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Kernel function", "Subsection"],
+
+Cell["\<\
+Chebyshev Coefficients \[Rule] Abel Poisson kernel:\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(A[l_, \[Kappa]_] := \((2  l + 1)\) \[Kappa]\^\(2  l\);\)\)], "Input"],
+
+Cell["Bandbreite:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Plot[Log[A[l, 0.92]], {l, 0, 127}]\)], "Input"],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+%%IncludeResource: font Courier
+%%IncludeFont: Courier
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+0.0238095 0.00749906 0.549687 0.0342105 [
+[.17379 .53719 -6 -9 ]
+[.17379 .53719 6 0 ]
+[.32377 .53719 -6 -9 ]
+[.32377 .53719 6 0 ]
+[.47375 .53719 -6 -9 ]
+[.47375 .53719 6 0 ]
+[.62373 .53719 -6 -9 ]
+[.62373 .53719 6 0 ]
+[.77372 .53719 -9 -9 ]
+[.77372 .53719 9 0 ]
+[.9237 .53719 -9 -9 ]
+[.9237 .53719 9 0 ]
+[.01131 .03653 -18 -4.5 ]
+[.01131 .03653 0 4.5 ]
+[.01131 .12206 -30 -4.5 ]
+[.01131 .12206 0 4.5 ]
+[.01131 .20758 -18 -4.5 ]
+[.01131 .20758 0 4.5 ]
+[.01131 .29311 -24 -4.5 ]
+[.01131 .29311 0 4.5 ]
+[.01131 .37863 -12 -4.5 ]
+[.01131 .37863 0 4.5 ]
+[.01131 .46416 -24 -4.5 ]
+[.01131 .46416 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.17379 .54969 m
+.17379 .55594 L
+s
+[(20)] .17379 .53719 0 1 Mshowa
+.32377 .54969 m
+.32377 .55594 L
+s
+[(40)] .32377 .53719 0 1 Mshowa
+.47375 .54969 m
+.47375 .55594 L
+s
+[(60)] .47375 .53719 0 1 Mshowa
+.62373 .54969 m
+.62373 .55594 L
+s
+[(80)] .62373 .53719 0 1 Mshowa
+.77372 .54969 m
+.77372 .55594 L
+s
+[(100)] .77372 .53719 0 1 Mshowa
+.9237 .54969 m
+.9237 .55594 L
+s
+[(120)] .9237 .53719 0 1 Mshowa
+.125 Mabswid
+.0613 .54969 m
+.0613 .55344 L
+s
+.0988 .54969 m
+.0988 .55344 L
+s
+.1363 .54969 m
+.1363 .55344 L
+s
+.21129 .54969 m
+.21129 .55344 L
+s
+.24878 .54969 m
+.24878 .55344 L
+s
+.28628 .54969 m
+.28628 .55344 L
+s
+.36127 .54969 m
+.36127 .55344 L
+s
+.39876 .54969 m
+.39876 .55344 L
+s
+.43626 .54969 m
+.43626 .55344 L
+s
+.51125 .54969 m
+.51125 .55344 L
+s
+.54874 .54969 m
+.54874 .55344 L
+s
+.58624 .54969 m
+.58624 .55344 L
+s
+.66123 .54969 m
+.66123 .55344 L
+s
+.69873 .54969 m
+.69873 .55344 L
+s
+.73622 .54969 m
+.73622 .55344 L
+s
+.81121 .54969 m
+.81121 .55344 L
+s
+.84871 .54969 m
+.84871 .55344 L
+s
+.8862 .54969 m
+.8862 .55344 L
+s
+.96119 .54969 m
+.96119 .55344 L
+s
+.99869 .54969 m
+.99869 .55344 L
+s
+.25 Mabswid
+0 .54969 m
+1 .54969 L
+s
+.02381 .03653 m
+.03006 .03653 L
+s
+[(-15)] .01131 .03653 1 0 Mshowa
+.02381 .12206 m
+.03006 .12206 L
+s
+[(-12.5)] .01131 .12206 1 0 Mshowa
+.02381 .20758 m
+.03006 .20758 L
+s
+[(-10)] .01131 .20758 1 0 Mshowa
+.02381 .29311 m
+.03006 .29311 L
+s
+[(-7.5)] .01131 .29311 1 0 Mshowa
+.02381 .37863 m
+.03006 .37863 L
+s
+[(-5)] .01131 .37863 1 0 Mshowa
+.02381 .46416 m
+.03006 .46416 L
+s
+[(-2.5)] .01131 .46416 1 0 Mshowa
+.125 Mabswid
+.02381 .05364 m
+.02756 .05364 L
+s
+.02381 .07074 m
+.02756 .07074 L
+s
+.02381 .08785 m
+.02756 .08785 L
+s
+.02381 .10495 m
+.02756 .10495 L
+s
+.02381 .13916 m
+.02756 .13916 L
+s
+.02381 .15627 m
+.02756 .15627 L
+s
+.02381 .17337 m
+.02756 .17337 L
+s
+.02381 .19048 m
+.02756 .19048 L
+s
+.02381 .22469 m
+.02756 .22469 L
+s
+.02381 .24179 m
+.02756 .24179 L
+s
+.02381 .2589 m
+.02756 .2589 L
+s
+.02381 .276 m
+.02756 .276 L
+s
+.02381 .31021 m
+.02756 .31021 L
+s
+.02381 .32732 m
+.02756 .32732 L
+s
+.02381 .34442 m
+.02756 .34442 L
+s
+.02381 .36153 m
+.02756 .36153 L
+s
+.02381 .39574 m
+.02756 .39574 L
+s
+.02381 .41285 m
+.02756 .41285 L
+s
+.02381 .42995 m
+.02756 .42995 L
+s
+.02381 .44706 m
+.02756 .44706 L
+s
+.02381 .48127 m
+.02756 .48127 L
+s
+.02381 .49837 m
+.02756 .49837 L
+s
+.02381 .51548 m
+.02756 .51548 L
+s
+.02381 .53258 m
+.02756 .53258 L
+s
+.02381 .01942 m
+.02756 .01942 L
+s
+.02381 .00232 m
+.02756 .00232 L
+s
+.02381 .56679 m
+.02756 .56679 L
+s
+.02381 .5839 m
+.02756 .5839 L
+s
+.02381 .601 m
+.02756 .601 L
+s
+.25 Mabswid
+.02381 0 m
+.02381 .61803 L
+s
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+.5 Mabswid
+.02381 .54969 m
+.02499 .55812 L
+.02605 .56403 L
+.02846 .57373 L
+.03068 .58008 L
+.03279 .58466 L
+.03524 .58882 L
+.0375 .59186 L
+.04014 .59467 L
+.04262 .59677 L
+.0472 .59961 L
+.04963 .60069 L
+.05224 .6016 L
+.05497 .60231 L
+.05632 .60258 L
+.05757 .60279 L
+.05879 .60296 L
+.0599 .60308 L
+.06113 .60318 L
+.06244 .60326 L
+.0637 .6033 L
+.06442 .60332 L
+.06508 .60332 L
+.06579 .60331 L
+.06643 .6033 L
+.06717 .60328 L
+.06787 .60325 L
+.06912 .60319 L
+.07026 .6031 L
+.07287 .60285 L
+.07547 .60252 L
+.07833 .60206 L
+.08414 .6009 L
+.09468 .59809 L
+.10458 .59482 L
+.14327 .57828 L
+.18441 .55684 L
+.22403 .53408 L
+.26214 .51095 L
+.3027 .48539 L
+.34175 .46011 L
+.38324 .43269 L
+.42323 .40585 L
+.46169 .3797 L
+.50261 .35161 L
+.54201 .32431 L
+.5799 .29789 L
+.62024 .26958 L
+.65906 .24219 L
+.70034 .21293 L
+Mistroke
+.7401 .18462 L
+.77835 .1573 L
+.81905 .12812 L
+.85823 .09995 L
+.89986 .06994 L
+.93998 .04094 L
+.97619 .01472 L
+Mfstroke
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  ImageSize->{288, 177.938},
+  ImageMargins->{{43, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`40004P0000/B000`400?l00000o`00003oo`3ooolQ
+0?ooo`00o`3ooolQ0?ooo`00o`3ooolQ0?ooo`00o`3ooolQ0?ooo`00o`3ooolQ0?ooo`00o`3ooolQ
+0?ooo`00o`3ooolQ0?ooo`00o`3ooolQ0?ooo`008@3oool200000?d0oooo000Q0?ooo`030000003o
+ool0oooo0?`0oooo000Q0?ooo`030000003oool0oooo0?`0oooo000Q0?ooo`030000003oool0oooo
+0?`0oooo000Q0?ooo`030000003oool0oooo0?@0oooo00<000000?ooo`3oool01@3oool00240oooo
+0P00003c0?ooo`800000203oool00240oooo00<000000?ooo`3oool0l@3oool00`000000oooo0?oo
+o`080?ooo`004`3oool400000080oooo0`0000050?ooo`030000003oool0oooo0>l0oooo0P00000;
+0?ooo`005@3oool00`000000oooo0?ooo`040?ooo`030000003oool0oooo0080oooo00<000000?oo
+o`3oool0kP3oool00`000000oooo0?ooo`0;0?ooo`005@3oool00`000000oooo0?ooo`040?ooo`03
+0000003oool0oooo0080oooo0P00003]0?ooo`8000003P3oool000d0oooo100000040?ooo`040000
+003oool0oooo0?ooo`<000001@3oool00`000000oooo0?ooo`3[0?ooo`030000003oool0oooo00h0
+oooo000E0?ooo`050000003oool0oooo0?ooo`0000001`3oool00`000000oooo0?ooo`3Y0?ooo`80
+00004@3oool001<0oooo0`0000030?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3oool0
+j03oool00`000000oooo0?ooo`0A0?ooo`005@3oool010000000oooo0?ooo`3oool4000000@0oooo
+00<000000?ooo`3oool0i`3oool00`000000oooo0?ooo`0B0?ooo`008@3oool200000>H0oooo0P00
+000E0?ooo`008@3oool00`000000oooo0?ooo`3T0?ooo`030000003oool0oooo01D0oooo000Q0?oo
+o`030000003oool0oooo0><0oooo00<000000?ooo`3oool05P3oool00240oooo00<000000?ooo`3o
+ool0h@3oool2000001T0oooo000Q0?ooo`800000h@3oool00`000000oooo0?ooo`0I0?ooo`008@3o
+ool00`000000oooo0?ooo`3O0?ooo`030000003oool0oooo01X0oooo000Q0?ooo`030000003oool0
+oooo0=d0oooo0P00000M0?ooo`008@3oool00`000000oooo0?ooo`3L0?ooo`030000003oool0oooo
+01d0oooo000Q0?ooo`030000003oool0oooo0=/0oooo00<000000?ooo`3oool07P3oool00240oooo
+0P00003K0?ooo`030000003oool0oooo01l0oooo000Q0?ooo`030000003oool0oooo0=P0oooo0P00
+000R0?ooo`008@3oool00`000000oooo0?ooo`3G0?ooo`030000003oool0oooo0280oooo000Q0?oo
+o`030000003oool0oooo0=H0oooo00<000000?ooo`3oool08`3oool00240oooo0P00003E0?ooo`80
+00009P3oool00240oooo00<000000?ooo`3oool0d`3oool00`000000oooo0?ooo`0V0?ooo`001`3o
+ool400000080oooo100000030?ooo`030000003oool0oooo0080oooo0`0000050?ooo`030000003o
+ool0oooo0=40oooo0P00000Y0?ooo`002@3oool01@000000oooo0?ooo`3oool0000000h0oooo00<0
+00000?ooo`3oool00P3oool00`000000oooo0?ooo`3?0?ooo`800000:`3oool000T0oooo00<00000
+0?ooo`3oool00P3oool00`000000oooo0?ooo`0;0?ooo`030000003oool0oooo0080oooo0P00003?
+0?ooo`030000003oool0oooo02/0oooo00000`3oool0000000000002000000@0oooo00<000000?oo
+o`3oool00`3oool00`000000oooo0?ooo`070?ooo`<000001@3oool00`000000oooo0?ooo`3<0?oo
+o`800000;P3oool000T0oooo00<000000?ooo`3oool0103oool00`000000oooo0?ooo`060?ooo`03
+0000003oool0oooo00D0oooo00<000000?ooo`3oool0b`3oool00`000000oooo0?ooo`0^0?ooo`00
+1`3oool3000000<0oooo00@000000?ooo`3oool00000203oool00`000000oooo0?ooo`050?ooo`03
+0000003oool0oooo0<X0oooo00<000000?ooo`3oool0;`3oool000T0oooo00<000000?ooo`3oool0
+0P3oool2000000T0oooo100000040?ooo`030000003oool0oooo0<P0oooo0P00000b0?ooo`008@3o
+ool200000<P0oooo00<000000?ooo`3oool0<P3oool00240oooo00<000000?ooo`3oool0aP3oool0
+0`000000oooo0?ooo`0c0?ooo`008@3oool00`000000oooo0?ooo`350?ooo`030000003oool0oooo
+03@0oooo000Q0?ooo`030000003oool0oooo0<<0oooo0P00000g0?ooo`008@3oool200000<<0oooo
+00<000000?ooo`3oool0=`3oool00240oooo00<000000?ooo`3oool0`@3oool00`000000oooo0?oo
+o`0h0?ooo`008@3oool00`000000oooo0?ooo`2o0?ooo`800000>`3oool00240oooo00<000000?oo
+o`3oool0_P3oool00`000000oooo0?ooo`0k0?ooo`008@3oool00`000000oooo0?ooo`2l0?ooo`80
+0000?P3oool00240oooo0P00002l0?ooo`030000003oool0oooo03h0oooo000Q0?ooo`030000003o
+ool0oooo0;X0oooo00<000000?ooo`3oool0?`3oool00240oooo00<000000?ooo`3oool0^03oool2
+00000480oooo000Q0?ooo`030000003oool0oooo0;L0oooo00<000000?ooo`3oool0@P3oool00240
+oooo0P00002f0?ooo`800000A@3oool00240oooo00<000000?ooo`3oool0]03oool00`000000oooo
+0?ooo`150?ooo`008@3oool00`000000oooo0?ooo`2b0?ooo`800000B03oool001<0oooo10000003
+0?ooo`8000001@3oool00`000000oooo0?ooo`2a0?ooo`030000003oool0oooo04P0oooo000E0?oo
+o`050000003oool0oooo0?ooo`0000000P3oool00`000000oooo0?ooo`020?ooo`030000003oool0
+oooo0;00oooo00<000000?ooo`3oool0B@3oool001D0oooo00D000000?ooo`3oool0oooo00000002
+0?ooo`030000003oool0oooo0080oooo0P00002_0?ooo`800000C03oool000d0oooo100000040?oo
+o`050000003oool0oooo0?ooo`0000000P3oool00`000000oooo0?ooo`020?ooo`030000003oool0
+oooo0:d0oooo00<000000?ooo`3oool0C03oool001D0oooo00D000000?ooo`3oool0oooo00000002
+0?ooo`030000003oool0oooo0080oooo00<000000?ooo`3oool0Z`3oool2000004l0oooo000C0?oo
+o`<000000`3oool010000000oooo0?ooo`0000040?ooo`030000003oool0oooo0:X0oooo00<00000
+0?ooo`3oool0C`3oool001D0oooo00<000000?ooo`3oool00P3oool2000000D0oooo0P00002Z0?oo
+o`030000003oool0oooo0500oooo000Q0?ooo`030000003oool0oooo0:L0oooo0P00001C0?ooo`00
+8@3oool00`000000oooo0?ooo`2V0?ooo`030000003oool0oooo05<0oooo000Q0?ooo`030000003o
+ool0oooo0:D0oooo00<000000?ooo`3oool0E03oool00240oooo00<000000?ooo`3oool0X`3oool2
+000005L0oooo000Q0?ooo`800000X`3oool00`000000oooo0?ooo`1G0?ooo`008@3oool00`000000
+oooo0?ooo`2P0?ooo`800000FP3oool00240oooo00<000000?ooo`3oool0W`3oool00`000000oooo
+0?ooo`1J0?ooo`008@3oool00`000000oooo0?ooo`2M0?ooo`800000G@3oool00240oooo0P00002M
+0?ooo`030000003oool0oooo05d0oooo000Q0?ooo`030000003oool0oooo09/0oooo00<000000?oo
+o`3oool0GP3oool00240oooo00<000000?ooo`3oool0V@3oool200000640oooo000Q0?ooo`030000
+003oool0oooo09P0oooo00<000000?ooo`3oool0H@3oool00240oooo0P00002G0?ooo`800000I03o
+ool00240oooo00<000000?ooo`3oool0U@3oool00`000000oooo0?ooo`1T0?ooo`008@3oool00`00
+0000oooo0?ooo`2C0?ooo`800000I`3oool000h0oooo00<000000?ooo`3oool00`3oool00`000000
+oooo0?ooo`020?ooo`<000001@3oool00`000000oooo0?ooo`2A0?ooo`800000J@3oool000h0oooo
+00<000000?ooo`3oool02`3oool00`000000oooo0?ooo`020?ooo`030000003oool0oooo0900oooo
+00<000000?ooo`3oool0J@3oool000l0oooo00<000000?ooo`3oool02P3oool00`000000oooo0?oo
+o`020?ooo`800000S`3oool2000006`0oooo00070?ooo`@00000103oool00`000000oooo0?ooo`07
+0?ooo`<000001@3oool00`000000oooo0?ooo`2=0?ooo`030000003oool0oooo06`0oooo000@0?oo
+o`030000003oool0oooo00H0oooo00<000000?ooo`3oool01@3oool00`000000oooo0?ooo`2;0?oo
+o`800000K`3oool000d0oooo00@000000?ooo`3oool00000203oool00`000000oooo0?ooo`050?oo
+o`030000003oool0oooo08X0oooo00<000000?ooo`3oool0K`3oool000d0oooo100000080?ooo`@0
+0000103oool2000008T0oooo0P00001b0?ooo`008@3oool00`000000oooo0?ooo`270?ooo`030000
+003oool0oooo0780oooo000Q0?ooo`030000003oool0oooo08H0oooo00<000000?ooo`3oool0L`3o
+ool00240oooo00<000000?ooo`3oool0Q03oool2000007H0oooo000Q0?ooo`030000003oool0oooo
+08<0oooo00<000000?ooo`3oool0MP3oool00240oooo0P0000220?ooo`800000N@3oool00240oooo
+00<000000?ooo`3oool0P03oool00`000000oooo0?ooo`1i0?ooo`008@3oool00`000000oooo0?oo
+o`1n0?ooo`800000O03oool00240oooo00<000000?ooo`3oool0O@3oool00`000000oooo0?ooo`1l
+0?ooo`008@3oool2000007d0oooo00<000000?ooo`3oool0O@3oool00240oooo00<000000?ooo`3o
+ool0NP3oool200000800oooo000Q0?ooo`030000003oool0oooo07T0oooo00<000000?ooo`3oool0
+P03oool00240oooo00<000000?ooo`3oool0M`3oool2000008<0oooo000Q0?ooo`030000003oool0
+oooo07H0oooo00<000000?ooo`3oool0P`3oool00240oooo0P00001e0?ooo`800000QP3oool00240
+oooo00<000000?ooo`3oool0L`3oool00`000000oooo0?ooo`260?ooo`006@3oool3000000D0oooo
+00<000000?ooo`3oool0LP3oool00`000000oooo0?ooo`270?ooo`00703oool00`000000oooo0?oo
+o`020?ooo`030000003oool0oooo0700oooo0P00002:0?ooo`00703oool00`000000oooo0?ooo`02
+0?ooo`800000L03oool00`000000oooo0?ooo`2:0?ooo`004`3oool400000080oooo0`0000050?oo
+o`030000003oool0oooo06d0oooo0P00002=0?ooo`006@3oool00`000000oooo0?ooo`050?ooo`03
+0000003oool0oooo06`0oooo00<000000?ooo`3oool0S@3oool001T0oooo00<000000?ooo`3oool0
+1@3oool00`000000oooo0?ooo`1Z0?ooo`800000T03oool001T0oooo100000040?ooo`030000003o
+ool0oooo06T0oooo00<000000?ooo`3oool0T03oool00240oooo0P00001Y0?ooo`030000003oool0
+oooo0940oooo000Q0?ooo`030000003oool0oooo06H0oooo0P00002D0?ooo`008@3oool00`000000
+oooo0?ooo`1U0?ooo`030000003oool0oooo09@0oooo000Q0?ooo`030000003oool0oooo06<0oooo
+0P00002G0?ooo`008@3oool2000006<0oooo00<000000?ooo`3oool0U`3oool00240oooo00<00000
+0?ooo`3oool0H03oool2000009X0oooo000Q0?ooo`030000003oool0oooo05h0oooo0P00002L0?oo
+o`008@3oool00`000000oooo0?ooo`1M0?ooo`030000003oool0oooo09`0oooo000Q0?ooo`800000
+G03oool2000009l0oooo000Q0?ooo`030000003oool0oooo05X0oooo00<000000?ooo`3oool0W`3o
+ool00240oooo00<000000?ooo`3oool0F03oool200000:80oooo000Q0?ooo`030000003oool0oooo
+05L0oooo00<000000?ooo`3oool0XP3oool00240oooo00<000000?ooo`3oool0E@3oool200000:D0
+oooo000Q0?ooo`800000E03oool200000:L0oooo000Q0?ooo`030000003oool0oooo0580oooo00<0
+00000?ooo`3oool0Y`3oool000d0oooo100000030?ooo`030000003oool0oooo0080oooo0`000005
+0?ooo`030000003oool0oooo0500oooo0P00002Z0?ooo`003@3oool00`000000oooo0?ooo`0<0?oo
+o`030000003oool0oooo0080oooo00<000000?ooo`3oool0C`3oool00`000000oooo0?ooo`2Z0?oo
+o`003P3oool00`000000oooo0?ooo`0;0?ooo`030000003oool0oooo0080oooo0P00001>0?ooo`80
+0000[@3oool000L0oooo100000040?ooo`030000003oool0oooo00L0oooo0`0000050?ooo`030000
+003oool0oooo04`0oooo00<000000?ooo`3oool0[@3oool00100oooo00<000000?ooo`3oool01P3o
+ool00`000000oooo0?ooo`050?ooo`030000003oool0oooo04X0oooo0P00002`0?ooo`003@3oool0
+10000000oooo0?ooo`0000080?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3oool0B@3o
+ool00`000000oooo0?ooo`2`0?ooo`003P3oool2000000T0oooo100000040?ooo`030000003oool0
+oooo04P0oooo00<000000?ooo`3oool0/@3oool00240oooo0P0000170?ooo`800000]03oool00240
+oooo00<000000?ooo`3oool0A@3oool00`000000oooo0?ooo`2d0?ooo`008@3oool00`000000oooo
+0?ooo`130?ooo`800000]`3oool00240oooo00<000000?ooo`3oool0@P3oool00`000000oooo0?oo
+o`2g0?ooo`008@3oool200000440oooo0P00002j0?ooo`008@3oool00`000000oooo0?ooo`0o0?oo
+o`030000003oool0oooo0;X0oooo000Q0?ooo`030000003oool0oooo03h0oooo00<000000?ooo`3o
+ool0^`3oool00240oooo00<000000?ooo`3oool07`3oool4000000<0oooo0P00000D0?ooo`800000
+2P3oool00`000000oooo0?ooo`020?ooo`8000007`3oool2000000@0oooo0P00000O0?ooo`800000
+103oool2000001/0oooo100000030?ooo`800000103oool2000001P0oooo100000020?ooo`@00000
+0`3oool2000000h0oooo000Q0?ooo`030000003oool0oooo01l0oooo00<000000?ooo`3oool00`3o
+ool010000000oooo0?ooo`00000B0?ooo`030000003oool0oooo00X0oooo00D000000?ooo`3oool0
+oooo000000020?ooo`030000003oool0oooo01/0oooo00@000000?ooo`3oool000000P3oool01000
+0000oooo0?ooo`00000M0?ooo`040000003oool0oooo00000080oooo00@000000?ooo`3oool00000
+703oool01@000000oooo0?ooo`3oool000000080oooo00@000000?ooo`3oool000000P3oool00`00
+0000oooo0?ooo`0G0?ooo`050000003oool0oooo0?ooo`0000001@3oool010000000oooo0?ooo`00
+000=0?ooo`008@3oool200000240oooo00<000000?ooo`3oool00P3oool010000000oooo0?ooo`00
+000@0?ooo`8000002P3oool500000080oooo00@000000?ooo`3oool000007@3oool010000000oooo
+0?ooo`0000020?ooo`040000003oool0oooo000001d0oooo00@000000?ooo`3oool000000P3oool0
+10000000oooo0?ooo`00000L0?ooo`050000003oool0oooo0?ooo`0000000P3oool010000000oooo
+0?ooo`0000020?ooo`030000003oool0oooo01L0oooo00<000000?ooo`3oool00P3oool00`000000
+oooo0?ooo`020?ooo`040000003oool0oooo000000d0oooo000Q0?ooo`030000003oool0oooo0240
+oooo00D000000?ooo`3oool0oooo000000020?ooo`030000003oool0oooo00`0oooo0P00000<0?oo
+o`040000003oool0oooo000000<0oooo00@000000?ooo`3oool000007@3oool3000000<0oooo00@0
+00000?ooo`3oool000007P3oool2000000<0oooo00@000000?ooo`3oool00000703oool01@000000
+oooo0?ooo`3oool000000080oooo00@000000?ooo`3oool000000P3oool00`000000oooo0?ooo`0G
+0?ooo`030000003oool0oooo00<0oooo00D000000?ooo`3oool0oooo000000020?ooo`030000003o
+ool0oooo00/0oooo000Q0?ooo`030000003oool0oooo0280oooo00@000000?ooo`3oool000000P3o
+ool00`000000oooo0?ooo`0;0?ooo`030000003oool0oooo00d0oooo00<000000?ooo`0000000`3o
+ool010000000oooo0?ooo`00000M0?ooo`030000003oool0oooo00<0oooo00@000000?ooo`3oool0
+00007@3oool010000000oooo0?ooo`0000020?ooo`040000003oool0oooo000001`0oooo00D00000
+0?ooo`3oool0oooo000000020?ooo`040000003oool0oooo00000080oooo00<000000?ooo`3oool0
+5`3oool00`000000oooo0?ooo`040?ooo`040000003oool0oooo00000080oooo00<000000?ooo`3o
+ool02`3oool00240oooo00<000000?ooo`3oool07`3oool010000000oooo0?ooo`0000020?ooo`04
+0000003oool0oooo000000/0oooo0P00000A0?ooo`8000000`3oool010000000oooo0?ooo`00000M
+0?ooo`030000003oool0oooo00<0oooo00@000000?ooo`3oool000007@3oool010000000oooo0?oo
+o`0000020?ooo`040000003oool0oooo000001X0oooo0`0000030?ooo`040000003oool0oooo0000
+0080oooo00@000000?ooo`3oool000005`3oool3000000<0oooo00@000000?ooo`3oool000000P3o
+ool010000000oooo0?ooo`00000=0?ooo`008@3oool200000240oooo0P0000040?ooo`8000002P3o
+ool2000001@0oooo00<000000?ooo`3oool00P3oool2000001l0oooo0`0000030?ooo`8000007`3o
+ool2000000@0oooo0P00000M0?ooo`030000003oool0oooo0080oooo0P0000040?ooo`8000006P3o
+ool00`000000oooo0?ooo`020?ooo`800000103oool2000000h0oooo000Q0?ooo`030000003oool0
+oooo0300oooo0P00003:0?ooo`008@3oool00`000000oooo0?ooo`0^0?ooo`800000c03oool00240
+oooo00<000000?ooo`3oool0;03oool200000<h0oooo000Q0?ooo`030000003oool0oooo02X0oooo
+0P00003@0?ooo`006`3ooooo000000H00000000Q0?ooo`030000003oool0oooo00H0oooo00<00000
+0?ooo`3oool01`3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00L0oooo00@00000
+0?ooo`00000000001@3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00L0oooo00<0
+00000?ooo`3oool01`3oool00`000000oooo0?ooo`060?ooo`030000003oool0oooo00L0oooo00<0
+00000?ooo`3oool01`3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00H0oooo00<0
+00000?ooo`3oool01`3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00L0oooo00<0
+00000?ooo`3oool01P3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00L0oooo00<0
+00000?ooo`3oool01`3oool00`000000oooo0?ooo`060?ooo`030000003oool0oooo00L0oooo00<0
+00000?ooo`3oool01`3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo00H0oooo00<0
+00000?ooo`3oool01`3oool100000040oooo000Q0?ooo`030000003oool0oooo02@0oooo0P00003F
+0?ooo`008@3oool00`000000oooo0?ooo`0R0?ooo`800000f03oool00240oooo0P00000R0?ooo`03
+0000003oool0oooo0=P0oooo000Q0?ooo`800000803oool200000=/0oooo000Q0?ooo`8000007P3o
+ool200000=d0oooo000Q0?ooo`030000003oool0000001/0oooo0P00003O0?ooo`008@3oool30000
+01T0oooo0P00003Q0?ooo`008@3oool00`000000oooo0000000F0?ooo`<00000h`3oool00240oooo
+00@000000?ooo`3oool000004`3oool200000>H0oooo000Q0?ooo`030000003oool0oooo00800000
+3`3oool300000>P0oooo000Q0?ooo`030000003oool0oooo0080oooo00<000000?ooo`3oool02@3o
+ool300000>/0oooo000Q0?ooo`800000103oool400000080oooo1@00003^0?ooo`008@3oool00`00
+0000oooo0?ooo`070?ooo`800000l`3oool00240oooo00<000000?ooo`3oool0o03oool00240oooo
+00<000000?ooo`3oool0o03oool00240oooo00<000000?ooo`3oool0o03oool00?l0oooo8@3oool0
+0?l0oooo8@3oool00?l0oooo8@3oool00?l0oooo8@3oool00?l0oooo8@3oool00?l0oooo8@3oool0
+0?l0oooo8@3oool00?l0oooo8@3oool00001\
+\>"],
+  ImageRangeCache->{{{0, 287}, {176.938, 0}} -> {-17.0577, -16.9836, \
+0.513008, 0.112453}}],
+
+Cell[BoxData[
+    TagBox[\(\[SkeletonIndicator]  Graphics  \[SkeletonIndicator]\),
+      False,
+      Editable->False]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(L = 15;\)\)], "Input"],
+
+Cell["Kernel:", "Text"],
+
+Cell[BoxData[
+    \(\(K[g_, 
+          q_, \[Kappa]_] := \[Sum]\+\(l = 0\)\%L A[
+              l, \[Kappa]] \(\[Sum]\+\(k = \(-l\)\)\%l\(\[Sum]\+\(kk = \(-l\)\
+\)\%l WignerD[l, k, kk, g] WignerD[l, k, kk, q]\)\);\)\)], "Input"],
+
+Cell["der Abel Poisson Kern auf SO(3):", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Plot[
+      Evaluate[Re[
+          K[{\[Alpha], 0, 0}, {0, 0, 0}, 
+            0.75]]], {\[Alpha], \(-\[Pi]\), \[Pi]}, 
+      PlotRange \[Rule] All]\)], "Input"],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+%%IncludeResource: font Courier
+%%IncludeFont: Courier
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+0.5 0.151576 0.0128383 0.0105959 [
+[.04527 .00034 -6 -9 ]
+[.04527 .00034 6 0 ]
+[.19685 .00034 -6 -9 ]
+[.19685 .00034 6 0 ]
+[.34842 .00034 -6 -9 ]
+[.34842 .00034 6 0 ]
+[.65158 .00034 -3 -9 ]
+[.65158 .00034 3 0 ]
+[.80315 .00034 -3 -9 ]
+[.80315 .00034 3 0 ]
+[.95473 .00034 -3 -9 ]
+[.95473 .00034 3 0 ]
+[.4875 .1188 -12 -4.5 ]
+[.4875 .1188 0 4.5 ]
+[.4875 .22476 -12 -4.5 ]
+[.4875 .22476 0 4.5 ]
+[.4875 .33071 -12 -4.5 ]
+[.4875 .33071 0 4.5 ]
+[.4875 .43667 -12 -4.5 ]
+[.4875 .43667 0 4.5 ]
+[.4875 .54263 -12 -4.5 ]
+[.4875 .54263 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.04527 .01284 m
+.04527 .01909 L
+s
+[(-3)] .04527 .00034 0 1 Mshowa
+.19685 .01284 m
+.19685 .01909 L
+s
+[(-2)] .19685 .00034 0 1 Mshowa
+.34842 .01284 m
+.34842 .01909 L
+s
+[(-1)] .34842 .00034 0 1 Mshowa
+.65158 .01284 m
+.65158 .01909 L
+s
+[(1)] .65158 .00034 0 1 Mshowa
+.80315 .01284 m
+.80315 .01909 L
+s
+[(2)] .80315 .00034 0 1 Mshowa
+.95473 .01284 m
+.95473 .01909 L
+s
+[(3)] .95473 .00034 0 1 Mshowa
+.125 Mabswid
+.07559 .01284 m
+.07559 .01659 L
+s
+.1059 .01284 m
+.1059 .01659 L
+s
+.13622 .01284 m
+.13622 .01659 L
+s
+.16653 .01284 m
+.16653 .01659 L
+s
+.22716 .01284 m
+.22716 .01659 L
+s
+.25748 .01284 m
+.25748 .01659 L
+s
+.28779 .01284 m
+.28779 .01659 L
+s
+.31811 .01284 m
+.31811 .01659 L
+s
+.37874 .01284 m
+.37874 .01659 L
+s
+.40905 .01284 m
+.40905 .01659 L
+s
+.43937 .01284 m
+.43937 .01659 L
+s
+.46968 .01284 m
+.46968 .01659 L
+s
+.53032 .01284 m
+.53032 .01659 L
+s
+.56063 .01284 m
+.56063 .01659 L
+s
+.59095 .01284 m
+.59095 .01659 L
+s
+.62126 .01284 m
+.62126 .01659 L
+s
+.68189 .01284 m
+.68189 .01659 L
+s
+.71221 .01284 m
+.71221 .01659 L
+s
+.74252 .01284 m
+.74252 .01659 L
+s
+.77284 .01284 m
+.77284 .01659 L
+s
+.83347 .01284 m
+.83347 .01659 L
+s
+.86378 .01284 m
+.86378 .01659 L
+s
+.8941 .01284 m
+.8941 .01659 L
+s
+.92441 .01284 m
+.92441 .01659 L
+s
+.01496 .01284 m
+.01496 .01659 L
+s
+.98504 .01284 m
+.98504 .01659 L
+s
+.25 Mabswid
+0 .01284 m
+1 .01284 L
+s
+.5 .1188 m
+.50625 .1188 L
+s
+[(10)] .4875 .1188 1 0 Mshowa
+.5 .22476 m
+.50625 .22476 L
+s
+[(20)] .4875 .22476 1 0 Mshowa
+.5 .33071 m
+.50625 .33071 L
+s
+[(30)] .4875 .33071 1 0 Mshowa
+.5 .43667 m
+.50625 .43667 L
+s
+[(40)] .4875 .43667 1 0 Mshowa
+.5 .54263 m
+.50625 .54263 L
+s
+[(50)] .4875 .54263 1 0 Mshowa
+.125 Mabswid
+.5 .03403 m
+.50375 .03403 L
+s
+.5 .05522 m
+.50375 .05522 L
+s
+.5 .07641 m
+.50375 .07641 L
+s
+.5 .09761 m
+.50375 .09761 L
+s
+.5 .13999 m
+.50375 .13999 L
+s
+.5 .16118 m
+.50375 .16118 L
+s
+.5 .18237 m
+.50375 .18237 L
+s
+.5 .20356 m
+.50375 .20356 L
+s
+.5 .24595 m
+.50375 .24595 L
+s
+.5 .26714 m
+.50375 .26714 L
+s
+.5 .28833 m
+.50375 .28833 L
+s
+.5 .30952 m
+.50375 .30952 L
+s
+.5 .35191 m
+.50375 .35191 L
+s
+.5 .3731 m
+.50375 .3731 L
+s
+.5 .39429 m
+.50375 .39429 L
+s
+.5 .41548 m
+.50375 .41548 L
+s
+.5 .45787 m
+.50375 .45787 L
+s
+.5 .47906 m
+.50375 .47906 L
+s
+.5 .50025 m
+.50375 .50025 L
+s
+.5 .52144 m
+.50375 .52144 L
+s
+.5 .56382 m
+.50375 .56382 L
+s
+.5 .58502 m
+.50375 .58502 L
+s
+.5 .60621 m
+.50375 .60621 L
+s
+.25 Mabswid
+.5 0 m
+.5 .61803 L
+s
+.5 Mabswid
+.02381 .01472 m
+.04262 .01477 L
+.06244 .01484 L
+.06744 .01485 L
+.07216 .01487 L
+.0776 .01489 L
+.08255 .01492 L
+.08802 .01497 L
+.09396 .01503 L
+.10458 .01516 L
+.12403 .0154 L
+.13435 .01554 L
+.14545 .01575 L
+.15606 .016 L
+.16576 .01628 L
+.1848 .01687 L
+.20378 .01764 L
+.21453 .01824 L
+.22451 .01889 L
+.24503 .02052 L
+.26364 .02256 L
+.27366 .02404 L
+.28288 .02567 L
+.29365 .02792 L
+.3037 .03043 L
+.32253 .03684 L
+.3325 .04152 L
+.34319 .04782 L
+.35336 .05531 L
+.36443 .06563 L
+.37488 .07825 L
+.38455 .09326 L
+.39418 .11223 L
+.40321 .13446 L
+.41325 .16519 L
+.42382 .20585 L
+.444 .31216 L
+.4625 .43744 L
+.47205 .50189 L
+.47729 .5335 L
+.48225 .55923 L
+.48686 .57862 L
+.48929 .58677 L
+.49187 .59371 L
+.49404 .59813 L
+.49527 .60006 L
+.49642 .60146 L
+.49747 .60241 L
+.49844 .60299 L
+.49955 .60332 L
+Mistroke
+.50061 .60329 L
+.50186 .60284 L
+.50257 .60238 L
+.50321 .60183 L
+.5044 .6005 L
+.50566 .59865 L
+.50784 .59439 L
+.51022 .5882 L
+.51552 .56922 L
+.52046 .54575 L
+.53886 .4279 L
+.55753 .30274 L
+.57782 .19893 L
+.58888 .15807 L
+.5991 .12831 L
+.60949 .10447 L
+.61923 .08695 L
+.63793 .0632 L
+.64786 .05432 L
+.65855 .04669 L
+.67863 .03636 L
+.68872 .03269 L
+.69974 .02952 L
+.71939 .02525 L
+.73038 .02341 L
+.74036 .02205 L
+.75958 .02011 L
+.78039 .01856 L
+.8003 .01745 L
+.81034 .01704 L
+.82136 .01667 L
+.84248 .01604 L
+.85249 .01579 L
+.86175 .01561 L
+.87131 .01546 L
+.88171 .01533 L
+.90063 .01509 L
+.9096 .01499 L
+.91431 .01495 L
+.91927 .01491 L
+.92191 .01489 L
+.92481 .01488 L
+.92989 .01486 L
+.93986 .01483 L
+.97619 .01472 L
+Mfstroke
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  ImageSize->{288, 177.938},
+  ImageMargins->{{43, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`40004P0000/B000`400?l00000o`00003oo`3ooolQ
+0?ooo`00o`3ooolQ0?ooo`005@3oool2000002L0oooo1000000U0?ooo`@00000B`3oool4000002D0
+oooo1000000W0?ooo`800000503oool001@0oooo00@000000?ooo`3oool000009P3oool00`000000
+oooo0?ooo`0X0?ooo`030000003oool0oooo04`0oooo00<000000?ooo`3oool0903oool00`000000
+oooo0?ooo`0W0?ooo`040000003oool0oooo000001<0oooo000G0?ooo`030000003oool0oooo02D0
+oooo00<000000?ooo`3oool09`3oool00`000000oooo0?ooo`1<0?ooo`030000003oool0oooo02D0
+oooo00<000000?ooo`3oool0:@3oool00`000000oooo0?ooo`0A0?ooo`003P3oool4000000<0oooo
+0P00000Q0?ooo`@00000103oool00`000000oooo0?ooo`0N0?ooo`@00000103oool00`000000oooo
+0?ooo`1<0?ooo`030000003oool0oooo02H0oooo00<000000?ooo`3oool09P3oool2000001@0oooo
+000G0?ooo`030000003oool0oooo02L0oooo00<000000?ooo`3oool09@3oool00`000000oooo0?oo
+o`1<0?ooo`030000003oool0oooo02L0oooo00<000000?ooo`3oool09`3oool00`000000oooo0?oo
+o`0A0?ooo`00503oool010000000oooo0?ooo`00000V0?ooo`040000003oool0oooo000002D0oooo
+0`00001<0?ooo`<000009P3oool010000000oooo0?ooo`00000V0?ooo`040000003oool0oooo0000
+01<0oooo000E0?ooo`800000:03oool2000002P0oooo00<000000?ooo`3oool08`3oool00`000000
+oooo0?ooo`0V0?ooo`030000003oool0oooo02D0oooo0P00000X0?ooo`800000503oool008l0oooo
+00<000000?ooo`3oool0SP3oool008l0oooo00<000000?ooo`3oool0SP3oool008l0oooo00<00000
+0?ooo`3oool0SP3oool000L0ooooo`00000B000000P0oooo000;0?ooo`030000003oool0oooo00D0
+oooo00<000000?ooo`3oool0;@0000020?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`060?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo00H0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`060?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo00H0oooo00<000000?ooo`3o
+ool01@3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo0080oooo;P0000070?ooo`03
+0000003oool0oooo00X0oooo000C0?ooo`030000003oool0oooo02L0oooo00<000000?ooo`3oool0
+0`3oool:000001T0oooo00<000000?ooo`3oool09P3oool00`000000oooo0?ooo`0V0?ooo`030000
+003oool0oooo01@0oooo3`0000030?ooo`030000003oool0oooo02L0oooo00<000000?ooo`3oool0
+4P3oool004d0oooo2@00000i0?ooo`030000003oool0oooo03H0oooo1`00001A0?ooo`00EP3oool3
+000003H0oooo00<000000?ooo`3oool0<P3oool4000005P0oooo001I0?ooo`@00000<P3oool00`00
+0000oooo0?ooo`0_0?ooo`<00000G03oool005d0oooo0`00000_0?ooo`800000;P3oool2000005l0
+oooo001P0?ooo`030000003oool0oooo02`0oooo00<000000?ooo`3oool0:`3oool200000640oooo
+001Q0?ooo`800000;03oool00`000000oooo0?ooo`0Y0?ooo`800000H`3oool006<0oooo0P00000Z
+0?ooo`030000003oool0oooo02P0oooo00<000000?ooo`3oool0H`3oool006D0oooo00<000000?oo
+o`3oool09`3oool00`000000oooo0?ooo`0V0?ooo`800000IP3oool006H0oooo00<000000?ooo`3o
+ool09P3oool2000002H0oooo00<000000?ooo`3oool0IP3oool006L0oooo00<000000?ooo`3oool0
+9@3oool00`000000oooo0?ooo`0T0?ooo`030000003oool0oooo06L0oooo001X0?ooo`8000009@3o
+ool00`000000oooo0?ooo`0T0?ooo`030000003oool0oooo06L0oooo001Z0?ooo`030000003oool0
+oooo0280oooo00<000000?ooo`3oool08`3oool00`000000oooo0?ooo`1X0?ooo`00J`3oool00`00
+0000oooo0?ooo`0Q0?ooo`030000003oool0oooo0280oooo00<000000?ooo`3oool0J@3oool006`0
+oooo00<000000?ooo`3oool0803oool00`000000oooo0?ooo`0Q0?ooo`030000003oool0oooo06X0
+oooo001/0?ooo`030000003oool0oooo0200oooo0P00000Q0?ooo`030000003oool0oooo06/0oooo
+001]0?ooo`030000003oool0oooo01l0oooo00<000000?ooo`3oool07`3oool00`000000oooo0?oo
+o`1/0?ooo`00KP3oool00`000000oooo0?ooo`0N0?ooo`030000003oool0oooo01h0oooo00<00000
+0?ooo`3oool0K@3oool006l0oooo00<000000?ooo`3oool07@3oool00`000000oooo0?ooo`0M0?oo
+o`030000003oool0oooo06h0oooo001_0?ooo`030000003oool0oooo01d0oooo00<000000?ooo`3o
+ool07@3oool00`000000oooo0?ooo`1^0?ooo`00L03oool00`000000oooo0?ooo`0L0?ooo`030000
+003oool0oooo01`0oooo00<000000?ooo`3oool0K`3oool00700oooo00<000000?ooo`3oool0703o
+ool2000001d0oooo00<000000?ooo`3oool0K`3oool00740oooo00<000000?ooo`3oool06`3oool0
+0`000000oooo0?ooo`0K0?ooo`030000003oool0oooo0700oooo001a0?ooo`030000003oool0oooo
+01/0oooo00<000000?ooo`3oool06`3oool00`000000oooo0?ooo`1`0?ooo`00LP3oool00`000000
+oooo0?ooo`0J0?ooo`030000003oool0oooo01/0oooo00<000000?ooo`3oool0L03oool00780oooo
+00<000000?ooo`3oool0303oool4000000<0oooo0P0000050?ooo`030000003oool0oooo01X0oooo
+00<000000?ooo`3oool0L@3oool007<0oooo00<000000?ooo`3oool03@3oool01@000000oooo0?oo
+o`3oool000000080oooo00<000000?ooo`3oool00P3oool00`000000oooo0?ooo`0J0?ooo`030000
+003oool0oooo0740oooo001c0?ooo`030000003oool0oooo00d0oooo00D000000?ooo`3oool0oooo
+000000020?ooo`030000003oool0oooo0080oooo0`00000I0?ooo`030000003oool0oooo0780oooo
+001d0?ooo`030000003oool0oooo00`0oooo00D000000?ooo`3oool0oooo000000020?ooo`030000
+003oool0oooo0080oooo00<000000?ooo`3oool06@3oool00`000000oooo0?ooo`1b0?ooo`00M03o
+ool00`000000oooo0?ooo`0<0?ooo`050000003oool0oooo0?ooo`0000000P3oool00`000000oooo
+0?ooo`020?ooo`030000003oool0oooo01P0oooo00<000000?ooo`3oool0L`3oool007D0oooo00<0
+00000?ooo`3oool02@3oool3000000<0oooo00@000000?ooo`3oool00000103oool00`000000oooo
+0?ooo`0H0?ooo`030000003oool0oooo07<0oooo001e0?ooo`030000003oool0oooo00/0oooo00<0
+00000?ooo`3oool00P3oool2000000D0oooo00<000000?ooo`3oool05`3oool00`000000oooo0?oo
+o`1d0?ooo`00M@3oool00`000000oooo0?ooo`0G0?ooo`030000003oool0oooo01L0oooo00<00000
+0?ooo`3oool0M03oool007H0oooo00<000000?ooo`3oool05P3oool2000001P0oooo00<000000?oo
+o`3oool0M03oool007H0oooo00<000000?ooo`3oool05P3oool00`000000oooo0?ooo`0F0?ooo`03
+0000003oool0oooo07D0oooo001f0?ooo`030000003oool0oooo01H0oooo00<000000?ooo`3oool0
+5P3oool00`000000oooo0?ooo`1e0?ooo`00MP3oool00`000000oooo0?ooo`0F0?ooo`030000003o
+ool0oooo01D0oooo00<000000?ooo`3oool0MP3oool007L0oooo00<000000?ooo`3oool05@3oool0
+0`000000oooo0?ooo`0E0?ooo`030000003oool0oooo07H0oooo001g0?ooo`030000003oool0oooo
+01D0oooo0P00000F0?ooo`030000003oool0oooo07H0oooo001g0?ooo`030000003oool0oooo01D0
+oooo00<000000?ooo`3oool05@3oool00`000000oooo0?ooo`1f0?ooo`00M`3oool00`000000oooo
+0?ooo`0E0?ooo`030000003oool0oooo01@0oooo00<000000?ooo`3oool0M`3oool007P0oooo00<0
+00000?ooo`3oool0503oool00`000000oooo0?ooo`0D0?ooo`030000003oool0oooo07L0oooo001h
+0?ooo`030000003oool0oooo01@0oooo00<000000?ooo`3oool0503oool00`000000oooo0?ooo`1g
+0?ooo`00N03oool00`000000oooo0?ooo`0D0?ooo`030000003oool0oooo01@0oooo00<000000?oo
+o`3oool0M`3oool007P0oooo00<000000?ooo`3oool0503oool2000001@0oooo00<000000?ooo`3o
+ool0N03oool007T0oooo00<000000?ooo`3oool04`3oool00`000000oooo0?ooo`0C0?ooo`030000
+003oool0oooo07P0oooo001i0?ooo`030000003oool0oooo01<0oooo00<000000?ooo`3oool04`3o
+ool00`000000oooo0?ooo`1h0?ooo`00N@3oool00`000000oooo0?ooo`0C0?ooo`030000003oool0
+oooo01<0oooo00<000000?ooo`3oool0N03oool007T0oooo00<000000?ooo`3oool04`3oool00`00
+0000oooo0?ooo`0B0?ooo`030000003oool0oooo07T0oooo001j0?ooo`030000003oool0oooo0180
+oooo00<000000?ooo`3oool04P3oool00`000000oooo0?ooo`1i0?ooo`00NP3oool00`000000oooo
+0?ooo`0B0?ooo`8000004`3oool00`000000oooo0?ooo`1i0?ooo`00NP3oool00`000000oooo0?oo
+o`0B0?ooo`030000003oool0oooo0180oooo00<000000?ooo`3oool0N@3oool007X0oooo00<00000
+0?ooo`3oool04P3oool00`000000oooo0?ooo`0A0?ooo`030000003oool0oooo07X0oooo001k0?oo
+o`030000003oool0oooo0140oooo00<000000?ooo`3oool04@3oool00`000000oooo0?ooo`1j0?oo
+o`00N`3oool00`000000oooo0?ooo`030?ooo`@000000`3oool2000000D0oooo00<000000?ooo`3o
+ool04@3oool00`000000oooo0?ooo`1j0?ooo`00N`3oool00`000000oooo0?ooo`030?ooo`030000
+003oool0oooo00<0oooo00@000000?ooo`3oool00000103oool00`000000oooo0?ooo`0A0?ooo`03
+0000003oool0oooo07X0oooo001k0?ooo`030000003oool0oooo00@0oooo00<000000?ooo`3oool0
+0P3oool010000000oooo0?ooo`0000040?ooo`<000004@3oool00`000000oooo0?ooo`1j0?ooo`00
+N`3oool00`000000oooo0?ooo`050?ooo`050000003oool0oooo0?ooo`0000000P3oool00`000000
+oooo0?ooo`020?ooo`030000003oool0oooo0140oooo00<000000?ooo`3oool0NP3oool007`0oooo
+00<000000?ooo`3oool01@3oool010000000oooo0?ooo`0000020?ooo`030000003oool0oooo0080
+oooo00<000000?ooo`3oool0403oool00`000000oooo0?ooo`1k0?ooo`00O03oool00`000000oooo
+0?ooo`020?ooo`040000003oool0oooo00000080oooo00@000000?ooo`3oool00000103oool00`00
+0000oooo0?ooo`0@0?ooo`030000003oool0oooo07/0oooo001l0?ooo`030000003oool0oooo00<0
+oooo0P0000040?ooo`8000001@3oool00`000000oooo0?ooo`0@0?ooo`030000003oool0oooo07/0
+oooo001l0?ooo`030000003oool0oooo0100oooo0P00000A0?ooo`030000003oool0oooo07/0oooo
+001l0?ooo`030000003oool0oooo0100oooo00<000000?ooo`3oool0403oool00`000000oooo0?oo
+o`1k0?ooo`00O@3oool00`000000oooo0?ooo`0?0?ooo`030000003oool0oooo0100oooo00<00000
+0?ooo`3oool0N`3oool007d0oooo00<000000?ooo`3oool03`3oool00`000000oooo0?ooo`0?0?oo
+o`030000003oool0oooo07`0oooo001m0?ooo`030000003oool0oooo00l0oooo00<000000?ooo`3o
+ool03`3oool00`000000oooo0?ooo`1l0?ooo`00O@3oool00`000000oooo0?ooo`0?0?ooo`030000
+003oool0oooo00l0oooo00<000000?ooo`3oool0O03oool007h0oooo00<000000?ooo`3oool03P3o
+ool200000100oooo00<000000?ooo`3oool0O03oool007h0oooo00<000000?ooo`3oool03P3oool0
+0`000000oooo0?ooo`0?0?ooo`030000003oool0oooo07`0oooo001n0?ooo`030000003oool0oooo
+00h0oooo00<000000?ooo`3oool03P3oool00`000000oooo0?ooo`1m0?ooo`00OP3oool00`000000
+oooo0?ooo`0>0?ooo`030000003oool0oooo00h0oooo00<000000?ooo`3oool0O@3oool007h0oooo
+00<000000?ooo`3oool03P3oool00`000000oooo0?ooo`0>0?ooo`030000003oool0oooo07d0oooo
+001o0?ooo`030000003oool0oooo00d0oooo00<000000?ooo`3oool03P3oool00`000000oooo0?oo
+o`1m0?ooo`00O`3oool00`000000oooo0?ooo`0=0?ooo`8000003`3oool00`000000oooo0?ooo`1m
+0?ooo`00O`3oool00`000000oooo0?ooo`0=0?ooo`030000003oool0oooo00h0oooo00<000000?oo
+o`3oool0O@3oool007l0oooo00<000000?ooo`3oool03@3oool00`000000oooo0?ooo`0=0?ooo`03
+0000003oool0oooo07h0oooo001o0?ooo`030000003oool0oooo00d0oooo00<000000?ooo`3oool0
+3@3oool00`000000oooo0?ooo`1n0?ooo`00P03oool00`000000oooo0?ooo`0<0?ooo`030000003o
+ool0oooo00d0oooo00<000000?ooo`3oool0OP3oool00800oooo00<000000?ooo`3oool0303oool0
+0`000000oooo0?ooo`0=0?ooo`030000003oool0oooo07h0oooo00200?ooo`030000003oool0oooo
+00`0oooo0P00000>0?ooo`030000003oool0oooo07h0oooo00200?ooo`030000003oool0oooo00`0
+oooo00<000000?ooo`3oool03@3oool00`000000oooo0?ooo`1n0?ooo`00P03oool00`000000oooo
+0?ooo`0<0?ooo`030000003oool0oooo00`0oooo00<000000?ooo`3oool0O`3oool00800oooo00@0
+00000?ooo`0000000000103oool2000000D0oooo00<000000?ooo`3oool0303oool00`000000oooo
+0?ooo`1o0?ooo`00P@3oool010000000oooo0?ooo`0000020?ooo`040000003oool0oooo000000@0
+oooo00<000000?ooo`3oool0303oool00`000000oooo0?ooo`1o0?ooo`00P@3oool010000000oooo
+0?ooo`0000020?ooo`040000003oool0oooo000000@0oooo0`00000<0?ooo`030000003oool0oooo
+07l0oooo00210?ooo`<000000`3oool010000000oooo0?ooo`0000040?ooo`030000003oool0oooo
+00`0oooo00<000000?ooo`3oool0O`3oool00840oooo00@000000?ooo`3oool000000P3oool01000
+0000oooo0?ooo`0000040?ooo`030000003oool0oooo00`0oooo00<000000?ooo`3oool0O`3oool0
+0840oooo00@000000?ooo`3oool000000P3oool010000000oooo0?ooo`0000040?ooo`030000003o
+ool0oooo00`0oooo00<000000?ooo`3oool0O`3oool00840oooo0`0000040?ooo`8000001@3oool0
+0`000000oooo0?ooo`0;0?ooo`030000003oool0oooo0800oooo00210?ooo`030000003oool0oooo
+00/0oooo00<000000?ooo`3oool02`3oool00`000000oooo0?ooo`200?ooo`00PP3oool00`000000
+oooo0?ooo`0:0?ooo`800000303oool00`000000oooo0?ooo`200?ooo`00PP3oool00`000000oooo
+0?ooo`0:0?ooo`030000003oool0oooo00/0oooo00<000000?ooo`3oool0P03oool00880oooo00<0
+00000?ooo`3oool02P3oool00`000000oooo0?ooo`0;0?ooo`030000003oool0oooo0800oooo0022
+0?ooo`030000003oool0oooo00X0oooo00<000000?ooo`3oool02`3oool00`000000oooo0?ooo`20
+0?ooo`00PP3oool00`000000oooo0?ooo`0:0?ooo`030000003oool0oooo00/0oooo00<000000?oo
+o`3oool0P03oool00880oooo00<000000?ooo`3oool02P3oool00`000000oooo0?ooo`0:0?ooo`03
+0000003oool0oooo0840oooo00230?ooo`030000003oool0oooo00T0oooo0P00000;0?ooo`030000
+003oool0oooo0840oooo00230?ooo`030000003oool0oooo00T0oooo00<000000?ooo`3oool02P3o
+ool00`000000oooo0?ooo`210?ooo`00P`3oool00`000000oooo0?ooo`090?ooo`030000003oool0
+oooo00X0oooo00<000000?ooo`3oool0P@3oool008<0oooo00<000000?ooo`3oool02@3oool00`00
+0000oooo0?ooo`0:0?ooo`030000003oool0oooo0840oooo00230?ooo`030000003oool0oooo00T0
+oooo00<000000?ooo`3oool02P3oool00`000000oooo0?ooo`210?ooo`00P`3oool00`000000oooo
+0?ooo`090?ooo`030000003oool0oooo00T0oooo00<000000?ooo`3oool0PP3oool008<0oooo00<0
+00000?ooo`3oool02@3oool2000000X0oooo00<000000?ooo`3oool0PP3oool008@0oooo00<00000
+0?ooo`3oool0203oool00`000000oooo0?ooo`090?ooo`030000003oool0oooo0880oooo00240?oo
+o`030000003oool0oooo00P0oooo00<000000?ooo`3oool02@3oool00`000000oooo0?ooo`220?oo
+o`00Q03oool00`000000oooo0?ooo`080?ooo`030000003oool0oooo00T0oooo00<000000?ooo`3o
+ool0PP3oool008@0oooo00<000000?ooo`3oool0203oool00`000000oooo0?ooo`090?ooo`030000
+003oool0oooo0880oooo00240?ooo`030000003oool0oooo00P0oooo0P00000:0?ooo`030000003o
+ool0oooo0880oooo00240?ooo`030000003oool0oooo00P0oooo00<000000?ooo`3oool0203oool0
+0`000000oooo0?ooo`230?ooo`00Q03oool00`000000oooo0?ooo`080?ooo`030000003oool0oooo
+00P0oooo00<000000?ooo`3oool0P`3oool008D0oooo00<000000?ooo`3oool01`3oool00`000000
+oooo0?ooo`080?ooo`030000003oool0oooo08<0oooo00230?ooo`030000003oool000000080oooo
+0P0000050?ooo`030000003oool0oooo00P0oooo00<000000?ooo`3oool0P`3oool008<0oooo00D0
+00000?ooo`000000oooo000000020?ooo`030000003oool0oooo0080oooo00<000000?ooo`3oool0
+203oool00`000000oooo0?ooo`230?ooo`00P03oool6000000050?ooo`000000oooo0?ooo`000000
+103oool3000000P0oooo00<000000?ooo`3oool0P`3oool00800oooo00P000000?ooo`3oool00000
+0?ooo`000000oooo00000080oooo00<000000?ooo`3oool00P3oool00`000000oooo0?ooo`080?oo
+o`030000003oool0oooo08<0oooo00210?ooo`070000003oool000000?ooo`000000oooo00000002
+0?ooo`030000003oool0oooo0080oooo00<000000?ooo`3oool01`3oool00`000000oooo0?ooo`24
+0?ooo`00PP3oool2000000040?ooo`000000oooo00000080oooo00<000000?ooo`3oool00P3oool0
+0`000000oooo0?ooo`070?ooo`030000003oool0oooo08@0oooo00230?ooo`030000003oool00000
+0080oooo0P0000050?ooo`030000003oool0oooo00L0oooo00<000000?ooo`3oool0Q03oool008H0
+oooo00<000000?ooo`3oool01P3oool00`000000oooo0?ooo`070?ooo`030000003oool0oooo08@0
+oooo00260?ooo`030000003oool0oooo00H0oooo0P0000080?ooo`030000003oool0oooo08@0oooo
+00260?ooo`030000003oool0oooo00H0oooo00<000000?ooo`3oool01`3oool00`000000oooo0?oo
+o`240?ooo`00QP3oool00`000000oooo0?ooo`060?ooo`030000003oool0oooo00H0oooo00<00000
+0?ooo`3oool0Q@3oool008H0oooo00<000000?ooo`3oool01P3oool00`000000oooo0?ooo`060?oo
+o`030000003oool0oooo08D0oooo00260?ooo`030000003oool0oooo00H0oooo00<000000?ooo`3o
+ool01P3oool00`000000oooo0?ooo`250?ooo`00QP3oool00`000000oooo0?ooo`060?ooo`030000
+003oool0oooo00H0oooo00<000000?ooo`3oool0Q@3oool008H0oooo00<000000?ooo`3oool01P3o
+ool2000000L0oooo00<000000?ooo`3oool0Q@3oool008H0oooo00<000000?ooo`3oool01P3oool0
+0`000000oooo0?ooo`060?ooo`030000003oool0oooo08D0oooo00270?ooo`030000003oool0oooo
+00D0oooo00<000000?ooo`3oool01P3oool00`000000oooo0?ooo`250?ooo`00Q`3oool00`000000
+oooo0?ooo`050?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3oool0QP3oool008L0oooo
+00<000000?ooo`3oool01@3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo08H0oooo
+00270?ooo`030000003oool0oooo00D0oooo0P0000060?ooo`030000003oool0oooo08H0oooo0027
+0?ooo`030000003oool0oooo00D0oooo00<000000?ooo`3oool01@3oool00`000000oooo0?ooo`26
+0?ooo`00Q`3oool00`000000oooo0?ooo`050?ooo`030000003oool0oooo00D0oooo00<000000?oo
+o`3oool0QP3oool008L0oooo00<000000?ooo`3oool01@3oool00`000000oooo0?ooo`050?ooo`03
+0000003oool0oooo08H0oooo00280?ooo`030000003oool0oooo00@0oooo00<000000?ooo`3oool0
+103oool00`000000oooo0?ooo`270?ooo`00R03oool00`000000oooo0?ooo`040?ooo`030000003o
+ool0oooo00@0oooo00<000000?ooo`3oool0Q`3oool008P0oooo00<000000?ooo`3oool0103oool2
+000000D0oooo00<000000?ooo`3oool0Q`3oool008P0oooo00<000000?ooo`3oool0103oool00`00
+0000oooo0?ooo`040?ooo`030000003oool0oooo08L0oooo00290?ooo`030000003oool0oooo00<0
+oooo00<000000?ooo`3oool0103oool00`000000oooo0?ooo`270?ooo`00R@3oool00`000000oooo
+0?ooo`030?ooo`030000003oool0oooo00@0oooo00<000000?ooo`3oool0Q`3oool00840oooo0`00
+00040?ooo`8000001@3oool00`000000oooo0?ooo`030?ooo`030000003oool0oooo08P0oooo0024
+0?ooo`050000003oool0oooo0000003oool00P0000040?ooo`030000003oool0oooo00<0oooo00<0
+00000?ooo`3oool0R03oool008@0oooo00D000000?ooo`3oool000000?ooo`02000000@0oooo0`00
+00030?ooo`030000003oool0oooo08P0oooo00210?ooo`<000000`3oool010000000oooo00000000
+00040?ooo`030000003oool0oooo00<0oooo00<000000?ooo`3oool0R03oool00840oooo00<00000
+0?ooo`3oool00`3oool010000000oooo0?ooo`0000040?ooo`030000003oool0oooo00<0oooo00<0
+00000?ooo`3oool0R03oool00840oooo00<000000?ooo`3oool00`3oool010000000oooo0?ooo`00
+00040?ooo`030000003oool0oooo0080oooo00<000000?ooo`3oool0R@3oool00840oooo10000003
+0?ooo`<00000103oool00`000000oooo0?ooo`020?ooo`030000003oool0oooo08T0oooo002:0?oo
+o`030000003oool0oooo0080oooo00<000000?ooo`3oool00P3oool00`000000oooo0?ooo`290?oo
+o`00RP3oool00`000000oooo0?ooo`020?ooo`8000000P3oool00`000000oooo0?ooo`2:0?ooo`00
+RP3oool00`000000oooo0?ooo`020?ooo`050000003oool0oooo0?ooo`000000S03oool008/0oooo
+00D000000?ooo`3oool0oooo000000030?ooo`030000003oool0oooo08X0oooo002;0?ooo`050000
+003oool0oooo0?ooo`0000000`3oool00`000000oooo0?ooo`2:0?ooo`00R`3oool01@000000oooo
+0?ooo`3oool000000080oooo00<000000?ooo`3oool0R`3oool008`0oooo00@000000?ooo`3oool0
+00000P3oool00`000000oooo0?ooo`2;0?ooo`00S03oool00`000000oooo0?ooo`02000000030?oo
+o`000000oooo08`0oooo002=0?ooo`030000003oool000000080oooo00<000000?ooo`3oool0R`3o
+ool008d0oooo00D000000?ooo`000000oooo0000002>0?ooo`00S@3oool01@000000oooo0000003o
+ool0000008h0oooo002>0?ooo`<00000S`3oool008l0oooo0P00002?0?ooo`00S`3oool00`000000
+oooo0?ooo`2>0?ooo`00S`3oool00`000000oooo0?ooo`2>0?ooo`00S`3oool00`000000oooo0?oo
+o`2>0?ooo`00\
+\>"],
+  ImageRangeCache->{{{0, 287}, {176.938, 0}} -> {-3.48216, -4.30398, \
+0.0242659, 0.347128}}],
+
+Cell[BoxData[
+    TagBox[\(\[SkeletonIndicator]  Graphics  \[SkeletonIndicator]\),
+      False,
+      Editable->False]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Table[
+      Evaluate[Re[K[{\(-\[Pi]\) + m*\[Pi]\/20, 0, 0}, {0, 0, 0}, 0.75]]], {m, 
+        0, 20}]\)], "Input"],
+
+Cell[BoxData[
+    \({0.17712473324655229`, 0.1839919402649607`, 0.19105833656128207`, 
+      0.20808026219666917`, 0.2361487520111806`, 0.26939691223302487`, 
+      0.3272431445664813`, 0.39916941026065006`, 0.5081356970856816`, 
+      0.6683268178599946`, 0.8964806994264894`, 1.2633764195284434`, 
+      1.821179698349411`, 2.7485795177248984`, 4.3134238694777824`, 
+      7.022425208340497`, 11.88331109275875`, 20.246250554371915`, 
+      33.42038613634546`, 48.54138204618404`, 55.73009859151859`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Symmetry", "Subsection"],
+
+Cell["orthorhombic crystal symmetry:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(sym = {{0, 0, 0}, {0, 0, \[Pi]}, {0, \[Pi], 
+          0}, {0, \[Pi], \[Pi]}}\)], "Input"],
+
+Cell[BoxData[
+    \({{0, 0, 0}, {0, 0, \[Pi]}, {0, \[Pi], 
+        0}, {0, \[Pi], \[Pi]}}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Kernel Locations:", "Subsection"],
+
+Cell[BoxData[
+    \(\(loc = {{0, 0, 0}, {25  \[Pi]\/180, 0, 0}};\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(symloc = 
+      Join[sym, 
+        Table[sym\[LeftDoubleBracket]l\[RightDoubleBracket] + 
+            loc\[LeftDoubleBracket]2\[RightDoubleBracket], {l, 1, 
+            4}]]\)], "Input"],
+
+Cell[BoxData[
+    \({{0, 0, 0}, {0, 0, \[Pi]}, {0, \[Pi], 
+        0}, {0, \[Pi], \[Pi]}, {\(5\ \[Pi]\)\/36, 0, 0}, {\(5\ \[Pi]\)\/36, 
+        0, \[Pi]}, {\(5\ \[Pi]\)\/36, \[Pi], 
+        0}, {\(5\ \[Pi]\)\/36, \[Pi], \[Pi]}}\)], "Output"]
+}, Open  ]],
+
+Cell["kernel weights:", "Text"],
+
+Cell[BoxData[
+    \(\(w = {5, 5, 5, 5, 1, 1, 1, 1}/24;\)\)], "Input"],
+
+Cell[BoxData[
+    \(\(kappa = {0.85, 0.85, 0.85, 0.85, 0.92, 0.92, 0.92, 
+          0.92};\)\)], "Input"],
+
+Cell["Fourier coefficients:", "Text"],
+
+Cell[BoxData[
+    \(M = 8; 
+    F[l_, k_, 
+        kk_] := \(\((\[Sum]\+\(m = 1\)\%M w\[LeftDoubleBracket]
+                  m\[RightDoubleBracket])\)\^\(-1\)\) \(\[Sum]\+\(m = 1\)\%M 
+              A[l, kappa\[LeftDoubleBracket]m\[RightDoubleBracket]] 
+            w\[LeftDoubleBracket]m\[RightDoubleBracket] 
+            Conjugate[
+              WignerD[l, k, kk, 
+                symloc\[LeftDoubleBracket]
+                  m\[RightDoubleBracket]]]\)\)], "Input"],
+
+Cell["Normalization:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(F[l, 0, 0] - A[l, 0.85]\)], "Input"],
+
+Cell[BoxData[
+    \(\(-\(7\/12\)\)\ 0.85`\^\(2\ l\)\ \((1 + 2\ l)\) + 
+      1\/12\ 0.92`\^\(2\ l\)\ \((1 + 2\ l)\) + 
+      5\/12\ 0.85`\^\(2\ l\)\ \((1 + 2\ l)\)\ Conjugate[
+          LegendreP[l, \(-1\)]] + 
+      1\/12\ 0.92`\^\(2\ l\)\ \((1 + 2\ l)\)\ Conjugate[
+          LegendreP[l, \(-1\)]]\)], "Output"]
+}, Open  ]],
+
+Cell["Bandwidth:", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(L = 100\)], "Input"],
+
+Cell[BoxData[
+    \(100\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(FSO3 = 
+        N[Table[F[l, k, kk], {l, 0, L}, {k, \(-l\), l}, {kk, \(-l\), 
+              l}]];\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Length[FSO3]\)], "Input"],
+
+Cell[BoxData[
+    \(11\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[FSO3]\)], "Input"],
+
+Cell[BoxData[
+    InterpretationBox[GridBox[{
+          {GridBox[{
+                {"1.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", \
+"\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.85`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.85`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.85`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", \
+"\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.7224999999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.7224999999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.7224999999999999`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.7224999999999999`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.7224999999999999`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", \
+"\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.6141249999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.6141249999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.6141249999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.6141249999999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.6141249999999999`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.6141249999999999`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.6141249999999999`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", \
+"\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.5220062499999999`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", \
+"\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.44370531249999995`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.37714951562499993`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.32057708828125`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\
+\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.27249052503906246`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              
+              ColumnAlignments->{
+                Left}], "\<\"\"\>", "\<\"\"\>", "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.2316169462832031`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], "\<\"\"\>", "\<\"\"\>"},
+          {GridBox[{
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"},
+                {"0.`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}], GridBox[{
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.`"},
+                {"0.1968744043407226`"}
+                },
+              RowSpacings->0.25,
+              ColumnSpacings->1,
+              RowAlignments->Baseline,
+              ColumnAlignments->{Left}]}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      TableForm[ {{{1.0}}, {{.84999999999999998, 0.0, 0.0}, {
+        0.0, .84999999999999998, 0.0}, {0.0, 
+        0.0, .84999999999999998}}, {{.72249999999999992, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, .72249999999999992, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, .72249999999999992, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, .72249999999999992, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, .72249999999999992}}, {{.61412499999999992, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, .61412499999999992, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, .61412499999999992, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, .61412499999999992, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, .61412499999999992, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, .61412499999999992, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .61412499999999992}}, {{.52200624999999989, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, .52200624999999989, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, .52200624999999989, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, 0.0, 0.0, .52200624999999989, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, .52200624999999989, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, 0.0, 0.0, 0.0, 0.0, .52200624999999989, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .52200624999999989, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .52200624999999989, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .52200624999999989}}, {{.44370531249999995, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, .44370531249999995, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, .44370531249999995, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, 0.0, 0.0, .44370531249999995, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, .44370531249999995, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, .44370531249999995, 
+        0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .44370531249999995, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, .44370531249999995, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .44370531249999995, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .44370531249999995, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .44370531249999995}}, {{.37714951562499993, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, .37714951562499993, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, .37714951562499993, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, .37714951562499993, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, .37714951562499993, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, .37714951562499993, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .37714951562499993, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .37714951562499993, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .37714951562499993, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .37714951562499993, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .37714951562499993, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .37714951562499993, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, .37714951562499993}}, {{.32057708828124998, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, .32057708828124998, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, .32057708828124998, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, .32057708828124998, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, .32057708828124998, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .32057708828124998, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .32057708828124998, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .32057708828124998, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .32057708828124998, 0.0, 0.0}, {
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .32057708828124998}}, {{.27249052503906246, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, .27249052503906246, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, 0.0, 0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, .27249052503906246, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .27249052503906246, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .27249052503906246, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, .27249052503906246, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .27249052503906246, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, .27249052503906246, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, .27249052503906246, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .27249052503906246}}, {{.23161694628320309, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .23161694628320309}}, {{.19687440434072259, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, 0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259, 0.0}, {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, .19687440434072259}}}]]], "Output"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Check", "Subsection"],
+
+Cell[BoxData[
+    \(L = 5; 
+    CK[g_] := \[Sum]\+\(l = 0\)\%L\(\[Sum]\+\(k = \(-l\)\)\%l\(\[Sum]\+\(kk = \
+\(-l\)\)\%l WignerD[l, k, kk, g] 
+              FSO3\[LeftDoubleBracket]1 + l, 1 + l + k, 
+                1 + l + kk\[RightDoubleBracket]\)\);\)], "Input"],
+
+Cell["Abel Poisson Kern auf SO(3):", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Plot[CK[{\[Alpha], 0, 0}], {\[Alpha], \(-\[Pi]\), \[Pi]}, 
+      PlotRange \[Rule] All]\)], "Input"],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+%%IncludeResource: font Courier
+%%IncludeFont: Courier
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+0.5 0.151576 0.0478548 0.00363585 [
+[.04527 .03535 -6 -9 ]
+[.04527 .03535 6 0 ]
+[.19685 .03535 -6 -9 ]
+[.19685 .03535 6 0 ]
+[.34842 .03535 -6 -9 ]
+[.34842 .03535 6 0 ]
+[.65158 .03535 -3 -9 ]
+[.65158 .03535 3 0 ]
+[.80315 .03535 -3 -9 ]
+[.80315 .03535 3 0 ]
+[.95473 .03535 -3 -9 ]
+[.95473 .03535 3 0 ]
+[.4875 .13875 -12 -4.5 ]
+[.4875 .13875 0 4.5 ]
+[.4875 .22965 -12 -4.5 ]
+[.4875 .22965 0 4.5 ]
+[.4875 .32054 -12 -4.5 ]
+[.4875 .32054 0 4.5 ]
+[.4875 .41144 -18 -4.5 ]
+[.4875 .41144 0 4.5 ]
+[.4875 .50234 -18 -4.5 ]
+[.4875 .50234 0 4.5 ]
+[.4875 .59323 -18 -4.5 ]
+[.4875 .59323 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.04527 .04785 m
+.04527 .0541 L
+s
+[(-3)] .04527 .03535 0 1 Mshowa
+.19685 .04785 m
+.19685 .0541 L
+s
+[(-2)] .19685 .03535 0 1 Mshowa
+.34842 .04785 m
+.34842 .0541 L
+s
+[(-1)] .34842 .03535 0 1 Mshowa
+.65158 .04785 m
+.65158 .0541 L
+s
+[(1)] .65158 .03535 0 1 Mshowa
+.80315 .04785 m
+.80315 .0541 L
+s
+[(2)] .80315 .03535 0 1 Mshowa
+.95473 .04785 m
+.95473 .0541 L
+s
+[(3)] .95473 .03535 0 1 Mshowa
+.125 Mabswid
+.07559 .04785 m
+.07559 .0516 L
+s
+.1059 .04785 m
+.1059 .0516 L
+s
+.13622 .04785 m
+.13622 .0516 L
+s
+.16653 .04785 m
+.16653 .0516 L
+s
+.22716 .04785 m
+.22716 .0516 L
+s
+.25748 .04785 m
+.25748 .0516 L
+s
+.28779 .04785 m
+.28779 .0516 L
+s
+.31811 .04785 m
+.31811 .0516 L
+s
+.37874 .04785 m
+.37874 .0516 L
+s
+.40905 .04785 m
+.40905 .0516 L
+s
+.43937 .04785 m
+.43937 .0516 L
+s
+.46968 .04785 m
+.46968 .0516 L
+s
+.53032 .04785 m
+.53032 .0516 L
+s
+.56063 .04785 m
+.56063 .0516 L
+s
+.59095 .04785 m
+.59095 .0516 L
+s
+.62126 .04785 m
+.62126 .0516 L
+s
+.68189 .04785 m
+.68189 .0516 L
+s
+.71221 .04785 m
+.71221 .0516 L
+s
+.74252 .04785 m
+.74252 .0516 L
+s
+.77284 .04785 m
+.77284 .0516 L
+s
+.83347 .04785 m
+.83347 .0516 L
+s
+.86378 .04785 m
+.86378 .0516 L
+s
+.8941 .04785 m
+.8941 .0516 L
+s
+.92441 .04785 m
+.92441 .0516 L
+s
+.01496 .04785 m
+.01496 .0516 L
+s
+.98504 .04785 m
+.98504 .0516 L
+s
+.25 Mabswid
+0 .04785 m
+1 .04785 L
+s
+.5 .13875 m
+.50625 .13875 L
+s
+[(25)] .4875 .13875 1 0 Mshowa
+.5 .22965 m
+.50625 .22965 L
+s
+[(50)] .4875 .22965 1 0 Mshowa
+.5 .32054 m
+.50625 .32054 L
+s
+[(75)] .4875 .32054 1 0 Mshowa
+.5 .41144 m
+.50625 .41144 L
+s
+[(100)] .4875 .41144 1 0 Mshowa
+.5 .50234 m
+.50625 .50234 L
+s
+[(125)] .4875 .50234 1 0 Mshowa
+.5 .59323 m
+.50625 .59323 L
+s
+[(150)] .4875 .59323 1 0 Mshowa
+.125 Mabswid
+.5 .06603 m
+.50375 .06603 L
+s
+.5 .08421 m
+.50375 .08421 L
+s
+.5 .10239 m
+.50375 .10239 L
+s
+.5 .12057 m
+.50375 .12057 L
+s
+.5 .15693 m
+.50375 .15693 L
+s
+.5 .17511 m
+.50375 .17511 L
+s
+.5 .19329 m
+.50375 .19329 L
+s
+.5 .21147 m
+.50375 .21147 L
+s
+.5 .24783 m
+.50375 .24783 L
+s
+.5 .26601 m
+.50375 .26601 L
+s
+.5 .28418 m
+.50375 .28418 L
+s
+.5 .30236 m
+.50375 .30236 L
+s
+.5 .33872 m
+.50375 .33872 L
+s
+.5 .3569 m
+.50375 .3569 L
+s
+.5 .37508 m
+.50375 .37508 L
+s
+.5 .39326 m
+.50375 .39326 L
+s
+.5 .42962 m
+.50375 .42962 L
+s
+.5 .4478 m
+.50375 .4478 L
+s
+.5 .46598 m
+.50375 .46598 L
+s
+.5 .48416 m
+.50375 .48416 L
+s
+.5 .52051 m
+.50375 .52051 L
+s
+.5 .53869 m
+.50375 .53869 L
+s
+.5 .55687 m
+.50375 .55687 L
+s
+.5 .57505 m
+.50375 .57505 L
+s
+.5 .02968 m
+.50375 .02968 L
+s
+.5 .0115 m
+.50375 .0115 L
+s
+.5 .61141 m
+.50375 .61141 L
+s
+.25 Mabswid
+.5 0 m
+.5 .61803 L
+s
+.5 Mabswid
+.02381 .03906 m
+.06244 .04764 L
+.07216 .05112 L
+.08255 .0544 L
+.08852 .05588 L
+.09396 .05687 L
+.09658 .05722 L
+.09795 .05736 L
+.09942 .05748 L
+.10069 .05756 L
+.10142 .0576 L
+.1021 .05762 L
+.1033 .05765 L
+.10458 .05766 L
+.10585 .05765 L
+.10656 .05763 L
+.10721 .0576 L
+.10846 .05754 L
+.10965 .05746 L
+.1123 .0572 L
+.11517 .0568 L
+.12042 .05578 L
+.12524 .05453 L
+.14415 .04757 L
+.15401 .0435 L
+.15943 .04141 L
+.16457 .03966 L
+.16935 .03828 L
+.17187 .03768 L
+.17455 .03714 L
+.17679 .03678 L
+.17798 .03662 L
+.17927 .03648 L
+.18045 .03637 L
+.18152 .03629 L
+.18255 .03624 L
+.18364 .0362 L
+.18486 .03619 L
+.18602 .0362 L
+.18706 .03624 L
+.18818 .0363 L
+.18941 .03639 L
+.19071 .03652 L
+.19303 .03683 L
+.19518 .03721 L
+.1972 .03764 L
+.20177 .0389 L
+.20677 .0407 L
+.21134 .04267 L
+.22161 .04805 L
+Mistroke
+.2316 .05391 L
+.24224 .05991 L
+.24742 .06242 L
+.25228 .0644 L
+.25665 .06577 L
+.25911 .06635 L
+.26029 .06657 L
+.26137 .06675 L
+.26244 .06689 L
+.26359 .06701 L
+.26481 .0671 L
+.26597 .06715 L
+.26705 .06716 L
+.26819 .06713 L
+.26917 .06708 L
+.27025 .06699 L
+.27151 .06684 L
+.27267 .06666 L
+.27527 .0661 L
+.27757 .06544 L
+.27998 .06458 L
+.28485 .0623 L
+.28937 .05958 L
+.29962 .05148 L
+.31839 .03277 L
+.32827 .0235 L
+.33325 .01971 L
+.33611 .01794 L
+.33871 .01661 L
+.34149 .01556 L
+.34222 .01535 L
+.34302 .01515 L
+.34371 .01501 L
+.34447 .01488 L
+.34517 .0148 L
+.34582 .01475 L
+.34652 .01472 L
+.34726 .01472 L
+.34792 .01475 L
+.34861 .01482 L
+.34985 .01501 L
+.35107 .01531 L
+.35238 .01574 L
+.35474 .01683 L
+.35619 .01771 L
+.35755 .01869 L
+.3601 .02093 L
+.36513 .02696 L
+.36977 .03454 L
+.37487 .04522 L
+Mistroke
+.38026 .05929 L
+.38969 .09076 L
+.39981 .13408 L
+.41812 .23336 L
+.43784 .35726 L
+.45936 .48561 L
+.46934 .53383 L
+.47482 .5557 L
+.47997 .57284 L
+.48479 .58559 L
+.48733 .59096 L
+.49 .59561 L
+.49226 .59869 L
+.49346 .60001 L
+.49474 .60118 L
+.49592 .60203 L
+.49699 .60262 L
+.49807 .60303 L
+.49909 .60326 L
+.50023 .60332 L
+.50146 .60316 L
+.50262 .60279 L
+.50369 .60227 L
+.50487 .60149 L
+.50616 .60039 L
+.50876 .5974 L
+.51133 .59344 L
+.51407 .58812 L
+.51902 .57579 L
+.52867 .54218 L
+.53744 .50211 L
+.57744 .26039 L
+.59578 .15577 L
+.60619 .10725 L
+.61593 .07095 L
+.62552 .04432 L
+.6309 .03331 L
+.63582 .02565 L
+.63832 .02258 L
+.64099 .0199 L
+.64391 .01764 L
+.64662 .01615 L
+.64795 .01562 L
+.64865 .01539 L
+.64939 .01518 L
+.65004 .01503 L
+.65075 .0149 L
+.652 .01476 L
+.65322 .01472 L
+.65452 .01477 L
+Mistroke
+.65575 .01492 L
+.65687 .01513 L
+.65805 .01543 L
+.65917 .01577 L
+.6617 .0168 L
+.66416 .01809 L
+.66682 .01976 L
+.67601 .02729 L
+.69679 .04814 L
+.70688 .0569 L
+.71222 .0606 L
+.71515 .0623 L
+.71791 .06368 L
+.72053 .06478 L
+.72337 .06573 L
+.72595 .06639 L
+.72718 .06663 L
+.72833 .06681 L
+.72941 .06695 L
+.73057 .06706 L
+.73185 .06713 L
+.73303 .06716 L
+.73425 .06714 L
+.73494 .06712 L
+.73558 .06708 L
+.73675 .06698 L
+.738 .06684 L
+.74038 .06645 L
+.74288 .06589 L
+.74736 .06452 L
+.75218 .0626 L
+.75746 .06006 L
+.77574 .04957 L
+.78582 .04405 L
+.79534 .03989 L
+.8006 .0382 L
+.80357 .03746 L
+.80631 .03693 L
+.80862 .0366 L
+.80993 .03645 L
+.81116 .03634 L
+.81245 .03626 L
+.81363 .03621 L
+.81428 .0362 L
+.81499 .03619 L
+.81629 .0362 L
+.81693 .03622 L
+.81762 .03625 L
+.81884 .03632 L
+.82016 .03642 L
+Mistroke
+.82161 .03657 L
+.8242 .03693 L
+.82662 .03737 L
+.83115 .03841 L
+.83599 .03983 L
+.85697 .04804 L
+.86716 .05204 L
+.87254 .05386 L
+.87824 .05546 L
+.88322 .05653 L
+.88605 .05699 L
+.88734 .05716 L
+.8887 .05731 L
+.88986 .05742 L
+.89113 .05751 L
+.89229 .05758 L
+.89336 .05763 L
+.89463 .05766 L
+.89578 .05766 L
+.89642 .05766 L
+.89712 .05765 L
+.89837 .05761 L
+.89961 .05754 L
+.90074 .05747 L
+.90327 .05723 L
+.90562 .05693 L
+.90786 .05658 L
+.91284 .05558 L
+.91828 .05417 L
+.93933 .04701 L
+.94854 .04388 L
+.95719 .04145 L
+.96153 .04051 L
+.96622 .03974 L
+.96875 .03944 L
+.97013 .03931 L
+.97142 .03922 L
+.97252 .03915 L
+.9737 .0391 L
+.975 .03907 L
+.97619 .03906 L
+Mfstroke
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  ImageSize->{288, 177.938},
+  ImageMargins->{{43, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`40004P0000/A000`40O003h00OSgoo00<007ooOol0
+SWoo002?Ool00`00Oomoo`2>Ool000moo`8002Qoo`@002Qoo`D002Eoo`03001oogoo02Ioo`D002Mo
+o`@002Qoo`8000ioo`003Woo00@007ooOol002Moo`03001oogoo02]oo`03001oogoo02Eoo`8002Uo
+o`03001oogoo02Moo`03001oogoo02Qoo`04001oogoo000=Ool0011oo`03001oogoo02Moo`03001o
+ogoo02Aoo`D00003Ool007oo02Ioo`03001oogoo02Moo`D002Moo`03001oogoo02Uoo`03001oogoo
+00aoo`0027oo10001Goo00<007ooOol07goo100017oo00<007ooOol08Goo10000goo0P009goo00<0
+07ooOol09Goo0P0000=oo`00Ool00Woo0P009Woo00<007ooOol0:Goo00<007ooOol02goo000>Ool0
+1000Oomoo`009goo00@007ooOol0025oo`03001oogoo00Ioo`03001oogoo02Eoo`03001oogoo02Eo
+o`04001oogoo0005Ool00`00Oomoo`0QOol01000Oomoo`009goo00@007ooOol000eoo`003goo0P00
+:Goo0P008Goo00<007ooOol01Woo0`009Woo00<007ooOol097oo00<007ooOol00P001Woo00<007oo
+Ool08Goo0P00:Goo0P003Woo001LOol00`00Oomoo`0:Ool00`00Oomoo`0SOol2000TOol00`00Oomo
+o`0:Ool00`00Oomoo`1KOol005]oo`03001oogoo00aoo`03001oogoo029oo`03001oogoo029oo`03
+001oogoo00aoo`03001oogoo05Yoo`00<Goo20008Goo00<007ooOol03Goo00<007ooOol08Woo00<0
+07ooOol08Woo00<007ooOol03Goo00<007ooOol07Woo2@00<Woo0007Ool3000TOol30008Ool3000M
+Ool00`00Oomoo`0>Ool00`00Oomoo`0ROol00`00Oomoo`0QOol00`00Oomoo`0?Ool00`00Oomoo`0K
+Ool20009Ool3000POol70008Ool000Yoo`H001]oo`<000ioo`8001Yoo`03001oogoo011oo`03001o
+ogoo025oo`03001oogoo025oo`03001oogoo011oo`03001oogoo01Qoo`8000ioo`<001]oo`8000mo
+o`00o`0080000Goo0004Ool00`00Oomoo`06Ool00`00Oomoo`04Ool20008Ool00`00Oomoo`05Ool2
+0008Ool00`00Oomoo`05Ool00`00Oomoo`05Ool20008Ool00`00Oomoo`05Ool01@00Oomoogoo0000
+17oo00<007ooOol01Woo00<007ooOol017oo0P0027oo00<007ooOol01Woo00<007ooOol01Goo00<0
+07ooOol01Woo00<007ooOol01Woo00<007ooOol01Goo00<007ooOol01Woo00<007ooOol01Woo00<0
+07ooOol01Goo00<007ooOol01Woo00<007ooOol00Woo00D007ooOomoo`0000Moo`03001oogoo00Io
+o`8000Moo`03001oogoo00Eoo`03001oogoo00Ioo`8000Moo`03001oogoo00Ioo`<000Eoo`03001o
+ogoo00Ioo`03001oogoo00=oo`003Goo00<007ooOol01Woo0P0037oo0P004Woo00<007ooOol01goo
+00<007ooOol047oo00<007ooOol037oo00<007ooOol01Goo00<007ooOol087oo00<007ooOol087oo
+00<007ooOol01Goo00<007ooOol037oo00<007ooOol047oo0P0027oo00<007ooOol047oo0`002Goo
+100027oo00<007ooOol037oo000HOol<000OOol2000?Ool00`00Oomoo`0EOol00`00Oomoo`0POol0
+0`00Oomoo`0OOol00`00Oomoo`0FOol00`00Oomoo`0=Ool2000POol9000KOol004Eoo`<000Uoo`<0
+01Uoo`03001oogoo01moo`03001oogoo01moo`03001oogoo01Moo`<000Uoo`<004Ioo`00B7oo0P00
+1Goo0P0077oo00<007ooOol07goo0P0087oo00<007ooOol06Goo0`001Goo0P00BGoo001:Ool5000N
+Ool00`00Oomoo`0OOol00`00Oomoo`0NOol00`00Oomoo`0MOol5001;Ool006ioo`03001oogoo01io
+o`03001oogoo01ioo`03001oogoo06eoo`00KWoo00<007ooOol07Woo00<007ooOol07Woo00<007oo
+Ool0KGoo001^Ool00`00Oomoo`0NOol00`00Oomoo`0MOol00`00Oomoo`1^Ool006ioo`03001oogoo
+01ioo`03001oogoo01eoo`03001oogoo06ioo`00Kgoo00<007ooOol07Goo0P007Woo00<007ooOol0
+KWoo001_Ool00`00Oomoo`0MOol00`00Oomoo`0LOol00`00Oomoo`1_Ool006moo`03001oogoo01eo
+o`03001oogoo01aoo`03001oogoo06moo`00Kgoo00<007ooOol07Goo00<007ooOol077oo00<007oo
+Ool0Kgoo001_Ool00`00Oomoo`0MOol00`00Oomoo`0LOol00`00Oomoo`1_Ool0071oo`03001oogoo
+01aoo`8001aoo`03001oogoo071oo`00L7oo00<007ooOol077oo00<007ooOol06goo00<007ooOol0
+L7oo001`Ool00`00Oomoo`0LOol00`00Oomoo`0KOol00`00Oomoo`1`Ool0071oo`03001oogoo01ao
+o`03001oogoo01]oo`03001oogoo071oo`00LGoo00<007ooOol06goo00<007ooOol06Woo00<007oo
+Ool0LGoo001aOol00`00Oomoo`0KOol2000KOol00`00Oomoo`1aOol0075oo`03001oogoo01]oo`03
+001oogoo01Yoo`03001oogoo075oo`00LGoo00<007ooOol06goo00<007ooOol06Woo00<007ooOol0
+LGoo001bOol00`00Oomoo`0;Ool40003Ool20006Ool00`00Oomoo`0IOol00`00Oomoo`1bOol0079o
+o`03001oogoo00]oo`03001oogoo00=oo`04001oogoo0005Ool00`00Oomoo`0IOol00`00Oomoo`1b
+Ool0079oo`03001oogoo00aoo`03001oogoo00Eoo`03001oogoo00=oo`<001Uoo`03001oogoo079o
+o`00LWoo00<007ooOol03Goo00<007ooOol00Woo0P001Woo00<007ooOol06Goo00<007ooOol0LWoo
+001cOol00`00Oomoo`0:Ool01000Oomoo`000goo00<007ooOol01Goo00<007ooOol06Goo00<007oo
+Ool0LWoo001cOol00`00Oomoo`0;Ool20004Ool30005Ool00`00Oomoo`0HOol00`00Oomoo`1cOol0
+07=oo`03001oogoo01Uoo`03001oogoo01Qoo`03001oogoo07=oo`00Lgoo00<007ooOol06Goo0P00
+6Goo00<007ooOol0Lgoo001cOol00`00Oomoo`0IOol00`00Oomoo`0HOol00`00Oomoo`1cOol007Ao
+o`03001oogoo01Qoo`03001oogoo01Qoo`03001oogoo07=oo`00M7oo00<007ooOol067oo00<007oo
+Ool05goo00<007ooOol0M7oo001dOol00`00Oomoo`0HOol00`00Oomoo`0GOol00`00Oomoo`1dOol0
+07Aoo`03001oogoo01Qoo`03001oogoo01Moo`03001oogoo07Aoo`00MGoo00<007ooOol05goo0P00
+67oo00<007ooOol0M7oo001eOol00`00Oomoo`0GOol00`00Oomoo`0GOol00`00Oomoo`1dOol007Eo
+o`03001oogoo01Moo`03001oogoo01Moo`03001oogoo07Aoo`00MGoo00<007ooOol05goo00<007oo
+Ool05Woo00<007ooOol0MGoo001eOol00`00Oomoo`0GOol00`00Oomoo`0FOol00`00Oomoo`1eOol0
+07Ioo`03001oogoo01Ioo`8001Moo`03001oogoo07Eoo`00MWoo00<007ooOol05Woo00<007ooOol0
+5Woo00<007ooOol0MGoo001fOol00`00Oomoo`0FOol00`00Oomoo`0FOol00`00Oomoo`1eOol007Io
+o`03001oogoo01Ioo`03001oogoo01Ioo`03001oogoo07Eoo`00MWoo00<007ooOol05Woo00<007oo
+Ool05Goo00<007ooOol0MWoo001gOol00`00Oomoo`0EOol2000FOol00`00Oomoo`1fOol007Moo`03
+001oogoo01Eoo`03001oogoo01Eoo`03001oogoo07Ioo`00Mgoo00<007ooOol05Goo00<007ooOol0
+5Goo00<007ooOol0MWoo001gOol00`00Oomoo`07Ool20004Ool20006Ool00`00Oomoo`0EOol00`00
+Oomoo`1fOol007Qoo`03001oogoo00Eoo`04001oogoo0002Ool01000Oomoo`001Goo00<007ooOol0
+5Goo00<007ooOol0MWoo001hOol00`00Oomoo`08Ool01000Oomoo`000Woo00<007ooOol00goo0`00
+57oo00<007ooOol0Mgoo001hOol00`00Oomoo`06Ool20003Ool01000Oomoo`001Goo00<007ooOol0
+57oo00<007ooOol0Mgoo001hOol00`00Oomoo`06Ool00`00Oomoo`02Ool01000Oomoo`001Goo00<0
+07ooOol057oo00<007ooOol0Mgoo001hOol00`00Oomoo`06Ool30003Ool20006Ool00`00Oomoo`0D
+Ool00`00Oomoo`1gOol007Qoo`03001oogoo01Aoo`03001oogoo01Aoo`03001oogoo07Moo`00NGoo
+00<007ooOol04goo00<007ooOol057oo00<007ooOol0Mgoo001iOol00`00Oomoo`0COol2000DOol0
+0`00Oomoo`1hOol007Uoo`03001oogoo01=oo`03001oogoo01=oo`03001oogoo07Qoo`00NGoo00<0
+07ooOol04goo00<007ooOol04goo00<007ooOol0N7oo001iOol00`00Oomoo`0COol00`00Oomoo`0C
+Ool00`00Oomoo`1hOol007Uoo`03001oogoo01=oo`03001oogoo01=oo`03001oogoo07Qoo`00NGoo
+00<007ooOol04goo0P0057oo00<007ooOol0N7oo001jOol00`00Oomoo`0BOol00`00Oomoo`0COol0
+0`00Oomoo`1hOol007Yoo`03001oogoo019oo`03001oogoo019oo`03001oogoo07Uoo`00NWoo00<0
+07ooOol04Woo00<007ooOol04Woo00<007ooOol0NGoo001jOol00`00Oomoo`0BOol00`00Oomoo`0B
+Ool00`00Oomoo`1iOol007Yoo`03001oogoo019oo`8001=oo`03001oogoo07Uoo`00NWoo00<007oo
+Ool04Woo00<007ooOol04Woo00<007ooOol0NGoo001jOol00`00Oomoo`0BOol00`00Oomoo`0BOol0
+0`00Oomoo`1iOol007Yoo`03001oogoo019oo`03001oogoo015oo`03001oogoo07Yoo`00Ngoo00<0
+07ooOol04Goo00<007ooOol04Goo00<007ooOol0NWoo001kOol00`00Oomoo`0AOol2000BOol00`00
+Oomoo`1jOol007]oo`03001oogoo015oo`03001oogoo015oo`03001oogoo07Yoo`00Ngoo00<007oo
+Ool04Goo00<007ooOol04Goo00<007ooOol0NWoo001kOol00`00Oomoo`04Ool00`00Oomoo`02Ool2
+0006Ool00`00Oomoo`0AOol00`00Oomoo`1jOol007]oo`03001oogoo00Aoo`05001oogooOol00002
+Ool00`00Oomoo`03Ool00`00Oomoo`0@Ool00`00Oomoo`1kOol007]oo`03001oogoo00Aoo`03001o
+ogoo00Aoo`03001oogoo00=oo`<0011oo`03001oogoo07]oo`00O7oo00<007ooOol017oo00@007oo
+Oomoo`8000Ioo`03001oogoo011oo`03001oogoo07]oo`00O7oo00D007ooOomoo`00009oo`05001o
+ogooOol00007Ool00`00Oomoo`0@Ool00`00Oomoo`1kOol007aoo`04001oogooOol40003Ool30005
+Ool00`00Oomoo`0@Ool00`00Oomoo`1kOol007aoo`03001oogoo011oo`03001oogoo011oo`03001o
+ogoo07]oo`00O7oo00<007ooOol047oo00<007ooOol03goo00<007ooOol0O7oo001lOol00`00Oomo
+o`0@Ool2000@Ool00`00Oomoo`1lOol007aoo`03001oogoo011oo`03001oogoo00moo`03001oogoo
+07aoo`00OGoo00<007ooOol03goo00<007ooOol03goo00<007ooOol0O7oo001mOol00`00Oomoo`0?
+Ool00`00Oomoo`0?Ool00`00Oomoo`1lOol007eoo`03001oogoo00moo`03001oogoo00moo`03001o
+ogoo07aoo`00OGoo00<007ooOol03goo0P0047oo00<007ooOol0O7oo001mOol00`00Oomoo`0?Ool0
+0`00Oomoo`0>Ool00`00Oomoo`1mOol007eoo`03001oogoo00moo`03001oogoo00ioo`03001oogoo
+07eoo`00OGoo00<007ooOol03goo00<007ooOol03Woo00<007ooOol0OGoo001nOol00`00Oomoo`0>
+Ool00`00Oomoo`0>Ool00`00Oomoo`1mOol007ioo`03001oogoo00ioo`8000moo`03001oogoo07eo
+o`00OWoo00<007ooOol03Woo00<007ooOol03Woo00<007ooOol0OGoo001nOol00`00Oomoo`0>Ool0
+0`00Oomoo`0=Ool00`00Oomoo`1nOol007ioo`03001oogoo00ioo`03001oogoo00eoo`03001oogoo
+07ioo`00OWoo00<007ooOol03Woo00<007ooOol03Goo00<007ooOol0OWoo001oOol00`00Oomoo`0=
+Ool2000>Ool00`00Oomoo`1nOol007moo`03001oogoo00eoo`03001oogoo00eoo`03001oogoo07io
+o`00Ogoo00<007ooOol03Goo00<007ooOol03Goo00<007ooOol0OWoo001jOol600000goo00000004
+Ool20006Ool00`00Oomoo`0<Ool00`00Oomoo`1oOol007aoo`03001oogoo0080009oo`04001oogoo
+0002Ool00`00Oomoo`03Ool00`00Oomoo`0<Ool00`00Oomoo`1oOol007aoo`03001oogoo0080009o
+o`04001oogoo0002Ool00`00Oomoo`03Ool3000<Ool00`00Oomoo`1oOol007aoo`05001oogooOol0
+0002Ool01000Oomoo`000Woo00<007ooOol00goo00<007ooOol037oo00<007ooOol0Ogoo001lOol0
+1@00Oomoogoo00000Woo00@007ooOol0009oo`03001oogoo00=oo`03001oogoo00aoo`03001oogoo
+07moo`00Ngoo0P000goo0`0017oo0P001Woo00<007ooOol037oo00<007ooOol0Ogoo0020Ool00`00
+Oomoo`0<Ool00`00Oomoo`0<Ool00`00Oomoo`1oOol0081oo`03001oogoo00aoo`03001oogoo00]o
+o`03001oogoo081oo`00P7oo00<007ooOol037oo0P0037oo00<007ooOol0P7oo0021Ool00`00Oomo
+o`0;Ool00`00Oomoo`0;Ool00`00Oomoo`20Ool0085oo`03001oogoo00]oo`03001oogoo00]oo`03
+001oogoo081oo`00PGoo00<007ooOol02goo00<007ooOol02goo00<007ooOol0P7oo0021Ool00`00
+Oomoo`0;Ool00`00Oomoo`0;Ool00`00Oomoo`20Ool0085oo`03001oogoo00]oo`8000]oo`03001o
+ogoo085oo`00PGoo00<007ooOol02goo00<007ooOol02Woo00<007ooOol0PGoo0022Ool00`00Oomo
+o`0:Ool00`00Oomoo`0:Ool00`00Oomoo`21Ool0089oo`03001oogoo00Yoo`03001oogoo00Yoo`03
+001oogoo085oo`00PWoo00<007ooOol02Woo00<007ooOol02Woo00<007ooOol0PGoo0022Ool00`00
+Oomoo`0:Ool2000;Ool00`00Oomoo`21Ool0089oo`03001oogoo00Yoo`03001oogoo00Uoo`03001o
+ogoo089oo`00PWoo00<007ooOol02Woo00<007ooOol02Goo00<007ooOol0PWoo0023Ool00`00Oomo
+o`09Ool00`00Oomoo`09Ool00`00Oomoo`22Ool008=oo`03001oogoo00Uoo`03001oogoo00Uoo`03
+001oogoo089oo`00Pgoo00<007ooOol02Goo0P002Woo00<007ooOol0PWoo0023Ool00`00Oomoo`09
+Ool00`00Oomoo`09Ool00`00Oomoo`22Ool008=oo`03001oogoo00Uoo`03001oogoo00Qoo`03001o
+ogoo08=oo`00NWoo1@0000=oo`0000000P000goo0P001Woo00<007ooOol027oo00<007ooOol0Pgoo
+001lOol01@00Oomoogoo00000goo00<007oo00000Woo00<007ooOol00goo00<007ooOol027oo00<0
+07ooOol0Pgoo001lOol00`00Oomoo`02Ool01000Oomoo`0017oo00<007ooOol00goo0`0027oo00<0
+07ooOol0Pgoo001lOol00`00Oomoo`03Ool00`00Ool00002Ool20006Ool00`00Oomoo`08Ool00`00
+Oomoo`23Ool007aoo`05001oogooOol00002Ool20002Ool00`00Oomoo`05Ool00`00Oomoo`07Ool0
+0`00Oomoo`24Ool007]oo`8000Aoo`80009oo`03001oo`00008000Eoo`03001oogoo00Moo`03001o
+ogoo08Aoo`00QGoo00<007ooOol01goo00<007ooOol01goo00<007ooOol0Q7oo0025Ool00`00Oomo
+o`07Ool00`00Oomoo`07Ool00`00Oomoo`24Ool008Eoo`03001oogoo00Moo`8000Moo`03001oogoo
+08Eoo`00QWoo00<007ooOol01Woo00<007ooOol01Woo00<007ooOol0QGoo0026Ool00`00Oomoo`06
+Ool00`00Oomoo`06Ool00`00Oomoo`25Ool008Ioo`03001oogoo00Ioo`03001oogoo00Ioo`03001o
+ogoo08Eoo`00QWoo00<007ooOol01Woo00<007ooOol01Goo00<007ooOol0QWoo0027Ool00`00Oomo
+o`05Ool20006Ool00`00Oomoo`26Ool008Moo`03001oogoo00Eoo`03001oogoo00Eoo`03001oogoo
+08Ioo`00Qgoo00<007ooOol01Goo00<007ooOol01Goo00<007ooOol0QWoo0027Ool00`00Oomoo`05
+Ool00`00Oomoo`04Ool00`00Oomoo`27Ool008Qoo`03001oogoo00Aoo`03001oogoo00Aoo`03001o
+ogoo08Moo`00R7oo00<007ooOol017oo0P001Goo00<007ooOol0Qgoo0028Ool00`00Oomoo`04Ool0
+0`00Oomoo`03Ool00`00Oomoo`28Ool008Qoo`03001oogoo00Aoo`03001oogoo00=oo`03001oogoo
+08Qoo`00RGoo00<007ooOol00goo00<007ooOol00goo00<007ooOol0R7oo0029Ool00`00Oomoo`03
+Ool00`00Oomoo`02Ool00`00Oomoo`29Ool008Uoo`03001oogoo00=oo`8000=oo`03001oogoo08Uo
+o`00RWoo00<007ooOol00Woo00<007ooOol00Woo00<007ooOol0RGoo002:Ool00`00Oomoo`02Ool0
+1@00Oomoogoo0000S7oo001jOol50002Ool20004Ool20002Ool01@00Oomoogoo00000goo00<007oo
+Ool0RWoo001lOol01@00Oomoogoo00000Woo00@007ooOol0009oo`03001oo`0000=oo`05001oogoo
+Ool0002<Ool007aoo`03001oogoo00Aoo`04001oogoo0002Ool00`00Ool00003Ool4002=Ool007ao
+o`03001oogoo009oo`8000=oo`04001oogoo0002Ool01000Oomoo`000Woo00<007ooOol0Rgoo001l
+Ool00`00Oomoo`02Ool00`00Oomoo`02Ool01000Oomoo`000goo00@007oo001oo`8008eoo`00Ngoo
+0P0017oo0`000goo0P0017oo1000Sgoo002?Ool00`00Oomoo`2>Ool008moo`03001oogoo08ioo`00
+Sgoo0P00Sgoo002?Ool00`00Oomoo`2>Ool00001\
+\>"],
+  ImageRangeCache->{{{0, 287}, {176.938, 0}} -> {-3.30686, -13.1628, \
+0.0230443, 0.960701}}],
+
+Cell[BoxData[
+    TagBox[\(\[SkeletonIndicator]  Graphics  \[SkeletonIndicator]\),
+      False,
+      Editable->False]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "The Fouriercoefficients on ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[DoubleStruckCapitalS]\^2\[Cross]\
+\[DoubleStruckCapitalS]\^2\)]]
+}], "Subsection"],
+
+Cell[BoxData[
+    \(FSS[l_, m_, n_] := \(\(4\ \[Pi]\)\/\(2  l + 1\)\) F[l, m, n]\)], "Input"],
+
+Cell[BoxData[{
+    \(\(FSS[l_, m_, n_] := \(\(4\ \[Pi]\)\/\(2  l + 1\)\) F[l, m, n] /; 
+          Mod[l, 2] \[Equal] 0;\)\), "\[IndentingNewLine]", 
+    \(FSS[l_, m_, n_] := 0 /; Mod[l, 2] \[Equal] 1\)}], "Input"],
+
+Cell[BoxData[
+    \(TableForm[FSS]\)], "Input"],
+
+Cell["Test (f\[UDoubleDot]r M=1auswerten):", "Text"],
+
+Cell[BoxData[
+    \(P[\[Theta]1_, \[Rho]1_, \[Theta]2_, \[Rho]2_] := \[Sum]\+\(l = 0\)\%L\(\
+\[Sum]\+\(k = \(-l\)\)\%l\(\[Sum]\+\(kk = \(-l\)\)\%l FSS[l, k, kk] 
+              SphericalHarmonicY[l, k, \[Theta], \[Rho]] 
+              Conjugate[
+                SphericalHarmonicY[l, kk, \[Theta], \[Rho]]]\)\)\)], "Input"],
+
+Cell[BoxData[
+    \(damit\ sind\ die\ FSS\)], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Table[FSS[l, 0, 0], {l, 0, 20}]\)], "Input"],
+
+Cell[BoxData[
+    \({4\ \[Pi], 9.0792027688745`, 6.559724000511826`, 4.739400590369795`, 
+      3.4242169265421767`, 2.4739967294267218`, 1.7874626370108069`, 
+      1.291441755240308`, 0.9330666681611224`, 0.674140667746411`, 
+      0.48706663244678183`, 0.3519056419427999`, 0.2542518263036729`, 
+      0.18369694450440366`, 0.1327210424044316`, 0.09589095313720186`, 
+      0.06928121364162833`, 0.050055676856076474`, 0.03616522652851525`, 
+      0.026129376166852264`, 0.01887847428055076`}\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(identisch\ zum\ Abel\ Poisson\ Kern\ auf\ S\^2\ normiert\ auf\ Integral\
+\ 4 \( \(\[Pi]\)\(:\)\)\)], "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\[Kappa] = 0.85; 
+    4  \[Pi]\ Table[\[Kappa]\^\(2  l\), {l, 0, 20}]\)], "Input"],
+
+Cell[BoxData[
+    \({4\ \[Pi], 9.0792027688745`, 6.559724000511826`, 4.739400590369795`, 
+      3.4242169265421767`, 2.473996729426722`, 1.7874626370108069`, 
+      1.291441755240308`, 0.9330666681611224`, 0.6741406677464109`, 
+      0.48706663244678183`, 0.3519056419427999`, 0.2542518263036729`, 
+      0.18369694450440366`, 0.13272104240443164`, 0.09589095313720185`, 
+      0.06928121364162833`, 0.050055676856076474`, 0.03616522652851525`, 
+      0.026129376166852264`, 0.01887847428055076`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Schmalz", "Subsection"],
+
+Cell[TextData[{
+  "Da sich deine spherical harmonics von den ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\^2\)]],
+  "-normierten durch den Faktor ",
+  Cell[BoxData[
+      \(TraditionalForm\`\@\(\(2  l + 1\)\/\(4  \[Pi]\)\)\)]],
+  "unterscheiden und ich meine Polefiguren auf Integral 4\[Pi] normiere, \
+sollten deine Fourrierkoeffizienten die folgenden sein "
+}], "Text"],
+
+Cell[BoxData[
+    \(\(FSSSchmalz[l_, m_, n_] := \(\(2\ \ l + 1\)\/\(4  \[Pi]\)\) 
+          FSS[l, m, n];\)\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(fid = OpenWrite["\<omega.orig\>"]\)], "Input"],
+
+Cell[BoxData[
+    \(OutputStream["omega.orig", 4]\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(For[l = 0, 
+      l \[LessEqual] L, \(l++\), \[IndentingNewLine]For[m = \(-l\), 
+        m \[LessEqual] l, \(m++\), \[IndentingNewLine]For[n = \(-l\), 
+          n \[LessEqual] \ l, \(n++\), \[IndentingNewLine]Write[fid, 
+            N[FSSSchmalz[l, m, 
+                n]]]\[IndentingNewLine]]\[IndentingNewLine]]\
+\[IndentingNewLine]]\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Close["\<omega.orig\>"]\)], "Input"],
+
+Cell[BoxData[
+    \("omega.orig"\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"5.0 for X",
+ScreenRectangle->{{0, 1280}, {0, 1024}},
+WindowSize->{1272, 942},
+WindowMargins->{{0, Automatic}, {Automatic, 0}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1776, 53, 32, 0, 38, "Subsection"],
+Cell[1811, 55, 86, 1, 27, "Input"],
+Cell[1900, 58, 62, 1, 27, "Input"],
+Cell[1965, 61, 60, 1, 27, "Input"],
+Cell[2028, 64, 93, 1, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[2146, 69, 47, 1, 27, "Input"],
+Cell[2196, 72, 78, 1, 44, "Output"]
+}, Open  ]],
+Cell[2289, 76, 371, 7, 75, "Input"],
+Cell[2663, 85, 398, 7, 82, "Input"],
+Cell[3064, 94, 255, 6, 33, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3356, 105, 35, 0, 38, "Subsection"],
+
+Cell[CellGroupData[{
+Cell[3416, 109, 334, 5, 46, "Input"],
+Cell[3753, 116, 35, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3825, 122, 422, 8, 50, "Input"],
+Cell[4250, 132, 35, 1, 27, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4334, 139, 37, 0, 38, "Subsection"],
+Cell[4374, 141, 75, 2, 32, "Text"],
+Cell[4452, 145, 91, 1, 29, "Input"],
+Cell[4546, 148, 27, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[4598, 152, 67, 1, 27, "Input"],
+Cell[4668, 155, 18951, 509, 186, 4662, 328, "GraphicsData", "PostScript", \
+"Graphics"],
+Cell[23622, 666, 130, 3, 27, "Output"]
+}, Open  ]],
+Cell[23767, 672, 44, 1, 27, "Input"],
+Cell[23814, 675, 23, 0, 32, "Text"],
+Cell[23840, 677, 227, 4, 63, "Input"],
+Cell[24070, 683, 48, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[24143, 687, 181, 5, 27, "Input"],
+Cell[24327, 694, 22271, 578, 186, 5008, 360, "GraphicsData", "PostScript", \
+"Graphics"],
+Cell[46601, 1274, 130, 3, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[46768, 1282, 134, 3, 40, "Input"],
+Cell[46905, 1287, 516, 7, 43, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47470, 1300, 30, 0, 38, "Subsection"],
+Cell[47503, 1302, 46, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[47574, 1306, 110, 2, 27, "Input"],
+Cell[47687, 1310, 103, 2, 27, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47839, 1318, 39, 0, 38, "Subsection"],
+Cell[47881, 1320, 79, 1, 40, "Input"],
+
+Cell[CellGroupData[{
+Cell[47985, 1325, 206, 5, 27, "Input"],
+Cell[48194, 1332, 241, 4, 44, "Output"]
+}, Open  ]],
+Cell[48450, 1339, 31, 0, 32, "Text"],
+Cell[48484, 1341, 69, 1, 27, "Input"],
+Cell[48556, 1344, 105, 2, 27, "Input"],
+Cell[48664, 1348, 37, 0, 32, "Text"],
+Cell[48704, 1350, 467, 10, 54, "Input"],
+Cell[49174, 1362, 30, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[49229, 1366, 56, 1, 27, "Input"],
+Cell[49288, 1369, 313, 6, 44, "Output"]
+}, Open  ]],
+Cell[49616, 1378, 26, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[49667, 1382, 40, 1, 27, "Input"],
+Cell[49710, 1385, 37, 1, 27, "Output"]
+}, Open  ]],
+Cell[49762, 1389, 134, 3, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[49921, 1396, 45, 1, 27, "Input"],
+Cell[49969, 1399, 36, 1, 27, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[50042, 1405, 48, 1, 27, "Input"],
+Cell[50093, 1408, 81681, 2601, 1519, "Output"]
+}, Closed]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[131823, 4015, 27, 0, 38, "Subsection"],
+Cell[131853, 4017, 264, 5, 54, "Input"],
+Cell[132120, 4024, 44, 0, 32, "Text"],
+
+Cell[CellGroupData[{
+Cell[132189, 4028, 120, 2, 27, "Input"],
+Cell[132312, 4032, 19484, 679, 186, 7539, 527, "GraphicsData", "PostScript", \
+"Graphics"],
+Cell[151799, 4713, 130, 3, 27, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[151978, 4722, 174, 5, 39, "Subsection"],
+Cell[152155, 4729, 93, 1, 44, "Input"],
+Cell[152251, 4732, 213, 3, 62, "Input"],
+Cell[152467, 4737, 47, 1, 27, "Input"],
+Cell[152517, 4740, 52, 0, 32, "Text"],
+Cell[152572, 4742, 322, 5, 54, "Input"],
+Cell[152897, 4749, 53, 1, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[152975, 4754, 64, 1, 27, "Input"],
+Cell[153042, 4757, 509, 7, 43, "Output"]
+}, Open  ]],
+Cell[153566, 4767, 128, 2, 31, "Text"],
+
+Cell[CellGroupData[{
+Cell[153719, 4773, 102, 2, 31, "Input"],
+Cell[153824, 4777, 510, 7, 43, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[154383, 4790, 29, 0, 38, "Subsection"],
+Cell[154415, 4792, 372, 9, 50, "Text"],
+Cell[154790, 4803, 120, 2, 44, "Input"],
+
+Cell[CellGroupData[{
+Cell[154935, 4809, 66, 1, 27, "Input"],
+Cell[155004, 4812, 63, 1, 27, "Output"]
+}, Open  ]],
+Cell[155082, 4816, 369, 7, 123, "Input"],
+
+Cell[CellGroupData[{
+Cell[155476, 4827, 56, 1, 27, "Input"],
+Cell[155535, 4830, 46, 1, 27, "Output"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

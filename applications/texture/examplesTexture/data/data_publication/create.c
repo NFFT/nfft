@@ -17,6 +17,7 @@ main ()
   FILE *fid = fopen ("grid_size", "r");
   int x1, x2, x3;
   int i, j;
+	double factor;
 
   fscanf (fid, "%d%d", &N1, &N2);
   fclose (fid);
@@ -37,6 +38,10 @@ main ()
       h_phi[i] = normalise_phi (atan2 (x2, x1));
     }
   fclose (fid);
+
+	fid = fopen("factor", "r");
+	fscanf(fid, "%lg", &factor);
+	fclose(fid);
 
   fid = fopen ("h_files", "r");
   for (i = 0; i < N1; i++)
@@ -87,9 +92,31 @@ main ()
   write_r (N2, r, fid);
   fclose (fid);
 
+	for(j = 0; j < N2; j++) {
+		r[2*j] *= -1;
+	}
+	
+  fid = fopen ("r_file_flipped", "w");
+  fprintf (fid, "Nodes\n");
+  fprintf (fid, "# Data set for the publication.\n");
+  fprintf (fid, "# \\phis (\\rhos) are flipped.\n");
+  write_r (N2, r, fid);
+  fclose (fid);
+
   fid = fopen ("samples", "w");
   fprintf (fid, "Samples\n");
   fprintf (fid, "# Data set for the publication.\n");
+  write_x (N1, N2, x, fid);
+  fclose (fid);
+
+	for (i = 0; i < N1*N2; i++) {
+		x[i] *= factor;
+	}
+
+  fid = fopen ("samples_unnormed", "w");
+  fprintf (fid, "Samples\n");
+  fprintf (fid, "# Data set for the publication.\n");
+	fprintf (fid, "# Integral on the sphere should be %.2e.\n", factor);
   write_x (N1, N2, x, fid);
   fclose (fid);
 

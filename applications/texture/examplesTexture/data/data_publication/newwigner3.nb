@@ -41,9 +41,9 @@ Wolfram Research.
 
 (*NotebookFileLineBreakTest
 NotebookFileLineBreakTest*)
-(*NotebookOptionsPosition[     53382,       1529]*)
-(*NotebookOutlinePosition[     54010,       1551]*)
-(*  CellTagsIndexPosition[     53966,       1547]*)
+(*NotebookOptionsPosition[     53372,       1529]*)
+(*NotebookOutlinePosition[     54000,       1551]*)
+(*  CellTagsIndexPosition[     53956,       1547]*)
 (*WindowFrame->Normal*)
 
 
@@ -1447,10 +1447,10 @@ Cell["Bandwidth:", "Text"],
 Cell[CellGroupData[{
 
 Cell[BoxData[
-    \(L = 20\)], "Input"],
+    \(L = 100\)], "Input"],
 
 Cell[BoxData[
-    \(20\)], "Output"]
+    \(100\)], "Output"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -1492,7 +1492,7 @@ Cell[TextData[{
 }], "Subsection"],
 
 Cell[BoxData[{
-    \(\(FSS[l_, m_, n_] := \(\(2\ l + 1\)\/\(4\ \[Pi]\)\) F[l, m, n] /; 
+    \(\(FSS[l_, m_, n_] := \(\@\(2\ l + 1\)\) F[l, m, n] /; 
           Mod[l, 2] \[Equal] 0;\)\), "\[IndentingNewLine]", 
     \(FSS[l_, m_, n_] := 0 /; Mod[l, 2] \[Equal] 1\)}], "Input"],
 
@@ -1505,7 +1505,7 @@ Cell[BoxData[
     \(fid = OpenWrite["\<omega.orig\>"]\)], "Input"],
 
 Cell[BoxData[
-    \(OutputStream["omega.orig", 4]\)], "Output"]
+    \(OutputStream["omega.orig", 8]\)], "Output"]
 }, Open  ]],
 
 Cell[BoxData[
@@ -1628,34 +1628,34 @@ Cell[51270, 1440, 35, 1, 27, "Output"]
 Cell[51320, 1444, 26, 0, 32, "Text"],
 
 Cell[CellGroupData[{
-Cell[51371, 1448, 39, 1, 27, "Input"],
-Cell[51413, 1451, 36, 1, 27, "Output"]
+Cell[51371, 1448, 40, 1, 27, "Input"],
+Cell[51414, 1451, 37, 1, 27, "Output"]
 }, Open  ]],
-Cell[51464, 1455, 134, 3, 27, "Input"],
-Cell[51601, 1460, 45, 1, 27, "Input"],
-Cell[51649, 1463, 48, 1, 27, "Input"]
-}, Open  ]],
-
-Cell[CellGroupData[{
-Cell[51734, 1469, 27, 0, 38, "Subsection"],
-Cell[51764, 1471, 326, 6, 63, "Input"],
-Cell[52093, 1479, 120, 2, 27, "Input"]
+Cell[51466, 1455, 134, 3, 27, "Input"],
+Cell[51603, 1460, 45, 1, 27, "Input"],
+Cell[51651, 1463, 48, 1, 27, "Input"]
 }, Open  ]],
 
 Cell[CellGroupData[{
-Cell[52250, 1486, 174, 5, 39, "Subsection"],
-Cell[52427, 1493, 213, 3, 62, "Input"],
-Cell[52643, 1498, 47, 1, 27, "Input"],
-
-Cell[CellGroupData[{
-Cell[52715, 1503, 66, 1, 27, "Input"],
-Cell[52784, 1506, 63, 1, 27, "Output"]
+Cell[51736, 1469, 27, 0, 38, "Subsection"],
+Cell[51766, 1471, 326, 6, 63, "Input"],
+Cell[52095, 1479, 120, 2, 27, "Input"]
 }, Open  ]],
-Cell[52862, 1510, 362, 7, 123, "Input"],
 
 Cell[CellGroupData[{
-Cell[53249, 1521, 56, 1, 27, "Input"],
-Cell[53308, 1524, 46, 1, 27, "Output"]
+Cell[52252, 1486, 174, 5, 39, "Subsection"],
+Cell[52429, 1493, 201, 3, 48, "Input"],
+Cell[52633, 1498, 47, 1, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[52705, 1503, 66, 1, 27, "Input"],
+Cell[52774, 1506, 63, 1, 27, "Output"]
+}, Open  ]],
+Cell[52852, 1510, 362, 7, 123, "Input"],
+
+Cell[CellGroupData[{
+Cell[53239, 1521, 56, 1, 27, "Input"],
+Cell[53298, 1524, 46, 1, 27, "Output"]
 }, Open  ]]
 }, Open  ]]
 }
