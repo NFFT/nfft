@@ -109,8 +109,6 @@ void simple_test_nfsft()
 
 int main()
 {
-  int l,m;
-
   system("clear");
   printf("1) computing a ndsft, a nfsft, an adjoint ndsft, and an adjoint nfsft\n\n");
   simple_test_nfsft();

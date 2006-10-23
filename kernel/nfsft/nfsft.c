@@ -325,7 +325,6 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   unsigned int fpt_flags)
 {
-  int k; /*< The degree k                                                    */
   int n; /*< The order n                                                     */
 
   /*  Check if already initialized. */
@@ -510,7 +509,6 @@ void ndsft_trafo(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
 			   coefficient beta_k^n for associated Legendre
 			   functions P_k^n                                   */
-  int index;           /*< Index used in Clenshaw algorithm.                 */
   double complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
   double complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
   double complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
@@ -643,8 +641,6 @@ void ndsft_adjoint(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
 			   coefficient beta_k^n for associated Legendre
 			   functions P_k^n                                   */
-  int index;           /*< The Index used in the Clenshaw algorithm.         */
-  double complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
   double complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
   double complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
   double complex temp; /*< Auxilliary variable for Clenshaw algorithm        */

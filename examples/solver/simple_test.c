@@ -12,7 +12,7 @@
 
 void simple_test_infft_1d(int N, int M, int iter)
 {
-  int j,k,l;                            /**< index for nodes, freqencies,iter*/
+  int k,l;                            /**< index for nodes, freqencies,iter*/
   nfft_plan p;                          /**< plan for the nfft               */
   infft_plan ip;                        /**< plan for the inverse nfft       */
  

@@ -118,7 +118,6 @@ int main (int argc, char **argv)
   double err_2_avg;            /**< The average error \f$E_2\f$               */
 
   int i;                       /**< A loop variable                           */
-  int j;                       /**< A loop variable                           */
   int k;                       /**< A loop variable                           */
   int n;                       /**< A loop variable                           */
   int d;                       /**< A loop variable                           */
@@ -128,11 +127,6 @@ int main (int argc, char **argv)
   int m_phi;                   /**< The current number of different           *
                                     longitudinal angles (for grids).          */
   int m_total;                 /**< The total number nodes.                   */
-  int m_theta_max;             /**< The maximum number of different           *
-                                    colatitudinal angles (for grids).         */
-  int m_phi_max;               /**< The maximum number of different           *
-                                    longitudinal angles (for grids).          */
-  int m_total_max;          /**< The total maximum number of grid nodes.   */
   double *theta;               /**< An array for saving the angles theta of a *
                                     grid                                      */
   double *phi;                 /**< An array for saving the angles phi of a   *
@@ -141,10 +135,6 @@ int main (int argc, char **argv)
                                     quadrature weights                        */
   //int nside;                   /**< The size parameter for the HEALPix grid   */
   int d2;
-  int gamma;
-  double thetai;
-  double gammai;
-  FILE *file;
   int M;
   double theta_s;
   double x1,x2,x3,temp;
