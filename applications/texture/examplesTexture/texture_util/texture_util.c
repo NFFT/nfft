@@ -76,7 +76,7 @@ void block_mult_error(int N1, int N2, complex * x, double min_err,
 	int i, j;
 
 	for (i = 0; i < N1; i++) {
-		double err = min_err + drand48() * (max_err - min_err);
+		double err = min_err + ((double) rand()) / RAND_MAX * (max_err - min_err);
 		for (j = 0; j < N2; j++) {
 			x[i * N2 + j] *= err;
 		}
@@ -312,10 +312,22 @@ static void check_eof(FILE * f, const char *location)
 	}
 }
 
+inline complex crand() {
+	return drand() + I * drand();
+}
+
 void destroy_itexture_params(itexture_params * pars)
 {
 	free(pars->omega_min_res);
 	pars->status = "destroyed";
+}
+
+inline double drand() {
+	return rand() * drand1();
+}
+
+inline double drand1() {
+	return ((double) rand()) / RAND_MAX;
 }
 
 inline int equal(complex x, complex y, double delta)
@@ -350,16 +362,14 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 0:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] =
-					(drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand();
+				omega[i] = crand();
 			}
 			break;
 		}
 		case 1:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] =
-					((drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand()) / (i +
+				omega[i] = crand() / (i +
 																																					 1);
 			}
 			break;
@@ -374,8 +384,7 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 3:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] =
-					((drand48() - 0.5) * rand() + I * (drand48() - 0.5) * rand());
+				omega[i] = crand();
 				omega[i] /= (i + 1);
 				omega[i] /= (i + 1);
 			}
@@ -472,7 +481,7 @@ void mult_error(int N1, int N2, complex * x, double min_err, double max_err)
 
 	for (i = 0; i < N1; i++) {
 		for (j = 0; j < N2; j++) {
-			x[i * N2 + j] *= min_err + drand48() * (max_err - min_err);
+			x[i * N2 + j] *= min_err + ((double) rand()) / RAND_MAX * (max_err - min_err);
 		}
 	}
 }

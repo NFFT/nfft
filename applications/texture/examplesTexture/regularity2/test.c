@@ -38,7 +38,7 @@
 // constants
 const double min_improve = 0.01;
 const int max_iter_without_improve = 10;
-unsigned short int dseed[3] = { 1, 2, 3 };
+//unsigned short int dseed[3] = { 1, 2, 3 };
 unsigned int iseed = 0;
 
 // parameters influenced by the command line arguments
@@ -178,7 +178,7 @@ void init()
 	out = fopen(output_path, "w");
 
 	srand(iseed);
-	seed48(dseed);
+	//seed48(dseed);
 }
 
 void output_params()

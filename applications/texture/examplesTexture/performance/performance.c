@@ -93,10 +93,11 @@ void parse_input(int arglen, char *argv[])
 void init()
 {
 	int i;
-	unsigned short int seed[] = { 1, 2, 3 };
+	//unsigned short int seed[] = { 1, 2, 3 };
 
 	// pseudo random number generator
-	seed48(seed);
+	//seed48(seed);
+	srand(0);
 
 	// input / output data
 	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
@@ -106,18 +107,18 @@ void init()
 	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
 
 	for (i = 0; i < texture_flat_length(N); i++) {
-		omega[i] = rand() * drand48() + I * rand() * drand48();
+		omega[i] = crand();
 	}
 	for (i = 0; i < N1 * N2; i++) {
-		x[i] = rand() * drand48() + I * rand() * drand48();
+		x[i] = crand();
 	}
 	for (i = 0; i < N1; i++) {
-		h_phi[i] = (drand48() - 0.5) * TEXTURE_MAX_ANGLE;
-		h_theta[i] = (drand48() / 2) * TEXTURE_MAX_ANGLE;
+		h_phi[i] = (drand1() - 0.5) * TEXTURE_MAX_ANGLE;
+		h_theta[i] = (drand1() / 2) * TEXTURE_MAX_ANGLE;
 	}
 	for (i = 0; i < N1 * N2; i++) {
-		r[2 * i] = (drand48() - 0.5) * TEXTURE_MAX_ANGLE;
-		r[2 * i + 1] = (drand48() / 2) * TEXTURE_MAX_ANGLE;
+		r[2 * i] = (drand1() - 0.5) * TEXTURE_MAX_ANGLE;
+		r[2 * i + 1] = (drand1() / 2) * TEXTURE_MAX_ANGLE;
 	}
 
 	// precompute, plan initialisation, ...

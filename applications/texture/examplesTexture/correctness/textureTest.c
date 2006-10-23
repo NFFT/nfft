@@ -115,7 +115,7 @@ void simple_solver_test(const char *inp)
 	double complex *omega, *x, *omega_ref;
 	double *h_phi, *h_theta, *r;
 	char err_prefix[100];
-	unsigned short int seed[] = { 1, 2, 3 };
+//	unsigned short int seed[] = { 1, 2, 3 };
 
 	// Output user information.
 	printf("*** simple_solver_test (%s)\n", inp);
@@ -125,7 +125,8 @@ void simple_solver_test(const char *inp)
 	fscanf(inp_file, "%d%d%d%d%d%d%d%lg", &N, &h_phi_count, &h_theta_count,
 				 &N2, &r_phi_count, &r_theta_count, &max_iter, &delta);
 	N1 = h_phi_count * h_theta_count;
-	seed48(seed);
+//	seed48(seed);
+	srand(0);
 
 	// Prepare input parameters.
 	texture_precompute(N);
@@ -143,7 +144,7 @@ void simple_solver_test(const char *inp)
 	initialize_angles(h_phi, h_theta, r, h_phi_count, h_theta_count, N2,
 										r_phi_count, r_theta_count);
 	for (i = 0; i < texture_flat_length(N); i++) {
-		omega_ref[i] = rand() * drand48() + I * rand() * drand48();
+		omega_ref[i] = crand();
 	}
 
 	// Prepare plans.
@@ -665,7 +666,7 @@ void linearity_test(const char *inp)
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int i, j, count, k;
-	unsigned short int seed[] = { 1, 2, 3 };
+	//unsigned short int seed[] = { 1, 2, 3 };
 
 	sprintf(err_prefix, "linearity_test failed (%s):\n", inp);
 	printf("*** linearity_test (%s)\n", inp);
@@ -675,7 +676,8 @@ void linearity_test(const char *inp)
 	N1 = h_phi_count * h_theta_count;
 
 	texture_precompute(N);
-	seed48(seed);
+	//seed48(seed);
+	srand(0);
 
 	omega =
 		(double complex *) smart_malloc(texture_flat_length(N) *
@@ -702,7 +704,7 @@ void linearity_test(const char *inp)
 			l = rand() % (N + 1);
 			m = (rand() % (2 * l + 1)) - l;
 			n = (rand() % (2 * l + 1)) - l;
-			offset = drand48() * rand() + I * drand48() * rand();
+			offset = crand();
 
 			omega[texture_flat_index(l, m, n)] += offset;
 
@@ -778,7 +780,7 @@ void linearity_adjoint_test(const char *inp)
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int count, k;
-	unsigned short int seed[] = { 1, 2, 3 };
+	//unsigned short int seed[] = { 1, 2, 3 };
 
 	sprintf(err_prefix, "linearity_adjoint_test failed (%s):\n", inp);
 	printf("*** linearity_adjoint_test (%s)\n", inp);
@@ -788,7 +790,8 @@ void linearity_adjoint_test(const char *inp)
 	N1 = h_phi_count * h_theta_count;
 
 	texture_precompute(N);
-	seed48(seed);
+	//seed48(seed);
+	srand(0);
 
 	omega =
 		(double complex *) smart_malloc(texture_flat_length(N) *
@@ -817,7 +820,7 @@ void linearity_adjoint_test(const char *inp)
 
 			i = rand() % N1;
 			j = rand() % N2;
-			offset = drand48() * rand() + I * drand48() * rand();
+			offset = crand();
 
 			x[i * N2 + j] += offset;
 

@@ -197,6 +197,12 @@ void write_x(int N1, int N2, complex * x, FILE * out);
 
 // basic helper
 
+inline complex crand();
+
+inline double drand();
+
+inline double drand1();
+
 /** Returns if @f$ | x - y | \leq delta @f$.
  */
 inline int equal(complex x, complex y, double delta);
