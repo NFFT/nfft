@@ -23,6 +23,13 @@ This is the README file for NFFT3, a C library that implements
     - summation schemes (fast Gauss transform, singular kernels, zonal kernels)
     - polar FFT, discrete Radon transform, ridgelet transform
 
+Please read first the 
+,,NFFT3.0 - Tutorial'' 
+written by Jens Keiner, Stefan Kunis and Daniel Potts.
+For details please call 
+doxygen doxygen/doxygen.Doxyfile
+and see ./doc/html/index.html or ./doc/latex/refman.tex 
+
  NFFT3 is free software;
   You can redistribute it and/or modify it under the terms of the GNU General
   Public License as published by the Free Software Foundation; either version 2
