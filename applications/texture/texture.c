@@ -74,8 +74,7 @@ void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
 	ths->M_total = N1 * N2;
 
 	// Allocate storage for internal computations.
-	ths->nfsft_f_hat =
-		malloc(sizeof(double complex) * NFSFT_F_HAT_SIZE(N));
+	ths->nfsft_f_hat = malloc(sizeof(double complex) * NFSFT_F_HAT_SIZE(N));
 	ths->nfsft_f =
 		(double complex *) malloc(sizeof(double complex) * ths->M_total);
 

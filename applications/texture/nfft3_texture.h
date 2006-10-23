@@ -3,9 +3,9 @@
 #ifndef NFFT3_TEXTURE_H
 #define NFFT3_TEXTURE_H
 
-/*###########################################################################*/
-/*###########################################################################*/
-/*###########################################################################*/
+/* ########################################################################### */
+/* ########################################################################### */
+/* ########################################################################### */
 
 /** @defgroup texture Texture
  * This module provides the basic functions for the Texture Transforms.
@@ -196,7 +196,7 @@
  * @see texture_precompute_advanced
  */
 #define TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS 0U
-	 
+
 /** Default value for fpt_precompute_flags.
  * @see texture_precompute_advanced
  */
@@ -245,89 +245,89 @@
  */
 typedef struct texture_plan_ {
 
-  /** @var f
+	/** @var f
    * @brief Used to store the sample data x.
    * @see texture_init
    */
 
-  /** @var f_hat
+	/** @var f_hat
    * @brief Used to store the frequencies omega.
    * @see texture_init
    */
 
-  /** @var N_total
+	/** @var N_total
    * @brief The total length of f_hat.
    */
 
-  /** The total length of f.
+	/** The total length of f.
    * @var M_total
    */
-  MACRO_MV_PLAN(double complex)
+	MACRO_MV_PLAN(double complex)
 
-  /** The bandwidth.
+	/** The bandwidth.
    * @see texture_init
    */
-  int N;
+	int N;
 
-  /** The number of pole figures.
+	/** The number of pole figures.
    * @see texture_init
    */
-  int N1;
+	int N1;
 
-  /** The number of samples per pole figure.
+	/** The number of samples per pole figure.
    * @see texture_init
    */
-  int N2;
+	int N2;
 
-  /** The latitudes of the pole figures.
+	/** The latitudes of the pole figures.
    * @see texture_init
    */
-  const double *h_phi;
+	const double *h_phi;
 
-  /** The longitudes of the pole figures.
+	/** The longitudes of the pole figures.
    * @see texture_init
    */
-  const double *h_theta;
+	const double *h_theta;
 
-  /** The nodes for the samples for each pole figure.
+	/** The nodes for the samples for each pole figure.
    * @see texture_init
    */
-  const double *r;
+	const double *r;
 
-  /** The flags for the initialisation of the nfsft.
+	/** The flags for the initialisation of the nfsft.
    * @see texture_init_advanced
    */
-  unsigned int nfsft_init_flags;
+	unsigned int nfsft_init_flags;
 
-  /** The flags for the initialisation of the nfft.
+	/** The flags for the initialisation of the nfft.
    * @see texture_init_advanced
    */
-  unsigned int nfft_init_flags;
+	unsigned int nfft_init_flags;
 
-  /** The nfft_cutoff for the initialisation of the nfsft.
+	/** The nfft_cutoff for the initialisation of the nfsft.
    * @see texture_init_advanced
    */
-  unsigned int nfft_cutoff;
+	unsigned int nfft_cutoff;
 
-  /** Stores the cosines of the components of h_theta.
+	/** Stores the cosines of the components of h_theta.
    */
-  double *cos_h_theta;
+	double *cos_h_theta;
 
-  /** Stores the sines of the components of h_theta.
+	/** Stores the sines of the components of h_theta.
    */
-  double *sin_h_theta;
+	double *sin_h_theta;
 
-  /** Stores the frequencies for the nfsft transformation.
+	/** Stores the frequencies for the nfsft transformation.
    */
-  double complex *nfsft_f_hat;
+	double complex *nfsft_f_hat;
 
-  /** Stores the samples for the nfsft transformation.
+	/** Stores the samples for the nfsft transformation.
    */
-  double complex *nfsft_f;
+	double complex *nfsft_f;
 
-  /** Stores the nodes for the nfsft transformation.
+	/** Stores the nodes for the nfsft transformation.
    */
-  double *nfsft_angles;
+	double *nfsft_angles;
 } texture_plan;
 
 MACRO_SOLVER_PLAN(texture, complex, double complex)
@@ -344,7 +344,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  * @see TEXTURE_DEF_NFSFT_PRECOMPUTE_FLAGS
  * @see TEXTURE_DEF_NFSFT_THRESHOLD
  */
-void texture_precompute(int N);
+		 void texture_precompute(int N);
 
 /** Performes precomputations.
  * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
@@ -360,9 +360,11 @@ void texture_precompute(int N);
  * @param fpt_precompute_flags - flags for the precomputation of the fpt
  * @param nfsft_threshold - a parameter for the precomputation of the nfsft
  */
-void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
-    unsigned int nfsft_precompute_flags, unsigned int fpt_precompute_flags,
-		double nfsft_threshold);
+		 void texture_precompute_advanced(int N,
+																			unsigned int texture_precompute_flags,
+																			unsigned int nfsft_precompute_flags,
+																			unsigned int fpt_precompute_flags,
+																			double nfsft_threshold);
 
 /** Initialisation of a plan with default values for all parameters.
  * The arguments after ths will be stored in the plan ths.
@@ -392,8 +394,10 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
  * @note
  * For details about data representation see @ref texture_data_rep.
  */
-void texture_init(texture_plan *ths, int N, int N1, int N2, double complex* omega,
-    double complex* x, const double* h_phi, const double* h_theta, const double* r);
+		 void texture_init(texture_plan * ths, int N, int N1, int N2,
+											 double complex * omega, double complex * x,
+											 const double *h_phi, const double *h_theta,
+											 const double *r);
 
 /** Initialisation of a plan.
  * The arguments after ths will be stored in the plan ths.
@@ -430,10 +434,14 @@ void texture_init(texture_plan *ths, int N, int N1, int N2, double complex* omeg
  * @note
  * For details about data representation see @ref texture_data_rep.
  */
-void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
-    double complex* omega, double complex* x, const double* h_phi, const double* h_theta,
-    const double *r, unsigned int texture_init_flags,
-    unsigned int nfsft_init_flags, unsigned int nfft_init_flags, int nfft_cutoff);
+		 void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
+																double complex * omega, double complex * x,
+																const double *h_phi, const double *h_theta,
+																const double *r,
+																unsigned int texture_init_flags,
+																unsigned int nfsft_init_flags,
+																unsigned int nfft_init_flags,
+																int nfft_cutoff);
 
 /** Carries out the direct transform.
  * Maps the frequencies on the samples.
@@ -447,7 +455,7 @@ void texture_init_advanced(texture_plan *ths, int N, int N1, int N2,
  * - The plan hast to be initialised with ::texture_init or
  *   ::texture_init_advanced.
  */
-void texture_trafo(texture_plan *ths);
+		 void texture_trafo(texture_plan * ths);
 
 /** Carries out the adjoint transform.
  * Maps the samples on the frequencies.
@@ -461,16 +469,16 @@ void texture_trafo(texture_plan *ths);
  * - The plan hast to be initialised with ::texture_init or
  *   ::texture_init_advanced.
  */
-void texture_adjoint(texture_plan *ths);
+		 void texture_adjoint(texture_plan * ths);
 
 /** Frees all memory allocated by ::texture_init or ::texture_init_advanced.
  */
-void texture_finalize(texture_plan *ths);
+		 void texture_finalize(texture_plan * ths);
 
 /** Frees all memory allocated by ::texture_precompute or
  * ::texture_precompute_advanced.
  */
-void texture_forget();
+		 void texture_forget();
 
 /** @addtogroup texture_util
  * @{
@@ -490,7 +498,7 @@ void texture_forget();
  * - @f$ m \in [-l \dots l] @f$
  * - @f$ n \in [-l \dots l] @f$
  */
-inline int texture_flat_index(int l, int m, int n);
+		 inline int texture_flat_index(int l, int m, int n);
 
 /** Determines the length of an array omega storing frequencies in a
  * given
@@ -499,43 +507,43 @@ inline int texture_flat_index(int l, int m, int n);
  * @par N - the bandwidth.
  * @return the length of the corresponding omega
  */
-inline int texture_flat_length(int N);
+		 inline int texture_flat_length(int N);
 
 /** Returns the length of the frequency array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_omega_length(texture_plan *ths);
+		 inline int texture_get_omega_length(texture_plan * ths);
 
 /** Returns the length of the sample array stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_x_length(texture_plan *ths);
+		 inline int texture_get_x_length(texture_plan * ths);
 
 /** Returns the bandwidth stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N(texture_plan *ths);
+		 inline int texture_get_N(texture_plan * ths);
 
 /** Returns the number of pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N1(texture_plan *ths);
+		 inline int texture_get_N1(texture_plan * ths);
 
 /** Returns the number of samples per pole figure stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_N2(texture_plan *ths);
+		 inline int texture_get_N2(texture_plan * ths);
 
 /** Returns a pointer to the frequencies stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double complex *texture_get_omega(texture_plan *ths);
+		 inline const double complex *texture_get_omega(texture_plan * ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -543,13 +551,14 @@ inline const double complex *texture_get_omega(texture_plan *ths);
  * @par omega - a pointer to the new frequencies.
  * @pre omega has to point to an array of appropriate length.
  */
-inline void texture_set_omega(texture_plan *ths, double complex* omega);
+		 inline void texture_set_omega(texture_plan * ths,
+																	 double complex * omega);
 
 /** Returns a pointer to the samples stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double complex *texture_get_x(texture_plan *ths);
+		 inline const double complex *texture_get_x(texture_plan * ths);
 
 /** Sets the samples in a plan.
  *
@@ -557,13 +566,13 @@ inline const double complex *texture_get_x(texture_plan *ths);
  * @par x - a pointer to the new samples
  * @pre x has to point to an array of appropriate length.
  */
-inline void texture_set_x(texture_plan *ths, double complex* x);
+		 inline void texture_set_x(texture_plan * ths, double complex * x);
 
 /** Returns a pointer to the latitudes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_h_phi(texture_plan *ths);
+		 inline const double *texture_get_h_phi(texture_plan * ths);
 
 /** Sets the latitudes of the pole figures in a plan.
  *
@@ -571,13 +580,13 @@ inline const double *texture_get_h_phi(texture_plan *ths);
  * @par h_phi - a pointer to the new latitudes
  * @pre h_phi has to point to an array of appropriate length.
  */
-inline void texture_set_h_phi(texture_plan *ths, const double* h_phi);
+		 inline void texture_set_h_phi(texture_plan * ths, const double *h_phi);
 
 /** Returns the longitudes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_h_theta(texture_plan *ths);
+		 inline const double *texture_get_h_theta(texture_plan * ths);
 
 /** Sets the longitudes of the pole figures in a plan.
  *
@@ -585,13 +594,14 @@ inline const double *texture_get_h_theta(texture_plan *ths);
  * @par h_theta - a pointer to the longitudes
  * @pre h_theta has to point to an array of appropriate length.
  */
-inline void texture_set_h_theta(texture_plan *ths, const double* h_theta);
+		 inline void texture_set_h_theta(texture_plan * ths,
+																		 const double *h_theta);
 
 /** Returns the nodes of the pole figures stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline const double *texture_get_r(texture_plan *ths);
+		 inline const double *texture_get_r(texture_plan * ths);
 
 /** Sets the nodes of the pole figures in a plan.
  *
@@ -599,37 +609,37 @@ inline const double *texture_get_r(texture_plan *ths);
  * @par r - a pointer to the nodes
  * @pre r has to point to an array of appropriate length.
  */
-inline void texture_set_r(texture_plan *ths, const double* r);
+		 inline void texture_set_r(texture_plan * ths, const double *r);
 
 /** Returnes the flags used for the initialisation of the nfsft stored in a
  * plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline unsigned int texture_get_nfsft_init_flags(texture_plan *ths);
+		 inline unsigned int texture_get_nfsft_init_flags(texture_plan * ths);
 
 /** Sets the flags used for the initialisation of the nfsft in a plan.
  *
  * @par ths - a pointer to the transformation plan
  * @par nfsft_init_flags - the nfsft flags
  */
-inline void texture_set_nfsft_init_flags(texture_plan *ths,
-    unsigned int nfsft_init_flags);
+		 inline void texture_set_nfsft_init_flags(texture_plan * ths,
+																							unsigned int nfsft_init_flags);
 
 /** Sets the flags used for the initialisation of the nfft in a plan.
  *
  * @par ths - a pointer to the transformation plan
  * @par nfft_init_flags - the nfft flags
  */
-inline void texture_set_nfft_init_flags(texture_plan *ths,
-    unsigned int nfft_init_flags);
+		 inline void texture_set_nfft_init_flags(texture_plan * ths,
+																						 unsigned int nfft_init_flags);
 
 /** Returns the nfft_cutoff parameter used for the initialisation of the nfsft
  * stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-inline int texture_get_nfft_cutoff(texture_plan *ths);
+		 inline int texture_get_nfft_cutoff(texture_plan * ths);
 
 /** Sets the nfft_cutoff parameter used for the initialisation of the nfsft
  * in a plan.
@@ -637,7 +647,7 @@ inline int texture_get_nfft_cutoff(texture_plan *ths);
  * @par ths - a pointer to the transformation plan
  * @par nfft_cutoff - the parameter
  */
-inline void texture_set_nfft_cutoff(texture_plan *ths, int nfft_cutoff);
+		 inline void texture_set_nfft_cutoff(texture_plan * ths, int nfft_cutoff);
 
 /** @}
  */

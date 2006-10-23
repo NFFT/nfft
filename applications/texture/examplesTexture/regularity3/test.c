@@ -8,6 +8,13 @@
 
 #define NFFT_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+/** @defgroup texture_regularity3 Texture: Regularity 3
+ * TODO
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
+
 double complex *omega_ref, *omega, *x_ref, *x;
 double *h_phi, *h_theta, *r;
 int N, N1, N2, new_N;
@@ -330,3 +337,6 @@ int main()
 
 	return 0;
 }
+/**
+ * @}
+ */

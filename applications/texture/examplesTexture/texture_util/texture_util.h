@@ -3,6 +3,13 @@
 
 #include<nfft3_texture.h>
 
+/** @defgroup texture_util Texture: Utility Functions
+ *  TODO
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
+
 // macros
 
 #define malloc(a) call_smart_malloc_instead(a)
@@ -275,3 +282,6 @@ void initialize_itexture_params(itexture_params * pars, int N);
 void texture_itrafo(itexture_plan * iplan, itexture_params * pars);
 
 void destroy_itexture_params(itexture_params * pars);
+/**
+ * @}
+ */

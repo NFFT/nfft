@@ -7,12 +7,65 @@
 
 #include <nfft3_texture.h>
 #include <texture_util.h>
+/**
+ * @defgroup texture_calculate_omega Texture: Calculate omega
+ * This program calculates to a given grid and intensities the frequencies 
+ * omega.
+ *
+ * @section CMA Command Line Arguments
+ * -# The name of the sample file. (default: samples.in)
+ * -# The name of the pole figure file. (default: grid_h.in)
+ * -# The name of the node file. (default: grid_r.in)
+ * -# The name of the property file. (default: propfile_omega)
+ *  
+ * @section PF Property File
+ * -# The residuum goal res_delta.
+ * -# The number of iterations without check of abort conditions and the true 
+ *  residuum iterations_without_check.
+ * -# The minimum improvement of the residuum min_improve.
+ * -# The number of the solver algorithm solver_algo. (see @ref texture_util)
+ * -# The weight_policy. (see @ref texture_util)
+ * 
+ * @section Inp Input
+ * -# The bandwidth N.
+ * 
+ * @section ProcOut Processing and Output
+ * The program runs the solver until one of the following abort conditions
+ * has become true:
+ * - The residuum goal res_delta has been reached.
+ * - The residuum is negative.
+ * - The residuum has not improved by a multiplicative factor of 
+ *   (1-min_improve) since the last iterations_without_check iterations.
+ *
+ * During the iterations the program outputs to stderr the updated residuum 
+ * which is used for the abort conditions and the true residuum.
+ * When the solver has stopped, it prints a message if the residuum goal
+ * has been reached.
+ *
+ * The program writes the calculated omega to stdout.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ */
 
+/**
+ * The data structure for the parameters in the property file.
+ */
 typedef struct properties_ {
+	/** See @ref PF.
+	 */
 	double res_delta;
+	/** See @ref PF.
+	 */
 	int iterations_without_check;
+	/** See @ref PF.
+	 */
 	double min_improve;
+	/** See @ref PF.
+	 */
 	int solver_algo;
+	/** See @ref PF.
+	 */
 	int weight_policy;
 } properties;
 
@@ -148,6 +201,7 @@ void cleanup()
 
 void usage()
 {
+	fprintf(stderr, "Illegal command line arguments!");
 }
 
 int main(int argc, char *argv[])

@@ -7,6 +7,13 @@
 #include<nfft3.h>
 #include"texture_util.h"
 
+/** @defgroup texture_compare Texture: Compare
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ * @{
+ */
+
 int main(int argc, char *argv[])
 {
 	FILE *f1 = fopen(argv[1], "r");
@@ -69,3 +76,6 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+ /**
+	* @}
+	*/

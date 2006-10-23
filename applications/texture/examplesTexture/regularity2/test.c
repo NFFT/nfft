@@ -7,6 +7,34 @@
 #include"util.h"
 #include"texture_util.h"
 
+/** @defgroup texture_regularity2 Texture: Regularity 2
+ * The program creates some random frequencies in omega_ref and evaluates them
+ * for some given grid. From the samples it tries to reconstruct the 
+ * frequencies using the solver.
+ * This is repeated several times.
+ * The output is some statistic about the size of the residuum and the distance
+ * between the original frequencies omega_ref and the frequencies omega 
+ * calculated by the solver.
+ * 
+ * @section CMA Command Line Arguments
+ * There is only one argument: The prefix of the file to which output is 
+ * printed. (default: "output/out3")
+ *
+ * @section Inp Input
+ * The requested input is explained by messages on stderr.
+ * - The grid has equidistant angles if it is not given by a file (f).
+ * - grid_size determines the number of different @f$\theta@f$s and @f$\phi@f$s
+ *   of the pole figures. The number of nodes is equal (e) or 16 times higher.
+ *   (d).
+ *
+ * @section ProcOutp Processing and Output
+ * The outputfile 
+ * First the program outputs all parameters to the outputfile.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ */
+
 // constants
 const double min_improve = 0.01;
 const int max_iter_without_improve = 10;

@@ -1,3 +1,7 @@
+Each script of the form testx_y executes text x with parameter set y.
+I used them for the calculations of my "Studienarbeit".
+To see what they do, read the scripts or the description below.
+
 test1
 Convergence test of the CGNE algorithm without damping factors for samples
 created from uniformly distributed frequencies.

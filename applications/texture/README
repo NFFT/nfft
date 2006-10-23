@@ -1,0 +1,9 @@
+This directory contains the kernel of the texture transform.
+If you want to use it, include nfft3_texture.h and link against 
+./libs/libtexture.a.
+The directories nfsft_obsolete and examplesNfsft_obsolete are obsolete and can 
+be removed from my point of view.
+The directory examplesTexture containes example calculations, useful utility 
+functions and a program to check the correctness of the transform.
+
+14.10.2006, Matthias Schmalz (MatthiasSchmalz@web.de)

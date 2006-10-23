@@ -6,6 +6,34 @@
 #include<nfft3_texture.h>
 #include<texture_util.h>
 
+/**
+ * @defgroup texture_matrix Texture: Matrix
+ * This program calculates the matrix of the texture transform.
+ *
+ * @section Inp Input
+ * The requested input is explained by messages on stderr.
+ * h_phi, h_theta, r_phi and r_theta are the number of different
+ * @f$\phi@f$s and @f$\theta@f$s of the pole figures (h_phi and h_theta) and
+ * nodes (r_phi and r_theta).
+ * 
+ * @section ProcOutp Processing and Output
+ * The program prints some message to stdout cointaining the raw dimensions 
+ * of the matrix.
+ *
+ * If the user choosed to calculate the adjoint matrix, the adjoint matrix is
+ * calculated using @ref texture_trafo and printed to stdout.
+ * If weight factors where set row @f$r@f$ is divided through 
+ * @f$(r+1)^{weight/2}@f$.
+ *
+ * If the user choosed to calculate the matrix, it is calculated using 
+ * @ref texture_adjoint and printed to stdout.
+ * If weight factors where set column @f$r@f$ is divided through 
+ * @f$(r+1)^{weight/2}@f$.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ */
+
 int N;
 int h_phi_count, h_theta_count, r_phi_count, r_theta_count;
 int adjoint;
@@ -48,7 +76,7 @@ void make_grid()
 void output_info()
 {
 	fprintf(stderr, "N1=%d, N2=%d\n", N1, N2);
-	fprintf(stderr, "N1*N2=%d\n", N1*N2);
+	fprintf(stderr, "N1*N2=%d\n", N1 * N2);
 	fprintf(stderr, "#J_N=%d\n", texture_flat_length(N));
 	fflush(0);
 }
@@ -80,7 +108,7 @@ int main()
 			for (r = 0; r < texture_flat_length(N); r++) {
 				int s;
 
-				omega[r] = ((double) 1)/(pow(r+1, weight/2));
+				omega[r] = ((double) 1) / (pow(r + 1, weight / 2));
 				texture_set_omega(&plan, omega);
 
 				texture_trafo(&plan);
@@ -104,7 +132,7 @@ int main()
 				texture_adjoint(&plan);
 
 				for (s = 0; s < texture_flat_length(N); s++) {
-					omega[s] /= (pow(s+1, weight/2));
+					omega[s] /= (pow(s + 1, weight / 2));
 					printf("%lg + %lgi ", creal(omega[s]), -cimag(omega[s]));
 				}
 				printf("\n");

@@ -7,6 +7,21 @@
 
 #include <texture_util.h>
 
+/** 
+ * @defgroup texture_validate Texture: Validate
+ * The program reads some samples from a file and checks trivial properties:
+ *
+ * - It prints the maximum absolute value to stdout.
+ * - It prints the maximum imaginary part.
+ * - It prints the maximum negative part.
+ *
+ * The only command line argument is the name of the sample file. (default:
+ * samples.out)
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ */
+
 int N1, N2;
 complex *x;
 
@@ -77,7 +92,7 @@ void test_positiv()
 
 void usage()
 {
-	// TODO
+	fprintf(stderr, "Illegal parameters!\n");
 }
 
 int main(int argc, char *argv[])

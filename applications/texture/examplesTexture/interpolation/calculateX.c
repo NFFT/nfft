@@ -7,6 +7,32 @@
 #include <nfft3_texture.h>
 #include <texture_util.h>
 
+/**
+ * @defgroup texture_calculate_x Texture: Calculate x
+ * This program calculates to a given grid and frequencies the samples x.
+ *
+ * @section CLA Command Line Arguments
+ * -# The file containing the frequency vector. (default: omega)
+ * -# The file containing the pole figures. (default: grid_h)
+ * -# The file containing the nodes. (default: grid_r)
+ * -# The property file. (default: propfile_x)
+ *
+ * @section PF Property File
+ * The property file containes the grid type. (See @ref texture_utel)
+ *
+ * @section Inp Input
+ * There is no user input.
+ *
+ * @section ProcOutp Processing and Output
+ * The program calculates and writes the grid (grid type 0) or reades the grid 
+ * from file (grid type 1).
+ * It reades omega and then calculates the samples x.
+ * The samples are printed to stdout.
+ * 
+ * @author Matthias Schmalz
+ * @ingroup texture_examples
+ */
+
 int grid_type;
 const char *grid_h_file;
 const char *grid_r_file;
@@ -66,7 +92,7 @@ void cleanup()
 
 void usage()
 {
-	// TODO
+	fprintf(stderr, "Illegal parameters!");
 }
 
 int main(int argc, char *argv[])

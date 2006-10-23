@@ -8,44 +8,56 @@
 /** @defgroup data_creator Texture: Data Creator
  * This program was designed to create some samples based on random frequencies.
  * 
+ * @section CLA Command Line Arguments
+ * -# The name of the pole figure file. (default: grid_h)
+ * -# The name of the node file. (default: grid_r)
+ * -# The name of the omega file. (default: omega)
+ * -# The name of the property file. (default: propfile)
+ *
+ * @section PF Property File
+ * -# Grid type.
+ * -# Omega policy
+ * -# minimal error
+ * -# maximal error
+ * -# minimal alpha
+ * -# maximal alpha
+ *
+ * @section Inp Input
+ * If the grid type is 0 (equidistant angles), the program reads
+ * -# The bandwidth N.
+ * -# The number of different phis and thetas of the pole figures.
+ * -# The number of different phis and thetas of the nodes of one pole figure.
+ *
+ * If the grid type is 1 (read from file), the program reads only the bandwidth
+ * N.
+ *
+ * @section ProcOutp Processing and Output
+ * First the program prints a brief description of the input to stderr.
+ * 
+ * If the grid type is 0 (equidistant angles), the program creates a grid and
+ * frequencies omega using the according functions of @ref texture_util.
+ * The grid and omega will be written to the files defined by the command line.
+ * 
+ * The intensities x are calculated and afterwards randomly modified:
+ * Each component is multiplied by a random number between the minimal and 
+ * maximal error.
+ * Each pole figure is multiplied by a random number between the minimal and
+ * maximal alpha.
+ * Afterwards x is printed to stdout.
+ * 
+ * If the grid type is 1 (read from file), the program reades the grid from
+ * the files defined by the command line and does not write them.
+ * 
  * @author Matthias Schmalz
  * @ingroup texture_examples
- * @{
  */
 
-/** @var omega
- * Stores the frequencies.
- */
-/** @var x 
- * Stores the intensities.
- */
 complex *omega, *x;
 
-/** @var h_phi
- * Stores the longitudes of the pole figures.
- */
-/** @var h_theta
- * Stores the latitudes of the pole figures.
- */
-/** @var r
- * Stores the nodes.
- */
 double *h_phi, *h_theta, *r;
 
-/** @var N
- * Stores the bandwidth.
- */
-/** @var N1
- * Stores the number of pole figures.
- */
-/** @var N2
- * Stores the number of nodes per pole figure.
- */
 int N, N1, N2;
 
-/** @var h_phi_count
- * Stores the number of different longitudes for the pole figures.
- */
 int h_phi_count, h_theta_count, r_phi_count, r_theta_count;
 
 int grid;
@@ -190,7 +202,7 @@ void cleanup()
 
 void usage()
 {
-	// TODO
+	fprintf(stderr, "Wrong parameters!\n");
 }
 
 int main(int argc, char *argv[])
@@ -231,7 +243,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
-/**
- * @}
- */

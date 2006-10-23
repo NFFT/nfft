@@ -8,6 +8,7 @@
 
 /** @defgroup texture_performance Texture: Performance
  * This program tests the velocity of the texture transforms.
+ * Run it without command line parameters to get some information about it.
  * 
  * @author Matthias Schmalz
  * @ingroup texture_examples

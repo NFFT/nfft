@@ -1,0 +1,3 @@
+Files of the form grid*, samples* and omega* are (if existent) 
+input / output files.
+Files of the form prop* are configuration files.
