@@ -98,7 +98,6 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
 
   int t,r;                              /**< index for directions and offsets */
   double *x, *w;                        /**< knots and associated weights     */
-  double W;
 
   int N[2],n[2];
   int M=T*R;
@@ -187,7 +186,6 @@ int main(int argc,char **argv)
   FILE *fp;
   int N;                                /**< image size                      */
   double *f, *Rf;
-  int k;
 
   if( argc!=5 )
   {

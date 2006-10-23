@@ -99,7 +99,6 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 
   int t,r;                              /**< index for directions and offsets */
   double *x, *w;                        /**< knots and associated weights     */
-  double W;
   int l;                                /**< index for iterations             */
 
   int N[2],n[2];
@@ -216,7 +215,6 @@ int main(int argc,char **argv)
   FILE *fp;
   int N;                                /**< image size                      */
   double *Rf, *iRf;
-  int k;
   int max_i;                            /**< number of iterations            */
 
   if( argc!=6 )
