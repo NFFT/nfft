@@ -1,17 +1,17 @@
-/examples/nnfft/accuracy liefert ein Segmentation fault fuer d=3 
-
-/examples/nfct  wir nicht compeliert
+/examples/nfct  wird nicht compiliert
 /examples/nfst
  
 in lib/trunk/examples/nfft
 sollte ./flags erklaeren was  type first last trials d m ist
 analog: ./ndft_fast
 
-nfft_times.c sollte das File dann nicht gleich ein latex-File produzieren,
-mit Tabellenunterschrift, welches man dann umleiten kann und sich ansehen??
-
 ./taylor_nfft
 erklaeren was type first last trials sigma_nfft sigma_taylor
 bedeutet, und einen Parametervorschlag:
 
-was soll in lib/trunk/examples/mri ?
+nfft_times.c sollte das File dann nicht gleich ein latex-File produzieren,
+mit Tabellenunterschrift, welches man dann umleiten kann und sich ansehen??
+
+was soll in lib/trunk/examples/mri ? 
+- ein simple_test welcher die Matrix Vektormultiplikationen mri_inh_2d1d_trafo,
+  ... testet (ein langsamer direkter Algo steht nicht zur Verfügung)

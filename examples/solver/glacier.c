@@ -5,6 +5,11 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \addtogroup examples_solver
+ * \{
+ */
+
 double my_weight(double z,double a,double b,double c)
 {
     return pow(0.25-z*z,b)/(c+pow(fabs(z),2*a));
@@ -70,11 +75,10 @@ void glacier(int N,int M)
   nfft_finalize(&p);  
 }
 
-
-
 int main(int argc, char **argv)
 {
   glacier(atoi(argv[1]),atoi(argv[2]));
 
   return 1;
 }
+/* \} */

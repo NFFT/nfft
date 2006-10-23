@@ -1,3 +1,11 @@
+/* $Id$ */
+
+/** 
+ * \defgroup applications_fastgauss Fast Gauss transfrom with complex parameter
+ * \ingroup applications
+ * \{
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -8,37 +16,73 @@
 #include "nfft3.h"
 #include "util.h"
 
+/**
+ * If this flag is set, the whole matrix is precomputed and stored for the
+ * discrete Gauss transfrom.
+ *
+ * \see fgt_init_node_dependent
+ * \see fgt_init
+ * \author Stefan Kunis
+ */
 #define DGT_PRE_CEXP     (1U<< 0)
+
+/**
+ * If this flag is set, the fast Gauss transform uses the discrete instead of
+ * the fast Fourier transform.
+ *
+ * \see fgt_init
+ * \see ndft_trafo
+ * \see nfft_trafo
+ * \author Stefan Kunis
+ */
 #define FGT_NDFT         (1U<< 1)
+
+/**
+ * If this flag is set, the discrete Fourier coefficients of the uniformly
+ * sampled Gaussian are used instead of the sampled continuous Fourier
+ * transform.
+ *
+ * \see fgt_init
+ * \author Stefan Kunis
+ */
 #define FGT_APPROX_B     (1U<< 2)
 
+/** Structure for the Gauss transform */
 typedef struct
 {
-  int N;                                /**< number of source knots          */
-  int M;                                /**< number of target knots          */
+  int N;                                /**< number of source nodes          */
+  int M;                                /**< number of target nodes          */
 
-  double complex *alpha;                       /**< source coefficients             */
-  double complex *f;                           /**< target evaluations              */
+  double complex *alpha;                /**< source coefficients             */
+  double complex *f;                    /**< target evaluations              */
 
-  unsigned flags;                       /**< flags precomp. and approx.type  */
+  unsigned flags;                       /**< flags for precomputation and
+					     approximation type              */
 
-  double complex sigma;                        /**< parameter of the Gaussian       */
+  double complex sigma;                 /**< parameter of the Gaussian       */
 
-  double *x;                            /**< source knots in \f$[-1/4,1/4]\f$*/
-  double *y;                            /**< target knots in \f$[-1/4,1/4]\f$*/
+  double *x;                            /**< source nodes in \f$[-1/4,1/4]\f$*/
+  double *y;                            /**< target nodes in \f$[-1/4,1/4]\f$*/
 
-  double complex *pre_cexp;                    /**< precomputed values for dgt      */
+  double complex *pre_cexp;             /**< precomputed values for dgt      */
 
   int n;                                /**< expansion degree                */
   double p;                             /**< period, at least 1              */
 
-  double complex *b;                           /**< expansion coefficients          */
+  double complex *b;                    /**< expansion coefficients          */
 
   nfft_plan *nplan1;                    /**< source nfft plan                */
   nfft_plan *nplan2;                    /**< target nfft plan                */
 
 } fgt_plan;
 
+/**
+ * Executes the discrete Gauss transform.
+ *
+ * \arg ths The pointer to a fgt plan
+ *
+ * \author Stefan Kunis
+ */
 void dgt_trafo(fgt_plan *ths)
 {
   int j,k,l;
@@ -57,6 +101,13 @@ void dgt_trafo(fgt_plan *ths)
 					(ths->y[j]-ths->x[k]));
 }
 
+/**
+ * Executes the fast Gauss transform.
+ *
+ * \arg ths The pointer to a fgt plan
+ *
+ * \author Stefan Kunis
+ */
 void fgt_trafo(fgt_plan *ths)
 {
   int l;
@@ -81,10 +132,24 @@ void fgt_trafo(fgt_plan *ths)
     }
 }
 
-void fgt_init_guru(fgt_plan *ths, int N, int M, double complex sigma, int n, double p,
-		   int m, unsigned flags)
+/**
+ * Initialisation of a transform plan, guru.
+ *
+ * \arg ths The pointer to a fpt plan
+ * \arg N The number of source nodes
+ * \arg M The number of target nodes
+ * \arg sigma The parameter of the Gaussian
+ * \arg n The polynomial expansion degree
+ * \arg p the periodisation length, at least 1
+ * \arg m The spatial cut-off of the nfft
+ * \arg flags FGT flags to use
+ *
+ * \author Stefan Kunis
+ */
+void fgt_init_guru(fgt_plan *ths, int N, int M, double complex sigma, int n,
+		   double p, int m, unsigned flags)
 {
-  int j,k,l,n_fftw;
+  int j,n_fftw;
   fftw_plan fplan;
 
   ths->M = M;
@@ -140,6 +205,17 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double complex sigma, int n, dou
     }
 }
 
+/**
+ * Initialisation of a transform plan, simple.
+ *
+ * \arg ths The pointer to a fpt plan
+ * \arg N The number of source nodes
+ * \arg M The number of target nodes
+ * \arg sigma The parameter of the Gaussian
+ * \arg eps The target accuracy
+ *
+ * \author Stefan Kunis
+ */
 void fgt_init(fgt_plan *ths, int N, int M, double complex sigma, double eps)
 {
   double p;
@@ -157,13 +233,20 @@ void fgt_init(fgt_plan *ths, int N, int M, double complex sigma, double eps)
     fgt_init_guru(ths, N, M, sigma, n, p, 7, 0);
 }
 
-void fgt_init_knot_dependent(fgt_plan *ths)
+/**
+ * Initialisation of a transform plan, depends on source and target nodes.
+ *
+ * \arg ths The pointer to a fpt plan
+ * \author Stefan Kunis
+ */
+void fgt_init_node_dependent(fgt_plan *ths)
 {
   int j,k,l;
 
   if(ths->flags & DGT_PRE_CEXP)
    {
-     ths->pre_cexp=(double complex*)fftw_malloc(ths->M*ths->N*sizeof(double complex));
+     ths->pre_cexp=(double complex*)fftw_malloc(ths->M*ths->N*
+						sizeof(double complex));
 
      for(j=0,l=0; j<ths->M; j++)
        for(k=0; k<ths->N; k++,l++)
@@ -182,6 +265,12 @@ void fgt_init_knot_dependent(fgt_plan *ths)
     nfft_precompute_psi(ths->nplan2);
 }
 
+/**
+ * Destroys the transform plan.
+ *
+ * \arg ths The pointer to the fgt plan
+ * \author Stefan Kunis
+ */
 void fgt_finalize(fgt_plan *ths)
 {
   nfft_finalize(ths->nplan2);
@@ -199,6 +288,12 @@ void fgt_finalize(fgt_plan *ths)
   fftw_free(ths->x);
 }
 
+/**
+ * Random initialisation of a fgt plan.
+ *
+ * \arg ths The pointer to the fgt plan
+ * \author Stefan Kunis
+ */
 void fgt_test_init_rand(fgt_plan *ths)
 {
   int j,k;
@@ -214,6 +309,14 @@ void fgt_test_init_rand(fgt_plan *ths)
 	          + I*(double)rand()/(RAND_MAX)-I/2.0;
 }
 
+/**
+ * Compares execution times for the fast and discrete Gauss transform.
+ *
+ * \arg ths The pointer to the fgt plan
+ * \arg dgt If this parameter is set \ref dgt_trafo is called as well
+ *
+ * \author Stefan Kunis
+ */
 double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
@@ -242,6 +345,15 @@ double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
   return t_out;
 }
 
+/**
+ * Simple example that computes fast and discrete Gauss transforms.
+ *
+ * \arg ths The pointer to the fgt plan
+ * \arg sigma The parameter of the Gaussian
+ * \arg eps The target accuracy
+ *
+ * \author Stefan Kunis
+ */
 void fgt_test_simple(int N, int M, double complex sigma, double eps)
 {
   fgt_plan my_plan;
@@ -251,7 +363,7 @@ void fgt_test_simple(int N, int M, double complex sigma, double eps)
   swap_dgt = (double complex*)fftw_malloc(my_plan.M*sizeof(double complex));
 
   fgt_test_init_rand(&my_plan);
-  fgt_init_knot_dependent(&my_plan);   
+  fgt_init_node_dependent(&my_plan);   
 
   NFFT_SWAP_complex(swap_dgt,my_plan.f);
   dgt_trafo(&my_plan);
@@ -268,17 +380,20 @@ void fgt_test_simple(int N, int M, double complex sigma, double eps)
   fgt_finalize(&my_plan);
 }
 
-/** fgt_andersson_test similar to the test in
- *  F. Andersson and G. Beylkin.
- *  The fast Gauss transform with double complex parameters.
- *  J. Comput. Physics 203 (2005) 274-286
+/** 
+ * Compares accuracy and execution time of the fast Gauss transform with
+ * increasing expansion degree.
+ * Similar to the test in F. Andersson and G. Beylkin.
+ * The fast Gauss transform with double complex parameters.
+ * J. Comput. Physics 203 (2005) 274-286
+ *
+ * \author Stefan Kunis
  */
 void fgt_test_andersson()
 {
   fgt_plan my_plan;
   double complex *swap_dgt;
   int N;
-  int r,k,j;
 
   double complex sigma=4*(138+I*100);
   int n=128;
@@ -296,11 +411,12 @@ void fgt_test_andersson()
       else
         fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, 0);
 
-      swap_dgt = (double complex*)fftw_malloc(my_plan.M*sizeof(double complex));
+      swap_dgt = (double complex*)fftw_malloc(my_plan.M*
+					      sizeof(double complex));
 
       fgt_test_init_rand(&my_plan);
       
-      fgt_init_knot_dependent(&my_plan);      
+      fgt_init_node_dependent(&my_plan);      
 
       if(N<N_dgt)
 	{
@@ -327,8 +443,9 @@ void fgt_test_andersson()
 
       printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
 
-      printf("$%1.1e$\t \\\\ \n", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
-             my_plan.M, my_plan.alpha, my_plan.N));
+      printf("$%1.1e$\t \\\\ \n",
+	     nfft_error_l_infty_1_complex(swap_dgt, my_plan.f, my_plan.M,
+					  my_plan.alpha, my_plan.N));
       fflush(stdout);
 
       fftw_free(swap_dgt);
@@ -337,6 +454,12 @@ void fgt_test_andersson()
     }
 }
 
+/** 
+ * Compares accuracy of the fast Gauss transform with increasing expansion
+ * degree.
+ *
+ * \author Stefan Kunis
+ */
 void fgt_test_error()
 {
   fgt_plan my_plan;
@@ -360,7 +483,7 @@ void fgt_test_error()
         {
           fgt_init_guru(&my_plan, N, M, sigma, n, 1, m[mi], 0);
           fgt_test_init_rand(&my_plan);    
-          fgt_init_knot_dependent(&my_plan);    
+          fgt_init_node_dependent(&my_plan);    
 
           NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
@@ -382,6 +505,12 @@ void fgt_test_error()
   fftw_free(swap_dgt);
 }
 
+/** 
+ * Compares accuracy of the fast Gauss transform with increasing expansion
+ * degree and different periodisation lengths.
+ *
+ * \author Stefan Kunis
+ */
 void fgt_test_error_p()
 {
   fgt_plan my_plan;
@@ -405,7 +534,7 @@ void fgt_test_error_p()
         {
           fgt_init_guru(&my_plan, N, M, sigma, n, p[pi], 7, 0);
           fgt_test_init_rand(&my_plan);    
-          fgt_init_knot_dependent(&my_plan);    
+          fgt_init_node_dependent(&my_plan);    
 
           NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
@@ -425,19 +554,38 @@ void fgt_test_error_p()
   printf("];\n");  
 }
 
-int main()
+/** 
+ * Different tests of the fast Gauss transform.
+ *
+ * \author Stefan Kunis
+ */
+int main(int argc,char **argv)
 {
-  /** simple test */
-  fgt_test_simple(10, 10, 5+3*I, 0.001);
+  if(argc!=2)
+    {
+      fprintf(stderr,"fastgauss type\n");
+      fprintf(stderr," type\n");
+      fprintf(stderr,"  0 - Simple test.\n");
+      fprintf(stderr,"  1 - Compares accuracy and execution time.\n");
+      fprintf(stderr,"      Pipe to output_andersson.tex\n");
+      fprintf(stderr,"  2 - Compares accuracy.\n");
+      fprintf(stderr,"      Pipe to output_error.m\n");
+      fprintf(stderr,"  2 - Compares accuracy.\n");
+      fprintf(stderr,"      Pipe to output_error_p.m\n");
+      return -1;
+    }
 
-  /** pipe to output_andersson.tex */
-  /* fgt_test_andersson(); */
+  if(atoi(argv[1])==0)
+    fgt_test_simple(10, 10, 5+3*I, 0.001);
 
-  /** pipe to output_error.m */
-  /* fgt_test_error(); */
+  if(atoi(argv[1])==1)
+    fgt_test_andersson();
 
-  /** pipe to output_error_p.m */
-  /* fgt_test_error_p(); */
+  if(atoi(argv[1])==2)
+    fgt_test_error();
+
+  if(atoi(argv[1])==3)
+    fgt_test_error_p();
 
   return 1;
 }

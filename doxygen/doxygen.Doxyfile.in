@@ -416,11 +416,7 @@ WARN_LOGFILE =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = . include kernel examples applications util
-
-#kernel examples applications/fastsum
-#applications
-#applications/texture
+INPUT = doxygen.c include kernel examples applications util
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

@@ -9,4 +9,4 @@ fastgauss_SOURCES = fastgauss.c
 fastgauss_LDADD = $(top_builddir)/libnfft3.la -lm -lfftw3
 
 ## Include these extra files in the distribution.
-EXTRA_DIST = levelplots.m  output_error.m  output_error_p.m  show_results.m README
+EXTRA_DIST = levelplots.m  show_results.m README

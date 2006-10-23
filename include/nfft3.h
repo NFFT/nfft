@@ -368,6 +368,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M);
 
 /**
  * Initialisation of a transform plan, advanced.
+ * NOT YET IMPLEMENTED!!
  *
  * \arg ths The pointer to a nfft plan
  * \arg d The dimension
@@ -390,15 +391,14 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
  * \arg M_total The number of nodes
  * \arg n The oversampled multi bandwidth
  * \arg m The spatial cut-off
- * \arg nfft_flags_on NFFT flags to switch on
- * \arg nfft_flags_off NFFT flags to switch off
+ * \arg nfft_flags NFFT flags to use
+ * \arg fftw_flags_off FFTW flags to use
  *
  * \author Stefan Kunis, Daniel Potts
  */
 void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n,
                     int m, unsigned nfft_flags, unsigned fftw_flags);
 
-void nfft_precompute_full_psi(nfft_plan *ths);
 
 /**
  * Precomputation for a transform plan.
@@ -414,8 +414,22 @@ void nfft_precompute_full_psi(nfft_plan *ths);
  */
 void nfft_precompute_one_psi(nfft_plan *ths);
 
+/**
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
+void nfft_precompute_full_psi(nfft_plan *ths);
+
+/**
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
 void nfft_precompute_psi(nfft_plan *ths);
 
+/**
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
 void nfft_precompute_lin_psi(nfft_plan *ths);
 
 /**

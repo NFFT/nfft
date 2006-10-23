@@ -5,6 +5,11 @@
 #include "util.h"
 #include "nfft3.h"
 
+/** 
+ * \addtogroup examples_solver
+ * \{
+ */
+
 void simple_test_infft_1d(int N, int M, int iter)
 {
   int j,k,l;                            /**< index for nodes, freqencies,iter*/
@@ -68,3 +73,4 @@ int main()
 
   return 1;
 }
+/* \} */
