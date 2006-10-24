@@ -149,7 +149,7 @@ inline void c2e(nfsft_plan *plan)
  * Transposed version of the function \ref c2e
  *
  * \arg plan The \c nfsft_plan containing the coefficients
- *      \f$\left(c_k^n\right)_{k=-M,\ldots,M;n=-M,\ldots,M}
+ *      \f$\left(c_k^n\right)_{k=-M,\ldots,M;n=-M,\ldots,M}\f$
  *
  * \remark The transformation is computed in place.
  *
@@ -212,7 +212,8 @@ inline void c2e_transposed(nfsft_plan *plan)
     for (k = 2; k < plan->N; k++)
     {
       act = *xp;
-      *xp++ = -0.25 * I * (xp[1] - last);
+      *xp = -0.25 * I * (xp[1] - last);
+      xp++;
       last = act;
     }
     *xp = 0.25 * I * last;

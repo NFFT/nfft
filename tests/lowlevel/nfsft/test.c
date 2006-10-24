@@ -73,13 +73,14 @@ void test_ndsft_trafo(void)
   /* Try to open file containing the names of the test data files. */
   testfiles = fopen(TESTFILES_NDSFT,"r");
 
-  fprintf(stdout,"%d\n",testfiles);
-  fflush(stdout);
+  /*fprintf(stdout,"%d\n",testfiles);
+  fflush(stdout);*/
 
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n",
+      TESTFILES_NDSFT);
     return;
   }
 
@@ -231,13 +232,14 @@ void test_ndsft_adjoint(void)
   /* Try to open file containing the names of the test data files. */
   testfiles = fopen(TESTFILES_ADJOINT_NDSFT,"r");
 
-  fprintf(stdout,"%d\n",testfiles);
-  fflush(stdout);
+  /*fprintf(stdout,"%d\n",testfiles);
+  fflush(stdout);*/
 
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n",
+      TESTFILES_ADJOINT_NDSFT);
     return;
   }
 

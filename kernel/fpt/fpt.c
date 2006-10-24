@@ -358,16 +358,17 @@ FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric,abuvxpwy_symmetric1,abuv
 FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric_u,abuvxpwy_symmetric1_1,abuvxpwy_symmetric1_2)
 FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric_l,abuvxpwy_symmetric2_2,abuvxpwy_symmetric2_1)
 
-void eval_clenshaw(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma)
+void eval_clenshaw(const double *x, double *y, int size, int k, const double *alpha,
+  const double *beta, const double *gamma)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
   double a,b,x_val_act,a_old;
-  double *x_act, *y_act;
-  double *alpha_act, *beta_act, *gamma_act;
+  const double *x_act;
+  double *y_act;
+  const double *alpha_act, *beta_act, *gamma_act;
 
   /* Traverse all nodes. */
   x_act = x;
@@ -403,16 +404,18 @@ void eval_clenshaw(double *x, double *y, int size, int k, double *alpha,
   }
 }
 
-int eval_clenshaw_thresh(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma, double threshold)
+int eval_clenshaw_thresh(const double *x, double *y, int size, int k, 
+  const double *alpha, const double *beta, const double *gamma, const 
+  double threshold)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
   double a,b,x_val_act,a_old;
-  double *x_act, *y_act;
-  double *alpha_act, *beta_act, *gamma_act;
+  const double *x_act;
+  double *y_act;
+  const double *alpha_act, *beta_act, *gamma_act;
 
   /* Traverse all nodes. */
   x_act = x;
@@ -717,9 +720,9 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
                          (2,1)-component of U_k^n.                           */
   double *a22;      /**< Array containing function values of the
                          (2,2)-component of U_k^n.                           */
-  double *calpha;
-  double *cbeta;
-  double *cgamma;
+  const double *calpha;
+  const double *cbeta;
+  const double *cgamma;
   int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
   int k_start_tilde;
   int N_tilde;
@@ -1291,8 +1294,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
 }
 
-void dpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
-  const int k_end, const unsigned int flags)
+void dpt_transposed(fpt_set set, const int m, double complex *x, 
+  double complex *y, const int k_end, const unsigned int flags)
 {
   int j;
   fpt_data *data = &(set->dpt[m]);
@@ -1343,8 +1346,8 @@ void dpt_transposed(fpt_set set, const int m, double complex *x, const double co
   }
 }
 
-void fpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
-  const int k_end, const unsigned int flags)
+void fpt_transposed(fpt_set set, const int m, double complex *x, 
+  const double complex *y, const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
   fpt_data *data = &(set->dpt[m]);

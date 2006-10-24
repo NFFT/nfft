@@ -2123,8 +2123,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
  * \arg k_end
  * \arg flags
  */
-void dpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
-  const int k_end, const unsigned int flags);
+void dpt_transposed(fpt_set set, const int m, double complex *x, 
+  double complex *y, const int k_end, const unsigned int flags);
 
 /**
  * Computes a single DPT transform.
@@ -2136,8 +2136,8 @@ void dpt_transposed(fpt_set set, const int m, double complex *x, const double co
  * \arg k_end
  * \arg flags
  */
-void fpt_transposed(fpt_set set, const int m, double complex *x, const double complex *y,
-  const int k_end, const unsigned int flags);
+void fpt_transposed(fpt_set set, const int m, double complex *x, 
+  const double complex *y, const int k_end, const unsigned int flags);
 
 void fpt_finalize(fpt_set set);
 

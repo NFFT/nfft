@@ -54,13 +54,14 @@ void test_dpt_trafo(void)
   /* Try to open file containing the names of the test data files. */
   testfiles = fopen(TESTFILES_DPT,"r");
 
-  fprintf(stdout,"%d\n",testfiles);
-  fflush(stdout);
+  /*fprintf(stdout,"%d\n",testfiles);
+  fflush(stdout);*/
 
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n",
+      TESTFILES_DPT);
     return;
   }
 
@@ -219,7 +220,7 @@ void test_dpt_trafo(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
     }
   }
-  close(testfiles);
+  fclose(testfiles);
   testfiles = NULL;
 }
 
@@ -267,13 +268,14 @@ void test_dpt_transposed(void)
   /* Try to open file containing the names of the test data files. */
   testfiles = fopen(TESTFILES_DPT_TRANSPOSED,"r");
 
-  fprintf(stdout,"%d\n",testfiles);
-  fflush(stdout);
+  /*fprintf(stdout,"%d\n",testfiles);
+  fflush(stdout);*/
 
   /* Test if successful. */
   if (testfiles == NULL)
   {
-    fprintf(stderr,"Couldn't open %s to read test data filenames!\n");
+    fprintf(stderr,"Couldn't open %s to read test data filenames!\n",
+      TESTFILES_DPT_TRANSPOSED);
     return;
   }
 
