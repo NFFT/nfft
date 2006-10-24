@@ -764,7 +764,7 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=(1U<< 10)*(ths->m+1); /* estimate is badly needed, multiple of m+1 for equal interpolation weights !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+      ths->K=(1U<< 10)*(ths->m+1);
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 

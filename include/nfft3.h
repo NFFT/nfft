@@ -102,6 +102,10 @@
  * sparse matrix \f$\mathbf{B}\f$) uses linear interpolation from a lookup
  * table of equispaced samples of the window function instead of exact values
  * of the window function.
+ * At the moment a table of size \f$(K+1)d\f$ is used, where
+ * \f$K=2^{10}(m+1)\f$. 
+ * An estimate for the size of the lookup table with respect to the target
+ * accuracy should be implemented.
  *
  * \see nfft_init
  * \see nfft_init_advanced
