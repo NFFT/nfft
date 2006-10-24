@@ -15,6 +15,7 @@
 void construct(char * file, int N, int M)
 {
   int j,k;            /* some variables */
+  double real;
   nfft_plan my_plan;  /* plan for the two dimensional nfft  */
   FILE* fp;
   FILE* fk;
@@ -36,8 +37,10 @@ void construct(char * file, int N, int M)
 
   for(j=0;j<N;j++)
   {
-    for(k=0;k<N;k++)
-      fscanf(fi,"%p ",&my_plan.f_hat[(N*j+k)]);
+    for(k=0;k<N;k++) {
+      fscanf(fi,"%le ",&real);
+      my_plan.f_hat[(N*j+k)] = real;
+    }
   }
     
   if(my_plan.nfft_flags & PRE_PSI)
