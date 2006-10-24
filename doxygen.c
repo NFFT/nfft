@@ -32,35 +32,35 @@
  *  \in \mathbb{Z}^d: -
  *   \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1\right\},
  *\f]
- *where \f$\mathbf{N}=\left(N_t\right)_{t=0,\hdots,d-1}\f$ is the
+ * where \f$\mathbf{N}=\left(N_t\right)_{t=0,\hdots,d-1}\f$ is the
  * multibandlimit, i.e., \f$N_t\in 2\mathbb{N}\f$.
  * For a finite number of given Fourier coefficients 
  * \f$\hat f_{\mathbf{k}} \in \mathbb{C}\f$, 
- * \f$\mathbf{k}\in I_{\mathbf{N}}\f$ we consider the 
+ * \f$\mathbf{k}\in I_{\mathbf{N}}\f$, we consider the 
  * fast evaluation of the trigonometric polynomial 
  * \f[
  *  f\left(\mathbf{x}\right) 
  *  := \sum_{ \mathbf{k}\in I_{ N}} \hat{f}_{\mathbf{ k}} 
  *  {\rm e}^{-2\pi{\rm i}\mathbf{k}\mathbf{ x}}
  * \f]
- * at given nonequispaced nodes \f$ x_j \in \mathbb{T}^d\f$ 
- * \f$(j=0,\ldots, M-1)\f$ from the 
+ * at given nonequispaced nodes \f$\mathbf{x}_j \in \mathbb{T}^d\f$,
+ * \f$j=0,\ldots, M-1\f$, from the 
  * \f$ d\f$-dimensional torus as well as the 
  * adjoint problem, the fast evaluation of sums of the form
  * \f[
- *  h_{\mathbf{k}} := \sum_{j=0}^{M-1} \hat{f}_{j} 
- *  {\rm e}^{2\pi{\rm i}\mathbf{k}\mathbf{ x}_j}
+ *  \hat h_{\mathbf{k}} := \sum_{j=0}^{M-1} {f}_{j} 
+ *  {\rm e}^{2\pi{\rm i}\mathbf{k}\mathbf{ x}_j}.
  * \f]
  *
  * The generalisations of the NFFT include
- *    - NNFFT - nonequispaced in time and frequency fast Fourier transform
- *    - NFCT/NFST - nonequispaced fast (co)sine transform   
- *    - NSFFT - nonequispaced sparse fast Fourier transform
- *    - FPT - fast polynomial transform
- *    - NFSFT - nonequispaced fast spherical Fourier transform
+ *    - NNFFT - nonequispaced in time and frequency fast Fourier transform,
+ *    - NFCT/NFST - nonequispaced fast (co)sine transform,
+ *    - NSFFT - nonequispaced sparse fast Fourier transform,
+ *    - FPT - fast polynomial transform,
+ *    - NFSFT - nonequispaced fast spherical Fourier transform.
  *  
  *
  *
- * Furthermore we consider the inversion of the above transform by 
- *iterative methods.
+ * Furthermore, we consider the inversion of the above transforms by 
+ * iterative methods.
  */
