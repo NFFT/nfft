@@ -1,1 +1,0 @@
-../../nfct/func_rec_2d/sinc_xysqr.m
