@@ -52,7 +52,7 @@
  * \f]
  *
  * Our concern is the computation of the
- * \e nonequispaced discrete Fourier transform \e (NDFT)
+ * \e nonequispaced discrete Fourier transform \e (NDFT) \anchor ndft_formula
  * \f[
  * f_j = \sum_{\mathbf{k}\in I_{\mathbf{N}}}
  * \hat{f}_{\mathbf{k}} {\rm e}^{-2\pi{\rm i} \mathbf{k}\mathbf{x}_j}, \qquad
@@ -273,9 +273,7 @@ typedef struct
 
 
 /**
- * Executes a NDFT, see equation (1.1) in [Guide], computes
- * for j=0,...,M-1
- *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ * Computes a NDFT, see the \ref ndft_formula "definition".
  *
  * \arg ths The pointer to a nfft plan
  *
@@ -284,9 +282,7 @@ typedef struct
 void ndft_trafo(nfft_plan *ths);
 
 /**
- * Executes a NDFT, see equation (1.2) in [Guide], computes
- * for k in I_N^d
- *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
+ * Computes an adjoint NDFT, see the \ref ndftH_formula "definition".
  *
  * \arg ths The pointer to a nfft plan
  *
@@ -295,10 +291,7 @@ void ndft_trafo(nfft_plan *ths);
 void ndft_adjoint(nfft_plan *ths);
 
 /**
- * Executes a NFFT, see equation (1.1) in [Guide], computes fast and
- * approximate
- * for j=0,...,M-1
- *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ * Computes a NFFT, see the \ref ndft_formula "definition".
  *
  * \arg ths The pointer to a nfft plan
  *
@@ -307,10 +300,7 @@ void ndft_adjoint(nfft_plan *ths);
 void nfft_trafo(nfft_plan *ths);
 
 /**
- * Executes an adjoint  NFFT, see equation (1.2) in [Guide], computes fast and
- * approximate
- * for k in I_N^d
- *  f_hat[k] = sum_{j=0}^{M-1} f[j] * exp(+2(pi) k x[j])
+ * Computes an adjoint NFFT, see the \ref ndftH_formula "definition".
  *
  * \arg ths The pointer to a nfft plan
  *
@@ -323,7 +313,7 @@ void nfft_adjoint(nfft_plan *ths);
  *
  * \arg ths The pointer to a nfft plan
  * \arg N1 bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  *
  * \author Stefan Kunis, Daniel Potts
  */
@@ -335,7 +325,7 @@ void nfft_init_1d(nfft_plan *ths, int N1, int M);
  * \arg ths The pointer to a nfft plan
  * \arg N1 bandwidth
  * \arg N2 bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  *
  * \author Stefan Kunis, Daniel Potts
  */
@@ -348,7 +338,7 @@ void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M);
  * \arg N1 bandwidth
  * \arg N2 bandwidth
  * \arg N3 bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  *
  * \author Stefan Kunis, Daniel Potts
  */
@@ -360,7 +350,7 @@ void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M);
  * \arg ths The pointer to a nfft plan
  * \arg d The dimension
  * \arg N The multi bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  *
  * \author Stefan Kunis, Daniel Potts
  */
@@ -373,7 +363,7 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M);
  * \arg ths The pointer to a nfft plan
  * \arg d The dimension
  * \arg N The multi bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  * \arg nfft_flags_on NFFT flags to switch on
  * \arg nfft_flags_off NFFT flags to switch off
  *
@@ -388,7 +378,7 @@ void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M,
  * \arg ths The pointer to a nfft plan
  * \arg d The dimension
  * \arg N The multi bandwidth
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  * \arg n The oversampled multi bandwidth
  * \arg m The spatial cut-off
  * \arg nfft_flags NFFT flags to use
@@ -584,7 +574,7 @@ void nfct_precompute_psi( nfct_plan *ths_plan);
 
 /**
  * executes a NFCT (approximate,fast), computes for \f$j=0,...,M\_total-1\f$
- * \f$f_j^C(x_j) = sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
+ * \f$f_j^C(x_j) = \sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -594,7 +584,7 @@ void nfct_trafo( nfct_plan *ths_plan);
 
 /**
  * executes a NDCT (exact,slow), computes for \f$j=0,...,M\_total-1\f$
- * \f$f_j^C(x_j) = sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
+ * \f$f_j^C(x_j) = \sum_{k \in I_0^{N,d}} \hat{f}_k^C * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -604,7 +594,7 @@ void ndct_trafo( nfct_plan *ths_plan);
 
 /**
  * executes a transposed NFCT (approximate,fast), computes for \f$k \in I_0^{N,d}\f$
- * \f$h^C(k) = sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
+ * \f$h^C(k) = \sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -614,7 +604,7 @@ void nfct_adjoint( nfct_plan *ths_plan);
 
 /**
  * executes a direct transposed NDCT (exact,slow), computes for \f$k \in I_0^{N,d}\f$
- * \f$h^C(k) = sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
+ * \f$h^C(k) = \sum_{j \in I_0^{(M\_total,1)}} f_j^C * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -808,7 +798,7 @@ void nfst_precompute_psi( nfst_plan *ths_plan);
 
 /**
  * executes a NFST (approximate,fast), computes for \f$j=0,...,M\_total-1\f$
- * \f$f_j^S(x_j) = sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ * \f$f_j^S(x_j) = \sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -818,7 +808,7 @@ void nfst_trafo( nfst_plan *ths_plan);
 
 /**
  * executes a NDST (exact,slow), computes for \f$j=0,...,M\_total-1\f$
- * \f$f_j^S(x_j) = sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ * \f$f_j^S(x_j) = \sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -830,7 +820,7 @@ void ndst_trafo( nfst_plan *ths_plan);
 
 /**
  * executes a transposed NFST (approximate,fast), computes for \f$k \in I_1^{N,d}\f$
- * \f$h^S(k) = sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
+ * \f$h^S(k) = \sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -840,7 +830,7 @@ void nfst_adjoint( nfst_plan *ths_plan);
 
 /**
  * executes a direct transposed NDST (exact,slow), computes for \f$k \in I_1^{N,d}\f$
- * \f$h^S(k) = sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
+ * \f$h^S(k) = \sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
  *
  * \arg ths_plan The plan for the transform
  *
@@ -1168,9 +1158,10 @@ typedef struct
 } nsfft_plan;
 
 /**
- * Executes a NSDFT, computes
- * for j=0,...,M-1
- *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ * Executes an NSDFT, computes for \f$j=0,\hdots,M-1\f$:
+ * \f[
+ *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
+ * \f]
  *
  * \arg ths The pointer to a nsfft plan
  *
@@ -1179,9 +1170,10 @@ typedef struct
 void nsdft_trafo(nsfft_plan *ths);
 
 /**
- * Executes an ajoint NSDFT, computes
- * for k in H_N^d
- *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
+ * Executes an adjoint NSFFT, computes for \f$k\in H_N^d\f$:
+ * \f[
+ *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ * \f]
  *
  * \arg ths The pointer to a nsfft plan
  *
@@ -1190,9 +1182,11 @@ void nsdft_trafo(nsfft_plan *ths);
 void nsdft_adjoint(nsfft_plan *ths);
 
 /**
- * Executes a NSDFT, computes fast and approximate
- * for j=0,...,M-1
- *  f[j] = sum_{k in H_N^d} f_hat[k] * exp(-2 (pi) k x[j])
+ * Executes an NSFFT, computes \b fast and \b approximate for
+ * \f$j=0,\hdots,M-1\f$:
+ * \f[
+ *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
+ * \f]
  *
  * \arg ths The pointer to a nsfft plan
  *
@@ -1201,9 +1195,11 @@ void nsdft_adjoint(nsfft_plan *ths);
 void nsfft_trafo(nsfft_plan *ths);
 
 /**
- * Executes a NSDFT, computes fast and approximate
- * for k in H_N^d
- *  f_hat[k] = sum_{j=0,...,M-1} f[j] * exp(+2 (pi) k x[j])
+ * Executes an adjoint NSFFT, computes \b fast and \b approximate for
+ * \f$k\in H_N^d\f$:
+ * \f[
+ *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ * \f]
  *
  * \arg ths The pointer to a nsfft plan
  *
@@ -1235,7 +1231,7 @@ void nsfft_init_random_nodes_coeffs(nsfft_plan *ths);
  * \arg ths The pointer to a nsfft plan
  * \arg d The dimension
  * \arg J The problem size
- * \arg M_total The number of nodes
+ * \arg M The number of nodes
  * \arg m nfft cut-off parameter
  * \arg flags
  *

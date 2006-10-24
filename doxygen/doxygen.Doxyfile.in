@@ -302,7 +302,7 @@ INLINE_INFO = YES
 # alphabetically by member name. If set to NO the members will appear in 
 # declaration order.
 
-SORT_MEMBER_DOCS = YES
+SORT_MEMBER_DOCS = NO
 
 # If the SORT_BRIEF_DOCS tag is set to YES then doxygen will sort the 
 # brief documentation of file, namespace and class members alphabetically 
@@ -416,7 +416,7 @@ WARN_LOGFILE =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = doxygen.c include kernel examples applications util
+INPUT = doxygen.c include kernel util examples applications 
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -454,7 +454,7 @@ EXCLUDE_PATTERNS =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH = 
+EXAMPLE_PATH =
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

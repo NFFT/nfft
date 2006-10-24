@@ -6,10 +6,12 @@
 #include "nfft3.h"
 
 /** 
- * \addtogroup examples_solver
+ * \defgroup examples_solver_simple Simple inverse nfft
+ * \ingroup examples_solver
  * \{
  */
 
+/** Simple test routine for the inverse nfft */
 void simple_test_infft_1d(int N, int M, int iter)
 {
   int k,l;                            /**< index for nodes, freqencies,iter*/
@@ -66,9 +68,10 @@ void simple_test_infft_1d(int N, int M, int iter)
   nfft_finalize(&p);  
 }
 
+/** Main routine */
 int main()
 {
-  printf("\n1) Computing a one dimensional inverse nfft\n");
+  printf("\n Computing a one dimensional inverse nfft\n");
   simple_test_infft_1d(8,4,5);
 
   return 1;

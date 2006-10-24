@@ -6,15 +6,19 @@
 #include "nfft3.h"
 
 /** 
- * \addtogroup examples_solver
+ * \defgroup examples_solver_glacier Reconstruction of a glacier from \
+ scattered data
+ * \ingroup examples_solver
  * \{
  */
 
+/** Generalised Sobolev weight */
 double my_weight(double z,double a,double b,double c)
 {
     return pow(0.25-z*z,b)/(c+pow(fabs(z),2*a));
 }
 
+/** Reconstruction routine */
 void glacier(int N,int M)
 {  
   int j,k,k0,k1,l,my_N[2],my_n[2];
@@ -75,6 +79,7 @@ void glacier(int N,int M)
   nfft_finalize(&p);  
 }
 
+/** Main routine */
 int main(int argc, char **argv)
 {
   glacier(atoi(argv[1]),atoi(argv[2]));

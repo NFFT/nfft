@@ -370,7 +370,7 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   int y_u[ths->d];                                                            \
   double fg_psi[ths->d][2*ths->m+2];                                          \
   double fg_exp_l[ths->d][2*ths->m+2];                                        \
-  int l_fg,lj_fg,u_fg,o_fg;                                                   \
+  int l_fg,lj_fg;                                                             \
   double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3, tmp4;                 \
   double ip_w;                                                                \
   int ip_u;                                                                   \
