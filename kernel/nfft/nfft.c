@@ -305,11 +305,7 @@ MACRO_nfft_D(T)
 #define MACRO_with_FG_PSI fg_psi[t2][lj[t2]]
 
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
-  /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
-#define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*              \
-                                (y_u[t2]+1-y[t2]) +                           \
-                                ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
-                                (y[t2]-y_u[t2])) 
+
 #define MACRO_without_PRE_PSI  PHI(ths->x[j*ths->d+t2]-                       \
                                    ((double)l[t2])/ths->n[t2], t2)
 
@@ -321,16 +317,6 @@ MACRO_nfft_D(T)
       lj[t] = 0;                                                              \
     } /* for(t) */                                                            \
   t++;                                                                        \
-}
-
-#define MACRO_update_with_PRE_PSI_LIN {                                       \
-  for(t2=t; t2<ths->d; t2++)                                                  \
-    {                                                                         \
-      y[t2] = fabs(((ths->n[t2]*ths->x[j*ths->d+t2]-(double)l[t2])            \
-	  * ((double)ths->K))/(ths->m+1));                                    \
-      y_u[t2] = (int)floor(y[t2]);                                            \
-      if(y_u[t2]>=ths->K) { printf("%d>K=%d\n",y_u[t2],ths->K); exit(-1);}\
-    } /* for(t2) */                                                           \
 }
 
 #define MACRO_update_phi_prod_ll_plain(which_one) {                           \
@@ -367,11 +353,10 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   double complex *f, *g;                /**< local copy                     */\
   double complex *fj;                   /**< local copy                     */\
   double y[ths->d];                                                           \
-  int y_u[ths->d];                                                            \
   double fg_psi[ths->d][2*ths->m+2];                                          \
   double fg_exp_l[ths->d][2*ths->m+2];                                        \
   int l_fg,lj_fg;                                                             \
-  double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3, tmp4;                 \
+  double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3;                       \
   double ip_w;                                                                \
   int ip_u;                                                                   \
   int ip_s=ths->K/(ths->m+1);                                                 \
@@ -503,27 +488,8 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
       return;                                                                 \
     } /* if(FG_PSI) */                                                        \
                                                                               \
-if(0)/*ths->nfft_flags & PRE_LIN_PSI)*/\
-    {                                                                         \
-      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
-	{                                                                     \
-          MACRO_init_uo_l_lj_t;                                               \
                                                                               \
-	  for(l_L=0; l_L<lprod; l_L++)                                        \
-	    {                                                                 \
-              MACRO_update_with_PRE_PSI_LIN;                                  \
-                                                                              \
-              MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);               \
-                                                                              \
-	      MACRO_nfft_B_compute_ ## which_one;                             \
-		                                                              \
-	      MACRO_count_uo_l_lj_t;                                          \
-            } /* for(l_L) */                                                  \
-	} /* for(j) */                                                        \
-      return;                                                                 \
-} /* if(PRE_LIN_PSI) */                                                         /*     OLD-----------*/ \
-                                                                              \
-if(ths->nfft_flags & PRE_LIN_PSI)\
+  if(ths->nfft_flags & PRE_LIN_PSI)                                           \
     {                                                                         \
       for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
 	{                                                                     \
@@ -537,10 +503,12 @@ if(ths->nfft_flags & PRE_LIN_PSI)\
               ip_w  = y[t2]-ip_u;                                             \
               for(l_fg=u[t2], lj_fg=0; l_fg <= o[t2]; l_fg++, lj_fg++)        \
                 {                                                             \
-                  fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2+abs(ip_u-lj_fg*ip_s)]*         \
-                                       (1-ip_w) +                                           \
-                                      ths->psi[(ths->K+1)*t2+abs(ip_u-lj_fg*ip_s+1)]*       \
-                                       (ip_w);                                              \
+                  fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2+                 \
+					       abs(ip_u-lj_fg*ip_s)]*         \
+                                      (1-ip_w) +                              \
+                                      ths->psi[(ths->K+1)*t2+                 \
+					       abs(ip_u-lj_fg*ip_s+1)]*       \
+                                       (ip_w);                                \
               }                                                               \
             }                                                                 \
                                                                               \
