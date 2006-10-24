@@ -1,32 +1,34 @@
+The NFFT3 package has been developed and is maintained by
+
 Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
  TU Chemnitz, Fakultaet für Mathematik
  Reichenhainer Str. 39
  09107 Chemnitz, GERMANY
 
-Authors of project parts and applications/examples.
-
-Dr. Markus Fenn <Markus.Fenn@uni-mannheim.de>
- - nfft on the hyperbolic cross (/lowlevel/nsfft)
- - polar fft (/examples/polarFFT)
- - discrete Radon transform and ridgelet transform (/examples/radon)
- - fast summation (/examples/fastsum)
-
 Jens Keiner <keiner@math.uni-luebeck.de>
  - fast polynomial transform (/kernel/fpt)
- - nfft on the sphere (/lowlevel/nfsft)
+ - nfft on the sphere (/kernel/nfsft)
  - fast summation on the sphere (/examples/fastsumS2)
+
+Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+ - nfft (/kernel/nfft)
+ - inverse transforms (/solver)
+ - nfft on the hyperbolic cross (/kernel/nsfft)
+ - fast Gauss transform (/examples/fastgauss)
+
+Further contributions, in particular applications, are due to
+
+Dr. Markus Fenn <Markus.Fenn@uni-mannheim.de>
+ - nfft on the hyperbolic cross (/kernel/nsfft)
+ - polar fft (/applications/polarFFT)
+ - discrete Radon transform and ridgelet transform (/applications/radon)
+ - fast summation (/applications/fastsum)
 
 Steffen Klatt <steffen.klatt@informatik.uni-luebeck.de>
  - nonequispaced cosine transform (/kernel/nfct)
  - nonequispaced sine transform (/kernel/nfst)
 
 Tobias Knopp <tobias.knopp@informatik.uni-luebeck.de>
- - transforms in magnetic resonance imaging (/lowlevel/mri_inh)
- - nonequispaced in time and frequency fft (/lowlevel/nnfft)
- - reconstruction in magnetic resonance imaging (/examples/lowlevel/mri)
-
-Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
- - nfft (/kernel/nfft)
- - nfft on the hyperbolic cross (/lowlevel/nsfft)
- - inverse transforms (/solver)
- - fast Gauss transform (/examples/fastgauss)
+ - transforms in magnetic resonance imaging (/kernel/mri)
+ - nonequispaced in time and frequency fft (/kernel/nnfft)
+ - reconstruction in magnetic resonance imaging (/applications/mri)
