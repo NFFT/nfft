@@ -1,4 +1,4 @@
-Examples to the nonequispaced fast cosine transform
+Examples to the nonequispaced fast sine transform
 
 Author
 
@@ -8,7 +8,7 @@ Author
 List of files and purpose
 
   README            this file
-  simple_test.c     introductory example how to use the nfct
+  simple_test.c     introductory example how to use the nfst
 
 References
 
