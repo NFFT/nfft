@@ -16,8 +16,10 @@
 					     coefficients                   */\
   int M_total;                          /**< Total number of samples        */\
                                                                               \
-  float_type *f_hat;                    /**< Vector of Fourier coefficients */\
-  float_type *f;                        /**< Vector of samples              */\
+  float_type *f_hat;                    /**< Vector of Fourier coefficients,  \
+                                             size is N_total float_types    */\
+  float_type *f;                        /**< Vector of samples,               \
+				             size is M_total float types    */\
 
 /*###########################################################################*/
 /*###########################################################################*/
@@ -232,10 +234,16 @@ typedef struct
   int d;                                /**< Dimension, rank                 */
   int *N;                               /**< Multi bandwidth                 */
   double *sigma;                        /**< Oversampling-factor             */
-  int *n;                               /**< FFTW length, equal to sigma*N   */
+  int *n;                               /**< FFTW length, equal to sigma*N,
+					     default is the power of 2 such
+					     that \f$2\le\sigma<4\f$         */
   int n_total;                          /**< Total size of FFTW              */
   int m;                                /**< Cut-off parameter of the window
-                                             function                        */
+                                             function, default value is
+					     6 (KAISER_BESSEL),
+					     9 (SINC_POWER),
+					     11 (B_SPLINE),
+					     12 (GAUSSIAN)                   */
   double *b;                            /**< Shape parameter of the window
                                              function                        */
   int K;                                /**< Number of equispaced samples of
@@ -243,10 +251,18 @@ typedef struct
 					     PRE_LIN_PSI                     */
 
   unsigned nfft_flags;                  /**< Flags for precomputation,
-                                             (de)allocation, and FFTW usage  */
-  unsigned fftw_flags;                  /**< Flags for the FFTW              */
+                                             (de)allocation, and FFTW usage,
+					     default setting is
+					     PRE_PHI_HUT| PRE_PSI|
+					     MALLOC_X| MALLOC_F_HAT| MALLOC_F|
+					     FFTW_INIT| FFT_OUT_OF_PLACE     */
+					
+  unsigned fftw_flags;                  /**< Flags for the FFTW, default is
+					     FFTW_ESTIMATE| FFTW_DESTROY_INPUT
+					                                     */
 
-  double *x;                            /**< Nodes in time/spatial domain    */
+  double *x;                            /**< Nodes in time/spatial domain,
+					     size is \f$dM\f$ doubles        */
 
   double MEASURE_TIME_t[3];             /**< Measured time for each step if
 					     MEASURE_TIME is set             */
@@ -256,17 +272,22 @@ typedef struct
   fftw_plan  my_fftw_plan2;             /**< Backward FFTW plan              */
 
   double **c_phi_inv;                   /**< Precomputed data for the
-                                             diagonal matrix \f$D\f$         */
+                                             diagonal matrix \f$D\f$, size is
+					     \f$N_0+\hdots+N_{d-1}\f$ doubles*/
   double *psi;                          /**< Precomputed data for the sparse
-                                             matrix \f$B\f$                  */
+                                             matrix \f$B\f$, size depends on
+					     precomputation scheme           */
   int *psi_index_g;                     /**< Indices in source/target vector
 					     for \ref PRE_FULL_PSI           */
   int *psi_index_f;                     /**< Indices in source/target vector
 					     for \ref PRE_FULL_PSI           */
 
-  double complex *g;                    /**< Oversampled vector of samples   */
+  double complex *g;                    /**< Oversampled vector of samples,
+					     size is \ref n_total double
+					     complex                         */
   double complex *g_hat;                /**< Zero-padded vector of Fourier
-                                             coefficients */
+                                             coefficients, size is
+					     \ref n_total double complex     */
   double complex *g1;                   /**< Input of fftw                   */
   double complex *g2;                   /**< Output of fftw                  */
 
