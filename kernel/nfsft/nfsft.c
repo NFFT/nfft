@@ -71,7 +71,7 @@ static struct nfsft_wisdom wisdom = {false,0U};
  * for each order \f$n=-M,\ldots,M\f$.
  *
  * \arg plan The \c nfsft_plan containing the coefficients
- *      \f$\left(b_k^n\right)_{k=0,\ldots,M;n=-M,\ldots,M}
+ *      \f$\left(b_k^n\right)_{k=0,\ldots,M;n=-M,\ldots,M}\f$
  *
  * \remark The transformation is computed in place.
  *

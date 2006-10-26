@@ -1,2 +1,2 @@
 # Subdirectories
-SUBDIRS = nfsft
+nodist_SUBDIRS = nfsft

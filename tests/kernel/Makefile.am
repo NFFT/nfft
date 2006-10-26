@@ -1,2 +1,2 @@
 # Subdirectories
-SUBDIRS = fpt
+nodist_SUBDIRS = fpt

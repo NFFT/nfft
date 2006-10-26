@@ -312,34 +312,28 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for library functions.
 
-# Check for GSL library used in the fastsumS2 example.
-# AC_CHECK_HEADERS(gsl/gsl_sf_bessel.h,[found_gsl=true],[found_gsl=false])
-# if test "$found_gsl" = "true"; then
-#  AC_CHECK_LIB(gsl,gsl_sf_bessel_il_scaled_array,[found_gsl=true],[found_gsl=false],[-lgslcblas])
-#  if test "$found_gsl" = "true"; then
-#    AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,true)
-#    AC_DEFINE(WITH_FASTSUMS2_GAUSSIAN, 1, "Compile fsatsumS2 with Gaussian kernel")
-#  else
-#    AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,false)
-#    AC_MSG_NOTICE([Couldn't find GSL library. FastsumS2 example will be compiled without Gaussian kernel.])
-#  fi
-#else
-#  AM_CONDITIONAL(WITH_FASTSUMS2_GAUSSIAN,false)
-#  AC_MSG_NOTICE([Couldn't find GSL library headers. FastsumS2 example will be compiled without Gaussian kernel.])
-#fi
-
 # Checks for typedefs, structures, and compiler characteristics
 
 # Additional command-line options
+# AC_ARG_WITH(
+#  tests,
+#  AC_HELP_STRING(
+#    [--with-tests],
+#    [Compile with unit tests. Run 'make test' to execute the tests.]),
+#    [
+#      AM_CONDITIONAL(WITH_TESTS,true)
+#    ],
+#    [AM_CONDITIONAL(WITH_TESTS,false)])
+
 AC_ARG_WITH(
-  tests,
+  devcode,
   AC_HELP_STRING(
-    [--with-tests],
-    [Compile with unit tests. Run 'make test' to execute the tests.]),
+    [--with-devcode],
+    [Do not use this.]),
     [
-      AM_CONDITIONAL(WITH_TESTS,true)
+      AM_CONDITIONAL(WITH_DEVCODE,true), 
     ],
-    [AM_CONDITIONAL(WITH_TESTS,false)])
+    [AM_CONDITIONAL(WITH_DEVCODE,false)])
 
 AH_BOTTOM([
 /* Defined if this is an official release */
@@ -493,11 +487,6 @@ AC_OUTPUT(Makefile \
           kernel/nnfft/Makefile \
           kernel/nsfft/Makefile \
           kernel/solver/Makefile \
-          tests/Makefile \
-          tests/kernel/Makefile \
-          tests/kernel/fpt/Makefile \
-          tests/lowlevel/Makefile \
-          tests/lowlevel/nfsft/Makefile \
           examples/Makefile \
           examples/fpt/Makefile \
           examples/mri/Makefile \
@@ -520,19 +509,30 @@ AC_OUTPUT(Makefile \
 	  applications/polarFFT/Makefile \
 	  applications/quadratureS2/Makefile \
 	  applications/radon/Makefile \
-		applications/texture/Makefile \
-		applications/texture/examplesTexture/Makefile \
-		applications/texture/examplesTexture/texture_util/Makefile \
-		applications/texture/examplesTexture/correctness/Makefile \
-		applications/texture/examplesTexture/regularity/Makefile \
-		applications/texture/examplesTexture/performance/Makefile \
-		applications/texture/examplesTexture/interpolation/Makefile \
-		applications/texture/examplesTexture/data_creator/Makefile \
-		applications/texture/examplesTexture/matrix/Makefile \
-		applications/texture/examplesTexture/regularity2/Makefile \
-		applications/texture/examplesTexture/regularity3/Makefile \
-		applications/texture/examplesTexture/data/Makefile \
-		applications/texture/examplesTexture/data/util/Makefile \
-		applications/texture/examplesTexture/data/data_publication/Makefile 
-		doxygen/doxygen.Doxyfile
 )
+
+if test "$with_devcode" = yes; then
+AC_OUTPUT(tests/Makefile \
+          VERSION
+          doxygen/doxygen.Doxyfile
+          tests/kernel/Makefile \
+          tests/kernel/fpt/Makefile \
+          tests/lowlevel/Makefile \
+          tests/lowlevel/nfsft/Makefile \
+      		applications/texture/Makefile \
+					applications/texture/examplesTexture/Makefile \
+					applications/texture/examplesTexture/texture_util/Makefile \
+					applications/texture/examplesTexture/correctness/Makefile \
+					applications/texture/examplesTexture/regularity/Makefile \
+					applications/texture/examplesTexture/performance/Makefile \
+					applications/texture/examplesTexture/interpolation/Makefile \
+					applications/texture/examplesTexture/data_creator/Makefile \
+					applications/texture/examplesTexture/matrix/Makefile \
+					applications/texture/examplesTexture/regularity2/Makefile \
+					applications/texture/examplesTexture/regularity3/Makefile \
+					applications/texture/examplesTexture/data/Makefile \
+					applications/texture/examplesTexture/data/util/Makefile \
+					applications/texture/examplesTexture/data/data_publication/Makefile 
+)          
+fi
+          

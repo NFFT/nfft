@@ -17,7 +17,7 @@
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME = NFFT
+PROJECT_NAME = @PACKAGE_NAME@
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -30,7 +30,7 @@ PROJECT_NUMBER = @PACKAGE_VERSION@
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY = doc
+OUTPUT_DIRECTORY = doc/api
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 2 levels of 10 sub-directories under the output directory of each output 
@@ -474,7 +474,7 @@ EXAMPLE_RECURSIVE = NO
 # directories that contain image that are included in the documentation (see 
 # the \image command).
 
-IMAGE_PATH = doc/html/images doc/latex/images
+IMAGE_PATH = doc/api/html/images doc/api/latex/images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should 
 # invoke to filter for each input file. Doxygen will invoke the filter program 
@@ -673,7 +673,7 @@ TREEVIEW_WIDTH = 250
 # If the GENERATE_LATEX tag is set to YES (the default) Doxygen will 
 # generate Latex output.
 
-GENERATE_LATEX = NO
+GENERATE_LATEX = YES
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 

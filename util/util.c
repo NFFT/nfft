@@ -208,9 +208,6 @@ double nfft_prod_real(double *vec,int d)
   return prod;
 }
 
-/** Sinus cardinalis
- *  \f$\frac{sin\left(x\right)}{x}$ 
- */
 double nfft_sinc(double x)
 {
   if (fabs(x) < 1e-20)

@@ -1,1 +1,1 @@
-SUBDIRS = kernel lowlevel
+nodist_SUBDIRS = kernel lowlevel
