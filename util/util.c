@@ -1413,7 +1413,6 @@ void nfft_vrand_shifted_unit_double(double *x, int n)
     x[k] = ((double)rand())/RAND_MAX - 0.5;
 }
 
-
 /** Computes non periodic voronoi weights 
  *  assumes ordered x_j */
 void nfft_voronoi_weights_1d(double *w, double *x, int M)

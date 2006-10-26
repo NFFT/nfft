@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 
 /* Include NFFT3 library header. */
 #include "nfft3.h"
@@ -392,18 +391,19 @@ int main (int argc, char **argv)
     }
 
     /* Generate random source nodes and weights. */
+    nfft_vrand_shifted_unit_double(b, l_max);
     for (l = 0; l < l_max; l++)
     {
-      b[l] = drand48() - 0.5;
-      eta[2*l] = drand48() - 0.5;
-      eta[2*l+1] = 0.5*drand48();
+      /* b[l] = drand48() - 0.5; */
+      eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
+      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(2.0*PI);
     }
 
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
-      xi[2*d] = drand48() - 0.5;
-      xi[2*d+1] = 0.5*drand48();
+      xi[2*d] = (((double)rand())/RAND_MAX) - 0.5;
+      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(2.0*PI);
     }
 
     /* Do precomputation. */

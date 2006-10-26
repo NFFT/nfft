@@ -502,7 +502,6 @@ AC_OUTPUT(Makefile \
           examples/fpt/Makefile \
           examples/mri/Makefile \
           examples/nfct/Makefile \
-          examples/nfct/func_rec_2d/Makefile \
           examples/nfft/Makefile \
           examples/nfsft/Makefile \
           examples/nfst/Makefile \
@@ -537,3 +536,5 @@ AC_OUTPUT(Makefile \
 		applications/texture/examplesTexture/data/data_publication/Makefile 
 		doxygen/doxygen.Doxyfile
 )
+
+#          examples/nfct/func_rec_2d/Makefile \
