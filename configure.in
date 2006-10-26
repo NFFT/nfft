@@ -536,5 +536,3 @@ AC_OUTPUT(Makefile \
 		applications/texture/examplesTexture/data/data_publication/Makefile 
 		doxygen/doxygen.Doxyfile
 )
-
-#          examples/nfct/func_rec_2d/Makefile \
