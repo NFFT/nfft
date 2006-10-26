@@ -391,10 +391,9 @@ int main (int argc, char **argv)
     }
 
     /* Generate random source nodes and weights. */
-    nfft_vrand_shifted_unit_double(b, l_max);
     for (l = 0; l < l_max; l++)
     {
-      /* b[l] = drand48() - 0.5; */
+      b[l] = (((double)rand())/RAND_MAX) - 0.5;
       eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
       eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(2.0*PI);
     }
