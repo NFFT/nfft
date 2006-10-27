@@ -54,7 +54,7 @@ void simple_test_nfst_1d()
 int main()
 {
   system("clear");
-  printf("computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
+  printf("computing one dimensional ndst, nfst and adjoint ndst, nfst\n\n");
   simple_test_nfst_1d();
   printf("\n\n");
 
