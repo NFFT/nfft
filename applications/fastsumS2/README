@@ -182,7 +182,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   ----------
 
   [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
-      on the sphere, Computing, to appear, 2005
+      on the sphere, Computing 78, 1-15 , 2006
 
   [2] Kunis, S. and Potts, D., Fast spherical Fourier algorithms, J. Comput.
       Appl. Math. 161, 75-98, 2003
@@ -195,6 +195,6 @@ fastsumS2 - Fast summation of radial functions on the sphere
   hesitate to contact us. For more information, news and updates see the NFFT
   website at
 
-                 http://www-user.tu-chemnitz.de/~potts/nfft/
+                 http://www.tu-chemnitz.de/~potts/nfft/
 
 
