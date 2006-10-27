@@ -205,12 +205,10 @@ int nfct_fftw_2N_rev( int n)
     double *f_hat = ths->f_hat;                                         \
                                                                         \
     MACRO_ndct_init_result_ ## which_one;			  	\
-                                                                        \
     if( ths->d == 1)                                                    \
       for( j = 0; j < ths->M_total; j++)                                \
       {                                                                 \
-        f[j] = f_hat[0];                                                \
-        for( k = 1; k < ths->N[0]; k++)                                 \
+        for( k = 0; k < ths->N[0]; k++)                                 \
        	{                                                               \
 	  cos_k[ths->d] = cos( 2.0 * PI * k * NODE(j,0));               \
           MACRO_ndct_compute__ ## which_one;                            \
