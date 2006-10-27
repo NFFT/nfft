@@ -19,24 +19,26 @@ double complex *omega_ref, *omega, *x_ref, *x;
 double *h_phi, *h_theta, *r;
 int N, N1, N2, new_N;
 const char *h_file = "grid_h.in", *r_file = "grid_r.in", *omega_file =
-	"omega.in";
+	"omega.in", *sample_file = "samples.in";
 
-texture_plan plan, plan2;
+// texture_plan plan, plan2;
+texture_plan plan2;
 itexture_plan iplan;
 itexture_params pars;
 
 int weight_policy;
+int enforce_even_interpolation = 1;
 
 const char *output_prefix = "output/";
 char name[1000];
-const char *default_name = "testset";
+const char *default_name = "pub";
 FILE *output;
 
 double *error_harm;
 
 void read_data()
 {
-	FILE *f1, *f2, *f3;
+	FILE *f1, *f2, *f3, *f4;
 	char next;
 	do {
 		int choice;
@@ -45,6 +47,7 @@ void read_data()
 		fprintf(stderr, "1. grid_h_file = %s\n", h_file);
 		fprintf(stderr, "2. grid_r_file = %s\n", r_file);
 		fprintf(stderr, "3. omega_file = %s\n", omega_file);
+		fprintf(stderr, "4. sample_file = %s\n", sample_file);
 		next = getchar();
 
 		if (!isspace(next)) {
@@ -62,6 +65,9 @@ void read_data()
 				case 3:
 					omega_file = file_name;
 					break;
+				case 4:
+					sample_file = file_name;
+					break;
 			}
 		}
 
@@ -70,13 +76,15 @@ void read_data()
 	f1 = fopen(h_file, "r");
 	f2 = fopen(r_file, "r");
 	f3 = fopen(omega_file, "r");
+	f4 = fopen(sample_file, "r");
 
-	read_grid(&N1, &N2, &h_phi, &h_theta, &r, f1, f2, stderr);
+	read_samples(&N1, &N2, &h_phi, &h_theta, &r, &x_ref, f1, f2, f4, stderr);
 	read_omega(&N, &omega_ref, f3, stderr);
 
 	fclose(f1);
 	fclose(f2);
 	fclose(f3);
+	fclose(f4);
 }
 
 void read_params()
@@ -150,7 +158,7 @@ void read_params()
 		smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
 
 	fprintf(stderr,
-					"Choose a weight policy (0 = flat, 1 = 1/n, 2 = 1/n^2 (default), 3 = 1/n^3): ");
+					"Choose a weight policy (1 = 1/n (default), 2 = 1/n^2, 3 = 1/n^3): ");
 	next = getchar();
 
 	if (!isspace(next)) {
@@ -158,10 +166,19 @@ void read_params()
 		scanf("%d%*[ ]", &weight_policy);
 		getchar();
 	} else {
-		weight_policy = 2;
+		weight_policy = 1;
 	}
 
-	fprintf(stderr, "Input a name for the data set (default=%s):",
+	fprintf(stderr, "enforce_even_interpolation (default: %d): ", enforce_even_interpolation);
+	next = getchar();
+
+	if (!isspace(next)) {
+		ungetc(next, stdin);
+		scanf("%d%*[ ]", &enforce_even_interpolation);
+		getchar();
+	}
+
+	fprintf(stderr, "Input a name for the data set (default=%s): ",
 					default_name);
 	next = getchar();
 
@@ -203,25 +220,35 @@ void output_params()
 	fprintf(output, "# use_updated_residuum: %d\n", pars.use_updated_residuum);
 }
 
-void calculate_x()
-{
-	x_ref = smart_malloc(N1 * N2 * sizeof(double complex));
-	texture_precompute(NFFT_MAX(N, new_N));
-	texture_init(&plan, N, N1, N2, omega_ref, x_ref, h_phi, h_theta, r);
-	texture_trafo(&plan);
-}
+/* 
+   void calculate_x() { x_ref = smart_malloc(N1 * N2 * sizeof(double
+   complex)); texture_precompute(NFFT_MAX(N, new_N)); texture_init(&plan, N,
+   N1, N2, omega_ref, x_ref, h_phi, h_theta, r); texture_trafo(&plan); } */
 
 void calculate_omega()
 {
+	int m, n, l;
+
 	omega = smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
 	x = smart_malloc(N1 * N2 * sizeof(double complex));
 	texture_init(&plan2, new_N, N1, N2, omega, x, h_phi, h_theta, r);
 	itexture_init_advanced(&iplan, &plan2, solver_flags(0, weight_policy));
+
 	set_weights(&iplan, weight_policy);
+	if (enforce_even_interpolation) {
+		for (l = 1; l <= new_N; l += 2) {
+			for (n = -l; n <= l; n++) {
+				for (m = -l; m <= l; m++) {
+					iplan.w_hat[texture_flat_index(l, m, n)] = 0;
+				}
+			}
+		}
+	}
 
 	memcpy(iplan.y, x_ref,
 				 texture_get_x_length(&plan2) * sizeof(double complex));
 
+	texture_precompute(new_N);
 	texture_itrafo(&iplan, &pars);
 }
 
@@ -229,9 +256,9 @@ void calculate_results()
 {
 	int l;
 	double ref = l_2_norm(omega_ref, texture_flat_length(N));
-	double sum = 0;
+	// double sum = 0;
 
-	error_harm = smart_malloc((N+1) * sizeof(double));
+	error_harm = smart_malloc((N + 1) * sizeof(double));
 	for (l = 0; l <= new_N; l++) {
 		int start = texture_flat_index(l, -l, -l);
 		int end = texture_flat_index(l, l, l);
@@ -239,27 +266,24 @@ void calculate_results()
 		error_harm[l] =
 			l_2_dist(&(pars.omega_min_err[start]), &(omega_ref[start]), len);
 	}
-	for (l = new_N+1; l <= N; l++) {
+	for (l = new_N + 1; l <= N; l++) {
 		int start = texture_flat_index(l, -l, -l);
 		int end = texture_flat_index(l, l, l);
 		int len = end - start + 1;
-		error_harm[l] =
-			l_2_norm(&(omega_ref[start]), len);
+		error_harm[l] = l_2_norm(&(omega_ref[start]), len);
 	}
 	for (l = 0; l <= N; l++) {
 		error_harm[l] /= ref;
 	}
 
-	for (l = 0; l <= new_N; l++) {
-		sum += error_harm[l] * error_harm[l];
-	}
-	sum = sqrt(sum);
-	sum *= ref;
-	sum /= l_2_norm(omega_ref, texture_flat_length(new_N));
-	
-	fprintf(stderr, "Error sum: %.4e, Minimal error: %.4e, Difference: %.4e\n",
-					sum, pars.min_error, sum - pars.min_error);
-	fprintf(stderr, "new error sum: %.4e\n", l_2_rel_dist(pars.omega_min_err, omega_ref, texture_flat_length(new_N)));
+	/* for (l = 0; l <= new_N; l++) { sum += error_harm[l] * error_harm[l]; }
+	   sum = sqrt(sum); sum *= ref; sum /= l_2_norm(omega_ref,
+	   texture_flat_length(new_N));
+
+	   fprintf(stderr, "Error sum: %.4e, Minimal error: %.4e, Difference:
+	   %.4e\n", sum, pars.min_error, sum - pars.min_error); fprintf(stderr,
+	   "new error sum: %.4e\n", l_2_rel_dist(pars.omega_min_err, omega_ref,
+	   texture_flat_length(new_N))); */
 }
 
 void output_results()
@@ -293,25 +317,30 @@ void output_results()
 
 void cleanup()
 {
+	// calculate_results
 	free(error_harm);
 
-	fclose(output);
-
-	texture_finalize(&plan2);
-	free(omega);
-	free(x);
-
-	free(x_ref);
-	texture_finalize(&plan);
-	texture_forget();
-
+	// calculate_omega
 	free(pars.omega_min_err);
 	destroy_itexture_params(&pars);
+	itexture_finalize(&iplan);
+	texture_finalize(&plan2);
+	texture_forget();
+	free(x);
+	free(omega);
 
+	// calculate_x
+	// texture_finalize(&plan);
+
+	// output_params
+	fclose(output);
+
+	// read_data
 	free(h_phi);
 	free(h_theta);
 	free(r);
 	free(omega_ref);
+	free(x_ref);
 }
 
 int main()
@@ -322,7 +351,7 @@ int main()
 
 	output_params();
 
-	calculate_x();
+	// calculate_x();
 
 	fprintf(stderr, "Calculating omega ...\n");
 	fflush(stderr);
@@ -337,6 +366,7 @@ int main()
 
 	return 0;
 }
+
 /**
  * @}
  */

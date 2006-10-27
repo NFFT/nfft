@@ -1,26 +1,30 @@
-function showErrors(patterns);
+function showErrors(patterns, titles);
 
 %figure();
+numplots = size(patterns,1);
+lines = floor(sqrt(numplots));
+cols = ceil(numplots / lines);
+colors = {'k', 'b', 'g', 'r', 'c', 'm', 'y'}
+global files;
+for j = 1:numplots;
+	subplot(lines, cols, j);
+    files = {};
+    for i = 1:size(patterns,2);
+        files{i} = dir(patterns{j,i});
+    end;
 
-for j = 1:size(patterns, 1);
-for k = 1:size(patterns, 2);
-	subplot(size(patterns, 1), size(patterns, 2), (j-1)*size(patterns, 2) + k);
-	files = dir(patterns{j, k})
+    for i = 1:length(files);
 
-	for i = 1:length(files);
-		files(i).name;
-		fid = fopen(files(i).name, 'r');
+        c = colors{mod(i-1, length(colors))+1};
+		fid = fopen(files{i}(1).name, 'r');
 
-		for lines = 1:23;
-			fgetl(fid);
-		end;
-	
-		data = fscanf(fid, '%d %lg');
-		data2 = reshape(data', 2, []);
-	
-		semilogy(data2(1, :), data2(2, :));
+		data = textscan(fid, '%n %n', 'commentStyle', '#');
+        nonzero = find(data{2} ~= 0);
+        
+		semilogy(data{1}(nonzero), data{2}(nonzero), c);
 		hold on;
 		fclose(fid);
 	end;
-end;
+    title(titles(j));
+    legend();
 end;
