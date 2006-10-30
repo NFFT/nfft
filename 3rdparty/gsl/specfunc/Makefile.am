@@ -1,8 +1,6 @@
 noinst_LTLIBRARIES = libgslspecfunc.la 
 
-pkginclude_HEADERS = gsl_sf.h gsl_sf_bessel.h gsl_sf_debye.h gsl_sf_dilog.h gsl_sf_elementary.h gsl_sf_exp.h gsl_sf_gamma.h gsl_sf_log.h gsl_sf_pow_int.h gsl_sf_psi.h gsl_sf_result.h  gsl_sf_trig.h gsl_sf_zeta.h gsl_specfunc.h
-
-noinst_HEADERS = bessel_amp_phase.h eval.h chebyshev.h cheb_eval.c cheb_eval_mode.c check.h error.h
+noinst_HEADERS = gsl_sf.h gsl_sf_bessel.h gsl_sf_debye.h gsl_sf_dilog.h gsl_sf_elementary.h gsl_sf_exp.h gsl_sf_gamma.h gsl_sf_log.h gsl_sf_pow_int.h gsl_sf_psi.h gsl_sf_result.h  gsl_sf_trig.h gsl_sf_zeta.h gsl_specfunc.h bessel_amp_phase.h eval.h chebyshev.h cheb_eval.c cheb_eval_mode.c check.h error.h
 
 libgslspecfunc_la_SOURCES = bessel.c bessel.h bessel_In.c bessel_amp_phase.c bessel_amp_phase.h bessel_i.c bessel_sequence.c debye.c elementary.c exp.c gamma.c log.c poch.c sf_pow_int.c psi.c recurse.h result.c trig.c zeta.c
 

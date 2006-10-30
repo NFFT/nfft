@@ -1,6 +1,8 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
+applicationdir = $(pkgdatadir)/applications/mri/mri2d
+
 EXTRA_DIST = 	construct_inh.m \
 		construct_readout_time.m \
 		precompute_weights.m \
@@ -14,8 +16,10 @@ EXTRA_DIST = 	construct_inh.m \
 		construct_knots_spiral.m \
 		README
 
+application_DATA = $(EXTRA_DIST)
+
 ## The program name
-noinst_PROGRAMS =	construct_data_2d \
+application_PROGRAMS =	construct_data_2d \
 			construct_data_inh_2d1d \
 			construct_data_inh_3d \
 			reconstruct_data_gridding \

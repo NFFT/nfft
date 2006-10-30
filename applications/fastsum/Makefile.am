@@ -1,12 +1,14 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
+applicationdir = $(pkgdatadir)/applications/fastsum
+
 ## The library and program names.
 noinst_LTLIBRARIES = libfastsum.la libkernels.la
-noinst_PROGRAMS = fastsum_test fastsum_matlab
+application_PROGRAMS = fastsum_test fastsum_matlab
 
 ## The library header.
-include_HEADERS = fastsum.h kernels.h
+pkginclude_HEADERS = fastsum.h kernels.h
 
 ## The source files.
 libfastsum_la_SOURCES = fastsum.c
@@ -21,3 +23,4 @@ fastsum_matlab_LDADD = .libs/libfastsum.a .libs/libkernels.a $(top_builddir)/.li
 
 ## Include these extra files in the distribution.
 EXTRA_DIST = fastsum.m fastsum_test.m README
+application_DATA = $(EXTRA_DIST)

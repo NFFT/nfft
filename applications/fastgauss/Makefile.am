@@ -1,6 +1,8 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
+applicationdir = $(pkgdatadir)/applications/fastgauss
+
 ## The program name.
 noinst_PROGRAMS = fastgauss
 

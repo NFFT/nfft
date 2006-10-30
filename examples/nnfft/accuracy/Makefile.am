@@ -1,8 +1,10 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
+exampledir = $(pkgdatadir)/examples/nnfft/accuracy
+
 ## The program name
-noinst_PROGRAMS = accuracy
+example_PROGRAMS = accuracy
 
 ## The source files.
 accuracy_SOURCES = accuracy.c

@@ -1,10 +1,13 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)
 
+applicationdir = $(pkgdatadir)/applications/mri/mri3d
+
 EXTRA_DIST = mri.m README
+application_DATA = $(EXTRA_DIST)
 
 ## The program name
-noinst_PROGRAMS =	construct_data_2d1d \
+application_PROGRAMS =	construct_data_2d1d \
 			construct_data_3d \
 			reconstruct_data_gridding \
 			reconstruct_data_2d1d \

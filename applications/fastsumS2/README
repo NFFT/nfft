@@ -2,7 +2,6 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   Introduction
   ------------
-
   This application deals with approximations to sums of the form
 
             L-1
@@ -27,7 +26,6 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   Directory contents
   ------------------
-
   fastsumS2.c     Example C program
   example.in      Example input for fastsum.c
   example.out     Example output of fastsum.c on input example.in
@@ -155,7 +153,6 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   fastsumS2.m
   -----------
-
   This MATLAB function demonstrates the fast summation algorithm using the C
   program fastsumS2.c . It allows for selecting different testcases to reproduce
   the figures and tables from [1]. On choosing a testcase, input for the C
@@ -166,21 +163,18 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   readTestcase.m
   --------------
-
   This MATLAB function is used by fatsumS2.m and allows for reading testcase
   specifications and results from a file. In MATLAB, type "help readTestcase"
   for more information.
 
   writeTestcase.m
   ---------------
-
   This MATLAB function is used by fatsumS2.m and allows for writing testcase
   specifications to a file. In MATLAB, type "help readTestcase" for more
   information.
 
   References
   ----------
-
   [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
       on the sphere, Computing 78, 1-15 , 2006
 
@@ -190,7 +184,6 @@ fastsumS2 - Fast summation of radial functions on the sphere
 
   Feedback
   --------
-
   If you have comments, questions, or suggestions regarding NFFT, don't
   hesitate to contact us. For more information, news and updates see the NFFT
   website at

@@ -1,10 +1,13 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_builddir)/.libs
 
+exampledir = $(pkgdatadir)/examples/nsfft
+
 ## The program name
-noinst_PROGRAMS = simple_test nsfft_test
+example_PROGRAMS = simple_test nsfft_test
 
 EXTRA_DIST = README
+example_DATA = $(EXTRA_DIST)
 
 ## The source files.
 simple_test_SOURCES = simple_test.c

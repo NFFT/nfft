@@ -4,7 +4,7 @@ noinst_LTLIBRARIES = libutils.la
 libutils_la_SOURCES = system.h placeholder.c
 # libutils_la_LIBADD = @LIBOBJS@ 
 
-EXTRA_DIST = README
+# EXTRA_DIST = README
 
 AM_CFLAGS = -I$(top_srcdir)/include
 
