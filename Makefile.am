@@ -1,6 +1,6 @@
 # Subdirectories
 SUBDIRS = 3rdparty include util kernel . examples applications
-NODIST_SUBDIRS = tests 
+nodist_SUBDIRS = tests 
 
 lib_LTLIBRARIES = libnfft3.la      
 
