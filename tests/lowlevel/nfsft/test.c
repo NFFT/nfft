@@ -195,7 +195,7 @@ void test_ndsft_trafo(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
     }
   }
-  close(testfiles);
+  fclose(testfiles);
   testfiles = NULL;
 }
 
