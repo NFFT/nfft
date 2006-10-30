@@ -314,26 +314,17 @@ AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 # Checks for typedefs, structures, and compiler characteristics
 
-# Additional command-line options
-# AC_ARG_WITH(
-#  tests,
-#  AC_HELP_STRING(
-#    [--with-tests],
-#    [Compile with unit tests. Run 'make test' to execute the tests.]),
-#    [
-#      AM_CONDITIONAL(WITH_TESTS,true)
-#    ],
-#    [AM_CONDITIONAL(WITH_TESTS,false)])
-
-AC_ARG_WITH(
-  devcode,
+AC_ARG_WITH(devcode,
   AC_HELP_STRING(
-    [--with-devcode],
-    [Do not use this.]),
-    [
-      AM_CONDITIONAL(WITH_DEVCODE,true), 
-    ],
-    [AM_CONDITIONAL(WITH_DEVCODE,false)])
+      [--with-devcode],
+      [Reserved. Do not use this!]),
+      [
+        devcode=true;
+      ],
+      [
+        devcode=false;
+      ])
+AM_CONDITIONAL([WITH_DEVCODE], [test x$devcode = xtrue])
 
 AH_BOTTOM([
 /* Defined if this is an official release */
