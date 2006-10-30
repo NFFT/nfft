@@ -14,10 +14,22 @@ install-data-hook:
 	mkdir -p $(pkgdatadir)
 	cp -R doc $(pkgdatadir)
 
+clean-local:
+	rm -f doc/api/html/*.html
+	rm -f doc/api/html/*.png
+	rm -f doc/api/html/*.gif
+	rm -f doc/api/html/doxygen.css
+	rm -f doc/api/html/formula.repository
+	rm -f doc/api/latex/*.tex
+	rm -f doc/api/latex/*.sty
+	rm -f doc/api/latex/*.ttf
+	rm -f doc/api/latex/*.pdf
+	rm -f doc/api/latex/Makefile
+
 dist-hook:
 	doxygen doxygen/doxygen.Doxyfile
-	mkdir $(distdir)/doc
-	mkdir $(distdir)/doc/api
+	mkdir -R $(distdir)/doc
+	mkdir -R $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api
 	cp -R doc/api/latex $(distdir)/doc/api
 	cp -R doc/tutorial $(distdir)/doc
