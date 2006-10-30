@@ -1,5 +1,4 @@
-if WITH_DEVCODE
-  nodist_SUBDIRS = util data_publication
-endif
+SUBDIRS = util data_publication
+DIST_SUBDIRS =
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

@@ -9,4 +9,4 @@ performance_SOURCES = performance.c
 ## Additional libraries for the library
 performance_LDADD = ../texture_util/libtexture_util.la
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

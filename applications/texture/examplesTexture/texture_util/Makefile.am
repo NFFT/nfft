@@ -13,4 +13,4 @@ compare_SOURCES = compare.c
 libtexture_util_la_LIBADD = ../../libtexture.la -lm -lfftw3
 compare_LDADD = libtexture_util.la
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

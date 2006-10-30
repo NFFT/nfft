@@ -13,6 +13,8 @@ AM_ENABLE_SHARED(no)
 
 AC_PROG_MAKE_SET
 
+AC_SUBST([abs_srcdir])
+
 # Get canocical host identifier
 AC_CANONICAL_HOST
 
@@ -309,6 +311,7 @@ fi
 
 # Checks for libraries
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
+LIBS =
 
 # Checks for library functions.
 

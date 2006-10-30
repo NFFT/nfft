@@ -10,4 +10,4 @@ regularityTest_SOURCES = regularityTest.c
 ## Additional libraries for the library
 regularityTest_LDADD = ../texture_util/libtexture_util.la
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

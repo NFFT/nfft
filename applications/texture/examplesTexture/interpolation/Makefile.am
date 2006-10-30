@@ -14,4 +14,4 @@ calculateOmega_LDADD = ../texture_util/libtexture_util.la
 calculateX_LDADD = ../texture_util/libtexture_util.la
 validate_LDADD = ../texture_util/libtexture_util.la
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

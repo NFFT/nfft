@@ -239,9 +239,9 @@ int main (int argc, char **argv)
         d = 0;
         while (d < m_compare)
         {
-          x1 = 2.0*drand48() - 1.0;
-          x2 = 2.0*drand48() - 1.0;
-          x3 = 2.0*drand48() - 1.0;
+          x1 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
+          x2 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
+          x3 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
           temp = sqrt(x1*x1+x2*x2+x3*x3);
           if (temp <= 1)
           {
@@ -315,9 +315,9 @@ int main (int argc, char **argv)
       x_grid = (double*) malloc(2*SQ_max*sizeof(double));
       for (d = 0; d < SQ_max; d++)
       {
-        f[d] = drand48()-0.5 + I*(drand48()-0.5);
-        x_grid[2*d] = drand48() - 0.5;
-        x_grid[2*d+1] = drand48() * 0.5;
+        f[d] = (((double)rand())/RAND_MAX)-0.5 + I*((((double)rand())/RAND_MAX)-0.5);
+        x_grid[2*d] = (((double)rand())/RAND_MAX) - 0.5;
+        x_grid[2*d+1] = (((double)rand())/RAND_MAX) * 0.5;
       }
     }
 
@@ -700,7 +700,7 @@ int main (int argc, char **argv)
               for (n = -k; n <= k; n++)
               {
                 f_hat_gen[NFSFT_INDEX(k,n,&plan_gen)] =
-                drand48()-0.5 + I*(drand48()-0.5);
+                (((double)rand())/RAND_MAX)-0.5 + I*((((double)rand())/RAND_MAX)-0.5);
               }
             }
 

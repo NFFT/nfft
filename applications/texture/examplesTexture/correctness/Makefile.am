@@ -9,4 +9,4 @@ textureTest_SOURCES = textureTest.c
 ## Additional libraries for the library
 textureTest_LDADD = ../texture_util/libtexture_util.la 
 
-nodistdir = .
+nodistdir = $(abs_srcdir)

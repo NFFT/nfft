@@ -969,9 +969,9 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     /* Check, if recurrence coefficients must be copied. */
     if (set->flags & FPT_PERSISTENT_DATA)
     {
-      data->alpha = alpha;
-      data->beta = beta;
-      data->gamma = gamma;
+      data->alpha = (double*) alpha;
+      data->beta = (double*) beta;
+      data->gamma = (double*) gamma;
     }
     else
     {

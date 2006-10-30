@@ -9,4 +9,4 @@ matrix_SOURCES = matrix.c
 ## Additional libraries for the library
 matrix_LDADD = ../texture_util/libtexture_util.la 
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  

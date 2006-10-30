@@ -286,7 +286,7 @@ int comparison_fft(FILE *fp, int N, int T, int R)
   my_fftw_plan = fftw_plan_dft_2d(N,N,f_hat,f,FFTW_BACKWARD,FFTW_MEASURE);
 
   for(k=0; k<N*N; k++)
-    f_hat[k] = drand48() + I* drand48();
+    f_hat[k] = (((double)rand())/RAND_MAX) + I* (((double)rand())/RAND_MAX);
   
   GLOBAL_elapsed_time=nfft_second();
   for(m=0;m<65536/N;m++)

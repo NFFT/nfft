@@ -1,7 +1,5 @@
-# Development code extra directories.
-if WITH_DEVCODE
-  nodist_SUBDIRS = examplesTexture
-endif  
+SUBDIRS = . examplesTexture
+DIST_SUBDIRS =
 
 AM_CFLAGS = -Wall -I$(top_srcdir)/include -I$(top_srcdir)/kernel/solver 
 
@@ -14,4 +12,4 @@ libtexture_la_SOURCES = texture.c texture.h nfft3_texture.h
 ## Additional libraries for the library
 libtexture_la_LIBADD = $(top_srcdir)/libnfft3.la
 
-nodistdir = .
+nodistdir = $(abs_srcdir)

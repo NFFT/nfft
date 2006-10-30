@@ -5,7 +5,7 @@ TESTS = test
 
 ## The program name
 nodist_PROGRAMS = test
-nodistdir = .
+nodistdir = $(PWD)
 
 ## The source files.
 test_SOURCES = test.c

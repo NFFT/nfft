@@ -1,1 +1,5 @@
-nodist_SUBDIRS = kernel lowlevel
+SUBDIRS = kernel lowlevel
+
+DIST_SUBDIRS =
+
+nodistdir = $(PWD) 

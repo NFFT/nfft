@@ -1,2 +1,5 @@
-# Subdirectories
-nodist_SUBDIRS = nfsft
+SUBDIRS = nfsft
+
+DIST_SUBDIRS =
+
+nodistdir = $(PWD) 

@@ -1,6 +1,4 @@
-# Development code extra directories.
-if WITH_DEVCODE
-		nodist_SUBDIRS = texture_util \
+SUBDIRS = texture_util \
 										 correctness \
                      regularity \
                      performance \
@@ -10,6 +8,6 @@ if WITH_DEVCODE
                      regularity2 \
                      regularity3 \
                      data
-endif  
+DIST_SUBDIRS =
 
-nodistdir = .
+nodistdir = $(abs_srcdir)

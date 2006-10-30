@@ -9,4 +9,4 @@ data_creator_SOURCES = data_creator.c
 ## Additional libraries for the library
 data_creator_LDADD = ../texture_util/libtexture_util.la
 
-nodistdir = .  
+nodistdir = $(abs_srcdir)  
