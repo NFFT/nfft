@@ -311,7 +311,7 @@ fi
 
 # Checks for libraries
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
-LIBS =
+LIBS=
 
 # Checks for library functions.
 

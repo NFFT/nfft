@@ -1,6 +1,6 @@
 # Subdirectories
-SUBDIRS = 3rdparty include util kernel . examples applications tests
-DIST_SUBDIRS = 3rdparty include util kernel . examples applications 
+SUBDIRS = 3rdparty include util kernel . examples applications
+NODIST_SUBDIRS = tests 
 
 lib_LTLIBRARIES = libnfft3.la      
 
@@ -28,8 +28,8 @@ clean-local:
 
 dist-hook:
 	doxygen doxygen/doxygen.Doxyfile
-	mkdir -R $(distdir)/doc
-	mkdir -R $(distdir)/doc/api
+	mkdir -p $(distdir)/doc
+	mkdir -p $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api
 	cp -R doc/api/latex $(distdir)/doc/api
 	cp -R doc/tutorial $(distdir)/doc

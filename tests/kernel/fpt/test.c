@@ -432,7 +432,7 @@ void test_dpt_transposed(void)
       fprintf(stdout," failed: Couldn't open file %s.\n",filename);
     }
   }
-  close(testfiles);
+  fclose(testfiles);
   testfiles = NULL;
 }
 
