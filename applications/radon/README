@@ -15,8 +15,8 @@ radon - Fast discrete NFFT-based Radon transform
   [1] M. Fenn. Fast Fourier Transform at Nonequispaced Nodes and Applications,
       PhD Thesis, University of Mannheim, 2005.
 
-  [2] M. Fenn, and J. Ma. Combined complex ridgelet shrinkage and total
-      variation minimization. SIAM J. Sci. Comput., accepted.
+  [2] J. Ma and M. Fenn. Combined complex ridgelet shrinkage and total
+      variation minimization. SIAM J. Sci. Comput. 28, 984-1000, 2006.
 
   [3] D. Potts, and G. Steidl, G. A new linogram algorithm for computerized 
       tomography. IMA J. Numer. Anal. 21, 769-782, 2001
