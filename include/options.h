@@ -3,7 +3,7 @@
 /* options for the direct and fast computation of the NDFT                   */
 /*                                                                           */
 /* authors: D. Potts                                                         */
-/*      S. Kunis 2002                                                    */
+/*          S. Kunis 2002-2006                                               */
 /*****************************************************************************/
 
 /** window function is KAISER_BESSEL, SINC_POWER, B_SPLINE, or GAUSSIAN
