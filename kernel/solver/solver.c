@@ -1,7 +1,7 @@
 /**
  * Library.
  * Includes iterative solution to the inverse problem.
- * authors: D. Potts, S. Kunis (c) 2002-2005
+ * authors: D. Potts, S. Kunis (c) 2002-2006
  */
 
 #include "util.h"

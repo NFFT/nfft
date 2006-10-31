@@ -6,14 +6,12 @@
 /*      S. Kunis 2002                                                    */
 /*****************************************************************************/
 
-/** window
+/** window function is KAISER_BESSEL, SINC_POWER, B_SPLINE, or GAUSSIAN
  */
-#ifndef CUSTOM_WINDOW
+#if !defined(SINC_POWER) && !defined(B_SPLINE) && !defined(GAUSSIAN)
 #define KAISER_BESSEL
 #endif
-                                        /* one of KAISER_BESSEL,SINC_POWER   */
-          /* B_SPLINE,GAUSSIAN,                */
-
+ 
 /** timing
  */
 /*#define MEASURE_TIME*/

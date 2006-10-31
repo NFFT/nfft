@@ -570,7 +570,7 @@ int main(int argc,char **argv)
       fprintf(stderr,"      Pipe to output_andersson.tex\n");
       fprintf(stderr,"  2 - Compares accuracy.\n");
       fprintf(stderr,"      Pipe to output_error.m\n");
-      fprintf(stderr,"  2 - Compares accuracy.\n");
+      fprintf(stderr,"  3 - Compares accuracy.\n");
       fprintf(stderr,"      Pipe to output_error_p.m\n");
       return -1;
     }
