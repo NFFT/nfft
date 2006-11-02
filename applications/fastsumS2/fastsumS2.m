@@ -216,7 +216,7 @@ elseif (selection == 5)
   % Set the parameter h.
   parameters = [0.6];
 
-  Set the cut-off degree.
+  %Set the cut-off degree.
   m = 128;
 
   % Write the testcase to the input file.
