@@ -78,7 +78,7 @@ elseif (selection == 4)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:256;
+  N=16:16:128;
   % Set the number of nodes.
   Q=N.*N;
   % Set the number of repetitions
@@ -99,6 +99,8 @@ else
 end
 
 fclose(file);
+
+fprintf('Program in execution. Please be patient. This may take a while.');
 
 system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
 file = fopen(outfilename,'r');
