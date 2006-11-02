@@ -43,16 +43,16 @@ elseif (selection == 2)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:1024;
+  N=16:16:128;
   % Set the size parameters.
-  Q=1024*ones(size(N));
+  S=1024*ones(size(N));
   % Write the number of testcases.
   fprintf(file,'testcases=4\n');
   % Write the testcases.
-  writeTestcase(file,1,1,6,1,1000,0,gridtype,[3],repetitions,[0],[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,0,gridtype,[4],repetitions,[0],[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,0,gridtype,[5],repetitions,[0],[N;Q]);
-  writeTestcase(file,1,1,6,1,1000,0,gridtype,[6],repetitions,[0],[N;Q]);
+  writeTestcase(file,1,1,6,1,1000,0,gridtype,[3],repetitions,[0],[N;S]);
+  writeTestcase(file,1,1,6,1,1000,0,gridtype,[4],repetitions,[0],[N;S]);
+  writeTestcase(file,1,1,6,1,1000,0,gridtype,[5],repetitions,[0],[N;S]);
+  writeTestcase(file,1,1,6,1,1000,0,gridtype,[6],repetitions,[0],[N;S]);
 elseif (selection == 3)
   % Set the grid type.
   % 0 = Gauss-Legendre
@@ -60,7 +60,7 @@ elseif (selection == 3)
   % Set the number of repetitions.
   repetitions=1;
   % Set the size parameters.
-  Q=16:16:1024;
+  Q=16:16:128;
   % Set the bandwidhts.
   N=128*ones(1,length(Q));
   % Write the number of testcases.
@@ -164,14 +164,15 @@ end
 
 fclose(file);
 
+system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+file = fopen(outfilename,'r');
+T = readTestcase(file);
+fclose(file);
+figure('Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
+axes('FontSize',16);
+
 if (selection == 1)
 %if (false)
-  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
-  file = fopen(outfilename,'r');
-  T = readTestcase(file);
-  fclose(file);
-  figure('Color',[1 1 1],'InvertHardcopy','off','PaperSize',[20.98 29.68]);
-  axes('FontSize',16);
   x = T{1}.parameters(:,1);
   semilogy(x,T{1}.data(:,3),'-.','LineWidth',2,'Color',[0,0,0]);
   hold on
@@ -181,5 +182,15 @@ if (selection == 1)
   semilogy(x2,T{3}.data(:,3),'.','MarkerSize',2,'Color',[0,0,0]);
   axis([x(1) x(end) 1e-16 1e-5])
   xlabel('S=M');
+  ylabel('E_{\infty}','Rotation',0);
+elseif (selection == 2)
+  x = T{1}.parameters(:,1);
+  semilogy(x,T{1}.data(:,3),'-.','LineWidth',2,'Color',[0,0,0]);
+  hold on
+  semilogy(x,T{2}.data(:,3),':','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{3}.data(:,3),'--','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{4}.data(:,3),'-','LineWidth',2,'Color',[0,0,0]);
+  axis([x(1) x(end) 1e-12 1e-0])
+  xlabel('M');
   ylabel('E_{\infty}','Rotation',0);
 end
