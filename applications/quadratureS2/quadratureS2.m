@@ -78,15 +78,15 @@ elseif (selection == 4)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  %N=16:16:1024;
-  N=16:16:128;
+  N=16:16:1024;
+  %N=16:16:128;
   % Set the number of nodes.
   Q=N.*N;
   % Set the number of repetitions
   R=ceil(7500./(N.^(1.5))); %horzcat(100:-10:20,20*ones(1,length(N)-length(100:-10:20)));
   % Set the bandwidhts.
-  %N2=[1,2,4,8,16,32,64,128,256,512,1024];
-  N2=[1,2,4,8,16,32,64,128];
+  N2=[1,2,4,8,16,32,64,128,256,512,1024];
+  %N2=[16,32,64,128];
   % Set the number of nodes.
   Q2=N2.*N2;
   % Set the number of repetitions
@@ -141,16 +141,17 @@ elseif (selection == 3)
   semilogy(x,T{3}.data(:,3),':','LineWidth',2,'Color',[0,0,0]);
   semilogy(x,T{3}.data(:,3),'.','MarkerSize',2,'Color',[0,0,0]);
   semilogy(x,T{4}.data(:,3),'-.','LineWidth',2,'Color',[0,0,0]);
-  axis([x(1) x(end) 1e-12 1e-0])
+  axis([x(1) x(end) 1e-12 1e+0])
   xlabel('S');
   ylabel('E_{\infty}','Rotation',0);
 elseif (selection == 4)
-  x = T{1}.parameters(:,2);
+  x = T{1}.parameters(:,1);
+  x2 = T{2}.parameters(:,1);
   semilogy(x,T{1}.data(:,1),'--','LineWidth',2,'Color',[0,0,0]);
   hold on
-  semilogy(x,T{2}.data(:,1),'-','LineWidth',2,'Color',[0,0,0]);
-  semilogy(x,T{2}.data(:,1),'.','markerSize',2,'Color',[0,0,0]);
-  axis([x(1) x(end) 1e-4 1e-6])
+  semilogy(x2,T{2}.data(:,1),'-','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x2,T{2}.data(:,1),'.','MarkerSize',2,'Color',[0,0,0]);
+  axis([x(1) x(end) 1e-4 1e+6])
   xlabel('M');
-  ylabel('E_{\infty}','Rotation',0);
+  ylabel('T','Rotation',0);
 end

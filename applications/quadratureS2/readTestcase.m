@@ -135,7 +135,21 @@ for i = 1:tc_max
     t.data = data';
   else
     % Create empty array for parameters.
-    p = zeros(2,v);
+    p = zeros(3,v);
+    % Create empty array for parameters.
+    data = zeros(1,v);
+
+    % Read parameters.
+    p = fscanf(file,'%d',[3,v]);
+
+    % Transpose matrix to get dimensions right.
+    t.parameters = p';
+
+    % Read parameters.
+    data = fscanf(file,'%lf',[1,v]);
+
+    % Transpose matrix to get dimensions right.
+    t.data = data';
   end
 
   % Assign testcase structure to field in cell array.
