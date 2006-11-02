@@ -43,9 +43,9 @@ elseif (selection == 2)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:128;
+  N=16:16:256;
   % Set the size parameters.
-  S=1024*ones(size(N));
+  S=512*ones(size(N));
   % Write the number of testcases.
   fprintf(file,'testcases=4\n');
   % Write the testcases.
