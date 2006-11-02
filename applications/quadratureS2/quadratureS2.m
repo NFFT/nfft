@@ -78,8 +78,8 @@ elseif (selection == 4)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:1024;
-  %N=16:16:128;
+  %N=16:16:1024;
+  N=16:16:128;
   % Set the number of nodes.
   Q=N.*N;
   % Set the number of repetitions
@@ -149,6 +149,7 @@ elseif (selection == 4)
   semilogy(x,T{1}.data(:,1),'--','LineWidth',2,'Color',[0,0,0]);
   hold on
   semilogy(x,T{2}.data(:,1),'-','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{2}.data(:,1),'.','markerSize',2,'Color',[0,0,0]);
   axis([x(1) x(end) 1e-4 1e-6])
   xlabel('M');
   ylabel('E_{\infty}','Rotation',0);
