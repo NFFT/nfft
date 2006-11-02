@@ -11,7 +11,7 @@ example_DATA = $(EXTRA_DIST)
 
 ## The source files.
 simple_test_SOURCES = simple_test.c
-simple_test_LDADD = -lm -lfftw3 $(top_builddir)/.libs/libnfft3.a
+simple_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 nsfft_test_SOURCES = nsfft_test.c
-nsfft_test_LDADD = -lm -lfftw3 $(top_builddir)/.libs/libnfft3.a
+nsfft_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
