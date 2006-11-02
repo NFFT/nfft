@@ -57,20 +57,16 @@ elseif (selection == 3)
   % Set the number of repetitions.
   repetitions=1;
   % Set the size parameters.
-  %S1 = 16:16:1024;
-  %S2 = [1,2,4,8,16,32,64,128,256,512];
-  S1 = 16:16:256;
-  S2 = [1,2,4,8,16,32,64,128];
+  S1 = 16:16:1024;
+  S2 = [1,2,4,8,16,32,64,128,256,512];
+  %S1 = 16:16:256;
+  %S2 = [1,2,4,8,16,32,64,128];
   % Set the bandwidhts.
   N1 = 128*ones(1,length(S1));
   N2 = 128*ones(1,length(S2));
   % Write the number of testcases.
   fprintf(file,'testcases=4\n');
   % Write the testcases.
-%   writeTestcase(file,1,1,6,1,1000,0,0,[0,128],repetitions,[0],[N;S1]);
-%   writeTestcase(file,1,1,6,1,1000,0,1,[0,128],repetitions,[0],[N;S1]);
-%   writeTestcase(file,1,1,6,1,1000,0,2,[0,128],repetitions,[0],[N;S2]);
-%   writeTestcase(file,1,1,6,1,1000,0,3,[0,128],repetitions,[0],[N;S1]);
   writeTestcase(file,1,1,6,1,1000,0,0,[0,128],repetitions,[0],[N1;S1]);
   writeTestcase(file,1,1,6,1,1000,0,1,[0,128],repetitions,[0],[N1;S1]);
   writeTestcase(file,1,1,6,1,1000,0,2,[0,128],repetitions,[0],[N2;S2]);
@@ -82,7 +78,7 @@ elseif (selection == 4)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:1024;
+  N=16:16:256;
   % Set the number of nodes.
   Q=N.*N;
   % Set the number of repetitions
@@ -138,9 +134,18 @@ elseif (selection == 3)
   semilogy(x,T{1}.data(:,3),'-','LineWidth',2,'Color',[0,0,0]);
   hold on
   semilogy(x,T{2}.data(:,3),'--','LineWidth',2,'Color',[0,0,0]);
-  semilogy(x,T{3}.data(:,3),'-.','LineWidth',2,'Color',[0,0,0]);
-  semilogy(x,T{4}.data(:,3),':','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{3}.data(:,3),':','LineWidth',2,'Color',[0,0,0]);
+  semilogy(x,T{3}.data(:,3),'.','MarkerSize',2,'Color',[0,0,0]);
+  semilogy(x,T{4}.data(:,3),'-.','LineWidth',2,'Color',[0,0,0]);
   axis([x(1) x(end) 1e-12 1e-0])
   xlabel('S');
+  ylabel('E_{\infty}','Rotation',0);
+elseif (selection == 4)
+  x = T{1}.parameters(:,2);
+  semilogy(x,T{1}.data(:,1),'--','LineWidth',2,'Color',[0,0,0]);
+  hold on
+  semilogy(x,T{2}.data(:,1),'-','LineWidth',2,'Color',[0,0,0]);
+  axis([x(1) x(end) 1e-4 1e-6])
+  xlabel('M');
   ylabel('E_{\infty}','Rotation',0);
 end
