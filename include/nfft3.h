@@ -1955,7 +1955,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
  *
  * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
  * \arg threshold the threshold \f$\kappa \in \mathbb{R}^{+}\f$
- * \arg nfsft_precomputation_flags the precomputation flags
+ * \arg nfsft_precomputation_flags the NFSFT precomputation flags
+ * \arg fpt_precomputation_flags the FPT precomputation flags
  *
  * \author Jens Keiner
  */
