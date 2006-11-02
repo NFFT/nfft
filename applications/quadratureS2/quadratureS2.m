@@ -78,13 +78,15 @@ elseif (selection == 4)
   % Set the number of repetitions.
   repetitions=1;
   % Set the bandwidhts.
-  N=16:16:128;
+  N=16:16:1024;
+  %N=16:16:128;
   % Set the number of nodes.
   Q=N.*N;
   % Set the number of repetitions
   R=ceil(7500./(N.^(1.5))); %horzcat(100:-10:20,20*ones(1,length(N)-length(100:-10:20)));
   % Set the bandwidhts.
-  N2=[1,2,4,8,16,32,64,128,256,512,1024];
+  %N2=[1,2,4,8,16,32,64,128,256,512,1024];
+  N2=[1,2,4,8,16,32,64,128];
   % Set the number of nodes.
   Q2=N2.*N2;
   % Set the number of repetitions
@@ -100,7 +102,7 @@ end
 
 fclose(file);
 
-fprintf('Program in execution. Please be patient. This may take a while.');
+fprintf('Program in execution. Please be patient! This may take a while!\n');
 
 system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
 file = fopen(outfilename,'r');
