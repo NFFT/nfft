@@ -9,7 +9,6 @@ libkernel_la_LIBADD =   fpt/libfpt.la		\
 			nfct/libnfct.la		\
 			nfft/libnfft.la		\
 			nfsft/libnfsft.la	\
-			nfsft/libnfsft.la	\
 			nfst/libnfst.la		\
 			nnfft/libnnfft.la	\
 			nsfft/libnsfft.la	\
