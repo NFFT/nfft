@@ -470,6 +470,7 @@ AC_OUTPUT(Makefile \
           3rdparty/gsl/specfunc/Makefile \
           3rdparty/gsl/ieee-utils/Makefile \
           3rdparty/gsl/utils/Makefile \
+          3rdparty/cstripack/Makefile \
           util/Makefile \
           kernel/Makefile \
           kernel/fpt/Makefile \

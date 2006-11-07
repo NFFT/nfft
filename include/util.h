@@ -259,6 +259,9 @@ void nfft_vrand_shifted_unit_double(double *x, int n);
 /** Computes non periodic voronoi weights, assumes ordered nodes \f$x_j\f$ */
 void nfft_voronoi_weights_1d(double *w, double *x, int M);
 
+/** Computes voronoi weights for nodes on the sphere S^2. */
+void nfft_voronoi_weights_S2(double *w, double *xi, int M);
+
 /** Computes the damping factor for the modified Fejer kernel, ie
     \f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)\f$
  */

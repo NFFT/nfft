@@ -4,8 +4,8 @@
  */
 
 #include "config.h"
-
 #include "util.h"
+#include "cstripack.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1420,6 +1420,130 @@ void nfft_voronoi_weights_1d(double *w, double *x, int M)
   for(j=1;j<M-1;j++)
     w[j]=(x[j+1]-x[j-1])/2;
   w[M-1]=(x[M-1]-x[M-2])/2;
+}
+
+void nfft_voronoi_weights_S2(double *w, double *xi, int M)
+{
+  double *x;
+  double *y;
+  double *z;
+  long int j;
+  long int k;
+  long int el;
+  long int Mlocal = M;
+  long int lnew;
+  long int ier;
+  long int *list;
+  long int *lptr;
+  long int *lend;
+  long int *near;
+  long int *next;
+  double  *dist;
+  long int *ltri;
+  long int *listc;
+  long int nb;
+  double *xc;
+  double *yc;
+  double *zc;
+  double *rc;
+  double *vr;
+  long int lp;
+  long int lpl;
+  long int kv;
+  double a;
+  
+  /* Allocate memory for auxilliary arrays. */
+  x = (double*) malloc(M * sizeof(double));
+  y = (double*) malloc(M * sizeof(double));
+  z = (double*) malloc(M * sizeof(double));
+  
+  list = (long int*) malloc((6*M-12+1)*sizeof(long int));
+  lptr = (long int*) malloc((6*M-12+1)*sizeof(long int));
+  lend = (long int*) malloc((M+1)*sizeof(long int));  
+  near = (long int*) malloc((M+1)*sizeof(long int));
+  next = (long int*) malloc((M+1)*sizeof(long int));
+  dist = (double*) malloc((M+1)*sizeof(double));
+  ltri = (long int*) malloc((6*M+1)*sizeof(long int));
+  listc = (long int*) malloc((6*M-12+1)*sizeof(long int));
+  xc = (double*) malloc((2*M-4+1)*sizeof(double));
+  yc = (double*) malloc((2*M-4+1)*sizeof(double));
+  zc = (double*) malloc((2*M-4+1)*sizeof(double));
+  rc = (double*) malloc((2*M-4+1)*sizeof(double));
+  vr = (double*) malloc(3*(2*M-4+1)*sizeof(double));
+  
+  /* Convert from spherical Coordinates in [0,1/2]x[-1/2,1/2) to Cartesian 
+   * coordinates. */
+  for (k = 0; k < M; k++)
+  {
+    x[k] = sin(2.0*PI*xi[2*k+1])*cos(2.0*PI*xi[2*k]);
+    y[k] = sin(2.0*PI*xi[2*k+1])*sin(2.0*PI*xi[2*k]);
+    z[k] = cos(2.0*PI*xi[2*k+1]);
+  }
+  
+  /* Generate Delaunay triangulation. */
+  trmesh_(&Mlocal, x, y, z, list, lptr, lend, &lnew, near, next, dist, &ier);
+  
+  /* Check error flag. */
+  if (ier == 0)
+  {    
+    /* Get Voronoi vertices. */
+    crlist_(&Mlocal, &Mlocal, x, y, z, list, lend, lptr, &lnew, ltri, listc, &nb, xc, 
+      yc, zc, rc, &ier);
+      
+    if (ier == 0)
+    {
+      /* Calcuate sizes of Voronoi regions. */
+      for (k = 0; k < M; k++)
+      {
+        /* Get last neighbour index. */
+        lpl = lend[k];       
+        lp = lpl;
+        
+        j = 0;
+        vr[3*j] = x[k]; 
+        vr[3*j+1] = y[k]; 
+        vr[3*j+2] = z[k]; 
+
+        do 
+        {
+          j++;
+          /* Get next neighbour. */
+          lp = lptr[lp-1];
+          kv = listc[lp-1];
+          vr[3*j] = xc[kv-1]; 
+          vr[3*j+1] = yc[kv-1]; 
+          vr[3*j+2] = zc[kv-1]; 
+          /* fprintf(stderr, "lp = %ld\t", lp); */
+        } while (lp != lpl);
+        
+        a = 0;
+        for (el = 0; el < j; el++)
+        {
+          a += areas_(vr, &vr[3*(el+1)],&vr[3*(((el+1)%j)+1)]);
+        }
+        
+        w[k] = a;
+      }
+    }
+  }
+    
+  /* Deallocate memory. */
+  free(x); 
+  free(y); 
+  free(z);
+  
+  free(list); 
+  free(lptr); 
+  free(lend); 
+  free(near); 
+  free(next); 
+  free(dist); 
+  free(ltri);
+  free(listc);
+  free(xc);
+  free(yc);
+  free(zc);
+  free(rc);
 }
 
 /** Computes the damping factor for the modified Fejer kernel.
