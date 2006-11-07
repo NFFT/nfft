@@ -514,6 +514,7 @@ AC_OUTPUT(tests/Makefile \
           tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
+          applications/iterS2/Makefile \
       		applications/texture/Makefile \
 					applications/texture/examplesTexture/Makefile \
 					applications/texture/examplesTexture/texture_util/Makefile \
