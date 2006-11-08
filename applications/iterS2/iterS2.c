@@ -146,6 +146,9 @@ int main (int argc, char **argv)
       f[j] = re + I * im;
       fprintf(stdout,"%le %le %le %le\n",x[2*j+1],x[2*j],creal(f[j]),cimag(f[j]));
     }
+    
+    /* Compute Voronoi weights. */
+    nfft_voronoi_weights_S2(w, x, M);
 
     /* Do precomputation. */
     /*nfsft_precompute(m_max,threshold,

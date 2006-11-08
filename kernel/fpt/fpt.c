@@ -42,6 +42,8 @@
   #define NFFT_MAX(a,b) ((a>b)?(a):(b))
 #endif
 
+#define FPT_BREAK_EVEN 4
+
 /**
  * Holds data for a single multiplication step in the cascade summation.
  */
@@ -1078,7 +1080,14 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
 
   double complex *work_ptr;
   const double complex *x_ptr;
-
+  
+  /* Check, if slow transformation should be used due to small bandwidth. */
+  if (k_end < FPT_BREAK_EVEN)
+  {
+    /* Use NDSFT. */
+    dpt_trafo(set, m, x, y, k_end, flags);
+  }
+  
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
@@ -1381,6 +1390,13 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
   /** Loop counter */
   int k;
   int t_stab;
+
+  /* Check, if slow transformation should be used due to small bandwidth. */
+  if (k_end < FPT_BREAK_EVEN)
+  {
+    /* Use NDSFT. */
+    dpt_transposed(set, m, x, y, k_end, flags);
+  }
 
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
