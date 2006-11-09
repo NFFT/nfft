@@ -8,6 +8,7 @@
 /* ########################################################################### */
 
 /** @defgroup texture Texture
+ * @ingroup applications
  * This module provides the basic functions for the Texture Transforms.
  *
  * @author Matthias Schmalz
@@ -170,7 +171,7 @@
  * @author Matthias Schmalz
  */
 
-/** @defgroup texture_util Texture: Utility Functions
+/** @defgroup texture_util Texture: Utility Functions (basic)
  * This module provides functions that perform some basic operations on the
  * @ref texture_plan data structur.
  *
@@ -241,7 +242,7 @@
  * @brief Definition of the texture_plan.
  *
  * @attention Do not access any member directly!
- * The plan could get an inconsistent state.
+ * The state of the plan could become inconsistent.
  */
 typedef struct texture_plan_ {
 

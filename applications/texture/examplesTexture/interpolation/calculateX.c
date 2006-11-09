@@ -18,7 +18,7 @@
  * -# The property file. (default: propfile_x)
  *
  * @section PF Property File
- * The property file containes the grid type. (See @ref texture_utel)
+ * The property file contains the grid type. (See @ref texture_utility)
  *
  * @section Inp Input
  * There is no user input.

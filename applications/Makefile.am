@@ -1,4 +1,5 @@
-DIST_SUBDIRS = fastgauss fastsum fastsumS2 mri polarFFT quadratureS2 radon 
+#DIST_SUBDIRS = fastgauss fastsum fastsumS2 mri polarFFT quadratureS2 radon 
+DIST_SUBDIRS = fastgauss fastsum fastsumS2 mri polarFFT radon 
 
 if WITH_DEVCODE 
   EXTRA_DIRS= texture iterS2

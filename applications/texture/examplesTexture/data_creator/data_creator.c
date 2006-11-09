@@ -35,7 +35,7 @@
  * First the program prints a brief description of the input to stderr.
  * 
  * If the grid type is 0 (equidistant angles), the program creates a grid and
- * frequencies omega using the according functions of @ref texture_util.
+ * frequencies omega using the according functions of @ref texture_utility.
  * The grid and omega will be written to the files defined by the command line.
  * 
  * The intensities x are calculated and afterwards randomly modified:

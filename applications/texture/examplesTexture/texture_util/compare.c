@@ -8,10 +8,16 @@
 #include"texture_util.h"
 
 /** @defgroup texture_compare Texture: Compare
+ * This program compares two sample vectors, frequency vectors, 
+ * pole figure vectors or node vectors.
+ * The filenames are given as command line arguments.
+ * The program first prints the headers of the two files to stderr, 
+ * and then the result of ::nfft_error_l_2_double or ::nfft_error_l_2_complex
+ * to stdout, where the vector corresponding to the first command line argument
+ * is passed as first argument, and the vector, to the second, as second.
  * 
  * @author Matthias Schmalz
  * @ingroup texture_examples
- * @{
  */
 
 int main(int argc, char *argv[])
@@ -76,6 +82,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
- /**
-	* @}
-	*/

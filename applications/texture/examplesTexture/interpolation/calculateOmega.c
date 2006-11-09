@@ -23,8 +23,8 @@
  * -# The number of iterations without check of abort conditions and the true 
  *  residuum iterations_without_check.
  * -# The minimum improvement of the residuum min_improve.
- * -# The number of the solver algorithm solver_algo. (see @ref texture_util)
- * -# The weight_policy. (see @ref texture_util)
+ * -# The number of the solver algorithm solver_algo. (see @ref texture_utility)
+ * -# The weight_policy. (see @ref texture_utility)
  * 
  * @section Inp Input
  * -# The bandwidth N.

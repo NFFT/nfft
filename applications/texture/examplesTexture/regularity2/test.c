@@ -8,6 +8,7 @@
 #include"texture_util.h"
 
 /** @defgroup texture_regularity2 Texture: Regularity 2
+ *
  * The program creates some random frequencies in omega_ref and evaluates them
  * for some given grid. From the samples it tries to reconstruct the 
  * frequencies using the solver.
@@ -18,7 +19,7 @@
  * 
  * @section CMA Command Line Arguments
  * There is only one argument: The prefix of the file to which output is 
- * printed. (default: "output/out3")
+ * printed. (default: prefix = "output/out3")
  *
  * @section Inp Input
  * The requested input is explained by messages on stderr.
@@ -28,8 +29,35 @@
  *   (d).
  *
  * @section ProcOutp Processing and Output
- * The outputfile 
- * First the program outputs all parameters to the outputfile.
+ * The outputfile is of the form 
+ * "<prefix>.omega<omega_type>.weight<weight_type>.<h_file>.<r_file>.<N>.<cases>".
+ * Firstly, the program outputs all parameters to the outputfile.
+ * 
+ * The procedure afterwards is repeated for cases times.
+ * The program creates some frequencies omega_ref of bandwidth N.
+ * If and how much they are decreasing is determined by omega_type.
+ * The samples x_ref are the result of a texture transform on omega_ref.
+ * Then, the program uses the solver to reconstruct omega_ref from x_ref.
+ * The starting point is 0.
+ * Let omega be the frequencies of the current iteration, x the corresponding
+ * samples, 
+ * @f$\|x-x_{ref}\|_2 / \|x_{ref}\|_2 = res@f$ the current true relative 
+ * residuum and @f$res_{min}@f$ the minimal true relative residuum that has 
+ * occured until this iteration.
+ * The solver stops if the updated squared residuum 
+ * @f$\|x-x_{ref}\|_2^2 = dot\_r\_iter \leq 1e-20@f$,
+ * if the true relative residuum 
+ * @f$res \leq 1e-20@f$,
+ * or if @f$(res_{min} - res) / res_{min} < min\_improve@f$ for more than 
+ * max_iter_without_improve times.
+ * Finally, @f$res_{min}@f$, the number min_iter of the iteration at which 
+ * @f$res_{min}@f$ occured and the relative error 
+ * @f$\|omega\_min - omega\_ref\|_2 / \|omega\_ref\|_2@f$ are saved.
+ * The frequences omega_min are the frequencies of iteration min_iter.
+ *
+ * Finally, the residuums errors and iterations to achieve them is printed to
+ * the output file in a histogram like manner.
+ * Details are described by the comments of the output file.
  * 
  * @author Matthias Schmalz
  * @ingroup texture_examples
@@ -38,7 +66,7 @@
 // constants
 const double min_improve = 0.01;
 const int max_iter_without_improve = 10;
-//unsigned short int dseed[3] = { 1, 2, 3 };
+// unsigned short int dseed[3] = { 1, 2, 3 };
 unsigned int iseed = 0;
 
 // parameters influenced by the command line arguments
@@ -178,7 +206,7 @@ void init()
 	out = fopen(output_path, "w");
 
 	srand(iseed);
-	//seed48(dseed);
+	// seed48(dseed);
 }
 
 void output_params()

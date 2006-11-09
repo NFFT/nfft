@@ -312,7 +312,8 @@ static void check_eof(FILE * f, const char *location)
 	}
 }
 
-inline complex crand() {
+inline complex crand()
+{
 	return drand() + I * drand();
 }
 
@@ -322,11 +323,13 @@ void destroy_itexture_params(itexture_params * pars)
 	pars->status = "destroyed";
 }
 
-inline double drand() {
+inline double drand()
+{
 	return rand() * drand1();
 }
 
-inline double drand1() {
+inline double drand1()
+{
 	return ((double) rand()) / RAND_MAX;
 }
 
@@ -369,8 +372,7 @@ void init_omega(complex * omega, int N, int omega_policy)
 		case 1:
 		{
 			for (i = 0; i < texture_flat_length(N); i++) {
-				omega[i] = crand() / (i +
-																																					 1);
+				omega[i] = crand() / (i + 1);
 			}
 			break;
 		}
@@ -481,7 +483,8 @@ void mult_error(int N1, int N2, complex * x, double min_err, double max_err)
 
 	for (i = 0; i < N1; i++) {
 		for (j = 0; j < N2; j++) {
-			x[i * N2 + j] *= min_err + ((double) rand()) / RAND_MAX * (max_err - min_err);
+			x[i * N2 + j] *=
+				min_err + ((double) rand()) / RAND_MAX * (max_err - min_err);
 		}
 	}
 }
@@ -896,12 +899,12 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 		if (pars->use_updated_residuum) {
 			res = res_upd;
 		} else {
-			double complex * tmp = test_plan->f_hat;
-			
+			double complex *tmp = test_plan->f_hat;
+
 			texture_set_omega(test_plan, iplan->f_hat_iter);
 			texture_trafo(test_plan);
 			texture_set_omega(test_plan, tmp);
-			
+
 			res =
 				l_2_rel_dist(texture_get_x(test_plan), iplan->y,
 										 texture_get_x_length(test_plan));

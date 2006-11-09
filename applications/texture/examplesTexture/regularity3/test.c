@@ -9,10 +9,22 @@
 #define NFFT_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /** @defgroup texture_regularity3 Texture: Regularity 3
- * TODO
+ *
+ * The program reads a grid h, r, samples x_ref and frequencies omega_ref.
+ * The calculations only make sense if x_ref is the result of the texture
+ * transform of omega_ref.
+ * Parameters are requested interactively.
+ * Afterwards, it runs the solver on x, using ::texture_itrafo of 
+ * @ref texture_utility.
+ * We call the resulting frequencies omega.
+ * For each l, the program outputs 
+ * @f$\|omega\_ref(l,\cdot,\cdot) - omega(l,\cdot,\cdot)\|_2 / \|omega\_ref\|_2@f$
+ * to some output file.
+ * The output file has the form 
+ * \<prefix>\<identifier>_N<N>_N1<N1>_N2<N2>_newN<newN>_w<weight_policy>.
+ *
  * @author Matthias Schmalz
  * @ingroup texture_examples
- * @{
  */
 
 double complex *omega_ref, *omega, *x_ref, *x;
@@ -206,7 +218,7 @@ void output_params()
 					texture_flat_length(new_N));
 	fprintf(output, "# Weight policy: %d (%s)\n", weight_policy,
 					weight_policy_descr[weight_policy]);
-
+	fprintf(output, "# enforce even: %d\n", enforce_even_interpolation);
 	fprintf(output, "#\n");
 
 	fprintf(output, "# Solver parameters:\n");
@@ -366,7 +378,3 @@ int main()
 
 	return 0;
 }
-
-/**
- * @}
- */
