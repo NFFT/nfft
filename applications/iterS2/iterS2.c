@@ -22,6 +22,8 @@
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
 
+#include "legendre.h"
+
 /** Enumeration for parameter values */
 enum boolean {NO = 0, YES = 1};
 
@@ -60,6 +62,18 @@ int main (int argc, char **argv)
   double re;
   double im;
   double a,b;
+  double *scratch;
+  double xs;
+  double *ys;
+  double *temp;
+  double complex *temp2;
+  int qlength;
+  double *qweights;
+  fftw_plan fplan;
+  fpt_set set;
+  int npt;
+  int npt_exp;
+  double *alpha, *beta, *gamma;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&T);
@@ -119,12 +133,117 @@ int main (int argc, char **argv)
     fprintf(stderr,"%d\n",N);
 
     /* Do precomputation. */
-    nfsft_precompute(N,threshold,
-      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
+    //nfsft_precompute(N,threshold,
+    //  ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
 
     /* Read the number of nodes. */
     fscanf(stdin,"nodes=%d\n",&M);
     fprintf(stderr,"%d\n",M);
+
+    /* */
+    /*if ((N+1)*(N+1) > M)
+    {
+      nfft_next_power_of_2_exp(N, &npt, &npt_exp);
+      fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
+      fprintf(stderr,"Optimal interpolation!\n");
+      scratch = (double*) malloc(4*sizeof(double));
+      ys = (double*) malloc((N+1)*sizeof(double));
+      temp = (double*) malloc((2*N+1)*sizeof(double));
+      temp2 = (double complex*) malloc((N+1)*sizeof(double complex));
+
+      a = 0.0;
+      for (j = 0; j <= N; j++)
+      {
+        xs = 2.0 + (2.0*j)/(N+1);
+        ys[j] = (2.0-((j == 0)?(1.0):(0.0)))*4.0*nfft_bspline(4,xs,scratch);
+        //fprintf(stdout,"%3d: g(%le) = %le\n",j,xs,ys[j]);
+        a += ys[j];
+      }
+      //fprintf(stdout,"a = %le\n",a);
+      for (j = 0; j <= N; j++)
+      {
+        ys[j] *= 1.0/a;
+      }
+
+      qlength = 2*N+1;
+      qweights = (double*) malloc(qlength*sizeof(double));
+
+      fplan = fftw_plan_r2r_1d(N+1, qweights, qweights, FFTW_REDFT00, 0U);
+      for (j = 0; j < N+1; j++)
+      {
+        qweights[j] = -2.0/(4*j*j-1);
+      }
+      fftw_execute(fplan);
+      qweights[0] *= 0.5;
+
+      for (j = 0; j < N+1; j++)
+      {
+        qweights[j] *= 1.0/(2.0*N+1.0);
+        qweights[2*N+1-1-j] = qweights[j];
+      }
+
+      fplan = fftw_plan_r2r_1d(2*N+1, temp, temp, FFTW_REDFT00, 0U);
+      for (j = 0; j <= N; j++)
+      {
+        temp[j] = ((j==0 || j == 2*N)?(1.0):(0.5))*ys[j];
+      }
+      for (j = N+1; j < 2*N+1; j++)
+      {
+        temp[j] = 0.0;
+      }
+      fftw_execute(fplan);
+
+      for (j = 0; j < 2*N+1; j++)
+      {
+        temp[j] *= qweights[j];
+      }
+
+      fftw_execute(fplan);
+
+      for (j = 0; j < 2*N+1; j++)
+      {
+        temp[j] *= ((j==0 || j == 2*N)?(1.0):(0.5));
+        if (j <= N)
+        {
+          temp2[j] = temp[j];
+        }
+      }
+
+      set = fpt_init(0, npt_exp, 0U);
+
+      alpha = (double*) malloc((N+2)*sizeof(double));
+      beta = (double*) malloc((N+2)*sizeof(double));
+      gamma = (double*) malloc((N+2)*sizeof(double));
+
+      alpha_al_row(alpha, N, 0);
+      beta_al_row(beta, N, 0);
+      gamma_al_row(gamma, N, 0);
+
+      fpt_precompute(set, 0, alpha, beta, gamma, 0, 1000.0);
+
+      fpt_transposed(set,0, temp2, temp2, N, 0U);
+
+      for (j = 0; j <= N; j++)
+      {
+        //temp2[j] *= (2*j+1.0)/2.0;
+        //fprintf(stdout,"temp2[%d] = %le\n",j,cabs(temp2[j]));
+      }
+
+      fpt_finalize(set);
+
+      free(alpha);
+      free(beta);
+      free(gamma);
+
+      fftw_destroy_plan(fplan);
+
+      free(scratch);
+      free(qweights);
+      free(ys);
+      free(temp);
+      //free(temp2);
+      //return EXIT_SUCCESS;
+    }*/
 
     /* Init transform plans. */
     nfsft_init_guru(&plan, N, M,
@@ -135,7 +254,14 @@ int main (int argc, char **argv)
       FFT_OUT_OF_PLACE,
       cutoff);
 
-    infsft_init_advanced (&iplan, &plan, CGNR | PRECOMPUTE_WEIGHT);
+    /*if ((N+1)*(N+1) > M)
+    {
+      infsft_init_advanced (&iplan, &plan, CGNE | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
+    }
+    else
+    {*/
+      infsft_init_advanced (&iplan, &plan, CGNR | PRECOMPUTE_WEIGHT);
+    /*}*/
 
     /* Read the nodes and function values. */
     for (j = 0; j < M; j++)
@@ -194,6 +320,23 @@ int main (int argc, char **argv)
     }
     fprintf(stderr,"sum = %le\n",a);
 
+    /* Frequency weights. */
+    /*if ((N+1)*(N+1) > M)
+    {
+      for (j = 0; j < plan.N_total; j++)
+      {
+        iplan.w_hat[j] = 1.0;
+      }
+
+      for (k = 0; k <= N; k++)
+      {
+        for (j = -k; j <= k; j++)
+        {
+          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = temp2[j];
+        }
+      }
+    }*/
+
     fprintf(stderr, "N_total = %d\n", plan.N_total);
     fprintf(stderr, "M_total = %d\n", plan.M_total);
 
@@ -249,6 +392,11 @@ int main (int argc, char **argv)
 
     /* Delete precomputed data. */
     nfsft_forget();
+
+    if ((N+1)*(N+1) > M)
+    {
+      free(temp2);
+    }
 
   } /* Process each testcase. */
 
