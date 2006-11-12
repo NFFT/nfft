@@ -26,7 +26,7 @@ double nfft_second()
 {
   static struct rusage temp;
   double foo, foo1;
-  
+
   getrusage(RUSAGE_SELF,&temp);
   foo     = temp.ru_utime.tv_sec;       /* seconds                           */
   foo1    = temp.ru_utime.tv_usec;      /* uSecs                             */
@@ -44,7 +44,7 @@ int nfft_total_used_memory()
 int nfft_total_used_memory()
 {
   fprintf(stderr,
-	  "\nWarning in util/total_used_memory: mallinfo() not available\n");
+    "\nWarning in util/total_used_memory: mallinfo() not available\n");
   return 0;
 }
 #endif
@@ -58,7 +58,7 @@ int nfft_ld(int m)
 {
   int l=0;
   int mm=m;
-  
+
   while(mm>0)
     {
       mm=(mm>>1);
@@ -86,26 +86,26 @@ int nfft_next_power_of_2(int N)
     {
       if (n%2 == 1)
       {
-  	      N_is_not_power_of_2=1;
+          N_is_not_power_of_2=1;
       }
       n = n/2;
       logn++;
     }
-  
+
     if (!N_is_not_power_of_2)
     {
       logn--;
     }
-  
+
     for (i = 0; i <= logn; i++)
     {
       n = n*2;
     }
-  
+
     return n;
-  }  
+  }
 }
- 
+
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
 void nfft_next_power_of_2_exp(int N, int *N2, int *t)
@@ -131,22 +131,22 @@ void nfft_next_power_of_2_exp(int N, int *N2, int *t)
       n = n/2;
       logn++;
     }
-  
+
     if (!N_is_not_power_of_2)
     {
       logn--;
     }
-  
+
     for (i = 0; i <= logn; i++)
     {
       n = n*2;
     }
-  
+
     *N2 = n;
     *t = logn+1;
-  }  
+  }
 }
- 
+
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$.
  */
 int nfft_prod_int(int *vec, int d)
@@ -179,7 +179,7 @@ int nfst_prod_minus_a_int(int *vec, int a, int d)
 
   return prod;
 }
-   
+
 
 /** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$.
  */
@@ -217,12 +217,12 @@ double nfft_sinc(double x)
 } /* sinc */
 
 void bspline_help(int k, double x, double *scratch, int j, int ug, int og,
-		  int r)
+      int r)
 {
   int i;                                /**< row index of the de Boor scheme  */
   int index;                            /**< index in scratch                 */
   double a;                             /**< alpha of the de Boor scheme      */
-  
+
   /* computation of one column */
   for(i=og+r-k+1, index=og; index>=ug; i--, index--)
     {
@@ -238,7 +238,7 @@ double nfft_bspline(int k, double x, double *scratch)
 {
   double result_value;                  /**< M_{k,0}\left(x\right)            */
   int r;                                /**< \f$x \in {\rm supp}(M_{0,r}) \f$ */
-  int g1,g2;                            /**< boundaries                       */ 
+  int g1,g2;                            /**< boundaries                       */
   int j,index,ug,og;                    /**< indices                          */
   double a;                             /**< alpha of the de Boor scheme      */
 
@@ -249,46 +249,46 @@ double nfft_bspline(int k, double x, double *scratch)
       if((k-x)<x) x=k-x;
 
       r=(int)(ceil(x)-1.0);
-      
+
       for(index=0; index<k; index++)
-	scratch[index]=0.0;
-	
+  scratch[index]=0.0;
+
       scratch[k-r-1]=1.0;
-      
+
       /* bounds of the algorithm */
       g1 = r;
       g2 = k - 1 - r;
       ug = g2;
-      
+
       /* g1<=g2 holds */
-	
+
       for(j=1, og=g2+1; j<=g1; j++, og++)
-	{
-	  a = (x - r + k - 1 - og)/(k - j);
-	  scratch[og] = (1 - a) * scratch[og-1];
-	  bspline_help(k,x,scratch,j,ug+1,og-1,r);
-	  a = (x - r + k - 1 - ug)/(k - j);
-	  scratch[ug] = a * scratch[ug];
-	}
+  {
+    a = (x - r + k - 1 - og)/(k - j);
+    scratch[og] = (1 - a) * scratch[og-1];
+    bspline_help(k,x,scratch,j,ug+1,og-1,r);
+    a = (x - r + k - 1 - ug)/(k - j);
+    scratch[ug] = a * scratch[ug];
+  }
       for(og-- ; j<=g2; j++)
-	{
-	  bspline_help(k,x,scratch,j,ug+1,og,r);
-	  a = (x - r + k - 1 - ug)/(k - j);
-	  scratch[ug] = a * scratch[ug];
-	}
+  {
+    bspline_help(k,x,scratch,j,ug+1,og,r);
+    a = (x - r + k - 1 - ug)/(k - j);
+    scratch[ug] = a * scratch[ug];
+  }
       for( ; j<k; j++)
-	{
-	  ug++;
-	  bspline_help(k,x,scratch,j,ug,og,r);
-	}
+  {
+    ug++;
+    bspline_help(k,x,scratch,j,ug,og,r);
+  }
       result_value = scratch[k-1];
     }
   return(result_value);
 } /* bspline */
 
-/*							mconf.h
+/*              mconf.h
  *
- *	Common include file for math routines
+ *  Common include file for math routines
  *
  *
  *
@@ -307,7 +307,7 @@ double nfft_bspline(int k, double x, double *scratch)
  * The file also includes a conditional assembly definition
  * for the type of computer arithmetic (IEEE, DEC, Motorola
  * IEEE, or UNKnown).
- * 
+ *
  * For Digital Equipment PDP-11 and VAX computers, certain
  * IBM systems, and others that use numbers with a 56-bit
  * significand, the symbol DEC should be defined.  In this
@@ -380,15 +380,15 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 /* Constant definitions for math error conditions
  */
 
-#define DOMAIN		1	/* argument domain error */
-#define SING		2	/* argument singularity */
-#define OVERFLOW	3	/* overflow range error */
-#define UNDERFLOW	4	/* underflow range error */
-#define TLOSS		5	/* total loss of precision */
-#define PLOSS		6	/* partial loss of precision */
+#define DOMAIN    1  /* argument domain error */
+#define SING    2  /* argument singularity */
+#define OVERFLOW  3  /* overflow range error */
+#define UNDERFLOW  4  /* underflow range error */
+#define TLOSS    5  /* total loss of precision */
+#define PLOSS    6  /* partial loss of precision */
 
-#define EDOM		33
-#define ERANGE		34
+#define EDOM    33
+#define ERANGE    34
 
 /* Type of computer arithmetic */
 
@@ -457,9 +457,9 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
    See atan.c and clog.c. */
 #define ANSIC 1
 
-/*							chbevl.c
+/*              chbevl.c
  *
- *	Evaluate Chebyshev series
+ *  Evaluate Chebyshev series
  *
  *
  *
@@ -509,7 +509,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
  *
  */
 
-/*							chbevl.c	*/
+/*              chbevl.c  */
 
 /*
 Cephes Math Library Release 2.0:  April, 1987
@@ -521,12 +521,12 @@ double chbevl(double x, double array[], int n)
 {
   double b0, b1, b2, *p;
   int i;
-  
+
   p = array;
   b0 = *p++;
   b1 = 0.0;
   i = n - 1;
-  
+
   do
     {
       b2 = b1;
@@ -534,13 +534,13 @@ double chbevl(double x, double array[], int n)
       b0 = x * b1  -  b2  + *p++;
     }
   while( --i );
-  
+
   return( 0.5*(b0-b2) );
 }
 
-/*							i0.c
+/*              i0.c
  *
- *	Modified Bessel function of order zero
+ *  Modified Bessel function of order zero
  *
  *
  *
@@ -861,7 +861,7 @@ static unsigned short B[] = {
 double nfft_i0(double x)
 {
   double y;
-  
+
   if( x < 0 )
     x = -x;
   if( x <= 8.0 )
@@ -869,8 +869,8 @@ double nfft_i0(double x)
       y = (x/2.0) - 2.0;
       return( exp(x) * chbevl( y, A, 30 ) );
     }
-  
-  return(  exp(x) * chbevl( 32.0/x - 2.0, B, 25 ) / sqrt(x) ); 
+
+  return(  exp(x) * chbevl( 32.0/x - 2.0, B, 25 ) / sqrt(x) );
 }
 
 /** Computes the inner/dot product \f$x^H x\f$.
@@ -927,7 +927,7 @@ double nfft_dot_w_double(double *x, double *w, int n)
 }
 
 
-/** Computes the weighted inner/dot product 
+/** Computes the weighted inner/dot product
     \f$x^H (w\odot w2\odot w2 \odot x)\f$.
  */
 double nfft_dot_w_w2_complex(double complex *x, double *w, double *w2, int n)
@@ -941,7 +941,7 @@ double nfft_dot_w_w2_complex(double complex *x, double *w, double *w2, int n)
   return dot;
 }
 
-/** Computes the weighted inner/dot product 
+/** Computes the weighted inner/dot product
     \f$x^H (w2\odot w2 \odot x)\f$.
  */
 double nfft_dot_w2_complex(double complex *x, double *w2, int n)
@@ -1137,24 +1137,24 @@ void nfft_fftshift_complex(double complex *x, int d, int* N)
   for(d_act=0;d_act<d;d_act++)
     {
       for(d_pre=0, N_pre=1;d_pre<d_act;d_pre++)
-	N_pre*=N[d_pre];
-      
+  N_pre*=N[d_pre];
+
       N_act=N[d_act];
 
       for(d_post=d_act+1, N_post=1;d_post<d;d_post++)
-	N_post*=N[d_post];
+  N_post*=N[d_post];
 
       for(k_pre=0;k_pre<N_pre;k_pre++)
-	for(k_act=0;k_act<N_act/2;k_act++)
-	  for(k_post=0;k_post<N_post;k_post++)
-	    {
-	      k=(k_pre*N_act+k_act)*N_post+k_post;
-	      k_swap=(k_pre*N_act+k_act+N_act/2)*N_post+k_post;
+  for(k_act=0;k_act<N_act/2;k_act++)
+    for(k_post=0;k_post<N_post;k_post++)
+      {
+        k=(k_pre*N_act+k_act)*N_post+k_post;
+        k_swap=(k_pre*N_act+k_act+N_act/2)*N_post+k_post;
 
-	      x_swap=x[k];
-	      x[k]=x[k_swap];
-	      x[k_swap]=x_swap;
-	    }
+        x_swap=x[k];
+        x[k]=x[k_swap];
+        x[k_swap]=x_swap;
+      }
     }
 }
 
@@ -1162,7 +1162,7 @@ double l_1_complex(double complex *x, double complex *y, int n)
 {
   int k;
   double l1;
-  
+
   if(y==NULL)
     for(k=0,l1=0; k<n; k++)
       l1+=cabs(x[k]);
@@ -1194,7 +1194,7 @@ double l_1_double(double *x, double *y, int n)
 double l_2_complex(double complex *x, double complex *y, int n)
 {
   int k;
-  double l22;  
+  double l22;
 
   if(y==NULL)
     for(k=0,l22=0; k<n; k++)
@@ -1202,7 +1202,7 @@ double l_2_complex(double complex *x, double complex *y, int n)
   else
     for(k=0,l22=0; k<n; k++)
       l22+=conj(x[k]-y[k])*(x[k]-y[k]);
-  
+
   return sqrt(l22);
 }
 
@@ -1228,7 +1228,7 @@ double l_infty_complex(double complex *x, double complex *y, int n)
 {
   int k;
   double linfty;
-  
+
   if(y==NULL)
     for(k=0,linfty=0; k<n; k++)
       linfty=((linfty<cabs(x[k]))?cabs(x[k]):linfty);
@@ -1278,7 +1278,7 @@ double nfft_error_l_infty_double(double *x, double *y, int n)
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
 double nfft_error_l_infty_1_complex(double complex *x, double complex *y, int n,
-			       double complex *z, int m)
+             double complex *z, int m)
 {
   return (l_infty_complex(x, y, n)/l_1_complex(z, NULL, m));
 }
@@ -1320,18 +1320,18 @@ void nfft_vpr_int(int *x, int n, char *text)
       printf ("\n %s, adr=%p\n", text, (void*)x);
       for (k=0; k<n; k++)
       {
-	  if (k%8==0) 
-	      printf("%6d.\t", k);
-	  printf("%d,", x[k]);
-	  if (k%8==7) 
-	      printf("\n");
+    if (k%8==0)
+        printf("%6d.\t", k);
+    printf("%d,", x[k]);
+    if (k%8==7)
+        printf("\n");
       }
       if (n%8!=0)
         printf("\n");
   }
   else
       for (k=0; k<n; k++)
-	  printf("%d,\n", x[k]);
+    printf("%d,\n", x[k]);
   fflush(stdout);
 }
 
@@ -1353,18 +1353,18 @@ void nfft_vpr_double(double *x, int n, char *text)
       printf ("\n %s, adr=%p\n", text, (void*)x);
       for (k=0; k<n; k++)
       {
-	  if (k%8==0) 
-	      printf("%6d.\t", k);
-	  printf("%+.1E,", x[k]);
-	  if (k%8==7) 
-	      printf("\n");
+    if (k%8==0)
+        printf("%6d.\t", k);
+    printf("%+.1E,", x[k]);
+    if (k%8==7)
+        printf("\n");
       }
       if (n%8!=0)
         printf("\n");
   }
   else
       for (k=0; k<n; k++)
-	  printf("%+E,\n", x[k]);
+    printf("%+E,\n", x[k]);
   fflush(stdout);
 }
 
@@ -1379,18 +1379,18 @@ void nfft_vpr_complex(double complex *x, int n, char *text)
       printf ("\n %s, adr=%p\n", text, (void*)x);
       for (k=0; k<n; k++)
       {
-	  if (k%4==0) 
-	      printf("%6d.\t", k);
-	  printf("%+.1E%+.1Ei,", creal(x[k]), cimag(x[k]));
-	  if (k%4==3) 
-	      printf("\n");
+    if (k%4==0)
+        printf("%6d.\t", k);
+    printf("%+.1E%+.1Ei,", creal(x[k]), cimag(x[k]));
+    if (k%4==3)
+        printf("\n");
       }
       if (n%4!=0)
         printf("\n");
   }
   else
       for (k=0; k<n; k++)
-	  printf("%+E%+Ei,\n", creal(x[k]), cimag(x[k]));
+    printf("%+E%+Ei,\n", creal(x[k]), cimag(x[k]));
   fflush(stdout);
 }
 
@@ -1410,12 +1410,12 @@ void nfft_vrand_shifted_unit_double(double *x, int n)
     x[k] = ((double)rand())/RAND_MAX - 0.5;
 }
 
-/** Computes non periodic voronoi weights 
+/** Computes non periodic voronoi weights
  *  assumes ordered x_j */
 void nfft_voronoi_weights_1d(double *w, double *x, int M)
 {
   int j;
-  
+
   w[0]=(x[1]-x[0])/2;
   for(j=1;j<M-1;j++)
     w[j]=(x[j+1]-x[j-1])/2;
@@ -1451,15 +1451,15 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   long int lpl;
   long int kv;
   double a;
-  
+
   /* Allocate memory for auxilliary arrays. */
   x = (double*) malloc(M * sizeof(double));
   y = (double*) malloc(M * sizeof(double));
   z = (double*) malloc(M * sizeof(double));
-  
+
   list = (long int*) malloc((6*M-12+1)*sizeof(long int));
   lptr = (long int*) malloc((6*M-12+1)*sizeof(long int));
-  lend = (long int*) malloc((M+1)*sizeof(long int));  
+  lend = (long int*) malloc((M+1)*sizeof(long int));
   near = (long int*) malloc((M+1)*sizeof(long int));
   next = (long int*) malloc((M+1)*sizeof(long int));
   dist = (double*) malloc((M+1)*sizeof(double));
@@ -1470,8 +1470,8 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   zc = (double*) malloc((2*M-4+1)*sizeof(double));
   rc = (double*) malloc((2*M-4+1)*sizeof(double));
   vr = (double*) malloc(3*(2*M-4+1)*sizeof(double));
-  
-  /* Convert from spherical Coordinates in [0,1/2]x[-1/2,1/2) to Cartesian 
+
+  /* Convert from spherical Coordinates in [0,1/2]x[-1/2,1/2) to Cartesian
    * coordinates. */
   for (k = 0; k < M; k++)
   {
@@ -1479,71 +1479,72 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
     y[k] = sin(2.0*PI*xi[2*k+1])*sin(2.0*PI*xi[2*k]);
     z[k] = cos(2.0*PI*xi[2*k+1]);
   }
-  
+
   /* Generate Delaunay triangulation. */
   trmesh_(&Mlocal, x, y, z, list, lptr, lend, &lnew, near, next, dist, &ier);
-  
+
   /* Check error flag. */
   if (ier == 0)
-  {    
+  {
     /* Get Voronoi vertices. */
-    crlist_(&Mlocal, &Mlocal, x, y, z, list, lend, lptr, &lnew, ltri, listc, &nb, xc, 
+    crlist_(&Mlocal, &Mlocal, x, y, z, list, lend, lptr, &lnew, ltri, listc, &nb, xc,
       yc, zc, rc, &ier);
-      
+
     if (ier == 0)
     {
       /* Calcuate sizes of Voronoi regions. */
       for (k = 0; k < M; k++)
       {
         /* Get last neighbour index. */
-        lpl = lend[k];       
+        lpl = lend[k];
         lp = lpl;
-        
-        j = 0;
-        vr[3*j] = x[k]; 
-        vr[3*j+1] = y[k]; 
-        vr[3*j+2] = z[k]; 
 
-        do 
+        j = 0;
+        vr[3*j] = x[k];
+        vr[3*j+1] = y[k];
+        vr[3*j+2] = z[k];
+
+        do
         {
           j++;
           /* Get next neighbour. */
           lp = lptr[lp-1];
           kv = listc[lp-1];
-          vr[3*j] = xc[kv-1]; 
-          vr[3*j+1] = yc[kv-1]; 
-          vr[3*j+2] = zc[kv-1]; 
+          vr[3*j] = xc[kv-1];
+          vr[3*j+1] = yc[kv-1];
+          vr[3*j+2] = zc[kv-1];
           /* fprintf(stderr, "lp = %ld\t", lp); */
         } while (lp != lpl);
-        
+
         a = 0;
         for (el = 0; el < j; el++)
         {
           a += areas_(vr, &vr[3*(el+1)],&vr[3*(((el+1)%j)+1)]);
         }
-        
+
         w[k] = a;
       }
     }
   }
-    
+
   /* Deallocate memory. */
-  free(x); 
-  free(y); 
+  free(x);
+  free(y);
   free(z);
-  
-  free(list); 
-  free(lptr); 
-  free(lend); 
-  free(near); 
-  free(next); 
-  free(dist); 
+
+  free(list);
+  free(lptr);
+  free(lend);
+  free(near);
+  free(next);
+  free(dist);
   free(ltri);
   free(listc);
   free(xc);
   free(yc);
   free(zc);
   free(rc);
+  free(vr);
 }
 
 /** Computes the damping factor for the modified Fejer kernel.
@@ -1566,17 +1567,17 @@ double nfft_modified_jackson2(int N,int kk)
   double result;
   double n=(N/2+1)/2;
   double k;
-  
+
   for(result=0,kj=kk;kj<=kk+1;kj++)
     {
       k=fabs(kj);
       if(k/n<1)
-	result+= 1 - (3.0*k + 6.0*n*pow(k,2) - 3.0*pow(k,3)) 
-	  / (2.0*n*(2.0*pow(n,2)+1.0));
+  result+= 1 - (3.0*k + 6.0*n*pow(k,2) - 3.0*pow(k,3))
+    / (2.0*n*(2.0*pow(n,2)+1.0));
       else
-	result+= (2*n-k)*(pow(2*n-k,2)-1) / (2.0*n*(2.0*pow(n,2)+1.0));
+  result+= (2*n-k)*(pow(2*n-k,2)-1) / (2.0*n*(2.0*pow(n,2)+1.0));
     }
-      
+
   return result;
 }
 
@@ -1589,35 +1590,35 @@ double nfft_modified_jackson4(int N,int kk)
   double n=(N/2+3)/4;
   double k;
   double normalisation=(2416*pow(n,7)+1120*pow(n,5)+784*pow(n,3)+720*n);
-  
+
   for(result=0,kj=kk;kj<=kk+1;kj++)
     {
       k=fabs(kj);
 
       if(k/n<1)
-	result+= 1 - (1260*k + (1680*pow(n,5)+2240*pow(n,3)+2940*n)*pow(k,2) -
-		      1715*pow(k,3) - (560*pow(n,3)+1400*n)*pow(k,4) + 490*
-		      pow(k,5) + 140*n*pow(k,6) - 35*pow(k,7)) / normalisation;
-      
+  result+= 1 - (1260*k + (1680*pow(n,5)+2240*pow(n,3)+2940*n)*pow(k,2) -
+          1715*pow(k,3) - (560*pow(n,3)+1400*n)*pow(k,4) + 490*
+          pow(k,5) + 140*n*pow(k,6) - 35*pow(k,7)) / normalisation;
+
       if((1<=k/n)&&(k/n<2))
-  	result+= ((2472*pow(n,7)+336*pow(n,5)+3528*pow(n,3)-1296*n) - 
-		  (392*pow(n,6)-3920*pow(n,4)+8232*pow(n,2)-756)*k -
-		  (504*pow(n,5)+10080*pow(n,3)-5292*n)*pow(k,2) - 
-		  (1960*pow(n,4)-7840*pow(n,2)+1029)*pow(k,3) +
-		  (2520*pow(n,3)-2520*n)*pow(k,4) - (1176*pow(n,2)-294)*pow(k,5)
-		  + 252*n*pow(k,6) - 21*pow(k,7)) / normalisation;
-      
+    result+= ((2472*pow(n,7)+336*pow(n,5)+3528*pow(n,3)-1296*n) -
+      (392*pow(n,6)-3920*pow(n,4)+8232*pow(n,2)-756)*k -
+      (504*pow(n,5)+10080*pow(n,3)-5292*n)*pow(k,2) -
+      (1960*pow(n,4)-7840*pow(n,2)+1029)*pow(k,3) +
+      (2520*pow(n,3)-2520*n)*pow(k,4) - (1176*pow(n,2)-294)*pow(k,5)
+      + 252*n*pow(k,6) - 21*pow(k,7)) / normalisation;
+
       if((2<=k/n)&&(k/n<3))
- 	result+= (-(1112*pow(n,7)-12880*pow(n,5)+7448*pow(n,3)-720*n) +
-		  (12152*pow(n,6)-27440*pow(n,4)+8232*pow(n,2)-252)*k -
-		  (19320*pow(n,5)-21280*pow(n,3)+2940*n)*pow(k,2) +
-		  (13720*pow(n,4)-7840*pow(n,2)+343)*pow(k,3) -
-		  (5320*pow(n,3)-1400*n)*pow(k,4) + (1176*pow(n,2)-98)*pow(k,5)
-		  - 140*n*pow(k,6) + 7*pow(k,7)) / normalisation;
-      
+   result+= (-(1112*pow(n,7)-12880*pow(n,5)+7448*pow(n,3)-720*n) +
+      (12152*pow(n,6)-27440*pow(n,4)+8232*pow(n,2)-252)*k -
+      (19320*pow(n,5)-21280*pow(n,3)+2940*n)*pow(k,2) +
+      (13720*pow(n,4)-7840*pow(n,2)+343)*pow(k,3) -
+      (5320*pow(n,3)-1400*n)*pow(k,4) + (1176*pow(n,2)-98)*pow(k,5)
+      - 140*n*pow(k,6) + 7*pow(k,7)) / normalisation;
+
       if((3<=k/n)&&(k/n<4))
-	result+= ((4*n-k)*(pow(4*n-k,2)-1)*(pow(4*n-k,2)-4)*(pow(4*n-k,2)-9)) /
-	  normalisation;
+  result+= ((4*n-k)*(pow(4*n-k,2)-1)*(pow(4*n-k,2)-4)*(pow(4*n-k,2)-9)) /
+    normalisation;
     }
 
   return result;
@@ -1629,14 +1630,14 @@ double nfft_modified_sobolev(double mu,int kk)
 {
   double result;
   int kj,k;
-  
+
   for(result=0,kj=kk;kj<=kk+1;kj++)
     {
       k=fabs(kj);
       if(k==0)
-	result+=1;
+  result+=1;
       else
-	result+=pow(k,-2*mu);
+  result+=pow(k,-2*mu);
     }
 
   return result;
@@ -1648,7 +1649,7 @@ double nfft_modified_multiquadric(double mu,double c,int kk)
 {
   double result;
   int kj,k;
-  
+
   for(result=0,kj=kk;kj<=kk+1;kj++)
     {
       k=fabs(kj);
