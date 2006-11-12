@@ -320,7 +320,7 @@ int main (int argc, char **argv)
       {
         for (j = -k; j <= k; j++)
         {
-          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = 1.0 /*temp2[j]*/;
+          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = /*temp2[j]*/;
         }
       }
     }
@@ -345,7 +345,7 @@ int main (int argc, char **argv)
     /* init some guess */
     for (k = 0; k < plan.N_total; k++)
     {
-      iplan.f_hat_iter[k] = 0.0;
+      iplan.f_hat_iter[k] = 1/k;
     }
 
     /* inverse trafo */
