@@ -345,7 +345,7 @@ int main (int argc, char **argv)
     /* init some guess */
     for (k = 0; k < plan.N_total; k++)
     {
-      iplan.f_hat_iter[k] = 1/k;
+      iplan.f_hat_iter[k] = 1/(1.0+k);
     }
 
     /* inverse trafo */
