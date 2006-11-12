@@ -320,7 +320,7 @@ int main (int argc, char **argv)
       {
         for (j = -k; j <= k; j++)
         {
-          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = 1.0/(k+1) /*temp2[j]*/;
+          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = 1.0/((k+1)*(k+1)*(k+1)) /*temp2[j]*/;
         }
       }
     }
