@@ -133,15 +133,15 @@ int main (int argc, char **argv)
     fprintf(stderr,"%d\n",N);
 
     /* Do precomputation. */
-    //nfsft_precompute(N,threshold,
-    //  ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
+    nfsft_precompute(N,threshold,
+      ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
 
     /* Read the number of nodes. */
     fscanf(stdin,"nodes=%d\n",&M);
     fprintf(stderr,"%d\n",M);
 
     /* */
-    /*if ((N+1)*(N+1) > M)
+    if ((N+1)*(N+1) > M)
     {
       nfft_next_power_of_2_exp(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
@@ -243,7 +243,7 @@ int main (int argc, char **argv)
       free(temp);
       //free(temp2);
       //return EXIT_SUCCESS;
-    }*/
+    }
 
     /* Init transform plans. */
     nfsft_init_guru(&plan, N, M,
@@ -254,14 +254,14 @@ int main (int argc, char **argv)
       FFT_OUT_OF_PLACE,
       cutoff);
 
-    /*if ((N+1)*(N+1) > M)
+    if ((N+1)*(N+1) > M)
     {
       infsft_init_advanced (&iplan, &plan, CGNE | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
     }
     else
-    {*/
+    {
       infsft_init_advanced (&iplan, &plan, CGNR | PRECOMPUTE_WEIGHT);
-    /*}*/
+    }
 
     /* Read the nodes and function values. */
     for (j = 0; j < M; j++)
@@ -321,7 +321,7 @@ int main (int argc, char **argv)
     fprintf(stderr,"sum = %le\n",a);
 
     /* Frequency weights. */
-    /*if ((N+1)*(N+1) > M)
+    if ((N+1)*(N+1) > M)
     {
       for (j = 0; j < plan.N_total; j++)
       {
@@ -335,7 +335,7 @@ int main (int argc, char **argv)
           iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = temp2[j];
         }
       }
-    }*/
+    }
 
     fprintf(stderr, "N_total = %d\n", plan.N_total);
     fprintf(stderr, "M_total = %d\n", plan.M_total);
