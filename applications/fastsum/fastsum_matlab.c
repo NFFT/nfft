@@ -109,7 +109,7 @@ int main(int argc, char **argv)
   fid2=fopen("alpha.dat","r");
   for (k=0; k<N; k++)
   {
-    for (t=1; t<d; t++)
+    for (t=0; t<d; t++)
     {
       fscanf(fid1,"%le",&my_fastsum_plan.x[k*d+t]);
     }
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
   fid1=fopen("y.dat","r");
   for (j=0; j<M; j++)
   {
-    for (t=1; t<d; t++)
+    for (t=0; t<d; t++)
     {
       fscanf(fid1,"%le",&my_fastsum_plan.y[j*d+t]);
     }
