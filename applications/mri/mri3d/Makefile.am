@@ -3,7 +3,18 @@ AM_LDFLAGS = -L$(top_srcdir)
 
 applicationdir = $(pkgdatadir)/applications/mri/mri3d
 
-EXTRA_DIST = mri.m README
+EXTRA_DIST = mri.m \
+			construct_knots_linogram.m \
+			construct_knots_radial_3d.m \
+			construct_knots_radial.m \
+			construct_knots_rose.m \
+			construct_knots_spiral.m \
+			construct_phantom.m \
+			precompute_weights_2d.m \
+			rms.m \
+			visualize_data.m \
+			README
+
 application_DATA = $(EXTRA_DIST)
 
 ## The program name

@@ -6,14 +6,15 @@ applicationdir = $(pkgdatadir)/applications/mri/mri2d
 EXTRA_DIST = 	construct_inh.m \
 		construct_readout_time.m \
 		precompute_weights.m \
-		construct_knots_linogram.m
+		construct_knots_linogram.m \
 		mri_inh.m \
-		snr.m \
-		construct_knots_radial.m
+		rms.m \
+		construct_knots_radial.m \
 		mri.m \
 		construct_knots_rose.m \
 		visualize_data.m \
 		construct_knots_spiral.m \
+		phantom.m \
 		README
 
 application_DATA = $(EXTRA_DIST)
