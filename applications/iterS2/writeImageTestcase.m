@@ -1,5 +1,5 @@
 function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,...
-  bandwidth,im)
+  bandwidth,img,itheta,iphi)
 
 % WRITETESTCASE Write a iterS2 testcase definition to a file
 %    WRITETESTCASE(FILE, USENFSFT, USENFFT, CUTOFF, USEFPT, THRESHOLD,
@@ -39,15 +39,36 @@ end
 % Write bandwidth
 fprintf(file,'bandwidth=%d\n',bandwidth);
 
-[m,n] = size(im);
+% Generate Image 
+[m,n] = size(img)
+dtheta = pi/m;
+dphi = 2*pi/n;
+
+if (exist('itheta','var') == false)
+  ts = 1;
+  te = m;
+else
+  ts = itheta(1)
+  te = itheta(2)
+end
+
+if (exist('iphi','var') == false)
+  ps = 1;
+  pe = n;
+else
+  ps = iphi(1)
+  pe = iphi(2)
+end
+
+im = img(ts:te,ps:pe);
 
 r = length(find(im == 0))
 
-theta = ((0:(m-1))+0.5)*pi/m;
-phi = (0:(n-1))*2*pi/n;
+theta = ((ts-0.5):(te-0.5))*dtheta;
+phi = ((ps-1):(pe-1))*dphi;
 
 % Write number of nodes.
-fprintf(file,'nodes=%d\n',(m*n)-r);
+fprintf(file,'nodes=%d\n',((te-ts+1)*(pe-ps+1))-r);
 
 % Write nodes and function values.
 for j=1:length(theta)
@@ -59,8 +80,11 @@ for j=1:length(theta)
   end
 end
 
+theta = ((ts-0.5):0.25:(te-0.5))*dtheta;
+phi = ((ps-1):0.25:(pe-1))*dphi;
+
 % Write number of nodes.
-fprintf(file,'nodes_eval=%d\n',m*n);
+fprintf(file,'nodes_eval=%d\n',length(theta)*length(phi));
 % Write nodes and function values.
 for j=1:length(theta)
   for k=1:length(phi)

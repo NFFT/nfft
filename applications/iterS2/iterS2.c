@@ -256,7 +256,7 @@ int main (int argc, char **argv)
 
     if ((N+1)*(N+1) > M)
     {
-      infsft_init_advanced (&iplan, &plan, CGNE | PRECOMPUTE_DAMP | PRECOMPUTE_WEIGHT);
+      infsft_init_advanced (&iplan, &plan, CGNE | PRECOMPUTE_DAMP);
     }
     else
     {
@@ -312,16 +312,16 @@ int main (int argc, char **argv)
     if ((N+1)*(N+1) > M)
     {
       /* Compute Voronoi weights. */
-      nfft_voronoi_weights_S2(iplan.w, plan.x, M);
+      //nfft_voronoi_weights_S2(iplan.w, plan.x, M);
 
       /* Print out Voronoi weights. */
-      a = 0.0;
+      /*a = 0.0;
       for (j = 0; j < plan.M_total; j++)
       {
         fprintf(stderr,"%le\n",iplan.w[j]);
         a += iplan.w[j];
       }
-      fprintf(stderr,"sum = %le\n",a);
+      fprintf(stderr,"sum = %le\n",a);*/
 
       for (j = 0; j < plan.N_total; j++)
       {
@@ -332,7 +332,7 @@ int main (int argc, char **argv)
       {
         for (j = -k; j <= k; j++)
         {
-          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = 1.0/(pow(k+1.0,1.5)); /*temp2[j]*/;
+          iplan.w_hat[NFSFT_INDEX(k,j,&plan)] = 1.0/(pow(k+1.0,2.0)); /*temp2[j]*/;
         }
       }
     }
@@ -381,7 +381,7 @@ int main (int argc, char **argv)
       printf("%le %le\n",creal(iplan.r_iter[k]),cimag(iplan.r_iter[k]));
     }*/
 
-    for (m = 0; m < 20; m++)
+    for (m = 0; m < 30; m++)
     {
       fprintf(stderr,"Residual ||r||=%e,\n",sqrt(iplan.dot_r_iter));
       infsft_loop_one_step(&iplan);
