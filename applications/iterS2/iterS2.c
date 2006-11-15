@@ -381,7 +381,7 @@ int main (int argc, char **argv)
       printf("%le %le\n",creal(iplan.r_iter[k]),cimag(iplan.r_iter[k]));
     }*/
 
-    for (m = 0; m < 30; m++)
+    for (m = 0; m < 29; m++)
     {
       fprintf(stderr,"Residual ||r||=%e,\n",sqrt(iplan.dot_r_iter));
       infsft_loop_one_step(&iplan);

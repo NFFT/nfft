@@ -116,7 +116,7 @@ void nfft_next_power_of_2_exp(int N, int *N2, int *t)
   if (N == 0)
   {
     *N2 = 1;
-    t = 0;
+    *t = 0;
   }
   else
   {
