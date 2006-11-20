@@ -96,7 +96,7 @@ complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
 
   (void)param;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=log(fabs(x)); break;
@@ -129,7 +129,7 @@ complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^
 
   (void)param;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=x*x*log(fabs(x)); break;
@@ -157,7 +157,7 @@ complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x
 
   (void)param;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=1.0/(x*x); break;
@@ -185,7 +185,7 @@ complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/
 
   (void)param;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=1.0/fabs(x); break;
@@ -213,7 +213,7 @@ complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
 
   (void)param;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=1.0/x; break;
@@ -266,7 +266,7 @@ complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)
   double c=param[0];
   double value=0.0;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=sin(c*x)/x; break;
@@ -297,7 +297,7 @@ complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
   if (x<0) sign=-1.0; else sign=1.0;
   x=fabs(x);
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value=cos(c*x)/x; break;
@@ -325,7 +325,7 @@ complex cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
   double c=param[0];
   double value=0.0;
 
-  if (fabs(x)<DBL_MIN) value=0.0;
+  if (fabs(x)<DBL_EPSILON) value=0.0;
   else switch (der)
   {
     case  0 : value = 1.0/tan(c * x); break;
