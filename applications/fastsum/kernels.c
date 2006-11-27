@@ -12,7 +12,7 @@
  * \{
  */
 
-double complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
+complex double gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -38,7 +38,7 @@ double complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-
   return value;
 }
 
-double complex multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
+complex double multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -64,7 +64,7 @@ double complex multiquadric(double x, int der, const double *param)    /* K(x)=s
   return value;
 }
 
-double complex inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
+complex double inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -90,7 +90,7 @@ double complex inverse_multiquadric(double x, int der, const double *param)    /
   return value;
 }
 
-double complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
+complex double logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
 {
   double value=0.0;
 
@@ -123,7 +123,7 @@ double complex logarithm(double x, int der, const double *param)    /* K(x)=log 
   return value;
 }
 
-double complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
+complex double thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
 {
   double value=0.0;
 
@@ -151,7 +151,7 @@ double complex thinplate_spline(double x, int der, const double *param)    /* K(
   return value;
 }
 
-double complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
+complex double one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
 {
   double value=0.0;
 
@@ -179,7 +179,7 @@ double complex one_over_square(double x, int der, const double *param)    /* K(x
   return value;
 }
 
-double complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
+complex double one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
 {
   double value=0.0;
 
@@ -207,7 +207,7 @@ double complex one_over_modulus(double x, int der, const double *param)    /* K(
   return value;
 }
 
-double complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
+complex double one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
 {
   double value=0.0;
 
@@ -235,7 +235,7 @@ double complex one_over_x(double x, int der, const double *param)    /* K(x) = 1
   return value;
 }
 
-double complex inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
+complex double inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
 {
   double c=param[0];
   double value=0.0;
@@ -261,7 +261,7 @@ double complex inverse_multiquadric3(double x, int der, const double *param)    
   return value;
 }
 
-double complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
+complex double sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -288,7 +288,7 @@ double complex sinc_kernel(double x, int der, const double *param)    /* K(x) = 
   return value;
 }
 
-double complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
+complex double cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -320,7 +320,7 @@ double complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)
   return value;
 }
 
-double complex cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
+complex double cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
 {
   double c=param[0];
   double value=0.0;

@@ -30,10 +30,10 @@ int main(int argc, char **argv)
   int m;                                             /**< cut-off parameter       */
   int p;                                             /**< degree of smoothness    */
   char *s;                                           /**< name of kernel          */
-  double complex (*kernel)(double , int , const double *);  /**< kernel function         */
+  complex double (*kernel)(double , int , const double *);  /**< kernel function         */
   double c;                                          /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan;                      /**< plan for fast summation */
-  double complex *direct;                                   /**< array for direct computation */
+  complex double *direct;                                   /**< array for direct computation */
   double time;                                       /**< for time measurement    */
   double error=0.0;                                  /**< for error computation   */
   double eps_I;                                      /**< inner boundary          */
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
   printf("%fsec\n",time);
 
   /** copy result */
-  direct = (double complex *)malloc(my_fastsum_plan.M_total*(sizeof(double complex)));
+  direct = (complex double *)malloc(my_fastsum_plan.M_total*(sizeof(complex double)));
   for (j=0; j<my_fastsum_plan.M_total; j++)
     direct[j]=my_fastsum_plan.f[j];
 
