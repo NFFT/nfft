@@ -44,7 +44,7 @@ double BasisPoly(int m, int r, double xx)
 }
 
 /** regularized kernel with K_I arbitrary and K_B smooth to zero */
-double regkern(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double regkern(double complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
   double sum=0.0;
@@ -90,7 +90,7 @@ double regkern(complex (*kernel)(double , int , const double *), double xx, int 
 /** regularized kernel with K_I arbitrary and K_B periodized
  *  (used in 1D)
  */
-double regkern1(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double regkern1(double complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
   double sum=0.0;
@@ -134,7 +134,7 @@ double regkern1(complex (*kernel)(double , int , const double *), double xx, int
 }
 
 /** regularized kernel for even kernels with K_I even and K_B mirrored */
-double regkern2(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double regkern2(double complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
   double sum=0.0;
@@ -171,7 +171,7 @@ double regkern2(complex (*kernel)(double , int , const double *), double xx, int
 /** regularized kernel for even kernels with K_I even
  *  and K_B mirrored smooth to K(1/2) (used in dD, d>1)
  */
-double regkern3(complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double regkern3(double complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
   double sum=0.0;
@@ -251,7 +251,7 @@ double kubintkern1(double x, double *Add, int Ad, double a)
 }
 
 /** quicksort algorithm for source knots and associated coefficients */
-void quicksort(int d, int t, double *x, complex *alpha, int N)
+void quicksort(int d, int t, double *x, double complex *alpha, int N)
 {
   int lpos=0;
   int rpos=N-1;
@@ -260,7 +260,7 @@ void quicksort(int d, int t, double *x, complex *alpha, int N)
 
   int k;
   double temp1;
-  complex temp2;
+  double complex temp2;
 
   while (lpos<=rpos)
   {
@@ -291,7 +291,7 @@ void quicksort(int d, int t, double *x, complex *alpha, int N)
 }
 
 /** recursive sort of source knots dimension by dimension to get tree structure */
-void BuildTree(int d, int t, double *x, complex *alpha, int N)
+void BuildTree(int d, int t, double *x, double complex *alpha, int N)
 {
   if (N>1)
   {
@@ -305,7 +305,7 @@ void BuildTree(int d, int t, double *x, complex *alpha, int N)
 }
 
 /** fast search in tree of source knots for near field computation*/
-complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double *xmax, int N, complex (*kernel)(double , int , const double *), const double *param, int Ad, double *Add, int p, unsigned flags)
+double complex SearchTree(int d, int t, double *x, double complex *alpha, double *xmin, double *xmax, int N, double complex (*kernel)(double , int , const double *), const double *param, int Ad, double *Add, int p, unsigned flags)
 {
   int m=N/2;
   double Min=xmin[t], Max=xmax[t], Median=x[m*d+t];
@@ -313,7 +313,7 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
   int l;
   int E=0;
   double r;
-  complex result=0.0;
+  double complex result=0.0;
 
   if (N==0)
     return 0.0;
@@ -367,7 +367,7 @@ complex SearchTree(int d, int t, double *x, complex *alpha, double *xmin, double
 }
 
 /** initialization of fastsum plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B)
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, double complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B)
 {
   int t;
   int N[d], n[d];
@@ -379,10 +379,10 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, compl
   ths->M_total = M_total;
 
   ths->x = (double *)malloc(d*N_total*(sizeof(double)));
-  ths->alpha = (complex *)malloc(N_total*(sizeof(complex)));
+  ths->alpha = (double complex *)malloc(N_total*(sizeof(double complex)));
 
   ths->y = (double *)malloc(d*M_total*(sizeof(double)));
-  ths->f = (complex *)malloc(M_total*(sizeof(complex)));
+  ths->f = (double complex *)malloc(M_total*(sizeof(double complex)));
 
   ths->kernel = kernel;
   ths->kernel_param = param;

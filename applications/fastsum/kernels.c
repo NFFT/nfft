@@ -12,7 +12,7 @@
  * \{
  */
 
-complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
+double complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -38,7 +38,7 @@ complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2
   return value;
 }
 
-complex multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
+double complex multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -64,7 +64,7 @@ complex multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2
   return value;
 }
 
-complex inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
+double complex inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -90,7 +90,7 @@ complex inverse_multiquadric(double x, int der, const double *param)    /* K(x)=
   return value;
 }
 
-complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
+double complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
 {
   double value=0.0;
 
@@ -123,7 +123,7 @@ complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
   return value;
 }
 
-complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
+double complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
 {
   double value=0.0;
 
@@ -151,7 +151,7 @@ complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^
   return value;
 }
 
-complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
+double complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
 {
   double value=0.0;
 
@@ -179,7 +179,7 @@ complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x
   return value;
 }
 
-complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
+double complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
 {
   double value=0.0;
 
@@ -207,7 +207,7 @@ complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/
   return value;
 }
 
-complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
+double complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
 {
   double value=0.0;
 
@@ -235,7 +235,7 @@ complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
   return value;
 }
 
-complex inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
+double complex inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
 {
   double c=param[0];
   double value=0.0;
@@ -261,7 +261,7 @@ complex inverse_multiquadric3(double x, int der, const double *param)    /* K(x)
   return value;
 }
 
-complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
+double complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -288,7 +288,7 @@ complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)
   return value;
 }
 
-complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
+double complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -320,7 +320,7 @@ complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
   return value;
 }
 
-complex cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
+double complex cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
 {
   double c=param[0];
   double value=0.0;
