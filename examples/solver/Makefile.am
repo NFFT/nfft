@@ -14,5 +14,5 @@ glacier_SOURCES = glacier.c
 glacier_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
 
 ## Include these extra files in the distribution.
-EXTRA_DIST = glacier.m vol87.dat README
+EXTRA_DIST = glacier.m glacier_cv.m vol87.dat README
 example_DATA = $(EXTRA_DIST)

@@ -11,6 +11,7 @@ List of files and purpose
                     the nfft
   glacier.c         reconstruction of a glacier from sampled level curves
   glacier.m         visualisation with MATLAB, calls the executable glacier
+  glacier_cv.m      cross validation test for the glacier reconstruction
   vol87.dat         data set, see http://www.math.nps.navy.mil/~rfranke/README
   
 References
