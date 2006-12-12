@@ -21,6 +21,7 @@ complex double inverse_multiquadric3(double x, int der, const double *param); /*
 complex double sinc_kernel(double x, int der, const double *param);           /* K(x) = sin(cx)/x */
 complex double cosc(double x, int der, const double *param);                  /* K(x) = cos(cx)/x */
 complex double cot(double x, int der, const double *param);                   /* K(x) = cot(cx) */
+complex one_over_cube(double x, int der, const double *param);                /* K(x) = 1/x^3 */
 /* \} */
 
 #endif

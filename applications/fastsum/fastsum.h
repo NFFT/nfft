@@ -118,5 +118,10 @@ void fastsum_precompute(fastsum_plan *ths);
 void fastsum_trafo(fastsum_plan *ths);
 /* \} */
 
+double regkern(complex (*kernel)(), double xx, int p, const double *param, double a, double b);
+
+/** cubic spline interpolation in near field with even kernels */
+double kubintkern(double x, double *Add, int Ad, double a);
+
 #endif
 /* fastsum.h */

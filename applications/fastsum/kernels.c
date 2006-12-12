@@ -347,6 +347,34 @@ complex double cot(double x, int der, const double *param)   /* K(x) = cot(cx) *
   return value;
 }
 
+
+complex one_over_cube(double x, int der, const double *param)
+{
+  double value=0.0;
+
+  if (fabs(x)<DBL_EPSILON) value=0.0;
+  else switch (der)
+  {
+    case  0 : value = 1.0/(x*x*x); break;
+    case  1 : value = -3.0/(x*x*x*x); break;
+    case  2 : value = 12.0/(x*x*x*x*x); break;
+    case  3 : value = -60.0/(x*x*x*x*x*x); break;
+    case  4 : value = 360.0/(x*x*x*x*x*x*x); break;
+    case  5 : value = -2520.0/(x*x*x*x*x*x*x*x); break;
+    case  6 : value = 20160.0/pow(x, 9.0); break;
+    case  7 : value = -181440.0/pow(x, 10.0); break;
+    case  8 : value = 1814400.0/pow(x, 11.0); break;
+    case  9 : value = -19958400.0/pow(x, 12.0); break;
+    case  10 : value = 239500800.0/pow(x, 13.0); break;
+    case  11 : value = -3113510400.0/pow(x, 14.0); break;
+    case  12 : value = 43589145600.0/pow(x, 15.0); break;
+    default : value=0.0;
+  }
+
+  return value;
+}
+
+
 /* \} */
 
 /* kernels.c */
