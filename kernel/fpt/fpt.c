@@ -406,8 +406,8 @@ void eval_clenshaw(const double *x, double *y, int size, int k, const double *al
   }
 }
 
-int eval_clenshaw_thresh(const double *x, double *y, int size, int k, 
-  const double *alpha, const double *beta, const double *gamma, const 
+int eval_clenshaw_thresh(const double *x, double *y, int size, int k,
+  const double *alpha, const double *beta, const double *gamma, const
   double threshold)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
@@ -732,6 +732,10 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   int clength_1;
   int clength_2;
   int t_stab, N_stab;
+  int ell;
+
+  //fprintf(stderr,"fpt_precompute: Precomputing for m = %d\n",m);
+  //fprintf(stderr,"fpt_precompute: k_start = %d\n",k_start);
 
   fpt_data *data;
 
@@ -886,6 +890,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
         else
         {
           /* Stabilize. */
+          //fprintf(stderr,"fpt_precompute: Stabilizing for tau = %d, l = %d\n",tau,l);
           degree_stab = degree*(2*l+1);
           nfft_next_power_of_2_exp((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
           /*fprintf(stderr,"(l+1)*(1<<(tau+2)) = %d, N_stab = %d, t_stab = %d\n",
@@ -905,20 +910,28 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
           plength_stab = N_stab;
 
-          if (m <= 1)
+          if (set->flags & FPT_AL_SYMMETRY)
           {
-            clength_1 = plength_stab/2;
-            clength_2 = plength_stab/2;
-          }
-          else if (m%2 == 0)
-          {
-            clength_1 = plength_stab/2;
-            clength_2 = plength_stab;
+            if (m <= 1)
+            {
+              clength_1 = plength_stab/2;
+              clength_2 = plength_stab/2;
+            }
+            else if (m%2 == 0)
+            {
+              clength_1 = plength_stab/2;
+              clength_2 = plength_stab;
+            }
+            else
+            {
+              clength_1 = plength_stab;
+              clength_2 = plength_stab/2;
+            }
           }
           else
           {
             clength_1 = plength_stab;
-            clength_2 = plength_stab/2;
+            clength_2 = plength_stab;
           }
 
 
@@ -1080,14 +1093,14 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
 
   double complex *work_ptr;
   const double complex *x_ptr;
-  
+
   /* Check, if slow transformation should be used due to small bandwidth. */
   if (k_end < FPT_BREAK_EVEN)
   {
     /* Use NDSFT. */
     dpt_trafo(set, m, x, y, k_end, flags);
   }
-  
+
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
@@ -1225,20 +1238,29 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
         memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(double complex));
 
         /* Multiply third and fourth polynomial with matrix U. */
-        if (m <= 1)
+        /* Check for symmetry. */
+        if (set->flags & FPT_AL_SYMMETRY)
         {
-          fpt_do_step_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
-        }
-        else if (m%2 == 0)
-        {
-          fpt_do_step_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          if (m <= 1)
+          {
+            fpt_do_step_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
+          else if (m%2 == 0)
+          {
+            fpt_do_step_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
+          else
+          {
+            fpt_do_step_symmetric_l(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
         }
         else
         {
-          fpt_do_step_symmetric_l(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+            fpt_do_step(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
         }
 
         if (step->gamma[0] != 0.0)
@@ -1303,7 +1325,7 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
 }
 
-void dpt_transposed(fpt_set set, const int m, double complex *x, 
+void dpt_transposed(fpt_set set, const int m, double complex *x,
   double complex *y, const int k_end, const unsigned int flags)
 {
   int j;
@@ -1355,7 +1377,7 @@ void dpt_transposed(fpt_set set, const int m, double complex *x,
   }
 }
 
-void fpt_transposed(fpt_set set, const int m, double complex *x, 
+void fpt_transposed(fpt_set set, const int m, double complex *x,
   const double complex *y, const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
@@ -1503,20 +1525,28 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
         memcpy(set->vec4,&(set->result[Nk]),plength_stab*sizeof(double complex));
 
         /* Multiply third and fourth polynomial with matrix U. */
-        if (m <= 1)
+        if (set->flags & FPT_AL_SYMMETRY)
         {
-          fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
-        }
-        else if (m%2 == 0)
-        {
-          fpt_do_step_transposed_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          if (m <= 1)
+          {
+            fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
+          else if (m%2 == 0)
+          {
+            fpt_do_step_transposed_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
+          else
+          {
+            fpt_do_step_transposed_symmetric_l(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+          }
         }
         else
         {
-          fpt_do_step_transposed_symmetric_l(set->vec3, set->vec4, step->a11[0], step->a12[0],
-            step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
+            fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0],
+              step->a21[0], step->a22[0], step->gamma[0], t_stab-1, set);
         }
 
         memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(double complex));
