@@ -9,6 +9,7 @@ Jens Keiner <keiner@math.uni-luebeck.de>
  - fast polynomial transform (/kernel/fpt)
  - nfft on the sphere (/kernel/nfsft)
  - fast summation on the sphere (/applications/fastsumS2)
+ - autotools, doxygen and friends
 
 Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
  - nfft (/kernel/nfft)

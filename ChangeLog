@@ -1,1 +1,4 @@
 So far, we do not provide a full version history here. Compared to its predecessor, NFFT2, the NFFT3 library has seen major extensions and improvements. 
+
+Changes in version 3.0.2:
+  - Fixed a bug in the fpt module that lead to wrong output.
