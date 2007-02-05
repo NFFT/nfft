@@ -4,15 +4,15 @@ A note on the iterative MRI reconstruction from nonuniform k-space data
  
 by Tobias Knopp, Stefan Kunis and Daniel Potts
 Available from:
-http://www.mathematik.tu-chemnitz.de/~potts
+http://www.tu-chemnitz.de/~potts
 
 see also: 
-http://www.mathematik.tu-chemnitz.de/~potts/projecte/projekt_mri.php
-http://www.mathematik.tu-chemnitz.de/~potts/projecte/ijbi
+http://www.tu-chemnitz.de/~potts/projecte/projekt_mri.php
+http://www.tu-chemnitz.de/~potts/projecte/ijbi
 
 --------------------------------------------------------------------
 
 Open MATLAB and run the script file mri.m. 
 mri.m is an example for the usage of the programs.
 
-For questions mail us: tobias.knopp@informatik.uni-luebeck.de obias.knopp@informatik.uni-luebeck.de 
+For questions mail us: tobias.knopp@informatik.uni-luebeck.de 
