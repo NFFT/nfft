@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(NFFT, 3.0.2, potts@mathematik.tu-chemnitz.de)
+AC_INIT(NFFT, 3.0.3, potts@mathematik.tu-chemnitz.de)
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
 # Set configure source directory
