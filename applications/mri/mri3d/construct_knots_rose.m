@@ -1,4 +1,6 @@
 function [M] = construct_knots_rose( N,Z )
+
+N=ceil(1.5*N);  
 B=1;
 M=N^2*Z;
 file = zeros(M,3);

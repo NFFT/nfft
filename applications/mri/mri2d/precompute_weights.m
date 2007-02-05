@@ -8,7 +8,7 @@ ky = input(1:M,2);
 kxy=[kx ky];
 
 % compute the voronoi regions
-[V,C] = voronoin(kxy);
+[V,C] = voronoin(kxy,{'QJ'});
 
 % the surface of the knots is written to area
 area = [];
