@@ -1,6 +1,9 @@
-AM_CFLAGS = -I$(top_srcdir)/include 
+AM_CFLAGS = -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libsolver.la
 
-libsolver_la_SOURCES = solver.c 
+libsolver_la_SOURCES = solver.c
+if WITH_DEVCODE
+  nodist_libsolver_la_SOURCES = solver_adjoint.c
+endif
 
