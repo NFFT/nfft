@@ -596,7 +596,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   int k;
 
   /* Allocate memory for new DPT set. */
-  fpt_set_s *set = (fpt_set_s*)malloc(sizeof(fpt_set_s));
+  fpt_set_s *set = (fpt_set_s*)nfft_malloc(sizeof(fpt_set_s));
 
   /* Save parameters in structure. */
   set->flags = flags;
@@ -608,7 +608,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->N = 1<<t;
 
   /* Allocate memory for L transforms. */
-  set->dpt = (fpt_data*) malloc((M+1)*sizeof(fpt_data));
+  set->dpt = (fpt_data*) nfft_malloc((M+1)*sizeof(fpt_data));
 
   /* Initialize with NULL pointer. */
   for (m = 0; m <= set->M; m++)
@@ -624,14 +624,14 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
 
   /* Allocate memory for array of pointers to node arrays. */
-  set->xcvecs = (double**) malloc((set->t/*-1*/)*sizeof(double*));
+  set->xcvecs = (double**) nfft_malloc((set->t/*-1*/)*sizeof(double*));
   /* For each polynomial length starting with 4, compute the Chebyshev nodes
    * using a DCT-III. */
   plength = 4;
   for (tau = 1; tau < /*t*/t+1; tau++)
   {
     /* Allocate memory for current array. */
-    set->xcvecs[tau-1] = (double*) malloc(plength*sizeof(double));
+    set->xcvecs[tau-1] = (double*) nfft_malloc(plength*sizeof(double));
     for (k = 0; k < plength; k++)
     {
       set->xcvecs[tau-1][k] = cos(((k+0.5)*PI)/plength);
@@ -640,8 +640,8 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   }
 
   /** Allocate memory for auxilliary arrays. */
-  set->work = (double complex*) malloc((2*set->N)*sizeof(double complex));
-  set->result = (double complex*) malloc((2*set->N)*sizeof(double complex));
+  set->work = (double complex*) nfft_malloc((2*set->N)*sizeof(double complex));
+  set->result = (double complex*) nfft_malloc((2*set->N)*sizeof(double complex));
 
   /* Check if fast transform is activated. */
   if (set->flags & FPT_NO_FAST_ALGORITHM)
@@ -650,20 +650,20 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   else
   {
     /** Allocate memory for auxilliary arrays. */
-    set->vec3 = (double complex*) malloc(set->N*sizeof(double complex));
-    set->vec4 = (double complex*) malloc(set->N*sizeof(double complex));
-    set->z = (double complex*) malloc(set->N*sizeof(double complex));
+    set->vec3 = (double complex*) nfft_malloc(set->N*sizeof(double complex));
+    set->vec4 = (double complex*) nfft_malloc(set->N*sizeof(double complex));
+    set->z = (double complex*) nfft_malloc(set->N*sizeof(double complex));
 
     /** Initialize FFTW plans. */
-    set->plans_dct3 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
-    set->plans_dct2 = (fftw_plan*) fftw_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
-    set->kinds      = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    set->plans_dct3 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
+    set->plans_dct2 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
+    set->kinds      = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
     set->kinds[0]   = FFTW_REDFT01;
     set->kinds[1]   = FFTW_REDFT01;
-    set->kindsr     = (fftw_r2r_kind*) malloc(2*sizeof(fftw_r2r_kind));
+    set->kindsr     = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
     set->kindsr[0]  = FFTW_REDFT10;
     set->kindsr[1]  = FFTW_REDFT10;
-    set->lengths    = (int*) malloc((set->t/*-1*/)*sizeof(int));
+    set->lengths    = (int*) nfft_malloc((set->t/*-1*/)*sizeof(int));
     for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
     {
       set->lengths[tau] = plength;
@@ -689,7 +689,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   }
   else
   {
-    set->xc_slow = (double*) malloc((set->N+1)*sizeof(double));
+    set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
     set->temp = (double complex*) calloc((set->N+1),sizeof(double complex));
   }
 
@@ -761,9 +761,9 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   else
   {
     /* Save recursion coefficients. */
-    data->alphaN = (double*) malloc((set->t-1)*sizeof(double complex));
-    data->betaN = (double*) malloc((set->t-1)*sizeof(double complex));
-    data->gammaN = (double*) malloc((set->t-1)*sizeof(double complex));
+    data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
+    data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
+    data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
 
     for (tau = 2; tau <= set->t; tau++)
     {
@@ -782,7 +782,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     N_tilde = N_TILDE(set->N);
 
     /* Allocate memory for the cascade with t = log_2(N) many levels. */
-    data->steps = (fpt_step**) malloc(sizeof(fpt_step*)*set->t);
+    data->steps = (fpt_step**) nfft_malloc(sizeof(fpt_step*)*set->t);
 
     /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
     plength = 4;
@@ -797,7 +797,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
       /* Allocate memory for current level. This level will contain 2^{t-tau-1}
        * many matrices. */
-      data->steps[tau] = (fpt_step*) fftw_malloc(sizeof(fpt_step)
+      data->steps[tau] = (fpt_step*) nfft_malloc(sizeof(fpt_step)
                          * (lastl+1));
 
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
@@ -815,10 +815,10 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
         }
 
         /* Allocate memory for the components of U_{n,tau,l}. */
-        a11 = (double*) fftw_malloc(sizeof(double)*clength);
-        a12 = (double*) fftw_malloc(sizeof(double)*clength);
-        a21 = (double*) fftw_malloc(sizeof(double)*clength);
-        a22 = (double*) fftw_malloc(sizeof(double)*clength);
+        a11 = (double*) nfft_malloc(sizeof(double)*clength);
+        a12 = (double*) nfft_malloc(sizeof(double)*clength);
+        a21 = (double*) nfft_malloc(sizeof(double)*clength);
+        a22 = (double*) nfft_malloc(sizeof(double)*clength);
 
         /* Evaluate the associated polynomials at the 2^{tau+1} Chebyshev
          * nodes. */
@@ -874,11 +874,11 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
         /* Check if stabilization needed. */
         if (needstab == 0)
         {
-          data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double));
+          data->steps[tau][l].a11 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a12 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a21 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a22 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].gamma = (double*) nfft_malloc(sizeof(double));
           /* No stabilization needed. */
           data->steps[tau][l].a11[0] = a11;
           data->steps[tau][l].a12[0] = a12;
@@ -902,11 +902,11 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
           fftw_free(a21);
           fftw_free(a22);
 
-          data->steps[tau][l].a11 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a12 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a21 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].a22 = (double**) fftw_malloc(sizeof(double*));
-          data->steps[tau][l].gamma = (double*) fftw_malloc(sizeof(double));
+          data->steps[tau][l].a11 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a12 = (double**)nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a21 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].a22 = (double**) nfft_malloc(sizeof(double*));
+          data->steps[tau][l].gamma = (double*) nfft_malloc(sizeof(double));
 
           plength_stab = N_stab;
 
@@ -936,10 +936,10 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
 
           /* Allocate memory for arrays. */
-          a11 = (double*) fftw_malloc(sizeof(double)*clength_1);
-          a12 = (double*) fftw_malloc(sizeof(double)*clength_1);
-          a21 = (double*) fftw_malloc(sizeof(double)*clength_2);
-          a22 = (double*) fftw_malloc(sizeof(double)*clength_2);
+          a11 = (double*) nfft_malloc(sizeof(double)*clength_1);
+          a12 = (double*) nfft_malloc(sizeof(double)*clength_1);
+          a21 = (double*) nfft_malloc(sizeof(double)*clength_2);
+          a22 = (double*) nfft_malloc(sizeof(double)*clength_2);
 
           /* Get the pointers to the three-term recurrence coeffcients. */
           calpha = &(alpha[2]);
@@ -990,9 +990,9 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     }
     else
     {
-      data->alpha = (double*) malloc((set->N+1)*sizeof(double));
-      data->beta = (double*) malloc((set->N+1)*sizeof(double));
-      data->gamma = (double*) malloc((set->N+1)*sizeof(double));
+      data->alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      data->beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      data->gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
       memcpy(data->alpha,alpha,(set->N+1)*sizeof(double));
       memcpy(data->beta,beta,(set->N+1)*sizeof(double));
       memcpy(data->gamma,gamma,(set->N+1)*sizeof(double));

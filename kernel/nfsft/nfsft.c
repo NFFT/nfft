@@ -1,3 +1,22 @@
+/* $Id$
+ *
+ * Copyright (c) 2003, 2004 Stefan Kunis, 2005, 2006, 2007 Jens Keiner
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /**
  * \file nfsft.c
  * \brief Implementation file for the NFSFT module
@@ -291,8 +310,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
   else
   {
-      nfft_size = (int*)malloc(2*sizeof(int));
-      fftw_size = (int*)malloc(2*sizeof(int));
+      nfft_size = (int*)nfft_malloc(2*sizeof(int));
+      fftw_size = (int*)nfft_malloc(2*sizeof(int));
 
       /** \todo Replace 4*plan->N by next_power_of_2(2*this->n). */
       nfft_size[0] = 2*plan->N+2;
@@ -351,11 +370,11 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   else
   {
     /* Allocate memory for three-term recursion coefficients. */
-    wisdom.alpha = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));
-    wisdom.beta = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));
-    wisdom.gamma = (double*) malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
+    wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
       sizeof(double));
     /** \todo Change to functions which compute only for fixed order n. */
     /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
@@ -392,9 +411,9 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     else
     {
     /* Allocate memory for three-term recursion coefficients. */
-      wisdom.alpha = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.beta = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.gamma = (double*) malloc((wisdom.N_MAX+2)*sizeof(double));
+      wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.set = fpt_init(wisdom.N_MAX, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)

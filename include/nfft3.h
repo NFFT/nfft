@@ -10,6 +10,19 @@
 /** Include header for FFTW3 library. */
 #include <fftw3.h>
 
+/* Malloc and free functions */
+extern void *nfft_malloc(size_t n);
+extern void nfft_free(void *p);
+extern void nfft_die(const char *s);
+
+/* Malloc and free hooks */
+typedef void *(*nfft_malloc_type_function) (size_t n);
+typedef void  (*nfft_free_type_function) (void *p);
+typedef void  (*nfft_die_type_function) (const char *errString);
+extern nfft_malloc_type_function nfft_malloc_hook;
+extern nfft_free_type_function nfft_free_hook;
+extern nfft_die_type_function nfft_die_hook;
+
 /** Macros for public members inherited by all plan structures. */
 #define MACRO_MV_PLAN(float_type)                                             \
   int N_total;                          /**< Total number of Fourier          \
