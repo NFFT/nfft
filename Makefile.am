@@ -1,15 +1,23 @@
+# $Id$
+
 # Subdirectories
 DIST_SUBDIRS= 3rdparty include util kernel . examples applications
 
-if WITH_DEVCODE 
+if WITH_DEVCODE
   EXTRA_DIRS= tests
 else
-  EXTRA_DIRS=   
-endif 
+  EXTRA_DIRS=
+endif
 
-SUBDIRS= $(DIST_SUBDIRS) $(EXTRA_DIRS)
+if HAVE_MATLAB
+  MATLAB_DIRS= matlab
+else
+  MATLAB_DIRS=
+endif
 
-lib_LTLIBRARIES = libnfft3.la      
+SUBDIRS= $(DIST_SUBDIRS) $(EXTRA_DIRS) $(MATLAB_DIRS)
+
+lib_LTLIBRARIES = libnfft3.la
 
 libnfft3_la_SOURCES =
 
@@ -49,4 +57,3 @@ dist-hook:
 	rm -Rf $(distdir)/doxygen
 	rm -Rf $(distdir)/VERSION.in
 	cp VERSION $(distdir)
-	

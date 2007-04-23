@@ -1,3 +1,22 @@
+/* $Id$
+ *
+ * Copyright (c) 2007 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /*! \file nfft3.h
  *  \brief Header file for the nfft3 library.
  */
@@ -118,7 +137,7 @@ extern nfft_die_type_function nfft_die_hook;
  * table of equispaced samples of the window function instead of exact values
  * of the window function.
  * At the moment a table of size \f$(K+1)d\f$ is used, where
- * \f$K=2^{10}(m+1)\f$. 
+ * \f$K=2^{10}(m+1)\f$.
  * An estimate for the size of the lookup table with respect to the target
  * accuracy should be implemented.
  *
@@ -269,7 +288,7 @@ typedef struct
 					     PRE_PHI_HUT| PRE_PSI|
 					     MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 					     FFTW_INIT| FFT_OUT_OF_PLACE     */
-					
+
   unsigned fftw_flags;                  /**< Flags for the FFTW, default is
 					     FFTW_ESTIMATE| FFTW_DESTROY_INPUT
 					                                     */
@@ -2158,7 +2177,7 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
  * \arg k_end
  * \arg flags
  */
-void dpt_transposed(fpt_set set, const int m, double complex *x, 
+void dpt_transposed(fpt_set set, const int m, double complex *x,
   double complex *y, const int k_end, const unsigned int flags);
 
 /**
@@ -2171,7 +2190,7 @@ void dpt_transposed(fpt_set set, const int m, double complex *x,
  * \arg k_end
  * \arg flags
  */
-void fpt_transposed(fpt_set set, const int m, double complex *x, 
+void fpt_transposed(fpt_set set, const int m, double complex *x,
   const double complex *y, const int k_end, const unsigned int flags);
 
 void fpt_finalize(fpt_set set);
@@ -2249,7 +2268,7 @@ void fpt_finalize(fpt_set set);
 
 /**
  * Complete macro for mangling an inverse transform.
- * 
+ *
  * \arg MV Matrix vector multiplication type (eg nfft, nfct)
  * \arg FLT Float used as prefix for function names (double or complex)
  * \arg FLT_TYPE Float type (double or double complex)

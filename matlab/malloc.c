@@ -16,5 +16,40 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
- 
- 
+
+#include "nfft3.h"
+#include <mex.h>
+
+/** Replacement for nfft_malloc in mex files */
+void *nfft_mex_malloc(size_t n)
+{
+  void *p;
+
+  if (n == 0)
+    n = 1;
+
+  p = mxMalloc(n);
+
+  /* Should be nerver reached if mxMalloc fails (in a mex file) but in Matlab
+   * you never know... */
+  if (!p)
+    mexErrMsgTxt("Not enough memory.");
+
+  mexMakeMemoryPersistent(p);
+
+  return p;
+}
+
+/** Replacement for nfft_free in mex files */
+void nfft_mex_free(void *p)
+{
+  if (p)
+    mxFree(p);
+}
+
+/** Installs the nfft_malloc and nfft_free hooks. */
+void install_mem_hooks(void)
+{
+  nfft_malloc_hook = nfft_mex_malloc;
+  nfft_free_hook = nfft_mex_free;
+}

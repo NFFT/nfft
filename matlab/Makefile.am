@@ -1,0 +1,5 @@
+# $Id$
+
+SUBDIRS = nfsft
+
+EXTRA_DIST = README

@@ -1,3 +1,5 @@
+# $Id$
+
 AM_CFLAGS = -I$(top_srcdir)/include
 AM_LDFLAGS = -L$(top_srcdir)/.libs
 

@@ -1,3 +1,5 @@
+# $Id$
+
 ## Add top-level include directory to compiler search path
 AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft
 

@@ -1,37 +1,100 @@
+# $Id$
+#
+# Copyright (C) 2007 Jens Keiner
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+################################################################################
 # Process this file with autoconf to produce a configure script.
+################################################################################
+
+# Initialize Autoconf.
 AC_INIT(NFFT, 3.0.3, potts@mathematik.tu-chemnitz.de)
+
+# Add Copyright notice.
+AC_COPYRIGHT([2003, 2007, Jens Keiner, Stefan Kunis, Daniel Potts])
+
+# Add revision number of configure.ac.
+AC_REVISION([$Id$])
+
+# Set configure source directory.
+AC_CONFIG_SRCDIR(doxygen.c)
+
+# Set directory for auxilliary files.
+AC_CONFIG_AUX_DIR(config)
+
+# Define config headers.
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
-# Set configure source directory
-AC_CONFIG_SRCDIR(include/nfft3.h)
+# Check if make needs MAKE environment variable to be set.
+AC_PROG_MAKE_SET
 
-# Initialise automake
+# Initialise automake.
 AM_INIT_AUTOMAKE
+
+# Determine build system type.
+AC_CANONICAL_BUILD
+
+# Enable maintainer mode
+AM_MAINTAINER_MODE
 
 # To hell with shared libraries
 AM_ENABLE_SHARED(no)
 
-AC_PROG_MAKE_SET
-
 AC_SUBST([abs_srcdir])
-
-# Get canocical host identifier
-AC_CANONICAL_HOST
 
 # Flags for Compiler
 CFLAGS="$CFLAGS -std=c99 -Wall"
 AC_SUBST(CFLAGS)
 
-# Checks for programs
+################################################################################
+# Checks for programs.
+################################################################################
+
+# Set programming language to C
 AC_LANG(C)
+
+# Search for C compiler. Automatically selects options to support C89
 AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_LN_S
+
+# Search for the C preprocessor
+AC_PROG_CPP_WERROR
+
+# Check for BSD-compatible install program. Enforces inclusion of own install
+# script.
 AC_PROG_INSTALL
+
+# Disable shared libraries.
+AC_DISABLE_SHARED
+
+# Check for libtool.
+AC_PROG_LIBTOOL
+
+# Check for MATLAB
+AC_PROG_MATLAB
+
+if test x"$have_matlab" = x"no"; then
+  AC_MSG_WARN([[Matlab not found or no path specified. Example program will not]])
+  AC_MSG_WARN([[be compiled!]])
+fi
+
+# Checks for programs
+AC_PROG_LN_S
 define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
-AM_PROG_LIBTOOL
 
 AC_TYPE_SIZE_T
 AC_C_VOLATILE
@@ -65,7 +128,7 @@ AC_EGREP_CPP(yes,
 #ifdef EXIT_SUCCESS
 yes
 #endif
-], 
+],
 ac_cv_decl_exit_success_and_failure=yes,
 ac_cv_decl_exit_success_and_failure=no)
 )
@@ -76,10 +139,10 @@ fi ;
 
 dnl Remember to put a definition in acconfig.h for each of these
 AC_CHECK_DECLS(feenableexcept,,,[#define _GNU_SOURCE 1
-#include <fenv.h>]) 
+#include <fenv.h>])
 AC_CHECK_DECLS(fesettrapenable,,,[#define _GNU_SOURCE 1
-#include <fenv.h>]) 
-AC_CHECK_DECLS(hypot,,,[#include <math.h>]) 
+#include <fenv.h>])
+AC_CHECK_DECLS(hypot,,,[#include <math.h>])
 AC_CHECK_DECLS(expm1,,,[#include <math.h>])
 AC_CHECK_DECLS(acosh,,,[#include <math.h>])
 AC_CHECK_DECLS(asinh,,,[#include <math.h>])
@@ -105,10 +168,10 @@ AC_CACHE_CHECK([for long double stdio], ac_cv_func_printf_longdouble,
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <stdio.h>
-int main (void) 
-{ 
-const char * s = "5678"; long double x = 1.234 ; 
-fprintf(stderr,"%Lg\n",x) ; 
+int main (void)
+{
+const char * s = "5678"; long double x = 1.234 ;
+fprintf(stderr,"%Lg\n",x) ;
 sscanf(s, "%Lg", &x);
 if (x == 5678) {exit (0);} else {exit(1); };
 }]])],[ac_cv_func_printf_longdouble="yes"],[ac_cv_func_printf_longdouble="no"],[ac_cv_func_printf_longdouble="no"])])
@@ -122,26 +185,26 @@ AC_CACHE_CHECK([for extended floating point registers],ac_cv_c_extended_fp,
 [case "$host" in
     *sparc*-*-*)
         ac_cv_c_extended_fp=no
-        ;;     
+        ;;
     *powerpc*-*-*)
         ac_cv_c_extended_fp=no
-        ;;      
+        ;;
     *hppa*-*-*)
         ac_cv_c_extended_fp=no
-        ;;      
+        ;;
     *alpha*-*-*)
         ac_cv_c_extended_fp=no
-        ;;      
+        ;;
     *68k*-*-*)
         ac_cv_c_extended_fp=yes
-        ;;      
+        ;;
     *86-*-*)
         ac_cv_c_extended_fp=yes
-        ;;      
+        ;;
     x86_64-*-*)
         ac_cv_c_extended_fp=yes
-        ;;      
-    *) 
+        ;;
+    *)
         ac_cv_c_extended_fp=unknown
         ;;
 esac
@@ -154,49 +217,49 @@ fi
 
 AC_CACHE_CHECK([for IEEE arithmetic interface type], ac_cv_c_ieee_interface,
 [case "$host" in
-    sparc-*-linux*) 
+    sparc-*-linux*)
         ac_cv_c_ieee_interface=gnusparc
         ;;
-    m68k-*-linux*) 
+    m68k-*-linux*)
         ac_cv_c_ieee_interface=gnum68k
         ;;
-    powerpc-*-linux*) 
+    powerpc-*-linux*)
         ac_cv_c_ieee_interface=gnuppc
         ;;
-    *86-*-linux* | *86_64-*-linux*) 
+    *86-*-linux* | *86_64-*-linux*)
         ac_cv_c_ieee_interface=gnux86
         ;;
-    *-*-sunos4*) 
+    *-*-sunos4*)
         ac_cv_c_ieee_interface=sunos4
         ;;
-    *-*-solaris*) 
+    *-*-solaris*)
         ac_cv_c_ieee_interface=solaris
         ;;
-    *-*-hpux11*) 
+    *-*-hpux11*)
         ac_cv_c_ieee_interface=hpux11
         ;;
-    *-*-hpux*) 
+    *-*-hpux*)
         ac_cv_c_ieee_interface=hpux
         ;;
-    *-*-osf*) 
+    *-*-osf*)
         ac_cv_c_ieee_interface=tru64
         ;;
-    *-*-aix*) 
+    *-*-aix*)
         ac_cv_c_ieee_interface=aix
         ;;
-    *-*-irix*) 
+    *-*-irix*)
         ac_cv_c_ieee_interface=irix
         ;;
-    powerpc-*-*darwin*) 
+    powerpc-*-*darwin*)
         ac_cv_c_ieee_interface=darwin
         ;;
-    *-*-*netbsd*) 
+    *-*-*netbsd*)
         ac_cv_c_ieee_interface=netbsd
         ;;
-    *-*-*openbsd*)  
+    *-*-*openbsd*)
         ac_cv_c_ieee_interface=openbsd
         ;;
-    *-*-*bsd*) 
+    *-*-*bsd*)
         ac_cv_c_ieee_interface=freebsd
         ;;
     *-*-os2*)
@@ -273,8 +336,8 @@ dnl
 AC_CACHE_CHECK([for IEEE comparisons], ac_cv_c_ieee_comparisons,
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <math.h>
-int main (void) 
-{ 
+int main (void)
+{
    int status; double inf, nan;
    inf = exp(1.0e10);
    nan = inf / inf ;
@@ -292,12 +355,12 @@ dnl Check for IEEE denormalized arithmetic
 dnl
 AC_CACHE_CHECK([for IEEE denormalized values], ac_cv_c_ieee_denormals,
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h> 
-int main (void) 
-{ 
-   int i, status; 
+#include <math.h>
+int main (void)
+{
+   int i, status;
    volatile double z = 1e-308;
-   for (i = 0; i < 5; i++) { z = z / 10.0 ; };        
+   for (i = 0; i < 5; i++) { z = z / 10.0 ; };
    for (i = 0; i < 5; i++) { z = z * 10.0 ; };
    status = (z == 0.0);
    exit (status);
@@ -504,6 +567,8 @@ AC_OUTPUT(Makefile \
 	  applications/polarFFT/Makefile \
 	  applications/quadratureS2/Makefile \
 	  applications/radon/Makefile \
+	  matlab/Makefile \
+	  matlab/nfsft/Makefile
 )
 
 if test "$with_devcode" = yes; then
@@ -528,7 +593,7 @@ AC_OUTPUT(tests/Makefile \
 					applications/texture/examplesTexture/regularity3/Makefile \
 					applications/texture/examplesTexture/data/Makefile \
 					applications/texture/examplesTexture/data/util/Makefile \
-					applications/texture/examplesTexture/data/data_publication/Makefile 
-)          
+					applications/texture/examplesTexture/data/data_publication/Makefile
+)
 fi
-          
+

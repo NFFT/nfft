@@ -1,0 +1,14 @@
+This directory contains third party code that is needed to build NFFT3. The
+code consists of different third party software packages or parts thereof that
+are distributed under the GPL or a compatible software license. This directory
+does, however, not contain the FFTW3 library which is also needed to build
+NFFT3. It is available from http://www.fftw.org separately. All code in
+subpackages is copyright of the respective authors as stated in each
+subdirectory. Currently included packages are
+
+CSTRIPACK - A C-version of the Fortran STRIPACK package to compute Delaunay
+            triangulations and Voronoi partitions on the unit sphere
+
+      GSL - Part of the GNU scientific library (GSL) needed to evaluate
+            spherical Bessel functions.
+

@@ -1,3 +1,22 @@
+/* $Id$
+ *
+ * Copyright (c) 2007 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /* window functions -----------------------------------------------------------*/
 #ifdef DIRAC_DELTA
 #define PHI_HUT(k,d) 1.0
@@ -18,14 +37,14 @@
  for(idx=0; idx<ths->d; idx++)                                           \
   ths->b[idx]=((double)2*ths->sigma[idx])/                         \
    (2*ths->sigma[idx]-1)*(((double)ths->m) / PI);                  \
-} 
+}
 #define WINDOW_HELP_FINALIZE {fftw_free(ths->b);}
 #define WINDOW_HELP_ESTIMATE_m {ths->m =12;}
 #endif
 
 #ifdef KAISER_BESSEL
 #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt( pow(ths->b[d],2) -  \
-                               pow(2*PI*(k)/ths->n[d],2)))) 
+                               pow(2*PI*(k)/ths->n[d],2))))
 #define PHI(x,d) ((double)((pow(ths->m,2)-pow((x)*ths->n[d],2))>0)?\
                    sinh(ths->b[d]*sqrt(pow(ths->m,2)-              \
                    pow((x)*ths->n[d],2)))/(PI*sqrt(pow(ths->m,2)-  \
