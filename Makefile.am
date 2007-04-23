@@ -57,3 +57,6 @@ dist-hook:
 	rm -Rf $(distdir)/doxygen
 	rm -Rf $(distdir)/VERSION.in
 	cp VERSION $(distdir)
+
+# Flags to be passed to aclocal.
+ACLOCAL_AMFLAGS = -I m4
