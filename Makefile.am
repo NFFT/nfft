@@ -1,7 +1,7 @@
 # $Id$
 
 # Subdirectories
-DIST_SUBDIRS= 3rdparty include util kernel . examples applications
+DIST_SUBDIRS= 3rdparty include util kernel . examples applications matlab
 
 if WITH_DEVCODE
   EXTRA_DIRS= tests
@@ -15,7 +15,7 @@ else
   MATLAB_DIRS=
 endif
 
-SUBDIRS= $(DIST_SUBDIRS) $(EXTRA_DIRS) $(MATLAB_DIRS)
+SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la
 
@@ -23,7 +23,7 @@ libnfft3_la_SOURCES =
 
 libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la
 
-EXTRA_DIST = bootstrap.sh VERSION
+EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 
 install-data-hook:
 	mkdir -p $(pkgdatadir)

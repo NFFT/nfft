@@ -94,6 +94,7 @@ AC_DEFUN([AC_PROG_MATLAB],
     AM_CONDITIONAL(HAVE_WINDOWS, test $MEXEXT = ".dll" )
   else
     AM_CONDITIONAL(HAVE_MATLAB, test "xno" = "xyes" )
+    AM_CONDITIONAL(HAVE_WINDOWS, test "xno" = "xyes" )
     have_matlab=no
   fi
 ])

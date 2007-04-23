@@ -86,8 +86,7 @@ AC_PROG_LIBTOOL
 AC_PROG_MATLAB
 
 if test x"$have_matlab" = x"no"; then
-  AC_MSG_WARN([[Matlab not found or no path specified. Example program will not]])
-  AC_MSG_WARN([[be compiled!]])
+  AC_MSG_WARN([[Matlab not found or no path specified. MATLAB mex interface will not be compiled!]])
 fi
 
 # Checks for programs
