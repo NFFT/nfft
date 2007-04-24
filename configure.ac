@@ -1,375 +1,130 @@
-# $Id$
-#
-# Copyright (C) 2007 Jens Keiner
-#
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 51
-# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-################################################################################
-# Process this file with autoconf to produce a configure script.
-################################################################################
+dnl $Id: nfsftmex.c 1548 2007-04-18 07:34:23Z keiner $
+dnl
+dnl Copyright (c) 2007 Jens Keiner
+dnl
+dnl This program is free software; you can redistribute it and/or modify it 
+dnl under the terms of the GNU General Public License as published by the Free 
+dnl Software Foundation; either version 2 of the License, or (at your option) 
+dnl any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful, but WITHOUT
+dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+dnl FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for 
+dnl more details.
+dnl
+dnl You should have received a copy of the GNU General Public License along with
+dnl this program; if not, write to the Free Software Foundation, Inc., 51
+dnl Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+dnl
+dnl @synopsis AX_PROG_MATLAB
+dnl @summary set up compiler and linker flags for Matlab mex file compilation.
+dnl @category C
+dnl
+dnl @version 2007-04-24
+dnl @license GPLWithACException
+dnl @author Jens Keiner
+dnl ############################################################################
+dnl Process this file with autoconf to produce a configure script.
+dnl ############################################################################
 
-# Initialize Autoconf.
+dnl Initialize Autoconf.
 AC_INIT(NFFT, 3.0.3, potts@mathematik.tu-chemnitz.de)
 
-# Add Copyright notice.
+dnl Add Copyright notice.
 AC_COPYRIGHT([2003, 2007, Jens Keiner, Stefan Kunis, Daniel Potts])
 
-# Add revision number of configure.ac.
+dnl Add revision number of configure.ac.
 AC_REVISION([$Id$])
 
-# Set configure source directory.
-AC_CONFIG_SRCDIR(doxygen.c)
+dnl Set configure source directory.
+AC_CONFIG_SRCDIR(include/nfft3.h)
 
-# Set directory for auxilliary files.
+dnl Set directory for auxilliary files.
 AC_CONFIG_AUX_DIR(config)
 
-# Define config headers.
+dnl Define config headers.
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
-# Check if make needs MAKE environment variable to be set.
+dnl Check if make needs MAKE environment variable to be set.
 AC_PROG_MAKE_SET
 
-# Initialise automake.
+dnl Initialise automake.
 AM_INIT_AUTOMAKE
 
-# Determine build system type.
-AC_CANONICAL_BUILD
+dnl Determine host system type.
+AC_CANONICAL_HOST
 
-# Enable maintainer mode
-AM_MAINTAINER_MODE
-
-# To hell with shared libraries
+dnl "To hell with shared libraries"
 AM_ENABLE_SHARED(no)
 
+dnl Make abs_srcdir available in Makefiles.
 AC_SUBST([abs_srcdir])
 
 # Flags for Compiler
-CFLAGS="$CFLAGS -std=c99 -Wall"
-AC_SUBST(CFLAGS)
+#CFLAGS="$CFLAGS -std=c99 -Wall"
+#AC_SUBST(CFLAGS)
 
-################################################################################
-# Checks for programs.
-################################################################################
+dnl ############################################################################
+dnl Additional options
+dnl ############################################################################
 
-# Set programming language to C
+AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+	AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
+fi
+
+dnl Make maintainer mode available.
+AM_MAINTAINER_MODE
+
+dnl ############################################################################
+dnl Checks for programs.
+dnl ############################################################################
+
+dnl Set programming language to C.
 AC_LANG(C)
 
-# Search for C compiler. Automatically selects options to support C89
+dnl Search for C compiler. Automatically selects options to support C89.
 AC_PROG_CC
 
-# Search for the C preprocessor
+dnl Determine compiler vendor (thanks fftw)
+AX_COMPILER_VENDOR
+
+dnl Check if the compiler accepts C99.
+AC_PROG_CC_STDC
+
+if test $ac_cv_prog_cc_stdc = "no"; then
+  AC_MSG_ERROR([Your compiler does not accept C99!])
+fi
+
+dnl Check for assembler (thanks fftw).
+AMX_PROG_AS dnl AM_PROG_AS breaks at least one version of libtool.
+
+dnl Search for the C preprocessor.
 AC_PROG_CPP_WERROR
 
-# Check for BSD-compatible install program. Enforces inclusion of own install
-# script.
+dnl Check for BSD-compatible install program. Enforces inclusion of own install
+dnl script.
 AC_PROG_INSTALL
 
-# Disable shared libraries.
-AC_DISABLE_SHARED
+dnl Check if ln -s works.
+AC_PROG_LN_S
 
-# Check for libtool.
+dnl Make libtool ddl capabilities available.
+AC_LIBTOOL_WIN32_DLL
+
+dnl Check for libtool.
 AC_PROG_LIBTOOL
 
-# Check for MATLAB
-AC_PROG_MATLAB
+dnl Check for MATLAB.
+AX_PROG_MATLAB
 
-if test x"$have_matlab" = x"no"; then
-  AC_MSG_WARN([[Matlab not found or no path specified. MATLAB mex interface will not be compiled!]])
-fi
+dnl Determine (hopefully) optimal CFLAGS (thanks fftw)
+AX_CC_MAXOPT
 
-# Checks for programs
-AC_PROG_LN_S
-define([AC_LIBTOOL_LANG_CXX_CONFIG], [:])dnl
-define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
-define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
+dnl Make CFLAGS available.
+AC_SUBST(CFLAGS)
 
-AC_TYPE_SIZE_T
-AC_C_VOLATILE
-AC_C_INLINE
-
-AC_CACHE_CHECK([for extern inline], ac_cv_c_extern_inline,
-[ac_cv_c_extern_inline=no
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[extern $ac_cv_c_inline double foo(double x);
-extern $ac_cv_c_inline double foo(double x) { return x + 1.0 ; } ;
-double foo (double x) { return x + 1.0 ; };]], [[  foo(1.0)  ]])],[ac_cv_c_extern_inline="yes"],[])
-])
-if test "$ac_cv_c_extern_inline" != no ; then
-  AC_DEFINE([HAVE_INLINE],1,"")
-  AC_SUBST(HAVE_INLINE)
-fi
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS(complex.h malloc.h time.h stdbool.h string.h fftw3.h)
-# GSL
-AC_CHECK_HEADERS(ieeefp.h)
-
-AC_FUNC_VPRINTF
-AC_REPLACE_FUNCS(memcpy memmove strdup strtol strtoul)
-
-AC_CACHE_CHECK(for EXIT_SUCCESS and EXIT_FAILURE,
-ac_cv_decl_exit_success_and_failure,
-AC_EGREP_CPP(yes,
-[
-#include <stdlib.h>
-#ifdef EXIT_SUCCESS
-yes
-#endif
-],
-ac_cv_decl_exit_success_and_failure=yes,
-ac_cv_decl_exit_success_and_failure=no)
-)
-
-if test "$ac_cv_decl_exit_success_and_failure" = yes ; then
-  AC_DEFINE([HAVE_EXIT_SUCCESS_AND_FAILURE], [], "")
-fi ;
-
-dnl Remember to put a definition in acconfig.h for each of these
-AC_CHECK_DECLS(feenableexcept,,,[#define _GNU_SOURCE 1
-#include <fenv.h>])
-AC_CHECK_DECLS(fesettrapenable,,,[#define _GNU_SOURCE 1
-#include <fenv.h>])
-AC_CHECK_DECLS(hypot,,,[#include <math.h>])
-AC_CHECK_DECLS(expm1,,,[#include <math.h>])
-AC_CHECK_DECLS(acosh,,,[#include <math.h>])
-AC_CHECK_DECLS(asinh,,,[#include <math.h>])
-AC_CHECK_DECLS(atanh,,,[#include <math.h>])
-AC_CHECK_DECLS(ldexp,,,[#include <math.h>])
-AC_CHECK_DECLS(frexp,,,[#include <math.h>])
-AC_CHECK_DECLS(isinf,,,[#include <math.h>])
-AC_CHECK_DECLS(finite,,,[#include <math.h>])
-AC_CHECK_DECLS(isfinite,,,[#include <math.h>])
-AC_CHECK_DECLS(isnan,,,[#include <math.h>])
-
-dnl OpenBSD has a broken implementation of log1p.
-case "$host" in
-    *-*-*openbsd*)
-       AC_MSG_RESULT([avoiding OpenBSD system log1p - using gsl version])
-       ;;
-    *)
-        AC_CHECK_DECLS(log1p,,,[#include <math.h>])
-       ;;
-esac
-
-AC_CACHE_CHECK([for long double stdio], ac_cv_func_printf_longdouble,
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <stdio.h>
-int main (void)
-{
-const char * s = "5678"; long double x = 1.234 ;
-fprintf(stderr,"%Lg\n",x) ;
-sscanf(s, "%Lg", &x);
-if (x == 5678) {exit (0);} else {exit(1); };
-}]])],[ac_cv_func_printf_longdouble="yes"],[ac_cv_func_printf_longdouble="no"],[ac_cv_func_printf_longdouble="no"])])
-
-if test "$ac_cv_func_printf_longdouble" != no; then
-  AC_DEFINE([HAVE_PRINTF_LONGDOUBLE],1,"")
-  AC_SUBST(HAVE_PRINTF_LONGDOUBLE)
-fi
-
-AC_CACHE_CHECK([for extended floating point registers],ac_cv_c_extended_fp,
-[case "$host" in
-    *sparc*-*-*)
-        ac_cv_c_extended_fp=no
-        ;;
-    *powerpc*-*-*)
-        ac_cv_c_extended_fp=no
-        ;;
-    *hppa*-*-*)
-        ac_cv_c_extended_fp=no
-        ;;
-    *alpha*-*-*)
-        ac_cv_c_extended_fp=no
-        ;;
-    *68k*-*-*)
-        ac_cv_c_extended_fp=yes
-        ;;
-    *86-*-*)
-        ac_cv_c_extended_fp=yes
-        ;;
-    x86_64-*-*)
-        ac_cv_c_extended_fp=yes
-        ;;
-    *)
-        ac_cv_c_extended_fp=unknown
-        ;;
-esac
-])
-
-if test $ac_cv_c_extended_fp != "no" ; then
-    AC_DEFINE([HAVE_EXTENDED_PRECISION_REGISTERS],1,"")
-    AC_SUBST(HAVE_EXTENDED_PRECISION_REGISTERS)
-fi
-
-AC_CACHE_CHECK([for IEEE arithmetic interface type], ac_cv_c_ieee_interface,
-[case "$host" in
-    sparc-*-linux*)
-        ac_cv_c_ieee_interface=gnusparc
-        ;;
-    m68k-*-linux*)
-        ac_cv_c_ieee_interface=gnum68k
-        ;;
-    powerpc-*-linux*)
-        ac_cv_c_ieee_interface=gnuppc
-        ;;
-    *86-*-linux* | *86_64-*-linux*)
-        ac_cv_c_ieee_interface=gnux86
-        ;;
-    *-*-sunos4*)
-        ac_cv_c_ieee_interface=sunos4
-        ;;
-    *-*-solaris*)
-        ac_cv_c_ieee_interface=solaris
-        ;;
-    *-*-hpux11*)
-        ac_cv_c_ieee_interface=hpux11
-        ;;
-    *-*-hpux*)
-        ac_cv_c_ieee_interface=hpux
-        ;;
-    *-*-osf*)
-        ac_cv_c_ieee_interface=tru64
-        ;;
-    *-*-aix*)
-        ac_cv_c_ieee_interface=aix
-        ;;
-    *-*-irix*)
-        ac_cv_c_ieee_interface=irix
-        ;;
-    powerpc-*-*darwin*)
-        ac_cv_c_ieee_interface=darwin
-        ;;
-    *-*-*netbsd*)
-        ac_cv_c_ieee_interface=netbsd
-        ;;
-    *-*-*openbsd*)
-        ac_cv_c_ieee_interface=openbsd
-        ;;
-    *-*-*bsd*)
-        ac_cv_c_ieee_interface=freebsd
-        ;;
-    *-*-os2*)
-        ac_cv_c_ieee_interface=os2emx
-        ;;
-    *)
-        ac_cv_c_ieee_interface=unknown
-        ;;
-esac
-])
-
-if test "$ac_cv_c_ieee_interface" = "gnux86" ; then
-    AC_CACHE_CHECK([for FPU_SETCW], ac_cv_c_fpu_setcw,
-    [ac_cv_c_fpu_setcw=no
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <fpu_control.h>
-#ifndef _FPU_SETCW
-#include <i386/fpu_control.h>
-#define _FPU_SETCW(cw) __setfpucw(cw)
-#endif
-]], [[ unsigned short mode = 0 ; _FPU_SETCW(mode); ]])],[ac_cv_c_fpu_setcw="yes"],[ac_cv_c_ieee_interface=unknown])
-    ])
-fi
-
-ac_tr_ieee_interface=HAVE_`echo $ac_cv_c_ieee_interface | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`_IEEE_INTERFACE
-AC_DEFINE_UNQUOTED($ac_tr_ieee_interface,1,[IEEE Interface Type])
-
-AC_SUBST(HAVE_GNUSPARC_IEEE_INTERFACE)
-AC_SUBST(HAVE_GNUM68K_IEEE_INTERFACE)
-AC_SUBST(HAVE_GNUPPC_IEEE_INTERFACE)
-AC_SUBST(HAVE_GNUX86_IEEE_INTERFACE)
-AC_SUBST(HAVE_SUNOS4_IEEE_INTERFACE)
-AC_SUBST(HAVE_SOLARIS_IEEE_INTERFACE)
-AC_SUBST(HAVE_HPUX11_IEEE_INTERFACE)
-AC_SUBST(HAVE_HPUX_IEEE_INTERFACE)
-AC_SUBST(HAVE_TRU64_IEEE_INTERFACE)
-AC_SUBST(HAVE_IRIX_IEEE_INTERFACE)
-AC_SUBST(HAVE_AIX_IEEE_INTERFACE)
-AC_SUBST(HAVE_FREEBSD_IEEE_INTERFACE)
-AC_SUBST(HAVE_OS2EMX_IEEE_INTERFACE)
-AC_SUBST(HAVE_NETBSD_IEEE_INTERFACE)
-AC_SUBST(HAVE_OPENBSD_IEEE_INTERFACE)
-AC_SUBST(HAVE_DARWIN_IEEE_INTERFACE)
-
-dnl Check for IEEE control flags
-
-save_cflags="$CFLAGS"
-AC_CACHE_CHECK([for IEEE compiler flags], ac_cv_c_ieee_flags,
-[
-case "$host" in
-    alpha*-*-*)
-        if test X"$GCC" = Xyes ; then
-            ieee_flags='-mieee -mfp-rounding-mode=d'
-        else
-            # This assumes Compaq's C compiler.
-            ieee_flags='-ieee -fprm d'
-        fi
-        ;;
-esac
-if test X"$ieee_flags" != X ; then
-  CFLAGS="$ieee_flags $CFLAGS"
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int foo;]])],[ac_cv_c_ieee_flags="$ieee_flags"],[ac_cv_c_ieee_flags="none"])
-else
-  ac_cv_c_ieee_flags="none"
-fi])
-
-if test "$ac_cv_c_ieee_flags" != "none" ; then
-   CFLAGS="$ac_cv_c_ieee_flags $save_cflags"
-else
-   CFLAGS="$save_cflags"
-fi
-
-dnl Check IEEE comparisons, whether "x != x" is true for NaNs
-dnl
-AC_CACHE_CHECK([for IEEE comparisons], ac_cv_c_ieee_comparisons,
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h>
-int main (void)
-{
-   int status; double inf, nan;
-   inf = exp(1.0e10);
-   nan = inf / inf ;
-   status = (nan == nan);
-   exit (status);
-}]])],[ac_cv_c_ieee_comparisons="yes"],[ac_cv_c_ieee_comparisons="no"],[ac_cv_c_ieee_comparisons="yes"])
-])
-
-if test "$ac_cv_c_ieee_comparisons" != no ; then
-  AC_DEFINE([HAVE_IEEE_COMPARISONS],1,"")
-  AC_SUBST(HAVE_IEEE_COMPARISONS)
-fi
-
-dnl Check for IEEE denormalized arithmetic
-dnl
-AC_CACHE_CHECK([for IEEE denormalized values], ac_cv_c_ieee_denormals,
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h>
-int main (void)
-{
-   int i, status;
-   volatile double z = 1e-308;
-   for (i = 0; i < 5; i++) { z = z / 10.0 ; };
-   for (i = 0; i < 5; i++) { z = z * 10.0 ; };
-   status = (z == 0.0);
-   exit (status);
-}]])],[ac_cv_c_ieee_denormals="yes"],[ac_cv_c_ieee_denormals="no"],[ac_cv_c_ieee_denormals="yes"])
-])
-
-if test "$ac_cv_c_ieee_denormals" != no ; then
-  AC_DEFINE([HAVE_IEEE_DENORMALS],1,"")
-  AC_SUBST(HAVE_IEEE_DENORMALS)
-fi
+AX_LIB_GSL
 
 # Checks for libraries
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
@@ -379,148 +134,7 @@ LIBS=
 
 # Checks for typedefs, structures, and compiler characteristics
 
-AC_ARG_WITH(devcode,
-  AC_HELP_STRING(
-      [--with-devcode],
-      [Reserved. Do not use this!]),
-      [
-        devcode=true;
-      ],
-      [
-        devcode=false;
-      ])
-AM_CONDITIONAL([WITH_DEVCODE], [test x$devcode = xtrue])
 
-AH_BOTTOM([
-/* Defined if this is an official release */
-#undef RELEASED
-
-/* Define if you have inline */
-#undef HAVE_INLINE
-
-/* Define if you need to hide the static definitions of inline functions */
-#undef HIDE_INLINE_STATIC
-
-/* Defined if you have ansi EXIT_SUCCESS and EXIT_FAILURE in stdlib.h */
-#undef HAVE_EXIT_SUCCESS_AND_FAILURE
-
-/* Use 0 and 1 for EXIT_SUCCESS and EXIT_FAILURE if we don't have them */
-#ifndef HAVE_EXIT_SUCCESS_AND_FAILURE
-#define EXIT_SUCCESS 0
-#define EXIT_FAILURE 1
-#endif
-
-/* Define this if printf can handle %Lf for long double */
-#undef HAVE_PRINTF_LONGDOUBLE
-
-/* Define one of these if you have a known IEEE arithmetic interface */
-#undef HAVE_GNUSPARC_IEEE_INTERFACE
-#undef HAVE_GNUM68K_IEEE_INTERFACE
-#undef HAVE_GNUPPC_IEEE_INTERFACE
-#undef HAVE_GNUX86_IEEE_INTERFACE
-#undef HAVE_SUNOS4_IEEE_INTERFACE
-#undef HAVE_SOLARIS_IEEE_INTERFACE
-#undef HAVE_HPUX11_IEEE_INTERFACE
-#undef HAVE_HPUX_IEEE_INTERFACE
-#undef HAVE_TRU64_IEEE_INTERFACE
-#undef HAVE_IRIX_IEEE_INTERFACE
-#undef HAVE_AIX_IEEE_INTERFACE
-#undef HAVE_FREEBSD_IEEE_INTERFACE
-#undef HAVE_OS2EMX_IEEE_INTERFACE
-#undef HAVE_NETBSD_IEEE_INTERFACE
-#undef HAVE_OPENBSD_IEEE_INTERFACE
-#undef HAVE_DARWIN_IEEE_INTERFACE
-
-/* Define this is IEEE comparisons work correctly (e.g. NaN != NaN) */
-#undef HAVE_IEEE_COMPARISONS
-
-/* Define this is IEEE denormalized numbers are available */
-#undef HAVE_IEEE_DENORMALS
-
-/* Define a rounding function which moves extended precision values
-   out of registers and rounds them to double-precision. This should
-   be used *sparingly*, in places where it is necessary to keep
-   double-precision rounding for critical expressions while running in
-   extended precision. For example, the following code should ensure
-   exact equality, even when extended precision registers are in use,
-
-      double q = GSL_COERCE_DBL(3.0/7.0) ;
-      if (q == GSL_COERCE_DBL(3.0/7.0)) { ... } ;
-
-   It carries a penalty even when the program is running in double
-   precision mode unless you compile a separate version of the
-   library with HAVE_EXTENDED_PRECISION_REGISTERS turned off. */
-
-#undef HAVE_EXTENDED_PRECISION_REGISTERS
-
-#if HAVE_EXTENDED_PRECISION_REGISTERS
-#define GSL_COERCE_DBL(x) (gsl_coerce_double(x))
-#else
-#define GSL_COERCE_DBL(x) (x)
-#endif
-
-/* Substitute gsl functions for missing system functions */
-
-#ifndef HAVE_DECL_HYPOT
-#define hypot gsl_hypot
-#endif
-
-#ifndef HAVE_DECL_LOG1P
-#define log1p gsl_log1p
-#endif
-
-#ifndef HAVE_DECL_EXPM1
-#define expm1 gsl_expm1
-#endif
-
-#ifndef HAVE_DECL_ACOSH
-#define acosh gsl_acosh
-#endif
-
-#ifndef HAVE_DECL_ASINH
-#define asinh gsl_asinh
-#endif
-
-#ifndef HAVE_DECL_ATANH
-#define atanh gsl_atanh
-#endif
-
-#ifndef HAVE_DECL_LDEXP
-#define ldexp gsl_ldexp
-#endif
-
-#ifndef HAVE_DECL_FREXP
-#define frexp gsl_frexp
-#endif
-
-#ifndef HAVE_DECL_ISINF
-#define isinf gsl_isinf
-#endif
-
-#ifndef HAVE_DECL_FINITE
-#if HAVE_DECL_ISFINITE
-#define finite isfinite
-#else
-#define finite gsl_finite
-#endif
-#endif
-
-#ifndef HAVE_DECL_ISNAN
-#define isnan gsl_isnan
-#endif
-
-#ifdef __GNUC__
-#define DISCARD_POINTER(p) do { ; } while(p ? 0 : 0);
-#else
-#define DISCARD_POINTER(p) /* ignoring discarded pointer */
-#endif
-
-#if defined(GSL_RANGE_CHECK_OFF) || !defined(GSL_RANGE_CHECK)
-#define GSL_RANGE_CHECK 0  /* turn off range checking by default internally */
-#endif
-
-/* Disable deprecated functions and enums while building */
-#define GSL_DISABLE_DEPRECATED 1])
 
 # The output files to be generated
 AC_OUTPUT(Makefile \
@@ -570,7 +184,7 @@ AC_OUTPUT(Makefile \
 	  matlab/nfsft/Makefile
 )
 
-if test "$with_devcode" = yes; then
+if test $USE_MAINTAINER_MODE = yes; then
 AC_OUTPUT(tests/Makefile \
           VERSION
           doxygen/doxygen.Doxyfile

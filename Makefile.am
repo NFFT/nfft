@@ -3,7 +3,7 @@
 # Subdirectories
 DIST_SUBDIRS= 3rdparty include util kernel . examples applications matlab
 
-if WITH_DEVCODE
+if MAINTAINER_MODE
   EXTRA_DIRS= tests
 else
   EXTRA_DIRS=

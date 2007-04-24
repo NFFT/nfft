@@ -24,7 +24,7 @@ EXTRA_DIST = Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m nfsft_adjoin
 
 application_DATA = $(EXTRA_DIST)
 
-if HAVE_WINDOWS
+if MEX_DLL_HACK
 all: all-am nfsft.dll.hack
 
 nfsft.dll.hack: nfsft.dll.exe
