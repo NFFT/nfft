@@ -32,6 +32,8 @@
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 
+#include "infft.h"
+
 /* Include private associated Legendre functions header. */
 #include "legendre.h"
 
@@ -337,8 +339,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
       //nfft_precompute_one_psi(&plan->plan_nfft);
 
       /* Free auxilliary arrays. */
-      free(nfft_size);
-      free(fftw_size);
+      nfft_free(nfft_size);
+      nfft_free(fftw_size);
   }
 }
 
@@ -431,9 +433,9 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
 		       kappa);
       }
       /* Free auxilliary arrays. */
-      free(wisdom.alpha);
-      free(wisdom.beta);
-      free(wisdom.gamma);
+      nfft_free(wisdom.alpha);
+      nfft_free(wisdom.beta);
+      nfft_free(wisdom.gamma);
       wisdom.alpha = NULL;
       wisdom.beta = NULL;
       wisdom.gamma = NULL;
@@ -460,9 +462,9 @@ void nfsft_forget()
   else
   {
     /* Free arrays holding three-term recurrence coefficients. */
-    free(wisdom.alpha);
-    free(wisdom.beta);
-    free(wisdom.gamma);
+    nfft_free(wisdom.alpha);
+    nfft_free(wisdom.beta);
+    nfft_free(wisdom.gamma);
     wisdom.alpha = NULL;
     wisdom.beta = NULL;
     wisdom.gamma = NULL;
@@ -485,6 +487,9 @@ void nfsft_forget()
 
 void nfsft_finalize(nfsft_plan *plan)
 {
+  if (!plan)
+    return;
+
   /* Finalise the nfft plan. */
   nfft_finalize(&plan->plan_nfft);
 
@@ -492,28 +497,28 @@ void nfsft_finalize(nfsft_plan *plan)
    * if neccesary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
-    free(plan->f_hat_intern);
+    nfft_free(plan->f_hat_intern);
   }
 
   /* De-allocate memory for spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
     //fprintf(stderr,"deallocating f_hat\n");
-    free(plan->f_hat);
+    nfft_free(plan->f_hat);
   }
 
   /* De-allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
     //fprintf(stderr,"deallocating f\n");
-    free(plan->f);
+    nfft_free(plan->f);
   }
 
   /* De-allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
     //fprintf(stderr,"deallocating x\n");
-    free(plan->x);
+    nfft_free(plan->x);
   }
 }
 

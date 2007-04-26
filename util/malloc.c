@@ -59,7 +59,7 @@ void nfft_free(void *p)
       return;
 	  }
 
-  fftw_free(p);
+    fftw_free(p);
   }
 }
 

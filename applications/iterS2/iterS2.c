@@ -146,10 +146,10 @@ int main (int argc, char **argv)
       nfft_next_power_of_2_exp(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
       fprintf(stderr,"Optimal interpolation!\n");
-      scratch = (double*) malloc(4*sizeof(double));
-      ys = (double*) malloc((N+1)*sizeof(double));
-      temp = (double*) malloc((2*N+1)*sizeof(double));
-      temp2 = (double complex*) malloc((N+1)*sizeof(double complex));
+      scratch = (double*) nfft_malloc(4*sizeof(double));
+      ys = (double*) nfft_malloc((N+1)*sizeof(double));
+      temp = (double*) nfft_malloc((2*N+1)*sizeof(double));
+      temp2 = (double complex*) nfft_malloc((N+1)*sizeof(double complex));
 
       a = 0.0;
       for (j = 0; j <= N; j++)
@@ -166,7 +166,7 @@ int main (int argc, char **argv)
       }
 
       qlength = 2*N+1;
-      qweights = (double*) malloc(qlength*sizeof(double));
+      qweights = (double*) nfft_malloc(qlength*sizeof(double));
 
       fplan = fftw_plan_r2r_1d(N+1, qweights, qweights, FFTW_REDFT00, 0U);
       for (j = 0; j < N+1; j++)
@@ -211,9 +211,9 @@ int main (int argc, char **argv)
 
       set = fpt_init(0, npt_exp, 0U);
 
-      alpha = (double*) malloc((N+2)*sizeof(double));
-      beta = (double*) malloc((N+2)*sizeof(double));
-      gamma = (double*) malloc((N+2)*sizeof(double));
+      alpha = (double*) nfft_malloc((N+2)*sizeof(double));
+      beta = (double*) nfft_malloc((N+2)*sizeof(double));
+      gamma = (double*) nfft_malloc((N+2)*sizeof(double));
 
       alpha_al_row(alpha, N, 0);
       beta_al_row(beta, N, 0);
@@ -231,17 +231,17 @@ int main (int argc, char **argv)
 
       fpt_finalize(set);
 
-      free(alpha);
-      free(beta);
-      free(gamma);
+      nfft_free(alpha);
+      nfft_free(beta);
+      nfft_free(gamma);
 
       fftw_destroy_plan(fplan);
 
-      free(scratch);
-      free(qweights);
-      free(ys);
-      free(temp);
-      //free(temp2);
+      nfft_free(scratch);
+      nfft_free(qweights);
+      nfft_free(ys);
+      nfft_free(temp);
+      //nfft_free(temp2);
       //return EXIT_SUCCESS;
     }
 
@@ -422,7 +422,7 @@ int main (int argc, char **argv)
 
     if ((N+1)*(N+1) > M)
     {
-      free(temp2);
+      nfft_free(temp2);
     }
 
   } /* Process each testcase. */

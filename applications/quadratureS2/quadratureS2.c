@@ -19,7 +19,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/** 
+/**
  * \defgroup applications_quadratureS2_test quadratureS2_test
  * \ingroup applications_quadratureS2
  * \{
@@ -235,7 +235,7 @@ int main (int argc, char **argv)
         /* Read the bandwidht. */
         fscanf(stdin,"points=%d\n",&m_compare);
         fprintf(stdout,"%d\n",m_compare);
-        x_compare = (double*) malloc(2*m_compare*sizeof(double));
+        x_compare = (double*) nfft_malloc(2*m_compare*sizeof(double));
         d = 0;
         while (d < m_compare)
         {
@@ -259,8 +259,8 @@ int main (int argc, char **argv)
             d++;
           }
         }
-        f_compare = (double complex*) malloc(m_compare*sizeof(double complex));
-        f = (double complex*) malloc(m_compare*sizeof(double complex));
+        f_compare = (double complex*) nfft_malloc(m_compare*sizeof(double complex));
+        f = (double complex*) nfft_malloc(m_compare*sizeof(double complex));
       }
     }
 
@@ -273,11 +273,11 @@ int main (int argc, char **argv)
     fprintf(stdout,"%d\n",iNQ_max);
 
     /* Allocate memory for the cut-off degrees and grid size parameters. */
-    NQ = (int*) malloc(iNQ_max*sizeof(int));
-    SQ = (int*) malloc(iNQ_max*sizeof(int));
+    NQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
+    SQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
     if (testmode == TIMING)
     {
-      RQ = (int*) malloc(iNQ_max*sizeof(int));
+      RQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
     }
 
     /* Read the cut-off degrees and grid size parameters. */
@@ -310,9 +310,9 @@ int main (int argc, char **argv)
     if (testmode == TIMING)
     {
       /* Allocate data structures. */
-      f_hat = (double complex*) malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(double complex));
-      f = (double complex*) malloc(SQ_max*sizeof(double complex));
-      x_grid = (double*) malloc(2*SQ_max*sizeof(double));
+      f_hat = (double complex*) nfft_malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(double complex));
+      f = (double complex*) nfft_malloc(SQ_max*sizeof(double complex));
+      x_grid = (double*) nfft_malloc(2*SQ_max*sizeof(double));
       for (d = 0; d < SQ_max; d++)
       {
         f[d] = (((double)rand())/RAND_MAX)-0.5 + I*((((double)rand())/RAND_MAX)-0.5);
@@ -408,8 +408,8 @@ int main (int argc, char **argv)
         }
 
         /* Allocate memory for data structures. */
-        w = (double*) malloc(m_theta*sizeof(double));
-        x_grid = (double*) malloc(2*m_total*sizeof(double));
+        w = (double*) nfft_malloc(m_theta*sizeof(double));
+        x_grid = (double*) nfft_malloc(2*m_total*sizeof(double));
 
         //fprintf(stderr,"NQ = %d\n",NQ[iNQ]);
         //fflush(stderr);
@@ -429,8 +429,8 @@ int main (int argc, char **argv)
             //fprintf(stderr,"Allocating theta and phi\n");
             //fflush(stderr);
             /* Allocate memory to store the grid's angles. */
-            theta = (double*) malloc(m_theta*sizeof(double));
-            phi = (double*) malloc(m_phi*sizeof(double));
+            theta = (double*) nfft_malloc(m_theta*sizeof(double));
+            phi = (double*) nfft_malloc(m_phi*sizeof(double));
 
             //if (theta == NULL || phi == NULL)
             //{
@@ -470,16 +470,16 @@ int main (int argc, char **argv)
             //fprintf(stderr,"Freeing theta and phi\n");
             //fflush(stderr);
             /* Free the arrays for the grid's angles. */
-            free(theta);
-            free(phi);
+            nfft_free(theta);
+            nfft_free(phi);
 
             break;
 
           case GRID_CLENSHAW_CURTIS:
 
             /* Allocate memory to store the grid's angles. */
-            theta = (double*) malloc(m_theta*sizeof(double));
-            phi = (double*) malloc(m_phi*sizeof(double));
+            theta = (double*) nfft_malloc(m_theta*sizeof(double));
+            phi = (double*) nfft_malloc(m_phi*sizeof(double));
 
             /* Generate the grid angles theta. */
             for (k = 0; k < m_theta; k++)
@@ -523,8 +523,8 @@ int main (int argc, char **argv)
             }
 
             /* Free the arrays for the grid's angles. */
-            free(theta);
-            free(phi);
+            nfft_free(theta);
+            nfft_free(phi);
 
             break;
 
@@ -580,7 +580,7 @@ int main (int argc, char **argv)
 
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
-              w_temp = (double*) malloc((SQ[iNQ]+1)*sizeof(double));
+              w_temp = (double*) nfft_malloc((SQ[iNQ]+1)*sizeof(double));
               fplan = fftw_plan_r2r_1d(SQ[iNQ]/2+1, w_temp, w_temp, FFTW_REDFT00, 0U);
               for (k = 0; k < SQ[iNQ]/2+1; k++)
               {
@@ -646,7 +646,7 @@ int main (int argc, char **argv)
 
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
-              free(w_temp);
+              nfft_free(w_temp);
             }
             break;
 
@@ -655,7 +655,7 @@ int main (int argc, char **argv)
         }
 
         /* Allocate memory for grid values. */
-        f_grid = (double complex*) malloc(m_total*sizeof(double complex));
+        f_grid = (double complex*) nfft_malloc(m_total*sizeof(double complex));
 
         if (mode == RANDOM)
         {
@@ -663,7 +663,7 @@ int main (int argc, char **argv)
         else
         {
           m_compare = m_total;
-          f_compare = (double complex*) malloc(m_compare*sizeof(double complex));
+          f_compare = (double complex*) nfft_malloc(m_compare*sizeof(double complex));
           x_compare = x_grid;
           f = f_grid;
         }
@@ -673,7 +673,7 @@ int main (int argc, char **argv)
         switch (testfunction)
         {
           case FUNCTION_RANDOM_BANDLIMITED:
-            f_hat_gen = (double complex*) malloc(NFSFT_F_HAT_SIZE(N)*sizeof(double complex));
+            f_hat_gen = (double complex*) nfft_malloc(NFSFT_F_HAT_SIZE(N)*sizeof(double complex));
             //fprintf(stderr,"Generating random test function\n");
             //fflush(stderr);
             /* Generate random function samples by sampling a bandlimited
@@ -749,7 +749,7 @@ int main (int argc, char **argv)
               memcpy(f_compare,f_grid,m_total*sizeof(double complex));
             }
 
-            free(f_hat_gen);
+            nfft_free(f_hat_gen);
 
             break;
 
@@ -951,7 +951,7 @@ int main (int argc, char **argv)
           plan_ptr = &plan_adjoint;
         }
 
-        f_hat = (double complex*) malloc(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(double complex));
+        f_hat = (double complex*) nfft_malloc(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(double complex));
 
         plan_adjoint_ptr->f_hat = f_hat;
         plan_adjoint_ptr->x = x_grid;
@@ -1004,7 +1004,7 @@ int main (int argc, char **argv)
 
           t_avg += nfft_second() - t;
 
-          free(w);
+          nfft_free(w);
 
           t = nfft_second();
 
@@ -1066,20 +1066,20 @@ int main (int argc, char **argv)
           }
 
           /* Free data arrays. */
-          free(f_hat);
-          free(x_grid);
+          nfft_free(f_hat);
+          nfft_free(x_grid);
 
           err_infty_avg += nfft_error_l_infty_complex(f, f_compare, m_compare);
           err_2_avg += nfft_error_l_2_complex(f, f_compare, m_compare);
 
-          free(f_grid);
+          nfft_free(f_grid);
 
           if (mode == RANDOM)
           {
           }
           else
           {
-            free(f_compare);
+            nfft_free(f_compare);
           }
 
           /*for (d = 0; d < m_total; d++)
@@ -1113,26 +1113,26 @@ int main (int argc, char **argv)
     nfsft_forget();
 
     /* Free memory for cut-off bandwidths and grid size parameters. */
-    free(NQ);
-    free(SQ);
+    nfft_free(NQ);
+    nfft_free(SQ);
     if (testmode == TIMING)
     {
-      free(RQ);
+      nfft_free(RQ);
     }
 
     if (mode == RANDOM)
     {
-      free(x_compare);
-      free(f_compare);
-      free(f);
+      nfft_free(x_compare);
+      nfft_free(f_compare);
+      nfft_free(f);
     }
 
     if (testmode == TIMING)
     {
       /* Allocate data structures. */
-      free(f_hat);
-      free(f);
-      free(x_grid);
+      nfft_free(f_hat);
+      nfft_free(f);
+      nfft_free(x_grid);
     }
 
   } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */

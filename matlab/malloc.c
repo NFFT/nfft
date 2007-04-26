@@ -44,7 +44,16 @@ void *nfft_mex_malloc(size_t n)
 void nfft_mex_free(void *p)
 {
   if (p)
-    mxFree(p);
+  {
+    /* We dont use mxFree here since for at least one version of Matlab, 
+     * mxFree causes it to crash, not to mention other functions like
+     * mxWarnMsgTxt on other systems and versions. Grrr... */
+    #if 0
+      mxFree(p);
+    #else  
+      free(p);
+    #endif
+  }
 }
 
 /** Installs the nfft_malloc and nfft_free hooks. */

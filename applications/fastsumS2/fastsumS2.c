@@ -19,7 +19,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/** 
+/**
  * \defgroup applications_fastsumS2_test fastsumS2_matlab
  * \ingroup applications_fastsumS2
  * \{
@@ -68,7 +68,7 @@ enum pvalue {NO = 0, YES = 1, BOTH = 2};
  * \arg phi2   The angle \f$\varphi_2 \in [-\pi,\pi)\f$ of the second vector
  * \arg theta2 The angle \f$\vartheta_2 \in [0,\pi]\f$ of the second vector
  *
- * \return The inner product \f$\cos \vartheta_1 \cos \vartheta_2 + 
+ * \return The inner product \f$\cos \vartheta_1 \cos \vartheta_2 +
  *         \sin \vartheta_1 \sin(\vartheta_2 \cos(\varphi_1 - \varphi_2)\f$
  *
  * \author Jens Keiner
@@ -284,7 +284,7 @@ int main (int argc, char **argv)
     fprintf(stdout,"%d\n",ip_max);
 
     /* Allocate memory for pointers to parameter sets. */
-    p = (double**) malloc(ip_max*sizeof(double*));
+    p = (double**) nfft_malloc(ip_max*sizeof(double*));
 
     /* We now read in the parameter sets. */
 
@@ -295,7 +295,7 @@ int main (int argc, char **argv)
     for (ip = 0; ip < ip_max; ip++)
     {
       /* Allocate memory for the parameters. */
-      p[ip] = (double*) malloc(ipp_max*sizeof(double));
+      p[ip] = (double*) nfft_malloc(ipp_max*sizeof(double));
 
       /* Read the parameters. */
       for (ipp = 0; ipp < ipp_max; ipp++)
@@ -309,7 +309,7 @@ int main (int argc, char **argv)
     /* Read the number of cut-off degrees. */
     fscanf(stdin,"bandwidths=%d\n",&im_max);
     fprintf(stdout,"%d\n",im_max);
-    m = (int*) malloc(im_max*sizeof(int));
+    m = (int*) nfft_malloc(im_max*sizeof(int));
 
     /* Read the cut-off degrees. */
     for (im = 0; im < im_max; im++)
@@ -323,13 +323,13 @@ int main (int argc, char **argv)
     /* Read number of node specifications. */
     fscanf(stdin,"node_sets=%d\n",&ild_max);
     fprintf(stdout,"%d\n",ild_max);
-    ld = (int**) malloc(ild_max*sizeof(int*));
+    ld = (int**) nfft_malloc(ild_max*sizeof(int*));
 
     /* Read the run specification. */
     for (ild = 0; ild < ild_max; ild++)
     {
       /* Allocate memory for the run parameters. */
-      ld[ild] = (int*) malloc(5*sizeof(int));
+      ld[ild] = (int*) nfft_malloc(5*sizeof(int));
 
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
@@ -376,18 +376,18 @@ int main (int argc, char **argv)
     }
 
     /* Allocate memory for data structures. */
-    b = (complex double*) malloc(l_max*sizeof(complex double));
-    eta = (double*) malloc(2*l_max*sizeof(double));
-    f_hat = (complex double*) malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex double));
-    a = (complex double*) malloc((m_max+1)*sizeof(complex double));
-    xi = (double*) malloc(2*d_max*sizeof(double));
-    f_m = (complex double*) malloc(d_max*sizeof(complex double));
-    f = (complex double*) malloc(d_max*sizeof(complex double));
+    b = (complex double*) nfft_malloc(l_max*sizeof(complex double));
+    eta = (double*) nfft_malloc(2*l_max*sizeof(double));
+    f_hat = (complex double*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex double));
+    a = (complex double*) nfft_malloc((m_max+1)*sizeof(complex double));
+    xi = (double*) nfft_malloc(2*d_max*sizeof(double));
+    f_m = (complex double*) nfft_malloc(d_max*sizeof(complex double));
+    f = (complex double*) nfft_malloc(d_max*sizeof(complex double));
 
     /* Allocate memory for precomputed data. */
     if (precompute == YES)
     {
-      prec = (complex double*) malloc(ld_max_prec*sizeof(complex double));
+      prec = (complex double*) nfft_malloc(ld_max_prec*sizeof(complex double));
     }
 
     /* Generate random source nodes and weights. */
@@ -459,8 +459,8 @@ int main (int argc, char **argv)
           case KT_GAUSSIAN:
             /* Compute Fourier-Legendre coefficients for the locally supported
              * kernel. */
-            steed = (double*) malloc((m_max+1)*sizeof(double));
-            steed2 = (double*) malloc((m_max+1)*sizeof(double));
+            steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
+            steed2 = (double*) nfft_malloc((m_max+1)*sizeof(double));
             gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
             for (k = 0; k <= m_max; k++)
             {
@@ -473,7 +473,7 @@ int main (int argc, char **argv)
               a[k] = steed[k];
             }
 
-            free(steed);
+            nfft_free(steed);
             break;
       }
 
@@ -933,33 +933,33 @@ int main (int argc, char **argv)
     if (precompute == YES)
     {
       /* Free memory for precomputed matrix K. */
-      free(prec);
+      nfft_free(prec);
     }
     /* Free data arrays. */
-    free(f);
-    free(f_m);
-    free(xi);
-    free(eta);
-    free(a);
-    free(f_hat);
-    free(b);
+    nfft_free(f);
+    nfft_free(f_m);
+    nfft_free(xi);
+    nfft_free(eta);
+    nfft_free(a);
+    nfft_free(f_hat);
+    nfft_free(b);
 
     /* Free memory for node sets. */
     for (ild = 0; ild < ild_max; ild++)
     {
-      free(ld[ild]);
+      nfft_free(ld[ild]);
     }
-    free(ld);
+    nfft_free(ld);
 
     /* Free memory for cut-off bandwidths. */
-    free(m);
+    nfft_free(m);
 
     /* Free memory for parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
     {
-      free(p[ip]);
+      nfft_free(p[ip]);
     }
-    free(p);
+    nfft_free(p);
   } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */
 
   /* Return exit code for successful run. */

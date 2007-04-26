@@ -250,6 +250,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     ARG_GET_PLAN(dp1)
     nfsft_finalize(plans[(int)(dp1[0])]);
+    nfft_free(plans[(int)(dp1[0])]);
     plans[(int)(dp1[0])] = 0;
   }
   else if (strcmp(cmd,"precompute_x") == 0)
