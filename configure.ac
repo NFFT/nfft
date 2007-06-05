@@ -174,11 +174,11 @@ AC_OUTPUT(Makefile \
           applications/mri/mri2d/Makefile \
           applications/mri/mri3d/Makefile \
 	  applications/polarFFT/Makefile \
-	  applications/quadratureS2/Makefile \
 	  applications/radon/Makefile \
 	  matlab/Makefile \
 	  matlab/nfsft/Makefile
 )
+#	  applications/quadratureS2/Makefile \
 
 if test $USE_MAINTAINER_MODE = yes; then
 AC_OUTPUT(tests/Makefile \
