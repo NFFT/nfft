@@ -1,13 +1,6 @@
-SUBDIRS = texture_util \
-										 correctness \
-                     regularity \
-                     performance \
-                     interpolation \
-                     data_creator \
-                     matrix \
-                     regularity2 \
-                     regularity3 \
-                     data
+SUBDIRS = texture_util data \
+correctness data_creator interpolation matrix paper1 performance \
+regularity regularity2 regularity3
 DIST_SUBDIRS =
 
 nodistdir = $(abs_srcdir)

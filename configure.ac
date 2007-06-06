@@ -191,18 +191,20 @@ AC_OUTPUT(tests/Makefile \
           applications/iterS2/Makefile \
       		applications/texture/Makefile \
 					applications/texture/examplesTexture/Makefile \
-					applications/texture/examplesTexture/texture_util/Makefile \
 					applications/texture/examplesTexture/correctness/Makefile \
-					applications/texture/examplesTexture/regularity/Makefile \
-					applications/texture/examplesTexture/performance/Makefile \
-					applications/texture/examplesTexture/interpolation/Makefile \
+					applications/texture/examplesTexture/data/Makefile \
+					applications/texture/examplesTexture/data/data_publication/Makefile \
+					applications/texture/examplesTexture/data/util/Makefile \
 					applications/texture/examplesTexture/data_creator/Makefile \
+					applications/texture/examplesTexture/interpolation/Makefile \
 					applications/texture/examplesTexture/matrix/Makefile \
+					applications/texture/examplesTexture/paper1/Makefile \
+					applications/texture/examplesTexture/paper1/data/Makefile \
+					applications/texture/examplesTexture/performance/Makefile \
+					applications/texture/examplesTexture/regularity/Makefile \
 					applications/texture/examplesTexture/regularity2/Makefile \
 					applications/texture/examplesTexture/regularity3/Makefile \
-					applications/texture/examplesTexture/data/Makefile \
-					applications/texture/examplesTexture/data/util/Makefile \
-					applications/texture/examplesTexture/data/data_publication/Makefile
+					applications/texture/examplesTexture/texture_util/Makefile
 )
 fi
 
