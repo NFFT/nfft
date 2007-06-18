@@ -313,6 +313,13 @@ void read_samples(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
  */
 void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out);
 
+/**
+ * Reads the bandwidth of a frequency vector from in.
+ * Aborts execution if a syntax error is encountered.
+ * @see file_formats
+ */
+void read_N(int *N_ptr, FILE * in);
+
 // output
 
 /**
@@ -341,6 +348,12 @@ void write_x(int N1, int N2, complex * x, FILE * out);
  * Creates a random number in @f$[0, RAND\_MAX] + i [0, RAND\_MAX]@f$.
  */
 inline complex crand();
+
+/**
+ * Creates a uniformly distributed random number in the circle with center 
+ * @f$0@f$ and radius @f$2^30@f$.
+ */
+inline complex crand_circle();
 
 /**
  * Creates a random number in @f$[0, RAND\_MAX]@f$.
@@ -400,6 +413,20 @@ inline double l_2_norm(const complex * vec, unsigned int length);
  */
 inline double l_2_rel_norm(const complex * vec, const complex * ref,
 													 unsigned int length);
+
+/**
+ * Returns @f$ \| vec - ref\|_M / \|ref\|_M @f$, where 
+ * @f$ M = diag(m) @f$ with @f$ m(\ell, m, n) = \dfrac{1}{2 \ell + 1}@f$.
+ */
+inline double compute_ren(const complex * vec, const complex * ref,
+													unsigned int N);
+
+/**
+ * Returns @f$ \| vec - ref\|_M / \|ref\|_M @f$, where 
+ * @f$ M = diag(m) @f$ with @f$ m(\ell, m, n) = \dfrac{1}{(2 \ell + 1)^2}@f$.
+ */
+inline double compute_rwen(const complex * vec, const complex * ref,
+													 unsigned int N);
 
 /**
  * Does the same as calloc, but raises an error if calloc returns 0.
@@ -463,7 +490,7 @@ void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 /**
  * Stores the descriptions for different omega policies.
  */
-const char *omega_policy_descr[4];
+const char *omega_policy_descr[5];
 
 /**
  * Creates a random frequency vector:
@@ -495,7 +522,7 @@ unsigned int solver_flags(int solver_algo, int weight_policy);
 /**
  * Descriptions for the different weight policies.
  */
-const char *weight_policy_descr[4];
+const char *weight_policy_descr[5];
 
 /**
  * Initializes the damping factors of iplan.
@@ -515,6 +542,13 @@ void set_weights(itexture_plan * iplan, int weight_policy);
  * Allocates memory for itexture_params::omega_min_res.
  */
 void initialize_itexture_params(itexture_params * pars, int N);
+
+/**
+ * Requests the user to input the fields of pars that determin the abort 
+ * criterion and verbosity of ::texture_itrafo.
+ * See the code for details.
+ */
+void read_itexture_params(itexture_params * pars);
 
 /**
  * Executes ::itexture_before_loop and some iterations of 

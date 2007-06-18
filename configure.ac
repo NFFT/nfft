@@ -200,6 +200,7 @@ AC_OUTPUT(tests/Makefile \
 					applications/texture/examplesTexture/matrix/Makefile \
 					applications/texture/examplesTexture/paper1/Makefile \
 					applications/texture/examplesTexture/paper1/data/Makefile \
+					applications/texture/examplesTexture/paper1/reconstruction/Makefile \
 					applications/texture/examplesTexture/performance/Makefile \
 					applications/texture/examplesTexture/regularity/Makefile \
 					applications/texture/examplesTexture/regularity2/Makefile \

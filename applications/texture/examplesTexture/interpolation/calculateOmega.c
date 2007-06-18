@@ -79,7 +79,7 @@ void init()
 {
 }
 
-void read_N()
+void input_N()
 {
 	scanf("%d", &N);
 }
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 
 	if (argc <= 5) {
 		init();
-		read_N();
+		input_N();
 
 		printf("Omega\n");
 

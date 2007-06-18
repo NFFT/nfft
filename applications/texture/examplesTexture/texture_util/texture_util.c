@@ -12,11 +12,13 @@
 const char *grid_descr[] =
 	{ "equidistant angles", "file", "uniformly distributed" };
 
-const char *omega_policy_descr[] = { "flat", "1/n", "one", "1/n^2" };
+const char *omega_policy_descr[] =
+	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)" };
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
-const char *weight_policy_descr[] = { "flat", "1/n", "1/n^2", "1/n^3" };
+const char *weight_policy_descr[] =
+	{ "flat", "1/n", "1/n^2", "1/n^3", "(2l+1)^2" };
 
 // internal functions
 
@@ -317,6 +319,17 @@ inline complex crand()
 	return drand() + I * drand();
 }
 
+inline complex crand_circle()
+{
+	complex result;
+
+	do {
+		result = 2 * drand1() - 1 + I * (2 * drand1() - 1);
+	} while (cabs(result) > 1);
+
+	return result * (1 << 30);
+}
+
 void destroy_itexture_params(itexture_params * pars)
 {
 	free(pars->omega_min_res);
@@ -389,6 +402,19 @@ void init_omega(complex * omega, int N, int omega_policy)
 				omega[i] = crand();
 				omega[i] /= (i + 1);
 				omega[i] /= (i + 1);
+			}
+			break;
+		}
+		case 4:
+		{
+			int l, m, n;
+			for (l = 0; l <= N; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						omega[texture_flat_index(l, m, n)] = crand_circle();
+						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 1.5);
+					}
+				}
 			}
 			break;
 		}
@@ -477,6 +503,62 @@ inline double l_2_rel_norm(const complex * vec, const complex * ref,
 	}
 }
 
+inline double compute_ren(const complex * vec, const complex * ref,
+													unsigned int N)
+{
+	int l, m, n;
+	double numerator = 0, denominator = 0;
+	for (l = 0; l <= N; l++) {
+		for (m = -l; m <= l; m++) {
+			for (n = -l; n <= l; n++) {
+				double diff, base;
+				diff =
+					cabs(vec[texture_flat_index(l, m, n)] -
+							 ref[texture_flat_index(l, m, n)]);
+				diff *= diff;
+				diff /= (double) (2 * l + 1);
+				numerator += diff;
+
+				base = cabs(ref[texture_flat_index(l, m, n)]);
+				base *= base;
+				base /= (double) (2 * l + 1);
+				denominator += base;
+			}
+		}
+	}
+	assert(denominator > 0);
+	return sqrt(numerator / denominator);
+}
+
+inline double compute_rwen(const complex * vec, const complex * ref,
+													 unsigned int N)
+{
+	int l, m, n;
+	double numerator = 0, denominator = 0;
+	for (l = 0; l <= N; l++) {
+		for (m = -l; m <= l; m++) {
+			for (n = -l; n <= l; n++) {
+				double diff, base;
+				diff =
+					cabs(vec[texture_flat_index(l, m, n)] -
+							 ref[texture_flat_index(l, m, n)]);
+				diff *= diff;
+				diff /= (double) (2 * l + 1);
+				diff /= (double) (2 * l + 1);
+				numerator += diff;
+
+				base = cabs(ref[texture_flat_index(l, m, n)]);
+				base *= base;
+				base /= (double) (2 * l + 1);
+				base /= (double) (2 * l + 1);
+				denominator += base;
+			}
+		}
+	}
+	assert(denominator > 0);
+	return sqrt(numerator / denominator);
+}
+
 void mult_error(int N1, int N2, complex * x, double min_err, double max_err)
 {
 	int i, j;
@@ -546,6 +628,93 @@ void read_h(int *N1_ptr, double **h_phi_ptr, double **h_theta_ptr, FILE * in,
 	}
 
 	check_eof(in, "pole figure file");
+}
+
+void read_itexture_params(itexture_params * pars)
+{
+	char next;
+
+	do {
+		int choice;
+
+		fprintf(stderr, "1. max_epochs = %d\n", pars->max_epochs);
+		fprintf(stderr, "2. stop_file_name = %s\n", pars->stop_file_name);
+		fprintf(stderr, "3. residuum_goal = %.2e\n", pars->residuum_goal);
+		fprintf(stderr, "4. updated_residuum_limit = %.2e\n",
+						pars->updated_residuum_limit);
+		fprintf(stderr, "5. min_improve = %lg\n", pars->min_improve);
+		fprintf(stderr, "6. max_epochs_without_improve = %d\n",
+						pars->max_epochs_without_improve);
+		fprintf(stderr, "7. max_fail = %d\n", pars->max_fail);
+		fprintf(stderr, "8. steps_per_epoch = %d\n", pars->steps_per_epoch);
+		fprintf(stderr, "9. use_updated_residuum = %d\n",
+						pars->use_updated_residuum);
+		fprintf(stderr, "10. messages_on = %d\n", pars->messages_on);
+		fprintf(stderr, "11. message_interval = %d\n", pars->message_interval);
+
+		next = getchar();
+		if (!isspace(next)) {
+			int *fields[12] = { 0, &(pars->max_epochs), 0, 0, 0, 0,
+				&(pars->max_epochs_without_improve),
+				&(pars->max_fail), &(pars->steps_per_epoch),
+				&(pars->use_updated_residuum),
+				&(pars->messages_on), &(pars->message_interval)
+			};
+			int value;
+
+			ungetc(next, stdin);
+			scanf("%d%*[ ]", &choice);
+			switch (choice) {
+				case 1:
+				case 6:
+				case 7:
+				case 8:
+				case 9:
+				case 10:
+				case 11:
+					scanf("%d%*[ ]", &value);
+					*fields[choice] = value;
+					break;
+				case 2:
+					scanf("%s%*[ ]", pars->stop_file_name);
+					break;
+				case 3:
+					scanf("%lg%*[ ]", &(pars->residuum_goal));
+					break;
+				case 4:
+					scanf("%lg%*[ ]", &(pars->updated_residuum_limit));
+					break;
+				case 5:
+					scanf("%lg%*[ ]", &(pars->min_improve));
+					break;
+			}
+			getchar();
+		}
+	} while (!isspace(next));
+}
+
+void read_N(int *N_ptr, FILE * in)
+{
+	char line[MAX_LINE];
+
+	fgets(line, MAX_LINE, in);
+	if (strcmp(line, "Omega\n")) {
+		fprintf(stderr, "Invalid omega file!\n");
+		fflush(0);
+		exit(-1);
+	}
+
+	do {
+		fgets(line, MAX_LINE, in);
+	} while (line[0] == '#');
+
+	if (line[0] != '\n') {
+		fprintf(stderr, "Invalid header in omega file!\n");
+		fflush(0);
+		exit(-1);
+	}
+
+	fscanf(in, "%d", N_ptr);
 }
 
 void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out)
@@ -808,6 +977,19 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 		{
 			for (i = 1; i <= iplan->mv->N_total; i++) {
 				iplan->w_hat[i - 1] = pow(i, -3);
+			}
+			break;
+		}
+		case 4:
+		{
+			int l, m, n;
+			for (l = 0; texture_flat_length(l) <= iplan->mv->N_total; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						iplan->w_hat[texture_flat_index(l, m, n)] =
+							(2 * l + 1) * (2 * l + 1);
+					}
+				}
 			}
 			break;
 		}

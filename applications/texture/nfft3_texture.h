@@ -544,7 +544,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  *
  * @par ths - a pointer to the transformation plan
  */
-		 inline const double complex *texture_get_omega(texture_plan * ths);
+		 inline double complex *texture_get_omega(texture_plan * ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -559,7 +559,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  *
  * @par ths - a pointer to the transformation plan
  */
-		 inline const double complex *texture_get_x(texture_plan * ths);
+		 inline double complex *texture_get_x(texture_plan * ths);
 
 /** Sets the samples in a plan.
  *

@@ -204,7 +204,7 @@ inline int texture_get_N2(texture_plan * ths)
 	return ths->N2;
 }
 
-inline const double complex *texture_get_omega(texture_plan * ths)
+inline double complex *texture_get_omega(texture_plan * ths)
 {
 	return ths->f_hat;
 }
@@ -214,7 +214,7 @@ inline void texture_set_omega(texture_plan * ths, double complex * omega)
 	ths->f_hat = omega;
 }
 
-inline const double complex *texture_get_x(texture_plan * ths)
+inline double complex *texture_get_x(texture_plan * ths)
 {
 	return ths->f;
 }
