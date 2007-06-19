@@ -542,15 +542,13 @@ inline double compute_rwen(const complex * vec, const complex * ref,
 				diff =
 					cabs(vec[texture_flat_index(l, m, n)] -
 							 ref[texture_flat_index(l, m, n)]);
+				diff /= (double) (2 * l + 1);
 				diff *= diff;
-				diff /= (double) (2 * l + 1);
-				diff /= (double) (2 * l + 1);
 				numerator += diff;
 
 				base = cabs(ref[texture_flat_index(l, m, n)]);
+				base /= (double) (2 * l + 1);
 				base *= base;
-				base /= (double) (2 * l + 1);
-				base /= (double) (2 * l + 1);
 				denominator += base;
 			}
 		}
