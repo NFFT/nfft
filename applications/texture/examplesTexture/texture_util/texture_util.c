@@ -18,7 +18,7 @@ const char *omega_policy_descr[] =
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
 const char *weight_policy_descr[] =
-	{ "flat", "1/n", "1/n^2", "1/n^3", "(2l+1)^2" };
+	{ "flat", "inv(n)", "inv(n^2)", "inv(n^3)", "(2l+1)^2", "inv(l+1)" };
 
 // internal functions
 
@@ -428,13 +428,13 @@ void initialize_itexture_params(itexture_params * pars, int N)
 	pars->omega_ref = 0;
 
 	pars->max_epochs = 10000;
-	pars->stop_file_name = "stop_solver";
-	pars->residuum_goal = 1e-16;
+	sprintf(pars->stop_file_name, "%s", "stop_solver");
+	pars->residuum_goal = 1e-8;
 	pars->updated_residuum_limit = 1e-16;
-	pars->min_improve = 0.01;
-	pars->max_epochs_without_improve = 10;
-	pars->max_fail = 10;
-	pars->steps_per_epoch = 10;
+	pars->min_improve = 0.1;
+	pars->max_epochs_without_improve = 3;
+	pars->max_fail = 3;
+	pars->steps_per_epoch = 30;
 	pars->use_updated_residuum = 0;
 	pars->monitor_error = 0;
 
@@ -986,6 +986,19 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 					for (n = -l; n <= l; n++) {
 						iplan->w_hat[texture_flat_index(l, m, n)] =
 							(2 * l + 1) * (2 * l + 1);
+					}
+				}
+			}
+			break;
+		}
+		case 5:
+		{
+			int l, m, n;
+			for (l = 0; texture_flat_length(l) <= iplan->mv->N_total; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						iplan->w_hat[texture_flat_index(l, m, n)] = 1.0;
+						iplan->w_hat[texture_flat_index(l, m, n)] /= (l+1);
 					}
 				}
 			}

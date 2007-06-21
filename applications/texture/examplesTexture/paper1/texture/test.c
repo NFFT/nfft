@@ -75,7 +75,7 @@ void read_data()
 		sprintf(h_file, "%s", def_h_file);
 	}
 	
-	fprintf(stderr, "2. grid_r_file: (%s)", def_r_file);
+	fprintf(stderr, "2. grid_r_file (%s): ", def_r_file);
 	next = getchar();
 
 	if(!isspace(next)) {
@@ -86,7 +86,7 @@ void read_data()
 		sprintf(r_file, "%s", def_r_file);
 	}
 
-	fprintf(stderr, "3. omega_file: (%s)", def_omega_file);
+	fprintf(stderr, "3. omega_file (%s): ", def_omega_file);
 	next = getchar();
 
 	if(!isspace(next)) {
@@ -232,6 +232,7 @@ void output_params()
 					pars.min_improve, pars.max_epochs_without_improve, pars.max_fail);
 	fprintf(output, "# steps_per_epoch: %d\n", pars.steps_per_epoch);
 	fprintf(output, "# use_updated_residuum: %d\n", pars.use_updated_residuum);
+	fflush(output);
 }
 
 void calculate_x() { 

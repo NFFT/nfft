@@ -124,7 +124,7 @@ void read_params()
 	next = getchar();
 	if (!isspace(next)) {
 		ungetc(next, stdin);
-		scanf("%s", output_file_name);
+		scanf("%s%*[ ]", output_file_name);
 		getchar();
 	} else {
 		sprintf(output_file_name, "%s", def_output_file_name);

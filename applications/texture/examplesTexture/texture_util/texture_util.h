@@ -136,7 +136,7 @@ typedef struct itexture_params_ {
 	 * If after some epoch a file with the specified name appears, the solver 
 	 * stops.
 	 */
-	char *stop_file_name;
+	char stop_file_name[100];
 
 	/**
 	 * If the relative @f$l_2@f$ residuum reaches this value, the solver stops.
@@ -522,7 +522,7 @@ unsigned int solver_flags(int solver_algo, int weight_policy);
 /**
  * Descriptions for the different weight policies.
  */
-const char *weight_policy_descr[5];
+const char *weight_policy_descr[6];
 
 /**
  * Initializes the damping factors of iplan.
