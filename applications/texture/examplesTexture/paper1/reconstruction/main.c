@@ -200,14 +200,14 @@ void processing()
 {
 	int count;
 
-	for (count = firstcase; count < firstcase + testcases; count++) {
+	for (count = 0; count < testcases; count++) {
 		FILE *omega_file;
 		int cur_N;
 		double complex *tmp;
 
 		// load omeag_ref
 		sprintf(cur_omega_file_path, "%s%s%03d", omega_prefix, omega_file_name,
-						count);
+						firstcase + count);
 		omega_file = fopen(cur_omega_file_path, "r");
 		read_omega(&cur_N, &omega, omega_file, stderr);
 		pars.omega_ref = omega;
