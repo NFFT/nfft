@@ -1,0 +1,30 @@
+# Name: omega1
+# N: 20, dim(J_N): 12341
+# omega_file_name: omega1
+# N1: 92, N2: 8556, N1*N2: 787152
+# h_file_name: h92, r_file_name: r8556
+# solver_algo: CGNR
+# testcases: 1
+# firstcase: 1
+# weight_policy: (2l+1)^2
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-08, updated_residuum_limit: 1.00e-16
+# min_improve: 0.1, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 30
+# use_updated_residuum: 0
+#
+# Relative residuum norm:
+#   Minimum      Mean   Maximum
+   1.41e-10  1.41e-10  1.41e-10
+# Relative L^2(SO(3)) error norm:
+#   Minimum      Mean   Maximum
+   2.66e-09  2.66e-09  2.66e-09
+# Relative (un)weighted error norm:
+#   Minimum      Mean   Maximum
+   6.54e-10  6.54e-10  6.54e-10
+#
+# Rawdata:
+#       rrn       ren      rwen
+   1.41e-10  2.66e-09  6.54e-10
