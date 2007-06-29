@@ -429,12 +429,11 @@ void initialize_itexture_params(itexture_params * pars, int N)
 
 	pars->max_epochs = 10000;
 	sprintf(pars->stop_file_name, "%s", "stop_solver");
-	pars->residuum_goal = 1e-8;
-	pars->updated_residuum_limit = 1e-16;
+	pars->residuum_goal = 1e-16;
 	pars->min_improve = 0.1;
 	pars->max_epochs_without_improve = 3;
-	pars->max_fail = 1;
-	pars->steps_per_epoch = 30;
+	pars->max_fail = 3;
+	pars->steps_per_epoch = 10;
 	pars->use_updated_residuum = 0;
 	pars->monitor_error = 0;
 
@@ -638,21 +637,19 @@ void read_itexture_params(itexture_params * pars)
 		fprintf(stderr, "1. max_epochs = %d\n", pars->max_epochs);
 		fprintf(stderr, "2. stop_file_name = %s\n", pars->stop_file_name);
 		fprintf(stderr, "3. residuum_goal = %.2e\n", pars->residuum_goal);
-		fprintf(stderr, "4. updated_residuum_limit = %.2e\n",
-						pars->updated_residuum_limit);
-		fprintf(stderr, "5. min_improve = %lg\n", pars->min_improve);
-		fprintf(stderr, "6. max_epochs_without_improve = %d\n",
+		fprintf(stderr, "4. min_improve = %lg\n", pars->min_improve);
+		fprintf(stderr, "5. max_epochs_without_improve = %d\n",
 						pars->max_epochs_without_improve);
-		fprintf(stderr, "7. max_fail = %d\n", pars->max_fail);
-		fprintf(stderr, "8. steps_per_epoch = %d\n", pars->steps_per_epoch);
-		fprintf(stderr, "9. use_updated_residuum = %d\n",
+		fprintf(stderr, "6. max_fail = %d\n", pars->max_fail);
+		fprintf(stderr, "7. steps_per_epoch = %d\n", pars->steps_per_epoch);
+		fprintf(stderr, "8. use_updated_residuum = %d\n",
 						pars->use_updated_residuum);
-		fprintf(stderr, "10. messages_on = %d\n", pars->messages_on);
-		fprintf(stderr, "11. message_interval = %d\n", pars->message_interval);
+		fprintf(stderr, "9. messages_on = %d\n", pars->messages_on);
+		fprintf(stderr, "10. message_interval = %d\n", pars->message_interval);
 
 		next = getchar();
 		if (!isspace(next)) {
-			int *fields[12] = { 0, &(pars->max_epochs), 0, 0, 0, 0,
+			int *fields[11] = { 0, &(pars->max_epochs), 0, 0, 0,
 				&(pars->max_epochs_without_improve),
 				&(pars->max_fail), &(pars->steps_per_epoch),
 				&(pars->use_updated_residuum),
@@ -664,12 +661,12 @@ void read_itexture_params(itexture_params * pars)
 			scanf("%d%*[ ]", &choice);
 			switch (choice) {
 				case 1:
+				case 5:
 				case 6:
 				case 7:
 				case 8:
 				case 9:
 				case 10:
-				case 11:
 					scanf("%d%*[ ]", &value);
 					*fields[choice] = value;
 					break;
@@ -680,9 +677,6 @@ void read_itexture_params(itexture_params * pars)
 					scanf("%lg%*[ ]", &(pars->residuum_goal));
 					break;
 				case 4:
-					scanf("%lg%*[ ]", &(pars->updated_residuum_limit));
-					break;
-				case 5:
 					scanf("%lg%*[ ]", &(pars->min_improve));
 					break;
 			}
@@ -1103,6 +1097,8 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 										 texture_get_x_length(test_plan));
 		}
 
+		if(isnormal(res) && isnormal(res_upd)) {
+
 		if ((pars->min_residuum - res) / pars->min_residuum < pars->min_improve) {
 			epochs_without_improve++;
 		} else {
@@ -1167,11 +1163,6 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 			stop = 1;
 		}
 
-		if (res_upd <= pars->updated_residuum_limit) {
-			pars->status = "stopped to prevent an underflow";
-			stop = 1;
-		}
-
 		if (epochs_without_improve > pars->max_epochs_without_improve) {
 			pars->status = "stagnation";
 			stop = 1;
@@ -1184,6 +1175,10 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 
 		if (res <= pars->residuum_goal) {
 			pars->status = "residuum goal reached";
+			stop = 1;
+		}
+		} else {
+			pars->status = "anormal numbers (nan, inf, subnormal)";
 			stop = 1;
 		}
 

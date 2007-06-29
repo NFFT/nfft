@@ -107,62 +107,7 @@ void read_params()
 	scanf("%d%*[ ]", &new_N);
 	getchar();
 	initialize_itexture_params(&pars, new_N);
-	do {
-		int choice;
-
-		fprintf(stderr, "1. max_epochs = %d\n", pars.max_epochs);
-		fprintf(stderr, "2. stop_file_name = %s\n", pars.stop_file_name);
-		fprintf(stderr, "3. residuum_goal = %.2e\n", pars.residuum_goal);
-		fprintf(stderr, "4. updated_residuum_limit = %.2e\n",
-						pars.updated_residuum_limit);
-		fprintf(stderr, "5. min_improve = %lg\n", pars.min_improve);
-		fprintf(stderr, "6. max_epochs_without_improve = %d\n",
-						pars.max_epochs_without_improve);
-		fprintf(stderr, "7. max_fail = %d\n", pars.max_fail);
-		fprintf(stderr, "8. steps_per_epoch = %d\n", pars.steps_per_epoch);
-		fprintf(stderr, "9. use_updated_residuum = %d\n",
-						pars.use_updated_residuum);
-		fprintf(stderr, "10. messages_on = %d\n", pars.messages_on);
-		fprintf(stderr, "11. message_interval = %d\n", pars.message_interval);
-
-		next = getchar();
-		if (!isspace(next)) {
-			int *fields[12] =
-				{ 0, &pars.max_epochs, 0, 0, 0, 0, &pars.max_epochs_without_improve,
-				&pars.max_fail, &pars.steps_per_epoch, &pars.use_updated_residuum,
-				&pars.messages_on, &pars.message_interval
-			};
-			int value;
-
-			ungetc(next, stdin);
-			scanf("%d%*[ ]", &choice);
-			switch (choice) {
-				case 1:
-				case 6:
-				case 7:
-				case 8:
-				case 9:
-				case 10:
-				case 11:
-					scanf("%d%*[ ]", &value);
-					*fields[choice] = value;
-					break;
-				case 2:
-					scanf("%s%*[ ]", pars.stop_file_name);
-					break;
-				case 3:
-					scanf("%lg%*[ ]", &pars.residuum_goal);
-					break;
-				case 4:
-					scanf("%lg%*[ ]", &pars.updated_residuum_limit);
-					break;
-				case 5:
-					scanf("%lg%*[ ]", &pars.min_improve);
-					break;
-			}
-			getchar();
-		}
-	} while (!isspace(next));
+	read_itexture_params(&pars);
 
 	pars.monitor_error = 1;
 	pars.omega_ref = omega_ref;
@@ -223,8 +168,8 @@ void output_params()
 
 	fprintf(output, "# Solver parameters:\n");
 	fprintf(output, "# max_epochs: %d\n", pars.max_epochs);
-	fprintf(output, "# residuum_goal: %.2e, updated_residuum_limit: %.2e\n",
-					pars.residuum_goal, pars.updated_residuum_limit);
+	fprintf(output, "# residuum_goal: %.2e\n",
+					pars.residuum_goal);
 	fprintf(output,
 					"# min_improve: %lg, max_epochs_without_improve: %d, max_fail: %d\n",
 					pars.min_improve, pars.max_epochs_without_improve, pars.max_fail);

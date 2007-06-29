@@ -171,8 +171,8 @@ void output_params()
 	fprintf(output_file, "# Solver parameters:\n");
 	fprintf(output_file, "# max_epochs: %d\n", pars.max_epochs);
 	fprintf(output_file,
-					"# residuum_goal: %.2e, updated_residuum_limit: %.2e\n",
-					pars.residuum_goal, pars.updated_residuum_limit);
+					"# residuum_goal: %.2e\n",
+					pars.residuum_goal);
 	fprintf(output_file,
 					"# min_improve: %lg, max_epochs_without_improve: %d, max_fail: %d\n",
 					pars.min_improve, pars.max_epochs_without_improve, pars.max_fail);
@@ -257,10 +257,10 @@ void calculate_output_helper(double *data, double *min_val, double *max_val,
 			} else if (data[i] > *max_val) {
 				*max_val = data[i];
 			}
-			*mean_val += data[i];
+			*mean_val *= data[i];
 		}
 	}
-	*mean_val /= testcases;
+	*mean_val = pow(*mean_val, 1.0/(double) testcases);
 }
 
 void calculate_output()
@@ -275,13 +275,13 @@ void output()
 	int i;
 
 	fprintf(output_file, "# Relative residuum norm:\n");
-	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Mean", "Maximum");
+	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Geomean", "Maximum");
 	fprintf(output_file, " %10.2e%10.2e%10.2e\n", rrn_min, rrn_mean, rrn_max);
 	fprintf(output_file, "# Relative L^2(SO(3)) error norm:\n");
-	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Mean", "Maximum");
+	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Geomean", "Maximum");
 	fprintf(output_file, " %10.2e%10.2e%10.2e\n", ren_min, ren_mean, ren_max);
 	fprintf(output_file, "# Relative (un)weighted error norm:\n");
-	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Mean", "Maximum");
+	fprintf(output_file, "#%10s%10s%10s\n", "Minimum", "Geomean", "Maximum");
 	fprintf(output_file, " %10.2e%10.2e%10.2e\n", rwen_min, rwen_mean,
 					rwen_max);
 	fprintf(output_file, "#\n");

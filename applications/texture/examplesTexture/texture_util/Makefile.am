@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../..
+AM_CFLAGS = -std=c99 -Wall -I$(top_srcdir)/include -I../..
 
 ## The program name
 nodist_LTLIBRARIES = libtexture_util.la

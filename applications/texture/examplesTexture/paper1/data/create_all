@@ -12,3 +12,9 @@ echo r510.txt r 510 r510 | ./create > /dev/null
 echo r8556.txt r 8556 r8556 | ./create > /dev/null
 echo r94900.txt r 94900 r94900 | ./create > /dev/null
 echo r9791.txt r 9791 r9791 | ./create > /dev/null
+echo r34.txt r 34 r00034 | ./create > /dev/null
+echo r156.txt r 156 r00156 | ./create > /dev/null
+echo r460.txt r 460 r00460 | ./create > /dev/null
+echo r2248.txt r 2248 r02248 | ./create > /dev/null
+echo r6974.txt r 6974 r06974 | ./create > /dev/null
+echo r23898.txt r 23898 r23898 | ./create > /dev/null

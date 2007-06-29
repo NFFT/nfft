@@ -144,13 +144,6 @@ typedef struct itexture_params_ {
 	double residuum_goal;
 
 	/**
-	 * If the relative @f$l_2@f$ residuum calculated via iplan.dot_r_iter becomes
-	 * equal or less than this value, the solver stops.
-	 * Otherwise there would be the risc of an underflow.
-	 */
-	double updated_residuum_limit;
-
-	/**
 	 * Let @f$res@f$ be the current relative @f$l_2@f$ residuum and 
 	 * @f$res_{min}@f$ the minimal observed @f$l_2@f$ residuum after some epoch.
 	 * If @f$res \leq (1 - min\_improve) \cdot res_{min}@f$, we say that
@@ -240,7 +233,7 @@ typedef struct itexture_params_ {
 	 * The status of the itexture_params.
 	 * ("initialized", "destroyed",
 	 * "residuum goal reached", "degradation", "stagnation", 
-	 * "stopped to prevent an underflow",
+	 * "anormal numbers (nan, inf, subnormal)",
 	 * "max epochs reached", "stopped")
 	 * The solver sets status to the first applying value in the list.
 	 */
