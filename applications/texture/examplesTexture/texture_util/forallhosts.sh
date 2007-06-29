@@ -1,9 +1,10 @@
+min64=13
 max64=48
 max21=10
 hosts=""
 user=schmalzm
 
-i=1
+i=$min64
 while [ $i -le $max64 ]
 do
 if [ $i -le 9 ]
@@ -16,7 +17,7 @@ hosts="$hosts $user@64pc$number"
 let i=$i+1
 done
 
-hosts="$hosts $user@64pc66"
+#hosts="$hosts $user@64pc66"
 
 i=1
 while [ $i -le $max21 ]

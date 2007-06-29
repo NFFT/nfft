@@ -433,7 +433,7 @@ void initialize_itexture_params(itexture_params * pars, int N)
 	pars->updated_residuum_limit = 1e-16;
 	pars->min_improve = 0.1;
 	pars->max_epochs_without_improve = 3;
-	pars->max_fail = 3;
+	pars->max_fail = 1;
 	pars->steps_per_epoch = 30;
 	pars->use_updated_residuum = 0;
 	pars->monitor_error = 0;
