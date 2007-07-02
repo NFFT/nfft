@@ -1,0 +1,17 @@
+# Name: omega1.2
+# N: 80, dim(J_N): 708561
+# omega_file_name: omega1
+# N1: 164, N2: 6974, N1*N2: 1143736
+# h_file_name: h164, r_file_name: r06974
+# solver_algo: CGNR
+# testcases: 1
+# firstcase: 5
+# weight_policy: (2l+1)^2
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-16
+# min_improve: 0.01, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 10
+# use_updated_residuum: 0
+#

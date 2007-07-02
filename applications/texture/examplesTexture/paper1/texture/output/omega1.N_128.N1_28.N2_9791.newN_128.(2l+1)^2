@@ -1,0 +1,13 @@
+# Name: omega1
+# N: 128, dim(J_N): 2862209
+# N1: 28, N2: 9791, N1*N2: 274148
+# new_N: 128, dim(J_new_N): 2862209
+# Weight policy: 4 ((2l+1)^2)
+# enforce even: 0
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-16
+# min_improve: 0.01, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 10
+# use_updated_residuum: 0

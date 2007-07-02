@@ -1,4 +1,4 @@
-min64=13
+min64=1
 max64=48
 max21=10
 hosts=""
@@ -17,7 +17,7 @@ hosts="$hosts $user@64pc$number"
 let i=$i+1
 done
 
-#hosts="$hosts $user@64pc66"
+hosts="$hosts $user@64pc66"
 
 i=1
 while [ $i -le $max21 ]
@@ -34,5 +34,8 @@ done
 
 for host in $hosts
 do
-ssh $host $1
+( ssh $host $1 ) &
+sleep 3
 done
+sleep 200
+killall ssh

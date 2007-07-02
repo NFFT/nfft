@@ -1,4 +1,4 @@
-while [ "`date +%d%H%M%S`" \< "$1" ]
+while [ "`date +%m%d%H`" \< "$1" ]
 do
 echo Not yet.
 date
@@ -7,13 +7,14 @@ done
 
 echo Starting.
 
-while [ "`date +%d%H%M%S`" \< "$2" ]
+while [ "`date +%m%d%H`" \< "$2" ]
 do
 date
 ./cleanup.sh
+./run.sh texture
 ./run.sh reconstruction
 echo sleeping ...
-sleep 300
+sleep 600
 done
 
 echo Cleaning.

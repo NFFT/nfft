@@ -4,6 +4,7 @@
 #include<ctype.h>
 #include<assert.h>
 #include<string.h>
+#include<math.h>
 
 #include<texture_util.h>
 

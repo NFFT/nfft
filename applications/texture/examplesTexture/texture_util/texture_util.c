@@ -430,7 +430,7 @@ void initialize_itexture_params(itexture_params * pars, int N)
 	pars->max_epochs = 10000;
 	sprintf(pars->stop_file_name, "%s", "stop_solver");
 	pars->residuum_goal = 1e-16;
-	pars->min_improve = 0.1;
+	pars->min_improve = 0.01;
 	pars->max_epochs_without_improve = 3;
 	pars->max_fail = 3;
 	pars->steps_per_epoch = 10;
