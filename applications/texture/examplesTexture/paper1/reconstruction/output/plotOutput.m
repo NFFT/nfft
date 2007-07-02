@@ -45,7 +45,7 @@ for count=1:length(files);
 	results = textscan(fid, '%n%n%n', 'commentStyle', '#');
 	results = results{measure};
 
-	if length(results) < lastcase-firstcase+1 + 3;
+	if length(results) ~= lastcase-firstcase+1 + 3;
 		disp(curFile);
 		disp('Inconsistent number of testcases!');
 		disp(length(results)-3);

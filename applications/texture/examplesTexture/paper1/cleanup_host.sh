@@ -15,6 +15,7 @@ if [ "$mainprocs1" = "" ] && [ "$jobs1" != "" ]
 then
 echo `hostname` has been aborted.
 
+echo "Resetting $jobdir1/running.*.`hostname`"
 ~/bin/rename running todo $jobdir1/running.*.`hostname`
 
 fi
@@ -23,6 +24,7 @@ if [ "$mainprocs2" = "" ] && [ "$jobs2" != "" ]
 then
 echo `hostname` has been aborted.
 
+echo "Resetting $jobdir2/running.*.`hostname`"
 ~/bin/rename running todo $jobdir2/running.*.`hostname`
 
 fi
