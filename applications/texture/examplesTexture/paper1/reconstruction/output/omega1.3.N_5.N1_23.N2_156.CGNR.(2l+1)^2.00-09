@@ -1,0 +1,39 @@
+# Name: omega1.3
+# N: 5, dim(J_N): 286
+# omega_file_name: omega1
+# N1: 23, N2: 156, N1*N2: 3588
+# h_file_name: h023, r_file_name: r00156
+# solver_algo: CGNR
+# testcases: 10
+# firstcase: 0
+# weight_policy: (2l+1)^2
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-16
+# min_improve: 0.01, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 10
+# use_updated_residuum: 0
+#
+# Relative residuum norm:
+#   Minimum   Geomean   Maximum
+   3.24e-16  4.04e-16  5.41e-16
+# Relative L^2(SO(3)) error norm:
+#   Minimum   Geomean   Maximum
+   4.40e-16  5.25e-16  6.63e-16
+# Relative (un)weighted error norm:
+#   Minimum   Geomean   Maximum
+   2.23e-16  3.06e-16  4.93e-16
+#
+# Rawdata:
+#       rrn       ren      rwen
+   5.41e-16  6.63e-16  4.93e-16
+   4.78e-16  5.90e-16  3.79e-16
+   3.24e-16  5.70e-16  2.23e-16
+   4.09e-16  4.83e-16  3.12e-16
+   3.73e-16  4.82e-16  2.49e-16
+   3.93e-16  4.40e-16  2.93e-16
+   3.50e-16  5.57e-16  2.47e-16
+   4.49e-16  4.81e-16  3.61e-16
+   4.06e-16  4.41e-16  3.01e-16
+   3.59e-16  5.87e-16  2.84e-16

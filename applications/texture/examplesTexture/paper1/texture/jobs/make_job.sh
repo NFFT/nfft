@@ -2,7 +2,7 @@ h=h28
 r=r9791
 omega=omega1
 N=$1
-name=$omega
+name=omega1.2
 
 jobName=todo.N_$N.$h.$r.$name
 

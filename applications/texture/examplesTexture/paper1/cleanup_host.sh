@@ -6,8 +6,8 @@ host=`hostname`
 procs=`ps x`
 mainprocs1=`echo $procs | grep ./main`
 mainprocs2=`echo $procs | grep ./test`
-jobs1=`ls "${jobdir1}/running.*.${host}" 2>/dev/null`
-jobs2=`ls "${jobdir2}/running.*.${host}" 2>/dev/null`
+jobs1=`ls ${jobdir1}/running.*.${host} 2>/dev/null`
+jobs2=`ls ${jobdir2}/running.*.${host} 2>/dev/null`
 
 echo `hostname`
 

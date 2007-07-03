@@ -1,3 +1,4 @@
+#!/bin/bash
 while [ "`date +%m%d%H`" \< "$1" ]
 do
 echo Not yet.
@@ -6,6 +7,7 @@ sleep 60
 done
 
 echo Starting.
+cd ~/trunk/applications/texture/examplesTexture/paper1
 
 while [ "`date +%m%d%H`" \< "$2" ]
 do

@@ -1,7 +1,7 @@
 # Parmeters:
 
 omega_file_name=omega1
-output_file_name="omega1.2"
+output_file_name="omega1.3"
 
 # Arguments:
 
