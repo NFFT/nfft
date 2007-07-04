@@ -1,4 +1,4 @@
-function plotOutput(name, grid, algo, w_hat, measure);
+function plotOutput(name, grid, algo, w_hat, measure, option);
 
 N_values = [5 10 20 40 80];
 dimension_values = [286 1771 12341 91881 708561];
@@ -13,6 +13,7 @@ statusCodes = {'+' '*' 'o'};
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-|-.|--|:');
 plot_position = [0.63 0.63 28.45 19.72];
+plot_position_save = [3 2 17 8.55];
 threshold = 10;
 testcases = 10;
 measure_descr = {'rrn (residuum)', 'ren (SO(3))', 'rwen (S^2 x S^2)'};
@@ -82,15 +83,10 @@ end;
 
 figure();
 
-set(gcf, 'paperOrientation', 'landscape');
-set(gcf, 'units', 'centimeters');
-set(gcf, 'paperPosition', plot_position);
-
 loglog(N1_values', err);
 
 set(gca, 'XTick', N1_values);
-set(gca, 'XTickLabel', ...
-	'11 (N'': 128)|23 (N'': 510)|41 (N'': 1652)|92 (N'': 8556)|164 (N'': 26772)|308 (N'': 94900)'); 
+set(gca, 'XTickLabel', sprintf('%d / %d|', [N1_values; N2_values])); 
 set(gca, 'XLim', [8 350]);
 set(gca, 'YLim', [1e-17 10]);
 set(gca, 'XMinorTick', 'off');
@@ -105,7 +101,7 @@ for N_ind = 1:length(N_values);
 	dimension = dimension_values(N_ind);
 	leg{N_ind} = sprintf('L = %d, dimension = %d', N, dimension);
 end;	
-leg_handle = legend(leg, 'location', 'northeastoutside');
+leg_handle = legend(leg, 'location', 'southoutside');
 
 set(leg_handle, 'units', 'centimeters');
 pos = get(leg_handle, 'position');
@@ -125,3 +121,18 @@ for code = 1:3
 	hold on;
 	loglog(N1_values', err_code, statusCodes{code});
 end;
+
+set(gcf, 'units', 'centimeters');
+
+if strcmp(option, 'print');
+	set(gcf, 'paperOrientation', 'landscape');
+	set(gcf, 'paperPosition', plot_position);
+	print -Plaser1
+end;	
+if strcmp(option, 'save');
+	set(gcf, 'paperOrientation', 'portrait');
+	set(gcf, 'paperPosition', plot_position_save);
+	saveas(gcf, sprintf('%s.%s.%s.%s.pdf', name, algo, w_hat, measure_descr{measure}));
+end;	
+set(gcf, 'paperOrientation', 'landscape');
+set(gcf, 'paperPosition', plot_position);
