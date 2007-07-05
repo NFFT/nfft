@@ -55,7 +55,9 @@ title(sprintf('L_{max} = %d, N = %d, N'' = %d', N, N1, N2));
 
 for newN_ind = 1:length(newN_values);
 	newN = newN_values(newN_ind);
-	leg{newN_ind} = sprintf('L = %d', newN);
+	if newN <= N;
+		leg{newN_ind} = sprintf('L = %d', newN);
+	end;
 end;	
 
 legend(leg, 'location', 'southoutside');
@@ -63,8 +65,8 @@ legend(leg, 'location', 'southoutside');
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
 set(gca, 'XMinorTick', 'off');
-set(gca, 'YLim', [1e-10 10]);
-set(gca, 'XLim', [0.9 N*1.1]);
+set(gca, 'YLim', [0.1 * min(min(data)) 10]);
+set(gca, 'XLim', [0.9 (N+1)*1.1]);
 
 set(gcf, 'units', 'centimeters');
 
