@@ -63,7 +63,7 @@ legend(leg, 'location', 'southoutside');
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
 set(gca, 'XMinorTick', 'off');
-set(gca, 'YLim', [1e-6 10]);
+set(gca, 'YLim', [1e-10 10]);
 set(gca, 'XLim', [0.9 N*1.1]);
 
 set(gcf, 'units', 'centimeters');
