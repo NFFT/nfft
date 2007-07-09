@@ -1,0 +1,30 @@
+# Name: omega3.1
+# N: 4, dim(J_N): 165
+# N1: 28, N2: 9791, N1*N2: 274148
+# new_N: 0, dim(J_new_N): 1
+# Weight policy: 4 ((2l+1)^2)
+# enforce even: 0
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-16
+# min_improve: 0.01, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 10
+# use_updated_residuum: 0
+#
+# Reason for abort: degradation
+# After 10 iterations:
+# Best residuum: 2.05e-01, Error at the same time: 7.08e-07.
+# After 10 iterations:
+# Best error: 7.08e-07
+#
+# For each degree l we give the relative l_2 error between the best frequency
+# vector omega_min and the reference vector omega_ref projected to Harm_l, i.e.
+# sqrt(sum_{m,n} |omega_min[l,m,n]-omega_ref[l,m,n]|^2) /
+# sqrt(sum_{m,n} |omega_ref[l,m,n]|^2).
+# degree     error
+       0  7.08e-07
+       1  1.00e+00
+       2  1.00e+00
+       3  1.00e+00
+       4  1.00e+00

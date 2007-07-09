@@ -1,0 +1,34 @@
+# Name: omega4.1
+# N: 8, dim(J_N): 969
+# N1: 28, N2: 9791, N1*N2: 274148
+# new_N: 8, dim(J_new_N): 969
+# Weight policy: 4 ((2l+1)^2)
+# enforce even: 0
+#
+# Solver parameters:
+# max_epochs: 10000
+# residuum_goal: 1.00e-16
+# min_improve: 0.01, max_epochs_without_improve: 3, max_fail: 3
+# steps_per_epoch: 10
+# use_updated_residuum: 0
+#
+# Reason for abort: stagnation
+# After 90 iterations:
+# Best residuum: 4.82e-09, Error at the same time: 3.71e-01.
+# After 90 iterations:
+# Best error: 3.71e-01
+#
+# For each degree l we give the relative l_2 error between the best frequency
+# vector omega_min and the reference vector omega_ref projected to Harm_l, i.e.
+# sqrt(sum_{m,n} |omega_min[l,m,n]-omega_ref[l,m,n]|^2) /
+# sqrt(sum_{m,n} |omega_ref[l,m,n]|^2).
+# degree     error
+       0  9.69e-12
+       1  1.00e+00
+       2  1.49e-09
+       3  1.00e+00
+       4  5.77e-01
+       5  1.00e+00
+       6  5.25e-01
+       7  1.00e+00
+       8  5.78e-01
