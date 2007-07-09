@@ -27,7 +27,7 @@ void input() {
 	scanf("%d", &testcases);
 	
 	// omega_policy
-	printf("omega_policy (4: %s): ", omega_policy_descr[4]);
+	printf("omega_policy (4: %s), (5: %s): ", omega_policy_descr[4], omega_policy_descr[5]);
 	scanf("%d", &omega_policy);
 	
 	// omega_file_name

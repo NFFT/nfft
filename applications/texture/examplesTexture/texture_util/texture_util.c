@@ -13,7 +13,7 @@ const char *grid_descr[] =
 	{ "equidistant angles", "file", "uniformly distributed" };
 
 const char *omega_policy_descr[] =
-	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)" };
+	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)", "1/(l+1)^9.5 (circle)" };
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
@@ -413,6 +413,19 @@ void init_omega(complex * omega, int N, int omega_policy)
 					for (n = -l; n <= l; n++) {
 						omega[texture_flat_index(l, m, n)] = crand_circle();
 						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 1.5);
+					}
+				}
+			}
+			break;
+		}
+		case 5:
+		{
+			int l, m, n;
+			for (l = 0; l <= N; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						omega[texture_flat_index(l, m, n)] = crand_circle();
+						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 9.5);
 					}
 				}
 			}
