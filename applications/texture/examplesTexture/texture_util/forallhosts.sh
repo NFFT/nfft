@@ -23,4 +23,4 @@ do
 sleep $delay
 done
 sleep $final
-killall ssh
+killall -v ssh
