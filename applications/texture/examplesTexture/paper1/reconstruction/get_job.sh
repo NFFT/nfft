@@ -40,4 +40,4 @@ cd ..
 
 # Run job.
 echo Running job $jobName.
-screen -d -m ./run_job.sh $jobName
+screen -d -m ./run_suspend_job.sh $jobName
