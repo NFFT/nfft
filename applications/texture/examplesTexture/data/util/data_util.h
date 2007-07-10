@@ -58,5 +58,12 @@ void normalise_r(int N2, double *r);
 void expand_r(int N2, double *r);
 
 /**
+ * Mirrores the pole figures from h_phi and h_theta using ::invert_phi and 
+ * ::invert_theta.
+ * @par N1 is the number of points in h_phi / h_theta after mirroring.
+ * @par h_phi and h_theta store the points. 
+ */
+void expand_h(int N1, double *h_phi, double *h_theta);
+/**
  * @}
  */

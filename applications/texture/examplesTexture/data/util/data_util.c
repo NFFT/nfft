@@ -71,3 +71,13 @@ void expand_r(int N2, double *r)
 		r[2 * j + 1 + N2] = invert_theta(r[2 * j + 1]);
 	}
 }
+
+void expand_h(int N1, double *h_phi, double *h_theta)
+{
+	int i;
+
+	for (i = 0; i < N1 / 2; i++) {
+		h_phi[i + N1/2] = invert_phi(h_phi[i]);
+		h_theta[i + N1/2] = invert_theta(h_theta[i]);
+	}
+}

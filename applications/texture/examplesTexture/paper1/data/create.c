@@ -7,12 +7,14 @@
 #include<data_util.h>
 
 int N1, N2;
+int new_N1, new_N2;
 double *h_phi, *h_theta, *r;
 const char *input_file_prefix = "raw/";
 const char *output_file_prefix = "";
 char input_file_name[100], output_file_name[100];
 char input_file_path[200], output_file_path[200];
 char file_type;
+int mirror;
 
 void input()
 {
@@ -26,13 +28,20 @@ void input()
 		scanf(" %c", &file_type);
 	} while (file_type != 'h' && file_type != 'r');
 
+	// mirror?
+	printf("Mirror data: ");
+	scanf("%d", &mirror);
+
 	// size 
 	printf("Size (N1 / N2): ");
 	scanf("%d", &N1);
+	new_N1 = (mirror) ? 2 * N1 : N1;
 	N2 = N1;
-	h_phi = smart_malloc(N1 * sizeof(double));
-	h_theta = smart_malloc(N1 * sizeof(double));
-	r = smart_malloc(N2 * 2 * sizeof(double));
+	new_N2 = new_N1;
+
+	h_phi = smart_malloc(new_N1 * sizeof(double));
+	h_theta = smart_malloc(new_N1 * sizeof(double));
+	r = smart_malloc(new_N2 * 2 * sizeof(double));
 
 	// output filename
 	printf("Name of the output file: ");
@@ -55,7 +64,12 @@ void convert()
 				h_theta[i] = PI;
 			}
 		}
-		normalise_h(N1, h_phi, h_theta);
+
+		if (mirror) {
+			expand_h(new_N1, h_phi, h_theta);
+		}
+		
+		normalise_h(new_N1, h_phi, h_theta);
 
 	} else {
 		int i;
@@ -66,7 +80,12 @@ void convert()
 				r[2 * i + 1] = PI;
 			}
 		}
-		normalise_r(N2, r);
+
+		if (mirror) {
+			expand_r(new_N2, r);
+		}
+
+		normalise_r(new_N2, r);
 
 	}
 
@@ -84,12 +103,12 @@ void output()
 		fprintf(output, "Polefigures\n");
 		fprintf(output, "# Approximate equidistribution on the hemisphere.\n");
 		fprintf(output, "# From file %s.\n", input_file_name);
-		write_h(N1, h_phi, h_theta, output);
+		write_h(new_N1, h_phi, h_theta, output);
 	} else {
 		fprintf(output, "Nodes\n");
 		fprintf(output, "# Approximate equidistribution on the sphere.\n");
 		fprintf(output, "# From file %s.\n", input_file_name);
-		write_r(N2, r, output);
+		write_r(new_N2, r, output);
 	}
 
 	fclose(output);
