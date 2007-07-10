@@ -13,10 +13,11 @@ statusCodes = {'+' '*' 'o'};
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-|-.|--|:');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = [3 2 17 8.55];
+plot_position_save = plot_position;
 threshold = 10;
 testcases = 10;
-measure_descr = {'rrn (residuum)', 'ren (SO(3))', 'rwen (S^2 x S^2)'};
+measure_descr = {'Relative residual norm', 'Relative approximation error', 'Relative approximation error (S^2 x S^2)'};
+measure_descr_short = {'rrn', 'ren', 'rwen'};
 
 
 data = nan*ones(length(N1_values), length(N_values), testcases);
@@ -93,7 +94,7 @@ set(gca, 'XMinorTick', 'off');
 set(gca, 'YMinorTick', 'on');
 
 title(sprintf('Algorithm: %s', algo));
-xlabel('N');
+xlabel('N / N''');
 ylabel(sprintf('Error Measure: %s', measure_descr{measure}));
 
 for N_ind = 1:length(N_values);
@@ -123,16 +124,16 @@ for code = 1:3
 end;
 
 set(gcf, 'units', 'centimeters');
+set(gcf, 'paperOrientation', 'landscape');
+set(gcf, 'paperPosition', plot_position);
 
 if strcmp(option, 'print');
-	set(gcf, 'paperOrientation', 'landscape');
-	set(gcf, 'paperPosition', plot_position);
 	print -Plaser1
 end;	
 if strcmp(option, 'save');
-	set(gcf, 'paperOrientation', 'portrait');
 	set(gcf, 'paperPosition', plot_position_save);
-	saveas(gcf, sprintf('%s.%s.%s.%s.pdf', name, algo, w_hat, measure_descr{measure}));
+	print('-deps2', ...
+			sprintf('%s_%s_%s_%s.eps', ...
+				strrep(name, '.', '_'), algo, w_hat, measure_descr_short{measure}));
+	set(gcf, 'paperPosition', plot_position);
 end;	
-set(gcf, 'paperOrientation', 'landscape');
-set(gcf, 'paperPosition', plot_position);

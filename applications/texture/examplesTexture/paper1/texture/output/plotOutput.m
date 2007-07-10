@@ -4,9 +4,9 @@ newN_values = [0 2.^(1:7)];
 
 close all;
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
-		      'DefaultAxesLineStyleOrder', '-+|-.+|--+|:+|-o|-.o|--o|:o|-*');
+		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o|-*|--*|:*');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = [3 2 17 15];
+plot_position_save = plot_position;
 
 files = dir(sprintf('%s.N*.%s', name, w_hat));
 pattern = sprintf('%s.N_%%d.N1_%%d.N2_%%d.newN_%%d.%s', name, w_hat);
@@ -60,7 +60,7 @@ for newN_ind = 1:length(newN_values);
 	end;
 end;	
 
-legend(leg, 'location', 'southoutside');
+%set(gcf, 'resizeFcn', @legResize);
 
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
@@ -69,16 +69,22 @@ set(gca, 'YLim', [0.1 * min(min(data)) 10]);
 set(gca, 'XLim', [0.9 (N+1)*1.1]);
 
 set(gcf, 'units', 'centimeters');
+set(gcf, 'paperOrientation', 'landscape');
+set(gcf, 'paperPosition', plot_position);
+
+legHa = legend(leg, 'location', 'southoutside');
+%set(legHa, 'units', 'centimeters');
+%pos = get(legHa, 'position');
+%pos(1) = pos(1) - 2;
+%pos(3) = pos(3) + 4;
+%set(legHa, 'position', pos);
 
 if strcmp(option, 'print');
-	set(gcf, 'paperOrientation', 'landscape');
-	set(gcf, 'paperPosition', plot_position);
 	print -Plaser1
 end;	
 if strcmp(option, 'save');
-	set(gcf, 'paperOrientation', 'portrait');
 	set(gcf, 'paperPosition', plot_position_save);
-	saveas(gcf, sprintf('%s.%s.pdf', name, w_hat));
+	print('-deps2', sprintf('%s_%s.eps', ...
+				strrep(name, '.', '_'), strrep(w_hat, '.', '_')));
+	set(gcf, 'paperPosition', plot_position);
 end;	
-set(gcf, 'paperOrientation', 'landscape');
-set(gcf, 'paperPosition', plot_position);
