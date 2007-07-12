@@ -41,6 +41,13 @@ for count=1:length(files);
 		disp(N+1);
 		return;
 	end;	
+	odd_part_deriv = results(2:2:length(results)) - ...
+		ones(floor(length(results)/2),1);
+	if norm(odd_part_deriv, inf) > 0.2;
+		disp('Odd part is not one!')
+		newN
+		odd_part_deriv
+	end;	
 
 	data(:, newN_ind) = results(1:2:length(results));
 
@@ -51,7 +58,7 @@ loglog(1:2:(N+1), data);
 
 xlabel('l');
 ylabel('\epsilon (L, l)');
-title(sprintf('L_{max} = %d, N = %d, N'' = %d', N, N1, N2));
+title(sprintf('%s, L_0 = %d, N = %d, N'' = %d', name, N, N1, N2));
 
 for newN_ind = 1:length(newN_values);
 	newN = newN_values(newN_ind);
@@ -65,7 +72,7 @@ end;
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
 set(gca, 'XMinorTick', 'off');
-set(gca, 'YLim', [0.1 * min(min(data)) 10]);
+set(gca, 'YLim', [0.1 * min(min(data)) 10 * max(max(data))]);
 set(gca, 'XLim', [0.9 (N+1)*1.1]);
 
 set(gcf, 'units', 'centimeters');
