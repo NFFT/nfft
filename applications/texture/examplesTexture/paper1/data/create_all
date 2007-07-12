@@ -1,10 +1,12 @@
 echo h11.txt    h 0 11    h11    | ./create > /dev/null
 echo h164.txt   h 0 164   h164   | ./create > /dev/null
+echo h19.txt    h 0 19    h19    | ./create > /dev/null
 echo h23.txt    h 0 23    h23    | ./create > /dev/null
 echo h28.txt    h 0 28    h28    | ./create > /dev/null
 echo h37.txt    h 1 37    h74    | ./create > /dev/null
 echo h308.txt   h 0 308   h308   | ./create > /dev/null
 echo h41.txt    h 0 41    h41    | ./create > /dev/null
+echo h73.txt    h 0 73    h73    | ./create > /dev/null
 echo h92.txt    h 0 92    h92    | ./create > /dev/null
 echo r128.txt   r 0 128   r128   | ./create > /dev/null
 echo r1652.txt  r 0 1652  r1652  | ./create > /dev/null
