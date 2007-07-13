@@ -29,7 +29,7 @@
 
 // 4: (2l+1)^2
 int weight_policy = 4;
-int enforce_even_interpolation = 0;
+int enforce_even_interpolation = 1;
 const char *output_prefix = "output/";
 const char *default_name = "test";
 // CGNR
@@ -224,7 +224,7 @@ void calculate_results()
 		int end = texture_flat_index(l, l, l);
 		int len = end - start + 1;
 		error_harm[l] =
-			l_2_rel_dist(&(pars.omega_min_err[start]), &(omega_ref[start]), len);
+			l_2_rel_dist(&(pars.omega_min_res[start]), &(omega_ref[start]), len);
 	}
 	for (l = new_N + 1; l <= N; l++) {
 		error_harm[l] = 1;
@@ -256,6 +256,8 @@ void output_results()
 	fprintf(output, "# Best error: %.2e\n", pars.min_error);
 
 	fprintf(output, "#\n");
+
+	fprintf(output, "# best frequency vector: omega_min_res (not omega_min_err)\n");
 	fprintf(output,
 					"# For each degree l we give the relative l_2 error between the best frequency\n");
 	fprintf(output,

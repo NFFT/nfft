@@ -3,11 +3,7 @@
 while [ $? -eq 0 ]
 do
 	sleep 10
-	users=`who | wc -l`
-	me=`who | grep schmalzm | wc -l`
-	root=`who | grep root | wc -l`
-	let foreign=$users-$me-$root
-	if [ $foreign -eq 0 ]
+	if ./unused.sh
 	then 
 		killall -18 main
 	else
