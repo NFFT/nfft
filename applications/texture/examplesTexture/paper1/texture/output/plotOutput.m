@@ -6,7 +6,7 @@ close all;
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o|-*|--*|:*');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = plot_position;
+plot_position_save = [1 1 12 12];
 
 files = dir(sprintf('%s.N*.%s', name, w_hat));
 pattern = sprintf('%s.N_%%d.N1_%%d.N2_%%d.newN_%%d.%s', name, w_hat);
@@ -39,7 +39,7 @@ for count=1:length(files);
 		disp('Inconsistent number of results!');
 		disp(length(results));
 		disp(N+1);
-		return;
+		continue;
 	end;	
 	odd_part_deriv = results(2:2:length(results)) - ...
 		ones(floor(length(results)/2),1);
@@ -54,7 +54,13 @@ for count=1:length(files);
 	fclose(fid);
 end;	
 
+ind = find(data < 1e-16)
+data(ind) = 1e-16;	
+
 loglog(1:2:(N+1), data); 
+
+set(gca, 'fontName', 'Times');
+set(gca, 'fontSize', 9);
 
 xlabel('l');
 ylabel('\epsilon (L, l)');
@@ -72,26 +78,23 @@ end;
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
 set(gca, 'XMinorTick', 'off');
-set(gca, 'YLim', [0.1 * min(min(data)) 10 * max(max(data))]);
 set(gca, 'XLim', [0.9 (N+1)*1.1]);
 
+set(gca, 'YTick', [1e-15 1e-10 1e-5 1]);
+set(gca, 'YMinorTick', 'off');
+set(gca, 'YLim', [1e-17 10 * max(max(data))]);
+
 set(gcf, 'units', 'centimeters');
-set(gcf, 'paperOrientation', 'landscape');
-set(gcf, 'paperPosition', plot_position);
 
 legHa = legend(leg, 'location', 'southoutside');
-%set(legHa, 'units', 'centimeters');
-%pos = get(legHa, 'position');
-%pos(1) = pos(1) - 2;
-%pos(3) = pos(3) + 4;
-%set(legHa, 'position', pos);
 
 if strcmp(option, 'print');
+	set(gcf, 'paperOrientation', 'landscape');
+	set(gcf, 'paperPosition', plot_position);
 	print -Plaser1
 end;	
 if strcmp(option, 'save');
+	set(gcf, 'paperOrientation', 'portrait');
 	set(gcf, 'paperPosition', plot_position_save);
-	print('-deps2', sprintf('%s_%s.eps', ...
-				strrep(name, '.', '_'), strrep(w_hat, '.', '_')));
-	set(gcf, 'paperPosition', plot_position);
+	saveas(gca, sprintf('%s.pdf', strrep(name, '.', '_')));
 end;	
