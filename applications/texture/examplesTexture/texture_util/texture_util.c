@@ -13,7 +13,8 @@ const char *grid_descr[] =
 	{ "equidistant angles", "file", "uniformly distributed" };
 
 const char *omega_policy_descr[] =
-	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)", "1/(l+1)^9.5 (circle)", "1/(l+1)^10 (circle)" };
+	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)",
+"1/(l+1)^9.5 (circle)", "1/(l+1)^10 (circle)" };
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
@@ -1018,7 +1019,7 @@ void set_weights(itexture_plan * iplan, int weight_policy)
 				for (m = -l; m <= l; m++) {
 					for (n = -l; n <= l; n++) {
 						iplan->w_hat[texture_flat_index(l, m, n)] = 1.0;
-						iplan->w_hat[texture_flat_index(l, m, n)] /= (l+1);
+						iplan->w_hat[texture_flat_index(l, m, n)] /= (l + 1);
 					}
 				}
 			}
@@ -1123,86 +1124,86 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 										 texture_get_x_length(test_plan));
 		}
 
-		if(isnormal(res) && isnormal(res_upd)) {
+		if (isnormal(res) && isnormal(res_upd)) {
 
-		if ((pars->min_residuum - res) / pars->min_residuum < pars->min_improve) {
-			epochs_without_improve++;
-		} else {
-			better_res = 2;
-			epochs_without_improve = 0;
-		}
+			if ((pars->min_residuum - res) / pars->min_residuum < pars->min_improve) {
+				epochs_without_improve++;
+			} else {
+				better_res = 2;
+				epochs_without_improve = 0;
+			}
 
-		if (res_old < res) {
-			epochs_with_fail++;
-		} else {
-			epochs_with_fail = 0;
-		}
+			if (res_old < res) {
+				epochs_with_fail++;
+			} else {
+				epochs_with_fail = 0;
+			}
 
-		if (pars->monitor_error) {
-			err =
-				l_2_rel_dist(iplan->f_hat_iter, pars->omega_ref,
-										 texture_get_omega_length(test_plan));
-		}
-
-		if (res < pars->min_residuum) {
-			better_res = NFFT_MAX(1, better_res);
-			memcpy(pars->omega_min_res, iplan->f_hat_iter,
-						 texture_get_omega_length(test_plan) * sizeof(double complex));
-			pars->epochs_until_min_res = epoch;
-			pars->min_residuum = res;
 			if (pars->monitor_error) {
-				pars->error_during_min_residuum = err;
+				err =
+					l_2_rel_dist(iplan->f_hat_iter, pars->omega_ref,
+											 texture_get_omega_length(test_plan));
 			}
-		}
 
-		if (pars->monitor_error && err < pars->min_error) {
-			better_err = 2;
-			memcpy(pars->omega_min_err, iplan->f_hat_iter,
-						 texture_get_omega_length(test_plan) * sizeof(double complex));
-			pars->min_error = err;
-			pars->epochs_until_min_err = epoch;
-		}
-		// Messages
-
-		if (pars->messages_on && epoch % pars->message_interval == 0) {
-			fprintf(stderr, "step: %4d, ", pars->steps_per_epoch * epoch);
-			if (!pars->use_updated_residuum) {
-				fprintf(stderr, "res%s %.2e, ", marker[better_res], res);
+			if (res < pars->min_residuum) {
+				better_res = NFFT_MAX(1, better_res);
+				memcpy(pars->omega_min_res, iplan->f_hat_iter,
+							 texture_get_omega_length(test_plan) * sizeof(double complex));
+				pars->epochs_until_min_res = epoch;
+				pars->min_residuum = res;
+				if (pars->monitor_error) {
+					pars->error_during_min_residuum = err;
+				}
 			}
-			fprintf(stderr, "upd res%s %.2e", marker[better_res], res_upd);
-			if (pars->monitor_error) {
-				fprintf(stderr, ", err%s %.2e", marker[better_err], err);
+
+			if (pars->monitor_error && err < pars->min_error) {
+				better_err = 2;
+				memcpy(pars->omega_min_err, iplan->f_hat_iter,
+							 texture_get_omega_length(test_plan) * sizeof(double complex));
+				pars->min_error = err;
+				pars->epochs_until_min_err = epoch;
 			}
-			fprintf(stderr, "\n");
-		}
-		// Check abort conditions.
+			// Messages
 
-		stop_file = fopen(pars->stop_file_name, "r");
-		if (stop_file) {
-			fclose(stop_file);
-			stop = 1;
-			pars->status = "stopped";
-		}
+			if (pars->messages_on && epoch % pars->message_interval == 0) {
+				fprintf(stderr, "step: %4d, ", pars->steps_per_epoch * epoch);
+				if (!pars->use_updated_residuum) {
+					fprintf(stderr, "res%s %.2e, ", marker[better_res], res);
+				}
+				fprintf(stderr, "upd res%s %.2e", marker[better_res], res_upd);
+				if (pars->monitor_error) {
+					fprintf(stderr, ", err%s %.2e", marker[better_err], err);
+				}
+				fprintf(stderr, "\n");
+			}
+			// Check abort conditions.
 
-		if (epoch >= pars->max_epochs) {
-			pars->status = "max epochs reached";
-			stop = 1;
-		}
+			stop_file = fopen(pars->stop_file_name, "r");
+			if (stop_file) {
+				fclose(stop_file);
+				stop = 1;
+				pars->status = "stopped";
+			}
 
-		if (epochs_without_improve > pars->max_epochs_without_improve) {
-			pars->status = "stagnation";
-			stop = 1;
-		}
+			if (epoch >= pars->max_epochs) {
+				pars->status = "max epochs reached";
+				stop = 1;
+			}
 
-		if (epochs_with_fail > pars->max_fail) {
-			pars->status = "degradation";
-			stop = 1;
-		}
+			if (epochs_without_improve > pars->max_epochs_without_improve) {
+				pars->status = "stagnation";
+				stop = 1;
+			}
 
-		if (res <= pars->residuum_goal) {
-			pars->status = "residuum goal reached";
-			stop = 1;
-		}
+			if (epochs_with_fail > pars->max_fail) {
+				pars->status = "degradation";
+				stop = 1;
+			}
+
+			if (res <= pars->residuum_goal) {
+				pars->status = "residuum goal reached";
+				stop = 1;
+			}
 		} else {
 			pars->status = "anormal numbers (nan, inf, subnormal)";
 			stop = 1;

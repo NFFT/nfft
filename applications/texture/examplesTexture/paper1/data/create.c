@@ -6,6 +6,16 @@
 #include<texture_util.h>
 #include<data_util.h>
 
+/** @defgroup texture_paper1_data Conversion Utilities
+ *
+ * This program converts a pole figure or a node in raw format from raw to 
+ * the format supported by @ref texture_utility.
+ * Parameters are requested interactively.
+ *
+ * @author Matthias Schmalz
+ * @ingroup texture_paper1
+ */
+
 int N1, N2;
 int new_N1, new_N2;
 double *h_phi, *h_theta, *r;
@@ -68,7 +78,7 @@ void convert()
 		if (mirror) {
 			expand_h(new_N1, h_phi, h_theta);
 		}
-		
+
 		normalise_h(new_N1, h_phi, h_theta);
 
 	} else {

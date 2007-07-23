@@ -93,10 +93,10 @@ void parse_input(int arglen, char *argv[])
 void init()
 {
 	int i;
-	//unsigned short int seed[] = { 1, 2, 3 };
+	// unsigned short int seed[] = { 1, 2, 3 };
 
 	// pseudo random number generator
-	//seed48(seed);
+	// seed48(seed);
 	srand(0);
 
 	// input / output data

@@ -115,7 +115,7 @@ void simple_solver_test(const char *inp)
 	double complex *omega, *x, *omega_ref;
 	double *h_phi, *h_theta, *r;
 	char err_prefix[100];
-//	unsigned short int seed[] = { 1, 2, 3 };
+	// unsigned short int seed[] = { 1, 2, 3 };
 
 	// Output user information.
 	printf("*** simple_solver_test (%s)\n", inp);
@@ -125,7 +125,7 @@ void simple_solver_test(const char *inp)
 	fscanf(inp_file, "%d%d%d%d%d%d%d%lg", &N, &h_phi_count, &h_theta_count,
 				 &N2, &r_phi_count, &r_theta_count, &max_iter, &delta);
 	N1 = h_phi_count * h_theta_count;
-//	seed48(seed);
+	// seed48(seed);
 	srand(0);
 
 	// Prepare input parameters.
@@ -666,7 +666,7 @@ void linearity_test(const char *inp)
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int i, j, count, k;
-	//unsigned short int seed[] = { 1, 2, 3 };
+	// unsigned short int seed[] = { 1, 2, 3 };
 
 	sprintf(err_prefix, "linearity_test failed (%s):\n", inp);
 	printf("*** linearity_test (%s)\n", inp);
@@ -676,7 +676,7 @@ void linearity_test(const char *inp)
 	N1 = h_phi_count * h_theta_count;
 
 	texture_precompute(N);
-	//seed48(seed);
+	// seed48(seed);
 	srand(0);
 
 	omega =
@@ -780,7 +780,7 @@ void linearity_adjoint_test(const char *inp)
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int count, k;
-	//unsigned short int seed[] = { 1, 2, 3 };
+	// unsigned short int seed[] = { 1, 2, 3 };
 
 	sprintf(err_prefix, "linearity_adjoint_test failed (%s):\n", inp);
 	printf("*** linearity_adjoint_test (%s)\n", inp);
@@ -790,7 +790,7 @@ void linearity_adjoint_test(const char *inp)
 	N1 = h_phi_count * h_theta_count;
 
 	texture_precompute(N);
-	//seed48(seed);
+	// seed48(seed);
 	srand(0);
 
 	omega =

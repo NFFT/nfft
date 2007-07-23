@@ -1,0 +1,9 @@
+Each job is a file containing the input passed to main.
+If the file name starts with 'todo', then the job has still to be executed.
+If the file name starts with 'running', then the job is running.
+If the file name starts with 'done', then the job is finished.
+If the file name starts with 'failed', then the job has failed.
+
+make_job2.sh: Create a single job.
+
+make_jobs2.sh: Create all jobs.

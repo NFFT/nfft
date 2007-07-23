@@ -1,0 +1,16 @@
+raw:
+Contains grid files in raw format.
+A grid file is a list of points separated by newlines.
+A point (\phi, \theta) is represented by "\theta \phi".
+If the file name starts with h, the file contains a pole figure.
+If it starts with r, it contains a node set.
+
+create_all:
+Converts all grid files from raw format to the internal format supported by 
+texture_util.
+
+create.c:
+Converts a single grid file.
+
+h*, r*:
+The converted grid files.

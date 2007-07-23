@@ -67,9 +67,9 @@ double min_alpha, max_alpha;
 
 void init()
 {
-	//unsigned short int seed[] = { 1, 2, 3 };
+	// unsigned short int seed[] = { 1, 2, 3 };
 
-	//seed48(seed);
+	// seed48(seed);
 	srand(0);
 }
 

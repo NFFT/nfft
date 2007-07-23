@@ -126,7 +126,8 @@ void read_params()
 		weight_policy = 1;
 	}
 
-	fprintf(stderr, "enforce_even_interpolation (default: %d): ", enforce_even_interpolation);
+	fprintf(stderr, "enforce_even_interpolation (default: %d): ",
+					enforce_even_interpolation);
 	next = getchar();
 
 	if (!isspace(next)) {
@@ -168,8 +169,7 @@ void output_params()
 
 	fprintf(output, "# Solver parameters:\n");
 	fprintf(output, "# max_epochs: %d\n", pars.max_epochs);
-	fprintf(output, "# residuum_goal: %.2e\n",
-					pars.residuum_goal);
+	fprintf(output, "# residuum_goal: %.2e\n", pars.residuum_goal);
 	fprintf(output,
 					"# min_improve: %lg, max_epochs_without_improve: %d, max_fail: %d\n",
 					pars.min_improve, pars.max_epochs_without_improve, pars.max_fail);

@@ -1,0 +1,32 @@
+*** Programs and Data ***
+
+create_omega.c:
+Randomly creates one or several vectors of fourier coeffiecents.
+
+grid:
+Contains pole figures and nodes used by main.c.
+
+main.c:
+The main program.
+
+omega:
+Contains the vectors of fourier coefficients created by create_omega.c and read by main.c.
+
+output:
+Contains the output of main.c.
+
+*** Administrative Files ***
+
+get_job.sh:
+Blocks a job and passes it to run_job.sh.
+
+jobs:
+Contains the jobs that still have to be run, are running or have already been 
+run.
+
+run_suspend_job.sh job:
+Runs job. If the host becomes used, the job is suspended. If the host becomes 
+ununsed, the job is continued.
+
+ununsed.sh:
+Determines whether this host is unused.

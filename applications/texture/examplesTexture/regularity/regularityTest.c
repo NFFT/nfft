@@ -469,10 +469,10 @@ void determine_N_curve(const param_set * params)
 
 void init()
 {
-//	unsigned short int seed1[] = { 1, 2, 3 };
+	// unsigned short int seed1[] = { 1, 2, 3 };
 	unsigned int seed2 = 1;
 
-//	seed48(seed1);
+	// seed48(seed1);
 	srand(seed2);
 }
 

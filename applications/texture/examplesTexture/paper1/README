@@ -1,0 +1,37 @@
+*** Programs and Results ***
+
+data:
+Contains data files and conversion utilities.
+
+reconstruction: 
+Contains programs and results for the Section "Numerical Tests".
+
+texture: 
+Contains programs and results for the Section "An Application to Texture 
+Analysis".
+
+*** Administrative Files ***
+
+cleanup_host.sh:
+Cleanup lock-files for this host.
+
+cleanup.sh:
+Cleanup lock-files for all hosts.
+
+go.sh start stop:
+After start, frequently runs cleanup.sh and run.sh.
+After stop, runs kill.sh.
+
+kill.sh:
+Kill all running jobs.
+
+run_job.sh type:
+Run a job on this host.
+type is either 'reconstruction' or 'texture'.
+
+run.sh type:
+Run a job on each host.
+type is either 'reconstruction' or 'texture'.
+
+workinghosts: 
+Contains lock-files indicating which host is already busy.

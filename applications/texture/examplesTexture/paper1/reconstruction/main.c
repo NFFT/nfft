@@ -8,6 +8,24 @@
 
 #include<texture_util.h>
 
+/**
+ * @defgroup texture_paper1_reconstruction Reconstruction
+ *
+ * Reads a grid h, r and one or several frequency vectors.
+ * For each frequency vector omega, the program applies ::texture_trafo to 
+ * calculate the samples x at the positions of h, r.
+ * Then, it applies the solver to reconstruct omega from x.
+ * Parameters are requested interactively.
+ * 
+ * The geometric mean of the approximation errors and the residuum norms are 
+ * stored in an output file of the form:
+ * \<name>.N_<N>.N1_<N1>.N2_<N2>.\<algorithm>.\<damping_factors>.\<firstcase>-\<lastcase>
+ * See the output file for details.
+ *
+ * @author Matthias Schmalz
+ * @ingroup texture_paper1
+ */
+
 // input parameters
 int testcases = 100, firstcase = 0;
 int N;
@@ -171,9 +189,7 @@ void output_params()
 
 	fprintf(output_file, "# Solver parameters:\n");
 	fprintf(output_file, "# max_epochs: %d\n", pars.max_epochs);
-	fprintf(output_file,
-					"# residuum_goal: %.2e\n",
-					pars.residuum_goal);
+	fprintf(output_file, "# residuum_goal: %.2e\n", pars.residuum_goal);
 	fprintf(output_file,
 					"# min_improve: %lg, max_epochs_without_improve: %d, max_fail: %d\n",
 					pars.min_improve, pars.max_epochs_without_improve, pars.max_fail);
@@ -261,7 +277,7 @@ void calculate_output_helper(double *data, double *min_val, double *max_val,
 			*mean_val *= data[i];
 		}
 	}
-	*mean_val = pow(*mean_val, 1.0/(double) testcases);
+	*mean_val = pow(*mean_val, 1.0 / (double) testcases);
 }
 
 void calculate_output()

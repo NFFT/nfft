@@ -59,10 +59,10 @@ int main()
 			x[i * N2 + j] = dummy;
 		}
 		fclose(pfid);
-//		memcpy(&(x[i * N2 + N2 / 2]), &(x[i * N2]), N2 / 2 * sizeof(complex));
+		// memcpy(&(x[i * N2 + N2 / 2]), &(x[i * N2]), N2 / 2 * sizeof(complex));
 	}
 	fclose(fid);
-//	expand_r(N2, r);
+	// expand_r(N2, r);
 	normalise_r(N2, r);
 
 	fid = fopen("h_file", "w");
@@ -84,7 +84,7 @@ int main()
 	fid = fopen("r_file", "w");
 	fprintf(fid, "Nodes\n");
 	fprintf(fid, "# Data set for the publication.\n");
-//	fprintf(fid, "# The grid is mirrored.\n");
+	// fprintf(fid, "# The grid is mirrored.\n");
 	write_r(N2, r, fid);
 	fclose(fid);
 
@@ -96,14 +96,14 @@ int main()
 	fprintf(fid, "Nodes\n");
 	fprintf(fid, "# Data set for the publication.\n");
 	fprintf(fid, "# \\phis (\\rhos) are flipped.\n");
-//	fprintf(fid, "# The grid is mirrored.\n");
+	// fprintf(fid, "# The grid is mirrored.\n");
 	write_r(N2, r, fid);
 	fclose(fid);
 
 	fid = fopen("samples", "w");
 	fprintf(fid, "Samples\n");
 	fprintf(fid, "# Data set for the publication.\n");
-//	fprintf(fid, "# Samples are mirrored.\n");
+	// fprintf(fid, "# Samples are mirrored.\n");
 	write_x(N1, N2, x, fid);
 	fclose(fid);
 
@@ -115,7 +115,7 @@ int main()
 	fprintf(fid, "Samples\n");
 	fprintf(fid, "# Data set for the publication.\n");
 	fprintf(fid, "# Integral on the sphere should be %.2e.\n", factor);
-//	fprintf(fid, "# Samples are mirrored.\n");
+	// fprintf(fid, "# Samples are mirrored.\n");
 	write_x(N1, N2, x, fid);
 	fclose(fid);
 
