@@ -15,3 +15,16 @@
 # steps_per_epoch: 10
 # use_updated_residuum: 0
 #
+# Relative residuum norm:
+#   Minimum   Geomean   Maximum
+   5.42e-07  5.42e-07  5.42e-07
+# Relative L^2(SO(3)) error norm:
+#   Minimum   Geomean   Maximum
+   7.84e-03  7.84e-03  7.84e-03
+# Relative (un)weighted error norm:
+#   Minimum   Geomean   Maximum
+   7.82e-04  7.82e-04  7.82e-04
+#
+# Rawdata:
+#       rrn       ren      rwen
+   5.42e-07  7.84e-03  7.82e-04
