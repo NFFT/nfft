@@ -30,7 +30,7 @@ void *nfft_mex_malloc(size_t n)
 
   p = mxMalloc(n);
 
-  /* Should be nerver reached if mxMalloc fails (in a mex file) but in Matlab
+  /* Should never be reached if mxMalloc fails (in a mex file) but in Matlab
    * you never know... */
   if (!p)
     mexErrMsgTxt("Not enough memory.");
