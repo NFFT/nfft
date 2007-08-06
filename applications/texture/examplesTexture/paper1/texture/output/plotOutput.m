@@ -1,4 +1,4 @@
-function plotOutput(name, w_hat, option);
+function plotOutput(name, w_hat, option, max_newN, max_l);
 
 newN_values = [0 2.^(1:7)];
 
@@ -6,7 +6,7 @@ close all;
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o|-*|--*|:*');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = [1 1 12 12];
+plot_position_save = [1 1 15 10];
 
 files = dir(sprintf('%s.N*.%s', name, w_hat));
 pattern = sprintf('%s.N_%%d.N1_%%d.N2_%%d.newN_%%d.%s', name, w_hat);
@@ -25,7 +25,19 @@ for count=1:length(files);
 		N1 = curN1;
 		N2 = curN2;
 
-		data = nan * ones(length(0:2:N), length(newN_values));
+		if nargin < 5;
+			max_l = N;
+		end;	
+
+		if nargin < 4;
+			max_newN = max(newN_values);
+		end;
+
+		data = nan * ones(length(0:2:max_l), find(max_newN == newN_values));
+	end;	
+
+	if newN > max_newN;
+		continue;
 	end;	
 	
 	newN_ind = find(newN == newN_values);
@@ -43,13 +55,13 @@ for count=1:length(files);
 	end;	
 	odd_part_deriv = results(2:2:length(results)) - ...
 		ones(floor(length(results)/2),1);
-	if norm(odd_part_deriv, inf) > 0.2;
+	if norm(odd_part_deriv, inf) > 0.1;
 		disp('Odd part is not one!')
 		newN
 		odd_part_deriv
 	end;	
 
-	data(:, newN_ind) = results(1:2:length(results));
+	data(:, newN_ind) = results(1:2:(max_l+1));
 
 	fclose(fid);
 end;	
@@ -57,7 +69,7 @@ end;
 ind = find(data < 1e-16)
 data(ind) = 1e-16;	
 
-loglog(1:2:(N+1), data); 
+loglog(1:2:(max_l+1), data); 
 
 set(gca, 'fontName', 'Times');
 set(gca, 'fontSize', 9);
@@ -68,7 +80,7 @@ title(sprintf('%s, L_0 = %d, N = %d, N'' = %d', name, N, N1, N2));
 
 for newN_ind = 1:length(newN_values);
 	newN = newN_values(newN_ind);
-	if newN <= N;
+	if newN <= max_newN;
 		leg{newN_ind} = sprintf('L = %d', newN);
 	end;
 end;	
@@ -78,7 +90,7 @@ end;
 set(gca, 'XTick', newN_values+1);
 set(gca, 'XTickLabel', newN_values);
 set(gca, 'XMinorTick', 'off');
-set(gca, 'XLim', [0.9 (N+1)*1.1]);
+set(gca, 'XLim', [0.9 (max_l+1)*1.1]);
 
 set(gca, 'YTick', [1e-15 1e-10 1e-5 1]);
 set(gca, 'YMinorTick', 'off');
@@ -86,15 +98,17 @@ set(gca, 'YLim', [1e-17 10 * max(max(data))]);
 
 set(gcf, 'units', 'centimeters');
 
-legHa = legend(leg, 'location', 'southoutside');
+legHa = legend(leg, 'location', 'eastoutside');
 
-if strcmp(option, 'print');
-	set(gcf, 'paperOrientation', 'landscape');
-	set(gcf, 'paperPosition', plot_position);
-	print -Plaser1
-end;	
-if strcmp(option, 'save');
-	set(gcf, 'paperOrientation', 'portrait');
-	set(gcf, 'paperPosition', plot_position_save);
-	saveas(gca, sprintf('%s.pdf', strrep(name, '.', '_')));
-end;	
+if nargin > 2;
+	if strcmp(option, 'print');
+		set(gcf, 'paperOrientation', 'landscape');
+		set(gcf, 'paperPosition', plot_position);
+		print -Plaser1
+	end;	
+	if strcmp(option, 'save');
+		set(gcf, 'paperOrientation', 'portrait');
+		set(gcf, 'paperPosition', plot_position_save);
+		saveas(gca, sprintf('%s.pdf', strrep(name, '.', '_')));
+	end;	
+end;
