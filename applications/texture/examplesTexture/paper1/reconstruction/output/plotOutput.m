@@ -10,8 +10,9 @@ else
 end;
 
 statusCodes = {'+' '*' 'o'}; 
+%change linestyles if you want to enable information about status.
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
-		      'DefaultAxesLineStyleOrder', '-|-.|--|:');
+		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o');
 plot_position = [0.63 0.63 28.45 19.72];
 plot_position_save = [1 1 12 8];
 threshold = 10;
@@ -19,6 +20,8 @@ testcases = 10;
 measure_descr = {'Relative residual norm', 'Relative approximation error', 'Relative approximation error (S^2 x S^2)'};
 measure_descr_short = {'rrn', 'ren', 'rwen'};
 
+global data;
+global err;
 
 data = nan*ones(length(N1_values), length(N_values), testcases);
 err = nan*ones(length(N1_values), length(N_values));
@@ -76,7 +79,7 @@ for N1_ind = 1:length(N1_values);
 			if geomean(cur_data)/min(cur_data) > threshold || ...
 				max(cur_data)/geomean(cur_data) > threshold;
 
-				status(N_ind, N1_ind) = 2;
+				status(N1_ind, N_ind) = 2;
 			end;	
 		end;
 	end;
@@ -104,7 +107,7 @@ ylabel(sprintf('%s', measure_descr{measure}));
 for N_ind = 1:length(N_values);
 	N = N_values(N_ind);
 	dimension = dimension_values(N_ind);
-	leg{N_ind} = sprintf('L = %d, dimension = %d', N, dimension);
+	leg{N_ind} = sprintf('L = %d (|J_L| = %d)', N, dimension);
 end;	
 leg_handle = legend(leg, 'location', 'southoutside');
 
@@ -123,8 +126,9 @@ for code = 1:3
 	err_code = err;
 	err_code(ind) = nan;
 
-	hold on;
-	loglog(N1_values', err_code, statusCodes{code});
+% Comment out to enable information about status.	
+%	hold on;
+%	loglog(N1_values', err_code, statusCodes{code});
 end;
 
 set(gcf, 'units', 'centimeters');
