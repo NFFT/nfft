@@ -24,6 +24,9 @@ jobs:
 Contains the jobs that still have to be run, are running or have already been 
 run.
 
+run_job.sh job:
+Runs job.
+
 run_suspend_job.sh job:
 Runs job. If the host becomes used, the job is suspended. If the host becomes 
 ununsed, the job is continued.
