@@ -6,7 +6,7 @@ close all;
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o|-*|--*|:*');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = [1 1 15 10];
+plot_position_save = [1 1 15 8];
 
 files = dir(sprintf('%s.N*.%s', name, w_hat));
 pattern = sprintf('%s.N_%%d.N1_%%d.N2_%%d.newN_%%d.%s', name, w_hat);

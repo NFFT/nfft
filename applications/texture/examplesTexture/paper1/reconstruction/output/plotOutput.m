@@ -14,7 +14,7 @@ statusCodes = {'+' '*' 'o'};
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o');
 plot_position = [0.63 0.63 28.45 19.72];
-plot_position_save = [1 1 12 8];
+plot_position_save = [1 1 15 8];
 threshold = 10;
 testcases = 10;
 measure_descr = {'Relative residual norm', 'Relative approximation error', 'Relative approximation error (S^2 x S^2)'};
