@@ -73,7 +73,7 @@ inline double determine_circle_length(double theta)
 
 // ordinary functions in alphabetical order
 
-void block_mult_error(int N1, int N2, complex * x, double min_err,
+void block_mult_error(int N1, int N2, double _Complex * x, double min_err,
 											double max_err)
 {
 	int i, j;
@@ -315,17 +315,17 @@ static void check_eof(FILE * f, const char *location)
 	}
 }
 
-inline complex crand()
+inline double _Complex crand()
 {
-	return drand() + I * drand();
+	return drand() + _Complex_I * drand();
 }
 
-inline complex crand_circle()
+inline double _Complex crand_circle()
 {
-	complex result;
+	double _Complex result;
 
 	do {
-		result = 2 * drand1() - 1 + I * (2 * drand1() - 1);
+		result = 2 * drand1() - 1 + _Complex_I * (2 * drand1() - 1);
 	} while (cabs(result) > 1);
 
 	return result * (1 << 30);
@@ -347,7 +347,7 @@ inline double drand1()
 	return ((double) rand()) / RAND_MAX;
 }
 
-inline int equal(complex x, complex y, double delta)
+inline int equal(double _Complex x, double _Complex y, double delta)
 {
 	return cabs(x - y) <= delta;
 }
@@ -367,12 +367,12 @@ inline void error(const char *msg)
 	exit(-1);
 }
 
-inline complex expi(double phi)
+inline double _Complex expi(double phi)
 {
-	return cos(phi) + I * sin(phi);
+	return cos(phi) + _Complex_I * sin(phi);
 }
 
-void init_omega(complex * omega, int N, int omega_policy)
+void init_omega(double _Complex * omega, int N, int omega_policy)
 {
 	int i;
 	switch (omega_policy) {
@@ -468,7 +468,7 @@ void initialize_itexture_params(itexture_params * pars, int N)
 	pars->message_interval = 1;
 
 	pars->omega_min_res =
-		smart_malloc(texture_flat_length(N) * sizeof(double complex));
+		smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 	assert(pars->omega_min_res != 0);
 	pars->epochs_until_min_res = -1;
 
@@ -478,7 +478,7 @@ void initialize_itexture_params(itexture_params * pars, int N)
 	pars->status = "initialized";
 }
 
-inline double l_2_norm(const complex * vec, unsigned int length)
+inline double l_2_norm(const double _Complex * vec, unsigned int length)
 {
 	double sum = 0.0;
 	int i;
@@ -491,7 +491,7 @@ inline double l_2_norm(const complex * vec, unsigned int length)
 	return sqrt(sum);
 }
 
-inline double l_2_dist(const complex * x, const complex * y,
+inline double l_2_dist(const double _Complex * x, const double _Complex * y,
 											 unsigned int length)
 {
 	double sum = 0.0;
@@ -505,7 +505,7 @@ inline double l_2_dist(const complex * x, const complex * y,
 	return sqrt(sum);
 }
 
-double l_2_rel_dist(const complex * vec, const complex * ref,
+double l_2_rel_dist(const double _Complex * vec, const double _Complex * ref,
 										unsigned int length)
 {
 	double abs_dist = l_2_dist(vec, ref, length);
@@ -517,7 +517,7 @@ double l_2_rel_dist(const complex * vec, const complex * ref,
 	}
 }
 
-inline double l_2_rel_norm(const complex * vec, const complex * ref,
+inline double l_2_rel_norm(const double _Complex * vec, const double _Complex * ref,
 													 unsigned int length)
 {
 	double dist = l_2_norm(vec, length);
@@ -529,7 +529,7 @@ inline double l_2_rel_norm(const complex * vec, const complex * ref,
 	}
 }
 
-inline double compute_ren(const complex * vec, const complex * ref,
+inline double compute_ren(const double _Complex * vec, const double _Complex * ref,
 													unsigned int N)
 {
 	int l, m, n;
@@ -556,7 +556,7 @@ inline double compute_ren(const complex * vec, const complex * ref,
 	return sqrt(numerator / denominator);
 }
 
-inline double compute_rwen(const complex * vec, const complex * ref,
+inline double compute_rwen(const double _Complex * vec, const double _Complex * ref,
 													 unsigned int N)
 {
 	int l, m, n;
@@ -583,7 +583,7 @@ inline double compute_rwen(const complex * vec, const complex * ref,
 	return sqrt(numerator / denominator);
 }
 
-void mult_error(int N1, int N2, complex * x, double min_err, double max_err)
+void mult_error(int N1, int N2, double _Complex * x, double min_err, double max_err)
 {
 	int i, j;
 
@@ -736,11 +736,11 @@ void read_N(int *N_ptr, FILE * in)
 	fscanf(in, "%d", N_ptr);
 }
 
-void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out)
+void read_omega(int *N_ptr, double _Complex ** omega_ptr, FILE * in, FILE * out)
 {
 	int i;
 	int N;
-	complex *omega;
+	double _Complex *omega;
 	char line[MAX_LINE];
 
 	fgets(line, MAX_LINE, in);
@@ -771,7 +771,7 @@ void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out)
 	fprintf(out, "#\n");
 
 	*omega_ptr =
-		(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 	omega = *omega_ptr;
 
 	for (i = 0; i < texture_flat_length(N); i++) {
@@ -782,7 +782,7 @@ void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out)
 			fflush(0);
 			exit(-1);
 		} else {
-			omega[i] = r + I * im;
+			omega[i] = r + _Complex_I * im;
 		}
 	}
 
@@ -842,7 +842,7 @@ void read_r(int N1, int *N2_ptr, double **r_ptr, FILE * in, FILE * out)
 }
 
 void read_samples(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
-									double **h_theta_ptr, double **r_ptr, complex ** x_ptr,
+									double **h_theta_ptr, double **r_ptr, double _Complex ** x_ptr,
 									FILE * h_in, FILE * r_in, FILE * x_in, FILE * out)
 {
 	int N1, N2;
@@ -860,11 +860,11 @@ void read_samples(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
 	}
 }
 
-void read_x(int *N1_ptr, int *N2_ptr, complex ** x_ptr, FILE * in, FILE * out)
+void read_x(int *N1_ptr, int *N2_ptr, double _Complex ** x_ptr, FILE * in, FILE * out)
 {
 	int i, j;
 	int N1, N2;
-	complex *x;
+	double _Complex *x;
 	char line[MAX_LINE];
 
 	fgets(line, MAX_LINE, in);
@@ -895,7 +895,7 @@ void read_x(int *N1_ptr, int *N2_ptr, complex ** x_ptr, FILE * in, FILE * out)
 	fprintf(out, "# N1=%d N2=%d\n", N1, N2);
 	fprintf(out, "#\n");
 
-	*x_ptr = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
+	*x_ptr = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 	x = *x_ptr;
 
 	for (i = 0; i < N1; i++) {
@@ -906,7 +906,7 @@ void read_x(int *N1_ptr, int *N2_ptr, complex ** x_ptr, FILE * in, FILE * out)
 				fflush(0);
 				exit(-1);
 			} else {
-				x[i * N2 + j] = r + I * im;
+				x[i * N2 + j] = r + _Complex_I * im;
 			}
 		}
 	}
@@ -938,7 +938,7 @@ inline void *smart_malloc(size_t size)
 #define malloc(a) arglasdf(a)
 #define calloc(a) arglasdf(a)
 
-complex spherical_harmonic(int k, int n, double phi, double theta)
+double _Complex spherical_harmonic(int k, int n, double phi, double theta)
 {
 	static double p;
 	static double p_old;
@@ -1071,19 +1071,19 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 	double y_norm = l_2_norm(iplan->y, texture_get_x_length(test_plan));
 
 	memset(iplan->f_hat_iter, 0,
-				 texture_get_omega_length(test_plan) * sizeof(double complex));
+				 texture_get_omega_length(test_plan) * sizeof(double _Complex));
 
 	itexture_before_loop(iplan);
 
 	memcpy(pars->omega_min_res, iplan->f_hat_iter,
-				 texture_get_omega_length(test_plan) * sizeof(double complex));
+				 texture_get_omega_length(test_plan) * sizeof(double _Complex));
 	pars->epochs_until_min_res = 0;
 	pars->min_residuum = 1;
 
 	if (pars->monitor_error) {
 		pars->error_during_min_residuum = 1;
 		memcpy(pars->omega_min_err, iplan->f_hat_iter,
-					 texture_get_omega_length(test_plan) * sizeof(double complex));
+					 texture_get_omega_length(test_plan) * sizeof(double _Complex));
 		pars->min_error = 1;
 		pars->epochs_until_min_err = 0;
 	}
@@ -1113,7 +1113,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 		if (pars->use_updated_residuum) {
 			res = res_upd;
 		} else {
-			double complex *tmp = test_plan->f_hat;
+			double _Complex *tmp = test_plan->f_hat;
 
 			texture_set_omega(test_plan, iplan->f_hat_iter);
 			texture_trafo(test_plan);
@@ -1148,7 +1148,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 			if (res < pars->min_residuum) {
 				better_res = NFFT_MAX(1, better_res);
 				memcpy(pars->omega_min_res, iplan->f_hat_iter,
-							 texture_get_omega_length(test_plan) * sizeof(double complex));
+							 texture_get_omega_length(test_plan) * sizeof(double _Complex));
 				pars->epochs_until_min_res = epoch;
 				pars->min_residuum = res;
 				if (pars->monitor_error) {
@@ -1159,7 +1159,7 @@ void texture_itrafo(itexture_plan * iplan, itexture_params * pars)
 			if (pars->monitor_error && err < pars->min_error) {
 				better_err = 2;
 				memcpy(pars->omega_min_err, iplan->f_hat_iter,
-							 texture_get_omega_length(test_plan) * sizeof(double complex));
+							 texture_get_omega_length(test_plan) * sizeof(double _Complex));
 				pars->min_error = err;
 				pars->epochs_until_min_err = epoch;
 			}
@@ -1245,7 +1245,7 @@ void write_h(int N1, double *h_phi, double *h_theta, FILE * out)
 	}
 }
 
-void write_omega(int N, complex * omega, FILE * out)
+void write_omega(int N, double _Complex * omega, FILE * out)
 {
 	int i;
 
@@ -1268,7 +1268,7 @@ void write_r(int N2, double *r, FILE * out)
 	}
 }
 
-void write_x(int N1, int N2, complex * x, FILE * out)
+void write_x(int N1, int N2, double _Complex * x, FILE * out)
 {
 	int i, j;
 

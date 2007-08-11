@@ -25,10 +25,10 @@ void test_dpt_trafo(void)
   /** The exponent of N */
   int t;
   /** The Legendre coefficients */
-  complex* x;
+  double _Complex* x;
   /** The reference Chebyshev coefficients */
-  complex* y;
-  complex* y_ref;
+  double _Complex* y;
+  double _Complex* y_ref;
   /** The degree \f$k\f$ */
   int k;
   /** Auxilliary variables used to read in complex numbers. */
@@ -125,33 +125,33 @@ void test_dpt_trafo(void)
       }
 
       /* Allocate memory for Legendre coefficients. */
-      x = (complex*) calloc((k_end+1),sizeof(complex));
+      x = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
 
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
-        x[k] = d1 + I*d2;
+        x[k] = d1 + _Complex_I*d2;
       }
 
       /* Print out Legendre coefficients. */
      fprintf(stdout,"\n Legendre coeffs \n");
       for (k = k_start; k <= k_end; k++)
       {
-        fprintf(stdout,"x[%d] = %le + I*%le\n",k,creal(x[k]),cimag(x[k]));
+        fprintf(stdout,"x[%d] = %le + _Complex_I*%le\n",k,creal(x[k]),cimag(x[k]));
       }
 
       /* Allocate memory for Chebyshev coefficients. */
-      y = (complex*) calloc((k_end+1),sizeof(complex));
-      y_ref = (complex*) calloc((k_end+1),sizeof(complex));
+      y = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      y_ref = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
 
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
-        y_ref[k] = d1 + I*d2;
+        y_ref[k] = d1 + _Complex_I*d2;
       }
 
       /* Print out Chebyshev coefficients. */
@@ -239,10 +239,10 @@ void test_dpt_transposed(void)
   /** The exponent of N */
   int t;
   /** The reference Legendre coefficients */
-  complex* x;
-  complex* x_ref;
+  double _Complex* x;
+  double _Complex* x_ref;
   /** The Chebyshev coefficients */
-  complex* y;
+  double _Complex* y;
   /** The degree \f$k\f$ */
   int k;
   /** Auxilliary variables used to read in complex numbers. */
@@ -339,15 +339,15 @@ void test_dpt_transposed(void)
       }*/
 
       /* Allocate memory for reference Legendre coefficients. */
-      x = (complex*) calloc((k_end+1),sizeof(complex));
-      x_ref = (complex*) calloc((k_end+1),sizeof(complex));
+      x = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      x_ref = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
 
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
-        x_ref[k] = d1 + I*d2;
+        x_ref[k] = d1 + _Complex_I*d2;
       }
 
       /* Print out reference Legendre coefficients. */
@@ -358,14 +358,14 @@ void test_dpt_transposed(void)
       }*/
 
       /* Allocate memory for Chebyshev coefficients. */
-      y = (complex*) calloc((k_end+1),sizeof(complex));
+      y = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
 
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
       {
         fscanf(file,"%le",&d1);
         fscanf(file,"%le",&d2);
-        y[k] = d1 + I*d2;
+        y[k] = d1 + _Complex_I*d2;
       }
 
       /* Print out Chebyshev coefficients. */

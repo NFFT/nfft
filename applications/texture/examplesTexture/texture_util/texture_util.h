@@ -124,7 +124,7 @@ typedef struct itexture_params_ {
 	/**
 	 * The expected result.
 	 */
-	double complex *omega_ref;
+	double _Complex *omega_ref;
 
 	// input parameters
 	/**
@@ -197,7 +197,7 @@ typedef struct itexture_params_ {
 	/**
 	 * The frequencies at the minimal residuum.
 	 */
-	double complex *omega_min_res;
+	double _Complex *omega_min_res;
 
 	/**
 	 * The number of epochs after which the minimum residuum occured.
@@ -217,7 +217,7 @@ typedef struct itexture_params_ {
 	/**
 	 * The frequencies at the minimal error.
 	 */
-	double complex *omega_min_err;
+	double _Complex *omega_min_err;
 
 	/**
 	 * The relative @f$l_2@f$ value of the minimal error.
@@ -282,7 +282,7 @@ void read_grid(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
  * Aborts execution if a syntax error is encountered.
  * @see file_formats
  */
-void read_x(int *N1_ptr, int *N2_ptr, complex ** x_ptr, FILE * in,
+void read_x(int *N1_ptr, int *N2_ptr, double _Complex ** x_ptr, FILE * in,
 						FILE * out);
 
 /**
@@ -294,7 +294,7 @@ void read_x(int *N1_ptr, int *N2_ptr, complex ** x_ptr, FILE * in,
  * @see file_formats
  */
 void read_samples(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
-									double **h_theta_ptr, double **r_ptr, complex ** x_ptr,
+									double **h_theta_ptr, double **r_ptr, double _Complex ** x_ptr,
 									FILE * h_in, FILE * r_in, FILE * x_in, FILE * out);
 
 /**
@@ -304,7 +304,7 @@ void read_samples(int *N1_ptr, int *N2_ptr, double **h_phi_ptr,
  * Aborts execution if a syntax error is encountered.
  * @see file_formats
  */
-void read_omega(int *N_ptr, complex ** omega_ptr, FILE * in, FILE * out);
+void read_omega(int *N_ptr, double _Complex ** omega_ptr, FILE * in, FILE * out);
 
 /**
  * Reads the bandwidth of a frequency vector from in.
@@ -328,25 +328,25 @@ void write_h(int N1, double *h_phi, double *h_theta, FILE * out);
 /**
  * Writes a frequency vector to a file.
  */
-void write_omega(int N, complex * omega, FILE * out);
+void write_omega(int N, double _Complex * omega, FILE * out);
 
 /**
  * Writes a sample vector to a file.
  */
-void write_x(int N1, int N2, complex * x, FILE * out);
+void write_x(int N1, int N2, double _Complex * x, FILE * out);
 
 // basic helper
 
 /**
  * Creates a random number in @f$[0, RAND\_MAX] + i [0, RAND\_MAX]@f$.
  */
-inline complex crand();
+inline double _Complex crand();
 
 /**
  * Creates a uniformly distributed random number in the circle with center 
  * @f$0@f$ and radius @f$2^30@f$.
  */
-inline complex crand_circle();
+inline double _Complex crand_circle();
 
 /**
  * Creates a random number in @f$[0, RAND\_MAX]@f$.
@@ -360,7 +360,7 @@ inline double drand1();
 
 /** Returns if @f$ | x - y | \leq delta @f$.
  */
-inline int equal(complex x, complex y, double delta);
+inline int equal(double _Complex x, double _Complex y, double delta);
 
 /** Returns some value on a equidistant one dimensional grid.
  *
@@ -380,45 +380,45 @@ inline void error(const char *msg);
 
 /** Returns @f$e^{i \cdot phi}@f$
  */
-inline complex expi(double phi);
+inline double _Complex expi(double phi);
 
 /** Returns @f$ \| x - y \|_2 @f$.
  *
  * @par length - the length of x and y.
  */
-inline double l_2_dist(const complex * x, const complex * y,
+inline double l_2_dist(const double _Complex * x, const double _Complex * y,
 											 unsigned int length);
 
 /**
  * Returns @f$ \| vec - ref \|_2 / \|ref\|_2 @f$.
  */
-inline double l_2_rel_dist(const complex * vec, const complex * ref,
+inline double l_2_rel_dist(const double _Complex * vec, const double _Complex * ref,
 													 unsigned int length);
 
 /** Returns @f$ \| vec \|_2@f$.
  *
  * @par length - the length of vec.
  */
-inline double l_2_norm(const complex * vec, unsigned int length);
+inline double l_2_norm(const double _Complex * vec, unsigned int length);
 
 /**
  * Returns @f$ \| vec \|_2 / \|ref\|_2 @f$.
  */
-inline double l_2_rel_norm(const complex * vec, const complex * ref,
+inline double l_2_rel_norm(const double _Complex * vec, const double _Complex * ref,
 													 unsigned int length);
 
 /**
  * Returns @f$ \| vec - ref\|_M / \|ref\|_M @f$, where 
  * @f$ M = diag(m) @f$ with @f$ m(\ell, m, n) = \dfrac{1}{2 \ell + 1}@f$.
  */
-inline double compute_ren(const complex * vec, const complex * ref,
+inline double compute_ren(const double _Complex * vec, const double _Complex * ref,
 													unsigned int N);
 
 /**
  * Returns @f$ \| vec - ref\|_M / \|ref\|_M @f$, where 
  * @f$ M = diag(m) @f$ with @f$ m(\ell, m, n) = \dfrac{1}{(2 \ell + 1)^2}@f$.
  */
-inline double compute_rwen(const complex * vec, const complex * ref,
+inline double compute_rwen(const double _Complex * vec, const double _Complex * ref,
 													 unsigned int N);
 
 /**
@@ -435,7 +435,7 @@ inline void *smart_malloc(size_t size);
  * See @ref sh for the definition of spherical harmonics.
  *
  */
-complex spherical_harmonic(int k, int n, double phi, double theta);
+double _Complex spherical_harmonic(int k, int n, double phi, double theta);
 
 /**
  * Splits a number @f$n \geq 2 @f$ in two factors t1 and t2 such that t1 and t2
@@ -457,7 +457,7 @@ inline void warning(const char *message);
  * different pole figures.
  * It belongs to [min_err, max_err].
  */
-void block_mult_error(int N1, int N2, complex * x, double min_err,
+void block_mult_error(int N1, int N2, double _Complex * x, double min_err,
 											double max_err);
 
 /**
@@ -494,12 +494,12 @@ const char *omega_policy_descr[7];
  * omega_policy = 3: Each component is created by ::crand/(i+1)^2, where i is 
  * its flat index.
  */
-void init_omega(complex * omega, int N, int omega_policy);
+void init_omega(double _Complex * omega, int N, int omega_policy);
 
 /**
  * Multiplies each component of x by a random number in [min_err, max_err].
  */
-void mult_error(int N1, int N2, complex * x, double min_err, double max_err);
+void mult_error(int N1, int N2, double _Complex * x, double min_err, double max_err);
 
 /**
  * Descriptions for the different types of solver algorithms.

@@ -82,7 +82,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
     {
       fscanf(fin,"%le %le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1], &tmp,
       &real,&imag);
-      my_iplan.y[j] = real + I*imag;
+      my_iplan.y[j] = real + _Complex_I*imag;
     }
     
     /* precompute psi if set just one time because the knots equal each plane */

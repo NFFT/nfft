@@ -27,7 +27,7 @@
  * @ingroup texture_examples
  */
 
-double complex *omega_ref, *omega, *x_ref, *x;
+double _Complex *omega_ref, *omega, *x_ref, *x;
 double *h_phi, *h_theta, *r;
 int N, N1, N2, new_N;
 const char *h_file = "grid_h.in", *r_file = "grid_r.in", *omega_file =
@@ -112,7 +112,7 @@ void read_params()
 	pars.monitor_error = 1;
 	pars.omega_ref = omega_ref;
 	pars.omega_min_err =
-		smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
+		smart_malloc(texture_flat_length(new_N) * sizeof(double _Complex));
 
 	fprintf(stderr,
 					"Choose a weight policy (1 = 1/n (default), 2 = 1/n^2, 3 = 1/n^3): ");
@@ -179,15 +179,15 @@ void output_params()
 
 /* 
    void calculate_x() { x_ref = smart_malloc(N1 * N2 * sizeof(double
-   complex)); texture_precompute(NFFT_MAX(N, new_N)); texture_init(&plan, N,
+   _Complex)); texture_precompute(NFFT_MAX(N, new_N)); texture_init(&plan, N,
    N1, N2, omega_ref, x_ref, h_phi, h_theta, r); texture_trafo(&plan); } */
 
 void calculate_omega()
 {
 	int m, n, l;
 
-	omega = smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
-	x = smart_malloc(N1 * N2 * sizeof(double complex));
+	omega = smart_malloc(texture_flat_length(new_N) * sizeof(double _Complex));
+	x = smart_malloc(N1 * N2 * sizeof(double _Complex));
 	texture_init(&plan2, new_N, N1, N2, omega, x, h_phi, h_theta, r);
 	itexture_init_advanced(&iplan, &plan2, solver_flags(0, weight_policy));
 
@@ -203,7 +203,7 @@ void calculate_omega()
 	}
 
 	memcpy(iplan.y, x_ref,
-				 texture_get_x_length(&plan2) * sizeof(double complex));
+				 texture_get_x_length(&plan2) * sizeof(double _Complex));
 
 	texture_precompute(new_N);
 	texture_itrafo(&iplan, &pars);

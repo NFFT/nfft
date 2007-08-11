@@ -178,7 +178,7 @@ void calculate_dependent_params()
 
 texture_plan plan;
 itexture_plan iplan;
-complex *omega, *omega_ref, *omega_min, *x;
+double _Complex *omega, *omega_ref, *omega_min, *x;
 FILE *out;
 double *residuums, *errors;
 int *iterations;
@@ -188,10 +188,10 @@ void init()
 	int sol_alg = ((N1 * N2) >= texture_flat_length(N)) ? 0 : 1;
 	unsigned int iflags = solver_flags(sol_alg, weight_type);
 
-	omega = smart_malloc(texture_flat_length(N) * sizeof(complex));
-	omega_ref = smart_malloc(texture_flat_length(N) * sizeof(complex));
-	omega_min = smart_malloc(texture_flat_length(N) * sizeof(complex));
-	x = smart_malloc(N1 * N2 * sizeof(complex));
+	omega = smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
+	omega_ref = smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
+	omega_min = smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
+	x = smart_malloc(N1 * N2 * sizeof(double _Complex));
 
 	residuums = smart_malloc(cases * sizeof(double));
 	errors = smart_malloc(cases * sizeof(double));
@@ -242,12 +242,12 @@ void calculate_results()
 		texture_trafo(&plan);
 		texture_set_omega(&plan, omega);
 
-		memcpy(iplan.y, x, N1 * N2 * sizeof(complex));
-		memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(complex));
+		memcpy(iplan.y, x, N1 * N2 * sizeof(double _Complex));
+		memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(double _Complex));
 		itexture_before_loop(&iplan);
 
 		memcpy(omega_min, iplan.f_hat_iter,
-					 texture_flat_length(N) * sizeof(complex));
+					 texture_flat_length(N) * sizeof(double _Complex));
 		do {
 			itexture_loop_one_step(&iplan);
 			iter++;
@@ -267,7 +267,7 @@ void calculate_results()
 			if (res < min_res) {
 				min_res = res;
 				memcpy(omega_min, iplan.f_hat_iter,
-							 texture_flat_length(N) * sizeof(complex));
+							 texture_flat_length(N) * sizeof(double _Complex));
 				min_iter = iter;
 			}
 

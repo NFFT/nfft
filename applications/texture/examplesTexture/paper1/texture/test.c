@@ -47,7 +47,7 @@ char name[1000];
 
 // program variables 
 
-double complex *omega_ref, *omega_ref_even, *omega, *x_ref, *x;
+double _Complex *omega_ref, *omega_ref_even, *omega, *x_ref, *x;
 double *h_phi, *h_theta, *r;
 int N, N1, N2;
 
@@ -106,9 +106,9 @@ void read_data()
 	read_omega(&N, &omega_ref, f3, stderr);
 
 	omega_ref_even =
-		smart_malloc(texture_flat_length(N) * sizeof(double complex));
+		smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 	memcpy(omega_ref_even, omega_ref,
-				 texture_flat_length(N) * sizeof(double complex));
+				 texture_flat_length(N) * sizeof(double _Complex));
 	for (l = 1; l <= N; l += 2) {
 		for (m = -l; m <= l; m++) {
 			for (n = -l; n <= l; n++) {
@@ -138,7 +138,7 @@ void read_params()
 	pars.monitor_error = 1;
 	pars.omega_ref = omega_ref_even;
 	pars.omega_min_err =
-		smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
+		smart_malloc(texture_flat_length(new_N) * sizeof(double _Complex));
 
 	fprintf(stderr, "Input a name for the data set (default=%s): ",
 					default_name);
@@ -184,7 +184,7 @@ void output_params()
 
 void calculate_x()
 {
-	x_ref = smart_malloc(N1 * N2 * sizeof(double complex));
+	x_ref = smart_malloc(N1 * N2 * sizeof(double _Complex));
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega_ref_even, x_ref, h_phi, h_theta, r);
 	texture_trafo(&plan);
@@ -194,8 +194,8 @@ void calculate_omega()
 {
 	int m, n, l;
 
-	omega = smart_malloc(texture_flat_length(new_N) * sizeof(double complex));
-	x = smart_malloc(N1 * N2 * sizeof(double complex));
+	omega = smart_malloc(texture_flat_length(new_N) * sizeof(double _Complex));
+	x = smart_malloc(N1 * N2 * sizeof(double _Complex));
 	texture_init(&plan2, new_N, N1, N2, omega, x, h_phi, h_theta, r);
 	itexture_init_advanced(&iplan, &plan2,
 												 solver_flags(solver_algo, weight_policy));
@@ -212,7 +212,7 @@ void calculate_omega()
 	}
 
 	memcpy(iplan.y, x_ref,
-				 texture_get_x_length(&plan2) * sizeof(double complex));
+				 texture_get_x_length(&plan2) * sizeof(double _Complex));
 
 	texture_itrafo(&iplan, &pars);
 }

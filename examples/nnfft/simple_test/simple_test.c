@@ -40,7 +40,7 @@ void simple_test_nnfft_1d()
     
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
-    my_plan.f_hat[k] = ((double)rand())/RAND_MAX +I*((double)rand())/RAND_MAX;
+    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
 
   nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
 
@@ -98,7 +98,7 @@ void simple_test_nnfft_2d()
     
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
-    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+    my_plan.f_hat[k] = ((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
 
   nfft_vpr_complex(my_plan.f_hat,12,
         "given Fourier coefficients, vector f_hat (first 12 entries)");
@@ -205,7 +205,7 @@ void measure_time_nnfft_1d()
       nnfft_precompute_phi_hut(&my_plan);
       
     for(k=0;k<my_plan.N_total;k++)
-      my_plan.f_hat[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+      my_plan.f_hat[k] = ((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
 
     t=nfft_second();
     nndft_trafo(&my_plan);

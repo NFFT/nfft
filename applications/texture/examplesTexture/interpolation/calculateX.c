@@ -39,7 +39,7 @@ const char *grid_r_file;
 
 int N, h_theta_count, h_phi_count, r_theta_count, r_phi_count;
 int N1, N2;
-complex *omega, *x;
+double _Complex *omega, *x;
 double *h_phi, *h_theta, *r;
 
 void init()
@@ -71,7 +71,7 @@ void calculate_x()
 {
 	texture_plan plan;
 
-	x = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);

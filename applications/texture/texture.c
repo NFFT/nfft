@@ -50,7 +50,7 @@ void texture_precompute_advanced(int N, unsigned int texture_precompute_flags,
 }
 
 void texture_init(texture_plan * ths, int N, int N1, int N2,
-									double complex * omega, double complex * x,
+									double _Complex * omega, double _Complex * x,
 									const double *h_phi, const double *h_theta, const double *r)
 {
 
@@ -60,7 +60,7 @@ void texture_init(texture_plan * ths, int N, int N1, int N2,
 }
 
 void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
-													 double complex * omega, double complex * x,
+													 double _Complex * omega, double _Complex * x,
 													 const double *h_phi, const double *h_theta,
 													 const double *r, unsigned int texture_init_flags,
 													 unsigned int nfsft_init_flags,
@@ -74,9 +74,9 @@ void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
 	ths->M_total = N1 * N2;
 
 	// Allocate storage for internal computations.
-	ths->nfsft_f_hat = malloc(sizeof(double complex) * NFSFT_F_HAT_SIZE(N));
+	ths->nfsft_f_hat = malloc(sizeof(double _Complex) * NFSFT_F_HAT_SIZE(N));
 	ths->nfsft_f =
-		(double complex *) malloc(sizeof(double complex) * ths->M_total);
+		(double _Complex *) malloc(sizeof(double _Complex) * ths->M_total);
 
 	ths->nfsft_angles = (double *) malloc(sizeof(double) * N1 * N2 * 2);
 	ths->cos_h_theta = (double *) malloc(sizeof(double) * N1);
@@ -129,8 +129,8 @@ void texture_adjoint(texture_plan * ths)
 {
 	int i;
 
-	memcpy(ths->nfsft_f, ths->f, sizeof(double complex) * ths->M_total);
-	memset(ths->f_hat, 0, sizeof(double complex) * ths->N_total);
+	memcpy(ths->nfsft_f, ths->f, sizeof(double _Complex) * ths->M_total);
+	memset(ths->f_hat, 0, sizeof(double _Complex) * ths->N_total);
 
 	for (i = 0; i < ths->N1; i++) {
 		nfsft_plan nfsft;
@@ -204,22 +204,22 @@ inline int texture_get_N2(texture_plan * ths)
 	return ths->N2;
 }
 
-inline double complex *texture_get_omega(texture_plan * ths)
+inline double _Complex *texture_get_omega(texture_plan * ths)
 {
 	return ths->f_hat;
 }
 
-inline void texture_set_omega(texture_plan * ths, double complex * omega)
+inline void texture_set_omega(texture_plan * ths, double _Complex * omega)
 {
 	ths->f_hat = omega;
 }
 
-inline double complex *texture_get_x(texture_plan * ths)
+inline double _Complex *texture_get_x(texture_plan * ths)
 {
 	return ths->f;
 }
 
-inline void texture_set_x(texture_plan * ths, double complex * x)
+inline void texture_set_x(texture_plan * ths, double _Complex * x)
 {
 	ths->f = x;
 }
@@ -304,7 +304,7 @@ void prepare_nfsft_plan(texture_plan * ths, nfsft_plan * nfsft, int i)
 
 	// Initialise the frequencies for the nfsft_plan with 0.
 	memset(ths->nfsft_f_hat, 0,
-				 NFSFT_F_HAT_SIZE(ths->N) * sizeof(double complex));
+				 NFSFT_F_HAT_SIZE(ths->N) * sizeof(double _Complex));
 
 	// Build the nfsft_plan.
 	nfsft_init_guru(nfsft, ths->N, ths->N2, ths->nfsft_init_flags,
@@ -361,7 +361,7 @@ void prepare_nfsft_plan(texture_plan * ths, nfsft_plan * nfsft, int i)
 				+= p_diag * (ths->f_hat[texture_flat_index(n, m, n)]
 										 * (cos(n * ths->h_phi[i]) - I * sin(n * ths->h_phi[i]))
 										 + ths->f_hat[texture_flat_index(n, m, -n)]
-										 * (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i])));
+										 * (cos(n * ths->h_phi[i]) + _Complex_I * sin(n * ths->h_phi[i])));
 		}
 
 		// Add the frequencies for |n| < l <= N.
@@ -383,7 +383,7 @@ void prepare_nfsft_plan(texture_plan * ths, nfsft_plan * nfsft, int i)
 					* (ths->f_hat[texture_flat_index(l, m, n)]
 						 * (cos(n * ths->h_phi[i]) - I * sin(n * ths->h_phi[i]))
 						 + ths->f_hat[texture_flat_index(l, m, -n)]
-						 * (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i])));
+						 * (cos(n * ths->h_phi[i]) + _Complex_I * sin(n * ths->h_phi[i])));
 			}
 		}
 	}
@@ -440,7 +440,7 @@ void process_results(texture_plan * ths, nfsft_plan * nfsft, int i)
 		for (m = -n; m <= n; m++) {
 			ths->f_hat[texture_flat_index(n, m, n)]
 				+= p_diag * ths->nfsft_f_hat[NFSFT_INDEX(n, m, nfsft)]
-				* (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i]));
+				* (cos(n * ths->h_phi[i]) + _Complex_I * sin(n * ths->h_phi[i]));
 
 			ths->f_hat[texture_flat_index(n, m, -n)]
 				+= p_diag * ths->nfsft_f_hat[NFSFT_INDEX(n, m, nfsft)]
@@ -464,7 +464,7 @@ void process_results(texture_plan * ths, nfsft_plan * nfsft, int i)
 			for (m = -l; m <= l; m++) {
 				ths->f_hat[texture_flat_index(l, m, n)]
 					+= p * ths->nfsft_f_hat[NFSFT_INDEX(l, m, nfsft)]
-					* (cos(n * ths->h_phi[i]) + I * sin(n * ths->h_phi[i]));
+					* (cos(n * ths->h_phi[i]) + _Complex_I * sin(n * ths->h_phi[i]));
 				ths->f_hat[texture_flat_index(l, m, -n)]
 					+= p * ths->nfsft_f_hat[NFSFT_INDEX(l, m, nfsft)]
 					* (cos(n * ths->h_phi[i]) - I * sin(n * ths->h_phi[i]));
@@ -473,4 +473,4 @@ void process_results(texture_plan * ths, nfsft_plan * nfsft, int i)
 	}
 }
 
-MACRO_SOLVER_IMPL(texture, complex, double complex)
+MACRO_SOLVER_IMPL(texture, complex, double _Complex)

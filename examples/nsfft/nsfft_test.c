@@ -9,14 +9,14 @@
 void accuracy_nsfft(int d, int J, int M, int m)
 {
   nsfft_plan p;
-  double complex *swap_sndft_trafo, *swap_sndft_adjoint;
+  double _Complex *swap_sndft_trafo, *swap_sndft_adjoint;
 
   nsfft_init(&p, d, J, M, m, NSDFT);
 
-  swap_sndft_trafo=(double complex*) fftw_malloc(p.M_total*
-						 sizeof(double complex));
-  swap_sndft_adjoint=(double complex*) fftw_malloc(p.N_total*
-						   sizeof(double complex));
+  swap_sndft_trafo=(double _Complex*) fftw_malloc(p.M_total*
+						 sizeof(double _Complex));
+  swap_sndft_adjoint=(double _Complex*) fftw_malloc(p.N_total*
+						   sizeof(double _Complex));
 
   nsfft_init_random_nodes_coeffs(&p);
 

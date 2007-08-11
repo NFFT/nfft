@@ -12,7 +12,7 @@
  * \{
  */
 
-complex double gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
+double _Complex gaussian(double x, int der, const double *param)    /* K(x)=exp(-x^2/c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -38,7 +38,7 @@ complex double gaussian(double x, int der, const double *param)    /* K(x)=exp(-
   return value;
 }
 
-complex double multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
+double _Complex multiquadric(double x, int der, const double *param)    /* K(x)=sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -64,7 +64,7 @@ complex double multiquadric(double x, int der, const double *param)    /* K(x)=s
   return value;
 }
 
-complex double inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
+double _Complex inverse_multiquadric(double x, int der, const double *param)    /* K(x)=1/sqrt(x^2+c^2) */
 {
   double c=param[0];
   double value=0.0;
@@ -90,7 +90,7 @@ complex double inverse_multiquadric(double x, int der, const double *param)    /
   return value;
 }
 
-complex double logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
+double _Complex logarithm(double x, int der, const double *param)    /* K(x)=log |x| */
 {
   double value=0.0;
 
@@ -123,7 +123,7 @@ complex double logarithm(double x, int der, const double *param)    /* K(x)=log 
   return value;
 }
 
-complex double thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
+double _Complex thinplate_spline(double x, int der, const double *param)    /* K(x) = x^2 log |x| */
 {
   double value=0.0;
 
@@ -151,7 +151,7 @@ complex double thinplate_spline(double x, int der, const double *param)    /* K(
   return value;
 }
 
-complex double one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
+double _Complex one_over_square(double x, int der, const double *param)    /* K(x) = 1/x^2 */
 {
   double value=0.0;
 
@@ -179,7 +179,7 @@ complex double one_over_square(double x, int der, const double *param)    /* K(x
   return value;
 }
 
-complex double one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
+double _Complex one_over_modulus(double x, int der, const double *param)    /* K(x) = 1/|x| */
 {
   double value=0.0;
 
@@ -207,7 +207,7 @@ complex double one_over_modulus(double x, int der, const double *param)    /* K(
   return value;
 }
 
-complex double one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
+double _Complex one_over_x(double x, int der, const double *param)    /* K(x) = 1/x */
 {
   double value=0.0;
 
@@ -235,7 +235,7 @@ complex double one_over_x(double x, int der, const double *param)    /* K(x) = 1
   return value;
 }
 
-complex double inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
+double _Complex inverse_multiquadric3(double x, int der, const double *param)    /* K(x) = 1/sqrt(x^2+c^2)^3 */
 {
   double c=param[0];
   double value=0.0;
@@ -261,7 +261,7 @@ complex double inverse_multiquadric3(double x, int der, const double *param)    
   return value;
 }
 
-complex double sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
+double _Complex sinc_kernel(double x, int der, const double *param)    /* K(x) = sin(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -288,7 +288,7 @@ complex double sinc_kernel(double x, int der, const double *param)    /* K(x) = 
   return value;
 }
 
-complex double cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
+double _Complex cosc(double x, int der, const double *param)    /* K(x) = cos(cx)/x */
 {
   double c=param[0];
   double value=0.0;
@@ -320,7 +320,7 @@ complex double cosc(double x, int der, const double *param)    /* K(x) = cos(cx)
   return value;
 }
 
-complex double cot(double x, int der, const double *param)   /* K(x) = cot(cx) */
+double _Complex kcot(double x, int der, const double *param)   /* K(x) = cot(cx) */
 {
   double c=param[0];
   double value=0.0;
@@ -348,7 +348,7 @@ complex double cot(double x, int der, const double *param)   /* K(x) = cot(cx) *
 }
 
 
-complex one_over_cube(double x, int der, const double *param)
+double _Complex one_over_cube(double x, int der, const double *param)
 {
   double value=0.0;
 

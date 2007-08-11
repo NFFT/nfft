@@ -37,7 +37,7 @@ int iterations;
 
 /** input / output Data for the tests
  */
-complex *omega, *x;
+double _Complex *omega, *x;
 
 /** nodes
  */
@@ -100,8 +100,8 @@ void init()
 	srand(0);
 
 	// input / output data
-	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
-	x = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
+	omega = (double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N1 * sizeof(double));
 	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
@@ -127,8 +127,8 @@ void init()
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 
 	itexture_init(&iplan, &plan);
-	memcpy(iplan.y, texture_get_x(&plan), N1 * N2 * sizeof(complex));
-	memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(complex));
+	memcpy(iplan.y, texture_get_x(&plan), N1 * N2 * sizeof(double _Complex));
+	memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(double _Complex));
 	itexture_before_loop(&iplan);
 }
 

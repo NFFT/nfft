@@ -322,10 +322,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       plans[(int)(dp1[0])]->N+1, mxCOMPLEX);
     dp2 = mxGetPr(plhs[0]); dp3 = mxGetPi(plhs[0]);
 
-    /*plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(0, 0, plans[(int)(dp1[0])])] = 1 + 2*I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, -1, plans[(int)(dp1[0])])] = 3 + 4*I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 0, plans[(int)(dp1[0])])] = 5 + 6*I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 1, plans[(int)(dp1[0])])] = 7 + 8*I;*/
+    /*plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(0, 0, plans[(int)(dp1[0])])] = 1 + 2*_Complex_I;
+    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, -1, plans[(int)(dp1[0])])] = 3 + 4*_Complex_I;
+    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 0, plans[(int)(dp1[0])])] = 5 + 6*_Complex_I;
+    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 1, plans[(int)(dp1[0])])] = 7 + 8*_Complex_I;*/
 
     for (i = 0; i <= plans[(int)(dp1[0])]->N; i++)
     {

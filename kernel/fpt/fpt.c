@@ -98,12 +98,12 @@ typedef struct fpt_set_s_
                                                containing the Chebyshev
                                                nodes                         */
   double *xc;                             /**< Array for Chebychev-nodes.    */
-  double complex *temp;                          /**< */
-  double complex *work;                          /**< */
-  double complex *result;                        /**< */
-  double complex *vec3;
-  double complex *vec4;
-  double complex *z;
+  double _Complex *temp;                          /**< */
+  double _Complex *work;                          /**< */
+  double _Complex *result;                        /**< */
+  double _Complex *vec3;
+  double _Complex *vec4;
+  double _Complex *z;
   fftw_plan *plans_dct3;                  /**< Transform plans for the fftw
                                                library                       */
   fftw_plan *plans_dct2;                  /**< Transform plans for the fftw
@@ -119,20 +119,20 @@ typedef struct fpt_set_s_
   double *xc_slow;
 } fpt_set_s;
 
-inline void abuvxpwy(double a, double b, double complex* u, double complex* x,
-  double* v, double complex* y, double* w, int n)
+inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
+  double* v, double _Complex* y, double* w, int n)
 {
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
   for (l = 0; l < n; l++)
     *u++ = a * (b * (*v++) * (*x++) + (*w++) * (*y++));
 }
 
 #define ABUVXPWY_SYMMETRIC(NAME,S1,S2) \
-inline void NAME(double a, double b, double complex* u, double complex* x, \
-  double* v, double complex* y, double* w, int n) \
+inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+  double* v, double _Complex* y, double* w, int n) \
 { \
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr; \
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr; \
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; \
   for (l = 0; l < n/2; l++) \
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
@@ -145,10 +145,10 @@ ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric1,1.0,-1.0)
 ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric2,-1.0,1.0)
 
 #define ABUVXPWY_SYMMETRIC_1(NAME,S1) \
-inline void NAME(double a, double b, double complex* u, double complex* x, \
-  double* v, double complex* y, int n, double *xx) \
+inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+  double* v, double _Complex* y, int n, double *xx) \
 { \
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *xx_ptr; \
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *xx_ptr; \
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; xx_ptr = xx; \
   for (l = 0; l < n/2; l++) \
     *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr++)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
@@ -161,10 +161,10 @@ ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_1,1.0)
 ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_2,-1.0)
 
 #define ABUVXPWY_SYMMETRIC_2(NAME,S1) \
-inline void NAME(double a, double b, double complex* u, double complex* x, \
-  double complex* y, double* w, int n, double *xx) \
+inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+  double _Complex* y, double* w, int n, double *xx) \
 { \
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *w_ptr, *xx_ptr; \
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *w_ptr, *xx_ptr; \
   u_ptr = u; x_ptr = x; y_ptr = y; w_ptr = w; xx_ptr = xx; \
   for (l = 0; l < n/2; l++) \
     *u_ptr++ = a * (b * (*w_ptr/(1.0+*xx_ptr++)) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
@@ -176,19 +176,19 @@ inline void NAME(double a, double b, double complex* u, double complex* x, \
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_1,1.0)
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_2,-1.0)
 
-inline void auvxpwy(double a, double complex* u, double complex* x, double* v,
-  double complex* y, double* w, int n)
+inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
+  double _Complex* y, double* w, int n)
 {
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
   for (l = 0; l < n; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric(double a, double complex* u, double complex* x,
-  double* v, double complex* y, double* w, int n)
+inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
+  double* v, double _Complex* y, double* w, int n)
 {
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
   for (l = 0; l < n/2; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
@@ -197,10 +197,10 @@ inline void auvxpwy_symmetric(double a, double complex* u, double complex* x,
     *u_ptr++ = a * ((*v_ptr--) * (*x_ptr++) - (*w_ptr--) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric_1(double a, double complex* u, double complex* x,
-  double* v, double complex* y, double* w, int n, double *xx)
+inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
+  double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
 
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; xx_ptr = xx;
   for (l = 0; l < n/2; l++)
@@ -210,10 +210,10 @@ inline void auvxpwy_symmetric_1(double a, double complex* u, double complex* x,
     *u_ptr++ = a * (-((*v_ptr--)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)*(1.0+*xx_ptr++)) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric_2(double a, double complex* u, double complex* x,
-  double* v, double complex* y, double* w, int n, double *xx)
+inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
+  double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; double complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
+  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
   u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; xx_ptr = xx;
   for (l = 0; l < n/2; l++)
     *u_ptr++ = a * (((*v_ptr++)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)/(1.0+*xx_ptr++)) * (*y_ptr++));
@@ -223,7 +223,7 @@ inline void auvxpwy_symmetric_2(double a, double complex* u, double complex* x,
 }
 
 #define FPT_DO_STEP(NAME,M1_FUNCTION,M2_FUNCTION) \
-inline void NAME(double complex  *a, double complex *b, double *a11, double *a12, \
+inline void NAME(double _Complex  *a, double _Complex *b, double *a11, double *a12, \
   double *a21, double *a22, double g, int tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
@@ -258,7 +258,7 @@ inline void NAME(double complex  *a, double complex *b, double *a11, double *a12
     /* Perform multiplication for both rows. */ \
     M2_FUNCTION(norm,set->z,b,a22,a,a21,length); \
     M1_FUNCTION(norm*g,a,a,a11,b,a12,length); \
-    memcpy(b,set->z,length*sizeof(double complex)); \
+    memcpy(b,set->z,length*sizeof(double _Complex)); \
     /* Compute Chebyshev-coefficients using a DCT-II. */ \
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a); \
     /* Compensate for factors introduced by a raw DCT-II. */ \
@@ -276,7 +276,7 @@ FPT_DO_STEP(fpt_do_step_symmetric,auvxpwy_symmetric,auvxpwy_symmetric)
 /*FPT_DO_STEP(fpt_do_step_symmetric_u,auvxpwy_symmetric,auvxpwy)
 FPT_DO_STEP(fpt_do_step_symmetric_l,auvxpwy,auvxpwy_symmetric)*/
 
-inline void fpt_do_step_symmetric_u(double complex *a, double complex *b,
+inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *b,
   double *a11, double *a12, double *a21, double *a22, double *x,
   double gamma, int tau, fpt_set set)
 {
@@ -312,7 +312,7 @@ inline void fpt_do_step_symmetric_u(double complex *a, double complex *b,
     /* Perform multiplication for both rows. */
     auvxpwy_symmetric_1(norm,set->z,b,a12,a,a11,length,x);
     auvxpwy_symmetric(norm*gamma,a,a,a11,b,a12,length);
-    memcpy(b,set->z,length*sizeof(double complex));
+    memcpy(b,set->z,length*sizeof(double _Complex));
     /* Compute Chebyshev-coefficients using a DCT-II. */
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
     /* Compensate for factors introduced by a raw DCT-II. */
@@ -325,7 +325,7 @@ inline void fpt_do_step_symmetric_u(double complex *a, double complex *b,
   b[0] *= 0.5;
 }
 
-inline void fpt_do_step_symmetric_l(double complex  *a, double complex *b,
+inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex *b,
   double *a11, double *a12, double *a21, double *a22, double *x, double gamma, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
@@ -360,7 +360,7 @@ inline void fpt_do_step_symmetric_l(double complex  *a, double complex *b,
     /* Perform multiplication for both rows. */
     auvxpwy_symmetric(norm,set->z,b,a22,a,a21,length);
     auvxpwy_symmetric_2(norm*gamma,a,a,a21,b,a22,length,x);
-    memcpy(b,set->z,length*sizeof(double complex));
+    memcpy(b,set->z,length*sizeof(double _Complex));
     /* Compute Chebyshev-coefficients using a DCT-II. */
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
     /* Compensate for factors introduced by a raw DCT-II. */
@@ -374,7 +374,7 @@ inline void fpt_do_step_symmetric_l(double complex  *a, double complex *b,
 }
 
 #define FPT_DO_STEP_TRANSPOSED(NAME,M1_FUNCTION,M2_FUNCTION) \
-inline void NAME(double complex  *a, double complex *b, double *a11, \
+inline void NAME(double _Complex  *a, double _Complex *b, double *a11, \
   double *a12, double *a21, double *a22, double g, int tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
@@ -389,7 +389,7 @@ inline void NAME(double complex  *a, double complex *b, double *a11, \
   /* Perform matrix multiplication. */ \
   M1_FUNCTION(norm,g,set->z,a,a11,b,a21,length); \
   M2_FUNCTION(norm,g,b,a,a12,b,a22,length); \
-  memcpy(a,set->z,length*sizeof(double complex)); \
+  memcpy(a,set->z,length*sizeof(double _Complex)); \
   \
   /* Compute Chebyshev-coefficients using a DCT-II. */ \
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a); \
@@ -402,8 +402,8 @@ FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric,abuvxpwy_symmetric1,abuv
 /*FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric_l,abuvxpwy_symmetric2_2,abuvxpwy_symmetric2_1)*/
 
 
-inline void fpt_do_step_transposed_symmetric_u(double complex  *a,
-  double complex *b, double *a11, double *a12, double *x,
+inline void fpt_do_step_transposed_symmetric_u(double _Complex  *a,
+  double _Complex *b, double *a11, double *a12, double *x,
   double gamma, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
@@ -418,15 +418,15 @@ inline void fpt_do_step_transposed_symmetric_u(double complex  *a,
   /* Perform matrix multiplication. */
   abuvxpwy_symmetric1_1(norm,gamma,set->z,a,a11,b,length,x);
   abuvxpwy_symmetric1_2(norm,gamma,b,a,a12,b,length,x);
-  memcpy(a,set->z,length*sizeof(double complex));
+  memcpy(a,set->z,length*sizeof(double _Complex));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);
 }
 
-inline void fpt_do_step_transposed_symmetric_l(double complex  *a,
-  double complex *b, double *a21, double *a22,
+inline void fpt_do_step_transposed_symmetric_l(double _Complex  *a,
+  double _Complex *b, double *a21, double *a22,
   double *x, double gamma, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
@@ -441,7 +441,7 @@ inline void fpt_do_step_transposed_symmetric_l(double complex  *a,
   /* Perform matrix multiplication. */
   abuvxpwy_symmetric2_2(norm,gamma,set->z,a,b,a21,length,x);
   abuvxpwy_symmetric2_1(norm,gamma,b,a,b,a22,length,x);
-  memcpy(a,set->z,length*sizeof(double complex));
+  memcpy(a,set->z,length*sizeof(double _Complex));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
@@ -673,17 +673,17 @@ int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k
  *   (alpha_k, beta_k, gamma_k \in \mathbb{R},\; k \ge 0)
  * \f]
  * with initial conditions \f$P_{-1}(x) := 0\f$, \f$P_0(x) := \lambda\f$
- * for given double complex coefficients \f$\left(a_k\right)_{k=0}^N \in
+ * for given double _Complex coefficients \f$\left(a_k\right)_{k=0}^N \in
  * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
-void eval_sum_clenshaw(int N, int M, double complex* a, double *x, double complex *y,
-  double complex *temp, double *alpha, double *beta, double *gamma, double lambda)
+void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, double _Complex *y,
+  double _Complex *temp, double *alpha, double *beta, double *gamma, double lambda)
 {
   int j,k;
-  double complex* it1 = temp;
-  double complex* it2 = y;
-  double complex aux;
+  double _Complex* it1 = temp;
+  double _Complex* it2 = y;
+  double _Complex aux;
 
   /* Clenshaw's algorithm */
   for (j = 0; j <= M; j++)
@@ -739,18 +739,18 @@ void eval_sum_clenshaw(int N, int M, double complex* a, double *x, double comple
  *   (alpha_k, beta_k, gamma_k \in \mathbb{R},\; k \ge 0)
  * \f]
  * with initial conditions \f$P_{-1}(x) := 0\f$, \f$P_0(x) := \lambda\f$
- * for given double complex coefficients \f$\left(a_k\right)_{k=0}^N \in
+ * for given double _Complex coefficients \f$\left(a_k\right)_{k=0}^N \in
  * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
-void eval_sum_clenshaw_transposed(int N, int M, double complex* a, double *x,
-  double complex *y, double complex *temp, double *alpha, double *beta, double *gamma,
+void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, double *x,
+  double _Complex *y, double _Complex *temp, double *alpha, double *beta, double *gamma,
   double lambda)
 {
   int j,k;
-  double complex* it1 = temp;
-  double complex* it2 = y;
-  double complex aux;
+  double _Complex* it1 = temp;
+  double _Complex* it2 = y;
+  double _Complex aux;
 
   /* Compute final result by multiplying with the constant lambda */
   a[0] = 0.0;
@@ -841,8 +841,8 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   }
 
   /** Allocate memory for auxilliary arrays. */
-  set->work = (double complex*) nfft_malloc((2*set->N)*sizeof(double complex));
-  set->result = (double complex*) nfft_malloc((2*set->N)*sizeof(double complex));
+  set->work = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
+  set->result = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
 
   /* Check if fast transform is activated. */
   if (set->flags & FPT_NO_FAST_ALGORITHM)
@@ -851,9 +851,9 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   else
   {
     /** Allocate memory for auxilliary arrays. */
-    set->vec3 = (double complex*) nfft_malloc(set->N*sizeof(double complex));
-    set->vec4 = (double complex*) nfft_malloc(set->N*sizeof(double complex));
-    set->z = (double complex*) nfft_malloc(set->N*sizeof(double complex));
+    set->vec3 = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
+    set->vec4 = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
+    set->z = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
 
     /** Initialize FFTW plans. */
     set->plans_dct3 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
@@ -891,7 +891,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   else
   {
     set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
-    set->temp = (double complex*) calloc((set->N+1),sizeof(double complex));
+    set->temp = (double _Complex*) calloc((set->N+1),sizeof(double _Complex));
   }
 
   /* Return the newly created DPT set. */
@@ -962,9 +962,9 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   else
   {
     /* Save recursion coefficients. */
-    data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
-    data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
-    data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double complex));
+    data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
+    data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
+    data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
 
     for (tau = 2; tau <= set->t; tau++)
     {
@@ -1204,7 +1204,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   }
 }
 
-void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
+void dpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags)
 {
   int j;
@@ -1229,8 +1229,8 @@ void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex
       set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
     }
 
-    memset(set->result,0U,data->k_start*sizeof(double complex));
-    memcpy(&set->result[data->k_start],x,(k_end-data->k_start+1)*sizeof(double complex));
+    memset(set->result,0U,data->k_start*sizeof(double _Complex));
+    memcpy(&set->result[data->k_start],x,(k_end-data->k_start+1)*sizeof(double _Complex));
 
     eval_sum_clenshaw(k_end, k_end, set->result, set->xc_slow,
       y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
@@ -1238,8 +1238,8 @@ void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
   else
   {
-    memset(set->temp,0U,data->k_start*sizeof(double complex));
-    memcpy(&set->temp[data->k_start],x,(k_end-data->k_start+1)*sizeof(double complex));
+    memset(set->temp,0U,data->k_start*sizeof(double _Complex));
+    memcpy(&set->temp[data->k_start],x,(k_end-data->k_start+1)*sizeof(double _Complex));
 
     eval_sum_clenshaw(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
       set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
@@ -1254,11 +1254,11 @@ void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex
       set->result[j] *= norm;
     }
 
-    memcpy(y,set->result,(k_end+1)*sizeof(double complex));
+    memcpy(y,set->result,(k_end+1)*sizeof(double _Complex));
   }
 }
 
-void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
+void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
@@ -1295,8 +1295,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   /** Loop counter */
   int k;
 
-  double complex *work_ptr;
-  const double complex *x_ptr;
+  double _Complex *work_ptr;
+  const double _Complex *x_ptr;
 
   /* Check, if slow transformation should be used due to small bandwidth. */
   if (k_end < FPT_BREAK_EVEN)
@@ -1322,12 +1322,12 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
 
   /* Initialize working arrays. */
-  memset(set->result,0U,2*Nk*sizeof(double complex));
+  memset(set->result,0U,2*Nk*sizeof(double _Complex));
 
   /* The first step. */
 
   /* Set the first 2*data->k_start coefficients to zero. */
-  memset(set->work,0U,2*data->k_start*sizeof(double complex));
+  memset(set->work,0U,2*data->k_start*sizeof(double _Complex));
 
   work_ptr = &set->work[2*data->k_start];
   x_ptr = x;
@@ -1339,7 +1339,7 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
 
   /* Set the last 2*(set->N-1-k_end_tilde) coefficients to zero. */
-  memset(&set->work[2*(k_end_tilde+1)],0U,2*(Nk-1-k_end_tilde)*sizeof(double complex));
+  memset(&set->work[2*(k_end_tilde+1)],0U,2*(Nk-1-k_end_tilde)*sizeof(double _Complex));
 
   /* If k_end == Nk, use three-term recurrence to map last coefficient x_{Nk} to
    * x_{Nk-1} and x_{Nk-2}. */
@@ -1372,15 +1372,15 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
     for (l = firstl; l <= lastl; l++)
     {
       /* Copy vectors to multiply into working arrays zero-padded to twice the length. */
-      memcpy(set->vec3,&(set->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(double complex));
-      memcpy(set->vec4,&(set->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(double complex));
-      memset(&set->vec3[plength/2],0U,(plength/2)*sizeof(double complex));
-      memset(&set->vec4[plength/2],0U,(plength/2)*sizeof(double complex));
+      memcpy(set->vec3,&(set->work[(plength/2)*(4*l+2)]),(plength/2)*sizeof(double _Complex));
+      memcpy(set->vec4,&(set->work[(plength/2)*(4*l+3)]),(plength/2)*sizeof(double _Complex));
+      memset(&set->vec3[plength/2],0U,(plength/2)*sizeof(double _Complex));
+      memset(&set->vec4[plength/2],0U,(plength/2)*sizeof(double _Complex));
 
       /* Copy coefficients into first half. */
-      memcpy(&(set->work[(plength/2)*(4*l+2)]),&(set->work[(plength/2)*(4*l+1)]),(plength/2)*sizeof(double complex));
-      memset(&(set->work[(plength/2)*(4*l+1)]),0U,(plength/2)*sizeof(double complex));
-      memset(&(set->work[(plength/2)*(4*l+3)]),0U,(plength/2)*sizeof(double complex));
+      memcpy(&(set->work[(plength/2)*(4*l+2)]),&(set->work[(plength/2)*(4*l+1)]),(plength/2)*sizeof(double _Complex));
+      memset(&(set->work[(plength/2)*(4*l+1)]),0U,(plength/2)*sizeof(double _Complex));
+      memset(&(set->work[(plength/2)*(4*l+3)]),0U,(plength/2)*sizeof(double _Complex));
 
       /* Get matrix U_{n,tau,l} */
       step = &(data->steps[tau][l]);
@@ -1438,8 +1438,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
         /* Set rest of vectors explicitely to zero */
         /*fprintf(stderr,"fpt_trafo: stabilizing: plength = %d, plength_stab = %d\n",
           plength, plength_stab);*/
-        memset(&set->vec3[plength/2],0U,(plength_stab-plength/2)*sizeof(double complex));
-        memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(double complex));
+        memset(&set->vec3[plength/2],0U,(plength_stab-plength/2)*sizeof(double _Complex));
+        memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(double _Complex));
 
         /* Multiply third and fourth polynomial with matrix U. */
         /* Check for symmetry. */
@@ -1540,8 +1540,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
   }
 }
 
-void dpt_transposed(fpt_set set, const int m, double complex *x,
-  double complex *y, const int k_end, const unsigned int flags)
+void dpt_transposed(fpt_set set, const int m, double _Complex *x,
+  double _Complex *y, const int k_end, const unsigned int flags)
 {
   int j;
   fpt_data *data = &(set->dpt[m]);
@@ -1569,12 +1569,12 @@ void dpt_transposed(fpt_set set, const int m, double complex *x,
       data->gamma_m1);
 
     memcpy(x,&set->result[data->k_start],(k_end-data->k_start+1)*
-      sizeof(double complex));
+      sizeof(double _Complex));
   }
   else
   {
-    memcpy(set->result,y,(k_end+1)*sizeof(double complex));
-    memset(&set->result[k_end+1],0U,(Nk-k_end-1)*sizeof(double complex));
+    memcpy(set->result,y,(k_end+1)*sizeof(double _Complex));
+    memset(&set->result[k_end+1],0U,(Nk-k_end-1)*sizeof(double _Complex));
 
     for (j = 0; j < Nk; j++)
     {
@@ -1588,12 +1588,12 @@ void dpt_transposed(fpt_set set, const int m, double complex *x,
       set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
       data->gamma_m1);
 
-    memcpy(x,&set->temp[data->k_start],(k_end-data->k_start+1)*sizeof(double complex));
+    memcpy(x,&set->temp[data->k_start],(k_end-data->k_start+1)*sizeof(double _Complex));
   }
 }
 
-void fpt_transposed(fpt_set set, const int m, double complex *x,
-  const double complex *y, const int k_end, const unsigned int flags)
+void fpt_transposed(fpt_set set, const int m, double _Complex *x,
+  const double _Complex *y, const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
   fpt_data *data = &(set->dpt[m]);
@@ -1658,18 +1658,18 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
   }
   else
   {
-    memcpy(set->result,y,(k_end+1)*sizeof(double complex));
+    memcpy(set->result,y,(k_end+1)*sizeof(double _Complex));
   }
 
   /* Initialize working arrays. */
-  memset(set->work,0U,2*Nk*sizeof(double complex));
+  memset(set->work,0U,2*Nk*sizeof(double _Complex));
 
   /* The last step is now the first step. */
   for (k = 0; k <= k_end; k++)
   {
     set->work[k] = data->gamma_m1*set->result[k];
   }
-  //memset(&set->work[k_end+1],0U,(Nk+1-k_end)*sizeof(double complex));
+  //memset(&set->work[k_end+1],0U,(Nk+1-k_end)*sizeof(double _Complex));
 
   set->work[Nk] = data->gamma_m1*(data->beta_0*set->result[0] +
     data->alpha_0*set->result[1]);
@@ -1680,11 +1680,11 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
   }
   if (k_end<Nk)
   {
-    memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(double complex));
+    memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(double _Complex));
   }
 
   /** Save copy of inpute data for stabilization steps. */
-  memcpy(set->result,set->work,2*Nk*sizeof(double complex));
+  memcpy(set->result,set->work,2*Nk*sizeof(double _Complex));
 
   /* Compute the remaining steps. */
   plength = Nk;
@@ -1699,11 +1699,11 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
     for (l = firstl; l <= lastl; l++)
     {
       /* Initialize second half of coefficient arrays with zeros. */
-      memcpy(set->vec3,&(set->work[(plength/2)*(4*l+0)]),plength*sizeof(double complex));
-      memcpy(set->vec4,&(set->work[(plength/2)*(4*l+2)]),plength*sizeof(double complex));
+      memcpy(set->vec3,&(set->work[(plength/2)*(4*l+0)]),plength*sizeof(double _Complex));
+      memcpy(set->vec4,&(set->work[(plength/2)*(4*l+2)]),plength*sizeof(double _Complex));
 
       memcpy(&set->work[(plength/2)*(4*l+1)],&(set->work[(plength/2)*(4*l+2)]),
-        (plength/2)*sizeof(double complex));
+        (plength/2)*sizeof(double _Complex));
 
       /* Get matrix U_{n,tau,l} */
       step = &(data->steps[tau][l]);
@@ -1723,7 +1723,7 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
           fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0],
             step->a21[0], step->a22[0], step->g[0], tau, set);
         }
-        memcpy(&(set->vec3[plength/2]), set->vec4,(plength/2)*sizeof(double complex));
+        memcpy(&(set->vec3[plength/2]), set->vec4,(plength/2)*sizeof(double _Complex));
 
         for (k = 0; k < plength; k++)
         {
@@ -1736,8 +1736,8 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
         plength_stab = step->Ns;
         t_stab = step->ts;
 
-        memcpy(set->vec3,set->result,plength_stab*sizeof(double complex));
-        memcpy(set->vec4,&(set->result[Nk]),plength_stab*sizeof(double complex));
+        memcpy(set->vec3,set->result,plength_stab*sizeof(double _Complex));
+        memcpy(set->vec4,&(set->result[Nk]),plength_stab*sizeof(double _Complex));
 
         /* Multiply third and fourth polynomial with matrix U. */
         if (set->flags & FPT_AL_SYMMETRY)
@@ -1764,7 +1764,7 @@ void fpt_transposed(fpt_set set, const int m, double complex *x,
               step->a21[0], step->a22[0], step->g[0], t_stab-1, set);
         }
 
-        memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(double complex));
+        memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(double _Complex));
 
         for (k = 0; k < plength; k++)
         {

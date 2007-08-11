@@ -66,7 +66,7 @@ int main (int argc, char **argv)
   double xs;
   double *ys;
   double *temp;
-  double complex *temp2;
+  double _Complex *temp2;
   int qlength;
   double *qweights;
   fftw_plan fplan;
@@ -149,7 +149,7 @@ int main (int argc, char **argv)
       scratch = (double*) nfft_malloc(4*sizeof(double));
       ys = (double*) nfft_malloc((N+1)*sizeof(double));
       temp = (double*) nfft_malloc((2*N+1)*sizeof(double));
-      temp2 = (double complex*) nfft_malloc((N+1)*sizeof(double complex));
+      temp2 = (double _Complex*) nfft_malloc((N+1)*sizeof(double _Complex));
 
       a = 0.0;
       for (j = 0; j <= N; j++)
@@ -273,7 +273,7 @@ int main (int argc, char **argv)
       {
         plan.x[2*j] = plan.x[2*j] - 1;
       }
-      iplan.y[j] = re + I * im;
+      iplan.y[j] = re + _Complex_I * im;
       fprintf(stderr,"%le %le %le %le\n",plan.x[2*j+1],plan.x[2*j],
         creal(iplan.y[j]),cimag(iplan.y[j]));
     }

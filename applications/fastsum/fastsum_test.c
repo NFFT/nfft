@@ -30,10 +30,10 @@ int main(int argc, char **argv)
   int m;                                             /**< cut-off parameter       */
   int p;                                             /**< degree of smoothness    */
   char *s;                                           /**< name of kernel          */
-  complex double (*kernel)(double , int , const double *);  /**< kernel function         */
+  double _Complex (*kernel)(double , int , const double *);  /**< kernel function         */
   double c;                                          /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan;                      /**< plan for fast summation */
-  complex double *direct;                                   /**< array for direct computation */
+  double _Complex *direct;                                   /**< array for direct computation */
   double time;                                       /**< for time measurement    */
   double error=0.0;                                  /**< for error computation   */
   double eps_I;                                      /**< inner boundary          */
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     else if (strcmp(s,"cosc")==0)
       kernel = cosc;
     else if (strcmp(s,"cot")==0)
-      kernel = cot;
+      kernel = kcot;
     else
     {
       s="multiquadric";
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       my_fastsum_plan.x[k*d+j] *= sin(phi);
     }
 
-    my_fastsum_plan.alpha[k] = (double)rand()/(double)RAND_MAX + I*(double)rand()/(double)RAND_MAX;
+    my_fastsum_plan.alpha[k] = (double)rand()/(double)RAND_MAX + _Complex_I*(double)rand()/(double)RAND_MAX;
   }
 
   /** init target knots in a d-ball with radius 0.25-eps_b/2 */
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
   printf("%fsec\n",time);
 
   /** copy result */
-  direct = (complex double *)malloc(my_fastsum_plan.M_total*(sizeof(complex double)));
+  direct = (double _Complex *)malloc(my_fastsum_plan.M_total*(sizeof(double _Complex)));
   for (j=0; j<my_fastsum_plan.M_total; j++)
     direct[j]=my_fastsum_plan.f[j];
 

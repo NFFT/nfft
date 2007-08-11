@@ -17,29 +17,29 @@
 void ndft_horner_trafo(nfft_plan *ths)
 {
   int j,k;
-  double complex *f_hat_k, *f_j;
-  double complex exp_omega_0;
+  double _Complex *f_hat_k, *f_j;
+  double _Complex exp_omega_0;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     (*f_j) =0;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     {
-      exp_omega_0 = cexp(+2*PI*I*ths->x[j]);
+      exp_omega_0 = cexp(+2*PI*_Complex_I*ths->x[j]);
       for(k=0, f_hat_k= ths->f_hat; k<ths->N[0]; k++, f_hat_k++)
         {
           (*f_j)+=(*f_hat_k);
           (*f_j)*=exp_omega_0;
 	}
-      (*f_j)*=cexp(-PI*I*ths->N[0]*ths->x[j]);
+      (*f_j)*=cexp(-PI*_Complex_I*ths->N[0]*ths->x[j]);
     }
 } /* ndft_horner_trafo */
 
-void ndft_pre_full_trafo(nfft_plan *ths, double complex *A)
+void ndft_pre_full_trafo(nfft_plan *ths, double _Complex *A)
 {
   int j,k;
-  double complex *f_hat_k, *f_j;
-  double complex *A_local;
+  double _Complex *f_hat_k, *f_j;
+  double _Complex *A_local;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     (*f_j) =0;
@@ -49,14 +49,14 @@ void ndft_pre_full_trafo(nfft_plan *ths, double complex *A)
       (*f_j) += (*f_hat_k)*(*A_local);
 } /* ndft_pre_full_trafo */
 
-void ndft_pre_full_init(nfft_plan *ths, double complex *A)
+void ndft_pre_full_init(nfft_plan *ths, double _Complex *A)
 {
   int j,k;
-  double complex *f_hat_k, *f_j, *A_local;
+  double _Complex *f_hat_k, *f_j, *A_local;
 
   for(j=0, f_j=ths->f, A_local=A; j<ths->M_total; j++, f_j++)
     for(k=0, f_hat_k= ths->f_hat; k<ths->N[0]; k++, f_hat_k++, A_local++)
-      (*A_local) = cexp(-2*PI*I*(k-ths->N[0]/2)*ths->x[j]);
+      (*A_local) = cexp(-2*PI*_Complex_I*(k-ths->N[0]/2)*ths->x[j]);
 
 } /* ndft_pre_full_init */
 
@@ -64,7 +64,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
   int r;
   double t, t_ndft, t_horner, t_pre_full, t_nfft;
-  double complex *A;
+  double _Complex *A;
 
   nfft_plan np;
 
@@ -77,7 +77,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 
   if(test_pre_full)
    {
-     A=(double complex*)fftw_malloc(N*M*sizeof(double complex));
+     A=(double _Complex*)fftw_malloc(N*M*sizeof(double _Complex));
      ndft_pre_full_init(&np, A);
    }
 

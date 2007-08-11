@@ -120,7 +120,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le %le %le",&my_plan.plan.x[2*j+0],&my_plan.plan.x[2*j+1],&real,&imag);
-    my_iplan.y[j]=real+I*imag;
+    my_iplan.y[j]=real+ _Complex_I*imag;
     fscanf(ftime,"%le ",&my_plan.t[j]);
 
     my_plan.t[j] = (my_plan.t[j]-Ts)/T;
@@ -177,7 +177,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   
   for (j=0;j<N*N;j++) {
     /* Verschiebung wieder herausrechnen */
-    my_iplan.f_hat_iter[j]*=cexp(-2.0*I*PI*Ts*my_plan.w[j]*W);
+    my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
     
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));

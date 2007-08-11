@@ -10,7 +10,7 @@
 
 int N1, N2;
 double *h_phi, *h_theta, *r;
-complex *x;
+double _Complex *x;
 
 int main()
 {
@@ -25,7 +25,7 @@ int main()
 	h_phi = smart_malloc(N1 * sizeof(double));
 	h_theta = smart_malloc(N1 * sizeof(double));
 	r = smart_malloc(2 * N1 * N2 * sizeof(double));
-	x = smart_malloc(N1 * N2 * sizeof(complex));
+	x = smart_malloc(N1 * N2 * sizeof(double _Complex));
 
 	fid = fopen("h_files", "r");
 	for (i = 0; i < N1; i++) {
@@ -59,7 +59,7 @@ int main()
 			x[i * N2 + j] = dummy;
 		}
 		fclose(pfid);
-		// memcpy(&(x[i * N2 + N2 / 2]), &(x[i * N2]), N2 / 2 * sizeof(complex));
+		// memcpy(&(x[i * N2 + N2 / 2]), &(x[i * N2]), N2 / 2 * sizeof(double _Complex));
 	}
 	fclose(fid);
 	// expand_r(N2, r);

@@ -38,10 +38,10 @@
 /** macros and small sub routines for the direct transforms
  */
 #define MACRO_ndft_init_result_trafo memset(f,0,ths->M_total*                 \
-                                            sizeof(double complex));
+                                            sizeof(double _Complex));
 #define MACRO_ndft_init_result_conjugated MACRO_ndft_init_result_trafo
 #define MACRO_ndft_init_result_adjoint memset(f_hat,0,ths->N_total*           \
-					      sizeof(double complex));
+					      sizeof(double _Complex));
 #define MACRO_ndft_init_result_transposed MACRO_ndft_init_result_adjoint
 
 #define MACRO_ndft_sign_trafo      +2*PI*ths->x[j*ths->d+t]
@@ -75,7 +75,7 @@ omega=Omega[ths->d];                                                          \
 
 #define MACRO_ndft_compute_conjugated MACRO_ndft_compute_trafo
 
-#define MACRO_ndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(+I*omega);
+#define MACRO_ndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(+ _Complex_I*omega);
 
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
@@ -85,9 +85,9 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
   int j;                                /**< index over all nodes           */\
   int t,t2;                             /**< index for dimensions           */\
   int k_L;                              /**< plain index for summation      */\
-  double complex *f_hat, *f;            /**< dito                           */\
-  double complex *f_hat_k;              /**< actual Fourier coefficient     */\
-  double complex *fj;                   /**< actual sample                  */\
+  double _Complex *f_hat, *f;            /**< dito                           */\
+  double _Complex *f_hat_k;              /**< actual Fourier coefficient     */\
+  double _Complex *fj;                   /**< actual sample                  */\
   double x[ths->d];                     /**< actual node x[d*j+t]           */\
   int k[ths->d];                        /**< multi index for summation      */\
   double omega, Omega[ths->d+1];        /**< sign times 2*pi*k*x            */\
@@ -181,9 +181,9 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
 }
 
 #define MACRO_nfft_D_init_result_A  memset(g_hat,0,ths->n_total*              \
-					   sizeof(double complex));
+					   sizeof(double _Complex));
 #define MACRO_nfft_D_init_result_T memset(f_hat,0,ths->N_total*               \
-                                           sizeof(double complex));
+                                           sizeof(double _Complex));
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 #define MACRO_without_PRE_PHI_HUT / (PHI_HUT(ks[t2]-ths->N[t2]/2,t2));
@@ -238,7 +238,7 @@ inline void nfft_D_ ## which_one (nfft_plan *ths)                             \
   double c_phi_inv_k[ths->d+1];         /**< postfix product of PHI_HUT     */\
   int k_plain[ths->d+1];                /**< postfix plain index            */\
   int ks_plain[ths->d+1];               /**< postfix plain index            */\
-  double complex *f_hat, *g_hat;        /**< local copy                     */\
+  double _Complex *f_hat, *g_hat;        /**< local copy                     */\
                                                                               \
   f_hat=ths->f_hat; g_hat=ths->g_hat;                                         \
   MACRO_nfft_D_init_result_ ## which_one;                                     \
@@ -282,9 +282,9 @@ MACRO_nfft_D(T)
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */ 
 #define MACRO_nfft_B_init_result_A  memset(f,0,ths->M_total*                  \
-                                           sizeof(double complex));
+                                           sizeof(double _Complex));
 #define MACRO_nfft_B_init_result_T memset(g,0,ths->n_total*                   \
-                                          sizeof(double complex));
+                                          sizeof(double _Complex));
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_A {                                 \
   (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			      \
@@ -350,8 +350,8 @@ inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
   int lj[ths->d];                       /**< multi index 0<=lj<u+o+1        */\
   int ll_plain[ths->d+1];               /**< postfix plain index in g       */\
   double phi_prod[ths->d+1];            /**< postfix product of PHI         */\
-  double complex *f, *g;                /**< local copy                     */\
-  double complex *fj;                   /**< local copy                     */\
+  double _Complex *f, *g;                /**< local copy                     */\
+  double _Complex *fj;                   /**< local copy                     */\
   double y[ths->d];                                                           \
   double fg_psi[ths->d][2*ths->m+2];                                          \
   double fg_exp_l[ths->d][2*ths->m+2];                                        \
@@ -754,10 +754,10 @@ void nfft_init_help(nfft_plan *ths)
     ths->x = (double*)fftw_malloc(ths->d*ths->M_total*sizeof(double));
 
   if(ths->nfft_flags & MALLOC_F_HAT)
-    ths->f_hat = (double complex*)fftw_malloc(ths->N_total*sizeof(double complex));
+    ths->f_hat = (double _Complex*)fftw_malloc(ths->N_total*sizeof(double _Complex));
 
   if(ths->nfft_flags & MALLOC_F)
-    ths->f = (double complex*)fftw_malloc(ths->M_total*sizeof(double complex));
+    ths->f = (double _Complex*)fftw_malloc(ths->M_total*sizeof(double _Complex));
 
   if(ths->nfft_flags & PRE_PHI_HUT)
     nfft_precompute_phi_hut(ths);
@@ -788,12 +788,12 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & FFTW_INIT)
       {  
-	ths->g1=(double complex*)fftw_malloc(ths->n_total*
-					     sizeof(double complex));
+	ths->g1=(double _Complex*)fftw_malloc(ths->n_total*
+					     sizeof(double _Complex));
 
 	if(ths->nfft_flags & FFT_OUT_OF_PLACE)
-	    ths->g2 = (double complex*) fftw_malloc(ths->n_total*
-					     sizeof(double complex));
+	    ths->g2 = (double _Complex*) fftw_malloc(ths->n_total*
+					     sizeof(double _Complex));
 	else
 	    ths->g2 = ths->g1;
 	

@@ -266,7 +266,7 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
-      my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0; 
+      my_infft_plan.f_hat_iter[k] = 0.0 + _Complex_I*0.0; 
 
   GLOBAL_elapsed_time=nfft_second();
 
@@ -316,7 +316,7 @@ int comparison_fft(FILE *fp, int N, int T, int R)
   my_fftw_plan = fftw_plan_dft_2d(N,N,f_hat,f,FFTW_BACKWARD,FFTW_MEASURE);
 
   for(k=0; k<N*N; k++)
-    f_hat[k] = (((double)rand())/RAND_MAX) + I* (((double)rand())/RAND_MAX);
+    f_hat[k] = (((double)rand())/RAND_MAX) + _Complex_I* (((double)rand())/RAND_MAX);
   
   GLOBAL_elapsed_time=nfft_second();
   for(m=0;m<65536/N;m++)
@@ -426,7 +426,7 @@ int main(int argc,char **argv)
   {
     fscanf(fp1,"%le ",&temp1);
     fscanf(fp2,"%le ",&temp2);
-    f_hat[k]=temp1+I*temp2;
+    f_hat[k]=temp1+ _Complex_I*temp2;
   }
   fclose(fp1);
   fclose(fp2);

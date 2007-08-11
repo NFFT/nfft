@@ -102,17 +102,17 @@ inline void c2e(nfsft_plan *plan)
 {
   int k;               /**< The degree k                                     */
   int n;               /**< The order k                                      */
-  double complex last; /**< Stores temporary values                          */
-  double complex act;  /**< Stores temporary values                          */
-  double complex *xp;  /**< Auxilliary pointer                               */
-  double complex *xm;  /**< Auxilliary pointer                               */
+  double _Complex last; /**< Stores temporary values                          */
+  double _Complex act;  /**< Stores temporary values                          */
+  double _Complex *xp;  /**< Auxilliary pointer                               */
+  double _Complex *xm;  /**< Auxilliary pointer                               */
   int low;             /**< Lower loop bound                                 */
   int up;              /**< Upper loop bound                                 */
   int lowe;            /**< Lower loop bound for even terms                  */
   int upe;             /**< Upper loop bound for even terms                  */
 
   /* Set the first row to order to zero since it is unused. */
-  memset(plan->f_hat_intern,0U,(2*plan->N+2)*sizeof(double complex));
+  memset(plan->f_hat_intern,0U,(2*plan->N+2)*sizeof(double _Complex));
 
   /* Determine lower and upper bounds for loop processing even terms. */
   lowe = -plan->N + (plan->N%2);
@@ -180,10 +180,10 @@ inline void c2e_transposed(nfsft_plan *plan)
 {
   int k;               /**< The degree k                                     */
   int n;               /**< The order k                                      */
-  double complex last; /**< Stores temporary values                          */
-  double complex act;  /**< Stores temporary values                          */
-  double complex *xp;  /**< Auxilliary pointer                               */
-  double complex *xm;  /**< Auxilliary pointer                               */
+  double _Complex last; /**< Stores temporary values                          */
+  double _Complex act;  /**< Stores temporary values                          */
+  double _Complex *xp;  /**< Auxilliary pointer                               */
+  double _Complex *xm;  /**< Auxilliary pointer                               */
   int low;             /**< Lower loop bound                                 */
   int up;              /**< Upper loop bound                                 */
   int lowe;            /**< Lower loop bound for even terms                  */
@@ -224,10 +224,10 @@ inline void c2e_transposed(nfsft_plan *plan)
     }
 
     plan->f_hat[NFSFT_INDEX(0,n,plan)] =
-      -0.25*I*plan->f_hat[NFSFT_INDEX(1,n,plan)];
+      -0.25*_Complex_I*plan->f_hat[NFSFT_INDEX(1,n,plan)];
     last = plan->f_hat[NFSFT_INDEX(1,n,plan)];
     plan->f_hat[NFSFT_INDEX(1,n,plan)] =
-      -0.25*I*plan->f_hat[NFSFT_INDEX(2,n,plan)];
+      -0.25*_Complex_I*plan->f_hat[NFSFT_INDEX(2,n,plan)];
 
     xp = &(plan->f_hat[NFSFT_INDEX(2,n,plan)]);
     for (k = 2; k < plan->N; k++)
@@ -283,21 +283,21 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
    * if neccesary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
-    plan->f_hat_intern = (double complex*) calloc(plan->N_total,
-						  sizeof(double complex));
+    plan->f_hat_intern = (double _Complex*) calloc(plan->N_total,
+						  sizeof(double _Complex));
   }
 
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (double complex*) calloc(plan->N_total,
-					   sizeof(double complex));
+    plan->f_hat = (double _Complex*) calloc(plan->N_total,
+					   sizeof(double _Complex));
   }
 
   /* Allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
-    plan->f = (double complex*) calloc(plan->M_total,sizeof(double complex));
+    plan->f = (double _Complex*) calloc(plan->M_total,sizeof(double _Complex));
   }
 
   /* Allocate memory for nodes, if neccesary. */
@@ -534,11 +534,11 @@ void ndsft_trafo(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
 			   coefficient beta_k^n for associated Legendre
 			   functions P_k^n                                   */
-  double complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
-  double complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
-  double complex f_m;  /*< The final function value f_m = f(x_m) for a
+  double _Complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
+  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex f_m;  /*< The final function value f_m = f(x_m) for a
 			   single node.                                      */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
@@ -552,7 +552,7 @@ void ndsft_trafo(nfsft_plan *plan)
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
     memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*
-	   sizeof(double complex));
+	   sizeof(double _Complex));
   }
   else
   {
@@ -666,9 +666,9 @@ void ndsft_adjoint(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
 			   coefficient beta_k^n for associated Legendre
 			   functions P_k^n                                   */
-  double complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
+  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
@@ -678,7 +678,7 @@ void ndsft_adjoint(nfsft_plan *plan)
   }
 
   /* Initialise spherical Fourier coefficients array with zeros. */
-  memset(plan->f_hat,0U,plan->N_total*sizeof(double complex));
+  memset(plan->f_hat,0U,plan->N_total*sizeof(double _Complex));
 
   /* Distinguish by bandwidth N. */
   if (plan->N == 0)
@@ -761,7 +761,7 @@ void ndsft_adjoint(nfsft_plan *plan)
     for (n = -plan->N; n <= plan->N+1; n++)
     {
       memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,
-        (plan->N+1+abs(n))*sizeof(double complex));
+        (plan->N+1+abs(n))*sizeof(double _Complex));
     }
   }
 }
@@ -806,7 +806,7 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_PRESERVE_F_HAT)
     {
       memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*
-	     sizeof(double complex));
+	     sizeof(double _Complex));
     }
     else
     {
@@ -1001,7 +1001,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       for (n = -plan->N; n <= plan->N+1; n++)
       {
         memset(&plan->f_hat[NFSFT_INDEX(-plan->N-1,n,plan)],0U,
-          (plan->N+1+abs(n))*sizeof(double complex));
+          (plan->N+1+abs(n))*sizeof(double _Complex));
       }
     }
     //fprintf(stderr,"nfsft_adjoint: Finished\n");

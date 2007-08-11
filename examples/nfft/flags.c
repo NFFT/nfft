@@ -48,7 +48,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 {
   int r, NN[d], nn[d];
   double t_ndft, t, e;
-  double complex *swapndft;
+  double _Complex *swapndft;
 
   nfft_plan p;
   nfft_plan p_pre_phi_hut;
@@ -68,7 +68,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /** output vector ndft */
   if(test_ndft)
-    swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
+    swapndft=(double _Complex*)fftw_malloc(M*sizeof(double _Complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -200,7 +200,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 {
   int r, NN[d], nn[d];
   double e;
-  double complex *swapndft;
+  double _Complex *swapndft;
 
   nfft_plan p;
 
@@ -211,7 +211,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
     }
 
   /** output vector ndft */
-  swapndft=(double complex*)fftw_malloc(M*sizeof(double complex));
+  swapndft=(double _Complex*)fftw_malloc(M*sizeof(double _Complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|

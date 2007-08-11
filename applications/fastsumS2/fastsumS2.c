@@ -197,17 +197,17 @@ int main (int argc, char **argv)
   double err_fd;               /* Error E_\infty for fast direct algorithm    */
   double t;                    /*                                             */
   int precompute = NO;         /*                                             */
-  complex double *ptr;         /*                                             */
+  double _Complex *ptr;         /*                                             */
   double* steed;               /*                                             */
   double* steed2;              /*                                             */
-  complex double *b;           /* The weights (b_l)_{l=0}^{L-1}               */
-  complex double *f_hat;       /* The spherical Fourier coefficients          */
-  complex double *a;           /* The Fourier-Legendre coefficients           */
+  double _Complex *b;           /* The weights (b_l)_{l=0}^{L-1}               */
+  double _Complex *f_hat;       /* The spherical Fourier coefficients          */
+  double _Complex *a;           /* The Fourier-Legendre coefficients           */
   double *xi;                  /* Target nodes                                */
   double *eta;                 /* Source nodes                                */
-  complex double *f_m;         /* Approximate function values                 */
-  complex double *f;           /* Exact function values                       */
-  complex double *prec = NULL; /*                                             */
+  double _Complex *f_m;         /* Approximate function values                 */
+  double _Complex *f;           /* Exact function values                       */
+  double _Complex *prec = NULL; /*                                             */
   nfsft_plan plan;             /* NFSFT plan                                  */
   nfsft_plan plan_adjoint;     /* adjoint NFSFT plan                          */
   int i;                       /*                                             */
@@ -376,18 +376,18 @@ int main (int argc, char **argv)
     }
 
     /* Allocate memory for data structures. */
-    b = (complex double*) nfft_malloc(l_max*sizeof(complex double));
+    b = (double _Complex*) nfft_malloc(l_max*sizeof(double _Complex));
     eta = (double*) nfft_malloc(2*l_max*sizeof(double));
-    f_hat = (complex double*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(complex double));
-    a = (complex double*) nfft_malloc((m_max+1)*sizeof(complex double));
+    f_hat = (double _Complex*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(double _Complex));
+    a = (double _Complex*) nfft_malloc((m_max+1)*sizeof(double _Complex));
     xi = (double*) nfft_malloc(2*d_max*sizeof(double));
-    f_m = (complex double*) nfft_malloc(d_max*sizeof(complex double));
-    f = (complex double*) nfft_malloc(d_max*sizeof(complex double));
+    f_m = (double _Complex*) nfft_malloc(d_max*sizeof(double _Complex));
+    f = (double _Complex*) nfft_malloc(d_max*sizeof(double _Complex));
 
     /* Allocate memory for precomputed data. */
     if (precompute == YES)
     {
-      prec = (complex double*) nfft_malloc(ld_max_prec*sizeof(complex double));
+      prec = (double _Complex*) nfft_malloc(ld_max_prec*sizeof(double _Complex));
     }
 
     /* Generate random source nodes and weights. */

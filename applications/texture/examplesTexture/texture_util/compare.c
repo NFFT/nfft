@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 
 	double *h_phi, *h_theta, *r;
 	double *h_phi_2, *h_theta_2, *r_2;
-	complex *x, *omega;
-	complex *x_2, *omega_2;
+	double _Complex *x, *omega;
+	double _Complex *x_2, *omega_2;
 	int N, N1, N2;
 	int N_2, N1_2, N2_2;
 

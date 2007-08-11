@@ -894,7 +894,7 @@ double nfft_i0(double x)
 
 /** Computes the inner/dot product \f$x^H x\f$.
  */
-double nfft_dot_complex(double complex *x, int n)
+double nfft_dot_complex(double _Complex *x, int n)
 {
   int k;
   double dot;
@@ -921,7 +921,7 @@ double nfft_dot_double(double *x, int n)
 
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
  */
-double nfft_dot_w_complex(double complex *x, double *w, int n)
+double nfft_dot_w_complex(double _Complex *x, double *w, int n)
 {
   int k;
   double dot;
@@ -949,7 +949,7 @@ double nfft_dot_w_double(double *x, double *w, int n)
 /** Computes the weighted inner/dot product
     \f$x^H (w\odot w2\odot w2 \odot x)\f$.
  */
-double nfft_dot_w_w2_complex(double complex *x, double *w, double *w2, int n)
+double nfft_dot_w_w2_complex(double _Complex *x, double *w, double *w2, int n)
 {
   int k;
   double dot;
@@ -963,7 +963,7 @@ double nfft_dot_w_w2_complex(double complex *x, double *w, double *w2, int n)
 /** Computes the weighted inner/dot product
     \f$x^H (w2\odot w2 \odot x)\f$.
  */
-double nfft_dot_w2_complex(double complex *x, double *w2, int n)
+double nfft_dot_w2_complex(double _Complex *x, double *w2, int n)
 {
   int k;
   double dot;
@@ -976,7 +976,7 @@ double nfft_dot_w2_complex(double complex *x, double *w2, int n)
 
 /** Copies \f$x \leftarrow y\f$.
  */
-void nfft_cp_complex(double complex *x, double complex *y, int n)
+void nfft_cp_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
 
@@ -996,7 +996,7 @@ void nfft_cp_double(double *x, double *y, int n)
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-void nfft_cp_a_complex(double complex *x, double a, double complex *y, int n)
+void nfft_cp_a_complex(double _Complex *x, double a, double _Complex *y, int n)
 {
   int k;
 
@@ -1017,7 +1017,7 @@ void nfft_cp_a_double(double *x, double a, double *y, int n)
 
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
-void nfft_cp_w_complex(double complex *x, double *w, double complex *y, int n)
+void nfft_cp_w_complex(double _Complex *x, double *w, double _Complex *y, int n)
 {
   int k;
 
@@ -1039,7 +1039,7 @@ void nfft_cp_w_double(double *x, double *w, double *y, int n)
 
 /** Updates \f$x \leftarrow a x + y\f$.
  */
-void nfft_upd_axpy_complex(double complex *x, double a, double complex *y, int n)
+void nfft_upd_axpy_complex(double _Complex *x, double a, double _Complex *y, int n)
 {
   int k;
 
@@ -1060,7 +1060,7 @@ void nfft_upd_axpy_double(double *x, double a, double *y, int n)
 
 /** Updates \f$x \leftarrow x + a y\f$.
  */
-void nfft_upd_xpay_complex(double complex *x, double a, double complex *y, int n)
+void nfft_upd_xpay_complex(double _Complex *x, double a, double _Complex *y, int n)
 {
   int k;
 
@@ -1082,7 +1082,7 @@ void nfft_upd_xpay_double(double *x, double a, double *y, int n)
 
 /** Updates \f$x \leftarrow a x + b y\f$.
  */
-void nfft_upd_axpby_complex(double complex *x, double a, double complex *y, double b, int n)
+void nfft_upd_axpby_complex(double _Complex *x, double a, double _Complex *y, double b, int n)
 {
   int k;
 
@@ -1103,7 +1103,7 @@ void nfft_upd_axpby_double(double *x, double a, double *y, double b, int n)
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$.
  */
-void nfft_upd_xpawy_complex(double complex *x, double a, double *w, double complex *y, int n)
+void nfft_upd_xpawy_complex(double _Complex *x, double a, double *w, double _Complex *y, int n)
 {
   int k;
 
@@ -1125,7 +1125,7 @@ void nfft_upd_xpawy_double(double *x, double a, double *w, double *y, int n)
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$.
  */
-void nfft_upd_axpwy_complex(double complex *x, double a, double *w, double complex *y, int n)
+void nfft_upd_axpwy_complex(double _Complex *x, double a, double *w, double _Complex *y, int n)
 {
   int k;
 
@@ -1144,14 +1144,14 @@ void nfft_upd_axpwy_double(double *x, double a, double *w, double *y, int n)
 }
 
 
-void nfft_fftshift_complex(double complex *x, int d, int* N)
+void nfft_fftshift_complex(double _Complex *x, int d, int* N)
 {
   int d_pre, d_act, d_post;
   int N_pre, N_act, N_post;
   int k_pre, k_act, k_post;
   int k,k_swap;
 
-  double complex x_swap;
+  double _Complex x_swap;
 
   for(d_act=0;d_act<d;d_act++)
     {
@@ -1177,7 +1177,7 @@ void nfft_fftshift_complex(double complex *x, int d, int* N)
     }
 }
 
-double l_1_complex(double complex *x, double complex *y, int n)
+double l_1_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double l1;
@@ -1210,7 +1210,7 @@ double l_1_double(double *x, double *y, int n)
 
 
 
-double l_2_complex(double complex *x, double complex *y, int n)
+double l_2_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double l22;
@@ -1243,7 +1243,7 @@ double l_2_double(double *x, double *y, int n)
 
 
 
-double l_infty_complex(double complex *x, double complex *y, int n)
+double l_infty_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double linfty;
@@ -1280,7 +1280,7 @@ double l_infty_double(double *x, double *y, int n)
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-double nfft_error_l_infty_complex(double complex *x, double complex *y, int n)
+double nfft_error_l_infty_complex(double _Complex *x, double _Complex *y, int n)
 {
   return (l_infty_complex(x, y, n)/l_infty_complex(x, NULL, n));
 }
@@ -1296,8 +1296,8 @@ double nfft_error_l_infty_double(double *x, double *y, int n)
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-double nfft_error_l_infty_1_complex(double complex *x, double complex *y, int n,
-             double complex *z, int m)
+double nfft_error_l_infty_1_complex(double _Complex *x, double _Complex *y, int n,
+             double _Complex *z, int m)
 {
   return (l_infty_complex(x, y, n)/l_1_complex(z, NULL, m));
 }
@@ -1314,7 +1314,7 @@ double nfft_error_l_infty_1_double(double *x, double *y, int n,
 
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-double nfft_error_l_2_complex(double complex *x, double complex *y, int n)
+double nfft_error_l_2_complex(double _Complex *x, double _Complex *y, int n)
 {
   return (l_2_complex(x, y, n)/l_2_complex(x, NULL, n));
 }
@@ -1389,7 +1389,7 @@ void nfft_vpr_double(double *x, int n, char *text)
 
 /** vector print
  */
-void nfft_vpr_complex(double complex *x, int n, char *text)
+void nfft_vpr_complex(double _Complex *x, int n, char *text)
 {
   int k;
 
@@ -1413,12 +1413,12 @@ void nfft_vpr_complex(double complex *x, int n, char *text)
   fflush(stdout);
 }
 
-void nfft_vrand_unit_complex(double complex *x, int n)
+void nfft_vrand_unit_complex(double _Complex *x, int n)
 {
   int k;
 
   for (k=0; k<n; k++)
-    x[k] = ((double)rand())/RAND_MAX + I*((double)rand())/RAND_MAX;
+    x[k] = ((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
 }
 
 void nfft_vrand_shifted_unit_double(double *x, int n)

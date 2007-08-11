@@ -114,8 +114,19 @@ AC_PROG_LIBTOOL
 dnl Check for MATLAB.
 AX_PROG_MATLAB
 
-dnl Determine (hopefully) optimal CFLAGS (thanks fftw)
-AX_CC_MAXOPT
+# Try to choose good compiler options. Note: We differ from FFTW by that we
+# add an option to add the automatically determined options to CFLAGS rather
+# than using the given ones if CFLAGS is set. This allows users to set CFLAGS
+# to point to include directories etc. while still using the automatic options.
+if test "$ac_test_CFLAGS" != "set"; then
+  AX_CC_MAXOPT
+else
+  if test "$enable_add_cflags" = "yes"; then
+    CFLAGS_save=$CFLAGS
+    AX_CC_MAXOPT
+    CFLAGS="$CFLAGS_save $CFLAGS"
+  fi
+fi
 
 dnl Make CFLAGS available.
 AC_SUBST(CFLAGS)

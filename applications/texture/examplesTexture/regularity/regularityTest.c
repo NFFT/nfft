@@ -64,7 +64,7 @@ void make_starting_point(itexture_plan * plan, int method)
 	switch (method) {
 		case 0:
 			memset(plan->f_hat_iter, 0,
-						 texture_get_omega_length(plan->mv) * sizeof(complex));
+						 texture_get_omega_length(plan->mv) * sizeof(double _Complex));
 			break;
 		default:
 			printf("Illegal params.solver.starting_point_policy: %d\n", method);
@@ -79,7 +79,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 {
 	static int N1 = 0, N2 = 0;
 	static double *h_phi = 0, *h_theta = 0, *r = 0;
-	static complex *x = 0;
+	static double _Complex *x = 0;
 
 	if (!clean_up) {
 		if (N <= 2) {
@@ -87,10 +87,10 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 		} else {
 			texture_plan plan, test_plan;
 			itexture_plan iplan;
-			complex *omega =
-				(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
-			complex *omega_ref =
-				(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+			double _Complex *omega =
+				(double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
+			double _Complex *omega_ref =
+				(double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 			int success;
 
 			if (N1 != N1_new || N2 != N2_new) {
@@ -107,7 +107,7 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 					free(r);
 					free(x);
 					r = (double *) smart_malloc(N1_new * N2_new * 2 * sizeof(double));
-					x = (complex *) smart_malloc(N1_new * N2_new * sizeof(complex));
+					x = (double _Complex *) smart_malloc(N1_new * N2_new * sizeof(double _Complex));
 				}
 
 				N1 = N1_new;
@@ -150,20 +150,20 @@ int is_regular_helper(int N1_new, int N2_new, int N,
 
 			make_starting_point(&iplan, sol_par->starting_point_policy);
 			set_weights(&iplan, sol_par->weight_policy);
-			memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(complex));
+			memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(double _Complex));
 
 			itexture_before_loop(&iplan);
 			{
-				double (*res_dist_arr[]) (const complex * vec, const complex * ref,
+				double (*res_dist_arr[]) (const double _Complex * vec, const double _Complex * ref,
 																	unsigned int length) = {
 				l_2_rel_norm};
-				double (*err_dist_arr[]) (const complex * vec, const complex * ref,
+				double (*err_dist_arr[]) (const double _Complex * vec, const double _Complex * ref,
 																	unsigned int length) = {
 				l_2_rel_dist};
-				double (*err_dist) (const complex * vec, const complex * ref,
+				double (*err_dist) (const double _Complex * vec, const double _Complex * ref,
 														unsigned int length) =
 					err_dist_arr[it_par->err_fun_id];
-				double (*res_dist) (const complex * vec, const complex * ref,
+				double (*res_dist) (const double _Complex * vec, const double _Complex * ref,
 														unsigned int length) =
 					res_dist_arr[it_par->res_fun_id];
 				double old_res, new_res;

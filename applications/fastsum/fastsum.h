@@ -40,13 +40,13 @@ typedef struct fastsum_plan_
   int N_total;                          /**< number of source knots          */
   int M_total;                          /**< number of target knots          */
 
-  complex double *alpha;                       /**< source coefficients             */
-  complex double *f;                           /**< target evaluations              */
+  double _Complex *alpha;                       /**< source coefficients             */
+  double _Complex *f;                           /**< target evaluations              */
 
   double *x;                            /**< source knots in d-ball with radius 1/4-eps_b/2 */
   double *y;                            /**< target knots in d-ball with radius 1/4-eps_b/2 */
 
-  complex double (*kernel)(double , int , const double *);  /**< kernel function    */
+  double _Complex (*kernel)(double , int , const double *);  /**< kernel function    */
   double *kernel_param;                 /**< parameters for kernel function  */
 
   unsigned flags;                       /**< flags precomp. and approx.type  */
@@ -54,7 +54,7 @@ typedef struct fastsum_plan_
   /** internal */
 
   /** DS_PRE - direct summation */
-  complex double *pre_K;                       /**< precomputed K(x_j-y_l)          */
+  double _Complex *pre_K;                       /**< precomputed K(x_j-y_l)          */
 
   /** FS__ - fast summation */
   int n;                                /**< expansion degree                */
@@ -91,7 +91,7 @@ typedef struct fastsum_plan_
  * \param eps_B the outer boundary.
  *
  */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, complex double (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B);
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, double _Complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B);
 
 /** finalize plan
  *
@@ -118,7 +118,7 @@ void fastsum_precompute(fastsum_plan *ths);
 void fastsum_trafo(fastsum_plan *ths);
 /* \} */
 
-double regkern(complex (*kernel)(), double xx, int p, const double *param, double a, double b);
+double regkern(double _Complex (*kernel)(), double xx, int p, const double *param, double a, double b);
 
 /** cubic spline interpolation in near field with even kernels */
 double kubintkern(double x, double *Add, int Ad, double a);

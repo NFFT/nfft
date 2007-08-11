@@ -81,7 +81,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   {
     fscanf(fin,"%le %le %le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1],
     &real,&imag);
-    my_iplan.y[j] = real + I*imag;
+    my_iplan.y[j] = real + _Complex_I*imag;
   }
 
 	fclose(fin);

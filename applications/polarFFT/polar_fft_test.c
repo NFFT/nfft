@@ -250,7 +250,7 @@ int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
-    my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
+    my_infft_plan.f_hat_iter[k] = 0.0 + _Complex_I*0.0;
 
   /** solve the system */
   infft_before_loop(&my_infft_plan);
@@ -332,7 +332,7 @@ int main(int argc,char **argv)
   {
     fscanf(fp1,"%le ",&temp1);
     fscanf(fp2,"%le ",&temp2);
-    f_hat[k]=temp1+I*temp2;
+    f_hat[k]=temp1+ _Complex_I*temp2;
   }
   fclose(fp1);
   fclose(fp2);

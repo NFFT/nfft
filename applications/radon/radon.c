@@ -142,7 +142,7 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
 
   /** init Fourier coefficients from given image */
   for(k=0;k<my_nfft_plan.N_total;k++)
-    my_nfft_plan.f_hat[k] = f[k] + I*0.0;
+    my_nfft_plan.f_hat[k] = f[k] + _Complex_I*0.0;
 
   /** NFFT-2D */
   nfft_trafo(&my_nfft_plan);

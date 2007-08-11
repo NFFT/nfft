@@ -51,7 +51,7 @@ void simple_test_nfsft()
     for (n = -k; n <= k; n++)
     {
       plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-        ((double)rand())/RAND_MAX - 0.5 +  I*(((double)rand())/RAND_MAX - 0.5);
+        ((double)rand())/RAND_MAX - 0.5 + _Complex_I*(((double)rand())/RAND_MAX - 0.5);
     }
   }
 
@@ -82,7 +82,7 @@ void simple_test_nfsft()
   {
     for (n = -k; n <= k; n++)
     {
-      fprintf(stdout,"f_hat[%d,%d] = %le + I*%le\n",k,n,
+      fprintf(stdout,"f_hat[%d,%d] = %le + _Complex_I*%le\n",k,n,
         creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }

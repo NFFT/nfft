@@ -11,8 +11,8 @@
  * Function mangling macro.
  * 
  * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
- * \arg FLT Float used as prefix for function names (double or complex)
- * \arg FLT_TYPE Float type (double or double complex)
+ * \arg FLT Float used as prefix for function names (double or double _Complex)
+ * \arg FLT_TYPE Float type (double or double _Complex)
  * \arg NAME Name of the functions suffix
  * \arg ...  argument list of the function
  *
@@ -377,10 +377,10 @@ F(MV, FLT, FLT_TYPE, finalize, i ## MV ## _plan *ths)                         \
   fftw_free(ths->y);                                                          \
 } /** void i<mv>_finalize */
 
-MACRO_SOLVER_IMPL(nfft, complex, double complex)
+MACRO_SOLVER_IMPL(nfft, complex, double _Complex)
 MACRO_SOLVER_IMPL(nfct, double, double)
 MACRO_SOLVER_IMPL(nfst, double, double)
-MACRO_SOLVER_IMPL(nnfft, complex, double complex)
-MACRO_SOLVER_IMPL(mri_inh_2d1d, complex, double complex)
-MACRO_SOLVER_IMPL(mri_inh_3d, complex, double complex)
-MACRO_SOLVER_IMPL(nfsft, complex, double complex)
+MACRO_SOLVER_IMPL(nnfft, complex, double _Complex)
+MACRO_SOLVER_IMPL(mri_inh_2d1d, complex, double _Complex)
+MACRO_SOLVER_IMPL(mri_inh_3d, complex, double _Complex)
+MACRO_SOLVER_IMPL(nfsft, complex, double _Complex)

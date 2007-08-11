@@ -261,7 +261,7 @@ extern nfft_die_type_function nfft_die_hook;
 typedef struct
 {
   /* api */
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   int d;                                /**< Dimension, rank                 */
   int *N;                               /**< Multi bandwidth                 */
@@ -314,14 +314,14 @@ typedef struct
   int *psi_index_f;                     /**< Indices in source/target vector
 					     for \ref PRE_FULL_PSI           */
 
-  double complex *g;                    /**< Oversampled vector of samples,
+  double _Complex *g;                    /**< Oversampled vector of samples,
 					     size is \ref n_total double
 					     complex                         */
-  double complex *g_hat;                /**< Zero-padded vector of Fourier
+  double _Complex *g_hat;                /**< Zero-padded vector of Fourier
                                              coefficients, size is
-					     \ref n_total double complex     */
-  double complex *g1;                   /**< Input of fftw                   */
-  double complex *g2;                   /**< Output of fftw                  */
+					     \ref n_total double _Complex     */
+  double _Complex *g1;                   /**< Input of fftw                   */
+  double _Complex *g2;                   /**< Output of fftw                  */
 
   double *spline_coeffs;                /**< Input for de Boor algorithm if
                                              B_SPLINE or SINC_POWER is
@@ -979,7 +979,7 @@ int nfst_fftw_2N_rev( int n);
 typedef struct
 {
   /* api */
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   int d;                                /**< dimension, rank                 */
   double *sigma;                        /**< oversampling-factor             */
@@ -1005,7 +1005,7 @@ typedef struct
   int size_psi;                         /**< only for thin B                 */
   int *psi_index_g;                     /**< only for thin B                 */
   int *psi_index_f;                     /**< only for thin B                 */
-  double complex *F;
+  double _Complex *F;
 
   double *spline_coeffs;                /**< input for de Boor algorithm, if
                                              B_SPLINE or SINC_2m is defined  */
@@ -1185,7 +1185,7 @@ void nnfft_finalize(nnfft_plan *ths_plan);
 /** Structure for a NFFT plan */
 typedef struct
 {
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   int d;                                /**< dimension, rank; d=2,3          */
   int J;                                /**< problem size, i.e.,
@@ -1322,7 +1322,7 @@ void nsfft_finalize(nsfft_plan *ths);
 typedef struct
 {
   /* api */
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   nfft_plan plan;
 
@@ -1338,7 +1338,7 @@ typedef struct
 typedef struct
 {
   /* api */
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   nfft_plan plan;
 
@@ -1919,7 +1919,7 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
 typedef struct
 {
   /** Inherited public members */
-  MACRO_MV_PLAN(double complex)
+  MACRO_MV_PLAN(double _Complex)
 
   /* Public members */
   int N;                              /**< the bandwidth \f$N\f$              */
@@ -1937,7 +1937,7 @@ typedef struct
                                            respect to the basis 2             */
   unsigned int flags;                 /**< the planner flags                  */
   nfft_plan plan_nfft;                /**< the internal NFFT plan             */
-  double complex *f_hat_intern;              /**< Internally used pointer to         *
+  double _Complex *f_hat_intern;              /**< Internally used pointer to         *
                                            spherical Fourier coefficients     */
 } nfsft_plan;
 
@@ -2151,7 +2151,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
  * \arg k_end
  * \arg flags
  */
-void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
+void dpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags);
 
 /**
@@ -2164,7 +2164,7 @@ void dpt_trafo(fpt_set set, const int m, const double complex *x, double complex
  * \arg k_end
  * \arg flags
  */
-void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex *y,
+void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags);
 
 /**
@@ -2177,8 +2177,8 @@ void fpt_trafo(fpt_set set, const int m, const double complex *x, double complex
  * \arg k_end
  * \arg flags
  */
-void dpt_transposed(fpt_set set, const int m, double complex *x,
-  double complex *y, const int k_end, const unsigned int flags);
+void dpt_transposed(fpt_set set, const int m, double _Complex *x,
+  double _Complex *y, const int k_end, const unsigned int flags);
 
 /**
  * Computes a single DPT transform.
@@ -2190,8 +2190,8 @@ void dpt_transposed(fpt_set set, const int m, double complex *x,
  * \arg k_end
  * \arg flags
  */
-void fpt_transposed(fpt_set set, const int m, double complex *x,
-  const double complex *y, const int k_end, const unsigned int flags);
+void fpt_transposed(fpt_set set, const int m, double _Complex *x,
+  const double _Complex *y, const int k_end, const unsigned int flags);
 
 void fpt_finalize(fpt_set set);
 
@@ -2271,7 +2271,7 @@ void fpt_finalize(fpt_set set);
  *
  * \arg MV Matrix vector multiplication type (eg nfft, nfct)
  * \arg FLT Float used as prefix for function names (double or complex)
- * \arg FLT_TYPE Float type (double or double complex)
+ * \arg FLT_TYPE Float type (double or double _Complex)
  *
  * \author Stefan Kunis
  */
@@ -2331,13 +2331,13 @@ void i ## MV ## _finalize(i ## MV ## _plan *ths);                             \
 */
 
 
-MACRO_SOLVER_PLAN(nfft, complex, double complex)
+MACRO_SOLVER_PLAN(nfft, complex, double _Complex)
 MACRO_SOLVER_PLAN(nfct, double, double)
 MACRO_SOLVER_PLAN(nfst, double, double)
-MACRO_SOLVER_PLAN(nnfft, complex, double complex)
-MACRO_SOLVER_PLAN(mri_inh_2d1d, complex, double complex)
-MACRO_SOLVER_PLAN(mri_inh_3d, complex, double complex)
-MACRO_SOLVER_PLAN(nfsft, complex, double complex)
+MACRO_SOLVER_PLAN(nnfft, complex, double _Complex)
+MACRO_SOLVER_PLAN(mri_inh_2d1d, complex, double _Complex)
+MACRO_SOLVER_PLAN(mri_inh_3d, complex, double _Complex)
+MACRO_SOLVER_PLAN(nfsft, complex, double _Complex)
 /** @}
  */
 

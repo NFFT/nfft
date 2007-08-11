@@ -35,7 +35,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-* Private Section *-*-*-*-*-*-*-*-*-*-*-*/
 
 
-/* Chebyshev fit for f(y) = Re(Psi(1+Iy)) + M_EULER - y^2/(1+y^2) - y^2/(2(4+y^2))
+/* Chebyshev fit for f(y) = Re(Psi(1+ _Complex_Iy)) + M_EULER - y^2/(1+y^2) - y^2/(2(4+y^2))
  * 1 < y < 10
  *   ==>
  * y(x) = (9x + 11)/2,  -1 < x < 1

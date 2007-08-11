@@ -77,13 +77,13 @@ void i ## MV ## _adjoint_loop_one_step(adjoint ## MV ## _plan *ths);            
 void i ## MV ## _adjoint_finalize(adjoint ## MV ## _plan *ths);                 \
 
 /** TODO: different solvers */
-MACRO_SOLVER_ADJOINT_PLAN(nfsft, complex, double complex)
-MACRO_SOLVER_ADJOINT_PLAN(nfft, complex, double complex)
+MACRO_SOLVER_ADJOINT_PLAN(nfsft, complex, double _Complex)
+MACRO_SOLVER_ADJOINT_PLAN(nfft, complex, double _Complex)
 MACRO_SOLVER_ADJOINT_PLAN(nfct, double, double)
 MACRO_SOLVER_ADJOINT_PLAN(nfst, double, double)
-MACRO_SOLVER_ADJOINT_PLAN(nnfft, complex, double complex)
-MACRO_SOLVER_ADJOINT_PLAN(mri_inh_2d1d, complex, double complex)
-MACRO_SOLVER_ADJOINT_PLAN(mri_inh_3d, complex, double complex)
+MACRO_SOLVER_ADJOINT_PLAN(nnfft, complex, double _Complex)
+MACRO_SOLVER_ADJOINT_PLAN(mri_inh_2d1d, complex, double _Complex)
+MACRO_SOLVER_ADJOINT_PLAN(mri_inh_3d, complex, double _Complex)
 
 #endif
 /* solver_adjoint.h */

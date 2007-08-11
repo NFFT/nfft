@@ -266,7 +266,7 @@ typedef struct texture_plan_ {
 	/** The total length of f.
    * @var M_total
    */
-	MACRO_MV_PLAN(double complex)
+	MACRO_MV_PLAN(double _Complex)
 
 	/** The bandwidth.
    * @see texture_init
@@ -323,18 +323,18 @@ typedef struct texture_plan_ {
 
 	/** Stores the frequencies for the nfsft transformation.
    */
-	double complex *nfsft_f_hat;
+	double _Complex *nfsft_f_hat;
 
 	/** Stores the samples for the nfsft transformation.
    */
-	double complex *nfsft_f;
+	double _Complex *nfsft_f;
 
 	/** Stores the nodes for the nfsft transformation.
    */
 	double *nfsft_angles;
 } texture_plan;
 
-MACRO_SOLVER_PLAN(texture, complex, double complex)
+MACRO_SOLVER_PLAN(texture, complex, double _Complex)
 
 /** Performes precomputations with default values for all parameters.
  * Afterwards ::texture_trafo and ::texture_adjoint will work with any plans
@@ -399,7 +399,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  * For details about data representation see @ref texture_data_rep.
  */
 		 void texture_init(texture_plan * ths, int N, int N1, int N2,
-											 double complex * omega, double complex * x,
+											 double _Complex * omega, double _Complex * x,
 											 const double *h_phi, const double *h_theta,
 											 const double *r);
 
@@ -439,7 +439,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  * For details about data representation see @ref texture_data_rep.
  */
 		 void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
-																double complex * omega, double complex * x,
+																double _Complex * omega, double _Complex * x,
 																const double *h_phi, const double *h_theta,
 																const double *r,
 																unsigned int texture_init_flags,
@@ -547,7 +547,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  *
  * @par ths - a pointer to the transformation plan
  */
-		 inline double complex *texture_get_omega(texture_plan * ths);
+		 inline double _Complex *texture_get_omega(texture_plan * ths);
 
 /** Sets the frequencies in a plan.
  *
@@ -556,13 +556,13 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  * @pre omega has to point to an array of appropriate length.
  */
 		 inline void texture_set_omega(texture_plan * ths,
-																	 double complex * omega);
+																	 double _Complex * omega);
 
 /** Returns a pointer to the samples stored in a plan.
  *
  * @par ths - a pointer to the transformation plan
  */
-		 inline double complex *texture_get_x(texture_plan * ths);
+		 inline double _Complex *texture_get_x(texture_plan * ths);
 
 /** Sets the samples in a plan.
  *
@@ -570,7 +570,7 @@ MACRO_SOLVER_PLAN(texture, complex, double complex)
  * @par x - a pointer to the new samples
  * @pre x has to point to an array of appropriate length.
  */
-		 inline void texture_set_x(texture_plan * ths, double complex * x);
+		 inline void texture_set_x(texture_plan * ths, double _Complex * x);
 
 /** Returns a pointer to the latitudes of the pole figures stored in a plan.
  *

@@ -72,7 +72,7 @@ typedef struct properties_ {
 properties prop;
 
 double *h_phi, *h_theta, *r;
-complex *x, *omega;
+double _Complex *x, *omega;
 int N, N1, N2;
 
 void init()
@@ -108,11 +108,11 @@ void calculate_omega()
 	itexture_plan iplan;
 	texture_plan plan, test_plan;
 	unsigned int iflags;
-	complex *test_omega;
+	double _Complex *test_omega;
 
-	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+	omega = (double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 	test_omega =
-		(complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
@@ -124,8 +124,8 @@ void calculate_omega()
 
 	set_weights(&iplan, prop.weight_policy);
 
-	memcpy(iplan.y, x, N1 * N2 * sizeof(complex));
-	memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(complex));
+	memcpy(iplan.y, x, N1 * N2 * sizeof(double _Complex));
+	memset(iplan.f_hat_iter, 0, texture_flat_length(N) * sizeof(double _Complex));
 	itexture_before_loop(&iplan);
 	{
 		double new_res, old_res;
@@ -179,7 +179,7 @@ void calculate_omega()
 		printf("# residuum: %lg\n", new_res);
 		printf("#\n");
 
-		memcpy(omega, iplan.f_hat_iter, texture_flat_length(N) * sizeof(complex));
+		memcpy(omega, iplan.f_hat_iter, texture_flat_length(N) * sizeof(double _Complex));
 		itexture_finalize(&iplan);
 		texture_finalize(&plan);
 		texture_finalize(&test_plan);

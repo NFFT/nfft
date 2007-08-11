@@ -20,8 +20,8 @@
  *
  * @par length - the length of vec and ref
  */
-inline int equal_two_norm_rel(const double complex * vec,
-															const double complex * ref, unsigned int length,
+inline int equal_two_norm_rel(const double _Complex * vec,
+															const double _Complex * ref, unsigned int length,
 															double delta)
 {
 	return l_2_dist(vec, ref, length) <= delta * l_2_norm(ref, length);
@@ -112,7 +112,7 @@ void simple_solver_test(const char *inp)
 		max_iter;
 	double delta;
 	int i;
-	double complex *omega, *x, *omega_ref;
+	double _Complex *omega, *x, *omega_ref;
 	double *h_phi, *h_theta, *r;
 	char err_prefix[100];
 	// unsigned short int seed[] = { 1, 2, 3 };
@@ -131,12 +131,12 @@ void simple_solver_test(const char *inp)
 	// Prepare input parameters.
 	texture_precompute(N);
 	omega =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
-	x = (double complex *) smart_malloc(N1 * N2 * sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 	omega_ref =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N2 * sizeof(double));
 	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
@@ -155,8 +155,8 @@ void simple_solver_test(const char *inp)
 	itexture_init(&iplan, &plan);
 
 	memset(iplan.f_hat_iter, 0,
-				 texture_get_omega_length(&plan) * sizeof(double complex));
-	memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(double complex));
+				 texture_get_omega_length(&plan) * sizeof(double _Complex));
+	memcpy(iplan.y, x, texture_get_x_length(&plan) * sizeof(double _Complex));
 
 	// Run the inverse transformation.
 	itexture_before_loop(&iplan);
@@ -240,12 +240,12 @@ void spherical_harmonic_test(const char *inp)
 					int sign;
 					for (sign = -1; sign <= 1; sign += 2) {
 						double phi, re_out, im_out;
-						double complex out;
-						double complex res;
+						double _Complex out;
+						double _Complex res;
 						int n = n0 * sign;
 
 						fscanf(inp_file, "%lE %lE %lE", &phi, &re_out, &im_out);
-						out = re_out + I * im_out;
+						out = re_out + _Complex_I * im_out;
 
 						res = spherical_harmonic(k, n, phi, theta);
 						if (!equal(out, res, delta)) {
@@ -288,7 +288,7 @@ void unit_vector_test(const char *inp)
 	int N, h_phi_count, h_theta_count, N1, N2, r_phi_count, r_theta_count;
 	double delta;
 	texture_plan plan;
-	double complex *omega, *x;
+	double _Complex *omega, *x;
 	double *r, *h_phi, *h_theta;
 	int l, m0, n0;
 	char err_prefix[100];
@@ -304,9 +304,9 @@ void unit_vector_test(const char *inp)
 	texture_precompute(N);
 
 	omega =
-		(double complex *) smart_calloc(texture_flat_length(N),
-																		sizeof(double complex));
-	x = (double complex *) smart_malloc(N1 * N2 * sizeof(double complex));
+		(double _Complex *) smart_calloc(texture_flat_length(N),
+																		sizeof(double _Complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N1 * sizeof(double));
 	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
@@ -333,14 +333,14 @@ void unit_vector_test(const char *inp)
 
 					for (i = 0; i < N1; i++) {
 						for (j = 0; j < N2; j++) {
-							double complex out =
+							double _Complex out =
 								conj(spherical_harmonic(l, n, texture_get_h_phi(&plan)[i],
 																				texture_get_h_theta(&plan)[i]))
 								* spherical_harmonic(l, m,
 																		 texture_get_r(&plan)[2 * (i * N2 + j)],
 																		 texture_get_r(&plan)[2 * (i * N2 + j) +
 																													1]);
-							double complex res = texture_get_x(&plan)[i * N2 + j];
+							double _Complex res = texture_get_x(&plan)[i * N2 + j];
 
 							if (!equal(out, res, delta)) {
 								printf
@@ -412,8 +412,8 @@ void nfsft_test(const char *inp)
 	FILE *inp_file = fopen(inp, "r");
 	nfsft_plan plan;
 	int l, m, i, s, t;
-	double complex *f_hat;
-	double complex *f;
+	double _Complex *f_hat;
+	double _Complex *f;
 	double *x;
 	char err_prefix[100];
 
@@ -436,9 +436,9 @@ void nfsft_test(const char *inp)
 		}
 	}
 
-	f = (double complex *) smart_malloc(sizeof(double complex) * N1);
+	f = (double _Complex *) smart_malloc(sizeof(double _Complex) * N1);
 
-	f_hat = smart_malloc(sizeof(double complex) * NFSFT_F_HAT_SIZE(N));
+	f_hat = smart_malloc(sizeof(double _Complex) * NFSFT_F_HAT_SIZE(N));
 
 	nfsft_init_guru(&plan, N, N1, TEXTURE_DEF_NFSFT_INIT_FLAGS,
 									TEXTURE_DEF_NFFT_INIT_FLAGS, TEXTURE_DEF_NFFT_CUTOFF);
@@ -448,7 +448,7 @@ void nfsft_test(const char *inp)
 			// int mm;
 			// int ll;
 
-			memset(f_hat, 0, sizeof(double complex) * NFSFT_F_HAT_SIZE(N));
+			memset(f_hat, 0, sizeof(double _Complex) * NFSFT_F_HAT_SIZE(N));
 
 			f_hat[NFSFT_INDEX(l, m, &plan)] = 1;
 
@@ -489,8 +489,8 @@ void nfsft_test(const char *inp)
 			   cimag(f_hat[mm+N][ll])); } } } */
 
 			for (i = 0; i < N1; i++) {
-				double complex out = f[i];
-				double complex ref =
+				double _Complex out = f[i];
+				double _Complex ref =
 					spherical_harmonic(l, m, x[2 * i] * TEXTURE_MAX_ANGLE,
 														 x[2 * i + 1] * TEXTURE_MAX_ANGLE);
 				if (!equal(ref, out, tolerance)) {
@@ -544,7 +544,7 @@ void unit_vector_adjoint_test(const char *inp)
 	int N, h_phi_count, h_theta_count, N1, N2, r_phi_count, r_theta_count;
 	double delta;
 	texture_plan plan;
-	double complex *omega, *x;
+	double _Complex *omega, *x;
 	double *r, *h_phi, *h_theta;
 	int i, j;
 	char err_prefix[100];
@@ -560,9 +560,9 @@ void unit_vector_adjoint_test(const char *inp)
 	texture_precompute(N);
 
 	omega =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
-	x = (double complex *) smart_calloc(N1 * N2, sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
+	x = (double _Complex *) smart_calloc(N1 * N2, sizeof(double _Complex));
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N1 * sizeof(double));
 	r = (double *) smart_malloc(N1 * N2 * 2 * sizeof(double));
@@ -592,14 +592,14 @@ void unit_vector_adjoint_test(const char *inp)
 							int m = m0 * m_sign[sign];
 							int n = n0 * n_sign[sign];
 
-							double complex out =
+							double _Complex out =
 								spherical_harmonic(l, n, texture_get_h_phi(&plan)[i],
 																	 texture_get_h_theta(&plan)[i])
 								*
 								conj(spherical_harmonic
 										 (l, m, texture_get_r(&plan)[2 * (i * N2 + j)],
 											texture_get_r(&plan)[2 * (i * N2 + j) + 1]));
-							double complex res
+							double _Complex res
 								= texture_get_omega(&plan)[texture_flat_index(l, m, n)];
 
 							if (!equal(out, res, delta)) {
@@ -661,8 +661,8 @@ void linearity_test(const char *inp)
 		it;
 	double delta;
 	char err_prefix[100];
-	double complex *omega, *x;
-	double complex *x_ref;
+	double _Complex *omega, *x;
+	double _Complex *x_ref;
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int i, j, count, k;
@@ -680,10 +680,10 @@ void linearity_test(const char *inp)
 	srand(0);
 
 	omega =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
-	x = (double complex *) smart_malloc(N1 * N2 * sizeof(double complex));
-	x_ref = (double complex *) smart_malloc(N1 * N2 * sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
+	x_ref = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N1 * sizeof(double));
@@ -694,12 +694,12 @@ void linearity_test(const char *inp)
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 
 	for (count = 0; count < it; count++) {
-		memset(omega, 0, texture_flat_length(N) * sizeof(double complex));
-		memset(x_ref, 0, N1 * N2 * sizeof(double complex));
+		memset(omega, 0, texture_flat_length(N) * sizeof(double _Complex));
+		memset(x_ref, 0, N1 * N2 * sizeof(double _Complex));
 
 		for (k = 0; k < w; k++) {
 			int l, m, n;
-			double complex offset;
+			double _Complex offset;
 
 			l = rand() % (N + 1);
 			m = (rand() % (2 * l + 1)) - l;
@@ -775,8 +775,8 @@ void linearity_adjoint_test(const char *inp)
 		it;
 	double delta;
 	char err_prefix[100];
-	double complex *omega, *x;
-	double complex *omega_ref;
+	double _Complex *omega, *x;
+	double _Complex *omega_ref;
 	double *h_phi, *h_theta, *r;
 	texture_plan plan;
 	int count, k;
@@ -794,12 +794,12 @@ void linearity_adjoint_test(const char *inp)
 	srand(0);
 
 	omega =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
-	x = (double complex *) smart_malloc(N1 * N2 * sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 	omega_ref =
-		(double complex *) smart_malloc(texture_flat_length(N) *
-																		sizeof(double complex));
+		(double _Complex *) smart_malloc(texture_flat_length(N) *
+																		sizeof(double _Complex));
 
 	h_phi = (double *) smart_malloc(N1 * sizeof(double));
 	h_theta = (double *) smart_malloc(N1 * sizeof(double));
@@ -810,13 +810,13 @@ void linearity_adjoint_test(const char *inp)
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);
 
 	for (count = 0; count < it; count++) {
-		memset(omega_ref, 0, texture_flat_length(N) * sizeof(double complex));
-		memset(x, 0, N1 * N2 * sizeof(double complex));
+		memset(omega_ref, 0, texture_flat_length(N) * sizeof(double _Complex));
+		memset(x, 0, N1 * N2 * sizeof(double _Complex));
 
 		for (k = 0; k < w; k++) {
 			int i, j;
 			int l, m, n;
-			double complex offset;
+			double _Complex offset;
 
 			i = rand() % N1;
 			j = rand() % N2;
@@ -892,8 +892,8 @@ void texture_trafo_extreme_values_test(const char *inp)
 {
 	FILE *inp_file = fopen(inp, "r");
 	texture_plan plan;
-	double complex *omega;
-	double complex *x;
+	double _Complex *omega;
+	double _Complex *x;
 	double *h_phi, *h_theta, *r;
 	int N, N1, N2;
 
@@ -901,8 +901,8 @@ void texture_trafo_extreme_values_test(const char *inp)
 
 	fscanf(inp_file, "%d%d%d", &N, &N1, &N2);
 
-	omega = smart_calloc(texture_flat_length(N), sizeof(double complex));
-	x = smart_malloc(N1 * N2 * sizeof(double complex));
+	omega = smart_calloc(texture_flat_length(N), sizeof(double _Complex));
+	x = smart_malloc(N1 * N2 * sizeof(double _Complex));
 	h_phi = smart_calloc(N1, sizeof(double));
 	h_theta = smart_calloc(N1, sizeof(double));
 	r = smart_calloc(N1 * N2 * 2, sizeof(double));

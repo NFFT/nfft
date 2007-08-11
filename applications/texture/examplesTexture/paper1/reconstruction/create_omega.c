@@ -25,7 +25,7 @@ int omega_policy = 4;
 char omega_file_name[100];
 
 // program variables
-complex *omega;
+double _Complex *omega;
 
 void input()
 {
@@ -50,7 +50,7 @@ void input()
 void init()
 {
 	srand(seed);
-	omega = smart_malloc(texture_flat_length(N) * sizeof(complex));
+	omega = smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 }
 
 void process()

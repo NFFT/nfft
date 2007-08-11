@@ -86,7 +86,7 @@ void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
   double tmp_y,r;
   nfft_plan p,cp;
   infft_plan ip;
-  double complex* cp_y;
+  double _Complex* cp_y;
   FILE* fp;
   int M_re=M-M_cv;
    
@@ -106,7 +106,7 @@ void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
   
   
   /* initialise cp for validation */
-  cp_y = (double complex*) fftw_malloc(M*sizeof(double complex));
+  cp_y = (double _Complex*) fftw_malloc(M*sizeof(double _Complex));
   nfft_init_guru(&cp, 2, my_N, M, my_n, 6, 
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F|

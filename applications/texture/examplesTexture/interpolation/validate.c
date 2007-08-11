@@ -23,7 +23,7 @@
  */
 
 int N1, N2;
-complex *x;
+double _Complex *x;
 
 void cleanup()
 {

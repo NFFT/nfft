@@ -52,7 +52,7 @@
  * @ingroup texture_examples
  */
 
-complex *omega, *x;
+double _Complex *omega, *x;
 
 double *h_phi, *h_theta, *r;
 
@@ -164,7 +164,7 @@ void create_omega(const char *file)
 {
 	FILE *f = fopen(file, "w");
 
-	omega = (complex *) smart_malloc(texture_flat_length(N) * sizeof(complex));
+	omega = (double _Complex *) smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 	init_omega(omega, N, omega_policy);
 	fprintf(f, "Omega\n");
 	fprintf(f, "# This omega has been created by data creator.\n");
@@ -177,7 +177,7 @@ void create_x()
 {
 	texture_plan plan;
 
-	x = (complex *) smart_malloc(N1 * N2 * sizeof(complex));
+	x = (double _Complex *) smart_malloc(N1 * N2 * sizeof(double _Complex));
 
 	texture_precompute(N);
 	texture_init(&plan, N, N1, N2, omega, x, h_phi, h_theta, r);

@@ -83,7 +83,7 @@ void output_info()
 
 int main()
 {
-	complex *omega, *x;
+	double _Complex *omega, *x;
 	texture_plan plan;
 
 	read_input();
@@ -92,8 +92,8 @@ int main()
 
 	output_info();
 
-	omega = (complex *) smart_calloc(texture_flat_length(N), sizeof(complex));
-	x = (complex *) smart_calloc(N1 * N2, sizeof(complex));
+	omega = (double _Complex *) smart_calloc(texture_flat_length(N), sizeof(double _Complex));
+	x = (double _Complex *) smart_calloc(N1 * N2, sizeof(double _Complex));
 
 	texture_precompute(N);
 

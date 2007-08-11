@@ -158,7 +158,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
  */
 
     for(r=0; r<R; r++)
-      fft[r] = Rf[t*R+r] + I*0.0;
+      fft[r] = Rf[t*R+r] + _Complex_I*0.0;
 
     nfft_fftshift_complex(fft, 1, &R);
     fftw_execute(my_fftw_plan);
@@ -171,7 +171,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_nfft_plan.N_total;k++)
-    my_infft_plan.f_hat_iter[k] = 0.0 + I*0.0;
+    my_infft_plan.f_hat_iter[k] = 0.0 + _Complex_I*0.0;
 
   /** solve the system */
   infft_before_loop(&my_infft_plan);

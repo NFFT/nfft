@@ -40,7 +40,7 @@ void reconstruct(char* filename, int N, int M, int weight)
   {
     fscanf(fweight,"%le ",&weights);
     fscanf(fin,"%le %le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],&real,&imag);
-    my_plan.f[j] = real + I*imag;
+    my_plan.f[j] = real + _Complex_I*imag;
     if (weight)
       my_plan.f[j] = my_plan.f[j] * weights;
   } 

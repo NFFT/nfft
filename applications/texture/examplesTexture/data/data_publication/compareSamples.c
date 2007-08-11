@@ -1,11 +1,11 @@
-#include <complex.h>
+#include <double _Complex.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <texture_util.h>
 
 int N1, N2, N1_ref, N2_ref;
-complex *x, *x_ref;
+double _Complex *x, *x_ref;
 
 int main(int argic, char *argv[])
 {

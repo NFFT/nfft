@@ -39,8 +39,8 @@ void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
 																																			 
 void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   int l,j;
-  complex double *f = (complex double*) fftw_malloc(that->M_total*sizeof(complex double));
-  complex double *f_hat = (complex double*) fftw_malloc(that->N_total*sizeof(complex double));
+  double _Complex *f = (double _Complex*) fftw_malloc(that->M_total*sizeof(double _Complex));
+  double _Complex *f_hat = (double _Complex*) fftw_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
@@ -50,7 +50,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   that->plan.f_hat = that->f_hat;
 
 	
-	memset(f,0,that->M_total*sizeof(complex double));
+	memset(f,0,that->M_total*sizeof(double _Complex));
   for(j=0;j<that->N_total;j++)
   {
     f_hat[j]=that->f_hat[j];
@@ -58,7 +58,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
-      that->f_hat[j]*=cexp(-2*PI*I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
+      that->f_hat[j]*=cexp(-2*PI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
     nfft_trafo(&that->plan);
     for(j=0;j<that->M_total;j++){
       /* PHI has compact support */
@@ -81,13 +81,13 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
 void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   int l,j;
-  complex double *f = (complex double*) fftw_malloc(that->M_total*sizeof(complex double));
-  complex double *f_hat = (complex double*) fftw_malloc(that->N_total*sizeof(complex double));
+  double _Complex *f = (double _Complex*) fftw_malloc(that->M_total*sizeof(double _Complex));
+  double _Complex *f_hat = (double _Complex*) fftw_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
   
-	memset(f_hat,0,that->N_total*sizeof(complex double));
+	memset(f_hat,0,that->N_total*sizeof(double _Complex));
 	
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
@@ -111,7 +111,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
     }
     nfft_adjoint(&that->plan);
     for(j=0;j<that->N_total;j++)
-      f_hat[j]+=that->f_hat[j]*cexp(2*PI*I*that->w[j]*((double)l));
+      f_hat[j]+=that->f_hat[j]*cexp(2*PI*_Complex_I*that->w[j]*((double)l));
     for(j=0;j<that->M_total;j++)
       that->f[j]=f[j];
   }
@@ -231,7 +231,7 @@ void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
   ths->N_total = N[0]*N[1];
   ths->M_total = ths->plan.M_total;
   ths->f = ths->plan.f;
-  ths->f_hat = (complex double*) fftw_malloc(ths->N_total*sizeof(complex double));
+  ths->f_hat = (double _Complex*) fftw_malloc(ths->N_total*sizeof(double _Complex));
   ths->w = (double*) fftw_malloc(ths->N_total*sizeof(double));
 }
 

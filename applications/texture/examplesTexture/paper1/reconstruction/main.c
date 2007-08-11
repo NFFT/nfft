@@ -54,7 +54,7 @@ FILE *output_file;
 
 int N1, N2;
 double *h_phi, *h_theta, *r;
-double complex *omega;
+double _Complex *omega;
 
 texture_plan plan;
 itexture_plan iplan;
@@ -163,7 +163,7 @@ void read_params()
 
 	pars.monitor_error = 1;
 	pars.omega_min_err =
-		smart_malloc(texture_flat_length(N) * sizeof(double complex));
+		smart_malloc(texture_flat_length(N) * sizeof(double _Complex));
 }
 
 void output_params()
@@ -204,8 +204,8 @@ void output_params()
 void init()
 {
 	texture_init(&plan, N, N1, N2,
-							 smart_malloc(texture_flat_length(N) * sizeof(double complex)),
-							 smart_malloc(N1 * N2 * sizeof(double complex)), h_phi, h_theta,
+							 smart_malloc(texture_flat_length(N) * sizeof(double _Complex)),
+							 smart_malloc(N1 * N2 * sizeof(double _Complex)), h_phi, h_theta,
 							 r);
 	texture_precompute(N);
 	rrn = smart_malloc(testcases * sizeof(double));
@@ -220,7 +220,7 @@ void processing()
 	for (count = 0; count < testcases; count++) {
 		FILE *omega_file;
 		int cur_N;
-		double complex *tmp;
+		double _Complex *tmp;
 
 		// load omeag_ref
 		sprintf(cur_omega_file_path, "%s%s%03d", omega_prefix, omega_file_name,
@@ -239,7 +239,7 @@ void processing()
 		itexture_init_advanced(&iplan, &plan,
 													 solver_flags(solver_algo, weight_policy));
 		set_weights(&iplan, weight_policy);
-		memcpy(iplan.y, texture_get_x(&plan), N1 * N2 * sizeof(double complex));
+		memcpy(iplan.y, texture_get_x(&plan), N1 * N2 * sizeof(double _Complex));
 
 		// run solver
 		texture_itrafo(&iplan, &pars);

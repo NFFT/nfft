@@ -49,7 +49,7 @@ void test_ndsft_trafo(void)
   /** The number of nodes */
   int M;
   /** The original samples */
-  complex* f_orig;
+  double _Complex* f_orig;
   /** The degree \f$k\f$ */
   int k;
   /** The order \f$n\f$. */
@@ -143,12 +143,12 @@ void test_ndsft_trafo(void)
       nfsft_precompute_x(&plan);
 
       /* Read in reference samples. */
-      f_orig = (complex*) malloc(M*sizeof(complex));
+      f_orig = (double _Complex*) malloc(M*sizeof(double _Complex));
       for (m = 0; m < M; m++)
       {
         fscanf(file,"%lf",&d1);
         fscanf(file,"%lf",&d2);
-        f_orig[m] = d1 + I*d2;
+        f_orig[m] = d1 + _Complex_I*d2;
         //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
       }
 
@@ -208,7 +208,7 @@ void test_ndsft_adjoint(void)
   /** The number of nodes */
   int M;
   /** The original samples */
-  complex* f_hat_orig;
+  double _Complex* f_hat_orig;
   /** The degree \f$k\f$ */
   int k;
   /** The order \f$n\f$. */
@@ -272,7 +272,7 @@ void test_ndsft_adjoint(void)
       {
         fscanf(file,"%lf",&d1);
         fscanf(file,"%lf",&d2);
-        plan.f[m] = d1 + I*d2;
+        plan.f[m] = d1 + _Complex_I*d2;
       }
 
       /* Read in nodes. */
@@ -288,14 +288,14 @@ void test_ndsft_adjoint(void)
       nfsft_precompute_x(&plan);
 
       /* Read in reference Fourier coefficients. */
-      f_hat_orig = (complex*) calloc(plan.N_total,sizeof(complex));
+      f_hat_orig = (double _Complex*) calloc(plan.N_total,sizeof(double _Complex));
       for (k = 0; k <= N; k++)
       {
         for (n = -k; n <= k; n++)
         {
           fscanf(file,"%lf",&d1);
           fscanf(file,"%lf",&d2);
-          f_hat_orig[NFSFT_INDEX(k,n,&plan)] = d1 + I*d2;
+          f_hat_orig[NFSFT_INDEX(k,n,&plan)] = d1 + _Complex_I*d2;
           //fprintf(stdout,"f_orig[%d] = %lf + I*%lf\n",m,creal(f_orig[m]),cimag(f_orig[m]));
         }
       }

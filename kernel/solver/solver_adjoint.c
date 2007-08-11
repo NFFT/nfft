@@ -9,8 +9,8 @@
  * Function mangling macro.
  * 
  * \arg MV Matrix vector multiplication type (nfft, nfct, ...)
- * \arg FLT Float used as prefix for function names (double or complex)
- * \arg FLT_TYPE Float type (double or double complex)
+ * \arg FLT Float used as prefix for function names (double or double _Complex)
+ * \arg FLT_TYPE Float type (double or double _Complex)
  * \arg NAME Name of the functions suffix
  * \arg ...  argument list of the function
  * \author Stefan Kunis
@@ -236,5 +236,5 @@ F(MV, FLT, FLT_TYPE, adjoint_finalize, i ## MV ## _adjoint_plan *ths)         \
   fftw_free(ths->r_hat_iter);                                                 \
   fftw_free(ths->y);                                                          \
 } /** void i<mv>adjoint_finalize */                                           \
-MACRO_SOLVER_ADJOINT_IMPL(nfsft, complex, double complex)
+MACRO_SOLVER_ADJOINT_IMPL(nfsft, complex, double _Complex)
 
