@@ -74,9 +74,10 @@ loglog(1:2:(max_l+1), data);
 set(gca, 'fontName', 'Times');
 set(gca, 'fontSize', 9);
 
-xlabel('l');
-ylabel('\epsilon (L, l)');
-title(sprintf('%s, L_0 = %d, N = %d, N'' = %d', name, N, N1, N2));
+xlabel('Order l');
+ylabel('Reconstruction error \epsilon (L, l)');
+%title(sprintf('%s, L_0 = %d, N = %d, N'' = %d', name, N, N1, N2));
+title(sprintf('L_0 = %d, N = %d, N'' = %d', N, N1, N2));
 
 for newN_ind = 1:length(newN_values);
 	newN = newN_values(newN_ind);

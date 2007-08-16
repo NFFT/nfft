@@ -90,7 +90,7 @@ figure();
 loglog(N1_values', err);
 
 set(gca, 'XTick', N1_values);
-set(gca, 'XTickLabel', sprintf('%d / %d|', [N1_values; N2_values])); 
+set(gca, 'XTickLabel', sprintf('(%d, %d)|', [N1_values; N2_values])); 
 set(gca, 'XLim', [8 350]);
 set(gca, 'XMinorTick', 'off');
 set(gca, 'YTick', [1e-15 1e-10 1e-5 1]);
@@ -101,7 +101,7 @@ set(gca, 'fontName', 'Times');
 set(gca, 'fontSize', 9);
 
 title(sprintf('Algorithm: %s', algo));
-xlabel('N / N''');
+xlabel('(N, N''), where \Gamma_{N, N''} is the set of nodes');
 ylabel(sprintf('%s', measure_descr{measure}));
 
 for N_ind = 1:length(N_values);
