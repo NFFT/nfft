@@ -2000,7 +2000,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
  *
  * \author Jens Keiner
  */
-void nfsft_forget();
+void nfsft_forget(void);
 
 /**
  * Executes a direct NDSFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
@@ -2138,7 +2138,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags);
  * \author Jens Keiner
  */
 void fpt_precompute(fpt_set set, const int m, const double *alpha,
-                    const double *beta, const double *gamma, int k_start,
+                    const double *beta, const double *gam, int k_start,
                     const double threshold);
 
 /**

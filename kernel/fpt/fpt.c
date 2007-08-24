@@ -29,6 +29,7 @@
 #include <math.h>
 #include "nfft3.h"
 #include "util.h"
+#include "config.h"
 
 /* Macros for index calculation. */
 
@@ -725,6 +726,54 @@ void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, double _Comp
   }
 }
 
+static inline void eval_sum_clenshaw_fast(const int N, const int M, 
+    const double _Complex * restrict a, const double * restrict x, 
+    double _Complex *y, const double * restrict alpha, 
+    const double * restrict beta, const double * restrict gamma, 
+    const double lambda)
+{
+  int j,k;
+  double _Complex tmp1, tmp2, tmp3;
+  double xc;
+
+  if (N == 0)
+    for (j = 0; j <= M; j++)
+      y[j] = a[0];
+  else
+  {
+    for (j = 0; j <= M; j++)
+    {
+#if 0
+      xc = x[j];
+      tmp2 = a[N];
+      tmp1 = a[N-1] + (alpha[N-1] * xc + beta[N-1])*tmp2;
+      for (k = N-1; k > 0; k--)
+      {
+        tmp3 =   a[k-1] 
+               + (alpha[k-1] * xc + beta[k-1]) * tmp1 
+               + gamma[k] * tmp2;
+        tmp2 = tmp1;
+        tmp1 = tmp3;
+      }
+      y[j] = lambda * tmp1;
+#else
+      xc = x[j];
+      tmp1 = a[N-1];
+      tmp2 = a[N];
+      for (k = N-1; k > 0; k--)
+      {
+        tmp3 = a[k-1] + tmp2 * gamma[k];
+        tmp2 *= (alpha[k] * xc + beta[k]);
+        tmp2 += tmp1;
+        tmp1 = tmp3;
+      }
+      tmp2 *= (alpha[0] * xc + beta[0]);
+      y[j] = lambda * (tmp2 + tmp1);
+#endif
+    }
+  }
+}
+
 /**
  * Clenshaw algorithm
  *
@@ -899,7 +948,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 }
 
 void fpt_precompute(fpt_set set, const int m, const double *alpha,
-                    const double *beta, const double *gamma, int k_start,
+                    const double *beta, const double *gam, int k_start,
                     const double threshold)
 {
 
@@ -971,12 +1020,12 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
 
       data->alphaN[tau-2] = alpha[1<<tau];
       data->betaN[tau-2] = beta[1<<tau];
-      data->gammaN[tau-2] = gamma[1<<tau];
+      data->gammaN[tau-2] = gam[1<<tau];
     }
 
     data->alpha_0 = alpha[1];
     data->beta_0 = beta[1];
-    data->gamma_m1 = gamma[0];
+    data->gamma_m1 = gam[0];
 
     k_start_tilde = K_START_TILDE(data->k_start,nfft_next_power_of_2(data->k_start)
       /*set->N*/);
@@ -1027,7 +1076,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
         /* Get the pointers to the three-term recurrence coeffcients. */
         calpha = &(alpha[plength*l+1+1]);
         cbeta = &(beta[plength*l+1+1]);
-        cgamma = &(gamma[plength*l+1+1]);
+        cgamma = &(gam[plength*l+1+1]);
 
         if (set->flags & FPT_NO_STABILIZATION)
         {
@@ -1070,7 +1119,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
           data->steps[tau][l].a12[0] = a12;
           data->steps[tau][l].a21[0] = a21;
           data->steps[tau][l].a22[0] = a22;
-          data->steps[tau][l].g[0] = gamma[plength*l+1+1];
+          data->steps[tau][l].g[0] = gam[plength*l+1+1];
           data->steps[tau][l].stable = true;
         }
         else
@@ -1109,7 +1158,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
               a21 = (double*) nfft_malloc(sizeof(double)*clength_2);
               a22 = (double*) nfft_malloc(sizeof(double)*clength_2);
               /* Get the pointers to the three-term recurrence coeffcients. */
-              calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gamma[1]);
+              calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gam[1]);
               eval_clenshaw2(set->xcvecs[t_stab-2], a11, a21, clength_1,
                 clength_2, degree_stab-1, calpha, cbeta, cgamma);
               eval_clenshaw2(set->xcvecs[t_stab-2], a12, a22, clength_1,
@@ -1124,7 +1173,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
                 a12 = (double*) nfft_malloc(sizeof(double)*clength);
                 a21 = 0;
                 a22 = 0;
-                calpha = &(alpha[2]); cbeta = &(beta[2]); cgamma = &(gamma[2]);
+                calpha = &(alpha[2]); cbeta = &(beta[2]); cgamma = &(gam[2]);
                 eval_clenshaw(set->xcvecs[t_stab-2], a11, clength,
                   degree_stab-2, calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a12, clength,
@@ -1136,7 +1185,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
                 a12 = 0;
                 a21 = (double*) nfft_malloc(sizeof(double)*clength);
                 a22 = (double*) nfft_malloc(sizeof(double)*clength);
-                calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gamma[1]);
+                calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gam[1]);
                 eval_clenshaw(set->xcvecs[t_stab-2], a21, clength,
                   degree_stab-1,calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a22, clength,
@@ -1154,7 +1203,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
             a22 = (double*) nfft_malloc(sizeof(double)*clength_2);
             calpha = &(alpha[2]);
             cbeta = &(beta[2]);
-            cgamma = &(gamma[2]);
+            cgamma = &(gam[2]);
             calpha--;
             cbeta--;
             cgamma--;
@@ -1169,7 +1218,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
           data->steps[tau][l].a21[0] = a21;
           data->steps[tau][l].a22[0] = a22;
 
-          data->steps[tau][l].g[0] =  gamma[1+1];
+          data->steps[tau][l].g[0] =  gam[1+1];
           data->steps[tau][l].stable = false;
           data->steps[tau][l].ts = t_stab;
           data->steps[tau][l].Ns = N_stab;
@@ -1190,7 +1239,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
     {
       data->alpha = (double*) alpha;
       data->beta = (double*) beta;
-      data->gamma = (double*) gamma;
+      data->gamma = (double*) gam;
     }
     else
     {
@@ -1199,7 +1248,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
       data->gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
       memcpy(data->alpha,alpha,(set->N+1)*sizeof(double));
       memcpy(data->beta,beta,(set->N+1)*sizeof(double));
-      memcpy(data->gamma,gamma,(set->N+1)*sizeof(double));
+      memcpy(data->gamma,gam,(set->N+1)*sizeof(double));
     }
   }
 }
@@ -1232,17 +1281,19 @@ void dpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
     memset(set->result,0U,data->k_start*sizeof(double _Complex));
     memcpy(&set->result[data->k_start],x,(k_end-data->k_start+1)*sizeof(double _Complex));
 
-    eval_sum_clenshaw(k_end, k_end, set->result, set->xc_slow,
+    /*eval_sum_clenshaw(k_end, k_end, set->result, set->xc_slow,
       y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
-      data->gamma_m1);
+      data->gamma_m1);*/
+    eval_sum_clenshaw_fast(k_end, k_end, set->result, set->xc_slow,
+      y, &data->alpha[1], &data->beta[1], &data->gamma[1], data->gamma_m1);
   }
   else
   {
     memset(set->temp,0U,data->k_start*sizeof(double _Complex));
     memcpy(&set->temp[data->k_start],x,(k_end-data->k_start+1)*sizeof(double _Complex));
 
-    eval_sum_clenshaw(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
-      set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
+    eval_sum_clenshaw_fast(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
+      set->result, &data->alpha[1], &data->beta[1], &data->gamma[1],
       data->gamma_m1);
 
     fftw_execute_r2r(set->plans_dct2[tk-2],(double*)set->result,

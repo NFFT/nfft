@@ -82,6 +82,15 @@ AC_LANG(C)
 dnl Search for C compiler. Automatically selects options to support C89.
 AC_PROG_CC
 
+# Make sure "const" keyword can be used.
+AC_C_CONST
+
+# Make sure "restrict" keyword can be used.
+AC_C_RESTRICT
+
+# Make sure "inline" keyword can be used.
+AC_C_INLINE
+
 dnl Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
 
