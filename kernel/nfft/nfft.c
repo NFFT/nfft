@@ -34,7 +34,6 @@
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M_total-1} f[j] * exp(-2(pi) k x[j])
  */
-
 /** macros and small sub routines for the direct transforms
  */
 #define MACRO_ndft_init_result_trafo memset(f,0,ths->M_total*                 \
@@ -154,6 +153,7 @@ MACRO_ndft(adjoint)
 
 /** computes 2m+2 indices for the matrix B
  */
+/*
 void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
 {
   double c;
@@ -171,6 +171,40 @@ void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
 
   up[0]=u; op[0]=o;
 }
+*/
+
+static void nfft_uo(const nfft_plan *ths,const int j,int *up,int *op,const int act_dim)
+{
+  int c = (int)(ths->x[j*ths->d+act_dim] * ths->n[act_dim]);
+
+  if(c < 0) 
+    {
+      (*up) = c-1-(ths->m);
+      (*op) = c  +(ths->m);
+    }
+  else
+    {
+      (*up) = c  -(ths->m);
+      (*op) = c+1+(ths->m);
+    }
+}
+
+static void nfft_uo2(int *u, int *o, const double x, const int n, const int m)
+{
+  int c = (int)(x * n);
+
+  if(c < 0)
+    {
+      *u=(c-1-m+n)%n;
+      *o=(c+  m+n)%n;
+    }
+  else
+    {
+      *u=(c  -m+n)%n;
+      *o=(c+1+m+n)%n;
+    }
+}
+
 
 #define MACRO_nfft_D_compute_A {                                              \
  g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];      \
@@ -603,6 +637,82 @@ void nfft_adjoint(nfft_plan *ths)
   nfft_D_T(ths);
   TOC(0)
 } /* nfft_adjoint */
+
+
+
+
+
+ 
+void nfft_trafo_1d(nfft_plan *ths)
+{
+  int k,n,N,u,o,j,M,l,m;
+  double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2,*fj,*g, *gj;
+  double *psij, *c_phi_inv1, *c_phi_inv2, *xj;
+
+  N=ths->N[0];
+  n=ths->n[0];
+  M=ths->M_total;
+  m=ths->m;
+  
+  f_hat1=ths->f_hat;
+  f_hat2=&ths->f_hat[N/2];
+  g_hat1=&ths->g_hat[n-N/2];
+  g_hat2=ths->g_hat;
+  g=ths->g;
+
+  TIC(0)
+  memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
+  if(ths->nfft_flags & PRE_PHI_HUT)
+    {
+      c_phi_inv1=ths->c_phi_inv[0];
+      c_phi_inv2=&ths->c_phi_inv[0][N/2];
+      for(k=0;k<N/2;k++)
+	{
+	  (*g_hat1++) = (*f_hat1++) * (*c_phi_inv1++);
+	  (*g_hat2++) = (*f_hat2++) * (*c_phi_inv2++);
+	}
+    }
+  else
+    for(k=0;k<N/2;k++)
+      {
+	g_hat1[k]=0;
+	g_hat2[k]=0;
+      } 
+
+  TOC(0)
+
+  TIC_FFTW(1)
+  fftw_execute(ths->my_fftw_plan1);
+  TOC_FFTW(1);
+
+  TIC(2);
+
+  if(ths->nfft_flags & PRE_PSI)
+    for(j=0,fj=ths->f,psij=ths->psi,xj=ths->x;j<M;j++,fj++,xj++)
+      {
+	nfft_uo2(&u,&o,*xj, n, m);
+
+	if(u<o)	    
+	  for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<=2*m+1; l++)
+	    (*fj) += (*psij++) * (*gj++);
+	else
+	  {
+	    for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
+	      (*fj) += (*psij++) * (*gj++);
+	    for(l=0,gj=g; l<=o; l++)
+	      (*fj) += (*psij++) * (*gj++);
+	    
+	  }
+      }
+  TOC(2);
+}
+
+
+
+
+
+
+
 
 /** initialisation of direct transform 
  */

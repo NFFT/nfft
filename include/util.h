@@ -43,7 +43,7 @@
 
 /** Swapping of two vectors.
  */
-#define NFFT_SWAP_complex(x,y) {double _Complex* temp; temp=(x); (x)=(y); (y)=temp;}
+#define NFFT_SWAP_complex(x,y) {double _Complex* NFFT_SWAP_temp; NFFT_SWAP_temp=(x); (x)=(y); (y)=NFFT_SWAP_temp;}
 
 /** Swapping of two vectors.
  */
