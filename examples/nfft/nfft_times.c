@@ -116,8 +116,10 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 4, 
-		 PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
+  nfft_init_guru(&p, d, NN, M, nn, 3, 
+		 PRE_PHI_HUT|
+		 PRE_PSI|
+		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 

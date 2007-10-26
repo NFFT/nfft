@@ -645,9 +645,9 @@ void nfft_adjoint(nfft_plan *ths)
  
 void nfft_trafo_1d(nfft_plan *ths)
 {
-  int k,n,N,u,o,j,M,l,m;
+  int k,n,N,u,o,j,M,l,m, *psi_index_g;
   double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2,*fj,*g, *gj;
-  double *psij, *c_phi_inv1, *c_phi_inv2, *xj;
+  double *psij, *psij_const, *c_phi_inv1, *c_phi_inv2, *xj;
 
   N=ths->N[0];
   n=ths->n[0];
@@ -675,8 +675,8 @@ void nfft_trafo_1d(nfft_plan *ths)
   else
     for(k=0;k<N/2;k++)
       {
-	g_hat1[k]=0;
-	g_hat2[k]=0;
+	(*g_hat1++) = (*f_hat1++) / (PHI_HUT(k-N/2,0));
+	(*g_hat2++) = (*f_hat2++) / (PHI_HUT(k,0));
       } 
 
   TOC(0)
@@ -687,23 +687,62 @@ void nfft_trafo_1d(nfft_plan *ths)
 
   TIC(2);
 
-  if(ths->nfft_flags & PRE_PSI)
-    for(j=0,fj=ths->f,psij=ths->psi,xj=ths->x;j<M;j++,fj++,xj++)
-      {
-	nfft_uo2(&u,&o,*xj, n, m);
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    {
+      psi_index_g=ths->psi_index_g;
+      for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)                         
+        for(l=1, (*fj)=(*psij++) * g[(*psi_index_g++)]; l<=2*m+1; l++)
+	  (*fj) += (*psij++) * g[(*psi_index_g++)];
+      return;
+    }
 
-	if(u<o)	    
-	  for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<=2*m+1; l++)
+  if(ths->nfft_flags & PRE_PSI)
+    {
+      for(j=0,fj=ths->f,psij=ths->psi,xj=ths->x;j<M;j++,fj++,xj++)
+	{
+	  nfft_uo2(&u,&o,*xj, n, m);
+	  
+	  if(u<o)	    
+	    for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<=2*m+1; l++)
+	      (*fj) += (*psij++) * (*gj++);
+	  else
+	    {
+	      for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
+		(*fj) += (*psij++) * (*gj++);
+	      for(l=0,gj=g; l<=o; l++)
+		(*fj) += (*psij++) * (*gj++);
+	      
+	    }
+	}
+      return;
+    }
+
+  /* no precomputed psi at all */
+  psij_const=(double*) malloc((2*m+2)*sizeof(double));
+  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+    {
+      nfft_uo(ths,j,&u,&o,0);
+
+      for(l=0;l<=2*m+1;l++)
+	psij_const[l]=(PHI(*xj-((double)((u+l)))/n,0));
+
+      nfft_uo2(&u,&o,*xj, n, m);
+      psij=psij_const;
+      
+      if(u<o)	    
+	for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<=2*m+1; l++)
+	  (*fj) += (*psij++) * (*gj++);
+      else
+	{
+	  for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
 	    (*fj) += (*psij++) * (*gj++);
-	else
-	  {
-	    for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
-	      (*fj) += (*psij++) * (*gj++);
-	    for(l=0,gj=g; l<=o; l++)
-	      (*fj) += (*psij++) * (*gj++);
-	    
-	  }
-      }
+	  for(l=0,gj=g; l<=o; l++)
+	    (*fj) += (*psij++) * (*gj++);
+	  
+	}
+    }
+  free(psij_const);
+
   TOC(2);
 }
 
