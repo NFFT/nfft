@@ -822,12 +822,20 @@ void nfft_trafo_1d(nfft_plan *ths)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
 	  
-	  ip_y = (n*(*xj) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n*(*xj) - u)*((double)K)/(m+1);
 	  ip_u = (int)floor(ip_y);
 	  ip_w = ip_y-ip_u;
-	  for(l=0; l < 2*m+2; l++)
-	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-                            ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	  //for(l=0; l < 2*m+2; l++)
+	    /*psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);*/
+	    //psij_const[l] = ths->psi[(int)(fabs(n*(*xj) - u-l)*((double)K)/((double)(m+1)))];
+	    
+
+	  //nfft_vpr_double(psij_const,2*m+2,"psi");
+	  for(l=0;l<=2*m+1;l++)
+	    psij_const[l]=(PHI(*xj-((double)((u+l)))/n,0));
+	  //nfft_vpr_double(psij_const,2*m+2,"psi");
+	  
 
 	  nfft_uo2(&u,&o,*xj, n, m);
 	  psij=psij_const;
@@ -1038,7 +1046,7 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=(1U<< 10)*(ths->m+1);
+      ths->K=(1U<< 11)*(ths->m+1);
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
