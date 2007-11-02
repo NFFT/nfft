@@ -116,9 +116,9 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 5, 
+  nfft_init_guru(&p, d, NN, M, nn, 4, 
 		 PRE_PHI_HUT|
-		 PRE_FG_PSI|
+		 PRE_LIN_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
@@ -189,8 +189,6 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   printf("%.1e\t",t_nfft);
   if(test_ndft)
     printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
-
-
 
   /** NFFT_1d */
   t_nfft=0;

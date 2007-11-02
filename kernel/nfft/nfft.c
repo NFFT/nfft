@@ -660,11 +660,12 @@ static void nfft_trafo_1d_init_fg_exp_l(double *fg_exp_l, const int m, const dou
  
 void nfft_trafo_1d(nfft_plan *ths)
 {
-  int k,n,N,u,o,j,M,l,m, *psi_index_g;
-  double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2,*fj,*g, *gj;
+  int k,n,N,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
+  double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2,*fj,*g, *gj,ip_y,ip_w;
   double *psij, *psij_const, *c_phi_inv1, *c_phi_inv2, *xj;
 
   double *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
+
 
   N=ths->N[0];
   n=ths->n[0];
@@ -811,6 +812,42 @@ void nfft_trafo_1d(nfft_plan *ths)
       return;
     } /* if(FG_PSI) */
 
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    {
+      psij_const=(double*) malloc((2*m+2)*sizeof(double));
+      K=ths->K;
+      ip_s=K/(m+1);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+	{
+	  nfft_uo(ths,j,&u,&o,0);
+	  
+	  ip_y = (n*(*xj) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+                            ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_uo2(&u,&o,*xj, n, m);
+	  psij=psij_const;
+	  
+	  if(u<o)	    
+	    for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<=2*m+1; l++)
+	      (*fj) += (*psij++) * (*gj++);
+	  else
+	    {
+	      for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
+		(*fj) += (*psij++) * (*gj++);
+	      for(l=0,gj=g; l<=o; l++)
+		(*fj) += (*psij++) * (*gj++);
+	    }
+	}
+      free(psij_const);
+      return;
+    } /* if(PRE_LIN_PSI) */
+
+
   /* no precomputed psi at all */
   psij_const=(double*) malloc((2*m+2)*sizeof(double));
   for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
@@ -839,12 +876,6 @@ void nfft_trafo_1d(nfft_plan *ths)
 
   TOC(2);
 }
-
-
-
-
-
-
 
 
 /** initialisation of direct transform 
