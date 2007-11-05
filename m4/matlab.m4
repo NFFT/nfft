@@ -2,14 +2,14 @@ dnl $Id$
 dnl
 dnl Copyright (c) 2007 Jens Keiner
 dnl
-dnl This program is free software; you can redistribute it and/or modify it 
-dnl under the terms of the GNU General Public License as published by the Free 
-dnl Software Foundation; either version 2 of the License, or (at your option) 
+dnl This program is free software; you can redistribute it and/or modify it
+dnl under the terms of the GNU General Public License as published by the Free
+dnl Software Foundation; either version 2 of the License, or (at your option)
 dnl any later version.
 dnl
 dnl This program is distributed in the hope that it will be useful, but WITHOUT
-dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
-dnl FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for 
+dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+dnl FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 dnl more details.
 dnl
 dnl You should have received a copy of the GNU General Public License along with
@@ -27,7 +27,7 @@ dnl @author Jens Keiner
 AC_DEFUN([AX_PROG_MATLAB],
 [
   AC_REQUIRE([AC_CANONICAL_HOST])
-  
+
   dnl Add configure option to enable mex file compilation.
   AC_ARG_WITH(matlab,
   [  --with-matlab=DIR    the directory where Matlab is installed ],
@@ -71,9 +71,23 @@ AC_DEFUN([AX_PROG_MATLAB],
         MATLAB_LDFLAGS="-bundle -Wl,-flat_namespace -undefined suppress -Wl,-exported_symbols_list,${MATLAB_DIR}/extern/lib/mac/mexFunction.map";
         MATLAB_LDADD="";
         MEXEXT=".mexmaci";;
-      *86-*linux*)   
-        dnl Linux (x86, 32 bit)    
-        dnl FIXME Add 64 bit Linux target
+      *86_64*linux*)
+        dnl Linux (x86, 64 bit)
+        AX_CHECK_FILE([${MATLAB_DIR}/bin/glna64/libmat.so])
+        AX_CHECK_FILE([${MATLAB_DIR}/bin/glna64/libmex.so])
+        AX_CHECK_FILE([${MATLAB_DIR}/bin/glna64/libmx.so])
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mat.h])
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/include/matrix.h])
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mex.h])
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/src/mexversion.c])
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/glna64/mexFunction.map])
+        AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])
+        MATLAB_CFLAGS="$MATLAB_CFLAGS_COMMON -fno-common -fexceptions -fPIC";
+        MATLAB_LDFLAGS="-shared -fPIC -Wl,-flat_namespace -Wl,--version-script,${MATLAB_DIR}/extern/lib/glna64/mexFunction.map -L${MATLAB_DIR}/bin/glna64";
+        MATLAB_LDADD="$MATLAB_LDFLAGS_COMMON";
+        MEXEXT=".mexa64";;
+      *86*linux*)
+        dnl Linux (x86, 32 bit)
         AX_CHECK_FILE([${MATLAB_DIR}/bin/glnx86/libmat.so])
         AX_CHECK_FILE([${MATLAB_DIR}/bin/glnx86/libmex.so])
         AX_CHECK_FILE([${MATLAB_DIR}/bin/glnx86/libmx.so])
@@ -81,7 +95,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/matrix.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mex.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/src/mexversion.c])
-        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/glnx86/mexFunction.map])               
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/glnx86/mexFunction.map])
         AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])
         MATLAB_CFLAGS="$MATLAB_CFLAGS_COMMON -fno-common -fexceptions";
         MATLAB_LDFLAGS="-shared -Wl,-flat_namespace -Wl,--version-script,${MATLAB_DIR}/extern/lib/glnx86/mexFunction.map -L${MATLAB_DIR}/bin/glnx86";
@@ -103,7 +117,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         MATLAB_LDADD="$MATLAB_LDFLAGS_COMMON";
         MEXEXT=".mexsg";;
       *solaris*)
-        dnl FIXME Matlab on Solaris only supported on 64bit systems       
+        dnl FIXME Matlab on Solaris only supported on 64bit systems
         dnl FIXME Needs to be tested
         AX_CHECK_FILE([${MATLAB_DIR}/bin/sol/libmat.so])
         AX_CHECK_FILE([${MATLAB_DIR}/bin/sol/libmex.so])
@@ -141,7 +155,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mat.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/matrix.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mex.h])
-        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/win32/mexFunction.map])               
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/win32/mexFunction.map])
         MATLAB_CFLAGS="$MATLAB_CFLAGS_COMMON -fno-exceptions -mno-cygwin -DNDEBUG -DHAVE_WINDOWS";
         MATLAB_LDFLAGS="-shared -mno-cygwin -W1,--version-script,${MATLAB_DIR}/extern/lib/win32/mexFunction.def -L${MATLAB_DIR}/bin/win32 -W1,--rpath-link,${MATLAB_DIR}/extern/lib/win32,--rpath-link,${MATLAB_DIR}/bin/win32";
         MATLAB_LDADD="$MATLAB_LDFLAGS_COMMON";
@@ -170,7 +184,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mat.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/matrix.h])
         AX_CHECK_FILE([${MATLAB_DIR}/extern/include/mex.h])
-        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/win32/mexFunction.map])               
+        AX_CHECK_FILE([${MATLAB_DIR}/extern/lib/win32/mexFunction.map])
         MATLAB_CFLAGS="$MATLAB_CFLAGS_COMMON -fno-exceptions -DNDEBUG -DHAVE_WINDOWS";
         MATLAB_LDFLAGS="-shared -W1,--version-script,${MATLAB_DIR}/extern/lib/win32/mexFunction.def -L${MATLAB_DIR}/bin/win32 -W1,--rpath-link,${MATLAB_DIR}/extern/lib/win32,--rpath-link,${MATLAB_DIR}/bin/win32";
         MATLAB_LDADD="$MATLAB_LDFLAGS_COMMON";
@@ -204,5 +218,5 @@ AC_DEFUN([AX_PROG_MATLAB_RESULT],
     echo $missing;
   else
     AC_MSG_RESULT([ok])
-  fi                     
+  fi
 ])
