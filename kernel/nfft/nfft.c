@@ -1,3 +1,4 @@
+
 /**
  * Simple and fast computation of the NDFT.
  * authors: D. Potts, S. Kunis (c) 2002-2006
@@ -153,31 +154,12 @@ MACRO_ndft(adjoint)
 
 /** computes 2m+2 indices for the matrix B
  */
-/*
-void nfft_uo(nfft_plan *ths,int j,int *up,int *op,int act_dim)
-{
-  double c;
-  int u,o;
-
-  c = ths->x[j*ths->d+act_dim] * ths->n[act_dim];
-  u = c; o = c;
-
-  if(c < 0)                  
-    u = u-1;                  
-  else
-    o = o+1;
-
-  u = u - (ths->m); o = o + (ths->m);
-
-  up[0]=u; op[0]=o;
-}
-*/
-
 static void nfft_uo(const nfft_plan *ths,const int j,int *up,int *op,const int act_dim)
 {
-  int c = (int)(ths->x[j*ths->d+act_dim] * ths->n[act_dim]);
+  double xj=ths->x[j*ths->d+act_dim];
+  int c = (int)(xj * ths->n[act_dim]);
 
-  if(c < 0) 
+  if(xj < 0) 
     {
       (*up) = c-1-(ths->m);
       (*op) = c  +(ths->m);
@@ -193,7 +175,7 @@ static void nfft_uo2(int *u, int *o, const double x, const int n, const int m)
 {
   int c = (int)(x * n);
 
-  if(c < 0)
+  if(x < 0)
     {
       *u=(c-1-m+n)%n;
       *o=(c+  m+n)%n;
@@ -818,6 +800,8 @@ void nfft_trafo_1d(nfft_plan *ths)
       K=ths->K;
       ip_s=K/(m+1);
 
+      psij_const[2*m+1]=0;
+
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
@@ -825,17 +809,9 @@ void nfft_trafo_1d(nfft_plan *ths)
 	  ip_y = fabs(n*(*xj) - u)*((double)K)/(m+1);
 	  ip_u = (int)floor(ip_y);
 	  ip_w = ip_y-ip_u;
-	  //for(l=0; l < 2*m+2; l++)
-	    /*psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);*/
-	    //psij_const[l] = ths->psi[(int)(fabs(n*(*xj) - u-l)*((double)K)/((double)(m+1)))];
-	    
-
-	  //nfft_vpr_double(psij_const,2*m+2,"psi");
-	  for(l=0;l<=2*m+1;l++)
-	    psij_const[l]=(PHI(*xj-((double)((u+l)))/n,0));
-	  //nfft_vpr_double(psij_const,2*m+2,"psi");
-	  
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo2(&u,&o,*xj, n, m);
 	  psij=psij_const;
@@ -1046,7 +1022,7 @@ void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=(1U<< 11)*(ths->m+1);
+      ths->K=(1U<< 10)*(ths->m+1);
       ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
