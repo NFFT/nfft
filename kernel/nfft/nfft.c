@@ -1064,26 +1064,67 @@ static void nfft_trafo_2d_compute(double _Complex *fj, const double _Complex *g,
 
   *fj=0;
 
-  if((u0<o0) && (u1<o1))
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-      {
-	gj=g+(u0+l0)*n1+u1;
-	psij1=psij_const1;
-	for(l1=0; l1<=2*m+1; l1++)
-	  (*fj) += (*psij0) * (*psij1++) * (*gj++);
-	//(*fj) += (*psij0) * (*psij1) * g[(u0+l0)*n1+u1+l1];
-      }
+  if(u0<o0)
+      if(u1<o1)
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
+      else
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
   else
-    {
-      printf("P");
-      /*      for(l=1,gj=g+u,(*fj)=(*psij++) * (*gj++); l<2*m+1-o; l++)
-	      (*fj) += (*psij++) * (*gj++);
-	      for(l=0,gj=g; l<=o; l++)
-	      (*fj) += (*psij++) * (*gj++);
-      */
-    }
-
-  //printf("fj=%e\n",*fj);
+      if(u1<o1)
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
+      }
+      else
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	      gj=g+l0*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*fj) += (*psij0) * (*psij1++) * (*gj++);
+	  }
+      }
 }
 
 static void nfft_trafo_2d_B(nfft_plan *ths)
@@ -1122,15 +1163,16 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FG_PSI) 
     {
-      psij_const=(double*) malloc((2*m+2)*sizeof(double));
-      fg_exp_l=(double*) malloc((2*m+2)*sizeof(double));
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
 
       nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
-      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
-	  fg_psij0 = ths->psi[2*j];
-	  fg_psij1 = ths->psi[2*j+1];
+	  fg_psij0 = ths->psi[2*j*2];
+	  fg_psij1 = ths->psi[2*j*2+1];
 	  fg_psij2 = 1.0;
 	  psij_const[0] = fg_psij0;
 	  for(l=1; l<=2*m+1; l++)
@@ -1139,7 +1181,17 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
 	    }
 
-	  //nfft_trafo_2d_compute(fj, g, psij_const, xj, n, m);
+	  fg_psij0 = ths->psi[2*(j*2+1)];
+	  fg_psij1 = ths->psi[2*(j*2+1)+1];
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_trafo_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
 	}
       free(fg_exp_l);
       free(psij_const);
@@ -1148,16 +1200,17 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & FG_PSI) 
     {
-      psij_const=(double*) malloc((2*m+2)*sizeof(double));
-      fg_exp_l=(double*) malloc((2*m+2)*sizeof(double));
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
 
       nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
-      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  fg_psij0 = (PHI(*xj-((double)u)/n,0));
-	  fg_psij1 = exp(2.0*(n*(*xj) - u)/ths->b[0]); 
+	  fg_psij0 = (PHI(*xj-((double)u)/n0,0));
+	  fg_psij1 = exp(2.0*(n0*(*xj) - u)/ths->b[0]); 
 	  fg_psij2 = 1.0;
 	  psij_const[0] = fg_psij0;
 	  for(l=1; l<=2*m+1; l++)
@@ -1166,7 +1219,18 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
 	    }
 
-	  //nfft_trafo_2d_compute(fj, g, psij_const, xj, n, m);
+	  nfft_uo(ths,j,&u,&o,1);
+	  fg_psij0 = (PHI(*(xj+1)-((double)u)/n1,1));
+	  fg_psij1 = exp(2.0*(n1*(*(xj+1)) - u)/ths->b[1]); 
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_trafo_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
 	}
       free(fg_exp_l);
       free(psij_const);
