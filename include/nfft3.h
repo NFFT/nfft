@@ -357,6 +357,7 @@ void ndft_adjoint(nfft_plan *ths);
 void nfft_trafo(nfft_plan *ths);
 
 void nfft_trafo_1d(nfft_plan *ths);
+void nfft_trafo_2d(nfft_plan *ths);
 
 /**
  * Computes an adjoint NFFT, see the \ref ndftH_formula "definition".
@@ -366,6 +367,8 @@ void nfft_trafo_1d(nfft_plan *ths);
  * \author Stefan Kunis, Daniel Potts
  */
 void nfft_adjoint(nfft_plan *ths);
+
+void nfft_adjoint_1d(nfft_plan *ths);
 
 /**
  * Initialisation of a transform plan, wrapper d=1.
