@@ -644,8 +644,8 @@ static void nfft_1d_init_fg_exp_l(double *fg_exp_l, const int m, const double b)
 static void nfft_trafo_1d_compute(double _Complex *fj, const double _Complex *g,const double *psij_const, const double *xj, const int n, const int m)
 {
   int u,o,l;
-  double _Complex *gj;
-  double *psij;
+  const double _Complex *gj;
+  const double *psij;
   psij=psij_const;
 
   nfft_uo2(&u,&o,*xj, n, m);
@@ -659,6 +659,27 @@ static void nfft_trafo_1d_compute(double _Complex *fj, const double _Complex *g,
 	(*fj) += (*psij++) * (*gj++);
       for(l=0,gj=g; l<=o; l++)
 	(*fj) += (*psij++) * (*gj++);
+    }
+}
+
+static void nfft_adjoint_1d_compute(const double _Complex *fj, double _Complex *g,const double *psij_const, const double *xj, const int n, const int m)
+{
+  int u,o,l;
+  double _Complex *gj;
+  const double *psij;
+  psij=psij_const;
+
+  nfft_uo2(&u,&o,*xj, n, m);
+  
+  if(u<o)	    
+    for(l=0,gj=g+u; l<=2*m+1; l++)
+      (*gj++) += (*psij++) * (*fj);
+  else
+    {
+      for(l=0,gj=g+u; l<2*m+1-o; l++)
+	(*gj++) += (*psij++) * (*fj);
+      for(l=0,gj=g; l<=o; l++)
+	(*gj++) += (*psij++) * (*fj);
     }
 }
 
@@ -785,74 +806,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
     }
   free(psij_const);
 }
-      
-void nfft_trafo_1d(nfft_plan *ths)
-{
-  int k,n,N;
-  double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2;
-  double *c_phi_inv1, *c_phi_inv2;
-
-  ths->g_hat=ths->g1;
-  ths->g=ths->g2;
-
-  N=ths->N[0];
-  n=ths->n[0];
-  
-  f_hat1=ths->f_hat;
-  f_hat2=&ths->f_hat[N/2];
-  g_hat1=&ths->g_hat[n-N/2];
-  g_hat2=ths->g_hat;
-
-  TIC(0)
-  memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
-  if(ths->nfft_flags & PRE_PHI_HUT)
-    {
-      c_phi_inv1=ths->c_phi_inv[0];
-      c_phi_inv2=&ths->c_phi_inv[0][N/2];
-      for(k=0;k<N/2;k++)
-	{
-	  (*g_hat1++) = (*f_hat1++) * (*c_phi_inv1++);
-	  (*g_hat2++) = (*f_hat2++) * (*c_phi_inv2++);
-	}
-    }
-  else
-    for(k=0;k<N/2;k++)
-      {
-	(*g_hat1++) = (*f_hat1++) / (PHI_HUT(k-N/2,0));
-	(*g_hat2++) = (*f_hat2++) / (PHI_HUT(k,0));
-      } 
-
-  TOC(0)
-
-  TIC_FFTW(1)
-  fftw_execute(ths->my_fftw_plan1);
-  TOC_FFTW(1);
-
-  TIC(2);
-  nfft_trafo_1d_B(ths);
-  TOC(2);
-}
-
-static void nfft_adjoint_1d_compute(double _Complex *fj, const double _Complex *g,const double *psij_const, const double *xj, const int n, const int m)
-{
-  int u,o,l;
-  double _Complex *gj;
-  double *psij;
-  psij=psij_const;
-
-  nfft_uo2(&u,&o,*xj, n, m);
-  
-  if(u<o)	    
-    for(l=0,gj=g+u; l<=2*m+1; l++)
-      (*gj++) += (*psij++) * (*fj);
-  else
-    {
-      for(l=0,gj=g+u; l<2*m+1-o; l++)
-	(*gj++) += (*psij++) * (*fj);
-      for(l=0,gj=g; l<=o; l++)
-	(*gj++) += (*psij++) * (*fj);
-    }
-}
 
 static void nfft_adjoint_1d_B(nfft_plan *ths)
 {
@@ -866,8 +819,8 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
   m=ths->m;
   
   g=ths->g;
+  memset(g,0,ths->n_total*sizeof(double _Complex));
 
-  memset(ths->g,0,ths->n_total*sizeof(double _Complex));
   if(ths->nfft_flags & PRE_FULL_PSI)
     {
       psi_index_g=ths->psi_index_g;
@@ -943,8 +896,6 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       K=ths->K;
       ip_s=K/(m+1);
 
-      psij_const[2*m+1]=0;
-
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
@@ -974,6 +925,53 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       nfft_adjoint_1d_compute(fj, g, psij_const, xj, n, m);
     }
   free(psij_const);
+}
+      
+void nfft_trafo_1d(nfft_plan *ths)
+{
+  int k,n,N;
+  double _Complex *g_hat1,*g_hat2,*f_hat1,*f_hat2;
+  double *c_phi_inv1, *c_phi_inv2;
+
+  ths->g_hat=ths->g1;
+  ths->g=ths->g2;
+
+  N=ths->N[0];
+  n=ths->n[0];
+  
+  f_hat1=ths->f_hat;
+  f_hat2=&ths->f_hat[N/2];
+  g_hat1=&ths->g_hat[n-N/2];
+  g_hat2=ths->g_hat;
+
+  TIC(0)
+  memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
+  if(ths->nfft_flags & PRE_PHI_HUT)
+    {
+      c_phi_inv1=ths->c_phi_inv[0];
+      c_phi_inv2=&ths->c_phi_inv[0][N/2];
+      for(k=0;k<N/2;k++)
+	{
+	  (*g_hat1++) = (*f_hat1++) * (*c_phi_inv1++);
+	  (*g_hat2++) = (*f_hat2++) * (*c_phi_inv2++);
+	}
+    }
+  else
+    for(k=0;k<N/2;k++)
+      {
+	(*g_hat1++) = (*f_hat1++) / (PHI_HUT(k-N/2,0));
+	(*g_hat2++) = (*f_hat2++) / (PHI_HUT(k,0));
+      } 
+
+  TOC(0)
+
+  TIC_FFTW(1)
+  fftw_execute(ths->my_fftw_plan1);
+  TOC_FFTW(1);
+
+  TIC(2);
+  nfft_trafo_1d_B(ths);
+  TOC(2);
 }
 
 void nfft_adjoint_1d(nfft_plan *ths)
@@ -1048,19 +1046,14 @@ static void nfft_trafo_2d_compute(double _Complex *fj, const double _Complex *g,
 				  const int n0, const int n1, const int m)
 {
   int u0,o0,l0,u1,o1,l1;
-  double _Complex *gj;
-  double *psij0,*psij1;
+  const double _Complex *gj;
+  const double *psij0,*psij1;
 
   psij0=psij_const0;
   psij1=psij_const1;
 
   nfft_uo2(&u0,&o0,*xj0, n0, m);
   nfft_uo2(&u1,&o1,*xj1, n1, m);
-
-  /*printf("(%d..%d) x (%d..%d)\n",u0,o0,u1,o1);
-    nfft_vpr_double(psij_const0,2*m+2,"psi0");
-    nfft_vpr_double(psij_const1,2*m+2,"psi1");
-  */
 
   *fj=0;
 
@@ -1127,10 +1120,87 @@ static void nfft_trafo_2d_compute(double _Complex *fj, const double _Complex *g,
       }
 }
 
+static void nfft_adjoint_2d_compute(const double _Complex *fj, double _Complex *g,
+				    const double *psij_const0, const double *psij_const1,
+				    const double *xj0, const double *xj1,
+				    const int n0, const int n1, const int m)
+{
+  int u0,o0,l0,u1,o1,l1;
+  double _Complex *gj;
+  const double *psij0,*psij1;
+
+  psij0=psij_const0;
+  psij1=psij_const1;
+
+  nfft_uo2(&u0,&o0,*xj0, n0, m);
+  nfft_uo2(&u1,&o1,*xj1, n1, m);
+
+  if(u0<o0)
+      if(u1<o1)
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		(*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      else
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+  else
+      if(u1<o1)
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      }
+      else
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+l0*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      }
+}
+
 static void nfft_trafo_2d_B(nfft_plan *ths)
 {
-  int n,N,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
-  int n0,N0,n1,N1;
+  int n0,N0,n1,N1,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
   double _Complex *fj,*g,ip_y,ip_w;
   double *psij, *psij_const, *xj;
 
@@ -1239,42 +1309,208 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
     {
-      psij_const=(double*) malloc((2*m+2)*sizeof(double));
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
       K=ths->K;
       ip_s=K/(m+1);
 
-      psij_const[2*m+1]=0;
-
-      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
-	  nfft_uo(ths,j,&u,&o,0);
-	  
-	  ip_y = fabs(n*(*xj) - u)*((double)K)/(m+1);
+	  nfft_uo(ths,j,&u,&o,0);	  
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
 	  ip_u = (int)floor(ip_y);
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
 	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
 	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
-	  //nfft_trafo_2d_compute(fj, g, psij_const, xj, n, m);
+	  nfft_uo(ths,j,&u,&o,1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_trafo_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
 	}
       free(psij_const);
       return;
     } /* if(PRE_LIN_PSI) */
 
   /* no precomputed psi at all */
-  psij_const=(double*) malloc((2*m+2)*sizeof(double));
-  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
+  psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
     {
       nfft_uo(ths,j,&u,&o,0);
-
       for(l=0;l<=2*m+1;l++)
-	psij_const[l]=(PHI(*xj-((double)((u+l)))/n,0));
+	psij_const[l]=(PHI(*xj-((double)((u+l)))/n0,0));
+      
+      nfft_uo(ths,j,&u,&o,1);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[2*m+2+l]=(PHI(*(xj+1)-((double)((u+l)))/n1,1));
 
-      //nfft_trafo_2d_compute(fj, g, psij_const, xj, n, m);
+      nfft_trafo_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
     }
   free(psij_const);
 }
+
+static void nfft_adjoint_2d_B(nfft_plan *ths)
+{
+  int n0,N0,n1,N1,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
+  double _Complex *fj,*g,ip_y,ip_w;
+  double *psij, *psij_const, *xj;
+
+  double *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
+
+  N0=ths->N[0];
+  n0=ths->n[0];
+  N1=ths->N[1];
+  n1=ths->n[1];
+  M=ths->M_total;
+  m=ths->m;
+  
+  g=ths->g;
+  memset(g,0,ths->n_total*sizeof(double _Complex));
+
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    {
+      psi_index_g=ths->psi_index_g;
+      for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)                         
+        for(l=1, g[(*psi_index_g++)]=(*psij++) * (*fj); l<(2*m+2)*(2*m+2); l++)
+	  g[(*psi_index_g++)] += (*psij++) * (*fj);
+      return;
+    } /* if(PRE_FULL_PSI) */
+
+  if(ths->nfft_flags & PRE_PSI)
+    {
+      for(j=0,fj=ths->f,xj=ths->x; j<M; j++,fj++,xj+=2)
+	nfft_adjoint_2d_compute(fj, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), xj, xj+1, n0, n1, m);
+      return;
+    } /* if(PRE_PSI) */
+
+  if(ths->nfft_flags & PRE_FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  fg_psij0 = ths->psi[2*j*2];
+	  fg_psij1 = ths->psi[2*j*2+1];
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  fg_psij0 = ths->psi[2*(j*2+1)];
+	  fg_psij1 = ths->psi[2*(j*2+1)+1];
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_adjoint_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(PRE_FG_PSI) */
+
+  if(ths->nfft_flags & FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);
+	  fg_psij0 = (PHI(*xj-((double)u)/n0,0));
+	  fg_psij1 = exp(2.0*(n0*(*xj) - u)/ths->b[0]); 
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  fg_psij0 = (PHI(*(xj+1)-((double)u)/n1,1));
+	  fg_psij1 = exp(2.0*(n1*(*(xj+1)) - u)/ths->b[1]); 
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_adjoint_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(FG_PSI) */
+
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      K=ths->K;
+      ip_s=K/(m+1);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);	  
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_adjoint_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(psij_const);
+      return;
+    } /* if(PRE_LIN_PSI) */
+
+  /* no precomputed psi at all */
+  psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+    {
+      nfft_uo(ths,j,&u,&o,0);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[l]=(PHI(*xj-((double)((u+l)))/n0,0));
+      
+      nfft_uo(ths,j,&u,&o,1);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[2*m+2+l]=(PHI(*(xj+1)-((double)((u+l)))/n1,1));
+
+      nfft_adjoint_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+    }
+  free(psij_const);
+}
+
       
 void nfft_trafo_2d(nfft_plan *ths)
 {
@@ -1356,6 +1592,86 @@ void nfft_trafo_2d(nfft_plan *ths)
   TIC(2);
   nfft_trafo_2d_B(ths);
   TOC(2);
+}
+
+void nfft_adjoint_2d(nfft_plan *ths)
+{
+  int k0,k1,n0,n1,N0,N1;
+  double _Complex *g_hat,*f_hat;
+  double *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
+  double ck01, ck02, ck11, ck12;
+  double _Complex *g_hat11,*f_hat11,*g_hat21,*f_hat21,*g_hat12,*f_hat12,*g_hat22,*f_hat22;
+
+  ths->g_hat=ths->g1;
+  ths->g=ths->g2;
+
+  N0=ths->N[0];
+  N1=ths->N[1];
+  n0=ths->n[0];
+  n1=ths->n[1];
+  
+  f_hat=ths->f_hat;
+  g_hat=ths->g_hat;
+
+  TIC(2);
+  nfft_adjoint_2d_B(ths);
+  TOC(2);
+
+  TIC_FFTW(1)
+  fftw_execute(ths->my_fftw_plan2);
+  TOC_FFTW(1);
+
+  TIC(0)
+  if(ths->nfft_flags & PRE_PHI_HUT)
+    {
+      c_phi_inv01=ths->c_phi_inv[0];
+      c_phi_inv02=&ths->c_phi_inv[0][N0/2];
+      c_phi_inv11=ths->c_phi_inv[1];
+      c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+
+      for(k0=0;k0<N0/2;k0++)
+	{
+	  ck01=(*c_phi_inv01++);
+	  ck02=(*c_phi_inv02++);
+
+	  c_phi_inv11=ths->c_phi_inv[1];
+	  c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+	  g_hat11=g_hat + (n0-N0/2+k0)*n1+n1-N1/2;
+	  f_hat11=f_hat + k0*N1;
+          g_hat21=g_hat + k0*n1+n1-N1/2;
+          f_hat21=f_hat + (N0/2+k0)*N1;
+          g_hat12=g_hat + (n0-N0/2+k0)*n1;
+          f_hat12=f_hat + k0*N1+N1/2;
+	  g_hat22=g_hat + k0*n1;
+	  f_hat22=f_hat + (N0/2+k0)*N1+N1/2;
+	  for(k1=0;k1<N1/2;k1++)
+	    {
+	      ck11=(*c_phi_inv11++);
+	      ck12=(*c_phi_inv12++);
+
+	      (*f_hat11++) = (*g_hat11++) * ck01 * ck11;
+	      (*f_hat21++) = (*g_hat21++) * ck02 * ck11;
+	      (*f_hat12++) = (*g_hat12++) * ck01 * ck12;
+	      (*f_hat22++) = (*g_hat22++) * ck02 * ck12;
+	    }
+	}
+    }
+  else
+    for(k0=0;k0<N0/2;k0++)
+      {
+	ck01=1./(PHI_HUT(k0-N0/2,0));
+	ck02=1./(PHI_HUT(k0,0));
+	for(k1=0;k1<N1/2;k1++)
+	  {
+	    ck11=1./(PHI_HUT(k1-N1/2,1));
+	    ck12=1./(PHI_HUT(k1,1));
+	    f_hat[k0*N1+k1]             = g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] * ck01 * ck11;
+	    f_hat[(N0/2+k0)*N1+k1]      = g_hat[k0*n1+n1-N1/2+k1]           * ck02 * ck11;
+	    f_hat[k0*N1+N1/2+k1]        = g_hat[(n0-N0/2+k0)*n1+k1]         * ck01 * ck12;
+	    f_hat[(N0/2+k0)*N1+N1/2+k1] = g_hat[k0*n1+k1]                   * ck02 * ck12;
+	  }
+      }
+  TOC(0)
 }
 
 
