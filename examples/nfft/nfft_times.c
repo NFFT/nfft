@@ -14,6 +14,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   nfft_plan p;
   fftw_plan p_fft;
 
+  double auxC=pow(10,8);
+
   printf("$%d$&\t",(int)(log(N)/log(2)*d+0.5));
      
   for(r=0,M=1;r<d;r++)
@@ -51,7 +53,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_fft/=r;
 
-  printf("$%.1e$&\t",t_fft);
+  printf("$%.1e$ ($%.1f$)&\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
 
   /** NDFT */
   if(test_ndft)
@@ -67,10 +69,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("$%.1e$&\t",t_ndft);
+      printf("$%.1e$  ($%.1f$)&\t",t_ndft,t_ndft/(p.N_total*p.N_total)*auxC);
     }
   else
-    printf("*&\t\t");
+    printf("*&\t\t\t");
 
   /** NFFT */
   t_nfft=0;
@@ -89,9 +91,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   t_nfft/=r;
   
   if(d==1)
-    printf("$%.1e$&\t",t_nfft);
+    printf("$%.1e$ ($%.1f$)&\t",t_nfft,t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC);
   else
-    printf("$%.1e$ \\\\\n",t_nfft);
+    printf("$%.1e$ ($%.1f$)\\\\\n",t_nfft,t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
