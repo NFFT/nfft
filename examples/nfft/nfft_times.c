@@ -79,7 +79,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     {
       r++;
       t=nfft_second();
-      nfft_trafo(&p);
+      if(d==1)
+	nfft_trafo_1d(&p);
+      else
+	nfft_trafo(&p);
       t=nfft_second()-t;
       t_nfft+=t;
     }
@@ -574,9 +577,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 } 
 
 
-
-
-int main()
+int main2()
 {
   int l,d,logIN;
 
@@ -614,6 +615,11 @@ int main()
     }
 
   exit(-1);
+}
+
+int main()
+{
+  int l,d,logIN;
 
   printf("\\multicolumn{4}{c|}{$d=1$}&\t\\multicolumn{4}{c|}{$d=2$}\\\\\n");
   for(l=3;l<=22;l++)
