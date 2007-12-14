@@ -357,6 +357,7 @@ void ndft_adjoint(nfft_plan *ths);
 void nfft_trafo(nfft_plan *ths);
 void nfft_trafo_1d(nfft_plan *ths);
 void nfft_trafo_2d(nfft_plan *ths);
+void nfft_trafo_3d(nfft_plan *ths);
 
 /**
  * Computes an adjoint NFFT, see the \ref ndftH_formula "definition".

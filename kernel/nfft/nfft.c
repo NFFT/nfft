@@ -1674,6 +1674,847 @@ void nfft_adjoint_2d(nfft_plan *ths)
   TOC(0)
 }
 
+/* ############################################################ SPECIFIC VERSIONS FOR d=3 */
+
+static void nfft_3d_init_fg_exp_l(double *fg_exp_l, const int m, const double b)
+{
+  int l;
+  double fg_exp_b0, fg_exp_b1, fg_exp_b2, fg_exp_b0_sq;
+  
+  fg_exp_b0 = exp(-1.0/b);
+  fg_exp_b0_sq = fg_exp_b0*fg_exp_b0;
+  fg_exp_b1 = 1.0;
+  fg_exp_b2 = 1.0;
+  fg_exp_l[0] = 1.0;
+  for(l=1; l <= 2*m+1; l++)
+    {
+      fg_exp_b2 = fg_exp_b1*fg_exp_b0;
+      fg_exp_b1 *= fg_exp_b0_sq;
+      fg_exp_l[l] = fg_exp_l[l-1]*fg_exp_b2;
+    }
+}
+
+static void nfft_trafo_3d_compute(double _Complex *fj, const double _Complex *g,
+				  const double *psij_const0, const double *psij_const1, const double *psij_const2,
+				  const double *xj0, const double *xj1, const double *xj2,
+				  const int n0, const int n1, const int n2, const int m)
+{
+  int u0,o0,l0,u1,o1,l1,u2,o2,l2;
+  const double _Complex *gj,*gj0;
+  const double *psij0,*psij1,*psij2;
+
+  psij0=psij_const0;
+  psij1=psij_const1;
+  psij2=psij_const2;
+
+  nfft_uo2(&u0,&o0,*xj0, n0, m);
+  nfft_uo2(&u1,&o1,*xj1, n1, m);
+  nfft_uo2(&u2,&o2,*xj2, n2, m);
+
+  *fj=0;
+
+  if(u0<o0)
+    if(u1<o1)
+      if(u2<o2)
+	for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	    psij1=psij_const1;
+	    for(l1=0; l1<=2*m+1; l1++,psij1++)
+	      {
+		psij2=psij_const2;
+		gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		for(l2=0; l2<=2*m+1; l2++)
+		  (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+	      }
+	  }
+      else/* asserts (u2>o2)*/
+	for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	    psij1=psij_const1;
+	    for(l1=0; l1<=2*m+1; l1++,psij1++)
+	      {
+		psij2=psij_const2;
+		gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		for(l2=0; l2<2*m+1-o2; l2++)
+		  (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		gj=g+((u0+l0)*n1+(u1+l1))*n2;
+		for(l2=0; l2<=o2; l2++)
+		  (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+	      }
+	  }
+    else/* asserts (u1>o1)*/
+      if(u2<o2)
+	for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	    psij1=psij_const1;
+	    for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+	      {
+		psij2=psij_const2;
+		gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		for(l2=0; l2<=2*m+1; l2++)
+		  (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+	      }
+	    for(l1=0; l1<=o1; l1++,psij1++)
+	      {
+		psij2=psij_const2;
+		gj=g+((u0+l0)*n1+l1)*n2+u2;
+		for(l2=0; l2<=2*m+1; l2++)
+		  (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+	      }
+	  }
+      else/* asserts (u2>o2) */
+	{
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	      for(l1=0; l1<=o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+l1)*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+((u0+l0)*n1+l1)*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	}
+  else/* asserts (u0>o0) */
+    if(u1<o1)
+      if(u2<o2)
+	{
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<=2*m+1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	  
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<=2*m+1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	}
+      else/* asserts (u2>o2) */
+	{
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<=2*m+1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	  
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<=2*m+1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+(l0*n1+(u1+l1))*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	}
+    else/* asserts (u1>o1) */
+      if(u2<o2)
+	{
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	      for(l1=0; l1<=o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+l1)*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	      for(l1=0; l1<=o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+l1)*n2+u2;
+		  for(l2=0; l2<=2*m+1; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	}
+      else/* asserts (u2>o2) */
+	{
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+((u0+l0)*n1+(u1+l1))*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	      for(l1=0; l1<=o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+((u0+l0)*n1+l1)*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+((u0+l0)*n1+l1)*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	  
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	    {
+	      psij1=psij_const1;
+	      for(l1=0; l1<2*m+1-o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+(u1+l1))*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+(l0*n1+(u1+l1))*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	      for(l1=0; l1<=o1; l1++,psij1++)
+		{
+		  psij2=psij_const2;
+		  gj=g+(l0*n1+l1)*n2+u2;
+		  for(l2=0; l2<2*m+1-o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		  gj=g+(l0*n1+l1)*n2;
+		  for(l2=0; l2<=o2; l2++)
+		    (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+		}
+	    }
+	}
+}
+
+static void nfft_adjoint_3d_compute(const double _Complex *fj, double _Complex *g,
+				    const double *psij_const0, const double *psij_const1,
+				    const double *xj0, const double *xj1,
+				    const int n0, const int n1, const int m)
+{
+  int u0,o0,l0,u1,o1,l1;
+  double _Complex *gj;
+  const double *psij0,*psij1;
+
+  psij0=psij_const0;
+  psij1=psij_const1;
+
+  nfft_uo2(&u0,&o0,*xj0, n0, m);
+  nfft_uo2(&u1,&o1,*xj1, n1, m);
+
+  if(u0<o0)
+      if(u1<o1)
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		(*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      else
+	  for(l0=0; l0<=2*m+1; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+  else
+      if(u1<o1)
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<=2*m+1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      }
+      else
+      {
+	  for(l0=0; l0<2*m+1-o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+(u0+l0)*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+(u0+l0)*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+	  for(l0=0; l0<=o0; l0++,psij0++)
+	  {
+	      psij1=psij_const1;
+	      gj=g+l0*n1+u1;
+	      for(l1=0; l1<2*m+1-o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	      gj=g+l0*n1;
+	      for(l1=0; l1<=o1; l1++)
+		  (*gj++) += (*psij0) * (*psij1++) * (*fj);
+	  }
+      }
+}
+
+static void nfft_trafo_3d_B(nfft_plan *ths)
+{
+  int n0,N0,n1,N1,n2,N2,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
+  double _Complex *fj,*g,ip_y,ip_w;
+  double *psij, *psij_const, *xj;
+
+  double *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
+
+  N0=ths->N[0];
+  n0=ths->n[0];
+  N1=ths->N[1];
+  n1=ths->n[1];
+  N2=ths->N[2];
+  n2=ths->n[2];
+  M=ths->M_total;
+  m=ths->m;
+  
+  g=ths->g;
+
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    {
+      psi_index_g=ths->psi_index_g;
+      for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)                         
+        for(l=1, (*fj)=(*psij++) * g[(*psi_index_g++)]; l<(2*m+2)*(2*m+2)*(2*m+2); l++)
+	  (*fj) += (*psij++) * g[(*psi_index_g++)];
+      return;
+    } /* if(PRE_FULL_PSI) */
+
+  if(ths->nfft_flags & PRE_PSI)
+    {
+      for(j=0,fj=ths->f,xj=ths->x; j<M; j++,fj++,xj+=3)
+	nfft_trafo_3d_compute(fj, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), xj, xj+1, xj+2, n0, n1, n2, m);
+      return;
+    } /* if(PRE_PSI) */
+
+  if(ths->nfft_flags & PRE_FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  fg_psij0 = ths->psi[2*j*2];
+	  fg_psij1 = ths->psi[2*j*2+1];
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  fg_psij0 = ths->psi[2*(j*2+1)];
+	  fg_psij1 = ths->psi[2*(j*2+1)+1];
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_trafo_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(PRE_FG_PSI) */
+
+  if(ths->nfft_flags & FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);
+	  fg_psij0 = (PHI(*xj-((double)u)/n0,0));
+	  fg_psij1 = exp(2.0*(n0*(*xj) - u)/ths->b[0]); 
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  fg_psij0 = (PHI(*(xj+1)-((double)u)/n1,1));
+	  fg_psij1 = exp(2.0*(n1*(*(xj+1)) - u)/ths->b[1]); 
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_trafo_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(FG_PSI) */
+
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      K=ths->K;
+      ip_s=K/(m+1);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);	  
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_trafo_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
+	}
+      free(psij_const);
+      return;
+    } /* if(PRE_LIN_PSI) */
+
+  /* no precomputed psi at all */
+  psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+    {
+      nfft_uo(ths,j,&u,&o,0);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[l]=(PHI(*xj-((double)((u+l)))/n0,0));
+      
+      nfft_uo(ths,j,&u,&o,1);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[2*m+2+l]=(PHI(*(xj+1)-((double)((u+l)))/n1,1));
+
+      nfft_trafo_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
+    }
+  free(psij_const);
+}
+
+static void nfft_adjoint_3d_B(nfft_plan *ths)
+{
+  int n0,N0,n1,N1,u,o,j,M,l,m, *psi_index_g,K,ip_s,ip_u;
+  double _Complex *fj,*g,ip_y,ip_w;
+  double *psij, *psij_const, *xj;
+
+  double *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
+
+  N0=ths->N[0];
+  n0=ths->n[0];
+  N1=ths->N[1];
+  n1=ths->n[1];
+  M=ths->M_total;
+  m=ths->m;
+  
+  g=ths->g;
+  memset(g,0,ths->n_total*sizeof(double _Complex));
+
+  if(ths->nfft_flags & PRE_FULL_PSI)
+    {
+      psi_index_g=ths->psi_index_g;
+      for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)                         
+        for(l=1, g[(*psi_index_g++)]=(*psij++) * (*fj); l<(2*m+2)*(2*m+2); l++)
+	  g[(*psi_index_g++)] += (*psij++) * (*fj);
+      return;
+    } /* if(PRE_FULL_PSI) */
+
+  if(ths->nfft_flags & PRE_PSI)
+    {
+      for(j=0,fj=ths->f,xj=ths->x; j<M; j++,fj++,xj+=2)
+	nfft_adjoint_3d_compute(fj, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), xj, xj+1, n0, n1, m);
+      return;
+    } /* if(PRE_PSI) */
+
+  if(ths->nfft_flags & PRE_FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  fg_psij0 = ths->psi[2*j*2];
+	  fg_psij1 = ths->psi[2*j*2+1];
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  fg_psij0 = ths->psi[2*(j*2+1)];
+	  fg_psij1 = ths->psi[2*(j*2+1)+1];
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_adjoint_3d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(PRE_FG_PSI) */
+
+  if(ths->nfft_flags & FG_PSI) 
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      fg_exp_l=(double*) malloc(2*(2*m+2)*sizeof(double));
+
+      nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
+      nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);
+	  fg_psij0 = (PHI(*xj-((double)u)/n0,0));
+	  fg_psij1 = exp(2.0*(n0*(*xj) - u)/ths->b[0]); 
+	  fg_psij2 = 1.0;
+	  psij_const[0] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];
+	    }
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  fg_psij0 = (PHI(*(xj+1)-((double)u)/n1,1));
+	  fg_psij1 = exp(2.0*(n1*(*(xj+1)) - u)/ths->b[1]); 
+	  fg_psij2 = 1.0;
+	  psij_const[2*m+2] = fg_psij0;
+	  for(l=1; l<=2*m+1; l++)
+	    {
+	      fg_psij2 *= fg_psij1;
+	      psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
+	    }
+
+	  nfft_adjoint_3d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(fg_exp_l);
+      free(psij_const);
+      return;
+    } /* if(FG_PSI) */
+
+  if(ths->nfft_flags & PRE_LIN_PSI)
+    {
+      psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+      K=ths->K;
+      ip_s=K/(m+1);
+
+      for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+	{
+	  nfft_uo(ths,j,&u,&o,0);	  
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_uo(ths,j,&u,&o,1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_u = (int)floor(ip_y);
+	  ip_w = ip_y-ip_u;
+	  for(l=0; l < 2*m+2; l++)
+	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+
+	  nfft_adjoint_3d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+	}
+      free(psij_const);
+      return;
+    } /* if(PRE_LIN_PSI) */
+
+  /* no precomputed psi at all */
+  psij_const=(double*) malloc(2*(2*m+2)*sizeof(double));
+  for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
+    {
+      nfft_uo(ths,j,&u,&o,0);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[l]=(PHI(*xj-((double)((u+l)))/n0,0));
+      
+      nfft_uo(ths,j,&u,&o,1);
+      for(l=0;l<=2*m+1;l++)
+	psij_const[2*m+2+l]=(PHI(*(xj+1)-((double)((u+l)))/n1,1));
+
+      nfft_adjoint_3d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
+    }
+  free(psij_const);
+}
+
+      
+void nfft_trafo_3d(nfft_plan *ths)
+{
+  int k0,k1,k2,n0,n1,n2,N0,N1,N2;
+  double _Complex *g_hat,*f_hat;
+  double *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12, *c_phi_inv21, *c_phi_inv22;
+  double ck01, ck02, ck11, ck12, ck21, ck22;
+  double _Complex *g_hat11,*f_hat11,*g_hat21,*f_hat21,*g_hat12,*f_hat12,*g_hat22,*f_hat22;
+
+  ths->g_hat=ths->g1;
+  ths->g=ths->g2;
+
+  N0=ths->N[0];
+  N1=ths->N[1];
+  N2=ths->N[2];
+  n0=ths->n[0];
+  n1=ths->n[1];
+  n2=ths->n[2];
+  
+  f_hat=ths->f_hat;
+  g_hat=ths->g_hat;
+
+  TIC(0)
+  memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
+  if(ths->nfft_flags & PRE_PHI_HUT)
+    {
+      c_phi_inv01=ths->c_phi_inv[0];
+      c_phi_inv02=&ths->c_phi_inv[0][N0/2];
+      c_phi_inv11=ths->c_phi_inv[1];
+      c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+      c_phi_inv21=ths->c_phi_inv[2];
+      c_phi_inv22=&ths->c_phi_inv[2][N2/2];
+
+      for(k0=0;k0<N0/2;k0++)
+	{
+	  ck01=(*c_phi_inv01++);
+	  ck02=(*c_phi_inv02++);
+
+	  c_phi_inv11=ths->c_phi_inv[1];
+	  c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+	  g_hat11=g_hat + (n0-N0/2+k0)*n1+n1-N1/2;
+	  f_hat11=f_hat + k0*N1;
+          g_hat21=g_hat + k0*n1+n1-N1/2;
+          f_hat21=f_hat + (N0/2+k0)*N1;
+          g_hat12=g_hat + (n0-N0/2+k0)*n1;
+          f_hat12=f_hat + k0*N1+N1/2;
+	  g_hat22=g_hat + k0*n1;
+	  f_hat22=f_hat + (N0/2+k0)*N1+N1/2;
+	  for(k1=0;k1<N1/2;k1++)
+	    {
+	      ck11=(*c_phi_inv11++);
+	      ck12=(*c_phi_inv12++);
+
+	      (*g_hat11++) = (*f_hat11++) * ck01 * ck11;
+	      (*g_hat21++) = (*f_hat21++) * ck02 * ck11;
+	      (*g_hat12++) = (*f_hat12++) * ck01 * ck12;
+	      (*g_hat22++) = (*f_hat22++) * ck02 * ck12;
+	    }
+	}
+    }
+  else
+    for(k0=0;k0<N0/2;k0++)
+      {
+	ck01=1./(PHI_HUT(k0-N0/2,0));
+	ck02=1./(PHI_HUT(k0,0));
+	for(k1=0;k1<N1/2;k1++)
+	  {
+	    ck11=1./(PHI_HUT(k1-N1/2,1));
+	    ck12=1./(PHI_HUT(k1,1));
+
+	    for(k2=0;k2<N2/2;k2++)
+	      {
+		ck21=1./(PHI_HUT(k2-N2/2,2));
+		ck22=1./(PHI_HUT(k2,2));
+
+		g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+n2-N2/2+k2] = f_hat[(k0*N1+k1)*N2+k2]             * ck01 * ck11 * ck21;
+		g_hat[(k0*n1+n1-N1/2+k1)*n2+n2-N2/2+k2]           = f_hat[((N0/2+k0)*N1+k1)*N2+k2]      * ck02 * ck11 * ck21;
+		g_hat[((n0-N0/2+k0)*n1+k1)*n2+n2-N2/2+k2]         = f_hat[(k0*N1+N1/2+k1)*N2+k2]        * ck01 * ck12 * ck21;
+		g_hat[(k0*n1+k1)*n2+n2-N2/2+k2]                   = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+k2] * ck02 * ck12 * ck21;
+
+		g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+k2] = f_hat[(k0*N1+k1)*N2+N2/2+k2]             * ck01 * ck11 * ck22;
+		g_hat[(k0*n1+n1-N1/2+k1)*n2+k2]           = f_hat[((N0/2+k0)*N1+k1)*N2+N2/2+k2]      * ck02 * ck11 * ck22;
+		g_hat[((n0-N0/2+k0)*n1+k1)*n2+k2]         = f_hat[(k0*N1+N1/2+k1)*N2+N2/2+k2]        * ck01 * ck12 * ck22;
+		g_hat[(k0*n1+k1)*n2+k2]                   = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+N2/2+k2] * ck02 * ck12 * ck22;
+	      }
+	  }
+      }
+
+  TOC(0)
+
+  TIC_FFTW(1)
+  fftw_execute(ths->my_fftw_plan1);
+  TOC_FFTW(1);
+
+  TIC(2);
+  nfft_trafo_3d_B(ths);
+  TOC(2);
+}
+
+void nfft_adjoint_3d(nfft_plan *ths)
+{
+  int k0,k1,n0,n1,N0,N1;
+  double _Complex *g_hat,*f_hat;
+  double *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
+  double ck01, ck02, ck11, ck12;
+  double _Complex *g_hat11,*f_hat11,*g_hat21,*f_hat21,*g_hat12,*f_hat12,*g_hat22,*f_hat22;
+
+  ths->g_hat=ths->g1;
+  ths->g=ths->g2;
+
+  N0=ths->N[0];
+  N1=ths->N[1];
+  n0=ths->n[0];
+  n1=ths->n[1];
+  
+  f_hat=ths->f_hat;
+  g_hat=ths->g_hat;
+
+  TIC(2);
+  nfft_adjoint_3d_B(ths);
+  TOC(2);
+
+  TIC_FFTW(1)
+  fftw_execute(ths->my_fftw_plan2);
+  TOC_FFTW(1);
+
+  TIC(0)
+  if(ths->nfft_flags & PRE_PHI_HUT)
+    {
+      c_phi_inv01=ths->c_phi_inv[0];
+      c_phi_inv02=&ths->c_phi_inv[0][N0/2];
+      c_phi_inv11=ths->c_phi_inv[1];
+      c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+
+      for(k0=0;k0<N0/2;k0++)
+	{
+	  ck01=(*c_phi_inv01++);
+	  ck02=(*c_phi_inv02++);
+
+	  c_phi_inv11=ths->c_phi_inv[1];
+	  c_phi_inv12=&ths->c_phi_inv[1][N1/2];
+	  g_hat11=g_hat + (n0-N0/2+k0)*n1+n1-N1/2;
+	  f_hat11=f_hat + k0*N1;
+          g_hat21=g_hat + k0*n1+n1-N1/2;
+          f_hat21=f_hat + (N0/2+k0)*N1;
+          g_hat12=g_hat + (n0-N0/2+k0)*n1;
+          f_hat12=f_hat + k0*N1+N1/2;
+	  g_hat22=g_hat + k0*n1;
+	  f_hat22=f_hat + (N0/2+k0)*N1+N1/2;
+	  for(k1=0;k1<N1/2;k1++)
+	    {
+	      ck11=(*c_phi_inv11++);
+	      ck12=(*c_phi_inv12++);
+
+	      (*f_hat11++) = (*g_hat11++) * ck01 * ck11;
+	      (*f_hat21++) = (*g_hat21++) * ck02 * ck11;
+	      (*f_hat12++) = (*g_hat12++) * ck01 * ck12;
+	      (*f_hat22++) = (*g_hat22++) * ck02 * ck12;
+	    }
+	}
+    }
+  else
+    for(k0=0;k0<N0/2;k0++)
+      {
+	ck01=1./(PHI_HUT(k0-N0/2,0));
+	ck02=1./(PHI_HUT(k0,0));
+	for(k1=0;k1<N1/2;k1++)
+	  {
+	    ck11=1./(PHI_HUT(k1-N1/2,1));
+	    ck12=1./(PHI_HUT(k1,1));
+	    f_hat[k0*N1+k1]             = g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] * ck01 * ck11;
+	    f_hat[(N0/2+k0)*N1+k1]      = g_hat[k0*n1+n1-N1/2+k1]           * ck02 * ck11;
+	    f_hat[k0*N1+N1/2+k1]        = g_hat[(n0-N0/2+k0)*n1+k1]         * ck01 * ck12;
+	    f_hat[(N0/2+k0)*N1+N1/2+k1] = g_hat[k0*n1+k1]                   * ck02 * ck12;
+	  }
+      }
+  TOC(0)
+}
+
 
 
 /** initialisation of direct transform 
