@@ -73,7 +73,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       printf("\\verb+%.1e+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
     }
   else
-    printf("\\verb+*+&\t\t\t\t");
+    printf("\\verb+*+\t&\t&\t");
 
   /** NFFT */
   t_nfft=0;
