@@ -14,9 +14,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   nfft_plan p;
   fftw_plan p_fft;
 
-  double auxC=pow(10,8);
+  double auxC=pow(2,29);
 
-  printf("$%d$&\t",(int)(log(N)/log(2)*d+0.5));
+  printf("\\verb+%d+&\t",(int)(log(N)/log(2)*d+0.5));
      
   for(r=0,M=1;r<d;r++)
     {
@@ -36,12 +36,6 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  for(j=0;j<M;j++)
-    {
-      p.x[3*j]=0.1*p.x[3*j]+0.4;
-      p.x[3*j+1]=0.1*p.x[3*j+1]+0.4;
-    }
-
   nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients */
@@ -60,7 +54,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_fft/=r;
 
-  printf("$%.1e$ ($%.1f$)&\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  printf("\\verb+%.1e+ & (\\verb+%.1f+) &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
 
   /** NDFT */
   if(test_ndft)
@@ -76,10 +70,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("$%.1e$  ($%.1f$)&\t",t_ndft,t_ndft/(p.N_total*p.N_total)*auxC);
+      printf("\\verb+%.1e+ & (\\verb+%d+)&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
     }
   else
-    printf("*&\t\t\t");
+    printf("\\verb+*+&\t\t\t\t");
 
   /** NFFT */
   t_nfft=0;
@@ -100,7 +94,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_nfft/=r;
   
-  printf("$%.1e$ ($%.1f$)\\\\\n",t_nfft,t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  printf("\\verb+%.1e+ & (\\verb+%d+)\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC));
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
@@ -781,19 +775,8 @@ int main()
 {
   int l,d,logIN;
 
-  for(l=3;l<=7;l++)
-    {
-      d=3;
-      logIN=d*l;
-      if(logIN<=15)
-	measure_time_nfft(d,(1U<< (logIN/d)),1);
-      else
-	measure_time_nfft(d,(1U<< (logIN/d)),0);
-
-      fflush(stdout);
-    }
-
-  printf("\\\\ \\multicolumn{4}{|c|}{$d=1$} \\\\ \\hline\n");
+  printf("\\hline $l_N$ & FFT & $/(2^{l_N} l_N)$ & NDFT & $/4^{l_N}$ & NFFT $/(2^{l_N} l_N)$ \\\\\n");
+  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=1$} \\\\ \\hline\n");
   for(l=3;l<=22;l++)
     {
       d=1;
@@ -806,7 +789,8 @@ int main()
       fflush(stdout);
     }
   
-  printf("\\\\ \\multicolumn{4}{|c|}{$d=2$} \\\\ \\hline\n");
+  printf("\\hline $l_N$ & FFT & $/(2^{l_N} l_N)$ & NDFT & $/4^{l_N}$ & NFFT $/(2^{l_N} l_N)$ \\\\ \n");
+  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=2$} \\\\ \\hline\n");
   for(l=3;l<=11;l++)
     {
       d=2;
@@ -819,8 +803,7 @@ int main()
       fflush(stdout);
     }
 
-  printf("\\\\ \\multicolumn{4}{|c|}{$d=3$} \\\\ \\hline\n");
-  
+  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=3$} \\\\ \\hline\n");
   for(l=3;l<=7;l++)
     {
       d=3;
