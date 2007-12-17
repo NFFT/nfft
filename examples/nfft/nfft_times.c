@@ -612,8 +612,8 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
     }
 
   nfft_init_guru(&p, d, NN, M, nn, 4, 
-		 //PRE_PHI_HUT|
-		 PRE_PSI|
+		 PRE_PHI_HUT|
+		 FG_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -624,13 +624,6 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
-
-  for(j=0;j<M;j++)
-    {
-      //p.x[3*j]=0.1*p.x[3*j]+0.4;
-      //p.x[3*j+1]=0.1*p.x[3*j+1]+0.4;
-      //p.x[3*j+2]=0.1*p.x[3*j+1]+0.4;
-    }
 
   //qsort(p.x,p.M_total,sizeof(double),comp);
   //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
