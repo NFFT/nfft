@@ -54,7 +54,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_fft/=r;
 
-  printf("\\verb+%.1e+ & (\\verb+%.1f+) &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  printf("\\verb+%.1e+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
 
   /** NDFT */
   if(test_ndft)
@@ -70,7 +70,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("\\verb+%.1e+ & (\\verb+%d+)&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
+      printf("\\verb+%.1e+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
     }
   else
     printf("\\verb+*+&\t\t\t\t");
@@ -94,7 +94,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_nfft/=r;
   
-  printf("\\verb+%.1e+ & (\\verb+%d+)\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC));
+  printf("\\verb+%.1e+ & \\verb+(%d)+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC));
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
