@@ -327,7 +327,7 @@ MACRO_ndst(adjoint)
 
 
 #define MACRO_nfst_D(which_one)                                                 \
-inline void nfst_D_ ## which_one (nfst_plan *ths)                               \
+static inline void nfst_D_ ## which_one (nfst_plan *ths)                               \
 {                                                                               \
   int k_L;                              /**< plain index                */      \
                                                                                 \
@@ -540,7 +540,7 @@ MACRO_nfst_D(T)
 
 
 #define MACRO_nfst_B( which_one)                                                \
-  inline void nfst_B_ ## which_one ( nfst_plan *ths)                            \
+  static inline void nfst_B_ ## which_one ( nfst_plan *ths)                            \
   { /* MACRO_nfst_B */                                                          \
     int lb[ths->d];                     /**< multi band with respect to x_j */  \
     int j, t, i;                        /**< index nodes, help vars         */  \

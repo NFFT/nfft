@@ -185,7 +185,7 @@ int nfct_fftw_2N_rev( int n)
 
 #define MACRO_ndct_compute__trafo                                       \
 {                                                                       \
-  f[j] += f_hat[k] * cos_k[ths->d];	                                \
+  f[j] += f_hat[k] * cos_k[ths->d];	                                    \
 }
 
 #define MACRO_ndct_compute__adjoint                                     \
@@ -204,7 +204,7 @@ int nfct_fftw_2N_rev( int n)
     double *f     = ths->f;                                             \
     double *f_hat = ths->f_hat;                                         \
                                                                         \
-    MACRO_ndct_init_result_ ## which_one;			  	\
+    MACRO_ndct_init_result_ ## which_one;			                    \
     if( ths->d == 1)                                                    \
       for( j = 0; j < ths->M_total; j++)                                \
       {                                                                 \
@@ -348,7 +348,7 @@ MACRO_ndct(adjoint)
 
 
 #define MACRO_nfct_D(which_one)                                                 \
-inline void nfct_D_ ## which_one (nfct_plan *ths)                               \
+static inline void nfct_D_ ## which_one (nfct_plan *ths)                               \
 {			                                                        \
                                                                                 \
   int k_L;                        /**< plain index                    */        \
@@ -533,7 +533,7 @@ MACRO_nfct_D(T)
 
 
 #define MACRO_nfct_B( which_one)                                                \
-inline void nfct_B_ ## which_one ( nfct_plan *ths)                              \
+static inline void nfct_B_ ## which_one ( nfct_plan *ths)                              \
 { /* MACRO_nfct_B */                                                            \
   int lb[ths->d];               /**< multi band with respect to x_j */          \
   int j, t, i;                  /**< index nodes, help vars         */          \

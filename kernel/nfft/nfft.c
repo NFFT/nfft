@@ -244,7 +244,7 @@ static void nfft_uo2(int *u, int *o, const double x, const int n, const int m)
  *  matrix vector multiplication with \f$D, D^T\f$
  */
 #define MACRO_nfft_D(which_one)                                               \
-inline void nfft_D_ ## which_one (nfft_plan *ths)                             \
+static inline void nfft_D_ ## which_one (nfft_plan *ths)                             \
 {                                                                             \
   int t, t2;                            /**< index dimensions               */\
   int k_L;                              /**< plain index                    */\
@@ -268,26 +268,26 @@ inline void nfft_D_ ## which_one (nfft_plan *ths)                             \
       MACRO_init_k_ks;                                                        \
                                                                               \
       for(k_L=0; k_L<ths->N_total; k_L++)                                     \
-	{                                                                     \
+	{                                                                         \
           MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT);                         \
                                                                               \
-	  MACRO_nfft_D_compute_ ## which_one;                                 \
-	                                                                      \
-	  MACRO_count_k_ks;                                                   \
-	} /* for(k_L) */                                                      \
+	  MACRO_nfft_D_compute_ ## which_one;                                     \
+	                                                                          \
+	  MACRO_count_k_ks;                                                       \
+	} /* for(k_L) */                                                          \
     } /* if(PRE_PHI_HUT) */                                                   \
   else                                                                        \
     {                                                                         \
       MACRO_init_k_ks;                                                        \
                                                                               \
       for(k_L=0; k_L<ths->N_total; k_L++)                                     \
-	{                                                                     \
-          MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                      \
+	  {                                                                       \
+        MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                        \
                                                                               \
-	  MACRO_nfft_D_compute_ ## which_one;                                 \
-	                                                                      \
-	  MACRO_count_k_ks;                                                   \
-	} /* for(k_L) */                                                      \
+	    MACRO_nfft_D_compute_ ## which_one;                                   \
+	                                                                          \
+	    MACRO_count_k_ks;                                                     \
+	  } /* for(k_L) */                                                        \
     } /* else(PRE_PHI_HUT) */                                                 \
 } /* nfft_D */
 
@@ -303,7 +303,7 @@ MACRO_nfft_D(T)
                                           sizeof(double _Complex));
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_A {                                 \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			      \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			                  \
 }
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_T {                                 \
@@ -355,7 +355,7 @@ MACRO_nfft_D(T)
 }
 
 #define MACRO_nfft_B(which_one)                                               \
-inline void nfft_B_ ## which_one (nfft_plan *ths)                             \
+static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
 {                                                                             \
   int lprod;                            /**< 'regular bandwidth' of matrix B*/\
   int u[ths->d], o[ths->d];             /**< multi band with respect to x_j */\

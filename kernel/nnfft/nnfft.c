@@ -153,7 +153,7 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 }
 
 #define MACRO_nnfft_B(which_one)                                                \
-inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
+static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
 {                                                                              \
   int lprod;                            /**< 'regular bandwidth' of matrix B */\
   int u[ths->d], o[ths->d];           /**< multi band with respect to x_j  */\
@@ -245,7 +245,7 @@ inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
 MACRO_nnfft_B(A)
 MACRO_nnfft_B(T)
 
-inline void nnfft_D (nnfft_plan *ths){
+static inline void nnfft_D (nnfft_plan *ths){
   int j,t;
   double tmp;
   
