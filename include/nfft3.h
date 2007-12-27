@@ -369,6 +369,7 @@ void nfft_trafo_3d(nfft_plan *ths);
 void nfft_adjoint(nfft_plan *ths);
 void nfft_adjoint_1d(nfft_plan *ths);
 void nfft_adjoint_2d(nfft_plan *ths);
+void nfft_adjoint_3d(nfft_plan *ths);
 
 /**
  * Initialisation of a transform plan, wrapper d=1.
