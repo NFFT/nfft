@@ -2728,7 +2728,7 @@ void nfft_adjoint_3d(nfft_plan *ths)
   TOC_FFTW(1);
 
   TIC(0)
-  memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
+      //memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
       c_phi_inv01=ths->c_phi_inv[0];

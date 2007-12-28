@@ -605,7 +605,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 4, 
+  nfft_init_guru(&p, d, NN, M, nn, 2, 
 		 PRE_PHI_HUT|
 		 FG_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -713,8 +713,130 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 } 
 
 
+void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
+{
+  int j,r, M, NN[d], nn[d];
+  double t, t_fft, t_ndft, t_nfft;
 
-int main2()
+  nfft_plan p;
+  fftw_plan p_fft;
+
+  printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
+     
+  for(r=0,M=1;r<d;r++)
+    {
+      M=N*M;
+      NN[r]=N;
+      nn[r]=2*N;
+    }
+
+  nfft_init_guru(&p, d, NN, M, nn, 2, 
+		 PRE_PHI_HUT|
+		 FG_PSI|
+		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+
+  p_fft=fftw_plan_dft(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
+
+  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.N_total*sizeof(double _Complex));
+
+  /** init pseudo random nodes */
+  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
+
+  //sort_nodes(p.x,p.d,p.M_total,
+
+  nfft_precompute_one_psi(&p);
+
+  /** init pseudo random samples */
+  nfft_vrand_unit_complex(p.f, p.M_total);
+
+  /** FFT */
+  t_fft=0;
+  r=0;
+  while(t_fft<0.1)
+    {
+      r++;
+      t=nfft_second();
+      fftw_execute(p_fft);
+      t=nfft_second()-t;
+      t_fft+=t;
+    }
+  t_fft/=r;
+
+  printf("%.1e\t",t_fft);
+
+  /** init pseudo random samples */
+  nfft_vrand_unit_complex(p.f, p.M_total);
+
+  /** NDFT */
+  if(test_ndft)
+    {
+      NFFT_SWAP_complex(p.f_hat,swapndft);
+      t_ndft=0;
+      r=0;
+      while(t_ndft<0.1)
+        {
+          r++;
+          t=nfft_second();
+          ndft_adjoint(&p);
+          t=nfft_second()-t;
+          t_ndft+=t;
+        }
+      t_ndft/=r;
+      printf("%.1e\t",t_ndft);
+
+      //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+
+      NFFT_SWAP_complex(p.f_hat,swapndft);
+    }
+  else
+    printf("\t");
+
+  /** NFFT */
+  t_nfft=0;
+  r=0;
+  while(t_nfft<0.1)
+    {
+      r++;
+      t=nfft_second();
+      nfft_adjoint(&p);
+      t=nfft_second()-t;
+      t_nfft+=t;
+    }
+  t_nfft/=r;
+  printf("%.1e\t",t_nfft);
+  if(test_ndft)
+    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+
+  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+
+  /** NFFT_3d */
+  t_nfft=0;
+  r=0;
+  while(t_nfft<0.1)
+    {
+      r++;
+      t=nfft_second();
+      nfft_adjoint_3d(&p);
+      t=nfft_second()-t;
+      t_nfft+=t;
+    }
+  t_nfft/=r;
+  printf("%.1e\t",t_nfft);
+  if(test_ndft)
+    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+
+  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+
+  printf("\n");
+
+  fftw_free(swapndft);
+  fftw_destroy_plan(p_fft);
+  nfft_finalize(&p);
+} 
+
+int main()
 {
   int l,d,logIN;
 
@@ -725,10 +847,12 @@ int main2()
       if(logIN<=15)
 	{
 	  measure_time_nfft_XXX6(d,(1U<< (logIN/d)),1);
+	  measure_time_nfft_XXX7(d,(1U<< (logIN/d)),1);
 	}
       else
 	{
 	  measure_time_nfft_XXX6(d,(1U<< (logIN/d)),0);
+	  measure_time_nfft_XXX7(d,(1U<< (logIN/d)),0);
 	}
     }
   
@@ -771,7 +895,7 @@ int main2()
   exit(-1);
 }
 
-int main()
+int main2()
 {
   int l,d,logIN;
 
