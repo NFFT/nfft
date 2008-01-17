@@ -15,7 +15,7 @@ elseif (isnumeric(a) && isscalar(a) && a >= 0)
   p = class(p,'f_hat');
 elseif (isnumeric(a) && ndims(a) == 2 && (size(a,1)-1)/2+1 == size(a,2))
   p.N = (size(a,1)-1)/2;
-  p.f_hat = zeros((p.N+1)^2);
+  p.f_hat = zeros((p.N+1)^2,1);
   o = 1;
   for k = 0:p.N
     p.f_hat(o:o+2*k) = a(k*(2*p.N+1)+p.N+1-k:k*(2*p.N+1)+p.N+1+k);

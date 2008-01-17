@@ -29,7 +29,8 @@
 #endif
 /*----------------------------------------------------------------------------*/
 
-#define PLANS_MAX 10             /**< Maximum number of plans.                */
+#define ABS(x) (((x)<0)?(-(x)):(x))
+#define PLANS_MAX 1000           /**< Maximum number of plans.                */
 #define CMD_LEN_MAX 20           /**< Maximum length of command argument.     */
 /*----------------------------------------------------------------------------*/
 
@@ -191,7 +192,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     MAKE_NEW_PLAN(i)
     nfsft_init_guru(plans[i],(int)(dp1[0]),(int)(dp2[0]),
       (unsigned int)(dp3[0]) | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-      NFSFT_MALLOC_F_HAT, (int)(dp4[0]),(int)(dp5[0]));
+      NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE 
+      /*(int)(dp4[0])*/,(int)(dp5[0]));
     RETURN_PLAN(dp1,i)
   }
   else if (strcmp(cmd,"precompute") == 0)
@@ -322,11 +324,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       plans[(int)(dp1[0])]->N+1, mxCOMPLEX);
     dp2 = mxGetPr(plhs[0]); dp3 = mxGetPi(plhs[0]);
 
-    /*plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(0, 0, plans[(int)(dp1[0])])] = 1 + 2*_Complex_I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, -1, plans[(int)(dp1[0])])] = 3 + 4*_Complex_I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 0, plans[(int)(dp1[0])])] = 5 + 6*_Complex_I;
-    plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(1, 1, plans[(int)(dp1[0])])] = 7 + 8*_Complex_I;*/
-
     for (i = 0; i <= plans[(int)(dp1[0])]->N; i++)
     {
       for (j = -i; j <= i; j++)
@@ -339,6 +336,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             plans[(int)(dp1[0])])]);
       }
     }
+  }
+  else if (strcmp(cmd,"get_f_hat_linear") == 0)
+  {    
+    /* Check number of arguments. */
+    if (nrhs != 2)
+      mexErrMsgTxt("One additional argument required for get_f_hat_linear.");
+
+    ARG_GET_PLAN(dp1)
+    
+    {
+      int idx = 0, n = plans[(int)(dp1[0])]->N;
+      double _Complex *f_hat = plans[(int)(dp1[0])]->f_hat;
+      
+      plhs[0] = mxCreateDoubleMatrix((n+1)*(n+1), 1, mxCOMPLEX);
+      
+      dp2 = mxGetPr(plhs[0]); dp3 = mxGetPi(plhs[0]);
+
+      for (i = 0; i <= n; i++)
+        for (j = -i; j <= i; j++)
+        {
+          dp2[idx] = creal(f_hat[NFSFT_INDEX(i,j,plans[(int)(dp1[0])])]);
+          dp3[idx++] = cimag(f_hat[NFSFT_INDEX(i,j,plans[(int)(dp1[0])])]);
+        }
+    }  
   }
   else if (strcmp(cmd,"set_x") == 0)
   {
@@ -386,7 +407,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     /* Check number of arguments. */
     if (nrhs != 3)
-      mexErrMsgTxt("Two additional argument required for set_f_hat.");
+      mexErrMsgTxt("Two additional arguments required for set_f_hat.");
 
     ARG_GET_PLAN(dp1)
 
@@ -409,6 +430,34 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         plans[(int)(dp1[0])]->N+j]):(0.0));
       }
     }
+  }
+  else if (strcmp(cmd,"set_f_hat_linear") == 0)
+  {
+    int n, idx = 0;
+    
+    /* Check number of arguments. */
+    if (nrhs != 3)
+      mexErrMsgTxt("Two additional arguments required for set_f_hat.");
+
+    ARG_GET_PLAN(dp1)
+
+    if (mxIsDouble(prhs[2]) != 1)
+      mexErrMsgTxt("Third argument must be a double array");
+
+    n = plans[(int)(dp1[0])]->N;
+    
+    if (mxGetM(prhs[2]) != (n+1)*(n+1) || mxGetN(prhs[2]) != 1)
+      mexErrMsgTxt("Third argument must have correct size.");
+
+    dp2 = mxGetPr(prhs[2]); dp3 = mxGetPi(prhs[2]);
+
+    for (i = 0; i <= n; i++)
+      for (j = -i; j <= i; j++)
+      {
+        plans[(int)(dp1[0])]->f_hat[NFSFT_INDEX(i,j,plans[(int)(dp1[0])])] =
+          dp2[idx] + ((dp3)?(I*dp3[idx]):(0.0));
+        idx++;
+      }
   }
   else if (strcmp(cmd,"display") == 0)
   {

@@ -19,11 +19,9 @@
 
 /* Common Block Declarations */
 
-struct {
+static struct {
     double y;
-} stcom_;
-
-#define stcom_1 stcom_
+} stcom;
 
 /* Subroutine */ int addnod_(long int *nst, long int *k, double *x, 
 	double *y, double *z__, long int *list, long int *lptr, long int 
@@ -4737,8 +4735,8 @@ double store_(double *x)
 
 /* *********************************************************** */
 
-    stcom_1.y = *x;
-    ret_val = stcom_1.y;
+    stcom.y = *x;
+    ret_val = stcom.y;
     return ret_val;
 } /* store_ */
 

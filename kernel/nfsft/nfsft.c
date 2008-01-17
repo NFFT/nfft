@@ -880,7 +880,7 @@ void nfsft_trafo(nfsft_plan *plan)
     {
       /* Use NFFT. */
       //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
-      nfft_trafo(&plan->plan_nfft);
+      nfft_trafo_2d(&plan->plan_nfft);
     }
   }
 }
@@ -937,7 +937,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fflush(stderr);
       //fprintf(stderr,"nfsft_adjoint: nfft_adjoint\n");
       /* Use adjoint NFFT. */
-      nfft_adjoint(&plan->plan_nfft);
+      nfft_adjoint_2d(&plan->plan_nfft);
     }
 
     //fprintf(stderr,"nfsft_adjoint: Executing c2e_transposed\n");
