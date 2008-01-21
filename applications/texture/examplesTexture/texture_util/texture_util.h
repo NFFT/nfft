@@ -483,7 +483,7 @@ void calculate_grid(grid_dim dims, double *h_phi, double *h_theta,
 /**
  * Stores the descriptions for different omega policies.
  */
-const char *omega_policy_descr[7];
+const char *omega_policy_descr[10];
 
 /**
  * Creates a random frequency vector:

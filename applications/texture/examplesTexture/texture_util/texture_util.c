@@ -14,7 +14,7 @@ const char *grid_descr[] =
 
 const char *omega_policy_descr[] =
 	{ "flat", "1/n", "one", "1/n^2", "1/(l+1)^1.5 (circle)",
-"1/(l+1)^9.5 (circle)", "1/(l+1)^10 (circle)" };
+"1/(l+1)^9.5 (circle)", "1/(l+1)^10 (circle)" , "1/(l+1)^4.5 (circle)", "1/(l+1)^3.5 (circle)", "1/(l+1)^2.5 (circle)"};
 
 const char *solver_algo_descr[] = { "CGNR", "CGNE" };
 
@@ -440,6 +440,45 @@ void init_omega(double _Complex * omega, int N, int omega_policy)
 					for (n = -l; n <= l; n++) {
 						omega[texture_flat_index(l, m, n)] = crand_circle();
 						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 10);
+					}
+				}
+			}
+			break;
+		}
+		case 7:
+		{
+			int l, m, n;
+			for (l = 0; l <= N; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						omega[texture_flat_index(l, m, n)] = crand_circle();
+						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 4.5);
+					}
+				}
+			}
+			break;
+		}
+		case 8:
+		{
+			int l, m, n;
+			for (l = 0; l <= N; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						omega[texture_flat_index(l, m, n)] = crand_circle();
+						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 3.5);
+					}
+				}
+			}
+			break;
+		}
+		case 9:
+		{
+			int l, m, n;
+			for (l = 0; l <= N; l++) {
+				for (m = -l; m <= l; m++) {
+					for (n = -l; n <= l; n++) {
+						omega[texture_flat_index(l, m, n)] = crand_circle();
+						omega[texture_flat_index(l, m, n)] /= pow(l + 1, 2.5);
 					}
 				}
 			}
