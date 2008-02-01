@@ -69,6 +69,24 @@ if test "$ok" = "yes"; then
 	AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
+AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function 
+  (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc, 
+  dirac)])], 
+  window=$withval, window="kaiserbessel")
+
+case "$window" in
+  gaussian)
+    CFLAGS="$CFLAGS -DGAUSSIAN";;
+  bspline)
+    CFLAGS="$CFLAGS -DB_SPLINE";;
+  sinc)
+    CFLAGS="$CFLAGS -DSINC_POWER";;
+  delta)
+    CFLAGS="$CFLAGS -DDIRAC_DELTA";;
+  *)
+    CFLAGS="$CFLAGS -DKAISER_BESSEL";;
+esac
+
 dnl Make maintainer mode available.
 AM_MAINTAINER_MODE
 

@@ -30,7 +30,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
   dnl Add configure option to enable mex file compilation.
   AC_ARG_WITH(matlab,
-  [  --with-matlab=DIR    the directory where Matlab is installed ],
+  [AC_HELP_STRING([--with-matlab=DIR],[the directory where Matlab is installed ])],
   MATLAB_DIR=${withval},MATLAB_DIR=)
 
   dnl Test if Matlab directory existent.
