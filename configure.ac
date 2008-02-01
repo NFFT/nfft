@@ -69,6 +69,18 @@ if test "$ok" = "yes"; then
 	AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
+AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
+  [measure time during execution])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  CFLAGS="$CFLAGS -DMEASURE_TIME"
+fi
+
+AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
+  [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  CFLAGS="$CFLAGS -DMEASURE_TIME_FFTW"
+fi
+
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function 
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc, 
   dirac)])], 
