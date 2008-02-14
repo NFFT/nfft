@@ -27,7 +27,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 
   nfft_init_guru(&p, d, NN, M, nn, 4, 
 		 PRE_PHI_HUT| 
-		 FG_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
+		 PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -84,9 +84,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       t=nfft_second();
       switch(d)
 	{
-	  case 1: { nfft_trafo(&p); break; }
-	  case 2: { nfft_trafo(&p); break; }
-	  case 3: { nfft_trafo(&p); break; }
+	  case 1: { nfft_trafo_1d(&p); break; }
+	  case 2: { nfft_trafo_2d(&p); break; }
+	  case 3: { nfft_trafo_3d(&p); break; }
           default: nfft_trafo(&p);
 	}
       t=nfft_second()-t;
@@ -836,7 +836,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   nfft_finalize(&p);
 } 
 
-int main()
+int main2()
 {
   int l,d,logIN;
 
@@ -895,7 +895,7 @@ int main()
   exit(-1);
 }
 
-int main2()
+int main()
 {
   int l,d,logIN;
 
