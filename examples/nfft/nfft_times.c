@@ -6,6 +6,62 @@
 #include "util.h"
 #include "nfft3.h"
 
+int global_n;
+int global_d;
+
+static int comp1(const void *x,const void *y)
+{
+  return ((* (double*) x)<(* (double*) y)?-1:1);
+}
+
+static int comp2(const void *x,const void *y)
+{
+  int nx0,nx1,ny0,ny1;
+  nx0=global_n*(* ((double*)x+0));
+  nx1=global_n*(* ((double*)x+1));
+  ny0=global_n*(* ((double*)y+0));
+  ny1=global_n*(* ((double*)y+1));
+
+  if(nx0<ny0)
+    return -1;
+  else
+    if(nx0==ny0)
+      if(nx1<ny1)
+	return -1;
+      else
+	return 1;
+    else
+      return 1;
+}
+
+static int comp3(const void *x,const void *y)
+{
+  int nx0,nx1,nx2,ny0,ny1,ny2;
+  nx0=global_n*(* ((double*)x+0));
+  nx1=global_n*(* ((double*)x+1));
+  nx2=global_n*(* ((double*)x+2));
+  ny0=global_n*(* ((double*)y+0));
+  ny1=global_n*(* ((double*)y+1));
+  ny2=global_n*(* ((double*)y+2));
+
+  if(nx0<ny0)
+    return -1;
+  else
+    if(nx0==ny0)
+      if(nx1<ny1)
+	return -1;
+      else
+	if(nx1==ny1)
+	  if(nx2<ny2)
+	    return -1;
+	  else
+	    return 1;
+	else
+	  return 1;
+    else
+      return 1;
+}
+
 void measure_time_nfft(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d],j;
@@ -36,6 +92,15 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
+  global_n=nn[0];
+  global_d=d;
+  switch(d)
+    {
+      case 1: { qsort(p.x,p.M_total,d*sizeof(double),comp1); break; }
+      case 2: { qsort(p.x,p.M_total,d*sizeof(double),comp2); break; }
+      case 3: { qsort(p.x,p.M_total,d*sizeof(double),comp3); break; }
+    }
+
   nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients */
@@ -54,7 +119,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_fft/=r;
 
-  printf("\\verb+%.1e+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  //  printf("\\verb+%.1e+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  printf("\\verb+%.1e+ &\t",t_fft);
 
   /** NDFT */
   if(test_ndft)
@@ -70,10 +136,12 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
           t_ndft+=t;
         }
       t_ndft/=r;
-      printf("\\verb+%.1e+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
+      //printf("\\verb+%.1e+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
+      printf("\\verb+%.1e+ &\t",t_ndft);
     }
   else
-    printf("\\verb+*+\t&\t&\t");
+    //    printf("\\verb+*+\t&\t&\t");
+    printf("\\verb+*+\t&\t");
 
   /** NFFT */
   t_nfft=0;
@@ -94,16 +162,12 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     }
   t_nfft/=r;
   
-  printf("\\verb+%.1e+ & \\verb+(%d)+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC));
+  //  printf("\\verb+%.1e+ & \\verb+(%d)+ & \\verb+(%.1e)+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
+  printf("\\verb+%.1e+ & \\verb+(%3.1f)+\\\\\n",t_nfft,t_nfft/t_fft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
-
-static int comp(const void *x,const void *y)
-{
-  return ((* (double*) x)<(* (double*) y)?-1:1);
-}
 
 void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 {
@@ -136,7 +200,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  qsort(p.x,p.M_total,sizeof(double),comp);
+  qsort(p.x,p.M_total,d*sizeof(double),comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
 
   nfft_precompute_one_psi(&p);
@@ -250,7 +314,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  qsort(p.x,p.M_total,sizeof(double),comp);
+  qsort(p.x,p.M_total,d*sizeof(double),comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
 
   nfft_precompute_one_psi(&p);
@@ -370,7 +434,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   //for(j=0;j<2*M;j+=2)
   //   p.x[j]=0.5*p.x[j]+0.25*(p.x[j]>=0?1:-1);
 
-  //qsort(p.x,p.M_total,sizeof(double),comp);
+  //qsort(p.x,p.M_total,d*sizeof(double),comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
 
   nfft_precompute_one_psi(&p);
@@ -619,7 +683,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  //qsort(p.x,p.M_total,sizeof(double),comp);
+  //qsort(p.x,p.M_total,d*sizeof(double),comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
 
   nfft_precompute_one_psi(&p);
@@ -895,7 +959,7 @@ int main2()
   exit(-1);
 }
 
-int main()
+int XXX()
 {
   int l,d,logIN;
 
@@ -912,14 +976,14 @@ int main()
       
       fflush(stdout);
     }
-  
+
   printf("\\hline $l_N$ & FFT & $/(2^{l_N} l_N)$ & NDFT & $/4^{l_N}$ & NFFT $/(2^{l_N} l_N)$ \\\\ \n");
   printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=2$} \\\\ \\hline\n");
   for(l=3;l<=11;l++)
     {
       d=2;
       logIN=d*l;
-      if(logIN<=15)
+      if(0)//(logIN<=15)
 	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
 	measure_time_nfft(d,(1U<< (logIN/d)),0);
@@ -927,12 +991,46 @@ int main()
       fflush(stdout);
     }
 
-  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=3$} \\\\ \\hline\n");
+}
+
+int main()
+{
+  int l,d,logIN;
+
+  printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
+  printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=1$} \\\\ \\hline\n");
+  for(l=3;l<=22;l++)
+    {
+      d=1;
+      logIN=l;
+      if(logIN<=15)
+	measure_time_nfft(d,(1U<< (logIN/d)),1);
+      else
+	measure_time_nfft(d,(1U<< (logIN/d)),0);
+      
+      fflush(stdout);
+    }
+
+  printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
+  printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=2$} \\\\ \\hline\n");
+  for(l=3;l<=11;l++)
+    {
+      d=2;
+      logIN=d*l;
+      if(0)//(logIN<=15)
+	measure_time_nfft(d,(1U<< (logIN/d)),1);
+      else
+	measure_time_nfft(d,(1U<< (logIN/d)),0);
+
+      fflush(stdout);
+    }
+
+  printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=3$} \\\\ \\hline\n");
   for(l=3;l<=7;l++)
     {
       d=3;
       logIN=d*l;
-      if(logIN<=15)
+      if(0)//(logIN<=15)
 	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
 	measure_time_nfft(d,(1U<< (logIN/d)),0);
