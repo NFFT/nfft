@@ -109,7 +109,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   /** FFT */
   t_fft=0;
   r=0;
-  while(t_fft<0.1)
+  while(t_fft<1)
     {
       r++;
       t=nfft_second();
@@ -127,7 +127,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
     {
       t_ndft=0;
       r=0;
-      while(t_ndft<0.1)
+      while(t_ndft<1)
         {
           r++;
           t=nfft_second();
@@ -146,7 +146,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   /** NFFT */
   t_nfft=0;
   r=0;
-  while(t_nfft<0.1)
+  while(t_nfft<1)
     {
       r++;
       t=nfft_second();
@@ -963,34 +963,7 @@ int XXX()
 {
   int l,d,logIN;
 
-  printf("\\hline $l_N$ & FFT & $/(2^{l_N} l_N)$ & NDFT & $/4^{l_N}$ & NFFT $/(2^{l_N} l_N)$ \\\\\n");
-  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=1$} \\\\ \\hline\n");
-  for(l=3;l<=22;l++)
-    {
-      d=1;
-      logIN=l;
-      if(logIN<=15)
-	measure_time_nfft(d,(1U<< (logIN/d)),1);
-      else
-	measure_time_nfft(d,(1U<< (logIN/d)),0);
-      
-      fflush(stdout);
-    }
-
-  printf("\\hline $l_N$ & FFT & $/(2^{l_N} l_N)$ & NDFT & $/4^{l_N}$ & NFFT $/(2^{l_N} l_N)$ \\\\ \n");
-  printf("\\hline \\hline \\multicolumn{7}{|c|}{$d=2$} \\\\ \\hline\n");
-  for(l=3;l<=11;l++)
-    {
-      d=2;
-      logIN=d*l;
-      if(0)//(logIN<=15)
-	measure_time_nfft(d,(1U<< (logIN/d)),1);
-      else
-	measure_time_nfft(d,(1U<< (logIN/d)),0);
-
-      fflush(stdout);
-    }
-
+ 
 }
 
 int main()
