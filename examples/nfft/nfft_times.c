@@ -963,7 +963,6 @@ int XXX()
 {
   int l,d,logIN;
 
- 
 }
 
 int main()
@@ -984,13 +983,14 @@ int main()
       fflush(stdout);
     }
 
+
   printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
   printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=2$} \\\\ \\hline\n");
   for(l=3;l<=11;l++)
     {
       d=2;
       logIN=d*l;
-      if(0)//(logIN<=15)
+      if(logIN<=15)
 	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
 	measure_time_nfft(d,(1U<< (logIN/d)),0);
@@ -1003,7 +1003,7 @@ int main()
     {
       d=3;
       logIN=d*l;
-      if(0)//(logIN<=15)
+      if(logIN<=15)
 	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
 	measure_time_nfft(d,(1U<< (logIN/d)),0);
