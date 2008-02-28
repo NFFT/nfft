@@ -16,12 +16,12 @@
                                               sizeof(double _Complex));
 #define MACRO_nndft_init_result_transposed MACRO_nndft_init_result_adjoint
 
-#define MACRO_nndft_sign_trafo      (+2.0*PI)
-#define MACRO_nndft_sign_conjugated (-2.0*PI)
-#define MACRO_nndft_sign_adjoint    (-2.0*PI)
-#define MACRO_nndft_sign_transposed (+2.0*PI)
+#define MACRO_nndft_sign_trafo      (-2.0*PI)
+#define MACRO_nndft_sign_conjugated (+2.0*PI)
+#define MACRO_nndft_sign_adjoint    (+2.0*PI)
+#define MACRO_nndft_sign_transposed (-2.0*PI)
 
-#define MACRO_nndft_compute_trafo (*fj) += (*f_hat_k)*cexp(-I*omega);
+#define MACRO_nndft_compute_trafo (*fj) += (*f_hat_k)*cexp(+I*omega);
 
 #define MACRO_nndft_compute_conjugated MACRO_nndft_compute_trafo
 
