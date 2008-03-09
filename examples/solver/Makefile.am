@@ -1,18 +1,17 @@
+# $Id$
+
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = -L$(top_srcdir)
+AM_LDFLAGS = -all-static
 
 exampledir = $(pkgdatadir)/examples/solver
 
-## The program name
 example_PROGRAMS = simple_test glacier
 
-## The source files.
 simple_test_SOURCES = simple_test.c
-simple_test_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
+simple_test_LDADD = $(top_builddir)/libnfft3.la -lfftw3 -lm
 
 glacier_SOURCES = glacier.c
-glacier_LDADD = $(top_builddir)/.libs/libnfft3.a -lm -lfftw3
+glacier_LDADD = $(top_builddir)/libnfft3.la -lfftw3 -lm
 
-## Include these extra files in the distribution.
 EXTRA_DIST = glacier.m glacier_cv.m vol87.dat README
 example_DATA = $(EXTRA_DIST)

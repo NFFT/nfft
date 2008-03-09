@@ -220,6 +220,7 @@ AC_OUTPUT(Makefile \
 	  applications/fastgauss/Makefile \
 	  applications/fastsum/Makefile \
 	  applications/fastsumS2/Makefile \
+	  applications/quadratureS2/Makefile \
 	  applications/mri/Makefile \
           applications/mri/mri2d/Makefile \
           applications/mri/mri3d/Makefile \

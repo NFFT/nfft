@@ -1,7 +1,7 @@
 # $Id$
 
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = -L$(top_srcdir)
+AM_LDFLAGS = -all-static
 
 exampledir = $(pkgdatadir)/examples/nfsft
 
