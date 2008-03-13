@@ -10,9 +10,10 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
-#include "options.h"
 
 #ifdef GAUSSIAN
   unsigned test_fg=1;

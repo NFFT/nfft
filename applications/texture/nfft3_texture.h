@@ -1,4 +1,5 @@
-#include<nfft3.h>
+#include <complex.h>
+#include "nfft3.h"
 
 #ifndef NFFT3_TEXTURE_H
 #define NFFT3_TEXTURE_H

@@ -4,6 +4,8 @@
  * authors: D. Potts, S. Kunis (c) 2002-2006
  */
 
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
 

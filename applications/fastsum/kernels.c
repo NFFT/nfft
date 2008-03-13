@@ -3,9 +3,12 @@
  */
 
 #include <stdio.h>
-#include <complex.h>
 #include <math.h>
 #include <float.h>
+
+#include <complex.h>
+
+#include "kernels.h"
 
 /** 
  * \addtogroup applications_fastsum

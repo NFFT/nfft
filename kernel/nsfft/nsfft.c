@@ -3,9 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
-#include "options.h"
 
 /* computes a 2d ndft by 1d nfft along the dimension 1 times
    1d ndft along dimension 0

@@ -29,15 +29,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-/* Include NFFT3 library header. */
-#include "nfft3.h"
-
-/* Include NFFT 3 utilities headers. */
-#include "util.h"
+#include <complex.h>
 
 /* Include GSL header for spherical Bessel functions. */
 #include "../3rdparty/gsl/specfunc/gsl_sf_bessel.h"
+/* Include NFFT 3 utilities headers. */
+#include "util.h"
+/* Include NFFT3 library header. */
+#include "nfft3.h"
 
 /** Macro for the Fourier-Legendre coefficients of the Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))

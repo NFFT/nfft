@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <complex.h>
 #include <math.h>
+#include <complex.h>
 
 #include "fastsum.h"
 #include "kernels.h"

@@ -1,6 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include <complex.h>
 #include<assert.h>
 #include"nfft3_texture.h"
 

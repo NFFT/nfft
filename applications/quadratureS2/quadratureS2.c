@@ -33,14 +33,15 @@
 #include <string.h>
 #include <time.h>
 
+#include <complex.h>
+
 /* Include FFTW header. */
 #include <fftw3.h>
 
-/* Include NFFT 3 library header. */
-#include "nfft3.h"
-
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
+/* Include NFFT 3 library header. */
+#include "nfft3.h"
 
 /** Enumeration for parameter values */
 enum boolean {NO = 0, YES = 1};

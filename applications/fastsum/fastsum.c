@@ -6,8 +6,8 @@
  */
 
 #include <stdlib.h>
-#include <complex.h>
 #include <math.h>
+#include <complex.h>
 
 #include "util.h"
 #include "nfft3.h"

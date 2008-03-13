@@ -15,12 +15,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-/* Include NFFT3 library header. */
-#include "nfft3.h"
+#include <complex.h>
 
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
+/* Include NFFT3 library header. */
+#include "nfft3.h"
 
 #include "legendre.h"
 

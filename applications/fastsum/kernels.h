@@ -4,6 +4,8 @@
 #ifndef KERNELS_H
 #define KERNELS_H
 
+#include <complex.h>
+
 /** 
  * \addtogroup applications_fastsum
  * \{

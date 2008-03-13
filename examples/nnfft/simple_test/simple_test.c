@@ -1,6 +1,10 @@
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
-#include "stdlib.h"
+
 
 void simple_test_nnfft_1d()
 {

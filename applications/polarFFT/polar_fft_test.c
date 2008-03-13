@@ -8,6 +8,8 @@
  */
 #include <math.h>
 #include <stdlib.h>
+#include <complex.h>
+
 #include "util.h"
 #include "nfft3.h"
 

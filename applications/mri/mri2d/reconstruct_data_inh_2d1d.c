@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <complex.h>
+
 #include "nfft3.h"
 #include "util.h"
 

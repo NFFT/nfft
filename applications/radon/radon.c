@@ -21,6 +21,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <complex.h>
 
 #include "util.h"
 #include "nfft3.h"

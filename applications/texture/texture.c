@@ -1,12 +1,12 @@
 #include <stdlib.h>
-#include <complex.h>
 #include <math.h>
 #include <string.h>
+#include <complex.h>
 
-#include <util.h>
+#include "util.h"
 
 #include "texture.h"
-#include <solver.c>
+#include "solver.c"
 
 /** @file texture.c
  * Provides the implementation of all methods of the texture transform.

@@ -23,13 +23,16 @@
  * \author Jens Keiner
  */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
+#include <complex.h>
+
 #include "nfft3.h"
 #include "util.h"
-#include "config.h"
 
 /* Macros for index calculation. */
 

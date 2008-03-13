@@ -1,7 +1,9 @@
 #include <math.h>
 #include <stdlib.h>
-#include "nfft3.h"
+#include <complex.h>
+
 #include "util.h"
+#include "nfft3.h"
 
 void accuracy(int d)
 {

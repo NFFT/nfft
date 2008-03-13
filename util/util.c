@@ -23,8 +23,6 @@
  */
 
 #include "config.h"
-#include "util.h"
-#include "cstripack.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,7 +33,10 @@
   #include <malloc.h>
 #endif
 
-/*#include <time.h>*/
+#include <complex.h>
+
+#include "cstripack.h"
+#include "util.h"
 
 
 /** Actual used CPU time in seconds.

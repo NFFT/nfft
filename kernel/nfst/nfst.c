@@ -10,9 +10,6 @@
 #include <stdlib.h>
 
 #include "util.h"
-#include "options.h"
-#include "window_defines.h"
-
 #include "nfft3.h"
 
 

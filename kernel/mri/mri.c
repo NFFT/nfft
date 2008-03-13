@@ -1,10 +1,10 @@
-#include "string.h"
+#include <string.h>
+#include <math.h>
 
-#include "nfft3.h"
-#include "options.h"
+#include <complex.h>
+
 #include "util.h"
-#include "window_defines.h"
-#include "math.h"
+#include "nfft3.h"
 
 /**
  * window_funct_plan is a plan to use the window functions

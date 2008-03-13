@@ -27,7 +27,6 @@
 
 #include "config.h"
 #include "nfft3.h"
-#include <fftw3.h>
 
 /** \addtogroup nfsft
  * \{
