@@ -1,7 +1,7 @@
 # $Id$
 
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS = -all-static
+AM_LDFLAGS =
 
 applicationdir = $(pkgdatadir)/applications/mri/mri3d
 
