@@ -266,7 +266,7 @@ int main(int argc,char **argv)
 
   if((test==0)&&(atoi(argv[1])<2))
     {
-      fprintf(stderr,"MEASURE_TIME in options.h not set\n");
+      fprintf(stderr,"MEASURE_TIME in util.h not set\n");
       return -1;
     }
 

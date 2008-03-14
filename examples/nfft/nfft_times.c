@@ -84,7 +84,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 
   nfft_init_guru(&p, d, NN, M, nn, 2, 
 		 PRE_PHI_HUT| 
-		 PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
+		 PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -983,8 +983,7 @@ int main()
       
       fflush(stdout);
     }
-
-
+ 
   printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
   printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=2$} \\\\ \\hline\n");
   for(l=3;l<=11;l++)
