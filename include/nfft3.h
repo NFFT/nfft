@@ -49,6 +49,18 @@ extern nfft_die_type_function nfft_die_hook;
                                              size is N_total float_types    */\
   float_type *f;                        /**< Vector of samples,               \
 				             size is M_total float types    */\
+  void (*mv_trafo)(void*);              /**< Pointer to the own transform   */\
+  void (*mv_adjoint)(void*);            /**< Pointer to the own adjoint     */\
+
+typedef struct
+{
+  MACRO_MV_PLAN(fftw_complex)
+} mv_plan_complex;
+
+typedef struct
+{
+  MACRO_MV_PLAN(double)
+} mv_plan_double;
 
 /** Macros for window functions. */
 #ifdef DIRAC_DELTA
@@ -2342,6 +2354,76 @@ void fpt_finalize(fpt_set set);
  * \author Stefan Kunis
  */
 #define PRECOMPUTE_DAMP       (1U<< 6)
+
+
+typedef struct
+{
+  mv_plan_complex *mv;                  /**< matrix vector multiplication   */
+  unsigned flags;                       /**< iteration type                 */
+                                                                              
+  double *w;                            /**< weighting factors              */
+  double *w_hat;                        /**< damping factors                */
+                                                                              
+  fftw_complex *y;                      /**< right hand side, samples       */
+                                                                              
+  fftw_complex *f_hat_iter;             /**< iterative solution             */
+                                                                              
+  fftw_complex *r_iter;                 /**< iterated residual vector       */
+  fftw_complex *z_hat_iter;             /**< residual of normal equation of   
+					     first kind                     */
+  fftw_complex *p_hat_iter;             /**< search direction               */
+  fftw_complex *v_iter;                 /**< residual vector update         */
+                                                                              
+  double alpha_iter;                    /**< step size for search direction */
+  double beta_iter;                     /**< step size for search correction*/
+                                                                              
+  double dot_r_iter;                    /**< weighted dotproduct of r_iter  */
+  double dot_r_iter_old;                /**< previous dot_r_iter            */
+  double dot_z_hat_iter;                /**< weighted dotproduct of           
+					     z_hat_iter                     */
+  double dot_z_hat_iter_old;            /**< previous dot_z_hat_iter        */
+  double dot_p_hat_iter;                /**< weighted dotproduct of           
+					     p_hat_iter                     */
+  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */  
+} solver_plan_complex;
+
+void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv, unsigned flags);
+void solver_init_complex(solver_plan_complex* ths, mv_plan_complex *mv);
+void solver_before_loop_complex(solver_plan_complex* ths);
+void solver_loop_one_step_complex(solver_plan_complex *ths);
+void solver_finalize_complex(solver_plan_complex *ths);
+
+typedef struct
+{
+  mv_plan_double *mv;                   /**< matrix vector multiplication   */
+  unsigned flags;                       /**< iteration type                 */
+                                                                              
+  double *w;                            /**< weighting factors              */
+  double *w_hat;                        /**< damping factors                */
+                                                                              
+  double *y;                            /**< right hand side, samples       */
+                                                                              
+  double *f_hat_iter;                   /**< iterative solution             */
+                                                                              
+  double *r_iter;                       /**< iterated residual vector       */
+  double *z_hat_iter;                   /**< residual of normal equation of   
+					     first kind                     */
+  double *p_hat_iter;                   /**< search direction               */
+  double *v_iter;                       /**< residual vector update         */
+                                                                              
+  double alpha_iter;                    /**< step size for search direction */
+  double beta_iter;                     /**< step size for search correction*/
+                                                                              
+  double dot_r_iter;                    /**< weighted dotproduct of r_iter  */
+  double dot_r_iter_old;                /**< previous dot_r_iter            */
+  double dot_z_hat_iter;                /**< weighted dotproduct of           
+					     z_hat_iter                     */
+  double dot_z_hat_iter_old;            /**< previous dot_z_hat_iter        */
+  double dot_p_hat_iter;                /**< weighted dotproduct of           
+					     p_hat_iter                     */
+  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */  
+} solver_plan_double;
+
 
 /**
  * Complete macro for mangling an inverse transform.

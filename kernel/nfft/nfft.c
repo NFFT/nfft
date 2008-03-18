@@ -3014,6 +3014,9 @@ void nfft_init_help(nfft_plan *ths)
 	    fftw_plan_dft(ths->d, ths->n, ths->g2, ths->g1,
 			  FFTW_BACKWARD, ths->fftw_flags);
       }
+
+  ths->mv_trafo = (void (*) (void* ))nfft_trafo;
+  ths->mv_adjoint = (void (*) (void* ))nfft_adjoint;
 }
 
 void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
