@@ -16,15 +16,17 @@
 #include <pwd.h>
 */
 
-/* Include NFFT3 header. */
-#include "nfft3.h"
-#include "util.h"
-
 /* Include ANSI-C headers. */
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
+
+#include <complex.h>
+
+/* Include NFFT3 header. */
+#include "nfft3.h"
+#include "util.h"
 
 /** Maximum filename length */
 #define FILENAME_LENGTH_MAX 50
