@@ -106,11 +106,18 @@ dnl ############################################################################
 dnl Checks for programs.
 dnl ############################################################################
 
-dnl Set programming language to C.
+# Set programming language to C.
 AC_LANG(C)
 
-dnl Search for C compiler. Automatically selects options to support C89.
-AC_PROG_CC
+# Search for C compiler. Try to select C99 compliant mode.
+AC_PROG_CC_C99
+
+# Reset CC variable.
+CC="$ac_save_CC"
+
+# Manually add option for C99 support to compiler flags.
+AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
+  [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"])
 
 # Make sure "const" keyword can be used.
 AC_C_CONST
@@ -123,9 +130,6 @@ AC_C_INLINE
 
 dnl Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
-
-dnl Check if the compiler accepts C99.
-AC_PROG_CC_STDC
 
 if test $ac_cv_prog_cc_stdc = "no"; then
   AC_MSG_ERROR([Your compiler does not accept C99!])

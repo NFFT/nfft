@@ -1,7 +1,6 @@
 # $Id$
 
 AM_CFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS =
 
 exampledir = $(pkgdatadir)/examples/nfct
 
