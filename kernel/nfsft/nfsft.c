@@ -101,7 +101,7 @@ static struct nfsft_wisdom wisdom = {false,0U};
  *
  * \author Jens Keiner
  */
-inline void c2e(nfsft_plan *plan)
+static inline void c2e(nfsft_plan *plan)
 {
   int k;               /**< The degree k                                     */
   int n;               /**< The order k                                      */
@@ -179,7 +179,7 @@ inline void c2e(nfsft_plan *plan)
  *
  * \author Jens Keiner
  */
-inline void c2e_transposed(nfsft_plan *plan)
+static inline void c2e_transposed(nfsft_plan *plan)
 {
   int k;               /**< The degree k                                     */
   int n;               /**< The order k                                      */

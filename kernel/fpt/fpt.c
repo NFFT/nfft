@@ -123,7 +123,7 @@ typedef struct fpt_set_s_
   double *xc_slow;
 } fpt_set_s;
 
-inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
+static inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
@@ -133,7 +133,7 @@ inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
 }
 
 #define ABUVXPWY_SYMMETRIC(NAME,S1,S2) \
-inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, double* w, int n) \
 { \
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr; \
@@ -149,7 +149,7 @@ ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric1,1.0,-1.0)
 ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric2,-1.0,1.0)
 
 #define ABUVXPWY_SYMMETRIC_1(NAME,S1) \
-inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, int n, double *xx) \
 { \
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *xx_ptr; \
@@ -165,7 +165,7 @@ ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_1,1.0)
 ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_2,-1.0)
 
 #define ABUVXPWY_SYMMETRIC_2(NAME,S1) \
-inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
+static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double _Complex* y, double* w, int n, double *xx) \
 { \
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *w_ptr, *xx_ptr; \
@@ -180,7 +180,7 @@ inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_1,1.0)
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_2,-1.0)
 
-inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
+static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
   double _Complex* y, double* w, int n)
 {
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
@@ -189,7 +189,7 @@ inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
+static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
@@ -201,7 +201,7 @@ inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
     *u_ptr++ = a * ((*v_ptr--) * (*x_ptr++) - (*w_ptr--) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
+static inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
@@ -214,7 +214,7 @@ inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x
     *u_ptr++ = a * (-((*v_ptr--)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)*(1.0+*xx_ptr++)) * (*y_ptr++));
 }
 
-inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
+static inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
   int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
@@ -227,7 +227,7 @@ inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x
 }
 
 #define FPT_DO_STEP(NAME,M1_FUNCTION,M2_FUNCTION) \
-inline void NAME(double _Complex  *a, double _Complex *b, double *a11, double *a12, \
+static inline void NAME(double _Complex  *a, double _Complex *b, double *a11, double *a12, \
   double *a21, double *a22, double g, int tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
@@ -280,7 +280,7 @@ FPT_DO_STEP(fpt_do_step_symmetric,auvxpwy_symmetric,auvxpwy_symmetric)
 /*FPT_DO_STEP(fpt_do_step_symmetric_u,auvxpwy_symmetric,auvxpwy)
 FPT_DO_STEP(fpt_do_step_symmetric_l,auvxpwy,auvxpwy_symmetric)*/
 
-inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *b,
+static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *b,
   double *a11, double *a12, double *a21, double *a22, double *x,
   double gamma, int tau, fpt_set set)
 {
@@ -329,7 +329,7 @@ inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *b,
   b[0] *= 0.5;
 }
 
-inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex *b,
+static inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex *b,
   double *a11, double *a12, double *a21, double *a22, double *x, double gamma, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
@@ -378,7 +378,7 @@ inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex *b,
 }
 
 #define FPT_DO_STEP_TRANSPOSED(NAME,M1_FUNCTION,M2_FUNCTION) \
-inline void NAME(double _Complex  *a, double _Complex *b, double *a11, \
+static inline void NAME(double _Complex  *a, double _Complex *b, double *a11, \
   double *a12, double *a21, double *a22, double g, int tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
@@ -400,13 +400,13 @@ inline void NAME(double _Complex  *a, double _Complex *b, double *a11, \
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b); \
 }
 
-FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed,abuvxpwy,abuvxpwy)
-FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric,abuvxpwy_symmetric1,abuvxpwy_symmetric2)
-/*FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric_u,abuvxpwy_symmetric1_1,abuvxpwy_symmetric1_2)*/
-/*FPT_DO_STEP_TRANSPOSED(fpt_do_step_transposed_symmetric_l,abuvxpwy_symmetric2_2,abuvxpwy_symmetric2_1)*/
+FPT_DO_STEP_TRANSPOSED(fpt_do_step_t,abuvxpwy,abuvxpwy)
+FPT_DO_STEP_TRANSPOSED(fpt_do_step_t_symmetric,abuvxpwy_symmetric1,abuvxpwy_symmetric2)
+/*FPT_DO_STEP_TRANSPOSED(fpt_do_step_t_symmetric_u,abuvxpwy_symmetric1_1,abuvxpwy_symmetric1_2)*/
+/*FPT_DO_STEP_TRANSPOSED(fpt_do_step_t_symmetric_l,abuvxpwy_symmetric2_2,abuvxpwy_symmetric2_1)*/
 
 
-inline void fpt_do_step_transposed_symmetric_u(double _Complex  *a,
+static inline void fpt_do_step_t_symmetric_u(double _Complex  *a,
   double _Complex *b, double *a11, double *a12, double *x,
   double gamma, int tau, fpt_set set)
 {
@@ -429,7 +429,7 @@ inline void fpt_do_step_transposed_symmetric_u(double _Complex  *a,
   fftw_execute_r2r(set->plans_dct2[tau-1],(double*)b,(double*)b);
 }
 
-inline void fpt_do_step_transposed_symmetric_l(double _Complex  *a,
+static inline void fpt_do_step_t_symmetric_l(double _Complex  *a,
   double _Complex *b, double *a21, double *a22,
   double *x, double gamma, int tau, fpt_set set)
 {
@@ -453,7 +453,7 @@ inline void fpt_do_step_transposed_symmetric_l(double _Complex  *a,
 }
 
 
-void eval_clenshaw(const double *x, double *y, int size, int k, const double *alpha,
+static void eval_clenshaw(const double *x, double *y, int size, int k, const double *alpha,
   const double *beta, const double *gamma)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
@@ -499,7 +499,7 @@ void eval_clenshaw(const double *x, double *y, int size, int k, const double *al
   }
 }
 
-void eval_clenshaw2(const double *x, double *z, double *y, int size1, int size, int k, const double *alpha,
+static void eval_clenshaw2(const double *x, double *z, double *y, int size1, int size, int k, const double *alpha,
   const double *beta, const double *gamma)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
@@ -555,7 +555,7 @@ void eval_clenshaw2(const double *x, double *z, double *y, int size1, int size, 
   fclose(f);*/
 }
 
-int eval_clenshaw_thresh(const double *x, double *y, int size, int k,
+static int eval_clenshaw_thresh(const double *x, double *y, int size, int k,
   const double *alpha, const double *beta, const double *gamma, const
   double threshold)
 {
@@ -607,7 +607,7 @@ int eval_clenshaw_thresh(const double *x, double *y, int size, int k,
   return 0;
 }
 
-int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k,
+static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k,
   const double *alpha, const double *beta, const double *gamma, const
   double threshold)
 {
@@ -681,7 +681,7 @@ int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k
  * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
-void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, double _Complex *y,
+static void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, double _Complex *y,
   double _Complex *temp, double *alpha, double *beta, double *gamma, double lambda)
 {
   int j,k;
@@ -795,7 +795,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
  * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
-void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, double *x,
+static void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, double *x,
   double _Complex *y, double _Complex *temp, double *alpha, double *beta, double *gamma,
   double lambda)
 {
@@ -1768,13 +1768,13 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
         if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
         {
           /* Multiply third and fourth polynomial with matrix U. */
-          fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
+          fpt_do_step_t_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
             step->a21[0], step->a22[0], step->g[0], tau, set);
         }
         else
         {
           /* Multiply third and fourth polynomial with matrix U. */
-          fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0],
+          fpt_do_step_t(set->vec3, set->vec4, step->a11[0], step->a12[0],
             step->a21[0], step->a22[0], step->g[0], tau, set);
         }
         memcpy(&(set->vec3[plength/2]), set->vec4,(plength/2)*sizeof(double _Complex));
@@ -1798,23 +1798,23 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
         {
           if (m <= 1)
           {
-            fpt_do_step_transposed_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
+            fpt_do_step_t_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
               step->a21[0], step->a22[0], step->g[0], t_stab-1, set);
           }
           else if (m%2 == 0)
           {
-            fpt_do_step_transposed_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
+            fpt_do_step_t_symmetric_u(set->vec3, set->vec4, step->a11[0], step->a12[0],
               set->xcvecs[t_stab-2], step->g[0], t_stab-1, set);
           }
           else
           {
-            fpt_do_step_transposed_symmetric_l(set->vec3, set->vec4,
+            fpt_do_step_t_symmetric_l(set->vec3, set->vec4,
               step->a21[0], step->a22[0], set->xcvecs[t_stab-2], step->g[0], t_stab-1, set);
           }
         }
         else
         {
-            fpt_do_step_transposed(set->vec3, set->vec4, step->a11[0], step->a12[0],
+            fpt_do_step_t(set->vec3, set->vec4, step->a11[0], step->a12[0],
               step->a21[0], step->a22[0], step->g[0], t_stab-1, set);
         }
 
