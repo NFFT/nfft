@@ -17,6 +17,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <complex.h>
 #include <math.h>
 #include <string.h>
 #include "nfft3.h"
@@ -192,7 +193,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     MAKE_NEW_PLAN(i)
     nfsft_init_guru(plans[i],(int)(dp1[0]),(int)(dp2[0]),
       (unsigned int)(dp3[0]) | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-      NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE 
+      NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE
       /*(int)(dp4[0])*/,(int)(dp5[0]));
     RETURN_PLAN(dp1,i)
   }
@@ -338,19 +339,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
   }
   else if (strcmp(cmd,"get_f_hat_linear") == 0)
-  {    
+  {
     /* Check number of arguments. */
     if (nrhs != 2)
       mexErrMsgTxt("One additional argument required for get_f_hat_linear.");
 
     ARG_GET_PLAN(dp1)
-    
+
     {
       int idx = 0, n = plans[(int)(dp1[0])]->N;
       double _Complex *f_hat = plans[(int)(dp1[0])]->f_hat;
-      
+
       plhs[0] = mxCreateDoubleMatrix((n+1)*(n+1), 1, mxCOMPLEX);
-      
+
       dp2 = mxGetPr(plhs[0]); dp3 = mxGetPi(plhs[0]);
 
       for (i = 0; i <= n; i++)
@@ -359,7 +360,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
           dp2[idx] = creal(f_hat[NFSFT_INDEX(i,j,plans[(int)(dp1[0])])]);
           dp3[idx++] = cimag(f_hat[NFSFT_INDEX(i,j,plans[(int)(dp1[0])])]);
         }
-    }  
+    }
   }
   else if (strcmp(cmd,"set_x") == 0)
   {
@@ -434,7 +435,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"set_f_hat_linear") == 0)
   {
     int n, idx = 0;
-    
+
     /* Check number of arguments. */
     if (nrhs != 3)
       mexErrMsgTxt("Two additional arguments required for set_f_hat.");
@@ -445,7 +446,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexErrMsgTxt("Third argument must be a double array");
 
     n = plans[(int)(dp1[0])]->N;
-    
+
     if (mxGetM(prhs[2]) != (n+1)*(n+1) || mxGetN(prhs[2]) != 1)
       mexErrMsgTxt("Third argument must have correct size.");
 
