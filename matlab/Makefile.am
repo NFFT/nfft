@@ -1,5 +1,11 @@
 # $Id$
 
-SUBDIRS = nfsft
+if HAVE_NFSFT
+  DIR_NFSFT=nfsft
+else
+  DIR_NFSFT=
+endif
+
+SUBDIRS = $(DIR_NFSFT)
 
 EXTRA_DIST = README

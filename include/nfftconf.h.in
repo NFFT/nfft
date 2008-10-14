@@ -1,0 +1,22 @@
+/* include/nfftconf.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to enable FPT module. */
+@HAVE_FPT@
+
+/* Define to enable MRI module. */
+@HAVE_MRI@
+
+/* Define to enable NFCT module. */
+@HAVE_NFCT@
+
+/* Define to enable NFSFT module. */
+@HAVE_NFSFT@
+
+/* Define to enable NFST module. */
+@HAVE_NFST@
+
+/* Define to enable NNFFT module. */
+@HAVE_NNFFT@
+
+/* Define to enable NSFFT module. */
+@HAVE_NSFFT@

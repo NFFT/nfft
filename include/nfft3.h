@@ -26,6 +26,9 @@
 /** Include header for FFTW3 library for its complex type. */
 #include <fftw3.h>
 
+/* config header */
+#include "nfftconf.h"
+
 /* Malloc and free functions */
 extern void *nfft_malloc(size_t n);
 extern void nfft_free(void *p);
@@ -599,6 +602,8 @@ void nfft_finalize(nfft_plan *ths);
  * @{
  */
 
+#ifdef HAVE_NFCT
+
 /** Structure for a transform plan */
 typedef struct
 {
@@ -807,7 +812,11 @@ int nfct_fftw_2N( int n);
  */
 int nfct_fftw_2N_rev(int n);
 
+#endif
+
 /*###########################################################################*/
+
+#ifdef HAVE_NFST
 
 /** Structure for a transform plan */
 typedef struct
@@ -1041,6 +1050,8 @@ int nfst_fftw_2N( int n);
  */
 int nfst_fftw_2N_rev( int n);
 
+#endif
+
 /** @}
  */
 
@@ -1053,6 +1064,8 @@ int nfst_fftw_2N_rev( int n);
  * frequency Fourier transform.
  * @{
  */
+
+#ifdef HAVE_NNFFT
 
 /**
  * If this flag is set, (de)allocation of the frequency node vector is done.
@@ -1248,6 +1261,8 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths_plan);
  */
 void nnfft_finalize(nnfft_plan *ths_plan);
 
+#endif
+
 /** @}
  */
 
@@ -1260,6 +1275,8 @@ void nnfft_finalize(nnfft_plan *ths_plan);
  * cross.
  * @{
  */
+
+#ifdef HAVE_NSFFT
 
 /**
  * If this flag is set, the member \ref index_sparse_to_full is (de)allocated
@@ -1394,6 +1411,8 @@ void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags);
  */
 void nsfft_finalize(nsfft_plan *ths);
 
+#endif
+
 /** @}
  */
 
@@ -1404,6 +1423,8 @@ void nsfft_finalize(nsfft_plan *ths);
 /** @defgroup mri MRI - Transforms in magnetic resonance imaging
  * @{
  */
+
+#ifdef HAVE_MRI
 
 /**
  * The structure for the transform plan.
@@ -1530,6 +1551,8 @@ void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
  * \author Tobias Knopp
  */
 void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
+
+#endif
 
 /** @}
  */
@@ -1788,6 +1811,8 @@ void mri_inh_3d_finalize(mri_inh_3d_plan *ths);
  *   \ref NFSFT_DESTROY_F_HAT, \ref NFSFT_DESTROY_X, \ref NFSFT_DESTROY_F
  *   flags.
  */
+
+#ifdef HAVE_NFSFT
 
 /* Planner flags */
 
@@ -2156,6 +2181,7 @@ void nfsft_finalize(nfsft_plan* plan);
 
 void nfsft_precompute_x(nfsft_plan *plan);
 
+#endif
 
 /** @}
  */
@@ -2171,6 +2197,8 @@ void nfsft_precompute_x(nfsft_plan *plan);
  * This module implements fast polynomial transforms. In the following, we
  * abbreviate the term "fast polynomial transforms" by FPT.
  */
+
+#ifdef HAVE_FPT
 
 /* Flags for fpt_init() */
 #define FPT_NO_FAST_ALGORITHM (1U << 2) /**< If set, TODO complete comment.   */
@@ -2284,6 +2312,8 @@ void fpt_transposed(fpt_set set, const int m, fftw_complex *x,
 
 void fpt_finalize(fpt_set set);
 
+#endif
+
 /** @}
  */
 
@@ -2360,31 +2390,31 @@ typedef struct
 {
   mv_plan_complex *mv;                  /**< matrix vector multiplication   */
   unsigned flags;                       /**< iteration type                 */
-                                                                              
+
   double *w;                            /**< weighting factors              */
   double *w_hat;                        /**< damping factors                */
-                                                                              
+
   fftw_complex *y;                      /**< right hand side, samples       */
-                                                                              
+
   fftw_complex *f_hat_iter;             /**< iterative solution             */
-                                                                              
+
   fftw_complex *r_iter;                 /**< iterated residual vector       */
-  fftw_complex *z_hat_iter;             /**< residual of normal equation of   
+  fftw_complex *z_hat_iter;             /**< residual of normal equation of
 					     first kind                     */
   fftw_complex *p_hat_iter;             /**< search direction               */
   fftw_complex *v_iter;                 /**< residual vector update         */
-                                                                              
+
   double alpha_iter;                    /**< step size for search direction */
   double beta_iter;                     /**< step size for search correction*/
-                                                                              
+
   double dot_r_iter;                    /**< weighted dotproduct of r_iter  */
   double dot_r_iter_old;                /**< previous dot_r_iter            */
-  double dot_z_hat_iter;                /**< weighted dotproduct of           
+  double dot_z_hat_iter;                /**< weighted dotproduct of
 					     z_hat_iter                     */
   double dot_z_hat_iter_old;            /**< previous dot_z_hat_iter        */
-  double dot_p_hat_iter;                /**< weighted dotproduct of           
+  double dot_p_hat_iter;                /**< weighted dotproduct of
 					     p_hat_iter                     */
-  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */  
+  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */
 } solver_plan_complex;
 
 void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv, unsigned flags);
@@ -2397,31 +2427,31 @@ typedef struct
 {
   mv_plan_double *mv;                   /**< matrix vector multiplication   */
   unsigned flags;                       /**< iteration type                 */
-                                                                              
+
   double *w;                            /**< weighting factors              */
   double *w_hat;                        /**< damping factors                */
-                                                                              
+
   double *y;                            /**< right hand side, samples       */
-                                                                              
+
   double *f_hat_iter;                   /**< iterative solution             */
-                                                                              
+
   double *r_iter;                       /**< iterated residual vector       */
-  double *z_hat_iter;                   /**< residual of normal equation of   
+  double *z_hat_iter;                   /**< residual of normal equation of
 					     first kind                     */
   double *p_hat_iter;                   /**< search direction               */
   double *v_iter;                       /**< residual vector update         */
-                                                                              
+
   double alpha_iter;                    /**< step size for search direction */
   double beta_iter;                     /**< step size for search correction*/
-                                                                              
+
   double dot_r_iter;                    /**< weighted dotproduct of r_iter  */
   double dot_r_iter_old;                /**< previous dot_r_iter            */
-  double dot_z_hat_iter;                /**< weighted dotproduct of           
+  double dot_z_hat_iter;                /**< weighted dotproduct of
 					     z_hat_iter                     */
   double dot_z_hat_iter_old;            /**< previous dot_z_hat_iter        */
-  double dot_p_hat_iter;                /**< weighted dotproduct of           
+  double dot_p_hat_iter;                /**< weighted dotproduct of
 					     p_hat_iter                     */
-  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */  
+  double dot_v_iter;                    /**< weighted dotproduct of v_iter  */
 } solver_plan_double;
 
 
@@ -2489,14 +2519,23 @@ void i ## MV ## _finalize(i ## MV ## _plan *ths);                             \
   F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);
 */
 
-
 MACRO_SOLVER_PLAN(nfft, complex, fftw_complex)
+#ifdef HAVE_NFCT
 MACRO_SOLVER_PLAN(nfct, double, double)
+#endif
+#ifdef HAVE_NFST
 MACRO_SOLVER_PLAN(nfst, double, double)
+#endif
+#ifdef HAVE_NNFFT
 MACRO_SOLVER_PLAN(nnfft, complex, fftw_complex)
+#endif
+#ifdef HAVE_MRI
 MACRO_SOLVER_PLAN(mri_inh_2d1d, complex, fftw_complex)
 MACRO_SOLVER_PLAN(mri_inh_3d, complex, fftw_complex)
+#endif
+#ifdef HAVE_NFSFT
 MACRO_SOLVER_PLAN(nfsft, complex, fftw_complex)
+#endif
 /** @}
  */
 

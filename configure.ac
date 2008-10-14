@@ -1,68 +1,142 @@
-dnl $Id: nfsftmex.c 1548 2007-04-18 07:34:23Z keiner $
-dnl
-dnl Copyright (c) 2007 Jens Keiner
-dnl
-dnl This program is free software; you can redistribute it and/or modify it
-dnl under the terms of the GNU General Public License as published by the Free
-dnl Software Foundation; either version 2 of the License, or (at your option)
-dnl any later version.
-dnl
-dnl This program is distributed in the hope that it will be useful, but WITHOUT
-dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-dnl FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-dnl more details.
-dnl
-dnl You should have received a copy of the GNU General Public License along with
-dnl this program; if not, write to the Free Software Foundation, Inc., 51
-dnl Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-dnl
-dnl @synopsis AX_PROG_MATLAB
-dnl @summary set up compiler and linker flags for Matlab mex file compilation.
-dnl @category C
-dnl
-dnl @version 2007-04-24
-dnl @license GPLWithACException
-dnl @author Jens Keiner
-dnl ############################################################################
-dnl Process this file with autoconf to produce a configure script.
-dnl ############################################################################
+# $Id: nfsftmex.c 1548 2007-04-18 07:34:23Z keiner $
+#
+# Copyright (c) 2005,2008 Jens Keiner, Stefan Kunis, Daniel Potts
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+################################################################################
+# Process this file with autoconf to produce a configure script.
+################################################################################
 
-dnl Initialize Autoconf.
-AC_INIT(NFFT, 3.0.3, potts@mathematik.tu-chemnitz.de)
+# initialize autoconf
+AC_INIT(NFFT, 3.1, potts@mathematik.tu-chemnitz.de)
 
-dnl Add Copyright notice.
-AC_COPYRIGHT([2003, 2007, Jens Keiner, Stefan Kunis, Daniel Potts])
+# copyright notice
+AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
 
-dnl Add revision number of configure.ac.
+# revision number
 AC_REVISION([$Id$])
 
-dnl Set configure source directory.
+# how to recognize configure source directory
 AC_CONFIG_SRCDIR(include/nfft3.h)
 
-dnl Set directory for auxilliary files.
+# directory for auxilliary files
 AC_CONFIG_AUX_DIR(config)
 
-dnl Define config headers.
+# config headers
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
-dnl Check if make needs MAKE environment variable to be set.
+# check for make
 AC_PROG_MAKE_SET
 
-dnl Initialise automake.
+# initialise automake
 AM_INIT_AUTOMAKE
 
-dnl Determine host system type.
+# host system type
 AC_CANONICAL_HOST
 
-dnl "To hell with shared libraries"
+# disable shared libraries
 AM_ENABLE_SHARED(no)
 
-dnl Make abs_srcdir available in Makefiles.
+# make abs_srcdir available in Makefiles
 AC_SUBST([abs_srcdir])
 
-dnl ############################################################################
-dnl Configure options
-dnl ############################################################################
+# ############################################################################
+# Configure options
+# ############################################################################
+
+# enable or disable parts of nfft
+
+need_fpt="no"
+
+AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  HAVE_NFCT="#define HAVE_NFCT 1"
+  AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
+else
+  HAVE_NFCT="#undef HAVE_NFCT"
+  AM_CONDITIONAL(HAVE_NFCT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NFCT)
+
+AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[compile with nfst module (nonequispaced fast sine transform)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  HAVE_NFST="#define HAVE_NFST 1"
+  AM_CONDITIONAL(HAVE_NFST, test "yes" = "yes" )
+else
+  HAVE_NFST="#undef HAVE_NFST"
+  AM_CONDITIONAL(HAVE_NFST, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NFST)
+
+AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[compile with nfsft module (nonequispaced fast spherical Fourier transform; needs fpt module)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  need_fpt="yes"
+  HAVE_NFSFT="#define HAVE_NFSFT 1"
+  AM_CONDITIONAL(HAVE_NFSFT, test "yes" = "yes" )
+else
+  HAVE_NFSFT="#undef HAVE_NFSFT"
+  AM_CONDITIONAL(HAVE_NFSFT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NFSFT)
+
+AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  HAVE_NNFFT="#define HAVE_NNFFT 1"
+  AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "yes" )
+else
+  HAVE_NNFFT="#undef HAVE_NNFFT"
+  AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NNFFT)
+
+AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[compile with nsfft module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  HAVE_NSFFT="#define HAVE_NSFFT 1"
+  AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "yes" )
+else
+  HAVE_NSFFT="#undef HAVE_NSFFT"
+  AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NSFFT)
+
+AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[compile with mri module (magnet resonance imaging)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  HAVE_MRI="#define HAVE_MRI 1"
+  AM_CONDITIONAL(HAVE_MRI, test "yes" = "yes" )
+else
+  HAVE_MRI="#undef HAVE_MRI"
+  AM_CONDITIONAL(HAVE_MRI, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_MRI)
+
+AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[compile with fpt module (fast polynomial transform)])], ok=$enableval, ok=yes)
+if test "$ok" = "yes"; then
+  have_fpt="yes"
+  HAVE_FPT="#define HAVE_FPT 1"
+  AM_CONDITIONAL(HAVE_FPT, test "yes" = "yes" )
+else
+  have_fpt="no"
+  HAVE_FPT="#undef HAVE_FPT"
+  AM_CONDITIONAL(HAVE_FPT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_FPT)
+
+if test "$need_fpt" = "yes" -a "$have_fpt" = "no"; then
+  AC_MSG_ERROR([You must enable the FPT module for this configuration (--enable-fpt)])
+fi
 
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
@@ -99,12 +173,12 @@ case "$window" in
     CFLAGS="$CFLAGS -DKAISER_BESSEL";;
 esac
 
-dnl Make maintainer mode available.
+# Make maintainer mode available.
 AM_MAINTAINER_MODE
 
-dnl ############################################################################
-dnl Checks for programs.
-dnl ############################################################################
+# ############################################################################
+# Checks for programs.
+# ############################################################################
 
 # Set programming language to C.
 AC_LANG(C)
@@ -128,33 +202,33 @@ AC_C_RESTRICT
 # Make sure "inline" keyword can be used.
 AC_C_INLINE
 
-dnl Determine compiler vendor (thanks fftw)
+# Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
 
 if test $ac_cv_prog_cc_stdc = "no"; then
   AC_MSG_ERROR([Your compiler does not accept C99!])
 fi
 
-dnl Check for assembler (thanks fftw).
-AMX_PROG_AS dnl AM_PROG_AS breaks at least one version of libtool.
+# Check for assembler (thanks fftw).
+AMX_PROG_AS # AM_PROG_AS breaks at least one version of libtool.
 
-dnl Search for the C preprocessor.
+# Search for the C preprocessor.
 AC_PROG_CPP_WERROR
 
-dnl Check for BSD-compatible install program. Enforces inclusion of own install
-dnl script.
+# Check for BSD-compatible install program. Enforces inclusion of own install
+# script.
 AC_PROG_INSTALL
 
-dnl Check if ln -s works.
+# Check if ln -s works.
 AC_PROG_LN_S
 
-dnl Make libtool ddl capabilities available.
+# Make libtool ddl capabilities available.
 AC_LIBTOOL_WIN32_DLL
 
-dnl Check for libtool.
+# Check for libtool.
 AC_PROG_LIBTOOL
 
-dnl Check for MATLAB.
+# Check for MATLAB.
 AX_PROG_MATLAB
 
 # Try to choose good compiler options. Note: We differ from FFTW by that we
@@ -171,7 +245,7 @@ else
   fi
 fi
 
-dnl Make CFLAGS available.
+# Make CFLAGS available.
 AC_SUBST(CFLAGS)
 
 AX_LIB_GSL
@@ -189,6 +263,7 @@ LIBS=
 # The output files to be generated
 AC_OUTPUT(Makefile \
           include/Makefile \
+          include/nfftconf.h \
           3rdparty/Makefile \
           3rdparty/gsl/Makefile \
           3rdparty/gsl/err/Makefile \
