@@ -1,6 +1,6 @@
 /* $Id$
  *
- * Copyright (c) 2007 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2007, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -22,22 +22,18 @@
  *  (c) if not stated otherwise: Daniel Potts, Stefan Kunis
  */
 
-#include "config.h"
+#include "infft.h"
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #ifdef HAVE_MALLOC_H
   #include <malloc.h>
 #endif
+#include "cstripack.h"
 
 #include <complex.h>
-
-#include "cstripack.h"
 #include "util.h"
-
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
@@ -1355,91 +1351,98 @@ void nfft_vpr_int(int *x, int n, char *text)
   fflush(stdout);
 }
 
-/** vector print
- */
-void nfft_vpr_double(double *x, int n, char *text)
+/** Print real vector to standard output. */
+void X(vpr_double)(R *x, const int n, const char *text)
 {
   int k;
 
-  if(x==NULL)
+  if (x == NULL)
+  {
+    printf("null pointer\n");
+    fflush(stdout);
+    exit(-1);
+  }
+
+  if (text != NULL)
+  {
+    printf ("\n %s, adr=%p\n", text, (void*)x);
+
+    for (k = 0; k < n; k++)
     {
-      printf("null pointer\n");
-      fflush(stdout);
-      exit(-1);
+      if (k%8 == 0)
+        printf("%6d.\t", k);
+
+      printf("%+.1" FE ",", x[k]);
+
+      if (k%8 == 7)
+        printf("\n");
     }
 
-  if(text!=NULL)
-  {
-      printf ("\n %s, adr=%p\n", text, (void*)x);
-      for (k=0; k<n; k++)
-      {
-    if (k%8==0)
-        printf("%6d.\t", k);
-    printf("%+.1E,", x[k]);
-    if (k%8==7)
-        printf("\n");
-      }
-      if (n%8!=0)
-        printf("\n");
+    if (n%8 != 0)
+      printf("\n");
   }
   else
-      for (k=0; k<n; k++)
-    printf("%+E,\n", x[k]);
+    for (k = 0; k < n; k++)
+      printf("%+" FE ",\n", x[k]);
+
   fflush(stdout);
 }
 
-/** vector print
- */
-void nfft_vpr_complex(double _Complex *x, int n, char *text)
+/** Print complex vector to standard output. */
+void X(vpr_complex)(C *x, const int n, const char *text)
 {
   int k;
 
-  if(text!=NULL)
+  if(text != NULL)
   {
-      printf ("\n %s, adr=%p\n", text, (void*)x);
-      for (k=0; k<n; k++)
-      {
-    if (k%4==0)
+    printf("\n %s, adr=%p\n", text, (void*)x);
+    for (k = 0; k < n; k++)
+    {
+      if (k%4 == 0)
         printf("%6d.\t", k);
-    printf("%+.1E%+.1Ei,", creal(x[k]), cimag(x[k]));
-    if (k%4==3)
+
+      printf("%+.1" FE "%+.1" FE "i,", CREAL(x[k]), CIMAG(x[k]));
+
+      if (k%4==3)
         printf("\n");
-      }
-      if (n%4!=0)
-        printf("\n");
+    }
+    if (n%4!=0)
+      printf("\n");
   }
   else
-      for (k=0; k<n; k++)
-    printf("%+E%+Ei,\n", creal(x[k]), cimag(x[k]));
+    for (k = 0; k < n; k++)
+      printf("%+" FE "%+" FE "i,\n", CREAL(x[k]), CIMAG(x[k]));
+
   fflush(stdout);
 }
 
-void nfft_vrand_unit_complex(double _Complex *x, int n)
+void X(vrand_unit_complex)(C *x, const int n)
 {
   int k;
 
-  for (k=0; k<n; k++)
-    x[k] = ((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
+  for (k = 0; k < n; k++)
+    x[k] = RAND + II*RAND;
 }
 
-void nfft_vrand_shifted_unit_double(double *x, int n)
+void X(vrand_shifted_unit_double)(R *x, const int n)
 {
   int k;
 
-  for (k=0; k<n; k++)
-    x[k] = ((double)rand())/RAND_MAX - 0.5;
+  for (k = 0; k < n; k++)
+    x[k] = RAND - K(0.5);
 }
 
-/** Computes non periodic voronoi weights
- *  assumes ordered x_j */
-void nfft_voronoi_weights_1d(double *w, double *x, int M)
+/** Compute non periodic voronoi weights for ordered nodes x_j */
+void X(voronoi_weights_1d)(R *w, R *x, const int M)
 {
   int j;
 
-  w[0]=(x[1]-x[0])/2;
-  for(j=1;j<M-1;j++)
-    w[j]=(x[j+1]-x[j-1])/2;
-  w[M-1]=(x[M-1]-x[M-2])/2;
+  w[0] = (x[1]-x[0])/K(2.0);
+
+  for(j = 1; j < M-1; j++)
+    w[j] = (x[j+1]-x[j-1])/K(2.0);
+
+  w[M-1] = (x[M-1]-x[M-2])/K(2.0);
 }
 
 void nfft_voronoi_weights_S2(double *w, double *xi, int M)
@@ -1567,114 +1570,489 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   free(vr);
 }
 
-/** Computes the damping factor for the modified Fejer kernel.
- *  /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
+/**
+ * Compute damping factor for modified Fejer kernel:
+ * /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
  */
-double nfft_modified_fejer(int N,int kk)
+R X(modified_fejer)(const int N, const int kk)
 {
-  double result;
-
-  result=2.0/((double)N*N)*(1-fabs(2.0*kk+1)/((double)N));
-
-  return result;
+  return (K(2.0)/((R)(N*N))*(K(1.0)-FABS(K(2.0)*kk+K(1.0))/((R)N)));
 }
 
-/** Computes the damping factor for the modified Jackson kernel.
- */
-double nfft_modified_jackson2(int N,int kk)
+/** Compute damping factor for modified Jackson kernel. */
+R X(modified_jackson2)(const int N, const int kk)
 {
   int kj;
-  double result;
-  double n=(N/2+1)/2;
-  double k;
+  const R n=(N/K(2.0)+K(1.0))/K(2.0);
+  R result, k;
 
-  for(result=0,kj=kk;kj<=kk+1;kj++)
-    {
-      k=fabs(kj);
-      if(k/n<1)
-  result+= 1 - (3.0*k + 6.0*n*pow(k,2) - 3.0*pow(k,3))
-    / (2.0*n*(2.0*pow(n,2)+1.0));
-      else
-  result+= (2*n-k)*(pow(2*n-k,2)-1) / (2.0*n*(2.0*pow(n,2)+1.0));
-    }
+  for (result = K(0.0), kj = kk; kj <= kk+1; kj++)
+  {
+    k = ABS(kj);
+
+    if(k/n < K(1.0))
+      result += K(1.0) - (K(3.0)*k + K(6.0)*n*POW(k,K(2.0))
+        - K(3.0)*POW(k,K(3.0)))/(K(2.0)*n*(K(2.0)*POW(n,K(2.0))+K(1.0)));
+    else
+      result+= (K(2.0)*n-k)*(POW(2*n-k,K(2.0))-K(1.0))/(K(2.0)
+        *n*(K(2.0)*POW(n,K(2.0))+K(1.0)));
+  }
 
   return result;
 }
 
-/** Computes the damping factor for the modified generalised Jackson kernel.
- */
-double nfft_modified_jackson4(int N,int kk)
+/** Compute damping factor for modified generalised Jackson kernel. */
+R X(modified_jackson4)(const int N, const int kk)
 {
   int kj;
-  double result;
-  double n=(N/2+3)/4;
-  double k;
-  double normalisation=(2416*pow(n,7)+1120*pow(n,5)+784*pow(n,3)+720*n);
+  const R n = (N/K(2.0)+K(3.0))/K(4.0), normalisation = (K(2416.0)*POW(n,K(7.0))
+    + K(1120.0)*POW(n,K(5.0)) + K(784.0)*POW(n,K(3.0)) + K(720.0)*n);
+  R result, k;
 
-  for(result=0,kj=kk;kj<=kk+1;kj++)
+  for (result = K(0.0), kj = kk; kj <= kk + 1; kj++)
+  {
+    k = ABS(kj);
+
+    if (k/n < K(1.0))
+      result += K(1.0) - (K(1260.0)*k + (K(1680.0)*POW(n, K(5.0))
+        + K(2240.0)*POW(n, K(3.0)) + K(2940.0)*n)*POW(k, K(2.0))
+        - K(1715.0)*POW(k, K(3.0)) - (K(560.0)*POW(n, K(3.0))
+        + K(1400.0)*n)*POW(k, K(4.0)) + K(490.0)*POW(k, K(5.0))
+        + K(140.0)*n*POW(k, K(6.0)) - K(35.0)*POW(k,K(7.0)))/normalisation;
+
+    if ((K(1.0) <= k/n) && (k/n < K(2.0)))
+      result += ((K(2472.0)*POW(n, K(7.0)) + K(336.0)*POW(n, K(5.0))
+        + K(3528.0)*POW(n, K(3.0)) - K(1296.0)*n) - (K(392.0)*POW(n, K(6.0))
+        - K(3920.0)*POW(n, K(4.0)) + K(8232.0)*POW(n, K(2.0)) - K(756.0))*k
+        - (K(504.0)*POW(n, K(5.0)) + K(10080.0)*POW(n, K(3.0))
+        - K(5292.0)*n)*POW(k, K(2.0)) - (K(1960.0)*POW(n, K(4.0))
+        - K(7840.0)*POW(n, K(2.0)) + K(1029.0))*POW(k, K(3.0))
+        + (K(2520.0)*POW(n, K(3.0)) - K(2520.0)*n) * POW(k, K(4.0))
+        - (K(1176.0)*POW(n, K(2.0)) - K(294.0)) * POW(k, K(5.0))
+        + K(252.0)*n*POW(k, K(6.0)) - K(21.0)*POW(k, K(7.0)))/normalisation;
+
+    if ((K(2.0) <= k/n) && (k/n < K(3.0)))
+      result += (-(K(1112.0)*POW(n, K(7.0)) - K(12880.0)*POW(n, K(5.0))
+        + K(7448.0)*POW(n, K(3.0)) - K(720.0)*n) + (K(12152.0)*POW(n, K(6.0))
+        - K(27440.0)*POW(n, K(4.0)) + K(8232.0)*POW(n, K(2.0)) - K(252.0))*k
+        - (K(19320.0)*POW(n, K(5.0)) - K(21280.0)*POW(n, K(3.0))
+        + K(2940.0)*n)*POW(k, K(2.0)) + (K(13720.0)*POW(n, K(4.0))
+        - K(7840.0)*POW(n, K(2.0)) + K(343.0))*POW(k, K(3.0))
+        - (K(5320.0)*POW(n, K(3.0)) - K(1400.0)*n)*POW(k, K(4.0))
+        + (K(1176.0)*POW(n, K(2.0)) - K(98.0))*POW(k, K(5.0))
+        - K(140.0)*n*POW(k, K(6.0)) + K(7.0) * POW(k, K(7.0)))/normalisation;
+
+    if ((K(3.0) <= k/n) && (k/n < K(4.0)))
+      result += ((4*n-k)*(POW(4*n-k, K(2.0)) - K(1.0))*(POW(4*n-k, K(2.0))
+        - K(4.0))*(POW(4*n-k, K(2.0)) - K(9.0)))/normalisation;
+  }
+
+  return result;
+}
+
+/** Compute damping factor for modified Sobolev kernel. */
+R X(modified_sobolev)(const R mu, const int kk)
+{
+  R result;
+  int kj, k;
+
+  for (result = K(0.0), kj = kk; kj <= kk+1; kj++)
+  {
+    k = ABS(kj);
+    if (k == 0)
+      result += K(1.0);
+    else
+      result += POW(k,-K(2.0)*mu);
+  }
+
+  return result;
+}
+
+/** Comput damping factor for modified multiquadric kernel. */
+R X(modified_multiquadric)(const R mu, const R c, const int kk)
+{
+  R result;
+  int kj, k;
+
+  for (result = K(0.0), kj = kk; kj <= kk+1; kj++)
     {
-      k=fabs(kj);
-
-      if(k/n<1)
-  result+= 1 - (1260*k + (1680*pow(n,5)+2240*pow(n,3)+2940*n)*pow(k,2) -
-          1715*pow(k,3) - (560*pow(n,3)+1400*n)*pow(k,4) + 490*
-          pow(k,5) + 140*n*pow(k,6) - 35*pow(k,7)) / normalisation;
-
-      if((1<=k/n)&&(k/n<2))
-    result+= ((2472*pow(n,7)+336*pow(n,5)+3528*pow(n,3)-1296*n) -
-      (392*pow(n,6)-3920*pow(n,4)+8232*pow(n,2)-756)*k -
-      (504*pow(n,5)+10080*pow(n,3)-5292*n)*pow(k,2) -
-      (1960*pow(n,4)-7840*pow(n,2)+1029)*pow(k,3) +
-      (2520*pow(n,3)-2520*n)*pow(k,4) - (1176*pow(n,2)-294)*pow(k,5)
-      + 252*n*pow(k,6) - 21*pow(k,7)) / normalisation;
-
-      if((2<=k/n)&&(k/n<3))
-   result+= (-(1112*pow(n,7)-12880*pow(n,5)+7448*pow(n,3)-720*n) +
-      (12152*pow(n,6)-27440*pow(n,4)+8232*pow(n,2)-252)*k -
-      (19320*pow(n,5)-21280*pow(n,3)+2940*n)*pow(k,2) +
-      (13720*pow(n,4)-7840*pow(n,2)+343)*pow(k,3) -
-      (5320*pow(n,3)-1400*n)*pow(k,4) + (1176*pow(n,2)-98)*pow(k,5)
-      - 140*n*pow(k,6) + 7*pow(k,7)) / normalisation;
-
-      if((3<=k/n)&&(k/n<4))
-  result+= ((4*n-k)*(pow(4*n-k,2)-1)*(pow(4*n-k,2)-4)*(pow(4*n-k,2)-9)) /
-    normalisation;
+      k = ABS(kj);
+      result += POW(k*k + c*c, -mu);
     }
 
   return result;
 }
 
-/** Computes the damping factor for the modified Sobolev kernel.
- */
-double nfft_modified_sobolev(double mu,int kk)
+static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
+  const int nb, const int ize, R *b)
 {
-  double result;
-  int kj,k;
+  const R enmten = K(4.0)*K(R_MIN);
+  R tempa = K(1.0), empal = K(1.0) + alpha, halfx = K(0.0), tempb = K(0.0);
+  int n, ncalc = nb;
 
-  for(result=0,kj=kk;kj<=kk+1;kj++)
+  if (enmten < x)
+    halfx = x/K(2.0);
+
+  if (alpha != K(0.0))
+    tempa = POW(halfx, alpha)/TGAMMA(empal);
+
+  if (ize == 2)
+    tempa *= EXP(-x);
+
+  if (K(1.0) < x + K(1.0))
+    tempb = halfx*halfx;
+
+  b[0] = tempa + tempa*tempb/empal;
+
+  if (x != K(0.0) && b[0] == K(0.0))
+    ncalc = 0;
+
+  if (nb == 1)
+    return ncalc;
+
+  if (K(0.0) < x)
+  {
+    R tempc = halfx, tover = (enmten + enmten)/x;
+
+    if (tempb != K(0.0))
+      tover = enmten/tempb;
+
+    for (n = 1; n < nb; n++)
     {
-      k=fabs(kj);
-      if(k==0)
-  result+=1;
-      else
-  result+=pow(k,-2*mu);
-    }
+      tempa /= empal;
+      empal += K(1.0);
+      tempa *= tempc;
 
-  return result;
+      if (tempa <= tover*empal)
+        tempa = K(0.0);
+
+      b[n] = tempa + tempa*tempb/empal;
+
+      if (b[n] == K(0.0) && n < ncalc)
+        ncalc = n;
+    }
+  }
+  else
+    for (n = 1; n < nb; n++)
+      b[n] = K(0.0);
+
+  return ncalc;
 }
 
-/** Computes the damping factor for the modified multiquadric kernel.
- */
-double nfft_modified_multiquadric(double mu,double c,int kk)
+static inline void scaled_modified_bessel_i_normalize(const R x,
+  const R alpha, const int nb, const int ize, R *b, const R sum_)
 {
-  double result;
-  int kj,k;
+  const R enmten = K(4.0)*K(R_MIN);
+  R sum = sum_, tempa;
+  int n;
 
-  for(result=0,kj=kk;kj<=kk+1;kj++)
+  /* Normalize, i.e., divide all b[n] by sum */
+  if (alpha != K(0.0))
+    sum = sum * TGAMMA(K(1.0) + alpha) * POW(x/K(2.0), -alpha);
+
+  if (ize == 1)
+    sum *= EXP(-x);
+
+  tempa = enmten;
+
+  if (K(1.0) < sum)
+    tempa *= sum;
+
+  for (n = 1; n <= nb; n++)
+  {
+    if (b[n-1] < tempa)
+      b[n-1] = K(0.0);
+
+    b[n-1] /= sum;
+  }
+}
+
+/**
+ * Calculates the modified bessel function \f$I_{n+\alpha}(x)\f$, possibly
+ * scaled by \f$\mathrm{e}^{-x}\f$, for real non-negative \f$x,alpha\f$ with
+ * \f$0 \le \alpha < 1\f$, and \f$n=0,1,\ldots,nb-1\f$.
+ *
+ * \arg[in] \c x non-negative real number in \f$I_{n+\alpha}(x)\f$
+ * \arg[in] \c alpha non-negative real number with \f$0 \le \alpha < 1\f$ in
+ *   \f$I_{n+\alpha}(x)\f$
+ * \arg[in] \c nb number of functions to be calculated
+ * \arg[in] \c ize switch between no scaling (\c ize = 1) and exponential
+ *   scaling (\c ize = 2)
+ * \arg[out] \c b real output vector to contain \f$I_{n+\alpha}(x)\f$,
+ *   \f$n=0,1,\ldots,nb-1\f$
+ * \return error indicator. Only if this value is identical to \c nb, then all
+ *   values in \c b have been calculated to full accuracy. If not, errors are
+ *   indicated using the following scheme:
+ *   - ncalc < 0: At least one of the arguments was out of range (e.g. nb <= 0,
+ *     ize neither equals 1 nor 2, \f$|x| \ge exparg\f$). In this case, the
+ *     output vector b is not calculated and \c ncalc is set to
+ *     \f$\min(nb,0)-1\f$.
+ *   - 0 < ncalc < nb: Not all requested functions could be calculated to full
+ *     accuracy. This can occur when nb is much larger than |x|. in this case,
+ *     the values \f$I_{n+\alpha}(x)\f$ are calculated to full accuracy for
+ *     \f$n=0,1,\ldots,ncalc\f$. The rest of the values up to
+ *     \f$n=0,1,\ldots,nb-1\f$ is calculated to a lower accuracy.
+ *
+ * \acknowledgement
+ *
+ * This program is based on a program written by David J. Sookne [2] that
+ * computes values of the Bessel functions \f$J_{\nu}(x)\f$ or \f$I_{\nu}(x)\f$
+ * for real argument \f$x\f$ and integer order \f$\nu\f$. modifications include
+ * the restriction of the computation to the Bessel function \f$I_{\nu}(x)\f$
+ * for non-negative real argument, the extension of the computation to arbitrary
+ * non-negative orders \f$\nu\f$, and the elimination of most underflow.
+ *
+ * References:
+ * [1] F. W. J. Olver and D. J. Sookne, A note on backward recurrence
+ *   algorithms", Math. Comput. (26), 1972, pp 125 -- 132.
+ * [2] D. J. Sookne, "Bessel functions of real argument and int order", NBS
+ *   Jour. of Res. B. (77B), 1973, pp. 125 -- 132.
+ *
+ * Modified by W. J. Cody, Applied Mathematics Division, Argonne National
+ *   Laboratory, Argonne, IL, 60439, USA
+ *
+ * Modified by Jens Keiner, Institute of Mathematics, University of Lübeck,
+ *   23560 Lübeck, Germany
+ */
+int nfft_smbi(const R x, const R alpha, const int nb, const int ize, R *b)
+{
+  /* machine dependent parameters */
+  /* NSIG   - DECIMAL SIGNIFICANCE DESIRED.  SHOULD BE SET TO */
+  /*          IFIX(ALOG10(2)*NBIT+1), WHERE NBIT IS THE NUMBER OF */
+  /*          BITS IN THE MANTISSA OF A WORKING PRECISION VARIABLE. */
+  /*          SETTING NSIG LOWER WILL RESULT IN DECREASED ACCURACY */
+  /*          WHILE SETTING NSIG HIGHER WILL INCREASE CPU TIME */
+  /*          WITHOUT INCREASING ACCURACY.  THE TRUNCATION ERROR */
+  /*          IS LIMITED TO A RELATIVE ERROR OF T=.5*10**(-NSIG). */
+  /* ENTEN  - 10.0 ** K, WHERE K IS THE LARGEST int SUCH THAT */
+  /*          ENTEN IS MACHINE-REPRESENTABLE IN WORKING PRECISION. */
+  /* ENSIG  - 10.0 ** NSIG. */
+  /* RTNSIG - 10.0 ** (-K) FOR THE SMALLEST int K SUCH THAT */
+  /*          K .GE. NSIG/4. */
+  /* ENMTEN - THE SMALLEST ABS(X) SUCH THAT X/4 DOES NOT UNDERFLOW. */
+  /* XLARGE - UPPER LIMIT ON THE MAGNITUDE OF X WHEN IZE=2.  BEAR */
+  /*          IN MIND THAT IF ABS(X)=N, THEN AT LEAST N ITERATIONS */
+  /*          OF THE BACKWARD RECURSION WILL BE EXECUTED. */
+  /* EXPARG - LARGEST WORKING PRECISION ARGUMENT THAT THE LIBRARY */
+  /*          EXP ROUTINE CAN HANDLE AND UPPER LIMIT ON THE */
+  /*          MAGNITUDE OF X WHEN IZE=1. */
+  const int nsig = R_DIG + 2;
+  const R enten = POW(K(10.0),K(R_MAX_10_EXP));
+  const R ensig = POW(K(10.0),(R)nsig);
+  const R rtnsig = POW(K(10.0),-CEIL((R)nsig/K(4.0)));
+  const R xlarge = K(1E4);
+  const R exparg = FLOOR(LOG(POW(K(R_RADIX),K(DBL_MAX_EXP-1))));
+
+  /* System generated locals */
+  int l, n, nend, magx, nbmx, ncalc, nstart;
+  R p, em, en, sum, pold, test, empal, tempa, tempb, tempc, psave, plast, tover,
+    emp2al, psavel;
+
+  magx = (int)FLOOR(x);
+
+  /* return if x, nb, or ize out of range */
+  if (   nb <= 0 || x < K(0.0) || alpha < K(0.0) || K(1.0) <= alpha
+      || ((ize != 1 || exparg < x) && (ize != 2 || xlarge < x)))
+    return (MIN(nb,0) - 1);
+
+  /* 2-term ascending series for small x */
+  if (x < rtnsig)
+    return scaled_modified_bessel_i_series(x,alpha,nb,ize,b);
+
+  ncalc = nb;
+  /* forward sweep, Olver's p-sequence */
+
+  nbmx = nb - magx;
+  n = magx + 1;
+
+  en = (R) (n+n) + (alpha+alpha);
+  plast = K(1.0);
+  p = en/x;
+
+  /* significance test */
+  test = ensig + ensig;
+
+  if ((5*nsig) < (magx << 1))
+    test = SQRT(test*p);
+  else
+    test /= POW(K(1.585),magx);
+
+  if (3 <= nbmx)
+  {
+    /* calculate p-sequence until n = nb-1 */
+    tover = enten/ensig;
+    nstart = magx+2;
+    nend = nb - 1;
+
+    for (n = nstart; n <= nend; n++)
     {
-      k=fabs(kj);
-      result+=pow(k*k+c*c,-mu);
+      en += K(2.0);
+      pold = plast;
+      plast = p;
+      p = en*plast/x + pold;
+      if (p > tover)
+      {
+        /* divide p-sequence by tover to avoid overflow. Calculate p-sequence
+         * until 1 <= |p| */
+        tover = enten;
+        p /= tover;
+        plast /= tover;
+        psave = p;
+        psavel = plast;
+        nstart = n + 1;
+
+        do
+        {
+          n++;
+          en += K(2.0);
+          pold = plast;
+          plast = p;
+          p = en*plast/x + pold;
+        } while (p <= K(1.0));
+
+        tempb = en/x;
+
+        /* Backward test. Find ncalc as the largest n such that test is passed. */
+        test = pold*plast*(K(0.5) - K(0.5)/(tempb * tempb))/ensig;
+        p = plast*tover;
+        n--;
+        en -= K(2.0);
+        nend = MIN(nb,n);
+
+        for (ncalc = nstart; ncalc <= nend; ncalc++)
+        {
+          pold = psavel;
+          psavel = psave;
+          psave = en*psavel/x + pold;
+          if (test < psave * psavel)
+            break;
+        }
+
+        ncalc--;
+        goto L80;
+      }
     }
 
-  return result;
+    n = nend;
+    en = (R) (n+n) + (alpha+alpha);
+
+    /* special significance test for 2 <= nbmx */
+    test = FMAX(test,SQRT(plast*ensig)*SQRT(p+p));
+  }
+
+  /* calculate p-sequence until significance test is passed */
+  do
+  {
+    n++;
+    en += K(2.0);
+    pold = plast;
+    plast = p;
+    p = en*plast/x + pold;
+  } while (p < test);
+
+  /* Initialize backward recursion and normalization sum. */
+L80:
+  n++;
+  en += K(2.0);
+  tempb = K(0.0);
+  tempa = K(1.0)/p;
+  em = (R)(n-1);
+  empal = em + alpha;
+  emp2al = em - K(1.0) + (alpha+alpha);
+  sum = tempa*empal*emp2al/em;
+  nend = n-nb;
+
+  if (nend < 0)
+  {
+    /* We have n <= nb. So store b[n] and set higher orders to zero */
+    b[n-1] = tempa;
+    nend = -nend;
+    for (l = 1; l <= nend; ++l)
+      b[n-1 + l] = K(0.0);
+  }
+  else
+  {
+    if (nend != 0)
+    {
+      /* recur backward via difference equation, calculating b[n] until n = nb */
+      for (l = 1; l <= nend; ++l)
+      {
+        n--;
+        en -= K(2.0);
+        tempc = tempb;
+        tempb = tempa;
+        tempa = en*tempb/x + tempc;
+        em -= K(1.0);
+        emp2al -= K(1.0);
+
+        if (n == 1)
+          break;
+
+        if (n == 2)
+          emp2al = K(1.0);
+
+        empal -= K(1.0);
+        sum = (sum + tempa*empal)*emp2al/em;
+      }
+    }
+
+    /* store b[nb] */
+    b[n-1] = tempa;
+
+    if (nb <= 1)
+    {
+      sum = sum + sum + tempa;
+      scaled_modified_bessel_i_normalize(x,alpha,nb,ize,b,sum);
+      return ncalc;
+    }
+
+    /* calculate and store b[nb-1] */
+    n--;
+    en -= 2.0;
+    b[n-1] = en*tempa/x + tempb;
+
+    if (n == 1)
+    {
+      sum = sum + sum + b[0];
+      scaled_modified_bessel_i_normalize(x,alpha,nb,ize,b,sum);
+      return ncalc;
+    }
+
+    em -= K(1.0);
+    emp2al -= K(1.0);
+
+    if (n == 2)
+      emp2al = K(1.0);
+
+    empal -= K(1.0);
+    sum = (sum + b[n-1]*empal)*emp2al/em;
+  }
+
+  nend = n - 2;
+
+  if (nend != 0)
+  {
+    /* Calculate and store b[n] until n = 2. */
+    for (l = 1; l <= nend; ++l)
+    {
+      n--;
+      en -= K(2.0);
+      b[n-1] = en*b[n]/x + b[n+1];
+      em -= K(1.0);
+      emp2al -= K(1.0);
+
+      if (n == 2)
+        emp2al = K(1.0);
+
+      empal -= K(1.0);
+      sum = (sum + b[n-1]*empal)*emp2al/em;
+    }
+  }
+
+  /* calculate b[1] */
+  b[0] = K(2.0)*empal*b[1]/x + b[2];
+  sum = sum + sum + b[0];
+
+  scaled_modified_bessel_i_normalize(x,alpha,nb,ize,b,sum);
+  return ncalc;
 }

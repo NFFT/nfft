@@ -1,22 +1,20 @@
 /* $Id$
  *
- * fastsumS2 - Fast summation of radial functions on the sphere
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
- * Copyright (C) 2005 Jens Keiner
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /**
@@ -25,23 +23,23 @@
  * \{
  */
 
-/* Include standard C headers. */
+/* standard headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 #include <complex.h>
 
-/* Include GSL header for spherical Bessel functions. */
-#include "../3rdparty/gsl/specfunc/gsl_sf_bessel.h"
-/* Include NFFT 3 utilities headers. */
-#include "util.h"
-/* Include NFFT3 library header. */
+/* NFFT3 header */
 #include "nfft3.h"
 
-/** Macro for the Fourier-Legendre coefficients of the Abel-Poisson kernel */
+/* NFFT3 utilities */
+#include "util.h"
+
+/* Fourier-Legendre coefficients for Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
 
-/** Macro for the Fourier-Legendre coefficients of the singularity kernel */
+/* Fourier-Legendre coefficients for singularity kernel */
 #define SYMBOL_SINGULARITY(k,h) ((2.0/(2*k+1))*pow(h,k))
 
 /* Flags for the different kernel functions */
@@ -72,10 +70,12 @@ enum pvalue {NO = 0, YES = 1, BOTH = 2};
  *
  * \author Jens Keiner
  */
-double innerProduct(const double phi1, const double theta1, const double phi2,
-  const double theta2)
+static inline double innerProduct(const double phi1, const double theta1,
+  const double phi2, const double theta2)
 {
-  return cos(theta1)*cos(theta2) + sin(theta1)*sin(theta2)*cos(phi1-phi2);
+  double pi2theta1 = PI2*theta1, pi2theta2 = PI2*theta2;
+  return (cos(pi2theta1)*cos(pi2theta2)
+    + sin(pi2theta1)*sin(pi2theta2)*cos(PI2*(phi1-phi2)));
 }
 
 /**
@@ -89,9 +89,9 @@ double innerProduct(const double phi1, const double theta1, const double phi2,
  *
  * \author Jens Keiner
  */
-double poissonKernel(const double x, const double h)
+static inline double poissonKernel(const double x, const double h)
 {
-  return (1.0/(4*PI))*(1-h*h)/pow(sqrt(1-2*h*x+h*h),3);
+  return (1.0/(PI4))*((1.0-h)*(1.0+h))/pow(sqrt(1.0-2.0*h*x+h*h),3.0);
 }
 
 /**
@@ -105,9 +105,9 @@ double poissonKernel(const double x, const double h)
  *
  * \author Jens Keiner
  */
-double singularityKernel(const double x, const double h)
+static inline double singularityKernel(const double x, const double h)
 {
-  return (1.0/(2*PI))/sqrt(1-2*h*x+h*h);
+  return (1.0/(PI2))/sqrt(1.0-2.0*h*x+h*h);
 }
 
 /**
@@ -123,7 +123,7 @@ double singularityKernel(const double x, const double h)
  *
  * \author Jens Keiner
  */
-double locallySupportedKernel(const double x, const double h,
+static inline double locallySupportedKernel(const double x, const double h,
   const double lambda)
 {
   return (x<=h)?(0.0):(pow((x-h),lambda));
@@ -141,9 +141,9 @@ double locallySupportedKernel(const double x, const double h,
  *
  * \author Jens Keiner
  */
-double gaussianKernel(const double x, const double sigma)
+static inline double gaussianKernel(const double x, const double sigma)
 {
-   return exp(2.0*sigma*(x-1));
+   return exp(2.0*sigma*(x-1.0));
 }
 
 /**
@@ -196,17 +196,16 @@ int main (int argc, char **argv)
   double err_fd;               /* Error E_\infty for fast direct algorithm    */
   double t;                    /*                                             */
   int precompute = NO;         /*                                             */
-  double _Complex *ptr;         /*                                             */
+  fftw_complex *ptr;         /*                                             */
   double* steed;               /*                                             */
-  double* steed2;              /*                                             */
-  double _Complex *b;           /* The weights (b_l)_{l=0}^{L-1}               */
-  double _Complex *f_hat;       /* The spherical Fourier coefficients          */
-  double _Complex *a;           /* The Fourier-Legendre coefficients           */
+  fftw_complex *b;           /* The weights (b_l)_{l=0}^{L-1}               */
+  fftw_complex *f_hat;       /* The spherical Fourier coefficients          */
+  fftw_complex *a;           /* The Fourier-Legendre coefficients           */
   double *xi;                  /* Target nodes                                */
   double *eta;                 /* Source nodes                                */
-  double _Complex *f_m;         /* Approximate function values                 */
-  double _Complex *f;           /* Exact function values                       */
-  double _Complex *prec = NULL; /*                                             */
+  fftw_complex *f_m;         /* Approximate function values                 */
+  fftw_complex *f;           /* Exact function values                       */
+  fftw_complex *prec = NULL; /*                                             */
   nfsft_plan plan;             /* NFSFT plan                                  */
   nfsft_plan plan_adjoint;     /* adjoint NFSFT plan                          */
   int i;                       /*                                             */
@@ -375,18 +374,18 @@ int main (int argc, char **argv)
     }
 
     /* Allocate memory for data structures. */
-    b = (double _Complex*) nfft_malloc(l_max*sizeof(double _Complex));
+    b = (fftw_complex*) nfft_malloc(l_max*sizeof(fftw_complex));
     eta = (double*) nfft_malloc(2*l_max*sizeof(double));
-    f_hat = (double _Complex*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(double _Complex));
-    a = (double _Complex*) nfft_malloc((m_max+1)*sizeof(double _Complex));
+    f_hat = (fftw_complex*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(fftw_complex));
+    a = (fftw_complex*) nfft_malloc((m_max+1)*sizeof(fftw_complex));
     xi = (double*) nfft_malloc(2*d_max*sizeof(double));
-    f_m = (double _Complex*) nfft_malloc(d_max*sizeof(double _Complex));
-    f = (double _Complex*) nfft_malloc(d_max*sizeof(double _Complex));
+    f_m = (fftw_complex*) nfft_malloc(d_max*sizeof(fftw_complex));
+    f = (fftw_complex*) nfft_malloc(d_max*sizeof(fftw_complex));
 
     /* Allocate memory for precomputed data. */
     if (precompute == YES)
     {
-      prec = (double _Complex*) nfft_malloc(ld_max_prec*sizeof(double _Complex));
+      prec = (fftw_complex*) nfft_malloc(ld_max_prec*sizeof(fftw_complex));
     }
 
     /* Generate random source nodes and weights. */
@@ -394,14 +393,14 @@ int main (int argc, char **argv)
     {
       b[l] = (((double)rand())/RAND_MAX) - 0.5;
       eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
-      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(2.0*PI);
+      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(PI2);
     }
 
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
       xi[2*d] = (((double)rand())/RAND_MAX) - 0.5;
-      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(2.0*PI);
+      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(PI2);
     }
 
     /* Do precomputation. */
@@ -417,70 +416,41 @@ int main (int argc, char **argv)
         case KT_ABEL_POISSON:
           /* Compute Fourier-Legendre coefficients for the Poisson kernel. */
           for (k = 0; k <= m_max; k++)
-          {
             a[k] = SYMBOL_ABEL_POISSON(k,p[ip][0]);
-          }
           break;
 
         case KT_SINGULARITY:
           /* Compute Fourier-Legendre coefficients for the singularity
            * kernel. */
           for (k = 0; k <= m_max; k++)
-          {
             a[k] = SYMBOL_SINGULARITY(k,p[ip][0]);
-          }
           break;
 
         case KT_LOC_SUPP:
           /* Compute Fourier-Legendre coefficients for the locally supported
            * kernel. */
-          for (k = 0; k <= m_max; k++)
-          {
-            /* First case k = 0 for initialization of three-term recurrence. */
-            if (k == 0)
-            {
-              a[k] = 1.0;
-            }
-            /* Second case k = 1 for initialization of three-term recurrence. */
-            else if (k == 1)
-            {
-              a[k] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[k-1];
-            }
-            /* Apply three-term recurrence. */
-            else
-            {
-              a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] -
-                (k-p[ip][1]-2)*a[k-2]);
-            }
-          }
+          a[0] = 1.0;
+          if (1 <= m_max)
+            a[1] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[0];
+          for (k = 2; k <= m_max; k++)
+            a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] -
+              (k-p[ip][1]-2)*a[k-2]);
           break;
 
-          case KT_GAUSSIAN:
-            /* Compute Fourier-Legendre coefficients for the locally supported
-             * kernel. */
-            steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
-            steed2 = (double*) nfft_malloc((m_max+1)*sizeof(double));
-            gsl_sf_bessel_il_scaled_array(m_max,2.0*p[ip][0],steed);
-            for (k = 0; k <= m_max; k++)
-            {
-              steed[k] = 4.0*PI;
-              a[k] = steed[k];
-            }
-            for (k = 0; k <= m_max; k++)
-            {
-              steed[k] *= 4.0*PI;
-              a[k] = steed[k];
-            }
+        case KT_GAUSSIAN:
+          /* Fourier-Legendre coefficients */
+          steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
+          nfft_smbi(2.0*p[ip][0],0.5,m_max+1,2,steed);
+          for (k = 0; k <= m_max; k++)
+            a[k] = PI2*(sqrt(PI/p[ip][0]))*steed[k];
 
-            nfft_free(steed);
-            break;
+          nfft_free(steed);
+          break;
       }
 
       /* Normalize Fourier-Legendre coefficients. */
       for (k = 0; k <= m_max; k++)
-      {
-        a[k] *= (2*k+1)/(4*PI);
-      }
+        a[k] *= (2*k+1)/(PI4);
 
       /* Process all node sets. */
       for (ild = 0; ild < ild_max; ild++)
@@ -505,8 +475,7 @@ int main (int argc, char **argv)
               {
                 /* Compute inner product between current source and target
                  * node. */
-                temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                  2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                temp = innerProduct(eta[2*l],eta[2*l+1],xi[2*d],xi[2*d+1]);
 
                 /* Switch by the kernel type. */
                 switch (kt)
@@ -560,7 +529,7 @@ int main (int argc, char **argv)
                 /* Perform final summation */
 
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(PI2*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -570,9 +539,7 @@ int main (int argc, char **argv)
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
-                  {
                     f[d] += b[l]*(*ptr++);
-                  }
 
                   /* Multiply with the constant. */
                   f[d] *= constant;
@@ -591,9 +558,7 @@ int main (int argc, char **argv)
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
-                  {
                     f[d] += b[l]*(*ptr++);
-                  }
 
                   /* Proceed to next row. */
                   ptr += rinc;
@@ -638,8 +603,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                    temp = innerProduct(eta[2*l],eta[2*l+1],xi[2*d],xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
                      * to the result. */
@@ -660,8 +624,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                    temp = innerProduct(eta[2*l],eta[2*l+1],xi[2*d],xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
                      * to the result. */
@@ -672,7 +635,7 @@ int main (int argc, char **argv)
 
               case KT_LOC_SUPP:
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(2*PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(PI2*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -685,8 +648,7 @@ int main (int argc, char **argv)
                   {
                     /* Compute the inner product for the current source and
                      * target nodes. */
-                    temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                      2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                    temp = innerProduct(eta[2*l],eta[2*l+1],xi[2*d],xi[2*d+1]);
 
                     /* Evaluate the Poisson kernel for the current value and add
                      * to the result. */
@@ -710,8 +672,7 @@ int main (int argc, char **argv)
                     {
                       /* Compute the inner product for the current source and
                        * target nodes. */
-                      temp = innerProduct(2*PI*eta[2*l],2*PI*eta[2*l+1],
-                        2*PI*xi[2*d],2*PI*xi[2*d+1]);
+                      temp = innerProduct(eta[2*l],eta[2*l+1],xi[2*d],xi[2*d+1]);
                       /* Evaluate the Poisson kernel for the current value and add
                        * to the result. */
                       f[d] += b[l]*gaussianKernel(temp,p[ip][0]);
@@ -782,12 +743,8 @@ int main (int argc, char **argv)
 
               /* Multiplication with the Fourier-Legendre coefficients. */
               for (k = 0; k <= m[im]; k++)
-              {
                 for (n = -k; n <= k; n++)
-                {
                   f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
-                }
-              }
 
               /* Execute direct NDSFT transformation. */
               ndsft_trafo(&plan);
@@ -842,12 +799,8 @@ int main (int argc, char **argv)
 
             /* Multiplication with the Fourier-Legendre coefficients. */
             for (k = 0; k <= m[im]; k++)
-            {
               for (n = -k; n <= k; n++)
-              {
                 f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
-               }
-             }
 
             /* Check if the fast NFSFT algorithm shall also be tested. */
             if (use_nfsft != NO)
@@ -860,12 +813,6 @@ int main (int argc, char **argv)
               /* Execute the NDSFT transformation. */
               ndsft_trafo(&plan);
             }
-
-            /*for (d = 0; d < ld[ild][1]; d++)
-            {
-              fprintf(stderr,"f_ref[%d] = %le + I*%le, f[%d] = %le + I*%le\n",
-                d,creal(f[d]),cimag(f[d]),d,creal(f_m[d]),cimag(f_m[d]));
-            }*/
           }
 
           /* Check if the fast NFSFT algorithm has been used. */
@@ -913,8 +860,6 @@ int main (int argc, char **argv)
           /* Print out the error measurements. */
           fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n\n",t_d,t_dp,t_fd,t_f,err_fd,
             err_f);
-          /*fprintf(stderr,"%d: %e\t%e\t%e\t%e\t%e\t%e\n",m[im],t_d,t_dp,t_fd,t_f,
-            err_fd,err_f);*/
 
           /* Finalize the NFSFT plans */
           nfsft_finalize(&plan_adjoint);
@@ -945,9 +890,7 @@ int main (int argc, char **argv)
 
     /* Free memory for node sets. */
     for (ild = 0; ild < ild_max; ild++)
-    {
       nfft_free(ld[ild]);
-    }
     nfft_free(ld);
 
     /* Free memory for cut-off bandwidths. */
@@ -955,9 +898,7 @@ int main (int argc, char **argv)
 
     /* Free memory for parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
-    {
       nfft_free(p[ip]);
-    }
     nfft_free(p);
   } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */
 

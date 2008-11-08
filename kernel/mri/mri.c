@@ -1,3 +1,22 @@
+/* $Id$
+ *
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <string.h>
 #include <math.h>
 
@@ -17,8 +36,8 @@ typedef struct window_funct_plan_ {
 	int n[1];
 	double sigma[1];
 	double *b;
-  double *spline_coeffs;                /**< input for de Boor algorithm, if   
-                                             B_SPLINE or SINC_2m is defined   */ 
+  double *spline_coeffs;                /**< input for de Boor algorithm, if
+                                             B_SPLINE or SINC_2m is defined   */
 } window_funct_plan;
 
 
@@ -36,7 +55,7 @@ void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
 /*
  * mri_inh_2d1d
  */
-																																			 
+
 void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   int l,j;
   double _Complex *f = (double _Complex*) fftw_malloc(that->M_total*sizeof(double _Complex));
@@ -44,12 +63,12 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
-  
+
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
   that->plan.f_hat = that->f_hat;
 
-	
+
 	memset(f,0,that->M_total*sizeof(double _Complex));
   for(j=0;j<that->N_total;j++)
   {
@@ -62,7 +81,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     nfft_trafo(&that->plan);
     for(j=0;j<that->M_total;j++){
       /* PHI has compact support */
-			if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0])) 
+			if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0]))
         f[j]+=that->f[j]*PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
     }
     for(j=0;j<that->N_total;j++)
@@ -72,9 +91,9 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   fftw_free(that->plan.f);
   that->f=f;
   that->plan.f = that->f;
-  
+
   fftw_free(f_hat);
-  
+
   WINDOW_HELP_FINALIZE
   fftw_free(ths);
 }
@@ -86,25 +105,25 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 
   window_funct_plan *ths = (window_funct_plan*) fftw_malloc(sizeof(window_funct_plan));
 	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
-  
+
 	memset(f_hat,0,that->N_total*sizeof(double _Complex));
-	
+
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
   that->plan.f_hat = that->f_hat;
-  
+
 	for(j=0;j<that->M_total;j++)
   {
     f[j]=that->f[j];
   }
 
 
-  
+
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
-    
+
     for(j=0;j<that->M_total;j++) {
       /* PHI has compact support */
-      if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0])) 
+      if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0]))
         that->f[j]*=PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
       else
       	that->f[j]=0.0;
@@ -124,9 +143,9 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   fftw_free(that->plan.f_hat);
   that->f_hat=f_hat;
   that->plan.f_hat = that->f_hat;
-  
+
 	fftw_free(f);
-  
+
 	WINDOW_HELP_FINALIZE
   fftw_free(ths);
 }
@@ -141,7 +160,7 @@ void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
   ths->M_total = ths->plan.M_total;
   ths->f = ths->plan.f;
   ths->f_hat = ths->plan.f_hat;
-  
+
   ths->t = (double*) fftw_malloc(ths->M_total*sizeof(double));
   ths->w = (double*) fftw_malloc(ths->N_total*sizeof(double));
 }
@@ -149,11 +168,11 @@ void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
 void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths) {
   fftw_free(ths->t);
   fftw_free(ths->w);
-	
+
 	/* the pointers ths->f and ths->f_hat have been modified by the solver */
 	ths->plan.f = ths->f;
   ths->plan.f_hat = ths->f_hat;
-  
+
 	nfft_finalize(&ths->plan);
 }
 
@@ -168,22 +187,22 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;
-  
+
 
 
   for(j=0;j<that->N_total;j++) {
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
       /* PHI has compact support */
-      if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0])) 
+      if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0]))
         that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]= that->f_hat[j]*PHI(that->w[j]-((double)l)/((double)ths->n[0]),0);
       else
 	      that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]=0.0;
     }
   }
-  
+
   nfft_trafo(&that->plan);
-  
+
   for(j=0;j<that->M_total;j++)
   {
     that->f[j] /= PHI_HUT(ths->n[0]*that->plan.x[3*j+2],0);
@@ -200,12 +219,12 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;
-  
+
   for(j=0;j<that->M_total;j++)
   {
     that->f[j] /= PHI_HUT(ths->n[0]*that->plan.x[3*j+2],0);
   }
-  
+
   nfft_adjoint(&that->plan);
 
   for(j=0;j<that->N_total;j++) {
@@ -213,12 +232,12 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
       /* PHI has compact support */
-      if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0])) 
+      if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0]))
         that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI(that->w[j]-((double)l)/((double)ths->n[0]),0);
     }
   }
 
-  
+
 	WINDOW_HELP_FINALIZE
   fftw_free(ths);
 }

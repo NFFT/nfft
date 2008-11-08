@@ -21,7 +21,7 @@
 ################################################################################
 
 # initialize autoconf
-AC_INIT(NFFT, 3.1, potts@mathematik.tu-chemnitz.de)
+AC_INIT(NFFT, 3.1.0, potts@mathematik.tu-chemnitz.de)
 
 # copyright notice
 AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
@@ -140,7 +140,7 @@ fi
 
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-	AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
+  AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
 AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
@@ -248,29 +248,77 @@ fi
 # Make CFLAGS available.
 AC_SUBST(CFLAGS)
 
-AX_LIB_GSL
+# header files
+AC_HEADER_STDC
+AC_CHECK_HEADERS([libintl.h malloc.h stddef.h stdlib.h string.h strings.h \
+  sys/time.h unistd.h limits.h c_asm.h intrinsics.h stdint.h mach/mach_time.h \
+  sys/sysctl.h c_asm.h intrinsics.h sys/sysctl])
+# c_asm.h: Header file for enabling asm() on Digital Unix
+# intrinsics.h: cray unicos
+# sys/sysctl.h: MacOS X altivec detection
 
-# Checks for libraries
+# typedefs, structures, and compiler characteristics
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_CHECK_TYPE([long double],
+  [AC_DEFINE(HAVE_LONG_DOUBLE, 1, [Define to 1 if the compiler supports `long double'])],[])
+
+AC_CHECK_TYPE([hrtime_t],[AC_DEFINE(HAVE_HRTIME_T, 1, [Define to 1 if hrtime_t is defined in <sys/time.h>])],,
+[
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+])
+
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(unsigned int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(unsigned long)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(unsigned long long)
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(ptrdiff_t)
+
+AC_CHECK_TYPES(uintptr_t, [], [AC_CHECK_SIZEOF(void *)], [$ac_includes_default
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif])
+
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long double)
+
+# library functions
+AC_FUNC_ALLOCA
+AC_FUNC_STRTOD
+AC_FUNC_VPRINTF
+AC_CHECK_LIB(m, sin)
 AC_CHECK_LIB(fftw3,fftw_execute,,,)
+
+AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
+AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
+AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
+AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
+AC_CHECK_FUNCS([log1p sqrt tgamma lgamma log sin cos acos pow exp copysign])
+AC_CHECK_FUNCS([log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf])
+AC_CHECK_FUNCS([log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl])
+AC_CHECK_FUNCS([nanosleep sleep drand48])
+
+AC_CHECK_DECLS([memalign, posix_memalign])
+AC_CHECK_DECLS([log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
+AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
+AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
+
 LIBS=
-
-# Checks for library functions.
-
-# Checks for typedefs, structures, and compiler characteristics
-
-
 
 # The output files to be generated
 AC_OUTPUT(Makefile \
           include/Makefile \
           include/nfftconf.h \
           3rdparty/Makefile \
-          3rdparty/gsl/Makefile \
-          3rdparty/gsl/err/Makefile \
-          3rdparty/gsl/sys/Makefile \
-          3rdparty/gsl/specfunc/Makefile \
-          3rdparty/gsl/ieee-utils/Makefile \
-          3rdparty/gsl/utils/Makefile \
           3rdparty/cstripack/Makefile \
           util/Makefile \
           kernel/Makefile \
@@ -295,20 +343,19 @@ AC_OUTPUT(Makefile \
           examples/nnfft/simple_test/Makefile \
           examples/nsfft/Makefile \
           examples/solver/Makefile \
-	  applications/Makefile \
-	  applications/fastgauss/Makefile \
-	  applications/fastsum/Makefile \
-	  applications/fastsumS2/Makefile \
-	  applications/quadratureS2/Makefile \
-	  applications/mri/Makefile \
+          applications/Makefile \
+          applications/fastgauss/Makefile \
+          applications/fastsum/Makefile \
+          applications/fastsumS2/Makefile \
+          applications/quadratureS2/Makefile \
+          applications/mri/Makefile \
           applications/mri/mri2d/Makefile \
           applications/mri/mri3d/Makefile \
-	  applications/polarFFT/Makefile \
-	  applications/radon/Makefile \
-	  matlab/Makefile \
-	  matlab/nfsft/Makefile
+          applications/polarFFT/Makefile \
+          applications/radon/Makefile \
+          matlab/Makefile \
+          matlab/nfsft/Makefile
 )
-#	  applications/quadratureS2/Makefile \
 
 if test $USE_MAINTAINER_MODE = yes; then
 AC_OUTPUT(tests/Makefile \
@@ -319,24 +366,23 @@ AC_OUTPUT(tests/Makefile \
           tests/lowlevel/Makefile \
           tests/lowlevel/nfsft/Makefile \
           applications/iterS2/Makefile \
-      		applications/texture/Makefile \
-					applications/texture/examplesTexture/Makefile \
-					applications/texture/examplesTexture/correctness/Makefile \
-					applications/texture/examplesTexture/data/Makefile \
-					applications/texture/examplesTexture/data/data_publication/Makefile \
-					applications/texture/examplesTexture/data/util/Makefile \
-					applications/texture/examplesTexture/data_creator/Makefile \
-					applications/texture/examplesTexture/interpolation/Makefile \
-					applications/texture/examplesTexture/matrix/Makefile \
-					applications/texture/examplesTexture/paper1/Makefile \
-					applications/texture/examplesTexture/paper1/data/Makefile \
-					applications/texture/examplesTexture/paper1/reconstruction/Makefile \
-					applications/texture/examplesTexture/paper1/texture/Makefile \
-					applications/texture/examplesTexture/performance/Makefile \
-					applications/texture/examplesTexture/regularity/Makefile \
-					applications/texture/examplesTexture/regularity2/Makefile \
-					applications/texture/examplesTexture/regularity3/Makefile \
-					applications/texture/examplesTexture/texture_util/Makefile
+          applications/texture/Makefile \
+          applications/texture/examplesTexture/Makefile \
+          applications/texture/examplesTexture/correctness/Makefile \
+          applications/texture/examplesTexture/data/Makefile \
+          applications/texture/examplesTexture/data/data_publication/Makefile \
+          applications/texture/examplesTexture/data/util/Makefile \
+          applications/texture/examplesTexture/data_creator/Makefile \
+          applications/texture/examplesTexture/interpolation/Makefile \
+          applications/texture/examplesTexture/matrix/Makefile \
+          applications/texture/examplesTexture/paper1/Makefile \
+          applications/texture/examplesTexture/paper1/data/Makefile \
+          applications/texture/examplesTexture/paper1/reconstruction/Makefile \
+          applications/texture/examplesTexture/paper1/texture/Makefile \
+          applications/texture/examplesTexture/performance/Makefile \
+          applications/texture/examplesTexture/regularity/Makefile \
+          applications/texture/examplesTexture/regularity2/Makefile \
+          applications/texture/examplesTexture/regularity3/Makefile \
+          applications/texture/examplesTexture/texture_util/Makefile
 )
 fi
-

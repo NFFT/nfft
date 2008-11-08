@@ -1,6 +1,23 @@
-/* $Id$ */
+/* $Id$
+ *
+ * Copyright (c) 2006, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
-/** 
+/**
  * \defgroup applications_fastgauss Fast Gauss transfrom with complex parameter
  * \ingroup applications
  * \{
@@ -86,10 +103,10 @@ typedef struct
 void dgt_trafo(fgt_plan *ths)
 {
   int j,k,l;
-  
+
   for(j=0; j<ths->M; j++)
     ths->f[j] = 0;
-  
+
   if(ths->flags & DGT_PRE_CEXP)
     for(j=0,l=0; j<ths->M; j++)
       for(k=0; k<ths->N; k++,l++)
@@ -118,7 +135,7 @@ void fgt_trafo(fgt_plan *ths)
 
       for(l=0; l<ths->n; l++)
         ths->nplan1->f_hat[l] *= ths->b[l];
-  
+
       ndft_trafo(ths->nplan2);
     }
   else
@@ -127,7 +144,7 @@ void fgt_trafo(fgt_plan *ths)
 
       for(l=0; l<ths->n; l++)
         ths->nplan1->f_hat[l] *= ths->b[l];
-  
+
       nfft_trafo(ths->nplan2);
     }
 }
@@ -189,11 +206,11 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
       for(j=0; j<ths->n; j++)
 	ths->b[j] = cexp(-ths->p*ths->p*ths->sigma*(j-ths->n/2)*(j-ths->n/2)/
                           ((double)ths->n*ths->n)) / ths->n;
-      
-      nfft_fftshift_complex(ths->b, 1, &ths->n);  
+
+      nfft_fftshift_complex(ths->b, 1, &ths->n);
       fftw_execute(fplan);
       nfft_fftshift_complex(ths->b, 1, &ths->n);
-      
+
       fftw_destroy_plan(fplan);
     }
   else
@@ -258,7 +275,7 @@ void fgt_init_node_dependent(fgt_plan *ths)
     ths->nplan1->x[j] = ths->x[j]/ths->p;
   for(j=0; j<ths->nplan2->M_total; j++)
     ths->nplan2->x[j] = ths->y[j]/ths->p;
-  
+
   if(ths->nplan1->nfft_flags & PRE_PSI)
     nfft_precompute_psi(ths->nplan1);
   if(ths->nplan2->nfft_flags & PRE_PSI)
@@ -320,11 +337,11 @@ void fgt_test_init_rand(fgt_plan *ths)
 double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
-  double t_out,t; 
+  double t_out,t;
   double tau=0.01;
 
   t_out=0;
-  r=0; 
+  r=0;
   while(t_out<tau)
     {
       r++;
@@ -358,12 +375,12 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
 {
   fgt_plan my_plan;
   double _Complex *swap_dgt;
-     
+
   fgt_init(&my_plan, N, M, sigma, eps);
   swap_dgt = (double _Complex*)fftw_malloc(my_plan.M*sizeof(double _Complex));
 
   fgt_test_init_rand(&my_plan);
-  fgt_init_node_dependent(&my_plan);   
+  fgt_init_node_dependent(&my_plan);
 
   NFFT_SWAP_complex(swap_dgt,my_plan.f);
   dgt_trafo(&my_plan);
@@ -380,7 +397,7 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
   fgt_finalize(&my_plan);
 }
 
-/** 
+/**
  * Compares accuracy and execution time of the fast Gauss transform with
  * increasing expansion degree.
  * Similar to the test in F. Andersson and G. Beylkin.
@@ -415,27 +432,27 @@ void fgt_test_andersson()
 					      sizeof(double _Complex));
 
       fgt_test_init_rand(&my_plan);
-      
-      fgt_init_node_dependent(&my_plan);      
+
+      fgt_init_node_dependent(&my_plan);
 
       if(N<N_dgt)
 	{
           NFFT_SWAP_complex(swap_dgt,my_plan.f);
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
- 
+
 	  printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);  
+          NFFT_SWAP_complex(swap_dgt,my_plan.f);
 	}
       else
-	printf("\t\t & ");	
+	printf("\t\t & ");
 
       if(N<N_dgt_pre_exp)
 	printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
       else
-	printf("\t\t & ");	
+	printf("\t\t & ");
 
       my_plan.flags^=FGT_NDFT;
       printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
@@ -454,7 +471,7 @@ void fgt_test_andersson()
     }
 }
 
-/** 
+/**
  * Compares accuracy of the fast Gauss transform with increasing expansion
  * degree.
  *
@@ -470,7 +487,7 @@ void fgt_test_error()
   int N=1000;
   int M=1000;
   int m[2]={7,3};
-  
+
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
@@ -482,8 +499,8 @@ void fgt_test_error()
       for(mi=0;mi<2;mi++)
         {
           fgt_init_guru(&my_plan, N, M, sigma, n, 1, m[mi], 0);
-          fgt_test_init_rand(&my_plan);    
-          fgt_init_node_dependent(&my_plan);    
+          fgt_test_init_rand(&my_plan);
+          fgt_init_node_dependent(&my_plan);
 
           NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
@@ -505,7 +522,7 @@ void fgt_test_error()
   fftw_free(swap_dgt);
 }
 
-/** 
+/**
  * Compares accuracy of the fast Gauss transform with increasing expansion
  * degree and different periodisation lengths.
  *
@@ -521,7 +538,7 @@ void fgt_test_error_p()
   int N=1000;
   int M=1000;
   double p[3]={1,1.5,2};
-  
+
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
@@ -533,8 +550,8 @@ void fgt_test_error_p()
       for(pi=0;pi<3;pi++)
         {
           fgt_init_guru(&my_plan, N, M, sigma, n, p[pi], 7, 0);
-          fgt_test_init_rand(&my_plan);    
-          fgt_init_node_dependent(&my_plan);    
+          fgt_test_init_rand(&my_plan);
+          fgt_init_node_dependent(&my_plan);
 
           NFFT_SWAP_complex(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
@@ -551,10 +568,10 @@ void fgt_test_error_p()
         }
       printf("\n");
     }
-  printf("];\n");  
+  printf("];\n");
 }
 
-/** 
+/**
  * Different tests of the fast Gauss transform.
  *
  * \author Stefan Kunis

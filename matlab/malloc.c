@@ -1,6 +1,6 @@
 /* $Id$
  *
- * Copyright (c) 2007 Jens Keiner
+ * Copyright (c) 2007, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -45,12 +45,12 @@ void nfft_mex_free(void *p)
 {
   if (p)
   {
-    /* We dont use mxFree here since for at least one version of Matlab, 
+    /* We dont use mxFree here since for at least one version of Matlab,
      * mxFree causes it to crash, not to mention other functions like
      * mxWarnMsgTxt on other systems and versions. Grrr... */
     #if 0
       mxFree(p);
-    #else  
+    #else
       free(p);
     #endif
   }

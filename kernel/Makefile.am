@@ -54,7 +54,7 @@ else
 endif
 
 SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFST) \
-  $(NNFFT) $(NSFFT) solver .
+  $(DIR_NNFFT) $(DIR_NSFFT) solver .
 
 noinst_LTLIBRARIES = libkernel.la
 

@@ -1,6 +1,6 @@
 /* $Id$
  *
- * Copyright (c) 2007 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -20,8 +20,8 @@
 /*! \file util.h
  *  \brief Header file for utility functions used by the nfft3 library.
  */
-#ifndef utils_h_inc
-#define utils_h_inc
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 /** Include header for FFTW3 library for its complex type. */
 #include <fftw3.h>
@@ -92,7 +92,9 @@
 
 /** Formerly known to be an irrational number.
  */
-#define PI 3.1415926535897932384626433832795028841971693993
+#define PI 3.141592653589793238462643383279502884197169399375105820974944592
+#define PI2 6.283185307179586476925286766559005768394338798750211641949889185
+#define PI4 12.56637061435917295385057353311801153678867759750042328389977837
 
 /** Maximum of its two arguments.
  */
@@ -298,11 +300,11 @@ void nfft_vpr_int(int *x, int n, char *text);
 
 /** Prints a vector of doubles numbers.
  */
-void nfft_vpr_double(double *x, int n, char *text);
+void nfft_vpr_double(double *x, int n, const char *text);
 
 /** Prints a vector of complex numbers.
  */
-void nfft_vpr_complex(fftw_complex *x, int n, char *text);
+void nfft_vpr_complex(fftw_complex *x, int n, const char *text);
 
 /** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
  */
@@ -342,6 +344,9 @@ double nfft_modified_sobolev(double mu,int kk);
 /** Computes the damping factor for the modified multiquadric kernel.
  */
 double nfft_modified_multiquadric(double mu,double c,int kk);
+
+int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
+  double *b);
 
 /** @}
  */

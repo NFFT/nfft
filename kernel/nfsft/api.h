@@ -1,6 +1,6 @@
 /* $Id$
  *
- * Copyright (c) 2005,2006,2007 Jens Keiner
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -16,8 +16,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
- 
-/** 
+
+/**
  * \file api.h
  * \brief Header file with internal API of the NFSFT module
  * \author Jens Keiner
@@ -52,12 +52,12 @@ typedef enum {false = 0,true = 1} bool;
 //#define LAST_L (int)ceil((Mtilde+1)/(double)plength)-1
 
 
-/** 
- * Wisdom structure 
+/**
+ * Wisdom structure
  */
 struct nfsft_wisdom
 {
-  /** Indicates wether the structure has been initialized. */ 
+  /** Indicates wether the structure has been initialized. */
   bool initialized;
   unsigned int flags;
   /** Stores precomputation flags. */
@@ -65,25 +65,25 @@ struct nfsft_wisdom
   int N_MAX;
   /** The logarithm /f$t = \log_2 N_{\text{max}}/f$ of the maximum bandwidth */
   int T_MAX;
-  
+
   /* Data for the direct algorithms */
-  
-  /** 
+
+  /**
    * Precomputed recursion coefficients /f$\alpha_k^n/f$ for /f$k = 0,/ldots,
-   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions 
-   * /f$P_k^n/f$ 
+   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions
+   * /f$P_k^n/f$
    */
   double *alpha;
-  /** 
+  /**
    * Precomputed recursion coefficients /f$\beta_k^n/f$ for /f$k = 0,/ldots,
-   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions 
-   * /f$P_k^n/f$ 
+   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions
+   * /f$P_k^n/f$
    */
   double *beta;
-  /** 
+  /**
    * Precomputed recursion coefficients /f$\gamma_k^n/f$ for /f$k = 0,/ldots,
-   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions 
-   * /f$P_k^n/f$ 
+   * N_{\text{max}}; n=-k,/ldots,k/f$ of associated Legendre-functions
+   * /f$P_k^n/f$
    */
   double *gamma;
 

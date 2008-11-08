@@ -34,5 +34,11 @@ else
   DIR_MRI=
 endif
 
+if HAVE_FPT
+  DIR_FPT=fpt
+else
+  DIR_FPT=
+endif
+
 SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFST) \
   $(DIR_NNFFT) $(DIR_NSFFT) solver

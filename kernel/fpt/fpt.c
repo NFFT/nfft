@@ -1,6 +1,6 @@
 /* $Id$
  *
- * Copyright (c) 2007 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -729,10 +729,10 @@ static void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, doubl
   }
 }
 
-static inline void eval_sum_clenshaw_fast(const int N, const int M, 
-    const double _Complex * restrict a, const double * restrict x, 
-    double _Complex *y, const double * restrict alpha, 
-    const double * restrict beta, const double * restrict gamma, 
+static inline void eval_sum_clenshaw_fast(const int N, const int M,
+    const double _Complex * restrict a, const double * restrict x,
+    double _Complex *y, const double * restrict alpha,
+    const double * restrict beta, const double * restrict gamma,
     const double lambda)
 {
   int j,k;
@@ -752,8 +752,8 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
       tmp1 = a[N-1] + (alpha[N-1] * xc + beta[N-1])*tmp2;
       for (k = N-1; k > 0; k--)
       {
-        tmp3 =   a[k-1] 
-               + (alpha[k-1] * xc + beta[k-1]) * tmp1 
+        tmp3 =   a[k-1]
+               + (alpha[k-1] * xc + beta[k-1]) * tmp1
                + gamma[k] * tmp2;
         tmp2 = tmp1;
         tmp1 = tmp3;

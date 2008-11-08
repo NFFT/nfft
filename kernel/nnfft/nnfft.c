@@ -1,3 +1,22 @@
+/* $Id$
+ *
+ * Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -70,13 +89,13 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
   int u,o;
 
   c = ths->v[j*ths->d+act_dim] * ths->n[act_dim];
-	
+
   u = c; o = c;
-  if(c < 0)                  
-    u = u-1;                  
+  if(c < 0)
+    u = u-1;
   else
     o = o+1;
-  
+
   u = u - (ths->m); o = o + (ths->m);
 
   up[0]=u; op[0]=o;
@@ -108,7 +127,7 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 #define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*             \
                                 (y_u[t2]+1-y[t2]) +                            \
                                 ths->psi[(ths->K+1)*t2+y_u[t2]+1]*           \
-                                (y[t2]-y_u[t2])) 
+                                (y[t2]-y_u[t2]))
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
 #define MACRO_without_PRE_PSI  PHI(-ths->v[j*ths->d+t2]+                      \
                                ((double)l[t2])/ths->N1[t2], t2)
@@ -239,7 +258,7 @@ static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                      
           MACRO_count_uo_l_lj_t;                                               \
         } /* for(l_L) */                                                     \
     } /* for(j) */                                                            \
-} /* nnfft_B */               
+} /* nnfft_B */
 
 MACRO_nnfft_B(A)
 MACRO_nnfft_B(T)
@@ -247,7 +266,7 @@ MACRO_nnfft_B(T)
 static inline void nnfft_D (nnfft_plan *ths){
   int j,t;
   double tmp;
-  
+
   if(ths->nnfft_flags & PRE_PHI_HUT) {
     for(j=0; j<ths->M_total; j++)
       ths->f[j] *= ths->c_phi_inv[j];
@@ -271,49 +290,49 @@ void nnfft_trafo(nnfft_plan *ths)
 
   nnfft_B_T(ths);
 
-  for(j=0;j<ths->M_total;j++) {  
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
     }
   }
-  
+
   ths->direct_plan->f = ths->f;
   nfft_trafo(ths->direct_plan);
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
     }
   }
-  
+
   nnfft_D(ths);
 } /* nnfft_trafo */
 
 void nnfft_adjoint(nnfft_plan *ths)
 {
   int j,t;
-  
+
   nnfft_D(ths);
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
     }
   }
-  
+
   ths->direct_plan->f = ths->f;
   nfft_adjoint(ths->direct_plan);
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
     }
-  }  
-  
+  }
+
   nnfft_B_A(ths);
 } /* nnfft_adjoint */
 
-/** initialisation of direct transform 
+/** initialisation of direct transform
  */
 void nnfft_precompute_phi_hut(nnfft_plan *ths)
 {
@@ -322,7 +341,7 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
   double tmp;
 
   ths->c_phi_inv= (double*)fftw_malloc(ths->M_total*sizeof(double));
-  
+
   for(j=0; j<ths->M_total; j++)
     {
       tmp = 1.0;
@@ -340,11 +359,11 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
 void nnfft_precompute_lin_psi(nnfft_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
-  int j;                                /**< index over all nodes             */  
+  int j;                                /**< index over all nodes             */
   double step;                          /**< step size in [0,(m+1)/n]         */
-  
+
   nfft_precompute_lin_psi(ths->direct_plan);
-  
+
   for (t=0; t<ths->d; t++)
     {
       step=((double)(ths->m+1))/(ths->K*ths->N1[t]);
@@ -362,26 +381,26 @@ void nnfft_precompute_psi(nnfft_plan *ths)
   int l;                                /**< index u<=l<=o                    */
   int lj;                               /**< index 0<=lj<u+o+1                */
   int u, o;                             /**< depends on v_j                   */
-  
+
   for (t=0; t<ths->d; t++)
     for(j=0;j<ths->N_total;j++)
       {
         nnfft_uo(ths,j,&u,&o,t);
-        
+
         for(l=u, lj=0; l <= o; l++, lj++)
           ths->psi[(j*ths->d+t)*(2*ths->m+2)+lj]=
             (PHI((-ths->v[j*ths->d+t]+((double)l)/((double)ths->N1[t])),t));
       } /* for(j) */
-      
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
     }
   }
-  
+
   nfft_precompute_psi(ths->direct_plan);
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
     }
@@ -391,7 +410,7 @@ void nnfft_precompute_psi(nnfft_plan *ths)
 
 
 
-/** 
+/**
  * computes all entries of B explicitly
  */
 void nnfft_precompute_full_psi(nnfft_plan *ths)
@@ -404,48 +423,48 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
   int ll_plain[ths->d+1];              /**< postfix plain index              */
   int lprod;                            /**< 'bandwidth' of matrix B          */
   int u[ths->d], o[ths->d];           /**< depends on x_j                   */
-  
+
   double phi_prod[ths->d+1];
 
   int ix,ix_old;
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
     }
   }
-  
+
   nnfft_precompute_psi(ths);
-  
+
   nfft_precompute_full_psi(ths->direct_plan);
-  
-  for(j=0;j<ths->M_total;j++) {  
+
+  for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
     }
   }
-  
+
   phi_prod[0]=1;
   ll_plain[0]=0;
 
   for(t=0,lprod = 1; t<ths->d; t++)
     lprod *= 2*ths->m+2;
-  
+
   for(j=0,ix=0,ix_old=0; j<ths->N_total; j++)
     {
       MACRO_init_uo_l_lj_t;
-      
+
       for(l_L=0; l_L<lprod; l_L++, ix++)
         {
           MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
-          
+
           ths->psi_index_g[ix]=ll_plain[ths->d];
           ths->psi[ix]=phi_prod[ths->d];
-           
+
           MACRO_count_uo_l_lj_t;
         } /* for(l_L) */
-      
-      
+
+
       ths->psi_index_f[j]=ix-ix_old;
       ix_old=ix;
     } /* for(j) */
@@ -458,39 +477,39 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   int N2[ths->d];
 
   ths->aN1 = (int*) fftw_malloc(ths->d*sizeof(int));
-  
+
   ths->a = (double*) fftw_malloc(ths->d*sizeof(double));
-  
+
   ths->sigma = (double*) fftw_malloc(ths->d*sizeof(double));
-  
+
   ths->n = ths->N1;
-  
+
   ths->aN1_total=1;
-  
+
   for(t = 0; t<ths->d; t++) {
     ths->a[t] = 1.0 + (2.0*((double)ths->m))/((double)ths->N1[t]);
     ths->aN1[t] = ths->a[t] * ((double)ths->N1[t]);
     /* aN1 should be even */
 		if(ths->aN1[t]%2 != 0)
       ths->aN1[t] = ths->aN1[t] +1;
-      
+
     ths->aN1_total*=ths->aN1[t];
     ths->sigma[t] = ((double) ths->N1[t] )/((double) ths->N[t]);;
-    
+
 		/* take the same oversampling factor in the inner NFFT */
 		N2[t] = ceil(ths->sigma[t]*(ths->aN1[t]));
-    
+
 		/* N2 should be even */
 		if(N2[t]%2 != 0)
       N2[t] = N2[t] +1;
   }
-  
+
   WINDOW_HELP_INIT
-  
+
   if(ths->nnfft_flags & MALLOC_X)
     ths->x = (double*)fftw_malloc(ths->d*ths->M_total*
                                         sizeof(double));
-                                        
+
   if(ths->nnfft_flags & MALLOC_V)
     ths->v = (double*)fftw_malloc(ths->d*ths->N_total*
                                         sizeof(double));
@@ -500,13 +519,13 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
                                                   sizeof(double _Complex));
   if(ths->nnfft_flags & MALLOC_F)
     ths->f=(double _Complex*)fftw_malloc(ths->M_total*sizeof(double _Complex));
-    
+
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
     ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
   }
-    
+
   /* NO FFTW_MALLOC HERE */
   if(ths->nnfft_flags & PRE_PSI)
     ths->psi = (double*) malloc(ths->N_total*ths->d*
@@ -516,18 +535,18 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   {
       for(t=0,lprod = 1; t<ths->d; t++)
           lprod *= 2*ths->m+2;
-      
+
       ths->psi = (double*) fftw_malloc(ths->M_total*lprod*sizeof(double));
 
       ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
       ths->psi_index_g = (int*) fftw_malloc(ths->M_total*lprod*sizeof(int));
   }
-                                           
+
   ths->direct_plan = (nfft_plan*) malloc(sizeof(nfft_plan));
-    
-  nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2, 
+
+  nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2,
 	               nfft_flags, fftw_flags);
-                        
+
   ths->direct_plan->x = ths->x;
   ths->direct_plan->f = ths->f;
   ths->F = ths->direct_plan->f_hat;
@@ -537,35 +556,35 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
                         int m, unsigned nnfft_flags)
 {
   int t;                             /**< index over all dimensions        */
-  
+
   unsigned nfft_flags;
   unsigned fftw_flags;
-  
+
   ths->d= d;
-  ths->M_total= M_total;  
+  ths->M_total= M_total;
   ths->N_total= N_total;
   ths->m= m;
   ths->nnfft_flags= nnfft_flags;
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
   nfft_flags= PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
-  
+
   if(ths->nnfft_flags & PRE_PSI)
     nfft_flags = nfft_flags | PRE_PSI;
-    
+
   if(ths->nnfft_flags & PRE_FULL_PSI)
     nfft_flags = nfft_flags | PRE_FULL_PSI;
-    
+
   if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_flags = nfft_flags | PRE_LIN_PSI;
-  
+
   ths->N = (int*) fftw_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) fftw_malloc(ths->d*sizeof(int));
-  
+
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
-    ths->N1[t] = N1[t];    
+    ths->N1[t] = N1[t];
   }
-  nnfft_init_help(ths,m,nfft_flags,fftw_flags);  
+  nnfft_init_help(ths,m,nfft_flags,fftw_flags);
 }
 
 void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
@@ -578,35 +597,35 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   ths->d = d;
   ths->M_total = M_total;
   ths->N_total = N_total;
-  
+
 	/* m should be greater to get the same accuracy as the nfft */
   WINDOW_HELP_ESTIMATE_m;
-  
-  ths->N = (int*) fftw_malloc(ths->d*sizeof(int));  
+
+  ths->N = (int*) fftw_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) fftw_malloc(ths->d*sizeof(int));
-  
+
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
 
 		/* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
-		
+
 		/* N1 should be even */
 		if(ths->N1[t]%2 != 0)
       ths->N1[t] = ths->N1[t] +1;
   }
   ths->nnfft_flags=PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F;
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
-  
+
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
-  
-  nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);    
+
+  nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
 }
 
 void nnfft_finalize(nnfft_plan *ths)
 {
   nfft_finalize(ths->direct_plan);
-  
+
   free(ths->direct_plan);
 
   free(ths->aN1);
@@ -619,17 +638,17 @@ void nnfft_finalize(nnfft_plan *ths)
       fftw_free(ths->psi_index_f);
       fftw_free(ths->psi);
     }
-  
+
   if(ths->nnfft_flags & PRE_PSI)
     fftw_free(ths->psi);
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
     fftw_free(ths->psi);
-      
-      
+
+
   if(ths->nnfft_flags & PRE_PHI_HUT)
     fftw_free(ths->c_phi_inv);
-  
+
   if(ths->nnfft_flags & MALLOC_F)
     fftw_free(ths->f);
 
@@ -638,7 +657,7 @@ void nnfft_finalize(nnfft_plan *ths)
 
   if(ths->nnfft_flags & MALLOC_X)
     fftw_free(ths->x);
-    
+
   if(ths->nnfft_flags & MALLOC_V)
     fftw_free(ths->v);
 }
