@@ -1,7 +1,8 @@
 # $Id$
 
 # Set compiler flags
-AM_CFLAGS = -I$(top_srcdir) $(MATLAB_CFLAGS)
+AM_CFLAGS = -I$(top_srcdir)/include $(MATLAB_CFLAGS)
+
 # Set linker flags
 AM_LDFLAGS = -L$(top_builddir) $(MATLAB_LDFLAGS)
 
