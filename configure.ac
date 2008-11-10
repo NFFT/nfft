@@ -23,17 +23,29 @@
 # initialize autoconf
 AC_INIT(NFFT, 3.1.0, potts@mathematik.tu-chemnitz.de)
 
+# directory for auxilliary files
+AC_CONFIG_AUX_DIR(config)
+
+# minimum libtool version
+LT_PREREQ([2.2.0])
+
+# initialize libtool
+LT_INIT([win32-dll])
+
+AC_SUBST([LIBTOOL_DEPS])
+
 # copyright notice
 AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # revision number
 AC_REVISION([$Id$])
 
+# Version information for library file
+SHARED_VERSION_INFO="0:0:0"
+AC_SUBST(SHARED_VERSION_INFO)
+
 # how to recognize configure source directory
 AC_CONFIG_SRCDIR(include/nfft3.h)
-
-# directory for auxilliary files
-AC_CONFIG_AUX_DIR(config)
 
 # config headers
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
@@ -46,9 +58,6 @@ AM_INIT_AUTOMAKE
 
 # host system type
 AC_CANONICAL_HOST
-
-# disable shared libraries
-AM_ENABLE_SHARED(no)
 
 # make abs_srcdir available in Makefiles
 AC_SUBST([abs_srcdir])
@@ -222,12 +231,6 @@ AC_PROG_INSTALL
 # Check if ln -s works.
 AC_PROG_LN_S
 
-# Make libtool ddl capabilities available.
-AC_LIBTOOL_WIN32_DLL
-
-# Check for libtool.
-AC_PROG_LIBTOOL
-
 # Check for MATLAB.
 AX_PROG_MATLAB
 
@@ -311,8 +314,6 @@ AC_CHECK_DECLS([log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, 
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
-
-LIBS=
 
 # The output files to be generated
 AC_OUTPUT(Makefile \

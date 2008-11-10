@@ -28,8 +28,6 @@
 #include "util.h"
 #include "nfft3.h"
 
-#include "solver2.c"
-
 /**
  * Function mangling macro.
  *

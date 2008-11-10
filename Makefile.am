@@ -1,5 +1,10 @@
 # $Id$
 
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+
 # Subdirectories
 DIST_SUBDIRS= 3rdparty include util kernel . examples applications matlab
 
@@ -20,7 +25,8 @@ SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MA
 lib_LTLIBRARIES = libnfft3.la
 
 libnfft3_la_SOURCES =
-libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la
+libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la -lm
+libnfft3_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@
 
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 
