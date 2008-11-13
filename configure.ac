@@ -253,7 +253,7 @@ AC_SUBST(CFLAGS)
 
 # header files
 AC_HEADER_STDC
-AC_CHECK_HEADERS([libintl.h malloc.h stddef.h stdlib.h string.h strings.h \
+AC_CHECK_HEADERS([stdbool.h libintl.h malloc.h stddef.h stdlib.h string.h strings.h \
   sys/time.h unistd.h limits.h c_asm.h intrinsics.h stdint.h mach/mach_time.h \
   sys/sysctl.h c_asm.h intrinsics.h sys/sysctl])
 # c_asm.h: Header file for enabling asm() on Digital Unix

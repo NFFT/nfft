@@ -126,18 +126,18 @@ typedef struct fpt_set_s_
 static inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
+  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n; l++)
-    *u++ = a * (b * (*v++) * (*x++) + (*w++) * (*y++));
+    *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
 }
 
 #define ABUVXPWY_SYMMETRIC(NAME,S1,S2) \
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, double* w, int n) \
 { \
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr; \
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; \
+  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  double *v_ptr = v, *w_ptr = w; \
   for (l = 0; l < n/2; l++) \
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
   v_ptr--; w_ptr--; \
@@ -152,13 +152,13 @@ ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric2,-1.0,1.0)
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, int n, double *xx) \
 { \
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *xx_ptr; \
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; xx_ptr = xx; \
-  for (l = 0; l < n/2; l++) \
-    *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr++)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
+  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  double *v_ptr = v, *xx_ptr = xx; \
+  for (l = 0; l < n/2; l++, v_ptr++) \
+    *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
   v_ptr--; \
-  for (l = 0; l < n/2; l++) \
-    *u_ptr++ = a * (b * S1 * (*v_ptr) * (*x_ptr++) + (S1 * (*v_ptr--) * (1.0+*xx_ptr++)) * (*y_ptr++)); \
+  for (l = 0; l < n/2; l++, v_ptr++) \
+    *u_ptr++ = a * (b * S1 * (*v_ptr) * (*x_ptr++) + (S1 * (*v_ptr) * (1.0+*xx_ptr++)) * (*y_ptr++)); \
 }
 
 ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_1,1.0)
@@ -168,13 +168,13 @@ ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_2,-1.0)
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double _Complex* y, double* w, int n, double *xx) \
 { \
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *w_ptr, *xx_ptr; \
-  u_ptr = u; x_ptr = x; y_ptr = y; w_ptr = w; xx_ptr = xx; \
-  for (l = 0; l < n/2; l++) \
-    *u_ptr++ = a * (b * (*w_ptr/(1.0+*xx_ptr++)) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
+  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  double *w_ptr = w, *xx_ptr = xx; \
+  for (l = 0; l < n/2; l++, w_ptr++) \
+    *u_ptr++ = a * (b * (*w_ptr/(1.0+*xx_ptr++)) * (*x_ptr++) + (*w_ptr) * (*y_ptr++)); \
   w_ptr--; \
-  for (l = 0; l < n/2; l++) \
-    *u_ptr++ = a * (b * (S1 * (*w_ptr)/(1.0+*xx_ptr++) ) * (*x_ptr++) + S1 * (*w_ptr--) * (*y_ptr++)); \
+  for (l = 0; l < n/2; l++, w_ptr--) \
+    *u_ptr++ = a * (b * (S1 * (*w_ptr)/(1.0+*xx_ptr++) ) * (*x_ptr++) + S1 * (*w_ptr) * (*y_ptr++)); \
 }
 
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_1,1.0)
@@ -183,8 +183,9 @@ ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_2,-1.0)
 static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
   double _Complex* y, double* w, int n)
 {
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
+  int l; 
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
 }
@@ -192,8 +193,9 @@ static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, dou
 static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr;
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w;
+  int l; 
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n/2; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
   v_ptr--; w_ptr--;
@@ -204,26 +206,27 @@ static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Compl
 static inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
-
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; xx_ptr = xx;
-  for (l = 0; l < n/2; l++)
-    *u_ptr++ = a * (((*v_ptr++)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)*(1.0+*xx_ptr++)) * (*y_ptr++));
+  int l; 
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
+  for (l = 0; l < n/2; l++,xx_ptr++)
+    *u_ptr++ = a * (((*v_ptr++)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)*(1.0+*xx_ptr)) * (*y_ptr++));
   v_ptr--; w_ptr--;
-  for (l = 0; l < n/2; l++)
-    *u_ptr++ = a * (-((*v_ptr--)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)*(1.0+*xx_ptr++)) * (*y_ptr++));
+  for (l = 0; l < n/2; l++, xx_ptr++)
+    *u_ptr++ = a * (-((*v_ptr--)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)*(1.0+*xx_ptr)) * (*y_ptr++));
 }
 
 static inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; double _Complex *u_ptr, *x_ptr, *y_ptr; double *v_ptr, *w_ptr, *xx_ptr;
-  u_ptr = u; x_ptr = x; v_ptr = v; y_ptr = y; w_ptr = w; xx_ptr = xx;
-  for (l = 0; l < n/2; l++)
-    *u_ptr++ = a * (((*v_ptr++)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)/(1.0+*xx_ptr++)) * (*y_ptr++));
+  int l; 
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
+  for (l = 0; l < n/2; l++, xx_ptr++)
+    *u_ptr++ = a * (((*v_ptr++)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)/(1.0+*xx_ptr)) * (*y_ptr++));
   v_ptr--; w_ptr--;
-  for (l = 0; l < n/2; l++)
-    *u_ptr++ = a * (-((*v_ptr--)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)/(1.0+*xx_ptr++)) * (*y_ptr++));
+  for (l = 0; l < n/2; l++, xx_ptr++)
+    *u_ptr++ = a * (-((*v_ptr--)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)/(1.0+*xx_ptr)) * (*y_ptr++));
 }
 
 #define FPT_DO_STEP(NAME,M1_FUNCTION,M2_FUNCTION) \
@@ -555,58 +558,6 @@ static void eval_clenshaw2(const double *x, double *z, double *y, int size1, int
   fclose(f);*/
 }
 
-static int eval_clenshaw_thresh(const double *x, double *y, int size, int k,
-  const double *alpha, const double *beta, const double *gamma, const
-  double threshold)
-{
-  /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
-   * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
-   */
-  int i,j;
-  double a,b,x_val_act,a_old;
-  const double *x_act;
-  double *y_act;
-  const double *alpha_act, *beta_act, *gamma_act;
-
-  /* Traverse all nodes. */
-  x_act = x;
-  y_act = y;
-  for (i = 0; i < size; i++)
-  {
-    a = 1.0;
-    b = 0.0;
-    x_val_act = *x_act;
-
-    if (k == 0)
-    {
-     *y_act = 1.0;
-    }
-    else
-    {
-      alpha_act = &(alpha[k]);
-      beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
-      for (j = k; j > 1; j--)
-      {
-        a_old = a;
-        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
-         b = a_old*(*gamma_act);
-        alpha_act--;
-        beta_act--;
-        gamma_act--;
-      }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
-      if (fabs(*y_act) > threshold)
-      {
-        return 1;
-      }
-    }
-    x_act++;
-    y_act++;
-  }
-  return 0;
-}
-
 static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k,
   const double *alpha, const double *beta, const double *gamma, const
   double threshold)
@@ -661,72 +612,6 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
     z_act++;
   }
   return 0;
-}
-
-/**
- * Clenshaw algorithm
- *
- * Evaluates a sum of real-valued functions \f$P_k : \mathbb{R} \rightarrow
- * \mathbb{R}\f$
- * \f[
- *   f(x) = \sum_{k=0}^N a_k P_k(x) \quad (N \in \mathbb{N}_0)
- * \f]
- * obeying a three-term recurrence relation
- * \f[
- *   P_{k+1}(x) = (alpha_k * x + beta_k)*P_{k}(x) + gamma_k P_{k-1}(x) \quad
- *   (alpha_k, beta_k, gamma_k \in \mathbb{R},\; k \ge 0)
- * \f]
- * with initial conditions \f$P_{-1}(x) := 0\f$, \f$P_0(x) := \lambda\f$
- * for given double _Complex coefficients \f$\left(a_k\right)_{k=0}^N \in
- * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
- * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
- */
-static void eval_sum_clenshaw(int N, int M, double _Complex* a, double *x, double _Complex *y,
-  double _Complex *temp, double *alpha, double *beta, double *gamma, double lambda)
-{
-  int j,k;
-  double _Complex* it1 = temp;
-  double _Complex* it2 = y;
-  double _Complex aux;
-
-  /* Clenshaw's algorithm */
-  for (j = 0; j <= M; j++)
-  {
-    it2[j] = a[N];
-  }
-
-  if (N > 0)
-  {
-    for (j = 0; j <= M; j++)
-    {
-      it1[j] = a[N-1];
-    }
-
-    //fprintf(stdout,"N = %d\n",N);
-    for (k = N; k > 1; k--)
-    {
-
-      for (j = 0; j <= M; j++)
-      {
-        aux = a[k-2] + it2[j] * gamma[k-1];
-        it2[j] = it1[j] + it2[j] * (alpha[k-1] * x[j] + beta[k-1]);
-        it1[j] = aux;
-      }
-    }
-
-
-    /* Compute final step. */
-    for (j = 0; j <= M; j++)
-    {
-      it2[j] = it1[j] + it2[j] * (alpha[0] * x[j] + beta[0]);
-    }
-  }
-
-  /* Compute final result by multiplying with the constant lambda */
-  for (j = 0; j <= M; j++)
-  {
-    y[j] = lambda * it2[j];
-  }
 }
 
 static inline void eval_sum_clenshaw_fast(const int N, const int M,
@@ -985,7 +870,7 @@ void fpt_precompute(fpt_set set, const int m, const double *alpha,
   int clength_1;
   int clength_2;
   int t_stab, N_stab;
-  int ell;
+/*  int ell;*/
 
   //fprintf(stderr,"fpt_precompute: Precomputing for m = %d\n",m);
   //fprintf(stderr,"fpt_precompute: k_start = %d\n",k_start);
@@ -1342,7 +1227,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   /** Current matrix \f$U_{n,tau,l}\f$ */
   fpt_step *step;
   /** */
-  fftw_plan plan;
+  fftw_plan plan = 0;
   int length = k_end+1;
   fftw_r2r_kind kinds[2] = {FFTW_REDFT01,FFTW_REDFT01};
 
