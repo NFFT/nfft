@@ -615,9 +615,8 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
 }
 
 static inline void eval_sum_clenshaw_fast(const int N, const int M,
-  const double _Complex *restrict a, const double *restrict x,
-  double _Complex *y, const double *restrict alpha,
-  const double *restrict beta, const double *restrict gamma,
+  const double _Complex *a, const double *x, double _Complex *y,
+  const double *alpha, const double *beta, const double *gamma,
   const double lambda)
 {
   int j,k;
