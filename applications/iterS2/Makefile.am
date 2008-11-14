@@ -7,7 +7,7 @@ applicationdir = $(pkgdatadir)/applications/iterS2
 application_PROGRAMS = iterS2
 
 iterS2_SOURCES = iterS2.c
-iterS2_LDADD = $(top_builddir)/libnfft3.la -lfftw3
+iterS2_LDADD = $(top_builddir)/libnfft3.la
 iterS2_LDFLAGS = -all-static
 
 EXTRA_DIST = iterS2.m writeTestcase.m readTestcase.m README
