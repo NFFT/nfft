@@ -66,9 +66,6 @@ AC_SUBST([abs_srcdir])
 # Configure options
 # ############################################################################
 
-# to be added to CFLAGS
-CFLAGS_add=
-
 # enable or disable parts of nfft
 
 need_fpt="no"
@@ -158,13 +155,13 @@ fi
 AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
   [measure time during execution])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-  CFLAGS_add="$CFLAGS_add -DMEASURE_TIME"
+  AC_DEFINE(MEASURE_TIME,1,[Define to enable time measurements during execution.])
 fi
 
 AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
   [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-  CFLAGS_add="$CFLAGS_add -DMEASURE_TIME_FFTW"
+  AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW transforms.])
 fi
 
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function 
@@ -174,15 +171,15 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
 
 case "$window" in
   gaussian)
-    CFLAGS_add="$CFLAGS_add -DGAUSSIAN";;
+    AC_DEFINE(GAUSSIAN,1,[Define to enable Gaussian window function.]);;
   bspline)
-    CFLAGS_add="$CFLAGS_add -DB_SPLINE";;
+    AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
-    CFLAGS_add="$CFLAGS_add -DSINC_POWER";;
+    AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
   delta)
-    CFLAGS_add="$CFLAGS_add -DDIRAC_DELTA";;
+    AC_DEFINE(DIRAC_DELTA,1,[Define to enable dirac delta window function.]);;
   *)
-    CFLAGS_add="$CFLAGS_add -DKAISER_BESSEL";;
+    AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
 esac
 
 # maintainer mode option
@@ -250,9 +247,6 @@ else
     CFLAGS="$CFLAGS_save $CFLAGS"
   fi
 fi
-
-# add CFLAGS determined by script options
-CFLAGS="$CFLAGS $CFLAGS_add"
 
 # Make CFLAGS available.
 AC_SUBST(CFLAGS)
