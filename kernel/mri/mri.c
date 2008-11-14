@@ -40,7 +40,6 @@ typedef struct window_funct_plan_ {
                                              B_SPLINE or SINC_2m is defined   */
 } window_funct_plan;
 
-
 /**
  * init the window_funct_plan
  */

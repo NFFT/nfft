@@ -66,6 +66,9 @@ AC_SUBST([abs_srcdir])
 # Configure options
 # ############################################################################
 
+# to be added to CFLAGS
+CFLAGS_add=
+
 # enable or disable parts of nfft
 
 need_fpt="no"
@@ -155,13 +158,13 @@ fi
 AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
   [measure time during execution])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-  CFLAGS="$CFLAGS -DMEASURE_TIME"
+  CFLAGS_add="$CFLAGS_add -DMEASURE_TIME"
 fi
 
 AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
   [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
-  CFLAGS="$CFLAGS -DMEASURE_TIME_FFTW"
+  CFLAGS_add="$CFLAGS_add -DMEASURE_TIME_FFTW"
 fi
 
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function 
@@ -171,18 +174,18 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
 
 case "$window" in
   gaussian)
-    CFLAGS="$CFLAGS -DGAUSSIAN";;
+    CFLAGS_add="$CFLAGS_add -DGAUSSIAN";;
   bspline)
-    CFLAGS="$CFLAGS -DB_SPLINE";;
+    CFLAGS_add="$CFLAGS_add -DB_SPLINE";;
   sinc)
-    CFLAGS="$CFLAGS -DSINC_POWER";;
+    CFLAGS_add="$CFLAGS_add -DSINC_POWER";;
   delta)
-    CFLAGS="$CFLAGS -DDIRAC_DELTA";;
+    CFLAGS_add="$CFLAGS_add -DDIRAC_DELTA";;
   *)
-    CFLAGS="$CFLAGS -DKAISER_BESSEL";;
+    CFLAGS_add="$CFLAGS_add -DKAISER_BESSEL";;
 esac
 
-# Make maintainer mode available.
+# maintainer mode option
 AM_MAINTAINER_MODE
 
 # ############################################################################
@@ -248,14 +251,17 @@ else
   fi
 fi
 
+# add CFLAGS determined by script options
+CFLAGS="$CFLAGS $CFLAGS_add"
+
 # Make CFLAGS available.
 AC_SUBST(CFLAGS)
 
 # header files
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdbool.h libintl.h malloc.h stddef.h stdlib.h string.h strings.h \
-  sys/time.h unistd.h limits.h c_asm.h intrinsics.h stdint.h mach/mach_time.h \
-  sys/sysctl.h c_asm.h intrinsics.h sys/sysctl])
+AC_CHECK_HEADERS([stdbool.h libintl.h malloc.h stddef.h stdlib.h string.h \
+  strings.h sys/time.h unistd.h limits.h c_asm.h intrinsics.h stdint.h \
+  mach/mach_time.h sys/sysctl.h c_asm.h intrinsics.h sys/sysctl])
 # c_asm.h: Header file for enabling asm() on Digital Unix
 # intrinsics.h: cray unicos
 # sys/sysctl.h: MacOS X altivec detection
