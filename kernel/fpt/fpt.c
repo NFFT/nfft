@@ -126,7 +126,7 @@ typedef struct fpt_set_s_
 static inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
-  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n; l++)
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
@@ -183,8 +183,8 @@ ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_2,-1.0)
 static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, double* v,
   double _Complex* y, double* w, int n)
 {
-  int l; 
-  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  int l;
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
@@ -193,8 +193,8 @@ static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, dou
 static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
-  int l; 
-  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  int l;
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n/2; l++)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
@@ -206,8 +206,8 @@ static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Compl
 static inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; 
-  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  int l;
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
   for (l = 0; l < n/2; l++,xx_ptr++)
     *u_ptr++ = a * (((*v_ptr++)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)*(1.0+*xx_ptr)) * (*y_ptr++));
@@ -219,8 +219,8 @@ static inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Com
 static inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
-  int l; 
-  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; 
+  int l;
+  double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
   for (l = 0; l < n/2; l++, xx_ptr++)
     *u_ptr++ = a * (((*v_ptr++)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)/(1.0+*xx_ptr)) * (*y_ptr++));
@@ -615,10 +615,10 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
 }
 
 static inline void eval_sum_clenshaw_fast(const int N, const int M,
-    const double _Complex * restrict a, const double * restrict x,
-    double _Complex *y, const double * restrict alpha,
-    const double * restrict beta, const double * restrict gamma,
-    const double lambda)
+  const double _Complex *restrict a, const double *restrict x,
+  double _Complex *y, const double *restrict alpha,
+  const double *restrict beta, const double *restrict gamma,
+  const double lambda)
 {
   int j,k;
   double _Complex tmp1, tmp2, tmp3;

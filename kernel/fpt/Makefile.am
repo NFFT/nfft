@@ -6,3 +6,4 @@ noinst_LTLIBRARIES = libfpt.la
 
 libfpt_la_SOURCES = fpt.c
 
+noinst_HEADERS = fpt.h
