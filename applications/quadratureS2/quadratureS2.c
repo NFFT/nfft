@@ -33,11 +33,9 @@
 
 #include <complex.h>
 
-/* Include FFTW header. */
-#include <fftw3.h>
-
 /* Include NFFT 3 utilities headers. */
 #include "util.h"
+
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
 

@@ -10,16 +10,16 @@ application_PROGRAMS = fastsum_test fastsum_matlab
 pkginclude_HEADERS = fastsum.h kernels.h
 
 libfastsum_la_SOURCES = fastsum.c
+libfastsum_la_LIBADD = @FFTW3_LIBCMD@
+libfastsum_la_LDFLAGS = @FFTW3_LIBS@
 
 libkernels_la_SOURCES = kernels.c
 
 fastsum_test_SOURCES = fastsum_test.c
 fastsum_test_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la
-fastsum_test_LDFLAGS = -all-static
 
 fastsum_matlab_SOURCES = fastsum_matlab.c
 fastsum_matlab_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la
-fastsum_matlab_LDFLAGS = -all-static
 
 EXTRA_DIST = fastsum.m fastsum_test.m README
 application_DATA = $(EXTRA_DIST)

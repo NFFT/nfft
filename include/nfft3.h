@@ -20,8 +20,8 @@
 /*! \file nfft3.h
  *  \brief Header file for the nfft3 library.
  */
-#ifndef NFFT3_H
-#define NFFT3_H
+#ifndef __NFFT3_H__
+#define __NFFT3_H__
 
 /** Include header for FFTW3 library for its complex type. */
 #include <fftw3.h>

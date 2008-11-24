@@ -16,35 +16,27 @@ application_PROGRAMS = \
 
 construct_data_2d_SOURCES = construct_data_2d.c
 construct_data_2d_LDADD = $(top_builddir)/libnfft3.la
-construct_data_2d_LDFLAGS = -all-static
 
 construct_data_inh_2d1d_SOURCES = construct_data_inh_2d1d.c
 construct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3.la
-construct_data_inh_2d1d_LDFLAGS = -all-static
 
 construct_data_inh_3d_SOURCES = construct_data_inh_3d.c
 construct_data_inh_3d_LDADD = $(top_builddir)/libnfft3.la
-construct_data_inh_3d_LDFLAGS = -all-static
 
 reconstruct_data_gridding_SOURCES = reconstruct_data_gridding.c
 reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3.la
-reconstruct_data_gridding_LDFLAGS = -all-static
 
 reconstruct_data_2d_SOURCES = reconstruct_data_2d.c
 reconstruct_data_2d_LDADD = $(top_builddir)/libnfft3.la
-reconstruct_data_2d_LDFLAGS = -all-static
 
 reconstruct_data_inh_3d_SOURCES = reconstruct_data_inh_3d.c
 reconstruct_data_inh_3d_LDADD = $(top_builddir)/libnfft3.la
-reconstruct_data_inh_3d_LDFLAGS = -all-static
 
 reconstruct_data_inh_2d1d_SOURCES = reconstruct_data_inh_2d1d.c
 reconstruct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3.la
-reconstruct_data_inh_2d1d_LDFLAGS = -all-static
 
 reconstruct_data_inh_nnfft_SOURCES = reconstruct_data_inh_nnfft.c
 reconstruct_data_inh_nnfft_LDADD = $(top_builddir)/libnfft3.la
-reconstruct_data_inh_nnfft_LDFLAGS = -all-static
 
 EXTRA_DIST = 	construct_inh.m \
 		construct_readout_time.m \

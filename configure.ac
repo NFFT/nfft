@@ -169,6 +169,7 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
   dirac)])], 
   window=$withval, window="kaiserbessel")
 
+
 case "$window" in
   gaussian)
     AC_DEFINE(GAUSSIAN,1,[Define to enable Gaussian window function.]);;
@@ -231,6 +232,24 @@ AC_PROG_INSTALL
 # Check if ln -s works.
 AC_PROG_LN_S
 
+# Check for fftw3.
+NFFT_LIB_FFTW3
+
+if test "$nfft_lib_fftw3" = "no"; then
+  AC_MSG_ERROR([The fftw3 library could not be found.])
+fi
+
+if test "$nfft_lib_fftw3_libtool" = "no"; then
+  FFTW3_LIBCMD="-lfftw3 -lm"
+  FFTW3_LIBS="$FFTW3_LIBS"
+else
+  FFTW3_LIBCMD="$FFTW3_LIBDIR/libfftw3.la"
+  FFTW3_LIBS=""
+fi
+
+AC_SUBST(FFTW3_LIBCMD)
+AC_SUBST(FFTW3_LIBS)
+
 # Check for MATLAB.
 AX_PROG_MATLAB
 
@@ -247,6 +266,8 @@ else
     CFLAGS="$CFLAGS_save $CFLAGS"
   fi
 fi
+
+CFLAGS="$CFLAGS $FFTW3_INCLUDES"
 
 # Make CFLAGS available.
 AC_SUBST(CFLAGS)
@@ -296,7 +317,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_CHECK_LIB(m, sin)
-AC_CHECK_LIB(fftw3,fftw_execute,,,)
+# AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
