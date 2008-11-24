@@ -236,19 +236,23 @@ AC_PROG_LN_S
 NFFT_LIB_FFTW3
 
 if test "$nfft_lib_fftw3" = "no"; then
-  AC_MSG_ERROR([The fftw3 library could not be found.])
+  AC_MSG_ERROR(
+    [The fftw3 library could not be found. You can download it from 
+     http://www.fftw.org. If you have installed fftw3, make sure that 
+     this configure script can find it. See ./configure --help for 
+     more information.])
 fi
 
 if test "$nfft_lib_fftw3_libtool" = "no"; then
-  FFTW3_LIBCMD="-lfftw3"
-  FFTW3_LIBS="$FFTW3_LIBS"
+  fftw3_libcmd="-lfftw3"
+  fftw3_libs="$fftw3_libs"
 else
-  FFTW3_LIBCMD="$FFTW3_LIBDIR/libfftw3.la"
-  FFTW3_LIBS=""
+  fftw3_libcmd="$fftw3_libdir/libfftw3.la"
+  fftw3_libs=""
 fi
 
-AC_SUBST(FFTW3_LIBCMD)
-AC_SUBST(FFTW3_LIBS)
+AC_SUBST(fftw3_libcmd)
+AC_SUBST(fftw3_libs)
 
 # Check for MATLAB.
 AX_PROG_MATLAB
@@ -267,7 +271,7 @@ else
   fi
 fi
 
-CFLAGS="$CFLAGS $FFTW3_INCLUDES"
+CFLAGS="$CFLAGS $fftw3_includes"
 
 # Make CFLAGS available.
 AC_SUBST(CFLAGS)

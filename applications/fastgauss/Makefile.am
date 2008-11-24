@@ -7,7 +7,7 @@ applicationdir = $(pkgdatadir)/applications/fastgauss
 application_PROGRAMS = fastgauss
 
 fastgauss_SOURCES = fastgauss.c
-fastgauss_LDADD = $(top_builddir)/libnfft3.la @FFTW3_LIBS@ @FFTW3_LIBCMD@
+fastgauss_LDADD = $(top_builddir)/libnfft3.la @fftw3_libs@ @fftw3_libcmd@
 
 EXTRA_DIST = levelplots.m  show_results.m README
 application_DATA = $(EXTRA_DIST)

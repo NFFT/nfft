@@ -25,8 +25,8 @@ SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MA
 lib_LTLIBRARIES = libnfft3.la
 
 libnfft3_la_SOURCES =
-libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @FFTW3_LIBCMD@
-libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @FFTW3_LIBS@
+libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_libcmd@
+libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_libs@
 
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 

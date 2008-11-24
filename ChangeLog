@@ -1,8 +1,11 @@
-So far, we do not provide a full version history here. Compared to its predecessor, NFFT2, the NFFT3 library has seen major extensions and improvements. 
+So far, we do not provide a full version history here. Compared to its predecessor, NFFT2, the NFFT3 library
+has seen major extensions and improvements. 
 
 Changes in version 3.1.0:
   - It is now possible to configure the build process so that only specific modules are compiled and installed.
     Invoke the configure script with option "--help" for details.
+  - The handling of how to link against the fftw3 library has been improved. The new configure script options 
+    --with-fftw3, --with-fftw-includedir, --with-fftw-libdir allow to specify where fftw3 has been installed.
 
 Changes in version 3.0.2:
   - Fixed a bug in the fpt module that lead to wrong output.
