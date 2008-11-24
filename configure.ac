@@ -240,7 +240,7 @@ if test "$nfft_lib_fftw3" = "no"; then
 fi
 
 if test "$nfft_lib_fftw3_libtool" = "no"; then
-  FFTW3_LIBCMD="-lfftw3 -lm"
+  FFTW3_LIBCMD="-lfftw3"
   FFTW3_LIBS="$FFTW3_LIBS"
 else
   FFTW3_LIBCMD="$FFTW3_LIBDIR/libfftw3.la"
