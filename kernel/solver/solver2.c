@@ -1,6 +1,6 @@
 /* $Id: nfft3.h 2168 2008-03-13 14:55:11Z kunis $
  *
- * Copyright (c) 2008 Stefan Kunis
+ * Copyright (c) 2008  Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -80,7 +80,7 @@ void solver_before_loop_complex(solver_plan_complex* ths)
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
     {
       if(ths->flags & PRECOMPUTE_WEIGHT)
-	ths->dot_r_iter = nfft_dot_w_complex(ths->r_iter, ths->w, 
+	ths->dot_r_iter = nfft_dot_w_complex(ths->r_iter, ths->w,
 					     ths->mv->M_total);
       else
 	ths->dot_r_iter = nfft_dot_complex(ths->r_iter, ths->mv->M_total);
@@ -431,7 +431,7 @@ void solver_before_loop_double(solver_plan_double* ths)
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
     {
       if(ths->flags & PRECOMPUTE_WEIGHT)
-	ths->dot_r_iter = nfft_dot_w_double(ths->r_iter, ths->w, 
+	ths->dot_r_iter = nfft_dot_w_double(ths->r_iter, ths->w,
 					     ths->mv->M_total);
       else
 	ths->dot_r_iter = nfft_dot_double(ths->r_iter, ths->mv->M_total);

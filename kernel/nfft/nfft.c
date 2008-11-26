@@ -19,7 +19,7 @@
 
 /**
  * Simple and fast computation of the NDFT.
- * authors: D. Potts, S. Kunis (c) 2002-2006
+ * authors: D. Potts, S. Kunis 2002-2006
  */
 
 #include <stdio.h>

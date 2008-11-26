@@ -1,6 +1,6 @@
 # $Id: nfsftmex.c 1548 2007-04-18 07:34:23Z keiner $
 #
-# Copyright (c) 2005,2008 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -257,24 +257,12 @@ AC_SUBST(fftw3_libs)
 # Check for MATLAB.
 AX_PROG_MATLAB
 
-# Try to choose good compiler options. Note: We differ from FFTW by that we
-# add an option to add the automatically determined options to CPPFLAGS rather
-# than using the given ones if CPPFLAGS is set. This allows users to set CPPFLAGS
-# to point to include directories etc. while still using the automatic options.
-if test "$ac_test_CPPFLAGS" != "set"; then
+# Try to choose good compiler options.
+if test "$ac_test_CFLAGS" != "set"; then
   AX_CC_MAXOPT
-else
-  if test "$enable_add_cflags" = "yes"; then
-    CPPFLAGS_save=$CPPFLAGS
-    AX_CC_MAXOPT
-    CPPFLAGS="$CPPFLAGS_save $CPPFLAGS"
-  fi
 fi
 
 CPPFLAGS="$CPPFLAGS $fftw3_includes"
-
-# Make CPPFLAGS available.
-AC_SUBST(CPPFLAGS)
 
 # header files
 AC_HEADER_STDC
@@ -321,7 +309,6 @@ AC_FUNC_ALLOCA
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 AC_CHECK_LIB(m, sin)
-# AC_CHECK_LIB(fftw3,fftw_execute,,,)
 
 AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])

@@ -17,10 +17,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* iterS2 - Iterative reconstruction on the sphere S2
- *
- * Copyright (C) 2006 Jens Keiner
- */
+/* iterS2 - Iterative reconstruction on the sphere S2 */
 
 /**
  * \defgroup applications_iterS2_matlab iterS2_matlab

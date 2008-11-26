@@ -20,7 +20,7 @@
 /**
  * Library.
  * Includes simple and fast computation of the NFST (direct problem)
- * authors: S. Klatt (c) 2004-2006
+ * author: S. Klatt 2004-2006
  */
 
 #include <stdio.h>
