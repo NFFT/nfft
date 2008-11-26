@@ -50,7 +50,7 @@ AC_DEFUN([NFFT_LIB_FFTW3],
   LDFLAGS="$LDFLAGS $fftw3_libs"
 
   # Check if library is present and usable.
-  AC_CHECK_HEADERS([fftw3.h],
+  AC_CHECK_HEADER([fftw3.h],
     [AC_CHECK_LIB(fftw3, fftw_execute,
       nfft_lib_fftw3=yes,
       nfft_lib_fftw3=no)], nfft_lib_fftw3=no)
