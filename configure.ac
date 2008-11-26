@@ -201,7 +201,7 @@ CC="$ac_save_CC"
 
 # Manually add option for C99 support to compiler flags.
 AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
-  [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"])
+  [CPPFLAGS="$CPPFLAGS $ac_cv_prog_cc_c99"])
 
 # Make sure "const" keyword can be used.
 AC_C_CONST
@@ -258,23 +258,23 @@ AC_SUBST(fftw3_libs)
 AX_PROG_MATLAB
 
 # Try to choose good compiler options. Note: We differ from FFTW by that we
-# add an option to add the automatically determined options to CFLAGS rather
-# than using the given ones if CFLAGS is set. This allows users to set CFLAGS
+# add an option to add the automatically determined options to CPPFLAGS rather
+# than using the given ones if CPPFLAGS is set. This allows users to set CPPFLAGS
 # to point to include directories etc. while still using the automatic options.
-if test "$ac_test_CFLAGS" != "set"; then
+if test "$ac_test_CPPFLAGS" != "set"; then
   AX_CC_MAXOPT
 else
   if test "$enable_add_cflags" = "yes"; then
-    CFLAGS_save=$CFLAGS
+    CPPFLAGS_save=$CPPFLAGS
     AX_CC_MAXOPT
-    CFLAGS="$CFLAGS_save $CFLAGS"
+    CPPFLAGS="$CPPFLAGS_save $CPPFLAGS"
   fi
 fi
 
-CFLAGS="$CFLAGS $fftw3_includes"
+CPPFLAGS="$CPPFLAGS $fftw3_includes"
 
-# Make CFLAGS available.
-AC_SUBST(CFLAGS)
+# Make CPPFLAGS available.
+AC_SUBST(CPPFLAGS)
 
 # header files
 AC_HEADER_STDC

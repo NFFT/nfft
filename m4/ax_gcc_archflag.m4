@@ -7,7 +7,7 @@ dnl the target architecture for use with gcc's -march=arch or -mtune=arch
 dnl flags.  If found, the cache variable $ax_cv_gcc_archflag is set to this
 dnl flag and ACTION-SUCCESS is executed; otherwise $ax_cv_gcc_archflag is
 dnl is set to "unknown" and ACTION-FAILURE is executed.  The default
-dnl ACTION-SUCCESS is to add $ax_cv_gcc_archflag to the end of $CFLAGS.
+dnl ACTION-SUCCESS is to add $ax_cv_gcc_archflag to the end of $CPPFLAGS.
 dnl
 dnl PORTABLE? should be either [yes] (default) or [no].  In the former case,
 dnl the flag is set to -mtune (or equivalent) so that the architecture
@@ -177,6 +177,6 @@ AC_MSG_RESULT($ax_cv_gcc_archflag)
 if test "x$ax_cv_gcc_archflag" = xunknown; then
   m4_default([$3],:)
 else
-  m4_default([$2], [CFLAGS="$CFLAGS $ax_cv_gcc_archflag"])
+  m4_default([$2], [CPPFLAGS="$CPPFLAGS $ax_cv_gcc_archflag"])
 fi
 ])

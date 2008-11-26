@@ -1,6 +1,6 @@
 # $Id$
 
-AM_CFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 applicationdir = $(pkgdatadir)/applications/polarFFT
 

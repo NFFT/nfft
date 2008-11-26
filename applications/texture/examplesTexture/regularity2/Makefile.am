@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util -I../..
+AM_CPPFLAGS = -Wall -I$(top_srcdir)/include -I../texture_util -I../..
 
 ## The program name
 nodist_PROGRAMS = test

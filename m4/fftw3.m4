@@ -19,7 +19,7 @@ AC_DEFUN([NFFT_LIB_FFTW3],
 
   # Save compiler and linker flags.
   saved_LDFLAGS="$LDFLAGS"
-  saved_CFLAGS="$CFLAGS"
+  saved_CPPFLAGS="$CPPFLAGS"
 
   # Check if user specified a valid root directory.
   if test ! -d ${with_fftw3}; then
@@ -40,13 +40,11 @@ AC_DEFUN([NFFT_LIB_FFTW3],
     fftw3_libdir="$fftw3_prefix/lib"
   fi
 
-  AC_MSG_NOTICE([Looking for fftw3 in /usr/... and ${fftw3_prefix}/...])
-
   fftw3_includes="-I$fftw3_includedir"
   fftw3_libs="-L$fftw3_libdir"
 
   # Modify compiler and linker flags.
-  CFLAGS="$CFLAGS $fftw3_includes"
+  CPPFLAGS="$CPPFLAGS $fftw3_includes"
   LDFLAGS="$LDFLAGS $fftw3_libs"
 
   # Check if library is present and usable.
@@ -83,6 +81,6 @@ AC_DEFUN([NFFT_LIB_FFTW3],
   fi
 
   # Restore saved flags.
-  CFLAGS="$saved_CFLAGS"
+  CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
 ])

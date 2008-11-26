@@ -43,21 +43,21 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_include_dir="${matlab_dir}/extern/include"
     matlab_src_dir="${matlab_dir}/extern/src"
     matlab_bin_dir="${matlab_dir}/bin"
-    matlab_CFLAGS="-I${matlab_include_dir} -I${matlab_src_dir} -DMATLAB_MEX_FILE"
+    matlab_CPPFLAGS="-I${matlab_include_dir} -I${matlab_src_dir} -DMATLAB_MEX_FILE"
 
     # Save environment
-    saved_CFLAGS=$CFLAGS
+    saved_CPPFLAGS=$CPPFLAGS
 
     # augmented environment
-    CFLAGS="$CFLAGS $matlab_CFLAGS"
+    CPPFLAGS="$CPPFLAGS $matlab_CPPFLAGS"
 
     # header files
     AC_CHECK_FILE([${matlab_include_dir}/mat.h],[],AC_MSG_ERROR([Required file ]${matlab_include_dir}[/mat.h not found]))
     AC_CHECK_FILE([${matlab_include_dir}/matrix.h],[],AC_MSG_ERROR([Required file ]${matlab_include_dir}[/matrix.h not found]))
     AC_CHECK_FILE([${matlab_include_dir}/mex.h],[],AC_MSG_ERROR([Required file ]${matlab_include_dir}[/mex.h not found]))
-    #AC_CHECK_HEADER(mat.h,[],AC_MSG_ERROR([Required header mat.h not usable]))
-    #AC_CHECK_HEADER(matrix.h,[],AC_MSG_ERROR([Required header matrix.h not usable]))
-    #AC_CHECK_HEADER(mex.h,[],AC_MSG_ERROR([Required header mex.h not usable]))
+    AC_CHECK_HEADER(mat.h,[],AC_MSG_ERROR([Required header mat.h not usable]))
+    AC_CHECK_HEADER(matrix.h,[],AC_MSG_ERROR([Required header matrix.h not usable]))
+    AC_CHECK_HEADER(mex.h,[],AC_MSG_ERROR([Required header mex.h not usable]))
 
     # host specific stuff
     case $host in
@@ -128,17 +128,16 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_LDFLAGS="-L${matlab_host_bin_dir}"
 
     AC_SUBST([matlab_dir])
-    AC_SUBST([matlab_CFLAGS])
+    AC_SUBST([matlab_CPPFLAGS])
     AC_SUBST([matlab_LDFLAGS])
     AC_SUBST([matlab_LIBADD])
     AC_SUBST([matlab_mexext])
     AM_CONDITIONAL(HAVE_MATLAB, test "xyes" = "xyes" )
 
     # Restore environment.
-    CFLAGS=$saved_CFLAGS
+    CPPFLAGS=$saved_CPPFLAGS
   else
     AC_MSG_RESULT([no])
     AM_CONDITIONAL(HAVE_MATLAB, test "xno" = "xyes" )
-    #AM_CONDITIONAL(MEX_DLL_HACK, test "xno" = "xyes" )
   fi
 ])

@@ -1,6 +1,6 @@
 # $Id$
 
-AM_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft
 
 applicationdir = $(pkgdatadir)/applications/iterS2
 
