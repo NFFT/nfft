@@ -31,7 +31,7 @@ libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_libs@
 
 libnfft3noinst_la_SOURCES =
 libnfft3noinst_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_libcmd@
-libnfft3noinst_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_libs@
+libnfft3noinst_la_LDFLAGS = @fftw3_libs@
 
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 

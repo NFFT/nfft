@@ -136,12 +136,6 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     # Restore environment.
     CFLAGS=$saved_CFLAGS
-
-    echo $matlab_dir
-    echo $matlab_CFLAGS
-    echo $matlab_LDFLAGS
-    echo $matlab_LIBADD
-    echo $matlab_mexext
   else
     AC_MSG_RESULT([no])
     AM_CONDITIONAL(HAVE_MATLAB, test "xno" = "xyes" )

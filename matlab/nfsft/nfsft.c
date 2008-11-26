@@ -20,6 +20,7 @@
 #include <complex.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 #include "nfft3.h"
 #include "util.h"
 #include "../imex.h"
@@ -370,7 +371,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     ARG_GET_PLAN(dp1)
 
-    if (mxIsDouble(prhs[2]) != 1 || mxGetNumberOfDimensions(prhs[2]) > 2)
+    if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
       mexErrMsgTxt("Third argument must be a 2 x M double array");
 
     if (mxGetM(prhs[2]) != 2 || mxGetN(prhs[2]) != plans[(int)(dp1[0])]->M_total)

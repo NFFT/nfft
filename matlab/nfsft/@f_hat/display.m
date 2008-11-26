@@ -12,5 +12,5 @@ else
     f_hat_m(k*(2*p.N+1)+p.N+1-k:k*(2*p.N+1)+p.N+1+k) = p.f_hat(o:o+2*k);
     o = o + 2*k+1;
   end
-  f_hat_m
+  display(f_hat_m);
 end

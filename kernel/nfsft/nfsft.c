@@ -287,14 +287,14 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
     plan->f_hat_intern = (double _Complex*) calloc(plan->N_total,
-						  sizeof(double _Complex));
+                                                  sizeof(double _Complex));
   }
 
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
     plan->f_hat = (double _Complex*) calloc(plan->N_total,
-					   sizeof(double _Complex));
+                                           sizeof(double _Complex));
   }
 
   /* Allocate memory for samples, if neccesary. */
@@ -326,8 +326,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
       /** \todo NFSFT: Check NFFT flags. */
       nfft_init_guru(&plan->plan_nfft, 2, nfft_size, plan->M_total, fftw_size,
-		     nfft_cutoff, nfft_flags,
-		     FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+                     nfft_cutoff, nfft_flags,
+                     FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
       /* Assign angle array. */
       plan->plan_nfft.x = plan->x;
@@ -342,8 +342,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
       //nfft_precompute_one_psi(&plan->plan_nfft);
 
       /* Free auxilliary arrays. */
-      nfft_free(nfft_size);
-      nfft_free(fftw_size);
+      /*nfft_free(nfft_size);
+      nfft_free(fftw_size);*/
   }
 }
 
@@ -433,7 +433,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
 
         /* Precompute data for FPT transformation for order n. */
         fpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,
-		       kappa);
+                       kappa);
       }
       /* Free auxilliary arrays. */
       nfft_free(wisdom.alpha);
@@ -532,17 +532,17 @@ void ndsft_trafo(nfsft_plan *plan)
   int n;               /*< The order n                                       */
   int n_abs;           /*< The absolute value of the order n, ie n_abs = |n| */
   double *alpha;       /*< Pointer to current three-term recurrence
-			   coefficient alpha_k^n for associated Legendre
-			   functions P_k^n                                   */
+                           coefficient alpha_k^n for associated Legendre
+                           functions P_k^n                                   */
   double *gamma;       /*< Pointer to current three-term recurrence
-			   coefficient beta_k^n for associated Legendre
-			   functions P_k^n                                   */
+                           coefficient beta_k^n for associated Legendre
+                           functions P_k^n                                   */
   double _Complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
   double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
   double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
   double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
   double _Complex f_m;  /*< The final function value f_m = f(x_m) for a
-			   single node.                                      */
+                           single node.                                      */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
@@ -555,7 +555,7 @@ void ndsft_trafo(nfsft_plan *plan)
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
     memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*
-	   sizeof(double _Complex));
+           sizeof(double _Complex));
   }
   else
   {
@@ -664,11 +664,11 @@ void ndsft_adjoint(nfsft_plan *plan)
   int n;               /*< The order n                                       */
   int n_abs;           /*< The absolute value of the order n, ie n_abs = |n| */
   double *alpha;       /*< Pointer to current three-term recurrence
-			   coefficient alpha_k^n for associated Legendre
-			   functions P_k^n                                   */
+                           coefficient alpha_k^n for associated Legendre
+                           functions P_k^n                                   */
   double *gamma;       /*< Pointer to current three-term recurrence
-			   coefficient beta_k^n for associated Legendre
-			   functions P_k^n                                   */
+                           coefficient beta_k^n for associated Legendre
+                           functions P_k^n                                   */
   double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
   double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
   double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
@@ -809,7 +809,7 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_PRESERVE_F_HAT)
     {
       memcpy(plan->f_hat_intern,plan->f_hat,plan->N_total*
-	     sizeof(double _Complex));
+             sizeof(double _Complex));
     }
     else
     {
