@@ -403,7 +403,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     dp2 = mxGetPr(prhs[2]); dp3 = mxGetPi(prhs[2]);
 
     for (i = 0; i < plans[(int)(dp1[0])]->M_total; i++)
-      plans[(int)(dp1[0])]->f[i] = dp2[i] + ((dp3)?(I*dp3[i]):(0.0));
+      plans[(int)(dp1[0])]->f[i] = dp2[i] + ((dp3)?(_Complex_I*dp3[i]):(0.0));
   }
   else if (strcmp(cmd,"set_f_hat") == 0)
   {

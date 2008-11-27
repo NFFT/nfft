@@ -200,9 +200,13 @@ AC_PROG_CC_C99
 # Reset CC variable.
 CC="$ac_save_CC"
 
+if test $ac_cv_prog_cc_c99 = "-std=gnu99"; then
+  ac_cv_prog_cc_c99="-std=c99"
+fi
+ 
 # Manually add option for C99 support to compiler flags.
 AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
-  [CPPFLAGS="$CPPFLAGS $ac_cv_prog_cc_c99"])
+  [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"])
 
 # Make sure "const" keyword can be used.
 AC_C_CONST
@@ -267,7 +271,7 @@ CPPFLAGS="$CPPFLAGS $fftw3_includes"
 
 # override CFLAGS selection when debugging
 if test "${enable_debug}" = "yes"; then
-  CFLAGS="-g3"
+  CFLAGS="$ac_cv_prog_cc_c99 -g3"
   LDFLAGS="$LDFLAGS"
 fi
 
