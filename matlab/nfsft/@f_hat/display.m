@@ -4,7 +4,7 @@ function display(p)
 % Copyright 2007 Jens Keiner
 
 if (p.N == -1)
-  display('empty f_hat object');
+  disp([inputname(1) ' = empty']);
 else
   f_hat_m = zeros(2*p.N+1,p.N+1);
   o = 1;
@@ -12,5 +12,6 @@ else
     f_hat_m(k*(2*p.N+1)+p.N+1-k:k*(2*p.N+1)+p.N+1+k) = p.f_hat(o:o+2*k);
     o = o + 2*k+1;
   end
-  display(f_hat_m);
+  disp([inputname(1) ' =']);
+  disp(f_hat_m);
 end
