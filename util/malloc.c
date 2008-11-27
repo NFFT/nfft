@@ -30,21 +30,15 @@ void *nfft_malloc(size_t n)
   void *p;
 
   if (nfft_malloc_hook)
-  {
     return nfft_malloc_hook(n);
-  }
 
   if (n == 0)
-  {
     n = 1;
-  }
 
-  p = fftw_malloc(n);
+  p = nfft_malloc(n);
 
   if (!p)
-  {
     nfft_die("nfft_malloc: out of memory\n");
-  }
 
   return p;
 }
@@ -59,7 +53,7 @@ void nfft_free(void *p)
       return;
 	  }
 
-    fftw_free(p);
+    nfft_free(p);
   }
 }
 

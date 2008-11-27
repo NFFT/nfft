@@ -340,7 +340,7 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
   int t;                                /**< index over all dimensions        */
   double tmp;
 
-  ths->c_phi_inv= (double*)fftw_malloc(ths->M_total*sizeof(double));
+  ths->c_phi_inv= (double*)nfft_malloc(ths->M_total*sizeof(double));
 
   for(j=0; j<ths->M_total; j++)
     {
@@ -476,11 +476,11 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   int lprod;                            /**< 'bandwidth' of matrix B         */
   int N2[ths->d];
 
-  ths->aN1 = (int*) fftw_malloc(ths->d*sizeof(int));
+  ths->aN1 = (int*) nfft_malloc(ths->d*sizeof(int));
 
-  ths->a = (double*) fftw_malloc(ths->d*sizeof(double));
+  ths->a = (double*) nfft_malloc(ths->d*sizeof(double));
 
-  ths->sigma = (double*) fftw_malloc(ths->d*sizeof(double));
+  ths->sigma = (double*) nfft_malloc(ths->d*sizeof(double));
 
   ths->n = ths->N1;
 
@@ -507,28 +507,28 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   WINDOW_HELP_INIT
 
   if(ths->nnfft_flags & MALLOC_X)
-    ths->x = (double*)fftw_malloc(ths->d*ths->M_total*
+    ths->x = (double*)nfft_malloc(ths->d*ths->M_total*
                                         sizeof(double));
 
   if(ths->nnfft_flags & MALLOC_V)
-    ths->v = (double*)fftw_malloc(ths->d*ths->N_total*
+    ths->v = (double*)nfft_malloc(ths->d*ths->N_total*
                                         sizeof(double));
 
   if(ths->nnfft_flags & MALLOC_F_HAT)
-    ths->f_hat = (double _Complex*)fftw_malloc(ths->N_total*
+    ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*
                                                   sizeof(double _Complex));
   if(ths->nnfft_flags & MALLOC_F)
-    ths->f=(double _Complex*)fftw_malloc(ths->M_total*sizeof(double _Complex));
+    ths->f=(double _Complex*)nfft_malloc(ths->M_total*sizeof(double _Complex));
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
     ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    ths->psi = (double*) fftw_malloc((ths->K+1)*ths->d*sizeof(double));
+    ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
   /* NO FFTW_MALLOC HERE */
   if(ths->nnfft_flags & PRE_PSI)
-    ths->psi = (double*) malloc(ths->N_total*ths->d*
+    ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*
                                            (2*ths->m+2)*sizeof(double));
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
@@ -536,13 +536,13 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
       for(t=0,lprod = 1; t<ths->d; t++)
           lprod *= 2*ths->m+2;
 
-      ths->psi = (double*) fftw_malloc(ths->M_total*lprod*sizeof(double));
+      ths->psi = (double*) nfft_malloc(ths->M_total*lprod*sizeof(double));
 
-      ths->psi_index_f = (int*) fftw_malloc(ths->M_total*sizeof(int));
-      ths->psi_index_g = (int*) fftw_malloc(ths->M_total*lprod*sizeof(int));
+      ths->psi_index_f = (int*) nfft_malloc(ths->M_total*sizeof(int));
+      ths->psi_index_g = (int*) nfft_malloc(ths->M_total*lprod*sizeof(int));
   }
 
-  ths->direct_plan = (nfft_plan*) malloc(sizeof(nfft_plan));
+  ths->direct_plan = (nfft_plan*)nfft_malloc(sizeof(nfft_plan));
 
   nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2,
 	               nfft_flags, fftw_flags);
@@ -577,8 +577,8 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
   if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_flags = nfft_flags | PRE_LIN_PSI;
 
-  ths->N = (int*) fftw_malloc(ths->d*sizeof(int));
-  ths->N1 = (int*) fftw_malloc(ths->d*sizeof(int));
+  ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
+  ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));
 
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
@@ -601,8 +601,8 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 	/* m should be greater to get the same accuracy as the nfft */
   WINDOW_HELP_ESTIMATE_m;
 
-  ths->N = (int*) fftw_malloc(ths->d*sizeof(int));
-  ths->N1 = (int*) fftw_malloc(ths->d*sizeof(int));
+  ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
+  ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));
 
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
@@ -626,38 +626,38 @@ void nnfft_finalize(nnfft_plan *ths)
 {
   nfft_finalize(ths->direct_plan);
 
-  free(ths->direct_plan);
+  nfft_free(ths->direct_plan);
 
-  free(ths->aN1);
-  free(ths->N);
-  free(ths->N1);
+  nfft_free(ths->aN1);
+  nfft_free(ths->N);
+  nfft_free(ths->N1);
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
     {
-      fftw_free(ths->psi_index_g);
-      fftw_free(ths->psi_index_f);
-      fftw_free(ths->psi);
+      nfft_free(ths->psi_index_g);
+      nfft_free(ths->psi_index_f);
+      nfft_free(ths->psi);
     }
 
   if(ths->nnfft_flags & PRE_PSI)
-    fftw_free(ths->psi);
+    nfft_free(ths->psi);
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
-    fftw_free(ths->psi);
+    nfft_free(ths->psi);
 
 
   if(ths->nnfft_flags & PRE_PHI_HUT)
-    fftw_free(ths->c_phi_inv);
+    nfft_free(ths->c_phi_inv);
 
   if(ths->nnfft_flags & MALLOC_F)
-    fftw_free(ths->f);
+    nfft_free(ths->f);
 
   if(ths->nnfft_flags & MALLOC_F_HAT)
-    fftw_free(ths->f_hat);
+    nfft_free(ths->f_hat);
 
   if(ths->nnfft_flags & MALLOC_X)
-    fftw_free(ths->x);
+    nfft_free(ths->x);
 
   if(ths->nnfft_flags & MALLOC_V)
-    fftw_free(ths->v);
+    nfft_free(ths->v);
 }

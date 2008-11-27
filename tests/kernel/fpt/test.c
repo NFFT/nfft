@@ -93,9 +93,9 @@ void test_dpt_trafo(void)
       fprintf(stdout," k_end = %4d,",k_end);
 
       /* Allocate memory for recursion coefficients. */
-      alpha = (double*) malloc((N+2)*sizeof(double));
-      beta = (double*) malloc((N+2)*sizeof(double));
-      gamma = (double*) malloc((N+2)*sizeof(double));
+      alpha = (double*)nfft_malloc((N+2)*sizeof(double));
+      beta = (double*)nfft_malloc((N+2)*sizeof(double));
+      gamma = (double*)nfft_malloc((N+2)*sizeof(double));
 
       /* Read in recursion coeffcients. */
       for (k = 0; k < N+2; k++)
@@ -126,7 +126,7 @@ void test_dpt_trafo(void)
       }
 
       /* Allocate memory for Legendre coefficients. */
-      x = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      x = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
 
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
@@ -144,8 +144,8 @@ void test_dpt_trafo(void)
       }
 
       /* Allocate memory for Chebyshev coefficients. */
-      y = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
-      y_ref = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      y = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
+      y_ref = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
 
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
@@ -200,19 +200,19 @@ void test_dpt_trafo(void)
       set = NULL;
 
       /* Free memory. */
-      free(alpha);
-      free(beta);
-      free(gamma);
-      free(x);
-      free(y);
-      free(y_ref);
+      nfft_free(alpha);
+      nfft_free(beta);
+      nfft_free(gamma);
+      nfft_free(x);
+      nfft_free(y);
+      nfft_free(y_ref);
       alpha = NULL;
       beta = NULL;
       gamma = NULL;
       x = NULL;
       y = NULL;
       y_ref = NULL;
-      //free(f_orig);
+      //nfft_free(f_orig);
       /* Test passed. */
       fprintf(stdout,"\n");
     }
@@ -307,9 +307,9 @@ void test_dpt_transposed(void)
       fprintf(stdout," k_end = %4d,",k_end);
 
       /* Allocate memory for recursion coefficients. */
-      alpha = (double*) malloc((N+2)*sizeof(double));
-      beta = (double*) malloc((N+2)*sizeof(double));
-      gamma = (double*) malloc((N+2)*sizeof(double));
+      alpha = (double*)nfft_malloc((N+2)*sizeof(double));
+      beta = (double*)nfft_malloc((N+2)*sizeof(double));
+      gamma = (double*)nfft_malloc((N+2)*sizeof(double));
 
       /* Read in recursion coeffcients. */
       for (k = 0; k < N+2; k++)
@@ -340,8 +340,8 @@ void test_dpt_transposed(void)
       }*/
 
       /* Allocate memory for reference Legendre coefficients. */
-      x = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
-      x_ref = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      x = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
+      x_ref = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
 
       /* Read in Legendre coefficients. */
       for (k = k_start; k <= k_end; k++)
@@ -359,7 +359,7 @@ void test_dpt_transposed(void)
       }*/
 
       /* Allocate memory for Chebyshev coefficients. */
-      y = (double _Complex*) calloc((k_end+1),sizeof(double _Complex));
+      y = (double _Complex*) nfft_malloc((k_end+1)*sizeof(double _Complex));
 
       /* Read in Chebyshev coefficients. */
       for (k = 0; k <= k_end; k++)
@@ -412,19 +412,19 @@ void test_dpt_transposed(void)
       set = NULL;
 
       /* Free memory. */
-      free(alpha);
-      free(beta);
-      free(gamma);
-      free(x);
-      free(x_ref);
-      free(y);
+      nfft_free(alpha);
+      nfft_free(beta);
+      nfft_free(gamma);
+      nfft_free(x);
+      nfft_free(x_ref);
+      nfft_free(y);
       alpha = NULL;
       beta = NULL;
       gamma = NULL;
       x = NULL;
       x_ref = NULL;
       y = NULL;
-      //free(f_orig);
+      //nfft_free(f_orig);
       /* Test passed. */
       fprintf(stdout,"\n");
     }

@@ -110,11 +110,11 @@
 
 /** Actual used CPU time in seconds; calls getrusage, limited accuracy.
  */
-double nfft_second();
+double nfft_second(void);
 
 /** Actual used memory in bytes; calls mallinfo if define HAVE_MALLOC_H.
  */
-int nfft_total_used_memory();
+int nfft_total_used_memory(void);
 
 /** Integer logarithm of 2.
  */

@@ -286,27 +286,27 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
    * if neccesary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
-    plan->f_hat_intern = (double _Complex*) calloc(plan->N_total,
+    plan->f_hat_intern = (double _Complex*) nfft_malloc(plan->N_total*
                                                   sizeof(double _Complex));
   }
 
   /* Allocate memory for spherical Fourier coefficients, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
-    plan->f_hat = (double _Complex*) calloc(plan->N_total,
+    plan->f_hat = (double _Complex*) nfft_malloc(plan->N_total*
                                            sizeof(double _Complex));
   }
 
   /* Allocate memory for samples, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
-    plan->f = (double _Complex*) calloc(plan->M_total,sizeof(double _Complex));
+    plan->f = (double _Complex*) nfft_malloc(plan->M_total*sizeof(double _Complex));
   }
 
   /* Allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
-    plan->x = (double*) calloc(plan->M_total,2*sizeof(double));
+    plan->x = (double*) nfft_malloc(plan->M_total*2*sizeof(double));
   }
 
   /* Check if fast algorithm is activated. */

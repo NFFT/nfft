@@ -174,18 +174,18 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
   ths->sigma = sigma;
   ths->flags = flags;
 
-  ths->x = (double*)fftw_malloc(ths->N*sizeof(double));
-  ths->y = (double*)fftw_malloc(ths->M*sizeof(double));
-  ths->alpha = (double _Complex*)fftw_malloc(ths->N*sizeof(double _Complex));
-  ths->f = (double _Complex*)fftw_malloc(ths->M*sizeof(double _Complex));
+  ths->x = (double*)nfft_malloc(ths->N*sizeof(double));
+  ths->y = (double*)nfft_malloc(ths->M*sizeof(double));
+  ths->alpha = (double _Complex*)nfft_malloc(ths->N*sizeof(double _Complex));
+  ths->f = (double _Complex*)nfft_malloc(ths->M*sizeof(double _Complex));
 
   ths->n = n;
   ths->p = p;
 
-  ths->b = (double _Complex*)fftw_malloc(ths->n*sizeof(double _Complex));
+  ths->b = (double _Complex*)nfft_malloc(ths->n*sizeof(double _Complex));
 
-  ths->nplan1 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
-  ths->nplan2 = (nfft_plan*) fftw_malloc(sizeof(nfft_plan));
+  ths->nplan1 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
+  ths->nplan2 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
 
   n_fftw=nfft_next_power_of_2(2*ths->n);
 
@@ -262,7 +262,7 @@ void fgt_init_node_dependent(fgt_plan *ths)
 
   if(ths->flags & DGT_PRE_CEXP)
    {
-     ths->pre_cexp=(double _Complex*)fftw_malloc(ths->M*ths->N*
+     ths->pre_cexp=(double _Complex*)nfft_malloc(ths->M*ths->N*
 						sizeof(double _Complex));
 
      for(j=0,l=0; j<ths->M; j++)
@@ -293,16 +293,16 @@ void fgt_finalize(fgt_plan *ths)
   nfft_finalize(ths->nplan2);
   nfft_finalize(ths->nplan1);
 
-  fftw_free(ths->nplan2);
-  fftw_free(ths->nplan1);
+  nfft_free(ths->nplan2);
+  nfft_free(ths->nplan1);
 
-  fftw_free(ths->b);
+  nfft_free(ths->b);
 
-  fftw_free(ths->f);
-  fftw_free(ths->y);
+  nfft_free(ths->f);
+  nfft_free(ths->y);
 
-  fftw_free(ths->alpha);
-  fftw_free(ths->x);
+  nfft_free(ths->alpha);
+  nfft_free(ths->x);
 }
 
 /**
@@ -377,7 +377,7 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
   double _Complex *swap_dgt;
 
   fgt_init(&my_plan, N, M, sigma, eps);
-  swap_dgt = (double _Complex*)fftw_malloc(my_plan.M*sizeof(double _Complex));
+  swap_dgt = (double _Complex*)nfft_malloc(my_plan.M*sizeof(double _Complex));
 
   fgt_test_init_rand(&my_plan);
   fgt_init_node_dependent(&my_plan);
@@ -393,7 +393,7 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
   printf("\n relative error: %1.3e\n", nfft_error_l_infty_1_complex(swap_dgt,
          my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
 
-  fftw_free(swap_dgt);
+  nfft_free(swap_dgt);
   fgt_finalize(&my_plan);
 }
 
@@ -428,7 +428,7 @@ void fgt_test_andersson()
       else
         fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, 0);
 
-      swap_dgt = (double _Complex*)fftw_malloc(my_plan.M*
+      swap_dgt = (double _Complex*)nfft_malloc(my_plan.M*
 					      sizeof(double _Complex));
 
       fgt_test_init_rand(&my_plan);
@@ -465,7 +465,7 @@ void fgt_test_andersson()
 					  my_plan.alpha, my_plan.N));
       fflush(stdout);
 
-      fftw_free(swap_dgt);
+      nfft_free(swap_dgt);
       fgt_finalize(&my_plan);
       fftw_cleanup();
     }
@@ -491,7 +491,7 @@ void fgt_test_error()
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
-  swap_dgt = (double _Complex*)fftw_malloc(M*sizeof(double _Complex));
+  swap_dgt = (double _Complex*)nfft_malloc(M*sizeof(double _Complex));
 
   for(n=8; n<=128; n+=4)
     {
@@ -519,7 +519,7 @@ void fgt_test_error()
     }
   printf("];\n");
 
-  fftw_free(swap_dgt);
+  nfft_free(swap_dgt);
 }
 
 /**
@@ -542,7 +542,7 @@ void fgt_test_error_p()
   printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
   printf("error=[\n");
 
-  swap_dgt = (double _Complex*)fftw_malloc(M*sizeof(double _Complex));
+  swap_dgt = (double _Complex*)nfft_malloc(M*sizeof(double _Complex));
 
   for(n=8; n<=128; n+=4)
     {

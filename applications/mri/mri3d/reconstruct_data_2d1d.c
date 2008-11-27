@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 
   /* Allocate memory to hold every layer in memory after the
   2D-infft */
-  mem = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
+  mem = (fftw_complex*) nfft_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
 
   /* Create plan for the 1d-ifft */
   plan = fftw_plan_many_dft(1, &Z, N*N,
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
   print(N,M,Z, mem);
 
   /* free memory */
-  fftw_free(mem);
+  nfft_free(mem);
   fftw_destroy_plan(plan);
   return 1;
 }

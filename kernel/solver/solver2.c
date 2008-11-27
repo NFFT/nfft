@@ -32,10 +32,10 @@ void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv,
   ths->mv = mv;
   ths->flags = flags;
 
-  ths->y          = (fftw_complex*)fftw_malloc(ths->mv->M_total*sizeof(fftw_complex));
-  ths->r_iter     = (fftw_complex*)fftw_malloc(ths->mv->M_total*sizeof(fftw_complex));
-  ths->f_hat_iter = (fftw_complex*)fftw_malloc(ths->mv->N_total*sizeof(fftw_complex));
-  ths->p_hat_iter = (fftw_complex*)fftw_malloc(ths->mv->N_total*sizeof(fftw_complex));
+  ths->y          = (fftw_complex*)nfft_malloc(ths->mv->M_total*sizeof(fftw_complex));
+  ths->r_iter     = (fftw_complex*)nfft_malloc(ths->mv->M_total*sizeof(fftw_complex));
+  ths->f_hat_iter = (fftw_complex*)nfft_malloc(ths->mv->N_total*sizeof(fftw_complex));
+  ths->p_hat_iter = (fftw_complex*)nfft_malloc(ths->mv->N_total*sizeof(fftw_complex));
 
   if(ths->flags & LANDWEBER)
     ths->z_hat_iter = ths->p_hat_iter;
@@ -43,23 +43,23 @@ void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv,
   if(ths->flags & STEEPEST_DESCENT)
     {
       ths->z_hat_iter = ths->p_hat_iter;
-      ths->v_iter     = (fftw_complex*)fftw_malloc(ths->mv->M_total*sizeof(fftw_complex));
+      ths->v_iter     = (fftw_complex*)nfft_malloc(ths->mv->M_total*sizeof(fftw_complex));
     }
 
   if(ths->flags & CGNR)
     {
-      ths->z_hat_iter = (fftw_complex*)fftw_malloc(ths->mv->N_total*sizeof(fftw_complex));
-      ths->v_iter     = (fftw_complex*)fftw_malloc(ths->mv->M_total*sizeof(fftw_complex));
+      ths->z_hat_iter = (fftw_complex*)nfft_malloc(ths->mv->N_total*sizeof(fftw_complex));
+      ths->v_iter     = (fftw_complex*)nfft_malloc(ths->mv->M_total*sizeof(fftw_complex));
     }
 
   if(ths->flags & CGNE)
     ths->z_hat_iter = ths->p_hat_iter;
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    ths->w = (double*) fftw_malloc(ths->mv->M_total*sizeof(double));
+    ths->w = (double*) nfft_malloc(ths->mv->M_total*sizeof(double));
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    ths->w_hat = (double*) fftw_malloc(ths->mv->N_total*sizeof(double));
+    ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));
 }
 
 void solver_init_complex(solver_plan_complex* ths, mv_plan_complex *mv)
@@ -352,25 +352,25 @@ void solver_loop_one_step_complex(solver_plan_complex *ths)
 void solver_finalize_complex(solver_plan_complex *ths)
 {
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    fftw_free(ths->w);
+    nfft_free(ths->w);
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    fftw_free(ths->w_hat);
+    nfft_free(ths->w_hat);
 
   if(ths->flags & CGNR)
     {
-      fftw_free(ths->v_iter);
-      fftw_free(ths->z_hat_iter);
+      nfft_free(ths->v_iter);
+      nfft_free(ths->z_hat_iter);
     }
 
   if(ths->flags & STEEPEST_DESCENT)
-    fftw_free(ths->v_iter);
+    nfft_free(ths->v_iter);
 
-  fftw_free(ths->p_hat_iter);
-  fftw_free(ths->f_hat_iter);
+  nfft_free(ths->p_hat_iter);
+  nfft_free(ths->f_hat_iter);
 
-  fftw_free(ths->r_iter);
-  fftw_free(ths->y);
+  nfft_free(ths->r_iter);
+  nfft_free(ths->y);
 } /** void solver_finalize */
 
 
@@ -383,10 +383,10 @@ void solver_init_advanced_double(solver_plan_double* ths, mv_plan_double *mv, un
   ths->mv = mv;
   ths->flags = flags;
 
-  ths->y          = (double*)fftw_malloc(ths->mv->M_total*sizeof(double));
-  ths->r_iter     = (double*)fftw_malloc(ths->mv->M_total*sizeof(double));
-  ths->f_hat_iter = (double*)fftw_malloc(ths->mv->N_total*sizeof(double));
-  ths->p_hat_iter = (double*)fftw_malloc(ths->mv->N_total*sizeof(double));
+  ths->y          = (double*)nfft_malloc(ths->mv->M_total*sizeof(double));
+  ths->r_iter     = (double*)nfft_malloc(ths->mv->M_total*sizeof(double));
+  ths->f_hat_iter = (double*)nfft_malloc(ths->mv->N_total*sizeof(double));
+  ths->p_hat_iter = (double*)nfft_malloc(ths->mv->N_total*sizeof(double));
 
   if(ths->flags & LANDWEBER)
     ths->z_hat_iter = ths->p_hat_iter;
@@ -394,23 +394,23 @@ void solver_init_advanced_double(solver_plan_double* ths, mv_plan_double *mv, un
   if(ths->flags & STEEPEST_DESCENT)
     {
       ths->z_hat_iter = ths->p_hat_iter;
-      ths->v_iter     = (double*)fftw_malloc(ths->mv->M_total*sizeof(double));
+      ths->v_iter     = (double*)nfft_malloc(ths->mv->M_total*sizeof(double));
     }
 
   if(ths->flags & CGNR)
     {
-      ths->z_hat_iter = (double*)fftw_malloc(ths->mv->N_total*sizeof(double));
-      ths->v_iter     = (double*)fftw_malloc(ths->mv->M_total*sizeof(double));
+      ths->z_hat_iter = (double*)nfft_malloc(ths->mv->N_total*sizeof(double));
+      ths->v_iter     = (double*)nfft_malloc(ths->mv->M_total*sizeof(double));
     }
 
   if(ths->flags & CGNE)
     ths->z_hat_iter = ths->p_hat_iter;
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    ths->w = (double*) fftw_malloc(ths->mv->M_total*sizeof(double));
+    ths->w = (double*) nfft_malloc(ths->mv->M_total*sizeof(double));
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    ths->w_hat = (double*) fftw_malloc(ths->mv->N_total*sizeof(double));
+    ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));
 }
 
 void solver_init_double(solver_plan_double* ths, mv_plan_double *mv)
@@ -703,23 +703,23 @@ void solver_loop_one_step_double(solver_plan_double *ths)
 void solver_finalize_double(solver_plan_double *ths)
 {
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    fftw_free(ths->w);
+    nfft_free(ths->w);
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    fftw_free(ths->w_hat);
+    nfft_free(ths->w_hat);
 
   if(ths->flags & CGNR)
     {
-      fftw_free(ths->v_iter);
-      fftw_free(ths->z_hat_iter);
+      nfft_free(ths->v_iter);
+      nfft_free(ths->z_hat_iter);
     }
 
   if(ths->flags & STEEPEST_DESCENT)
-    fftw_free(ths->v_iter);
+    nfft_free(ths->v_iter);
 
-  fftw_free(ths->p_hat_iter);
-  fftw_free(ths->f_hat_iter);
+  nfft_free(ths->p_hat_iter);
+  nfft_free(ths->f_hat_iter);
 
-  fftw_free(ths->r_iter);
-  fftw_free(ths->y);
+  nfft_free(ths->r_iter);
+  nfft_free(ths->y);
 } /** void solver_finalize */

@@ -106,14 +106,14 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
   N[0]=NN; n[0]=2*N[0];
   N[1]=NN; n[1]=2*N[1];
 
-  fft = (fftw_complex *)fftw_malloc(R*sizeof(fftw_complex));
+  fft = (fftw_complex *)nfft_malloc(R*sizeof(fftw_complex));
   my_fftw_plan = fftw_plan_dft_1d(R,fft,fft,FFTW_BACKWARD,FFTW_MEASURE);
 
-  x = (double *)malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*R*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -171,10 +171,10 @@ int Radon_trafo(int (*gridfcn)(), int T, int R, double *f, int NN, double *Rf)
 
   /** finalise the plans and free the variables */
   fftw_destroy_plan(my_fftw_plan);
-  fftw_free(fft);
+  nfft_free(fft);
   nfft_finalize(&my_nfft_plan);
-  free(x);
-  free(w);
+  nfft_free(x);
+  nfft_free(w);
   return 0;
 }
 
@@ -209,8 +209,8 @@ int main(int argc,char **argv)
   R = atoi(argv[4]);
   /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
 
-  f   = (double *)malloc(N*N*(sizeof(double)));
-  Rf  = (double *)malloc(T*R*(sizeof(double)));
+  f   = (double *)nfft_malloc(N*N*(sizeof(double)));
+  Rf  = (double *)nfft_malloc(T*R*(sizeof(double)));
 
   /** load data */
   fp=fopen("input_data.bin","rb");
@@ -230,8 +230,8 @@ int main(int argc,char **argv)
   fclose(fp);
 
   /** free the variables */
-  free(f);
-  free(Rf);
+  nfft_free(f);
+  nfft_free(Rf);
 
   return EXIT_SUCCESS;
 }

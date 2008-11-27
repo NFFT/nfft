@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   printf("%fsec\n",time);
 
   /** copy result */
-  direct = (double _Complex *)malloc(my_fastsum_plan.M_total*(sizeof(double _Complex)));
+  direct = (double _Complex *)nfft_malloc(my_fastsum_plan.M_total*(sizeof(double _Complex)));
   for (j=0; j<my_fastsum_plan.M_total; j++)
     direct[j]=my_fastsum_plan.f[j];
 

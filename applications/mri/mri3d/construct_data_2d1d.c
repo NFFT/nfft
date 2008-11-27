@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  mem = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
+  mem = (fftw_complex*) nfft_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
   
   read_data(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
  
   construct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
   
-  fftw_free(mem);
+  nfft_free(mem);
   
   return 1;
 }

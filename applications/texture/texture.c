@@ -74,13 +74,13 @@ void texture_init_advanced(texture_plan * ths, int N, int N1, int N2,
 	ths->M_total = N1 * N2;
 
 	// Allocate storage for internal computations.
-	ths->nfsft_f_hat = malloc(sizeof(double _Complex) * NFSFT_F_HAT_SIZE(N));
+	ths->nfsft_f_hat =nfft_malloc(sizeof(double _Complex) * NFSFT_F_HAT_SIZE(N));
 	ths->nfsft_f =
-		(double _Complex *) malloc(sizeof(double _Complex) * ths->M_total);
+		(double _Complex *)nfft_malloc(sizeof(double _Complex) * ths->M_total);
 
-	ths->nfsft_angles = (double *) malloc(sizeof(double) * N1 * N2 * 2);
-	ths->cos_h_theta = (double *) malloc(sizeof(double) * N1);
-	ths->sin_h_theta = (double *) malloc(sizeof(double) * N1);
+	ths->nfsft_angles = (double *)nfft_malloc(sizeof(double) * N1 * N2 * 2);
+	ths->cos_h_theta = (double *)nfft_malloc(sizeof(double) * N1);
+	ths->sin_h_theta = (double *)nfft_malloc(sizeof(double) * N1);
 
 	// Set Parameters.
 	texture_set_nfsft_init_flags(ths, nfsft_init_flags);

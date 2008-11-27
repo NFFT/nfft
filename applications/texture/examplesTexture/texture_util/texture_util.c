@@ -967,14 +967,14 @@ inline void *smart_calloc(size_t nmemb, size_t size)
 
 inline void *smart_malloc(size_t size)
 {
-	void *buf = malloc(size);
+	void *buf =nfft_malloc(size);
 	if (!buf) {
 		error("smart_calloc: out of memory!\n");
 	}
 	return buf;
 }
 
-#define malloc(a) arglasdf(a)
+#definenfft_malloc(a) arglasdf(a)
 #define calloc(a) arglasdf(a)
 
 double _Complex spherical_harmonic(int k, int n, double phi, double theta)

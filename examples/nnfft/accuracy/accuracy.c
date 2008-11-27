@@ -15,7 +15,7 @@ void accuracy(int d)
   int M_total,N_total;
   M_total=10000;N_total=1;
   
-  slow=(double _Complex*)fftw_malloc(M_total*sizeof(double _Complex));
+  slow=(double _Complex*)nfft_malloc(M_total*sizeof(double _Complex));
   
   for(t=0; t<d; t++)
     {

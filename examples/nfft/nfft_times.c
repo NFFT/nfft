@@ -196,7 +196,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.M_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.M_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -279,7 +279,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
@@ -310,7 +310,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f, p.f_hat, FFTW_BACKWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.N_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.N_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -393,7 +393,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
@@ -427,7 +427,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.M_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.M_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -523,7 +523,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
@@ -555,7 +555,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.N_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.N_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -647,7 +647,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
@@ -679,7 +679,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.M_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.M_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -772,7 +772,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 
@@ -804,7 +804,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 
   p_fft=fftw_plan_dft(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
-  double _Complex *swapndft=(double _Complex*)fftw_malloc(p.N_total*sizeof(double _Complex));
+  double _Complex *swapndft=(double _Complex*)nfft_malloc(p.N_total*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
@@ -896,7 +896,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 
   printf("\n");
 
-  fftw_free(swapndft);
+  nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
 } 

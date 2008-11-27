@@ -50,10 +50,10 @@ F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
   ths->mv = mv;                                                               \
   ths->flags = i ## MV ## _flags;                                             \
                                                                               \
-  ths->y          = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));\
-  ths->r_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*sizeof(FLT_TYPE));\
-  ths->f_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*sizeof(FLT_TYPE));\
-  ths->p_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*sizeof(FLT_TYPE));\
+  ths->y          = (FLT_TYPE*)nfft_malloc(ths->mv->M_total*sizeof(FLT_TYPE));\
+  ths->r_iter     = (FLT_TYPE*)nfft_malloc(ths->mv->M_total*sizeof(FLT_TYPE));\
+  ths->f_hat_iter = (FLT_TYPE*)nfft_malloc(ths->mv->N_total*sizeof(FLT_TYPE));\
+  ths->p_hat_iter = (FLT_TYPE*)nfft_malloc(ths->mv->N_total*sizeof(FLT_TYPE));\
                                                                               \
   if(ths->flags & LANDWEBER)                                                  \
     ths->z_hat_iter = ths->p_hat_iter;                                        \
@@ -61,15 +61,15 @@ F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
   if(ths->flags & STEEPEST_DESCENT)                                           \
     {                                                                         \
       ths->z_hat_iter = ths->p_hat_iter;                                      \
-      ths->v_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*              \
+      ths->v_iter     = (FLT_TYPE*)nfft_malloc(ths->mv->M_total*              \
                                                sizeof(FLT_TYPE));             \
     }                                                                         \
                                                                               \
   if(ths->flags & CGNR)                                                       \
     {                                                                         \
-      ths->z_hat_iter = (FLT_TYPE*)fftw_malloc(ths->mv->N_total*              \
+      ths->z_hat_iter = (FLT_TYPE*)nfft_malloc(ths->mv->N_total*              \
                                                sizeof(FLT_TYPE));             \
-      ths->v_iter     = (FLT_TYPE*)fftw_malloc(ths->mv->M_total*              \
+      ths->v_iter     = (FLT_TYPE*)nfft_malloc(ths->mv->M_total*              \
                                                sizeof(FLT_TYPE));             \
     }                                                                         \
                                                                               \
@@ -77,10 +77,10 @@ F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,   \
     ths->z_hat_iter = ths->p_hat_iter;                                        \
                                                                               \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
-    ths->w = (double*) fftw_malloc(ths->mv->M_total*sizeof(double));          \
+    ths->w = (double*) nfft_malloc(ths->mv->M_total*sizeof(double));          \
                                                                               \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
-    ths->w_hat = (double*) fftw_malloc(ths->mv->N_total*sizeof(double));      \
+    ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));      \
 }                                                                             \
                                                                               \
 /** void i<mv>_init */                                                        \
@@ -377,25 +377,25 @@ F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths)                    \
 F(MV, FLT, FLT_TYPE, finalize, i ## MV ## _plan *ths)                         \
 {                                                                             \
   if(ths->flags & PRECOMPUTE_WEIGHT)                                          \
-    fftw_free(ths->w);                                                        \
+    nfft_free(ths->w);                                                        \
                                                                               \
   if(ths->flags & PRECOMPUTE_DAMP)                                            \
-    fftw_free(ths->w_hat);                                                    \
+    nfft_free(ths->w_hat);                                                    \
                                                                               \
   if(ths->flags & CGNR)                                                       \
     {                                                                         \
-      fftw_free(ths->v_iter);                                                 \
-      fftw_free(ths->z_hat_iter);                                             \
+      nfft_free(ths->v_iter);                                                 \
+      nfft_free(ths->z_hat_iter);                                             \
     }                                                                         \
                                                                               \
   if(ths->flags & STEEPEST_DESCENT)                                           \
-    fftw_free(ths->v_iter);                                                   \
+    nfft_free(ths->v_iter);                                                   \
                                                                               \
-  fftw_free(ths->p_hat_iter);                                                 \
-  fftw_free(ths->f_hat_iter);                                                 \
+  nfft_free(ths->p_hat_iter);                                                 \
+  nfft_free(ths->f_hat_iter);                                                 \
                                                                               \
-  fftw_free(ths->r_iter);                                                     \
-  fftw_free(ths->y);                                                          \
+  nfft_free(ths->r_iter);                                                     \
+  nfft_free(ths->y);                                                          \
 } /** void i<mv>_finalize */
 
 MACRO_SOLVER_IMPL(nfft, complex, double _Complex)

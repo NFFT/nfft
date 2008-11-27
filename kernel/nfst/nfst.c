@@ -138,9 +138,9 @@ int nfst_fftw_2N_rev( int n)
 #define MACRO_ndst_malloc__sin_vec                                              \
                                                                                 \
   double **sin_vec;                                                             \
-  sin_vec = (double**)malloc( ths->d * sizeof( double*));                       \
+  sin_vec = (double**)nfft_malloc( ths->d * sizeof( double*));                       \
   for( t = 0; t < ths->d; t++)                                                  \
-    sin_vec[t] = (double*)malloc( ( ths->N[t] - 1) * sizeof( double));          \
+    sin_vec[t] = (double*)nfft_malloc( ( ths->N[t] - 1) * sizeof( double));          \
 
 
 
@@ -149,8 +149,8 @@ int nfst_fftw_2N_rev( int n)
 {                                                                               \
   /* free allocated memory */                                                   \
   for( t = 0; t < ths->d; t++)                                                  \
-    free( sin_vec[t]);                                                          \
-  free( sin_vec);                                                               \
+  nfft_free( sin_vec[t]);                                                          \
+  nfft_free( sin_vec);                                                               \
 }
 
 
@@ -741,11 +741,11 @@ void nfst_precompute_phi_hut( nfst_plan *ths)
   int kg[ths->d];                      /**< index over all frequencies       */
   int t;                               /**< index over all dimensions        */
 
-  ths->c_phi_inv = (double**)fftw_malloc( ths->d * sizeof( double*));
+  ths->c_phi_inv = (double**)nfft_malloc( ths->d * sizeof( double*));
 
   for( t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (double*)fftw_malloc( ( ths->N[t] - 1) * sizeof( double));
+    ths->c_phi_inv[t] = (double*)nfft_malloc( ( ths->N[t] - 1) * sizeof( double));
 
     for( kg[t] = 0; kg[t] < ths->N[t] - 1; kg[t]++)
     {
@@ -809,9 +809,9 @@ void nfst_full_psi(nfst_plan *ths, double eps)
   if(ths->nfst_flags & PRE_PSI)
   {
     size_psi = ths->M_total;
-    index_f  =    (int*)malloc( ths->M_total  * sizeof( int));
-    index_g  =    (int*)malloc( size_psi * sizeof( int));
-    new_psi  = (double*)malloc( size_psi * sizeof( double));
+    index_f  =    (int*)nfft_malloc( ths->M_total  * sizeof( int));
+    index_g  =    (int*)nfft_malloc( size_psi * sizeof( int));
+    new_psi  = (double*)nfft_malloc( size_psi * sizeof( double));
 
     for( t = 0,lprod = 1; t < ths->d; t++)
     {
@@ -849,7 +849,7 @@ void nfst_full_psi(nfst_plan *ths, double eps)
 
     } /* for(j) */
 
-    free( ths->psi);
+    nfft_free( ths->psi);
 
     size_psi      = ix;
     ths->size_psi = size_psi;
@@ -872,14 +872,14 @@ void nfst_init_help( nfst_plan *ths)
 
   ths->N_total = nfst_prod_minus_a_int( ths->N, 1, ths->d);
 
-  ths->sigma   = (double*)fftw_malloc( ths->d * sizeof( double));
+  ths->sigma   = (double*)nfft_malloc( ths->d * sizeof( double));
 
   for( t = 0; t < ths->d; t++)
     /* FIXME: n/N or (n+1)/N */
     ths->sigma[t] = ((double)ths->n[t] + 1) / ths->N[t];
 
   /* assign r2r transform kinds for each dimension */
-  ths->r2r_kind = (fftw_r2r_kind*) fftw_malloc ( ths->d * sizeof( fftw_r2r_kind));
+  ths->r2r_kind = (fftw_r2r_kind*) nfft_malloc ( ths->d * sizeof( fftw_r2r_kind));
   for (t = 0; t < ths->d; t++)
     ths->r2r_kind[t] = FFTW_RODFT00;
 
@@ -887,13 +887,13 @@ void nfst_init_help( nfst_plan *ths)
   WINDOW_HELP_INIT;
 
   if(ths->nfst_flags & MALLOC_X)
-    ths->x = (double*)fftw_malloc( ths->d * ths->M_total * sizeof( double));
+    ths->x = (double*)nfft_malloc( ths->d * ths->M_total * sizeof( double));
 
   if(ths->nfst_flags & MALLOC_F_HAT)
-    ths->f_hat = (double*)fftw_malloc( ths->N_total * sizeof( double));
+    ths->f_hat = (double*)nfft_malloc( ths->N_total * sizeof( double));
 
   if(ths->nfst_flags & MALLOC_F)
-    ths->f = (double*)fftw_malloc( ths->M_total * sizeof( double));
+    ths->f = (double*)nfft_malloc( ths->M_total * sizeof( double));
 
   if(ths->nfst_flags & PRE_PHI_HUT)
     nfst_precompute_phi_hut( ths);
@@ -902,7 +902,7 @@ void nfst_init_help( nfst_plan *ths)
   if(ths->nfst_flags & PRE_PSI)
   {
     ths->psi =
-      (double*)malloc( ths->M_total * ths->d * NFST_SUMMANDS * sizeof( double));
+      (double*)nfft_malloc( ths->M_total * ths->d * NFST_SUMMANDS * sizeof( double));
 
     /**
      * set default for full_psi_eps
@@ -913,11 +913,11 @@ void nfst_init_help( nfst_plan *ths)
   if(ths->nfst_flags & FFTW_INIT)
   {
       ths->g1 =
-        (double*)fftw_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+        (double*)nfft_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
       if(ths->nfst_flags & FFT_OUT_OF_PLACE)
         ths->g2 =
-          (double*)fftw_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+          (double*)nfft_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
       else
         ths->g2 = ths->g1;
 
@@ -932,12 +932,12 @@ void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
 
   ths->d = d;
 
-  ths->N      = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->N      = (int*)nfft_malloc( ths->d * sizeof( int));
 
   for(t = 0;t < d; t++)
     ths->N[t] = N[t];
 
-  ths->n      = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->n      = (int*)nfft_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++)
     ths->n[t] = 2 * nfft_next_power_of_2( ths->N[t]) - 1;
@@ -973,12 +973,12 @@ void nfst_init_guru( nfst_plan *ths, int d, int *N,
   ths->d = d;
   ths->M_total = M_total;
 
-  ths->N      = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->N      = (int*)nfft_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++)
     ths->N[t]      = N[t];
 
-  ths->n      = (int*)fftw_malloc( ths->d * sizeof( int));
+  ths->n      = (int*)nfft_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++)
     ths->n[t]      = n[t];
@@ -1028,9 +1028,9 @@ void nfst_finalize( nfst_plan *ths)
     fftw_destroy_plan( ths->my_fftw_r2r_plan);
 
     if( ths->nfst_flags & FFT_OUT_OF_PLACE)
-      fftw_free( ths->g2);
+      nfft_free( ths->g2);
 
-    fftw_free( ths->g1);
+    nfft_free( ths->g1);
   }
 
   /* NO FFTW_FREE HERE */
@@ -1038,33 +1038,33 @@ void nfst_finalize( nfst_plan *ths)
   {
     if( ths->nfst_flags & PRE_FULL_PSI)
     {
-      free( ths->psi_index_g);
-      free( ths->psi_index_f);
+      nfft_free( ths->psi_index_g);
+      nfft_free( ths->psi_index_f);
     }
 
-    free( ths->psi);
+    nfft_free( ths->psi);
   }
 
   if( ths->nfst_flags & PRE_PHI_HUT) {
     for( t = 0; t < ths->d; t++)
-      fftw_free( ths->c_phi_inv[t]);
-    fftw_free( ths->c_phi_inv);
+      nfft_free( ths->c_phi_inv[t]);
+    nfft_free( ths->c_phi_inv);
   }
 
   if( ths->nfst_flags & MALLOC_F)
-    fftw_free( ths->f);
+    nfft_free( ths->f);
 
   if( ths->nfst_flags & MALLOC_F_HAT)
-    fftw_free( ths->f_hat);
+    nfft_free( ths->f_hat);
 
   if( ths->nfst_flags & MALLOC_X)
-    fftw_free( ths->x);
+    nfft_free( ths->x);
 
   WINDOW_HELP_FINALIZE;
 
-  fftw_free( ths->N);
-  fftw_free( ths->n);
-  fftw_free( ths->sigma);
+  nfft_free( ths->N);
+  nfft_free( ths->n);
+  nfft_free( ths->sigma);
 
 } /* nfst_finalize */
 

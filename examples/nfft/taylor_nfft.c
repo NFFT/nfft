@@ -44,8 +44,8 @@ void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_PRESERVE_INPUT);
 
-  ths->idx0=(int*)fftw_malloc(M*sizeof(int));
-  ths->deltax0=(double*)fftw_malloc(M*sizeof(double));
+  ths->idx0=(int*)nfft_malloc(M*sizeof(int));
+  ths->deltax0=(double*)nfft_malloc(M*sizeof(double));
 }
 
 /**
@@ -79,8 +79,8 @@ void taylor_precompute(taylor_plan *ths)
  */
 void taylor_finalize(taylor_plan *ths)
 {
-  fftw_free(ths->deltax0);
-  fftw_free(ths->idx0);
+  nfft_free(ths->deltax0);
+  nfft_free(ths->idx0);
 
   nfft_finalize((nfft_plan*)ths);
 }
@@ -177,7 +177,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   
   /** output vector ndft */
   if(test_accuracy)
-    swapndft=(double _Complex*)fftw_malloc(M*sizeof(double _Complex));
+    swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(np.x, np.M_total);
@@ -260,7 +260,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   
   /** finalise */
   if(test_accuracy)
-    fftw_free(swapndft);
+    nfft_free(swapndft);
 
   nfft_finalize(&np);
   taylor_finalize(&tp);

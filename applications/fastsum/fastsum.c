@@ -397,11 +397,11 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
   ths->N_total = N_total;
   ths->M_total = M_total;
 
-  ths->x = (double *)malloc(d*N_total*(sizeof(double)));
-  ths->alpha = (double _Complex *)malloc(N_total*(sizeof(double _Complex)));
+  ths->x = (double *)nfft_malloc(d*N_total*(sizeof(double)));
+  ths->alpha = (double _Complex *)nfft_malloc(N_total*(sizeof(double _Complex)));
 
-  ths->y = (double *)malloc(d*M_total*(sizeof(double)));
-  ths->f = (double _Complex *)malloc(M_total*(sizeof(double _Complex)));
+  ths->y = (double *)nfft_malloc(d*M_total*(sizeof(double)));
+  ths->f = (double _Complex *)nfft_malloc(M_total*(sizeof(double _Complex)));
 
   ths->kernel = kernel;
   ths->kernel_param = param;
@@ -418,12 +418,12 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
     if (ths->d==1)
     {
       ths->Ad = 4*(ths->p)*(ths->p);
-      ths->Add = (double *)malloc((ths->Ad+5)*(sizeof(double)));
+      ths->Add = (double *)nfft_malloc((ths->Ad+5)*(sizeof(double)));
     }
     else
     {
       ths->Ad = 2*(ths->p)*(ths->p);
-      ths->Add = (double *)malloc((ths->Ad+3)*(sizeof(double)));
+      ths->Add = (double *)nfft_malloc((ths->Ad+3)*(sizeof(double)));
     }
   }
 
@@ -446,7 +446,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
   for (t=0; t<d; t++)
     n_total *= nn;
 
-  ths->b = (fftw_complex *)fftw_malloc(n_total*sizeof(fftw_complex));
+  ths->b = (fftw_complex *)nfft_malloc(n_total*sizeof(fftw_complex));
   ths->fft_plan = fftw_plan_dft(d,N,ths->b,ths->b,FFTW_FORWARD,FFTW_ESTIMATE);
 
 }
@@ -454,19 +454,19 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
 /** finalization of fastsum plan */
 void fastsum_finalize(fastsum_plan *ths)
 {
-  free(ths->x);
-  free(ths->alpha);
-  free(ths->y);
-  free(ths->f);
+  nfft_free(ths->x);
+  nfft_free(ths->alpha);
+  nfft_free(ths->y);
+  nfft_free(ths->f);
 
   if (!(ths->flags & EXACT_NEARFIELD))
-    free(ths->Add);
+    nfft_free(ths->Add);
 
   nfft_finalize(&(ths->mv1));
   nfft_finalize(&(ths->mv2));
 
   fftw_destroy_plan(ths->fft_plan);
-  fftw_free(ths->b);
+  nfft_free(ths->b);
 }
 
 /** direct computation of sums */
@@ -584,8 +584,8 @@ void fastsum_trafo(fastsum_plan *ths)
   int j,k,t;
   double *ymin, *ymax;   /** limits for d-dimensional near field box */
 
-  ymin = (double *)malloc(ths->d*(sizeof(double)));
-  ymax = (double *)malloc(ths->d*(sizeof(double)));
+  ymin = (double *)nfft_malloc(ths->d*(sizeof(double)));
+  ymax = (double *)nfft_malloc(ths->d*(sizeof(double)));
 
   /** first step of algorithm */
   nfft_adjoint(&(ths->mv1));

@@ -69,7 +69,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /** output vector ndft */
   if(test_ndft)
-    swapndft=(double _Complex*)fftw_malloc(M*sizeof(double _Complex));
+    swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -194,7 +194,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   nfft_finalize(&p);
 
   if(test_ndft)
-    fftw_free(swapndft);
+    nfft_free(swapndft);
 }
 
 void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
@@ -212,7 +212,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
     }
 
   /** output vector ndft */
-  swapndft=(double _Complex*)fftw_malloc(M*sizeof(double _Complex));
+  swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
 
   nfft_init_guru(&p, d, NN, M, nn, m,
                  MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -221,9 +221,9 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** realloc psi */
-  fftw_free(p.psi);
+  nfft_free(p.psi);
   p.K=K;
-  p.psi=(double*) fftw_malloc((p.K+1)*p.d*sizeof(double));
+  p.psi=(double*) nfft_malloc((p.K+1)*p.d*sizeof(double));
 
   /** precomputation can be done before the nodes are initialised */
   nfft_precompute_one_psi(&p);
@@ -250,7 +250,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 
   /** finalise */
   nfft_finalize(&p);
-  fftw_free(swapndft);
+  nfft_free(swapndft);
 }
 
 

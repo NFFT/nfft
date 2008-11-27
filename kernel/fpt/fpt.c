@@ -827,7 +827,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   else
   {
     set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
-    set->temp = (double _Complex*) calloc((set->N+1),sizeof(double _Complex));
+    set->temp = (double _Complex*) nfft_malloc((set->N+1)*sizeof(double _Complex));
   }
 
   /* Return the newly created DPT set. */

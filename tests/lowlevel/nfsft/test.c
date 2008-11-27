@@ -146,7 +146,7 @@ void test_ndsft_trafo(void)
       nfsft_precompute_x(&plan);
 
       /* Read in reference samples. */
-      f_orig = (double _Complex*) malloc(M*sizeof(double _Complex));
+      f_orig = (double _Complex*)nfft_malloc(M*sizeof(double _Complex));
       for (m = 0; m < M; m++)
       {
         fscanf(file,"%lf",&d1);
@@ -186,7 +186,7 @@ void test_ndsft_trafo(void)
       nfsft_forget();
 
       /* Free memory. */
-      free(f_orig);
+      nfft_free(f_orig);
       f_orig = NULL;
 
       /* Test passed. */
@@ -291,7 +291,7 @@ void test_ndsft_adjoint(void)
       nfsft_precompute_x(&plan);
 
       /* Read in reference Fourier coefficients. */
-      f_hat_orig = (double _Complex*) calloc(plan.N_total,sizeof(double _Complex));
+      f_hat_orig = (double _Complex*) nfft_malloc(plan.N_total*sizeof(double _Complex));
       for (k = 0; k <= N; k++)
       {
         for (n = -k; n <= k; n++)
@@ -350,7 +350,7 @@ void test_ndsft_adjoint(void)
       /* Forget precomputed data. */
       nfsft_forget();
       /* Free memory. */
-      free(f_hat_orig);
+      nfft_free(f_hat_orig);
       /* Test passed. */
       fprintf(stdout,"\n");
       fprintf(stderr,"ok");

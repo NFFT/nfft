@@ -77,7 +77,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 
   if(test_pre_full)
    {
-     A=(double _Complex*)fftw_malloc(N*M*sizeof(double _Complex));
+     A=(double _Complex*)nfft_malloc(N*M*sizeof(double _Complex));
      ndft_pre_full_init(&np, A);
    }
 
@@ -156,7 +156,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   fflush(stdout);
 
   if(test_pre_full)
-    fftw_free(A);
+    nfft_free(A);
 
   nfft_finalize(&np);
 }

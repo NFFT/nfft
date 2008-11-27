@@ -13,7 +13,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_polarFFT_linogramm linogram_fft_test
  * \ingroup applications_polarFFT
  * \{
@@ -67,11 +67,11 @@ int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*R*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -104,8 +104,8 @@ int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
 
   /** finalise the plans and free the variables */
   nfft_finalize(&my_nfft_plan);
-  free(x);
-  free(w);
+  nfft_free(x);
+  nfft_free(w);
 
   return EXIT_SUCCESS;
 }
@@ -124,11 +124,11 @@ int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*R*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -170,8 +170,8 @@ int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
 
   /** finalise the plans and free the variables */
   nfft_finalize(&my_nfft_plan);
-  free(x);
-  free(w);
+  nfft_free(x);
+  nfft_free(w);
 
   return EXIT_SUCCESS;
 }
@@ -192,11 +192,11 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*R*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -268,8 +268,8 @@ int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int
   /** finalise the plans and free the variables */
   infft_finalize(&my_infft_plan);
   nfft_finalize(&my_nfft_plan);
-  free(x);
-  free(w);
+  nfft_free(x);
+  nfft_free(w);
 
   return EXIT_SUCCESS;
 }
@@ -282,14 +282,14 @@ int comparison_fft(FILE *fp, int N, int T, int R)
   int m,k;
   double t_fft, t_dft_linogram;
 
-  f_hat = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*N*N);
-  f     = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*(T*R/4)*5);
+  f_hat = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
+  f     = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*(T*R/4)*5);
 
   my_fftw_plan = fftw_plan_dft_2d(N,N,f_hat,f,FFTW_BACKWARD,FFTW_MEASURE);
 
   for(k=0; k<N*N; k++)
     f_hat[k] = (((double)rand())/RAND_MAX) + _Complex_I* (((double)rand())/RAND_MAX);
-  
+
   GLOBAL_elapsed_time=nfft_second();
   for(m=0;m<65536/N;m++)
     {
@@ -305,7 +305,7 @@ int comparison_fft(FILE *fp, int N, int T, int R)
       linogram_dft(f_hat,N,f,T,R,m);
       t_dft_linogram=GLOBAL_elapsed_time;
     }
-      
+
   for (m=3; m<=9; m+=3)
     {
       if((m==3)&&(N<256))
@@ -314,10 +314,10 @@ int comparison_fft(FILE *fp, int N, int T, int R)
         if(m==3)
 	  fprintf(fp,"%d\t&\t&\t%1.1e&\t       &\t%d\t",N,t_fft,m);
 	else
-	  fprintf(fp,"  \t&\t&\t       &\t       &\t%d\t",m);  
+	  fprintf(fp,"  \t&\t&\t       &\t       &\t%d\t",m);
 
-      printf("N=%d\tt_fft=%1.1e\tt_dft_linogram=%1.1e\tm=%d\t",N,t_fft,t_dft_linogram,m);              
-   
+      printf("N=%d\tt_fft=%1.1e\tt_dft_linogram=%1.1e\tm=%d\t",N,t_fft,t_dft_linogram,m);
+
       linogram_fft(f_hat,N,f,T,R,m);
       fprintf(fp,"%1.1e&\t",GLOBAL_elapsed_time);
       printf("t_linogram=%1.1e\t",GLOBAL_elapsed_time);
@@ -331,8 +331,8 @@ int comparison_fft(FILE *fp, int N, int T, int R)
 
   fflush(fp);
 
-  fftw_free(f);
-  fftw_free(f_hat);  
+  nfft_free(f);
+  nfft_free(f_hat);
 
   return EXIT_SUCCESS;
 }
@@ -378,13 +378,13 @@ int main(int argc,char **argv)
   R = atoi(argv[3]);
   printf("N=%d, linogram grid with T=%d, R=%d => ",N,T,R);
 
-  x = (double *)malloc(2*1.25*T*R*(sizeof(double)));
-  w = (double *)malloc(1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
 
-  f_hat    = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*N*N);
-  f        = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*1.25*T*R);  /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
-  f_direct = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*1.25*T*R);
-  f_tilde  = (fftw_complex *)fftw_malloc(sizeof(fftw_complex)*N*N);
+  f_hat    = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
+  f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*1.25*T*R);  /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
+  f_direct = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*1.25*T*R);
+  f_tilde  = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
 
   /** generate knots of linogram grid */
   M=linogram_grid(T,R,x,w); printf("M=%d.\n",M);
@@ -444,12 +444,12 @@ int main(int argc,char **argv)
   }
 
   /** free the variables */
-  free(x);
-  free(w);
-  free(f_hat);
-  free(f);
-  free(f_direct);
-  free(f_tilde);
+  nfft_free(x);
+  nfft_free(w);
+  nfft_free(f_hat);
+  nfft_free(f);
+  nfft_free(f_direct);
+  nfft_free(f_tilde);
 
   return 0;
 }

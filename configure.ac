@@ -149,6 +149,7 @@ fi
 
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
+  enable_debug="yes"
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
@@ -263,6 +264,19 @@ if test "$ac_test_CFLAGS" != "set"; then
 fi
 
 CPPFLAGS="$CPPFLAGS $fftw3_includes"
+
+# override CFLAGS selection when debugging
+if test "${enable_debug}" = "yes"; then
+  CFLAGS="-g3"
+  LDFLAGS="$LDFLAGS"
+fi
+
+# add gcc warnings, in debug/maintainer mode only
+if test "$enable_debug" = "yes" || test "$USE_MAINTAINER_MODE" = "yes"; then
+  if test $ac_cv_c_compiler_gnu = yes; then
+    CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings -Wstrict-prototypes -Wredundant-decls -Wnested-externs" # -Wundef -Wconversion -Wmissing-prototypes -Wmissing-declarations
+  fi
+fi
 
 # header files
 AC_HEADER_STDC

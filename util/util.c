@@ -1476,23 +1476,23 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   double a;
 
   /* Allocate memory for auxilliary arrays. */
-  x = (double*) malloc(M * sizeof(double));
-  y = (double*) malloc(M * sizeof(double));
-  z = (double*) malloc(M * sizeof(double));
+  x = (double*)nfft_malloc(M * sizeof(double));
+  y = (double*)nfft_malloc(M * sizeof(double));
+  z = (double*)nfft_malloc(M * sizeof(double));
 
-  list = (long int*) malloc((6*M-12+1)*sizeof(long int));
-  lptr = (long int*) malloc((6*M-12+1)*sizeof(long int));
-  lend = (long int*) malloc((M+1)*sizeof(long int));
-  near = (long int*) malloc((M+1)*sizeof(long int));
-  next = (long int*) malloc((M+1)*sizeof(long int));
-  dist = (double*) malloc((M+1)*sizeof(double));
-  ltri = (long int*) malloc((6*M+1)*sizeof(long int));
-  listc = (long int*) malloc((6*M-12+1)*sizeof(long int));
-  xc = (double*) malloc((2*M-4+1)*sizeof(double));
-  yc = (double*) malloc((2*M-4+1)*sizeof(double));
-  zc = (double*) malloc((2*M-4+1)*sizeof(double));
-  rc = (double*) malloc((2*M-4+1)*sizeof(double));
-  vr = (double*) malloc(3*(2*M-4+1)*sizeof(double));
+  list = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
+  lptr = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
+  lend = (long int*)nfft_malloc((M+1)*sizeof(long int));
+  near = (long int*)nfft_malloc((M+1)*sizeof(long int));
+  next = (long int*)nfft_malloc((M+1)*sizeof(long int));
+  dist = (double*)nfft_malloc((M+1)*sizeof(double));
+  ltri = (long int*)nfft_malloc((6*M+1)*sizeof(long int));
+  listc = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
+  xc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
+  yc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
+  zc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
+  rc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
+  vr = (double*)nfft_malloc(3*(2*M-4+1)*sizeof(double));
 
   /* Convert from spherical Coordinates in [0,1/2]x[-1/2,1/2) to Cartesian
    * coordinates. */
@@ -1551,23 +1551,23 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   }
 
   /* Deallocate memory. */
-  free(x);
-  free(y);
-  free(z);
+  nfft_free(x);
+  nfft_free(y);
+  nfft_free(z);
 
-  free(list);
-  free(lptr);
-  free(lend);
-  free(near);
-  free(next);
-  free(dist);
-  free(ltri);
-  free(listc);
-  free(xc);
-  free(yc);
-  free(zc);
-  free(rc);
-  free(vr);
+  nfft_free(list);
+  nfft_free(lptr);
+  nfft_free(lend);
+  nfft_free(near);
+  nfft_free(next);
+  nfft_free(dist);
+  nfft_free(ltri);
+  nfft_free(listc);
+  nfft_free(xc);
+  nfft_free(yc);
+  nfft_free(zc);
+  nfft_free(rc);
+  nfft_free(vr);
 }
 
 /**

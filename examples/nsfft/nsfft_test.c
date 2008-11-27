@@ -14,9 +14,9 @@ void accuracy_nsfft(int d, int J, int M, int m)
 
   nsfft_init(&p, d, J, M, m, NSDFT);
 
-  swap_sndft_trafo=(double _Complex*) fftw_malloc(p.M_total*
+  swap_sndft_trafo=(double _Complex*) nfft_malloc(p.M_total*
 						 sizeof(double _Complex));
-  swap_sndft_adjoint=(double _Complex*) fftw_malloc(p.N_total*
+  swap_sndft_adjoint=(double _Complex*) nfft_malloc(p.N_total*
 						   sizeof(double _Complex));
 
   nsfft_init_random_nodes_coeffs(&p);
@@ -50,8 +50,8 @@ void accuracy_nsfft(int d, int J, int M, int m)
                                  p.f, p.M_total));
   fflush(stdout);
 
-  fftw_free(swap_sndft_adjoint);
-  fftw_free(swap_sndft_trafo);
+  nfft_free(swap_sndft_adjoint);
+  nfft_free(swap_sndft_trafo);
 
   /** finalise the one dimensional plan */
   nsfft_finalize(&p);
