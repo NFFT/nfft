@@ -74,7 +74,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   double auxC=pow(2,29);
 
   printf("\\verb+%d+&\t",(int)(log(N)/log(2)*d+0.5));
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -82,8 +82,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 2, 
-		 PRE_PHI_HUT| 
+  nfft_init_guru(&p, d, NN, M, nn, 2,
+		 PRE_PHI_HUT|
 		 PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
@@ -162,13 +162,13 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       t_nfft+=t;
     }
   t_nfft/=r;
-  
+
   //  printf("\\verb+%.1e+ & \\verb+(%d)+ & \\verb+(%.1e)+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
   printf("\\verb+%.1e+ & \\verb+(%3.1f)+\\\\\n",t_nfft,t_nfft/t_fft);
 
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 {
@@ -179,7 +179,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -187,7 +187,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 2, 
+  nfft_init_guru(&p, d, NN, M, nn, 2,
 		 PRE_PHI_HUT|
 		 PRE_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -202,7 +202,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
+  //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);
 
@@ -282,7 +282,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 {
@@ -293,7 +293,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -301,7 +301,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 2, 
+  nfft_init_guru(&p, d, NN, M, nn, 2,
 		 PRE_PHI_HUT|
 		 PRE_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -316,7 +316,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
+  //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);
 
@@ -396,7 +396,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 
 
@@ -410,7 +410,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -418,7 +418,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 4, 
+  nfft_init_guru(&p, d, NN, M, nn, 4,
 		 PRE_PHI_HUT|
 		 PRE_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -436,7 +436,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   //   p.x[j]=0.5*p.x[j]+0.25*(p.x[j]>=0?1:-1);
 
   //qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
+  //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);
 
@@ -526,7 +526,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 
 void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
@@ -538,7 +538,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -546,7 +546,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 4, 
+  nfft_init_guru(&p, d, NN, M, nn, 4,
 		 PRE_PHI_HUT|
 		 PRE_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -650,7 +650,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 
 void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
@@ -662,7 +662,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -670,7 +670,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 2, 
+  nfft_init_guru(&p, d, NN, M, nn, 2,
 		 PRE_PHI_HUT|
 		 FG_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -685,7 +685,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
   //qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x"); 
+  //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);
 
@@ -775,7 +775,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
 
 void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
@@ -787,7 +787,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   fftw_plan p_fft;
 
   printf("%d\t",(int)(log(N)/log(2)*d+0.5)); fflush(stdout);
-     
+
   for(r=0,M=1;r<d;r++)
     {
       M=N*M;
@@ -795,7 +795,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
       nn[r]=2*N;
     }
 
-  nfft_init_guru(&p, d, NN, M, nn, 2, 
+  nfft_init_guru(&p, d, NN, M, nn, 2,
 		 PRE_PHI_HUT|
 		 FG_PSI|
 		 MALLOC_F_HAT| MALLOC_X| MALLOC_F|
@@ -899,9 +899,9 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   nfft_free(swapndft);
   fftw_destroy_plan(p_fft);
   nfft_finalize(&p);
-} 
+}
 
-int main2()
+int main2(void)
 {
   int l,d,logIN;
 
@@ -920,7 +920,7 @@ int main2()
 	  measure_time_nfft_XXX7(d,(1U<< (logIN/d)),0);
 	}
     }
-  
+
   exit(-1);
 
 
@@ -939,7 +939,7 @@ int main2()
 	  measure_time_nfft_XXX5(d,(1U<< (logIN/d)),0);
 	}
     }
-  
+
   exit(-1);
 
   for(l=3;l<=12;l++)
@@ -954,19 +954,19 @@ int main2()
 	{
 	  measure_time_nfft_XXX2(1,(1U<< (logIN)),0);
 	  measure_time_nfft_XXX3(1,(1U<< (logIN)),0);
-	} 
+	}
     }
 
   exit(-1);
 }
 
-int XXX()
+int XXX(void)
 {
   int l,d,logIN;
 
 }
 
-int main()
+int main(void)
 {
   int l,d,logIN;
 
@@ -980,10 +980,10 @@ int main()
 	measure_time_nfft(d,(1U<< (logIN/d)),1);
       else
 	measure_time_nfft(d,(1U<< (logIN/d)),0);
-      
+
       fflush(stdout);
     }
- 
+
   printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
   printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=2$} \\\\ \\hline\n");
   for(l=3;l<=11;l++)

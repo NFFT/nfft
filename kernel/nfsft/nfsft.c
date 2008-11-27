@@ -342,8 +342,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
       //nfft_precompute_one_psi(&plan->plan_nfft);
 
       /* Free auxilliary arrays. */
-      /*nfft_free(nfft_size);
-      nfft_free(fftw_size);*/
+      nfft_free(nfft_size);
+      nfft_free(fftw_size);
   }
 }
 
@@ -449,7 +449,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   wisdom.initialized = true;
 }
 
-void nfsft_forget()
+void nfsft_forget(void)
 {
   /* Check if wisdom has been initialised. */
   if (wisdom.initialized == false)

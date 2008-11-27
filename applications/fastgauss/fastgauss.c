@@ -406,7 +406,7 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
  *
  * \author Stefan Kunis
  */
-void fgt_test_andersson()
+void fgt_test_andersson(void)
 {
   fgt_plan my_plan;
   double _Complex *swap_dgt;
@@ -477,7 +477,7 @@ void fgt_test_andersson()
  *
  * \author Stefan Kunis
  */
-void fgt_test_error()
+void fgt_test_error(void)
 {
   fgt_plan my_plan;
   double _Complex *swap_dgt;
@@ -528,7 +528,7 @@ void fgt_test_error()
  *
  * \author Stefan Kunis
  */
-void fgt_test_error_p()
+void fgt_test_error_p(void)
 {
   fgt_plan my_plan;
   double _Complex *swap_dgt;

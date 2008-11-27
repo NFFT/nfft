@@ -7,7 +7,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-void simple_test_nfft_1d()
+void simple_test_nfft_1d(void)
 {
   nfft_plan p;
 
@@ -26,16 +26,16 @@ void simple_test_nfft_1d()
 
   /** init pseudo random Fourier coefficients and show them */
   nfft_vrand_unit_complex(p.f_hat,p.N_total);
-  nfft_vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat"); 
+  nfft_vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
   ndft_trafo(&p);
-  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
   nfft_trafo(&p);
   nfft_vpr_complex(p.f,p.M_total,"nfft, vector f");
-  
+
   /** approx. adjoint and show the result */
   ndft_adjoint(&p);
   nfft_vpr_complex(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
@@ -48,13 +48,13 @@ void simple_test_nfft_1d()
   nfft_finalize(&p);
 }
 
-void simple_test_nfft_2d()
+void simple_test_nfft_2d(void)
 {
   int K,N[2],n[2];
   double t;
 
   nfft_plan p;
-   
+
   N[0]=70; n[0]=128;
   N[1]=50; n[1]=128;
   K=12;
@@ -106,21 +106,21 @@ void simple_test_nfft_2d()
   t=nfft_second();
   nfft_adjoint(&p);
   t=nfft_second()-t;
-  nfft_vpr_complex(p.f_hat,K,"adjoint nfft, vector f_hat (first few entries)"); 
+  nfft_vpr_complex(p.f_hat,K,"adjoint nfft, vector f_hat (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** finalise the two dimensional plan */
   nfft_finalize(&p);
 }
 
-int main()
+int main(void)
 {
   system("clear");
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
   getc(stdin);
 
-  system("clear"); 
+  system("clear");
   printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_2d();
 

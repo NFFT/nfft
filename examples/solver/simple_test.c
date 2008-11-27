@@ -7,7 +7,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup examples_solver_simple Simple inverse nfft
  * \ingroup examples_solver
  * \{
@@ -19,13 +19,13 @@ void simple_test_infft_1d(int N, int M, int iter)
   int k,l;                            /**< index for nodes, freqencies,iter*/
   nfft_plan p;                          /**< plan for the nfft               */
   infft_plan ip;                        /**< plan for the inverse nfft       */
- 
+
   /** initialise an one dimensional plan */
   nfft_init_1d(&p, N, M);
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
-  
+
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
@@ -39,7 +39,7 @@ void simple_test_infft_1d(int N, int M, int iter)
 
   /** initialise some guess f_hat_0 and solve */
   for(k=0;k<p.N_total;k++)
-      ip.f_hat_iter[k]=0; 
+      ip.f_hat_iter[k]=0;
 
   nfft_vpr_complex(ip.f_hat_iter,p.N_total,"Initial guess, vector f_hat_iter");
 
@@ -57,7 +57,7 @@ void simple_test_infft_1d(int N, int M, int iter)
       infft_loop_one_step(&ip);
       nfft_vpr_complex(ip.f_hat_iter,p.N_total,
 		  "Approximate solution, vector f_hat_iter");
-      
+
       NFFT_SWAP_complex(ip.f_hat_iter,p.f_hat);
       nfft_trafo(&p);
       nfft_vpr_complex(p.f,p.M_total,"Data fit, vector f");
@@ -65,9 +65,9 @@ void simple_test_infft_1d(int N, int M, int iter)
 
       printf("\n Residual r=%e\n",ip.dot_r_iter);
     }
-  
-  infft_finalize(&ip);  
-  nfft_finalize(&p);  
+
+  infft_finalize(&ip);
+  nfft_finalize(&p);
 }
 
 /** Simple test routine for the inverse nfft */
@@ -76,13 +76,13 @@ void simple_test_solver_nfft_1d(int N, int M, int iter)
   int k,l;                            /**< index for nodes, freqencies,iter*/
   nfft_plan p;                          /**< plan for the nfft               */
   solver_plan_complex ip;                        /**< plan for the inverse nfft       */
- 
+
   /** initialise an one dimensional plan */
   nfft_init_1d(&p, N, M);
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
-  
+
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
@@ -96,7 +96,7 @@ void simple_test_solver_nfft_1d(int N, int M, int iter)
 
   /** initialise some guess f_hat_0 and solve */
   for(k=0;k<p.N_total;k++)
-      ip.f_hat_iter[k]=0; 
+      ip.f_hat_iter[k]=0;
 
   nfft_vpr_complex(ip.f_hat_iter,p.N_total,"Initial guess, vector f_hat_iter");
 
@@ -114,7 +114,7 @@ void simple_test_solver_nfft_1d(int N, int M, int iter)
       solver_loop_one_step_complex(&ip);
       nfft_vpr_complex(ip.f_hat_iter,p.N_total,
 		  "Approximate solution, vector f_hat_iter");
-      
+
       NFFT_SWAP_complex(ip.f_hat_iter,p.f_hat);
       nfft_trafo(&p);
       nfft_vpr_complex(p.f,p.M_total,"Data fit, vector f");
@@ -122,13 +122,13 @@ void simple_test_solver_nfft_1d(int N, int M, int iter)
 
       printf("\n Residual r=%e\n",ip.dot_r_iter);
     }
-  
-  solver_finalize_complex(&ip);  
-  nfft_finalize(&p);  
+
+  solver_finalize_complex(&ip);
+  nfft_finalize(&p);
 }
 
 /** Main routine */
-int main()
+int main(void)
 {
   printf("\n Computing a one dimensional inverse nfft\n");
   simple_test_infft_1d(8,4,5);

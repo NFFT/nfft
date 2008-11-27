@@ -7,7 +7,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-void simple_test_nfft_1d()
+void simple_test_nfft_1d(void)
 {
   int j,k;                              /**< index for nodes and freqencies  */
   nfft_plan my_plan;                    /**< plan for the nfft               */
@@ -35,11 +35,11 @@ void simple_test_nfft_1d()
   for(k=0;k<my_plan.N_total;k++)
     my_plan.f_hat[k] = ((double)rand())/RAND_MAX + _Complex_I* ((double)rand())/RAND_MAX;
 
-  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat"); 
+  nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
@@ -57,7 +57,7 @@ void simple_test_nfft_1d()
   nfft_finalize(&my_plan);
 }
 
-void simple_test_nfft_2d()
+void simple_test_nfft_2d(void)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_plan;                    /**< plan for the nfft                */
@@ -92,7 +92,7 @@ void simple_test_nfft_2d()
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
@@ -104,13 +104,13 @@ void simple_test_nfft_2d()
 
   /** approx. adjoint and show the result */
   nfft_adjoint(&my_plan);
-  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)");
 
   /** finalise the one dimensional plan */
   nfft_finalize(&my_plan);
 }
 
-void simple_test_nfft_2d_huge()
+void simple_test_nfft_2d_huge(void)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_plan;                    /**< plan for the nfft                */
@@ -121,7 +121,7 @@ void simple_test_nfft_2d_huge()
 
   /** init an one dimensional plan */
 
-  nfft_init_guru(&my_plan, 2, N, 10, n, 
+  nfft_init_guru(&my_plan, 2, N, 10, n,
 		 6, PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
@@ -146,7 +146,7 @@ void simple_test_nfft_2d_huge()
 
   /** direct trafo and show the result */
   ndft_trafo(&my_plan);
-  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f"); 
+  nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
   nfft_trafo(&my_plan);
@@ -158,7 +158,7 @@ void simple_test_nfft_2d_huge()
 
   /** approx. adjoint and show the result */
   nfft_adjoint(&my_plan);
-  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)"); 
+  nfft_vpr_complex(my_plan.f_hat,12,"adjoint nfft, vector f_hat (first 12 entries)");
 
   /** finalise the one dimensional plan */
   nfft_finalize(&my_plan);
@@ -166,7 +166,7 @@ void simple_test_nfft_2d_huge()
 
 
 
-void measure_time_nfft_1d()
+void measure_time_nfft_1d(void)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_plan;                    /**< plan for the nfft                */
@@ -182,7 +182,7 @@ void measure_time_nfft_1d()
 
       if(my_plan.nfft_flags & PRE_ONE_PSI)
         nfft_precompute_one_psi(&my_plan);
-  
+
       for(k=0;k<my_plan.N_total;k++)
 	my_plan.f_hat[k]=((double)rand())/RAND_MAX + _Complex_I*((double)rand())/RAND_MAX;
 
@@ -200,19 +200,19 @@ void measure_time_nfft_1d()
       nfft_trafo(&my_plan);
       t=nfft_second()-t;
       printf("t_nfft=%e\t",t);
-      
+
       printf("(N=M_total=%d)\n",my_N);
 
-      nfft_finalize(&my_plan);  
+      nfft_finalize(&my_plan);
     }
-} 
+}
 
-void simple_test_infft_1d()
+void simple_test_infft_1d(void)
 {
   int j,k,l;                            /**< index for nodes, freqencies,iter*/
   nfft_plan my_plan;                    /**< plan for the nfft               */
   infft_plan my_iplan;                  /**< plan for the inverse nfft       */
- 
+
   /** initialise an one dimensional plan */
   nfft_init_1d(&my_plan, 8, 4);
 
@@ -221,7 +221,7 @@ void simple_test_infft_1d()
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(my_plan.x,my_plan.M_total);
-  
+
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&my_plan);
@@ -233,7 +233,7 @@ void simple_test_infft_1d()
 
   /** initialise some guess f_hat_0 */
   for(k=0;k<my_plan.N_total;k++)
-      my_iplan.f_hat_iter[k]=0; 
+      my_iplan.f_hat_iter[k]=0;
 
   nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
 	"approximate solution, vector f_hat_iter");
@@ -246,18 +246,18 @@ void simple_test_infft_1d()
       infft_loop_one_step(&my_iplan);
       nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
 	    "approximate solution, vector f_hat_iter");
-      
+
       NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
       nfft_trafo(&my_plan);
       nfft_vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
       NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
     }
-  
-  infft_finalize(&my_iplan);  
-  nfft_finalize(&my_plan);  
+
+  infft_finalize(&my_iplan);
+  nfft_finalize(&my_plan);
 }
 
-int main()
+int main(void)
 {
   int l,m;
 
@@ -270,19 +270,19 @@ exit(-1);
 
   getc(stdin);
 
-  system("clear"); 
+  system("clear");
   printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_2d();
 /*
   getc(stdin);
 
-  system("clear"); 
+  system("clear");
   printf("3) computing an one dimensional infft\n\n");
   simple_test_infft_1d();
 
   getc(stdin);
-    
-  system("clear"); 
+
+  system("clear");
   printf("3) computing times for one dimensional nfft\n\n");
   measure_time_nfft_1d();
 */

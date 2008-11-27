@@ -33,12 +33,13 @@
 #include "cstripack.h"
 
 #include <complex.h>
+#include "nfft3.h"
 #include "util.h"
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy
  */
-double nfft_second()
+double nfft_second(void)
 {
   static struct rusage temp;
   double foo, foo1;
@@ -50,7 +51,7 @@ double nfft_second()
 }
 
 #ifdef HAVE_MALLOC_H
-int nfft_total_used_memory()
+int nfft_total_used_memory(void)
 {
   struct mallinfo m;
   m=mallinfo();

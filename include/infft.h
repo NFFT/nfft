@@ -266,6 +266,9 @@ extern double copysign(const double, const double);
 #  define CIMAG cimag
 #endif
 
+#if HAVE_DECL_DRAND48 == 0
+  extern double drand48(void);
+#endif
 #define RAND ((R)drand48())
 #define R_RADIX FLT_RADIX
 #define II _Complex_I

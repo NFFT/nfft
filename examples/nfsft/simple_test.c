@@ -10,7 +10,7 @@
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 
-void simple_test_nfsft()
+void simple_test_nfsft(void)
 {
   int j;                      /**< Index for nodes                                 */
   int k;                      /**< Index for freqency degree                       */
@@ -107,7 +107,7 @@ void simple_test_nfsft()
 	nfsft_forget();
 }
 
-int main()
+int main(void)
 {
   system("clear");
   printf("1) computing a ndsft, a nfsft, an adjoint ndsft, and an adjoint nfsft\n\n");

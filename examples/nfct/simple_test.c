@@ -6,7 +6,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-void simple_test_nfct_1d()
+void simple_test_nfct_1d(void)
 {
   int j,k;
   nfct_plan p;
@@ -33,12 +33,12 @@ void simple_test_nfct_1d()
 
   /** direct trafo and show the result */
   ndct_trafo(&p);
-  nfft_vpr_double(p.f,p.M_total,"ndct, vector f"); 
+  nfft_vpr_double(p.f,p.M_total,"ndct, vector f");
 
   /** approx. trafo and show the result */
   nfct_trafo(&p);
   nfft_vpr_double(p.f,p.M_total,"nfct, vector f");
-  
+
   /** approx. adjoint and show the result */
   nfct_adjoint(&p);
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
@@ -51,7 +51,7 @@ void simple_test_nfct_1d()
   nfct_finalize(&p);
 }
 
-int main()
+int main(void)
 {
   system("clear");
   printf("computing one dimensional ndct, nfct and adjoint ndct, nfct\n\n");

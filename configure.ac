@@ -71,7 +71,7 @@ AC_SUBST([abs_srcdir])
 need_fpt="no"
 
 AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   HAVE_NFCT="#define HAVE_NFCT 1"
   AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
 else
@@ -81,7 +81,7 @@ fi
 AC_SUBST(HAVE_NFCT)
 
 AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[compile with nfst module (nonequispaced fast sine transform)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   HAVE_NFST="#define HAVE_NFST 1"
   AM_CONDITIONAL(HAVE_NFST, test "yes" = "yes" )
 else
@@ -91,7 +91,7 @@ fi
 AC_SUBST(HAVE_NFST)
 
 AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[compile with nfsft module (nonequispaced fast spherical Fourier transform; needs fpt module)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   need_fpt="yes"
   HAVE_NFSFT="#define HAVE_NFSFT 1"
   AM_CONDITIONAL(HAVE_NFSFT, test "yes" = "yes" )
@@ -102,7 +102,7 @@ fi
 AC_SUBST(HAVE_NFSFT)
 
 AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   HAVE_NNFFT="#define HAVE_NNFFT 1"
   AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "yes" )
 else
@@ -112,7 +112,7 @@ fi
 AC_SUBST(HAVE_NNFFT)
 
 AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[compile with nsfft module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   HAVE_NSFFT="#define HAVE_NSFFT 1"
   AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "yes" )
 else
@@ -122,7 +122,7 @@ fi
 AC_SUBST(HAVE_NSFFT)
 
 AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[compile with mri module (magnet resonance imaging)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   HAVE_MRI="#define HAVE_MRI 1"
   AM_CONDITIONAL(HAVE_MRI, test "yes" = "yes" )
 else
@@ -132,7 +132,7 @@ fi
 AC_SUBST(HAVE_MRI)
 
 AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[compile with fpt module (fast polynomial transform)])], ok=$enableval, ok=yes)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   have_fpt="yes"
   HAVE_FPT="#define HAVE_FPT 1"
   AM_CONDITIONAL(HAVE_FPT, test "yes" = "yes" )
@@ -143,31 +143,31 @@ else
 fi
 AC_SUBST(HAVE_FPT)
 
-if test "$need_fpt" = "yes" -a "$have_fpt" = "no"; then
+if test "x$need_fpt" = "xyes" -a "x$have_fpt" = "xno"; then
   AC_MSG_ERROR([You must enable the FPT module for this configuration (--enable-fpt)])
 fi
 
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   enable_debug="yes"
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
 AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
   [measure time during execution])], ok=$enableval, ok=no)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME,1,[Define to enable time measurements during execution.])
 fi
 
 AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
   [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
-if test "$ok" = "yes"; then
+if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW transforms.])
 fi
 
-AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function 
-  (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc, 
-  dirac)])], 
+AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
+  (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
+  dirac)])],
   window=$withval, window="kaiserbessel")
 
 
@@ -200,10 +200,10 @@ AC_PROG_CC_C99
 # Reset CC variable.
 CC="$ac_save_CC"
 
-if test $ac_cv_prog_cc_c99 = "-std=gnu99"; then
+if test "x$ac_cv_prog_cc_c99" = "x-std=gnu99"; then
   ac_cv_prog_cc_c99="-std=c99"
 fi
- 
+
 # Manually add option for C99 support to compiler flags.
 AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
   [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"])
@@ -220,7 +220,7 @@ AC_C_INLINE
 # Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
 
-if test $ac_cv_prog_cc_stdc = "no"; then
+if test "x$ac_cv_prog_cc_stdc" = "xno"; then
   AC_MSG_ERROR([Your compiler does not accept C99!])
 fi
 
@@ -240,15 +240,15 @@ AC_PROG_LN_S
 # Check for fftw3.
 NFFT_LIB_FFTW3
 
-if test "$nfft_lib_fftw3" = "no"; then
+if test "x$nfft_lib_fftw3" = "xno"; then
   AC_MSG_ERROR(
-    [The fftw3 library could not be found. You can download it from 
-     http://www.fftw.org. If you have installed fftw3, make sure that 
-     this configure script can find it. See ./configure --help for 
+    [The fftw3 library could not be found. You can download it from
+     http://www.fftw.org. If you have installed fftw3, make sure that
+     this configure script can find it. See ./configure --help for
      more information.])
 fi
 
-if test "$nfft_lib_fftw3_libtool" = "no"; then
+if test "x$nfft_lib_fftw3_libtool" = "xno"; then
   fftw3_libcmd="-lfftw3"
   fftw3_libs="$fftw3_libs"
 else
@@ -263,21 +263,21 @@ AC_SUBST(fftw3_libs)
 AX_PROG_MATLAB
 
 # Try to choose good compiler options.
-if test "$ac_test_CFLAGS" != "set"; then
+if test "x$ac_test_CFLAGS" != "xset"; then
   AX_CC_MAXOPT
 fi
 
 CPPFLAGS="$CPPFLAGS $fftw3_includes"
 
 # override CFLAGS selection when debugging
-if test "${enable_debug}" = "yes"; then
+if test "x${enable_debug}" = "xyes"; then
   CFLAGS="$ac_cv_prog_cc_c99 -g3"
   LDFLAGS="$LDFLAGS"
 fi
 
 # add gcc warnings, in debug/maintainer mode only
-if test "$enable_debug" = "yes" || test "$USE_MAINTAINER_MODE" = "yes"; then
-  if test $ac_cv_c_compiler_gnu = yes; then
+if test "x$enable_debug" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes"; then
+  if test "x$ac_cv_c_compiler_gnu" = "xyes"; then
     CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings -Wstrict-prototypes -Wredundant-decls -Wnested-externs" # -Wundef -Wconversion -Wmissing-prototypes -Wmissing-declarations
   fi
 fi
@@ -386,9 +386,10 @@ AC_OUTPUT(Makefile \
           applications/radon/Makefile \
           matlab/Makefile \
           matlab/nfsft/Makefile
+          matlab/nfsft/@f_hat/Makefile
 )
 
-if test $USE_MAINTAINER_MODE = yes; then
+if test "x$USE_MAINTAINER_MODE" = "xyes"; then
 AC_OUTPUT(tests/Makefile \
           VERSION
           doxygen/doxygen.Doxyfile
