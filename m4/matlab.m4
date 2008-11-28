@@ -73,7 +73,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         matlab_libext=".dylib";;
       *86_64*linux*) # Linux (x86, 64 bit)
         matlab_check_mexversion_c="yes"
-        matlab_dir_prefix="glna64"
+        matlab_dir_prefix="glnxa64"
         matlab_mexext=".mexa64"
         matlab_libext=".so";;
       *86*linux*) # Linux (x86, 32 bit)
