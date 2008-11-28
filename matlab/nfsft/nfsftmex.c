@@ -114,6 +114,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (first_call)
   {
+    mexEvalString("fft([1,2,3,4]);");
+
     install_mem_hooks();
 
     /* Initialize plan pointers with zeros. */

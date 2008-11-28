@@ -44,6 +44,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_src_dir="${matlab_dir}/extern/src"
     matlab_bin_dir="${matlab_dir}/bin"
     matlab_CPPFLAGS="-I${matlab_include_dir} -I${matlab_src_dir} -DMATLAB_MEX_FILE"
+    matlab_arch_LDFLAGS=""
 
     # Save environment
     saved_CPPFLAGS=$CPPFLAGS
@@ -61,16 +62,24 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     # host specific stuff
     case $host in
-      powerpc-*darwin*) # Mac (PowerPC)
+      *powerpc*darwin*) # Mac (PowerPC)
         matlab_check_mexversion_c="yes"
         matlab_dir_prefix="mac"
         matlab_mexext=".mexmac"
         matlab_libext=".dylib";;
-      i686-*darwin*) # Mac (Intel)
+      *86*darwin*) # Mac (Intel)
         matlab_check_mexversion_c="yes"
-        matlab_dir_prefix="maci"
-        matlab_mexext=".mexmaci"
-        matlab_libext=".dylib";;
+        if test -d "${matlab_bin_dir}/maci"; then
+          matlab_dir_prefix="maci"
+          matlab_mexext=".mexmaci"
+          matlab_libext=".dylib"
+        else
+          matlab_dir_prefix="maci64"
+          matlab_mexext=".mexmaci64"
+          matlab_libext=".dylib"
+          LDFLAGS="$LDFLAGS -Wl,-arch i386"
+          CFLAGS="$CFLAGS -Wc,-arch i386"
+        fi;;
       *86_64*linux*) # Linux (x86, 64 bit)
         matlab_check_mexversion_c="yes"
         matlab_dir_prefix="glnxa64"
@@ -112,6 +121,8 @@ AC_DEFUN([AX_PROG_MATLAB],
         fi
         matlab_mexext=".dll"
         matlab_libext=".a";;
+      *)
+        AC_MSG_ERROR([Could not determine the Matlab paths for your host system: ${host}. Matlab might be unsupported on this system.]);;
     esac
 
     matlab_host_bin_dir="${matlab_bin_dir}/${matlab_dir_prefix}"
