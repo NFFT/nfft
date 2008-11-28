@@ -127,11 +127,13 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_LIBADD="-lmx -lmex -lmat"
     matlab_LDFLAGS="-L${matlab_host_bin_dir}"
 
+    AC_SUBST([matlab_host_bin_dir])
     AC_SUBST([matlab_dir])
     AC_SUBST([matlab_CPPFLAGS])
     AC_SUBST([matlab_LDFLAGS])
     AC_SUBST([matlab_LIBADD])
     AC_SUBST([matlab_mexext])
+
     AM_CONDITIONAL(HAVE_MATLAB, test "xyes" = "xyes" )
 
     # Restore environment.

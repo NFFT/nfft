@@ -80,6 +80,8 @@ AC_DEFUN([NFFT_LIB_FFTW3],
     fi
   fi
 
+  AC_SUBST([fftw3_libdir])
+
   # Restore saved flags.
   CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
