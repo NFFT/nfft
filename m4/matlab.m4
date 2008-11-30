@@ -27,6 +27,7 @@
 AC_DEFUN([AX_PROG_MATLAB],
 [
   AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_REQUIRE([AX_COMPILER_VENDOR_APPLE])
 
   # option to enable mex file compilation
   AC_ARG_WITH(matlab,
@@ -66,9 +67,11 @@ AC_DEFUN([AX_PROG_MATLAB],
         matlab_check_mexversion_c="yes"
         matlab_dir_prefix="mac"
         matlab_mexext=".mexmac"
-        matlab_libext=".dylib";;
+        matlab_libext=".dylib"
+        if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
+          CFLAGS="$CFLAGS -arch ppc"
+        fi;;
       *86*darwin*) # Mac (Intel)
-        matlab_check_mexversion_c="yes"
         if test -d "${matlab_bin_dir}/maci"; then
           matlab_dir_prefix="maci"
           matlab_mexext=".mexmaci"
@@ -77,8 +80,10 @@ AC_DEFUN([AX_PROG_MATLAB],
           matlab_dir_prefix="maci64"
           matlab_mexext=".mexmaci64"
           matlab_libext=".dylib"
-          LDFLAGS="$LDFLAGS -Wl,-arch i386"
-          CFLAGS="$CFLAGS -Wc,-arch i386"
+        fi
+        matlab_check_mexversion_c="yes"
+        if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
+          CFLAGS="$CFLAGS -arch i386"
         fi;;
       *86_64*linux*) # Linux (x86, 64 bit)
         matlab_check_mexversion_c="yes"
