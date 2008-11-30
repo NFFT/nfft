@@ -101,7 +101,7 @@ AC_DEFUN([AX_CC_MAXOPT],
   fi
   ;;
 
-  gnu | apple)
+  gnu)
   # default optimization flags for gcc on all systems
   CFLAGS="-O3 -fomit-frame-pointer"
 
