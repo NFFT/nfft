@@ -114,6 +114,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (first_call)
   {
+    /* Force Matlab to load libfftw3. There is at least one version of Matlab
+     * which otherwise crashes upon invocation of this function. */
     mexEvalString("fft([1,2,3,4]);");
 
     install_mem_hooks();
