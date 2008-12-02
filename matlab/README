@@ -1,1 +1,3 @@
-This directory contains Matlab mex interface routines to the NFFT library. This code is experimental, incomplete, and mostly undocumented at the moment! Use at your own risk!
+This directory contains Matlab mex interface routines to the NFFT library.
+This code is experimental, incomplete, and mostly undocumented at the moment!
+Use at your own risk!
