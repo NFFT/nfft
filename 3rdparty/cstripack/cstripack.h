@@ -3,105 +3,105 @@
 
 /* #include <f2c.h> */
 
-long int addnod_(long int *nst, long int *k, double *x, double *y, double *z__, 
-  long int *list, long int *lptr, long int *lend, long int *lnew, long int *ier);
+int addnod_(int *nst, int *k, double *x, double *y, double *z__,
+  int *list, int *lptr, int *lend, int *lnew, int *ier);
 
 double areas_(double *v1, double *v2, double *v3);
 
-long int bdyadd_(long int *kk, long int *i1, long int *i2, long int *list, long int *lptr, 
-  long int *lend, long int *lnew);
+int bdyadd_(int *kk, int *i1, int *i2, int *list, int *lptr,
+  int *lend, int *lnew);
 
-long int bnodes_(long int *n, long int *list, long int *lptr, long int *lend, 
-  long int *nodes, long int *nb, long int *na, long int *nt);
+int bnodes_(int *n, int *list, int *lptr, int *lend,
+  int *nodes, int *nb, int *na, int *nt);
 
-long int circum_(double *v1, double *v2, double *v3, double *c__, long int *ier);
+int circum_(double *v1, double *v2, double *v3, double *c__, int *ier);
 
-long int covsph_(long int *kk, long int *n0, long int *list, long int *lptr, 
-  long int *lend, long int *lnew);
+int covsph_(int *kk, int *n0, int *list, int *lptr,
+  int *lend, int *lnew);
 
-long int crlist_(long int *n, long int *ncol, double *x, double *y, double *z__, 
-  long int *list, long int *lend, long int *lptr, long int *lnew, long int *ltri, 
-  long int *listc, long int *nb, double *xc, double *yc, double *zc, double *rc, 
-  long int *ier);
+int crlist_(int *n, int *ncol, double *x, double *y, double *z__,
+  int *list, int *lend, int *lptr, int *lnew, int *ltri,
+  int *listc, int *nb, double *xc, double *yc, double *zc, double *rc,
+  int *ier);
 
-long int delarc_(long int *n, long int *io1, long int *io2, long int * list, 
-  long int *lptr, long int *lend, long int *lnew, long int *ier);
+int delarc_(int *n, int *io1, int *io2, int * list,
+  int *lptr, int *lend, int *lnew, int *ier);
 
-long int delnb_(long int *n0, long int *nb, long int *n, long int *list, 
-  long int *lptr, long int *lend, long int *lnew, long int *lph);
+int delnb_(int *n0, int *nb, int *n, int *list,
+  int *lptr, int *lend, int *lnew, int *lph);
 
-long int delnod_(long int *k, long int *n, double *x, double *y, double *z__, long int *list, 
- long int *lptr, long int *lend, long int *lnew, long int *lwk, long int *iwk, 
- long int *ier);
+int delnod_(int *k, int *n, double *x, double *y, double *z__, int *list,
+ int *lptr, int *lend, int *lnew, int *lwk, int *iwk,
+ int *ier);
 
-long int edge_(long int *in1, long int *in2, double *x, double *y, double *z__, long int *lwk, 
-  long int *iwk, long int *list, long int *lptr, long int *lend, long int *ier);
+int edge_(int *in1, int *in2, double *x, double *y, double *z__, int *lwk,
+  int *iwk, int *list, int *lptr, int *lend, int *ier);
 
-long int getnp_(double *x, double *y, double *z__, long int *list, long int *lptr, 
-  long int *lend, long int *l, long int *npts, double *df, long int *ier);
+int getnp_(double *x, double *y, double *z__, int *list, int *lptr,
+  int *lend, int *l, int *npts, double *df, int *ier);
 
-long int insert_(long int *k, long int *lp, long int *list, long int *lptr, 
-  long int *lnew);
+int insert_(int *k, int *lp, int *list, int *lptr,
+  int *lnew);
 
-long int inside_(double *p, long int *lv, double *xv, double *yv, double *zv, long int *
-  nv, long int *listv, long int *ier);
+int inside_(double *p, int *lv, double *xv, double *yv, double *zv, int *
+  nv, int *listv, int *ier);
 
-long int long intadd_(long int *kk, long int *i1, long int *i2, long int *i3, long int *list, 
-  long int *lptr, long int *lend, long int *lnew);
+int intadd_(int *kk, int *i1, int *i2, int *i3, int *list,
+  int *lptr, int *lend, int *lnew);
 
-long int long intrsc_(double *p1, double *p2, double *cn, double *p, long int *ier);
+int intrsc_(double *p1, double *p2, double *cn, double *p, int *ier);
 
-long int jrand_(long int *n, long int *ix, long int *iy, long int *iz);
+int jrand_(int *n, int *ix, int *iy, int *iz);
 
-long int left_(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2, 
+int left_(double *x1, double *y1, double *z1, double *x2, double *y2, double *z2,
   double *x0, double *y0, double *z0);
 
-long int lstptr_(long int *lpl, long int *nb, long int *list, long int *lptr);
+int lstptr_(int *lpl, int *nb, int *list, int *lptr);
 
-long int nbcnt_(long int *lpl, long int *lptr);
+int nbcnt_(int *lpl, int *lptr);
 
-long int nearnd_(double *p, long int *ist, long int *n, double *x, double *y, 
-  double *z__, long int *list, long int *lptr, long int *lend, double *al);
+int nearnd_(double *p, int *ist, int *n, double *x, double *y,
+  double *z__, int *list, int *lptr, int *lend, double *al);
 
-long int optim_(double *x, double *y, double *z__, long int *na, long int *list, 
-  long int *lptr, long int *lend, long int *nit, long int *iwk, long int *ier);
+int optim_(double *x, double *y, double *z__, int *na, int *list,
+  int *lptr, int *lend, int *nit, int *iwk, int *ier);
 
-long int scoord_(double *px, double *py, double *pz, double *plat, double *plon, double *pnrm);
+int scoord_(double *px, double *py, double *pz, double *plat, double *plon, double *pnrm);
 
 double store_(double *x);
 
-long int swap_(long int *in1, long int *in2, long int *io1, long int *	io2, 
-  long int *list, long int *lptr, long int *lend, long int *lp21);
+int swap_(int *in1, int *in2, int *io1, int *	io2,
+  int *list, int *lptr, int *lend, int *lp21);
 
-long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4, double *x, 
+int swptst_(int *n1, int *n2, int *n3, int *n4, double *x,
   double *y, double *z__);
 
-long int trans_(long int *n, double *rlat, double *rlon, double *x, double *y, double *z__);
+int trans_(int *n, double *rlat, double *rlon, double *x, double *y, double *z__);
 
-long int trfind_(long int *nst, double *p, long int *n, double *x, double *y, double *z__, 
-  long int *list, long int *lptr, long int *lend, double *b1, double *b2, 
-  double *b3, long int *i1, long int *i2, long int *i3);
+int trfind_(int *nst, double *p, int *n, double *x, double *y, double *z__,
+  int *list, int *lptr, int *lend, double *b1, double *b2,
+  double *b3, int *i1, int *i2, int *i3);
 
-long int trlist_(long int *n, long int *list, long int *lptr, long int *lend, 
-  long int *nrow, long int *nt, long int *ltri, long int *ier);
+int trlist_(int *n, int *list, int *lptr, int *lend,
+  int *nrow, int *nt, int *ltri, int *ier);
 
-long int trlprt_(long int *n, double *x, double *y, double *z__, long int *iflag, 
-  long int *nrow, long int *nt, long int *ltri, long int *lout);
+int trlprt_(int *n, double *x, double *y, double *z__, int *iflag,
+  int *nrow, int *nt, int *ltri, int *lout);
 
-long int trmesh_(long int *n, double *x, double *y, double *z__, long int	*list, 
-  long int *lptr, long int *lend, long int *lnew, long int *near__, long int *next, 
-  double *dist, long int *ier);
+int trmesh_(int *n, double *x, double *y, double *z__, int	*list,
+  int *lptr, int *lend, int *lnew, int *near__, int *next,
+  double *dist, int *ier);
 
-long int trplot_(long int *lun, double *pltsiz, double *elat, double *elon, double *a, 
-  long int *n, double *x, double *y, double *z__, long int *list, long int *lptr, 
-  long int *lend, char *title, long int *numbr, long int *ier, short title_len);
+int trplot_(int *lun, double *pltsiz, double *elat, double *elon, double *a,
+  int *n, double *x, double *y, double *z__, int *list, int *lptr,
+  int *lend, char *title, int *numbr, int *ier, short title_len);
 
-long int trprnt_(long int *n, double *x, double *y, double *z__, long int *iflag, 
-  long int *list, long int *lptr, long int *lend, long int *lout);
+int trprnt_(int *n, double *x, double *y, double *z__, int *iflag,
+  int *list, int *lptr, int *lend, int *lout);
 
-long int vrplot_(long int *lun, double *pltsiz, double *elat, double *elon, double *a, 
-  long int *n, double *x, double *y, double *z__, long int *nt, long int *listc, 
-  long int *lptr, long int *lend, double *xc, double *yc, double *zc, char *title, 
-  long int *numbr, long int *ier, short title_len);
+int vrplot_(int *lun, double *pltsiz, double *elat, double *elon, double *a,
+  int *n, double *x, double *y, double *z__, int *nt, int *listc,
+  int *lptr, int *lend, double *xc, double *yc, double *zc, char *title,
+  int *numbr, int *ier, short title_len);
 
 #endif

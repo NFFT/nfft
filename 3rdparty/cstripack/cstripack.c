@@ -11,6 +11,7 @@
 */
 
 #include <math.h>
+#include "cstripack.h"
 
 /* Declarations from f2c.h */
 #define abs(x) ((x) >= 0 ? (x) : -(x))
@@ -23,32 +24,18 @@ static struct {
     double y;
 } stcom;
 
-/* Subroutine */ int addnod_(long int *nst, long int *k, double *x, 
-	double *y, double *z__, long int *list, long int *lptr, long int 
-	*lend, long int *lnew, long int *ier)
+/* Subroutine */ int addnod_(int *nst, int *k, double *x,
+	double *y, double *z__, int *list, int *lptr, int
+	*lend, int *lnew, int *ier)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int l;
+    static int l;
     static double p[3], b1, b2, b3;
-    static long int i1, i2, i3, kk, lp, in1, io1, io2, km1, lpf, ist, lpo1;
-    extern /* Subroutine */ int swap_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *, long int *);
-    static long int lpo1s;
-    extern /* Subroutine */ int bdyadd_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *), intadd_(long int *, 
-	    long int *, long int *, long int *, long int *, long int *, long int *, 
-	    long int *), trfind_(long int *, double *, long int *, 
-	    double *, double *, double *, long int *, long int *, 
-	    long int *, double *, double *, double *, long int *, 
-	    long int *, long int *), covsph_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-    extern long int swptst_(long int *, long int *, long int *, long int *, 
-	    double *, double *, double *);
-
+    static int i1, i2, i3, kk, lp, in1, io1, io2, km1, lpf, ist, lpo1;
+    static int lpo1s;
 
 /* *********************************************************** */
 
@@ -282,8 +269,8 @@ double areas_(double *v1, double *v2, double *v3)
     double ret_val;
 
     /* Local variables */
-    static long int i__;
-    static double a1, a2, a3, s12, s31, s23, u12[3], u23[3], u31[3], ca1, 
+    static int i__;
+    static double a1, a2, a3, s12, s31, s23, u12[3], u23[3], u31[3], ca1,
 	    ca2, ca3, dv1[3], dv2[3], dv3[3];
 
 
@@ -432,12 +419,10 @@ double areas_(double *v1, double *v2, double *v3)
     return ret_val;
 } /* areas_ */
 
-/* Subroutine */ int bdyadd_(long int *kk, long int *i1, long int *i2, long int *
-	list, long int *lptr, long int *lend, long int *lnew)
+/* Subroutine */ int bdyadd_(int *kk, int *i1, int *i2, int *
+	list, int *lptr, int *lend, int *lnew)
 {
-    static long int k, n1, n2, lp, lsav, nsav, next;
-    extern /* Subroutine */ int insert_(long int *, long int *, long int *, 
-	    long int *, long int *);
+    static int k, n1, n2, lp, lsav, nsav, next;
 
 
 /* *********************************************************** */
@@ -566,14 +551,14 @@ L4:
     return 0;
 } /* bdyadd_ */
 
-/* Subroutine */ int bnodes_(long int *n, long int *list, long int *lptr, 
-	long int *lend, long int *nodes, long int *nb, long int *na, long int *nt)
+/* Subroutine */ int bnodes_(int *n, int *list, int *lptr,
+	int *lend, int *nodes, int *nb, int *na, int *nt)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int k, n0, lp, nn, nst;
+    static int k, n0, lp, nn, nst;
 
 
 /* *********************************************************** */
@@ -605,7 +590,7 @@ L4:
 
 /* The above parameters are not altered by this routine. */
 
-/*       NODES = long int array of length at least NB */
+/*       NODES = int array of length at least NB */
 /*               (NB .LE. N). */
 
 /* On output: */
@@ -657,7 +642,7 @@ L4:
 
     *nb = 0;
     *na = (nn - 2) * 3;
-    *nt = nn - 2 << 1;
+    *nt = (nn - 2) << 1;
     return 0;
 
 /* NST is the first boundary node encountered.  Initialize */
@@ -690,11 +675,11 @@ L4:
     return 0;
 } /* bnodes_ */
 
-/* Subroutine */ int circum_(double *v1, double *v2, double *v3, 
-	double *c__, long int *ier)
+/* Subroutine */ int circum_(double *v1, double *v2, double *v3,
+	double *c__, int *ier)
 {
     /* Local variables */
-    static long int i__;
+    static int i__;
     static double e1[3], e2[3], cu[3], cnorm;
 
 
@@ -793,13 +778,10 @@ L4:
     return 0;
 } /* circum_ */
 
-/* Subroutine */ int covsph_(long int *kk, long int *n0, long int *list, long int 
-	*lptr, long int *lend, long int *lnew)
+/* Subroutine */ int covsph_(int *kk, int *n0, int *list, int
+	*lptr, int *lend, int *lnew)
 {
-    static long int k, lp, nst, lsav, next;
-    extern /* Subroutine */ int insert_(long int *, long int *, long int *, 
-	    long int *, long int *);
-
+    static int k, lp, nst, lsav, next;
 
 /* *********************************************************** */
 
@@ -897,29 +879,23 @@ L2:
     return 0;
 } /* covsph_ */
 
-/* Subroutine */ int crlist_(long int *n, long int *ncol, double *x, 
-	double *y, double *z__, long int *list, long int *lend, long int 
-	*lptr, long int *lnew, long int *ltri, long int *listc, long int *nb, 
-	double *xc, double *yc, double *zc, double *rc, 
-	long int *ier)
+/* Subroutine */ int crlist_(int *n, int *ncol, double *x,
+	double *y, double *z__, int *list, int *lend, int
+	*lptr, int *lnew, int *ltri, int *listc, int *nb,
+	double *xc, double *yc, double *zc, double *rc,
+	int *ier)
 {
     /* System generated locals */
-    long int i__1, i__2;
+    int i__1, i__2;
 
     /* Local variables */
     static double c__[3], t;
-    static long int i1, i2, i3, i4, n0, n1, n2, n3, n4;
+    static int i1, i2, i3, i4, n0, n1, n2, n3, n4;
     static double v1[3], v2[3], v3[3];
-    static long int lp, kt, nn, nt, nm2, kt1, kt2, kt11, kt12, kt21, kt22, lpl,
+    static int lp, kt, nn, nt, nm2, kt1, kt2, kt11, kt12, kt21, kt22, lpl,
 	     lpn;
-    static long int swp;
-    static long int ierr;
-    extern /* Subroutine */ int circum_(double *, double *, 
-	    double *, double *, long int *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-    extern long int swptst_(long int *, long int *, long int *, long int *, 
-	    double *, double *, double *);
-
+    static int swp;
+    static int ierr;
 
 /* *********************************************************** */
 
@@ -978,7 +954,7 @@ L2:
 /*       X,Y,Z = Arrays of length N containing the Cartesian */
 /*               coordinates of the nodes (unit vectors). */
 
-/*       LIST = long int array containing the set of adjacency */
+/*       LIST = int array containing the set of adjacency */
 /*              lists.  Refer to Subroutine TRMESH. */
 
 /*       LEND = Set of pointers to ends of adjacency lists. */
@@ -992,10 +968,10 @@ L2:
 /*       LNEW = Pointer to the first empty location in LIST */
 /*              and LPTR (list length plus one). */
 
-/*       LTRI = long int work space array dimensioned 6 by */
+/*       LTRI = int work space array dimensioned 6 by */
 /*              NCOL, or unused dummy parameter if NB = 0. */
 
-/*       LISTC = long int array of length at least 3*NT, where */
+/*       LISTC = int array of length at least 3*NT, where */
 /*               NT = 2*N-4 is the number of triangles in the */
 /*               triangulation (after extending it to cover */
 /*               the entire surface if necessary). */
@@ -1524,18 +1500,14 @@ L23:
     return 0;
 } /* crlist_ */
 
-/* Subroutine */ int delarc_(long int *n, long int *io1, long int *io2, long int *
-	list, long int *lptr, long int *lend, long int *lnew, long int *ier)
+/* Subroutine */ int delarc_(int *n, int *io1, int *io2, int *
+	list, int *lptr, int *lend, int *lnew, int *ier)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int n1, n2, n3, lp, lph, lpl;
-    extern /* Subroutine */ int delnb_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *, long int *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-
+    static int n1, n2, n3, lp, lph, lpl;
 
 /* *********************************************************** */
 
@@ -1679,14 +1651,14 @@ L23:
     return 0;
 } /* delarc_ */
 
-/* Subroutine */ int delnb_(long int *n0, long int *nb, long int *n, long int *
-	list, long int *lptr, long int *lend, long int *lnew, long int *lph)
+/* Subroutine */ int delnb_(int *n0, int *nb, int *n, int *
+	list, int *lptr, int *lend, int *lnew, int *lph)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int i__, lp, nn, lpb, lpl, lpp, lnw;
+    static int i__, lp, nn, lpb, lpl, lpp, lnw;
 
 
 /* *********************************************************** */
@@ -1852,34 +1824,22 @@ L5:
     return 0;
 } /* delnb_ */
 
-/* Subroutine */ int delnod_(long int *k, long int *n, double *x, 
-	double *y, double *z__, long int *list, long int *lptr, long int 
-	*lend, long int *lnew, long int *lwk, long int *iwk, long int *ier)
+/* Subroutine */ int delnod_(int *k, int *n, double *x,
+	double *y, double *z__, int *list, int *lptr, int
+	*lend, int *lnew, int *lwk, int *iwk, int *ier)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int i__, j, n1, n2;
-    static double x1, x2, y1, y2, z1, z2;
-    static long int nl, lp, nn, nr;
+    static int i__, j, n1, n2;
+    static double x1, x2, y11, y2, z1, z2;
+    static int nl, lp, nn, nr;
     static double xl, yl, zl, xr, yr, zr;
-    static long int nnb, lp21, lpf, lph, lpl, lpn, iwl, nit, lnw, lpl2;
-    extern long int left_(double *, double *, double *, double 
-	    *, double *, double *, double *, double *, 
-	    double *);
-    static long int bdry;
-    static long int ierr, lwkl;
-    extern /* Subroutine */ int swap_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *, long int *), delnb_(
-	    long int *, long int *, long int *, long int *, long int *, long int *, 
-	    long int *, long int *);
-    extern long int nbcnt_(long int *, long int *);
-    extern /* Subroutine */ int optim_(double *, double *, double 
-	    *, long int *, long int *, long int *, long int *, long int *, long int 
-	    *, long int *);
-    static long int nfrst;
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
+    static int nnb, lp21, lpf, lph, lpl, lpn, iwl, nit, lnw, lpl2;
+    static int bdry;
+    static int ierr, lwkl;
+    static int nfrst;
 
 /* *********************************************************** */
 
@@ -1923,7 +1883,7 @@ L5:
 /*             neighbors of node K, including an extra */
 /*             pseudo-node if K is a boundary node. */
 
-/*       IWK = long int work array dimensioned 2 by LWK (or */
+/*       IWK = int work array dimensioned 2 by LWK (or */
 /*             array of length .GE. 2*LWK). */
 
 /* On output: */
@@ -2063,7 +2023,7 @@ L5:
 /*   swaps have been applied to arcs incident on N1. */
 
     x1 = x[n1];
-    y1 = y[n1];
+    y11 = y[n1];
     z1 = z__[n1];
     nfrst = list[lpf];
     nr = nfrst;
@@ -2094,7 +2054,7 @@ L1:
 /*     a boundary node, then N2 LEFT NL->NR. */
 
     lpl2 = lend[n2];
-    if (! ((bdry || left_(&xr, &yr, &zr, &xl, &yl, &zl, &x1, &y1, &z1)) && (
+    if (! ((bdry || left_(&xr, &yr, &zr, &xl, &yl, &zl, &x1, &y11, &z1)) && (
 	    list[lpl2] < 0 || left_(&xl, &yl, &zl, &xr, &yr, &zr, &x2, &y2, &
 	    z2)))) {
 
@@ -2388,31 +2348,23 @@ L26:
     return 0;
 } /* delnod_ */
 
-/* Subroutine */ int edge_(long int *in1, long int *in2, double *x, 
-	double *y, double *z__, long int *lwk, long int *iwk, long int *
-	list, long int *lptr, long int *lend, long int *ier)
+/* Subroutine */ int edge_(int *in1, int *in2, double *x,
+	double *y, double *z__, int *lwk, int *iwk, int *
+	list, int *lptr, int *lend, int *ier)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int i__, n0, n1, n2;
-    static double x0, x1, x2, y0, y1, y2, z0, z1, z2;
-    static long int nl, lp, nr;
+    static int i__, n0, n1, n2;
+    static double x0, x1, x2, y00, y11, y2, z0, z1, z2;
+    static int nl, lp, nr;
     static double dp12;
-    static long int lp21, iwc, iwf, lft, lpl, iwl, nit;
+    static int lp21, iwc, iwf, lft, lpl, iwl, nit;
     static double dp1l, dp2l, dp1r, dp2r;
-    extern long int left_(double *, double *, double *, double 
-	    *, double *, double *, double *, double *, 
-	    double *);
-    static long int ierr;
-    extern /* Subroutine */ int swap_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *, long int *);
-    static long int next, iwcp1, n1lst, iwend;
-    extern /* Subroutine */ int optim_(double *, double *, double 
-	    *, long int *, long int *, long int *, long int *, long int *, long int 
-	    *, long int *);
-    static long int n1frst;
+    static int ierr;
+    static int next, iwcp1, n1lst, iwend;
+    static int n1frst;
 
 /* *********************************************************** */
 
@@ -2456,7 +2408,7 @@ L26:
 /*             be at least NI -- the number of arcs that */
 /*             intersect IN1-IN2.  (NI is bounded by N-3.) */
 
-/*       IWK = long int work array of length at least 2*LWK. */
+/*       IWK = int work array of length at least 2*LWK. */
 
 /*       LIST,LPTR,LEND = Data structure defining the trian- */
 /*                        gulation.  Refer to Subroutine */
@@ -2590,7 +2542,7 @@ L1:
 
 L2:
     x1 = x[n1];
-    y1 = y[n1];
+    y11 = y[n1];
     z1 = z__[n1];
     x2 = x[n2];
     y2 = y[n2];
@@ -2618,7 +2570,7 @@ L2:
 /*     for NR (NL LEFT N2->N1). */
 
 L3:
-    if (left_(&x2, &y2, &z2, &x1, &y1, &z1, &x[nl], &y[nl], &z__[nl])) {
+    if (left_(&x2, &y2, &z2, &x1, &y11, &z1, &x[nl], &y[nl], &z__[nl])) {
 	goto L4;
     }
     lp = lptr[lp];
@@ -2638,18 +2590,18 @@ L4:
     nr = nl;
     lp = lptr[lp];
     nl = (i__1 = list[lp], abs(i__1));
-    if (left_(&x1, &y1, &z1, &x2, &y2, &z2, &x[nl], &y[nl], &z__[nl])) {
+    if (left_(&x1, &y11, &z1, &x2, &y2, &z2, &x[nl], &y[nl], &z__[nl])) {
 
 /*   NL LEFT N1->N2 and NR LEFT N2->N1.  The Forward tests */
 /*     are employed to avoid an error associated with */
 /*     collinear nodes. */
 
-	dp12 = x1 * x2 + y1 * y2 + z1 * z2;
-	dp1l = x1 * x[nl] + y1 * y[nl] + z1 * z__[nl];
+	dp12 = x1 * x2 + y11 * y2 + z1 * z2;
+	dp1l = x1 * x[nl] + y11 * y[nl] + z1 * z__[nl];
 	dp2l = x2 * x[nl] + y2 * y[nl] + z2 * z__[nl];
-	dp1r = x1 * x[nr] + y1 * y[nr] + z1 * z__[nr];
+	dp1r = x1 * x[nr] + y11 * y[nr] + z1 * z__[nr];
 	dp2r = x2 * x[nr] + y2 * y[nr] + z2 * z__[nr];
-	if ((dp2l - dp12 * dp1l >= 0. || dp2r - dp12 * dp1r >= 0.) && (dp1l - 
+	if ((dp2l - dp12 * dp1l >= 0. || dp2r - dp12 * dp1r >= 0.) && (dp1l -
 		dp12 * dp2l >= 0. || dp1r - dp12 * dp2r >= 0.)) {
 	    goto L6;
 	}
@@ -2658,7 +2610,7 @@ L4:
 /*     another candidate for the first arc if NL lies on */
 /*     the line N1-N2. */
 
-	if (! left_(&x2, &y2, &z2, &x1, &y1, &z1, &x[nl], &y[nl], &z__[nl])) {
+	if (! left_(&x2, &y2, &z2, &x1, &y11, &z1, &x[nl], &y[nl], &z__[nl])) {
 	    goto L5;
 	}
     }
@@ -2731,7 +2683,7 @@ L8:
 
 /*   Set NL or NR to NEXT. */
 
-    if (left_(&x1, &y1, &z1, &x2, &y2, &z2, &x[next], &y[next], &z__[next])) {
+    if (left_(&x1, &y11, &z1, &x2, &y2, &z2, &x[next], &y[next], &z__[next])) {
 	nl = next;
     } else {
 	nr = next;
@@ -2762,7 +2714,7 @@ L10:
     lft = 0;
     n0 = n1;
     x0 = x1;
-    y0 = y1;
+    y00 = y11;
     z0 = z1;
     nl = iwk[(iwf << 1) + 1];
     nr = iwk[(iwf << 1) + 2];
@@ -2785,14 +2737,14 @@ L11:
 /*   NEXT RIGHT N1->N2 and IWC .LT. IWL.  Test for a possible */
 /*     swap. */
 
-    if (! left_(&x0, &y0, &z0, &x[nr], &y[nr], &z__[nr], &x[next], &y[next], &
+    if (! left_(&x0, &y00, &z0, &x[nr], &y[nr], &z__[nr], &x[next], &y[next], &
 	    z__[next])) {
 	goto L14;
     }
     if (lft >= 0) {
 	goto L12;
     }
-    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y0, &z0, &x[next], &y[next], &
+    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y00, &z0, &x[next], &y[next], &
 	    z__[next])) {
 	goto L14;
     }
@@ -2812,8 +2764,8 @@ L12:
     swap_(&next, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__1 = iwl;
     for (i__ = iwcp1; i__ <= i__1; ++i__) {
-	iwk[(i__ - 1 << 1) + 1] = iwk[(i__ << 1) + 1];
-	iwk[(i__ - 1 << 1) + 2] = iwk[(i__ << 1) + 2];
+	iwk[((i__ - 1) << 1) + 1] = iwk[(i__ << 1) + 1];
+	iwk[((i__ - 1) << 1) + 2] = iwk[(i__ << 1) + 2];
 /* L13: */
     }
     iwk[(iwl << 1) + 1] = n0;
@@ -2827,7 +2779,7 @@ L12:
 L14:
     n0 = nr;
     x0 = x[n0];
-    y0 = y[n0];
+    y00 = y[n0];
     z0 = z__[n0];
     lft = 1;
 
@@ -2842,14 +2794,14 @@ L15:
 /*     Test for a possible swap. */
 
 L16:
-    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y0, &z0, &x[next], &y[next], &
+    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y00, &z0, &x[next], &y[next], &
 	    z__[next])) {
 	goto L19;
     }
     if (lft <= 0) {
 	goto L17;
     }
-    if (! left_(&x0, &y0, &z0, &x[nr], &y[nr], &z__[nr], &x[next], &y[next], &
+    if (! left_(&x0, &y00, &z0, &x[nr], &y[nr], &z__[nr], &x[next], &y[next], &
 	    z__[next])) {
 	goto L19;
     }
@@ -2869,8 +2821,8 @@ L17:
     swap_(&next, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__1 = iwf;
     for (i__ = iwc - 1; i__ >= i__1; --i__) {
-	iwk[(i__ + 1 << 1) + 1] = iwk[(i__ << 1) + 1];
-	iwk[(i__ + 1 << 1) + 2] = iwk[(i__ << 1) + 2];
+	iwk[((i__ + 1) << 1) + 1] = iwk[(i__ << 1) + 1];
+	iwk[((i__ + 1) << 1) + 2] = iwk[(i__ << 1) + 2];
 /* L18: */
     }
     iwk[(iwf << 1) + 1] = n0;
@@ -2883,7 +2835,7 @@ L17:
 L19:
     n0 = nl;
     x0 = x[n0];
-    y0 = y[n0];
+    y00 = y[n0];
     z0 = z__[n0];
     lft = -1;
 
@@ -2906,7 +2858,7 @@ L21:
 
 /*   N0 RIGHT N1->N2.  Test for a possible swap. */
 
-    if (! left_(&x0, &y0, &z0, &x[nr], &y[nr], &z__[nr], &x2, &y2, &z2)) {
+    if (! left_(&x0, &y00, &z0, &x[nr], &y[nr], &z__[nr], &x2, &y2, &z2)) {
 	goto L10;
     }
 
@@ -2922,7 +2874,7 @@ L21:
 /*   N0 LEFT N1->N2.  Test for a possible swap. */
 
 L22:
-    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y0, &z0, &x2, &y2, &z2)) {
+    if (! left_(&x[nl], &y[nl], &z__[nl], &x0, &y00, &z0, &x2, &y2, &z2)) {
 	goto L10;
     }
 
@@ -2932,8 +2884,8 @@ L22:
     swap_(&n2, &n0, &nl, &nr, &list[1], &lptr[1], &lend[1], &lp21);
     i__ = iwl;
 L23:
-    iwk[(i__ << 1) + 1] = iwk[(i__ - 1 << 1) + 1];
-    iwk[(i__ << 1) + 2] = iwk[(i__ - 1 << 1) + 2];
+    iwk[(i__ << 1) + 1] = iwk[((i__ - 1) << 1) + 1];
+    iwk[(i__ << 1) + 2] = iwk[((i__ - 1) << 1) + 2];
     --i__;
     if (i__ > iwf) {
 	goto L23;
@@ -2958,7 +2910,7 @@ L24:
 
 /*   Optimize the set of new arcs to the left of IN1->IN2. */
 
-	nit = iwc - 1 << 2;
+	nit = (iwc - 1) << 2;
 	i__1 = iwc - 1;
 	optim_(&x[1], &y[1], &z__[1], &i__1, &list[1], &lptr[1], &lend[1], &
 		nit, &iwk[3], &ierr);
@@ -2973,10 +2925,10 @@ L24:
 
 /*   Optimize the set of new arcs to the right of IN1->IN2. */
 
-	nit = iwend - iwc << 2;
+	nit = (iwend - iwc) << 2;
 	i__1 = iwend - iwc;
 	optim_(&x[1], &y[1], &z__[1], &i__1, &list[1], &lptr[1], &lend[1], &
-		nit, &iwk[(iwc + 1 << 1) + 1], &ierr);
+		nit, &iwk[((iwc + 1) << 1) + 1], &ierr);
 	if (ierr != 0 && ierr != 1) {
 	    goto L34;
 	}
@@ -3030,19 +2982,19 @@ L35:
     return 0;
 } /* edge_ */
 
-/* Subroutine */ int getnp_(double *x, double *y, double *z__, 
-	long int *list, long int *lptr, long int *lend, long int *l, long int *
-	npts, double *df, long int *ier)
+/* Subroutine */ int getnp_(double *x, double *y, double *z__,
+	int *list, int *lptr, int *lend, int *l, int *
+	npts, double *df, int *ier)
 {
     /* System generated locals */
-    long int i__1, i__2;
+    int i__1, i__2;
 
     /* Local variables */
-    static long int i__, n1;
-    static double x1, y1, z1;
-    static long int nb, ni, lp, np, lm1;
+    static int i__, n1;
+    static double x1, y11, z1;
+    static int nb, ni, lp, np, lm1;
     static double dnb, dnp;
-    static long int lpl;
+    static int lpl;
 
 
 /* *********************************************************** */
@@ -3141,7 +3093,7 @@ L35:
 
     n1 = npts[1];
     x1 = x[n1];
-    y1 = y[n1];
+    y11 = y[n1];
     z1 = z__[n1];
     i__1 = lm1;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -3175,7 +3127,7 @@ L2:
 /* NB is an unmarked neighbor of NI.  Replace NP if NB is */
 /*   closer to N1. */
 
-	dnb = -(x[nb] * x1 + y[nb] * y1 + z__[nb] * z1);
+	dnb = -(x[nb] * x1 + y[nb] * y11 + z__[nb] * z1);
 	if (dnb >= dnp) {
 	    goto L3;
 	}
@@ -3208,10 +3160,10 @@ L6:
     return 0;
 } /* getnp_ */
 
-/* Subroutine */ int insert_(long int *k, long int *lp, long int *list, long int *
-	lptr, long int *lnew)
+/* Subroutine */ int insert_(int *k, int *lp, int *list, int *
+	lptr, int *lnew)
 {
-    static long int lsav;
+    static int lsav;
 
 
 /* *********************************************************** */
@@ -3267,32 +3219,30 @@ L6:
     return 0;
 } /* insert_ */
 
-long int inside_(double *p, long int *lv, double *xv, double *yv, 
-	double *zv, long int *nv, long int *listv, long int *ier)
+int inside_(double *p, int *lv, double *xv, double *yv,
+	double *zv, int *nv, int *listv, int *ier)
 {
     /* Initialized data */
 
     static double eps = .001;
 
     /* System generated locals */
-    long int i__1;
-    long int ret_val;
+    int i__1;
+    int ret_val = 0;
 
     /* Local variables */
     static double b[3], d__;
-    static long int k, n;
+    static int k, n;
     static double q[3];
-    static long int i1, i2, k0;
+    static int i1, i2, k0;
     static double v1[3], v2[3], cn[3], bp, bq;
-    static long int ni;
+    static int ni;
     static double pn[3], qn[3], vn[3];
-    static long int imx;
-    static long int lft1, lft2, even;
-    static long int ierr;
-    static long int pinr, qinr;
+    static int imx;
+    static int lft1, lft2, even;
+    static int ierr;
+    static int pinr, qinr;
     static double qnrm, vnrm;
-    extern /* Subroutine */ int intrsc_(double *, double *, 
-	    double *, double *, long int *);
 
 
 /* *********************************************************** */
@@ -3560,7 +3510,7 @@ L1:
 /*     B Forward Q->P and B Forward P->Q       iff */
 /*     <B,QN> > 0 and <B,PN> > 0. */
 
-	if (b[0] * qn[0] + b[1] * qn[1] + b[2] * qn[2] > 0. && b[0] * pn[0] + 
+	if (b[0] * qn[0] + b[1] * qn[1] + b[2] * qn[2] > 0. && b[0] * pn[0] +
 		b[1] * pn[1] + b[2] * pn[2] > 0.) {
 
 /*   Update EVEN, BQ, QINR, BP, and PINR. */
@@ -3625,14 +3575,10 @@ L14:
     return ret_val;
 } /* inside_ */
 
-/* Subroutine */ int intadd_(long int *kk, long int *i1, long int *i2, long int *
-	i3, long int *list, long int *lptr, long int *lend, long int *lnew)
+/* Subroutine */ int intadd_(int *kk, int *i1, int *i2, int *
+	i3, int *list, int *lptr, int *lend, int *lnew)
 {
-    static long int k, n1, n2, n3, lp;
-    extern /* Subroutine */ int insert_(long int *, long int *, long int *, 
-	    long int *, long int *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-
+    static int k, n1, n2, n3, lp;
 
 /* *********************************************************** */
 
@@ -3724,11 +3670,11 @@ L14:
     return 0;
 } /* intadd_ */
 
-/* Subroutine */ int intrsc_(double *p1, double *p2, double *cn, 
-	double *p, long int *ier)
+/* Subroutine */ int intrsc_(double *p1, double *p2, double *cn,
+	double *p, int *ier)
 {
     /* Local variables */
-    static long int i__;
+    static int i__;
     static double t, d1, d2, pp[3], ppn;
 
 
@@ -3841,10 +3787,10 @@ L14:
     return 0;
 } /* intrsc_ */
 
-long int jrand_(long int *n, long int *ix, long int *iy, long int *iz)
+int jrand_(int *n, int *ix, int *iy, int *iz)
 {
     /* System generated locals */
-    long int ret_val;
+    int ret_val;
 
     /* Local variables */
     static double u, x;
@@ -3860,7 +3806,7 @@ long int jrand_(long int *n, long int *ix, long int *iy, long int *iz)
 /*                                                   07/28/98 */
 
 /*   This function returns a uniformly distributed pseudo- */
-/* random long int in the range 1 to N. */
+/* random int in the range 1 to N. */
 
 
 /* On input: */
@@ -3869,7 +3815,7 @@ long int jrand_(long int *n, long int *ix, long int *iy, long int *iz)
 
 /* N is not altered by this function. */
 
-/*       IX,IY,IZ = long int seeds initialized to values in */
+/*       IX,IY,IZ = int seeds initialized to values in */
 /*                  the range 1 to 30,000 before the first */
 /*                  call to JRAND, and not altered between */
 /*                  subsequent calls (unless a sequence of */
@@ -3878,9 +3824,9 @@ long int jrand_(long int *n, long int *ix, long int *iy, long int *iz)
 
 /* On output: */
 
-/*       IX,IY,IZ = Updated long int seeds. */
+/*       IX,IY,IZ = Updated int seeds. */
 
-/*       JRAND = Random long int in the range 1 to N. */
+/*       JRAND = Random int in the range 1 to N. */
 
 /* Reference:  B. A. Wichmann and I. D. Hill, "An Efficient */
 /*             and Portable Pseudo-random Number Generator", */
@@ -3906,17 +3852,17 @@ long int jrand_(long int *n, long int *ix, long int *iy, long int *iz)
     *iz = *iz * 170 % 30323;
     x = (double) (*ix) / 30269. + (double) (*iy) / 30307. + (
 	    double) (*iz) / 30323.;
-    u = x - (long int) x;
-    ret_val = (long int) ((double) (*n) * u + 1.);
+    u = x - (int) x;
+    ret_val = (int) ((double) (*n) * u + 1.);
     return ret_val;
 } /* jrand_ */
 
-long int left_(double *x1, double *y1, double *z1, double *x2, 
-	double *y2, double *z2, double *x0, double *y0, 
+int left_(double *x1, double *y11, double *z1, double *x2,
+	double *y2, double *z2, double *x0, double *y00,
 	double *z0)
 {
     /* System generated locals */
-    long int ret_val;
+    int ret_val;
 
 
 /* *********************************************************** */
@@ -3955,18 +3901,18 @@ long int left_(double *x1, double *y1, double *z1, double *x2,
 
 /* LEFT = TRUE iff <N0,N1 X N2> = det(N0,N1,N2) .GE. 0. */
 
-    ret_val = *x0 * (*y1 * *z2 - *y2 * *z1) - *y0 * (*x1 * *z2 - *x2 * *z1) + 
-	    *z0 * (*x1 * *y2 - *x2 * *y1) >= 0.;
+    ret_val = *x0 * (*y11 * *z2 - *y2 * *z1) - *y00 * (*x1 * *z2 - *x2 * *z1) +
+	    *z0 * (*x1 * *y2 - *x2 * *y11) >= 0.;
     return ret_val;
 } /* left_ */
 
-long int lstptr_(long int *lpl, long int *nb, long int *list, long int *lptr)
+int lstptr_(int *lpl, int *nb, int *list, int *lptr)
 {
     /* System generated locals */
-    long int ret_val;
+    int ret_val;
 
     /* Local variables */
-    static long int nd, lp;
+    static int nd, lp;
 
 
 /* *********************************************************** */
@@ -4034,13 +3980,13 @@ L2:
     return ret_val;
 } /* lstptr_ */
 
-long int nbcnt_(long int *lpl, long int *lptr)
+int nbcnt_(int *lpl, int *lptr)
 {
     /* System generated locals */
-    long int ret_val;
+    int ret_val;
 
     /* Local variables */
-    static long int k, lp;
+    static int k, lp;
 
 
 /* *********************************************************** */
@@ -4102,29 +4048,23 @@ L2:
     return ret_val;
 } /* nbcnt_ */
 
-long int nearnd_(double *p, long int *ist, long int *n, double *x, 
-	double *y, double *z__, long int *list, long int *lptr, long int 
+int nearnd_(double *p, int *ist, int *n, double *x,
+	double *y, double *z__, int *list, int *lptr, int
 	*lend, double *al)
 {
     /* System generated locals */
-    long int ret_val, i__1;
+    int ret_val, i__1;
 
     /* Local variables */
-    static long int l;
+    static int l;
     static double b1, b2, b3;
-    static long int i1, i2, i3, n1, n2, n3, lp, nn, nr;
+    static int i1, i2, i3, n1, n2, n3, lp, nn, nr;
     static double ds1;
-    static long int lp1, lp2;
+    static int lp1, lp2;
     static double dx1, dx2, dx3, dy1, dy2, dy3, dz1, dz2, dz3;
-    static long int lpl;
+    static int lpl;
     static double dsr;
-    static long int nst, listp[25], lptrp[25];
-    extern /* Subroutine */ int trfind_(long int *, double *, long int *, 
-	    double *, double *, double *, long int *, long int *, 
-	    long int *, double *, double *, double *, long int *, 
-	    long int *, long int *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-
+    static int nst, listp[25], lptrp[25];
 
 /* *********************************************************** */
 
@@ -4326,7 +4266,7 @@ L2:
     dx3 = x[n3] - p[1];
     dy3 = y[n3] - p[2];
     dz3 = z__[n3] - p[3];
-    if (dx3 * (dy2 * dz1 - dy1 * dz2) - dy3 * (dx2 * dz1 - dx1 * dz2) + dz3 * 
+    if (dx3 * (dy2 * dz1 - dy1 * dz2) - dy3 * (dx2 * dz1 - dx1 * dz2) + dz3 *
 	    (dx2 * dy1 - dx1 * dy2) <= 0.) {
 	goto L3;
     }
@@ -4394,23 +4334,18 @@ L6:
     return ret_val;
 } /* nearnd_ */
 
-/* Subroutine */ int optim_(double *x, double *y, double *z__, 
-	long int *na, long int *list, long int *lptr, long int *lend, long int *
-	nit, long int *iwk, long int *ier)
+/* Subroutine */ int optim_(double *x, double *y, double *z__,
+	int *na, int *list, int *lptr, int *lend, int *
+	nit, int *iwk, int *ier)
 {
     /* System generated locals */
-    long int i__1, i__2;
+    int i__1, i__2;
 
     /* Local variables */
-    static long int i__, n1, n2, lp, io1, io2, nna, lp21, lpl, lpp;
-    static long int swp;
-    static long int iter;
-    extern /* Subroutine */ int swap_(long int *, long int *, long int *, 
-	    long int *, long int *, long int *, long int *, long int *);
-    static long int maxit;
-    extern long int swptst_(long int *, long int *, long int *, long int *, 
-	    double *, double *, double *);
-
+    static int i__, n1, n2, lp, io1, io2, nna, lp21, lpl, lpp;
+    static int swp;
+    static int iter;
+    static int maxit;
 
 /* *********************************************************** */
 
@@ -4452,7 +4387,7 @@ L6:
 /*       NIT = Maximum number of iterations to be performed. */
 /*             NIT = 4*NA should be sufficient.  NIT .GE. 1. */
 
-/*       IWK = long int array dimensioned 2 by NA containing */
+/*       IWK = int array dimensioned 2 by NA containing */
 /*             the nodal indexes of the arc endpoints (pairs */
 /*             of endpoints are stored in columns). */
 
@@ -4642,7 +4577,7 @@ L9:
     return 0;
 } /* optim_ */
 
-/* Subroutine */ int scoord_(double *px, double *py, double *pz, 
+/* Subroutine */ int scoord_(double *px, double *py, double *pz,
 	double *plat, double *plon, double *pnrm)
 {
 /* *********************************************************** */
@@ -4740,16 +4675,14 @@ double store_(double *x)
     return ret_val;
 } /* store_ */
 
-/* Subroutine */ int swap_(long int *in1, long int *in2, long int *io1, long int *
-	io2, long int *list, long int *lptr, long int *lend, long int *lp21)
+/* Subroutine */ int swap_(int *in1, int *in2, int *io1, int *
+	io2, int *list, int *lptr, int *lend, int *lp21)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int lp, lph, lpsav;
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-
+    static int lp, lph, lpsav;
 
 /* *********************************************************** */
 
@@ -4866,11 +4799,11 @@ double store_(double *x)
     return 0;
 } /* swap_ */
 
-long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4, 
+int swptst_(int *n1, int *n2, int *n3, int *n4,
 	double *x, double *y, double *z__)
 {
     /* System generated locals */
-    long int ret_val;
+    int ret_val;
 
     /* Local variables */
     static double x4, y4, z4, dx1, dx2, dx3, dy1, dy2, dy3, dz1, dz2, dz3;
@@ -4952,19 +4885,19 @@ long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4,
 /*   the plane of (N2,N1,N4) iff Det(N3-N4,N2-N4,N1-N4) = */
 /*   (N3-N4,N2-N4 X N1-N4) > 0. */
 
-    ret_val = dx3 * (dy2 * dz1 - dy1 * dz2) - dy3 * (dx2 * dz1 - dx1 * dz2) + 
+    ret_val = dx3 * (dy2 * dz1 - dy1 * dz2) - dy3 * (dx2 * dz1 - dx1 * dz2) +
 	    dz3 * (dx2 * dy1 - dx1 * dy2) > 0.;
     return ret_val;
 } /* swptst_ */
 
-/* Subroutine */ int trans_(long int *n, double *rlat, double *rlon, 
+/* Subroutine */ int trans_(int *n, double *rlat, double *rlon,
 	double *x, double *y, double *z__)
 {
     /* System generated locals */
-    long int i__1;
+    int i__1;
 
     /* Local variables */
-    static long int i__, nn;
+    static int i__, nn;
     static double phi, theta, cosphi;
 
 
@@ -5029,7 +4962,7 @@ long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4,
     /* Function Body */
     nn = *n;
     i__1 = nn;
-    for (i__ = 1; i__ <= i__1; ++i__) 
+    for (i__ = 1; i__ <= i__1; ++i__)
     {
 	    phi = rlat[i__];
 	    theta = rlon[i__];
@@ -5042,34 +4975,30 @@ long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4,
     return 0;
 } /* trans_ */
 
-/* Subroutine */ int trfind_(long int *nst, double *p, long int *n, 
-	double *x, double *y, double *z__, long int *list, long int 
-	*lptr, long int *lend, double *b1, double *b2, double *b3, 
-	long int *i1, long int *i2, long int *i3)
+/* Subroutine */ int trfind_(int *nst, double *p, int *n,
+	double *x, double *y, double *z__, int *list, int
+	*lptr, int *lend, double *b1, double *b2, double *b3,
+	int *i1, int *i2, int *i3)
 {
     /* Initialized data */
 
-    static long int ix = 1;
-    static long int iy = 2;
-    static long int iz = 3;
+    static int ix = 1;
+    static int iy = 2;
+    static int iz = 3;
 
     /* System generated locals */
-    long int i__1;
+    int i__1;
     double d__1, d__2;
 
     /* Local variables */
     static double q[3];
-    static long int n0, n1, n2, n3, n4, nf;
+    static int n0, n1, n2, n3, n4, nf;
     static double s12;
-    static long int nl, lp;
+    static int nl, lp;
     static double xp, yp, zp;
-    static long int n1s, n2s;
+    static int n1s, n2s;
     static double eps, tol, ptn1, ptn2;
-    static long int next;
-    extern long int jrand_(long int *, long int *, long int *, long int *);
-    extern double store_(double *);
-    extern long int lstptr_(long int *, long int *, long int *, long int *);
-
+    static int next;
 
 /* *********************************************************** */
 
@@ -5151,7 +5080,7 @@ long int swptst_(long int *n1, long int *n2, long int *n3, long int *n4,
 /* Local parameters: */
 
 /* EPS =      Machine precision */
-/* IX,IY,IZ = long int seeds for JRAND */
+/* IX,IY,IZ = int seeds for JRAND */
 /* LP =       LIST pointer */
 /* N0,N1,N2 = Nodes in counterclockwise order defining a */
 /*              cone (with vertex N0) containing P, or end- */
@@ -5231,8 +5160,8 @@ L2:
 /*   N0 is an interior node.  Find N1. */
 
 L3:
-	if (xp * (y[n0] * z__[n1] - y[n1] * z__[n0]) - yp * (x[n0] * z__[n1] 
-		- x[n1] * z__[n0]) + zp * (x[n0] * y[n1] - x[n1] * y[n0]) < 
+	if (xp * (y[n0] * z__[n1] - y[n1] * z__[n0]) - yp * (x[n0] * z__[n1]
+		- x[n1] * z__[n0]) + zp * (x[n0] * y[n1] - x[n1] * y[n0]) <
 		0.) {
 	    lp = lptr[lp];
 	    n1 = list[lp];
@@ -5246,8 +5175,8 @@ L3:
 /*   N0 is a boundary node.  Test for P exterior. */
 
 	nl = -nl;
-	if (xp * (y[n0] * z__[nf] - y[nf] * z__[n0]) - yp * (x[n0] * z__[nf] 
-		- x[nf] * z__[n0]) + zp * (x[n0] * y[nf] - x[nf] * y[n0]) < 
+	if (xp * (y[n0] * z__[nf] - y[nf] * z__[n0]) - yp * (x[n0] * z__[nf]
+		- x[nf] * z__[n0]) + zp * (x[n0] * y[nf] - x[nf] * y[n0]) <
 		0.) {
 
 /*   P is to the right of the boundary edge N0->NF. */
@@ -5256,8 +5185,8 @@ L3:
 	    n2 = nf;
 	    goto L9;
 	}
-	if (xp * (y[nl] * z__[n0] - y[n0] * z__[nl]) - yp * (x[nl] * z__[n0] 
-		- x[n0] * z__[nl]) + zp * (x[nl] * y[n0] - x[n0] * y[nl]) < 
+	if (xp * (y[nl] * z__[n0] - y[n0] * z__[nl]) - yp * (x[nl] * z__[n0]
+		- x[n0] * z__[nl]) + zp * (x[nl] * y[n0] - x[n0] * y[nl]) <
 		0.) {
 
 /*   P is to the right of the boundary edge NL->N0. */
@@ -5298,8 +5227,8 @@ L4:
 /*     Note:  N1 = NL and LP points to NL. */
 
 L5:
-	if (xp * (y[n1] * z__[n0] - y[n0] * z__[n1]) - yp * (x[n1] * z__[n0] 
-		- x[n0] * z__[n1]) + zp * (x[n1] * y[n0] - x[n0] * y[n1]) >= 
+	if (xp * (y[n1] * z__[n0] - y[n0] * z__[n1]) - yp * (x[n1] * z__[n0]
+		- x[n0] * z__[n1]) + zp * (x[n1] * y[n0] - x[n0] * y[n1]) >=
 		0.) {
 	    lp = lptr[lp];
 	    n1 = (i__1 = list[lp], abs(i__1));
@@ -5333,7 +5262,7 @@ L7:
 /* Top of edge-hopping loop: */
 
 L8:
-    *b3 = xp * (y[n1] * z__[n2] - y[n2] * z__[n1]) - yp * (x[n1] * z__[n2] - 
+    *b3 = xp * (y[n1] * z__[n2] - y[n2] * z__[n1]) - yp * (x[n1] * z__[n2] -
 	    x[n2] * z__[n1]) + zp * (x[n1] * y[n2] - x[n2] * y[n1]);
     if (*b3 < 0.) {
 
@@ -5350,8 +5279,8 @@ L8:
 /*   Define a new arc N1->N2 which intersects the geodesic */
 /*     N0-P. */
 
-	if (xp * (y[n0] * z__[n4] - y[n4] * z__[n0]) - yp * (x[n0] * z__[n4] 
-		- x[n4] * z__[n0]) + zp * (x[n0] * y[n4] - x[n4] * y[n0]) < 
+	if (xp * (y[n0] * z__[n4] - y[n4] * z__[n0]) - yp * (x[n0] * z__[n4]
+		- x[n4] * z__[n0]) + zp * (x[n0] * y[n4] - x[n4] * y[n0]) <
 		0.) {
 	    n3 = n2;
 	    n2 = n4;
@@ -5443,7 +5372,7 @@ L10:
     lp = lptr[lp];
     next = list[lp];
     if (xp * (y[n2] * z__[next] - y[next] * z__[n2]) - yp * (x[n2] * z__[next]
-	     - x[next] * z__[n2]) + zp * (x[n2] * y[next] - x[next] * y[n2]) 
+	     - x[next] * z__[n2]) + zp * (x[n2] * y[next] - x[next] * y[n2])
 	    >= 0.) {
 
 /*   N2 is the rightmost visible node if P Forward N2->N1 */
@@ -5498,7 +5427,7 @@ L11:
 L12:
 	lp = lend[n1];
 	next = -list[lp];
-	if (xp * (y[next] * z__[n1] - y[n1] * z__[next]) - yp * (x[next] * 
+	if (xp * (y[next] * z__[n1] - y[n1] * z__[next]) - yp * (x[next] *
 		z__[n1] - x[n1] * z__[next]) + zp * (x[next] * y[n1] - x[n1] *
 		 y[next]) >= 0.) {
 
@@ -5559,18 +5488,18 @@ L14:
     return 0;
 } /* trfind_ */
 
-/* Subroutine */ int trlist_(long int *n, long int *list, long int *lptr, 
-	long int *lend, long int *nrow, long int *nt, long int *ltri, long int *
+/* Subroutine */ int trlist_(int *n, int *list, int *lptr,
+	int *lend, int *nrow, int *nt, int *ltri, int *
 	ier)
 {
     /* System generated locals */
-    long int ltri_dim1, ltri_offset, i__1, i__2;
+    int ltri_dim1, ltri_offset, i__1, i__2;
 
     /* Local variables */
-    static long int i__, j, i1, i2, i3, n1, n2, n3, ka, kn, lp, kt, nm2, lp2, 
+    static int i__, j, i1, i2, i3, n1, n2, n3, ka, kn, lp, kt, nm2, lp2,
 	    lpl, isv;
-    static long int arcs;
-    static long int lpln1;
+    static int arcs;
+    static int lpln1;
 
 
 /* *********************************************************** */
@@ -5603,7 +5532,7 @@ L14:
 
 /* The above parameters are not altered by this routine. */
 
-/*       LTRI = long int array of length at least NROW*NT, */
+/*       LTRI = int array of length at least NROW*NT, */
 /*              where NT is at most 2N-4.  (A sufficient */
 /*              length is 12N if NROW=6 or 18N if NROW=9.) */
 
@@ -5653,7 +5582,7 @@ L14:
 
 /* Local parameters: */
 
-/* ARCS =     long int variable with value TRUE iff are */
+/* ARCS =     int variable with value TRUE iff are */
 /*              indexes are to be stored */
 /* I,J =      LTRI row indexes (1 to 3) associated with */
 /*              triangles KT and KN, respectively */
@@ -5683,7 +5612,7 @@ L14:
     ltri -= ltri_offset;
 
     /* Function Body */
-    if (*n < 3 || *nrow != 6 && *nrow != 9) {
+    if (*n < 3 || (*nrow != 6 && *nrow != 9)) {
 	goto L11;
     }
 
@@ -5862,26 +5791,19 @@ L12:
     return 0;
 } /* trlist_ */
 
-/* Subroutine */ int trmesh_(long int *n, double *x, double *y, 
-	double *z__, long int *list, long int *lptr, long int *lend, long int 
-	*lnew, long int *near__, long int *next, double *dist, long int *ier)
+/* Subroutine */ int trmesh_(int *n, double *x, double *y,
+	double *z__, int *list, int *lptr, int *lend, int
+	*lnew, int *near__, int *next, double *dist, int *ier)
 {
     /* System generated locals */
-    long int i__1, i__2;
+    int i__1, i__2;
 
     /* Local variables */
     static double d__;
-    static long int i__, j, k;
+    static int i__, j, k;
     static double d1, d2, d3;
-    static long int i0, lp, nn, lpl;
-    extern long int left_(double *, double *, double *, double 
-	    *, double *, double *, double *, double *, 
-	    double *);
-    static long int nexti;
-    extern /* Subroutine */ int addnod_(long int *, long int *, double *, 
-	    double *, double *, long int *, long int *, long int *, 
-	    long int *, long int *);
-
+    static int i0, lp, nn, lpl;
+    static int nexti;
 
 /* *********************************************************** */
 
@@ -5965,7 +5887,7 @@ L12:
 /*             pair of great circle arcs. */
 
 /*  JRAND  - Generates a uniformly distributed pseudo-random */
-/*             long int. */
+/*             int. */
 
 /*  LEFT   - Locates a point relative to a great circle. */
 

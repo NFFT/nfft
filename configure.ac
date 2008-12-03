@@ -204,10 +204,6 @@ if test "x$ac_cv_prog_cc_c99" = "x-std=gnu99"; then
   ac_cv_prog_cc_c99="-std=c99"
 fi
 
-# Manually add option for C99 support to compiler flags.
-AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
-  [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"])
-
 # Make sure "const" keyword can be used.
 AC_C_CONST
 
@@ -271,7 +267,7 @@ CPPFLAGS="$CPPFLAGS $fftw3_includes"
 
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
-  CFLAGS="$ac_cv_prog_cc_c99 -g3"
+  CFLAGS="-g3"
   LDFLAGS="$LDFLAGS"
 fi
 
@@ -281,6 +277,10 @@ if test "x$enable_debug" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes"; then
     CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings -Wstrict-prototypes -Wredundant-decls -Wnested-externs" # -Wundef -Wconversion -Wmissing-prototypes -Wmissing-declarations
   fi
 fi
+
+# Manually add option for C99 support to compiler flags.
+AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
+  [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"],[AC_MSG_ERROR([Compiler does not accept option to accept C99.])])
 
 # header files
 AC_HEADER_STDC
@@ -332,9 +332,9 @@ AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
-AC_CHECK_FUNCS([log1p sqrt tgamma lgamma log sin cos acos pow exp copysign])
-AC_CHECK_FUNCS([log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf])
-AC_CHECK_FUNCS([log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl])
+AC_CHECK_FUNCS([log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint])
+AC_CHECK_FUNCS([log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf])
+AC_CHECK_FUNCS([log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl])
 AC_CHECK_FUNCS([nanosleep sleep drand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])

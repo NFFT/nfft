@@ -1451,29 +1451,29 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   double *x;
   double *y;
   double *z;
-  long int j;
-  long int k;
-  long int el;
-  long int Mlocal = M;
-  long int lnew;
-  long int ier;
-  long int *list;
-  long int *lptr;
-  long int *lend;
-  long int *near;
-  long int *next;
+  int j;
+  int k;
+  int el;
+  int Mlocal = M;
+  int lnew;
+  int ier;
+  int *list;
+  int *lptr;
+  int *lend;
+  int *near;
+  int *next;
   double  *dist;
-  long int *ltri;
-  long int *listc;
-  long int nb;
+  int *ltri;
+  int *listc;
+  int nb;
   double *xc;
   double *yc;
   double *zc;
   double *rc;
   double *vr;
-  long int lp;
-  long int lpl;
-  long int kv;
+  int lp;
+  int lpl;
+  int kv;
   double a;
 
   /* Allocate memory for auxilliary arrays. */
@@ -1481,14 +1481,14 @@ void nfft_voronoi_weights_S2(double *w, double *xi, int M)
   y = (double*)nfft_malloc(M * sizeof(double));
   z = (double*)nfft_malloc(M * sizeof(double));
 
-  list = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
-  lptr = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
-  lend = (long int*)nfft_malloc((M+1)*sizeof(long int));
-  near = (long int*)nfft_malloc((M+1)*sizeof(long int));
-  next = (long int*)nfft_malloc((M+1)*sizeof(long int));
+  list = (int*)nfft_malloc((6*M-12+1)*sizeof(int));
+  lptr = (int*)nfft_malloc((6*M-12+1)*sizeof(int));
+  lend = (int*)nfft_malloc((M+1)*sizeof(int));
+  near = (int*)nfft_malloc((M+1)*sizeof(int));
+  next = (int*)nfft_malloc((M+1)*sizeof(int));
   dist = (double*)nfft_malloc((M+1)*sizeof(double));
-  ltri = (long int*)nfft_malloc((6*M+1)*sizeof(long int));
-  listc = (long int*)nfft_malloc((6*M-12+1)*sizeof(long int));
+  ltri = (int*)nfft_malloc((6*M+1)*sizeof(int));
+  listc = (int*)nfft_malloc((6*M-12+1)*sizeof(int));
   xc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
   yc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
   zc = (double*)nfft_malloc((2*M-4+1)*sizeof(double));
@@ -1849,7 +1849,7 @@ int nfft_smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   R p, em, en, sum, pold, test, empal, tempa, tempb, tempc, psave, plast, tover,
     emp2al, psavel;
 
-  magx = (int)FLOOR(x);
+  magx = LRINT(FLOOR(x));
 
   /* return if x, nb, or ize out of range */
   if (   nb <= 0 || x < K(0.0) || alpha < K(0.0) || K(1.0) <= alpha

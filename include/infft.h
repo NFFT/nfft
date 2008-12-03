@@ -115,6 +115,10 @@ extern long double expl(const long double);
 #if HAVE_DECL_COPYSIGNL == 0
 extern long double copysignl(const long double, const long double);
 #endif
+#define LRINT lrintl
+#if HAVE_DECL_LRINTL == 0
+extern long int lrintl(const long double);
+#endif
 #elif defined(NFFT_SINGLE)
 #define LOG1P log1pf
 #if HAVE_DECL_LOG1PF == 0
@@ -160,6 +164,10 @@ extern float expf(const float);
 #if HAVE_DECL_COPYSIGNF == 0
 extern float copysignf(const float, const float);
 #endif
+#define LRINT lrintf
+#if HAVE_DECL_LRINTF == 0
+extern long int lrintf(const float);
+#endif
 #else
 #define LOG1P log1p
 #if HAVE_DECL_LOG1P == 0
@@ -204,6 +212,10 @@ extern double exp(const double);
 #define COPYSIGN copysign
 #if HAVE_DECL_COPYSIGN == 0
 extern double copysign(const double, const double);
+#endif
+#define LRINT lrint
+#if HAVE_DECL_LRINT == 0
+extern long int lrint(const double);
 #endif
 #endif
 
