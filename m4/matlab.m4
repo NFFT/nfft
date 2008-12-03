@@ -76,15 +76,18 @@ AC_DEFUN([AX_PROG_MATLAB],
           matlab_dir_prefix="maci"
           matlab_mexext=".mexmaci"
           matlab_libext=".dylib"
+          if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
+            CFLAGS="$CFLAGS -arch i386"
+          fi
         else
           matlab_dir_prefix="maci64"
           matlab_mexext=".mexmaci64"
           matlab_libext=".dylib"
+          if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
+            CFLAGS="$CFLAGS -arch x86_64"
+          fi
         fi
-        matlab_check_mexversion_c="yes"
-        if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
-          CFLAGS="$CFLAGS -arch i386"
-        fi;;
+        matlab_check_mexversion_c="yes";;
       *86_64*linux*) # Linux (x86, 64 bit)
         matlab_check_mexversion_c="yes"
         matlab_dir_prefix="glnxa64"
