@@ -77,7 +77,7 @@
  *
  * \author Jens Keiner
  */
-static struct nfsft_wisdom wisdom = {false,0U};
+static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0};
 
 /**
  * Converts coefficients \f$\left(b_k^n\right)_{k=0}^M\f$ with
@@ -722,6 +722,7 @@ void ndsft_adjoint(nfsft_plan *plan)
         it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
           pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-I*n*sphi);
         plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+        it2 = 0.0;
 
         if (n_abs < plan->N)
         {

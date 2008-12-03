@@ -42,10 +42,9 @@
 #define ROWK(k) (k*(wisdom.N_MAX+2)+k)
 
 #ifdef HAVE_STDBOOL_H
-#  include <stdbool.h>
+  #include <stdbool.h>
 #else
-#  warning ISO C99 bool type not available. Defining own bool type.
-typedef enum {false = 0,true = 1} bool;
+  typedef enum {false = 0,true = 1} bool;
 #endif
 
 //#define FIRST_L (int)floor(ntilde/(double)plength)

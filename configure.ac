@@ -255,13 +255,13 @@ fi
 AC_SUBST(fftw3_libcmd)
 AC_SUBST(fftw3_libs)
 
-# Check for MATLAB.
-AX_PROG_MATLAB
-
 # Try to choose good compiler options.
 if test "x$ac_test_CFLAGS" != "xset"; then
   AX_CC_MAXOPT
 fi
+
+# Check for MATLAB.
+AX_PROG_MATLAB
 
 CPPFLAGS="$CPPFLAGS $fftw3_includes"
 
@@ -338,9 +338,9 @@ AC_CHECK_FUNCS([log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copy
 AC_CHECK_FUNCS([nanosleep sleep drand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
-AC_CHECK_DECLS([log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl],[],[],[#include <math.h>])
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
