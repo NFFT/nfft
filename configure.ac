@@ -23,6 +23,9 @@
 # initialize autoconf
 AC_INIT(NFFT, 3.1.0, potts@mathematik.tu-chemnitz.de)
 
+# copyright notice
+AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
+
 # directory for auxilliary files
 AC_CONFIG_AUX_DIR(config)
 
@@ -33,9 +36,6 @@ LT_PREREQ([2.2.0])
 LT_INIT([win32-dll])
 
 AC_SUBST([LIBTOOL_DEPS])
-
-# copyright notice
-AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # revision number
 AC_REVISION([$Id$])
@@ -63,7 +63,7 @@ AC_CANONICAL_HOST
 AC_SUBST([abs_srcdir])
 
 # ############################################################################
-# Configure options
+# options
 # ############################################################################
 
 # enable or disable parts of nfft
@@ -215,10 +215,6 @@ AC_C_INLINE
 
 # Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
-
-if test "x$ac_cv_prog_cc_stdc" = "xno"; then
-  AC_MSG_ERROR([Your compiler does not accept C99!])
-fi
 
 # Check for assembler (thanks fftw).
 AMX_PROG_AS # AM_PROG_AS breaks at least one version of libtool.
