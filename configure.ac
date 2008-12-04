@@ -270,13 +270,17 @@ fi
 # add gcc warnings, in debug/maintainer mode only
 if test "x$enable_debug" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes"; then
   if test "x$ac_cv_c_compiler_gnu" = "xyes"; then
-    CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings -Wstrict-prototypes -Wredundant-decls -Wnested-externs" # -Wundef -Wconversion -Wmissing-prototypes -Wmissing-declarations
+    CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings -Wstrict-prototypes -Wredundant-decls -Wnested-externs -Wundef -Wconversion -Wmissing-prototypes -Wmissing-declarations"
   fi
 fi
+
+AC_MSG_WARN([Current CFLAGS: $CFLAGS])
 
 # Manually add option for C99 support to compiler flags.
 AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
   [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"],[AC_MSG_ERROR([Compiler does not accept option to accept C99.])])
+
+AC_MSG_WARN([Current CFLAGS: $CFLAGS])
 
 # header files
 AC_HEADER_STDC
