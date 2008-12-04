@@ -274,13 +274,14 @@ if test "x$enable_debug" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes"; then
   fi
 fi
 
-AC_MSG_WARN([Current CFLAGS: $CFLAGS])
-
 # Manually add option for C99 support to compiler flags.
 AX_CHECK_COMPILER_FLAGS([$ac_cv_prog_cc_c99],
   [CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"],[AC_MSG_ERROR([Compiler does not accept option to accept C99.])])
 
-AC_MSG_WARN([Current CFLAGS: $CFLAGS])
+# add Matlab CFLAGS
+if test "x$ax_prog_matlab" = "xyes"; then
+  CFLAGS="$CFLAGS $matlab_CFLAGS"
+fi
 
 # header files
 AC_HEADER_STDC

@@ -27,7 +27,7 @@
 AC_DEFUN([AX_PROG_MATLAB],
 [
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_REQUIRE([AX_COMPILER_VENDOR_APPLE])
+  AC_REQUIRE([AX_CHECK_COMPILER_FLAGS])
 
   # option to enable mex file compilation
   AC_ARG_WITH(matlab,
@@ -44,8 +44,8 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_include_dir="${matlab_dir}/extern/include"
     matlab_src_dir="${matlab_dir}/extern/src"
     matlab_bin_dir="${matlab_dir}/bin"
+    matlab_CFLAGS=""
     matlab_CPPFLAGS="-I${matlab_include_dir} -I${matlab_src_dir} -DMATLAB_MEX_FILE"
-    matlab_arch_LDFLAGS=""
 
     # Save environment
     saved_CPPFLAGS=$CPPFLAGS
@@ -68,24 +68,18 @@ AC_DEFUN([AX_PROG_MATLAB],
         matlab_dir_prefix="mac"
         matlab_mexext=".mexmac"
         matlab_libext=".dylib"
-        if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
-          CFLAGS="$CFLAGS -arch ppc"
-        fi;;
+        matlab_CFLAGS="-arch ppc";;
       *86*darwin*) # Mac (Intel)
         if test -d "${matlab_bin_dir}/maci"; then
           matlab_dir_prefix="maci"
           matlab_mexext=".mexmaci"
           matlab_libext=".dylib"
-          if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
-            CFLAGS="$CFLAGS -arch i386"
-          fi
+          matlab_CFLAGS="-arch i386"
         else
           matlab_dir_prefix="maci64"
           matlab_mexext=".mexmaci64"
           matlab_libext=".dylib"
-          if test "x$ax_c_compiler_vendor_apple" = "xyes"; then
-            CFLAGS="$CFLAGS -arch x86_64"
-          fi
+          matlab_CFLAGS="-arch x86_64"
         fi
         matlab_check_mexversion_c="yes";;
       *86_64*linux*) # Linux (x86, 64 bit)
@@ -143,6 +137,8 @@ AC_DEFUN([AX_PROG_MATLAB],
     AC_CHECK_FILE([${matlab_host_bin_dir}/libmex${matlab_libext}],[],AC_MSG_ERROR([Required library ]${matlab_host_bin_dir}[/libmex]${matlab_libext}[ not found]))
     AC_CHECK_FILE([${matlab_host_bin_dir}/libmx${matlab_libext}],[],AC_MSG_ERROR([Required library ]${matlab_host_bin_dir}[/libmx]${matlab_libext}[ not found]))
 
+    AX_CHECK_COMPILER_FLAGS([$matlab_CFLAGS],[],[matlab_CFLAGS=""])
+
     matlab_LIBADD="-lmx -lmex -lmat"
     matlab_LDFLAGS="-L${matlab_host_bin_dir}"
 
@@ -153,12 +149,14 @@ AC_DEFUN([AX_PROG_MATLAB],
     AC_SUBST([matlab_LIBADD])
     AC_SUBST([matlab_mexext])
 
+    ax_prog_matlab="yes"
     AM_CONDITIONAL(HAVE_MATLAB, test "xyes" = "xyes" )
 
     # Restore environment.
     CPPFLAGS=$saved_CPPFLAGS
   else
     AC_MSG_RESULT([no])
+    ax_prog_matlab="no"
     AM_CONDITIONAL(HAVE_MATLAB, test "xno" = "xyes" )
   fi
 ])
