@@ -297,4 +297,7 @@ extern long int lrint(const double);
 #define TRUE 1
 #define FALSE 0
 
+/** Dummy use of unused parameters to silence compiler warnings */
+#define UNUSED(x) (void)x
+
 #endif

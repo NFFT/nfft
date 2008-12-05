@@ -233,7 +233,7 @@ double nfft_sinc(double x)
     return((double)(sin(x)/x));
 } /* sinc */
 
-void bspline_help(int k, double x, double *scratch, int j, int ug, int og,
+static void bspline_help(int k, double x, double *scratch, int j, int ug, int og,
       int r)
 {
   int i;                                /**< row index of the de Boor scheme  */
@@ -534,7 +534,7 @@ Copyright 1985, 1987 by Stephen L. Moshier
 Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 */
 
-double chbevl(double x, double array[], int n)
+static double chbevl(double x, double array[], int n)
 {
   double b0, b1, b2, *p;
   int i;
@@ -1004,7 +1004,7 @@ void nfft_cp_a_complex(double _Complex *x, double a, double _Complex *y, int n)
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-void nfft_cp_a_double(double *x, double a, double *y, int n)
+static void nfft_cp_a_double(double *x, double a, double *y, int n)
 {
   int k;
 
@@ -1175,7 +1175,7 @@ void nfft_fftshift_complex(double _Complex *x, int d, int* N)
     }
 }
 
-double l_1_complex(double _Complex *x, double _Complex *y, int n)
+static double l_1_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double l1;
@@ -1190,7 +1190,7 @@ double l_1_complex(double _Complex *x, double _Complex *y, int n)
   return l1;
 }
 
-double l_1_double(double *x, double *y, int n)
+static double l_1_double(double *x, double *y, int n)
 {
   int k;
   double l1;
@@ -1208,7 +1208,7 @@ double l_1_double(double *x, double *y, int n)
 
 
 
-double l_2_complex(double _Complex *x, double _Complex *y, int n)
+static double l_2_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double l22;
@@ -1223,7 +1223,7 @@ double l_2_complex(double _Complex *x, double _Complex *y, int n)
   return sqrt(l22);
 }
 
-double l_2_double(double *x, double *y, int n)
+static double l_2_double(double *x, double *y, int n)
 {
   int k;
   double l22;
@@ -1238,10 +1238,7 @@ double l_2_double(double *x, double *y, int n)
   return sqrt(l22);
 }
 
-
-
-
-double l_infty_complex(double _Complex *x, double _Complex *y, int n)
+static double l_infty_complex(double _Complex *x, double _Complex *y, int n)
 {
   int k;
   double linfty;
@@ -1257,7 +1254,7 @@ double l_infty_complex(double _Complex *x, double _Complex *y, int n)
 }
 
 
-double l_infty_double(double *x, double *y, int n)
+static double l_infty_double(double *x, double *y, int n)
 {
   int k;
   double linfty;
@@ -1663,7 +1660,7 @@ R X(modified_sobolev)(const R mu, const int kk)
     if (k == 0)
       result += K(1.0);
     else
-      result += POW(k,-K(2.0)*mu);
+      result += POW((double)k,-K(2.0)*mu);
   }
 
   return result;
@@ -1678,7 +1675,7 @@ R X(modified_multiquadric)(const R mu, const R c, const int kk)
   for (result = K(0.0), kj = kk; kj <= kk+1; kj++)
     {
       k = ABS(kj);
-      result += POW(k*k + c*c, -mu);
+      result += POW((double)(k*k + c*c), -mu);
     }
 
   return result;

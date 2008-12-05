@@ -247,7 +247,8 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
       for(k=0;k<my_infft_plan.mv->N[1];k++)
   {
     my_infft_plan.w_hat[j*my_infft_plan.mv->N[1]+k]=
-        (sqrt(pow(j-my_infft_plan.mv->N[0]/2,2)+pow(k-my_infft_plan.mv->N[1]/2,2))>(my_infft_plan.mv->N[0]/2)?0:1);
+        (sqrt(pow((double)(j-my_infft_plan.mv->N[0]/2),2.0)+pow((double)(k-my_infft_plan.mv->N[1]/2),2.0))
+            >((double)(my_infft_plan.mv->N[0]/2))?0:1);
   }
 
   /** initialise some guess f_hat_0 */

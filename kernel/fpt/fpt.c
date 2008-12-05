@@ -33,6 +33,7 @@
 
 #include "nfft3.h"
 #include "util.h"
+#include "infft.h"
 
 /* Macros for index calculation. */
 
@@ -43,10 +44,10 @@
 #define K_END_TILDE(x,y) NFFT_MIN(x,y-1)
 
 /** Index of first block of four functions at level */
-#define FIRST_L(x,y) ((int)floor((x)/(double)y))
+#define FIRST_L(x,y) (LRINT(floor((x)/(double)y)))
 
 /** Index of last block of four functions at level */
-#define LAST_L(x,y) ((int)ceil(((x)+1)/(double)y)-1)
+#define LAST_L(x,y) (LRINT(ceil(((x)+1)/(double)y))-1)
 
 #define N_TILDE(y) (y-1)
 
@@ -292,6 +293,8 @@ static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *
   /** Twice the length of the coefficient arrays. */
   double norm = 1.0/(length<<1);
 
+  UNUSED(a21); UNUSED(a22);
+
   /* Compensate for factors introduced by a raw DCT-III. */
   a[0] *= 2.0;
   b[0] *= 2.0;
@@ -343,6 +346,8 @@ static inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex 
   /* Compensate for factors introduced by a raw DCT-III. */
   a[0] *= 2.0;
   b[0] *= 2.0;
+
+  UNUSED(a11); UNUSED(a12);
 
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */
   fftw_execute_r2r(set->plans_dct3[tau-1],(double*)a,(double*)a);
@@ -834,9 +839,8 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   return set;
 }
 
-void fpt_precompute(fpt_set set, const int m, const double *alpha,
-                    const double *beta, const double *gam, int k_start,
-                    const double threshold)
+void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
+  double *gam, int k_start, const double threshold)
 {
 
   int tau;          /**< Cascade level                                       */
@@ -1531,7 +1535,7 @@ void dpt_transposed(fpt_set set, const int m, double _Complex *x,
 }
 
 void fpt_transposed(fpt_set set, const int m, double _Complex *x,
-  const double _Complex *y, const int k_end, const unsigned int flags)
+  double _Complex *y, const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
   fpt_data *data = &(set->dpt[m]);

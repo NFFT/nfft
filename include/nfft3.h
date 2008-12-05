@@ -110,15 +110,16 @@ typedef struct
   #define WINDOW_HELP_FINALIZE {fftw_free(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt( pow(ths->b[d],2) -       \
-    pow(2*PI*(k)/ths->n[d],2))))
-  #define PHI(x,d) ((double)((pow(ths->m,2)-pow((x)*ths->n[d],2))>0)?          \
-    sinh(ths->b[d]*sqrt(pow(ths->m,2)-                                         \
-    pow((x)*ths->n[d],2)))/(PI*sqrt(pow(ths->m,2)-                             \
-    pow((x)*ths->n[d],2))): (((pow(ths->m,2)-                                  \
-    pow((x)*ths->n[d],2))<0)? sin(ths->b[d]*                                   \
-    sqrt(pow(ths->n[d]*(x),2)-pow(ths->m,2)))/                                 \
-    (PI*sqrt(pow(ths->n[d]*(x),2)-pow(ths->m,2))):1.0))
+  #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt(\
+    pow((double)(ths->b[d]),2.0) - pow(2.0*PI*(k)/ths->n[d],2.0))))
+  #define PHI(x,d) ((double)((pow((double)(ths->m),2.0)\
+    -pow((x)*ths->n[d],2.0))>0)? \
+    sinh(ths->b[d]*sqrt(pow((double)(ths->m),2.0)-                             \
+    pow((x)*ths->n[d],2.0)))/(PI*sqrt(pow((double)(ths->m),2.0)-               \
+    pow((x)*ths->n[d],2.0))): (((pow((double)(ths->m),2.0)-                    \
+    pow((x)*ths->n[d],2.0))<0)? sin(ths->b[d]*                                 \
+    sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0)))/                   \
+    (PI*sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0))):1.0))
   #define WINDOW_HELP_INIT \
     {                                                                          \
       int WINDOW_idx;                                                          \
@@ -2082,7 +2083,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M, unsigned int
  * \author Jens Keiner
  */
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int nfsft_flags,
-  int nfft_flags, int nfft_cutoff);
+    unsigned int nfft_flags, int nfft_cutoff);
 
 /**
  * Performes precomputation up to the next power of two with respect to a given
@@ -2245,9 +2246,8 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags);
  *
  * \author Jens Keiner
  */
-void fpt_precompute(fpt_set set, const int m, const double *alpha,
-                    const double *beta, const double *gam, int k_start,
-                    const double threshold);
+void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
+  double *gam, int k_start, const double threshold);
 
 /**
  * Computes a single DPT transform.
@@ -2299,7 +2299,7 @@ void dpt_transposed(fpt_set set, const int m, fftw_complex *x,
  * \arg flags
  */
 void fpt_transposed(fpt_set set, const int m, fftw_complex *x,
-  const fftw_complex *y, const int k_end, const unsigned int flags);
+  fftw_complex *y, const int k_end, const unsigned int flags);
 
 void fpt_finalize(fpt_set set);
 

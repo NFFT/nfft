@@ -156,12 +156,12 @@ static inline void c2e(nfsft_plan *plan)
     *xp++ = 0.0;
     xm = &(plan->f_hat_intern[NFSFT_INDEX(plan->N,n,plan)]);
     last = *xm;
-    *xm = 0.5 * I * (0.5*xm[-1]);
+    *xm = 0.5 * _Complex_I * (0.5*xm[-1]);
     *xp++ = -(*xm--);
     for (k = plan->N-1; k > 0; k--)
     {
       act = *xm;
-      *xm = 0.5 * I * (0.5*(xm[-1] - last));
+      *xm = 0.5 * _Complex_I * (0.5*(xm[-1] - last));
       *xp++ = -(*xm--);
       last = act;
     }
@@ -236,11 +236,11 @@ static inline void c2e_transposed(nfsft_plan *plan)
     for (k = 2; k < plan->N; k++)
     {
       act = *xp;
-      *xp = -0.25 * I * (xp[1] - last);
+      *xp = -0.25 * _Complex_I * (xp[1] - last);
       xp++;
       last = act;
     }
-    *xp = 0.25 * I * last;
+    *xp = 0.25 * _Complex_I * last;
 
     plan->f_hat[NFSFT_INDEX(0,n,plan)] *= 2.0;
   }
@@ -262,7 +262,7 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
 }
 
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
-  int nfft_flags, int nfft_cutoff)
+  unsigned int nfft_flags, int nfft_cutoff)
 {
   int *nfft_size; /*< NFFT size                                              */
   int *fftw_size; /*< FFTW size                                              */
@@ -648,7 +648,7 @@ void ndsft_trafo(nfsft_plan *plan)
          * and add the result to f_m.
          */
         f_m += it2 * wisdom.gamma[ROW(n_abs)] *
-          pow(1- stheta * stheta, 0.5*n_abs) * cexp(I*n*sphi);
+          pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
       }
 
       /* Write result f_m for current node to array f. */
@@ -720,7 +720,7 @@ void ndsft_adjoint(nfsft_plan *plan)
 
         /* Initial step */
         it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
-          pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-I*n*sphi);
+          pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
         plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
         it2 = 0.0;
 
