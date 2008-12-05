@@ -24,7 +24,7 @@ double GLOBAL_elapsed_time;
 /** Generates the points x with weights w
  *  for the linogram grid with T slopes and R offsets.
  */
-int linogram_grid(int T, int R, double *x, double *w)
+static int linogram_grid(int T, int R, double *x, double *w)
 {
   int t, r;
   double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
@@ -54,7 +54,7 @@ int linogram_grid(int T, int R, double *x, double *w)
 }
 
 /** discrete pseudo-polar FFT */
-int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -111,7 +111,7 @@ int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
 }
 
 /** NFFT-based pseudo-polar FFT */
-int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -177,7 +177,7 @@ int linogram_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int
 }
 
 /** NFFT-based inverse pseudo-polar FFT */
-int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
+static int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -378,12 +378,12 @@ int main(int argc,char **argv)
   R = atoi(argv[3]);
   printf("N=%d, linogram grid with T=%d, R=%d => ",N,T,R);
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(5*T*R/2*(sizeof(double)));
+  w = (double *)nfft_malloc(5*T*R/4*(sizeof(double)));
 
   f_hat    = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
-  f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*1.25*T*R);  /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
-  f_direct = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*1.25*T*R);
+  f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*5*T*R/4);  /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
+  f_direct = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*5*T*R/4);
   f_tilde  = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
 
   /** generate knots of linogram grid */
@@ -404,7 +404,7 @@ int main(int argc,char **argv)
   fclose(fp2);
 
   /** direct linogram FFT */
-      linogram_dft(f_hat,N,f_direct,T,R,m);
+      linogram_dft(f_hat,N,f_direct,T,R,1);
   //  linogram_fft(f_hat,N,f_direct,T,R,12);
 
   /** Test of the linogram FFT with different m */

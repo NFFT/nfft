@@ -35,11 +35,11 @@ double GLOBAL_elapsed_time;
  *  The number of nodes for the modified polar grid can be estimated as
  *  \f$M \approx \frac{4}{\pi}\log(1+\sqrt{2}) T R\f$.
  */
-int mpolar_grid(int T, int R, double *x, double *w)
+static int mpolar_grid(int T, int R, double *x, double *w)
 {
   int t, r;
   double W;
-  int R2=2*ceil(sqrt(2)*R/2);
+  int R2=2*ceil(sqrt(2.0)*R/2);
   double xx, yy;
   int M=0;
 
@@ -78,7 +78,7 @@ int mpolar_grid(int T, int R, double *x, double *w)
 }
 
 /** discrete mpolar FFT */
-int mpolar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int mpolar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -91,11 +91,11 @@ int mpolar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(5*(T/2)*R*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(5*(T*R)/4*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -136,7 +136,7 @@ int mpolar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m
 }
 
 /** NFFT-based mpolar FFT */
-int mpolar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int mpolar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -149,11 +149,11 @@ int mpolar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(5*T*R/2*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(5*T*R/4*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -205,7 +205,7 @@ int mpolar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m
 }
 
 /** inverse NFFT-based mpolar FFT */
-int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
+static int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -220,11 +220,11 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(5*T*R/2*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(5*T*R/4*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -305,7 +305,7 @@ int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int N
 }
 
 /** Comparison of the FFTW, mpolar FFT, and inverse mpolar FFT */
-int comparison_fft(FILE *fp, int N, int T, int R)
+static int comparison_fft(FILE *fp, int N, int T, int R)
 {
   fftw_plan my_fftw_plan;
   fftw_complex *f_hat,*f;
@@ -332,7 +332,7 @@ int comparison_fft(FILE *fp, int N, int T, int R)
 
   if(N<256)
     {
-      mpolar_dft(f_hat,N,f,T,R,m);
+      mpolar_dft(f_hat,N,f,T,R,1);
       t_dft_mpolar=GLOBAL_elapsed_time;
     }
 
@@ -408,8 +408,8 @@ int main(int argc,char **argv)
   R = atoi(argv[3]);
   printf("N=%d, modified polar grid with T=%d, R=%d => ",N,T,R);
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(5*T*R/2*(sizeof(double)));
+  w = (double *)nfft_malloc(5*T*R/4*(sizeof(double)));
 
   f_hat    = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
   f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*1.25*T*R);  /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
@@ -434,7 +434,7 @@ int main(int argc,char **argv)
   fclose(fp2);
 
   /** direct mpolar FFT */
-      mpolar_dft(f_hat,N,f_direct,T,R,m);
+      mpolar_dft(f_hat,N,f_direct,T,R,1);
   //  mpolar_fft(f_hat,N,f_direct,T,R,12);
 
   /** Test of the mpolar FFT with different m */
