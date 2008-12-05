@@ -38,7 +38,7 @@ void *nfft_malloc(size_t n)
   p = fftw_malloc(n);
 
   if (!p)
-    nfft_die("nfft_malloc: out of memory\n");
+    nfft_die("nfft_malloc: out of memory (n = %d)\n");
 
   return p;
 }
