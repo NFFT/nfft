@@ -32,6 +32,9 @@ void *nfft_malloc(size_t n)
   if (nfft_malloc_hook)
     return nfft_malloc_hook(n);
 
+  if (n == 0)
+    n = 1;
+
   p = fftw_malloc(n);
 
   if (!p)
