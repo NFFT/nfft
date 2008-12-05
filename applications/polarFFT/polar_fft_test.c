@@ -50,7 +50,7 @@
  *  Thus, the sum of all weights is \f$\frac{\pi}{4}(1+\frac{1}{R^2})\f$ and
  *  we divide by this value for normalization.
  */
-int polar_grid(int T, int R, double *x, double *w)
+static int polar_grid(int T, int R, double *x, double *w)
 {
   int t, r;
   double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
@@ -72,7 +72,7 @@ int polar_grid(int T, int R, double *x, double *w)
 }
 
 /** discrete polar FFT */
-int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and frequencies  */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -126,7 +126,7 @@ int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 }
 
 /** NFFT-based polar FFT */
-int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -190,7 +190,7 @@ int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
 }
 
 /** inverse NFFT-based polar FFT */
-int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
+static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -294,7 +294,7 @@ int main(int argc,char **argv)
   fftw_complex *f_hat, *f, *f_direct, *f_tilde;
   int k;
   int max_i;                            /**< number of iterations             */
-  int m;
+  int m = 1;
   double temp1, temp2, E_max=0.0;
   FILE *fp1, *fp2;
   char filename[30];
@@ -314,8 +314,8 @@ int main(int argc,char **argv)
   R = atoi(argv[3]);
   printf("N=%d, polar grid with T=%d, R=%d => ",N,T,R);
 
-  x = (double *)nfft_malloc(2*1.25*T*R*(sizeof(double)));
-  w = (double *)nfft_malloc(1.25*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*5*(T/2)*(R/2)*(sizeof(double)));
+  w = (double *)nfft_malloc(5*(T/2)*(R/2)*(sizeof(double)));
 
   f_hat    = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
   f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*T*R);
