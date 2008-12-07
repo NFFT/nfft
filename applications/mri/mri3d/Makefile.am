@@ -12,16 +12,16 @@ application_PROGRAMS = \
   reconstruct_data_3d
 
 construct_data_2d1d_SOURCES = construct_data_2d1d.c
-construct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_libs@ @fftw3_libcmd@
+construct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 construct_data_3d_SOURCES = construct_data_3d.c
 construct_data_3d_LDADD = $(top_builddir)/libnfft3.la
 
 reconstruct_data_gridding_SOURCES = reconstruct_data_gridding.c
-reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3.la @fftw3_libs@ @fftw3_libcmd@
+reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 reconstruct_data_2d1d_SOURCES = reconstruct_data_2d1d.c
-reconstruct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_libs@ @fftw3_libcmd@
+reconstruct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 reconstruct_data_3d_SOURCES = reconstruct_data_3d.c
 reconstruct_data_3d_LDADD = $(top_builddir)/libnfft3.la

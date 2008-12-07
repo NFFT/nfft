@@ -10,8 +10,8 @@ application_PROGRAMS = fastsum_test fastsum_matlab
 pkginclude_HEADERS = fastsum.h kernels.h
 
 libfastsum_la_SOURCES = fastsum.c
-libfastsum_la_LIBADD = @fftw3_libcmd@
-libfastsum_la_LDFLAGS = @fftw3_libs@
+libfastsum_la_LIBADD = @fftw3_LIBS@
+libfastsum_la_LDFLAGS = @fftw3_LDFLAGS@
 
 libkernels_la_SOURCES = kernels.c
 

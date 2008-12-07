@@ -11,7 +11,7 @@ applicationdir = $(pkgdatadir)/matlab
 # library
 lib_LTLIBRARIES = libnfsft.la
 libnfsft_la_SOURCES = nfsftmex.c ../malloc.c ../imex.h
-libnfsft_la_LIBADD = $(top_builddir)/libnfft3noinst.la $(matlab_LIBADD)
+libnfsft_la_LIBADD = $(top_builddir)/libnfft3noinst.la $(matlab_LIBS)
 libnfsft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
 
 EXTRA_DIST = Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m nfsft_adjoint.m nfsft_finalize.m nfsft_forget.m nfsft_get_f_hat.m nfsft_get_f.m nfsft_get_x.m nfsft_init_advanced.m nfsft_init_guru.m nfsft_init.m NFSFT_NO_DIRECT_ALGORITHM.m NFSFT_NO_FAST_ALGORITHM.m NFSFT_NORMALIZED.m nfsft_precompute_x.m nfsft_precompute.m NFSFT_PRESERVE_F_HAT.m nfsft_set_f_hat.m nfsft_set_f.m nfsft_set_x.m nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m nfsft.m gl.m simple_test.m

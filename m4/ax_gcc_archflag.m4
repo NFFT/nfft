@@ -7,7 +7,7 @@ dnl the target architecture for use with gcc's -march=arch or -mtune=arch
 dnl flags.  If found, the cache variable $ax_cv_gcc_archflag is set to this
 dnl flag and ACTION-SUCCESS is executed; otherwise $ax_cv_gcc_archflag is
 dnl is set to "unknown" and ACTION-FAILURE is executed.  The default
-dnl ACTION-SUCCESS is to add $ax_cv_gcc_archflag to the end of $CPPFLAGS.
+dnl ACTION-SUCCESS is to add $ax_cv_gcc_archflag to the end of $CFLAGS.
 dnl
 dnl PORTABLE? should be either [yes] (default) or [no].  In the former case,
 dnl the flag is set to -mtune (or equivalent) so that the architecture
@@ -27,7 +27,7 @@ dnl
 dnl (The main emphasis here is on recent CPUs, on the principle that
 dnl  doing high-performance computing on old hardware is uncommon.)
 dnl
-dnl @version 2006-04-20
+dnl @version 2007-03-20
 dnl @license GPLWithACException
 dnl @author Steven G. Johnson <stevenj@alum.mit.edu> and Matteo Frigo.
 AC_DEFUN([AX_GCC_ARCHFLAG],
@@ -49,7 +49,7 @@ if test "x$ax_gcc_arch" = xyes; then
 ax_gcc_arch=""
 if test "$cross_compiling" = no; then
 case $host_cpu in
-  i[[3456]]86*|x86_64*) # use cpuid codes, in part from x86info-1.7 by D. Jones
+  i[[3456]]86*|x86_64*|amd64*) # use cpuid codes, in part from x86info-1.21 by D. Jones
      AX_GCC_X86_CPUID(0)
      AX_GCC_X86_CPUID(1)
      case $ax_cv_gcc_x86_cpuid_0 in
@@ -62,20 +62,21 @@ case $host_cpu in
 	    *6a?:*[[234]]:*:*) ax_gcc_arch="pentium3 pentiumpro" ;;
 	    *6[[78b]]?:*:*:*) ax_gcc_arch="pentium3 pentiumpro" ;;
 	    *6[[9d]]?:*:*:*) ax_gcc_arch="pentium-m pentium3 pentiumpro" ;;
-	    *6[[e]]?:*:*:*) ax_gcc_arch="pentium-m pentium3 pentiumpro" ;; # Core Duo
-	    *6??:*:*:*) ax_gcc_arch=pentiumpro ;;
-            *f3[[347]]:*:*:*|*f4[1347]:*:*:*)
+	    *6[[e]]?:*:*:*) ax_gcc_arch="native pentium-m pentium3 pentiumpro" ;; # Core Duo
+	    *6f?:*:*:*) ax_gcc_arch="core2 native pentium-m pentium3 pentiumpro" ;;
+	    *6??:*:*:*) ax_gcc_arch="native pentiumpro" ;;
+            *f3[[347]]:*:*:*|*f4[[1347]]:*:*:*)
 		case $host_cpu in
-                  x86_64*) ax_gcc_arch="nocona pentium4 pentiumpro" ;;
+                  x86_64*|amd64*) ax_gcc_arch="nocona pentium4 pentiumpro" ;;
                   *) ax_gcc_arch="prescott pentium4 pentiumpro" ;;
                 esac ;;
-            *f??:*:*:*) ax_gcc_arch="pentium4 pentiumpro";;
+            *f??:*:*:*) ax_gcc_arch="native pentium4 pentiumpro";;
           esac ;;
        *:68747541:*:*) # AMD
           case $ax_cv_gcc_x86_cpuid_1 in
 	    *5[[67]]?:*:*:*) ax_gcc_arch=k6 ;;
-	    *5[[8d]]?:*:*:*) ax_gcc_arch="k6-2 k6" ;;
-	    *5[[9]]?:*:*:*) ax_gcc_arch="k6-3 k6" ;;
+	    *5[[8c]]?:*:*:*) ax_gcc_arch="k6-2 k6" ;;
+	    *5[[9d]]?:*:*:*) ax_gcc_arch="k6-3 k6" ;;
 	    *60?:*:*:*) ax_gcc_arch=k7 ;;
 	    *6[[12]]?:*:*:*) ax_gcc_arch="athlon k7" ;;
 	    *6[[34]]?:*:*:*) ax_gcc_arch="athlon-tbird k7" ;;
@@ -90,7 +91,7 @@ case $host_cpu in
 	    *f[[4cef8b]]?:*:*:*) ax_gcc_arch="athlon64 k8" ;;
 	    *f5?:*:*:*) ax_gcc_arch="opteron k8" ;;
 	    *f7?:*:*:*) ax_gcc_arch="athlon-fx opteron k8" ;;
-	    *f??:*:*:*) ax_gcc_arch="k8" ;;
+	    *f??:*:*:*) ax_gcc_arch="native k8" ;;
           esac ;;
 	*:746e6543:*:*) # IDT
 	   case $ax_cv_gcc_x86_cpuid_1 in
@@ -102,8 +103,9 @@ case $host_cpu in
      esac
      if test x"$ax_gcc_arch" = x; then # fallback
 	case $host_cpu in
-	  i586*) ax_gcc_arch=pentium ;;
-	  i686*) ax_gcc_arch=pentiumpro ;;
+	  i586*) ax_gcc_arch="native pentium" ;;
+	  i686*) ax_gcc_arch="native pentiumpro" ;;
+          x86_64*|amd64*) ax_gcc_arch="native" ;;
         esac
      fi 
      ;;
@@ -145,7 +147,7 @@ case $host_cpu in
        *POWER5*|*power5*|*gr*|*gs*) ax_gcc_arch="power5 power4 970";;
        603ev|8240) ax_gcc_arch="$cputype 603e 603";;
        *Cell*) ax_gcc_arch="cellppu cell";;
-       *) ax_gcc_arch=$cputype ;;
+       *) ax_gcc_arch="$cputype native" ;;
      esac
      ax_gcc_arch="$ax_gcc_arch powerpc"
      ;;
@@ -159,7 +161,7 @@ for arch in $ax_gcc_arch; do
     flags="-mtune=$arch"
     # -mcpu=$arch and m$arch generate nonportable code on every arch except
     # x86.  And some other arches (e.g. Alpha) don't accept -mtune.  Grrr.
-    case $host_cpu in i*86|x86_64*) flags="$flags -mcpu=$arch -m$arch";; esac
+    case $host_cpu in i*86|x86_64*|amd64*) flags="$flags -mcpu=$arch -m$arch";; esac
   else
     flags="-march=$arch -mcpu=$arch -m$arch"
   fi
@@ -177,6 +179,6 @@ AC_MSG_RESULT($ax_cv_gcc_archflag)
 if test "x$ax_cv_gcc_archflag" = xunknown; then
   m4_default([$3],:)
 else
-  m4_default([$2], [CPPFLAGS="$CPPFLAGS $ax_cv_gcc_archflag"])
+  m4_default([$2], [CFLAGS="$CFLAGS $ax_cv_gcc_archflag"])
 fi
 ])

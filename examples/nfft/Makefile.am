@@ -19,7 +19,7 @@ flags_SOURCES = flags.c
 flags_LDADD = $(top_builddir)/libnfft3.la
 
 nfft_times_SOURCES = nfft_times.c
-nfft_times_LDADD = $(top_builddir)/libnfft3.la @fftw3_libs@ @fftw3_libcmd@
+nfft_times_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 EXTRA_DIST = flags.m ndft_fast.m taylor_nfft.m README
 example_DATA = $(EXTRA_DIST)

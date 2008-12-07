@@ -21,13 +21,13 @@
 ################################################################################
 
 # initialize autoconf
-AC_INIT(NFFT, 3.1.0, potts@mathematik.tu-chemnitz.de)
+AC_INIT([NFFT],[3.1.0-alpha],[potts@mathematik.tu-chemnitz.de])
 
 # copyright notice
 AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # directory for auxilliary files
-AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_AUX_DIR([config])
 
 # minimum libtool version
 LT_PREREQ([2.2.0])
@@ -230,9 +230,9 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 
 # Check for fftw3.
-NFFT_LIB_FFTW3
+AX_LIB_FFTW3
 
-if test "x$nfft_lib_fftw3" = "xno"; then
+if test "x$ax_lib_fftw3" = "xno"; then
   AC_MSG_ERROR(
     [The fftw3 library could not be found. You can download it from
      http://www.fftw.org. If you have installed fftw3, make sure that
@@ -240,31 +240,37 @@ if test "x$nfft_lib_fftw3" = "xno"; then
      more information.])
 fi
 
-if test "x$nfft_lib_fftw3_libtool" = "xno"; then
-  fftw3_libcmd="-lfftw3"
-  fftw3_libs="$fftw3_libs"
-else
-  fftw3_libcmd="$fftw3_libdir/libfftw3.la"
-  fftw3_libs=""
-fi
-
-AC_SUBST(fftw3_libcmd)
-AC_SUBST(fftw3_libs)
+# Check for MATLAB.
+AX_PROG_MATLAB
+AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+AC_SUBST(matlab_CPPFLAGS)
+AC_SUBST(matlab_LIBS)
+AC_SUBST(matlab_LDFLAGS)
+AC_SUBST(matlab_mexext)
 
 # Try to choose good compiler options.
 if test "x$ac_test_CFLAGS" != "xset"; then
+  saved_LDFLAGS="$LDFLAGS"
+  saved_LIBS="$LIBS"
+  LIBS="$LIBS $fftw3_LIBS $matlab_LIBADD"
+  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS $matlab_LDFLAGS"
   AX_CC_MAXOPT
+  LDFLAGS="$saved_LDFLAGS"
+  LIBS="$saved_LIBS"
 fi
 
-# Check for MATLAB.
-AX_PROG_MATLAB
+if test "x$ax_lib_fftw3_libtool" = "xyes"; then
+  fftw3_LIBS="$fftw3_lib_dir/libfftw3.la"
+fi
 
-CPPFLAGS="$CPPFLAGS $fftw3_includes"
+AC_SUBST(fftw3_LIBS)
+AC_SUBST(fftw3_LDFLAGS)
+
+CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
   CFLAGS="-g3"
-  LDFLAGS="$LDFLAGS"
 fi
 
 # add gcc warnings, in debug/maintainer mode only
