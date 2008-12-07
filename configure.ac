@@ -147,7 +147,7 @@ fi
 AC_SUBST(HAVE_FPT)
 
 if test "x$need_fpt" = "xyes" -a "x$have_fpt" = "xno"; then
-  AC_MSG_ERROR([You must enable the FPT module for this configuration (--enable-fpt)])
+  AC_MSG_ERROR([[You must enable the FPT module for this configuration (--enable-fpt)]])
 fi
 
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
@@ -236,11 +236,10 @@ AC_PROG_LN_S
 AX_LIB_FFTW3
 
 if test "x$ax_lib_fftw3" = "xno"; then
-  AC_MSG_ERROR(
-    [The fftw3 library could not be found. You can download it from
-     http://www.fftw.org. If you have installed fftw3, make sure that
-     this configure script can find it. See ./configure --help for
-     more information.])
+  AC_MSG_ERROR([The fftw3 library could not be found. You can download it from]#
+     [http://www.fftw.org. If you have installed fftw3, make sure that]#
+     [this configure script can find it. See ./configure --help for]#
+     [more information.])
 fi
 
 # Check for MATLAB.
