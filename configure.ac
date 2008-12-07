@@ -23,6 +23,9 @@
 # initialize autoconf
 AC_INIT([NFFT],[3.1.0-alpha],[potts@mathematik.tu-chemnitz.de])
 
+# m4 macros
+AC_CONFIG_MACRO_DIR([m4])
+
 # copyright notice
 AC_COPYRIGHT([2003, 2008, Jens Keiner, Stefan Kunis, Daniel Potts])
 
@@ -54,7 +57,7 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 AC_PROG_MAKE_SET
 
 # initialise automake
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(1.10)
 
 # host system type
 AC_CANONICAL_HOST
