@@ -1,5 +1,5 @@
 # $Id$
-#
+# 
 # Copyright (c) 2007, 2008 Jens Keiner
 #
 # This program is free software; you can redistribute it and/or modify it

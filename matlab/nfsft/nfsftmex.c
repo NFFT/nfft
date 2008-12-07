@@ -76,13 +76,10 @@ if (x == PLANS_MAX) \
 plans[x] = nfft_malloc(sizeof(nfsft_plan));
 
 /** Returns the plan reference number. */
-#define RETURN_PLAN(x,y) \
-plhs[0] = mxCreateDoubleScalar(mxREAL); \
-x = mxGetPr(plhs[0]); \
-x[0] = y;
+#define RETURN_PLAN(x) plhs[0] = mxCreateDoubleScalar(x);
 /*----------------------------------------------------------------------------*/
 
-void cleanup(void)
+static void cleanup(void)
 {
   int i;
 
@@ -152,7 +149,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   /* Allocate buffer for the command string. */
-  cmd = mxCalloc(cmdl, sizeof(char));
+  cmd = mxCalloc((unsigned)cmdl, sizeof(char));
 
   /* Copy the string data to buffe. */
   if (mxGetString(prhs[0], cmd, cmdl) != 0)
@@ -170,7 +167,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     ARG_GET_NM(dp1,dp2)
     MAKE_NEW_PLAN(i)
     nfsft_init(plans[i],(int)(dp1[0]),(int)(dp2[0]));
-    RETURN_PLAN(dp1,i)
+    RETURN_PLAN((double)i)
   }
   else if (strcmp(cmd,"init_advanced") == 0)
   {
@@ -184,7 +181,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nfsft_init_advanced(plans[i],(int)(dp1[0]),(int)(dp2[0]),
       (unsigned int)(dp3[0]) | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
       NFSFT_MALLOC_F_HAT);
-    RETURN_PLAN(dp1,i)
+    RETURN_PLAN((double)i)
   }
   else if (strcmp(cmd,"init_guru") == 0)
   {
@@ -200,7 +197,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       (unsigned int)(dp3[0]) | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
       NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE
       /*(int)(dp4[0])*/,(int)(dp5[0]));
-    RETURN_PLAN(dp1,i)
+    RETURN_PLAN((double)i)
   }
   else if (strcmp(cmd,"precompute") == 0)
   {

@@ -26,11 +26,12 @@
 
 #include "util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /* computes a 2d ndft by 1d nfft along the dimension 1 times
    1d ndft along dimension 0
 */
-void short_nfft_trafo_2d(nfft_plan* ths, nfft_plan* plan_1d)
+static void short_nfft_trafo_2d(nfft_plan* ths, nfft_plan* plan_1d)
 {
   int j,k0;
   double omega;
@@ -55,7 +56,7 @@ void short_nfft_trafo_2d(nfft_plan* ths, nfft_plan* plan_1d)
     }
 }
 
-void short_nfft_adjoint_2d(nfft_plan* ths, nfft_plan* plan_1d)
+static void short_nfft_adjoint_2d(nfft_plan* ths, nfft_plan* plan_1d)
 {
   int j,k0;
   double omega;
@@ -80,7 +81,7 @@ void short_nfft_adjoint_2d(nfft_plan* ths, nfft_plan* plan_1d)
 /* computes a 3d ndft by 1d nfft along the dimension 2 times
    2d ndft along dimension 0,1
 */
-void short_nfft_trafo_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
+static void short_nfft_trafo_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
 {
   int j,k0,k1;
   double omega;
@@ -107,7 +108,7 @@ void short_nfft_trafo_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
       }
 }
 
-void short_nfft_adjoint_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
+static void short_nfft_adjoint_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
 {
   int j,k0,k1;
   double omega;
@@ -134,7 +135,7 @@ void short_nfft_adjoint_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
 /* computes a 3d ndft by 2d nfft along the dimension 1,2 times
    1d ndft along dimension 0
 */
-void short_nfft_trafo_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
+static void short_nfft_trafo_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 {
   int j,k0;
   double omega;
@@ -160,7 +161,7 @@ void short_nfft_trafo_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
     }
 }
 
-void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
+static void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 {
   int j,k0;
   double omega;
@@ -187,7 +188,7 @@ void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 
 /*---------------------------------------------------------------------------*/
 
-int index_sparse_to_full_direct_2d(int J, int k)
+static int index_sparse_to_full_direct_2d(int J, int k)
 {
     int N=nfft_int_2_pow(J+2);               /* number of full coeffs             */
     int N_B=nfft_int_2_pow(J);               /* number in each sparse block       */
@@ -307,7 +308,7 @@ int index_sparse_to_full_direct_2d(int J, int k)
       }
 }
 
-inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
+static inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
 {
   /* only by lookup table */
   if( k < ths->N_total)
@@ -316,7 +317,7 @@ inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
     return -1;
 }
 
-int index_full_to_sparse_2d(int J, int k)
+static int index_full_to_sparse_2d(int J, int k)
 {
     int N=nfft_int_2_pow(J+2);               /* number of full coeffs       */
     int N_B=nfft_int_2_pow(J);               /* number in each sparse block */
@@ -370,7 +371,7 @@ int index_full_to_sparse_2d(int J, int k)
     return(-1);
 }
 
-void init_index_sparse_to_full_2d(nsfft_plan *ths)
+static void init_index_sparse_to_full_2d(nsfft_plan *ths)
 {
   int k_S;
 
@@ -378,7 +379,7 @@ void init_index_sparse_to_full_2d(nsfft_plan *ths)
     ths->index_sparse_to_full[k_S]=index_sparse_to_full_direct_2d(ths->J, k_S);
 }
 
-inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
+static inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
 {
   /* only by lookup table */
   if( k < ths->N_total)
@@ -387,7 +388,7 @@ inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
     return -1;
 }
 
-int index_full_to_sparse_3d(int J, int k)
+static int index_full_to_sparse_3d(int J, int k)
 {
   int N=nfft_int_2_pow(J+2);                 /* length of the full grid           */
   int N_B_r;                            /* size of a sparse block in level r */
@@ -477,7 +478,7 @@ int index_full_to_sparse_3d(int J, int k)
   return(-1);
 }
 
-void init_index_sparse_to_full_3d(nsfft_plan *ths)
+static void init_index_sparse_to_full_3d(nsfft_plan *ths)
 {
   int k1,k2,k3,k_s,r;
   int a,b;
@@ -598,7 +599,7 @@ void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_full_plan)
 }
 
 /* test copy_sparse_to_full */
-void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
+static void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
 {
   int r;
   int k1, k2;
@@ -664,7 +665,7 @@ void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
   }
 }
 
-void test_sparse_to_full_2d(nsfft_plan* ths)
+static void test_sparse_to_full_2d(nsfft_plan* ths)
 {
   int k_S,k1,k2;
   int N=nfft_int_2_pow(ths->J+2);
@@ -681,7 +682,7 @@ void test_sparse_to_full_2d(nsfft_plan* ths)
       }
 }
 
-void test_sparse_to_full_3d(nsfft_plan* ths)
+static void test_sparse_to_full_3d(nsfft_plan* ths)
 {
   int k_S,k1,k2,k3;
   int N=nfft_int_2_pow(ths->J+2);
@@ -737,7 +738,7 @@ void nsfft_init_random_nodes_coeffs(nsfft_plan *ths)
       }
 }
 
-void nsdft_trafo_2d(nsfft_plan *ths)
+static void nsdft_trafo_2d(nsfft_plan *ths)
 {
   int j,k_S,k_L,k0,k1;
   double omega;
@@ -761,7 +762,7 @@ void nsdft_trafo_2d(nsfft_plan *ths)
     }
 } /* void nsdft_trafo_2d */
 
-void nsdft_trafo_3d(nsfft_plan *ths)
+static void nsdft_trafo_3d(nsfft_plan *ths)
 {
   int j,k_S,k0,k1,k2;
   double omega;
@@ -797,7 +798,7 @@ void nsdft_trafo(nsfft_plan *ths)
     nsdft_trafo_3d(ths);
 }
 
-void nsdft_adjoint_2d(nsfft_plan *ths)
+static void nsdft_adjoint_2d(nsfft_plan *ths)
 {
   int j,k_S,k_L,k0,k1;
   double omega;
@@ -821,7 +822,7 @@ void nsdft_adjoint_2d(nsfft_plan *ths)
     }
 } /* void nsdft_adjoint_2d */
 
-void nsdft_adjoint_3d(nsfft_plan *ths)
+static void nsdft_adjoint_3d(nsfft_plan *ths)
 {
   int j,k_S,k0,k1,k2;
   double omega;
@@ -857,7 +858,7 @@ void nsdft_adjoint(nsfft_plan *ths)
     nsdft_adjoint_3d(ths);
 }
 
-void nsfft_trafo_2d(nsfft_plan *ths)
+static void nsfft_trafo_2d(nsfft_plan *ths)
 {
   int r,rr,j;
   double temp;
@@ -973,7 +974,7 @@ void nsfft_trafo_2d(nsfft_plan *ths)
     } /* for(rr) */
 } /* void nsfft_trafo_2d */
 
-void nsfft_adjoint_2d(nsfft_plan *ths)
+static void nsfft_adjoint_2d(nsfft_plan *ths)
 {
   int r,rr,j;
   double temp;
@@ -1089,7 +1090,7 @@ void nsfft_adjoint_2d(nsfft_plan *ths)
     } /* for(rr) */
 } /* void nsfft_adjoint_2d */
 
-void nsfft_trafo_3d(nsfft_plan *ths)
+static void nsfft_trafo_3d(nsfft_plan *ths)
 {
   int r,rr,j;
   double temp;
@@ -1303,7 +1304,7 @@ void nsfft_trafo_3d(nsfft_plan *ths)
     } /* for(rr) */
 } /* void nsfft_trafo_3d */
 
-void nsfft_adjoint_3d(nsfft_plan *ths)
+static void nsfft_adjoint_3d(nsfft_plan *ths)
 {
   int r,rr,j;
   double temp;
@@ -1537,7 +1538,7 @@ void nsfft_adjoint(nsfft_plan *ths)
 
 /*========================================================*/
 /* J >1, no precomputation at all!! */
-void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
+static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 {
   int r;
   int N[2];
@@ -1620,7 +1621,7 @@ void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 
 /*========================================================*/
 /* J >1, no precomputation at all!! */
-void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
+static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 {
   int r,rr,a,b;
   int N[3];
@@ -1749,6 +1750,12 @@ void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
 #else
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
 {
+  UNUSED(ths);
+  UNUSED(d);
+  UNUSED(J);
+  UNUSED(M);
+  UNUSED(m);
+  UNUSED(flags);
   fprintf(stderr,
 	  "\nError in kernel/nsfft_init: require GAUSSIAN window function\n");
 }

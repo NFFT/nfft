@@ -30,7 +30,7 @@
 
 #include "util.h"
 #include "nfft3.h"
-
+#include "infft.h"
 
 /**
  *  handy shortcuts
@@ -69,7 +69,7 @@
 #define NFST_PRE_WINFUN( d)  ths->N[d] = 2 * ths->N[d];         \
                              ths->n[d] = nfst_fftw_2N( ths->n[d]);
 
-#define NFST_POST_WINFUN( d) ths->N[d] = ((int)(0.5 * ths->N[d]));   \
+#define NFST_POST_WINFUN( d) ths->N[d] = (LRINT(0.5 * ths->N[d]));   \
                              ths->n[d] = nfst_fftw_2N_rev( ths->n[d]);
 
 
@@ -290,7 +290,7 @@ MACRO_ndst(adjoint)
 #define MACRO_nfst__lower_boundary( j,act_dim)                                  \
 {                                                                               \
   lb[(act_dim)] =                                                               \
-    ((int)(NODE((j),(act_dim)) * nfst_fftw_2N( ths->n[(act_dim)]))) - ths->m;   \
+    (LRINT(NODE((j),(act_dim)) * nfst_fftw_2N( ths->n[(act_dim)]))) - ths->m;   \
 }
 
 #define MACRO_nfst_D_compute_A                                                  \

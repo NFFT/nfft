@@ -1873,7 +1873,7 @@ int nfft_smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   if ((5*nsig) < (magx << 1))
     test = SQRT(test*p);
   else
-    test /= POW(K(1.585),magx);
+    test /= POW(K(1.585),(R)magx);
 
   if (3 <= nbmx)
   {

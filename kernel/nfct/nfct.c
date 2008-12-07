@@ -30,6 +30,7 @@
 
 #include "util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /**
  * handy shortcuts
@@ -68,7 +69,7 @@
 #define NFCT_PRE_WINFUN(d)  ths->N[d] = 2 * ths->N[d];             \
                              ths->n[d] = nfct_fftw_2N(ths->n[d]);
 
-#define NFCT_POST_WINFUN(d) ths->N[d] = (int)(0.5 * ths->N[d]);    \
+#define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(0.5 * ths->N[d]);    \
                              ths->n[d] = nfct_fftw_2N_rev(ths->n[d]);
 
 
@@ -100,7 +101,7 @@ int nfct_fftw_2N(int n)
 
 int nfct_fftw_2N_rev(int n)
 {
-  return (int)(0.5 * n) + 1;
+  return (LRINT(0.5 * n) + 1);
 }
 
 
@@ -293,7 +294,7 @@ MACRO_ndct(adjoint)
 #define MACRO_nfct__lower_boundary(j,act_dim)                                  \
 {                                                                               \
   lb[(act_dim)] =                                                               \
-    (int)(NODE((j),(act_dim)) * nfct_fftw_2N(ths->n[(act_dim)])) - ths->m;    \
+    LRINT(NODE((j),(act_dim)) * nfct_fftw_2N(ths->n[(act_dim)])) - ths->m;    \
 }
 
 #define MACRO_nfct_D_compute_A          					\
@@ -630,7 +631,7 @@ MACRO_nfct_B(T)
 
 /** more memory usage, a bit faster */
 #define MACRO_nfct_full_psi(which_one)                                         \
-void nfct_full_psi__ ## which_one(nfct_plan *ths)                              \
+static void nfct_full_psi__ ## which_one(nfct_plan *ths)                              \
 {                                                                               \
   int t, i;                  /**< index over all dimensions        */           \
   int j;                     /**< index over all nodes             */           \
@@ -830,7 +831,7 @@ void nfct_adjoint(nfct_plan *ths)
 * initialization of direct transform
 *
 **/
-void nfct_precompute_phi_hut(nfct_plan *ths)
+static void nfct_precompute_phi_hut(nfct_plan *ths)
 {
   int kg[ths->d];                       /**< index over all frequencies       */
   int t;                                /**< index over all dimensions        */
@@ -865,7 +866,7 @@ void nfct_precompute_psi(nfct_plan *ths)
       MACRO_nfct__lower_boundary(j, t);
 
       for(lc[t] = 0; lc[t] < NFCT_SUMMANDS; lc[t]++)
-	ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]] = MACRO_compute_PSI;
+	      ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]] = MACRO_compute_PSI;
 
     } /* for(j) */
   } /* for(t) */
@@ -877,7 +878,7 @@ void nfct_precompute_psi(nfct_plan *ths)
 
 
 
-void nfct_init_help(nfct_plan *ths)
+static void nfct_init_help(nfct_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
 
@@ -919,7 +920,7 @@ void nfct_init_help(nfct_plan *ths)
     /**
      * set default for full_psi_eps
      **/
-    ths->nfct_full_psi_eps = pow(10, -10);
+    ths->nfct_full_psi_eps = pow((R)10, (R)(-10));
   }
 
   if(ths->nfct_flags & FFTW_INIT)

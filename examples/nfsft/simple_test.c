@@ -9,16 +9,17 @@
 #include "util.h"
 /* Include NFFT3 library header. */
 #include "nfft3.h"
+#include "infft.h"
 
-void simple_test_nfsft(void)
+static void simple_test_nfsft(void)
 {
-  int j;                      /**< Index for nodes                                 */
-  int k;                      /**< Index for freqency degree                       */
-  int n;                      /**< Index for freqency degree                       */
-  nfsft_plan plan;            /**< Plan for the nfft                               */
-  const int N = 8;            /**< The bandwidth M                                 */
-  const int M = 8;            /**< The number of nodes M                           */
-  const int THRESHOLD = 1000; /**< The threshold for the NFSFT stabilization
+  int j;                       /**< Index for nodes                                 */
+  int k;                       /**< Index for freqency degree                       */
+  int n;                       /**< Index for freqency degree                       */
+  nfsft_plan plan;             /**< Plan for the nfft                               */
+  const int N = 8;             /**< The bandwidth M                                 */
+  const int M = 8;             /**< The number of nodes M                           */
+  const double THRESHOLD = 1000.0; /**< The threshold for the NFSFT stabilization
                                    procedure.                                      */
 
   /* Precompute. */
@@ -38,8 +39,8 @@ void simple_test_nfsft(void)
   /* Init pseudo random nodes. */
   for (j = 0; j < plan.M_total; j++)
   {
-    plan.x[2*j]=((double)rand())/RAND_MAX-0.5;
-    plan.x[2*j+1]=0.5*((double)rand())/RAND_MAX;
+    plan.x[2*j]=RAND-0.5;
+    plan.x[2*j+1]=0.5*RAND;
   }
 
   /* Do precomputation for nodes. */
@@ -51,7 +52,7 @@ void simple_test_nfsft(void)
     for (n = -k; n <= k; n++)
     {
       plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-        ((double)rand())/RAND_MAX - 0.5 + _Complex_I*(((double)rand())/RAND_MAX - 0.5);
+        RAND - 0.5 + _Complex_I*(RAND - 0.5);
     }
   }
 

@@ -83,12 +83,13 @@
 
 /** Swapping of two vectors.
  */
-#define NFFT_SWAP_complex(x,y) {fftw_complex* NFFT_SWAP_temp;              \
-                              NFFT_SWAP_temp=(x); (x)=(y); (y)=NFFT_SWAP_temp;}
+#define NFFT_SWAP_complex(x,y) {fftw_complex* NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 /** Swapping of two vectors.
  */
-#define NFFT_SWAP_double(x,y) {double* temp; temp=(x); (x)=(y); (y)=temp;}
+#define NFFT_SWAP_double(x,y) {double* NFFT_SWAP_temp__; NFFT_SWAP_temp__=(x); \
+  (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 /** Formerly known to be an irrational number.
  */
