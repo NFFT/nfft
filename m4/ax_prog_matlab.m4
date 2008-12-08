@@ -37,7 +37,7 @@ AC_DEFUN([AX_PROG_MATLAB],
   AC_ARG_WITH(matlab-arch,
     [AC_HELP_STRING([--with-matlab-arch=DIR],
       [Matlab architecture acronym])],
-    matlab_arch=${withval},matlab_arch="")
+    matlab_arch=${withval},matlab_arch="yes")
 
   AC_MSG_CHECKING([whether to check for Matlab])
 
@@ -63,7 +63,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
 
     # architecture and mex file extension
-    if test ! "x${matlab_arch}" = "x"; then
+    if test ! "x${matlab_arch}" = "xyes"; then
       # mex file extension for architecture
       AC_MSG_CHECKING([for mex file extension])
       case $matlab_arch in
@@ -79,8 +79,10 @@ AC_DEFUN([AX_PROG_MATLAB],
       esac
       AC_MSG_RESULT([${matlab_mexext}])
     else 
+      matlab_mexext="unknown"
+      matlab_arch="unknown"
+
       # mex file extension
-      matlab_mexext=""
       for matlab_check_prog_mexext in "mexext mexext.sh mexext.bat"; do
         AC_PATH_PROG([matlab_prog_mexext],[$matlab_check_prog_mexext],[no],
           [$PATH$PATH_SEPARATOR$matlab_bin_dir])
@@ -90,6 +92,27 @@ AC_DEFUN([AX_PROG_MATLAB],
           AC_MSG_RESULT([${matlab_mexext}])
           break
         fi
+
+      if test "x${matlab_mexext}" = "xunknown"; then
+        # Try guessing architecture on Matlab directory
+        for matlab_arch in "glnxa64 glnx86 maci64 maci mac"; do
+          if test -d "${matlab_bin_dir}/${matlab_arch}" - a -f "${matlab_bin_dir}/${matlab_arch}/MATLAB"
+      fi
+
+      if test "x${matlab_mexext}" = "xunknown"; then
+        # Try guessing the architecture based on host CPU
+        case $host in
+          powerpc-*darwin*)
+          i686-*darwin*)
+          *86_64*linux*)
+          *86*linux*)
+          *irix*)
+          *solaris*)
+          *cygwin*)
+          *mingw*)
+        esac
+      fi
+
       done
       if test "x${matlab_mexext}" = "x"; then
         AC_MSG_ERROR([Could not determine mex file extension. Please supply a valid architecture flag using the option --with-matlab-arch])
