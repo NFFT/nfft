@@ -64,6 +64,8 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     # architecture and mex file extension
     if test ! "x${matlab_arch}" = "xyes"; then
+      AC_MSG_CHECKING([for architecture])
+      AC_MSG_RESULT([${matlab_arch}])
       # mex file extension for architecture
       AC_MSG_CHECKING([for mex file extension])
       case $matlab_arch in
@@ -82,7 +84,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       matlab_mexext="unknown"
       matlab_arch="unknown"
 
-      # mex file extension
+      # mex file extension, maybe
       for matlab_check_prog_mexext in "mexext mexext.sh mexext.bat"; do
         AC_PATH_PROG([matlab_prog_mexext],[$matlab_check_prog_mexext],[no],
           [$PATH$PATH_SEPARATOR$matlab_bin_dir])
@@ -92,46 +94,68 @@ AC_DEFUN([AX_PROG_MATLAB],
           AC_MSG_RESULT([${matlab_mexext}])
           break
         fi
+      done
 
-      if test "x${matlab_mexext}" = "xunknown"; then
-        # Try guessing architecture on Matlab directory
-        for matlab_arch in "glnxa64 glnx86 maci64 maci mac"; do
-          if test -d "${matlab_bin_dir}/${matlab_arch}" - a -f "${matlab_bin_dir}/${matlab_arch}/MATLAB"
-      fi
-
+      # architecture, maybe
       if test "x${matlab_mexext}" = "xunknown"; then
         # Try guessing the architecture based on host CPU
         case $host in
-          powerpc-*darwin*)
-          i686-*darwin*)
-          *86_64*linux*)
-          *86*linux*)
-          *irix*)
-          *solaris*)
-          *cygwin*)
-          *mingw*)
+          *86_64*linux*) matlab_arch_test="glnxa64";;
+          *86*linux*) matlab_arch_test="glnx86";;
+          *powerpc*darwin*) matlab_arch_test="mac mac64";;
+          *86*darwin*) matlab_arch_test="maci maci64";; 
+          *solaris*) matlab_arch_test="sol sol64";;
+          *cygwin*) matlab_arch_test="win32 win64";;
+          *mingw*) matlab_arch_test="win32 win64";;
+          *) AC_MSG_ERROR([Cannot guess Matlab architecture based on host type.]);;
         esac
+        AC_MSG_CHECKING([for architecture])
+        for matlab_arch in "$matlab_arch_test"; do
+          if test -d "${matlab_bin_dir}/${matlab_arch}" -a -f "${matlab_bin_dir}/${matlab_arch}/MATLAB"; then
+            AC_MSG_RESULT([${matlab_arch}])
+            break
+          fi
+          matlab_arch="unkown"
+          AC_MSG_RESULT([unknown])
+        done
       fi
 
-      done
-      if test "x${matlab_mexext}" = "x"; then
-        AC_MSG_ERROR([Could not determine mex file extension. Please supply a valid architecture flag using the option --with-matlab-arch])
+      # mex file extension or architecture found
+      if test "x${matlab_mexext}" = "xunknown" -a "x${matlab_arch}" = "xunknown"; then
+        AC_MSG_ERROR([Could not determine mex file extension nor Matlab architecture. Please supply a valid architecture flag using the option --with-matlab-arch])
       fi
-      # architecture for mex file extension 
-      case $matlab_mexext in
-        mexglx) matlab_arch="glnx86";;
-        mexa64) matlab_arch="glnxa64";;
-        mexmac) matlab_arch="mac";;
-        mexmaci) matlab_arch="maci";;
-        mexmaci64) matlab_arch="maci64";;
-        mexs64) matlab_arch="sol64";;
-        mexw32) matlab_arch="win32";;
-        mexw64) matlab_arch="win64";;
-        *) AC_MSG_ERROR([Unsupported mex file extension ${matlab_mexext}.]);;
-      esac
+
+      if test "x${matlab_arch}" = "xunknown"; then
+        # architecture for mex file extension 
+        AC_MSG_CHECKING([for architecture])
+        case $matlab_mexext in
+          mexglx) matlab_arch="glnx86";;
+          mexa64) matlab_arch="glnxa64";;
+          mexmac) matlab_arch="mac";;
+          mexmaci) matlab_arch="maci";;
+          mexmaci64) matlab_arch="maci64";;
+          mexs64) matlab_arch="sol64";;
+          mexw32) matlab_arch="win32";;
+          mexw64) matlab_arch="win64";;
+          *) AC_MSG_ERROR([Unsupported mex file extension ${matlab_mexext}.]);;
+        esac
+        AC_MSG_RESULT([${matlab_arch}])
+      elif test "x${matlab_mexext}" = "xunknown"; then
+        AC_MSG_CHECKING([for mex file extension])
+        case $matlab_arch in
+          glnx86) matlab_mexext="mexglx";;
+          glnxa64) matlab_mexext="mexa64";;
+          mac) matlab_mexext="mexmac";;
+          maci) matlab_mexext="mexmaci";;
+          maci64) matlab_mexext="mexmaci64";;
+          sol64) matlab_mexext="mexs64";;
+          win32) matlab_mexext="mexw32";;
+          win64) matlab_mexext="mexw64";;
+          *) AC_MSG_ERROR([Unsupported or invalid architecture ${matlab_arch}.]);;
+        esac
+        AC_MSG_RESULT([${matlab_mexext}])
+      fi
     fi
-    AC_MSG_CHECKING([for architecture])
-    AC_MSG_RESULT([${matlab_arch}])
 
     # add "." to mex file extension
     matlab_mexext=".$matlab_mexext"
@@ -141,14 +165,31 @@ AC_DEFUN([AX_PROG_MATLAB],
     AX_CHECK_DIR([${matlab_arch_bin_dir}],[],
       [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
 
+    # dynamic library extension for architecture
+    case $matlab_arch in
+      glnx86|glnxa64|sol|sol64) matlab_libext=".so";;
+      mac|mac64|maci|maci64) matlab_libext=".dylib";;
+      win32|win64) matlab_libext=".dll";;
+      *) AC_MSG_ERROR([Unsupported or invalid architecture ${matlab_arch}.]);;
+    esac
+
     # libraries
     matlab_LDFLAGS="-L${matlab_arch_bin_dir}"
     saved_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS ${matlab_LDFLAGS}"
     matlab_LIBS=""
-    AC_CHECK_LIB([mx],[mxMalloc],[matlab_LIBS="$matlab_LIBS -lmx"],[AC_MSG_ERROR([Needed Matlab library mx not usable.])],[])
-    AC_CHECK_LIB([mex],[mexCallMATLAB],[matlab_LIBS="$matlab_LIBS -lmex"],[AC_MSG_ERROR([Needed Matlab library mex not usable.])],[])
-    AC_CHECK_LIB([mat],[matGetVariable],[matlab_LIBS="$matlab_LIBS -lmat"],[AC_MSG_ERROR([Needed Matlab library mat not usable.])],[])
+    AC_CHECK_LIB([mx],[mxMalloc],[matlab_LIBS="$matlab_LIBS -lmx"],
+      [AC_CHECK_FILE([${matlab_arch_bin_dir}/libmx${matlab_libext}],
+      [matlab_LIBS="$matlab_LIBS -lmx"],
+      [AC_MSG_ERROR([Needed Matlab library mx not usable.])])],[])
+    AC_CHECK_LIB([mex],[mexCallMATLAB],[matlab_LIBS="$matlab_LIBS -lmex"],
+      [AC_CHECK_FILE([${matlab_arch_bin_dir}/libmex${matlab_libext}],
+      [matlab_LIBS="$matlab_LIBS -lmex"],
+      [AC_MSG_ERROR([Needed Matlab library mex not usable.])])],[])
+    AC_CHECK_LIB([mat],[matGetVariable],[matlab_LIBS="$matlab_LIBS -lmat"],
+      [AC_CHECK_FILE([${matlab_arch_bin_dir}/libmat${matlab_libext}],
+      [matlab_LIBS="$matlab_LIBS -lmat"],
+      [AC_MSG_ERROR([Needed Matlab library mat not usable.])])],[])
     LDFLAGS="$saved_LDFLAGS"
 
     matlab_CPPFLAGS="-I${matlab_include_dir}"

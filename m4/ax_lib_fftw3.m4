@@ -80,7 +80,7 @@ AC_DEFUN([AX_LIB_FFTW3],
   if test "x$ax_lib_fftw3" = "xyes"; then
     if test -f "$fftw3_lib_dir/libfftw3.la"; then
         ax_lib_fftw3_libtool="yes"
-    elif test -d "x$fftw3_lib_dir" = "x/usr/local/lib" -a -f "/usr/lib/libfftw3.la"; then
+    elif test "x$fftw3_lib_dir" = "x/usr/local/lib" -a -f "/usr/lib/libfftw3.la"; then
       fftw3_include_dir="/usr/include"
       fftw3_CFLAGS="-I$fftw3_include_dir"
       fftw3_lib_dir="/usr/lib"
