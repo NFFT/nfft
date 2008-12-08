@@ -1,4 +1,4 @@
-# $Id: nfsftmex.c 1548 2007-04-18 07:34:23Z keiner $
+# $Id$
 #
 # Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
 #
@@ -254,8 +254,8 @@ AC_SUBST(matlab_mexext)
 if test "x$ac_test_CFLAGS" != "xset"; then
   saved_LDFLAGS="$LDFLAGS"
   saved_LIBS="$LIBS"
-  LIBS="$LIBS $fftw3_LIBS $matlab_LIBADD"
-  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS $matlab_LDFLAGS"
+  LIBS="$LIBS $fftw3_LIBS" #$matlab_LIBADD
+  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS" #$matlab_LDFLAGS
   AX_CC_MAXOPT
   LDFLAGS="$saved_LDFLAGS"
   LIBS="$saved_LIBS"
