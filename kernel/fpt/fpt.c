@@ -1575,6 +1575,7 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
   {
     /* Use NDSFT. */
     dpt_transposed(set, m, x, y, k_end, flags);
+    return;
   }
 
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
