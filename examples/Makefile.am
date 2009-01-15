@@ -41,4 +41,4 @@ else
 endif
 
 SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFST) \
-  $(DIR_NNFFT) $(DIR_NSFFT) solver
+  $(DIR_NNFFT) $(DIR_NSFFT) solver bug_nfsft

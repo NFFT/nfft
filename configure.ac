@@ -383,6 +383,7 @@ AC_OUTPUT(Makefile \
           examples/nnfft/simple_test/Makefile \
           examples/nsfft/Makefile \
           examples/solver/Makefile \
+          examples/bug_nfsft/Makefile \
           applications/Makefile \
           applications/fastgauss/Makefile \
           applications/fastsum/Makefile \
