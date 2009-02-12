@@ -158,7 +158,7 @@ static inline void NAME(double a, double b, double _Complex* u, double _Complex*
   for (l = 0; l < n/2; l++, v_ptr++) \
     *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
   v_ptr--; \
-  for (l = 0; l < n/2; l++, v_ptr++) \
+  for (l = 0; l < n/2; l++, v_ptr--) \
     *u_ptr++ = a * (b * S1 * (*v_ptr) * (*x_ptr++) + (S1 * (*v_ptr) * (1.0+*xx_ptr++)) * (*y_ptr++)); \
 }
 
