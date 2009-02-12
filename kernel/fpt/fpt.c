@@ -137,12 +137,13 @@ static inline void abuvxpwy(double a, double b, double _Complex* u, double _Comp
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, double* w, int n) \
 { \
+  const int n2 = n>>1; \
   int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   double *v_ptr = v, *w_ptr = w; \
-  for (l = 0; l < n/2; l++) \
+  for (l = 0; l < n2; l++) \
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
   v_ptr--; w_ptr--; \
-  for (l = 0; l < n/2; l++) \
+  for (l = 0; l < n2; l++) \
     *u_ptr++ = a * (b * S1 * (*v_ptr--) * (*x_ptr++) + S2 * (*w_ptr--) * (*y_ptr++)); \
 }
 
@@ -153,12 +154,13 @@ ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric2,-1.0,1.0)
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double* v, double _Complex* y, int n, double *xx) \
 { \
+  const int n2 = n>>1; \
   int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   double *v_ptr = v, *xx_ptr = xx; \
-  for (l = 0; l < n/2; l++, v_ptr++) \
+  for (l = 0; l < n2; l++, v_ptr++) \
     *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
   v_ptr--; \
-  for (l = 0; l < n/2; l++, v_ptr--) \
+  for (l = 0; l < n2; l++, v_ptr--) \
     *u_ptr++ = a * (b * S1 * (*v_ptr) * (*x_ptr++) + (S1 * (*v_ptr) * (1.0+*xx_ptr++)) * (*y_ptr++)); \
 }
 
@@ -169,12 +171,13 @@ ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_2,-1.0)
 static inline void NAME(double a, double b, double _Complex* u, double _Complex* x, \
   double _Complex* y, double* w, int n, double *xx) \
 { \
+  const int n2 = n>>1; \
   int l; double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   double *w_ptr = w, *xx_ptr = xx; \
-  for (l = 0; l < n/2; l++, w_ptr++) \
+  for (l = 0; l < n2; l++, w_ptr++) \
     *u_ptr++ = a * (b * (*w_ptr/(1.0+*xx_ptr++)) * (*x_ptr++) + (*w_ptr) * (*y_ptr++)); \
   w_ptr--; \
-  for (l = 0; l < n/2; l++, w_ptr--) \
+  for (l = 0; l < n2; l++, w_ptr--) \
     *u_ptr++ = a * (b * (S1 * (*w_ptr)/(1.0+*xx_ptr++) ) * (*x_ptr++) + S1 * (*w_ptr) * (*y_ptr++)); \
 }
 
@@ -187,46 +190,49 @@ static inline void auvxpwy(double a, double _Complex* u, double _Complex* x, dou
   int l;
   double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w;
-  for (l = 0; l < n; l++)
+  for (l = n; l > 0; l--)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
 }
 
 static inline void auvxpwy_symmetric(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
 {
+  const int n2 = n>>1; \
   int l;
   double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w;
-  for (l = 0; l < n/2; l++)
+  for (l = n2; l > 0; l--)
     *u_ptr++ = a * ((*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
   v_ptr--; w_ptr--;
-  for (l = 0; l < n/2; l++)
+  for (l = n2; l > 0; l--)
     *u_ptr++ = a * ((*v_ptr--) * (*x_ptr++) - (*w_ptr--) * (*y_ptr++));
 }
 
 static inline void auvxpwy_symmetric_1(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
+  const int n2 = n>>1; \
   int l;
   double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
-  for (l = 0; l < n/2; l++,xx_ptr++)
+  for (l = n2; l > 0; l--, xx_ptr++)
     *u_ptr++ = a * (((*v_ptr++)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)*(1.0+*xx_ptr)) * (*y_ptr++));
   v_ptr--; w_ptr--;
-  for (l = 0; l < n/2; l++, xx_ptr++)
+  for (l = n2; l > 0; l--, xx_ptr++)
     *u_ptr++ = a * (-((*v_ptr--)*(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)*(1.0+*xx_ptr)) * (*y_ptr++));
 }
 
 static inline void auvxpwy_symmetric_2(double a, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n, double *xx)
 {
+  const int n2 = n>>1; \
   int l;
   double _Complex *u_ptr = u, *x_ptr = x, *y_ptr = y;
   double *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
-  for (l = 0; l < n/2; l++, xx_ptr++)
+  for (l = n2; l > 0; l--, xx_ptr++)
     *u_ptr++ = a * (((*v_ptr++)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr++)/(1.0+*xx_ptr)) * (*y_ptr++));
   v_ptr--; w_ptr--;
-  for (l = 0; l < n/2; l++, xx_ptr++)
+  for (l = n2; l > 0; l--, xx_ptr++)
     *u_ptr++ = a * (-((*v_ptr--)/(1.0+*xx_ptr)) * (*x_ptr++) + ((*w_ptr--)/(1.0+*xx_ptr)) * (*y_ptr++));
 }
 
