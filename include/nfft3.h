@@ -78,12 +78,12 @@ typedef struct
   #define WINDOW_HELP_INIT \
     {                                                                          \
       int WINDOW_idx;                                                          \
-      ths->b = (double*) fftw_malloc(ths->d*sizeof(double));                   \
+      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
       for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
       ths->b[WINDOW_idx]=((double)2*ths->sigma[WINDOW_idx])/                   \
         (2*ths->sigma[WINDOW_idx]-1)*(((double)ths->m) / PI);                  \
       }
-  #define WINDOW_HELP_FINALIZE {fftw_free(ths->b);}
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m =12;}
 #elif defined(B_SPLINE)
   #define PHI_HUT(k,d) ((double)(((k)==0)? 1.0/ths->n[(d)] :                   \
@@ -92,9 +92,9 @@ typedef struct
     (double)ths->m,ths->spline_coeffs)/ths->n[(d)])
   #define WINDOW_HELP_INIT \
     {                                                                          \
-      ths->spline_coeffs= (double*)fftw_malloc(2*ths->m*sizeof(double));       \
+      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
     }
-  #define WINDOW_HELP_FINALIZE {fftw_free(ths->spline_coeffs);}
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m =11;}
 #elif defined(SINC_POWER)
   #define PHI_HUT(k,d) (nfft_bspline(2*ths->m,((double)2*ths->m*(k))/          \
@@ -105,9 +105,9 @@ typedef struct
     (2*ths->sigma[(d)]-1)/(2*ths->m)),2*ths->m)/ths->n[(d)]))
   #define WINDOW_HELP_INIT \
     {                                                                          \
-      ths->spline_coeffs= (double*)fftw_malloc(2*ths->m*sizeof(double));       \
+      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
     }
-  #define WINDOW_HELP_FINALIZE {fftw_free(ths->spline_coeffs);}
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
 #else /* Kaiser-Bessel is the default. */
   #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt(\
@@ -123,11 +123,11 @@ typedef struct
   #define WINDOW_HELP_INIT \
     {                                                                          \
       int WINDOW_idx;                                                          \
-      ths->b = (double*) fftw_malloc(ths->d*sizeof(double));                   \
+      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
       for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
       ths->b[WINDOW_idx] = ((double)PI*(2.0-1.0/ths->sigma[WINDOW_idx]));      \
   }
-  #define WINDOW_HELP_FINALIZE {fftw_free(ths->b);}
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
 #endif
 
@@ -2039,7 +2039,7 @@ typedef struct
   /* Private members */
   /*int NPT;*/                        /**< the next greater power of two with *
                                            respect to \f$N\f$                 */
-  int t;                              /**< the logaritm of NPT with           *
+  int t;                              /**< the logarithm of NPT with           *
                                            respect to the basis 2             */
   unsigned int flags;                 /**< the planner flags                  */
   nfft_plan plan_nfft;                /**< the internal NFFT plan             */
