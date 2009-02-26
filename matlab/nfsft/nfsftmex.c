@@ -129,33 +129,25 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   /* Check for command name. */
   if (nrhs == 0)
-  {
     mexErrMsgTxt("At least one input required.");
-  }
 
   /* Check if first argument is a string. */
   if (mxIsChar(prhs[0]) != 1)
-  {
     mexErrMsgTxt("First argument must be a string.");
-  }
 
   /* Command string length */
   cmdl = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 1;
 
   /* Check for too long command string. */
   if (cmdl > CMD_LEN_MAX+1)
-  {
     mexErrMsgTxt("Command argument too long.");
-  }
 
   /* Allocate buffer for the command string. */
   cmd = mxCalloc((unsigned)cmdl, sizeof(char));
 
-  /* Copy the string data to buffe. */
+  /* Copy the string data to buffer. */
   if (mxGetString(prhs[0], cmd, cmdl) != 0)
-  {
     mexErrMsgTxt("Could not get command string.");
-  }
 
   /* Command execution */
   if (strcmp(cmd,"init") == 0)
@@ -372,9 +364,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     ARG_GET_PLAN(dp1)
 
-    mexPrintf("set_x: nrhs = %d, plan = %d, m_total = %d\n",nrhs,dp1[0],
-      plans[(int)(dp1[0])]->M_total);
-
     if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
       mexErrMsgTxt("Third argument must be a 2 x M double array");
 
@@ -389,6 +378,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ((dp2[2*i] > PI)?(dp2[2*i] - 2*PI):(dp2[2*i]))/(2*PI);
       plans[(int)(dp1[0])]->x[2*i+1] = dp2[2*i+1]/(2*PI);
     }
+
+    mexPrintf("set_x: nrhs = %d, index = %d, plan = %p, m_total = %d\n",nrhs,dp1[0],
+      plans[(int)(dp1[0])],plans[(int)(dp1[0])]->M_total);
+
   }
   else if (strcmp(cmd,"set_f") == 0)
   {
