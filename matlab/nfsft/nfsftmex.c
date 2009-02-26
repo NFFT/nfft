@@ -68,9 +68,7 @@ if (x[0] >= (double)PLANS_MAX || plans[(int)(x[0])] == 0) \
 #define MAKE_NEW_PLAN(x) \
 x = 0; \
 while (x < PLANS_MAX && plans[x] != 0) \
-{ \
   x++; \
-} \
 if (x == PLANS_MAX) \
   mexErrMsgTxt("Too many plans already allocated"); \
 plans[x] = nfft_malloc(sizeof(nfsft_plan));
@@ -173,6 +171,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nfsft_init_advanced(plans[i],(int)(dp1[0]),(int)(dp2[0]),
       (unsigned int)(dp3[0]) | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
       NFSFT_MALLOC_F_HAT);
+
+    mexPrintf("init_advanced: N = %d, M = %d, flags = %d, index = %d, "
+        "plan = %p, M_total = %d, N_total = %d\n",dp1[0],dp2[0],dp3[0],i,
+        plans[i],plans[i]->M_total,plans[i]->N_total);
+
     RETURN_PLAN((double)i)
   }
   else if (strcmp(cmd,"init_guru") == 0)
