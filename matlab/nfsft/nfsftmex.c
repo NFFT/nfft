@@ -372,6 +372,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     ARG_GET_PLAN(dp1)
 
+    mexPrintf("set_x: nrhs = %d, plan = %d, m_total = %d\n",nrhs,dp1[0],
+      plans[(int)(dp1[0])]->M_total);
+
     if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
       mexErrMsgTxt("Third argument must be a 2 x M double array");
 
