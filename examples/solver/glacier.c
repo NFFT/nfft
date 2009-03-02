@@ -26,7 +26,7 @@ void glacier(int N,int M)
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y;
   nfft_plan p;
-  infft_plan ip;
+  solver_plan_complex ip;
   FILE* fp;
    
   /* initialise p */
@@ -39,7 +39,8 @@ void glacier(int N,int M)
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /* initialise ip, specific */
-  infft_init_advanced(&ip,&p, CGNE| PRECOMPUTE_DAMP);
+  solver_init_advanced_complex(&ip,(mv_plan_complex*)(&p), CGNE| PRECOMPUTE_DAMP);
+  fprintf(stderr,"Using the generic solver!");
 
   /* init nodes */
   fp=fopen("input_data.dat","r");
@@ -67,27 +68,27 @@ void glacier(int N,int M)
       ip.f_hat_iter[k]=0; 
 
   /* inverse trafo */  
-  infft_before_loop(&ip);
+  solver_before_loop_complex(&ip);
   for(l=0;l<40;l++)
     { 
       fprintf(stderr,"Residual ||r||=%e,\n",sqrt(ip.dot_r_iter));
-      infft_loop_one_step(&ip);
+      solver_loop_one_step_complex(&ip);
     }
 
   for(k=0;k<p.N_total;k++)
     printf("%le %le\n",creal(ip.f_hat_iter[k]),cimag(ip.f_hat_iter[k]));
 
-  infft_finalize(&ip);  
+  solver_finalize_complex(&ip);  
   nfft_finalize(&p);  
 }
 
 /** Reconstruction routine with cross validation */
-void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
+void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
 {  
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y,r;
   nfft_plan p,cp;
-  infft_plan ip;
+  solver_plan_complex ip;
   double _Complex* cp_y;
   FILE* fp;
   int M_re=M-M_cv;
@@ -103,10 +104,8 @@ void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
 
 
   /* initialise ip, specific */
-  infft_init_advanced(&ip,&p, infft_flags);
+  solver_init_advanced_complex(&ip,(mv_plan_complex*)(&p), solver_flags);
 
-  
-  
   /* initialise cp for validation */
   cp_y = (double _Complex*) nfft_malloc(M*sizeof(double _Complex));
   nfft_init_guru(&cp, 2, my_N, M, my_n, 6, 
@@ -155,10 +154,10 @@ void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
       ip.f_hat_iter[k]=0;
 
   /* inverse trafo */  
-  infft_before_loop(&ip);
+  solver_before_loop_complex(&ip);
   //  fprintf(stderr,"iteration starts,\t");
   for(l=0;l<40;l++)
-    infft_loop_one_step(&ip);
+    solver_loop_one_step_complex(&ip);
 
   //fprintf(stderr,"r=%1.2e, ",sqrt(ip.dot_r_iter)/M_re);
 
@@ -177,7 +176,7 @@ void glacier_cv(int N,int M,int M_cv,unsigned infft_flags)
   printf("$%1.1e$ & ",r);     
 
   nfft_finalize(&cp);
-  infft_finalize(&ip);  
+  solver_finalize_complex(&ip);  
   nfft_finalize(&p);  
 }
 

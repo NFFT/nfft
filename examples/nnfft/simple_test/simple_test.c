@@ -119,17 +119,17 @@ void simple_test_nnfft_2d(void)
   nnfft_finalize(&my_plan);
 }
 
-void simple_test_innfft_1d()
+void simple_test_innfft_1d(void)
 {
   int j,k,l,N=8;                        /**< index for nodes, freqencies, iter*/
-  nnfft_plan my_plan;                    /**< plan for the nfft                */
-  innfft_plan my_iplan;                  /**< plan for the inverse nfft        */
+  nnfft_plan my_plan;                   /**< plan for the nnfft               */
+  solver_plan_complex my_iplan;         /**< plan for the inverse nnfft       */
 
   /** initialise an one dimensional plan */
   nnfft_init(&my_plan,1 ,8 ,8 ,&N);
 
   /** initialise my_iplan */
-  innfft_init_advanced(&my_iplan,&my_plan,CGNR);
+  solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)(&my_plan),CGNR);
 
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
@@ -164,11 +164,11 @@ void simple_test_innfft_1d()
         "approximate solution, vector f_hat_iter");
 
   /** solve the system */
-  innfft_before_loop(&my_iplan);
+  solver_before_loop_complex(&my_iplan);
   for(l=0;l<8;l++)
   {
     printf("iteration l=%d\n",l);
-    innfft_loop_one_step(&my_iplan);
+    solver_loop_one_step_complex(&my_iplan);
     nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
           "approximate solution, vector f_hat_iter");
 
@@ -178,7 +178,7 @@ void simple_test_innfft_1d()
     NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
   }
 
-  innfft_finalize(&my_iplan);
+  solver_finalize_complex(&my_iplan);
   nnfft_finalize(&my_plan);
 }
 
@@ -236,13 +236,13 @@ int main(void)
   getc(stdin);
 
   system("clear");
-  printf("2) computing a two dimensional nndft, nfft\n\n");
+  printf("2) computing a two dimensional nndft, nnfft\n\n");
   simple_test_nnfft_2d();
 
   getc(stdin);
 
   system("clear");
-  printf("3) computing an one dimensional infft\n\n");
+  printf("3) computing an one dimensional innfft\n\n");
   simple_test_innfft_1d();
 
   getc(stdin);

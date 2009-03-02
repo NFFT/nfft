@@ -93,7 +93,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
-  infft_plan my_infft_plan;             /**< plan for the inverse nfft        */
+  solver_plan_complex my_infft_plan;             /**< plan for the inverse nfft        */
 
   fftw_complex *fft;                    /**< variable for the fftw-1Ds        */
   fftw_plan my_fftw_plan;               /**< plan for the fftw-1Ds            */
@@ -125,7 +125,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT);
+  solver_init_advanced_complex(&my_infft_plan,(mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
 
   /** init nodes and weights of grid*/
   gridfcn(T,R,x,w);
@@ -175,7 +175,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
     my_infft_plan.f_hat_iter[k] = 0.0 + _Complex_I*0.0;
 
   /** solve the system */
-  infft_before_loop(&my_infft_plan);
+  solver_before_loop_complex(&my_infft_plan);
 
   if (max_i<1)
   {
@@ -187,7 +187,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   {
     for(l=1;l<=max_i;l++)
     {
-      infft_loop_one_step(&my_infft_plan);
+      solver_loop_one_step_complex(&my_infft_plan);
       /*if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;*/
     }
   }
@@ -200,7 +200,7 @@ int Inverse_Radon_trafo(int (*gridfcn)(), int T, int R, double *Rf, int NN, doub
   /** finalise the plans and free the variables */
   fftw_destroy_plan(my_fftw_plan);
   nfft_free(fft);
-  infft_finalize(&my_infft_plan);
+  solver_finalize_complex(&my_infft_plan);
   nfft_finalize(&my_nfft_plan);
   nfft_free(x);
   nfft_free(w);

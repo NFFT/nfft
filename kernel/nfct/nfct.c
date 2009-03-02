@@ -938,6 +938,9 @@ static void nfct_init_help(nfct_plan *ths)
       fftw_plan_r2r(ths->d, ths->n, ths->g1, ths->g2,
 		     ths->r2r_kind, ths->fftw_flags);
   }
+
+  ths->mv_trafo = (void (*) (void* ))nfct_trafo;
+  ths->mv_adjoint = (void (*) (void* ))nfct_adjoint;
 }
 
 

@@ -550,6 +550,9 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   ths->direct_plan->x = ths->x;
   ths->direct_plan->f = ths->f;
   ths->F = ths->direct_plan->f_hat;
+
+  ths->mv_trafo = (void (*) (void* ))nnfft_trafo;
+  ths->mv_adjoint = (void (*) (void* ))nnfft_adjoint;
 }
 
 void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, int *N1,

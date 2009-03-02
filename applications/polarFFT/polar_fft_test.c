@@ -194,7 +194,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
-  infft_plan my_infft_plan;             /**< plan for the inverse nfft        */
+  solver_plan_complex my_infft_plan;             /**< plan for the inverse nfft        */
 
   double *x, *w;                        /**< knots and associated weights     */
   int l;                                /**< index for iterations             */
@@ -219,7 +219,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  infft_init_advanced(&my_infft_plan,&my_nfft_plan, CGNR | PRECOMPUTE_WEIGHT );
+  solver_init_advanced_complex(&my_infft_plan,(mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
 
   /** init nodes, given samples and weights */
   polar_grid(T,R,x,w);
@@ -243,12 +243,12 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
 
   /** initialise damping factors */
   if(my_infft_plan.flags & PRECOMPUTE_DAMP)
-    for(j=0;j<my_infft_plan.mv->N[0];j++)
-      for(k=0;k<my_infft_plan.mv->N[1];k++)
+    for(j=0;j<my_nfft_plan.N[0];j++)
+      for(k=0;k<my_nfft_plan.N[1];k++)
   {
-    my_infft_plan.w_hat[j*my_infft_plan.mv->N[1]+k]=
-        (sqrt(pow((double)(j-my_infft_plan.mv->N[0]/2),2.0)+pow((double)(k-my_infft_plan.mv->N[1]/2),2.0))
-            >((double)(my_infft_plan.mv->N[0]/2))?0:1);
+    my_infft_plan.w_hat[j*my_nfft_plan.N[1]+k]=
+        (sqrt(pow((double)(j-my_nfft_plan.N[0]/2),2.0)+pow((double)(k-my_nfft_plan.N[1]/2),2.0))
+            >((double)(my_nfft_plan.N[0]/2))?0:1);
   }
 
   /** initialise some guess f_hat_0 */
@@ -256,7 +256,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
     my_infft_plan.f_hat_iter[k] = 0.0 + _Complex_I*0.0;
 
   /** solve the system */
-  infft_before_loop(&my_infft_plan);
+  solver_before_loop_complex(&my_infft_plan);
 
   if (max_i<1)
   {
@@ -268,7 +268,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
   {
     for(l=1;l<=max_i;l++)
     {
-      infft_loop_one_step(&my_infft_plan);
+      solver_loop_one_step_complex(&my_infft_plan);
     }
   }
 
@@ -277,7 +277,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
     f_hat[k] = my_infft_plan.f_hat_iter[k];
 
   /** finalise the plans and free the variables */
-  infft_finalize(&my_infft_plan);
+  solver_finalize_complex(&my_infft_plan);
   nfft_finalize(&my_nfft_plan);
   nfft_free(x);
   nfft_free(w);

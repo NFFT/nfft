@@ -22,4 +22,4 @@ M_cv_end=1000;
 
 save input_data.dat -ascii -double -tabs input_data
 
-system(sprintf('./glacier %d %d %d %d %d> output_data_cv.tex',N,M,M_cv_start,M_cv_step,M_cv_end));
+system(sprintf('./glacier %d %d %d %d %d > output_data_cv.tex',N,M,M_cv_start,M_cv_step,M_cv_end));

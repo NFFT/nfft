@@ -20,7 +20,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   double w,epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */;
   mri_inh_2d1d_plan my_plan;
-  imri_inh_2d1d_plan my_iplan;
+  solver_plan_complex my_iplan;
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -87,7 +87,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
   /* initialise my_iplan, advanced */
-  imri_inh_2d1d_init_advanced(&my_iplan,&my_plan, infft_flags );
+  solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)(&my_plan), infft_flags );
 
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
@@ -156,7 +156,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   t=nfft_second();
   
   /* inverse trafo */
-  imri_inh_2d1d_before_loop(&my_iplan);
+  solver_before_loop_complex(&my_iplan);
   for(l=0;l<iteration;l++)
   {
     /* break if dot_r_iter is smaller than epsilon*/
@@ -164,7 +164,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
     l+1,iteration);
-    imri_inh_2d1d_loop_one_step(&my_iplan);
+    solver_loop_one_step_complex(&my_iplan);
   }
 
   t=nfft_second()-t;
@@ -187,7 +187,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
 
   fclose(fout_real);
   fclose(fout_imag);
-  imri_inh_2d1d_finalize(&my_iplan);
+  solver_finalize_complex(&my_iplan);
   mri_inh_2d1d_finalize(&my_plan);
 }
 

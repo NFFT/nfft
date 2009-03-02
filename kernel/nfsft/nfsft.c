@@ -345,6 +345,9 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
       nfft_free(nfft_size);
       nfft_free(fftw_size);
   }
+
+  plan->mv_trafo = (void (*) (void* ))nfsft_trafo;
+  plan->mv_adjoint = (void (*) (void* ))nfsft_adjoint;
 }
 
 void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,

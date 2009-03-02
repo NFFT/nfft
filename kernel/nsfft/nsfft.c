@@ -1746,6 +1746,10 @@ void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
     nsfft_init_2d(ths, J, M, m, flags);
   else
     nsfft_init_3d(ths, J, M, m, flags);
+
+
+  ths->mv_trafo = (void (*) (void* ))nsfft_trafo;
+  ths->mv_adjoint = (void (*) (void* ))nsfft_adjoint;
 }
 #else
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)

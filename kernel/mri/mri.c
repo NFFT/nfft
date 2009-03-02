@@ -162,6 +162,9 @@ void mri_inh_2d1d_init_guru(mri_inh_2d1d_plan *ths, int *N, int M, int *n,
 
   ths->t = (double*) nfft_malloc(ths->M_total*sizeof(double));
   ths->w = (double*) nfft_malloc(ths->N_total*sizeof(double));
+
+  ths->mv_trafo = (void (*) (void* ))mri_inh_2d1d_trafo;
+  ths->mv_adjoint = (void (*) (void* ))mri_inh_2d1d_adjoint;
 }
 
 void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths) {
@@ -251,6 +254,9 @@ void mri_inh_3d_init_guru(mri_inh_3d_plan *ths, int *N, int M, int *n,
   ths->f = ths->plan.f;
   ths->f_hat = (double _Complex*) nfft_malloc(ths->N_total*sizeof(double _Complex));
   ths->w = (double*) nfft_malloc(ths->N_total*sizeof(double));
+
+  ths->mv_trafo = (void (*) (void* ))mri_inh_3d_trafo;
+  ths->mv_adjoint = (void (*) (void* ))mri_inh_3d_adjoint;
 }
 
 void mri_inh_3d_finalize(mri_inh_3d_plan *ths) {

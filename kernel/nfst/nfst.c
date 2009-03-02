@@ -924,6 +924,9 @@ void nfst_init_help( nfst_plan *ths)
       ths->my_fftw_r2r_plan =
         fftw_plan_r2r( ths->d, ths->n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
   }
+
+  ths->mv_trafo = (void (*) (void* ))nfst_trafo;
+  ths->mv_adjoint = (void (*) (void* ))nfst_adjoint;
 }
 
 void nfst_init( nfst_plan *ths, int d, int *N, int M_total)

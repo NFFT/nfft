@@ -19,7 +19,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
   int j,k,z,l;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
-  infft_plan my_iplan;          /* plan for the two dimensional infft */
+  solver_plan_complex my_iplan;          /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
   FILE* fout_real;              /* output file (real part) */
   FILE* fout_imag;              /* output file (imag part) */
@@ -47,7 +47,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
   
   /* initialise my_iplan, advanced */
-  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
+  solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)(&my_plan), infft_flags );
  
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
@@ -107,7 +107,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
     my_iplan.f_hat_iter[k]=0.0;
   
   /* inverse trafo */
-  infft_before_loop(&my_iplan);
+  solver_before_loop_complex(&my_iplan);
   for(l=0;l<iteration;l++)
   {
     /* break if dot_r_iter is smaller than epsilon*/
@@ -115,7 +115,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
       break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
     l+1,iteration);
-    infft_loop_one_step(&my_iplan);
+    solver_loop_one_step_complex(&my_iplan);
   }
   
   for(l=0;l<Z;l++)
@@ -133,7 +133,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
   fclose(fout_real);
   fclose(fout_imag);
 
-  infft_finalize(&my_iplan);
+  solver_finalize_complex(&my_iplan);
   nfft_finalize(&my_plan);
 }
 

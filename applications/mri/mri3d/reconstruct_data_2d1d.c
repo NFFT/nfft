@@ -19,7 +19,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
   int j,k,l,z;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
-  infft_plan my_iplan;          /* plan for the two dimensional infft */
+  solver_plan_complex my_iplan; /* plan for the two dimensional infft */
   FILE* fin;                    /* input file */
   int my_N[2],my_n[2];          /* to init the nfft */
   double tmp, epsilon=0.0000003;/* tmp to read the obsolent z from the input file
@@ -44,7 +44,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
   
   /* initialise my_iplan, advanced */
-  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
+  solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)(&my_plan), infft_flags );
 
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
@@ -100,7 +100,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
       my_iplan.f_hat_iter[k]=0.0;
  
     /* inverse trafo */
-    infft_before_loop(&my_iplan);
+    solver_before_loop_complex(&my_iplan);
     for(l=0;l<iteration;l++)
     {
       /* break if dot_r_iter is smaller than epsilon*/
@@ -108,7 +108,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
       break;
       fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
       iteration*z+l+1,iteration*Z);
-      infft_loop_one_step(&my_iplan);
+      solver_loop_one_step_complex(&my_iplan);
     }
     for(k=0;k<my_plan.N_total;k++) {
       /* write every slice in the memory.
@@ -120,7 +120,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight, fft
   fclose(fin);
 	
   /* finalize the infft */
-  infft_finalize(&my_iplan);
+  solver_finalize_complex(&my_iplan);
   
   /* finalize the nfft */
   nfft_finalize(&my_plan);

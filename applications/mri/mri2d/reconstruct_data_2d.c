@@ -19,7 +19,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   int j,k,l;                    /* some variables  */
   double real,imag,t;           /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
-  infft_plan my_iplan;          /* plan for the two dimensional infft */
+  solver_plan_complex my_iplan; /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
   FILE* fout_real;              /* output file                        */
   FILE* fout_imag;              /* output file                        */
@@ -46,7 +46,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
   /* initialise my_iplan, advanced */
-  infft_init_advanced(&my_iplan,&my_plan, infft_flags );
+  solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)&my_plan, infft_flags );
 
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
@@ -103,7 +103,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   t=nfft_second();
     
   /* inverse trafo */
-  infft_before_loop(&my_iplan);
+  solver_before_loop_complex(&my_iplan);
   for(l=0;l<iteration;l++)
   {
     /* break if dot_r_iter is smaller than epsilon*/
@@ -111,7 +111,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
       break;
     fprintf(stderr,"%e,  %i of %i\n",sqrt(my_iplan.dot_r_iter),
     l+1,iteration);
-    infft_loop_one_step(&my_iplan);
+    solver_loop_one_step_complex(&my_iplan);
   }
 
   
@@ -135,7 +135,7 @@ void reconstruct(char* filename,int N,int M,int iteration, int weight)
   fclose(fout_imag);
 
   /* finalize the infft */
-  infft_finalize(&my_iplan);
+  solver_finalize_complex(&my_iplan);
   
   /* finalize the nfft */
   nfft_finalize(&my_plan);
