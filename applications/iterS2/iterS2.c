@@ -63,7 +63,7 @@ int main (int argc, char **argv)
   double err_f;                /* Error E_infty for fast algorithm            */
   nfsft_plan plan;             /* NFSFT plan                                  */
   nfsft_plan plan2;            /* NFSFT plan                                  */
-  infsft_plan iplan;           /* NFSFT plan                                  */
+  solver_plan_complex iplan;           /* NFSFT plan                                  */
   int j;                       /*                                             */
   int k;                       /*                                             */
   int m;                       /*                                             */
@@ -270,11 +270,11 @@ int main (int argc, char **argv)
 
     if ((N+1)*(N+1) > M)
     {
-      infsft_init_advanced (&iplan, &plan, CGNE | PRECOMPUTE_DAMP);
+      solver_init_advanced_complex(&iplan, (mv_plan_complex*)(&plan), CGNE | PRECOMPUTE_DAMP);
     }
     else
     {
-      infsft_init_advanced (&iplan, &plan, CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
+      solver_init_advanced_complex(&iplan, (mv_plan_complex*)(&plan), CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
     }
 
     /* Read the nodes and function values. */
@@ -388,7 +388,7 @@ int main (int argc, char **argv)
     }
 
     /* inverse trafo */
-    infsft_before_loop(&iplan);
+    solver_before_loop_complex(&iplan);
 
     /*for (k = 0; k < plan.M_total; k++)
     {
@@ -398,7 +398,7 @@ int main (int argc, char **argv)
     for (m = 0; m < 29; m++)
     {
       fprintf(stderr,"Residual ||r||=%e,\n",sqrt(iplan.dot_r_iter));
-      infsft_loop_one_step(&iplan);
+      solver_loop_one_step_complex(&iplan);
     }
 
     /*NFFT_SWAP_complex(iplan.f_hat_iter, plan.f_hat);
@@ -425,7 +425,7 @@ int main (int argc, char **argv)
       fprintf(stdout,"%le\n",cabs(plan2.f[k]));
     }
 
-    infsft_finalize (&iplan);
+    solver_finalize_complex(&iplan);
 
     nfsft_finalize(&plan);
 

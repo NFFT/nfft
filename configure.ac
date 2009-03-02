@@ -379,8 +379,6 @@ AC_OUTPUT(Makefile \
           examples/nfsft/Makefile \
           examples/nfst/Makefile \
           examples/nnfft/Makefile \
-          examples/nnfft/accuracy/Makefile \
-          examples/nnfft/simple_test/Makefile \
           examples/nsfft/Makefile \
           examples/solver/Makefile \
           applications/Makefile \
