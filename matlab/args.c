@@ -16,39 +16,19 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
-
-#include <mex.h>
-#include "nfft3.h"
+#include "config.h"
 #include "imex.h"
 
-/** Replacement for fftw_malloc in mex files */
-void *nfft_mex_malloc(size_t n)
+int nfft_mex_get_int(const mxArray *p, const char *errmsg)
 {
-  void *p;
-
-  p = mxMalloc(n);
-
-  /* Should never be reached if mxMalloc fails (in a mex file) but in Matlab
-   * you never know... */
-  if (!p)
-    mexErrMsgTxt("Not enough memory.");
-
-  mexMakeMemoryPersistent(p);
-
-  return p;
+  DM(if (!mxIsDouble(p) || mxIsComplex(p) || mxGetM(p) != 1 || mxGetN(p) != 1)
+    mexErrMsgTxt(errmsg);)
+  return mxGetScalar(p);
 }
 
-/** Replacement for fftw_free in mex files */
-void nfft_mex_free(void *p)
+double nfft_mex_get_double(const mxArray *p, const char *errmsg)
 {
-  if (p)
-    mxFree(p);
-}
-
-/** install hooks. */
-void nfft_mex_install_mem_hooks(void)
-{
-  nfft_malloc_hook = nfft_mex_malloc;
-  nfft_free_hook = nfft_mex_free;
+  DM(if (!mxIsDouble(p) || mxIsComplex(p) || mxGetM(p) != 1 || mxGetN(p) != 1)
+    mexErrMsgTxt(errmsg);)
+  return mxGetScalar(p);
 }

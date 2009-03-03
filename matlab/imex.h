@@ -30,7 +30,16 @@
 /* Replacements for nfft_malloc and nfft_free plus install routine */
 extern void *nfft_mex_malloc(size_t n);
 extern void nfft_mex_free(void *p);
-extern void install_mem_hooks(void);
+extern void nfft_mex_install_mem_hooks(void);
+
+int nfft_mex_get_int(const mxArray *p, const char *errmsg);
+double nfft_mex_get_double(const mxArray *p, const char *errmsg);
+
+#ifdef MATLAB_ARGCHECKS
+#define DM(Y) Y
+#else
+#define DM(Y)
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Checks if argument is a scalar. */
