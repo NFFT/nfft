@@ -39,11 +39,15 @@ AC_DEFUN([AX_PROG_MATLAB],
       [Matlab architecture acronym])],
     matlab_arch=${withval},matlab_arch="yes")
 
-  AC_ARG_WITH(matlab-argchecks,
-    [AC_HELP_STRING([--with-matlab-argchecks],
-      [Compile Matlab interface with argument checks])],
-      [AC_DEFINE(MATLAB_ARGCHECKS,1,[Define to enable Matlab argument checks.])],
-      [])
+  AC_ARG_ENABLE(matlab-argchecks,
+    [AC_HELP_STRING([--enable-matlab-argchecks],
+      [Compile Matlab interface with argument checks [default=yes]])],
+      [ok="$enableval"],
+      [ok="yes"])
+
+  if test "x$ok" = "xyes"; then
+    AC_DEFINE(MATLAB_ARGCHECKS,1,[Define to enable Matlab argument checks.])
+  fi
 
   AC_MSG_CHECKING([whether to check for Matlab])
 
