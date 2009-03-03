@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -17,6 +15,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+
+/* $Id$ */
 
 /* Include ANSI-C headers. */
 #include <stdlib.h>
