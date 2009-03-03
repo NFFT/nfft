@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri3d_construct_data_1d2d construct_data_1d2d
  * \ingroup applications_mri3d
  * \{
@@ -20,12 +40,12 @@ void construct(char * file, int N, int M, int Z, fftw_complex *mem)
   double tmp;             /* a placeholder */
   nfft_plan my_plan;      /* plan for the two dimensional nfft  */
   FILE* fp;
-    
+
   /* initialise my_plan */
   nfft_init_2d(&my_plan,N,N,M/Z);
 
   fp=fopen("knots.dat","r");
-  
+
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le %le",&my_plan.x[2*j+0],&my_plan.x[2*j+1],&tmp);
@@ -36,10 +56,10 @@ void construct(char * file, int N, int M, int Z, fftw_complex *mem)
 
   for(z=0;z<Z;z++) {
     tmp = (double) z;
-  
+
     for(j=0;j<N*N;j++)
       my_plan.f_hat[j] = mem[(z*N*N+N*N*Z/2+j)%(N*N*Z)];
-    
+
     if(my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
 
@@ -97,24 +117,24 @@ void read_data(int N,int M,int Z, fftw_complex *mem)
 }
 
 int main(int argc, char **argv)
-{ 
+{
   fftw_complex *mem;
-  
+
   if (argc <= 4) {
     printf("usage: ./construct_data FILENAME N M Z\n");
     return 1;
   }
 
   mem = (fftw_complex*) nfft_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
-  
+
   read_data(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
 
   fft(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
- 
+
   construct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]), mem);
-  
+
   nfft_free(mem);
-  
+
   return 1;
 }
 /* \} */

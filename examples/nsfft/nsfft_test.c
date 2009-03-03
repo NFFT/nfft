@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -23,13 +43,13 @@ void accuracy_nsfft(int d, int J, int M, int m)
 
   /** direct trafo */
   nsdft_trafo(&p);
-  
+
   NFFT_SWAP_complex(swap_sndft_trafo,p.f);
 
   /** approx. trafo */
   nsfft_trafo(&p);
-  
-  printf("%5d\t %+.5E\t",J, 
+
+  printf("%5d\t %+.5E\t",J,
          nfft_error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
                                  p.f_hat, p.N_total));
   fflush(stdout);
@@ -38,13 +58,13 @@ void accuracy_nsfft(int d, int J, int M, int m)
 
   /** direct adjoint */
   nsdft_adjoint(&p);
-  
+
   NFFT_SWAP_complex(swap_sndft_adjoint,p.f_hat);
 
   /** approx. adjoint */
   nsfft_adjoint(&p);
-  
-  printf("%+.5E\n", 
+
+  printf("%+.5E\n",
          nfft_error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
                                  p.N_total,
                                  p.f, p.M_total));
@@ -95,7 +115,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     t_nsdft/=r;
   }
   else
-    t_nsdft=nan("");   
+    t_nsdft=nan("");
 
   if(test_nfft)
   {
@@ -124,7 +144,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   }
   else
   {
-    t_nfft=nan(""); 
+    t_nfft=nan("");
     m_nfft=-1;
   }
 
@@ -158,7 +178,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 int main(int argc,char **argv)
 {
   int d, J, M;
-    
+
   if(argc<=2)
   {
     fprintf(stderr,"nsfft_test type d [first last trials]\n");
@@ -175,7 +195,7 @@ int main(int argc,char **argv)
     for(J=1; J<10; J++)
       accuracy_nsfft(d, J, 1000, 6);
   }
- 
+
   if(atoi(argv[1])==2)
   {
     fprintf(stderr,"Testing the computation time of the nsdft, nfft, and nsfft\n");
@@ -186,14 +206,14 @@ int main(int argc,char **argv)
 	M=(J+4)*nfft_int_2_pow(J+1);
       else
 	M=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
-      
+
       if(d*(J+2)<=24)
 	time_nsfft(d, J, M, 1, 1);
       else
 	if(d*(J+2)<=24)
 	  time_nsfft(d, J, M, 0, 1);
 	else
-	  time_nsfft(d, J, M, 0, 0);  
+	  time_nsfft(d, J, M, 0, 0);
     }
   }
 

@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
@@ -6,7 +26,7 @@
 #include "nfft3.h"
 #include "util.h"
 
-/** 
+/**
  * \defgroup applications_mri2d_reconstruct_data_inh_3d reconstruct_data_inh_3d
  * \ingroup applications_mri2d
  * \{
@@ -47,7 +67,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
   }
 
   fclose(ftime);
-  
+
   Ts=(min_time+max_time)/2.0;
 
 
@@ -66,14 +86,14 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
 	/* N3 has to be even */
 	if(N3%2!=0)
 	  N3++;
-	
+
   W= NFFT_MAX(fabs(min_inh),fabs(max_inh))/(0.5-((double) m)/N3);
 
   my_N[0]=N;my_n[0]=ceil(N*sigma);
   my_N[1]=N; my_n[1]=ceil(N*sigma);
   my_N[2]=N3; my_n[2]=ceil(N3*sigma);
-  
-  /* initialise nfft */ 
+
+  /* initialise nfft */
   mri_inh_3d_init_guru(&my_plan, my_N, M, my_n, m, sigma, flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -93,7 +113,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     }
     fclose(fw);
   }
-                      
+
   /* get the damping factors */
   if(my_iplan.flags & PRECOMPUTE_DAMP)
   {
@@ -102,14 +122,14 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
         int j2= j-N/2;
         int k2= k-N/2;
         double r=sqrt(j2*j2+k2*k2);
-        if(r>(double) N/2) 
+        if(r>(double) N/2)
           my_iplan.w_hat[j*N+k]=0.0;
         else
           my_iplan.w_hat[j*N+k]=1.0;
-      }   
+      }
     }
   }
-  
+
   fp=fopen(filename,"r");
   ftime=fopen("readout_time.dat","r");
 
@@ -131,24 +151,24 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     fscanf(finh,"%le ",&my_plan.w[j]);
     my_plan.w[j]/=W;
   }
-  fclose(finh);  
+  fclose(finh);
 
-    
+
   if(my_plan.plan.nfft_flags & PRE_PSI) {
     nfft_precompute_psi(&my_plan.plan);
   }
   if(my_plan.plan.nfft_flags & PRE_FULL_PSI) {
       nfft_precompute_full_psi(&my_plan.plan);
-  } 
+  }
 
   /* init some guess */
   for(j=0;j<my_plan.N_total;j++)
   {
     my_iplan.f_hat_iter[j]=0.0;
   }
- 
+
   t=nfft_second();
-  
+
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
   for(l=0;l<iteration;l++)
@@ -161,21 +181,21 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     solver_loop_one_step_complex(&my_iplan);
   }
 
-  
+
   t=nfft_second()-t;
 #ifdef HAVE_TOTAL_USED_MEMORY
   fprintf(stderr,"time: %e seconds mem: %i \n",t,nfft_total_used_memory());
 #else
   fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
 #endif
-  
+
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
-  
+
   for (j=0;j<N*N;j++) {
     /* Verschiebung wieder herausrechnen */
     my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
-    
+
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));
   }
@@ -194,7 +214,7 @@ int main(int argc, char **argv)
     printf("usage: ./reconstruct_data_inh_3d FILENAME N M ITER WEIGHTS\n");
     return 1;
   }
-  
+
   reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
 
   return 1;

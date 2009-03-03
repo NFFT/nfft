@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri3d_reconstruct_data_gridding reconstruct_data_gridding
  * \ingroup applications_mri3d
  * \{
@@ -24,15 +44,15 @@ void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem
   int my_N[2],my_n[2];     /* to init the nfft */
   FILE* fin;               /* input file  */
   FILE* fweight;           /* input file for the weights */
-  
+
   /* initialise my_plan */
   my_N[0]=N; my_n[0]=ceil(N*1.2);
   my_N[1]=N; my_n[1]=ceil(N*1.2);
   nfft_init_guru(&my_plan, 2, my_N, M/Z, my_n, 6, PRE_PHI_HUT| PRE_PSI|
-                        MALLOC_X| MALLOC_F_HAT| MALLOC_F| 
+                        MALLOC_X| MALLOC_F_HAT| MALLOC_F|
                         FFTW_INIT| FFT_OUT_OF_PLACE,
                         FFTW_MEASURE| FFTW_DESTROY_INPUT);
-  
+
   /* precompute lin psi if set */
   if(my_plan.nfft_flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&my_plan);
@@ -49,17 +69,17 @@ void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem
       my_plan.f[j] = real + _Complex_I*imag;
       if(weight)
         my_plan.f[j] = my_plan.f[j] * weights;
-    } 
+    }
     fclose(fweight);
-    
+
     /* precompute psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
-    
+
     /* precompute full psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.nfft_flags & PRE_FULL_PSI)
       nfft_precompute_full_psi(&my_plan);
-    
+
     /* compute the adjoint nfft */
     nfft_adjoint(&my_plan);
 
@@ -70,7 +90,7 @@ void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem
     }
   }
   fclose(fin);
-  
+
   nfft_finalize(&my_plan);
 }
 
@@ -104,7 +124,7 @@ int main(int argc, char **argv)
 {
   fftw_complex *mem;
   fftw_plan plan;
-  int N,M,Z;  
+  int N,M,Z;
 
   if (argc <= 6) {
     printf("usage: ./reconstruct_data_gridding FILENAME N M Z ITER WEIGHTS\n");
@@ -126,13 +146,13 @@ int main(int argc, char **argv)
                                   mem, NULL,
                                   N*N,1 ,
                                   FFTW_BACKWARD, FFTW_MEASURE);
- 
+
   /* execute the 2d-nfft's */
   reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[6]),mem);
 
   /* execute the 1d-fft's */
   fftw_execute(plan);
-  
+
   /* write the memory back in files */
   print(N,M,Z, mem);
 

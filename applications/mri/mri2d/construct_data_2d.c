@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri2d_construct_data_2d construct_data_2d
  * \ingroup applications_mri2d
  * \{
@@ -22,12 +42,12 @@ void construct(char * file, int N, int M)
   FILE* fp;
   FILE* fk;
   FILE* fi;
-  
+
   /* initialise my_plan */
   nfft_init_2d(&my_plan,N,N,M);
 
   fp=fopen("knots.dat","r");
-  
+
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
@@ -44,7 +64,7 @@ void construct(char * file, int N, int M)
       my_plan.f_hat[(N*j+k)] = real;
     }
   }
-    
+
   if(my_plan.nfft_flags & PRE_PSI)
     nfft_precompute_psi(&my_plan);
 
@@ -61,14 +81,14 @@ void construct(char * file, int N, int M)
 }
 
 int main(int argc, char **argv)
-{ 
+{
   if (argc <= 3) {
     printf("usage: ./construct_data FILENAME N M\n");
     return 1;
   }
-  
+
   construct(argv[1],atoi(argv[2]),atoi(argv[3]));
-  
+
   return 1;
 }
 /* \} */

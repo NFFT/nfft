@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri2d_construct_data_gridding construct_data_gridding
  * \ingroup applications_mri2d
  * \{
@@ -19,7 +39,7 @@ void reconstruct(char* filename, int N, int M, int weight)
   int j;                   /* some variables  */
   double weights;          /* store one weight temporary */
   double real,imag;        /* to read the real and imag part of a complex number */
-  nfft_plan my_plan;       /* plan for the two dimensional nfft  */  
+  nfft_plan my_plan;       /* plan for the two dimensional nfft  */
   FILE* fin;               /* input file  */
   FILE* fweight;           /* input file for the weights */
   FILE *fout_real;         /* output file  */
@@ -45,24 +65,24 @@ void reconstruct(char* filename, int N, int M, int weight)
     my_plan.f[j] = real + _Complex_I*imag;
     if (weight)
       my_plan.f[j] = my_plan.f[j] * weights;
-  } 
+  }
   fclose(fweight);
 
   /* precompute psi */
   if(my_plan.nfft_flags & PRE_PSI)
     nfft_precompute_psi(&my_plan);
-  
+
   /* precompute full psi */
   if(my_plan.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_plan);
 
-  
+
   /* compute the adjoint nfft */
   nfft_adjoint(&my_plan);
-    
+
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
-  
+
   for (j=0;j<N*N;j++) {
     fprintf(fout_real,"%le ",creal(my_plan.f_hat[j]));
     fprintf(fout_imag,"%le ",cimag(my_plan.f_hat[j]));
@@ -71,7 +91,7 @@ void reconstruct(char* filename, int N, int M, int weight)
   fclose(fin);
   fclose(fout_real);
   fclose(fout_imag);
-  
+
   nfft_finalize(&my_plan);
 }
 

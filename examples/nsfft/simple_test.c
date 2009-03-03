@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -20,7 +40,7 @@ void simple_test_nsfft(int d, int J, int M)
 
   /** direct trafo and show the result */
   nsdft_trafo(&p);
-  nfft_vpr_complex(p.f, K, "nsdft, vector f (first few entries)"); 
+  nfft_vpr_complex(p.f, K, "nsdft, vector f (first few entries)");
 
   /** approx. trafo and show the result */
   nsfft_trafo(&p);
@@ -56,6 +76,6 @@ int main(int argc,char **argv)
   J=5;
   M=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
   simple_test_nsfft(d,J,M);
-    
+
   return 1;
 }

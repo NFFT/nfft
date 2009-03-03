@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <math.h>
 #include <stdlib.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri3d_reconstruct_data_3d reconstruct_data_3d
  * \ingroup applications_mri3d
  * \{
@@ -28,8 +48,8 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
                                    epsilon is a the break criterion for
                                    the iteration */
   unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;  /* flags for the infft */
-                                   
-  /* initialise my_plan, specific. 
+
+  /* initialise my_plan, specific.
      we don't precompute psi */
   my_N[0]=Z; my_n[0]=ceil(Z*1.2);
   my_N[1]=N; my_n[1]=ceil(N*1.2);
@@ -38,17 +58,17 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
- 
+
   /* precompute lin psi */
   if(my_plan.nfft_flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&my_plan);
-                    
+
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
-  
+
   /* initialise my_iplan, advanced */
   solver_init_advanced_complex(&my_iplan,(mv_plan_complex*)(&my_plan), infft_flags );
- 
+
   /* get the weights */
   if(my_iplan.flags & PRECOMPUTE_WEIGHT)
   {
@@ -59,7 +79,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
     }
     fclose(fin);
   }
-  
+
   /* get the damping factors */
   if(my_iplan.flags & PRECOMPUTE_DAMP)
   {
@@ -70,18 +90,18 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
         int k2= k-N/2;
         int z2= z-N/2;
         double r=sqrt(j2*j2+k2*k2+z2*z2);
-        if(r>(double) N/2) 
+        if(r>(double) N/2)
           my_iplan.w_hat[z*N*N+j*N+k]=0.0;
         else
           my_iplan.w_hat[z*N*N+j*N+k]=1.0;
         }
-      }   
+      }
     }
   }
 
   /* open the input file */
   fin=fopen(filename,"r");
-  
+
   /* open the output files */
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
@@ -96,8 +116,8 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
 
   /* precompute psi */
   if(my_plan.nfft_flags & PRE_PSI)
-    nfft_precompute_psi(&my_plan);      
-  
+    nfft_precompute_psi(&my_plan);
+
   /* precompute full psi */
   if(my_plan.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_plan);
@@ -105,7 +125,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
   /* init some guess */
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
-  
+
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
   for(l=0;l<iteration;l++)
@@ -117,7 +137,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
     l+1,iteration);
     solver_loop_one_step_complex(&my_iplan);
   }
-  
+
   for(l=0;l<Z;l++)
   {
     for(k=0;k<N*N;k++)
@@ -125,11 +145,11 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
       /* write every Layer in the files */
       fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[ k+N*N*l ]));
       fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[ k+N*N*l ]));
-    }  
+    }
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");
   }
-  
+
   fclose(fout_real);
   fclose(fout_imag);
 
@@ -139,7 +159,7 @@ void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
 
 int main(int argc, char **argv)
 {
-  if (argc <= 6) { 
+  if (argc <= 6) {
     printf("usage: ./reconstruct3D FILENAME N M Z ITER WEIGHTS\n");
     return 1;
   }

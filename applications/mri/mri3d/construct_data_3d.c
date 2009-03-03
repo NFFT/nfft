@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
@@ -5,7 +25,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup applications_mri3d_construct_data_3d construct_data_3d
  * \ingroup applications_mri3d
  * \{
@@ -31,7 +51,7 @@ void construct(char * file, int N, int M, int Z)
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   fp=fopen("knots.dat","r");
-   
+
   for(j=0;j<M;j++)
     fscanf(fp,"%le %le %le",&my_plan.x[3*(j)+1],
       &my_plan.x[3*(j)+2],&my_plan.x[3*(j)+0]);
@@ -52,19 +72,19 @@ void construct(char * file, int N, int M, int Z)
       }
     }
   }
-    
+
     if(my_plan.nfft_flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
 
     nfft_trafo(&my_plan);
 
-    
+
     for(j=0;j<my_plan.M_total;j++)
       fprintf(fk,"%le %le %le %le %le\n",my_plan.x[3*j+1],
       my_plan.x[3*j+2],my_plan.x[3*j+0],creal(my_plan.f[j]),cimag(my_plan.f[j]));
 
-    
-  
+
+
   fclose(fk);
   fclose(fp);
 
@@ -72,14 +92,14 @@ void construct(char * file, int N, int M, int Z)
 }
 
 int main(int argc, char **argv)
-{ 
+{
   if (argc <= 4) {
     printf("usage: ./construct_data FILENAME N M Z\n");
     return 1;
   }
 
   construct(argv[1], atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
-  
+
 	return 1;
 }
 /* \} */

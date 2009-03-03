@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /** \mainpage
  *
  * \section section_intro_sec Introduction
@@ -25,30 +45,30 @@
  * Fourier transform (NDFT) and its generalisations in one or more dimensions,
  * of arbitrary input size, and of complex data.
  *
- * More precisely,we collect the possible frequencies 
+ * More precisely,we collect the possible frequencies
  * \f$\mathbf{k}\in\mathbb{Z}^d\f$ in the multi-index set
  *\f[
- * I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1} 
+ * I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}
  *  \in \mathbb{Z}^d: -
  *   \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1\right\},
  *\f]
  * where \f$\mathbf{N}=\left(N_t\right)_{t=0,\hdots,d-1}\f$ is the
  * multibandlimit, i.e., \f$N_t\in 2\mathbb{N}\f$.
- * For a finite number of given Fourier coefficients 
- * \f$\hat f_{\mathbf{k}} \in \mathbb{C}\f$, 
- * \f$\mathbf{k}\in I_{\mathbf{N}}\f$, we consider the 
- * fast evaluation of the trigonometric polynomial 
+ * For a finite number of given Fourier coefficients
+ * \f$\hat f_{\mathbf{k}} \in \mathbb{C}\f$,
+ * \f$\mathbf{k}\in I_{\mathbf{N}}\f$, we consider the
+ * fast evaluation of the trigonometric polynomial
  * \f[
- *  f\left(\mathbf{x}\right) 
- *  := \sum_{ \mathbf{k}\in I_{ N}} \hat{f}_{\mathbf{ k}} 
+ *  f\left(\mathbf{x}\right)
+ *  := \sum_{ \mathbf{k}\in I_{ N}} \hat{f}_{\mathbf{ k}}
  *  {\rm e}^{-2\pi{\rm i}\mathbf{k}\mathbf{ x}}
  * \f]
  * at given nonequispaced nodes \f$\mathbf{x}_j \in \mathbb{T}^d\f$,
- * \f$j=0,\ldots, M-1\f$, from the 
- * \f$ d\f$-dimensional torus as well as the 
+ * \f$j=0,\ldots, M-1\f$, from the
+ * \f$ d\f$-dimensional torus as well as the
  * adjoint problem, the fast evaluation of sums of the form
  * \f[
- *  \hat h_{\mathbf{k}} := \sum_{j=0}^{M-1} {f}_{j} 
+ *  \hat h_{\mathbf{k}} := \sum_{j=0}^{M-1} {f}_{j}
  *  {\rm e}^{2\pi{\rm i}\mathbf{k}\mathbf{ x}_j}.
  * \f]
  *
@@ -58,9 +78,9 @@
  *    - NSFFT - nonequispaced sparse fast Fourier transform,
  *    - FPT - fast polynomial transform,
  *    - NFSFT - nonequispaced fast spherical Fourier transform.
- *  
  *
  *
- * Furthermore, we consider the inversion of the above transforms by 
+ *
+ * Furthermore, we consider the inversion of the above transforms by
  * iterative methods.
  */

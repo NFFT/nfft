@@ -1,6 +1,7 @@
-/* $Id$
+/*
+ * $Id$
  *
- * Copyright (c) 2007, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -17,7 +18,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* FMMW internal header file */
+/* NFFT internal header file */
 #ifndef __INFFT_H__
 #define __INFFT_H__
 

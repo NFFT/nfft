@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
@@ -6,14 +26,14 @@
 #include "nfft3.h"
 #include "util.h"
 
-/** 
+/**
  * \defgroup applications_mri2d_construct_data_inh_2d1d construct_data__inh_2d1d
  * \ingroup applications_mri2d
  * \{
  */
 
 /**
- * construct 
+ * construct
  */
 void construct(char * file, int N, int M)
 {
@@ -21,7 +41,7 @@ void construct(char * file, int N, int M)
   double real;
   double w;
   double time,min_time,max_time,min_inh,max_inh;
-  mri_inh_2d1d_plan my_plan;  
+  mri_inh_2d1d_plan my_plan;
   FILE *fp,*fout,*fi,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
@@ -48,7 +68,7 @@ void construct(char * file, int N, int M)
   }
 
   fclose(ftime);
-  
+
   Ts=(min_time+max_time)/2.0;
 
   min_inh=INT_MAX; max_inh=INT_MIN;
@@ -70,14 +90,14 @@ void construct(char * file, int N, int M)
   my_N[0]=N; my_n[0]=ceil(N*sigma);
   my_N[1]=N; my_n[1]=ceil(N*sigma);
   my_N[2]=N3; my_n[2]=N3;
-  
-  /* initialise nfft */ 
+
+  /* initialise nfft */
   mri_inh_2d1d_init_guru(&my_plan, my_N, M, my_n, m, sigma, flags,
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   ftime=fopen("readout_time.dat","r");
   fp=fopen("knots.dat","r");
-  
+
   for(j=0;j<my_plan.M_total;j++)
   {
     fscanf(fp,"%le %le ",&my_plan.plan.x[2*j+0],&my_plan.plan.x[2*j+1]);
@@ -102,14 +122,14 @@ void construct(char * file, int N, int M)
     fscanf(fi,"%le ",&real);
     my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
   }
-  
+
   if(my_plan.plan.nfft_flags & PRE_PSI)
     nfft_precompute_psi(&my_plan.plan);
 
   mri_inh_2d1d_trafo(&my_plan);
 
   fout=fopen(file,"w");
-  
+
   for(j=0;j<my_plan.M_total;j++)
   {
     fprintf(fout,"%le %le %le %le\n",my_plan.plan.x[2*j+0],my_plan.plan.x[2*j+1],creal(my_plan.f[j]),cimag(my_plan.f[j]));
@@ -121,14 +141,14 @@ void construct(char * file, int N, int M)
 }
 
 int main(int argc, char **argv)
-{ 
+{
   if (argc <= 3) {
     printf("usage: ./construct_data_inh_2d1d FILENAME N M\n");
     return 1;
   }
-  
+
   construct(argv[1],atoi(argv[2]),atoi(argv[3]));
-  
+
   return 1;
 }
 /* \} */

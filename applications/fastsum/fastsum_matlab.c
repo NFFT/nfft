@@ -1,6 +1,7 @@
-/* $Id$
+/*
+ * $Id$
  *
- * Copyright (c) 2006, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -16,7 +17,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 
 /*! \file fastsum_matlab.c
  *  \brief Simple test program for the fast NFFT-based summation algorithm, called by fastsum.m.

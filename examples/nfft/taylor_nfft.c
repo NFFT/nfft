@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /*! \file taylor_nfft.c
  *
  * \brief Testing the nfft againt a Taylor expansion based version.
@@ -88,7 +108,7 @@ void taylor_finalize(taylor_plan *ths)
 /**
  * Executes a Taylor-NFFT, see equation (1.1) in [Guide], computes fast and
  * approximate by means of a Taylor expansion
- * for j=0,...,M-1                                                             
+ * for j=0,...,M-1
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  *
  * \arg ths The pointer to a taylor plan
@@ -113,7 +133,7 @@ void taylor_trafo(taylor_plan *ths)
   for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2,
       f_hat=cths->f_hat; k<0; k++)
     (*g1++)=cpow( - 2*PI*_Complex_I*k,cths->m)* (*f_hat++);
-   
+
   cths->g1[0]=cths->f_hat[cths->N_total/2];
 
   for(k=1, g1=cths->g1+1, f_hat=cths->f_hat+cths->N_total/2+1;
@@ -174,7 +194,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   np.x=tp.p.x;
   np.f_hat=tp.p.f_hat;
   np.f=tp.p.f;
-  
+
   /** output vector ndft */
   if(test_accuracy)
     swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
@@ -196,9 +216,9 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   if(test_accuracy)
     {
       NFFT_SWAP_complex(np.f,swapndft);
-      
+
       t_ndft=0;
-      r=0; 
+      r=0;
       while(t_ndft<0.01)
         {
           r++;
@@ -212,7 +232,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       NFFT_SWAP_complex(np.f,swapndft);
       printf("%.2e\t",t_ndft);
     }
-  else 
+  else
     printf("nan\t\t");
 
   /** NFFT */
@@ -257,7 +277,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     printf("nan\t\n");
 
   fflush(stdout);
-  
+
   /** finalise */
   if(test_accuracy)
     nfft_free(swapndft);
@@ -275,7 +295,7 @@ int main(int argc,char **argv)
       fprintf(stderr,"taylor_nfft type first last trials sigma_nfft sigma_taylor.\n");
       return -1;
     }
-  
+
   fprintf(stderr,"Testing the Nfft & a Taylor expansion based version.\n\n");
   fprintf(stderr,"Columns: N, M, t_ndft, sigma_nfft, m_nfft, t_nfft, e_nfft");
   fprintf(stderr,", sigma_taylor, m_taylor, t_taylor, e_taylor\n");

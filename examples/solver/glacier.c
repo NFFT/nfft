@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -7,7 +27,7 @@
 #include "util.h"
 #include "nfft3.h"
 
-/** 
+/**
  * \defgroup examples_solver_glacier Reconstruction of a glacier from \
  scattered data
  * \ingroup examples_solver
@@ -22,17 +42,17 @@ double my_weight(double z,double a,double b,double c)
 
 /** Reconstruction routine */
 void glacier(int N,int M)
-{  
+{
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y;
   nfft_plan p;
   solver_plan_complex ip;
   FILE* fp;
-   
+
   /* initialise p */
   my_N[0]=N; my_n[0]=nfft_next_power_of_2(N);
   my_N[1]=N; my_n[1]=nfft_next_power_of_2(N);
-  nfft_init_guru(&p, 2, my_N, M, my_n, 6, 
+  nfft_init_guru(&p, 2, my_N, M, my_n, 6,
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
@@ -50,11 +70,11 @@ void glacier(int N,int M)
       ip.y[j]=tmp_y;
   }
   fclose(fp);
-  
+
   /* precompute psi */
   if(p.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
-  
+
   /* initialise damping factors */
   if(ip.flags & PRECOMPUTE_DAMP)
     for(k0=0;k0<p.N[0];k0++)
@@ -62,15 +82,15 @@ void glacier(int N,int M)
         ip.w_hat[k0*p.N[1]+k1]=
 	    my_weight(((double)(k0-p.N[0]/2))/p.N[0],0.5,3,0.001)*
 	    my_weight(((double)(k1-p.N[1]/2))/p.N[1],0.5,3,0.001);
-  
+
   /* init some guess */
   for(k=0;k<p.N_total;k++)
-      ip.f_hat_iter[k]=0; 
+      ip.f_hat_iter[k]=0;
 
-  /* inverse trafo */  
+  /* inverse trafo */
   solver_before_loop_complex(&ip);
   for(l=0;l<40;l++)
-    { 
+    {
       fprintf(stderr,"Residual ||r||=%e,\n",sqrt(ip.dot_r_iter));
       solver_loop_one_step_complex(&ip);
     }
@@ -78,13 +98,13 @@ void glacier(int N,int M)
   for(k=0;k<p.N_total;k++)
     printf("%le %le\n",creal(ip.f_hat_iter[k]),cimag(ip.f_hat_iter[k]));
 
-  solver_finalize_complex(&ip);  
-  nfft_finalize(&p);  
+  solver_finalize_complex(&ip);
+  nfft_finalize(&p);
 }
 
 /** Reconstruction routine with cross validation */
 void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
-{  
+{
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y,r;
   nfft_plan p,cp;
@@ -92,11 +112,11 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   double _Complex* cp_y;
   FILE* fp;
   int M_re=M-M_cv;
-   
+
   /* initialise p for reconstruction */
   my_N[0]=N; my_n[0]=nfft_next_power_of_2(N);
   my_N[1]=N; my_n[1]=nfft_next_power_of_2(N);
-  nfft_init_guru(&p, 2, my_N, M_re, my_n, 6, 
+  nfft_init_guru(&p, 2, my_N, M_re, my_n, 6,
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
@@ -108,18 +128,18 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
 
   /* initialise cp for validation */
   cp_y = (double _Complex*) nfft_malloc(M*sizeof(double _Complex));
-  nfft_init_guru(&cp, 2, my_N, M, my_n, 6, 
+  nfft_init_guru(&cp, 2, my_N, M, my_n, 6,
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F|
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
-  
+
   cp.f_hat=ip.f_hat_iter;
 
   /* set up data in cp and cp_y */
   fp=fopen("input_data.dat","r");
   for(j=0;j<cp.M_total;j++)
-    {  
+    {
       fscanf(fp,"%le %le %le",&cp.x[2*j+0],&cp.x[2*j+1],&tmp_y);
       cp_y[j]=tmp_y;
     }
@@ -136,11 +156,11 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   /* precompute psi */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
-   
+
   /* precompute psi */
   if(cp.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&cp);
-   
+
   /* initialise damping factors */
   if(ip.flags & PRECOMPUTE_DAMP)
     for(k0=0;k0<p.N[0];k0++)
@@ -148,12 +168,12 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
         ip.w_hat[k0*p.N[1]+k1]=
 	    my_weight(((double)(k0-p.N[0]/2))/p.N[0],0.5,3,0.001)*
 	    my_weight(((double)(k1-p.N[1]/2))/p.N[1],0.5,3,0.001);
-  
+
   /* init some guess */
   for(k=0;k<p.N_total;k++)
       ip.f_hat_iter[k]=0;
 
-  /* inverse trafo */  
+  /* inverse trafo */
   solver_before_loop_complex(&ip);
   //  fprintf(stderr,"iteration starts,\t");
   for(l=0;l<40;l++)
@@ -173,11 +193,11 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   nfft_upd_axpy_complex(&cp.f[M_re],-1,&cp_y[M_re],M_cv);
   r=sqrt(nfft_dot_complex(&cp.f[M_re],M_cv)/nfft_dot_complex(cp_y,M));
   fprintf(stderr,"r_1=%1.2e\t",r);
-  printf("$%1.1e$ & ",r);     
+  printf("$%1.1e$ & ",r);
 
   nfft_finalize(&cp);
-  solver_finalize_complex(&ip);  
-  nfft_finalize(&p);  
+  solver_finalize_complex(&ip);
+  nfft_finalize(&p);
 }
 
 
@@ -191,7 +211,7 @@ int main(int argc, char **argv)
       fprintf(stderr,"Call this program from the Matlab script glacier.m!");
       exit(-1);
     }
-  
+
   if(argc==3)
     glacier(atoi(argv[1]),atoi(argv[2]));
   else

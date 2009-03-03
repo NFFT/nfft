@@ -1,3 +1,23 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /*! \file ndft_fast.c
  *
  * \brief Testing ndft, Horner-like ndft, and fully precomputed ndft.
@@ -83,7 +103,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 
   /** init pseudo random Fourier coefficients */
   nfft_vrand_unit_complex(np.f_hat, np.N_total);
- 
+
   /** NDFT */
   if(test_ndft)
     {
@@ -170,7 +190,7 @@ int main(int argc,char **argv)
       fprintf(stderr,"ndft_fast type first last trials\n");
       return -1;
     }
-  
+
   fprintf(stderr,"Testing ndft, Horner-like ndft, fully precomputed ndft.\n");
   fprintf(stderr,"Columns: N, M, t_ndft, t_horner, t_pre_full, t_nfft\n\n");
 
