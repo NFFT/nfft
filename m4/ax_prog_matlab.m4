@@ -39,6 +39,12 @@ AC_DEFUN([AX_PROG_MATLAB],
       [Matlab architecture acronym])],
     matlab_arch=${withval},matlab_arch="yes")
 
+  AC_ARG_WITH(matlab-argchecks,
+    [AC_HELP_STRING([--with-matlab-argchecks],
+      [Compile Matlab interface with argument checks])],
+      [AC_DEFINE(MATLAB_ARGCHECKS,1,[Define to enable Matlab argument checks.])],
+      [])
+
   AC_MSG_CHECKING([whether to check for Matlab])
 
   if test "x${matlab_dir}" = "xno"; then
