@@ -393,6 +393,7 @@ AC_OUTPUT(Makefile \
           applications/radon/Makefile \
           matlab/Makefile \
           matlab/nfsft/Makefile
+	  matlab/nfft/Makefile
           matlab/nfsft/@f_hat/Makefile
 )
 
