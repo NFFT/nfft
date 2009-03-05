@@ -25,7 +25,8 @@ M = 9;
 x=rand(1,M)-0.5;
 
 % Create plan.
-plan = nfft_init_1d(N,M);
+%plan = nfft_init_1d(N,M);
+plan = nfft_init_guru(1,N,M,2*N,4,PRE_PHI_HUT,FFTW_MEASURE);
 
 % Set nodes.
 nfft_set_x(plan,x);

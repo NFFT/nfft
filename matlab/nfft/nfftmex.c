@@ -35,17 +35,15 @@
 
 /* global flags */
 #define NFFT_MEX_FIRST_CALL (1U << 0)
-#define NFFT_MEX_PRECOMPUTED (1U << 1)
 unsigned short gflags = NFFT_MEX_FIRST_CALL;
 
 nfft_plan* plans[PLANS_MAX]; /* plans */
-int n_max = -1; /* maximum degree precomputed */
 char cmd[CMD_LEN_MAX];
 
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfft: Input argument N must be a scalar.");
-  DM(if (t < 0)
+  DM(if ((t < 0) || (t%2!=0))
     mexErrMsgTxt("nfft: Input argument N must be non-negative.");)
   *n = t;
   t = nfft_mex_get_int(prhs[2],"nfft: Input argument M must be a scalar.");
@@ -54,24 +52,63 @@ static inline void get_nm(const mxArray *prhs[], int *n, int *m)
   *m = t;
 }
 
-static inline void get_nmf(const mxArray *prhs[], int *n, int *m,
-  unsigned int *f)
+static inline void get_n1n2m(const mxArray *prhs[], int *n1, int *n2, int *m)
 {
-  get_nm(prhs,n,m);
-  *f = nfft_mex_get_int(prhs[3],"nfft: Input argument flags must be a scalar.");
+  int t = nfft_mex_get_int(prhs[1],"nfft: Input argument N1 must be a scalar.");
+  DM(if ((t < 0) || (t%2!=0))
+    mexErrMsgTxt("nfft: Input argument N1 must be non-negative and even.");)
+  *n1 = t;
+
+  t = nfft_mex_get_int(prhs[2],"nfft: Input argument N2 must be a scalar.");
+  DM(if ((t < 0) || (t%2!=0))
+    mexErrMsgTxt("nfft: Input argument N2 must be non-negative and even.");)
+  *n2 = t;
+
+  t = nfft_mex_get_int(prhs[3],"nfft: Input argument M must be a scalar.");
+  DM(if (t < 1)
+    mexErrMsgTxt("nfft: Input argument M must be positive.");)
+  *m = t;
 }
 
-static inline void get_nmffc(const mxArray *prhs[], int *n, int *m,
-  unsigned int *f, unsigned int *f2, int *c)
+static inline void get_n1n2n3m(const mxArray *prhs[], int *n1, int *n2, int *n3, int *m)
 {
-  get_nmf(prhs,n,m,f);
-  *f2 = nfft_mex_get_int(prhs[4],"nfft: Input argument flags2 must be a scalar.");
-  {
-    int t = nfft_mex_get_int(prhs[5],"nfft: Input argument c must be a scalar.");
-    DM(if (t < 1)
-      mexErrMsgTxt("nfft: Input argument c must be positive.");)
-    *c = t;
-  }
+  int t = nfft_mex_get_int(prhs[1],"nfft: Input argument N1 must be a scalar.");
+  DM(if ((t < 0) || (t%2!=0))
+    mexErrMsgTxt("nfft: Input argument N1 must be non-negative and even.");)
+  *n1 = t;
+
+  t = nfft_mex_get_int(prhs[2],"nfft: Input argument N2 must be a scalar.");
+  DM(if ((t < 0) || (t%2!=0))
+    mexErrMsgTxt("nfft: Input argument N2 must be non-negative and even.");)
+  *n2 = t;
+
+  t = nfft_mex_get_int(prhs[3],"nfft: Input argument N3 must be a scalar.");
+  DM(if ((t < 0) || (t%2!=0))
+    mexErrMsgTxt("nfft: Input argument N3 must be non-negative and even.");)
+  *n3 = t;
+
+  t = nfft_mex_get_int(prhs[4],"nfft: Input argument M must be a scalar.");
+  DM(if (t < 1)
+    mexErrMsgTxt("nfft: Input argument M must be positive.");)
+  *m = t;
+}
+
+static inline void get_guru(const mxArray *prhs[], int d, int *N, int *M, int *n, int *m, unsigned int *f1, unsigned int *f2)
+{
+  int k;
+
+  for(k=0;k<d;k++)
+    N[k] = mxGetScalar(mxGetCell(prhs[1], 1+k));
+
+  *M = mxGetScalar(mxGetCell(prhs[1], d+1));
+
+  for(k=0;k<d;k++)
+    n[k] = mxGetScalar(mxGetCell(prhs[1], d+2+k));
+
+  *m = mxGetScalar(mxGetCell(prhs[1], 2*d+2));
+
+  *f1 = mxGetScalar(mxGetCell(prhs[1], 2*d+3));
+  *f2 = mxGetScalar(mxGetCell(prhs[1], 2*d+4));
 }
 
 static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
@@ -104,8 +141,6 @@ static void cleanup(void)
         plans[i] = 0;
       }
     gflags |= NFFT_MEX_FIRST_CALL;
-    gflags &= ~NFFT_MEX_PRECOMPUTED;
-    n_max = -1;
   }
 }
 
@@ -150,6 +185,53 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       nfft_init_1d(plans[i],n,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
+    return;
+  }
+  else if (strcmp(cmd,"init_2d") == 0)
+  {
+    check_nargs(nrhs,4,"Wrong number of arguments for init.");
+    {
+      const int i = mkplan();
+      int n1, n2, m;
+      get_n1n2m(prhs,&n1,&n2,&m);
+      nfft_init_2d(plans[i],n1,n2,m);
+      plhs[0] = mxCreateDoubleScalar((double)i);
+    }
+    return;
+  }
+  else if (strcmp(cmd,"init_3d") == 0)
+  {
+    check_nargs(nrhs,5,"Wrong number of arguments for init.");
+    {
+      const int i = mkplan();
+      int n1, n2, n3, m;
+      get_n1n2n3m(prhs,&n1,&n2,&n3,&m);
+      nfft_init_3d(plans[i],n1,n2,n3,m);
+      plhs[0] = mxCreateDoubleScalar((double)i);
+    }
+    return;
+  }
+  else if (strcmp(cmd,"init_guru") == 0)
+  {
+    /** NO ERROR HANDLING !!*/
+    const int i = mkplan();
+    const int d = mxGetScalar(mxGetCell(prhs[1], 0));
+
+    mexPrintf("d=%d",d);
+
+    int N[d],n[d],m,M;
+    unsigned int f1,f2;
+
+    DM(if ((d < 1) || (d>4)) 
+	 mexErrMsgTxt("nfft: Input argument d must be positive and smaller than 5.");)
+
+    get_guru(prhs,d,N,&M,n,&m,&f1,&f2);
+    nfft_init_guru(plans[i],d,N,M,n,m,
+		   f1 | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT,
+		   f2);
+
+    plhs[0] = mxCreateDoubleScalar((double)i);
+
     return;
   }
   else if (strcmp(cmd,"precompute_psi") == 0)
@@ -215,7 +297,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       const int m = plans[i]->M_total;
       const int d = plans[i]->d;
-      plhs[0] = mxCreateDoubleMatrix(d, m, mxREAL);
+      plhs[0] = mxCreateDoubleMatrix((unsigned int)d, (unsigned int)m, mxREAL);
       {
         double *x = mxGetPr(plhs[0]);
         int j,t;
@@ -232,7 +314,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       const int m = plans[i]->M_total;
-      plhs[0] = mxCreateDoubleMatrix(m, 1, mxCOMPLEX);
+      plhs[0] = mxCreateDoubleMatrix((unsigned int)m, 1, mxCOMPLEX);
       {
         double *fr = mxGetPr(plhs[0]), *fi = mxGetPi(plhs[0]);
         int j;
@@ -251,7 +333,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       const int n = plans[i]->N_total;
-      plhs[0] = mxCreateDoubleMatrix(n, 1, mxCOMPLEX);
+      plhs[0] = mxCreateDoubleMatrix((unsigned int)n, 1, mxCOMPLEX);
       {
         double *f_hatr = mxGetPr(plhs[0]), *f_hati = mxGetPi(plhs[0]);
         int k;
@@ -273,7 +355,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       const int d = plans[i]->d;
       DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
         mexErrMsgTxt("Input argument x must be a d x M double array");)
-      DM(if (mxGetM(prhs[2]) != d || mxGetN(prhs[2]) != m)
+      DM(if (mxGetM(prhs[2]) != (unsigned int)d || mxGetN(prhs[2]) != (unsigned int)m)
         mexErrMsgTxt("Input argument x must have correct size.");)
       {
         double *x = mxGetPr(prhs[2]);
@@ -291,7 +373,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       const int m = plans[i]->M_total;
-      DM(if (mxGetM(prhs[2]) * mxGetN(prhs[2]) != m)
+      DM(if (mxGetM(prhs[2]) * mxGetN(prhs[2]) != (unsigned int)m)
         mexErrMsgTxt("Input argument f must have correct size.");)
       {
         double *fr = mxGetPr(prhs[2]), *fi = mxGetPi(prhs[2]);
@@ -314,7 +396,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       const int n = plans[i]->N_total;
       DM(if (!mxIsDouble(prhs[2]))
         mexErrMsgTxt("Input argument f must be a double array");)
-      DM(if (   mxGetM(prhs[2]) != n || mxGetN(prhs[2]) != 1)
+      DM(if (   mxGetM(prhs[2]) != (unsigned int)n || mxGetN(prhs[2]) != 1)
         mexErrMsgTxt("Input argument f must have correct size.");)
       {
         double *f_hatr = mxGetPr(prhs[2]), *f_hati = mxGetPi(prhs[2]);
