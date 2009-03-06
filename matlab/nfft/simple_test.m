@@ -15,18 +15,20 @@
 %  this program; if not, write to the Free Software Foundation, Inc., 51
 %  Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp('A simple one dimensional example');
+
 % maximum degree (bandwidth)
 N = 10;
 
 % number of nodes
-M = 9;
+M = 3;
 
 % nodes
 x=rand(1,M)-0.5;
 
 % Create plan.
-%plan = nfft_init_1d(N,M);
-plan = nfft_init_guru(1,N,M,2*N,4,PRE_PHI_HUT,FFTW_MEASURE);
+plan = nfft_init_1d(N,M);
 
 % Set nodes.
 nfft_set_x(plan,x);
@@ -51,3 +53,70 @@ nfft_finalize(plan);
 
 A=exp(-2*pi*i*x'*(-N/2:N/2-1));
 f2=A*f_hat
+
+error_vector=f-f2
+error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp(sprintf('\nA two dimensional example'));
+d=2;
+for logN=3:10
+  N=2^logN;
+  M=N^2;
+  x=rand(2,M)-0.5;
+  plan = nfft_init_guru(d,N,N,M,2*N,2*N,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
+  nfft_set_x(plan,x);
+  nfft_precompute_psi(plan);
+  f_hat = rand(N,N)+i*rand(N,N);
+  nfft_set_f_hat(plan,double(f_hat(:)));
+  tic
+  nfft_trafo(plan);
+  t1=toc;
+  f = nfft_get_f(plan);
+
+  if(N<=64)
+    tic
+    ndft_trafo(plan);
+    t2=toc;
+    f2 = nfft_get_f(plan);
+    e=norm(f-f2,inf)/norm(f_hat(:),1);
+  else
+    t2=inf;
+    e=nan;
+  end;
+  nfft_finalize(plan);
+  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
+end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disp(sprintf('\nAn asymmetric three dimensional example'));
+d=3;
+for logN=3:10
+  N1=2^logN;   n1=2*N1;
+  N2=10;       n2=32;
+  N3=18;       n3=32;
+  M=N1*N2*N3;
+  x=rand(3,M)-0.5;
+  plan = nfft_init_guru(d,N1,N2,N3,M,n1,n2,n3,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
+  nfft_set_x(plan,x);
+  nfft_precompute_psi(plan);
+  f_hat = rand(N1,N2,N3)+i*rand(N1,N2,N3);
+  nfft_set_f_hat(plan,double(f_hat(:)));
+  tic
+  nfft_trafo(plan);
+  t1=toc;
+  f = nfft_get_f(plan);
+
+  if(N1<=32)
+    tic
+    ndft_trafo(plan);
+    t2=toc;
+    f2 = nfft_get_f(plan);
+    e=norm(f-f2,inf)/norm(f_hat(:),1);
+  else
+    t2=inf;
+    e=nan;
+  end;
+  nfft_finalize(plan);
+  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
+end;

@@ -95,20 +95,22 @@ static inline void get_n1n2n3m(const mxArray *prhs[], int *n1, int *n2, int *n3,
 
 static inline void get_guru(const mxArray *prhs[], int d, int *N, int *M, int *n, int *m, unsigned int *f1, unsigned int *f2)
 {
+  /** NO ERROR HANDLING !!*/
   int k;
 
   for(k=0;k<d;k++)
-    N[k] = mxGetScalar(mxGetCell(prhs[1], 1+k));
+    N[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(1+k)));
 
-  *M = mxGetScalar(mxGetCell(prhs[1], d+1));
+  *M = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+1)));
 
   for(k=0;k<d;k++)
-    n[k] = mxGetScalar(mxGetCell(prhs[1], d+2+k));
+    n[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+2+k)));
 
-  *m = mxGetScalar(mxGetCell(prhs[1], 2*d+2));
+  *m = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+2)));
 
-  *f1 = mxGetScalar(mxGetCell(prhs[1], 2*d+3));
-  *f2 = mxGetScalar(mxGetCell(prhs[1], 2*d+4));
+  *f1 = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+3)));
+
+  *f2 = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+4)));
 }
 
 static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
@@ -216,8 +218,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /** NO ERROR HANDLING !!*/
     const int i = mkplan();
     const int d = mxGetScalar(mxGetCell(prhs[1], 0));
-
-    mexPrintf("d=%d",d);
 
     int N[d],n[d],m,M;
     unsigned int f1,f2;
