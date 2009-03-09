@@ -39,7 +39,7 @@ int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for 
   nfsoft_init_guru(&plan_ndsoft,bw, M,flags | NFSOFT_USE_NDFT | NFSOFT_USE_DPT,
   PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,m,k);
 
-  nfsoft_init_guru(&plan_nfsoft,bw, M ,flags| NFSOFT_USE_DPT,
+  nfsoft_init_guru(&plan_nfsoft,bw, M ,flags,
   PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,m,k);
 
 

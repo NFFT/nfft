@@ -2521,7 +2521,7 @@ void fpt_finalize(fpt_set set);
 /**
  * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
  * \ref nfsoft_adjoint) becomes a SOFT, i.e., we use equispaced nodes.
- * The FFTW will be used instead of the NFFT.
+ * The FFTW will be used instead of the NFFT.-->not included yet
  *
  * \see nfsoft_init
  * \see nfsoft_init_advanced
