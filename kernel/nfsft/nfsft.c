@@ -28,9 +28,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <complex.h>
-
 
 /* Include NFFT3 utilities header. */
 #include "util.h"

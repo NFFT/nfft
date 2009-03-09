@@ -1,10 +1,33 @@
-#include "wigner.h"
-#include "api.h"
+/*
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: nfsft.c 3056 2009-03-03 09:08:34Z keiner $ */
+
+/**
+ * \file nfsft.c
+ * \brief Implementation file for the NFSFT module
+ * \author Jens Keiner
+ */
+
 #include <math.h>
-
-
-
-
+#include <stdio.h>
+#include "infft.h"
+#include "wigner.h"
 
 double SO3_gamma_al ( int m1,
 		  int m2,
@@ -13,36 +36,36 @@ double SO3_gamma_al ( int m1,
   double dj, dm1, dm2, M, mini;
   static int i;
   static double result;
-  
+
   dj = (double) j ;
   dm1 = (double) m1 ;
   dm2 = (double) m2 ;
   M = (double)  (ABS(m1)>ABS(m2)?ABS(m1):ABS(m2));
   mini = (double)  (ABS(m1)<ABS(m2)?ABS(m1):ABS(m2));
 
-  if (j == -1) 
+  if (j == -1)
   {
 /* Constant is ((2n)!)^(1/2) / (2^n n!). */
     result = 1.0;
     for (i = 1; i <= M-mini; i++)
-    {  
+    {
 
-      result *= (M+mini+i)/(4.0*i);                                      
-    }  
-	
-	if(m1<m2 && (ABS(m1)+ABS(m2)) % 2 == 1) result=-(1/pow(2,mini)*sqrt(result));
-	else result=(1/pow(2,mini)*sqrt(result));
-	
+      result *= (M+mini+i)/(4.0*i);
+    }
+
+	if(m1<m2 && (ABS(m1)+ABS(m2)) % 2 == 1) result=-(1/POW(2,mini)*SQRT(result));
+	else result=(1/POW(2,mini)*SQRT(result));
+
     return result;
 
-/*    result = 1/pow(2,M)  *  sqrt(fac(2*M)/(fac(M+mini)*fac(M-mini)));                       
+/*    result = 1/POW(2,M)  *  SQRT(fac(2*M)/(fac(M+mini)*fac(M-mini)));
      if ((m1+m2)%2==1)
      {
-	 if (abs(m1)>abs(m2)) 
+	 if (ABS(m1)>ABS(m2))
 	{
 	if(dm1>=0) result=(-1)*result;
 	}
-	else 
+	else
 	{
 	if (dm2<0) result=(-1)*result;
 	}
@@ -50,42 +73,42 @@ double SO3_gamma_al ( int m1,
     return result;
 */
 }
-  else if (j <= M) 
+  else if (j <= M)
   {
     return (0.0);
   }
-  else 
+  else
   {
     return (
-	    //sqrt( (2.*dj + 3.)/(2.*dj - 1.) ) *
-	    -(dj + 1.)/sqrt(((dj+1.)*(dj+1.) - dm1*dm1)*
+	    //SQRT( (2.*dj + 3.)/(2.*dj - 1.) ) *
+	    -(dj + 1.)/SQRT(((dj+1.)*(dj+1.) - dm1*dm1)*
 			   ((dj+1.)*(dj+1.) - dm2*dm2)) *
-	    sqrt( (dj*dj - dm1*dm1)*(dj*dj - dm2*dm2) ) / dj
+	    SQRT( (dj*dj - dm1*dm1)*(dj*dj - dm2*dm2) ) / dj
 	    );
   }
 }
 /*
 inline double gamma_al(int k, int n)
-{ 
+{
   static int i;
   static double result;
-  
-  if (k == -1) 
+
+  if (k == -1)
   {
     result = 1.0;
     for (i = 1; i <= n; i++)
-    {  
-      result *= (n+i)/(4.0*i);                                      
-    }  
-    return (sqrt(result));
+    {
+      result *= (n+i)/(4.0*i);
+    }
+    return (SQRT(result));
   }
-  else if (k <= n) 
+  else if (k <= n)
   {
     return (0.0);
   }
-  else 
+  else
   {
-    return (-sqrt(((double)(k-n)*(k+n))/(((k-n+1.0)*(k+n+1.0))))); 
+    return (-SQRT(((double)(k-n)*(k+n))/(((k-n+1.0)*(k+n+1.0)))));
   }
 }
 */
@@ -112,13 +135,13 @@ inline double SO3_alpha_al ( int m1,
 
 if ((dm1<0 && dm2>=0)||(dm2<0 && dm1>=0) )
    {neg=-1.0;}
-else 
+else
    {neg=1.0;}
 
 
 if (j == -1)
   {
-    return (0.0); 
+    return (0.0);
   }
   else if (j == 0)
   {
@@ -131,10 +154,10 @@ if (j == -1)
       return (int)(dm1+dm2)%2==0?-1.0:0.0;
     }
 }
-else if (j < M-mini) 
+else if (j < M-mini)
   {
     return j%2==0?-1.0:1.0;
-  }  
+  }
   else if(j<M)
 {
 return 1.0*neg;
@@ -142,9 +165,9 @@ return 1.0*neg;
 else
  {
   return (
-	  
-	//sqrt( (2.*dj + 3.)/(2.*dj + 1.) ) *
-	  (dj + 1.)*(2.*dj + 1.)/sqrt(((dj+1.)*(dj+1.) - dm1*dm1)*
+
+	//SQRT( (2.*dj + 3.)/(2.*dj + 1.) ) *
+	  (dj + 1.)*(2.*dj + 1.)/SQRT(((dj+1.)*(dj+1.) - dm1*dm1)*
 				      ((dj+1.)*(dj+1.) - dm2*dm2))
 	  ) ;
  }
@@ -153,10 +176,10 @@ else
 /*
 
 inline double alpha_al(int k, int n)
-{ 
+{
   if (k == -1)
   {
-    return (0.0); 
+    return (0.0);
   }
   else if (k == 0)
   {
@@ -169,13 +192,13 @@ inline double alpha_al(int k, int n)
       return n%2==0?-1.0:0.0;
     }
   }
-  else if (k < n) 
+  else if (k < n)
   {
     return k%2==0?-1.0:1.0;
-  }  
-  else 
+  }
+  else
   {
-    return (2.0*k+1.0) / sqrt ((k-n+1.0) * (k+n+1.0));	      
+    return (2.0*k+1.0) / SQRT ((k-n+1.0) * (k+n+1.0));
   }
 }*/
 
@@ -193,7 +216,7 @@ double SO3_beta_al ( int m1,
   dm2 = (double) m2 ;
   M = (double)  (ABS(m1)>ABS(m2)?ABS(m1):ABS(m2));
   mini = (double)  (ABS(m1)<ABS(m2)?ABS(m1):ABS(m2));
-  
+
 
 if (0 <= j && j < M)
   {
@@ -202,23 +225,23 @@ if (0 <= j && j < M)
   }
   else
   {
-  if (dm1==0.|| dm2==0.)  
+  if (dm1==0.|| dm2==0.)
   return (0.0);
   else
-  return ((-dm1*dm2*(2.*dj+1.)/dj)/sqrt(((dj+1.)*(dj+1.) - dm1*dm1)*((dj+1.)*(dj+1.) - dm2*dm2)));
+  return ((-dm1*dm2*(2.*dj+1.)/dj)/SQRT(((dj+1.)*(dj+1.) - dm1*dm1)*((dj+1.)*(dj+1.) - dm2*dm2)));
   }
 
 
 /*if (j==0)
 	return 1.0;
-else if (j==-1) 
+else if (j==-1)
 	return 0;
 else if (j<M)
 	return 1.0 ;
-else  
+else
 	return (-SO3_alpha_al(m1, m2,j) * dm1 * dm2 / ( dj * ( dj + 1. ) ) ) ;*/
 
-}      
+}
 
 
 
@@ -237,7 +260,7 @@ inline double beta_al(int k, int n)
 }*/
 
 
-/*compute the coefficients for all degrees*/							
+/*compute the coefficients for all degrees*/
 
 inline void SO3_alpha_al_row(double *alpha, int N, int k, int m)
 {
@@ -245,9 +268,9 @@ inline void SO3_alpha_al_row(double *alpha, int N, int k, int m)
   double *alpha_act = alpha;
   for (j = -1; j <= N; j++)
   {
-    *alpha_act = SO3_alpha_al(k,m,j); 
+    *alpha_act = SO3_alpha_al(k,m,j);
     alpha_act++;
-  }  
+  }
 }
 
 inline void SO3_beta_al_row(double *beta, int N, int k, int m)
@@ -256,9 +279,9 @@ inline void SO3_beta_al_row(double *beta, int N, int k, int m)
   double *beta_act = beta;
   for (j = -1; j <= N; j++)
   {
-    *beta_act = SO3_beta_al(k,m,j); 
+    *beta_act = SO3_beta_al(k,m,j);
     beta_act++;
-  }  
+  }
 }
 
 inline void SO3_gamma_al_row(double *gamma, int N, int k, int m)
@@ -267,9 +290,9 @@ inline void SO3_gamma_al_row(double *gamma, int N, int k, int m)
   double *gamma_act = gamma;
   for (j = -1; j <= N; j++)
   {
-    *gamma_act = SO3_gamma_al(k,m,j); 
+    *gamma_act = SO3_gamma_al(k,m,j);
     gamma_act++;
-  }  
+  }
 }
 
 /*compute for all degrees l and orders k*/
@@ -282,10 +305,10 @@ inline void SO3_alpha_al_matrix(double *alpha, int N, int m)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_alpha_al(i,m,j); 
+      *alpha_act = SO3_alpha_al(i,m,j);
       alpha_act++;
-    }  
-  }  
+    }
+  }
 }
 
 inline void SO3_beta_al_matrix(double *alpha, int N,int m)
@@ -296,10 +319,10 @@ inline void SO3_beta_al_matrix(double *alpha, int N,int m)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_beta_al(i,m,j); 
+      *alpha_act = SO3_beta_al(i,m,j);
       alpha_act++;
-    }  
-  }  
+    }
+  }
 }
 
 inline void SO3_gamma_al_matrix(double *alpha, int N, int m)
@@ -310,10 +333,10 @@ inline void SO3_gamma_al_matrix(double *alpha, int N, int m)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_gamma_al(i,m,j); 
+      *alpha_act = SO3_gamma_al(i,m,j);
       alpha_act++;
-    }  
-  }  
+    }
+  }
 }
 
 
@@ -323,7 +346,7 @@ inline void SO3_gamma_al_matrix(double *alpha, int N, int m)
 
 inline void SO3_alpha_al_all(double *alpha, int N)
 {
-int q; 
+int q;
   int i,j,m;
   double *alpha_act = alpha;
 q=0;
@@ -333,13 +356,13 @@ for (m=-N;m<=N;m++)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_alpha_al(i,m,j); 
+      *alpha_act = SO3_alpha_al(i,m,j);
       fprintf(stdout,"alpha_all_%d^[%d,%d]=%f\n",j,i,m,SO3_alpha_al(i,m,j));
       alpha_act++;
      q=q+1;
 
-    }  
-  }  
+    }
+  }
 }
 }
 
@@ -353,10 +376,10 @@ for (m=-N;m<=N;m++)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_beta_al(i,m,j); 
+      *alpha_act = SO3_beta_al(i,m,j);
       alpha_act++;
-    }  
-  }  
+    }
+  }
 }
 }
 
@@ -370,24 +393,24 @@ for (i = -N; i <= N; i++)
   {
     for (j = -1; j <= N; j++)
     {
-      *alpha_act = SO3_gamma_al(i,m,j); 
+      *alpha_act = SO3_gamma_al(i,m,j);
       alpha_act++;
-    }  
-  }  
+    }
+  }
 }
 }
 
-inline void eval_wigner(double *x, double *y, int size, int k, double *alpha, 
+inline void eval_wigner(double *x, double *y, int size, int k, double *alpha,
   double *beta, double *gamma)
 {
-  /* Evaluate the wigner function d_{k,nleg} (l,x) for the vector 
+  /* Evaluate the wigner function d_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
   double a,b,x_val_act,a_old;
-  double *x_act, *y_act;  
+  double *x_act, *y_act;
   double *alpha_act, *beta_act, *gamma_act;
-  
+
   /* Traverse all nodes. */
   x_act = x;
   y_act = y;
@@ -396,9 +419,9 @@ inline void eval_wigner(double *x, double *y, int size, int k, double *alpha,
     a = 1.0;
     b = 0.0;
     x_val_act = *x_act;
-    
+
     if (k == 0)
-    {  
+    {
       *y_act = 1.0;
     }
     else
@@ -409,28 +432,28 @@ inline void eval_wigner(double *x, double *y, int size, int k, double *alpha,
       for (j = k; j > 1; j--)
       {
         a_old = a;
-        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));		        
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
 	       b = a_old*(*gamma_act);
         alpha_act--;
         beta_act--;
         gamma_act--;
       }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
     }
     x_act++;
     y_act++;
   }
 }
 
-inline int eval_wigner_thresh(double *x, double *y, int size, int k, double *alpha, 
+inline int eval_wigner_thresh(double *x, double *y, int size, int k, double *alpha,
   double *beta, double *gamma, double threshold)
 {
-  
+
   int i,j;
   double a,b,x_val_act,a_old;
   double *x_act, *y_act;
   double *alpha_act, *beta_act, *gamma_act;
-  
+
   /* Traverse all nodes. */
   x_act = x;
   y_act = y;
@@ -439,9 +462,9 @@ inline int eval_wigner_thresh(double *x, double *y, int size, int k, double *alp
     a = 1.0;
     b = 0.0;
     x_val_act = *x_act;
-    
+
     if (k == 0)
-    {  
+    {
      *y_act = 1.0;
     }
     else
@@ -452,13 +475,13 @@ inline int eval_wigner_thresh(double *x, double *y, int size, int k, double *alp
       for (j = k; j > 1; j--)
       {
         a_old = a;
-        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));		        
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
 	       b = a_old*(*gamma_act);
         alpha_act--;
         beta_act--;
         gamma_act--;
       }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);                  
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
       if (fabs(*y_act) > threshold)
       {
         return 1;
@@ -505,14 +528,14 @@ absM2=ABS(m2);
   dm2 = ( double ) m2 ;
   sinSign = 1. ;
   normFactor = 1. ;
-  
+
   for ( i = 0 ; i < delta ; i ++ )
-    normFactor *= sqrt( (2.*dl - ((double) i) )/( ((double) i) + 1.) );
+    normFactor *= SQRT( (2.*dl - ((double) i) )/( ((double) i) + 1.) );
 
   /* need to adjust to make the L2-norm equal to 1 */
- 
 
-normFactor *= sqrt((2.*dl+1.)/2.);
+
+normFactor *= SQRT((2.*dl+1.)/2.);
 
   if ( l == absM1 )
     if ( m1 >= 0 )
@@ -543,5 +566,5 @@ normFactor *= sqrt((2.*dl+1.)/2.);
   dCP = ( double ) cosPower ;
   dSP = ( double ) sinPower ;
 
-    return normFactor * sinSign *  pow( sin(theta/2), dSP ) * pow( cos(theta/2), dCP ) ;
+    return normFactor * sinSign *  POW( sin(theta/2), dSP ) * POW( cos(theta/2), dCP ) ;
 }

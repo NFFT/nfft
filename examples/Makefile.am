@@ -16,6 +16,12 @@ else
   DIR_NFSFT=
 endif
 
+if HAVE_NFSOFT
+  DIR_NFSOFT=nfsoft
+else
+  DIR_NFSOFT=
+endif
+
 if HAVE_NNFFT
   DIR_NNFFT=nnfft
 else
@@ -40,5 +46,5 @@ else
   DIR_FPT=
 endif
 
-SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFST) \
+SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NFST) \
   $(DIR_NNFFT) $(DIR_NSFFT) solver

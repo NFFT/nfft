@@ -21,6 +21,14 @@ else
   DIR_NFSFT=
 endif
 
+if HAVE_NFSOFT
+  LIB_NFSOFT=nfsoft/libnfsoft.la
+  DIR_NFSOFT=nfsoft
+else
+  LIB_NFSOFT=
+  DIR_NFSOFT=
+endif
+
 if HAVE_NNFFT
   LIB_NNFFT=nnfft/libnnfft.la
   DIR_NNFFT=nnfft
@@ -53,7 +61,7 @@ else
   DIR_FPT=
 endif
 
-SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFST) \
+SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NFST) \
   $(DIR_NNFFT) $(DIR_NSFFT) solver .
 
 noinst_LTLIBRARIES = libkernel.la
@@ -61,4 +69,4 @@ noinst_LTLIBRARIES = libkernel.la
 libkernel_la_SOURCES =
 
 libkernel_la_LIBADD = $(LIB_FPT) $(LIB_MRI) $(LIB_NFCT) nfft/libnfft.la \
-  $(LIB_NFSFT) $(LIB_NFST) $(LIB_NNFFT) $(LIB_NSFFT) solver/libsolver.la
+  $(LIB_NFSFT) $(LIB_NFSOFT) $(LIB_NFST) $(LIB_NNFFT) $(LIB_NSFFT) solver/libsolver.la

@@ -104,6 +104,18 @@ else
 fi
 AC_SUBST(HAVE_NFSFT)
 
+
+AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],[compile with nfsoft module (nonequispaced fast SO(3) Fourier transform; needs fpt module)])], ok=$enableval, ok=yes)
+if test "x$ok" = "xyes"; then
+  need_fpt="yes"
+  HAVE_NFSOFT="#define HAVE_NFSOFT 1"
+  AM_CONDITIONAL(HAVE_NFSOFT, test "yes" = "yes" )
+else
+  HAVE_NFSOFT="#undef HAVE_NFSOFT"
+  AM_CONDITIONAL(HAVE_NFSOFT, test "yes" = "no" )
+fi
+AC_SUBST(HAVE_NFSOFT)
+
 AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=yes)
 if test "x$ok" = "xyes"; then
   HAVE_NNFFT="#define HAVE_NNFFT 1"
@@ -367,6 +379,7 @@ AC_OUTPUT(Makefile \
           kernel/nfct/Makefile \
           kernel/nfft/Makefile \
           kernel/nfsft/Makefile \
+          kernel/nfsoft/Makefile \
           kernel/nfst/Makefile \
           kernel/nnfft/Makefile \
           kernel/nsfft/Makefile \
@@ -377,6 +390,7 @@ AC_OUTPUT(Makefile \
           examples/nfct/Makefile \
           examples/nfft/Makefile \
           examples/nfsft/Makefile \
+          examples/nfsoft/Makefile \
           examples/nfst/Makefile \
           examples/nnfft/Makefile \
           examples/nsfft/Makefile \

@@ -31,6 +31,9 @@
 /* Define to enable NFSFT module. */
 @HAVE_NFSFT@
 
+/* Define to enable NFSOFT module. */
+@HAVE_NFSOFT@
+
 /* Define to enable NFST module. */
 @HAVE_NFST@
 
