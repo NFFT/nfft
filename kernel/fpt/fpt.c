@@ -1252,6 +1252,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   {
     /* Use NDSFT. */
     dpt_trafo(set, m, x, y, k_end, flags);
+    return;
   }
 
   nfft_next_power_of_2_exp(k_end,&Nk,&tk);
@@ -1260,15 +1261,11 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
 
   /* Check if fast transform is activated. */
   if (set->flags & FPT_NO_FAST_ALGORITHM)
-  {
     return;
-  }
 
   if (flags & FPT_FUNCTION_VALUES)
-  {
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1,
       (double*)set->work, NULL, 2, 1, kinds, 0U);
-  }
 
   /* Initialize working arrays. */
   memset(set->result,0U,2*Nk*sizeof(double _Complex));

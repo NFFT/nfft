@@ -93,7 +93,7 @@ else
 fi
 AC_SUBST(HAVE_NFST)
 
-AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[compile with nfsft module (nonequispaced fast spherical Fourier transform; needs fpt module)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[compile with nfsft module (nonequispaced fast spherical Fourier transform; needs fpt module)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   need_fpt="yes"
   HAVE_NFSFT="#define HAVE_NFSFT 1"
@@ -104,8 +104,7 @@ else
 fi
 AC_SUBST(HAVE_NFSFT)
 
-
-AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],[compile with nfsoft module (nonequispaced fast SO(3) Fourier transform; needs fpt module)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],[compile with nfsoft module (nonequispaced fast SO(3) Fourier transform; needs fpt module)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   need_fpt="yes"
   HAVE_NFSOFT="#define HAVE_NFSOFT 1"
@@ -116,7 +115,7 @@ else
 fi
 AC_SUBST(HAVE_NFSOFT)
 
-AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   HAVE_NNFFT="#define HAVE_NNFFT 1"
   AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "yes" )
@@ -126,7 +125,7 @@ else
 fi
 AC_SUBST(HAVE_NNFFT)
 
-AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[compile with nsfft module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[compile with nsfft module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   HAVE_NSFFT="#define HAVE_NSFFT 1"
   AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "yes" )
@@ -136,7 +135,7 @@ else
 fi
 AC_SUBST(HAVE_NSFFT)
 
-AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[compile with mri module (magnet resonance imaging)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[compile with mri module (magnet resonance imaging)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   HAVE_MRI="#define HAVE_MRI 1"
   AM_CONDITIONAL(HAVE_MRI, test "yes" = "yes" )
@@ -146,7 +145,7 @@ else
 fi
 AC_SUBST(HAVE_MRI)
 
-AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[compile with fpt module (fast polynomial transform)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[compile with fpt module (fast polynomial transform)])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   have_fpt="yes"
   HAVE_FPT="#define HAVE_FPT 1"
