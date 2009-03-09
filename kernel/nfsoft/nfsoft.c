@@ -104,6 +104,9 @@ plan->aux           = (C*) nfft_malloc((2*B+4)*sizeof(C));
   if (plan->cheby == NULL ) printf("Alloziierung fehl geschlagen!\n");
   if (plan->aux == NULL ) printf("Alloziierung fehl geschlagen!\n");
 
+  plan->mv_trafo = (void (*) (void* ))nfsoft_trafo;
+  plan->mv_adjoint = (void (*) (void* ))nfsoft_adjoint;
+
 
 }
 
