@@ -155,8 +155,9 @@ int main ( int argc ,
 
   if (argc < 2)
     {
-      printf("This test programm computes the NFSOFT with maximum polynomial degree N at M input rotations\n ");
+      printf("This test programm computes the NFSOFT with maximum polynomial degree N at M input rotations\n");
       printf("Usage: simple_test N M \n");
+      printf("e.g.: simple_test 8 64\n");
       exit(0);
     }
 
