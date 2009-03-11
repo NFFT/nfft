@@ -1,3 +1,4 @@
+% $Id$
 function p = nfsft_init_advanced(N,M,flags)
 % Initialise plans (advanced)
 %
