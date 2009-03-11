@@ -16,7 +16,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id: nfsft.c 3056 2009-03-03 09:08:34Z keiner $ */
+/* $Id$ */
 
 /**
  * \file nfsft.c

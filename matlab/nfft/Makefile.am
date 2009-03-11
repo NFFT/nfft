@@ -1,4 +1,4 @@
-# $Id: Makefile.am 3058 2009-03-03 14:01:44Z keiner $
+# $Id$
 
 # compiler flags
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)

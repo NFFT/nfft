@@ -1,4 +1,4 @@
-% $Id: simple_test.m 2594 2008-11-14 09:42:46Z keiner $
+% $Id$
 % 
 % Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
 % This program is free software; you can redistribute it and/or modify it under

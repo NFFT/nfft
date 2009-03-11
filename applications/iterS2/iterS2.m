@@ -9,7 +9,7 @@ function fastsumS2()
 %   [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
 %       on the sphere, Computing, to appear, 2005
 
-% $Id: fastsumS2.m 1191 2006-11-02 13:48:14Z keiner $
+% $Id$
 
 % The input file's name for fastsumS2.c
 infilename = 'data.in';

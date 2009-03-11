@@ -16,7 +16,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id: nfftmex.c 3058 2009-03-03 14:01:44Z keiner $ */
+/* $Id$ */
 
 #include <complex.h>
 #include <string.h>

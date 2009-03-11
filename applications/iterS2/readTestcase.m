@@ -48,7 +48,7 @@ function T = readTestcase(file)
 %     - in the sixth column the error E_infty for the fast summation algorithm
 %       using the NFSFT algorithm.
 
-% $Id: readTestcase.m 925 2006-06-26 13:54:17Z keiner $
+% $Id$
 %
 % Copyright (C) 2005 Jens Keiner
 %

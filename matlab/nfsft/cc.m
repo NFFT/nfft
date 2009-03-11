@@ -30,7 +30,7 @@ function [x,w] = cc(n)
 %   TODO Add references.
 %
 %   Copyright 2006-2007 Jens Keiner
-%   $Id: cc.m 65 2008-01-20 18:41:34Z keiner $
+%   $Id$
 
 %   This program is free software; you can redistribute it and/or modify it 
 %   under the terms of the GNU General Public License as published by the Free 
