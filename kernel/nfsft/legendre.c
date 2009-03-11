@@ -18,56 +18,40 @@
 
 /* $Id$ */
 
-#include "infft.h"
-
-#include "legendre.h"
-#include "api.h"
 #include <math.h>
+#include "infft.h"
+#include "legendre.h"
+//#include "api.h"
 
-/** \addtogroup nfsft
- * \{
- */
-
-inline double alpha_al(int k, int n)
+static inline double alpha_al(const int k, const int n)
 {
-  if (k == -1)
+  if (k > 0)
   {
-    return (0.0);
+    if (k < n)
+      return k%2==0?-1.0:1.0;
+    else
+      return (2.0*k+1.0) / sqrt ((k-n+1.0) * (k+n+1.0));
   }
   else if (k == 0)
   {
     if (n == 0)
-    {
       return 1;
-    }
     else
-    {
       return n%2==0?-1.0:0.0;
-    }
   }
-  else if (k < n)
-  {
-    return k%2==0?-1.0:1.0;
-  }
-  else
-  {
-    return (2.0*k+1.0) / sqrt ((k-n+1.0) * (k+n+1.0));
-  }
+
+  return (0.0);
 }
 
-inline double beta_al(int k, int n)
+static inline double beta_al(int k, int n)
 {
   if (0 <= k && k < n)
-  {
     return (1.0);
-  }
   else
-  {
     return (0.0);
-  }
 }
 
-inline double gamma_al(int k, int n)
+static inline double gamma_al(int k, int n)
 {
   static int i;
   static double result;
@@ -83,13 +67,9 @@ inline double gamma_al(int k, int n)
     return (sqrt(result));
   }
   else if (k <= n)
-  {
     return (0.0);
-  }
   else
-  {
     return (-sqrt(((double)(k-n)*(k+n))/(((k-n+1.0)*(k+n+1.0)))));
-  }
 }
 
 inline void alpha_al_row(double *alpha, int N, int n)
@@ -261,4 +241,3 @@ inline int eval_al_thresh(double *x, double *y, int size, int k, double *alpha,
   }
   return 0;
 }
-/* \} */

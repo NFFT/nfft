@@ -31,7 +31,7 @@ for N = Nv
   nfsft_precompute_x(plan);
   nfsft_set_f_hat(plan,double(fh));
   nfsft_trafo(plan);
-  fa = nfsft_get_f(plan);
+  fa = nfsft_get_f(plan)';
   err(j,2) = norm(fe-fa)/norm(fe);
   j = j + 1;
   nfsft_finalize(plan);

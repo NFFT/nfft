@@ -294,7 +294,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfsft: Input argument plan must be a scalar.");
       const int m = plans[i]->M_total;
-      plhs[0] = mxCreateDoubleMatrix(1, (unsigned)m, mxCOMPLEX);
+      plhs[0] = mxCreateDoubleMatrix((unsigned)m, 1, mxCOMPLEX);
       {
         double *fr = mxGetPr(plhs[0]), *fi = mxGetPi(plhs[0]);
         int j;

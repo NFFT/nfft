@@ -18,121 +18,106 @@
 
 /* $Id$ */
 
-/* Include standard C headers. */
+/* standard headers */
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+/* It is important to include complex.h before nfft3.h. */
 #include <complex.h>
 
-/* Include NFFT 3 utilities headers. */
-#include "util.h"
-/* Include NFFT3 library header. */
-#include "nfft3.h"
-#include "infft.h"
+#include "nfft3.h" /* NFFT3 header */
+#include "util.h" /* NFFT3 utilities header*/
+#include "infft.h" /* NFFT3 internal header */
 
 static void simple_test_nfsft(void)
 {
-  int j;                       /**< Index for nodes                                 */
-  int k;                       /**< Index for freqency degree                       */
-  int n;                       /**< Index for freqency degree                       */
-  nfsft_plan plan;             /**< Plan for the nfft                               */
-  const int N = 8;             /**< The bandwidth M                                 */
-  const int M = 8;             /**< The number of nodes M                           */
-  const double THRESHOLD = 1000.0; /**< The threshold for the NFSFT stabilization
-                                   procedure.                                      */
+  const int N = 4; /* bandwidth/maximum degree */
+  const int M = 8; /* number of nodes */
+  nfsft_plan plan; /* transform plan */
+  int j, k, n; /* loop variables */
 
-  /* Precompute. */
-  nfsft_precompute(N,THRESHOLD,0U,0U);
+  /* precomputation (for fast polynomial transform) */
+  nfsft_precompute(N,1000.0,0U,0U);
 
-  /* Init a transform plan using the guru interface. All arrays for input and
-   * output variables are allocated by nfsft_init_guru(). Computations are
-   * performed with respect to L^2-normalized spherical harmonics Y_k^n. The
-   * array of spherical Fourier coefficients is preserved during
-   * transformations. The internal NFFT uses a cut-off parameter of 6.
+  /* Initialize transform plan using the guru interface. All input and output
+   * arrays are allocated by nfsft_init_guru(). Computations are performed with
+   * respect to L^2-normalized spherical harmonics Y_k^n. The array of spherical
+   * Fourier coefficients is preserved during transformations. The NFFT uses a
+   * cut-off parameter m = 6. See the NFFT 3 manual for details.
    */
   nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
     NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
-    ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
-    FFT_OUT_OF_PLACE, 6);
+    PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, 6);
 
-  /* Init pseudo random nodes. */
+  /* pseudo-random nodes */
   for (j = 0; j < plan.M_total; j++)
   {
-    plan.x[2*j]=RAND-0.5;
-    plan.x[2*j+1]=0.5*RAND;
+    plan.x[2*j]= RAND - K(0.5);
+    plan.x[2*j+1]= K(0.5) * RAND;
   }
 
-  /* Do precomputation for nodes. */
+  /* precomputation (for NFFT, node-dependent) */
   nfsft_precompute_x(&plan);
 
-  /* Init pseudo random Fourier coefficients. */
+  /* pseudo-random Fourier coefficients */
   for (k = 0; k <= plan.N; k++)
-  {
     for (n = -k; n <= k; n++)
-    {
       plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-        RAND - 0.5 + _Complex_I*(RAND - 0.5);
-    }
-  }
+        RAND - K(0.5) + _Complex_I*(RAND - K(0.5));
 
-  /*for (k = 0; k < plan.N_total; k++)
-  {
-     fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
-       cimag(plan.f_hat[k]));
-  }*/
-
-  //nfft_vpr_complex(plan.f_hat,plan.N_total,"given Fourier coefficients, vector f_hat");
-
-  /* Compute direct transformation and display the result. */
+  /* Direct transformation, display result. */
   ndsft_trafo(&plan);
-  nfft_vpr_complex(plan.f,plan.M_total,"ndsft, vector f");
+  printf("Vector f (NDSFT):\n");
+  for (j = 0; j < plan.M_total; j++)
+    printf("f[%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",j,
+      creal(plan.f[j]), cimag(plan.f[j]));
 
-  /* Compute approximate transformation and display the result. */
-  nfsft_trafo(&plan);
-  nfft_vpr_complex(plan.f, plan.M_total,"nfsft, vector f");
-  /*for (k = 0; k < plan.N_total; k++)
-  {
-     fprintf(stderr,"f_hat[%d] = %le +I*%le\n",k,creal(plan.f_hat[k]),
-       cimag(plan.f_hat[k]));
-  }*/
+  printf("\n");
 
-  /* Compute direct adjoint transformation and display the result. */
-  nfsft_adjoint(&plan);
-  for (k = 0; k <= plan.N; k++)
-  {
-    for (n = -k; n <= k; n++)
-    {
-      fprintf(stdout,"f_hat[%d,%d] = %le + _Complex_I*%le\n",k,n,
-        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
-        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
-    }
-  }
-  //nfft_vpr_complex(plan.f_hat,plan.N_total,"adjoint ndsft, vector f_hat");
+  /* Fast approximate transformation, display result. */
+  printf("Vector f (NDSFT):\n");
+  for (j = 0; j < plan.M_total; j++)
+    printf("f[%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",j,
+      creal(plan.f[j]), cimag(plan.f[j]));
 
-  /* COmpute approximate adjoint transformation and display the result */
+  printf("\n");
+
+  /* Direct adjoint transformation, display result. */
   ndsft_adjoint(&plan);
+  printf("Vector f_hat (NDSFT):\n");
+  for (k = 0; k <= plan.N; k++)
+    for (n = -k; n <= k; n++)
+      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",k,n,
+        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
+
+  printf("\n");
+
+  /* Fast approximate adjoint transformation, display result. */
+  nfsft_adjoint(&plan);
+  printf("Vector f_hat (NFSFT):\n");
   for (k = 0; k <= plan.N; k++)
   {
     for (n = -k; n <= k; n++)
     {
-      fprintf(stdout,"f_hat[%d,%d] = %le + I*%le\n",k,n,
+      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",k,n,
         creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
         cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
   }
-  //nfft_vpr_complex(plan.f_hat,plan.N_total,"adjoint nfsft, vector f_hat");
 
-  /* Finalise the plan. */
+  /* Finalize the plan. */
   nfsft_finalize(&plan);
+
+  /* Destroy data precomputed for fast polynomial transform. */
 	nfsft_forget();
 }
 
 int main(void)
 {
-  system("clear");
-  printf("1) computing a ndsft, a nfsft, an adjoint ndsft, and an adjoint nfsft\n\n");
+  printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"
+    "...\n\n");
   simple_test_nfsft();
-
   return EXIT_SUCCESS;
 }

@@ -35,33 +35,6 @@
  * \{
  */
 
-/**
- * Computes three-term recurrence coefficients \f$\alpha_k^n\f$ of associated
- * Legendre functions.
- *
- * \arg k The index \f$k\f$
- * \arg n The index \f$n\f$
- */
-double alpha_al (int k, int n);
-
-/**
- * Computes three-term recurrence coefficients \f$\beta_k^n\f$ of associated
- * Legendre functions.
- *
- * \arg k The index \f$k\f$
- * \arg n The index \f$n\f$
- */
-double beta_al (int k, int n);
-
-/**
- * Computes three-term recurrence coefficients \f$\gamma_k^n\f$ of associated
- * Legendre functions.
- *
- * \arg k The index \f$k\f$
- * \arg n The index \f$n\f$
- */
-double gamma_al (int k, int n);
-
 void alpha_al_row(double *alpha, int N, int n);
 void beta_al_row(double *beta, int N, int n);
 void gamma_al_row(double *gamma, int N, int n);

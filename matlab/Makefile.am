@@ -8,7 +8,7 @@ endif
 
 DIR_NFFT=nfft
 
-SUBDIRS = . $(DIR_NFSFT) $(DIR_NFFT)
+SUBDIRS = . $(DIR_NFFT) $(DIR_NFSFT)
 
 AM_CPPFLAGS = -I$(top_srcdir)/include $(matlab_CPPFLAGS)
 
