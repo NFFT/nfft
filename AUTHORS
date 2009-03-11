@@ -37,4 +37,4 @@ Tobias Knopp <knopp@imt.uni-luebeck.de>
  - reconstruction in magnetic resonance imaging (/applications/mri)
 
 Antje Vollrath <vollrath@math.uni-luebeck.de>
- - transforms on the rotaion group SO(3) (/kernel/nfsoft)
+ - transforms on the rotation group SO(3) (/kernel/nfsoft)
