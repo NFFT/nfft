@@ -1,6 +1,5 @@
-/* $Id: fpt.c 2313 2008-04-17 15:21:37Z vollrath $
- *
- * Copyright (c) 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+/*
+ * Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -16,6 +15,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+
+/* $Id$ */
 
 /* include/nfftconf.h.in.  Generated from configure.ac by autoheader.  */
 

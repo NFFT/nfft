@@ -1,6 +1,6 @@
 # $Id$
 #
-# Copyright (c) 2005, 2008 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2005, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -21,7 +21,7 @@
 ################################################################################
 
 # initialize autoconf
-AC_INIT([NFFT],[3.1.0-alpha],[potts@mathematik.tu-chemnitz.de])
+AC_INIT([NFFT],[3.1.0],[potts@mathematik.tu-chemnitz.de])
 
 # m4 macros
 AC_CONFIG_MACRO_DIR([m4])
