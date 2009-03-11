@@ -1,3 +1,5 @@
+%
+% $Id$
 function plotpf(x, N1, r);
 
 N2 = size(x, 1) / N1;
@@ -31,7 +33,7 @@ Y = sin(rho) .* sqrt(2*(1-cos(theta)));
 % shading interp
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% plot as singular points 
+%%%% plot as singular points
 diameter = 0.005;
 
 hold on

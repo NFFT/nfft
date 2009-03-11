@@ -1,4 +1,22 @@
-% This script file is an example of the usage 
+%
+% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+%
+% This program is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+%
+% You should have received a copy of the GNU General Public License along with
+% this program; if not, write to the Free Software Foundation, Inc., 51
+% Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+%
+% $Id$
+% This script file is an example of the usage
 
 N=128;   % points per row / column
 
@@ -35,7 +53,7 @@ system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
 % and one plot of the N/2 row
 visualize_data('pics/pic_2d', N, 1, 'Inverse 2d-NFFT - 3. iteration');
 
-% Compute the root mean square 
+% Compute the root mean square
 rms('pics/rms_2d.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

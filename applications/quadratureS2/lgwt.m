@@ -1,8 +1,26 @@
+%
+% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+%
+% This program is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+%
+% You should have received a copy of the GNU General Public License along with
+% this program; if not, write to the Free Software Foundation, Inc., 51
+% Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+%
+% $Id$
 function [x,w]=lgwt(N,a,b)
 
 % lgwt.m
 %
-% This script is for computing definite integrals using Legendre-Gauss 
+% This script is for computing definite integrals using Legendre-Gauss
 % Quadrature. Computes the Legendre-Gauss nodes and weights  on an interval
 % [a,b] with truncation order N
 %
@@ -33,27 +51,27 @@ y0=2;
 
 % Iterate until new points are uniformly within epsilon of old points
 while max(abs(y-y0))>eps
-    
-    
+
+
     L(:,1)=1;
     Lp(:,1)=0;
-    
+
     L(:,2)=y;
     Lp(:,2)=1;
-    
+
     for k=2:N1
         L(:,k+1)=( (2*k-1)*y.*L(:,k)-(k-1)*L(:,k-1) )/k;
     end
- 
-    Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);   
-    
+
+    Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);
+
     y0=y;
     y=y0-L(:,N2)./Lp;
-    
+
 end
 
 % Linear map from[-1,1] to [a,b]
-x=(a*(1-y)+b*(1+y))/2;      
+x=(a*(1-y)+b*(1+y))/2;
 
 % Compute the weights
 w=(b-a)./((1-y.^2).*Lp.^2)*(N2/N1)^2;

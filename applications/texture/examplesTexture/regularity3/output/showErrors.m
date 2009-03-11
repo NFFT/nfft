@@ -1,3 +1,5 @@
+%
+% $Id$
 function showErrors(patterns, titles);
 
 %figure();
@@ -20,7 +22,7 @@ for j = 1:numplots;
 
 		data = textscan(fid, '%n %n', 'commentStyle', '#');
         nonzero = find(data{2} ~= 0);
-        
+
 		semilogy(data{1}(nonzero), data{2}(nonzero), c);
 		hold on;
 		fclose(fid);

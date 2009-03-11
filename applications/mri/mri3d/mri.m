@@ -1,4 +1,22 @@
-% This script file is an example of the usage 
+%
+% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+%
+% This program is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+%
+% You should have received a copy of the GNU General Public License along with
+% this program; if not, write to the Free Software Foundation, Inc., 51
+% Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+%
+% $Id$
+% This script file is an example of the usage
 
 N=48;   % points per row / column
 Z=48;    % number of slices
@@ -37,12 +55,12 @@ system(['./reconstruct_data_2d1d ' 'output_phantom_nfft.dat ' ...
 % every slice and one plot of the N/2 row of the 10th plane.
 visualize_data('pics_2+1d/pic', N, Z, 1, 'Inverse 2d1d-NFFT - 3. iteration - spiral knots');
 
-% Compute the root mean square 
+% Compute the root mean square
  rms('pics_2+1d/rms.txt');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% The same as above but reconstructed with gridding. 
+% The same as above but reconstructed with gridding.
 % That means first an adjoint 2d-NFFT, then a 1d-FFT.
 % The ITER parameter is obsolent and just for compatibility
 system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...

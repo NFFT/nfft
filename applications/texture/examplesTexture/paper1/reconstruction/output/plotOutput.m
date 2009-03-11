@@ -1,3 +1,5 @@
+%
+% $Id$
 function plotOutput(name, grid, algo, w_hat, measure, option);
 
 N_values = [5 10 20 40 80];
@@ -5,11 +7,11 @@ dimension_values = [286 1771 12341 91881 708561];
 N1_values = [11 23 41 92 164 308];
 if grid == 1;
 	N2_values = [128 510 1652 8556 26772 94900];
-else	
+else
 	N2_values = [34 156 460 2248 6974 23898];
 end;
 
-statusCodes = {'+' '*' 'o'}; 
+statusCodes = {'+' '*' 'o'};
 %change linestyles if you want to enable information about status.
 set(0, 'DefaultAxesColorOrder', [0 0 0], ...
 		      'DefaultAxesLineStyleOrder', '-+|--+|:+|-o|--o|:o');
@@ -43,7 +45,7 @@ for count=1:length(files);
 		disp(N1);
 		disp(N2);
 		return;
-	end;	
+	end;
 
 	fid = fopen(curFile, 'r');
 
@@ -61,16 +63,16 @@ for count=1:length(files);
 																		 results(4:length(results));
 
 	fclose(fid);
-end;	
-	
+end;
+
 for N1_ind = 1:length(N1_values);
 	for N_ind = 1:length(N_values);
 		ind = find(data(N1_ind, N_ind, :) == data(N1_ind, N_ind, :));
 		cur_data = data(N1_ind, N_ind, ind);
-		
+
 		if length(cur_data) < testcases;
 			status(N1_ind, N_ind) = 3;
-		end;	
+		end;
 
 		if length(cur_data) >= 1;
 
@@ -80,17 +82,17 @@ for N1_ind = 1:length(N1_values);
 				max(cur_data)/geomean(cur_data) > threshold;
 
 				status(N1_ind, N_ind) = 2;
-			end;	
+			end;
 		end;
 	end;
-end;	
+end;
 
 figure();
 
 loglog(N1_values', err);
 
 set(gca, 'XTick', N1_values);
-set(gca, 'XTickLabel', sprintf('(%d, %d)|', [N1_values; N2_values])); 
+set(gca, 'XTickLabel', sprintf('(%d, %d)|', [N1_values; N2_values]));
 set(gca, 'XLim', [8 350]);
 set(gca, 'XMinorTick', 'off');
 set(gca, 'YTick', [1e-15 1e-10 1e-5 1]);
@@ -108,14 +110,14 @@ for N_ind = 1:length(N_values);
 	N = N_values(N_ind);
 	dimension = dimension_values(N_ind);
 	leg{N_ind} = sprintf('L = %d (|J_L| = %d)', N, dimension);
-end;	
+end;
 leg_handle = legend(leg, 'location', 'southoutside');
 
 set(leg_handle, 'units', 'centimeters');
 pos = get(leg_handle, 'position');
 lwidth = pos(3);
-	
-set(gcf, 'units', 'centimeters');	
+
+set(gcf, 'units', 'centimeters');
 pos = get(gcf, 'position');
 pos(3) = pos(3) + lwidth;
 set(gcf, 'position', pos);
@@ -126,7 +128,7 @@ for code = 1:3
 	err_code = err;
 	err_code(ind) = nan;
 
-% Comment out to enable information about status.	
+% Comment out to enable information about status.
 %	hold on;
 %	loglog(N1_values', err_code, statusCodes{code});
 end;
@@ -137,10 +139,10 @@ if strcmp(option, 'print');
 	set(gcf, 'paperOrientation', 'landscape');
 	set(gcf, 'paperPosition', plot_position);
 	print -Plaser1
-end;	
+end;
 if strcmp(option, 'save');
 	set(gcf, 'paperPosition', plot_position_save);
 	set(gcf, 'paperOrientation', 'portrait');
 	saveas(gcf, sprintf('%s_%s_%s.pdf', ...
 				strrep(name, '.', '_'), algo, measure_descr_short{measure}));
-end;	
+end;

@@ -1,3 +1,5 @@
+%
+% $Id$
 function plotOutput(name, w_hat, option, max_newN, max_l);
 
 newN_values = [0 2.^(1:7)];
@@ -19,31 +21,31 @@ for count=1:length(files);
  		if curN ~= N || curN1 ~= N1 || curN2 ~= N2;
 
 			disp('Inconsistent N, N1, N2!');
-		end;	
-	else	
+		end;
+	else
 		N = curN;
 		N1 = curN1;
 		N2 = curN2;
 
 		if nargin < 5;
 			max_l = N;
-		end;	
+		end;
 
 		if nargin < 4;
 			max_newN = max(newN_values);
 		end;
 
 		data = nan * ones(length(0:2:max_l), find(max_newN == newN_values));
-	end;	
+	end;
 
 	if newN > max_newN;
 		continue;
-	end;	
-	
+	end;
+
 	newN_ind = find(newN == newN_values);
 
 	fid = fopen(curFile, 'r');
-	
+
 	results = textscan(fid, '%n%n', 'commentStyle', '#');
 	results = results{2};
 
@@ -52,24 +54,24 @@ for count=1:length(files);
 		disp(length(results));
 		disp(N+1);
 		continue;
-	end;	
+	end;
 	odd_part_deriv = results(2:2:length(results)) - ...
 		ones(floor(length(results)/2),1);
 	if norm(odd_part_deriv, inf) > 0.1;
 		disp('Odd part is not one!')
 		newN
 		odd_part_deriv
-	end;	
+	end;
 
 	data(:, newN_ind) = results(1:2:(max_l+1));
 
 	fclose(fid);
-end;	
+end;
 
 ind = find(data < 1e-16)
-data(ind) = 1e-16;	
+data(ind) = 1e-16;
 
-loglog(1:2:(max_l+1), data); 
+loglog(1:2:(max_l+1), data);
 
 set(gca, 'fontName', 'Times');
 set(gca, 'fontSize', 9);
@@ -84,7 +86,7 @@ for newN_ind = 1:length(newN_values);
 	if newN <= max_newN;
 		leg{newN_ind} = sprintf('L = %d', newN);
 	end;
-end;	
+end;
 
 %set(gcf, 'resizeFcn', @legResize);
 
@@ -106,10 +108,10 @@ if nargin > 2;
 		set(gcf, 'paperOrientation', 'landscape');
 		set(gcf, 'paperPosition', plot_position);
 		print -Plaser1
-	end;	
+	end;
 	if strcmp(option, 'save');
 		set(gcf, 'paperOrientation', 'portrait');
 		set(gcf, 'paperPosition', plot_position_save);
 		saveas(gca, sprintf('%s.pdf', strrep(name, '.', '_')));
-	end;	
+	end;
 end;

@@ -1,3 +1,5 @@
+%
+% $Id$
 function r = readr(name);
 
 fid = fopen(name);

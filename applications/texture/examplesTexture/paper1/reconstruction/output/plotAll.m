@@ -1,3 +1,5 @@
+%
+% $Id$
 function plotAll(name, grid, w_hat, option);
 
 close all;

@@ -1,5 +1,23 @@
-% constructs a three dimensional Shepp Logan phantom
+%
+% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+%
+% This program is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+%
+% You should have received a copy of the GNU General Public License along with
+% this program; if not, write to the Free Software Foundation, Inc., 51
+% Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+%
+% $Id$
 function [] = construct_phantom( N, Z )
+% constructs a three dimensional Shepp Logan phantom
 
 % The phantom will be a little bit smaller than N
 % because of aliasing effects
@@ -10,7 +28,7 @@ N_=N;
 A = [1.0 0.69 0.92 0.0 0.0 0;
      0.1 0.6624 0.874 0.0 -0.0184 0;
      0.4 0.11 0.31 0.22 0.0 18;
-     0.4 0.16 0.41 -0.22 0.0 -18; 
+     0.4 0.16 0.41 -0.22 0.0 -18;
      0.55 0.21 0.25 0.0 0.35 0;
      0.55 0.046 0.046 0.0 0.1 0;
      0.55 0.046 0.046 0.0 -0.1 0;
@@ -23,8 +41,8 @@ B = zeros(N_,N_,Z);
 for l=1:10,
   for z=1:Z,
     for y=1:N_,
-      for x=1:N_,        
-        x_=    x /(N_/2)-1; 
+      for x=1:N_,
+        x_=    x /(N_/2)-1;
         y_=    y /(N_/2)-1;
         r = sqrt(x_^2+y_^2);
         if x_==0 & y_==0,
@@ -46,7 +64,7 @@ for l=1:10,
             else
               B(x,y,z) = A(l,1);
             end
-          end        
+          end
       end
     end
   end
