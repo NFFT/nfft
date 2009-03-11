@@ -2688,21 +2688,6 @@ void nfsoft_finalize(nfsoft_plan *plan);
  */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*###########################################################################*/
 /*###########################################################################*/
 /*###########################################################################*/
@@ -2840,89 +2825,12 @@ typedef struct
   double dot_v_iter;                    /**< weighted dotproduct of v_iter  */
 } solver_plan_double;
 
+void solver_init_advanced_double(solver_plan_double* ths, mv_plan_double *mv, unsigned flags);
+void solver_init_double(solver_plan_double* ths, mv_plan_double *mv);
+void solver_before_loop_double(solver_plan_double* ths);
+void solver_loop_one_step_double(solver_plan_double *ths);
+void solver_finalize_double(solver_plan_double *ths);
 
-/* /\** */
-/*  * Complete macro for mangling an inverse transform. */
-/*  * */
-/*  * \arg MV Matrix vector multiplication type (eg nfft, nfct) */
-/*  * \arg FLT Float used as prefix for function names (double or complex) */
-/*  * \arg FLT_TYPE Float type (double or fftw_complex) */
-/*  * */
-/*  * \author Stefan Kunis */
-/*  *\/ */
-/* #define MACRO_SOLVER_PLAN(MV, FLT, FLT_TYPE)                                  \ */
-/*                                                                               \ */
-/* /\** Structure for an inverse transform plan. *\/                               \ */
-/* typedef struct                                                                \ */
-/* {                                                                             \ */
-/*   MV ## _plan *mv;                      /\**< matrix vector multiplication   *\/\ */
-/*   unsigned flags;                       /\**< iteration type                 *\/\ */
-/*                                                                               \ */
-/*   double *w;                            /\**< weighting factors              *\/\ */
-/*   double *w_hat;                        /\**< damping factors                *\/\ */
-/*                                                                               \ */
-/*   FLT_TYPE *y;                          /\**< right hand side, samples       *\/\ */
-/*                                                                               \ */
-/*   FLT_TYPE *f_hat_iter;                 /\**< iterative solution             *\/\ */
-/*                                                                               \ */
-/*   FLT_TYPE *r_iter;                     /\**< iterated residual vector       *\/\ */
-/*   FLT_TYPE *z_hat_iter;                 /\**< residual of normal equation of   \ */
-/* 					     first kind                     *\/\ */
-/*   FLT_TYPE *p_hat_iter;                 /\**< search direction               *\/\ */
-/*   FLT_TYPE *v_iter;                     /\**< residual vector update         *\/\ */
-/*                                                                               \ */
-/*   double alpha_iter;                    /\**< step size for search direction *\/\ */
-/*   double beta_iter;                     /\**< step size for search correction*\/\ */
-/*                                                                               \ */
-/*   double dot_r_iter;                    /\**< weighted dotproduct of r_iter  *\/\ */
-/*   double dot_r_iter_old;                /\**< previous dot_r_iter            *\/\ */
-/*   double dot_z_hat_iter;                /\**< weighted dotproduct of           \ */
-/* 					     z_hat_iter                     *\/\ */
-/*   double dot_z_hat_iter_old;            /\**< previous dot_z_hat_iter        *\/\ */
-/*   double dot_p_hat_iter;                /\**< weighted dotproduct of           \ */
-/* 					     p_hat_iter                     *\/\ */
-/*   double dot_v_iter;                    /\**< weighted dotproduct of v_iter  *\/\ */
-/* } i ## MV ## _plan;                                                           \ */
-/*                                                                               \ */
-/* /\** Simple initialisation. *\/                                                 \ */
-/* void i ## MV ## _init(i ## MV ## _plan *ths, MV ## _plan *mv);                \ */
-/* /\** Advanced initialisation. *\/                                               \ */
-/* void i ## MV ## _init_advanced(i ## MV ## _plan *ths, MV ## _plan *mv,        \ */
-/*                                unsigned i ## MV ## _flags);                   \ */
-/* /\** Setting up residuals before the actual iteration. *\/                      \ */
-/* void i ## MV ## _before_loop(i ## MV ## _plan *ths);                          \ */
-/* /\** Doing one step in the iteration. *\/                                       \ */
-/* void i ## MV ## _loop_one_step(i ## MV ## _plan *ths);                        \ */
-/* /\** Destroys the plan for the inverse transform. *\/                           \ */
-/* void i ## MV ## _finalize(i ## MV ## _plan *ths);                             \ */
-
-/* previous function declarations didn't work with doxygen ....
-  F(MV, FLT, FLT_TYPE, init,    i ## MV ## _plan *ths, MV ## _plan *mv);
-  F(MV, FLT, FLT_TYPE, init_advanced, i ## MV ## _plan *ths, MV ## _plan *mv,
-                                      unsigned i ## MV ## _flags);
-  F(MV, FLT, FLT_TYPE, before_loop,   i ## MV ## _plan *ths);
-  F(MV, FLT, FLT_TYPE, loop_one_step, i ## MV ## _plan *ths);
-  F(MV, FLT, FLT_TYPE, finalize,      i ## MV ## _plan *ths);
-*/
-
-//MACRO_SOLVER_PLAN(nfft, complex, fftw_complex)
-/*#ifdef HAVE_NFCT
-MACRO_SOLVER_PLAN(nfct, double, double)
-#endif
-#ifdef HAVE_NFST
-MACRO_SOLVER_PLAN(nfst, double, double)
-#endif
-#ifdef HAVE_NNFFT
-MACRO_SOLVER_PLAN(nnfft, complex, fftw_complex)
-#endif
-#ifdef HAVE_MRI
-MACRO_SOLVER_PLAN(mri_inh_2d1d, complex, fftw_complex)
-MACRO_SOLVER_PLAN(mri_inh_3d, complex, fftw_complex)
-#endif
-#ifdef HAVE_NFSFT
-MACRO_SOLVER_PLAN(nfsft, complex, fftw_complex)
-#endif
-*/
 /** @}
  */
 

@@ -13,7 +13,7 @@ and related transformations. In detail, NFFT3 implements
     - to the sphere S^2 (NFSFT)
     - to the hyperbolic cross (NSFFT)
     - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST)
-    - to the routation group (NFSOFT)
+    - to the rotation group (NFSOFT)
  3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE 
  4) Applications in
     - medical imaging
@@ -69,9 +69,9 @@ util (dir)		Source code for auxilliary routines
 
 Feedback
 --------
-Your comments are welcome! This is the third version of the library and may not be 
-as robust or well documented as it should be. Please keep track of bugs or 
-missing/confusing instructions and report them to
+Your comments are welcome! This is the third version of the library and may
+not be as robust or well documented as it should be. Please keep track of bugs
+or missing/confusing instructions and report them to
 
   Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
   TU Chemnitz, Fakultaet fuer Mathematik
@@ -83,21 +83,22 @@ or
   Stefan Kunis           <kunis@mathematik.tu-chemnitz.de>
   Jens Keiner            <keiner@math.uni-luebeck.de>
 
-If you find NFFT3 useful, we would be delighted to hear about what application you are using NFFT3 for!
+If you find NFFT3 useful, we would be delighted to hear about what application
+you are using NFFT3 for!
 
 Legal Information & Credits
 ---------------------------
-Copyright (C) 2002-2006 Daniel Potts
+Copyright (C) 2002-2009 Daniel Potts
 
 This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
 It was developed at the Mathematical Institute, University of
 Luebeck, and at the Faculty of Mathematics, Chemnitz University of Technology.
 
-NFFT3 is free software. You can redistribute it and/or modify it under the terms 
-of the GNU General Public License as published by the Free Software Foundation; 
-either version 2 of the License, or (at your option) any later version.
-If not stated otherwise, this applies to all files contained in this package and
-its sub-directories. 
+NFFT3 is free software. You can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version. If not stated otherwise, this applies to all files contained in this
+package and its sub-directories. 
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

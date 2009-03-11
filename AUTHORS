@@ -14,7 +14,7 @@ Jens Keiner <keiner@math.uni-luebeck.de>
 
 Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
  - nfft (/kernel/nfft)
- - inverse transforms (/solver)
+ - inverse transforms (kernel/solver)
  - nfft on the hyperbolic cross (/kernel/nsfft)
  - fast Gauss transform (/applications/fastgauss)
  - Matlab mex interface for nfft (/matlab/nfft)
@@ -31,10 +31,10 @@ Steffen Klatt
  - nonequispaced cosine transform (/kernel/nfct)
  - nonequispaced sine transform (/kernel/nfst)
 
-Tobias Knopp <tobias.knopp@informatik.uni-luebeck.de>
+Tobias Knopp <knopp@imt.uni-luebeck.de>
  - transforms in magnetic resonance imaging (/kernel/mri)
  - nonequispaced in time and frequency fft (/kernel/nnfft)
  - reconstruction in magnetic resonance imaging (/applications/mri)
 
-Antje Vollrat <hvollrath@math.uni-luebeck.de>
+Antje Vollrath <vollrath@math.uni-luebeck.de>
  - transforms on the rotaion group SO(3) (/kernel/nfsoft)
