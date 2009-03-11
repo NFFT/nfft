@@ -13,6 +13,7 @@ and related transformations. In detail, NFFT3 implements
     - to the sphere S^2 (NFSFT)
     - to the hyperbolic cross (NSFFT)
     - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST)
+    - to the routation group (NFSOFT)
  3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE 
  4) Applications in
     - medical imaging
@@ -30,6 +31,11 @@ documentation can be found in HTML format in /doc/api/html/index.html
 or in LaTeX format for self compilation in /doc/api/latex/refman.tex.
 For installation instructions, you can also refer to the file INSTALL
 in this directory.
+
+The most current general paper, and the one that we recommend if you wish 
+to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D. 
+''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms'' 
+ACM Trans. Math. Software, accepted. 
 
 Directory structure
 -------------------
