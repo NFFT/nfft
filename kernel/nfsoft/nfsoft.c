@@ -184,12 +184,12 @@ else
  if (flags & NFSOFT_NO_STABILIZATION )
 {
 //set = fpt_init(0,t,0U|FPT_NO_STABILIZATION );
-set = fpt_init((2*N+1)*(2*N+1),t,0U|FPT_NO_STABILIZATION );
+set = fpt_init((2*N+1)*(2*N+1)-1,t,0U|FPT_NO_STABILIZATION );
 }
 else
 {
 //set = fpt_init(0,t,0U);
-set = fpt_init((2*N+1)*(2*N+1),t,0U);
+set = fpt_init((2*N+1)*(2*N+1)-1,t,0U);
 }
 
 for (k=-N; k<=N; k++)
