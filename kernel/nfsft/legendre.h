@@ -29,15 +29,15 @@
 #ifndef LEGENDRE_H
 #define LEGENDRE_H
 
-#include "api.h"
+#include "infft.h"
 
 /** \addtogroup nfsft
  * \{
  */
 
-void alpha_al_row(double *alpha, int N, int n);
-void beta_al_row(double *beta, int N, int n);
-void gamma_al_row(double *gamma, int N, int n);
+void alpha_al_row(R *alpha, const int N, const int n);
+void beta_al_row(R *beta, const int N, const int n);
+void gamma_al_row(R *gamma, const int N, const int n);
 
 /**
  * Compute three-term-recurrence coefficients \f$\alpha_{k-1}^n\f$ of associated
@@ -48,7 +48,7 @@ void gamma_al_row(double *gamma, int N, int n);
  *   \f$\alpha_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  */
-void alpha_al_all(double *alpha, int N);
+void alpha_al_all(R *alpha, const int N);
 
 /**
  * Compute three-term-recurrence coefficients \f$\beta_{k-1}^n\f$ of associated
@@ -59,7 +59,7 @@ void alpha_al_all(double *alpha, int N);
  *   \f$\beta_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  */
-void beta_al_all(double *beta, int N);
+void beta_al_all(R *beta, const int N);
 
 /**
  * Compute three-term-recurrence coefficients \f$\gamma_{k-1}^n\f$ of associated
@@ -70,7 +70,7 @@ void beta_al_all(double *beta, int N);
  *   \f$\gamma_{k-1}^n\f$.
  * \arg N The upper bound \f$N\f$.
  */
-void gamma_al_all(double *gamma, int N);
+void gamma_al_all(R *gamma, const int N);
 
 /**
  * Evaluates an associated Legendre polynomials \f$P_k^n(x,c)\f$ using the
@@ -87,8 +87,8 @@ void gamma_al_all(double *gamma, int N);
  * \arg gamma A pointer to an array containing the recurrence coefficients
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
  */
-void eval_al(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma);
+void eval_al(R *x, R *y, const int size, const int k, R *alpha,
+  R *beta, R *gamma);
 
 /**
  * Evaluates an associated Legendre polynomials \f$P_k^n(x,c)\f$ using the
@@ -106,7 +106,7 @@ void eval_al(double *x, double *y, int size, int k, double *alpha,
  *   \f$\gamma_c^n,\ldots,\gamma_{c+k}^n\f$
  * \arg threshold The threshold
  */
-int eval_al_thresh(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma, double threshold);
+int eval_al_thresh(R *x, R *y, const int size, const int k, R *alpha,
+  R *beta, R *gamma, R threshold);
 /* \} */
 #endif

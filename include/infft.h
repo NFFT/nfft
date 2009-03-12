@@ -66,6 +66,14 @@ typedef double _Complex C;
 #endif
 #define DK(name, value) const R name = K(value)
 
+/**
+ * Integral type large enough to contain a stride (what ``int'' should
+ * have been in the first place)
+ */
+typedef ptrdiff_t INT;
+
+#define IF(x,a,b) ((x)?(a):(b))
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define ABS(x) (((x)>K(0.0))?(x):(-(x)))

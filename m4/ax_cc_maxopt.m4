@@ -36,39 +36,39 @@ if test "$ac_test_CFLAGS" != "set"; then
   CFLAGS=""
   case $ax_cv_c_compiler_vendor in
     dec) CFLAGS="-newc -w0 -O5 -ansi_alias -ansi_args -fp_reorder -tune host"
-	 if test "x$acx_maxopt_portable" = xno; then
-           CFLAGS="$CFLAGS -arch host"
-         fi;;
+      if test "x$acx_maxopt_portable" = xno; then
+        CFLAGS="$CFLAGS -arch host"
+      fi;;
 
     sun) CFLAGS="-native -fast -xO5 -dalign"
-	 if test "x$acx_maxopt_portable" = xyes; then
-	   CFLAGS="$CFLAGS -xarch=generic"
-         fi;;
+      if test "x$acx_maxopt_portable" = xyes; then
+         CFLAGS="$CFLAGS -xarch=generic"
+      fi;;
 
-    hp)  CFLAGS="+Oall +Optrs_ansi +DSnative"
-	 if test "x$acx_maxopt_portable" = xyes; then
-	   CFLAGS="$CFLAGS +DAportable"
-	 fi;;
+    hp) CFLAGS="+Oall +Optrs_ansi +DSnative"
+      if test "x$acx_maxopt_portable" = xyes; then
+        CFLAGS="$CFLAGS +DAportable"
+      fi;;
 
     ibm) if test "x$acx_maxopt_portable" = xno; then
-           xlc_opt="-qarch=auto -qtune=auto"
-	 else
-           xlc_opt="-qtune=auto"
-	 fi
-         AX_CHECK_COMPILER_FLAGS($xlc_opt,
-         	CFLAGS="-O3 -qansialias -w $xlc_opt",
-               [CFLAGS="-O3 -qansialias -w"
-                echo "******************************************************"
-                echo "*  You seem to have the IBM  C compiler.  It is      *"
-                echo "*  recommended for best performance that you use:    *"
-                echo "*                                                    *"
-                echo "*    CFLAGS=-O3 -qarch=xxx -qtune=xxx -qansialias -w *"
-                echo "*                      ^^^        ^^^                *"
-                echo "*  where xxx is pwr2, pwr3, 604, or whatever kind of *"
-                echo "*  CPU you have.  (Set the CFLAGS environment var.   *"
-                echo "*  and re-run configure.)  For more info, man cc.    *"
-                echo "******************************************************"])
-         ;;
+        xlc_opt="-qarch=auto -qtune=auto"
+      else
+        xlc_opt="-qtune=auto"
+      fi
+      AX_CHECK_COMPILER_FLAGS($xlc_opt,
+        CFLAGS="-O3 -qansialias -w $xlc_opt",
+        [CFLAGS="-O3 -qansialias -w"
+              echo "******************************************************"
+              echo "*  You seem to have the IBM  C compiler.  It is      *"
+              echo "*  recommended for best performance that you use:    *"
+              echo "*                                                    *"
+              echo "*    CFLAGS=-O3 -qarch=xxx -qtune=xxx -qansialias -w *"
+              echo "*                      ^^^        ^^^                *"
+              echo "*  where xxx is pwr2, pwr3, 604, or whatever kind of *"
+              echo "*  CPU you have.  (Set the CFLAGS environment var.   *"
+              echo "*  and re-run configure.)  For more info, man cc.    *"
+              echo "******************************************************"])
+        ;;
 
     intel) CFLAGS="-O3"
         # Intel seems to have changed the spelling of this flag recently
@@ -122,12 +122,30 @@ if test "$ac_test_CFLAGS" != "set"; then
 
      #  -fstrict-aliasing for gcc-2.95+
      AX_CHECK_COMPILER_FLAGS(-fstrict-aliasing,
-	CFLAGS="$CFLAGS -fstrict-aliasing")
+     CFLAGS="$CFLAGS -fstrict-aliasing")
 
      # note that we enable "unsafe" fp optimization with other compilers, too
      AX_CHECK_COMPILER_FLAGS(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
 
      AX_GCC_ARCHFLAG($acx_maxopt_portable)
+     ;;
+    apple)
+     # default optimization flags for apple on all systems
+     AX_CHECK_COMPILER_FLAGS(-fast, CFLAGS="$CFLAGS -fast")
+     AX_CHECK_COMPILER_FLAGS(-fPIC, CFLAGS="$CFLAGS -fPIC")
+
+     case $host_cpu in
+        powerpc*)
+           cputype=`((grep cpu /proc/cpuinfo | head -n 1 | cut -d: -f2 | cut -d, -f1 | sed 's/ //g') ; /usr/bin/machine ; /bin/machine; grep CPU /var/run/dmesg.boot | head -n 1 | cut -d" " -f2) 2> /dev/null`
+           cputype=`echo $cputype | sed -e 's/ppc//g;s/ *//g'`
+           case $cputype in
+             *970*|*POWER4*|*power4*|*gq*|*POWER5*|*power5*|*gr*|*gs*);;
+             *) AX_CHECK_COMPILER_FLAGS(-mcpu=7450, CFLAGS="$CFLAGS -mcpu=7450");;
+           esac
+           ;;
+      esac
+
+     AX_APPLE_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;
   esac
 

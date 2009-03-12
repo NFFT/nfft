@@ -68,12 +68,6 @@ AC_SUBST([abs_srcdir])
 # maintainer mode option
 AM_MAINTAINER_MODE
 
-if test "x$USE_MAINTAINER_MODE" = "xyes"; then
-  nfft_module_default="yes"
-else
-  nfft_module_default="no"
-fi
-
 # ############################################################################
 # options
 # ############################################################################
@@ -81,6 +75,13 @@ fi
 # enable or disable parts of nfft
 
 need_fpt="no"
+
+AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[compile with all modules])], ok=$enableval, ok=no)
+if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
+  nfft_module_default="yes"
+else
+  nfft_module_default="no"
+fi
 
 AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=yes)
 if test "x$ok" = "xyes"; then

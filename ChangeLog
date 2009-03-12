@@ -3,6 +3,8 @@ predecessor, NFFT2, the NFFT3 library has seen major extensions and
 improvements.
 
 Changes in version 3.1.0:
+  - A module, called nfsoft, for fast Fourier transforms on the rotation group 
+    SO(3) has been added.
   - It is now possible to configure the build process so that only specific
     modules are compiled and installed. Invoke the configure script with option
     "--help" for details.
@@ -12,7 +14,8 @@ Changes in version 3.1.0:
   - Improved compliance with GNU standards.
   - The experimental Matlab interface has been improved and is now officially a
     part of NFFT3. To compile the Matlab modules, invoke the configure script
-    with the option --with-matlab=<path/to/matlab/directory>.
+    with the option --with-matlab=<path/to/matlab/directory>. Also, an interface
+    to the plain NFFT has been added.
 
 Changes in version 3.0.2:
   - Fixed a bug in the fpt module that lead to wrong output.

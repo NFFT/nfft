@@ -21,142 +21,112 @@
 #include <math.h>
 #include "infft.h"
 #include "legendre.h"
-//#include "api.h"
 
-static inline double alpha_al(const int k, const int n)
+static inline R alpha_al(const int k, const int n)
 {
   if (k > 0)
-  {
     if (k < n)
-      return k%2==0?-1.0:1.0;
+      return IF(k%2,K(1.0),K(-1.0));
     else
-      return (2.0*k+1.0) / sqrt ((k-n+1.0) * (k+n+1.0));
-  }
+      return (R)(2*k+1)/SQRT((R)((k-n+1)*(k+n+1)));
   else if (k == 0)
-  {
     if (n == 0)
-      return 1;
+      return K(1.0);
     else
-      return n%2==0?-1.0:0.0;
-  }
-
-  return (0.0);
+      return IF(n%2,K(0.0),K(-1.0));
+  return K(0.0);
 }
 
-static inline double beta_al(int k, int n)
+static inline R beta_al(const int k, const int n)
 {
   if (0 <= k && k < n)
-    return (1.0);
+    return K(1.0);
   else
-    return (0.0);
+    return K(0.0);
 }
 
-static inline double gamma_al(int k, int n)
+static inline R gamma_al(const int k, const int n)
 {
-  static int i;
-  static double result;
+  int i;
+  R result;
 
   if (k == -1)
   {
     /* Constant is ((2n)!)^(1/2) / (2^n n!). */
-    result = 1.0;
+    result = K(1.0);
     for (i = 1; i <= n; i++)
     {
-      result *= (n+i)/(4.0*i);
+      result *= ((R)(n+i))/((R)(4*i));
     }
-    return (sqrt(result));
+    return SQRT(result);
   }
   else if (k <= n)
-    return (0.0);
+    return K(0.0);
   else
-    return (-sqrt(((double)(k-n)*(k+n))/(((k-n+1.0)*(k+n+1.0)))));
+    return -SQRT(((R)((k-n)*(k+n)))/((R)((k-n+1)*(k+n+1))));
 }
 
-inline void alpha_al_row(double *alpha, int N, int n)
+void alpha_al_row(R *alpha, const int N, const int n)
 {
   int j;
-  double *alpha_act = alpha;
+  R *p = alpha;
   for (j = -1; j <= N; j++)
-  {
-    *alpha_act = alpha_al(j,n);
-    alpha_act++;
-  }
+    *p++ = alpha_al(j,n);
 }
 
-inline void beta_al_row(double *beta, int N, int n)
+void beta_al_row(R *beta, const int N, const int n)
 {
   int j;
-  double *beta_act = beta;
+  R *p = beta;
   for (j = -1; j <= N; j++)
-  {
-    *beta_act = beta_al(j,n);
-    beta_act++;
-  }
+    *p++ = beta_al(j,n);
 }
 
-inline void gamma_al_row(double *gamma, int N, int n)
+void gamma_al_row(R *gamma, const int N, const int n)
 {
   int j;
-  double *gamma_act = gamma;
+  R *p = gamma;
   for (j = -1; j <= N; j++)
-  {
-    *gamma_act = gamma_al(j,n);
-    gamma_act++;
-  }
+    *p++ = gamma_al(j,n);
 }
 
-inline void alpha_al_all(double *alpha, int N)
+inline void alpha_al_all(R *alpha, const int N)
 {
   int i,j;
-  double *alpha_act = alpha;
+  R *p = alpha;
   for (i = 0; i <= N; i++)
-  {
     for (j = -1; j <= N; j++)
-    {
-      *alpha_act = alpha_al(j,i);
-      alpha_act++;
-    }
-  }
+      *p++ = alpha_al(j,i);
 }
 
-inline void beta_al_all(double *alpha, int N)
+inline void beta_al_all(R *alpha, const int N)
 {
   int i,j;
-  double *alpha_act = alpha;
+  R *p = alpha;
   for (i = 0; i <= N; i++)
-  {
     for (j = -1; j <= N; j++)
-    {
-      *alpha_act = beta_al(j,i);
-      alpha_act++;
-    }
-  }
+      *p++ = beta_al(j,i);
 }
 
-inline void gamma_al_all(double *alpha, int N)
+inline void gamma_al_all(R *alpha, const int N)
 {
   int i,j;
-  double *alpha_act = alpha;
+  R *p = alpha;
   for (i = 0; i <= N; i++)
-  {
     for (j = -1; j <= N; j++)
-    {
-      *alpha_act = gamma_al(j,i);
-      alpha_act++;
-    }
-  }
+      *p++ = gamma_al(j,i);
 }
 
-inline void eval_al(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma)
+void eval_al(R *x, R *y, const int size, const int k, R *alpha,
+  R *beta, R *gamma)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
-  double a,b,x_val_act,a_old;
-  double *x_act, *y_act;
-  double *alpha_act, *beta_act, *gamma_act;
+  R a,b,x_val_act,a_old;
+  R *x_act, *y_act;
+  R *alpha_act, *beta_act, *gamma_act;
 
   /* Traverse all nodes. */
   x_act = x;
@@ -192,16 +162,16 @@ inline void eval_al(double *x, double *y, int size, int k, double *alpha,
   }
 }
 
-inline int eval_al_thresh(double *x, double *y, int size, int k, double *alpha,
-  double *beta, double *gamma, double threshold)
+int eval_al_thresh(R *x, R *y, const int size, const int k, R *alpha,
+  R *beta, R *gamma, R threshold)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
-  double a,b,x_val_act,a_old;
-  double *x_act, *y_act;
-  double *alpha_act, *beta_act, *gamma_act;
+  R a,b,x_val_act,a_old;
+  R *x_act, *y_act;
+  R *alpha_act, *beta_act, *gamma_act;
 
   /* Traverse all nodes. */
   x_act = x;
