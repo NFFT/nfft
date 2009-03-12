@@ -1,4 +1,6 @@
 %
+% Double conversion for f_hat class
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,7 +21,7 @@
 function d = double(p)
 % Double conversion for f_hat class
 %
-% Copyright 2007 Jens Keiner
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 d = zeros(2*p.N+1,p.N+1);
 o = 1;

@@ -1,4 +1,6 @@
 %
+% Precompute
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,7 +21,7 @@
 function nfsft_precompute(N,kappa,nfsft_flags,fpt_flags)
 % Precompute
 %
-% Copyright 2007 Jens Keiner
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 if ~exist('nfsft_flags','var')
   nfsft_flags = 0;

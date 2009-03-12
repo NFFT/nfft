@@ -1,4 +1,6 @@
 %
+% Get f_hat properties from the specified object
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,6 +21,8 @@
 function val = get(p, propName)
 % GET Get f_hat properties from the specified object
 % and return the value
+%
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 switch propName
 case 'Data'
     val = p.f_hat;

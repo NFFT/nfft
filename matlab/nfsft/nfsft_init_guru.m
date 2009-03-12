@@ -1,4 +1,6 @@
 %
+% Initialise plans (guru)
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,6 +21,6 @@
 function p = nfsft_init_guru(N,M,flags,nfft_flags,nfft_cutoff)
 % Initialise plans (guru)
 %
-% Copyright (c) 2007 Jens Keiner
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 p = nfsft('init_guru',N,M,flags,nfft_flags,nfft_cutoff);

@@ -1,4 +1,6 @@
 %
+% Set function values in plan
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,6 +21,6 @@
 function nfsft_set_f(p,f)
 % Set function values in plan
 %
-% Copyright 2007 Jens Keiner
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 nfsft('set_f',p,f)

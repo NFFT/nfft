@@ -1,4 +1,6 @@
 %
+% Norm for f_hat class
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,7 +21,7 @@
 function y = norm(p,n)
 % Norm for f_hat class
 %
-% Copyright 2007 Jens Keiner
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 p = f_hat(p);
 y = norm(p.f_hat);

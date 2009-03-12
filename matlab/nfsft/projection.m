@@ -1,4 +1,6 @@
 %
+% Example program: Project a function onto spherical harmonics.
+%
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,6 +19,7 @@
 %
 % $Id$
 function err = projection()
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 % threshold
 kappa = 1000;
 % polynomial degrees
