@@ -1,20 +1,20 @@
 #!/bin/sh
 function replace {
-  sed "$1" < $2 > $2.tmp
-  if test "x$(stat -c%s $2.tmp)" = "x0"; then
-    echo "Warning: $2 does not seem to have the correct header format."
+  sed -e "$1" -e "$2" < $3 > $3.tmp
+  if test "x$(stat -c%s $3.tmp)" = "x0"; then
+    echo "Warning: $3 does not seem to have the correct header format."
+    rm -f $3.tmp
   else
-    cat $3 $2.tmp > $2
+    mv $3.tmp $3
   fi
-  rm -f $2.tmp
 }
 
 # C source and header files
 for name in $(find .. -wholename "../applications/texture" -prune -o -name "*.[ch]" -print -o -name "nfftconf.h.in" -print); do
-  replace "1,/^\/\* \$Id/d" $name "copyright.txt"
+  replace "/^ \* Franklin Street/r copyright.txt" "/^ \* Copyright/,/^ \* Franklin Street/d" $name
 done
 
 # MATLAB scripts
 for name in $(find .. -wholename "../applications/texture" -prune -o -name "*.m" -print); do
-  replace "1,/^% \$Id/d" $name "copyright_matlab.txt"
+  replace "/^% Franklin Street/r copyright_matlab.txt" "/^% Copyright/,/^% Franklin Street/d" $name
 done
