@@ -147,8 +147,8 @@ my_plan->cheby[j]=1./(2.*I)*(aux[j+1]-aux[j-1]);
 }
 
 }
-
-
+free(aux);
+aux = NULL;
 }
 
 
@@ -274,9 +274,6 @@ for(j=0;j<=N;j++)
 coeffs[j]=y[j];
 }
 
-/** Forget precomputed data. muss ich wo anders machen*/
-     // fpt_finalize(set);
-     // set = NULL;
 
       /** Free memory. */
 
@@ -379,9 +376,9 @@ plan3D->nfft_plan.f_hat[i]=0.0;
 		    plan3D->nfft_plan.x[3*j+2]=plan3D->x[3*j+1];
 	       }
 
-		  //muss hier noch wieder weg und in nfsoft_precompute
-			fpt_set set;
-			set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
+    //muss hier noch wieder weg und in nfsoft_precompute
+	fpt_set set;
+	set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
 
 	for (k=-N;k<=N;k++)
 	{
@@ -438,6 +435,7 @@ plan3D->nfft_plan.f_hat[i]=0.0;
 	}
 
 
+
 for(j=0;j<3*plan3D->nfft_plan.M_total;j++)
 {
 plan3D->nfft_plan.x[j]=plan3D->nfft_plan.x[j]*(1/(2*PI));
@@ -474,6 +472,11 @@ plan3D->f[j]=plan3D->nfft_plan.f[j];
 
 //nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all coeffs");
 //nfft_vpr_complex(plan3D->nfft_plan.f,plan3D->nfft_plan.M_total,"all results");
+
+/** Forget precomputed data. muss ich wo anders machen*/
+      fpt_finalize(set);
+      set = NULL;
+
 }
 
 
@@ -630,6 +633,10 @@ glo1=0;
 	}
 	}
 
+	/** Forget precomputed data*/
+	     fpt_finalize(set);
+	     set = NULL;
+
 }
 
 
@@ -640,6 +647,7 @@ void nfsoft_finalize(nfsoft_plan *plan)
   nfft_finalize(&plan->nfft_plan);
   free(plan->wig_coeffs);
   free(plan->cheby);
+  free(plan->aux);
 
 
 
