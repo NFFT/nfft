@@ -83,7 +83,7 @@ else
   nfft_module_default="no"
 fi
 
-AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=$nnft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NFCT="#define HAVE_NFCT 1"
   AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
@@ -93,7 +93,7 @@ else
 fi
 AC_SUBST(HAVE_NFCT)
 
-AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[compile with nfst module (nonequispaced fast sine transform)])], ok=$enableval, ok=yes)
+AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[compile with nfst module (nonequispaced fast sine transform)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NFST="#define HAVE_NFST 1"
   AM_CONDITIONAL(HAVE_NFST, test "yes" = "yes" )
