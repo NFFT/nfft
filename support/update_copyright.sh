@@ -4,11 +4,15 @@ function warn {
 }
 
 function replace {
+  # first occurence of start of copyright block
   s=$(sed -e "$1!d" -e "0,$1=" -e"$1d" < $3)
+  # first occurence of end of copyright block
   e=$(sed -e "$2!d" -e "0,$2=" -e"$2d" < $3)
-#  echo $s $e
+  # Check if copyright block delimters found.
   if test -n "$s" -a -n "$e"; then
+  # Check if copyright delimters are ordered properly.
     if test "$s" -lt "$e"; then
+      # Replace copyright block with template.
       sed -e "${e}r$4" -e "${s},${e}d" < $3 > $3.tmp
       mv $3.tmp $3
       echo "ok: $3"
