@@ -18,11 +18,6 @@
 
 /* $Id$ */
 
-/**
- * \file nfsft.c
- * \brief Implementation file for the NFSFT module
- * \author Jens Keiner
- */
 
 #include <math.h>
 #include <stdio.h>

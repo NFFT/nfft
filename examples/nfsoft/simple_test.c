@@ -43,7 +43,7 @@ int j;                                /** just an index*/
 int k,m;                              /** the two parameters controlling the accuracy of the NFSOFT*/
 double d1,d2,d3;                      /** indeces for initializing the Euler angles*/
 double time, error;                   /**...self-explainatory*/
-int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for memory allocation \see nfft3.h*/
+unsigned int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for memory allocation \see nfft3.h*/
 
   /**set the accuracy controlling parameters*/
   k=1000; 							  /**  k resembles the FPT kappa */
@@ -63,13 +63,12 @@ int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for 
   PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,m,k);
 
 
-
       /** Init random nodes (for both plans, the same). */
       for (j = 0; j < plan_nfsoft.M_total; j++)
       {
-        d1=((double)rand())/RAND_MAX-0.5;
-	    d2=0.5*((double)rand())/RAND_MAX;
-     	d3=((double)rand())/RAND_MAX-0.5;
+        d1=((R)rand())/RAND_MAX-0.5;
+	    d2=0.5*((R)rand())/RAND_MAX;
+     	d3=((R)rand())/RAND_MAX-0.5;
 
     	plan_nfsoft.x[3*j] = d1;    /**alpha*/
 	    plan_nfsoft.x[3*j+1] = d2;  /**beta*/
@@ -85,14 +84,18 @@ int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for 
 
 	for(j=0;j<(bw+1)*(4*(bw+1)*(bw+1)-1)/3;j++)
 	{
-	d1=((double)rand())/RAND_MAX - 0.5 +  I*(((double)rand())/RAND_MAX - 0.5);
-	d2=((double)rand())/RAND_MAX - 0.5 +  I*(((double)rand())/RAND_MAX - 0.5);
+	d1=((R)rand())/RAND_MAX - 0.5 ;
+	d2=((R)rand())/RAND_MAX - 0.5 ;
 	plan_nfsoft.f_hat[j]=d1 +  I*d2;
 	plan_ndsoft.f_hat[j]=d1 +  I*d2;
     }
 
-	nfft_vpr_complex(plan_ndsoft.f_hat,20,"1st-20th randomly generated SO(3) Fourier coefficient");
-	  printf("\n---------------------------------------------\n");
+
+	if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
+	      nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"randomly generated SO(3) Fourier coefficients");
+	      else
+          nfft_vpr_complex(plan_ndsoft.f_hat,20,"1st-20th randomly generated SO(3) Fourier coefficient");
+	      printf("\n---------------------------------------------\n");
 
 
       /** Compute NFSOFT and display the time needed. */
@@ -125,7 +128,10 @@ int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for 
   time = nfft_second();
   nfsoft_adjoint(&plan_nfsoft);
   time = (nfft_second() - time);
-  nfft_vpr_complex(plan_nfsoft.f_hat,20,"adjoint NFSOFT, 1st-20th Fourier coefficient");
+  if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
+     nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
+  else
+     nfft_vpr_complex(plan_nfsoft.f_hat,20,"adjoint NFSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
 
 
@@ -133,12 +139,15 @@ int flags=NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for 
   time = nfft_second();
   nfsoft_adjoint(&plan_ndsoft);
   time = (nfft_second() - time);
-  nfft_vpr_complex(plan_ndsoft.f_hat,20,"adjoint NDSOFT, 1st-20th Fourier coefficient");
+  if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
+	nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
+  else
+    nfft_vpr_complex(plan_ndsoft.f_hat,20,"adjoint NDSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
 
 
   /**compute the error between the adjoint NFSOFT and NDSOFT and display it*/
-  error=nfft_error_l_infty_complex(plan_ndsoft.f_hat,plan_nfsoft.f_hat, plan_nfsoft.M_total);
+  error=nfft_error_l_infty_complex(plan_ndsoft.f_hat,plan_nfsoft.f_hat, (bw+1)*(4*(bw+1)*(bw+1)-1)/3);
   printf("\n The adjoint NFSOFT of bandwidth=%d for %d rotations has infty-error %11le \n",bw, M,error);
 
   printf("\n---------------------------------------------\n");

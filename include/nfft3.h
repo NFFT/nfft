@@ -2645,7 +2645,7 @@ void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_fl
  *
  * \author Antje Vollrath
  */
-void nfsoft_init_guru(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags, int nfft_flags,int nfft_cutoff,int fpt_kappa);
+void nfsoft_init_guru(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa);
 
 /**
  * Executes a NFSOFT, i.e. computes for \f$m = 0,\ldots,M-1\f$

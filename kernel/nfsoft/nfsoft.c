@@ -46,7 +46,7 @@ void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_fl
 }
 
 
-void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,unsigned int nfsoft_flags, int nfft_flags,int nfft_cutoff,int fpt_kappa)
+void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa)
 {
   int N[3];
   int n[3];
@@ -96,6 +96,7 @@ plan->flags = nfsoft_flags;
   if (plan->f == NULL ) printf("Alloziierung fehl geschlagen!\n");
 
 plan->wig_coeffs    = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
+
 plan->cheby         = (C*) nfft_malloc((2*B+2)*sizeof(C));
 plan->aux           = (C*) nfft_malloc((2*B+4)*sizeof(C));
 
@@ -140,10 +141,10 @@ aux[N]=0.;
 
 if (even>0)
 {
-my_plan->cheby[0]=-1./(2.*I)*aux[1];
+my_plan->cheby[0]=(R) (-1./(2.*I)*aux[1]);
 for (j=1;j<N;j++)
 {
-my_plan->cheby[j]=1./(2.*I)*(aux[j+1]-aux[j-1]);
+my_plan->cheby[j]=(R)(1./(2.*I)*(aux[j+1]-aux[j-1]));
 }
 
 }
@@ -160,19 +161,28 @@ R *alpha,*beta,*gamma;
  fpt_set set;
 
 
+
 /** Read in transfrom length. */
 if (flags & NFSOFT_USE_DPT)
 {
- N      = l;
- t      = (int) log2(nfft_next_power_of_2(l));
+if (l<2)
+	N=2;
+else
+	N      = l;
+
+    t      = (int) log2(nfft_next_power_of_2(N));
+
 }
 else
 {
- N      = nfft_next_power_of_2(l);
- t      = (int) log2(N);
+	/** workaround to compute polynomials of degree less than 2*/
+if(l<2)
+	N = 2;
+else
+	N      = nfft_next_power_of_2(l);
+
+    t      = (int) log2(N);
 }
-
-
 
  /**memory for the recurrence coefficients*/
  alpha = (R*) nfft_malloc((N+2)*sizeof(R));
@@ -230,16 +240,21 @@ void SO3_fpt(C *coeffs,fpt_set set,int l, int k, int m, unsigned int flags)
  int k_start,k_end,j;
  int function_values=0;
 
+
 /** Read in transfrom length. */
 if (flags & NFSOFT_USE_DPT)
 {
  N      = l;
+	if(l<2)
+		N = 2;
 }
 else
 {
- N      = nfft_next_power_of_2(l);
+	if(l<2)
+		N = 2;
+	else
+		N      = nfft_next_power_of_2(l);
 }
-
 
 /** Read in start and end indeces */
  k_start = (ABS(k)>=ABS(m)) ? ABS(k) : ABS(m);
@@ -249,27 +264,34 @@ else
 /** Read in Wigner coefficients. */
  x = (C*) nfft_malloc((k_end+1)*sizeof(C));
 
- for (j = 0; j <= k_end-k_start; j++)
+ //for (j = 0; j <= k_end-k_start; j++)
+ //{
+ // x[j+k_start] = coeffs[j];
+ //}
+
+ for (j = 0; j <= l-k_start; j++)
  {
   x[j+k_start] = coeffs[j];
+ }
+ for (j = l-k_start+1; j <= k_end-k_start; j++)
+ {
+  x[j+k_start] = K(0.0);
  }
 
  /** Allocate memory for Chebyshev coefficients. */
  y = (C*) nfft_malloc((k_end+1)*sizeof(C));
 
-
 if (flags & NFSOFT_USE_DPT)
  { /** Execute DPT. */
-   dpt_trafo(set,trafo_nr,&x[k_start],y,l,0U | (function_values?FPT_FUNCTION_VALUES:0U));
+   dpt_trafo(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
  }
 else
  { /** compute fpt*/
     fpt_trafo(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
  }
 
-
 /**write computed coeffs in the plan*/
-for(j=0;j<=N;j++)
+for(j=0;j<=l;j++)
 {
 coeffs[j]=y[j];
 }
@@ -281,7 +303,6 @@ coeffs[j]=y[j];
       free(y);
       x = NULL;
       y = NULL;
-
 }
 
 
@@ -300,12 +321,16 @@ int function_values=0;
 if (flags & NFSOFT_USE_DPT)
 {
  N      = l;
+	if(l<2)
+		N = 2;
 }
 else
 {
- N      = nfft_next_power_of_2(l);
+	if(l<2)
+		N = 2;
+	else
+		N      = nfft_next_power_of_2(l);
 }
-
 
 
 /** Read in start and end indeces */
@@ -318,10 +343,14 @@ y = (C*) nfft_malloc((k_end+1)*sizeof(C));
 /** Allocate memory for Wigner coefficients. */
 x = (C*) nfft_malloc((k_end+1)*sizeof(C));
 
-      for (j = 0; j <= k_end; j++)
+
+      for (j = 0; j <= l; j++)
       {
         y[j] = coeffs[j];
-		//fprintf(stdout,"vorher: %f \n",coeffs[j]);
+      }
+      for (j = l+1; j<= k_end; j++)
+      {
+        y[j] = K(0.0);
       }
 
 if (flags & NFSOFT_USE_DPT)
@@ -331,12 +360,11 @@ if (flags & NFSOFT_USE_DPT)
   /** compute fpt*/
   fpt_transposed(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
 
-
-for(j=0;j<=N;j++)
+for(j=k_start;j<=l;j++)
 {
-coeffs[j]=x[j];
-//fprintf(stdout,"nachher: %f \n",coeffs[j]);
+coeffs[j-k_start]=x[j];
 }
+
 
 /** Forget precomputed data. muss ich woanders machen*/
       //fpt_finalize(set);
@@ -376,9 +404,21 @@ plan3D->nfft_plan.f_hat[i]=0.0;
 		    plan3D->nfft_plan.x[3*j+2]=plan3D->x[3*j+1];
 	       }
 
+
+//nothing much to be done for polynomial degree 0
+		  if(N==0)
+			  {
+			  for(j=0;j<M;j++)
+			  plan3D->f[j]=plan3D->f_hat[0];
+			  return;
+			  }
+
+
+
     //muss hier noch wieder weg und in nfsoft_precompute
 	fpt_set set;
 	set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
+
 
 	for (k=-N;k<=N;k++)
 	{
@@ -407,29 +447,23 @@ plan3D->nfft_plan.f_hat[i]=0.0;
 
 			glo1++;
 		  }
-
 		  for(j=N-max+1;j<nfft_next_power_of_2(N)+1;j++)
 		  plan3D->wig_coeffs[j]=0.0;
 
-
 		SO3_fpt(plan3D->wig_coeffs,set,N,k,m,plan3D->flags);
-
-
 
 		//  SO3_fpt(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
 
-		  new_c2e(plan3D,ABS((k+m)%2));
-
+		new_c2e(plan3D,ABS((k+m)%2));
 
 		  //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
 
 		  for (i=1;i<=2*plan3D->N_total+2;i++)
 		  {
 		  plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]=plan3D->cheby[i-1];
-	//fprintf(stdout,"%f \t", plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]);
+    	//fprintf(stdout,"%f \t", plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]);
        //fprintf(stdout,"another index: %d for k=%d,m=%d,l=%d,N=%d \n", NFSOFT_INDEX(k,m,i-N-1,N)-1,k,m,i-N-1,N);
 		  }
-
 
 	}
 	}
@@ -451,8 +485,6 @@ plan3D->nfft_plan.x[j]=plan3D->nfft_plan.x[j]*(1/(2*PI));
 }
 //nfft_vpr_double(plan3D->nfft_plan.x,3*plan3D->nfft_plan.M_total,"all nodes");
 
-
-
 //double time = nfft_second();
 if (plan3D->flags & NFSOFT_USE_NDFT)
 {
@@ -464,7 +496,6 @@ else
 }
 //time = (nfft_second() - time);
 //fprintf(stdout," time 3d nfft = %11le\n",time);
-
 
 
 for(j=0;j<plan3D->M_total;j++)
@@ -480,7 +511,7 @@ plan3D->f[j]=plan3D->nfft_plan.f[j];
 }
 
 
-void e2c(nfsoft_plan *my_plan, int even)
+static void e2c(nfsoft_plan *my_plan, int even)
 {
 int N;
 int j;
@@ -539,6 +570,16 @@ int i,j,m,k,max,glo1,glo2;
 
 int N=plan3D->N_total;
 int M=plan3D->M_total;
+
+//nothing much to be done for polynomial degree 0
+		  if(N==0)
+			  {
+			  for(j=0;j<M;j++)
+			  plan3D->f_hat[0]+=plan3D->f[j];
+			  return;
+			  }
+
+
 
 fpt_set set;
 set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
