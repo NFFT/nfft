@@ -55,9 +55,7 @@ static inline R gamma_al(const int k, const int n)
     /* Constant is ((2n)!)^(1/2) / (2^n n!). */
     result = K(1.0);
     for (i = 1; i <= n; i++)
-    {
       result *= ((R)(n+i))/((R)(4*i));
-    }
     return SQRT(result);
   }
   else if (k <= n)

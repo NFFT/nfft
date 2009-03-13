@@ -185,7 +185,7 @@ void test_dpt_trafo(void)
       /* Initialize DPT. */
       //fprintf(stderr,"t = %d -> N = %d\n",t,1<<t);
       //fflush(stderr);
-      set = fpt_init(0,t,0U/*FPT_AL_SYMMETRY*/);
+      set = fpt_init(1,t,0U/*FPT_AL_SYMMETRY*/);
 
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);
@@ -397,7 +397,7 @@ void test_dpt_transposed(void)
       }*/
 
       /* Initialize DPT. */
-      set = fpt_init(0,t,0U/*FPT_AL_SYMMETRY*/);
+      set = fpt_init(1,t,0U/*FPT_AL_SYMMETRY*/);
 
       /* Precompute DPT. */
       fpt_precompute(set,0,alpha,beta,gamma,k_start,THRESHOLD);

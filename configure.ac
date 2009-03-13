@@ -83,7 +83,7 @@ else
   nfft_module_default="no"
 fi
 
-AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=$nnft_module_default)
+AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NFCT="#define HAVE_NFCT 1"
   AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
@@ -359,17 +359,18 @@ AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
-AC_CHECK_FUNCS([log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint])
-AC_CHECK_FUNCS([log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf])
-AC_CHECK_FUNCS([log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl])
-AC_CHECK_FUNCS([nanosleep sleep drand48])
+AC_CHECK_FUNCS([log2 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint])
+AC_CHECK_FUNCS([log2f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf])
+AC_CHECK_FUNCS([log2l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl])
+AC_CHECK_FUNCS([nanosleep sleep drand48 srand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
-AC_CHECK_DECLS([log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl],[],[],[#include <math.h>])
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
+AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 
 # The output files to be generated

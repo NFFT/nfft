@@ -1070,5 +1070,6 @@ void nfst_finalize( nfst_plan *ths)
   nfft_free( ths->n);
   nfft_free( ths->sigma);
 
+  nfft_free(ths->r2r_kind);
 } /* nfst_finalize */
 

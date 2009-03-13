@@ -100,6 +100,10 @@ extern long double lgammal(const long double);
 #if HAVE_DECL_LOGL == 0
 extern long double logl(const long double);
 #endif
+#define LOG2 log2l
+#if HAVE_DECL_LOG2L == 0
+extern long double log2l(const long double);
+#endif
 #define SIN sinl
 #if HAVE_DECL_SINL == 0
 extern long double sinl(const long double);
@@ -149,6 +153,10 @@ extern float lgammaf(const float);
 #if HAVE_DECL_LOGF == 0
 extern float logf(const float);
 #endif
+#define LOG2 log2f
+#if HAVE_DECL_LOG2F == 0
+extern float log2f(const float);
+#endif
 #define SIN sinf
 #if HAVE_DECL_SINF == 0
 extern float sinf(const float);
@@ -197,6 +205,10 @@ extern double lgamma(const double);
 #define LOG log
 #if HAVE_DECL_LOG == 0
 extern double log(const double);
+#endif
+#define LOG2 log2
+#if HAVE_DECL_LOG2 == 0
+extern double log2(const double);
 #endif
 #define SIN sin
 #if HAVE_DECL_SIN == 0
@@ -289,6 +301,9 @@ extern long int lrint(const double);
 
 #if HAVE_DECL_DRAND48 == 0
   extern double drand48(void);
+#endif
+#if HAVE_DECL_SRAND48 == 0
+  extern void srand48(long int);
 #endif
 #define RAND ((R)drand48())
 #define R_RADIX FLT_RADIX

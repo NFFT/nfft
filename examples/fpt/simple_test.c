@@ -19,105 +19,158 @@
 /* $Id$ */
 
 /* standard headers */
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
-#include <stdlib.h>
+
 /* It is important to include complex.h before nfft3.h. */
 #include <complex.h>
 
-#include "nfft3.h" /* NFFT3 header */
-#include "util.h" /* NFFT3 utilities header*/
-#include "infft.h" /* NFFT3 internal header */
+/* NFFT3 header */
+#include "nfft3.h"
 
-static void simple_test_nfsft(void)
-{
-  const int N = 4; /* bandwidth/maximum degree */
-  const int M = 8; /* number of nodes */
-  nfsft_plan plan; /* transform plan */
-  int j, k, n; /* loop variables */
+/* We declare drand48() and srand48() ourselves, if they are is not declared in
+ * math.h (e.g. on SuSE 9.3), grrr. */
+#include "config.h"
+#if HAVE_DECL_DRAND48 == 0
+  extern double drand48(void);
+#endif
+#if HAVE_DECL_SRAND48 == 0
+  extern void srand48(long int);
+#endif
 
-  /* precomputation (for fast polynomial transform) */
-  nfsft_precompute(N,1000.0,0U,0U);
-
-  /* Initialize transform plan using the guru interface. All input and output
-   * arrays are allocated by nfsft_init_guru(). Computations are performed with
-   * respect to L^2-normalized spherical harmonics Y_k^n. The array of spherical
-   * Fourier coefficients is preserved during transformations. The NFFT uses a
-   * cut-off parameter m = 6. See the NFFT 3 manual for details.
-   */
-  nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-    NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
-    PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, 6);
-
-  /* pseudo-random nodes */
-  for (j = 0; j < plan.M_total; j++)
-  {
-    plan.x[2*j]= RAND - K(0.5);
-    plan.x[2*j+1]= K(0.5) * RAND;
-  }
-
-  /* precomputation (for NFFT, node-dependent) */
-  nfsft_precompute_x(&plan);
-
-  /* pseudo-random Fourier coefficients */
-  for (k = 0; k <= plan.N; k++)
-    for (n = -k; n <= k; n++)
-      plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-        RAND - K(0.5) + _Complex_I*(RAND - K(0.5));
-
-  /* Direct transformation, display result. */
-  ndsft_trafo(&plan);
-  printf("Vector f (NDSFT):\n");
-  for (j = 0; j < plan.M_total; j++)
-    printf("f[%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",j,
-      creal(plan.f[j]), cimag(plan.f[j]));
-
-  printf("\n");
-
-  /* Fast approximate transformation, display result. */
-  printf("Vector f (NDSFT):\n");
-  for (j = 0; j < plan.M_total; j++)
-    printf("f[%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",j,
-      creal(plan.f[j]), cimag(plan.f[j]));
-
-  printf("\n");
-
-  /* Direct adjoint transformation, display result. */
-  ndsft_adjoint(&plan);
-  printf("Vector f_hat (NDSFT):\n");
-  for (k = 0; k <= plan.N; k++)
-    for (n = -k; n <= k; n++)
-      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",k,n,
-        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
-        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
-
-  printf("\n");
-
-  /* Fast approximate adjoint transformation, display result. */
-  nfsft_adjoint(&plan);
-  printf("Vector f_hat (NFSFT):\n");
-  for (k = 0; k <= plan.N; k++)
-  {
-    for (n = -k; n <= k; n++)
-    {
-      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" FE " + %+5.3" FE "*I\n",k,n,
-        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
-        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
-    }
-  }
-
-  /* Finalize the plan. */
-  nfsft_finalize(&plan);
-
-  /* Destroy data precomputed for fast polynomial transform. */
-  nfsft_forget();
-}
+/* Two times Pi */
+#define KPI2 6.2831853071795864769252867665590057683943387987502
 
 int main(void)
 {
-  printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"
-    "...\n\n");
-  simple_test_nfsft();
+  /* This example shows how to use the fast polynomial transform to evaluate a
+   * finite expansion in Legendre polynomials,
+   *
+   *   f(x) = a_0 P_0(x) + a_1 P_1(x) + ... + a_N P_N(x)                     (1)
+   *
+   * at a number of M arbitrary nodes x_j in [-1,1]. */
+  const int N = 8, M = 10;
+
+  /* An fpt_set is a data structure that contains precomputed data for a number
+   * of different polynomial transforms. Here, we need only one transform. the
+   * second parameter (t) is the exponent of the maximum transform size desired
+   * (2^t), i.e., t = 3 means that N in (1) can be at most N = 8. */
+  fpt_set set = fpt_init(1,lrint(ceil(log2((double)N))),0U);
+
+  /* Three-term recurrence coefficients for Legendre polynomials */
+  double *alpha = malloc((N+2)*sizeof(double)),
+    *beta = malloc((N+2)*sizeof(double)), *gamma = malloc((N+2)*sizeof(double));
+
+  /* alpha[0] and beta[0] are not referenced. */
+  alpha[0] = beta[0] = 0.0;
+  /* gamma[0] contains P_0(x) which is a constant. */
+  gamma[0] = 1.0;
+
+  /* Actual three-term recurrence coefficients for Legendre polynomials */
+  {
+    int k;
+    for (k = 0; k <= N; k++)
+    {
+      alpha[k+1] = ((double)(2*k+1))/((double)(k+1));
+      beta[k+1] = 0.0;
+      gamma[k+1] = -((double)(k))/((double)(k+1));
+    }
+  }
+
+  printf(
+    "Computing a fast polynomial transform (FPT) and a fast nonequispaced \n"
+    "cosine transform (NFCT) to evaluate\n\n"
+    "  f_j = a_0 P_0(x) + a_1 P_1(x) + ... + a_N P_N(x), j=1,2,...,M,\n\n"
+    "with N=%d, M=%d, x_j random nodes in [-1,1], and a_k, k=0,1,...,N random\n"
+    "Fourier coefficients in [-1,1], where P_k, k=0,1,...,N are the Legendre "
+    "polynomials.",
+    N,M
+  );
+
+  /* Random seed, makes things reproducible. */
+  srand48(616642);
+
+  /* The function fpt_repcompute actually does the precomputation for a single
+   * transform. It needs arrays alpha, beta, and gamma, containing the three-
+   * term recurrence coefficients, here of the Legendre polynomials. The format
+   * is explained above. The sixth parameter (k_start) is where the index in the
+   * linear combination (1) starts, here k_start=0. The seventh parameter
+   * (kappa) is the threshold which has an influence on the accuracy of the fast
+   * polynomial transform. Usually, kappa=1000 is a good choice. */
+  fpt_precompute(set,0,alpha,beta,gamma,0,1000.0);
+
+  {
+    /* Plan for NFCT */
+    nfct_plan p;
+
+    /* Init transform plan. */
+    nfct_init_1d(&p, N+1, M);
+
+    /* random nodes */
+    {
+      int j;
+      printf("\n1) Random nodes x_j, j=1,2,...,M:\n");
+      for (j = 0; j < M; j++)
+      {
+        p.x[j] = acos(2.0*drand48() - 1.0)/KPI2;
+        /* for debugging: use acos(2.0*((double)j)/((double)(M-1))-1.0)/KPI2 */
+        printf("   x_%-2d = %+5.3lE\n",j+1,cos(KPI2*p.x[j]));
+      }
+    }
+
+    if(p.nfct_flags & PRE_PSI)
+      nfct_precompute_psi(&p);
+
+    {
+      /* Array for Fourier coefficients. */
+      double _Complex *a = malloc((N+1)*sizeof(double _Complex));
+      double _Complex *b = malloc((N+1)*sizeof(double _Complex));
+
+      /* random Fourier coefficients */
+      {
+        int k;
+        printf("\n2) Random Fourier coefficients a_k, k=0,1,...,N:\n");
+        for (k = 0; k <= N; k++)
+        {
+          a[k] = 2.0*drand48() - 1.0; /* for debugging: use k+1 */
+          printf("   a_%-2d = %+5.3lE\n",k,creal(a[k]));
+        }
+      }
+
+      /* fast polynomial transform */
+      fpt_trafo(set,0,a,b,N,0U);
+
+      {
+        int k;
+        for (k = 0; k <= N; k++)
+          p.f_hat[k] = creal(b[k]);
+      }
+
+      /* nonequispaced discrete cosine transform */
+      nfct_trafo(&p);
+
+      {
+        int j;
+        printf("\n3) Function values f_j, j=1,1,...,M:\n");
+        for (j = 0; j < M; j++)
+          printf("   f_%-2d = %+5.3lE\n",j+1,p.f[j]);
+      }
+
+      /* cleanup */
+      free(a);
+      free(b);
+    }
+
+    /* cleanup */
+    nfct_finalize(&p);
+  }
+
+  /* cleanup */
+  fpt_finalize(set);
+  free(alpha);
+  free(beta);
+  free(gamma);
+
   return EXIT_SUCCESS;
 }

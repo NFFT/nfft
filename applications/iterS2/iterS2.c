@@ -224,7 +224,7 @@ int main (int argc, char **argv)
         }
       }
 
-      set = fpt_init(0, npt_exp, 0U);
+      set = fpt_init(1, npt_exp, 0U);
 
       alpha = (double*) nfft_malloc((N+2)*sizeof(double));
       beta = (double*) nfft_malloc((N+2)*sizeof(double));
@@ -238,12 +238,6 @@ int main (int argc, char **argv)
 
       fpt_transposed(set,0, temp2, temp2, N, 0U);
 
-      for (j = 0; j <= N; j++)
-      {
-        //temp2[j] *= (2*j+1.0)/2.0;
-        //fprintf(stdout,"temp2[%d] = %le\n",j,cabs(temp2[j]));
-      }
-
       fpt_finalize(set);
 
       nfft_free(alpha);
@@ -256,8 +250,6 @@ int main (int argc, char **argv)
       nfft_free(qweights);
       nfft_free(ys);
       nfft_free(temp);
-      //nfft_free(temp2);
-      //return EXIT_SUCCESS;
     }
 
     /* Init transform plans. */

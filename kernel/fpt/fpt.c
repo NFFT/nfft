@@ -750,20 +750,16 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   /* Save parameters in structure. */
   set->flags = flags;
 
-  //fprintf(stderr,"\nfpt_init: flags = %d \t %d\n",set->flags,flags);
-
   set->M = M;
   set->t = t;
   set->N = 1<<t;
 
-  /* Allocate memory for L transforms. */
-  set->dpt = (fpt_data*) nfft_malloc((M+1)*sizeof(fpt_data));
+  /* Allocate memory for M transforms. */
+  set->dpt = (fpt_data*) nfft_malloc(M*sizeof(fpt_data));
 
   /* Initialize with NULL pointer. */
-  for (m = 0; m <= set->M; m++)
-  {
-    set->dpt[m].steps = (fpt_step**) NULL;
-  }
+  for (m = 0; m < set->M; m++)
+    set->dpt[m].steps = 0;
 
   /* Create arrays with Chebyshev nodes. */
 
@@ -773,11 +769,11 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
    * factor 2 introduced by the DCT-III, we set this coefficient to 0.5 here. */
 
   /* Allocate memory for array of pointers to node arrays. */
-  set->xcvecs = (double**) nfft_malloc((set->t/*-1*/)*sizeof(double*));
+  set->xcvecs = (double**) nfft_malloc((set->t)*sizeof(double*));
   /* For each polynomial length starting with 4, compute the Chebyshev nodes
    * using a DCT-III. */
   plength = 4;
-  for (tau = 1; tau < /*t*/t+1; tau++)
+  for (tau = 1; tau < t+1; tau++)
   {
     /* Allocate memory for current array. */
     set->xcvecs[tau-1] = (double*) nfft_malloc(plength*sizeof(double));
@@ -793,10 +789,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->result = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /** Allocate memory for auxilliary arrays. */
     set->vec3 = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
@@ -833,10 +826,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     set->kindsr = NULL;
   }
 
-  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
   {
     set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
     set->temp = (double _Complex*) nfft_malloc((set->N+1)*sizeof(double _Complex));
@@ -880,33 +870,20 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
   int clength_1;
   int clength_2;
   int t_stab, N_stab;
-/*  int ell;*/
-
-  //fprintf(stderr,"fpt_precompute: Precomputing for m = %d\n",m);
-  //fprintf(stderr,"fpt_precompute: k_start = %d\n",k_start);
-
   fpt_data *data;
-
-  /* Allocate memory for DPT transform data. */
-  //set->dpt[m] = (fpt_data*) nfft_malloc(sizeof(fpt_data));
 
   /* Get pointer to DPT data. */
   data = &(set->dpt[m]);
 
   /* Check, if already precomputed. */
   if (data->steps != NULL)
-  {
     return;
-  }
 
   /* Save k_start. */
   data->k_start = k_start;
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /* Save recursion coefficients. */
     data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
@@ -1023,11 +1000,8 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
         else
         {
           /* Stabilize. */
-          //fprintf(stderr,"fpt_precompute: Stabilizing for tau = %d, l = %d\n",tau,l);
           degree_stab = degree*(2*l+1);
           nfft_next_power_of_2_exp((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
-          /*fprintf(stderr,"(l+1)*(1<<(tau+2)) = %d, N_stab = %d, t_stab = %d\n",
-            (l+1)*(1<<(tau+2)),N_stab,t_stab);*/
 
           /* Old arrays are to small. */
           nfft_free(a11);
@@ -1127,10 +1101,7 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
     }
   }
 
-  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
   {
     /* Check, if recurrence coefficients must be copied. */
     if (set->flags & FPT_PERSISTENT_DATA)
@@ -1747,9 +1718,10 @@ void fpt_finalize(fpt_set set)
   int N_tilde;
   int firstl, lastl;
   int plength;
+  const int M = set->M;
 
   /* TODO Clean up DPT transform data structures. */
-  for (m = 0; m <= set->M; m++)
+  for (m = 0; m < M; m++)
   {
     /* Check if precomputed. */
     data = &set->dpt[m];
@@ -1809,17 +1781,11 @@ void fpt_finalize(fpt_set set)
       data->steps = NULL;
     }
 
-    if (set->flags & FPT_NO_DIRECT_ALGORITHM)
-    {
-    }
-    else
+    if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
     {
       /* Check, if recurrence coefficients must be copied. */
       //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
-      if (set->flags & FPT_PERSISTENT_DATA)
-      {
-      }
-      else
+      if (!(set->flags & FPT_PERSISTENT_DATA))
       {
         nfft_free(data->alpha);
         nfft_free(data->beta);
@@ -1835,7 +1801,7 @@ void fpt_finalize(fpt_set set)
   nfft_free(set->dpt);
   set->dpt = NULL;
 
-  for (tau = 1; tau < /*set->t*/set->t+1; tau++)
+  for (tau = 1; tau < set->t+1; tau++)
   {
     nfft_free(set->xcvecs[tau-1]);
     set->xcvecs[tau-1] = NULL;
@@ -1848,10 +1814,7 @@ void fpt_finalize(fpt_set set)
   nfft_free(set->result);
 
   /* Check if fast transform is activated. */
-  if (set->flags & FPT_NO_FAST_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /* Free auxilliary arrays. */
     nfft_free(set->vec3);
@@ -1878,12 +1841,7 @@ void fpt_finalize(fpt_set set)
     set->plans_dct2 = NULL;
   }
 
-  //fprintf(stderr,"fpt_finalize: flags = %d\n",set->flags);
-
-  if (set->flags & FPT_NO_DIRECT_ALGORITHM)
-  {
-  }
-  else
+  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
   {
     /* Delete arrays of Chebyshev nodes. */
     nfft_free(set->xc_slow);

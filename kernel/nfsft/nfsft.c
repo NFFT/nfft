@@ -404,7 +404,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     {
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
-      wisdom.set = fpt_init(wisdom.N_MAX, wisdom.T_MAX,
+      wisdom.set = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
@@ -421,7 +421,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.set = fpt_init(wisdom.N_MAX, wisdom.T_MAX,
+      wisdom.set = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
       {
