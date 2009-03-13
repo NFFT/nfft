@@ -19,21 +19,29 @@
 /* $Id$ */
 
 #include <math.h>
+#include <stdio.h>
 #include "infft.h"
 #include "legendre.h"
+
+/* One over sqrt(pi) */
+DK(KSQRTPII,0.56418958354775628694807945156077258584405062932900);
 
 static inline R alpha_al(const int k, const int n)
 {
   if (k > 0)
+  {
     if (k < n)
       return IF(k%2,K(1.0),K(-1.0));
     else
-      return (R)(2*k+1)/SQRT((R)((k-n+1)*(k+n+1)));
+      return SQRT(((R)(2*k+1))/((R)(k-n+1))*((R)(2*k+1))/((R)(k+n+1)));
+  }
   else if (k == 0)
+  {
     if (n == 0)
       return K(1.0);
     else
       return IF(n%2,K(0.0),K(-1.0));
+  }
   return K(0.0);
 }
 
@@ -48,20 +56,20 @@ static inline R beta_al(const int k, const int n)
 static inline R gamma_al(const int k, const int n)
 {
   int i;
-  R result;
 
   if (k == -1)
   {
-    /* Constant is ((2n)!)^(1/2) / (2^n n!). */
-    result = K(1.0);
-    for (i = 1; i <= n; i++)
-      result *= ((R)(n+i))/((R)(4*i));
-    return SQRT(result);
+    /* The constant is
+     *     ((2n)!)^(1/2) / (2^n n!)
+     *   = sqrt((gamma(n+1/2))/(sqrt(pi)*gamma(n+1))).
+     */
+    return SQRT(KSQRTPII*expl(lgammal((long double)(n)+0.5L)
+      - lgammal((long double)(n)+1L)));
   }
   else if (k <= n)
     return K(0.0);
   else
-    return -SQRT(((R)((k-n)*(k+n)))/((R)((k-n+1)*(k+n+1))));
+    return -SQRT(((R)(k-n))/((R)(k-n+1))*((R)(k+n))/((R)(k+n+1)));
 }
 
 void alpha_al_row(R *alpha, const int N, const int n)
