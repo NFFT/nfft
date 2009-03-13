@@ -1,6 +1,6 @@
-%
-% Get function values from plan
-%
+%NFSFT_GET_F Get function values from plan
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function f = nfsft_get_f(p)
-% Get function values from plan
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-f = nfsft('get_f',p);
+f = nfsftmex('get_f',p);

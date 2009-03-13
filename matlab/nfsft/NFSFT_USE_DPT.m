@@ -1,6 +1,6 @@
-%
-% Flag for using the DPT algorithm internally.
-%
+%NFSFT_USE_DPT Flag for using the DPT algorithm internally
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,5 @@
 %
 % $Id$
 function f = NFSFT_USE_DPT()
-% Flag for using the DPT algorithm internally.
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 f = 4;

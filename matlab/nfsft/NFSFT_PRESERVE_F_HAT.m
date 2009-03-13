@@ -1,6 +1,6 @@
-%
-% Flags for NFSFT not destroying input in f_hat
-%
+%NFSFT_PRESERVE_F_HAT Flag for NFSFT not destroying input in f_hat
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function f = NFSFT_PRESERVE_F_HAT()
-% Flags for NFSFT not destroying input in f_hat
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
 f = 128;

@@ -1,6 +1,6 @@
-%
-% Precompute
-%
+%NFSFT_PRECOMPUTE Node-independent precomputation (for FPT)
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,10 +19,6 @@
 %
 % $Id$
 function nfsft_precompute(N,kappa,nfsft_flags,fpt_flags)
-% Precompute
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
 if ~exist('nfsft_flags','var')
   nfsft_flags = 0;
 end
@@ -31,4 +27,4 @@ if ~exist('fpt_flags','var')
   fpt_flags = 0;
 end
 
-nfsft('precompute',N,kappa,nfsft_flags,fpt_flags)
+nfsftmex('precompute',N,kappa,nfsft_flags,fpt_flags)

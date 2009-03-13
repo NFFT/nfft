@@ -1,6 +1,6 @@
-%
-% Precompute for x
-%
+%NFSFT_PRECOMPUTE_X Node-dependent precomputation (for NFFT)
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function nfsft_precompute_x(p)
-% Precompute for x
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-nfsft('precompute_x',p)
+nfsftmex('precompute_x',p)

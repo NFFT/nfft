@@ -1,6 +1,6 @@
-%
-% Get Fourier coefficients from plan
-%
+%NFSFT_GET_F_HAT Get Fourier coefficients in a matrix from plan
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function f_hat = nfsft_get_f_hat(p)
-% Get Fourier coefficients from plan
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-f_hat = nfsft('get_f_hat',p);
+f_hat = nfsftmex('get_f_hat',p);

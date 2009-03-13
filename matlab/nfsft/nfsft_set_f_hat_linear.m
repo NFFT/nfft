@@ -1,6 +1,6 @@
-%
-% Set Fourier coefficients in plan
-%
+%NFSFT_SET_F_HAT_LINEAR Set Fourier coefficients in plan from a linear vector
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function nfsft_set_f_hat_linear(p,f_hat)
-% Set Fourier coefficients in plan
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-nfsft('set_f_hat_linear',p,f_hat)
+nfsftmex('set_f_hat_linear',p,f_hat)

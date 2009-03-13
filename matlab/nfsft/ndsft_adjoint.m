@@ -1,6 +1,6 @@
-%
-% Adjoint fast spherical Fourier transformation (direct algorithm)
-%
+%NDSFT_ADJOINT Adjoint discrete spherical Fourier transform (direct alg.)
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function ndsft_adjoint(p)
-% Adjoint fast spherical Fourier transformation (direct algorithm)
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-nfsft('adjoint_direct',p)
+nfsftmex('adjoint_direct',p)

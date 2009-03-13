@@ -1,6 +1,6 @@
-%
-% fast spherical Fourier transformation
-%
+%NFSFT_TRAFO Fast spherical Fourier transform
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function nfsft_trafo(p)
-% fast spherical Fourier transformation
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-nfsft('trafo',p)
+nfsftmex('trafo',p)

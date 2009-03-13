@@ -1,6 +1,6 @@
-%
-% Conversion to string for f_hat class
-%
+%CHAR Conversion to string for f_hat class
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,6 @@
 %
 % $Id$
 function s = char(p)
-% Conversion to string for f_hat class
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 
 if (p.N == -1)
   s = 'empty f_hat object';

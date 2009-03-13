@@ -1,6 +1,6 @@
-%
-% Get nodes from plan
-%
+%NFSFT_GET_X Get nodes from plan
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function x = nfsft_get_x(p)
-% Get nodes from plan
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-x = nfsft('get_x',p);
+x = nfsftmex('get_x',p);

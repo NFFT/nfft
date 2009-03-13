@@ -1,6 +1,6 @@
-%
-% Index assignment function for f_hat class
-%
+%SUBSASGN Index assignment function for f_hat class
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -18,11 +18,7 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 % $Id$
-function p = subsref(p,s,v)
-% Index assignment funcction for f_hat class.
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
+function p = subsasgn(p,s,v)
 switch s.type
 case '()'
   if (length(s.subs) > 2)

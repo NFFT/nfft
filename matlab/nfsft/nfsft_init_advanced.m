@@ -1,6 +1,6 @@
-%
-% Initialise plans (advanced)
-%
+%NFSFT_INIT_ADVANCED Advanced plan initialization routine
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function p = nfsft_init_advanced(N,M,flags)
-% Initialise plans (advanced)
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-p = nfsft('init_advanced',N,M,flags);
+p = nfsftmex('init_advanced',N,M,flags);

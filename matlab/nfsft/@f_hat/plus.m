@@ -1,6 +1,6 @@
-%
-% Plus for f_hat
-%
+%PLUS Plus for f_hat
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,10 +19,6 @@
 %
 % $Id$
 function r = plus(p,q)
-% Plus for f_hat
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
 p = f_hat(p);
 q = f_hat(q);
 if (p.N ~= q.N)

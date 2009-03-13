@@ -1,6 +1,6 @@
-%
-% Indexing funcction for f_hat class
-%
+%SUBSREF Indexing funcction for f_hat class
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,10 +19,6 @@
 %
 % $Id$
 function b = subsref(p,s)
-% Indexing funcction for f_hat class.
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
 switch s.type
 case '()'
   if (length(s.subs) > 2)

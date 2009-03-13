@@ -1,6 +1,6 @@
-%
-% Discrete spherical Fourier transformation (direct algorithm)
-%
+%NDSFT_TRAFO Discrete spherical Fourier transform (direct algorithm)
+%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -19,8 +19,4 @@
 %
 % $Id$
 function ndsft_trafo(p)
-% Fast spherical Fourier transformation (direct algorithm)
-%
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
-
-nfsft('trafo_direct',p)
+nfsftmex('trafo_direct',p)
