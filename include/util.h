@@ -350,6 +350,8 @@ double nfft_modified_multiquadric(double mu,double c,int kk);
 int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
   double *b);
 
+double nfft_lambda(const double z, const double eps);
+
 /** @}
  */
 #endif

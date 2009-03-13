@@ -21,6 +21,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "infft.h"
+#include "util.h"
 #include "legendre.h"
 
 /* One over sqrt(pi) */
@@ -55,16 +56,13 @@ static inline R beta_al(const int k, const int n)
 
 static inline R gamma_al(const int k, const int n)
 {
-  int i;
-
   if (k == -1)
   {
     /* The constant is
      *     ((2n)!)^(1/2) / (2^n n!)
      *   = sqrt((gamma(n+1/2))/(sqrt(pi)*gamma(n+1))).
      */
-    return SQRT(KSQRTPII*expl(lgammal((long double)(n)+0.5L)
-      - lgammal((long double)(n)+1L)));
+    return SQRT(KSQRTPII*nfft_lambda((R)(n),K(0.5)));
   }
   else if (k <= n)
     return K(0.0);
