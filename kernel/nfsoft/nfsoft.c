@@ -33,504 +33,470 @@
 
 void nfsoft_init(nfsoft_plan *plan, int N, int M)
 {
-  nfsoft_init_advanced(plan, N, M, NFSOFT_MALLOC_X | NFSOFT_MALLOC_F |
-   NFSOFT_MALLOC_F_HAT);
+  nfsoft_init_advanced(plan, N, M, NFSOFT_MALLOC_X | NFSOFT_MALLOC_F
+      | NFSOFT_MALLOC_F_HAT);
 }
 
-
-void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags)
+void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,
+    unsigned int nfsoft_flags)
 {
-  nfsoft_init_guru(plan, N, M, nfsoft_flags, PRE_PHI_HUT| PRE_PSI| MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-		   FFTW_INIT| FFT_OUT_OF_PLACE,DEFAULT_NFFT_CUTOFF,FPT_THRESHOLD);
-
+  nfsoft_init_guru(plan, N, M, nfsoft_flags, PRE_PHI_HUT | PRE_PSI | MALLOC_X
+      | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
+      DEFAULT_NFFT_CUTOFF, FPT_THRESHOLD);
 }
 
-
-void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa)
+void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
+    unsigned int nfsoft_flags, unsigned int nfft_flags, int nfft_cutoff,
+    int fpt_kappa)
 {
   int N[3];
   int n[3];
 
-  N[0]=2*B+2;
-  N[1]=2*B+2;
-  N[2]=2*B+2;
+  N[0] = 2* B + 2;
+  N[1] = 2* B + 2;
+  N[2] = 2* B + 2;
 
-  n[0]=8*B;
-  n[1]=8*B;
-  n[2]=8*B;
+  n[0] = 8* B ;
+  n[1] = 8* B ;
+  n[2] = 8* B ;
 
+  nfft_init_guru(&plan->nfft_plan, 3, N, M, n, nfft_cutoff, nfft_flags,
+      FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
+  if ((plan->nfft_plan).nfft_flags & PRE_LIN_PSI)
+  {
+    nfft_precompute_lin_psi(&(plan->nfft_plan));
+  }
 
-nfft_init_guru(&plan->nfft_plan, 3, N, M, n, nfft_cutoff,
-	     nfft_flags,  FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-
-
- if((plan->nfft_plan).nfft_flags & PRE_LIN_PSI)
-{
- nfft_precompute_lin_psi(&(plan->nfft_plan));
-}
-
-plan->N_total = B;
-plan->M_total = M;
-plan->fpt_kappa=fpt_kappa;
-plan->flags = nfsoft_flags;
+  plan->N_total = B;
+  plan->M_total = M;
+  plan->fpt_kappa = fpt_kappa;
+  plan->flags = nfsoft_flags;
 
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {
-  plan->f_hat = (C*) nfft_malloc((B+1)*(4*(B+1)*(B+1)-1)/3*sizeof(C));
+    plan->f_hat = (C*) nfft_malloc((B + 1) * (4* (B +1)*(B+1)-1)/3*sizeof(C));
   }
 
-  if (plan->f_hat == NULL ) printf("Alloziierung fehl geschlagen!\n");
-
+  if (plan->f_hat == NULL ) printf("Allocation failed!\n");
 
   if (plan->flags & NFSOFT_MALLOC_X)
   {
-  plan->x     = (R*) nfft_malloc(plan->M_total*3*sizeof(R));
+    plan->x = (R*) nfft_malloc(plan->M_total*3*sizeof(R));
   }
   if (plan->flags & NFSOFT_MALLOC_F)
   {
-   plan->f     = (C*) nfft_malloc(plan->M_total*sizeof(C));
+    plan->f = (C*) nfft_malloc(plan->M_total*sizeof(C));
   }
 
-  if (plan->x == NULL ) printf("Alloziierung fehl geschlagen!\n");
-  if (plan->f == NULL ) printf("Alloziierung fehl geschlagen!\n");
+  if (plan->x == NULL ) printf("Allocation failed!\n");
+  if (plan->f == NULL ) printf("Allocation failed!\n");
 
-plan->wig_coeffs    = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
+  plan->wig_coeffs = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
 
-plan->cheby         = (C*) nfft_malloc((2*B+2)*sizeof(C));
-plan->aux           = (C*) nfft_malloc((2*B+4)*sizeof(C));
+  plan->cheby = (C*) nfft_malloc((2*B+2)*sizeof(C));
+  plan->aux = (C*) nfft_malloc((2*B+4)*sizeof(C));
 
-
- if (plan->wig_coeffs == NULL ) printf("Alloziierung fehl geschlagen!\n");
-  if (plan->cheby == NULL ) printf("Alloziierung fehl geschlagen!\n");
-  if (plan->aux == NULL ) printf("Alloziierung fehl geschlagen!\n");
+  if (plan->wig_coeffs == NULL ) printf("Allocation failed!\n");
+  if (plan->cheby == NULL ) printf("Allocation failed!\n");
+  if (plan->aux == NULL ) printf("Allocation failed!\n");
 
   plan->mv_trafo = (void (*) (void* ))nfsoft_trafo;
   plan->mv_adjoint = (void (*) (void* ))nfsoft_adjoint;
-
-
 }
 
-
-
-static void new_c2e(nfsoft_plan *my_plan, int even)
+static void c2e(nfsoft_plan *my_plan, int even)
 {
-int j,N;
+  int j, N;
 
+  /**initialize the bigger plan*/
+  N = 2* (my_plan ->N_total+1);
 
-/**initialize the bigger plan*/
-N= 2*(my_plan->N_total+1);
+  /** prepare the coefficients for the new plan */
+  my_plan->cheby[my_plan->N_total+1] = my_plan->wig_coeffs[0];
+  my_plan->cheby[0]=0.0;
 
-/** prepare the coefficients for the new plan */
-my_plan->cheby[my_plan->N_total+1] = my_plan->wig_coeffs[0];
-my_plan->cheby[0]=0.0;
+  for (j=1;j<my_plan->N_total+1;j++)
+  {
+    my_plan->cheby[my_plan->N_total+1+j]=0.5* my_plan->wig_coeffs[j];
+    my_plan->cheby[my_plan->N_total+1-j]=0.5* my_plan->wig_coeffs[j];
+  }
 
-for (j=1;j<my_plan->N_total+1;j++)
-{
-my_plan->cheby[my_plan->N_total+1+j]=0.5* my_plan->wig_coeffs[j];
-my_plan->cheby[my_plan->N_total+1-j]=0.5* my_plan->wig_coeffs[j];
+  C *aux= (C*) nfft_malloc((N+2)*sizeof(C));
+
+  for(j=1;j<N;j++)
+  aux[j]=my_plan->cheby[j];
+
+  aux[0]=0.;
+  aux[N]=0.;
+
+  if (even>0)
+  {
+    my_plan->cheby[0]=(C) (-1.)/(2.*_Complex_I) * aux[1];
+    for (j=1;j<N;j++)
+    {
+      my_plan->cheby[j]=(1./(2.*_Complex_I)*(aux[j+1]-aux[j-1]));
+    }
+
+  }
+  free(aux);
+  aux = NULL;
 }
 
-C *aux= (C*) nfft_malloc((N+2)*sizeof(C));
-
-for(j=1;j<N;j++)
-aux[j]=my_plan->cheby[j];
-
-aux[0]=0.;
-aux[N]=0.;
-
-if (even>0)
+fpt_set SO3_fpt_init(int l, unsigned int flags, int kappa)
 {
-my_plan->cheby[0]=(R) (-1./(2.*I)*aux[1]);
-for (j=1;j<N;j++)
-{
-my_plan->cheby[j]=(R)(1./(2.*I)*(aux[j+1]-aux[j-1]));
+  int N, t, k_start, k_end, k, m;
+  int glo = 0;
+  R *alpha, *beta, *gamma;
+  fpt_set set;
+
+  /** Read in transfrom length. */
+  if (flags & NFSOFT_USE_DPT)
+  {
+    if (l < 2)
+      N = 2;
+    else
+      N = l;
+
+    t = (int) log2(nfft_next_power_of_2(N));
+
+  }
+  else
+  {
+    /** workaround to compute polynomials of degree less than 2*/
+    if (l < 2)
+      N = 2;
+    else
+      N = nfft_next_power_of_2(l);
+
+    t = (int) log2(N);
+  }
+
+  /**memory for the recurrence coefficients*/
+  alpha = (R*) nfft_malloc((N + 2) * sizeof(R));
+  beta = (R*) nfft_malloc((N + 2) * sizeof(R));
+  gamma = (R*) nfft_malloc((N + 2) * sizeof(R));
+
+  /** Initialize DPT. */
+  if (flags & NFSOFT_NO_STABILIZATION)
+  {
+    set = fpt_init((2* N + 1) * (2* N + 1), t, 0U | FPT_NO_STABILIZATION);
+  }
+  else
+  {
+    set = fpt_init((2* N + 1) * (2* N + 1), t, 0U);
+  }
+
+  for (k = -N; k <= N; k++)
+    for (m = -N; m <= N; m++)
+    {
+      /** Read in start and end indeces */
+      k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+      k_end = N;
+
+      SO3_alpha_row(alpha, N, k, m);
+      SO3_beta_row(beta, N, k, m);
+      SO3_gamma_row(gamma, N, k, m);
+
+      fpt_precompute(set, glo, alpha, beta, gamma, k_start, kappa);
+      glo++;
+    }
+
+  free(alpha);
+  free(beta);
+  free(gamma);
+  alpha = NULL;
+  beta = NULL;
+  gamma = NULL;
+
+  return set;
 }
 
-}
-free(aux);
-aux = NULL;
-}
-
-
-fpt_set SO3_fpt_init(int l, unsigned int flags,int kappa)
+void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 {
-int N,t,k_start,k_end,k,m;
-int glo=0;
-R *alpha,*beta,*gamma;
- fpt_set set;
-
-
-
-/** Read in transfrom length. */
-if (flags & NFSOFT_USE_DPT)
-{
-if (l<2)
-	N=2;
-else
-	N      = l;
-
-    t      = (int) log2(nfft_next_power_of_2(N));
-
-}
-else
-{
-	/** workaround to compute polynomials of degree less than 2*/
-if(l<2)
-	N = 2;
-else
-	N      = nfft_next_power_of_2(l);
-
-    t      = (int) log2(N);
-}
-
- /**memory for the recurrence coefficients*/
- alpha = (R*) nfft_malloc((N+2)*sizeof(R));
- beta = (R*) nfft_malloc((N+2)*sizeof(R));
- gamma = (R*) nfft_malloc((N+2)*sizeof(R));
-
-
- /** Initialize DPT. */
- if (flags & NFSOFT_NO_STABILIZATION )
-{
-//set = fpt_init(0,t,0U|FPT_NO_STABILIZATION );
-set = fpt_init((2*N+1)*(2*N+1),t,0U|FPT_NO_STABILIZATION );
-}
-else
-{
-//set = fpt_init(0,t,0U);
-set = fpt_init((2*N+1)*(2*N+1),t,0U);
-}
-
-for (k=-N; k<=N; k++)
-	for (m=-N; m<=N; m++)
-{
-/** Read in start and end indeces */
-k_start= (ABS(k)>=ABS(m)) ? ABS(k) : ABS(m);
-k_end  = N;
-
- SO3_alpha_al_row(alpha,N,k,m);
- SO3_beta_al_row(beta,N,k,m);
- SO3_gamma_al_row(gamma,N,k,m);
-
-fpt_precompute(set,glo,alpha,beta,gamma,k_start,kappa);
-glo++;
-}
-
-      free(alpha);
-      free(beta);
-      free(gamma);
-      alpha = NULL;
-      beta = NULL;
-      gamma = NULL;
-
-return set;
-}
-
-
-void SO3_fpt(C *coeffs,fpt_set set,int l, int k, int m, unsigned int flags)
-{
- int N;
- /** The Wigner  coefficients */
- C* x;
- /** The Chebyshev coefficients */
- C* y;
-
- int trafo_nr; /**gives the index of the trafo in the FPT_set*/
- int k_start,k_end,j;
- int function_values=0;
-
-
-/** Read in transfrom length. */
-if (flags & NFSOFT_USE_DPT)
-{
- N      = l;
-	if(l<2)
-		N = 2;
-}
-else
-{
-	if(l<2)
-		N = 2;
-	else
-		N      = nfft_next_power_of_2(l);
-}
-
-/** Read in start and end indeces */
- k_start = (ABS(k)>=ABS(m)) ? ABS(k) : ABS(m);
- k_end = N;
- trafo_nr= (N+k)*(2*N+1)+(m+N);
-
-/** Read in Wigner coefficients. */
- x = (C*) nfft_malloc((k_end+1)*sizeof(C));
-
- //for (j = 0; j <= k_end-k_start; j++)
- //{
- // x[j+k_start] = coeffs[j];
- //}
-
- for (j = 0; j <= l-k_start; j++)
- {
-  x[j+k_start] = coeffs[j];
- }
- for (j = l-k_start+1; j <= k_end-k_start; j++)
- {
-  x[j+k_start] = K(0.0);
- }
-
- /** Allocate memory for Chebyshev coefficients. */
- y = (C*) nfft_malloc((k_end+1)*sizeof(C));
-
-if (flags & NFSOFT_USE_DPT)
- { /** Execute DPT. */
-   dpt_trafo(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
- }
-else
- { /** compute fpt*/
-    fpt_trafo(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
- }
-
-/**write computed coeffs in the plan*/
-for(j=0;j<=l;j++)
-{
-coeffs[j]=y[j];
-}
-
-
-      /** Free memory. */
-
-      free(x);
-      free(y);
-      x = NULL;
-      y = NULL;
-}
-
-
-void SO3_fpt_transposed(C *coeffs,fpt_set set,int l, int k, int m, unsigned int flags)
-{
-int N,k_start,k_end,j;
-int trafo_nr; /**gives the index of the trafo in the FPT_set*/
-int function_values=0;
-/** The Wigner  coefficients */
+  int N;
+  /** The Wigner  coefficients */
   C* x;
-/** The Chebyshev coefficients */
+  /** The Chebyshev coefficients */
   C* y;
 
-/** Read in transfrom length. */
+  int trafo_nr; /**gives the index of the trafo in the FPT_set*/
+  int k_start, k_end, j;
+  int function_values = 0;
 
-if (flags & NFSOFT_USE_DPT)
+  /** Read in transfrom length. */
+  if (flags & NFSOFT_USE_DPT)
+  {
+    N = l;
+    if (l < 2)
+      N = 2;
+  }
+  else
+  {
+    if (l < 2)
+      N = 2;
+    else
+      N = nfft_next_power_of_2(l);
+  }
+
+  /** Read in start and end indeces */
+  k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+  k_end = N;
+  trafo_nr = (N + k) * (2* N + 1) + (m + N);
+
+  /** Read in Wigner coefficients. */
+  x = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+
+  //for (j = 0; j <= k_end-k_start; j++)
+  //{
+  // x[j+k_start] = coeffs[j];
+  //}
+
+  for (j = 0; j <= l - k_start; j++)
+  {
+    x[j + k_start] = coeffs[j];
+  }
+  for (j = l - k_start + 1; j <= k_end - k_start; j++)
+  {
+    x[j + k_start] = K(0.0);
+  }
+
+  /** Allocate memory for Chebyshev coefficients. */
+  y = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+
+  if (flags & NFSOFT_USE_DPT)
+  { /** Execute DPT. */
+    dpt_trafo(set, trafo_nr, &x[k_start], y, k_end, 0U
+        | (function_values ? FPT_FUNCTION_VALUES : 0U));
+  }
+  else
+  { /** compute fpt*/
+    fpt_trafo(set, trafo_nr, &x[k_start], y, k_end, 0U
+        | (function_values ? FPT_FUNCTION_VALUES : 0U));
+  }
+
+  /**write computed coeffs in the plan*/
+  for (j = 0; j <= l; j++)
+  {
+    coeffs[j] = y[j];
+  }
+
+  /** Free memory. */
+
+  free(x);
+  free(y);
+  x = NULL;
+  y = NULL;
+}
+
+void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
+    unsigned int flags)
 {
- N      = l;
-	if(l<2)
-		N = 2;
+  int N, k_start, k_end, j;
+  int trafo_nr; /**gives the index of the trafo in the FPT_set*/
+  int function_values = 0;
+  /** The Wigner  coefficients */
+  C* x;
+  /** The Chebyshev coefficients */
+  C* y;
+
+  /** Read in transfrom length. */
+
+  if (flags & NFSOFT_USE_DPT)
+  {
+    N = l;
+    if (l < 2)
+      N = 2;
+  }
+  else
+  {
+    if (l < 2)
+      N = 2;
+    else
+      N = nfft_next_power_of_2(l);
+  }
+
+  /** Read in start and end indeces */
+  k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+  k_end = N;
+  trafo_nr = (N + k) * (2* N + 1) + (m + N);
+
+  /** Allocate memory for Chebychev coefficients. */
+  y = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+  /** Allocate memory for Wigner coefficients. */
+  x = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+
+  for (j = 0; j <= l; j++)
+  {
+    y[j] = coeffs[j];
+  }
+  for (j = l + 1; j <= k_end; j++)
+  {
+    y[j] = K(0.0);
+  }
+
+  if (flags & NFSOFT_USE_DPT)
+  {
+    dpt_transposed(set, trafo_nr, &x[k_start], y, k_end, 0U
+        | (function_values ? FPT_FUNCTION_VALUES : 0U));
+  }
+  else
+  {
+    fpt_transposed(set, trafo_nr, &x[k_start], y, k_end, 0U
+        | (function_values ? FPT_FUNCTION_VALUES : 0U));
+  }
+
+  for (j = 0; j <= l; j++)
+  {
+    coeffs[j] = x[j];
+  }
+
+  /** Free memory. */
+  free(x);
+  free(y);
+  x = NULL;
+  y = NULL;
 }
-else
-{
-	if(l<2)
-		N = 2;
-	else
-		N      = nfft_next_power_of_2(l);
-}
-
-
-/** Read in start and end indeces */
-k_start= (ABS(k)>=ABS(m)) ? ABS(k) : ABS(m);
-k_end  = N;
-trafo_nr= (N+k)*(2*N+1)+(m+N);
-
-/** Read in Chebychev coefficients. */
-y = (C*) nfft_malloc((k_end+1)*sizeof(C));
-/** Allocate memory for Wigner coefficients. */
-x = (C*) nfft_malloc((k_end+1)*sizeof(C));
-
-
-      for (j = 0; j <= l; j++)
-      {
-        y[j] = coeffs[j];
-      }
-      for (j = l+1; j<= k_end; j++)
-      {
-        y[j] = K(0.0);
-      }
-
-if (flags & NFSOFT_USE_DPT)
-  /** Execute DPT. */{
-  dpt_transposed(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
-}else
-  /** compute fpt*/
-  fpt_transposed(set,trafo_nr,&x[k_start],y,k_end,0U | (function_values?FPT_FUNCTION_VALUES:0U));
-
-for(j=k_start;j<=l;j++)
-{
-coeffs[j-k_start]=x[j];
-}
-
-
-/** Forget precomputed data. muss ich woanders machen*/
-      //fpt_finalize(set);
-      //set = NULL;
-
-      /** Free memory. */
-      free(x);
-      free(y);
-      x = NULL;
-      y = NULL;
-
-}
-
-
 
 void nfsoft_trafo(nfsoft_plan *plan3D)
 {
-int i,j,m,k,max,glo1,glo2;
+  int i, j, m, k, max, glo1, glo2;
+
+  i = 0;
+  glo1 = 0;
+  glo2 = 0;
+
+  int N = plan3D->N_total;
+  int M = plan3D->M_total;
+
+  for (i = 0; i < plan3D->nfft_plan.N_total; i++)
+    plan3D->nfft_plan.f_hat[i] = 0.0;
+
+  //set the nodes
+  for (j = 0; j < M; j++)
+  {
+    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
+    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
+    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
+  }
+
+  //nothing much to be done for polynomial degree 0
+  if (N == 0)
+  {
+    for (j = 0; j < M; j++)
+      plan3D->f[j] = plan3D->f_hat[0];
+    return;
+  }
+
+  //muss hier noch wieder weg und in nfsoft_precompute
+  fpt_set set;
+  set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
+
+  for (k = -N; k <= N; k++)
+  {
+    for (m = -N; m <= N; m++)
+    {
+
+      max = (ABS(m) > ABS(k) ? ABS(m) : ABS(k));
+
+      for (j = 0; j <= N - max; j++)
+      {
+        plan3D->wig_coeffs[j] = plan3D->f_hat[glo1];
+
+        if ((plan3D->flags & NFSOFT_NORMALIZED))
+        {
+          plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (1. / (2. * PI))
+              * SQRT(0.5 * (2. * (max + j) + 1.));
+        }
+
+        if ((plan3D->flags & NFSOFT_REPRESENT))
+        {
+          if ((k < 0) && (k % 2))
+          {
+            plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (-1);
+          }
+          if ((m < 0) && (m % 2))
+            plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (-1);
+        }
+
+        glo1++;
+      }
+      for (j = N - max + 1; j < nfft_next_power_of_2(N) + 1; j++)
+        plan3D->wig_coeffs[j] = 0.0;
+      //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
+      SO3_fpt(plan3D->wig_coeffs, set, N, k, m, plan3D->flags);
+
+      c2e(plan3D, ABS((k + m) % 2));
+
+      for (i = 1; i <= 2* plan3D ->N_total + 2; i++)
+      {
+        plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k, m, i - N - 1, N) - 1]
+            = plan3D->cheby[i - 1];
+        //fprintf(stdout,"%f \t", plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]);
+        //fprintf(stdout,"another index: %d for k=%d,m=%d,l=%d,N=%d \n", NFSOFT_INDEX(k,m,i-N-1,N)-1,k,m,i-N-1,N);
+      }
+
+    }
+  }
+
+  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
+  {
+    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
+  }
+
+  if ((plan3D->nfft_plan).nfft_flags & FG_PSI)
+  {
+    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+  }
+  if ((plan3D->nfft_plan).nfft_flags & PRE_PSI)
+  {
+    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+  }
+  //nfft_vpr_double(plan3D->nfft_plan.x,3*plan3D->nfft_plan.M_total,"all nodes");
+
+  //double time = nfft_second();
+  if (plan3D->flags & NFSOFT_USE_NDFT)
+  {
+    ndft_trafo(&(plan3D->nfft_plan));
+  }
+  else
+  {
+    nfft_trafo(&(plan3D->nfft_plan));
+  }
+  //time = (nfft_second() - time);
+  //fprintf(stdout," time 3d nfft = %11le\n",time);
 
 
-	i=0;
-	glo1=0;
-	glo2=0;
+  for (j = 0; j < plan3D->M_total; j++)
+    plan3D->f[j] = plan3D->nfft_plan.f[j];
 
-int N=plan3D->N_total;
-int M=plan3D->M_total;
+  //nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all coeffs");
+  //nfft_vpr_complex(plan3D->nfft_plan.f,plan3D->nfft_plan.M_total,"all results");
 
-
-for (i=0;i<plan3D->nfft_plan.N_total;i++)
-plan3D->nfft_plan.f_hat[i]=0.0;
-
-//set the nodes
-		  for(j=0;j<M;j++)
-		  {
-		    plan3D->nfft_plan.x[3*j]=plan3D->x[3*j+2];
-		    plan3D->nfft_plan.x[3*j+1]=plan3D->x[3*j];
-		    plan3D->nfft_plan.x[3*j+2]=plan3D->x[3*j+1];
-	       }
-
-
-//nothing much to be done for polynomial degree 0
-		  if(N==0)
-			  {
-			  for(j=0;j<M;j++)
-			  plan3D->f[j]=plan3D->f_hat[0];
-			  return;
-			  }
-
-
-
-    //muss hier noch wieder weg und in nfsoft_precompute
-	fpt_set set;
-	set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
-
-
-	for (k=-N;k<=N;k++)
-	{
-		 for (m=-N;m<=N;m++)
-		 {
-
-		  max=(ABS(m)>ABS(k)?ABS(m):ABS(k));
-
-
-		  for(j=0;j<=N-max;j++)
-		  {
-		    plan3D->wig_coeffs[j]=plan3D->f_hat[glo1];
-
-			if ((plan3D->flags & NFSOFT_NORMALIZED))
-			{
-			plan3D->wig_coeffs[j]=plan3D->wig_coeffs[j]*(1./(2.*PI))*SQRT(0.5*(2.*(max+j)+1.));
-			}
-
-			if ((plan3D->flags & NFSOFT_REPRESENT))
-			{
-				if ( (k<0) && (k % 2) )
-				{plan3D->wig_coeffs[j]=plan3D->wig_coeffs[j]*(-1);}
-				if ( (m<0) && (m % 2) )
-				plan3D->wig_coeffs[j]=plan3D->wig_coeffs[j]*(-1);
-			}
-
-			glo1++;
-		  }
-		  for(j=N-max+1;j<nfft_next_power_of_2(N)+1;j++)
-		  plan3D->wig_coeffs[j]=0.0;
-
-		SO3_fpt(plan3D->wig_coeffs,set,N,k,m,plan3D->flags);
-
-		//  SO3_fpt(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
-
-		new_c2e(plan3D,ABS((k+m)%2));
-
-		  //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
-
-		  for (i=1;i<=2*plan3D->N_total+2;i++)
-		  {
-		  plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]=plan3D->cheby[i-1];
-    	//fprintf(stdout,"%f \t", plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]);
-       //fprintf(stdout,"another index: %d for k=%d,m=%d,l=%d,N=%d \n", NFSOFT_INDEX(k,m,i-N-1,N)-1,k,m,i-N-1,N);
-		  }
-
-	}
-	}
-
-
-
-for(j=0;j<3*plan3D->nfft_plan.M_total;j++)
-{
-plan3D->nfft_plan.x[j]=plan3D->nfft_plan.x[j]*(1/(2*PI));
-}
-
-  if((plan3D->nfft_plan).nfft_flags & FG_PSI)
-{
-  nfft_precompute_one_psi(&(plan3D->nfft_plan));
-}
-  if((plan3D->nfft_plan).nfft_flags & PRE_PSI)
-{
-  nfft_precompute_one_psi(&(plan3D->nfft_plan));
-}
-//nfft_vpr_double(plan3D->nfft_plan.x,3*plan3D->nfft_plan.M_total,"all nodes");
-
-//double time = nfft_second();
-if (plan3D->flags & NFSOFT_USE_NDFT)
-{
-ndft_trafo(&(plan3D->nfft_plan));
-}
-else
-{
-  nfft_trafo(&(plan3D->nfft_plan));
-}
-//time = (nfft_second() - time);
-//fprintf(stdout," time 3d nfft = %11le\n",time);
-
-
-for(j=0;j<plan3D->M_total;j++)
-plan3D->f[j]=plan3D->nfft_plan.f[j];
-
-//nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all coeffs");
-//nfft_vpr_complex(plan3D->nfft_plan.f,plan3D->nfft_plan.M_total,"all results");
-
-/** Forget precomputed data. muss ich wo anders machen*/
-      fpt_finalize(set);
-      set = NULL;
+  /** Forget precomputed data. muss ich wo anders machen*/
+  fpt_finalize(set);
+  set = NULL;
 
 }
-
 
 static void e2c(nfsoft_plan *my_plan, int even)
 {
-int N;
-int j;
+  int N;
+  int j;
 
-/**initialize the bigger plan*/
-N= 2*(my_plan->N_total+1);
-//nfft_vpr_complex(my_plan->cheby,N+1,"chebychev");
-
-
-if (even>0)
-{
-//my_plan->aux[N-1]= -1/(2*I)* my_plan->cheby[N-2];
-my_plan->aux[0]= 1/(2*_Complex_I)*my_plan->cheby[1];
+  /**initialize the bigger plan*/
+  N = 2* (my_plan ->N_total+1);
+  //nfft_vpr_complex(my_plan->cheby,N+1,"chebychev");
 
 
+      if (even>0)
+      {
+        //my_plan->aux[N-1]= -1/(2*I)* my_plan->cheby[N-2];
+        my_plan->aux[0]= 1/(2*_Complex_I)*my_plan->cheby[1];
 
-for(j=1;j<N-1;j++)
-{
-my_plan->aux[j]=1/(2*_Complex_I)*(my_plan->cheby[j+1]-my_plan->cheby[j-1]);
+        for(j=1;j<N-1;j++)
+        {
+          my_plan->aux[j]=1/(2*_Complex_I)*(my_plan->cheby[j+1]-my_plan->cheby[j-1]);
 }
 my_plan->aux[N-1]=1/(2*_Complex_I)*(-my_plan->cheby[j-1]);
 
@@ -541,11 +507,7 @@ my_plan->cheby[j]= my_plan->aux[j];
 }
 }
 
-//nfft_vpr_complex(my_plan->aux,N,"aux");
-//nfft_vpr_complex(my_plan->cheby,N,"chebychev after odd");
-
 my_plan->wig_coeffs[0]=my_plan->cheby[my_plan->N_total+1];
-
 
 for(j=1;j<=my_plan->N_total;j++)
 {
@@ -558,129 +520,115 @@ my_plan->wig_coeffs[j]=0.5*(my_plan->cheby[my_plan->N_total+j+1]+my_plan->cheby[
 
 }
 
-
-
 void nfsoft_adjoint(nfsoft_plan *plan3D)
 {
-int i,j,m,k,max,glo1,glo2;
+  int i, j, m, k, max, glo1, glo2;
 
-	i=0;
-	glo1=0;
-	glo2=0;
+  i = 0;
+  glo1 = 0;
+  glo2 = 0;
 
-int N=plan3D->N_total;
-int M=plan3D->M_total;
+  int N = plan3D->N_total;
+  int M = plan3D->M_total;
 
-//nothing much to be done for polynomial degree 0
-		  if(N==0)
-			  {
-			  for(j=0;j<M;j++)
-			  plan3D->f_hat[0]+=plan3D->f[j];
-			  return;
-			  }
+  //nothing much to be done for polynomial degree 0
+  if (N == 0)
+  {
+    for (j = 0; j < M; j++)
+      plan3D->f_hat[0] += plan3D->f[j];
+    return;
+  }
 
+  fpt_set set;
+  set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
 
+  for (i = 0; i < plan3D->nfft_plan.N_total; i++)
+    plan3D->nfft_plan.f_hat[i] = 0.0;
 
-fpt_set set;
-set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
+  //set the nodes and the samples in the nfft_plan
+  for (j = 0; j < M; j++)
+  {
+    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
+    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
+    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
 
+    plan3D->nfft_plan.f[j] = plan3D->f[j];
+  }
 
-for (i=0;i<plan3D->nfft_plan.N_total;i++)
-plan3D->nfft_plan.f_hat[i]=0.0;
+  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
+  {
+    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
+  }
 
-//set the nodes and the samples in the nfft_plan
-		  for(j=0;j<M;j++)
-		  {
-		    plan3D->nfft_plan.x[3*j]=plan3D->x[3*j+2];
-		    plan3D->nfft_plan.x[3*j+1]=plan3D->x[3*j];
-		    plan3D->nfft_plan.x[3*j+2]=plan3D->x[3*j+1];
+  nfft_precompute_one_psi(&(plan3D->nfft_plan));
 
-		    plan3D->nfft_plan.f[j]=plan3D->f[j];
-		  }
+  if (plan3D->flags & NFSOFT_USE_NDFT)
+  {
+    ndft_adjoint(&(plan3D->nfft_plan));
+  }
+  else
+  {
+    nfft_adjoint(&(plan3D->nfft_plan));
+  }
 
-for(j=0;j<3*plan3D->nfft_plan.M_total;j++)
-{
-plan3D->nfft_plan.x[j]=plan3D->nfft_plan.x[j]*(1/(2*PI));
-}
+  //nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all results");
 
-nfft_precompute_one_psi(&(plan3D->nfft_plan));
+  glo1 = 0;
 
-if (plan3D->flags & NFSOFT_USE_NDFT)
-{
-ndft_adjoint(&(plan3D->nfft_plan));
-}
-else
-{
-  nfft_adjoint(&(plan3D->nfft_plan));
-}
+  for (k = -N; k <= N; k++)
+  {
+    for (m = -N; m <= N; m++)
+    {
 
-//nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all results");
+      max = (ABS(m) > ABS(k) ? ABS(m) : ABS(k));
 
-glo1=0;
+      for (i = 1; i < 2* plan3D ->N_total + 3; i++)
+      {
+        plan3D->cheby[i - 1] = plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k, m, i - N
+            - 1, N) - 1];
+      }
 
-	for (k=-N;k<=N;k++)
-	{
-		 for (m=-N;m<=N;m++)
-		 {
+      //fprintf(stdout,"k=%d,m=%d \n",k,m);
+      //nfft_vpr_complex(plan3D->cheby,2*plan3D->N_total+2,"euler");
+      e2c(plan3D, ABS((k + m) % 2));
 
-		  max=(ABS(m)>ABS(k)?ABS(m):ABS(k));
-
-		  for (i=1;i<2*plan3D->N_total+3;i++)
-		  {
-		  plan3D->cheby[i-1]=plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1];
-		  }
-
-	     //fprintf(stdout,"k=%d,m=%d \n",k,m);
-        //nfft_vpr_complex(plan3D->cheby,2*plan3D->N_total+2,"euler");
-               e2c(plan3D,ABS((k+m)%2));
-
-
-
-		//nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"chebys");
-		SO3_fpt_transposed(plan3D->wig_coeffs,set,N,k,m,plan3D->flags);
-        //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"wigners");
-		//  SO3_fpt_transposed(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
+      //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"chebys");
+      SO3_fpt_transposed(plan3D->wig_coeffs, set, N, k, m, plan3D->flags);
+      //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"wigners");
+      //  SO3_fpt_transposed(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
 
 
+      for (j = max; j <= N; j++)
+      {
+        if ((plan3D->flags & NFSOFT_REPRESENT))
+        {
+          if ((k < 0) && (k % 2))
+          {
+            plan3D->wig_coeffs[j] = -plan3D->wig_coeffs[j];
+          }
+          if ((m < 0) && (m % 2))
+            plan3D->wig_coeffs[j] = -plan3D->wig_coeffs[j];
+        }
 
+        plan3D->f_hat[glo1] = plan3D->wig_coeffs[j];
 
-		  for(j=max;j<=N;j++)
-		  {
-			if ((plan3D->flags & NFSOFT_REPRESENT))
-			{
-				if ( (k<0) && (k % 2) )
-				{
-				plan3D->wig_coeffs[j]=-plan3D->wig_coeffs[j];
-				}
-				if ( (m<0) && (m % 2) )
-				plan3D->wig_coeffs[j]=-plan3D->wig_coeffs[j];
-			}
+        if ((plan3D->flags & NFSOFT_NORMALIZED))
+        {
+          plan3D->f_hat[glo1] = plan3D->f_hat[glo1] * (1 / (2. * PI)) * SQRT(
+              0.5 * (2. * (j) + 1.));
+        }
 
+        glo1++;
+      }
 
-            plan3D->f_hat[glo1]=plan3D->wig_coeffs[j];
+    }
+  }
 
-
-
-			if ((plan3D->flags & NFSOFT_NORMALIZED))
-			{
-			plan3D->f_hat[glo1]=plan3D->f_hat[glo1]*(1/(2.*PI))*SQRT(0.5*(2.*(j)+1.));
-			}
-
-			glo1++;
-		   }
-
-
-
-	}
-	}
-
-	/** Forget precomputed data*/
-	     fpt_finalize(set);
-	     set = NULL;
+  /** Forget precomputed data*/
+  fpt_finalize(set);
+  set = NULL;
 
 }
-
-
 
 void nfsoft_finalize(nfsoft_plan *plan)
 {
@@ -689,8 +637,6 @@ void nfsoft_finalize(nfsoft_plan *plan)
   free(plan->wig_coeffs);
   free(plan->cheby);
   free(plan->aux);
-
-
 
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {
@@ -713,12 +659,15 @@ void nfsoft_finalize(nfsoft_plan *plan)
   }
 }
 
-int posN(int n,int m, int B)
+int posN(int n, int m, int B)
 {
-int pos;
+  int pos;
 
-if(n> -B) pos=posN(n-1,m,B)+B+1-MAX(ABS(m),ABS(n-1)); else pos= 0;
-//(n > -B? pos=posN(n-1,m,B)+B+1-MAX(ABS(m),ABS(n-1)): pos= 0)
-return pos;
+  if (n > -B)
+    pos = posN(n - 1, m, B) + B + 1 - MAX(ABS(m), ABS(n - 1));
+  else
+    pos = 0;
+  //(n > -B? pos=posN(n-1,m,B)+B+1-MAX(ABS(m),ABS(n-1)): pos= 0)
+  return pos;
 }
 

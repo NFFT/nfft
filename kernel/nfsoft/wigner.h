@@ -36,7 +36,7 @@
  * \arg m The order  \f$m\f$
  * \arg l The degree \f$l\f$
  */
-double SO3_alpha_al (int k, int m, int l);
+double SO3_alpha(int k, int m, int l);
 /**
  * Computes three-term recurrence coefficients \f$\beta_l^{km}\f$ of
  * Wigner-d functions
@@ -45,7 +45,7 @@ double SO3_alpha_al (int k, int m, int l);
  * \arg m The order  \f$m\f$
  * \arg l The degree \f$l\f$
  */
-double SO3_beta_al (int k, int m, int l);
+double SO3_beta(int k, int m, int l);
 /**
  * Computes three-term recurrence coefficients \f$\gamma_l^{km}\f$ of
  * Wigner-d functions
@@ -54,7 +54,7 @@ double SO3_beta_al (int k, int m, int l);
  * \arg m The order  \f$m\f$
  * \arg l The degree \f$l\f$
  */
-double SO3_gamma_al (int k, int m, int l);
+double SO3_gamma(int k, int m, int l);
 /**
  * Compute three-term-recurrence coefficients \f$ \alpha_{l}^{km}\f$ of
  * Wigner-d functions for all degrees \f$ l= 0,\ldots,N \f$.
@@ -64,7 +64,7 @@ double SO3_gamma_al (int k, int m, int l);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_alpha_al_row(double *alpha, int N,int m, int n);
+void SO3_alpha_row(double *alpha, int N, int m, int n);
 /**
  * Compute three-term-recurrence coefficients \f$ \beta_{l}^{km}\f$ of
  * Wigner-d functions for all degrees \f$ l= 0,\ldots,N \f$.
@@ -74,7 +74,7 @@ void SO3_alpha_al_row(double *alpha, int N,int m, int n);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_beta_al_row(double *beta, int N, int m,  int n);
+void SO3_beta_row(double *beta, int N, int m, int n);
 /**
  * Compute three-term-recurrence coefficients \f$ \gamma_{l}^{km}\f$ of
  * Wigner-d functions for all degrees \f$ l= 0,\ldots,N \f$
@@ -84,7 +84,7 @@ void SO3_beta_al_row(double *beta, int N, int m,  int n);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_gamma_al_row(double *gamma, int N,int m, int n);
+void SO3_gamma_row(double *gamma, int N, int m, int n);
 /**
  * Compute three-term-recurrence coefficients \f$ \alpha_{l}^{km}\f$ of
  * Wigner-d functions for all order \f$ m = -N,\ldots,N \f$ and
@@ -94,7 +94,7 @@ void SO3_gamma_al_row(double *gamma, int N,int m, int n);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_alpha_al_matrix(double *alpha, int N, int n);
+void SO3_alpha_matrix(double *alpha, int N, int n);
 /**
  * Compute three-term-recurrence coefficients \f$ \beta_{l}^{km}\f$ of
  * Wigner-d functions for all order \f$ m = -N,\ldots,N \f$ and
@@ -104,7 +104,7 @@ void SO3_alpha_al_matrix(double *alpha, int N, int n);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_beta_al_matrix(double *beta, int N, int n);
+void SO3_beta_matrix(double *beta, int N, int n);
 /**
  * Compute three-term-recurrence coefficients \f$ \gamma_{l}^{km}\f$ of
  * Wigner-d functions for all order \f$ m = -N,\ldots,N \f$ and
@@ -114,7 +114,7 @@ void SO3_beta_al_matrix(double *beta, int N, int n);
  * \arg n the second order
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_gamma_al_matrix(double *gamma, int N, int n);
+void SO3_gamma_matrix(double *gamma, int N, int n);
 
 /**
  * Compute three-term-recurrence coefficients \f$\alpha_{l}^{km}\f$ of
@@ -124,7 +124,7 @@ void SO3_gamma_al_matrix(double *gamma, int N, int n);
  *
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_alpha_al_all(double *alpha, int N);
+void SO3_alpha_all(double *alpha, int N);
 /**
  * Compute three-term-recurrence coefficients \f$\beta_{l}^{km}\f$ of
  * Wigner-d functions for all \f$ k,m = -N,\ldots,N \f$ and \f$ l= 0,\ldots,N \f$.
@@ -133,7 +133,7 @@ void SO3_alpha_al_all(double *alpha, int N);
  *
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_beta_al_all(double *beta, int N);
+void SO3_beta_all(double *beta, int N);
 /**
  * Compute three-term-recurrence coefficients \f$\gamma_{l}^{km}\f$ of
  * Wigner-d functions for all \f$ k,m = -N,\ldots,N \f$ and \f$ l= 0,\ldots,N \f$.
@@ -142,8 +142,7 @@ void SO3_beta_al_all(double *beta, int N);
  *
  * \arg N The upper bound \f$N\f$.
  */
-void SO3_gamma_al_all(double *gamma, int N);
-
+void SO3_gamma_all(double *gamma, int N);
 
 /**
  * Evaluates Wigner-d functions \f$d_l^{km}(x,c)\f$ using the
@@ -161,7 +160,7 @@ void SO3_gamma_al_all(double *gamma, int N);
  *   \f$\gamma_c^{km},\ldots,\gamma_{c+l}^{km}\f$
  */
 void eval_wigner(double *x, double *y, int size, int l, double *alpha,
-  double *beta, double *gamma);
+    double *beta, double *gamma);
 /**
  * Evaluates Wigner-d functions \f$d_l^{km}(x,c)\f$ using the
  * Clenshaw-algorithm if it not exceeds a given threshold.
@@ -179,20 +178,20 @@ void eval_wigner(double *x, double *y, int size, int l, double *alpha,
  * \arg threshold The threshold
  */
 int eval_wigner_thresh(double *x, double *y, int size, int l, double *alpha,
-  double *beta, double *gamma, double threshold);
+    double *beta, double *gamma, double threshold);
 
 /**
-* A method used for debugging, gives the values to start the "old" three-term recurrence
-* generates \f$ d^{km}_l(cos(theta)) \f$ WHERE THE DEGREE l OF THE FUNCTION IS EQUAL
-* TO THE MAXIMUM OF ITS ORDERS
-*
-* \arg theta the argument of
-* \arg n1 the first order
-* \arg n2 the second order
-*
-* \return the function value \f$ d^{km}_l(cos(theta)) \f$
-*
-**/
- double wigner_start(int n1, int n2, double theta);
+ * A method used for debugging, gives the values to start the "old" three-term recurrence
+ * generates \f$ d^{km}_l(cos(theta)) \f$ WHERE THE DEGREE l OF THE FUNCTION IS EQUAL
+ * TO THE MAXIMUM OF ITS ORDERS
+ *
+ * \arg theta the argument of
+ * \arg n1 the first order
+ * \arg n2 the second order
+ *
+ * \return the function value \f$ d^{km}_l(cos(theta)) \f$
+ *
+ **/
+double wigner_start(int n1, int n2, double theta);
 
 #endif
