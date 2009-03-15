@@ -143,12 +143,11 @@ static void c2e(nfsoft_plan *my_plan, int even)
   aux = NULL;
 }
 
-fpt_set SO3_fpt_init(int l, unsigned int flags, int kappa)
+static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
 {
   int N, t, k_start, k_end, k, m;
   int glo = 0;
   R *alpha, *beta, *gamma;
-  fpt_set set;
 
   /** Read in transfrom length. */
   if (flags & NFSOFT_USE_DPT)
@@ -358,6 +357,44 @@ void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
   y = NULL;
 }
 
+void nfsoft_precompute(nfsoft_plan *plan3D)
+{
+  int j;
+  int N = plan3D->N_total;
+  int M = plan3D->M_total;
+
+  /** Node-dependent part*/
+
+  for (j = 0; j < M; j++)
+  {
+    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
+    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
+    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
+  }
+
+  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
+  {
+    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
+  }
+
+  if ((plan3D->nfft_plan).nfft_flags & FG_PSI)
+  {
+    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+  }
+  if ((plan3D->nfft_plan).nfft_flags & PRE_PSI)
+  {
+    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+  }
+
+  /** Node-independent part*/
+  plan3D->fpt_set = SO3_fpt_init(N, plan3D->fpt_set, plan3D->flags,
+      plan3D->fpt_kappa);
+
+  for (j = 0; j < plan3D->nfft_plan.N_total; j++)
+    plan3D->nfft_plan.f_hat[j] = 0.0;
+
+}
+
 void nfsoft_trafo(nfsoft_plan *plan3D)
 {
   int i, j, m, k, max, glo1, glo2;
@@ -369,28 +406,13 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
   int N = plan3D->N_total;
   int M = plan3D->M_total;
 
-  for (i = 0; i < plan3D->nfft_plan.N_total; i++)
-    plan3D->nfft_plan.f_hat[i] = 0.0;
-
-  //set the nodes
-  for (j = 0; j < M; j++)
-  {
-    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
-    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
-    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
-  }
-
-  //nothing much to be done for polynomial degree 0
+  /**almost nothing to be done for polynomial degree 0*/
   if (N == 0)
   {
     for (j = 0; j < M; j++)
       plan3D->f[j] = plan3D->f_hat[0];
     return;
   }
-
-  //muss hier noch wieder weg und in nfsoft_precompute
-  fpt_set set;
-  set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
 
   for (k = -N; k <= N; k++)
   {
@@ -421,10 +443,11 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
 
         glo1++;
       }
+
       for (j = N - max + 1; j < nfft_next_power_of_2(N) + 1; j++)
         plan3D->wig_coeffs[j] = 0.0;
       //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
-      SO3_fpt(plan3D->wig_coeffs, set, N, k, m, plan3D->flags);
+      SO3_fpt(plan3D->wig_coeffs, plan3D->fpt_set, N, k, m, plan3D->flags);
 
       c2e(plan3D, ABS((k + m) % 2));
 
@@ -439,22 +462,6 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
     }
   }
 
-  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
-  {
-    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
-  }
-
-  if ((plan3D->nfft_plan).nfft_flags & FG_PSI)
-  {
-    nfft_precompute_one_psi(&(plan3D->nfft_plan));
-  }
-  if ((plan3D->nfft_plan).nfft_flags & PRE_PSI)
-  {
-    nfft_precompute_one_psi(&(plan3D->nfft_plan));
-  }
-  //nfft_vpr_double(plan3D->nfft_plan.x,3*plan3D->nfft_plan.M_total,"all nodes");
-
-  //double time = nfft_second();
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
     ndft_trafo(&(plan3D->nfft_plan));
@@ -463,19 +470,9 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
   {
     nfft_trafo(&(plan3D->nfft_plan));
   }
-  //time = (nfft_second() - time);
-  //fprintf(stdout," time 3d nfft = %11le\n",time);
-
 
   for (j = 0; j < plan3D->M_total; j++)
     plan3D->f[j] = plan3D->nfft_plan.f[j];
-
-  //nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all coeffs");
-  //nfft_vpr_complex(plan3D->nfft_plan.f,plan3D->nfft_plan.M_total,"all results");
-
-  /** Forget precomputed data. muss ich wo anders machen*/
-  fpt_finalize(set);
-  set = NULL;
 
 }
 
@@ -539,28 +536,10 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
     return;
   }
 
-  fpt_set set;
-  set = SO3_fpt_init(N, plan3D->flags, plan3D->fpt_kappa);
-
-  for (i = 0; i < plan3D->nfft_plan.N_total; i++)
-    plan3D->nfft_plan.f_hat[i] = 0.0;
-
-  //set the nodes and the samples in the nfft_plan
   for (j = 0; j < M; j++)
   {
-    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
-    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
-    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
-
     plan3D->nfft_plan.f[j] = plan3D->f[j];
   }
-
-  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
-  {
-    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
-  }
-
-  nfft_precompute_one_psi(&(plan3D->nfft_plan));
 
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
@@ -593,7 +572,8 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
       e2c(plan3D, ABS((k + m) % 2));
 
       //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"chebys");
-      SO3_fpt_transposed(plan3D->wig_coeffs, set, N, k, m, plan3D->flags);
+      SO3_fpt_transposed(plan3D->wig_coeffs, plan3D->fpt_set, N, k, m,
+          plan3D->flags);
       //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"wigners");
       //  SO3_fpt_transposed(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
 
@@ -623,11 +603,6 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 
     }
   }
-
-  /** Forget precomputed data*/
-  fpt_finalize(set);
-  set = NULL;
-
 }
 
 void nfsoft_finalize(nfsoft_plan *plan)
@@ -637,6 +612,9 @@ void nfsoft_finalize(nfsoft_plan *plan)
   free(plan->wig_coeffs);
   free(plan->cheby);
   free(plan->aux);
+
+  fpt_finalize(plan->fpt_set);
+  plan->fpt_set = NULL;
 
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {

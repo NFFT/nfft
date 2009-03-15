@@ -2578,35 +2578,33 @@ typedef struct nfsoft_plan_
   unsigned int flags;                  /**< the planner flags                 */
   nfft_plan nfft_plan;                /**< the internal NFFT plan             */
   fftw_plan fftw_plan;                /**< the optional internal FFTW plan    */
+  fpt_set fpt_set;                    /**< the internal FPT plan */
 
   int fpt_kappa;       /**a parameter controlling the accuracy of the FPT*/
 
 } nfsoft_plan;
 
 
+/** Functions for NFSOFT plans*/
+
 /**
- * Creates a transform plan.
+ * Does all node-dependent and node-independent precomputations needed for the NFSOFT.
  *
  * \arg plan a pointer to a \ref nfsoft_plan structure
- * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M the number of nodes \f$M \in \mathbb{N}\f$
- *
- * \author Antje Vollrath
  */
 
-/** Functions for NFSOFT plans*/
+void nfsoft_precompute(nfsoft_plan *plan);
+
 /**
- * Computes a single transposed FPT transform.
+ * Computes the FPT transform.
  *
- * \arg coeffs the Chebychev coefficientss that should be transformed
+ * \arg coeffs the Chebychev coefficients that should be transformed
+ * \arg set the FPT-set containing precomputed data
  * \arg l the polynomial degree
  * \arg k the first order
  * \arg m the second order
- * \arg kappa the parameter controlling the accuracy
  * \arg nfsoft_flags
  */
-
-fpt_set SO3_fpt_init(int l, unsigned int flags,int kappa);
 void SO3_fpt(fftw_complex *coeffs, fpt_set set, int l, int k, int m, unsigned int nfsoft_flags);
 void SO3_fpt_transposed(fftw_complex *coeffs,fpt_set set,int l, int k, int m,unsigned int nfsoft_flags);
 

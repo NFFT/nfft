@@ -63,13 +63,9 @@ static void simple_test_nfsoft(int bw, int M)
   /** Init random nodes (for both plans, the same). */
   for (j = 0; j < plan_nfsoft.M_total; j++)
   {
-    //d1 = ((R) rand()) / RAND_MAX - 0.5;
-    //d2 = 0.5 * ((R) rand()) / RAND_MAX;
-    //d3 = ((R) rand()) / RAND_MAX - 0.5;
-
-    d1 = 0.0;
-    d2 = 1.;
-    d3 = 0.0;
+    d1 = ((R) rand()) / RAND_MAX - 0.5;
+    d2 = 0.5 * ((R) rand()) / RAND_MAX;
+    d3 = ((R) rand()) / RAND_MAX - 0.5;
 
     plan_nfsoft.x[3* j ] = d1; /**alpha*/
     plan_nfsoft.x[3* j + 1] = d2; /**beta*/
@@ -83,39 +79,10 @@ static void simple_test_nfsoft(int bw, int M)
   /** init random Fourier coefficients (again the same for both plans) and display them*/
   for (j = 0; j < (bw + 1) * (4* (bw +1)*(bw+1)-1)/3;j++)
   {
-    //d1=((R)rand())/RAND_MAX - 0.5;
-    //d2=((R)rand())/RAND_MAX - 0.5;
-    d1=0.0;
-    d2=0.0;
+    d1=((R)rand())/RAND_MAX - 0.5;
+    d2=((R)rand())/RAND_MAX - 0.5;
     plan_nfsoft.f_hat[j]=d1 + I*d2;
     plan_ndsoft.f_hat[j]=d1 + I*d2;
-  }
-
-
-  int max,glo;
-  glo=0;
-  for (k = -bw; k <= bw; k++)
-  {
-    for (m = -bw; m <= bw; m++)
-    {
-
-      max = (ABS(m) > ABS(k) ? ABS(m) : ABS(k));
-
-      for (j = 0; j <= bw - max; j++)
-      {
-        if(j==bw-max && k==-bw && m==-(bw-1))
-        {
-         plan_nfsoft.f_hat[glo]=1.0;
-         plan_ndsoft.f_hat[glo]=1.0;
-        }
-        if(j==bw-max && k==-bw && m==(bw-1))
-        {
-         plan_nfsoft.f_hat[glo]=1.0;
-         plan_ndsoft.f_hat[glo]=1.0;
-        }
-        glo++;
-      }
-    }
   }
 
   if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
@@ -125,8 +92,12 @@ static void simple_test_nfsoft(int bw, int M)
 
   printf("\n---------------------------------------------\n");
 
-  /** Compute NFSOFT and display the time needed. */
+  /**Do precomputation for all transforms*/
+  nfsoft_precompute(&plan_nfsoft);
+  nfsoft_precompute(&plan_ndsoft);
 
+
+  /** Compute NFSOFT and display the time needed. */
   time = nfft_second();
   nfsoft_trafo(&plan_nfsoft);
   time = (nfft_second() - time);
@@ -150,7 +121,7 @@ static void simple_test_nfsoft(int bw, int M)
   error= nfft_error_l_infty_complex(plan_ndsoft.f,plan_nfsoft.f, plan_nfsoft.M_total);
   printf("\n The NFSOFT of bandwidth=%d for %d rotations has infty-error %11le \n",bw, M,error);
 
-  printf("\n---------genauer Wert=%f+I*%f------------------------\n",CREAL(plan_nfsoft.f[0]),CIMAG(plan_nfsoft.f[0]));
+  printf("\n---------------------------------------------\n");
 
   plan_nfsoft.f[0]=1.0;
   plan_ndsoft.f[0]=1.0;
@@ -184,28 +155,10 @@ static void simple_test_nfsoft(int bw, int M)
 
   printf("\n---------------------------------------------\n");
 
-  /* show results
-  int L,l,kk,max_l;
-    m=0;
-    L = bw;
-    for (k = -L; k <= L; k++)
-      for (kk = -L; kk <= L; kk++) {
 
-        max_l=(abs(k)>abs(kk)?abs(k):abs(kk));
-
-        for (l = max_l; l <= L; l++) {
-    if (l <= 4)
-      fprintf(stdout,"l=%d k=%d k'=%d D=%.4e + i*%.4e\n",
-        l,k,kk,creal(plan_nfsoft.f_hat[m]),cimag(plan_nfsoft.f_hat[m]));
-    m++;
-        }
-      }*/
-
-
-/**destroy the plans*/
-nfsoft_finalize(&plan_ndsoft);
-nfsoft_finalize(&plan_nfsoft);
-
+  /**destroy the plans*/
+  nfsoft_finalize(&plan_ndsoft);
+  nfsoft_finalize(&plan_nfsoft);
 }
 
   /**
@@ -231,7 +184,8 @@ int main(int argc, char **argv)
 
   if (argc < 2)
   {
-    printf("This test programm computes the NFSOFT with maximum polynomial degree N at M input rotations\n");
+    printf(
+        "This test programm computes the NFSOFT with maximum polynomial degree N at M input rotations\n");
     printf("Usage: simple_test N M \n");
     printf("e.g.: simple_test 8 64\n");
     exit(0);
@@ -241,9 +195,10 @@ int main(int argc, char **argv)
   N = atoi(argv[1]);
   M = atoi(argv[2]);
 
-  printf("computing an NDSOFT, an NFSOFT, an adjoint NDSOFT, and an adjoint NFSOFT\n\n");
+  printf(
+      "computing an NDSOFT, an NFSOFT, an adjoint NDSOFT, and an adjoint NFSOFT\n\n");
 
-  simple_test_nfsoft(N,M);
+  simple_test_nfsoft(N, M);
 
   /* Exit the program. */
   return EXIT_SUCCESS;
