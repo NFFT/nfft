@@ -531,6 +531,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
   //nothing much to be done for polynomial degree 0
   if (N == 0)
   {
+    plan3D->f_hat[0]=0;
     for (j = 0; j < M; j++)
       plan3D->f_hat[0] += plan3D->f[j];
     return;

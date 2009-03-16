@@ -137,13 +137,12 @@ static void simple_test_nfsoft(int bw, int M)
      nfft_vpr_complex(plan_nfsoft.f_hat,20,"adjoint NFSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
 
-
   /** Compute adjoint NDSOFT and display the time needed.*/
   time = nfft_second();
   nfsoft_adjoint(&plan_ndsoft);
   time = (nfft_second() - time);
   if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
-	nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
+	nfft_vpr_complex(plan_ndsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
   else
     nfft_vpr_complex(plan_ndsoft.f_hat,20,"adjoint NDSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
