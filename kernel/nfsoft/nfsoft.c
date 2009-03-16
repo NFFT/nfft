@@ -414,6 +414,9 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
     return;
   }
 
+  for (j = 0; j < plan3D->nfft_plan.N_total; j++)
+    plan3D->nfft_plan.f_hat[j] = 0.0;
+
   for (k = -N; k <= N; k++)
   {
     for (m = -N; m <= N; m++)
