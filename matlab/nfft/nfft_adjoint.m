@@ -1,4 +1,6 @@
-%
+%NFFT_ADJOINT Adjoint nonequispaced fast Fourier transform
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function nfft_adjoint(p)
-% Adjoint fast Fourier transformation
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-nfft('adjoint',p)
+nfftmex('adjoint',p)

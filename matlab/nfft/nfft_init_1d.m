@@ -1,4 +1,6 @@
-%
+%NFFT_INIT_1D Initialise plans
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function p = nfft_init_1d(N,M)
-% Initialise plans
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-p = nfft('init_1d',N,M);
+p = nfftmex('init_1d',N,M);

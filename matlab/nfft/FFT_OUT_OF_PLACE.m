@@ -1,4 +1,7 @@
-%
+%FFT_OUT_OF_PLACE FFT flag
+% If this flag is set, FFTW uses disjoint input/output vectors.
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +20,5 @@
 %
 % $Id$
 function f = FFT_OUT_OF_PLACE()
-% If this flag is set, FFTW uses disjoint input/output vectors.
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
 f = bitshift(1, 9);

@@ -75,8 +75,8 @@ void simple_test_nfft_2d(void)
 
   nfft_plan p;
 
-  N[0]=70; n[0]=128;
-  N[1]=50; n[1]=128;
+  N[0]=20; n[0]=32;
+  N[1]=16; n[1]=32;
   K=12;
 
   t=nfft_second();

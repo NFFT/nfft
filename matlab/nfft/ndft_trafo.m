@@ -1,4 +1,6 @@
-%
+%NDFT_TRAFO  Nonequispaced discrete Fourier transformation (direct algorithm)
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -16,9 +18,6 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 % $Id$
-function ndsft_trafo(p)
-% Discrete Fourier transformation (direct algorithm)
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
+function ndft_trafo(p)
 
-nfft('trafo_direct',p)
+nfftmex('trafo_direct',p)

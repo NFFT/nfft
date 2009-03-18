@@ -1,4 +1,6 @@
-%
+%NFFT_SET_X Set nodes in plan
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function nfft_set_x(p,x)
-% Set nodes in plan
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-nfft('set_x',p,x)
+nfftmex('set_x',p,x)

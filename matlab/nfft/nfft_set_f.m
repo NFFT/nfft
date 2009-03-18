@@ -1,4 +1,6 @@
-%
+%NFFT_SET_F Set function values in plan
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function nfft_set_f(p,f)
-% Set function values in plan
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-nfft('set_f',p,f)
+nfftmex('set_f',p,f)

@@ -1,4 +1,8 @@
-%
+%PRE_PSI Precomputation flag
+% If this flag is set, the convolution step (the multiplication with the sparse
+% matrix B uses (2m+2)dM precomputed values of the window function.
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,9 +21,5 @@
 %
 % $Id$
 function f = PRE_PSI()
-% If this flag is set, the convolution step (the multiplication with the sparse
-% matrix B uses (2m+2)dM precomputed values of the window function.
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
 f = bitshift(1, 4);

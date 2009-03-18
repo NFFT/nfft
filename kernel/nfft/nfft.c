@@ -104,9 +104,9 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
   int j;                                /**< index over all nodes           */\
   int t,t2;                             /**< index for dimensions           */\
   int k_L;                              /**< plain index for summation      */\
-  double _Complex *f_hat, *f;            /**< dito                           */\
-  double _Complex *f_hat_k;              /**< actual Fourier coefficient     */\
-  double _Complex *fj;                   /**< actual sample                  */\
+  double _Complex *f_hat, *f;           /**< dito                           */\
+  double _Complex *f_hat_k;             /**< actual Fourier coefficient     */\
+  double _Complex *fj;                  /**< actual sample                  */\
   double x[ths->d];                     /**< actual node x[d*j+t]           */\
   int k[ths->d];                        /**< multi index for summation      */\
   double omega, Omega[ths->d+1];        /**< sign times 2*pi*k*x            */\
@@ -263,7 +263,7 @@ static void nfft_uo2(int *u, int *o, const double x, const int n, const int m)
  *  matrix vector multiplication with \f$D, D^T\f$
  */
 #define MACRO_nfft_D(which_one)                                               \
-static inline void nfft_D_ ## which_one (nfft_plan *ths)                             \
+static inline void nfft_D_ ## which_one (nfft_plan *ths)                      \
 {                                                                             \
   int t, t2;                            /**< index dimensions               */\
   int k_L;                              /**< plain index                    */\
@@ -273,7 +273,7 @@ static inline void nfft_D_ ## which_one (nfft_plan *ths)                        
   double c_phi_inv_k[ths->d+1];         /**< postfix product of PHI_HUT     */\
   int k_plain[ths->d+1];                /**< postfix plain index            */\
   int ks_plain[ths->d+1];               /**< postfix plain index            */\
-  double _Complex *f_hat, *g_hat;        /**< local copy                     */\
+  double _Complex *f_hat, *g_hat;       /**< local copy                     */\
                                                                               \
   f_hat=ths->f_hat; g_hat=ths->g_hat;                                         \
   MACRO_nfft_D_init_result_ ## which_one;                                     \
@@ -287,26 +287,26 @@ static inline void nfft_D_ ## which_one (nfft_plan *ths)                        
       MACRO_init_k_ks;                                                        \
                                                                               \
       for(k_L=0; k_L<ths->N_total; k_L++)                                     \
-	{                                                                         \
+	{                                                                     \
           MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT);                         \
                                                                               \
-	  MACRO_nfft_D_compute_ ## which_one;                                     \
-	                                                                          \
-	  MACRO_count_k_ks;                                                       \
-	} /* for(k_L) */                                                          \
+	  MACRO_nfft_D_compute_ ## which_one;                                 \
+	                                                                      \
+	  MACRO_count_k_ks;                                                   \
+	} /* for(k_L) */                                                      \
     } /* if(PRE_PHI_HUT) */                                                   \
   else                                                                        \
     {                                                                         \
       MACRO_init_k_ks;                                                        \
                                                                               \
       for(k_L=0; k_L<ths->N_total; k_L++)                                     \
-	  {                                                                       \
+	  {                                                                   \
         MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                        \
                                                                               \
-	    MACRO_nfft_D_compute_ ## which_one;                                   \
-	                                                                          \
-	    MACRO_count_k_ks;                                                     \
-	  } /* for(k_L) */                                                        \
+	    MACRO_nfft_D_compute_ ## which_one;                               \
+	                                                                      \
+	    MACRO_count_k_ks;                                                 \
+	  } /* for(k_L) */                                                    \
     } /* else(PRE_PHI_HUT) */                                                 \
 } /* nfft_D */
 
@@ -322,7 +322,7 @@ MACRO_nfft_D(T)
                                           sizeof(double _Complex));
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_A {                                 \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			                  \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];			      \
 }
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_T {                                 \
@@ -385,8 +385,8 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
   int lj[ths->d];                       /**< multi index 0<=lj<u+o+1        */\
   int ll_plain[ths->d+1];               /**< postfix plain index in g       */\
   double phi_prod[ths->d+1];            /**< postfix product of PHI         */\
-  double _Complex *f, *g;                /**< local copy                     */\
-  double _Complex *fj;                   /**< local copy                     */\
+  double _Complex *f, *g;               /**< local copy                     */\
+  double _Complex *fj;                  /**< local copy                     */\
   double y[ths->d];                                                           \
   double fg_psi[ths->d][2*ths->m+2];                                          \
   double fg_exp_l[ths->d][2*ths->m+2];                                        \
@@ -534,7 +534,7 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
             {                                                                 \
               y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-                       \
                           (double)u[t2]) * ((double)ths->K))/(ths->m+1);      \
-              ip_u  = LRINT(floor(y[t2]));                                      \
+              ip_u  = LRINT(floor(y[t2]));                                    \
               ip_w  = y[t2]-ip_u;                                             \
               for(l_fg=u[t2], lj_fg=0; l_fg <= o[t2]; l_fg++, lj_fg++)        \
                 {                                                             \
@@ -577,68 +577,6 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
 
 MACRO_nfft_B(A)
 MACRO_nfft_B(T)
-
-
-/** user routines
- */
-void nfft_trafo(nfft_plan *ths)
-{
-  /* use ths->my_fftw_plan1 */
-  ths->g_hat=ths->g1;
-  ths->g=ths->g2;
-
-  /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
-   *  k \in I_N \f$
-   */
-  TIC(0)
-  nfft_D_A(ths);
-  TOC(0)
-
-  /** compute by d-variate discrete Fourier transform
-   *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for } l \in I_n \f$
-   */
-  TIC_FFTW(1)
-  fftw_execute(ths->my_fftw_plan1);
-  TOC_FFTW(1)
-
-  /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } j=0,\hdots,M_total-1 \f$
-   */
-  TIC(2)
-  nfft_B_A(ths);
-  TOC(2)
-} /* nfft_trafo */
-
-void nfft_adjoint(nfft_plan *ths)
-{
-  /* use ths->my_fftw_plan2 */
-  ths->g_hat=ths->g1;
-  ths->g=ths->g2;
-
-  /** set \f$ g_l = \sum_{j=0}^{M_total-1} f_j \psi\left(x_j-\frac{l}{n}\right)
-   *  \text{ for } l \in I_n,m(x_j) \f$
-   */
-  TIC(2)
-  nfft_B_T(ths);
-  TOC(2)
-
-  /** compute by d-variate discrete Fourier transform
-   *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{+2\pi {\rm i} \frac{kl}{n}}
-   *  \text{ for }  k \in I_N\f$
-   */
-  TIC_FFTW(1)
-  fftw_execute(ths->my_fftw_plan2);
-  TOC_FFTW(1)
-
-  /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
-   *  k \in I_N \f$
-   */
-  TIC(0)
-  nfft_D_T(ths);
-  TOC(0)
-} /* nfft_adjoint */
-
 
 /* ############################################################ SPECIFIC VERSIONS FOR d=1 */
 
@@ -1335,20 +1273,18 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n0*(*(xj+0)) - u)*ip_s;
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) + ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,1);
-	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*ip_s;
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*m+2+l] = ths->psi[(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) + ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_trafo_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
 	}
@@ -1504,8 +1440,8 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*m+2+l] = ths->psi[(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_adjoint_2d_compute(fj, g, psij_const, psij_const+2*m+2, xj, xj+1, n0, n1, m);
 	}
@@ -1556,8 +1492,6 @@ void nfft_trafo_2d(nfft_plan *ths)
     {
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
-      //c_phi_inv11=ths->c_phi_inv[1];
-      //c_phi_inv12=&ths->c_phi_inv[1][N1/2];
 
       for(k0=0;k0<N0/2;k0++)
 	{
@@ -1646,9 +1580,7 @@ void nfft_adjoint_2d(nfft_plan *ths)
     {
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
-      //c_phi_inv11=ths->c_phi_inv[1];
-      //c_phi_inv12=&ths->c_phi_inv[1][N1/2];
-
+  
       for(k0=0;k0<N0/2;k0++)
 	{
 	  ck01=(*c_phi_inv01++);
@@ -2366,16 +2298,16 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*m+2+l] = ths->psi[(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,2);
 	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)K)/(m+1);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*(2*m+2)+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[2*(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_trafo_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
 	}
@@ -2560,16 +2492,16 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*m+2+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*m+2+l] = ths->psi[(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,2);
 	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)K)/(m+1);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
-	    psij_const[2*(2*m+2)+l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) +
-	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
+	    psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+abs(ip_u-l*ip_s)]*(1.0-ip_w) +
+	      ths->psi[2*(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_adjoint_3d_compute(fj, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, xj, xj+1, xj+2, n0, n1, n2, m);
 	}
@@ -2747,7 +2679,6 @@ void nfft_adjoint_3d(nfft_plan *ths)
   TOC_FFTW(1);
 
   TIC(0)
-      //memset(ths->g_hat,0,ths->n_total*sizeof(double _Complex));
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
       c_phi_inv01=ths->c_phi_inv[0];
@@ -2833,6 +2764,81 @@ void nfft_adjoint_3d(nfft_plan *ths)
 
   TOC(0)
 }
+
+/** user routines
+ */
+void nfft_trafo(nfft_plan *ths)
+{
+  switch(ths->d)
+    {
+    case 1: nfft_trafo_1d(ths); break;
+    case 2: nfft_trafo_2d(ths); break;
+    case 3: nfft_trafo_3d(ths); break;
+    default:
+    /* use ths->my_fftw_plan1 */
+    ths->g_hat=ths->g1;
+    ths->g=ths->g2;
+
+    /** form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
+     *  k \in I_N \f$
+     */
+    TIC(0)
+    nfft_D_A(ths);
+    TOC(0)
+
+    /** compute by d-variate discrete Fourier transform
+     *  \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
+     *  \text{ for } l \in I_n \f$
+     */
+    TIC_FFTW(1)
+    fftw_execute(ths->my_fftw_plan1);
+    TOC_FFTW(1)
+
+    /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
+     *  \text{ for } j=0,\hdots,M_total-1 \f$
+     */
+    TIC(2)
+    nfft_B_A(ths);
+    TOC(2)
+    }
+} /* nfft_trafo */
+
+void nfft_adjoint(nfft_plan *ths)
+{
+  switch(ths->d)
+    {
+    case 1: nfft_adjoint_1d(ths); break;
+    case 2: nfft_adjoint_2d(ths); break;
+    case 3: nfft_adjoint_3d(ths); break;
+    default:
+      /* use ths->my_fftw_plan2 */
+      ths->g_hat=ths->g1;
+      ths->g=ths->g2;
+      
+      /** set \f$ g_l = \sum_{j=0}^{M_total-1} f_j \psi\left(x_j-\frac{l}{n}\right)
+       *  \text{ for } l \in I_n,m(x_j) \f$
+       */
+      TIC(2)
+      nfft_B_T(ths);
+      TOC(2)
+	
+      /** compute by d-variate discrete Fourier transform
+       *  \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{+2\pi {\rm i} \frac{kl}{n}}
+       *  \text{ for }  k \in I_N\f$
+       */
+      TIC_FFTW(1)
+      fftw_execute(ths->my_fftw_plan2);
+      TOC_FFTW(1)
+	
+      /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
+       *  k \in I_N \f$
+       */
+      TIC(0)
+      nfft_D_T(ths);
+      TOC(0)
+    }
+} /* nfft_adjoint */
+
 
 /** initialisation of direct transform
  */

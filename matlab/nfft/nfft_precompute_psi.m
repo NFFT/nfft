@@ -1,4 +1,6 @@
-%
+%NFFT_PRECOMPUTE_PSI Precompute psi, dependent on nodes x
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function nfft_precompute_psi(p)
-% Precompute psi, dependent on nodes x
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-nfft('precompute_psi',p)
+nfftmex('precompute_psi',p)

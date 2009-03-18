@@ -1,4 +1,7 @@
-%
+%FFTW_MEASURE FFT flag
+% Valid for FFTW3
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +20,5 @@
 %
 % $Id$
 function f = FFTW_MEASURE()
-% Valid for FFTW3
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
 f = 0;

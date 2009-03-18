@@ -1,4 +1,6 @@
-%
+%NFFT_TRAFO nonequispaced fast Fourier transformat
+% Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +19,5 @@
 %
 % $Id$
 function nfft_trafo(p)
-% fast Fourier transformation
-%
-% Copyright (c) 2002, 2009 Jens Keiner, Daniel Potts, Stefan Kunis
 
-nfft('trafo',p)
+nfftmex('trafo',p)
