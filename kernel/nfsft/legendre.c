@@ -62,6 +62,15 @@ static inline R gamma_al(const int k, const int n)
      *     ((2n)!)^(1/2) / (2^n n!)
      *   = sqrt((gamma(n+1/2))/(sqrt(pi)*gamma(n+1))).
      */
+    /*R r1 = K(1.0);
+    R r2 = SQRT(KSQRTPII*nfft_lambda((R)(n),K(0.5)));
+    int i;
+    for (i = 1; i <= n; i++)
+      r1 *= ((R)(n+i))/((R)(4*i));
+    r1 = SQRT(r1);
+    fprintf(stderr,"%+20.16" FE " %+20.16" FE " %+20.16" FE "\n",r1,r2,
+      ABS(r1-r2)/ABS(r1));
+    fflush(stderr);*/
     return SQRT(KSQRTPII*nfft_lambda((R)(n),K(0.5)));
   }
   else if (k <= n)
