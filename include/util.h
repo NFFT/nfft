@@ -350,6 +350,15 @@ double nfft_modified_multiquadric(double mu,double c,int kk);
 int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
   double *b);
 
+/**
+ * Computes the function
+ *   \f$\Lambda(z,\epsilon) = \frac{\Gamma(z+\epsilon)}{\Gamma(z+1)}\f$,
+ * with \f$ z + \epsilon > 0\f$.
+ *
+ * This method uses the Lanczos approximation to compute the result; see
+ * Glendon Ralph Pugh. An Analysis of The Lanczos Gamma Approximation. PhD
+ * Thesis, The University of British Columbia, 2004.
+ */
 double nfft_lambda(const double z, const double eps);
 
 /** @}
