@@ -31,8 +31,7 @@
 
 #define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(double _Complex));
 #define MACRO_nndft_init_result_conjugated MACRO_nndft_init_result_trafo
-#define MACRO_nndft_init_result_adjoint memset(f_hat,0,ths->N_total*               \
-                                              sizeof(double _Complex));
+#define MACRO_nndft_init_result_adjoint memset(f_hat,0,ths->N_total*sizeof(double _Complex));
 #define MACRO_nndft_init_result_transposed MACRO_nndft_init_result_adjoint
 
 #define MACRO_nndft_sign_trafo      (-2.0*PI)
@@ -40,7 +39,7 @@
 #define MACRO_nndft_sign_adjoint    (+2.0*PI)
 #define MACRO_nndft_sign_transposed (-2.0*PI)
 
-#define MACRO_nndft_compute_trafo (*fj) += (*f_hat_k)*cexp(+I*omega);
+#define MACRO_nndft_compute_trafo (*fj) += (*f_hat_k)*cexp(+ _Complex_I*omega);
 
 #define MACRO_nndft_compute_conjugated MACRO_nndft_compute_trafo
 
@@ -48,36 +47,36 @@
 
 #define MACRO_nndft_compute_transposed MACRO_nndft_compute_adjoint
 
-#define MACRO_nndft(which_one)                                                 \
+#define MACRO_nndft(which_one)                                                \
 void nndft_ ## which_one (nnfft_plan *ths)                                    \
-{                                                                              \
-  int j;                                /**< index over all nodes (time)     */\
-  int t;                                /**< index for dimensions            */\
-  int l;                                /**< index over all nodes (fourier)  */\
-  double _Complex *f_hat, *f;                   /**< dito                            */\
-  double _Complex *f_hat_k;                     /**< actual Fourier coefficient      */\
-  double _Complex *fj;                          /**< actual sample                   */\
-  double omega;                         /**< sign times 2*pi*k*x             */\
-                                                                               \
-  f_hat=ths->f_hat; f=ths->f;                                                \
-                                                                               \
-  MACRO_nndft_init_result_ ## which_one                                        \
-                                                                               \
-  for(j=0, fj=f; j<ths->M_total; j++, fj++)                                     \
-  {                                                                            \
-    for(l=0, f_hat_k=f_hat; l<ths->N_total; l++, f_hat_k++)                    \
-    {                                                                          \
-      omega=0.0;                                                               \
+{                                                                             \
+  int j;                               /**< index over all nodes (time)     */\
+  int t;                               /**< index for dimensions            */\
+  int l;                               /**< index over all nodes (fourier)  */\
+  double _Complex *f_hat, *f;          /**< dito                            */\
+  double _Complex *f_hat_k;            /**< actual Fourier coefficient      */\
+  double _Complex *fj;                 /**< actual sample                   */\
+  double omega;                        /**< sign times 2*pi*k*x             */\
+                                                                              \
+  f_hat=ths->f_hat; f=ths->f;                                                 \
+                                                                              \
+  MACRO_nndft_init_result_ ## which_one                                       \
+                                                                              \
+  for(j=0, fj=f; j<ths->M_total; j++, fj++)                                   \
+  {                                                                           \
+    for(l=0, f_hat_k=f_hat; l<ths->N_total; l++, f_hat_k++)                   \
+    {                                                                         \
+      omega=0.0;                                                              \
       for(t = 0; t<ths->d; t++)                                               \
         omega+=ths->v[l*ths->d+t] * ths->x[j*ths->d+t] * ths->N[t];           \
-                                                                               \
-      omega*= MACRO_nndft_sign_ ## which_one;                                  \
-                                                                               \
-      MACRO_nndft_compute_ ## which_one                                        \
-                                                                               \
-     } /* for(l) */                                                            \
-   } /* for(j) */                                                              \
-} /* nndft_trafo */                                                            \
+                                                                              \
+      omega*= MACRO_nndft_sign_ ## which_one;                                 \
+                                                                              \
+      MACRO_nndft_compute_ ## which_one                                       \
+                                                                              \
+     } /* for(l) */                                                           \
+   } /* for(j) */                                                             \
+} /* nndft_trafo */                                                           \
 
 MACRO_nndft(trafo)
 MACRO_nndft(adjoint)
@@ -108,156 +107,157 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 #define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(double _Complex));
 #define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_total*sizeof(double _Complex));
 
-#define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                  \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];                           \
+#define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];                            \
 }
 
-#define MACRO_nnfft_B_PRE_FULL_PSI_compute_T {                                  \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj);                           \
+#define MACRO_nnfft_B_PRE_FULL_PSI_compute_T {                                \
+  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj);                            \
 }
 
-#define MACRO_nnfft_B_compute_A {                                               \
-  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];                        \
+#define MACRO_nnfft_B_compute_A {                                             \
+  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];                            \
 }
 
-#define MACRO_nnfft_B_compute_T {                                               \
-  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                        \
+#define MACRO_nnfft_B_compute_T {                                             \
+  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                            \
 }
 
-  /* Gewicht, d.h., Nachkommaanteil y-y_u im Speicher halten!!! */
-#define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*             \
-                                (y_u[t2]+1-y[t2]) +                            \
-                                ths->psi[(ths->K+1)*t2+y_u[t2]+1]*           \
+#define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*              \
+                                (y_u[t2]+1-y[t2]) +                           \
+                                ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
                                 (y[t2]-y_u[t2]))
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
 #define MACRO_without_PRE_PSI  PHI(-ths->v[j*ths->d+t2]+                      \
                                ((double)l[t2])/ths->N1[t2], t2)
 
-#define MACRO_init_uo_l_lj_t {                                                 \
+#define MACRO_init_uo_l_lj_t {                                                \
   for(t = ths->d-1; t>=0; t--)                                                \
-    {                                                                          \
-      nnfft_uo(ths,j,&u[t],&o[t],t);                                           \
-      l[t] = u[t];                                                             \
-      lj[t] = 0;                                                               \
-    } /* for(t) */                                                             \
-  t++;                                                                         \
+    {                                                                         \
+      nnfft_uo(ths,j,&u[t],&o[t],t);                                          \
+      l[t] = u[t];                                                            \
+      lj[t] = 0;                                                              \
+    } /* for(t) */                                                            \
+  t++;                                                                        \
 }
 
-#define MACRO_update_with_PRE_PSI_LIN {                                        \
+#define MACRO_update_with_PRE_PSI_LIN {                                       \
   for(t2=t; t2<ths->d; t2++)                                                  \
-    {                                                                          \
+    {                                                                         \
       y[t2] = fabs(((-ths->N1[t2]*ths->v[j*ths->d+t2]+(double)l[t2])          \
-          * ((double)ths->K))/(ths->m+1));                                   \
-      y_u[t2] = (int)y[t2];                                                    \
-    } /* for(t2) */                                                            \
+          * ((double)ths->K))/(ths->m+1));                                    \
+      y_u[t2] = (int)y[t2];                                                   \
+    } /* for(t2) */                                                           \
 }
 
-#define MACRO_update_phi_prod_ll_plain(which_one) {                            \
+#define MACRO_update_phi_prod_ll_plain(which_one) {                           \
   for(t2=t; t2<ths->d; t2++)                                                  \
-    {                                                                          \
-      phi_prod[t2+1]=phi_prod[t2]* MACRO_ ## which_one;                        \
-      ll_plain[t2+1]=ll_plain[t2]*ths->aN1[t2] +(l[t2]+ths->aN1[t2]*3/2)%ths->aN1[t2]; /* 3/2 because of the (not needed) fftshift and to be in [0 aN1[t2]] ?! */   \
-    } /* for(t2) */                                                            \
+    {                                                                         \
+      phi_prod[t2+1]=phi_prod[t2]* MACRO_ ## which_one;                       \
+      ll_plain[t2+1]=ll_plain[t2]*ths->aN1[t2] +                              \
+                     (l[t2]+ths->aN1[t2]*3/2)%ths->aN1[t2];                   \
+      /* 3/2 because of the (not needed) fftshift and to be in [0 aN1[t2]]?!*/\
+    } /* for(t2) */                                                           \
 }
 
-#define MACRO_count_uo_l_lj_t {                                                \
+#define MACRO_count_uo_l_lj_t {                                               \
   for(t = ths->d-1; (t>0)&&(l[t]==o[t]); t--)                                 \
-    {                                                                          \
-      l[t] = u[t];                                                             \
-      lj[t] = 0;                                                               \
-    } /* for(t) */                                                             \
-                                                                               \
-  l[t]++;                                                                      \
-  lj[t]++;                                                                     \
+    {                                                                         \
+      l[t] = u[t];                                                            \
+      lj[t] = 0;                                                              \
+    } /* for(t) */                                                            \
+                                                                              \
+  l[t]++;                                                                     \
+  lj[t]++;                                                                    \
 }
 
-#define MACRO_nnfft_B(which_one)                                                \
-static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                           \
-{                                                                              \
-  int lprod;                            /**< 'regular bandwidth' of matrix B */\
-  int u[ths->d], o[ths->d];           /**< multi band with respect to x_j  */\
-  int t, t2;                            /**< index dimensions                */\
-  int j;                                /**< index nodes                     */\
-  int l_L, ix;                          /**< index one row of B              */\
+#define MACRO_nnfft_B(which_one)                                              \
+static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                    \
+{                                                                             \
+  int lprod;                           /**< 'regular bandwidth' of matrix B */\
+  int u[ths->d], o[ths->d];            /**< multi band with respect to x_j  */\
+  int t, t2;                           /**< index dimensions                */\
+  int j;                               /**< index nodes                     */\
+  int l_L, ix;                         /**< index one row of B              */\
   int l[ths->d];                       /**< multi index u<=l<=o             */\
   int lj[ths->d];                      /**< multi index 0<=lj<u+o+1         */\
   int ll_plain[ths->d+1];              /**< postfix plain index in g        */\
   double phi_prod[ths->d+1];           /**< postfix product of PHI          */\
-  double _Complex *f, *g;                  /**< local copy                      */\
-  double _Complex *fj;                     /**< local copy                      */\
+  double _Complex *f, *g;              /**< local copy                      */\
+  double _Complex *fj;                 /**< local copy                      */\
   double y[ths->d];                                                           \
   int y_u[ths->d];                                                            \
-                                                                               \
-  f=ths->f_hat; g=ths->F;                                                    \
-                                                                               \
-  MACRO_nnfft_B_init_result_ ## which_one                                                 \
-                                                                               \
-  if(ths->nnfft_flags & PRE_FULL_PSI)        \
-    {                                                                          \
-      for(ix=0, j=0, fj=f; j<ths->N_total; j++,fj++)\
+                                                                              \
+  f=ths->f_hat; g=ths->F;                                                     \
+                                                                              \
+  MACRO_nnfft_B_init_result_ ## which_one                                     \
+                                                                              \
+  if(ths->nnfft_flags & PRE_FULL_PSI)                                         \
+    {                                                                         \
+      for(ix=0, j=0, fj=f; j<ths->N_total; j++,fj++)                          \
         for(l_L=0; l_L<ths->psi_index_f[j]; l_L++, ix++)                      \
-          MACRO_nnfft_B_PRE_FULL_PSI_compute_ ## which_one;                                \
-      return;                                                                  \
-    }                                                                          \
-                                                                               \
-  phi_prod[0]=1;                                                               \
-  ll_plain[0]=0;                                                               \
-                                                                               \
+          MACRO_nnfft_B_PRE_FULL_PSI_compute_ ## which_one;                   \
+      return;                                                                 \
+    }                                                                         \
+                                                                              \
+  phi_prod[0]=1;                                                              \
+  ll_plain[0]=0;                                                              \
+                                                                              \
   for(t=0,lprod = 1; t<ths->d; t++)                                           \
     lprod *= (2*ths->m+2);                                                    \
-                                                                               \
-  if(ths->nnfft_flags & PRE_PSI)                                               \
-    {                                                                          \
-      for(j=0, fj=f; j<ths->N_total; j++, fj++)     \
-        {                                                                      \
-          MACRO_init_uo_l_lj_t;                                                \
-                                                                               \
-          for(l_L=0; l_L<lprod; l_L++)                                         \
-            {                                                                  \
-              MACRO_update_phi_prod_ll_plain(with_PRE_PSI);                    \
-                                                                               \
-              MACRO_nnfft_B_compute_ ## which_one;                              \
-                                                                               \
-              MACRO_count_uo_l_lj_t;                                           \
-            } /* for(l_L) */                                                   \
-        } /* for(j) */                                                         \
-      return;                                                                  \
-    } /* if(PRE_PSI) */                                                        \
-                                                                               \
-  if(ths->nnfft_flags & PRE_LIN_PSI)                                           \
-    {                                                                          \
-      for(j=0, fj=f; j<ths->N_total; j++, fj++)     \
-        {                                                            \
-          MACRO_init_uo_l_lj_t;                                                \
-                                                                               \
-          for(l_L=0; l_L<lprod; l_L++)                                         \
-            {                                                                  \
-              MACRO_update_with_PRE_PSI_LIN;                                   \
-                                                                               \
-              MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);                \
-                                                                               \
-              MACRO_nnfft_B_compute_ ## which_one;                              \
-                                                                               \
-              MACRO_count_uo_l_lj_t;                                           \
-            } /* for(l_L) */                                                   \
-        } /* for(j) */                                                         \
-      return;                                                                  \
-    } /* if(PRE_LIN_PSI) */                                                    \
-                                                                               \
-  /* no precomputed psi at all */                                              \
-  for(j=0, fj=f; j<ths->N_total; j++, fj++)         \
-    {                  \
-                                                \
-      MACRO_init_uo_l_lj_t;                                                    \
-                                                                               \
-      for(l_L=0; l_L<lprod; l_L++)                                             \
-        {                                                                      \
-          MACRO_update_phi_prod_ll_plain(without_PRE_PSI);                     \
                                                                               \
-          MACRO_nnfft_B_compute_ ## which_one;                                  \
-                                                                               \
-          MACRO_count_uo_l_lj_t;                                               \
-        } /* for(l_L) */                                                     \
+  if(ths->nnfft_flags & PRE_PSI)                                              \
+    {                                                                         \
+      for(j=0, fj=f; j<ths->N_total; j++, fj++)                               \
+        {                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+          for(l_L=0; l_L<lprod; l_L++)                                        \
+            {                                                                 \
+              MACRO_update_phi_prod_ll_plain(with_PRE_PSI);                   \
+                                                                              \
+              MACRO_nnfft_B_compute_ ## which_one;                            \
+                                                                              \
+              MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+        } /* for(j) */                                                        \
+      return;                                                                 \
+    } /* if(PRE_PSI) */                                                       \
+                                                                              \
+  if(ths->nnfft_flags & PRE_LIN_PSI)                                          \
+    {                                                                         \
+      for(j=0, fj=f; j<ths->N_total; j++, fj++)                               \
+        {                                                                     \
+          MACRO_init_uo_l_lj_t;                                               \
+                                                                              \
+          for(l_L=0; l_L<lprod; l_L++)                                        \
+            {                                                                 \
+              MACRO_update_with_PRE_PSI_LIN;                                  \
+                                                                              \
+              MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);               \
+                                                                              \
+              MACRO_nnfft_B_compute_ ## which_one;                            \
+                                                                              \
+              MACRO_count_uo_l_lj_t;                                          \
+            } /* for(l_L) */                                                  \
+        } /* for(j) */                                                        \
+      return;                                                                 \
+    } /* if(PRE_LIN_PSI) */                                                   \
+                                                                              \
+  /* no precomputed psi at all */                                             \
+  for(j=0, fj=f; j<ths->N_total; j++, fj++)                                   \
+    {                                                                         \
+                                                                              \
+      MACRO_init_uo_l_lj_t;                                                   \
+                                                                              \
+      for(l_L=0; l_L<lprod; l_L++)                                            \
+        {                                                                     \
+          MACRO_update_phi_prod_ll_plain(without_PRE_PSI);                    \
+                                                                              \
+          MACRO_nnfft_B_compute_ ## which_one;                                \
+                                                                              \
+          MACRO_count_uo_l_lj_t;                                              \
+        } /* for(l_L) */                                                      \
     } /* for(j) */                                                            \
 } /* nnfft_B */
 
@@ -268,18 +268,21 @@ static inline void nnfft_D (nnfft_plan *ths){
   int j,t;
   double tmp;
 
-  if(ths->nnfft_flags & PRE_PHI_HUT) {
-    for(j=0; j<ths->M_total; j++)
-      ths->f[j] *= ths->c_phi_inv[j];
-  } else {
-    for(j=0; j<ths->M_total; j++)
-    {
-      tmp = 1.0;
-      /* multiply with N1, because x was modified */
-      for(t=0; t<ths->d; t++)
-        tmp*= 1.0 /((PHI_HUT(ths->x[ths->d*j + t]*((double)ths->N[t]),t)) );
-      ths->f[j] *= tmp;
-    }
+  if(ths->nnfft_flags & PRE_PHI_HUT)
+  {
+      for(j=0; j<ths->M_total; j++)
+	  ths->f[j] *= ths->c_phi_inv[j];
+  }
+  else
+  {
+      for(j=0; j<ths->M_total; j++)
+      {
+	  tmp = 1.0;
+	  /* multiply with N1, because x was modified */
+	  for(t=0; t<ths->d; t++)
+	      tmp*= 1.0 /((PHI_HUT(ths->x[ths->d*j + t]*((double)ths->N[t]),t)) );
+	  ths->f[j] *= tmp;
+      }
   }
 }
 
@@ -353,9 +356,7 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
 } /* nnfft_phi_hut */
 
 
-/** create a lookup table, but NOT for each node
- *  good idea K=2^xx
- *  TODO: estimate K, call from init
+/** create a lookup table
  */
 void nnfft_precompute_lin_psi(nnfft_plan *ths)
 {
@@ -523,7 +524,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
-    ths->K=100000; /* estimate is badly needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    ths->K=(1U<< 10)*(ths->m+1);
     ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
@@ -537,10 +538,10 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
       for(t=0,lprod = 1; t<ths->d; t++)
           lprod *= 2*ths->m+2;
 
-      ths->psi = (double*) nfft_malloc(ths->M_total*lprod*sizeof(double));
+      ths->psi = (double*) nfft_malloc(ths->N_total*lprod*sizeof(double));
 
-      ths->psi_index_f = (int*) nfft_malloc(ths->M_total*sizeof(int));
-      ths->psi_index_g = (int*) nfft_malloc(ths->M_total*lprod*sizeof(int));
+      ths->psi_index_f = (int*) nfft_malloc(ths->N_total*sizeof(int));
+      ths->psi_index_g = (int*) nfft_malloc(ths->N_total*lprod*sizeof(int));
   }
 
   ths->direct_plan = (nfft_plan*)nfft_malloc(sizeof(nfft_plan));
