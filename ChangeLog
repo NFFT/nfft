@@ -3,6 +3,12 @@ predecessor, NFFT2, the NFFT3 library has seen major extensions and
 improvements.
 
 Changes in version 3.1.0:
+  - The FPT example program, that is, examples/fpt/simple_test has been 
+    modified to not require the NFCT module anymore. This solves the problem 
+    that NFFT won't compile when the FPT module has been switched on while the 
+    NFCT module is swithced off.
+
+Changes in version 3.1.0:
   - A module, called nfsoft, for fast Fourier transforms on the rotation group 
     SO(3) has been added.
   - It is now possible to configure the build process so that only specific

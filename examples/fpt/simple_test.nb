@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[      2304,         79]
-NotebookOptionsPosition[      2018,         65]
-NotebookOutlinePosition[      2356,         80]
-CellTagsIndexPosition[      2313,         77]
+NotebookDataLength[      2035,         70]
+NotebookOptionsPosition[      1786,         57]
+NotebookOutlinePosition[      2124,         72]
+CellTagsIndexPosition[      2081,         69]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -21,10 +21,9 @@ Notebook[{
 Cell[BoxData[{
  RowBox[{
   RowBox[{"Clear", "[", 
-   RowBox[{"NN", ",", "M", ",", "f"}], "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"NN", ",", "f"}], "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"NN", "=", "8"}], ";", " ", 
-  RowBox[{"M", " ", "=", " ", "10"}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{"NN", "=", "8"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"f", "[", "x_", "]"}], ":=", 
@@ -44,27 +43,20 @@ Cell[BoxData[{
     RowBox[{"f", ",", 
      RowBox[{"Table", "[", 
       RowBox[{
-       RowBox[{
-        RowBox[{"2", 
-         FractionBox[
-          RowBox[{"j", "-", "1"}], 
-          RowBox[{"M", "-", "1"}]]}], "-", "1"}], ",", 
+       RowBox[{"Cos", "[", 
+        RowBox[{"j", "*", 
+         RowBox[{"Pi", "/", "NN"}]}], "]"}], ",", 
        RowBox[{"{", 
-        RowBox[{"j", ",", "1", ",", "M"}], "}"}]}], "]"}]}], "]"}], ",", 
+        RowBox[{"j", ",", "0", ",", "NN"}], "}"}]}], "]"}]}], "]"}], ",", 
    "16"}], "]"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.445947118090195*^9, 3.44594719342006*^9}, {
   3.445947226052888*^9, 3.445947257035718*^9}, {3.445947304953729*^9, 
   3.445947316400078*^9}, {3.445947379545209*^9, 3.445947414151949*^9}, {
-  3.445947444347465*^9, 3.445947492044079*^9}}],
-
-Cell[BoxData[
- RowBox[{"N", "[", 
-  RowBox[{
-   RowBox[{"Random", "[", "]"}], ",", "10"}], "]"}]], "Input",
- CellChangeTimes->{{3.445949425098695*^9, 3.445949432644814*^9}}]
+  3.445947444347465*^9, 3.445947492044079*^9}, {3.448086407121559*^9, 
+  3.44808645639408*^9}}]
 },
 WindowSize->{640, 750},
-WindowMargins->{{146, Automatic}, {Automatic, 24}},
+WindowMargins->{{Automatic, 118}, {62, Automatic}},
 FrontEndVersion->"7.0 for Linux x86 (32-bit) (November 10, 2008)",
 StyleDefinitions->"Default.nb"
 ]
@@ -79,8 +71,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[545, 20, 1293, 37, 149, "Input"],
-Cell[1841, 59, 173, 4, 33, "Input"]
+Cell[545, 20, 1237, 35, 126, "Input"]
 }
 ]
 *)
