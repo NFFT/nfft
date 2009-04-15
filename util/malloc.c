@@ -36,9 +36,6 @@ void *nfft_malloc(size_t n)
   if (n == 0)
     n = 1;
 
-  if (n == 0)
-    n = 1;
-
   p = fftw_malloc(n);
 
   if (!p)
@@ -54,12 +51,11 @@ void nfft_free(void *p)
 {
   if (p)
   {
-        if (nfft_free_hook)
-          {
+    if (nfft_free_hook)
+    {
       nfft_free_hook(p);
       return;
-          }
-
+    }
     fftw_free(p);
   }
 }

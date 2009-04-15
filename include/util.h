@@ -361,6 +361,8 @@ int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
  */
 double nfft_lambda(const double z, const double eps);
 
+double nfft_lambda2(const double mu, const double nu);
+
 /** @}
  */
 #endif

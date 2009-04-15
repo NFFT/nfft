@@ -2184,3 +2184,19 @@ R nfft_lambda(const R z, const R eps)
   return EXP(-LOG1P(d/(zpg+emh))*(z+emh)) * POW(KE/(zpg+K(0.5)),d)
     * (csump(z-d)/csump(z));
 }
+
+/* Computes lambda2(mu, nu) = Sqrt(2^(mu+nu)Gamma(mu+nu+1)/(Gamma(mu+1)Gamma(nu+1)))
+ * using Lanczos' approximation. */
+R nfft_lambda2(const R mu, const R nu)
+{
+  if (mu == K(0.0) || nu == K(0.0))
+    return K(1.0);
+  else
+    return
+      SQRT(
+        POW((mu+nu+g+K(0.5))/(K(1.0)*(mu+g+K(0.5))),mu)
+      * POW((mu+nu+g+K(0.5))/(K(1.0)*(nu+g+K(0.5))),nu)
+      * SQRT(KE*(mu+nu+g+K(0.5))/((mu+g+K(0.5))*(nu+g+K(0.5))))
+      * (csum(mu+nu)/(csum(mu)*csum(nu)))
+      );
+}
