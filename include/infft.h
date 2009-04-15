@@ -78,6 +78,8 @@ typedef ptrdiff_t INT;
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define ABS(x) (((x)>K(0.0))?(x):(-(x)))
 #define SIGN(a) (((a)>=0)?1:-1)
+#define SIGN(a) (((a)>=0)?1:-1)
+#define SIGNF(a) IF(a<K(0.0),K(-1.0),K(1.0))
 
 #if defined(NFFT_LDOUBLE)
 #define LOG1P log1pl
