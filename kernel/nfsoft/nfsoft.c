@@ -143,6 +143,7 @@ static void c2e(nfsoft_plan *my_plan, int even)
   aux = NULL;
 }
 
+
 static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
 {
   int N, t, k_start, k_end, k, m;
@@ -211,6 +212,72 @@ static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
   return set;
 }
 
+fpt_set SO3_single_fpt_init(int l, int k, int m, fpt_set set, unsigned int flags, int kappa)
+{
+  int N, t, k_start, k_end;
+  R *alpha, *beta, *gamma;
+
+  /** Read in transfrom length. */
+  if (flags & NFSOFT_USE_DPT)
+  {
+    if (l < 2)
+      N = 2;
+    else
+      N = l;
+
+    t = (int) log2(nfft_next_power_of_2(N));
+
+  }
+  else
+  {
+    /** workaround to compute polynomials of degree less than 2*/
+    if (l < 2)
+      N = 2;
+    else
+      N = nfft_next_power_of_2(l);
+
+    t = (int) log2(N);
+  }
+
+  /**memory for the recurrence coefficients*/
+  alpha = (R*) nfft_malloc((N + 2) * sizeof(R));
+  beta = (R*) nfft_malloc((N + 2) * sizeof(R));
+  gamma = (R*) nfft_malloc((N + 2) * sizeof(R));
+
+  /** Initialize DPT. */
+  if (flags & NFSOFT_NO_STABILIZATION)
+  {
+    set = fpt_init(1, t, 0U | FPT_NO_STABILIZATION);
+  }
+  else
+  {
+    set = fpt_init(1, t, 0U);
+  }
+
+      /** Read in start and end indeces */
+      k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+      k_end = N;
+
+      SO3_alpha_row(alpha, N, k, m);
+      SO3_beta_row(beta, N, k, m);
+      SO3_gamma_row(gamma, N, k, m);
+
+      fpt_precompute(set, 0, alpha, beta, gamma, k_start, kappa);
+
+
+  free(alpha);
+  free(beta);
+  free(gamma);
+  alpha = NULL;
+  beta = NULL;
+  gamma = NULL;
+
+  return set;
+}
+
+
+
+
 void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 {
   int N;
@@ -246,10 +313,9 @@ void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
   /** Read in Wigner coefficients. */
   x = (C*) nfft_malloc((k_end + 1) * sizeof(C));
 
-  //for (j = 0; j <= k_end-k_start; j++)
-  //{
-  // x[j+k_start] = coeffs[j];
-  //}
+  for (j = 0; j <= k_end; j++)
+   x[j] = K(0.0);
+
 
   for (j = 0; j <= l - k_start; j++)
   {
@@ -390,6 +456,7 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
   plan3D->fpt_set = SO3_fpt_init(N, plan3D->fpt_set, plan3D->flags,
       plan3D->fpt_kappa);
 
+  if ((plan3D->nfft_plan).nfft_flags & MALLOC_F_HAT)
   for (j = 0; j < plan3D->nfft_plan.N_total; j++)
     plan3D->nfft_plan.f_hat[j] = 0.0;
 

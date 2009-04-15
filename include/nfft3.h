@@ -2605,6 +2605,7 @@ void nfsoft_precompute(nfsoft_plan *plan);
  * \arg m the second order
  * \arg nfsoft_flags
  */
+fpt_set SO3_single_fpt_init(int l, int k, int m, fpt_set set, unsigned int flags, int kappa);
 void SO3_fpt(fftw_complex *coeffs, fpt_set set, int l, int k, int m, unsigned int nfsoft_flags);
 void SO3_fpt_transposed(fftw_complex *coeffs,fpt_set set,int l, int k, int m,unsigned int nfsoft_flags);
 
