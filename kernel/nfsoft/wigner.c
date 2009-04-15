@@ -22,12 +22,11 @@
 #include <stdio.h>
 #include "infft.h"
 #include "wigner.h"
+#include "util.h"
 
 double SO3_gamma(int m1, int m2, int j)
 {
   double dj, dm1, dm2, M, mini;
-  static int i;
-  static double result;
 
   dj = (double) j;
   dm1 = (double) m1;
@@ -38,33 +37,21 @@ double SO3_gamma(int m1, int m2, int j)
   if (j == -1)
   {
     /* Constant is ((2n)!)^(1/2) / (2^n n!). */
-    result = 1.0;
-    for (i = 1; i <= M - mini; i++)
-    {
-
-      result *= (M + mini + i) / (4.0 * i);
-    }
-
-    if (m1 < m2 && (ABS(m1) + ABS(m2)) % 2 == 1)
-      result = -(1 / POW(2, mini) * SQRT(result));
-    else
-      result = (1 / POW(2, mini) * SQRT(result));
-
-    return result;
-
+    const int mu = ABS(m2 - m1), nu = ABS(m2 + m1), La = (mu + nu) / 2;
+    const R eps = IF(m1 > m2 || !((m1 + m2) % 2), K(1.0), K(-1.0));
+    return eps * POW(K(0.5),La) * nfft_lambda2((R)mu,(R)nu);
   }
   else if (j <= M)
   {
     return (0.0);
   }
   else
-  {
-    return (
-    //SQRT( (2.*dj + 3.)/(2.*dj - 1.) ) *
-    -(dj + 1.) / SQRT(((dj + 1.) * (dj + 1.) - dm1 * dm1) * ((dj + 1.) * (dj
-        + 1.) - dm2 * dm2)) * SQRT((dj * dj - dm1 * dm1)
-        * (dj * dj - dm2 * dm2)) / dj);
-  }
+    return -(((R)(j+1))/((R)j)) *
+    SQRT(
+       (((R)(j-m1))/((R)(j+1-m1)))
+      *(((R)(j+m1))/((R)(j+1+m1)))
+      *(((R)(j-m2))/((R)(j+1-m2)))
+      *(((R)(j+m2))/((R)(j+1+m2))));
 }
 
 inline double SO3_alpha(int m1, int m2, int j)
@@ -111,13 +98,12 @@ inline double SO3_alpha(int m1, int m2, int j)
     return 1.0 * neg;
   }
   else
-  {
-    return (
-
-    //SQRT( (2.*dj + 3.)/(2.*dj + 1.) ) *
-    (dj + 1.) * (2. * dj + 1.) / SQRT(((dj + 1.) * (dj + 1.) - dm1 * dm1)
-        * ((dj + 1.) * (dj + 1.) - dm2 * dm2)));
-  }
+    return
+      SQRT(
+        (((R)(j+1))/((R)(j+1-m1)))
+        *(((R)(j+1))/((R)(j+1+m1)))
+        *(((R)(2*j+1))/((R)(j+1-m2)))
+        *(((R)(2*j+1))/((R)(j+1+m2))));
 }
 
 double SO3_beta(int m1, int m2, int j)
@@ -131,19 +117,19 @@ double SO3_beta(int m1, int m2, int j)
   mini = (double) (ABS(m1) < ABS(m2) ? ABS(m1) : ABS(m2));
 
   if (0 <= j && j < M)
-  {
     return (1.0);
-
-  }
+  else if (dm1 == 0. || dm2 == 0.)
+    return (0.0);
+  else if (j < 0)
+    return K(0.0);
   else
-  {
-    if (dm1 == 0. || dm2 == 0.)
-      return (0.0);
-    else
-      return ((-dm1 * dm2 * (2. * dj + 1.) / dj) / SQRT(((dj + 1.) * (dj + 1.)
-          - dm1 * dm1) * ((dj + 1.) * (dj + 1.) - dm2 * dm2)));
-  }
-
+    return -COPYSIGN(
+      SQRT(
+        (((R)(m1*m2))/((R)(j+1-m1)))
+        *(((R)(m1*m2))/((R)(j+1+m1)))
+        *(((R)(2*j+1))/((R)(j+1-m2)))
+        *(((R)(2*j+1))/((R)(j+1+m2))))/((R)j),
+      (R)(m1*m2));
 }
 
 /*compute the coefficients for all degrees*/
