@@ -76,24 +76,24 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {
     plan->f_hat = (C*) nfft_malloc((B + 1) * (4* (B +1)*(B+1)-1)/3*sizeof(C));
+    if (plan->f_hat == NULL ) printf("Allocation failed!\n");
   }
-
-  if (plan->f_hat == NULL ) printf("Allocation failed!\n");
 
   if (plan->flags & NFSOFT_MALLOC_X)
   {
     plan->x = (R*) nfft_malloc(plan->M_total*3*sizeof(R));
+    if (plan->x == NULL ) printf("Allocation failed!\n");
   }
   if (plan->flags & NFSOFT_MALLOC_F)
   {
     plan->f = (C*) nfft_malloc(plan->M_total*sizeof(C));
+      if (plan->f == NULL ) printf("Allocation failed!\n");
   }
 
-  if (plan->x == NULL ) printf("Allocation failed!\n");
-  if (plan->f == NULL ) printf("Allocation failed!\n");
+
+
 
   plan->wig_coeffs = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
-
   plan->cheby = (C*) nfft_malloc((2*B+2)*sizeof(C));
   plan->aux = (C*) nfft_malloc((2*B+4)*sizeof(C));
 
