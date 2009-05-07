@@ -21,7 +21,7 @@
 ################################################################################
 
 # initialize autoconf
-AC_INIT([NFFT],[3.1.0],[potts@mathematik.tu-chemnitz.de])
+AC_INIT([NFFT],[3.1.1],[potts@mathematik.tu-chemnitz.de])
 
 # m4 macros
 AC_CONFIG_MACRO_DIR([m4])

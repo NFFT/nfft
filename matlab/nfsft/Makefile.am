@@ -6,10 +6,10 @@ SUBDIRS = @f_hat
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 
 # application directory
-applicationdir = $(pkgdatadir)/matlab
+applicationdir = $(pkgdatadir)/matlab/nfsft
 
 # library
-lib_LTLIBRARIES = libnfsft.la
+application_LTLIBRARIES = libnfsft.la
 libnfsft_la_SOURCES = nfsftmex.c
 libnfsft_la_LIBADD = $(top_builddir)/libnfft3noinst.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfsft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
@@ -33,3 +33,6 @@ all: all-am nfsftmex@matlab_mexext@
 
 clean: clean-am
 	rm -f ./nfsftmex@matlab_mexext@
+
+install-exec-hook:
+	$(LN_S) $(applicationdir)/libnfsft@matlab_mexext@ $(applicationdir)/nfsftmex@matlab_mexext@

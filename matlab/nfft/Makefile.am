@@ -4,10 +4,10 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 
 # application directory
-applicationdir = $(pkgdatadir)/matlab
+applicationdir = $(pkgdatadir)/matlab/nfft
 
 # library
-lib_LTLIBRARIES = libnfft.la
+application_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
 libnfft_la_LIBADD = $(top_builddir)/libnfft3noinst.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
@@ -27,3 +27,6 @@ all: all-am nfftmex@matlab_mexext@
 
 clean: clean-am
 	rm -f ./nfftmex@matlab_mexext@
+
+install-exec-hook:
+	$(LN_S) $(applicationdir)/libnfft@matlab_mexext@ $(applicationdir)/nfftmex@matlab_mexext@
