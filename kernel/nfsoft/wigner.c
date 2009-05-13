@@ -56,7 +56,7 @@ double SO3_beta(const int m1, const int m2, const int j)
   if (j < 0)
     return K(0.0);
   else if (j < MAX(ABS(m1),ABS(m2)))
-    return (0.5);
+    return K(0.5);
   else if (m1 == 0 || m2 == 0)
     return K(0.0);
   else

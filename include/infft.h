@@ -86,6 +86,10 @@ typedef ptrdiff_t INT;
 #if HAVE_DECL_LOG1PL == 0
 extern long double log1pl(const long double);
 #endif
+#define LOG10 log10l
+#if HAVE_DECL_LOG10L == 0
+extern long double log10l(const long double);
+#endif
 #define SQRT sqrtl
 #if HAVE_DECL_SQRTL == 0
 extern long double sqrtl(const long double);
@@ -139,6 +143,10 @@ extern long int lrintl(const long double);
 #if HAVE_DECL_LOG1PF == 0
 extern float log1pf(const float);
 #endif
+#define LOG10 log10f
+#if HAVE_DECL_LOG10F == 0
+extern float log10f(const float);
+#endif
 #define SQRT sqrtf
 #if HAVE_DECL_SQRTF == 0
 extern float sqrtf(const float);
@@ -191,6 +199,10 @@ extern long int lrintf(const float);
 #define LOG1P log1p
 #if HAVE_DECL_LOG1P == 0
 extern double log1p(const double);
+#endif
+#define LOG10 log10
+#if HAVE_DECL_LOG10 == 0
+extern double log10(const double);
 #endif
 #define SQRT sqrt
 #if HAVE_DECL_SQRT == 0

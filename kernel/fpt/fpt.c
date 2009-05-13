@@ -582,6 +582,8 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   const double *x_act;
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
+  R min = INFINITY, max = -INFINITY;
+  const t = /*-LOG10(EPS)*/ + LOG10(FABS(threshold));
 
   /* Traverse all nodes. */
   x_act = x;
@@ -614,10 +616,11 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
       }
       *z_act = a;
       *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
-      if (fabs(*y_act) > threshold)
-      {
+      min = FMIN(min,LOG10(FABS(*y_act)));
+      max = FMAX(max,LOG10(FABS(*y_act)));
+//      if (fabs(*y_act) > threshold)
+      if ((max - min) > t)
         return 1;
-      }
     }
     x_act++;
     y_act++;
@@ -1249,10 +1252,10 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   work_ptr = &set->work[2*data->k_start];
   x_ptr = x;
 
-  for (k = 0; k < k_end_tilde-data->k_start+1; k++)
+  for (k = 0; k <= k_end_tilde-data->k_start; k++)
   {
     *work_ptr++ = *x_ptr++;
-    *work_ptr++ = 0;
+    *work_ptr++ = K(0.0);
   }
 
   /* Set the last 2*(set->N-1-k_end_tilde) coefficients to zero. */
@@ -1262,19 +1265,10 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
    * x_{Nk-1} and x_{Nk-2}. */
   if (k_end == Nk)
   {
-    set->work[2*(Nk-2)]   += data->gammaN[tk-2]*x[Nk-data->k_start];
-    set->work[2*(Nk-1)]   += data->betaN[tk-2]*x[Nk-data->k_start];
-    set->work[2*(Nk-1)+1]  = data->alphaN[tk-2]*x[Nk-data->k_start];
+    set->work[2*(Nk-2)] += data->gammaN[tk-2]*x[Nk-data->k_start];
+    set->work[2*(Nk-1)] += data->betaN[tk-2]*x[Nk-data->k_start];
+    set->work[2*(Nk-1)+1] = data->alphaN[tk-2]*x[Nk-data->k_start];
   }
-
-  /*--------*/
-  /*for (k = 0; k < 2*Nk; k++)
-  {
-    fprintf(stderr,"work[%2d] = %le + I*%le\tresult[%2d] = %le + I*%le\n",
-      k,creal(set->work[k]),cimag(set->work[k]),k,creal(set->result[k]),
-      cimag(set->result[k]));
-  }*/
-  /*--------*/
 
   /* Compute the remaining steps. */
   plength = 4;
