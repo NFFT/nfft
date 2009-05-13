@@ -42,14 +42,13 @@ double SO3_alpha(const int m1, const int m2, const int j)
   else if (j < M - mini)
     return IF(j%2,K(0.5),K(-0.5));
   else if (j < M)
-    return K(0.5) * SIGNF(m1*m2);
+    return K(0.5) * SIGNF((R)m1)*SIGNF((R)m2);
   else
     return
-      SQRT(
-        (((R)(j+1))/((R)(j+1-m1)))
-        *(((R)(j+1))/((R)(j+1+m1)))
-        *(((R)(2*j+1))/((R)(j+1-m2)))
-        *(((R)(2*j+1))/((R)(j+1+m2))));
+      SQRT(((R)(j+1))/((R)(j+1-m1)))
+      * SQRT(((R)(2*j+1))/((R)(j+1+m1)))
+      * SQRT(((R)(j+1))/((R)(j+1-m2)))
+      * SQRT(((R)(2*j+1))/((R)(j+1+m2)));
 }
 
 double SO3_beta(const int m1, const int m2, const int j)
@@ -61,13 +60,16 @@ double SO3_beta(const int m1, const int m2, const int j)
   else if (m1 == 0 || m2 == 0)
     return K(0.0);
   else
+  {
+    const R m1a = FABS((R)m1), m2a = FABS((R)m2);
     return -COPYSIGN(
-      SQRT(
-        (((R)(m1*m2))/((R)(j+1-m1)))
-        *(((R)(m1*m2))/((R)(j+1+m1)))
-        *(((R)(2*j+1))/((R)(j+1-m2)))
-        *(((R)(2*j+1))/((R)(j+1+m2))))/((R)j),
-      (R)(m1*m2));
+      ((SQRT(m1a)*SQRT(m2a))/((R)j))
+      * SQRT(m1a/((R)(j+1-m1)))
+      * SQRT(((R)(2*j+1))/((R)(j+1+m1)))
+      * SQRT(m2a/((R)(j+1-m2)))
+      * SQRT(((R)(2*j+1))/((R)(j+1+m2))),
+      SIGNF((R)m1)*SIGNF((R)m2));
+  }
 }
 
 double SO3_gamma(const int m1, const int m2, const int j)

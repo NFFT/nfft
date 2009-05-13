@@ -34,7 +34,7 @@ static inline R alpha_al(const int k, const int n)
     if (k < n)
       return IF(k%2,K(1.0),K(-1.0));
     else
-      return SQRT(((R)(2*k+1))/((R)(k-n+1))*((R)(2*k+1))/((R)(k+n+1)));
+      return SQRT(((R)(2*k+1))/((R)(k-n+1)))*SQRT((((R)(2*k+1))/((R)(k+n+1))));
   }
   else if (k == 0)
   {

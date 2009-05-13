@@ -254,16 +254,15 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
     set = fpt_init(1, t, 0U);
   }
 
-      /** Read in start and end indeces */
-      k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
-      k_end = N;
+  /** Read in start and end indices */
+  k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+  k_end = N;
 
-      SO3_alpha_row(alpha, N, k, m);
-      SO3_beta_row(beta, N, k, m);
-      SO3_gamma_row(gamma, N, k, m);
+  SO3_alpha_row(alpha, N, k, m);
+  SO3_beta_row(beta, N, k, m);
+  SO3_gamma_row(gamma, N, k, m);
 
-      fpt_precompute(set, 0, alpha, beta, gamma, k_start, kappa);
-
+  fpt_precompute(set, 0, alpha, beta, gamma, k_start, kappa);
 
   free(alpha);
   free(beta);
