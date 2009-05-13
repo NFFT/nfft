@@ -90,9 +90,6 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
       if (plan->f == NULL ) printf("Allocation failed!\n");
   }
 
-
-
-
   plan->wig_coeffs = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
   plan->cheby = (C*) nfft_malloc((2*B+2)*sizeof(C));
   plan->aux = (C*) nfft_malloc((2*B+4)*sizeof(C));
@@ -103,6 +100,8 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
 
   plan->mv_trafo = (void (*) (void* ))nfsoft_trafo;
   plan->mv_adjoint = (void (*) (void* ))nfsoft_adjoint;
+
+  plan->fpt_set = 0;
 }
 
 static void c2e(nfsoft_plan *my_plan, int even)
@@ -212,10 +211,11 @@ static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
   return set;
 }
 
-fpt_set SO3_single_fpt_init(int l, int k, int m, fpt_set set, unsigned int flags, int kappa)
+fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
 {
   int N, t, k_start, k_end;
   R *alpha, *beta, *gamma;
+  fpt_set set = 0;
 
   /** Read in transfrom length. */
   if (flags & NFSOFT_USE_DPT)
