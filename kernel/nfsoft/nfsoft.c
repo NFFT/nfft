@@ -274,9 +274,6 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
   return set;
 }
 
-
-
-
 void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 {
   int N;
