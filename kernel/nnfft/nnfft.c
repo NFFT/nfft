@@ -104,7 +104,7 @@ void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 /** sub routines for the fast transforms
  *  matrix vector multiplication with \f$B, B^{\rm T}\f$
  */
-#define MACRO_nnfft_B_init_result_A memset(f,0,ths->M_total*sizeof(double _Complex));
+#define MACRO_nnfft_B_init_result_A memset(f,0,ths->N_total*sizeof(double _Complex));
 #define MACRO_nnfft_B_init_result_T memset(g,0,ths->aN1_total*sizeof(double _Complex));
 
 #define MACRO_nnfft_B_PRE_FULL_PSI_compute_A {                                \
@@ -300,7 +300,7 @@ void nnfft_trafo(nnfft_plan *ths)
     }
   }
 
-  ths->direct_plan->f = ths->f;
+  //ths->direct_plan->f = ths->f;
   nfft_trafo(ths->direct_plan);
 
   for(j=0;j<ths->M_total;j++) {
@@ -324,7 +324,6 @@ void nnfft_adjoint(nnfft_plan *ths)
     }
   }
 
-  ths->direct_plan->f = ths->f;
   nfft_adjoint(ths->direct_plan);
 
   for(j=0;j<ths->M_total;j++) {
@@ -492,35 +491,31 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
     ths->a[t] = 1.0 + (2.0*((double)ths->m))/((double)ths->N1[t]);
     ths->aN1[t] = ths->a[t] * ((double)ths->N1[t]);
     /* aN1 should be even */
-		if(ths->aN1[t]%2 != 0)
+    if(ths->aN1[t]%2 != 0)
       ths->aN1[t] = ths->aN1[t] +1;
 
     ths->aN1_total*=ths->aN1[t];
     ths->sigma[t] = ((double) ths->N1[t] )/((double) ths->N[t]);;
-
-		/* take the same oversampling factor in the inner NFFT */
-		N2[t] = ceil(ths->sigma[t]*(ths->aN1[t]));
-
-		/* N2 should be even */
-		if(N2[t]%2 != 0)
+    
+    /* take the same oversampling factor in the inner NFFT */
+    N2[t] = ceil(ths->sigma[t]*(ths->aN1[t]));
+    
+    /* N2 should be even */
+    if(N2[t]%2 != 0)
       N2[t] = N2[t] +1;
   }
 
   WINDOW_HELP_INIT
 
   if(ths->nnfft_flags & MALLOC_X)
-    ths->x = (double*)nfft_malloc(ths->d*ths->M_total*
-                                        sizeof(double));
-
-  if(ths->nnfft_flags & MALLOC_V)
-    ths->v = (double*)nfft_malloc(ths->d*ths->N_total*
-                                        sizeof(double));
-
-  if(ths->nnfft_flags & MALLOC_F_HAT)
-    ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*
-                                                  sizeof(double _Complex));
+    ths->x = (double*)nfft_malloc(ths->d*ths->M_total*sizeof(double));
   if(ths->nnfft_flags & MALLOC_F)
     ths->f=(double _Complex*)nfft_malloc(ths->M_total*sizeof(double _Complex));
+
+  if(ths->nnfft_flags & MALLOC_V)
+    ths->v = (double*)nfft_malloc(ths->d*ths->N_total*sizeof(double));
+  if(ths->nnfft_flags & MALLOC_F_HAT)
+    ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*sizeof(double _Complex));
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
@@ -528,17 +523,15 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
     ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
-  /* NO FFTW_MALLOC HERE */
   if(ths->nnfft_flags & PRE_PSI)
-    ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*
-                                           (2*ths->m+2)*sizeof(double));
+    ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*(2*ths->m+2)*sizeof(double));
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
   {
       for(t=0,lprod = 1; t<ths->d; t++)
           lprod *= 2*ths->m+2;
 
-      ths->psi = (double*) nfft_malloc(ths->N_total*lprod*sizeof(double));
+      ths->psi = (double*)nfft_malloc(ths->N_total*lprod*sizeof(double));
 
       ths->psi_index_f = (int*) nfft_malloc(ths->N_total*sizeof(int));
       ths->psi_index_g = (int*) nfft_malloc(ths->N_total*lprod*sizeof(int));
@@ -547,7 +540,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
   ths->direct_plan = (nfft_plan*)nfft_malloc(sizeof(nfft_plan));
 
   nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2,
-	               nfft_flags, fftw_flags);
+		 nfft_flags, fftw_flags);
 
   ths->direct_plan->x = ths->x;
   ths->direct_plan->f = ths->f;
@@ -558,7 +551,7 @@ void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw
 }
 
 void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, int *N1,
-                        int m, unsigned nnfft_flags)
+		     int m, unsigned nnfft_flags)
 {
   int t;                             /**< index over all dimensions        */
 
@@ -603,7 +596,7 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   ths->M_total = M_total;
   ths->N_total = N_total;
 
-	/* m should be greater to get the same accuracy as the nfft */
+  /* m should be greater to get the same accuracy as the nfft */
   WINDOW_HELP_ESTIMATE_m;
 
   ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
@@ -612,13 +605,14 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
 
-		/* the standard oversampling factor in the nnfft is 1.5 */
+    /* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
-
-		/* N1 should be even */
-		if(ths->N1[t]%2 != 0)
+    
+    /* N1 should be even */
+    if(ths->N1[t]%2 != 0)
       ths->N1[t] = ths->N1[t] +1;
   }
+
   ths->nnfft_flags=PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F;
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
 
@@ -629,6 +623,7 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 
 void nnfft_finalize(nnfft_plan *ths)
 {
+
   nfft_finalize(ths->direct_plan);
 
   nfft_free(ths->direct_plan);
@@ -649,7 +644,6 @@ void nnfft_finalize(nnfft_plan *ths)
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_free(ths->psi);
-
 
   if(ths->nnfft_flags & PRE_PHI_HUT)
     nfft_free(ths->c_phi_inv);

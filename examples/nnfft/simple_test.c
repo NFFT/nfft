@@ -86,10 +86,10 @@ void simple_test_adjoint_nnfft_1d(void)
   nnfft_plan my_plan;                    /**< plan for the nfft                */
 
   int N[1];
-  N[0]=26;
+  N[0]=12;
 
   /** init an one dimensional plan */
-  nnfft_init(&my_plan, 1, 3, 19, N);
+  nnfft_init(&my_plan, 1, 20, 33, N);
 
   /** init pseudo random nodes */
   for(j=0;j<my_plan.M_total;j++)
@@ -210,8 +210,8 @@ void simple_test_innfft_1d(void)
     my_plan.x[j]=((double)rand())/((double)RAND_MAX)-0.5;
 
   /** init pseudo random nodes */
-  for(j=0;j<my_plan.N_total;j++)
-    my_plan.v[j]=((double)rand())/((double)RAND_MAX)-0.5;
+  for(k=0;k<my_plan.N_total;k++)
+    my_plan.v[k]=((double)rand())/((double)RAND_MAX)-0.5;
 
   /** precompute psi, the entries of the matrix B */
   if(my_plan.nnfft_flags & PRE_PSI)
@@ -239,6 +239,7 @@ void simple_test_innfft_1d(void)
 
   /** solve the system */
   solver_before_loop_complex(&my_iplan);
+
   for(l=0;l<8;l++)
   {
     printf("iteration l=%d\n",l);
@@ -304,13 +305,13 @@ void measure_time_nnfft_1d(void)
 int main(void)
 {
   system("clear");
-  printf("1) computing an one dimensional nndft, nnfft\n\n");
+  printf("1) computing a one dimensional nndft, nnfft\n\n");
   simple_test_nnfft_1d();
 
   getc(stdin);
 
   system("clear");
-  printf("1a) computing an one dimensional adjoint nndft, nnfft\n\n");
+  printf("1a) computing a one dimensional adjoint nndft, nnfft\n\n");
   simple_test_adjoint_nnfft_1d();
 
   getc(stdin);
@@ -322,7 +323,7 @@ int main(void)
   getc(stdin);
 
   system("clear");
-  printf("3) computing an one dimensional innfft\n\n");
+  printf("3) computing a one dimensional innfft\n\n");
   simple_test_innfft_1d();
 
   getc(stdin);
