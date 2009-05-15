@@ -300,7 +300,9 @@ void nnfft_trafo(nnfft_plan *ths)
     }
   }
 
-  //ths->direct_plan->f = ths->f;
+  /* allows for external swaps of ths->f */
+  ths->direct_plan->f = ths->f;
+
   nfft_trafo(ths->direct_plan);
 
   for(j=0;j<ths->M_total;j++) {
@@ -323,6 +325,9 @@ void nnfft_adjoint(nnfft_plan *ths)
       ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
     }
   }
+
+  /* allows for external swaps of ths->f */
+  ths->direct_plan->f=ths->f;
 
   nfft_adjoint(ths->direct_plan);
 
