@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "util.h"
+#include "nfft3util.h"
 #include "nfft3.h"
 
 #ifdef GAUSSIAN
@@ -286,7 +286,7 @@ int main(int argc,char **argv)
 
   if((test==0)&&(atoi(argv[1])<2))
     {
-      fprintf(stderr,"MEASURE_TIME in util.h not set\n");
+      fprintf(stderr,"MEASURE_TIME in nfft3util.h not set\n");
       return -1;
     }
 

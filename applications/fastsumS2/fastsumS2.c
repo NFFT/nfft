@@ -35,7 +35,7 @@
 #include "nfft3.h"
 
 /* NFFT3 utilities */
-#include "util.h"
+#include "nfft3util.h"
 
 /* Fourier-Legendre coefficients for Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))

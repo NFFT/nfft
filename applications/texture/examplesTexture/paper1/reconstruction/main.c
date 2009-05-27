@@ -6,7 +6,7 @@
 #include<string.h>
 #include<math.h>
 
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
 /**
  * @defgroup texture_paper1_reconstruction Reconstruction

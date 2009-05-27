@@ -41,7 +41,7 @@
 /** Include header for C99 complex datatype. */
 #include <complex.h>
 /** Include header for utils from NFFT3 library. */
-#include "util.h"
+#include "nfft3util.h"
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
 

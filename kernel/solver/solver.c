@@ -25,7 +25,7 @@
 
 #include <complex.h>
 
-#include "util.h"
+#include "nfft3util.h"
 #include "nfft3.h"
 
 void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv, unsigned flags)

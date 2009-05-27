@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include<complex.h>
 
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
 /**
  * @defgroup texture_paper1_create_omega Create Omega

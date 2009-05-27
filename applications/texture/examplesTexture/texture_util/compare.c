@@ -3,9 +3,9 @@
 #include<string.h>
 #include<complex.h>
 
-#include<util.h>
+#include<nfft3util.h>
 #include<nfft3.h>
-#include"texture_util.h"
+#include"texture_nfft3util.h"
 
 /** @defgroup texture_compare Texture: Compare
  * This program compares two sample vectors, frequency vectors, 

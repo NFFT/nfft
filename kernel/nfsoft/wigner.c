@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "infft.h"
 #include "wigner.h"
-#include "util.h"
+#include "nfft3util.h"
 
 double SO3_alpha(const int m1, const int m2, const int j)
 {

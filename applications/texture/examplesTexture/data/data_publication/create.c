@@ -4,9 +4,9 @@
 #include<complex.h>
 #include<string.h>
 
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
-#include"data_util.h"
+#include"data_nfft3util.h"
 
 int N1, N2;
 double *h_phi, *h_theta, *r;

@@ -23,7 +23,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "util.h"
+#include "nfft3util.h"
 
 #define FILENAME_LENGTH_MAX 50
 #define REPEAT 1

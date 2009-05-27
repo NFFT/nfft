@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "util.h"
+#include "nfft3util.h"
 #include "nfft3.h"
 
 void simple_test_nfst_1d(void)

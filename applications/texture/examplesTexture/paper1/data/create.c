@@ -2,9 +2,9 @@
 #include<stdio.h>
 #include<string.h>
 
-#include<util.h>
-#include<texture_util.h>
-#include<data_util.h>
+#include<nfft3util.h>
+#include<texture_nfft3util.h>
+#include<data_nfft3util.h>
 
 /** @defgroup texture_paper1_data Conversion Utilities
  *

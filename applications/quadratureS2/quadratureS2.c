@@ -35,7 +35,7 @@
 #include <complex.h>
 
 /* Include NFFT 3 utilities headers. */
-#include "util.h"
+#include "nfft3util.h"
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"

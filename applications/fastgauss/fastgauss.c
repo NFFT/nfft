@@ -32,7 +32,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "util.h"
+#include "nfft3util.h"
 
 /**
  * If this flag is set, the whole matrix is precomputed and stored for the

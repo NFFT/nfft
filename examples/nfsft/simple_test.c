@@ -27,7 +27,7 @@
 #include <complex.h>
 
 #include "nfft3.h" /* NFFT3 header */
-#include "util.h" /* NFFT3 utilities header*/
+#include "nfft3util.h" /* NFFT3 utilities header*/
 #include "infft.h" /* NFFT3 internal header */
 
 static void simple_test_nfsft(void)

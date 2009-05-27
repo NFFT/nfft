@@ -24,7 +24,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "util.h"
+#include "nfft3util.h"
 
 /**
  * \defgroup applications_mri2d_reconstruct_data_inh_2d1d reconstruct_data__inh_2d1d

@@ -376,7 +376,7 @@ AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 # The output files to be generated
 AC_OUTPUT(Makefile \
           include/Makefile \
-          include/nfftconf.h \
+          include/nfft3conf.h \
           3rdparty/Makefile \
           3rdparty/cstripack/Makefile \
           util/Makefile \
@@ -414,7 +414,7 @@ AC_OUTPUT(Makefile \
           applications/radon/Makefile \
           matlab/Makefile \
           matlab/nfsft/Makefile
-	  matlab/nfft/Makefile
+          matlab/nfft/Makefile
           matlab/nfsft/@f_hat/Makefile
 )
 

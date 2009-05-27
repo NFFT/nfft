@@ -25,7 +25,7 @@
 
 #include <complex.h>
 
-#include "util.h"
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 

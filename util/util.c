@@ -35,7 +35,7 @@
 
 #include <complex.h>
 #include "nfft3.h"
-#include "util.h"
+#include "nfft3util.h"
 
 /** Actual used CPU time in seconds.
  *  Calls getrusage, limited accuracy

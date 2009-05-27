@@ -3,7 +3,7 @@
 #include<complex.h>
 
 #include<nfft3.h>
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
 /** @defgroup data_creator Texture: Data Creator
  * This program was designed to create some samples based on random frequencies.

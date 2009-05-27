@@ -33,7 +33,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "util.h"
+#include "nfft3util.h"
 #include "infft.h"
 
 /* Macros for index calculation. */

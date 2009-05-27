@@ -4,7 +4,7 @@
 #include<string.h>
 #include<math.h>
 
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
 #define NFFT_MAX(a, b) (((a) > (b)) ? (a) : (b))
 

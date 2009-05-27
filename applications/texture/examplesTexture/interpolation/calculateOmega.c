@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 #include <nfft3_texture.h>
-#include <texture_util.h>
+#include <texture_nfft3util.h>
 /**
  * @defgroup texture_calculate_omega Texture: Calculate omega
  * This program calculates to a given grid and intensities the frequencies 

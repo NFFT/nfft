@@ -4,7 +4,7 @@
 #include<string.h>
 
 #include<nfft3_texture.h>
-#include<texture_util.h>
+#include<texture_nfft3util.h>
 
 /** @defgroup texture_performance Texture: Performance
  * This program tests the velocity of the texture transforms.

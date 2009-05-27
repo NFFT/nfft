@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <nfft3.h>
-#include <util.h>
-#include "data_util.h"
+#include <nfft3util.h>
+#include "data_nfft3util.h"
 
 double normalise_phi(double angle)
 {

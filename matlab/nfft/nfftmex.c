@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include "nfft3.h"
 #include "infft.h"
-#include "util.h"
+#include "nfft3util.h"
 #include "imex.h"
 
 #ifndef HAVE_MEXVERSION_C

@@ -5,7 +5,7 @@
 #include <ctype.h>
 
 #include <nfft3_texture.h>
-#include <texture_util.h>
+#include <texture_nfft3util.h>
 
 /**
  * @defgroup texture_calculate_x Texture: Calculate x

@@ -28,7 +28,7 @@
 #include <fftw3.h>
 
 /* config header */
-#include "nfftconf.h"
+#include "nfft3conf.h"
 
 /* Malloc and free functions */
 extern void *nfft_malloc(size_t n);

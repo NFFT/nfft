@@ -4,8 +4,8 @@
 #include<string.h>
 #include<math.h>
 
-#include"texture_util.h"
-#include<util.h>
+#include"texture_nfft3util.h"
+#include<nfft3util.h>
 // macros
 
 // descriptors

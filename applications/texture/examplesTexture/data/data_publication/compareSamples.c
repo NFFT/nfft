@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <texture_util.h>
+#include <texture_nfft3util.h>
 
 int N1, N2, N1_ref, N2_ref;
 double _Complex *x, *x_ref;

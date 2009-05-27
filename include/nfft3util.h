@@ -18,7 +18,7 @@
 
 /* $Id$ */
 
-/*! \file util.h
+/*! \file nfft3util.h
  *  \brief Header file for utility functions used by the nfft3 library.
  */
 #ifndef __UTIL_H__

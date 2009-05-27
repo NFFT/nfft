@@ -3,7 +3,7 @@
 #include <string.h>
 #include <complex.h>
 
-#include "util.h"
+#include "nfft3util.h"
 
 #include "texture.h"
 #include "solver.c"

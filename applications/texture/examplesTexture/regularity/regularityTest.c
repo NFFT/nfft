@@ -4,8 +4,8 @@
 #include<math.h>
 
 #include<nfft3_texture.h>
-#include<util.h>
-#include<texture_util.h>
+#include<nfft3util.h>
+#include<texture_nfft3util.h>
 
 const char *err_fun_id_descr[] = { "two norm relativ error" };
 const char *res_fun_id_descr[] = { "two norm relativ error" };
