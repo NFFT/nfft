@@ -270,17 +270,16 @@ AC_SUBST(matlab_mexext)
 
 # Try to choose good compiler options.
 if test "x$ac_test_CFLAGS" != "xset"; then
+  saved_CPPFLAGS="$CPPFLAGS"
   saved_LDFLAGS="$LDFLAGS"
   saved_LIBS="$LIBS"
-  LIBS="$LIBS $fftw3_LIBS" #$matlab_LIBADD
-  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS" #$matlab_LDFLAGS
+  CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
+  LIBS="$LIBS $fftw3_LIBS"
+  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
   AX_CC_MAXOPT
+  CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
   LIBS="$saved_LIBS"
-fi
-
-if test "x$ax_lib_fftw3_libtool" = "xyes"; then
-  fftw3_LIBS="$fftw3_lib_dir/libfftw3.la"
 fi
 
 AC_SUBST(fftw3_LIBS)
@@ -291,6 +290,9 @@ CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
   CFLAGS="-g3"
+  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
+    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
+  fi
 fi
 
 # add gcc warnings, in debug/maintainer mode only

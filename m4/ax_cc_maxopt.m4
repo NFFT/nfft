@@ -131,7 +131,8 @@ if test "$ac_test_CFLAGS" != "set"; then
      ;;
     apple)
      # default optimization flags for apple on all systems
-     AX_CHECK_COMPILER_FLAGS(-fast, CFLAGS="$CFLAGS -fast")
+     AX_CHECK_COMPILER_FLAGS(-O3, CFLAGS="$CFLAGS -O3")
+     AX_CHECK_COMPILER_FLAGS(-fomit-frame-pointer, CFLAGS="$CFLAGS -fomit-frame-pointer")
      AX_CHECK_COMPILER_FLAGS(-fPIC, CFLAGS="$CFLAGS -fPIC")
 
      case $host_cpu in

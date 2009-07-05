@@ -583,7 +583,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
   R min = INFINITY, max = -INFINITY;
-  const t = /*-LOG10(EPS)*/ + LOG10(FABS(threshold));
+  const R t = /*-LOG10(EPS)*/ + LOG10(FABS(threshold));
 
   /* Traverse all nodes. */
   x_act = x;

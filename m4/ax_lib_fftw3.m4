@@ -40,57 +40,46 @@ AC_DEFUN([AX_LIB_FFTW3],
   [compile with fftw3 include directory DIR])], fftw3_include_dir=$withval, 
     fftw3_include_dir="yes")
 
-  if test "x$with_fftw3" = "xyes"; then
-    if test "x${fftw3_include_dir}" = "xyes"; then 
-      fftw3_include_dir="/usr/local/include"
+  if test "x$with_fftw3" != "xyes"; then
+    if test "x${fftw3_include_dir}" = "xyes"; then
+      fftw3_include_dir="$with_fftw3/include"
     fi
     if test "x${fftw3_lib_dir}" = "xyes"; then 
-      fftw3_lib_dir="/usr/local/lib"
+      fftw3_lib_dir="$with_fftw3/lib"
     fi
-  else
-    fftw3_include_dir="$with_fftw3/include"
-    fftw3_lib_dir="$with_fftw3/lib"
   fi
 
-  AX_CHECK_DIR([${fftw3_include_dir}],[],
+  if test "x${fftw3_include_dir}" != "xyes"; then
+    AX_CHECK_DIR([${fftw3_include_dir}],[],
       [AC_MSG_ERROR([The directory ${fftw3_include_dir} does not exist.])])
+    fftw3_CPPFLAGS="-I$fftw3_include_dir"
+  else
+    fftw3_CPPFLAGS=""
+  fi
 
-  AX_CHECK_DIR([${fftw3_lib_dir}],[],
+  if test "x${fftw3_lib_dir}" != "xyes"; then 
+    AX_CHECK_DIR([${fftw3_lib_dir}],[],
       [AC_MSG_ERROR([The directory ${fftw3_lib_dir} does not exist.])])
+    fftw3_LDFLAGS="-L$fftw3_lib_dir"
+  else
+    fftw3_LDFLAGS=""
+  fi
 
-  # Save compiler and linker flags.
-  fftw3_CPPFLAGS="-I$fftw3_include_dir"
-  fftw3_LDFLAGS="-L$fftw3_lib_dir"
-  fftw3_LIBS="-lfftw3"
   saved_LDFLAGS="$LDFLAGS"
   saved_CPPFLAGS="$CPPFLAGS"
-  saved_LIBS="$LIBS"
   CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
   LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
-  LIBS="$LIBS $fftw3_LIBS"
 
-  # Check if library is present and usable.
-  AC_CHECK_HEADER([fftw3.h],
-    [AC_CHECK_LIB(fftw3, fftw_execute,
-      ax_lib_fftw3=yes,
-      ax_lib_fftw3=no)], ax_lib_fftw3=no)
+  # Check if header is present and usable.
+  ax_lib_fftw3=yes
+  AC_CHECK_HEADER([fftw3.h], [], [ax_lib_fftw3=no])
 
-  # Check if library was found.
-  ax_lib_fftw3_libtool="no"
   if test "x$ax_lib_fftw3" = "xyes"; then
-    if test -f "$fftw3_lib_dir/libfftw3.la"; then
-        ax_lib_fftw3_libtool="yes"
-    elif test "x$fftw3_lib_dir" = "x/usr/local/lib" -a -f "/usr/lib/libfftw3.la"; then
-      fftw3_include_dir="/usr/include"
-      fftw3_CFLAGS="-I$fftw3_include_dir"
-      fftw3_lib_dir="/usr/lib"
-      fftw3_LDFLAGS="-L$fftw3_lib_dir"
-      ax_lib_fftw3_libtool="yes"
-    fi
+    AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
+    fftw3_LIBS="-lfftw3"
   fi
 
   # Restore saved flags.
   CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
-  LIBS="$saved_LIBS"
 ])
