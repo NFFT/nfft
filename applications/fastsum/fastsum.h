@@ -89,7 +89,7 @@ typedef struct fastsum_plan_
 
   /** near field */
   int Ad;                               /**< number of spline knots for nearfield computation of regularized kernel */
-  double *Add;                          /**< spline values */
+  double _Complex *Add;                 /**< spline values */
 
   /* things for computing *b - are they used only once?? */
   fftw_plan fft_plan;
@@ -138,10 +138,10 @@ void fastsum_precompute(fastsum_plan *ths);
 void fastsum_trafo(fastsum_plan *ths);
 /* \} */
 
-double regkern(double _Complex (*kernel)(), double xx, int p, const double *param, double a, double b);
+double _Complex regkern(double _Complex (*kernel)(), double xx, int p, const double *param, double a, double b);
 
 /** cubic spline interpolation in near field with even kernels */
-double kubintkern(double x, double *Add, int Ad, double a);
+double _Complex kubintkern(double x, double _Complex *Add, int Ad, double a);
 
 #endif
 /* fastsum.h */

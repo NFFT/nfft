@@ -64,10 +64,10 @@ double BasisPoly(int m, int r, double xx)
 }
 
 /** regularized kernel with K_I arbitrary and K_B smooth to zero */
-double regkern(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
-  double sum=0.0;
+  double _Complex sum=0.0;
 
   if (xx<-0.5)
     xx=-0.5;
@@ -110,10 +110,10 @@ double regkern(double _Complex (*kernel)(double , int , const double *), double 
 /** regularized kernel with K_I arbitrary and K_B periodized
  *  (used in 1D)
  */
-double regkern1(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern1(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
-  double sum=0.0;
+  double _Complex sum=0.0;
 
   if (xx<-0.5)
     xx=-0.5;
@@ -154,10 +154,10 @@ double regkern1(double _Complex (*kernel)(double , int , const double *), double
 }
 
 /** regularized kernel for even kernels with K_I even and K_B mirrored */
-double regkern2(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern2(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
-  double sum=0.0;
+  double _Complex sum=0.0;
 
   xx=fabs(xx);
 
@@ -191,10 +191,10 @@ double regkern2(double _Complex (*kernel)(double , int , const double *), double
 /** regularized kernel for even kernels with K_I even
  *  and K_B mirrored smooth to K(1/2) (used in dD, d>1)
  */
-double regkern3(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern3(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
 {
   int r;
-  double sum=0.0;
+  double _Complex sum=0.0;
 
   xx=fabs(xx);
 
@@ -229,11 +229,11 @@ double regkern3(double _Complex (*kernel)(double , int , const double *), double
 }
 
 /** cubic spline interpolation in near field with even kernels */
-double kubintkern(double x, double *Add, int Ad, double a)
+double _Complex kubintkern(double x, double _Complex *Add, int Ad, double a)
 {
-  double c;
+  double c,c1,c2,c3,c4;
   int r;
-  double f0,f1,f2,f3,c1,c2,c3,c4;
+  double _Complex f0,f1,f2,f3;
   c=x*Ad/a;
   r=c; r=abs(r);
   if (r==0) {f0=Add[r+1];f1=Add[r];f2=Add[r+1];f3=Add[r+2];}
@@ -249,11 +249,11 @@ double kubintkern(double x, double *Add, int Ad, double a)
 }
 
 /** cubic spline interpolation in near field with arbitrary kernels */
-double kubintkern1(double x, double *Add, int Ad, double a)
+double _Complex kubintkern1(double x, double _Complex *Add, int Ad, double a)
 {
-  double c;
+  double c,c1,c2,c3,c4;
   int r;
-  double f0,f1,f2,f3,c1,c2,c3,c4;
+  double _Complex f0,f1,f2,f3;
   Add+=2;
   c=(x+a)*Ad/2/a;
   r=c; r=abs(r);
@@ -325,7 +325,7 @@ void BuildTree(int d, int t, double *x, double _Complex *alpha, int N)
 }
 
 /** fast search in tree of source knots for near field computation*/
-double _Complex SearchTree(int d, int t, double *x, double _Complex *alpha, double *xmin, double *xmax, int N, double _Complex (*kernel)(double , int , const double *), const double *param, int Ad, double *Add, int p, unsigned flags)
+double _Complex SearchTree(int d, int t, double *x, double _Complex *alpha, double *xmin, double *xmax, int N, double _Complex (*kernel)(double , int , const double *), const double *param, int Ad, double _Complex *Add, int p, unsigned flags)
 {
   int m=N/2;
   double Min=xmin[t], Max=xmax[t], Median=x[m*d+t];
@@ -419,12 +419,12 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
     if (ths->d==1)
     {
       ths->Ad = 4*(ths->p)*(ths->p);
-      ths->Add = (double *)nfft_malloc((ths->Ad+5)*(sizeof(double)));
+      ths->Add = (double _Complex *)nfft_malloc((ths->Ad+5)*(sizeof(double _Complex)));
     }
     else
     {
       ths->Ad = 2*(ths->p)*(ths->p);
-      ths->Add = (double *)nfft_malloc((ths->Ad+3)*(sizeof(double)));
+      ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
     }
   }
 
