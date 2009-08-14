@@ -64,7 +64,7 @@ double BasisPoly(int m, int r, double xx)
 }
 
 /** regularized kernel with K_I arbitrary and K_B smooth to zero */
-double _Complex regkern(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern(kernel k, double xx, int p, const double *param, double a, double b)
 {
   int r;
   double _Complex sum=0.0;
@@ -74,14 +74,14 @@ double _Complex regkern(double _Complex (*kernel)(double , int , const double *)
   if (xx>0.5)
     xx=0.5;
   if ((xx>=-0.5+b && xx<=-a) || (xx>=a && xx<=0.5-b)) {
-    return kernel(xx,0,param);
+    return k(xx,0,param);
   }
   else if (xx<-0.5+b) {
-    sum=(kernel(-0.5,0,param)+kernel(0.5,0,param))/2.0
+    sum=(k(-0.5,0,param)+k(0.5,0,param))/2.0
         *BasisPoly(p-1,0,2.0*xx/b+(1.0-b)/b);
     for (r=0; r<p; r++) {
       sum+=pow(-b/2.0,(double)r)
-          *kernel(-0.5+b,r,param)
+          *k(-0.5+b,r,param)
           *BasisPoly(p-1,r,-2.0*xx/b+(b-1.0)/b);
     }
     return sum;
@@ -89,28 +89,28 @@ double _Complex regkern(double _Complex (*kernel)(double , int , const double *)
   else if ((xx>-a) && (xx<a)) {
     for (r=0; r<p; r++) {
       sum+=pow(a,(double)r)
-          *( kernel(-a,r,param)*BasisPoly(p-1,r,xx/a)
-              +kernel( a,r,param)*BasisPoly(p-1,r,-xx/a)*(r & 1 ? -1 : 1));
+          *( k(-a,r,param)*BasisPoly(p-1,r,xx/a)
+              +k( a,r,param)*BasisPoly(p-1,r,-xx/a)*(r & 1 ? -1 : 1));
     }
     return sum;
   }
   else if (xx>0.5-b) {
-    sum=(kernel(-0.5,0,param)+kernel(0.5,0,param))/2.0
+    sum=(k(-0.5,0,param)+k(0.5,0,param))/2.0
         *BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b);
     for (r=0; r<p; r++) {
       sum+=pow(b/2.0,(double)r)
-          *kernel(0.5-b,r,param)
+          *k(0.5-b,r,param)
           *BasisPoly(p-1,r,2.0*xx/b-(1.0-b)/b);
     }
     return sum;
   }
-  return kernel(xx,0,param);
+  return k(xx,0,param);
 }
 
 /** regularized kernel with K_I arbitrary and K_B periodized
  *  (used in 1D)
  */
-double _Complex regkern1(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern1(kernel k, double xx, int p, const double *param, double a, double b)
 {
   int r;
   double _Complex sum=0.0;
@@ -121,14 +121,14 @@ double _Complex regkern1(double _Complex (*kernel)(double , int , const double *
     xx=0.5;
   if ((xx>=-0.5+b && xx<=-a) || (xx>=a && xx<=0.5-b))
   {
-    return kernel(xx,0,param);
+    return k(xx,0,param);
   }
   else if ((xx>-a) && (xx<a))
   {
     for (r=0; r<p; r++) {
       sum+=pow(a,(double)r)
-          *( kernel(-a,r,param)*BasisPoly(p-1,r,xx/a)
-              +kernel( a,r,param)*BasisPoly(p-1,r,-xx/a)*(r & 1 ? -1 : 1));
+          *( k(-a,r,param)*BasisPoly(p-1,r,xx/a)
+              +k( a,r,param)*BasisPoly(p-1,r,-xx/a)*(r & 1 ? -1 : 1));
     }
     return sum;
   }
@@ -136,8 +136,8 @@ double _Complex regkern1(double _Complex (*kernel)(double , int , const double *
   {
     for (r=0; r<p; r++) {
       sum+=pow(b,(double)r)
-          *( kernel(0.5-b,r,param)*BasisPoly(p-1,r,(xx+0.5)/b)
-              +kernel(-0.5+b,r,param)*BasisPoly(p-1,r,-(xx+0.5)/b)*(r & 1 ? -1 : 1));
+          *( k(0.5-b,r,param)*BasisPoly(p-1,r,(xx+0.5)/b)
+              +k(-0.5+b,r,param)*BasisPoly(p-1,r,-(xx+0.5)/b)*(r & 1 ? -1 : 1));
     }
     return sum;
   }
@@ -145,16 +145,16 @@ double _Complex regkern1(double _Complex (*kernel)(double , int , const double *
   {
     for (r=0; r<p; r++) {
       sum+=pow(b,(double)r)
-          *( kernel(0.5-b,r,param)*BasisPoly(p-1,r,(xx-0.5)/b)
-              +kernel(-0.5+b,r,param)*BasisPoly(p-1,r,-(xx-0.5)/b)*(r & 1 ? -1 : 1));
+          *( k(0.5-b,r,param)*BasisPoly(p-1,r,(xx-0.5)/b)
+              +k(-0.5+b,r,param)*BasisPoly(p-1,r,-(xx-0.5)/b)*(r & 1 ? -1 : 1));
     }
     return sum;
   }
-  return kernel(xx,0,param);
+  return k(xx,0,param);
 }
 
 /** regularized kernel for even kernels with K_I even and K_B mirrored */
-double _Complex regkern2(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern2(kernel k, double xx, int p, const double *param, double a, double b)
 {
   int r;
   double _Complex sum=0.0;
@@ -163,24 +163,24 @@ double _Complex regkern2(double _Complex (*kernel)(double , int , const double *
 
   if (xx>0.5) {
     for (r=0; r<p; r++) {
-      sum+=pow(b,(double)r)*kernel(0.5-b,r,param)
+      sum+=pow(b,(double)r)*k(0.5-b,r,param)
           *(BasisPoly(p-1,r,0)+BasisPoly(p-1,r,0));
     }
     return sum;
   }
   else if ((a<=xx) && (xx<=0.5-b)) {
-    return kernel(xx,0,param);
+    return k(xx,0,param);
   }
   else if (xx<a) {
     for (r=0; r<p; r++) {
-      sum+=pow(-a,(double)r)*kernel(a,r,param)
+      sum+=pow(-a,(double)r)*k(a,r,param)
           *(BasisPoly(p-1,r,xx/a)+BasisPoly(p-1,r,-xx/a));
     }
     return sum;
   }
   else if ((0.5-b<xx) && (xx<=0.5)) {
     for (r=0; r<p; r++) {
-      sum+=pow(b,(double)r)*kernel(0.5-b,r,param)
+      sum+=pow(b,(double)r)*k(0.5-b,r,param)
           *(BasisPoly(p-1,r,(xx-0.5)/b)+BasisPoly(p-1,r,-(xx-0.5)/b));
     }
     return sum;
@@ -191,7 +191,7 @@ double _Complex regkern2(double _Complex (*kernel)(double , int , const double *
 /** regularized kernel for even kernels with K_I even
  *  and K_B mirrored smooth to K(1/2) (used in dD, d>1)
  */
-double _Complex regkern3(double _Complex (*kernel)(double , int , const double *), double xx, int p, const double *param, double a, double b)
+double _Complex regkern3(kernel k, double xx, int p, const double *param, double a, double b)
 {
   int r;
   double _Complex sum=0.0;
@@ -204,32 +204,32 @@ double _Complex regkern3(double _Complex (*kernel)(double , int , const double *
   }
   /* else */
   if ((a<=xx) && (xx<=0.5-b)) {
-    return kernel(xx,0,param);
+    return k(xx,0,param);
   }
   else if (xx<a) {
     for (r=0; r<p; r++) {
-      sum+=pow(-a,(double)r)*kernel(a,r,param)
+      sum+=pow(-a,(double)r)*k(a,r,param)
           *(BasisPoly(p-1,r,xx/a)+BasisPoly(p-1,r,-xx/a));
     }
     /*sum=kern(typ,c,0,xx); */
     return sum;
   }
   else if ((0.5-b<xx) && (xx<=0.5)) {
-    sum=kernel(0.5,0,param)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b);
+    sum=k(0.5,0,param)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b);
     /* sum=regkern2(typ,c,p,a,b, 0.5)*BasisPoly(p-1,0,-2.0*xx/b+(1.0-b)/b); */
     for (r=0; r<p; r++) {
       sum+=pow(b/2.0,(double)r)
-          *kernel(0.5-b,r,param)
+          *k(0.5-b,r,param)
           *BasisPoly(p-1,r,2.0*xx/b-(1.0-b)/b);
     }
     return sum;
   }
-  printf("hier ");
   return 0.0;
 }
 
 /** cubic spline interpolation in near field with even kernels */
-double _Complex kubintkern(double x, double _Complex *Add, int Ad, double a)
+double _Complex kubintkern(const double x, const double _Complex *Add,
+  const int Ad, const double a)
 {
   double c,c1,c2,c3,c4;
   int r;
@@ -249,7 +249,8 @@ double _Complex kubintkern(double x, double _Complex *Add, int Ad, double a)
 }
 
 /** cubic spline interpolation in near field with arbitrary kernels */
-double _Complex kubintkern1(double x, double _Complex *Add, int Ad, double a)
+double _Complex kubintkern1(const double x, const double _Complex *Add,
+  const int Ad, const double a)
 {
   double c,c1,c2,c3,c4;
   int r;
@@ -325,7 +326,10 @@ void BuildTree(int d, int t, double *x, double _Complex *alpha, int N)
 }
 
 /** fast search in tree of source knots for near field computation*/
-double _Complex SearchTree(int d, int t, double *x, double _Complex *alpha, double *xmin, double *xmax, int N, double _Complex (*kernel)(double , int , const double *), const double *param, int Ad, double _Complex *Add, int p, unsigned flags)
+double _Complex SearchTree(const int d, const int t, const double *x,
+  const double _Complex *alpha, const double *xmin, const double *xmax,
+  const int N, const kernel k, const double *param, const int Ad,
+  const double _Complex *Add, const int p, const unsigned flags)
 {
   int m=N/2;
   double Min=xmin[t], Max=xmax[t], Median=x[m*d+t];
@@ -333,27 +337,30 @@ double _Complex SearchTree(int d, int t, double *x, double _Complex *alpha, doub
   int l;
   int E=0;
   double r;
-  double _Complex result=0.0;
 
   if (N==0)
     return 0.0;
-
   if (Min>Median)
-    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p,flags);
+    return SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,k,param,Ad,Add,p,flags);
   else if (Max<Median)
-    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p,flags);
+    return SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,k,param,Ad,Add,p,flags);
   else
   {
+    double _Complex result = 0.0;
     E=0;
+
     for (l=0; l<d; l++)
     {
       if ( x[m*d+l]>xmin[l] && x[m*d+l]<xmax[l] )
         E++;
     }
+
     if (E==d)
     {
       if (d==1)
+      {
         r = xmin[0]+a-x[m];  /* remember: xmin+a = y */
+      }
       else
       {
         r=0.0;
@@ -363,31 +370,31 @@ double _Complex SearchTree(int d, int t, double *x, double _Complex *alpha, doub
       }
       if (fabs(r)<a)
       {
-        result += alpha[m]*kernel(r,0,param);                         /* alpha*(kern-regkern) */
+        result += alpha[m]*k(r,0,param);                         /* alpha*(kern-regkern) */
         if (d==1)
         {
           if (flags & EXACT_NEARFIELD)
-            result -= alpha[m]*regkern1(kernel,r,p,param,a,1.0/16.0); /* exact value (in 1D)  */
+            result -= alpha[m]*regkern1(k,r,p,param,a,1.0/16.0); /* exact value (in 1D)  */
           else
             result -= alpha[m]*kubintkern1(r,Add,Ad,a);               /* spline approximation */
         }
         else
         {
           if (flags & EXACT_NEARFIELD)
-            result -= alpha[m]*regkern(kernel,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
+            result -= alpha[m]*regkern(k,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
           else
             result -= alpha[m]*kubintkern(r,Add,Ad,a);                /* spline approximation */
         }
       }
     }
-    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,kernel,param,Ad,Add,p,flags);
-    result += SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,kernel,param,Ad,Add,p,flags);
+    result += SearchTree(d,(t+1)%d,x+(m+1)*d,alpha+(m+1),xmin,xmax,N-m-1,k,param,Ad,Add,p,flags)
+      + SearchTree(d,(t+1)%d,x,alpha,xmin,xmax,m,k,param,Ad,Add,p,flags);
+    return result;
   }
-  return result;
 }
 
 /** initialization of fastsum plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, double _Complex (*kernel)(), double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B)
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kernel k, double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B)
 {
   int t;
   int N[d], n[d];
@@ -404,7 +411,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, doubl
   ths->y = (double *)nfft_malloc(d*M_total*(sizeof(double)));
   ths->f = (double _Complex *)nfft_malloc(M_total*(sizeof(double _Complex)));
 
-  ths->kernel = kernel;
+  ths->k = k;
   ths->kernel_param = param;
 
   ths->flags = flags;
@@ -491,7 +498,7 @@ void fastsum_exact(fastsum_plan *ths)
           r += (ths->y[j*ths->d+t]-ths->x[k*ths->d+t])*(ths->y[j*ths->d+t]-ths->x[k*ths->d+t]);
         r=sqrt(r);
       }
-      ths->f[j] += ths->alpha[k] * ths->kernel(r,0,ths->kernel_param);
+      ths->f[j] += ths->alpha[k] * ths->k(r,0,ths->kernel_param);
     }
   }
 }
@@ -510,10 +517,10 @@ void fastsum_precompute(fastsum_plan *ths)
   {
     if (ths->d==1)
       for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
-        ths->Add[k+ths->Ad/2+2] = regkern1(ths->kernel, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
+        ths->Add[k+ths->Ad/2+2] = regkern1(ths->k, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
     else
       for (k=0; k <= ths->Ad+2; k++)
-        ths->Add[k] = regkern3(ths->kernel, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
+        ths->Add[k] = regkern3(ths->k, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
   }
 
   /** init NFFT plan for transposed transform in first step*/
@@ -559,7 +566,7 @@ void fastsum_precompute(fastsum_plan *ths)
   for (j=0; j<n_total; j++)
   {
     if (ths->d==1)
-      ths->b[j] = regkern1(ths->kernel, (double)j / (ths->n) - 0.5, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B)/n_total;
+      ths->b[j] = regkern1(ths->k, (double)j / (ths->n) - 0.5, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B)/n_total;
     else
     {
       k=j;
@@ -569,7 +576,7 @@ void fastsum_precompute(fastsum_plan *ths)
         ths->b[j] += ((double)(k % (ths->n)) / (ths->n) - 0.5) * ((double)(k % (ths->n)) / (ths->n) - 0.5);
         k = k / (ths->n);
       }
-      ths->b[j] = regkern3(ths->kernel, sqrt(ths->b[j]), ths->p, ths->kernel_param, ths->eps_I, ths->eps_B)/n_total;
+      ths->b[j] = regkern3(ths->k, sqrt(ths->b[j]), ths->p, ths->kernel_param, ths->eps_I, ths->eps_B)/n_total;
     }
   }
 
@@ -606,9 +613,9 @@ void fastsum_trafo(fastsum_plan *ths)
       ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
       ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
     }
-    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
+    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
     /* ths->f[j] = ths->mv2.f[j]; */
-    /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->kernel, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
+    /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
 }
 /* \} */
