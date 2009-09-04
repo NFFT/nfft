@@ -1331,8 +1331,8 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     {
       psi_index_g=ths->psi_index_g;
       for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)
-        for(l=1, g[(*psi_index_g++)]=(*psij++) * (*fj); l<(2*m+2)*(2*m+2); l++)
-	  g[(*psi_index_g++)] += (*psij++) * (*fj);
+	  for(l=0; l<(2*m+2)*(2*m+2); l++)
+	      g[(*psi_index_g++)] += (*psij++) * (*fj);
       return;
     } /* if(PRE_FULL_PSI) */
 
@@ -2360,7 +2360,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     {
       psi_index_g=ths->psi_index_g;
       for(j=0, fj=ths->f, psij=ths->psi; j<M; j++, fj++)
-        for(l=1, g[(*psi_index_g++)]=(*psij++) * (*fj); l<(2*m+2)*(2*m+2)*(2*m+2); l++)
+        for(l=0; l<(2*m+2)*(2*m+2)*(2*m+2); l++)
 	  g[(*psi_index_g++)] += (*psij++) * (*fj);
       return;
     } /* if(PRE_FULL_PSI) */
