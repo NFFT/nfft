@@ -34,6 +34,72 @@
 #include "nfft3.h"
 #include "infft.h"
 
+/** Macros for window functions. */
+#if defined(DIRAC_DELTA)
+  #define PHI_HUT(k,d) 1.0
+  #define PHI(x,d) (fabs((x))<10e-8)? 1.0 : 0.0
+  #define WINDOW_HELP_INIT(d)
+  #define WINDOW_HELP_FINALIZE
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 0;}
+#elif defined(GAUSSIAN)
+  #define PHI_HUT(k,d) ((double)exp(-(pow(PI*(k)/ths->n[d],2.0)*ths->b[d])))
+  #define PHI(x,d) ((double)exp(-pow((x)*ths->n[d],2.0)/ ths->b[d])/sqrt(PI*ths->b[d]))
+  #define WINDOW_HELP_INIT \
+    {                                                                          \
+      int WINDOW_idx;                                                          \
+      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
+      for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
+      ths->b[WINDOW_idx]=((double)2*ths->sigma[WINDOW_idx])/                   \
+        (2*ths->sigma[WINDOW_idx]-1)*(((double)ths->m) / PI);                  \
+      }
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m =12;}
+#elif defined(B_SPLINE)
+  #define PHI_HUT(k,d) ((double)(((k)==0)? 1.0/ths->n[(d)] :                   \
+    pow(sin((k)*PI/ths->n[(d)])/((k)*PI/ths->n[(d)]),2*ths->m)/ths->n[(d)]))
+  #define PHI(x,d) (nfft_bspline(2*ths->m,((x)*ths->n[(d)])+                   \
+    (double)ths->m,ths->spline_coeffs)/ths->n[(d)])
+  #define WINDOW_HELP_INIT \
+    {                                                                          \
+      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
+    }
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m =11;}
+#elif defined(SINC_POWER)
+  #define PHI_HUT(k,d) (nfft_bspline(2*ths->m,((double)2*ths->m*(k))/          \
+    ((2*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+ (double)ths->m,       \
+    ths->spline_coeffs))
+  #define PHI(x,d) ((double)(ths->n[(d)]/ths->sigma[(d)]*(2*ths->sigma[(d)]-1)/\
+    (2*ths->m)*pow(nfft_sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*               \
+    (2*ths->sigma[(d)]-1)/(2*ths->m)),2*ths->m)/ths->n[(d)]))
+  #define WINDOW_HELP_INIT \
+    {                                                                          \
+      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
+    }
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
+#else /* Kaiser-Bessel is the default. */
+  #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt(\
+    pow((double)(ths->b[d]),2.0) - pow(2.0*PI*(k)/ths->n[d],2.0))))
+  #define PHI(x,d) ((double)((pow((double)(ths->m),2.0)\
+    -pow((x)*ths->n[d],2.0))>0)? \
+    sinh(ths->b[d]*sqrt(pow((double)(ths->m),2.0)-                             \
+    pow((x)*ths->n[d],2.0)))/(PI*sqrt(pow((double)(ths->m),2.0)-               \
+    pow((x)*ths->n[d],2.0))): (((pow((double)(ths->m),2.0)-                    \
+    pow((x)*ths->n[d],2.0))<0)? sin(ths->b[d]*                                 \
+    sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0)))/                   \
+    (PI*sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0))):1.0))
+  #define WINDOW_HELP_INIT \
+    {                                                                          \
+      int WINDOW_idx;                                                          \
+      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
+      for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
+      ths->b[WINDOW_idx] = ((double)PI*(2.0-1.0/ths->sigma[WINDOW_idx]));      \
+  }
+  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
+#endif
+
 /** direct computation of non equispaced fourier transforms
  *  ndft_trafo, ndft_conjugated, ndft_adjoint, ndft_transposed
  *  require O(M_total N^d) arithemtical operations
@@ -627,7 +693,7 @@ static void nfft_adjoint_1d_compute(const double _Complex *fj, double _Complex *
   psij=psij_const;
 
   nfft_uo2(&u,&o,*xj, n, m);
-
+  
   if(u<o)
     for(l=0,gj=g+u; l<=2*m+1; l++)
       (*gj++) += (*psij++) * (*fj);
@@ -2983,6 +3049,7 @@ static void nfft_init_help(nfft_plan *ths)
   ths->sigma = (double*) nfft_malloc(ths->d*sizeof(double));
   for(t = 0;t < ths->d; t++)
     ths->sigma[t] = ((double)ths->n[t])/ths->N[t];
+printf("\n%e\n",PI);
 
   WINDOW_HELP_INIT;
 

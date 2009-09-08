@@ -33,9 +33,14 @@ void simple_test_nfft_1d(void)
 
   int N=14;
   int M=19;
+  int n=32;
 
   /** init an one dimensional plan */
-  nfft_init_1d(&p,N,M);
+  //  nfft_init_1d(&p,N,M);
+  nfft_init_guru(&p, 1, &N, M, &n, 4,
+		 PRE_PHI_HUT| FG_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+		 FFTW_INIT| FFT_OUT_OF_PLACE,
+		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
@@ -75,14 +80,14 @@ void simple_test_nfft_2d(void)
 
   nfft_plan p;
 
-  N[0]=20; n[0]=32;
-  N[1]=16; n[1]=32;
+  N[0]=32; n[0]=64;
+  N[1]=20; n[1]=64;
   K=12;
 
   t=nfft_second();
   /** init a two dimensional plan */
   nfft_init_guru(&p, 2, N, N[0]*N[1], n, 4,
-		 PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+		 PRE_PHI_HUT| FG_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
@@ -139,7 +144,7 @@ int main(void)
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
   getc(stdin);
-
+  
   system("clear");
   printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_2d();
