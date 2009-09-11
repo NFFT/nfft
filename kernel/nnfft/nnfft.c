@@ -27,6 +27,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 
 #define MACRO_nndft_init_result_trafo memset(f,0,ths->M_total*sizeof(double _Complex));

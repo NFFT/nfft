@@ -25,6 +25,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /**
  * window_funct_plan is a plan to use the window functions
