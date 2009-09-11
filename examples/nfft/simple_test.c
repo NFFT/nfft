@@ -36,15 +36,11 @@ void simple_test_nfft_1d(void)
   int n=32;
 
   /** init an one dimensional plan */
-  //  nfft_init_1d(&p,N,M);
-  nfft_init_guru(&p, 1, &N, M, &n, 4,
-		 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+  nfft_init_1d(&p,N,M);
 
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
-
+ 
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
@@ -82,32 +78,25 @@ void simple_test_nfft_2d(void)
 
   N[0]=32; n[0]=64;
   N[1]=14; n[1]=32;
-  M=1;
-  K=1;
+  M=N[0]*N[1];
+  K=16;
 
   t=nfft_second();
   /** init a two dimensional plan */
-  nfft_init_guru(&p, 2, N, M, n, 4,
-		 PRE_PHI_HUT| PRE_LIN_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+  nfft_init_guru(&p, 2, N, M, n, 7,
+		 PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
 		 FFTW_INIT| FFT_OUT_OF_PLACE,
 		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
-  printf("p.K=%d\n",p.K);
-
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x,p.d*p.M_total);
-  p.x[0]=0.12;
-  p.x[1]=0.0;
 
   /** precompute psi, the entries of the matrix B */
   if(p.nfft_flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  //nfft_vrand_unit_complex(p.f_hat,p.N_total);
-  for(k=0;k<N[0]*N[1];k++)
-    p.f_hat[k]=0.0;
-  p.f_hat[N[0]/2*N[1]+N[1]/2]=1.0;
+  nfft_vrand_unit_complex(p.f_hat,p.N_total);
 
   t=nfft_second()-t;
   nfft_vpr_complex(p.f_hat,K,
@@ -127,8 +116,6 @@ void simple_test_nfft_2d(void)
   t=nfft_second()-t;
   nfft_vpr_complex(p.f,K,"nfft, vector f (first few entries)");
   printf(" took %e seconds.\n",t);
-
-  nfft_finalize(&p); return;
 
   /** direct adjoint and show the result */
   t=nfft_second();
@@ -150,13 +137,12 @@ void simple_test_nfft_2d(void)
 
 int main(void)
 {
-  /*system("clear");
+  system("clear");
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
   getc(stdin);
-  */
-
-  //  system("clear");
+  
+  system("clear");
   printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_2d();
 

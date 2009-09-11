@@ -394,7 +394,7 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
   double tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3;                       \
   double ip_w;                                                                \
   int ip_u;                                                                   \
-  int ip_s=ths->K/(ths->m+1);                                                 \
+  int ip_s=ths->K/(ths->m+2);                                                 \
                                                                               \
   f=ths->f; g=ths->g;                                                         \
                                                                               \
@@ -533,7 +533,7 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
           for(t2=0; t2<ths->d; t2++)                                          \
             {                                                                 \
               y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-                       \
-                          (double)u[t2]) * ((double)ths->K))/(ths->m+1);      \
+                          (double)u[t2]) * ((double)ths->K))/(ths->m+2);      \
               ip_u  = LRINT(floor(y[t2]));                                    \
               ip_w  = y[t2]-ip_u;                                             \
               for(l_fg=u[t2], lj_fg=0; l_fg <= o[t2]; l_fg++, lj_fg++)        \
@@ -729,15 +729,13 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc((2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
-
-      psij_const[2*m+1]=0;
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
 
-	  ip_y = fabs(n*(*xj) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n*(*xj) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -851,13 +849,13 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc((2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj++)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
 
-	  ip_y = fabs(n*(*xj) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n*(*xj) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -1011,9 +1009,6 @@ static void nfft_trafo_2d_compute(double _Complex *fj, const double _Complex *g,
 
   nfft_uo2(&u0,&o0,*xj0, n0, m);
   nfft_uo2(&u1,&o1,*xj1, n1, m);
-
-  nfft_vpr_double(psij_const0,2*m+2,"psij0");
-  nfft_vpr_double(psij_const1,2*m+2,"psij1");
 
   *fj=0;
 
@@ -1271,21 +1266,19 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc(2*(2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  ip_y = fabs(n0*(*(xj+0)) - u)*ip_s;
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
 	    psij_const[l] = ths->psi[abs(ip_u-l*ip_s)]*(1.0-ip_w) + ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
-	  printf("idx=%d\tpsi=%e\n",abs(ip_u-(2*m+1)*ip_s+1),ths->psi[abs(ip_u-(2*m+1)*ip_s+1)]);
-
 	  nfft_uo(ths,j,&u,&o,1);
-	  ip_y = fabs(n1*(*(xj+1)) - u)*ip_s;
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -1428,12 +1421,12 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc(2*(2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=2)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -1441,7 +1434,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,1);
-	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2286,12 +2279,12 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc(3*(2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=3)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2299,7 +2292,7 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,1);
-	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2307,7 +2300,7 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 	      ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,2);
-	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2480,12 +2473,12 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     {
       psij_const=(double*)nfft_malloc(3*(2*m+2)*sizeof(double));
       K=ths->K;
-      ip_s=K/(m+1);
+      ip_s=K/(m+2);
 
       for(j=0,fj=ths->f,xj=ths->x;j<M;j++,fj++,xj+=3)
 	{
 	  nfft_uo(ths,j,&u,&o,0);
-	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n0*(*(xj+0)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2493,7 +2486,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 	      ths->psi[abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,1);
-	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n1*(*(xj+1)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2501,7 +2494,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 	      ths->psi[(K+1)+abs(ip_u-l*ip_s+1)]*(ip_w);
 
 	  nfft_uo(ths,j,&u,&o,2);
-	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)K)/(m+1);
+	  ip_y = fabs(n2*(*(xj+2)) - u)*((double)ip_s);
 	  ip_u = LRINT(floor(ip_y));
 	  ip_w = ip_y-ip_u;
 	  for(l=0; l < 2*m+2; l++)
@@ -2871,11 +2864,11 @@ void nfft_precompute_lin_psi(nfft_plan *ths)
 {
   int t;                                /**< index over all dimensions       */
   int j;                                /**< index over all nodes            */
-  double step;                          /**< step size in [0,(m+1)/n]        */
+  double step;                          /**< step size in [0,(m+2)/n]        */
 
   for (t=0; t<ths->d; t++)
     {
-      step=((double)(ths->m+1))/(ths->K*ths->n[t]);
+      step=((double)(ths->m+2))/(ths->K*ths->n[t]);
       for(j=0;j<=ths->K;j++)
 	{
 	  ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
@@ -3005,7 +2998,7 @@ static void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-      ths->K=(1U<< 10)*(ths->m+1);
+      ths->K=(1U<< 10)*(ths->m+2);
       ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
