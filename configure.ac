@@ -228,15 +228,15 @@ esac
 AC_LANG(C)
 
 # select C99 compliant mode for C compiler
-AC_PROG_CC_C99
+#AC_PROG_CC_C99
 
 # reset CC variable
-CC="$ac_save_CC"
+#CC="$ac_save_CC"
 
 # hack to prevent use of GNU's C99 style
-if test "x$ac_cv_prog_cc_c99" = "x-std=gnu99"; then
-  ac_cv_prog_cc_c99="-std=c99"
-fi
+#if test "x$ac_cv_prog_cc_c99" = "x-std=gnu99"; then
+#  ac_cv_prog_cc_c99="-std=c99"
+#fi
 
 # enable "const" keyword
 AC_C_CONST

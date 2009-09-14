@@ -43,6 +43,9 @@
 #include <inttypes.h> /* uintptr_t, maybe */
 #endif
 
+#if HAVE_DISPATCH_DISPATCH_H
+#include <dispatch/dispatch.h> /* libdispatch, maybe */
+#endif
 /** Macros for window functions. */
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(k,d) 1.0
@@ -400,6 +403,9 @@ extern long int lrint(const double);
 
 #define TRUE 1
 #define FALSE 0
+
+#define KPI K(3.141592653589793238462643383279502884197169399375105820974944592)
+#define K2PI K(3.141592653589793238462643383279502884197169399375105820974944592)
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x

@@ -56,17 +56,17 @@
  */
 /** macros and small sub routines for the direct transforms
  */
-#define MACRO_ndft_init_result_trafo memset(f,0,ths->M_total*                 \
-                                            sizeof(double _Complex));
+#define MACRO_ndft_init_result_trafo \
+  memset(f,0,ths->M_total*sizeof(double _Complex));
 #define MACRO_ndft_init_result_conjugated MACRO_ndft_init_result_trafo
-#define MACRO_ndft_init_result_adjoint memset(f_hat,0,ths->N_total*           \
-					      sizeof(double _Complex));
+#define MACRO_ndft_init_result_adjoint \
+  memset(f_hat,0,ths->N_total*sizeof(double _Complex));
 #define MACRO_ndft_init_result_transposed MACRO_ndft_init_result_adjoint
 
-#define MACRO_ndft_sign_trafo      +2*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_conjugated -2*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_adjoint    +2*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_transposed -2*PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_trafo      K(2.0)*PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_conjugated K(-2.0)*PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_adjoint    K(2.0)*PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_transposed K(-2.0)*PI*ths->x[j*ths->d+t]
 
 #define MACRO_init_k_N_Omega_x(which_one) {                                   \
 for(t=0; t<ths->d; t++)                                                       \
@@ -90,14 +90,36 @@ for(t2 = t; t2<ths->d; t2++)                                                  \
 omega=Omega[ths->d];                                                          \
 }
 
-#define MACRO_ndft_compute_trafo (*fj) += (*f_hat_k)*cexp(-_Complex_I*omega);
+#define MACRO_ndft_compute_trafo f[j] += f_hat[k_L]*cexp(-_Complex_I*omega);
 
 #define MACRO_ndft_compute_conjugated MACRO_ndft_compute_trafo
 
-#define MACRO_ndft_compute_adjoint (*f_hat_k) += (*fj)*cexp(+ _Complex_I*omega);
+#define MACRO_ndft_compute_adjoint f_hat[k_L] += f[j]*cexp(+ _Complex_I*omega);
 
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
+#if defined(HAVE_LIBDISPATCH)
+#define MACRO_ndft(which_one)                                                 \
+void ndft_ ## which_one (nfft_plan *ths)                                      \
+{                                                                             \
+  C *f_hat = ths->f_hat; \
+  C *f = ths->f; \
+  MACRO_ndft_init_result_ ## which_one                                        \
+  if(ths->d==1) /* univariate case (due to performance) */                    \
+  { \
+    const int t = 0;\
+    dispatch_apply(ths->M_total, dispatch_get_global_queue(0, 0), ^(size_t j) \
+    { \
+      int k_L; \
+      for(k_L = 0; k_L < ths->N_total; k_L++)                                  \
+      {                                                                        \
+        R omega = (k_L-ths->N_total/2)* MACRO_ndft_sign_ ## which_one;         \
+        MACRO_ndft_compute_ ## which_one;                                    \
+      }                                                                      \
+    });                                                                      \
+  }                                                                          \
+} /* ndft_trafo */
+#else
 #define MACRO_ndft(which_one)                                                 \
 void ndft_ ## which_one (nfft_plan *ths)                                      \
 {                                                                             \
@@ -141,7 +163,7 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
         } /* for(j) */                                                        \
     } /* else */                                                              \
 } /* ndft_trafo */
-
+#endif
 
 /** user routines
  */

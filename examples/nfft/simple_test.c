@@ -30,9 +30,10 @@
 void simple_test_nfft_1d(void)
 {
   nfft_plan p;
+  double t;
 
-  int N=14;
-  int M=19;
+  int N=20000;
+  int M=20000;
   int n=32;
 
   /** init an one dimensional plan */
@@ -47,23 +48,26 @@ void simple_test_nfft_1d(void)
 
   /** init pseudo random Fourier coefficients and show them */
   nfft_vrand_unit_complex(p.f_hat,p.N_total);
-  nfft_vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
+//  nfft_vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
+  t=nfft_second();
   ndft_trafo(&p);
-  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
+  t=nfft_second()-t;
+//  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
+  printf(" took %e seconds.\n",t);
 
-  /** approx. trafo and show the result */
-  nfft_trafo(&p);
-  nfft_vpr_complex(p.f,p.M_total,"nfft, vector f");
-
-  /** approx. adjoint and show the result */
-  ndft_adjoint(&p);
-  nfft_vpr_complex(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
-
-  /** approx. adjoint and show the result */
-  nfft_adjoint(&p);
-  nfft_vpr_complex(p.f_hat,p.N_total,"adjoint nfft, vector f_hat");
+//  /** approx. trafo and show the result */
+//  nfft_trafo(&p);
+//  nfft_vpr_complex(p.f,p.M_total,"nfft, vector f");
+//
+//  /** approx. adjoint and show the result */
+//  ndft_adjoint(&p);
+//  nfft_vpr_complex(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
+//
+//  /** approx. adjoint and show the result */
+//  nfft_adjoint(&p);
+//  nfft_vpr_complex(p.f_hat,p.N_total,"adjoint nfft, vector f_hat");
 
   /** finalise the one dimensional plan */
   nfft_finalize(&p);
@@ -140,11 +144,11 @@ int main(void)
   system("clear");
   printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
-  getc(stdin);
-  
-  system("clear");
-  printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
-  simple_test_nfft_2d();
+//  getc(stdin);
+//
+//  system("clear");
+//  printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
+//  simple_test_nfft_2d();
 
   return 1;
 }
