@@ -63,31 +63,33 @@
   memset(f_hat,0,ths->N_total*sizeof(double _Complex));
 #define MACRO_ndft_init_result_transposed MACRO_ndft_init_result_adjoint
 
-#define MACRO_ndft_sign_trafo      K(2.0)*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_conjugated K(-2.0)*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_adjoint    K(2.0)*PI*ths->x[j*ths->d+t]
-#define MACRO_ndft_sign_transposed K(-2.0)*PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_trafo K2PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_conjugated -K2PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_adjoint K2PI*ths->x[j*ths->d+t]
+#define MACRO_ndft_sign_transposed -K2PI*ths->x[j*ths->d+t]
 
-#define MACRO_init_k_N_Omega_x(which_one) {                                   \
-for(t=0; t<ths->d; t++)                                                       \
+#define MACRO_init_k_N_Omega_x(which_one) \
+{                                                                             \
+  for(t = 0; t < ths->d; t++)                                                 \
   {                                                                           \
-    k[t]=-ths->N[t]/2;                                                        \
-    x[t]= MACRO_ndft_sign_ ## which_one;                                      \
-    Omega[t+1]=k[t]*x[t]+Omega[t];                                            \
+    k[t] = -ths->N[t]/2;                                                      \
+    x[t] = MACRO_ndft_sign_ ## which_one;                                     \
+    Omega[t+1] = k[t]*x[t]+Omega[t];                                          \
   }                                                                           \
-omega=Omega[ths->d];                                                          \
+  omega=Omega[ths->d];                                                        \
 }                                                                             \
 
-#define MACRO_count_k_N_Omega {                                               \
-for(t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)                   \
-  k[t]-= ths->N[t]-1;                                                         \
+#define MACRO_count_k_N_Omega \
+{                                                                             \
+  for(t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)                 \
+    k[t]-= ths->N[t]-1;                                                       \
                                                                               \
-k[t]++;                                                                       \
+  k[t]++;                                                                     \
                                                                               \
-for(t2 = t; t2<ths->d; t2++)                                                  \
-  Omega[t2+1]=k[t2]*x[t2]+Omega[t2];                                          \
+  for(t2 = t; t2 < ths->d; t2++)                                              \
+    Omega[t2+1] = k[t2]*x[t2]+Omega[t2];                                      \
                                                                               \
-omega=Omega[ths->d];                                                          \
+  omega = Omega[ths->d];                                                      \
 }
 
 #define MACRO_ndft_compute_trafo f[j] += f_hat[k_L]*cexp(-_Complex_I*omega);
@@ -99,71 +101,62 @@ omega=Omega[ths->d];                                                          \
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
 #if defined(HAVE_LIBDISPATCH)
-#define MACRO_ndft(which_one)                                                 \
-void ndft_ ## which_one (nfft_plan *ths)                                      \
-{                                                                             \
-  C *f_hat = ths->f_hat; \
-  C *f = ths->f; \
-  MACRO_ndft_init_result_ ## which_one                                        \
-  if(ths->d==1) /* univariate case (due to performance) */                    \
-  { \
-    const int t = 0;\
-    dispatch_apply(ths->M_total, dispatch_get_global_queue(0, 0), ^(size_t j) \
-    { \
-      int k_L; \
-      for(k_L = 0; k_L < ths->N_total; k_L++)                                  \
-      {                                                                        \
-        R omega = (k_L-ths->N_total/2)* MACRO_ndft_sign_ ## which_one;         \
-        MACRO_ndft_compute_ ## which_one;                                    \
-      }                                                                      \
-    });                                                                      \
-  }                                                                          \
-} /* ndft_trafo */
+#define LOOP_NODES_START \
+  dispatch_apply(ths->M_total, dispatch_get_global_queue(0, 0), ^(size_t j)
 #else
+#define LOOP_NODES_START \
+  int j; \
+  for (j = 0; j < ths->M_total; j++)
+#endif
+
+#if defined(HAVE_LIBDISPATCH)
+#define LOOP_NODES_END );
+#else
+#define LOOP_NODES_END
+#endif
+
 #define MACRO_ndft(which_one)                                                 \
 void ndft_ ## which_one (nfft_plan *ths)                                      \
 {                                                                             \
-  int j;                                /**< index over all nodes           */\
-  int t,t2;                             /**< index for dimensions           */\
-  int k_L;                              /**< plain index for summation      */\
-  double _Complex *f_hat, *f;           /**< dito                           */\
-  double _Complex *f_hat_k;             /**< actual Fourier coefficient     */\
-  double _Complex *fj;                  /**< actual sample                  */\
-  double x[ths->d];                     /**< actual node x[d*j+t]           */\
-  int k[ths->d];                        /**< multi index for summation      */\
-  double omega, Omega[ths->d+1];        /**< sign times 2*pi*k*x            */\
-                                                                              \
-  f_hat=ths->f_hat; f=ths->f;                                                 \
+  C *f_hat = ths->f_hat, *f = ths->f;                                         \
                                                                               \
   MACRO_ndft_init_result_ ## which_one                                        \
                                                                               \
-  if(ths->d==1) /* univariate case (due to performance) */                    \
+  if(ths->d == 1) /* treat univariate case extra, for performance */          \
+  {                                                                           \
+    const int t = 0;                                                          \
+    LOOP_NODES_START                                                          \
     {                                                                         \
-      t=0;                                                                    \
-      for(j=0, fj = f; j<ths->M_total; j++, fj++)                             \
-        {                                                                     \
-	  for(k_L=0, f_hat_k = f_hat; k_L<ths->N_total; k_L++, f_hat_k++)     \
-	    {                                                                 \
-	      omega=(k_L-ths->N_total/2)* MACRO_ndft_sign_ ## which_one;      \
-              MACRO_ndft_compute_ ## which_one;                               \
-	    }                                                                 \
-        }                                                                     \
+      int k_L;                                                                \
+      for(k_L = 0; k_L < ths->N_total; k_L++)                                 \
+      {                                                                       \
+        R omega = (k_L - ths->N_total/2) * MACRO_ndft_sign_ ## which_one;     \
+        MACRO_ndft_compute_ ## which_one;                                     \
+      }                                                                       \
     }                                                                         \
-  else /* multivariate case */					              \
+    LOOP_NODES_END                                                            \
+  }                                                                           \
+  else /* multivariate case */                                                \
+  {                                                                           \
+    double _Complex *f_hat_k;                                                 \
+    LOOP_NODES_START                                                          \
     {                                                                         \
-      Omega[0]=0;                                                             \
-      for(j=0, fj=f; j<ths->M_total; j++, fj++)                               \
-        {                                                                     \
-          MACRO_init_k_N_Omega_x(which_one);                                  \
-          for(k_L=0, f_hat_k=f_hat; k_L<ths->N_total; k_L++, f_hat_k++)       \
-	    {                                                                 \
-              MACRO_ndft_compute_ ## which_one;                               \
-	      MACRO_count_k_N_Omega;                                          \
-	    } /* for(k_L) */                                                  \
-        } /* for(j) */                                                        \
-    } /* else */                                                              \
+      int t, t2, k_L;                                                         \
+      double x[ths->d];                                                       \
+      int k[ths->d];                                                          \
+      double omega, Omega[ths->d+1];                                          \
+      Omega[0] = K(0.0);                                                      \
+      MACRO_init_k_N_Omega_x(which_one);                                      \
+      for(k_L = 0; k_L < ths->N_total; k_L++)                                 \
+      {                                                                       \
+        MACRO_ndft_compute_ ## which_one;                                     \
+        MACRO_count_k_N_Omega;                                                \
+      } /* for(k_L) */                                                        \
+    }                                                                         \
+    LOOP_NODES_END                                                            \
+  } /* else */                                                                \
 } /* ndft_trafo */
-#endif
+
 
 /** user routines
  */
