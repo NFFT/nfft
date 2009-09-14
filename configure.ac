@@ -20,70 +20,76 @@
 # Process this file with autoconf to produce a configure script.
 ################################################################################
 
-# initialize autoconf
-AC_INIT([NFFT],[3.1.1],[potts@mathematik.tu-chemnitz.de])
-
-# m4 macros
-AC_CONFIG_MACRO_DIR([m4])
-
-# copyright notice
-AC_COPYRIGHT([2003, 2009, Jens Keiner, Stefan Kunis, Daniel Potts])
-
-# directory for auxilliary files
-AC_CONFIG_AUX_DIR([config])
-
-# minimum libtool version
-LT_PREREQ([2.2.0])
-
-# initialize libtool
-LT_INIT([win32-dll])
-
-AC_SUBST([LIBTOOL_DEPS])
+# autoconf initialization
+AC_INIT([NFFT],[3.1.2],[potts@mathematik.tu-chemnitz.de])
 
 # revision number
 AC_REVISION([$Id$])
 
-# Version information for library file
-SHARED_VERSION_INFO="0:0:0"
-AC_SUBST(SHARED_VERSION_INFO)
+# copyright notice
+AC_COPYRIGHT([2003, 2009, Jens Keiner, Stefan Kunis, Daniel Potts])
 
-# how to recognize configure source directory
+# m4 macros
+AC_CONFIG_MACRO_DIR([m4])
+
+# where to put auxilliary files
+AC_CONFIG_AUX_DIR([config])
+
+# how to recognize source directory
 AC_CONFIG_SRCDIR(include/nfft3.h)
 
-# config headers
+# header to create
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
+
+# canonical host system type string
+AC_CANONICAL_HOST
+
+# substitute abs_srcdir variable available in generated Makefiles
+AC_SUBST([abs_srcdir])
+
+# minimum required libtool version
+LT_PREREQ([2.2.0])
+
+# libtool initialization
+LT_INIT([win32-dll])
+
+# substitute LIBTOOL_DEPS variable in generated Makefiles
+AC_SUBST([LIBTOOL_DEPS])
+
+# version information for shared library
+SHARED_VERSION_INFO="0:0:0"
+
+# substitute SHARED_VERSION_INFO variable in generated Makefiles
+AC_SUBST(SHARED_VERSION_INFO)
 
 # check for make
 AC_PROG_MAKE_SET
 
-# initialise automake
-AM_INIT_AUTOMAKE(1.10)
+# automake initialization
+AM_INIT_AUTOMAKE(1.11)
 
-# host system type
-AC_CANONICAL_HOST
-
-# make abs_srcdir available in Makefiles
-AC_SUBST([abs_srcdir])
+##############################################################################
+# options for customizing the build process
+##############################################################################
 
 # maintainer mode option
 AM_MAINTAINER_MODE
 
-# ############################################################################
-# options
-# ############################################################################
+# enable or disable parts of NFFT
 
-# enable or disable parts of nfft
-
+# whether or not the fpt module is needed
 need_fpt="no"
 
-AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[compile with all modules])], ok=$enableval, ok=no)
+# build all modules in maintainer mode
+AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
   nfft_module_default="yes"
 else
   nfft_module_default="no"
 fi
 
-AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[compile with nfct module (nonequispaced fast cosine transform)])], ok=$enableval, ok=$nfft_module_default)
+# NFCT (nonequispaced fast cosine transform)
+AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],[build NFCT module (nonequispaced fast cosine transform)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NFCT="#define HAVE_NFCT 1"
   AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
@@ -93,7 +99,8 @@ else
 fi
 AC_SUBST(HAVE_NFCT)
 
-AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[compile with nfst module (nonequispaced fast sine transform)])], ok=$enableval, ok=$nfft_module_default)
+# NFST (nonequispaced fast sine transform)
+AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],[build NFST module (nonequispaced fast sine transform)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NFST="#define HAVE_NFST 1"
   AM_CONDITIONAL(HAVE_NFST, test "yes" = "yes" )
@@ -103,7 +110,8 @@ else
 fi
 AC_SUBST(HAVE_NFST)
 
-AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[compile with nfsft module (nonequispaced fast spherical Fourier transform; needs fpt module)])], ok=$enableval, ok=$nfft_module_default)
+# NFSFT (nonequispaced fast spherical Fourier transform)
+AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft],[build NFSFT module (nonequispaced fast spherical Fourier transform). Implies --enable-fpt.])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   need_fpt="yes"
   HAVE_NFSFT="#define HAVE_NFSFT 1"
@@ -114,7 +122,8 @@ else
 fi
 AC_SUBST(HAVE_NFSFT)
 
-AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],[compile with nfsoft module (nonequispaced fast SO(3) Fourier transform; needs fpt module)])], ok=$enableval, ok=$nfft_module_default)
+# NFSFT (nonequispaced fast SO(3) Fourier transform)
+AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],[build NFSOFT module (nonequispaced fast SO(3) Fourier transform). Implies --with-fpt.])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   need_fpt="yes"
   HAVE_NFSOFT="#define HAVE_NFSOFT 1"
@@ -125,7 +134,8 @@ else
 fi
 AC_SUBST(HAVE_NFSOFT)
 
-AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[compile with nnfft module (nonequispaced fast Fourier transform in time and frequency)])], ok=$enableval, ok=$nfft_module_default)
+# NFSFT (fast Fourier transform -- nonequispaced in both domains)
+AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],[build NNFFT module (nonequispaced fast Fourier transform -- nonequispaced in both domains)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NNFFT="#define HAVE_NNFFT 1"
   AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "yes" )
@@ -135,7 +145,8 @@ else
 fi
 AC_SUBST(HAVE_NNFFT)
 
-AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[compile with nsfft module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=$nfft_module_default)
+# NSFFT (nonequispaced sparse fast Fourier transform)
+AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],[build NSFFT module (nonequispaced sparse fast Fourier transform)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_NSFFT="#define HAVE_NSFFT 1"
   AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "yes" )
@@ -145,7 +156,8 @@ else
 fi
 AC_SUBST(HAVE_NSFFT)
 
-AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[compile with mri module (magnet resonance imaging)])], ok=$enableval, ok=$nfft_module_default)
+# MRI (magnet resonance imaging)
+AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],[build MRI module (magnet resonance imaging)])], ok=$enableval, ok=$nfft_module_default)
 if test "x$ok" = "xyes"; then
   HAVE_MRI="#define HAVE_MRI 1"
   AM_CONDITIONAL(HAVE_MRI, test "yes" = "yes" )
@@ -155,8 +167,9 @@ else
 fi
 AC_SUBST(HAVE_MRI)
 
-AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[compile with fpt module (fast polynomial transform)])], ok=$enableval, ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
+# FPT (fast polynomial transform)
+AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],[build FPT module (fast polynomial transform)])], ok=$enableval, ok=$nfft_module_default)
+if test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"; then
   have_fpt="yes"
   HAVE_FPT="#define HAVE_FPT 1"
   AM_CONDITIONAL(HAVE_FPT, test "yes" = "yes" )
@@ -167,33 +180,32 @@ else
 fi
 AC_SUBST(HAVE_FPT)
 
-if test "x$need_fpt" = "xyes" -a "x$have_fpt" = "xno"; then
-  AC_MSG_ERROR([[You must enable the FPT module for this configuration (--enable-fpt)]])
-fi
-
+# debug mode
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],[compile nfft with extra runtime checks for debugging])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   enable_debug="yes"
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
 fi
 
+# runtime time measurements
 AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
   [measure time during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
-  AC_DEFINE(MEASURE_TIME,1,[Define to enable time measurements during execution.])
+  AC_DEFINE(MEASURE_TIME,1,[Define to enable runtime time measurements.])
 fi
 
+# runtime time measurements of FFTW part
 AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
   [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW transforms.])
 fi
 
+# choose window function
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
   dirac)])],
   window=$withval, window="kaiserbessel")
-
 
 case "$window" in
   gaussian)
@@ -209,30 +221,34 @@ case "$window" in
 esac
 
 # ############################################################################
-# Checks for programs.
+# program checks
 # ############################################################################
 
-# Set programming language to C.
+# programming language
 AC_LANG(C)
 
-# Search for C compiler. Try to select C99 compliant mode.
+# select C99 compliant mode for C compiler
 AC_PROG_CC_C99
 
-# Reset CC variable.
+# reset CC variable
 CC="$ac_save_CC"
 
+# hack to prevent use of GNU's C99 style
 if test "x$ac_cv_prog_cc_c99" = "x-std=gnu99"; then
   ac_cv_prog_cc_c99="-std=c99"
 fi
 
-# Make sure "const" keyword can be used.
+# enable "const" keyword
 AC_C_CONST
 
-# Make sure "restrict" keyword can be used.
+# enable "restrict" keyword
 AC_C_RESTRICT
 
-# Make sure "inline" keyword can be used.
+# enable "inline" keyword
 AC_C_INLINE
+
+# check if compiler supports blocks
+AX_CC_BLOCKS
 
 # Determine compiler vendor (thanks fftw)
 AX_COMPILER_VENDOR
