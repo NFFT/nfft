@@ -582,7 +582,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   const double *x_act;
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
-  R min = R_MAX, max = -R_MAX;
+  R max = -R_MAX;
   const R t = LOG10(FABS(threshold));
 
   /* Traverse all nodes. */
@@ -616,10 +616,8 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
       }
       *z_act = a;
       *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
-      min = FMIN(min,LOG10(FABS(*y_act)));
       max = FMAX(max,LOG10(FABS(*y_act)));
-//      if (fabs(*y_act) > threshold)
-      if ((max - min) > t)
+      if (max > t)
         return 1;
     }
     x_act++;
@@ -1715,7 +1713,7 @@ void fpt_finalize(fpt_set set)
   const int M = set->M;
 
   /* TODO Clean up DPT transform data structures. */
-  for (m = 0; m <= M; m++)
+  for (m = 0; m < M; m++)
   {
     /* Check if precomputed. */
     data = &set->dpt[m];
