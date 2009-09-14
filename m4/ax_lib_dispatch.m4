@@ -36,6 +36,7 @@ dispatch_apply(COUNT, q_default, ^(size_t i){result[i] = 1;});
     fi
     if test "x$ax_cv_lib_dispatch" = "xyes"; then
       AC_MSG_RESULT([yes])
+      AC_DEFINE(HAVE_LIBDISPATCH,1,[Define to enable concurrent code that uses libdispatch.])
     else
       AC_MSG_RESULT([no])
     fi
