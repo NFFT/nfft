@@ -266,6 +266,9 @@ AC_PROG_INSTALL
 # Check if ln -s works.
 AC_PROG_LN_S
 
+# libdispatch
+AX_LIB_DISPATCH
+
 # Check for fftw3.
 AX_LIB_FFTW3
 
