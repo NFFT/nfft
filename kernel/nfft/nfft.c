@@ -101,18 +101,18 @@
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
 #if defined(HAVE_LIBDISPATCH)
-#define LOOP_NODES_START \
-  dispatch_apply(ths->M_total, dispatch_get_global_queue(0, 0), ^(size_t j)
+#define FOR(VAR,VAL) \
+  dispatch_apply(VAL, dispatch_get_global_queue(0, 0), ^(size_t VAR)
 #else
-#define LOOP_NODES_START \
-  int j; \
-  for (j = 0; j < ths->M_total; j++)
+#define FOR(VAR,VAL) \
+  int VAR; \
+  for (VAR = 0; VAR < VAL; VAR++)
 #endif
 
 #if defined(HAVE_LIBDISPATCH)
-#define LOOP_NODES_END );
+#define END_FOR );
 #else
-#define LOOP_NODES_END
+#define END_FOR
 #endif
 
 #define MACRO_ndft(which_one)                                                 \
@@ -125,7 +125,7 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
   if(ths->d == 1) /* treat univariate case extra, for performance */          \
   {                                                                           \
     const int t = 0;                                                          \
-    LOOP_NODES_START                                                          \
+    FOR(j,ths->M_total)                                                       \
     {                                                                         \
       int k_L;                                                                \
       for(k_L = 0; k_L < ths->N_total; k_L++)                                 \
@@ -134,12 +134,12 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
         MACRO_ndft_compute_ ## which_one;                                     \
       }                                                                       \
     }                                                                         \
-    LOOP_NODES_END                                                            \
+    END_FOR                                                                   \
   }                                                                           \
   else /* multivariate case */                                                \
   {                                                                           \
     double _Complex *f_hat_k;                                                 \
-    LOOP_NODES_START                                                          \
+    FOR(j,ths->M_total)                                                       \
     {                                                                         \
       int t, t2, k_L;                                                         \
       double x[ths->d];                                                       \
@@ -153,7 +153,7 @@ void ndft_ ## which_one (nfft_plan *ths)                                      \
         MACRO_count_k_N_Omega;                                                \
       } /* for(k_L) */                                                        \
     }                                                                         \
-    LOOP_NODES_END                                                            \
+    END_FOR                                                                   \
   } /* else */                                                                \
 } /* ndft_trafo */
 
