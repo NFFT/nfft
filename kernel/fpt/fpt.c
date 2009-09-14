@@ -1715,7 +1715,7 @@ void fpt_finalize(fpt_set set)
   const int M = set->M;
 
   /* TODO Clean up DPT transform data structures. */
-  for (m = 0; m < M; m++)
+  for (m = 0; m <= M; m++)
   {
     /* Check if precomputed. */
     data = &set->dpt[m];
