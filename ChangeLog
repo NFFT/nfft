@@ -1,6 +1,14 @@
-So far, we do not provide a full version history here. Compared to its
-predecessor, NFFT2, the NFFT3 library has seen major extensions and
-improvements.
+THis file contains the version history for NFFT 3.x.x. 
+
+Changes in version 3.1.2:
+  - Fixed a bug in fpt_precompute() that caused excessive stabilization and 
+    incorrect results.
+  - Added experimental code that leverages support for libdispatch. This allows 
+    code to be executed in parallel on platforms that support the library. As of
+    now, this only affects ndft_trafo().
+
+Changes in version 3.1.1:
+  - Added a workaround for an internal compiler error occuring with gcc 4.3.2.
 
 Changes in version 3.1.0:
   - The FPT example program, that is, examples/fpt/simple_test has been 

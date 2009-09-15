@@ -66,7 +66,7 @@ AC_SUBST(SHARED_VERSION_INFO)
 AC_PROG_MAKE_SET
 
 # automake initialization
-AM_INIT_AUTOMAKE(1.11)
+AM_INIT_AUTOMAKE(1.10)
 
 ##############################################################################
 # options for customizing the build process
