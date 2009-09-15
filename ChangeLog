@@ -1,4 +1,4 @@
-THis file contains the version history for NFFT 3.x.x. 
+This file contains the version history for NFFT 3.x.x. 
 
 Changes in version 3.1.2:
   - Fixed a bug in fpt_precompute() that caused excessive stabilization and 
@@ -6,6 +6,9 @@ Changes in version 3.1.2:
   - Added experimental code that leverages support for libdispatch. This allows 
     code to be executed in parallel on platforms that support the library. As of
     now, this only affects ndft_trafo().
+  - Fixed three bugs in the nfft: window function defines are moved to the
+    internal header infft.h, a larger lookup table is used for PRE_LIN_PSI, and
+    nfft_adjoint for d=2,3 and PRE_FULL_PSI writes its output correctly.
 
 Changes in version 3.1.1:
   - Added a workaround for an internal compiler error occuring with gcc 4.3.2.
