@@ -209,4 +209,9 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     ax_prog_matlab="yes"
   fi
+  AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+  AC_SUBST(matlab_CPPFLAGS)
+  AC_SUBST(matlab_LIBS)
+  AC_SUBST(matlab_LDFLAGS)
+  AC_SUBST(matlab_mexext)
 ])

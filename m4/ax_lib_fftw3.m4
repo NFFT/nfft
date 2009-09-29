@@ -72,14 +72,23 @@ AC_DEFUN([AX_LIB_FFTW3],
 
   # Check if header is present and usable.
   ax_lib_fftw3=yes
-  AC_CHECK_HEADER([fftw3.h], [], [ax_lib_fftw3=no])
+  ax_lib_fftw3_threads=yes
+  AC_CHECK_HEADER([fftw3.h], [], [ax_lib_fftw3=no;ax_lib_fftw3_threads=no])
 
   if test "x$ax_lib_fftw3" = "xyes"; then
-    AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
+    saved_LIBS="$LIBS"
+    AC_CHECK_LIB([fftw3], [fftw_execute],,[ax_lib_fftw3=no])
     fftw3_LIBS="-lfftw3"
+    AC_CHECK_LIB([fftw3_threads], [fftw_execute],,[ax_lib_fftw3_threads=no])
+    fftw3_threads_LIBS="-lfftw3_threads"
+    LIBS="$saved_LIBS"
   fi
 
   # Restore saved flags.
   CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
+
+  AC_SUBST(fftw3_LIBS)
+  AC_SUBST(fftw3_threads_LIBS)
+  AC_SUBST(fftw3_LDFLAGS)
 ])

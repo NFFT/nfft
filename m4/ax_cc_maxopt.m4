@@ -129,22 +129,23 @@ if test "$ac_test_CFLAGS" != "set"; then
 
      AX_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;
-    apple)
+   apple)
      # default optimization flags for apple on all systems
      AX_CHECK_COMPILER_FLAGS(-O3, CFLAGS="$CFLAGS -O3")
      AX_CHECK_COMPILER_FLAGS(-fomit-frame-pointer, CFLAGS="$CFLAGS -fomit-frame-pointer")
      AX_CHECK_COMPILER_FLAGS(-fPIC, CFLAGS="$CFLAGS -fPIC")
 
-     case $host_cpu in
-        powerpc*)
-           cputype=`((grep cpu /proc/cpuinfo | head -n 1 | cut -d: -f2 | cut -d, -f1 | sed 's/ //g') ; /usr/bin/machine ; /bin/machine; grep CPU /var/run/dmesg.boot | head -n 1 | cut -d" " -f2) 2> /dev/null`
-           cputype=`echo $cputype | sed -e 's/ppc//g;s/ *//g'`
-           case $cputype in
-             *970*|*POWER4*|*power4*|*gq*|*POWER5*|*power5*|*gr*|*gs*);;
-             *) AX_CHECK_COMPILER_FLAGS(-mcpu=7450, CFLAGS="$CFLAGS -mcpu=7450");;
-           esac
-           ;;
-      esac
+     # -malign-double for x86 systems
+     AX_CHECK_COMPILER_FLAGS(-malign-double, CFLAGS="$CFLAGS -malign-double")
+
+     #  -fstrict-aliasing for gcc-2.95+
+     AX_CHECK_COMPILER_FLAGS(-fstrict-aliasing,CFLAGS="$CFLAGS -fstrict-aliasing")
+
+     # note that we enable "unsafe" fp optimization with other compilers, too
+     AX_CHECK_COMPILER_FLAGS(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
+
+     AX_CHECK_COMPILER_FLAGS(-march=core2, CFLAGS="$CFLAGS -march=core2")
+     AX_CHECK_COMPILER_FLAGS(-mtune=core2, CFLAGS="$CFLAGS -mtune=core2")
 
      AX_APPLE_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;

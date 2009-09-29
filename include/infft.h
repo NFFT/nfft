@@ -26,6 +26,9 @@
 
 #include <math.h>
 #include <float.h>
+#include <complex.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <stdlib.h> /* size_t */
 #include <stdarg.h> /* va_list */
@@ -199,6 +202,10 @@ extern long double powl(const long double, const long double);
 #if HAVE_DECL_EXPL == 0
 extern long double expl(const long double);
 #endif
+#define CEXP cexpl
+#if HAVE_DECL_CEXPL == 0
+extern long double _Complex cexpl(const long double _Complex);
+#endif
 #define COPYSIGN copysignl
 #if HAVE_DECL_COPYSIGNL == 0
 extern long double copysignl(const long double, const long double);
@@ -256,6 +263,10 @@ extern float powf(const float, const float);
 #if HAVE_DECL_EXPF == 0
 extern float expf(const float);
 #endif
+#define CEXP cexpf
+#if HAVE_DECL_CEXPF == 0
+extern float _Complex cexpf(const float _Complex);
+#endif
 #define COPYSIGN copysignf
 #if HAVE_DECL_COPYSIGNF == 0
 extern float copysignf(const float, const float);
@@ -312,6 +323,10 @@ extern double pow(const double, const double);
 #define EXP exp
 #if HAVE_DECL_EXP == 0
 extern double exp(const double);
+#endif
+#define CEXP cexp
+#if HAVE_DECL_CEXP == 0
+extern double _Complex cexp(const double _Complex);
 #endif
 #define COPYSIGN copysign
 #if HAVE_DECL_COPYSIGN == 0
@@ -409,5 +424,78 @@ extern long int lrint(const double);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
+
+#if defined(HAVE_LIBDISPATCH)
+#define FOR(VAR,VAL) \
+  dispatch_apply((size_t)VAL, dispatch_get_global_queue((long)DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)0), ^(size_t VAR)
+#else
+#define FOR(VAR,VAL) \
+  { \
+    int VAR; \
+    for (VAR = 0; VAR < VAL; VAR++)
+#endif
+
+#if defined(HAVE_LIBDISPATCH)
+#define END_FOR );
+#else
+#define END_FOR }
+#endif
+
+extern void nfft_assertion_failed(const char *s, int line, const char *file);
+
+/* always check */
+#define CK(ex) \
+  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+
+#ifdef NFFT_DEBUG
+  /* check only if debug enabled */
+  #define A(ex) \
+    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+#else
+  #define A(ex) /* nothing */
+#endif
+
+#ifdef HAVE_ALLOCA
+  /* Use alloca if available. */
+  #ifndef alloca
+    #ifdef __GNUC__
+      /* No alloca defined but can use GCC's builtin version. */
+      #define alloca __builtin_alloca
+    #else
+      /* No alloca defined and not using GCC. */
+      #ifdef _MSC_VER
+        /* Using Microsoft's C compiler. Include header file and use _alloca
+         * defined therein. */
+        #include <malloc.h>
+        #define alloca _alloca
+      #else
+        /* Also not using Microsoft's C compiler. */
+        #if HAVE_ALLOCA_H
+          /* Alloca header is available. */
+          #include <alloca.h>
+        #else
+          /* No alloca header available. */
+          #ifdef _AIX
+            /* We're using the AIX C compiler. Use pragma. */
+            #pragma alloca
+          #else
+            /* Not using AIX compiler. */
+            #ifndef alloca /* HP's cc +Olibcalls predefines alloca. */
+              void *alloca(size_t);
+            #endif
+          #endif
+        #endif
+      #endif
+    #endif
+  #endif
+  /* So we have alloca. */
+  #define STACK_MALLOC(T, p, x) p = (T)alloca(x)
+  #define STACK_FREE(x) /* Nothing. Cleanup done automatically. */
+#else /* ! HAVE_ALLOCA */
+  /* Use malloc instead of alloca. So we allocate memory on the heap instead of
+   * on the stack which is slower. */
+  #define STACK_MALLOC(T, p, x) p = (T)nfft_malloc(x)
+  #define STACK_FREE(x) nfft_free(x)
+#endif /* ! HAVE_ALLOCA */
 
 #endif

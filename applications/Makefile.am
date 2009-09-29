@@ -19,9 +19,8 @@ DIST_SUBDIRS = fastgauss fastsum $(DIR_FASTSUMS2) $(DIR_MRI) polarFFT \
 
 if MAINTAINER_MODE 
   EXTRA_DIRS= $(DIR_ITERS2)
-#  EXTRA_DIRS= texture iterS2
 else
-  EXTRA_DIRS=   
+  EXTRA_DIRS=
 endif 
 
 SUBDIRS= $(DIST_SUBDIRS) $(EXTRA_DIRS)

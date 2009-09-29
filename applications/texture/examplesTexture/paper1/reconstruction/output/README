@@ -1,6 +1,0 @@
-plotAll.m:
-Creates all plots from the output files.
-
-plotOutput.m:
-Given the name (e.g. omega1.3) the algorithm (CGNE|CGNR), damping factors and 
-the error measure, creates a plot from the output files.
