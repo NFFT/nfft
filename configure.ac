@@ -23,19 +23,19 @@
 # autoconf initialization
 AC_INIT([NFFT],[3.1.2],[potts@mathematik.tu-chemnitz.de])
 
-# revision number
+# revision id from svn
 AC_REVISION([$Id$])
 
 # copyright notice
 AC_COPYRIGHT([2003, 2009, Jens Keiner, Stefan Kunis, Daniel Potts])
 
-# m4 macros
+# m4 macros go here
 AC_CONFIG_MACRO_DIR([m4])
 
 # where to put auxilliary files
 AC_CONFIG_AUX_DIR([config])
 
-# how to recognize source directory
+# how to recognize the source directory
 AC_CONFIG_SRCDIR([include/nfft3.h])
 
 # header to create
@@ -44,7 +44,7 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 # canonical host system type string
 AC_CANONICAL_HOST
 
-# substitute abs_srcdir variable available in generated Makefiles
+# substitute abs_srcdir in generated Makefiles
 AC_SUBST([abs_srcdir])
 
 # minimum required libtool version
@@ -59,7 +59,7 @@ AC_SUBST([LIBTOOL_DEPS])
 # version information for shared library
 SHARED_VERSION_INFO="0:0:0"
 
-# substitute SHARED_VERSION_INFO variable in generated Makefiles
+# substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
 
 # check for make
@@ -77,10 +77,10 @@ AM_MAINTAINER_MODE
 
 # enable or disable parts of NFFT
 
-# whether or not the fpt module is needed
+# whether we need the fpt module
 need_fpt="no"
 
-# build all modules in maintainer mode
+# build all modules by default in maintainer mode or if option is given
 AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
   ok=$enableval, ok=no)
 if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
@@ -89,132 +89,31 @@ else
   nfft_module_default="no"
 fi
 
-# NFCT (nonequispaced fast cosine transform)
-AC_ARG_ENABLE(nfct, [AC_HELP_STRING([--enable-nfct],
-  [build NFCT module (nonequispaced fast cosine transform)])], ok=$enableval, 
-  ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  HAVE_NFCT="#define HAVE_NFCT 1"
-  AM_CONDITIONAL(HAVE_NFCT, test "yes" = "yes" )
-else
-  HAVE_NFCT="#undef HAVE_NFCT"
-  AM_CONDITIONAL(HAVE_NFCT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NFCT)
+# options for modules
+AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform])
+AX_NFFT_MODULE([nfst],[NFST],[nonequispaced fast sine transform])
+AX_NFFT_MODULE([nfsft],[NFSFT],[nonequispaced fast spherical Fourier transform],
+  [need_fpt="yes"])
+AX_NFFT_MODULE([nfsoft],[NFSOFT],[nonequispaced fast SO(3) Fourier transform],
+  [need_fpt="yes"])
+AX_NFFT_MODULE([nnfft],[NNFFT],[nonequispaced fast Fourier transform -- ]#
+  [nonequispaced in both domains])
+AX_NFFT_MODULE([nsfft],[NSFFT],[nonequispaced sparse fast Fourier transform])
+AX_NFFT_MODULE([mri],[MRI],[magnet resonance imaging])
+AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
+  ["x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
-# NFST (nonequispaced fast sine transform)
-AC_ARG_ENABLE(nfst, [AC_HELP_STRING([--enable-nfst],
-  [build NFST module (nonequispaced fast sine transform)])], ok=$enableval, 
-  ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  HAVE_NFST="#define HAVE_NFST 1"
-  AM_CONDITIONAL(HAVE_NFST, test "yes" = "yes" )
-else
-  HAVE_NFST="#undef HAVE_NFST"
-  AM_CONDITIONAL(HAVE_NFST, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NFST)
-
-# NFSFT (nonequispaced fast spherical Fourier transform)
-AC_ARG_ENABLE(nfsft, [AC_HELP_STRING([--enable-nfsft], 
-  [build NFSFT module (nonequispaced fast spherical Fourier transform).]
-  [Implies --enable-fpt.])], 
-  ok=$enableval, ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  need_fpt="yes"
-  HAVE_NFSFT="#define HAVE_NFSFT 1"
-  AM_CONDITIONAL(HAVE_NFSFT, test "yes" = "yes" )
-else
-  HAVE_NFSFT="#undef HAVE_NFSFT"
-  AM_CONDITIONAL(HAVE_NFSFT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NFSFT)
-
-# NFSFT (nonequispaced fast SO(3) Fourier transform)
-AC_ARG_ENABLE(nfsoft, [AC_HELP_STRING([--enable-nfsoft],
-  [build NFSOFT module (nonequispaced fast SO(3) Fourier transform).]
-  [Implies --with-fpt.])], 
-  ok=$enableval, ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  need_fpt="yes"
-  HAVE_NFSOFT="#define HAVE_NFSOFT 1"
-  AM_CONDITIONAL(HAVE_NFSOFT, test "yes" = "yes" )
-else
-  HAVE_NFSOFT="#undef HAVE_NFSOFT"
-  AM_CONDITIONAL(HAVE_NFSOFT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NFSOFT)
-
-# NFSFT (fast Fourier transform -- nonequispaced in both domains)
-AC_ARG_ENABLE(nnfft, [AC_HELP_STRING([--enable-nnfft],
-  [build NNFFT module (nonequispaced fast Fourier transform -- nonequispaced in]
-  [both domains)])], 
-  ok=$enableval, ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  HAVE_NNFFT="#define HAVE_NNFFT 1"
-  AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "yes" )
-else
-  HAVE_NNFFT="#undef HAVE_NNFFT"
-  AM_CONDITIONAL(HAVE_NNFFT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NNFFT)
-
-# NSFFT (nonequispaced sparse fast Fourier transform)
-AC_ARG_ENABLE(nsfft, [AC_HELP_STRING([--enable-nsfft],
-  [build NSFFT module (nonequispaced sparse fast Fourier transform)])], 
-  ok=$enableval, ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  HAVE_NSFFT="#define HAVE_NSFFT 1"
-  AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "yes" )
-else
-  HAVE_NSFFT="#undef HAVE_NSFFT"
-  AM_CONDITIONAL(HAVE_NSFFT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_NSFFT)
-
-# MRI (magnet resonance imaging)
-AC_ARG_ENABLE(mri, [AC_HELP_STRING([--enable-mri],
-  [build MRI module (magnet resonance imaging)])], ok=$enableval, 
-  ok=$nfft_module_default)
-if test "x$ok" = "xyes"; then
-  HAVE_MRI="#define HAVE_MRI 1"
-  AM_CONDITIONAL(HAVE_MRI, test "yes" = "yes" )
-else
-  HAVE_MRI="#undef HAVE_MRI"
-  AM_CONDITIONAL(HAVE_MRI, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_MRI)
-
-# FPT (fast polynomial transform)
-AC_ARG_ENABLE(fpt, [AC_HELP_STRING([--enable-fpt],
-  [build FPT module (fast polynomial transform)])], ok=$enableval, 
-  ok=$nfft_module_default)
-if test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"; then
-  have_fpt="yes"
-  HAVE_FPT="#define HAVE_FPT 1"
-  AM_CONDITIONAL(HAVE_FPT, test "yes" = "yes" )
-else
-  have_fpt="no"
-  HAVE_FPT="#undef HAVE_FPT"
-  AM_CONDITIONAL(HAVE_FPT, test "yes" = "no" )
-fi
-AC_SUBST(HAVE_FPT)
-
-# threads
+# multithreaded code
 AC_ARG_ENABLE(threads, [AC_HELP_STRING([--enable-threads],
-  [enable multithreaded code])], ok=$enableval, ok=no)
-if test "x$ok" = "xyes"; then
-  enable_threads="yes"
-fi
+  [enable multithreaded code])], enable_threads=$enableval, enable_threads=no)
 AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],
-  [compile nfft with extra runtime checks for debugging])], ok=$enableval, 
-  ok=no)
-if test "x$ok" = "xyes"; then
-  enable_debug="yes"
-  AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra NFFT debugging code.])
+  [compile with extra runtime checks for debugging])], enable_debug=$enableval,
+  enable_debug=no)
+if test "x$enable_debug" = "xyes"; then
+  AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra debugging code.])
 fi
 
 # runtime time measurements
@@ -232,7 +131,7 @@ if test "x$ok" = "xyes"; then
   [transforms.])
 fi
 
-# window function
+# select window function
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
   dirac)])],
@@ -255,7 +154,7 @@ esac
 # compiler characteristis
 ################################################################################
 
-# programming language
+# select programming language
 AC_LANG(C)
 
 # compiler vendor
@@ -276,7 +175,7 @@ AC_C_INLINE
 # check if compiler supports blocks
 AX_CC_BLOCKS
 
-# reset CC variable (We add the C99 option back below.)
+# reset CC variable (the C99 option is added back below)
 CC="$ac_save_CC"
 
 ################################################################################
@@ -299,18 +198,18 @@ AC_PROG_LN_S
 # 3rd party libraries
 ################################################################################
 
-# fftw
+# FFTW
 AX_LIB_FFTW3
 
 if test "x$ax_lib_fftw3" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the fftw3 library installed. You can ]#
-     [download it from http://www.fftw.org. If you have installed fftw3, make ]#
-     [sure that this configure script can find it. See ./configure --help for]#
-     [more information.])
+  AC_MSG_ERROR([You don't seem to have the FFTW 3 library installed. You can ]#
+     [download it from http://www.fftw.org. If you have installed FFTW 3, ]#
+     [make sure that this configure script can find it. See ./configure ]#
+     [--help for more information.])
 fi
 
 if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the threaded fftw3 library installed.])
+  AC_MSG_ERROR([You don't seem to have the threaded FFTW 3 library installed.])
 fi
 
 # libdispatch
