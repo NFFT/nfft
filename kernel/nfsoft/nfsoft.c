@@ -60,12 +60,12 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   n[1] = 8* B ;
   n[2] = 8* B ;
 
-  nfft_init_guru(&plan->nfft_plan, 3, N, M, n, nfft_cutoff, nfft_flags,
+  nfft_init_guru(&plan->p_nfft, 3, N, M, n, nfft_cutoff, nfft_flags,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
-  if ((plan->nfft_plan).nfft_flags & PRE_LIN_PSI)
+  if ((plan->p_nfft).nfft_flags & PRE_LIN_PSI)
   {
-    nfft_precompute_lin_psi(&(plan->nfft_plan));
+    nfft_precompute_lin_psi(&(plan->p_nfft));
   }
 
   plan->N_total = B;
@@ -431,32 +431,32 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
 
   for (j = 0; j < M; j++)
   {
-    plan3D->nfft_plan.x[3* j ] = plan3D->x[3* j + 2];
-    plan3D->nfft_plan.x[3* j + 1] = plan3D->x[3* j ];
-    plan3D->nfft_plan.x[3* j + 2] = plan3D->x[3* j + 1];
+    plan3D->p_nfft.x[3* j ] = plan3D->x[3* j + 2];
+    plan3D->p_nfft.x[3* j + 1] = plan3D->x[3* j ];
+    plan3D->p_nfft.x[3* j + 2] = plan3D->x[3* j + 1];
   }
 
-  for (j = 0; j < 3* plan3D ->nfft_plan.M_total; j++)
+  for (j = 0; j < 3* plan3D ->p_nfft.M_total; j++)
   {
-    plan3D->nfft_plan.x[j] = plan3D->nfft_plan.x[j] * (1 / (2* PI ));
+    plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* PI ));
   }
 
-  if ((plan3D->nfft_plan).nfft_flags & FG_PSI)
+  if ((plan3D->p_nfft).nfft_flags & FG_PSI)
   {
-    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+    nfft_precompute_one_psi(&(plan3D->p_nfft));
   }
-  if ((plan3D->nfft_plan).nfft_flags & PRE_PSI)
+  if ((plan3D->p_nfft).nfft_flags & PRE_PSI)
   {
-    nfft_precompute_one_psi(&(plan3D->nfft_plan));
+    nfft_precompute_one_psi(&(plan3D->p_nfft));
   }
 
   /** Node-independent part*/
   plan3D->fpt_set = SO3_fpt_init(N, plan3D->fpt_set, plan3D->flags,
       plan3D->fpt_kappa);
 
-  if ((plan3D->nfft_plan).nfft_flags & MALLOC_F_HAT)
-  for (j = 0; j < plan3D->nfft_plan.N_total; j++)
-    plan3D->nfft_plan.f_hat[j] = 0.0;
+  if ((plan3D->p_nfft).nfft_flags & MALLOC_F_HAT)
+  for (j = 0; j < plan3D->p_nfft.N_total; j++)
+    plan3D->p_nfft.f_hat[j] = 0.0;
 
 }
 
@@ -479,8 +479,8 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
     return;
   }
 
-  for (j = 0; j < plan3D->nfft_plan.N_total; j++)
-    plan3D->nfft_plan.f_hat[j] = 0.0;
+  for (j = 0; j < plan3D->p_nfft.N_total; j++)
+    plan3D->p_nfft.f_hat[j] = 0.0;
 
   for (k = -N; k <= N; k++)
   {
@@ -521,7 +521,7 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
 
       for (i = 1; i <= 2* plan3D ->N_total + 2; i++)
       {
-        plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k, m, i - N - 1, N) - 1]
+        plan3D->p_nfft.f_hat[NFSOFT_INDEX(k, m, i - N - 1, N) - 1]
             = plan3D->cheby[i - 1];
         //fprintf(stdout,"%f \t", plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k,m,i-N-1,N)-1]);
         //fprintf(stdout,"another index: %d for k=%d,m=%d,l=%d,N=%d \n", NFSOFT_INDEX(k,m,i-N-1,N)-1,k,m,i-N-1,N);
@@ -532,15 +532,15 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
 
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
-    ndft_trafo(&(plan3D->nfft_plan));
+    ndft_trafo(&(plan3D->p_nfft));
   }
   else
   {
-    nfft_trafo(&(plan3D->nfft_plan));
+    nfft_trafo(&(plan3D->p_nfft));
   }
 
   for (j = 0; j < plan3D->M_total; j++)
-    plan3D->f[j] = plan3D->nfft_plan.f[j];
+    plan3D->f[j] = plan3D->p_nfft.f[j];
 
 }
 
@@ -607,16 +607,16 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 
   for (j = 0; j < M; j++)
   {
-    plan3D->nfft_plan.f[j] = plan3D->f[j];
+    plan3D->p_nfft.f[j] = plan3D->f[j];
   }
 
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
-    ndft_adjoint(&(plan3D->nfft_plan));
+    ndft_adjoint(&(plan3D->p_nfft));
   }
   else
   {
-    nfft_adjoint(&(plan3D->nfft_plan));
+    nfft_adjoint(&(plan3D->p_nfft));
   }
 
   //nfft_vpr_complex(plan3D->nfft_plan.f_hat,plan3D->nfft_plan.N_total,"all results");
@@ -632,7 +632,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 
       for (i = 1; i < 2* plan3D ->N_total + 3; i++)
       {
-        plan3D->cheby[i - 1] = plan3D->nfft_plan.f_hat[NFSOFT_INDEX(k, m, i - N
+        plan3D->cheby[i - 1] = plan3D->p_nfft.f_hat[NFSOFT_INDEX(k, m, i - N
             - 1, N) - 1];
       }
 
@@ -677,7 +677,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 void nfsoft_finalize(nfsoft_plan *plan)
 {
   /* Finalise the nfft plan. */
-  nfft_finalize(&plan->nfft_plan);
+  nfft_finalize(&plan->p_nfft);
   free(plan->wig_coeffs);
   free(plan->cheby);
   free(plan->aux);
