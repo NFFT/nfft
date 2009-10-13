@@ -101,7 +101,7 @@ AX_NFFT_MODULE([nnfft],[NNFFT],[nonequispaced fast Fourier transform -- ]#
 AX_NFFT_MODULE([nsfft],[NSFFT],[nonequispaced sparse fast Fourier transform])
 AX_NFFT_MODULE([mri],[MRI],[magnet resonance imaging])
 AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
-  ["x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
+  [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
 AC_ARG_ENABLE(threads, [AC_HELP_STRING([--enable-threads],
