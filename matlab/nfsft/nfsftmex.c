@@ -26,7 +26,7 @@
 #include "nfft3util.h"
 #include "imex.h"
 
-#ifndef HAVE_MEXVERSION_C
+#ifdef HAVE_MEXVERSION_C
   #include "mexversion.c"
 #endif
 
