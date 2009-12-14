@@ -33,7 +33,7 @@
 int main(void)
 {
   nfft_plan p;
-  const int N = 10000000;
+  const int N = 100000;
   const int M = 100000;
   time_t t0, t1;
 
