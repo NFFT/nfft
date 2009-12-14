@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.1.2],[potts@mathematik.tu-chemnitz.de])
+AC_INIT([NFFT],[3.1.3],[potts@mathematik.tu-chemnitz.de])
 
 # revision number
 AC_REVISION([$Id$])
