@@ -1,5 +1,8 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.2:
+  - Fixed some issues that can cause C++ compilers to fail. Thanks to Romain Bossart.
+
 Changes in version 3.1.2:
   - Fixed a bug in fpt_precompute() that caused excessive stabilization and 
     incorrect results.

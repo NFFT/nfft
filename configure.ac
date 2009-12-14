@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.1.2],[potts@mathematik.tu-chemnitz.de])
+AC_INIT([NFFT],[3.2.0],[bugreports@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
@@ -43,6 +43,10 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 
 # canonical host system type string
 AC_CANONICAL_HOST
+
+# number of CPUs
+AX_COUNT_CPUS
+AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
 
 # substitute abs_srcdir in generated Makefiles
 AC_SUBST([abs_srcdir])
@@ -239,9 +243,9 @@ fi
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
   CFLAGS="-g"
-  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
-    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
-  fi
+#  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
+#    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
+#  fi
 fi
 
 # add gcc warnings, in debug/maintainer mode only

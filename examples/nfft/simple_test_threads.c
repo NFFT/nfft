@@ -18,6 +18,8 @@
 
 /* $Id: simple_test.c 3198 2009-05-27 14:16:50Z keiner $ */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -33,15 +35,11 @@ int main(void)
   nfft_plan p;
   const int N = 10000000;
   const int M = 100000;
-//  const int N = 20000;
-//  const int M = 20000;
   time_t t0, t1;
 
+  /* init */
   fftw_init_threads();
-
-  fftw_plan_with_nthreads(2);
-
-  /* one dimensional plan */
+  fftw_plan_with_nthreads(NFFT_NUM_CORES);
   nfft_init_1d(&p,N,M);
 
   /* pseudo random nodes */
@@ -54,7 +52,7 @@ int main(void)
   /* pseudo random Fourier coefficients */
   nfft_vrand_unit_complex(p.f_hat,p.N_total);
 
-  /** direct transformation */
+  /* transformation */
   t0 = time(0);
   nfft_trafo(&p);
   t1 = time(0);
@@ -62,13 +60,8 @@ int main(void)
   fflush(stderr);
 //  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
 
-  /* approximate transformation */
-//  nfft_trafo(&p);
-//  nfft_vpr_complex(p.f,p.M_total,"nfft, vector f");
-
-  /** finalize plan */
+  /* cleanup */
   nfft_finalize(&p);
-
   fftw_cleanup_threads();
 
   return EXIT_SUCCESS;
