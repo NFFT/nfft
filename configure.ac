@@ -269,6 +269,14 @@ AC_PROG_LN_S
 # libdispatch
 AX_LIB_DISPATCH
 
+# Check for MATLAB.
+AX_PROG_MATLAB
+AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+AC_SUBST(matlab_CPPFLAGS)
+AC_SUBST(matlab_LIBS)
+AC_SUBST(matlab_LDFLAGS)
+AC_SUBST(matlab_mexext)
+
 # Check for fftw3.
 AX_LIB_FFTW3
 
@@ -278,14 +286,6 @@ if test "x$ax_lib_fftw3" = "xno"; then
      [this configure script can find it. See ./configure --help for]#
      [more information.])
 fi
-
-# Check for MATLAB.
-AX_PROG_MATLAB
-AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
-AC_SUBST(matlab_CPPFLAGS)
-AC_SUBST(matlab_LIBS)
-AC_SUBST(matlab_LDFLAGS)
-AC_SUBST(matlab_mexext)
 
 # Try to choose good compiler options.
 if test "x$ac_test_CFLAGS" != "xset"; then
@@ -380,15 +380,15 @@ AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
-AC_CHECK_FUNCS([log2 log10 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint])
-AC_CHECK_FUNCS([log2f log10f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf])
-AC_CHECK_FUNCS([log2l log10l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl])
+AC_CHECK_FUNCS([log2 log10 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint fmax])
+AC_CHECK_FUNCS([log2f log10f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf] fmaxf)
+AC_CHECK_FUNCS([log2l log10l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl fmaxl])
 AC_CHECK_FUNCS([nanosleep sleep drand48 srand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
-AC_CHECK_DECLS([log2, log10, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2f, log10f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2l, log10l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2, log10, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint, fmax],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2f, log10f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf, fmaxf],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2l, log10l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl, fmaxl],[],[],[#include <math.h>])
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])

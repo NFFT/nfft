@@ -23,15 +23,10 @@ endif
 SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la
-noinst_LTLIBRARIES = libnfft3noinst.la
 
 libnfft3_la_SOURCES =
 libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
 libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
-
-libnfft3noinst_la_SOURCES =
-libnfft3noinst_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
-libnfft3noinst_la_LDFLAGS = @fftw3_LDFLAGS@
 
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 

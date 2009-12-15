@@ -207,6 +207,10 @@ extern long double copysignl(const long double, const long double);
 #if HAVE_DECL_LRINTL == 0
 extern long int lrintl(const long double);
 #endif
+#define FMAX fmaxl
+#if HAVE_DECL_FMAXL == 0
+extern double fmaxl(const long double x, const long double y);
+#endif
 #elif defined(NFFT_SINGLE)
 #define LOG1P log1pf
 #if HAVE_DECL_LOG1PF == 0
@@ -264,6 +268,10 @@ extern float copysignf(const float, const float);
 #if HAVE_DECL_LRINTF == 0
 extern long int lrintf(const float);
 #endif
+#define FMAX fmaxf
+#if HAVE_DECL_FMAXF == 0
+extern double fmaxf(const float x, const float y);
+#endif
 #else
 #define LOG1P log1p
 #if HAVE_DECL_LOG1P == 0
@@ -320,6 +328,10 @@ extern double copysign(const double, const double);
 #define LRINT lrint
 #if HAVE_DECL_LRINT == 0
 extern long int lrint(const double);
+#endif
+#define FMAX fmax
+#if HAVE_DECL_FMAX == 0
+extern double fmax(const double x, const double y);
 #endif
 #endif
 
