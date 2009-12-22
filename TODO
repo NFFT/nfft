@@ -1,2 +1,1 @@
-- Rename header files: nfftconf.h -> nfft3conf.h, util.h -> nfft3util.h
 - Change installation location of header files: .../include/nfft -> ...include
