@@ -202,7 +202,10 @@ AC_PROG_LN_S
 # 3rd party libraries
 ################################################################################
 
-# FFTW
+# Matlab
+AX_PROG_MATLAB
+
+# Check for fftw3.
 AX_LIB_FFTW3
 
 if test "x$ax_lib_fftw3" = "xno"; then
@@ -218,9 +221,6 @@ fi
 
 # libdispatch
 AX_LIB_DISPATCH
-
-# Matlab
-AX_PROG_MATLAB
 
 ################################################################################
 # compiler options
@@ -320,15 +320,18 @@ AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
 AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
-AC_CHECK_FUNCS([log2 log10 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint cexp])
-AC_CHECK_FUNCS([log2f log10f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf cexpf])
-AC_CHECK_FUNCS([log2l log10l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl cexpl])
+AC_CHECK_FUNCS([log2 log10 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint fmax cexp])
+AC_CHECK_FUNCS([log2f log10f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf fmaxf cexpf])
+AC_CHECK_FUNCS([log2l log10l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl fmaxl cexpl])
 AC_CHECK_FUNCS([nanosleep sleep drand48 srand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
-AC_CHECK_DECLS([log2, log10, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2f, log10f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2l, log10l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2, log10, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint, fmax],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2f, log10f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf, fmaxf],[],[],[#include <math.h>])
+AC_CHECK_DECLS([log2l, log10l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl, fmaxl],[],[],[#include <math.h>])
+AC_CHECK_DECLS([cexp],[],[],[#include <complex.h>])
+AC_CHECK_DECLS([cexpf],[],[],[#include <complex.h>])
+AC_CHECK_DECLS([cexpl],[],[],[#include <complex.h>])
 AC_CHECK_DECLS([cexp],[],[],[#include <complex.h>])
 AC_CHECK_DECLS([cexpf],[],[],[#include <complex.h>])
 AC_CHECK_DECLS([cexpl],[],[],[#include <complex.h>])

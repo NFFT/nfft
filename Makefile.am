@@ -29,7 +29,6 @@ endif
 SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
-noinst_LTLIBRARIES = libnfft3noinst.la
 
 libnfft3_la_SOURCES =
 libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
@@ -41,17 +40,13 @@ libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libk
 libnfft3_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 endif
 
-libnfft3noinst_la_SOURCES =
-libnfft3noinst_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
-libnfft3noinst_la_LDFLAGS = @fftw3_LDFLAGS@
-
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 
 install-data-hook:
 	mkdir -p $(pkgdatadir)
 	cp -R doc $(pkgdatadir)
 
-clean-local:
+maintainer-clean-local:
 	rm -f doc/api/html/*.html
 	rm -f doc/api/html/*.png
 	rm -f doc/api/html/*.gif
@@ -64,7 +59,11 @@ clean-local:
 	rm -f doc/api/latex/Makefile
 
 dist-hook:
+	support/toc.sed < doxygen.c
 	doxygen doxygen/doxygen.Doxyfile
+	rm -f doc/api/html/toc.txt
+	support/rem.sed < doc/api/html/index.html > doc/api/html/index.html.new
+	mv doc/api/html/index.html.new doc/api/html/index.html
 	mkdir -p $(distdir)/doc
 	mkdir -p $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api

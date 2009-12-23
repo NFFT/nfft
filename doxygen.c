@@ -18,7 +18,11 @@
 
 /* $Id$ */
 
-/** \mainpage
+/** \mainpage notitle
+ * \htmlonly
+ *   <h2 class="anchor">Contents</h2>
+ * \endhtmlonly
+ * \htmlinclude toc.txt
  *
  * \section section_intro_sec Introduction
  *
@@ -47,11 +51,11 @@
  *
  * More precisely,we collect the possible frequencies
  * \f$\mathbf{k}\in\mathbb{Z}^d\f$ in the multi-index set
- *\f[
+ * \f[
  * I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}
  *  \in \mathbb{Z}^d: -
  *   \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1\right\},
- *\f]
+ * \f]
  * where \f$\mathbf{N}=\left(N_t\right)_{t=0,\hdots,d-1}\f$ is the
  * multibandlimit, i.e., \f$N_t\in 2\mathbb{N}\f$.
  * For a finite number of given Fourier coefficients

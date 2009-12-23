@@ -352,3 +352,9 @@ HR { height: 1px;
      border: none;
      border-top: 1px solid black;
 }
+
+ul {
+  padding-top:0px;
+  padding-bottom:0px;
+  margin:0px;
+}

@@ -15,10 +15,10 @@ AC_DEFUN([AX_LIB_DISPATCH],
   AC_CACHE_VAL(ax_cv_lib_dispatch,
   [
     ax_cv_lib_dispatch="no"
+    AC_MSG_CHECKING([for libdispatch])
     if test "x$ax_cv_c_cc_blocks" = "xyes"; then
       AC_CHECK_HEADERS([dispatch/dispatch.h],
       [
-        AC_MSG_CHECKING([whether support for libdispatch should be enabled])
         AC_LINK_IFELSE(
           AC_LANG_PROGRAM(
           [[
