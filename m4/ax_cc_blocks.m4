@@ -11,7 +11,7 @@ dnl @license GPLWithACException
 dnl @author Jens Keiner <keiner@math.uni-luebeck.de>.
 AC_DEFUN([AX_CC_BLOCKS],
 [
-  AC_CACHE_CHECK([if C compiler supports blocks], ax_cv_c_cc_blocks,
+  AC_CACHE_CHECK([whether $CC supports blocks], ax_cv_c_cc_blocks,
   [
     AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM(,[[

@@ -32,13 +32,9 @@ AC_ARG_WITH(apple-gcc-arch, [AC_HELP_STRING([--with-apple-gcc-arch=<arch>],
   [use architecture <arch> for Apple's gcc -arch, instead of guessing])], 
   ax_apple_gcc_arch=$withval, ax_apple_gcc_arch=yes)
 
-AC_MSG_CHECKING([for Apple's gcc architecture flag])
-AC_MSG_RESULT([])
 AC_CACHE_VAL(ax_cv_apple_gcc_archflag,
 [
 ax_cv_apple_gcc_archflag="unknown"
-
-echo $ax_apple_gcc_arch
 
 if test "$GCC" = yes; then
   if test "x$ax_apple_gcc_arch" = xyes; then

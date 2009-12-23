@@ -176,9 +176,6 @@ AC_C_RESTRICT
 # enable "inline" keyword
 AC_C_INLINE
 
-# check if compiler supports blocks
-AX_CC_BLOCKS
-
 # reset CC variable (the C99 option is added back below)
 CC="$ac_save_CC"
 
