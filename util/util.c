@@ -2200,3 +2200,20 @@ R nfft_lambda2(const R mu, const R nu)
       * (csum(mu+nu)/(csum(mu)*csum(nu)))
       );
 }
+
+/**
+ * Prints an error message for a failed assertion together with filename and the
+ * line where the assertion failed.
+ */
+void nfft_assertion_failed(const char *s, int line, const char *file)
+{
+  fflush(stdout);
+  fprintf(stderr, "fmmw: %s:%d: assertion failed: %s\n", file, line, s);
+#ifdef HAVE_ABORT
+  /* Use abort function. */
+  abort();
+#else
+  /* Use exit function. */
+  exit(EXIT_FAILURE);
+#endif
+}

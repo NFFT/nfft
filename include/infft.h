@@ -26,6 +26,9 @@
 
 #include <math.h>
 #include <float.h>
+#include <complex.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <stdlib.h> /* size_t */
 #include <stdarg.h> /* va_list */
@@ -48,53 +51,53 @@
 #endif
 /** Macros for window functions. */
 #if defined(DIRAC_DELTA)
-  #define PHI_HUT(k,d) 1.0
-  #define PHI(x,d) (fabs((x))<10e-8)? 1.0 : 0.0
+  #define PHI_HUT(k,d) K(1.0)
+  #define PHI(x,d) (FABS((x))<K(10e-8))? K(1.0) : K(0.0)
   #define WINDOW_HELP_INIT(d)
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 0;}
 #elif defined(GAUSSIAN)
-  #define PHI_HUT(k,d) ((double)exp(-(pow(PI*(k)/ths->n[d],2.0)*ths->b[d])))
-  #define PHI(x,d) ((double)exp(-pow((x)*ths->n[d],2.0)/ ths->b[d])/sqrt(PI*ths->b[d]))
+  #define PHI_HUT(k,d) ((R)EXP(-(POW(PI*(k)/ths->n[d],K(2.0))*ths->b[d])))
+  #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0))/ ths->b[d])/SQRT(PI*ths->b[d]))
   #define WINDOW_HELP_INIT \
     {                                                                          \
       int WINDOW_idx;                                                          \
-      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
+      ths->b = (R*) nfft_malloc(ths->d*sizeof(R));                   \
       for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
-      ths->b[WINDOW_idx]=((double)2*ths->sigma[WINDOW_idx])/                   \
-        (2*ths->sigma[WINDOW_idx]-1)*(((double)ths->m) / PI);                  \
+      ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx])/                   \
+        (K(2.0)*ths->sigma[WINDOW_idx]-K(1.0))*(((R)ths->m) / PI);                  \
       }
   #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m =12;}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 12;}
 #elif defined(B_SPLINE)
-  #define PHI_HUT(k,d) ((double)(((k)==0)? 1.0/ths->n[(d)] :                   \
-    pow(sin((k)*PI/ths->n[(d)])/((k)*PI/ths->n[(d)]),2*ths->m)/ths->n[(d)]))
+  #define PHI_HUT(k,d) ((R)(((k)==0)? K(1.0)/ths->n[(d)] :                   \
+    POW(SIN((k)*PI/ths->n[(d)])/((k)*PI/ths->n[(d)]),K(2.0)*ths->m)/ths->n[(d)]))
   #define PHI(x,d) (nfft_bspline(2*ths->m,((x)*ths->n[(d)])+                   \
-    (double)ths->m,ths->spline_coeffs)/ths->n[(d)])
+    (R)ths->m,ths->spline_coeffs)/ths->n[(d)])
   #define WINDOW_HELP_INIT \
     {                                                                          \
-      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
+      ths->spline_coeffs= (R*)nfft_malloc(2*ths->m*sizeof(R));       \
     }
   #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m =11;}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 11;}
 #elif defined(SINC_POWER)
-  #define PHI_HUT(k,d) (nfft_bspline(2*ths->m,((double)2*ths->m*(k))/          \
-    ((2*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+ (double)ths->m,       \
+  #define PHI_HUT(k,d) (nfft_bspline(2*ths->m,(K(2.0)*ths->m*(k))/          \
+    ((K(2.0)*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+ (R)ths->m,       \
     ths->spline_coeffs))
-  #define PHI(x,d) ((double)(ths->n[(d)]/ths->sigma[(d)]*(2*ths->sigma[(d)]-1)/\
-    (2*ths->m)*pow(nfft_sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*               \
-    (2*ths->sigma[(d)]-1)/(2*ths->m)),2*ths->m)/ths->n[(d)]))
+  #define PHI(x,d) ((R)(ths->n[(d)]/ths->sigma[(d)]*(K(2.0)*ths->sigma[(d)]-K(1.0))/\
+    (K(2.0)*ths->m)*POW(nfft_sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*               \
+    (K(2.0)*ths->sigma[(d)]-1)/(K(2.0)*ths->m)),2*ths->m)/ths->n[(d)]))
   #define WINDOW_HELP_INIT \
     {                                                                          \
-      ths->spline_coeffs= (double*)nfft_malloc(2*ths->m*sizeof(double));       \
+      ths->spline_coeffs= (R*)nfft_malloc(2*ths->m*sizeof(R));       \
     }
   #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(k,d) ((double)nfft_i0( ths->m*sqrt(\
-    pow((double)(ths->b[d]),2.0) - pow(2.0*PI*(k)/ths->n[d],2.0))))
-  #define PHI(x,d) ((double)((pow((double)(ths->m),2.0)\
-    -pow((x)*ths->n[d],2.0))>0)? \
+  #define PHI_HUT(k,d) ((R)nfft_i0( ths->m*SQRT(\
+    POW((R)(ths->b[d]),K(2.0)) - POW(K(2.0)*PI*(k)/ths->n[d],K(2.0)))))
+  #define PHI(x,d) ((R)((POW((R)(ths->m),K(2.0))\
+    -POW((x)*ths->n[d],2.0))>0)? \
     sinh(ths->b[d]*sqrt(pow((double)(ths->m),2.0)-                             \
     pow((x)*ths->n[d],2.0)))/(PI*sqrt(pow((double)(ths->m),2.0)-               \
     pow((x)*ths->n[d],2.0))): (((pow((double)(ths->m),2.0)-                    \
@@ -199,6 +202,10 @@ extern long double powl(const long double, const long double);
 #if HAVE_DECL_EXPL == 0
 extern long double expl(const long double);
 #endif
+#define CEXP cexpl
+#if HAVE_DECL_CEXPL == 0
+extern long double _Complex cexpl(const long double _Complex);
+#endif
 #define COPYSIGN copysignl
 #if HAVE_DECL_COPYSIGNL == 0
 extern long double copysignl(const long double, const long double);
@@ -256,6 +263,10 @@ extern float powf(const float, const float);
 #if HAVE_DECL_EXPF == 0
 extern float expf(const float);
 #endif
+#define CEXP cexpf
+#if HAVE_DECL_CEXPF == 0
+extern float _Complex cexpf(const float _Complex);
+#endif
 #define COPYSIGN copysignf
 #if HAVE_DECL_COPYSIGNF == 0
 extern float copysignf(const float, const float);
@@ -312,6 +323,10 @@ extern double pow(const double, const double);
 #define EXP exp
 #if HAVE_DECL_EXP == 0
 extern double exp(const double);
+#endif
+#define CEXP cexp
+#if HAVE_DECL_CEXP == 0
+extern double _Complex cexp(const double _Complex);
 #endif
 #define COPYSIGN copysign
 #if HAVE_DECL_COPYSIGN == 0
@@ -409,5 +424,78 @@ extern long int lrint(const double);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
+
+#if defined(HAVE_LIBDISPATCH)
+#define FOR(VAR,VAL) \
+  dispatch_apply((size_t)VAL, dispatch_get_global_queue((long)DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)0), ^(size_t VAR)
+#else
+#define FOR(VAR,VAL) \
+  { \
+    int VAR; \
+    for (VAR = 0; VAR < VAL; VAR++)
+#endif
+
+#if defined(HAVE_LIBDISPATCH)
+#define END_FOR );
+#else
+#define END_FOR }
+#endif
+
+extern void nfft_assertion_failed(const char *s, int line, const char *file);
+
+/* always check */
+#define CK(ex) \
+  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+
+#ifdef NFFT_DEBUG
+  /* check only if debug enabled */
+  #define A(ex) \
+    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+#else
+  #define A(ex) /* nothing */
+#endif
+
+#ifdef HAVE_ALLOCA
+  /* Use alloca if available. */
+  #ifndef alloca
+    #ifdef __GNUC__
+      /* No alloca defined but can use GCC's builtin version. */
+      #define alloca __builtin_alloca
+    #else
+      /* No alloca defined and not using GCC. */
+      #ifdef _MSC_VER
+        /* Using Microsoft's C compiler. Include header file and use _alloca
+         * defined therein. */
+        #include <malloc.h>
+        #define alloca _alloca
+      #else
+        /* Also not using Microsoft's C compiler. */
+        #if HAVE_ALLOCA_H
+          /* Alloca header is available. */
+          #include <alloca.h>
+        #else
+          /* No alloca header available. */
+          #ifdef _AIX
+            /* We're using the AIX C compiler. Use pragma. */
+            #pragma alloca
+          #else
+            /* Not using AIX compiler. */
+            #ifndef alloca /* HP's cc +Olibcalls predefines alloca. */
+              void *alloca(size_t);
+            #endif
+          #endif
+        #endif
+      #endif
+    #endif
+  #endif
+  /* So we have alloca. */
+  #define STACK_MALLOC(T, p, x) p = (T)alloca(x)
+  #define STACK_FREE(x) /* Nothing. Cleanup done automatically. */
+#else /* ! HAVE_ALLOCA */
+  /* Use malloc instead of alloca. So we allocate memory on the heap instead of
+   * on the stack which is slower. */
+  #define STACK_MALLOC(T, p, x) p = (T)nfft_malloc(x)
+  #define STACK_FREE(x) nfft_free(x)
+#endif /* ! HAVE_ALLOCA */
 
 #endif
