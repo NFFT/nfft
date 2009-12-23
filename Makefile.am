@@ -34,7 +34,7 @@ install-data-hook:
 	mkdir -p $(pkgdatadir)
 	cp -R doc $(pkgdatadir)
 
-clean-local:
+maintainer-clean-local:
 	rm -f doc/api/html/*.html
 	rm -f doc/api/html/*.png
 	rm -f doc/api/html/*.gif
