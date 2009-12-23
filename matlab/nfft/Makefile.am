@@ -9,7 +9,7 @@ applicationdir = $(pkgdatadir)/matlab/nfft
 # library
 application_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
-libnfft_la_LIBADD = $(top_builddir)/libnfft3noinst.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+libnfft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
 
 EXTRA_DIST = FFT_OUT_OF_PLACE.m FFTW_ESTIMATE.m FFTW_MEASURE.m FG_PSI.m Contents.m ndft_adjoint.m ndft_trafo.m \
