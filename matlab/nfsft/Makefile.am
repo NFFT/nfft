@@ -14,7 +14,7 @@ libnfsft_la_SOURCES = nfsftmex.c
 libnfsft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfsft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
 
-EXTRA_DIST = Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m \
+EXTRA_DIST = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m \
   nfsft_adjoint.m nfsft_finalize.m nfsft_forget.m nfsft_get_f_hat.m \
   nfsft_get_f.m nfsft_get_x.m nfsft_init_advanced.m nfsft_init_guru.m \
   nfsft_init.m NFSFT_NO_DIRECT_ALGORITHM.m NFSFT_NO_FAST_ALGORITHM.m \
