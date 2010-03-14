@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgdatadir)/applications/fastsum
+applicationdir = $(bindir)/nfft/applications/fastsum
 
 noinst_LTLIBRARIES = libfastsum.la libkernels.la
 application_PROGRAMS = fastsum_test fastsum_matlab

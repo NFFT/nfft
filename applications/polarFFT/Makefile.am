@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgdatadir)/applications/polarFFT
+applicationdir = $(bindir)/nfft/applications/polarFTT
 
 application_PROGRAMS = polar_fft_test mpolar_fft_test linogram_fft_test
 

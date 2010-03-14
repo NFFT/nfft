@@ -2328,7 +2328,13 @@ void fpt_finalize(fpt_set set);
 /**
  * If this flag is set, the Wigner-D functions will be normed
  * such that they satisfy the representation property of
- * the spherical harmonics as defined in the NFFT software package
+ * the spherical harmonics as defined in the NFFT software package, i.e.
+ * for every rotation matrix \f$A$\f with Euler angles \f$\alpha, \beta, \gamma$\f
+ * and every unit vector \f$x$\f the Wigner-D functions will be normed such that
+ *
+ * \f[
+ *  \sum_{m=-l}^l D_{mn}^l(\alpha,\beta,\gamma) Y_m^l(x) = Y_n^l(A^{-1} x)
+ * \f]
  *
  * \author Antje Vollrath
  */

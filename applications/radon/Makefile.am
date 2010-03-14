@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgdatadir)/applications/radon
+applicationdir = $(bindir)/nfft/applications/radon
 
 application_PROGRAMS = radon inverse_radon
 

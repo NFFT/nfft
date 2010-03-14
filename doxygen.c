@@ -26,9 +26,9 @@
  *
  * \section section_intro_sec Introduction
  *
- * Fast Fourier transforms (FFTs) belong to the '10 algorithms with the
+ * \cite{nfft3} Fast Fourier transforms (FFTs) belong \cite{nfft3_2} to the '10 algorithms with the
  * greatest influence on the development and practice of science and
- * engineering in the 20th century'.
+ * engineering \cite{nfft3} in the 20th century'.
  * The classic algorithm computes the discrete Fourier transform
  * \f[
  *   f_j= \sum_{k=-\frac{N}{2}}^{\frac{N}{2}-1} \hat{f}_{k}
@@ -82,8 +82,6 @@
  *    - NSFFT - nonequispaced sparse fast Fourier transform,
  *    - FPT - fast polynomial transform,
  *    - NFSFT - nonequispaced fast spherical Fourier transform.
- *
- *
  *
  * Furthermore, we consider the inversion of the above transforms by
  * iterative methods.

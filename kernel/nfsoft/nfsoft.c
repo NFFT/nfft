@@ -507,6 +507,10 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
           }
           if ((m < 0) && (m % 2))
             plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (-1);
+
+          if ((m + k) % 2)
+	    plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (-1);
+
         }
 
         glo1++;
@@ -657,6 +661,10 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
           }
           if ((m < 0) && (m % 2))
             plan3D->wig_coeffs[j] = -plan3D->wig_coeffs[j];
+
+          if ((m + k) % 2)
+            plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (-1);
+
         }
 
         plan3D->f_hat[glo1] = plan3D->wig_coeffs[j];

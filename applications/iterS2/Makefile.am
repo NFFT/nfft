@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft
 
-applicationdir = $(pkgdatadir)/applications/iterS2
+applicationdir = $(bindir)/nfft/applications/iterS2
 
 application_PROGRAMS = iterS2
 

@@ -205,7 +205,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_CPPFLAGS="-I${matlab_include_dir}"
 
     # mexversion.c
-    AC_CHECK_FILE([${matlab_src_dir}/mexversion.c],[matlab_CPPFLAGS="${matlab_CPPFLAGS} -I${matlab_src_dir}"; AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])],[AC_MSG_WARN([Required file ]${matlab_src_dir}[/mexversion.c not found])])
+    AC_CHECK_FILE([${matlab_src_dir}/mexversion.c],[matlab_CPPFLAGS="${matlab_CPPFLAGS} -I${matlab_src_dir}"; AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])],[AC_MSG_WARN([File ]${matlab_src_dir}[/mexversion.c not found])])
 
     ax_prog_matlab="yes"
   fi

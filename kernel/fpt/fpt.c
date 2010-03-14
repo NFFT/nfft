@@ -84,9 +84,9 @@ typedef struct fpt_data_
   double beta_0;                          /**< TODO Add comment here.         */
   double gamma_m1;                        /**< TODO Add comment here.         */
   /* Data for direct transform. */        /**< TODO Add comment here.         */
-  double *alpha;                          /**< TODO Add comment here.         */
-  double *beta;                           /**< TODO Add comment here.         */
-  double *gamma;                          /**< TODO Add comment here.         */
+  double *_alpha;                          /**< TODO Add comment here.         */
+  double *_beta;                           /**< TODO Add comment here.         */
+  double *_gamma;                          /**< TODO Add comment here.         */
 } fpt_data;
 
 /**
@@ -293,7 +293,7 @@ FPT_DO_STEP(fpt_do_step_symmetric_l,auvxpwy,auvxpwy_symmetric)*/
 
 static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *b,
   double *a11, double *a12, double *a21, double *a22, double *x,
-  double gamma, int tau, fpt_set set)
+  double gam, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -317,7 +317,7 @@ static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *
   /*}*/
 
   /* Check, if gamma is zero. */
-  if (gamma == 0.0)
+  if (gam == 0.0)
   {
     /*fprintf(stderr,"gamma == 0!\n");*/
     /* Perform multiplication only for second row. */
@@ -328,7 +328,7 @@ static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *
     /*fprintf(stderr,"gamma != 0!\n");*/
     /* Perform multiplication for both rows. */
     auvxpwy_symmetric_1(norm,set->z,b,a12,a,a11,length,x);
-    auvxpwy_symmetric(norm*gamma,a,a,a11,b,a12,length);
+    auvxpwy_symmetric(norm*gam,a,a,a11,b,a12,length);
     memcpy(b,set->z,length*sizeof(double _Complex));
     /* Compute Chebyshev-coefficients using a DCT-II. */
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
@@ -343,7 +343,7 @@ static inline void fpt_do_step_symmetric_u(double _Complex *a, double _Complex *
 }
 
 static inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex *b,
-  double *a11, double *a12, double *a21, double *a22, double *x, double gamma, int tau, fpt_set set)
+  double *a11, double *a12, double *a21, double *a22, double *x, double gam, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -367,7 +367,7 @@ static inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex 
   /*}*/
 
   /* Check, if gamma is zero. */
-  if (gamma == 0.0)
+  if (gam == 0.0)
   {
     /*fprintf(stderr,"gamma == 0!\n");*/
     /* Perform multiplication only for second row. */
@@ -378,7 +378,7 @@ static inline void fpt_do_step_symmetric_l(double _Complex  *a, double _Complex 
     /*fprintf(stderr,"gamma != 0!\n");*/
     /* Perform multiplication for both rows. */
     auvxpwy_symmetric(norm,set->z,b,a22,a,a21,length);
-    auvxpwy_symmetric_2(norm*gamma,a,a,a21,b,a22,length,x);
+    auvxpwy_symmetric_2(norm*gam,a,a,a21,b,a22,length,x);
     memcpy(b,set->z,length*sizeof(double _Complex));
     /* Compute Chebyshev-coefficients using a DCT-II. */
     fftw_execute_r2r(set->plans_dct2[tau-1],(double*)a,(double*)a);
@@ -423,7 +423,7 @@ FPT_DO_STEP_TRANSPOSED(fpt_do_step_t_symmetric,abuvxpwy_symmetric1,abuvxpwy_symm
 
 static inline void fpt_do_step_t_symmetric_u(double _Complex  *a,
   double _Complex *b, double *a11, double *a12, double *x,
-  double gamma, int tau, fpt_set set)
+  double gam, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -435,8 +435,8 @@ static inline void fpt_do_step_t_symmetric_u(double _Complex  *a,
   fftw_execute_r2r(set->plans_dct3[tau-1],(double*)b,(double*)b);
 
   /* Perform matrix multiplication. */
-  abuvxpwy_symmetric1_1(norm,gamma,set->z,a,a11,b,length,x);
-  abuvxpwy_symmetric1_2(norm,gamma,b,a,a12,b,length,x);
+  abuvxpwy_symmetric1_1(norm,gam,set->z,a,a11,b,length,x);
+  abuvxpwy_symmetric1_2(norm,gam,b,a,a12,b,length,x);
   memcpy(a,set->z,length*sizeof(double _Complex));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
@@ -446,7 +446,7 @@ static inline void fpt_do_step_t_symmetric_u(double _Complex  *a,
 
 static inline void fpt_do_step_t_symmetric_l(double _Complex  *a,
   double _Complex *b, double *a21, double *a22,
-  double *x, double gamma, int tau, fpt_set set)
+  double *x, double gam, int tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
   int length = 1<<(tau+1);
@@ -458,8 +458,8 @@ static inline void fpt_do_step_t_symmetric_l(double _Complex  *a,
   fftw_execute_r2r(set->plans_dct3[tau-1],(double*)b,(double*)b);
 
   /* Perform matrix multiplication. */
-  abuvxpwy_symmetric2_2(norm,gamma,set->z,a,b,a21,length,x);
-  abuvxpwy_symmetric2_1(norm,gamma,b,a,b,a22,length,x);
+  abuvxpwy_symmetric2_2(norm,gam,set->z,a,b,a21,length,x);
+  abuvxpwy_symmetric2_1(norm,gam,b,a,b,a22,length,x);
   memcpy(a,set->z,length*sizeof(double _Complex));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
@@ -469,7 +469,7 @@ static inline void fpt_do_step_t_symmetric_l(double _Complex  *a,
 
 
 static void eval_clenshaw(const double *x, double *y, int size, int k, const double *alpha,
-  const double *beta, const double *gamma)
+  const double *beta, const double *gam)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
@@ -497,7 +497,7 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
     {
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
+      gamma_act = &(gam[k]);
       for (j = k; j > 1; j--)
       {
         a_old = a;
@@ -515,7 +515,7 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
 }
 
 static void eval_clenshaw2(const double *x, double *z, double *y, int size1, int size, int k, const double *alpha,
-  const double *beta, const double *gamma)
+  const double *beta, const double *gam)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
@@ -545,7 +545,7 @@ static void eval_clenshaw2(const double *x, double *z, double *y, int size1, int
     {
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
+      gamma_act = &(gam[k]);
       for (j = k; j > 1; j--)
       {
         a_old = a;
@@ -571,7 +571,7 @@ static void eval_clenshaw2(const double *x, double *z, double *y, int size1, int
 }
 
 static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size, int k,
-  const double *alpha, const double *beta, const double *gamma, const
+  const double *alpha, const double *beta, const double *gam, const
   double threshold)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
@@ -604,7 +604,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
     {
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
-      gamma_act = &(gamma[k]);
+      gamma_act = &(gam[k]);
       for (j = k; j > 1; j--)
       {
         a_old = a;
@@ -629,7 +629,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
 
 static inline void eval_sum_clenshaw_fast(const int N, const int M,
   const double _Complex *a, const double *x, double _Complex *y,
-  const double *alpha, const double *beta, const double *gamma,
+  const double *alpha, const double *beta, const double *gam,
   const double lambda)
 {
   int j,k;
@@ -651,7 +651,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
       {
         tmp3 =   a[k-1]
                + (alpha[k-1] * xc + beta[k-1]) * tmp1
-               + gamma[k] * tmp2;
+               + gam[k] * tmp2;
         tmp2 = tmp1;
         tmp1 = tmp3;
       }
@@ -662,7 +662,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
       tmp2 = a[N];
       for (k = N-1; k > 0; k--)
       {
-        tmp3 = a[k-1] + tmp2 * gamma[k];
+        tmp3 = a[k-1] + tmp2 * gam[k];
         tmp2 *= (alpha[k] * xc + beta[k]);
         tmp2 += tmp1;
         tmp1 = tmp3;
@@ -693,7 +693,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
 static void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, double *x,
-  double _Complex *y, double _Complex *temp, double *alpha, double *beta, double *gamma,
+  double _Complex *y, double _Complex *temp, double *alpha, double *beta, double *gam,
   double lambda)
 {
   int j,k;
@@ -727,7 +727,7 @@ static void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, doubl
       {
         aux = it1[j];
         it1[j] = it2[j];
-        it2[j] = it2[j]*(alpha[k-1] * x[j] + beta[k-1]) + gamma[k-1] * aux;
+        it2[j] = it2[j]*(alpha[k-1] * x[j] + beta[k-1]) + gam[k-1] * aux;
         a[k] += it2[j];
       }
     }
@@ -1107,18 +1107,18 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
     /* Check, if recurrence coefficients must be copied. */
     if (set->flags & FPT_PERSISTENT_DATA)
     {
-      data->alpha = (double*) alpha;
-      data->beta = (double*) beta;
-      data->gamma = (double*) gam;
+      data->_alpha = (double*) alpha;
+      data->_beta = (double*) beta;
+      data->_gamma = (double*) gam;
     }
     else
     {
-      data->alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
-      data->beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
-      data->gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
-      memcpy(data->alpha,alpha,(set->N+1)*sizeof(double));
-      memcpy(data->beta,beta,(set->N+1)*sizeof(double));
-      memcpy(data->gamma,gam,(set->N+1)*sizeof(double));
+      data->_alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      data->_beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      data->_gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      memcpy(data->_alpha,alpha,(set->N+1)*sizeof(double));
+      memcpy(data->_beta,beta,(set->N+1)*sizeof(double));
+      memcpy(data->_gamma,gam,(set->N+1)*sizeof(double));
     }
   }
 }
@@ -1155,7 +1155,7 @@ void dpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
       y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
       data->gamma_m1);*/
     eval_sum_clenshaw_fast(k_end, k_end, set->result, set->xc_slow,
-      y, &data->alpha[1], &data->beta[1], &data->gamma[1], data->gamma_m1);
+      y, &data->_alpha[1], &data->_beta[1], &data->_gamma[1], data->gamma_m1);
   }
   else
   {
@@ -1163,7 +1163,7 @@ void dpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
     memcpy(&set->temp[data->k_start],x,(k_end-data->k_start+1)*sizeof(double _Complex));
 
     eval_sum_clenshaw_fast(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
-      set->result, &data->alpha[1], &data->beta[1], &data->gamma[1],
+      set->result, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
       data->gamma_m1);
 
     fftw_execute_r2r(set->plans_dct2[tk-2],(double*)set->result,
@@ -1474,7 +1474,7 @@ void dpt_transposed(fpt_set set, const int m, double _Complex *x,
     }
 
     eval_sum_clenshaw_transposed(k_end, k_end, set->result, set->xc_slow,
-      y, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
+      y, set->work, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
       data->gamma_m1);
 
     memcpy(x,&set->result[data->k_start],(k_end-data->k_start+1)*
@@ -1494,7 +1494,7 @@ void dpt_transposed(fpt_set set, const int m, double _Complex *x,
       (double*)set->result);
 
     eval_sum_clenshaw_transposed(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
-      set->result, set->work, &data->alpha[1], &data->beta[1], &data->gamma[1],
+      set->result, set->work, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
       data->gamma_m1);
 
     memcpy(x,&set->temp[data->k_start],(k_end-data->k_start+1)*sizeof(double _Complex));
@@ -1779,13 +1779,13 @@ void fpt_finalize(fpt_set set)
       //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
       if (!(set->flags & FPT_PERSISTENT_DATA))
       {
-        nfft_free(data->alpha);
-        nfft_free(data->beta);
-        nfft_free(data->gamma);
+        nfft_free(data->_alpha);
+        nfft_free(data->_beta);
+        nfft_free(data->_gamma);
       }
-      data->alpha = NULL;
-      data->beta = NULL;
-      data->gamma = NULL;
+      data->_alpha = NULL;
+      data->_beta = NULL;
+      data->_gamma = NULL;
     }
   }
 

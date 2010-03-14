@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-exampledir = $(pkgdatadir)/examples/nfft
+noinst_PROGRAMS = simple_test ndft_fast taylor_nfft flags nfft_times
 
 if HAVE_THREADS
   SIMPLE_TEST_THREADS=simple_test_threads
@@ -33,4 +33,3 @@ nfft_times_SOURCES = nfft_times.c
 nfft_times_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 EXTRA_DIST = flags.m ndft_fast.m taylor_nfft.m README
-example_DATA = $(EXTRA_DIST)

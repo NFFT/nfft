@@ -46,9 +46,10 @@
 #include <inttypes.h> /* uintptr_t, maybe */
 #endif
 
-#if HAVE_DISPATCH_DISPATCH_H
-#include <dispatch/dispatch.h> /* libdispatch, maybe */
+#if defined(HAVE_LIBDISPATCH)
+#include <dispatch/dispatch.h> /* libdispatch */
 #endif
+
 /** Macros for window functions. */
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(k,d) K(1.0)
