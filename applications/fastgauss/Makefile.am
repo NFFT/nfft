@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgbindir)/nfft/fastgauss
+applicationdir = $(bindir)/nfft/applications/fastgauss
 
 application_PROGRAMS = fastgauss
 

@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgbindir)/nfft/applications/fastsumS2
+applicationdir = $(bindir)/nfft/applications/fastsumS2
 
 application_PROGRAMS = fastsumS2
 
