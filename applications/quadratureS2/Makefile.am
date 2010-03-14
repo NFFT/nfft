@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgdatadir)/applications/quadratureS2
+applicationdir = $(pkgbindir)/nfft/applications/quadratureS2
 
 application_PROGRAMS = quadratureS2
 

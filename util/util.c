@@ -238,14 +238,14 @@ static void bspline_help(int k, double x, double *scratch, int j, int ug, int og
       int r)
 {
   int i;                                /**< row index of the de Boor scheme  */
-  int index;                            /**< index in scratch                 */
+  int idx;                            /**< index in scratch                 */
   double a;                             /**< alpha of the de Boor scheme      */
 
   /* computation of one column */
-  for(i=og+r-k+1, index=og; index>=ug; i--, index--)
+  for(i=og+r-k+1, idx=og; idx>=ug; i--, idx--)
     {
       a = ((double)(x - i)) / ((double)(k - j));
-      scratch[index] = (1 - a) * scratch[index-1] + a * scratch[index];
+      scratch[idx] = (1 - a) * scratch[idx-1] + a * scratch[idx];
     }
 } /* bspline_help */
 
@@ -257,7 +257,7 @@ double nfft_bspline(int k, double x, double *scratch)
   double result_value;                  /**< M_{k,0}\left(x\right)            */
   int r;                                /**< \f$x \in {\rm supp}(M_{0,r}) \f$ */
   int g1,g2;                            /**< boundaries                       */
-  int j,index,ug,og;                    /**< indices                          */
+  int j,idx,ug,og;                    /**< indices                          */
   double a;                             /**< alpha of the de Boor scheme      */
 
   result_value=0.0;
@@ -268,8 +268,8 @@ double nfft_bspline(int k, double x, double *scratch)
 
       r=(int)(ceil(x)-1.0);
 
-      for(index=0; index<k; index++)
-  scratch[index]=0.0;
+      for(idx=0; idx<k; idx++)
+  scratch[idx]=0.0;
 
       scratch[k-r-1]=1.0;
 
@@ -1005,7 +1005,7 @@ void nfft_cp_a_complex(double _Complex *x, double a, double _Complex *y, int n)
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-static void nfft_cp_a_double(double *x, double a, double *y, int n)
+void nfft_cp_a_double(double *x, double a, double *y, int n)
 {
   int k;
 

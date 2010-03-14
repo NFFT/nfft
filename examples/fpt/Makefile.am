@@ -2,10 +2,8 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-exampledir = $(pkgdatadir)/examples/fpt
-
 # programs
-example_PROGRAMS = simple_test
+noinst_PROGRAMS = simple_test
 
 # sources
 simple_test_SOURCES = simple_test.c

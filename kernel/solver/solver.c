@@ -115,7 +115,7 @@ void solver_before_loop_complex(solver_plan_complex* ths)
 } /* void solver_before_loop */
 
 /** void solver_loop_one_step_landweber */
-void solver_loop_one_step_landweber_complex(solver_plan_complex* ths)
+static void solver_loop_one_step_landweber_complex(solver_plan_complex* ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_upd_xpawy_complex(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
@@ -219,7 +219,7 @@ void solver_loop_one_step_steepest_descent_complex(solver_plan_complex *ths)
 } /* void solver_loop_one_step_steepest_descent */
 
 /** void solver_loop_one_step_cgnr */
-void solver_loop_one_step_cgnr_complex(solver_plan_complex *ths)
+static void solver_loop_one_step_cgnr_complex(solver_plan_complex *ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_cp_w_complex(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,
@@ -282,7 +282,7 @@ void solver_loop_one_step_cgnr_complex(solver_plan_complex *ths)
 } /* void solver_loop_one_step_cgnr */
 
 /** void solver_loop_one_step_cgne */
-void solver_loop_one_step_cgne_complex(solver_plan_complex *ths)
+static void solver_loop_one_step_cgne_complex(solver_plan_complex *ths)
 {
   ths->alpha_iter = ths->dot_r_iter / ths->dot_p_hat_iter;
 
@@ -466,7 +466,7 @@ void solver_before_loop_double(solver_plan_double* ths)
 } /* void solver_before_loop */
 
 /** void solver_loop_one_step_landweber */
-void solver_loop_one_step_landweber_double(solver_plan_double* ths)
+static void solver_loop_one_step_landweber_double(solver_plan_double* ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_upd_xpawy_double(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
@@ -515,7 +515,7 @@ void solver_loop_one_step_landweber_double(solver_plan_double* ths)
 } /* void solver_loop_one_step_landweber */
 
 /** void solver_loop_one_step_steepest_descent */
-void solver_loop_one_step_steepest_descent_double(solver_plan_double *ths)
+static void solver_loop_one_step_steepest_descent_double(solver_plan_double *ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_cp_w_double(ths->mv->f_hat, ths->w_hat, ths->z_hat_iter,
@@ -570,7 +570,7 @@ void solver_loop_one_step_steepest_descent_double(solver_plan_double *ths)
 } /* void solver_loop_one_step_steepest_descent */
 
 /** void solver_loop_one_step_cgnr */
-void solver_loop_one_step_cgnr_double(solver_plan_double *ths)
+static void solver_loop_one_step_cgnr_double(solver_plan_double *ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_cp_w_double(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,
@@ -633,7 +633,7 @@ void solver_loop_one_step_cgnr_double(solver_plan_double *ths)
 } /* void solver_loop_one_step_cgnr */
 
 /** void solver_loop_one_step_cgne */
-void solver_loop_one_step_cgne_double(solver_plan_double *ths)
+static void solver_loop_one_step_cgne_double(solver_plan_double *ths)
 {
   ths->alpha_iter = ths->dot_r_iter / ths->dot_p_hat_iter;
 

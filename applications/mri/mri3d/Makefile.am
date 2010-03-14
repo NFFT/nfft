@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(pkgdatadir)/applications/mri/mri3d
+applicationdir = $(pkgbindir)/nfft/applications/mri/mri3d
 
 application_PROGRAMS = \
   construct_data_2d1d \
