@@ -1,5 +1,9 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.1.4:
+  - Fixed an error that occuredwhen trying to create symbolic links to Matlab mex
+    files during installation.
+
 Changes in version 3.1.3:
   - Fixed some issues that can cause C++ compilers to fail. Thanks to Romain Bossart.
   - Fixed an error that caused linking against FFTW while checking compiler 

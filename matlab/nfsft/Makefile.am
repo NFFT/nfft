@@ -6,10 +6,10 @@ SUBDIRS = @f_hat
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 
 # application directory
-applicationdir = $(pkgdatadir)/matlab/nfsft
+mexexecdir = $(pkgdatadir)/matlab/nfsft
 
 # library
-application_LTLIBRARIES = libnfsft.la
+mexexec_LTLIBRARIES = libnfsft.la
 libnfsft_la_SOURCES = nfsftmex.c
 libnfsft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfsft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
@@ -23,7 +23,7 @@ EXTRA_DIST = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m \
   nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m nfsftmex.m gl.m simple_test.m \
   nfsft_get_f_hat_linear.m nfsft_set_f_hat_linear.m projection.m
 
-application_DATA = $(EXTRA_DIST)
+mexexec_DATA = $(EXTRA_DIST)
 
 nfsftmex@matlab_mexext@: .libs/libnfsft@matlab_mexext@
 	rm -f ./nfsftmex@matlab_mexext@
@@ -35,4 +35,4 @@ clean: clean-am
 	rm -f ./nfsftmex@matlab_mexext@
 
 install-exec-hook:
-	$(LN_S) $(applicationdir)/libnfsft@matlab_mexext@ $(applicationdir)/nfsftmex@matlab_mexext@
+	$(LN_S) $(mexexecdir)/libnfsft@matlab_mexext@ $(mexexecdir)/nfsftmex@matlab_mexext@
