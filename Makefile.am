@@ -31,8 +31,8 @@ libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 
 install-data-hook:
-	mkdir -p $(datadir)
-	cp -R doc $(datadir)
+	mkdir -p $(datadir)/nfft
+	cp -R doc $(datadir)/nfft
 
 maintainer-clean-local:
 	rm -f doc/api/html/*.html
