@@ -2,9 +2,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-applicationdir = $(bindir)/nfft/applications/mri/mri3d
-
-application_PROGRAMS = \
+noinst_PROGRAMS = \
   construct_data_2d1d \
   construct_data_3d \
   reconstruct_data_gridding \
@@ -37,5 +35,3 @@ EXTRA_DIST = mri.m \
 			rms.m \
 			visualize_data.m \
 			README
-
-application_DATA = $(EXTRA_DIST)

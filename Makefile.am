@@ -43,8 +43,8 @@ endif
 EXTRA_DIST = bootstrap.sh VERSION doxygen.c
 
 install-data-hook:
-	mkdir -p $(datadir)
-	cp -R doc $(datadir)
+	mkdir -p $(datadir)/nfft
+	cp -R doc $(datadir)/nfft
 
 maintainer-clean-local:
 	rm -f doc/api/html/*.html

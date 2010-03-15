@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.2.0],[bugreports@nfft.org])
+AC_INIT([NFFT],[3.2.0],[bugs@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
