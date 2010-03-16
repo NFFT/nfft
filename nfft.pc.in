@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: NFFT
+Description: Nonuniform fast Fourier transform library
+Version: @VERSION@
+Requires: fftw3
+Libs: -L${libdir} -lnfft3
+Cflags: -I${includedir}

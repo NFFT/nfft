@@ -40,7 +40,7 @@ libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libk
 libnfft3_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh VERSION doxygen.c
+EXTRA_DIST = bootstrap.sh VERSION doxygen.c nfft3.pc.in VERSION.in doxygen/doxygen.Doxyfile.in
 
 install-data-hook:
 	mkdir -p $(datadir)/nfft

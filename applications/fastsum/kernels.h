@@ -26,6 +26,11 @@
 
 #include <complex.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
 /**
  * \addtogroup applications_fastsum
  * \{
@@ -45,6 +50,10 @@ double _Complex cosc(double x, int der, const double *param);                  /
 double _Complex kcot(double x, int der, const double *param);                   /* K(x) = cot(cx) */
 double _Complex one_over_cube(double x, int der, const double *param);                /* K(x) = 1/x^3 */
 /* \} */
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif /* __cplusplus */
 
 #endif
 /* kernels.h */

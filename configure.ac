@@ -27,7 +27,7 @@ AC_INIT([NFFT],[3.2.0],[bugs@nfft.org])
 AC_REVISION([$Id$])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2009, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2010, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # m4 macros go here
 AC_CONFIG_MACRO_DIR([m4])
@@ -343,56 +343,56 @@ AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 
 # The output files to be generated
-AC_CONFIG_FILES( \
-  Makefile \
-  include/Makefile \
-  include/nfft3conf.h \
-  3rdparty/Makefile \
-  3rdparty/cstripack/Makefile \
-  util/Makefile \
-  kernel/Makefile \
-  kernel/fpt/Makefile \
-  kernel/mri/Makefile \
-  kernel/nfct/Makefile \
-  kernel/nfft/Makefile \
-  kernel/nfsft/Makefile \
-  kernel/nfsoft/Makefile \
-  kernel/nfst/Makefile \
-  kernel/nnfft/Makefile \
-  kernel/nsfft/Makefile \
-  kernel/solver/Makefile \
-  examples/Makefile \
-  examples/fpt/Makefile \
-  examples/mri/Makefile \
-  examples/nfct/Makefile \
-  examples/nfft/Makefile \
-  examples/nfsft/Makefile \
-  examples/nfsoft/Makefile \
-  examples/nfst/Makefile \
-  examples/nnfft/Makefile \
-  examples/nsfft/Makefile \
-  examples/solver/Makefile \
-  applications/Makefile \
-  applications/fastgauss/Makefile \
-  applications/fastsum/Makefile \
-  applications/fastsumS2/Makefile \
-  applications/quadratureS2/Makefile \
-  applications/mri/Makefile \
-  applications/mri/mri2d/Makefile \
-  applications/mri/mri3d/Makefile \
-  applications/polarFFT/Makefile \
-  applications/radon/Makefile \
-  matlab/Makefile \
-  matlab/nfsft/Makefile \
-  matlab/nfft/Makefile \
-  matlab/nfsft/@f_hat/Makefile 
+AC_OUTPUT(Makefile \
+          nfft3.pc \
+          VERSION \
+          doxygen/doxygen.Doxyfile \
+          include/Makefile \
+          include/nfft3conf.h \
+          3rdparty/Makefile \
+          3rdparty/cstripack/Makefile \
+          util/Makefile \
+          kernel/Makefile \
+          kernel/fpt/Makefile \
+          kernel/mri/Makefile \
+          kernel/nfct/Makefile \
+          kernel/nfft/Makefile \
+          kernel/nfsft/Makefile \
+          kernel/nfsoft/Makefile \
+          kernel/nfst/Makefile \
+          kernel/nnfft/Makefile \
+          kernel/nsfft/Makefile \
+          kernel/solver/Makefile \
+          examples/Makefile \
+          examples/fpt/Makefile \
+          examples/mri/Makefile \
+          examples/nfct/Makefile \
+          examples/nfft/Makefile \
+          examples/nfsft/Makefile \
+          examples/nfsoft/Makefile \
+          examples/nfst/Makefile \
+          examples/nnfft/Makefile \
+          examples/nsfft/Makefile \
+          examples/solver/Makefile \
+          applications/Makefile \
+          applications/fastgauss/Makefile \
+          applications/fastsum/Makefile \
+          applications/fastsumS2/Makefile \
+          applications/quadratureS2/Makefile \
+          applications/mri/Makefile \
+          applications/mri/mri2d/Makefile \
+          applications/mri/mri3d/Makefile \
+          applications/polarFFT/Makefile \
+          applications/radon/Makefile \
+          matlab/Makefile \
+          matlab/nfsft/Makefile
+          matlab/nfft/Makefile
+          matlab/nfsft/@f_hat/Makefile
 )
 
 if test "x$USE_MAINTAINER_MODE" = "xyes"; then
 AC_CONFIG_FILES( \
   tests/Makefile \
-  VERSION
-  doxygen/doxygen.Doxyfile
   tests/kernel/Makefile \
   tests/kernel/fpt/Makefile \
   tests/lowlevel/Makefile \
