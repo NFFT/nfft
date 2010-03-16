@@ -1,6 +1,9 @@
 This file contains the version history for NFFT 3.x.x. 
 
 Changes in version 3.1.4:
+  - Added pkg-config file (thanks Gert Wollny)
+  - Headers include/nfft3util.h, applications/fastsum/fastsum.h, and 
+    applications/fastsum/kernels.h can now be included by C++ compilers.
   - Fixed an error that occured when trying to create symbolic links to Matlab mex
     files during installation.
   - All programs from the application and examples subdirectories are no longer

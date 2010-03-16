@@ -27,7 +27,7 @@ AC_INIT([NFFT],[3.1.4],[potts@mathematik.tu-chemnitz.de])
 AC_REVISION([$Id$])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2009, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2010, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # m4 macros
 AC_CONFIG_MACRO_DIR([m4])
@@ -396,6 +396,9 @@ AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 
 # The output files to be generated
 AC_OUTPUT(Makefile \
+          nfft3.pc \
+          VERSION \
+          doxygen/doxygen.Doxyfile \
           include/Makefile \
           include/nfft3conf.h \
           3rdparty/Makefile \
@@ -441,8 +444,6 @@ AC_OUTPUT(Makefile \
 
 if test "x$USE_MAINTAINER_MODE" = "xyes"; then
 AC_OUTPUT(tests/Makefile \
-          VERSION
-          doxygen/doxygen.Doxyfile
           tests/kernel/Makefile \
           tests/kernel/fpt/Makefile \
           tests/lowlevel/Makefile \

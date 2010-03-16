@@ -45,6 +45,11 @@
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
 typedef double _Complex (*kernel)(double , int , const double *);
 
 /**
@@ -145,6 +150,10 @@ double _Complex regkern(kernel k, double xx, int p, const double *param, double 
 /** cubic spline interpolation in near field with even kernels */
 double _Complex kubintkern(const double x, const double _Complex *Add,
   const int Ad, const double a);
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif /* __cplusplus */
 
 #endif
 /* fastsum.h */
