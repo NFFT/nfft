@@ -65,7 +65,7 @@ dist-hook:
 	mkdir -p $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api
 	cp -R doc/api/latex $(distdir)/doc/api
-	rm -Rf $(distdir)/doxygen
+#	rm -Rf $(distdir)/doxygen
 # cp -R doc/tutorial $(distdir)/doc
 # rm -Rf $(distdir)/doc/.svn
 # rm -Rf $(distdir)/doc/tutorial/.svn
