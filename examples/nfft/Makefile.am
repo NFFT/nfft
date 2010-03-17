@@ -2,15 +2,13 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-noinst_PROGRAMS = simple_test ndft_fast taylor_nfft flags nfft_times
-
 if HAVE_THREADS
   SIMPLE_TEST_THREADS=simple_test_threads
 else
   SIMPLE_TEST_THREADS=
 endif
 
-example_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags nfft_times
+noinst_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags nfft_times
 
 if HAVE_THREADS
   simple_test_threads_SOURCES = simple_test_threads.c

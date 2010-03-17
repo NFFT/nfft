@@ -6,13 +6,7 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 # Subdirectories
-DIST_SUBDIRS= 3rdparty include util kernel . examples applications matlab
-
-if MAINTAINER_MODE
-  EXTRA_DIRS= tests
-else
-  EXTRA_DIRS=
-endif
+DIST_SUBDIRS=3rdparty include util kernel . examples applications matlab support doxygen
 
 if HAVE_MATLAB
   MATLAB_DIRS= matlab
@@ -26,7 +20,7 @@ else
   LIBNFFT3_THREADS_LA =
 endif
 
-SUBDIRS= 3rdparty include util kernel . examples applications $(EXTRA_DIRS) $(MATLAB_DIRS)
+SUBDIRS= 3rdparty include util kernel . examples applications $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
 
@@ -40,11 +34,14 @@ libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libk
 libnfft3_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh VERSION doxygen.c nfft3.pc.in VERSION.in doxygen/doxygen.Doxyfile.in
+EXTRA_DIST = bootstrap.sh doxygen.c nfft3.pc.in
+
+pkgconfigdir=$(libdir)/pkgconfig
+pkgconfig_DATA = nfft3.pc
 
 install-data-hook:
-	mkdir -p $(datadir)/nfft
-	cp -R doc $(datadir)/nfft
+	mkdir -p $(distdir)/share/nfft
+	cp -R doc $(distdir)/share/nfft
 
 maintainer-clean-local:
 	rm -f doc/api/html/*.html
@@ -68,16 +65,14 @@ dist-hook:
 	mkdir -p $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api
 	cp -R doc/api/latex $(distdir)/doc/api
-	cp -R doc/tutorial $(distdir)/doc
-	rm -Rf $(distdir)/doc/.svn
-	rm -Rf $(distdir)/doc/tutorial/.svn
-	rm -Rf $(distdir)/doc/api/html/.svn
-	rm -Rf $(distdir)/doc/api/html/images/.svn
-	rm -Rf $(distdir)/doc/api/latex/.svn
-	rm -Rf $(distdir)/doc/api/latex/images/.svn
 	rm -Rf $(distdir)/doxygen
-	rm -Rf $(distdir)/VERSION.in
-	cp VERSION $(distdir)
+# cp -R doc/tutorial $(distdir)/doc
+# rm -Rf $(distdir)/doc/.svn
+# rm -Rf $(distdir)/doc/tutorial/.svn
+# rm -Rf $(distdir)/doc/api/html/.svn
+# rm -Rf $(distdir)/doc/api/html/images/.svn
+# rm -Rf $(distdir)/doc/api/latex/.svn
+# rm -Rf $(distdir)/doc/api/latex/images/.svn
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4

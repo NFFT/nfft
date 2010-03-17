@@ -2522,7 +2522,7 @@ typedef struct nfsoft_plan_
                                           respect to the basis 2              */
   unsigned int flags;                  /**< the planner flags                 */
   nfft_plan p_nfft;                /**< the internal NFFT plan             */
-  fpt_set fpt_set;                    /**< the internal FPT plan */
+  fpt_set internal_fpt_set;                    /**< the internal FPT plan */
 
   int fpt_kappa;       /**a parameter controlling the accuracy of the FPT*/
 

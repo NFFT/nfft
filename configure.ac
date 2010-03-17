@@ -345,7 +345,6 @@ AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 # The output files to be generated
 AC_OUTPUT(Makefile \
           nfft3.pc \
-          VERSION \
           doxygen/doxygen.Doxyfile \
           include/Makefile \
           include/nfft3conf.h \
@@ -384,21 +383,13 @@ AC_OUTPUT(Makefile \
           applications/mri/mri3d/Makefile \
           applications/polarFFT/Makefile \
           applications/radon/Makefile \
+          applications/iterS2/Makefile
           matlab/Makefile \
-          matlab/nfsft/Makefile
-          matlab/nfft/Makefile
-          matlab/nfsft/@f_hat/Makefile
+          matlab/nfsft/Makefile \
+          matlab/nfft/Makefile \
+          matlab/nfsft/@f_hat/Makefile \
+          doxygen/Makefile \
+          support/Makefile
 )
-
-if test "x$USE_MAINTAINER_MODE" = "xyes"; then
-AC_CONFIG_FILES( \
-  tests/Makefile \
-  tests/kernel/Makefile \
-  tests/kernel/fpt/Makefile \
-  tests/lowlevel/Makefile \
-  tests/lowlevel/nfsft/Makefile \
-  applications/iterS2/Makefile
-)
-fi
 
 AC_OUTPUT

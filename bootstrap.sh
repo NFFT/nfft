@@ -29,13 +29,16 @@
 # M. Frigo and S. G. Johnson
 ################################################################################
 
+# alias to allow for systems having glibtoolize
+alias libtoolize=$(type -p glibtoolize libtoolize | head -1)
+
 touch ChangeLog
 
 echo "PLEASE IGNORE WARNINGS AND ERRORS"
 
 # paranoia: sometimes autoconf doesn't get things right the first time
 rm -rf autom4te.cache
-glibtoolize
+libtoolize
 autoreconf --verbose --install --force
 autoreconf --verbose --install --force
 autoreconf --verbose --install --force

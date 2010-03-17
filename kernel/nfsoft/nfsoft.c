@@ -101,7 +101,7 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   plan->mv_trafo = (void (*) (void* ))nfsoft_trafo;
   plan->mv_adjoint = (void (*) (void* ))nfsoft_adjoint;
 
-  plan->fpt_set = 0;
+  plan->internal_fpt_set = 0;
 }
 
 static void c2e(nfsoft_plan *my_plan, int even)
@@ -451,8 +451,8 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
   }
 
   /** Node-independent part*/
-  plan3D->fpt_set = SO3_fpt_init(N, plan3D->fpt_set, plan3D->flags,
-      plan3D->fpt_kappa);
+  plan3D->internal_fpt_set = SO3_fpt_init(N, plan3D->internal_fpt_set,
+    plan3D->flags, plan3D->fpt_kappa);
 
   if ((plan3D->p_nfft).nfft_flags & MALLOC_F_HAT)
   for (j = 0; j < plan3D->p_nfft.N_total; j++)
@@ -519,7 +519,7 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
       for (j = N - max + 1; j < nfft_next_power_of_2(N) + 1; j++)
         plan3D->wig_coeffs[j] = 0.0;
       //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
-      SO3_fpt(plan3D->wig_coeffs, plan3D->fpt_set, N, k, m, plan3D->flags);
+      SO3_fpt(plan3D->wig_coeffs, plan3D->internal_fpt_set, N, k, m, plan3D->flags);
 
       c2e(plan3D, ABS((k + m) % 2));
 
@@ -645,7 +645,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
       e2c(plan3D, ABS((k + m) % 2));
 
       //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"chebys");
-      SO3_fpt_transposed(plan3D->wig_coeffs, plan3D->fpt_set, N, k, m,
+      SO3_fpt_transposed(plan3D->wig_coeffs, plan3D->internal_fpt_set, N, k, m,
           plan3D->flags);
       //nfft_vpr_complex(plan3D->wig_coeffs,plan3D->N_total+1,"wigners");
       //  SO3_fpt_transposed(plan3D->wig_coeffs,N,k,m,plan3D->flags,plan3D->fpt_kappa);
@@ -690,8 +690,8 @@ void nfsoft_finalize(nfsoft_plan *plan)
   free(plan->cheby);
   free(plan->aux);
 
-  fpt_finalize(plan->fpt_set);
-  plan->fpt_set = NULL;
+  fpt_finalize(plan->internal_fpt_set);
+  plan->internal_fpt_set = NULL;
 
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {
