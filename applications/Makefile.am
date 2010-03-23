@@ -15,7 +15,7 @@ else
 endif
 
 DIST_SUBDIRS = fastgauss fastsum $(DIR_FASTSUMS2) $(DIR_MRI) polarFFT \
-  $(DIR_QUADRATURES2) radon iterS2
+  $(DIR_QUADRATURES2) radon $(DIR_ITERS2)
 
 SUBDIRS= $(DIST_SUBDIRS)
 
