@@ -7,7 +7,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 #mexexecdir = $(bindir)/nfft/matlab/nfft
 
 # library
-noinst_LTLIBRARIES = libnfft.la
+lib_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
 libnfft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 libnfft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
