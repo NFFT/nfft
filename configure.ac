@@ -286,9 +286,9 @@ fi
 # header files/data types/compiler characteristics
 ################################################################################
 
-AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h complex.h string.h float.h \
-  limits.h stdarg.h stddef.h sys/types.h stdint.h inttypes.h stdbool.h \
-  sys/time.h malloc.h])
+AC_CHECK_HEADERS([math.h stdio.h stdlib.h sys/resource.h time.h complex.h \
+  string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h inttypes.h \
+  stdbool.h sys/time.h malloc.h])
 
 AC_HEADER_TIME
 

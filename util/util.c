@@ -27,6 +27,9 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#ifdef HAVE_SYS_RESOURCE_H
+  #include <sys/resource.h>
+#endif
 #ifdef HAVE_MALLOC_H
   #include <malloc.h>
 #endif
@@ -41,6 +44,7 @@
  */
 double nfft_second(void)
 {
+#ifdef HAVE_SYS_RESOURCE_H
   static struct rusage temp;
   double foo, foo1;
 
@@ -48,6 +52,9 @@ double nfft_second(void)
   foo     = temp.ru_utime.tv_sec;       /* seconds                           */
   foo1    = temp.ru_utime.tv_usec;      /* uSecs                             */
   return  foo  + (foo1/1000000.0);      /* milliseconds                      */
+#else
+  return K(0.0);
+#endif
 }
 
 #ifdef HAVE_MALLOC_H
