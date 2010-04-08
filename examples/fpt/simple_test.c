@@ -28,16 +28,7 @@
 
 /* NFFT3 header */
 #include "nfft3.h"
-
-/* We declare drand48() and srand48() ourselves, if they are is not declared in
- * math.h (e.g. on SuSE 9.3), grrr. */
-#include "config.h"
-#if HAVE_DECL_DRAND48 == 0
-  extern double drand48(void);
-#endif
-#if HAVE_DECL_SRAND48 == 0
-  extern void srand48(long int);
-#endif
+#include "nfft3util.h"
 
 /* Two times Pi */
 #define KPI2 6.2831853071795864769252867665590057683943387987502
@@ -89,7 +80,7 @@ int main(void)
   );
 
   /* Random seed, makes things reproducible. */
-  srand48(616642);
+  nfft_srand48(314);
 
   /* The function fpt_repcompute actually does the precomputation for a single
    * transform. It needs arrays alpha, beta, and gamma, containing the three-
@@ -119,7 +110,7 @@ int main(void)
       printf("\n2) Random Fourier coefficients a_k, k=0,1,...,N:\n");
       for (k = 0; k <= N; k++)
       {
-        a[k] = 2.0*drand48() - 1.0; /* for debugging: use k+1 */
+        a[k] = 2.0*nfft_drand48() - 1.0; /* for debugging: use k+1 */
         printf("   a_%-2d = %+5.3lE\n",k,creal(a[k]));
       }
     }

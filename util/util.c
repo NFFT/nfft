@@ -26,6 +26,7 @@
 #include "infft.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #ifdef HAVE_SYS_RESOURCE_H
   #include <sys/resource.h>
@@ -1426,7 +1427,7 @@ void X(vrand_unit_complex)(C *x, const int n)
   int k;
 
   for (k = 0; k < n; k++)
-    x[k] = RAND + II*RAND;
+    x[k] = nfft_drand48() + II*nfft_drand48();
 }
 
 void X(vrand_shifted_unit_double)(R *x, const int n)
@@ -1434,7 +1435,7 @@ void X(vrand_shifted_unit_double)(R *x, const int n)
   int k;
 
   for (k = 0; k < n; k++)
-    x[k] = RAND - K(0.5);
+    x[k] = nfft_drand48() - K(0.5);
 }
 
 /** Compute non periodic voronoi weights for ordered nodes x_j */
@@ -2221,5 +2222,33 @@ void nfft_assertion_failed(const char *s, int line, const char *file)
 #else
   /* Use exit function. */
   exit(EXIT_FAILURE);
+#endif
+}
+
+/* We declare drand48() and srand48() ourselves, if they are is not declared in
+ * math.h (e.g. on SuSE 9.3), grrr. */
+#include "config.h"
+#if HAVE_DECL_DRAND48 == 0
+  extern double drand48(void);
+#endif
+#if HAVE_DECL_SRAND48 == 0
+  extern void srand48(long int);
+#endif
+
+double nfft_drand48(void)
+{
+#ifdef HAVE_DRAND48
+  return drand48();
+#else
+  return ((R)rand())/((R)RAND_MAX);
+#endif
+}
+
+void nfft_srand48(long int seed)
+{
+#ifdef HAVE_SRAND48
+  srand48(seed);
+#else
+  srand((unsigned int)seed);
 #endif
 }

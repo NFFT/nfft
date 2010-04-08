@@ -416,7 +416,6 @@ extern double fmax(const double x, const double y);
 #if HAVE_DECL_SRAND48 == 0
   extern void srand48(long int);
 #endif
-#define RAND ((R)drand48())
 #define R_RADIX FLT_RADIX
 #define II _Complex_I
 

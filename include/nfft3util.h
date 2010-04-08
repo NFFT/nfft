@@ -368,6 +368,10 @@ double nfft_lambda(const double z, const double eps);
 
 double nfft_lambda2(const double mu, const double nu);
 
+double nfft_drand48(void);
+
+void nfft_srand48(long int seed);
+
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif /* __cplusplus */

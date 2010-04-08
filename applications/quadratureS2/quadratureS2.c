@@ -27,11 +27,9 @@
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
-/* extern double drand48 (void) __THROW; */
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
 #include <complex.h>
 
 /* Include NFFT 3 utilities headers. */

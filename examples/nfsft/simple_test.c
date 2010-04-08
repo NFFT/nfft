@@ -53,8 +53,8 @@ static void simple_test_nfsft(void)
   /* pseudo-random nodes */
   for (j = 0; j < plan.M_total; j++)
   {
-    plan.x[2*j]= RAND - K(0.5);
-    plan.x[2*j+1]= K(0.5) * RAND;
+    plan.x[2*j]= nfft_drand48() - K(0.5);
+    plan.x[2*j+1]= K(0.5) * nfft_drand48();
   }
 
   /* precomputation (for NFFT, node-dependent) */
@@ -64,7 +64,7 @@ static void simple_test_nfsft(void)
   for (k = 0; k <= plan.N; k++)
     for (n = -k; n <= k; n++)
       plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-        RAND - K(0.5) + _Complex_I*(RAND - K(0.5));
+          nfft_drand48() - K(0.5) + _Complex_I*(nfft_drand48() - K(0.5));
 
   /* Direct transformation, display result. */
   ndsft_trafo(&plan);
