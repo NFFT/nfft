@@ -58,21 +58,21 @@ double nfft_second(void)
 #endif
 }
 
-#ifdef HAVE_MALLOC_H
-int nfft_total_used_memory(void)
-{
-  struct mallinfo m;
-  m=mallinfo();
-  return m.hblkhd + m.uordblks;
-}
-#else
+//#ifndef HAVE_MALLOC_H
+//int nfft_total_used_memory(void)
+//{
+//  struct mallinfo m;
+//  m=mallinfo();
+//  return m.hblkhd + m.uordblks;
+//}
+//#else
 int nfft_total_used_memory()
 {
   fprintf(stderr,
     "\nWarning in util/total_used_memory: mallinfo() not available\n");
   return 0;
 }
-#endif
+//#endif
 
 int nfft_int_2_pow(int a)
 {
