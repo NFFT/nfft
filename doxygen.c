@@ -24,7 +24,7 @@
  * \endhtmlonly
  * \htmlinclude toc.txt
  *
- * \section section_intro_sec Introduction
+ * \section introduction Introduction
  *
  * \cite{nfft3} Fast Fourier transforms (FFTs) belong \cite{nfft3_2} to the '10 algorithms with the
  * greatest influence on the development and practice of science and
@@ -76,6 +76,8 @@
  *  {\rm e}^{2\pi{\rm i}\mathbf{k}\mathbf{ x}_j}.
  * \f]
  *
+ * \subsection generalisations Generalisations
+ *
  * The generalisations of the NFFT include
  *    - NNFFT - nonequispaced in time and frequency fast Fourier transform,
  *    - NFCT/NFST - nonequispaced fast (co)sine transform,
@@ -85,4 +87,12 @@
  *
  * Furthermore, we consider the inversion of the above transforms by
  * iterative methods.
+ *
+ * \section faq FAQ - Frequently Asked Questions
+ *
+ *   <ol>
+ *     <li> <em>Can NFFT be compiled on Windows?</em>
+ *
+ *     test
+ *   </ol>
  */

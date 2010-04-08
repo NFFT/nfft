@@ -27,7 +27,6 @@
 
 #include <stdio.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #ifdef HAVE_MALLOC_H
   #include <malloc.h>
 #endif

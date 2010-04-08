@@ -269,6 +269,14 @@ CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
+# Cygwin hackery
+case $ac_cv_build in
+  *cygwin*)
+    CFLAGS="$CFLAGS-mno-cygwin"
+    CPPFLAGS="-I/usr/include $CPPFLAGS"
+    ;;
+esac
+
 # add Matlab CFLAGS
 if test "x$ax_prog_matlab" = "xyes"; then
   CFLAGS="$CFLAGS $matlab_CFLAGS"
@@ -278,9 +286,9 @@ fi
 # header files/data types/compiler characteristics
 ################################################################################
 
-AC_CHECK_HEADERS([math.h stdio.h stdlib.h sys/resource.h time.h complex.h \
-  string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h inttypes.h \
-  stdbool.h sys/time.h malloc.h])
+AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h complex.h string.h float.h \
+  limits.h stdarg.h stddef.h sys/types.h stdint.h inttypes.h stdbool.h \
+  sys/time.h malloc.h])
 
 AC_HEADER_TIME
 
@@ -345,53 +353,52 @@ AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 
 # The output files to be generated
-AC_OUTPUT(Makefile \
-          nfft3.pc \
-          doxygen/doxygen.Doxyfile \
-          include/Makefile \
-          include/nfft3conf.h \
-          3rdparty/Makefile \
-          3rdparty/cstripack/Makefile \
-          util/Makefile \
-          kernel/Makefile \
-          kernel/fpt/Makefile \
-          kernel/mri/Makefile \
-          kernel/nfct/Makefile \
-          kernel/nfft/Makefile \
-          kernel/nfsft/Makefile \
-          kernel/nfsoft/Makefile \
-          kernel/nfst/Makefile \
-          kernel/nnfft/Makefile \
-          kernel/nsfft/Makefile \
-          kernel/solver/Makefile \
-          examples/Makefile \
-          examples/fpt/Makefile \
-          examples/mri/Makefile \
-          examples/nfct/Makefile \
-          examples/nfft/Makefile \
-          examples/nfsft/Makefile \
-          examples/nfsoft/Makefile \
-          examples/nfst/Makefile \
-          examples/nnfft/Makefile \
-          examples/nsfft/Makefile \
-          examples/solver/Makefile \
-          applications/Makefile \
-          applications/fastgauss/Makefile \
-          applications/fastsum/Makefile \
-          applications/fastsumS2/Makefile \
-          applications/quadratureS2/Makefile \
-          applications/mri/Makefile \
-          applications/mri/mri2d/Makefile \
-          applications/mri/mri3d/Makefile \
-          applications/polarFFT/Makefile \
-          applications/radon/Makefile \
-          applications/iterS2/Makefile
-          matlab/Makefile \
-          matlab/nfsft/Makefile \
-          matlab/nfft/Makefile \
-          matlab/nfsft/@f_hat/Makefile \
-          doxygen/Makefile \
-          support/Makefile
-)
+AC_CONFIG_FILES(Makefile \
+                nfft3.pc \
+                doxygen/doxygen.Doxyfile \
+                include/Makefile \
+                include/nfft3conf.h \
+                3rdparty/Makefile \
+                3rdparty/cstripack/Makefile \
+                util/Makefile \
+                kernel/Makefile \
+                kernel/fpt/Makefile \
+                kernel/mri/Makefile \
+                kernel/nfct/Makefile \
+                kernel/nfft/Makefile \
+                kernel/nfsft/Makefile \
+                kernel/nfsoft/Makefile \
+                kernel/nfst/Makefile \
+                kernel/nnfft/Makefile \
+                kernel/nsfft/Makefile \
+                kernel/solver/Makefile \
+                examples/Makefile \
+                examples/fpt/Makefile \
+                examples/mri/Makefile \
+                examples/nfct/Makefile \
+                examples/nfft/Makefile \
+                examples/nfsft/Makefile \
+                examples/nfsoft/Makefile \
+                examples/nfst/Makefile \
+                examples/nnfft/Makefile \
+                examples/nsfft/Makefile \
+                examples/solver/Makefile \
+                applications/Makefile \
+                applications/fastgauss/Makefile \
+                applications/fastsum/Makefile \
+                applications/fastsumS2/Makefile \
+                applications/quadratureS2/Makefile \
+                applications/mri/Makefile \
+                applications/mri/mri2d/Makefile \
+                applications/mri/mri3d/Makefile \
+                applications/polarFFT/Makefile \
+                applications/radon/Makefile \
+                applications/iterS2/Makefile
+                matlab/Makefile \
+                matlab/nfsft/Makefile \
+                matlab/nfft/Makefile \
+                matlab/nfsft/@f_hat/Makefile \
+                doxygen/Makefile \
+                support/Makefile)
 
 AC_OUTPUT

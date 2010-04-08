@@ -5,6 +5,7 @@ Changes in version 3.2:
    code to be executed in parallel on platforms that support the library. As of
    now, this only affects ndft_trafo(). To enable support for libdispatch, use
    the configure flags --enable-threads and --enable-libdispatch.
+ - Fixes for building under Cygwin.
 
 Changes in version 3.1.4:
   - Added pkg-config file (thanks Gert Wollny)
