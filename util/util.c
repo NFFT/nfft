@@ -30,12 +30,6 @@
 #include <stdlib.h>
 #include <float.h>
 #include <sys/time.h>
-#ifdef HAVE_SYS_RESOURCE_H
-  #include <sys/resource.h>
-#endif
-#ifdef HAVE_MALLOC_H
-  #include <malloc.h>
-#endif
 #include "cstripack.h"
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
@@ -585,7 +579,7 @@ Copyright 1985, 1987 by Stephen L. Moshier
 Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 */
 
-static double chbevl(double x, double array[], int n)
+static double chbevl(double x, double *array, int n)
 {
   double b0, b1, b2, *p;
   int i;

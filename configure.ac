@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.2.0],[bugs@nfft.org])
+AC_INIT([NFFT],[3.2.0-alpha],[bugs@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
@@ -286,7 +286,7 @@ fi
 # header files/data types/compiler characteristics
 ################################################################################
 
-AC_CHECK_HEADERS([math.h stdio.h stdlib.h sys/resource.h time.h  sys/time.h \
+AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h  sys/time.h \
   complex.h string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h \
   inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h])
 
@@ -333,13 +333,13 @@ AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_ab
 AC_CHECK_FUNCS([memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
-AC_CHECK_FUNCS([nanosleep sleep drand48 srand48])
+AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
+AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
-AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
 
 # Cray UNICOS _rtc() (real-time clock) intrinsic
 AC_MSG_CHECKING([for _rtc intrinsic])
@@ -364,34 +364,30 @@ if test $ok = no; then
   echo "         show incorrect results.                               "
   echo "***************************************************************"
 else
-  if test "x$ac_cv_func_nanosleep" = "xyes"; then
-    AC_TRY_RUN([#include "cycle.h"
+  AC_TRY_RUN([#include "cycle.h"
+#include <stdio.h>
+#if defined(HAVE_NANOSLEEP)
 #include <stdlib.h>
-#include <stdio.h>
-int main(){
-struct timespec ts = {1,0};
-ticks t0 = getticks();
-nanosleep(&ts, 0);{
-  double tps = elapsed(getticks(),t0)/1.0;
-  FILE *f = fopen("ticks.tmp","w");
-  fprintf(f,"%.1f\n",tps);
-  fclose(f);}
-return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
-    rm -f ticks.tmp
-  elif test "x$ac_cv_func_sleep" = "xyes"; then
-    AC_TRY_RUN([#include "cycle.h"
+static struct timespec ts = {1,0};
+#define SLEEP nanosleep(&ts, 0)
+#elif defined(HAVE_SLEEP)
 #include <unistd.h>
-#include <stdio.h>
+#define SLEEP sleep(1)
+#elif defined(HAVE_USLEEP)
+#include <unistd.h>
+#define SLEEP usleep(1000)
+#else
+#error wtf!
+#endif
 int main(){
 ticks t0 = getticks();
-sleep(1);{
+SLEEP;{
   double tps = elapsed(getticks(),t0)/1.0;
   FILE *f = fopen("ticks.tmp","w");
   fprintf(f,"%.1f\n",tps);
   fclose(f);}
 return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
     rm -f ticks.tmp
-  fi
   if test "$TICKS_PER_SECOND" = "1"; then
     echo "***************************************************************"
     echo "WARNING: Number of ticks per second could not be determined.   "
