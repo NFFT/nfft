@@ -23,19 +23,23 @@
  * \ingroup applications_fastsumS2
  * \{
  */
+#include "config.h"
 
 /* standard headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 /* NFFT3 header */
 #include "nfft3.h"
 
 /* NFFT3 utilities */
 #include "nfft3util.h"
+#include "infft.h"
 
 /* Fourier-Legendre coefficients for Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
@@ -195,7 +199,7 @@ int main (int argc, char **argv)
   double temp;                 /*                                             */
   double err_f;                /* Error E_infty for fast algorithm            */
   double err_fd;               /* Error E_\infty for fast direct algorithm    */
-  double t;                    /*                                             */
+  ticks t0, t1;                /*                                             */
   int precompute = NO;         /*                                             */
   fftw_complex *ptr;         /*                                             */
   double* steed;               /*                                             */
@@ -513,7 +517,7 @@ int main (int argc, char **argv)
             t_dp = 0.0;
 
             /* Initialize time measurement. */
-            t = nfft_second();
+            t0 = getticks();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -568,7 +572,8 @@ int main (int argc, char **argv)
             }
 
             /* Calculate the time needed. */
-            t_dp = nfft_second() - t;
+            t1 = getticks();
+            t_dp = nfft_elapsed_seconds(t1,t0);
 
             /* Calculate average time needed. */
             t_dp = t_dp/((double)ld[ild][4]);
@@ -583,7 +588,7 @@ int main (int argc, char **argv)
           t_d = 0.0;
 
           /* Initialize time measurement. */
-          t = nfft_second();
+          t0 = getticks();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -684,7 +689,8 @@ int main (int argc, char **argv)
           }
 
           /* Calculate and add the time needed. */
-          t_d = nfft_second() - t;
+          t1 = getticks();
+          t_d = nfft_elapsed_seconds(t1,t0);
           /* Calculate average time needed. */
           t_d = t_d/((double)ld[ild][4]);
         }
@@ -733,7 +739,7 @@ int main (int argc, char **argv)
             t_fd = 0.0;
 
             /* Initialize time measurement. */
-            t = nfft_second();
+            t0 = getticks();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -753,7 +759,8 @@ int main (int argc, char **argv)
             }
 
             /* Calculate and add the time needed. */
-            t_fd = nfft_second() - t;
+            t1 = getticks();
+            t_fd = nfft_elapsed_seconds(t1,t0);
 
             /* Calculate average time needed. */
             t_fd = t_fd/((double)ld[ild][4]);
@@ -781,7 +788,7 @@ int main (int argc, char **argv)
           }
 
           /* Initialize time measurement. */
-          t = nfft_second();
+          t0 = getticks();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -817,16 +824,12 @@ int main (int argc, char **argv)
           }
 
           /* Check if the fast NFSFT algorithm has been used. */
+          t1 = getticks();
+
           if (use_nfsft != NO)
-          {
-            /* Calculate and add the time needed. */
-            t_f = nfft_second() - t;
-          }
+            t_f = nfft_elapsed_seconds(t1,t0);
           else
-          {
-            /* Calculate and add the time needed. */
-            t_fd = nfft_second() - t;
-          }
+            t_fd = nfft_elapsed_seconds(t1,t0);
 
           /* Check if the fast NFSFT algorithm has been used. */
           if (use_nfsft != NO)

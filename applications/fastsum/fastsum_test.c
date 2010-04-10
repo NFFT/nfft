@@ -24,15 +24,19 @@
  *  \author Markus Fenn
  *  \date 2006
  */
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <complex.h>
+#ifdef HAVE_COMPLEX_H
+  #include <complex.h>
+#endif
 
 #include "fastsum.h"
 #include "kernels.h"
+#include "infft.h"
 
 /**
  * \defgroup applications_fastsum_test fastsum_test
@@ -54,6 +58,7 @@ int main(int argc, char **argv)
   double c;                                          /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan;                      /**< plan for fast summation */
   double _Complex *direct;                                   /**< array for direct computation */
+  ticks t0, t1;                                      /**< for time measurement    */
   double time;                                       /**< for time measurement    */
   double error=0.0;                                  /**< for error computation   */
   double eps_I;                                      /**< inner boundary          */
@@ -160,9 +165,10 @@ int main(int argc, char **argv)
 
   /** direct computation */
   printf("direct computation: "); fflush(NULL);
-  time=nfft_second();
+  t0 = getticks();
   fastsum_exact(&my_fastsum_plan);
-  time=nfft_second()-time;
+  t1 = getticks();
+  time=nfft_elapsed_seconds(t1,t0);
   printf("%fsec\n",time);
 
   /** copy result */
@@ -172,16 +178,18 @@ int main(int argc, char **argv)
 
   /** precomputation */
   printf("pre-computation:    "); fflush(NULL);
-  time=nfft_second();
+  t0 = getticks();
   fastsum_precompute(&my_fastsum_plan);
-  time=nfft_second()-time;
+  t1 = getticks();
+  time=nfft_elapsed_seconds(t1,t0);
   printf("%fsec\n",time);
 
   /** fast computation */
   printf("fast computation:   "); fflush(NULL);
-  time=nfft_second();
+  t0 = getticks();
   fastsum_trafo(&my_fastsum_plan);
-  time=nfft_second()-time;
+  t1 = getticks();
+  time=nfft_elapsed_seconds(t1,t0);
   printf("%fsec\n",time);
 
   /** compute max error */

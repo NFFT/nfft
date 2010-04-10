@@ -17,14 +17,17 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
 #include <stdlib.h>
 #include <math.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
-
+#include "infft.h"
 
 void simple_test_nnfft_1d(void)
 {
@@ -263,6 +266,7 @@ void measure_time_nnfft_1d(void)
   nnfft_plan my_plan;                    /**< plan for the nfft                */
   int my_N,N=4;
   double t;
+  ticks t0, t1;
 
   for(my_N=16; my_N<=16384; my_N*=2)
   {
@@ -286,14 +290,16 @@ void measure_time_nnfft_1d(void)
     for(k=0;k<my_plan.N_total;k++)
       my_plan.f_hat[k] = ((double)rand())/((double)RAND_MAX) + _Complex_I*((double)rand())/((double)RAND_MAX);
 
-    t=nfft_second();
+    t0 = getticks();
     nndft_trafo(&my_plan);
-    t=nfft_second()-t;
+    t1 = getticks();
+    t = nfft_elapsed_seconds(t1,t0);
     printf("t_nndft=%e,\t",t);
 
-    t=nfft_second();
+    t0 = getticks();
     nnfft_trafo(&my_plan);
-    t=nfft_second()-t;
+    t1 = getticks();
+    t = nfft_elapsed_seconds(t1,t0);
     printf("t_nnfft=%e\t",t);
 
     printf("(N=M=%d)\n",my_N);

@@ -18,13 +18,17 @@
 
 /* $Id$ */
 
+#include "config.h"
+
 /* standard headers */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
 /* It is important to include complex.h before nfft3.h. */
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 /* NFFT3 header */
 #include "nfft3.h"

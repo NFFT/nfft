@@ -23,6 +23,7 @@
  * \ingroup applications_quadratureS2
  * \{
  */
+#include "config.h"
 
 /* Include standard C headers. */
 #include <math.h>
@@ -30,13 +31,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 /* Include NFFT 3 utilities headers. */
 #include "nfft3util.h"
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
+
+#include "infft.h"
 
 /** Enumeration for parameter values */
 enum boolean {NO = 0, YES = 1};
@@ -139,6 +144,7 @@ int main (int argc, char **argv)
   nfsft_plan *plan_ptr;
   double *w_temp;
   int testmode;
+  ticks t0, t1;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -340,7 +346,7 @@ int main (int argc, char **argv)
 
         for (i = 0; i < RQ[iNQ]; i++)
         {
-          t = nfft_second();
+          t0 = getticks();
 
           if (use_nfsft != NO)
           {
@@ -353,7 +359,8 @@ int main (int argc, char **argv)
             ndsft_adjoint(&plan);
           }
 
-          t_avg += nfft_second() - t;
+          t1 = getticks();
+          t_avg += nfft_elapsed_seconds(t1,t0);
         }
 
         t_avg = t_avg/((double)RQ[iNQ]);
@@ -979,7 +986,7 @@ int main (int argc, char **argv)
           //memcpy(f,f_grid,m_total*sizeof(double _Complex));
 
           /* Initialize time measurement. */
-          t = nfft_second();
+          t0 = getticks();
 
           //fprintf(stderr,"Multiplying with quadrature weights\n");
           //fflush(stderr);
@@ -998,11 +1005,12 @@ int main (int argc, char **argv)
             }
           }
 
-          t_avg += nfft_second() - t;
+          t1 = getticks();
+          t_avg += nfft_elapsed_seconds(t1,t0);
 
           nfft_free(w);
 
-          t = nfft_second();
+          t0 = getticks();
 
           /*fprintf(stderr,"\n");
           d = 0;
@@ -1050,7 +1058,8 @@ int main (int argc, char **argv)
             ndsft_trafo(plan_ptr);
           }
 
-          t_avg += nfft_second() - t;
+          t1 = getticks();
+          t_avg += nfft_elapsed_seconds(t1,t0);
 
           //fprintf(stderr,"Finalizing\n");
           //fflush(stderr);

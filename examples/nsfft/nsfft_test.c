@@ -17,15 +17,19 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 void accuracy_nsfft(int d, int J, int M, int m)
 {
@@ -80,8 +84,8 @@ void accuracy_nsfft(int d, int J, int M, int m)
 void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 {
   int r, N[d], n[d];
-  int m, m_nfft, m_nsfft;
   double t, t_nsdft, t_nfft, t_nsfft;
+  ticks t0, t1;
 
   nsfft_plan p;
   nfft_plan np;
@@ -94,9 +98,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   }
 
   /** init */
-  m=nfft_total_used_memory();
   nsfft_init(&p, d, J, M, 4, NSDFT);
-  m_nsfft=nfft_total_used_memory()-m;
   nsfft_init_random_nodes_coeffs(&p);
 
   /* transforms */
@@ -107,9 +109,10 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     while(t_nsdft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nsdft_trafo(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+      t = nfft_elapsed_seconds(t1,t0);
       t_nsdft+=t;
     }
     t_nsdft/=r;
@@ -119,10 +122,8 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   if(test_nfft)
   {
-    m=nfft_total_used_memory();
     nfft_init_guru(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
-		   FFTW_MEASURE);
-    m_nfft=nfft_total_used_memory()-m;
+      FFTW_MEASURE);
     np.x=p.act_nfft_plan->x;
     if(np.nfft_flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&np);
@@ -133,9 +134,10 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&np);
-      t=nfft_second()-t;
+      t1 = getticks();
+      t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
     t_nfft/=r;
@@ -145,7 +147,6 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   else
   {
     t_nfft=nan("");
-    m_nfft=-1;
   }
 
   t_nsfft=0;
@@ -153,20 +154,15 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
   while(t_nsfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nsfft_trafo(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+      t = nfft_elapsed_seconds(t1,t0);
       t_nsfft+=t;
     }
   t_nsfft/=r;
 
-  printf("%d\t%.2e\t%.2e\t%.2e\t%d\t%d\n",
-	 J,
-         t_nsdft,
-	 t_nfft,
-	 t_nsfft,
-         m_nfft,
-	 m_nsfft);
+  printf("%d\t%.2e\t%.2e\t%.2e\n", J, t_nsdft, t_nfft, t_nsfft);
 
   fflush(stdout);
 

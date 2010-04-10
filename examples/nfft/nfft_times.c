@@ -17,15 +17,19 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 int global_n;
 int global_d;
@@ -87,6 +91,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d],j;
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -133,9 +138,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   while(t_fft<1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -151,9 +157,10 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
       while(t_ndft<1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -170,7 +177,7 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   while(t_nfft<1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       switch(d)
 	{
 	  case 1: { nfft_trafo_1d(&p); break; }
@@ -178,7 +185,8 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
 	  case 3: { nfft_trafo_3d(&p); break; }
           default: nfft_trafo(&p);
 	}
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -194,6 +202,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -235,9 +244,10 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -253,9 +263,10 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -271,9 +282,10 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -287,9 +299,10 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo_1d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -308,6 +321,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -349,9 +363,10 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -367,9 +382,10 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_adjoint(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -385,9 +401,10 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -401,9 +418,10 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint_1d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -425,6 +443,7 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 {
   int j,r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -469,9 +488,10 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -490,9 +510,10 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -511,9 +532,10 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -529,9 +551,10 @@ void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo_2d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -553,6 +576,7 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 {
   int j,r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -593,9 +617,10 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -614,9 +639,10 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_adjoint(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -635,9 +661,10 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -653,9 +680,10 @@ void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint_2d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -677,6 +705,7 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 {
   int j,r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -718,9 +747,10 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -739,9 +769,10 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -760,9 +791,10 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -778,9 +810,10 @@ void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo_3d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -802,6 +835,7 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 {
   int j,r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
+  ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
@@ -842,9 +876,10 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   while(t_fft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       fftw_execute(p_fft);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_fft+=t;
     }
   t_fft/=r;
@@ -863,9 +898,10 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_adjoint(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -884,9 +920,10 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -902,9 +939,10 @@ void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_adjoint_3d(&p);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;

@@ -17,15 +17,19 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 void simple_test_nfft_1d(void)
 {
@@ -35,6 +39,7 @@ void simple_test_nfft_1d(void)
   int N=14;
   int M=19;
   int n=32;
+  ticks t0, t1;
 
   /** init an one dimensional plan */
   nfft_init_1d(&p,N,M);
@@ -51,9 +56,10 @@ void simple_test_nfft_1d(void)
   nfft_vpr_complex(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  t=nfft_second();
+  t0 = getticks();
   ndft_trafo(&p);
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
   printf(" took %e seconds.\n",t);
 
@@ -77,6 +83,7 @@ void simple_test_nfft_2d(void)
 {
   int K,N[2],n[2],k,M;
   double t;
+  ticks t0, t1;
 
   nfft_plan p;
 
@@ -85,7 +92,7 @@ void simple_test_nfft_2d(void)
   M=N[0]*N[1];
   K=16;
 
-  t=nfft_second();
+  t0 = getticks();
   /** init a two dimensional plan */
   nfft_init_guru(&p, 2, N, M, n, 7,
 		 PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
@@ -102,36 +109,41 @@ void simple_test_nfft_2d(void)
   /** init pseudo random Fourier coefficients and show them */
   nfft_vrand_unit_complex(p.f_hat,p.N_total);
 
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f_hat,K,
               "given Fourier coefficients, vector f_hat (first few entries)");
   printf(" ... initialisation took %e seconds.\n",t);
 
   /** direct trafo and show the result */
-  t=nfft_second();
+  t0 = getticks();
   ndft_trafo(&p);
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f,K,"ndft, vector f (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** approx. trafo and show the result */
-  t=nfft_second();
+  t0 = getticks();
   nfft_trafo(&p);
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f,K,"nfft, vector f (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** direct adjoint and show the result */
-  t=nfft_second();
+  t0 = getticks();
   ndft_adjoint(&p);
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f_hat,K,"adjoint ndft, vector f_hat (first few entries)");
   printf(" took %e seconds.\n",t);
 
   /** approx. adjoint and show the result */
-  t=nfft_second();
+  t0 = getticks();
   nfft_adjoint(&p);
-  t=nfft_second()-t;
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f_hat,K,"adjoint nfft, vector f_hat (first few entries)");
   printf(" took %e seconds.\n",t);
 

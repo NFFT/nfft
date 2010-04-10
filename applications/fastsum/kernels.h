@@ -24,7 +24,11 @@
 #ifndef KERNELS_H
 #define KERNELS_H
 
+#include "config.h"
+
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"

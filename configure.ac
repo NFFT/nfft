@@ -135,6 +135,14 @@ if test "x$ok" = "xyes"; then
   [transforms.])
 fi
 
+AC_ARG_ENABLE(mips_zbus_timer, [AC_HELP_STRING([--enable-mips-zbus-timer],
+  [use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval, 
+  have_mips_zbus_timer=no)
+if test "$have_mips_zbus_timer" = "yes"; then
+  AC_DEFINE(HAVE_MIPS_ZBUS_TIMER,1,
+    [Define to enable use of MIPS ZBus cycle-counter.])
+fi
+
 # select window function
 AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
@@ -269,14 +277,6 @@ CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
-# Cygwin hackery
-case $ac_cv_build in
-  *cygwin*)
-    CFLAGS="$CFLAGS-mno-cygwin"
-    CPPFLAGS="-I/usr/include $CPPFLAGS"
-    ;;
-esac
-
 # add Matlab CFLAGS
 if test "x$ax_prog_matlab" = "xyes"; then
   CFLAGS="$CFLAGS $matlab_CFLAGS"
@@ -286,9 +286,9 @@ fi
 # header files/data types/compiler characteristics
 ################################################################################
 
-AC_CHECK_HEADERS([math.h stdio.h stdlib.h sys/resource.h time.h complex.h \
-  string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h inttypes.h \
-  stdbool.h sys/time.h malloc.h])
+AC_CHECK_HEADERS([math.h stdio.h stdlib.h sys/resource.h time.h  sys/time.h \
+  complex.h string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h \
+  inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h])
 
 AC_HEADER_TIME
 
@@ -328,29 +328,103 @@ saved_LIBS=$LIBS
 AC_CHECK_LIB(m, sin)
 LIBS=$saved_LIBS
 
-AC_CHECK_FUNCS([BSDgettimeofday gettimeofday gethrtime read_real_time])
-AC_CHECK_FUNCS([time_base_to_time drand48 memset posix_memalign memalign])
-AC_CHECK_FUNCS([_mm_malloc _mm_free clock_gettime mach_absolute_time sysctl])
-AC_CHECK_FUNCS([abort snprintf sqrt tgamma lgamma log sin cos acos pow exp])
-AC_CHECK_FUNCS([log2 log10 log1p sqrt tgamma lgamma log sin cos acos pow exp copysign lrint fmax cexp])
-AC_CHECK_FUNCS([log2f log10f log1pf sqrtf tgammaf lgammaf logf sinf cosf acosf powf expf copysignf lrintf fmaxf cexpf])
-AC_CHECK_FUNCS([log2l log10l log1pl sqrtl tgammal lgammal logl sinl cosl acosl powl expl copysignl lrintl fmaxl cexpl])
+AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time])
+
+AC_CHECK_FUNCS([memset posix_memalign memalign])
+AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
+AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([nanosleep sleep drand48 srand48])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
-AC_CHECK_DECLS([log2, log10, log1p, sqrt, tgamma, lgamma, log, sin, cos, acos, pow, exp, copysign, lrint, fmax],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2f, log10f, log1pf, sqrtf, tgammaf, lgammaf, logf, sinf, cosf, acosf, powf, expf, copysignf, lrintf, fmaxf],[],[],[#include <math.h>])
-AC_CHECK_DECLS([log2l, log10l, log1pl, sqrtl, tgammal, lgammal, logl, sinl, cosl, acosl, powl, expl, copysignl, lrintl, fmaxl],[],[],[#include <math.h>])
-AC_CHECK_DECLS([cexp],[],[],[#include <complex.h>])
-AC_CHECK_DECLS([cexpf],[],[],[#include <complex.h>])
-AC_CHECK_DECLS([cexpl],[],[],[#include <complex.h>])
-AC_CHECK_DECLS([cexp],[],[],[#include <complex.h>])
-AC_CHECK_DECLS([cexpf],[],[],[#include <complex.h>])
-AC_CHECK_DECLS([cexpl],[],[],[#include <complex.h>])
 AC_CHECK_DECLS([nanosleep],[],[],[#include <time.h>])
 AC_CHECK_DECLS([drand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
+
+# Cray UNICOS _rtc() (real-time clock) intrinsic
+AC_MSG_CHECKING([for _rtc intrinsic])
+rtc_ok=yes
+AC_TRY_LINK([#ifdef HAVE_INTRINSICS_H
+#include <intrinsics.h>
+#endif], [_rtc()], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
+AC_MSG_RESULT($rtc_ok)
+
+AC_MSG_CHECKING([whether a cycle counter is available])
+save_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS -I$srcdir/include"
+AC_TRY_CPP([#include "cycle.h"
+#ifndef HAVE_TICK_COUNTER
+#  error No cycle counter
+#endif], [ok=yes], [ok=no])
+AC_MSG_RESULT($ok)
+TICKS_PER_SECOND=1
+if test $ok = no; then
+  echo "***************************************************************"
+  echo "WARNING: No cycle counter found. Time measurements in NFFT will"
+  echo "         show incorrect results.                               "
+  echo "***************************************************************"
+else
+  if test "x$ac_cv_func_nanosleep" = "xyes"; then
+    AC_TRY_RUN([#include "cycle.h"
+#include <stdlib.h>
+#include <stdio.h>
+int main(){
+struct timespec ts = {1,0};
+ticks t0 = getticks();
+nanosleep(&ts, 0);{
+  double tps = elapsed(getticks(),t0)/1.0;
+  FILE *f = fopen("ticks.tmp","w");
+  fprintf(f,"%.1f\n",tps);
+  fclose(f);}
+return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
+    rm -f ticks.tmp
+  elif test "x$ac_cv_func_sleep" = "xyes"; then
+    AC_TRY_RUN([#include "cycle.h"
+#include <unistd.h>
+#include <stdio.h>
+int main(){
+ticks t0 = getticks();
+sleep(1);{
+  double tps = elapsed(getticks(),t0)/1.0;
+  FILE *f = fopen("ticks.tmp","w");
+  fprintf(f,"%.1f\n",tps);
+  fclose(f);}
+return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
+    rm -f ticks.tmp
+  fi
+  if test "$TICKS_PER_SECOND" = "1"; then
+    echo "***************************************************************"
+    echo "WARNING: Number of ticks per second could not be determined.   "
+    echo "         Time measurements in NFFT will be in arbitrary units  "
+    echo "         instead of seconds.                                   "
+    echo "***************************************************************"
+  fi
+fi
+
+CPPFLAGS=$save_CPPFLAGS
+AC_SUBST(TICKS_PER_SECOND)
+
+PRECISION=d
+if test "$PRECISION" = "l"; then
+AC_CHECK_FUNCS([copysignl nextafterl nanl ceill floorl nearbyintl rintl roundl lrintl lroundl llrintl llroundl truncl fmodl remainderl remquol fdiml fmaxl fminl fmal fabsl sqrtl cbrtl hypotl expl exp2l expm1l logl log2l log10l log1pl logbl ilogbl modfl frexpl ldexpl scalbnl scalblnl powl cosl sinl tanl coshl sinhl tanhl acosl asinl atanl atan2l acoshl asinhl atanhl tgammal lgammal j0l j1l jnl jnl y0l y1l ynl erfl erfcl creall cimagl cabsl cargl conjl cprojl csqrtl cexpl clogl cpowl csinl ccosl ctanl casinl cacosl catanl csinhl ccoshl ctanhl casinhl cacoshl catanhl])
+AC_CHECK_DECLS([copysignl, nextafterl, nanl, ceill, floorl, nearbyintl, rintl, roundl, lrintl, lroundl, llrintl, llroundl, truncl, fmodl, remainderl, remquol, fdiml, fmaxl, fminl, fmal, fabsl, sqrtl, cbrtl, hypotl, expl, exp2l, expm1l, logl, log2l, log10l, log1pl, logbl, ilogbl, modfl, frexpl, ldexpl, scalbnl, scalblnl, powl, cosl, sinl, tanl, coshl, sinhl, tanhl, acosl, asinl, atanl, atan2l, acoshl, asinhl, atanhl, tgammal, lgammal, j0l, j1l, jnl, y0l, y1l, ynl, erfl, erfcl, creall, cimagl, cabsl, cargl, conjl, cprojl, csqrtl, cexpl, clogl, cpowl, csinl, ccosl, ctanl, casinl, cacosl, catanl, csinhl, ccoshl, ctanhl, casinhl, cacoshl, catanhl],[],[],
+  [#include <math.h> 
+#include <complex.h>])
+fi
+
+if test "$PRECISION" = "d"; then
+AC_CHECK_FUNCS([copysign nextafter nan ceil floor nearbyint rint round lrint lround llrint llround trunc fmod remainder remquo fdim fmax fmin fma fabs sqrt cbrt hypot exp exp2 expm1 log log2 log10 log1p logb ilogb modf frexp ldexp scalbn scalbln pow cos sin tan cosh sinh tanh acos asin atan atan2 acosh asinh atanh tgamma lgamma j0 j1 jn y0 y1 yn erf erfc creal cimag cabs carg conj cproj csqrt cexp clog cpow csin ccos ctan casin cacos catan csinh ccosh ctanh casinh cacosh catanh])
+AC_CHECK_DECLS([copysign, nextafter, nan, ceil, floor, nearbyint, rint, round, lrint, lround, llrint, llround, trunc, fmod, remainder, remquo, fdim, fmax, fmin, fma, fabs, sqrt, cbrt, hypot, exp, exp2, expm1, log, log2, log10, log1p, logb, ilogb, modf, frexp, ldexp, scalbn, scalbln, pow, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan2, acosh, asinh, atanh, tgamma, lgamma, j0, j1, jn, y0, y1, yn, erf, erfc, creal, cimag, cabs, carg, conj, cproj, csqrt, cexp, clog, cpow, csin, ccos, ctan, casin, cacos, catan, csinh, ccosh, ctanh, casinh, cacosh, catanh],[],[],
+  [#include <math.h>
+#include <complex.h>])
+fi
+
+if test "$PRECISION" = "s"; then
+AC_CHECK_FUNCS([copysignf nextafterf nanf ceilf floorf nearbyintf rintf roundf lrintf lroundf llrintf llroundf truncf fmodf remainderf remquof fdimf fmaxf fminf fmaf fabsf sqrtf cbrtf hypotf expf exp2f expm1f logf log2f log10f log1pf logbf ilogbf modff frexpf ldexpf scalbnf scalblnf powf cosf sinf tanf coshf sinhf tanhf acosf asinf atanf atan2f acoshf asinhf atanhf tgammaf lgammaf j0f j1f jnf y0f y1f ynf erff erfcf crealf cimagf cabsf cargf conjf cprojf csqrtf cexpf clogf cpowf csinf ccosf ctanf casinf cacosf catanf csinhf ccoshf ctanhf casinhf cacoshf catanhf])
+AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabs, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
+  [#include <math.h> 
+#include <complex.h>])
+fi
 
 # The output files to be generated
 AC_CONFIG_FILES(Makefile \
@@ -358,6 +432,7 @@ AC_CONFIG_FILES(Makefile \
                 doxygen/doxygen.Doxyfile \
                 include/Makefile \
                 include/nfft3conf.h \
+                include/ticks.h \
                 3rdparty/Makefile \
                 3rdparty/cstripack/Makefile \
                 util/Makefile \

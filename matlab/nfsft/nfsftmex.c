@@ -17,8 +17,11 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include "nfft3.h"

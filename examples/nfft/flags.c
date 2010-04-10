@@ -26,14 +26,19 @@
  *
  * References: Time and Memory Requirements of the Nonequispaced FFT
  */
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 #ifdef GAUSSIAN
   unsigned test_fg=1;
@@ -70,6 +75,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   int r, NN[d], nn[d];
   double t_ndft, t, e;
   double _Complex *swapndft;
+  ticks t0, t1;
 
   nfft_plan p;
   nfft_plan p_pre_phi_hut;
@@ -145,9 +151,10 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
       while(t_ndft<0.01)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&p);
-          t=nfft_second()-t;
+          t1 = getticks();
+          t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;

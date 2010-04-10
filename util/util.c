@@ -22,11 +22,13 @@
  *  functions for vectors, window functions, ...
  *  (c) if not stated otherwise: Daniel Potts, Stefan Kunis
  */
+#include "config.h"
 
 #include "infft.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 #include <sys/time.h>
 #ifdef HAVE_SYS_RESOURCE_H
   #include <sys/resource.h>
@@ -35,44 +37,85 @@
   #include <malloc.h>
 #endif
 #include "cstripack.h"
-
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 #include "nfft3.h"
 #include "nfft3util.h"
+#include "infft.h"
 
-/** Actual used CPU time in seconds.
- *  Calls getrusage, limited accuracy
- */
-double nfft_second(void)
+R nfft_fc(const char *cmach)
 {
-#ifdef HAVE_SYS_RESOURCE_H
-  static struct rusage temp;
-  double foo, foo1;
+  const R base = FLT_RADIX;
+  const R eps = EPSILON;
+  const R t = MANT_DIG;
+  const R emin = MIN_EXP;
+  const R emax = MAX_EXP;
+  const R prec = eps * base;
+  static R rmin = K(1.0);
+  static R rmax = K(1.0);
+  const R rnd = FLTROUND;
+  static R sfmin = K(-1.0);
+  static short first = TRUE;
 
-  getrusage(RUSAGE_SELF,&temp);
-  foo     = temp.ru_utime.tv_sec;       /* seconds                           */
-  foo1    = temp.ru_utime.tv_usec;      /* uSecs                             */
-  return  foo  + (foo1/1000000.0);      /* milliseconds                      */
-#else
-  return K(0.0);
-#endif
-}
+  if (first)
+  {
+    /* Compute rmin */
+    {
+      const INT n = 1 - MIN_EXP;
+      INT i;
+      for (i = 0; i < n; i++)
+        rmin /= base;
+    }
+    /* Compute rmax */
+    {
+      INT i;
+      rmax -= eps;
+      for (i = 0; i < emax; i++)
+        rmax *= base;
+    }
+    /* Compute sfmin */
+    {
+      R small = K(1.0) / rmax;
+      sfmin = rmin;
+      if (small >= sfmin)
+        sfmin = small * (eps + K(1.0));
+    }
+    first = FALSE;
+  }
 
-//#ifndef HAVE_MALLOC_H
-//int nfft_total_used_memory(void)
-//{
-//  struct mallinfo m;
-//  m=mallinfo();
-//  return m.hblkhd + m.uordblks;
-//}
-//#else
-int nfft_total_used_memory()
+  if (cmach[0] == 'E')
+    return eps;
+  else if (cmach[0] == 'S')
+    return sfmin;
+  else if (cmach[0] == 'B')
+    return base;
+  else if (cmach[0] == 'P')
+    return prec;
+  else if (cmach[0] == 'N')
+    return t;
+  else if (cmach[0] == 'R')
+    return rnd;
+  else if (cmach[0] == 'M')
+    return  emin;
+  else if (cmach[0] == 'U')
+    return rmin;
+  else if (cmach[0] == 'L')
+    return emax;
+  else if (cmach[0] == 'O')
+    return rmax;
+  else
+    CK(0 /* cannot happen */);
+
+  return K(-1.0);
+} /* dlamch_ */
+
+double nfft_elapsed_seconds(ticks t1, ticks t0)
 {
-  fprintf(stderr,
-    "\nWarning in util/total_used_memory: mallinfo() not available\n");
-  return 0;
+  UNUSED(t1);
+  UNUSED(t0);
+  return elapsed(t1,t0)/TICKS_PER_SECOND;
 }
-//#endif
 
 int nfft_int_2_pow(int a)
 {
@@ -1692,7 +1735,7 @@ R X(modified_multiquadric)(const R mu, const R c, const int kk)
 static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
   const int nb, const int ize, R *b)
 {
-  const R enmten = K(4.0)*K(R_MIN);
+  const R enmten = K(4.0)*nfft_fc("U");
   R tempa = K(1.0), empal = K(1.0) + alpha, halfx = K(0.0), tempb = K(0.0);
   int n, ncalc = nb;
 
@@ -1748,7 +1791,7 @@ static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
 static inline void scaled_modified_bessel_i_normalize(const R x,
   const R alpha, const int nb, const int ize, R *b, const R sum_)
 {
-  const R enmten = K(4.0)*K(R_MIN);
+  const R enmten = K(4.0)*nfft_fc("U");
   R sum = sum_, tempa;
   int n;
 
@@ -1842,8 +1885,8 @@ int nfft_smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   /* EXPARG - LARGEST WORKING PRECISION ARGUMENT THAT THE LIBRARY */
   /*          EXP ROUTINE CAN HANDLE AND UPPER LIMIT ON THE */
   /*          MAGNITUDE OF X WHEN IZE=1. */
-  const int nsig = R_DIG + 2;
-  const R enten = POW(K(10.0),K(R_MAX_10_EXP));
+  const int nsig = MANT_DIG + 2;
+  const R enten = nfft_fc("O");//POW(K(10.0),K(R_MAX_10_EXP));
   const R ensig = POW(K(10.0),(R)nsig);
   const R rtnsig = POW(K(10.0),-CEIL((R)nsig/K(4.0)));
   const R xlarge = K(1E4);

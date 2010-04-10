@@ -27,14 +27,19 @@
  * References: Time and memory requirements of the Nonequispaced FFT
  *
  */
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 typedef struct
 {
@@ -177,6 +182,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   int r;
   double t_ndft, t_nfft, t_taylor, t;
   double _Complex *swapndft;
+  ticks t0, t1;
 
   taylor_plan tp;
   nfft_plan np;
@@ -222,9 +228,10 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       while(t_ndft<0.01)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&np);
-          t=nfft_second()-t;
+          t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -241,9 +248,10 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   while(t_nfft<0.01)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&np);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;
@@ -261,9 +269,10 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   while(t_taylor<0.01)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       taylor_trafo(&tp);
-      t=nfft_second()-t;
+      t1 = getticks();
+t = nfft_elapsed_seconds(t1,t0);
       t_taylor+=t;
     }
   t_taylor/=r;

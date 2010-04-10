@@ -24,15 +24,20 @@
  * \{
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/resource.h>
 #include <time.h>
-#include <complex.h>
+#ifdef HAVE_COMPLEX_H
+  #include <complex.h>
+#endif
 
 #include "nfft3.h"
 #include "nfft3util.h"
+#include "infft.h"
 
 /**
  * If this flag is set, the whole matrix is precomputed and stored for the
@@ -338,7 +343,8 @@ void fgt_test_init_rand(fgt_plan *ths)
 double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
-  double t_out,t;
+  ticks t0, t1;
+  double t_out;
   double tau=0.01;
 
   t_out=0;
@@ -346,17 +352,13 @@ double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
   while(t_out<tau)
     {
       r++;
-      if(dgt)
-        {
-          t=nfft_second();
-          dgt_trafo(ths);
-        }
+      t0 = getticks();
+      if (dgt)
+        dgt_trafo(ths);
       else
-        {
-          t=nfft_second();
-          fgt_trafo(ths);
-        }
-      t_out+=nfft_second()-t;
+        fgt_trafo(ths);
+      t1 = getticks();
+      t_out += nfft_elapsed_seconds(t1,t0);
     }
   t_out/=r;
 

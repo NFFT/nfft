@@ -24,15 +24,19 @@
  *
  * \author Stefan Kunis
  */
+#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 void ndft_horner_trafo(nfft_plan *ths)
 {
@@ -85,6 +89,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   int r;
   double t, t_ndft, t_horner, t_pre_full, t_nfft;
   double _Complex *A;
+  ticks t0, t1;
 
   nfft_plan np;
 
@@ -112,9 +117,10 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       while(t_ndft<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_trafo(&np);
-          t=nfft_second()-t;
+          t1 = getticks();
+          t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
         }
       t_ndft/=r;
@@ -130,9 +136,10 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   while(t_horner<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       ndft_horner_trafo(&np);
-      t=nfft_second()-t;
+      t1 = getticks();
+      t = nfft_elapsed_seconds(t1,t0);
       t_horner+=t;
     }
   t_horner/=r;
@@ -147,9 +154,10 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       while(t_pre_full<0.1)
         {
           r++;
-          t=nfft_second();
+          t0 = getticks();
           ndft_pre_full_trafo(&np,A);
-          t=nfft_second()-t;
+          t1 = getticks();
+          t = nfft_elapsed_seconds(t1,t0);
           t_pre_full+=t;
         }
       t_pre_full/=r;
@@ -164,9 +172,10 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   while(t_nfft<0.1)
     {
       r++;
-      t=nfft_second();
+      t0 = getticks();
       nfft_trafo(&np);
-      t=nfft_second()-t;
+      t1 = getticks();
+      t = nfft_elapsed_seconds(t1,t0);
       t_nfft+=t;
     }
   t_nfft/=r;

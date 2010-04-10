@@ -47,46 +47,6 @@ extern "C"
  *
  */
 
-/** Timing, method works since the inaccurate timer is updated mostly in the
- *  measured function. For small times not every call of the measured function
- *  will also produce a 'unit' time step.
- *  Measuring the fftw might cause a wrong output vector due to the repeated
- *  ffts.
- */
-#ifdef MEASURE_TIME
- int MEASURE_TIME_r;
- double MEASURE_TIME_tt;
-
-#define TIC(a)                                                                \
-  ths->MEASURE_TIME_t[(a)]=0;                                                 \
-  MEASURE_TIME_r=0;                                                           \
-  while(ths->MEASURE_TIME_t[(a)]<0.01)                                        \
-    {                                                                         \
-      MEASURE_TIME_r++;                                                       \
-      MEASURE_TIME_tt=nfft_second();                                          \
-
-/* THE MEASURED FUNCTION IS CALLED REPEATEDLY */
-
-#define TOC(a)                                                                \
-      MEASURE_TIME_tt=nfft_second()-MEASURE_TIME_tt;                          \
-      ths->MEASURE_TIME_t[(a)]+=MEASURE_TIME_tt;                              \
-    }                                                                         \
-  ths->MEASURE_TIME_t[(a)]/=MEASURE_TIME_r;                                   \
-
-#else
-#define TIC(a)
-#define TOC(a)
-#endif
-
-#ifdef MEASURE_TIME_FFTW
-#define TIC_FFTW(a) TIC(a)
-#define TOC_FFTW(a) TOC(a)
-#else
-#define TIC_FFTW(a)
-#define TOC_FFTW(a)
-#endif
-
-
 /** Swapping of two vectors.
  */
 #define NFFT_SWAP_complex(x,y) {fftw_complex* NFFT_SWAP_temp__; \
@@ -114,14 +74,6 @@ extern "C"
 /* ######################################################################### */
 /* ########## Little helpers ############################################### */
 /* ######################################################################### */
-
-/** Actual used CPU time in seconds; calls getrusage, limited accuracy.
- */
-double nfft_second(void);
-
-/** Actual used memory in bytes; calls mallinfo if define HAVE_MALLOC_H.
- */
-int nfft_total_used_memory(void);
 
 /** Integer logarithm of 2.
  */
@@ -371,6 +323,8 @@ double nfft_lambda2(const double mu, const double nu);
 double nfft_drand48(void);
 
 void nfft_srand48(long int seed);
+
+double nfft_fc(const char *cmach);
 
 #ifdef __cplusplus
 }  /* extern "C" */

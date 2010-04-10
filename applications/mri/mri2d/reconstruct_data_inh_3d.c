@@ -17,14 +17,18 @@
  */
 
 /* $Id$ */
+#include "config.h"
 
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3.h"
 #include "nfft3util.h"
+#include "infft.h"
 
 /**
  * \defgroup applications_mri2d_reconstruct_data_inh_3d reconstruct_data_inh_3d
@@ -35,6 +39,7 @@
 void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
+  ticks t0, t1;
   double time,min_time,max_time,min_inh,max_inh;
   double t,real,imag;
   double w,epsilon=0.0000003;     /* epsilon is a the break criterium for
@@ -167,7 +172,7 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     my_iplan.f_hat_iter[j]=0.0;
   }
 
-  t=nfft_second();
+  t0 = getticks();
 
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
@@ -181,13 +186,8 @@ void reconstruct(char* filename,int N,int M,int iteration , int weight)
     solver_loop_one_step_complex(&my_iplan);
   }
 
-
-  t=nfft_second()-t;
-#ifdef HAVE_TOTAL_USED_MEMORY
-  fprintf(stderr,"time: %e seconds mem: %i \n",t,nfft_total_used_memory());
-#else
-  fprintf(stderr,"time: %e seconds mem: mallinfo not available\n",t);
-#endif
+  t1 = getticks();
+  t = nfft_elapsed_seconds(t1,t0);
 
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");

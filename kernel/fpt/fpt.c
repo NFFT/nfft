@@ -30,7 +30,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3.h"
 #include "nfft3util.h"
@@ -582,7 +584,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   const double *x_act;
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
-  R max = -R_MAX;
+  R max = -nfft_fc("O");
   const R t = LOG10(FABS(threshold));
 
   /* Traverse all nodes. */

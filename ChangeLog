@@ -1,11 +1,17 @@
 This file contains the version history for NFFT 3.x.x. 
 
 Changes in version 3.2:
- - Added experimental code that leverages support for libdispatch. This allows 
-   code to be executed in parallel on platforms that support the library. As of
-   now, this only affects ndft_trafo(). To enable support for libdispatch, use
-   the configure flags --enable-threads and --enable-libdispatch.
- - Fixes for building under Cygwin.
+  - Added experimental code that leverages support for libdispatch. This allows 
+    code to be executed in parallel on platforms that support the library. As of
+    now, this only affects ndft_trafo(). To enable support for libdispatch, use
+    the configure flags --enable-threads and --enable-libdispatch.
+  - Removed calls to mallinfo() for compatibility reasons.
+  - Added ticks.h from FFTW to leverage CPU cycle counters. If cycle counters
+    are available, the configure script will try to determine the number of 
+    ticks per second. If successful, example programs measure times in seconds. 
+    Otherwise, example programs will output raw cycle counter differences in 
+    arbitrary units. If cycle counters are not available, results of time 
+    measurements are undefined.
 
 Changes in version 3.1.4:
   - Added pkg-config file (thanks Gert Wollny)

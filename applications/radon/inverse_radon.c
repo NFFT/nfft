@@ -36,11 +36,15 @@
  * \author Markus Fenn
  * \date 2005
  */
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 #include "nfft3util.h"
 #include "nfft3.h"

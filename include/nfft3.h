@@ -24,6 +24,10 @@
 #ifndef __NFFT3_H__
 #define __NFFT3_H__
 
+//#if defined(_Complex_I) && defined(complex) && defined(I)
+//#error Test
+//#endif
+
 /** Include header for FFTW3 library for its complex type. */
 #include <fftw3.h>
 

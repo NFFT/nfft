@@ -24,11 +24,15 @@
  * \author Jens Keiner
  */
 
+#include "config.h"
+
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
 
 /* Include NFFT3 utilities header. */
 #include "nfft3util.h"
