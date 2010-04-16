@@ -57,7 +57,7 @@ void simple_test_nfft_1d(void)
 
   /** direct trafo and show the result */
   t0 = getticks();
-  ndft_trafo(&p);
+  nfft_direct_trafo(&p);
   t1 = getticks();
   t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
@@ -68,7 +68,7 @@ void simple_test_nfft_1d(void)
   nfft_vpr_complex(p.f,p.M_total,"nfft, vector f");
 
   /** approx. adjoint and show the result */
-  ndft_adjoint(&p);
+  nfft_direct_adjoint(&p);
   nfft_vpr_complex(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
 
   /** approx. adjoint and show the result */
@@ -117,7 +117,7 @@ void simple_test_nfft_2d(void)
 
   /** direct trafo and show the result */
   t0 = getticks();
-  ndft_trafo(&p);
+  nfft_direct_trafo(&p);
   t1 = getticks();
   t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f,K,"ndft, vector f (first few entries)");
@@ -133,7 +133,7 @@ void simple_test_nfft_2d(void)
 
   /** direct adjoint and show the result */
   t0 = getticks();
-  ndft_adjoint(&p);
+  nfft_direct_adjoint(&p);
   t1 = getticks();
   t = nfft_elapsed_seconds(t1,t0);
   nfft_vpr_complex(p.f_hat,K,"adjoint ndft, vector f_hat (first few entries)");

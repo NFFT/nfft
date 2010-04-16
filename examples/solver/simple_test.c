@@ -104,7 +104,7 @@ void simple_test_solver_nfft_1d(int N, int M, int iter)
     nfft_precompute_one_psi(&p);
 
   /** initialise inverse plan */
-  solver_init_complex(&ip,(mv_plan_complex*)(&p));
+  solver_init_complex(&ip,(nfft_mv_plan_complex*)(&p));
 
   /** init pseudo random samples and show them */
   nfft_vrand_unit_complex(ip.y,p.M_total);

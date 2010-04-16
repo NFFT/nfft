@@ -30,7 +30,7 @@
 #include "nfft3util.h"
 #include "nfft3.h"
 
-void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv, unsigned flags)
+void solver_init_advanced_complex(solver_plan_complex* ths, nfft_mv_plan_complex *mv, unsigned flags)
 {
   ths->mv = mv;
   ths->flags = flags;
@@ -65,7 +65,7 @@ void solver_init_advanced_complex(solver_plan_complex* ths, mv_plan_complex *mv,
     ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));
 }
 
-void solver_init_complex(solver_plan_complex* ths, mv_plan_complex *mv)
+void solver_init_complex(solver_plan_complex* ths, nfft_mv_plan_complex *mv)
 {
   solver_init_advanced_complex(ths, mv, CGNR);
 }
@@ -381,7 +381,7 @@ void solver_finalize_complex(solver_plan_complex *ths)
 /****************************************************************************/
 /****************************************************************************/
 
-void solver_init_advanced_double(solver_plan_double* ths, mv_plan_double *mv, unsigned flags)
+void solver_init_advanced_double(solver_plan_double* ths, nfft_mv_plan_double *mv, unsigned flags)
 {
   ths->mv = mv;
   ths->flags = flags;
@@ -416,7 +416,7 @@ void solver_init_advanced_double(solver_plan_double* ths, mv_plan_double *mv, un
     ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));
 }
 
-void solver_init_double(solver_plan_double* ths, mv_plan_double *mv)
+void solver_init_double(solver_plan_double* ths, nfft_mv_plan_double *mv)
 {
   solver_init_advanced_double(ths, mv, CGNR);
 }

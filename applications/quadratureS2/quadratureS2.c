@@ -356,7 +356,7 @@ int main (int argc, char **argv)
           else
           {
             /* Execute the adjoint direct NDSFT transformation. */
-            ndsft_adjoint(&plan);
+            nfsft_direct_adjoint(&plan);
           }
 
           t1 = getticks();
@@ -715,7 +715,7 @@ int main (int argc, char **argv)
             else
             {
               /* Execute the direct NDSFT transformation. */
-              ndsft_trafo(&plan_gen);
+              nfsft_direct_trafo(&plan_gen);
             }
 
             nfsft_finalize(&plan_gen);
@@ -742,7 +742,7 @@ int main (int argc, char **argv)
               else
               {
                 /* Execute the direct NDSFT transformation. */
-                ndsft_trafo(&plan_gen);
+                nfsft_direct_trafo(&plan_gen);
               }
 
               nfsft_finalize(&plan_gen);
@@ -1031,7 +1031,7 @@ int main (int argc, char **argv)
           else
           {
             /* Execute the adjoint direct NDSFT transformation. */
-            ndsft_adjoint(plan_adjoint_ptr);
+            nfsft_direct_adjoint(plan_adjoint_ptr);
           }
 
           /* Multiplication with the Fourier-Legendre coefficients. */
@@ -1055,7 +1055,7 @@ int main (int argc, char **argv)
           else
           {
             /* Execute the direct NDSFT transformation. */
-            ndsft_trafo(plan_ptr);
+            nfsft_direct_trafo(plan_ptr);
           }
 
           t1 = getticks();

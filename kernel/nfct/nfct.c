@@ -120,16 +120,16 @@ int nfct_fftw_2N_rev(int n)
 
 
 /** direct computation of non equispaced cosine transforms
-*  ndct_trafo,  ndct_adjoint
+*  nfct_direct_trafo,  nfct_direct_adjoint
 *  require O(M N^d) arithemtical operations
 *
-* direct computation of the ndct_trafo, formula (1.1)
-* ndct_trafo:
+* direct computation of the nfct_direct_trafo, formula (1.1)
+* nfct_direct_trafo:
 * for j=0,...,M-1
 *  f[j] = sum_{k in I_N^d} f_hat[k] * cos(2 (pi) k x[j])
 *
-* direct computation of the ndft_adjoint, formula (1.2)
-* ndct_adjoint:
+* direct computation of the nfft_direct_adjoint, formula (1.2)
+* nfct_direct_adjoint:
 * for k in I_N^d
 *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
 */
@@ -212,7 +212,7 @@ int nfct_fftw_2N_rev(int n)
 
 /* slow (trafo) transform */
 #define MACRO_ndct(which_one)                                           \
-  void ndct_ ## which_one (nfct_plan *ths)                             \
+  void nfct_direct_ ## which_one (nfct_plan *ths)                             \
   {                                                                     \
     int j, k, t, i;                                                     \
     int ka[ths->d];                                                     \
@@ -247,7 +247,7 @@ int nfct_fftw_2N_rev(int n)
         }                                                               \
       else                                                              \
         {                                                               \
-          /* fast ndct_trafo */                                         \
+          /* fast nfct_direct_trafo */                                  \
           MACRO_ndct_malloc__cos_vec;                                   \
                                                                         \
           for(j = 0; j < ths->M_total; j++)                            \

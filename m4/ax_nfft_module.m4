@@ -6,7 +6,7 @@ AC_DEFUN([AX_NFFT_MODULE],
     HAVE_$2="#define HAVE_$2 1"
     $4
   else
-    HAVE_$2="#undef HAVE_NFCT"
+    HAVE_$2="#undef HAVE_$2"
     $5
   fi
   AM_CONDITIONAL(HAVE_$2, m4_default($6,test "x$ok" = "xyes"))

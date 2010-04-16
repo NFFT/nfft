@@ -1,0 +1,197 @@
+/*
+ * Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/** @defgroup nfst NFST - Nonequispaced fast sine transform
+ * Direct and fast computation of the discrete nonequispaced sine
+ * transform.
+ * @{
+ */
+
+/*! \fn void nfst_init_1d(nfst_plan *ths_plan, int N0, int M_total)
+ * Creates a 1-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg N0 The bandwidth \f$N\f$
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_init_2d(nfst_plan *ths_plan, int N0, int N1, int M_total)
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_init_3d(nfst_plan *ths_plan, int N0, int N1, int N2, int M_total)
+ * Creates a 3-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg N0 The bandwidth of dimension 1
+ * \arg N1 The bandwidth of dimension 2
+ * \arg N2 The bandwidth of dimension 3
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_init(nfst_plan *ths_plan, int d, int *N, int M_total)
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_init_m(nfst_plan *ths_plan, int d, int *N, int M_total, int m)
+ * Creates a d-dimensional transform plan with pcific m.
+ * (just for convenience)
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg m cut-off parameter
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_init_guru(nfst_plan *ths_plan, int d, int *N, int M_total, int *n, int m, unsigned nfst_flags, unsigned fftw_flags)
+ * Creates a d-dimensional transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d the dimension
+ * \arg N The bandwidths
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg n The oversampled bandwidths
+ * \arg m The cut-off parameter
+ * \arg nfst_flags The flags known to nfst
+ * \arg fftw_flags The flags known to fftw
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_precompute_psi(nfst_plan *ths_plan)
+ * precomputes the values psi
+ * if the PRE_PSI is set the application program has to call this routine
+ * after setting the nodes this_plan->x
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_trafo(nfst_plan *ths_plan)
+ * executes a NFST (approximate,fast), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^S(x_j) = \sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_direct_trafo(nfst_plan *ths_plan)
+ * executes a NDST (exact,slow), computes for \f$j=0,...,M\_total-1\f$
+ * \f$f_j^S(x_j) = \sum_{k \in I_1^{N,d}} \hat{f}_k^S * sin(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_adjoint(nfst_plan *ths_plan)
+ * executes a transposed NFST (approximate,fast), computes for \f$k \in I_1^{N,d}\f$
+ * \f$h^S(k) = \sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_direct_adjoint(nfst_plan *ths_plan)
+ * executes a direct transposed NDST (exact,slow), computes for \f$k \in I_1^{N,d}\f$
+ * \f$h^S(k) = \sum_{j \in I_0^{M\_total,1}} f_j^S * cos(2 \pi k x_j)\f$
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_finalize(nfst_plan *ths_plan)
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn void nfst_full_psi(nfst_plan *ths_plan, R eps)
+ *
+ *
+ * \arg ths_plan The plan for the transform
+ *
+ */
+
+/*! \fn R nfst_phi_hut(nfst_plan *ths_plan, int k, int d)
+ * do some adjustments (N,n) then compute PHI_HUT
+ *
+ * \arg ths_plan the plan for the transform
+ * \arg k        index of c_phi
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn R nfst_phi(nfst_plan *ths_plan, R x, int d)
+ * do some adjustments (N,n) then compute PHI
+ *
+ * \arg ths_plan the plan for the transform
+ * \arg x        node \f$x\f$
+ * \arg d        dimension
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn int nfst_fftw_2N(int n)
+ * returns 2(n+1),  fftw related issue
+ *
+ * \arg n       i.e. length of dst-1
+ *
+ * \author Steffen Klatt
+ */
+
+/*! \fn int nfst_fftw_2N_rev(int n)
+ * returns 0.5n-1,  fftw related issue
+ *
+ * \arg n       i.e. length of dct-1
+ *
+ * \author Steffen Klatt
+ */
+
+/** @}
+ */

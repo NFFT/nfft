@@ -333,7 +333,7 @@ void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 
   if (flags & NFSOFT_USE_DPT)
   { /** Execute DPT. */
-    dpt_trafo(set, trafo_nr, &x[k_start], y, k_end, 0U
+    fpt_direct_trafo(set, trafo_nr, &x[k_start], y, k_end, 0U
         | (function_values ? FPT_FUNCTION_VALUES : 0U));
   }
   else
@@ -404,7 +404,7 @@ void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
 
   if (flags & NFSOFT_USE_DPT)
   {
-    dpt_transposed(set, trafo_nr, &x[k_start], y, k_end, 0U
+    fpt_direct_transposed(set, trafo_nr, &x[k_start], y, k_end, 0U
         | (function_values ? FPT_FUNCTION_VALUES : 0U));
   }
   else
@@ -540,7 +540,7 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
 
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
-    ndft_trafo(&(plan3D->p_nfft));
+    nfft_direct_trafo(&(plan3D->p_nfft));
   }
   else
   {
@@ -620,7 +620,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 
   if (plan3D->flags & NFSOFT_USE_NDFT)
   {
-    ndft_adjoint(&(plan3D->p_nfft));
+    nfft_direct_adjoint(&(plan3D->p_nfft));
   }
   else
   {

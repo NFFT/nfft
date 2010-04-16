@@ -266,11 +266,11 @@ int main (int argc, char **argv)
 
     if ((N+1)*(N+1) > M)
     {
-      solver_init_advanced_complex(&iplan, (mv_plan_complex*)(&plan), CGNE | PRECOMPUTE_DAMP);
+      solver_init_advanced_complex(&iplan, (nfft_mv_plan_complex*)(&plan), CGNE | PRECOMPUTE_DAMP);
     }
     else
     {
-      solver_init_advanced_complex(&iplan, (mv_plan_complex*)(&plan), CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
+      solver_init_advanced_complex(&iplan, (nfft_mv_plan_complex*)(&plan), CGNR | PRECOMPUTE_WEIGHT | PRECOMPUTE_DAMP);
     }
 
     /* Read the nodes and function values. */

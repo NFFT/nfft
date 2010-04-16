@@ -229,7 +229,7 @@ void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
         {
           r++;
           t0 = getticks();
-          ndft_trafo(&np);
+          nfft_direct_trafo(&np);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;

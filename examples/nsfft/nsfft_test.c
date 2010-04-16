@@ -46,7 +46,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_init_random_nodes_coeffs(&p);
 
   /** direct trafo */
-  nsdft_trafo(&p);
+  nsfft_direct_trafo(&p);
 
   NFFT_SWAP_complex(swap_sndft_trafo,p.f);
 
@@ -61,7 +61,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nfft_vrand_unit_complex(p.f, p.M_total);
 
   /** direct adjoint */
-  nsdft_adjoint(&p);
+  nsfft_direct_adjoint(&p);
 
   NFFT_SWAP_complex(swap_sndft_adjoint,p.f_hat);
 
@@ -110,7 +110,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
     {
       r++;
       t0 = getticks();
-      nsdft_trafo(&p);
+      nsfft_direct_trafo(&p);
       t1 = getticks();
       t = nfft_elapsed_seconds(t1,t0);
       t_nsdft+=t;

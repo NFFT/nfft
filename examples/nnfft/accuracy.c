@@ -78,7 +78,7 @@ void accuracy(int d)
       nfft_vrand_unit_complex(my_plan.f_hat, my_plan.N_total);
 
       /** direct trafo and show the result */
-      nndft_trafo(&my_plan);
+      nnfft_direct_trafo(&my_plan);
 
       NFFT_SWAP_complex(my_plan.f,slow);
 

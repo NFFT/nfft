@@ -62,7 +62,7 @@ void glacier(int N,int M)
 		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /* initialise ip, specific */
-  solver_init_advanced_complex(&ip,(mv_plan_complex*)(&p), CGNE| PRECOMPUTE_DAMP);
+  solver_init_advanced_complex(&ip,(nfft_mv_plan_complex*)(&p), CGNE| PRECOMPUTE_DAMP);
   fprintf(stderr,"Using the generic solver!");
 
   /* init nodes */
@@ -127,7 +127,7 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
 
 
   /* initialise ip, specific */
-  solver_init_advanced_complex(&ip,(mv_plan_complex*)(&p), solver_flags);
+  solver_init_advanced_complex(&ip,(nfft_mv_plan_complex*)(&p), solver_flags);
 
   /* initialise cp for validation */
   cp_y = (double _Complex*) nfft_malloc(M*sizeof(double _Complex));

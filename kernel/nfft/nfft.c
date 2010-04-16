@@ -36,19 +36,19 @@
 #include "infft.h"
 
 /** direct computation of non equispaced fourier transforms
- *  ndft_trafo, ndft_conjugated, ndft_adjoint, ndft_transposed
+ *  nfft_direct_trafo, ndft_conjugated, nfft_direct_adjoint, ndft_transposed
  *  require O(M_total N^d) arithemtical operations
  *
- * direct computation of the ndft_trafo and ndft_conjugated, formula (1.1)
- * ndft_trafo:
+ * direct computation of the nfft_direct_trafo and ndft_conjugated, formula (1.1)
+ * nfft_direct_trafo:
  * for j=0,...,M_total-1
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(-2 (pi) k x[j])
  * ndft_conjugated:
  * for j=0,...,M_total-1
  *  f[j] = sum_{k in I_N^d} f_hat[k] * exp(+2 (pi) k x[j])
  *
- * direct computation of the ndft_adjoint and ndft_transposed, formula (1.2)
- * ndft_adjoint:
+ * direct computation of the nfft_direct_adjoint and ndft_transposed, formula (1.2)
+ * nfft_direct_adjoint:
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M_total-1} f[j] * exp(+2(pi) k x[j])
  * ndft_transposed:
@@ -98,7 +98,7 @@
 #define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
 
 #define MACRO_ndft(which_one)                                                 \
-void ndft_ ## which_one (nfft_plan *ths)                                      \
+void nfft_direct_ ## which_one (nfft_plan *ths)                                      \
 {                                                                             \
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;                                 \
                                                                               \

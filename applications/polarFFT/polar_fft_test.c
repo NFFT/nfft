@@ -135,7 +135,7 @@ static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
     my_nfft_plan.f_hat[k] = f_hat[k];
 
   /** NDFT-2D */
-  ndft_trafo(&my_nfft_plan);
+  nfft_direct_trafo(&my_nfft_plan);
 
   /** copy result */
   for(j=0;j<my_nfft_plan.M_total;j++)
@@ -243,7 +243,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  solver_init_advanced_complex(&my_infft_plan,(mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
+  solver_init_advanced_complex(&my_infft_plan,(nfft_mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
 
   /** init nodes, given samples and weights */
   polar_grid(T,R,x,w);

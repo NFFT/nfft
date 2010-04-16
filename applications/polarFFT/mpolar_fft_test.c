@@ -145,7 +145,7 @@ static int mpolar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R
   t0 = getticks();
 
   /** NDFT-2D */
-  ndft_trafo(&my_nfft_plan);
+  nfft_direct_trafo(&my_nfft_plan);
 
   t1 = getticks();
   GLOBAL_elapsed_time = nfft_elapsed_seconds(t1,t0);
@@ -265,7 +265,7 @@ static int inverse_mpolar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-    solver_init_advanced_complex(&my_infft_plan,(mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
+    solver_init_advanced_complex(&my_infft_plan,(nfft_mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
 
   /** init nodes, given samples and weights */
   for(j=0;j<my_nfft_plan.M_total;j++)

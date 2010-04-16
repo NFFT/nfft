@@ -531,7 +531,7 @@ void nfsft_finalize(nfsft_plan *plan)
   }
 }
 
-void ndsft_trafo(nfsft_plan *plan)
+void nfsft_direct_trafo(nfsft_plan *plan)
 {
   int m;               /*< The node index                                    */
   int k;               /*< The degree k                                      */
@@ -663,7 +663,7 @@ void ndsft_trafo(nfsft_plan *plan)
   }
 }
 
-void ndsft_adjoint(nfsft_plan *plan)
+void nfsft_direct_adjoint(nfsft_plan *plan)
 {
   int m;               /*< The node index                                    */
   int k;               /*< The degree k                                      */
@@ -806,7 +806,7 @@ void nfsft_trafo(nfsft_plan *plan)
   if (plan->N < NFSFT_BREAK_EVEN)
   {
     /* Use NDSFT. */
-    ndsft_trafo(plan);
+    nfsft_direct_trafo(plan);
   }
 
   /* Check for correct value of the bandwidth N. */
@@ -855,7 +855,7 @@ void nfsft_trafo(nfsft_plan *plan)
       {
         //fprintf(stderr,"nfsft_trafo: n = %d\n",n);
         fflush(stderr);
-        dpt_trafo(wisdom.set,abs(n),
+        fpt_direct_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
@@ -884,7 +884,7 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_USE_NDFT)
     {
       /* Use NDFT. */
-      ndft_trafo(&plan->plan_nfft);
+      nfft_direct_trafo(&plan->plan_nfft);
     }
     else
     {
@@ -917,7 +917,7 @@ void nfsft_adjoint(nfsft_plan *plan)
   if (plan->N < NFSFT_BREAK_EVEN)
   {
     /* Use adjoint NDSFT. */
-    ndsft_adjoint(plan);
+    nfsft_direct_adjoint(plan);
   }
   /* Check for correct value of the bandwidth N. */
   else if (plan->N <= wisdom.N_MAX)
@@ -936,10 +936,10 @@ void nfsft_adjoint(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
-      //fprintf(stderr,"nfsft_adjoint: Executing ndft_adjoint\n");
+      //fprintf(stderr,"nfsft_adjoint: Executing nfft_direct_adjoint\n");
       //fflush(stderr);
       /* Use adjoint NDFT. */
-      ndft_adjoint(&plan->plan_nfft);
+      nfft_direct_adjoint(&plan->plan_nfft);
     }
     else
     {
@@ -963,7 +963,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       {
         //fprintf(stderr,"nfsft_adjoint: Executing dpt_transposed\n");
         //fflush(stderr);
-        dpt_transposed(wisdom.set,abs(n),
+        fpt_direct_transposed(wisdom.set,abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);

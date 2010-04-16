@@ -51,7 +51,7 @@
 #define MACRO_nndft_compute_transposed MACRO_nndft_compute_adjoint
 
 #define MACRO_nndft(which_one)                                                \
-void nndft_ ## which_one (nnfft_plan *ths)                                    \
+void nnfft_direct_ ## which_one (nnfft_plan *ths)                                    \
 {                                                                             \
   int j;                               /**< index over all nodes (time)     */\
   int t;                               /**< index for dimensions            */\

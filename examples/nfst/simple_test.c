@@ -52,7 +52,7 @@ void simple_test_nfst_1d(void)
   nfft_vpr_double(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  ndst_trafo(&p);
+  nfst_direct_trafo(&p);
   nfft_vpr_double(p.f,p.M_total,"ndst, vector f");
 
   /** approx. trafo and show the result */
@@ -60,7 +60,7 @@ void simple_test_nfst_1d(void)
   nfft_vpr_double(p.f,p.M_total,"nfst, vector f");
 
   /** approx. adjoint and show the result */
-  ndst_adjoint(&p);
+  nfst_direct_adjoint(&p);
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint ndst, vector f_hat");
 
   /** approx. adjoint and show the result */

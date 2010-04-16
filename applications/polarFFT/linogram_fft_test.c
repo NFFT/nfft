@@ -121,7 +121,7 @@ static int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int
 
   /** NFFT-2D */
   t0 = getticks();
-  ndft_trafo(&my_nfft_plan);
+  nfft_direct_trafo(&my_nfft_plan);
   t1 = getticks();
   GLOBAL_elapsed_time = nfft_elapsed_seconds(t1,t0);
 
@@ -236,7 +236,7 @@ static int inverse_linogram_fft(fftw_complex *f, int T, int R, fftw_complex *f_h
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
-  solver_init_advanced_complex(&my_infft_plan,(mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
+  solver_init_advanced_complex(&my_infft_plan,(nfft_mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
 
   /** init nodes, given samples and weights */
   linogram_grid(T,R,x,w);
