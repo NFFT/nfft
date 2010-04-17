@@ -464,35 +464,18 @@ NSFFT_DEFINE_API(NSFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,doubl
 NSFFT_DEFINE_API(NSFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 #endif
 
-/**
- * If this flag is set, the member \ref index_sparse_to_full is (de)allocated
- * and initialised for the use in the routine \ref nsfft_direct_trafo and
- * \ref nsdft_adjoint.
- *
- * \see nsfft_init
- * \author Stefan Kunis
- */
 #define NSDFT            (1U<< 12)
 
 /** @}
  */
 
 /*###########################################################################*/
-/*###########################################################################*/
-/*###########################################################################*/
-
-/** @defgroup mri MRI - Transforms in magnetic resonance imaging
- * @{
- */
 
 #define MRI_MANGLE_DOUBLE(name) NFFT_CONCAT(mri_, name)
 #define MRI_MANGLE_FLOAT(name) NFFT_CONCAT(mrif_, name)
 #define MRI_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(mril_, name)
 
 #define MRI_DEFINE_API(X,Y,Z,R,C) \
-/**
- * The structure for the transform plan.
- */ \
 typedef struct\
 {\
   /* api */\
@@ -506,9 +489,6 @@ typedef struct\
   R *w;\
 } X(inh_2d1d_plan);\
 \
-/**
- * The structure for the transform plan.
- */ \
 typedef struct\
 {\
   /* api */\

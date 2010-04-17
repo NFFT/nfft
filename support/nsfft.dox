@@ -107,5 +107,14 @@
  * \author Markus Fenn, Stefan Kunis
  */
 
+/*! \def NSDFT
+ * If this flag is set, the member \ref index_sparse_to_full is (de)allocated
+ * and initialised for the use in the routine \ref nsfft_direct_trafo and
+ * \ref nsdft_adjoint.
+ *
+ * \see nsfft_init
+ * \author Stefan Kunis
+ */
+
 /** @}
  */
