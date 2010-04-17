@@ -502,97 +502,15 @@ typedef struct\
   R *w;\
 } X(inh_3d_plan);\
 \
-/**
- * Executes a mri transformation considering the field inhomogeneity with the 2d1d method,
- * i.e. computes for \f$j=0,...,M_{total}-1\f$
- * \f[
- *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
- *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
 void X(inh_2d1d_trafo)(X(inh_2d1d_plan) *ths); \
-\
-/**
- * Executes an adjoint mri transformation considering the field inhomogeneity with the 2d1d method,
- * i.e. computes for \f$k \in I_N^2\f$
- * \f[
- *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
- *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
 void X(inh_2d1d_adjoint)(X(inh_2d1d_plan) *ths); \
-\
-/**
- * Creates a transform plan.
- *
- * \arg ths_plan The plan for the transform
- * \arg N The bandwidth \f$N\f$
- * \arg M_total The number of nodes \f$x\f$
- * \arg n The oversampled bandwidth \f$N\f$
- * \arg m The cut-off parameter
- * \arg sigma The oversampling factor
- * \arg nnfft_flags The flags
- *
- * \author Tobias Knopp
- */ \
 void X(inh_2d1d_init_guru)(X(inh_2d1d_plan) *ths, int *N, int M, int *n, \
-                    int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-\
-/**
- * Destroys a plan.
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
+  int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
 void X(inh_2d1d_finalize)(X(inh_2d1d_plan) *ths); \
-\
-/**
- * Executes a mri transformation considering the field inhomogeneity with the 3d method,
- * i.e. computes for \f$j=0,...,M_{total}-1\f$
- * \f[
- *   f(x_j) = \sum_{k \in I_N^2} \hat{f}(k) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
- *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
 void X(inh_3d_trafo)(X(inh_3d_plan) *ths); \
-\
-/**
- * Executes an adjoint mri transformation considering the field inhomogeneity with the 3d method,
- * i.e. computes for \f$k \in I_N^2\f$
- * \f[
- *   \hat{f}(k) = \sum_{j=0}^{M_{total}-1} f(x_j) {\rm e}^{\mbox{\rm\scriptsize i} t_j \omega(k)}
- *                      {\rm e}^{-2 \pi \mbox{\rm\scriptsize i} k x_j}
- * \f]
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
 void X(inh_3d_adjoint)(X(inh_3d_plan) *ths); \
-\
 void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
-                    int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-\
-/**
- * Destroys a plan.
- *
- * \arg ths_plan The plan
- *
- * \author Tobias Knopp
- */ \
+  int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
 void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
 
 #ifdef HAVE_MRI
@@ -601,263 +519,7 @@ MRI_DEFINE_API(MRI_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,ff
 MRI_DEFINE_API(MRI_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 #endif
 
-/** @}
- */
-
 /*###########################################################################*/
-/*###########################################################################*/
-/*###########################################################################*/
-
-/**
- * @defgroup nfsft NFSFT - Nonequispaced fast spherical Fourier transform
- * @{
- *
- * This module implements nonuniform fast spherical Fourier transforms. In the
- * following, we abbreviate the term "nonuniform fast spherical Fourier
- * transform" by NFSFT.
- *
- * \section Preliminaries
- * This section summarises basic definitions and properties related to spherical
- * Fourier transforms.
- *
- * \subsection sc Spherical Coordinates
- * Every point in \f$\mathbb{R}^3\f$ can be described in \e spherical \e
- * coordinates by a vector \f$(r,\vartheta,\varphi)^{\mathrm{T}}\f$ with the
- * radius \f$r \in \mathbb{R}^{+}\f$ and two angles \f$\vartheta \in [0,\pi]\f$,
- * \f$\varphi \in [-\pi,\pi)\f$.
- * We denote by \f$\mathbb{S}^2\f$ the two-dimensional unit sphere embedded
- * into \f$\mathbb{R}^3\f$, i.e.
- * \f[
- *   \mathbb{S}^2 := \left\{\mathbf{x} \in \mathbb{R}^{3}:\;
- *   \|\mathbf{x}\|_2=1\right\}
- * \f]
- * and identify a point from \f$\mathbb{S}^2\f$ with the corresponding vector
- * \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The
- * spherical coordinate system is illustrated in the following figure:
- * \image html sphere.png ""
- * \image latex sphere.pdf "" width=0.45\textwidth
- * For consistency with the other modules and the conventions used there, we
- * also use \e swapped \e scaled \e spherical \e coordinates \f$x_1 :=
- * \frac{\varphi}{2\pi}\f$, \f$x_2 := \frac{\vartheta}{2\pi}\f$ and identify a
- * point from \f$\mathbb{S}^2\f$ with the vector
- * \f$\mathbf{x} := \left(x_1,x_2\right) \in
- *  [-\frac{1}{2}, \frac{1}{2}) \times [0,\frac{1}{2}]\f$.
- *
- * \subsection lp Legendre Polynomials
- * The \e Legendre \e polynomials \f$P_k : [-1,1]
- * \rightarrow \mathbb{R}$, $k \in \mathbb{N}_{0}\f$ as \e classical \e
- * orthogonal \e polynomials are given by their corresponding \e Rodrigues \e
- * formula
- * \f[
- *   P_k(t) := \frac{1}{2^k k!} \frac{\text{d}^k}{\text{d} t^k}
- *   \left(t^2-1\right)^k.
- * \f]
- * The corresponding three-term recurrence relation is
- * \f[
- *   (k+1)P_{k+1}(t) = (2k+1) x P_{k}(t) - k P_{k-1}(t) \quad (k \in
- *   \mathbb{N}_0).
- * \f]
- * With
- * \f[
- *   \left< f,g \right>_{\text{L}^2\left([-1,1]\right)} :=
- *   \int_{-1}^{1} f(t) g(t) \text{d} t
- * \f]
- * being the usual \f$\text{L}^2\left([-1,1]\right)\f$ inner product,
- * the Legendre polynomials obey the orthogonality condition
- * \f[
- *   \left< P_k,P_l \right>_{\text{L}^2\left([-1,1]\right)} = \frac{2}{2k+1}
- *   \delta_{k,l}.
- * \f]
- *
- * \remark The normalisation constant \f$ c_k := \sqrt{\frac{2k+1}{2}}\f$
- * renders the scaled Legendre polynomials \f$c_k P_k\f$ orthonormal with
- * respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
- * \f[
- *   \|f\|_{\text{L}^2\left([-1,1]\right)} :=
- *   \left(<f,f>_{\text{L}^2\left([-1,1]\right)}\right)^{1/2} =
- *   \left(\int_{-1}^{1} |f(t)|^2 \; \text{d} t\right)^{1/2}.
- * \f]
- *
- * \subsection alf Associated Legendre Functions
- * The \a associated \a Legendre \a functions \f$P_k^n : [-1,1] \rightarrow
- * \mathbb{R} \f$, \f$n \in \mathbb{N}_0\f$, \f$k \ge n\f$ are defined by
- * \f[
- *   P_k^n(t) := \left(\frac{(k-n)!}{(k+n)!}\right)^{1/2}
- *   \left(1-t^2\right)^{n/2} \frac{\text{d}^n}{\text{d} t^n} P_k(t).
- * \f]
- * For \f$n = 0\f$, they coincide with the Legendre polynomials, i.e.
- * \f$P_k^0 = P_k\f$.
- * The associated Legendre functions obey the three-term recurrence relation
- * \f[
- *   P_{k+1}^n(t) = v_{k}^n t P_k^n(t) + w_{k}^n P_{k-1}^n(t) \quad (k \ge n),
- * \f]
- * with \f$P_{n-1}^n(t) := 0\f$, \f$P_{n}^n(t) := \frac{\sqrt{(2n)!}}{2^n n!}
- * \left(1-t^2\right)^{n/2}\f$, and
- * \f[
- *   v_{k}^n := \frac{2k+1}{((k-n+1)(k+n+1))^{1/2}}\; ,\qquad
- *   w_{k}^n := - \frac{((k-n)(k+n))^{1/2}}{((k-n+1)(k+n+1))^{1/2}}.
- * \f]
- * For fixed \f$n\f$, the set \f$\left\{P_k^n:\: k
- * \ge n\right\}\f$ forms a complete set of orthogonal functions in
- * \f$\text{L}^2\left([-1,1]\right)\f$
- * with
- * \f[
- *   \left< P_k^n,P_l^n \right>_{\text{L}^2\left([-1,1]\right)} = \frac{2}{2k+1}
- *   \delta_{k,l} \quad (0 \le n \le k,l).
- * \f]
- *
- * \remark The normalisation constant \f$ c_k = \sqrt{\frac{2k+1}{2}}\f$
- * renders the scaled associated Legendre functions \f$c_k P_k^n\f$ orthonormal
- * with respect to the induced \f$\text{L}^2\left([-1,1]\right)\f$ norm
- * \f[
- *   \|f\|_{\text{L}^2\left([-1,1]\right)} :=
- *   \left(<f,f>_{\text{L}^2\left([-1,1]\right)}\right)^{1/2} =
- *   \left(\int_{-1}^{1} |f(t)|^2 \; \text{d} t\right)^{1/2}.
- * \f]
- *
- * \subsection sh Spherical Harmonics
- * The standard orthogonal basis of spherical harmonics for \f$\text{L}^2
- * \left(\mathbb{S}^2\right)\f$ with yet unnormalised basis functions
- * \f$\tilde{Y}_k^n : \mathbb{S}^2 \rightarrow \mathbb{C}\f$ is given by
- * \f[
- *   \tilde{Y}_k^n(\vartheta,\varphi) := P_k^{|n|}(\cos\vartheta)
- *   \mathrm{e}^{\mathrm{i} n \varphi}
- * \f]
- * with the usual \f$\text{L}^2\left(\mathbb{S}^2\right)\f$ inner product
- * \f[
- *   \left< f,g \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)} :=
- *   \int_{\mathbb{S}^2} f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)}
- *   \: \mathrm{d} \mathbf{\xi} := \int_{-\pi}^{\pi} \int_{0}^{\pi}
- *   f(\vartheta,\varphi) \overline{g(\vartheta,\varphi)} \sin \vartheta
- *   \; \mathrm{d} \vartheta \; \mathrm{d} \varphi.
- * \f]
- * The normalisation constant \f$c_k^n := \sqrt{\frac{2k+1}{4\pi}}\f$ renders
- * the  scaled basis functions
- * \f[
- *   Y_k^n(\vartheta,\varphi) := c_k^n P_k^{|n|}(\cos\vartheta)
- *   \mathrm{e}^{\mathrm{i} n \varphi}
- * \f]
- * orthonormal with respect to the induced \f$\text{L}^2\left(\mathbb{S}^2
- * \right)\f$ norm
- * \f[
- *   \|f\|_{\text{L}^2\left(\mathbb{S}^2\right)} =
- *   \left(<f,f>_{\text{L}^2\left(\mathbb{S}^2\right)}\right)^{1/2} =
- *   \left(\int_{-\pi}^{\pi} \int_{0}^{\pi} |f(\vartheta,\varphi)|^2 \sin
- *   \vartheta \; \mathrm{d} \vartheta \; \mathrm{d} \varphi\right)^{1/2}.
- * \f]
- * A function \f$f \in \mathrm{L}^2\left(\mathbb{S}^2\right)\f$ has the
- * orthogonal expansion
- * \f[
- *   f = \sum_{k=0}^{\infty} \sum_{n=-k}^{k} \hat{f}(k,n) Y_k^n,
- * \f]
- * where the coefficients \f$\hat{f}(k,n) := \left< f, Y_k^{n}
- * \right>_{\mathrm{L}^2\left(\mathbb{S}^2\right)}\f$ are the \e spherical
- * \e Fourier \e coefficients and the equivalence is understood in the
- * \f$\mathrm{L}^2\f$-sense.
- *
- *
- * \section nfsfts Nonuniform Fast Spherical Fourier Transforms
- *
- * This section describes the input and output relation of the spherical
- * Fourier transform algorithms and the layout of the corresponding plan
- * structure.
- *
- * \subsection ndsft Nonuniform Discrete Spherical Fourier Transform
- * The \e nonuniform \e discrete \e spherical \e Fourier \e transform (\e NDSFT)
- * is defined as follows:
- * \f[
- *     \begin{array}{rcl}
- *       \text{\textbf{Input}} & : & \text{coefficients }
- *         \hat{f}(k,n) \in \mathbb{C} \text{ for } k=0,\ldots,N,\;n=-k,
- *         \ldots,k,\; N \in \mathbb{N}_0,\\[1ex]
- *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in
- *         [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}]
- *         \text{ for } m=0,\ldots,M-1, M \in \mathbb{N}. \\[1ex]
- *       \text{\textbf{Task}}  & : & \text{evaluate } f(m) := f\left(
- *       \mathbf{x}(m)\right) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}_k^n
- *         Y_k^n\left(\mathbf{x}(m)\right) \text{ for } m=0,\ldots,M-1.
- *         \\[1ex]
- *       \text{\textbf{Output}} & : & \text{coefficients } f(m) \in
- *         \mathbb{C} \text{ for } m=0,\ldots,M-1.\\
- *     \end{array}
- * \f]
- *
- * \subsection andsft Adjoint Nonuniform Discrete Spherical Fourier Transform
- * The \e adjoint \e nonuniform \e discrete \e spherical \e Fourier \e transform
- * (\e adjoint \e NDSFT)
- * is defined as follows:
- * \f[
- *     \begin{array}{rcl}
- *       \text{\textbf{Input}} & : & \text{coefficients } f(m) \in
- *         \mathbb{C} \text{ for } m=0,\ldots,M-1, M \in \mathbb{N},\\
- *                             &   & \text{arbitrary nodes } \mathbf{x}(m) \in
- *         [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}] \text{ for }
- *         m=0,\ldots,M-1, N \in \mathbb{N}_0.\\[1ex]
- *       \text{\textbf{Task}}  & : & \text{evaluate } \hat{f}(k,n)
- *         := \sum_{m=0}^{M-1} f(m) \overline{Y_k^n\left(\mathbf{x}(m)\right)}cd Do
- *         \text{ for } k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
- *       \text{\textbf{Output}} & : & \text{coefficients }
- *         \hat{f}(k,n) \in \mathbb{C} \text{ for }
- *         k=0,\ldots,N,\;n=-k,\ldots,k.\\[1ex]
- *     \end{array}
- * \f]
- *
- * \subsection dl Data Layout
- * This section describes the public  layout of the \ref nfsft_plan structure
- * which
- * contains all data for the computation of the aforementioned spherical Fourier
- * transforms. The structure contains private (no read or write allowed), public
- * read-only (only
- * read access permitted), and public read-write (read and write access allowed)
- * members. In the following, we indicate read and write access by \c read and
- * \c write. The public members are structured as follows:
- * \li \c N_total (\c read)
- *        The total number of components in \c f_hat. If the bandwidth is
- *        \f$N \in \mathbb{N}_0\f$, the total number of components in \c f_hat
- *        is \c N_total \f$ = (2N+2)^2\f$.
- * \li \c M_total (\c read)
- *        the total number of samples \f$M\f$
- * \li \c f_hat (\c read-write)
- *        The flattened array of spherical Fourier coefficents. The array
- *        has length \f$(2N+2)^2\f$ such that valid indices \f$i \in
- *        \mathbb{N}_0\f$ for array access \c f_hat \c[ \f$i\f$ \c] are
- *        \f$i=0,1,\ldots,(2N+2)^2-1\f$.
- *        However, only read and write access to indices corresponding to
- *        spherical Fourier coefficients \f$\hat{f}(k,n)\f$ is defined. The index
- *        \f$i\f$ corresponding to the spherical Fourier coefficient
- *        \f$\hat{f}(k,n)\f$ with \f$0 \le k \le M\f$, \f$-k \le n \le k\f$ is
- *        \f$i = (N+2)(N-n+1)+N+k+1\f$. For convenience, the helper macro
- *        \ref NFSFT_INDEX(k,n) provides the necessary index calculations such
- *        that
- *        one can write \c f_hat[ \c NFSFT_INDEX(\f$k,n\f$\c)] \c =
- *        \c ... to access
- *        the component corresponding to \f$\hat{f}(k,n)\f$.
- *        The data layout is due to implementation details.
- * \li \c f (\c read-write)
- *        the array of coefficients \f$f(m)\f$ for \f$m=0,\ldots,M-1\f$ such
- *        that \c f[\f$m\f$\c] = \f$f(m)\f$
- * \li \c N (\c read)
- *        the bandwidth \f$N \in \mathbb{N}_0\f$
- * \li \c x
- *        the array of nodes \f$\mathbf{x}(m) \in
- *        [-\frac{1}{2},\frac{1}{2}] \times [0,\frac{1}{2}]\f$ for \f$m = 0,
- *        \ldots,M-1\f$ such that \c f[\f$2m\f$\c] = \f$x_1\f$ and
- *        \c f[\f$2m+1\f$\c] = \f$x_2\f$
- *
- * \subsection gtn Good to know...
- * When using the routines of this module you should bear in mind the following:
- * \li The bandwidth \f$N_{\text{max}}\f$ up to which precomputation is
- *   performed is always chosen as the next power of two with respect to the
- *   specified maximum bandwidth.
- * \li By default, the NDSFT transforms (see \ref nfsft_direct_trafo, \ref nfsft_trafo)
- *   are allowed to destroy the input \c f_hat while the input \c x is
- *   preserved. On the contrary, the adjoint NDSFT transforms
- *   (see \ref nfsft_direct_adjoint, \ref nfsft_adjoint) do not destroy the input
- *   \c f and \c x by default. The desired behaviour can be assured by using the
- *   \ref NFSFT_PRESERVE_F_HAT, \ref NFSFT_PRESERVE_X, \ref NFSFT_PRESERVE_F and
- *   \ref NFSFT_DESTROY_F_HAT, \ref NFSFT_DESTROY_X, \ref NFSFT_DESTROY_F
- *   flags.
- */
 
 #define NFSFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfsft_, name)
 #define NFSFT_MANGLE_FLOAT(name) NFFT_CONCAT(nfsftf_, name)
@@ -890,347 +552,43 @@ typedef struct\
                                            spherical Fourier coefficients     */\
 } X(plan);\
 \
-/**
- * Creates a transform plan.
- *
- * \arg plan a pointer to a \ref nfsft_plan structure
- * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M the number of nodes \f$M \in \mathbb{N}\f$
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \
-\
-/**
- * Creates a transform plan.
- *
- * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
- * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M the number of nodes \f$M \in \mathbb{N}\f$
- * \arg nfsft_flags the NFSFT flags
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(init_advanced)(X(plan)* plan, int N, int M, unsigned int \
-                         nfsft_flags); \
-\
-/**
- * Creates a transform plan.
- *
- * \arg plan a pointer to a \verbatim nfsft_plan \endverbatim structure
- * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg M the number of nodes \f$M \in \mathbb{N}\f$
- * \arg nfsft_flags the NFSFT flags
- * \arg nfft_cutoff the NFFT cutoff parameter
- *
- * \author Jens Keiner
- */ \
+  nfsft_flags); \
 NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M, unsigned int nfsft_flags, \
-    unsigned int nfft_flags, int nfft_cutoff); \
-\
-/**
- * Performes precomputation up to the next power of two with respect to a given
- * bandwidth \f$N \in \mathbb{N}_2\f$. The threshold parameter \f$\kappa \in
- * \mathbb{R}^{+}\f$ determines the number of stabilization steps computed in
- * the discrete polynomial transform and thereby its accuracy.
- *
- * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
- * \arg threshold the threshold \f$\kappa \in \mathbb{R}^{+}\f$
- * \arg nfsft_precomputation_flags the NFSFT precomputation flags
- * \arg fpt_precomputation_flags the FPT precomputation flags
- *
- * \author Jens Keiner
- */ \
+  unsigned int nfft_flags, int nfft_cutoff); \
 NFFT_EXTERN void X(precompute)(int N, R kappa, unsigned int nfsft_flags, \
   unsigned int fpt_flags); \
-\
-/**
- * Forgets all precomputed data.
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(forget)(void); \
-\
-/**
- * Executes a direct NDSFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
- * \f[
- *   f(m) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}(k,n) Y_k^n\left(2\pi x_1(m),
- *   2\pi x_2(m)\right).
- * \f]
- *
- * \arg plan the plan
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(direct_trafo)(X(plan)* plan); \
-\
-/**
- * Executes a direct adjoint NDSFT, i.e. computes for \f$k=0,\ldots,N;
- * n=-k,\ldots,k\f$
- * \f[
- *   \hat{f}(k,n) = \sum_{m = 0}^{M-1} f(m) Y_k^n\left(2\pi x_1(m),
- *   2\pi x_2(m)\right).
- * \f]
- *
- * \arg plan the plan
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(direct_adjoint)(X(plan)* plan); \
-\
-/**
- * Executes a NFSFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
- * \f[
- *   f(m) = \sum_{k=0}^N \sum_{n=-k}^k \hat{f}(k,n) Y_k^n\left(2\pi x_1(m),
- *   2\pi x_2(m)\right).
- * \f]
- *
- * \arg plan the plan
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(trafo)(X(plan)* plan); \
-\
-/**
- * Executes an adjoint NFSFT, i.e. computes for \f$k=0,\ldots,N;
- * n=-k,\ldots,k\f$
- * \f[
- *   \hat{f}(k,n) = \sum_{m = 0}^{M-1} f(m) Y_k^n\left(2\pi x_1(m),
- *   2\pi x_2(m)\right).
- * \f]
- *
- * \arg plan the plan
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(adjoint)(X(plan)* plan); \
-\
-/**
- * Destroys a plan.
- *
- * \arg plan the plan to be destroyed
- *
- * \author Jens Keiner
- */ \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
-\
 NFFT_EXTERN void X(precompute_x)(X(plan) *plan);
 
 #ifdef HAVE_NFSFT
 
-/* Planner flags */
-
-/**
- * By default, all computations are performed with respect to the
- * unnormalized basis functions
- * \f[
- *   \tilde{Y}_k^n(\vartheta,\varphi) = P_k^{|n|}(\cos\vartheta)
- *   \mathrm{e}^{\mathrm{i} n \varphi}.
- * \f]
- * If this flag is set, all computations are carried out using the \f$L_2\f$-
- * normalized basis functions
- * \f[
- *   Y_k^n(\vartheta,\varphi) = \sqrt{\frac{2k+1}{4\pi}} P_k^{|n|}(\cos\vartheta)
- *   \mathrm{e}^{\mathrm{i} n \varphi}.
- * \f]
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_NORMALIZED    (1U << 0)
-
-/**
- * If this flag is set, the fast NFSFT algorithms (see \ref nfsft_trafo,
- * \ref nfsft_adjoint) will use internally the exact but usually slower direct
- * NDFT algorithm in favor of fast but approximative NFFT algorithm.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_USE_NDFT      (1U << 1)
-
-/**
- * If this flag is set, the fast NFSFT algorithms (see \ref nfsft_trafo,
- * \ref nfsft_adjoint) will use internally the usually slower direct
- * DPT algorithm in favor of the fast FPT algorithm.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- * \warning This feature is not implemented yet!
- */
-#define NFSFT_USE_DPT       (1U << 2)
-
-/**
- * If this flag is set, the init methods (see \ref nfsft_init , \ref
- * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the
- * method \ref nfsft_finalize will free the array \c x for you. Otherwise,
- * you have to assure by yourself that \c x points to an array of
- * proper size before excuting a transform and you are responsible for freeing
- * the corresponding memory before program termination.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_MALLOC_X      (1U << 3)
-
-/**
- * If this flag is set, the init methods (see \ref nfsft_init , \ref
- * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the
- * method \ref nfsft_finalize will free the array \c f_hat for you. Otherwise,
- * you have to assure by yourself that \c f_hat points to an array of
- * proper size before excuting a transform and you are responsible for freeing
- * the corresponding memory before program termination.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_MALLOC_F_HAT  (1U << 5)
-
-/**
- * If this flag is set, the init methods (see \ref nfsft_init , \ref
- * nfsft_init_advanced , and \ref nfsft_init_guru) will allocate memory and the
- * method \ref nfsft_finalize will free the array \c f for you. Otherwise,
- * you have to assure by yourself that \c f points to an array of
- * proper size before excuting a transform and you are responsible for freeing
- * the corresponding memory before program termination.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_MALLOC_F      (1U << 6)
-
-/**
- * If this flag is set, it is guaranteed that during an execution of
- * \ref nfsft_direct_trafo or \ref nfsft_trafo the content of \c f_hat remains
- * unchanged.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
+/* flags */
+#define NFSFT_NORMALIZED     (1U << 0)
+#define NFSFT_USE_NDFT       (1U << 1)
+#define NFSFT_USE_DPT        (1U << 2)
+#define NFSFT_MALLOC_X       (1U << 3)
+#define NFSFT_MALLOC_F_HAT   (1U << 5)
+#define NFSFT_MALLOC_F       (1U << 6)
 #define NFSFT_PRESERVE_F_HAT (1U << 7)
-
-/**
- * If this flag is set, it is guaranteed that during an execution of
- * \ref nfsft_direct_trafo, \ref nfsft_trafo or \ref nfsft_direct_adjoint, \ref nfsft_adjoint
- * the content of \c x remains
- * unchanged.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
 #define NFSFT_PRESERVE_X     (1U << 8)
-
-/**
- * If this flag is set, it is guaranteed that during an execution of
- * \ref nfsft_direct_adjoint or \ref nfsft_adjoint the content of \c f remains
- * unchanged.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
 #define NFSFT_PRESERVE_F     (1U << 9)
-
-/**
- * If this flag is set, it is explicitely allowed that during an execution of
- * \ref nfsft_direct_trafo or \ref nfsft_trafo the content of \c f_hat may be changed.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
-#define NFSFT_DESTROY_F_HAT    (1U << 10)
-
-/**
- * If this flag is set, it is explicitely allowed that during an execution of
- * \ref nfsft_direct_trafo, \ref nfsft_trafo or \ref nfsft_direct_adjoint, \ref nfsft_adjoint
- * the content of \c x may be changed.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
+#define NFSFT_DESTROY_F_HAT  (1U << 10)
 #define NFSFT_DESTROY_X      (1U << 11)
-
-/**
- * If this flag is set, it is explicitely allowed that during an execution of
- * \ref nfsft_direct_adjoint or \ref nfsft_adjoint the content of \c f may be changed.
- *
- * \see nfsft_init
- * \see nfsft_init_advanced
- * \see nfsft_init_guru
- * \author Jens Keiner
- */
 #define NFSFT_DESTROY_F      (1U << 12)
 
-/* Precomputation flags */
-
-/**
- * If this flag is set, the transforms \ref nfsft_direct_trafo and \ref nfsft_direct_adjoint
- * do not work. Setting this flag saves some memory for precomputed data.
- *
- * \see nfsft_precompute
- * \see nfsft_direct_trafo
- * \see nfsft_direct_adjoint
- * \author Jens Keiner
- */
+/* precomputation flags */
 #define NFSFT_NO_DIRECT_ALGORITHM    (1U << 13)
-
-/**
- * If this flag is set, the transforms \ref nfsft_trafo and \ref nfsft_adjoint
- * do not work. Setting this flag saves memory for precomputed data.
- *
- * \see nfsft_precompute
- * \see nfsft_trafo
- * \see nfsft_adjoint
- * \author Jens Keiner
- */
 #define NFSFT_NO_FAST_ALGORITHM      (1U << 14)
-
-/**
- * If this flag is set, the transforms \ref nfsft_adjoint and
- * \ref nfsft_direct_adjoint set all unused entries in \c f_hat not corresponding to
- * spherical Fourier coefficients to zero.
- *
- * \author Jens Keiner
- */
 #define NFSFT_ZERO_F_HAT             (1U << 16)
 
-/* */
-
-/**
- * This helper macro expands to the index \f$i\f$
- * corresponding to the spherical Fourier coefficient
- * \f$f_hat(k,n)\f$ for \f$0 \le k \le N\f$, \f$-k \le n \le k\f$ with
- * \f[
- *   (N+2)(N-n+1)+N+k+1
- * \f]
- */
 #define NFSFT_INDEX(k,n,plan)        ((2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1)
-
-/**
- * This helper macro expands to the logical size of a spherical Fourier coefficients
- * array for a bandwidth N.
- */
 #define NFSFT_F_HAT_SIZE(N)          ((2*N+2)*(2*N+2))
 
 NFSFT_DEFINE_API(NFSFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -1238,11 +596,6 @@ NFSFT_DEFINE_API(NFSFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,doubl
 NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 #endif
 
-/** @}
- */
-
-/*###########################################################################*/
-/*###########################################################################*/
 /*###########################################################################*/
 
 /**
