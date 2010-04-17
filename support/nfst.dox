@@ -24,6 +24,10 @@
  * @{
  */
 
+/*! \struct nfst_plan
+ * Structure for a transform plan 
+ */
+
 /*! \fn void nfst_init_1d(nfst_plan *ths_plan, int N0, int M_total)
  * Creates a 1-dimensional transform plan.
  *

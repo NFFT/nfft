@@ -24,6 +24,10 @@
  * @{
  */
 
+/*! \struct nnfft_plan
+ * NNFFT transform plan 
+ */
+
 /*! \fn nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N)
  * Creates a transform plan.
  *

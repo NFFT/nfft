@@ -24,6 +24,10 @@
  * @{
  */
 
+/*! \struct nsfft_plan 
+ * Structure for a NFFT plan
+ */
+
 /*! \fn void nsfft_direct_trafo(nsfft_plan *ths)
  * Executes an NSDFT, computes for \f$j=0,\hdots,M-1\f$:
  * \f[

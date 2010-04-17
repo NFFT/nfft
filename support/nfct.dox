@@ -24,6 +24,10 @@
  * @{
  */
 
+/*! \struct nfct_plan
+ * NFCT transform plan 
+ */
+
  /*! \fn void nfct_init_1d(nfct_plan *ths_plan, int N0, int M_total)
   * Creates a 1-dimensional transform plan.
   *

@@ -269,6 +269,10 @@
  *   flags.
  */
 
+/*! \struct nfsft_plan
+ * NFSFT transform plan
+ */
+
 /*! \fn void nfsft_init(nfsft_plan *plan, int N, int M)
  * Creates a transform plan.
  *

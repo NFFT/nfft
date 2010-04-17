@@ -22,6 +22,10 @@
  *  \brief Header file for the nfft3 library.
  */
 
+/*! \def MACRO_MV_PLAN(RC)
+ *  Macros for public members inherited by all plan structures. 
+ *  */
+
 /**
  * @defgroup nfft NFFT - Nonequispaced fast Fourier transform
  * Direct and fast computation of the nonequispaced discrete Fourier transform.
@@ -67,6 +71,10 @@
  * Approximative realisations take only
  * \f${\cal O}(|I_{\mathbf{N}}|\log|I_{\mathbf{N}}|+M)\f$ floating point operations.
  * These are provided by \ref nfft_trafo and \ref nfft_adjoint, respectively.
+ */
+
+/*! \struct nfft_plan 
+ * NFFT transform plan 
  */
 
 /*! \fn void nfft_direct_trafo(nfft_plan *ths)
