@@ -9,10 +9,10 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 #mexexecdir = $(bindir)/nfft/matlab/nfsft
 
 # library
-noinst_LTLIBRARIES = libnfsft.la
+lib_LTLIBRARIES = libnfsft.la
 libnfsft_la_SOURCES = nfsftmex.c
-libnfsft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
-libnfsft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
+libnfsft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+libnfsft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
 
 EXTRA_DIST = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_trafo.m \
   nfsft_adjoint.m nfsft_finalize.m nfsft_forget.m nfsft_get_f_hat.m \

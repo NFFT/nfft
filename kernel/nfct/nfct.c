@@ -33,91 +33,82 @@
 #include "nfft3.h"
 #include "infft.h"
 
-/**
- * handy shortcuts
- **/
-#define NFCT_DEFAULT_FLAGS   PRE_PHI_HUT|\
-                             PRE_PSI|\
-                             MALLOC_X|\
-                             MALLOC_F_HAT|\
-                             MALLOC_F|\
-                             FFTW_INIT|\
-                             FFT_OUT_OF_PLACE
+#if defined(NFFT_SINGLE)
+#define X(name) CONCAT(nfctf_, name)
+#elif defined(NFFT_LDOUBLE)
+#define X(name) CONCAT(nfctl_, name)
+#else
+#define X(name) CONCAT(nfct_, name)
+#endif
 
-#define FFTW_DEFAULT_FLAGS   FFTW_ESTIMATE|\
-                             FFTW_DESTROY_INPUT
+static int fftw_2N(int n)
+{
+  return 2 * (n - 1);
+}
+
+static int fftw_2N_rev(int n)
+{
+  return (LRINT(K(0.5) * n) + 1);
+}
+
+/* handy shortcuts */
+#define NFCT_DEFAULT_FLAGS PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | \
+  MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE
+
+#define FFTW_DEFAULT_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
 
 #define NFCT_SUMMANDS (2 * ths->m + 2)
 #define NODE(p,r) (ths->x[(p) * ths->d + (r)])
 
-#define MACRO_ndct_init_result_trafo       \
-  memset(f, 0, ths->M_total * sizeof(double));
-#define MACRO_ndct_init_result_adjoint     \
-  memset(f_hat, 0, ths->N_total * sizeof(double));
+#define MACRO_ndct_init_result_trafo \
+  memset(f, 0, ths->M_total * sizeof(R));
+#define MACRO_ndct_init_result_adjoint \
+  memset(f_hat, 0, ths->N_total * sizeof(R));
 
+#define MACRO_nfct_D_init_result_A \
+  memset(g_hat, 0, nfct_prod_int(ths->n, ths->d) * sizeof(R));
+#define MACRO_nfct_D_init_result_T \
+  memset(f_hat, 0, ths->N_total * sizeof(R));
 
-#define MACRO_nfct_D_init_result_A         \
-  memset(g_hat,   0, nfct_prod_int(ths->n, ths->d) * sizeof(double));
-#define MACRO_nfct_D_init_result_T         \
-  memset(f_hat, 0, ths->N_total * sizeof(double));
+#define MACRO_nfct_B_init_result_A \
+  memset(f, 0, ths->M_total * sizeof(R));
+#define MACRO_nfct_B_init_result_T \
+  memset(g, 0, nfct_prod_int(ths->n, ths->d) * sizeof(R));
 
-#define MACRO_nfct_B_init_result_A         \
-  memset(f, 0, ths->M_total * sizeof(double));
-#define MACRO_nfct_B_init_result_T         \
-  memset(g, 0, nfct_prod_int(ths->n, ths->d) * sizeof(double));
+#define NFCT_PRE_WINFUN(d) ths->N[d] = 2 * ths->N[d]; \
+  ths->n[d] = fftw_2N(ths->n[d]);
 
+#define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(0.5 * ths->N[d]); \
+  ths->n[d] = fftw_2N_rev(ths->n[d]);
 
-#define NFCT_PRE_WINFUN(d)  ths->N[d] = 2 * ths->N[d];             \
-                             ths->n[d] = nfct_fftw_2N(ths->n[d]);
+#define NFCT_WINDOW_HELP_INIT WINDOW_HELP_INIT
 
-#define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(0.5 * ths->N[d]);    \
-                             ths->n[d] = nfct_fftw_2N_rev(ths->n[d]);
-
-
-#define NFCT_WINDOW_HELP_INIT  WINDOW_HELP_INIT
-
-
-double nfct_phi_hut(nfct_plan *ths, int k, int d)
+R X(phi_hut)(X(plan) *ths, int k, int d)
 {
   NFCT_PRE_WINFUN(d);
-  double phi_hut_tmp = PHI_HUT(k, d);
+  R phi_hut_tmp = PHI_HUT(k, d);
   NFCT_POST_WINFUN(d);
 
   return phi_hut_tmp;
 }
 
-double nfct_phi(nfct_plan *ths, double x, int d)
+R X(phi)(X(plan) *ths, R x, int d)
 {
   NFCT_PRE_WINFUN(d);
-  double phi_tmp = PHI(x, d);
+  R phi_tmp = PHI(x, d);
   NFCT_POST_WINFUN(d);
 
   return phi_tmp;
 }
 
-int nfct_fftw_2N(int n)
-{
-  return 2 * (n - 1);
-}
+#define MACRO_with_cos_vec cos_vec[t][ka[t]]
+#define MACRO_without_cos_vec COS(K(2.0) * KPI * ka[t] * NODE(j,t))
 
-int nfct_fftw_2N_rev(int n)
-{
-  return (LRINT(0.5 * n) + 1);
-}
+#define MACRO_with_PRE_PHI_HUT ths->c_phi_inv[t][kg[t]];
+#define MACRO_compute_PHI_HUT_INV (K(1.0) / (X(phi_hut)(ths, kg[t], t)))
 
-
-#define MACRO_with_cos_vec       cos_vec[t][ka[t]]
-#define MACRO_without_cos_vec    cos(2.0 * PI * ka[t] * NODE(j,t))
-
-
-#define MACRO_with_PRE_PHI_HUT      ths->c_phi_inv[t][kg[t]];
-#define MACRO_compute_PHI_HUT_INV   (1.0 / (nfct_phi_hut(ths, kg[t], t)))
-
-#define MACRO_with_PRE_PSI   ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]]
-#define MACRO_compute_PSI    nfct_phi(ths, NODE(j,t) - ((double)(lc[t] + lb[t])) / (double)nfct_fftw_2N(ths->n[t]), t)
-
-
-
+#define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]]
+#define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(fftw_2N(ths->n[t]))*/), t)
 
 /** direct computation of non equispaced cosine transforms
 *  nfct_direct_trafo,  nfct_direct_adjoint
@@ -134,147 +125,110 @@ int nfct_fftw_2N_rev(int n)
 *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
 */
 
+#define MACRO_ndct_malloc__cos_vec \
+  R **cos_vec; \
+  cos_vec = (R**)Y(malloc)(ths->d * sizeof(R*)); \
+  for (t = 0; t < ths->d; t++) \
+    cos_vec[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
 
-#define MACRO_ndct_malloc__cos_vec                                      \
-                                                                        \
-  double **cos_vec;                                                     \
-  cos_vec = (double**)nfft_malloc(ths->d * sizeof(double*));              \
-  for(t = 0; t < ths->d; t++)                                        	\
-    cos_vec[t] = (double*)nfft_malloc(ths->N[t] * sizeof(double));        \
-
-
-
-
-#define MACRO_ndct_free__cos_vec                                        \
-{                                                               	\
-  /* free allocated memory */                                         	\
-  for(t = 0; t < ths->d; t++)                                        	\
-  nfft_free(cos_vec[t]);                    	                        \
-  nfft_free(cos_vec);                                                     	\
+#define MACRO_ndct_free__cos_vec \
+{ \
+  /* free allocated memory */ \
+  for (t = 0; t < ths->d; t++) \
+    Y(free)(cos_vec[t]); \
+  Y(free)(cos_vec); \
 }
 
-
-
-#define MACRO_ndct_init__cos_vec                                        \
-{                                                                       \
-  for(t = 0; t < ths->d; t++)                                          \
-  {                                                                     \
-    cos_vec[t][0] = 1.0;                                                \
-    cos_vec[t][1] = cos(2.0 * PI * NODE(j,t));	                        \
-    for(k = 2; k < ths->N[t]; k++)				        \
-      cos_vec[t][k] = 2.0 * cos_vec[t][1] * cos_vec[t][k-1]           	\
-                      - cos_vec[t][k-2];                              	\
-  }                                                                     \
+#define MACRO_ndct_init__cos_vec \
+{ \
+  for(t = 0; t < ths->d; t++) \
+  {  \
+    cos_vec[t][0] = K(1.0); \
+    cos_vec[t][1] = COS(K(2.0) * KPI * NODE(j,t)); \
+    for (k = 2; k < ths->N[t]; k++) \
+      cos_vec[t][k] = K(2.0) * cos_vec[t][1] * cos_vec[t][k-1] - \
+        cos_vec[t][k-2]; \
+  } \
 }
 
-
-
-#define MACRO_ndct_init__k__cos_k(which_one)                           \
-{                                                                       \
-  cos_k[0] = 1.0;                                                       \
-  for(t = 0; t < ths->d; t++)                                          \
-    ka[t] = 0;                                                          \
-                                                                        \
-    for(t = 0; t < ths->d; t++)                                        \
-    {                                                                   \
-      cos_k[t+1] = cos_k[t] * MACRO_ ##which_one;                       \
-    }                                                                   \
+#define MACRO_ndct_init__k__cos_k(which_one) \
+{ \
+  cos_k[0] = K(1.0); \
+  for (t = 0; t < ths->d; t++) \
+    ka[t] = 0; \
+\
+  for (t = 0; t < ths->d; t++) \
+  { \
+    cos_k[t+1] = cos_k[t] * MACRO_ ##which_one; \
+  } \
 }
 
-
-
-#define MACRO_ndct_count__k__cos_k(which_one)                          \
-{                                                                       \
-  ka[ths->d-1]++;                                                       \
-  i = ths->d - 1;                                                       \
-  while((ka[i] == ths->N[i]) && (i>0))                               \
-  {                                                                     \
-    ka[i - 1]++;                                                        \
-    ka[i] = 0;                                                          \
-                                                                        \
-    i--;                                                                \
-  }                                                                     \
-  for(t = i; t < ths->d; t++)                                          \
-    cos_k[t+1] = cos_k[t] * MACRO_ ##which_one;                         \
+#define MACRO_ndct_count__k__cos_k(which_one) \
+{ \
+  ka[ths->d-1]++; \
+  i = ths->d - 1; \
+  while ((ka[i] == ths->N[i]) && (i > 0)) \
+  { \
+    ka[i - 1]++; \
+    ka[i] = 0; \
+    i--; \
+  } \
+  for (t = i; t < ths->d; t++) \
+    cos_k[t+1] = cos_k[t] * MACRO_ ##which_one; \
 }
 
-
-
-#define MACRO_ndct_compute__trafo                                       \
-{                                                                       \
-  f[j] += f_hat[k] * cos_k[ths->d];	                                    \
+#define MACRO_ndct_compute__trafo \
+{ \
+  f[j] += f_hat[k] * cos_k[ths->d]; \
 }
 
-#define MACRO_ndct_compute__adjoint                                     \
-{                                                                       \
-  f_hat[k] += f[j] * cos_k[ths->d];                                     \
+#define MACRO_ndct_compute__adjoint \
+{ \
+  f_hat[k] += f[j] * cos_k[ths->d]; \
 }
 
 /* slow (trafo) transform */
-#define MACRO_ndct(which_one)                                           \
-  void nfct_direct_ ## which_one (nfct_plan *ths)                             \
-  {                                                                     \
-    int j, k, t, i;                                                     \
-    int ka[ths->d];                                                     \
-    double cos_k[ths->d+1];                                             \
-                                                                        \
-    double *f     = ths->f;                                             \
-    double *f_hat = ths->f_hat;                                         \
-                                                                        \
-    MACRO_ndct_init_result_ ## which_one;			                    \
-    if(ths->d == 1)                                                    \
-      for(j = 0; j < ths->M_total; j++)                                \
-      {                                                                 \
-        for(k = 0; k < ths->N[0]; k++)                                 \
-       	{                                                               \
-	  cos_k[ths->d] = cos(2.0 * PI * k * NODE(j,0));               \
-          MACRO_ndct_compute__ ## which_one;                            \
-        }							        \
-      }                                                                 \
-    else   /*FIXME: remove slow slow ... */                             \
-      if(1 == 0)                                                       \
-        /* slow ndct */                                                 \
-        for(j = 0; j < ths->M_total; j++)                              \
-        {                                                               \
-          MACRO_ndct_init__k__cos_k(without_cos_vec);                   \
-                                                                        \
-          for(k = 0; k < ths->N_total; k++)                            \
-          {                                                             \
-            MACRO_ndct_compute__ ## which_one;                          \
-                                                                        \
-            MACRO_ndct_count__k__cos_k(without_cos_vec);                \
-          }     					                \
-        }                                                               \
-      else                                                              \
-        {                                                               \
-          /* fast nfct_direct_trafo */                                  \
-          MACRO_ndct_malloc__cos_vec;                                   \
-                                                                        \
-          for(j = 0; j < ths->M_total; j++)                            \
-          {                                                             \
-                                                                        \
-            MACRO_ndct_init__cos_vec;                                   \
-                                                                        \
-            MACRO_ndct_init__k__cos_k(with_cos_vec);                    \
-                                                                        \
-            for(k = 0; k < ths->N_total; k++)                          \
-            {                                                           \
-                                                                        \
-              MACRO_ndct_compute__ ## which_one;                        \
-                							\
-              MACRO_ndct_count__k__cos_k(with_cos_vec);                 \
-            }                                                           \
-          }                                                             \
-          MACRO_ndct_free__cos_vec;                                     \
-        }                                                               \
+#define MACRO_ndct(which_one) \
+  void X(direct_ ## which_one) (X(plan) *ths) \
+  { \
+    int j, k, t, i; \
+    int ka[ths->d]; \
+    R cos_k[ths->d+1]; \
+    R *f = ths->f; \
+    R *f_hat = ths->f_hat; \
+\
+    MACRO_ndct_init_result_ ## which_one; \
+    if (ths->d == 1) \
+      for (j = 0; j < ths->M_total; j++) \
+      { \
+        for (k = 0; k < ths->N[0]; k++) \
+        { \
+          cos_k[ths->d] = COS(K(2.0) * KPI * k * NODE(j,0)); \
+          MACRO_ndct_compute__ ## which_one; \
+        } \
+      } \
+    else \
+    { \
+      /* fast nfct_direct_trafo */ \
+      MACRO_ndct_malloc__cos_vec; \
+\
+      for (j = 0; j < ths->M_total; j++) \
+      { \
+        MACRO_ndct_init__cos_vec; \
+        MACRO_ndct_init__k__cos_k(with_cos_vec); \
+\
+        for (k = 0; k < ths->N_total; k++) \
+        { \
+          MACRO_ndct_compute__ ## which_one; \
+          MACRO_ndct_count__k__cos_k(with_cos_vec); \
+        } \
+      } \
+      MACRO_ndct_free__cos_vec; \
+    } \
 } /* ndct_{trafo, adjoint} */
-
 
 MACRO_ndct(trafo)
 MACRO_ndct(adjoint)
-
-
-
 
 /** fast computation of non equispaced cosine transforms
 *  require O(N^d log(N) + M) arithemtical operations
@@ -290,345 +244,511 @@ MACRO_ndct(adjoint)
 *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
 */
 
-
-
-#define MACRO_nfct__lower_boundary(j,act_dim)                                  \
-{                                                                               \
-  lb[(act_dim)] =                                                               \
-    LRINT(NODE((j),(act_dim)) * nfct_fftw_2N(ths->n[(act_dim)])) - ths->m;    \
+#define MACRO_nfct__lower_boundary(j,act_dim) \
+{ \
+  lb[(act_dim)] = \
+    LRINT(NODE((j),(act_dim)) * fftw_2N(ths->n[(act_dim)])) - ths->m; \
 }
 
-#define MACRO_nfct_D_compute_A          					\
-{                                                                               \
-  g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d];	                \
+#define MACRO_nfct_D_compute_A \
+{ \
+  g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfct_D_compute_T                                                  \
-{                                                                               \
-  f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d];                   \
+#define MACRO_nfct_D_compute_T \
+{ \
+  f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-
-
-#define MACRO_init__kg          						\
-{                                                                               \
-  for(t = 0; t < ths->d; t++)					                \
-    kg[t] = 0;							                \
-								                \
-  i = 0;								        \
+#define MACRO_init__kg \
+{ \
+  for (t = 0; t < ths->d; t++) \
+    kg[t] = 0; \
+  i = 0; \
 }
 
-
-#define MACRO_count__kg                                                         \
-{                                                                               \
-                                                                                \
-  kg[ths->d - 1]++;                                                             \
-  i = ths->d - 1;                                                               \
-  while((kg[i] == ths->N[i]) && (i > 0))                                     \
-  {                                                                             \
-    kg[i - 1]++;                                                                \
-    kg[i] = 0;                                                                  \
-                                                                                \
-    i--;                                                                        \
-  }                                                                             \
+#define MACRO_count__kg \
+{ \
+\
+  kg[ths->d - 1]++; \
+  i = ths->d - 1; \
+  while ((kg[i] == ths->N[i]) && (i > 0)) \
+  { \
+    kg[i - 1]++; \
+    kg[i] = 0; \
+    i--; \
+  } \
 }
 
-
-#define MACRO_update__phi_inv_k__kg_plain(what_kind, which_phi)        	\
-{                                                                               \
-  for(t = i; t < ths->d; t++)                                                  \
-  {                                                                             \
-    MACRO__c_phi_inv_k__ ## what_kind(which_phi);                              \
-    kg_plain[t+1] = kg_plain[t] * ths->n[t] + kg[t];                            \
-  }                                                                             \
+#define MACRO_update__phi_inv_k__kg_plain(what_kind, which_phi) \
+{ \
+  for (t = i; t < ths->d; t++) \
+  { \
+    MACRO__c_phi_inv_k__ ## what_kind(which_phi); \
+    kg_plain[t+1] = kg_plain[t] * ths->n[t] + kg[t]; \
+  } \
 }
 
-
-#define MACRO__c_phi_inv_k__A(which_phi)                                       \
-{                                                                               \
-  if(kg[t] == 0)                                                               \
-  {                                                                             \
-    c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi;                 	\
-  }                                                                             \
-  else                                                                          \
-  {                                                                             \
-    c_phi_inv_k[t+1] = 0.5 * c_phi_inv_k[t] * MACRO_ ## which_phi;         	\
-  }                                                                             \
+#define MACRO__c_phi_inv_k__A(which_phi) \
+{ \
+  if (kg[t] == 0) \
+  { \
+    c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi; \
+  } \
+  else \
+  { \
+    c_phi_inv_k[t+1] = K(0.5) * c_phi_inv_k[t] * MACRO_ ## which_phi; \
+  } \
 }
 
-
-#define MACRO__c_phi_inv_k__T(which_phi)                                       \
-{                                                                               \
-  c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi;                  	\
+#define MACRO__c_phi_inv_k__T(which_phi) \
+{ \
+  c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi; \
 }
 
-
-
-#define MACRO_nfct_D(which_one)                                                 \
-static inline void nfct_D_ ## which_one (nfct_plan *ths)                               \
-{			                                                        \
-                                                                                \
-  int k_L;                        /**< plain index                    */        \
-                                                                                \
-  int i, t;                                                                     \
-  int kg[ths->d];                 /**< multi index in g_hat,c_phi     */        \
-  double c_phi_inv_k[ths->d+1];   /**< postfix product of PHI_HUT_INV */        \
-  int kg_plain[ths->d+1];         /**< postfix plain index            */        \
-                                                                                \
-  double *g_hat, *f_hat;          /**< local copy                     */        \
-                                                                                \
-  g_hat = ths->g_hat;                                                           \
-  f_hat = ths->f_hat;                                                           \
-                                                                                \
-  MACRO_nfct_D_init_result_ ## which_one                                        \
-                                                                                \
-  c_phi_inv_k[0] = 1.0;                                                         \
-  kg_plain[0]    =   0;                                                         \
-                                                                                \
-  MACRO_init__kg;                                                               \
-                                                                                \
-  if(ths->nfct_flags & PRE_PHI_HUT)                                            \
-    for(k_L = 0; k_L < ths->N_total; k_L++)                                    \
-    {                                                                           \
-      MACRO_update__phi_inv_k__kg_plain(which_one, with_PRE_PHI_HUT);          \
-                                                                                \
-      MACRO_nfct_D_compute_ ## which_one;                                       \
-                                                                                \
-      MACRO_count__kg;                                                          \
-                                                                                \
-    } /* for(k_L) */                                                            \
-  else                                                                          \
-    for(k_L = 0; k_L < ths->N_total; k_L++)                                    \
-    {                                                                           \
-      MACRO_update__phi_inv_k__kg_plain(which_one,compute_PHI_HUT_INV);        \
-                                                                                \
-      MACRO_nfct_D_compute_ ## which_one;                                       \
-                                                                                \
-      MACRO_count__kg;                                                          \
-                                                                                \
-    } /* for(k_L) */                                                            \
+#define MACRO_nfct_D(which_one) \
+static inline void X(nfct_D_ ## which_one) (X(plan) *ths) \
+{ \
+  int k_L; /* plain index */ \
+  int i, t; \
+  int kg[ths->d]; /* multi index in g_hat,c_phi */ \
+  R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT_INV */ \
+  int kg_plain[ths->d+1]; /* postfix plain index */ \
+  R *g_hat, *f_hat; /* local copy */ \
+\
+  g_hat = ths->g_hat; \
+  f_hat = ths->f_hat; \
+\
+  MACRO_nfct_D_init_result_ ## which_one \
+\
+  c_phi_inv_k[0] = K(1.0); \
+  kg_plain[0] = 0; \
+\
+  MACRO_init__kg; \
+\
+  if (ths->nfct_flags & PRE_PHI_HUT) \
+    for (k_L = 0; k_L < ths->N_total; k_L++) \
+    { \
+      MACRO_update__phi_inv_k__kg_plain(which_one, with_PRE_PHI_HUT); \
+      MACRO_nfct_D_compute_ ## which_one; \
+      MACRO_count__kg; \
+    } /* for (k_L) */ \
+  else \
+    for (k_L = 0; k_L < ths->N_total; k_L++) \
+    { \
+      MACRO_update__phi_inv_k__kg_plain(which_one,compute_PHI_HUT_INV); \
+      MACRO_nfct_D_compute_ ## which_one; \
+      MACRO_count__kg; \
+    } /* for(k_L) */ \
 } /* nfct_D */
 
 MACRO_nfct_D(A)
 MACRO_nfct_D(T)
 
-
-
-
-
-
-
 /** sub routines for the fast transforms
 *  matrix vector multiplication with \f$B, B^{\rm T}\f$
 */
-#define MACRO_nfct_B_PRE_FULL_PSI_compute_A                                     \
-{                                                                               \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];                              \
+#define MACRO_nfct_B_PRE_FULL_PSI_compute_A \
+{ \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
 }
 
-#define MACRO_nfct_B_PRE_FULL_PSI_compute_T                                     \
-{                                                                               \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj);                              \
+#define MACRO_nfct_B_PRE_FULL_PSI_compute_T \
+{ \
+  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
 }
 
-
-
-#define MACRO_nfct_B_compute_A                                                  \
-{                                                                               \
-  (*fj) += phi_tilde[ths->d] * g[lg_plain[ths->d]];                             \
+#define MACRO_nfct_B_compute_A \
+{ \
+  (*fj) += phi_tilde[ths->d] * g[lg_plain[ths->d]]; \
 }
 
-#define MACRO_nfct_B_compute_T                                                  \
-{                                                                               \
-  g[lg_plain[ths->d]] += phi_tilde[ths->d] * (*fj);                             \
+#define MACRO_nfct_B_compute_T \
+{ \
+  g[lg_plain[ths->d]] += phi_tilde[ths->d] * (*fj); \
 }
 
-
-#define MACRO_compute_lg_offset__count_lg(i0)   				\
-{                                                                               \
-  /* determine index in g-array corresponding to lb[(i0)] */                    \
-  if(lb[(i0)] < 0)                                                             \
-    lg_offset[(i0)] =                                                           \
-      (lb[(i0)] % nfct_fftw_2N(ths->n[(i0)])) + nfct_fftw_2N(ths->n[(i0)]);   \
-  else                                                                          \
-    lg_offset[(i0)] = lb[(i0)] % (nfct_fftw_2N(ths->n[(i0)]));                 \
-    if(lg_offset[(i0)] >= ths->n[(i0)])                                        \
-      lg_offset[(i0)] = -(nfct_fftw_2N(ths->n[(i0)]) - lg_offset[(i0)]);      \
+#define MACRO_compute_lg_offset__count_lg(i0) \
+{ \
+  /* determine index in g-array corresponding to lb[(i0)] */ \
+  if (lb[(i0)] < 0) \
+    lg_offset[(i0)] = \
+      (lb[(i0)] % fftw_2N(ths->n[(i0)])) + fftw_2N(ths->n[(i0)]); \
+  else \
+    lg_offset[(i0)] = lb[(i0)] % (fftw_2N(ths->n[(i0)])); \
+    if (lg_offset[(i0)] >= ths->n[(i0)]) \
+      lg_offset[(i0)] = -(fftw_2N(ths->n[(i0)]) - lg_offset[(i0)]); \
 }
 
-#define MACRO_set__lg__to__lg_offset                                            \
-{                                                                               \
-  if(lg_offset[i] <= 0)                                                        \
-  {                                                                             \
-    lg[i] = -lg_offset[i];                                                      \
-    count_lg[i] = -1;                                                           \
-  }                                                                             \
-  else                                                                          \
-  {                                                                             \
-    lg[i] = +lg_offset[i];                                                      \
-    count_lg[i] = +1;                                                           \
-  }                                                                             \
+#define MACRO_set__lg__to__lg_offset \
+{ \
+  if (lg_offset[i] <= 0) \
+  { \
+    lg[i] = -lg_offset[i]; \
+    count_lg[i] = -1; \
+  } \
+  else \
+  { \
+    lg[i] = +lg_offset[i]; \
+    count_lg[i] = +1; \
+  } \
 }
 
-#define MACRO_count__lg(dim)                                                    \
-{                                                                               \
-                                                                                \
-  /* turn around if we hit one of the boundaries */                             \
-  if((lg[(dim)] == 0) || (lg[(dim)] == ths->n[(dim)]-1))                       \
-    count_lg[(dim)] *= -1;                                                      \
-  /* move array index */                                                        \
-  lg[(dim)] += count_lg[(dim)];                                                 \
+#define MACRO_count__lg(dim) \
+{ \
+  /* turn around if we hit one of the boundaries */ \
+  if ((lg[(dim)] == 0) || (lg[(dim)] == ths->n[(dim)]-1)) \
+    count_lg[(dim)] *= -1; \
+  /* move array index */ \
+  lg[(dim)] += count_lg[(dim)]; \
 }
 
-
-
-
-#define MACRO_init_lb_lg_lc                                                     \
-{                                                                               \
-  for(i = 0; i < ths->d; i++)                                                  \
-  {                                                                             \
-    MACRO_nfct__lower_boundary(j, i);                                          \
-                                                                                \
-    MACRO_compute_lg_offset__count_lg(i);                                      \
-    MACRO_set__lg__to__lg_offset;                                               \
-                                                                                \
-    /* counter for lg */                                                        \
-    lc[i] = 0;                                                                  \
-   }                                                                            \
-                                                                                \
-   i = 0;                                                                       \
+#define MACRO_init_lb_lg_lc \
+{ \
+  for (i = 0; i < ths->d; i++) \
+  { \
+    MACRO_nfct__lower_boundary(j, i); \
+    MACRO_compute_lg_offset__count_lg(i); \
+    MACRO_set__lg__to__lg_offset; \
+    /* counter for lg */ \
+    lc[i] = 0; \
+   } \
+   i = 0; \
 }
 
-
-
-#define MACRO_count__lg_lc                                                      \
-{                                                                               \
-  MACRO_count__lg(ths->d-1);                                                   \
-                                                                                \
-  lc[ths->d - 1]++;                                                             \
-  i = ths->d - 1;                                                               \
-  while((lc[i] == NFCT_SUMMANDS) && (i > 0))                                 \
-  {                                                                             \
-    lc[i - 1]++;                                                                \
-    lc[i] = 0;                                                                  \
-                                                                                \
-    /* ansonsten lg[i-1] verschieben */                                         \
-    MACRO_count__lg(i - 1);                                                    \
-    /* lg[i] = anfangswert */                                                   \
-    MACRO_set__lg__to__lg_offset;                                               \
-                                                                                \
-    i--;                                                                        \
-  }                                                                             \
+#define MACRO_count__lg_lc \
+{ \
+  MACRO_count__lg(ths->d-1); \
+  lc[ths->d - 1]++; \
+  i = ths->d - 1; \
+  while ((lc[i] == NFCT_SUMMANDS) && (i > 0)) \
+  { \
+    lc[i - 1]++; \
+    lc[i] = 0; \
+    /* ansonsten lg[i-1] verschieben */ \
+    MACRO_count__lg(i - 1); \
+    /* lg[i] = anfangswert */ \
+    MACRO_set__lg__to__lg_offset; \
+    i--; \
+  } \
 }
 
-#define  MACRO_update_phi_tilde_lg_plain(which_one, which_psi)                 \
-{                                                                               \
-  for(t = i; t < ths->d; t++)                                                  \
-  {                                                                             \
-    MACRO__phi_tilde__ ## which_one(which_psi);                                \
-    lg_plain[t+1]  = lg_plain[t]  * ths->n[t] + lg[t];                          \
-  }                                                                             \
+#define  MACRO_update_phi_tilde_lg_plain(which_one, which_psi) \
+{ \
+  for (t = i; t < ths->d; t++) \
+  { \
+    MACRO__phi_tilde__ ## which_one(which_psi); \
+    lg_plain[t+1]  = lg_plain[t]  * ths->n[t] + lg[t]; \
+  } \
 }
 
-#define MACRO__phi_tilde__A(which_psi)                                         \
-{                                                                               \
-  phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi;                        	\
+#define MACRO__phi_tilde__A(which_psi) \
+{ \
+  phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi; \
 }
 
-#define MACRO__phi_tilde__T(which_psi)                                         \
-{                                                                               \
-  if(lg[t] == 0 || lg[t] == ths->n[t] - 1)                                     \
-  {                                                                             \
-    phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi;                        \
-  }                                                                             \
-  else                                                                          \
-  {                                                                             \
-    phi_tilde[t+1] = 0.5 * phi_tilde[t] * MACRO_ ## which_psi;           	\
-  }                                                                             \
+#define MACRO__phi_tilde__T(which_psi) \
+{ \
+  if(lg[t] == 0 || lg[t] == ths->n[t] - 1) \
+  { \
+    phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi; \
+  } \
+  else \
+  { \
+    phi_tilde[t+1] = K(0.5) * phi_tilde[t] * MACRO_ ## which_psi; \
+  } \
 }
 
-
-
-#define MACRO_nfct_B(which_one)                                                \
-static inline void nfct_B_ ## which_one (nfct_plan *ths)                              \
-{ /* MACRO_nfct_B */                                                            \
-  int lb[ths->d];               /**< multi band with respect to x_j */          \
-  int j, t, i;                  /**< index nodes, help vars         */          \
-  int lprod, l_L, ix;           /**< index one row of B             */          \
-  int lc[ths->d];               /**< multi index 0<=lc<2m+2         */          \
-  int lg[ths->d];               /**< real index of g in array       */          \
-  int lg_offset[ths->d];        /**< offset in g according to u     */          \
-  int count_lg[ths->d];         /**< count summands (2m+2)          */          \
-  int lg_plain[ths->d+1];       /**< index of g in multi_array      */          \
-  double *f, *g;                /**< local copy                     */          \
-  double phi_tilde[ths->d+1];   /**< holds values for psi           */          \
-  double *fj;                   /**< pointer to final result        */          \
-                                                                                \
-  f = ths->f; g = ths->g;                                                       \
-                                                                                \
-  MACRO_nfct_B_init_result_ ## which_one                                        \
-                                                                                \
-  /* both flags are set */                                                      \
-  if((ths->nfct_flags & PRE_PSI)&&(ths->nfct_flags & PRE_FULL_PSI))           \
-  {                                                                             \
-    for(ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)             \
-      for(l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++)                     \
-      {                                                                         \
-        MACRO_nfct_B_PRE_FULL_PSI_compute_ ## which_one;                        \
-      }                                                                         \
-  }                                                                             \
-  else                                                                          \
-  {                                                                             \
-    phi_tilde[0] = 1;                                                           \
-    lg_plain[0]  = 0;                                                           \
-                                                                                \
-    for(t = 0, lprod = 1; t < ths->d; t++)                                     \
-      lprod *= NFCT_SUMMANDS;                                                   \
-                                                                                \
-    /**/                                                                        \
-    /* PRE_PSI flag is set */                                                   \
-    /**/                                                                        \
-    if(ths->nfct_flags & PRE_PSI)                                              \
-      for(j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)                   \
-        {                                                                       \
-          MACRO_init_lb_lg_lc;                                                  \
-                                                                                \
-          for(l_L = 0; l_L < lprod; l_L++)                                     \
-          {                                                                     \
-            MACRO_update_phi_tilde_lg_plain(which_one, with_PRE_PSI);          \
-                                                                                \
-            MACRO_nfct_B_compute_ ## which_one;                                 \
-                                                                                \
-            MACRO_count__lg_lc;                                                 \
-          } /* for(l_L) */                                                     \
-        } /* for(j) */                                                         \
-                                                                                \
-    /**/                                                                        \
-    /*  no PSI flag is set */                                                   \
-    /**/                                                                        \
-    else                                                                        \
-      for(j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)                   \
-      {                                                                         \
-        MACRO_init_lb_lg_lc;                                                    \
-                                                                                \
-        for(l_L = 0; l_L < lprod; l_L++)                                       \
-        {                                                                       \
-          MACRO_update_phi_tilde_lg_plain(which_one,compute_PSI);              \
-                                                                                \
-          MACRO_nfct_B_compute_ ## which_one;                                   \
-                                                                                \
-          MACRO_count__lg_lc;                                                   \
-                                                                                \
-        } /* for(l_L) */                                                        \
-      } /* for(j) */                                                            \
-  } /* else(PRE_PSI && FULL_PRE_PSI) */                                        \
+#define MACRO_nfct_B(which_one) \
+static inline void nfct_B_ ## which_one (nfct_plan *ths) \
+{ /* MACRO_nfct_B */ \
+  int lb[ths->d]; /* multi band with respect to x_j */ \
+  int j, t, i; /* index nodes, help vars */ \
+  int lprod, l_L, ix; /* index one row of B */ \
+  int lc[ths->d]; /* multi index 0<=lc<2m+2 */ \
+  int lg[ths->d]; /* real index of g in array */ \
+  int lg_offset[ths->d]; /* offset in g according to u */ \
+  int count_lg[ths->d]; /* count summands (2m+2) */ \
+  int lg_plain[ths->d+1]; /* index of g in multi_array */ \
+  R *f, *g; /* local copy */ \
+  R phi_tilde[ths->d+1]; /* holds values for psi */ \
+  R *fj; /* pointer to final result */ \
+\
+  f = ths->f; g = ths->g; \
+\
+  MACRO_nfct_B_init_result_ ## which_one \
+\
+  /* both flags are set */ \
+  if ((ths->nfct_flags & PRE_PSI)&&(ths->nfct_flags & PRE_FULL_PSI)) \
+  { \
+    for (ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+      for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
+      { \
+        MACRO_nfct_B_PRE_FULL_PSI_compute_ ## which_one; \
+      } \
+  } \
+  else \
+  { \
+    phi_tilde[0] = K(1.0); \
+    lg_plain[0]  = 0; \
+\
+    for (t = 0, lprod = 1; t < ths->d; t++) \
+      lprod *= NFCT_SUMMANDS; \
+\
+    /* PRE_PSI flag is set */ \
+    if (ths->nfct_flags & PRE_PSI) \
+      for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+        { \
+          MACRO_init_lb_lg_lc; \
+          for (l_L = 0; l_L < lprod; l_L++) \
+          { \
+            MACRO_update_phi_tilde_lg_plain(which_one, with_PRE_PSI); \
+            MACRO_nfct_B_compute_ ## which_one; \
+            MACRO_count__lg_lc; \
+          } /* for(l_L) */ \
+        } /* for(j) */ \
+\
+    /* no PSI flag is set */ \
+    else \
+      for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+      { \
+        MACRO_init_lb_lg_lc; \
+        for (l_L = 0; l_L < lprod; l_L++) \
+        { \
+          MACRO_update_phi_tilde_lg_plain(which_one,compute_PSI); \
+          MACRO_nfct_B_compute_ ## which_one; \
+          MACRO_count__lg_lc; \
+        } /* for (l_L) */ \
+      } /* for (j) */ \
+  } /* else (PRE_PSI && FULL_PRE_PSI) */ \
 } /* nfct_B */
 
 MACRO_nfct_B(A)
+//  static inline void nfct_B_A(nfct_plan *ths)
+//  { /* MACRO_nfct_B */
+//    int lb[ths->d]; /* multi band with respect to x_j */
+//    int j, t, i; /* index nodes, help vars */
+//    int lprod, l_L, ix; /* index one row of B */
+//    int lc[ths->d]; /* multi index 0<=lc<2m+2 */
+//    int lg[ths->d]; /* real index of g in array */
+//    int lg_offset[ths->d]; /* offset in g according to u */
+//    int count_lg[ths->d]; /* count summands (2m+2) */
+//    int lg_plain[ths->d+1]; /* index of g in multi_array */
+//    R *f, *g; /* local copy */
+//    R phi_tilde[ths->d+1]; /* holds values for psi */
+//    R *fj; /* pointer to final result */
+//
+//    f = ths->f; g = ths->g;
+//
+//    ((__builtin_object_size (f, 0) != (size_t) -1)
+//     ? __builtin___memset_chk (f, 0, ths->M_total * sizeof(R), __builtin_object_size (f, 0))
+//     : __inline_memset_chk (f, 0, ths->M_total * sizeof(R)));if ((ths->nfct_flags & (1U<< 4))&&(ths->nfct_flags & (1U<< 5)))
+//    {
+//      for (ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)
+//        for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++)
+//        {
+//          {
+//    (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];
+//  };
+//        }
+//    }
+//    else
+//    {
+//      phi_tilde[0] = ((R) 1.0);
+//      lg_plain[0]  = 0;
+//
+//      for (t = 0, lprod = 1; t < ths->d; t++)
+//        lprod *= (2 * ths->m + 2);
+//
+//      /* PRE_PSI flag is set */
+//      if (ths->nfct_flags & (1U<< 4))
+//        for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)
+//          {
+//            {
+//    for (i = 0; i < ths->d; i++)
+//    {
+//      {
+//    lb[(i)] =
+//      lrint((ths->x[((j)) * ths->d + ((i))]) * nfct_fftw_2N(ths->n[(i)])) - ths->m;
+//  };
+//      {
+//    /* determine index in g-array corresponding to lb[(i0)] */
+//    if (lb[(i)] < 0)
+//      lg_offset[(i)] =
+//        (lb[(i)] % nfct_fftw_2N(ths->n[(i)])) + nfct_fftw_2N(ths->n[(i)]);
+//    else
+//      lg_offset[(i)] = lb[(i)] % (nfct_fftw_2N(ths->n[(i)]));
+//      if (lg_offset[(i)] >= ths->n[(i)])
+//        lg_offset[(i)] = -(nfct_fftw_2N(ths->n[(i)]) - lg_offset[(i)]);
+//  };
+//      {
+//    if (lg_offset[i] <= 0)
+//    {
+//      lg[i] = -lg_offset[i];
+//      count_lg[i] = -1;
+//    }
+//    else
+//    {
+//      lg[i] = +lg_offset[i];
+//      count_lg[i] = +1;
+//    }
+//  };
+//      /* counter for lg */
+//      lc[i] = 0;
+//     }
+//     i = 0;
+//  };
+//            for (l_L = 0; l_L < lprod; l_L++)
+//            {
+//              {
+//    for (t = i; t < ths->d; t++)
+//    {
+//      {
+//    phi_tilde[t+1] = phi_tilde[t] * ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lc[t]];
+//  };
+//      lg_plain[t+1]  = lg_plain[t]  * ths->n[t] + lg[t];
+//    }
+//  };
+//              {
+//    (*fj) += phi_tilde[ths->d] * g[lg_plain[ths->d]];
+//  };
+//              {
+//    {
+//    /* turn around if we hit one of the boundaries */
+//    if ((lg[(ths->d-1)] == 0) || (lg[(ths->d-1)] == ths->n[(ths->d-1)]-1))
+//      count_lg[(ths->d-1)] *= -1;
+//    /* move array index */
+//    lg[(ths->d-1)] += count_lg[(ths->d-1)];
+//  };
+//    lc[ths->d - 1]++;
+//    i = ths->d - 1;
+//    while ((lc[i] == (2 * ths->m + 2)) && (i > 0))
+//    {
+//      lc[i - 1]++;
+//      lc[i] = 0;
+//      /* ansonsten lg[i-1] verschieben */
+//      {
+//    /* turn around if we hit one of the boundaries */
+//    if ((lg[(i - 1)] == 0) || (lg[(i - 1)] == ths->n[(i - 1)]-1))
+//      count_lg[(i - 1)] *= -1;
+//    /* move array index */
+//    lg[(i - 1)] += count_lg[(i - 1)];
+//  };
+//      /* lg[i] = anfangswert */
+//      {
+//    if (lg_offset[i] <= 0)
+//    {
+//      lg[i] = -lg_offset[i];
+//      count_lg[i] = -1;
+//    }
+//    else
+//    {
+//      lg[i] = +lg_offset[i];
+//      count_lg[i] = +1;
+//    }
+//  };
+//      i--;
+//    }
+//  };
+//            } /* for(l_L) */
+//          } /* for(j) */
+//
+//      /* no PSI flag is set */
+//      else
+//        for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)
+//        {
+//          {
+//    for (i = 0; i < ths->d; i++)
+//    {
+//      {
+//    lb[(i)] =
+//      lrint((ths->x[((j)) * ths->d + ((i))]) * nfct_fftw_2N(ths->n[(i)])) - ths->m;
+//  };
+//      {
+//    /* determine index in g-array corresponding to lb[(i0)] */
+//    if (lb[(i)] < 0)
+//      lg_offset[(i)] =
+//        (lb[(i)] % nfct_fftw_2N(ths->n[(i)])) + nfct_fftw_2N(ths->n[(i)]);
+//    else
+//      lg_offset[(i)] = lb[(i)] % (nfct_fftw_2N(ths->n[(i)]));
+//      if (lg_offset[(i)] >= ths->n[(i)])
+//        lg_offset[(i)] = -(nfct_fftw_2N(ths->n[(i)]) - lg_offset[(i)]);
+//  };
+//      {
+//    if (lg_offset[i] <= 0)
+//    {
+//      lg[i] = -lg_offset[i];
+//      count_lg[i] = -1;
+//    }
+//    else
+//    {
+//      lg[i] = +lg_offset[i];
+//      count_lg[i] = +1;
+//    }
+//  };
+//      /* counter for lg */
+//      lc[i] = 0;
+//     }
+//     i = 0;
+//  };
+//          for (l_L = 0; l_L < lprod; l_L++)
+//          {
+//            {
+//    for (t = i; t < ths->d; t++)
+//    {
+//      {
+//    phi_tilde[t+1] = phi_tilde[t] * nfct_phi(ths, (ths->x[(j) * ths->d + (t)]) - ((R)(lc[t] + lb[t])) / (R)nfct_fftw_2N(ths->n[t]), t);
+//  };
+//      lg_plain[t+1]  = lg_plain[t]  * ths->n[t] + lg[t];
+//    }
+//  };
+//            {
+//    (*fj) += phi_tilde[ths->d] * g[lg_plain[ths->d]];
+//  };
+//            {
+//    {
+//    /* turn around if we hit one of the boundaries */
+//    if ((lg[(ths->d-1)] == 0) || (lg[(ths->d-1)] == ths->n[(ths->d-1)]-1))
+//      count_lg[(ths->d-1)] *= -1;
+//    /* move array index */
+//    lg[(ths->d-1)] += count_lg[(ths->d-1)];
+//  };
+//    lc[ths->d - 1]++;
+//    i = ths->d - 1;
+//    while ((lc[i] == (2 * ths->m + 2)) && (i > 0))
+//    {
+//      lc[i - 1]++;
+//      lc[i] = 0;
+//      /* ansonsten lg[i-1] verschieben */
+//      {
+//    /* turn around if we hit one of the boundaries */
+//    if ((lg[(i - 1)] == 0) || (lg[(i - 1)] == ths->n[(i - 1)]-1))
+//      count_lg[(i - 1)] *= -1;
+//    /* move array index */
+//    lg[(i - 1)] += count_lg[(i - 1)];
+//  };
+//      /* lg[i] = anfangswert */
+//      {
+//    if (lg_offset[i] <= 0)
+//    {
+//      lg[i] = -lg_offset[i];
+//      count_lg[i] = -1;
+//    }
+//    else
+//    {
+//      lg[i] = +lg_offset[i];
+//      count_lg[i] = +1;
+//    }
+//  };
+//      i--;
+//    }
+//  };
+//          } /* for (l_L) */
+//        } /* for (j) */
+//    } /* else (PRE_PSI && FULL_PRE_PSI) */
+//  }
+
 MACRO_nfct_B(T)
-
-
-
 
 /** more memory usage, a bit faster */
 #define MACRO_nfct_full_psi(which_one)                                         \

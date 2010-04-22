@@ -54,6 +54,22 @@
 
 #include "ticks.h"
 
+/* Determine precision and name-mangling scheme. */
+#define CONCAT(prefix, name) prefix ## name
+#if defined(NFFT_SINGLE)
+typedef float R;
+typedef float _Complex C;
+#define Y(name) CONCAT(nfftf_, name)
+#elif defined(NFFT_LDOUBLE)
+typedef long double R;
+typedef long double _Complex C;
+#define Y(name) CONCAT(nfftl_, name)
+#else
+typedef double R;
+typedef double _Complex C;
+#define Y(name) CONCAT(nfft_, name)
+#endif
+
 /** Macros for window functions. */
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(k,d) K(1.0)
@@ -118,22 +134,6 @@
   }
   #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
   #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
-#endif
-
-/* precision and name-mangling scheme */
-#define CONCAT(prefix, name) prefix ## name
-#if defined(NFFT_SINGLE)
-typedef float R;
-typedef float _Complex C;
-#define X(name) CONCAT(nfftf_, name)
-#elif defined(NFFT_LDOUBLE)
-typedef long double R;
-typedef long double _Complex C;
-#define X(name) CONCAT(nfftl_, name)
-#else
-typedef double R;
-typedef double _Complex C;
-#define X(name) CONCAT(nfft_, name)
 #endif
 
 #ifdef NFFT_LDOUBLE

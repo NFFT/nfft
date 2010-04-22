@@ -74,7 +74,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     # architecture and mex file extension
     if test ! "x${matlab_arch}" = "xyes"; then
-      AC_MSG_CHECKING([for architecture])
+      AC_MSG_CHECKING([for Matlab architecture])
       AC_MSG_RESULT([${matlab_arch}])
       # mex file extension for architecture
       AC_MSG_CHECKING([for mex file extension])
@@ -100,7 +100,11 @@ AC_DEFUN([AX_PROG_MATLAB],
           [$PATH$PATH_SEPARATOR$matlab_bin_dir])
         if test ! "x${matlab_prog_mexext}" = "xno"; then
           AC_MSG_CHECKING([for mex file extension])
-          matlab_mexext=`${matlab_prog_mexext}`
+          if test "x${matlab_prog_mexext}" = "xmexext.bat"; then
+            matlab_mexext="mexw32"
+          else
+            matlab_mexext=`${matlab_prog_mexext}`
+          fi
           AC_MSG_RESULT([${matlab_mexext}])
           break
         fi
@@ -108,7 +112,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
       # architecture, maybe
       if test "x${matlab_mexext}" = "xunknown"; then
-        # Try guessing the architecture based on host CPU
+        # Try guessing the architecture based on host
         case $host in
           *86_64*linux*) matlab_arch_test="glnxa64";;
           *86*linux*) matlab_arch_test="glnx86";;
@@ -188,6 +192,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     saved_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS ${matlab_LDFLAGS}"
     matlab_LIBS=""
+    matlab_fftw3_LIBS=""
     AC_CHECK_LIB([mx],[mxMalloc],[matlab_LIBS="$matlab_LIBS -lmx"],
       [AC_CHECK_FILE([${matlab_arch_bin_dir}/libmx${matlab_libext}],
       [matlab_LIBS="$matlab_LIBS -lmx"],
@@ -200,6 +205,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       [AC_CHECK_FILE([${matlab_arch_bin_dir}/libmat${matlab_libext}],
       [matlab_LIBS="$matlab_LIBS -lmat"],
       [AC_MSG_ERROR([Needed Matlab library mat not usable.])])],[])
+
     LDFLAGS="$saved_LDFLAGS"
 
     matlab_CPPFLAGS="-I${matlab_include_dir}"

@@ -30,6 +30,8 @@
 #include <complex.h>
 #endif
 
+#include <fftw3.h>
+
 /* NFFT3 header */
 #include "nfft3.h"
 #include "nfft3util.h"

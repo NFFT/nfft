@@ -263,9 +263,7 @@ NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
-NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d); \
-NFFT_EXTERN int X(fftw_2N)(int n); \
-NFFT_EXTERN int X(fftw_2N_rev)(int n);
+NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d);
 
 #if defined(HAVE_NFCT)
 /* nfct api */

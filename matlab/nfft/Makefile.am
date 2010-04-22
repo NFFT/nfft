@@ -4,10 +4,10 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 
 # library
-noinst_LTLIBRARIES = libnfft.la
+lib_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
-libnfft_la_LIBADD = $(top_builddir)/libnfft3.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
-libnfft_la_LDFLAGS = -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
+libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+libnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
 
 EXTRA_DIST = FFT_OUT_OF_PLACE.m FFTW_ESTIMATE.m FFTW_MEASURE.m FG_PSI.m Contents.m ndft_adjoint.m ndft_trafo.m \
              nfft_adjoint.m nfft_finalize.m nfft_get_f.m nfft_get_f_hat.m nfft_get_x.m nfft_init_1d.m nfft_init_2d.m \

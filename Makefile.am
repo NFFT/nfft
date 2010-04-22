@@ -9,9 +9,11 @@ libtool: $(LIBTOOL_DEPS)
 DIST_SUBDIRS=3rdparty include util kernel . examples applications matlab support doxygen
 
 if HAVE_MATLAB
-  MATLAB_DIRS= matlab
+  MATLAB_DIRS=matlab
+  LIBBFFT3_MATLAB_LA=libnfft3_matlab.la
 else
   MATLAB_DIRS=
+  LIBBFFT3_MATLAB_LA=
 endif
 
 if HAVE_THREADS
@@ -23,15 +25,22 @@ endif
 SUBDIRS= 3rdparty include util kernel . examples applications $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
+noinst_LTLIBRARIES = $(LIBBFFT3_MATLAB_LA)
 
 libnfft3_la_SOURCES =
 libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
-libnfft3_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+libnfft3_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 
 if HAVE_THREADS
 libnfft3_threads_la_SOURCES =
 libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_threads_LIBS@ @fftw3_LIBS@
-libnfft3_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+libnfft3_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+endif
+
+if HAVE_MATLAB
+libnfft3_matlab_la_SOURCES =
+libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
+libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
 endif
 
 EXTRA_DIST = bootstrap.sh doxygen.c nfft3.pc.in
