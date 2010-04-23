@@ -121,10 +121,6 @@ double nfft_i0(double x);
  */
 int nfft_prod_int(int *vec, int d);
 
-/** Computes integer \f$\prod_{t=0}^{d-1} v_t\f$.
- */
-int nfct_prod_int(int *vec, int d);
-
 /** Computes integer \f$\prod_{t=0}^{d-1} v_t-a\f$.
  */
 int nfst_prod_minus_a_int(int *vec, int a, int d);

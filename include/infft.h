@@ -60,15 +60,19 @@
 typedef float R;
 typedef float _Complex C;
 #define Y(name) CONCAT(nfftf_, name)
+#define Z(name) CONCAT(fftwf_, name)
 #elif defined(NFFT_LDOUBLE)
 typedef long double R;
 typedef long double _Complex C;
 #define Y(name) CONCAT(nfftl_, name)
+#define Z(name) CONCAT(fftwl_, name)
 #else
 typedef double R;
 typedef double _Complex C;
 #define Y(name) CONCAT(nfft_, name)
+#define Z(name) CONCAT(fftw_, name)
 #endif
+#define X(name) Y(name)
 
 /** Macros for window functions. */
 #if defined(DIRAC_DELTA)
