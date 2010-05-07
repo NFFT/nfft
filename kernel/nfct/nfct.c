@@ -18,11 +18,8 @@
 
 /* $Id$ */
 
-/**
- * Library.
- * Includes simple and fast computation of the NFCT (direct problem)
- * authors: S. Klatt (c) 2004-2006
- */
+/* Nonequispaced fast cosine transform
+ * Author: Steffen Klatt 2004-2006, Jens Keiner 2010 */
 
 #include <stdio.h>
 #include <math.h>
@@ -42,22 +39,21 @@
 #define X(name) CONCAT(nfct_, name)
 #endif
 
-static int fftw_2N(int n)
+static inline int fftw_2N(int n)
 {
   return 2 * (n - 1);
 }
 
-static int fftw_2N_rev(int n)
+static inline int fftw_2N_rev(int n)
 {
   return (LRINT(K(0.5) * n) + 1);
 }
 
-static int prod_int(int *vec, int d)
+static inline int prod_int(int *vec, int d)
 {
-  int t, prod;
+  int t, prod = 1;
 
-  prod=1;
-  for(t=0; t<d; t++)
+  for (t = 0; t < d; t++)
     prod *= vec[t];
 
   return prod;
@@ -90,7 +86,7 @@ static int prod_int(int *vec, int d)
 #define NFCT_PRE_WINFUN(d) ths->N[d] = 2 * ths->N[d]; \
   ths->n[d] = fftw_2N(ths->n[d]);
 
-#define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(0.5 * ths->N[d]); \
+#define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(K(0.5) * ths->N[d]); \
   ths->n[d] = fftw_2N_rev(ths->n[d]);
 
 #define NFCT_WINDOW_HELP_INIT WINDOW_HELP_INIT
@@ -123,16 +119,16 @@ R X(phi)(X(plan) *ths, R x, int d)
 #define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(fftw_2N(ths->n[t]))*/), t)
 
 /** direct computation of non equispaced cosine transforms
- *  nfct_direct_trafo,  nfct_direct_adjoint
+ *  nfct_trafo_direct,  nfct_adjoint_direct
  *  require O(M N^d) arithemtical operations
  *
- * direct computation of the nfct_direct_trafo, formula (1.1)
- * nfct_direct_trafo:
+ * direct computation of the nfct_trafo_direct, formula (1.1)
+ * nfct_trafo_direct:
  * for j=0,...,M-1
  *  f[j] = sum_{k in I_N^d} f_hat[k] * cos(2 (pi) k x[j])
  *
- * direct computation of the nfft_direct_adjoint, formula (1.2)
- * nfct_direct_adjoint:
+ * direct computation of the nfft_adjoint_direct, formula (1.2)
+ * nfct_adjoint_direct:
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
  */
@@ -201,7 +197,7 @@ R X(phi)(X(plan) *ths, R x, int d)
 
 /* slow (trafo) transform */
 #define MACRO_ndct(which_one) \
-  void X(direct_ ## which_one) (X(plan) *ths) \
+  void X(which_one ## _direct) (X(plan) *ths) \
   { \
     int j, k, t, i; \
     int ka[ths->d]; \
@@ -221,7 +217,7 @@ R X(phi)(X(plan) *ths, R x, int d)
       } \
     else \
     { \
-      /* fast nfct_direct_trafo */ \
+      /* fast nfct_trafo_direct */ \
       MACRO_ndct_malloc__cos_vec; \
 \
       for (j = 0; j < ths->M_total; j++) \
@@ -540,7 +536,7 @@ MACRO_nfct_B(T)
 
 /* more memory, but faster */
 #define MACRO_nfct_full_psi(which_one) \
-static void full_psi__ ## which_one(nfct_plan *ths) \
+static inline void full_psi__ ## which_one(nfct_plan *ths) \
 { \
   int t, i; /* index over all dimensions */ \
   int j; /* node index */ \
@@ -697,7 +693,7 @@ void X(adjoint)(X(plan) *ths)
 
 } /* nfct_adjoint */
 
-static void precompute_phi_hut(X(plan) *ths)
+static inline void precompute_phi_hut(X(plan) *ths)
 {
   int kg[ths->d]; /* index over all frequencies */
   int t; /* index over all dimensions */
@@ -733,7 +729,7 @@ void X(precompute_psi)(X(plan) *ths)
   } /* for (t) */
 } /* nfct_precompute_psi */
 
-static void init_help(X(plan) *ths)
+static inline void init_help(X(plan) *ths)
 {
   int t; /* index over all dimensions */
 

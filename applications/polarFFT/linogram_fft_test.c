@@ -121,7 +121,7 @@ static int linogram_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int
 
   /** NFFT-2D */
   t0 = getticks();
-  nfft_direct_trafo(&my_nfft_plan);
+  nfft_trafo_direct(&my_nfft_plan);
   t1 = getticks();
   GLOBAL_elapsed_time = nfft_elapsed_seconds(t1,t0);
 

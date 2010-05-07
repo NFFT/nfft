@@ -118,7 +118,7 @@ void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&np);
+          nfft_trafo_direct(&np);
           t1 = getticks();
           t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;

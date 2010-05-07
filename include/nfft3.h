@@ -151,8 +151,8 @@ typedef struct\
   R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
 } X(plan); \
 \
-NFFT_EXTERN void X(direct_trafo)(X(plan) *ths);\
-NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths);\
+NFFT_EXTERN void X(trafo_direct)(X(plan) *ths);\
+NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo_1d)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo_2d)(X(plan) *ths);\
@@ -258,9 +258,9 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int
   int m, unsigned nfct_flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(direct_trafo)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
 NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d);
@@ -335,9 +335,9 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int
   int m, unsigned nfst_flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(direct_trafo)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(full_psi)(X(plan) *ths_plan, R eps); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
@@ -400,8 +400,8 @@ typedef struct\
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \
 NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int N_total, int M_total, \
   int *N, int *N1, int m, unsigned nnfft_flags); \
-NFFT_EXTERN void X(direct_trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths_plan); \
@@ -457,8 +457,8 @@ typedef struct\
   R *x_102,*x_201,*x_120,*x_021; /**< coordinate exchanged nodes, d=3 */\
 } X(plan);\
 \
-NFFT_EXTERN void X(direct_trafo)(X(plan) *ths); \
-NFFT_EXTERN void X(direct_adjoint)(X(plan) *ths); \
+NFFT_EXTERN void X(trafo_direct)(X(plan) *ths); \
+NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths); \
 NFFT_EXTERN void X(cp)(X(plan) *ths, Z(plan) *ths_nfft); \
@@ -567,8 +567,8 @@ NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M, \
 NFFT_EXTERN void X(precompute)(int N, R kappa, unsigned int nfsft_flags, \
   unsigned int fpt_flags); \
 NFFT_EXTERN void X(forget)(void); \
-NFFT_EXTERN void X(direct_trafo)(X(plan)* plan); \
-NFFT_EXTERN void X(direct_adjoint)(X(plan)* plan); \
+NFFT_EXTERN void X(trafo_direct)(X(plan)* plan); \
+NFFT_EXTERN void X(adjoint_direct)(X(plan)* plan); \
 NFFT_EXTERN void X(trafo)(X(plan)* plan); \
 NFFT_EXTERN void X(adjoint)(X(plan)* plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
@@ -624,11 +624,11 @@ typedef struct X(set_s_) *X(set); /**< A set of precomputed data for a set of
 NFFT_EXTERN X(set) X(init)(const int M, const int t, const unsigned int flags); \
 NFFT_EXTERN void X(precompute)(X(set) set, const int m, R *alpha, R *beta, \
   R *gam, int k_start, const R threshold); \
-NFFT_EXTERN void X(direct_trafo)(X(set) set, const int m, const C *x, C *y, \
+NFFT_EXTERN void X(trafo_direct)(X(set) set, const int m, const C *x, C *y, \
   const int k_end, const unsigned int flags); \
 NFFT_EXTERN void X(trafo)(X(set) set, const int m, const C *x, C *y, \
   const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(direct_transposed)(X(set) set, const int m, C *x, \
+NFFT_EXTERN void X(transposed_direct)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
 NFFT_EXTERN void X(transposed)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \

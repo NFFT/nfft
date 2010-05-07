@@ -95,10 +95,6 @@ void nfft_next_power_of_2_exp(int N, int *N2, int *t);
 /* ########## Window function related ###################################### */
 /* ######################################################################### */
 
-/** Computes the sinus cardinalis \f$\frac{sin\left(x\right)}{x}\f$.
- */
-double nfft_sinc(double x);
-
 /** To test the new one
  */
 double nfft_bspline_old(int k,double x,double *A);
@@ -107,11 +103,6 @@ double nfft_bspline_old(int k,double x,double *A);
     scratch is used for de Boor's scheme
  */
 double nfft_bspline(int k, double x, double *scratch);
-
-/** Modified Bessel function of order zero;
-    adapted from Stephen Moshier's Cephes Math Library Release 2.8
- */
-double nfft_i0(double x);
 
 /* ######################################################################### */
 /* ########## Vector routines ############################################## */
@@ -302,19 +293,6 @@ double nfft_modified_multiquadric(double mu,double c,int kk);
 
 int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
   double *b);
-
-/**
- * Computes the function
- *   \f$\Lambda(z,\epsilon) = \frac{\Gamma(z+\epsilon)}{\Gamma(z+1)}\f$,
- * with \f$ z + \epsilon > 0\f$.
- *
- * This method uses the Lanczos approximation to compute the result; see
- * Glendon Ralph Pugh. An Analysis of The Lanczos Gamma Approximation. PhD
- * Thesis, The University of British Columbia, 2004.
- */
-double nfft_lambda(const double z, const double eps);
-
-double nfft_lambda2(const double mu, const double nu);
 
 double nfft_drand48(void);
 

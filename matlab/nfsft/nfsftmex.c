@@ -257,7 +257,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     check_nargs(nrhs,2,"Wrong number of arguments for trafo direct.");
     {
       int i = nfft_mex_get_int(prhs[1],"nfsft: Input argument plan must be a scalar.");
-      nfsft_direct_trafo(plans[i]);
+      nfsft_trafo_direct(plans[i]);
     }
     return;
   }
@@ -266,7 +266,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     check_nargs(nrhs,2,"Wrong number of arguments for adjoint direct.");
     {
       int i = nfft_mex_get_int(prhs[1],"nfsft: Input argument plan must be a scalar.");
-      nfsft_direct_adjoint(plans[i]);
+      nfsft_adjoint_direct(plans[i]);
     }
     return;
   }

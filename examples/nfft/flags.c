@@ -152,7 +152,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&p);
+          nfft_trafo_direct(&p);
           t1 = getticks();
           t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -263,7 +263,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 
   /** compute exact result */
   NFFT_SWAP_complex(p.f,swapndft);
-  nfft_direct_trafo(&p);
+  nfft_trafo_direct(&p);
   NFFT_SWAP_complex(p.f,swapndft);
 
   /** NFFT */

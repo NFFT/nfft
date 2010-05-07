@@ -52,6 +52,8 @@
 #include <dispatch/dispatch.h> /* libdispatch */
 #endif
 
+#include <fftw3.h>
+
 #include "ticks.h"
 
 /* Determine precision and name-mangling scheme. */
@@ -74,71 +76,8 @@ typedef double _Complex C;
 #endif
 #define X(name) Y(name)
 
-/** Macros for window functions. */
-#if defined(DIRAC_DELTA)
-  #define PHI_HUT(k,d) K(1.0)
-  #define PHI(x,d) (FABS((x))<K(10e-8))? K(1.0) : K(0.0)
-  #define WINDOW_HELP_INIT(d)
-  #define WINDOW_HELP_FINALIZE
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 0;}
-#elif defined(GAUSSIAN)
-  #define PHI_HUT(k,d) ((R)EXP(-(POW(PI*(k)/ths->n[d],K(2.0))*ths->b[d])))
-  #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0))/ ths->b[d])/SQRT(PI*ths->b[d]))
-  #define WINDOW_HELP_INIT \
-    {                                                                          \
-      int WINDOW_idx;                                                          \
-      ths->b = (R*) nfft_malloc(ths->d*sizeof(R));                   \
-      for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
-      ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx])/                   \
-        (K(2.0)*ths->sigma[WINDOW_idx]-K(1.0))*(((R)ths->m) / PI);                  \
-      }
-  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 12;}
-#elif defined(B_SPLINE)
-  #define PHI_HUT(k,d) ((R)(((k)==0)? K(1.0)/ths->n[(d)] :                   \
-    POW(SIN((k)*PI/ths->n[(d)])/((k)*PI/ths->n[(d)]),K(2.0)*ths->m)/ths->n[(d)]))
-  #define PHI(x,d) (nfft_bspline(2*ths->m,((x)*ths->n[(d)])+                   \
-    (R)ths->m,ths->spline_coeffs)/ths->n[(d)])
-  #define WINDOW_HELP_INIT \
-    {                                                                          \
-      ths->spline_coeffs= (R*)nfft_malloc(2*ths->m*sizeof(R));       \
-    }
-  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 11;}
-#elif defined(SINC_POWER)
-  #define PHI_HUT(k,d) (nfft_bspline(2*ths->m,(K(2.0)*ths->m*(k))/          \
-    ((K(2.0)*ths->sigma[(d)]-1)*ths->n[(d)]/ths->sigma[(d)])+ (R)ths->m,       \
-    ths->spline_coeffs))
-  #define PHI(x,d) ((R)(ths->n[(d)]/ths->sigma[(d)]*(K(2.0)*ths->sigma[(d)]-K(1.0))/\
-    (K(2.0)*ths->m)*POW(nfft_sinc(PI*ths->n[(d)]/ths->sigma[(d)]*(x)*               \
-    (K(2.0)*ths->sigma[(d)]-1)/(K(2.0)*ths->m)),2*ths->m)/ths->n[(d)]))
-  #define WINDOW_HELP_INIT \
-    {                                                                          \
-      ths->spline_coeffs= (R*)nfft_malloc(2*ths->m*sizeof(R));       \
-    }
-  #define WINDOW_HELP_FINALIZE {nfft_free(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
-#else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(k,d) ((R)nfft_i0( ths->m*SQRT(\
-    POW((R)(ths->b[d]),K(2.0)) - POW(K(2.0)*PI*(k)/ths->n[d],K(2.0)))))
-  #define PHI(x,d) ((R)((POW((R)(ths->m),K(2.0))\
-    -POW((x)*ths->n[d],2.0))>0)? \
-    sinh(ths->b[d]*sqrt(pow((double)(ths->m),2.0)-                             \
-    pow((x)*ths->n[d],2.0)))/(PI*sqrt(pow((double)(ths->m),2.0)-               \
-    pow((x)*ths->n[d],2.0))): (((pow((double)(ths->m),2.0)-                    \
-    pow((x)*ths->n[d],2.0))<0)? sin(ths->b[d]*                                 \
-    sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0)))/                   \
-    (PI*sqrt(pow(ths->n[d]*(x),2.0)-pow((double)(ths->m),2.0))):1.0))
-  #define WINDOW_HELP_INIT \
-    {                                                                          \
-      int WINDOW_idx;                                                          \
-      ths->b = (double*) nfft_malloc(ths->d*sizeof(double));                   \
-      for(WINDOW_idx=0; WINDOW_idx<ths->d; WINDOW_idx++)                       \
-      ths->b[WINDOW_idx] = ((double)PI*(2.0-1.0/ths->sigma[WINDOW_idx]));      \
-  }
-  #define WINDOW_HELP_FINALIZE {nfft_free(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
-#endif
+#define STRINGIZEx(x) #x
+#define STRINGIZE(x) STRINGIZEx(x)
 
 #ifdef NFFT_LDOUBLE
 #  define K(x) ((R) x##L)
@@ -147,20 +86,92 @@ typedef double _Complex C;
 #endif
 #define DK(name, value) const R name = K(value)
 
-/**
- * Integral type large enough to contain a stride (what ``int'' should
- * have been in the first place)
- */
+/* Integral type large enough to contain a stride (what ``int'' should have been
+ * in the first place) */
 typedef ptrdiff_t INT;
 
-#define IF(x,a,b) ((x)?(a):(b))
+#define KPI K(3.1415926535897932384626433832795028841971693993751)
+#define K2PI K(6.2831853071795864769252867665590057683943387987502)
+#define KE K(2.7182818284590452353602874713526624977572470937000)
 
+#define IF(x,a,b) ((x)?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define ABS(x) (((x)>K(0.0))?(x):(-(x)))
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGNF(a) IF((a)<K(0.0),K(-1.0),K(1.0))
+
+/* macros for window functions */
+
+#if defined(DIRAC_DELTA)
+  #define PHI_HUT(k,d) K(1.0)
+  #define PHI(x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
+  #define WINDOW_HELP_INIT(d)
+  #define WINDOW_HELP_FINALIZE
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 0;}
+#elif defined(GAUSSIAN)
+  #define PHI_HUT(k,d) ((R)EXP(-(POW(KPI*(k)/ths->n[d],K(2.0))*ths->b[d])))
+  #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0)) / \
+    ths->b[d])/SQRT(KPI*ths->b[d]))
+  #define WINDOW_HELP_INIT \
+    { \
+      int WINDOW_idx; \
+      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
+      for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
+        ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
+          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
+    }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 12;}
+#elif defined(B_SPLINE)
+  #define PHI_HUT(k,d) ((R)(((k) == 0) ? K(1.0) / ths->n[(d)] : \
+    POW(SIN((k) * KPI / ths->n[(d)]) / ((k) * KPI / ths->n[(d)]), \
+      K(2.0) * ths->m)/ths->n[(d)]))
+  #define PHI(x,d) (Y(bspline)(2*ths->m,((x)*ths->n[(d)]) + \
+    (R)ths->m,ths->spline_coeffs) / ths->n[(d)])
+  #define WINDOW_HELP_INIT \
+    { \
+      ths->spline_coeffs= (R*)Y(malloc)(2*ths->m*sizeof(R)); \
+    }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 11;}
+#elif defined(SINC_POWER)
+  #define PHI_HUT(k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
+    ((K(2.0) * ths->sigma[(d)] - 1) * ths->n[(d)] / \
+      ths->sigma[(d)]) + (R)ths->m, ths->spline_coeffs))
+  #define PHI(x,d) ((R)(ths->n[(d)] / ths->sigma[(d)] * \
+    (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
+    POW(Y(sinc)(KPI * ths->n[(d)] / ths->sigma[(d)] * (x) * \
+    (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) /
+    ths->n[(d)]))
+  #define WINDOW_HELP_INIT \
+    { \
+      ths->spline_coeffs= (R*)Y(malloc)(2 * ths->m * sizeof(R)); \
+    }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
+#else /* Kaiser-Bessel is the default. */
+  #define PHI_HUT(k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
+    POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / ths->n[d], K(2.0)))))
+  #define PHI(x,d) ((R)((POW((R)(ths->m), K(2.0))\
+    -POW((x)*ths->n[d],K(2.0))) > 0)? \
+    SINH(ths->b[d] * SQRT(POW((R)(ths->m),K(2.0)) - \
+    POW((x)*ths->n[d],K(2.0))))/(KPI*SQRT(POW((R)(ths->m),K(2.0)) - \
+    POW((x)*ths->n[d],K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
+    POW((x)*ths->n[d],K(2.0))) < 0)? SIN(ths->b[d] * \
+    SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
+    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):K(1.0)))
+  #define WINDOW_HELP_INIT \
+    { \
+      int WINDOW_idx; \
+      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
+      for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
+        ths->b[WINDOW_idx] = ((R)KPI*(K(2.0)-K(1.0) / ths->sigma[WINDOW_idx])); \
+  }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+  #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
+#endif
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0
@@ -332,7 +343,7 @@ extern long double j0l(long double);
 extern long double j1l(long double);
 #endif
 #if HAVE_DECL_JNL == 0
-extern long double jnl(long double);
+extern long double jnl(int, long double);
 #endif
 #if HAVE_DECL_Y0L == 0
 extern long double y0l(long double);
@@ -341,7 +352,7 @@ extern long double y0l(long double);
 extern long double y1l(long double);
 #endif
 #if HAVE_DECL_YNL == 0
-extern long double ynl(long double);
+extern long double ynl(int, long double);
 #endif
 #if HAVE_DECL_ERFL == 0
 extern long double erfl(long double);
@@ -669,7 +680,7 @@ extern float j0f(float);
 extern float j1f(float);
 #endif
 #if HAVE_DECL_JNF == 0
-extern float jnf(float);
+extern float jnf(int, float);
 #endif
 #if HAVE_DECL_Y0F == 0
 extern float y0f(float);
@@ -678,7 +689,7 @@ extern float y0f(float);
 extern float y1f(float);
 #endif
 #if HAVE_DECL_YNF == 0
-extern float ynf(float);
+extern float ynf(int, float);
 #endif
 #if HAVE_DECL_ERFF == 0
 extern float erff(float);
@@ -1006,7 +1017,7 @@ extern double j0(double);
 extern double j1(double);
 #endif
 #if HAVE_DECL_JN == 0
-extern double jn(double);
+extern double jn(int, double);
 #endif
 #if HAVE_DECL_Y0 == 0
 extern double y0(double);
@@ -1015,7 +1026,7 @@ extern double y0(double);
 extern double y1(double);
 #endif
 #if HAVE_DECL_YN == 0
-extern double yn(double);
+extern double yn(int, double);
 #endif
 #if HAVE_DECL_ERF == 0
 extern double erf(double);
@@ -1223,9 +1234,6 @@ extern double _Complex catanh(double _Complex z);
 #define TRUE 1
 #define FALSE 0
 
-#define KPI K(3.1415926535897932384626433832795028841971693993751)
-#define K2PI K(6.2831853071795864769252867665590057683943387987502)
-
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
 
@@ -1348,5 +1356,21 @@ double nfft_elapsed_seconds(ticks t1, ticks t0);
 #define TIC_FFTW(a)
 #define TOC_FFTW(a)
 #endif
+
+/* sinc.c: */
+
+/* Sinus cardinalis. */
+R X(sinc)(R x);
+
+/* lambda.c: */
+
+/* lambda(z, eps) = gamma(z + eps) / gamma(z + 1) */
+R X(lambda)(R z, R eps);
+
+/* lambda2(mu, nu) = sqrt(gamma(mu + nu + 1) / (gamma(mu + 1) * gamma(nu + 1))) */
+R X(lambda2)(R mu, R nu);
+
+/* bessel_i0.c: */
+R X(bessel_i0)(R x);
 
 #endif

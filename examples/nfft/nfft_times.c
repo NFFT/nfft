@@ -158,7 +158,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&p);
+          nfft_trafo_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -264,7 +264,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&p);
+          nfft_trafo_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -383,7 +383,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_adjoint(&p);
+          nfft_adjoint_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -511,7 +511,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&p);
+          nfft_trafo_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -640,7 +640,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_adjoint(&p);
+          nfft_adjoint_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -770,7 +770,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_trafo(&p);
+          nfft_trafo_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;
@@ -899,7 +899,7 @@ t = nfft_elapsed_seconds(t1,t0);
         {
           r++;
           t0 = getticks();
-          nfft_direct_adjoint(&p);
+          nfft_adjoint_direct(&p);
           t1 = getticks();
 t = nfft_elapsed_seconds(t1,t0);
           t_ndft+=t;

@@ -135,7 +135,7 @@ static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
     my_nfft_plan.f_hat[k] = f_hat[k];
 
   /** NDFT-2D */
-  nfft_direct_trafo(&my_nfft_plan);
+  nfft_trafo_direct(&my_nfft_plan);
 
   /** copy result */
   for(j=0;j<my_nfft_plan.M_total;j++)

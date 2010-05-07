@@ -71,7 +71,7 @@ static void simple_test_nfsft(void)
           nfft_drand48() - K(0.5) + _Complex_I*(nfft_drand48() - K(0.5));
 
   /* Direct transformation, display result. */
-  nfsft_direct_trafo(&plan);
+  nfsft_trafo_direct(&plan);
   printf("Vector f (NDSFT):\n");
   for (j = 0; j < plan.M_total; j++)
     printf("f[%+2d] = %+5.3" FE " %+5.3" FE "*I\n",j,
@@ -88,7 +88,7 @@ static void simple_test_nfsft(void)
   printf("\n");
 
   /* Direct adjoint transformation, display result. */
-  nfsft_direct_adjoint(&plan);
+  nfsft_adjoint_direct(&plan);
   printf("Vector f_hat (NDSFT):\n");
   for (k = 0; k <= plan.N; k++)
     for (n = -k; n <= k; n++)

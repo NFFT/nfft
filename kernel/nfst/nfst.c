@@ -122,16 +122,16 @@ int nfst_fftw_2N_rev( int n)
 
 
 /** direct computation of non equispaced sine transforms
- *  nfst_direct_trafo,  nfst_direct_adjoint_
+ *  nfst_trafo_direct,  nfst_adjoint_direct_
  *  require O(M N^d) arithemtical operations
  *
- * direct computation of the nfst_direct_trafo, formula (1.1)
- * nfst_direct_trafo:
+ * direct computation of the nfst_trafo_direct, formula (1.1)
+ * nfst_trafo_direct:
  * for j=0,...,M-1
  *  f[j] = sum_{k in I_N^d} f_hat[k] * sin(2 (pi) k x[j])
  *
- * direct computation of the nfft_direct_adjoint, formula (1.2)
- * nfst_direct_adjoint:
+ * direct computation of the nfft_adjoint_direct, formula (1.2)
+ * nfst_adjoint_direct:
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * sin(2 (pi) k x[j])
  */
@@ -212,7 +212,7 @@ int nfst_fftw_2N_rev( int n)
 
 /* slow (trafo) transform */
 #define MACRO_ndst( which_one)                                                  \
-  void nfst_direct_ ## which_one ( nfst_plan *ths)                                     \
+  void nfst_ ## which_one ## _direct ( nfst_plan *ths)                                     \
   {                                                                             \
     int j, k, t, i;                                                             \
     int ka[ths->d];                                                             \
@@ -247,7 +247,7 @@ int nfst_fftw_2N_rev( int n)
         }                                                                       \
       else                                                                      \
       {                                                                         \
-        /* fast nfst_direct_trafo */                                                   \
+        /* fast nfst_trafo_direct */                                                   \
         MACRO_ndst_malloc__sin_vec;                                             \
                                                                                 \
         for( j = 0; j < ths->M_total; j++)                                      \

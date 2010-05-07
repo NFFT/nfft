@@ -61,12 +61,13 @@ else
   DIR_FPT=
 endif
 
-SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NFST) \
-  $(DIR_NNFFT) $(DIR_NSFFT) solver .
+SUBDIRS = util nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
+  $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver .
 
 noinst_LTLIBRARIES = libkernel.la
 
 libkernel_la_SOURCES =
 
-libkernel_la_LIBADD = $(LIB_FPT) $(LIB_MRI) $(LIB_NFCT) nfft/libnfft.la \
-  $(LIB_NFSFT) $(LIB_NFSOFT) $(LIB_NFST) $(LIB_NNFFT) $(LIB_NSFFT) solver/libsolver.la
+libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
+  $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT) $(LIB_NFSFT) $(LIB_NFSOFT) \
+  solver/libsolver.la

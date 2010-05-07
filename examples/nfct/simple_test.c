@@ -52,7 +52,7 @@ void simple_test_nfct_1d(void)
   nfft_vpr_double(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  nfct_direct_trafo(&p);
+  nfct_trafo_direct(&p);
   nfft_vpr_double(p.f,p.M_total,"ndct, vector f");
 
   /** approx. trafo and show the result */
@@ -64,7 +64,7 @@ void simple_test_nfct_1d(void)
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
 
   /** approx. adjoint and show the result */
-  nfct_direct_adjoint(&p);
+  nfct_adjoint_direct(&p);
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
 
   /** finalise the one dimensional plan */

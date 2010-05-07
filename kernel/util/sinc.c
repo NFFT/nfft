@@ -16,56 +16,32 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
+/* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
-#include "nfft3.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "infft.h"
 
-nfft_malloc_type_function nfft_malloc_hook = 0;
-nfft_free_type_function nfft_free_hook = 0;
-nfft_die_type_function nfft_die_hook = 0;
-
-void *nfft_malloc(size_t n)
+R X(sinc)(const R x)
 {
-  void *p;
+  /* Based on sinc function from Boost C++ library. */
+  const R b =  EPSILON;
+  const R bs = SQRT(b);
+  const R bs2 = SQRT(bs);
 
-  if (nfft_malloc_hook)
-    return nfft_malloc_hook(n);
-
-  if (n == 0)
-    n = 1;
-
-  p = fftw_malloc(n);
-
-  if (!p)
+  if (FABS(x) >= bs2)
+    return SIN(x)/x;
+  else
   {
-    fprintf(stderr,"nfft_malloc: n = %d.\n",n);
-    nfft_die("nfft_malloc: out of memory\n");
-  }
+    R r = K(1.0);
 
-  return p;
-}
-
-void nfft_free(void *p)
-{
-  if (p)
-  {
-    if (nfft_free_hook)
+    if (FABS(x) >= b)
     {
-      nfft_free_hook(p);
-      return;
+      const R x2 = x * x;
+      r -= x2 / K(6.0);
+
+      if (FABS(x) >= bs)
+        r += (x2 * x2) / K(120.0);
     }
-    fftw_free(p);
+
+    return r;
   }
-}
-
-void nfft_die(const char *s)
-{
-  if (nfft_die_hook)
-    nfft_die_hook(s);
-
-  fflush(stdout);
-  fprintf(stderr, "nfft: %s", s);
-  exit(EXIT_FAILURE);
 }

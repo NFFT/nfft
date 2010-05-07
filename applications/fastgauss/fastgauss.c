@@ -52,7 +52,7 @@
  * the fast Fourier transform.
  *
  * \see fgt_init
- * \see nfft_direct_trafo
+ * \see nfft_trafo_direct
  * \see nfft_trafo
  * \author Stefan Kunis
  */
@@ -135,12 +135,12 @@ void fgt_trafo(fgt_plan *ths)
 
   if(ths->flags & FGT_NDFT)
     {
-      nfft_direct_adjoint(ths->nplan1);
+      nfft_adjoint_direct(ths->nplan1);
 
       for(l=0; l<ths->n; l++)
         ths->nplan1->f_hat[l] *= ths->b[l];
 
-      nfft_direct_trafo(ths->nplan2);
+      nfft_trafo_direct(ths->nplan2);
     }
   else
     {

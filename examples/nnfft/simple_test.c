@@ -72,7 +72,7 @@ void simple_test_nnfft_1d(void)
   nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  nnfft_direct_trafo(&my_plan);
+  nnfft_trafo_direct(&my_plan);
   nfft_vpr_complex(my_plan.f,my_plan.M_total,"nndft, vector f");
 
   /** approx. trafo and show the result */
@@ -126,7 +126,7 @@ void simple_test_adjoint_nnfft_1d(void)
   nfft_vpr_complex(my_plan.f,my_plan.M_total,"given Samples, vector f");
 
   /** direct trafo and show the result */
-  nnfft_direct_adjoint(&my_plan);
+  nnfft_adjoint_direct(&my_plan);
   nfft_vpr_complex(my_plan.f_hat,my_plan.N_total,"adjoint nndft, vector f_hat");
 
   /** approx. trafo and show the result */
@@ -185,7 +185,7 @@ void simple_test_nnfft_2d(void)
         "given Fourier coefficients, vector f_hat (first 12 entries)");
 
   /** direct trafo and show the result */
-  nnfft_direct_trafo(&my_plan);
+  nnfft_trafo_direct(&my_plan);
   nfft_vpr_complex(my_plan.f,my_plan.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
@@ -291,7 +291,7 @@ void measure_time_nnfft_1d(void)
       my_plan.f_hat[k] = ((double)rand())/((double)RAND_MAX) + _Complex_I*((double)rand())/((double)RAND_MAX);
 
     t0 = getticks();
-    nnfft_direct_trafo(&my_plan);
+    nnfft_trafo_direct(&my_plan);
     t1 = getticks();
     t = nfft_elapsed_seconds(t1,t0);
     printf("t_nndft=%e,\t",t);

@@ -746,7 +746,7 @@ int main (int argc, char **argv)
             {
 
               /* Execute adjoint direct NDSFT transformation. */
-              nfsft_direct_adjoint(&plan_adjoint);
+              nfsft_adjoint_direct(&plan_adjoint);
 
               /* Multiplication with the Fourier-Legendre coefficients. */
               for (k = 0; k <= m[im]; k++)
@@ -754,7 +754,7 @@ int main (int argc, char **argv)
                   f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
 
               /* Execute direct NDSFT transformation. */
-              nfsft_direct_trafo(&plan);
+              nfsft_trafo_direct(&plan);
 
             }
 
@@ -802,7 +802,7 @@ int main (int argc, char **argv)
             else
             {
               /* Execute the adjoint direct NDSFT transformation. */
-              nfsft_direct_adjoint(&plan_adjoint);
+              nfsft_adjoint_direct(&plan_adjoint);
             }
 
             /* Multiplication with the Fourier-Legendre coefficients. */
@@ -819,7 +819,7 @@ int main (int argc, char **argv)
             else
             {
               /* Execute the NDSFT transformation. */
-              nfsft_direct_trafo(&plan);
+              nfsft_trafo_direct(&plan);
             }
           }
 

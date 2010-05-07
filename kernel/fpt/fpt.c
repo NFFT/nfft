@@ -1125,7 +1125,7 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
   }
 }
 
-void fpt_direct_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
+void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags)
 {
   int j;
@@ -1225,7 +1225,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   if (k_end < FPT_BREAK_EVEN)
   {
     /* Use NDSFT. */
-    fpt_direct_trafo(set, m, x, y, k_end, flags);
+    fpt_trafo_direct(set, m, x, y, k_end, flags);
     return;
   }
 
@@ -1451,7 +1451,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   }
 }
 
-void fpt_direct_transposed(fpt_set set, const int m, double _Complex *x,
+void fpt_transposed_direct(fpt_set set, const int m, double _Complex *x,
   double _Complex *y, const int k_end, const unsigned int flags)
 {
   int j;
@@ -1543,7 +1543,7 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
   if (k_end < FPT_BREAK_EVEN)
   {
     /* Use NDSFT. */
-    fpt_direct_transposed(set, m, x, y, k_end, flags);
+    fpt_transposed_direct(set, m, x, y, k_end, flags);
     return;
   }
 

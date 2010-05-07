@@ -42,7 +42,7 @@ void simple_test_nsfft(int d, int J, int M)
   nfft_vpr_complex(p.f_hat, K, "frequencies, vector f_hat (first few entries)");
 
   /** direct trafo and show the result */
-  nsfft_direct_trafo(&p);
+  nsfft_trafo_direct(&p);
   nfft_vpr_complex(p.f, K, "nsdft, vector f (first few entries)");
 
   /** approx. trafo and show the result */
@@ -50,7 +50,7 @@ void simple_test_nsfft(int d, int J, int M)
   nfft_vpr_complex(p.f, K, "nsfft, vector f (first few entries)");
 
   /** direct adjoint and show the result */
-  nsfft_direct_adjoint(&p);
+  nsfft_adjoint_direct(&p);
   nfft_vpr_complex(p.f_hat, K, "adjoint nsdft, vector f_hat, (first few entries)");
 
   /** approx. adjoint and show the result */
