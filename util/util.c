@@ -38,72 +38,6 @@
 #include "nfft3util.h"
 #include "infft.h"
 
-R nfft_fc(const char *cmach)
-{
-  const R base = FLT_RADIX;
-  const R eps = EPSILON;
-  const R t = MANT_DIG;
-  const R emin = MIN_EXP;
-  const R emax = MAX_EXP;
-  const R prec = eps * base;
-  static R rmin = K(1.0);
-  static R rmax = K(1.0);
-  const R rnd = FLTROUND;
-  static R sfmin = K(-1.0);
-  static short first = TRUE;
-
-  if (first)
-  {
-    /* Compute rmin */
-    {
-      const INT n = 1 - MIN_EXP;
-      INT i;
-      for (i = 0; i < n; i++)
-        rmin /= base;
-    }
-    /* Compute rmax */
-    {
-      INT i;
-      rmax -= eps;
-      for (i = 0; i < emax; i++)
-        rmax *= base;
-    }
-    /* Compute sfmin */
-    {
-      R small = K(1.0) / rmax;
-      sfmin = rmin;
-      if (small >= sfmin)
-        sfmin = small * (eps + K(1.0));
-    }
-    first = FALSE;
-  }
-
-  if (cmach[0] == 'E')
-    return eps;
-  else if (cmach[0] == 'S')
-    return sfmin;
-  else if (cmach[0] == 'B')
-    return base;
-  else if (cmach[0] == 'P')
-    return prec;
-  else if (cmach[0] == 'N')
-    return t;
-  else if (cmach[0] == 'R')
-    return rnd;
-  else if (cmach[0] == 'M')
-    return  emin;
-  else if (cmach[0] == 'U')
-    return rmin;
-  else if (cmach[0] == 'L')
-    return emax;
-  else if (cmach[0] == 'O')
-    return rmax;
-  else
-    CK(0 /* cannot happen */);
-
-  return K(-1.0);
-} /* dlamch_ */
-
 double nfft_elapsed_seconds(ticks t1, ticks t0)
 {
   UNUSED(t1);
@@ -1119,7 +1053,7 @@ R X(modified_multiquadric)(const R mu, const R c, const int kk)
 static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
   const int nb, const int ize, R *b)
 {
-  const R enmten = K(4.0)*nfft_fc("U");
+  const R enmten = K(4.0)*nfft_float_property(NFFT_R_MIN);
   R tempa = K(1.0), empal = K(1.0) + alpha, halfx = K(0.0), tempb = K(0.0);
   int n, ncalc = nb;
 
@@ -1175,7 +1109,7 @@ static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
 static inline void scaled_modified_bessel_i_normalize(const R x,
   const R alpha, const int nb, const int ize, R *b, const R sum_)
 {
-  const R enmten = K(4.0)*nfft_fc("U");
+  const R enmten = K(4.0)*nfft_float_property(NFFT_R_MIN);
   R sum = sum_, tempa;
   int n;
 
@@ -1270,7 +1204,7 @@ int nfft_smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   /*          EXP ROUTINE CAN HANDLE AND UPPER LIMIT ON THE */
   /*          MAGNITUDE OF X WHEN IZE=1. */
   const int nsig = MANT_DIG + 2;
-  const R enten = nfft_fc("O");//POW(K(10.0),K(R_MAX_10_EXP));
+  const R enten = nfft_float_property(NFFT_R_MAX);
   const R ensig = POW(K(10.0),(R)nsig);
   const R rtnsig = POW(K(10.0),-CEIL((R)nsig/K(4.0)));
   const R xlarge = K(1E4);

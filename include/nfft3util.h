@@ -298,8 +298,6 @@ double nfft_drand48(void);
 
 void nfft_srand48(long int seed);
 
-double nfft_fc(const char *cmach);
-
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif /* __cplusplus */

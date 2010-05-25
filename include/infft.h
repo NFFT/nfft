@@ -1373,4 +1373,11 @@ R X(lambda2)(R mu, R nu);
 /* bessel_i0.c: */
 R X(bessel_i0)(R x);
 
+/* float.c: */
+typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
+  NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
+  NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
+
+R X(float_property)(float_property);
+
 #endif

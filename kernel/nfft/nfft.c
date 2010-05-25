@@ -3064,13 +3064,14 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
   ths->d = d;
 
   ths->N=(int*) nfft_malloc(d*sizeof(int));
-  for(t = 0;t < d; t++)
+
+  for (t = 0;t < d; t++)
     ths->N[t] = N[t];
 
   ths->M_total = M_total;
 
   ths->n = (int*) nfft_malloc(d*sizeof(int));
-  for(t = 0;t < d; t++)
+  for (t = 0;t < d; t++)
     ths->n[t] = 2*nfft_next_power_of_2(ths->N[t]);
 
   WINDOW_HELP_ESTIMATE_m;
@@ -3107,7 +3108,8 @@ void nfft_init_1d(nfft_plan *ths, int N1, int M_total)
   int N[1];
 
   N[0]=N1;
-  nfft_init(ths,1,N,M_total);
+
+  nfft_init(ths, 1, N, M_total);
 }
 
 void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M_total)

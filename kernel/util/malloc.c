@@ -38,7 +38,8 @@ void *X(malloc)(size_t n)
 
   p = Z(malloc)(n);
 
-  X(die)(STRINGIZE(X(malloc)) ": out of memory\n");
+  if (!p)
+    X(die)(STRINGIZE(X(malloc)) ": out of memory\n");
 
   return p;
 }

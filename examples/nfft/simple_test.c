@@ -153,12 +153,11 @@ void simple_test_nfft_2d(void)
 
 int main(void)
 {
-  system("clear");
-  printf("1) computing an one dimensional ndft, nfft and an adjoint nfft\n\n");
+  printf("1) computing a one dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_1d();
+
   getc(stdin);
 
-  system("clear");
   printf("2) computing a two dimensional ndft, nfft and an adjoint nfft\n\n");
   simple_test_nfft_2d();
 
