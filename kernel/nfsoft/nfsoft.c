@@ -267,6 +267,12 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
   SO3_alpha_row(alpha, N, k, m);
   SO3_beta_row(beta, N, k, m);
   SO3_gamma_row(gamma, N, k, m);
+  
+  /*{
+    int rr;
+    for (rr = 0; rr < N + 2; rr++)
+      fprintf(stderr, "a[%4d] = %10e b[%4d] = %10e c[%4d] = %10e\n",rr,alpha[rr],rr,beta[rr],rr,gamma[rr]);
+  }*/
 
   fpt_precompute(set, 0, alpha, beta, gamma, k_start, kappa);
 

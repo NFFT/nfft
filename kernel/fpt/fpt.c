@@ -637,6 +637,13 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
   int j,k;
   double _Complex tmp1, tmp2, tmp3;
   double xc;
+  
+  /*fprintf(stderr, "Executing eval_sum_clenshaw_fast.\n");  
+  fprintf(stderr, "Before transform:\n");  
+  for (j = 0; j < N; j++)
+    fprintf(stderr, "a[%4d] = %e.\n", j, a[j]);  
+  for (j = 0; j <= M; j++)
+    fprintf(stderr, "x[%4d] = %e, y[%4d] = %e.\n", j, x[j], j, y[j]);*/
 
   if (N == 0)
     for (j = 0; j <= M; j++)
@@ -668,12 +675,23 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
         tmp2 *= (alpha[k] * xc + beta[k]);
         tmp2 += tmp1;
         tmp1 = tmp3;
+        /*if (j == 1515) 
+        {
+          fprintf(stderr, "k = %d, tmp1 = %e, tmp2 = %e.\n", k, tmp1, tmp2);  
+        }*/
       }
       tmp2 *= (alpha[0] * xc + beta[0]);
+        //fprintf(stderr, "alpha[0] = %e, beta[0] = %e.\n", alpha[0], beta[0]);  
       y[j] = lambda * (tmp2 + tmp1);
+        //fprintf(stderr, "lambda = %e.\n", lambda);  
 #endif
     }
   }
+  /*fprintf(stderr, "Before transform:\n");  
+  for (j = 0; j < N; j++)
+    fprintf(stderr, "a[%4d] = %e.\n", j, a[j]);  
+  for (j = 0; j <= M; j++)
+    fprintf(stderr, "x[%4d] = %e, y[%4d] = %e.\n", j, x[j], j, y[j]);  */
 }
 
 /**
@@ -983,6 +1001,7 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
               degree, calpha, cbeta, cgamma, threshold);
           }
         }
+        
 
         /* Check if stabilization needed. */
         if (needstab == 0)
@@ -1133,9 +1152,13 @@ void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double
   int Nk;
   int tk;
   double norm;
+  
+    //fprintf(stderr, "Executing dpt.\n");  
 
   nfft_next_power_of_2_exp(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
+
+    //fprintf(stderr, "Norm = %e.\n", norm);  
 
   if (set->flags & FPT_NO_DIRECT_ALGORITHM)
   {
@@ -1148,6 +1171,7 @@ void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double
     for (j = 0; j <= k_end; j++)
     {
       set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
+        //fprintf(stderr, "x[%4d] = %e.\n", j, set->xc_slow[j]);  
     }
 
     memset(set->result,0U,data->k_start*sizeof(double _Complex));

@@ -1225,10 +1225,13 @@ extern double _Complex catanh(double _Complex z);
 /* format strings */
 #if defined(NFFT_LDOUBLE)
 #  define FE "LE"
+#  define FE_ "% 36.32LE"
 #elif defined(NFFT_SINGLE)
 #  define FE "E"
+#  define FE_ "% 12.8E"
 #else
 #  define FE "lE"
+#  define FE_ "% 20.16lE"
 #endif
 
 #define TRUE 1

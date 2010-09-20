@@ -444,6 +444,7 @@ AC_CONFIG_FILES(Makefile \
                 kernel/nsfft/Makefile \
                 kernel/solver/Makefile \
                 kernel/util/Makefile \
+                tests/Makefile \
                 examples/Makefile \
                 examples/fpt/Makefile \
                 examples/mri/Makefile \

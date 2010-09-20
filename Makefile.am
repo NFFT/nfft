@@ -22,7 +22,7 @@ else
   LIBNFFT3_THREADS_LA =
 endif
 
-SUBDIRS= 3rdparty include util kernel . examples applications $(MATLAB_DIRS)
+SUBDIRS= 3rdparty include util kernel . tests examples applications $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
 noinst_LTLIBRARIES = $(LIBBFFT3_MATLAB_LA)
