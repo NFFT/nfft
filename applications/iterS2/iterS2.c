@@ -161,7 +161,7 @@ int main (int argc, char **argv)
     /* */
     if ((N+1)*(N+1) > M)
     {
-      nfft_next_power_of_2_exp(N, &npt, &npt_exp);
+      X(next_power_of_2_exp)(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
       fprintf(stderr,"Optimal interpolation!\n");
       scratch = (double*) nfft_malloc(4*sizeof(double));

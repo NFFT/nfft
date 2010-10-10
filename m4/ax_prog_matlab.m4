@@ -97,7 +97,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       # mex file extension, maybe
       for matlab_check_prog_mexext in "mexext mexext.sh mexext.bat"; do
         AC_PATH_PROG([matlab_prog_mexext],[$matlab_check_prog_mexext],[no],
-          [$PATH$PATH_SEPARATOR$matlab_bin_dir])
+          [$matlab_bin_dir$PATH_SEPARATOR$PATH$PATH_SEPARATOR$matlab_bin_dir])
         if test ! "x${matlab_prog_mexext}" = "xno"; then
           AC_MSG_CHECKING([for mex file extension])
           if test "x${matlab_prog_mexext}" = "xmexext.bat"; then

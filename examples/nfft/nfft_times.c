@@ -291,7 +291,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   /** NFFT_1d */
   t_nfft=0;
@@ -308,7 +308,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   printf("\n");
 
@@ -410,7 +410,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   /** NFFT_1d */
   t_nfft=0;
@@ -427,7 +427,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   printf("\n");
 
@@ -541,7 +541,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -560,7 +560,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -670,7 +670,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
@@ -689,7 +689,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
@@ -800,7 +800,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -819,7 +819,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f, p.M_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -929,7 +929,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
@@ -948,7 +948,7 @@ t = nfft_elapsed_seconds(t1,t0);
   t_nfft/=r;
   printf("%.1e\t",t_nfft);
   if(test_ndft)
-    printf("(%.1e)\t",nfft_error_l_2_complex(swapndft, p.f_hat, p.N_total));
+    printf("(%.1e)\t",X(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 

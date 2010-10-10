@@ -944,7 +944,7 @@ void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
   ths->n      = (int*)nfft_malloc( ths->d * sizeof( int));
 
   for( t = 0; t < d; t++)
-    ths->n[t] = 2 * nfft_next_power_of_2( ths->N[t]) - 1;
+    ths->n[t] = 2 * X(next_power_of_2)( ths->N[t]) - 1;
 
   ths->M_total = M_total;
 
@@ -962,7 +962,7 @@ void nfst_init_m( nfst_plan *ths, int d, int *N, int M_total, int m)
   int t, n[d];
 
   for( t = 0; t < d; t++)
-    n[t] = nfst_fftw_2N( nfft_next_power_of_2( N[t]));
+    n[t] = nfst_fftw_2N( X(next_power_of_2)( N[t]));
 
   nfst_init_guru( ths, d, N, M_total, n, m, NFST_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS);
 }

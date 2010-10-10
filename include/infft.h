@@ -1383,4 +1383,20 @@ typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
 
 R X(float_property)(float_property);
 
+/* int.c: */
+int X(exp2i)(const int a);
+int X(log2i)(const int m);
+int X(next_power_of_2)(const int N);
+void X(next_power_of_2_exp)(const int N, int *N2, int *t);
+
+/* error.c: */
+R X(error_l_infty_complex)(const C *x, const C *y, const INT n);
+/* not used */ R X(error_l_infty_double)(const R *x, const R *y, const INT n);
+R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
+  const C *z, const INT m);
+/* not used */ R X(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
+  const INT m);
+R X(error_l_2_complex)(const C *x, const C *y, const INT n);
+/* not used */ R X(error_l_2_double)(const R *x, const R *y, const INT n);
+
 #endif

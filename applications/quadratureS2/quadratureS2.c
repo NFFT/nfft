@@ -1074,8 +1074,8 @@ int main (int argc, char **argv)
           nfft_free(f_hat);
           nfft_free(x_grid);
 
-          err_infty_avg += nfft_error_l_infty_complex(f, f_compare, m_compare);
-          err_2_avg += nfft_error_l_2_complex(f, f_compare, m_compare);
+          err_infty_avg += X(error_l_infty_complex)(f, f_compare, m_compare);
+          err_2_avg += X(error_l_2_complex)(f, f_compare, m_compare);
 
           nfft_free(f_grid);
 

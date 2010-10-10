@@ -669,7 +669,7 @@ FPT_DEFINE_API(FPT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_
 #define NFSOFT_DEFINE_API(X,Y,Z,R,C) \
 typedef struct X(plan_)\
 {\
-  MACRO_MV_PLAN(C)\
+  MACRO_MV_PLAN(C) \
   R *x; /**< input nodes */\
   C *wig_coeffs; /**< contains a set of SO(3) Fourier coefficients for fixed
     orders m and n*/\

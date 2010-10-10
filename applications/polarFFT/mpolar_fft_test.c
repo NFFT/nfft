@@ -479,7 +479,7 @@ int main(int argc,char **argv)
     mpolar_fft(f_hat,N,f,T,R,m);
 
     /** compute error of fast mpolar FFT */
-    E_max=nfft_error_l_infty_complex(f_direct,f,M);
+    E_max=X(error_l_infty_complex)(f_direct,f,M);
     printf("m=%2d: E_max = %e\n",m,E_max);
     fprintf(fp1,"%e\n",E_max);
   }
@@ -497,7 +497,7 @@ int main(int argc,char **argv)
       inverse_mpolar_fft(f_direct,T,R,f_tilde,N,max_i,m);
 
       /** compute maximum relativ error */
-      E_max=nfft_error_l_infty_complex(f_hat,f_tilde,N*N);
+      E_max=X(error_l_infty_complex)(f_hat,f_tilde,N*N);
       printf("%3d iterations: E_max = %e\n",max_i,E_max);
       fprintf(fp1,"%e\n",E_max);
     }

@@ -186,7 +186,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     p.MEASURE_TIME_t[1]=nan("");
 
   if(test_ndft)
-    e=nfft_error_l_2_complex(swapndft, p.f, p.M_total);
+    e=X(error_l_2_complex)(swapndft, p.f, p.M_total);
   else
     e=nan("");
 
@@ -268,7 +268,7 @@ void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 
   /** NFFT */
   nfft_trafo(&p);
-  e=nfft_error_l_2_complex(swapndft, p.f, p.M_total);
+  e=X(error_l_2_complex)(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
   printf("$%.1e$&\t",e);

@@ -28,6 +28,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 void accuracy(int d)
 {
@@ -86,8 +87,8 @@ void accuracy(int d)
       nnfft_trafo(&my_plan);
 
       printf("%e, %e\n",
-	     nfft_error_l_infty_complex(slow, my_plan.f, M_total),
-	     nfft_error_l_infty_1_complex(slow, my_plan.f, M_total, my_plan.f_hat,
+	     X(error_l_infty_complex)(slow, my_plan.f, M_total),
+	     X(error_l_infty_1_complex)(slow, my_plan.f, M_total, my_plan.f_hat,
 				     my_plan.N_total));
 
       /** finalise the one dimensional plan */

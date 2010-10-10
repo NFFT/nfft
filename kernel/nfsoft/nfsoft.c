@@ -94,7 +94,7 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
       if (plan->f == NULL ) printf("Allocation failed!\n");
   }
 
-  plan->wig_coeffs = (C*) nfft_malloc((nfft_next_power_of_2(B)+1)*sizeof(C));
+  plan->wig_coeffs = (C*) nfft_malloc((X(next_power_of_2)(B)+1)*sizeof(C));
   plan->cheby = (C*) nfft_malloc((2*B+2)*sizeof(C));
   plan->aux = (C*) nfft_malloc((2*B+4)*sizeof(C));
 
@@ -161,7 +161,7 @@ static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
     else
       N = l;
 
-    t = (int) log2(nfft_next_power_of_2(N));
+    t = (int) log2(X(next_power_of_2)(N));
 
   }
   else
@@ -170,7 +170,7 @@ static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
     if (l < 2)
       N = 2;
     else
-      N = nfft_next_power_of_2(l);
+      N = X(next_power_of_2)(l);
 
     t = (int) log2(N);
   }
@@ -229,7 +229,7 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
     else
       N = l;
 
-    t = (int) log2(nfft_next_power_of_2(N));
+    t = (int) log2(X(next_power_of_2)(N));
 
   }
   else
@@ -238,7 +238,7 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
     if (l < 2)
       N = 2;
     else
-      N = nfft_next_power_of_2(l);
+      N = X(next_power_of_2)(l);
 
     t = (int) log2(N);
   }
@@ -310,7 +310,7 @@ void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
     if (l < 2)
       N = 2;
     else
-      N = nfft_next_power_of_2(l);
+      N = X(next_power_of_2)(l);
   }
 
   /** Read in start and end indeces */
@@ -386,7 +386,7 @@ void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
     if (l < 2)
       N = 2;
     else
-      N = nfft_next_power_of_2(l);
+      N = X(next_power_of_2)(l);
   }
 
   /** Read in start and end indeces */
@@ -526,7 +526,7 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
         glo1++;
       }
 
-      for (j = N - max + 1; j < nfft_next_power_of_2(N) + 1; j++)
+      for (j = N - max + 1; j < X(next_power_of_2)(N) + 1; j++)
         plan3D->wig_coeffs[j] = 0.0;
       //fprintf(stdout,"\n k= %d, m= %d \n",k,m);
       SO3_fpt(plan3D->wig_coeffs, plan3D->internal_fpt_set, N, k, m, plan3D->flags);

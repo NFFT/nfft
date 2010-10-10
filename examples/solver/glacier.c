@@ -29,6 +29,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /**
  * \defgroup examples_solver_glacier Reconstruction of a glacier from \
@@ -53,8 +54,8 @@ void glacier(int N,int M)
   FILE* fp;
 
   /* initialise p */
-  my_N[0]=N; my_n[0]=nfft_next_power_of_2(N);
-  my_N[1]=N; my_n[1]=nfft_next_power_of_2(N);
+  my_N[0]=N; my_n[0]=X(next_power_of_2)(N);
+  my_N[1]=N; my_n[1]=X(next_power_of_2)(N);
   nfft_init_guru(&p, 2, my_N, M, my_n, 6,
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
@@ -117,8 +118,8 @@ void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   int M_re=M-M_cv;
 
   /* initialise p for reconstruction */
-  my_N[0]=N; my_n[0]=nfft_next_power_of_2(N);
-  my_N[1]=N; my_n[1]=nfft_next_power_of_2(N);
+  my_N[0]=N; my_n[0]=X(next_power_of_2)(N);
+  my_N[1]=N; my_n[1]=X(next_power_of_2)(N);
   nfft_init_guru(&p, 2, my_N, M_re, my_n, 6,
 		 PRE_PHI_HUT| PRE_FULL_PSI|
 		 MALLOC_X| MALLOC_F_HAT| MALLOC_F|

@@ -369,7 +369,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
 
   /* Compute and save N_max = 2^{\ceil{log_2 N}} as next greater
    * power of two with respect to N. */
-  nfft_next_power_of_2_exp(N,&wisdom.N_MAX,&wisdom.T_MAX);
+  X(next_power_of_2_exp)(N,&wisdom.N_MAX,&wisdom.T_MAX);
 
   /* Check, if precomputation for direct algorithms needs to be performed. */
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)

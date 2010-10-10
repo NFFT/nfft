@@ -54,7 +54,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_trafo(&p);
 
   printf("%5d\t %+.5E\t",J,
-         nfft_error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
+         X(error_l_infty_1_complex)(swap_sndft_trafo, p.f, p.M_total,
                                  p.f_hat, p.N_total));
   fflush(stdout);
 
@@ -69,7 +69,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_adjoint(&p);
 
   printf("%+.5E\n",
-         nfft_error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
+         X(error_l_infty_1_complex)(swap_sndft_adjoint, p.f_hat,
                                  p.N_total,
                                  p.f, p.M_total));
   fflush(stdout);
@@ -92,7 +92,7 @@ void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 
   for(r=0;r<d;r++)
   {
-    N[r]=nfft_int_2_pow(J+2);
+    N[r]= X(exp2i)(J+2);
     n[r]=(3*N[r])/2;
     /*n[r]=2*N[r];*/
   }
@@ -199,9 +199,9 @@ int main(int argc,char **argv)
     for(J=atoi(argv[3]); J<=atoi(argv[4]); J++)
     {
       if(d==2)
-	M=(J+4)*nfft_int_2_pow(J+1);
+	M=(J+4)*X(exp2i)(J+1);
       else
-	M=6*nfft_int_2_pow(J)*(nfft_int_2_pow((J+1)/2+1)-1)+nfft_int_2_pow(3*(J/2+1));
+	M=6*X(exp2i)(J)*(X(exp2i)((J+1)/2+1)-1)+X(exp2i)(3*(J/2+1));
 
       if(d*(J+2)<=24)
 	time_nsfft(d, J, M, 1, 1);

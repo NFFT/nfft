@@ -819,7 +819,7 @@ void nfct_init_m(nfct_plan *ths, int d, int *N, int M_total, int m)
   int t, n[d];
 
   for(t = 0; t < d; t++)
-    n[t] = fftw_2N(nfft_next_power_of_2(N[t]));
+    n[t] = fftw_2N(X(next_power_of_2)(N[t]));
 
   nfct_init_guru(ths, d, N, M_total, n, m, NFCT_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS);
 }

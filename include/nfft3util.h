@@ -72,26 +72,6 @@ extern "C"
 #define NFFT_MIN(a,b) ((a)<(b)? (a) : (b))
 
 /* ######################################################################### */
-/* ########## Little helpers ############################################### */
-/* ######################################################################### */
-
-/** Integer logarithm of 2.
- */
-int nfft_ld(int m);
-
-/** Integer power of 2.
- */
-int nfft_int_2_pow(int a);
-
-/** Computes \f$n\ge N\f$ such that \f$n=2^j,\, j\in\mathbb{N}_0\f$.
- */
-int nfft_next_power_of_2(int N);
-
-/** Computes ?
- */
-void nfft_next_power_of_2_exp(int N, int *N2, int *t);
-
-/* ######################################################################### */
 /* ########## Window function related ###################################### */
 /* ######################################################################### */
 
@@ -213,32 +193,6 @@ void nfft_upd_axpwy_double( double*  x, double a, double* w, double*  y, int n);
 /** Swaps each half over N[d]/2.
  */
 void nfft_fftshift_complex(fftw_complex *x, int d, int* N);
-
-/** Computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
- */
-double nfft_error_l_infty_complex(fftw_complex *x, fftw_complex *y, int n);
-
-/** Computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
- */
-double nfft_error_l_infty_double(double *x, double *y, int n);
-
-/** Computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
- */
-double nfft_error_l_infty_1_complex(fftw_complex *x, fftw_complex *y, int n, fftw_complex *z,
-                               int m);
-
-/** Computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
- */
-double nfft_error_l_infty_1_double(double *x, double *y, int n, double *z,
-			      int m);
-
-/** Computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
- */
-double nfft_error_l_2_complex(fftw_complex *x, fftw_complex *y, int n);
-
-/** Computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
- */
-double  nfft_error_l_2_double(double *x, double *y, int n);
 
 /** Prints a vector of integer numbers.
  */

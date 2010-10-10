@@ -769,7 +769,7 @@ int main (int argc, char **argv)
             if (ld[ild][2] != NO)
             {
               /* Compute the error E_infinity. */
-              err_fd = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_fd = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }
@@ -850,13 +850,13 @@ int main (int argc, char **argv)
             if (use_nfsft != NO)
             {
               /* Compute the error E_infinity. */
-              err_f = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_f = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
             else
             {
               /* Compute the error E_infinity. */
-              err_fd = nfft_error_l_infty_1_complex(f, f_m, ld[ild][1], b,
+              err_fd = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }

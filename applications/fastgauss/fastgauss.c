@@ -191,7 +191,7 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
   ths->nplan1 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
   ths->nplan2 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
 
-  n_fftw=nfft_next_power_of_2(2*ths->n);
+  n_fftw=X(next_power_of_2)(2*ths->n);
 
   nfft_init_guru(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT|
                  PRE_PSI| MALLOC_X| MALLOC_F_HAT| FFTW_INIT, FFTW_MEASURE);
@@ -391,7 +391,7 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
   fgt_trafo(&my_plan);
   nfft_vpr_complex(my_plan.f,my_plan.M,"fast gauss transform");
 
-  printf("\n relative error: %1.3e\n", nfft_error_l_infty_1_complex(swap_dgt,
+  printf("\n relative error: %1.3e\n", X(error_l_infty_1_complex)(swap_dgt,
          my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
 
   nfft_free(swap_dgt);
@@ -462,7 +462,7 @@ void fgt_test_andersson(void)
       printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
 
       printf("$%1.1e$\t \\\\ \n",
-	     nfft_error_l_infty_1_complex(swap_dgt, my_plan.f, my_plan.M,
+	     X(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M,
 					  my_plan.alpha, my_plan.N));
       fflush(stdout);
 
@@ -509,7 +509,7 @@ void fgt_test_error(void)
 
           fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
+          printf("%1.3e\t", X(error_l_infty_1_complex)(swap_dgt, my_plan.f,
                  my_plan.M, my_plan.alpha, my_plan.N));
           fflush(stdout);
 
@@ -560,7 +560,7 @@ void fgt_test_error_p(void)
 
           fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", nfft_error_l_infty_1_complex(swap_dgt, my_plan.f,
+          printf("%1.3e\t", X(error_l_infty_1_complex)(swap_dgt, my_plan.f,
                  my_plan.M, my_plan.alpha, my_plan.N));
           fflush(stdout);
 

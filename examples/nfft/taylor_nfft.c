@@ -259,7 +259,7 @@ t = nfft_elapsed_seconds(t1,t0);
   printf("%.2f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
 
   if(test_accuracy)
-    printf("%.2e\t",nfft_error_l_infty_complex(swapndft, np.f, np.M_total));
+    printf("%.2e\t",X(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
     printf("nan\t\t");
 
@@ -281,7 +281,7 @@ t = nfft_elapsed_seconds(t1,t0);
   printf("%.2f\t%d\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor);
 
   if(test_accuracy)
-    printf("%.2e\n",nfft_error_l_infty_complex(swapndft, np.f, np.M_total));
+    printf("%.2e\n",X(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
     printf("nan\t\n");
 
