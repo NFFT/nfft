@@ -91,16 +91,27 @@ static void check_nfft_1d(void)
   for (j = 0; j < N; j++)
     p.f_hat[j] = f_hat[j];
 
-  X(trafo_direct)(&p);
+  X(trafo)(&p);
 
-  for (j = 0; j < M; j++)
+  /* debug */
+  /*for (j = 0; j < M; j++)
     fprintf(stderr, "f[%2d] = " FE_ " f[%2d] = " FE_ " err = " FE_ "\n", j,
-      CREAL(f[j]), j, CREAL(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));
+      CREAL(f[j]), j, CREAL(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
+
+  /* Standard NFFT error measure. */
+  {
+    R numerator = K(0.0);
+    R denominator = K(0.0);
+    for (j = 0; j < M; j++)
+      numerator = MAX(numerator, CABS(f[j] - p.f[j]));
+    for (j = 0; j < N; j++)
+      denominator += CABS(f_hat[j]);
+    printf(FE_ "\n", numerator/denominator);
+  }
 }
 
 int main(void)
 {
   check_nfft_1d();
-
   return EXIT_SUCCESS;
 }
