@@ -28,18 +28,18 @@ lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
 noinst_LTLIBRARIES = $(LIBBFFT3_MATLAB_LA)
 
 libnfft3_la_SOURCES =
-libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
+libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
 libnfft3_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 
 if HAVE_THREADS
 libnfft3_threads_la_SOURCES =
-libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_threads_LIBS@ @fftw3_LIBS@
+libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_threads_LIBS@ @fftw3_LIBS@ -lm
 libnfft3_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 endif
 
 if HAVE_MATLAB
 libnfft3_matlab_la_SOURCES =
-libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@
+libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
 libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
 endif
 
