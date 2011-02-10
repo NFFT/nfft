@@ -2,13 +2,18 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-noinst_PROGRAMS = check_bessel_i0 check_nfft_1d check_nfsft
+if HAVE_NFSFT
+  CHECK_NFSFT=check_nfsft
+  check_nfsft_SOURCES = check_nfsft.c
+  check_nfsft_LDADD = $(top_builddir)/libnfft3.la
+else
+  CHECK_NFSFT=
+endif
+
+noinst_PROGRAMS = check_bessel_i0 check_nfft_1d $(CHECK_NFSFT) 
 
 check_bessel_i0_SOURCES = check_bessel_i0.c
 check_bessel_i0_LDADD = $(top_builddir)/libnfft3.la
 
 check_nfft_1d_SOURCES = check_nfft_1d.c
 check_nfft_1d_LDADD = $(top_builddir)/libnfft3.la
-
-check_nfsft_SOURCES = check_nfsft.c
-check_nfsft_LDADD = $(top_builddir)/libnfft3.la

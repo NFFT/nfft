@@ -6,7 +6,7 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 # Subdirectories
-DIST_SUBDIRS=3rdparty include util kernel . examples applications matlab support doxygen
+DIST_SUBDIRS=3rdparty include util kernel . tests examples applications matlab support doxygen
 
 if HAVE_MATLAB
   MATLAB_DIRS=matlab
