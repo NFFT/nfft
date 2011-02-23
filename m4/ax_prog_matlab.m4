@@ -67,11 +67,11 @@ AC_DEFUN([AX_PROG_MATLAB],
     matlab_include_dir="${matlab_dir}/extern/include"
     AX_CHECK_DIR([${matlab_bin_dir}],[],
       [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
-    AX_CHECK_DIR([${matlab_src_dir}],[],
-      [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
     # More recent versions of Matlab do no longer have the src directory.
-    #AX_CHECK_DIR([${matlab_include_dir}],[],
-    #  [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
+    # AX_CHECK_DIR([${matlab_src_dir}],[],
+    #   [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
+    AX_CHECK_DIR([${matlab_include_dir}],[],
+      [AC_MSG_ERROR([The directory ${matlab_dir} does not seem to be a valid Matlab root directory.])])
 
     # architecture and mex file extension
     if test ! "x${matlab_arch}" = "xyes"; then
