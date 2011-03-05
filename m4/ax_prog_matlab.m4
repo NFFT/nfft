@@ -96,16 +96,18 @@ AC_DEFUN([AX_PROG_MATLAB],
       matlab_arch="unknown"
 
       # mex file extension, maybe
-      for matlab_check_prog_mexext in "mexext mexext.sh mexext.bat"; do
+      for matlab_check_prog_mexext in mexext mexext.sh mexext.bat; do
+        unset ac_cv_path_matlab_prog_mexext
         AC_PATH_PROG([matlab_prog_mexext],[$matlab_check_prog_mexext],[no],
           [$matlab_bin_dir$PATH_SEPARATOR$PATH$PATH_SEPARATOR$matlab_bin_dir])
         if test ! "x${matlab_prog_mexext}" = "xno"; then
           AC_MSG_CHECKING([for mex file extension])
-          if test "x${matlab_prog_mexext}" = "xmexext.bat"; then
-            matlab_mexext="mexw32"
+          if test "x${host_os}" = "xmingw32"; then
+            matlab_mexext=mexw32
           else
             matlab_mexext=`${matlab_prog_mexext}`
-          fi
+            matlab_mexext=`echo ${matlab_mexext} | tr -d '\r\n'`
+          fi  
           AC_MSG_RESULT([${matlab_mexext}])
           break
         fi
@@ -134,7 +136,7 @@ AC_DEFUN([AX_PROG_MATLAB],
           AC_MSG_RESULT([unknown])
         done
       fi
-
+       
       # mex file extension or architecture found
       if test "x${matlab_mexext}" = "xunknown" -a "x${matlab_arch}" = "xunknown"; then
         AC_MSG_ERROR([Could not determine mex file extension nor Matlab architecture. Please supply a valid architecture flag using the option --with-matlab-arch])
@@ -143,7 +145,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       if test "x${matlab_arch}" = "xunknown"; then
         # architecture for mex file extension 
         AC_MSG_CHECKING([for architecture])
-        case $matlab_mexext in
+        case ${matlab_mexext} in
           mexglx) matlab_arch="glnx86";;
           mexa64) matlab_arch="glnxa64";;
           mexmac) matlab_arch="mac";;

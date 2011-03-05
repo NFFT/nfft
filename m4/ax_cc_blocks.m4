@@ -14,12 +14,14 @@ AC_DEFUN([AX_CC_BLOCKS],
   AC_CACHE_CHECK([whether $CC supports blocks], ax_cv_c_cc_blocks,
   [
     AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM(,[[
+    [AC_LANG_SOURCE(
+      [AC_LANG_PROGRAM(,[[
 void (^my_block)(void);
 my_block = ^(void){};
 my_block();
-    ]])],
-    [ax_cv_c_cc_blocks="yes"],
-    [ax_cv_c_cc_blocks="no"])
+      ]])],
+      [ax_cv_c_cc_blocks="yes"],
+      [ax_cv_c_cc_blocks="no"])
+    ])
   ])
 ])

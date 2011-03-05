@@ -249,20 +249,16 @@ fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
   gamma = (R*) nfft_malloc((N + 2) * sizeof(R));
 
   /** Initialize DPT. */
-  if (flags & NFSOFT_NO_STABILIZATION)
   {
-    set = fpt_init(1, t, 0U | FPT_NO_STABILIZATION);
+    unsigned int fptflags = 0U 
+      | IF(flags & NFSOFT_USE_DPT,FPT_NO_FAST_ALGORITHM,IF(t > 1,FPT_NO_DIRECT_ALGORITHM,0U))
+      | IF(flags & NFSOFT_NO_STABILIZATION,FPT_NO_STABILIZATION,0U);
+    set = fpt_init(1, t, fptflags);
   }
-  else
-  {
-    set = fpt_init(1, t, 0U);
-  }
-
 
   /** Read in start and end indices */
   k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
   k_end = N;
-
 
   SO3_alpha_row(alpha, N, k, m);
   SO3_beta_row(beta, N, k, m);

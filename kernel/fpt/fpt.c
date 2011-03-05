@@ -809,6 +809,20 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->work = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
   set->result = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
 
+  set->lengths = (int*) nfft_malloc((set->t/*-1*/)*sizeof(int));
+  set->plans_dct2 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
+  set->kindsr     = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
+  set->kindsr[0]  = FFTW_REDFT10;
+  set->kindsr[1]  = FFTW_REDFT10;
+  for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
+  {
+    set->lengths[tau] = plength;
+    set->plans_dct2[tau] =
+      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
+                         2, 1, (double*)set->result, NULL, 2, 1,set->kindsr,
+                         0);
+  }
+
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
@@ -819,24 +833,15 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 
     /** Initialize FFTW plans. */
     set->plans_dct3 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
-    set->plans_dct2 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
     set->kinds      = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
     set->kinds[0]   = FFTW_REDFT01;
     set->kinds[1]   = FFTW_REDFT01;
-    set->kindsr     = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
-    set->kindsr[0]  = FFTW_REDFT10;
-    set->kindsr[1]  = FFTW_REDFT10;
-    set->lengths    = (int*) nfft_malloc((set->t/*-1*/)*sizeof(int));
     for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
     {
       set->lengths[tau] = plength;
       set->plans_dct3[tau] =
         fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
                            2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
-                           0);
-      set->plans_dct2[tau] =
-        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
-                           2, 1, (double*)set->result, NULL, 2, 1,set->kindsr,
                            0);
     }
     nfft_free(set->lengths);
@@ -903,6 +908,8 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
   /* Save k_start. */
   data->k_start = k_start;
 
+  data->gamma_m1 = gam[0];
+
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
@@ -921,7 +928,6 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
 
     data->alpha_0 = alpha[1];
     data->beta_0 = beta[1];
-    data->gamma_m1 = gam[0];
 
     k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
       /*set->N*/);

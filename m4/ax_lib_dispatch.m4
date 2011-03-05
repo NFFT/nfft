@@ -20,21 +20,22 @@ AC_DEFUN([AX_LIB_DISPATCH],
         AC_CHECK_HEADERS([dispatch/dispatch.h],
         [
           AC_LINK_IFELSE(
-            AC_LANG_PROGRAM(
-            [[
+            [AC_LANG_SOURCE(
+              [AC_LANG_PROGRAM(
+              [[
 #include <dispatch/dispatch.h>
-            ]],
-            [[[
+              ]],
+              [[[
   dispatch_queue_t q_default;
   q_default = dispatch_get_global_queue(0, 0);
   #define COUNT 128
   __block double result[COUNT];
   dispatch_apply(COUNT, q_default, ^(size_t i){result[i] = 1;});
-            ]]]),
-          [
+              ]]])])],
+            [
             ax_cv_lib_dispatch="yes"
-          ],[ax_lib_dispatch_reason="could not link against libdispatch"])
-        ],[ax_lib_dispatch_reason="dispatch/dispatch.h not found or unusable"])
+            ],[ax_lib_dispatch_reason="could not link against libdispatch"])
+          ],[ax_lib_dispatch_reason="dispatch/dispatch.h not found or unusable"])
       else
         ax_lib_dispatch_reason="$CC does not support blocks"
       fi
