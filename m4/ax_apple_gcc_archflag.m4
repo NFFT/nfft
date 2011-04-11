@@ -73,7 +73,7 @@ if test "$GCC" = yes; then
         CFLAGS="$CFLAGS -arch $arch";
         LIBS="$LIBS $fftw3_LIBS"
         AC_MSG_CHECKING([whether linking is possible with -arch $arch]);
-        AC_LINK_IFELSE([int main(void){return 0;}],[last_result=yes;AC_MSG_RESULT([yes]);ax_cv_apple_gcc_archflag="$ax_cv_apple_gcc_archflag -arch $arch"],[last_result=no;AC_MSG_RESULT([no])]);
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([], [[int main(void){return 0;}]])],[last_result=yes;AC_MSG_RESULT([yes]);ax_cv_apple_gcc_archflag="$ax_cv_apple_gcc_archflag -arch $arch"],[last_result=no;AC_MSG_RESULT([no])]);
         CFLAGS="$saved_CFLAGS"
       ])
       if test "x$last_result" = "xyes"; then
