@@ -10,10 +10,10 @@ DIST_SUBDIRS=3rdparty include util kernel . tests examples applications matlab s
 
 if HAVE_MATLAB
   MATLAB_DIRS=matlab
-  LIBBFFT3_MATLAB_LA=libnfft3_matlab.la
+  LIBNFFT3_MATLAB_LA=libnfft3_matlab.la
 else
   MATLAB_DIRS=
-  LIBBFFT3_MATLAB_LA=
+  LIBNFFT3_MATLAB_LA=
 endif
 
 if HAVE_THREADS
@@ -25,7 +25,7 @@ endif
 SUBDIRS= 3rdparty include util kernel . tests examples applications $(MATLAB_DIRS)
 
 lib_LTLIBRARIES = libnfft3.la $(LIBNFFT3_THREADS_LA)
-noinst_LTLIBRARIES = $(LIBBFFT3_MATLAB_LA)
+noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA)
 
 libnfft3_la_SOURCES =
 libnfft3_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
