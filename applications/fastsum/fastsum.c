@@ -33,10 +33,19 @@
 #include "nfft3.h"
 #include "fastsum.h"
 
+/** Required for test if (ths->k == one_over_x) */
+#include "kernels.h"
+
 /**
  * \addtogroup applications_fastsum
  * \{
  */
+
+/** max */
+int max_i(int a, int b)
+{
+  return a >= b ? a : b;
+}
 
 /** factorial */
 double fak(int n)
@@ -227,6 +236,41 @@ double _Complex regkern3(kernel k, double xx, int p, const double *param, double
   return 0.0;
 }
 
+/** linear spline interpolation in near field with even kernels */
+double _Complex linintkern(const double x, const double _Complex *Add,
+  const int Ad, const double a)
+{
+  double c,c1,c3;
+  int r;
+  double _Complex f1,f2;
+
+  c=x*Ad/a;
+  r=c; r=abs(r);
+  f1=Add[r];f2=Add[r+1];
+  c=fabs(c);
+  c1=c-r;
+  c3=c1-1.0;
+  return (-f1*c3+f2*c1);
+}
+
+double _Complex quadrintkern(const double x, const double _Complex *Add,
+  const int Ad, const double a)
+{
+  double c,c1,c2,c3;
+  int r;
+  double _Complex f0,f1,f2;
+
+  c=x*Ad/a;
+  r=c; r=abs(r);
+  if (r==0) {f0=Add[r+1];f1=Add[r];f2=Add[r+1];}
+  else { f0=Add[r-1];f1=Add[r];f2=Add[r+1];}
+  c=fabs(c);
+  c1=c-r;
+  c2=c1+1.0;
+  c3=c1-1.0;
+  return (f0*c1*c3/2.0-f1*c2*c3+f2*c2*c1/2.0);
+}
+
 /** cubic spline interpolation in near field with even kernels */
 double _Complex kubintkern(const double x, const double _Complex *Add,
   const int Ad, const double a)
@@ -311,6 +355,155 @@ void quicksort(int d, int t, double *x, double _Complex *alpha, int N)
     quicksort(d,t,x+lpos*d,alpha+lpos,N-lpos);
 }
 
+#ifdef NF_BO
+/** initialize box-based search data structures */
+void BuildBox(fastsum_plan *ths)
+{
+  int t, l;
+  int *box_index;
+  double val[ths->d];
+
+  box_index = (int *) malloc(ths->box_count * sizeof(int));
+  for (t=0; t < ths->box_count; t++)
+    box_index[t] = 0;
+
+  for (l=0; l < ths->N_total; l++)
+  {
+    int ind = 0;
+    for (t=0; t < ths->d; t++)
+    {
+      val[t] = ths->x[ths->d * l + t] + 0.25 - ths->eps_B/2.0;
+      ind *= ths->box_count_per_dim;
+      ind += (int) (val[t] / ths->eps_I);
+    }
+    box_index[ind]++;
+  }
+
+  ths->box_offset[0] = 0;
+  for (t=1; t<=ths->box_count; t++)
+  {
+    ths->box_offset[t] = ths->box_offset[t-1] + box_index[t-1];
+    box_index[t-1] = ths->box_offset[t-1];
+  }
+
+  for (l=0; l < ths->N_total; l++)
+  {
+    int ind = 0;
+    for (t=0; t < ths->d; t++)
+    {
+      val[t] = ths->x[ths->d * l + t] + 0.25 - ths->eps_B/2.0;
+      ind *= ths->box_count_per_dim;
+      ind += (int) (val[t] / ths->eps_I);
+    }
+
+    ths->box_alpha[box_index[ind]] = ths->alpha[l];
+
+    for (t=0; t < ths->d; t++)
+    {
+      ths->box_x[ths->d * box_index[ind] + t] = ths->x[ths->d * l + t];
+    }
+    box_index[ind]++;
+  }
+  free(box_index);
+}
+
+/** inner computation function for box-based near field correction */
+inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Complex *alpha, int start, int end_lt, const double _Complex *Add, const int Ad, int p, double a, const kernel k, const double *param, const unsigned flags)
+{
+  double _Complex result = 0.0;
+
+  int m, l;
+  double r;
+
+  for (m = start; m < end_lt; m++)
+  {
+      if (d==1)
+      {
+        r = y[0]-x[m];
+      }
+      else
+      {
+        r=0.0;
+        for (l=0; l<d; l++)
+          r+=(y[l]-x[m*d+l])*(y[l]-x[m*d+l]);
+        r=sqrt(r);
+      }
+      if (fabs(r)<a)
+      {
+        result += alpha[m]*k(r,0,param);              /* alpha*(kern-regkern) */
+	if (d==1)
+	{
+          if (flags & EXACT_NEARFIELD)
+            result -= alpha[m]*regkern1(k,r,p,param,a,1.0/16.0); /* exact value (in 1D)  */
+          else
+            result -= alpha[m]*kubintkern1(r,Add,Ad,a);               /* spline approximation */
+	}
+	else
+	{
+          if (flags & EXACT_NEARFIELD)
+            result -= alpha[m]*regkern(k,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
+          else
+#if defined(NF_KUB)
+            result -= alpha[m]*kubintkern(r,Add,Ad,a);                /* spline approximation */
+#elif defined(NF_QUADR)
+            result -= alpha[m]*quadrintkern(r,Add,Ad,a);                /* spline approximation */
+#elif defined(NF_LIN)
+            result -= alpha[m]*linintkern(r,Add,Ad,a);                /* spline approximation */
+#else
+  #error define interpolation method
+#endif
+        }
+      }
+  }
+  return result;
+}
+
+/** box-based near field correction */
+double _Complex SearchBox(double *y, fastsum_plan *ths)
+{
+  double _Complex val = 0.0;
+  int t, l;
+  int y_multiind[ths->d];
+  int multiindex[ths->d];
+  int y_ind;
+
+  for (t=0; t < ths->d; t++)
+  {
+    y_multiind[t] = ((y[t] + 0.25 - ths->eps_B/2.0) / ths->eps_I);
+  }
+
+  if (ths->d==1)
+  {
+    for (y_ind = max_i(0, y_multiind[0]-1); y_ind < ths->box_count_per_dim && y_ind <= y_multiind[0]+1; y_ind++){
+      val += calc_SearchBox(ths->d, y, ths->box_x, ths->box_alpha, ths->box_offset[y_ind], ths->box_offset[y_ind+1], ths->Add, ths->Ad, ths->p, ths->eps_I, ths->k, ths->kernel_param, ths->flags);
+      }
+  }
+  else if (ths->d==2)
+  {
+    for (multiindex[0] = max_i(0, y_multiind[0]-1); multiindex[0] < ths->box_count_per_dim && multiindex[0] <= y_multiind[0]+1; multiindex[0]++)
+      for (multiindex[1] = max_i(0, y_multiind[1]-1); multiindex[1] < ths->box_count_per_dim && multiindex[1] <= y_multiind[1]+1; multiindex[1]++)
+      {
+        y_ind = (ths->box_count_per_dim * multiindex[0]) + multiindex[1];
+        val += calc_SearchBox(ths->d, y, ths->box_x, ths->box_alpha, ths->box_offset[y_ind], ths->box_offset[y_ind+1], ths->Add, ths->Ad, ths->p, ths->eps_I, ths->k, ths->kernel_param, ths->flags);
+      }
+  }
+  else if(ths->d==3)
+  {
+    for (multiindex[0] = max_i(0, y_multiind[0]-1); multiindex[0] < ths->box_count_per_dim && multiindex[0] <= y_multiind[0]+1; multiindex[0]++)
+      for (multiindex[1] = max_i(0, y_multiind[1]-1); multiindex[1] < ths->box_count_per_dim && multiindex[1] <= y_multiind[1]+1; multiindex[1]++)
+        for (multiindex[2] = max_i(0, y_multiind[2]-1); multiindex[2] < ths->box_count_per_dim && multiindex[2] <= y_multiind[2]+1; multiindex[2]++)
+        {
+          y_ind = ((ths->box_count_per_dim * multiindex[0]) + multiindex[1]) * ths->box_count_per_dim + multiindex[2];
+          val += calc_SearchBox(ths->d, y, ths->box_x, ths->box_alpha, ths->box_offset[y_ind], ths->box_offset[y_ind+1], ths->Add, ths->Ad, ths->p, ths->eps_I, ths->k, ths->kernel_param, ths->flags);
+        }
+  }
+  else {
+    exit(-1);
+  }
+  return val;
+}
+#endif
+
 /** recursive sort of source knots dimension by dimension to get tree structure */
 void BuildTree(int d, int t, double *x, double _Complex *alpha, int N)
 {
@@ -383,7 +576,15 @@ double _Complex SearchTree(const int d, const int t, const double *x,
           if (flags & EXACT_NEARFIELD)
             result -= alpha[m]*regkern(k,r,p,param,a,1.0/16.0);  /* exact value (in dD)  */
           else
+#if defined(NF_KUB)
             result -= alpha[m]*kubintkern(r,Add,Ad,a);                /* spline approximation */
+#elif defined(NF_QUADR)
+            result -= alpha[m]*quadrintkern(r,Add,Ad,a);                /* spline approximation */
+#elif defined(NF_LIN)
+            result -= alpha[m]*linintkern(r,Add,Ad,a);                /* spline approximation */
+#else
+  #error define interpolation method
+#endif
         }
       }
     }
@@ -430,8 +631,44 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
     }
     else
     {
-      ths->Ad = 2*(ths->p)*(ths->p);
-      ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
+      if (ths->k == one_over_x)
+      {
+        double delta = 1e-8;
+        switch(p)
+        {
+          case 2: delta = 1e-3;
+                  break;
+          case 3: delta = 1e-4;
+                  break;
+          case 4: delta = 1e-5;
+                  break;
+          case 5: delta = 1e-6;
+                  break;
+          case 6: delta = 1e-6;
+                  break;
+          case 7: delta = 1e-7;
+                  break;
+          default: delta = 1e-8;
+        }
+
+#if defined(NF_KUB)
+        ths->Ad = max_i(10, (int) ceil(1.4/pow(delta,1.0/4.0)));
+        ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
+#elif defined(NF_QUADR)
+        ths->Ad = (int) ceil(2.2/pow(delta,1.0/3.0));
+        ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
+#elif defined(NF_LIN)
+        ths->Ad = (int) ceil(1.7/pow(delta,1.0/2.0));
+        ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
+#else
+  #error define NF_LIN or NF_QUADR or NF_KUB
+#endif
+      }
+      else
+      {
+        ths->Ad = 2*(ths->p)*(ths->p);
+        ths->Add = (double _Complex *)nfft_malloc((ths->Ad+3)*(sizeof(double _Complex)));
+      }
     }
   }
 
@@ -457,6 +694,18 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
   ths->b = (fftw_complex *)nfft_malloc(n_total*sizeof(fftw_complex));
   ths->fft_plan = fftw_plan_dft(d,N,ths->b,ths->b,FFTW_FORWARD,FFTW_ESTIMATE);
 
+#ifdef NF_BO
+  ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
+  ths->box_count = 1;
+  for (t=0; t<ths->d; t++)
+    ths->box_count *= ths->box_count_per_dim;
+
+  ths->box_offset = (int *) nfft_malloc((ths->box_count+1) * sizeof(int));
+
+  ths->box_alpha = (double _Complex *)nfft_malloc(ths->N_total*(sizeof(double _Complex)));
+
+  ths->box_x = (double *) nfft_malloc(ths->d * ths->N_total *  sizeof(double));
+#endif
 }
 
 /** finalization of fastsum plan */
@@ -475,6 +724,12 @@ void fastsum_finalize(fastsum_plan *ths)
 
   fftw_destroy_plan(ths->fft_plan);
   nfft_free(ths->b);
+
+#ifdef NF_BO
+  nfft_free(ths->box_offset);
+  nfft_free(ths->box_alpha);
+  nfft_free(ths->box_x);
+#endif
 }
 
 /** direct computation of sums */
@@ -509,8 +764,14 @@ void fastsum_precompute(fastsum_plan *ths)
   int j,k,t;
   int n_total;
 
+#if defined(NF_ST)
   /** sort source knots */
   BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
+#elif defined(NF_BO)  
+  BuildBox(ths);
+#else
+  #error Either define NF_ST or NF_BO
+#endif
 
   /** precompute spline values for near field*/
   if (!(ths->flags & EXACT_NEARFIELD))
@@ -608,12 +869,18 @@ void fastsum_trafo(fastsum_plan *ths)
   /** add near field */
   for (j=0; j<ths->M_total; j++)
   {
+#if defined(NF_ST)
     for (t=0; t<ths->d; t++)
     {
       ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
       ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
     }
     ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
+#elif defined(NF_BO)
+    ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d*j, ths);
+#else
+  #error missing NF_ST or NF_BO
+#endif
     /* ths->f[j] = ths->mv2.f[j]; */
     /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
