@@ -170,34 +170,18 @@ static inline void nfft_uo(const nfft_plan *ths, const int j, int *up, int *op,
   const int act_dim)
 {
   const R xj = ths->x[j * ths->d + act_dim];
-  int c = LRINT(xj * ths->n[act_dim]);
+  int c = LRINT(FLOOR(xj * ths->n[act_dim]));
 
-  if (xj < K(0.0))
-  {
-    (*up) = c - 1 - (ths->m);
-    (*op) = c + (ths->m);
-  }
-  else
-  {
-    (*up) = c - (ths->m);
-    (*op) = c + 1 + (ths->m);
-  }
+  (*up) = c - (ths->m);
+  (*op) = c + 1 + (ths->m);
 }
 
 static inline void nfft_uo2(int *u, int *o, const R x, const int n, const int m)
 {
-  int c = LRINT(x * n);
+  int c = LRINT(FLOOR(x * n));
 
-  if (x < K(0.0))
-  {
-    *u = (c - 1 - m + n) % n;
-    *o = (c + m + n) % n;
-  }
-  else
-  {
-    *u = (c - m + n) % n;
-    *o = (c + 1 + m + n) % n;
-  }
+  *u = (c - m + n) % n;
+  *o = (c + 1 + m + n) % n;
 }
 
 #define MACRO_nfft_D_compute_A                                                \
@@ -526,7 +510,7 @@ static inline void nfft_B_ ## which_one (nfft_plan *ths)                      \
       {                                                                       \
         y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2])                    \
           * ((R)ths->K))/(ths->m+2);                                          \
-        ip_u  = LRINT(floor(y[t2]));                                          \
+        ip_u  = LRINT(FLOOR(y[t2]));                                          \
         ip_w  = y[t2]-ip_u;                                                   \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++)         \
         {                                                                     \
