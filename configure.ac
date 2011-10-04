@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.2.0-alpha],[bugs@nfft.org])
+AC_INIT([NFFT],[3.2.0],[bugs@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
@@ -149,6 +149,7 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
   dirac)])],
   window=$withval, window="kaiserbessel")
 
+AC_MSG_CHECKING([window function])
 case "$window" in
   gaussian)
     AC_DEFINE(GAUSSIAN,1,[Define to enable Gaussian window function.]);;
@@ -158,9 +159,12 @@ case "$window" in
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
   delta)
     AC_DEFINE(DIRAC_DELTA,1,[Define to enable dirac delta window function.]);;
-  *)
+  kaiserbessel)
     AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
+  *)
+    AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
+AC_MSG_RESULT([$window])
 
 ################################################################################
 # compiler characteristis
