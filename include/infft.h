@@ -112,7 +112,7 @@ typedef ptrdiff_t INT;
   #define PHI(x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
   #define WINDOW_HELP_INIT(d)
   #define WINDOW_HELP_FINALIZE
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 0;}
+  #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)
   #define PHI_HUT(k,d) ((R)EXP(-(POW(KPI*(k)/ths->n[d],K(2.0))*ths->b[d])))
   #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0)) / \
@@ -126,7 +126,7 @@ typedef ptrdiff_t INT;
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 12;}
+  #define WINDOW_HELP_ESTIMATE_m 12
 #elif defined(B_SPLINE)
   #define PHI_HUT(k,d) ((R)(((k) == 0) ? K(1.0) / ths->n[(d)] : \
     POW(SIN((k) * KPI / ths->n[(d)]) / ((k) * KPI / ths->n[(d)]), \
@@ -138,7 +138,7 @@ typedef ptrdiff_t INT;
       ths->spline_coeffs= (R*)Y(malloc)(2*ths->m*sizeof(R)); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 11;}
+  #define WINDOW_HELP_ESTIMATE_m 11
 #elif defined(SINC_POWER)
   #define PHI_HUT(k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * ths->n[(d)] / \
@@ -153,7 +153,7 @@ typedef ptrdiff_t INT;
       ths->spline_coeffs= (R*)Y(malloc)(2 * ths->m * sizeof(R)); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 9;}
+  #define WINDOW_HELP_ESTIMATE_m 9
 #else /* Kaiser-Bessel is the default. */
   #define PHI_HUT(k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
     POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / ths->n[d], K(2.0)))))
@@ -173,7 +173,7 @@ typedef ptrdiff_t INT;
         ths->b[WINDOW_idx] = ((R)KPI*(K(2.0)-K(1.0) / ths->sigma[WINDOW_idx])); \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m {ths->m = 6;}
+  #define WINDOW_HELP_ESTIMATE_m 6
 #endif
 
 #if defined(NFFT_LDOUBLE)
@@ -1229,12 +1229,15 @@ extern double _Complex catanh(double _Complex z);
 #if defined(NFFT_LDOUBLE)
 #  define FE "LE"
 #  define FE_ "% 36.32LE"
+#  define FFI "%Lf"
 #elif defined(NFFT_SINGLE)
 #  define FE "E"
 #  define FE_ "% 12.8E"
+#  define FFI "%f"
 #else
 #  define FE "lE"
 #  define FE_ "% 20.16lE"
+#  define FFI "%lf"
 #endif
 
 #define TRUE 1

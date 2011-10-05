@@ -48,3 +48,5 @@ endif
 
 SUBDIRS = $(DIR_FPT) $(DIR_MRI) $(DIR_NFCT) nfft $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NFST) \
   $(DIR_NNFFT) $(DIR_NSFFT) solver
+ 
+EXTRA_DIST = doxygen.c

@@ -16,7 +16,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
 
 /** \mainpage notitle
  * \htmlonly

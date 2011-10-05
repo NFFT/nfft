@@ -16,9 +16,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
+/* $Id: doxygen.c 3100 2009-03-12 08:42:48Z keiner $ */
 
 /**
- * \defgroup applications_mri3d 3D transforms
- * \ingroup applications_mri
+ * \defgroup applications_iterS2 Iterative reconstruction on the sphere S2
+ * \ingroup applications
  */

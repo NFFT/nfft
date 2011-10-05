@@ -85,7 +85,7 @@
     k[t]-= ths->N[t]-1;                                                       \
                                                                               \
   k[t]++;                                                                     \
-                                                                              \
+\
   for (t2 = t; t2 < ths->d; t2++)                                             \
     Omega[t2+1] = k[t2]*x[t2] + Omega[t2];                                    \
                                                                               \
@@ -3058,9 +3058,9 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
   for (t = 0;t < d; t++)
     ths->n[t] = 2*X(next_power_of_2)(ths->N[t]);
 
-  WINDOW_HELP_ESTIMATE_m;
+  ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  ths->nfft_flags = PRE_PHI_HUT /*| PRE_PSI*/ | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+  ths->nfft_flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
                     FFTW_INIT | FFT_OUT_OF_PLACE;
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
@@ -3115,27 +3115,26 @@ void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M_total)
   nfft_init(ths,3,N,M_total);
 }
 
-void nfft_check(nfft_plan *ths)
+const char* nfft_check(nfft_plan *ths)
 {
   int j;
 
   for(j=0;j<ths->M_total*ths->d;j++)
     if((ths->x[j]<-K(0.5)) || (ths->x[j]>= K(0.5)))
-      fprintf(stderr,"nfft_check: ths->x[%d]=%e out of range [-0.5,0.5)\n",
-        j,ths->x[j]);
+      return "ths->x out of range [-0.5,0.5)";
 
   for(j=0;j<ths->d;j++)
-    {
-      if(ths->sigma[j]<=1)
-  fprintf(stderr,"nfft_check: oversampling factor too small\n");
+  {
+    if(ths->sigma[j]<=1)
+      return "nfft_check: oversampling factor too small";
 
-      if(ths->N[j]<=ths->m)
-  fprintf(stderr,
-    "nfft_check: polynomial degree N is smaller than cut-off m\n");
+    if(ths->N[j]<=ths->m)
+      return "Polynomial degree N is smaller than cut-off m";
 
-      if(ths->N[j]%2==1)
-  fprintf(stderr,"nfft_check: polynomial degree N has to be even\n");
-    }
+    if(ths->N[j]%2==1)
+      return "polynomial degree N has to be even";
+  }
+  return 0;
 }
 
 void nfft_finalize(nfft_plan *ths)

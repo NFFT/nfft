@@ -12,7 +12,7 @@ noinst_PROGRAMS = \
   reconstruct_data_inh_2d1d \
   reconstruct_data_inh_nnfft
 
-construct_data_2d_SOURCES = construct_data_2d.c
+construct_data_2d_SOURCES = construct_data_2d.c doxygen.h
 construct_data_2d_LDADD = $(top_builddir)/libnfft3.la
 
 construct_data_inh_2d1d_SOURCES = construct_data_inh_2d1d.c

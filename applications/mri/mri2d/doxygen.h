@@ -16,9 +16,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
+/* $Id: doxygen.c 3100 2009-03-12 08:42:48Z keiner $ */
 
 /**
- * \defgroup applications_polarFFT Polar FFT
- * \ingroup applications
+ * \defgroup applications_mri2d 2D transforms
+ * \ingroup applications_mri
  */

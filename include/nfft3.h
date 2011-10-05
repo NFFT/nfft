@@ -165,15 +165,13 @@ NFFT_EXTERN void X(init_1d)(X(plan) *ths, int N1, int M);\
 NFFT_EXTERN void X(init_2d)(X(plan) *ths, int N1, int N2, int M);\
 NFFT_EXTERN void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
 NFFT_EXTERN void X(init)(X(plan) *ths, int d, int *N, int M);\
-NFFT_EXTERN void X(init_advanced)(X(plan) *ths, int d, int *N, int M, \
-  unsigned nfft_flags_on, unsigned nfft_flags_off);\
 NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, unsigned nfft_flags, unsigned fftw_flags);\
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(check)(X(plan) *ths);\
+NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
 /* nfft api */

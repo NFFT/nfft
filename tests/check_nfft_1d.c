@@ -18,100 +18,186 @@
 
 /* $Id: simple_test.c 3509 2010-05-25 19:00:59Z keiner $ */
 
-/* Standard headers. */
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <complex.h>
-
-#include "nfft3util.h"
-#include "nfft3.h"
+#include "check_nfft.h"
 #include "infft.h"
 
-static const R x[] =
+static const char* filenames[] =
 {
-  K(+0.3036378174651077887097550870104819626075767806604220754729509657),
-  K(-0.2526549522442642162063744136205337633072118370803534984182466225),
-  K(-0.2200060933955098538316706462767013232758020996338717389233295203),
-  K(+0.4024793254944456063365665630120210683630055988032530390391638116),
-  K(-0.3270067880479954428091571104459628541984300344172362348548287473),
-  K(+0.1853483806406433608760758698082798958945570629259099925606591621),
-  K(-0.3121305015265552790372942825378428532095987557134517634676566476),
-  K(+0.04215331657313689728460556808853816393741236591770612058320007574),
-  K(-0.3666361160138952729598349383112187130897717901585411768382089531),
-  K(+0.4791618778429663475856107006916230501736038790195693849478252115),
+  "data/nfft_1d_1_1.txt",
+  /*"data/nfft_1d_1_10.txt",
+  "data/nfft_1d_1_20.txt",
+  "data/nfft_1d_1_50.txt",
+  "data/nfft_1d_2_1.txt",
+  "data/nfft_1d_2_10.txt",
+  "data/nfft_1d_2_20.txt",
+  "data/nfft_1d_2_50.txt",
+  "data/nfft_1d_4_1.txt",
+  "data/nfft_1d_4_10.txt",
+  "data/nfft_1d_4_20.txt",
+  "data/nfft_1d_4_50.txt",
+  "data/nfft_1d_10_1.txt",
+  "data/nfft_1d_10_10.txt",
+  "data/nfft_1d_10_20.txt",
+  "data/nfft_1d_10_50.txt",
+  "data/nfft_1d_20_1.txt",
+  "data/nfft_1d_20_10.txt",
+  "data/nfft_1d_20_20.txt",
+  "data/nfft_1d_20_50.txt",
+  "data/nfft_1d_50_1.txt",
+  "data/nfft_1d_50_10.txt",
+  "data/nfft_1d_50_20.txt",
+  "data/nfft_1d_50_50.txt",*/
 };
 
-static const C f_hat[] =
-{
-  K(+0.8342691439273211194521982876007150313213380811664346920809744750) + K(-0.5109527063162827920347418403486535138183416864655058039385918496) * I,
-  K(-0.5835857075924637998732669463122424141722729073950187882736305868) + K(+0.8554670763218709269387514277190849877583971420121620732708504804) * I,
-  K(-0.8328901755993130402356798460818647034757813784197826666857585133) + K(-0.7000703809212678208528818545884416070561443617354999864651762717) * I,
-  K(+0.6950126644280140714202099068562614227920775680170273962988199626) + K(+0.4723038856419898118794441062368581965595944604122811531937710945) * I,
-  K(+0.8403877277157755008317482556983588954528710777643063728496759787) + K(-0.5658294869273196939224075758396433088498969484862175257856071369) * I,
-  K(-0.2536736224753843043250129375340517878327501684522438259212355381) + K(+0.4409861011455457734786141729577228914926360007483522684316736471) * I,
-  K(-0.9878330560427861967478233100522962371491814866547079797551073541) + K(-0.9838117854612704943871959575641873696649220836817149131883399441) * I,
-  K(+0.1880010805684618234456673307624244583803773446864613129526782391) + K(+0.5578830060460536047061865903347679430750128946200672450575623128) * I,
-  K(+0.1099317645701760278695672677798258298666765103098991930238962565) + K(+0.7169109651436524574851527660442099044484163196009643460579741955) * I,
-  K(+0.01978331643474399711914092028138436183918558890853730527771681728) + K(-0.7451028017835829065440269600094345785666502128526133812457455971) * I,
+static const testcase_delegate_file_t nfft_1d_1_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_1.txt"};
+static const testcase_delegate_file_t nfft_1d_1_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_10.txt"};
+static const testcase_delegate_file_t nfft_1d_1_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_20.txt"};
+static const testcase_delegate_file_t nfft_1d_1_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_50.txt"};
+static const testcase_delegate_file_t nfft_1d_2_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_1.txt"};
+static const testcase_delegate_file_t nfft_1d_2_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_10.txt"};
+static const testcase_delegate_file_t nfft_1d_2_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_20.txt"};
+static const testcase_delegate_file_t nfft_1d_2_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_50.txt"};
+static const testcase_delegate_file_t nfft_1d_4_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_1.txt"};
+static const testcase_delegate_file_t nfft_1d_4_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_10.txt"};
+static const testcase_delegate_file_t nfft_1d_4_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_20.txt"};
+static const testcase_delegate_file_t nfft_1d_4_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_50.txt"};
+static const testcase_delegate_file_t nfft_1d_10_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_1.txt"};
+static const testcase_delegate_file_t nfft_1d_10_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_10.txt"};
+static const testcase_delegate_file_t nfft_1d_10_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_20.txt"};
+static const testcase_delegate_file_t nfft_1d_10_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_50.txt"};
+static const testcase_delegate_file_t nfft_1d_20_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_1.txt"};
+static const testcase_delegate_file_t nfft_1d_20_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_10.txt"};
+static const testcase_delegate_file_t nfft_1d_20_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_20.txt"};
+static const testcase_delegate_file_t nfft_1d_20_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_50.txt"};
+static const testcase_delegate_file_t nfft_1d_50_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_1.txt"};
+static const testcase_delegate_file_t nfft_1d_50_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_10.txt"};
+static const testcase_delegate_file_t nfft_1d_50_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_20.txt"};
+static const testcase_delegate_file_t nfft_1d_50_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_50.txt"};
+static const testcase_delegate_file_t *testcases[] = {
+  &nfft_1d_1_1, &nfft_1d_1_10, &nfft_1d_1_20, &nfft_1d_1_50,
+  &nfft_1d_2_1, &nfft_1d_2_10, &nfft_1d_2_20, &nfft_1d_2_50,
+  &nfft_1d_4_1, &nfft_1d_4_10, &nfft_1d_4_20, &nfft_1d_4_50,
+  &nfft_1d_10_1, &nfft_1d_10_10, &nfft_1d_10_20, &nfft_1d_10_50,
+  &nfft_1d_20_1, &nfft_1d_20_10, &nfft_1d_20_20, &nfft_1d_20_50,
+  &nfft_1d_50_1, &nfft_1d_50_10, &nfft_1d_50_20, &nfft_1d_50_50,
 };
 
-static const C f[] =
+/* Initializers. */
+static void init_1d_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
 {
-  K(-5.28038011782799434317647473959161342240798596062360626506110768) + K(+1.92072089257587386807077872727137591437193486004194842374861919) * I,
-  K(-0.36842274091872166051675723901884372997920757249258600220206085) + K(-3.95308295605448347900843484387936795846602870516701678920092100) * I,
-  K(-0.27155408702038649129253638210649078986753894522282110024802530) + K(-4.83110704548291052710956427902248296068109159755041012420730221) * I,
-  K(+3.34620377495975845427582402426511351864593453012443485910122049) + K(+1.58170931292233927984847624708052839950766297293609185363062635) * I,
-  K(+0.73347257423661376283765311740049695078529369970781235617886897) + K(+0.76938290489464201649962131970881938219341645961509242780635233) * I,
-  K(+1.09798559328147009719646132166370111418007781880650266059508660) + K(+1.24522431193061198903682132291058729551563499806691127992263126) * I,
-  K(+0.51818886990165567763526077365936666011224429261177687334200208) + K(+0.00263355352261969067472079543296173460266176613085631143431049) * I,
-  K(-0.16818575847031496109919700879482504542061325765274725256468629) + K(+0.12037039707435908688870717558707808274135098677546719007297344) * I,
-  K(+0.47531448828599865401849125458981560127425921836002408571200794) + K(+1.56812633827127935897685996005448345666898028390436475901550476) * I,
-  K(+1.84050609197692872935152789247113425612099830045791325988311716) + K(+4.01403313255276561358272020106649891240948383494034607422242159) * I,
-};
+  X(init_1d)(p, N[0], M);
+}
 
-static void check_nfft_1d(void)
+static void init_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
 {
-  const int M = sizeof(x)/sizeof(x[0]);
-  const int N = sizeof(f_hat)/sizeof(f_hat[0]);
-  X(plan) p;
-  int j;
-  
-  X(init_1d)(&p, N, M);
+  X(init)(p, d, N, M);
+}
 
-  /* Nodes. */
-  for (j = 0; j < M; j++)
-    p.x[j] = x[j];
+static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
+{
+  int *n = malloc(d*sizeof(int));
+  int i;
+  for (i = 0; i < d; i++)
+    n[i] = 2*X(next_power_of_2)(N[i]);
+  X(init_guru)(p, d, N, M, n, ego->m, ego->nfft_flags, ego->fftw_flags);
+  free(n);
+}
 
-  /* Pre-compute Psi. */
-  if(p.nfft_flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+/*static void init_advanced_pre_full_psi_(X(plan) *p, const int d, const int *N, const int M)
+{
+  X(init_guru)(p, d, N, M, PRE_PHI_HUT | PRE_FULL_PSI | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE, 0U);
+}*/
 
-  /* Fourier coefficients. */
-  for (j = 0; j < N; j++)
-    p.f_hat[j] = f_hat[j];
+#define DEFAULT_NFFT_FLAGS MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE
+#define DEFAULT_FFTW_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
 
-  X(trafo)(&p);
+static init_delegate_t init_1d = {"init_1d", init_1d_};
+static init_delegate_t init = {"init", init_};
+static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+#if defined(GAUSSIAN)
+static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+#endif
+/* Transformations. */
+static double trafo_direct_cost_factor = 1.0E-6;
 
-  /* debug */
-  /*for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " FE_ " f[%2d] = " FE_ " err = " FE_ "\n", j,
-      CREAL(f[j]), j, CREAL(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
-
-  /* Standard NFFT error measure. */
+static double trafo_direct_cost(X(plan) *p)
+{
+  if (trafo_direct_cost_factor == 0.0)
   {
-    R numerator = K(0.0);
-    R denominator = K(0.0);
-    for (j = 0; j < M; j++)
-      numerator = MAX(numerator, CABS(f[j] - p.f[j]));
-    for (j = 0; j < N; j++)
-      denominator += CABS(f_hat[j]);
-    printf(FE_ "\n", numerator/denominator);
+    int M, d, Nd, x = 0;
+    for (d = 1; d <= 4; d++)
+    {
+      for (Nd = 4; Nd < 128; Nd *= 2)
+      {
+        for (M = 4; M <= 128; M *= 2)
+        {
+          X(plan) p;
+          int *N = malloc(d*sizeof(int)), i;
+          for (i = 0; i < d; i++)
+          {
+            N[i] = Nd;
+          }
+          X(init)(&p, d, N, M);
+          for (i = 0; i < M; i++)
+            p.x[i] = K(0.0);
+          if(p.nfft_flags & PRE_ONE_PSI)
+            X(precompute_one_psi)(&p);
+          for (i = 0; i < d*Nd; i++)
+          {
+            p.f_hat[i] = K(0.0) + K(0.0) * I;
+          }
+          {
+            double r;
+            ticks t0, t1;
+            t0 = getticks();
+            X(trafo_direct)(&p);
+            t1 = getticks();
+            r = X(elapsed_seconds)(t1, t0)/M;
+            for (i = 0; i < d; i++)
+              r = r / Nd;
+            trafo_direct_cost_factor += r;
+            printf("%E\n", r);
+            x += 1;
+          }
+          X(finalize)(&p);
+          free(N);
+        }
+      }
+    }
+    trafo_direct_cost_factor = trafo_direct_cost_factor/((double)x);
+    printf("--> %E\n", trafo_direct_cost_factor);
+  }
+
+  {
+    int c = p->M_total, i;
+
+    for (i = 0; i < p->d; i++)
+      c *= p->N[i];
+
+    return trafo_direct_cost_factor * c;
   }
 }
 
+static trafo_delegate_t trafo_direct = {"trafo_direct", X(trafo_direct), 0, X(trafo_direct_cost), X(err_trafo_direct)};
+static trafo_delegate_t trafo = {"trafo", X(trafo), X(check), 0, X(err_trafo)};
+
+/* Delegates. */
+static const init_delegate_t* initializers[] = {
+    &init_1d,
+    &init,
+    &init_advanced_pre_psi,
+    &init_advanced_pre_full_psi,
+    &init_advanced_pre_lin_psi,
+#if defined(GAUSSIAN)
+    &init_advanced_pre_fg_psi,
+#endif
+};
+static const trafo_delegate_t* trafos[] = {&trafo_direct, &trafo};
+
 int main(void)
 {
-  check_nfft_1d();
-  return EXIT_SUCCESS;
+  return X(check_many)(SIZE(testcases), SIZE(initializers), SIZE(trafos),
+    testcases, initializers, trafos);
 }
