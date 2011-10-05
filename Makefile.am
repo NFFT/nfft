@@ -74,14 +74,9 @@ dist-hook:
 	mkdir -p $(distdir)/doc/api
 	cp -R doc/api/html $(distdir)/doc/api
 	cp -R doc/api/latex $(distdir)/doc/api
+	cp -R doc/tutorial $(distdir)/doc
 #	rm -Rf $(distdir)/doxygen
-# cp -R doc/tutorial $(distdir)/doc
-# rm -Rf $(distdir)/doc/.svn
-# rm -Rf $(distdir)/doc/tutorial/.svn
-# rm -Rf $(distdir)/doc/api/html/.svn
-# rm -Rf $(distdir)/doc/api/html/images/.svn
-# rm -Rf $(distdir)/doc/api/latex/.svn
-# rm -Rf $(distdir)/doc/api/latex/images/.svn
+	rm -Rf `find $(distdir) -name .svn -type d`
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
