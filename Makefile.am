@@ -49,8 +49,8 @@ pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = nfft3.pc
 
 install-data-hook:
-	mkdir -p $(distdir)/share/nfft
-	cp -R doc $(distdir)/share/nfft
+	mkdir -p $(docdir)
+	cp -R doc $(docdir)/
 
 maintainer-clean-local:
 	rm -f doc/api/html/*.html
