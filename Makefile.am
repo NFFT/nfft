@@ -43,7 +43,7 @@ libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libke
 libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.c nfft3.pc.in
+EXTRA_DIST = bootstrap.sh nfft3.pc.in
 
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = nfft3.pc
@@ -70,7 +70,7 @@ maintainer-clean-local:
 
 dist-hook:
 	echo `pwd`
-	support/toc.sed < doxygen.c
+	support/toc.sed < doxygen.h
 	doxygen doxygen/doxygen.Doxyfile
 	rm -f doc/api/html/toc.txt
 	support/rem.sed < doc/api/html/index.html > doc/api/html/index.html.new
