@@ -5,14 +5,14 @@ Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
  Reichenhainer Str. 39
  09107 Chemnitz, GERMANY
 
-Jens Keiner <keiner@math.uni-luebeck.de>
+Dr. Jens Keiner <jens@nfft.org> 
  - fast polynomial transform (/kernel/fpt)
  - nfft on the sphere (/kernel/nfsft)
  - fast summation on the sphere (/applications/fastsumS2)
  - autotools, doxygen and friends
  - Matlab mex interface for nfsft (/matlab/nfsft)
 
-Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+Prof. Dr. Stefan Kunis <stefan.kunis@math.uos.de> 
  - nfft (/kernel/nfft)
  - inverse transforms (kernel/solver)
  - nfft on the hyperbolic cross (/kernel/nsfft)
@@ -21,7 +21,7 @@ Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
 
 Further contributions, in particular applications, are due to
 
-Dr. Markus Fenn <Markus.Fenn@uni-mannheim.de>
+Dr. Markus Fenn 
  - nfft on the hyperbolic cross (/kernel/nsfft)
  - polar fft (/applications/polarFFT)
  - discrete Radon transform and ridgelet transform (/applications/radon)
@@ -31,10 +31,10 @@ Steffen Klatt
  - nonequispaced cosine transform (/kernel/nfct)
  - nonequispaced sine transform (/kernel/nfst)
 
-Tobias Knopp <knopp@imt.uni-luebeck.de>
+Dr. Tobias Knopp 
  - transforms in magnetic resonance imaging (/kernel/mri)
  - nonequispaced in time and frequency fft (/kernel/nnfft)
  - reconstruction in magnetic resonance imaging (/applications/mri)
 
-Antje Vollrath <vollrath@math.uni-luebeck.de>
- - transforms on the rotation group SO(3) (/kernel/nfsoft)
+Dr. Antje Vollrath <a.vollrath@tu-bs.de>
+- transforms on the rotation group SO(3) (/kernel/nfsoft)
