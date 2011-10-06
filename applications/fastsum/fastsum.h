@@ -49,6 +49,14 @@
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
 
+#if !(defined(NF_LIN) || defined(NF_QUADR) || defined(NF_KUB))
+  #define NF_KUB
+#endif
+
+#if !(defined(NF_ST) || defined(NF_BO))
+  #define NF_ST
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -104,6 +112,14 @@ typedef struct fastsum_plan_
 
   /* things for computing *b - are they used only once?? */
   fftw_plan fft_plan;
+
+#ifdef NF_BO
+  int box_count;
+  int box_count_per_dim;
+  int *box_offset;
+  double *box_x;
+  double _Complex *box_alpha;
+#endif
 } fastsum_plan;
 
 /** initialize fast summation plan

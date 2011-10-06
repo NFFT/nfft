@@ -50,6 +50,10 @@ AC_DEFUN([AX_LIB_FFTW3],
       fftw3_lib_dir="$with_fftw3/lib"
     fi
   fi
+  
+  if test "x${ax_prog_matlab}" = "xyes"; then
+    fftw3_lib_dir="${matlab_bin_dir}/${matlab_arch}"
+  fi
 
   if test "x${fftw3_include_dir}" != "xyes"; then
     AX_CHECK_DIR([${fftw3_include_dir}],[],
