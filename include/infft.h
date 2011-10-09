@@ -146,7 +146,7 @@ typedef ptrdiff_t INT;
   #define PHI(x,d) ((R)(ths->n[(d)] / ths->sigma[(d)] * \
     (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
     POW(Y(sinc)(KPI * ths->n[(d)] / ths->sigma[(d)] * (x) * \
-    (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) /
+    (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) / \
     ths->n[(d)]))
   #define WINDOW_HELP_INIT \
     { \

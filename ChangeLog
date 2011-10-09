@@ -8,7 +8,7 @@ Changes in version 3.2:
   - Removed calls to mallinfo() for compatibility reasons.
   - Added ticks.h from FFTW to leverage CPU cycle counters. If cycle counters
     are available, the configure script will try to determine the number of 
-    ticks per second. If successful, example programs measure times in seconds. 
+    ticks per second. If successful, example programs measure times in seconds.
     Otherwise, example programs will output raw cycle counter differences in 
     arbitrary units. If cycle counters are not available, results of time 
     measurements are undefined.

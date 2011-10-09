@@ -17,8 +17,7 @@ libcheck_nfft_la_SOURCES = check_nfft.c check_nfft.h
 check_PROGRAMS = check_nfft_1d
 #check_bessel_i0 check_nfft_1d check_nfft_2d $(CHECK_NFSFT) 
 
-TESTS = 
-#$(check_PROGRAMS)
+TESTS = #$(check_PROGRAMS)
 
 #check_bessel_i0_SOURCES = check_bessel_i0.c
 #check_bessel_i0_LDADD = $(top_builddir)/libnfft3.la
