@@ -299,7 +299,7 @@ AC_HEADER_TIME
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE([long double],
   [AC_DEFINE(HAVE_LONG_DOUBLE, 1, [Define to 1 if the compiler supports]
-  [`long double'])],[])
+  ['long double'])],[])
 AC_CHECK_TYPE([hrtime_t],[AC_DEFINE(HAVE_HRTIME_T, 1, [Define to 1 if hrtime_t]
   [is defined in <sys/time.h>])],,
   [
