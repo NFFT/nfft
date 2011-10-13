@@ -23,7 +23,8 @@ dist_nfsftmatlab_DATA = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_traf
         nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m nfsftmex.m gl.m simple_test.m \
         nfsft_get_f_hat_linear.m nfsft_set_f_hat_linear.m projection.m
 
-nfsftmex@matlab_mexext@: .libs/libnfsft@matlab_mexext@
+# target all-am builds .libs/libnfsft@matlab_mexext@
+nfsftmex@matlab_mexext@: all-am 
 	rm -f ./nfsftmex@matlab_mexext@
 	$(LN_S) .libs/libnfsft@matlab_mexext@ ./nfsftmex@matlab_mexext@
 
