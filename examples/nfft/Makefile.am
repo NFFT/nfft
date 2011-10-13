@@ -12,20 +12,20 @@ noinst_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags
 
 if HAVE_THREADS
   simple_test_threads_SOURCES = simple_test_threads.c
-  simple_test_threads_LDADD = $(top_builddir)/libnfft3_threads.la
+  simple_test_threads_LDADD = $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
 endif
 
 simple_test_SOURCES = simple_test.c
-simple_test_LDADD = $(top_builddir)/libnfft3.la
+simple_test_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 ndft_fast_SOURCES = ndft_fast.c
-ndft_fast_LDADD = $(top_builddir)/libnfft3.la
+ndft_fast_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 taylor_nfft_SOURCES = taylor_nfft.c
-taylor_nfft_LDADD = $(top_builddir)/libnfft3.la
+taylor_nfft_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 flags_SOURCES = flags.c
-flags_LDADD = $(top_builddir)/libnfft3.la
+flags_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 nfft_times_SOURCES = nfft_times.c
 nfft_times_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
