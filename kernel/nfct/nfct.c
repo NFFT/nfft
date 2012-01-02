@@ -804,8 +804,10 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   for (t = 0; t < d; t++)
     ths->n[t] = fftw_2N(Y(next_power_of_2)(ths->N[t]));
 
-  WINDOW_HELP_ESTIMATE_m;
+/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
 
+  WINDOW_HELP_ESTIMATE_m;
+*/
   ths->nfct_flags = NFCT_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 

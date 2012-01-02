@@ -57,7 +57,7 @@ void X(free)(void *p)
   }
 }
 
-void X(die)(const char *s)
+void X(die)(char *s)
 {
   if (X(die_hook))
     X(die_hook)(s);

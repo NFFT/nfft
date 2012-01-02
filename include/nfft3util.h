@@ -142,6 +142,10 @@ void nfft_cp_double( double*  x, double*  y, int n);
  */
 void nfft_cp_a_complex(fftw_complex* x, double a, fftw_complex* y, int n);
 
+/** Copies \f$x \leftarrow a y\f$.
+ */
+void nfft_cp_a_double(double *x, double a, double *y, int n);
+
 /** Copies \f$x \leftarrow w\odot y\f$.
  */
 void nfft_cp_w_complex(fftw_complex* x, double* w, fftw_complex* y, int n);

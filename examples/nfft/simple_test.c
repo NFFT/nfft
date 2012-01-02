@@ -38,7 +38,6 @@ void simple_test_nfft_1d(void)
 
   int N=14;
   int M=19;
-  int n=32;
   ticks t0, t1;
 
   /** init an one dimensional plan */
@@ -81,7 +80,7 @@ void simple_test_nfft_1d(void)
 
 void simple_test_nfft_2d(void)
 {
-  int K,N[2],n[2],k,M;
+  int K,N[2],n[2],M;
   double t;
   ticks t0, t1;
 

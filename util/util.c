@@ -282,7 +282,7 @@ void nfft_cp_a_complex(double _Complex *x, double a, double _Complex *y, int n)
 
 /** Copies \f$x \leftarrow a y\f$.
  */
-static void nfft_cp_a_double(double *x, double a, double *y, int n)
+void nfft_cp_a_double(double *x, double a, double *y, int n)
 {
   int k;
 

@@ -63,15 +63,12 @@ int main (int argc, char **argv)
   int M2;
 
   int t;                       /* Index variable for testcases                */
-  double time;                 /* Time for fast algorithm in seconds          */
-  double err_f;                /* Error E_infty for fast algorithm            */
   nfsft_plan plan;             /* NFSFT plan                                  */
   nfsft_plan plan2;            /* NFSFT plan                                  */
   solver_plan_complex iplan;           /* NFSFT plan                                  */
   int j;                       /*                                             */
   int k;                       /*                                             */
   int m;                       /*                                             */
-  int n;                       /*                                             */
   int use_nfsft;               /*                                             */
   int use_nfft;                /*                                             */
   int use_fpt;                 /*                                             */
@@ -79,7 +76,7 @@ int main (int argc, char **argv)
   double threshold;            /**< The current NFSFT threshold parameter     */
   double re;
   double im;
-  double a,b;
+  double a;
   double *scratch;
   double xs;
   double *ys;

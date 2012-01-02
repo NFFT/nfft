@@ -89,14 +89,12 @@ static int comp3(const void *x,const void *y)
 
 void measure_time_nfft(int d, int N, unsigned test_ndft)
 {
-  int r, M, NN[d], nn[d],j;
+  int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
   ticks t0, t1;
 
   nfft_plan p;
   fftw_plan p_fft;
-
-  double auxC=pow(2,29);
 
   printf("\\verb+%d+&\t",(int)(log(N)/log(2)*d+0.5));
 
@@ -441,7 +439,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
 void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 {
-  int j,r, M, NN[d], nn[d];
+  int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
   ticks t0, t1;
 
@@ -574,7 +572,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
 void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 {
-  int j,r, M, NN[d], nn[d];
+  int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
   ticks t0, t1;
 
@@ -703,7 +701,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
 void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 {
-  int j,r, M, NN[d], nn[d];
+  int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
   ticks t0, t1;
 
@@ -833,7 +831,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
 void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 {
-  int j,r, M, NN[d], nn[d];
+  int r, M, NN[d], nn[d];
   double t, t_fft, t_ndft, t_nfft;
   ticks t0, t1;
 
@@ -1016,12 +1014,6 @@ int main2(void)
     }
 
   exit(-1);
-}
-
-int XXX(void)
-{
-  int l,d,logIN;
-
 }
 
 int main(void)

@@ -112,8 +112,6 @@ int main (int argc, char **argv)
   nfsft_plan plan;             /**< The NFSFT plan                            */
   nfsft_plan plan_gen;         /**< The NFSFT plan                            */
 
-  double t;                    /**< The computation time needed for a single  *
-                                    run                                       */
   double t_avg;                /**< The average computation time needed       */
   double err_infty_avg;        /**< The average error \f$E_\infty\f$          */
   double err_2_avg;            /**< The average error \f$E_2\f$               */

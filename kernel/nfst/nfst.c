@@ -948,7 +948,10 @@ void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
 
   ths->M_total = M_total;
 
+/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
+
   WINDOW_HELP_ESTIMATE_m;
+*/  
 
   ths->nfst_flags = NFST_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;

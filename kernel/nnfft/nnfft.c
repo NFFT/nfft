@@ -605,7 +605,10 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   ths->N_total = N_total;
 
   /* m should be greater to get the same accuracy as the nfft */
+/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
+
   WINDOW_HELP_ESTIMATE_m;
+*/
 
   ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));

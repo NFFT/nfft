@@ -54,7 +54,7 @@ extern "C"
 /* our own memory allocation and exit functions */
 NFFT_EXTERN void *nfft_malloc(size_t n);
 NFFT_EXTERN void nfft_free(void *p);
-NFFT_EXTERN void nfft_die(const char *s);
+NFFT_EXTERN void nfft_die(char *s);
 
 /* You can replace the hooks with your own, functions if necessary. We need this
  * for the Matlab interfaces etc. */

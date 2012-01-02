@@ -85,7 +85,7 @@ void simple_test_nnfft_1d(void)
 
 void simple_test_adjoint_nnfft_1d(void)
 {
-  int j,k;                              /**< index for nodes and freqencies   */
+  int j;                                 /**< index for nodes and freqencies   */
   nnfft_plan my_plan;                    /**< plan for the nfft                */
 
   int N[1];
