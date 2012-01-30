@@ -179,6 +179,9 @@ AX_COMPILER_VENDOR
 # check for C99 compliant mode (possibly with GNU extensions)
 AC_PROG_CC_C99
 
+# per-target flags
+AM_PROG_CC_C_O
+
 # enable "const" keyword
 AC_C_CONST
 
@@ -234,9 +237,23 @@ if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
 fi
 
 # libdispatch
+ax_lib_dispatch="no"
 AX_LIB_DISPATCH
+if test "x$want_dispatch" = "xyes" -a "x$ax_cv_lib_dispatch" = "xyes"; then
+  ax_lib_dispatch="yes"
+fi
+
+if test "x$enable_threads" = "xno" -a "x$ax_lib_dispatch" = "xyes"; then
+  AC_MSG_ERROR([Threads support needs to be enabled when libdispatch is used.])
+fi
 
 AX_OPENMP
+AM_CONDITIONAL(HAVE_OPENMP, test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xunknown" )
+AC_SUBST(OPENMP_CFLAGS)
+
+if  test "x$enable_threads" = "xyes" -a "x$ax_lib_dispatch" = "xno" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+  AC_MSG_ERROR([You don't seem to have either a C compiler with OpenMP support or libdispatch installed which is required for threaded NFFT.])
+fi
 
 ################################################################################
 # compiler options
@@ -280,6 +297,11 @@ fi
 CFLAGS="$CFLAGS $ac_cv_prog_cc_c99" 
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
+
+# add OpenMP CFLAGS
+#if test "x$enable_threads" = "xyes" -a "x$ax_lib_dispatch" = "xno"; then
+#  CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+#fi
 
 # add Matlab CFLAGS
 if test "x$ax_prog_matlab" = "xyes"; then

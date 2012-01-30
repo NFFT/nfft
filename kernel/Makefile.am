@@ -64,10 +64,29 @@ endif
 SUBDIRS = util nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
   $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver .
 
-noinst_LTLIBRARIES = libkernel.la
+if HAVE_THREADS
+  LIBKERNEL_THREADS_LA = libkernel_threads.la
+else
+  LIBKERNEL_THREADS_LA =
+endif
+
+
+noinst_LTLIBRARIES = libkernel.la $(LIBKERNEL_THREADS_LA)
 
 libkernel_la_SOURCES =
 
 libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT) $(LIB_NFSFT) $(LIB_NFSOFT) \
   solver/libsolver.la
+
+if HAVE_THREADS
+  libkernel_threads_la_SOURCES =
+
+  libkernel_threads_la_LIBADD = util/libutil.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
+    $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT) $(LIB_NFSFT) $(LIB_NFSOFT) \
+    solver/libsolver.la
+
+if HAVE_OPENMP
+  libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
+endif

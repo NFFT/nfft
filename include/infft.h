@@ -1256,6 +1256,25 @@ extern double _Complex catanh(double _Complex z);
     for (VAR = 0; VAR < VAL; VAR++)
 #endif
 
+#ifdef HAVE_LIBDISPATCH
+#define FOR_OMP(VAR,VAL,ARGS) \
+  dispatch_apply((size_t)VAL, dispatch_get_global_queue((long)DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)0), ^(size_t VAR)
+#else
+#if defined(_OPENMP)
+#define STRINGIFY(a) #a
+#define FOR_OMP(VAR,VAL,ARGS) \
+  { \
+    int VAR; \
+    _Pragma( STRINGIFY( omp parallel for ARGS) ) \
+    for (VAR = 0; VAR < VAL; VAR++)
+#else
+#define FOR_OMP(VAR,VAL,ARGS) \
+  { \
+    int VAR; \
+    for (VAR = 0; VAR < VAL; VAR++)
+#endif
+#endif
+
 #if defined(HAVE_LIBDISPATCH)
 #define END_FOR );
 #else
@@ -1339,7 +1358,8 @@ double nfft_elapsed_seconds(ticks t1, ticks t0);
 #define TIC(a)                                                                \
   ths->MEASURE_TIME_t[(a)]=0;                                                 \
   MEASURE_TIME_r=0;                                                           \
-  while(ths->MEASURE_TIME_t[(a)]<0.01)                                        \
+  /* DISABLED LOOP due to code blocks causing segfault when repeatedly run */ \
+  /*while(ths->MEASURE_TIME_t[(a)]<0.01)*/                                    \
     {                                                                         \
       MEASURE_TIME_r++;                                                       \
       MEASURE_TIME_t0 = getticks();                                           \
