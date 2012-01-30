@@ -120,9 +120,9 @@ void measure_time_nfft(int d, int N, unsigned test_ndft)
   global_d=d;
   switch(d)
     {
-      case 1: { qsort(p.x,p.M_total,d*sizeof(double),comp1); break; }
-      case 2: { qsort(p.x,p.M_total,d*sizeof(double),comp2); break; }
-      case 3: { qsort(p.x,p.M_total,d*sizeof(double),comp3); break; }
+      case 1: { qsort(p.x,p.M_total,d*sizeof(double),(__compar_fn_t)comp1); break; }
+      case 2: { qsort(p.x,p.M_total,d*sizeof(double),(__compar_fn_t)comp2); break; }
+      case 3: { qsort(p.x,p.M_total,d*sizeof(double),(__compar_fn_t)comp3); break; }
     }
 
   nfft_precompute_one_psi(&p);
@@ -228,7 +228,7 @@ void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  qsort(p.x,p.M_total,d*sizeof(double),comp1);
+  qsort(p.x,p.M_total,d*sizeof(double),(__compar_fn_t)comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);
@@ -347,7 +347,7 @@ void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
 
-  qsort(p.x,p.M_total,d*sizeof(double),comp1);
+  qsort(p.x,p.M_total,d*sizeof(double),(__compar_fn_t)comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   nfft_precompute_one_psi(&p);

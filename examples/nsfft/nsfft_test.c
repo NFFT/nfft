@@ -31,7 +31,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-void accuracy_nsfft(int d, int J, int M, int m)
+static void accuracy_nsfft(int d, int J, int M, int m)
 {
   nsfft_plan p;
   double _Complex *swap_sndft_trafo, *swap_sndft_adjoint;
@@ -81,7 +81,7 @@ void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_finalize(&p);
 }
 
-void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
+static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
 {
   int r, N[d], n[d];
   double t, t_nsdft, t_nfft, t_nsfft;

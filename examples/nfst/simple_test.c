@@ -26,7 +26,7 @@
 #include "nfft3util.h"
 #include "nfft3.h"
 
-void simple_test_nfst_1d(void)
+static void simple_test_nfst_1d(void)
 {
   int j,k;
   nfst_plan p;

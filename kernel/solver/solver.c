@@ -166,7 +166,7 @@ static void solver_loop_one_step_landweber_complex(solver_plan_complex* ths)
 } /* void solver_loop_one_step_landweber */
 
 /** void solver_loop_one_step_steepest_descent */
-void solver_loop_one_step_steepest_descent_complex(solver_plan_complex *ths)
+static void solver_loop_one_step_steepest_descent_complex(solver_plan_complex *ths)
 {
   if(ths->flags & PRECOMPUTE_DAMP)
     nfft_cp_w_complex(ths->mv->f_hat, ths->w_hat, ths->z_hat_iter,
@@ -416,12 +416,12 @@ void solver_init_advanced_double(solver_plan_double* ths, nfft_mv_plan_double *m
     ths->w_hat = (double*) nfft_malloc(ths->mv->N_total*sizeof(double));
 }
 
-void solver_init_double(solver_plan_double* ths, nfft_mv_plan_double *mv)
+static void solver_init_double(solver_plan_double* ths, nfft_mv_plan_double *mv)
 {
   solver_init_advanced_double(ths, mv, CGNR);
 }
 
-void solver_before_loop_double(solver_plan_double* ths)
+static void solver_before_loop_double(solver_plan_double* ths)
 {
   nfft_cp_double(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
 
@@ -687,7 +687,7 @@ static void solver_loop_one_step_cgne_double(solver_plan_double *ths)
 } /* void solver_loop_one_step_cgne */
 
 /** void solver_loop_one_step */
-void solver_loop_one_step_double(solver_plan_double *ths)
+static void solver_loop_one_step_double(solver_plan_double *ths)
 {
   if(ths->flags & LANDWEBER)
     solver_loop_one_step_landweber_double(ths);
@@ -703,7 +703,7 @@ void solver_loop_one_step_double(solver_plan_double *ths)
 } /* void solver_loop_one_step */
 
 /** void solver_finalize */
-void solver_finalize_double(solver_plan_double *ths)
+static void solver_finalize_double(solver_plan_double *ths)
 {
   if(ths->flags & PRECOMPUTE_WEIGHT)
     nfft_free(ths->w);

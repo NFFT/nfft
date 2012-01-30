@@ -1339,7 +1339,8 @@ double nfft_elapsed_seconds(ticks t1, ticks t0);
 #define TIC(a)                                                                \
   ths->MEASURE_TIME_t[(a)]=0;                                                 \
   MEASURE_TIME_r=0;                                                           \
-  while(ths->MEASURE_TIME_t[(a)]<0.01)                                        \
+  /* DISABLED LOOP due to code blocks causing segfault when repeatedly run */ \
+  /*while(ths->MEASURE_TIME_t[(a)]<0.01)*/                                    \
     {                                                                         \
       MEASURE_TIME_r++;                                                       \
       MEASURE_TIME_t0 = getticks();                                           \

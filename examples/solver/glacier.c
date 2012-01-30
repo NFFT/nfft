@@ -39,13 +39,13 @@
  */
 
 /** Generalised Sobolev weight */
-double my_weight(double z,double a,double b,double c)
+static double my_weight(double z,double a,double b,double c)
 {
     return pow(0.25-z*z,b)/(c+pow(fabs(z),2*a));
 }
 
 /** Reconstruction routine */
-void glacier(int N,int M)
+static void glacier(int N,int M)
 {
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y;
@@ -107,7 +107,7 @@ void glacier(int N,int M)
 }
 
 /** Reconstruction routine with cross validation */
-void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
+static void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
 {
   int j,k,k0,k1,l,my_N[2],my_n[2];
   double tmp_y,r;

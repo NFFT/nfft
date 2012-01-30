@@ -31,7 +31,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-void simple_test_nsfft(int d, int J, int M)
+static void simple_test_nsfft(int d, int J, int M)
 {
   int K=12;
   nsfft_plan p;

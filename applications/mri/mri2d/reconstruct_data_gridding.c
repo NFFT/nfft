@@ -37,7 +37,7 @@
 /**
  * reconstruct makes a 2d-adjoint-nfft
  */
-void reconstruct(char* filename, int N, int M, int weight)
+static void reconstruct(char* filename, int N, int M, int weight)
 {
   int j;                   /* some variables  */
   double weights;          /* store one weight temporary */

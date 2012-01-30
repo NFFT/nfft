@@ -38,7 +38,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-void ndft_horner_trafo(nfft_plan *ths)
+static void ndft_horner_trafo(nfft_plan *ths)
 {
   int j,k;
   double _Complex *f_hat_k, *f_j;
@@ -59,7 +59,7 @@ void ndft_horner_trafo(nfft_plan *ths)
     }
 } /* ndft_horner_trafo */
 
-void ndft_pre_full_trafo(nfft_plan *ths, double _Complex *A)
+static void ndft_pre_full_trafo(nfft_plan *ths, double _Complex *A)
 {
   int j,k;
   double _Complex *f_hat_k, *f_j;
@@ -73,7 +73,7 @@ void ndft_pre_full_trafo(nfft_plan *ths, double _Complex *A)
       (*f_j) += (*f_hat_k)*(*A_local);
 } /* ndft_pre_full_trafo */
 
-void ndft_pre_full_init(nfft_plan *ths, double _Complex *A)
+static void ndft_pre_full_init(nfft_plan *ths, double _Complex *A)
 {
   int j,k;
   double _Complex *f_hat_k, *f_j, *A_local;
@@ -84,11 +84,11 @@ void ndft_pre_full_init(nfft_plan *ths, double _Complex *A)
 
 } /* ndft_pre_full_init */
 
-void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
+static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
   int r;
   double t, t_ndft, t_horner, t_pre_full, t_nfft;
-  double _Complex *A;
+  double _Complex *A = NULL;
   ticks t0, t1;
 
   nfft_plan np;

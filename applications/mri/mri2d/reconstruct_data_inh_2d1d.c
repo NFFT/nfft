@@ -36,7 +36,7 @@
  * \{
  */
 
-void reconstruct(char* filename,int N,int M,int iteration , int weight)
+static void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
   double time,min_time,max_time,min_inh,max_inh;

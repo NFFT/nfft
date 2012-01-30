@@ -37,7 +37,7 @@
 /**
  * reconstruct makes an inverse 3d-nfft
  */
-void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
+static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weight)
 {
   int j,k,z,l;                  /* some variables  */
   double real,imag;             /* to read the real and imag part of a complex number */

@@ -83,7 +83,7 @@ void simple_test_nnfft_1d(void)
   nnfft_finalize(&my_plan);
 }
 
-void simple_test_adjoint_nnfft_1d(void)
+static void simple_test_adjoint_nnfft_1d(void)
 {
   int j;                                 /**< index for nodes and freqencies   */
   nnfft_plan my_plan;                    /**< plan for the nfft                */
@@ -137,7 +137,7 @@ void simple_test_adjoint_nnfft_1d(void)
   nnfft_finalize(&my_plan);
 }
 
-void simple_test_nnfft_2d(void)
+static void simple_test_nnfft_2d(void)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nnfft_plan my_plan;                    /**< plan for the nfft                */
@@ -196,7 +196,7 @@ void simple_test_nnfft_2d(void)
   nnfft_finalize(&my_plan);
 }
 
-void simple_test_innfft_1d(void)
+static void simple_test_innfft_1d(void)
 {
   int j,k,l,N=8;                        /**< index for nodes, freqencies, iter*/
   nnfft_plan my_plan;                   /**< plan for the nnfft               */
@@ -260,7 +260,7 @@ void simple_test_innfft_1d(void)
   nnfft_finalize(&my_plan);
 }
 
-void measure_time_nnfft_1d(void)
+static void measure_time_nnfft_1d(void)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nnfft_plan my_plan;                    /**< plan for the nfft                */

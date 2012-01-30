@@ -38,7 +38,7 @@
 /**
  * construct makes an 2d-nfft
  */
-void construct(char * file, int N, int M)
+static void construct(char * file, int N, int M)
 {
   int j,k;            /* some variables */
   double real;

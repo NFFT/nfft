@@ -38,7 +38,7 @@
 /**
  * construct
  */
-void construct(char * file, int N, int M)
+static void construct(char * file, int N, int M)
 {
   int j;                  /* some variables */
   double real;

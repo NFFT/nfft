@@ -47,7 +47,7 @@ typedef struct window_funct_plan_ {
 /**
  * init the window_funct_plan
  */
-void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
+static void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
 	ths->d=1;
 	ths->m=m;
 	ths->n[0]=n;
