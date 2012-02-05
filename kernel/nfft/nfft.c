@@ -782,8 +782,6 @@ if (u<=o)
 #endif
     for (l = 0; l <= o-u; l++)
       g[u+l] += psij_const[offset_psij+l] * (*fj);
-
-//    fprintf(stderr, "omp3: %.16e %d %d %d %d %d %d %d\n", *xj, ar_u, ar_o, my_u, my_o, u, o, offset_psij);
   }
 }
 #endif
@@ -795,8 +793,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
 
   if (ths->nfft_flags & PRE_FULL_PSI)
   {
-//    int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//    nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ar_x);
     int k;
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < M; k++)
@@ -812,8 +808,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
 
   if (ths->nfft_flags & PRE_PSI)
   {
-//    int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//    nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ar_x);
     int k;
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < M; k++)
@@ -829,11 +823,9 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
   {
     int k;
     R fg_exp_l[m2p2];
-//    STACK_MALLOC(R*,fg_exp_l,(m2p2) * sizeof(R));
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
-//    FOR(j,M)
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < M; k++)
     {
@@ -842,8 +834,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
       R fg_psij2 = K(1.0);
       R psij_const[m2p2];
       int l;
-
-//      STACK_MALLOC(R*,psij_const,(m2p2) * sizeof(R));
 
       psij_const[0] = fg_psij0;
 
@@ -854,12 +844,8 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
       }
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
-
-//      STACK_FREE(psij_const);
     }
-//    END_FOR
 
-//    STACK_FREE(fg_exp_l);
     return;
   } /* if(PRE_FG_PSI) */
 
@@ -867,7 +853,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
   {
     int k;
     R fg_exp_l[m2p2];
-//    STACK_MALLOC(R*,fg_exp_l,(m2p2) * sizeof(R));
 
     nfft_sort_nodes(ths);
 
@@ -886,8 +871,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
       fg_psij1 = EXP(K(2.0) * (n * ths->x[j] - u) / ths->b[0]);
       fg_psij2  = K(1.0);
 
-//        STACK_MALLOC(R*,psij_const,(m2p2) * sizeof(R));
-
       psij_const[0] = fg_psij0;
 
       for (l = 1; l < m2p2; l++)
@@ -897,11 +880,7 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
       }
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
-
-//        STACK_FREE(psij_const);
     }
-//    END_FOR
-//    STACK_FREE(fg_exp_l);
     return;
   } /* if(FG_PSI) */
 
@@ -910,8 +889,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
     const int K = ths->K, ip_s = K / (m + 2);
     int k;
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
     #pragma omp parallel for default(shared) private(k)
@@ -942,8 +919,6 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
     /* no precomputed psi at all */
     int k;
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
     #pragma omp parallel for default(shared) private(k)
@@ -1020,12 +995,6 @@ static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
 	size_left--;
       }
     }
-//    #pragma omp single
-//    {
-//      fprintf(stderr, "id: %d, nthreads: %d, nthreads_used: %d\n", my_id, nthreads, nthreads_used);
-//      for (k = 0; k < nthreads_used; k++)
-//        fprintf(stderr, "offset_g[%d]: %d, size: %d\n", k, offset_g[k], size_g[k]);
-//    }
 
     *my_u = offset_g[my_id];
     *my_o = offset_g[my_id] + size_g[my_id] - 1;
@@ -1048,7 +1017,6 @@ static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
       *min_u0a = 0;
     }
   }
-//  fprintf(stderr, "id:%d, %2d %2d %2d %2d\n", my_id, *min_u0a, *max_o0a, *min_u0b, *max_o0b);
 }
 #endif
 
@@ -1081,46 +1049,12 @@ static void nfft_adjoint_B_compute_full_psi(
     }
   }
 }
-/*
-static inline void nfft_adjoint_1d_B_omp_blockwise(const int min_u0, const int *ar_x, const int M, const C *f, const R *x, const R *psij_const)
-{
-  int k;
-  
-  if (min_u0 != -1)
-  {
-    k = index_x_binary_search(ar_x, M, min_u0a);
-        assert(ar_x[2*k] >= min_u0a || k == M-1);
-        if (k > 0)
-          assert(ar_x[2*k-2] < min_u0a);
-        while (k < M)
-        {
-          int u, o, l;
-          int u_prod = ar_x[2*k];
-          int j = ar_x[2*k+1];
 
-          if (u_prod < min_u0a || u_prod > max_o0a)
-            break;
-
-          nfft_uo(ths, j, &u, &o, 0);
-
-          for (l = 0; l <= 2 * m + 1; l++)
-            psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
-
-          nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u, my_o);
-
-          k++;
-        }
-      }
-      */
 static void nfft_adjoint_1d_B(nfft_plan *ths)
 {
   const int n = ths->n[0], M = ths->M_total, m = ths->m;
   int k;
-//  int u, o, l, K, ip_s, ip_u;
   C *g = (C*)ths->g;
-//  C *fj, *g = (C*)ths->g;
-//  R *psij, *xj, ip_y, ip_w;
-//  R *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
 
   memset(g,0,ths->n_total*sizeof(C));
 
@@ -1129,35 +1063,11 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     const int lprod = 2*m+2;
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
         lprod, ths->nfft_flags, ths->index_x);
-/*    #pragma omp parallel for default(shared) private(k)
-    for (k = 0; k < M; k++)
-    {
-      int l;
-      int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      for (l = 0; l <= 2 * m + 1; l++)
-      {
-#ifdef _OPENMP
-        C val = ths->psi[j * lprod + l] * ths->f[j];
-	C *gref = g + ths->psi_index_g[j * lprod + l];
-	R *gref_real = (R*) gref;
-	#pragma omp atomic
-	gref_real[0] += creal(val);
-	#pragma omp atomic
-	gref_real[1] += cimag(val);
-#else
-        g[ths->psi_index_g[j * lprod + l]] += ths->psi[j * lprod + l] * ths->f[j];
-#endif
-      }
-    }*/
     return;
   } /* if(PRE_FULL_PSI) */
 
   if (ths->nfft_flags & PRE_PSI)
   {
-//    int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//    nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ar_x);
-
 #ifdef _OPENMP
     if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
@@ -1227,26 +1137,11 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
 #endif
     }
 
-/*    FOR_OMP(k,M,default(shared) private(k))
-    {
-      int j = ar_x[2*k+1];
-#ifdef _OPENMP
-      nfft_adjoint_1d_compute_omp(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
-#else
-      nfft_adjoint_1d_compute(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
-#endif
-//    for (j = 0, fj = (C*)ths->f, xj = ths->x; j < M; j++, fj++, xj++)
-//      nfft_adjoint_1d_compute(fj, g, ths->psi + j * (2 * m + 2), xj, n, m);
-    }
-    END_FOR*/
     return;
   } /* if(PRE_PSI) */
 
   if (ths->nfft_flags & PRE_FG_PSI)
   {
-//    int j;
-//    R *psij_const = (R*)nfft_malloc((2 * m + 2) * sizeof(R));
-//    R* fg_exp_l = (R*)nfft_malloc((2 * m + 2) * sizeof(R));
     R fg_exp_l[2 * m + 2];
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -1274,18 +1169,12 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
     }
-//    nfft_free(fg_exp_l);
-//    nfft_free(psij_const);
+
     return;
   } /* if(PRE_FG_PSI) */
 
   if (ths->nfft_flags & FG_PSI)
   {
-//    int j;
-//    R *psij_const = (R*)nfft_malloc((2 * m + 2) * sizeof(R));
-//    R *fg_exp_l = (R*)nfft_malloc((2 * m + 2) * sizeof(R));
-//    C *fj;
-//    R *xj;
     R fg_exp_l[2 * m + 2];
 
     nfft_sort_nodes(ths);
@@ -1316,8 +1205,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
     }
-//    nfft_free(fg_exp_l);
-//    nfft_free(psij_const);
+
     return;
   } /* if(FG_PSI) */
 
@@ -1411,9 +1299,6 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ths->index_x);
-
     #pragma openmp parallel for default(shared) private(k)
     for (k = 0; k < M; k++)
     {
@@ -1454,14 +1339,11 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2 * m + 2];
 
-//      nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ar_x);
-
       nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
 
       if (min_u0a != -1)
       {
         k = index_x_binary_search(ar_x, M, min_u0a);
-//	fprintf(stderr, "%d: k=%d, min_u0a=%d\n",  omp_get_thread_num(), k, min_u0a);
 #ifdef OMP_ASSERT
         assert(ar_x[2*k] >= min_u0a || k == M-1);
         if (k > 0)
@@ -1472,8 +1354,6 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
           int u, o, l;
           int u_prod = ar_x[2*k];
           int j = ar_x[2*k+1];
-
-// fprintf(stderr, "!!! %d: k=%d, j=%d, u_prod=%2d, min_u0a=%2d, max_o0a=%2d\n", omp_get_thread_num(), k, j, u_prod, min_u0a, max_o0a);
 
           if (u_prod < min_u0a || u_prod > max_o0a)
             break;
@@ -1517,15 +1397,10 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         }
       }
     } /* omp parallel */
-//  for (k=0;k<n;k++)
-//    fprintf(stderr, "%d: %.16e %.16e\n", k, creal(ths->g[k]), cimag(ths->g[k]));
 
     return;
   } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
-
-//  if (ths->nfft_flags & NFFT_SORT_NODES)
-//    nfft_sort_nodes_for_better_cache_handle_1d(&n, m, M, ths->x, ths->index_x);
 
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < M; k++)
@@ -1566,7 +1441,7 @@ void nfft_trafo_1d(nfft_plan *ths)
       int k;
       c_phi_inv1 = ths->c_phi_inv[0];
       c_phi_inv2 = &ths->c_phi_inv[0][N2];
-//      FOR(k,N2)
+
       #pragma omp parallel for default(shared) private(k)
       for (k = 0; k < N2; k++)
       {
@@ -1576,7 +1451,6 @@ void nfft_trafo_1d(nfft_plan *ths)
     }
     else
     {
-//      FOR(k,N2)
       int k;
       #pragma omp parallel for default(shared) private(k)
       for (k = 0; k < N2; k++)
@@ -1960,13 +1834,7 @@ static void nfft_adjoint_2d_compute(const C *fj, C *g,
 
 static void nfft_trafo_2d_B(nfft_plan *ths)
 {
-//, *psi_index_g,K,ip_s,ip_u;
-//  C *fj,*g;
   const C *g = (C*)ths->g;
-//  R *psij, *xj, ip_y, ip_w;
-
-//  R *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
-
   const int N0 = ths->N[0];
   const int n0 = ths->n[0];
   const int N1 = ths->N[1];
@@ -1988,12 +1856,8 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
       for (l = 0; l < lprod; l++)
         ths->f[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
     }
-/*      psi_index_g=ths->psi_index_g;
-      for(j=0, fj=(C*)ths->f, psij=ths->psi; j<M; j++, fj++)
-        for(l=1, (*fj)=(*psij++) * g[(*psi_index_g++)]; l<(2*m+2)*(2*m+2); l++)
-    (*fj) += (*psij++) * g[(*psi_index_g++)];*/
-      return;
-    } /* if(PRE_FULL_PSI) */
+    return;
+  } /* if(PRE_FULL_PSI) */
 
   if(ths->nfft_flags & PRE_PSI)
   {
@@ -2003,27 +1867,12 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
       int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
       nfft_trafo_2d_compute(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
     }
-//      for(j=0,fj=(C*)ths->f,xj=ths->x; j<M; j++,fj++,xj+=2)
-//  nfft_trafo_2d_compute(fj, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), xj, xj+1, n0, n1, m);
-/*      FOR_OMP(k,M,default(shared) private(k))
-      {
-        int j = ar_x[2*k+1];
-        nfft_trafo_2d_compute(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
-      }
-      END_FOR
-      nfft_free(ar_x);*/
+
       return;
   } /* if(PRE_PSI) */
 
   if(ths->nfft_flags & PRE_FG_PSI)
   {
-//    R *fg_exp_l;
-//    C *fj;
-//    R *xj;
-//    int j;
-//    R *psij_const;
-//    psij_const=(R*)nfft_malloc(2*(2*m+2)*sizeof(R));
-//    fg_exp_l=(R*)nfft_malloc(2*(2*m+2)*sizeof(R));
     R fg_exp_l[2*(2*m+2)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -2058,20 +1907,12 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
       nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(PRE_FG_PSI) */
 
   if(ths->nfft_flags & FG_PSI)
   {
-//      R *fg_exp_l;
-//      int j;
-//      R *psij_const;
-//      C *fj;
-//      R *xj;
-//      psij_const=(R*)nfft_malloc(2*(2*m+2)*sizeof(R));
-//      fg_exp_l=(R*)nfft_malloc(2*(2*m+2)*sizeof(R));
     R fg_exp_l[2*(2*m+2)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -2111,21 +1952,14 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
       nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(FG_PSI) */
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-//      int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//      nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ar_x);
-
-//      psij_const=(R*)nfft_malloc(2*(2*m+2)*sizeof(R));
     const int K = ths->K, ip_s = K / (m + 2);
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
     #pragma omp parallel for default(shared) private(k)
@@ -2156,13 +1990,8 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
       return;
   } /* if(PRE_LIN_PSI) */
 
-//  int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//  nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ar_x);
-
   /* no precomputed psi at all */
 
-//  if (ths->nfft_flags & NFFT_SORT_NODES)
-//    nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ths->index_x);
   nfft_sort_nodes(ths);
 
   #pragma omp parallel for default(shared) private(k)
@@ -2219,12 +2048,6 @@ static void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
 	size_left--;
       }
     }
-//    #pragma omp single
-//    {
-//      fprintf(stderr, "id: %d, nthreads: %d, nthreads_used: %d\n", my_id, nthreads, nthreads_used);
-//      for (k = 0; k < nthreads_used; k++)
-//        fprintf(stderr, "offset_g[%d]: %d, size: %d\n", k, offset_g[k], size_g[k]);
-//    }
 
     *my_u = offset_g[my_id];
     *my_o = offset_g[my_id] + size_g[my_id] - 1;
@@ -2247,18 +2070,11 @@ static void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
       *min_u0a = 0;
     }
   }
-//  fprintf(stderr, "id:%d, %2d %2d %2d %2d\n", my_id, *min_u0a, *max_o0a, *min_u0b, *max_o0b);
 }
 #endif
 
 static void nfft_adjoint_2d_B(nfft_plan *ths)
 {
-//  int n0,N0,n1,N1,u,o,M,l,m,K,ip_s,ip_u;
-//  C *fj,*g;
-//  R *psij, *xj ,ip_y, ip_w;
-
-//  R *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
-
   const int N0 = ths->N[0];
   const int n0 = ths->n[0];
   const int N1 = ths->N[1];
@@ -2275,35 +2091,11 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     const int lprod = (2*m+2) * (2*m+2);
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
         lprod, ths->nfft_flags, ths->index_x);
-/*    #pragma omp parallel for default(shared) private(k)
-    for (k = 0; k < M; k++)
-    {
-      int l;
-      int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      for (l = 0; l < lprod; l++)
-      {
-#ifdef _OPENMP
-        C val = ths->psi[j * lprod + l] * ths->f[j];
-	C *gref = g + ths->psi_index_g[j * lprod + l];
-	R *gref_real = (R*) gref;
-	#pragma omp atomic
-	gref_real[0] += creal(val);
-	#pragma omp atomic
-	gref_real[1] += cimag(val);
-#else
-        g[ths->psi_index_g[j * lprod + l]] += ths->psi[j * lprod + l] * ths->f[j];
-#endif
-      }
-    }*/
     return;
   } /* if(PRE_FULL_PSI) */
 
   if(ths->nfft_flags & PRE_PSI)
   {
-//    int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//    nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ar_x);
-
 #ifdef _OPENMP
     if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
@@ -2377,11 +2169,6 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FG_PSI)
   {
-//      int j;
-//      R *psij_const = (R*) nfft_malloc(2*(2*m+2)*sizeof(R));
-//      R *fg_exp_l = (R*) nfft_malloc(2*(2*m+2)*sizeof(R));
-//      C *fj;
-//      R *xj;
     R fg_exp_l[2*(2*m+2)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -2420,18 +2207,12 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(PRE_FG_PSI) */
 
   if(ths->nfft_flags & FG_PSI)
   {
-//      int j;
-//      R *psij_const = (R*)nfft_malloc(2*(2*m+2)*sizeof(R));
-//      R *fg_exp_l = (R*)nfft_malloc(2*(2*m+2)*sizeof(R));
-//      C *fj;
-//      R *xj;
     R fg_exp_l[2*(2*m+2)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -2475,8 +2256,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(FG_PSI) */
 
@@ -2485,8 +2265,6 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     const int K = ths->K;
     const int ip_s = K / (m + 2);
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
@@ -2632,8 +2410,6 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2*(2*m+2)];
 
-//      nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ar_x);
-
       nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
 
       if (min_u0a != -1)
@@ -2703,8 +2479,6 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 #endif
 
 
-//  if (ths->nfft_flags & NFFT_SORT_NODES)
-//    nfft_sort_nodes_for_better_cache_handle_2d(ths->n, m, M, ths->x, ths->index_x);
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < M; k++)
   {
@@ -3351,13 +3125,10 @@ static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
 
   for(l0=0; l0<=2*m+1; l0++)
   {
-//    unsigned long int i0 = index_temp0[l0];
     for(l1=0; l1<=2*m+1; l1++)
     {
-//      unsigned long int i1 = i0 * (2*m+2) + index_temp1[l1];
       for(l2=0; l2<=2*m+1; l2++)
       {
-//        unsigned long int i = i1 * (2*m+2) + index_temp2[l2];
         unsigned long int i = (index_temp0[l0] * n1 + index_temp1[l1]) * n2 + index_temp2[l2];
         C *lhs = g+i;
         R *lhs_real = (R*)lhs;
@@ -3623,12 +3394,6 @@ static void nfft_adjoint_3d_compute(const C *fj, C *g,
 
 static void nfft_trafo_3d_B(nfft_plan *ths)
 {
-//  int n0,N0,n1,N1,n2,N2,u,o,M,l,m, *psi_index_g,K,ip_s,ip_u;
-//  C *fj,*g;
-//  R *psij, *xj, ip_y, ip_w;
-
-//  R *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
-
   const int N0 = ths->N[0];
   const int n0 = ths->n[0];
   const int N1 = ths->N[1];
@@ -3654,13 +3419,8 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
       for (l = 0; l < lprod; l++)
         ths->f[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
     }
-/*      int j;
-      psi_index_g=ths->psi_index_g;
-      for(j=0, fj=(C*)ths->f, psij=ths->psi; j<M; j++, fj++)
-        for(l=1, (*fj)=(*psij++) * g[(*psi_index_g++)]; l<(2*m+2)*(2*m+2)*(2*m+2); l++)
-    (*fj) += (*psij++) * g[(*psi_index_g++)];*/
-      return;
-    } /* if(PRE_FULL_PSI) */
+    return;
+  } /* if(PRE_FULL_PSI) */
 
   if(ths->nfft_flags & PRE_PSI)
   {
@@ -3675,13 +3435,6 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FG_PSI)
   {
-//      R *fg_exp_l;
-//      C *fj;
-//      R *xj;
-//      int j;
-//      R *psij_const;
-//      psij_const=(R*)nfft_malloc(3*(2*m+2)*sizeof(R));
-//      fg_exp_l=(R*)nfft_malloc(3*(2*m+2)*sizeof(R));
     R fg_exp_l[3*(2*m+2)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -3727,20 +3480,12 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 
       nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
-      return;
+
+    return;
   } /* if(PRE_FG_PSI) */
 
   if(ths->nfft_flags & FG_PSI)
   {
-//      R *fg_exp_l;
-//      int j;
-//      R *psij_const;
-//      C *fj;
-//      R *xj;
-//      psij_const=(R*)nfft_malloc(3*(2*m+2)*sizeof(R));
-//      fg_exp_l=(R*)nfft_malloc(3*(2*m+2)*sizeof(R));
     R fg_exp_l[3*(2*m+2)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -3792,19 +3537,14 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 
       nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(FG_PSI) */
 
   if(ths->nfft_flags & PRE_LIN_PSI)
   {
-//     int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//     nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ar_x);
     const int K = ths->K, ip_s = K / (m + 2);
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
     #pragma omp parallel for default(shared) private(k)
@@ -3845,13 +3585,8 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
     return;
   } /* if(PRE_LIN_PSI) */
 
-//    int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//    nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ar_x);
-
   /* no precomputed psi at all */
 
-//  if (ths->nfft_flags & NFFT_SORT_NODES)
-//    nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ths->index_x);
   nfft_sort_nodes(ths);
 
   #pragma omp parallel for default(shared) private(k)
@@ -3912,12 +3647,6 @@ static void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
 	size_left--;
       }
     }
-//    #pragma omp single
-//    {
-//      fprintf(stderr, "id: %d, nthreads: %d, nthreads_used: %d\n", my_id, nthreads, nthreads_used);
-//      for (k = 0; k < nthreads_used; k++)
-//        fprintf(stderr, "offset_g[%d]: %d, size: %d\n", k, offset_g[k], size_g[k]);
-//    }
 
     *my_u = offset_g[my_id];
     *my_o = offset_g[my_id] + size_g[my_id] - 1;
@@ -3940,19 +3669,12 @@ static void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
       *min_u0a = 0;
     }
   }
-//  fprintf(stderr, "id:%d, %2d %2d %2d %2d\n", my_id, *min_u0a, *max_o0a, *min_u0b, *max_o0b);
 }
 #endif
 
 static void nfft_adjoint_3d_B(nfft_plan *ths)
 {
   int k;
-//  int n0,N0,n1,N1,n2,N2,u,o,M,l,m,K,ip_s,ip_u;
-//  C *fj,*g;
-//  R *psij, *xj, ip_y, ip_w;
-
-//  R *fg_exp_l, fg_psij0, fg_psij1, fg_psij2;
-
   const int N0 = ths->N[0];
   const int n0 = ths->n[0];
   const int N1 = ths->N[1];
@@ -3976,9 +3698,6 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_PSI)
   {
-//      int *ar_x = (int*) nfft_malloc(sizeof(int)*2*M);
-//      nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ar_x);
-
 #ifdef _OPENMP
     if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
@@ -4052,11 +3771,6 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FG_PSI)
   {
-//      int j;
-//      R *psij_const = (R*) nfft_malloc(3*(2*m+2)*sizeof(R));
-//      R *fg_exp_l = (R*) nfft_malloc(3*(2*m+2)*sizeof(R));
-//      C *fj;
-//      R *xj;
     R fg_exp_l[3*(2*m+2)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -4106,18 +3820,12 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(PRE_FG_PSI) */
 
   if(ths->nfft_flags & FG_PSI)
   {
-//      int j;
-//      R *psij_const = (R*) nfft_malloc(3*(2*m+2)*sizeof(R));
-//      R *fg_exp_l = (R*) nfft_malloc(3*(2*m+2)*sizeof(R));
-//      C *fj;
-//      R *xj;
     R fg_exp_l[3*(2*m+2)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
@@ -4173,8 +3881,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
-//      nfft_free(fg_exp_l);
-//      nfft_free(psij_const);
+
     return;
   } /* if(FG_PSI) */
 
@@ -4183,8 +3890,6 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     const int K = ths->K;
     const int ip_s = K / (m + 2);
 
-//    if (ths->nfft_flags & NFFT_SORT_NODES)
-//      nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ths->index_x);
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
@@ -4431,9 +4136,6 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     return;
   } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
-
-//  if (ths->nfft_flags & NFFT_SORT_NODES)
-//    nfft_sort_nodes_for_better_cache_handle_3d(ths->n, m, M, ths->x, ths->index_x);
 
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < M; k++)
