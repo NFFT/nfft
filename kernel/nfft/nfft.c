@@ -986,7 +986,7 @@ static inline int index_x_binary_search(const int *ar_x, const int len, const in
 }
 
 #ifdef _OPENMP
-static inline void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int m)
+static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -1563,25 +1563,27 @@ void nfft_trafo_1d(nfft_plan *ths)
     memset(ths->g_hat, 0, ths->n_total*sizeof(C));
     if(ths->nfft_flags & PRE_PHI_HUT)
     {
+      int k;
       c_phi_inv1 = ths->c_phi_inv[0];
       c_phi_inv2 = &ths->c_phi_inv[0][N2];
 //      FOR(k,N2)
-      FOR_OMP(k,N2,default(shared) private(k))
+      #pragma omp parallel for default(shared) private(k)
+      for (k = 0; k < N2; k++)
       {
         g_hat1[k] = f_hat1[k] * c_phi_inv1[k];
         g_hat2[k] = f_hat2[k] * c_phi_inv2[k];
       }
-      END_FOR
     }
     else
     {
 //      FOR(k,N2)
-      FOR_OMP(k,N2,default(shared) private(k))
+      int k;
+      #pragma omp parallel for default(shared) private(k)
+      for (k = 0; k < N2; k++)
       {
         g_hat1[k] = f_hat1[k] / (PHI_HUT(k-N2,0));
         g_hat2[k] = f_hat2[k] / (PHI_HUT(k,0));
       }
-      END_FOR
     }
     TOC(0)
 
@@ -1623,18 +1625,16 @@ void nfft_adjoint_1d(nfft_plan *ths)
   TIC(0)
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
-#ifndef _OPENMP
       int k;
-#endif
       c_phi_inv1=ths->c_phi_inv[0];
       c_phi_inv2=&ths->c_phi_inv[0][N/2];
 #ifdef _OPENMP
-      FOR_OMP(k,N/2,default(shared) private(k))
+      #pragma omp parallel for default(shared) private(k)
+      for (k = 0; k < N/2; k++)
       {
         f_hat1[k] = g_hat1[k] * c_phi_inv1[k];
         f_hat2[k] = g_hat2[k] * c_phi_inv2[k];
       }
-      END_FOR
 #else
       for(k=0;k<N/2;k++)
   {
@@ -1647,12 +1647,12 @@ void nfft_adjoint_1d(nfft_plan *ths)
   {
     int k;
 #ifdef _OPENMP
-    FOR_OMP(k,N/2,default(shared) private(k))
+    #pragma omp parallel for default(shared) private(k)
+    for (k = 0; k < N/2; k++)
     {
       f_hat1[k] = g_hat1[k] / (PHI_HUT(k-N/2,0));
       f_hat2[k] = g_hat2[k] / (PHI_HUT(k,0));
     }
-    END_FOR
 #else
     for(k=0;k<N/2;k++)
       {
@@ -1960,7 +1960,7 @@ static void nfft_adjoint_2d_compute(const C *fj, C *g,
 
 static void nfft_trafo_2d_B(nfft_plan *ths)
 {
-  //, *psi_index_g,K,ip_s,ip_u;
+//, *psi_index_g,K,ip_s,ip_u;
 //  C *fj,*g;
   const C *g = (C*)ths->g;
 //  R *psij, *xj, ip_y, ip_w;
@@ -2185,7 +2185,7 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 }
 
 #ifdef _OPENMP
-static inline void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int m)
+static void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -3223,7 +3223,7 @@ static void nfft_trafo_3d_compute(C *fj, const C *g,
   }
 }
 
-static inline void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
+static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
             const int n0, const int n1, const int n2, const int m,
@@ -3324,7 +3324,7 @@ if (u0<=o0)
   }
 }
 
-static inline void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
+static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
             const int n0, const int n1, const int n2, const int m)
@@ -3878,7 +3878,7 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 }
 
 #ifdef _OPENMP
-static inline void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int n2, const int m)
+static void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int n2, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -4928,7 +4928,9 @@ static void nfft_precompute_fg_psi(nfft_plan *ths)
 
   for (t=0; t<ths->d; t++)
   {
-    FOR_OMP(j,ths->M_total,default(shared) private(j,u,o))
+    int j;
+    #pragma omp parallel for default(shared) private(j,u,o)
+    for (j = 0; j < ths->M_total; j++)
       {
   nfft_uo(ths,j,&u,&o,t);
 
@@ -4938,7 +4940,6 @@ static void nfft_precompute_fg_psi(nfft_plan *ths)
         ths->psi[2*(j*ths->d+t)+1]=
             EXP(K(2.0)*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);
       } /* for(j) */
-    END_FOR
   }
   /* for(t) */
 } /* nfft_precompute_fg_psi */
@@ -4954,7 +4955,9 @@ void nfft_precompute_psi(nfft_plan *ths)
 
   for (t=0; t<ths->d; t++)
   {
-    FOR_OMP(j,ths->M_total,default(shared) private(j,l,lj,u,o))
+    int j;
+    #pragma omp parallel for default(shared) private(j,l,lj,u,o)
+    for (j = 0; j < ths->M_total; j++)
       {
   nfft_uo(ths,j,&u,&o,t);
 
@@ -4962,7 +4965,6 @@ void nfft_precompute_psi(nfft_plan *ths)
     ths->psi[(j*ths->d+t)*(2*ths->m+2)+lj]=
       (PHI((ths->x[j*ths->d+t]-((R)l)/ths->n[t]),t));
       } /* for(j) */
-    END_FOR
   }
   /* for(t) */
 } /* nfft_precompute_psi */
