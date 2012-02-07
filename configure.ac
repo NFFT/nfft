@@ -108,8 +108,8 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
-AC_ARG_ENABLE(threads, [AC_HELP_STRING([--enable-threads],
-  [enable multithreaded code])], enable_threads=$enableval, enable_threads=no)
+AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
+  [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
 AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
@@ -236,23 +236,12 @@ if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
   AC_MSG_ERROR([You don't seem to have the threaded FFTW 3 library installed.])
 fi
 
-# libdispatch
-ax_lib_dispatch="no"
-AX_LIB_DISPATCH
-if test "x$want_dispatch" = "xyes" -a "x$ax_cv_lib_dispatch" = "xyes"; then
-  ax_lib_dispatch="yes"
-fi
-
-if test "x$enable_threads" = "xno" -a "x$ax_lib_dispatch" = "xyes"; then
-  AC_MSG_ERROR([Threads support needs to be enabled when libdispatch is used.])
-fi
-
 AX_OPENMP
 AM_CONDITIONAL(HAVE_OPENMP, test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xunknown" )
 AC_SUBST(OPENMP_CFLAGS)
 
-if  test "x$enable_threads" = "xyes" -a "x$ax_lib_dispatch" = "xno" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
-  AC_MSG_ERROR([You don't seem to have either a C compiler with OpenMP support or libdispatch installed which is required for threaded NFFT.])
+if  test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+  AC_MSG_ERROR([You don't seem to have a C compiler with OpenMP support installed which is required for threaded NFFT.])
 fi
 
 ################################################################################
@@ -297,11 +286,6 @@ fi
 CFLAGS="$CFLAGS $ac_cv_prog_cc_c99" 
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
-
-# add OpenMP CFLAGS
-#if test "x$enable_threads" = "xyes" -a "x$ax_lib_dispatch" = "xno"; then
-#  CFLAGS="$CFLAGS $OPENMP_CFLAGS"
-#fi
 
 # add Matlab CFLAGS
 if test "x$ax_prog_matlab" = "xyes"; then

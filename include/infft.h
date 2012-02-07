@@ -48,10 +48,6 @@
 #include <inttypes.h> /* uintptr_t, maybe */
 #endif
 
-#if defined(HAVE_LIBDISPATCH)
-#include <dispatch/dispatch.h> /* libdispatch */
-#endif
-
 #include <fftw3.h>
 
 #include "ticks.h"
