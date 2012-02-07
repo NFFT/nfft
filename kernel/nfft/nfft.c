@@ -20,7 +20,7 @@
 
 /* Nonequispaced FFT */
 
-/* Authors: D. Potts, S. Kunis 2002-2009, Jens Keiner 2009 */
+/* Authors: D. Potts, S. Kunis 2002-2009, Jens Keiner 2009, Toni Volkmer 2012 */
 
 /* configure header */
 #include "config.h"
@@ -44,12 +44,30 @@
 #endif
 #include <assert.h>
 
-/* compare function for nodes sorting */
+/**
+ * Compare function for nodes sorting.
+ *
+ * \author Michael Pippig
+ */
+
 static int compare_int(const void* a, const void* b){
   return (*(int*)a <= *(int*)b) ? -1 : 1;
 }
 
-/* sort nodes to get better cache utilization during multiplication with matrix B */
+/**
+ * Sort nodes (index) to get better cache utilization during multiplication
+ * with matrix B.
+ * The resulting index set is written to ar[2*j+1], the nodes array remains
+ * unchanged.
+ *
+ * \arg n FFTW length (number of oversampled in each dimension
+ * \arg m window length
+ * \arg local_x_num number of nodes
+ * \arg local_x nodes array
+ * \arg ar_x resulting index array
+ *
+ * \author Michael Pippig
+ */
 static void nfft_sort_nodes_for_better_cache_handle_1d(
     const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
 {
@@ -66,7 +84,20 @@ static void nfft_sort_nodes_for_better_cache_handle_1d(
   qsort(ar_x, local_x_num, 2*sizeof(int), compare_int);
 }
 
-/* sort nodes to get better cache utilization during multiplication with matrix B */
+/**
+ * Sort nodes (index) to get better cache utilization during multiplication
+ * with matrix B.
+ * The resulting index set is written to ar[2*j+1], the nodes array remains
+ * unchanged.
+ *
+ * \arg n FFTW length (number of oversampled in each dimension
+ * \arg m window length
+ * \arg local_x_num number of nodes
+ * \arg local_x nodes array
+ * \arg ar_x resulting index array
+ *
+ * \author Michael Pippig
+ */
 static void nfft_sort_nodes_for_better_cache_handle_2d(
     const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
 {
@@ -83,7 +114,20 @@ static void nfft_sort_nodes_for_better_cache_handle_2d(
   qsort(ar_x, local_x_num, 2*sizeof(int), compare_int);
 }
 
-/* sort nodes to get better cache utilization during multiplication with matrix B */
+/**
+ * Sort nodes (index) to get better cache utilization during multiplication
+ * with matrix B.
+ * The resulting index set is written to ar[2*j+1], the nodes array remains
+ * unchanged.
+ *
+ * \arg n FFTW length (number of oversampled in each dimension
+ * \arg m window length
+ * \arg local_x_num number of nodes
+ * \arg local_x nodes array
+ * \arg ar_x resulting index array
+ *
+ * \author Michael Pippig
+ */
 static void nfft_sort_nodes_for_better_cache_handle_3d(
     const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
 {
@@ -100,6 +144,20 @@ static void nfft_sort_nodes_for_better_cache_handle_3d(
   qsort(ar_x, local_x_num, 2*sizeof(int), compare_int);
 }
 
+/**
+ * Sort nodes (index) to get better cache utilization during multiplication
+ * with matrix B.
+ * The resulting index set is written to ar[2*j+1], the nodes array remains
+ * unchanged.
+ *
+ * \arg n FFTW length (number of oversampled in each dimension
+ * \arg m window length
+ * \arg local_x_num number of nodes
+ * \arg local_x nodes array
+ * \arg ar_x resulting index array
+ *
+ * \author Michael Pippig
+ */
 static void nfft_sort_nodes_for_better_cache_handle(int d,
     const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
 {
@@ -111,6 +169,20 @@ static void nfft_sort_nodes_for_better_cache_handle(int d,
     nfft_sort_nodes_for_better_cache_handle_3d(n, m, local_x_num, local_x, ar_x);
 }
 
+/**
+ * Sort nodes (index) to get better cache utilization during multiplication
+ * with matrix B.
+ * The resulting index set is written to ar[2*j+1], the nodes array remains
+ * unchanged.
+ *
+ * \arg n FFTW length (number of oversampled in each dimension
+ * \arg m window length
+ * \arg local_x_num number of nodes
+ * \arg local_x nodes array
+ * \arg ar_x resulting index array
+ *
+ * \author Michael Pippig
+ */
 static void nfft_sort_nodes(const nfft_plan *ths)
 {
   if (ths->nfft_flags & NFFT_SORT_NODES)
@@ -826,6 +898,7 @@ static void nfft_adjoint_1d_compute(const C *fj, C *g,const R *psij_const,
 }
 
 #ifdef _OPENMP
+/* adjoint NFFT one-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
   const R *xj, const int n, const int m)
 {
@@ -854,6 +927,21 @@ static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
 #endif
 
 #ifdef _OPENMP
+/** 
+ * Adjoint NFFT one-dimensional case updating only a specified range of
+ * vector g.
+ *
+ * \arg fg input coefficient f[j]
+ * \arg g output vector g
+ * \arg psij_const vector of window function values
+ * \arg xj node x[j]
+ * \arg n FFTW length (number oversampled Fourier coefficients)
+ * \arg m window length
+ * \arg my_u lowest index the current thread writes to in g 
+ * \arg my_o highest index the current thread writes to in g 
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
   const R *xj, const int n, const int m, const int my_u, const int my_o)
 {
@@ -1061,6 +1149,21 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
   }
 }
 
+/**
+ * Performs binary search in sorted index array and returns the offset of the
+ * specified key.
+ * If the key is not unique, the index of the left-most element with the
+ * requested key is returned.
+ * If the index array does not contain the key, the index of the next-largest
+ * element is returned.
+ *
+ * \arg ar_x sorted index array containing the key at offset 2*k
+ * and the nodes index at offset 2*k+1
+ * \arg len number of nodes x
+ * \arg key the key value
+ *
+ * \author Toni Volkmer
+ */
 static inline int index_x_binary_search(const int *ar_x, const int len, const int key)
 {
   int left = 0, right = len - 1;
@@ -1084,6 +1187,20 @@ static inline int index_x_binary_search(const int *ar_x, const int len, const in
 }
 
 #ifdef _OPENMP
+/**
+ * Determines the blocks of vector g the current thread is responsible of.
+ *
+ * \arg my_u lowest index the current threads writes to in g
+ * \arg my_o highest index the current threads writes to in g
+ * \arg min_u0a lowest index u which could lead to writing to g
+ * \arg max_o0a highest index o which could lead to writing to g
+ * \arg min_u0b lowest index u which could lead to writing to g
+ * \arg max_o0b highest index o which could lead to writing to g
+ * \arg n0 FFTW length first component
+ * \arg m window length
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int m)
 {
   int k;
@@ -1153,6 +1270,14 @@ static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
 }
 #endif
 
+/**
+ * Calculates adjoint NFFT for flag PRE_FULL_PSI.
+ * Parallel calculation (OpenMP) with atomic operations.
+ *
+ * \arg lprod stride (2*m+2)^d
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_B_compute_full_psi(
     C *g, const int *psi_index_g, const R *psi, const C *f,
     const int M, const int lprod, const int nfft_flags, const int *index_x)
@@ -1942,6 +2067,7 @@ static void nfft_trafo_2d_compute(C *fj, const C *g,
 }
 
 #ifdef _OPENMP
+/* adjoint NFFT two-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1,
             const R *xj0, const R *xj1,
@@ -1982,6 +2108,24 @@ static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
 #endif
 
 #ifdef _OPENMP
+/** 
+ * Adjoint NFFT two-dimensional case updating only a specified range of
+ * vector g.
+ *
+ * \arg fg input coefficient f[j]
+ * \arg g output vector g
+ * \arg psij_const0 vector of window function values first component
+ * \arg psij_const1 vector of window function values second component
+ * \arg xj0 node x[2*j]
+ * \arg xj1 node x[2*j+1]
+ * \arg n0 FFTW length (number oversampled Fourier coefficients) first comp.
+ * \arg n1 FFTW length (number oversampled Fourier coefficients) second comp.
+ * \arg m window length
+ * \arg my_u0 lowest index (first component) the current thread writes to
+ * \arg my_o0 highest index (second component) the current thread writes to
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1,
             const R *xj0, const R *xj1,
@@ -2320,6 +2464,21 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 }
 
 #ifdef _OPENMP
+/**
+ * Determines the blocks of vector g the current thread is responsible of.
+ *
+ * \arg my_u lowest index (first component) the current threads writes to in g
+ * \arg my_o highest index (first component) the current threads writes to in g
+ * \arg min_u0a lowest (linear 2d) index u which could lead to writing to g
+ * \arg max_o0a highest (linear 2d) index o which could lead to writing to g
+ * \arg min_u0b lowest (linear 2d) index u which could lead to writing to g
+ * \arg max_o0b highest (linear 2d) index o which could lead to writing to g
+ * \arg n0 FFTW length first component
+ * \arg n1 FFTW length second component
+ * \arg m window length
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int m)
 {
   int k;
@@ -3523,6 +3682,27 @@ static void nfft_trafo_3d_compute(C *fj, const C *g,
 }
 
 #ifdef _OPENMP
+/** 
+ * Adjoint NFFT three-dimensional case updating only a specified range of
+ * vector g.
+ *
+ * \arg fg input coefficient f[j]
+ * \arg g output vector g
+ * \arg psij_const0 vector of window function values first component
+ * \arg psij_const1 vector of window function values second component
+ * \arg psij_const2 vector of window function values third component
+ * \arg xj0 node x[3*j]
+ * \arg xj1 node x[3*j+1]
+ * \arg xj2 node x[3*j+2]
+ * \arg n0 FFTW length (number oversampled Fourier coefficients) first comp.
+ * \arg n1 FFTW length (number oversampled Fourier coefficients) second comp.
+ * \arg n2 FFTW length (number oversampled Fourier coefficients) third comp.
+ * \arg m window length
+ * \arg my_u0 lowest index (first component) the current thread writes to
+ * \arg my_o0 highest index (second component) the current thread writes to
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
@@ -3626,6 +3806,7 @@ if (u0<=o0)
 #endif
 
 #ifdef _OPENMP
+/* adjoint NFFT three-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
@@ -4142,6 +4323,22 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 }
 
 #ifdef _OPENMP
+/**
+ * Determines the blocks of vector g the current thread is responsible of.
+ *
+ * \arg my_u lowest index (first component) the current threads writes to in g
+ * \arg my_o highest index (first component) the current threads writes to in g
+ * \arg min_u0a lowest (linear 3d) index u which could lead to writing to g
+ * \arg max_o0a highest (linear 3d) index o which could lead to writing to g
+ * \arg min_u0b lowest (linear 3d) index u which could lead to writing to g
+ * \arg max_o0b highest (linear 3d) index o which could lead to writing to g
+ * \arg n0 FFTW length first component
+ * \arg n1 FFTW length second component
+ * \arg n2 FFTW length third component
+ * \arg m window length
+ *
+ * \author Toni Volkmer
+ */
 static void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int n2, const int m)
 {
   int k;
