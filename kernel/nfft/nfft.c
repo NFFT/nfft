@@ -376,6 +376,38 @@ void nfft_adjoint_direct (nfft_plan *ths)
   {
     /* multivariate case */
     int j;
+#ifdef _OPENMP
+    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    {
+      #pragma omp parallel default(shared)
+      {
+        int k_L;
+        int t, k[ths->d];
+
+        for (t = 0; t < ths->d; t++)
+          k[t] = -ths->N[t]/2;
+
+        #pragma omp for private(k_L,j,t,k)
+        for(k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          f_hat[k_L] = 0.0;
+          for (j = 0; j < ths->M_total; j++)
+          {
+            R omega = 0.0;
+            for (t = 0; t < ths->d; t++)
+              omega += k[t] * ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j*ths->d+t];
+            f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
+
+            for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
+              k[t]-= ths->N[t]-1;
+
+            k[t]++;
+          }
+        }
+      }
+      return;
+    }
+#else
     memset(f_hat,0,ths->N_total*sizeof(C));
 
     #pragma omp parallel for default(shared) private(j)
@@ -404,6 +436,7 @@ void nfft_adjoint_direct (nfft_plan *ths)
 #else
         f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
 #endif
+
         for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
           k[t]-= ths->N[t]-1;
 
@@ -415,6 +448,7 @@ void nfft_adjoint_direct (nfft_plan *ths)
         omega = Omega[ths->d];
       }
     }
+#endif
   }
 }
 
@@ -1188,7 +1222,97 @@ static inline int index_x_binary_search(const int *ar_x, const int len, const in
 
 #ifdef _OPENMP
 /**
- * Determines the blocks of vector g the current thread is responsible of.
+ * Determines the blocks of vector g the current thread is responsible for.
+ *
+ * \arg my_u lowest index (first component) the current threads writes to in g
+ * \arg my_o highest index (first component) the current threads writes to in g
+ * \arg min_u0a lowest (linearized) index u which could lead to writing to g
+ * \arg max_o0a highest (linearized) index o which could lead to writing to g
+ * \arg min_u0b lowest (linearized) index u which could lead to writing to g
+ * \arg max_o0b highest (linearized) index o which could lead to writing to g
+ * \arg d dimensionality
+ * \arg n FFTW length
+ * \arg m window length
+ *
+ * \author Toni Volkmer
+ */
+static void nfft_adjoint_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int d, const int *n, const int m)
+{
+  const int n0 = n[0];
+  int k;
+  int nthreads = omp_get_num_threads();
+  int nthreads_used = MIN(nthreads, n0);
+  int size_per_thread = n0 / nthreads_used;
+  int size_left = n0 - size_per_thread * nthreads_used;
+  int size_g[nthreads_used];
+  int offset_g[nthreads_used];
+  int my_id = omp_get_thread_num();
+  int n_prod_rest = 1;
+
+  for (k = 1; k < d; k++)
+    n_prod_rest *= n[k];
+
+  *min_u0a = -1;
+  *max_o0a = -1;
+  *min_u0b = -1;
+  *max_o0b = -1;
+  *my_u = -1;
+  *my_o = -1;
+
+  if (my_id < nthreads_used)
+  {
+    const int m22 = 2 * m + 2;
+
+    offset_g[0] = 0;
+    for (k = 0; k < nthreads_used; k++)
+    {
+      if (k > 0)
+        offset_g[k] = offset_g[k-1] + size_g[k-1];
+      size_g[k] = size_per_thread;
+      if (size_left > 0)
+      {
+        size_g[k]++;
+        size_left--;
+      }
+    }
+
+    *my_u = offset_g[my_id];
+    *my_o = offset_g[my_id] + size_g[my_id] - 1;
+
+    if (nthreads_used > 1)
+    {
+      *max_o0a = n_prod_rest*(offset_g[my_id] + size_g[my_id]) - 1;
+      *min_u0a = n_prod_rest*(offset_g[my_id] - m22 + 1);
+    }
+    else
+    {
+      *min_u0a = 0;
+      *max_o0a = n_prod_rest * n0 - 1;
+    }
+
+    if (*min_u0a < 0)
+    {
+      *min_u0b = n_prod_rest * (offset_g[my_id] - m22 + 1 + n0);
+      *max_o0b = n_prod_rest * n0 - 1;
+      *min_u0a = 0;
+    }
+
+    if (*min_u0b != -1 && *min_u0b <= *max_o0a)
+    {
+      *max_o0a = *max_o0b;
+      *min_u0b = -1;
+      *max_o0b = -1;
+    }
+    assert(*min_u0a <= *max_o0a);
+    assert(*min_u0b <= *max_o0b);
+    assert(*min_u0b == -1 || *max_o0a < *min_u0b);
+  }
+}
+#endif
+
+#ifdef _OPENMP
+/**
+ * Determines the blocks of vector g the current thread is responsible for.
  *
  * \arg my_u lowest index the current threads writes to in g
  * \arg my_o highest index the current threads writes to in g
@@ -1201,7 +1325,7 @@ static inline int index_x_binary_search(const int *ar_x, const int len, const in
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int m)
+static void nfft_adjoint_1d_B_omp3_init_(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -1280,9 +1404,107 @@ static void nfft_adjoint_1d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int 
  */
 static void nfft_adjoint_B_compute_full_psi(
     C *g, const int *psi_index_g, const R *psi, const C *f,
-    const int M, const int lprod, const int nfft_flags, const int *index_x)
+    const int M, const int d, const int *n, const int m, const int nfft_flags, const int *index_x)
 {
   int k;
+  int lprod, lprod_m1;
+  {
+    int t;
+    for(t = 0, lprod = 1; t < d; t++)
+        lprod *= 2 * m + 2;
+  }
+  lprod_m1 = lprod / (2 * m + 2);
+
+#ifdef _OPENMP
+  if (nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+  {
+    #pragma omp parallel private(k)
+    {
+      int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
+      const int *ar_x = index_x;
+      int n_prod_rest = 1;
+
+      for (k = 1; k < d; k++)
+        n_prod_rest *= n[k];
+
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, d, n, m);
+//fprintf(stderr, "%d: my_u=%d, my_o=%d, min_u0a=%d, max_o0a=%d, min_u0b=%d, max_o0b=%d\n", omp_get_thread_num(), my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b);
+      if (min_u0a != -1)
+      {
+        k = index_x_binary_search(ar_x, M, min_u0a);
+#ifdef OMP_ASSERT
+        assert(ar_x[2*k] >= min_u0a || k == M-1);
+        if (k > 0)
+          assert(ar_x[2*k-2] < min_u0a);
+#endif
+        while (k < M)
+        {
+          int l0, lrest;
+          int u_prod = ar_x[2*k];
+          int j = ar_x[2*k+1];
+//fprintf(stderr, "%d: k=%d, u_prod=%d, j=%d\n", omp_get_thread_num(), k, u_prod, j);
+          if (u_prod < min_u0a || u_prod > max_o0a)
+            break;
+
+          for (l0 = 0; l0 < 2 * m + 2; l0++)
+          {
+            const int start_index = psi_index_g[j * lprod + l0 * lprod_m1];
+//fprintf(stderr, "%d: l0=%d, start_index=%d, %d, %d\n", omp_get_thread_num(), l0, start_index, my_u * n_prod_rest, (my_o+1) * n_prod_rest - 1);
+//            if (start_index < min_u0a || start_index > max_o0a)
+            if (start_index < my_u * n_prod_rest || start_index > (my_o+1) * n_prod_rest - 1)
+              continue;
+//fprintf(stderr, "lprod_m1=%d\n", lprod_m1);
+            for (lrest = 0; lrest < lprod_m1; lrest++)
+            {
+              const int l = l0 * lprod_m1 + lrest;
+//fprintf(stderr, "%d: j=%d, l=%d, g[%d]\n", omp_get_thread_num(), j, l, psi_index_g[j * lprod + l]);
+//              fprintf(stderr, "%d: g[%2d] += %.16e\n", omp_get_thread_num(), psi_index_g[j * lprod + l], psi[j * lprod + l] * f[j]);
+              g[psi_index_g[j * lprod + l]] += psi[j * lprod + l] * f[j];
+            }
+          }
+
+          k++;
+        }
+      }
+
+      if (min_u0b != -1)
+      {
+        k = index_x_binary_search(ar_x, M, min_u0b);
+#ifdef OMP_ASSERT
+        assert(ar_x[2*k] >= min_u0b || k == M-1);
+        if (k > 0)
+          assert(ar_x[2*k-2] < min_u0b);
+#endif
+        while (k < M)
+        {
+          int l0, lrest;
+          int u_prod = ar_x[2*k];
+          int j = ar_x[2*k+1];
+
+          if (u_prod < min_u0b || u_prod > max_o0b)
+            break;
+
+          for (l0 = 0; l0 < 2 * m + 2; l0++)
+          {
+            const int start_index = psi_index_g[j * lprod + l0 * lprod_m1];
+//            if (start_index < min_u0b || start_index > max_o0b)
+	    if (start_index < my_u * n_prod_rest || start_index > (my_o+1) * n_prod_rest - 1)
+              continue;
+            for (lrest = 0; lrest < lprod_m1; lrest++)
+            {
+              const int l = l0 * lprod_m1 + lrest;
+              g[psi_index_g[j * lprod + l]] += psi[j * lprod + l] * f[j];
+            }
+          }
+
+          k++;
+        }
+      }
+    } /* omp parallel */
+    return;
+  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+#endif
+
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < M; k++)
   {
@@ -1318,9 +1540,11 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
 
   if (ths->nfft_flags & PRE_FULL_PSI)
   {
-    const int lprod = 2*m+2;
+//    const int lprod = 2*m+2;
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
-        lprod, ths->nfft_flags, ths->index_x);
+        1, ths->n, m, ths->nfft_flags, ths->index_x);
+//    for (k=0; k < n; k++)
+//      fprintf(stderr, "g[%d] = %.16e\n", k, ths->g[k]);
     return;
   } /* if(PRE_FULL_PSI) */
 
@@ -1334,7 +1558,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 1, &n, m);
 
         if (min_u0a != -1)
         {
@@ -1413,7 +1637,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         int *ar_x = ths->index_x;
         R psij_const[2 * m + 2];
 
-        nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 1, &n, m);
 
         if (min_u0a != -1)
         {
@@ -1532,7 +1756,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         R psij_const[2 * m + 2];
         R fg_psij0, fg_psij1, fg_psij2;
 
-        nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 1, &n, m);
 
         if (min_u0a != -1)
         {
@@ -1654,7 +1878,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         int ip_u;
         R ip_y, ip_w;
 
-        nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 1, &n, m);
 
         if (min_u0a != -1)
         {
@@ -1766,7 +1990,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2 * m + 2];
 
-      nfft_adjoint_1d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n, m);
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 1, &n, m);
 
       if (min_u0a != -1)
       {
@@ -1862,6 +2086,7 @@ void nfft_trafo_1d(nfft_plan *ths)
     R *c_phi_inv1, *c_phi_inv2;
 
     TIC(0)
+    //TODO remove memset
     memset(ths->g_hat, 0, ths->n_total*sizeof(C));
     if(ths->nfft_flags & PRE_PHI_HUT)
     {
@@ -2465,7 +2690,7 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
 
 #ifdef _OPENMP
 /**
- * Determines the blocks of vector g the current thread is responsible of.
+ * Determines the blocks of vector g the current thread is responsible for.
  *
  * \arg my_u lowest index (first component) the current threads writes to in g
  * \arg my_o highest index (first component) the current threads writes to in g
@@ -2479,7 +2704,7 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_2d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int m)
+static void nfft_adjoint_2d_B_omp3_init_(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -2563,9 +2788,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FULL_PSI)
   {
-    const int lprod = (2*m+2) * (2*m+2);
+//    const int lprod = (2*m+2) * (2*m+2);
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
-        lprod, ths->nfft_flags, ths->index_x);
+        2, ths->n, m, ths->nfft_flags, ths->index_x);
     return;
   } /* if(PRE_FULL_PSI) */
 
@@ -2579,7 +2804,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
         int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 2, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -2659,7 +2884,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       R psij_const[2*(2*m+2)];
       R fg_psij0, fg_psij1, fg_psij2;
 
-      nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 2, ths->n, m);
 
       if (min_u0a != -1)
       {
@@ -2808,7 +3033,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       R psij_const[2*(2*m+2)];
       R fg_psij0, fg_psij1, fg_psij2;
 
-      nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 2, ths->n, m);
 
       if (min_u0a != -1)
       {
@@ -2960,7 +3185,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
         int *ar_x = ths->index_x;
         R psij_const[2*(2*m+2)];
 
-        nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 2, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -3094,7 +3319,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2*(2*m+2)];
 
-      nfft_adjoint_2d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, m);
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 2, ths->n, m);
 
       if (min_u0a != -1)
       {
@@ -3207,6 +3432,7 @@ void nfft_trafo_2d(nfft_plan *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(0)
+  // TODO remove memset
   memset(ths->g_hat,0,ths->n_total*sizeof(C));
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
@@ -4324,7 +4550,7 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
 
 #ifdef _OPENMP
 /**
- * Determines the blocks of vector g the current thread is responsible of.
+ * Determines the blocks of vector g the current thread is responsible for.
  *
  * \arg my_u lowest index (first component) the current threads writes to in g
  * \arg my_o highest index (first component) the current threads writes to in g
@@ -4339,7 +4565,7 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_3d_B_omp3_init(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int n2, const int m)
+static void nfft_adjoint_3d_B_omp3_init_(int *my_u, int *my_o, int *min_u0a, int *max_o0a, int *min_u0b, int *max_o0b, const int n0, const int n1, const int n2, const int m)
 {
   int k;
   int nthreads = omp_get_num_threads();
@@ -4426,9 +4652,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FULL_PSI)
   {
-    const int lprod = (2*m+2) * (2*m+2) * (2*m+2);
+//    const int lprod = (2*m+2) * (2*m+2) * (2*m+2);
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
-        lprod, ths->nfft_flags, ths->index_x);
+        3, ths->n, m, ths->nfft_flags, ths->index_x);
     return;
   } /* if(PRE_FULL_PSI) */
 
@@ -4442,7 +4668,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
         int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_3d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, n2, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 3, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -4521,7 +4747,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
         int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_3d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, n2, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 3, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -4700,7 +4926,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
         int my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_3d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, n2, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 3, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -4891,7 +5117,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
         R ip_y, ip_w;
         R psij_const[3*(2*m+2)];
 
-        nfft_adjoint_3d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, n2, m);
+        nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 3, ths->n, m);
 
         if (min_u0a != -1)
         {
@@ -5047,7 +5273,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[3*(2*m+2)];
 
-      nfft_adjoint_3d_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, n0, n1, n2, m);
+      nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, 3, ths->n, m);
 
       if (min_u0a != -1)
       {
@@ -5176,6 +5402,7 @@ void nfft_trafo_3d(nfft_plan *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(0)
+  // TODO remove memset
   memset(ths->g_hat,0,ths->n_total*sizeof(C));
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
