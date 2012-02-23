@@ -39,7 +39,7 @@
 #include <omp.h>
 #endif
 
-#undef OMP_ASSERT
+#define OMP_ASSERT
 #ifdef OMP_ASSERT
 #endif
 #include <assert.h>
@@ -60,7 +60,7 @@ static int compare_int(const void* a, const void* b){
  * The resulting index set is written to ar[2*j+1], the nodes array remains
  * unchanged.
  *
- * \arg n FFTW length (number of oversampled in each dimension
+ * \arg n FFTW length (number of oversampled in each dimension)
  * \arg m window length
  * \arg local_x_num number of nodes
  * \arg local_x nodes array
@@ -90,7 +90,7 @@ static void nfft_sort_nodes_for_better_cache_handle_1d(
  * The resulting index set is written to ar[2*j+1], the nodes array remains
  * unchanged.
  *
- * \arg n FFTW length (number of oversampled in each dimension
+ * \arg n FFTW length (number of oversampled in each dimension)
  * \arg m window length
  * \arg local_x_num number of nodes
  * \arg local_x nodes array
@@ -120,7 +120,7 @@ static void nfft_sort_nodes_for_better_cache_handle_2d(
  * The resulting index set is written to ar[2*j+1], the nodes array remains
  * unchanged.
  *
- * \arg n FFTW length (number of oversampled in each dimension
+ * \arg n FFTW length (number of oversampled in each dimension)
  * \arg m window length
  * \arg local_x_num number of nodes
  * \arg local_x nodes array
@@ -144,29 +144,63 @@ static void nfft_sort_nodes_for_better_cache_handle_3d(
   qsort(ar_x, local_x_num, 2*sizeof(int), compare_int);
 }
 
+#define SORT_RADIX
+
 /**
  * Sort nodes (index) to get better cache utilization during multiplication
  * with matrix B.
  * The resulting index set is written to ar[2*j+1], the nodes array remains
  * unchanged.
  *
- * \arg n FFTW length (number of oversampled in each dimension
+ * \arg n FFTW length (number of oversampled in each dimension)
  * \arg m window length
  * \arg local_x_num number of nodes
  * \arg local_x nodes array
  * \arg ar_x resulting index array
  *
- * \author Michael Pippig
+ * \author Toni Volkmer
  */
 static void nfft_sort_nodes_for_better_cache_handle(int d,
     const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
 {
+#ifdef SORT_RADIX
+  int u_j[d], i, j, help, rhigh;
+  int *ar_x_temp;
+  int nprod;
+
+  for(i = 0; i < local_x_num; i++) {
+    ar_x[2*i] = 0;
+    ar_x[2*i+1] = i;
+    for(j = 0; j < d; j++) {
+      help = floor( n[j]*local_x[d*i+j] - m);
+      u_j[j] = (help%n[j]+n[j])%n[j];
+
+      ar_x[2*i] += u_j[j];
+      if (j+1 < d)
+        ar_x[2*i] *= n[j+1];
+    }
+  }
+
+  for (j = 0, nprod = 1; j < d; j++)
+    nprod *= n[j];
+
+  rhigh = ceil(log2(nprod)) - 1;
+
+  ar_x_temp = (int *) nfft_malloc(2*local_x_num*sizeof(int));
+  nfft_sort_node_indices_radix_lsdf(local_x_num, ar_x, ar_x_temp, rhigh);
+#ifdef OMP_ASSERT
+  for (i = 1; i < local_x_num; i++)
+    assert(ar_x[2*(i-1)] <= ar_x[2*i]);
+#endif
+  nfft_free(ar_x_temp);
+#else
   if (d == 1)
     nfft_sort_nodes_for_better_cache_handle_1d(n, m, local_x_num, local_x, ar_x);
   else if (d == 2)
     nfft_sort_nodes_for_better_cache_handle_2d(n, m, local_x_num, local_x, ar_x);
   else if (d == 3)
     nfft_sort_nodes_for_better_cache_handle_3d(n, m, local_x_num, local_x, ar_x);
+#endif
 }
 
 /**
@@ -297,6 +331,8 @@ void nfft_trafo_direct (nfft_plan *ths)
 {
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
 
+  memset(f,0,ths->M_total*sizeof(C));
+
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
@@ -305,10 +341,10 @@ void nfft_trafo_direct (nfft_plan *ths)
     for (j = 0; j < ths->M_total; j++)
     {
       int k_L;
-      f[j] = 0.0;
+//      f[j] = 0.0;
       for(k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = (k_L - (ths->N_total/2)) * ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j];
+        R omega = (k_L - ths->N_total/2) * K2PI * ths->x[j];
         f[j] += f_hat[k_L]*cexp(-( 1.0iF)*omega);
       }
     }
@@ -322,12 +358,12 @@ void nfft_trafo_direct (nfft_plan *ths)
     {
       R x[ths->d], omega, Omega[ths->d+1];
       int t, t2, k_L, k[ths->d];
-      f[j] = 0.0;
+//      f[j] = 0.0;
       Omega[0] = ((R) 0.0);
       for (t = 0; t < ths->d; t++)
       {
         k[t] = -ths->N[t]/2;
-        x[t] = ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j*ths->d+t];
+        x[t] = K2PI*ths->x[j*ths->d+t];
         Omega[t+1] = k[t]*x[t] + Omega[t];
       }
       omega = Omega[ths->d];
@@ -356,21 +392,36 @@ void nfft_adjoint_direct (nfft_plan *ths)
 {
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
 
+  memset(f_hat,0,ths->N_total*sizeof(C));
+
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
-    int k_L;
-    #pragma omp parallel for default(shared) private(k_L)
-    for(k_L = 0; k_L < ths->N_total; k_L++)
-    {
+#ifdef _OPENMP
+      int k_L;
+      #pragma omp parallel for default(shared) private(k_L)
+      for(k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        int j;
+//        f_hat[k_L] = 0.0;
+        for (j = 0; j < ths->M_total; j++)
+        {
+          R omega = (k_L - (ths->N_total/2)) * K2PI * ths->x[j];
+          f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
+        }
+      }
+#else
       int j;
-      f_hat[k_L] = 0.0;
       for (j = 0; j < ths->M_total; j++)
       {
-        R omega = (k_L - (ths->N_total/2)) * ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j];
-        f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
+        int k_L;
+        for(k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          R omega = (k_L - (ths->N_total/2)) * K2PI * ths->x[j];
+          f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
+        }
       }
-    }
+#endif
   }
   else
   {
@@ -390,12 +441,12 @@ void nfft_adjoint_direct (nfft_plan *ths)
         #pragma omp for private(k_L,j,t,k)
         for(k_L = 0; k_L < ths->N_total; k_L++)
         {
-          f_hat[k_L] = 0.0;
+//          f_hat[k_L] = 0.0;
           for (j = 0; j < ths->M_total; j++)
           {
             R omega = 0.0;
             for (t = 0; t < ths->d; t++)
-              omega += k[t] * ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j*ths->d+t];
+              omega += k[t] * K2PI * ths->x[j*ths->d+t];
             f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
 
             for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
@@ -408,8 +459,6 @@ void nfft_adjoint_direct (nfft_plan *ths)
       return;
     }
 #else
-    memset(f_hat,0,ths->N_total*sizeof(C));
-
     #pragma omp parallel for default(shared) private(j)
     for (j = 0; j < ths->M_total; j++)
     {
@@ -419,7 +468,7 @@ void nfft_adjoint_direct (nfft_plan *ths)
       for (t = 0; t < ths->d; t++)
       {
         k[t] = -ths->N[t]/2;
-        x[t] = ((R) K(6.2831853071795864769252867665590057683943387987502))*ths->x[j*ths->d+t];
+        x[t] = K2PI * ths->x[j*ths->d+t];
         Omega[t+1] = k[t]*x[t] + Omega[t];
       }
       omega = Omega[ths->d];
