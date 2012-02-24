@@ -341,7 +341,6 @@ void nfft_trafo_direct (nfft_plan *ths)
     for (j = 0; j < ths->M_total; j++)
     {
       int k_L;
-//      f[j] = 0.0;
       for(k_L = 0; k_L < ths->N_total; k_L++)
       {
         R omega = (k_L - ths->N_total/2) * K2PI * ths->x[j];
@@ -358,7 +357,6 @@ void nfft_trafo_direct (nfft_plan *ths)
     {
       R x[ths->d], omega, Omega[ths->d+1];
       int t, t2, k_L, k[ths->d];
-//      f[j] = 0.0;
       Omega[0] = ((R) 0.0);
       for (t = 0; t < ths->d; t++)
       {
@@ -403,7 +401,6 @@ void nfft_adjoint_direct (nfft_plan *ths)
       for(k_L = 0; k_L < ths->N_total; k_L++)
       {
         int j;
-//        f_hat[k_L] = 0.0;
         for (j = 0; j < ths->M_total; j++)
         {
           R omega = (k_L - (ths->N_total/2)) * K2PI * ths->x[j];
@@ -426,44 +423,34 @@ void nfft_adjoint_direct (nfft_plan *ths)
   else
   {
     /* multivariate case */
-    int j;
+    int j, k_L;
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    #pragma omp parallel for default(shared) private(j, k_L)
+    for(k_L = 0; k_L < ths->N_total; k_L++)
     {
-      #pragma omp parallel default(shared)
+      int k[ths->d], k_temp, t;
+
+      k_temp = k_L;
+
+      for (t = ths->d-1; t >= 0; t--)
       {
-        int k_L;
-        int t, k[ths->d];
-
-        for (t = 0; t < ths->d; t++)
-          k[t] = -ths->N[t]/2;
-
-        #pragma omp for private(k_L,j,t,k)
-        for(k_L = 0; k_L < ths->N_total; k_L++)
-        {
-//          f_hat[k_L] = 0.0;
-          for (j = 0; j < ths->M_total; j++)
-          {
-            R omega = 0.0;
-            for (t = 0; t < ths->d; t++)
-              omega += k[t] * K2PI * ths->x[j*ths->d+t];
-            f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
-
-            for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
-              k[t]-= ths->N[t]-1;
-
-            k[t]++;
-          }
-        }
+        k[t] = k_temp % ths->N[t] - ths->N[t]/2;
+        k_temp /= ths->N[t];
       }
-      return;
+
+      for (j = 0; j < ths->M_total; j++)
+      {
+        R omega = 0.0;
+        for (t = 0; t < ths->d; t++)
+          omega += k[t] * K2PI * ths->x[j*ths->d+t];
+        f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
+      }
     }
 #else
-    #pragma omp parallel for default(shared) private(j)
     for (j = 0; j < ths->M_total; j++)
     {
       R x[ths->d], omega, Omega[ths->d+1];
-      int t, t2, k_L, k[ths->d];
+      int t, t2, k[ths->d];
       Omega[0] = ((R) 0.0);
       for (t = 0; t < ths->d; t++)
       {
@@ -474,17 +461,7 @@ void nfft_adjoint_direct (nfft_plan *ths)
       omega = Omega[ths->d];
       for(k_L = 0; k_L < ths->N_total; k_L++)
       {
-#ifdef _OPENMP
-        C *lhs = f_hat + k_L;
-        R *lhs_real = (R*) lhs;
-        C incr = f[j]*cexp(+( 1.0iF)*omega);
-        #pragma omp atomic
-        lhs_real[0] += creal(incr);
-        #pragma omp atomic
-        lhs_real[1] += cimag(incr);
-#else
         f_hat[k_L] += f[j]*cexp(+( 1.0iF)*omega);
-#endif
 
         for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
           k[t]-= ths->N[t]-1;
