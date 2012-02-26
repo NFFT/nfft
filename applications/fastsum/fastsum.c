@@ -742,6 +742,7 @@ void fastsum_exact(fastsum_plan *ths)
   int t;
   double r;
 
+  #pragma omp parallel for default(shared) private(j,k,t,r)
   for (j=0; j<ths->M_total; j++)
   {
     ths->f[j]=0.0;
@@ -780,9 +781,11 @@ void fastsum_precompute(fastsum_plan *ths)
   if (!(ths->flags & EXACT_NEARFIELD))
   {
     if (ths->d==1)
+      #pragma omp parallel for default(shared) private(k)
       for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
         ths->Add[k+ths->Ad/2+2] = regkern1(ths->k, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
     else
+      #pragma omp parallel for default(shared) private(k)
       for (k=0; k <= ths->Ad+2; k++)
         ths->Add[k] = regkern3(ths->k, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
   }
@@ -827,6 +830,7 @@ void fastsum_precompute(fastsum_plan *ths)
   for (t=0; t<ths->d; t++)
     n_total *= ths->n;
 
+  #pragma omp parallel for default(shared) private(j,k,t)
   for (j=0; j<n_total; j++)
   {
     if (ths->d==1)
@@ -847,22 +851,18 @@ void fastsum_precompute(fastsum_plan *ths)
   nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
   fftw_execute(ths->fft_plan);
   nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
-
 }
 
 /** fast NFFT-based summation */
 void fastsum_trafo(fastsum_plan *ths)
 {
   int j,k,t;
-  double *ymin, *ymax;   /** limits for d-dimensional near field box */
-
-  ymin = (double *)nfft_malloc(ths->d*(sizeof(double)));
-  ymax = (double *)nfft_malloc(ths->d*(sizeof(double)));
 
   /** first step of algorithm */
   nfft_adjoint(&(ths->mv1));
 
   /** second step of algorithm */
+  #pragma omp parallel for default(shared) private(k)
   for (k=0; k<ths->mv2.N_total; k++)
     ths->mv2.f_hat[k] = ths->b[k] * ths->mv1.f_hat[k];
 
@@ -870,8 +870,10 @@ void fastsum_trafo(fastsum_plan *ths)
   nfft_trafo(&(ths->mv2));
 
   /** add near field */
+  #pragma omp parallel for default(shared) private(j,k,t)
   for (j=0; j<ths->M_total; j++)
   {
+    double ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
 #if defined(NF_ST)
     for (t=0; t<ths->d; t++)
     {
