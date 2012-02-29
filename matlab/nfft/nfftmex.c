@@ -124,6 +124,7 @@ static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 
 static inline int mkplan(void)
 {
+	mexLock();
   int i = 0;
   while (i < PLANS_MAX && plans[i] != 0) i++;
   if (i == PLANS_MAX)
@@ -135,6 +136,7 @@ static inline int mkplan(void)
 /* cleanup on mex function unload */
 static void cleanup(void)
 {
+	mexUnlock();
   int i;
 
   if (!(gflags & NFFT_MEX_FIRST_CALL))
