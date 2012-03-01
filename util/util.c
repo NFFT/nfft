@@ -1461,3 +1461,19 @@ void nfft_sort_node_indices_radix_msdf(int n, int *keys0, int *keys1, int rhigh)
     }
   }
 }
+
+#ifdef _OPENMP
+int nfft_get_omp_num_threads()
+{
+  int nthreads;
+  #pragma omp parallel default(shared)
+  {
+    int n = omp_get_num_threads();
+    #pragma omp master
+    {
+      nthreads = n;
+    }
+  }
+  return nthreads;
+}
+#endif

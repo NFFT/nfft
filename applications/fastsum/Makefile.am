@@ -23,7 +23,9 @@ if HAVE_THREADS
   libfastsum_threads_la_SOURCES = fastsum.c fastsum.h kernels.h
   libfastsum_threads_la_LIBADD = @fftw3_threads_LIBS@
   libfastsum_threads_la_LDFLAGS = @fftw3_threads_LDFLAGS@
+if HAVE_OPENMP
   libfastsum_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
 endif
 
 fastsum_test_SOURCES = fastsum_test.c
@@ -35,7 +37,9 @@ fastsum_matlab_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la
 if HAVE_THREADS
   fastsum_test_threads_SOURCES = fastsum_test_threads.c
   fastsum_test_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3_threads.la
+if HAVE_OPENMP
   fastsum_test_threads_CFLAGS = $(OPENMP_CFLAGS)
+endif
 endif
 
 EXTRA_DIST = fastsum.m fastsum_test.m README

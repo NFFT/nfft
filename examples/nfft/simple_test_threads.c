@@ -26,6 +26,7 @@
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
 #endif
+#include <omp.h>
 
 #include "nfft3util.h"
 #include "nfft3.h"
@@ -40,10 +41,21 @@ int main(void)
 //  time_t t0, t1;
   ticks t0, t1;
   double t;
+  int nthreads = 1;
+
+  #pragma omp parallel
+  {
+    #pragma omp single
+    {
+      nthreads = omp_get_max_threads();
+    }
+  }
+
+  printf("nthreads = %d\n", nthreads);
 
   /* init */
   fftw_init_threads();
-  fftw_plan_with_nthreads(2);
+  fftw_plan_with_nthreads(nthreads);
 //  fftw_plan_with_nthreads(NFFT_NUM_CORES);
   nfft_init_1d(&p,N,M);
 

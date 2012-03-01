@@ -11,7 +11,6 @@ libnfft_la_SOURCES = nfft.c
 
 if HAVE_THREADS
   libnfft_threads_la_SOURCES = nfft.c
-
 if HAVE_OPENMP
   libnfft_threads_la_CFLAGS = $(OPENMP_CFLAGS)
 endif

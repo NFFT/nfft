@@ -33,7 +33,7 @@ libnfft3_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_L
 
 if HAVE_THREADS
 libnfft3_threads_la_SOURCES =
-libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel_threads.la @fftw3_threads_LIBS@ @fftw3_LIBS@ -lm
+libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil_threads.la kernel/libkernel_threads.la @fftw3_threads_LIBS@ @fftw3_LIBS@ -lm
 libnfft3_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 if HAVE_OPENMP
   libnfft3_threads_la_CFLAGS = $(OPENMP_CFLAGS)

@@ -34,6 +34,10 @@
 #include <complex.h>
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 /* Include NFFT3 utilities header. */
 #include "nfft3util.h"
 
@@ -364,6 +368,18 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     return;
   }
 
+#ifdef _OPENMP
+  #pragma omp parallel default(shared)
+  {
+    int nthreads = omp_get_num_threads();
+    int threadid = omp_get_thread_num();
+    #pragma omp single
+    {
+      wisdom.nthreads = nthreads;
+    }
+  }
+#endif
+
   /* Save the precomputation flags. */
   wisdom.flags = nfsft_flags;
 
@@ -406,6 +422,25 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
     /* Check, if recursion coefficients have already been calculated. */
     if (wisdom.alpha != NULL)
     {
+#ifdef _OPENMP
+      #pragma omp parallel default(shared) private(n)
+      {
+        int nthreads = omp_get_num_threads();
+	int threadid = omp_get_thread_num();
+	#pragma omp single
+	{
+	  wisdom.nthreads = nthreads;
+	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+	}
+
+        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+          fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        for (n = 0; n <= wisdom.N_MAX; n++)
+          fpt_precompute(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
+            &wisdom.beta[ROW(n)], &wisdom.gamma[ROW(n)],n,kappa);
+      }
+
+#else
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
       wisdom.set = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
@@ -418,9 +453,44 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
         fpt_precompute(wisdom.set,n,&wisdom.alpha[ROW(n)],&wisdom.beta[ROW(n)],
           &wisdom.gamma[ROW(n)],n,kappa);
       }
+#endif
     }
     else
     {
+#ifdef _OPENMP
+      #pragma omp parallel default(shared) private(n)
+      {
+        double *alpha, *beta, *gamma;
+        int nthreads = omp_get_num_threads();
+	int threadid = omp_get_thread_num();
+	#pragma omp single
+	{
+	  wisdom.nthreads = nthreads;
+	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+	}
+
+        alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+        beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+        gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+        fpt_flags | FPT_AL_SYMMETRY);
+
+        for (n = 0; n <= wisdom.N_MAX; n++)
+        {
+          alpha_al_row(alpha,wisdom.N_MAX,n);
+          beta_al_row(beta,wisdom.N_MAX,n);
+          gamma_al_row(gamma,wisdom.N_MAX,n);
+
+          /* Precompute data for FPT transformation for order n. */
+          fpt_precompute(wisdom.set_threads[threadid],n,alpha,beta,gamma,n,
+                         kappa);
+        }
+        /* Free auxilliary arrays. */
+        nfft_free(alpha);
+        nfft_free(beta);
+        nfft_free(gamma);
+      }
+#else
     /* Allocate memory for three-term recursion coefficients. */
       wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
@@ -445,6 +515,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       nfft_free(wisdom.alpha);
       nfft_free(wisdom.beta);
       nfft_free(wisdom.gamma);
+#endif
       wisdom.alpha = NULL;
       wisdom.beta = NULL;
       wisdom.gamma = NULL;
@@ -485,8 +556,15 @@ void nfsft_forget(void)
   }
   else if (wisdom.N_MAX >= NFSFT_BREAK_EVEN)
   {
+#ifdef _OPENMP
+    int k;
+    for (k = 0; k < wisdom.nthreads; k++)
+      fpt_finalize(wisdom.set_threads[k]);
+    nfft_free(wisdom.set_threads);
+#else
     /* Free precomputed data for FPT transformation. */
     fpt_finalize(wisdom.set);
+#endif
   }
 
   /* Wisdom is now uninitialised. */
@@ -574,6 +652,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   if (plan->flags & NFSFT_NORMALIZED)
   {
     /* Traverse Fourier coefficients array. */
+    #pragma omp parallel for default(shared) private(k,n)
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
@@ -605,6 +684,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
      *   = \sum_{n=-N}^N \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
      *     e^{i n phi_m}.
      */
+    #pragma omp parallel for default(shared) private(m,stheta,sphi,f_m,n,a,n_abs,alpha,gamma,it2,it1,k,temp)
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
@@ -704,6 +784,51 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   {
     /* N > 0 */
 
+#ifdef _OPENMP
+      /* Traverse all orders n. */
+      #pragma omp parallel for default(shared) private(n,n_abs,alpha,gamma,m,stheta,sphi,it2,it1,k,temp)
+      for (n = -plan->N; n <= plan->N; n++)
+      {
+        /* Take absolute value of n. */
+        n_abs = abs(n);
+
+        /* Get pointers to three-term recurrence coefficients arrays. */
+        alpha = &(wisdom.alpha[ROW(n_abs)]);
+        gamma = &(wisdom.gamma[ROW(n_abs)]);
+
+        /* Traverse all nodes. */
+        for (m = 0; m < plan->M_total; m++)
+        {
+          /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
+          stheta = cos(2.0*PI*plan->x[2*m+1]);
+          /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
+          sphi = 2.0*PI*plan->x[2*m];
+
+          /* Transposed Clenshaw algorithm */
+
+          /* Initial step */
+          it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+            pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
+          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+          it2 = 0.0;
+
+          if (n_abs < plan->N)
+          {
+            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          }
+
+          /* Loop for transposed Clenshaw algorithm */
+          for (k = n_abs+2; k <= plan->N; k++)
+          {
+            temp = it2;
+            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it1 = temp;
+            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          }
+        }
+      }
+#else
     /* Traverse all nodes. */
     for (m = 0; m < plan->M_total; m++)
     {
@@ -746,6 +871,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         }
       }
     }
+#endif
   }
 
   /* Check, if we compute with L^2-normalized spherical harmonics. If so,
@@ -754,6 +880,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   if (plan->flags & NFSFT_NORMALIZED)
   {
     /* Traverse Fourier coefficients array. */
+    #pragma omp parallel for default(shared) private(k,n)
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
@@ -788,7 +915,15 @@ void nfsft_trafo(nfsft_plan *plan)
     t_c2e = 0.0;
     t_nfft = 0.0;
   #endif
-
+//fprintf(stderr, "nfsft_trafo\n");
+/*#ifdef _OPENMP
+#pragma omp parallel
+{
+  int num = omp_get_num_threads();
+#pragma omp single
+  fprintf(stderr, "nthreads: %d\n", num);
+}
+#endif*/
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
     return;
@@ -836,6 +971,7 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_NORMALIZED)
     {
       /* Traverse Fourier coefficients array. */
+      #pragma omp parallel for default(shared) private(k,n)
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)
@@ -850,29 +986,49 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Check, which polynomial transform algorithm should be used. */
     if (plan->flags & NFSFT_USE_DPT)
     {
+//fprintf(stderr, "nfsft_trafo NFSFT_USE_DPT\n");
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
+      for (n = -plan->N; n <= plan->N; n++)
+         fpt_trafo_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+#else
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
         //fprintf(stderr,"nfsft_trafo: n = %d\n",n);
-        fflush(stderr);
+        //fflush(stderr);
         fpt_trafo_direct(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
+#endif
     }
     else
     {
+//fprintf(stderr, "nfsft_trafo NFSFT_USE_FPT\n");
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
+      for (n = -plan->N; n <= plan->N; n++)
+        fpt_trafo(wisdom.set_threads[omp_get_thread_num()],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+#else
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
         //fprintf(stderr,"nfsft_trafo: n = %d\n",n);
-        fflush(stderr);
+        //fflush(stderr);
         fpt_trafo(wisdom.set,abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
+#endif
     }
 
     /* Convert Chebyshev coefficients to Fourier coefficients. */
@@ -883,11 +1039,13 @@ void nfsft_trafo(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
+//fprintf(stderr, "nfsft_trafo NFSFT_USE_NDFT\n");
       /* Use NDFT. */
       nfft_trafo_direct(&plan->plan_nfft);
     }
     else
     {
+//fprintf(stderr, "nfsft_trafo NFSFT_USE_NFFT\n");
       /* Use NFFT. */
       //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
       nfft_trafo_2d(&plan->plan_nfft);
@@ -899,7 +1057,15 @@ void nfsft_adjoint(nfsft_plan *plan)
 {
   int k; /*< The degree k                                                    */
   int n; /*< The order n                                                     */
-
+//fprintf(stderr, "nfsft_adjoint\n");
+/*#ifdef _OPENMP
+#pragma omp parallel
+{
+  int num = omp_get_num_threads();
+#pragma omp single
+  fprintf(stderr, "nthreads: %d\n", num);
+}
+#endif*/
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
     return;
@@ -936,6 +1102,7 @@ void nfsft_adjoint(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
+//fprintf(stderr, "nfsft_adjoint NFSFT_USE_NDFT\n");
       //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint_direct\n");
       //fflush(stderr);
       /* Use adjoint NDFT. */
@@ -943,6 +1110,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
+//fprintf(stderr, "nfsft_adjoint NFSFT_USE_NFFT\n");
       //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint\n");
       //fflush(stderr);
       //fprintf(stderr,"nfsft_adjoint: nfft_adjoint\n");
@@ -958,6 +1126,15 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Check, which transposed polynomial transform algorithm should be used */
     if (plan->flags & NFSFT_USE_DPT)
     {
+//fprintf(stderr, "nfsft_adjoint NFSFT_USE_DPT\n");
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
+      for (n = -plan->N; n <= plan->N; n++)
+        fpt_transposed_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+#else
       /* Use transposed DPT. */
       for (n = -plan->N; n <= plan->N; n++)
       {
@@ -968,9 +1145,19 @@ void nfsft_adjoint(nfsft_plan *plan)
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
+#endif
     }
     else
     {
+//fprintf(stderr, "nfsft_adjoint NFSFT_USE_FPT\n");
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
+      for (n = -plan->N; n <= plan->N; n++)
+        fpt_transposed(wisdom.set_threads[omp_get_thread_num()],abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+#else
       //fprintf(stderr,"nfsft_adjoint: fpt_transposed\n");
       /* Use transposed FPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -982,6 +1169,7 @@ void nfsft_adjoint(nfsft_plan *plan)
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
       }
+#endif
     }
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,
@@ -992,6 +1180,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fprintf(stderr,"nfsft_adjoint: Normalizing\n");
       //fflush(stderr);
       /* Traverse Fourier coefficients array. */
+      #pragma omp parallel for default(shared) private(k,n)
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)

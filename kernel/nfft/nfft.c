@@ -7023,6 +7023,10 @@ static void nfft_init_help(nfft_plan *ths)
 
   if(ths->nfft_flags & FFTW_INIT)
   {
+#ifdef _OPENMP
+    int nthreads = nfft_get_omp_num_threads();
+#endif
+
     ths->g1=(fftw_complex*)nfft_malloc(ths->n_total*sizeof(C));
 
     if(ths->nfft_flags & FFT_OUT_OF_PLACE)
@@ -7030,9 +7034,18 @@ static void nfft_init_help(nfft_plan *ths)
     else
       ths->g2 = ths->g1;
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+//fprintf(stderr, "nfft_init: fftw plan with %d threads\n", nthreads);
+    fftw_plan_with_nthreads(nthreads);
+#endif
     ths->my_fftw_plan1 = fftw_plan_dft(ths->d, ths->n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
     ths->my_fftw_plan2 = fftw_plan_dft(ths->d, ths->n, ths->g2, ths->g1,
       FFTW_BACKWARD, ths->fftw_flags);
+#ifdef _OPENMP
+}
+#endif
   }
 
   if(ths->nfft_flags & NFFT_SORT_NODES)
@@ -7149,8 +7162,11 @@ void nfft_finalize(nfft_plan *ths)
 
   if(ths->nfft_flags & FFTW_INIT)
   {
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
     fftw_destroy_plan(ths->my_fftw_plan2);
     fftw_destroy_plan(ths->my_fftw_plan1);
+}
 
     if(ths->nfft_flags & FFT_OUT_OF_PLACE)
       nfft_free(ths->g2);
