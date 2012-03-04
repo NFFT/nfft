@@ -306,7 +306,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       {
         double *x = mxGetPr(plhs[0]);
         int j,t;
-        for (j = 0; j < d*m; j++)
+        for (j = 0; j < m; j++)
 	  for (t = 0; t < d; t++)
 	    x[d*j+t] = plans[i]->x[d*j+t];
       }
