@@ -1,8 +1,5 @@
 % Test script of class nfft for spatial dimension d=3.
 clear all;
-addpath('../');
-nfftdir=findnfftdir();
-addpath(strcat(nfftdir,'/matlab/nfft'));
 
 M=16; % number of nodes
 N1=24; % number of Fourier coefficients in first direction
