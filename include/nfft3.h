@@ -559,6 +559,8 @@ typedef struct\
   Z(plan) plan_nfft; /**< the internal NFFT plan */\
   C *f_hat_intern; /**< Internally used pointer to spherical Fourier
     coefficients */\
+  double MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
+    set */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \

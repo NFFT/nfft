@@ -630,6 +630,12 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
+#ifdef MEASURE_TIME
+  plan->MEASURE_TIME_t[0] = 0.0;
+  plan->MEASURE_TIME_t[1] = 0.0;
+  plan->MEASURE_TIME_t[2] = 0.0;
+#endif
+
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
     return;
@@ -760,6 +766,12 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
+
+#ifdef MEASURE_TIME
+  plan->MEASURE_TIME_t[0] = 0.0;
+  plan->MEASURE_TIME_t[1] = 0.0;
+  plan->MEASURE_TIME_t[2] = 0.0;
+#endif
 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
@@ -907,6 +919,9 @@ void nfsft_trafo(nfsft_plan *plan)
 {
   int k; /*< The degree k                                                    */
   int n; /*< The order n                                                     */
+#ifdef MEASURE_TIME
+  ticks t0, t1;
+#endif
   #ifdef DEBUG
     double t, t_pre, t_nfft, t_fpt, t_c2e, t_norm;
     t_pre = 0.0;
@@ -924,6 +939,13 @@ void nfsft_trafo(nfsft_plan *plan)
   fprintf(stderr, "nthreads: %d\n", num);
 }
 #endif*/
+
+#ifdef MEASURE_TIME
+  plan->MEASURE_TIME_t[0] = 0.0;
+  plan->MEASURE_TIME_t[1] = 0.0;
+  plan->MEASURE_TIME_t[2] = 0.0;
+#endif
+
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
     return;
@@ -983,6 +1005,9 @@ void nfsft_trafo(nfsft_plan *plan)
       }
     }
 
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Check, which polynomial transform algorithm should be used. */
     if (plan->flags & NFSFT_USE_DPT)
     {
@@ -1030,10 +1055,24 @@ void nfsft_trafo(nfsft_plan *plan)
       }
 #endif
     }
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[0] = nfft_elapsed_seconds(t1,t0);
+#endif
 
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Convert Chebyshev coefficients to Fourier coefficients. */
     c2e(plan);
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[1] = nfft_elapsed_seconds(t1,t0);
+#endif
 
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Check, which nonequispaced discrete Fourier transform algorithm should
      * be used.
      */
@@ -1050,6 +1089,10 @@ void nfsft_trafo(nfsft_plan *plan)
       //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
       nfft_trafo_2d(&plan->plan_nfft);
     }
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[2] = nfft_elapsed_seconds(t1,t0);
+#endif
   }
 }
 
@@ -1057,6 +1100,9 @@ void nfsft_adjoint(nfsft_plan *plan)
 {
   int k; /*< The degree k                                                    */
   int n; /*< The order n                                                     */
+#ifdef MEASURE_TIME
+  ticks t0, t1;
+#endif
 //fprintf(stderr, "nfsft_adjoint\n");
 /*#ifdef _OPENMP
 #pragma omp parallel
@@ -1066,6 +1112,13 @@ void nfsft_adjoint(nfsft_plan *plan)
   fprintf(stderr, "nthreads: %d\n", num);
 }
 #endif*/
+
+#ifdef MEASURE_TIME
+  plan->MEASURE_TIME_t[0] = 0.0;
+  plan->MEASURE_TIME_t[1] = 0.0;
+  plan->MEASURE_TIME_t[2] = 0.0;
+#endif
+
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
     return;
@@ -1097,6 +1150,9 @@ void nfsft_adjoint(nfsft_plan *plan)
     plan->plan_nfft.f = plan->f;
     plan->plan_nfft.f_hat = plan->f_hat;
 
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Check, which adjoint nonequispaced discrete Fourier transform algorithm
      * should be used.
      */
@@ -1117,12 +1173,26 @@ void nfsft_adjoint(nfsft_plan *plan)
       /* Use adjoint NFFT. */
       nfft_adjoint_2d(&plan->plan_nfft);
     }
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[2] = nfft_elapsed_seconds(t1,t0);
+#endif
 
     //fprintf(stderr,"nfsft_adjoint: Executing c2e_transposed\n");
     //fflush(stderr);
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Convert Fourier coefficients to Chebyshev coefficients. */
     c2e_transposed(plan);
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[1] = nfft_elapsed_seconds(t1,t0);
+#endif
 
+#ifdef MEASURE_TIME
+    t0 = getticks();
+#endif
     /* Check, which transposed polynomial transform algorithm should be used */
     if (plan->flags & NFSFT_USE_DPT)
     {
@@ -1171,6 +1241,10 @@ void nfsft_adjoint(nfsft_plan *plan)
       }
 #endif
     }
+#ifdef MEASURE_TIME
+    t1 = getticks();
+    plan->MEASURE_TIME_t[0] = nfft_elapsed_seconds(t1,t0);
+#endif
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,
      * multiply spherical Fourier coefficients with corresponding normalization
