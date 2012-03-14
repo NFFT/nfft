@@ -6,16 +6,15 @@
 #include "config.h"
 
 #include <nfft3.h>
+#include <nfft3util.h>
 
 #define NREPEAT 5
-#define NUM_THREADS 12
-//#define NUM_THREADS NFFT_NUM_CORES
 
 static FILE* file_out_tex = NULL;
 
 int get_nthreads_array(int **arr)
 {
-  int max_threads = (NUM_THREADS > 1) ? NUM_THREADS : 2;
+  int max_threads = nfft_get_omp_num_threads();
   int alloc_num = 2;
   int k;
   int ret_number = 0;
@@ -149,7 +148,7 @@ int run_test(s_resval *res, int nrepeat, int m, int flags, int nthreads)
     retval = fscanf(f, "%lg %lg %lg %lg %lg %lg", v, v+1, v+2, v+3, v+4, v+5);
     check_result_value(retval, 6, "read nfft_benchomp_test.out");
     fclose(f);
-//    fprintf(stderr, "%.3e %.3e %.3e %.3e %.3e %.3e\n", v[0], v[1], v[2], v[3], v[4], v[5]);
+
     for (t = 0; t < 6; t++)
     {
       res[t].avg += v[t];
@@ -234,16 +233,6 @@ unsigned int determine_different_parameters(s_testset *testsets, int ntestsets)
 
   return mask;
 }
-
-/*#define MASK_D (1U<<0)
-#define MASK_TA (1U<<1)
-#define MASK_N (1U<<2)
-#define MASK_SIGMA (1U<<3)
-#define MASK_M (1U<<4)
-#define MASK_WINM (1U<<5)
-#define MASK_FLAGS_PSI (1U<<6)
-#define MASK_FLAGS_SORT 
-#define MASK_FLAGS_BW (1U<<8)*/
 
 void get_plot_title(char *outstr, int maxlen, char *hostname, s_param param, unsigned int diff_mask)
 {
@@ -333,7 +322,7 @@ void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestse
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
-  fprintf(out, "width=0.9\\textwidth, height=0.6\\textwidth, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Speedup, xtick=data, legend style={ legend pos = north west, legend columns=1}, ymajorgrids=true, yminorgrids=true, minor y tick num=3, ");
+  fprintf(out, "width=0.9\\textwidth, height=0.6\\textwidth, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Speedup, xtick=data, legend style={ legend pos = north west, legend columns=1}, ymajorgrids=true, yminorgrids=true, minor y tick num=4, ");
   fprintf(out, " title={%s}", plottitle);
   fprintf(out, " ]\n");
 
@@ -403,7 +392,7 @@ void print_output_histo_DFBRT(FILE *out, s_testset testset)
     else
       fprintf(out, "%d", testset.results[i].nthreads);
 fprintf(stderr, "FLAGS: %d\n", testset.param.flags);
-//legend style={at={(0.5,-0.15)}, anchor=north,legend columns=-1}
+
   fprintf(out, "}, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Time in s, xtick=data, legend style={legend columns=-1}, ybar, bar width=7pt, ymajorgrids=true, yminorgrids=true, minor y tick num=1, ");
   fprintf(out, " title={%s %dd $\\mathrm{NFFT}%s$ N=%d $\\sigma$=%g M=%d m=%d %s %s %s}", hostname, testset.param.d, testset.param.trafo_adjoint==0?"":"^\\top", testset.param.N, testset.param.sigma, testset.param.M, testset.param.m, get_psi_string(testset.param.flags), get_sort_string(testset.param.flags), get_adjoint_omp_string(testset.param.flags));
   fprintf(out, " ]\n");
@@ -467,59 +456,89 @@ void test1(int *nthreads_array, int n_threads_array_size, int m)
   s_testset testsets[15];
 
   run_testset(&testsets[0], 1, 0, 2097152, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[0]);
+#endif
 
   run_testset(&testsets[1], 1, 0, 2097152, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[1]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets, 2);
 
   run_testset(&testsets[2], 1, 1, 2097152, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[2]);
+#endif
 
   run_testset(&testsets[3], 1, 1, 2097152, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[3]);
+#endif
 
   run_testset(&testsets[4], 1, 1, 2097152, 2097152, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[4]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets+2, 3);
 
   run_testset(&testsets[5], 2, 0, 1024, 1048576, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[5]);
+#endif
 
   run_testset(&testsets[6], 2, 0, 1024, 1048576, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[6]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets+5, 2);
 
   run_testset(&testsets[7], 2, 1, 1024, 1048576, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[7]);
+#endif
 
   run_testset(&testsets[8], 2, 1, 1024, 1048576, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[8]);
+#endif
 
   run_testset(&testsets[9], 2, 1, 1024, 1048576, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[9]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets+7, 3);
 
   run_testset(&testsets[10], 3, 0, 128, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[10]);
+#endif
 
   run_testset(&testsets[11], 3, 0, 128, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[11]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets+10, 2);
 
   run_testset(&testsets[12], 3, 1, 128, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[12]);
+#endif
 
   run_testset(&testsets[13], 3, 1, 128, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[13]);
+#endif
 
   run_testset(&testsets[14], 3, 1, 128, 2097152, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
   print_output_histo_DFBRT(file_out_tex, testsets[14]);
+#endif
 
   print_output_speedup_total(file_out_tex, testsets+12, 3);
 
@@ -530,11 +549,19 @@ int main(int argc, char** argv)
   int *nthreads_array;
   int n_threads_array_size = get_nthreads_array(&nthreads_array);
   int k;
+
+#if !(defined MEASURE_TIME && defined MEASURE_TIME_FFTW)
+  fprintf(stderr, "WARNING: Detailed time measurements for NFFT are not activated.\n");
+  fprintf(stderr, "For more detailed plots, please re-run the configure script with options\n");
+  fprintf(stderr, "--enable-measure-time --enable-measure-time-fftw --enable-openmp\n");
+  fprintf(stderr, "and run \"make clean all\"\n\n");
+#endif
+
   for (k = 0; k < n_threads_array_size; k++)
     fprintf(stderr, "%d ", nthreads_array[k]);
   fprintf(stderr, "\n");
 
-  file_out_tex = fopen("nfft_benchomp.tex", "w");
+  file_out_tex = fopen("nfft_benchomp_results_plots.tex", "w");
 
   test1(nthreads_array, n_threads_array_size, 2);
   test1(nthreads_array, n_threads_array_size, 4);

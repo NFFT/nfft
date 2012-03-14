@@ -109,6 +109,15 @@ int bench_openmp(FILE *infile, int m, int psi_flag)
   t1 = getticks();
   tt_total = nfft_elapsed_seconds(t1,t0);
 
+#ifndef MEASURE_TIME
+  p.MEASURE_TIME_t[0] = 0.0;
+  p.MEASURE_TIME_t[2] = 0.0;
+#endif
+
+#ifndef MEASURE_TIME_FFTW
+  p.MEASURE_TIME_t[1] = 0.0;
+#endif
+
   printf("%.6e %.6e %6e %.6e %.6e %.6e\n", tt_preonepsi, p.MEASURE_TIME_t[0], p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], tt_total-tt_preonepsi-p.MEASURE_TIME_t[0]-p.MEASURE_TIME_t[1]-p.MEASURE_TIME_t[2], tt_total);
 //  printf("%.6e\n", tt);
 
