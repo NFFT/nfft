@@ -45,8 +45,8 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 AC_CANONICAL_HOST
 
 # number of CPUs
-AX_COUNT_CPUS
-AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
+#AX_COUNT_CPUS
+#AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
 
 # substitute abs_srcdir in generated Makefiles
 AC_SUBST([abs_srcdir])

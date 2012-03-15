@@ -603,6 +603,18 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
   int t;
   int N[d], n[d];
   int n_total;
+  int sort_flags_trafo = 0;
+  int sort_flags_adjoint = 0;
+
+  if (d > 1)
+  {
+    sort_flags_trafo = NFFT_SORT_NODES;
+#ifdef _OPENMP
+    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
+    sort_flags_adjoint = NFFT_SORT_NODES;
+#endif
+  }
 
   ths->d = d;
 
@@ -683,9 +695,11 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
     n[t] = 2*nn;
   }
   nfft_init_guru(&(ths->mv1), d, N, N_total, n, m,
+                   sort_flags_adjoint |
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
   nfft_init_guru(&(ths->mv2), d, N, M_total, n, m,
+                   sort_flags_trafo |
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
 

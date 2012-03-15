@@ -930,15 +930,6 @@ void nfsft_trafo(nfsft_plan *plan)
     t_c2e = 0.0;
     t_nfft = 0.0;
   #endif
-//fprintf(stderr, "nfsft_trafo\n");
-/*#ifdef _OPENMP
-#pragma omp parallel
-{
-  int num = omp_get_num_threads();
-#pragma omp single
-  fprintf(stderr, "nthreads: %d\n", num);
-}
-#endif*/
 
 #ifdef MEASURE_TIME
   plan->MEASURE_TIME_t[0] = 0.0;
@@ -1011,7 +1002,6 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Check, which polynomial transform algorithm should be used. */
     if (plan->flags & NFSFT_USE_DPT)
     {
-//fprintf(stderr, "nfsft_trafo NFSFT_USE_DPT\n");
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
       for (n = -plan->N; n <= plan->N; n++)
@@ -1034,7 +1024,6 @@ void nfsft_trafo(nfsft_plan *plan)
     }
     else
     {
-//fprintf(stderr, "nfsft_trafo NFSFT_USE_FPT\n");
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
       for (n = -plan->N; n <= plan->N; n++)
@@ -1078,13 +1067,11 @@ void nfsft_trafo(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
-//fprintf(stderr, "nfsft_trafo NFSFT_USE_NDFT\n");
       /* Use NDFT. */
       nfft_trafo_direct(&plan->plan_nfft);
     }
     else
     {
-//fprintf(stderr, "nfsft_trafo NFSFT_USE_NFFT\n");
       /* Use NFFT. */
       //fprintf(stderr,"nfsft_adjoint: nfft_trafo\n");
       nfft_trafo_2d(&plan->plan_nfft);
@@ -1103,15 +1090,6 @@ void nfsft_adjoint(nfsft_plan *plan)
 #ifdef MEASURE_TIME
   ticks t0, t1;
 #endif
-//fprintf(stderr, "nfsft_adjoint\n");
-/*#ifdef _OPENMP
-#pragma omp parallel
-{
-  int num = omp_get_num_threads();
-#pragma omp single
-  fprintf(stderr, "nthreads: %d\n", num);
-}
-#endif*/
 
 #ifdef MEASURE_TIME
   plan->MEASURE_TIME_t[0] = 0.0;
@@ -1158,7 +1136,6 @@ void nfsft_adjoint(nfsft_plan *plan)
      */
     if (plan->flags & NFSFT_USE_NDFT)
     {
-//fprintf(stderr, "nfsft_adjoint NFSFT_USE_NDFT\n");
       //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint_direct\n");
       //fflush(stderr);
       /* Use adjoint NDFT. */
@@ -1166,7 +1143,6 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
-//fprintf(stderr, "nfsft_adjoint NFSFT_USE_NFFT\n");
       //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint\n");
       //fflush(stderr);
       //fprintf(stderr,"nfsft_adjoint: nfft_adjoint\n");
@@ -1196,7 +1172,6 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Check, which transposed polynomial transform algorithm should be used */
     if (plan->flags & NFSFT_USE_DPT)
     {
-//fprintf(stderr, "nfsft_adjoint NFSFT_USE_DPT\n");
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
       for (n = -plan->N; n <= plan->N; n++)
@@ -1219,7 +1194,6 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
     else
     {
-//fprintf(stderr, "nfsft_adjoint NFSFT_USE_FPT\n");
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
       for (n = -plan->N; n <= plan->N; n++)

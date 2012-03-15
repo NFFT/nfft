@@ -16,6 +16,9 @@ List of files and purpose
                     executable taylor_nfft
   ndft_fast.c       compares different precomputation strategies for the ndft
   ndft_fast.m       visualisation with MATLAB, calls the executable ndft_fast
+  nfft_benchomp.c   runs benchmarks for nfft OpenMP code and writes results as
+                    pgfplots to nfft_benchomp_results_plots.tex, uses
+		    nfft_benchomp_createdataset.c and nfft_benchomp_detail.c
   nfft_times.c      compares 1d, 2d, and 3d times to compute nffts and ffts,
                     outputs a latex-table
   taylor_nfft.c     compares the nfft with a taylor expansion based one

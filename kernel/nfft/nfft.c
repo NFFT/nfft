@@ -625,7 +625,6 @@ static inline void nfft_D_serial_ ## which_one (nfft_plan *ths)               \
 static void nfft_D_openmp_A(nfft_plan *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
-//  int t, t2;                            /**< index dimensions               */
   int k_L;                              /**< plain index                    */
 
   f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat;
@@ -633,24 +632,6 @@ static void nfft_D_openmp_A(nfft_plan *ths)
 
   if (ths->nfft_flags & PRE_PHI_HUT)
   {
-//    int kp[ths->d];                       /**< multi index (simple)           */ //0..N-1
-//    int k[ths->d];                        /**< multi index in g_hat           */
-//    int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-//    R c_phi_inv_k[ths->d+1];              /**< postfix product of PHI_HUT     */
-//    int k_plain[ths->d+1];                /**< postfix plain index            */
-//    int ks_plain[ths->d+1];               /**< postfix plain index            */
-//    c_phi_inv_k[0] = K(1.0);
-//    k_plain[0] = 0;
-//    ks_plain[0] = 0;
-
-//    for (t = ths->d-1; 0 <= t; t--)
-//    {
-//      kp[t] = k[t] = 0;
-//      ks[t] = ths->N[t]/2;
-//    }
-//    t++;
-//    t=0;
-
     #pragma omp parallel for default(shared) private(k_L)
     for (k_L = 0; k_L < ths->N_total; k_L++)
     {
@@ -682,41 +663,10 @@ static void nfft_D_openmp_A(nfft_plan *ths)
       }
 
       g_hat[k_plain_val] = f_hat[ks_plain_val] * c_phi_inv_k_val;
-
-//      for (t2 = t; t2 < ths->d; t2++)
-//      {
-//        c_phi_inv_k[t2+1] = c_phi_inv_k[t2] * ths->c_phi_inv[t2][ks[t2]];
-//        ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2];
-//        k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2];
-//      }
-//
-//      g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
-//
-//      for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t]= ths->N[t]/2;
-//      }
-//
-//      kp[t]++; k[t]++; ks[t]++;
-//      if(kp[t] == ths->N[t]/2)
-//      {
-//        k[t] = ths->n[t] - ths->N[t]/2;
-//        ks[t] = 0;
-//      }
     } /* for(k_L) */
   } /* if(PRE_PHI_HUT) */
   else
   {
-//    int kp[ths->d];                       /**< multi index (simple)           */
-//    int k[ths->d];                        /**< multi index in g_hat           */
-//    int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-//    R c_phi_inv_k[ths->d+1];              /**< postfix product of PHI_HUT     */
-//    int k_plain[ths->d+1];                /**< postfix plain index            */
-//    int ks_plain[ths->d+1];               /**< postfix plain index            */
-//    c_phi_inv_k[0] = K(1.0);
-//    k_plain[0] = 0;
-//    ks_plain[0] = 0;
     #pragma omp parallel for default(shared) private(k_L)
     for (k_L = 0; k_L < ths->N_total; k_L++)
     {
@@ -748,37 +698,6 @@ static void nfft_D_openmp_A(nfft_plan *ths)
       }
 
       g_hat[k_plain_val] = f_hat[ks_plain_val] * c_phi_inv_k_val;
-//
-//    for (t = ths->d-1; 0 <= t; t--)
-//    {
-//      kp[t] = k[t] = 0;
-//      ks[t] = ths->N[t]/2;
-//    }
-//    t++;
-//
-//    for (k_L = 0; k_L < ths->N_total; k_L++)
-//    {
-//      for (t2 = t; t2 < ths->d; t2++)
-//      {
-//        c_phi_inv_k[t2+1] = c_phi_inv_k[t2] / (PHI_HUT(ks[t2]-(ths->N[t2]/2),t2));
-//        ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2];
-//        k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2];
-//      }
-//
-//      g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
-//
-//      for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t]= ths->N[t]/2;
-//      }
-//
-//      kp[t]++; k[t]++; ks[t]++;
-//      if(kp[t] == ths->N[t]/2)
-//      {
-//        k[t] = ths->n[t] - ths->N[t]/2;
-//        ks[t] = 0;
-//      }
     } /* for(k_L) */
   } /* else(PRE_PHI_HUT) */
 }
@@ -795,21 +714,10 @@ static void nfft_D_A(nfft_plan *ths)
 static void nfft_D_openmp_T(nfft_plan *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
-//  R c_phi_inv_k[ths->d+1];              /**< postfix product of PHI_HUT     */
-//  int t, t2;                            /**< index dimensions               */
   int k_L;                              /**< plain index                    */
-//  int kp[ths->d];                       /**< multi index (simple)           */
-//  int k[ths->d];                        /**< multi index in g_hat           */
-//  int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-//  int k_plain[ths->d+1];                /**< postfix plain index            */
-//  int ks_plain[ths->d+1];               /**< postfix plain index            */
 
   f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat;
   memset(f_hat,0,ths->N_total*sizeof(C));
-
-//  c_phi_inv_k[0] = K(1.0);
-//  k_plain[0] = 0;
-//  ks_plain[0] = 0;
 
   if (ths->nfft_flags & PRE_PHI_HUT)
   {
@@ -844,36 +752,6 @@ static void nfft_D_openmp_T(nfft_plan *ths)
       }
 
       f_hat[ks_plain_val] = g_hat[k_plain_val] * c_phi_inv_k_val;
-
-//    for (t = ths->d-1; 0 <= t; t--)
-//    {
-//      kp[t] = k[t] = 0;
-//      ks[t] = ths->N[t]/2;
-//    }
-//    t++;
-//
-//    for (k_L = 0; k_L < ths->N_total; k_L++)
-//    {
-//      for (t2 = t; t2 < ths->d; t2++)
-//      {
-//        c_phi_inv_k[t2+1] = c_phi_inv_k[t2] * ths->c_phi_inv[t2][ks[t2]];
-//        ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2];
-//        k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2];
-//      }
-//
-//      f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d];
-//      for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t]= ths->N[t]/2;
-//      }
-//
-//      kp[t]++; k[t]++; ks[t]++;
-//      if(kp[t] == ths->N[t]/2)
-//      {
-//        k[t] = ths->n[t] - ths->N[t]/2;
-//        ks[t] = 0;
-//      }
     } /* for(k_L) */
   } /* if(PRE_PHI_HUT) */
   else
@@ -909,35 +787,6 @@ static void nfft_D_openmp_T(nfft_plan *ths)
       }
 
       f_hat[ks_plain_val] = g_hat[k_plain_val] * c_phi_inv_k_val;
-
-//    for (t = ths->d-1; 0 <= t; t--)
-//    {
-//      kp[t] = k[t] = 0;
-//      ks[t] = ths->N[t]/2;
-//    }
-//
-//    t++;
-//    for (k_L = 0; k_L < ths->N_total; k_L++)
-//    {
-//      for (t2 = t; t2 < ths->d; t2++)
-//      {
-//        c_phi_inv_k[t2+1] = c_phi_inv_k[t2] / (PHI_HUT(ks[t2]-(ths->N[t2]/2),t2));
-//        ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2];
-//        k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2];
-//      }
-//      f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d];
-//      for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t]= ths->N[t]/2;
-//      }
-//
-//      kp[t]++; k[t]++; ks[t]++;
-//      if(kp[t] == ths->N[t]/2)
-//      {
-//        k[t] = ths->n[t] - ths->N[t]/2;
-//        ks[t] = 0;
-//      }
     } /* for(k_L) */
   } /* else(PRE_PHI_HUT) */
 }
@@ -1658,7 +1507,7 @@ static void nfft_adjoint_B_compute_full_psi(
         n_prod_rest *= n[k];
 
       nfft_adjoint_B_omp3_init(&my_u, &my_o, &min_u0a, &max_o0a, &min_u0b, &max_o0b, d, n, m);
-//fprintf(stderr, "%d: my_u=%d, my_o=%d, min_u0a=%d, max_o0a=%d, min_u0b=%d, max_o0b=%d\n", omp_get_thread_num(), my_u, my_o, min_u0a, max_o0a, min_u0b, max_o0b);
+
       if (min_u0a != -1)
       {
         k = index_x_binary_search(ar_x, M, min_u0a);
@@ -1672,23 +1521,20 @@ static void nfft_adjoint_B_compute_full_psi(
           int l0, lrest;
           int u_prod = ar_x[2*k];
           int j = ar_x[2*k+1];
-//fprintf(stderr, "%d: k=%d, u_prod=%d, j=%d\n", omp_get_thread_num(), k, u_prod, j);
+
           if (u_prod < min_u0a || u_prod > max_o0a)
             break;
 
           for (l0 = 0; l0 < 2 * m + 2; l0++)
           {
             const int start_index = psi_index_g[j * lprod + l0 * lprod_m1];
-//fprintf(stderr, "%d: l0=%d, start_index=%d, %d, %d\n", omp_get_thread_num(), l0, start_index, my_u * n_prod_rest, (my_o+1) * n_prod_rest - 1);
-//            if (start_index < min_u0a || start_index > max_o0a)
+
             if (start_index < my_u * n_prod_rest || start_index > (my_o+1) * n_prod_rest - 1)
               continue;
-//fprintf(stderr, "lprod_m1=%d\n", lprod_m1);
+
             for (lrest = 0; lrest < lprod_m1; lrest++)
             {
               const int l = l0 * lprod_m1 + lrest;
-//fprintf(stderr, "%d: j=%d, l=%d, g[%d]\n", omp_get_thread_num(), j, l, psi_index_g[j * lprod + l]);
-//              fprintf(stderr, "%d: g[%2d] += %.16e\n", omp_get_thread_num(), psi_index_g[j * lprod + l], psi[j * lprod + l] * f[j]);
               g[psi_index_g[j * lprod + l]] += psi[j * lprod + l] * f[j];
             }
           }
@@ -1717,7 +1563,7 @@ static void nfft_adjoint_B_compute_full_psi(
           for (l0 = 0; l0 < 2 * m + 2; l0++)
           {
             const int start_index = psi_index_g[j * lprod + l0 * lprod_m1];
-//            if (start_index < min_u0b || start_index > max_o0b)
+
             if (start_index < my_u * n_prod_rest || start_index > (my_o+1) * n_prod_rest - 1)
               continue;
             for (lrest = 0; lrest < lprod_m1; lrest++)
@@ -1815,7 +1661,6 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
 
         #pragma omp atomic
         lhs_real[1] += cimag(val);
-//        ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j];
 
         MACRO_count_uo_l_lj_t;
       } /* for(l_L) */
@@ -1891,7 +1736,6 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
 
         #pragma omp atomic
         lhs_real[1] += cimag(val);
-//        ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j];
 
         MACRO_count_uo_l_lj_t;
       } /* for(l_L) */
@@ -1972,7 +1816,6 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
 
         #pragma omp atomic
         lhs_real[1] += cimag(val);
-//        ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j];
 
         MACRO_count_uo_l_lj_t;
       } /* for(l_L) */
@@ -2038,7 +1881,6 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
 
         #pragma omp atomic
         lhs_real[1] += cimag(val);
-//        ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j];
 
         MACRO_count_uo_l_lj_t;
       } /* for(l_L) */
@@ -2083,7 +1925,6 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
 
       #pragma omp atomic
       lhs_real[1] += cimag(val);
-//        ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j];
 
       MACRO_count_uo_l_lj_t;
     } /* for(l_L) */
@@ -2514,11 +2355,8 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
 
   if (ths->nfft_flags & PRE_FULL_PSI)
   {
-//    const int lprod = 2*m+2;
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
         1, ths->n, m, ths->nfft_flags, ths->index_x);
-//    for (k=0; k < n; k++)
-//      fprintf(stderr, "g[%d] = %.16e\n", k, ths->g[k]);
     return;
   } /* if(PRE_FULL_PSI) */
 
@@ -3762,7 +3600,6 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FULL_PSI)
   {
-//    const int lprod = (2*m+2) * (2*m+2);
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
         2, ths->n, m, ths->nfft_flags, ths->index_x);
     return;
@@ -5626,7 +5463,6 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
 
   if(ths->nfft_flags & PRE_FULL_PSI)
   {
-//    const int lprod = (2*m+2) * (2*m+2) * (2*m+2);
     nfft_adjoint_B_compute_full_psi(g, ths->psi_index_g, ths->psi, ths->f, M,
         3, ths->n, m, ths->nfft_flags, ths->index_x);
     return;
@@ -7037,7 +6873,6 @@ static void nfft_init_help(nfft_plan *ths)
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-//fprintf(stderr, "nfft_init: fftw plan with %d threads\n", nthreads);
     fftw_plan_with_nthreads(nthreads);
 #endif
     ths->my_fftw_plan1 = fftw_plan_dft(ths->d, ths->n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
