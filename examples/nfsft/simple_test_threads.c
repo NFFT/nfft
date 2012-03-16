@@ -121,21 +121,10 @@ static void simple_test_nfsft(void)
 
 int main(void)
 {
-  int nthreads = 1;
-
-  #pragma omp parallel
-  {
-    #pragma omp single
-    {
-      nthreads = omp_get_max_threads();
-    }
-  }
-
-  printf("nthreads = %d\n", nthreads);
+  printf("nthreads = %d\n", nfft_get_omp_num_threads());
 
   /* init */
   fftw_init_threads();
-  fftw_plan_with_nthreads(nthreads);
 
   printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"
     "...\n\n");

@@ -139,7 +139,6 @@ int main(int argc, char **argv)
 
   nthreads = atoi(argv[3]);
   fftw_init_threads();
-  fftw_plan_with_nthreads(nthreads);
   omp_set_num_threads(nthreads);
 #else
   if (argc != 3)
