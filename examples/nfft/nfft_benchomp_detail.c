@@ -56,9 +56,9 @@ int bench_openmp(FILE *infile, int m, int psi_flag)
   fscanf(infile, "%d", &M);
 
 #ifdef _OPENMP
-  fftw_import_wisdom_from_filename("bench_openmp_detail_threads.plan");
+  fftw_import_wisdom_from_filename("nfft_benchomp_detail_threads.plan");
 #else
-  fftw_import_wisdom_from_filename("bench_openmp_detail_single.plan");
+  fftw_import_wisdom_from_filename("nfft_benchomp_detail_single.plan");
 #endif
 
   /** init an d-dimensional plan */
@@ -67,9 +67,9 @@ int bench_openmp(FILE *infile, int m, int psi_flag)
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
 #ifdef _OPENMP
-  fftw_export_wisdom_to_filename("bench_openmp_detail_threads.plan");
+  fftw_export_wisdom_to_filename("nfft_benchomp_detail_threads.plan");
 #else
-  fftw_export_wisdom_to_filename("bench_openmp_detail_single.plan");
+  fftw_export_wisdom_to_filename("nfft_benchomp_detail_single.plan");
 #endif
 
   for (j=0; j < p.M_total; j++)
