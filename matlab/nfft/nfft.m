@@ -177,11 +177,11 @@ function set.x(h,x)
 	elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
 		error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
-		error('The sampling ponts have to be a %uxu matrix',h.M,h.d);
+		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
 	else
 		nfftmex('set_x',h.plan,x.');
 		h.x_is_set=true;
-		h.precomputations_done=false; % TODO Wovon haengen Vorberechnungen ab, insbesondere haengen sie von x ab => Stefan fragen
+		h.precomputations_done=false;
 	end %if
 end %function
 
@@ -359,10 +359,6 @@ function nfft_adjoint(h)
 		h.fhat_is_set=true;
 	end %if
 end %function
-
-% Overloaded methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% TODO mtimes, transpose, ctranspose?
 
 end %methods
 
