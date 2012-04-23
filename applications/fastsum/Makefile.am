@@ -35,7 +35,7 @@ fastsum_matlab_SOURCES = fastsum_matlab.c
 fastsum_matlab_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la
 
 if HAVE_THREADS
-  fastsum_test_threads_SOURCES = fastsum_test_threads.c
+  fastsum_test_threads_SOURCES = fastsum_test.c
   fastsum_test_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3_threads.la
 if HAVE_OPENMP
   fastsum_test_threads_CFLAGS = $(OPENMP_CFLAGS)

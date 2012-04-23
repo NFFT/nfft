@@ -34,6 +34,10 @@
   #include <complex.h>
 #endif
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 #include "fastsum.h"
 #include "kernels.h"
 #include "infft.h"
@@ -122,6 +126,31 @@ int main(int argc, char **argv)
     }
   }
   printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g, eps_I=%g, eps_B=%g \n",d,N,M,n,m,p,s,c,eps_I,eps_B);
+#ifdef NF_KUB
+  printf("nearfield correction using piecewise cubic Lagrange interpolation\n");
+#elif defined(NF_QUADR)
+  printf("nearfield correction using piecewise quadratic Lagrange interpolation\n");
+#elif defined(NF_LIN)
+  printf("nearfield correction using piecewise linear Lagrange interpolation\n");
+#endif
+
+#ifdef NF_BO
+  printf("determination of nearfield candidates based on partitioning into boxes\n");
+#else
+  printf("determination of nearfield candidates based on search tree\n");
+#endif
+
+#ifdef _OPENMP
+  #pragma omp parallel
+  {
+    #pragma omp single
+    {
+      printf("nthreads=%d\n", omp_get_max_threads());
+    }
+  }
+
+  fftw_init_threads();
+#endif
 
   /** init two dimensional fastsum plan */
   fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p, eps_I, eps_B);

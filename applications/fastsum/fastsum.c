@@ -605,6 +605,9 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
   int n_total;
   int sort_flags_trafo = 0;
   int sort_flags_adjoint = 0;
+#ifdef _OPENMP
+  int nthreads = nfft_get_omp_num_threads();
+#endif
 
   if (d > 1)
   {
@@ -709,7 +712,17 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
     n_total *= nn;
 
   ths->b = (fftw_complex *)nfft_malloc(n_total*sizeof(fftw_complex));
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+  fftw_plan_with_nthreads(nthreads);
+#endif
+
   ths->fft_plan = fftw_plan_dft(d,N,ths->b,ths->b,FFTW_FORWARD,FFTW_ESTIMATE);
+
+#ifdef _OPENMP
+}
+#endif
 
 #ifdef NF_BO
   ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
@@ -739,7 +752,15 @@ void fastsum_finalize(fastsum_plan *ths)
   nfft_finalize(&(ths->mv1));
   nfft_finalize(&(ths->mv2));
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+#endif
   fftw_destroy_plan(ths->fft_plan);
+#ifdef _OPENMP
+}
+#endif
+
   nfft_free(ths->b);
 
 #ifdef NF_BO
