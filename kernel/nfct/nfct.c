@@ -753,7 +753,7 @@ static inline void init_help(X(plan) *ths)
     ths->f_hat = (R*)Y(malloc)(ths->N_total * sizeof(R));
 
   if (ths->nfct_flags & MALLOC_F)
-    ths->f = (R*)nfft_malloc(ths->M_total * sizeof(R));
+    ths->f = (R*)Y(malloc)(ths->M_total * sizeof(R));
 
   if (ths->nfct_flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
