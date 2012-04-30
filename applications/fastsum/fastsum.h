@@ -54,7 +54,7 @@
 #endif
 
 #if !(defined(NF_ST) || defined(NF_BO))
-  #define NF_ST
+  #define NF_BO
 #endif
 
 #ifdef __cplusplus
@@ -120,6 +120,8 @@ typedef struct fastsum_plan_
   double *box_x;
   double _Complex *box_alpha;
 #endif
+
+  double MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 } fastsum_plan;
 
 /** initialize fast summation plan

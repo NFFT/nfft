@@ -2781,8 +2781,16 @@ void nfft_trafo_1d(nfft_plan *ths)
     R *c_phi_inv1, *c_phi_inv2;
 
     TIC(0)
-    //TODO remove memset
+#ifdef _OPENMP
+    {
+      int k;
+      #pragma omp parallel for default(shared) private(k)
+      for (k = 0; k < ths->n_total; k++)
+        ths->g_hat[k] = 0.0;
+    }
+#else
     memset(ths->g_hat, 0, ths->n_total*sizeof(C));
+#endif
     if(ths->nfft_flags & PRE_PHI_HUT)
     {
       int k;
@@ -4126,8 +4134,13 @@ void nfft_trafo_2d(nfft_plan *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(0)
-  // TODO remove memset
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k0)
+  for (k0 = 0; k0 < ths->n_total; k0++)
+    ths->g_hat[k0] = 0.0;
+#else
   memset(ths->g_hat,0,ths->n_total*sizeof(C));
+#endif
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
       c_phi_inv01=ths->c_phi_inv[0];
@@ -6095,8 +6108,14 @@ void nfft_trafo_3d(nfft_plan *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(0)
-  // TODO remove memset
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k0)
+  for (k0 = 0; k0 < ths->n_total; k0++)
+    ths->g_hat[k0] = 0.0;
+#else
   memset(ths->g_hat,0,ths->n_total*sizeof(C));
+#endif
+
   if(ths->nfft_flags & PRE_PHI_HUT)
     {
       c_phi_inv01=ths->c_phi_inv[0];
