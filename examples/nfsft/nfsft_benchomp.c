@@ -194,6 +194,7 @@ const char *get_adjoint_omp_string(int flags)
 #define MASK_FLAGS_PSI (1U<<6)
 #define MASK_FLAGS_SORT (1U<<7)
 #define MASK_FLAGS_BW (1U<<8)
+#define MASK_FLAGS_FPT (1U<<9)
 
 unsigned int determine_different_parameters(s_testset *testsets, int ntestsets)
 {
@@ -219,6 +220,8 @@ unsigned int determine_different_parameters(s_testset *testsets, int ntestsets)
       mask |= MASK_FLAGS_SORT;
     if ((testsets[t-1].param.psi_flags & NFFT_OMP_BLOCKWISE_ADJOINT) != (testsets[t].param.psi_flags & NFFT_OMP_BLOCKWISE_ADJOINT))
       mask |= MASK_FLAGS_BW;
+    if ((testsets[t-1].param.nfsft_flags & NFSFT_USE_DPT) != (testsets[t].param.nfsft_flags & NFSFT_USE_DPT))
+      mask |= MASK_FLAGS_FPT;
   }
 
   return mask;
@@ -282,6 +285,14 @@ void get_plot_title(char *outstr, int maxlen, char *hostname, s_param param, uns
     if (len < 0 || len+offset >= maxlen-1) return;
     offset += len;
   }
+
+  if (mask & MASK_FLAGS_FPT)
+  {
+    len = snprintf(outstr+offset, maxlen-offset, param.nfsft_flags & NFSFT_USE_DPT ? " DPT" : "");
+    if (len < 0 || len+offset >= maxlen-1) return;
+    offset += len;
+  }
+
 }
 
 void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestsets, int use_tref, double tref)
@@ -400,7 +411,7 @@ void print_output_histo_PENRT(FILE *out, s_testset testset)
   for (i = 0; i < size; i++)
     fprintf(out, "(%d, %.6e) ", testset.results[i].nthreads, testset.results[i].resval[5].avg);
   fprintf(out, "};\n");
-  fprintf(out, "\\legend{FPT,%s,$\\mathrm{NFFT}%s$,rest,total}\n", testset.param.trafo_adjoint==0?"c2e":"$\\mathrm{c2e}^\\top$", testset.param.trafo_adjoint==0?"":"^\\top");
+  fprintf(out, "\\legend{%s,%s,$\\mathrm{NFFT}%s$,rest,total}\n", testset.param.nfsft_flags & NFSFT_USE_DPT ? "DPT" : "FPT", testset.param.trafo_adjoint==0?"c2e":"$\\mathrm{c2e}^\\top$", testset.param.trafo_adjoint==0?"":"^\\top");
   fprintf(out, "\\end{axis}\n");
   fprintf(out, "\\end{tikzpicture}\n");
   fprintf(out, "\n\n");
@@ -432,7 +443,7 @@ void run_testset(s_testset *testset, int trafo_adjoint, int N, int M, int m, int
 
 void test1(int *nthreads_array, int n_threads_array_size, int m)
 {
-  s_testset testsets[2];
+  s_testset testsets[4];
 
   run_testset(&testsets[0], 0, 1024, 1000000, m, 0, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
 #if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
@@ -445,6 +456,18 @@ void test1(int *nthreads_array, int n_threads_array_size, int m)
 #endif
 
   print_output_speedup_total(file_out_tex, testsets, 2, 0);
+
+  run_testset(&testsets[2], 0, 1024, 1000000, m, NFSFT_USE_DPT, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_PENRT(file_out_tex, testsets[2]);
+#endif
+
+  run_testset(&testsets[3], 1, 1024, 1000000, m, NFSFT_USE_DPT, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_PENRT(file_out_tex, testsets[3]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+2, 2, 0);
 }
 
 int main(int argc, char** argv)
