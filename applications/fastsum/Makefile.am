@@ -10,8 +10,18 @@ else
   LIBFASTSUM_THREADS=
 endif
 
+if HAVE_THREADS
+if HAVE_OPENMP
+  FASTSUM_BENCHOMP_PROGS=fastsum_benchomp fastsum_benchomp_createdataset fastsum_benchomp_detail_single fastsum_benchomp_detail_threads
+else
+  FASTSUM_BENCHOMP_PROGS=
+endif
+else
+  FASTSUM_BENCHOMP_PROGS=
+endif
+
 noinst_LTLIBRARIES = libfastsum.la libkernels.la $(LIBFASTSUM_THREADS)
-noinst_PROGRAMS = fastsum_test fastsum_matlab $(FASTSUM_TEST_THREADS)
+noinst_PROGRAMS = fastsum_test fastsum_matlab $(FASTSUM_TEST_THREADS) $(FASTSUM_BENCHOMP_PROGS)
 
 libfastsum_la_SOURCES = fastsum.c fastsum.h kernels.h
 libfastsum_la_LIBADD = @fftw3_LIBS@
@@ -39,6 +49,24 @@ if HAVE_THREADS
   fastsum_test_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3_threads.la
 if HAVE_OPENMP
   fastsum_test_threads_CFLAGS = $(OPENMP_CFLAGS)
+endif
+endif
+
+if HAVE_THREADS
+if HAVE_OPENMP
+  fastsum_benchomp_SOURCES = fastsum_benchomp.c
+  fastsum_benchomp_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
+  fastsum_benchomp_CFLAGS = $(OPENMP_CFLAGS)
+
+  fastsum_benchomp_createdataset_SOURCES = fastsum_benchomp_createdataset.c
+  fastsum_benchomp_createdataset_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+
+  fastsum_benchomp_detail_single_SOURCES = fastsum_benchomp_detail.c
+  fastsum_benchomp_detail_single_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+
+  fastsum_benchomp_detail_threads_SOURCES = fastsum_benchomp_detail.c
+  fastsum_benchomp_detail_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
+  fastsum_benchomp_detail_threads_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif
 

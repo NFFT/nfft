@@ -157,9 +157,27 @@ int main(int argc, char **argv)
   /*fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);*/
 
   /** init source knots in a d-ball with radius 0.25-eps_b/2 */
+  k = 0;
+  while (k < N)
+  {
+    double r_max = 0.25 - my_fastsum_plan.eps_B/2.0;
+    double r2 = 0.0;
+
+    for (j=0; j<d; j++)
+      my_fastsum_plan.x[k*d+j] = 2.0 * r_max * (double)rand()/(double)RAND_MAX - r_max;
+
+    for (j=0; j<d; j++)
+      r2 += my_fastsum_plan.x[k*d+j] * my_fastsum_plan.x[k*d+j];
+
+    if (r2 >= r_max * r_max)
+      continue;
+
+    k++;
+  }
+
   for (k=0; k<N; k++)
   {
-    double r=(0.25-my_fastsum_plan.eps_B/2.0)*pow((double)rand()/(double)RAND_MAX,1.0/d);
+/*    double r=(0.25-my_fastsum_plan.eps_B/2.0)*pow((double)rand()/(double)RAND_MAX,1.0/d);
     my_fastsum_plan.x[k*d+0] = r;
     for (j=1; j<d; j++)
     {
@@ -171,12 +189,29 @@ int main(int argc, char **argv)
       }
       my_fastsum_plan.x[k*d+j] *= sin(phi);
     }
-
+*/
     my_fastsum_plan.alpha[k] = (double)rand()/(double)RAND_MAX + _Complex_I*(double)rand()/(double)RAND_MAX;
   }
 
   /** init target knots in a d-ball with radius 0.25-eps_b/2 */
-  for (k=0; k<M; k++)
+  k = 0;
+  while (k < M)
+  {
+    double r_max = 0.25 - my_fastsum_plan.eps_B/2.0;
+    double r2 = 0.0;
+
+    for (j=0; j<d; j++)
+      my_fastsum_plan.y[k*d+j] = 2.0 * r_max * (double)rand()/(double)RAND_MAX - r_max;
+
+    for (j=0; j<d; j++)
+      r2 += my_fastsum_plan.y[k*d+j] * my_fastsum_plan.y[k*d+j];
+
+    if (r2 >= r_max * r_max)
+      continue;
+
+    k++;
+  }
+/*  for (k=0; k<M; k++)
   {
     double r=(0.25-my_fastsum_plan.eps_B/2.0)*pow((double)rand()/(double)RAND_MAX,1.0/d);
     my_fastsum_plan.y[k*d+0] = r;
@@ -190,7 +225,7 @@ int main(int argc, char **argv)
       }
       my_fastsum_plan.y[k*d+j] *= sin(phi);
     }
-  }
+  } */
 
   /** direct computation */
   printf("direct computation: "); fflush(NULL);
