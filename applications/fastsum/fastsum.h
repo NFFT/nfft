@@ -54,7 +54,7 @@
 #endif
 
 #if !(defined(NF_ST) || defined(NF_BO))
-  #define NF_BO
+  #define NF_ST
 #endif
 
 #ifdef __cplusplus

@@ -6813,8 +6813,21 @@ void nfft_init(nfft_plan *ths, int d, int *N, int M_total)
 
   ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  ths->nfft_flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
-                    FFTW_INIT | FFT_OUT_OF_PLACE;
+  if (d > 1)
+  {
+#ifdef _OPENMP
+    ths->nfft_flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES |
+		      NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
+    ths->nfft_flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES;
+#endif
+  }
+  else
+    ths->nfft_flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE;
+
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
   nfft_init_help(ths);
