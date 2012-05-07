@@ -51,7 +51,7 @@ int bench_openmp(FILE *infile, int n, int m, int p, double _Complex (*kernel)(do
   fftw_import_wisdom_from_filename("fastsum_benchomp_detail_single.plan");
 #endif
 
-  fastsum_init_guru(&my_fastsum_plan, d, L, M, kernel, &c, 0, n, m, p, eps_I, eps_B);
+  fastsum_init_guru(&my_fastsum_plan, d, L, M, kernel, &c, NEARFIELD_BOXES, n, m, p, eps_I, eps_B);
 
 #ifdef _OPENMP
   fftw_export_wisdom_to_filename("fastsum_benchomp_detail_threads.plan");
