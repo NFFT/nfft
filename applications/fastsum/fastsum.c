@@ -359,9 +359,8 @@ void quicksort(int d, int t, double *x, double _Complex *alpha, int N)
     quicksort(d,t,x+lpos*d,alpha+lpos,N-lpos);
 }
 
-#ifdef NF_BO
 /** initialize box-based search data structures */
-void BuildBox(fastsum_plan *ths)
+static void BuildBox(fastsum_plan *ths)
 {
   int t, l;
   int *box_index;
@@ -412,7 +411,7 @@ void BuildBox(fastsum_plan *ths)
 }
 
 /** inner computation function for box-based near field correction */
-inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Complex *alpha, int start, int end_lt, const double _Complex *Add, const int Ad, int p, double a, const kernel k, const double *param, const unsigned flags)
+static inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Complex *alpha, int start, int end_lt, const double _Complex *Add, const int Ad, int p, double a, const kernel k, const double *param, const unsigned flags)
 {
   double _Complex result = 0.0;
 
@@ -463,7 +462,7 @@ inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Compl
 }
 
 /** box-based near field correction */
-double _Complex SearchBox(double *y, fastsum_plan *ths)
+static double _Complex SearchBox(double *y, fastsum_plan *ths)
 {
   double _Complex val = 0.0;
   int t, l;
@@ -506,7 +505,6 @@ double _Complex SearchBox(double *y, fastsum_plan *ths)
   }
   return val;
 }
-#endif
 
 /** recursive sort of source knots dimension by dimension to get tree structure */
 void BuildTree(int d, int t, double *x, double _Complex *alpha, int N)
@@ -725,18 +723,19 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
 }
 #endif
 
-#ifdef NF_BO
-  ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
-  ths->box_count = 1;
-  for (t=0; t<ths->d; t++)
-    ths->box_count *= ths->box_count_per_dim;
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
+    ths->box_count = 1;
+    for (t=0; t<ths->d; t++)
+      ths->box_count *= ths->box_count_per_dim;
 
-  ths->box_offset = (int *) nfft_malloc((ths->box_count+1) * sizeof(int));
+    ths->box_offset = (int *) nfft_malloc((ths->box_count+1) * sizeof(int));
 
-  ths->box_alpha = (double _Complex *)nfft_malloc(ths->N_total*(sizeof(double _Complex)));
+    ths->box_alpha = (double _Complex *)nfft_malloc(ths->N_total*(sizeof(double _Complex)));
 
-  ths->box_x = (double *) nfft_malloc(ths->d * ths->N_total *  sizeof(double));
-#endif
+    ths->box_x = (double *) nfft_malloc(ths->d * ths->N_total *  sizeof(double));
+  }
 }
 
 /** finalization of fastsum plan */
@@ -764,11 +763,12 @@ void fastsum_finalize(fastsum_plan *ths)
 
   nfft_free(ths->b);
 
-#ifdef NF_BO
-  nfft_free(ths->box_offset);
-  nfft_free(ths->box_alpha);
-  nfft_free(ths->box_x);
-#endif
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    nfft_free(ths->box_offset);
+    nfft_free(ths->box_alpha);
+    nfft_free(ths->box_x);
+  }
 }
 
 /** direct computation of sums */
@@ -814,14 +814,16 @@ void fastsum_precompute(fastsum_plan *ths)
   t0 = getticks();
 #endif
 
-#if defined(NF_ST)
-  /** sort source knots */
-  BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
-#elif defined(NF_BO)  
-  BuildBox(ths);
-#else
-  #error Either define NF_ST or NF_BO
-#endif
+
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    BuildBox(ths);
+  }
+  else
+  {
+    /** sort source knots */
+    BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
+  }
 
 #ifdef MEASURE_TIME
   t1 = getticks();
@@ -988,18 +990,20 @@ void fastsum_trafo(fastsum_plan *ths)
   for (j=0; j<ths->M_total; j++)
   {
     double ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
-#if defined(NF_ST)
-    for (t=0; t<ths->d; t++)
+
+    if (ths->flags & NEARFIELD_BOXES)
     {
-      ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
-      ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
+      ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d*j, ths);
     }
-    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
-#elif defined(NF_BO)
-    ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d*j, ths);
-#else
-  #error missing NF_ST or NF_BO
-#endif
+    else
+    {
+      for (t=0; t<ths->d; t++)
+      {
+        ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
+        ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
+      }
+      ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
+    }
     /* ths->f[j] = ths->mv2.f[j]; */
     /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }

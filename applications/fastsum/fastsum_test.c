@@ -134,12 +134,6 @@ int main(int argc, char **argv)
   printf("nearfield correction using piecewise linear Lagrange interpolation\n");
 #endif
 
-#ifdef NF_BO
-  printf("determination of nearfield candidates based on partitioning into boxes\n");
-#else
-  printf("determination of nearfield candidates based on search tree\n");
-#endif
-
 #ifdef _OPENMP
   #pragma omp parallel
   {
@@ -152,9 +146,14 @@ int main(int argc, char **argv)
   fftw_init_threads();
 #endif
 
-  /** init two dimensional fastsum plan */
+  /** init d-dimensional fastsum plan */
   fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p, eps_I, eps_B);
-  /*fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);*/
+  //fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, NEARFIELD_BOXES, n, m, p, eps_I, eps_B);
+
+  if (my_fastsum_plan.flags & NEARFIELD_BOXES)
+    printf("determination of nearfield candidates based on partitioning into boxes\n");
+  else
+    printf("determination of nearfield candidates based on search tree\n");
 
   /** init source knots in a d-ball with radius 0.25-eps_b/2 */
   k = 0;

@@ -53,10 +53,6 @@
   #define NF_KUB
 #endif
 
-#if !(defined(NF_ST) || defined(NF_BO))
-  #define NF_ST
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -68,6 +64,8 @@ typedef double _Complex (*kernel)(double , int , const double *);
  * Constant symbols
  */
 #define EXACT_NEARFIELD  (1U<< 0)
+
+#define NEARFIELD_BOXES (1U<< 1)
 
 /** plan for fast summation algorithm */
 typedef struct fastsum_plan_
@@ -113,13 +111,11 @@ typedef struct fastsum_plan_
   /* things for computing *b - are they used only once?? */
   fftw_plan fft_plan;
 
-#ifdef NF_BO
   int box_count;
   int box_count_per_dim;
   int *box_offset;
   double *box_x;
   double _Complex *box_alpha;
-#endif
 
   double MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 } fastsum_plan;
