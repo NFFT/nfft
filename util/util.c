@@ -1462,6 +1462,15 @@ void nfft_sort_node_indices_radix_msdf(int n, int *keys0, int *keys1, int rhigh)
   }
 }
 
+int nfft_get_num_threads()
+{
+#ifdef _OPENMP
+  return nfft_get_omp_num_threads();
+#else
+  return 1;
+#endif
+}
+
 #ifdef _OPENMP
 int nfft_get_omp_num_threads()
 {

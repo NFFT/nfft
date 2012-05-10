@@ -41,9 +41,13 @@ endif
 endif
 
 if HAVE_MATLAB
-libnfft3_matlab_la_SOURCES =
-libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
-libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
+  libnfft3_matlab_la_SOURCES =
+if HAVE_THREADS
+    libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil_threads.la kernel/libkernel_threads.la @fftw3_threads_LIBS@ @fftw3_LIBS@ -lm
+else
+    libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
+endif
+  libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
 endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in

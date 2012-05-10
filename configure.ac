@@ -52,7 +52,7 @@ AC_CANONICAL_HOST
 AC_SUBST([abs_srcdir])
 
 # minimum required libtool version
-LT_PREREQ([2.2.0])
+LT_PREREQ([2.4.2])
 
 # libtool initialization
 LT_INIT([win32-dll])

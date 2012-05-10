@@ -23,9 +23,6 @@ noinst_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags
 if HAVE_THREADS
   simple_test_threads_SOURCES = simple_test_threads.c
   simple_test_threads_LDADD = $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
-if HAVE_OPENMP
-  simple_test_threads_CFLAGS = $(OPENMP_CFLAGS)
-endif
 endif
 
 simple_test_SOURCES = simple_test.c

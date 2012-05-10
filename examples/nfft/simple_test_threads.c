@@ -41,7 +41,7 @@ int main(void)
   ticks t0, t1;
   double t;
 
-  printf("nthreads = %d\n", nfft_get_omp_num_threads());
+  printf("nthreads = %d\n", nfft_get_num_threads());
 
   /* init */
   fftw_init_threads();
