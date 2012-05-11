@@ -50,9 +50,12 @@ AC_DEFUN([AX_LIB_FFTW3],
       fftw3_lib_dir="$with_fftw3/lib"
     fi
   fi
-  
-  if test "x${ax_prog_matlab}" = "xyes"; then
-    fftw3_lib_dir="${matlab_bin_dir}/${matlab_arch}"
+
+  # Only overwrite fftw3 lib dir when not explicitly set
+  if test "x${fftw3_lib_dir}" = "xyes"; then
+    if test "x${ax_prog_matlab}" = "xyes"; then
+      fftw3_lib_dir="${matlab_bin_dir}/${matlab_arch}"
+    fi
   fi
 
   if test "x${fftw3_include_dir}" != "xyes"; then
@@ -85,8 +88,23 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
     fftw3_LIBS="-lfftw3"
-    AC_CHECK_LIB([fftw3_threads], [fftw_execute],,[ax_lib_fftw3_threads=no])
-    fftw3_threads_LIBS="-lfftw3_threads"
+
+    fftw3_threads_LIBS=""
+    # Combined lib
+    LIBS="-lfftw3 $LIBS"
+    fftw3_threads_LIBS="-lfftw3"
+    AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
+    LIBS="$saved_LIBS"
+    if test "x$ax_lib_fftw3_threads" = "xno"; then
+      AC_CHECK_LIB([fftw3], [fftw_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no], [-lpthread -lm])
+      fftw3_threads_LIBS="-lfftw3 -lpthread -lm"
+    fi
+
+    if test "x$ax_lib_fftw3_threads" = "xno"; then
+      fftw3_threads_LIBS="-lfftw3_threads -lfftw3"
+      AC_CHECK_LIB([fftw3_threads], [fftw_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
+    fi
+
     LIBS="$saved_LIBS"
   fi
 

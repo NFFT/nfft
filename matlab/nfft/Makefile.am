@@ -9,9 +9,16 @@ nfftmatlabdir = $(datadir)/nfft/matlab/nfft
 # library
 lib_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
-libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
-libnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS)
+
+if HAVE_THREADS
+libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS) @fftw3_threads_LIBS@
+else
+libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS) @fftw3_LIBS@
+endif
+
+libnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version $(matlab_LDFLAGS) @fftw3_LDFLAGS@
 libnfft_la_CFLAGS = $(OPENMP_CFLAGS) $(CFLAGS)
+
 
 dist_nfftmatlab_DATA = FFT_OUT_OF_PLACE.m FFTW_ESTIMATE.m FFTW_MEASURE.m FG_PSI.m Contents.m ndft_adjoint.m ndft_trafo.m \
 	nfft_adjoint.m nfft_finalize.m nfft_get_f.m nfft_get_f_hat.m nfft_get_x.m nfft_init_1d.m nfft_init_2d.m \
