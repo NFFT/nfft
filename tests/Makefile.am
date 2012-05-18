@@ -3,9 +3,11 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 if HAVE_NFSFT
-  CHECK_NFSFT=check_nfsft
-  check_nfsft_SOURCES = check_nfsft.c
-  check_nfsft_LDADD = $(top_builddir)/libnfft3.la
+  CHECK_NFSFT=
+#TODO implements nfsft check
+#  CHECK_NFSFT=check_nfsft
+#  check_nfsft_SOURCES = check_nfsft.c
+#  check_nfsft_LDADD = $(top_builddir)/libnfft3.la
 else
   CHECK_NFSFT=
 endif

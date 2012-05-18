@@ -15,7 +15,7 @@ libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top
 libnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version @matlab_fftw3_LDFLAGS@ $(matlab_LDFLAGS)
 
 if HAVE_MATLAB_THREADS
-libnfft_la_CFLAGS = $(OPENMP_CFLAGS) $(CFLAGS)
+libnfft_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 
