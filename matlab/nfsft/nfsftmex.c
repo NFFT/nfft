@@ -24,6 +24,7 @@
 #endif
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "nfft3.h"
 #include "infft.h"
 #include "nfft3util.h"
@@ -466,6 +467,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
       mexPrintf("    flags: %d\n",plans[i]->flags);
     }
+    return;
+  }
+  else if(strcmp(cmd,"get_num_threads") == 0)
+  {
+    int32_t nthreads = nfft_get_num_threads();
+    plhs[0] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
+    *((int32_t *)mxGetData(plhs[0])) = nthreads;
+
     return;
   }
   else

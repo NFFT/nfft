@@ -56,7 +56,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
   AC_ARG_ENABLE(matlab-threads,
     [AC_HELP_STRING([--enable-matlab-threads],
-      [Compile Matlab interface with thread support [default=--enable-openmp]])],
+      [Compile Matlab interface with thread support [default same as --enable-openmp]])],
       [matlab_threads="$enableval"],
       [matlab_threads="$enable_threads"])
 

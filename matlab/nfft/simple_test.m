@@ -19,6 +19,7 @@
 %
 % $Id$
 
+disp(sprintf('Number of threads: %d\n', nfft_get_num_threads()));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('A simple one dimensional example');
 
