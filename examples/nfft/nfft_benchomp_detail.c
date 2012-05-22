@@ -31,7 +31,7 @@
 #include <omp.h>
 #endif
 
-int bench_openmp(FILE *infile, int m, int psi_flag)
+void bench_openmp(FILE *infile, int m, int psi_flag)
 {
   nfft_plan p;
   int *N;

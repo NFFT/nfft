@@ -86,7 +86,7 @@ void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, dou
   nfsft_finalize(&plan);
 }
 
-int bench_openmp(int trafo_adjoint, int N, int M, double *x, C *f_hat, C *f, int m, int nfsft_flags, int psi_flags)
+void bench_openmp(int trafo_adjoint, int N, int M, double *x, C *f_hat, C *f, int m, int nfsft_flags, int psi_flags)
 {
   nfsft_plan plan;
   int k, n;

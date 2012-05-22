@@ -34,7 +34,7 @@ int get_nthreads_array(int **arr)
 
   for (k = 1; k <= max_threads; k*=2)
   {
-    if (k != max_threads & 2*k > max_threads && max_threads_pw2)
+    if (k != max_threads && 2*k > max_threads && max_threads_pw2)
     {
       *(*arr + ret_number) = max_threads/2;
       ret_number++;
@@ -115,7 +115,7 @@ typedef struct
   int nresults;
 } s_testset;
 
-int run_test(s_resval *res, int nrepeat, int n, int m, int p, char *kernel_name, double c, double eps_I, double eps_B, int nthreads)
+void run_test(s_resval *res, int nrepeat, int n, int m, int p, char *kernel_name, double c, double eps_I, double eps_B, int nthreads)
 {
   char cmd[1025];
   int r,t;

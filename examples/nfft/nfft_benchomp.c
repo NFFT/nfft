@@ -34,7 +34,7 @@ int get_nthreads_array(int **arr)
 
   for (k = 1; k <= max_threads; k*=2)
   {
-    if (k != max_threads & 2*k > max_threads && max_threads_pw2)
+    if (k != max_threads && 2*k > max_threads && max_threads_pw2)
     {
       *(*arr + ret_number) = max_threads/2;
       ret_number++;
@@ -121,7 +121,7 @@ typedef struct
   int nresults;
 } s_testset;
 
-int run_test(s_resval *res, int nrepeat, int m, int flags, int nthreads)
+void run_test(s_resval *res, int nrepeat, int m, int flags, int nthreads)
 {
   char cmd[1025];
   int r,t;
@@ -300,7 +300,7 @@ void get_plot_title(char *outstr, int maxlen, char *hostname, s_param param, uns
     offset += len;
   }
 
-  if (mask & MASK_FLAGS_BW && strlen(get_adjoint_omp_string(param.flags)) > 0)
+  if ((mask & MASK_FLAGS_BW) && strlen(get_adjoint_omp_string(param.flags)) > 0)
   {
     len = snprintf(outstr+offset, maxlen-offset, " %s", get_adjoint_omp_string(param.flags));
     if (len < 0 || len+offset >= maxlen-1) return;
