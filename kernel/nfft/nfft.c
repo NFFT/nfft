@@ -41,8 +41,8 @@
 
 #define OMP_ASSERT
 #ifdef OMP_ASSERT
-#endif
 #include <assert.h>
+#endif
 
 /**
  * Sort nodes (index) to get better cache utilization during multiplication
@@ -59,7 +59,7 @@
  * \author Toni Volkmer
  */
 static void nfft_sort_nodes_for_better_cache_handle(int d,
-    const int *n, int m, int local_x_num, const double *local_x, int *ar_x)
+    const int *n, int m, int local_x_num, const R *local_x, int *ar_x)
 {
   int u_j[d], i, j, help, rhigh;
   int *ar_x_temp;
@@ -209,6 +209,7 @@ void nfft_ ## which_one ## _direct (nfft_plan *ths)                           \
   }                                                                           \
 }
 
+// macro expanded for OpenMP parallelization
 //MACRO_ndft(trafo)
 void nfft_trafo_direct (nfft_plan *ths)
 {
@@ -268,6 +269,8 @@ void nfft_trafo_direct (nfft_plan *ths)
   }
 }
 
+// macro expanded for OpenMP parallelization since parallel calculation
+// requires outer loop over frequencies and inner loop over nodes.
 //MACRO_ndft(adjoint)
 void nfft_adjoint_direct (nfft_plan *ths)
 {
@@ -505,6 +508,7 @@ static inline void nfft_D_serial_ ## which_one (nfft_plan *ths)               \
   } /* else(PRE_PHI_HUT) */                                                   \
 } /* nfft_D */
 
+#ifdef _OPENMP
 static void nfft_D_openmp_A(nfft_plan *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
@@ -521,7 +525,7 @@ static void nfft_D_openmp_A(nfft_plan *ths)
       int kp[ths->d];                       /**< multi index (simple)           */ //0..N-1
       int k[ths->d];                        /**< multi index in g_hat           */
       int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-      double c_phi_inv_k_val = K(1.0);
+      R c_phi_inv_k_val = K(1.0);
       int k_plain_val = 0;
       int ks_plain_val = 0;
       int t;
@@ -556,7 +560,7 @@ static void nfft_D_openmp_A(nfft_plan *ths)
       int kp[ths->d];                       /**< multi index (simple)           */ //0..N-1
       int k[ths->d];                        /**< multi index in g_hat           */
       int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-      double c_phi_inv_k_val = K(1.0);
+      R c_phi_inv_k_val = K(1.0);
       int k_plain_val = 0;
       int ks_plain_val = 0;
       int t;
@@ -584,7 +588,10 @@ static void nfft_D_openmp_A(nfft_plan *ths)
     } /* for(k_L) */
   } /* else(PRE_PHI_HUT) */
 }
+#endif
+
 MACRO_nfft_D(A)
+
 static void nfft_D_A(nfft_plan *ths)
 {
 #ifdef _OPENMP
@@ -594,6 +601,7 @@ static void nfft_D_A(nfft_plan *ths)
 #endif
 }
 
+#ifdef _OPENMP
 static void nfft_D_openmp_T(nfft_plan *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
@@ -610,7 +618,7 @@ static void nfft_D_openmp_T(nfft_plan *ths)
       int kp[ths->d];                       /**< multi index (simple)           */ //0..N-1
       int k[ths->d];                        /**< multi index in g_hat           */
       int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-      double c_phi_inv_k_val = K(1.0);
+      R c_phi_inv_k_val = K(1.0);
       int k_plain_val = 0;
       int ks_plain_val = 0;
       int t;
@@ -645,7 +653,7 @@ static void nfft_D_openmp_T(nfft_plan *ths)
       int kp[ths->d];                       /**< multi index (simple)           */ //0..N-1
       int k[ths->d];                        /**< multi index in g_hat           */
       int ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/
-      double c_phi_inv_k_val = K(1.0);
+      R c_phi_inv_k_val = K(1.0);
       int k_plain_val = 0;
       int ks_plain_val = 0;
       int t;
@@ -673,6 +681,7 @@ static void nfft_D_openmp_T(nfft_plan *ths)
     } /* for(k_L) */
   } /* else(PRE_PHI_HUT) */
 }
+#endif
 
 MACRO_nfft_D(T)
 
@@ -947,6 +956,7 @@ static inline void nfft_B_serial_ ## which_one (nfft_plan *ths)               \
 
 MACRO_nfft_B(A)
 
+#ifdef _OPENMP
 static inline void nfft_B_openmp_A (nfft_plan *ths)
 {
   int lprod; /* 'regular bandwidth' of matrix B  */
@@ -1217,6 +1227,7 @@ static inline void nfft_B_openmp_A (nfft_plan *ths)
     } /* for(l_L) */
   } /* for(j) */
 }
+#endif
 
 static void nfft_B_A(nfft_plan *ths)
 {
@@ -1349,9 +1360,11 @@ static void nfft_adjoint_B_omp3_init(int *my_u0, int *my_o0, int *min_u_a, int *
       *min_u_b = -1;
       *max_u_b = -1;
     }
+#ifdef OMP_ASSERT
     assert(*min_u_a <= *max_u_a);
     assert(*min_u_b <= *max_u_b);
     assert(*min_u_b == -1 || *max_u_a < *min_u_b);
+#endif
   }
 }
 #endif
@@ -1491,6 +1504,7 @@ static void nfft_adjoint_B_compute_full_psi(
 
 MACRO_nfft_B(T)
 
+#ifdef _OPENMP
 static inline void nfft_B_openmp_T(nfft_plan *ths)
 {
   int lprod; /* 'regular bandwidth' of matrix B  */
@@ -1813,6 +1827,7 @@ static inline void nfft_B_openmp_T(nfft_plan *ths)
     } /* for(l_L) */
   } /* for(j) */
 }
+#endif
 
 static void nfft_B_T(nfft_plan *ths)
 {
@@ -1975,16 +1990,17 @@ static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
     u = my_u0;
     o = MIN(my_o0,ar_o);
     offset_psij += my_u0-ar_u+n;
+
 #ifdef OMP_ASSERT
-if (u<=o)
-{
-  assert(o-u <= 2*m+1);
-  if (offset_psij+o-u > 2*m+1)
-  {
-    fprintf(stderr, "ERR: %d %d %d %d %d %d %d\n", ar_u, ar_o, my_u0, my_o0, u, o, offset_psij);
-  }
-  assert(offset_psij+o-u <= 2*m+1);
-}
+    if (u<=o)
+    {
+      assert(o-u <= 2*m+1);
+      if (offset_psij+o-u > 2*m+1)
+      {
+        fprintf(stderr, "ERR: %d %d %d %d %d %d %d\n", ar_u, ar_o, my_u0, my_o0, u, o, offset_psij);
+      }
+      assert(offset_psij+o-u <= 2*m+1);
+    }
 #endif
     for (l = 0; l <= o-u; l++)
       g[u+l] += psij_const[offset_psij+l] * (*fj);
@@ -3029,13 +3045,15 @@ static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
     u0 = my_u0;
     o0 = MIN(my_o0,ar_o0);
     offset_psij += my_u0-ar_u0+n0;
+
 #ifdef OMP_ASSERT
-if (u0<=o0)
-{
-  assert(o0-u0 <= 2*m+1);
-  assert(offset_psij+o0-u0 <= 2*m+1);
-}
+    if (u0<=o0)
+    {
+      assert(o0-u0 <= 2*m+1);
+      assert(offset_psij+o0-u0 <= 2*m+1);
+    }
 #endif
+
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
       unsigned long int i0 = (u0+l0) * n1;
@@ -4544,12 +4562,13 @@ static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
     u0 = my_u0;
     o0 = MIN(my_o0,ar_o0);
     offset_psij += my_u0-ar_u0+n0;
+
 #ifdef OMP_ASSERT
-if (u0<=o0)
-{
-  assert(o0-u0 <= 2*m+1);
-  assert(offset_psij+o0-u0 <= 2*m+1);
-}
+    if (u0<=o0)
+    {
+      assert(o0-u0 <= 2*m+1);
+      assert(offset_psij+o0-u0 <= 2*m+1);
+    }
 #endif
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
@@ -6285,7 +6304,7 @@ void nfft_precompute_lin_psi(nfft_plan *ths)
 
   for (t=0; t<ths->d; t++)
     {
-      step=((R)(ths->m+2))/(((double)ths->K)*ths->n[t]);
+      step=((R)(ths->m+2))/(((R)ths->K)*ths->n[t]);
       for(j=0;j<=ths->K;j++)
   {
     ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
