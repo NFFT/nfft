@@ -27,7 +27,7 @@ void *nfft_mex_malloc(size_t n)
 {
   void *p;
 
- #pragma omp critical
+ #pragma omp critical (nfft_omp_matlab)
  {
   p = mxMalloc(n);
 
@@ -44,7 +44,7 @@ void *nfft_mex_malloc(size_t n)
 /** Replacement for fftw_free in mex files */
 void nfft_mex_free(void *p)
 {
- #pragma omp critical
+ #pragma omp critical (nfft_omp_matlab)
  {
   if (p)
     mxFree(p);
