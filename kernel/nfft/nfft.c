@@ -44,6 +44,7 @@
 #include <assert.h>
 #endif
 
+
 /**
  * Sort nodes (index) to get better cache utilization during multiplication
  * with matrix B.
@@ -590,7 +591,9 @@ static void nfft_D_openmp_A(nfft_plan *ths)
 }
 #endif
 
+#ifndef _OPENMP
 MACRO_nfft_D(A)
+#endif
 
 static void nfft_D_A(nfft_plan *ths)
 {
@@ -683,7 +686,9 @@ static void nfft_D_openmp_T(nfft_plan *ths)
 }
 #endif
 
+#ifndef _OPENMP
 MACRO_nfft_D(T)
+#endif
 
 static void nfft_D_T(nfft_plan *ths)
 {
@@ -954,7 +959,9 @@ static inline void nfft_B_serial_ ## which_one (nfft_plan *ths)               \
   } /* for(j) */                                                              \
 } /* nfft_B */                                                                \
 
+#ifndef _OPENMP
 MACRO_nfft_B(A)
+#endif
 
 #ifdef _OPENMP
 static inline void nfft_B_openmp_A (nfft_plan *ths)
@@ -1293,7 +1300,7 @@ static inline int index_x_binary_search(const int *ar_x, const int len, const in
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_B_omp3_init(int *my_u0, int *my_o0, int *min_u_a, int *max_u_a, int *min_u_b, int *max_u_b, const int d, const int *n, const int m)
+static void nfft_adjoint_B_omp_blockwise_init(int *my_u0, int *my_o0, int *min_u_a, int *max_u_a, int *min_u_b, int *max_u_b, const int d, const int *n, const int m)
 {
   const int n0 = n[0];
   int k;
@@ -1371,7 +1378,7 @@ static void nfft_adjoint_B_omp3_init(int *my_u0, int *my_o0, int *min_u_a, int *
 
 /**
  * Calculates adjoint NFFT for flag PRE_FULL_PSI.
- * Parallel calculation (OpenMP) with atomic operations.
+ * Parallel calculation (OpenMP) with and without atomic operations.
  *
  * \arg lprod stride (2*m+2)^d
  *
@@ -1402,7 +1409,7 @@ static void nfft_adjoint_B_compute_full_psi(
       for (k = 1; k < d; k++)
         n_prod_rest *= n[k];
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, d, n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, d, n, m);
 
       if (min_u_a != -1)
       {
@@ -1502,7 +1509,9 @@ static void nfft_adjoint_B_compute_full_psi(
   }
 }
 
+#ifndef _OPENMP
 MACRO_nfft_B(T)
+#endif
 
 #ifdef _OPENMP
 static inline void nfft_B_openmp_T(nfft_plan *ths)
@@ -1883,7 +1892,8 @@ static void nfft_trafo_1d_compute(C *fj, const C *g,const R *psij_const,
   }
 }
 
-static void nfft_adjoint_1d_compute(const C *fj, C *g,const R *psij_const,
+#ifndef _OPENMP
+static void nfft_adjoint_1d_compute_serial(const C *fj, C *g,const R *psij_const,
   const R *xj, const int n, const int m)
 {
   int u,o,l;
@@ -1906,10 +1916,11 @@ static void nfft_adjoint_1d_compute(const C *fj, C *g,const R *psij_const,
       (*gj++) += (*psij++) * (*fj);
   }
 }
+#endif
 
 #ifdef _OPENMP
 /* adjoint NFFT one-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
+static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,const R *psij_const,
   const R *xj, const int n, const int m)
 {
   int u,o,l;
@@ -1926,7 +1937,7 @@ static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
     int i = index_temp[l];
     C *lhs = g+i;
     R *lhs_real = (R*)lhs;
-    C val = psij_const[l] * (*fj);
+    C val = psij_const[l] * f;
     #pragma omp atomic
     lhs_real[0] += creal(val);
 
@@ -1938,10 +1949,10 @@ static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
 
 #ifdef _OPENMP
 /**
- * Adjoint NFFT one-dimensional case updating only a specified range of
+ * Adjoint NFFT for one-dimensional case updating only a specified range of
  * vector g.
  *
- * \arg fg input coefficient f[j]
+ * \arg f input coefficient f[j]
  * \arg g output vector g
  * \arg psij_const vector of window function values
  * \arg xj node x[j]
@@ -1952,7 +1963,7 @@ static void nfft_adjoint_1d_compute_omp(const C *fj, C *g,const R *psij_const,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
+static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,const R *psij_const,
   const R *xj, const int n, const int m, const int my_u0, const int my_o0)
 {
   int ar_u,ar_o,l;
@@ -1971,7 +1982,7 @@ static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
 #endif
 
     for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * (*fj);
+      g[u+l] += psij_const[offset_psij+l] * f;
   }
   else
   {
@@ -1985,7 +1996,7 @@ static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
 #endif
 
     for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * (*fj);
+      g[u+l] += psij_const[offset_psij+l] * f;
 
     u = my_u0;
     o = MIN(my_o0,ar_o);
@@ -2003,7 +2014,7 @@ static void nfft_adjoint_1d_compute_omp3(const C *fj, C *g,const R *psij_const,
     }
 #endif
     for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * (*fj);
+      g[u+l] += psij_const[offset_psij+l] * f;
   }
 }
 #endif
@@ -2160,6 +2171,166 @@ static void nfft_trafo_1d_B(nfft_plan *ths)
   }
 }
 
+
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_a || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_a);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A
+#endif
+
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_b || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_b);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B
+#endif
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI                 \
+{                                                                             \
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g,               \
+                ths->psi + j * (2 * m + 2), ths->x + j, n, m, my_u0, my_o0);  \
+}
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI              \
+{                                                                             \
+            R psij_const[2 * m + 2];                                          \
+            int u, o, l;                                                      \
+            R fg_psij0 = ths->psi[2 * j];                                     \
+            R fg_psij1 = ths->psi[2 * j + 1];                                 \
+            R fg_psij2 = K(1.0);                                              \
+                                                                              \
+            psij_const[0] = fg_psij0;                                         \
+            for (l = 1; l <= 2 * m + 1; l++)                                  \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];              \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const,   \
+                ths->x + j, n, m, my_u0, my_o0);                              \
+}
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI                  \
+{                                                                             \
+            R psij_const[2 * m + 2];                                          \
+            R fg_psij0, fg_psij1, fg_psij2;                                   \
+            int u, o, l;                                                      \
+                                                                              \
+            nfft_uo(ths, j, &u, &o, 0);                                       \
+            fg_psij0 = (PHI(ths->x[j]-((R)u)/n,0));                           \
+            fg_psij1 = EXP(K(2.0) * (n * (ths->x[j]) - u) / ths->b[0]);       \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[0] = fg_psij0;                                         \
+            for (l = 1; l <= 2 * m + 1; l++)                                  \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];              \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const,   \
+                ths->x + j, n, m, my_u0, my_o0);                              \
+}
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI             \
+{                                                                             \
+            R psij_const[2 * m + 2];                                          \
+            int ip_u;                                                         \
+            R ip_y, ip_w;                                                     \
+            int u, o, l;                                                      \
+                                                                              \
+            nfft_uo(ths, j, &u, &o, 0);                                       \
+                                                                              \
+            ip_y = FABS(n * ths->x[j] - u) * ((R)ip_s);                       \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y - ip_u;                                               \
+            for (l = 0; l < 2 * m + 2; l++)                                   \
+              psij_const[l]                                                   \
+                  = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)              \
+                      + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);                \
+                                                                              \
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const,   \
+                ths->x + j, n, m, my_u0, my_o0);                              \
+}
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI                  \
+{                                                                             \
+            R psij_const[2 * m + 2];                                          \
+            int u, o, l;                                                      \
+                                                                              \
+            nfft_uo(ths, j, &u, &o, 0);                                       \
+                                                                              \
+            for (l = 0; l <= 2 * m + 1; l++)                                  \
+              psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));              \
+                                                                              \
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const,   \
+                ths->x + j, n, m, my_u0, my_o0);                              \
+}
+
+#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(whichone)                       \
+{                                                                             \
+    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)                         \
+    {                                                                         \
+      _Pragma("omp parallel private(k)")                                      \
+      {                                                                       \
+        int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;                 \
+        int *ar_x = ths->index_x;                                             \
+                                                                              \
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, \
+        		                          &min_u_b, &max_u_b, 1, &n, m);      \
+                                                                              \
+        if (min_u_a != -1)                                                    \
+        {                                                                     \
+          k = index_x_binary_search(ar_x, M, min_u_a);                        \
+                                                                              \
+          MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_a || u_prod > max_u_a)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+                                                                              \
+        if (min_u_b != -1)                                                    \
+        {                                                                     \
+          k = index_x_binary_search(ar_x, M, min_u_b);                        \
+                                                                              \
+          MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_b || u_prod > max_u_b)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+      } /* omp parallel */                                                    \
+      return;                                                                 \
+    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */                                    \
+}
+
 static void nfft_adjoint_1d_B(nfft_plan *ths)
 {
   const int n = ths->n[0], M = ths->M_total, m = ths->m;
@@ -2178,61 +2349,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
   if (ths->nfft_flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
-    {
-      #pragma omp parallel private(k)
-      {
-        int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;
-        int *ar_x = ths->index_x;
-
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
-
-        if (min_u_a != -1)
-        {
-          k = index_x_binary_search(ar_x, M, min_u_a);
-#ifdef OMP_ASSERT
-          assert(ar_x[2*k] >= min_u_a || k == M-1);
-          if (k > 0)
-            assert(ar_x[2*k-2] < min_u_a);
-#endif
-          while (k < M)
-          {
-            int u_prod = ar_x[2*k];
-            int j = ar_x[2*k+1];
-
-            if (u_prod < min_u_a || u_prod > max_u_a)
-              break;
-
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m, my_u0, my_o0);
-
-            k++;
-          }
-        }
-
-        if (min_u_b != -1)
-        {
-          k = index_x_binary_search(ar_x, M, min_u_b);
-#ifdef OMP_ASSERT
-          assert(ar_x[2*k] >= min_u_b || k == M-1);
-          if (k > 0)
-            assert(ar_x[2*k-2] < min_u_b);
-#endif
-          while (k < M)
-          {
-            int u_prod = ar_x[2*k];
-            int j = ar_x[2*k+1];
-
-            if (u_prod < min_u_b || u_prod > max_u_b)
-              break;
-
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m, my_u0, my_o0);
-
-            k++;
-          }
-        }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -2240,9 +2357,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     {
       int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 #ifdef _OPENMP
-      nfft_adjoint_1d_compute_omp(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
+      nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
 #else
-      nfft_adjoint_1d_compute(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
+      nfft_adjoint_1d_compute_serial(ths->f + j, g, ths->psi + j * (2 * m + 2), ths->x + j, n, m);
 #endif
     }
 
@@ -2256,7 +2373,8 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
@@ -2264,7 +2382,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         int *ar_x = ths->index_x;
         R psij_const[2 * m + 2];
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
 
         if (min_u_a != -1)
         {
@@ -2293,7 +2411,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
               psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];
             }
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
@@ -2326,15 +2444,15 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
               psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];
             }
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
 
@@ -2356,9 +2474,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_1d_compute_omp(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
 #else
-      nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_serial(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
     }
 
@@ -2374,6 +2492,8 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
+    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(FG_PSI)
+/*
     if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
@@ -2383,7 +2503,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         R psij_const[2 * m + 2];
         R fg_psij0, fg_psij1, fg_psij2;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
 
         if (min_u_a != -1)
         {
@@ -2413,7 +2533,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
               psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];
             }
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
@@ -2447,15 +2567,15 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
               psij_const[l] = fg_psij0 * fg_psij2 * fg_exp_l[l];
             }
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -2478,9 +2598,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_1d_compute_omp(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
 #else
-      nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_serial(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
     }
 
@@ -2495,7 +2615,8 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
@@ -2505,7 +2626,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
         int ip_u;
         R ip_y, ip_w;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
 
         if (min_u_a != -1)
         {
@@ -2534,7 +2655,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
                   = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
                       + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
@@ -2567,14 +2688,14 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
                   = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
                       + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);
 
-            nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+            nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma openmp parallel for default(shared) private(k)
@@ -2597,9 +2718,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
                 + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);
 
 #ifdef _OPENMP
-      nfft_adjoint_1d_compute_omp(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
 #else
-      nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
+      nfft_adjoint_1d_compute_serial(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
     }
     return;
@@ -2609,7 +2730,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
   nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+  MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(NO_PSI)
+
+  /*if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
   {
     #pragma omp parallel private(k)
     {
@@ -2617,7 +2740,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2 * m + 2];
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 1, &n, m);
 
       if (min_u_a != -1)
       {
@@ -2641,7 +2764,7 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
           for (l = 0; l <= 2 * m + 1; l++)
             psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
 
-          nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+          nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
           k++;
         }
@@ -2669,15 +2792,15 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
           for (l = 0; l <= 2 * m + 1; l++)
             psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
 
-          nfft_adjoint_1d_compute_omp3(ths->f + j, g, psij_const, ths->x + j, n, m, my_u0, my_o0);
+          nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, ths->x + j, n, m, my_u0, my_o0);
 
           k++;
         }
       }
-    } /* omp parallel */
-
-    return;
-  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    }*/ /* omp parallel */
+//
+//    return;
+//  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
   #pragma omp parallel for default(shared) private(k)
@@ -2693,9 +2816,9 @@ static void nfft_adjoint_1d_B(nfft_plan *ths)
       psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
 
 #ifdef _OPENMP
-    nfft_adjoint_1d_compute_omp(ths->f + j, g, psij_const, ths->x + j, n, m);
+    nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
 #else
-    nfft_adjoint_1d_compute(ths->f + j, g, psij_const, ths->x + j, n, m);
+    nfft_adjoint_1d_compute_serial(ths->f + j, g, psij_const, ths->x + j, n, m);
 #endif
   }
 }
@@ -2785,42 +2908,28 @@ void nfft_adjoint_1d(nfft_plan *ths)
 
   TIC(0)
   if(ths->nfft_flags & PRE_PHI_HUT)
-    {
-      int k;
-      c_phi_inv1=ths->c_phi_inv[0];
-      c_phi_inv2=&ths->c_phi_inv[0][N/2];
-#ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k)
-      for (k = 0; k < N/2; k++)
-      {
-        f_hat1[k] = g_hat1[k] * c_phi_inv1[k];
-        f_hat2[k] = g_hat2[k] * c_phi_inv2[k];
-      }
-#else
-      for(k=0;k<N/2;k++)
   {
-    (*f_hat1++) = (*g_hat1++) * (*c_phi_inv1++);
-    (*f_hat2++) = (*g_hat2++) * (*c_phi_inv2++);
-  }
-#endif
+    int k;
+    c_phi_inv1=ths->c_phi_inv[0];
+    c_phi_inv2=&ths->c_phi_inv[0][N/2];
+
+    #pragma omp parallel for default(shared) private(k)
+    for (k = 0; k < N/2; k++)
+    {
+      f_hat1[k] = g_hat1[k] * c_phi_inv1[k];
+      f_hat2[k] = g_hat2[k] * c_phi_inv2[k];
     }
+  }
   else
   {
     int k;
-#ifdef _OPENMP
+
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < N/2; k++)
     {
       f_hat1[k] = g_hat1[k] / (PHI_HUT(k-N/2,0));
       f_hat2[k] = g_hat2[k] / (PHI_HUT(k,0));
     }
-#else
-    for(k=0;k<N/2;k++)
-      {
-  (*f_hat1++) = (*g_hat1++) / (PHI_HUT(k-N/2,0));
-  (*f_hat2++) = (*g_hat2++) / (PHI_HUT(k,0));
-      }
-#endif
   }
   TOC(0)
 }
@@ -2928,7 +3037,7 @@ static void nfft_trafo_2d_compute(C *fj, const C *g,
 
 #ifdef _OPENMP
 /* adjoint NFFT two-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
+static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
             const R *psij_const0, const R *psij_const1,
             const R *xj0, const R *xj1,
             const int n0, const int n1, const int m)
@@ -2955,7 +3064,7 @@ static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
       unsigned long int i = index_temp0[l0] * n1 + index_temp1[l1];
       C *lhs = g+i;
       R *lhs_real = (R*)lhs;
-      C val = psij_const0[l0] * psij_const1[l1] * (*fj);
+      C val = psij_const0[l0] * psij_const1[l1] * f;
 
       #pragma omp atomic
       lhs_real[0] += creal(val);
@@ -2969,10 +3078,10 @@ static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
 
 #ifdef _OPENMP
 /** 
- * Adjoint NFFT two-dimensional case updating only a specified range of
+ * Adjoint NFFT for two-dimensional case updating only a specified range of
  * vector g.
  *
- * \arg fg input coefficient f[j]
+ * \arg f input coefficient f[j]
  * \arg g output vector g
  * \arg psij_const0 vector of window function values first component
  * \arg psij_const1 vector of window function values second component
@@ -2986,7 +3095,7 @@ static void nfft_adjoint_2d_compute_omp(const C *fj, C *g,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
+static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
             const R *psij_const0, const R *psij_const1,
             const R *xj0, const R *xj1,
             const int n0, const int n1, const int m,
@@ -3019,7 +3128,7 @@ static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * (*fj);
+        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
     }
   }
   else
@@ -3039,7 +3148,7 @@ static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * (*fj);
+        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
     }
 
     u0 = my_u0;
@@ -3060,13 +3169,14 @@ static void nfft_adjoint_2d_compute_omp3(const C *fj, C *g,
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * (*fj);
+        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
     }
   }
 }
 #endif
 
-static void nfft_adjoint_2d_compute(const C *fj, C *g,
+#ifndef _OPENMP
+static void nfft_adjoint_2d_compute_serial(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1,
             const R *xj0, const R *xj1,
             const int n0, const int n1, const int m)
@@ -3143,6 +3253,7 @@ static void nfft_adjoint_2d_compute(const C *fj, C *g,
     }
       }
 }
+#endif
 
 static void nfft_trafo_2d_B(nfft_plan *ths)
 {
@@ -3325,6 +3436,199 @@ static void nfft_trafo_2d_B(nfft_plan *ths)
   }
 }
 
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_a || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_a);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A
+#endif
+
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_b || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_b);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B
+#endif
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI                 \
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
+                ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2),               \
+                ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI              \
+{                                                                             \
+            R psij_const[2*(2*m+2)];                                          \
+            int u, o, l;                                                      \
+            R fg_psij0 = ths->psi[2*j*2];                                     \
+            R fg_psij1 = ths->psi[2*j*2+1];                                   \
+            R fg_psij2 = K(1.0);                                              \
+                                                                              \
+            psij_const[0] = fg_psij0;                                         \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];                  \
+            }                                                                 \
+                                                                              \
+            fg_psij0 = ths->psi[2*(j*2+1)];                                   \
+            fg_psij1 = ths->psi[2*(j*2+1)+1];                                 \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*m+2] = fg_psij0;                                     \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];      \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1,       \
+                n0, n1, m, my_u0, my_o0);                                     \
+}
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI                  \
+{                                                                             \
+            R psij_const[2*(2*m+2)];                                          \
+            R fg_psij0, fg_psij1, fg_psij2;                                   \
+            int u, o, l;                                                      \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            fg_psij0 = (PHI(ths->x[2*j]-((R)u)/n0,0));                        \
+            fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);          \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[0] = fg_psij0;                                         \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];                  \
+            }                                                                 \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            fg_psij0 = (PHI(ths->x[2*j+1]-((R)u)/n1,1));                      \
+            fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);        \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*m+2] = fg_psij0;                                     \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];      \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1,       \
+                n0, n1, m, my_u0, my_o0);                                     \
+}
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI             \
+{                                                                             \
+            R psij_const[2*(2*m+2)];                                          \
+            int u, o, l;                                                      \
+            int ip_u;                                                         \
+            R ip_y, ip_w;                                                     \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            ip_y = FABS(n0*(ths->x[2*j]) - u)*((R)ip_s);                      \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y-ip_u;                                                 \
+            for(l=0; l < 2*m+2; l++)                                          \
+              psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +      \
+                ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);                          \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            ip_y = FABS(n1*(ths->x[2*j+1]) - u)*((R)ip_s);                    \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y-ip_u;                                                 \
+            for(l=0; l < 2*m+2; l++)                                          \
+              psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +  \
+                ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);                    \
+                                                                              \
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1,       \
+                n0, n1, m, my_u0, my_o0);                                     \
+}
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI                  \
+{                                                                             \
+            R psij_const[2*(2*m+2)];                                          \
+            int u, o, l;                                                      \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            for(l=0;l<=2*m+1;l++)                                             \
+              psij_const[l]=(PHI(ths->x[2*j]-((R)((u+l)))/n0,0));             \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            for(l=0;l<=2*m+1;l++)                                             \
+              psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));     \
+                                                                              \
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1,       \
+                n0, n1, m, my_u0, my_o0);                                     \
+}
+
+#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(whichone)                       \
+{                                                                             \
+    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)                         \
+    {                                                                         \
+      _Pragma("omp parallel private(k)")                                      \
+      {                                                                       \
+        int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;                 \
+        int *ar_x = ths->index_x;                                             \
+                                                                              \
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, \
+            &min_u_b, &max_u_b, 2, ths->n, m);                                \
+                                                                              \
+        if (min_u_a != -1)                                                    \
+        {                                                                     \
+          k = index_x_binary_search(ar_x, M, min_u_a);                        \
+                                                                              \
+          MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_a || u_prod > max_u_a)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+                                                                              \
+        if (min_u_b != -1)                                                    \
+        {                                                                     \
+          int k = index_x_binary_search(ar_x, M, min_u_b);                    \
+                                                                              \
+          MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_b || u_prod > max_u_b)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+      } /* omp parallel */                                                    \
+      return;                                                                 \
+    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */                                    \
+}
+
+
 static void nfft_adjoint_2d_B(nfft_plan *ths)
 {
   const int N0 = ths->N[0];
@@ -3348,14 +3652,15 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
   if(ths->nfft_flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_PSI)
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
         int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -3373,7 +3678,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             if (u_prod < min_u_a || u_prod > max_u_a)
               break;
 
-            nfft_adjoint_2d_compute_omp3(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
             k++;
           }
@@ -3395,14 +3700,14 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             if (u_prod < min_u_b || u_prod > max_u_b)
               break;
 
-            nfft_adjoint_2d_compute_omp3(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -3410,9 +3715,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     {
       int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 #ifdef _OPENMP
-      nfft_adjoint_2d_compute_omp(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #else
-      nfft_adjoint_2d_compute(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_serial(ths->f+j, g, ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
     }
     return;
@@ -3426,7 +3731,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
 #ifdef _OPENMP
-  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+
+/*  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
   {
     #pragma omp parallel private(k)
     {
@@ -3435,7 +3742,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       R psij_const[2*(2*m+2)];
       R fg_psij0, fg_psij1, fg_psij2;
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
 
       if (min_u_a != -1)
       {
@@ -3474,7 +3781,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
           }
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
@@ -3517,14 +3824,14 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
           }
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
       }
-    } /* omp parallel */
-    return;
-  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    }*/ /* omp parallel */
+//    return;
+//  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
 
@@ -3556,9 +3863,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_2d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #else
-      nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
     }
 
@@ -3575,7 +3882,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(FG_PSI)
+
+/*  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
   {
     #pragma omp parallel private(k)
     {
@@ -3584,7 +3893,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       R psij_const[2*(2*m+2)];
       R fg_psij0, fg_psij1, fg_psij2;
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
 
       if (min_u_a != -1)
       {
@@ -3625,7 +3934,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
           }
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
@@ -3670,14 +3979,14 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
             psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];
           }
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
       }
-    } /* omp parallel */
-    return;
-  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    }*/ /* omp parallel */
+//    return;
+//  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -3711,9 +4020,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_2d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #else
-      nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
     }
 
@@ -3728,7 +4037,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
@@ -3736,7 +4047,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
         int *ar_x = ths->index_x;
         R psij_const[2*(2*m+2)];
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -3773,7 +4084,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
               psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
                 ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
-            nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
             k++;
           }
@@ -3814,14 +4125,14 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
               psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
                 ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
-            nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+            nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma openmp parallel for default(shared) private(k)
@@ -3850,9 +4161,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
           ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
 #ifdef _OPENMP
-      nfft_adjoint_2d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #else
-      nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+      nfft_adjoint_2d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
   }
       return;
@@ -3862,7 +4173,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
   nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+  MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(NO_PSI)
+
+/*  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
   {
     #pragma omp parallel private(k)
     {
@@ -3870,7 +4183,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[2*(2*m+2)];
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 2, ths->n, m);
 
       if (min_u_a != -1)
       {
@@ -3897,7 +4210,7 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
           for(l=0;l<=2*m+1;l++)
             psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
@@ -3928,16 +4241,15 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
           for(l=0;l<=2*m+1;l++)
             psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));
 
-          nfft_adjoint_2d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
+          nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
           k++;
         }
       }
-    } /* omp parallel */
-    return;
-  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    }*/ /* omp parallel */
+//    return;
+//  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
-
 
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < M; k++)
@@ -3955,9 +4267,9 @@ static void nfft_adjoint_2d_B(nfft_plan *ths)
       psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));
 
 #ifdef _OPENMP
-    nfft_adjoint_2d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+    nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #else
-    nfft_adjoint_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
+    nfft_adjoint_2d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
 #endif
   }
 }
@@ -3995,7 +4307,6 @@ void nfft_trafo_2d(nfft_plan *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
       for(k0=0;k0<N0/2;k0++)
       {
@@ -4016,44 +4327,15 @@ void nfft_trafo_2d(nfft_plan *ths)
 
         for(k1=0;k1<N1/2;k1++)
         {
-        ck11=c_phi_inv11[k1];
-        ck12=c_phi_inv12[k1];
+          ck11=c_phi_inv11[k1];
+          ck12=c_phi_inv12[k1];
 
-        g_hat11[k1] = f_hat11[k1] * ck01 * ck11;
-        g_hat21[k1] = f_hat21[k1] * ck02 * ck11;
-        g_hat12[k1] = f_hat12[k1] * ck01 * ck12;
-        g_hat22[k1] = f_hat22[k1] * ck02 * ck12;
+          g_hat11[k1] = f_hat11[k1] * ck01 * ck11;
+          g_hat21[k1] = f_hat21[k1] * ck02 * ck11;
+          g_hat12[k1] = f_hat12[k1] * ck01 * ck12;
+          g_hat22[k1] = f_hat22[k1] * ck02 * ck12;
+        }
       }
-  }
-#else
-      for(k0=0;k0<N0/2;k0++)
-  {
-    ck01=(*c_phi_inv01++);
-    ck02=(*c_phi_inv02++);
-
-    c_phi_inv11=ths->c_phi_inv[1];
-    c_phi_inv12=&ths->c_phi_inv[1][N1/2];
-
-    g_hat11=g_hat + (n0-(N0/2)+k0)*n1+n1-(N1/2);
-    f_hat11=f_hat + k0*N1;
-          g_hat21=g_hat + k0*n1+n1-(N1/2);
-          f_hat21=f_hat + ((N0/2)+k0)*N1;
-          g_hat12=g_hat + (n0-(N0/2)+k0)*n1;
-          f_hat12=f_hat + k0*N1+(N1/2);
-    g_hat22=g_hat + k0*n1;
-    f_hat22=f_hat + ((N0/2)+k0)*N1+(N1/2);
-    for(k1=0;k1<N1/2;k1++)
-      {
-        ck11=(*c_phi_inv11++);
-        ck12=(*c_phi_inv12++);
-
-        (*g_hat11++) = (*f_hat11++) * ck01 * ck11;
-        (*g_hat21++) = (*f_hat21++) * ck02 * ck11;
-        (*g_hat12++) = (*f_hat12++) * ck01 * ck12;
-        (*g_hat22++) = (*f_hat22++) * ck02 * ck12;
-      }
-  }
-#endif
     }
   else
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
@@ -4116,7 +4398,6 @@ void nfft_adjoint_2d(nfft_plan *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
       for(k0=0;k0<N0/2;k0++)
       {
@@ -4146,34 +4427,6 @@ void nfft_adjoint_2d(nfft_plan *ths)
           f_hat22[k1] = g_hat22[k1] * ck02 * ck12;
         }
       }
-#else
-      for(k0=0;k0<N0/2;k0++)
-  {
-    ck01=(*c_phi_inv01++);
-    ck02=(*c_phi_inv02++);
-
-    c_phi_inv11=ths->c_phi_inv[1];
-    c_phi_inv12=&ths->c_phi_inv[1][N1/2];
-    g_hat11=g_hat + (n0-(N0/2)+k0)*n1+n1-(N1/2);
-    f_hat11=f_hat + k0*N1;
-          g_hat21=g_hat + k0*n1+n1-(N1/2);
-          f_hat21=f_hat + ((N0/2)+k0)*N1;
-          g_hat12=g_hat + (n0-(N0/2)+k0)*n1;
-          f_hat12=f_hat + k0*N1+(N1/2);
-    g_hat22=g_hat + k0*n1;
-    f_hat22=f_hat + ((N0/2)+k0)*N1+(N1/2);
-    for(k1=0;k1<N1/2;k1++)
-      {
-        ck11=(*c_phi_inv11++);
-        ck12=(*c_phi_inv12++);
-
-        (*f_hat11++) = (*g_hat11++) * ck01 * ck11;
-        (*f_hat21++) = (*g_hat21++) * ck02 * ck11;
-        (*f_hat12++) = (*g_hat12++) * ck01 * ck12;
-        (*f_hat22++) = (*g_hat22++) * ck02 * ck12;
-      }
-  }
-#endif
     }
   else
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
@@ -4465,10 +4718,10 @@ static void nfft_trafo_3d_compute(C *fj, const C *g,
 
 #ifdef _OPENMP
 /** 
- * Adjoint NFFT three-dimensional case updating only a specified range of
+ * Adjoint NFFT for three-dimensional case updating only a specified range of
  * vector g.
  *
- * \arg fg input coefficient f[j]
+ * \arg f input coefficient f[j]
  * \arg g output vector g
  * \arg psij_const0 vector of window function values first component
  * \arg psij_const1 vector of window function values second component
@@ -4485,7 +4738,7 @@ static void nfft_trafo_3d_compute(C *fj, const C *g,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
+static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
             const int n0, const int n1, const int n2, const int m,
@@ -4529,7 +4782,7 @@ static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * (*fj);
+          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
       }
     }  
   }
@@ -4555,7 +4808,7 @@ static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * (*fj);
+          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
       }
     }
 
@@ -4581,7 +4834,7 @@ static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * (*fj);
+          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
       }
     }
   }
@@ -4590,7 +4843,7 @@ static void nfft_adjoint_3d_compute_omp3(const C *fj, C *g,
 
 #ifdef _OPENMP
 /* adjoint NFFT three-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
+static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
             const int n0, const int n1, const int n2, const int m)
@@ -4624,7 +4877,7 @@ static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
         unsigned long int i = (index_temp0[l0] * n1 + index_temp1[l1]) * n2 + index_temp2[l2];
         C *lhs = g+i;
         R *lhs_real = (R*)lhs;
-        C val = psij_const0[l0] * psij_const1[l1] * psij_const2[l2] * (*fj);
+        C val = psij_const0[l0] * psij_const1[l1] * psij_const2[l2] * f;
 
         #pragma omp atomic
         lhs_real[0] += creal(val);
@@ -4637,7 +4890,8 @@ static void nfft_adjoint_3d_compute_omp(const C *fj, C *g,
 }
 #endif
 
-static void nfft_adjoint_3d_compute(const C *fj, C *g,
+#ifndef _OPENMP
+static void nfft_adjoint_3d_compute_serial(const C *fj, C *g,
             const R *psij_const0, const R *psij_const1, const R *psij_const2,
             const R *xj0, const R *xj1, const R *xj2,
             const int n0, const int n1, const int n2, const int m)
@@ -4883,7 +5137,7 @@ static void nfft_adjoint_3d_compute(const C *fj, C *g,
       }
   }
 }
-
+#endif
 
 static void nfft_trafo_3d_B(nfft_plan *ths)
 {
@@ -5105,6 +5359,238 @@ static void nfft_trafo_3d_B(nfft_plan *ths)
   }
 }
 
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_a || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_a);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A
+#endif
+
+#ifdef OMP_ASSERT
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B                        \
+{                                                                             \
+          assert(ar_x[2*k] >= min_u_b || k == M-1);                           \
+          if (k > 0)                                                          \
+            assert(ar_x[2*k-2] < min_u_b);                                    \
+}
+#else
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B
+#endif
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI                 \
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
+                ths->psi+j*3*(2*m+2),                                         \
+                ths->psi+(j*3+1)*(2*m+2),                                     \
+                ths->psi+(j*3+2)*(2*m+2),                                     \
+                ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2,                       \
+                n0, n1, n2, m, my_u0, my_o0);
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI              \
+{                                                                             \
+            int u, o, l;                                                      \
+            R psij_const[3*(2*m+2)];                                          \
+            R fg_psij0 = ths->psi[2*j*3];                                     \
+            R fg_psij1 = ths->psi[2*j*3+1];                                   \
+            R fg_psij2 = K(1.0);                                              \
+                                                                              \
+            psij_const[0] = fg_psij0;                                         \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];                  \
+            }                                                                 \
+                                                                              \
+            fg_psij0 = ths->psi[2*(j*3+1)];                                   \
+            fg_psij1 = ths->psi[2*(j*3+1)+1];                                 \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*m+2] = fg_psij0;                                     \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];      \
+            }                                                                 \
+                                                                              \
+            fg_psij0 = ths->psi[2*(j*3+2)];                                   \
+            fg_psij1 = ths->psi[2*(j*3+2)+1];                                 \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*(2*m+2)] = fg_psij0;                                 \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l]; \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2,           \
+                ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2,                       \
+                n0, n1, n2, m, my_u0, my_o0);                                 \
+}
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI                  \
+{                                                                             \
+            int u, o, l;                                                      \
+            R psij_const[3*(2*m+2)];                                          \
+            R fg_psij0, fg_psij1, fg_psij2;                                   \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            fg_psij0 = (PHI(ths->x[3*j]-((R)u)/n0,0));                        \
+            fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);          \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[0] = fg_psij0;                                         \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[l] = fg_psij0*fg_psij2*fg_exp_l[l];                  \
+            }                                                                 \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            fg_psij0 = (PHI(ths->x[3*j+1]-((R)u)/n1,1));                      \
+            fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);        \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*m+2] = fg_psij0;                                     \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*m+2+l] = fg_psij0*fg_psij2*fg_exp_l[2*m+2+l];      \
+            }                                                                 \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,2);                                           \
+            fg_psij0 = (PHI(ths->x[3*j+2]-((R)u)/n2,2));                      \
+            fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);        \
+            fg_psij2 = K(1.0);                                                \
+            psij_const[2*(2*m+2)] = fg_psij0;                                 \
+            for(l=1; l<=2*m+1; l++)                                           \
+            {                                                                 \
+              fg_psij2 *= fg_psij1;                                           \
+              psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l]; \
+            }                                                                 \
+                                                                              \
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2,           \
+                ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2,                       \
+                n0, n1, n2, m, my_u0, my_o0);                                 \
+}
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI             \
+{                                                                             \
+            int u, o, l;                                                      \
+            R psij_const[3*(2*m+2)];                                          \
+            int ip_u;                                                         \
+            R ip_y, ip_w;                                                     \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            ip_y = FABS(n0*ths->x[3*j+0] - u)*((R)ip_s);                      \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y-ip_u;                                                 \
+            for(l=0; l < 2*m+2; l++)                                          \
+              psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +      \
+                ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);                          \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            ip_y = FABS(n1*ths->x[3*j+1] - u)*((R)ip_s);                      \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y-ip_u;                                                 \
+            for(l=0; l < 2*m+2; l++)                                          \
+              psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
+                ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);                    \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,2);                                           \
+            ip_y = FABS(n2*ths->x[3*j+2] - u)*((R)ip_s);                      \
+            ip_u = LRINT(FLOOR(ip_y));                                        \
+            ip_w = ip_y-ip_u;                                                 \
+            for(l=0; l < 2*m+2; l++)                                          \
+              psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
+                ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);                  \
+                                                                              \
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2,           \
+                ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2,                       \
+                n0, n1, n2, m, my_u0, my_o0);                                 \
+}
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI                  \
+{                                                                             \
+            int u, o, l;                                                      \
+            R psij_const[3*(2*m+2)];                                          \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,0);                                           \
+            for(l=0;l<=2*m+1;l++)                                             \
+              psij_const[l]=(PHI(ths->x[3*j]-((R)((u+l)))/n0,0));             \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,1);                                           \
+            for(l=0;l<=2*m+1;l++)                                             \
+              psij_const[2*m+2+l]=(PHI(ths->x[3*j+1]-((R)((u+l)))/n1,1));     \
+                                                                              \
+            nfft_uo(ths,j,&u,&o,2);                                           \
+            for(l=0;l<=2*m+1;l++)                                             \
+              psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2)); \
+                                                                              \
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
+                psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2,           \
+                ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2,                       \
+                n0, n1, n2, m, my_u0, my_o0);                                 \
+}
+
+#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(whichone)                       \
+{                                                                             \
+    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)                         \
+    {                                                                         \
+      _Pragma("omp parallel private(k)")                                      \
+      {                                                                       \
+        int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;                 \
+        int *ar_x = ths->index_x;                                             \
+                                                                              \
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, \
+            &min_u_b, &max_u_b, 3, ths->n, m);                                \
+                                                                              \
+        if (min_u_a != -1)                                                    \
+        {                                                                     \
+          k = index_x_binary_search(ar_x, M, min_u_a);                        \
+                                                                              \
+          MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_a || u_prod > max_u_a)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+                                                                              \
+        if (min_u_b != -1)                                                    \
+        {                                                                     \
+          int k = index_x_binary_search(ar_x, M, min_u_b);                    \
+                                                                              \
+          MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B                      \
+                                                                              \
+          while (k < M)                                                       \
+          {                                                                   \
+            int u_prod = ar_x[2*k];                                           \
+            int j = ar_x[2*k+1];                                              \
+                                                                              \
+            if (u_prod < min_u_b || u_prod > max_u_b)                         \
+              break;                                                          \
+                                                                              \
+            MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone         \
+                                                                              \
+            k++;                                                              \
+          }                                                                   \
+        }                                                                     \
+      } /* omp parallel */                                                    \
+      return;                                                                 \
+    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */                                    \
+}
+
 static void nfft_adjoint_3d_B(nfft_plan *ths)
 {
   int k;
@@ -5131,14 +5617,16 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
   if(ths->nfft_flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_PSI)
+
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
         int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -5156,7 +5644,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
             if (u_prod < min_u_a || u_prod > max_u_a)
               break;
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
@@ -5178,14 +5666,14 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
             if (u_prod < min_u_b || u_prod > max_u_b)
               break;
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -5193,9 +5681,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     {
       int j = (ths->nfft_flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 #ifdef _OPENMP
-      nfft_adjoint_3d_compute_omp(ths->f+j, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #else
-      nfft_adjoint_3d_compute(ths->f+j, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_serial(ths->f+j, g, ths->psi+j*3*(2*m+2), ths->psi+(j*3+1)*(2*m+2), ths->psi+(j*3+2)*(2*m+2), ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
     return;
@@ -5210,14 +5698,16 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     nfft_3d_init_fg_exp_l(fg_exp_l+2*(2*m+2), m, ths->b[2]);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
         int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -5267,7 +5757,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l];
             }
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
@@ -5321,14 +5811,14 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l];
             }
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma omp parallel for default(shared) private(k)
@@ -5369,9 +5859,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_3d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #else
-      nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
 
@@ -5389,14 +5879,16 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(FG_PSI)
+
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
         int my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b;
         int *ar_x = ths->index_x;
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -5450,7 +5942,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l];
             }
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
@@ -5508,14 +6000,14 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = fg_psij0*fg_psij2*fg_exp_l[2*(2*m+2)+l];
             }
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma openmp parallel for default(shared) private(k)
@@ -5560,9 +6052,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       }
 
 #ifdef _OPENMP
-      nfft_adjoint_3d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #else
-      nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
 
@@ -5577,7 +6069,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
     nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+
+/*    if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     {
       #pragma omp parallel private(k)
       {
@@ -5587,7 +6081,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
         R ip_y, ip_w;
         R psij_const[3*(2*m+2)];
 
-        nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
 
         if (min_u_a != -1)
         {
@@ -5631,7 +6125,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
                 ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
@@ -5679,14 +6173,14 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
               psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
                 ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
-            nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+            nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
             k++;
           }
         }
-      } /* omp parallel */
-      return;
-    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+      }*/ /* omp parallel */
+//      return;
+//    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
     #pragma openmp parallel for default(shared) private(k)
@@ -5723,9 +6217,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
           ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
 #ifdef _OPENMP
-      nfft_adjoint_3d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #else
-      nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+      nfft_adjoint_3d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
     }
     return;
@@ -5735,7 +6229,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
   nfft_sort_nodes(ths);
 
 #ifdef _OPENMP
-  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+  MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(NO_PSI)
+
+/*  if (ths->nfft_flags & NFFT_OMP_BLOCKWISE_ADJOINT)
   {
     #pragma omp parallel private(k)
     {
@@ -5743,7 +6239,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       int *ar_x = ths->index_x;
       R psij_const[3*(2*m+2)];
 
-      nfft_adjoint_B_omp3_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
+      nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, 3, ths->n, m);
 
       if (min_u_a != -1)
       {
@@ -5775,7 +6271,7 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
           for(l=0;l<=2*m+1;l++)
             psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2));
 
-          nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+          nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
           k++;
         }
@@ -5811,14 +6307,14 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
           for(l=0;l<=2*m+1;l++)
             psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2));
 
-          nfft_adjoint_3d_compute_omp3(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
+          nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m, my_u0, my_o0);
 
           k++;
         }
       }
-    } /* omp parallel */
-    return;
-  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
+    }*/ /* omp parallel */
+//    return;
+//  } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
   #pragma omp parallel for default(shared) private(k)
@@ -5841,9 +6337,9 @@ static void nfft_adjoint_3d_B(nfft_plan *ths)
       psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2));
 
 #ifdef _OPENMP
-    nfft_adjoint_3d_compute_omp(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+    nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #else
-    nfft_adjoint_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
+    nfft_adjoint_3d_compute_serial(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
 #endif
   }
 }
@@ -5885,7 +6381,6 @@ void nfft_trafo_3d(nfft_plan *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
       for(k0=0;k0<N0/2;k0++)
   {
@@ -5936,57 +6431,6 @@ void nfft_trafo_3d(nfft_plan *ths)
     }
       }
   }
-#else
-      for(k0=0;k0<N0/2;k0++)
-  {
-    ck01=(*c_phi_inv01++);
-    ck02=(*c_phi_inv02++);
-    c_phi_inv11=ths->c_phi_inv[1];
-    c_phi_inv12=&ths->c_phi_inv[1][N1/2];
-
-    for(k1=0;k1<N1/2;k1++)
-      {
-        ck11=(*c_phi_inv11++);
-        ck12=(*c_phi_inv12++);
-        c_phi_inv21=ths->c_phi_inv[2];
-        c_phi_inv22=&ths->c_phi_inv[2][N2/2];
-
-        g_hat111=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
-        f_hat111=f_hat + (k0*N1+k1)*N2;
-        g_hat211=g_hat + (k0*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
-        f_hat211=f_hat + (((N0/2)+k0)*N1+k1)*N2;
-        g_hat121=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2+n2-(N2/2);
-        f_hat121=f_hat + (k0*N1+(N1/2)+k1)*N2;
-        g_hat221=g_hat + (k0*n1+k1)*n2+n2-(N2/2);
-        f_hat221=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2;
-
-        g_hat112=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2;
-        f_hat112=f_hat + (k0*N1+k1)*N2+(N2/2);
-        g_hat212=g_hat + (k0*n1+n1-(N1/2)+k1)*n2;
-        f_hat212=f_hat + (((N0/2)+k0)*N1+k1)*N2+(N2/2);
-        g_hat122=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2;
-        f_hat122=f_hat + (k0*N1+N1/2+k1)*N2+(N2/2);
-        g_hat222=g_hat + (k0*n1+k1)*n2;
-        f_hat222=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2+(N2/2);
-
-        for(k2=0;k2<N2/2;k2++)
-    {
-      ck21=(*c_phi_inv21++);
-      ck22=(*c_phi_inv22++);
-
-      (*g_hat111++) = (*f_hat111++) * ck01 * ck11 * ck21;
-      (*g_hat211++) = (*f_hat211++) * ck02 * ck11 * ck21;
-      (*g_hat121++) = (*f_hat121++) * ck01 * ck12 * ck21;
-      (*g_hat221++) = (*f_hat221++) * ck02 * ck12 * ck21;
-
-      (*g_hat112++) = (*f_hat112++) * ck01 * ck11 * ck22;
-      (*g_hat212++) = (*f_hat212++) * ck02 * ck11 * ck22;
-      (*g_hat122++) = (*f_hat122++) * ck01 * ck12 * ck22;
-      (*g_hat222++) = (*f_hat222++) * ck02 * ck12 * ck22;
-    }
-      }
-  }
-#endif
     }
   else
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
@@ -6064,7 +6508,6 @@ void nfft_adjoint_3d(nfft_plan *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
       for(k0=0;k0<N0/2;k0++)
   {
@@ -6115,57 +6558,6 @@ void nfft_adjoint_3d(nfft_plan *ths)
     }
       }
   }
-#else
-      for(k0=0;k0<N0/2;k0++)
-  {
-    ck01=(*c_phi_inv01++);
-    ck02=(*c_phi_inv02++);
-    c_phi_inv11=ths->c_phi_inv[1];
-    c_phi_inv12=&ths->c_phi_inv[1][N1/2];
-
-    for(k1=0;k1<N1/2;k1++)
-      {
-        ck11=(*c_phi_inv11++);
-        ck12=(*c_phi_inv12++);
-        c_phi_inv21=ths->c_phi_inv[2];
-        c_phi_inv22=&ths->c_phi_inv[2][N2/2];
-
-        g_hat111=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
-        f_hat111=f_hat + (k0*N1+k1)*N2;
-        g_hat211=g_hat + (k0*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
-        f_hat211=f_hat + (((N0/2)+k0)*N1+k1)*N2;
-        g_hat121=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2+n2-(N2/2);
-        f_hat121=f_hat + (k0*N1+(N1/2)+k1)*N2;
-        g_hat221=g_hat + (k0*n1+k1)*n2+n2-(N2/2);
-        f_hat221=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2;
-
-        g_hat112=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2;
-        f_hat112=f_hat + (k0*N1+k1)*N2+(N2/2);
-        g_hat212=g_hat + (k0*n1+n1-(N1/2)+k1)*n2;
-        f_hat212=f_hat + (((N0/2)+k0)*N1+k1)*N2+(N2/2);
-        g_hat122=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2;
-        f_hat122=f_hat + (k0*N1+(N1/2)+k1)*N2+(N2/2);
-        g_hat222=g_hat + (k0*n1+k1)*n2;
-        f_hat222=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2+(N2/2);
-
-        for(k2=0;k2<N2/2;k2++)
-    {
-      ck21=(*c_phi_inv21++);
-      ck22=(*c_phi_inv22++);
-
-      (*f_hat111++) = (*g_hat111++) * ck01 * ck11 * ck21;
-      (*f_hat211++) = (*g_hat211++) * ck02 * ck11 * ck21;
-      (*f_hat121++) = (*g_hat121++) * ck01 * ck12 * ck21;
-      (*f_hat221++) = (*g_hat221++) * ck02 * ck12 * ck21;
-
-      (*f_hat112++) = (*g_hat112++) * ck01 * ck11 * ck22;
-      (*f_hat212++) = (*g_hat212++) * ck02 * ck11 * ck22;
-      (*f_hat122++) = (*g_hat122++) * ck01 * ck12 * ck22;
-      (*f_hat222++) = (*g_hat222++) * ck02 * ck12 * ck22;
-    }
-      }
-  }
-#endif
     }
   else
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
