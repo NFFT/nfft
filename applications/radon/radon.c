@@ -57,7 +57,7 @@
 /** generates the points x with weights w
  *  for the polar grid with T angles and R offsets
  */
-int polar_grid(int T, int R, double *x, double *w)
+static int polar_grid(int T, int R, double *x, double *w)
 {
   int t, r;
   double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
@@ -81,7 +81,7 @@ int polar_grid(int T, int R, double *x, double *w)
 /** generates the points x with weights w
  *  for the linogram grid with T slopes and R offsets
  */
-int linogram_grid(int T, int R, double *x, double *w)
+static int linogram_grid(int T, int R, double *x, double *w)
 {
   int t, r;
   double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);

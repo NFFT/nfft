@@ -86,7 +86,7 @@ MACRO_nndft(adjoint)
 
 /** computes 2m+2 indices for the matrix B
  */
-void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
+static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 {
   double c;
   int u,o;
@@ -479,7 +479,7 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
     } /* for(j) */
 }
 
-void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
+static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
 {
   int t;                                /**< index over all dimensions       */
   int lprod;                            /**< 'bandwidth' of matrix B         */

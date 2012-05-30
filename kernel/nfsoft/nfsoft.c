@@ -215,7 +215,7 @@ static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
   return set;
 }
 
-fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
+static fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
 {
   int N, t, k_start, k_end;
   R *alpha, *beta, *gamma;

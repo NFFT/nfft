@@ -38,7 +38,7 @@
 /**
  * reconstruct makes an inverse 2d nfft
  */
-void reconstruct(char* filename,int N,int M,int iteration, int weight)
+static void reconstruct(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
   ticks t0, t1;

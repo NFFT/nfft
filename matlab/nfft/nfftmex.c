@@ -133,6 +133,7 @@ static inline void check_plan(int i)
 
 static inline int mkplan(void)
 {
+  mexLock();
   int i = 0;
   while (i < PLANS_MAX && plans[i] != 0) i++;
   if (i == PLANS_MAX)
@@ -145,6 +146,8 @@ static inline int mkplan(void)
 static void cleanup(void)
 {
   int i;
+
+  mexUnlock();
 
   if (!(gflags & NFFT_MEX_FIRST_CALL))
   {
@@ -325,7 +328,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       {
         double *x = mxGetPr(plhs[0]);
         int j,t;
-        for (j = 0; j < d*m; j++)
+        for (j = 0; j < m; j++)
 	  for (t = 0; t < d; t++)
 	    x[d*j+t] = plans[i]->x[d*j+t];
       }

@@ -87,7 +87,7 @@
 /* } */
 
 /** Simple test routine for the inverse nfft */
-void simple_test_solver_nfft_1d(int N, int M, int iter)
+static void simple_test_solver_nfft_1d(int N, int M, int iter)
 {
   int k,l;                            /**< index for nodes, freqencies,iter*/
   nfft_plan p;                          /**< plan for the nfft               */

@@ -58,7 +58,7 @@
   unsigned test=0;
 #endif
 
-void flags_cp(nfft_plan *dst, nfft_plan *src)
+static void flags_cp(nfft_plan *dst, nfft_plan *src)
 {
   dst->x=src->x;
   dst->f_hat=src->f_hat;
@@ -69,12 +69,12 @@ void flags_cp(nfft_plan *dst, nfft_plan *src)
   dst->my_fftw_plan2=src->my_fftw_plan2;
 }
 
-void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
+static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
                    unsigned test_pre_full_psi)
 {
   int r, NN[d], nn[d];
   double t_ndft, t, e;
-  double _Complex *swapndft;
+  double _Complex *swapndft = NULL;
   ticks t0, t1;
 
   nfft_plan p;
@@ -224,7 +224,7 @@ void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     nfft_free(swapndft);
 }
 
-void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
+static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 {
   int r, NN[d], nn[d];
   double e;

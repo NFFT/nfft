@@ -61,7 +61,7 @@ typedef struct
  *
  * \author Stefan Kunis
  */
-void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
+static void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
 {
   /* Note: no nfft precomputation! */
   nfft_init_guru((nfft_plan*)ths, 1, &N, M, &n, m,
@@ -80,7 +80,7 @@ void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
  *
  * \author Stefan Kunis
  */
-void taylor_precompute(taylor_plan *ths)
+static void taylor_precompute(taylor_plan *ths)
 {
   int j;
 
@@ -102,7 +102,7 @@ void taylor_precompute(taylor_plan *ths)
  *
  * \author Stefan Kunis, Daniel Potts
  */
-void taylor_finalize(taylor_plan *ths)
+static void taylor_finalize(taylor_plan *ths)
 {
   nfft_free(ths->deltax0);
   nfft_free(ths->idx0);
@@ -120,7 +120,7 @@ void taylor_finalize(taylor_plan *ths)
  *
  * \author Stefan Kunis
  */
-void taylor_trafo(taylor_plan *ths)
+static void taylor_trafo(taylor_plan *ths)
 {
   int j,k,l,ll;
   double _Complex *f, *f_hat, *g1;
@@ -176,12 +176,12 @@ void taylor_trafo(taylor_plan *ths)
  *
  * \author Stefan Kunis
  */
-void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
+static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
                           int m_taylor, unsigned test_accuracy)
 {
   int r;
   double t_ndft, t_nfft, t_taylor, t;
-  double _Complex *swapndft;
+  double _Complex *swapndft = NULL;
   ticks t0, t1;
 
   taylor_plan tp;

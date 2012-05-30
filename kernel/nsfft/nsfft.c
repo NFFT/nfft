@@ -30,6 +30,8 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#define NSFTT_DISABLE_TEST
+
 /* computes a 2d ndft by 1d nfft along the dimension 1 times
    1d ndft along dimension 0
 */
@@ -190,6 +192,7 @@ static void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef GAUSSIAN
 static int index_sparse_to_full_direct_2d(int J, int k)
 {
     int N=X(exp2i)(J+2);               /* number of full coeffs             */
@@ -309,6 +312,7 @@ static int index_sparse_to_full_direct_2d(int J, int k)
 	return(k1*N+k2);
       }
 }
+#endif
 
 static inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
 {
@@ -319,6 +323,7 @@ static inline int index_sparse_to_full_2d(nsfft_plan *ths, int k)
     return -1;
 }
 
+#ifndef NSFTT_DISABLE_TEST
 static int index_full_to_sparse_2d(int J, int k)
 {
     int N=X(exp2i)(J+2);               /* number of full coeffs       */
@@ -372,7 +377,9 @@ static int index_full_to_sparse_2d(int J, int k)
 
     return(-1);
 }
+#endif
 
+#ifdef GAUSSIAN
 static void init_index_sparse_to_full_2d(nsfft_plan *ths)
 {
   int k_S;
@@ -380,7 +387,9 @@ static void init_index_sparse_to_full_2d(nsfft_plan *ths)
   for (k_S=0; k_S<ths->N_total; k_S++)
     ths->index_sparse_to_full[k_S]=index_sparse_to_full_direct_2d(ths->J, k_S);
 }
+#endif
 
+#ifdef GAUSSIAN
 static inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
 {
   /* only by lookup table */
@@ -389,7 +398,9 @@ static inline int index_sparse_to_full_3d(nsfft_plan *ths, int k)
   else
     return -1;
 }
+#endif
 
+#ifndef NSFTT_DISABLE_TEST
 static int index_full_to_sparse_3d(int J, int k)
 {
   int N=X(exp2i)(J+2);                 /* length of the full grid           */
@@ -479,7 +490,9 @@ static int index_full_to_sparse_3d(int J, int k)
 
   return(-1);
 }
+#endif
 
+#ifdef GAUSSIAN
 static void init_index_sparse_to_full_3d(nsfft_plan *ths)
 {
   int k1,k2,k3,k_s,r;
@@ -583,6 +596,7 @@ static void init_index_sparse_to_full_3d(nsfft_plan *ths)
       for(k3=-Nc/2; k3<Nc/2; k3++,k_s++)
 	ths->index_sparse_to_full[k_s]=((k1+N/2)*N+k2+N/2)*N+k3+N/2;
 }
+#endif
 
 /* copies ths->f_hat to ths_plan->f_hat */
 void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_full_plan)
@@ -600,6 +614,7 @@ void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_full_plan)
   memcpy(ths_full_plan->x,ths->act_nfft_plan->x,ths->M_total*ths->d*sizeof(double));
 }
 
+#ifndef NSFTT_DISABLE_TEST
 /* test copy_sparse_to_full */
 static void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_plan)
 {
@@ -666,7 +681,9 @@ static void test_copy_sparse_to_full_2d(nsfft_plan *ths, nfft_plan *ths_full_pla
     printf("\n");
   }
 }
+#endif
 
+#ifndef NSFTT_DISABLE_TEST
 static void test_sparse_to_full_2d(nsfft_plan* ths)
 {
   int k_S,k1,k2;
@@ -683,7 +700,9 @@ static void test_sparse_to_full_2d(nsfft_plan* ths)
                  k1*N+k2, k_S, ths->index_sparse_to_full[k_S]);
       }
 }
+#endif
 
+#ifndef NSFTT_DISABLE_TEST
 static void test_sparse_to_full_3d(nsfft_plan* ths)
 {
   int k_S,k1,k2,k3;
@@ -701,6 +720,7 @@ static void test_sparse_to_full_3d(nsfft_plan* ths)
                      (k1*N+k2)*N+k3,k_S, ths->index_sparse_to_full[k_S]);
 	  }
 }
+#endif
 
 
 void nsfft_init_random_nodes_coeffs(nsfft_plan *ths)
@@ -1540,6 +1560,7 @@ void nsfft_adjoint(nsfft_plan *ths)
 
 /*========================================================*/
 /* J >1, no precomputation at all!! */
+#ifdef GAUSSIAN
 static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 {
   int r;
@@ -1620,9 +1641,11 @@ static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
       init_index_sparse_to_full_2d(ths);
     }
 }
+#endif
 
 /*========================================================*/
 /* J >1, no precomputation at all!! */
+#ifdef GAUSSIAN
 static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_flags)
 {
   int r,rr,a,b;
@@ -1738,6 +1761,7 @@ static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
       init_index_sparse_to_full_3d(ths);
     }
 }
+#endif
 
 #ifdef GAUSSIAN
 void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
@@ -1767,7 +1791,7 @@ void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
 }
 #endif
 
-void nsfft_finalize_2d(nsfft_plan *ths)
+static void nsfft_finalize_2d(nsfft_plan *ths)
 {
   int r;
 
@@ -1810,7 +1834,7 @@ void nsfft_finalize_2d(nsfft_plan *ths)
   nfft_free(ths->f);
 }
 
-void nsfft_finalize_3d(nsfft_plan *ths)
+static void nsfft_finalize_3d(nsfft_plan *ths)
 {
   int r;
 

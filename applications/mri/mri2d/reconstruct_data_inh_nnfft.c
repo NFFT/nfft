@@ -39,7 +39,7 @@
 /**
  * reconstruct
  */
-void reconstruct(char* filename,int N,int M,int iteration, int weight)
+static void reconstruct(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
   nnfft_plan my_plan;            /* plan for the two dimensional nfft  */

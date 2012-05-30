@@ -59,7 +59,7 @@ typedef struct fpt_data_
  */
 typedef struct fpt_set_s_
 {
-  int flags;                              /**< The flags                     */
+  unsigned int flags;                     /**< The flags                     */
   int M;                                  /**< The number of DPT transforms  */
   int N;                                  /**< The transform length. Must be
                                                a power of two.               */

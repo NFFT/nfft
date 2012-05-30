@@ -31,7 +31,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-void simple_test_nfft_1d(void)
+static void simple_test_nfft_1d(void)
 {
   nfft_plan p;
   double t;
@@ -78,7 +78,7 @@ void simple_test_nfft_1d(void)
   nfft_finalize(&p);
 }
 
-void simple_test_nfft_2d(void)
+static void simple_test_nfft_2d(void)
 {
   int K,N[2],n[2],M;
   double t;

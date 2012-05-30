@@ -37,7 +37,7 @@
 /**
  * reconstruct makes an 2d-adjoint-nfft for every slice
  */
-void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
+static void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
 {
   int j,k,z;               /* some variables  */
   double weights;          /* store one weight temporary */
@@ -101,7 +101,7 @@ void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem
  * print writes the memory back in a file
  * output_real.dat for the real part and output_imag.dat for the imaginary part
  */
-void print(int N,int M,int Z, fftw_complex *mem)
+static void print(int N,int M,int Z, fftw_complex *mem)
 {
   int i,j;
   FILE* fout_real;
