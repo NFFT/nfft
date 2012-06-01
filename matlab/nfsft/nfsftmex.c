@@ -24,6 +24,7 @@
 #endif
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "nfft3.h"
 #include "infft.h"
 #include "nfft3util.h"
@@ -149,9 +150,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     check_nargs(nrhs,3,"Wrong number of arguments for init.");
     {
-      const int i = mkplan();
+      int i; 
       int n, m;
       get_nm(prhs,&n,&m);
+      i = mkplan();
       nfsft_init(plans[i],n,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
@@ -161,10 +163,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     check_nargs(nrhs,4,"Wrong number of arguments for init_advanced.");
     {
-      const int i = mkplan();
+      int i;
       int n, m;
       unsigned int f;
       get_nmf(prhs,&n,&m,&f);
+      i = mkplan();
       nfsft_init_advanced(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT);
       plhs[0] = mxCreateDoubleScalar((double)i);
@@ -175,10 +178,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     check_nargs(nrhs,6,"Wrong number of arguments for init_guru.");
     {
-      const int i = mkplan();
+      int i;
       int n, m, c;
       unsigned int f, f2;
       get_nmffc(prhs,&n,&m,&f,&f2,&c);
+      i = mkplan();
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT
         | FFT_OUT_OF_PLACE, c);
@@ -463,6 +467,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
       mexPrintf("    flags: %d\n",plans[i]->flags);
     }
+    return;
+  }
+  else if(strcmp(cmd,"get_num_threads") == 0)
+  {
+    int32_t nthreads = nfft_get_num_threads();
+    plhs[0] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
+    *((int32_t *)mxGetData(plhs[0])) = nthreads;
+
     return;
   }
   else

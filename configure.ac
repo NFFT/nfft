@@ -45,14 +45,14 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 AC_CANONICAL_HOST
 
 # number of CPUs
-AX_COUNT_CPUS
-AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
+#AX_COUNT_CPUS
+#AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
 
 # substitute abs_srcdir in generated Makefiles
 AC_SUBST([abs_srcdir])
 
 # minimum required libtool version
-LT_PREREQ([2.2.0])
+LT_PREREQ([2.4.2])
 
 # libtool initialization
 LT_INIT([win32-dll])
@@ -108,8 +108,8 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
-AC_ARG_ENABLE(threads, [AC_HELP_STRING([--enable-threads],
-  [enable multithreaded code])], enable_threads=$enableval, enable_threads=no)
+AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
+  [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
 AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
@@ -179,6 +179,9 @@ AX_COMPILER_VENDOR
 # check for C99 compliant mode (possibly with GNU extensions)
 AC_PROG_CC_C99
 
+# per-target flags
+AM_PROG_CC_C_O
+
 # enable "const" keyword
 AC_C_CONST
 
@@ -211,14 +214,6 @@ AC_PROG_LN_S
 # 3rd party libraries
 ################################################################################
 
-# Check for MATLAB.
-AX_PROG_MATLAB
-AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
-AC_SUBST(matlab_CPPFLAGS)
-AC_SUBST(matlab_LIBS)
-AC_SUBST(matlab_LDFLAGS)
-AC_SUBST(matlab_mexext)
-
 # Check for fftw3.
 AX_LIB_FFTW3
 
@@ -233,10 +228,26 @@ if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
   AC_MSG_ERROR([You don't seem to have the threaded FFTW 3 library installed.])
 fi
 
-# libdispatch
-AX_LIB_DISPATCH
-
 AX_OPENMP
+AM_CONDITIONAL(HAVE_OPENMP, test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xunknown" )
+AC_SUBST(OPENMP_CFLAGS)
+
+if  test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+  AC_MSG_ERROR([You don't seem to have a C compiler with OpenMP support installed which is required for threaded NFFT.])
+fi
+
+# Check for MATLAB.
+AX_PROG_MATLAB
+
+if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
+  AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with \"--enable-openmp\".])
+fi
+
+AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+AC_SUBST(matlab_CPPFLAGS)
+AC_SUBST(matlab_LIBS)
+AC_SUBST(matlab_LDFLAGS)
+AC_SUBST(matlab_mexext)
 
 ################################################################################
 # compiler options

@@ -16,4 +16,8 @@ noinst_LTLIBRARIES = libmatlab.la
 
 libmatlab_la_SOURCES = args.c malloc.c imex.h
 
+if HAVE_MATLAB_THREADS
+  libmatlab_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
+
 EXTRA_DIST = README

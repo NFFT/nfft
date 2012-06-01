@@ -19,6 +19,8 @@
 %
 % $Id$
 
+disp(sprintf('Number of threads: %d\n', nfsft_get_num_threads()));
+
 % maximum degree (bandwidth) of spherical harmonics expansions
 N = 2;
 

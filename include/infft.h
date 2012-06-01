@@ -48,10 +48,6 @@
 #include <inttypes.h> /* uintptr_t, maybe */
 #endif
 
-#if defined(HAVE_LIBDISPATCH)
-#include <dispatch/dispatch.h> /* libdispatch */
-#endif
-
 #include <fftw3.h>
 
 #include "ticks.h"
@@ -1245,22 +1241,6 @@ extern double _Complex catanh(double _Complex z);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
-
-#if defined(HAVE_LIBDISPATCH)
-#define FOR(VAR,VAL) \
-  dispatch_apply((size_t)VAL, dispatch_get_global_queue((long)DISPATCH_QUEUE_PRIORITY_HIGH, (unsigned long)0), ^(size_t VAR)
-#else
-#define FOR(VAR,VAL) \
-  { \
-    int VAR; \
-    for (VAR = 0; VAR < VAL; VAR++)
-#endif
-
-#if defined(HAVE_LIBDISPATCH)
-#define END_FOR );
-#else
-#define END_FOR }
-#endif
 
 extern void nfft_assertion_failed(const char *s, int line, const char *file);
 

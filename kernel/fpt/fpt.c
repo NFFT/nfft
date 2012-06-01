@@ -764,6 +764,9 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   /** Index m */
   int m;
   int k;
+#ifdef _OPENMP
+  int nthreads = nfft_get_omp_num_threads();
+#endif
 
   /* Allocate memory for new DPT set. */
   fpt_set_s *set = (fpt_set_s*)nfft_malloc(sizeof(fpt_set_s));
@@ -817,10 +820,18 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
     set->lengths[tau] = plength;
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+    fftw_plan_with_nthreads(nthreads);
+#endif
     set->plans_dct2[tau] =
       fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
                          2, 1, (double*)set->result, NULL, 2, 1,set->kindsr,
                          0);
+#ifdef _OPENMP
+}
+#endif
   }
 
   /* Check if fast transform is activated. */
@@ -839,10 +850,18 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
     {
       set->lengths[tau] = plength;
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+    fftw_plan_with_nthreads(nthreads);
+#endif
       set->plans_dct3[tau] =
         fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
                            2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
                            0);
+#ifdef _OPENMP
+}
+#endif
     }
     nfft_free(set->lengths);
     nfft_free(set->kinds);
@@ -1268,8 +1287,19 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
     return;
 
   if (flags & FPT_FUNCTION_VALUES)
+  {
+#ifdef _OPENMP
+    int nthreads = nfft_get_omp_num_threads();
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+    fftw_plan_with_nthreads(nthreads);
+#endif
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1,
       (double*)set->work, NULL, 2, 1, kinds, 0U);
+#ifdef _OPENMP
+}
+#endif
+  }
 
   /* Initialize working arrays. */
   memset(set->result,0U,2*Nk*sizeof(double _Complex));
@@ -1473,6 +1503,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   {
     y[0] *= 2.0;
     fftw_execute_r2r(plan,(double*)y,(double*)y);
+#pragma omp critical (nfft_omp_critical_fftw_plan)
     fftw_destroy_plan(plan);
     for (k = 0; k <= k_end; k++)
     {
@@ -1589,9 +1620,19 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
 
   if (flags & FPT_FUNCTION_VALUES)
   {
+#ifdef _OPENMP
+    int nthreads = nfft_get_omp_num_threads();
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+    fftw_plan_with_nthreads(nthreads);
+#endif
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1,
       (double*)set->work, NULL, 2, 1, kinds, 0U);
+#ifdef _OPENMP
+}
+#endif
     fftw_execute_r2r(plan,(double*)y,(double*)set->result);
+#pragma omp critical (nfft_omp_critical_fftw_plan)
     fftw_destroy_plan(plan);
     for (k = 0; k <= k_end; k++)
     {
@@ -1853,8 +1894,11 @@ void fpt_finalize(fpt_set set)
     /* Free FFTW plans. */
     for(tau = 0; tau < set->t/*-1*/; tau++)
     {
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
       fftw_destroy_plan(set->plans_dct3[tau]);
       fftw_destroy_plan(set->plans_dct2[tau]);
+}
       set->plans_dct3[tau] = NULL;
       set->plans_dct2[tau] = NULL;
     }

@@ -27,6 +27,8 @@ void *nfft_mex_malloc(size_t n)
 {
   void *p;
 
+ #pragma omp critical (nfft_omp_matlab)
+ {
   p = mxMalloc(n);
 
   /* Should never be reached if mxMalloc fails (in a mex file) but in Matlab
@@ -35,15 +37,18 @@ void *nfft_mex_malloc(size_t n)
     mexErrMsgTxt("Not enough memory.");
 
   mexMakeMemoryPersistent(p);
-
+ }
   return p;
 }
 
 /** Replacement for fftw_free in mex files */
 void nfft_mex_free(void *p)
 {
+ #pragma omp critical (nfft_omp_matlab)
+ {
   if (p)
     mxFree(p);
+ }
 }
 
 /** install hooks. */

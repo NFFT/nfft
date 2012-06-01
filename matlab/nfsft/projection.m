@@ -19,6 +19,7 @@
 %
 % $Id$
 function err = projection()
+disp(sprintf('Number of threads: %d\n', nfsft_get_num_threads()));
 % threshold
 kappa = 1000;
 % polynomial degrees

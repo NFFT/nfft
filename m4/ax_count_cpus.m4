@@ -11,7 +11,7 @@
 #   Attempt to count the number of processors present on the machine. If the
 #   detection fails, then a value of 1 is assumed.
 #
-#   The value is placed in the CPU_COUNT variable.
+#   The value is placed in the cpu_count variable.
 #
 # LICENSE
 #
@@ -33,7 +33,7 @@ AC_DEFUN([AX_COUNT_CPUS], [
     fi
 
     #On Linux
-    if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
+    if test "x$cpu_count" = "x0" -a -e /proc/cpuinfo; then
         cpu_count=`$EGREP -c '^processor' /proc/cpuinfo`
     fi
 

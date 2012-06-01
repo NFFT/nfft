@@ -149,6 +149,8 @@ typedef struct\
   C *g2; /**< Output of fftw */\
 \
   R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
+\
+  int *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set */\
 } X(plan); \
 \
 NFFT_EXTERN void X(trafo_direct)(X(plan) *ths);\
@@ -191,6 +193,8 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define MALLOC_F         (1U<< 8)
 #define FFT_OUT_OF_PLACE (1U<< 9)
 #define FFTW_INIT        (1U<< 10)
+#define NFFT_SORT_NODES  (1U<< 11)
+#define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 
@@ -555,6 +559,8 @@ typedef struct\
   Z(plan) plan_nfft; /**< the internal NFFT plan */\
   C *f_hat_intern; /**< Internally used pointer to spherical Fourier
     coefficients */\
+  double MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
+    set */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \

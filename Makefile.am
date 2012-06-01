@@ -33,14 +33,21 @@ libnfft3_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_L
 
 if HAVE_THREADS
 libnfft3_threads_la_SOURCES =
-libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_threads_LIBS@ @fftw3_LIBS@ -lm
+libnfft3_threads_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil_threads.la kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
 libnfft3_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+if HAVE_OPENMP
+  libnfft3_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
 endif
 
 if HAVE_MATLAB
-libnfft3_matlab_la_SOURCES =
-libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @fftw3_LIBS@ -lm
-libnfft3_matlab_la_LDFLAGS = $(fftw3_LDFLAGS)
+  libnfft3_matlab_la_SOURCES =
+if HAVE_MATLAB_THREADS
+    libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil_threads.la kernel/libkernel_threads.la @matlab_fftw3_LIBS@ -lm
+else
+    libnfft3_matlab_la_LIBADD = 3rdparty/lib3rdparty.la util/libutil.la kernel/libkernel.la @matlab_fftw3_LIBS@ -lm
+endif
+  libnfft3_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
 endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in

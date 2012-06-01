@@ -91,8 +91,13 @@ struct nfsft_wisdom
 
   /** The threshold /f$\kappa/f$ */
   double threshold;
+#ifdef _OPENMP
+  int nthreads;
+  fpt_set *set_threads;
+#else
   /** Structure for \e discrete \e polynomial \e transform (\e DPT) */
   fpt_set set;
+#endif
 };
 /* \} */
 #endif

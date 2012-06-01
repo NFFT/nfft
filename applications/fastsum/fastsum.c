@@ -35,6 +35,7 @@
 #include "nfft3util.h"
 #include "nfft3.h"
 #include "fastsum.h"
+#include "infft.h"
 
 /** Required for test if (ths->k == one_over_x) */
 #include "kernels.h"
@@ -358,9 +359,8 @@ void quicksort(int d, int t, double *x, double _Complex *alpha, int N)
     quicksort(d,t,x+lpos*d,alpha+lpos,N-lpos);
 }
 
-#ifdef NF_BO
 /** initialize box-based search data structures */
-void BuildBox(fastsum_plan *ths)
+static void BuildBox(fastsum_plan *ths)
 {
   int t, l;
   int *box_index;
@@ -411,7 +411,7 @@ void BuildBox(fastsum_plan *ths)
 }
 
 /** inner computation function for box-based near field correction */
-inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Complex *alpha, int start, int end_lt, const double _Complex *Add, const int Ad, int p, double a, const kernel k, const double *param, const unsigned flags)
+static inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Complex *alpha, int start, int end_lt, const double _Complex *Add, const int Ad, int p, double a, const kernel k, const double *param, const unsigned flags)
 {
   double _Complex result = 0.0;
 
@@ -462,7 +462,7 @@ inline double _Complex calc_SearchBox(int d, double *y, double *x, double _Compl
 }
 
 /** box-based near field correction */
-double _Complex SearchBox(double *y, fastsum_plan *ths)
+static double _Complex SearchBox(double *y, fastsum_plan *ths)
 {
   double _Complex val = 0.0;
   int t, l;
@@ -505,7 +505,6 @@ double _Complex SearchBox(double *y, fastsum_plan *ths)
   }
   return val;
 }
-#endif
 
 /** recursive sort of source knots dimension by dimension to get tree structure */
 void BuildTree(int d, int t, double *x, double _Complex *alpha, int N)
@@ -603,6 +602,21 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
   int t;
   int N[d], n[d];
   int n_total;
+  int sort_flags_trafo = 0;
+  int sort_flags_adjoint = 0;
+#ifdef _OPENMP
+  int nthreads = nfft_get_omp_num_threads();
+#endif
+
+  if (d > 1)
+  {
+    sort_flags_trafo = NFFT_SORT_NODES;
+#ifdef _OPENMP
+    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
+    sort_flags_adjoint = NFFT_SORT_NODES;
+#endif
+  }
 
   ths->d = d;
 
@@ -683,9 +697,11 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
     n[t] = 2*nn;
   }
   nfft_init_guru(&(ths->mv1), d, N, N_total, n, m,
+                   sort_flags_adjoint |
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
   nfft_init_guru(&(ths->mv2), d, N, M_total, n, m,
+                   sort_flags_trafo |
                    PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
@@ -695,20 +711,31 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
     n_total *= nn;
 
   ths->b = (fftw_complex *)nfft_malloc(n_total*sizeof(fftw_complex));
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+  fftw_plan_with_nthreads(nthreads);
+#endif
+
   ths->fft_plan = fftw_plan_dft(d,N,ths->b,ths->b,FFTW_FORWARD,FFTW_ESTIMATE);
 
-#ifdef NF_BO
-  ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
-  ths->box_count = 1;
-  for (t=0; t<ths->d; t++)
-    ths->box_count *= ths->box_count_per_dim;
-
-  ths->box_offset = (int *) nfft_malloc((ths->box_count+1) * sizeof(int));
-
-  ths->box_alpha = (double _Complex *)nfft_malloc(ths->N_total*(sizeof(double _Complex)));
-
-  ths->box_x = (double *) nfft_malloc(ths->d * ths->N_total *  sizeof(double));
+#ifdef _OPENMP
+}
 #endif
+
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    ths->box_count_per_dim = floor((0.5 - ths->eps_B) / ths->eps_I) + 1;
+    ths->box_count = 1;
+    for (t=0; t<ths->d; t++)
+      ths->box_count *= ths->box_count_per_dim;
+
+    ths->box_offset = (int *) nfft_malloc((ths->box_count+1) * sizeof(int));
+
+    ths->box_alpha = (double _Complex *)nfft_malloc(ths->N_total*(sizeof(double _Complex)));
+
+    ths->box_x = (double *) nfft_malloc(ths->d * ths->N_total *  sizeof(double));
+  }
 }
 
 /** finalization of fastsum plan */
@@ -725,14 +752,23 @@ void fastsum_finalize(fastsum_plan *ths)
   nfft_finalize(&(ths->mv1));
   nfft_finalize(&(ths->mv2));
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+#endif
   fftw_destroy_plan(ths->fft_plan);
+#ifdef _OPENMP
+}
+#endif
+
   nfft_free(ths->b);
 
-#ifdef NF_BO
-  nfft_free(ths->box_offset);
-  nfft_free(ths->box_alpha);
-  nfft_free(ths->box_x);
-#endif
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    nfft_free(ths->box_offset);
+    nfft_free(ths->box_alpha);
+    nfft_free(ths->box_x);
+  }
 }
 
 /** direct computation of sums */
@@ -742,6 +778,7 @@ void fastsum_exact(fastsum_plan *ths)
   int t;
   double r;
 
+  #pragma omp parallel for default(shared) private(j,k,t,r)
   for (j=0; j<ths->M_total; j++)
   {
     ths->f[j]=0.0;
@@ -766,27 +803,58 @@ void fastsum_precompute(fastsum_plan *ths)
 {
   int j,k,t;
   int n_total;
+  ticks t0, t1;
 
-#if defined(NF_ST)
-  /** sort source knots */
-  BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
-#elif defined(NF_BO)  
-  BuildBox(ths);
-#else
-  #error Either define NF_ST or NF_BO
+  ths->MEASURE_TIME_t[0] = 0.0;
+  ths->MEASURE_TIME_t[1] = 0.0;
+  ths->MEASURE_TIME_t[2] = 0.0;
+  ths->MEASURE_TIME_t[3] = 0.0;
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
 #endif
 
+
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    BuildBox(ths);
+  }
+  else
+  {
+    /** sort source knots */
+    BuildTree(ths->d,0,ths->x,ths->alpha,ths->N_total);
+  }
+
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[3] += nfft_elapsed_seconds(t1,t0);
+#endif
+
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** precompute spline values for near field*/
   if (!(ths->flags & EXACT_NEARFIELD))
   {
     if (ths->d==1)
+      #pragma omp parallel for default(shared) private(k)
       for (k=-ths->Ad/2-2; k <= ths->Ad/2+2; k++)
         ths->Add[k+ths->Ad/2+2] = regkern1(ths->k, ths->eps_I*(double)k/ths->Ad*2, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
     else
+      #pragma omp parallel for default(shared) private(k)
       for (k=0; k <= ths->Ad+2; k++)
         ths->Add[k] = regkern3(ths->k, ths->eps_I*(double)k/ths->Ad, ths->p, ths->kernel_param, ths->eps_I, ths->eps_B);
   }
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
+#endif
 
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** init NFFT plan for transposed transform in first step*/
   for (k=0; k<ths->mv1.M_total; k++)
     for (t=0; t<ths->mv1.d; t++)
@@ -801,11 +869,18 @@ void fastsum_precompute(fastsum_plan *ths)
 
   if(ths->mv1.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&(ths->mv1));
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[1] += nfft_elapsed_seconds(t1,t0);
+#endif
 
   /** init Fourier coefficients */
   for(k=0; k<ths->mv1.M_total;k++)
     ths->mv1.f[k] = ths->alpha[k];
 
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** init NFFT plan for transform in third step*/
   for (j=0; j<ths->mv2.M_total; j++)
     for (t=0; t<ths->mv2.d; t++)
@@ -820,13 +895,21 @@ void fastsum_precompute(fastsum_plan *ths)
 
   if(ths->mv2.nfft_flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&(ths->mv2));
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[2] += nfft_elapsed_seconds(t1,t0);
+#endif
 
 
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** precompute Fourier coefficients of regularised kernel*/
   n_total = 1;
   for (t=0; t<ths->d; t++)
     n_total *= ths->n;
 
+  #pragma omp parallel for default(shared) private(j,k,t)
   for (j=0; j<n_total; j++)
   {
     if (ths->d==1)
@@ -847,46 +930,88 @@ void fastsum_precompute(fastsum_plan *ths)
   nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
   fftw_execute(ths->fft_plan);
   nfft_fftshift_complex(ths->b, ths->mv1.d, ths->mv1.N);
-
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
+#endif
 }
 
 /** fast NFFT-based summation */
 void fastsum_trafo(fastsum_plan *ths)
 {
   int j,k,t;
-  double *ymin, *ymax;   /** limits for d-dimensional near field box */
+  ticks t0, t1;
 
-  ymin = (double *)nfft_malloc(ths->d*(sizeof(double)));
-  ymax = (double *)nfft_malloc(ths->d*(sizeof(double)));
+  ths->MEASURE_TIME_t[4] = 0.0; 
+  ths->MEASURE_TIME_t[5] = 0.0;
+  ths->MEASURE_TIME_t[6] = 0.0;
+  ths->MEASURE_TIME_t[7] = 0.0;
 
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** first step of algorithm */
   nfft_adjoint(&(ths->mv1));
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[4] += nfft_elapsed_seconds(t1,t0);
+#endif
 
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** second step of algorithm */
+  #pragma omp parallel for default(shared) private(k)
   for (k=0; k<ths->mv2.N_total; k++)
     ths->mv2.f_hat[k] = ths->b[k] * ths->mv1.f_hat[k];
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[5] += nfft_elapsed_seconds(t1,t0);
+#endif
 
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** third step of algorithm */
   nfft_trafo(&(ths->mv2));
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[6] += nfft_elapsed_seconds(t1,t0);
+#endif
 
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
   /** add near field */
+  #pragma omp parallel for default(shared) private(j,k,t)
   for (j=0; j<ths->M_total; j++)
   {
-#if defined(NF_ST)
-    for (t=0; t<ths->d; t++)
+    double ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
+
+    if (ths->flags & NEARFIELD_BOXES)
     {
-      ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
-      ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
+      ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d*j, ths);
     }
-    ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
-#elif defined(NF_BO)
-    ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d*j, ths);
-#else
-  #error missing NF_ST or NF_BO
-#endif
+    else
+    {
+      for (t=0; t<ths->d; t++)
+      {
+        ymin[t] = ths->y[ths->d*j+t] - ths->eps_I;
+        ymax[t] = ths->y[ths->d*j+t] + ths->eps_I;
+      }
+      ths->f[j] = ths->mv2.f[j] + SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
+    }
     /* ths->f[j] = ths->mv2.f[j]; */
     /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
+
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[7] += nfft_elapsed_seconds(t1,t0);
+#endif
 }
 /* \} */
 
