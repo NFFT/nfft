@@ -5,9 +5,9 @@ function warn {
 
 function replace {
   # first occurence of start of copyright block
-  s=$(sed -e "$1!d" -e "0,$1=" -e"$1d" < $3)
+  s=$(sed -e "$1!d" -e "$1=" -e"$1d" < $3)
   # first occurence of end of copyright block
-  e=$(sed -e "$2!d" -e "0,$2=" -e"$2d" < $3)
+  e=$(sed -e "$2!d" -e "$2=" -e"$2d" < $3)
   # Check if copyright block delimters found.
   if test -n "$s" -a -n "$e"; then
   # Check if copyright delimters are ordered properly.
