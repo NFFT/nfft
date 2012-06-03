@@ -1,5 +1,5 @@
 %NFSFT_GET_F_HAT_LINEAR Get Fourier coefficients in a linear vector from plan
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %

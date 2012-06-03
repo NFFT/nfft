@@ -1,5 +1,5 @@
 %NFSFT_USE_NDFT Flag for using the NDFT algorithm internally
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %

@@ -1,5 +1,5 @@
 %NFSFT_NORMALIZED Flag for using L^2-normalized Spherical harmonics
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %

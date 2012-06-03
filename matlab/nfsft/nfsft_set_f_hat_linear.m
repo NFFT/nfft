@@ -1,5 +1,5 @@
 %NFSFT_SET_F_HAT_LINEAR Set Fourier coefficients in plan from a linear vector
-%   Copyright (c) 2006, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %

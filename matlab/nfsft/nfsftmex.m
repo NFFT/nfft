@@ -1,5 +1,5 @@
 %NFSFTMEX Gateway routine to the NFSFT module
-%   Copyright (c) 2002, 2009 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
