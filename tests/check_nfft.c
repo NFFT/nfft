@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
+#include <CUnit/CUnit.h>
 
 #include "nfft3util.h"
 #include "nfft3.h"
@@ -202,7 +203,7 @@ cleanup:
   return result;
 }
 
-int X(check_many)(const int nf, const int ni, const int nt,
+void X(check_many)(const int nf, const int ni, const int nt,
   const testcase_delegate_t **testcases, init_delegate_t **initializers,
   trafo_delegate_t **trafos)
 {
@@ -214,7 +215,14 @@ int X(check_many)(const int nf, const int ni, const int nt,
          r = X(check_single)(testcases[i], initializers[j], trafos[k]);
          result = IF(r == EXIT_FAILURE, EXIT_FAILURE, result);
       }
-  return result;
+  if (result == EXIT_FAILURE)
+  {
+    CU_FAIL("Test failed.");
+  }
+  else
+  {
+    CU_PASS("Test passed.");
+  }
 }
 
 void X(setup_file)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f)

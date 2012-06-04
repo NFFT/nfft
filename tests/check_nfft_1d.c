@@ -18,6 +18,8 @@
 
 /* $Id: simple_test.c 3509 2010-05-25 19:00:59Z keiner $ */
 
+#include <CUnit/CUnit.h>
+
 #include "check_nfft.h"
 #include "infft.h"
 
@@ -196,8 +198,21 @@ static const init_delegate_t* initializers[] = {
 };
 static const trafo_delegate_t* trafos[] = {&trafo_direct, &trafo};
 
+static void check_nfft_1d_file()
+{
+  X(check_many)(SIZE(testcases), SIZE(initializers), SIZE(trafos), testcases,
+    initializers, trafos);
+}
+
 int main(void)
 {
-  return X(check_many)(SIZE(testcases), SIZE(initializers), SIZE(trafos),
-    testcases, initializers, trafos);
+  CU_pSuite s;
+  CU_initialize_registry();
+  CU_set_output_filename("nfft");
+  s = CU_add_suite("nfft_1d", 0, 0);
+  CU_add_test(s, "nfft_1d_file", check_nfft_1d_file);
+  CU_automated_run_tests();
+  /*CU_basic_run_tests();*/
+  CU_cleanup_registry();
+  return 0;
 }

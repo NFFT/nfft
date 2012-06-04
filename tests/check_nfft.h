@@ -84,7 +84,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
     init_delegate_t *init_delegate, trafo_delegate_t *trafo_delegate);
 
 /* Check multiple test cases.*/
-int X(check_many)(const int nf, const int ni, const int nt,
+void X(check_many)(const int nf, const int ni, const int nt,
   const testcase_delegate_t **testcases, init_delegate_t **initializers,
   trafo_delegate_t **trafos);
 

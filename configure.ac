@@ -437,6 +437,10 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
+# CUnit
+AX_CUNIT
+AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )
+
 # The output files to be generated
 AC_CONFIG_FILES(Makefile \
                 nfft3.pc \
