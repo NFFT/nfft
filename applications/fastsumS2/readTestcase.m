@@ -1,3 +1,53 @@
+function T = readTestcase(file)
+% READTESTCASE Read fastsumS2.c testcase results from file
+%   READTESTCASE(FILE) reads fastsumS2.c testcase results from the file FILE.
+%   The testcase results are returned as a cell vector containing the data for
+%   each individual testcase as a structure with the following fields:
+%   - USENFSFT If true, the NFSFT algorithm has been used, otherwise the direct
+%     NDSFT algorithm
+%   - USENFFT If true, the NFFT algorithm has been used, otherwise the direct
+%     NDFT algorithm (undefined if USENFSFT is false),
+%   - CUTOFF The NFFT cut-off parameter (undefined if USENFFT is false)
+%   - USEFPT If true, the fast polynomial transform has been used, otherwise the
+%     direct polynomial transform algorithm (undefined if USENFSFT is false),
+%   - THRESHOLD The fast polynomial transform threshold parameter (undefined if
+%     USEFPT is false),
+%   - kernel The kernel function used (0 = Abel-Poisson kernel, 1 =
+%     singularity kernel, 2 = locally supported kernel, 3 = spherical Gaussian
+%     kernel),
+%   - parameters A m x n matrix containing the kernel function parameters,
+%     m is the number of parameter sets and n is the number of kernel function
+%     parameters (1 for Abel-Poisson, singularity and spherical Gaussian kernel,
+%     2 for the locally supported kernel)
+%   - bandwidths A vector containing the cut-off degrees for the approximation
+%   - nodes A m x 5 matrix containing the node sets used, where m is the number
+%     of different node sets. Each row contains a node set specification
+%     containing
+%     - in the first column the number of source nodes,
+%     - in the second colum the number of target nodes,
+%     - in the third column whether the direct sum evaluation has been performed
+%       to compute the error E_infty,
+%     - in the fourth column whether the precomputed direct sum evaluation has
+%       been used (undefined if direct sum evaluation has not been used),
+%     - in the fifth column the error E_infty (undefined if direct sum
+%       evaluation has not been used).
+%   - data A m x n cell array containing the result data where m is the number
+%     of parameter sets and n is the number of node sets. Cell (m,n) correspond
+%     to the given ordering of parameter sets and node sets and is
+%     a j x 6 matrix, where j is the number of cut-off degrees. Each row
+%     represents the result data for a single cut-off degree and contains
+%     - in the first column the time needed for direct sum evaluation,
+%     - in the second column the time needed for direct sum evaluation with
+%       precomputation,
+%     - in the third column the time needed by the fast summation algorithm
+%       using the direct NDSFT algorithm,
+%     - in the fourth column the time needed by the fast summation algorithm
+%       using the NFSFT algorithm,
+%     - in the fifth column the error E_infty for the fast summation algorithm
+%       using the direct NDSFT algorithm,
+%     - in the sixth column the error E_infty for the fast summation algorithm
+%       using the NFSFT algorithm.
+
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
