@@ -18,8 +18,8 @@ fastsumS2 - Fast summation of radial functions on the sphere
   with the general procedure. A detailed description can be found in [1].
 
   The fast approximate algorithm usees the fast spherical Fourier transform for 
-  arbitrary nodes (NFSFT). For more informtion on this algorithm and notation in 
-  detail, we refer to [1] and [2]. Alternatively, once can replace the 
+  arbitrary nodes (NFSFT). For more information on this algorithm and notation 
+  in detail, we refer to [1] and [2]. Alternatively, one can replace the 
   individual steps of the NFSFT algirithm by exact but asymptotically slower 
   versions or use a direct evaluation and summation of the kernel functions in 
   (1).
@@ -31,15 +31,15 @@ fastsumS2 - Fast summation of radial functions on the sphere
   example.out     Example output of fastsum.c on input example.in
   README          This file
   Makefile.am     Automake template
-  fastsumS2.m     MATLAB example file that preproduces figures from [1] using
-                  fastsumS2.c
+  fastsumS2.m     MATLAB example file that re-produces figures and tables from 
+                  [1] using fastsumS2.c
   readTestcase.m  MATLAB function that reads output of fastsumS2.c
   writeTestcase.m MATLAB function that writes input for fastsumS2.c
 
   fastsumS2.c
   -----------
   The C program fastsumS2.c computes approximations to the sums in (1) using the
-  aformentioned different algorithms. It reads input from the standard input 
+  aforementioned different algorithms. It reads input from the standard input 
   stream and writes output to the standard output stream. The input consists of 
   one ore more testcases. Each testcase specifies
   - the algorithm(s) and corresponding parameters,
@@ -125,7 +125,7 @@ fastsumS2 - Fast summation of radial functions on the sphere
   testcase. See the file example.out for an example output on input the contents
   of example.in.
 
-  To each combination of kernel function, cut-off degree and node set
+  To each combination of kernel function, cut-off degree, and node set
   corresponds a single run of the summation algorithm and therefore a set of
   six resulting values grouped together. These are
   - the time needed for direct evaluation of the sums (1),
@@ -189,5 +189,3 @@ fastsumS2 - Fast summation of radial functions on the sphere
   website at
 
                  http://www.tu-chemnitz.de/~potts/nfft/
-
-
