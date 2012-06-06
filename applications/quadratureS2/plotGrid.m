@@ -1,3 +1,15 @@
+function plotGrid(gridType,p)
+%plotGrid - Plot spherical quadrature grids
+%
+%   plotGrid(gridtype) plots a quadrature grid. The parameter gridType specifies
+%   the point set to plot and can take the following values:
+%   0: Gauss-Legendre quadrature grid,
+%   1: Clenshaw-Curtis qudrature grid,
+%   2: HEALPix point set,
+%   3: Equidistribution point set.
+%
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -15,17 +27,6 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 % $Id$
-
-%plotGrid - Plot spherical quadrature grids
-%
-%   plotGrid(gridtype) plots a quadrature grid. The parameter gridType specifies
-%   the point set to plot and can take the following values:
-%   0: Gauss-Legendre quadrature grid,
-%   1: Clenshaw-Curtis qudrature grid,
-%   2: HEALPix point set,
-%   3: Equidistribution point set.
-%
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 if (gridType == 0)
   [theta,w] = lgwt(p(1)+1,-1,1);

@@ -1,3 +1,11 @@
+function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,...
+  bandwidth,theta,phi,f)
+%WRITETESTCASE - Write an iterS2 testcase definition to a file
+%   WRITETESTCASE(FILE, USENFSFT, USENFFT, CUTOFF, USEFPT, THRESHOLD,
+%   BANDWIDTH, THETA, PHI, F)
+%
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
@@ -64,7 +72,6 @@ for j=1:length(theta)
     fprintf(file,'%f %f\n',theta(j),phi(k));
   end
 end
-
 
 % End of function
 return;

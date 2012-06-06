@@ -1,3 +1,11 @@
+function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,...
+  bandwidth,img,itheta,iphi)
+%WRITEIMAGETESTCASE
+%    WRITETESTCASE(FILE, USENFSFT, USENFFT, CUTOFF, USEFPT, THRESHOLD,
+%    BANDWIDTH, THETA, PHI, F)
+%
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under

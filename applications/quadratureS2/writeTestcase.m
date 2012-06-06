@@ -1,3 +1,9 @@
+function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,...
+  testmode,gridtype,testfunction,repetitions,mode,bandwidths)
+%WRITETESTCASE - Write qudratureS2 testcases
+%
+%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts 
+
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
