@@ -42,11 +42,16 @@ function replace {
 
 # C source and header files
 for name in $(find .. -wholename "../applications/texture" -prune -o -name "cycle.h" -prune -o -name "config.h" -prune -o -name "*.[ch]" -o -name "ticks.in" -print -o -name "nfftconf.h.in" -print); do
-  replace "/^ \* Copyright/" "/^ \* Franklin Street/" $name "copyright.txt" '/*' ' */' "yes"
+  replace "/^ \* Copyright/" "/^ \* Franklin Street/" $name "copyright.txt" '/*' ' */' "no"
 done
 
 # MATLAB scripts
 for name in $(find .. -wholename "../applications/texture" -prune -o -name "Contents.m" -prune -o -name "*.m" -print); do
-  replace "/^% Copyright/" "/^% Franklin Street/" $name "copyright_matlab.txt" "" "" "yes"
+  replace "/^% Copyright/" "/^% Franklin Street/" $name "copyright_matlab.txt" "" "" "no"
   replace "/^%   Copyright/" "/^%   Copyright/" $name "copyright_matlab_single_line.txt" "" "" "no"
+done
+
+# m4 scripts
+for name in $(find .. -wholename "../applications/texture" -prune -o -name "configure.ac" -print -o -name "*.m4" -print); do
+  replace "/^# Copyright/" "/^# Franklin Street/" $name "copyright_m4.txt" "" "" "no"
 done
