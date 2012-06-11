@@ -45,6 +45,18 @@ typedef struct testcase_delegate_file_s
 void X(setup_file)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
 void X(destroy_file)(testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
 
+typedef struct testcase_delegate_online_s
+{
+  setup_t setup;
+  destroy_t destroy;
+  const int d;
+  const int N;
+  const int M;
+} testcase_delegate_online_t;
+
+void X(setup_online)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+void X(destroy_online)(testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+
 /* Init delegate. */
 typedef struct init_delegate_s init_delegate_t;
 typedef void (*init_t)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
@@ -90,3 +102,26 @@ void X(check_many)(const int nf, const int ni, const int nt,
 
 /* Size of array. */
 #define SIZE(x) sizeof(x)/sizeof(x[0])
+
+/* Initializers. */
+void X(init_1d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_2d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_advanced_pre_psi_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+
+#define DEFAULT_NFFT_FLAGS MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE
+#define DEFAULT_FFTW_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
+
+init_delegate_t init_1d;
+init_delegate_t init_2d;
+init_delegate_t init_3d;
+init_delegate_t init;
+init_delegate_t init_advanced_pre_psi;
+init_delegate_t init_advanced_pre_full_psi;
+init_delegate_t init_advanced_pre_lin_psi;
+#if defined(GAUSSIAN)
+init_delegate_t init_advanced_pre_fg_psi;
+#endif
+
+trafo_delegate_t trafo_direct;
+trafo_delegate_t trafo;
