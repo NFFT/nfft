@@ -679,11 +679,11 @@ int main(void)
   s = CU_add_suite("nfft", 0, 0);
   CU_add_test(s, "nfft_1d_file", check_nfft_1d_file);
   CU_add_test(s, "nfft_1d_online", check_nfft_1d_online);
-  CU_add_test(s, "nfft_2d_file", check_nfft_2d_file);
+  /*CU_add_test(s, "nfft_2d_file", check_nfft_2d_file);
   CU_add_test(s, "nfft_2d_online", check_nfft_2d_online);
   CU_add_test(s, "nfft_3d_file", check_nfft_3d_file);
   CU_add_test(s, "nfft_3d_online", check_nfft_3d_online);
-  CU_add_test(s, "nfft_4d_online", check_nfft_4d_online);
+  CU_add_test(s, "nfft_4d_online", check_nfft_4d_online);*/
   CU_automated_run_tests();
   /*CU_basic_run_tests();*/
   CU_cleanup_registry();
