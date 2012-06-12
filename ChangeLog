@@ -1,6 +1,6 @@
 This file contains the version history for NFFT 3.x.x. 
 
-Changes in version 3.2:
+Changes in version 3.2.0:
   - Added support for OpenMP. To activate, use the configure script with the 
     --enable-openmp option.
   - Added ticks.h from FFTW to leverage CPU cycle counters. If cycle counters
@@ -9,6 +9,10 @@ Changes in version 3.2:
     Otherwise, example programs will output raw cycle counter differences in 
     arbitrary units. If cycle counters are not available, results of time 
     measurements are undefined.
+  - Renamed functions of direct (non-fast) algorithms to
+    <function name of fast algorithm>_direct, e.g. the function name for the
+    direct computation of the non-equispaced fourier transform is
+    nfft_trafo_direct(nfft_plan) instead of ndft_trafo(nfft_plan).
 
 Changes in version 3.1.4:
   - Added pkg-config file (thanks Gert Wollny)
