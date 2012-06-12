@@ -27,7 +27,7 @@ AC_INIT([NFFT],[3.2.0],[bugs@nfft.org])
 AC_REVISION([$Id$])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2010, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2012, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 # m4 macros go here
 AC_CONFIG_MACRO_DIR([m4])
@@ -61,7 +61,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="0:0:0"
+SHARED_VERSION_INFO="1:0:0"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
