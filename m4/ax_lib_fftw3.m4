@@ -79,7 +79,9 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
     fftw3_LIBS="-lfftw3"
+  fi
 
+  if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes"; then
     fftw3_threads_LIBS=""
     # Combined lib
     LIBS="-lfftw3 $LIBS"
