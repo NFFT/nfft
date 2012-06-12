@@ -1,19 +1,22 @@
 iterS2 - Iterative reconstruction on the sphere S2.
 
+!!! THIS EXAMPLE IS CURRENTLY NOT FUNCTIONAL !!!
+
   Introduction
   ------------
 
   Directory contents
   ------------------
-  iterS2.c        Example C program
-  example.in      Example input for fastsum.c
-  example.out     Example output of fastsum.c on input example.in
-  README          This file
-  Makefile.am     Automake template
-  fastsumS2.m     MATLAB example file that preproduces figures from [1] using
-                  fastsumS2.c
-  readTestcase.m  MATLAB function that reads output of fastsumS2.c
-  writeTestcase.m MATLAB function that writes input for fastsumS2.c
+  iterS2.c             Example C program
+  example.in           Example input for iterS2.c
+  example.out          Example output of iterS2.c on input example.in
+  README               This file
+  Makefile.am          Automake template
+  iterS2.m             MATLAB example file that preproduces figures from [1] using
+                       iterS2.c
+  readTestcase.m       MATLAB function that reads output of iterS2.c
+  writeTestcase.m      MATLAB function that writes input for iterS2.c
+  writeImageTestcase.m MATLAB function that writes input for iterS2.c
 
   iterS2.c
   -----------
@@ -23,13 +26,13 @@ iterS2 - Iterative reconstruction on the sphere S2.
 
   readTestcase.m
   --------------
-  This MATLAB function is used by fatsumS2.m and allows for reading testcase
+  This MATLAB function is used by iterS2.m and allows for reading testcase
   specifications and results from a file. In MATLAB, type "help readTestcase"
   for more information.
 
   writeTestcase.m
   ---------------
-  This MATLAB function is used by fatsumS2.m and allows for writing testcase
+  This MATLAB function is used by iterS2.m and allows for writing testcase
   specifications to a file. In MATLAB, type "help readTestcase" for more
   information.
 
