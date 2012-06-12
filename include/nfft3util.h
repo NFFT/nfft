@@ -264,10 +264,10 @@ void nfft_sort_node_indices_radix_lsdf(int n, int *keys0, int *keys1, int rhigh)
  */
 void nfft_sort_node_indices_radix_msdf(int n, int *keys0, int *keys1, int rhigh);
 
-int nfft_get_num_threads();
+int nfft_get_num_threads(void);
 
 #ifdef _OPENMP
-int nfft_get_omp_num_threads();
+int nfft_get_omp_num_threads(void);
 #endif
 
 #ifdef __cplusplus

@@ -69,7 +69,7 @@ static void nfft_sort_nodes_for_better_cache_handle(int d,
     ar_x[2*i] = 0;
     ar_x[2*i+1] = i;
     for(j = 0; j < d; j++) {
-      help = floor( n[j]*local_x[d*i+j] - m);
+      help = (int) floor( n[j]*local_x[d*i+j] - m);
       u_j[j] = (help%n[j]+n[j])%n[j];
 
       ar_x[2*i] += u_j[j];
@@ -81,7 +81,7 @@ static void nfft_sort_nodes_for_better_cache_handle(int d,
   for (j = 0, nprod = 1; j < d; j++)
     nprod *= n[j];
 
-  rhigh = ceil(log2(nprod)) - 1;
+  rhigh = (int) ceil(log2(nprod)) - 1;
 
   ar_x_temp = (int *) nfft_malloc(2*local_x_num*sizeof(int));
   nfft_sort_node_indices_radix_lsdf(local_x_num, ar_x, ar_x_temp, rhigh);
