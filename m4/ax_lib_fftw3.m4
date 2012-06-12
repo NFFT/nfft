@@ -95,8 +95,17 @@ AC_DEFUN([AX_LIB_FFTW3],
     fi
 
     if test "x$ax_lib_fftw3_threads" = "xno"; then
-      LIBS="-lfftw3 $LIBS"
+      LIBS="-lfftw3_threads -lfftw3 $LIBS"
       fftw3_threads_LIBS="-lfftw3_threads -lfftw3"
+      AC_MSG_CHECKING([for fftw_init_threads in -lfftw3_threads])
+      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
+      AC_MSG_RESULT([$ax_lib_fftw3_threads])
+      LIBS="$saved_LIBS"
+    fi
+
+    if test "x$ax_lib_fftw3_threads" = "xno"; then
+      LIBS="-lfftw3 -lpthread -lm $LIBS"
+      fftw3_threads_LIBS="-lfftw3_threads -lfftw3 -lpthread -lm"
       AC_CHECK_LIB([fftw3_threads], [fftw_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
     fi
 
