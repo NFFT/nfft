@@ -37,4 +37,10 @@ Dr. Tobias Knopp
  - reconstruction in magnetic resonance imaging (/applications/mri)
 
 Dr. Antje Vollrath <a.vollrath@tu-bs.de>
-- transforms on the rotation group SO(3) (/kernel/nfsoft)
+ - transforms on the rotation group SO(3) (/kernel/nfsoft)
+
+Toni Volkmer
+ - OpenMP parallelization of nfft (/kernel/nfft)
+ - OpenMP parallelization of nfsft (/kernel/nfsft)
+ - OpenMP parallelization of fast summation (/applications/fastsum)
+
