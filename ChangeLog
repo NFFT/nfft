@@ -11,7 +11,7 @@ Changes in version 3.2.0:
     measurements are undefined.
   - Renamed functions of direct (non-fast) algorithms to
     <function name of fast algorithm>_direct, e.g. the function name for the
-    direct computation of the non-equispaced fourier transform is
+    direct computation of the non-equispaced Fourier transform is
     nfft_trafo_direct(nfft_plan) instead of ndft_trafo(nfft_plan).
 
 Changes in version 3.1.4:
