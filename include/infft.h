@@ -1363,6 +1363,9 @@ R X(lambda2)(R mu, R nu);
 /* bessel_i0.c: */
 R X(bessel_i0)(R x);
 
+/* bspline.c: */
+R X(bspline)(const INT, const R x, R*);
+
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,

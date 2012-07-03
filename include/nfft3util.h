@@ -72,19 +72,6 @@ extern "C"
 #define NFFT_MIN(a,b) ((a)<(b)? (a) : (b))
 
 /* ######################################################################### */
-/* ########## Window function related ###################################### */
-/* ######################################################################### */
-
-/** To test the new one
- */
-double nfft_bspline_old(int k,double x,double *A);
-
-/** Computes the B-spline \f$M_{k,0}\left(x\right)\f$,
-    scratch is used for de Boor's scheme
- */
-double nfft_bspline(int k, double x, double *scratch);
-
-/* ######################################################################### */
 /* ########## Vector routines ############################################## */
 /* ######################################################################### */
 
@@ -264,7 +251,7 @@ void nfft_sort_node_indices_radix_lsdf(int n, int *keys0, int *keys1, int rhigh)
  */
 void nfft_sort_node_indices_radix_msdf(int n, int *keys0, int *keys1, int rhigh);
 
-int nfft_get_num_threads();
+int nfft_get_num_threads(void);
 
 #ifdef _OPENMP
 int nfft_get_omp_num_threads();
