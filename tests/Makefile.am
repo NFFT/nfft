@@ -2,8 +2,9 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
+# check_nfft
 if HAVE_CUNIT
-  CHECK_NFFT=check_nfft
+  CHECK_NFFT=check_bspline
 else
   CHECK_NFFT=
 endif
@@ -22,5 +23,8 @@ TESTS = $(check_PROGRAMS)
 #check_bessel_i0_SOURCES = check_bessel_i0.c
 #check_bessel_i0_LDADD = $(top_builddir)/libnfft3.la
 
-check_nfft_SOURCES = check_nfft.c
-check_nfft_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
+#check_nfft_SOURCES = check_nfft.c
+#check_nfft_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
+
+check_bspline_SOURCES = check_bspline.c
+check_bspline_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses

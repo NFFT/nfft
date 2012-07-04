@@ -10,16 +10,14 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     11697,        245]
-NotebookOptionsPosition[     11042,        218]
-NotebookOutlinePosition[     11430,        235]
-CellTagsIndexPosition[     11387,        232]
+NotebookDataLength[     11028,        228]
+NotebookOptionsPosition[     10447,        204]
+NotebookOutlinePosition[     10835,        221]
+CellTagsIndexPosition[     10792,        218]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
-
-Cell[CellGroupData[{
 Cell[BoxData[{
  RowBox[{
   RowBox[{"AppendTo", "[", 
@@ -48,22 +46,6 @@ Cell[BoxData[{
    3.497721394326082*^9}, {3.4977214268766117`*^9, 3.497721450684969*^9}, 
    3.517368305980814*^9, 3.517368338946211*^9, {3.548337349389185*^9, 
    3.54833735124184*^9}}],
-
-Cell[BoxData[
- RowBox[{
-  StyleBox[
-   RowBox[{"FormatVector", "::", "shdw"}], "MessageName"], 
-  RowBox[{
-  ":", " "}], "\<\"Symbol \[NoBreak]\\!\\(\\\"FormatVector\\\"\\)\[NoBreak] \
-appears in multiple contexts \[NoBreak]\\!\\({\\\"PrintVector`\\\", \
-\\\"Global`\\\"}\\)\[NoBreak]; definitions in context \
-\[NoBreak]\\!\\(\\\"PrintVector`\\\"\\)\[NoBreak] may shadow or be shadowed \
-by other definitions. \\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", \
-ButtonStyle->\\\"Link\\\", ButtonFrame->None, \
-ButtonData:>\\\"paclet:ref/message/General/shdw\\\", ButtonNote -> \
-\\\"PrintVector`FormatVector::shdw\\\"]\\)\"\>"}]], "Message", "MSG",
- CellChangeTimes->{3.550337524201867*^9}]
-}, Open  ]],
 
 Cell[BoxData[
  RowBox[{
@@ -103,7 +85,10 @@ Cell[BoxData[{
          RowBox[{
           RowBox[{"{", 
            RowBox[{"0", ",", 
-            RowBox[{"n", "+", "1"}]}], "}"}], ",", "m", ",", 
+            RowBox[{
+             RowBox[{"(", 
+              RowBox[{"n", "+", "1"}], ")"}], "/", "2"}]}], "}"}], ",", "m", 
+          ",", 
           RowBox[{"WorkingPrecision", "\[Rule]", "P"}]}], "]"}], "]"}]}], ";",
        "\[IndentingNewLine]", 
       RowBox[{"y", "=", 
@@ -201,7 +186,8 @@ Cell[BoxData[{
    3.549638098056082*^9}, {3.549638145230761*^9, 3.549638177884942*^9}, {
    3.549638229589314*^9, 3.549638251723818*^9}, {3.5496385676394567`*^9, 
    3.549638588241356*^9}, {3.54963862593426*^9, 3.549638633324247*^9}, {
-   3.549638677797104*^9, 3.5496387048832493`*^9}}],
+   3.549638677797104*^9, 3.5496387048832493`*^9}, {3.550420775634617*^9, 
+   3.5504207791029*^9}}],
 
 Cell[BoxData[
  RowBox[{"For", "[", 
@@ -234,19 +220,16 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[CellGroupData[{
-Cell[567, 22, 1621, 27, 43, "Input",
+Cell[545, 20, 1621, 27, 43, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[2191, 51, 686, 13, 23, "Message"]
-}, Open  ]],
-Cell[2892, 67, 352, 10, 27, "Input",
+Cell[2169, 49, 352, 10, 27, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[3247, 79, 7259, 124, 133, "Input",
+Cell[2524, 61, 7387, 128, 133, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[10509, 205, 529, 11, 27, "Input"]
+Cell[9914, 191, 529, 11, 27, "Input"]
 }
 ]
 *)

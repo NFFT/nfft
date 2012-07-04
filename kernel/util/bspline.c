@@ -30,7 +30,7 @@ static inline void bspline_help(const INT k, const R x, R *scratch, const INT j,
   /* computation of one column */
   for (i = og + r - k + 1, idx = og; idx >= ug; i--, idx--)
   {
-    a = (x - ((R)i)) / ((R)(k - j));
+    a = (x - (R)i) / ((R)(k - j));
     scratch[idx] = (K(1.0) - a) * scratch[idx - 1] + a * scratch[idx];
   }
 }
@@ -38,6 +38,7 @@ static inline void bspline_help(const INT k, const R x, R *scratch, const INT j,
 /* Evaluate the cardinal B-Spline B_{n-1} supported on [0,n]. */
 R X(bspline)(const INT k, const R _x, R *scratch)
 {
+  const R kk = (R)k;
   R result_value;
   INT r;
   INT g1, g2; /* boundaries */
@@ -47,17 +48,17 @@ R X(bspline)(const INT k, const R _x, R *scratch)
 
   result_value = K(0.0);
 
-  if (K(0.0) < x && x < (R)k)
+  if (K(0.0) < x && x < kk)
   {
     /* Exploit symmetry around k/2, maybe. */
-    if ( (k - x) < x)
+    if ( (kk - x) < x)
     {
-      x = k - x;
+      x = kk - x;
     }
 
     r = (INT)LRINT(CEIL(x) - K(1.0));
 
-        /* Explicit case for first interval. */
+    /* Explicit case for first interval. */
     if (r == 0)
     {
       result_value = K(1.0);
@@ -81,17 +82,17 @@ R X(bspline)(const INT k, const R _x, R *scratch)
 
     for (j = 1, og = g2 + 1; j <= g1; j++, og++)
     {
-      a = (x - (R)r + (R)k - K(1.0) - (R)og) / ((R)(k - j));
+      a = (x + (R)(k - r - og - 1)) / ((R)(k - j));
       scratch[og] = (K(1.0) - a) * scratch[og-1];
       bspline_help(k, x, scratch, j, ug + 1, og - 1, r);
-      a = (x - (R)r + (R)k - K(1.0) - (R)ug) / ((R)(k - j));
+      a = (x + (R)(k - r - ug - 1)) / ((R)(k - j));
       scratch[ug] = a * scratch[ug];
     }
 
     for (og-- ; j <= g2; j++)
     {
       bspline_help(k, x, scratch, j, ug + 1, og, r);
-      a = (x - (R)r + (R)k - K(1.0) - (R)ug) / ((R)(k - j));
+      a = (x + (R)(k - r - ug - 1)) / ((R)(k - j));
       scratch[ug] = a * scratch[ug];
     }
 

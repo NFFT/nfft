@@ -31,7 +31,7 @@ Generate[n_]:=Module[
 {
 m=100
 },
-x=Sort[RandomReal[{0,n+1},m,WorkingPrecision->P]];
+x=Sort[RandomReal[{0,(n+1)/2},m,WorkingPrecision->P]];
 y=Map[BSpline[n],x];
 FormatVector[Flatten[N[Transpose[{x,y}],P]], "b" <> ToString[n]]];
 

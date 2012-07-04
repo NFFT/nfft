@@ -26,8 +26,8 @@
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
-typedef void (*setup_t)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-typedef void (*destroy_t)(testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
 
 struct testcase_delegate_s
 {
@@ -42,8 +42,8 @@ typedef struct testcase_delegate_file_s
   const char *filename;
 } testcase_delegate_file_t;
 
-void X(setup_file)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-void X(destroy_file)(testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+void X(destroy_file)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
 
 typedef struct testcase_delegate_online_s
 {
@@ -54,8 +54,8 @@ typedef struct testcase_delegate_online_s
   const int M;
 } testcase_delegate_online_t;
 
-void X(setup_online)(testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-void X(destroy_online)(testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+void X(setup_online)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+void X(destroy_online)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
 
 /* Init delegate. */
 typedef struct init_delegate_s init_delegate_t;
@@ -96,7 +96,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
     init_delegate_t *init_delegate, trafo_delegate_t *trafo_delegate);
 
 /* Check multiple test cases.*/
-void X(check_many)(const int nf, const int ni, const int nt,
+void X(check_many)(const size_t nf, const size_t ni, const size_t nt,
   const testcase_delegate_t **testcases, init_delegate_t **initializers,
   trafo_delegate_t **trafos);
 
@@ -106,6 +106,7 @@ void X(check_many)(const int nf, const int ni, const int nt,
 /* Initializers. */
 void X(init_1d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
 void X(init_2d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_3d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
 void X(init_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
 void X(init_advanced_pre_psi_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
 
