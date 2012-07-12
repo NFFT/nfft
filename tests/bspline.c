@@ -22,10 +22,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <CUnit/CUnit.h>
 
 #include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
+#include "bspline.h"
 
 static const R b0[] =
 {
@@ -6323,11 +6325,12 @@ static const R b30[] =
 
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
-static void check_bspline(const unsigned n, const unsigned int m, const R *r)
+static int check_bspline(const unsigned n, const unsigned int m, const R *r)
 {
   unsigned int j;
   R scratch[100];
   R err = K(0.0);
+  int ok;
 
   for (j = 0; j < m; j++)
   {
@@ -6336,10 +6339,12 @@ static void check_bspline(const unsigned n, const unsigned int m, const R *r)
     /*printf("x = " FE_ ", err = " FE_ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }
-  fprintf(stderr, "b%02d: err = " FE_ "\n", n, err);
+  ok = IF(err < (K(15.0) * EPSILON), 1, 0);
+  fprintf(stderr, "%4s b%02d: err = " FE_ "\n", IF(ok, "  ok", "fail"), n, err);
+  return ok;
 }
 
-static void check_many_bspline(void)
+void X(check_bspline)(void)
 {
   const R *b[] = {
     b0, b1, b2, b3, b4, b5, b6, b7, b8, b9,
@@ -6348,15 +6353,11 @@ static void check_many_bspline(void)
     b30,
   };
   unsigned int j;
+  int ok = 1;
+  printf("B-SPLINE\n--------\n");
   for (j = 0; j < sizeof(b)/sizeof(b[0]); j++)
   {
-    check_bspline(j, 100, b[j]);
+    ok = MIN(ok, check_bspline(j, 100, b[j]));
   }
-}
-
-int main(void)
-{
-  check_many_bspline();
-
-  return EXIT_SUCCESS;
+  CU_ASSERT(ok == 1);
 }

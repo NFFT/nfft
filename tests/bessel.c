@@ -22,10 +22,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <CUnit/CUnit.h>
 
 #include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
+#include "bessel.h"
 
 static const R r[100] =
 {
@@ -131,23 +133,21 @@ static const R r[100] =
   K(3.970062351772964342800951229310239389328999942632802037502762997e41)
 };
 
-static void check_bessel_i0(void)
+void X(check_bessel_i0)(void)
 {
   R x = K(0.0);
+  R err = K(0.0);
   unsigned int j;
-  
+
+  printf("BESSEL I0\n---------\n");
+
   for (j = 0; j < sizeof(r)/sizeof(r[0]); j++, x += K(1.0))
   {
     R y = X(bessel_i0)(x);
     R yr = r[j];
+    err = FMAX(err, ABS(y - yr) / ABS(yr));
     fprintf(stderr, "i0[" FE_ "] = " FE_ " err_rel = " FE_ "\n", x, y,
       ABS(y - yr) / ABS(yr));
   }
-}
-
-int main(void)
-{
-  check_bessel_i0();
-
-  return EXIT_SUCCESS;
+  CU_ASSERT(err < (K(3.0) * EPSILON));
 }

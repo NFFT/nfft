@@ -4,17 +4,20 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 
 # check_nfft
 if HAVE_CUNIT
-  CHECK_NFFT=check_bspline
+  CHECK=checkall
 else
-  CHECK_NFFT=
+  CHECK=
 endif
+
+check_PROGRAMS =  $(CHECK)
 
 #  TODO implement nfsft check
 #    CHECK_NFSFT=check_nfsft
 #    check_nfsft_SOURCES = check_nfsft.c
 #    check_nfsft_LDADD = $(top_builddir)/libnfft3.la
 
-check_PROGRAMS = $(CHECK_NFFT)
+
+#noinst_PROGRAMS = $(CHECK_NFFT)
 
 #check_bessel_i0 check_nfft_1d check_nfft_2d $(CHECK_NFSFT) 
 
@@ -26,5 +29,5 @@ TESTS = $(check_PROGRAMS)
 #check_nfft_SOURCES = check_nfft.c
 #check_nfft_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
 
-check_bspline_SOURCES = check_bspline.c
-check_bspline_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
+checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h
+checkall_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses

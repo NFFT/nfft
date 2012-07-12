@@ -30,7 +30,112 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "cycle.h"
-#include "check_nfft.h"
+#include "nfft.h"
+
+/* Testcase delegate. */
+typedef struct testcase_delegate_s testcase_delegate_t;
+
+typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+
+struct testcase_delegate_s
+{
+  setup_t setup;
+  destroy_t destroy;
+};
+
+typedef struct testcase_delegate_file_s
+{
+  setup_t setup;
+  destroy_t destroy;
+  const char *filename;
+} testcase_delegate_file_t;
+
+void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+void X(destroy_file)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+
+typedef struct testcase_delegate_online_s
+{
+  setup_t setup;
+  destroy_t destroy;
+  const int d;
+  const int N;
+  const int M;
+} testcase_delegate_online_t;
+
+void X(setup_online)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+void X(destroy_online)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+
+/* Init delegate. */
+typedef struct init_delegate_s init_delegate_t;
+typedef void (*init_t)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+
+struct init_delegate_s
+{
+  const char *name;
+  init_t init;
+  const int m;
+  const unsigned nfft_flags;
+  const unsigned fftw_flags;
+};
+
+/* Trafo delegate. */
+typedef void (*trafo_t)(X(plan) *p);
+typedef double (*cost_t)(X(plan) *p);
+typedef const char* (*check_t)(X(plan) *p);
+typedef R (*acc_t)(X(plan) *p);
+
+typedef struct trafo_delegate_s
+{
+  const char *name;
+  trafo_t trafo;
+  check_t check;
+  cost_t cost;
+  acc_t acc;
+
+} trafo_delegate_t;
+
+double X(trafo_direct_cost)(X(plan) *p);
+
+R X(err_trafo)(X(plan) *p);
+R X(err_trafo_direct)(X(plan) *p);
+
+/* Check single test case.*/
+int X(check_single)(const testcase_delegate_t *testcase,
+    init_delegate_t *init_delegate, trafo_delegate_t *trafo_delegate);
+
+/* Check multiple test cases.*/
+void X(check_many)(const size_t nf, const size_t ni, const size_t nt,
+  const testcase_delegate_t **testcases, init_delegate_t **initializers,
+  trafo_delegate_t **trafos);
+
+/* Size of array. */
+#define SIZE(x) sizeof(x)/sizeof(x[0])
+
+/* Initializers. */
+void X(init_1d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_2d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_3d_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+void X(init_advanced_pre_psi_)(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
+
+#define DEFAULT_NFFT_FLAGS MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE
+#define DEFAULT_FFTW_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
+
+init_delegate_t init_1d;
+init_delegate_t init_2d;
+init_delegate_t init_3d;
+init_delegate_t init;
+init_delegate_t init_advanced_pre_psi;
+init_delegate_t init_advanced_pre_full_psi;
+init_delegate_t init_advanced_pre_lin_psi;
+#if defined(GAUSSIAN)
+init_delegate_t init_advanced_pre_fg_psi;
+#endif
+
+trafo_delegate_t trafo_direct;
+trafo_delegate_t trafo;
+
 
 static double trafo_direct_cost_factor = 1.0E-6;
 
@@ -138,7 +243,7 @@ R X(err_trafo)(X(plan) *p)
 int X(check_single)(const testcase_delegate_t *testcase,
     init_delegate_t *init_delegate, trafo_delegate_t *trafo_delegate)
 {
-  int result = EXIT_FAILURE;
+  int ok = 0;
   X(plan) p;
   int d, j, *N, NN, M;
   R *x;
@@ -176,7 +281,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
       printf(" -> %-4s (","OK");
       printf("%s", check);
       printf(")\n");
-      result = EXIT_SUCCESS;
+      ok = 1;
       goto cleanup;
     }
   }
@@ -186,7 +291,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
     if (cost > MAX_SECONDS)
     {
       printf(" -> %-4s (cost too high)\n","OK");
-      result = EXIT_SUCCESS;
+      ok = 1;
       goto cleanup;
     }
   }
@@ -208,8 +313,8 @@ int X(check_single)(const testcase_delegate_t *testcase,
     {
       R err = numerator/denominator;
       R bound = trafo_delegate->acc(&p);
-      result = IF(err < bound, EXIT_SUCCESS, EXIT_FAILURE);
-      printf(" -> %-4s " FE_ " (" FE_ ")\n", IF(result == EXIT_FAILURE, "FAIL", "OK"), err, bound);
+      ok = IF(err < bound, 1, 0);
+      printf(" -> %-4s " FE_ " (" FE_ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     }
   }
 
@@ -217,8 +322,7 @@ cleanup:
   testcase->destroy(testcase, x, f_hat, f);
   X(finalize)(&p);
 
-  CU_ASSERT(result == EXIT_SUCCESS);
-  return result;
+  return ok;
 }
 
 void X(check_many)(const size_t nf, const size_t ni, const size_t nt,
@@ -226,7 +330,7 @@ void X(check_many)(const size_t nf, const size_t ni, const size_t nt,
   trafo_delegate_t **trafos)
 {
   size_t i, j, k;
-  int result = EXIT_SUCCESS, r;
+  int ok = 1, r;
   for (k = 0; k < nt; k++)
   {
     for (i = 0; i < nf; i++)
@@ -234,10 +338,11 @@ void X(check_many)(const size_t nf, const size_t ni, const size_t nt,
       for (j = 0; j < ni; j++)
       {
          r = X(check_single)(testcases[i], initializers[j], trafos[k]);
-         result = IF(r == EXIT_FAILURE, EXIT_FAILURE, result);
+         ok = MIN(ok, r);
       }
     }
   }
+  CU_ASSERT(ok);
 }
 
 void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f)
@@ -506,7 +611,7 @@ static const testcase_delegate_file_t *testcases_1d_file[] =
 
 static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo, &trafo_1d};
 
-static void check_nfft_1d_file(void)
+void X(check_nfft_1d_file)(void)
 {
   X(check_many)(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_file),
     testcases_1d_file, initializers_1d, trafos_1d_file);
@@ -539,7 +644,7 @@ static const testcase_delegate_online_t *testcases_1d_online[] =
 
 static const trafo_delegate_t* trafos_1d_online[] = {&trafo, &trafo_1d};
 
-static void check_nfft_1d_online(void)
+void X(check_nfft_1d_online)(void)
 {
   X(check_many)(SIZE(testcases_1d_online), SIZE(initializers_1d), SIZE(trafos_1d_online),
     testcases_1d_online, initializers_1d, trafos_1d_online);
@@ -583,7 +688,7 @@ static const testcase_delegate_file_t *testcases_2d_file[] =
 
 static const trafo_delegate_t* trafos_2d_file[] = {&trafo_direct, &trafo, &trafo_2d};
 
-static void check_nfft_2d_file(void)
+void X(check_nfft_2d_file)(void)
 {
   X(check_many)(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_file),
     testcases_2d_file, initializers_2d, trafos_2d_file);
@@ -608,7 +713,7 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
 
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
 
-static void check_nfft_2d_online(void)
+void X(check_nfft_2d_online)(void)
 {
   X(check_many)(SIZE(testcases_2d_online), SIZE(initializers_2d), SIZE(trafos_2d_online),
     testcases_2d_online, initializers_2d, trafos_2d_online);
@@ -638,7 +743,7 @@ static const testcase_delegate_file_t *testcases_3d_file[] =
 
 static const trafo_delegate_t* trafos_3d_file[] = {&trafo_direct, &trafo, &trafo_3d};
 
-static void check_nfft_3d_file(void)
+void X(check_nfft_3d_file)(void)
 {
   X(check_many)(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_file),
     testcases_3d_file, initializers_3d, trafos_3d_file);
@@ -655,7 +760,7 @@ static const testcase_delegate_online_t *testcases_3d_online[] =
 
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
 
-static void check_nfft_3d_online(void)
+void X(check_nfft_3d_online)(void)
 {
   X(check_many)(SIZE(testcases_3d_online), SIZE(initializers_3d), SIZE(trafos_3d_online),
     testcases_3d_online, initializers_3d, trafos_3d_online);
@@ -675,36 +780,17 @@ static const init_delegate_t* initializers_4d[] =
 #endif
 };
 
-static const testcase_delegate_online_t nfft_online_4d_35_50 = {X(setup_online), X(destroy_online), 4, 35 ,50};
+static const testcase_delegate_online_t nfft_online_4d_36_50 = {X(setup_online), X(destroy_online), 4, 36 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
 {
-  &nfft_online_4d_35_50,
+  &nfft_online_4d_36_50,
 };
 
 static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 
-static void check_nfft_4d_online(void)
+void X(check_nfft_4d_online)(void)
 {
   X(check_many)(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
     testcases_4d_online, initializers_4d, trafos_4d_online);
-}
-
-int main(void)
-{
-  CU_pSuite s;
-  CU_initialize_registry();
-  CU_set_output_filename("nfft");
-  s = CU_add_suite("nfft", 0, 0);
-  /*CU_add_test(s, "nfft_1d_file", check_nfft_1d_file);*/
-  CU_add_test(s, "nfft_1d_online", check_nfft_1d_online);
-  /*CU_add_test(s, "nfft_2d_file", check_nfft_2d_file);*/
-  /*CU_add_test(s, "nfft_2d_online", check_nfft_2d_online);*/
-  /*CU_add_test(s, "nfft_3d_file", check_nfft_3d_file);*/
-  /*CU_add_test(s, "nfft_3d_online", check_nfft_3d_online);*/
-  /*CU_add_test(s, "nfft_4d_online", check_nfft_4d_online);*/
-  CU_automated_run_tests();
-  /*CU_basic_run_tests();*/
-  CU_cleanup_registry();
-  return 0;
 }
