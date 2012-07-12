@@ -34,12 +34,12 @@ int main(void)
   /*CU_set_output_filename("nfft");*/
   nfft = CU_add_suite("nfft", 0, 0);
   CU_add_test(nfft, "nfft_1d_file", X(check_nfft_1d_file));
-  /*CU_add_test(nfft, "nfft_1d_online", X(check_nfft_1d_online));
+  CU_add_test(nfft, "nfft_1d_online", X(check_nfft_1d_online));
   CU_add_test(nfft, "nfft_2d_file", X(check_nfft_2d_file));
   CU_add_test(nfft, "nfft_2d_online", X(check_nfft_2d_online));
   CU_add_test(nfft, "nfft_3d_file", X(check_nfft_3d_file));
   CU_add_test(nfft, "nfft_3d_online", X(check_nfft_3d_online));
-  CU_add_test(nfft, "nfft_4d_online", X(check_nfft_4d_online));*/
+  CU_add_test(nfft, "nfft_4d_online", X(check_nfft_4d_online));
   util = CU_add_suite("util", 0, 0);
   CU_add_test(util, "bspline", X(check_bspline));
   CU_add_test(util, "bessel_i0", X(check_bessel_i0));

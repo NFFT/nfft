@@ -48,7 +48,7 @@ AC_CANONICAL_HOST
 #AX_COUNT_CPUS
 #AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
 
-# substitute abs_srcdir in generated Makefiles
+# substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
 
 # minimum required libtool version
@@ -464,6 +464,7 @@ AC_CONFIG_FILES(Makefile \
                 kernel/solver/Makefile \
                 kernel/util/Makefile \
                 tests/Makefile \
+                tests/data/Makefile \
                 examples/Makefile \
                 examples/fpt/Makefile \
                 examples/mri/Makefile \

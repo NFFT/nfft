@@ -32,6 +32,26 @@
 #include "cycle.h"
 #include "nfft.h"
 
+#if defined __CYGWIN32__ && !defined __CYGWIN__
+   /* For backwards compatibility with Cygwin b19 and
+      earlier, we define __CYGWIN__ here, so that
+      we can rely on checking just for that macro. */
+#  define __CYGWIN__  __CYGWIN32__
+#endif
+
+#if defined _WIN32 && !defined __CYGWIN__
+   /* Use Windows separators on all _WIN32 defining
+      environments, except Cygwin. */
+#  define SEP "\\"
+#endif
+#ifndef SEP
+   /* Assume that not having this is an indicator that all
+      are missing. */
+#  define SEP "/"
+#endif /* !DIR_SEPARATOR_CHAR */
+
+#define ABSPATH(x) STRINGIZE(SRCDIR) SEP x
+
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
@@ -574,30 +594,30 @@ static const init_delegate_t* initializers_1d[] =
 #endif
 };
 
-static const testcase_delegate_file_t nfft_1d_1_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_1.txt"};
-static const testcase_delegate_file_t nfft_1d_1_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_10.txt"};
-static const testcase_delegate_file_t nfft_1d_1_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_20.txt"};
-static const testcase_delegate_file_t nfft_1d_1_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_1_50.txt"};
-static const testcase_delegate_file_t nfft_1d_2_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_1.txt"};
-static const testcase_delegate_file_t nfft_1d_2_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_10.txt"};
-static const testcase_delegate_file_t nfft_1d_2_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_20.txt"};
-static const testcase_delegate_file_t nfft_1d_2_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_2_50.txt"};
-static const testcase_delegate_file_t nfft_1d_4_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_1.txt"};
-static const testcase_delegate_file_t nfft_1d_4_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_10.txt"};
-static const testcase_delegate_file_t nfft_1d_4_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_20.txt"};
-static const testcase_delegate_file_t nfft_1d_4_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_4_50.txt"};
-static const testcase_delegate_file_t nfft_1d_10_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_1.txt"};
-static const testcase_delegate_file_t nfft_1d_10_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_10.txt"};
-static const testcase_delegate_file_t nfft_1d_10_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_20.txt"};
-static const testcase_delegate_file_t nfft_1d_10_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_10_50.txt"};
-static const testcase_delegate_file_t nfft_1d_20_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_1.txt"};
-static const testcase_delegate_file_t nfft_1d_20_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_10.txt"};
-static const testcase_delegate_file_t nfft_1d_20_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_20.txt"};
-static const testcase_delegate_file_t nfft_1d_20_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_20_50.txt"};
-static const testcase_delegate_file_t nfft_1d_50_1 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_1.txt"};
-static const testcase_delegate_file_t nfft_1d_50_10 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_10.txt"};
-static const testcase_delegate_file_t nfft_1d_50_20 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_20.txt"};
-static const testcase_delegate_file_t nfft_1d_50_50 = {X(setup_file), X(destroy_file), "data/nfft_1d_50_50.txt"};
+static const testcase_delegate_file_t nfft_1d_1_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_1_1.txt")};
+static const testcase_delegate_file_t nfft_1d_1_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_1_10.txt")};
+static const testcase_delegate_file_t nfft_1d_1_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_1_20.txt")};
+static const testcase_delegate_file_t nfft_1d_1_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_1_50.txt")};
+static const testcase_delegate_file_t nfft_1d_2_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_2_1.txt")};
+static const testcase_delegate_file_t nfft_1d_2_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_2_10.txt")};
+static const testcase_delegate_file_t nfft_1d_2_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_2_20.txt")};
+static const testcase_delegate_file_t nfft_1d_2_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_2_50.txt")};
+static const testcase_delegate_file_t nfft_1d_4_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_4_1.txt")};
+static const testcase_delegate_file_t nfft_1d_4_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_4_10.txt")};
+static const testcase_delegate_file_t nfft_1d_4_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_4_20.txt")};
+static const testcase_delegate_file_t nfft_1d_4_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_4_50.txt")};
+static const testcase_delegate_file_t nfft_1d_10_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_10_1.txt")};
+static const testcase_delegate_file_t nfft_1d_10_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_10_10.txt")};
+static const testcase_delegate_file_t nfft_1d_10_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_10_20.txt")};
+static const testcase_delegate_file_t nfft_1d_10_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_10_50.txt")};
+static const testcase_delegate_file_t nfft_1d_20_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_20_1.txt")};
+static const testcase_delegate_file_t nfft_1d_20_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_20_10.txt")};
+static const testcase_delegate_file_t nfft_1d_20_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_20_20.txt")};
+static const testcase_delegate_file_t nfft_1d_20_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_20_50.txt")};
+static const testcase_delegate_file_t nfft_1d_50_1 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_50_1.txt")};
+static const testcase_delegate_file_t nfft_1d_50_10 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_50_10.txt")};
+static const testcase_delegate_file_t nfft_1d_50_20 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_50_20.txt")};
+static const testcase_delegate_file_t nfft_1d_50_50 = {X(setup_file), X(destroy_file), ABSPATH("data/nfft_1d_50_50.txt")};
 
 static const testcase_delegate_file_t *testcases_1d_file[] =
 {
@@ -665,14 +685,14 @@ static const init_delegate_t* initializers_2d[] =
 #endif
 };
 
-static const testcase_delegate_file_t nfft_2d_10_10_20 = {X(setup_file),X(destroy_file),"data/nfft_2d_10_10_20.txt"};
-static const testcase_delegate_file_t nfft_2d_10_10_50 = {X(setup_file),X(destroy_file),"data/nfft_2d_10_10_50.txt"};
-static const testcase_delegate_file_t nfft_2d_10_20_20 = {X(setup_file),X(destroy_file),"data/nfft_2d_10_20_20.txt"};
-static const testcase_delegate_file_t nfft_2d_10_20_50 = {X(setup_file),X(destroy_file),"data/nfft_2d_10_20_50.txt"};
-static const testcase_delegate_file_t nfft_2d_20_10_20 = {X(setup_file),X(destroy_file),"data/nfft_2d_20_10_20.txt"};
-static const testcase_delegate_file_t nfft_2d_20_10_50 = {X(setup_file),X(destroy_file),"data/nfft_2d_20_10_50.txt"};
-static const testcase_delegate_file_t nfft_2d_20_20_20 = {X(setup_file),X(destroy_file),"data/nfft_2d_20_20_20.txt"};
-static const testcase_delegate_file_t nfft_2d_20_20_50 = {X(setup_file),X(destroy_file),"data/nfft_2d_20_20_50.txt"};
+static const testcase_delegate_file_t nfft_2d_10_10_20 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_10_10_20.txt")};
+static const testcase_delegate_file_t nfft_2d_10_10_50 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_10_10_50.txt")};
+static const testcase_delegate_file_t nfft_2d_10_20_20 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_10_20_20.txt")};
+static const testcase_delegate_file_t nfft_2d_10_20_50 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_10_20_50.txt")};
+static const testcase_delegate_file_t nfft_2d_20_10_20 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_20_10_20.txt")};
+static const testcase_delegate_file_t nfft_2d_20_10_50 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_20_10_50.txt")};
+static const testcase_delegate_file_t nfft_2d_20_20_20 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_20_20_20.txt")};
+static const testcase_delegate_file_t nfft_2d_20_20_50 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_2d_20_20_50.txt")};
 
 static const testcase_delegate_file_t *testcases_2d_file[] =
 {
@@ -734,7 +754,7 @@ static const init_delegate_t* initializers_3d[] =
 #endif
 };
 
-static const testcase_delegate_file_t nfft_3d_10_10_10_10 = {X(setup_file),X(destroy_file),"data/nfft_3d_10_10_10_10.txt"};
+static const testcase_delegate_file_t nfft_3d_10_10_10_10 = {X(setup_file),X(destroy_file),ABSPATH("data/nfft_3d_10_10_10_10.txt")};
 
 static const testcase_delegate_file_t *testcases_3d_file[] =
 {
