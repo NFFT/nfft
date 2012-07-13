@@ -73,7 +73,7 @@
          <xsl:attribute name="message">
             <xsl:value-of select=" normalize-space(CONDITION)" />
          </xsl:attribute>
-         <xsl:attribute name="type">Failure</xsl:attribute>          
+         <xsl:attribute name="type">Failure</xsl:attribute>
          <xsl:value-of select="normalize-space(CONDITION)" />
          File: <xsl:value-of select="normalize-space(FILE_NAME)" />
          Line: <xsl:value-of select="normalize-space(LINE_NUMBER)" />
