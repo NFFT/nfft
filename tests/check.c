@@ -21,6 +21,7 @@
 /* Standard headers. */
 #include <CUnit/CUnit.h>
 #include <CUnit/TestRun.h>
+#include <CUnit/Automated.h>
 
 #include "infft.h"
 #include "bspline.h"

@@ -263,7 +263,6 @@ R X(err_trafo)(X(plan) *p)
 int X(check_single)(const testcase_delegate_t *testcase,
     init_delegate_t *init_delegate, trafo_delegate_t *trafo_delegate)
 {
-  return 1;
   int ok = 0;
   X(plan) p;
   int d, j, *N, NN, M;
