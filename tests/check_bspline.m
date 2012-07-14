@@ -26,4 +26,14 @@ AppendTo[$Path, NotebookDirectory[]];
 P=64;(* Working precision. *)
 
 
+BSpline[n_][x_]:=BSplineBasis[n,x/(n+1)];
+Generate[n_]:=Module[
+{
+m=100
+},
+x=Sort[RandomReal[{0,(n+1)/2},m,WorkingPrecision->P]];
+y=Map[BSpline[n],x];
+FormatVector[Flatten[N[Transpose[{x,y}],P]], "b" <> ToString[n]]];
+
+
 
