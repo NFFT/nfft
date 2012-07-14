@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<testsuites errors="0" failures="1" tests="3" name="">
 <testsuite errors="0" tests="3" time="0.391" failures="1"
            name="com.atlassian.bamboo.repository.perforce.PerforceSyncCommandTest">
     <testcase time="0.001" name="testGeneratesCorrectP4CommandLine"/>
@@ -10,3 +11,4 @@
          </failure>
     </testcase>
 </testsuite>
+</testsuites>
