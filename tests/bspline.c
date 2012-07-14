@@ -6359,5 +6359,5 @@ void X(check_bspline)(void)
   {
     ok = MIN(ok, check_bspline(j, 100, b[j]));
   }
-  CU_ASSERT(ok == 0);
+  CU_ASSERT(ok == 1);
 }
