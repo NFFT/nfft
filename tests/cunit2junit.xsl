@@ -51,9 +51,9 @@
     
   <xsl:template match="CUNIT_RUN_TEST_SUCCESS">
     <testcase>
-       <xsl:attribute name="classname">
+       <!--xsl:attribute name="classname">
           <xsl:value-of select="substring-before(substring-after(TEST_NAME,'test_'),'_')" />
-       </xsl:attribute>
+       </xsl:attribute-->
        <xsl:attribute name="name">
           <xsl:value-of select="normalize-space(TEST_NAME)" />
        </xsl:attribute>
