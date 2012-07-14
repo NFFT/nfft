@@ -728,7 +728,7 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
   &nfft_online_2d_200_50,
   &nfft_online_2d_500_50,
   &nfft_online_2d_1000_50,
-  &nfft_online_2d_2000_50,
+  /*&nfft_online_2d_2000_50,*/
 };
 
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
@@ -775,7 +775,7 @@ static const testcase_delegate_online_t nfft_online_3d_100_50 = {X(setup_online)
 static const testcase_delegate_online_t *testcases_3d_online[] =
 {
   &nfft_online_3d_50_50,
-  &nfft_online_3d_100_50,
+  /*&nfft_online_3d_100_50,*/
 };
 
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
