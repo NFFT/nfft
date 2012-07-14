@@ -800,7 +800,7 @@ static const init_delegate_t* initializers_4d[] =
 #endif
 };
 
-static const testcase_delegate_online_t nfft_online_4d_36_50 = {X(setup_online), X(destroy_online), 4, 36 ,50};
+static const testcase_delegate_online_t nfft_online_4d_36_50 = {X(setup_online), X(destroy_online), 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
 {
