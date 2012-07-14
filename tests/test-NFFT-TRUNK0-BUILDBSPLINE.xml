@@ -15,16 +15,16 @@
 
 <testsuites errors="0" failures="0" tests="9" name="">
   <testsuite errors="0" failures="0" tests="7" name="nfft" time="0.391">
-    <testcase name="nfft_1d_file" time="0"/>
-    <testcase name="nfft_1d_online" time="0"/>
-    <testcase name="nfft_2d_file" time="0"/>
-    <testcase name="nfft_2d_online" time="0"/>
-    <testcase name="nfft_3d_file" time="0"/>
-    <testcase name="nfft_3d_online" time="0"/>
-    <testcase name="nfft_4d_online" time="0"/>
+    <testcase classname="" name="nfft_1d_file" time="0"/>
+    <testcase classname="" name="nfft_1d_online" time="0"/>
+    <testcase classname="" name="nfft_2d_file" time="0"/>
+    <testcase classname="" name="nfft_2d_online" time="0"/>
+    <testcase classname="" name="nfft_3d_file" time="0"/>
+    <testcase classname="" name="nfft_3d_online" time="0"/>
+    <testcase classname="" name="nfft_4d_online" time="0"/>
   </testsuite>
   <testsuite errors="0" failures="0" tests="2" name="util" time="0.391">
-    <testcase name="bspline" time="0"/>
-    <testcase name="bessel_i0" time="0"/>
+    <testcase classname="" name="bspline" time="0"/>
+    <testcase classname="" name="bessel_i0" time="0"/>
   </testsuite>
 </testsuites>
