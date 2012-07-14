@@ -1,5 +1,9 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.2.1:
+  - Added unit tests for some parts of the library. They are invoked via make 
+    check, but only if the CUnit framework was found on the build host.
+
 Changes in version 3.2.0:
   - Added support for OpenMP. To activate, use the configure script with the 
     --enable-openmp option.
