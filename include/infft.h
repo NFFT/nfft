@@ -1242,20 +1242,6 @@ extern double _Complex catanh(double _Complex z);
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
 
-extern void nfft_assertion_failed(const char *s, int line, const char *file);
-
-/* always check */
-#define CK(ex) \
-  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
-
-#ifdef NFFT_DEBUG
-  /* check only if debug enabled */
-  #define A(ex) \
-    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
-#else
-  #define A(ex) /* nothing */
-#endif
-
 #ifdef HAVE_ALLOCA
   /* Use alloca if available. */
   #ifndef alloca
@@ -1399,7 +1385,37 @@ void X(assertion_failed)(const char *s, int line, const char *file);
 /* rand.c */
 R X(drand48)(void);
 void X(srand48)(long int seed);
+/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
+ */
 void X(vrand_unit_complex)(C *x, const int n);
+/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
+ */
 void X(vrand_shifted_unit_double)(R *x, const int n);
+
+/* vector.c */
+/** Computes the inner/dot product \f$x^H x\f$. */
+R X(dot_complex)(C *x, int n);
+/** Computes the inner/dot product \f$x^H x\f$. */
+R X(dot_double)(R *x, int n);
+/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
+R X(dot_w_complex)(C *x, R *w, int n);
+/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
+R X(dot_w_double)(R *x, R *w, int n);
+/** Computes the weighted inner/dot product \f$x^H (w\odot w2\odot w2 \odot x)\f$. */
+R X(dot_w_w2_complex)(C *x, R *w, R *w2, int n);
+/** Computes the weighted inner/dot product \f$x^H (w2\odot w2 \odot x)\f$. */
+R X(dot_w2_complex)(C *x, R *w2, int n);
+
+/* always check */
+#define CK(ex) \
+  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+
+#ifdef NFFT_DEBUG
+  /* check only if debug enabled */
+  #define A(ex) \
+    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+#else
+  #define A(ex) /* nothing */
+#endif
 
 #endif

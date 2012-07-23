@@ -189,13 +189,13 @@ static void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   nfft_trafo(&p);
   NFFT_SWAP_complex(p.f_hat,ip.f_hat_iter);
   nfft_upd_axpy_complex(p.f,-1,ip.y,M_re);
-  r=sqrt(nfft_dot_complex(p.f,M_re)/nfft_dot_complex(cp_y,M));
+  r=sqrt(X(dot_complex)(p.f,M_re)/X(dot_complex)(cp_y,M));
   fprintf(stderr,"r=%1.2e, ",r);
   printf("$%1.1e$ & ",r);
 
   nfft_trafo(&cp);
   nfft_upd_axpy_complex(&cp.f[M_re],-1,&cp_y[M_re],M_cv);
-  r=sqrt(nfft_dot_complex(&cp.f[M_re],M_cv)/nfft_dot_complex(cp_y,M));
+  r=sqrt(X(dot_complex)(&cp.f[M_re],M_cv)/X(dot_complex)(cp_y,M));
   fprintf(stderr,"r_1=%1.2e\t",r);
   printf("$%1.1e$ & ",r);
 

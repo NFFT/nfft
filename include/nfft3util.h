@@ -91,32 +91,6 @@ int nfft_plain_loop(int *idx,int *N,int d);
  */
 double nfft_prod_real(double *vec,int d);
 
-/** Computes the inner/dot product \f$x^H x\f$.
- */
-double nfft_dot_complex(fftw_complex* x, int n);
-
-/** Computes the inner/dot product \f$x^H x\f$.
- */
-double nfft_dot_double( double*  x, int n);
-
-/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
- */
-double nfft_dot_w_complex(fftw_complex* x, double* w, int n);
-
-/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$.
- */
-double nfft_dot_w_double( double*  x, double* w, int n);
-
-/** Computes the weighted inner/dot product
-    \f$x^H (w1\odot w2\odot w2 \odot x)\f$.
-*/
-double nfft_dot_w_w2_complex(fftw_complex* x, double* w, double* w2, int n);
-
-/** Computes the weighted inner/dot product
-    \f$x^H (w2\odot w2 \odot x)\f$.
- */
-double nfft_dot_w2_complex(fftw_complex* x, double* w2, int n);
-
 /** Copies \f$x \leftarrow y\f$.
  */
 void nfft_cp_complex(fftw_complex* x, fftw_complex* y, int n);
@@ -197,14 +171,6 @@ void nfft_vpr_double(double *x, int n, const char *text);
  */
 void nfft_vpr_complex(fftw_complex *x, int n, const char *text);
 
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
- */
-void nfft_vrand_unit_complex(fftw_complex *x, int n);
-
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
- */
-void nfft_vrand_shifted_unit_double(double *x, int n);
-
 /* ######################################################################### */
 /* ########## Helpers for inverse transforms ############################### */
 /* ######################################################################### */
@@ -238,18 +204,6 @@ double nfft_modified_multiquadric(double mu,double c,int kk);
 
 int nfft_smbi(const double x, const double alpha, const int nb, const int ize,
   double *b);
-
-double nfft_drand48(void);
-
-void nfft_srand48(long int seed);
-
-/** Radix sort for node indices.
- */
-void nfft_sort_node_indices_radix_lsdf(int n, int *keys0, int *keys1, int rhigh);
-
-/** Radix sort for node indices.
- */
-void nfft_sort_node_indices_radix_msdf(int n, int *keys0, int *keys1, int rhigh);
 
 int nfft_get_num_threads(void);
 
