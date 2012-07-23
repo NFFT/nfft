@@ -1389,4 +1389,17 @@ R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
 R X(error_l_2_complex)(const C *x, const C *y, const INT n);
 /* not used */ R X(error_l_2_double)(const R *x, const R *y, const INT n);
 
+/* sort.c: */
+void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh);
+void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh);
+
+/* assert.c */
+void X(assertion_failed)(const char *s, int line, const char *file);
+
+/* rand.c */
+R X(drand48)(void);
+void X(srand48)(long int seed);
+void X(vrand_unit_complex)(C *x, const int n);
+void X(vrand_shifted_unit_double)(R *x, const int n);
+
 #endif

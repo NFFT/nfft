@@ -84,7 +84,7 @@ static void nfft_sort_nodes_for_better_cache_handle(int d,
   rhigh = (int) ceil(log2(nprod)) - 1;
 
   ar_x_temp = (int *) nfft_malloc(2*local_x_num*sizeof(int));
-  nfft_sort_node_indices_radix_lsdf(local_x_num, ar_x, ar_x_temp, rhigh);
+  X(sort_node_indices_radix_lsdf)(local_x_num, ar_x, ar_x_temp, rhigh);
 #ifdef OMP_ASSERT
   for (i = 1; i < local_x_num; i++)
     assert(ar_x[2*(i-1)] <= ar_x[2*i]);

@@ -472,14 +472,14 @@ void X(setup_online)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, 
   *x = malloc(M[0]*d[0]*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    (*x)[j] = nfft_drand48() - K(0.5);
+    (*x)[j] = X(drand48)() - K(0.5);
   }
 
   /* Fourier coefficients. */
   *f_hat = malloc(NN[0]*sizeof(C));
   for (j = 0; j < NN[0]; j++)
   {
-    (*f_hat)[j] = (nfft_drand48() - K(0.5)) + (nfft_drand48() - K(0.5)) * I;
+    (*f_hat)[j] = (X(drand48)() - K(0.5)) + (X(drand48)() - K(0.5)) * I;
   }
 
   {
