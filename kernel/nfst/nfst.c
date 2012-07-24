@@ -57,14 +57,14 @@
 
 
 #define MACRO_nfst_D_init_result_A        \
-  memset(g_hat, 0, nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g_hat, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 #define MACRO_nfst_D_init_result_T        \
   memset(f_hat, 0, ths->N_total * sizeof( double));
 
 #define MACRO_nfst_B_init_result_A        \
   memset(f, 0,     ths->M_total * sizeof( double));
 #define MACRO_nfst_B_init_result_T        \
-  memset(g, 0, nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
 
 #define NFST_PRE_WINFUN( d)  ths->N[d] = 2 * ths->N[d];         \

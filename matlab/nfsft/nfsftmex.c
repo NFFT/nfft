@@ -286,10 +286,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          x[2*j] = PI2*plans[i]->x[2*j];
+          x[2*j] = K2PI*plans[i]->x[2*j];
           if (x[2*j] < 0.0)
-            x[2*j] += PI2;
-          x[2*j+1] = PI2*plans[i]->x[2*j+1];
+            x[2*j] += K2PI;
+          x[2*j+1] = K2PI*plans[i]->x[2*j+1];
         }
       }
     }
@@ -369,8 +369,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          plans[i]->x[2*j] = ((x[2*j] > PI)?(x[2*j] - PI2):(x[2*j]))/PI2;
-          plans[i]->x[2*j+1] = x[2*j+1]/PI2;
+          plans[i]->x[2*j] = ((x[2*j] > PI)?(x[2*j] - K2PI):(x[2*j]))/K2PI;
+          plans[i]->x[2*j+1] = x[2*j+1]/K2PI;
         }
       }
     }

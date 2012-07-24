@@ -78,9 +78,9 @@ enum pvalue {NO = 0, YES = 1, BOTH = 2};
 static inline double innerProduct(const double phi1, const double theta1,
   const double phi2, const double theta2)
 {
-  double pi2theta1 = PI2*theta1, pi2theta2 = PI2*theta2;
+  double pi2theta1 = K2PI*theta1, pi2theta2 = K2PI*theta2;
   return (cos(pi2theta1)*cos(pi2theta2)
-    + sin(pi2theta1)*sin(pi2theta2)*cos(PI2*(phi1-phi2)));
+    + sin(pi2theta1)*sin(pi2theta2)*cos(K2PI*(phi1-phi2)));
 }
 
 /**
@@ -96,7 +96,7 @@ static inline double innerProduct(const double phi1, const double theta1,
  */
 static inline double poissonKernel(const double x, const double h)
 {
-  return (1.0/(PI4))*((1.0-h)*(1.0+h))/pow(sqrt(1.0-2.0*h*x+h*h),3.0);
+  return (1.0/(K4PI))*((1.0-h)*(1.0+h))/pow(sqrt(1.0-2.0*h*x+h*h),3.0);
 }
 
 /**
@@ -112,7 +112,7 @@ static inline double poissonKernel(const double x, const double h)
  */
 static inline double singularityKernel(const double x, const double h)
 {
-  return (1.0/(PI2))/sqrt(1.0-2.0*h*x+h*h);
+  return (1.0/(K2PI))/sqrt(1.0-2.0*h*x+h*h);
 }
 
 /**
@@ -398,14 +398,14 @@ int main (int argc, char **argv)
     {
       b[l] = (((double)rand())/RAND_MAX) - 0.5;
       eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
-      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(PI2);
+      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(K2PI);
     }
 
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
       xi[2*d] = (((double)rand())/RAND_MAX) - 0.5;
-      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(PI2);
+      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(K2PI);
     }
 
     /* Do precomputation. */
@@ -447,7 +447,7 @@ int main (int argc, char **argv)
           steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
           nfft_smbi(2.0*p[ip][0],0.5,m_max+1,2,steed);
           for (k = 0; k <= m_max; k++)
-            a[k] = PI2*(sqrt(PI/p[ip][0]))*steed[k];
+            a[k] = K2PI*(sqrt(PI/p[ip][0]))*steed[k];
 
           nfft_free(steed);
           break;
@@ -455,7 +455,7 @@ int main (int argc, char **argv)
 
       /* Normalize Fourier-Legendre coefficients. */
       for (k = 0; k <= m_max; k++)
-        a[k] *= (2*k+1)/(PI4);
+        a[k] *= (2*k+1)/(K4PI);
 
       /* Process all node sets. */
       for (ild = 0; ild < ild_max; ild++)
@@ -534,7 +534,7 @@ int main (int argc, char **argv)
                 /* Perform final summation */
 
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(PI2*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(K2PI*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -641,7 +641,7 @@ int main (int argc, char **argv)
 
               case KT_LOC_SUPP:
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(PI2*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(K2PI*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)

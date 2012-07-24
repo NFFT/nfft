@@ -109,3 +109,39 @@ void X(next_power_of_2_exp)(const int N, int *N2, int *t)
     *t = logn+1;
   }
 }
+
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
+int X(prod_int)(int *vec, int d)
+{
+  int t, prod;
+
+  prod = 1;
+  for (t = 0; t < d; t++)
+    prod *= vec[t];
+
+  return prod;
+}
+
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
+int X(prod_minus_a_int)(int *vec, int a, int d)
+{
+  int t, prod;
+
+  prod = 1;
+  for (t = 0; t < d; t++)
+    prod *= vec[t] - a;
+
+  return prod;
+}
+
+/** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$. */
+int X(plain_loop)(int *idx, int *N, int d)
+{
+  int t, sum;
+
+  sum = idx[0];
+  for (t = 1; t < d; t++)
+    sum = sum * N[t] + idx[t];
+
+  return sum;
+}

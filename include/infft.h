@@ -91,6 +91,7 @@ typedef ptrdiff_t INT;
 
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
 #define K2PI K(6.2831853071795864769252867665590057683943387987502)
+#define K4PI K(12.5663706143591729538505735331180115367886775975004)
 #define KE K(2.7182818284590452353602874713526624977572470937000)
 
 #define IF(x,a,b) ((x)?(a):(b))
@@ -1358,12 +1359,19 @@ typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
 
 R X(float_property)(float_property);
+R X(prod_real)(R *vec, int d);
 
 /* int.c: */
 int X(exp2i)(const int a);
 int X(log2i)(const int m);
 int X(next_power_of_2)(const int N);
 void X(next_power_of_2_exp)(const int N, int *N2, int *t);
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
+int X(prod_int)(int *vec, int d);
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
+int X(prod_minus_a_int)(int *vec, int a, int d);
+/** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$. */
+int X(plain_loop)(int *idx, int *N, int d);
 
 /* error.c: */
 R X(error_l_infty_complex)(const C *x, const C *y, const INT n);
@@ -1392,7 +1400,7 @@ void X(vrand_unit_complex)(C *x, const int n);
  */
 void X(vrand_shifted_unit_double)(R *x, const int n);
 
-/* vector.c */
+/* vector1.c */
 /** Computes the inner/dot product \f$x^H x\f$. */
 R X(dot_complex)(C *x, int n);
 /** Computes the inner/dot product \f$x^H x\f$. */
@@ -1405,6 +1413,72 @@ R X(dot_w_double)(R *x, R *w, int n);
 R X(dot_w_w2_complex)(C *x, R *w, R *w2, int n);
 /** Computes the weighted inner/dot product \f$x^H (w2\odot w2 \odot x)\f$. */
 R X(dot_w2_complex)(C *x, R *w2, int n);
+
+/* vector2.c */
+/** Copies \f$x \leftarrow y\f$. */
+void X(cp_complex)(C *x, C *y, int n);
+/** Copies \f$x \leftarrow y\f$. */
+void X(cp_double)(R *x, R *y, int n);
+/** Copies \f$x \leftarrow a y\f$. */
+void X(cp_a_complex)(C *x, R a, C *y, int n);
+/** Copies \f$x \leftarrow a y\f$. */
+void X(cp_a_double)(R *x, R a, R *y, int n);
+/** Copies \f$x \leftarrow w\odot y\f$. */
+void X(cp_w_complex)(C *x, R *w, C *y, int n);
+/** Copies \f$x \leftarrow w\odot y\f$. */
+void X(cp_w_double)(R *x, R *w, R *y, int n);
+
+/* vector3.c */
+/** Updates \f$x \leftarrow a x + y\f$. */
+void X(upd_axpy_complex)(C *x, R a, C *y, int n);
+/** Updates \f$x \leftarrow a x + y\f$. */
+void X(upd_axpy_double)(R *x, R a, R *y, int n);
+/** Updates \f$x \leftarrow x + a y\f$. */
+void X(upd_xpay_complex)(C *x, R a, C *y, int n);
+/** Updates \f$x \leftarrow x + a y\f$. */
+void X(upd_xpay_double)(R *x, R a, R *y, int n);
+/** Updates \f$x \leftarrow a x + b y\f$. */
+void X(upd_axpby_complex)(C *x, R a, C *y, R b, int n);
+/** Updates \f$x \leftarrow a x + b y\f$. */
+void X(upd_axpby_double)(R *x, R a, R *y, R b, int n);
+/** Updates \f$x \leftarrow x + a w\odot y\f$. */
+void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, int n);
+/** Updates \f$x \leftarrow x + a w\odot y\f$. */
+void X(upd_xpawy_double)(R *x, R a, R *w, R *y, int n);
+/** Updates \f$x \leftarrow a x +  w\odot y\f$. */
+void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, int n);
+/** Updates \f$x \leftarrow a x +  w\odot y\f$. */
+void X(upd_axpwy_double)(R *x, R a, R *w, R *y, int n);
+/** Swaps each half over N[d]/2. */
+void X(fftshift_complex)(C *x, int d, int* N);
+
+
+/* print.c */
+/** vector print */
+void X(vpr_int)(int *x, int n, char *text);
+/** Print real vector to standard output. */
+void X(vpr_double)(R *x, const int n, const char *text);
+/** Print complex vector to standard output. */
+void X(vpr_complex)(C *x, const int n, const char *text);
+
+/* voronoi.c */
+void X(voronoi_weights_1d)(R *w, R *x, const int M);
+void X(voronoi_weights_S2)(R *w, R *xi, int M);
+
+/* damp.c */
+/**
+ * Compute damping factor for modified Fejer kernel:
+ * /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
+ */
+R X(modified_fejer)(const int N, const int kk);
+/** Compute damping factor for modified Jackson kernel. */
+R X(modified_jackson2)(const int N, const int kk);
+/** Compute damping factor for modified generalised Jackson kernel. */
+R X(modified_jackson4)(const int N, const int kk);
+/** Compute damping factor for modified Sobolev kernel. */
+R X(modified_sobolev)(const R mu, const int kk);
+/** Comput damping factor for modified multiquadric kernel. */
+R X(modified_multiquadric)(const R mu, const R c, const int kk);
 
 /* always check */
 #define CK(ex) \
