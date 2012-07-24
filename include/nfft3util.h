@@ -57,12 +57,6 @@ extern "C"
 #define NFFT_SWAP_double(x,y) {double* NFFT_SWAP_temp__; NFFT_SWAP_temp__=(x); \
   (x)=(y); (y)=NFFT_SWAP_temp__;}
 
-/** Formerly known to be an irrational number.
- */
-#define PI 3.141592653589793238462643383279502884197169399375105820974944592
-#define PI2 6.283185307179586476925286766559005768394338798750211641949889185
-#define PI4 12.56637061435917295385057353311801153678867759750042328389977837
-
 /** Maximum of its two arguments.
  */
 #define NFFT_MAX(a,b) ((a)>(b)? (a) : (b))
