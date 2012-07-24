@@ -207,7 +207,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
 
   for(k=0;k<my_plan.N_total;k++) {
 
-    my_iplan.f_hat_iter[k]*=cexp(2.0*_Complex_I*PI*Ts*w[k]);
+    my_iplan.f_hat_iter[k]*=cexp(2.0*_Complex_I*KPI*Ts*w[k]);
 
     fprintf(fout_real,"%le ", creal(my_iplan.f_hat_iter[k]));
     fprintf(fout_imag,"%le ", cimag(my_iplan.f_hat_iter[k]));

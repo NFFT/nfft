@@ -137,22 +137,22 @@ static void taylor_trafo(taylor_plan *ths)
 
   for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2,
       f_hat=cths->f_hat; k<0; k++)
-    (*g1++)=cpow( - 2*PI*_Complex_I*k,cths->m)* (*f_hat++);
+    (*g1++)=cpow( - 2*KPI*_Complex_I*k,cths->m)* (*f_hat++);
 
   cths->g1[0]=cths->f_hat[cths->N_total/2];
 
   for(k=1, g1=cths->g1+1, f_hat=cths->f_hat+cths->N_total/2+1;
       k<cths->N_total/2; k++)
-    (*g1++)=cpow( - 2*PI*_Complex_I*k,cths->m)* (*f_hat++);
+    (*g1++)=cpow( - 2*KPI*_Complex_I*k,cths->m)* (*f_hat++);
 
   for(l=cths->m-1; l>=0; l--)
     {
       for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2;
           k<0; k++)
-        (*g1++) /= (-2*PI*_Complex_I*k);
+        (*g1++) /= (-2*KPI*_Complex_I*k);
 
       for(k=1, g1=cths->g1+1; k<cths->N_total/2; k++)
-        (*g1++) /= (-2*PI*_Complex_I*k);
+        (*g1++) /= (-2*KPI*_Complex_I*k);
 
       fftw_execute(cths->my_fftw_plan1);
 

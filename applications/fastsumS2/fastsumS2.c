@@ -447,7 +447,7 @@ int main (int argc, char **argv)
           steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
           nfft_smbi(2.0*p[ip][0],0.5,m_max+1,2,steed);
           for (k = 0; k <= m_max; k++)
-            a[k] = K2PI*(sqrt(PI/p[ip][0]))*steed[k];
+            a[k] = K2PI*(sqrt(KPI/p[ip][0]))*steed[k];
 
           nfft_free(steed);
           break;

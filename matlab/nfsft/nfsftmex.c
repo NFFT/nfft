@@ -369,7 +369,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          plans[i]->x[2*j] = ((x[2*j] > PI)?(x[2*j] - K2PI):(x[2*j]))/K2PI;
+          plans[i]->x[2*j] = ((x[2*j] > KPI)?(x[2*j] - K2PI):(x[2*j]))/K2PI;
           plans[i]->x[2*j+1] = x[2*j+1]/K2PI;
         }
       }

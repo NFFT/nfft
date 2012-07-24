@@ -194,7 +194,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
 
   for (j=0;j<N*N;j++) {
     /* Verschiebung wieder herausrechnen */
-    my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
+    my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
 
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));

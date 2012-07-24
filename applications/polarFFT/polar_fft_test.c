@@ -75,29 +75,29 @@
  *  Thus, the sum of all weights is \f$\frac{\pi}{4}(1+\frac{1}{R^2})\f$ and
  *  we divide by this value for normalization.
  */
-static int polar_grid(int T, int R, double *x, double *w)
+static int polar_grid(int T, int S, double *x, double *w)
 {
   int t, r;
-  double W=(double)T*(((double)R/2.0)*((double)R/2.0)+1.0/4.0);
+  double W=(double)T*(((double)S/2.0)*((double)S/2.0)+1.0/4.0);
 
   for(t=-T/2; t<T/2; t++)
   {
-    for(r=-R/2; r<R/2; r++)
+    for(r=-S/2; r<S/2; r++)
     {
-      x[2*((t+T/2)*R+(r+R/2))+0] = (double)r/R*cos(PI*t/T);
-      x[2*((t+T/2)*R+(r+R/2))+1] = (double)r/R*sin(PI*t/T);
+      x[2*((t+T/2)*S+(r+S/2))+0] = (double)r/S*cos(KPI*t/T);
+      x[2*((t+T/2)*S+(r+S/2))+1] = (double)r/S*sin(KPI*t/T);
       if (r==0)
-        w[(t+T/2)*R+(r+R/2)] = 1.0/4.0/W;
+        w[(t+T/2)*S+(r+S/2)] = 1.0/4.0/W;
       else
-        w[(t+T/2)*R+(r+R/2)] = fabs((double)r)/W;
+        w[(t+T/2)*S+(r+S/2)] = fabs((double)r)/W;
     }
   }
 
-  return T*R;                           /** return the number of knots        */
+  return T*S;                           /** return the number of knots        */
 }
 
 /** discrete polar FFT */
-static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int S, int m)
 {
   int j,k;                              /**< index for nodes and frequencies  */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -105,16 +105,16 @@ static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
   double *x, *w;                        /**< knots and associated weights     */
 
   int N[2],n[2];
-  int M=T*R;                            /**< number of knots                  */
+  int M=T*S;                            /**< number of knots                  */
 
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*S*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*S*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -124,7 +124,7 @@ static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init nodes from polar grid*/
-  polar_grid(T,R,x,w);
+  polar_grid(T,S,x,w);
   for(j=0;j<my_nfft_plan.M_total;j++)
   {
     my_nfft_plan.x[2*j+0] = x[2*j+0];
@@ -151,7 +151,7 @@ static int polar_dft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
 }
 
 /** NFFT-based polar FFT */
-static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R, int m)
+static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int S, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -159,16 +159,16 @@ static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
   double *x, *w;                        /**< knots and associated weights     */
 
   int N[2],n[2];
-  int M=T*R;                            /**< number of knots                  */
+  int M=T*S;                            /**< number of knots                  */
 
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*S*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*S*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -178,7 +178,7 @@ static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
                   FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
   /** init nodes from polar grid*/
-  polar_grid(T,R,x,w);
+  polar_grid(T,S,x,w);
   for(j=0;j<my_nfft_plan.M_total;j++)
   {
     my_nfft_plan.x[2*j+0] = x[2*j+0];
@@ -215,7 +215,7 @@ static int polar_fft(fftw_complex *f_hat, int NN, fftw_complex *f, int T, int R,
 }
 
 /** inverse NFFT-based polar FFT */
-static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat, int NN, int max_i, int m)
+static int inverse_polar_fft(fftw_complex *f, int T, int S, fftw_complex *f_hat, int NN, int max_i, int m)
 {
   int j,k;                              /**< index for nodes and freqencies   */
   nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
@@ -225,16 +225,16 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
   int l;                                /**< index for iterations             */
 
   int N[2],n[2];
-  int M=T*R;                            /**< number of knots                  */
+  int M=T*S;                            /**< number of knots                  */
 
   N[0]=NN; n[0]=2*N[0];                 /**< oversampling factor sigma=2      */
   N[1]=NN; n[1]=2*N[1];                 /**< oversampling factor sigma=2      */
 
-  x = (double *)nfft_malloc(2*T*R*(sizeof(double)));
+  x = (double *)nfft_malloc(2*T*S*(sizeof(double)));
   if (x==NULL)
     return -1;
 
-  w = (double *)nfft_malloc(T*R*(sizeof(double)));
+  w = (double *)nfft_malloc(T*S*(sizeof(double)));
   if (w==NULL)
     return -1;
 
@@ -247,7 +247,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
   solver_init_advanced_complex(&my_infft_plan,(nfft_mv_plan_complex*)(&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT );
 
   /** init nodes, given samples and weights */
-  polar_grid(T,R,x,w);
+  polar_grid(T,S,x,w);
   for(j=0;j<my_nfft_plan.M_total;j++)
   {
     my_nfft_plan.x[2*j+0] = x[2*j+0];
@@ -314,7 +314,7 @@ static int inverse_polar_fft(fftw_complex *f, int T, int R, fftw_complex *f_hat,
 int main(int argc,char **argv)
 {
   int N;                                /**< mpolar FFT size NxN              */
-  int T, R;                             /**< number of directions/offsets     */
+  int T, S;                             /**< number of directions/offsets     */
   int M;                                /**< number of knots of mpolar grid   */
   double *x, *w;                        /**< knots and associated weights     */
   fftw_complex *f_hat, *f, *f_direct, *f_tilde;
@@ -337,19 +337,19 @@ int main(int argc,char **argv)
 
   N = atoi(argv[1]);
   T = atoi(argv[2]);
-  R = atoi(argv[3]);
-  printf("N=%d, polar grid with T=%d, R=%d => ",N,T,R);
+  S = atoi(argv[3]);
+  printf("N=%d, polar grid with T=%d, R=%d => ",N,T,S);
 
-  x = (double *)nfft_malloc(2*5*(T/2)*(R/2)*(sizeof(double)));
-  w = (double *)nfft_malloc(5*(T/2)*(R/2)*(sizeof(double)));
+  x = (double *)nfft_malloc(2*5*(T/2)*(S/2)*(sizeof(double)));
+  w = (double *)nfft_malloc(5*(T/2)*(S/2)*(sizeof(double)));
 
   f_hat    = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
-  f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*T*R);
-  f_direct = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*T*R);
+  f        = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*T*S);
+  f_direct = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*T*S);
   f_tilde  = (fftw_complex *)nfft_malloc(sizeof(fftw_complex)*N*N);
 
   /** generate knots of mpolar grid */
-  M=polar_grid(T,R,x,w); printf("M=%d.\n",M);
+  M=polar_grid(T,S,x,w); printf("M=%d.\n",M);
 
   /** load data */
   fp1=fopen("input_data_r.dat","r");
@@ -366,7 +366,7 @@ int main(int argc,char **argv)
   fclose(fp2);
 
   /** direct polar FFT */
-    polar_dft(f_hat,N,f_direct,T,R,m);
+    polar_dft(f_hat,N,f_direct,T,S,m);
   //  polar_fft(f_hat,N,f_direct,T,R,12);
 
   /** Test of the polar FFT with different m */
@@ -375,7 +375,7 @@ int main(int argc,char **argv)
   for (m=1; m<=12; m++)
   {
     /** fast polar FFT */
-    polar_fft(f_hat,N,f,T,R,m);
+    polar_fft(f_hat,N,f,T,S,m);
 
     /** compute error of fast polar FFT */
     E_max=X(error_l_infty_complex)(f_direct,f,M);
@@ -393,7 +393,7 @@ int main(int argc,char **argv)
     for (max_i=0; max_i<=100; max_i+=10)
     {
       /** inverse polar FFT */
-      inverse_polar_fft(f_direct,T,R,f_tilde,N,max_i,m);
+      inverse_polar_fft(f_direct,T,S,f_tilde,N,max_i,m);
 
       /** compute maximum relative error */
       /* E_max=0.0;

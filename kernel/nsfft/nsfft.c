@@ -55,7 +55,7 @@ static void short_nfft_trafo_2d(nfft_plan* ths, nfft_plan* plan_1d)
       for(j=0;j<ths->M_total;j++)
 	{
 	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
-          ths->f[j] += plan_1d->f[j] * cexp( - I*2*PI*omega);
+          ths->f[j] += plan_1d->f[j] * cexp( - I*2*KPI*omega);
 	}
     }
 }
@@ -73,7 +73,7 @@ static void short_nfft_adjoint_2d(nfft_plan* ths, nfft_plan* plan_1d)
       for(j=0;j<ths->M_total;j++)
 	{
 	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
-          plan_1d->f[j] = ths->f[j] * cexp( + _Complex_I*2*PI*omega);
+          plan_1d->f[j] = ths->f[j] * cexp( + _Complex_I*2*KPI*omega);
 	}
 
       plan_1d->f_hat = ths->f_hat + k0*ths->N[1];
@@ -107,7 +107,7 @@ static void short_nfft_trafo_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
 	  {
 	    omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0]
 	      +     ((double)(k1 - ths->N[1]/2)) * ths->x[ths->d * j + 1];
-            ths->f[j] += plan_1d->f[j] * cexp( - I*2*PI*omega);
+            ths->f[j] += plan_1d->f[j] * cexp( - I*2*KPI*omega);
 	  }
       }
 }
@@ -127,7 +127,7 @@ static void short_nfft_adjoint_3d_1(nfft_plan* ths, nfft_plan* plan_1d)
 	  {
 	    omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0]
 	      +     ((double)(k1 - ths->N[1]/2)) * ths->x[ths->d * j + 1];
-            plan_1d->f[j] = ths->f[j] * cexp( + _Complex_I*2*PI*omega);
+            plan_1d->f[j] = ths->f[j] * cexp( + _Complex_I*2*KPI*omega);
 	  }
 
 	plan_1d->f_hat = ths->f_hat + (k0*ths->N[1]+k1)*ths->N[2];
@@ -160,7 +160,7 @@ static void short_nfft_trafo_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
       for(j=0;j<ths->M_total;j++)
 	{
 	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
-	  ths->f[j] += plan_2d->f[j] * cexp( - I*2*PI*omega);
+	  ths->f[j] += plan_2d->f[j] * cexp( - I*2*KPI*omega);
 	}
     }
 }
@@ -181,7 +181,7 @@ static void short_nfft_adjoint_3d_2(nfft_plan* ths, nfft_plan* plan_2d)
       for(j=0;j<ths->M_total;j++)
 	{
 	  omega = ((double)(k0 - ths->N[0]/2)) * ths->x[ths->d * j + 0];
-	  plan_2d->f[j] = ths->f[j] * cexp( + _Complex_I*2*PI*omega);
+	  plan_2d->f[j] = ths->f[j] * cexp( + _Complex_I*2*KPI*omega);
 	}
 
       plan_2d->f_hat = ths->f_hat + k0*ths->N[1]*ths->N[2];
@@ -779,7 +779,7 @@ static void nsdft_trafo_2d(nsfft_plan *ths)
 	  omega =
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[2 * j + 0] +
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[2 * j + 1];
-          ths->f[j] += ths->f_hat[k_S] * cexp( - I*2*PI*omega);
+          ths->f[j] += ths->f_hat[k_S] * cexp( - I*2*KPI*omega);
 	}
     }
 } /* void nsdft_trafo_2d */
@@ -807,7 +807,7 @@ static void nsdft_trafo_3d(nsfft_plan *ths)
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[3 * j + 0] +
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * ths->act_nfft_plan->x[3 * j + 2];
-          ths->f[j] += ths->f_hat[k_S] * cexp( - I*2*PI*omega);
+          ths->f[j] += ths->f_hat[k_S] * cexp( - I*2*KPI*omega);
 	}
     }
 } /* void nsdft_trafo_3d */
@@ -839,7 +839,7 @@ static void nsdft_adjoint_2d(nsfft_plan *ths)
 	  omega =
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[2 * j + 0] +
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[2 * j + 1];
-          ths->f_hat[k_S] += ths->f[j] * cexp( + _Complex_I*2*PI*omega);
+          ths->f_hat[k_S] += ths->f[j] * cexp( + _Complex_I*2*KPI*omega);
 	}
     }
 } /* void nsdft_adjoint_2d */
@@ -867,7 +867,7 @@ static void nsdft_adjoint_3d(nsfft_plan *ths)
 	    ((double)(k0 - N/2)) * ths->act_nfft_plan->x[3 * j + 0] +
 	    ((double)(k1 - N/2)) * ths->act_nfft_plan->x[3 * j + 1] +
 	    ((double)(k2 - N/2)) * ths->act_nfft_plan->x[3 * j + 2];
-          ths->f_hat[k_S] += ths->f[j] * cexp( + _Complex_I*2*PI*omega);
+          ths->f_hat[k_S] += ths->f[j] * cexp( + _Complex_I*2*KPI*omega);
 	}
     }
 } /* void nsdft_adjoint_3d */
@@ -908,7 +908,7 @@ static void nsfft_trafo_2d(nsfft_plan *ths)
 
       /*printf("%d x %d\n",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1]);*/
 
-      temp=-3.0*PI*X(exp2i)(J-rr);
+      temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* right */
       ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*X(exp2i)(J);
@@ -1024,7 +1024,7 @@ static void nsfft_adjoint_2d(nsfft_plan *ths)
 
       /*printf("%d x %d\n",ths->act_nfft_plan->N[0],ths->act_nfft_plan->N[1]);*/
 
-      temp=-3.0*PI*X(exp2i)(J-rr);
+      temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* right */
       ths->act_nfft_plan->f_hat=ths->f_hat+(4*rr+0)*X(exp2i)(J);
@@ -1160,9 +1160,9 @@ static void nsfft_trafo_3d(nsfft_plan *ths)
 
       /* only for right - rear - top */
       if((J==0)||((J==1)&&(rr==1)))
-	temp=-2.0*PI;
+	temp=-2.0*KPI;
       else
-	temp=-3.0*PI*X(exp2i)(J-rr);
+	temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* right */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*0;
@@ -1242,9 +1242,9 @@ static void nsfft_trafo_3d(nsfft_plan *ths)
 
       /* only for left - front - bottom */
       if((J==0)||((J==1)&&(rr==1)))
-	temp=-4.0*PI;
+	temp=-4.0*KPI;
       else
-	temp=-3.0*PI*X(exp2i)(J-rr);
+	temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* left */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*3;
@@ -1375,9 +1375,9 @@ static void nsfft_adjoint_3d(nsfft_plan *ths)
 
       /* only for right - rear - top */
       if((J==0)||((J==1)&&(rr==1)))
-	temp=-2.0*PI;
+	temp=-2.0*KPI;
       else
-	temp=-3.0*PI*X(exp2i)(J-rr);
+	temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* right */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*0;
@@ -1457,9 +1457,9 @@ static void nsfft_adjoint_3d(nsfft_plan *ths)
 
       /* only for left - front - bottom */
       if((J==0)||((J==1)&&(rr==1)))
-	temp=-4.0*PI;
+	temp=-4.0*KPI;
       else
-	temp=-3.0*PI*X(exp2i)(J-rr);
+	temp=-3.0*KPI*X(exp2i)(J-rr);
 
       /* left */
       ths->act_nfft_plan->f_hat=ths->f_hat + sum_N_B_less_r + N_B_r*3;

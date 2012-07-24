@@ -29,6 +29,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /* void simple_test_infft_1d(int N, int M, int iter) */
 /* { */

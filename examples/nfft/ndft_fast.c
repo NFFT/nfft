@@ -49,13 +49,13 @@ static void ndft_horner_trafo(nfft_plan *ths)
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     {
-      exp_omega_0 = cexp(+2*PI*_Complex_I*ths->x[j]);
+      exp_omega_0 = cexp(+2*KPI*_Complex_I*ths->x[j]);
       for(k=0, f_hat_k= ths->f_hat; k<ths->N[0]; k++, f_hat_k++)
         {
           (*f_j)+=(*f_hat_k);
           (*f_j)*=exp_omega_0;
 	}
-      (*f_j)*=cexp(-PI*_Complex_I*ths->N[0]*ths->x[j]);
+      (*f_j)*=cexp(-KPI*_Complex_I*ths->N[0]*ths->x[j]);
     }
 } /* ndft_horner_trafo */
 
@@ -80,7 +80,7 @@ static void ndft_pre_full_init(nfft_plan *ths, double _Complex *A)
 
   for(j=0, f_j=ths->f, A_local=A; j<ths->M_total; j++, f_j++)
     for(k=0, f_hat_k= ths->f_hat; k<ths->N[0]; k++, f_hat_k++, A_local++)
-      (*A_local) = cexp(-2*PI*_Complex_I*(k-ths->N[0]/2)*ths->x[j]);
+      (*A_local) = cexp(-2*KPI*_Complex_I*(k-ths->N[0]/2)*ths->x[j]);
 
 } /* ndft_pre_full_init */
 

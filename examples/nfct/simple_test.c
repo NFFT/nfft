@@ -25,6 +25,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 static void simple_test_nfct_1d(void)
 {

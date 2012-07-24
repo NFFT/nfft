@@ -27,6 +27,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /**
  * \defgroup applications_mri3d_reconstruct_data_3d reconstruct_data_3d

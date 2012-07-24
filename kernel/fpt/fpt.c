@@ -803,7 +803,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     set->xcvecs[tau-1] = (double*) nfft_malloc(plength*sizeof(double));
     for (k = 0; k < plength; k++)
     {
-      set->xcvecs[tau-1][k] = cos(((k+0.5)*PI)/plength);
+      set->xcvecs[tau-1][k] = cos(((k+0.5)*KPI)/plength);
     }
     plength = plength << 1;
   }
@@ -1195,7 +1195,7 @@ void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double
     /* Fill array with Chebyshev nodes. */
     for (j = 0; j <= k_end; j++)
     {
-      set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
+      set->xc_slow[j] = cos((KPI*(j+0.5))/(k_end+1));
         //fprintf(stderr, "x[%4d] = %e.\n", j, set->xc_slow[j]);  
     }
 
@@ -1533,7 +1533,7 @@ void fpt_transposed_direct(fpt_set set, const int m, double _Complex *x,
   {
     for (j = 0; j <= k_end; j++)
     {
-      set->xc_slow[j] = cos((PI*(j+0.5))/(k_end+1));
+      set->xc_slow[j] = cos((KPI*(j+0.5))/(k_end+1));
     }
 
     eval_sum_clenshaw_transposed(k_end, k_end, set->result, set->xc_slow,

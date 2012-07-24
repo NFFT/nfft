@@ -28,6 +28,7 @@
 
 #include "nfft3.h"
 #include "nfft3util.h"
+#include "infft.h"
 
 /**
  * \defgroup applications_mri2d_construct_data_inh_3d construct_data_inh_3d
@@ -122,7 +123,7 @@ static void construct(char * file, int N, int M)
   for(j=0;j<N*N;j++)
   {
     fscanf(fi,"%le ",&real);
-    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
+    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
   }
 
   if(my_plan.plan.nfft_flags & PRE_PSI)

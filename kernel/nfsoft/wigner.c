@@ -23,6 +23,7 @@
 #include "infft.h"
 #include "wigner.h"
 #include "nfft3util.h"
+#include "infft.h"
 
 double SO3_alpha(const int m1, const int m2, const int j)
 {

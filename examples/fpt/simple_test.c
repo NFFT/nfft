@@ -37,9 +37,6 @@
 #include "nfft3util.h"
 #include "infft.h"
 
-/* Two times Pi */
-#define KK2PI 6.2831853071795864769252867665590057683943387987502
-
 int main(void)
 {
   /* This example shows the use of the fast polynomial transform to evaluate a

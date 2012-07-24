@@ -665,7 +665,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
       {
         /* Multiply with normalization weight. */
         plan->f_hat_intern[NFSFT_INDEX(k,n,plan)] *=
-          sqrt((2*k+1)/(4.0*PI));
+          sqrt((2*k+1)/(4.0*KPI));
       }
     }
   }
@@ -694,9 +694,9 @@ void nfsft_trafo_direct(nfsft_plan *plan)
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-      stheta = cos(2.0*PI*plan->x[2*m+1]);
+      stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-      sphi = 2.0*PI*plan->x[2*m];
+      sphi = 2.0*KPI*plan->x[2*m];
 
       /* Initialize result for current node. */
       f_m = 0.0;
@@ -812,9 +812,9 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         for (m = 0; m < plan->M_total; m++)
         {
           /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-          stheta = cos(2.0*PI*plan->x[2*m+1]);
+          stheta = cos(2.0*KPI*plan->x[2*m+1]);
           /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-          sphi = 2.0*PI*plan->x[2*m];
+          sphi = 2.0*KPI*plan->x[2*m];
 
           /* Transposed Clenshaw algorithm */
 
@@ -845,9 +845,9 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-      stheta = cos(2.0*PI*plan->x[2*m+1]);
+      stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-      sphi = 2.0*PI*plan->x[2*m];
+      sphi = 2.0*KPI*plan->x[2*m];
 
       /* Traverse all orders n. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -899,7 +899,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
       {
         /* Multiply with normalization weight. */
         plan->f_hat[NFSFT_INDEX(k,n,plan)] *=
-          sqrt((2*k+1)/(4.0*PI));
+          sqrt((2*k+1)/(4.0*KPI));
       }
     }
   }
@@ -991,7 +991,7 @@ void nfsft_trafo(nfsft_plan *plan)
         {
           /* Multiply with normalization weight. */
           plan->f_hat_intern[NFSFT_INDEX(k,n,plan)] *=
-            sqrt((2*k+1)/(4.0*PI));
+            sqrt((2*k+1)/(4.0*KPI));
         }
       }
     }
@@ -1235,7 +1235,7 @@ void nfsft_adjoint(nfsft_plan *plan)
         {
           /* Multiply with normalization weight. */
           plan->f_hat[NFSFT_INDEX(k,n,plan)] *=
-            sqrt((2*k+1)/(4.0*PI));
+            sqrt((2*k+1)/(4.0*KPI));
         }
       }
     }

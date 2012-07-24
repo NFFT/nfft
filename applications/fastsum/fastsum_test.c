@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     my_fastsum_plan.x[k*d+0] = r;
     for (j=1; j<d; j++)
     {
-      double phi=2.0*PI*(double)rand()/(double)RAND_MAX;
+      double phi=2.0*KPI*(double)rand()/(double)RAND_MAX;
       my_fastsum_plan.x[k*d+j] = r;
       for (t=0; t<j; t++)
       {
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
     my_fastsum_plan.y[k*d+0] = r;
     for (j=1; j<d; j++)
     {
-      double phi=2.0*PI*(double)rand()/(double)RAND_MAX;
+      double phi=2.0*KPI*(double)rand()/(double)RAND_MAX;
       my_fastsum_plan.y[k*d+j] = r;
       for (t=0; t<j; t++)
       {

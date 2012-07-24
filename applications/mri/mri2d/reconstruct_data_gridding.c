@@ -27,6 +27,7 @@
 
 #include "nfft3util.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /**
  * \defgroup applications_mri2d_construct_data_gridding construct_data_gridding

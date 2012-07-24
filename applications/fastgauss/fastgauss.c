@@ -220,8 +220,8 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
   else
     {
       for(j=0; j<ths->n; j++)
-	ths->b[j] = 1.0/ths->p * csqrt(PI/ths->sigma)*
-	  cexp(-PI*PI*(j-ths->n/2)*(j-ths->n/2)/
+	ths->b[j] = 1.0/ths->p * csqrt(KPI/ths->sigma)*
+	  cexp(-KPI*KPI*(j-ths->n/2)*(j-ths->n/2)/
 	       (ths->p*ths->p*ths->sigma));
     }
 }
@@ -246,7 +246,7 @@ void fgt_init(fgt_plan *ths, int N, int M, double _Complex sigma, double eps)
   if(p<1)
     p=1;
 
-  n=2*((int)ceil(p*cabs(sigma)/PI * sqrt(-log(eps)/creal(sigma))));
+  n=2*((int)ceil(p*cabs(sigma)/KPI * sqrt(-log(eps)/creal(sigma))));
 
   if(N*M<=((int)(1U<<20)))
     fgt_init_guru(ths, N, M, sigma, n, p, 7, DGT_PRE_CEXP);
