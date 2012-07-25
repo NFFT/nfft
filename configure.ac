@@ -450,7 +450,6 @@ AC_CONFIG_FILES(Makefile \
                 include/ticks.h \
                 3rdparty/Makefile \
                 3rdparty/cstripack/Makefile \
-                util/Makefile \
                 kernel/Makefile \
                 kernel/fpt/Makefile \
                 kernel/mri/Makefile \

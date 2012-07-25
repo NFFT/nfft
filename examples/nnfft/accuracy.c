@@ -26,7 +26,6 @@
 #include <complex.h>
 #endif
 
-#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -81,7 +80,7 @@ void accuracy(int d)
       /** direct trafo and show the result */
       nnfft_trafo_direct(&my_plan);
 
-      NFFT_SWAP_complex(my_plan.f,slow);
+      CSWAP(my_plan.f,slow);
 
       /** approx. trafo and show the result */
       nnfft_trafo(&my_plan);

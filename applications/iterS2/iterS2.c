@@ -36,7 +36,6 @@
 #endif
 
 /* Include NFFT 3 utilities headers. */
-#include "nfft3util.h"
 /* Include NFFT3 library header. */
 #include "nfft3.h"
 #include "infft.h"
@@ -395,9 +394,9 @@ int main (int argc, char **argv)
       solver_loop_one_step_complex(&iplan);
     }
 
-    /*NFFT_SWAP_complex(iplan.f_hat_iter, plan.f_hat);
+    /*CSWAP(iplan.f_hat_iter, plan.f_hat);
     nfsft_trafo(&plan);
-    NFFT_SWAP_complex(iplan.f_hat_iter, plan.f_hat);
+    CSWAP(iplan.f_hat_iter, plan.f_hat);
 
     a = 0.0;
     b = 0.0;
@@ -411,9 +410,9 @@ int main (int argc, char **argv)
 
     fprintf(stderr,"relative error in 2-norm: %le\n",a/b);*/
 
-    NFFT_SWAP_complex(iplan.f_hat_iter, plan2.f_hat);
+    CSWAP(iplan.f_hat_iter, plan2.f_hat);
     nfsft_trafo(&plan2);
-    NFFT_SWAP_complex(iplan.f_hat_iter, plan2.f_hat);
+    CSWAP(iplan.f_hat_iter, plan2.f_hat);
     for (k = 0; k < plan2.M_total; k++)
     {
       fprintf(stdout,"%le\n",cabs(plan2.f[k]));

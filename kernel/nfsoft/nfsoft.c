@@ -28,7 +28,6 @@
 #include <complex.h>
 #endif
 #include "nfft3.h"
-#include "nfft3util.h"
 #include "infft.h"
 #include "wigner.h"
 

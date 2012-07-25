@@ -27,7 +27,6 @@
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
 #endif
-#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -75,9 +74,9 @@ void solver_before_loop_complex(solver_plan_complex* ths)
 {
   nfft_cp_complex(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_complex(ths->r_iter, ths->mv->f);
+  CSWAP(ths->r_iter, ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_complex(ths->r_iter, ths->mv->f);
+  CSWAP(ths->r_iter, ths->mv->f);
 
   nfft_upd_axpy_complex(ths->r_iter, -1.0, ths->y, ths->mv->M_total);
 
@@ -96,9 +95,9 @@ void solver_before_loop_complex(solver_plan_complex* ths)
   else
     nfft_cp_complex(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_complex(ths->z_hat_iter, ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter, ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_complex(ths->z_hat_iter, ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter, ths->mv->f_hat);
 
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
     {
@@ -130,9 +129,9 @@ static void solver_loop_one_step_landweber_complex(solver_plan_complex* ths)
   /*-----------------*/
   nfft_cp_complex(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_complex(ths->r_iter,ths->mv->f);
+  CSWAP(ths->r_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_complex(ths->r_iter,ths->mv->f);
+  CSWAP(ths->r_iter,ths->mv->f);
 
   nfft_upd_axpy_complex(ths->r_iter, -1.0, ths->y, ths->mv->M_total);
 
@@ -151,9 +150,9 @@ static void solver_loop_one_step_landweber_complex(solver_plan_complex* ths)
   else
     nfft_cp_complex(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   if(ths->flags & NORMS_FOR_LANDWEBER)
     {
@@ -175,9 +174,9 @@ static void solver_loop_one_step_steepest_descent_complex(solver_plan_complex *t
   else
     nfft_cp_complex(ths->mv->f_hat, ths->z_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_complex(ths->v_iter,ths->mv->f);
+  CSWAP(ths->v_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_complex(ths->v_iter,ths->mv->f);
+  CSWAP(ths->v_iter,ths->mv->f);
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
     ths->dot_v_iter = X(dot_w_complex)(ths->v_iter,ths->w,ths->mv->M_total);
@@ -210,9 +209,9 @@ static void solver_loop_one_step_steepest_descent_complex(solver_plan_complex *t
   else
     nfft_cp_complex(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   if(ths->flags & PRECOMPUTE_DAMP)
     ths->dot_z_hat_iter = X(dot_w_complex)(ths->z_hat_iter, ths->w_hat,
@@ -230,9 +229,9 @@ static void solver_loop_one_step_cgnr_complex(solver_plan_complex *ths)
   else
     nfft_cp_complex(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_complex(ths->v_iter,ths->mv->f);
+  CSWAP(ths->v_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_complex(ths->v_iter,ths->mv->f);
+  CSWAP(ths->v_iter,ths->mv->f);
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
     ths->dot_v_iter = X(dot_w_complex)(ths->v_iter,ths->w,ths->mv->M_total);
@@ -265,9 +264,9 @@ static void solver_loop_one_step_cgnr_complex(solver_plan_complex *ths)
   else
     nfft_cp_complex(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_complex(ths->z_hat_iter,ths->mv->f_hat);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   ths->dot_z_hat_iter_old = ths->dot_z_hat_iter;
   if(ths->flags & PRECOMPUTE_DAMP)
@@ -426,9 +425,9 @@ static void solver_before_loop_double(solver_plan_double* ths)
 {
   nfft_cp_double(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_double(ths->r_iter, ths->mv->f);
+  RSWAP(ths->r_iter, ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_double(ths->r_iter, ths->mv->f);
+  RSWAP(ths->r_iter, ths->mv->f);
 
   nfft_upd_axpy_double(ths->r_iter, -1.0, ths->y, ths->mv->M_total);
 
@@ -447,9 +446,9 @@ static void solver_before_loop_double(solver_plan_double* ths)
   else
     nfft_cp_double(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_double(ths->z_hat_iter, ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter, ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_double(ths->z_hat_iter, ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter, ths->mv->f_hat);
 
   if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
     {
@@ -481,9 +480,9 @@ static void solver_loop_one_step_landweber_double(solver_plan_double* ths)
   /*-----------------*/
   nfft_cp_double(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_double(ths->r_iter,ths->mv->f);
+  RSWAP(ths->r_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_double(ths->r_iter,ths->mv->f);
+  RSWAP(ths->r_iter,ths->mv->f);
 
   nfft_upd_axpy_double(ths->r_iter, -1.0, ths->y, ths->mv->M_total);
 
@@ -502,9 +501,9 @@ static void solver_loop_one_step_landweber_double(solver_plan_double* ths)
   else
     nfft_cp_double(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   if(ths->flags & NORMS_FOR_LANDWEBER)
     {
@@ -526,9 +525,9 @@ static void solver_loop_one_step_steepest_descent_double(solver_plan_double *ths
   else
     nfft_cp_double(ths->mv->f_hat, ths->z_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_double(ths->v_iter,ths->mv->f);
+  RSWAP(ths->v_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_double(ths->v_iter,ths->mv->f);
+  RSWAP(ths->v_iter,ths->mv->f);
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
     ths->dot_v_iter = X(dot_w_double)(ths->v_iter,ths->w,ths->mv->M_total);
@@ -561,9 +560,9 @@ static void solver_loop_one_step_steepest_descent_double(solver_plan_double *ths
   else
     nfft_cp_double(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   if(ths->flags & PRECOMPUTE_DAMP)
     ths->dot_z_hat_iter = X(dot_w_double)(ths->z_hat_iter, ths->w_hat,
@@ -581,9 +580,9 @@ static void solver_loop_one_step_cgnr_double(solver_plan_double *ths)
   else
     nfft_cp_double(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);
 
-  NFFT_SWAP_double(ths->v_iter,ths->mv->f);
+  RSWAP(ths->v_iter,ths->mv->f);
   ths->mv->mv_trafo(ths->mv);
-  NFFT_SWAP_double(ths->v_iter,ths->mv->f);
+  RSWAP(ths->v_iter,ths->mv->f);
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
     ths->dot_v_iter = X(dot_w_double)(ths->v_iter,ths->w,ths->mv->M_total);
@@ -616,9 +615,9 @@ static void solver_loop_one_step_cgnr_double(solver_plan_double *ths)
   else
     nfft_cp_double(ths->mv->f, ths->r_iter, ths->mv->M_total);
 
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
   ths->mv->mv_adjoint(ths->mv);
-  NFFT_SWAP_double(ths->z_hat_iter,ths->mv->f_hat);
+  RSWAP(ths->z_hat_iter,ths->mv->f_hat);
 
   ths->dot_z_hat_iter_old = ths->dot_z_hat_iter;
   if(ths->flags & PRECOMPUTE_DAMP)

@@ -34,7 +34,6 @@
 #endif
 
 #include "nfft3.h"
-#include "nfft3util.h"
 #include "infft.h"
 
 /**
@@ -383,10 +382,10 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
   fgt_test_init_rand(&my_plan);
   fgt_init_node_dependent(&my_plan);
 
-  NFFT_SWAP_complex(swap_dgt,my_plan.f);
+  CSWAP(swap_dgt,my_plan.f);
   dgt_trafo(&my_plan);
   nfft_vpr_complex(my_plan.f,my_plan.M,"discrete gauss transform");
-  NFFT_SWAP_complex(swap_dgt,my_plan.f);
+  CSWAP(swap_dgt,my_plan.f);
 
   fgt_trafo(&my_plan);
   nfft_vpr_complex(my_plan.f,my_plan.M,"fast gauss transform");
@@ -438,14 +437,14 @@ void fgt_test_andersson(void)
 
       if(N<N_dgt)
 	{
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
 
 	  printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
           if(N<N_dgt_pre_exp)
             my_plan.flags^=DGT_PRE_CEXP;
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
 	}
       else
 	printf("\t\t & ");
@@ -503,9 +502,9 @@ void fgt_test_error(void)
           fgt_test_init_rand(&my_plan);
           fgt_init_node_dependent(&my_plan);
 
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
 
           fgt_trafo(&my_plan);
 
@@ -554,9 +553,9 @@ void fgt_test_error_p(void)
           fgt_test_init_rand(&my_plan);
           fgt_init_node_dependent(&my_plan);
 
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
           dgt_trafo(&my_plan);
-          NFFT_SWAP_complex(swap_dgt,my_plan.f);
+          CSWAP(swap_dgt,my_plan.f);
 
           fgt_trafo(&my_plan);
 

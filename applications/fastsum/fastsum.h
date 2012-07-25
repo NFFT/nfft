@@ -45,7 +45,6 @@
 #include <complex.h>
 #endif
 /** Include header for utils from NFFT3 library. */
-#include "nfft3util.h"
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
 #include "infft.h"

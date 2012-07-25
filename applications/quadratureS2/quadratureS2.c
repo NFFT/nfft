@@ -36,7 +36,6 @@
 #endif
 
 /* Include NFFT 3 utilities headers. */
-#include "nfft3util.h"
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
@@ -288,16 +287,16 @@ int main (int argc, char **argv)
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d %d\n",&NQ[iNQ],&SQ[iNQ],&RQ[iNQ]);
         fprintf(stdout,"%d %d %d\n",NQ[iNQ],SQ[iNQ],RQ[iNQ]);
-        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
-        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
+        NQ_max = MAX(NQ_max,NQ[iNQ]);
+        SQ_max = MAX(SQ_max,SQ[iNQ]);
       }
       else
       {
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d\n",&NQ[iNQ],&SQ[iNQ]);
         fprintf(stdout,"%d %d\n",NQ[iNQ],SQ[iNQ]);
-        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
-        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
+        NQ_max = MAX(NQ_max,NQ[iNQ]);
+        SQ_max = MAX(SQ_max,SQ[iNQ]);
       }
     }
 

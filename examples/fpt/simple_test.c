@@ -34,7 +34,6 @@
 
 /* NFFT3 header */
 #include "nfft3.h"
-#include "nfft3util.h"
 #include "infft.h"
 
 int main(void)

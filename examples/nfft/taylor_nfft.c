@@ -37,7 +37,6 @@
 #include <complex.h>
 #endif
 
-#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -221,7 +220,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   /** NDFT */
   if(test_accuracy)
     {
-      NFFT_SWAP_complex(np.f,swapndft);
+      CSWAP(np.f,swapndft);
 
       t_ndft=0;
       r=0;
@@ -236,7 +235,7 @@ t = nfft_elapsed_seconds(t1,t0);
         }
       t_ndft/=r;
 
-      NFFT_SWAP_complex(np.f,swapndft);
+      CSWAP(np.f,swapndft);
       printf("%.2e\t",t_ndft);
     }
   else

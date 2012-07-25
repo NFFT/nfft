@@ -35,16 +35,15 @@
 #endif
 
 #include "nfft3.h"
-#include "nfft3util.h"
 #include "infft.h"
 
 /* Macros for index calculation. */
 
 /** Minimum degree at top of a cascade */
-#define K_START_TILDE(x,y) (NFFT_MAX(NFFT_MIN(x,y-2),0))
+#define K_START_TILDE(x,y) (MAX(MIN(x,y-2),0))
 
 /** Maximum degree at top of a cascade */
-#define K_END_TILDE(x,y) NFFT_MIN(x,y-1)
+#define K_END_TILDE(x,y) MIN(x,y-1)
 
 /** Index of first block of four functions at level */
 #define FIRST_L(x,y) (LRINT(floor((x)/(double)y)))
@@ -765,7 +764,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   int m;
   int k;
 #ifdef _OPENMP
-  int nthreads = nfft_get_omp_num_threads();
+  int nthreads = X(get_num_threads)();
 #endif
 
   /* Allocate memory for new DPT set. */
@@ -1289,7 +1288,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   if (flags & FPT_FUNCTION_VALUES)
   {
 #ifdef _OPENMP
-    int nthreads = nfft_get_omp_num_threads();
+    int nthreads = X(get_num_threads)();
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
     fftw_plan_with_nthreads(nthreads);
@@ -1621,7 +1620,7 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
   if (flags & FPT_FUNCTION_VALUES)
   {
 #ifdef _OPENMP
-    int nthreads = nfft_get_omp_num_threads();
+    int nthreads = X(get_num_threads)();
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
     fftw_plan_with_nthreads(nthreads);

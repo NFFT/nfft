@@ -31,7 +31,6 @@
 #endif
 
 /* NFFT headers */
-#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -5676,7 +5675,7 @@ static void nfft_init_help(nfft_plan *ths)
   if(ths->nfft_flags & FFTW_INIT)
   {
 #ifdef _OPENMP
-    int nthreads = nfft_get_omp_num_threads();
+    int nthreads = X(get_num_threads)();
 #endif
 
     ths->g1=(fftw_complex*)nfft_malloc(ths->n_total*sizeof(C));

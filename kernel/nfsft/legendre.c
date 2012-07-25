@@ -21,7 +21,6 @@
 #include <math.h>
 #include <stdio.h>
 #include "infft.h"
-#include "nfft3util.h"
 #include "legendre.h"
 #include "infft.h"
 

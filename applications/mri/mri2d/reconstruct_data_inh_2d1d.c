@@ -27,7 +27,6 @@
 #endif
 
 #include "nfft3.h"
-#include "nfft3util.h"
 #include "infft.h"
 
 /**
@@ -87,7 +86,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   }
   fclose(finh);
 
-  N3=ceil((NFFT_MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+(m)/(2*sigma))*4*sigma);
+  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+(m)/(2*sigma))*4*sigma);
 	/* N3 has to be even */
 	if(N3%2!=0)
 	  N3++;

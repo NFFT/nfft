@@ -39,7 +39,6 @@
 #endif
 
 /* Include NFFT3 utilities header. */
-#include "nfft3util.h"
 
 /* Include NFFT3 library header. */
 #include "nfft3.h"

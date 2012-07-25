@@ -27,7 +27,6 @@
 #include <complex.h>
 #endif
 
-#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -255,7 +254,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -269,7 +268,7 @@ t = nfft_elapsed_seconds(t1,t0);
         }
       t_ndft/=r;
       printf("%.1e\t",t_ndft);
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
     }
   else
     printf("\t");
@@ -374,7 +373,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -388,7 +387,7 @@ t = nfft_elapsed_seconds(t1,t0);
         }
       t_ndft/=r;
       printf("%.1e\t",t_ndft);
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
     }
   else
     printf("\t");
@@ -502,7 +501,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -519,7 +518,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
       //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
     }
   else
     printf("\t");
@@ -631,7 +630,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -648,7 +647,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
       //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
     }
   else
     printf("\t");
@@ -761,7 +760,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -778,7 +777,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
       //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
-      NFFT_SWAP_complex(p.f,swapndft);
+      CSWAP(p.f,swapndft);
     }
   else
     printf("\t");
@@ -890,7 +889,7 @@ t = nfft_elapsed_seconds(t1,t0);
   /** NDFT */
   if(test_ndft)
     {
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
       t_ndft=0;
       r=0;
       while(t_ndft<0.1)
@@ -907,7 +906,7 @@ t = nfft_elapsed_seconds(t1,t0);
 
       //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
-      NFFT_SWAP_complex(p.f_hat,swapndft);
+      CSWAP(p.f_hat,swapndft);
     }
   else
     printf("\t");

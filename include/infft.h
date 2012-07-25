@@ -18,7 +18,9 @@
 
 /* $Id$ */
 
-/* NFFT internal header file */
+/*! \file infft3.h
+ *  \brief Internal header file for auxiliary definitions and functions.
+ */
 #ifndef __INFFT_H__
 #define __INFFT_H__
 
@@ -51,6 +53,17 @@
 #include <fftw3.h>
 
 #include "ticks.h"
+
+/**
+ * @defgroup nfftutil Util - Auxilliary functions
+ * @{
+ *
+ * This module implements frequently used utility functions.
+ * In particular, this includes simple measurement of resources, evaluation of
+ * window functions, vector routines for basic linear algebra tasks, and
+ * computation of weights for the inverse transforms.
+ *
+ */
 
 /* Determine precision and name-mangling scheme. */
 #define CONCAT(prefix, name) prefix ## name
@@ -101,6 +114,14 @@ typedef ptrdiff_t INT;
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGNF(a) IF((a)<K(0.0),K(-1.0),K(1.0))
+
+/** Swap two vectors. */
+#define CSWAP(x,y) {C* NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
+
+/** Swap two vectors. */
+#define RSWAP(x,y) {R* NFFT_SWAP_temp__; NFFT_SWAP_temp__=(x); \
+  (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 /* macros for window functions */
 
@@ -1287,7 +1308,7 @@ extern double _Complex catanh(double _Complex z);
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
-double nfft_elapsed_seconds(ticks t1, ticks t0);
+double X(elapsed_seconds)(ticks t1, ticks t0);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1480,6 +1501,9 @@ R X(modified_sobolev)(const R mu, const int kk);
 /** Comput damping factor for modified multiquadric kernel. */
 R X(modified_multiquadric)(const R mu, const R c, const int kk);
 
+/* thread.c */
+int X(get_num_threads)(void);
+
 /* always check */
 #define CK(ex) \
   (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
@@ -1491,5 +1515,8 @@ R X(modified_multiquadric)(const R mu, const R c, const int kk);
 #else
   #define A(ex) /* nothing */
 #endif
+
+/** @}
+ */
 
 #endif
