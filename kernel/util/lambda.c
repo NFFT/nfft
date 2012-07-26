@@ -192,7 +192,7 @@
 static inline R evaluate_rational(const R z_)
 {
   R z = z_, s1, s2;
-  int i;
+  INT i;
 
   if (z <= K(1.0))
   {

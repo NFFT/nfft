@@ -20,7 +20,7 @@
 
 #include "infft.h"
 
-double nfft_elapsed_seconds(ticks t1, ticks t0)
+R X(elapsed_seconds)(ticks t1, ticks t0)
 {
   UNUSED(t1);
   UNUSED(t0);

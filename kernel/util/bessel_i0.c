@@ -278,7 +278,7 @@ static const INT M2 = sizeof(Q2)/sizeof(Q2[0]);
 static inline R evaluate_chebyshev(const INT n, const R *c, const R x)
 {
   R a = c[n-2], b = c[n-1], t;
-  int j;
+  INT j;
   
   A(n >= 2);
   

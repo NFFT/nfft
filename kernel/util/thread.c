@@ -24,13 +24,13 @@
 #include <omp.h>
 #endif
 
-int X(get_num_threads)(void)
+INT X(get_num_threads)(void)
 {
 #ifdef _OPENMP
-  int nthreads;
+  INT nthreads;
   #pragma omp parallel default(shared)
   {
-    int n = omp_get_num_threads();
+    INT n = (INT)omp_get_num_threads();
     #pragma omp master
     {
       nthreads = n;

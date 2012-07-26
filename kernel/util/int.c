@@ -20,15 +20,15 @@
 
 #include "infft.h"
 
-int X(exp2i)(const int a)
+INT X(exp2i)(const INT a)
 {
   return (1U << a);
 }
 
-int X(log2i)(const int m)
+INT X(log2i)(const INT m)
 {
-  int l = 0;
-  int mm = m;
+  INT l = 0;
+  INT mm = m;
 
   while (mm > 0)
   {
@@ -40,10 +40,10 @@ int X(log2i)(const int m)
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
-int X(next_power_of_2)(const int N)
+INT X(next_power_of_2)(const INT N)
 {
-  int n,i,logn;
-  int N_is_not_power_of_2=0;
+  INT n,i,logn;
+  INT N_is_not_power_of_2=0;
 
   if (N == 0)
     return 1;
@@ -71,10 +71,10 @@ int X(next_power_of_2)(const int N)
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
-void X(next_power_of_2_exp)(const int N, int *N2, int *t)
+void X(next_power_of_2_exp)(const INT N, int *N2, int *t)
 {
-  int n,i,logn;
-  int N_is_not_power_of_2=0;
+  INT n,i,logn;
+  INT N_is_not_power_of_2=0;
 
   if (N == 0)
   {
@@ -111,9 +111,9 @@ void X(next_power_of_2_exp)(const int N, int *N2, int *t)
 }
 
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
-int X(prod_int)(int *vec, int d)
+INT X(prod_int)(int *vec, INT d)
 {
-  int t, prod;
+  INT t, prod;
 
   prod = 1;
   for (t = 0; t < d; t++)
@@ -123,25 +123,13 @@ int X(prod_int)(int *vec, int d)
 }
 
 /** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
-int X(prod_minus_a_int)(int *vec, int a, int d)
+INT X(prod_minus_a_int)(int *vec, INT a, INT d)
 {
-  int t, prod;
+  INT t, prod;
 
   prod = 1;
   for (t = 0; t < d; t++)
     prod *= vec[t] - a;
 
   return prod;
-}
-
-/** Computes /f$\sum_{t=0}^{d-1} i_t \prod_{t'=t+1}^{d-1} N_{t'}/f$. */
-int X(plain_loop)(int *idx, int *N, int d)
-{
-  int t, sum;
-
-  sum = idx[0];
-  for (t = 1; t < d; t++)
-    sum = sum * N[t] + idx[t];
-
-  return sum;
 }

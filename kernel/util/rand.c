@@ -38,18 +38,18 @@ void X(srand48)(long int seed)
 #endif
 }
 
-void X(vrand_unit_complex)(C *x, const int n)
+void X(vrand_unit_complex)(C *x, const INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
-    x[k] = nfft_drand48() + II*nfft_drand48();
+    x[k] = X(drand48)() + II*X(drand48)();
 }
 
-void X(vrand_shifted_unit_double)(R *x, const int n)
+void X(vrand_shifted_unit_double)(R *x, const INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
-    x[k] = nfft_drand48() - K(0.5);
+    x[k] = X(drand48)() - K(0.5);
 }

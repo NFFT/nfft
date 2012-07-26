@@ -21,18 +21,18 @@
 #include "infft.h"
 
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_complex)(C *x, R a, C *y, int n)
+void X(upd_axpy_complex)(C *x, R a, C *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + y[k];
 }
 
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_double)(R *x, R a, R *y, int n)
+void X(upd_axpy_double)(R *x, R a, R *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + y[k];
@@ -40,72 +40,72 @@ void X(upd_axpy_double)(R *x, R a, R *y, int n)
 
 
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_complex)(C *x, R a, C *y, int n)
+void X(upd_xpay_complex)(C *x, R a, C *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] += a * y[k];
 }
 
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_double)(R *x, R a, R *y, int n)
+void X(upd_xpay_double)(R *x, R a, R *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] += a * y[k];
 }
 
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_complex)(C *x, R a, C *y, R b, int n)
+void X(upd_axpby_complex)(C *x, R a, C *y, R b, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + b * y[k];
 }
 
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_double)(R *x, R a, R *y, R b, int n)
+void X(upd_axpby_double)(R *x, R a, R *y, R b, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + b * y[k];
 }
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, int n)
+void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] += a * w[k] * y[k];
 }
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_double)(R *x, R a, R *w, R *y, int n)
+void X(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] += a * w[k] * y[k];
 }
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, int n)
+void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + w[k] * y[k];
 }
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_double)(R *x, R a, R *w, R *y, int n)
+void X(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n)
 {
-  int k;
+  INT k;
 
   for (k = 0; k < n; k++)
     x[k] = a * x[k] + w[k] * y[k];

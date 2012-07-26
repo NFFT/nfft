@@ -21,34 +21,10 @@
 #include <stdio.h>
 #include "infft.h"
 
-/** vector print */
-void X(vpr_int)(int *x, int n, char *text)
-{
-  int k;
-
-  if (text != NULL )
-  {
-    printf("\n %s, adr=%p\n", text, (void*) x);
-    for (k = 0; k < n; k++)
-    {
-      if (k % 8 == 0)
-        printf("%6d.\t", k);
-      printf("%d,", x[k]);
-      if (k % 8 == 7)
-        printf("\n");
-    }
-    if (n % 8 != 0)
-      printf("\n");
-  } else
-    for (k = 0; k < n; k++)
-      printf("%d,\n", x[k]);
-  fflush(stdout);
-}
-
 /** Print real vector to standard output. */
-void X(vpr_double)(R *x, const int n, const char *text)
+void X(vpr_double)(R *x, const INT n, const char *text)
 {
-  int k;
+  INT k;
 
   if (x == NULL)
   {
@@ -83,9 +59,9 @@ void X(vpr_double)(R *x, const int n, const char *text)
 }
 
 /** Print complex vector to standard output. */
-void X(vpr_complex)(C *x, const int n, const char *text)
+void X(vpr_complex)(C *x, const INT n, const char *text)
 {
-  int k;
+  INT k;
 
   if(text != NULL)
   {

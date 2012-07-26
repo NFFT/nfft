@@ -21,9 +21,9 @@
 #include "infft.h"
 
 /** Compute non periodic voronoi weights for ordered nodes x_j */
-void X(voronoi_weights_1d)(R *w, R *x, const int M)
+void X(voronoi_weights_1d)(R *w, R *x, const INT M)
 {
-  int j;
+  INT j;
 
   w[0] = (x[1]-x[0])/K(2.0);
 
@@ -33,7 +33,7 @@ void X(voronoi_weights_1d)(R *w, R *x, const int M)
   w[M-1] = (x[M-1]-x[M-2])/K(2.0);
 }
 
-void X(voronoi_weights_S2)(R *w, R *xi, int M)
+void X(voronoi_weights_S2)(R *w, R *xi, INT M)
 {
   R *x;
   R *y;

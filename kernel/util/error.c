@@ -33,7 +33,7 @@ static R cnrm1(const C *x, const INT n)
 
 static R nrm1(const R *x, const INT n)
 {
-  int k;
+  INT k;
   R nrm = K(0.0);
 
   for (k = 0; k < n; k++)
@@ -44,7 +44,7 @@ static R nrm1(const R *x, const INT n)
 
 static R cerr2(const C *x, const C *y, const INT n)
 {
-  int k;
+  INT k;
   R err = K(0.0);
 
   if (!y)
@@ -63,7 +63,7 @@ static R cerr2(const C *x, const C *y, const INT n)
 
 static R err2(const R *x, const R *y, const INT n)
 {
-  int k;
+  INT k;
   R err = K(0.0);
 
   if (!y)
@@ -82,7 +82,7 @@ static R err2(const R *x, const R *y, const INT n)
 
 static R cerri(const C *x, const C *y, const INT n)
 {
-  int k;
+  INT k;
   R err = K(0.0), t;
 
   if (!y)
@@ -107,7 +107,7 @@ static R cerri(const C *x, const C *y, const INT n)
 
 static R erri(const R *x, const R *y, const INT n)
 {
-  int k;
+  INT k;
   R err = K(0.0), t;
 
   if (!y)
