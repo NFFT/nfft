@@ -124,7 +124,7 @@ end %function
 function delete(h)
 % Destructor
 	if(h.plan_is_set)
-		nfft_finalize(h.plan);
+		nfftmex('finalize',h.plan);
 	end %if
 end %function
 
@@ -301,8 +301,12 @@ end %function
 
 function nfft_precompute_psi(h)
 % Precomputations for NFFT.
-	nfft_precompute_psi(h.plan);
-	h.precomputations_done=true;
+	if(~h.x_is_set)
+		error('Before doing precomputations you have to set nodes in x.');
+	else
+		nfftmex('precompute_psi',h.plan)
+		h.precomputations_done=true;
+	end %if
 end %function
 
 function ndft_trafo(h)
