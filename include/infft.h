@@ -98,8 +98,6 @@ typedef double _Complex C;
 #endif
 #define DK(name, value) const R name = K(value)
 
-/* Integral type large enough to contain a stride (what ``int'' should have been
- * in the first place) */
 typedef ptrdiff_t INT;
 
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
@@ -1245,17 +1243,17 @@ extern double _Complex catanh(double _Complex z);
 
 /* format strings */
 #if defined(NFFT_LDOUBLE)
-#  define FE "LE"
-#  define FE_ "% 36.32LE"
-#  define FFI "%Lf"
+#  define __FES__ "LE"
+#  define __FE__ "% 36.32LE"
+#  define __FI__ "%Lf"
 #elif defined(NFFT_SINGLE)
-#  define FE "E"
-#  define FE_ "% 12.8E"
-#  define FFI "%f"
+#  define __FES__ "E"
+#  define __FE__ "% 12.8E"
+#  define __FI__ "%f"
 #else
-#  define FE "lE"
-#  define FE_ "% 20.16lE"
-#  define FFI "%lf"
+#  define __FES__ "lE"
+#  define __FE__ "% 20.16lE"
+#  define __FI__ "%lf"
 #endif
 
 #define TRUE 1
@@ -1308,7 +1306,7 @@ extern double _Complex catanh(double _Complex z);
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
-R X(elapsed_seconds)(ticks t1, ticks t0);
+R Y(elapsed_seconds)(ticks t1, ticks t0);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1358,146 +1356,141 @@ R X(elapsed_seconds)(ticks t1, ticks t0);
 /* sinc.c: */
 
 /* Sinus cardinalis. */
-R X(sinc)(R x);
+R Y(sinc)(R x);
 
 /* lambda.c: */
 
 /* lambda(z, eps) = gamma(z + eps) / gamma(z + 1) */
-R X(lambda)(R z, R eps);
+R Y(lambda)(R z, R eps);
 
 /* lambda2(mu, nu) = sqrt(gamma(mu + nu + 1) / (gamma(mu + 1) * gamma(nu + 1))) */
-R X(lambda2)(R mu, R nu);
+R Y(lambda2)(R mu, R nu);
 
 /* bessel_i0.c: */
-R X(bessel_i0)(R x);
+R Y(bessel_i0)(R x);
 
 /* bspline.c: */
-R X(bspline)(const INT, const R x, R*);
+R Y(bspline)(const INT, const R x, R*);
 
 /* float.c: */
-typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
+typedef enum {NFFT_EPSILON = 0, NFFT_SA__FE__MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
 
-R X(float_property)(float_property);
-R X(prod_real)(R *vec, INT d);
+R Y(float_property)(float_property);
+R Y(prod_real)(R *vec, INT d);
 
 /* int.c: */
-INT X(exp2i)(const INT a);
-INT X(log2i)(const INT m);
-INT X(next_power_of_2)(const INT N);
-void X(next_power_of_2_exp)(const INT N, int *N2, int *t);
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
-INT X(prod_int)(int *vec, INT d);
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
-INT X(prod_minus_a_int)(int *vec, INT a, INT d);
+INT Y(exp2i)(const INT a);
+INT Y(log2i)(const INT m);
+INT Y(next_power_of_2)(const INT N);
+void Y(next_power_of_2_exp)(const INT N, int *N2, int *t);
 
 /* error.c: */
-R X(error_l_infty_complex)(const C *x, const C *y, const INT n);
-/* not used */ R X(error_l_infty_double)(const R *x, const R *y, const INT n);
-R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
+R Y(error_l_infty_complex)(const C *x, const C *y, const INT n);
+/* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
+R Y(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
   const C *z, const INT m);
-/* not used */ R X(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
+/* not used */ R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
   const INT m);
-R X(error_l_2_complex)(const C *x, const C *y, const INT n);
-/* not used */ R X(error_l_2_double)(const R *x, const R *y, const INT n);
+R Y(error_l_2_complex)(const C *x, const C *y, const INT n);
+/* not used */ R Y(error_l_2_double)(const R *x, const R *y, const INT n);
 
 /* sort.c: */
-void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh);
-void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh);
+void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
+void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
 
 /* assert.c */
-void X(assertion_failed)(const char *s, int line, const char *file);
+void nfft_assertion_failed(const char *s, int line, const char *file);
 
 /* rand.c */
-R X(drand48)(void);
-void X(srand48)(long int seed);
+R Y(drand48)(void);
+void Y(srand48)(long int seed);
 /** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
  */
-void X(vrand_unit_complex)(C *x, const INT n);
+void Y(vrand_unit_complex)(C *x, const INT n);
 /** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
  */
-void X(vrand_shifted_unit_double)(R *x, const INT n);
+void Y(vrand_shifted_unit_double)(R *x, const INT n);
 
 /* vector1.c */
 /** Computes the inner/dot product \f$x^H x\f$. */
-R X(dot_complex)(C *x, INT n);
+R Y(dot_complex)(C *x, INT n);
 /** Computes the inner/dot product \f$x^H x\f$. */
-R X(dot_double)(R *x, INT n);
+R Y(dot_double)(R *x, INT n);
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
-R X(dot_w_complex)(C *x, R *w, INT n);
+R Y(dot_w_complex)(C *x, R *w, INT n);
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
-R X(dot_w_double)(R *x, R *w, INT n);
+R Y(dot_w_double)(R *x, R *w, INT n);
 /** Computes the weighted inner/dot product \f$x^H (w\odot w2\odot w2 \odot x)\f$. */
-R X(dot_w_w2_complex)(C *x, R *w, R *w2, INT n);
+R Y(dot_w_w2_complex)(C *x, R *w, R *w2, INT n);
 /** Computes the weighted inner/dot product \f$x^H (w2\odot w2 \odot x)\f$. */
-R X(dot_w2_complex)(C *x, R *w2, INT n);
+R Y(dot_w2_complex)(C *x, R *w2, INT n);
 
 /* vector2.c */
 /** Copies \f$x \leftarrow y\f$. */
-void X(cp_complex)(C *x, C *y, INT n);
+void Y(cp_complex)(C *x, C *y, INT n);
 /** Copies \f$x \leftarrow y\f$. */
-void X(cp_double)(R *x, R *y, INT n);
+void Y(cp_double)(R *x, R *y, INT n);
 /** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_complex)(C *x, R a, C *y, INT n);
+void Y(cp_a_complex)(C *x, R a, C *y, INT n);
 /** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_double)(R *x, R a, R *y, INT n);
+void Y(cp_a_double)(R *x, R a, R *y, INT n);
 /** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_complex)(C *x, R *w, C *y, INT n);
+void Y(cp_w_complex)(C *x, R *w, C *y, INT n);
 /** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_double)(R *x, R *w, R *y, INT n);
+void Y(cp_w_double)(R *x, R *w, R *y, INT n);
 
 /* vector3.c */
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_complex)(C *x, R a, C *y, INT n);
+void Y(upd_axpy_complex)(C *x, R a, C *y, INT n);
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_double)(R *x, R a, R *y, INT n);
+void Y(upd_axpy_double)(R *x, R a, R *y, INT n);
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_complex)(C *x, R a, C *y, INT n);
+void Y(upd_xpay_complex)(C *x, R a, C *y, INT n);
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_double)(R *x, R a, R *y, INT n);
+void Y(upd_xpay_double)(R *x, R a, R *y, INT n);
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_complex)(C *x, R a, C *y, R b, INT n);
+void Y(upd_axpby_complex)(C *x, R a, C *y, R b, INT n);
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_double)(R *x, R a, R *y, R b, INT n);
+void Y(upd_axpby_double)(R *x, R a, R *y, R b, INT n);
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n);
+void Y(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n);
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n);
+void Y(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n);
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n);
+void Y(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n);
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
+void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
 /** Swaps each half over N[d]/2. */
-void X(fftshift_complex)(C *x, int d, int* N);
+void Y(fftshift_complex)(C *x, int d, int* N);
 
 /* print.c */
 /** Print real vector to standard output. */
-void X(vpr_double)(R *x, const INT n, const char *text);
+void Y(vpr_double)(R *x, const INT n, const char *text);
 /** Print complex vector to standard output. */
-void X(vpr_complex)(C *x, const INT n, const char *text);
+void Y(vpr_complex)(C *x, const INT n, const char *text);
 
 /* voronoi.c */
-void X(voronoi_weights_1d)(R *w, R *x, const INT M);
-void X(voronoi_weights_S2)(R *w, R *xi, INT M);
+void Y(voronoi_weights_1d)(R *w, R *x, const INT M);
 
 /* damp.c */
 /**
  * Compute damping factor for modified Fejer kernel:
  * /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
  */
-R X(modified_fejer)(const INT N, const INT kk);
+R Y(modified_fejer)(const INT N, const INT kk);
 /** Compute damping factor for modified Jackson kernel. */
-R X(modified_jackson2)(const INT N, const INT kk);
+R Y(modified_jackson2)(const INT N, const INT kk);
 /** Compute damping factor for modified generalised Jackson kernel. */
-R X(modified_jackson4)(const INT N, const INT kk);
+R Y(modified_jackson4)(const INT N, const INT kk);
 /** Compute damping factor for modified Sobolev kernel. */
-R X(modified_sobolev)(const R mu, const INT kk);
+R Y(modified_sobolev)(const R mu, const INT kk);
 /** Comput damping factor for modified multiquadric kernel. */
-R X(modified_multiquadric)(const R mu, const R c, const INT kk);
+R Y(modified_multiquadric)(const R mu, const R c, const INT kk);
 
 /* thread.c */
-INT X(get_num_threads)(void);
+INT Y(get_num_threads)(void);
 
 /* always check */
 #define CK(ex) \

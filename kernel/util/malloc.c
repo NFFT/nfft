@@ -22,16 +22,16 @@
 
 #include "api.h"
 
-X(malloc_type_function) X(malloc_hook) = 0;
-X(free_type_function) X(free_hook) = 0;
-X(die_type_function) X(die_hook) = 0;
+Y(malloc_type_function) Y(malloc_hook) = 0;
+Y(free_type_function) Y(free_hook) = 0;
+Y(die_type_function) Y(die_hook) = 0;
 
-void *X(malloc)(size_t n)
+void *Y(malloc)(size_t n)
 {
   void *p;
 
-  if (X(malloc_hook))
-    return nfft_malloc_hook(n);
+  if (Y(malloc_hook))
+    return Y(malloc_hook)(n);
 
   if (n == 0)
     n = 1;
@@ -39,28 +39,28 @@ void *X(malloc)(size_t n)
   p = Z(malloc)(n);
 
   if (!p)
-    X(die)(STRINGIZE(X(malloc)) ": out of memory\n");
+    Y(die)(STRINGIZE(Y(malloc)) ": out of memory\n");
 
   return p;
 }
 
-void X(free)(void *p)
+void Y(free)(void *p)
 {
   if (p)
   {
-    if (X(free_hook))
+    if (Y(free_hook))
     {
-      X(free_hook)(p);
+      Y(free_hook)(p);
       return;
     }
     Z(free)(p);
   }
 }
 
-void X(die)(char *s)
+void Y(die)(const char *s)
 {
-  if (X(die_hook))
-    X(die_hook)(s);
+  if (Y(die_hook))
+    Y(die_hook)(s);
 
   exit(EXIT_FAILURE);
 }

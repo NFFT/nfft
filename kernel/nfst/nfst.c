@@ -56,14 +56,14 @@
 
 
 #define MACRO_nfst_D_init_result_A        \
-  memset(g_hat, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g_hat, 0, prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 #define MACRO_nfst_D_init_result_T        \
   memset(f_hat, 0, ths->N_total * sizeof( double));
 
 #define MACRO_nfst_B_init_result_A        \
   memset(f, 0,     ths->M_total * sizeof( double));
 #define MACRO_nfst_B_init_result_T        \
-  memset(g, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g, 0, prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
 
 #define NFST_PRE_WINFUN( d)  ths->N[d] = 2 * ths->N[d];         \
@@ -75,6 +75,17 @@
 
 #define NFST_WINDOW_HELP_INIT  WINDOW_HELP_INIT
 
+/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
+static inline int prod_minus_a_int(int *vec, int a, int d)
+{
+  int t, prod;
+
+  prod = 1;
+  for (t = 0; t < d; t++)
+    prod *= vec[t] - a;
+
+  return prod;
+}
 
 double nfst_phi_hut( nfst_plan *ths, int k, int d)
 {
@@ -870,7 +881,7 @@ void nfst_init_help( nfst_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
 
-  ths->N_total = nfft_prod_minus_a_int( ths->N, 1, ths->d);
+  ths->N_total = prod_minus_a_int( ths->N, 1, ths->d);
 
   ths->sigma   = (double*)nfft_malloc( ths->d * sizeof( double));
 
@@ -913,11 +924,11 @@ void nfst_init_help( nfst_plan *ths)
   if(ths->nfst_flags & FFTW_INIT)
   {
       ths->g1 =
-        (double*)nfft_malloc( nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+        (double*)nfft_malloc(prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
       if(ths->nfst_flags & FFT_OUT_OF_PLACE)
         ths->g2 =
-          (double*)nfft_malloc( nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+          (double*)nfft_malloc(prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
       else
         ths->g2 = ths->g1;
 

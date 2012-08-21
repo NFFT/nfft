@@ -22,38 +22,38 @@ noinst_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags
 
 if HAVE_THREADS
   simple_test_threads_SOURCES = simple_test_threads.c
-  simple_test_threads_LDADD = $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
+  simple_test_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
 endif
 
 simple_test_SOURCES = simple_test.c
-simple_test_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+simple_test_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 ndft_fast_SOURCES = ndft_fast.c
-ndft_fast_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+ndft_fast_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 taylor_nfft_SOURCES = taylor_nfft.c
-taylor_nfft_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+taylor_nfft_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 flags_SOURCES = flags.c
-flags_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+flags_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 nfft_times_SOURCES = nfft_times.c
-nfft_times_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+nfft_times_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
 if HAVE_THREADS
 if HAVE_OPENMP
   nfft_benchomp_SOURCES = nfft_benchomp.c
-  nfft_benchomp_LDADD = $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
+  nfft_benchomp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
   nfft_benchomp_CFLAGS = $(OPENMP_CFLAGS)
 
   nfft_benchomp_createdataset_SOURCES = nfft_benchomp_createdataset.c
-  nfft_benchomp_createdataset_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+  nfft_benchomp_createdataset_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
   nfft_benchomp_detail_single_SOURCES = nfft_benchomp_detail.c
-  nfft_benchomp_detail_single_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+  nfft_benchomp_detail_single_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LDFLAGS@ @fftw3_LIBS@
 
   nfft_benchomp_detail_threads_SOURCES = nfft_benchomp_detail.c
-  nfft_benchomp_detail_threads_LDADD = $(top_builddir)/libnfft3_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
+  nfft_benchomp_detail_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@
   nfft_benchomp_detail_threads_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif

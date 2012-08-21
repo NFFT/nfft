@@ -291,7 +291,7 @@ static inline R evaluate_chebyshev(const INT n, const R *c, const R x)
   return a + x * b;
 }
 
-R X(bessel_i0)(R x)
+R Y(bessel_i0)(R x)
 {
   if (x < 0)
   {

@@ -1332,7 +1332,7 @@ static void check_nfsft(void)
 
   /* debug */
   for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " FE_ " f[%2d] = " FE_ " err = " FE_ "\n", j,
+    fprintf(stderr, "f[%2d] = " __FE__ " f[%2d] = " __FE__ " err = " __FE__ "\n", j,
       CREAL(f[j]), j, CREAL(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));
 
   /* Standard NFFT error measure. */
@@ -1344,7 +1344,7 @@ static void check_nfsft(void)
     for (k = 0, j = 0; k <= p.N; k++)
       for (n = -k; n <= k; n++, j++)
         denominator += (K4PI/(SQRT((R)(2*k + 1)))) * CABS(f_hat[j]);
-    printf(FE_ "\n", numerator/denominator);
+    printf(__FE__ "\n", numerator/denominator);
   }
 }
 

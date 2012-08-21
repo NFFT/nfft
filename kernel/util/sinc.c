@@ -20,7 +20,7 @@
 
 #include "infft.h"
 
-R X(sinc)(const R x)
+R Y(sinc)(const R x)
 {
   /* Based on sinc function from Boost C++ library. */
   const R b =  EPSILON;

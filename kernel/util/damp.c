@@ -24,14 +24,14 @@
  * Compute damping factor for modified Fejer kernel:
  * /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
  */
-R X(modified_fejer)(const INT N, const INT kk)
+R Y(modified_fejer)(const INT N, const INT kk)
 {
   return (K(2.0) / ((R) (N * N))
       * (K(1.0) - FABS(K(2.0) * ((R) kk) + K(1.0) ) / ((R) N)));
 }
 
 /** Compute damping factor for modified Jackson kernel. */
-R X(modified_jackson2)(const INT N, const INT kk)
+R Y(modified_jackson2)(const INT N, const INT kk)
 {
   INT kj;
   const R n = (((R) N) / K(2.0) + K(1.0) ) / K(2.0);
@@ -55,7 +55,7 @@ R X(modified_jackson2)(const INT N, const INT kk)
 }
 
 /** Compute damping factor for modified generalised Jackson kernel. */
-R X(modified_jackson4)(const INT N, const INT kk)
+R Y(modified_jackson4)(const INT N, const INT kk)
 {
   INT kj;
   const R n = (((R) N) / K(2.0) + K(3.0) ) / K(4.0);
@@ -111,7 +111,7 @@ R X(modified_jackson4)(const INT N, const INT kk)
 }
 
 /** Compute damping factor for modified Sobolev kernel. */
-R X(modified_sobolev)(const R mu, const INT kk)
+R Y(modified_sobolev)(const R mu, const INT kk)
 {
   R result;
   INT kj, k;
@@ -129,7 +129,7 @@ R X(modified_sobolev)(const R mu, const INT kk)
 }
 
 /** Comput damping factor for modified multiquadric kernel. */
-R X(modified_multiquadric)(const R mu, const R c, const INT kk)
+R Y(modified_multiquadric)(const R mu, const R c, const INT kk)
 {
   R result;
   INT kj, k;

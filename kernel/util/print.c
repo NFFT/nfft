@@ -22,7 +22,7 @@
 #include "infft.h"
 
 /** Print real vector to standard output. */
-void X(vpr_double)(R *x, const INT n, const char *text)
+void Y(vpr_double)(R *x, const INT n, const char *text)
 {
   INT k;
 
@@ -40,9 +40,9 @@ void X(vpr_double)(R *x, const INT n, const char *text)
     for (k = 0; k < n; k++)
     {
       if (k%8 == 0)
-        printf("%6d.\t", k);
+        printf("%6td.\t", k);
 
-      printf("%+.1" FE ",", x[k]);
+      printf("%+.1" __FES__ ",", x[k]);
 
       if (k%8 == 7)
         printf("\n");
@@ -53,13 +53,13 @@ void X(vpr_double)(R *x, const INT n, const char *text)
   }
   else
     for (k = 0; k < n; k++)
-      printf("%+" FE ",\n", x[k]);
+      printf("%+" __FES__ ",\n", x[k]);
 
   fflush(stdout);
 }
 
 /** Print complex vector to standard output. */
-void X(vpr_complex)(C *x, const INT n, const char *text)
+void Y(vpr_complex)(C *x, const INT n, const char *text)
 {
   INT k;
 
@@ -69,9 +69,9 @@ void X(vpr_complex)(C *x, const INT n, const char *text)
     for (k = 0; k < n; k++)
     {
       if (k%4 == 0)
-        printf("%6d.\t", k);
+        printf("%6td.\t", k);
 
-      printf("%+.1" FE "%+.1" FE "i,", CREAL(x[k]), CIMAG(x[k]));
+      printf("%+.1" __FES__ "%+.1" __FES__ "i,", CREAL(x[k]), CIMAG(x[k]));
 
       if (k%4==3)
         printf("\n");
@@ -81,7 +81,7 @@ void X(vpr_complex)(C *x, const INT n, const char *text)
   }
   else
     for (k = 0; k < n; k++)
-      printf("%+" FE "%+" FE "i,\n", CREAL(x[k]), CIMAG(x[k]));
+      printf("%+" __FES__ "%+" __FES__ "i,\n", CREAL(x[k]), CIMAG(x[k]));
 
   fflush(stdout);
 }

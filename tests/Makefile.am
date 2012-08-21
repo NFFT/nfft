@@ -32,7 +32,7 @@ TESTS = $(check_PROGRAMS)
 #check_nfft_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
 
 checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h
-checkall_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
+checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
 
 clean-local:
 	rm -f CUnitAutomated-Results.xml

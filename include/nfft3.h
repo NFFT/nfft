@@ -51,42 +51,50 @@ extern "C"
 #  define NFFT_EXTERN extern
 #endif
 
-/* our own memory allocation and exit functions */
-NFFT_EXTERN void *nfft_malloc(size_t n);
-NFFT_EXTERN void nfft_free(void *p);
-NFFT_EXTERN void nfft_die(char *s);
+typedef ptrdiff_t _INT;
 
-/* You can replace the hooks with your own, functions if necessary. We need this
- * for the Matlab interfaces etc. */
-typedef void *(*nfft_malloc_type_function) (size_t n);
-typedef void  (*nfft_free_type_function) (void *p);
-typedef void  (*nfft_die_type_function) (const char *errString);
-NFFT_EXTERN nfft_malloc_type_function nfft_malloc_hook;
-NFFT_EXTERN nfft_free_type_function nfft_free_hook;
-NFFT_EXTERN nfft_die_type_function nfft_die_hook;
-
-/* members inherited by all plans */
+/* Members inherited by all plans. */
 #define MACRO_MV_PLAN(RC) \
-  int N_total; /**< Total number of Fourier coefficients */\
-  int M_total; /**< Total number of samples */\
-  RC *f_hat; /**< Vector of Fourier coefficients, size is N_total * sizeof(RC) */\
-  RC *f; /**< Vector of samples, size is M_total * sizeof(RC) */\
-  void (*mv_trafo)(void*); /**< Pointer to the own transform */\
-  void (*mv_adjoint)(void*); /**< Pointer to the own adjoint */
+  _INT N_total; /**< Total number of Fourier coefficients. */\
+  _INT M_total; /**< Total number of samples. */\
+  RC *f_hat; /**< Fourier coefficients. */\
+  RC *f; /**< Samples. */\
+  void (*mv_trafo)(void*); /**< Transform. */\
+  void (*mv_adjoint)(void*); /**< Adjoint transform. */
 
 /* nfft */
 
-/* name mangling macros */
+/* Name mangling macros. */
 #define NFFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfft_, name)
 #define NFFT_MANGLE_FLOAT(name) NFFT_CONCAT(nfftf_, name)
 #define NFFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfftl_, name)
 
-/* huge second-order macro that defines prototypes for all nfft API functions.
+#define NFFT_DEFINE_MALLOC_API(X) \
+/* our own memory allocation and exit functions */ \
+NFFT_EXTERN void *X(malloc)(size_t n); \
+NFFT_EXTERN void X(free)(void *p); \
+NFFT_EXTERN void X(die)(const char *s); \
+\
+/* You can replace the hooks with your own functions, if necessary. We */ \
+/* need this for the Matlab interface. */ \
+typedef void *(*X(malloc_type_function)) (size_t n); \
+typedef void  (*X(free_type_function)) (void *p); \
+typedef void  (*X(die_type_function)) (const char *errString); \
+NFFT_EXTERN X(malloc_type_function) X(malloc_hook); \
+NFFT_EXTERN X(free_type_function) X(free_hook); \
+NFFT_EXTERN X(die_type_function) X(die_hook);
+
+/* Nfft module API. */
+NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_FLOAT)
+NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_DOUBLE)
+NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_LONG_DOUBLE)
+
+/* Macro to define prototypes for all NFFT API functions.
  * We expand this macro for each supported precision.
- *   X: nfft name-mangling macro
- *   Y: fftw name-mangling macro
- *   R: real data type
- *   C: complex data type
+ *   X: NFFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NFFT_DEFINE_API(X,Y,R,C) \
 \
@@ -104,20 +112,21 @@ typedef struct\
 {\
   MACRO_MV_PLAN(C)\
 \
-  int d; /**< dimension aka rank */\
-  int *N; /**< multi-bandwidth */\
-  R *sigma; /**< oversampling-factor */\
-  int *n; /**< FFTW length, equal to sigma*N, default is the power of 2 such
-               that \f$2\le\sigma<4\f$ */\
-  int n_total; /**< Total size of FFTW */\
-  int m; /**< Cut-off parameter of the window function, default value is
-               6 (KAISER_BESSEL),
-               9 (SINC_POWER),
-               11 (B_SPLINE),
-               12 (GAUSSIAN) */\
-  R *b; /**< Shape parameter of the window function */\
-  int K; /**< Number of equispaced samples of the window function for \ref
-              PRE_LIN_PSI */\
+  _INT d; /**< Dimension (rank). */\
+  _INT *N; /**< Multi-bandwidth. */\
+  R *sigma; /**< Oversampling factor. */\
+  _INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
+               is to use a power of two that satifies  \f$2\le\sigma<4\f$. */\
+  _INT n_total; /**< Combined total length of FFTW transforms. */\
+  _INT m; /**< Cut-off parameter for window function. Default values for the
+              different window functions are
+              -  6 (KAISER_BESSEL),
+              -  9 (SINC_POWER),
+              - 11 (B_SPLINE),
+              - 12 (GAUSSIAN) */\
+  R *b; /**< Shape parameter for window function */\
+  _INT K; /**< Number of equispaced samples of window function. Used for flag
+             PRE_LIN_PSI. */\
 \
   unsigned nfft_flags; /**< Flags for precomputation, (de)allocation, and FFTW
                             usage, default setting is
@@ -129,7 +138,7 @@ typedef struct\
 \
   R *x; /**< Nodes in time/spatial domain, size is \f$dM\f$ doubles */\
 \
-  double MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
+  R MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
     set */\
 \
   /* internal use only */\
@@ -140,8 +149,8 @@ typedef struct\
     is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
-  int *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
-  int *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  _INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  _INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
 \
   C *g; /**< Oversampled vector of samples, size is \ref n_total double complex */\
   C *g_hat; /**< Zero-padded vector of Fourier coefficients, size is \ref n_total fftw_complex */\
@@ -150,11 +159,11 @@ typedef struct\
 \
   R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
 \
-  int *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set */\
+  _INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
 \
-NFFT_EXTERN void X(trafo_direct)(X(plan) *ths);\
-NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths);\
+NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
+NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo_1d)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo_2d)(X(plan) *ths);\
@@ -176,12 +185,12 @@ NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
-/* nfft api */
+/* Nfft module API. */
 NFFT_DEFINE_API(NFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_API(NFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
-/* flags for init */
+/* Flags for init routines. */
 #define PRE_PHI_HUT                (1U<<0)
 #define FG_PSI                     (1U<<1)
 #define PRE_LIN_PSI                (1U<<2)
@@ -800,10 +809,10 @@ typedef struct\
 } X(plan_double);\
 \
 NFFT_EXTERN void X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) *mv, unsigned flags);\
-NFFT_EXTERN void X(solver_init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv);\
-NFFT_EXTERN void X(solver_before_loop_double)(X(plan_double)* ths);\
-NFFT_EXTERN void X(solver_loop_one_step_double)(X(plan_double) *ths);\
-NFFT_EXTERN void X(solver_finalize_double)(X(plan_double) *ths);
+NFFT_EXTERN void X(init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv);\
+NFFT_EXTERN void X(before_loop_double)(X(plan_double)* ths);\
+NFFT_EXTERN void X(loop_one_step_double)(X(plan_double) *ths);\
+NFFT_EXTERN void X(finalize_double)(X(plan_double) *ths);
 
 /* solver api */
 SOLVER_DEFINE_API(SOLVER_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)

@@ -27,9 +27,9 @@
 
 #include "config.h"
 #include "nfft3.h"
-#include "infft.h"
-#include "cycle.h"
 #include "nfft.h"
+#include "cycle.h"
+#include "infft.h"
 
 #if defined __CYGWIN32__ && !defined __CYGWIN__
    /* For backwards compatibility with Cygwin b19 and
@@ -100,7 +100,7 @@ struct init_delegate_s
 
 /* Trafo delegate. */
 typedef void (*trafo_t)(X(plan) *p);
-typedef double (*cost_t)(X(plan) *p);
+typedef R (*cost_t)(X(plan) *p);
 typedef const char* (*check_t)(X(plan) *p);
 typedef R (*acc_t)(X(plan) *p);
 
@@ -114,7 +114,7 @@ typedef struct trafo_delegate_s
 
 } trafo_delegate_t;
 
-double X(trafo_direct_cost)(X(plan) *p);
+R X(trafo_direct_cost)(X(plan) *p);
 
 R X(err_trafo)(X(plan) *p);
 R X(err_trafo_direct)(X(plan) *p);
@@ -156,9 +156,9 @@ trafo_delegate_t trafo_direct;
 trafo_delegate_t trafo;
 
 
-static double trafo_direct_cost_factor = 1.0E-6;
+static R trafo_direct_cost_factor = 1.0E-6;
 
-double X(trafo_direct_cost)(X(plan) *p)
+R X(trafo_direct_cost)(X(plan) *p)
 {
   if (trafo_direct_cost_factor == 0.0)
   {
@@ -185,7 +185,7 @@ double X(trafo_direct_cost)(X(plan) *p)
             p2.f_hat[i] = K(0.0) + K(0.0) * I;
           }
           {
-            double r;
+            R r;
             ticks t0, t1;
             t0 = getticks();
             X(trafo_direct)(&p2);
@@ -194,7 +194,7 @@ double X(trafo_direct_cost)(X(plan) *p)
             for (i = 0; i < d; i++)
               r = r / Nd;
             trafo_direct_cost_factor += r;
-            printf("%E\n", r);
+            printf("%" __FES__ "\n", r);
             x += 1;
           }
           X(finalize)(&p2);
@@ -202,8 +202,8 @@ double X(trafo_direct_cost)(X(plan) *p)
         }
       }
     }
-    trafo_direct_cost_factor = trafo_direct_cost_factor/((double)x);
-    printf("--> %E\n", trafo_direct_cost_factor);
+    trafo_direct_cost_factor = trafo_direct_cost_factor/((R)x);
+    printf("--> %" __FES__ "\n", trafo_direct_cost_factor);
   }
 
   {
@@ -225,7 +225,7 @@ R X(err_trafo_direct)(X(plan) *p)
 R X(err_trafo)(X(plan) *p)
 {
   if (p->nfft_flags & PRE_LIN_PSI)
-    return K(3.5)*K(10E-09);
+    return FMAX(K(3.5)*K(10E-09), K(50.0) * EPSILON);
   {
     const R m = ((R)p->m);
     R s, err;
@@ -306,7 +306,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
   }
   else if (trafo_delegate->cost)
   {
-    const double cost = trafo_delegate->cost(&p);
+    const R cost = trafo_delegate->cost(&p);
     if (cost > MAX_SECONDS)
     {
       printf(" -> %-4s (cost too high)\n","OK");
@@ -319,7 +319,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
 
   /* debug */
   /*for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " FE_ " + " FE_ "I, f[%2d] = " FE_ " + " FE_ "I, err = " FE_ "\n", j,
+    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
       CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
 
   /* Standard NFFT error measure. */
@@ -333,7 +333,7 @@ int X(check_single)(const testcase_delegate_t *testcase,
       R err = numerator/denominator;
       R bound = trafo_delegate->acc(&p);
       ok = IF(err < bound, 1, 0);
-      printf(" -> %-4s " FE_ " (" FE_ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
+      printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     }
   }
 
@@ -402,7 +402,7 @@ void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, in
   *x = malloc(M[0]*d[0]*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    fscanf(file, FFI, &((*x)[j]));
+    fscanf(file, __FI__, &((*x)[j]));
   }
 
   /* Fourier coefficients. */
@@ -410,7 +410,7 @@ void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, in
   for (j = 0; j < NN[0]; j++)
   {
     R re, im;
-    fscanf(file, FFI " " FFI, &re, &im);
+    fscanf(file, __FI__ " " __FI__, &re, &im);
     (*f_hat)[j] = re + im * I;
   }
 
@@ -419,7 +419,7 @@ void X(setup_file)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, in
   for (j = 0; j < M[0]; j++)
   {
     R re, im;
-    fscanf(file, FFI " " FFI, &re, &im);
+    fscanf(file, __FI__ " " __FI__, &re, &im);
     (*f)[j] = re + im * I;
   }
 

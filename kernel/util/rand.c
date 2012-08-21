@@ -20,7 +20,7 @@
 
 #include "infft.h"
 
-R X(drand48)(void)
+R Y(drand48)(void)
 {
 #ifdef HAVE_DRAND48
   return drand48();
@@ -29,7 +29,7 @@ R X(drand48)(void)
 #endif
 }
 
-void X(srand48)(long int seed)
+void Y(srand48)(long int seed)
 {
 #ifdef HAVE_SRAND48
   srand48(seed);
@@ -38,18 +38,18 @@ void X(srand48)(long int seed)
 #endif
 }
 
-void X(vrand_unit_complex)(C *x, const INT n)
+void Y(vrand_unit_complex)(C *x, const INT n)
 {
   INT k;
 
   for (k = 0; k < n; k++)
-    x[k] = X(drand48)() + II*X(drand48)();
+    x[k] = Y(drand48)() + II*Y(drand48)();
 }
 
-void X(vrand_shifted_unit_double)(R *x, const INT n)
+void Y(vrand_shifted_unit_double)(R *x, const INT n)
 {
   INT k;
 
   for (k = 0; k < n; k++)
-    x[k] = X(drand48)() - K(0.5);
+    x[k] = Y(drand48)() - K(0.5);
 }

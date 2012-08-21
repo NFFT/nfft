@@ -20,12 +20,12 @@
 
 #include "infft.h"
 
-INT X(exp2i)(const INT a)
+INT Y(exp2i)(const INT a)
 {
   return (1U << a);
 }
 
-INT X(log2i)(const INT m)
+INT Y(log2i)(const INT m)
 {
   INT l = 0;
   INT mm = m;
@@ -40,7 +40,7 @@ INT X(log2i)(const INT m)
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
-INT X(next_power_of_2)(const INT N)
+INT Y(next_power_of_2)(const INT N)
 {
   INT n,i,logn;
   INT N_is_not_power_of_2=0;
@@ -71,7 +71,7 @@ INT X(next_power_of_2)(const INT N)
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
-void X(next_power_of_2_exp)(const INT N, int *N2, int *t)
+void Y(next_power_of_2_exp)(const INT N, int *N2, int *t)
 {
   INT n,i,logn;
   INT N_is_not_power_of_2=0;
@@ -108,28 +108,4 @@ void X(next_power_of_2_exp)(const INT N, int *N2, int *t)
     *N2 = n;
     *t = logn+1;
   }
-}
-
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
-INT X(prod_int)(int *vec, INT d)
-{
-  INT t, prod;
-
-  prod = 1;
-  for (t = 0; t < d; t++)
-    prod *= vec[t];
-
-  return prod;
-}
-
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
-INT X(prod_minus_a_int)(int *vec, INT a, INT d)
-{
-  INT t, prod;
-
-  prod = 1;
-  for (t = 0; t < d; t++)
-    prod *= vec[t] - a;
-
-  return prod;
 }

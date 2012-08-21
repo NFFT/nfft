@@ -6335,11 +6335,11 @@ static int check_bspline(const unsigned n, const unsigned int m, const R *r)
   {
     const R x = r[2*j], yr = r[2*j+1];
     R y = X(bspline)((INT)(n + 1), x, scratch);
-    /*printf("x = " FE_ ", err = " FE_ "\n", x, ERR(y,yr));*/
+    /*printf("x = " __FE__ ", err = " __FE__ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }
   ok = IF(err < (K(15.0) * EPSILON), 1, 0);
-  fprintf(stderr, "%4s b%02d: err = " FE_ "\n", IF(ok, "  ok", "fail"), n, err);
+  fprintf(stderr, "%4s b%02d: err = " __FE__ "\n", IF(ok, "  ok", "fail"), n, err);
   return ok;
 }
 
