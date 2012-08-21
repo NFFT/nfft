@@ -105,7 +105,7 @@ function h=nfft(d,N,M,varargin)
 			error('Invalid spatial dimension d.');
 		end %switch
 	else % nfft_init_guru
-		disp('You are using nfft_init_guru. This is on your own risk. There will be no error handling. Incorrect inputs can cause a Matlab crash.');
+		%disp('You are using nfft_init_guru. This is on your own risk. There will be no error handling. Incorrect inputs can cause a Matlab crash.');
 		switch d
 		case 1
 			args=[{d,N(1),M},varargin];
