@@ -29,6 +29,8 @@
 
 AC_DEFUN([AX_LIB_FFTW3],
 [
+  AC_REQUIRE([AX_PROG_MATLAB])
+  
   AC_ARG_WITH(fftw3, [AC_HELP_STRING([--with-fftw3=DIR],
   [compile with fftw3 in DIR])], with_fftw3=$withval, with_fftw3="yes")
 
@@ -47,6 +49,10 @@ AC_DEFUN([AX_LIB_FFTW3],
     if test "x${fftw3_lib_dir}" = "xyes"; then 
       fftw3_lib_dir="$with_fftw3/lib"
     fi
+  fi
+  
+  if test "x${ax_prog_matlab}" = "xyes"; then
+    fftw3_lib_dir="${matlab_bin_dir}/${matlab_arch}"
   fi
 
   if test "x${fftw3_include_dir}" != "xyes"; then
@@ -79,6 +85,7 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
     fftw3_LIBS="-lfftw3"
+    LIBS="$saved_LIBS"
   fi
 
   if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes"; then
