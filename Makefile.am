@@ -91,7 +91,7 @@ dist-hook:
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
-distclean-local:
-	rm -Rf `find $(builddir) -type f -name *.Po`
-	rm -Rf `find $(builddir) -type f -name Makefile`
+#distclean-local:
+#	rm -Rf `find $(builddir) -type f -name *.Po`
+#	rm -Rf `find $(builddir) -type f -name Makefile`
 	
