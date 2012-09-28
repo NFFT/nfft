@@ -14,9 +14,10 @@ else
   DIR_MRI=
 endif
 
-DIST_SUBDIRS = fastgauss fastsum $(DIR_FASTSUMS2) $(DIR_MRI) polarFFT \
-  $(DIR_QUADRATURES2) radon $(DIR_ITERS2)
+DIST_SUBDIRS = fastgauss fastsum fastsumS2 mri polarFFT \
+  quadratureS2 radon iterS2
 
-SUBDIRS= $(DIST_SUBDIRS)
+SUBDIRS= fastgauss fastsum $(DIR_FASTSUMS2) $(DIR_MRI) polarFFT \
+  $(DIR_QUADRATURES2) radon $(DIR_ITERS2)
 
 EXTRA_DIST = doxygen.c

@@ -79,6 +79,7 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_CHECK_LIB([fftw3${PREC_SUFFIX}], [fftw${PREC_SUFFIX}_execute], [], [ax_lib_fftw3=no])
     fftw3_LIBS="-lfftw3${PREC_SUFFIX}"
+    LIBS="$saved_LIBS"
   fi
 
   if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes"; then

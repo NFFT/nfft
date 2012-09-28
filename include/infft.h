@@ -180,7 +180,7 @@ typedef ptrdiff_t INT;
     POW((x)*ths->n[d],K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
     POW((x)*ths->n[d],K(2.0))) < 0)? SIN(ths->b[d] * \
     SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
-    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):K(1.0)))
+    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):ths->b[d]/KPI))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
