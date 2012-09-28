@@ -22,7 +22,7 @@
 #
 # @version 2008-12-07
 # @license GPLWithACException
-# @author Jens Keiner <keiner@math.uni-luebeck.de>
+# @author Jens Keiner <jens@nfft.org>
 
 AC_DEFUN([AX_PROG_MATLAB],
 [
