@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include "nfft3.h"
 #include "infft.h"
+#include "nfft3util.h"
 #include "imex.h"
 
 #ifdef HAVE_MEXVERSION_C
@@ -285,10 +286,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          x[2*j] = K2PI*plans[i]->x[2*j];
+          x[2*j] = PI2*plans[i]->x[2*j];
           if (x[2*j] < 0.0)
-            x[2*j] += K2PI;
-          x[2*j+1] = K2PI*plans[i]->x[2*j+1];
+            x[2*j] += PI2;
+          x[2*j+1] = PI2*plans[i]->x[2*j+1];
         }
       }
     }
@@ -368,8 +369,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          plans[i]->x[2*j] = ((x[2*j] > KPI)?(x[2*j] - K2PI):(x[2*j]))/K2PI;
-          plans[i]->x[2*j+1] = x[2*j+1]/K2PI;
+          plans[i]->x[2*j] = ((x[2*j] > PI)?(x[2*j] - PI2):(x[2*j]))/PI2;
+          plans[i]->x[2*j+1] = x[2*j+1]/PI2;
         }
       }
     }
@@ -470,7 +471,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if(strcmp(cmd,"get_num_threads") == 0)
   {
-    int32_t nthreads = X(get_num_threads)();
+    int32_t nthreads = nfft_get_num_threads();
     plhs[0] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
     *((int32_t *)mxGetData(plhs[0])) = nthreads;
 

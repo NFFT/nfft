@@ -25,6 +25,7 @@
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
 #endif
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -79,7 +80,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
-      that->f_hat[j]*=cexp(-2*KPI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
+      that->f_hat[j]*=cexp(-2*PI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
     nfft_trafo(&that->plan);
     for(j=0;j<that->M_total;j++){
       /* PHI has compact support */
@@ -132,7 +133,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
     }
     nfft_adjoint(&that->plan);
     for(j=0;j<that->N_total;j++)
-      f_hat[j]+=that->f_hat[j]*cexp(2*KPI*_Complex_I*that->w[j]*((double)l));
+      f_hat[j]+=that->f_hat[j]*cexp(2*PI*_Complex_I*that->w[j]*((double)l));
     for(j=0;j<that->M_total;j++)
       that->f[j]=f[j];
   }

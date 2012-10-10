@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 

@@ -36,6 +36,7 @@
 #include <complex.h>
 #endif
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -143,7 +144,7 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   /** NDFT */
   if(test_ndft)
     {
-      CSWAP(p.f,swapndft);
+      NFFT_SWAP_complex(p.f,swapndft);
 
       t_ndft=0;
       r=0;
@@ -158,7 +159,7 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
         }
       t_ndft/=r;
 
-      CSWAP(p.f,swapndft);
+      NFFT_SWAP_complex(p.f,swapndft);
     }
   else
     t_ndft=nan("");
@@ -261,9 +262,9 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   nfft_vrand_unit_complex(p.f_hat, p.N_total);
 
   /** compute exact result */
-  CSWAP(p.f,swapndft);
+  NFFT_SWAP_complex(p.f,swapndft);
   nfft_trafo_direct(&p);
-  CSWAP(p.f,swapndft);
+  NFFT_SWAP_complex(p.f,swapndft);
 
   /** NFFT */
   nfft_trafo(&p);
@@ -292,7 +293,7 @@ int main(int argc,char **argv)
 
   if((test==0)&&(atoi(argv[1])<2))
     {
-      fprintf(stderr,"MEASURE_TIME in infft.h not set\n");
+      fprintf(stderr,"MEASURE_TIME in nfft3util.h not set\n");
       return -1;
     }
 

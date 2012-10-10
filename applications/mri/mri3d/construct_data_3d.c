@@ -25,8 +25,8 @@
 #include <complex.h>
 #endif
 
+#include "nfft3util.h"
 #include "nfft3.h"
-#include "infft.h"
 
 /**
  * \defgroup applications_mri3d_construct_data_3d construct_data_3d

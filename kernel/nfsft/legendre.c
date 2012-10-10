@@ -21,8 +21,8 @@
 #include <math.h>
 #include <stdio.h>
 #include "infft.h"
+#include "nfft3util.h"
 #include "legendre.h"
-#include "infft.h"
 
 /* One over sqrt(pi) */
 DK(KSQRTPII,0.56418958354775628694807945156077258584405062932900);

@@ -11,7 +11,7 @@ FormatIntegerVectorRaw::usage = "Print a vector in raw format."
 
 Begin["`Private`"];
 
-FormatRealNumber[x_]:="K(" <> ToString[CForm[x]] <> ")";
+FormatRealNumber[x_]:="K(" <> ToString[NumberForm[x,NumberSigns->{"-","+"}]] <> ")";
 FormatNumber[x_]:="\""<>x<>"\""/;StringQ[x];
 FormatNumber[x_]:=FormatRealNumber[x]/;Abs[Im[x]]==0;
 FormatNumber[x_]:=FormatRealNumber[Re[x]]<>" + "<>FormatRealNumber[Im[x]] <> " * I";
@@ -19,10 +19,10 @@ TypeString[x_]:="char*"/;StringQ[x[[1]]];
 TypeString[x_]:="R"/;Max[Abs[Im[x]]]==0;
 TypeString[x_]:="C";
 
-FormatVector[x_,name_,type_:TypeString,formatter_:None]:=Module[{M=Length[x], s = "static const " <> If[StringQ[type],type,TypeString[x]] <>" "<> name <> "[] = \n{\n"},
-For[j=1,j<=M,j++,s=s<>"  " <> If[TrueQ[formatter==None],FormatNumber[x[[j]]],formatter[x[[j]]]] <>",\n"];s=s<>"};";Return[s]];
+FormatVector[x_,name_]:=Module[{M=Length[x], s = "static const " <> TypeString[x] <>" "<> name <> "[] = \n{\n"},
+For[j=1,j<=M,j++,s=s<>"  " <>FormatNumber[x[[j]]]<>",\n"];s=s<>"};";Return[s]];
 
-FormatRealNumberRaw[x_]:=ToString[CForm[x]];
+FormatRealNumberRaw[x_]:=ToString[NumberForm[x,NumberSigns->{"-","+"}]];
 FormatNumberRaw[x_]:=FormatRealNumberRaw[x]/;Abs[Im[x]]==0;
 FormatNumberRaw[x_]:=FormatRealNumberRaw[Re[x]]<>" "<>FormatRealNumberRaw[Im[x]];
 
@@ -40,9 +40,6 @@ FormatIntegerRaw[x_]:=Module[{M=Length[x], s = FormatIntegerInternal[x]<>"\n"},R
 End[];
 
 EndPackage[];
-
-
-
 
 
 

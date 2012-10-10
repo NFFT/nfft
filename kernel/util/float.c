@@ -88,16 +88,3 @@ R X(float_property)(const float_property p)
 
   return K(-1.0);
 } /* dlamch_ */
-
-/** Computes double /f$\prod_{t=0}^{d-1} v_t/f$. */
-R X(prod_real)(R *vec, INT d)
-{
-  INT t;
-  R prod;
-
-  prod = K(1.0);
-  for (t = 0; t < d; t++)
-    prod *= vec[t];
-
-  return prod;
-}

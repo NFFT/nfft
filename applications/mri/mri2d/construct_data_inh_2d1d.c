@@ -27,7 +27,7 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 /**
  * \defgroup applications_mri2d_construct_data_inh_2d1d construct_data__inh_2d1d
@@ -86,7 +86,7 @@ static void construct(char * file, int N, int M)
   fclose(finh);
 
 
-  N3=ceil((MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
+  N3=ceil((NFFT_MAX(fabs(min_inh),fabs(max_inh))*(max_time-min_time)/2.0+m/(2*sigma))*4*sigma);
   T=((max_time-min_time)/2.0)/(0.5-((double) m)/N3);
   W=N3/T;
 
@@ -123,7 +123,7 @@ static void construct(char * file, int N, int M)
   for(j=0;j<N*N;j++)
   {
     fscanf(fi,"%le ",&real);
-    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
+    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*PI*Ts*my_plan.w[j]*W);
   }
 
   if(my_plan.plan.nfft_flags & PRE_PSI)

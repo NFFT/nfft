@@ -18,9 +18,7 @@
 
 /* $Id$ */
 
-/*! \file infft3.h
- *  \brief Internal header file for auxiliary definitions and functions.
- */
+/* NFFT internal header file */
 #ifndef __INFFT_H__
 #define __INFFT_H__
 
@@ -53,17 +51,6 @@
 #include <fftw3.h>
 
 #include "ticks.h"
-
-/**
- * @defgroup nfftutil Util - Auxilliary functions
- * @{
- *
- * This module implements frequently used utility functions.
- * In particular, this includes simple measurement of resources, evaluation of
- * window functions, vector routines for basic linear algebra tasks, and
- * computation of weights for the inverse transforms.
- *
- */
 
 /* Determine precision and name-mangling scheme. */
 #define CONCAT(prefix, name) prefix ## name
@@ -104,7 +91,6 @@ typedef ptrdiff_t INT;
 
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
 #define K2PI K(6.2831853071795864769252867665590057683943387987502)
-#define K4PI K(12.5663706143591729538505735331180115367886775975004)
 #define KE K(2.7182818284590452353602874713526624977572470937000)
 
 #define IF(x,a,b) ((x)?(a):(b))
@@ -114,14 +100,6 @@ typedef ptrdiff_t INT;
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGNF(a) IF((a)<K(0.0),K(-1.0),K(1.0))
-
-/** Swap two vectors. */
-#define CSWAP(x,y) {C* NFFT_SWAP_temp__; \
-  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
-
-/** Swap two vectors. */
-#define RSWAP(x,y) {R* NFFT_SWAP_temp__; NFFT_SWAP_temp__=(x); \
-  (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 /* macros for window functions */
 
@@ -182,7 +160,7 @@ typedef ptrdiff_t INT;
     POW((x)*ths->n[d],K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
     POW((x)*ths->n[d],K(2.0))) < 0)? SIN(ths->b[d] * \
     SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
-    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):ths->b[d]/KPI))
+    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):K(1.0)))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -1264,6 +1242,20 @@ extern double _Complex catanh(double _Complex z);
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
 
+extern void nfft_assertion_failed(const char *s, int line, const char *file);
+
+/* always check */
+#define CK(ex) \
+  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+
+#ifdef NFFT_DEBUG
+  /* check only if debug enabled */
+  #define A(ex) \
+    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+#else
+  #define A(ex) /* nothing */
+#endif
+
 #ifdef HAVE_ALLOCA
   /* Use alloca if available. */
   #ifndef alloca
@@ -1308,7 +1300,7 @@ extern double _Complex catanh(double _Complex z);
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
-R X(elapsed_seconds)(ticks t1, ticks t0);
+double nfft_elapsed_seconds(ticks t1, ticks t0);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1371,26 +1363,18 @@ R X(lambda2)(R mu, R nu);
 /* bessel_i0.c: */
 R X(bessel_i0)(R x);
 
-/* bspline.c: */
-R X(bspline)(const INT, const R x, R*);
-
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE_MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
 
 R X(float_property)(float_property);
-R X(prod_real)(R *vec, INT d);
 
 /* int.c: */
-INT X(exp2i)(const INT a);
-INT X(log2i)(const INT m);
-INT X(next_power_of_2)(const INT N);
-void X(next_power_of_2_exp)(const INT N, int *N2, int *t);
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t/f$. */
-INT X(prod_int)(int *vec, INT d);
-/** Computes integer /f$\prod_{t=0}^{d-1} v_t-a/f$. */
-INT X(prod_minus_a_int)(int *vec, INT a, INT d);
+int X(exp2i)(const int a);
+int X(log2i)(const int m);
+int X(next_power_of_2)(const int N);
+void X(next_power_of_2_exp)(const int N, int *N2, int *t);
 
 /* error.c: */
 R X(error_l_infty_complex)(const C *x, const C *y, const INT n);
@@ -1401,117 +1385,5 @@ R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
   const INT m);
 R X(error_l_2_complex)(const C *x, const C *y, const INT n);
 /* not used */ R X(error_l_2_double)(const R *x, const R *y, const INT n);
-
-/* sort.c: */
-void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh);
-void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh);
-
-/* assert.c */
-void X(assertion_failed)(const char *s, int line, const char *file);
-
-/* rand.c */
-R X(drand48)(void);
-void X(srand48)(long int seed);
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
- */
-void X(vrand_unit_complex)(C *x, const INT n);
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
- */
-void X(vrand_shifted_unit_double)(R *x, const INT n);
-
-/* vector1.c */
-/** Computes the inner/dot product \f$x^H x\f$. */
-R X(dot_complex)(C *x, INT n);
-/** Computes the inner/dot product \f$x^H x\f$. */
-R X(dot_double)(R *x, INT n);
-/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
-R X(dot_w_complex)(C *x, R *w, INT n);
-/** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
-R X(dot_w_double)(R *x, R *w, INT n);
-/** Computes the weighted inner/dot product \f$x^H (w\odot w2\odot w2 \odot x)\f$. */
-R X(dot_w_w2_complex)(C *x, R *w, R *w2, INT n);
-/** Computes the weighted inner/dot product \f$x^H (w2\odot w2 \odot x)\f$. */
-R X(dot_w2_complex)(C *x, R *w2, INT n);
-
-/* vector2.c */
-/** Copies \f$x \leftarrow y\f$. */
-void X(cp_complex)(C *x, C *y, INT n);
-/** Copies \f$x \leftarrow y\f$. */
-void X(cp_double)(R *x, R *y, INT n);
-/** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_complex)(C *x, R a, C *y, INT n);
-/** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_double)(R *x, R a, R *y, INT n);
-/** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_complex)(C *x, R *w, C *y, INT n);
-/** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_double)(R *x, R *w, R *y, INT n);
-
-/* vector3.c */
-/** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_complex)(C *x, R a, C *y, INT n);
-/** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_double)(R *x, R a, R *y, INT n);
-/** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_complex)(C *x, R a, C *y, INT n);
-/** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_double)(R *x, R a, R *y, INT n);
-/** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_complex)(C *x, R a, C *y, R b, INT n);
-/** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_double)(R *x, R a, R *y, R b, INT n);
-/** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n);
-/** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n);
-/** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n);
-/** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
-/** Swaps each half over N[d]/2. */
-void X(fftshift_complex)(C *x, int d, int* N);
-
-/* print.c */
-/** Print real vector to standard output. */
-void X(vpr_double)(R *x, const INT n, const char *text);
-/** Print complex vector to standard output. */
-void X(vpr_complex)(C *x, const INT n, const char *text);
-
-/* voronoi.c */
-void X(voronoi_weights_1d)(R *w, R *x, const INT M);
-void X(voronoi_weights_S2)(R *w, R *xi, INT M);
-
-/* damp.c */
-/**
- * Compute damping factor for modified Fejer kernel:
- * /f$\frac{2}{N}\left(1-\frac{\left|2k+1\right|}{N}\right)/f$
- */
-R X(modified_fejer)(const INT N, const INT kk);
-/** Compute damping factor for modified Jackson kernel. */
-R X(modified_jackson2)(const INT N, const INT kk);
-/** Compute damping factor for modified generalised Jackson kernel. */
-R X(modified_jackson4)(const INT N, const INT kk);
-/** Compute damping factor for modified Sobolev kernel. */
-R X(modified_sobolev)(const R mu, const INT kk);
-/** Comput damping factor for modified multiquadric kernel. */
-R X(modified_multiquadric)(const R mu, const R c, const INT kk);
-
-/* thread.c */
-INT X(get_num_threads)(void);
-
-/* always check */
-#define CK(ex) \
-  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
-
-#ifdef NFFT_DEBUG
-  /* check only if debug enabled */
-  #define A(ex) \
-    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
-#else
-  #define A(ex) /* nothing */
-#endif
-
-/** @}
- */
 
 #endif

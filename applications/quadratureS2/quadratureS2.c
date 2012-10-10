@@ -36,6 +36,7 @@
 #endif
 
 /* Include NFFT 3 utilities headers. */
+#include "nfft3util.h"
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
@@ -245,7 +246,7 @@ int main (int argc, char **argv)
           if (temp <= 1)
           {
             x_compare[2*d+1] = acos(x3);
-            if (x_compare[2*d+1] == 0 || x_compare[2*d+1] == KPI)
+            if (x_compare[2*d+1] == 0 || x_compare[2*d+1] == PI)
             {
               x_compare[2*d] = 0.0;
             }
@@ -253,8 +254,8 @@ int main (int argc, char **argv)
             {
               x_compare[2*d] = atan2(x2/sin(x_compare[2*d+1]),x1/sin(x_compare[2*d+1]));
             }
-            x_compare[2*d] *= 1.0/(2.0*KPI);
-            x_compare[2*d+1] *= 1.0/(2.0*KPI);
+            x_compare[2*d] *= 1.0/(2.0*PI);
+            x_compare[2*d+1] *= 1.0/(2.0*PI);
             d++;
           }
         }
@@ -287,16 +288,16 @@ int main (int argc, char **argv)
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d %d\n",&NQ[iNQ],&SQ[iNQ],&RQ[iNQ]);
         fprintf(stdout,"%d %d %d\n",NQ[iNQ],SQ[iNQ],RQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
       else
       {
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d\n",&NQ[iNQ],&SQ[iNQ]);
         fprintf(stdout,"%d %d\n",NQ[iNQ],SQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
     }
 
@@ -396,9 +397,9 @@ int main (int argc, char **argv)
             //fprintf(stderr,"ed: m_theta = %d\n",m_theta);
             for (k = 1; k < SQ[iNQ]; k++)
             {
-              m_theta += (int)floor((2*KPI)/acos((cos(KPI/(double)SQ[iNQ])-
-                cos(k*KPI/(double)SQ[iNQ])*cos(k*KPI/(double)SQ[iNQ]))/
-                (sin(k*KPI/(double)SQ[iNQ])*sin(k*KPI/(double)SQ[iNQ]))));
+              m_theta += (int)floor((2*PI)/acos((cos(PI/(double)SQ[iNQ])-
+                cos(k*PI/(double)SQ[iNQ])*cos(k*PI/(double)SQ[iNQ]))/
+                (sin(k*PI/(double)SQ[iNQ])*sin(k*PI/(double)SQ[iNQ]))));
               //fprintf(stderr,"ed: m_theta = %d\n",m_theta);
             }
             //fprintf(stderr,"ed: m_theta final = %d\n",m_theta);
@@ -423,7 +424,7 @@ int main (int argc, char **argv)
             for (k = 0; k < m_theta; k++)
             {
               fscanf(stdin,"%le\n",&w[k]);
-              w[k] *= (2.0*KPI)/((double)m_phi);
+              w[k] *= (2.0*PI)/((double)m_phi);
             }
 
             //fprintf(stderr,"Allocating theta and phi\n");
@@ -505,7 +506,7 @@ int main (int argc, char **argv)
 
             for (k = 0; k < SQ[iNQ]+1; k++)
             {
-              w[k] *= (2.0*KPI)/((double)(m_theta-1)*m_phi);
+              w[k] *= (2.0*PI)/((double)(m_theta-1)*m_phi);
               w[m_theta-1-k] = w[k];
             }
             fftw_destroy_plan(fplan);
@@ -568,10 +569,10 @@ int main (int argc, char **argv)
 
             for (d = 0; d < m_total; d++)
             {
-              x_grid[2*d+1] = acos(x_grid[2*d+1])/(2.0*KPI);
+              x_grid[2*d+1] = acos(x_grid[2*d+1])/(2.0*PI);
             }
 
-            w[0] = (4.0*KPI)/(m_total);
+            w[0] = (4.0*PI)/(m_total);
             break;
 
           case GRID_EQUIDISTRIBUTION:
@@ -591,7 +592,7 @@ int main (int argc, char **argv)
 
               for (k = 0; k < SQ[iNQ]/2+1; k++)
               {
-                w_temp[k] *= (2.0*KPI)/((double)(SQ[iNQ]));
+                w_temp[k] *= (2.0*PI)/((double)(SQ[iNQ]));
                 w_temp[SQ[iNQ]-k] = w_temp[k];
               }
               fftw_destroy_plan(fplan);
@@ -606,7 +607,7 @@ int main (int argc, char **argv)
             }
             else
             {
-              w[d] = (4.0*KPI)/(m_total);
+              w[d] = (4.0*PI)/(m_total);
             }
             d = 1;
             x_grid[2*d] = -0.5;
@@ -617,28 +618,28 @@ int main (int argc, char **argv)
             }
             else
             {
-              w[d] = (4.0*KPI)/(m_total);
+              w[d] = (4.0*PI)/(m_total);
             }
             d = 2;
 
             for (k = 1; k < SQ[iNQ]; k++)
             {
-              theta_s = (double)k*KPI/(double)SQ[iNQ];
-              M = (int)floor((2.0*KPI)/acos((cos(KPI/(double)SQ[iNQ])-
+              theta_s = (double)k*PI/(double)SQ[iNQ];
+              M = (int)floor((2.0*PI)/acos((cos(PI/(double)SQ[iNQ])-
                 cos(theta_s)*cos(theta_s))/(sin(theta_s)*sin(theta_s))));
 
               for (n = 0; n < M; n++)
               {
                 x_grid[2*d] = (n + 0.5)/M;
                 x_grid[2*d] -= (x_grid[2*d]>=0.5)?(1.0):(0.0);
-                x_grid[2*d+1] = theta_s/(2.0*KPI);
+                x_grid[2*d+1] = theta_s/(2.0*PI);
                 if (gridtype == GRID_EQUIDISTRIBUTION)
                 {
                   w[d] = w_temp[k]/((double)(M));
                 }
                 else
                 {
-                  w[d] = (4.0*KPI)/(m_total);
+                  w[d] = (4.0*PI)/(m_total);
                 }
                 d++;
               }
@@ -756,18 +757,18 @@ int main (int argc, char **argv)
           case FUNCTION_F1:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = sin(x_grid[2*d+1]*2.0*PI)*cos(x_grid[2*d]*2.0*PI);
+              x2 = sin(x_grid[2*d+1]*2.0*PI)*sin(x_grid[2*d]*2.0*PI);
+              x3 = cos(x_grid[2*d+1]*2.0*PI);
               f_grid[d] = x1*x2*x3;
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = sin(x_compare[2*d+1]*2.0*PI)*cos(x_compare[2*d]*2.0*PI);
+                x2 = sin(x_compare[2*d+1]*2.0*PI)*sin(x_compare[2*d]*2.0*PI);
+                x3 = cos(x_compare[2*d+1]*2.0*PI);
                 f_compare[d] = x1*x2*x3;
               }
             }
@@ -779,18 +780,18 @@ int main (int argc, char **argv)
           case FUNCTION_F2:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = sin(x_grid[2*d+1]*2.0*PI)*cos(x_grid[2*d]*2.0*PI);
+              x2 = sin(x_grid[2*d+1]*2.0*PI)*sin(x_grid[2*d]*2.0*PI);
+              x3 = cos(x_grid[2*d+1]*2.0*PI);
               f_grid[d] = 0.1*exp(x1+x2+x3);
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = sin(x_compare[2*d+1]*2.0*PI)*cos(x_compare[2*d]*2.0*PI);
+                x2 = sin(x_compare[2*d+1]*2.0*PI)*sin(x_compare[2*d]*2.0*PI);
+                x3 = cos(x_compare[2*d+1]*2.0*PI);
                 f_compare[d] = 0.1*exp(x1+x2+x3);
               }
             }
@@ -802,9 +803,9 @@ int main (int argc, char **argv)
           case FUNCTION_F3:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = sin(x_grid[2*d+1]*2.0*PI)*cos(x_grid[2*d]*2.0*PI);
+              x2 = sin(x_grid[2*d+1]*2.0*PI)*sin(x_grid[2*d]*2.0*PI);
+              x3 = cos(x_grid[2*d+1]*2.0*PI);
               temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
               f_grid[d] = 0.1*temp;
             }
@@ -812,9 +813,9 @@ int main (int argc, char **argv)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = sin(x_compare[2*d+1]*2.0*PI)*cos(x_compare[2*d]*2.0*PI);
+                x2 = sin(x_compare[2*d+1]*2.0*PI)*sin(x_compare[2*d]*2.0*PI);
+                x3 = cos(x_compare[2*d+1]*2.0*PI);
                 temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
                 f_compare[d] = 0.1*temp;
               }
@@ -827,9 +828,9 @@ int main (int argc, char **argv)
           case FUNCTION_F4:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = sin(x_grid[2*d+1]*2.0*PI)*cos(x_grid[2*d]*2.0*PI);
+              x2 = sin(x_grid[2*d+1]*2.0*PI)*sin(x_grid[2*d]*2.0*PI);
+              x3 = cos(x_grid[2*d+1]*2.0*PI);
               temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
               f_grid[d] = 1.0/(temp);
             }
@@ -837,9 +838,9 @@ int main (int argc, char **argv)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = sin(x_compare[2*d+1]*2.0*PI)*cos(x_compare[2*d]*2.0*PI);
+                x2 = sin(x_compare[2*d+1]*2.0*PI)*sin(x_compare[2*d]*2.0*PI);
+                x3 = cos(x_compare[2*d+1]*2.0*PI);
                 temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
                 f_compare[d] = 1.0/(temp);
               }
@@ -852,9 +853,9 @@ int main (int argc, char **argv)
           case FUNCTION_F5:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = sin(x_grid[2*d+1]*2.0*PI)*cos(x_grid[2*d]*2.0*PI);
+              x2 = sin(x_grid[2*d+1]*2.0*PI)*sin(x_grid[2*d]*2.0*PI);
+              x3 = cos(x_grid[2*d+1]*2.0*PI);
               temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
               f_grid[d] = 0.1*sin(1+temp)*sin(1+temp);
             }
@@ -862,9 +863,9 @@ int main (int argc, char **argv)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = sin(x_compare[2*d+1]*2.0*PI)*cos(x_compare[2*d]*2.0*PI);
+                x2 = sin(x_compare[2*d+1]*2.0*PI)*sin(x_compare[2*d]*2.0*PI);
+                x3 = cos(x_compare[2*d+1]*2.0*PI);
                 temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
                 f_compare[d] = 0.1*sin(1+temp)*sin(1+temp);
               }
@@ -883,7 +884,7 @@ int main (int argc, char **argv)
               }
               else
               {
-                f_grid[d] = 1.0/(sqrt(1+3*cos(2.0*KPI*x_grid[2*d+1])*cos(2.0*KPI*x_grid[2*d+1])));
+                f_grid[d] = 1.0/(sqrt(1+3*cos(2.0*PI*x_grid[2*d+1])*cos(2.0*PI*x_grid[2*d+1])));
               }
             }
             if (mode == RANDOM)
@@ -896,7 +897,7 @@ int main (int argc, char **argv)
                 }
                 else
                 {
-                  f_compare[d] = 1.0/(sqrt(1+3*cos(2.0*KPI*x_compare[2*d+1])*cos(2.0*KPI*x_compare[2*d+1])));
+                  f_compare[d] = 1.0/(sqrt(1+3*cos(2.0*PI*x_compare[2*d+1])*cos(2.0*PI*x_compare[2*d+1])));
                 }
               }
             }

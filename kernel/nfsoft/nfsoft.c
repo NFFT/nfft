@@ -28,6 +28,7 @@
 #include <complex.h>
 #endif
 #include "nfft3.h"
+#include "nfft3util.h"
 #include "infft.h"
 #include "wigner.h"
 
@@ -443,7 +444,7 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
 
   for (j = 0; j < 3* plan3D ->p_nfft.M_total; j++)
   {
-    plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* KPI ));
+    plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* PI ));
   }
 
   if ((plan3D->p_nfft).nfft_flags & FG_PSI)
@@ -500,7 +501,7 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
 
         if ((plan3D->flags & NFSOFT_NORMALIZED))
         {
-          plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (1. / (2. * KPI))
+          plan3D->wig_coeffs[j] = plan3D->wig_coeffs[j] * (1. / (2. * PI))
               * SQRT(0.5 * (2. * (max + j) + 1.));
         }
 
@@ -676,7 +677,7 @@ void nfsoft_adjoint(nfsoft_plan *plan3D)
 
         if ((plan3D->flags & NFSOFT_NORMALIZED))
         {
-          plan3D->f_hat[glo1] = plan3D->f_hat[glo1] * (1 / (2. * KPI)) * SQRT(
+          plan3D->f_hat[glo1] = plan3D->f_hat[glo1] * (1 / (2. * PI)) * SQRT(
               0.5 * (2. * (j) + 1.));
         }
 

@@ -25,6 +25,7 @@
 #include <complex.h>
 #endif
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -249,10 +250,10 @@ static void simple_test_innfft_1d(void)
     nfft_vpr_complex(my_iplan.f_hat_iter,my_plan.N_total,
           "approximate solution, vector f_hat_iter");
 
-    CSWAP(my_iplan.f_hat_iter,my_plan.f_hat);
+    NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
     nnfft_trafo(&my_plan);
     nfft_vpr_complex(my_plan.f,my_plan.M_total,"fitting the data, vector f");
-    CSWAP(my_iplan.f_hat_iter,my_plan.f_hat);
+    NFFT_SWAP_complex(my_iplan.f_hat_iter,my_plan.f_hat);
   }
 
   solver_finalize_complex(&my_iplan);

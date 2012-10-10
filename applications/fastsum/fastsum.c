@@ -32,6 +32,7 @@
 #include <complex.h>
 #endif
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "fastsum.h"
 #include "infft.h"
@@ -604,7 +605,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
   int sort_flags_trafo = 0;
   int sort_flags_adjoint = 0;
 #ifdef _OPENMP
-  int nthreads = X(get_num_threads)();
+  int nthreads = nfft_get_omp_num_threads();
 #endif
 
   if (d > 1)

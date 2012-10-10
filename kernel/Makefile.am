@@ -94,7 +94,7 @@ libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
 if HAVE_THREADS
   libkernel_threads_la_SOURCES =
 
-  libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
+  libkernel_threads_la_LIBADD = util/libutil.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
     $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT) \
     solver/libsolver.la
 

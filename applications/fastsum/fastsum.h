@@ -45,9 +45,9 @@
 #include <complex.h>
 #endif
 /** Include header for utils from NFFT3 library. */
+#include "nfft3util.h"
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
-#include "infft.h"
 
 #if !(defined(NF_LIN) || defined(NF_QUADR) || defined(NF_KUB))
   #define NF_KUB

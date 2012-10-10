@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -56,14 +57,14 @@
 
 
 #define MACRO_nfst_D_init_result_A        \
-  memset(g_hat, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g_hat, 0, nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 #define MACRO_nfst_D_init_result_T        \
   memset(f_hat, 0, ths->N_total * sizeof( double));
 
 #define MACRO_nfst_B_init_result_A        \
   memset(f, 0,     ths->M_total * sizeof( double));
 #define MACRO_nfst_B_init_result_T        \
-  memset(g, 0, nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+  memset(g, 0, nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
 
 #define NFST_PRE_WINFUN( d)  ths->N[d] = 2 * ths->N[d];         \
@@ -108,7 +109,7 @@ int nfst_fftw_2N_rev( int n)
 }
 
 #define MACRO_with_sin_vec     sin_vec[t][ka[t]]
-#define MACRO_without_sin_vec  sin( 2.0 * KPI * (ka[t]+1) * NODE(j,t))
+#define MACRO_without_sin_vec  sin( 2.0 * PI * (ka[t]+1) * NODE(j,t))
 
 
 #define MACRO_with_PRE_PHI_HUT     ths->c_phi_inv[t][kg[t]];
@@ -159,9 +160,9 @@ int nfst_fftw_2N_rev( int n)
 {                                                                               \
   for( t = 0; t < ths->d; t++)                                                  \
   {                                                                             \
-    cos_x[t] = cos( 2.0 * KPI * NODE(j,t));                                      \
-    sin_vec[t][0] = sin( 2.0 * KPI * NODE(j,t));                                 \
-    sin_vec[t][1] = sin( 4.0 * KPI * NODE(j,t));                                 \
+    cos_x[t] = cos( 2.0 * PI * NODE(j,t));                                      \
+    sin_vec[t][0] = sin( 2.0 * PI * NODE(j,t));                                 \
+    sin_vec[t][1] = sin( 4.0 * PI * NODE(j,t));                                 \
     for( k = 2; k < ths->N[t] - 1; k++)                                         \
       sin_vec[t][k] = 2.0 * cos_x[t] * sin_vec[t][k-1]                          \
                       - sin_vec[t][k-2];                                        \
@@ -227,7 +228,7 @@ int nfst_fftw_2N_rev( int n)
       for( j = 0; j < ths->M_total; j++)                                        \
         for( k = 0; k < ths->N_total; k++)                                      \
         {                                                                       \
-          sin_k[ths->d] = sin( 2.0 * KPI * (k+1) * NODE(j,0));                   \
+          sin_k[ths->d] = sin( 2.0 * PI * (k+1) * NODE(j,0));                   \
           MACRO_ndst_compute__ ## which_one;                                    \
         }                                                                       \
     else                                                                        \
@@ -870,7 +871,7 @@ void nfst_init_help( nfst_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
 
-  ths->N_total = nfft_prod_minus_a_int( ths->N, 1, ths->d);
+  ths->N_total = nfst_prod_minus_a_int( ths->N, 1, ths->d);
 
   ths->sigma   = (double*)nfft_malloc( ths->d * sizeof( double));
 
@@ -913,11 +914,11 @@ void nfst_init_help( nfst_plan *ths)
   if(ths->nfst_flags & FFTW_INIT)
   {
       ths->g1 =
-        (double*)nfft_malloc( nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+        (double*)nfft_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
       if(ths->nfst_flags & FFT_OUT_OF_PLACE)
         ths->g2 =
-          (double*)nfft_malloc( nfft_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
+          (double*)nfft_malloc( nfst_prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
       else
         ths->g2 = ths->g1;
 

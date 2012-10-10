@@ -1,38 +1,31 @@
 # $Id: Makefile.am 3456 2010-03-17 19:25:47Z keiner $
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -DSRCDIR=@abs_srcdir@
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
-SUBDIRS= data
-
-# check_nfft
-if HAVE_CUNIT
-  CHECK=checkall
+if HAVE_NFSFT
+  CHECK_NFSFT=
+#TODO implements nfsft check
+#  CHECK_NFSFT=check_nfsft
+#  check_nfsft_SOURCES = check_nfsft.c
+#  check_nfsft_LDADD = $(top_builddir)/libnfft3.la
 else
-  CHECK=
+  CHECK_NFSFT=
 endif
 
-check_PROGRAMS =  $(CHECK)
+check_LTLIBRARIES = libcheck_nfft.la
 
-#  TODO implement nfsft check
-#    CHECK_NFSFT=check_nfsft
-#    check_nfsft_SOURCES = check_nfsft.c
-#    check_nfsft_LDADD = $(top_builddir)/libnfft3.la
+libcheck_nfft_la_SOURCES = check_nfft.c check_nfft.h
 
-
-#noinst_PROGRAMS = $(CHECK_NFFT)
-
+check_PROGRAMS = check_nfft_1d
 #check_bessel_i0 check_nfft_1d check_nfft_2d $(CHECK_NFSFT) 
 
-TESTS = $(check_PROGRAMS)
+TESTS = #$(check_PROGRAMS)
 
 #check_bessel_i0_SOURCES = check_bessel_i0.c
 #check_bessel_i0_LDADD = $(top_builddir)/libnfft3.la
 
-#check_nfft_SOURCES = check_nfft.c
-#check_nfft_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
+check_nfft_1d_SOURCES = check_nfft_1d.c
+check_nfft_1d_LDADD = libcheck_nfft.la $(top_builddir)/libnfft3.la
 
-checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h
-checkall_LDADD = $(top_builddir)/libnfft3.la -lcunit -lncurses
-
-clean-local:
-	rm -f CUnitAutomated-Results.xml
+#check_nfft_2d_SOURCES = check_nfft_2d.c
+#check_nfft_2d_LDADD = $(top_builddir)/libnfft3.la

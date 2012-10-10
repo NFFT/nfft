@@ -26,6 +26,7 @@
 
 #include "config.h"
 
+#include "nfft3util.h"
 #include "nfft3.h"
 #include "infft.h"
 
@@ -48,8 +49,8 @@ void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
   /* init pseudo-random nodes */
   for (j = 0; j < M; j++)
   {
-    x[2*j]= X(drand48)() - K(0.5);
-    x[2*j+1]= K(0.5) * X(drand48)();
+    x[2*j]= nfft_drand48() - K(0.5);
+    x[2*j+1]= K(0.5) * nfft_drand48();
   }
  
   if (trafo_adjoint==0)
