@@ -80,7 +80,8 @@ static void simple_test_nfsft(void)
   printf("\n");
 
   /* Fast approximate transformation, display result. */
-  printf("Vector f (NDSFT):\n");
+  nfsft_trafo(&plan);
+  printf("Vector f (NFSFT):\n");
   for (j = 0; j < plan.M_total; j++)
     printf("f[%+2d] = %+5.3" FE " %+5.3" FE "*I\n",j,
       creal(plan.f[j]), cimag(plan.f[j]));
