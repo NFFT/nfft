@@ -8,7 +8,7 @@ dnl "no".
 dnl
 dnl @version 2009-09-14
 dnl @license GPLWithACException
-dnl @author Jens Keiner <keiner@math.uni-luebeck.de>.
+dnl @author Jens Keiner <jens@nfft.org>.
 AC_DEFUN([AX_CC_BLOCKS],
 [
   AC_CACHE_CHECK([whether $CC supports blocks], ax_cv_c_cc_blocks,

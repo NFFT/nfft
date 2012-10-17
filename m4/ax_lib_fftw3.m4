@@ -22,7 +22,7 @@
 #
 # @version 2008-12-07
 # @license GPLWithACException
-# @author Jens Keiner <keiner@math.uni-luebeck.de>
+# @author Jens Keiner <jens@nfft.org>
 #
 #  If we find the library, set the shell variable `ax_have_fftw3' to `yes'.
 #  Otherwise, set `ax_have_fftw3' to `no'.

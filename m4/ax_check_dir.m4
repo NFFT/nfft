@@ -9,7 +9,7 @@ dnl success/failure.
 dnl
 dnl @version 2008-12-07
 dnl @license GPLWithACException
-dnl @author Jens Keiner <keiner@math.uni-luebeck.de>.
+dnl @author Jens Keiner <jens@nfft.org>.
 AC_DEFUN([AX_CHECK_DIR],
 [
 AC_MSG_CHECKING([whether directory $1 exists])

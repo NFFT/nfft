@@ -23,7 +23,7 @@ dnl  doing high-performance computing on old hardware is uncommon.)
 dnl
 dnl @version 2008-12-07
 dnl @license GPLWithACException
-dnl @author Jens Keiner <keiner@math.uni-luebeck.de>.
+dnl @author Jens Keiner <jens@nfft.org>.
 AC_DEFUN([AX_APPLE_GCC_ARCHFLAG],
 [AC_REQUIRE([AC_PROG_CC])
 AC_REQUIRE([AC_CANONICAL_HOST])
