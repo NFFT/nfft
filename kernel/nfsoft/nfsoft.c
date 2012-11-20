@@ -35,6 +35,8 @@
 #define DEFAULT_NFFT_CUTOFF    6
 #define FPT_THRESHOLD          1000
 
+static fpt_set SO3_fpt_init(int l, unsigned int flags, int kappa);
+
 void nfsoft_init(nfsoft_plan *plan, int N, int M)
 {
   nfsoft_init_advanced(plan, N, M, NFSOFT_MALLOC_X | NFSOFT_MALLOC_F
@@ -105,7 +107,8 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   plan->mv_trafo = (void (*) (void* ))nfsoft_trafo;
   plan->mv_adjoint = (void (*) (void* ))nfsoft_adjoint;
 
-  plan->internal_fpt_set = 0;
+  plan->internal_fpt_set = SO3_fpt_init(plan->N_total, plan->flags, plan->fpt_kappa);
+
 }
 
 static void c2e(nfsoft_plan *my_plan, int even)
@@ -147,8 +150,9 @@ static void c2e(nfsoft_plan *my_plan, int even)
 }
 
 
-static fpt_set SO3_fpt_init(int l, fpt_set set, unsigned int flags, int kappa)
+static fpt_set SO3_fpt_init(int l, unsigned int flags, int kappa)
 {
+  fpt_set set = 0;
   int N, t, k_start, k_end, k, m;
   int glo = 0;
   R *alpha, *beta, *gamma;
@@ -455,14 +459,6 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
   {
     nfft_precompute_one_psi(&(plan3D->p_nfft));
   }
-
-  /** Node-independent part*/
-  plan3D->internal_fpt_set = SO3_fpt_init(N, plan3D->internal_fpt_set,
-    plan3D->flags, plan3D->fpt_kappa);
-
-  if ((plan3D->p_nfft).nfft_flags & MALLOC_F_HAT)
-  for (j = 0; j < plan3D->p_nfft.N_total; j++)
-    plan3D->p_nfft.f_hat[j] = 0.0;
 
 }
 
