@@ -18,6 +18,12 @@
 
 /* $Id$ */
 
+#include "config.h"
+
+#ifdef HAVE_UCHAR_H
+  #include <uchar.h>
+#endif
+
 #include <mex.h>
 #include "nfft3.h"
 #include "imex.h"

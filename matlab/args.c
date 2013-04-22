@@ -19,6 +19,11 @@
 /* $Id$ */
 
 #include "config.h"
+
+#ifdef HAVE_UCHAR_H
+  #include <uchar.h>
+#endif
+
 #include "imex.h"
 
 int nfft_mex_get_int(const mxArray *p, const char *errmsg)

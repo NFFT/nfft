@@ -303,7 +303,8 @@ fi
 
 AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h  sys/time.h \
   complex.h string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h \
-  inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h])
+  inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h \
+  uchar.h])
 
 AC_HEADER_TIME
 
