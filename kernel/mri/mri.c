@@ -85,7 +85,12 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->M_total;j++){
       /* PHI has compact support */
 			if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0]))
-        f[j]+=that->f[j]*PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
+      {
+        double phi_val = PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
+        f[j]+=that->f[j]*phi_val;
+// the line below causes internal compiler error for gcc 4.7.1
+//        f[j]+=that->f[j]*PHI(that->t[j]-((double)l)/((double)ths->n[0]),0);
+      }
     }
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]=f_hat[j];
