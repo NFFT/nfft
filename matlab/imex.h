@@ -23,8 +23,17 @@
 #define MEXUTIL_H
 
 #include <math.h>
+
+#ifdef HAVE_MATLAB_GCC_REQUIRE_UNDEF_STDC_UTF_16
+  #undef __STDC_UTF_16__
+#endif
+
 #include <mex.h>
 #include <matrix.h>
+
+#ifdef HAVE_MATLAB_GCC_REQUIRE_UNDEF_STDC_UTF_16
+  #define __STDC_UTF_16__
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Replacements for nfft_malloc and nfft_free plus install routine */

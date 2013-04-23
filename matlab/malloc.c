@@ -19,14 +19,8 @@
 /* $Id$ */
 
 #include "config.h"
-
-#ifdef HAVE_UCHAR_H
-  #include <uchar.h>
-#endif
-
-#include <mex.h>
-#include "nfft3.h"
 #include "imex.h"
+#include "nfft3.h"
 
 /** Replacement for fftw_malloc in mex files */
 void *nfft_mex_malloc(size_t n)

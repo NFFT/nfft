@@ -19,10 +19,6 @@
 /* $Id$ */
 #include "config.h"
 
-#ifdef HAVE_UCHAR_H
-  #include <uchar.h>
-#endif
-
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
 #endif
