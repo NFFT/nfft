@@ -512,6 +512,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
+                matlab/nfsoft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 

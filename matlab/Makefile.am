@@ -6,9 +6,15 @@ else
   DIR_NFSFT=
 endif
 
+if HAVE_NFSOFT
+  DIR_NFSOFT=nfsoft
+else
+  DIR_NFSOFT=
+endif
+
 DIR_NFFT=nfft
 
-SUBDIRS = . $(DIR_NFFT) $(DIR_NFSFT)
+SUBDIRS = . $(DIR_NFFT) $(DIR_NFSFT) $(DIR_NFSOFT)
 
 AM_CPPFLAGS = -I$(top_srcdir)/include $(matlab_CPPFLAGS)
 
