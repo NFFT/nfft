@@ -179,7 +179,9 @@ function set.N3(h,N)
 end %function
 
 function set.M(h,M)
-	if( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
+	if( ndims(M)~=2 || size(M,1)~=1 || size(M,2)~=1)
+		error('The number of sampling pints M has to be an positive integer.');
+	elseif( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
 		error('The number of sampling pints M has to be an positive integer.');
 	else
 		h.M=M;
