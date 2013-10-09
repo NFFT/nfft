@@ -193,11 +193,12 @@ function set.x(h,x)
 		error('The sampling points x have to be real numbers.');
 	elseif( ~isnumeric(x) || ~isreal(x) )
 		error('The sampling points x have to be real numbers.');
-	elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
-		error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
+	%elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
+	%	error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
 		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
 	else
+		x=mod(x+0.5,1)-0.5;
 		nfftmex('set_x',h.plan,x.');
 		h.x_is_set=true;
 		h.precomputations_done=false;
