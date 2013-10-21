@@ -4,10 +4,16 @@ Changes in version 3.3.0:
   - Added unit tests for some parts of the library. They are invoked via make
     check, but only if the CUnit framework was found on the build host.
 
+Changes in version 3.2.3
+  - Added a workaround for an internal compiler error occuring with gcc 4.7.1
+    in kernel/mri
+  - Added a workaround for a compilation error in the MATLAB mex interface for
+    gcc 4.7.1 when compiling with C99 support (-std=gnu99)
+
 Changes in version 3.2.2:
   - Fixed several problems introduced in version 3.2.1
-  - Fixed an issue when the configure script would not run correctly when using the
-    option --with-fftw3.
+  - Fixed an issue when the configure script would not run correctly when using
+    the option --with-fftw3.
 
 Changes in version 3.2.1:
   - Added missing files of new nfft MATLAB (class) interface to release.

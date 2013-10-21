@@ -803,10 +803,8 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   for (t = 0; t < d; t++)
     ths->n[t] = fftw_2N(Y(next_power_of_2)(ths->N[t]));
 
-/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
+  ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  WINDOW_HELP_ESTIMATE_m;
-*/
   ths->nfct_flags = NFCT_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 
@@ -877,6 +875,31 @@ void X(init_3d)(X(plan) *ths, int N0, int N1, int N2, int M_total)
   N[1] = N1;
   N[2] = N2;
   X(init)(ths, 3, N, M_total);
+}
+
+const char* nfct_check(nfct_plan *ths)
+{
+  int j;
+
+  for(j=0;j<ths->M_total*ths->d;j++)
+    if((ths->x[j] < K(0.0)) || (ths->x[j] >= K(0.5)))
+    {
+      fprintf(stderr, "\nj = %d, x[j] = " FE_ "\n", j, ths->x[j]);
+      return "ths->x out of range [0.0,0.5)";
+    }
+
+  for(j=0;j<ths->d;j++)
+  {
+    if(ths->sigma[j]<=1)
+      return "nfft_check: oversampling factor too small";
+
+    if(ths->N[j] - 1 <= ths->m)
+      return "Polynomial degree N is smaller than cut-off m";
+
+    if(ths->N[j]%2==1)
+      return "polynomial degree N has to be even";
+  }
+  return 0;
 }
 
 void X(finalize)(X(plan) *ths)

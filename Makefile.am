@@ -55,13 +55,13 @@ EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA = nfft3.pc
 
-#install-data-hook:
-#	$(MKDIR_P) $(docdir)
-#	cp -R $(srcdir)/doc/* $(docdir)/
-#	chmod -R u+rwX,g+rX,g-w,o+rX,o-w $(docdir)
+install-data-hook:
+	$(MKDIR_P) $(docdir)
+	cp -R $(srcdir)/doc/* $(docdir)/
+	chmod -R u+rwX,g+rX,g-w,o+rX,o-w $(docdir)
 
-#uninstall-hook:
-#	rm -Rf $(docdir)
+uninstall-hook:
+	rm -Rf $(docdir)
 
 maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/html/*.html
@@ -76,7 +76,6 @@ maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/latex/Makefile
 
 dist-hook:
-	echo `pwd`
 	chmod -Rf u+rwX $(srcdir)/doc
 	sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt
 	sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt
@@ -87,6 +86,14 @@ dist-hook:
 	mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html
 	cp -R $(srcdir)/doc $(distdir)/
 	rm -Rf `find $(distdir) -name .svn -type d`
+	(cd $(distdir)/doc/tutorial && pdflatex paper.tex)
+	mv $(distdir)/doc/tutorial/paper.pdf $(distdir)/doc/tutorial.pdf
+	rm -Rf $(distdir)/doc/tutorial/*
+	mv $(distdir)/doc/tutorial.pdf $(distdir)/doc/tutorial/tutorial.pdf
+	rm -Rf $(distdir)/doc/logo
+	rm -Rf $(distdir)/doc/api/latex
+
+doc:
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4

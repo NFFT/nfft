@@ -242,7 +242,7 @@ R X(err_trafo)(X(plan) *p)
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->nfft_flags | PRE_LIN_PSI)
+    if (p->nfft_flags & PRE_LIN_PSI)
     {
       R K = ((R)p->K);
       err = EXP(K2PI * m)/(K(8.0) * K * K);
