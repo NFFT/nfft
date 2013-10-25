@@ -71,47 +71,21 @@ AC_DEFUN([AX_LIB_FFTW3],
   LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
 
   # Check if header is present and usable.
-  ax_lib_fftw3=yes
-  ax_lib_fftw3_threads=yes
-  AC_CHECK_HEADER([fftw3.h], [], [ax_lib_fftw3=no;ax_lib_fftw3_threads=no])
+  AC_CHECK_HEADER([fftw3.h], [ax_lib_fftw3=yes;ax_lib_fftw3_threads=yes], [ax_lib_fftw3=no;ax_lib_fftw3_threads=no])
 
   if test "x$ax_lib_fftw3" = "xyes"; then
     saved_LIBS="$LIBS"
-    AC_CHECK_LIB([fftw3], [fftw_execute], [], [ax_lib_fftw3=no])
-    fftw3_LIBS="-lfftw3"
+    AC_SEARCH_LIBS([fftw_execute], [fftw3], [ax_lib_fftw3=yes], [ax_lib_fftw3=no], [-lm])
+    fftw3_LIBS="$ac_cv_search_fftw_execute -lm"
+#    AC_MSG_RESULT([$ax_lib_fftw3])
     LIBS="$saved_LIBS"
   fi
 
-  if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes"; then
-    fftw3_threads_LIBS=""
-    # Combined lib
-    LIBS="-lfftw3 $LIBS"
-    fftw3_threads_LIBS="-lfftw3"
-    AC_MSG_CHECKING([for fftw_init_threads in -lfftw3])
-    AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-    AC_MSG_RESULT([$ax_lib_fftw3_threads])
-    LIBS="$saved_LIBS"
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      AC_CHECK_LIB([fftw3], [fftw_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no], [-lpthread -lm])
-      fftw3_threads_LIBS="-lfftw3 -lpthread -lm"
-    fi
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      LIBS="-lfftw3_threads -lfftw3 $LIBS"
-      fftw3_threads_LIBS="-lfftw3_threads -lfftw3"
-      AC_MSG_CHECKING([for fftw_init_threads in -lfftw3_threads])
-      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-      AC_MSG_RESULT([$ax_lib_fftw3_threads])
-      LIBS="$saved_LIBS"
-    fi
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      LIBS="-lfftw3 -lpthread -lm $LIBS"
-      fftw3_threads_LIBS="-lfftw3_threads -lfftw3 -lpthread -lm"
-      AC_CHECK_LIB([fftw3_threads], [fftw_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-    fi
-
+  if test "x$enable_threads" = "xyes" -a "ax_lib_fftw3" = "xyes" -a "x$ax_lib_fftw3_threads" = "xyes"; then
+    saved_LIBS="$LIBS"
+    AC_SEARCH_LIBS([fftw_init_threads], [fftw3_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [$ac_cv_search_fftw_execute -lpthread -lm])
+    fftw3_threads_LIBS="$ac_cv_search_fftw_init_threads $ac_cv_search_fftw_execute -lpthread -lm"
+#    AC_MSG_RESULT([$ax_lib_fftw3_threads])
     LIBS="$saved_LIBS"
   fi
 
