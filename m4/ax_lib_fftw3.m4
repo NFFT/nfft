@@ -77,15 +77,13 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_SEARCH_LIBS([fftw_execute], [fftw3], [ax_lib_fftw3=yes], [ax_lib_fftw3=no], [-lm])
     fftw3_LIBS="$ac_cv_search_fftw_execute -lm"
-#    AC_MSG_RESULT([$ax_lib_fftw3])
     LIBS="$saved_LIBS"
   fi
 
-  if test "x$enable_threads" = "xyes" -a "ax_lib_fftw3" = "xyes" -a "x$ax_lib_fftw3_threads" = "xyes"; then
+  if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes" -a "x$ax_lib_fftw3_threads" = "xyes"; then
     saved_LIBS="$LIBS"
     AC_SEARCH_LIBS([fftw_init_threads], [fftw3_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [$ac_cv_search_fftw_execute -lpthread -lm])
     fftw3_threads_LIBS="$ac_cv_search_fftw_init_threads $ac_cv_search_fftw_execute -lpthread -lm"
-#    AC_MSG_RESULT([$ax_lib_fftw3_threads])
     LIBS="$saved_LIBS"
   fi
 
