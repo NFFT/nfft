@@ -630,7 +630,7 @@ static const testcase_delegate_file_t *testcases_1d_file[] =
 
 static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo, &trafo_1d};
 
-void X(check_nfft_1d_file)(void)
+void X(check_1d_file)(void)
 {
   X(check_many)(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_file),
     testcases_1d_file, initializers_1d, trafos_1d_file);
@@ -663,7 +663,7 @@ static const testcase_delegate_online_t *testcases_1d_online[] =
 
 static const trafo_delegate_t* trafos_1d_online[] = {&trafo, &trafo_1d};
 
-void X(check_nfft_1d_online)(void)
+void X(check_1d_online)(void)
 {
   X(check_many)(SIZE(testcases_1d_online), SIZE(initializers_1d), SIZE(trafos_1d_online),
     testcases_1d_online, initializers_1d, trafos_1d_online);
@@ -707,7 +707,7 @@ static const testcase_delegate_file_t *testcases_2d_file[] =
 
 static const trafo_delegate_t* trafos_2d_file[] = {&trafo_direct, &trafo, &trafo_2d};
 
-void X(check_nfft_2d_file)(void)
+void X(check_2d_file)(void)
 {
   X(check_many)(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_file),
     testcases_2d_file, initializers_2d, trafos_2d_file);
@@ -732,7 +732,7 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
 
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
 
-void X(check_nfft_2d_online)(void)
+void X(check_2d_online)(void)
 {
   X(check_many)(SIZE(testcases_2d_online), SIZE(initializers_2d), SIZE(trafos_2d_online),
     testcases_2d_online, initializers_2d, trafos_2d_online);
@@ -762,7 +762,7 @@ static const testcase_delegate_file_t *testcases_3d_file[] =
 
 static const trafo_delegate_t* trafos_3d_file[] = {&trafo_direct, &trafo, &trafo_3d};
 
-void X(check_nfft_3d_file)(void)
+void X(check_3d_file)(void)
 {
   X(check_many)(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_file),
     testcases_3d_file, initializers_3d, trafos_3d_file);
@@ -779,7 +779,7 @@ static const testcase_delegate_online_t *testcases_3d_online[] =
 
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
 
-void X(check_nfft_3d_online)(void)
+void X(check_3d_online)(void)
 {
   X(check_many)(SIZE(testcases_3d_online), SIZE(initializers_3d), SIZE(trafos_3d_online),
     testcases_3d_online, initializers_3d, trafos_3d_online);
@@ -808,7 +808,7 @@ static const testcase_delegate_online_t *testcases_4d_online[] =
 
 static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 
-void X(check_nfft_4d_online)(void)
+void X(check_4d_online)(void)
 {
   X(check_many)(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
     testcases_4d_online, initializers_4d, trafos_4d_online);

@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     32439,        783]
-NotebookOptionsPosition[     31725,        756]
-NotebookOutlinePosition[     32114,        773]
-CellTagsIndexPosition[     32071,        770]
+NotebookDataLength[     32983,        794]
+NotebookOptionsPosition[     32268,        767]
+NotebookOutlinePosition[     32657,        784]
+CellTagsIndexPosition[     32614,        781]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -401,9 +401,10 @@ Cell[BoxData[
         RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
          RowBox[{"y", "[", 
           RowBox[{"[", "1", "]"}], "]"}], "<>", 
-         "\"\< = {X(setup_file),X(destroy_file),\\\"\>\"", "<>", " ", 
+         "\"\< = {X(setup_file),X(destroy_file),ABSPATH(\\\"\>\"", "<>", " ", 
+         
          RowBox[{"y", "[", 
-          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\"};\\n\>\""}]}], 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
        "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
    RowBox[{"FormatVector", "[", 
     RowBox[{
@@ -453,7 +454,8 @@ Cell[BoxData[
    3.548344431490254*^9}, {3.548344516346612*^9, 3.54834452160181*^9}, {
    3.5483445634454823`*^9, 3.548344603589292*^9}, {3.548344673892972*^9, 
    3.548344674043014*^9}, {3.5912505876217327`*^9, 3.5912505881199083`*^9}, {
-   3.591363841844906*^9, 3.5913638423075933`*^9}}],
+   3.591363841844906*^9, 3.5913638423075933`*^9}, {3.5915428347310057`*^9, 
+   3.591542837929201*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -518,17 +520,18 @@ Cell[BoxData[
         RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
          RowBox[{"y", "[", 
           RowBox[{"[", "1", "]"}], "]"}], "<>", 
-         "\"\< = {X(setup_file),X(destroy_file),\\\"\>\"", "<>", " ", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
          RowBox[{"y", "[", 
-          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\"};\\n\>\""}]}], 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
        "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
    RowBox[{"FormatVector", "[", 
     RowBox[{
      RowBox[{"x", "[", 
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
-     "\"\<*testcases_2d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
-     ",", " ", "Formatter"}], "]"}], "\[IndentingNewLine]", 
+     "\"\<*testcases_2d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], "]"}], 
+   "\[IndentingNewLine]", 
    RowBox[{"(*", 
     RowBox[{"FormatVector", "[", 
      RowBox[{
@@ -555,7 +558,9 @@ Cell[BoxData[
   3.5181975665474453`*^9}, {3.5181976205553493`*^9, 3.518197620890814*^9}, {
   3.548344631084435*^9, 3.54834465895175*^9}, {3.548344709542242*^9, 
   3.5483447374599237`*^9}, {3.548344793350206*^9, 3.548344809958082*^9}, {
-  3.5483466580895443`*^9, 3.5483466669263077`*^9}}],
+  3.5483466580895443`*^9, 3.5483466669263077`*^9}, {3.591542110293882*^9, 
+  3.591542119231207*^9}, {3.5915425701467*^9, 3.591542570716722*^9}, {
+  3.5915428335306683`*^9, 3.5915428404302464`*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -618,17 +623,18 @@ Cell[BoxData[
         RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
          RowBox[{"y", "[", 
           RowBox[{"[", "1", "]"}], "]"}], "<>", 
-         "\"\< = {X(setup_file),X(destroy_file),\\\"\>\"", "<>", " ", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
          RowBox[{"y", "[", 
-          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\"};\\n\>\""}]}], 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
        "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
    RowBox[{"FormatVector", "[", 
     RowBox[{
      RowBox[{"x", "[", 
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
-     "\"\<*testcases_3d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
-     ",", " ", "Formatter"}], "]"}], "\[IndentingNewLine]", 
+     "\"\<*testcases_3d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], "]"}], 
+   "\[IndentingNewLine]", 
    RowBox[{"(*", 
     RowBox[{"FormatVector", "[", 
      RowBox[{
@@ -656,7 +662,9 @@ Cell[BoxData[
   3.5483467419758577`*^9, 3.548346746749652*^9}, {3.548346925708653*^9, 
   3.5483469438417873`*^9}, {3.548347041873805*^9, 3.548347042368384*^9}, {
   3.5483471141121607`*^9, 3.54834711944681*^9}, {3.54834715646264*^9, 
-  3.5483471569767027`*^9}, {3.548347414821805*^9, 3.548347416066527*^9}}],
+  3.5483471569767027`*^9}, {3.548347414821805*^9, 3.548347416066527*^9}, {
+  3.5915427341204157`*^9, 3.591542743990086*^9}, {3.591542788982143*^9, 
+  3.5915427947782373`*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -719,16 +727,16 @@ Cell[BoxData[
         RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
          RowBox[{"y", "[", 
           RowBox[{"[", "1", "]"}], "]"}], "<>", 
-         "\"\< = {X(setup_file),X(destroy_file),\\\"\>\"", "<>", " ", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
          RowBox[{"y", "[", 
-          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\"};\\n\>\""}]}], 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
        "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
    RowBox[{"FormatVector", "[", 
     RowBox[{
      RowBox[{"x", "[", 
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
-     "\"\<*testcases_3d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
+     "\"\<*testcases_4d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
      ",", " ", "Formatter"}], "]"}], "\[IndentingNewLine]", 
    RowBox[{"(*", 
     RowBox[{"FormatVector", "[", 
@@ -752,7 +760,10 @@ Cell[BoxData[
            RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], "]"}], ",", 
       "\"\<filenames\>\""}], "]"}], "*)"}]}]}]], "Input",
  CellChangeTimes->{{3.548337660709242*^9, 3.5483376910598288`*^9}, {
-  3.548347420747239*^9, 3.548347430447401*^9}}]
+  3.548347420747239*^9, 3.548347430447401*^9}, {3.591543705757052*^9, 
+  3.591543710105554*^9}, {3.5915437905916433`*^9, 3.5915437911266193`*^9}, {
+  3.591543853165766*^9, 3.591543856741955*^9}, {3.591545189200889*^9, 
+  3.591545190137417*^9}}]
 },
 AutoGeneratedPackage->Automatic,
 WindowSize->{1920, 1068},
@@ -781,10 +792,10 @@ Cell[2169, 49, 352, 10, 27, "Input",
 Cell[2524, 61, 13152, 275, 418, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[15679, 338, 4977, 117, 178, "Input"],
-Cell[20659, 457, 3789, 100, 178, "Input"],
-Cell[24451, 559, 3831, 99, 178, "Input"],
-Cell[28285, 660, 3436, 94, 178, "Input"]
+Cell[15679, 338, 5048, 119, 178, "Input"],
+Cell[20730, 459, 3947, 103, 178, "Input"],
+Cell[24680, 564, 3945, 102, 178, "Input"],
+Cell[28628, 668, 3636, 97, 178, "Input"]
 }
 ]
 *)

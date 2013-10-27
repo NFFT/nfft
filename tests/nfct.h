@@ -20,23 +20,13 @@
 
 #include "infft.h"
 
-/* Determine precision and name-mangling scheme. */
-#define CONCAT(prefix, name) prefix ## name
-#if defined(NFFT_SINGLE)
-#define X(name) CONCAT(nfftf_,name)
-#define Y(name) CONCAT(nfctf_,name)
-#elif defined(NFFT_LDOUBLE)
-#define X(name) CONCAT(nfftl_,name)
-#define Y(name) CONCAT(nfctl_,name)
-#else
-#define X(name) CONCAT(nfft_,name)
-#define Y(name) CONCAT(nfct_,name)
-#endif
+#undef X
+#define X(name) NFCT(name)
 
-void X(check_nfct_1d_file)(void);
-void X(check_nfct_1d_online)(void);
-//void X(check_nfst_2d_file)(void);
-//void X(check_nfst_2d_online)(void);
-//void X(check_nfst_3d_file)(void);
-//void X(check_nfst_3d_online)(void);
-//void X(check_nfst_4d_online)(void);
+void X(check_1d_file)(void);
+void X(check_1d_online)(void);
+void X(check_2d_file)(void);
+void X(check_2d_online)(void);
+void X(check_3d_file)(void);
+void X(check_3d_online)(void);
+void X(check_4d_online)(void);
