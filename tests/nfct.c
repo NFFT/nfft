@@ -247,10 +247,6 @@ static int check_single(const testcase_delegate_t *testcase,
   R *f_hat, *f;
 
   testcase->setup(testcase, &d, &N, &NN, &M, &x, &f_hat, &f);
-  //fprintf(stderr, "\nd = %d, NN = %d, M = %d.\n", d, NN, M);
-  //fprintf(stderr, "x[0] = " FE_ "\n", x[0]);
-  //fprintf(stderr, "f_hat[0] = " FE_ "\n", f_hat[0]);
-  //fprintf(stderr, "f[0] = " FE_ "\n", f[0]);
 
   /* Init plan. */
   printf(", %-24s", init_delegate->name);
@@ -301,7 +297,7 @@ static int check_single(const testcase_delegate_t *testcase,
 
   /* debug */
   /*for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " FE_ " + " FE_ "I, f[%2d] = " FE_ " + " FE_ "I, err = " FE_ "\n", j,
+    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
       CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
 
   /* Standard NFFT error measure. */
@@ -315,7 +311,7 @@ static int check_single(const testcase_delegate_t *testcase,
       R err = numerator/denominator;
       R bound = trafo_delegate->acc(&p);
       ok = IF(err < bound, 1, 0);
-      printf(" -> %-4s " FE_ " (" FE_ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
+      printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     }
   }
 
@@ -384,8 +380,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   *x = malloc(M[0]*d[0]*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    fscanf(file, FFI, &((*x)[j]));
-    //fprintf(stderr, "f[%2d] = " FE_, j, (*x)[j]);
+    fscanf(file, __FI__, &((*x)[j]));
   }
 
   /* Fourier coefficients. */
@@ -393,9 +388,8 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   for (j = 0; j < NN[0]; j++)
   {
     R re;
-    fscanf(file, FFI, &re);
+    fscanf(file, __FI__, &re);
     (*f_hat)[j] = re;
-    //fprintf(stderr, "f_hat[%2d] = " FE_, j, (*f_hat)[j]);
   }
 
   /* Reference function values. */
@@ -403,9 +397,8 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   for (j = 0; j < M[0]; j++)
   {
     R re;
-    fscanf(file, FFI, &re);
+    fscanf(file, __FI__, &re);
     (*f)[j] = re;
-    //fprintf(stderr, "f[%2d] = " FE_, j, (*f)[j]);
   }
 
   fclose(file);

@@ -884,7 +884,7 @@ const char* nfct_check(nfct_plan *ths)
   for(j=0;j<ths->M_total*ths->d;j++)
     if((ths->x[j] < K(0.0)) || (ths->x[j] >= K(0.5)))
     {
-      fprintf(stderr, "\nj = %d, x[j] = " FE_ "\n", j, ths->x[j]);
+      fprintf(stderr, "\nj = %d, x[j] = " __FE__ "\n", j, ths->x[j]);
       return "ths->x out of range [0.0,0.5)";
     }
 

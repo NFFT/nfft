@@ -38,7 +38,7 @@ void Y(srand48)(long int seed)
 #endif
 }
 
-void Y(vrand_unit_complex)(C *x, const int n)
+void Y(vrand_unit_complex)(C *x, const INT n)
 {
   INT k;
 
@@ -46,7 +46,7 @@ void Y(vrand_unit_complex)(C *x, const int n)
     x[k] = Y(drand48)() + II*Y(drand48)();
 }
 
-void Y(vrand_shifted_unit_double)(R *x, const int n)
+void Y(vrand_shifted_unit_double)(R *x, const INT n)
 {
   INT k;
 
