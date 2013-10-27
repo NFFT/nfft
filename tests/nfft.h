@@ -20,10 +20,13 @@
 
 #include "infft.h"
 
-void X(check_nfft_1d_file)(void);
-void X(check_nfft_1d_online)(void);
-void X(check_nfft_2d_file)(void);
-void X(check_nfft_2d_online)(void);
-void X(check_nfft_3d_file)(void);
-void X(check_nfft_3d_online)(void);
-void X(check_nfft_4d_online)(void);
+#undef X
+#define X(name) NFFT(name)
+
+void X(check_1d_file)(void);
+void X(check_1d_online)(void);
+void X(check_2d_file)(void);
+void X(check_2d_online)(void);
+void X(check_3d_file)(void);
+void X(check_3d_online)(void);
+void X(check_4d_online)(void);

@@ -71,47 +71,19 @@ AC_DEFUN([AX_LIB_FFTW3],
   LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
 
   # Check if header is present and usable.
-  ax_lib_fftw3=yes
-  ax_lib_fftw3_threads=yes
-  AC_CHECK_HEADER([fftw3.h], [], [ax_lib_fftw3=no;ax_lib_fftw3_threads=no])
+  AC_CHECK_HEADER([fftw3.h], [ax_lib_fftw3=yes;ax_lib_fftw3_threads=yes], [ax_lib_fftw3=no;ax_lib_fftw3_threads=no])
 
   if test "x$ax_lib_fftw3" = "xyes"; then
     saved_LIBS="$LIBS"
-    AC_CHECK_LIB([fftw3${PREC_SUFFIX}], [fftw${PREC_SUFFIX}_execute], [], [ax_lib_fftw3=no])
-    fftw3_LIBS="-lfftw3${PREC_SUFFIX}"
+    AC_SEARCH_LIBS([fftw${PREC_SUFFIX}_execute], [fftw3${PREC_SUFFIX}], [ax_lib_fftw3=yes], [ax_lib_fftw3=no], [-lm])
+    fftw3_LIBS="-lfftw3${PREC_SUFFIX} -lm"
     LIBS="$saved_LIBS"
   fi
 
-  if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes"; then
-    fftw3_threads_LIBS=""
-    # Combined lib
-    LIBS="-lfftw3${PREC_SUFFIX} $LIBS"
-    fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}"
-    AC_MSG_CHECKING([for fftw${PREC_SUFFIX}_init_threads in -lfftw3${PREC_SUFFIX}])
-    AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-    AC_MSG_RESULT([$ax_lib_fftw3_threads])
-    LIBS="$saved_LIBS"
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      AC_CHECK_LIB([fftw3${PREC_SUFFIX}], [fftw${PREC_SUFFIX}_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no], [-lpthread -lm])
-      fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX} -lpthread -lm"
-    fi
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      LIBS="-lfftw3${PREC_SUFFIX}_threads -lfftw3${PREC_SUFFIX} $LIBS"
-      fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}_threads -lfftw3${PREC_SUFFIX}"
-      AC_MSG_CHECKING([for fftw${PREC_SUFFIX}_init_threads in -lfftw3${PREC_SUFFIX}_threads])
-      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-      AC_MSG_RESULT([$ax_lib_fftw3_threads])
-      LIBS="$saved_LIBS"
-    fi
-
-    if test "x$ax_lib_fftw3_threads" = "xno"; then
-      LIBS="-lfftw3${PREC_SUFFIX} -lpthread -lm $LIBS"
-      fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}_threads -lfftw3${PREC_SUFFIX} -lpthread -lm"
-      AC_CHECK_LIB([fftw3_threads], [fftw${PREC_SUFFIX}_init_threads],[ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
-    fi
-
+  if test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3" = "xyes" -a "x$ax_lib_fftw3_threads" = "xyes"; then
+    saved_LIBS="$LIBS"
+    AC_SEARCH_LIBS([fftw${PREC_SUFFIX}_init_threads], [fftw3${PREC_SUFFIX}_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [-lfftw3${PREC_SUFFIX} -lpthread -lm])
+    fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}_threads -lfftw3${PREC_SUFFIX} -lpthread -lm"
     LIBS="$saved_LIBS"
   fi
 

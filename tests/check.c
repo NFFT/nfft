@@ -27,25 +27,51 @@
 #include "bspline.h"
 #include "bessel.h"
 #include "nfft.h"
+#include "nfct.h"
+#include "nfst.h"
 
 int main(void)
 {
-  CU_pSuite util, nfft;
+  CU_pSuite util, nfft, nfct, nfst;
   CU_initialize_registry();
   /*CU_set_output_filename("nfft");*/
+#undef X
+#define X(name) NFFT(name)
   nfft = CU_add_suite("nfft", 0, 0);
-  CU_add_test(nfft, "nfft_1d_file", X(check_nfft_1d_file));
-  CU_add_test(nfft, "nfft_1d_online", X(check_nfft_1d_online));
-  CU_add_test(nfft, "nfft_2d_file", X(check_nfft_2d_file));
-  CU_add_test(nfft, "nfft_2d_online", X(check_nfft_2d_online));
-  CU_add_test(nfft, "nfft_3d_file", X(check_nfft_3d_file));
-  CU_add_test(nfft, "nfft_3d_online", X(check_nfft_3d_online));
-  CU_add_test(nfft, "nfft_4d_online", X(check_nfft_4d_online));
+  CU_add_test(nfft, "nfft_1d_file", X(check_1d_file));
+  CU_add_test(nfft, "nfft_1d_online", X(check_1d_online));
+  CU_add_test(nfft, "nfft_2d_file", X(check_2d_file));
+  CU_add_test(nfft, "nfft_2d_online", X(check_2d_online));
+  CU_add_test(nfft, "nfft_3d_file", X(check_3d_file));
+  CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
+  CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
+#undef X
+#define X(name) NFCT(name)
+  nfct = CU_add_suite("nfct", 0, 0);
+  CU_add_test(nfct, "nfct_1d_file", X(check_1d_file));
+  CU_add_test(nfct, "nfct_1d_online", X(check_1d_online));
+  CU_add_test(nfct, "nfct_2d_file", X(check_2d_file));
+  CU_add_test(nfct, "nfct_2d_online", X(check_2d_online));
+  CU_add_test(nfct, "nfct_3d_file", X(check_3d_file));
+  CU_add_test(nfct, "nfct_3d_online", X(check_3d_online));
+  CU_add_test(nfct, "nfct_4d_online", X(check_4d_online));
+#undef X
+#define X(name) NFST(name)
+  nfct = CU_add_suite("nfst", 0, 0);
+  CU_add_test(nfst, "nfst_1d_file", X(check_1d_file));
+  CU_add_test(nfst, "nfst_1d_online", X(check_1d_online));
+  CU_add_test(nfst, "nfst_2d_file", X(check_2d_file));
+  CU_add_test(nfst, "nfst_2d_online", X(check_2d_online));
+  CU_add_test(nfst, "nfst_3d_file", X(check_3d_file));
+  CU_add_test(nfst, "nfst_3d_online", X(check_3d_online));
+  CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   util = CU_add_suite("util", 0, 0);
+#undef X
+#define X(name) Y(name)
   CU_add_test(util, "bspline", X(check_bspline));
   CU_add_test(util, "bessel_i0", X(check_bessel_i0));
   CU_automated_run_tests();
-  /*CU_basic_run_tests();*/
+  //CU_basic_run_tests();
   {
     unsigned int ok = (CU_get_number_of_tests_failed() == 0);
     CU_cleanup_registry();

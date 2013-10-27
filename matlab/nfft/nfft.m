@@ -179,7 +179,9 @@ function set.N3(h,N)
 end %function
 
 function set.M(h,M)
-	if( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
+	if( ndims(M)~=2 || size(M,1)~=1 || size(M,2)~=1)
+		error('The number of sampling pints M has to be an positive integer.');
+	elseif( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
 		error('The number of sampling pints M has to be an positive integer.');
 	else
 		h.M=M;
@@ -191,11 +193,12 @@ function set.x(h,x)
 		error('The sampling points x have to be real numbers.');
 	elseif( ~isnumeric(x) || ~isreal(x) )
 		error('The sampling points x have to be real numbers.');
-	elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
-		error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
+	%elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
+	%	error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
 		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
 	else
+		x=mod(x+0.5,1)-0.5;
 		nfftmex('set_x',h.plan,x.');
 		h.x_is_set=true;
 		h.precomputations_done=false;

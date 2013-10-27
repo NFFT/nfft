@@ -72,18 +72,27 @@ typedef float R;
 typedef float _Complex C;
 #define Y(name) CONCAT(nfftf_,name)
 #define Z(name) CONCAT(fftwf_,name)
+#define NFFT(name) CONCAT(nfftf_,name)
+#define NFCT(name) CONCAT(nfctf_,name)
+#define NFST(name) CONCAT(nfstf_,name)
 #define NFSFT(name) CONCAT(nfsftf_,name)
 #elif defined(NFFT_LDOUBLE)
 typedef long double R;
 typedef long double _Complex C;
 #define Y(name) CONCAT(nfftl_,name)
 #define Z(name) CONCAT(fftwl_,name)
+#define NFFT(name) CONCAT(nfftl_,name)
+#define NFCT(name) CONCAT(nfctl_,name)
+#define NFST(name) CONCAT(nfstl_,name)
 #define NFSFT(name) CONCAT(nfsftl_,name)
 #else
 typedef double R;
 typedef double _Complex C;
 #define Y(name) CONCAT(nfft_,name)
 #define Z(name) CONCAT(fftw_,name)
+#define NFFT(name) CONCAT(nfft_,name)
+#define NFCT(name) CONCAT(nfct_,name)
+#define NFST(name) CONCAT(nfst_,name)
 #define NFSFT(name) CONCAT(nfsft_,name)
 #endif
 #define X(name) Y(name)
@@ -98,6 +107,26 @@ typedef double _Complex C;
 #endif
 #define DK(name, value) const R name = K(value)
 
+#if defined __CYGWIN32__ && !defined __CYGWIN__
+   /* For backwards compatibility with Cygwin b19 and
+      earlier, we define __CYGWIN__ here, so that
+      we can rely on checking just for that macro. */
+#  define __CYGWIN__  __CYGWIN32__
+#endif
+
+#if defined _WIN32 && !defined __CYGWIN__
+   /* Use Windows separators on all _WIN32 defining
+      environments, except Cygwin. */
+#  define SEP "\\"
+#endif
+#ifndef SEP
+   /* Assume that not having this is an indicator that all
+      are missing. */
+#  define SEP "/"
+#endif /* !DIR_SEPARATOR_CHAR */
+
+/* Integral type large enough to contain a stride (what ``int'' should have been
+ * in the first place) */
 typedef ptrdiff_t INT;
 
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
@@ -112,6 +141,9 @@ typedef ptrdiff_t INT;
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGN(a) (((a)>=0)?1:-1)
 #define SIGNF(a) IF((a)<K(0.0),K(-1.0),K(1.0))
+
+/* Size of array. */
+#define SIZE(x) sizeof(x)/sizeof(x[0])
 
 /** Swap two vectors. */
 #define CSWAP(x,y) {C* NFFT_SWAP_temp__; \
@@ -1373,7 +1405,7 @@ R Y(bessel_i0)(R x);
 R Y(bspline)(const INT, const R x, R*);
 
 /* float.c: */
-typedef enum {NFFT_EPSILON = 0, NFFT_SA__FE__MIN = 1, NFFT_BASE = 2,
+typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
 

@@ -89,9 +89,18 @@ static inline int prod_minus_a_int(int *vec, int a, int d)
 
 double nfst_phi_hut( nfst_plan *ths, int k, int d)
 {
+  //fprintf(stderr, "k = %d, d = %d\n", k, d);
   NFST_PRE_WINFUN( d);
+  //fprintf(stderr, "N[d] = %d, n[d] = %d\n", ths->N[d], ths->n[d]);
+  //fflush(stderr);
+  //fprintf(stderr, "m = %d\n", ths->m);
+  //fflush(stderr);
+  //fprintf(stderr, "-----\nths->b[d] = " FE_ ", n[d] = %d, foo = " FE_ "\n-----\n", ths->b[d], ths->n[d], POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / ths->n[d], K(2.0)));
+  //fflush(stderr);
   double phi_hut_tmp = PHI_HUT( k, d);
+  //fprintf(stderr, "phi_hut_tmp = " FE_ "\n", phi_hut_tmp);
   NFST_POST_WINFUN( d);
+  //fprintf(stderr, "N[d] = %d, n[d] = %d\n", ths->N[d], ths->n[d]);
 
   return phi_hut_tmp;
 }
@@ -756,10 +765,12 @@ void nfst_precompute_phi_hut( nfst_plan *ths)
 
   for( t = 0; t < ths->d; t++)
   {
+    //fprintf(stderr, "N = %d\n", ths->N[t]);
     ths->c_phi_inv[t] = (double*)nfft_malloc( ( ths->N[t] - 1) * sizeof( double));
 
     for( kg[t] = 0; kg[t] < ths->N[t] - 1; kg[t]++)
     {
+      //fprintf(stderr, "t = %d, kg[t] = %d", t, kg[t]);
       ths->c_phi_inv[t][kg[t]] = MACRO_compute_PHI_HUT_INV;
     }
   }
@@ -942,13 +953,12 @@ void nfst_init_help( nfst_plan *ths)
 
 void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
 {
-  int t;                                /**< index over all dimensions        */
+  int t;
 
   ths->d = d;
+  ths->N = (int*)nfft_malloc( ths->d * sizeof( int));
 
-  ths->N      = (int*)nfft_malloc( ths->d * sizeof( int));
-
-  for(t = 0;t < d; t++)
+  for(t = 0; t < d; t++)
     ths->N[t] = N[t];
 
   ths->n      = (int*)nfft_malloc( ths->d * sizeof( int));
@@ -958,17 +968,13 @@ void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
 
   ths->M_total = M_total;
 
-/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
-
-  WINDOW_HELP_ESTIMATE_m;
-*/  
+  ths->m = WINDOW_HELP_ESTIMATE_m;
 
   ths->nfst_flags = NFST_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 
   nfst_init_help( ths);
 }
-
 
 void nfst_init_m( nfst_plan *ths, int d, int *N, int M_total, int m)
 {
@@ -1034,6 +1040,28 @@ void nfst_init_3d( nfst_plan *ths, int N0, int N1, int N2, int M_total)
   N[1] = N1;
   N[2] = N2;
   nfst_init( ths, 3, N, M_total);
+}
+
+const char* nfst_check(nfst_plan *ths)
+{
+  int j;
+
+  for(j=0;j<ths->M_total*ths->d;j++)
+    if((ths->x[j]<-K(0.0)) || (ths->x[j]>= K(0.5)))
+      return "ths->x out of range [0.0,0.5)";
+
+  for(j=0;j<ths->d;j++)
+  {
+    if(ths->sigma[j]<=1)
+      return "nfft_check: oversampling factor too small";
+
+    if(ths->N[j] - 1 <= ths->m)
+      return "Polynomial degree N is smaller than cut-off m";
+
+    if(ths->N[j]%2==1)
+      return "polynomial degree N has to be even";
+  }
+  return 0;
 }
 
 void nfst_finalize( nfst_plan *ths)

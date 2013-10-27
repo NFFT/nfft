@@ -272,6 +272,7 @@ NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
 NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d);
@@ -349,6 +350,7 @@ NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(full_psi)(X(plan) *ths_plan, R eps); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \

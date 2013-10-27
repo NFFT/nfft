@@ -18,9 +18,9 @@
 
 /* $Id$ */
 
-#include <mex.h>
-#include "nfft3.h"
+#include "config.h"
 #include "imex.h"
+#include "nfft3.h"
 
 /** Replacement for fftw_malloc in mex files */
 void *nfft_mex_malloc(size_t n)

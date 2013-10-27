@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.2.2],[bugs@nfft.org])
+AC_INIT([NFFT],[3.3.0],[mail@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
@@ -337,6 +337,28 @@ if test "x$ax_prog_matlab" = "xyes"; then
 fi
 
 ################################################################################
+# check if mex.h can be included without undefinition of  
+################################################################################
+ax_prog_matlab_gcc_require_undef_stdc_utf_16=no
+if test "x$ax_prog_matlab" = "xyes"; then
+  AC_MSG_CHECKING([if inclusion of mex.h succeeds])
+  saved_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $matlab_CPPFLAGS"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include "mex.h"]],[[]])],[ax_prog_matlab_check_compile_mex_h=yes], [ax_prog_matlab_check_compile_mex_h=no])
+  AC_MSG_RESULT([$ax_prog_matlab_check_compile_mex_h])
+  if test "x$ax_prog_matlab_check_compile_mex_h" = "xno"; then
+    AC_MSG_CHECKING([if undefining __STDC_UTF_16__ solves this issue])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#undef __STDC_UTF_16__
+    #include "mex.h"]],[[]])],[ax_prog_matlab_gcc_require_undef_stdc_utf_16=yes], [])
+    AC_MSG_RESULT([$ax_prog_matlab_gcc_require_undef_stdc_utf_16])
+  fi
+  CPPFLAGS="$saved_CPPFLAGS"
+fi
+if test "x$ax_prog_matlab_gcc_require_undef_stdc_utf_16" =  "xyes"; then
+  AC_DEFINE([HAVE_MATLAB_GCC_REQUIRE_UNDEF_STDC_UTF_16],[1],[Define to 1 if compilation of Matlab interface only succeeds when macro __STDC_UTF_16__ not defined.])
+fi
+
+################################################################################
 # header files/data types/compiler characteristics
 ################################################################################
 
@@ -528,6 +550,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
+                matlab/nfsoft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 
