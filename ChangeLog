@@ -1,5 +1,8 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.2.4
+  - Fixed an issue when linker flags were not set correctly.
+
 Changes in version 3.2.3
   - Added a workaround for an internal compiler error occuring with gcc 4.7.1
     in kernel/mri
