@@ -282,7 +282,7 @@ static inline void nnfft_D (nnfft_plan *ths){
 	  tmp = 1.0;
 	  /* multiply with N1, because x was modified */
 	  for(t=0; t<ths->d; t++)
-	      tmp*= 1.0 /((PHI_HUT(ths->x[ths->d*j + t]*((double)ths->N[t]),t)) );
+	      tmp*= 1.0 /((PHI_HUT(ths->n[t], ths->x[ths->d*j + t]*((double)ths->N[t]),t)) );
 	  ths->f[j] *= tmp;
       }
   }
@@ -356,7 +356,7 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
     {
       tmp = 1.0;
       for(t=0; t<ths->d; t++)
-        tmp*= 1.0 /(PHI_HUT(ths->x[ths->d*j + t]*((double)ths->N[t]),t));
+        tmp*= 1.0 /(PHI_HUT(ths->n[t],ths->x[ths->d*j + t]*((double)ths->N[t]),t));
       ths->c_phi_inv[j]=tmp;
     }
 } /* nnfft_phi_hut */

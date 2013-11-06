@@ -115,12 +115,12 @@ need_fpt="no"
 # build all modules by default in maintainer mode or if option is given
 AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
   ok=$enableval, ok=$USE_MAINTAINER_MODE)
-#if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
-#  nfft_module_default="yes"
-#else
-#  nfft_module_default="no"
-#fi
-nfft_module_default=$enable_all
+if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
+  nfft_module_default="yes"
+else
+  nfft_module_default="no"
+fi
+#nfft_module_default=$enable_all
 
 # option for example programs
 AC_ARG_ENABLE(examples, [AC_HELP_STRING([--enable-examples],

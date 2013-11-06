@@ -89,18 +89,9 @@ static inline int prod_minus_a_int(int *vec, int a, int d)
 
 double nfst_phi_hut( nfst_plan *ths, int k, int d)
 {
-  //fprintf(stderr, "k = %d, d = %d\n", k, d);
   NFST_PRE_WINFUN( d);
-  //fprintf(stderr, "N[d] = %d, n[d] = %d\n", ths->N[d], ths->n[d]);
-  //fflush(stderr);
-  //fprintf(stderr, "m = %d\n", ths->m);
-  //fflush(stderr);
-  //fprintf(stderr, "-----\nths->b[d] = " __FE__ ", n[d] = %d, foo = " __FE__ "\n-----\n", ths->b[d], ths->n[d], POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / ths->n[d], K(2.0)));
-  //fflush(stderr);
-  double phi_hut_tmp = PHI_HUT( k, d);
-  //fprintf(stderr, "phi_hut_tmp = " __FE__ "\n", phi_hut_tmp);
+  double phi_hut_tmp = PHI_HUT(ths->n[d], k, d);
   NFST_POST_WINFUN( d);
-  //fprintf(stderr, "N[d] = %d, n[d] = %d\n", ths->N[d], ths->n[d]);
 
   return phi_hut_tmp;
 }

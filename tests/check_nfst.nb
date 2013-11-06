@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     32879,        793]
-NotebookOptionsPosition[     32164,        766]
-NotebookOutlinePosition[     32553,        783]
-CellTagsIndexPosition[     32510,        780]
+NotebookDataLength[     33182,        800]
+NotebookOptionsPosition[     32467,        773]
+NotebookOutlinePosition[     32856,        790]
+CellTagsIndexPosition[     32813,        787]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -174,14 +174,20 @@ Cell[BoxData[{
           RowBox[{
            RowBox[{"fhat", "[", 
             RowBox[{"[", "k", "]"}], "]"}], "*", 
-           RowBox[{"Sin", "[", 
-            RowBox[{"2", "*", "\[Pi]", "*", 
-             RowBox[{"Dot", "[", 
-              RowBox[{
-               RowBox[{"II", "[", 
-                RowBox[{"[", "k", "]"}], "]"}], ",", 
-               RowBox[{"x", "[", 
-                RowBox[{"[", "j", "]"}], "]"}]}], "]"}]}], "]"}]}], ",", 
+           RowBox[{"Product", "[", 
+            RowBox[{
+             RowBox[{"Sin", "[", 
+              RowBox[{"2", "*", "\[Pi]", "*", 
+               RowBox[{
+                RowBox[{"II", "[", 
+                 RowBox[{"[", "k", "]"}], "]"}], "[", 
+                RowBox[{"[", "i", "]"}], "]"}], "*", 
+               RowBox[{
+                RowBox[{"x", "[", 
+                 RowBox[{"[", "j", "]"}], "]"}], "[", 
+                RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"i", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ",", 
           RowBox[{"{", 
            RowBox[{"k", ",", "1", ",", 
             RowBox[{"Length", "[", "II", "]"}]}], "}"}]}], "]"}], ",", 
@@ -332,7 +338,8 @@ Cell[BoxData[{
    3.548344607348515*^9, 3.548344608870598*^9}, {3.5912500481984653`*^9, 
    3.591250076895479*^9}, {3.591250218861248*^9, 3.591250226338402*^9}, {
    3.5912503577979517`*^9, 3.59125035946841*^9}, {3.591250425060781*^9, 
-   3.5912504274191008`*^9}, {3.59125045807473*^9, 3.591250517668788*^9}}],
+   3.5912504274191008`*^9}, {3.59125045807473*^9, 3.591250517668788*^9}, {
+   3.592322544113718*^9, 3.592322547480382*^9}}],
 
 Cell[BoxData[
  RowBox[{
@@ -788,13 +795,13 @@ Cell[545, 20, 1621, 27, 43, "Input",
 Cell[2169, 49, 352, 10, 27, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[2524, 61, 12998, 273, 418, "Input",
+Cell[2524, 61, 13301, 280, 418, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[15525, 336, 5123, 120, 178, "Input"],
-Cell[20651, 458, 3932, 103, 178, "Input"],
-Cell[24586, 563, 3975, 102, 178, "Input"],
-Cell[28564, 667, 3596, 97, 178, "Input"]
+Cell[15828, 343, 5123, 120, 178, "Input"],
+Cell[20954, 465, 3932, 103, 178, "Input"],
+Cell[24889, 570, 3975, 102, 178, "Input"],
+Cell[28867, 674, 3596, 97, 178, "Input"]
 }
 ]
 *)

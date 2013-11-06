@@ -79,7 +79,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
 
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
-      that->f_hat[j]*=cexp(-2*KPI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0]*that->w[j],0);
+      that->f_hat[j]*=cexp(-2*KPI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0], ths->n[0]*that->w[j],0);
     nfft_trafo(&that->plan);
     for(j=0;j<that->M_total;j++){
       /* PHI has compact support */
@@ -144,7 +144,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 
   for(j=0;j<that->N_total;j++)
   {
-    f_hat[j] /= PHI_HUT(ths->n[0]*that->w[j],0);
+    f_hat[j] /= PHI_HUT(ths->n[0],ths->n[0]*that->w[j],0);
   }
 
   nfft_free(that->plan.f_hat);
@@ -215,7 +215,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 
   for(j=0;j<that->M_total;j++)
   {
-    that->f[j] /= PHI_HUT(ths->n[0]*that->plan.x[3*j+2],0);
+    that->f[j] /= PHI_HUT(ths->n[0],ths->n[0]*that->plan.x[3*j+2],0);
   }
 
 	WINDOW_HELP_FINALIZE
@@ -232,7 +232,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
 
   for(j=0;j<that->M_total;j++)
   {
-    that->f[j] /= PHI_HUT(ths->n[0]*that->plan.x[3*j+2],0);
+    that->f[j] /= PHI_HUT(ths->n[0],ths->n[0]*that->plan.x[3*j+2],0);
   }
 
   nfft_adjoint(&that->plan);

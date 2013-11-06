@@ -296,9 +296,10 @@ static int check_single(const testcase_delegate_t *testcase,
   trafo_delegate->trafo(&p);
 
   /* debug */
-  /*for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
-      CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
+  /*fprintf(stderr, "\n");
+  for (j = 0; j < M; j++)
+    fprintf(stderr, "f[%2d] = " __FE__ ", f[%2d] = " __FE__ ", err = " __FE__ "\n", j,
+      f[j], j, p.f[j], ABS(f[j] - p.f[j]) / ABS(f[j]));*/
 
   /* Standard NFFT error measure. */
   {
@@ -346,9 +347,13 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
 {
   const testcase_delegate_file_t *ego = (const testcase_delegate_file_t*)ego_;
   int j;
+  char filename[200];
+  char* c = rindex(ego->filename, SEP[0]);
   FILE *file = fopen(ego->filename, "r");
 
-  printf("%-28s", ego->filename);
+  filename[0] = (char) 0;
+  strlcpy(filename, &c[1], &ego->filename[strlen(ego->filename)] - c);
+  printf("%-28s", filename);
 
   /* Dimensions. */
   fscanf(file, "%d", d);

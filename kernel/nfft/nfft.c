@@ -42,6 +42,9 @@
 #include <assert.h>
 #endif
 
+#undef X
+#define X(name) NFFT(name)
+
 /** Compute aggregated product of integer array. */
 static inline INT intprod(const INT *vec, const INT d)
 {
@@ -77,16 +80,16 @@ static inline void sort0(const INT d, const INT *n, const INT m,
 
   for (i = 0; i < local_x_num; i++)
   {
-    ar_x[2*i] = 0;
-    ar_x[2*i+1] = i;
+    ar_x[2 * i] = 0;
+    ar_x[2 *i + 1] = i;
     for (j = 0; j < d; j++)
     {
-      help = (INT) LRINT(FLOOR(n[j] * local_x[d*i+j] - m));
+      help = (INT) LRINT(FLOOR(n[j] * local_x[d * i + j] - m));
       u_j[j] = (help % n[j] + n[j]) % n[j];
 
-      ar_x[2*i] += u_j[j];
+      ar_x[2 * i] += u_j[j];
       if (j + 1 < d)
-        ar_x[2*i] *= n[j+1];
+        ar_x[2 * i] *= n[j + 1];
     }
   }
 
@@ -99,7 +102,7 @@ static inline void sort0(const INT d, const INT *n, const INT m,
   Y(sort_node_indices_radix_lsdf)(local_x_num, ar_x, ar_x_temp, rhigh);
 #ifdef OMP_ASSERT
   for (i = 1; i < local_x_num; i++)
-    assert(ar_x[2*(i-1)] <= ar_x[2*i]);
+    assert(ar_x[2 * (i - 1)] <= ar_x[2 * i]);
 #endif
   Y(free)(ar_x_temp);
 }
@@ -389,7 +392,7 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 
-#define MACRO_without_PRE_PHI_HUT / (PHI_HUT(ks[t2]-(ths->N[t2]/2),t2));
+#define MACRO_without_PRE_PHI_HUT / (PHI_HUT(ths->n[t2],ks[t2]-(ths->N[t2]/2),t2));
 
 #define MACRO_init_k_ks                                                       \
 {                                                                             \
@@ -545,7 +548,7 @@ static inline void nfft_D_openmp_A(X(plan) *ths)
 
       for (t = 0; t < ths->d; t++)
       {
-        c_phi_inv_k_val /= (PHI_HUT(ks[t]-(ths->N[t]/2),t));
+        c_phi_inv_k_val /= (PHI_HUT(ths->n[t],ks[t]-(ths->N[t]/2),t));
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
         k_plain_val = k_plain_val*ths->n[t] + k[t];
       }
@@ -640,7 +643,7 @@ static void nfft_D_openmp_T(X(plan) *ths)
 
       for (t = 0; t < ths->d; t++)
       {
-        c_phi_inv_k_val /= (PHI_HUT(ks[t]-(ths->N[t]/2),t));
+        c_phi_inv_k_val /= (PHI_HUT(ths->n[t],ks[t]-(ths->N[t]/2),t));
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
         k_plain_val = k_plain_val*ths->n[t] + k[t];
       }
@@ -2524,8 +2527,8 @@ void X(trafo_1d)(X(plan) *ths)
       #pragma omp parallel for default(shared) private(k)
       for (k = 0; k < N2; k++)
       {
-        g_hat1[k] = f_hat1[k] / (PHI_HUT(k-N2,0));
-        g_hat2[k] = f_hat2[k] / (PHI_HUT(k,0));
+        g_hat1[k] = f_hat1[k] / (PHI_HUT(ths->n[0],k-N2,0));
+        g_hat2[k] = f_hat2[k] / (PHI_HUT(ths->n[0],k,0));
       }
     }
     TOC(0)
@@ -2586,8 +2589,8 @@ void X(adjoint_1d)(X(plan) *ths)
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < N/2; k++)
     {
-      f_hat1[k] = g_hat1[k] / (PHI_HUT(k-N/2,0));
-      f_hat2[k] = g_hat2[k] / (PHI_HUT(k,0));
+      f_hat1[k] = g_hat1[k] / (PHI_HUT(ths->n[0],k-N/2,0));
+      f_hat2[k] = g_hat2[k] / (PHI_HUT(ths->n[0],k,0));
     }
   }
   TOC(0)
@@ -3563,12 +3566,12 @@ void X(trafo_2d)(X(plan) *ths)
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
     for(k0=0;k0<N0/2;k0++)
       {
-  ck01=K(1.0)/(PHI_HUT(k0-N0/2,0));
-  ck02=K(1.0)/(PHI_HUT(k0,0));
+  ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
+  ck02=K(1.0)/(PHI_HUT(ths->n[0],k0,0));
   for(k1=0;k1<N1/2;k1++)
     {
-      ck11=K(1.0)/(PHI_HUT(k1-N1/2,1));
-      ck12=K(1.0)/(PHI_HUT(k1,1));
+      ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
+      ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
       g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] = f_hat[k0*N1+k1]             * ck01 * ck11;
       g_hat[k0*n1+n1-N1/2+k1]           = f_hat[(N0/2+k0)*N1+k1]      * ck02 * ck11;
       g_hat[(n0-N0/2+k0)*n1+k1]         = f_hat[k0*N1+N1/2+k1]        * ck01 * ck12;
@@ -3654,12 +3657,12 @@ void X(adjoint_2d)(X(plan) *ths)
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
     for(k0=0;k0<N0/2;k0++)
       {
-  ck01=K(1.0)/(PHI_HUT(k0-N0/2,0));
-  ck02=K(1.0)/(PHI_HUT(k0,0));
+  ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
+  ck02=K(1.0)/(PHI_HUT(ths->n[0],k0,0));
   for(k1=0;k1<N1/2;k1++)
     {
-      ck11=K(1.0)/(PHI_HUT(k1-N1/2,1));
-      ck12=K(1.0)/(PHI_HUT(k1,1));
+      ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
+      ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
       f_hat[k0*N1+k1]             = g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] * ck01 * ck11;
       f_hat[(N0/2+k0)*N1+k1]      = g_hat[k0*n1+n1-N1/2+k1]           * ck02 * ck11;
       f_hat[k0*N1+N1/2+k1]        = g_hat[(n0-N0/2+k0)*n1+k1]         * ck01 * ck12;
@@ -5149,17 +5152,17 @@ void X(trafo_3d)(X(plan) *ths)
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
     for(k0=0;k0<N0/2;k0++)
       {
-  ck01=K(1.0)/(PHI_HUT(k0-N0/2,0));
-  ck02=K(1.0)/(PHI_HUT(k0,0));
+  ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
+  ck02=K(1.0)/(PHI_HUT(ths->n[0],k0,0));
   for(k1=0;k1<N1/2;k1++)
     {
-      ck11=K(1.0)/(PHI_HUT(k1-N1/2,1));
-      ck12=K(1.0)/(PHI_HUT(k1,1));
+      ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
+      ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
 
       for(k2=0;k2<N2/2;k2++)
         {
-    ck21=K(1.0)/(PHI_HUT(k2-N2/2,2));
-    ck22=K(1.0)/(PHI_HUT(k2,2));
+    ck21=K(1.0)/(PHI_HUT(ths->n[2],k2-N2/2,2));
+    ck22=K(1.0)/(PHI_HUT(ths->n[2],k2,2));
 
     g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+n2-N2/2+k2] = f_hat[(k0*N1+k1)*N2+k2]                  * ck01 * ck11 * ck21;
     g_hat[(k0*n1+n1-N1/2+k1)*n2+n2-N2/2+k2]           = f_hat[((N0/2+k0)*N1+k1)*N2+k2]           * ck02 * ck11 * ck21;
@@ -5276,17 +5279,17 @@ void X(adjoint_3d)(X(plan) *ths)
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
     for(k0=0;k0<N0/2;k0++)
       {
-  ck01=K(1.0)/(PHI_HUT(k0-N0/2,0));
-  ck02=K(1.0)/(PHI_HUT(k0,0));
+  ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
+  ck02=K(1.0)/(PHI_HUT(ths->n[0],k0,0));
   for(k1=0;k1<N1/2;k1++)
     {
-      ck11=K(1.0)/(PHI_HUT(k1-N1/2,1));
-      ck12=K(1.0)/(PHI_HUT(k1,1));
+      ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
+      ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
 
       for(k2=0;k2<N2/2;k2++)
         {
-    ck21=K(1.0)/(PHI_HUT(k2-N2/2,2));
-    ck22=K(1.0)/(PHI_HUT(k2,2));
+    ck21=K(1.0)/(PHI_HUT(ths->n[2],k2-N2/2,2));
+    ck22=K(1.0)/(PHI_HUT(ths->n[2],k2,2));
 
     f_hat[(k0*N1+k1)*N2+k2]                  = g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+n2-N2/2+k2] * ck01 * ck11 * ck21;
     f_hat[((N0/2+k0)*N1+k1)*N2+k2]           = g_hat[(k0*n1+n1-N1/2+k1)*n2+n2-N2/2+k2]           * ck02 * ck11 * ck21;
@@ -5383,17 +5386,20 @@ void X(adjoint)(X(plan) *ths)
  */
 static void precompute_phi_hut(X(plan) *ths)
 {
-  INT ks[ths->d];                       /**< index over all frequencies      */
-  INT t;                                /**< index over all dimensions       */
+  INT ks[ths->d]; /* index over all frequencies */
+  INT t; /* index over all dimensions */
 
-  ths->c_phi_inv = (R**) Y(malloc)(ths->d*sizeof(R*));
+  ths->c_phi_inv = (R**) Y(malloc)(ths->d * sizeof(R*));
 
-  for(t=0; t<ths->d; t++)
+  for (t = 0; t < ths->d; t++)
+  {
+    ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
+
+    for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
-      ths->c_phi_inv[t]= (R*)Y(malloc)(ths->N[t]*sizeof(R));
-      for(ks[t]=0; ks[t]<ths->N[t]; ks[t]++)
-  ths->c_phi_inv[t][ks[t]]= K(1.0)/(PHI_HUT(ks[t]-ths->N[t]/2,t));
+      ths->c_phi_inv[t][ks[t]]= K(1.0) / (PHI_HUT(ths->n[t], ks[t] - ths->N[t] / 2,t));
     }
+  }
 } /* nfft_phi_hut */
 
 /** create a lookup table, but NOT for each node

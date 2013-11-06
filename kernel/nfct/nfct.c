@@ -21,32 +21,28 @@
 /* Nonequispaced fast cosine transform
  * Author: Steffen Klatt 2004-2006, Jens Keiner 2010 */
 
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
+/* configure header */
+#include "config.h"
 
+/* complex datatype (maybe) */
+#ifdef HAVE_COMPLEX_H
+#include<complex.h>
+#endif
+
+/* NFFT headers */
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#if defined(NFFT_SINGLE)
-#define X(name) CONCAT(nfctf_, name)
-#elif defined(NFFT_LDOUBLE)
-#define X(name) CONCAT(nfctl_, name)
-#else
-#define X(name) CONCAT(nfct_, name)
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
-static inline int fftw_2N(int n)
-{
-  return 2 * (n - 1);
-}
+#ifdef OMP_ASSERT
+#include <assert.h>
+#endif
 
-static inline int fftw_2N_rev(int n)
-{
-  return (LRINT(K(0.5) * n) + 1);
-}
+#undef X
+#define X(name) NFCT(name)
 
 static inline int prod_int(int *vec, int d)
 {
@@ -83,17 +79,17 @@ static inline int prod_int(int *vec, int d)
   memset(g, 0, prod_int(ths->n, ths->d) * sizeof(R));
 
 #define NFCT_PRE_WINFUN(d) ths->N[d] = 2 * ths->N[d]; \
-  ths->n[d] = fftw_2N(ths->n[d]);
+  ths->n[d] = 2 * (ths->n[d] - 1);
 
 #define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(K(0.5) * ths->N[d]); \
-  ths->n[d] = fftw_2N_rev(ths->n[d]);
+  ths->n[d] = LRINT(K(0.5) * ths->n[d]) + 1;
 
 #define NFCT_WINDOW_HELP_INIT WINDOW_HELP_INIT
 
 R X(phi_hut)(X(plan) *ths, int k, int d)
 {
   NFCT_PRE_WINFUN(d);
-  R phi_hut_tmp = PHI_HUT(k, d);
+  R phi_hut_tmp = PHI_HUT(ths->n[d],k, d);
   NFCT_POST_WINFUN(d);
 
   return phi_hut_tmp;
@@ -112,10 +108,10 @@ R X(phi)(X(plan) *ths, R x, int d)
 #define MACRO_without_cos_vec COS(K(2.0) * KPI * ka[t] * NODE(j,t))
 
 #define MACRO_with_PRE_PHI_HUT ths->c_phi_inv[t][kg[t]];
-#define MACRO_compute_PHI_HUT_INV (K(1.0) / (X(phi_hut)(ths, kg[t], t)))
+#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT(ths->n[t], kg[t], t)))
 
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]]
-#define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(fftw_2N(ths->n[t]))*/), t)
+#define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(2 * (ths->n[t] - 1))*/), t)
 
 /** direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
@@ -153,8 +149,8 @@ R X(phi)(X(plan) *ths, R x, int d)
     cos_vec[t][0] = K(1.0); \
     cos_vec[t][1] = COS(K(2.0) * KPI * NODE(j,t)); \
     for (k = 2; k < ths->N[t]; k++) \
-      cos_vec[t][k] = K(2.0) * cos_vec[t][1] * cos_vec[t][k-1] - \
-        cos_vec[t][k-2]; \
+      cos_vec[t][k] = K(2.0) * cos_vec[t][1] * cos_vec[t][k-1] \
+                      - cos_vec[t][k-2]; \
   } \
 }
 
@@ -254,7 +250,7 @@ MACRO_ndct(adjoint)
 #define MACRO_nfct__lower_boundary(j,act_dim) \
 { \
   lb[(act_dim)] = \
-    LRINT(NODE((j),(act_dim)) * fftw_2N(ths->n[(act_dim)])) - ths->m; \
+    LRINT(NODE((j),(act_dim)) * 2 * (ths->n[(act_dim)] - 1)) - ths->m; \
 }
 
 #define MACRO_nfct_D_compute_A \
@@ -380,11 +376,11 @@ MACRO_nfct_D(T)
   /* determine index in g-array corresponding to lb[(i0)] */ \
   if (lb[(i0)] < 0) \
     lg_offset[(i0)] = \
-      (lb[(i0)] % fftw_2N(ths->n[(i0)])) + fftw_2N(ths->n[(i0)]); \
+      (lb[(i0)] % (2 * (ths->n[(i0)] - 1))) + 2 * (ths->n[(i0)] - 1); \
   else \
-    lg_offset[(i0)] = lb[(i0)] % (fftw_2N(ths->n[(i0)])); \
+    lg_offset[(i0)] = lb[(i0)] % (2 * (ths->n[(i0)] - 1)); \
     if (lg_offset[(i0)] >= ths->n[(i0)]) \
-      lg_offset[(i0)] = -(fftw_2N(ths->n[(i0)]) - lg_offset[(i0)]); \
+      lg_offset[(i0)] = -(2 * (ths->n[(i0)] - 1) - lg_offset[(i0)]); \
 }
 
 #define MACRO_set__lg__to__lg_offset \
@@ -694,7 +690,7 @@ void X(adjoint)(X(plan) *ths)
 
 static inline void precompute_phi_hut(X(plan) *ths)
 {
-  int kg[ths->d]; /* index over all frequencies */
+  int ks[ths->d]; /* index over all frequencies */
   int t; /* index over all dimensions */
 
   ths->c_phi_inv = (R**)Y(malloc)(ths->d * sizeof(R*));
@@ -703,9 +699,9 @@ static inline void precompute_phi_hut(X(plan) *ths)
   {
     ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
 
-    for (kg[t] = 0; kg[t] < ths->N[t]; kg[t]++)
+    for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
-      ths->c_phi_inv[t][kg[t]] = MACRO_compute_PHI_HUT_INV;
+      ths->c_phi_inv[t][ks[t]] = K(1.0) / (PHI_HUT(2 * (ths->n[t] - 1), ks[t], t));
     }
   }
 } /* nfct_phi_hut */
@@ -801,7 +797,7 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   ths->n = (int*) Y(malloc)(ths->d * sizeof(int));
 
   for (t = 0; t < d; t++)
-    ths->n[t] = fftw_2N(Y(next_power_of_2)(ths->N[t]));
+    ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1);
 
   ths->m = WINDOW_HELP_ESTIMATE_m;
 
@@ -818,7 +814,7 @@ void nfct_init_m(nfct_plan *ths, int d, int *N, int M_total, int m)
   int t, n[d];
 
   for(t = 0; t < d; t++)
-    n[t] = fftw_2N(X(next_power_of_2)(N[t]));
+    n[t] = 2 * (X(next_power_of_2)(N[t]) - 1);
 
   nfct_init_guru(ths, d, N, M_total, n, m, NFCT_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS);
 }
@@ -946,3 +942,4 @@ void X(finalize)(X(plan) *ths)
 
   Y(free)(ths->r2r_kind);
 } /* nfct_finalize */
+

@@ -156,13 +156,13 @@ typedef ptrdiff_t INT;
 /* macros for window functions */
 
 #if defined(DIRAC_DELTA)
-  #define PHI_HUT(k,d) K(1.0)
+  #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
   #define WINDOW_HELP_INIT(d)
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)
-  #define PHI_HUT(k,d) ((R)EXP(-(POW(KPI*(k)/ths->n[d],K(2.0))*ths->b[d])))
+  #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
   #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
   #define WINDOW_HELP_INIT \
@@ -176,7 +176,7 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #define WINDOW_HELP_ESTIMATE_m 12
 #elif defined(B_SPLINE)
-  #define PHI_HUT(k,d) ((R)(((k) == 0) ? K(1.0) / ths->n[(d)] : \
+  #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / ths->n[(d)]) / ((k) * KPI / ths->n[(d)]), \
       K(2.0) * ths->m)/ths->n[(d)]))
   #define PHI(x,d) (Y(bspline)(2*ths->m,((x)*ths->n[(d)]) + \
@@ -188,8 +188,8 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m 11
 #elif defined(SINC_POWER)
-  #define PHI_HUT(k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
-    ((K(2.0) * ths->sigma[(d)] - 1) * ths->n[(d)] / \
+  #define PHI_HUT(n,k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
+    ((K(2.0) * ths->sigma[(d)] - 1) * n / \
       ths->sigma[(d)]) + (R)ths->m, ths->spline_coeffs))
   #define PHI(x,d) ((R)(ths->n[(d)] / ths->sigma[(d)] * \
     (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
@@ -203,8 +203,8 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
   #define WINDOW_HELP_ESTIMATE_m 9
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
-    POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / ths->n[d], K(2.0)))))
+  #define PHI_HUT(n,k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
+    POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / (n), K(2.0)))))
   #define PHI(x,d) ((R)((POW((R)(ths->m), K(2.0))\
     -POW((x)*ths->n[d],K(2.0))) > 0)? \
     SINH(ths->b[d] * SQRT(POW((R)(ths->m),K(2.0)) - \
