@@ -177,8 +177,8 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_ESTIMATE_m 12
 #elif defined(B_SPLINE)
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
-    POW(SIN((k) * KPI / ths->n[(d)]) / ((k) * KPI / ths->n[(d)]), \
-      K(2.0) * ths->m)/ths->n[(d)]))
+    POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
+      K(2.0) * ths->m)/n))
   #define PHI(x,d) (Y(bspline)(2*ths->m,((x)*ths->n[(d)]) + \
     (R)ths->m,ths->spline_coeffs) / ths->n[(d)])
   #define WINDOW_HELP_INIT \

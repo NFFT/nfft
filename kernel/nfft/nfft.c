@@ -560,6 +560,121 @@ static inline void nfft_D_openmp_A(X(plan) *ths)
 #endif
 
 #ifndef _OPENMP
+//static inline void nfft_D_serial_A(nfft_plan *ths)
+//{
+//  C *f_hat, *g_hat;
+//  R c_phi_inv_k[ths->d + 1];
+//  INT t, t2;
+//  INT k_L;
+//  INT kp[ths->d];
+//  INT k[ths->d];
+//  INT ks[ths->d];
+//  INT k_plain[ths->d + 1];
+//  INT ks_plain[ths->d + 1];
+//  f_hat = (C*) ths->f_hat;
+//  g_hat = (C*) ths->g_hat;
+//  ((__builtin_object_size(g_hat, 0) != (size_t) -1) ? __builtin___memset_chk(
+//      g_hat, 0, ths->n_total * sizeof(C), __builtin_object_size(g_hat, 0)) :
+//      __inline_memset_chk(g_hat, 0, ths->n_total * sizeof(C)));
+//  ;
+//  c_phi_inv_k[0] = ((R) 1.0);
+//  k_plain[0] = 0;
+//  ks_plain[0] = 0;
+//  if (ths->nfft_flags & (1U << 0))
+//  {
+//    {
+//      for (t = ths->d - 1; 0 <= t; t--)
+//      {
+//        kp[t] = k[t] = 0;
+//        ks[t] = ths->N[t] / 2;
+//      }
+//      t++;
+//    };
+//    for (k_L = 0; k_L < ths->N_total; k_L++)
+//    {
+//      {
+//        for (t2 = t; t2 < ths->d; t2++)
+//        {
+//          c_phi_inv_k[t2 + 1] = c_phi_inv_k[t2] * ths->c_phi_inv[t2][ks[t2]];
+//          ;
+//          ks_plain[t2 + 1] = ks_plain[t2] * ths->N[t2] + ks[t2];
+//          k_plain[t2 + 1] = k_plain[t2] * ths->n[t2] + k[t2];
+//        }
+//      };
+//      {
+//        g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
+//      };
+//      {
+//        for (t = ths->d - 1; (t > 0) && (kp[t] == ths->N[t] - 1); t--)
+//        {
+//          kp[t] = k[t] = 0;
+//          ks[t] = ths->N[t] / 2;
+//        }
+//        kp[t]++;
+//        k[t]++;
+//        ks[t]++;
+//        if (kp[t] == ths->N[t] / 2)
+//        {
+//          k[t] = ths->n[t] - ths->N[t] / 2;
+//          ks[t] = 0;
+//        }
+//      };
+//    }
+//  } else
+//  {
+//    {
+//      for (t = ths->d - 1; 0 <= t; t--)
+//      {
+//        kp[t] = k[t] = 0;
+//        ks[t] = ths->N[t] / 2;
+//      }
+//      t++;
+//    };
+//    for (k_L = 0; k_L < ths->N_total; k_L++)
+//    {
+//      {
+//        for (t2 = t; t2 < ths->d; t2++)
+//        {
+//          c_phi_inv_k[t2 + 1] =
+//              c_phi_inv_k[t2]
+//                  / (((R) (
+//                      ((ks[t2] - (ths->N[t2] / 2)) == 0) ? ((R) 1.0)
+//                          / ths->n[t2] :
+//                          pow(
+//                              sin(
+//                                  (ks[t2] - (ths->N[t2] / 2))
+//                                      * ((R) 3.1415926535897932384626433832795028841971693993751)
+//                                      / ths->ths->n[t2][(t2)])
+//                                  / ((ks[t2] - (ths->N[t2] / 2))
+//                                      * ((R) 3.1415926535897932384626433832795028841971693993751)
+//                                      / ths->ths->n[t2][(t2)]),
+//                              ((R) 2.0) * ths->m) / ths->ths->n[t2][(t2)])));
+//          ;
+//          ks_plain[t2 + 1] = ks_plain[t2] * ths->N[t2] + ks[t2];
+//          k_plain[t2 + 1] = k_plain[t2] * ths->n[t2] + k[t2];
+//        }
+//      };
+//      {
+//        g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
+//      };
+//      {
+//        for (t = ths->d - 1; (t > 0) && (kp[t] == ths->N[t] - 1); t--)
+//        {
+//          kp[t] = k[t] = 0;
+//          ks[t] = ths->N[t] / 2;
+//        }
+//        kp[t]++;
+//        k[t]++;
+//        ks[t]++;
+//        if (kp[t] == ths->N[t] / 2)
+//        {
+//          k[t] = ths->n[t] - ths->N[t] / 2;
+//          ks[t] = 0;
+//        }
+//      };
+//    }
+//  }
+//}
 MACRO_nfft_D(A)
 #endif
 

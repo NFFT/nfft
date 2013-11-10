@@ -239,7 +239,7 @@ R X(err_trafo_direct)(X(plan) *p)
 R X(err_trafo)(X(plan) *p)
 {
   if (p->nfft_flags & PRE_LIN_PSI)
-    return FMAX(K(2.15)*K(10E-08), K(50.0) * EPSILON);
+    return FMAX(K(2.4)*K(10E-08), K(50.0) * EPSILON);
   {
     const R m = ((R)p->m);
     R s, err;
@@ -247,11 +247,11 @@ R X(err_trafo)(X(plan) *p)
     for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
       s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
-    err = K(4.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
+    err = K(12.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
 #elif defined(B_SPLINE)
     //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
-    //printf("<s = %E>", s);
-    //fflush(stdout);
+    printf("\n<s = %E>\n", s);
+    fflush(stdout);
     err = K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));

@@ -190,16 +190,16 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
 
 AC_MSG_CHECKING([window function])
 case "$window" in
+  kaiserbessel)
+    AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
   gaussian)
     AC_DEFINE(GAUSSIAN,1,[Define to enable Gaussian window function.]);;
   bspline)
     AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
-  kaiserbessel)
-    AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
   delta)
-    AC_DEFINE(B_SPLINE,1,[Define to enable Dirac delta window function.]);;
+    AC_DEFINE(DIRAC_DELTA,1,[Define to enable Dirac delta window function.]);;
   *)
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
