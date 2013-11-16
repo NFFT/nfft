@@ -229,13 +229,13 @@ static R err_trafo(X(plan) *p)
     err = K(12.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
 #elif defined(B_SPLINE)
     //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
-    //printf("<s = %E>", s);
+    //printf("\n<s = %E>\n", s);
     //fflush(stdout);
-    err = K(3000.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
+    err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->nfct_flags | PRE_LIN_PSI)
+    if (p->nfct_flags & PRE_LIN_PSI)
     {
       R K = 1;//((R)p->K);
       err = EXP(K2PI * m)/(K(8.0) * K * K);
@@ -253,8 +253,8 @@ static R err_trafo(X(plan) *p)
 #define MAX_SECONDS 0.1
 
 static int check_single(const testcase_delegate_t *testcase,
-    init_delegate_t *init_delegate, check_delegate_t *check_delegate,
-    trafo_delegate_t *trafo_delegate)
+  init_delegate_t *init_delegate, check_delegate_t *check_delegate,
+  trafo_delegate_t *trafo_delegate)
 {
   int ok = 0;
   X(plan) p;

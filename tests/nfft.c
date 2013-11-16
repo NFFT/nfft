@@ -27,9 +27,9 @@
 
 #include "config.h"
 #include "nfft3.h"
-#include "nfft.h"
-#include "cycle.h"
 #include "infft.h"
+#include "cycle.h"
+#include "nfft.h"
 
 #define ABSPATH(x) STRINGIZE(SRCDIR) SEP x
 
@@ -93,7 +93,7 @@ struct check_delegate_s
 
 /* Trafo delegate. */
 typedef void (*trafo_t)(X(plan) *p);
-typedef R (*cost_t)(X(plan) *p);
+typedef double (*cost_t)(X(plan) *p);
 typedef const char* (*check_t)(X(plan) *p);
 typedef R (*acc_t)(X(plan) *p);
 
@@ -544,14 +544,14 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    (*x)[j] = X(drand48)() - K(0.5);
+    (*x)[j] = Y(drand48)() - K(0.5);
   }
 
   /* Function values. */
   *f = malloc(M[0] * sizeof(C));
   for (j = 0; j < M[0]; j++)
   {
-    (*f)[j] = (X(drand48)() - K(0.5)) + (X(drand48)() - K(0.5)) * I;
+    (*f)[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
   }
 
   {
@@ -649,6 +649,9 @@ static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", ini
 /* Check routines. */
 static void prepare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
 {
+  UNUSED(ego);
+  UNUSED(M);
+  UNUSED(f);
   int j;
 
   /* Fourier coefficients. */
@@ -660,6 +663,9 @@ static void prepare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const
 
 static void prepare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
 {
+  UNUSED(ego);
+  UNUSED(NN);
+  UNUSED(f_hat);
   int j;
 
   /* Fourier coefficients. */
@@ -671,6 +677,8 @@ static void prepare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, con
 
 static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
 {
+  UNUSED(ego);
+  UNUSED(f_hat);
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
@@ -685,6 +693,8 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
 
 static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
 {
+  UNUSED(ego);
+  UNUSED(f);
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
@@ -754,12 +764,30 @@ static const testcase_delegate_file_t nfft_1d_50_50 = {setup_file, destroy_file,
 
 static const testcase_delegate_file_t *testcases_1d_file[] =
 {
-  &nfft_1d_1_1, &nfft_1d_1_10, &nfft_1d_1_20, &nfft_1d_1_50,
-  &nfft_1d_2_1, &nfft_1d_2_10, &nfft_1d_2_20, &nfft_1d_2_50,
-  &nfft_1d_4_1, &nfft_1d_4_10, &nfft_1d_4_20, &nfft_1d_4_50,
-  &nfft_1d_10_1, &nfft_1d_10_10, &nfft_1d_10_20, &nfft_1d_10_50,
-  &nfft_1d_20_1, &nfft_1d_20_10, &nfft_1d_20_20, &nfft_1d_20_50,
-  &nfft_1d_50_1, &nfft_1d_50_10, &nfft_1d_50_20, &nfft_1d_50_50,
+  &nfft_1d_1_1,
+  &nfft_1d_1_10,
+  &nfft_1d_1_20,
+  &nfft_1d_1_50,
+  &nfft_1d_2_1,
+  &nfft_1d_2_10,
+  &nfft_1d_2_20,
+  &nfft_1d_2_50,
+  &nfft_1d_4_1,
+  &nfft_1d_4_10,
+  &nfft_1d_4_20,
+  &nfft_1d_4_50,
+  &nfft_1d_10_1,
+  &nfft_1d_10_10,
+  &nfft_1d_10_20,
+  &nfft_1d_10_50,
+  &nfft_1d_20_1,
+  &nfft_1d_20_10,
+  &nfft_1d_20_20,
+  &nfft_1d_20_50,
+  &nfft_1d_50_1,
+  &nfft_1d_50_10,
+  &nfft_1d_50_20,
+  &nfft_1d_50_50,
 };
 
 static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo, &trafo_1d};
