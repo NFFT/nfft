@@ -44,6 +44,16 @@
 #undef X
 #define X(name) NFCT(name)
 
+static inline int fftw_2N(int n)
+{
+  return 2 * (n - 1);
+}
+
+static inline int fftw_2N_rev(int n)
+{
+  return (LRINT(K(0.5) * n) + 1);
+}
+
 static inline int prod_int(int *vec, int d)
 {
   int t, prod = 1;
@@ -79,17 +89,17 @@ static inline int prod_int(int *vec, int d)
   memset(g, 0, prod_int(ths->n, ths->d) * sizeof(R));
 
 #define NFCT_PRE_WINFUN(d) ths->N[d] = 2 * ths->N[d]; \
-  ths->n[d] = 2 * (ths->n[d] - 1);
+  ths->n[d] = fftw_2N(ths->n[d]);
 
 #define NFCT_POST_WINFUN(d) ths->N[d] = LRINT(K(0.5) * ths->N[d]); \
-  ths->n[d] = LRINT(K(0.5) * ths->n[d]) + 1;
+  ths->n[d] = fftw_2N_rev(ths->n[d]);
 
 #define NFCT_WINDOW_HELP_INIT WINDOW_HELP_INIT
 
 R X(phi_hut)(X(plan) *ths, int k, int d)
 {
   NFCT_PRE_WINFUN(d);
-  R phi_hut_tmp = PHI_HUT(ths->n[d],k, d);
+  R phi_hut_tmp = PHI_HUT(ths->n[d], k, d);
   NFCT_POST_WINFUN(d);
 
   return phi_hut_tmp;
@@ -108,10 +118,10 @@ R X(phi)(X(plan) *ths, R x, int d)
 #define MACRO_without_cos_vec COS(K(2.0) * KPI * ka[t] * NODE(j,t))
 
 #define MACRO_with_PRE_PHI_HUT ths->c_phi_inv[t][kg[t]];
-#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT(ths->n[t], kg[t], t)))
+#define MACRO_compute_PHI_HUT_INV (K(1.0) / (X(phi_hut)(ths, kg[t], t)))
 
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]]
-#define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(2 * (ths->n[t] - 1))*/), t)
+#define MACRO_compute_PSI X(phi)(ths, NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))/*(R)(fftw_2N(ths->n[t]))*/), t)
 
 /** direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
@@ -149,8 +159,8 @@ R X(phi)(X(plan) *ths, R x, int d)
     cos_vec[t][0] = K(1.0); \
     cos_vec[t][1] = COS(K(2.0) * KPI * NODE(j,t)); \
     for (k = 2; k < ths->N[t]; k++) \
-      cos_vec[t][k] = K(2.0) * cos_vec[t][1] * cos_vec[t][k-1] \
-                      - cos_vec[t][k-2]; \
+      cos_vec[t][k] = K(2.0) * cos_vec[t][1] * cos_vec[t][k-1] - \
+        cos_vec[t][k-2]; \
   } \
 }
 
@@ -230,8 +240,158 @@ R X(phi)(X(plan) *ths, R x, int d)
     } \
 } /* ndct_{trafo, adjoint} */
 
-MACRO_ndct(trafo)
-MACRO_ndct(adjoint)
+//MACRO_ndct(trafo)
+//MACRO_ndct(adjoint)
+
+void X(trafo_direct)(const X(plan) *ths)
+{
+  R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
+
+  memset(f, 0, ths->M_total * sizeof(R));
+
+  if (ths->d == 1)
+  {
+    /* specialize for univariate case, rationale: faster */
+    int j;
+    #pragma omp parallel for default(shared) private(j)
+    for (j = 0; j < ths->M_total; j++)
+    {
+      int k_L;
+      for (k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        R omega = K2PI * k_L * ths->x[j];
+        f[j] += f_hat[k_L] * COS(omega);
+      }
+    }
+  }
+  else
+  {
+    /* multivariate case */
+    int j;
+    #pragma omp parallel for default(shared) private(j)
+    for (j = 0; j < ths->M_total; j++)
+    {
+      R x[ths->d], omega, Omega[ths->d + 1];
+      int t, t2, k_L, k[ths->d];
+      Omega[0] = K(1.0);
+      for (t = 0; t < ths->d; t++)
+      {
+        k[t] = 0;
+        x[t] = K2PI * ths->x[j * ths->d + t];
+        Omega[t+1] = COS(((R)k[t]) * x[t]) * Omega[t];
+      }
+      omega = Omega[ths->d];
+
+      for (k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        f[j] += f_hat[k_L] * omega;
+        {
+          for (t = ths->d-1; (t >= 1) && (k[t] == (ths->N[t] - 1)); t--)
+            k[t] = 0;
+
+          k[t]++;
+
+          for (t2 = t; t2 < ths->d; t2++)
+            Omega[t2+1] = COS(((R)k[t2]) * x[t2]) * Omega[t2];
+
+          omega = Omega[ths->d];
+        }
+      }
+    }
+  }
+}
+
+void X(adjoint_direct)(const X(plan) *ths)
+{
+  R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
+
+  memset(f_hat, 0, ths->N_total * sizeof(R));
+
+  if (ths->d == 1)
+  {
+    /* specialize for univariate case, rationale: faster */
+#ifdef _OPENMP
+      int k_L;
+      #pragma omp parallel for default(shared) private(k_L)
+      for (k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        int j;
+        for (j = 0; j < ths->M_total; j++)
+        {
+          R omega = K2PI * k_L * ths->x[j];
+          f_hat[k_L] += f[j] * COS(omega);
+        }
+      }
+#else
+      int j;
+      for (j = 0; j < ths->M_total; j++)
+      {
+        int k_L;
+        for (k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          R omega = K2PI * k_L * ths->x[j];
+          f_hat[k_L] += f[j] * COS(omega);
+        }
+      }
+#endif
+  }
+  else
+  {
+    /* multivariate case */
+    int j, k_L;
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(j, k_L)
+    for (k_L = 0; k_L < ths->N_total; k_L++)
+    {
+      int k[ths->d], k_temp, t;
+
+      k_temp = k_L;
+
+      for (t = ths->d - 1; t >= 0; t--)
+      {
+        k[t] = k_temp % ths->N[t];
+        k_temp /= ths->N[t];
+      }
+
+      for (j = 0; j < ths->M_total; j++)
+      {
+        R omega = K(0.0);
+        for (t = 0; t < ths->d; t++)
+          omega += COS(K2PI * k[t] * ths->x[j * ths->d + t]);
+        f_hat[k_L] += f[j] * omega;
+      }
+    }
+#else
+    for (j = 0; j < ths->M_total; j++)
+    {
+      R x[ths->d], omega, Omega[ths->d+1];
+      int t, t2, k[ths->d];
+      Omega[0] = K(0.0);
+      for (t = 0; t < ths->d; t++)
+      {
+        k[t] = 0;
+        x[t] = K2PI * ths->x[j * ths->d + t];
+        Omega[t+1] = COS(((R)k[t]) * x[t]) * Omega[t];
+      }
+      omega = Omega[ths->d];
+      for (k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        f_hat[k_L] += f[j] * omega;
+
+        for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t] - 1); t--)
+          k[t] = 0;
+
+        k[t]++;
+
+        for (t2 = t; t2 < ths->d; t2++)
+          Omega[t2+1] = COS(((R)k[t2]) * x[t2]) * Omega[t2];
+
+        omega = Omega[ths->d];
+      }
+    }
+#endif
+  }
+}
 
 /** fast computation of non equispaced cosine transforms
 *  require O(N^d log(N) + M) arithemtical operations
@@ -250,7 +410,7 @@ MACRO_ndct(adjoint)
 #define MACRO_nfct__lower_boundary(j,act_dim) \
 { \
   lb[(act_dim)] = \
-    LRINT(NODE((j),(act_dim)) * 2 * (ths->n[(act_dim)] - 1)) - ths->m; \
+    LRINT(NODE((j),(act_dim)) * fftw_2N(ths->n[(act_dim)])) - ths->m; \
 }
 
 #define MACRO_nfct_D_compute_A \
@@ -376,11 +536,11 @@ MACRO_nfct_D(T)
   /* determine index in g-array corresponding to lb[(i0)] */ \
   if (lb[(i0)] < 0) \
     lg_offset[(i0)] = \
-      (lb[(i0)] % (2 * (ths->n[(i0)] - 1))) + 2 * (ths->n[(i0)] - 1); \
+      (lb[(i0)] % fftw_2N(ths->n[(i0)])) + fftw_2N(ths->n[(i0)]); \
   else \
-    lg_offset[(i0)] = lb[(i0)] % (2 * (ths->n[(i0)] - 1)); \
+    lg_offset[(i0)] = lb[(i0)] % (fftw_2N(ths->n[(i0)])); \
     if (lg_offset[(i0)] >= ths->n[(i0)]) \
-      lg_offset[(i0)] = -(2 * (ths->n[(i0)] - 1) - lg_offset[(i0)]); \
+      lg_offset[(i0)] = -(fftw_2N(ths->n[(i0)]) - lg_offset[(i0)]); \
 }
 
 #define MACRO_set__lg__to__lg_offset \
@@ -690,7 +850,7 @@ void X(adjoint)(X(plan) *ths)
 
 static inline void precompute_phi_hut(X(plan) *ths)
 {
-  int ks[ths->d]; /* index over all frequencies */
+  int kg[ths->d]; /* index over all frequencies */
   int t; /* index over all dimensions */
 
   ths->c_phi_inv = (R**)Y(malloc)(ths->d * sizeof(R*));
@@ -699,9 +859,9 @@ static inline void precompute_phi_hut(X(plan) *ths)
   {
     ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
 
-    for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
+    for (kg[t] = 0; kg[t] < ths->N[t]; kg[t]++)
     {
-      ths->c_phi_inv[t][ks[t]] = K(1.0) / (PHI_HUT(2 * (ths->n[t] - 1), ks[t], t));
+      ths->c_phi_inv[t][kg[t]] = MACRO_compute_PHI_HUT_INV;
     }
   }
 } /* nfct_phi_hut */
@@ -797,10 +957,12 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   ths->n = (int*) Y(malloc)(ths->d * sizeof(int));
 
   for (t = 0; t < d; t++)
-    ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1);
+    ths->n[t] = fftw_2N(Y(next_power_of_2)(ths->N[t]));
 
-  ths->m = WINDOW_HELP_ESTIMATE_m;
+/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
 
+  WINDOW_HELP_ESTIMATE_m;
+*/
   ths->nfct_flags = NFCT_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 
@@ -814,7 +976,7 @@ void nfct_init_m(nfct_plan *ths, int d, int *N, int M_total, int m)
   int t, n[d];
 
   for(t = 0; t < d; t++)
-    n[t] = 2 * (X(next_power_of_2)(N[t]) - 1);
+    n[t] = fftw_2N(X(next_power_of_2)(N[t]));
 
   nfct_init_guru(ths, d, N, M_total, n, m, NFCT_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS);
 }
@@ -873,7 +1035,7 @@ void X(init_3d)(X(plan) *ths, int N0, int N1, int N2, int M_total)
   X(init)(ths, 3, N, M_total);
 }
 
-const char* nfct_check(nfct_plan *ths)
+const char* X(check)(nfct_plan *ths)
 {
   int j;
 
@@ -942,4 +1104,3 @@ void X(finalize)(X(plan) *ths)
 
   Y(free)(ths->r2r_kind);
 } /* nfct_finalize */
-

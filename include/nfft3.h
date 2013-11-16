@@ -269,9 +269,9 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int
   int m, unsigned nfct_flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \

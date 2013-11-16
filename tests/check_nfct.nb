@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     34258,        815]
-NotebookOptionsPosition[     33543,        788]
-NotebookOutlinePosition[     33932,        805]
-CellTagsIndexPosition[     33889,        802]
+NotebookDataLength[     47872,       1177]
+NotebookOptionsPosition[     47032,       1147]
+NotebookOutlinePosition[     47421,       1164]
+CellTagsIndexPosition[     47378,       1161]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -76,6 +76,34 @@ Cell[BoxData[{
       RowBox[{"{", 
        RowBox[{"prefix", ",", 
         RowBox[{"\"\<nfct_\>\"", "<>", 
+         RowBox[{"ToString", "[", "d", "]"}], "<>", "\"\<d_\>\"", "<>", 
+         RowBox[{"StringJoin", "[", 
+          RowBox[{
+           RowBox[{"Map", "[", 
+            RowBox[{
+             RowBox[{"Function", "[", 
+              RowBox[{"x", ",", 
+               RowBox[{
+                RowBox[{"ToString", "[", "x", "]"}], "<>", "\"\<_\>\""}]}], 
+              "]"}], ",", "NN"}], "]"}], "<>", 
+           RowBox[{"ToString", "[", "M", "]"}], "<>", "\"\<.txt\>\""}], 
+          "]"}]}]}], "}"}], "]"}], "]"}]}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"GenerateFilenameAdjoint", "[", "prefix_", "]"}], "[", 
+   RowBox[{"NN_", ",", "M_"}], "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"d", "=", 
+      RowBox[{"Length", "[", "NN", "]"}]}], " ", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Dimension", "."}], " ", "*)"}], "}"}], ",", 
+    RowBox[{"Return", "[", 
+     RowBox[{"FileNameJoin", "[", 
+      RowBox[{"{", 
+       RowBox[{"prefix", ",", 
+        RowBox[{"\"\<nfct_adjoint_\>\"", "<>", 
          RowBox[{"ToString", "[", "d", "]"}], "<>", "\"\<d_\>\"", "<>", 
          RowBox[{"StringJoin", "[", 
           RowBox[{
@@ -255,11 +283,171 @@ Cell[BoxData[{
           RowBox[{"-", "2"}]}], "]"}]}], "}"}], "]"}]}]}], 
    "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
  RowBox[{
+  RowBox[{"GenerateAdjoint", "[", 
+   RowBox[{"NN_", ",", "M_", ",", "FilenameGenerator_"}], "]"}], ":=", 
+  RowBox[{"Module", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"d", "=", 
+       RowBox[{"Length", "[", "NN", "]"}]}], ",", " ", 
+      RowBox[{"(*", " ", 
+       RowBox[{"Dimension", "."}], " ", "*)"}], "\[IndentingNewLine]", 
+      "file"}], "\[IndentingNewLine]", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"SeedRandom", "[", "1", "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"II", "=", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Table", "[", 
+         RowBox[{"k", ",", 
+          RowBox[{"{", 
+           RowBox[{"k", ",", "0", ",", 
+            RowBox[{
+             RowBox[{"NN", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], "-", "1"}]}], "}"}]}], "]"}], 
+        ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"II", "[", 
+       RowBox[{"[", "0", "]"}], "]"}], "=", "Sequence"}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"II", "=", 
+      RowBox[{"Flatten", "[", 
+       RowBox[{
+        RowBox[{"Outer", "[", 
+         RowBox[{"List", ",", "II"}], "]"}], ",", 
+        RowBox[{"d", "-", "1"}]}], "]"}]}], ";", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Index", " ", 
+       RowBox[{"set", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+     RowBox[{"x", "=", 
+      RowBox[{"Transpose", "[", " ", 
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"RandomReal", "[", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"0", ",", 
+             RowBox[{"1", "/", "2"}]}], "}"}], ",", "M", ",", 
+           RowBox[{"WorkingPrecision", "\[Rule]", "P"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "d"}], "}"}]}], "]"}], "]"}]}], ";", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Random", " ", 
+       RowBox[{"nodes", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+     RowBox[{"f", "=", 
+      RowBox[{"RandomReal", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", "M", ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "P"}]}], "]"}]}], ";", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Random", " ", "function", " ", 
+       RowBox[{"values", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+     RowBox[{"fhat", "=", 
+      RowBox[{"Table", "[", 
+       RowBox[{
+        RowBox[{"Sum", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"f", "[", 
+            RowBox[{"[", "j", "]"}], "]"}], "*", 
+           RowBox[{"Product", "[", 
+            RowBox[{
+             RowBox[{"Cos", "[", 
+              RowBox[{"2", "*", "\[Pi]", "*", 
+               RowBox[{
+                RowBox[{"II", "[", 
+                 RowBox[{"[", "k", "]"}], "]"}], "[", 
+                RowBox[{"[", "i", "]"}], "]"}], "*", 
+               RowBox[{
+                RowBox[{"x", "[", 
+                 RowBox[{"[", "j", "]"}], "]"}], "[", 
+                RowBox[{"[", "i", "]"}], "]"}]}], "]"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"i", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ",", 
+          RowBox[{"{", 
+           RowBox[{"j", ",", "1", ",", "M"}], "}"}]}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "1", ",", 
+          RowBox[{"Length", "[", "II", "]"}]}], "}"}]}], "]"}]}], ";", 
+     RowBox[{"(*", " ", 
+      RowBox[{"Pseudo", " ", "Fourier", " ", 
+       RowBox[{"coefficients", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+     RowBox[{"filename", "=", 
+      RowBox[{"FilenameGenerator", "[", 
+       RowBox[{"NN", ",", "M"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"file", " ", "=", " ", 
+      RowBox[{"OpenWrite", "[", "filename", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatIntegerRaw", "[", "d", "]"}], " ", "<>", 
+        "\"\<\\n\>\""}]}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatIntegerVectorRaw", "[", "NN", "]"}], "<>", 
+        "\"\<\\n\>\""}]}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatIntegerRaw", "[", "M", "]"}], "<>", "\"\<\\n\>\""}]}], 
+      "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatVectorRaw", "[", 
+         RowBox[{"Flatten", "[", "x", "]"}], "]"}], "<>", "\"\<\\n\>\""}]}], 
+      "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatVectorRaw", "[", "fhat", "]"}], "<>", 
+        "\"\<\\n\>\""}]}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"WriteString", "[", 
+      RowBox[{"file", ",", " ", 
+       RowBox[{
+        RowBox[{"FormatVectorRaw", "[", "f", "]"}], "<>", "\"\<\\n\>\""}]}], 
+      "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Close", "[", "file", "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"(*", 
+      RowBox[{
+       RowBox[{"Print", "[", "filename", "]"}], ";"}], "*)"}], 
+     "\[IndentingNewLine]", 
+     RowBox[{"Return", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"FileBaseName", "[", 
+         RowBox[{"FileNameTake", "[", 
+          RowBox[{"filename", ",", 
+           RowBox[{"-", "1"}]}], "]"}], "]"}], ",", " ", 
+        RowBox[{"FileNameTake", "[", 
+         RowBox[{"filename", ",", 
+          RowBox[{"-", "2"}]}], "]"}]}], "}"}], "]"}]}]}], 
+   "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
   RowBox[{"MakeTestcase", "[", 
    RowBox[{"NN_", ",", "M_"}], "]"}], ":=", 
   RowBox[{"Generate", "[", 
    RowBox[{"NN", ",", "M", ",", 
     RowBox[{"GenerateFilename", "[", 
+     RowBox[{"FileNameJoin", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<data\>\""}], "}"}],
+       "]"}], "]"}]}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"MakeTestcaseAdjoint", "[", 
+   RowBox[{"NN_", ",", "M_"}], "]"}], ":=", 
+  RowBox[{"GenerateAdjoint", "[", 
+   RowBox[{"NN", ",", "M", ",", 
+    RowBox[{"GenerateFilenameAdjoint", "[", 
      RowBox[{"FileNameJoin", "[", 
       RowBox[{"{", 
        RowBox[{
@@ -352,12 +540,17 @@ Cell[BoxData[{
    3.592319381468974*^9}, {3.592320322009972*^9, 3.5923203459587812`*^9}, {
    3.592320424194415*^9, 3.592320424408709*^9}, {3.5923204643719273`*^9, 
    3.592320464668322*^9}, {3.592320709306924*^9, 3.592320749880023*^9}, {
-   3.5923221381469707`*^9, 3.5923221595925426`*^9}, 3.592322285620206*^9}],
+   3.5923221381469707`*^9, 3.5923221595925426`*^9}, 3.592322285620206*^9, {
+   3.593188530743766*^9, 3.593188552283791*^9}, {3.5931886098703938`*^9, 
+   3.593188613659782*^9}, {3.59318887481059*^9, 3.5931889151003733`*^9}, {
+   3.593188946789352*^9, 3.593189039411675*^9}, 3.593189097027725*^9, {
+   3.5931891428499613`*^9, 3.59318914310351*^9}, 3.593538366087583*^9}],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"(*", " ", 
-   RowBox[{"1", "D", " ", "Testcases"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"1", "D", " ", "Testcases", " ", "Trafo"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
     RowBox[{"d", "=", "1"}], ";"}], "\[IndentingNewLine]", 
@@ -419,8 +612,7 @@ Cell[BoxData[
         RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
          RowBox[{"y", "[", 
           RowBox[{"[", "1", "]"}], "]"}], "<>", 
-         "\"\< = {X(setup_file),X(destroy_file),ABSPATH(\\\"\>\"", "<>", " ", 
-         
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
          RowBox[{"y", "[", 
           RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
        "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
@@ -429,29 +621,9 @@ Cell[BoxData[
      RowBox[{"x", "[", 
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
-     "\"\<*testcases_1d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
-     ",", " ", "Formatter"}], "]"}], "\[IndentingNewLine]", 
-   RowBox[{"(*", 
-    RowBox[{"FormatVector", "[", 
-     RowBox[{
-      RowBox[{"Flatten", "[", 
-       RowBox[{"Table", "[", 
-        RowBox[{
-         RowBox[{"Table", "[", 
-          RowBox[{
-           RowBox[{"MakeTestcase", "[", 
-            RowBox[{
-             RowBox[{"NN", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], ",", 
-             RowBox[{"M", "[", 
-              RowBox[{"[", "j", "]"}], "]"}]}], "]"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"j", ",", "1", ",", 
-             RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", 
-           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], "]"}], ",", 
-      "\"\<filenames\>\""}], "]"}], "*)"}]}]}]], "Input",
+     "\"\<*testcases_1d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
  CellChangeTimes->{{3.5173840443832397`*^9, 3.517384081724496*^9}, {
    3.517384180922477*^9, 3.517384425381447*^9}, {3.51767461454566*^9, 
    3.5176746284180737`*^9}, {3.517674660990048*^9, 3.517674671275931*^9}, {
@@ -473,12 +645,98 @@ Cell[BoxData[
    3.5483445634454823`*^9, 3.548344603589292*^9}, {3.548344673892972*^9, 
    3.548344674043014*^9}, {3.5912505876217327`*^9, 3.5912505881199083`*^9}, {
    3.591363841844906*^9, 3.5913638423075933`*^9}, {3.5915428347310057`*^9, 
-   3.591542837929201*^9}, {3.592322290766035*^9, 3.59232229166604*^9}}],
+   3.591542837929201*^9}, {3.592322290766035*^9, 3.59232229166604*^9}, {
+   3.5931891661553383`*^9, 3.593189167918091*^9}, {3.59318930167062*^9, 
+   3.593189306206168*^9}, {3.593189412013714*^9, 3.593189412511335*^9}, {
+   3.59327456018216*^9, 3.5932745607433968`*^9}}],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"(*", " ", 
-   RowBox[{"2", "D", " ", "Testcases"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"1", "D", " ", "Testcases", " ", "Adjoint"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"d", "=", "1"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "2", ",", "4", ",", "10", ",", "20", ",", "50"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Table", "[", 
+      RowBox[{"NN", ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"NN", "[", 
+      RowBox[{"[", "0", "]"}], "]"}], "=", "Sequence"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Outer", "[", 
+        RowBox[{"List", ",", "NN"}], "]"}], ",", 
+       RowBox[{"d", "-", "1"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"M", "=", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "10", ",", "20", ",", "50"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"x", " ", "=", " ", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Table", "[", 
+          RowBox[{
+           RowBox[{"MakeTestcaseAdjoint", "[", 
+            RowBox[{
+             RowBox[{"NN", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], ",", 
+             RowBox[{"M", "[", 
+              RowBox[{"[", "j", "]"}], "]"}]}], "]"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"j", ",", "1", ",", 
+             RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", 
+           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], ",", "1"}], 
+      "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"StringJoin", "[", 
+    RowBox[{"Map", "[", 
+     RowBox[{
+      RowBox[{"Function", "[", 
+       RowBox[{"y", ",", 
+        RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "<>", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
+       "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{"FormatVector", "[", 
+    RowBox[{
+     RowBox[{"x", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
+     "\"\<*testcases_adjoint_1d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.593189194755818*^9, 3.593189238850958*^9}, {
+  3.593189308082303*^9, 3.593189312920251*^9}, {3.59318941509933*^9, 
+  3.593189415475584*^9}, {3.59327453400912*^9, 3.593274534716311*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"2", "D", " ", "Testcases", " ", "Trafo"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
     RowBox[{"d", "=", "2"}], ";"}], "\[IndentingNewLine]", 
@@ -548,29 +806,8 @@ Cell[BoxData[
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
      "\"\<*testcases_2d_file\>\"", ",", " ", 
-     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], "]"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{"(*", 
-    RowBox[{"FormatVector", "[", 
-     RowBox[{
-      RowBox[{"Flatten", "[", 
-       RowBox[{"Table", "[", 
-        RowBox[{
-         RowBox[{"Table", "[", 
-          RowBox[{
-           RowBox[{"MakeTestcase", "[", 
-            RowBox[{
-             RowBox[{"NN", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], ",", 
-             RowBox[{"M", "[", 
-              RowBox[{"[", "j", "]"}], "]"}]}], "]"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"j", ",", "1", ",", 
-             RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", 
-           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], "]"}], ",", 
-      "\"\<filenames\>\""}], "]"}], "*)"}]}]}]], "Input",
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
  CellChangeTimes->{{3.518197155351283*^9, 3.5181971627478523`*^9}, {
   3.518197246832231*^9, 3.518197473939831*^9}, {3.518197565862846*^9, 
   3.5181975665474453`*^9}, {3.5181976205553493`*^9, 3.518197620890814*^9}, {
@@ -581,12 +818,95 @@ Cell[BoxData[
   3.5915428335306683`*^9, 3.5915428404302464`*^9}, {3.592318177512104*^9, 
   3.592318183023057*^9}, {3.5923185132370653`*^9, 3.5923185174107037`*^9}, {
   3.592319411772356*^9, 3.592319429969596*^9}, {3.592319601447736*^9, 
-  3.592319613957184*^9}, {3.592322174443778*^9, 3.5923221816312943`*^9}}],
+  3.592319613957184*^9}, {3.592322174443778*^9, 3.5923221816312943`*^9}, {
+  3.593189271468232*^9, 3.593189272153184*^9}, {3.593189417986445*^9, 
+  3.593189418375956*^9}}],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"(*", " ", 
-   RowBox[{"3", "D", " ", "Testcases"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"2", "D", " ", "Testcases", " ", "Adjoint"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"d", "=", "2"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"{", 
+      RowBox[{"10", ",", "20"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Table", "[", 
+      RowBox[{"NN", ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"NN", "[", 
+      RowBox[{"[", "0", "]"}], "]"}], "=", "Sequence"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Outer", "[", 
+        RowBox[{"List", ",", "NN"}], "]"}], ",", 
+       RowBox[{"d", "-", "1"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"M", "=", 
+     RowBox[{"{", 
+      RowBox[{"20", ",", "50"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"x", " ", "=", " ", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Table", "[", 
+          RowBox[{
+           RowBox[{"MakeTestcaseAdjoint", "[", 
+            RowBox[{
+             RowBox[{"NN", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], ",", 
+             RowBox[{"M", "[", 
+              RowBox[{"[", "j", "]"}], "]"}]}], "]"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"j", ",", "1", ",", 
+             RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", 
+           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], ",", "1"}], 
+      "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"StringJoin", "[", 
+    RowBox[{"Map", "[", 
+     RowBox[{
+      RowBox[{"Function", "[", 
+       RowBox[{"y", ",", 
+        RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "<>", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
+       "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{"FormatVector", "[", 
+    RowBox[{
+     RowBox[{"x", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
+     "\"\<*testcases_adjoint_2d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.593189278068646*^9, 3.593189284894328*^9}, {
+  3.593189420873682*^9, 3.593189421399495*^9}, {3.593275075595599*^9, 
+  3.593275081980492*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"3", "D", " ", "Testcases", " ", "Trafo"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
     RowBox[{"d", "=", "3"}], ";"}], "\[IndentingNewLine]", 
@@ -654,17 +974,61 @@ Cell[BoxData[
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
      "\"\<*testcases_3d_file\>\"", ",", " ", 
-     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], "]"}], 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.518197606681448*^9, 3.518197615153542*^9}, {
+  3.5483451910722103`*^9, 3.5483452622079287`*^9}, {3.5483453352624826`*^9, 
+  3.548345337453582*^9}, {3.548345370487627*^9, 3.5483453706498127`*^9}, {
+  3.5483467419758577`*^9, 3.548346746749652*^9}, {3.548346925708653*^9, 
+  3.5483469438417873`*^9}, {3.548347041873805*^9, 3.548347042368384*^9}, {
+  3.5483471141121607`*^9, 3.54834711944681*^9}, {3.54834715646264*^9, 
+  3.5483471569767027`*^9}, {3.548347414821805*^9, 3.548347416066527*^9}, {
+  3.5915427341204157`*^9, 3.591542743990086*^9}, {3.591542788982143*^9, 
+  3.5915427947782373`*^9}, {3.593189355304345*^9, 3.593189356127204*^9}, {
+  3.593189426850175*^9, 3.5931894272246532`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"3", "D", " ", "Testcases", " ", "Adjoint"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"d", "=", "3"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"{", "10", "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Table", "[", 
+      RowBox[{"NN", ",", 
+       RowBox[{"{", 
+        RowBox[{"j", ",", "1", ",", "d"}], "}"}]}], "]"}]}], ";"}], 
    "\[IndentingNewLine]", 
-   RowBox[{"(*", 
-    RowBox[{"FormatVector", "[", 
-     RowBox[{
-      RowBox[{"Flatten", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"NN", "[", 
+      RowBox[{"[", "0", "]"}], "]"}], "=", "Sequence"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"NN", "=", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Outer", "[", 
+        RowBox[{"List", ",", "NN"}], "]"}], ",", 
+       RowBox[{"d", "-", "1"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"M", "=", 
+     RowBox[{"{", "10", "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"x", " ", "=", " ", 
+     RowBox[{"Flatten", "[", 
+      RowBox[{
        RowBox[{"Table", "[", 
         RowBox[{
          RowBox[{"Table", "[", 
           RowBox[{
-           RowBox[{"MakeTestcase", "[", 
+           RowBox[{"MakeTestcaseAdjoint", "[", 
             RowBox[{
              RowBox[{"NN", "[", 
               RowBox[{"[", "i", "]"}], "]"}], ",", 
@@ -675,22 +1039,36 @@ Cell[BoxData[
              RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
          RowBox[{"{", 
           RowBox[{"i", ",", "1", ",", 
-           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], "]"}], ",", 
-      "\"\<filenames\>\""}], "]"}], "*)"}]}]}]], "Input",
- CellChangeTimes->{{3.518197606681448*^9, 3.518197615153542*^9}, {
-  3.5483451910722103`*^9, 3.5483452622079287`*^9}, {3.5483453352624826`*^9, 
-  3.548345337453582*^9}, {3.548345370487627*^9, 3.5483453706498127`*^9}, {
-  3.5483467419758577`*^9, 3.548346746749652*^9}, {3.548346925708653*^9, 
-  3.5483469438417873`*^9}, {3.548347041873805*^9, 3.548347042368384*^9}, {
-  3.5483471141121607`*^9, 3.54834711944681*^9}, {3.54834715646264*^9, 
-  3.5483471569767027`*^9}, {3.548347414821805*^9, 3.548347416066527*^9}, {
-  3.5915427341204157`*^9, 3.591542743990086*^9}, {3.591542788982143*^9, 
-  3.5915427947782373`*^9}}],
+           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], ",", "1"}], 
+      "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"StringJoin", "[", 
+    RowBox[{"Map", "[", 
+     RowBox[{
+      RowBox[{"Function", "[", 
+       RowBox[{"y", ",", 
+        RowBox[{"\"\<static const testcase_delegate_file_t \>\"", " ", "<>", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], "<>", 
+         "\"\< = {setup_file,destroy_file,ABSPATH(\\\"\>\"", "<>", " ", 
+         RowBox[{"y", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "<>", "\"\<\\\")};\\n\>\""}]}], 
+       "]"}], ",", "x"}], "]"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{"FormatVector", "[", 
+    RowBox[{
+     RowBox[{"x", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
+     "\"\<*testcases_adjoint_3d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.5931893517565947`*^9, 3.593189366525586*^9}, {
+  3.593189429437948*^9, 3.593189429912216*^9}}],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"(*", " ", 
-   RowBox[{"4", "D", " ", "Testcases"}], " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"4", "D", " ", "Testcases", " ", "Trafo"}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
   RowBox[{
    RowBox[{
     RowBox[{"d", "=", "4"}], ";"}], "\[IndentingNewLine]", 
@@ -757,34 +1135,15 @@ Cell[BoxData[
      RowBox[{"x", "[", 
       RowBox[{"[", 
        RowBox[{"All", ",", "1"}], "]"}], "]"}], ",", " ", 
-     "\"\<*testcases_4d\>\"", ",", " ", "\"\<testcase_delegate_file_t\>\"", 
-     ",", " ", "Formatter"}], "]"}], "\[IndentingNewLine]", 
-   RowBox[{"(*", 
-    RowBox[{"FormatVector", "[", 
-     RowBox[{
-      RowBox[{"Flatten", "[", 
-       RowBox[{"Table", "[", 
-        RowBox[{
-         RowBox[{"Table", "[", 
-          RowBox[{
-           RowBox[{"MakeTestcase", "[", 
-            RowBox[{
-             RowBox[{"NN", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], ",", 
-             RowBox[{"M", "[", 
-              RowBox[{"[", "j", "]"}], "]"}]}], "]"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"j", ",", "1", ",", 
-             RowBox[{"Length", "[", "M", "]"}]}], "}"}]}], "]"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", 
-           RowBox[{"Length", "[", "NN", "]"}]}], "}"}]}], "]"}], "]"}], ",", 
-      "\"\<filenames\>\""}], "]"}], "*)"}]}]}]], "Input",
+     "\"\<*testcases_4d_file\>\"", ",", " ", 
+     "\"\<testcase_delegate_file_t\>\"", ",", " ", "Formatter"}], 
+    "]"}]}]}]], "Input",
  CellChangeTimes->{{3.548337660709242*^9, 3.5483376910598288`*^9}, {
-  3.548347420747239*^9, 3.548347430447401*^9}, {3.591543705757052*^9, 
-  3.591543710105554*^9}, {3.5915437905916433`*^9, 3.5915437911266193`*^9}, {
-  3.591543853165766*^9, 3.591543856741955*^9}, {3.591545189200889*^9, 
-  3.591545190137417*^9}}]
+   3.548347420747239*^9, 3.548347430447401*^9}, {3.591543705757052*^9, 
+   3.591543710105554*^9}, {3.5915437905916433`*^9, 3.5915437911266193`*^9}, {
+   3.591543853165766*^9, 3.591543856741955*^9}, {3.591545189200889*^9, 
+   3.591545190137417*^9}, {3.593189432012995*^9, 3.593189432538142*^9}, 
+   3.593274576174675*^9, {3.593538732977047*^9, 3.5935387337241173`*^9}}]
 },
 AutoGeneratedPackage->Automatic,
 WindowSize->{1920, 1068},
@@ -810,13 +1169,16 @@ Cell[545, 20, 1621, 27, 43, "Input",
 Cell[2169, 49, 352, 10, 27, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[2524, 61, 14137, 293, 418, "Input",
+Cell[2524, 61, 21721, 485, 808, "Input",
  InitializationCell->True,
  InitializationGroup->True],
-Cell[16664, 356, 5093, 119, 178, "Input"],
-Cell[21760, 477, 4192, 106, 178, "Input"],
-Cell[25955, 585, 3945, 102, 178, "Input"],
-Cell[29903, 689, 3636, 97, 178, "Input"]
+Cell[24248, 548, 4521, 102, 163, "Input"],
+Cell[28772, 652, 2922, 80, 163, "Input"],
+Cell[31697, 734, 3527, 88, 163, "Input"],
+Cell[35227, 824, 2805, 78, 163, "Input"],
+Cell[38035, 904, 3279, 83, 163, "Input"],
+Cell[41317, 989, 2702, 75, 163, "Input"],
+Cell[44022, 1066, 3006, 79, 163, "Input"]
 }
 ]
 *)
