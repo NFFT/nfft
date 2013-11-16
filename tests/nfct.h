@@ -21,7 +21,7 @@
 #include "infft.h"
 
 #undef X
-#define X(name) NFFT(name)
+#define X(name) NFCT(name)
 
 void X(check_1d_file)(void);
 void X(check_1d_online)(void);

@@ -29,15 +29,15 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "cycle.h"
-#include "nfft.h"
+#include "nfct.h"
 
 #define ABSPATH(x) STRINGIZE(SRCDIR) SEP x
 
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
-typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
 
 struct testcase_delegate_s
 {
@@ -52,8 +52,8 @@ typedef struct testcase_delegate_file_s
   const char *filename;
 } testcase_delegate_file_t;
 
-static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-static void destroy_file(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+static void destroy_file(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
 
 typedef struct testcase_delegate_online_s
 {
@@ -64,8 +64,8 @@ typedef struct testcase_delegate_online_s
   const int M;
 } testcase_delegate_online_t;
 
-static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-static void destroy_online(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+static void destroy_online(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
 
 /* Initialization delegate. */
 typedef struct init_delegate_s init_delegate_t;
@@ -76,14 +76,14 @@ struct init_delegate_s
   const char *name;
   init_t init;
   const int m;
-  const unsigned nfft_flags;
+  const unsigned nfct_flags;
   const unsigned fftw_flags;
 };
 
 /* Prepare delegate. */
 typedef struct check_delegate_s check_delegate_t;
-typedef void (*prepare_t)(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat);
-typedef R (*compare_t)(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat);
+typedef void (*prepare_t)(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat);
+typedef R (*compare_t)(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat);
 
 struct check_delegate_s
 {
@@ -137,10 +137,10 @@ static init_delegate_t init_2d;
 static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
-static init_delegate_t init_advanced_pre_full_psi;
-static init_delegate_t init_advanced_pre_lin_psi;
+//static init_delegate_t init_advanced_pre_full_psi;
+//static init_delegate_t init_advanced_pre_lin_psi;
 #if defined(GAUSSIAN)
-static init_delegate_t init_advanced_pre_fg_psi;
+//static init_delegate_t init_advanced_pre_fg_psi;
 #endif
 
 static check_delegate_t check_trafo;
@@ -171,11 +171,11 @@ static double trafo_direct_cost(X(plan) *p)
           X(init)(&p2, d, N, M);
           for (i = 0; i < M; i++)
             p2.x[i] = K(0.0);
-          if(p2.nfft_flags & PRE_ONE_PSI)
-            X(precompute_one_psi)(&p2);
-          for (i = 0; i < d*Nd; i++)
+          if(p2.nfct_flags & PRE_PSI)
+            X(precompute_psi)(&p2);
+          for (i = 0; i < d * Nd; i++)
           {
-            p2.f_hat[i] = K(0.0) + K(0.0) * I;
+            p2.f_hat[i] = K(0.0);
           }
           {
             double r;
@@ -217,7 +217,7 @@ static R err_trafo_direct(X(plan) *p)
 
 static R err_trafo(X(plan) *p)
 {
-  if (p->nfft_flags & PRE_LIN_PSI)
+  if (p->nfct_flags & PRE_LIN_PSI)
     return FMAX(K(2.4)*K(10E-08), K(50.0) * EPSILON);
   {
     const R m = ((R)p->m);
@@ -235,9 +235,9 @@ static R err_trafo(X(plan) *p)
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->nfft_flags & PRE_LIN_PSI)
+    if (p->nfct_flags & PRE_LIN_PSI)
     {
-      R K = ((R)p->K);
+      R K = 1;//((R)p->K);
       err = EXP(K2PI * m)/(K(8.0) * K * K);
     }
     else
@@ -260,7 +260,7 @@ static int check_single(const testcase_delegate_t *testcase,
   X(plan) p;
   int d, j, *N, NN, M;
   R *x;
-  C *f_hat, *f;
+  R *f_hat, *f;
 
   testcase->setup(testcase, &d, &N, &NN, &M, &x, &f_hat, &f);
 
@@ -275,8 +275,8 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.nfft_flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+  if(p.nfct_flags & PRE_PSI)
+    X(precompute_psi)(&p);
 
   check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
 
@@ -310,8 +310,8 @@ static int check_single(const testcase_delegate_t *testcase,
   /* debug */
   /*fprintf(stderr, "\n");
   for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
-      CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
+    fprintf(stderr, "f[%2d] = " __FE__ ", f[%2d] = " __FE__ ", err = " __FE__ "\n", j,
+      f[j], j, p.f[j], ABS(f[j] - p.f[j]) / ABS(f[j]));*/
 
   /* Standard NFFT error measure. */
   {
@@ -348,7 +348,7 @@ static void check_many(const size_t nf, const size_t ni, const size_t nt,
   CU_ASSERT(ok);
 }
 
-static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f)
+static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
 {
   const testcase_delegate_file_t *ego = (const testcase_delegate_file_t*)ego_;
   int j;
@@ -394,27 +394,27 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   }
 
   /* Fourier coefficients. */
-  *f_hat = malloc(NN[0]*sizeof(C));
+  *f_hat = malloc(NN[0]*sizeof(R));
   for (j = 0; j < NN[0]; j++)
   {
-    R re, im;
-    fscanf(file, __FI__ " " __FI__, &re, &im);
-    (*f_hat)[j] = re + im * I;
+    R re;
+    fscanf(file, __FI__, &re);
+    (*f_hat)[j] = re;
   }
 
   /* Reference function values. */
-  *f = malloc(M[0] * sizeof(C));
+  *f = malloc(M[0] * sizeof(R));
   for (j = 0; j < M[0]; j++)
   {
-    R re, im;
-    fscanf(file, __FI__ " " __FI__, &re, &im);
-    (*f)[j] = re + im * I;
+    R re;
+    fscanf(file, __FI__, &re);
+    (*f)[j] = re;
   }
 
   fclose(file);
 }
 
-static void destroy_file(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f)
+static void destroy_file(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
   free(x);
@@ -422,7 +422,7 @@ static void destroy_file(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f)
   free(f);
 }
 
-static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f)
+static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
@@ -459,14 +459,14 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   *x = malloc(M[0]*d[0]*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    (*x)[j] = Y(drand48)() - K(0.5);
+    (*x)[j] = K(0.5) * Y(drand48)();
   }
 
   /* Fourier coefficients. */
-  *f_hat = malloc(NN[0]*sizeof(C));
+  *f_hat = malloc(NN[0]*sizeof(R));
   for (j = 0; j < NN[0]; j++)
   {
-    (*f_hat)[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
+    (*f_hat)[j] = Y(drand48)() - K(0.5);
   }
 
   {
@@ -481,8 +481,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfft_flags & PRE_ONE_PSI)
-      X(precompute_one_psi)(&p);
+    if(p.nfct_flags & PRE_PSI)
+      X(precompute_psi)(&p);
 
     /* Fourier coefficients. */
     for (j = 0; j < *NN; j++)
@@ -493,7 +493,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     X(trafo_direct)(&p);
 
     /* Reference function values. */
-    *f = malloc(M[0] * sizeof(C));
+    *f = malloc(M[0] * sizeof(R));
     for (j = 0; j < M[0]; j++)
     {
       (*f)[j] = p.f[j];
@@ -503,7 +503,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   }
 }
 
-static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f)
+static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
@@ -544,14 +544,14 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    (*x)[j] = Y(drand48)() - K(0.5);
+    (*x)[j] = K(0.5) * Y(drand48)();
   }
 
   /* Function values. */
   *f = malloc(M[0] * sizeof(C));
   for (j = 0; j < M[0]; j++)
   {
-    (*f)[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
+    (*f)[j] = Y(drand48)() - K(0.5);
   }
 
   {
@@ -566,8 +566,8 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfft_flags & PRE_ONE_PSI)
-      X(precompute_one_psi)(&p);
+    if(p.nfct_flags & PRE_PSI)
+      X(precompute_psi)(&p);
 
     /* Function values. */
     for (j = 0; j < M[0]; j++)
@@ -578,7 +578,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     X(adjoint_direct)(&p);
 
     /* Reference pseudo Fourier coefficients. */
-    *f_hat = malloc(NN[0]*sizeof(C));
+    *f_hat = malloc(NN[0]*sizeof(R));
 
     for (j = 0; j < NN[0]; j++)
     {
@@ -589,7 +589,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   }
 }
 
-static void destroy_online(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f)
+static void destroy_online(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
   free(x);
@@ -631,7 +631,7 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   int i;
   for (i = 0; i < d; i++)
     n[i] = 2*Y(next_power_of_2)(N[i]);
-  X(init_guru)(p, d, N, M, n, ego->m, ego->nfft_flags, ego->fftw_flags);
+  X(init_guru)(p, d, N, M, n, ego->m, ego->nfct_flags, ego->fftw_flags);
   free(n);
 }
 
@@ -640,14 +640,14 @@ static init_delegate_t init_2d = {"init_2d", init_2d_, 0, 0, 0};
 static init_delegate_t init_3d = {"init_3d", init_3d_, 0, 0, 0};
 static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+//static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+//static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
-static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+//static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #endif
 
 /* Check routines. */
-static void prepare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
+static void prepare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat)
 {
   UNUSED(ego);
   UNUSED(M);
@@ -661,7 +661,7 @@ static void prepare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const
   }
 }
 
-static void prepare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
+static void prepare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat)
 {
   UNUSED(ego);
   UNUSED(NN);
@@ -675,7 +675,7 @@ static void prepare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, con
   }
 }
 
-static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
+static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat)
 {
   UNUSED(ego);
   UNUSED(f_hat);
@@ -683,15 +683,15 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   R numerator = K(0.0), denominator = K(0.0);
 
   for (j = 0; j < M; j++)
-    numerator = MAX(numerator, CABS(f[j] - p->f[j]));
+    numerator = MAX(numerator, ABS(f[j] - p->f[j]));
 
   for (j = 0; j < NN; j++)
-    denominator += CABS(p->f_hat[j]);
+    denominator += ABS(p->f_hat[j]);
 
   return numerator/denominator;
 }
 
-static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
+static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat)
 {
   UNUSED(ego);
   UNUSED(f);
@@ -699,10 +699,10 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   R numerator = K(0.0), denominator = K(0.0);
 
   for (j = 0; j < NN; j++)
-    numerator = MAX(numerator, CABS(f_hat[j] - p->f_hat[j]));
+    numerator = MAX(numerator, ABS(f_hat[j] - p->f_hat[j]));
 
   for (j = 0; j < M; j++)
-    denominator += CABS(p->f[j]);
+    denominator += ABS(p->f[j]);
 
   return numerator/denominator;
 }
@@ -712,15 +712,15 @@ static check_delegate_t check_adjoint = {prepare_adjoint, compare_adjoint};
 
 static trafo_delegate_t trafo_direct = {"trafo_direct", X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t trafo = {"trafo", X(trafo), X(check), 0, err_trafo};
-static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), X(check), 0, err_trafo};
-static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), X(check), 0, err_trafo};
-static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), X(check), 0, err_trafo};
+//static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), X(check), 0, err_trafo};
+//static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), X(check), 0, err_trafo};
+//static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), X(check), 0, err_trafo};
 
 static trafo_delegate_t adjoint_direct = {"adjoint_direct", X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t adjoint = {"adjoint", X(adjoint), X(check), 0, err_trafo};
-static trafo_delegate_t adjoint_1d = {"adjoint_1d", X(adjoint_1d), X(check), 0, err_trafo};
-static trafo_delegate_t adjoint_2d = {"adjoint_2d", X(adjoint_2d), X(check), 0, err_trafo};
-static trafo_delegate_t adjoint_3d = {"adjoint_3d", X(adjoint_3d), X(check), 0, err_trafo};
+//static trafo_delegate_t adjoint_1d = {"adjoint_1d", adjoint_1d, X(check), 0, err_trafo};
+//static trafo_delegate_t adjoint_2d = {"adjoint_2d", adjoint_2d, X(check), 0, err_trafo};
+//static trafo_delegate_t adjoint_3d = {"adjoint_3d", adjoint_3d, X(check), 0, err_trafo};
 
 /* 1D */
 
@@ -730,67 +730,67 @@ static const init_delegate_t* initializers_1d[] =
   &init_1d,
   &init,
   &init_advanced_pre_psi,
-  &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_full_psi,
+//  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-  &init_advanced_pre_fg_psi,
+//  &init_advanced_pre_fg_psi,
 #endif
 };
 
-static const testcase_delegate_file_t nfft_1d_1_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_1_1.txt")};
-static const testcase_delegate_file_t nfft_1d_1_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_1_10.txt")};
-static const testcase_delegate_file_t nfft_1d_1_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_1_20.txt")};
-static const testcase_delegate_file_t nfft_1d_1_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_1_50.txt")};
-static const testcase_delegate_file_t nfft_1d_2_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_2_1.txt")};
-static const testcase_delegate_file_t nfft_1d_2_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_2_10.txt")};
-static const testcase_delegate_file_t nfft_1d_2_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_2_20.txt")};
-static const testcase_delegate_file_t nfft_1d_2_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_2_50.txt")};
-static const testcase_delegate_file_t nfft_1d_4_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_4_1.txt")};
-static const testcase_delegate_file_t nfft_1d_4_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_4_10.txt")};
-static const testcase_delegate_file_t nfft_1d_4_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_4_20.txt")};
-static const testcase_delegate_file_t nfft_1d_4_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_4_50.txt")};
-static const testcase_delegate_file_t nfft_1d_10_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_10_1.txt")};
-static const testcase_delegate_file_t nfft_1d_10_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_10_10.txt")};
-static const testcase_delegate_file_t nfft_1d_10_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_10_20.txt")};
-static const testcase_delegate_file_t nfft_1d_10_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_10_50.txt")};
-static const testcase_delegate_file_t nfft_1d_20_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_20_1.txt")};
-static const testcase_delegate_file_t nfft_1d_20_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_20_10.txt")};
-static const testcase_delegate_file_t nfft_1d_20_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_20_20.txt")};
-static const testcase_delegate_file_t nfft_1d_20_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_20_50.txt")};
-static const testcase_delegate_file_t nfft_1d_50_1 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_50_1.txt")};
-static const testcase_delegate_file_t nfft_1d_50_10 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_50_10.txt")};
-static const testcase_delegate_file_t nfft_1d_50_20 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_50_20.txt")};
-static const testcase_delegate_file_t nfft_1d_50_50 = {setup_file, destroy_file, ABSPATH("data/nfft_1d_50_50.txt")};
+static const testcase_delegate_file_t nfct_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_1_1.txt")};
+static const testcase_delegate_file_t nfct_1d_1_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_1_10.txt")};
+static const testcase_delegate_file_t nfct_1d_1_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_1_20.txt")};
+static const testcase_delegate_file_t nfct_1d_1_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_1_50.txt")};
+static const testcase_delegate_file_t nfct_1d_2_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_2_1.txt")};
+static const testcase_delegate_file_t nfct_1d_2_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_2_10.txt")};
+static const testcase_delegate_file_t nfct_1d_2_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_2_20.txt")};
+static const testcase_delegate_file_t nfct_1d_2_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_2_50.txt")};
+static const testcase_delegate_file_t nfct_1d_4_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_4_1.txt")};
+static const testcase_delegate_file_t nfct_1d_4_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_4_10.txt")};
+static const testcase_delegate_file_t nfct_1d_4_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_4_20.txt")};
+static const testcase_delegate_file_t nfct_1d_4_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_4_50.txt")};
+static const testcase_delegate_file_t nfct_1d_10_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_10_1.txt")};
+static const testcase_delegate_file_t nfct_1d_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_10_10.txt")};
+static const testcase_delegate_file_t nfct_1d_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_10_20.txt")};
+static const testcase_delegate_file_t nfct_1d_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_10_50.txt")};
+static const testcase_delegate_file_t nfct_1d_20_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_20_1.txt")};
+static const testcase_delegate_file_t nfct_1d_20_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_20_10.txt")};
+static const testcase_delegate_file_t nfct_1d_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_20_20.txt")};
+static const testcase_delegate_file_t nfct_1d_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_20_50.txt")};
+static const testcase_delegate_file_t nfct_1d_50_1 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_50_1.txt")};
+static const testcase_delegate_file_t nfct_1d_50_10 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_50_10.txt")};
+static const testcase_delegate_file_t nfct_1d_50_20 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_50_20.txt")};
+static const testcase_delegate_file_t nfct_1d_50_50 = {setup_file,destroy_file,ABSPATH("data/nfct_1d_50_50.txt")};
 
 static const testcase_delegate_file_t *testcases_1d_file[] =
 {
-  &nfft_1d_1_1,
-  &nfft_1d_1_10,
-  &nfft_1d_1_20,
-  &nfft_1d_1_50,
-  &nfft_1d_2_1,
-  &nfft_1d_2_10,
-  &nfft_1d_2_20,
-  &nfft_1d_2_50,
-  &nfft_1d_4_1,
-  &nfft_1d_4_10,
-  &nfft_1d_4_20,
-  &nfft_1d_4_50,
-  &nfft_1d_10_1,
-  &nfft_1d_10_10,
-  &nfft_1d_10_20,
-  &nfft_1d_10_50,
-  &nfft_1d_20_1,
-  &nfft_1d_20_10,
-  &nfft_1d_20_20,
-  &nfft_1d_20_50,
-  &nfft_1d_50_1,
-  &nfft_1d_50_10,
-  &nfft_1d_50_20,
-  &nfft_1d_50_50,
+    &nfct_1d_1_1,
+    &nfct_1d_1_10,
+    &nfct_1d_1_20,
+    &nfct_1d_1_50,
+    &nfct_1d_2_1,
+    &nfct_1d_2_10,
+    &nfct_1d_2_20,
+    &nfct_1d_2_50,
+    &nfct_1d_4_1,
+    &nfct_1d_4_10,
+    &nfct_1d_4_20,
+    &nfct_1d_4_50,
+    &nfct_1d_10_1,
+    &nfct_1d_10_10,
+    &nfct_1d_10_20,
+    &nfct_1d_10_50,
+    &nfct_1d_20_1,
+    &nfct_1d_20_10,
+    &nfct_1d_20_20,
+    &nfct_1d_20_50,
+    &nfct_1d_50_1,
+    &nfct_1d_50_10,
+    &nfct_1d_50_20,
+    &nfct_1d_50_50,
 };
 
-static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo, &trafo_1d};
+static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo/*, &trafo_1d*/};
 
 void X(check_1d_file)(void)
 {
@@ -798,60 +798,60 @@ void X(check_1d_file)(void)
     testcases_1d_file, initializers_1d, &check_trafo, trafos_1d_file);
 }
 
-static const testcase_delegate_file_t nfft_adjoint_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_1_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_1_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_1_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_1_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_1_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_1_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_1_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_2_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_2_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_2_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_2_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_2_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_2_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_2_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_2_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_4_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_4_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_4_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_4_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_4_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_4_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_4_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_4_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_10_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_10_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_10_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_10_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_10_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_10_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_10_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_20_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_20_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_20_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_20_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_20_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_20_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_20_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_20_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_50_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_50_1.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_50_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_50_10.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_50_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_50_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_1d_50_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_50_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_1_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_1_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_1_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_2_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_2_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_2_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_2_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_2_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_2_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_2_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_2_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_4_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_4_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_4_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_4_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_4_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_4_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_4_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_4_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_10_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_10_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_10_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_10_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_10_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_20_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_20_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_20_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_20_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_20_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_20_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_50_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_50_1.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_50_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_50_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_50_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_50_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_1d_50_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_50_50.txt")};
 
 static const testcase_delegate_file_t *testcases_adjoint_1d_file[] =
 {
-  &nfft_adjoint_1d_1_1,
-  &nfft_adjoint_1d_1_10,
-  &nfft_adjoint_1d_1_20,
-  &nfft_adjoint_1d_1_50,
-  &nfft_adjoint_1d_2_1,
-  &nfft_adjoint_1d_2_10,
-  &nfft_adjoint_1d_2_20,
-  &nfft_adjoint_1d_2_50,
-  &nfft_adjoint_1d_4_1,
-  &nfft_adjoint_1d_4_10,
-  &nfft_adjoint_1d_4_20,
-  &nfft_adjoint_1d_4_50,
-  &nfft_adjoint_1d_10_1,
-  &nfft_adjoint_1d_10_10,
-  &nfft_adjoint_1d_10_20,
-  &nfft_adjoint_1d_10_50,
-  &nfft_adjoint_1d_20_1,
-  &nfft_adjoint_1d_20_10,
-  &nfft_adjoint_1d_20_20,
-  &nfft_adjoint_1d_20_50,
-  &nfft_adjoint_1d_50_1,
-  &nfft_adjoint_1d_50_10,
-  &nfft_adjoint_1d_50_20,
-  &nfft_adjoint_1d_50_50,
+  &nfct_adjoint_1d_1_1,
+  &nfct_adjoint_1d_1_10,
+  &nfct_adjoint_1d_1_20,
+  &nfct_adjoint_1d_1_50,
+  &nfct_adjoint_1d_2_1,
+  &nfct_adjoint_1d_2_10,
+  &nfct_adjoint_1d_2_20,
+  &nfct_adjoint_1d_2_50,
+  &nfct_adjoint_1d_4_1,
+  &nfct_adjoint_1d_4_10,
+  &nfct_adjoint_1d_4_20,
+  &nfct_adjoint_1d_4_50,
+  &nfct_adjoint_1d_10_1,
+  &nfct_adjoint_1d_10_10,
+  &nfct_adjoint_1d_10_20,
+  &nfct_adjoint_1d_10_50,
+  &nfct_adjoint_1d_20_1,
+  &nfct_adjoint_1d_20_10,
+  &nfct_adjoint_1d_20_20,
+  &nfct_adjoint_1d_20_50,
+  &nfct_adjoint_1d_50_1,
+  &nfct_adjoint_1d_50_10,
+  &nfct_adjoint_1d_50_20,
+  &nfct_adjoint_1d_50_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_1d_file[] = {&adjoint_direct, &adjoint, &adjoint_1d};
+static const trafo_delegate_t* trafos_adjoint_1d_file[] = {&adjoint_direct, &adjoint/*, &adjoint_1d*/};
 
 void X(check_adjoint_1d_file)(void)
 {
@@ -859,28 +859,28 @@ void X(check_adjoint_1d_file)(void)
     testcases_adjoint_1d_file, initializers_1d, &check_adjoint, trafos_adjoint_1d_file);
 }
 
-static const testcase_delegate_online_t nfft_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
-static const testcase_delegate_online_t nfft_online_1d_100_50 = {setup_online, destroy_online, 1, 100 ,50};
-static const testcase_delegate_online_t nfft_online_1d_200_50 = {setup_online, destroy_online, 1, 200 ,50};
-static const testcase_delegate_online_t nfft_online_1d_500_50 = {setup_online, destroy_online, 1, 500 ,50};
-static const testcase_delegate_online_t nfft_online_1d_1000_50 = {setup_online, destroy_online, 1, 1000 ,50};
-static const testcase_delegate_online_t nfft_online_1d_2000_50 = {setup_online, destroy_online, 1, 2000 ,50};
-static const testcase_delegate_online_t nfft_online_1d_5000_50 = {setup_online, destroy_online, 1, 5000 ,50};
-static const testcase_delegate_online_t nfft_online_1d_10000_50 = {setup_online, destroy_online, 1, 10000 ,50};
+static const testcase_delegate_online_t nfct_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
+static const testcase_delegate_online_t nfct_online_1d_100_50 = {setup_online, destroy_online, 1, 100 ,50};
+static const testcase_delegate_online_t nfct_online_1d_200_50 = {setup_online, destroy_online, 1, 200 ,50};
+static const testcase_delegate_online_t nfct_online_1d_500_50 = {setup_online, destroy_online, 1, 500 ,50};
+static const testcase_delegate_online_t nfct_online_1d_1000_50 = {setup_online, destroy_online, 1, 1000 ,50};
+static const testcase_delegate_online_t nfct_online_1d_2000_50 = {setup_online, destroy_online, 1, 2000 ,50};
+static const testcase_delegate_online_t nfct_online_1d_5000_50 = {setup_online, destroy_online, 1, 5000 ,50};
+static const testcase_delegate_online_t nfct_online_1d_10000_50 = {setup_online, destroy_online, 1, 10000 ,50};
 
 static const testcase_delegate_online_t *testcases_1d_online[] =
 {
-  &nfft_online_1d_50_50,
-  &nfft_online_1d_100_50,
-  &nfft_online_1d_200_50,
-  &nfft_online_1d_500_50,
-  &nfft_online_1d_1000_50,
-  &nfft_online_1d_2000_50,
-  &nfft_online_1d_5000_50,
-  &nfft_online_1d_10000_50,
+  &nfct_online_1d_50_50,
+  &nfct_online_1d_100_50,
+  &nfct_online_1d_200_50,
+  &nfct_online_1d_500_50,
+  &nfct_online_1d_1000_50,
+  &nfct_online_1d_2000_50,
+  &nfct_online_1d_5000_50,
+  &nfct_online_1d_10000_50,
 };
 
-static const trafo_delegate_t* trafos_1d_online[] = {&trafo, &trafo_1d};
+static const trafo_delegate_t* trafos_1d_online[] = {&trafo/*, &trafo_1d*/};
 
 void X(check_1d_online)(void)
 {
@@ -888,28 +888,28 @@ void X(check_1d_online)(void)
     testcases_1d_online, initializers_1d, &check_trafo, trafos_1d_online);
 }
 
-static const testcase_delegate_online_t nfft_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_100_50 = {setup_adjoint_online, destroy_online, 1, 100 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_200_50 = {setup_adjoint_online, destroy_online, 1, 200 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_500_50 = {setup_adjoint_online, destroy_online, 1, 500 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_1000_50 = {setup_adjoint_online, destroy_online, 1, 1000 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_2000_50 = {setup_adjoint_online, destroy_online, 1, 2000 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_5000_50 = {setup_adjoint_online, destroy_online, 1, 5000 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_1d_10000_50 = {setup_adjoint_online, destroy_online, 1, 10000 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_100_50 = {setup_adjoint_online, destroy_online, 1, 100 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_200_50 = {setup_adjoint_online, destroy_online, 1, 200 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_500_50 = {setup_adjoint_online, destroy_online, 1, 500 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_1000_50 = {setup_adjoint_online, destroy_online, 1, 1000 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_2000_50 = {setup_adjoint_online, destroy_online, 1, 2000 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_5000_50 = {setup_adjoint_online, destroy_online, 1, 5000 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_1d_10000_50 = {setup_adjoint_online, destroy_online, 1, 10000 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_1d_online[] =
 {
-  &nfft_adjoint_online_1d_50_50,
-  &nfft_adjoint_online_1d_100_50,
-  &nfft_adjoint_online_1d_200_50,
-  &nfft_adjoint_online_1d_500_50,
-  &nfft_adjoint_online_1d_1000_50,
-  &nfft_adjoint_online_1d_2000_50,
-  &nfft_adjoint_online_1d_5000_50,
-  &nfft_adjoint_online_1d_10000_50,
+  &nfct_adjoint_online_1d_50_50,
+  &nfct_adjoint_online_1d_100_50,
+  &nfct_adjoint_online_1d_200_50,
+  &nfct_adjoint_online_1d_500_50,
+  &nfct_adjoint_online_1d_1000_50,
+  &nfct_adjoint_online_1d_2000_50,
+  &nfct_adjoint_online_1d_5000_50,
+  &nfct_adjoint_online_1d_10000_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint, &adjoint_1d};
+static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint/*, &adjoint_1d*/};
 
 void X(check_adjoint_1d_online)(void)
 {
@@ -925,35 +925,35 @@ static const init_delegate_t* initializers_2d[] =
   &init_2d,
   &init,
   &init_advanced_pre_psi,
-  &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_full_psi,
+//  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-  &init_advanced_pre_fg_psi,
+//  &init_advanced_pre_fg_psi,
 #endif
 };
 
-static const testcase_delegate_file_t nfft_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_10_10_20.txt")};
-static const testcase_delegate_file_t nfft_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_10_10_50.txt")};
-static const testcase_delegate_file_t nfft_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_10_20_20.txt")};
-static const testcase_delegate_file_t nfft_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_10_20_50.txt")};
-static const testcase_delegate_file_t nfft_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_20_10_20.txt")};
-static const testcase_delegate_file_t nfft_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_20_10_50.txt")};
-static const testcase_delegate_file_t nfft_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_20_20_20.txt")};
-static const testcase_delegate_file_t nfft_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfft_2d_20_20_50.txt")};
+static const testcase_delegate_file_t nfct_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_10_10_20.txt")};
+static const testcase_delegate_file_t nfct_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_10_10_50.txt")};
+static const testcase_delegate_file_t nfct_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_10_20_20.txt")};
+static const testcase_delegate_file_t nfct_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_10_20_50.txt")};
+static const testcase_delegate_file_t nfct_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_20_10_20.txt")};
+static const testcase_delegate_file_t nfct_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_20_10_50.txt")};
+static const testcase_delegate_file_t nfct_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_20_20_20.txt")};
+static const testcase_delegate_file_t nfct_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_2d_20_20_50.txt")};
 
 static const testcase_delegate_file_t *testcases_2d_file[] =
 {
-  &nfft_2d_10_10_20,
-  &nfft_2d_10_10_50,
-  &nfft_2d_10_20_20,
-  &nfft_2d_10_20_50,
-  &nfft_2d_20_10_20,
-  &nfft_2d_20_10_50,
-  &nfft_2d_20_20_20,
-  &nfft_2d_20_20_50,
+  &nfct_2d_10_10_20,
+  &nfct_2d_10_10_50,
+  &nfct_2d_10_20_20,
+  &nfct_2d_10_20_50,
+  &nfct_2d_20_10_20,
+  &nfct_2d_20_10_50,
+  &nfct_2d_20_20_20,
+  &nfct_2d_20_20_50,
 };
 
-static const trafo_delegate_t* trafos_2d_file[] = {&trafo_direct, &trafo, &trafo_2d};
+static const trafo_delegate_t* trafos_2d_file[] = {&trafo_direct, &trafo/*, &trafo_2d*/};
 
 void X(check_2d_file)(void)
 {
@@ -961,28 +961,28 @@ void X(check_2d_file)(void)
     testcases_2d_file, initializers_2d, &check_trafo, trafos_2d_file);
 }
 
-static const testcase_delegate_file_t nfft_adjoint_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_10_10_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_10_10_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_10_20_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_10_20_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_20_10_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_20_10_50.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_20_20_20.txt")};
-static const testcase_delegate_file_t nfft_adjoint_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_20_20_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_10_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_10_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_20_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_20_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_20_10_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_20_10_50.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_20_20_20.txt")};
+static const testcase_delegate_file_t nfct_adjoint_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_20_20_50.txt")};
 
 static const testcase_delegate_file_t *testcases_adjoint_2d_file[] =
 {
-  &nfft_adjoint_2d_10_10_20,
-  &nfft_adjoint_2d_10_10_50,
-  &nfft_adjoint_2d_10_20_20,
-  &nfft_adjoint_2d_10_20_50,
-  &nfft_adjoint_2d_20_10_20,
-  &nfft_adjoint_2d_20_10_50,
-  &nfft_adjoint_2d_20_20_20,
-  &nfft_adjoint_2d_20_20_50,
+  &nfct_adjoint_2d_10_10_20,
+  &nfct_adjoint_2d_10_10_50,
+  &nfct_adjoint_2d_10_20_20,
+  &nfct_adjoint_2d_10_20_50,
+  &nfct_adjoint_2d_20_10_20,
+  &nfct_adjoint_2d_20_10_50,
+  &nfct_adjoint_2d_20_20_20,
+  &nfct_adjoint_2d_20_20_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_2d_file[] = {&adjoint_direct, &adjoint, &adjoint_2d};
+static const trafo_delegate_t* trafos_adjoint_2d_file[] = {&adjoint_direct, &adjoint/*, &adjoint_2d*/};
 
 void X(check_adjoint_2d_file)(void)
 {
@@ -990,22 +990,22 @@ void X(check_adjoint_2d_file)(void)
     testcases_adjoint_2d_file, initializers_2d, &check_adjoint, trafos_adjoint_2d_file);
 }
 
-static const testcase_delegate_online_t nfft_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
-static const testcase_delegate_online_t nfft_online_2d_100_50 = {setup_online, destroy_online, 2, 100 ,50};
-static const testcase_delegate_online_t nfft_online_2d_200_50 = {setup_online, destroy_online, 2, 200 ,50};
-static const testcase_delegate_online_t nfft_online_2d_500_50 = {setup_online, destroy_online, 2, 500 ,50};
-static const testcase_delegate_online_t nfft_online_2d_1000_50 = {setup_online, destroy_online, 2, 1000 ,50};
+static const testcase_delegate_online_t nfct_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
+static const testcase_delegate_online_t nfct_online_2d_100_50 = {setup_online, destroy_online, 2, 100 ,50};
+static const testcase_delegate_online_t nfct_online_2d_200_50 = {setup_online, destroy_online, 2, 200 ,50};
+static const testcase_delegate_online_t nfct_online_2d_500_50 = {setup_online, destroy_online, 2, 500 ,50};
+static const testcase_delegate_online_t nfct_online_2d_1000_50 = {setup_online, destroy_online, 2, 1000 ,50};
 
 static const testcase_delegate_online_t *testcases_2d_online[] =
 {
-  &nfft_online_2d_50_50,
-  &nfft_online_2d_100_50,
-  &nfft_online_2d_200_50,
-  &nfft_online_2d_500_50,
-  &nfft_online_2d_1000_50,
+  &nfct_online_2d_50_50,
+  &nfct_online_2d_100_50,
+  &nfct_online_2d_200_50,
+  &nfct_online_2d_500_50,
+  &nfct_online_2d_1000_50,
 };
 
-static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
+static const trafo_delegate_t* trafos_2d_online[] = {&trafo/*, &trafo_2d*/};
 
 void X(check_2d_online)(void)
 {
@@ -1013,22 +1013,22 @@ void X(check_2d_online)(void)
     testcases_2d_online, initializers_2d, &check_trafo, trafos_2d_online);
 }
 
-static const testcase_delegate_online_t nfft_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_2d_100_50 = {setup_adjoint_online, destroy_online, 2, 100 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_2d_200_50 = {setup_adjoint_online, destroy_online, 2, 200 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_2d_500_50 = {setup_adjoint_online, destroy_online, 2, 500 ,50};
-static const testcase_delegate_online_t nfft_adjoint_online_2d_1000_50 = {setup_adjoint_online, destroy_online, 2, 1000 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_2d_100_50 = {setup_adjoint_online, destroy_online, 2, 100 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_2d_200_50 = {setup_adjoint_online, destroy_online, 2, 200 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_2d_500_50 = {setup_adjoint_online, destroy_online, 2, 500 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_2d_1000_50 = {setup_adjoint_online, destroy_online, 2, 1000 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_2d_online[] =
 {
-  &nfft_adjoint_online_2d_50_50,
-  &nfft_adjoint_online_2d_100_50,
-  &nfft_adjoint_online_2d_200_50,
-  &nfft_adjoint_online_2d_500_50,
-  &nfft_adjoint_online_2d_1000_50,
+  &nfct_adjoint_online_2d_50_50,
+  &nfct_adjoint_online_2d_100_50,
+  &nfct_adjoint_online_2d_200_50,
+  &nfct_adjoint_online_2d_500_50,
+  &nfct_adjoint_online_2d_1000_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint, &adjoint_2d};
+static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint/*, &adjoint_2d*/};
 
 void X(check_adjoint_2d_online)(void)
 {
@@ -1044,21 +1044,21 @@ static const init_delegate_t* initializers_3d[] =
   &init_3d,
   &init,
   &init_advanced_pre_psi,
-  &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_full_psi,
+//  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-  &init_advanced_pre_fg_psi,
+//  &init_advanced_pre_fg_psi,
 #endif
 };
 
-static const testcase_delegate_file_t nfft_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfft_3d_10_10_10_10.txt")};
+static const testcase_delegate_file_t nfct_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_3d_10_10_10_10.txt")};
 
 static const testcase_delegate_file_t *testcases_3d_file[] =
 {
-  &nfft_3d_10_10_10_10,
+  &nfct_3d_10_10_10_10,
 };
 
-static const trafo_delegate_t* trafos_3d_file[] = {&trafo_direct, &trafo, &trafo_3d};
+static const trafo_delegate_t* trafos_3d_file[] = {&trafo_direct, &trafo/*, &trafo_3d*/};
 
 void X(check_3d_file)(void)
 {
@@ -1066,13 +1066,13 @@ void X(check_3d_file)(void)
     testcases_3d_file, initializers_3d, &check_trafo, trafos_3d_file);
 }
 
-static const trafo_delegate_t* trafos_adjoint_3d_file[] = {&adjoint_direct, &adjoint, &adjoint_3d};
+static const trafo_delegate_t* trafos_adjoint_3d_file[] = {&adjoint_direct, &adjoint/*, &adjoint_3d*/};
 
-static const testcase_delegate_file_t nfft_adjoint_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_3d_10_10_10_10.txt")};
+static const testcase_delegate_file_t nfct_adjoint_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_3d_10_10_10_10.txt")};
 
 static const testcase_delegate_file_t *testcases_adjoint_3d_file[] =
 {
-  &nfft_adjoint_3d_10_10_10_10,
+  &nfct_adjoint_3d_10_10_10_10,
 };
 
 void X(check_adjoint_3d_file)(void)
@@ -1081,14 +1081,14 @@ void X(check_adjoint_3d_file)(void)
     testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_file);
 }
 
-static const testcase_delegate_online_t nfft_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
+static const testcase_delegate_online_t nfct_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_3d_online[] =
 {
-  &nfft_online_3d_50_50,
+  &nfct_online_3d_50_50,
 };
 
-static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
+static const trafo_delegate_t* trafos_3d_online[] = {&trafo/*, &trafo_3d*/};
 
 void X(check_3d_online)(void)
 {
@@ -1096,14 +1096,14 @@ void X(check_3d_online)(void)
     testcases_3d_online, initializers_3d, &check_trafo, trafos_3d_online);
 }
 
-static const testcase_delegate_online_t nfft_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
 {
-  &nfft_adjoint_online_3d_50_50,
+  &nfct_adjoint_online_3d_50_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint, &adjoint_3d};
+static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint/*, &adjoint_3d*/};
 
 void X(check_adjoint_3d_online)(void)
 {
@@ -1118,18 +1118,18 @@ static const init_delegate_t* initializers_4d[] =
 {
   &init,
   &init_advanced_pre_psi,
-  &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_full_psi,
+//  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-  &init_advanced_pre_fg_psi,
+//  &init_advanced_pre_fg_psi,
 #endif
 };
 
-static const testcase_delegate_online_t nfft_online_4d_28_50 = {setup_online, destroy_online, 4, 28 ,50};
+static const testcase_delegate_online_t nfct_online_4d_28_50 = {setup_online, destroy_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
 {
-  &nfft_online_4d_28_50,
+  &nfct_online_4d_28_50,
 };
 
 static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
@@ -1140,11 +1140,11 @@ void X(check_4d_online)(void)
     testcases_4d_online, initializers_4d, &check_trafo, trafos_4d_online);
 }
 
-static const testcase_delegate_online_t nfft_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
+static const testcase_delegate_online_t nfct_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_4d_online[] =
 {
-  &nfft_adjoint_online_4d_28_50,
+  &nfct_adjoint_online_4d_28_50,
 };
 
 static const trafo_delegate_t* trafos_adjoint_4d_online[] = {&adjoint};
