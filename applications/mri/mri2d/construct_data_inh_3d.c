@@ -125,7 +125,7 @@ static void construct(char * file, int N, int M)
     my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
   }
 
-  if(my_plan.plan.nfft_flags & PRE_PSI)
+  if(my_plan.plan.flags & PRE_PSI)
     nfft_precompute_psi(&my_plan.plan);
 
   mri_inh_3d_trafo(&my_plan);

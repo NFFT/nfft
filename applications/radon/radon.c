@@ -156,13 +156,13 @@ int Radon_trafo(int (*gridfcn)(), int T, int S, double *f, int NN, double *Rf)
   }
 
   /** precompute psi, the entries of the matrix B */
-  if(my_nfft_plan.nfft_flags & PRE_LIN_PSI)
+  if(my_nfft_plan.flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&my_nfft_plan);
 
-  if(my_nfft_plan.nfft_flags & PRE_PSI)
+  if(my_nfft_plan.flags & PRE_PSI)
     nfft_precompute_psi(&my_nfft_plan);
 
-  if(my_nfft_plan.nfft_flags & PRE_FULL_PSI)
+  if(my_nfft_plan.flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_nfft_plan);
 
   /** init Fourier coefficients from given image */

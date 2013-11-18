@@ -68,7 +68,7 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   nfft_init_guru(&plan->p_nfft, 3, N, M, n, nfft_cutoff, nfft_flags,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
-  if ((plan->p_nfft).nfft_flags & PRE_LIN_PSI)
+  if ((plan->p_nfft).flags & PRE_LIN_PSI)
   {
     nfft_precompute_lin_psi(&(plan->p_nfft));
   }
@@ -450,11 +450,11 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
     plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* KPI ));
   }
 
-  if ((plan3D->p_nfft).nfft_flags & FG_PSI)
+  if ((plan3D->p_nfft).flags & FG_PSI)
   {
     nfft_precompute_one_psi(&(plan3D->p_nfft));
   }
-  if ((plan3D->p_nfft).nfft_flags & PRE_PSI)
+  if ((plan3D->p_nfft).flags & PRE_PSI)
   {
     nfft_precompute_one_psi(&(plan3D->p_nfft));
   }

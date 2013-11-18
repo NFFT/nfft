@@ -212,7 +212,7 @@ static double trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(40.0) * EPSILON;
+  return K(120.0) * EPSILON;
 }
 
 static R err_trafo(X(plan) *p)
@@ -306,12 +306,6 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   trafo_delegate->trafo(&p);
-
-  /* debug */
-  /*fprintf(stderr, "\n");
-  for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
-      CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));*/
 
   /* Standard NFFT error measure. */
   {
@@ -436,7 +430,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   /* Number of nodes. */
   *M = ego->M;
 
-  printf("%-31s", "online");
+  printf("%-31s", "nfft_online");
 
   printf(" d = %-1d, N = [", *d);
   {
@@ -682,6 +676,12 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
+  /* debug */
+//  fprintf(stderr, "\n");
+//  for (j = 0; j < M; j++)
+//    fprintf(stderr, "f[%2d] = " __FE__ " + " __FE__ "I, f[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
+//      CREAL(f[j]), CIMAG(f[j]), j, CREAL(p.f[j]), CIMAG(p.f[j]), CABS(f[j] - p.f[j]) / CABS(f[j]));
+
   for (j = 0; j < M; j++)
     numerator = MAX(numerator, CABS(f[j] - p->f[j]));
 
@@ -697,6 +697,11 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   UNUSED(f);
   int j;
   R numerator = K(0.0), denominator = K(0.0);
+
+  //  fprintf(stderr, "\n");
+  //  for (j = 0; j < NN; j++)
+  //    fprintf(stderr, "f_hat[%2d] = " __FE__ " + " __FE__ "I, f_hat[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
+  //      CREAL(f_hat[j]), CIMAG(f_hat[j]), j, CREAL(p->f_hat[j]), CIMAG(p->f_hat[j]), CABS(f_hat[j] - p->f_hat[j]) / CABS(f_hat[j]));
 
   for (j = 0; j < NN; j++)
     numerator = MAX(numerator, CABS(f_hat[j] - p->f_hat[j]));

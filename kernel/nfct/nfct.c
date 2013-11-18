@@ -355,9 +355,9 @@ void X(adjoint_direct)(const X(plan) *ths)
 
       for (j = 0; j < ths->M_total; j++)
       {
-        R omega = K(0.0);
+        R omega = K(1.0);
         for (t = 0; t < ths->d; t++)
-          omega += COS(K2PI * k[t] * ths->x[j * ths->d + t]);
+          omega *= COS(K2PI * k[t] * ths->x[j * ths->d + t]);
         f_hat[k_L] += f[j] * omega;
       }
     }
@@ -366,7 +366,7 @@ void X(adjoint_direct)(const X(plan) *ths)
     {
       R x[ths->d], omega, Omega[ths->d+1];
       int t, t2, k[ths->d];
-      Omega[0] = K(0.0);
+      Omega[0] = K(1.0);
       for (t = 0; t < ths->d; t++)
       {
         k[t] = 0;
@@ -489,7 +489,7 @@ static inline void D_ ## which_one (X(plan) *ths) \
 \
   MACRO_init__kg; \
 \
-  if (ths->nfct_flags & PRE_PHI_HUT) \
+  if (ths->flags & PRE_PHI_HUT) \
     for (k_L = 0; k_L < ths->N_total; k_L++) \
     { \
       MACRO_update__phi_inv_k__kg_plain(which_one, with_PRE_PHI_HUT); \
@@ -642,7 +642,7 @@ static inline void B_ ## which_one (nfct_plan *ths) \
   MACRO_nfct_B_init_result_ ## which_one \
 \
   /* both flags are set */ \
-  if ((ths->nfct_flags & PRE_PSI)&&(ths->nfct_flags & PRE_FULL_PSI)) \
+  if ((ths->flags & PRE_PSI)&&(ths->flags & PRE_FULL_PSI)) \
   { \
     for (ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
@@ -659,7 +659,7 @@ static inline void B_ ## which_one (nfct_plan *ths) \
       lprod *= NFCT_SUMMANDS; \
 \
     /* PRE_PSI flag is set */ \
-    if (ths->nfct_flags & PRE_PSI) \
+    if (ths->flags & PRE_PSI) \
       for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
         { \
           MACRO_init_lb_lg_lc; \
@@ -714,7 +714,7 @@ static inline void full_psi__ ## which_one(nfct_plan *ths) \
   phi_tilde[0] = K(1.0); \
   lg_plain[0]  =   0; \
  \
-  if (ths->nfct_flags & PRE_PSI) \
+  if (ths->flags & PRE_PSI) \
   { \
     size_psi = ths->M_total; \
     index_f = (int*)Y(malloc)(ths->M_total  * sizeof(int)); \
@@ -796,7 +796,7 @@ void X(trafo)(X(plan) *ths)
   Z(execute)(ths->my_fftw_r2r_plan);
   TOC(1)
 
-  if (ths->nfct_flags & PRE_FULL_PSI)
+  if (ths->flags & PRE_FULL_PSI)
     full_psi__A(ths);
 
   /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
@@ -805,7 +805,7 @@ void X(trafo)(X(plan) *ths)
   B_A(ths);
   TOC(2)
 
-  if (ths->nfct_flags & PRE_FULL_PSI)
+  if (ths->flags & PRE_FULL_PSI)
   {
     Y(free)(ths->psi_index_g);
     Y(free)(ths->psi_index_f);
@@ -818,7 +818,7 @@ void X(adjoint)(X(plan) *ths)
   ths->g_hat = ths->g2;
   ths->g = ths->g1;
 
-  if (ths->nfct_flags & PRE_FULL_PSI)
+  if (ths->flags & PRE_FULL_PSI)
     full_psi__T(ths);
 
   /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
@@ -827,7 +827,7 @@ void X(adjoint)(X(plan) *ths)
   B_T(ths);
   TOC(2)
 
-  if (ths->nfct_flags & PRE_FULL_PSI)
+  if (ths->flags & PRE_FULL_PSI)
   {
     Y(free)(ths->psi_index_g);
     Y(free)(ths->psi_index_f);
@@ -901,20 +901,20 @@ static inline void init_help(X(plan) *ths)
 
   NFCT_WINDOW_HELP_INIT;
 
-  if (ths->nfct_flags & MALLOC_X)
+  if (ths->flags & MALLOC_X)
     ths->x = (R*)Y(malloc)(ths->d * ths->M_total * sizeof(R));
 
-  if (ths->nfct_flags & MALLOC_F_HAT)
+  if (ths->flags & MALLOC_F_HAT)
     ths->f_hat = (R*)Y(malloc)(ths->N_total * sizeof(R));
 
-  if (ths->nfct_flags & MALLOC_F)
+  if (ths->flags & MALLOC_F)
     ths->f = (R*)Y(malloc)(ths->M_total * sizeof(R));
 
-  if (ths->nfct_flags & PRE_PHI_HUT)
+  if (ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
 
   /* NO FFTW_MALLOC HERE */
-  if (ths->nfct_flags & PRE_PSI)
+  if (ths->flags & PRE_PSI)
   {
     ths->psi =
       (R*)Y(malloc)(ths->M_total * ths->d * NFCT_SUMMANDS * sizeof(R));
@@ -923,12 +923,12 @@ static inline void init_help(X(plan) *ths)
     ths->nfct_full_psi_eps = POW(K(10.0), K(-10.0));
   }
 
-  if (ths->nfct_flags & FFTW_INIT)
+  if (ths->flags & FFTW_INIT)
   {
     ths->g1 =
       (R*)Y(malloc)(prod_int(ths->n, ths->d) * sizeof(R));
 
-    if (ths->nfct_flags & FFT_OUT_OF_PLACE)
+    if (ths->flags & FFT_OUT_OF_PLACE)
       ths->g2 =
 	      (R*) Y(malloc)(prod_int(ths->n, ths->d) * sizeof(R));
     else
@@ -959,11 +959,9 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   for (t = 0; t < d; t++)
     ths->n[t] = fftw_2N(Y(next_power_of_2)(ths->N[t]));
 
-/* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
+  ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  WINDOW_HELP_ESTIMATE_m;
-*/
-  ths->nfct_flags = NFCT_DEFAULT_FLAGS;
+  ths->flags = NFCT_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 
   init_help(ths);
@@ -983,7 +981,7 @@ void nfct_init_m(nfct_plan *ths, int d, int *N, int M_total, int m)
 */
 
 void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
-  unsigned nfct_flags, unsigned fftw_flags)
+  unsigned flags, unsigned fftw_flags)
 {
   int t; /* index over all dimensions */
 
@@ -1002,7 +1000,7 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->m = m;
 
-  ths->nfct_flags = nfct_flags;
+  ths->flags = flags;
   ths->fftw_flags = fftw_flags;
 
   init_help(ths);
@@ -1064,36 +1062,36 @@ void X(finalize)(X(plan) *ths)
 {
   int t; /* dimension index*/
 
-  if (ths->nfct_flags & FFTW_INIT)
+  if (ths->flags & FFTW_INIT)
   {
     Z(destroy_plan)(ths->my_fftw_r2r_plan);
 
-    if (ths->nfct_flags & FFT_OUT_OF_PLACE)
+    if (ths->flags & FFT_OUT_OF_PLACE)
       Y(free)(ths->g2);
 
     Y(free)(ths->g1);
   }
 
   /* NO FFTW_FREE HERE */
-  if (ths->nfct_flags & PRE_PSI)
+  if (ths->flags & PRE_PSI)
   {
     Y(free)(ths->psi);
   }
 
-  if (ths->nfct_flags & PRE_PHI_HUT)
+  if (ths->flags & PRE_PHI_HUT)
   {
     for (t = 0; t < ths->d; t++)
       Y(free)(ths->c_phi_inv[t]);
     Y(free)(ths->c_phi_inv);
   }
 
-  if (ths->nfct_flags & MALLOC_F)
+  if (ths->flags & MALLOC_F)
     Y(free)(ths->f);
 
-  if(ths->nfct_flags & MALLOC_F_HAT)
+  if(ths->flags & MALLOC_F_HAT)
     Y(free)(ths->f_hat);
 
-  if (ths->nfct_flags & MALLOC_X)
+  if (ths->flags & MALLOC_X)
     Y(free)(ths->x);
 
   WINDOW_HELP_FINALIZE;

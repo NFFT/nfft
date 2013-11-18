@@ -47,6 +47,8 @@ INT Y(next_power_of_2)(const INT N)
 
   if (N == 0)
     return 1;
+  else if (N == 1)
+    return 2;
   else
   {
     n = N;

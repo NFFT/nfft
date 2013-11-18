@@ -153,7 +153,7 @@
  * \author Stefan Kunis, Daniel Potts
  */
 
-/*! \fn void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M, unsigned nfft_flags_on, unsigned nfft_flags_off)
+/*! \fn void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M, unsigned flags_on, unsigned flags_off)
  * Initialisation of a transform plan, advanced.
  * NOT YET IMPLEMENTED!!
  *
@@ -161,13 +161,13 @@
  * \arg d The dimension
  * \arg N The multi bandwidth
  * \arg M The number of nodes
- * \arg nfft_flags_on NFFT flags to switch on
- * \arg nfft_flags_off NFFT flags to switch off
+ * \arg flags_on NFFT flags to switch on
+ * \arg flags_off NFFT flags to switch off
  *
  * \author Stefan Kunis, Daniel Potts
  */
 
-/*! \fn void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, int m, unsigned nfft_flags, unsigned fftw_flags)
+/*! \fn void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, int m, unsigned flags, unsigned fftw_flags)
  * Initialisation of a transform plan, guru.
  *
  * \arg ths The pointer to a nfft plan
@@ -176,7 +176,7 @@
  * \arg M The number of nodes
  * \arg n The oversampled multi bandwidth
  * \arg m The spatial cut-off
- * \arg nfft_flags NFFT flags to use
+ * \arg flags NFFT flags to use
  * \arg fftw_flags_off FFTW flags to use
  *
  * \author Stefan Kunis, Daniel Potts

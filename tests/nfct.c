@@ -76,7 +76,7 @@ struct init_delegate_s
   const char *name;
   init_t init;
   const int m;
-  const unsigned nfct_flags;
+  const unsigned flags;
   const unsigned fftw_flags;
 };
 
@@ -171,7 +171,7 @@ static double trafo_direct_cost(X(plan) *p)
           X(init)(&p2, d, N, M);
           for (i = 0; i < M; i++)
             p2.x[i] = K(0.0);
-          if(p2.nfct_flags & PRE_PSI)
+          if(p2.flags & PRE_PSI)
             X(precompute_psi)(&p2);
           for (i = 0; i < d * Nd; i++)
           {
@@ -212,12 +212,12 @@ static double trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(40.0) * EPSILON;
+  return K(120.0) * EPSILON;
 }
 
 static R err_trafo(X(plan) *p)
 {
-  if (p->nfct_flags & PRE_LIN_PSI)
+  if (p->flags & PRE_LIN_PSI)
     return FMAX(K(2.4)*K(10E-08), K(50.0) * EPSILON);
   {
     const R m = ((R)p->m);
@@ -235,7 +235,7 @@ static R err_trafo(X(plan) *p)
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->nfct_flags & PRE_LIN_PSI)
+    if (p->flags & PRE_LIN_PSI)
     {
       R K = 1;//((R)p->K);
       err = EXP(K2PI * m)/(K(8.0) * K * K);
@@ -275,7 +275,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.nfct_flags & PRE_PSI)
+  if(p.flags & PRE_PSI)
     X(precompute_psi)(&p);
 
   check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
@@ -306,12 +306,6 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   trafo_delegate->trafo(&p);
-
-  /* debug */
-  /*fprintf(stderr, "\n");
-  for (j = 0; j < M; j++)
-    fprintf(stderr, "f[%2d] = " __FE__ ", f[%2d] = " __FE__ ", err = " __FE__ "\n", j,
-      f[j], j, p.f[j], ABS(f[j] - p.f[j]) / ABS(f[j]));*/
 
   /* Standard NFFT error measure. */
   {
@@ -436,7 +430,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   /* Number of nodes. */
   *M = ego->M;
 
-  printf("%-31s", "online");
+  printf("%-31s", "nfct_online");
 
   printf(" d = %-1d, N = [", *d);
   {
@@ -481,7 +475,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfct_flags & PRE_PSI)
+    if(p.flags & PRE_PSI)
       X(precompute_psi)(&p);
 
     /* Fourier coefficients. */
@@ -566,7 +560,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfct_flags & PRE_PSI)
+    if(p.flags & PRE_PSI)
       X(precompute_psi)(&p);
 
     /* Function values. */
@@ -631,7 +625,7 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   int i;
   for (i = 0; i < d; i++)
     n[i] = 2*Y(next_power_of_2)(N[i]);
-  X(init_guru)(p, d, N, M, n, ego->m, ego->nfct_flags, ego->fftw_flags);
+  X(init_guru)(p, d, N, M, n, ego->m, ego->flags, ego->fftw_flags);
   free(n);
 }
 
@@ -682,6 +676,12 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
+  /* debug */
+//  fprintf(stderr, "\n");
+//  for (j = 0; j < M; j++)
+//    fprintf(stderr, "f[%2d] = " __FE__ ", f[%2d] = " __FE__ ", err = " __FE__ "\n", j,
+//      f[j], j, p->f[j], ABS(f[j] - p->f[j]) / ABS(f[j]));
+
   for (j = 0; j < M; j++)
     numerator = MAX(numerator, ABS(f[j] - p->f[j]));
 
@@ -697,6 +697,12 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   UNUSED(f);
   int j;
   R numerator = K(0.0), denominator = K(0.0);
+
+  /* debug */
+//  fprintf(stderr, "\n");
+//  for (j = 0; j < NN; j++)
+//    fprintf(stderr, "f_hat[%2d] = " __FE__ ", f_hat[%2d] = " __FE__ ", err = " __FE__ "\n", j,
+//      f_hat[j], j, p->f_hat[j], ABS(f_hat[j] - p->f_hat[j]) / ABS(f_hat[j]));
 
   for (j = 0; j < NN; j++)
     numerator = MAX(numerator, ABS(f_hat[j] - p->f_hat[j]));

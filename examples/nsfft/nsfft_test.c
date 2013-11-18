@@ -124,7 +124,7 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
     nfft_init_guru(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
       FFTW_MEASURE);
     np.x=p.act_nfft_plan->x;
-    if(np.nfft_flags & PRE_ONE_PSI)
+    if(np.flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&np);
     nsfft_cp(&p, &np);
 

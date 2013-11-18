@@ -375,7 +375,7 @@ static inline void nfst_D_ ## which_one (nfst_plan *ths)                        
                                                                                 \
   MACRO_init__kg;                                                               \
                                                                                 \
-  if( ths->nfst_flags & PRE_PHI_HUT)                                            \
+  if( ths->flags & PRE_PHI_HUT)                                            \
                                                                                 \
     for( k_L = 0; k_L < ths->N_total; k_L++)                                    \
     {                                                                           \
@@ -586,7 +586,7 @@ MACRO_nfst_D(T)
     MACRO_nfst_B_init_result_ ## which_one                                      \
                                                                                 \
     /* both flags are set */                                                    \
-    if( (ths->nfst_flags & PRE_PSI) && (ths->nfst_flags & PRE_FULL_PSI))        \
+    if( (ths->flags & PRE_PSI) && (ths->flags & PRE_FULL_PSI))        \
     {                                                                           \
       for( ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)           \
         for( l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++)                   \
@@ -603,7 +603,7 @@ MACRO_nfst_D(T)
         lprod *= NFST_SUMMANDS;                                                 \
                                                                                 \
       /* PRE_PSI flag is set */                                                 \
-      if( ths->nfst_flags & PRE_PSI)                                            \
+      if( ths->flags & PRE_PSI)                                            \
       {                                                                         \
         for( j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)                 \
         {                                                                       \
@@ -789,7 +789,7 @@ void nfst_precompute_psi( nfst_plan *ths)
   }  /* for(t) */
 
   /* full precomputation of psi */
-  if ( ths->nfst_flags & PRE_FULL_PSI)
+  if ( ths->flags & PRE_FULL_PSI)
     nfst_full_psi( ths, ths->nfst_full_psi_eps);
 
 } /* nfst_precompute_psi */
@@ -819,7 +819,7 @@ void nfst_full_psi(nfst_plan *ths, double eps)
   phi_tilde[0] = 1.0;
   lg_plain[0]  =   0;
 
-  if(ths->nfst_flags & PRE_PSI)
+  if(ths->flags & PRE_PSI)
   {
     size_psi = ths->M_total;
     index_f  =    (int*)nfft_malloc( ths->M_total  * sizeof( int));
@@ -899,20 +899,20 @@ void nfst_init_help( nfst_plan *ths)
 
   WINDOW_HELP_INIT;
 
-  if(ths->nfst_flags & MALLOC_X)
+  if(ths->flags & MALLOC_X)
     ths->x = (double*)nfft_malloc( ths->d * ths->M_total * sizeof( double));
 
-  if(ths->nfst_flags & MALLOC_F_HAT)
+  if(ths->flags & MALLOC_F_HAT)
     ths->f_hat = (double*)nfft_malloc( ths->N_total * sizeof( double));
 
-  if(ths->nfst_flags & MALLOC_F)
+  if(ths->flags & MALLOC_F)
     ths->f = (double*)nfft_malloc( ths->M_total * sizeof( double));
 
-  if(ths->nfst_flags & PRE_PHI_HUT)
+  if(ths->flags & PRE_PHI_HUT)
     nfst_precompute_phi_hut( ths);
 
   /* NO FFTW_MALLOC HERE */
-  if(ths->nfst_flags & PRE_PSI)
+  if(ths->flags & PRE_PSI)
   {
     ths->psi =
       (double*)nfft_malloc( ths->M_total * ths->d * NFST_SUMMANDS * sizeof( double));
@@ -923,12 +923,12 @@ void nfst_init_help( nfst_plan *ths)
     ths->nfst_full_psi_eps = pow(10, -10);
   }
 
-  if(ths->nfst_flags & FFTW_INIT)
+  if(ths->flags & FFTW_INIT)
   {
       ths->g1 =
         (double*)nfft_malloc(prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
 
-      if(ths->nfst_flags & FFT_OUT_OF_PLACE)
+      if(ths->flags & FFT_OUT_OF_PLACE)
         ths->g2 =
           (double*)nfft_malloc(prod_minus_a_int( ths->n, 0, ths->d) * sizeof( double));
       else
@@ -961,7 +961,7 @@ void nfst_init( nfst_plan *ths, int d, int *N, int M_total)
 
   ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  ths->nfst_flags = NFST_DEFAULT_FLAGS;
+  ths->flags = NFST_DEFAULT_FLAGS;
   ths->fftw_flags = FFTW_DEFAULT_FLAGS;
 
   nfst_init_help( ths);
@@ -980,7 +980,7 @@ void nfst_init_m( nfst_plan *ths, int d, int *N, int M_total, int m)
 
 void nfst_init_guru( nfst_plan *ths, int d, int *N,
      int M_total, int *n, int m,
-     unsigned nfst_flags, unsigned fftw_flags)
+     unsigned flags, unsigned fftw_flags)
 {
   int t;             /**< index over all dimensions */
 
@@ -999,7 +999,7 @@ void nfst_init_guru( nfst_plan *ths, int d, int *N,
 
   ths->m = m;
 
-  ths->nfst_flags = nfst_flags;
+  ths->flags = flags;
   ths->fftw_flags = fftw_flags;
 
   nfst_init_help( ths);
@@ -1059,20 +1059,20 @@ void nfst_finalize( nfst_plan *ths)
 {
   int t; /* index over dimensions */
 
-  if( ths->nfst_flags & FFTW_INIT)
+  if( ths->flags & FFTW_INIT)
   {
     fftw_destroy_plan( ths->my_fftw_r2r_plan);
 
-    if( ths->nfst_flags & FFT_OUT_OF_PLACE)
+    if( ths->flags & FFT_OUT_OF_PLACE)
       nfft_free( ths->g2);
 
     nfft_free( ths->g1);
   }
 
   /* NO FFTW_FREE HERE */
-  if( ths->nfst_flags & PRE_PSI)
+  if( ths->flags & PRE_PSI)
   {
-    if( ths->nfst_flags & PRE_FULL_PSI)
+    if( ths->flags & PRE_FULL_PSI)
     {
       nfft_free( ths->psi_index_g);
       nfft_free( ths->psi_index_f);
@@ -1081,19 +1081,19 @@ void nfst_finalize( nfst_plan *ths)
     nfft_free( ths->psi);
   }
 
-  if( ths->nfst_flags & PRE_PHI_HUT) {
+  if( ths->flags & PRE_PHI_HUT) {
     for( t = 0; t < ths->d; t++)
       nfft_free( ths->c_phi_inv[t]);
     nfft_free( ths->c_phi_inv);
   }
 
-  if( ths->nfst_flags & MALLOC_F)
+  if( ths->flags & MALLOC_F)
     nfft_free( ths->f);
 
-  if( ths->nfst_flags & MALLOC_F_HAT)
+  if( ths->flags & MALLOC_F_HAT)
     nfft_free( ths->f_hat);
 
-  if( ths->nfst_flags & MALLOC_X)
+  if( ths->flags & MALLOC_X)
     nfft_free( ths->x);
 
   WINDOW_HELP_FINALIZE;

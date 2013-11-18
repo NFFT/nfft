@@ -461,7 +461,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("        x: %p\n",plans[i]->x);
       mexPrintf("        f: %p\n",plans[i]->f);
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
-      mexPrintf("    flags: %d\n",plans[i]->nfft_flags);
+      mexPrintf("    flags: %d\n",plans[i]->flags);
     }
     return;
   }

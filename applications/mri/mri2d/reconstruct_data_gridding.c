@@ -72,11 +72,11 @@ static void reconstruct(char* filename, int N, int M, int weight)
   fclose(fweight);
 
   /* precompute psi */
-  if(my_plan.nfft_flags & PRE_PSI)
+  if(my_plan.flags & PRE_PSI)
     nfft_precompute_psi(&my_plan);
 
   /* precompute full psi */
-  if(my_plan.nfft_flags & PRE_FULL_PSI)
+  if(my_plan.flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&my_plan);
 
 

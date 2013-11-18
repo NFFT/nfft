@@ -76,7 +76,7 @@ static void construct(char * file, int N, int M, int Z)
     }
   }
 
-    if(my_plan.nfft_flags & PRE_PSI)
+    if(my_plan.flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
 
     nfft_trafo(&my_plan);

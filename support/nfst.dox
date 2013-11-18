@@ -85,7 +85,7 @@
  * \author Steffen Klatt
  */
 
-/*! \fn void nfst_init_guru(nfst_plan *ths_plan, int d, int *N, int M_total, int *n, int m, unsigned nfst_flags, unsigned fftw_flags)
+/*! \fn void nfst_init_guru(nfst_plan *ths_plan, int d, int *N, int M_total, int *n, int m, unsigned flags, unsigned fftw_flags)
  * Creates a d-dimensional transform plan.
  *
  * \arg ths_plan The plan for the transform
@@ -94,7 +94,7 @@
  * \arg M_total The number of nodes \f$x\f$
  * \arg n The oversampled bandwidths
  * \arg m The cut-off parameter
- * \arg nfst_flags The flags known to nfst
+ * \arg flags The flags known to nfst
  * \arg fftw_flags The flags known to fftw
  *
  * \author Steffen Klatt

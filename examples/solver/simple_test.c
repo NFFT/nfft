@@ -43,7 +43,7 @@
 /*   nfft_vrand_shifted_unit_double(p.x,p.M_total); */
 
 /*   /\** precompute psi, the entries of the matrix B *\/ */
-/*   if(p.nfft_flags & PRE_ONE_PSI) */
+/*   if(p.flags & PRE_ONE_PSI) */
 /*     nfft_precompute_one_psi(&p); */
 
 /*   /\** initialise inverse plan *\/ */
@@ -100,7 +100,7 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
   nfft_vrand_shifted_unit_double(p.x,p.M_total);
 
   /** precompute psi, the entries of the matrix B */
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
 
   /** initialise inverse plan */

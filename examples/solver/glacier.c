@@ -75,7 +75,7 @@ static void glacier(int N,int M)
   fclose(fp);
 
   /* precompute psi */
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
 
   /* initialise damping factors */
@@ -157,11 +157,11 @@ static void glacier_cv(int N,int M,int M_cv,unsigned solver_flags)
   }
 
   /* precompute psi */
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&p);
 
   /* precompute psi */
-  if(cp.nfft_flags & PRE_ONE_PSI)
+  if(cp.flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&cp);
 
   /* initialise damping factors */

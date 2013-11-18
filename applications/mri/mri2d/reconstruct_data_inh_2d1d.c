@@ -104,7 +104,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
 
 
   /* precompute lin psi if set */
-  if(my_plan.plan.nfft_flags & PRE_LIN_PSI)
+  if(my_plan.plan.flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&my_plan.plan);
 
   if (weight)
@@ -164,10 +164,10 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
 
-  if(my_plan.plan.nfft_flags & PRE_PSI) {
+  if(my_plan.plan.flags & PRE_PSI) {
     nfft_precompute_psi(&my_plan.plan);
   }
-  if(my_plan.plan.nfft_flags & PRE_FULL_PSI) {
+  if(my_plan.plan.flags & PRE_FULL_PSI) {
       nfft_precompute_full_psi(&my_plan.plan);
   }
 

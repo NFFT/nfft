@@ -211,7 +211,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   taylor_precompute(&tp);
 
   /** nfft precomputation */
-  if(np.nfft_flags & PRE_ONE_PSI)
+  if(np.flags & PRE_ONE_PSI)
     nfft_precompute_one_psi(&np);
 
   /** init pseudo random Fourier coefficients */

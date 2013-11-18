@@ -96,7 +96,7 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
 
   t0 = getticks();
   /** precompute psi, the entries of the matrix B */
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
   t1 = getticks();
   tt_preonepsi = nfft_elapsed_seconds(t1,t0);
