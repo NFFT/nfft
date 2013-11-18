@@ -76,7 +76,7 @@ struct init_delegate_s
   const char *name;
   init_t init;
   const int m;
-  const unsigned nfft_flags;
+  const unsigned flags;
   const unsigned fftw_flags;
 };
 
@@ -171,7 +171,7 @@ static double trafo_direct_cost(X(plan) *p)
           X(init)(&p2, d, N, M);
           for (i = 0; i < M; i++)
             p2.x[i] = K(0.0);
-          if(p2.nfft_flags & PRE_ONE_PSI)
+          if(p2.flags & PRE_ONE_PSI)
             X(precompute_one_psi)(&p2);
           for (i = 0; i < d*Nd; i++)
           {
@@ -217,8 +217,8 @@ static R err_trafo_direct(X(plan) *p)
 
 static R err_trafo(X(plan) *p)
 {
-  if (p->nfft_flags & PRE_LIN_PSI)
-    return FMAX(K(2.4)*K(10E-08), K(50.0) * EPSILON);
+  if (p->flags & PRE_LIN_PSI)
+    return FMAX(K(2.5)*K(10E-08), K(50.0) * EPSILON);
   {
     const R m = ((R)p->m);
     R s, err;
@@ -235,7 +235,7 @@ static R err_trafo(X(plan) *p)
   #elif defined(SINC_POWER)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->nfft_flags & PRE_LIN_PSI)
+    if (p->flags & PRE_LIN_PSI)
     {
       R K = ((R)p->K);
       err = EXP(K2PI * m)/(K(8.0) * K * K);
@@ -275,7 +275,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
     X(precompute_one_psi)(&p);
 
   check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
@@ -481,7 +481,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfft_flags & PRE_ONE_PSI)
+    if(p.flags & PRE_ONE_PSI)
       X(precompute_one_psi)(&p);
 
     /* Fourier coefficients. */
@@ -566,7 +566,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.nfft_flags & PRE_ONE_PSI)
+    if(p.flags & PRE_ONE_PSI)
       X(precompute_one_psi)(&p);
 
     /* Function values. */
@@ -631,7 +631,7 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   int i;
   for (i = 0; i < d; i++)
     n[i] = 2*Y(next_power_of_2)(N[i]);
-  X(init_guru)(p, d, N, M, n, ego->m, ego->nfft_flags, ego->fftw_flags);
+  X(init_guru)(p, d, N, M, n, ego->m, ego->flags, ego->fftw_flags);
   free(n);
 }
 
