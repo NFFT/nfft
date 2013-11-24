@@ -157,13 +157,13 @@ typedef ptrdiff_t INT;
 
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
-  #define PHI(x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
+  #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
   #define WINDOW_HELP_INIT(d)
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)
   #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
-  #define PHI(x,d) ((R)EXP(-POW((x)*((R)ths->n[d]),K(2.0)) / \
+  #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
   #define WINDOW_HELP_INIT \
     { \
@@ -179,8 +179,8 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
       K(2.0) * ths->m)/n))
-  #define PHI(x,d) (Y(bspline)(2*ths->m,((x)*ths->n[(d)]) + \
-    (R)ths->m,ths->spline_coeffs) / ths->n[(d)])
+  #define PHI(n,x,d) (Y(bspline)(2*ths->m,((x)*n) + \
+    (R)ths->m,ths->spline_coeffs) / n)
   #define WINDOW_HELP_INIT \
     { \
       ths->spline_coeffs= (R*)Y(malloc)(2*ths->m*sizeof(R)); \
@@ -191,11 +191,11 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * n / \
       ths->sigma[(d)]) + (R)ths->m, ths->spline_coeffs))
-  #define PHI(x,d) ((R)(ths->n[(d)] / ths->sigma[(d)] * \
+  #define PHI(n,x,d) ((R)(n / ths->sigma[(d)] * \
     (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
-    POW(Y(sinc)(KPI * ths->n[(d)] / ths->sigma[(d)] * (x) * \
+    POW(Y(sinc)(KPI * n / ths->sigma[(d)] * (x) * \
     (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) / \
-    ths->n[(d)]))
+    n))
   #define WINDOW_HELP_INIT \
     { \
       ths->spline_coeffs= (R*)Y(malloc)(2 * ths->m * sizeof(R)); \
@@ -205,14 +205,14 @@ typedef ptrdiff_t INT;
 #else /* Kaiser-Bessel is the default. */
   #define PHI_HUT(n,k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
     POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / (n), K(2.0)))))
-  #define PHI(x,d) ((R)((POW((R)(ths->m), K(2.0))\
-    -POW((x)*ths->n[d],K(2.0))) > 0)? \
+  #define PHI(n,x,d) ((R)((POW((R)(ths->m), K(2.0))\
+    -POW((x)*n,K(2.0))) > 0)? \
     SINH(ths->b[d] * SQRT(POW((R)(ths->m),K(2.0)) - \
-    POW((x)*ths->n[d],K(2.0))))/(KPI*SQRT(POW((R)(ths->m),K(2.0)) - \
-    POW((x)*ths->n[d],K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
-    POW((x)*ths->n[d],K(2.0))) < 0)? SIN(ths->b[d] * \
-    SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
-    (KPI*SQRT(POW(ths->n[d]*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):ths->b[d]/KPI))
+    POW((x)*n,K(2.0))))/(KPI*SQRT(POW((R)(ths->m),K(2.0)) - \
+    POW((x)*n,K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
+    POW((x)*n,K(2.0))) < 0)? SIN(ths->b[d] * \
+    SQRT(POW(n*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
+    (KPI*SQRT(POW(n*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):ths->b[d]/KPI))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \

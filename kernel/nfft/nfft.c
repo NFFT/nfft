@@ -141,48 +141,6 @@ static inline void sort(const X(plan) *ths)
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M_total-1} f[j] * exp(-2(pi) k x[j])
  */
-
-/* Macros to initialize arrays before executing a transformation */
-#define MACRO_ndft_init_result_trafo memset(f, 0, ths->M_total * sizeof(C));
-#define MACRO_ndft_init_result_conjugated MACRO_ndft_init_result_trafo
-#define MACRO_ndft_init_result_adjoint memset(f_hat, 0, ths->N_total * sizeof(C));
-#define MACRO_ndft_init_result_transposed MACRO_ndft_init_result_adjoint
-
-/* Exponent of complex exponentials. */
-#define MACRO_ndft_sign_trafo K2PI * ths->x[j * ths->d + t]
-#define MACRO_ndft_sign_conjugated -K2PI * ths->x[j * ths->d + t]
-#define MACRO_ndft_sign_adjoint K2PI * ths->x[j * ths->d + t]
-#define MACRO_ndft_sign_transposed -K2PI * ths->x[j * ths->d + t]
-
-#define MACRO_init_k_N_Omega_x(which_one)                                     \
-{                                                                             \
-  for (t = 0; t < ths->d; t++)                                                \
-  {                                                                           \
-    k[t] = -ths->N[t]/2;                                                      \
-    x[t] = MACRO_ndft_sign_ ## which_one;                                     \
-    Omega[t+1] = ((R)k[t]) * x[t] + Omega[t];                                 \
-  }                                                                           \
-  omega = Omega[ths->d];                                                      \
-}                                                                             \
-
-#define MACRO_count_k_N_Omega                                                 \
-{                                                                             \
-  for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)            \
-    k[t]-= ths->N[t]-1;                                                       \
-                                                                              \
-  k[t]++;                                                                     \
-\
-  for (t2 = t; t2 < ths->d; t2++)                                             \
-    Omega[t2+1] = ((R)k[t2]) * x[t2] + Omega[t2];                             \
-                                                                              \
-  omega = Omega[ths->d];                                                      \
-}
-
-#define MACRO_ndft_compute_trafo f[j] += f_hat[k_L] * CEXP(-II * omega);
-#define MACRO_ndft_compute_conjugated MACRO_ndft_compute_trafo
-#define MACRO_ndft_compute_adjoint f_hat[k_L] += f[j] * CEXP(II * omega);
-#define MACRO_ndft_compute_transposed MACRO_ndft_compute_adjoint
-
 void X(trafo_direct)(const X(plan) *ths)
 {
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
@@ -376,106 +334,102 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
-#define MACRO_nfft_D_compute_A                                                \
-{                                                                             \
-  g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];     \
+#define MACRO_nfft_D_compute_A \
+{ \
+  g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfft_D_compute_T                                                \
-{                                                                             \
-  f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d];     \
+#define MACRO_nfft_D_compute_T \
+{ \
+  f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfft_D_init_result_A memset(g_hat,0,ths->n_total*sizeof(C));
+#define MACRO_nfft_D_init_result_A memset(g_hat, 0, ths->n_total * sizeof(C));
 
-#define MACRO_nfft_D_init_result_T memset(f_hat,0,ths->N_total*sizeof(C));
+#define MACRO_nfft_D_init_result_T memset(f_hat, 0, ths->N_total * sizeof(C));
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 
 #define MACRO_without_PRE_PHI_HUT / (PHI_HUT(ths->n[t2],ks[t2]-(ths->N[t2]/2),t2));
 
-#define MACRO_init_k_ks                                                       \
-{                                                                             \
-  for (t = ths->d-1; 0 <= t; t--)                                             \
-  {                                                                           \
-    kp[t] = k[t] = 0;                                                         \
-    ks[t] = ths->N[t]/2;                                                      \
-  }                                                                           \
-  t++;                                                                        \
+#define MACRO_init_k_ks \
+{ \
+  for (t = ths->d-1; 0 <= t; t--) \
+  { \
+    kp[t] = k[t] = 0; \
+    ks[t] = ths->N[t]/2; \
+  } \
+  t++; \
 }
 
 #define MACRO_update_c_phi_inv_k(which_one) \
-{                                                                             \
-  for (t2 = t; t2 < ths->d; t2++)                                             \
-  {                                                                           \
-    c_phi_inv_k[t2+1] = c_phi_inv_k[t2] MACRO_ ##which_one;                   \
-    ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2];                        \
-    k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2];                           \
-  }                                                                           \
+{ \
+  for (t2 = t; t2 < ths->d; t2++) \
+  { \
+    c_phi_inv_k[t2+1] = c_phi_inv_k[t2] MACRO_ ##which_one; \
+    ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2]; \
+    k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2]; \
+  } \
 }
 
-#define MACRO_count_k_ks                                                      \
-{                                                                             \
-  for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--)                  \
-  {                                                                           \
-    kp[t] = k[t] = 0;                                                         \
-    ks[t]= ths->N[t]/2;                                                       \
-  }                                                                           \
-                                                                              \
-  kp[t]++; k[t]++; ks[t]++;                                                   \
-  if(kp[t] == ths->N[t]/2)                                                    \
-  {                                                                           \
-    k[t] = ths->n[t] - ths->N[t]/2;                                           \
-    ks[t] = 0;                                                                \
-  }                                                                           \
-}                                                                             \
+#define MACRO_count_k_ks \
+{ \
+  for (t = ths->d-1; (t > 0) && (kp[t] == ths->N[t]-1); t--) \
+  { \
+    kp[t] = k[t] = 0; \
+    ks[t]= ths->N[t]/2; \
+  } \
+\
+  kp[t]++; k[t]++; ks[t]++; \
+  if(kp[t] == ths->N[t]/2) \
+  { \
+    k[t] = ths->n[t] - ths->N[t]/2; \
+    ks[t] = 0; \
+  } \
+} \
 
-
-/** sub routines for the fast transforms
- *  matrix vector multiplication with \f$D, D^T\f$
- */
-#define MACRO_nfft_D(which_one)                                               \
-static inline void nfft_D_serial_ ## which_one (X(plan) *ths)                 \
-{                                                                             \
-  C *f_hat, *g_hat;                     /**< local copy                     */\
-  R c_phi_inv_k[ths->d+1];              /**< postfix product of PHI_HUT     */\
-  INT t, t2;                            /**< index dimensions               */\
-  INT k_L;                              /**< plain index                    */\
-  INT kp[ths->d];                       /**< multi index (simple)           */\
-  INT k[ths->d];                        /**< multi index in g_hat           */\
-  INT ks[ths->d];                       /**< multi index in f_hat, c_phi_inv*/\
-  INT k_plain[ths->d+1];                /**< postfix plain index            */\
-  INT ks_plain[ths->d+1];               /**< postfix plain index            */\
-                                                                              \
-  f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat;                             \
-  MACRO_nfft_D_init_result_ ## which_one;                                     \
-                                                                              \
-  c_phi_inv_k[0] = K(1.0);                                                    \
-  k_plain[0] = 0;                                                             \
-  ks_plain[0] = 0;                                                            \
-                                                                              \
-  if (ths->flags & PRE_PHI_HUT)                                          \
-  {                                                                           \
-    MACRO_init_k_ks;                                                          \
-                                                                              \
-    for (k_L = 0; k_L < ths->N_total; k_L++)                                  \
-    {                                                                         \
-      MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT);                             \
-      MACRO_nfft_D_compute_ ## which_one;                                     \
-      MACRO_count_k_ks;                                                       \
-    } /* for(k_L) */                                                          \
-  } /* if(PRE_PHI_HUT) */                                                     \
-  else                                                                        \
-  {                                                                           \
-    MACRO_init_k_ks;                                                          \
-    for (k_L = 0; k_L < ths->N_total; k_L++)                                  \
-    {                                                                         \
-      MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT);                          \
-      MACRO_nfft_D_compute_ ## which_one;                                     \
-      MACRO_count_k_ks;                                                       \
-    } /* for(k_L) */                                                          \
-  } /* else(PRE_PHI_HUT) */                                                   \
-} /* nfft_D */
+/* sub routines for the fast transforms  matrix vector multiplication with D, D^T */
+#define MACRO_nfft_D(which_one) \
+static inline void nfft_D_serial_ ## which_one (X(plan) *ths) \
+{ \
+  C *f_hat, *g_hat; /* local copy  */ \
+  R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT */ \
+  INT t, t2; /* index dimensions */ \
+  INT k_L; /* plain index */ \
+  INT kp[ths->d]; /* multi index (simple) */ \
+  INT k[ths->d]; /* multi index in g_hat */ \
+  INT ks[ths->d]; /* multi index in f_hat, c_phi_inv*/ \
+  INT k_plain[ths->d+1]; /* postfix plain index */ \
+  INT ks_plain[ths->d+1]; /* postfix plain index */ \
+ \
+  f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat; \
+  MACRO_nfft_D_init_result_ ## which_one; \
+\
+  c_phi_inv_k[0] = K(1.0); \
+  k_plain[0] = 0; \
+  ks_plain[0] = 0; \
+\
+  MACRO_init_k_ks; \
+\
+  if (ths->flags & PRE_PHI_HUT) \
+  { \
+    for (k_L = 0; k_L < ths->N_total; k_L++) \
+    { \
+      MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT); \
+      MACRO_nfft_D_compute_ ## which_one; \
+      MACRO_count_k_ks; \
+    } \
+  } \
+  else \
+  { \
+    for (k_L = 0; k_L < ths->N_total; k_L++) \
+    { \
+      MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT); \
+      MACRO_nfft_D_compute_ ## which_one; \
+      MACRO_count_k_ks; \
+    } \
+  } \
+}
 
 #ifdef _OPENMP
 static inline void nfft_D_openmp_A(X(plan) *ths)
@@ -560,121 +514,6 @@ static inline void nfft_D_openmp_A(X(plan) *ths)
 #endif
 
 #ifndef _OPENMP
-//static inline void nfft_D_serial_A(nfft_plan *ths)
-//{
-//  C *f_hat, *g_hat;
-//  R c_phi_inv_k[ths->d + 1];
-//  INT t, t2;
-//  INT k_L;
-//  INT kp[ths->d];
-//  INT k[ths->d];
-//  INT ks[ths->d];
-//  INT k_plain[ths->d + 1];
-//  INT ks_plain[ths->d + 1];
-//  f_hat = (C*) ths->f_hat;
-//  g_hat = (C*) ths->g_hat;
-//  ((__builtin_object_size(g_hat, 0) != (size_t) -1) ? __builtin___memset_chk(
-//      g_hat, 0, ths->n_total * sizeof(C), __builtin_object_size(g_hat, 0)) :
-//      __inline_memset_chk(g_hat, 0, ths->n_total * sizeof(C)));
-//  ;
-//  c_phi_inv_k[0] = ((R) 1.0);
-//  k_plain[0] = 0;
-//  ks_plain[0] = 0;
-//  if (ths->flags & (1U << 0))
-//  {
-//    {
-//      for (t = ths->d - 1; 0 <= t; t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t] = ths->N[t] / 2;
-//      }
-//      t++;
-//    };
-//    for (k_L = 0; k_L < ths->N_total; k_L++)
-//    {
-//      {
-//        for (t2 = t; t2 < ths->d; t2++)
-//        {
-//          c_phi_inv_k[t2 + 1] = c_phi_inv_k[t2] * ths->c_phi_inv[t2][ks[t2]];
-//          ;
-//          ks_plain[t2 + 1] = ks_plain[t2] * ths->N[t2] + ks[t2];
-//          k_plain[t2 + 1] = k_plain[t2] * ths->n[t2] + k[t2];
-//        }
-//      };
-//      {
-//        g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
-//      };
-//      {
-//        for (t = ths->d - 1; (t > 0) && (kp[t] == ths->N[t] - 1); t--)
-//        {
-//          kp[t] = k[t] = 0;
-//          ks[t] = ths->N[t] / 2;
-//        }
-//        kp[t]++;
-//        k[t]++;
-//        ks[t]++;
-//        if (kp[t] == ths->N[t] / 2)
-//        {
-//          k[t] = ths->n[t] - ths->N[t] / 2;
-//          ks[t] = 0;
-//        }
-//      };
-//    }
-//  } else
-//  {
-//    {
-//      for (t = ths->d - 1; 0 <= t; t--)
-//      {
-//        kp[t] = k[t] = 0;
-//        ks[t] = ths->N[t] / 2;
-//      }
-//      t++;
-//    };
-//    for (k_L = 0; k_L < ths->N_total; k_L++)
-//    {
-//      {
-//        for (t2 = t; t2 < ths->d; t2++)
-//        {
-//          c_phi_inv_k[t2 + 1] =
-//              c_phi_inv_k[t2]
-//                  / (((R) (
-//                      ((ks[t2] - (ths->N[t2] / 2)) == 0) ? ((R) 1.0)
-//                          / ths->n[t2] :
-//                          pow(
-//                              sin(
-//                                  (ks[t2] - (ths->N[t2] / 2))
-//                                      * ((R) 3.1415926535897932384626433832795028841971693993751)
-//                                      / ths->ths->n[t2][(t2)])
-//                                  / ((ks[t2] - (ths->N[t2] / 2))
-//                                      * ((R) 3.1415926535897932384626433832795028841971693993751)
-//                                      / ths->ths->n[t2][(t2)]),
-//                              ((R) 2.0) * ths->m) / ths->ths->n[t2][(t2)])));
-//          ;
-//          ks_plain[t2 + 1] = ks_plain[t2] * ths->N[t2] + ks[t2];
-//          k_plain[t2 + 1] = k_plain[t2] * ths->n[t2] + k[t2];
-//        }
-//      };
-//      {
-//        g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d];
-//      };
-//      {
-//        for (t = ths->d - 1; (t > 0) && (kp[t] == ths->N[t] - 1); t--)
-//        {
-//          kp[t] = k[t] = 0;
-//          ks[t] = ths->N[t] / 2;
-//        }
-//        kp[t]++;
-//        k[t]++;
-//        ks[t]++;
-//        if (kp[t] == ths->N[t] / 2)
-//        {
-//          k[t] = ths->n[t] - ths->N[t] / 2;
-//          ks[t] = 0;
-//        }
-//      };
-//    }
-//  }
-//}
 MACRO_nfft_D(A)
 #endif
 
@@ -782,9 +621,7 @@ static void nfft_D_T(X(plan) *ths)
 #endif
 }
 
-/** sub routines for the fast transforms
- *  matrix vector multiplication with \f$B, B^{\rm T}\f$
- */
+/* sub routines for the fast transforms matrix vector multiplication with B, B^T */
 #define MACRO_nfft_B_init_result_A memset(f, 0, ths->M_total * sizeof(C));
 #define MACRO_nfft_B_init_result_T memset(g, 0, ths->n_total * sizeof(C));
 
@@ -812,7 +649,7 @@ static void nfft_D_T(X(plan) *ths)
 
 #define MACRO_with_PRE_PSI ths->psi[(j*ths->d+t2) * (2*ths->m+2)+lj[t2]]
 
-#define MACRO_without_PRE_PSI  PHI(ths->x[j*ths->d+t2]                        \
+#define MACRO_without_PRE_PSI  PHI(ths->n[t2], ths->x[j*ths->d+t2]            \
   - ((R)l[t2])/((R)ths->n[t2]), t2)
 
 #define MACRO_init_uo_l_lj_t                                                  \
@@ -970,7 +807,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths)                 \
                                                                               \
       for (t2 = 0; t2 < ths->d; t2++)                                         \
       {                                                                       \
-        fg_psi[t2][0] = (PHI((ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));\
+        fg_psi[t2][0] = (PHI(ths->n[t2], (ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));\
                                                                               \
         tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])         \
           /ths->b[t2]);                                                       \
@@ -1210,7 +1047,7 @@ static inline void nfft_B_openmp_A (X(plan) *ths)
 
       for (t2 = 0; t2 < ths->d; t2++)
       {
-        fg_psi[t2][0] = (PHI((ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
+        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
 
         tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])
           /ths->b[t2]);
@@ -1781,7 +1618,7 @@ static inline void nfft_B_openmp_T(X(plan) *ths)
 
       for (t2 = 0; t2 < ths->d; t2++)
       {
-        fg_psi[t2][0] = (PHI((ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
+        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
 
         tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])
           /ths->b[t2]);
@@ -2189,7 +2026,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
       R psij_const[m2p2];
 
       uo(ths, (INT)j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->x[j]-((R)u)/n,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0));
       fg_psij1 = EXP(K(2.0) * (n * ths->x[j] - u) / ths->b[0]);
       fg_psij2  = K(1.0);
 
@@ -2253,7 +2090,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
       uo(ths, (INT)j, &u, &o, (INT)0);
 
       for (l = 0; l < m2p2; l++)
-        psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
+        psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0));
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
@@ -2315,7 +2152,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             INT u, o, l;                                                      \
                                                                               \
             uo(ths, j, &u, &o, (INT)0);                                       \
-            fg_psij0 = (PHI(ths->x[j]-((R)u)/n,0));                           \
+            fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0));                           \
             fg_psij1 = EXP(K(2.0) * (n * (ths->x[j]) - u) / ths->b[0]);       \
             fg_psij2 = K(1.0);                                                \
             psij_const[0] = fg_psij0;                                         \
@@ -2358,7 +2195,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             uo(ths, j, &u, &o, (INT)0);                                  \
                                                                               \
             for (l = 0; l <= 2 * m + 1; l++)                                  \
-              psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));              \
+              psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0));              \
                                                                               \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const,   \
                 ths->x + j, n, m, my_u0, my_o0);                              \
@@ -2514,7 +2351,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths, j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->x[j]-((R)u)/n,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0));
       fg_psij1 = EXP(K(2.0) * (n * (ths->x[j]) - u) / ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
@@ -2590,7 +2427,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     uo(ths, j, &u, &o, (INT)0);
 
     for (l = 0; l <= 2 * m + 1; l++)
-      psij_const[l] = (PHI(ths->x[j]-((R)((u+l)))/n,0));
+      psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0));
 
 #ifdef _OPENMP
     nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
@@ -3123,7 +2960,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths, j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->x[2*j]-((R)u)/n0,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0));
       fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
@@ -3134,7 +2971,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o, (INT)1);
-      fg_psij0 = (PHI(ths->x[2*j+1]-((R)u)/n1,1));
+      fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1));
       fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
@@ -3197,11 +3034,11 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for (l = 0; l <= 2*m+1; l++)
-      psij_const[l]=(PHI(ths->x[2*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0));
 
     uo(ths,j,&u,&o,(INT)1);
     for (l = 0; l <= 2*m+1; l++)
-      psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1));
 
     nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
   }
@@ -3271,7 +3108,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             INT u, o, l;                                                      \
                                                                               \
             uo(ths,j,&u,&o,(INT)0);                                      \
-            fg_psij0 = (PHI(ths->x[2*j]-((R)u)/n0,0));                        \
+            fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0));                        \
             fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);          \
             fg_psij2 = K(1.0);                                                \
             psij_const[0] = fg_psij0;                                         \
@@ -3282,7 +3119,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             }                                                                 \
                                                                               \
             uo(ths,j,&u,&o,(INT)1);                                      \
-            fg_psij0 = (PHI(ths->x[2*j+1]-((R)u)/n1,1));                      \
+            fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1));                      \
             fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);        \
             fg_psij2 = K(1.0);                                                \
             psij_const[2*m+2] = fg_psij0;                                     \
@@ -3332,11 +3169,11 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                                                                               \
             uo(ths,j,&u,&o,(INT)0);                                      \
             for(l=0;l<=2*m+1;l++)                                             \
-              psij_const[l]=(PHI(ths->x[2*j]-((R)((u+l)))/n0,0));             \
+              psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0));             \
                                                                               \
             uo(ths,j,&u,&o,(INT)1);                                      \
             for(l=0;l<=2*m+1;l++)                                             \
-              psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));     \
+              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1));     \
                                                                               \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g,               \
                 psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1,       \
@@ -3508,7 +3345,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->x[2*j]-((R)u)/n0,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0));
       fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
@@ -3519,7 +3356,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->x[2*j+1]-((R)u)/n1,1));
+      fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1));
       fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
@@ -3600,11 +3437,11 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->x[2*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->x[2*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1));
 
 #ifdef _OPENMP
     nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
@@ -4584,7 +4421,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       R fg_psij0, fg_psij1, fg_psij2;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->x[3*j]-((R)u)/n0,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0));
       fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
@@ -4595,7 +4432,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->x[3*j+1]-((R)u)/n1,1));
+      fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1));
       fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
@@ -4606,7 +4443,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)2);
-      fg_psij0 = (PHI(ths->x[3*j+2]-((R)u)/n2,2));
+      fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2));
       fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);
       fg_psij2 = K(1.0);
       psij_const[2*(2*m+2)] = fg_psij0;
@@ -4679,15 +4516,15 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->x[3*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->x[3*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1));
 
     uo(ths,j,&u,&o,(INT)2);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2));
+      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2));
 
     nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
   }
@@ -4771,7 +4608,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             R fg_psij0, fg_psij1, fg_psij2;                                   \
                                                                               \
             uo(ths,j,&u,&o,(INT)0);                                           \
-            fg_psij0 = (PHI(ths->x[3*j]-((R)u)/n0,0));                        \
+            fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0));                        \
             fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);          \
             fg_psij2 = K(1.0);                                                \
             psij_const[0] = fg_psij0;                                         \
@@ -4782,7 +4619,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             }                                                                 \
                                                                               \
             uo(ths,j,&u,&o,(INT)1);                                           \
-            fg_psij0 = (PHI(ths->x[3*j+1]-((R)u)/n1,1));                      \
+            fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1));                      \
             fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);        \
             fg_psij2 = K(1.0);                                                \
             psij_const[2*m+2] = fg_psij0;                                     \
@@ -4793,7 +4630,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             }                                                                 \
                                                                               \
             uo(ths,j,&u,&o,(INT)2);                                           \
-            fg_psij0 = (PHI(ths->x[3*j+2]-((R)u)/n2,2));                      \
+            fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2));                      \
             fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);        \
             fg_psij2 = K(1.0);                                                \
             psij_const[2*(2*m+2)] = fg_psij0;                                 \
@@ -4853,15 +4690,15 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                                                                               \
             uo(ths,j,&u,&o,(INT)0);                                           \
             for(l=0;l<=2*m+1;l++)                                             \
-              psij_const[l]=(PHI(ths->x[3*j]-((R)((u+l)))/n0,0));             \
+              psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0));             \
                                                                               \
             uo(ths,j,&u,&o,(INT)1);                                           \
             for(l=0;l<=2*m+1;l++)                                             \
-              psij_const[2*m+2+l]=(PHI(ths->x[3*j+1]-((R)((u+l)))/n1,1));     \
+              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1));     \
                                                                               \
             uo(ths,j,&u,&o,(INT)2);                                           \
             for(l=0;l<=2*m+1;l++)                                             \
-              psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2)); \
+              psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2)); \
                                                                               \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g,               \
                 psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2,           \
@@ -5046,7 +4883,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       R fg_psij0, fg_psij1, fg_psij2;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->x[3*j]-((R)u)/n0,0));
+      fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0));
       fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
@@ -5057,7 +4894,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->x[3*j+1]-((R)u)/n1,1));
+      fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1));
       fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
@@ -5068,7 +4905,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)2);
-      fg_psij0 = (PHI(ths->x[3*j+2]-((R)u)/n2,2));
+      fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2));
       fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);
       fg_psij2 = K(1.0);
       psij_const[2*(2*m+2)] = fg_psij0;
@@ -5157,15 +4994,15 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->x[3*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->x[3*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1));
 
     uo(ths,j,&u,&o,(INT)2);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*(2*m+2)+l]=(PHI(ths->x[3*j+2]-((R)((u+l)))/n2,2));
+      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2));
 
 #ifdef _OPENMP
     nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
@@ -5533,7 +5370,7 @@ void X(precompute_lin_psi)(X(plan) *ths)
       step=((R)(ths->m+2))/(((R)ths->K)*ths->n[t]);
       for(j=0;j<=ths->K;j++)
   {
-    ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
+    ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
   } /* for(j) */
     } /* for(t) */
 }
@@ -5554,7 +5391,7 @@ static void nfft_precompute_fg_psi(X(plan) *ths)
   uo(ths,j,&u,&o,t);
 
         ths->psi[2*(j*ths->d+t)]=
-            (PHI((ths->x[j*ths->d+t]-((R)u)/ths->n[t]),t));
+            (PHI(ths->n[t],(ths->x[j*ths->d+t]-((R)u)/ths->n[t]),t));
 
         ths->psi[2*(j*ths->d+t)+1]=
             EXP(K(2.0)*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);
@@ -5582,7 +5419,7 @@ void X(precompute_psi)(X(plan) *ths)
 
   for(l=u, lj=0; l <= o; l++, lj++)
     ths->psi[(j*ths->d+t)*(2*ths->m+2)+lj]=
-      (PHI((ths->x[j*ths->d+t]-((R)l)/ths->n[t]),t));
+      (PHI(ths->n[t],(ths->x[j*ths->d+t]-((R)l)/ths->n[t]),t));
       } /* for(j) */
   }
   /* for(t) */

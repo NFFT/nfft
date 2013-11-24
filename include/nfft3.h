@@ -206,7 +206,6 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
-
 /* nfct */
 
 /* name mangling macros */
@@ -227,11 +226,12 @@ typedef struct\
   /* api */\
   MACRO_MV_PLAN(R)\
 \
-  int d; /**< dimension, rank */\
-  int *N; /**< cut-off-frequencies (kernel) */\
-  int *n; /**< length of DCT-I */\
+  _INT d; /**< dimension, rank */\
+  _INT *N; /**< cut-off-frequencies (kernel) */\
+  _INT *n; /**< length of DCT-I */\
+  _INT n_total; /**< Combined total length of FFTW transforms. */\
   R *sigma; /**< oversampling-factor */\
-  int m; /**< cut-off parameter in time-domain */\
+  _INT m; /**< cut-off parameter in time-domain */\
 \
   R nfct_full_psi_eps;\
   R *b; /**< shape parameters */\
@@ -249,9 +249,9 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  int size_psi; /**< only for thin B */\
-  int *psi_index_g; /**< only for thin B */\
-  int *psi_index_f; /**< only for thin B */\
+  _INT size_psi; /**< only for thin B */\
+  _INT *psi_index_g; /**< only for thin B */\
+  _INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -274,8 +274,6 @@ NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
-NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
-NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d);
 
 #if defined(HAVE_NFCT)
 /* nfct api */

@@ -130,7 +130,7 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
                                 ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
                                 (y[t2]-y_u[t2]))
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
-#define MACRO_without_PRE_PSI  PHI(-ths->v[j*ths->d+t2]+                      \
+#define MACRO_without_PRE_PSI  PHI(ths->n[t2], -ths->v[j*ths->d+t2]+                      \
                                ((double)l[t2])/ths->N1[t2], t2)
 
 #define MACRO_init_uo_l_lj_t {                                                \
@@ -377,7 +377,7 @@ void nnfft_precompute_lin_psi(nnfft_plan *ths)
       step=((double)(ths->m+1))/(ths->K*ths->N1[t]);
       for(j=0;j<=ths->K;j++)
         {
-          ths->psi[(ths->K+1)*t + j] = PHI(j*step,t);
+          ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
         } /* for(j) */
     } /* for(t) */
 }
@@ -397,7 +397,7 @@ void nnfft_precompute_psi(nnfft_plan *ths)
 
         for(l=u, lj=0; l <= o; l++, lj++)
           ths->psi[(j*ths->d+t)*(2*ths->m+2)+lj]=
-            (PHI((-ths->v[j*ths->d+t]+((double)l)/((double)ths->N1[t])),t));
+            (PHI(ths->n[t],(-ths->v[j*ths->d+t]+((double)l)/((double)ths->N1[t])),t));
       } /* for(j) */
 
   for(j=0;j<ths->M_total;j++) {

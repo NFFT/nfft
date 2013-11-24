@@ -1,4 +1,4 @@
-# $Id$
+strlcpy# $Id$
 #
 # Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 #

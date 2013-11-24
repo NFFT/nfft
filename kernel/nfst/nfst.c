@@ -99,7 +99,7 @@ double nfst_phi_hut( nfst_plan *ths, int k, int d)
 double nfst_phi( nfst_plan *ths, double x, int d)
 {
   NFST_PRE_WINFUN( d);
-  double phi_tmp = PHI( x, d);
+  double phi_tmp = PHI(ths->n[d], x, d);
   NFST_POST_WINFUN( d);
 
   return phi_tmp;
@@ -829,7 +829,7 @@ void nfst_full_psi(nfst_plan *ths, double eps)
     for( t = 0,lprod = 1; t < ths->d; t++)
     {
       lprod *= NFST_SUMMANDS;
-      eps *= PHI( 0, t);
+      eps *= PHI(ths->n[t], 0, t);
     }
 
     for( ix = 0, ix_old = 0, j = 0; j < ths->M_total; j++)

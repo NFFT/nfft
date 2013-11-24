@@ -357,7 +357,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   FILE *file = fopen(ego->filename, "r");
 
   filename[0] = (char) 0;
-  strlcpy(filename, &c[1], &ego->filename[strlen(ego->filename)] - c);
+  strcpy(filename, &c[1]);
   printf("%-31s", filename);
 
   /* Dimensions. */
