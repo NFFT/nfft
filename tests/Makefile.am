@@ -11,11 +11,15 @@ else
 endif
 
 check_PROGRAMS =  $(CHECK)
+#debug
 
 TESTS = $(check_PROGRAMS)
 
 checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h nfct.c nfct.h nfst.c nfst.h
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
+
+#debug_SOURCES = debug.c nfct.c nfct.h
+#debug_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la
 
 clean-local:
 	rm -f CUnitAutomated-Results.xml

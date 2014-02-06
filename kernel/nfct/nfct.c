@@ -66,10 +66,8 @@ static inline INT intprod(const INT *vec, const INT d)
 #define NFCT_SUMMANDS (2 * ths->m + 2)
 #define NODE(p,r) (ths->x[(p) * ths->d + (r)])
 
-#define NFCT_WINDOW_HELP_INIT WINDOW_HELP_INIT
-
-#define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]]
-#define MACRO_compute_PSI PHI(2 * (ths->n[t] - 1), NODE(j,t) - ((R)(lc[t] + lb[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))), t)
+#define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lj[t]]
+#define MACRO_compute_PSI PHI(2 * (ths->n[t] - 1), NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))), t)
 
 /** direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
@@ -237,18 +235,32 @@ void X(adjoint_direct)(const X(plan) *ths)
 }
 
 /** fast computation of non equispaced cosine transforms
-*  require O(N^d log(N) + M) arithemtical operations
-*
-* fast computation of the nfct_trafo, formula (1.1)
-* nfct_trafo:
-* for j=0,...,M-1
-*  f[j] = sum_{k in I_N^d} f_hat[k] * cos(2 (pi) k x[j])
-*
-* direct computation of the nfct_adjoint, formula (1.2)
-* nfct_adjoint:
-* for k in I_N^d
-*  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
-*/
+ *  require O(N^d log(N) + M) arithemtical operations
+ *
+ * fast computation of the nfct_trafo, formula (1.1)
+ * nfct_trafo:
+ * for j=0,...,M-1
+ *  f[j] = sum_{k in I_N^d} f_hat[k] * cos(2 (pi) k x[j])
+ *
+ * direct computation of the nfct_adjoint, formula (1.2)
+ * nfct_adjoint:
+ * for k in I_N^d
+ *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
+ */
+
+/** macros and small sub routines for the fast transforms
+ */
+
+/** computes 2m+2 indices for the matrix B
+ */
+static inline void uo(const X(plan) *ths, const INT j, INT *up,
+    const INT act_dim)
+{
+  const R xj = ths->x[j * ths->d + act_dim];
+  INT c = LRINT(xj * (2 * (ths->n[(act_dim)] - 1)));
+
+  (*up) = c - (ths->m);
+}
 
 #define MACRO_nfct_D_compute_A \
 { \
@@ -293,6 +305,7 @@ void X(adjoint_direct)(const X(plan) *ths)
 
 #define MACRO_update_c_phi_inv_k_T(which_phi) \
 { \
+  /*c_phi_inv_k[t+1] = (kg[t] == 0 ? K(1.0) : K(0.5)) * c_phi_inv_k[t] * MACRO_ ## which_phi;*/ \
   c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi; \
 }
 
@@ -349,7 +362,6 @@ static inline void D_ ## which_one (X(plan) *ths) \
 }
 
 MACRO_nfct_D(A)
-
 MACRO_nfct_D(T)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
@@ -363,384 +375,565 @@ MACRO_nfct_D(T)
 
 #define MACRO_nfct_B_PRE_FULL_PSI_compute_T \
 { \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
+  factor = K(1.0); \
+  d = ths->psi_index_g[ix]; \
+  for (t = ths->d - 1; t >= 0; t--) \
+  { \
+    m = d % ths->n[t]; \
+    if (m != 0 && m != ths->n[t] - 1) \
+      factor *= K(0.5); \
+    d = d / ths->n[t]; \
+  } \
+  g[ths->psi_index_g[ix]] += factor * ths->psi[ix] * (*fj); \
 }
 
 #define MACRO_nfct_B_compute_A \
 { \
-  (*fj) += phi_tilde[ths->d] * g[lg_plain[ths->d]]; \
+  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
 }
 
 #define MACRO_nfct_B_compute_T \
 { \
-  g[lg_plain[ths->d]] += phi_tilde[ths->d] * (*fj); \
+  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
 }
 
-#define MACRO_compute_lg_offset__count_lg(i0) \
+/*#define MACRO_with_FG_PSI fg_psi[t2][lj[t2]]
+
+#define MACRO_with_PRE_PSI ths->psi[(j*ths->d+t2) * (2*ths->m+2)+lj[t2]]*/
+
+#define MACRO_without_PRE_PSI PHI(2 * (ths->n[t] - 1), (ths->x[(j) * ths->d + t]) \
+  - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t]) - K(1.0))), t)
+
+#define MACRO_init_uo_l_lj_t \
 { \
-  /* determine index in g-array corresponding to lb[(i0)] */ \
-  if (lb[(i0)] < 0) \
-    lg_offset[(i0)] = \
-      (lb[(i0)] % (2 * (ths->n[(i0)] - 1))) + (2 * (ths->n[(i0)] - 1)); \
-  else \
-    lg_offset[(i0)] = lb[(i0)] % (2 * (ths->n[(i0)] - 1)); \
-    if (lg_offset[(i0)] >= ths->n[(i0)]) \
-      lg_offset[(i0)] = -(2 * (ths->n[(i0)] - 1) - lg_offset[(i0)]); \
+  for (t2 = 0; t2 < ths->d; t2++) \
+  { \
+    uo(ths, j, &u[t2], t2); \
+    \
+    /* determine index in g-array corresponding to u[(t2)] */ \
+    if (u[(t2)] < 0) \
+      lg_offset[(t2)] = \
+        (u[(t2)] % (2 * (ths->n[(t2)] - 1))) + (2 * (ths->n[(t2)] - 1)); \
+    else \
+      lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] - 1)); \
+      if (lg_offset[(t2)] >= ths->n[(t2)]) \
+        lg_offset[(t2)] = -(2 * (ths->n[(t2)] - 1) - lg_offset[(t2)]); \
+    \
+    if (lg_offset[t2] <= 0) \
+    { \
+      l[t2] = -lg_offset[t2]; \
+      count_lg[t2] = -1; \
+    } \
+    else \
+    { \
+      l[t2] = +lg_offset[t2]; \
+      count_lg[t2] = +1; \
+    } \
+ \
+    lj[t2] = 0; \
+   } \
+   t2 = 0; \
 }
 
-#define MACRO_set__lg__to__lg_offset \
+#define FOO_A K(1.0)
+
+#define FOO_T ((l[t] == 0 || l[t] == ths->n[t] - 1) ? K(1.0) : K(0.5))
+
+#define MACRO_update_phi_prod_ll_plain(which_one, which_psi) \
 { \
-  if (lg_offset[i] <= 0) \
+  for (t = t2; t < ths->d; t++) \
   { \
-    lg[i] = -lg_offset[i]; \
-    count_lg[i] = -1; \
-  } \
-  else \
-  { \
-    lg[i] = +lg_offset[i]; \
-    count_lg[i] = +1; \
+    phi_prod[t+1] = (FOO_ ## which_one) * phi_prod[t] * (MACRO_ ## which_psi); \
+    ll_plain[t+1]  = ll_plain[t] * ths->n[t] + l[t]; \
   } \
 }
 
-#define MACRO_count__lg(dim) \
+#define MACRO_count_uo_l_lj_t \
 { \
   /* turn around if we hit one of the boundaries */ \
-  if ((lg[(dim)] == 0) || (lg[(dim)] == ths->n[(dim)]-1)) \
-    count_lg[(dim)] *= -1; \
+  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == ths->n[(ths->d-1)]-1)) \
+    count_lg[(ths->d-1)] *= -1; \
+ \
   /* move array index */ \
-  lg[(dim)] += count_lg[(dim)]; \
-}
-
-#define MACRO_nfct__lower_boundary(j,act_dim) \
-{ \
-  lb[(act_dim)] = \
-    LRINT(NODE((j),(act_dim)) * (2 * (ths->n[(act_dim)] - 1))) - ths->m; \
-}
-
-#define MACRO_init_lb_lg_lc \
-{ \
-  for (i = 0; i < ths->d; i++) \
+  l[(ths->d-1)] += count_lg[(ths->d-1)]; \
+ \
+  lj[ths->d - 1]++; \
+  t2 = ths->d - 1; \
+ \
+  while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0)) \
   { \
-    MACRO_nfct__lower_boundary(j, i); \
-    MACRO_compute_lg_offset__count_lg(i); \
-    MACRO_set__lg__to__lg_offset; \
-    /* counter for lg */ \
-    lc[i] = 0; \
-   } \
-   i = 0; \
-}
-
-#define MACRO_count__lg_lc \
-{ \
-  MACRO_count__lg(ths->d-1); \
-  lc[ths->d - 1]++; \
-  i = ths->d - 1; \
-  while ((lc[i] == NFCT_SUMMANDS) && (i > 0)) \
-  { \
-    lc[i - 1]++; \
-    lc[i] = 0; \
+    lj[t2 - 1]++; \
+    lj[t2] = 0; \
     /* ansonsten lg[i-1] verschieben */ \
-    MACRO_count__lg(i - 1); \
+ \
+    /* turn around if we hit one of the boundaries */ \
+    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == ths->n[(t2 - 1)]-1)) \
+      count_lg[(t2 - 1)] *= -1; \
+    /* move array index */ \
+    l[(t2 - 1)] += count_lg[(t2 - 1)]; \
+ \
     /* lg[i] = anfangswert */ \
-    MACRO_set__lg__to__lg_offset; \
-    i--; \
-  } \
-}
-
-#define  MACRO_update_phi_tilde_lg_plain(which_one, which_psi) \
-{ \
-  for (t = i; t < ths->d; t++) \
-  { \
-    MACRO__phi_tilde__ ## which_one(which_psi); \
-    lg_plain[t+1]  = lg_plain[t]  * ths->n[t] + lg[t]; \
-  } \
-}
-
-#define MACRO__phi_tilde__A(which_psi) \
-{ \
-  phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi; \
-}
-
-#define MACRO__phi_tilde__T(which_psi) \
-{ \
-  if(lg[t] == 0 || lg[t] == ths->n[t] - 1) \
-  { \
-    phi_tilde[t+1] = phi_tilde[t] * MACRO_ ## which_psi; \
-  } \
-  else \
-  { \
-    phi_tilde[t+1] = K(0.5) * phi_tilde[t] * MACRO_ ## which_psi; \
+    if (lg_offset[t2] <= 0) \
+    { \
+      l[t2] = -lg_offset[t2]; \
+      count_lg[t2] = -1; \
+    } \
+    else \
+    { \
+      l[t2] = +lg_offset[t2]; \
+      count_lg[t2] = +1; \
+    } \
+ \
+    t2--; \
   } \
 }
 
 #define MACRO_nfct_B(which_one) \
 static inline void B_ ## which_one (nfct_plan *ths) \
-{ /* MACRO_nfct_B */ \
-  INT lb[ths->d]; /* multi band with respect to x_j */ \
-  INT j, t, i; /* index nodes, help vars */ \
-  INT lprod, l_L, ix; /* index one row of B */ \
-  INT lc[ths->d]; /* multi index 0<=lc<2m+2 */ \
-  INT lg[ths->d]; /* real index of g in array */ \
+{ \
+  INT lprod; /* 'regular bandwidth' of matrix B  */ \
+  INT u[ths->d]; /* multi band with respect to x_j */ \
+  INT t, t2; /* index dimensions */ \
+  INT j; /* index nodes */ \
+  INT l_L, ix; /* index one row of B */ \
+  INT l[ths->d]; /* multi index u<=l<=o (real index of g in array) */ \
+  INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
+  INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
+  R phi_prod[ths->d+1]; /* postfix product of PHI */ \
+  R *f, *g; /* local copy */ \
+  R *fj; /* local copy */ \
   INT lg_offset[ths->d]; /* offset in g according to u */ \
   INT count_lg[ths->d]; /* count summands (2m+2) */ \
-  INT lg_plain[ths->d+1]; /* index of g in multi_array */ \
-  R *f, *g; /* local copy */ \
-  R phi_tilde[ths->d+1]; /* holds values for psi */ \
-  R *fj; /* pointer to final result */ \
 \
   f = ths->f; g = ths->g; \
 \
   MACRO_nfct_B_init_result_ ## which_one \
 \
   /* both flags are set */ \
-  if ((ths->flags & PRE_PSI)&&(ths->flags & PRE_FULL_PSI)) \
+  if (ths->flags & PRE_FULL_PSI) \
   { \
-    for (ix = 0, j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+    R factor; \
+    INT d, m; \
+    /*fprintf(stderr,"\n");*/ \
+    for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
       { \
+        /*fprintf(stderr,__FE__ ", %d\n",ths->psi[ix], ths->psi_index_g[ix]);*/ \
         MACRO_nfct_B_PRE_FULL_PSI_compute_ ## which_one; \
       } \
+      /*fprintf(stderr,"\n");*/ \
+    } \
+    return; \
   } \
-  else \
+\
+  phi_prod[0] = K(1.0); \
+  ll_plain[0]  = 0; \
+\
+  for (t = 0, lprod = 1; t < ths->d; t++) \
+    lprod *= (2 * ths->m + 2); \
+\
+  if (ths->flags & PRE_PSI) \
   { \
-    phi_tilde[0] = K(1.0); \
-    lg_plain[0]  = 0; \
-\
-    for (t = 0, lprod = 1; t < ths->d; t++) \
-      lprod *= NFCT_SUMMANDS; \
-\
-    /* PRE_PSI flag is set */ \
-    if (ths->flags & PRE_PSI) \
-      for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
-        { \
-          MACRO_init_lb_lg_lc; \
-          for (l_L = 0; l_L < lprod; l_L++) \
-          { \
-            MACRO_update_phi_tilde_lg_plain(which_one, with_PRE_PSI); \
-            MACRO_nfct_B_compute_ ## which_one; \
-            MACRO_count__lg_lc; \
-          } /* for(l_L) */ \
-        } /* for(j) */ \
-\
-    /* no PSI flag is set */ \
-    else \
-      for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    { \
+      MACRO_init_uo_l_lj_t; \
+ \
+      for (l_L = 0; l_L < lprod; l_L++) \
       { \
-        MACRO_init_lb_lg_lc; \
-        for (l_L = 0; l_L < lprod; l_L++) \
+        MACRO_update_phi_prod_ll_plain(which_one, with_PRE_PSI); \
+ \
+        MACRO_nfct_B_compute_ ## which_one; \
+ \
+        MACRO_count_uo_l_lj_t; \
+      } /* for(l_L) */ \
+    } /* for(j) */ \
+    return; \
+  } \
+ \
+  /*if (ths->flags & PRE_FG_PSI) \
+  { \
+    for(t2 = 0; t2 < ths->d; t2++) \
+    { \
+      tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
+      tmpEXP2sq = tmpEXP2*tmpEXP2; \
+      tmp2 = K(1.0); \
+      tmp3 = K(1.0); \
+      fg_exp_l[t2][0] = K(1.0); \
+      for(lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
+      { \
+        tmp3 = tmp2*tmpEXP2; \
+        tmp2 *= tmpEXP2sq; \
+        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
+      } \
+    } \
+    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    { \
+      MACRO_init_uo_l_lj_t; \
+  \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)]; \
+        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1]; \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
         { \
-          MACRO_update_phi_tilde_lg_plain(which_one,compute_PSI); \
-          MACRO_nfct_B_compute_ ## which_one; \
-          MACRO_count__lg_lc; \
-        } /* for (l_L) */ \
-      } /* for (j) */ \
-  } /* else (PRE_PSI && FULL_PRE_PSI) */ \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      } \
+  \
+      for (l_L= 0; l_L < lprod; l_L++) \
+      { \
+        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
+  \
+        MACRO_nfft_B_compute_ ## which_one; \
+  \
+        MACRO_count_uo_l_lj_t; \
+      }  for(l_L)  \
+    }  for(j)  \
+    return; \
+  }  if(PRE_FG_PSI)  \
+  \
+  if (ths->flags & FG_PSI) \
+  { \
+    for (t2 = 0; t2 < ths->d; t2++) \
+    { \
+      tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
+      tmpEXP2sq = tmpEXP2*tmpEXP2; \
+      tmp2 = K(1.0); \
+      tmp3 = K(1.0); \
+      fg_exp_l[t2][0] = K(1.0); \
+      for (lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
+      { \
+        tmp3 = tmp2*tmpEXP2; \
+        tmp2 *= tmpEXP2sq; \
+        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
+      } \
+    } \
+    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    { \
+      MACRO_init_uo_l_lj_t; \
+  \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = (PHI(ths->n[t2], (ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));\
+  \
+        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2]) \
+          /ths->b[t2]); \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      } \
+  \
+      for (l_L = 0; l_L < lprod; l_L++) \
+      { \
+        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
+  \
+        MACRO_nfft_B_compute_ ## which_one; \
+  \
+        MACRO_count_uo_l_lj_t; \
+      }  for(l_L)  \
+    }  for(j)  \
+    return; \
+  }  if(FG_PSI)  \
+  \
+  if (ths->flags & PRE_LIN_PSI) \
+  { \
+    for (j = 0, fj=f; j<ths->M_total; j++, fj++) \
+    { \
+      MACRO_init_uo_l_lj_t; \
+  \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2]) \
+          * ((R)ths->K))/(ths->m+2); \
+        ip_u  = LRINT(FLOOR(y[t2])); \
+        ip_w  = y[t2]-ip_u; \
+        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
+            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
+            * (ip_w); \
+        } \
+      } \
+  \
+      for (l_L = 0; l_L < lprod; l_L++) \
+      { \
+        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
+  \
+        MACRO_nfft_B_compute_ ## which_one; \
+  \
+        MACRO_count_uo_l_lj_t; \
+      }  for(l_L)  \
+    }  for(j)  \
+    return; \
+  }  if(PRE_LIN_PSI)  \
+  */ \
+  /* no precomputed psi at all */ \
+  for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+  { \
+    MACRO_init_uo_l_lj_t; \
+ \
+    for (l_L = 0; l_L < lprod; l_L++) \
+    { \
+      MACRO_update_phi_prod_ll_plain(which_one, without_PRE_PSI); \
+ \
+      MACRO_nfct_B_compute_ ## which_one; \
+ \
+      MACRO_count_uo_l_lj_t; \
+    } /* for (l_L) */ \
+  } /* for (j) */ \
 } /* nfct_B */
 
 MACRO_nfct_B(A)
 MACRO_nfct_B(T)
 
-/* more memory, but faster */
-#define MACRO_nfct_full_psi(which_one) \
-static inline void full_psi__ ## which_one(nfct_plan *ths) \
-{ \
-  INT t, i; /* index over all dimensions */ \
-  INT j; /* node index */ \
-  INT l_L; /* plain index 0 <= l_L < lprod */ \
-  INT lc[ths->d]; /* multi index 0<=lj<u+o+1 */ \
-  INT lg_plain[ths->d+1]; /* postfix plain index */ \
-  INT count_lg[ths->d]; \
-  INT lg_offset[ths->d]; \
-  INT lg[ths->d]; \
-  INT lprod; /* 'bandwidth' of matrix B */ \
-  INT lb[ths->d]; /* depends on x_j */ \
-\
-  R phi_tilde[ths->d+1]; \
-  R eps = ths->nfct_full_psi_eps; \
-\
-  INT *index_g, *index_f; \
-  R *new_psi; \
-  INT ix, ix_old, size_psi; \
-\
-  phi_tilde[0] = K(1.0); \
-  lg_plain[0]  =   0; \
- \
-  if (ths->flags & PRE_PSI) \
-  { \
-    size_psi = ths->M_total; \
-    index_f = (INT*)Y(malloc)(ths->M_total  * sizeof(INT)); \
-    index_g = (INT*)Y(malloc)(size_psi * sizeof(INT)); \
-    new_psi = (R*)Y(malloc)(size_psi * sizeof(R)); \
-\
-    for (t = 0,lprod = 1; t < ths->d; t++) \
-    { \
-      lprod *= NFCT_SUMMANDS; \
-      eps *= PHI(2 * (ths->n[t] - 1), K(0.0), t); \
-    } \
-\
-    for (ix = 0, ix_old = 0, j = 0; j < ths->M_total; j++) \
-    { \
-      MACRO_init_lb_lg_lc; \
-\
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_tilde_lg_plain(which_one, with_PRE_PSI); \
-\
-        if (phi_tilde[ths->d] > eps) \
-        { \
-          index_g[ix] = lg_plain[ths->d]; \
-          new_psi[ix] = phi_tilde[ths->d]; \
-\
-          ix++; \
-          if (ix == size_psi) \
-          { \
-            size_psi += ths->M_total; \
-            index_g = (INT*)realloc(index_g, size_psi * sizeof(INT)); \
-            new_psi = (R*)realloc(new_psi, size_psi * sizeof(R)); \
-          } \
-        } \
-\
-        MACRO_count__lg_lc; \
-\
-      } /* for (l_L) */ \
-\
-      index_f[j] = ix - ix_old; \
-      ix_old = ix; \
-\
-    } /* for(j) */ \
-\
-    Y(free)(ths->psi); \
-    size_psi = ix; \
-    ths->size_psi = size_psi; \
-\
-    index_g = (INT*)realloc(index_g, size_psi * sizeof(INT)); \
-    new_psi = (R*)realloc(new_psi, size_psi * sizeof(R)); \
-\
-    ths->psi = new_psi; \
-    ths->psi_index_g = index_g; \
-    ths->psi_index_f = index_f; \
-\
-  } /* if(PRE_PSI) */ \
-}
+/* ## specialized version for d=1  ########################################### */
 
-MACRO_nfct_full_psi(A)
-MACRO_nfct_full_psi(T)
-
-/* user routines */
-
+/** user routines
+ */
 void X(trafo)(X(plan) *ths)
 {
-  /* use ths->my_fftw_r2r_plan */
-  ths->g_hat = ths->g1;
-  ths->g = ths->g2;
-
-  /* form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
-   * k \in I_N \f$ */
-  TIC(0)
-  D_A(ths);
-  TOC(0)
-
-  /* Compute by d-variate discrete Fourier transform
-   * \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   * \text{ for } l \in I_n \f$ */
-  TIC(1)
-  Z(execute)(ths->my_fftw_r2r_plan);
-  TOC(1)
-
-  if (ths->flags & PRE_FULL_PSI)
-    full_psi__A(ths);
-
-  /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-   * \text{ for } j=0,\hdots,M-1 \f$ */
-  TIC(2)
-  B_A(ths);
-  TOC(2)
-
-  if (ths->flags & PRE_FULL_PSI)
+  switch(ths->d)
   {
-    Y(free)(ths->psi_index_g);
-    Y(free)(ths->psi_index_f);
+    default:
+    {
+      /* use ths->my_fftw_r2r_plan */
+      ths->g_hat = ths->g1;
+      ths->g = ths->g2;
+
+      /* form \f$ \hat g_k = \frac{\hat f_k}{c_k\left(\phi\right)} \text{ for }
+       * k \in I_N \f$ */
+      TIC(0)
+      D_A(ths);
+      TOC(0)
+
+      /* Compute by d-variate discrete Fourier transform
+       * \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
+       * \text{ for } l \in I_n \f$ */
+      TIC_FFTW(1)
+      Z(execute)(ths->my_fftw_r2r_plan);
+      TOC_FFTW(1)
+
+      /*if (ths->flags & PRE_FULL_PSI)
+        full_psi__A(ths);*/
+
+      /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
+       * \text{ for } j=0,\hdots,M-1 \f$ */
+      TIC(2)
+      B_A(ths);
+      TOC(2)
+
+      /*if (ths->flags & PRE_FULL_PSI)
+      {
+        Y(free)(ths->psi_index_g);
+        Y(free)(ths->psi_index_f);
+      }*/
+    }
   }
 } /* nfct_trafo */
 
 void X(adjoint)(X(plan) *ths)
 {
-  /* use ths->my_fftw_plan */
-  ths->g_hat = ths->g2;
-  ths->g = ths->g1;
-
-  if (ths->flags & PRE_FULL_PSI)
-    full_psi__T(ths);
-
-  /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
-   * \text{ for } l \in I_n,m(x_j) \f$ */
-  TIC(2)
-  B_T(ths);
-  TOC(2)
-
-  if (ths->flags & PRE_FULL_PSI)
+  switch(ths->d)
   {
-    Y(free)(ths->psi_index_g);
-    Y(free)(ths->psi_index_f);
+    default:
+    {
+      /* use ths->my_fftw_plan */
+      ths->g_hat = ths->g2;
+      ths->g = ths->g1;
+
+      /*if (ths->flags & PRE_FULL_PSI)
+        full_psi__T(ths);*/
+
+      /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
+       * \text{ for } l \in I_n,m(x_j) \f$ */
+      TIC(2)
+      B_T(ths);
+      TOC(2)
+
+      /* Compute by d-variate discrete cosine transform
+       * \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
+       * \text{ for }  k \in I_N\f$ */
+      TIC_FFTW(1)
+      Z(execute)(ths->my_fftw_r2r_plan);
+      TOC_FFTW(1)
+
+      /* Form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
+       * k \in I_N \f$ */
+      TIC(0)
+      D_T(ths);
+      TOC(0)
+    }
   }
-
-  /* Compute by d-variate discrete cosine transform
-   * \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
-   * \text{ for }  k \in I_N\f$ */
-  TIC(1)
-  Z(execute)(ths->my_fftw_r2r_plan);
-  TOC(1)
-
-  /* Form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
-   * k \in I_N \f$ */
-  TIC(0)
-  D_T(ths);
-  TOC(0)
-
 } /* nfct_adjoint */
 
+/** initialisation of direct transform
+ */
 static inline void precompute_phi_hut(X(plan) *ths)
 {
-  INT kg[ths->d]; /* index over all frequencies */
+  INT ks[ths->d]; /* index over all frequencies */
   INT t; /* index over all dimensions */
 
-  ths->c_phi_inv = (R**)Y(malloc)(ths->d * sizeof(R*));
+  ths->c_phi_inv = (R**) Y(malloc)(ths->d * sizeof(R*));
 
   for (t = 0; t < ths->d; t++)
   {
     ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
 
-    for (kg[t] = 0; kg[t] < ths->N[t]; kg[t]++)
+    for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
-      ths->c_phi_inv[t][kg[t]] = MACRO_compute_PHI_HUT_INV;
+      ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT(2 * (ths->n[t] - 1), ks[t], t)));
     }
   }
 } /* nfct_phi_hut */
 
+/** create a lookup table, but NOT for each node
+ *  good idea K=2^xx
+ *  TODO: estimate K, call from init
+ *  assumes an EVEN window function
+ */
+//void X(precompute_lin_psi)(X(plan) *ths)
+//{
+//  INT t;                                /**< index over all dimensions       */
+//  INT j;                                /**< index over all nodes            */
+//  R step;                          /**< step size in [0,(m+2)/n]        */
+//
+//  for (t=0; t<ths->d; t++)
+//    {
+//      step=((R)(ths->m+2))/(((R)ths->K)*ths->n[t]);
+//      for(j=0;j<=ths->K;j++)
+//  {
+//    ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
+//  } /* for(j) */
+//    } /* for(t) */
+//}
+//
+//static void nfft_precompute_fg_psi(X(plan) *ths)
+//{
+//  INT t;                                /**< index over all dimensions       */
+//  INT u, o;                             /**< depends on x_j                  */
+//
+//  sort(ths);
+//
+//  for (t=0; t<ths->d; t++)
+//  {
+//    INT j;
+//    #pragma omp parallel for default(shared) private(j,u,o)
+//    for (j = 0; j < ths->M_total; j++)
+//      {
+//  uo(ths,j,&u,&o,t);
+//
+//        ths->psi[2*(j*ths->d+t)]=
+//            (PHI(ths->n[t],(ths->x[j*ths->d+t]-((R)u)/ths->n[t]),t));
+//
+//        ths->psi[2*(j*ths->d+t)+1]=
+//            EXP(K(2.0)*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);
+//      } /* for(j) */
+//  }
+//  /* for(t) */
+//} /* nfft_precompute_fg_psi */
+
 void X(precompute_psi)(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
-  INT j; /* index over all nodes */
-  INT lc[ths->d]; /* index 0<=lj<u+o+1 */
-  INT lb[ths->d]; /* depends on x_j */
+  INT lj; /* index 0<=lj<u+o+1 */
+  INT u; /* depends on x_j */
+
+  //sort(ths);
 
   for (t = 0; t < ths->d; t++)
   {
+    INT j;
+
     for (j = 0; j < ths->M_total; j++)
     {
-      MACRO_nfct__lower_boundary(j, t);
-      for(lc[t] = 0; lc[t] < NFCT_SUMMANDS; lc[t]++)
-	      ths->psi[(j * ths->d + t) * NFCT_SUMMANDS + lc[t]] = MACRO_compute_PSI;
+      uo(ths, j, &u, t);
+
+      for(lj = 0; lj < (2 * ths->m + 2); lj++)
+	      ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
+	          (PHI(2 * (ths->n[t] - 1), (ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0))), t));
     } /* for (j) */
   } /* for (t) */
 } /* nfct_precompute_psi */
 
+X(precompute_full_psi)(X(plan) *ths)
+{
+//#ifdef _OPENMP
+//  sort(ths);
+//
+//  nfft_precompute_full_psi_omp(ths);
+//#else
+  INT t, t2; /* index over all dimensions */
+  INT j; /* index over all nodes */
+  INT l_L; /* plain index 0 <= l_L < lprod */
+  INT l[ths->d]; /* multi index u<=l<=o */
+  INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
+  INT ll_plain[ths->d+1]; /* postfix plain index */
+  INT lprod; /* 'bandwidth' of matrix B */
+  INT u[ths->d]; /* depends on x_j */
+  INT count_lg[ths->d];
+  INT lg_offset[ths->d];
+
+  R phi_prod[ths->d+1];
+
+  INT ix, ix_old;
+
+  //sort(ths);
+
+  phi_prod[0] = K(1.0);
+  ll_plain[0]  = 0;
+
+  for (t = 0, lprod = 1; t < ths->d; t++)
+    lprod *= 2 * ths->m + 2;
+
+  for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
+  {
+    MACRO_init_uo_l_lj_t;
+
+    for (l_L = 0; l_L < lprod; l_L++, ix++)
+    {
+      MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI);
+
+      ths->psi_index_g[ix] = ll_plain[ths->d];
+      ths->psi[ix] = phi_prod[ths->d];
+
+      MACRO_count_uo_l_lj_t;
+    } /* for (l_L) */
+
+    ths->psi_index_f[j] = ix - ix_old;
+    ix_old = ix;
+  } /* for(j) */
+//#endif
+}
+
+void X(precompute_one_psi)(X(plan) *ths)
+{
+//  if(ths->flags & PRE_LIN_PSI)
+//    X(precompute_lin_psi)(ths);
+//  if(ths->flags & PRE_FG_PSI)
+//    nfft_precompute_fg_psi(ths);
+  if(ths->flags & PRE_PSI)
+    X(precompute_psi)(ths);
+  if(ths->flags & PRE_FULL_PSI)
+    X(precompute_full_psi)(ths);
+}
+
 static inline void init_help(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
+  INT lprod; /* 'bandwidth' of matrix B */
+
+  if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
+    ths->flags |= NFFT_SORT_NODES;
 
   ths->N_total = intprod(ths->N, ths->d);
   ths->n_total = intprod(ths->n, ths->d);
+
   ths->sigma = (R*)Y(malloc)(ths->d * sizeof(R));
 
   for (t = 0; t < ths->d; t++)
@@ -751,7 +944,7 @@ static inline void init_help(X(plan) *ths)
   for (t = 0; t < ths->d; t++)
     ths->r2r_kind[t] = FFTW_REDFT00;
 
-  NFCT_WINDOW_HELP_INIT;
+  WINDOW_HELP_INIT;
 
   if (ths->flags & MALLOC_X)
     ths->x = (R*)Y(malloc)(ths->d * ths->M_total * sizeof(R));
@@ -765,36 +958,57 @@ static inline void init_help(X(plan) *ths)
   if (ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
 
-  /* NO FFTW_MALLOC HERE */
-  if (ths->flags & PRE_PSI)
-  {
-    ths->psi =
-      (R*)Y(malloc)(ths->M_total * ths->d * NFCT_SUMMANDS * sizeof(R));
+//  if(ths->flags & PRE_LIN_PSI)
+//  {
+//      ths->K=(1U<< 10)*(ths->m+2);
+//      ths->psi = (R*) Y(malloc)((ths->K+1)*ths->d*sizeof(R));
+//  }
+//
+//  if(ths->flags & PRE_FG_PSI)
+//    ths->psi = (R*) Y(malloc)(ths->M_total*ths->d*2*sizeof(R));
 
-    /* Set default for full_psi_eps */
+  if(ths->flags & PRE_PSI)
+  {
+    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * (2 * ths->m + 2 ) *sizeof(R));
+    /* Set default for full_psi_eps. TODO: Remove eps. */
     ths->nfct_full_psi_eps = POW(K(10.0), K(-10.0));
+  }
+
+  if(ths->flags & PRE_FULL_PSI)
+  {
+      for (t = 0, lprod = 1; t < ths->d; t++)
+        lprod *= 2 * ths->m + 2;
+
+      ths->psi = (R*) Y(malloc)(ths->M_total * lprod * sizeof(R));
+
+      ths->psi_index_f = (INT*) Y(malloc)(ths->M_total * sizeof(INT));
+      ths->psi_index_g = (INT*) Y(malloc)(ths->M_total * lprod * sizeof(INT));
   }
 
   if (ths->flags & FFTW_INIT)
   {
-    ths->g1 =
-      (R*)Y(malloc)(intprod(ths->n, ths->d) * sizeof(R));
+    ths->g1 = (R*)Y(malloc)(ths->n_total * sizeof(R));
 
     if (ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 =
-	      (R*) Y(malloc)(intprod(ths->n, ths->d) * sizeof(R));
+      ths->g2 = (R*) Y(malloc)(ths->n_total * sizeof(R));
     else
       ths->g2 = ths->g1;
 
     {
-      int *n = Y(malloc)(ths->d * sizeof(int));
+      int *_n = Y(malloc)(ths->d * sizeof(int));
+
       for (t = 0; t < ths->d; t++)
-        n[t] = (int)(ths->n[t]);
-      ths->my_fftw_r2r_plan =
-        Z(plan_r2r)(ths->d, n, ths->g1, ths->g2, ths->r2r_kind,
-          ths->fftw_flags);
+        _n[t] = (int)(ths->n[t]);
+
+      ths->my_fftw_r2r_plan = Z(plan_r2r)(ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
+      Y(free)(_n);
     }
   }
+
+//  if(ths->flags & NFFT_SORT_NODES)
+//    ths->index_x = (INT*) Y(malloc)(sizeof(INT)*2*ths->M_total);
+//  else
+//    ths->index_x = NULL;
 
   ths->mv_trafo = (void (*) (void* ))X(trafo);
   ths->mv_adjoint = (void (*) (void* ))X(adjoint);
@@ -802,49 +1016,51 @@ static inline void init_help(X(plan) *ths)
 
 void X(init)(X(plan) *ths, int d, int *N, int M_total)
 {
-  int t;
+  int t; /* index over all dimensions */
 
-  ths->d = d;
-  ths->M_total = M_total;
-  ths->N = (INT*) Y(malloc)(ths->d * sizeof(INT));
+  ths->d = (INT)d;
 
-  for (t = 0;t < d; t++)
+  ths->N = (INT*) Y(malloc)(d * sizeof(INT));
+
+  for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
-  ths->n = (INT*) Y(malloc)(ths->d * sizeof(INT));
+  ths->M_total = (INT)M_total;
+
+  ths->n = (INT*) Y(malloc)(d * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1);
 
   ths->m = WINDOW_HELP_ESTIMATE_m;
 
-  ths->flags = NFCT_DEFAULT_FLAGS;
-  ths->fftw_flags = FFTW_DEFAULT_FLAGS;
+  if (d > 1)
+  {
+//#ifdef _OPENMP
+//    ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+//                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES |
+//          NFFT_OMP_BLOCKWISE_ADJOINT;
+//#else
+    ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES;
+//#endif
+  }
+  else
+    ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE;
+
+  ths->fftw_flags = FFTW_ESTIMATE | FFTW_DESTROY_INPUT;
 
   init_help(ths);
 }
-
-/* Was macht diese Funktion. Wird sie gebraucht? Bei NFST ist sie auch in
- * nfft3.h deklariert.
-void nfct_init_m(nfct_plan *ths, int d, int *N, int M_total, int m)
-{
-  int t, n[d];
-
-  for(t = 0; t < d; t++)
-    n[t] = 2 * (Y(next_power_of_2)(N[t]) - 1);
-
-  nfct_init_guru(ths, d, N, M_total, n, m, NFCT_DEFAULT_FLAGS, FFTW_DEFAULT_FLAGS);
-}
-*/
 
 void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
   unsigned flags, unsigned fftw_flags)
 {
   INT t; /* index over all dimensions */
 
-  ths->d = d;
-  ths->M_total = M_total;
-
+  ths->d = (INT)d;
+  ths->M_total = (INT)M_total;
   ths->N = (INT*)Y(malloc)(ths->d * sizeof(INT));
 
   for (t = 0; t < d; t++)
@@ -855,7 +1071,7 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
   for (t = 0; t < d; t++)
     ths->n[t] = (INT)n[t];
 
-  ths->m = m;
+  ths->m = (INT)m;
 
   ths->flags = flags;
   ths->fftw_flags = fftw_flags;
@@ -863,30 +1079,31 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
   init_help(ths);
 }
 
-void X(init_1d)(X(plan) *ths, int N0, int M_total)
+void X(init_1d)(X(plan) *ths, int N1, int M_total)
 {
   int N[1];
 
-  N[0] = N0;
+  N[0] = N1;
+
   X(init)(ths, 1, N, M_total);
 }
 
-void X(init_2d)(X(plan) *ths, int N0, int N1, int M_total)
+void X(init_2d)(X(plan) *ths, int N1, int N2, int M_total)
 {
   int N[2];
 
-  N[0] = N0;
-  N[1] = N1;
+  N[0] = N1;
+  N[1] = N2;
   X(init)(ths, 2, N, M_total);
 }
 
-void X(init_3d)(X(plan) *ths, int N0, int N1, int N2, int M_total)
+void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M_total)
 {
   int N[3];
 
-  N[0] = N0;
-  N[1] = N1;
-  N[2] = N2;
+  N[0] = N1;
+  N[1] = N2;
+  N[2] = N3;
   X(init)(ths, 3, N, M_total);
 }
 
@@ -894,22 +1111,23 @@ const char* X(check)(nfct_plan *ths)
 {
   INT j;
 
-  for(j=0;j<ths->M_total*ths->d;j++)
-    if((ths->x[j] < K(0.0)) || (ths->x[j] >= K(0.5)))
+  for (j = 0; j < ths->M_total * ths->d; j++)
+  {
+    if ((ths->x[j] < K(0.0)) || (ths->x[j] >= K(0.5)))
     {
-      fprintf(stderr, "\nj = %d, x[j] = " __FE__ "\n", j, ths->x[j]);
       return "ths->x out of range [0.0,0.5)";
     }
+  }
 
-  for(j=0;j<ths->d;j++)
+  for (j = 0; j < ths->d; j++)
   {
-    if(ths->sigma[j]<=1)
+    if (ths->sigma[j] <= 1)
       return "nfft_check: oversampling factor too small";
 
     if(ths->N[j] - 1 <= ths->m)
       return "Polynomial degree N is smaller than cut-off m";
 
-    if(ths->N[j]%2==1)
+    if(ths->N[j]%2 == 1)
       return "polynomial degree N has to be even";
   }
   return 0;
@@ -917,10 +1135,14 @@ const char* X(check)(nfct_plan *ths)
 
 void X(finalize)(X(plan) *ths)
 {
-  INT t; /* dimension index*/
+  INT t; /* index over dimensions */
+
+//  if(ths->flags & NFFT_SORT_NODES)
+//    Y(free)(ths->index_x);
 
   if (ths->flags & FFTW_INIT)
   {
+#pragma omp critical (nfft_omp_critical_fftw_plan)
     Z(destroy_plan)(ths->my_fftw_r2r_plan);
 
     if (ths->flags & FFT_OUT_OF_PLACE)
@@ -929,11 +1151,21 @@ void X(finalize)(X(plan) *ths)
     Y(free)(ths->g1);
   }
 
-  /* NO FFTW_FREE HERE */
-  if (ths->flags & PRE_PSI)
+  if(ths->flags & PRE_FULL_PSI)
   {
+    Y(free)(ths->psi_index_g);
+    Y(free)(ths->psi_index_f);
     Y(free)(ths->psi);
   }
+
+  if (ths->flags & PRE_PSI)
+    Y(free)(ths->psi);
+
+//  if(ths->flags & PRE_FG_PSI)
+//    Y(free)(ths->psi);
+//
+//  if(ths->flags & PRE_LIN_PSI)
+//    Y(free)(ths->psi);
 
   if (ths->flags & PRE_PHI_HUT)
   {

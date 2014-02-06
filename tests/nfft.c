@@ -514,7 +514,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   /* Number of nodes. */
   *M = ego->M;
 
-  printf("%-31s", "online");
+  printf("%-31s", "nfft_online");
 
   printf(" d = %-1d, N = [", *d);
   {

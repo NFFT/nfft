@@ -137,7 +137,7 @@ static init_delegate_t init_2d;
 static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
-//static init_delegate_t init_advanced_pre_full_psi;
+static init_delegate_t init_advanced_pre_full_psi;
 //static init_delegate_t init_advanced_pre_lin_psi;
 #if defined(GAUSSIAN)
 //static init_delegate_t init_advanced_pre_fg_psi;
@@ -171,8 +171,8 @@ static double trafo_direct_cost(X(plan) *p)
           X(init)(&p2, d, N, M);
           for (i = 0; i < M; i++)
             p2.x[i] = K(0.0);
-          if(p2.flags & PRE_PSI)
-            X(precompute_psi)(&p2);
+          if(p2.flags & PRE_ONE_PSI)
+            X(precompute_one_psi)(&p2);
           for (i = 0; i < d * Nd; i++)
           {
             p2.f_hat[i] = K(0.0);
@@ -275,8 +275,8 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.flags & PRE_PSI)
-    X(precompute_psi)(&p);
+  if(p.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&p);
 
   check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
 
@@ -475,8 +475,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     }
 
     /* Pre-compute Psi, maybe. */
-    if(p.flags & PRE_PSI)
-      X(precompute_psi)(&p);
+    if(p.flags & PRE_ONE_PSI)
+      X(precompute_one_psi)(&p);
 
     /* Fourier coefficients. */
     for (j = 0; j < *NN; j++)
@@ -514,7 +514,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   /* Number of nodes. */
   *M = ego->M;
 
-  printf("%-31s", "online");
+  printf("%-31s", "nfct_online");
 
   printf(" d = %-1d, N = [", *d);
   {
@@ -634,7 +634,7 @@ static init_delegate_t init_2d = {"init_2d", init_2d_, 0, 0, 0};
 static init_delegate_t init_3d = {"init_3d", init_3d_, 0, 0, 0};
 static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-//static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 //static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
 //static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
@@ -736,7 +736,7 @@ static const init_delegate_t* initializers_1d[] =
   &init_1d,
   &init,
   &init_advanced_pre_psi,
-//  &init_advanced_pre_full_psi,
+  &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
@@ -931,7 +931,7 @@ static const init_delegate_t* initializers_2d[] =
   &init_2d,
   &init,
   &init_advanced_pre_psi,
-//  &init_advanced_pre_full_psi,
+  &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
@@ -1050,7 +1050,7 @@ static const init_delegate_t* initializers_3d[] =
   &init_3d,
   &init,
   &init_advanced_pre_psi,
-//  &init_advanced_pre_full_psi,
+  &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
@@ -1124,7 +1124,7 @@ static const init_delegate_t* initializers_4d[] =
 {
   &init,
   &init_advanced_pre_psi,
-//  &init_advanced_pre_full_psi,
+  &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
