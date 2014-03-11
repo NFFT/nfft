@@ -10,7 +10,7 @@ else
   CHECK=
 endif
 
-check_PROGRAMS =  $(CHECK)
+check_PROGRAMS = $(CHECK)
 #debug
 
 TESTS = $(check_PROGRAMS)

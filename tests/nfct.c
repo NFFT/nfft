@@ -635,7 +635,7 @@ static init_delegate_t init_3d = {"init_3d", init_3d_, 0, 0, 0};
 static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-//static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
 //static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #endif
@@ -737,7 +737,7 @@ static const init_delegate_t* initializers_1d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-//  &init_advanced_pre_lin_psi,
+  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
 #endif
@@ -932,7 +932,7 @@ static const init_delegate_t* initializers_2d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-//  &init_advanced_pre_lin_psi,
+  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
 #endif
@@ -1051,7 +1051,7 @@ static const init_delegate_t* initializers_3d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-//  &init_advanced_pre_lin_psi,
+  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
 #endif
@@ -1125,7 +1125,7 @@ static const init_delegate_t* initializers_4d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-//  &init_advanced_pre_lin_psi,
+  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
 //  &init_advanced_pre_fg_psi,
 #endif

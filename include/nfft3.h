@@ -233,8 +233,9 @@ typedef struct\
   R *sigma; /**< oversampling-factor */\
   _INT m; /**< cut-off parameter in time-domain */\
 \
-  R nfct_full_psi_eps;\
   R *b; /**< shape parameters */\
+  _INT K; /**< Number of equispaced samples of window function. Used for flag
+               PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
   unsigned fftw_flags; /**< flags for the fftw */\
