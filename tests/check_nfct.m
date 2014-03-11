@@ -37,7 +37,7 @@ II=Table[Table[k,{k,0,NN[[i]]-1}],{i,1,d}];
 II[[0]]=Sequence;
 II=Flatten[Outer[List,II],d-1];(* Index set. *)
 x =Transpose[ Table[RandomReal[{0,1/2},M,WorkingPrecision->P],{i,1,d}]] ;(* Random nodes. *)
-fhat = (*Table[If[i==1,1,0],{i,1,Length[II]}]*) RandomReal[{-1,1},Length[II],WorkingPrecision->P]; (* Random Fourier coefficients. *)
+fhat = Table[If[i==4,1,0],{i,1,Length[II]}](* RandomReal[{-1,1},Length[II],WorkingPrecision->P]*); (* Random Fourier coefficients. *)
 f=Table[Sum[fhat[[k]]*Cos[2*\[Pi]*Dot[II[[k]],x[[j]]]],{k,1,Length[II]}],{j,1,M}];(* Function values. *)
 filename=FilenameGenerator[NN,M];
 file = OpenWrite[filename];
