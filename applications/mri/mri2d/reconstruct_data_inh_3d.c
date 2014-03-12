@@ -158,10 +158,10 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
 
-  if(my_plan.plan.nfft_flags & PRE_PSI) {
+  if(my_plan.plan.flags & PRE_PSI) {
     nfft_precompute_psi(&my_plan.plan);
   }
-  if(my_plan.plan.nfft_flags & PRE_FULL_PSI) {
+  if(my_plan.plan.flags & PRE_FULL_PSI) {
       nfft_precompute_full_psi(&my_plan.plan);
   }
 

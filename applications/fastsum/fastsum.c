@@ -860,13 +860,13 @@ void fastsum_precompute(fastsum_plan *ths)
       ths->mv1.x[ths->mv1.d*k+t] = - ths->x[ths->mv1.d*k+t];  /* note the factor -1 for transposed transform instead of adjoint*/
 
   /** precompute psi, the entries of the matrix B */
-  if(ths->mv1.nfft_flags & PRE_LIN_PSI)
+  if(ths->mv1.flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&(ths->mv1));
 
-  if(ths->mv1.nfft_flags & PRE_PSI)
+  if(ths->mv1.flags & PRE_PSI)
     nfft_precompute_psi(&(ths->mv1));
 
-  if(ths->mv1.nfft_flags & PRE_FULL_PSI)
+  if(ths->mv1.flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&(ths->mv1));
 #ifdef MEASURE_TIME
   t1 = getticks();
@@ -886,13 +886,13 @@ void fastsum_precompute(fastsum_plan *ths)
       ths->mv2.x[ths->mv2.d*j+t] = - ths->y[ths->mv2.d*j+t];  /* note the factor -1 for conjugated transform instead of standard*/
 
   /** precompute psi, the entries of the matrix B */
-  if(ths->mv2.nfft_flags & PRE_LIN_PSI)
+  if(ths->mv2.flags & PRE_LIN_PSI)
     nfft_precompute_lin_psi(&(ths->mv2));
 
-  if(ths->mv2.nfft_flags & PRE_PSI)
+  if(ths->mv2.flags & PRE_PSI)
     nfft_precompute_psi(&(ths->mv2));
 
-  if(ths->mv2.nfft_flags & PRE_FULL_PSI)
+  if(ths->mv2.flags & PRE_FULL_PSI)
     nfft_precompute_full_psi(&(ths->mv2));
 #ifdef MEASURE_TIME
   t1 = getticks();

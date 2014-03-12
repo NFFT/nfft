@@ -20,7 +20,7 @@
 
 #include "infft.h"
 
-R X(float_property)(const float_property p)
+R Y(float_property)(const float_property p)
 {
   const R base = FLT_RADIX;
   const R eps = EPSILON;
@@ -65,7 +65,7 @@ R X(float_property)(const float_property p)
 
   if (p == NFFT_EPSILON)
     return eps;
-  else if (p == NFFT_SAFE_MIN)
+  else if (p == NFFT_SAFE__MIN)
     return sfmin;
   else if (p == NFFT_BASE)
     return base;
@@ -90,7 +90,7 @@ R X(float_property)(const float_property p)
 } /* dlamch_ */
 
 /** Computes double /f$\prod_{t=0}^{d-1} v_t/f$. */
-R X(prod_real)(R *vec, INT d)
+R Y(prod_real)(R *vec, INT d)
 {
   INT t;
   R prod;

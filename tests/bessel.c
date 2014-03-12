@@ -145,7 +145,7 @@ void X(check_bessel_i0)(void)
     R y = X(bessel_i0)(x);
     R yr = r[j];
     err = FMAX(err, ABS(y - yr) / ABS(yr));
-    fprintf(stderr, "i0[" FE_ "] = " FE_ " err_rel = " FE_ "\n", x, y,
+    fprintf(stderr, "i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ "\n", x, y,
       ABS(y - yr) / ABS(yr));
   }
   CU_ASSERT(err < (K(3.0) * EPSILON));

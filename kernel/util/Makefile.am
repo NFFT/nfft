@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/3rdparty/cstripack
 
 if HAVE_THREADS
   LIBUTIL_THREADS_LA = libutil_threads.la
@@ -15,4 +15,3 @@ if HAVE_OPENMP
   libutil_threads_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif
-

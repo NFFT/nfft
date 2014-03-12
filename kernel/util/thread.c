@@ -24,7 +24,7 @@
 #include <omp.h>
 #endif
 
-INT X(get_num_threads)(void)
+INT Y(get_num_threads)(void)
 {
 #ifdef _OPENMP
   INT nthreads;

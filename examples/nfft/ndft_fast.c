@@ -37,14 +37,14 @@
 #include "nfft3.h"
 #include "infft.h"
 
-static void ndft_horner_trafo(nfft_plan *ths)
+static void ndft_horner_trafo(X(plan) *ths)
 {
   int j,k;
-  double _Complex *f_hat_k, *f_j;
-  double _Complex exp_omega_0;
+  C *f_hat_k, *f_j;
+  C exp_omega_0;
 
-  for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
-    (*f_j) =0;
+  for (j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
+    (*f_j) = 0;
 
   for(j=0, f_j=ths->f; j<ths->M_total; j++, f_j++)
     {

@@ -27,9 +27,9 @@
  *
  * \author Michael Hofmann
  */
-static inline void sort_node_indices_sort_bubble(int n, int *keys)
+static inline void sort_node_indices_sort_bubble(INT n, INT *keys)
 {
-  int i, j, ti;
+  INT i, j, ti;
 
   for (i = 0; i < n; ++i)
   {
@@ -48,9 +48,9 @@ static inline void sort_node_indices_sort_bubble(int n, int *keys)
  *
  * \author Michael Hofmann
  */
-static inline void sort_node_indices_radix_count(int n, int *keys, int shift, int mask, int *counts)
+static inline void sort_node_indices_radix_count(INT n, INT *keys, INT shift, INT mask, INT *counts)
 {
-  int i, k;
+  INT i, k;
 
   for (i = 0; i < n; ++i)
   {
@@ -64,9 +64,9 @@ static inline void sort_node_indices_radix_count(int n, int *keys, int shift, in
  *
  * \author Michael Hofmann
  */
-static inline void sort_node_indices_radix_rearrange(int n, int *keys_in, int *keys_out, int shift, int mask, int *displs)
+static inline void sort_node_indices_radix_rearrange(INT n, INT *keys_in, INT *keys_out, INT shift, INT mask, INT *displs)
 {
-  int i, k;
+  INT i, k;
 
   for (i = 0; i < n; ++i)
   {
@@ -82,26 +82,26 @@ static inline void sort_node_indices_radix_rearrange(int n, int *keys_in, int *k
  *
  * \author Michael Hofmann
  */
-void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh)
+void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
 {
-  const int rwidth = 9;
-  const int radix_n = 1 << rwidth;
-  const int radix_mask = radix_n - 1;
-  const int rhigh_in = rhigh;
+  const INT rwidth = 9;
+  const INT radix_n = 1 << rwidth;
+  const INT radix_mask = radix_n - 1;
+  const INT rhigh_in = rhigh;
 
-  const int tmax =
+  const INT tmax =
 #ifdef _OPENMP
     omp_get_max_threads();
 #else
     1;
 #endif
 
-  int *from, *to, *tmp;
+  INT *from, *to, *tmp;
 
-  int i, k, l, h;
-  int lcounts[tmax * radix_n];
+  INT i, k, l, h;
+  INT lcounts[tmax * radix_n];
 
-  int tid = 0, tnum = 1;
+  INT tid = 0, tnum = 1;
 
 
   from = keys0;
@@ -156,7 +156,7 @@ void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh)
     rhigh -= rwidth;
   }
 
-  if (to == keys0) memcpy(to, from, n * 2 * sizeof(int));
+  if (to == keys0) memcpy(to, from, n * 2 * sizeof(INT));
 }
 
 /**
@@ -164,25 +164,25 @@ void X(sort_node_indices_radix_lsdf)(int n, int *keys0, int *keys1, int rhigh)
  *
  * \author Michael Hofmann
  */
-void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh)
+void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
 {
-  const int rwidth = 9;
-  const int radix_n = 1 << rwidth;
-  const int radix_mask = radix_n - 1;
+  const INT rwidth = 9;
+  const INT radix_n = 1 << rwidth;
+  const INT radix_mask = radix_n - 1;
 
-  const int tmax =
+  const INT tmax =
 #ifdef _OPENMP
     omp_get_max_threads();
 #else
     1;
 #endif
 
-  int i, k, l, h;
-  int lcounts[tmax * radix_n];
+  INT i, k, l, h;
+  INT lcounts[tmax * radix_n];
 
-  int counts[radix_n], displs[radix_n];
+  INT counts[radix_n], displs[radix_n];
 
-  int tid = 0, tnum = 1;
+  INT tid = 0, tnum = 1;
 
 
   rhigh -= rwidth;
@@ -229,7 +229,7 @@ void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh)
   }
 #endif
 
-  memcpy(keys0, keys1, n * 2 * sizeof(int));
+  memcpy(keys0, keys1, n * 2 * sizeof(INT));
 
   if (rhigh >= 0)
   {
@@ -238,7 +238,7 @@ void X(sort_node_indices_radix_msdf)(int n, int *keys0, int *keys1, int rhigh)
       if (counts[i] > 1)
       {
         if (counts[i] > 256)
-          X(sort_node_indices_radix_msdf)(counts[i], keys0 + 2 * displs[i], keys1 + 2 * displs[i], rhigh);
+          Y(sort_node_indices_radix_msdf)(counts[i], keys0 + 2 * displs[i], keys1 + 2 * displs[i], rhigh);
         else
           sort_node_indices_sort_bubble(counts[i], keys0 + 2 * displs[i]);
       }

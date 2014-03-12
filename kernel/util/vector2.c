@@ -21,7 +21,7 @@
 #include "infft.h"
 
 /** Copies \f$x \leftarrow y\f$. */
-void X(cp_complex)(C *x, C *y, INT n)
+void Y(cp_complex)(C *x, C *y, INT n)
 {
   INT k;
 
@@ -30,7 +30,7 @@ void X(cp_complex)(C *x, C *y, INT n)
 }
 
 /** Copies \f$x \leftarrow y\f$. */
-void X(cp_double)(R *x, R *y, INT n)
+void Y(cp_double)(R *x, R *y, INT n)
 {
   INT k;
 
@@ -39,7 +39,7 @@ void X(cp_double)(R *x, R *y, INT n)
 }
 
 /** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_complex)(C *x, R a, C *y, INT n)
+void Y(cp_a_complex)(C *x, R a, C *y, INT n)
 {
   INT k;
 
@@ -48,7 +48,7 @@ void X(cp_a_complex)(C *x, R a, C *y, INT n)
 }
 
 /** Copies \f$x \leftarrow a y\f$. */
-void X(cp_a_double)(R *x, R a, R *y, INT n)
+void Y(cp_a_double)(R *x, R a, R *y, INT n)
 {
   INT k;
 
@@ -58,7 +58,7 @@ void X(cp_a_double)(R *x, R a, R *y, INT n)
 
 
 /** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_complex)(C *x, R *w, C *y, INT n)
+void Y(cp_w_complex)(C *x, R *w, C *y, INT n)
 {
   INT k;
 
@@ -67,7 +67,7 @@ void X(cp_w_complex)(C *x, R *w, C *y, INT n)
 }
 
 /** Copies \f$x \leftarrow w\odot y\f$. */
-void X(cp_w_double)(R *x, R *w, R *y, INT n)
+void Y(cp_w_double)(R *x, R *w, R *y, INT n)
 {
   INT k;
 

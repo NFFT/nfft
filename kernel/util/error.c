@@ -132,21 +132,21 @@ static R erri(const R *x, const R *y, const INT n)
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-R X(error_l_infty_complex)(const C *x, const C *y, const INT n)
+R Y(error_l_infty_complex)(const C *x, const C *y, const INT n)
 {
   return (cerri(x, y, n)/cerri(x, 0, n));
 }
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|x\|_{\infty}} \f$
  */
-R X(error_l_infty_double)(const R *x, const R *y, const INT n)
+R Y(error_l_infty_double)(const R *x, const R *y, const INT n)
 {
   return (erri(x, y, n)/erri(x, 0, n));
 }
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
+R Y(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
   const C *z, const INT m)
 {
   return (cerri(x, y, n)/cnrm1(z, m));
@@ -154,7 +154,7 @@ R X(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
 
 /** computes \f$\frac{\|x-y\|_{\infty}}{\|z\|_1} \f$
  */
-R X(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
+R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
   const INT m)
 {
   return (erri(x, y, n)/nrm1(z, m));
@@ -162,14 +162,14 @@ R X(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
 
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-R X(error_l_2_complex)(const C *x, const C *y, const INT n)
+R Y(error_l_2_complex)(const C *x, const C *y, const INT n)
 {
   return (cerr2(x, y, n)/cerr2(x, 0, n));
 }
 
 /** computes \f$\frac{\|x-y\|_2}{\|x\|_2} \f$
  */
-R X(error_l_2_double)(const R *x, const R *y, const INT n)
+R Y(error_l_2_double)(const R *x, const R *y, const INT n)
 {
   return (err2(x, y, n)/err2(x, NULL, n));
 }

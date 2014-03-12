@@ -220,7 +220,7 @@ static inline R evaluate_rational(const R z_)
   return s1 / s2;
 }
 
-R X(lambda)(const R z, const R eps)
+R Y(lambda)(const R z, const R eps)
 {
   const R d = K(1.0) - eps, zpg = z + g, emh = eps - K(0.5);
   return EXP(-LOG1P(d / (zpg + emh)) * (z + emh)) *
@@ -228,7 +228,7 @@ R X(lambda)(const R z, const R eps)
     (evaluate_rational(z + eps) / evaluate_rational(z + K(1.0)));
 }
 
-R X(lambda2)(const R mu, const R nu)
+R Y(lambda2)(const R mu, const R nu)
 {
   if (mu == K(0.0))
     return K(1.0);

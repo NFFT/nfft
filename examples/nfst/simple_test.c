@@ -42,7 +42,7 @@ static void simple_test_nfst_1d(void)
     p.x[j] = 0.5 * ((double)rand()) / RAND_MAX;
 
   /** precompute psi, the entries of the matrix B */
-  if( p.nfst_flags & PRE_PSI)
+  if( p.flags & PRE_PSI)
     nfst_precompute_psi( &p);
 
   /** init pseudo random Fourier coefficients and show them */

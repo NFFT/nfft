@@ -63,7 +63,7 @@ static void construct(char * file, int N, int M, int Z, fftw_complex *mem)
     for(j=0;j<N*N;j++)
       my_plan.f_hat[j] = mem[(z*N*N+N*N*Z/2+j)%(N*N*Z)];
 
-    if(my_plan.nfft_flags & PRE_PSI)
+    if(my_plan.flags & PRE_PSI)
       nfft_precompute_psi(&my_plan);
 
     nfft_trafo(&my_plan);

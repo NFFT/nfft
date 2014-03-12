@@ -51,7 +51,7 @@ int main(void)
 
   /* precompute psi, that is, the entries of the matrix B */
   t0 = getticks();
-  if(p.nfft_flags & PRE_ONE_PSI)
+  if(p.flags & PRE_ONE_PSI)
       nfft_precompute_one_psi(&p);
   t1 = getticks();
   t = nfft_elapsed_seconds(t1,t0);

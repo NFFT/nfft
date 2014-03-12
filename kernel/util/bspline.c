@@ -36,7 +36,7 @@ static inline void bspline_help(const INT k, const R x, R *scratch, const INT j,
 }
 
 /* Evaluate the cardinal B-Spline B_{n-1} supported on [0,n]. */
-R X(bspline)(const INT k, const R _x, R *scratch)
+R Y(bspline)(const INT k, const R _x, R *scratch)
 {
   const R kk = (R)k;
   R result_value;

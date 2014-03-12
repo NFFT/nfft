@@ -1,4 +1,4 @@
-# $Id$
+strlcpy# $Id$
 #
 # Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 #
@@ -79,6 +79,34 @@ AM_INIT_AUTOMAKE(1.10)
 # maintainer mode option
 AM_MAINTAINER_MODE
 
+# Precision.
+AC_ARG_ENABLE(single, [AS_HELP_STRING([--enable-single],[compile NFFT in single precision])], ok=$enableval, ok=no)
+AC_ARG_ENABLE(float, [AS_HELP_STRING([--enable-float],[synonym for --enable-single])], ok=$enableval)
+if test "$ok" = "yes"; then
+  AC_DEFINE(NFFT_SINGLE,1,[Define to compile in single precision.])
+  PRECISION=s
+else
+  PRECISION=d
+fi
+
+AC_ARG_ENABLE(long-double, [AS_HELP_STRING([--enable-long-double],[compile NFFT in long-double precision])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  if test "$PRECISION" = "s"; then
+    AC_MSG_ERROR([--enable-single/--enable-long-double conflict])
+  fi
+  AC_DEFINE(NFFT_LDOUBLE,1,[Define to compile in long-double precision.])
+  PRECISION=l
+fi
+AC_SUBST(PRECISION)
+
+# Library suffix
+case "$PRECISION" in
+     s) PREC_SUFFIX=f;;
+     d) PREC_SUFFIX=;;
+     l) PREC_SUFFIX=l;;
+esac
+AC_SUBST(PREC_SUFFIX)
+
 # enable or disable parts of NFFT
 
 # whether we need the fpt module
@@ -86,12 +114,23 @@ need_fpt="no"
 
 # build all modules by default in maintainer mode or if option is given
 AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
-  ok=$enableval, ok=no)
+  ok=$enableval, ok=$USE_MAINTAINER_MODE)
 if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
   nfft_module_default="yes"
 else
   nfft_module_default="no"
 fi
+#nfft_module_default=$enable_all
+
+# option for example programs
+AC_ARG_ENABLE(examples, [AC_HELP_STRING([--enable-examples],
+  [enable example programs])], enable_examples=$enableval, enable_examples=no)
+AM_CONDITIONAL(HAVE_EXAMPLES, test "x$enable_examples" = "xyes" )
+
+# option for application programs
+AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
+  [enable application programs])], enable_applications=$enableval, enable_applications=no)
+AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
 # options for modules
 AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform])
@@ -151,16 +190,16 @@ AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
 
 AC_MSG_CHECKING([window function])
 case "$window" in
+  kaiserbessel)
+    AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
   gaussian)
     AC_DEFINE(GAUSSIAN,1,[Define to enable Gaussian window function.]);;
   bspline)
     AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
-  kaiserbessel)
-    AC_DEFINE(KAISER_BESSEL,1,[Define to enable Kaiser-Bessel window function.]);;
   delta)
-    AC_DEFINE(B_SPLINE,1,[Define to enable Dirac delta window function.]);;
+    AC_DEFINE(DIRAC_DELTA,1,[Define to enable Dirac delta window function.]);;
   *)
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
@@ -437,7 +476,6 @@ fi
 CPPFLAGS=$save_CPPFLAGS
 AC_SUBST(TICKS_PER_SECOND)
 
-PRECISION=d
 if test "$PRECISION" = "l"; then
 AC_CHECK_FUNCS([copysignl nextafterl nanl ceill floorl nearbyintl rintl roundl lrintl lroundl llrintl llroundl truncl fmodl remainderl remquol fdiml fmaxl fminl fmal fabsl sqrtl cbrtl hypotl expl exp2l expm1l logl log2l log10l log1pl logbl ilogbl modfl frexpl ldexpl scalbnl scalblnl powl cosl sinl tanl coshl sinhl tanhl acosl asinl atanl atan2l acoshl asinhl atanhl tgammal lgammal j0l j1l jnl jnl y0l y1l ynl erfl erfcl creall cimagl cabsl cargl conjl cprojl csqrtl cexpl clogl cpowl csinl ccosl ctanl casinl cacosl catanl csinhl ccoshl ctanhl casinhl cacoshl catanhl])
 AC_CHECK_DECLS([copysignl, nextafterl, nanl, ceill, floorl, nearbyintl, rintl, roundl, lrintl, lroundl, llrintl, llroundl, truncl, fmodl, remainderl, remquol, fdiml, fmaxl, fminl, fmal, fabsl, sqrtl, cbrtl, hypotl, expl, exp2l, expm1l, logl, log2l, log10l, log1pl, logbl, ilogbl, modfl, frexpl, ldexpl, scalbnl, scalblnl, powl, cosl, sinl, tanl, coshl, sinhl, tanhl, acosl, asinl, atanl, atan2l, acoshl, asinhl, atanhl, tgammal, lgammal, j0l, j1l, jnl, y0l, y1l, ynl, erfl, erfcl, creall, cimagl, cabsl, cargl, conjl, cprojl, csqrtl, cexpl, clogl, cpowl, csinl, ccosl, ctanl, casinl, cacosl, catanl, csinhl, ccoshl, ctanhl, casinhl, cacoshl, catanhl],[],[],
@@ -454,7 +492,7 @@ fi
 
 if test "$PRECISION" = "s"; then
 AC_CHECK_FUNCS([copysignf nextafterf nanf ceilf floorf nearbyintf rintf roundf lrintf lroundf llrintf llroundf truncf fmodf remainderf remquof fdimf fmaxf fminf fmaf fabsf sqrtf cbrtf hypotf expf exp2f expm1f logf log2f log10f log1pf logbf ilogbf modff frexpf ldexpf scalbnf scalblnf powf cosf sinf tanf coshf sinhf tanhf acosf asinf atanf atan2f acoshf asinhf atanhf tgammaf lgammaf j0f j1f jnf y0f y1f ynf erff erfcf crealf cimagf cabsf cargf conjf cprojf csqrtf cexpf clogf cpowf csinf ccosf ctanf casinf cacosf catanf csinhf ccoshf ctanhf casinhf cacoshf catanhf])
-AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabs, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
+AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabsf, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
   [#include <math.h> 
 #include <complex.h>])
 fi

@@ -21,7 +21,7 @@
 #include "infft.h"
 
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_complex)(C *x, R a, C *y, INT n)
+void Y(upd_axpy_complex)(C *x, R a, C *y, INT n)
 {
   INT k;
 
@@ -30,7 +30,7 @@ void X(upd_axpy_complex)(C *x, R a, C *y, INT n)
 }
 
 /** Updates \f$x \leftarrow a x + y\f$. */
-void X(upd_axpy_double)(R *x, R a, R *y, INT n)
+void Y(upd_axpy_double)(R *x, R a, R *y, INT n)
 {
   INT k;
 
@@ -40,7 +40,7 @@ void X(upd_axpy_double)(R *x, R a, R *y, INT n)
 
 
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_complex)(C *x, R a, C *y, INT n)
+void Y(upd_xpay_complex)(C *x, R a, C *y, INT n)
 {
   INT k;
 
@@ -49,7 +49,7 @@ void X(upd_xpay_complex)(C *x, R a, C *y, INT n)
 }
 
 /** Updates \f$x \leftarrow x + a y\f$. */
-void X(upd_xpay_double)(R *x, R a, R *y, INT n)
+void Y(upd_xpay_double)(R *x, R a, R *y, INT n)
 {
   INT k;
 
@@ -58,7 +58,7 @@ void X(upd_xpay_double)(R *x, R a, R *y, INT n)
 }
 
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_complex)(C *x, R a, C *y, R b, INT n)
+void Y(upd_axpby_complex)(C *x, R a, C *y, R b, INT n)
 {
   INT k;
 
@@ -67,7 +67,7 @@ void X(upd_axpby_complex)(C *x, R a, C *y, R b, INT n)
 }
 
 /** Updates \f$x \leftarrow a x + b y\f$. */
-void X(upd_axpby_double)(R *x, R a, R *y, R b, INT n)
+void Y(upd_axpby_double)(R *x, R a, R *y, R b, INT n)
 {
   INT k;
 
@@ -76,7 +76,7 @@ void X(upd_axpby_double)(R *x, R a, R *y, R b, INT n)
 }
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n)
+void Y(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n)
 {
   INT k;
 
@@ -85,7 +85,7 @@ void X(upd_xpawy_complex)(C *x, R a, R *w, C *y, INT n)
 }
 
 /** Updates \f$x \leftarrow x + a w\odot y\f$. */
-void X(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n)
+void Y(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n)
 {
   INT k;
 
@@ -94,7 +94,7 @@ void X(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n)
 }
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n)
+void Y(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n)
 {
   INT k;
 
@@ -103,7 +103,7 @@ void X(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n)
 }
 
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
-void X(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n)
+void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n)
 {
   INT k;
 
@@ -112,7 +112,7 @@ void X(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n)
 }
 
 /** Swaps each half over N[d]/2. */
-void X(fftshift_complex)(C *x, int d, int* N)
+void Y(fftshift_complex)(C *x, int d, int* N)
 {
   int d_pre, d_act, d_post;
   int N_pre, N_act, N_post;
