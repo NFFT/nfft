@@ -67,9 +67,9 @@ static inline INT intprod(const INT *vec, const INT d)
 
 #define MACRO_with_FG_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
-#define MACRO_without_PRE_PSI PHI(2 * (ths->n[t] - 1), (ths->x[(j) * ths->d + t]) \
-  - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t]) - K(1.0))), t)
-#define MACRO_compute_PSI PHI(2 * (ths->n[t] - 1), NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0))), t)
+#define MACRO_without_PRE_PSI PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + t]) \
+  - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t]) - K(1.0)))), t)
+#define MACRO_compute_PSI PHI((2 * (ths->n[t] - 1)), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0)))), t)
 
 /** direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
@@ -281,7 +281,7 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
 
 #define MACRO_with_PRE_PHI_HUT ths->c_phi_inv[t][kg[t]]
 
-#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT(2 * (ths->n[t] - 1), kg[t], t)))
+#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT((2 * (ths->n[t] - 1)), kg[t], t)))
 
 #define MACRO_init_k_ks \
 { \
@@ -789,7 +789,7 @@ static inline void precompute_phi_hut(X(plan) *ths)
 
     for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
-      ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT(2 * (ths->n[t] - 1), ks[t], t)));
+      ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT((2 * (ths->n[t] - 1)), ks[t], t)));
     }
   }
 } /* nfct_phi_hut */
@@ -807,11 +807,11 @@ void X(precompute_lin_psi)(X(plan) *ths)
 
   for (t = 0; t < ths->d; t++)
   {
-    step = ((R)(ths->m+2)) / (((R)ths->K) * ths->n[t]);
+    step = ((R)(ths->m+2)) / (((R)ths->K) * (2 * (ths->n[t] - 1)));
 
     for (j = 0; j <= ths->K; j++)
     {
-      ths->psi[(ths->K + 1) * t + j] = PHI(ths->n[t], j * step, t);
+      ths->psi[(ths->K + 1) * t + j] = PHI((2 * (ths->n[t] - 1)), (j * step), t);
     } /* for(j) */
   } /* for(t) */
 }
@@ -859,7 +859,7 @@ void X(precompute_psi)(X(plan) *ths)
 
       for(lj = 0; lj < (2 * ths->m + 2); lj++)
 	      ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
-	          (PHI(2 * (ths->n[t] - 1), (ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0))), t));
+	          (PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t));
     } /* for (j) */
   } /* for (t) */
 } /* nfct_precompute_psi */
