@@ -31,7 +31,7 @@
 #include "cycle.h"
 #include "nfct.h"
 
-#define ABSPATH(x) STRINGIZE(SRCDIR) SEP x
+#define ABSPATH(x) ABS_SRCDIR SEP "tests" SEP x
 
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;

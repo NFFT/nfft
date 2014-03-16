@@ -50,6 +50,7 @@ AC_CANONICAL_HOST
 
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
+AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
 
 # minimum required libtool version
 LT_PREREQ([2.4.2])

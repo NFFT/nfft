@@ -69,12 +69,17 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	$(MKDIR_P) $(docdir)
+	chmod u+wX $(prefix)
+	$(install_sh) -d $(datarootdir)
+	chmod -R u+wX $(datarootdir)
+	ls -la /Users/jens/Pending/programming/nfft-3.3/nfft-3.3.0/_inst
+	$(install_sh) -d $(docdir)
+	chmod -Rf a+rwX $(srcdir)/doc
 	cp -R $(srcdir)/doc/* $(docdir)/
-	chmod -R u+rwX,g+rX,g-w,o+rX,o-w $(docdir)
 
 uninstall-hook:
 	rm -Rf $(docdir)
+	ls -la /Users/jens/Pending/programming/nfft-3.3/nfft-3.3.0/_inst
 
 maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/html/*.html
@@ -89,22 +94,30 @@ maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/latex/Makefile
 
 dist-hook:
-	chmod -Rf u+rwX $(srcdir)/doc
-	sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt
-	sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt
-	sed 's/^ \* \\subsubsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt
-	doxygen $(builddir)/doxygen/doxygen.Doxyfile
-	rm -f $(srcdir)/doc/api/html/toc.txt
-	$(srcdir)/support/rem.sed < $(srcdir)/doc/api/html/index.html > $(srcdir)/doc/api/html/index.html.new
-	mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html
-	cp -R $(srcdir)/doc $(distdir)/
-	rm -Rf `find $(distdir) -name .svn -type d`
-	(cd $(distdir)/doc/tutorial && pdflatex paper.tex)
-	mv $(distdir)/doc/tutorial/paper.pdf $(distdir)/doc/tutorial.pdf
-	rm -Rf $(distdir)/doc/tutorial/*
-	mv $(distdir)/doc/tutorial.pdf $(distdir)/doc/tutorial/tutorial.pdf
-	rm -Rf $(distdir)/doc/logo
-	rm -Rf $(distdir)/doc/api/latex
+	if test ! -f "$(srcdir)/doc/tutorial/tutorial.pdf"; then \
+		chmod -Rf u+rwX $(srcdir)/doc; \
+		sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
+		sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
+		sed 's/^ \* \\subsubsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
+		doxygen $(builddir)/doxygen/doxygen.Doxyfile; \
+		rm -f $(srcdir)/doc/api/html/toc.txt; \
+		$(srcdir)/support/rem.sed < $(srcdir)/doc/api/html/index.html > $(srcdir)/doc/api/html/index.html.new; \
+		mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html; \
+		cp -R $(srcdir)/doc $(distdir)/; \
+		rm -Rf `find $(distdir) -name .svn -type d`; \
+		pwd; \
+		echo $(distdir); \
+		echo $(top_srcdir); \
+		echo $(srcdir); \
+		(cd $(distdir)/doc/tutorial && pdflatex paper.tex); \
+		mv $(distdir)/doc/tutorial/paper.pdf $(distdir)/doc/tutorial.pdf; \
+		rm -Rf $(distdir)/doc/tutorial/*; \
+		mv $(distdir)/doc/tutorial.pdf $(distdir)/doc/tutorial/tutorial.pdf; \
+		rm -Rf $(distdir)/doc/logo; \
+		rm -Rf $(distdir)/doc/api/latex; \
+	else \
+		cp -R $(srcdir)/doc $(distdir)/; \
+	fi
 
 doc:
 

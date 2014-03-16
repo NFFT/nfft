@@ -15,7 +15,19 @@ check_PROGRAMS = $(CHECK)
 
 TESTS = $(check_PROGRAMS)
 
-checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h nfct.c nfct.h nfst.c nfst.h
+if HAVE_NFCT
+  NFCT_SOURCES=nfct.c nfct.h
+else
+  NFCT_SOURCES=
+endif
+
+if HAVE_NFST
+  NFST_SOURCES=nfst.c nfst.h
+else
+  NFST_SOURCES=
+endif
+
+checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h $(NFCT_SOURCES) $(NFST_SOURCES)
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
 
 #debug_SOURCES = debug.c nfft.c nfft.h

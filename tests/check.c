@@ -52,6 +52,7 @@ int main(void)
   CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
   CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
   CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
+#ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
   nfct = CU_add_suite("nfct", 0, 0);
@@ -69,6 +70,8 @@ int main(void)
   CU_add_test(nfct, "nfct_adjoint_3d_online", X(check_adjoint_3d_online));
   CU_add_test(nfct, "nfct_4d_online", X(check_4d_online));
   CU_add_test(nfct, "nfct_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
+#ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
   nfst = CU_add_suite("nfst", 0, 0);
@@ -86,6 +89,7 @@ int main(void)
   CU_add_test(nfst, "nfst_adjoint_3d_online", X(check_adjoint_3d_online));
   CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #undef X
 #define X(name) Y(name)
   util = CU_add_suite("util", 0, 0);
