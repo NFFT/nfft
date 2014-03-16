@@ -69,16 +69,15 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	chmod u+rwX $(prefix)
+	chmod u+wX $(prefix)
 	$(install_sh) -d $(datarootdir)
-	chmod -R u+rwX $(datarootdir)
+	chmod -R u+wX $(datarootdir)
 	$(install_sh) -d $(docdir)
 	chmod -Rf u+rwX $(srcdir)/doc
 	cp -R $(srcdir)/doc/* $(docdir)/
 
 uninstall-hook:
 	rm -Rf $(docdir)
-	ls -la /Users/jens/Pending/programming/nfft-3.3/nfft-3.3.0/_inst
 
 maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/html/*.html
