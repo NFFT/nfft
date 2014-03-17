@@ -500,12 +500,14 @@ static inline void B_ ## which_one (nfct_plan *ths) \
   R *fj; /* local copy */ \
   R y[ths->d]; \
   R fg_psi[ths->d][2*ths->m+2]; \
+  R fg_exp_l[ths->d][2*ths->m+2]; \
   INT l_fg,lj_fg; \
-  INT lg_offset[ths->d]; /* offset in g according to u */ \
-  INT count_lg[ths->d]; /* count summands (2m+2) */ \
+  R tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3; \
   R ip_w; \
   INT ip_u; \
   INT ip_s = ths->K/(ths->m+2); \
+  INT lg_offset[ths->d]; /* offset in g according to u */ \
+  INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
   f = ths->f; g = ths->g; \
 \
@@ -553,96 +555,99 @@ static inline void B_ ## which_one (nfct_plan *ths) \
     return; \
   } \
  \
-  /*if (ths->flags & PRE_FG_PSI) \
+  if (ths->flags & PRE_FG_PSI) \
   { \
-    for(t2 = 0; t2 < ths->d; t2++) \
+    for (t = 0; t < ths->d; t++) \
     { \
-      tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
-      tmpEXP2sq = tmpEXP2*tmpEXP2; \
+      tmpEXP2 = EXP(K(-1.0) / ths->b[t]); \
+      tmpEXP2sq = tmpEXP2 * tmpEXP2; \
       tmp2 = K(1.0); \
       tmp3 = K(1.0); \
-      fg_exp_l[t2][0] = K(1.0); \
-      for(lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
+      fg_exp_l[t][0] = K(1.0); \
+ \
+      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++) \
       { \
-        tmp3 = tmp2*tmpEXP2; \
+        tmp3 = tmp2 * tmpEXP2; \
         tmp2 *= tmpEXP2sq; \
-        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
+        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg-1] * tmp3; \
       } \
     } \
+ \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       MACRO_init_uo_l_lj_t; \
-  \
-      for (t2 = 0; t2 < ths->d; t2++) \
+ \
+      for (t = 0; t < ths->d; t++) \
       { \
-        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)]; \
-        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1]; \
+        fg_psi[t][0] = ths->psi[2 * (j * ths->d + t)]; \
+        tmpEXP1 = ths->psi[2 * (j * ths->d + t) + 1]; \
         tmp1 = K(1.0); \
-        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+ \
+        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++) \
         { \
           tmp1 *= tmpEXP1; \
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg]; \
         } \
       } \
-  \
+ \
       for (l_L= 0; l_L < lprod; l_L++) \
       { \
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
-  \
-        MACRO_nfft_B_compute_ ## which_one; \
-  \
+        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
+ \
+        MACRO_nfct_B_compute_ ## which_one; \
+ \
         MACRO_count_uo_l_lj_t; \
-      }  for(l_L)  \
-    }  for(j)  \
-    return; \
-  }  if(PRE_FG_PSI)  \
-  \
-  if (ths->flags & FG_PSI) \
-  { \
-    for (t2 = 0; t2 < ths->d; t2++) \
-    { \
-      tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
-      tmpEXP2sq = tmpEXP2*tmpEXP2; \
-      tmp2 = K(1.0); \
-      tmp3 = K(1.0); \
-      fg_exp_l[t2][0] = K(1.0); \
-      for (lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
-      { \
-        tmp3 = tmp2*tmpEXP2; \
-        tmp2 *= tmpEXP2sq; \
-        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
       } \
     } \
+    return; \
+  } \
+ \
+  if (ths->flags & FG_PSI) \
+  { \
+    for (t = 0; t < ths->d; t++) \
+    { \
+      tmpEXP2 = EXP(K(-1.0) / ths->b[t]); \
+      tmpEXP2sq = tmpEXP2 * tmpEXP2; \
+      tmp2 = K(1.0); \
+      tmp3 = K(1.0); \
+      fg_exp_l[t][0] = K(1.0); \
+      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++) \
+      { \
+        tmp3 = tmp2 * tmpEXP2; \
+        tmp2 *= tmpEXP2sq; \
+        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg-1] * tmp3; \
+      } \
+    } \
+ \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       MACRO_init_uo_l_lj_t; \
-  \
-      for (t2 = 0; t2 < ths->d; t2++) \
+ \
+      for (t = 0; t < ths->d; t++) \
       { \
-        fg_psi[t2][0] = (PHI(ths->n[t2], (ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));\
-  \
-        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2]) \
-          /ths->b[t2]); \
+        fg_psi[t][0] = (PHI((2 * (ths->n[t] - 1)), (ths->x[j*ths->d+t] - ((R)u[t])/(2 * (ths->n[t] - 1))),(t)));\
+ \
+        tmpEXP1 = EXP(K(2.0) * ((2 * (ths->n[t] - 1)) * ths->x[j * ths->d + t] - u[t]) / ths->b[t]); \
         tmp1 = K(1.0); \
-        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++) \
         { \
           tmp1 *= tmpEXP1; \
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg]; \
         } \
       } \
   \
       for (l_L = 0; l_L < lprod; l_L++) \
       { \
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
-  \
-        MACRO_nfft_B_compute_ ## which_one; \
-  \
+        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
+ \
+        MACRO_nfct_B_compute_ ## which_one; \
+ \
         MACRO_count_uo_l_lj_t; \
-      }  for(l_L)  \
-    }  for(j)  \
+      } \
+    } \
     return; \
-  }  if(FG_PSI)  \
-  */\
+  } \
+ \
   if (ths->flags & PRE_LIN_PSI) \
   { \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -816,30 +821,27 @@ void X(precompute_lin_psi)(X(plan) *ths)
   } /* for(t) */
 }
 
-//static void nfft_precompute_fg_psi(X(plan) *ths)
-//{
-//  INT t;                                /**< index over all dimensions       */
-//  INT u, o;                             /**< depends on x_j                  */
-//
+void X(precompute_fg_psi)(X(plan) *ths)
+{
+  INT t; /* index over all dimensions */
+  INT u, o; /* depends on x_j */
+
 //  sort(ths);
-//
-//  for (t=0; t<ths->d; t++)
-//  {
-//    INT j;
+
+  for (t = 0; t < ths->d; t++)
+  {
+    INT j;
 //    #pragma omp parallel for default(shared) private(j,u,o)
-//    for (j = 0; j < ths->M_total; j++)
-//      {
-//  uo(ths,j,&u,&o,t);
-//
-//        ths->psi[2*(j*ths->d+t)]=
-//            (PHI(ths->n[t],(ths->x[j*ths->d+t]-((R)u)/ths->n[t]),t));
-//
-//        ths->psi[2*(j*ths->d+t)+1]=
-//            EXP(K(2.0)*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);
-//      } /* for(j) */
-//  }
-//  /* for(t) */
-//} /* nfft_precompute_fg_psi */
+    for (j = 0; j < ths->M_total; j++)
+    {
+      uo(ths, j, &u, &o, t);
+
+      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * (ths->n[t] - 1)),(ths->x[j * ths->d + t] - ((R)u) / (2 * (ths->n[t] - 1))),(t)));
+      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * (ths->n[t] - 1)) * ths->x[j * ths->d + t] - u) / ths->b[t]);
+      } /* for(j) */
+  }
+  /* for(t) */
+} /* nfft_precompute_fg_psi */
 
 void X(precompute_psi)(X(plan) *ths)
 {
@@ -918,8 +920,8 @@ void X(precompute_one_psi)(X(plan) *ths)
 {
   if(ths->flags & PRE_LIN_PSI)
     X(precompute_lin_psi)(ths);
-  //if(ths->flags & PRE_FG_PSI)
-  //  nfft_precompute_fg_psi(ths);
+  if(ths->flags & PRE_FG_PSI)
+    X(precompute_fg_psi)(ths);
   if(ths->flags & PRE_PSI)
     X(precompute_psi)(ths);
   if(ths->flags & PRE_FULL_PSI)
@@ -967,8 +969,8 @@ static inline void init_help(X(plan) *ths)
       ths->psi = (R*) Y(malloc)((ths->K + 1) * ths->d * sizeof(R));
   }
 
-  /*if(ths->flags & PRE_FG_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * 2 * sizeof(R));*/
+  if(ths->flags & PRE_FG_PSI)
+    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * 2 * sizeof(R));
 
   if (ths->flags & PRE_PSI)
     ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * (2 * ths->m + 2 ) *sizeof(R));
@@ -1160,8 +1162,8 @@ void X(finalize)(X(plan) *ths)
   if (ths->flags & PRE_PSI)
     Y(free)(ths->psi);
 
-//  if(ths->flags & PRE_FG_PSI)
-//    Y(free)(ths->psi);
+  if(ths->flags & PRE_FG_PSI)
+    Y(free)(ths->psi);
 
   if(ths->flags & PRE_LIN_PSI)
     Y(free)(ths->psi);

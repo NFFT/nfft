@@ -138,9 +138,9 @@ static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
 static init_delegate_t init_advanced_pre_full_psi;
-//static init_delegate_t init_advanced_pre_lin_psi;
+static init_delegate_t init_advanced_pre_lin_psi;
 #if defined(GAUSSIAN)
-//static init_delegate_t init_advanced_pre_fg_psi;
+  static init_delegate_t init_advanced_pre_fg_psi;
 #endif
 
 static check_delegate_t check_trafo;
@@ -226,7 +226,7 @@ static R err_trafo(X(plan) *p)
     for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
       s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
-    err = K(23.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
+    err = K(75.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
 #elif defined(B_SPLINE)
     //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
     //printf("\n<s = %E>\n", s);
@@ -637,7 +637,7 @@ static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_adva
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
-//static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #endif
 
 /* Check routines. */
@@ -739,7 +739,7 @@ static const init_delegate_t* initializers_1d[] =
   &init_advanced_pre_full_psi,
   &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-//  &init_advanced_pre_fg_psi,
+  &init_advanced_pre_fg_psi,
 #endif
 };
 
@@ -934,7 +934,7 @@ static const init_delegate_t* initializers_2d[] =
   &init_advanced_pre_full_psi,
   &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-//  &init_advanced_pre_fg_psi,
+  &init_advanced_pre_fg_psi,
 #endif
 };
 
@@ -1053,7 +1053,7 @@ static const init_delegate_t* initializers_3d[] =
   &init_advanced_pre_full_psi,
   &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-//  &init_advanced_pre_fg_psi,
+  &init_advanced_pre_fg_psi,
 #endif
 };
 
@@ -1127,7 +1127,7 @@ static const init_delegate_t* initializers_4d[] =
   &init_advanced_pre_full_psi,
   &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
-//  &init_advanced_pre_fg_psi,
+  &init_advanced_pre_fg_psi,
 #endif
 };
 
