@@ -117,7 +117,11 @@ need_fpt="no"
 AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
   ok=$enableval, ok=$USE_MAINTAINER_MODE)
 if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
-  nfft_module_default="yes"
+  if test ! "$PRECISION" = "s" -a ! "$PRECISION" = "l"; then
+    nfft_module_default="yes"
+  else
+    nfft_module_default="no"
+  fi
 else
   nfft_module_default="no"
 fi
