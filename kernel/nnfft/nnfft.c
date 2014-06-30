@@ -478,6 +478,16 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
     } /* for(j) */
 }
 
+void nnfft_precompute_one_psi(nnfft_plan *ths)
+{
+  if(ths->nnfft_flags & PRE_LIN_PSI)
+    X(precompute_lin_psi)(ths);
+  if(ths->nnfft_flags & PRE_PSI)
+    X(precompute_psi)(ths);
+  if(ths->nnfft_flags & PRE_FULL_PSI)
+    X(precompute_full_psi)(ths);
+}
+
 static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
 {
   int t;                                /**< index over all dimensions       */
@@ -629,6 +639,14 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
   nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
+}
+
+void nnfft_init_1d(nnfft_plan *ths,int N1, int M_total)
+{
+  int N[1];
+  N[0]=N1;
+  printf("ok\n");
+  //nnfft_init(ths,1,N1,M_total,N);
 }
 
 void nnfft_finalize(nnfft_plan *ths)

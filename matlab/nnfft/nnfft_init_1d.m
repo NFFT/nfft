@@ -19,5 +19,5 @@
 %
 % $Id: nfft_init_1d.m 3776 2012-06-03 13:29:25Z keiner $
 function p = nnfft_init_1d(N,M)
-
+disp(N);disp(M);
 p = nnfftmex('init_1d',N,M);

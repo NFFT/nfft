@@ -31,6 +31,6 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 % $Id: nfft_init_guru.m 4086 2014-03-12 19:09:50Z keiner $
-function p = nfft_init_guru(varargin)
+function p = nnfft_init_guru(varargin)
 
-p = nfftmex('init_guru',varargin);
+p = nnfftmex('init_guru',varargin);

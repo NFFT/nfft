@@ -410,6 +410,7 @@ typedef struct\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \
+NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N, int M_total); \
 NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int N_total, int M_total, \
   int *N, int *N1, int m, unsigned nnfft_flags); \
 NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
