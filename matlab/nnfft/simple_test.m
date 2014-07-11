@@ -34,29 +34,31 @@ M = 3;
 x=rand(1,M)-0.5;
 
 % Create plan.
-%plan = nnfft_init_1d(N,M);
- plan = nnfft_init_guru(1,N,M,N,2*N,2,bitor(PRE_PHI_HUT,PRE_PSI));
+plan = nnfft_init_1d(N,M);
+ %plan = nnfft_init_guru(1,N,M,N,2*N,2,bitor(PRE_PHI_HUT,PRE_PSI));
 
 % Set nodes.
-%nnfft_set_x(plan,x);
+nnfft_set_x(plan,x);
+nnfft_get_x(plan);
 
 % node-dependent precomputation
-%nnfft_precompute_psi(plan);
+nnfft_precompute_psi(plan);
 
 % Fourier coefficients
-%f_hat = rand(N,1)+i*rand(N,1);
+f_hat = rand(N,1)+i*rand(N,1);
 
 % Set Fourier coefficients.
-%nnfft_set_f_hat(plan,double(f_hat));
+nnfft_set_f_hat(plan,double(f_hat));
+nnfft_get_f_hat(plan);
 
 % transform
-%nnfft_trafo(plan);
+nnfft_trafo(plan);
 
 % function values
-%f = nnfft_get_f(plan)
+f = nnfft_get_f(plan)
 
 % finalize plan
-%nnfft_finalize(plan);
+nnfft_finalize(plan);
 
 %A=exp(-2*pi*i*x'*(-N/2:N/2-1));
 %f2=A*f_hat

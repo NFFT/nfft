@@ -155,6 +155,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (strcmp(cmd,"init_1d") == 0)
   {
+mexPrintf("init_1d mex function\n");
     check_nargs(nrhs,3,"Wrong number of arguments for init.");
     {
       int i;
@@ -224,7 +225,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nnfft_precompute_psi(plans[i]);// hier die gewuenschte fkt fuer vorberechnung eintragen
+      nnfft_precompute_one_psi(plans[i]);// hier die gewuenschte fkt fuer vorberechnung eintragen
     }
     return;
   }
@@ -354,6 +355,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       m = plans[i]->M_total;
       d = plans[i]->d;
+      mexPrintf("d=%d",d);
+      mexPrintf("mxGetM=%d",mxGetM(prhs[2]));
+      
       DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
         mexErrMsgTxt("Input argument x must be a d x M double array");)
       DM(if (mxGetM(prhs[2]) != (unsigned int)d || mxGetN(prhs[2]) != (unsigned int)m)

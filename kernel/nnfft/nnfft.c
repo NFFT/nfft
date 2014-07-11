@@ -295,25 +295,26 @@ void nnfft_trafo(nnfft_plan *ths)
   int j,t;
 
   nnfft_B_T(ths);
+//
+//  for(j=0;j<ths->M_total;j++) {
+//    for(t=0;t<ths->d;t++) {
+//      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
+//    }
+//  }
 
-  for(j=0;j<ths->M_total;j++) {
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
-    }
-  }
 
   /* allows for external swaps of ths->f */
-  ths->direct_plan->f = ths->f;
-
-  nfft_trafo(ths->direct_plan);
-
-  for(j=0;j<ths->M_total;j++) {
-    for(t=0;t<ths->d;t++) {
-      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
-    }
-  }
-
-  nnfft_D(ths);
+//  ths->direct_plan->f = ths->f;
+//
+//  nfft_trafo(ths->direct_plan);
+//
+//  for(j=0;j<ths->M_total;j++) {
+//    for(t=0;t<ths->d;t++) {
+//      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
+//    }
+//  }
+//
+//  nnfft_D(ths);
 } /* nnfft_trafo */
 
 void nnfft_adjoint(nnfft_plan *ths)
@@ -481,11 +482,11 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
 void nnfft_precompute_one_psi(nnfft_plan *ths)
 {
   if(ths->nnfft_flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(ths);
+    nnfft_precompute_lin_psi(ths);
   if(ths->nnfft_flags & PRE_PSI)
-    X(precompute_psi)(ths);
+    nnfft_precompute_psi(ths);
   if(ths->nnfft_flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(ths);
+    nnfft_precompute_full_psi(ths);
 }
 
 static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
@@ -604,11 +605,12 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
 
 void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 {
+printf("nnfft_init()\n");
   int t;                            /**< index over all dimensions        */
 
   unsigned nfft_flags;
   unsigned fftw_flags;
-
+printf("Paramter: d=%d, N_total=%d, M_total=%d,\n",d,N_total,M_total);
   ths->d = d;
   ths->M_total = M_total;
   ths->N_total = N_total;
@@ -624,10 +626,9 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
-
     /* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
-    
+
     /* N1 should be even */
     if(ths->N1[t]%2 != 0)
       ths->N1[t] = ths->N1[t] +1;
@@ -637,6 +638,7 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
 
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
+printf("nnfft_init_help()\n");
 
   nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
 }
@@ -645,8 +647,8 @@ void nnfft_init_1d(nnfft_plan *ths,int N1, int M_total)
 {
   int N[1];
   N[0]=N1;
-  printf("ok\n");
-  //nnfft_init(ths,1,N1,M_total,N);
+  printf("nnfft_init_1d: call nnfft_init\n");
+  nnfft_init(ths,1,N1,M_total,N);
 }
 
 void nnfft_finalize(nnfft_plan *ths)

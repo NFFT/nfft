@@ -421,6 +421,7 @@ NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan);
 
 #ifdef HAVE_NNFFT
