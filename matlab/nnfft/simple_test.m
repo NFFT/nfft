@@ -20,12 +20,12 @@
 %
 % $Id: simple_test.m 3776 2012-06-03 13:29:25Z keiner $
 
-disp(sprintf('Number of threads: %d\n', nnfft_get_num_threads()));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear;
 disp('A simple one dimensional example');
 
 % maximum degree (bandwidth)
-N = 10;
+N = 4;
 
 % number of nodes
 M = 3;
@@ -41,6 +41,7 @@ plan = nnfft_init_1d(N,M);
 nnfft_set_x(plan,x);
 nnfft_get_x(plan);
 
+nnfftmex('display',plan);
 % node-dependent precomputation
 nnfft_precompute_psi(plan);
 
