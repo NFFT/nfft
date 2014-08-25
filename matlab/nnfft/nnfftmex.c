@@ -94,7 +94,7 @@ static inline void check_plan(int i)
 
 static inline int mkplan(void)
 {
-  mexLock();
+  //mexLock();
   int i = 0;
   while (i < PLANS_MAX && plans[i] != 0) i++;
   if (i == PLANS_MAX)
@@ -108,7 +108,7 @@ static void cleanup(void)
 {
   int i;
 
-  mexUnlock();
+  //mexUnlock();
 
   if (!(gflags & NNFFT_MEX_FIRST_CALL))
   {
@@ -116,6 +116,7 @@ static void cleanup(void)
       if (plans[i])
       {
         nnfft_finalize(plans[i]);
+        nfft_free(plans[i]);
         plans[i] = 0;
       }
     gflags |= NNFFT_MEX_FIRST_CALL;
@@ -155,13 +156,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (strcmp(cmd,"init_1d") == 0)
   {
-mexPrintf("init_1d mex function\n");
     check_nargs(nrhs,3,"Wrong number of arguments for init.");
     {
       int i;
       int n, m;
-      get_nm(prhs,&n,&m);
-     
+      get_nm(prhs,&n,&m);    
       i = mkplan();
       nnfft_init_1d(plans[i],n,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
@@ -355,8 +354,6 @@ mexPrintf("init_1d mex function\n");
       check_plan(i);
       m = plans[i]->M_total;
       d = plans[i]->d;
-      mexPrintf("d=%d",d);
-      mexPrintf("mxGetM=%d",mxGetM(prhs[2]));
       
       DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
         mexErrMsgTxt("Input argument x must be a d x M double array");)
@@ -425,7 +422,7 @@ mexPrintf("init_1d mex function\n");
     check_nargs(nrhs,2,"Wrong number of arguments for set_f_hat_linear.");
     {
       int i = nfft_mex_get_int(prhs[1],"nnfft: Input argument plan must be a scalar.");
-      mexPrintf("Plan %d\n",i);
+      mexPrintf("\nPlan %d\n",i);
       check_plan(i);
       mexPrintf("  pointer: %p\n",plans[i]);
       mexPrintf("        d: %d\n",plans[i]->d);
