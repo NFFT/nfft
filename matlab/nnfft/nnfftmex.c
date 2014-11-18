@@ -55,26 +55,6 @@ static inline void get_nm(const mxArray *prhs[], int *n, int *m)
   *m = t;
 }
 
-static inline void get_guru(const mxArray *prhs[], int d, int *N, int *M_total,int *N_total, int *n, int *m, unsigned int *f1)
-{
-  /** NO ERROR HANDLING !!*/
-  int k;
-  *N_total=1;
-  
-  for(k=0;k<d;k++){
-    N[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(1+k)));
-    *N_total=*N_total*N[k];
-  }
-
-  *M_total = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+1)));
-
-  for(k=0;k<d;k++)
-    n[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+2+k)));
-
-  *m = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+2)));
-
-  *f1 = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+3)));
-}
 
 
 
@@ -94,7 +74,7 @@ static inline void check_plan(int i)
 
 static inline int mkplan(void)
 {
-  //mexLock();
+  mexLock();
   int i = 0;
   while (i < PLANS_MAX && plans[i] != 0) i++;
   if (i == PLANS_MAX)
@@ -108,7 +88,7 @@ static void cleanup(void)
 {
   int i;
 
-  //mexUnlock();
+  mexUnlock();
 
   if (!(gflags & NNFFT_MEX_FIRST_CALL))
   {
@@ -116,7 +96,6 @@ static void cleanup(void)
       if (plans[i])
       {
         nnfft_finalize(plans[i]);
-        nfft_free(plans[i]);
         plans[i] = 0;
       }
     gflags |= NNFFT_MEX_FIRST_CALL;
@@ -160,7 +139,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i;
       int n, m;
-      get_nm(prhs,&n,&m);    
+      get_nm(prhs,&n,&m);
       i = mkplan();
       nnfft_init_1d(plans[i],n,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
@@ -169,7 +148,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"init_2d") == 0)
   {
-	  mexErrMsgTxt("init_2d: No implementation available.");
+	  mexErrMsgTxt("No implementation available.");
 //    check_nargs(nrhs,4,"Wrong number of arguments for init.");
 //    {
 //      int i;
@@ -183,7 +162,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"init_3d") == 0)
   {
-	  mexErrMsgTxt("init_3d: No implementation available.");
+	  mexErrMsgTxt("No implementation available.");
 //    check_nargs(nrhs,5,"Wrong number of arguments for init.");
 //    {
 //      int i;
@@ -197,26 +176,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"init_guru") == 0)
   {
-        
-    /** NO ERROR HANDLING !!*/
-    int i;
-    const int d = mxGetScalar(mxGetCell(prhs[1], 0));
-
-    int N[d],n[d],m,M,N_total;
-    unsigned int f1;
-
-    DM(if ((d < 1) || (d>4))
-	 mexErrMsgTxt("nnfft: Input argument d must be positive and smaller than 5.");)
-
-    get_guru(prhs,d,N,&M, &N_total,n,&m,&f1);
-     
-    i = mkplan();
-    nnfft_init_guru(plans[i],d,N_total,M,N,n,m,
-		   f1 | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT);
-
-    plhs[0] = mxCreateDoubleScalar((double)i);
-
-    return;
+	  mexErrMsgTxt("No implementation available.");
+//    /** NO ERROR HANDLING !!*/
+//    int i;
+//    const int d = mxGetScalar(mxGetCell(prhs[1], 0));
+//
+//    int N[d],n[d],m,M;
+//    unsigned int f1,f2;
+//
+//    DM(if ((d < 1) || (d>4))
+//	 mexErrMsgTxt("nfft: Input argument d must be positive and smaller than 5.");)
+//
+//    get_guru(prhs,d,N,&M,n,&m,&f1,&f2);
+//    i = mkplan();
+//    nfft_init_guru(plans[i],d,N,M,n,m,
+//		   f1 | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT,
+//		   f2);
+//
+//    plhs[0] = mxCreateDoubleScalar((double)i);
+//
+//    return;
   }
   else if (strcmp(cmd,"precompute_psi") == 0)
   {
@@ -224,7 +203,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nnfft_precompute_one_psi(plans[i]);// hier die gewuenschte fkt fuer vorberechnung eintragen
+      nnfft_precompute_one_psi(plans[i]);
     }
     return;
   }
@@ -240,7 +219,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"adjoint") == 0)
   {
-	  mexErrMsgTxt("adjoint: No implementation available.");
+	  mexErrMsgTxt("No implementation available.");
 //    check_nargs(nrhs,2,"Wrong number of arguments for adjoint.");
 //    {
 //      int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
@@ -263,7 +242,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"trafo_direct") == 0)
   {
-	  mexErrMsgTxt("trafo_direct: No implementation available.");
+	  mexErrMsgTxt("No implementation available.");
 //    check_nargs(nrhs,2,"Wrong number of arguments for trafo direct.");
 //    {
 //      int i = nfft_mex_get_int(prhs[1],"nnfft: Input argument plan must be a scalar.");
@@ -274,7 +253,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"adjoint_direct") == 0)
   {
-	  mexErrMsgTxt("adjoint_direct: No implementation available.");
+	  mexErrMsgTxt("No implementation available.");
 //    check_nargs(nrhs,2,"Wrong number of arguments for adjoint direct.");
 //    {
 //      int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
@@ -354,7 +333,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       m = plans[i]->M_total;
       d = plans[i]->d;
-      
       DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
         mexErrMsgTxt("Input argument x must be a d x M double array");)
       DM(if (mxGetM(prhs[2]) != (unsigned int)d || mxGetN(prhs[2]) != (unsigned int)m)
@@ -422,7 +400,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     check_nargs(nrhs,2,"Wrong number of arguments for set_f_hat_linear.");
     {
       int i = nfft_mex_get_int(prhs[1],"nnfft: Input argument plan must be a scalar.");
-      mexPrintf("\nPlan %d\n",i);
+      mexPrintf("Plan %d\n",i);
       check_plan(i);
       mexPrintf("  pointer: %p\n",plans[i]);
       mexPrintf("        d: %d\n",plans[i]->d);
@@ -431,7 +409,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("        x: %p\n",plans[i]->x);
       mexPrintf("        f: %p\n",plans[i]->f);
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
-      //mexPrintf("    flags: %d\n",plans[i]->flags);
+      mexPrintf("    flags: %d\n",plans[i]->nnfft_flags);
     }
     return;
   }

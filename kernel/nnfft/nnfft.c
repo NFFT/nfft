@@ -295,26 +295,27 @@ void nnfft_trafo(nnfft_plan *ths)
   int j,t;
 
   nnfft_B_T(ths);
-//
-//  for(j=0;j<ths->M_total;j++) {
-//    for(t=0;t<ths->d;t++) {
-//      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
-//    }
-//  }
+
+  for(j=0;j<ths->M_total;j++) {
+    for(t=0;t<ths->d;t++) {
+      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] / ((double)ths->sigma[t]);
+    }
+  }
 
 
   /* allows for external swaps of ths->f */
-//  ths->direct_plan->f = ths->f;
-//
-//  nfft_trafo(ths->direct_plan);
-//
-//  for(j=0;j<ths->M_total;j++) {
-//    for(t=0;t<ths->d;t++) {
-//      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
-//    }
-//  }
-//
-//  nnfft_D(ths);
+  ths->direct_plan->f = ths->f;
+
+  nfft_trafo(ths->direct_plan);
+
+  for(j=0;j<ths->M_total;j++) {
+    for(t=0;t<ths->d;t++) {
+      ths->x[j*ths->d+t]= ths->x[j*ths->d+t] * ((double)ths->sigma[t]);
+    }
+  }
+
+  nnfft_D(ths);
+
 } /* nnfft_trafo */
 
 void nnfft_adjoint(nnfft_plan *ths)

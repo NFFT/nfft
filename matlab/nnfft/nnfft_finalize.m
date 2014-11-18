@@ -19,4 +19,5 @@
 %
 % $Id: nfft_finalize.m 3776 2012-06-03 13:29:25Z keiner $
 function nnfft_finalize(p)
+
 nnfftmex('finalize',p)

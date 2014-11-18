@@ -20,7 +20,7 @@
 %
 % $Id: simple_test.m 3776 2012-06-03 13:29:25Z keiner $
 
-disp(sprintf('Number of threads: %d\n', nfft_get_num_threads()));
+disp(sprintf('Number of threads: %d\n', nnfft_get_num_threads()));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('A simple one dimensional example');
 
@@ -34,95 +34,32 @@ M = 3;
 x=rand(1,M)-0.5;
 
 % Create plan.
-plan = nfft_init_1d(N,M);
+plan = nnfft_init_1d(N,M);
 
 % Set nodes.
-nfft_set_x(plan,x);
+nnfft_set_x(plan,x);
 
 % node-dependent precomputation
-nfft_precompute_psi(plan);
+nnfft_precompute_psi(plan);
 
 % Fourier coefficients
 f_hat = rand(N,1)+i*rand(N,1);
 
 % Set Fourier coefficients.
-nfft_set_f_hat(plan,double(f_hat));
+nnfft_set_f_hat(plan,double(f_hat));
 
 % transform
-nfft_trafo(plan);
+nnfft_trafo(plan);
 
 % function values
-f = nfft_get_f(plan)
+f = nnfft_get_f(plan)
 
 % finalize plan
-nfft_finalize(plan);
+nnfft_finalize(plan);
 
-A=exp(-2*pi*i*x'*(-N/2:N/2-1));
-f2=A*f_hat
+%TODO Ines A=exp(-2*pi*i*x'*(-N/2:N/2-1));
+%f2=A*f_hat
 
-error_vector=f-f2
-error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
+%error_vector=f-f2
+%error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(sprintf('\nA two dimensional example'));
-d=2;
-for logN=3:10
-  N=2^logN;
-  M=N^2;
-  x=rand(2,M)-0.5;
-  plan = nfft_init_guru(d,N,N,M,2*N,2*N,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
-  nfft_set_x(plan,x);
-  nfft_precompute_psi(plan);
-  f_hat = rand(N,N)+i*rand(N,N);
-  nfft_set_f_hat(plan,double(f_hat(:)));
-  tic
-  nfft_trafo(plan);
-  t1=toc;
-  f = nfft_get_f(plan);
-
-  if(N<=64)
-    tic
-    ndft_trafo(plan);
-    t2=toc;
-    f2 = nfft_get_f(plan);
-    e=norm(f-f2,inf)/norm(f_hat(:),1);
-  else
-    t2=inf;
-    e=nan;
-  end;
-  nfft_finalize(plan);
-  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
-end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(sprintf('\nAn asymmetric three dimensional example'));
-d=3;
-for logN=3:10
-  N1=2^logN;   n1=2*N1;
-  N2=10;       n2=32;
-  N3=18;       n3=32;
-  M=N1*N2*N3;
-  x=rand(3,M)-0.5;
-  plan = nfft_init_guru(d,N1,N2,N3,M,n1,n2,n3,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
-  nfft_set_x(plan,x);
-  nfft_precompute_psi(plan);
-  f_hat = rand(N1,N2,N3)+i*rand(N1,N2,N3);
-  nfft_set_f_hat(plan,double(f_hat(:)));
-  tic
-  nfft_trafo(plan);
-  t1=toc;
-  f = nfft_get_f(plan);
-
-  if(N1<=32)
-    tic
-    ndft_trafo(plan);
-    t2=toc;
-    f2 = nfft_get_f(plan);
-    e=norm(f-f2,inf)/norm(f_hat(:),1);
-  else
-    t2=inf;
-    e=nan;
-  end;
-  nfft_finalize(plan);
-  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
-end;
