@@ -32,6 +32,7 @@ M = 3;
 
 % nodes
 x=rand(1,M)-0.5;
+xi=N*(rand(1,N)-0.5);
 
 % Create plan.
 plan = nnfft_init_1d(N,M);
@@ -57,9 +58,10 @@ f = nnfft_get_f(plan)
 % finalize plan
 nnfft_finalize(plan);
 
-%TODO Ines A=exp(-2*pi*i*x'*(-N/2:N/2-1));
-%f2=A*f_hat
+%A=exp(-2*pi*i*x'*(-N/2:N/2-1));
+A=exp(-2*pi*i*x'*xi);
+f2=A*f_hat
 
-%error_vector=f-f2
-%error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
+error_vector=f-f2
+error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
 
