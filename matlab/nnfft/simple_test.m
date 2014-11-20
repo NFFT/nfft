@@ -29,16 +29,19 @@ N = 10;
 
 % number of nodes
 M = 3;
-
+ 
 % nodes
 x=rand(1,M)-0.5;
 xi=N*(rand(1,N)-0.5);
+v=rand(1,N)-0.5;
 
 % Create plan.
 plan = nnfft_init_1d(N,M);
 
 % Set nodes.
 nnfft_set_x(plan,x);
+nnfft_set_v(plan,v);
+
 
 % node-dependent precomputation
 nnfft_precompute_psi(plan);

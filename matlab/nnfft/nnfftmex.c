@@ -347,6 +347,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     return;
   }
+  else if (strcmp(cmd,"set_v") == 0)
+  {
+    check_nargs(nrhs,3,"Wrong number of arguments for set_v.");
+    {
+      int i = nfft_mex_get_int(prhs[1],"nnfft: Input argument plan must be a scalar.");
+      int m, d;
+      check_plan(i);
+      m = plans[i]->N_total;
+      d = plans[i]->d;
+      DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
+        mexErrMsgTxt("Input argument v must be a d x N double array");)
+      DM(if (mxGetM(prhs[2]) != (unsigned int)d || mxGetN(prhs[2]) != (unsigned int)m)
+        mexErrMsgTxt("Input argument v must have correct size (d x N).");)
+      {
+        double *v = mxGetPr(prhs[2]);
+        int j,t;
+        for (j = 0; j < m; j++)
+	  for (t = 0; t < d; t++)
+	    plans[i]->v[d*j+t] = v[d*j+t];
+      }
+    }
+    return;
+  }
   else if (strcmp(cmd,"set_f") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_f.");
