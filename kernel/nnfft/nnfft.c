@@ -482,12 +482,18 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
 
 void nnfft_precompute_one_psi(nnfft_plan *ths)
 {
-  if(ths->nnfft_flags & PRE_LIN_PSI)
-    nnfft_precompute_lin_psi(ths);
+printf("START precomputation psi\n");
   if(ths->nnfft_flags & PRE_PSI)
     nnfft_precompute_psi(ths);
   if(ths->nnfft_flags & PRE_FULL_PSI)
     nnfft_precompute_full_psi(ths);
+  if(ths->nnfft_flags & PRE_LIN_PSI)
+    nnfft_precompute_lin_psi(ths);
+  /** precompute phi_hut, the entries of the matrix D */
+  if(ths->nnfft_flags & PRE_PHI_HUT)
+	  nnfft_precompute_phi_hut(ths);
+
+printf("FINISHED precomputation\n");
 }
 
 static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
@@ -537,8 +543,9 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
     ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*sizeof(double _Complex));
 
   //BUGFIX SUSE 2
-  if(ths->nnfft_flags & PRE_PHI_HUT)
-	  nnfft_precompute_phi_hut(ths);
+  /** precompute phi_hut, the entries of the matrix D */
+//  if(ths->nnfft_flags & PRE_PHI_HUT)
+//	  nnfft_precompute_phi_hut(ths);
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
@@ -616,7 +623,7 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   ths->d = d;
   ths->M_total = M_total;
   ths->N_total = N_total;
-
+printf("c_nnfft_init: d=%d, M=%d, N_total=%d\n",d,M_total,N_total);
   /* m should be greater to get the same accuracy as the nfft */
 /* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
 
@@ -631,6 +638,7 @@ ths->m=WINDOW_HELP_ESTIMATE_m;
 
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
+printf("c_nnfft_init: n[%d]=%d\n",t,N[t]);
     /* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
 
@@ -643,8 +651,9 @@ ths->m=WINDOW_HELP_ESTIMATE_m;
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
 
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
-
+printf("STarts init_help\n");
   nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
+printf("FINISHED INIT\n");
 }
 
 void nnfft_init_1d(nnfft_plan *ths,int N1, int M_total)

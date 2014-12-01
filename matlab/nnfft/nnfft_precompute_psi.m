@@ -1,4 +1,4 @@
-%NFFT_PRECOMPUTE_PSI Precompute psi, dependent on nodes x
+%NFFT_PRECOMPUTE_PSI Precompute one psi, dependent on nodes x
 %   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts

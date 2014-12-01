@@ -26,17 +26,19 @@ disp('A simple one dimensional example');
 
 % maximum degree (bandwidth)
 N = 10;
-
+N_total=3;
 % number of nodes
-M = 3;
+M = 19;
  
 % nodes
 x=rand(1,M)-0.5;
-xi=N*(rand(1,N)-0.5);
-v=rand(1,N)-0.5;
+%xi=N*(rand(1,N)-0.5);
+v=rand(1,N_total)-0.5;
 
 % Create plan.
-plan = nnfft_init_1d(N,M);
+%plan = nnfft_init_1d(N,M);
+%TODO
+plan=nnfft_init(1,N_total,M,N);
 
 % Set nodes.
 nnfft_set_x(plan,x);
@@ -47,7 +49,7 @@ nnfft_set_v(plan,v);
 nnfft_precompute_psi(plan);
 
 % Fourier coefficients
-f_hat = rand(N,1)+i*rand(N,1);
+f_hat = rand(N_total,1)+i*rand(N_total,1);
 
 % Set Fourier coefficients.
 nnfft_set_f_hat(plan,double(f_hat));
@@ -58,12 +60,14 @@ nnfft_trafo(plan);
 % function values
 f = nnfft_get_f(plan)
 
+nnfft_trafo_direct(plan);
+f2=nnfft_get_f(plan);
 % finalize plan
 nnfft_finalize(plan);
 
 %A=exp(-2*pi*i*x'*(-N/2:N/2-1));
-A=exp(-2*pi*i*x'*xi);
-f2=A*f_hat
+%A=exp(2*pi*i*x'*N*v);
+%f2=A*f_hat
 
 error_vector=f-f2
 error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
