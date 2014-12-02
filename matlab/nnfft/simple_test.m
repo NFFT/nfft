@@ -25,10 +25,10 @@ disp(sprintf('Number of threads: %d\n', nnfft_get_num_threads()));
 disp('A simple one dimensional example');
 
 % maximum degree (bandwidth)
-N = 10;
+N = 8;
 N_total=3;
 % number of nodes
-M = 19;
+M = 17;
  
 % nodes
 x=rand(1,M)-0.5;
@@ -60,15 +60,28 @@ nnfft_trafo(plan);
 % function values
 f = nnfft_get_f(plan)
 
+% finalize plan
+%nnfft_finalize(plan);
+
+
+%%%%%%%%%%%%%%%%%%%%%
+
 nnfft_trafo_direct(plan);
-f2=nnfft_get_f(plan);
+f2=nnfft_get_f(plan)
 % finalize plan
 nnfft_finalize(plan);
+%%%%%%%%%%%%%%%%%%%%%%%
 
-%A=exp(-2*pi*i*x'*(-N/2:N/2-1));
-%A=exp(2*pi*i*x'*N*v);
-%f2=A*f_hat
+%A=exp(-2*pi*i*x'*(-N_total/2:N_total/2-1));
+A=exp(2*pi*i*x'*N_total*v);
+f3=A*f_hat
 
-error_vector=f-f2
+disp('NNFF vs NNDFT');
+error_vector=f-f2;
 error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
+
+disp('NNFFT vs Direct');
+error_vector=f-f3;
+error_linfl1=norm(f-f3,inf)/norm(f_hat,1)
+
 
