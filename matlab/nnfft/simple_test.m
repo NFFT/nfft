@@ -73,7 +73,7 @@ nnfft_finalize(plan);
 %%%%%%%%%%%%%%%%%%%%%%%
 
 %A=exp(-2*pi*i*x'*(-N_total/2:N_total/2-1));
-A=exp(2*pi*i*x'*N_total*v);
+A=exp(-2*pi*1i*x'*N*v);
 f3=A*f_hat
 
 disp('NNFF vs NNDFT');
