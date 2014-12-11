@@ -38,7 +38,8 @@ v=rand(1,N_total)-0.5;
 % Create plan.
 %plan = nnfft_init_1d(N,M);
 %TODO
-plan=nnfft_init(1,N_total,M,N);
+%plan=nnfft_init(1,N_total,M,N);
+plan=nnfft_init_guru(1,N_total,M,N,2*N,6,bitor(PRE_PSI,PRE_PHI_HUT));
 
 % Set nodes.
 nnfft_set_x(plan,x);
