@@ -1899,7 +1899,7 @@ static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
 
   if (ar_u < ar_o)
   {
-    INT u = MAY(my_u0,ar_u);
+    INT u = MAX(my_u0,ar_u);
     INT o = MIN(my_o0,ar_o);
     INT offset_psij = u-ar_u;
 #ifdef OMP_ASSERT
@@ -1913,7 +1913,7 @@ static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
   }
   else
   {
-    INT u = MAY(my_u0,ar_u);
+    INT u = MAX(my_u0,ar_u);
     INT o = my_o0;
     INT offset_psij = u-ar_u;
 #ifdef OMP_ASSERT
@@ -2725,7 +2725,7 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
 
   if(ar_u0 < ar_o0)
   {
-    INT u0 = MAY(my_u0,ar_u0);
+    INT u0 = MAX(my_u0,ar_u0);
     INT o0 = MIN(my_o0,ar_o0);
     INT offset_psij = u0-ar_u0;
 #ifdef OMP_ASSERT
@@ -2745,7 +2745,7 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
   }
   else
   {
-    INT u0 = MAY(my_u0,ar_u0);
+    INT u0 = MAX(my_u0,ar_u0);
     INT o0 = my_o0;
     INT offset_psij = u0-ar_u0;
 #ifdef OMP_ASSERT
@@ -3938,7 +3938,7 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
 
   if(ar_u0<ar_o0)
   {
-    INT u0 = MAY(my_u0,ar_u0);
+    INT u0 = MAX(my_u0,ar_u0);
     INT o0 = MIN(my_o0,ar_o0);
     INT offset_psij = u0-ar_u0;
 #ifdef OMP_ASSERT
@@ -3964,7 +3964,7 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
   }
   else
   {
-    INT u0 = MAY(my_u0,ar_u0);
+    INT u0 = MAX(my_u0,ar_u0);
     INT o0 = my_o0;
     INT offset_psij = u0-ar_u0;
 #ifdef OMP_ASSERT
