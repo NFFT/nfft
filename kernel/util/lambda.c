@@ -201,7 +201,7 @@ static inline R evaluate_rational(const R z_)
     for (i = N - 2; i >= 0; --i)
     {
       s1 *= z;
-      s2 *= (z + i);
+      s2 *= z + (R)(i);
       s1 += num[i];
     }
   }
@@ -213,7 +213,7 @@ static inline R evaluate_rational(const R z_)
     for (i = 1; i < N; ++i)
     {
       s1 *= z;
-      s2 *= K(1.0) + (i-1)*z;
+      s2 *= K(1.0) + (R)(i-1) * z;
       s1 += num[i];
     }
   }

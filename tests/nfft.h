@@ -23,18 +23,26 @@
 #undef X
 #define X(name) NFFT(name)
 
-void X(check_1d_file)(void);
+void X(check_1d_direct_file)(void);
+void X(check_1d_fast_file)(void);
 void X(check_1d_online)(void);
-void X(check_2d_file)(void);
+void X(check_2d_direct_file)(void);
+void X(check_2d_fast_file)(void);
 void X(check_2d_online)(void);
-void X(check_3d_file)(void);
+void X(check_3d_direct_file)(void);
+void X(check_3d_fast_file)(void);
 void X(check_3d_online)(void);
 void X(check_4d_online)(void);
 
-void X(check_adjoint_1d_file)(void);
+void X(check_adjoint_1d_direct_file)(void);
+void X(check_adjoint_1d_fast_file)(void);
 void X(check_adjoint_1d_online)(void);
-void X(check_adjoint_2d_file)(void);
+void X(check_adjoint_2d_direct_file)(void);
+void X(check_adjoint_2d_fast_file)(void);
 void X(check_adjoint_2d_online)(void);
-void X(check_adjoint_3d_file)(void);
+void X(check_adjoint_3d_direct_file)(void);
+void X(check_adjoint_3d_fast_file)(void);
 void X(check_adjoint_3d_online)(void);
 void X(check_adjoint_4d_online)(void);
+
+void X(check_acc)(void);

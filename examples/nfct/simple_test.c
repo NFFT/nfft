@@ -60,11 +60,11 @@ static void simple_test_nfct_1d(void)
   nfft_vpr_double(p.f,p.M_total,"nfct, vector f");
 
   /** approx. adjoint and show the result */
-  nfct_adjoint(&p);
+  nfct_adjoint_direct(&p);
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
 
   /** approx. adjoint and show the result */
-  nfct_adjoint_direct(&p);
+  nfct_adjoint(&p);
   nfft_vpr_double(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
 
   /** finalise the one dimensional plan */

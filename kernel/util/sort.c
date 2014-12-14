@@ -156,7 +156,7 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
     rhigh -= rwidth;
   }
 
-  if (to == keys0) memcpy(to, from, n * 2 * sizeof(INT));
+  if (to == keys0) memcpy(to, from, (size_t)(n) * 2 * sizeof(INT));
 }
 
 /**
@@ -229,7 +229,7 @@ void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
   }
 #endif
 
-  memcpy(keys0, keys1, n * 2 * sizeof(INT));
+  memcpy(keys0, keys1, (size_t)(n) * 2 * sizeof(INT));
 
   if (rhigh >= 0)
   {

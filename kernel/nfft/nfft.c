@@ -84,7 +84,7 @@ static inline void sort0(const INT d, const INT *n, const INT m,
     ar_x[2 *i + 1] = i;
     for (j = 0; j < d; j++)
     {
-      help = (INT) LRINT(FLOOR(n[j] * local_x[d * i + j] - m));
+      help = (INT) LRINT(FLOOR((R)(n[j]) * local_x[d * i + j] - (R)(m)));
       u_j[j] = (help % n[j] + n[j]) % n[j];
 
       ar_x[2 * i] += u_j[j];
@@ -98,7 +98,7 @@ static inline void sort0(const INT d, const INT *n, const INT m,
 
   rhigh = (INT) LRINT(CEIL(LOG2((R)nprod))) - 1;
 
-  ar_x_temp = (INT*) Y(malloc)(2 * local_x_num * sizeof(INT));
+  ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(local_x_num) * sizeof(INT));
   Y(sort_node_indices_radix_lsdf)(local_x_num, ar_x, ar_x_temp, rhigh);
 #ifdef OMP_ASSERT
   for (i = 1; i < local_x_num; i++)
@@ -145,19 +145,21 @@ void X(trafo_direct)(const X(plan) *ths)
 {
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
 
-  memset(f, 0, ths->M_total * sizeof(C));
+  memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
 
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j)
+#endif
     for (j = 0; j < ths->M_total; j++)
     {
       INT k_L;
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = (k_L - ths->N_total/2) * K2PI * ths->x[j];
+        R omega = (R)(k_L - ths->N_total/2) * K2PI * ths->x[j];
         f[j] += f_hat[k_L] * CEXP(-II * omega);
       }
     }
@@ -166,7 +168,9 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* multivariate case */
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j)
+#endif
     for (j = 0; j < ths->M_total; j++)
     {
       R x[ths->d], omega, Omega[ths->d+1];
@@ -203,7 +207,7 @@ void X(adjoint_direct)(const X(plan) *ths)
 {
   C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
 
-  memset(f_hat, 0, ths->N_total * sizeof(C));
+  memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(C));
 
   if (ths->d == 1)
   {
@@ -227,7 +231,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT k_L;
         for (k_L = 0; k_L < ths->N_total; k_L++)
         {
-          R omega = (k_L - (ths->N_total/2)) * K2PI * ths->x[j];
+          R omega = (R)(k_L - ths->N_total / 2) * K2PI * ths->x[j];
           f_hat[k_L] += f[j] * CEXP(II * omega);
         }
       }
@@ -320,7 +324,7 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
   const INT act_dim)
 {
   const R xj = ths->x[j * ths->d + act_dim];
-  INT c = LRINT(FLOOR(xj * ths->n[act_dim]));
+  INT c = LRINT(FLOOR(xj * (R)(ths->n[act_dim])));
 
   (*up) = c - (ths->m);
   (*op) = c + 1 + (ths->m);
@@ -328,7 +332,7 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
 
 static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
 {
-  INT c = LRINT(FLOOR(x * n));
+  INT c = LRINT(FLOOR(x * (R)(n)));
 
   *u = (c - m + n) % n;
   *o = (c + 1 + m + n) % n;
@@ -344,9 +348,9 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfft_D_init_result_A memset(g_hat, 0, ths->n_total * sizeof(C));
+#define MACRO_nfft_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
 
-#define MACRO_nfft_D_init_result_T memset(f_hat, 0, ths->N_total * sizeof(C));
+#define MACRO_nfft_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(C));
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 
@@ -622,8 +626,8 @@ static void nfft_D_T(X(plan) *ths)
 }
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_nfft_B_init_result_A memset(f, 0, ths->M_total * sizeof(C));
-#define MACRO_nfft_B_init_result_T memset(g, 0, ths->n_total * sizeof(C));
+#define MACRO_nfft_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
+#define MACRO_nfft_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
 #define MACRO_nfft_B_PRE_FULL_PSI_compute_A \
 { \
@@ -808,9 +812,9 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
  \
       for (t2 = 0; t2 < ths->d; t2++) \
       { \
-        fg_psi[t2][0] = (PHI(ths->n[t2], (ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));\
+        fg_psi[t2][0] = (PHI(ths->n[t2], (ths->x[j*ths->d+t2] - ((R)u[t2])/((R)(ths->n[t2]))), t2));\
  \
-        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2]) \
+        tmpEXP1 = EXP(K(2.0) * ((R)(ths->n[t2]) * ths->x[j * ths->d + t2] - (R)(u[t2])) \
           /ths->b[t2]); \
         tmp1 = K(1.0); \
         for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
@@ -840,8 +844,8 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
  \
       for (t2 = 0; t2 < ths->d; t2++) \
       { \
-        y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2]) \
-          * ((R)ths->K))/(ths->m+2); \
+        y[t2] = (((R)(ths->n[t2]) * ths->x[j * ths->d + t2] - (R)(u[t2])) \
+          * ((R)(ths->K))) / (R)(ths->m + 2); \
         ip_u  = LRINT(FLOOR(y[t2])); \
         ip_w  = y[t2]-ip_u; \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
@@ -1312,7 +1316,10 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
     const INT m, const unsigned flags, const INT *index_x)
 {
   INT k;
-  INT lprod, lprod_m1;
+  INT lprod;
+#ifdef ENABLE_OPENMP
+  INT lprod_m1;
+#endif
 #ifndef _OPENMP
   UNUSED(n);
 #endif
@@ -1321,7 +1328,9 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
     for(t = 0, lprod = 1; t < d; t++)
         lprod *= 2 * m + 2;
   }
+#ifdef ENABLE_OPENMP
   lprod_m1 = lprod / (2 * m + 2);
+#endif
 
 #ifdef _OPENMP
   if (flags & NFFT_OMP_BLOCKWISE_ADJOINT)
@@ -1410,7 +1419,9 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
   } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     INT l;
@@ -1445,7 +1456,7 @@ static inline void nfft_B_openmp_T(X(plan) *ths)
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
 
-  memset(ths->g,0,ths->n_total*sizeof(C));
+  memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
 
   for (k = 0, lprod = 1; k < ths->d; k++)
     lprod *= (2*ths->m+2);
@@ -1954,7 +1965,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & PRE_FULL_PSI)
   {
     INT k;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT l;
@@ -1969,7 +1982,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & PRE_PSI)
   {
     INT k;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -1986,7 +2001,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -2018,7 +2035,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -2027,8 +2046,8 @@ static void nfft_trafo_1d_B(X(plan) *ths)
       R psij_const[m2p2];
 
       uo(ths, (INT)j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0));
-      fg_psij1 = EXP(K(2.0) * (n * ths->x[j] - u) / ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[j] - ((R)(u))/(R)(n), 0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n) * ths->x[j] - (R)(u)) / ths->b[0]);
       fg_psij2  = K(1.0);
 
       psij_const[0] = fg_psij0;
@@ -2051,7 +2070,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
@@ -2062,9 +2083,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
       uo(ths, (INT)j, &u, &o, (INT)0);
 
-      ip_y = FABS(n * ths->x[j] - u) * ((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y - ip_u;
+      ip_y = FABS((R)(n) * ths->x[j] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
 
       for (l = 0; l < m2p2; l++)
         psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
@@ -2081,7 +2102,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       R psij_const[m2p2];
@@ -2091,7 +2114,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
       uo(ths, (INT)j, &u, &o, (INT)0);
 
       for (l = 0; l < m2p2; l++)
-        psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0));
+        psij_const[l] = (PHI(ths->n[0], ths->x[j] - ((R)((u+l))) / (R)(n), 0));
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
@@ -2264,7 +2287,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   INT k;
   C *g = (C*)ths->g;
 
-  memset(g, 0, ths->n_total * sizeof(C));
+  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
   if (ths->flags & PRE_FULL_PSI)
   {
@@ -2279,7 +2302,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -2304,7 +2329,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 #endif
 
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       R psij_const[2 * m + 2];
@@ -2343,7 +2370,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u,o,l;
@@ -2352,8 +2381,8 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths, j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0));
-      fg_psij1 = EXP(K(2.0) * (n * (ths->x[j]) - u) / ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[j] - ((R)u) / (R)(n),0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n) * (ths->x[j]) - (R)(u)) / ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
       for (l = 1; l <= 2 * m + 1; l++)
@@ -2383,7 +2412,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma openmp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u,o,l;
@@ -2394,9 +2425,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
       uo(ths, j, &u, &o, (INT)0);
 
-      ip_y = FABS(n * ths->x[j] - u) * ((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y - ip_u;
+      ip_y = FABS((R)(n) * ths->x[j] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2 * m + 2; l++)
         psij_const[l]
             = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
@@ -2418,7 +2449,9 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     INT u,o,l;
@@ -2428,7 +2461,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     uo(ths, j, &u, &o, (INT)0);
 
     for (l = 0; l <= 2 * m + 1; l++)
-      psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0));
+      psij_const[l] = (PHI(ths->n[0], ths->x[j] - ((R)((u+l))) / (R)(n),0));
 
 #ifdef _OPENMP
     nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
@@ -2459,7 +2492,7 @@ void X(trafo_1d)(X(plan) *ths)
         ths->g_hat[k] = 0.0;
     }
 #else
-    memset(ths->g_hat, 0, ths->n_total*sizeof(C));
+    memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
 #endif
     if(ths->flags & PRE_PHI_HUT)
     {
@@ -2467,7 +2500,9 @@ void X(trafo_1d)(X(plan) *ths)
       c_phi_inv1 = ths->c_phi_inv[0];
       c_phi_inv2 = &ths->c_phi_inv[0][N2];
 
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k)
+#endif
       for (k = 0; k < N2; k++)
       {
         g_hat1[k] = f_hat1[k] * c_phi_inv1[k];
@@ -2477,7 +2512,9 @@ void X(trafo_1d)(X(plan) *ths)
     else
     {
       INT k;
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k)
+#endif
       for (k = 0; k < N2; k++)
       {
         g_hat1[k] = f_hat1[k] / (PHI_HUT(ths->n[0],k-N2,0));
@@ -2528,7 +2565,9 @@ void X(adjoint_1d)(X(plan) *ths)
     c_phi_inv1=ths->c_phi_inv[0];
     c_phi_inv2=&ths->c_phi_inv[0][N/2];
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < N/2; k++)
     {
       f_hat1[k] = g_hat1[k] * c_phi_inv1[k];
@@ -2539,7 +2578,9 @@ void X(adjoint_1d)(X(plan) *ths)
   {
     INT k;
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < N/2; k++)
     {
       f_hat1[k] = g_hat1[k] / (PHI_HUT(ths->n[0],k-N/2,0));
@@ -2879,7 +2920,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2);
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT l;
@@ -2893,7 +2936,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   if(ths->flags & PRE_PSI)
   {
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -2910,7 +2955,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       R psij_const[2*(2*m+2)];
@@ -2952,7 +2999,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
@@ -2961,8 +3010,8 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths, j, &u, &o, (INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0));
-      fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[2*j] - ((R)u) / (R)(n0),0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n0) * (ths->x[2*j]) - (R)(u)) / ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
       for (l = 1; l <= 2*m+1; l++)
@@ -2972,8 +3021,8 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o, (INT)1);
-      fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1));
-      fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);
+      fg_psij0 = (PHI(ths->n[1], ths->x[2*j+1] - ((R)u) / (R)(n1),1));
+      fg_psij1 = EXP(K(2.0) * ((R)(n1) * (ths->x[2*j+1]) - (R)(u)) / ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -2994,7 +3043,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
@@ -3004,16 +3055,16 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths,j,&u,&o,(INT)0);
-      ip_y = FABS(n0*ths->x[2*j] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n0) * ths->x[2*j] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)LRINT(FLOOR(ip_y));
+      ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2*m+2; l++)
         psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
-      ip_y = FABS(n1*ths->x[2*j+1] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n1) * ths->x[2*j+1] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2*m+2; l++)
         psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
@@ -3026,7 +3077,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   sort(ths);
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     R psij_const[2*(2*m+2)];
@@ -3035,11 +3088,11 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for (l = 0; l <= 2*m+1; l++)
-      psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0], ths->x[2*j] - ((R)((u+l))) / (R)(n0),0));
 
     uo(ths,j,&u,&o,(INT)1);
     for (l = 0; l <= 2*m+1; l++)
-      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l] = (PHI(ths->n[1], ths->x[2*j+1] - ((R)((u+l)))/(R)(n1),1));
 
     nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
   }
@@ -3247,7 +3300,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   C* g = (C*) ths->g;
   INT k;
 
-  memset(g,0,ths->n_total*sizeof(C));
+  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
   if(ths->flags & PRE_FULL_PSI)
   {
@@ -3262,7 +3315,9 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -3287,7 +3342,9 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 #endif
 
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       R psij_const[2*(2*m+2)];
@@ -3337,7 +3394,9 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
@@ -3346,8 +3405,8 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0));
-      fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[2*j] - ((R)u)/(R)(n0),0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n0) * (ths->x[2*j]) - (R)(u)) / ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -3357,8 +3416,8 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1));
-      fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]);
+      fg_psij0 = (PHI(ths->n[1], ths->x[2*j+1] - ((R)u) / (R)(n1),1));
+      fg_psij1 = EXP(K(2.0) * ((R)(n1) * (ths->x[2*j+1]) - (R)(u)) / ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -3388,7 +3447,9 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma openmp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u,o,l;
@@ -3398,17 +3459,17 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       R psij_const[2*(2*m+2)];
 
       uo(ths,j,&u,&o,(INT)0);
-      ip_y = FABS(n0*(ths->x[2*j]) - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n0) * (ths->x[2*j]) - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
-      ip_y = FABS(n1*(ths->x[2*j+1]) - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n1) * (ths->x[2*j+1]) - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
@@ -3429,7 +3490,9 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     INT u,o,l;
@@ -3438,11 +3501,11 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0], ths->x[2*j] - ((R)((u+l))) / (R)(n0),0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1], ths->x[2*j+1] - ((R)((u+l))) / (R)(n1),1));
 
 #ifdef _OPENMP
     nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
@@ -3478,14 +3541,16 @@ void X(trafo_2d)(X(plan) *ths)
   for (k0 = 0; k0 < ths->n_total; k0++)
     ths->g_hat[k0] = 0.0;
 #else
-  memset(ths->g_hat,0,ths->n_total*sizeof(C));
+  memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
 #endif
   if(ths->flags & PRE_PHI_HUT)
     {
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
+#endif
       for(k0=0;k0<N0/2;k0++)
       {
         ck01=c_phi_inv01[k0];
@@ -3516,7 +3581,9 @@ void X(trafo_2d)(X(plan) *ths)
       }
     }
   else
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
+#endif
     for(k0=0;k0<N0/2;k0++)
       {
   ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
@@ -3576,7 +3643,9 @@ void X(adjoint_2d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
+#endif
       for(k0=0;k0<N0/2;k0++)
       {
         ck01=c_phi_inv01[k0];
@@ -3607,7 +3676,9 @@ void X(adjoint_2d)(X(plan) *ths)
       }
     }
   else
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
+#endif
     for(k0=0;k0<N0/2;k0++)
       {
   ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
@@ -3632,7 +3703,7 @@ static void nfft_3d_init_fg_exp_l(R *fg_exp_l, const INT m, const R b)
   INT l;
   R fg_exp_b0, fg_exp_b1, fg_exp_b2, fg_exp_b0_sq;
 
-  fg_exp_b0 = EXP(-1.0/b);
+  fg_exp_b0 = EXP(-K(1.0) / b);
   fg_exp_b0_sq = fg_exp_b0*fg_exp_b0;
   fg_exp_b1 = K(1.0);
   fg_exp_b2 = K(1.0);
@@ -4329,7 +4400,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2) * (2*m+2);
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT l;
@@ -4343,7 +4416,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   if(ths->flags & PRE_PSI)
   {
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -4360,7 +4435,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*(2*m+2), m, ths->b[2]);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -4413,7 +4490,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -4422,8 +4501,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       R fg_psij0, fg_psij1, fg_psij2;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0));
-      fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[3*j] - ((R)u) / (R)(n0),0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n0) * (ths->x[3*j]) - (R)(u)) / ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4433,8 +4512,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1));
-      fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);
+      fg_psij0 = (PHI(ths->n[1], ths->x[3*j+1] - ((R)u) / (R)(n1),1));
+      fg_psij1 = EXP(K(2.0) * ((R)(n1) * (ths->x[3*j+1]) - (R)(u)) / ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4444,8 +4523,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)2);
-      fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2));
-      fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);
+      fg_psij0 = (PHI(ths->n[2], ths->x[3*j+2] - ((R)u) / (R)(n2),2));
+      fg_psij1 = EXP(K(2.0) * ((R)(n2) * (ths->x[3*j+2]) - (R)(u)) / ths->b[2]);
       fg_psij2 = K(1.0);
       psij_const[2*(2*m+2)] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4466,7 +4545,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     sort(ths);
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
@@ -4476,25 +4557,25 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths,j,&u,&o,(INT)0);
-      ip_y = FABS(n0*ths->x[3*j+0] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n0) * ths->x[3*j+0] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
-      ip_y = FABS(n1*ths->x[3*j+1] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n1) * ths->x[3*j+1] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)2);
-      ip_y = FABS(n2*ths->x[3*j+2] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n2) * ths->x[3*j+2] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
@@ -4508,7 +4589,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   sort(ths);
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     R psij_const[3*(2*m+2)];
@@ -4517,15 +4600,15 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0], ths->x[3*j] - ((R)((u+l))) / (R)(n0),0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1], ths->x[3*j+1] - ((R)((u+l))) / (R)(n1),1));
 
     uo(ths,j,&u,&o,(INT)2);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2));
+      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2], ths->x[3*j+2] - ((R)((u+l))) / (R)(n2),2));
 
     nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
   }
@@ -4774,7 +4857,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
   C* g = (C*) ths->g;
 
-  memset(g,0,ths->n_total*sizeof(C));
+  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
   if(ths->flags & PRE_FULL_PSI)
   {
@@ -4789,7 +4872,9 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
@@ -4814,7 +4899,9 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_FG_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       R psij_const[3*(2*m+2)];
@@ -4875,7 +4962,9 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma openmp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u,o,l;
@@ -4884,8 +4973,8 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       R fg_psij0, fg_psij1, fg_psij2;
 
       uo(ths,j,&u,&o,(INT)0);
-      fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0));
-      fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]);
+      fg_psij0 = (PHI(ths->n[0], ths->x[3*j] - ((R)u) / (R)(n0),0));
+      fg_psij1 = EXP(K(2.0) * ((R)(n0) * (ths->x[3*j]) - (R)(u))/ths->b[0]);
       fg_psij2 = K(1.0);
       psij_const[0] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4895,8 +4984,8 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)1);
-      fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1));
-      fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]);
+      fg_psij0 = (PHI(ths->n[1], ths->x[3*j+1] - ((R)u) / (R)(n1),1));
+      fg_psij1 = EXP(K(2.0) * ((R)(n1) * (ths->x[3*j+1]) - (R)(u))/ths->b[1]);
       fg_psij2 = K(1.0);
       psij_const[2*m+2] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4906,8 +4995,8 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       }
 
       uo(ths,j,&u,&o,(INT)2);
-      fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2));
-      fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]);
+      fg_psij0 = (PHI(ths->n[2], ths->x[3*j+2] - ((R)u) / (R)(n2),2));
+      fg_psij1 = EXP(K(2.0) * ((R)(n2) * (ths->x[3*j+2]) - (R)(u))/ths->b[2]);
       fg_psij2 = K(1.0);
       psij_const[2*(2*m+2)] = fg_psij0;
       for(l=1; l<=2*m+1; l++)
@@ -4937,7 +5026,9 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
     #pragma openmp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < M; k++)
     {
       INT u,o,l;
@@ -4947,25 +5038,25 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       R psij_const[3*(2*m+2)];
 
       uo(ths,j,&u,&o,(INT)0);
-      ip_y = FABS(n0*ths->x[3*j+0] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n0) * ths->x[3*j+0] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
-      ip_y = FABS(n1*ths->x[3*j+1] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n1) * ths->x[3*j+1] - (R)(u)) * ((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
 
       uo(ths,j,&u,&o,(INT)2);
-      ip_y = FABS(n2*ths->x[3*j+2] - u)*((R)ip_s);
-      ip_u = LRINT(FLOOR(ip_y));
-      ip_w = ip_y-ip_u;
+      ip_y = FABS((R)(n2) * ths->x[3*j+2] - (R)(u))*((R)ip_s);
+      ip_u = (INT)(LRINT(FLOOR(ip_y)));
+      ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
         psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
           ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
@@ -4986,7 +5077,9 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
   MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
+#ifdef ENABLE_OPENMP
   #pragma omp parallel for default(shared) private(k)
+#endif
   for (k = 0; k < M; k++)
   {
     INT u,o,l;
@@ -4995,15 +5088,15 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
     uo(ths,j,&u,&o,(INT)0);
     for(l=0;l<=2*m+1;l++)
-      psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0));
+      psij_const[l]=(PHI(ths->n[0], ths->x[3*j] - ((R)((u+l))) / (R)(n0),0));
 
     uo(ths,j,&u,&o,(INT)1);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1));
+      psij_const[2*m+2+l]=(PHI(ths->n[1], ths->x[3*j+1] - ((R)((u+l))) / (R)(n1),1));
 
     uo(ths,j,&u,&o,(INT)2);
     for(l=0;l<=2*m+1;l++)
-      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2));
+      psij_const[2*(2*m+2)+l]=(PHI(ths->n[2], ths->x[3*j+2] - ((R)((u+l))) / (R)(n2),2));
 
 #ifdef _OPENMP
     nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
@@ -5042,7 +5135,7 @@ void X(trafo_3d)(X(plan) *ths)
   for (k0 = 0; k0 < ths->n_total; k0++)
     ths->g_hat[k0] = 0.0;
 #else
-  memset(ths->g_hat,0,ths->n_total*sizeof(C));
+  memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
 #endif
 
   if(ths->flags & PRE_PHI_HUT)
@@ -5050,7 +5143,9 @@ void X(trafo_3d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
+#endif
       for(k0=0;k0<N0/2;k0++)
   {
     ck01=c_phi_inv01[k0];
@@ -5102,7 +5197,9 @@ void X(trafo_3d)(X(plan) *ths)
   }
     }
   else
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
+#endif
     for(k0=0;k0<N0/2;k0++)
       {
   ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
@@ -5177,7 +5274,9 @@ void X(adjoint_3d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
+#ifdef ENABLE_OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
+#endif
       for(k0=0;k0<N0/2;k0++)
   {
     ck01=c_phi_inv01[k0];
@@ -5229,7 +5328,9 @@ void X(adjoint_3d)(X(plan) *ths)
   }
     }
   else
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
+#endif
     for(k0=0;k0<N0/2;k0++)
       {
   ck01=K(1.0)/(PHI_HUT(ths->n[0],k0-N0/2,0));
@@ -5346,11 +5447,11 @@ static void precompute_phi_hut(X(plan) *ths)
   INT ks[ths->d]; /* index over all frequencies */
   INT t; /* index over all dimensions */
 
-  ths->c_phi_inv = (R**) Y(malloc)(ths->d * sizeof(R*));
+  ths->c_phi_inv = (R**) Y(malloc)((size_t)(ths->d) * sizeof(R*));
 
   for (t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
+    ths->c_phi_inv[t] = (R*)Y(malloc)((size_t)(ths->N[t]) * sizeof(R));
 
     for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
@@ -5361,7 +5462,6 @@ static void precompute_phi_hut(X(plan) *ths)
 
 /** create a lookup table, but NOT for each node
  *  good idea K=2^xx
- *  TODO: estimate K, call from init
  *  assumes an EVEN window function
  */
 void X(precompute_lin_psi)(X(plan) *ths)
@@ -5372,10 +5472,10 @@ void X(precompute_lin_psi)(X(plan) *ths)
 
   for (t=0; t<ths->d; t++)
     {
-      step=((R)(ths->m+2))/(((R)ths->K)*ths->n[t]);
-      for(j=0;j<=ths->K;j++)
+      step = ((R)(ths->m+2)) / ((R)(ths->K * ths->n[t]));
+      for(j = 0;j <= ths->K; j++)
   {
-    ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
+    ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t], (R)(j) * step,t);
   } /* for(j) */
     } /* for(t) */
 }
@@ -5390,16 +5490,18 @@ static void nfft_precompute_fg_psi(X(plan) *ths)
   for (t=0; t<ths->d; t++)
   {
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j,u,o)
+#endif
     for (j = 0; j < ths->M_total; j++)
       {
   uo(ths,j,&u,&o,t);
 
         ths->psi[2*(j*ths->d+t)]=
-            (PHI(ths->n[t],(ths->x[j*ths->d+t]-((R)u)/ths->n[t]),t));
+            (PHI(ths->n[t] ,(ths->x[j*ths->d+t] - ((R)u) / (R)(ths->n[t])),t));
 
         ths->psi[2*(j*ths->d+t)+1]=
-            EXP(K(2.0)*(ths->n[t]*ths->x[j*ths->d+t] - u) / ths->b[t]);
+            EXP(K(2.0) * ((R)(ths->n[t]) * ths->x[j*ths->d+t] - (R)(u)) / ths->b[t]);
       } /* for(j) */
   }
   /* for(t) */
@@ -5417,14 +5519,16 @@ void X(precompute_psi)(X(plan) *ths)
   for (t=0; t<ths->d; t++)
   {
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j,l,lj,u,o)
+#endif
     for (j = 0; j < ths->M_total; j++)
     {
       uo(ths,j,&u,&o,t);
 
       for(l = u, lj = 0; l <= o; l++, lj++)
         ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
-            (PHI(ths->n[t], (ths->x[j*ths->d+t] - ((R)l) / ths->n[t]), t));
+            (PHI(ths->n[t], (ths->x[j*ths->d+t] - ((R)l) / (R)(ths->n[t])), t));
     } /* for(j) */
   }
   /* for(t) */
@@ -5547,46 +5651,49 @@ static void init_help(X(plan) *ths)
   ths->N_total=intprod(ths->N, ths->d);
   ths->n_total=intprod(ths->n, ths->d);
 
-  ths->sigma = (R*) Y(malloc)(ths->d*sizeof(R));
+  ths->sigma = (R*) Y(malloc)((size_t)(ths->d) * sizeof(R));
 
   for(t = 0;t < ths->d; t++)
-    ths->sigma[t] = ((R)ths->n[t]) / ths->N[t];
+    ths->sigma[t] = ((R)ths->n[t]) / (R)(ths->N[t]);
 
   WINDOW_HELP_INIT;
 
   if(ths->flags & MALLOC_X)
-    ths->x = (R*)Y(malloc)(ths->d*ths->M_total*sizeof(R));
+    ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));
 
   if(ths->flags & MALLOC_F_HAT)
-    ths->f_hat = (C*)Y(malloc)(ths->N_total*sizeof(C));
+    ths->f_hat = (C*)Y(malloc)((size_t)(ths->N_total) * sizeof(C));
 
   if(ths->flags & MALLOC_F)
-    ths->f = (C*)Y(malloc)(ths->M_total*sizeof(C));
+    ths->f = (C*)Y(malloc)((size_t)(ths->M_total) * sizeof(C));
 
   if(ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
 
-  if(ths->flags & PRE_LIN_PSI)
+  if (ths->flags & PRE_LIN_PSI)
   {
-      ths->K=(1U<< 10)*(ths->m+2);
-      ths->psi = (R*) Y(malloc)((ths->K+1)*ths->d*sizeof(R));
+      if (ths->K == 0)
+      {
+        ths->K = Y(m2K)(ths->m);
+      }
+      ths->psi = (R*) Y(malloc)((size_t)((ths->K+1) * ths->d) * sizeof(R));
   }
 
   if(ths->flags & PRE_FG_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total*ths->d*2*sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * 2) * sizeof(R));
 
   if(ths->flags & PRE_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total*ths->d*(2*ths->m+2)*sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * (2 * ths->m + 2)) * sizeof(R));
 
   if(ths->flags & PRE_FULL_PSI)
   {
       for (t = 0, lprod = 1; t < ths->d; t++)
         lprod *= 2 * ths->m + 2;
 
-      ths->psi = (R*) Y(malloc)(ths->M_total * lprod * sizeof(R));
+      ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(R));
 
-      ths->psi_index_f = (INT*) Y(malloc)(ths->M_total * sizeof(INT));
-      ths->psi_index_g = (INT*) Y(malloc)(ths->M_total * lprod * sizeof(INT));
+      ths->psi_index_f = (INT*) Y(malloc)((size_t)(ths->M_total) * sizeof(INT));
+      ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
   if(ths->flags & FFTW_INIT)
@@ -5595,10 +5702,10 @@ static void init_help(X(plan) *ths)
     INT nthreads = Y(get_num_threads)();
 #endif
 
-    ths->g1 = (C*)Y(malloc)(ths->n_total * sizeof(C));
+    ths->g1 = (C*)Y(malloc)((size_t)(ths->n_total) * sizeof(C));
 
     if(ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (C*) Y(malloc)(ths->n_total * sizeof(C));
+      ths->g2 = (C*) Y(malloc)((size_t)(ths->n_total) * sizeof(C));
     else
       ths->g2 = ths->g1;
 
@@ -5608,10 +5715,10 @@ static void init_help(X(plan) *ths)
     Z(plan_with_nthreads)(nthreads);
 #endif
     {
-      int *_n = Y(malloc)(ths->d * sizeof(int));
+      int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
 
       for (t = 0; t < ths->d; t++)
-        _n[t] = ths->n[t];
+        _n[t] = (int)(ths->n[t]);
 
       ths->my_fftw_plan1 = Z(plan_dft)((int)ths->d, _n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
       ths->my_fftw_plan2 = Z(plan_dft)((int)ths->d, _n, ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
@@ -5623,7 +5730,7 @@ static void init_help(X(plan) *ths)
   }
 
   if(ths->flags & NFFT_SORT_NODES)
-    ths->index_x = (INT*) Y(malloc)(sizeof(INT)*2*ths->M_total);
+    ths->index_x = (INT*) Y(malloc)(sizeof(INT) * 2U * (size_t)(ths->M_total));
   else
     ths->index_x = NULL;
 
@@ -5637,14 +5744,14 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 
   ths->d = (INT)d;
 
-  ths->N = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->N = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
   ths->M_total = (INT)M_total;
 
-  ths->n = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->n = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]));
@@ -5668,6 +5775,7 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 
+  ths->K = 0;
   init_help(ths);
 }
 
@@ -5678,12 +5786,12 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->d = (INT)d;
   ths->M_total = (INT)M_total;
-  ths->N = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->N = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
-  ths->n = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->n = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = (INT)n[t];
@@ -5693,6 +5801,33 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
   ths->flags = flags;
   ths->fftw_flags = fftw_flags;
 
+  ths->K = 0;
+  init_help(ths);
+}
+
+void X(init_lin)(X(plan) *ths, int d, int *N, int M_total, int *n, int m, int K,
+  unsigned flags, unsigned fftw_flags)
+{
+  INT t; /* index over all dimensions */
+
+  ths->d = (INT)d;
+  ths->M_total = (INT)M_total;
+  ths->N = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
+
+  for (t = 0; t < d; t++)
+    ths->N[t] = (INT)N[t];
+
+  ths->n = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
+
+  for (t = 0; t < d; t++)
+    ths->n[t] = (INT)n[t];
+
+  ths->m = (INT)m;
+
+  ths->flags = flags;
+  ths->fftw_flags = fftw_flags;
+
+  ths->K = K;
   init_help(ths);
 }
 
@@ -5728,6 +5863,9 @@ const char* X(check)(X(plan) *ths)
 {
   INT j;
 
+  if ((ths->flags & PRE_LIN_PSI) && ths->K < ths->M_total)
+    return "Number of nodes too small to use PRE_LIN_PSI.";
+
   for (j = 0; j < ths->M_total * ths->d; j++)
   {
     if ((ths->x[j]<-K(0.5)) || (ths->x[j]>= K(0.5)))
@@ -5759,7 +5897,9 @@ void X(finalize)(X(plan) *ths)
 
   if(ths->flags & FFTW_INIT)
   {
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+#ifdef ENABLE_OPENMP
+    #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
     Z(destroy_plan)(ths->my_fftw_plan2);
     Z(destroy_plan)(ths->my_fftw_plan1);
 

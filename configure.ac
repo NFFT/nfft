@@ -128,13 +128,15 @@ fi
 #nfft_module_default=$enable_all
 
 # option for example programs
+nfft_examples_default="yes"
 AC_ARG_ENABLE(examples, [AC_HELP_STRING([--enable-examples],
-  [enable example programs])], enable_examples=$enableval, enable_examples=no)
+  [enable example programs])], enable_examples=$enableval, enable_examples=$nfft_examples_default)
 AM_CONDITIONAL(HAVE_EXAMPLES, test "x$enable_examples" = "xyes" )
 
 # option for application programs
+nfft_applications_default="yes"
 AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
-  [enable application programs])], enable_applications=$enableval, enable_applications=no)
+  [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
 # options for modules
@@ -153,7 +155,7 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
 
 # multithreaded code
 AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
-  [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
+  [enable OpenMP multithreaded code])], [enable_threads=$enableval; AC_DEFINE(ENABLE_OPENMP, 1, ["Define to enable OpenMP code."])], enable_threads=no)
 AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode

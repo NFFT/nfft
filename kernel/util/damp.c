@@ -39,7 +39,7 @@ R Y(modified_jackson2)(const INT N, const INT kk)
 
   for (result = K(0.0), kj = kk; kj <= kk + 1; kj++)
   {
-    k = ABS(kj);
+    k = (R)(ABS(kj));
 
     if (k / n < K(1.0) )
       result += K(1.0)
@@ -65,7 +65,7 @@ R Y(modified_jackson4)(const INT N, const INT kk)
 
   for (result = K(0.0), kj = kk; kj <= kk + 1; kj++)
   {
-    k = ABS(kj);
+    k = (R)(ABS(kj));
 
     if (k / n < K(1.0) )
       result += K(1.0)
@@ -137,7 +137,7 @@ R Y(modified_multiquadric)(const R mu, const R c, const INT kk)
   for (result = K(0.0), kj = kk; kj <= kk + 1; kj++)
   {
     k = ABS(kj);
-    result += POW((R) (k * k + c * c), -mu);
+    result += POW((R)(k * k) + c * c, -mu);
   }
 
   return result;

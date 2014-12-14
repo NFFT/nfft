@@ -142,8 +142,8 @@ typedef struct\
     set */\
 \
   /* internal use only */\
-  Y(plan)  my_fftw_plan1; /**< Forward FFTW plan */\
-  Y(plan)  my_fftw_plan2; /**< Backward FFTW plan */\
+  Y(plan) my_fftw_plan1; /**< Forward FFTW plan */\
+  Y(plan) my_fftw_plan2; /**< Backward FFTW plan */\
 \
   R **c_phi_inv; /**< Precomputed data for the diagonal matrix \f$D\f$, size \
     is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
@@ -178,6 +178,8 @@ NFFT_EXTERN void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
 NFFT_EXTERN void X(init)(X(plan) *ths, int d, int *N, int M);\
 NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, unsigned flags, unsigned fftw_flags);\
+NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
+  int m, int K, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
@@ -303,14 +305,16 @@ typedef struct\
   /* api */\
   MACRO_MV_PLAN(R)\
 \
-  int d; /**< dimension, rank */\
-  int *N; /**< bandwidth */\
-  int *n; /**< length of DST-1 */\
+  _INT d; /**< dimension, rank */\
+  _INT *N; /**< bandwidth */\
+  _INT *n; /**< length of DST-I */\
+  _INT n_total; /**< Combined total length of FFTW transforms. */\
   R *sigma; /**< oversampling-factor */\
-  int m; /**< cut-off parameter in time-domain */\
+  _INT m; /**< cut-off parameter in time-domain */\
 \
-  R nfst_full_psi_eps;\
   R *b; /**< shape parameters */\
+  _INT K; /**< Number of equispaced samples of window function. Used for flag
+               PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
   unsigned fftw_flags; /**< flags for the fftw */\
@@ -335,27 +339,23 @@ typedef struct\
   R *g2; /**< output of fftw */\
 \
   R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
+\
+  R X(full_psi_eps);\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
 NFFT_EXTERN void X(init_2d)(X(plan) *ths_plan, int N0, int N1, int M_total); \
 NFFT_EXTERN void X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_total); \
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
-NFFT_EXTERN void X(init_m)(X(plan) *ths_plan, int d, int *N, int M_total, int m);\
 NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
   int m, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(full_psi)(X(plan) *ths_plan, R eps); \
-NFFT_EXTERN R X(phi_hut)(X(plan) *ths_plan, int k, int d); \
-NFFT_EXTERN R X(phi)(X(plan) *ths_plan, R x, int d); \
-NFFT_EXTERN int X(fftw_2N)(int n); \
-NFFT_EXTERN int X(fftw_2N_rev)(int n);
 
 #ifdef HAVE_NFST
 /* nfst api */

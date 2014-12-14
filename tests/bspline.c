@@ -6324,6 +6324,14 @@ static const R b30[] =
 
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
+#if defined(NFFT_LDOUBLE)
+static const R bound = K(15.0) * EPSILON;
+#elif defined(NFFT_SINGLE)
+static const R bound = K(20.0) * EPSILON;
+#else
+static const R bound = K(15.0) * EPSILON;
+#endif
+
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)
 {
   unsigned int j;
@@ -6338,8 +6346,8 @@ static int check_bspline(const unsigned n, const unsigned int m, const R *r)
     /*printf("x = " __FE__ ", err = " __FE__ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }
-  ok = IF(err < (K(15.0) * EPSILON), 1, 0);
-  fprintf(stderr, "%4s b%02d: err = " __FE__ "\n", IF(ok, "  ok", "fail"), n, err);
+  ok = IF(err < bound, 1, 0);
+  fprintf(stderr, "b%02d: err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", n, err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
   return ok;
 }
 

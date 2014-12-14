@@ -36,6 +36,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 /**
  * If this flag is set, the whole matrix is precomputed and stored for the
  * discrete Gauss transfrom.
@@ -70,29 +73,29 @@
 /** Structure for the Gauss transform */
 typedef struct
 {
-  int N;                                /**< number of source nodes          */
-  int M;                                /**< number of target nodes          */
+  int N; /**< number of source nodes          */
+  int M; /**< number of target nodes          */
 
-  double _Complex *alpha;                /**< source coefficients             */
-  double _Complex *f;                    /**< target evaluations              */
+  C *alpha; /**< source coefficients             */
+  C *f; /**< target evaluations              */
 
-  unsigned flags;                       /**< flags for precomputation and
-					     approximation type              */
+  unsigned flags; /**< flags for precomputation and
+   approximation type              */
 
-  double _Complex sigma;                 /**< parameter of the Gaussian       */
+  C sigma; /**< parameter of the Gaussian       */
 
-  double *x;                            /**< source nodes in \f$[-1/4,1/4]\f$*/
-  double *y;                            /**< target nodes in \f$[-1/4,1/4]\f$*/
+  R *x; /**< source nodes in \f$[-1/4,1/4]\f$*/
+  R *y; /**< target nodes in \f$[-1/4,1/4]\f$*/
 
-  double _Complex *pre_cexp;             /**< precomputed values for dgt      */
+  C *pre_cexp; /**< precomputed values for dgt      */
 
-  int n;                                /**< expansion degree                */
-  double p;                             /**< period, at least 1              */
+  int n; /**< expansion degree                */
+  R p; /**< period, at least 1              */
 
-  double _Complex *b;                    /**< expansion coefficients          */
+  C *b; /**< expansion coefficients          */
 
-  nfft_plan *nplan1;                    /**< source nfft plan                */
-  nfft_plan *nplan2;                    /**< target nfft plan                */
+  X(plan) *nplan1; /**< source nfft plan                */
+  X(plan) *nplan2; /**< target nfft plan                */
 
 } fgt_plan;
 
@@ -103,22 +106,24 @@ typedef struct
  *
  * \author Stefan Kunis
  */
-void dgt_trafo(fgt_plan *ths)
+static void dgt_trafo(fgt_plan *ths)
 {
-  int j,k,l;
+  INT j, k, l;
 
-  for(j=0; j<ths->M; j++)
-    ths->f[j] = 0;
+  for (j = 0; j < ths->M; j++)
+    ths->f[j] = K(0.0);
 
-  if(ths->flags & DGT_PRE_CEXP)
-    for(j=0,l=0; j<ths->M; j++)
-      for(k=0; k<ths->N; k++,l++)
-        ths->f[j] += ths->alpha[k]*ths->pre_cexp[l];
+  if (ths->flags & DGT_PRE_CEXP)
+    for (j = 0, l = 0; j < ths->M; j++)
+      for (k = 0; k < ths->N; k++, l++)
+        ths->f[j] += ths->alpha[k] * ths->pre_cexp[l];
   else
-    for(j=0; j<ths->M; j++)
-      for(k=0; k<ths->N; k++)
-        ths->f[j] += ths->alpha[k]*cexp(-ths->sigma*(ths->y[j]-ths->x[k])*
-					(ths->y[j]-ths->x[k]));
+    for (j = 0; j < ths->M; j++)
+      for (k = 0; k < ths->N; k++)
+        ths->f[j] += ths->alpha[k]
+            * CEXP(
+                -ths->sigma * (ths->y[j] - ths->x[k])
+                    * (ths->y[j] - ths->x[k]));
 }
 
 /**
@@ -128,28 +133,28 @@ void dgt_trafo(fgt_plan *ths)
  *
  * \author Stefan Kunis
  */
-void fgt_trafo(fgt_plan *ths)
+static void fgt_trafo(fgt_plan *ths)
 {
-  int l;
+  INT l;
 
-  if(ths->flags & FGT_NDFT)
-    {
-      nfft_adjoint_direct(ths->nplan1);
+  if (ths->flags & FGT_NDFT)
+  {
+    X(adjoint_direct)(ths->nplan1);
 
-      for(l=0; l<ths->n; l++)
-        ths->nplan1->f_hat[l] *= ths->b[l];
+    for (l = 0; l < ths->n; l++)
+      ths->nplan1->f_hat[l] *= ths->b[l];
 
-      nfft_trafo_direct(ths->nplan2);
-    }
+    X(trafo_direct)(ths->nplan2);
+  }
   else
-    {
-      nfft_adjoint(ths->nplan1);
+  {
+    X(adjoint)(ths->nplan1);
 
-      for(l=0; l<ths->n; l++)
-        ths->nplan1->f_hat[l] *= ths->b[l];
+    for (l = 0; l < ths->n; l++)
+      ths->nplan1->f_hat[l] *= ths->b[l];
 
-      nfft_trafo(ths->nplan2);
-    }
+    X(trafo)(ths->nplan2);
+  }
 }
 
 /**
@@ -166,63 +171,67 @@ void fgt_trafo(fgt_plan *ths)
  *
  * \author Stefan Kunis
  */
-void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
-		   double p, int m, unsigned flags)
+static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int m,
+    unsigned flags)
 {
-  int j,n_fftw;
-  fftw_plan fplan;
+  int j, n_fftw;
+  Z(plan) fplan;
 
   ths->M = M;
   ths->N = N;
   ths->sigma = sigma;
   ths->flags = flags;
 
-  ths->x = (double*)nfft_malloc(ths->N*sizeof(double));
-  ths->y = (double*)nfft_malloc(ths->M*sizeof(double));
-  ths->alpha = (double _Complex*)nfft_malloc(ths->N*sizeof(double _Complex));
-  ths->f = (double _Complex*)nfft_malloc(ths->M*sizeof(double _Complex));
+  ths->x = (R*) Y(malloc)((size_t)(ths->N) * sizeof(R));
+  ths->y = (R*) Y(malloc)((size_t)(ths->M) * sizeof(R));
+  ths->alpha = (C*) Y(malloc)((size_t)(ths->N) * sizeof(C));
+  ths->f = (C*) Y(malloc)((size_t)(ths->M) * sizeof(C));
 
   ths->n = n;
   ths->p = p;
 
-  ths->b = (double _Complex*)nfft_malloc(ths->n*sizeof(double _Complex));
+  ths->b = (C*) Y(malloc)((size_t)(ths->n) * sizeof(C));
 
-  ths->nplan1 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
-  ths->nplan2 = (nfft_plan*) nfft_malloc(sizeof(nfft_plan));
+  ths->nplan1 = (X(plan)*) Y(malloc)(sizeof(X(plan)));
+  ths->nplan2 = (X(plan)*) Y(malloc)(sizeof(X(plan)));
 
-  n_fftw=X(next_power_of_2)(2*ths->n);
+  n_fftw = (int)Y(next_power_of_2)(2 * ths->n);
 
-  nfft_init_guru(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT|
-                 PRE_PSI| MALLOC_X| MALLOC_F_HAT| FFTW_INIT, FFTW_MEASURE);
-  nfft_init_guru(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, m, PRE_PHI_HUT|
-                 PRE_PSI| MALLOC_X| FFTW_INIT, FFTW_MEASURE);
+  {
+    X(init_guru)(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT |
+    PRE_PSI | MALLOC_X | MALLOC_F_HAT | FFTW_INIT, FFTW_MEASURE);
+    X(init_guru)(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, m, PRE_PHI_HUT |
+    PRE_PSI | MALLOC_X | FFTW_INIT, FFTW_MEASURE);
+  }
 
   ths->nplan1->f = ths->alpha;
   ths->nplan2->f_hat = ths->nplan1->f_hat;
   ths->nplan2->f = ths->f;
 
-  if(ths->flags & FGT_APPROX_B)
-    {
-      fplan = fftw_plan_dft_1d(ths->n, ths->b, ths->b, FFTW_FORWARD,
-                               FFTW_MEASURE);
+  if (ths->flags & FGT_APPROX_B)
+  {
+    fplan = Z(plan_dft_1d)(ths->n, ths->b, ths->b, FFTW_FORWARD,
+    FFTW_MEASURE);
 
-      for(j=0; j<ths->n; j++)
-	ths->b[j] = cexp(-ths->p*ths->p*ths->sigma*(j-ths->n/2)*(j-ths->n/2)/
-                          ((double)ths->n*ths->n)) / ths->n;
+    for (j = 0; j < ths->n; j++)
+      ths->b[j] = CEXP(
+          -ths->p * ths->p * ths->sigma * ((R)(j) - (R)(ths->n) / K(2.0)) * ((R)(j) - (R)(ths->n) / K(2.0))
+              / ((R) (ths->n * ths->n))) / ((R)(ths->n));
 
-      nfft_fftshift_complex(ths->b, 1, &ths->n);
-      fftw_execute(fplan);
-      nfft_fftshift_complex(ths->b, 1, &ths->n);
+    X(fftshift_complex_int)(ths->b, 1, &ths->n);
+    Z(execute)(fplan);
+    X(fftshift_complex_int)(ths->b, 1, &ths->n);
 
-      fftw_destroy_plan(fplan);
-    }
+    Z(destroy_plan)(fplan);
+  }
   else
-    {
-      for(j=0; j<ths->n; j++)
-	ths->b[j] = 1.0/ths->p * csqrt(KPI/ths->sigma)*
-	  cexp(-KPI*KPI*(j-ths->n/2)*(j-ths->n/2)/
-	       (ths->p*ths->p*ths->sigma));
-    }
+  {
+    for (j = 0; j < ths->n; j++)
+      ths->b[j] = K(1.0) / ths->p * CSQRT(KPI / ths->sigma)
+          * CEXP(
+              -KPI * KPI * ((R)(j) - (R)(ths->n) / K(2.0)) * ((R)(j) - (R)(ths->n) / K(2.0))
+                  / (ths->p * ths->p * ths->sigma));
+  }
 }
 
 /**
@@ -236,21 +245,19 @@ void fgt_init_guru(fgt_plan *ths, int N, int M, double _Complex sigma, int n,
  *
  * \author Stefan Kunis
  */
-void fgt_init(fgt_plan *ths, int N, int M, double _Complex sigma, double eps)
+static void fgt_init(fgt_plan *ths, int N, int M, C sigma, R eps)
 {
-  double p;
+  R p;
   int n;
 
-  p=0.5+sqrt(-log(eps)/creal(sigma));
-  if(p<1)
-    p=1;
+  p = K(0.5) + SQRT(-LOG(eps) / CREAL(sigma));
 
-  n=2*((int)ceil(p*cabs(sigma)/KPI * sqrt(-log(eps)/creal(sigma))));
+  if (p < K(1.0))
+    p = K(1.0);
 
-  if(N*M<=((int)(1U<<20)))
-    fgt_init_guru(ths, N, M, sigma, n, p, 7, DGT_PRE_CEXP);
-  else
-    fgt_init_guru(ths, N, M, sigma, n, p, 7, 0);
+  n = (int)(2 * (LRINT(CEIL(p * CABS(sigma) / KPI * SQRT(-LOG(eps) / CREAL(sigma))))));
+
+  fgt_init_guru(ths, N, M, sigma, n, p, 7, N * M <= ((INT) (1U << 20)) ? DGT_PRE_CEXP : 0);
 }
 
 /**
@@ -259,30 +266,29 @@ void fgt_init(fgt_plan *ths, int N, int M, double _Complex sigma, double eps)
  * \arg ths The pointer to a fpt plan
  * \author Stefan Kunis
  */
-void fgt_init_node_dependent(fgt_plan *ths)
+static void fgt_init_node_dependent(fgt_plan *ths)
 {
-  int j,k,l;
+  int j, k, l;
 
-  if(ths->flags & DGT_PRE_CEXP)
-   {
-     ths->pre_cexp=(double _Complex*)nfft_malloc(ths->M*ths->N*
-						sizeof(double _Complex));
+  if (ths->flags & DGT_PRE_CEXP)
+  {
+    ths->pre_cexp = (C*) Y(malloc)((size_t)(ths->M * ths->N) * sizeof(C));
 
-     for(j=0,l=0; j<ths->M; j++)
-       for(k=0; k<ths->N; k++,l++)
-         ths->pre_cexp[l]=cexp(-ths->sigma*(ths->y[j]-ths->x[k])*
-                                (ths->y[j]-ths->x[k]));
-   }
+    for (j = 0, l = 0; j < ths->M; j++)
+      for (k = 0; k < ths->N; k++, l++)
+        ths->pre_cexp[l] = CEXP(
+            -ths->sigma * (ths->y[j] - ths->x[k]) * (ths->y[j] - ths->x[k]));
+  }
 
-  for(j=0; j<ths->nplan1->M_total; j++)
-    ths->nplan1->x[j] = ths->x[j]/ths->p;
-  for(j=0; j<ths->nplan2->M_total; j++)
-    ths->nplan2->x[j] = ths->y[j]/ths->p;
+  for (j = 0; j < ths->nplan1->M_total; j++)
+    ths->nplan1->x[j] = ths->x[j] / ths->p;
+  for (j = 0; j < ths->nplan2->M_total; j++)
+    ths->nplan2->x[j] = ths->y[j] / ths->p;
 
-  if(ths->nplan1->flags & PRE_PSI)
-    nfft_precompute_psi(ths->nplan1);
-  if(ths->nplan2->flags & PRE_PSI)
-    nfft_precompute_psi(ths->nplan2);
+  if (ths->nplan1->flags & PRE_PSI)
+    X(precompute_psi)(ths->nplan1);
+  if (ths->nplan2->flags & PRE_PSI)
+    X(precompute_psi)(ths->nplan2);
 }
 
 /**
@@ -291,21 +297,21 @@ void fgt_init_node_dependent(fgt_plan *ths)
  * \arg ths The pointer to the fgt plan
  * \author Stefan Kunis
  */
-void fgt_finalize(fgt_plan *ths)
+static void fgt_finalize(fgt_plan *ths)
 {
-  nfft_finalize(ths->nplan2);
-  nfft_finalize(ths->nplan1);
+  X(finalize)(ths->nplan2);
+  X(finalize)(ths->nplan1);
 
-  nfft_free(ths->nplan2);
-  nfft_free(ths->nplan1);
+  Y(free)(ths->nplan2);
+  Y(free)(ths->nplan1);
 
-  nfft_free(ths->b);
+  Y(free)(ths->b);
 
-  nfft_free(ths->f);
-  nfft_free(ths->y);
+  Y(free)(ths->f);
+  Y(free)(ths->y);
 
-  nfft_free(ths->alpha);
-  nfft_free(ths->x);
+  Y(free)(ths->alpha);
+  Y(free)(ths->x);
 }
 
 /**
@@ -314,19 +320,19 @@ void fgt_finalize(fgt_plan *ths)
  * \arg ths The pointer to the fgt plan
  * \author Stefan Kunis
  */
-void fgt_test_init_rand(fgt_plan *ths)
+static void fgt_test_init_rand(fgt_plan *ths)
 {
-  int j,k;
+  INT j, k;
 
-  for(k=0; k<ths->N; k++)
-    ths->x[k] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
+  for (k = 0; k < ths->N; k++)
+    ths->x[k] = Y(drand48)() / K(2.0) - K(1.0) / K(4.0);
 
-  for(j=0; j<ths->M; j++)
-    ths->y[j] = (double)rand()/(2.0*RAND_MAX)-1.0/4.0;
+  for (j = 0; j < ths->M; j++)
+    ths->y[j] = Y(drand48)() / K(2.0) - K(1.0) / K(4.0);
 
-  for(k=0; k<ths->N; k++)
-    ths->alpha[k] =   (double)rand()/(RAND_MAX)-1.0/2.0
-	          + _Complex_I*(double)rand()/(RAND_MAX)-I/2.0;
+  for (k = 0; k < ths->N; k++)
+    ths->alpha[k] = Y(drand48)() - K(1.0) / K(2.0)
+        + II * (Y(drand48)() - K(1.0) / K(2.0));
 }
 
 /**
@@ -337,27 +343,27 @@ void fgt_test_init_rand(fgt_plan *ths)
  *
  * \author Stefan Kunis
  */
-double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
+static R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
   ticks t0, t1;
-  double t_out;
-  double tau=0.01;
+  R t_out;
+  R tau = K(0.01);
 
-  t_out=0;
-  r=0;
-  while(t_out<tau)
-    {
-      r++;
-      t0 = getticks();
-      if (dgt)
-        dgt_trafo(ths);
-      else
-        fgt_trafo(ths);
-      t1 = getticks();
-      t_out += nfft_elapsed_seconds(t1,t0);
-    }
-  t_out/=r;
+  t_out = K(0.0);
+  r = 0;
+  while (t_out < tau)
+  {
+    r++;
+    t0 = getticks();
+    if (dgt)
+      dgt_trafo(ths);
+    else
+      fgt_trafo(ths);
+    t1 = getticks();
+    t_out += Y(elapsed_seconds)(t1, t0);
+  }
+  t_out /= (R)(r);
 
   return t_out;
 }
@@ -371,29 +377,30 @@ double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
  *
  * \author Stefan Kunis
  */
-void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
+static void fgt_test_simple(int N, int M, C sigma, R eps)
 {
   fgt_plan my_plan;
-  double _Complex *swap_dgt;
+  C *swap_dgt;
 
   fgt_init(&my_plan, N, M, sigma, eps);
-  swap_dgt = (double _Complex*)nfft_malloc(my_plan.M*sizeof(double _Complex));
+  swap_dgt = (C*) Y(malloc)((size_t)(my_plan.M) * sizeof(C));
 
   fgt_test_init_rand(&my_plan);
   fgt_init_node_dependent(&my_plan);
 
-  CSWAP(swap_dgt,my_plan.f);
+  CSWAP(swap_dgt, my_plan.f);
   dgt_trafo(&my_plan);
-  nfft_vpr_complex(my_plan.f,my_plan.M,"discrete gauss transform");
-  CSWAP(swap_dgt,my_plan.f);
+  Y(vpr_complex)(my_plan.f, my_plan.M, "discrete gauss transform");
+  CSWAP(swap_dgt, my_plan.f);
 
   fgt_trafo(&my_plan);
-  nfft_vpr_complex(my_plan.f,my_plan.M,"fast gauss transform");
+  Y(vpr_complex)(my_plan.f, my_plan.M, "fast gauss transform");
 
-  printf("\n relative error: %1.3e\n", X(error_l_infty_1_complex)(swap_dgt,
-         my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+  printf("\n relative error: %1.3" __FES__ "\n",
+      Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M,
+          my_plan.alpha, my_plan.N));
 
-  nfft_free(swap_dgt);
+  Y(free)(swap_dgt);
   fgt_finalize(&my_plan);
 }
 
@@ -401,74 +408,69 @@ void fgt_test_simple(int N, int M, double _Complex sigma, double eps)
  * Compares accuracy and execution time of the fast Gauss transform with
  * increasing expansion degree.
  * Similar to the test in F. Andersson and G. Beylkin.
- * The fast Gauss transform with double _Complex parameters.
+ * The fast Gauss transform with complex parameters.
  * J. Comput. Physics 203 (2005) 274-286
  *
  * \author Stefan Kunis
  */
-void fgt_test_andersson(void)
+static void fgt_test_andersson(void)
 {
   fgt_plan my_plan;
-  double _Complex *swap_dgt;
+  C *swap_dgt;
   int N;
 
-  double _Complex sigma=4*(138+ _Complex_I*100);
-  int n=128;
-  int N_dgt_pre_exp=(int)(1U<<11);
-  int N_dgt=(int)(1U<<19);
+  C sigma = K(4.0) * (K(138.0) + II * K(100.0));
+  int n = 128;
+  int N_dgt_pre_exp = (int) (1U << 11);
+  int N_dgt = (int) (1U << 19);
 
-  printf("n=%d, sigma=%1.3e+i%1.3e\n",n,creal(sigma),cimag(sigma));
+  printf("n=%d, sigma=%1.3" __FES__ "+i%1.3" __FES__ "\n", n, CREAL(sigma), CIMAG(sigma));
 
-  for(N=((int)(1U<<6)); N<((int)(1U<<22)); N=N<<1)
+  for (N = ((INT) (1U << 6)); N < ((INT) (1U << 22)); N = N << 1)
+  {
+    printf("$%d$\t & ", N);
+
+    fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, N < N_dgt_pre_exp ? DGT_PRE_CEXP : 0);
+
+    swap_dgt = (C*) Y(malloc)((size_t)(my_plan.M) * sizeof(C));
+
+    fgt_test_init_rand(&my_plan);
+
+    fgt_init_node_dependent(&my_plan);
+
+    if (N < N_dgt)
     {
-      printf("$%d$\t & ",N);
+      CSWAP(swap_dgt, my_plan.f);
+      if (N < N_dgt_pre_exp)
+        my_plan.flags ^= DGT_PRE_CEXP;
 
-      if(N<N_dgt_pre_exp)
-        fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, DGT_PRE_CEXP);
-      else
-        fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, 0);
-
-      swap_dgt = (double _Complex*)nfft_malloc(my_plan.M*
-					      sizeof(double _Complex));
-
-      fgt_test_init_rand(&my_plan);
-
-      fgt_init_node_dependent(&my_plan);
-
-      if(N<N_dgt)
-	{
-          CSWAP(swap_dgt,my_plan.f);
-          if(N<N_dgt_pre_exp)
-            my_plan.flags^=DGT_PRE_CEXP;
-
-	  printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
-          if(N<N_dgt_pre_exp)
-            my_plan.flags^=DGT_PRE_CEXP;
-          CSWAP(swap_dgt,my_plan.f);
-	}
-      else
-	printf("\t\t & ");
-
-      if(N<N_dgt_pre_exp)
-	printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 1));
-      else
-	printf("\t\t & ");
-
-      my_plan.flags^=FGT_NDFT;
-      printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
-      my_plan.flags^=FGT_NDFT;
-
-      printf("$%1.1e$\t & ",fgt_test_measure_time(&my_plan, 0));
-
-      printf("$%1.1e$\t \\\\ \n",
-	     X(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M,
-					  my_plan.alpha, my_plan.N));
-      fflush(stdout);
-
-      nfft_free(swap_dgt);
-      fgt_finalize(&my_plan);
-      fftw_cleanup();
+      printf("$%1.1" __FES__ "$\t & ", fgt_test_measure_time(&my_plan, 1));
+      if (N < N_dgt_pre_exp)
+        my_plan.flags ^= DGT_PRE_CEXP;
+      CSWAP(swap_dgt, my_plan.f);
     }
+    else
+      printf("\t\t & ");
+
+    if (N < N_dgt_pre_exp)
+      printf("$%1.1" __FES__ "$\t & ", fgt_test_measure_time(&my_plan, 1));
+    else
+      printf("\t\t & ");
+
+    my_plan.flags ^= FGT_NDFT;
+    printf("$%1.1" __FES__ "$\t & ", fgt_test_measure_time(&my_plan, 0));
+    my_plan.flags ^= FGT_NDFT;
+
+    printf("$%1.1" __FES__ "$\t & ", fgt_test_measure_time(&my_plan, 0));
+
+    printf("$%1.1" __FES__ "$\t \\\\ \n",
+    Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+    fflush(stdout);
+
+    Y(free)(swap_dgt);
+    fgt_finalize(&my_plan);
+    Z(cleanup)();
+  }
 }
 
 /**
@@ -477,49 +479,50 @@ void fgt_test_andersson(void)
  *
  * \author Stefan Kunis
  */
-void fgt_test_error(void)
+static void fgt_test_error(void)
 {
   fgt_plan my_plan;
-  double _Complex *swap_dgt;
-  int n,mi;
+  C *swap_dgt;
+  int n, mi;
 
-  double _Complex sigma=4*(138+ _Complex_I*100);
-  int N=1000;
-  int M=1000;
-  int m[2]={7,3};
+  C sigma = K(4.0) * (K(138.0) + II * K(100.0));
+  int N = 1000;
+  int M = 1000;
+  int m[2] = { 7, 3 };
 
-  printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
+  printf("N=%d;\tM=%d;\nsigma=%1.3" __FES__ "+i*%1.3" __FES__ ";\n", N, M, CREAL(sigma),
+      CIMAG(sigma));
   printf("error=[\n");
 
-  swap_dgt = (double _Complex*)nfft_malloc(M*sizeof(double _Complex));
+  swap_dgt = (C*) Y(malloc)((size_t)(M) * sizeof(C));
 
-  for(n=8; n<=128; n+=4)
+  for (n = 8; n <= 128; n += 4)
+  {
+    printf("%d\t", n);
+    for (mi = 0; mi < 2; mi++)
     {
-      printf("%d\t",n);
-      for(mi=0;mi<2;mi++)
-        {
-          fgt_init_guru(&my_plan, N, M, sigma, n, 1, m[mi], 0);
-          fgt_test_init_rand(&my_plan);
-          fgt_init_node_dependent(&my_plan);
+      fgt_init_guru(&my_plan, N, M, sigma, n, 1, m[mi], 0);
+      fgt_test_init_rand(&my_plan);
+      fgt_init_node_dependent(&my_plan);
 
-          CSWAP(swap_dgt,my_plan.f);
-          dgt_trafo(&my_plan);
-          CSWAP(swap_dgt,my_plan.f);
+      CSWAP(swap_dgt, my_plan.f);
+      dgt_trafo(&my_plan);
+      CSWAP(swap_dgt, my_plan.f);
 
-          fgt_trafo(&my_plan);
+      fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", X(error_l_infty_1_complex)(swap_dgt, my_plan.f,
-                 my_plan.M, my_plan.alpha, my_plan.N));
-          fflush(stdout);
+      printf("%1.3" __FES__ "\t",
+        Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+      fflush(stdout);
 
-          fgt_finalize(&my_plan);
-          fftw_cleanup();
-        }
-      printf("\n");
+      fgt_finalize(&my_plan);
+      Z(cleanup)();
     }
+    printf("\n");
+  }
   printf("];\n");
 
-  nfft_free(swap_dgt);
+  Y(free)(swap_dgt);
 }
 
 /**
@@ -528,46 +531,47 @@ void fgt_test_error(void)
  *
  * \author Stefan Kunis
  */
-void fgt_test_error_p(void)
+static void fgt_test_error_p(void)
 {
   fgt_plan my_plan;
-  double _Complex *swap_dgt;
-  int n,pi;
+  C *swap_dgt;
+  int n, pi;
 
-  double _Complex sigma=20+40*_Complex_I;
-  int N=1000;
-  int M=1000;
-  double p[3]={1,1.5,2};
+  C sigma = K(20.0) + K(40.0) * II;
+  int N = 1000;
+  int M = 1000;
+  R p[3] = {K(1.0), K(1.5), K(2.0)};
 
-  printf("N=%d;\tM=%d;\nsigma=%1.3e+i*%1.3e;\n",N,M,creal(sigma),cimag(sigma));
+  printf("N=%d;\tM=%d;\nsigma=%1.3" __FES__ "+i*%1.3" __FES__ ";\n", N, M, CREAL(sigma),
+      CIMAG(sigma));
   printf("error=[\n");
 
-  swap_dgt = (double _Complex*)nfft_malloc(M*sizeof(double _Complex));
+  swap_dgt = (C*) Y(malloc)((size_t)(M) * sizeof(C));
 
-  for(n=8; n<=128; n+=4)
+  for (n = 8; n <= 128; n += 4)
+  {
+    printf("%d\t", n);
+    for (pi = 0; pi < 3; pi++)
     {
-      printf("%d\t",n);
-      for(pi=0;pi<3;pi++)
-        {
-          fgt_init_guru(&my_plan, N, M, sigma, n, p[pi], 7, 0);
-          fgt_test_init_rand(&my_plan);
-          fgt_init_node_dependent(&my_plan);
+      fgt_init_guru(&my_plan, N, M, sigma, n, p[pi], 7, 0);
+      fgt_test_init_rand(&my_plan);
+      fgt_init_node_dependent(&my_plan);
 
-          CSWAP(swap_dgt,my_plan.f);
-          dgt_trafo(&my_plan);
-          CSWAP(swap_dgt,my_plan.f);
+      CSWAP(swap_dgt, my_plan.f);
+      dgt_trafo(&my_plan);
+      CSWAP(swap_dgt, my_plan.f);
 
-          fgt_trafo(&my_plan);
+      fgt_trafo(&my_plan);
 
-          printf("%1.3e\t", X(error_l_infty_1_complex)(swap_dgt, my_plan.f,
-                 my_plan.M, my_plan.alpha, my_plan.N));
-          fflush(stdout);
+      printf("%1.3" __FES__ "\t",
+      Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+      fflush(stdout);
 
-          fgt_finalize(&my_plan);
-          fftw_cleanup();
-        }
-      printf("\n");
+      fgt_finalize(&my_plan);
+      Z(cleanup)();
     }
+    printf("\n");
+  }
   printf("];\n");
 }
 
@@ -576,34 +580,34 @@ void fgt_test_error_p(void)
  *
  * \author Stefan Kunis
  */
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-  if(argc!=2)
-    {
-      fprintf(stderr,"fastgauss type\n");
-      fprintf(stderr," type\n");
-      fprintf(stderr,"  0 - Simple test.\n");
-      fprintf(stderr,"  1 - Compares accuracy and execution time.\n");
-      fprintf(stderr,"      Pipe to output_andersson.tex\n");
-      fprintf(stderr,"  2 - Compares accuracy.\n");
-      fprintf(stderr,"      Pipe to output_error.m\n");
-      fprintf(stderr,"  3 - Compares accuracy.\n");
-      fprintf(stderr,"      Pipe to output_error_p.m\n");
-      return -1;
-    }
+  if (argc != 2)
+  {
+    fprintf(stderr, "fastgauss type\n");
+    fprintf(stderr, " type\n");
+    fprintf(stderr, "  0 - Simple test.\n");
+    fprintf(stderr, "  1 - Compares accuracy and execution time.\n");
+    fprintf(stderr, "      Pipe to output_andersson.tex\n");
+    fprintf(stderr, "  2 - Compares accuracy.\n");
+    fprintf(stderr, "      Pipe to output_error.m\n");
+    fprintf(stderr, "  3 - Compares accuracy.\n");
+    fprintf(stderr, "      Pipe to output_error_p.m\n");
+    return EXIT_FAILURE;
+  }
 
-  if(atoi(argv[1])==0)
-    fgt_test_simple(10, 10, 5+3*_Complex_I, 0.001);
+  if (atoi(argv[1]) == 0)
+    fgt_test_simple(10, 10, K(5.0) + K(3.0) * II, K(0.001));
 
-  if(atoi(argv[1])==1)
+  if (atoi(argv[1]) == 1)
     fgt_test_andersson();
 
-  if(atoi(argv[1])==2)
+  if (atoi(argv[1]) == 2)
     fgt_test_error();
 
-  if(atoi(argv[1])==3)
+  if (atoi(argv[1]) == 3)
     fgt_test_error_p();
 
-  return 1;
+  return EXIT_SUCCESS;
 }
 /* \} */

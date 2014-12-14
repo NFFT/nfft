@@ -29,6 +29,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
 {
   int t, j, k;
@@ -36,22 +39,22 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
   R *y;
   C *alpha;
 
-  x = (R*) nfft_malloc(d*L*sizeof(R));
-  y = (R*) nfft_malloc(d*L*sizeof(R));
-  alpha = (C*) nfft_malloc(L*sizeof(C));
+  x = (R*) X(malloc)((size_t)(d * L) * sizeof(R));
+  y = (R*) X(malloc)((size_t)(d * L) * sizeof(R));
+  alpha = (C*) X(malloc)((size_t)(L) * sizeof(C));
 
   /** init source knots in a d-ball with radius 1 */
   k = 0;
   while (k < L)
   {
-    double r_max = 1.0;
-    double r2 = 0.0;
+    R r_max = K(1.0);
+    R r2 = K(0.0);
 
-    for (j=0; j<d; j++)
-      x[k*d+j] = 2.0 * r_max * (double)rand()/(double)RAND_MAX - r_max;
+    for (j = 0; j < d; j++)
+      x[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
 
-    for (j=0; j<d; j++)
-      r2 += x[k*d+j] * x[k*d+j];
+    for (j = 0; j < d; j++)
+      r2 += x[k * d + j] * x[k * d + j];
 
     if (r2 >= r_max * r_max)
       continue;
@@ -59,20 +62,20 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
     k++;
   }
 
-  nfft_vrand_unit_complex(alpha,L);
+  Y(vrand_unit_complex)(alpha, L);
 
   /** init target knots in a d-ball with radius 1 */
   k = 0;
   while (k < M)
   {
-    double r_max = 1.0;
-    double r2 = 0.0;
+    R r_max = K(1.0);
+    R r2 = K(0.0);
 
-    for (j=0; j<d; j++)
-      y[k*d+j] = 2.0 * r_max * (double)rand()/(double)RAND_MAX - r_max;
+    for (j = 0; j < d; j++)
+      y[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
 
-    for (j=0; j<d; j++)
-      r2 += y[k*d+j] * y[k*d+j];
+    for (j = 0; j < d; j++)
+      r2 += y[k * d + j] * y[k * d + j];
 
     if (r2 >= r_max * r_max)
       continue;
@@ -82,26 +85,26 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
 
   printf("%d %d %d\n", d, L, M);
 
-  for (j=0; j < L; j++)
+  for (j = 0; j < L; j++)
   {
-    for (t=0; t < d; t++)
-      printf("%.16e ", x[d*j+t]);
+    for (t = 0; t < d; t++)
+      printf("%.16" __FES__ " ", x[d * j + t]);
     printf("\n");
   }
 
-  for (j=0; j < L; j++)
-    printf("%.16e %.16e\n", creal(alpha[j]), cimag(alpha[j]));
+  for (j = 0; j < L; j++)
+    printf("%.16" __FES__ " %.16" __FES__ "\n", CREAL(alpha[j]), CIMAG(alpha[j]));
 
-  for (j=0; j < M; j++)
+  for (j = 0; j < M; j++)
   {
-    for (t=0; t < d; t++)
-      printf("%.16e ", y[d*j+t]);
+    for (t = 0; t < d; t++)
+      printf("%.16" __FES__ " ", y[d * j + t]);
     printf("\n");
   }
 
-  nfft_free(x);
-  nfft_free(y);
-  nfft_free(alpha);
+  Y(free)(x);
+  Y(free)(y);
+  Y(free)(alpha);
 }
 
 int main(int argc, char **argv)
@@ -110,7 +113,8 @@ int main(int argc, char **argv)
   int L;
   int M;
 
-  if (argc < 4) {
+  if (argc < 4)
+  {
     fprintf(stderr, "usage: d L M\n");
     return -1;
   }

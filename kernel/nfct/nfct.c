@@ -68,8 +68,8 @@ static inline INT intprod(const INT *vec, const INT d)
 #define MACRO_with_FG_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + t]) \
-  - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t]) - K(1.0)))), t)
-#define MACRO_compute_PSI PHI((2 * (ths->n[t] - 1)), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0)*((R)(ths->n[t])-K(1.0)))), t)
+  - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t)
+#define MACRO_compute_PSI PHI((2 * (ths->n[t] - 1)), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t)
 
 /** direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
@@ -102,7 +102,7 @@ void X(trafo_direct)(const X(plan) *ths)
       INT k_L;
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = K2PI * k_L * ths->x[j];
+        R omega = K2PI * ((R)(k_L)) * ths->x[j];
         f[j] += f_hat[k_L] * COS(omega);
       }
     }
@@ -121,7 +121,7 @@ void X(trafo_direct)(const X(plan) *ths)
       {
         k[t] = 0;
         x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = COS(((R)k[t]) * x[t]) * Omega[t];
+        Omega[t+1] = COS(((R)(k[t])) * x[t]) * Omega[t];
       }
       omega = Omega[ths->d];
 
@@ -129,13 +129,13 @@ void X(trafo_direct)(const X(plan) *ths)
       {
         f[j] += f_hat[k_L] * omega;
         {
-          for (t = ths->d-1; (t >= 1) && (k[t] == (ths->N[t] - 1)); t--)
+          for (t = ths->d - 1; (t >= 1) && (k[t] == (ths->N[t] - 1)); t--)
             k[t] = 0;
 
           k[t]++;
 
           for (t2 = t; t2 < ths->d; t2++)
-            Omega[t2+1] = COS(((R)k[t2]) * x[t2]) * Omega[t2];
+            Omega[t2+1] = COS(((R)(k[t2])) * x[t2]) * Omega[t2];
 
           omega = Omega[ths->d];
         }
@@ -161,7 +161,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT j;
         for (j = 0; j < ths->M_total; j++)
         {
-          R omega = K2PI * k_L * ths->x[j];
+          R omega = K2PI * ((R)(k_L)) * ths->x[j];
           f_hat[k_L] += f[j] * COS(omega);
         }
       }
@@ -172,7 +172,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT k_L;
         for (k_L = 0; k_L < ths->N_total; k_L++)
         {
-          R omega = K2PI * k_L * ths->x[j];
+          R omega = K2PI * ((R)(k_L)) * ths->x[j];
           f_hat[k_L] += f[j] * COS(omega);
         }
       }
@@ -200,7 +200,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       {
         R omega = K(1.0);
         for (t = 0; t < ths->d; t++)
-          omega *= COS(K2PI * k[t] * ths->x[j * ths->d + t]);
+          omega *= COS(K2PI * (k[t]) * ths->x[j * ths->d + t]);
         f_hat[k_L] += f[j] * omega;
       }
     }
@@ -214,7 +214,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       {
         k[t] = 0;
         x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = COS(((R)k[t]) * x[t]) * Omega[t];
+        Omega[t+1] = COS(((R)(k[t])) * x[t]) * Omega[t];
       }
       omega = Omega[ths->d];
       for (k_L = 0; k_L < ths->N_total; k_L++)
@@ -227,7 +227,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         k[t]++;
 
         for (t2 = t; t2 < ths->d; t2++)
-          Omega[t2+1] = COS(((R)k[t2]) * x[t2]) * Omega[t2];
+          Omega[t2+1] = COS(((R)(k[t2])) * x[t2]) * Omega[t2];
 
         omega = Omega[ths->d];
       }
@@ -308,7 +308,6 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
 
 #define MACRO_update_c_phi_inv_k_T(which_phi) \
 { \
-  /*c_phi_inv_k[t+1] = (kg[t] == 0 ? K(1.0) : K(0.5)) * c_phi_inv_k[t] * MACRO_ ## which_phi;*/ \
   c_phi_inv_k[t+1] = c_phi_inv_k[t] * MACRO_ ## which_phi; \
 }
 
@@ -326,7 +325,7 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
 }
 
 /* sub routines for the fast transforms  matrix vector multiplication with D, D^T */
-#define MACRO_nfct_D(which_one) \
+#define MACRO_D(which_one) \
 static inline void D_ ## which_one (X(plan) *ths) \
 { \
   R *g_hat, *f_hat; /* local copy */ \
@@ -364,8 +363,8 @@ static inline void D_ ## which_one (X(plan) *ths) \
   } \
 }
 
-MACRO_nfct_D(A)
-MACRO_nfct_D(T)
+MACRO_D(A)
+MACRO_D(T)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
 #define MACRO_nfct_B_init_result_A memset(f, 0, ths->M_total * sizeof(R));
@@ -447,7 +446,7 @@ MACRO_nfct_D(T)
 #define MACRO_count_uo_l_lj_t \
 { \
   /* turn around if we hit one of the boundaries */ \
-  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == ths->n[(ths->d-1)]-1)) \
+  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == ths->n[(ths->d-1)] - 1)) \
     count_lg[(ths->d-1)] *= -1; \
  \
   /* move array index */ \
@@ -463,7 +462,7 @@ MACRO_nfct_D(T)
     /* ansonsten lg[i-1] verschieben */ \
  \
     /* turn around if we hit one of the boundaries */ \
-    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == ths->n[(t2 - 1)]-1)) \
+    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == ths->n[(t2 - 1)] - 1)) \
       count_lg[(t2 - 1)] *= -1; \
     /* move array index */ \
     l[(t2 - 1)] += count_lg[(t2 - 1)]; \
@@ -484,8 +483,8 @@ MACRO_nfct_D(T)
   } \
 }
 
-#define MACRO_nfct_B(which_one) \
-static inline void B_ ## which_one (nfct_plan *ths) \
+#define MACRO_B(which_one) \
+static inline void B_ ## which_one (X(plan) *ths) \
 { \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
@@ -694,14 +693,13 @@ static inline void B_ ## which_one (nfct_plan *ths) \
       MACRO_count_uo_l_lj_t; \
     } /* for (l_L) */ \
   } /* for (j) */ \
-} /* nfct_B */
+} /* B */
 
-MACRO_nfct_B(A)
-MACRO_nfct_B(T)
+MACRO_B(A)
+MACRO_B(T)
 
-/* ## specialized version for d=1  ########################################### */
-
-/** user routines
+/**
+ * user routines
  */
 void X(trafo)(X(plan) *ths)
 {
@@ -742,7 +740,7 @@ void X(trafo)(X(plan) *ths)
       }*/
     }
   }
-} /* nfct_trafo */
+} /* trafo */
 
 void X(adjoint)(X(plan) *ths)
 {
@@ -777,7 +775,7 @@ void X(adjoint)(X(plan) *ths)
       TOC(0)
     }
   }
-} /* nfct_adjoint */
+} /* adjoint */
 
 /** initialisation of direct transform
  */
@@ -790,14 +788,14 @@ static inline void precompute_phi_hut(X(plan) *ths)
 
   for (t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (R*)Y(malloc)(ths->N[t] * sizeof(R));
+    ths->c_phi_inv[t] = (R*)Y(malloc)((ths->N[t]) * sizeof(R));
 
     for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
     {
       ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT((2 * (ths->n[t] - 1)), ks[t], t)));
     }
   }
-} /* nfct_phi_hut */
+} /* phi_hut */
 
 /** create a lookup table, but NOT for each node
  *  good idea K=2^xx
@@ -860,11 +858,11 @@ void X(precompute_psi)(X(plan) *ths)
       uo(ths, j, &u, &o, t);
 
       for(lj = 0; lj < (2 * ths->m + 2); lj++)
-	      ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
-	          (PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t));
+        ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
+            (PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t));
     } /* for (j) */
   } /* for (t) */
-} /* nfct_precompute_psi */
+} /* precompute_psi */
 
 X(precompute_full_psi)(X(plan) *ths)
 {
@@ -1095,6 +1093,7 @@ void X(init_2d)(X(plan) *ths, int N1, int N2, int M_total)
 
   N[0] = N1;
   N[1] = N2;
+
   X(init)(ths, 2, N, M_total);
 }
 
@@ -1105,10 +1104,11 @@ void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M_total)
   N[0] = N1;
   N[1] = N2;
   N[2] = N3;
+
   X(init)(ths, 3, N, M_total);
 }
 
-const char* X(check)(nfct_plan *ths)
+const char* X(check)(X(plan) *ths)
 {
   INT j;
 
@@ -1191,4 +1191,4 @@ void X(finalize)(X(plan) *ths)
   Y(free)(ths->sigma);
 
   Y(free)(ths->r2r_kind);
-} /* nfct_finalize */
+} /* finalize */

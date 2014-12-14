@@ -112,7 +112,41 @@ void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n)
 }
 
 /** Swaps each half over N[d]/2. */
-void Y(fftshift_complex)(C *x, int d, int* N)
+void Y(fftshift_complex)(C *x, INT d, INT* N)
+{
+  INT d_pre, d_act, d_post;
+  INT N_pre, N_act, N_post;
+  INT k_pre, k_act, k_post;
+  INT k, k_swap;
+
+  C x_swap;
+
+  for (d_act = 0; d_act < d; d_act++)
+  {
+    for (d_pre = 0, N_pre = 1; d_pre < d_act; d_pre++)
+      N_pre *= N[d_pre];
+
+    N_act = N[d_act];
+
+    for (d_post = d_act + 1, N_post = 1; d_post < d; d_post++)
+      N_post *= N[d_post];
+
+    for (k_pre = 0; k_pre < N_pre; k_pre++)
+      for (k_act = 0; k_act < N_act / 2; k_act++)
+        for (k_post = 0; k_post < N_post; k_post++)
+        {
+          k = (k_pre * N_act + k_act) * N_post + k_post;
+          k_swap = (k_pre * N_act + k_act + N_act / 2) * N_post + k_post;
+
+          x_swap = x[k];
+          x[k] = x[k_swap];
+          x[k_swap] = x_swap;
+        }
+  }
+}
+
+/** Swaps each half over N[d]/2. */
+void Y(fftshift_complex_int)(C *x, int d, int* N)
 {
   int d_pre, d_act, d_post;
   int N_pre, N_act, N_post;

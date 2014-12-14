@@ -73,7 +73,7 @@ INT Y(next_power_of_2)(const INT N)
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
  */
-void Y(next_power_of_2_exp)(const INT N, int *N2, int *t)
+void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t)
 {
   INT n,i,logn;
   INT N_is_not_power_of_2=0;
@@ -85,8 +85,8 @@ void Y(next_power_of_2_exp)(const INT N, int *N2, int *t)
   }
   else
   {
-    n=N;
-    logn=0;
+    n = N;
+    logn = 0;
     while (n != 1)
     {
       if (n%2 == 1)

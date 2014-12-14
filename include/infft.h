@@ -76,6 +76,7 @@ typedef float _Complex C;
 #define NFCT(name) CONCAT(nfctf_,name)
 #define NFST(name) CONCAT(nfstf_,name)
 #define NFSFT(name) CONCAT(nfsftf_,name)
+#define SOLVER(name) CONCAT(solverf_,name)
 #elif defined(NFFT_LDOUBLE)
 typedef long double R;
 typedef long double _Complex C;
@@ -85,6 +86,7 @@ typedef long double _Complex C;
 #define NFCT(name) CONCAT(nfctl_,name)
 #define NFST(name) CONCAT(nfstl_,name)
 #define NFSFT(name) CONCAT(nfsftl_,name)
+#define SOLVER(name) CONCAT(solverl_,name)
 #else
 typedef double R;
 typedef double _Complex C;
@@ -94,6 +96,7 @@ typedef double _Complex C;
 #define NFCT(name) CONCAT(nfct_,name)
 #define NFST(name) CONCAT(nfst_,name)
 #define NFSFT(name) CONCAT(nfsft_,name)
+#define SOLVER(name) CONCAT(solver_,name)
 #endif
 #define X(name) Y(name)
 
@@ -174,7 +177,13 @@ typedef ptrdiff_t INT;
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m 12
+#if defined(NFFT_LDOUBLE)
+  #define WINDOW_HELP_ESTIMATE_m 17
+#elif defined(NFFT_SINGLE)
+  #define WINDOW_HELP_ESTIMATE_m 5
+#else
+  #define WINDOW_HELP_ESTIMATE_m 13
+#endif
 #elif defined(B_SPLINE)
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
@@ -186,7 +195,13 @@ typedef ptrdiff_t INT;
       ths->spline_coeffs= (R*)Y(malloc)(2*ths->m*sizeof(R)); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
+#if defined(NFFT_LDOUBLE)
   #define WINDOW_HELP_ESTIMATE_m 11
+#elif defined(NFFT_SINGLE)
+  #define WINDOW_HELP_ESTIMATE_m 11
+#else
+  #define WINDOW_HELP_ESTIMATE_m 11
+#endif
 #elif defined(SINC_POWER)
   #define PHI_HUT(n,k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * n / \
@@ -201,28 +216,41 @@ typedef ptrdiff_t INT;
       ths->spline_coeffs= (R*)Y(malloc)(2 * ths->m * sizeof(R)); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
-  #define WINDOW_HELP_ESTIMATE_m 9
+#if defined(NFFT_LDOUBLE)
+  #define WINDOW_HELP_ESTIMATE_m 13
+#elif defined(NFFT_SINGLE)
+  #define WINDOW_HELP_ESTIMATE_m 11
+#else
+  #define WINDOW_HELP_ESTIMATE_m 11
+#endif
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(n,k,d) ((R)Y(bessel_i0)(ths->m * SQRT(\
-    POW((R)(ths->b[d]), K(2.0)) - POW(K(2.0) * KPI * (k) / (n), K(2.0)))))
-  #define PHI(n,x,d) ((R)((POW((R)(ths->m), K(2.0))\
-    -POW((x)*n,K(2.0))) > 0)? \
-    SINH(ths->b[d] * SQRT(POW((R)(ths->m),K(2.0)) - \
-    POW((x)*n,K(2.0))))/(KPI*SQRT(POW((R)(ths->m),K(2.0)) - \
-    POW((x)*n,K(2.0)))) : (((POW((R)(ths->m),K(2.0)) - \
-    POW((x)*n,K(2.0))) < 0)? SIN(ths->b[d] * \
-    SQRT(POW(n*(x),K(2.0)) - POW((R)(ths->m), K(2.0)))) / \
-    (KPI*SQRT(POW(n*(x),K(2.0)) - POW((R)(ths->m),K(2.0)))):ths->b[d]/KPI))
+  #define PHI_HUT(n,k,d) (Y(bessel_i0)((R)(ths->m) * SQRT(ths->b[d] * ths->b[d] - (K(2.0) * KPI * (R)(k) / (R)(n)) * (K(2.0) * KPI * (R)(k) / (R)(n)))))
+  #define PHI(n,x,d) (  (((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) > K(0.0)) \
+                      ?   SINH(ths->b[d] * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
+                        / (KPI * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
+                      :   ((((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) < K(0.0)) \
+                        ?   SIN(ths->b[d] * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
+                          / (KPI * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
+                        : ths->b[d] / KPI))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
-        ths->b[WINDOW_idx] = ((R)KPI*(K(2.0)-K(1.0) / ths->sigma[WINDOW_idx])); \
+        ths->b[WINDOW_idx] = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-  #define WINDOW_HELP_ESTIMATE_m 6
+  #if defined(NFFT_LDOUBLE)
+    #define WINDOW_HELP_ESTIMATE_m 9
+  #elif defined(NFFT_SINGLE)
+    #define WINDOW_HELP_ESTIMATE_m 4
+  #else
+    #define WINDOW_HELP_ESTIMATE_m 8
+  #endif
 #endif
+
+/* window.c */
+INT Y(m2K)(const INT m);
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0
@@ -1275,21 +1303,32 @@ extern double _Complex catanh(double _Complex z);
 
 /* format strings */
 #if defined(NFFT_LDOUBLE)
+#  define __FGS__ "Lg"
 #  define __FES__ "LE"
 #  define __FE__ "% 36.32LE"
 #  define __FI__ "%Lf"
+#  define __FIS__ "Lf"
+#  define __FR__ "%La"
 #elif defined(NFFT_SINGLE)
+#  define __FGS__ "g"
 #  define __FES__ "E"
 #  define __FE__ "% 12.8E"
 #  define __FI__ "%f"
+#  define __FIS__ "f"
+#  define __FR__ "%a"
 #else
+#  define __FGS__ "lg"
 #  define __FES__ "lE"
 #  define __FE__ "% 20.16lE"
 #  define __FI__ "%lf"
+#  define __FIS__ "lf"
+#  define __FR__ "%la"
 #endif
 
 #define TRUE 1
 #define FALSE 0
+
+#define __D__ "%td"
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1416,7 +1455,7 @@ R Y(prod_real)(R *vec, INT d);
 INT Y(exp2i)(const INT a);
 INT Y(log2i)(const INT m);
 INT Y(next_power_of_2)(const INT N);
-void Y(next_power_of_2_exp)(const INT N, int *N2, int *t);
+void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
 
 /* error.c: */
 R Y(error_l_infty_complex)(const C *x, const C *y, const INT n);
@@ -1495,7 +1534,8 @@ void Y(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n);
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
 void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
 /** Swaps each half over N[d]/2. */
-void Y(fftshift_complex)(C *x, int d, int* N);
+void Y(fftshift_complex)(C *x, INT d, INT* N);
+void Y(fftshift_complex_int)(C *x, int d, int* N);
 
 /* print.c */
 /** Print real vector to standard output. */

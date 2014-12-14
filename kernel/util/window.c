@@ -20,36 +20,23 @@
 
 #include "infft.h"
 
-R Y(drand48)(void)
-{
-#ifdef HAVE_DRAND48
-  return (R)(drand48());
-#else
-  return ((R)rand())/((R)RAND_MAX);
+#if defined(DIRAC_DELTA)
+#elif defined(GAUSSIAN)
+  static const INT m2K_[] = {0, 1, 3, 6, 7, 9, 11, 13, 15, 17, 19, 21, 22, 23, 24};
+#elif defined(B_SPLINE)
+  static const INT m2K_[] = {0, 0, 4, 7, 10, 13, 15, 17, 19, 22, 24};
+#elif defined(SINC_POWER)
+  static const INT m2K_[] = {0, 0, 2, 5, 8, 11, 12, 14, 16, 18, 21, 23, 24, 24};
+#else /* Kaiser-Bessel is the default. */
+  static const INT m2K_[] = {1, 3, 7, 9, 14, 17, 20, 23, 24};
 #endif
-}
 
-void Y(srand48)(long int seed)
+/**
+ * Returns an appropriate value of the parameter K used with the PRE_LIN_PSI
+ * flag for a given value of the cut-off parameter m.
+ */
+INT Y(m2K)(const INT m)
 {
-#ifdef HAVE_SRAND48
-  srand48(seed);
-#else
-  srand((unsigned int)seed);
-#endif
-}
-
-void Y(vrand_unit_complex)(C *x, const INT n)
-{
-  INT k;
-
-  for (k = 0; k < n; k++)
-    x[k] = Y(drand48)() + II * Y(drand48)();
-}
-
-void Y(vrand_shifted_unit_double)(R *x, const INT n)
-{
-  INT k;
-
-  for (k = 0; k < n; k++)
-    x[k] = Y(drand48)() - K(0.5);
+  int j = MIN(m, (sizeof(m2K_) / sizeof(m2K_[0])) - 1);
+  return (INT)((1U << m2K_[j]) * (m + 2));
 }

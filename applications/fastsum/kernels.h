@@ -30,6 +30,9 @@
 #include <complex.h>
 #endif
 
+#include "nfft3.h"
+#include "infft.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -40,19 +43,19 @@ extern "C"
  * \{
  */
 
-double _Complex gaussian(double x, int der, const double *param);              /* K(x)=exp(-x^2/c^2) */
-double _Complex multiquadric(double x, int der, const double *param);          /* K(x)=sqrt(x^2+c^2) */
-double _Complex inverse_multiquadric(double x, int der, const double *param);  /* K(x)=1/sqrt(x^2+c^2) */
-double _Complex logarithm(double x, int der, const double *param);             /* K(x)=log |x| */
-double _Complex thinplate_spline(double x, int der, const double *param);      /* K(x) = x^2 log |x| */
-double _Complex one_over_square(double x, int der, const double *param);       /* K(x) = 1/x^2 */
-double _Complex one_over_modulus(double x, int der, const double *param);      /* K(x) = 1/|x| */
-double _Complex one_over_x(double x, int der, const double *param);            /* K(x) = 1/x */
-double _Complex inverse_multiquadric3(double x, int der, const double *param); /* K(x) = 1/sqrt(x^2+c^2)^3 */
-double _Complex sinc_kernel(double x, int der, const double *param);           /* K(x) = sin(cx)/x */
-double _Complex cosc(double x, int der, const double *param);                  /* K(x) = cos(cx)/x */
-double _Complex kcot(double x, int der, const double *param);                   /* K(x) = cot(cx) */
-double _Complex one_over_cube(double x, int der, const double *param);                /* K(x) = 1/x^3 */
+C gaussian(R x, int der, const R *param);              /* K(x)=exp(-x^2/c^2) */
+C multiquadric(R x, int der, const R *param);          /* K(x)=sqrt(x^2+c^2) */
+C inverse_multiquadric(R x, int der, const R *param);  /* K(x)=1/sqrt(x^2+c^2) */
+C logarithm(R x, int der, const R *param);             /* K(x)=log |x| */
+C thinplate_spline(R x, int der, const R *param);      /* K(x) = x^2 log |x| */
+C one_over_square(R x, int der, const R *param);       /* K(x) = 1/x^2 */
+C one_over_modulus(R x, int der, const R *param);      /* K(x) = 1/|x| */
+C one_over_x(R x, int der, const R *param);            /* K(x) = 1/x */
+C inverse_multiquadric3(R x, int der, const R *param); /* K(x) = 1/sqrt(x^2+c^2)^3 */
+C sinc_kernel(R x, int der, const R *param);           /* K(x) = sin(cx)/x */
+C cosc(R x, int der, const R *param);                  /* K(x) = cos(cx)/x */
+C kcot(R x, int der, const R *param);                   /* K(x) = cot(cx) */
+C one_over_cube(R x, int der, const R *param);                /* K(x) = 1/x^3 */
 /* \} */
 
 #ifdef __cplusplus

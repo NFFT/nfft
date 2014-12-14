@@ -688,7 +688,7 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   for (j = 0; j < NN; j++)
     denominator += ABS(p->f_hat[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const R *f, const R *f_hat)
@@ -710,7 +710,7 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   for (j = 0; j < M; j++)
     denominator += ABS(p->f[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
