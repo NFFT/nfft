@@ -1,4 +1,4 @@
-%NNFFT_INIT_1D Initialise plans
+%NNFFT_INIT_3D Initialise plans
 %   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -17,7 +17,7 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id: nnfft_init_1d.m 4229 2014-12-14 sukunis $
-function p = nnfft_init_1d(N_total,M,N)
+% $Id: nnfft_init_3d.m 4229 2014-12-14 sukunis $
+function p = nnfft_init_3d(N_total,M,N1,N2,N3)
 
-p = nnfftmex('init_1d',N_total,M,N);
+p = nnfftmex('init_3d',N_total,M,N1,N2,N3);

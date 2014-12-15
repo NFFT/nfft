@@ -22,27 +22,34 @@
 classdef nnfft < handle
 
 properties(Dependent=true)
-	x;     % nodes (real Mxd matrix)
-	fhat;  % fourier coefficients (complex column vector of length N1, N1*N2 or N1*N2*N3, for d=2 columnwise linearisation of N1xN2 matrix and for d=3 columnwise linearisation of N1xN2xN3 array)
+	x;     % nodes in time/spatial domain (real Mxd matrix)
+	v;		% nodes in fourier domain (real N_totalxd matrix)
+	fhat;  % fourier coefficients (complex column vector of length N_1, N_1*N_2 or N_1*N_2*N_3, for d=2 columnwise linearisation of N_1xN_2 matrix and for d=3 columnwise linearisation of N_1xN_2xN_3 array)
 	f;     % samples (complex column vector of length M)
 end %properties
 
 properties(Dependent=true,SetAccess='private');
-	N;
+	N; %cut-off-frequencies
+	N1; %sigma*N
 end %properties
 
 properties(SetAccess='private')
 	d=[];   % spatial dimension (d=1, d=2 or d=3)
+	N_total=[];
 	M=[];   % number of sampling points (positive integer)
 end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private');
 	plan=[];
-	N1=[];  % number of nodes in first direction (positive even integer)
-	N2=[];  % number of nodes in second direction (positive even integer)
-	N3=[];  % number of nodes in third direction (positive even integer)
+	N_1=[];  % number of nodes in first direction (positive even integer)
+	N_2=[];  % number of nodes in second direction (positive even integer)
+	N_3=[];  % number of nodes in third direction (positive even integer)
+	N1_1=[]; % number of nodes in first direction (positive even integer)
+	N1_2=[]; % number of nodes in second direction (positive even integer)
+	N1_3=[]; % number of nodes in third direction (positive even integer)
 
 	x_is_set=false;             % flag if x is set
+	v_is_set=false;			    % flag if v is set
 	fhat_is_set=false;          % flag if fhat is set
 	f_is_set=false;             % flag if f is set
 	plan_is_set=false;          % flag if plan was created
@@ -53,66 +60,69 @@ methods
 
 % Constructer and destructor %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function h=nnfft(d,N,M,varargin)
+function h=nnfft(d,N_total,M,N,varargin)
 % Constructor
 %
-% h=nnfft(1,N,M) for spatial dimension d=1
-% h=nnfft(2,N,M) for spatial dimension d=2
-% h=nnfft(3,N,M) for spatial dimension d=3
+% h=nnfft(1,N_total,M,N) for spatial dimension d=1
+% h=nnfft(2,N_total,M,N) for spatial dimension d=2
+% h=nnfft(3,N_total,M,N) for spatial dimension d=3
 %
-% h=nnfft(d,N,M,varargin) for use of nfft_init_guru
+% h=nnfft(d,N_total,M,N,varargin) for use of nnfft_init_guru
 % For example
-% h=nnfft(1,N,M,n,7,'PRE_PHI_HUT','FFTW_MEASURE')     for d=1
-% h=nnfft(2,N,M,n,n,7,'PRE_PHI_HUT','FFTW_MEASURE')   for d=2
-% h=nnfft(3,N,M,n,n,n,7,'PRE_PHI_HUT','FFTW_MEASURE') for d=3
-% with n=2^(ceil(log(max(N))/log(2))+1)
+% h=nnfft(1,N_total,M,N,N1,7,'PRE_PHI_HUT')     for d=1
+% h=nnfft(2,N_total,M,N,N,N1,N1,7,'PRE_PHI_HUT')   for d=2
+% h=nnfft(3,N_total,M,N,N,N,N1,N1,N1,7,'PRE_PHI_HUT') for d=3
+% with N1=sigma*N   ; n=N1
 % NOT IMPLEMENTED: Be careful: There is no error handling with using nfft_init_guru.
 % Incorrect inputs can cause a Matlab crash!
 %
 % INPUT
 %   d         spatial dimension (d=1, d=2 or d=3)
-%   N         numbers of nodes in each direction (column vector of length d with positive even integers)
+%	N_total  Total number of Fourier coefficients.
 %   M         number of sampling points (positive integer)
-%   varargin  parameters for use of nfft_init_guru (see documentation of NFFT for more details)
+%   N			cutt-off-frequencies, numbers of nodes in each direction (column vector of length d with positive even integers)
+%   varargin  parameters for use of nnfft_init_guru (see documentation of NFFT for more details)
 %
 % OUTPUT
 %   h   object of class type nfft
 
 	h.d=d;
-
+	h.N_total=N_total;
+	h.M=M;
 	if( isempty(N) || size(N,1)~=d || size(N,2)~=1)
 		error('The numbers of nodes N have to be an integer column vector of length %u for spatial dimension d=%u',d,d);
 	else
 		h.N=N;
 	end %if
 
-	h.M=M;
-
-	if( 3>nargin )
+	if( 4>nargin )
 		error('Wrong number of inputs.');
-	elseif( 3==nargin )
+	elseif( 4==nargin )
+		
 		switch d
 		case 1
-			h.plan=nnfftmex('init_1d',N,M);
+			h.plan=nnfftmex('init_1d',N_total,M,N);
 			h.plan_is_set=true;
 		case 2
-			h.plan=nnfftmex('init_2d',N(1),N(2),M);
+			h.plan=nnfftmex('init_2d',N_total,M,N(1),N(2));
 			h.plan_is_set=true;
 		case 3
-			h.plan=nnfftmex('init_3d',N(1),N(2),N(3),M);
+			h.plan=nnfftmex('init_3d',N_total,M,N(1),N(2),N(3));
 			h.plan_is_set=true;
 		otherwise
 			error('Invalid spatial dimension d.');
 		end %switch
 	else % nnfft_init_guru
 		disp('You are using nnfft_init_guru. This is on your own risk. There will be no error handling. Incorrect inputs can cause a Matlab crash.');
+		
 		switch d
 		case 1
-			args=[{d,N(1),M},varargin];
+			args=[{d,N_total,M,N(1)},varargin];
 		case 2
-			args=[{d,N(1),N(2),M},varargin];
+			%disp(N_total);disp(N);
+			args=[{d,N_total,M,N(1),N(2)},varargin];
 		case 3
-			args=[{d,N(1),N(2),N(3),M},varargin];
+			args=[{d,N_total,M,N(1),N(2),N(3)},varargin];
 		otherwise
 			error('Unknown error.');
 		end %switch
@@ -138,43 +148,94 @@ function set.d(h,d)
 	end %if
 end %function
 
+function set.N_total(h,k)
+	if( ndims(k)~=2 || size(k,1)~=1 || size(k,2)~=1)
+		error('The number of sampling pints N_total has to be an positive integer.');
+	elseif( isempty(k) || ~isnumeric(k) || ~isreal(k) || mod(k,1)~=0 || ~(k>0) )
+		error('The number of sampling pints N_total has to be an positive integer.');
+	else
+		h.N_total=k;
+	end %if
+end %function
+
 function set.N(h,N)
 	switch length(N)
 	case 1
-		h.N1=N;
+		h.N_1=N;
 	case 2
-		h.N1=N(1);
-		h.N2=N(2);
+		h.N_1=N(1);
+		h.N_2=N(2);
 	case 3
-		h.N1=N(1);
-		h.N2=N(2);
-		h.N3=N(3);
+		h.N_1=N(1);
+		h.N_2=N(2);
+		h.N_3=N(3);
 	otherwise
 		error('Unknown error');
 	end %switch
 end %function
 
-function set.N1(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N1 has to be an even positive integer.');
+function set.N_1(h,N_1)
+	if( isempty(N_1) || ~isnumeric(N_1) || ~isreal(N_1) || (mod(N_1,2)~=0) || ~(N_1>0))
+		error('The number of the nodes N_1 has to be an even positive integer.');
 	else
-		h.N1=N;
+		h.N_1=N_1;
 	end %if
 end %function
 
-function set.N2(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
+function set.N_2(h,N_2)
+	if( isempty(N_2) || ~isnumeric(N_2) || ~isreal(N_2) || (mod(N_2,2)~=0) || ~(N_2>0))
+		error('The number of the nodes N_2 has to be an even positive integer.');
 	else
-		h.N2=N;
+		h.N_2=N_2;
 	end %if
 end %function
 
-function set.N3(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
+function set.N_3(h,N_3)
+	if( isempty(N_3) || ~isnumeric(N_3) || ~isreal(N_3) || (mod(N_3,2)~=0) || ~(N_3>0))
+		error('The number of the nodes N_3 has to be an even positive integer.');
 	else
-		h.N3=N;
+		h.N_3=N_3;
+	end %if
+end %function
+
+
+function set.N1(h,N1)
+	switch length(N1)
+	case 1
+		h.N1_1=N1;
+	case 2
+		h.N1_1=N1(1);
+		h.N1_2=N1(2);
+	case 3
+		h.N1_1=N1(1);
+		h.N1_2=N1(2);
+		h.N1_3=N1(3);
+	otherwise
+		error('Unknown error');
+	end %switch
+end %function
+
+function set.N1_1(h,N1_1)
+	if( isempty(N1_1) || ~isnumeric(N1_1) || ~isreal(N1_1) || (mod(N1_1,2)~=0) || ~(N1_1>0))
+		error('The number of the nodes N1_1 has to be an even positive integer.');
+	else
+		h.N1_1=N1_1;
+	end %if
+end %function
+
+function set.N1_2(h,N1_2)
+	if( isempty(N1_2) || ~isnumeric(N1_2) || ~isreal(N1_2) || (mod(N1_2,2)~=0) || ~(N1_2>0))
+		error('The number of the nodes N1_2 has to be an even positive integer.');
+	else
+		h.N1_2=N1_2;
+	end %if
+end %function
+
+function set.N1_3(h,N1_3)
+	if( isempty(N1_3) || ~isnumeric(N1_3) || ~isreal(N1_3) || (mod(N1_3,2)~=0) || ~(N1_3>0))
+		error('The number of the nodes N1_3 has to be an even positive integer.');
+	else
+		h.N1_3=N1_3;
 	end %if
 end %function
 
@@ -205,14 +266,31 @@ function set.x(h,x)
 	end %if
 end %function
 
+function set.v(h,v)
+	if( isempty(v) )
+		error('The sampling points v for fourier domain have to be real numbers.');
+	elseif( ~isnumeric(v) || ~isreal(v) )
+		error('The sampling points v for fourier domain have to be real numbers.');
+	%elseif( min(v(:))<-1/2 || ~(max(v(:))<1/2) )
+	%	error('The sampling points v for fourier domain have to be in the two dimensional Torus [-0.5,0.5)^2');
+	elseif( size(v,1)~=h.N_total || size(v,2)~=h.d )
+		error('The sampling points for fourier domain have to be a %uv%u matrix',h.N_total,h.d);
+	else
+		v=mod(v+0.5,1)-0.5;
+		nnfftmex('set_v',h.plan,v.');
+		h.v_is_set=true;
+		h.precomputations_done=false;
+	end %if
+end %function
+
 function set.fhat(h,fhat)
 	switch h.d
 	case 1
-		n=h.N1;
+		n=h.N_1;
 	case 2
-		n=h.N1*h.N2;
+		n=h.N_1*h.N_2;
 	case 3
-		n=h.N1*h.N2*h.N3;
+		n=h.N_1*h.N_2*h.N_3;
 	otherwise
 		error('Unknown error.');
 	end % switch
@@ -227,11 +305,11 @@ function set.fhat(h,fhat)
 			% Do nothing.
 		case 2
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N1,h.N2).';
+			fhat=reshape(fhat,h.N_1,h.N_2).';
 			fhat=fhat(:);
 		case 3
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N1,h.N2,h.N3);
+			fhat=reshape(fhat,h.N_1,h.N_2,h.N_3);
 			fhat=permute(fhat,[3,2,1]);
 			fhat=fhat(:);
 		otherwise
@@ -273,11 +351,11 @@ function fhat=get.fhat(h)
 			% Do nothing.
 		case 2
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N2,h.N1).';
+			fhat=reshape(fhat,h.N_2,h.N_1).';
 			fhat=fhat(:);
 		case 3
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N3,h.N2,h.N1);
+			fhat=reshape(fhat,h.N_3,h.N_2,h.N_1);
 			fhat=permute(fhat,[3,2,1]);
 			fhat=fhat(:);
 		otherwise
@@ -297,13 +375,17 @@ function f=get.f(h)
 end %function
 
 function N=get.N(h)
-	N=[h.N1;h.N2;h.N3];
+	N=[h.N_1;h.N_2;h.N_3];
+end %function
+
+function N=get.N1(h)
+	N=[h.N1_1;h.N1_2;h.N1_3];
 end %function
 
 % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function nnfft_precompute_psi(h)
-% Precomputations for NFFT.
+% Precomputations for NNFFT.
 	if(~h.x_is_set)
 		error('Before doing precomputations you have to set nodes in x.');
 	else
@@ -312,23 +394,23 @@ function nnfft_precompute_psi(h)
 	end %if
 end %function
 
-%function ndft_trafo(h)
-%% NDFT.
+function nnfft_trafo_direct(h)
+%% NNDFT.
 %%
-%% ndft_trafo(h)
+%% nnfft_trafo_direct(h)
 %%
 %% INPUT
-%%   h  object of class type nfft
+%%   h  object of class type nnfft
 
-%	if(~h.precomputations_done)
-%		error('Before doing a NFFT transform you have to do precomputations.');
-%	elseif(~h.fhat_is_set)
-%		error('Before doing a NFFT transform you have to set Fourier coefficients in fhat.');
-%	else
-%		nfftmex('trafo_direct',h.plan);
-%		h.f_is_set=true;
-%	end %if
-%end %function
+	if(~h.precomputations_done)
+		error('Before doing a NNFFT transform you have to do precomputations.');
+	elseif(~h.fhat_is_set)
+		error('Before doing a NNFFT transform you have to set Fourier coefficients in fhat.');
+	else
+		nnfftmex('trafo_direct',h.plan);
+		h.f_is_set=true;
+	end %if
+end %function
 
 function nnfft_trafo(h)
 % NFFT.
@@ -336,53 +418,18 @@ function nnfft_trafo(h)
 % nfft_trafo(h)
 %
 % INPUT
-%   h  object of class type nfft
+%   h  object of class type nnfft
 
 	if(~h.precomputations_done)
-		error('Before doing a NFFT transform you have to do precomputations.');
+		error('Before doing a NNFFT transform you have to do precomputations.');
 	elseif(~h.fhat_is_set)
-		error('Before doing a NFFT transform you have to set Fourier coefficients in fhat.');
+		error('Before doing a NNFFT transform you have to set Fourier coefficients in fhat.');
 	else
 		nnfftmex('trafo',h.plan);
 		h.f_is_set=true;
 	end %if
 end %function
 
-%function ndft_adjoint(h)
-%% Adjoint NDFT.
-%%
-%% ndft_adjoint(h)
-%%
-%% INPUT
-%%   h  object of class type nfft
-
-%	if(~h.precomputations_done)
-%		error('Before doing a adjoint NFFT transform you have to do precomputations.');
-%	elseif(~h.f_is_set)
-%		error('Before doing a adjoint NFFT transform you have to set samples in f.');
-%	else
-%		nfftmex('adjoint_direct',h.plan);
-%		h.fhat_is_set=true;
-%	end %if
-%end %function
-
-%function nfft_adjoint(h)
-%% Adjoint NFFT
-%%
-%% nfft_adjoint(h)
-%%
-%% INPUT
-%%   h  object of class type nfft
-%
-%	if(~h.precomputations_done)
-%		error('Before doing a adjoint NFFT transform you have to do precomputations.');
-%	elseif(~h.f_is_set)
-%		error('Before doing a adjoint NFFT transform you have to set samples in f.');
-%	else
-%		nfftmex('adjoint',h.plan);
-%		h.fhat_is_set=true;
-%	end %if
-%end %function
 
 end %methods
 

@@ -26,6 +26,7 @@ disp('A simple one dimensional example');
 
 % maximum degree (bandwidth)
 N = 8;
+%N1=sigma*N;
 N_total=3;
 % number of nodes
 M = 17;
@@ -36,8 +37,6 @@ x=rand(1,M)-0.5;
 v=rand(1,N_total)-0.5;
 
 % Create plan.
-%plan = nnfft_init_1d(N,M);
-%TODO
 %plan=nnfft_init(1,N_total,M,N);
 plan=nnfft_init_guru(1,N_total,M,N,2*N,6,bitor(PRE_PSI,PRE_PHI_HUT));
 
@@ -77,7 +76,7 @@ nnfft_finalize(plan);
 A=exp(-2*pi*1i*x'*N*v);
 f3=A*f_hat
 
-disp('NNFF vs NNDFT');
+disp('NNFFT vs NNDFT');
 error_vector=f-f2;
 error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
 
