@@ -50,28 +50,31 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 /** define weights of kernel function for discrete Radon transform */
 /*#define KERNEL(r) 1.0 */
-#define KERNEL(r) (1.0-fabs((double)(r))/((double)S/2))
+#define KERNEL(r) (K(1.0)-FABS((R)(r))/((R)S/2))
 
 /** generates the points x with weights w
  *  for the polar grid with T angles and R offsets
  */
-static int polar_grid(int T, int S, double *x, double *w)
+static int polar_grid(int T, int S, R *x, R *w)
 {
   int t, r;
-  double W=(double)T*(((double)S/2.0)*((double)S/2.0)+1.0/4.0);
+  R W = (R) T * (((R) S / K(2.0)) * ((R) S / K(2.0)) + K(1.0) / K(4.0));
 
-  for(t=-T/2; t<T/2; t++)
+  for (t = -T / 2; t < T / 2; t++)
   {
-    for(r=-S/2; r<S/2; r++)
+    for (r = -S / 2; r < S / 2; r++)
     {
-      x[2*((t+T/2)*S+(r+S/2))+0] = (double)r/S*cos(KPI*t/T);
-      x[2*((t+T/2)*S+(r+S/2))+1] = (double)r/S*sin(KPI*t/T);
-      if (r==0)
-        w[(t+T/2)*S+(r+S/2)] = 1.0/4.0/W;
+      x[2 * ((t + T / 2) * S + (r + S / 2)) + 0] = (R) r / (R)(S) * COS(KPI * (R)(t) / (R)(T));
+      x[2 * ((t + T / 2) * S + (r + S / 2)) + 1] = (R) r / (R)(S) * SIN(KPI * (R)(t) / (R)(T));
+      if (r == 0)
+        w[(t + T / 2) * S + (r + S / 2)] = K(1.0) / K(4.0) / W;
       else
-        w[(t+T/2)*S+(r+S/2)] = fabs((double)r)/W;
+        w[(t + T / 2) * S + (r + S / 2)] = FABS((R) r) / W;
     }
   }
 
@@ -81,29 +84,31 @@ static int polar_grid(int T, int S, double *x, double *w)
 /** generates the points x with weights w
  *  for the linogram grid with T slopes and R offsets
  */
-static int linogram_grid(int T, int S, double *x, double *w)
+static int linogram_grid(int T, int S, R *x, R *w)
 {
   int t, r;
-  double W=(double)T*(((double)S/2.0)*((double)S/2.0)+1.0/4.0);
+  R W = (R) T * (((R) S / K(2.0)) * ((R) S / K(2.0)) + K(1.0) / K(4.0));
 
-  for(t=-T/2; t<T/2; t++)
+  for (t = -T / 2; t < T / 2; t++)
   {
-    for(r=-S/2; r<S/2; r++)
+    for (r = -S / 2; r < S / 2; r++)
     {
-      if(t<0)
+      if (t < 0)
       {
-        x[2*((t+T/2)*S+(r+S/2))+0] = (double)r/S;
-        x[2*((t+T/2)*S+(r+S/2))+1] = (double)4*(t+T/4)/T*r/S;
+        x[2 * ((t + T / 2) * S + (r + S / 2)) + 0] = (R) r / (R)(S);
+        x[2 * ((t + T / 2) * S + (r + S / 2)) + 1] = K(4.0) * ((R)(t) + (R)(T) / K(4.0)) / (R)(T) * (R)(r)
+            / (R)(S);
       }
       else
       {
-        x[2*((t+T/2)*S+(r+S/2))+0] = -(double)4*(t-T/4)/T*r/S;
-        x[2*((t+T/2)*S+(r+S/2))+1] = (double)r/S;
+        x[2 * ((t + T / 2) * S + (r + S / 2)) + 0] = -K(4.0) * ((R)(t) - (R)(T) / K(4.0)) / (R)(T)
+            * (R)(r) / (R)(S);
+        x[2 * ((t + T / 2) * S + (r + S / 2)) + 1] = (R) r / (R)(S);
       }
-      if (r==0)
-        w[(t+T/2)*S+(r+S/2)] = 1.0/4.0/W;
+      if (r == 0)
+        w[(t + T / 2) * S + (r + S / 2)] = K(1.0) / K(4.0) / W;
       else
-        w[(t+T/2)*S+(r+S/2)] = fabs((double)r)/W;
+        w[(t + T / 2) * S + (r + S / 2)] = FABS((R) r) / W;
     }
   }
 
@@ -113,106 +118,108 @@ static int linogram_grid(int T, int S, double *x, double *w)
 /** computes the NFFT-based discrete Radon transform of f
  *  on the grid given by gridfcn() with T angles and R offsets
  */
-int Radon_trafo(int (*gridfcn)(), int T, int S, double *f, int NN, double *Rf)
+static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
 {
-  int j,k;                              /**< index for nodes and freqencies   */
-  nfft_plan my_nfft_plan;               /**< plan for the nfft-2D             */
+  int j, k; /**< index for nodes and freqencies   */
+  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
 
-  fftw_complex *fft;                    /**< variable for the fftw-1Ds        */
-  fftw_plan my_fftw_plan;               /**< plan for the fftw-1Ds            */
+  C *fft; /**< variable for the fftw-1Ds        */
+  Z(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
 
-  int t,r;                              /**< index for directions and offsets */
-  double *x, *w;                        /**< knots and associated weights     */
+  int t, r; /**< index for directions and offsets */
+  R *x, *w; /**< knots and associated weights     */
 
-  int N[2],n[2];
-  int M=T*S;
+  int N[2], n[2];
+  int M = T * S;
 
-  N[0]=NN; n[0]=2*N[0];
-  N[1]=NN; n[1]=2*N[1];
+  N[0] = NN;
+  n[0] = 2 * N[0];
+  N[1] = NN;
+  n[1] = 2 * N[1];
 
-  fft = (fftw_complex *)nfft_malloc(S*sizeof(fftw_complex));
-  my_fftw_plan = fftw_plan_dft_1d(S,fft,fft,FFTW_BACKWARD,FFTW_MEASURE);
+  fft = (C *) Y(malloc)((size_t)(S) * sizeof(C));
+  my_fftw_plan = Z(plan_dft_1d)(S, fft, fft, FFTW_BACKWARD, FFTW_MEASURE);
 
-  x = (double *)nfft_malloc(2*T*S*(sizeof(double)));
-  if (x==NULL)
-    return -1;
+  x = (R *) Y(malloc)((size_t)(2 * T * S) * (sizeof(R)));
+  if (x == NULL)
+    return EXIT_FAILURE;
 
-  w = (double *)nfft_malloc(T*S*(sizeof(double)));
-  if (w==NULL)
-    return -1;
+  w = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
+  if (w == NULL)
+    return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
-  nfft_init_guru(&my_nfft_plan, 2, N, M, n, 4,
-                 PRE_PHI_HUT| PRE_PSI| MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
-                 FFTW_MEASURE| FFTW_DESTROY_INPUT);
-
+  X(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
+      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+          | FFT_OUT_OF_PLACE,
+      FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init nodes from grid*/
-  gridfcn(T,S,x,w);
-  for(j=0;j<my_nfft_plan.M_total;j++)
+  gridfcn(T, S, x, w);
+  for (j = 0; j < my_nfft_plan.M_total; j++)
   {
-    my_nfft_plan.x[2*j+0] = x[2*j+0];
-    my_nfft_plan.x[2*j+1] = x[2*j+1];
+    my_nfft_plan.x[2 * j + 0] = x[2 * j + 0];
+    my_nfft_plan.x[2 * j + 1] = x[2 * j + 1];
   }
 
   /** precompute psi, the entries of the matrix B */
-  if(my_nfft_plan.flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi(&my_nfft_plan);
+  if (my_nfft_plan.flags & PRE_LIN_PSI)
+    X(precompute_lin_psi)(&my_nfft_plan);
 
-  if(my_nfft_plan.flags & PRE_PSI)
-    nfft_precompute_psi(&my_nfft_plan);
+  if (my_nfft_plan.flags & PRE_PSI)
+    X(precompute_psi)(&my_nfft_plan);
 
-  if(my_nfft_plan.flags & PRE_FULL_PSI)
-    nfft_precompute_full_psi(&my_nfft_plan);
+  if (my_nfft_plan.flags & PRE_FULL_PSI)
+    X(precompute_full_psi)(&my_nfft_plan);
 
   /** init Fourier coefficients from given image */
-  for(k=0;k<my_nfft_plan.N_total;k++)
-    my_nfft_plan.f_hat[k] = f[k] + _Complex_I*0.0;
+  for (k = 0; k < my_nfft_plan.N_total; k++)
+    my_nfft_plan.f_hat[k] = f[k] + II * K(0.0);
 
   /** NFFT-2D */
-  nfft_trafo(&my_nfft_plan);
+  X(trafo)(&my_nfft_plan);
 
   /** FFTW-1Ds */
-  for(t=0; t<T; t++)
+  for (t = 0; t < T; t++)
   {
-    fft[0]=0.0;
-    for(r=-S/2+1; r<S/2; r++)
-      fft[r+S/2] = KERNEL(r)*my_nfft_plan.f[t*S+(r+S/2)];
+    fft[0] = K(0.0);
+    for (r = -S / 2 + 1; r < S / 2; r++)
+      fft[r + S / 2] = KERNEL(r) * my_nfft_plan.f[t * S + (r + S / 2)];
 
-    nfft_fftshift_complex(fft, 1, &S);
-    fftw_execute(my_fftw_plan);
-    nfft_fftshift_complex(fft, 1, &S);
+    Y(fftshift_complex_int)(fft, 1, &S);
+    Z(execute)(my_fftw_plan);
+    Y(fftshift_complex_int)(fft, 1, &S);
 
-    for(r=0; r<S; r++)
-      Rf[t*S+r] = creal(fft[r])/S;
+    for (r = 0; r < S; r++)
+      Rf[t * S + r] = CREAL(fft[r]) / (R)(S);
 
-/*    for(r=0; r<R/2; r++)
-      Rf[t*R+(r+R/2)] = creal(cexp(-I*KPI*r)*fft[r]);
-    for(r=0; r<R/2; r++)
-      Rf[t*R+r] = creal(cexp(-I*KPI*r)*fft[r+R/2]);
- */
+    /*    for(r=0; r<R/2; r++)
+     Rf[t*R+(r+R/2)] = creal(cexp(-I*KPI*r)*fft[r]);
+     for(r=0; r<R/2; r++)
+     Rf[t*R+r] = creal(cexp(-I*KPI*r)*fft[r+R/2]);
+     */
   }
 
   /** finalise the plans and free the variables */
-  fftw_destroy_plan(my_fftw_plan);
-  nfft_free(fft);
-  nfft_finalize(&my_nfft_plan);
-  nfft_free(x);
-  nfft_free(w);
+  Z(destroy_plan)(my_fftw_plan);
+  Y(free)(fft);
+  X(finalize)(&my_nfft_plan);
+  Y(free)(x);
+  Y(free)(w);
   return 0;
 }
 
 /** simple test program for the discrete Radon transform
  */
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-  int (*gridfcn)();                     /**< grid generating function        */
-  int T, S;                             /**< number of directions/offsets    */
+  int (*gridfcn)(); /**< grid generating function        */
+  int T, S; /**< number of directions/offsets    */
   FILE *fp;
-  int N;                                /**< image size                      */
-  double *f, *Rf;
+  int N; /**< image size                      */
+  R *f, *Rf;
 
-  if( argc!=5 )
+  if (argc != 5)
   {
     printf("radon gridfcn N T R\n");
     printf("\n");
@@ -220,10 +227,10 @@ int main(int argc,char **argv)
     printf("N          image size NxN            \n");
     printf("T          number of slopes          \n");
     printf("R          number of offsets         \n");
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
-  if (strcmp(argv[1],"polar") == 0)
+  if (strcmp(argv[1], "polar") == 0)
     gridfcn = polar_grid;
   else
     gridfcn = linogram_grid;
@@ -233,29 +240,29 @@ int main(int argc,char **argv)
   S = atoi(argv[4]);
   /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
 
-  f   = (double *)nfft_malloc(N*N*(sizeof(double)));
-  Rf  = (double *)nfft_malloc(T*S*(sizeof(double)));
+  f = (R *) Y(malloc)((size_t)(N * N) * (sizeof(R)));
+  Rf = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
 
   /** load data */
-  fp=fopen("input_data.bin","rb");
-  if (fp==NULL)
-    return(-1);
-  fread(f,sizeof(double),N*N,fp);
+  fp = fopen("input_data.bin", "rb");
+  if (fp == NULL)
+    return EXIT_FAILURE;
+  fread(f, sizeof(R), (size_t)(N * N), fp);
   fclose(fp);
 
   /** Radon transform */
-  Radon_trafo(gridfcn,T,S,f,N,Rf);
+  Radon_trafo(gridfcn, T, S, f, N, Rf);
 
   /** write result */
-  fp=fopen("sinogram_data.bin","wb+");
-  if (fp==NULL)
-    return(-1);
-  fwrite(Rf,sizeof(double),T*S,fp);
+  fp = fopen("sinogram_data.bin", "wb+");
+  if (fp == NULL)
+    return EXIT_FAILURE;
+  fwrite(Rf, sizeof(R), (size_t)(T * S), fp);
   fclose(fp);
 
   /** free the variables */
-  nfft_free(f);
-  nfft_free(Rf);
+  Y(free)(f);
+  Y(free)(Rf);
 
   return EXIT_SUCCESS;
 }

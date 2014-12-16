@@ -49,6 +49,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 #if !(defined(NF_LIN) || defined(NF_QUADR) || defined(NF_KUB))
   #define NF_KUB
 #endif
@@ -58,7 +61,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-typedef double _Complex (*kernel)(double , int , const double *);
+typedef C (*kernel)(R , int , const R *);
 
 /**
  * Constant symbols
@@ -77,47 +80,47 @@ typedef struct fastsum_plan_
   int N_total;                          /**< number of source knots          */
   int M_total;                          /**< number of target knots          */
 
-  double _Complex *alpha;                       /**< source coefficients             */
-  double _Complex *f;                           /**< target evaluations              */
+  C *alpha;                       /**< source coefficients             */
+  C *f;                           /**< target evaluations              */
 
-  double *x;                            /**< source knots in d-ball with radius 1/4-eps_b/2 */
-  double *y;                            /**< target knots in d-ball with radius 1/4-eps_b/2 */
+  R *x;                            /**< source knots in d-ball with radius 1/4-eps_b/2 */
+  R *y;                            /**< target knots in d-ball with radius 1/4-eps_b/2 */
 
   kernel k;  /**< kernel function    */
-  double *kernel_param;                 /**< parameters for kernel function  */
+  R *kernel_param;                 /**< parameters for kernel function  */
 
   unsigned flags;                       /**< flags precomp. and approx.type  */
 
   /** internal */
 
   /** DS_PRE - direct summation */
-  double _Complex *pre_K;                       /**< precomputed K(x_j-y_l)          */
+  C *pre_K;                       /**< precomputed K(x_j-y_l)          */
 
   /** FS__ - fast summation */
   int n;                                /**< expansion degree                */
-  fftw_complex *b;                      /**< expansion coefficients          */
+  C *b;                      /**< expansion coefficients          */
 
   int p;                                /**< degree of smoothness of regularization */
-  double eps_I;                         /**< inner boundary                  */  /* fixed to p/n so far  */
-  double eps_B;                         /**< outer boundary                  */  /* fixed to 1/16 so far */
+  R eps_I;                         /**< inner boundary                  */  /* fixed to p/n so far  */
+  R eps_B;                         /**< outer boundary                  */  /* fixed to 1/16 so far */
 
-  nfft_plan mv1;                        /**< source nfft plan                */
-  nfft_plan mv2;                        /**< target nfft plan                */
+  X(plan) mv1;                        /**< source nfft plan                */
+  X(plan) mv2;                        /**< target nfft plan                */
 
   /** near field */
   int Ad;                               /**< number of spline knots for nearfield computation of regularized kernel */
-  double _Complex *Add;                 /**< spline values */
+  C *Add;                 /**< spline values */
 
   /* things for computing *b - are they used only once?? */
-  fftw_plan fft_plan;
+  Z(plan) fft_plan;
 
   int box_count;
   int box_count_per_dim;
   int *box_offset;
-  double *box_x;
-  double _Complex *box_alpha;
+  R *box_x;
+  C *box_alpha;
 
-  double MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
+  R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 } fastsum_plan;
 
 /** initialize fast summation plan
@@ -136,7 +139,7 @@ typedef struct fastsum_plan_
  * \param eps_B the outer boundary.
  *
  */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kernel k, double *param, unsigned flags, int nn, int m, int p, double eps_I, double eps_B);
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B);
 
 /** finalize plan
  *
@@ -163,11 +166,11 @@ void fastsum_precompute(fastsum_plan *ths);
 void fastsum_trafo(fastsum_plan *ths);
 /* \} */
 
-double _Complex regkern(kernel k, double xx, int p, const double *param, double a, double b);
+C regkern(kernel k, R xx, int p, const R *param, R a, R b);
 
 /** cubic spline interpolation in near field with even kernels */
-double _Complex kubintkern(const double x, const double _Complex *Add,
-  const int Ad, const double a);
+C kubintkern(const R x, const C *Add,
+  const int Ad, const R a);
 
 #ifdef __cplusplus
 }  /* extern "C" */

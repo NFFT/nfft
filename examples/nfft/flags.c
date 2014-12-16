@@ -39,6 +39,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 #ifdef GAUSSIAN
   unsigned test_fg=1;
 #else
@@ -57,292 +60,297 @@
   unsigned test=0;
 #endif
 
-static void flags_cp(nfft_plan *dst, nfft_plan *src)
+static void flags_cp(X(plan) *dst, X(plan) *src)
 {
-  dst->x=src->x;
-  dst->f_hat=src->f_hat;
-  dst->f=src->f;
-  dst->g1=src->g1;
-  dst->g2=src->g2;
-  dst->my_fftw_plan1=src->my_fftw_plan1;
-  dst->my_fftw_plan2=src->my_fftw_plan2;
+  dst->x = src->x;
+  dst->f_hat = src->f_hat;
+  dst->f = src->f;
+  dst->g1 = src->g1;
+  dst->g2 = src->g2;
+  dst->my_fftw_plan1 = src->my_fftw_plan1;
+  dst->my_fftw_plan2 = src->my_fftw_plan2;
 }
 
 static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
-                   unsigned test_pre_full_psi)
+    unsigned test_pre_full_psi)
 {
   int r, NN[d], nn[d];
-  double t_ndft, t, e;
-  double _Complex *swapndft = NULL;
+  R t_ndft, t, e;
+  C *swapndft = NULL;
   ticks t0, t1;
 
-  nfft_plan p;
-  nfft_plan p_pre_phi_hut;
-  nfft_plan p_fg_psi;
-  nfft_plan p_pre_lin_psi;
-  nfft_plan p_pre_fg_psi;
-  nfft_plan p_pre_psi;
-  nfft_plan p_pre_full_psi;
+  X(plan) p;
+  X(plan) p_pre_phi_hut;
+  X(plan) p_fg_psi;
+  X(plan) p_pre_lin_psi;
+  X(plan) p_pre_fg_psi;
+  X(plan) p_pre_psi;
+  X(plan) p_pre_full_psi;
 
   printf("%d\t%d\t", d, N);
 
-  for(r=0; r<d; r++)
-    {
-      NN[r]=N;
-      nn[r]=n;
-    }
+  for (r = 0; r < d; r++)
+  {
+    NN[r] = N;
+    nn[r] = n;
+  }
 
-  /** output vector ndft */
-  if(test_ndft)
-    swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
+  /* output vector ndft */
+  if (test_ndft)
+    swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
 
-  nfft_init_guru(&p, d, NN, M, nn, m,
-                 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+  X(init_guru)(&p, d, NN, M, nn, m,
+  MALLOC_X | MALLOC_F_HAT | MALLOC_F |
+  FFTW_INIT | FFT_OUT_OF_PLACE,
+  FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
+  Y(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
-  nfft_init_guru(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT,0);
+  X(init_guru)(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT, 0);
   flags_cp(&p_pre_phi_hut, &p);
-  nfft_precompute_one_psi(&p_pre_phi_hut);
+  X(precompute_one_psi)(&p_pre_phi_hut);
 
-  if(test_fg)
-    {
-      nfft_init_guru(&p_fg_psi, d, NN, M, nn, m, FG_PSI,0);
-      flags_cp(&p_fg_psi, &p);
-      nfft_precompute_one_psi(&p_fg_psi);
-    }
+  if (test_fg)
+  {
+    X(init_guru)(&p_fg_psi, d, NN, M, nn, m, FG_PSI, 0);
+    flags_cp(&p_fg_psi, &p);
+    X(precompute_one_psi)(&p_fg_psi);
+  }
 
-  nfft_init_guru(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI,0);
+  X(init_guru)(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI, 0);
   flags_cp(&p_pre_lin_psi, &p);
-  nfft_precompute_one_psi(&p_pre_lin_psi);
+  X(precompute_one_psi)(&p_pre_lin_psi);
 
-  if(test_fg)
-    {
-      nfft_init_guru(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI,0);
-      flags_cp(&p_pre_fg_psi, &p);
-      nfft_precompute_one_psi(&p_pre_fg_psi);
-    }
+  if (test_fg)
+  {
+    X(init_guru)(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI, 0);
+    flags_cp(&p_pre_fg_psi, &p);
+    X(precompute_one_psi)(&p_pre_fg_psi);
+  }
 
-  nfft_init_guru(&p_pre_psi, d, NN, M, nn, m, PRE_PSI,0);
+  X(init_guru)(&p_pre_psi, d, NN, M, nn, m, PRE_PSI, 0);
   flags_cp(&p_pre_psi, &p);
-  nfft_precompute_one_psi(&p_pre_psi);
+  X(precompute_one_psi)(&p_pre_psi);
 
-  if(test_pre_full_psi)
+  if (test_pre_full_psi)
+  {
+    X(init_guru)(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI, 0);
+    flags_cp(&p_pre_full_psi, &p);
+    X(precompute_one_psi)(&p_pre_full_psi);
+  }
+
+  /* init pseudo random Fourier coefficients */
+  Y(vrand_unit_complex)(p.f_hat, p.N_total);
+
+  /* NDFT */
+  if (test_ndft)
+  {
+    CSWAP(p.f, swapndft);
+
+    t_ndft = K(0.0);
+    r = 0;
+    while (t_ndft < K(0.01))
     {
-      nfft_init_guru(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI,0);
-      flags_cp(&p_pre_full_psi, &p);
-      nfft_precompute_one_psi(&p_pre_full_psi);
+      r++;
+      t0 = getticks();
+      X(trafo_direct)(&p);
+      t1 = getticks();
+      t = Y(elapsed_seconds)(t1, t0);
+      t_ndft += t;
     }
+    t_ndft /= (R)(r);
 
-  /** init pseudo random Fourier coefficients */
-  nfft_vrand_unit_complex(p.f_hat, p.N_total);
-
-  /** NDFT */
-  if(test_ndft)
-    {
-      CSWAP(p.f,swapndft);
-
-      t_ndft=0;
-      r=0;
-      while(t_ndft<0.01)
-        {
-          r++;
-          t0 = getticks();
-          nfft_trafo_direct(&p);
-          t1 = getticks();
-          t = nfft_elapsed_seconds(t1,t0);
-          t_ndft+=t;
-        }
-      t_ndft/=r;
-
-      CSWAP(p.f,swapndft);
-    }
+    CSWAP(p.f, swapndft);
+  }
   else
-    t_ndft=nan("");
+    t_ndft = MKNAN("");
 
-  /** NFFTs */
-  nfft_trafo(&p);
-  nfft_trafo(&p_pre_phi_hut);
-  if(test_fg)
-    nfft_trafo(&p_fg_psi);
+  /* NFFTs */
+  X(trafo)(&p);
+  X(trafo)(&p_pre_phi_hut);
+  if (test_fg)
+    X(trafo)(&p_fg_psi);
   else
-    p_fg_psi.MEASURE_TIME_t[2]=nan("");
-  nfft_trafo(&p_pre_lin_psi);
-  if(test_fg)
-    nfft_trafo(&p_pre_fg_psi);
+    p_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
+  X(trafo)(&p_pre_lin_psi);
+  if (test_fg)
+    X(trafo)(&p_pre_fg_psi);
   else
-    p_pre_fg_psi.MEASURE_TIME_t[2]=nan("");
-  nfft_trafo(&p_pre_psi);
-  if(test_pre_full_psi)
-    nfft_trafo(&p_pre_full_psi);
+    p_pre_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
+  X(trafo)(&p_pre_psi);
+  if (test_pre_full_psi)
+    X(trafo)(&p_pre_full_psi);
   else
-    p_pre_full_psi.MEASURE_TIME_t[2]=nan("");
+    p_pre_full_psi.MEASURE_TIME_t[2] = MKNAN("");
 
-  if(test_fftw==0)
-    p.MEASURE_TIME_t[1]=nan("");
+  if (test_fftw == 0)
+    p.MEASURE_TIME_t[1] = MKNAN("");
 
-  if(test_ndft)
-    e=X(error_l_2_complex)(swapndft, p.f, p.M_total);
+  if (test_ndft)
+    e = Y(error_l_2_complex)(swapndft, p.f, p.M_total);
   else
-    e=nan("");
+    e = MKNAN("");
 
-  printf("%.2e\t%d\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\n",
-         t_ndft,
-         m,
-         e,
-         p.MEASURE_TIME_t[0],
-         p_pre_phi_hut.MEASURE_TIME_t[0],
-
-         p.MEASURE_TIME_t[1],
-
-         p.MEASURE_TIME_t[2],
-         p_fg_psi.MEASURE_TIME_t[2],
-         p_pre_lin_psi.MEASURE_TIME_t[2],
-         p_pre_fg_psi.MEASURE_TIME_t[2],
-         p_pre_psi.MEASURE_TIME_t[2],
-         p_pre_full_psi.MEASURE_TIME_t[2]);
+  printf(
+      "%.2" __FES__ "\t%d\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\n",
+      t_ndft, m, e, p.MEASURE_TIME_t[0], p_pre_phi_hut.MEASURE_TIME_t[0],
+      p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], p_fg_psi.MEASURE_TIME_t[2],
+      p_pre_lin_psi.MEASURE_TIME_t[2], p_pre_fg_psi.MEASURE_TIME_t[2],
+      p_pre_psi.MEASURE_TIME_t[2], p_pre_full_psi.MEASURE_TIME_t[2]);
 
   fflush(stdout);
 
   /** finalise */
-  if(test_pre_full_psi)
-    nfft_finalize(&p_pre_full_psi);
-  nfft_finalize(&p_pre_psi);
-  if(test_fg)
-    nfft_finalize(&p_pre_fg_psi);
-  nfft_finalize(&p_pre_lin_psi);
-  if(test_fg)
-    nfft_finalize(&p_fg_psi);
-  nfft_finalize(&p_pre_phi_hut);
-  nfft_finalize(&p);
+  if (test_pre_full_psi)
+    X(finalize)(&p_pre_full_psi);
+  X(finalize)(&p_pre_psi);
+  if (test_fg)
+    X(finalize)(&p_pre_fg_psi);
+  X(finalize)(&p_pre_lin_psi);
+  if (test_fg)
+    X(finalize)(&p_fg_psi);
+  X(finalize)(&p_pre_phi_hut);
+  X(finalize)(&p);
 
-  if(test_ndft)
-    nfft_free(swapndft);
+  if (test_ndft)
+    Y(free)(swapndft);
 }
 
 static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 {
   int r, NN[d], nn[d];
-  double e;
-  double _Complex *swapndft;
+  R e;
+  C *swapndft;
 
-  nfft_plan p;
+  X(plan) p;
 
-  for(r=0; r<d; r++)
-    {
-      NN[r]=N;
-      nn[r]=n;
-    }
+  for (r = 0; r < d; r++)
+  {
+    NN[r] = N;
+    nn[r] = n;
+  }
 
-  /** output vector ndft */
-  swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
+  /* output vector ndft */
+  swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
 
-  nfft_init_guru(&p, d, NN, M, nn, m,
-                 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-                 PRE_PHI_HUT| PRE_LIN_PSI|
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_MEASURE| FFTW_DESTROY_INPUT);
+  X(init_guru)(&p, d, NN, M, nn, m,
+  MALLOC_X | MALLOC_F_HAT | MALLOC_F |
+  PRE_PHI_HUT | PRE_LIN_PSI |
+  FFTW_INIT | FFT_OUT_OF_PLACE,
+  FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** realloc psi */
-  nfft_free(p.psi);
-  p.K=K;
-  p.psi=(double*) nfft_malloc((p.K+1)*p.d*sizeof(double));
+  Y(free)(p.psi);
+  p.K = K;
+  p.psi = (R*) Y(malloc)((size_t)((p.K + 1) * p.d) * sizeof(R));
 
   /** precomputation can be done before the nodes are initialised */
-  nfft_precompute_one_psi(&p);
+  X(precompute_one_psi)(&p);
 
   /** init pseudo random nodes */
-  nfft_vrand_shifted_unit_double(p.x, p.d*p.M_total);
+  Y(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   /** init pseudo random Fourier coefficients */
-  nfft_vrand_unit_complex(p.f_hat, p.N_total);
+  Y(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** compute exact result */
-  CSWAP(p.f,swapndft);
-  nfft_trafo_direct(&p);
-  CSWAP(p.f,swapndft);
+  CSWAP(p.f, swapndft);
+  X(trafo_direct)(&p);
+  CSWAP(p.f, swapndft);
 
   /** NFFT */
-  nfft_trafo(&p);
-  e=X(error_l_2_complex)(swapndft, p.f, p.M_total);
+  X(trafo)(&p);
+  e = Y(error_l_2_complex)(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
-  printf("$%.1e$&\t",e);
+  printf("$%.1" __FES__ "$&\t", e);
 
   fflush(stdout);
 
   /** finalise */
-  nfft_finalize(&p);
-  nfft_free(swapndft);
+  X(finalize)(&p);
+  Y(free)(swapndft);
 }
 
-
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-  int l,m,d,trial,N;
+  int l, trial;
 
-  if(argc<=2)
-    {
-      fprintf(stderr,"flags type first last trials d m\n");
-      return -1;
-    }
+  if (argc <= 2)
+  {
+    fprintf(stderr, "flags type first last trials d m\n");
+    return EXIT_FAILURE;
+  }
 
-  if((test==0)&&(atoi(argv[1])<2))
-    {
-      fprintf(stderr,"MEASURE_TIME in infft.h not set\n");
-      return -1;
-    }
+  if ((test == 0) && (atoi(argv[1]) < 2))
+  {
+    fprintf(stderr, "MEASURE_TIME in infft.h not set\n");
+    return EXIT_FAILURE;
+  }
 
-  fprintf(stderr,"Testing different precomputation schemes for the nfft.\n");
-  fprintf(stderr,"Columns: d, N=M, t_ndft, e_nfft, t_D, t_pre_phi_hut, ");
-  fprintf(stderr,"t_fftw, t_B, t_fg_psi, t_pre_lin_psi, t_pre_fg_psi, ");
-  fprintf(stderr,"t_pre_psi, t_pre_full_psi\n\n");
+  fprintf(stderr, "Testing different precomputation schemes for the nfft.\n");
+  fprintf(stderr, "Columns: d, N=M, t_ndft, e_nfft, t_D, t_pre_phi_hut, ");
+  fprintf(stderr, "t_fftw, t_B, t_fg_psi, t_pre_lin_psi, t_pre_fg_psi, ");
+  fprintf(stderr, "t_pre_psi, t_pre_full_psi\n\n");
 
-  d=atoi(argv[5]);
-  m=atoi(argv[6]);
+  int arg2 = atoi(argv[2]);
+  int arg3 = atoi(argv[3]);
+  int arg4 = atoi(argv[4]);
 
   /* time vs. N=M */
-  if(atoi(argv[1])==0)
-    for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
-      for(trial=0; trial<atoi(argv[4]); trial++)
-	{
-	  if(l<=20)
-	    time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
-	  else
-	    time_accuracy(d, (1U<< l), (1U<< (d*l)), (1U<< (l+1)), m, 0, 0);
-	}
+  if (atoi(argv[1]) == 0)
+  {
+    int d = atoi(argv[5]);
+    int m = atoi(argv[6]);
 
-  d=atoi(argv[5]);
-  N=atoi(argv[6]);
-
-  /* accuracy vs. time */
-  if(atoi(argv[1])==1)
-    for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
-      for(trial=0; trial<atoi(argv[4]); trial++)
-        time_accuracy(d, N, (int)pow(N,d), 2*N, m, 1, 1);
-
-  d=atoi(argv[5]);
-  N=atoi(argv[6]);
-  m=atoi(argv[7]);
-
-  /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
-  if(atoi(argv[1])==2)
+    for (l = arg2; l <= arg3; l++)
     {
-      printf("$\\log_2(K/(m+1))$&\t");
-      for(l=atoi(argv[2]); l<atoi(argv[3]); l++)
-	printf("$%d$&\t",l);
+      int N = (int)(1U << l);
+      int M = (int)(1U << (d * l));
+      for (trial = 0; trial < arg4; trial++)
+      {
+        time_accuracy(d, N, M, 2 * N, m, 0, 0);
+      }
+    }
+  }
+  else if (atoi(argv[1]) == 1) /* accuracy vs. time */
+  {
+    int d = atoi(argv[5]);
+    int N = atoi(argv[6]);
+    int m;
 
-      printf("$%d$\\\\\n",atoi(argv[3]));
+    for (m = arg2; m <= arg3; m++)
+    {
+      for (trial = 0; trial < arg4; trial++)
+      {
+        time_accuracy(d, N, (int)(LRINT(POW((R)(N), (R)(d)))), 2 * N, m, 1, 1);
+      }
+    }
+  }
+  else if (atoi(argv[1]) == 2) /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
+  {
+    int d = atoi(argv[5]);
+    int N = atoi(argv[6]);
+    int m = atoi(argv[7]);
 
-      printf("$\\tilde E_2$&\t");
-      for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
-	accuracy_pre_lin_psi(d, N, (int)pow(N,d), 2*N, m, (m+1)*(1U<< l));
+    printf("$\\log_2(K/(m+1))$&\t");
 
-      printf("\n");
+    for (l = arg2; l < arg3; l++)
+      printf("$%d$&\t", l);
+
+    printf("$%d$\\\\\n", arg3);
+
+    printf("$\\tilde E_2$&\t");
+    for (l = arg2; l <= arg3; l++)
+    {
+      int x = (m + 1) * (int)(1U << l);
+      accuracy_pre_lin_psi(d, N, (int)(LRINT(POW((R)(N), (R)(d)))), 2 * N, m, x);
     }
 
-  return 1;
+    printf("\n");
+  }
+
+
+  return EXIT_SUCCESS;
 }

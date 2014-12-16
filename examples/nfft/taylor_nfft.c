@@ -40,13 +40,14 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 typedef struct
 {
-  nfft_plan p;                          /**< used for fftw and data          */
-
-  int *idx0;                            /**< index of next neighbour of x_j
-                                             on the oversampled regular grid */
-  double *deltax0;                      /**< distance to the grid point      */
+  X(plan) p; /* used for fftw and data */
+  INT *idx0; /* index of next neighbour of x_j on the oversampled regular grid */
+  R *deltax0; /* distance to the grid point */
 } taylor_plan;
 
 /**
@@ -63,13 +64,12 @@ typedef struct
 static void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
 {
   /* Note: no nfft precomputation! */
-  nfft_init_guru((nfft_plan*)ths, 1, &N, M, &n, m,
-                 MALLOC_X| MALLOC_F_HAT| MALLOC_F|
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_PRESERVE_INPUT);
+  X(init_guru)((X(plan)*) ths, 1, &N, M, &n, m,
+      MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
+      FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
 
-  ths->idx0=(int*)nfft_malloc(M*sizeof(int));
-  ths->deltax0=(double*)nfft_malloc(M*sizeof(double));
+  ths->idx0 = (INT*) Y(malloc)((size_t)(M) * sizeof(INT));
+  ths->deltax0 = (R*) Y(malloc)((size_t)(M) * sizeof(R));
 }
 
 /**
@@ -81,17 +81,17 @@ static void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
  */
 static void taylor_precompute(taylor_plan *ths)
 {
-  int j;
+  INT j;
 
-  nfft_plan* cths=(nfft_plan*)ths;
+  X(plan)* cths = (X(plan)*) ths;
 
-  for(j=0;j<cths->M_total;j++)
-    {
-      ths->idx0[j] = ((int)round((cths->x[j]+0.5)*cths->n[0]) +
-                                 cths->n[0]/2)%cths->n[0];
-      ths->deltax0[j] = cths->x[j] - (round((cths->x[j]+0.5)*cths->n[0]) /
-                                      cths->n[0] - 0.5);
-    }
+  for (j = 0; j < cths->M_total; j++)
+  {
+    ths->idx0[j] = (LRINT(ROUND((cths->x[j] + K(0.5)) * (R)(cths->n[0])))
+        + cths->n[0] / 2) % cths->n[0];
+    ths->deltax0[j] = cths->x[j]
+        - (ROUND((cths->x[j] + K(0.5)) * (R)(cths->n[0])) / (R)(cths->n[0]) - K(0.5));
+  }
 }
 
 /**
@@ -103,10 +103,10 @@ static void taylor_precompute(taylor_plan *ths)
  */
 static void taylor_finalize(taylor_plan *ths)
 {
-  nfft_free(ths->deltax0);
-  nfft_free(ths->idx0);
+  Y(free)(ths->deltax0);
+  Y(free)(ths->idx0);
 
-  nfft_finalize((nfft_plan*)ths);
+  X(finalize)((X(plan)*) ths);
 }
 
 /**
@@ -121,45 +121,46 @@ static void taylor_finalize(taylor_plan *ths)
  */
 static void taylor_trafo(taylor_plan *ths)
 {
-  int j,k,l,ll;
-  double _Complex *f, *f_hat, *g1;
-  double *deltax;
-  int *idx;
+  INT j, k, l, ll;
+  C *f, *f_hat, *g1;
+  R *deltax;
+  INT *idx;
 
-  nfft_plan *cths=(nfft_plan*)ths;
+  X(plan) *cths = (X(plan)*) ths;
 
-  for(j=0, f=cths->f; j<cths->M_total; j++)
-    *f++ = 0;
+  for (j = 0, f = cths->f; j < cths->M_total; j++)
+    *f++ = K(0.0);
 
-  for(k=0; k<cths->n_total; k++)
-    cths->g1[k]=0;
+  for (k = 0; k < cths->n_total; k++)
+    cths->g1[k] = K(0.0);
 
-  for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2,
-      f_hat=cths->f_hat; k<0; k++)
-    (*g1++)=cpow( - 2*KPI*_Complex_I*k,cths->m)* (*f_hat++);
+  for (k = -cths->N_total / 2, g1 = cths->g1 + cths->n_total
+      - cths->N_total / 2, f_hat = cths->f_hat; k < 0; k++)
+    (*g1++) = CPOW(-K2PI * II * (R)(k), (R)(cths->m)) * (*f_hat++);
 
-  cths->g1[0]=cths->f_hat[cths->N_total/2];
+  cths->g1[0] = cths->f_hat[cths->N_total / 2];
 
-  for(k=1, g1=cths->g1+1, f_hat=cths->f_hat+cths->N_total/2+1;
-      k<cths->N_total/2; k++)
-    (*g1++)=cpow( - 2*KPI*_Complex_I*k,cths->m)* (*f_hat++);
+  for (k = 1, g1 = cths->g1 + 1, f_hat = cths->f_hat + cths->N_total / 2 + 1;
+      k < cths->N_total / 2; k++)
+    (*g1++) = CPOW(-K2PI * II * (R)(k), (R)(cths->m)) * (*f_hat++);
 
-  for(l=cths->m-1; l>=0; l--)
-    {
-      for(k=-cths->N_total/2, g1=cths->g1+cths->n_total-cths->N_total/2;
-          k<0; k++)
-        (*g1++) /= (-2*KPI*_Complex_I*k);
+  for (l = cths->m - 1; l >= 0; l--)
+  {
+    for (k = -cths->N_total / 2, g1 = cths->g1 + cths->n_total
+        - cths->N_total / 2; k < 0; k++)
+      (*g1++) /= (-K2PI * II * (R)(k));
 
-      for(k=1, g1=cths->g1+1; k<cths->N_total/2; k++)
-        (*g1++) /= (-2*KPI*_Complex_I*k);
+    for (k = 1, g1 = cths->g1 + 1; k < cths->N_total / 2; k++)
+      (*g1++) /= (-K2PI * II * (R)(k));
 
-      fftw_execute(cths->my_fftw_plan1);
+    Z(execute)(cths->my_fftw_plan1);
 
-      ll=(l==0?1:l);
-      for(j=0, f=cths->f, deltax=ths->deltax0, idx=ths->idx0; j<cths->M_total;
-          j++, f++)
-	(*f) = ((*f) * (*deltax++) + cths->g2[*idx++]) /ll;
-    }
+    ll = (l == 0 ? 1 : l);
+
+    for (j = 0, f = cths->f, deltax = ths->deltax0, idx = ths->idx0;
+        j < cths->M_total; j++, f++)
+      (*f) = ((*f) * (*deltax++) + cths->g2[*idx++]) / (R)(ll);
+  }
 }
 
 /**
@@ -176,164 +177,175 @@ static void taylor_trafo(taylor_plan *ths)
  * \author Stefan Kunis
  */
 static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
-                          int m_taylor, unsigned test_accuracy)
+    int m_taylor, unsigned test_accuracy)
 {
   int r;
-  double t_ndft, t_nfft, t_taylor, t;
-  double _Complex *swapndft = NULL;
+  R t_ndft, t_nfft, t_taylor, t;
+  C *swapndft = NULL;
   ticks t0, t1;
 
   taylor_plan tp;
-  nfft_plan np;
+  X(plan) np;
 
-  printf("%d\t%d\t",N, M);
+  printf("%d\t%d\t", N, M);
 
-  taylor_init(&tp,N,M,n_taylor,m_taylor);
+  taylor_init(&tp, N, M, n_taylor, m_taylor);
 
-  nfft_init_guru(&np, 1, &N, M, &n, m,
-                 PRE_PHI_HUT| PRE_FG_PSI|
-		 FFTW_INIT| FFT_OUT_OF_PLACE,
-		 FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
+  X(init_guru)(&np, 1, &N, M, &n, m,
+      PRE_PHI_HUT | PRE_FG_PSI | FFTW_INIT | FFT_OUT_OF_PLACE,
+      FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
-  /** share nodes, input, and output vectors */
-  np.x=tp.p.x;
-  np.f_hat=tp.p.f_hat;
-  np.f=tp.p.f;
+  /* share nodes, input, and output vectors */
+  np.x = tp.p.x;
+  np.f_hat = tp.p.f_hat;
+  np.f = tp.p.f;
 
-  /** output vector ndft */
-  if(test_accuracy)
-    swapndft=(double _Complex*)nfft_malloc(M*sizeof(double _Complex));
+  /* output vector ndft */
+  if (test_accuracy)
+    swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
 
-  /** init pseudo random nodes */
-  nfft_vrand_shifted_unit_double(np.x, np.M_total);
+  /* init pseudo random nodes */
+  Y(vrand_shifted_unit_double)(np.x, np.M_total);
 
-  /** nfft precomputation */
+  /* nfft precomputation */
   taylor_precompute(&tp);
 
-  /** nfft precomputation */
-  if(np.flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(&np);
+  /* nfft precomputation */
+  if (np.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&np);
 
-  /** init pseudo random Fourier coefficients */
-  nfft_vrand_unit_complex(np.f_hat, np.N_total);
+  /* init pseudo random Fourier coefficients */
+  Y(vrand_unit_complex)(np.f_hat, np.N_total);
 
-  /** NDFT */
-  if(test_accuracy)
-    {
-      CSWAP(np.f,swapndft);
+  /* NDFT */
+  if (test_accuracy)
+  {
+    CSWAP(np.f, swapndft);
 
-      t_ndft=0;
-      r=0;
-      while(t_ndft<0.01)
-        {
-          r++;
-          t0 = getticks();
-          nfft_trafo_direct(&np);
-          t1 = getticks();
-t = nfft_elapsed_seconds(t1,t0);
-          t_ndft+=t;
-        }
-      t_ndft/=r;
-
-      CSWAP(np.f,swapndft);
-      printf("%.2e\t",t_ndft);
-    }
-  else
-    printf("nan\t\t");
-
-  /** NFFT */
-  t_nfft=0;
-  r=0;
-  while(t_nfft<0.01)
+    t_ndft = K(0.0);
+    r = 0;
+    while (t_ndft < K(0.01))
     {
       r++;
       t0 = getticks();
-      nfft_trafo(&np);
+      X(trafo_direct)(&np);
       t1 = getticks();
-t = nfft_elapsed_seconds(t1,t0);
-      t_nfft+=t;
+      t = Y(elapsed_seconds)(t1, t0);
+      t_ndft += t;
     }
-  t_nfft/=r;
+    t_ndft /= (R)(r);
 
-  printf("%.2f\t%d\t%.2e\t",((double)n)/N, m, t_nfft);
-
-  if(test_accuracy)
-    printf("%.2e\t",X(error_l_infty_complex)(swapndft, np.f, np.M_total));
+    CSWAP(np.f, swapndft);
+    printf("%.2" __FES__ "\t", t_ndft);
+  }
   else
-    printf("nan\t\t");
+    printf("N/A\t\t");
+
+  /* NFFT */
+  t_nfft = K(0.0);
+  r = 0;
+  while (t_nfft < K(0.01))
+  {
+    r++;
+    t0 = getticks();
+    X(trafo)(&np);
+    t1 = getticks();
+    t = Y(elapsed_seconds)(t1, t0);
+    t_nfft += t;
+  }
+  t_nfft /= (R)(r);
+
+  printf("%.2" __FES__ "\t%d\t%.2" __FES__ "\t", ((R)(n)) / ((R)(N)), m, t_nfft);
+
+  if (test_accuracy)
+    printf("%.2" __FES__ "\t", Y(error_l_infty_complex)(swapndft, np.f, np.M_total));
+  else
+    printf("N/A\t\t");
 
   /** TAYLOR NFFT */
-  t_taylor=0;
-  r=0;
-  while(t_taylor<0.01)
-    {
-      r++;
-      t0 = getticks();
-      taylor_trafo(&tp);
-      t1 = getticks();
-t = nfft_elapsed_seconds(t1,t0);
-      t_taylor+=t;
-    }
-  t_taylor/=r;
+  t_taylor = K(0.0);
+  r = 0;
+  while (t_taylor < K(0.01))
+  {
+    r++;
+    t0 = getticks();
+    taylor_trafo(&tp);
+    t1 = getticks();
+    t = Y(elapsed_seconds)(t1, t0);
+    t_taylor += t;
+  }
+  t_taylor /= (R)(r);
 
+  printf("%.2" __FES__ "\t%d\t%.2" __FES__ "\t", ((R)(n_taylor)) / ((R)(N)), m_taylor, t_taylor);
 
-  printf("%.2f\t%d\t%.2e\t",((double)n_taylor)/N,m_taylor,t_taylor);
-
-  if(test_accuracy)
-    printf("%.2e\n",X(error_l_infty_complex)(swapndft, np.f, np.M_total));
+  if (test_accuracy)
+    printf("%.2" __FES__ "\n", Y(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
-    printf("nan\t\n");
+    printf("N/A\t\n");
 
   fflush(stdout);
 
-  /** finalise */
-  if(test_accuracy)
-    nfft_free(swapndft);
+  /* finalise */
+  if (test_accuracy)
+    Y(free)(swapndft);
 
-  nfft_finalize(&np);
+  X(finalize)(&np);
   taylor_finalize(&tp);
 }
 
-int main(int argc,char **argv)
+int main(int argc, char **argv)
 {
-  int l,m,trial,N;
+  int l, m, trial;
 
-  if(argc<=2)
+  if (argc <= 2)
+  {
+    fprintf(stderr,
+        "taylor_nfft type first last trials sigma_nfft sigma_taylor.\n");
+    return EXIT_FAILURE;
+  }
+
+  fprintf(stderr, "Testing the Nfft & a Taylor expansion based version.\n\n");
+  fprintf(stderr, "Columns: N, M, t_ndft, sigma_nfft, m_nfft, t_nfft, e_nfft");
+  fprintf(stderr, ", sigma_taylor, m_taylor, t_taylor, e_taylor\n");
+
+  /* time vs. N = M */
+  if (atoi(argv[1]) == 0)
+  {
+    fprintf(stderr, "Fixed target accuracy, timings.\n\n");
+    int arg2 = atoi(argv[2]);
+    int arg3 = atoi(argv[3]);
+    int arg4 = atoi(argv[4]);
+    for (l = arg2; l <= arg3; l++)
     {
-      fprintf(stderr,"taylor_nfft type first last trials sigma_nfft sigma_taylor.\n");
-      return -1;
+      int N = (int)(1U << l);
+      int M = (int)(1U << l);
+      int arg5 = (int)(atof(argv[5]) * N);
+      int arg6 = (int)(atof(argv[6]) * N);
+      for (trial = 0; trial < arg4; trial++)
+      {
+        taylor_time_accuracy(N, M, arg5, 6, arg6, 6, l <= 10 ? 1 : 0);
+      }
     }
-
-  fprintf(stderr,"Testing the Nfft & a Taylor expansion based version.\n\n");
-  fprintf(stderr,"Columns: N, M, t_ndft, sigma_nfft, m_nfft, t_nfft, e_nfft");
-  fprintf(stderr,", sigma_taylor, m_taylor, t_taylor, e_taylor\n");
-
-  /* time vs. N=M */
-  if(atoi(argv[1])==0)
-    {
-      fprintf(stderr,"Fixed target accuracy, timings.\n\n");
-      for(l=atoi(argv[2]); l<=atoi(argv[3]); l++)
-        for(trial=0; trial<atoi(argv[4]); trial++)
-          if(l<=10)
-            taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
-                                 (1U<< l)), 6, (int)(atof(argv[6])*(1U<< l)),
-                                 6, 1);
-          else
-            taylor_time_accuracy((1U<< l), (1U<< l), (int)(atof(argv[5])*
-                                 (1U<< l)), 6, (int)(atof(argv[6])*(1U<< l)),
-                                 6, 0);
-    }
+  }
 
   /* error vs. m */
-  if(atoi(argv[1])==1)
+  if (atoi(argv[1]) == 1)
+  {
+    int arg2 = atoi(argv[2]);
+    int arg3 = atoi(argv[3]);
+    int arg4 = atoi(argv[4]);
+    int N = atoi(argv[7]);
+    int arg5 = (int) (atof(argv[5]) * N);
+    int arg6 = (int) (atof(argv[6]) * N);
+    fprintf(stderr, "Fixed N=M=%d, error vs. m.\n\n", N);
+    for (m = arg2; m <= arg3; m++)
     {
-      N=atoi(argv[7]);
-      fprintf(stderr,"Fixed N=M=%d, error vs. m.\n\n",N);
-      for(m=atoi(argv[2]); m<=atoi(argv[3]); m++)
-        for(trial=0; trial<atoi(argv[4]); trial++)
-          taylor_time_accuracy(N,N, (int)(atof(argv[5])*N), m,
-                                    (int)(atof(argv[6])*N), m, 1);
+      for (trial = 0; trial < arg4; trial++)
+      {
+        taylor_time_accuracy(N, N, arg5, m, arg6, m, 1);
+      }
     }
+  }
 
-  return 1;
+  return EXIT_SUCCESS;
 }

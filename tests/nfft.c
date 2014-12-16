@@ -78,6 +78,7 @@ struct init_delegate_s
   const int m;
   const unsigned flags;
   const unsigned fftw_flags;
+  const int K;
 };
 
 /* Prepare delegate. */
@@ -93,7 +94,7 @@ struct check_delegate_s
 
 /* Trafo delegate. */
 typedef void (*trafo_t)(X(plan) *p);
-typedef double (*cost_t)(X(plan) *p);
+typedef R (*cost_t)(X(plan) *p);
 typedef const char* (*check_t)(X(plan) *p);
 typedef R (*acc_t)(X(plan) *p);
 
@@ -107,7 +108,7 @@ typedef struct trafo_delegate_s
 
 } trafo_delegate_t;
 
-static double trafo_direct_cost(X(plan) *p);
+static R trafo_direct_cost(X(plan) *p);
 
 static R err_trafo(X(plan) *p);
 static R err_trafo_direct(X(plan) *p);
@@ -149,9 +150,9 @@ static check_delegate_t check_adjoint;
 static trafo_delegate_t trafo_direct;
 static trafo_delegate_t trafo;
 
-static double trafo_direct_cost_factor = 1.0E-6;
+static R trafo_direct_cost_factor = K(1.0E-6);
 
-static double trafo_direct_cost(X(plan) *p)
+static R trafo_direct_cost(X(plan) *p)
 {
   if (trafo_direct_cost_factor == 0.0)
   {
@@ -163,7 +164,7 @@ static double trafo_direct_cost(X(plan) *p)
         for (M = 4; M <= 128; M *= 2)
         {
           X(plan) p2;
-          int *N = malloc(d*sizeof(int)), i;
+          int *N = Y(malloc)((size_t)(d) * sizeof(int)), i;
           for (i = 0; i < d; i++)
           {
             N[i] = Nd;
@@ -173,21 +174,21 @@ static double trafo_direct_cost(X(plan) *p)
             p2.x[i] = K(0.0);
           if(p2.flags & PRE_ONE_PSI)
             X(precompute_one_psi)(&p2);
-          for (i = 0; i < d*Nd; i++)
+          for (i = 0; i < d * Nd; i++)
           {
             p2.f_hat[i] = K(0.0) + K(0.0) * I;
           }
           {
-            double r;
+            R r;
             ticks t0, t1;
             t0 = getticks();
             X(trafo_direct)(&p2);
             t1 = getticks();
-            r = Y(elapsed_seconds)(t1, t0)/M;
+            r = Y(elapsed_seconds)(t1, t0) / (R)(M);
             for (i = 0; i < d; i++)
               r = r / Nd;
             trafo_direct_cost_factor += r;
-            printf("%E\n", r);
+            printf(__FE__ "\n", r);
             x += 1;
           }
           X(finalize)(&p2);
@@ -195,59 +196,93 @@ static double trafo_direct_cost(X(plan) *p)
         }
       }
     }
-    trafo_direct_cost_factor = trafo_direct_cost_factor/((double)x);
-    printf("--> %E\n", trafo_direct_cost_factor);
+    trafo_direct_cost_factor = trafo_direct_cost_factor/((R)x);
+    printf("--> " __FE__ "\n", trafo_direct_cost_factor);
   }
 
   {
-    int c = p->M_total, i;
+    INT c = p->M_total, i;
 
     for (i = 0; i < p->d; i++)
       c *= p->N[i];
 
-    return trafo_direct_cost_factor * c;
+    return trafo_direct_cost_factor * (R)(c);
   }
 }
 
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(120.0) * EPSILON;
+  return K(40.0) * EPSILON;
 }
 
 static R err_trafo(X(plan) *p)
 {
-  if (p->flags & PRE_LIN_PSI)
-    return FMAX(K(2.5)*K(10E-08), K(50.0) * EPSILON);
-  {
-    const R m = ((R)p->m);
-    R s, err;
-    int i;
-    for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
-      s = FMIN(s, ((R)p->sigma[i]));
+  const R m = ((R)p->m);
+  R s; /* oversampling factor */
+  R a;
+  R b;
+  R eps = EPSILON;
+  R err;
+  int i;
+  for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
+    s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
-    err = K(12.0) * EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*s-K(1.0))));
+#if defined(NFFT_LDOUBLE)
+    a = K(0.6);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(0.4);
+    b = K(50.0);
+#endif
+    err = EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*K(2.0) - K(1.0))));
 #elif defined(B_SPLINE)
     //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
     //printf("\n<s = %E>\n", s);
     //fflush(stdout);
+#if defined(NFFT_LDOUBLE)
+    a = K(0.3);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(1.0);
+    b = K(2000.0);
+#endif
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
   #elif defined(SINC_POWER)
+#if defined(NFFT_LDOUBLE)
+    a = K(0.3);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(1.0);
+    b = K(2000.0);
+#endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-    if (p->flags & PRE_LIN_PSI)
-    {
-      R K = ((R)p->K);
-      err = EXP(K2PI * m)/(K(8.0) * K * K);
-    }
-    else
-      err = K(4.0) * KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/s)) * EXP(-K2PI*m*SQRT(K(1.0)-K(1.0)/s));
+#if defined(NFFT_LDOUBLE)
+    a = K(0.3);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(0.3);
+    b = K(2100.0);
+#endif
+    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
   #else
     #error Unsupported window function.
   #endif
 
-    return FMAX(K(70.0) * EPSILON, err);
-  }
+  return FMAX(FMAX(a * err, b * eps), err_trafo_direct(p));
 }
 
 #define MAX_SECONDS 0.1
@@ -265,22 +300,17 @@ static int check_single(const testcase_delegate_t *testcase,
   testcase->setup(testcase, &d, &N, &NN, &M, &x, &f_hat, &f);
 
   /* Init plan. */
-  printf(", %-24s", init_delegate->name);
+  printf(", %-28s", init_delegate->name);
   init_delegate->init(init_delegate, &p, d, N, M);
+
+  printf(", m = %2d", (int)p.m);
+  printf(", %-14s", trafo_delegate->name);
 
   /* Nodes. */
   for (j = 0; j < M*d; j++)
   {
     p.x[j] = x[j];
   }
-
-  /* Pre-compute Psi, maybe. */
-  if(p.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
-
-  check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
-
-  printf(", %-14s", trafo_delegate->name);
 
   if (trafo_delegate->check)
   {
@@ -296,7 +326,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
   else if (trafo_delegate->cost)
   {
-    const double cost = trafo_delegate->cost(&p);
+    const R cost = trafo_delegate->cost(&p);
     if (cost > MAX_SECONDS)
     {
       printf(" -> %-4s (cost too high)\n","OK");
@@ -304,6 +334,12 @@ static int check_single(const testcase_delegate_t *testcase,
       goto cleanup;
     }
   }
+
+  /* Pre-compute Psi, maybe. */
+  if(p.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&p);
+
+  check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
 
   trafo_delegate->trafo(&p);
 
@@ -357,7 +393,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   /* Dimensions. */
   fscanf(file, "%d", d);
   /* Bandwidths. */
-  *N = malloc(*d * sizeof(int));
+  *N = Y(malloc)((size_t)(*d) * sizeof(int));
   for (j = 0; j < *d; j++)
     fscanf(file, "%d", &((*N)[j]));
   /* Number of nodes. */
@@ -381,14 +417,14 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
     *NN *= (*N)[j];
 
   /* Nodes. */
-  *x = malloc(M[0]*d[0]*sizeof(R));
+  *x = Y(malloc)((size_t)(M[0]*d[0])*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
     fscanf(file, __FI__, &((*x)[j]));
   }
 
   /* Fourier coefficients. */
-  *f_hat = malloc(NN[0]*sizeof(C));
+  *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(C));
   for (j = 0; j < NN[0]; j++)
   {
     R re, im;
@@ -397,7 +433,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   }
 
   /* Reference function values. */
-  *f = malloc(M[0] * sizeof(C));
+  *f = Y(malloc)((size_t)(M[0]) * sizeof(C));
   for (j = 0; j < M[0]; j++)
   {
     R re, im;
@@ -424,7 +460,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   /* Dimensions. */
   *d = ego->d;
   /* Bandwidths. */
-  *N = malloc(*d * sizeof(int));
+  *N = Y(malloc)((size_t)(*d) * sizeof(int));
   for (j = 0; j < *d; j++)
     (*N)[j] = ego->N;
   /* Number of nodes. */
@@ -450,14 +486,14 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     *NN *= (*N)[j];
 
   /* Nodes. */
-  *x = malloc(M[0]*d[0]*sizeof(R));
+  *x = Y(malloc)((size_t)(M[0]*d[0])*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
     (*x)[j] = Y(drand48)() - K(0.5);
   }
 
   /* Fourier coefficients. */
-  *f_hat = malloc(NN[0]*sizeof(C));
+  *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(C));
   for (j = 0; j < NN[0]; j++)
   {
     (*f_hat)[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
@@ -487,7 +523,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     X(trafo_direct)(&p);
 
     /* Reference function values. */
-    *f = malloc(M[0] * sizeof(C));
+    *f = Y(malloc)((size_t)(M[0]) * sizeof(C));
     for (j = 0; j < M[0]; j++)
     {
       (*f)[j] = p.f[j];
@@ -506,7 +542,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   *d = ego->d;
 
   /* Bandwidths. */
-  *N = malloc(*d * sizeof(int));
+  *N = Y(malloc)((size_t)(*d) * sizeof(int));
 
   for (j = 0; j < *d; j++)
     (*N)[j] = ego->N;
@@ -534,7 +570,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     *NN *= (*N)[j];
 
   /* Nodes. */
-  *x = malloc(M[0]*d[0]*sizeof(R));
+  *x = Y(malloc)((size_t)(M[0]*d[0])*sizeof(R));
 
   for (j = 0; j < M[0]*d[0]; j++)
   {
@@ -542,7 +578,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   }
 
   /* Function values. */
-  *f = malloc(M[0] * sizeof(C));
+  *f = Y(malloc)((size_t)(M[0]) * sizeof(C));
   for (j = 0; j < M[0]; j++)
   {
     (*f)[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
@@ -572,7 +608,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
     X(adjoint_direct)(&p);
 
     /* Reference pseudo Fourier coefficients. */
-    *f_hat = malloc(NN[0]*sizeof(C));
+    *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(C));
 
     for (j = 0; j < NN[0]; j++)
     {
@@ -621,14 +657,27 @@ static void init_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, c
 
 static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
 {
-  int *n = malloc(d*sizeof(int));
+  int *n = Y(malloc)((size_t)(d)*sizeof(int));
   int i;
   for (i = 0; i < d; i++)
-    n[i] = 2*Y(next_power_of_2)(N[i]);
+    n[i] = 2 * (int)(Y(next_power_of_2)(N[i]));
   X(init_guru)(p, d, N, M, n, ego->m, ego->flags, ego->fftw_flags);
   free(n);
 }
 
+//static void init_advanced_pre_lin_psi_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
+//{
+//  int *n = Y(malloc)((size_t)(d)*sizeof(int));
+//  int i;
+//  for (i = 0; i < d; i++)
+//    n[i] = 2 * (int)(Y(next_power_of_2)(N[i]));
+//  int K = ego->K  * (ego->m + 2);
+//  //printf("\n%d\n", K);
+//  X(init_lin)(p, d, N, M, n, ego->m, K, ego->flags, ego->fftw_flags);
+//  free(n);
+//}
+
+static init_delegate_t init_direct = {"init_guru ()", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, (DEFAULT_NFFT_FLAGS ^ PRE_PSI), DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_1d = {"init_1d", init_1d_, 0, 0, 0};
 static init_delegate_t init_2d = {"init_2d", init_2d_, 0, 0, 0};
 static init_delegate_t init_3d = {"init_3d", init_3d_, 0, 0, 0};
@@ -636,6 +685,13 @@ static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+//static init_delegate_t init_advanced_pre_lin_psi_00 = {"init_guru (PRE LIN PSI) 00", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 23)};
+//static init_delegate_t init_advanced_pre_lin_psi_01 = {"init_guru (PRE LIN PSI) 01", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 24)};
+//static init_delegate_t init_advanced_pre_lin_psi_02 = {"init_guru (PRE LIN PSI) 02", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 25)};
+//static init_delegate_t init_advanced_pre_lin_psi_03 = {"init_guru (PRE LIN PSI) 03", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 26)};
+//static init_delegate_t init_advanced_pre_lin_psi_04 = {"init_guru (PRE LIN PSI) 04", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 27)};
+//static init_delegate_t init_advanced_pre_lin_psi_05 = {"init_guru (PRE LIN PSI) 05", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 28)};
+//static init_delegate_t init_advanced_pre_lin_psi_06 = {"init_guru (PRE LIN PSI) 06", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 29)};
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #endif
@@ -688,7 +744,7 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   for (j = 0; j < NN; j++)
     denominator += CABS(p->f_hat[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
@@ -698,10 +754,11 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
-  //  fprintf(stderr, "\n");
-  //  for (j = 0; j < NN; j++)
-  //    fprintf(stderr, "f_hat[%2d] = " __FE__ " + " __FE__ "I, f_hat[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
-  //      CREAL(f_hat[j]), CIMAG(f_hat[j]), j, CREAL(p->f_hat[j]), CIMAG(p->f_hat[j]), CABS(f_hat[j] - p->f_hat[j]) / CABS(f_hat[j]));
+  /* debug */
+//  fprintf(stderr, "\n");
+//  for (j = 0; j < NN; j++)
+//    fprintf(stderr, "f_hat[%2d] = " __FE__ " + " __FE__ "I, f_hat[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
+//      CREAL(f_hat[j]), CIMAG(f_hat[j]), j, CREAL(p->f_hat[j]), CIMAG(p->f_hat[j]), CABS(f_hat[j] - p->f_hat[j]) / CABS(f_hat[j]));
 
   for (j = 0; j < NN; j++)
     numerator = MAX(numerator, CABS(f_hat[j] - p->f_hat[j]));
@@ -709,7 +766,7 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   for (j = 0; j < M; j++)
     denominator += CABS(p->f[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
@@ -730,13 +787,25 @@ static trafo_delegate_t adjoint_3d = {"adjoint_3d", X(adjoint_3d), X(check), 0, 
 /* 1D */
 
 /* Initializers. */
+static const init_delegate_t* initializers_direct[] =
+{
+  &init_direct,
+};
+
 static const init_delegate_t* initializers_1d[] =
 {
   &init_1d,
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi_00,
+//  &init_advanced_pre_lin_psi_01,
+//  &init_advanced_pre_lin_psi_02,
+//  &init_advanced_pre_lin_psi_03,
+//  &init_advanced_pre_lin_psi_04,
+//  &init_advanced_pre_lin_psi_05,
+//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -795,12 +864,22 @@ static const testcase_delegate_file_t *testcases_1d_file[] =
   &nfft_1d_50_50,
 };
 
-static const trafo_delegate_t* trafos_1d_file[] = {&trafo_direct, &trafo, &trafo_1d};
+static const trafo_delegate_t* trafos_1d_direct_file[] = {&trafo_direct};
 
-void X(check_1d_file)(void)
+void X(check_1d_direct_file)(void)
 {
-  check_many(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_file),
-    testcases_1d_file, initializers_1d, &check_trafo, trafos_1d_file);
+  printf("check_1d_direct_file:\n");
+  check_many(SIZE(testcases_1d_file), SIZE(initializers_direct), SIZE(trafos_1d_direct_file),
+    testcases_1d_file, initializers_direct, &check_trafo, trafos_1d_direct_file);
+}
+
+static const trafo_delegate_t* trafos_1d_fast_file[] = {&trafo, &trafo_1d};
+
+void X(check_1d_fast_file)(void)
+{
+  printf("check_1d_fast_file:\n");
+  check_many(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_fast_file),
+    testcases_1d_file, initializers_1d, &check_trafo, trafos_1d_fast_file);
 }
 
 static const testcase_delegate_file_t nfft_adjoint_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_1d_1_1.txt")};
@@ -856,12 +935,22 @@ static const testcase_delegate_file_t *testcases_adjoint_1d_file[] =
   &nfft_adjoint_1d_50_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_1d_file[] = {&adjoint_direct, &adjoint, &adjoint_1d};
+static const trafo_delegate_t* trafos_adjoint_direct_1d_file[] = {&adjoint_direct};
 
-void X(check_adjoint_1d_file)(void)
+void X(check_adjoint_1d_direct_file)(void)
 {
-  check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_1d), SIZE(trafos_adjoint_1d_file),
-    testcases_adjoint_1d_file, initializers_1d, &check_adjoint, trafos_adjoint_1d_file);
+  printf("check_adjoint_1d_direct_file:\n");
+  check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_direct_1d_file),
+    testcases_adjoint_1d_file, initializers_direct, &check_adjoint, trafos_adjoint_direct_1d_file);
+}
+
+static const trafo_delegate_t* trafos_adjoint_fast_1d_file[] = {&adjoint, &adjoint_1d};
+
+void X(check_adjoint_1d_fast_file)(void)
+{
+  printf("check_adjoint_1d_fast_file:\n");
+  check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_1d), SIZE(trafos_adjoint_fast_1d_file),
+    testcases_adjoint_1d_file, initializers_1d, &check_adjoint, trafos_adjoint_fast_1d_file);
 }
 
 static const testcase_delegate_online_t nfft_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
@@ -931,7 +1020,14 @@ static const init_delegate_t* initializers_2d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi_00,
+//  &init_advanced_pre_lin_psi_01,
+//  &init_advanced_pre_lin_psi_02,
+//  &init_advanced_pre_lin_psi_03,
+//  &init_advanced_pre_lin_psi_04,
+//  &init_advanced_pre_lin_psi_05,
+//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -958,12 +1054,22 @@ static const testcase_delegate_file_t *testcases_2d_file[] =
   &nfft_2d_20_20_50,
 };
 
-static const trafo_delegate_t* trafos_2d_file[] = {&trafo_direct, &trafo, &trafo_2d};
+static const trafo_delegate_t* trafos_2d_direct_file[] = {&trafo_direct};
 
-void X(check_2d_file)(void)
+void X(check_2d_direct_file)(void)
 {
-  check_many(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_file),
-    testcases_2d_file, initializers_2d, &check_trafo, trafos_2d_file);
+  printf("check_2d_direct_file:\n");
+  check_many(SIZE(testcases_2d_file), SIZE(initializers_direct), SIZE(trafos_2d_direct_file),
+    testcases_2d_file, initializers_direct, &check_trafo, trafos_2d_direct_file);
+}
+
+static const trafo_delegate_t* trafos_2d_fast_file[] = {&trafo, &trafo_2d};
+
+void X(check_2d_fast_file)(void)
+{
+  printf("check_2d_fast_file:\n");
+  check_many(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_fast_file),
+    testcases_2d_file, initializers_2d, &check_trafo, trafos_2d_fast_file);
 }
 
 static const testcase_delegate_file_t nfft_adjoint_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_2d_10_10_20.txt")};
@@ -987,12 +1093,22 @@ static const testcase_delegate_file_t *testcases_adjoint_2d_file[] =
   &nfft_adjoint_2d_20_20_50,
 };
 
-static const trafo_delegate_t* trafos_adjoint_2d_file[] = {&adjoint_direct, &adjoint, &adjoint_2d};
+static const trafo_delegate_t* trafos_adjoint_2d_direct_file[] = {&adjoint_direct};
 
-void X(check_adjoint_2d_file)(void)
+void X(check_adjoint_2d_direct_file)(void)
 {
-  check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_file),
-    testcases_adjoint_2d_file, initializers_2d, &check_adjoint, trafos_adjoint_2d_file);
+  printf("check_adjoint_2d_direct_file:\n");
+  check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_2d_direct_file),
+    testcases_adjoint_2d_file, initializers_direct, &check_adjoint, trafos_adjoint_2d_direct_file);
+}
+
+static const trafo_delegate_t* trafos_adjoint_2d_fast_file[] = {&adjoint, &adjoint_2d};
+
+void X(check_adjoint_2d_fast_file)(void)
+{
+  printf("check_adjoint_2d_fast_file:\n");
+  check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_fast_file),
+    testcases_adjoint_2d_file, initializers_2d, &check_adjoint, trafos_adjoint_2d_fast_file);
 }
 
 static const testcase_delegate_online_t nfft_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
@@ -1050,7 +1166,14 @@ static const init_delegate_t* initializers_3d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi_00,
+//  &init_advanced_pre_lin_psi_01,
+//  &init_advanced_pre_lin_psi_02,
+//  &init_advanced_pre_lin_psi_03,
+//  &init_advanced_pre_lin_psi_04,
+//  &init_advanced_pre_lin_psi_05,
+//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -1063,15 +1186,23 @@ static const testcase_delegate_file_t *testcases_3d_file[] =
   &nfft_3d_10_10_10_10,
 };
 
-static const trafo_delegate_t* trafos_3d_file[] = {&trafo_direct, &trafo, &trafo_3d};
+static const trafo_delegate_t* trafos_3d_direct_file[] = {&trafo_direct};
 
-void X(check_3d_file)(void)
+void X(check_3d_direct_file)(void)
 {
-  check_many(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_file),
-    testcases_3d_file, initializers_3d, &check_trafo, trafos_3d_file);
+  printf("check_3d_direct_file:\n");
+  check_many(SIZE(testcases_3d_file), SIZE(initializers_direct), SIZE(trafos_3d_direct_file),
+    testcases_3d_file, initializers_direct, &check_trafo, trafos_3d_direct_file);
 }
 
-static const trafo_delegate_t* trafos_adjoint_3d_file[] = {&adjoint_direct, &adjoint, &adjoint_3d};
+static const trafo_delegate_t* trafos_3d_fast_file[] = {&trafo, &trafo_3d};
+
+void X(check_3d_fast_file)(void)
+{
+  printf("check_3d_fast_file:\n");
+  check_many(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_fast_file),
+    testcases_3d_file, initializers_3d, &check_trafo, trafos_3d_fast_file);
+}
 
 static const testcase_delegate_file_t nfft_adjoint_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfft_adjoint_3d_10_10_10_10.txt")};
 
@@ -1080,10 +1211,22 @@ static const testcase_delegate_file_t *testcases_adjoint_3d_file[] =
   &nfft_adjoint_3d_10_10_10_10,
 };
 
-void X(check_adjoint_3d_file)(void)
+static const trafo_delegate_t* trafos_adjoint_3d_direct_file[] = {&adjoint_direct};
+
+void X(check_adjoint_3d_direct_file)(void)
 {
-  check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_file),
-    testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_file);
+  printf("check_adjoint_3d_direct_file:\n");
+  check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_3d_direct_file),
+    testcases_adjoint_3d_file, initializers_direct, &check_adjoint, trafos_adjoint_3d_direct_file);
+}
+
+static const trafo_delegate_t* trafos_adjoint_3d_fast_file[] = {&adjoint, &adjoint_3d};
+
+void X(check_adjoint_3d_fast_file)(void)
+{
+  printf("check_adjoint_3d_fast_file:\n");
+  check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_fast_file),
+    testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
 }
 
 static const testcase_delegate_online_t nfft_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
@@ -1124,7 +1267,14 @@ static const init_delegate_t* initializers_4d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
-  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi,
+//  &init_advanced_pre_lin_psi_00,
+//  &init_advanced_pre_lin_psi_01,
+//  &init_advanced_pre_lin_psi_02,
+//  &init_advanced_pre_lin_psi_03,
+//  &init_advanced_pre_lin_psi_04,
+//  &init_advanced_pre_lin_psi_05,
+//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -1158,4 +1308,171 @@ void X(check_adjoint_4d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
     testcases_adjoint_4d_online, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
+}
+
+/* accuracy */
+
+static int check_single_file(const testcase_delegate_t *testcase,
+  init_delegate_t *init_delegate, check_delegate_t *check_delegate,
+  trafo_delegate_t *trafo_delegate, const char *filename)
+{
+  int ok = 0;
+  X(plan) p;
+  int d, j, *N, NN, M;
+  R *x;
+  C *f_hat, *f;
+
+  testcase->setup(testcase, &d, &N, &NN, &M, &x, &f_hat, &f);
+
+  /* Init plan. */
+  printf(", %-28s", init_delegate->name);
+  init_delegate->init(init_delegate, &p, d, N, M);
+
+  printf(", m = %2d", (int)p.m);
+  printf(", %-14s", trafo_delegate->name);
+
+  /* Nodes. */
+  for (j = 0; j < M*d; j++)
+  {
+    p.x[j] = x[j];
+  }
+
+  if (trafo_delegate->check)
+  {
+    const char* check = trafo_delegate->check(&p);
+    if (check != 0)
+    {
+      printf(" -> %-4s (","OK");
+      printf("%s", check);
+      printf(")\n");
+      ok = 1;
+      goto cleanup;
+    }
+  }
+  else if (trafo_delegate->cost)
+  {
+    const R cost = trafo_delegate->cost(&p);
+    if (cost > MAX_SECONDS)
+    {
+      printf(" -> %-4s (cost too high)\n","OK");
+      ok = 1;
+      goto cleanup;
+    }
+  }
+
+  /* Pre-compute Psi, maybe. */
+  if(p.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&p);
+
+  check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
+
+  trafo_delegate->trafo(&p);
+
+  /* Standard NFFT error measure. */
+  {
+    R err = check_delegate->compare(check_delegate, &p, NN, M, f, f_hat);
+    FILE *file = fopen(filename, "a");
+    fprintf(file, "%d % 20.16lE\n", (int)p.m, (double)err);
+    printf(", %2d % 20.16lE (" __FE__ ")\n", (int)p.m, (double)err, EPSILON);
+    fclose(file);
+  }
+
+cleanup:
+  testcase->destroy(testcase, x, f_hat, f);
+  X(finalize)(&p);
+
+  return ok;
+}
+
+static void check_many_file(const size_t nf, const size_t ni, const size_t nt,
+  const testcase_delegate_t **testcases, init_delegate_t **initializers,
+  check_delegate_t *check_delegate, trafo_delegate_t **trafos)
+{
+  size_t i, j, k;
+  int ok = 1, r;
+  for (k = 0; k < nt; k++)
+  {
+    for (i = 0; i < nf; i++)
+    {
+      for (j = 0; j < ni; j++)
+      {
+         r = check_single_file(testcases[i], initializers[j], check_delegate, trafos[k], ABSPATH("nfft_accuracy.txt"));
+         ok = MIN(ok, r);
+      }
+    }
+  }
+  CU_ASSERT(ok);
+}
+
+static init_delegate_t init_acc_0 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 0, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_1 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 1, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_2 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 2, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_3 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 3, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_4 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 4, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_5 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 5, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_6 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 6, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_7 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 7, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_8 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 8, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_9 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 9, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_10 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 10, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_11 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 11, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_12 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 12, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_13 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 13, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_14 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 14, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_15 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 15, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_16 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 16, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_17 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 17, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_18 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 18, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_19 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 19, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_20 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 20, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_21 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 21, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_22 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 22, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_23 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 23, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_24 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 24, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+static init_delegate_t init_acc_25 = {"init_guru (PRE PSI)", init_advanced_pre_psi_, 25, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, 0};
+
+/* Initializers. */
+static const init_delegate_t* initializers_acc[] =
+{
+//    &init_acc_0,
+    &init_acc_1,
+    &init_acc_2,
+    &init_acc_3,
+    &init_acc_4,
+    &init_acc_5,
+    &init_acc_6,
+    &init_acc_7,
+    &init_acc_8,
+    &init_acc_9,
+    &init_acc_10,
+    &init_acc_11,
+    &init_acc_12,
+    &init_acc_13,
+    &init_acc_14,
+    &init_acc_15,
+    &init_acc_16,
+    &init_acc_17,
+    &init_acc_18,
+    &init_acc_19,
+    &init_acc_20,
+    &init_acc_21,
+    &init_acc_22,
+    &init_acc_23,
+    &init_acc_24,
+    &init_acc_25,
+};
+
+static const testcase_delegate_online_t nfft_acc = {setup_online, destroy_online, 1, 1000 ,10000};
+
+static const testcase_delegate_online_t *testcases_acc[] =
+{
+  &nfft_acc,
+};
+
+static const trafo_delegate_t* trafos_acc[] = {&trafo};
+
+void X(check_acc)(void)
+{
+  check_many_file(SIZE(testcases_acc), SIZE(initializers_acc), SIZE(trafos_acc),
+    testcases_acc, initializers_acc, &check_trafo, trafos_acc);
 }

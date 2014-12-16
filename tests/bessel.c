@@ -28,7 +28,7 @@
 #include "infft.h"
 #include "bessel.h"
 
-static const R r[100] =
+static const R r[] =
 {
   K(1.),
   K(1.266065877752008335598244625214717537607670311354962206808135331),
@@ -119,6 +119,7 @@ static const R r[100] =
   K(9.629888111716449119891609199747156897132776193136573093246999531e35),
   K(2.602543404422873394653370151078579731417701173457461289633354059e36),
   K(7.034019697322303775839744667527863794825432576041470228870590053e36),
+#ifndef NFFT_SINGLE
   K(1.901241929906489804817867678014679730480380284178119002890984985e37),
   K(5.139238345508663835278491143551074437225477975963566786265569375e37),
   K(1.389271406098962184295136044360963162648448300460678037021151849e38),
@@ -130,13 +131,25 @@ static const R r[100] =
   K(5.428145964601007525699719297026126037833477055897514245121468102e40),
   K(1.467956067407419253935815774834718367952993875125561963795542585e41),
   K(3.970062351772964342800951229310239389328999942632802037502762997e41)
+#endif
 };
+
+#define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
+
+#if defined(NFFT_LDOUBLE)
+static const R bound = K(43.0) * EPSILON;
+#elif defined(NFFT_SINGLE)
+static const R bound = K(14.0) * EPSILON;
+#else
+static const R bound = K(3.0) * EPSILON;
+#endif
 
 void X(check_bessel_i0)(void)
 {
   R x = K(0.0);
   R err = K(0.0);
   unsigned int j;
+  int ok;
 
   printf("BESSEL I0\n---------\n");
 
@@ -144,9 +157,10 @@ void X(check_bessel_i0)(void)
   {
     R y = X(bessel_i0)(x);
     R yr = r[j];
-    err = FMAX(err, ABS(y - yr) / ABS(yr));
-    fprintf(stderr, "i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ "\n", x, y,
-      ABS(y - yr) / ABS(yr));
+    err = ERR(y,yr);
+    ok = IF(err < bound, 1, 0);
+    fprintf(stderr, "i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", x, y,
+      err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
   }
-  CU_ASSERT(err < (K(3.0) * EPSILON));
 }

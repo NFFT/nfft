@@ -30,6 +30,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
 #if defined(NFFT_SINGLE)
 #define X(name) CONCAT(solverf_,name)
 #elif defined(NFFT_LDOUBLE)
@@ -44,10 +45,10 @@ void X(init_advanced_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv,
   ths->mv = mv;
   ths->flags = flags;
 
-  ths->y          = (C*)Y(malloc)(ths->mv->M_total*sizeof(C));
-  ths->r_iter     = (C*)Y(malloc)(ths->mv->M_total*sizeof(C));
-  ths->f_hat_iter = (C*)Y(malloc)(ths->mv->N_total*sizeof(C));
-  ths->p_hat_iter = (C*)Y(malloc)(ths->mv->N_total*sizeof(C));
+  ths->y          = (C*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(C));
+  ths->r_iter     = (C*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(C));
+  ths->f_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
+  ths->p_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
 
   if(ths->flags & LANDWEBER)
     ths->z_hat_iter = ths->p_hat_iter;
@@ -55,23 +56,23 @@ void X(init_advanced_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv,
   if(ths->flags & STEEPEST_DESCENT)
     {
       ths->z_hat_iter = ths->p_hat_iter;
-      ths->v_iter     = (C*)Y(malloc)(ths->mv->M_total*sizeof(C));
+      ths->v_iter     = (C*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(C));
     }
 
   if(ths->flags & CGNR)
     {
-      ths->z_hat_iter = (C*)Y(malloc)(ths->mv->N_total*sizeof(C));
-      ths->v_iter     = (C*)Y(malloc)(ths->mv->M_total*sizeof(C));
+      ths->z_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
+      ths->v_iter     = (C*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(C));
     }
 
   if(ths->flags & CGNE)
     ths->z_hat_iter = ths->p_hat_iter;
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    ths->w = (R*) Y(malloc)(ths->mv->M_total*sizeof(R));
+    ths->w = (R*) Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    ths->w_hat = (R*) Y(malloc)(ths->mv->N_total*sizeof(R));
+    ths->w_hat = (R*) Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
 }
 
 void X(init_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv)
@@ -395,10 +396,10 @@ void X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) *mv, unsigne
   ths->mv = mv;
   ths->flags = flags;
 
-  ths->y          = (R*)Y(malloc)(ths->mv->M_total*sizeof(R));
-  ths->r_iter     = (R*)Y(malloc)(ths->mv->M_total*sizeof(R));
-  ths->f_hat_iter = (R*)Y(malloc)(ths->mv->N_total*sizeof(R));
-  ths->p_hat_iter = (R*)Y(malloc)(ths->mv->N_total*sizeof(R));
+  ths->y          = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+  ths->r_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+  ths->f_hat_iter = (R*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
+  ths->p_hat_iter = (R*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
 
   if(ths->flags & LANDWEBER)
     ths->z_hat_iter = ths->p_hat_iter;
@@ -406,23 +407,23 @@ void X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) *mv, unsigne
   if(ths->flags & STEEPEST_DESCENT)
     {
       ths->z_hat_iter = ths->p_hat_iter;
-      ths->v_iter     = (R*)Y(malloc)(ths->mv->M_total*sizeof(R));
+      ths->v_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
     }
 
   if(ths->flags & CGNR)
     {
-      ths->z_hat_iter = (R*)Y(malloc)(ths->mv->N_total*sizeof(R));
-      ths->v_iter     = (R*)Y(malloc)(ths->mv->M_total*sizeof(R));
+      ths->z_hat_iter = (R*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
+      ths->v_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
     }
 
   if(ths->flags & CGNE)
     ths->z_hat_iter = ths->p_hat_iter;
 
   if(ths->flags & PRECOMPUTE_WEIGHT)
-    ths->w = (R*) Y(malloc)(ths->mv->M_total*sizeof(R));
+    ths->w = (R*) Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
 
   if(ths->flags & PRECOMPUTE_DAMP)
-    ths->w_hat = (R*) Y(malloc)(ths->mv->N_total*sizeof(R));
+    ths->w_hat = (R*) Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
 }
 
 void X(init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv)

@@ -10,7 +10,7 @@ else
   CHECK=
 endif
 
-check_PROGRAMS = $(CHECK)
+check_PROGRAMS = $(CHECK) 
 #debug
 
 TESTS = $(check_PROGRAMS)
@@ -30,8 +30,8 @@ endif
 checkall_SOURCES = check.c bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h $(NFCT_SOURCES) $(NFST_SOURCES)
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
 
-#debug_SOURCES = debug.c nfct.c nfct.h
-#debug_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la
+debug_SOURCES = debug.c nfct.c nfst.c nfct.h nfst.h
+debug_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
 
 clean-local:
 	rm -f CUnitAutomated-Results.xml

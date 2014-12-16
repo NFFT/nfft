@@ -24,5 +24,5 @@ R Y(elapsed_seconds)(ticks t1, ticks t0)
 {
   UNUSED(t1);
   UNUSED(t0);
-  return elapsed(t1,t0) / TICKS_PER_SECOND;
+  return (R)(elapsed(t1,t0)) / (R)(TICKS_PER_SECOND);
 }

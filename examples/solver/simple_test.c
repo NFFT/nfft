@@ -30,6 +30,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 /* void simple_test_infft_1d(int N, int M, int iter) */
 /* { */
 /*   int k,l;                            /\**< index for nodes, freqencies,iter*\/ */
@@ -89,58 +92,59 @@
 /** Simple test routine for the inverse nfft */
 static void simple_test_solver_nfft_1d(int N, int M, int iter)
 {
-  int k,l;                            /**< index for nodes, freqencies,iter*/
-  nfft_plan p;                          /**< plan for the nfft               */
-  solver_plan_complex ip;                        /**< plan for the inverse nfft       */
+  int k, l; /**< index for nodes, freqencies,iter*/
+  X(plan) p; /**< plan for the nfft               */
+  SOLVER(plan_complex) ip; /**< plan for the inverse nfft       */
 
   /** initialise an one dimensional plan */
-  nfft_init_1d(&p, N, M);
+  X(init_1d)(&p, N, M);
 
   /** init pseudo random nodes */
-  nfft_vrand_shifted_unit_double(p.x,p.M_total);
+  Y(vrand_shifted_unit_double)(p.x, p.M_total);
 
   /** precompute psi, the entries of the matrix B */
-  if(p.flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(&p);
+  if (p.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&p);
 
   /** initialise inverse plan */
-  solver_init_complex(&ip,(nfft_mv_plan_complex*)(&p));
+  SOLVER(init_complex)(&ip, (X(mv_plan_complex)*) (&p));
 
   /** init pseudo random samples and show them */
-  nfft_vrand_unit_complex(ip.y,p.M_total);
-  nfft_vpr_complex(ip.y,p.M_total,"Given data, vector y");
+  Y(vrand_unit_complex)(ip.y, p.M_total);
+  Y(vpr_complex)(ip.y, p.M_total, "Given data, vector y");
 
   /** initialise some guess f_hat_0 and solve */
-  for(k=0;k<p.N_total;k++)
-      ip.f_hat_iter[k]=0;
+  for (k = 0; k < p.N_total; k++)
+    ip.f_hat_iter[k] = K(0.0);
 
-  nfft_vpr_complex(ip.f_hat_iter,p.N_total,"Initial guess, vector f_hat_iter");
+  Y(vpr_complex)(ip.f_hat_iter, p.N_total,
+      "Initial guess, vector f_hat_iter");
 
-  CSWAP(ip.f_hat_iter,p.f_hat);
-  nfft_trafo(&p);
-  nfft_vpr_complex(p.f,p.M_total,"Data fit, vector f");
-  CSWAP(ip.f_hat_iter,p.f_hat);
+  CSWAP(ip.f_hat_iter, p.f_hat);
+  X(trafo)(&p);
+  Y(vpr_complex)(p.f, p.M_total, "Data fit, vector f");
+  CSWAP(ip.f_hat_iter, p.f_hat);
 
-  solver_before_loop_complex(&ip);
-  printf("\n Residual r=%e\n",ip.dot_r_iter);
+  SOLVER(before_loop_complex)(&ip);
+  printf("\n Residual r=%" __FES__ "\n", ip.dot_r_iter);
 
-  for(l=0;l<iter;l++)
-    {
-      printf("\n********** Iteration l=%d **********\n",l);
-      solver_loop_one_step_complex(&ip);
-      nfft_vpr_complex(ip.f_hat_iter,p.N_total,
-		  "Approximate solution, vector f_hat_iter");
+  for (l = 0; l < iter; l++)
+  {
+    printf("\n********** Iteration l=%d **********\n", l);
+    SOLVER(loop_one_step_complex)(&ip);
+    Y(vpr_complex)(ip.f_hat_iter, p.N_total,
+        "Approximate solution, vector f_hat_iter");
 
-      CSWAP(ip.f_hat_iter,p.f_hat);
-      nfft_trafo(&p);
-      nfft_vpr_complex(p.f,p.M_total,"Data fit, vector f");
-      CSWAP(ip.f_hat_iter,p.f_hat);
+    CSWAP(ip.f_hat_iter, p.f_hat);
+    X(trafo)(&p);
+    Y(vpr_complex)(p.f, p.M_total, "Data fit, vector f");
+    CSWAP(ip.f_hat_iter, p.f_hat);
 
-      printf("\n Residual r=%e\n",ip.dot_r_iter);
-    }
+    printf("\n Residual r=%" __FES__ "\n", ip.dot_r_iter);
+  }
 
-  solver_finalize_complex(&ip);
-  nfft_finalize(&p);
+  SOLVER(finalize_complex)(&ip);
+  X(finalize)(&p);
 }
 
 /** Main routine */
@@ -148,8 +152,8 @@ int main(void)
 {
   printf("\n Computing a one dimensional inverse nfft\n");
 
-  simple_test_solver_nfft_1d(8,4,5);
+  simple_test_solver_nfft_1d(8, 4, 5);
 
-  return 1;
+  return EXIT_SUCCESS;
 }
 /* \} */

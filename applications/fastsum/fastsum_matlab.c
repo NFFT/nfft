@@ -38,6 +38,9 @@
 #include "kernels.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFFT(name)
+
 /**
  * \defgroup applications_fastsum_matlab fastsum_matlab
  * \ingroup applications_fastsum
@@ -46,27 +49,27 @@
 
 int main(int argc, char **argv)
 {
-  int j,k,t;                                         /**< indices                 */
-  int d;                                             /**< number of dimensions    */
-  int N;                                             /**< number of source nodes  */
-  int M;                                             /**< number of target nodes  */
-  int n;                                             /**< expansion degree        */
-  int m;                                             /**< cut-off parameter       */
-  int p;                                             /**< degree of smoothness    */
-  char *s;                                           /**< name of kernel          */
-  double _Complex (*kernel)(double , int , const double *);  /**< kernel function         */
-  double c;                                          /**< parameter for kernel    */
-  fastsum_plan my_fastsum_plan;                      /**< plan for fast summation */
-  double _Complex *direct;                           /**< array for direct computation */
-  ticks t0, t1;                                      /**< for time measurement    */
-  double time;                                       /**< for time measurement    */
-  double error=0.0;                                  /**< for error computation   */
-  double eps_I;                                      /**< inner boundary          */
-  double eps_B;                                      /**< outer boundary          */
+  int j, k, t; /**< indices                 */
+  int d; /**< number of dimensions    */
+  int N; /**< number of source nodes  */
+  int M; /**< number of target nodes  */
+  int n; /**< expansion degree        */
+  int m; /**< cut-off parameter       */
+  int p; /**< degree of smoothness    */
+  char *s; /**< name of kernel          */
+  C (*kernel)(R, int, const R *); /**< kernel function         */
+  R c; /**< parameter for kernel    */
+  fastsum_plan my_fastsum_plan; /**< plan for fast summation */
+  C *direct; /**< array for direct computation */
+  ticks t0, t1; /**< for time measurement    */
+  R time; /**< for time measurement    */
+  R error = K(0.0); /**< for error computation   */
+  R eps_I; /**< inner boundary          */
+  R eps_B; /**< outer boundary          */
   FILE *fid1, *fid2;
-  double temp;
+  R temp;
 
-  if (argc!=11)
+  if (argc != 11)
   {
     printf("\nfastsum_test d N M n m p kernel c\n\n");
     printf("  d       dimension                 \n");
@@ -83,135 +86,144 @@ int main(int argc, char **argv)
   }
   else
   {
-    d=atoi(argv[1]);
-    N=atoi(argv[2]); c=1.0/pow((double)N,1.0/(double)d);
-    M=atoi(argv[3]);
-    n=atoi(argv[4]);
-    m=atoi(argv[5]);
-    p=atoi(argv[6]);
-    s=argv[7];
-    c=atof(argv[8]);
-    eps_I=atof(argv[9]);
-    eps_B=atof(argv[10]);
-    if (strcmp(s,"gaussian")==0)
+    d = atoi(argv[1]);
+    N = atoi(argv[2]);
+    c = K(1.0) / POW((R)(N), K(1.0) / ((R)(d)));
+    M = atoi(argv[3]);
+    n = atoi(argv[4]);
+    m = atoi(argv[5]);
+    p = atoi(argv[6]);
+    s = argv[7];
+    c = (R)(atof(argv[8]));
+    eps_I = (R)(atof(argv[9]));
+    eps_B = (R)(atof(argv[10]));
+    if (strcmp(s, "gaussian") == 0)
       kernel = gaussian;
-    else if (strcmp(s,"multiquadric")==0)
+    else if (strcmp(s, "multiquadric") == 0)
       kernel = multiquadric;
-    else if (strcmp(s,"inverse_multiquadric")==0)
+    else if (strcmp(s, "inverse_multiquadric") == 0)
       kernel = inverse_multiquadric;
-    else if (strcmp(s,"logarithm")==0)
+    else if (strcmp(s, "logarithm") == 0)
       kernel = logarithm;
-    else if (strcmp(s,"thinplate_spline")==0)
+    else if (strcmp(s, "thinplate_spline") == 0)
       kernel = thinplate_spline;
-    else if (strcmp(s,"one_over_square")==0)
+    else if (strcmp(s, "one_over_square") == 0)
       kernel = one_over_square;
-    else if (strcmp(s,"one_over_modulus")==0)
+    else if (strcmp(s, "one_over_modulus") == 0)
       kernel = one_over_modulus;
-    else if (strcmp(s,"one_over_x")==0)
+    else if (strcmp(s, "one_over_x") == 0)
       kernel = one_over_x;
-    else if (strcmp(s,"inverse_multiquadric3")==0)
+    else if (strcmp(s, "inverse_multiquadric3") == 0)
       kernel = inverse_multiquadric3;
-    else if (strcmp(s,"sinc_kernel")==0)
+    else if (strcmp(s, "sinc_kernel") == 0)
       kernel = sinc_kernel;
-    else if (strcmp(s,"cosc")==0)
+    else if (strcmp(s, "cosc") == 0)
       kernel = cosc;
-    else if (strcmp(s,"cot")==0)
+    else if (strcmp(s, "cot") == 0)
       kernel = kcot;
     else
     {
-      s="multiquadric";
+      s = "multiquadric";
       kernel = multiquadric;
     }
   }
-  printf("d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%g, eps_I=%g, eps_B=%g \n",d,N,M,n,m,p,s,c,eps_I,eps_B);
+  printf(
+      "d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%" __FGS__ ", eps_I=%" __FGS__ ", eps_B=%" __FGS__ " \n",
+      d, N, M, n, m, p, s, c, eps_I, eps_B);
 
   /** init two dimensional fastsum plan */
-  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p, eps_I, eps_B);
+  fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, 0, n, m, p, eps_I,
+      eps_B);
   /*fastsum_init_guru(&my_fastsum_plan, d, N, M, kernel, &c, EXACT_NEARFIELD, n, m, p);*/
 
   /** load source knots and coefficients */
-  fid1=fopen("x.dat","r");
-  fid2=fopen("alpha.dat","r");
-  for (k=0; k<N; k++)
+  fid1 = fopen("x.dat", "r");
+  fid2 = fopen("alpha.dat", "r");
+  for (k = 0; k < N; k++)
   {
-    for (t=0; t<d; t++)
+    for (t = 0; t < d; t++)
     {
-      fscanf(fid1,"%le",&my_fastsum_plan.x[k*d+t]);
+      fscanf(fid1, __FR__, &my_fastsum_plan.x[k * d + t]);
     }
-    fscanf(fid2,"%le",&temp); my_fastsum_plan.alpha[k] = temp;
-    fscanf(fid2,"%le",&temp); my_fastsum_plan.alpha[k] += temp*_Complex_I;
+    fscanf(fid2, __FR__, &temp);
+    my_fastsum_plan.alpha[k] = temp;
+    fscanf(fid2, __FR__, &temp);
+    my_fastsum_plan.alpha[k] += temp * II;
   }
   fclose(fid1);
   fclose(fid2);
 
   /** load target knots */
-  fid1=fopen("y.dat","r");
-  for (j=0; j<M; j++)
+  fid1 = fopen("y.dat", "r");
+  for (j = 0; j < M; j++)
   {
-    for (t=0; t<d; t++)
+    for (t = 0; t < d; t++)
     {
-      fscanf(fid1,"%le",&my_fastsum_plan.y[j*d+t]);
+      fscanf(fid1, __FR__, &my_fastsum_plan.y[j * d + t]);
     }
   }
   fclose(fid1);
 
   /** direct computation */
-  printf("direct computation: "); fflush(NULL);
+  printf("direct computation: ");
+  fflush(NULL);
   t0 = getticks();
   fastsum_exact(&my_fastsum_plan);
   t1 = getticks();
-  time=nfft_elapsed_seconds(t1,t0);
-  printf("%fsec\n",time);
+  time = Y(elapsed_seconds)(t1, t0);
+  printf("%fsec\n", time);
 
   /** copy result */
-  direct = (double _Complex *)nfft_malloc(my_fastsum_plan.M_total*(sizeof(double _Complex)));
-  for (j=0; j<my_fastsum_plan.M_total; j++)
-    direct[j]=my_fastsum_plan.f[j];
+  direct = (C *) Y(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
+  for (j = 0; j < my_fastsum_plan.M_total; j++)
+    direct[j] = my_fastsum_plan.f[j];
 
   /** precomputation */
-  printf("pre-computation:    "); fflush(NULL);
+  printf("pre-computation:    ");
+  fflush(NULL);
   t0 = getticks();
   fastsum_precompute(&my_fastsum_plan);
   t1 = getticks();
-  time=nfft_elapsed_seconds(t1,t0);
-  printf("%fsec\n",time);
+  time = Y(elapsed_seconds)(t1, t0);
+  printf("%fsec\n", time);
 
   /** fast computation */
-  printf("fast computation:   "); fflush(NULL);
+  printf("fast computation:   ");
+  fflush(NULL);
   t0 = getticks();
   fastsum_trafo(&my_fastsum_plan);
   t1 = getticks();
-  time=nfft_elapsed_seconds(t1,t0);
-  printf("%fsec\n",time);
+  time = Y(elapsed_seconds)(t1, t0);
+  printf("%fsec\n", time);
 
   /** compute max error */
-  error=0.0;
-  for (j=0; j<my_fastsum_plan.M_total; j++)
+  error = K(0.0);
+  for (j = 0; j < my_fastsum_plan.M_total; j++)
   {
-   if (cabs(direct[j]-my_fastsum_plan.f[j])/cabs(direct[j])>error)
-      error=cabs(direct[j]-my_fastsum_plan.f[j])/cabs(direct[j]);
+    if (CABS(direct[j] - my_fastsum_plan.f[j]) / CABS(direct[j]) > error)
+      error = CABS(direct[j] - my_fastsum_plan.f[j]) / CABS(direct[j]);
   }
-  printf("max relative error: %e\n",error);
+  printf("max relative error: " __FE__ "\n", error);
 
   /** write result to file */
-  fid1=fopen("f.dat","w+");
-  fid2=fopen("f_direct.dat","w+");
-  if (fid1==NULL)
+  fid1 = fopen("f.dat", "w+");
+  fid2 = fopen("f_direct.dat", "w+");
+  if (fid1 == NULL)
   {
     printf("Fehler!\n");
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
-  for (j=0; j<M; j++)
+  for (j = 0; j < M; j++)
   {
-    temp=creal(my_fastsum_plan.f[j]);
-    fprintf(fid1,"  % .16e",temp);
-    temp=cimag(my_fastsum_plan.f[j]);
-    fprintf(fid1,"  % .16e\n",temp);
+    temp = CREAL(my_fastsum_plan.f[j]);
+    fprintf(fid1, "  % .16" __FES__ "", temp);
+    temp = CIMAG(my_fastsum_plan.f[j]);
+    fprintf(fid1, "  % .16" __FES__ "\n", temp);
 
-    temp=creal(direct[j]);
-    fprintf(fid2,"  % .16e",temp);
-    temp=cimag(direct[j]);
-    fprintf(fid2,"  % .16e\n",temp);
+    temp = CREAL(direct[j]);
+    fprintf(fid2, "  % .16" __FES__ "", temp);
+    temp = CIMAG(direct[j]);
+    fprintf(fid2, "  % .16" __FES__ "\n", temp);
   }
   fclose(fid1);
   fclose(fid2);
@@ -219,6 +231,6 @@ int main(int argc, char **argv)
   /** finalise the plan */
   fastsum_finalize(&my_fastsum_plan);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 /* \} */
