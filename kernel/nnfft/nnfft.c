@@ -302,6 +302,7 @@ void nnfft_trafo(nnfft_plan *ths)
     }
   }
 
+
   /* allows for external swaps of ths->f */
   ths->direct_plan->f = ths->f;
 
@@ -314,6 +315,7 @@ void nnfft_trafo(nnfft_plan *ths)
   }
 
   nnfft_D(ths);
+
 } /* nnfft_trafo */
 
 void nnfft_adjoint(nnfft_plan *ths)
@@ -478,6 +480,19 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
     } /* for(j) */
 }
 
+void nnfft_precompute_one_psi(nnfft_plan *ths)
+{
+  if(ths->nnfft_flags & PRE_PSI)
+    nnfft_precompute_psi(ths);
+  if(ths->nnfft_flags & PRE_FULL_PSI)
+    nnfft_precompute_full_psi(ths);
+  if(ths->nnfft_flags & PRE_LIN_PSI)
+    nnfft_precompute_lin_psi(ths);
+  /** precompute phi_hut, the entries of the matrix D */
+  if(ths->nnfft_flags & PRE_PHI_HUT)
+	  nnfft_precompute_phi_hut(ths);
+}
+
 static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsigned fftw_flags)
 {
   int t;                                /**< index over all dimensions       */
@@ -516,13 +531,18 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
 
   if(ths->nnfft_flags & MALLOC_X)
     ths->x = (double*)nfft_malloc(ths->d*ths->M_total*sizeof(double));
-  if(ths->nnfft_flags & MALLOC_F)
+  if(ths->nnfft_flags & MALLOC_F){
     ths->f=(double _Complex*)nfft_malloc(ths->M_total*sizeof(double _Complex));
-
+  }
   if(ths->nnfft_flags & MALLOC_V)
     ths->v = (double*)nfft_malloc(ths->d*ths->N_total*sizeof(double));
   if(ths->nnfft_flags & MALLOC_F_HAT)
     ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*sizeof(double _Complex));
+
+  //BUGFIX SUSE 2
+  /** precompute phi_hut, the entries of the matrix D */
+//  if(ths->nnfft_flags & PRE_PHI_HUT)
+//	  nnfft_precompute_phi_hut(ths);
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
@@ -530,8 +550,9 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
     ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
   }
 
-  if(ths->nnfft_flags & PRE_PSI)
+  if(ths->nnfft_flags & PRE_PSI){
     ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*(2*ths->m+2)*sizeof(double));
+  }
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
   {
@@ -543,13 +564,11 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
       ths->psi_index_f = (int*) nfft_malloc(ths->N_total*sizeof(int));
       ths->psi_index_g = (int*) nfft_malloc(ths->N_total*lprod*sizeof(int));
   }
-
   ths->direct_plan = (nfft_plan*)nfft_malloc(sizeof(nfft_plan));
-
   nfft_init_guru(ths->direct_plan, ths->d, ths->aN1, ths->M_total, N2, m2,
 		 nfft_flags, fftw_flags);
-
   ths->direct_plan->x = ths->x;
+
   ths->direct_plan->f = ths->f;
   ths->F = ths->direct_plan->f_hat;
 
@@ -598,26 +617,26 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
 
   unsigned nfft_flags;
   unsigned fftw_flags;
-
   ths->d = d;
   ths->M_total = M_total;
   ths->N_total = N_total;
-
   /* m should be greater to get the same accuracy as the nfft */
 /* Was soll dieser Ausdruck machen? Es handelt sich um eine Ganzzahl!
 
   WINDOW_HELP_ESTIMATE_m;
 */
+  //BUGFIX SUSE 1
+ths->m=WINDOW_HELP_ESTIMATE_m;
+
 
   ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));
 
   for(t=0; t<d; t++) {
     ths->N[t] = N[t];
-
     /* the standard oversampling factor in the nnfft is 1.5 */
     ths->N1[t] = ceil(1.5*ths->N[t]);
-    
+
     /* N1 should be even */
     if(ths->N1[t]%2 != 0)
       ths->N1[t] = ths->N1[t] +1;
@@ -627,15 +646,17 @@ void nnfft_init(nnfft_plan *ths, int d, int N_total, int M_total, int *N)
   nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
 
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
-
   nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
+}
+
+void nnfft_init_1d(nnfft_plan *ths,int N1, int M_total)
+{
+  nnfft_init(ths,1,N1,M_total,&N1);
 }
 
 void nnfft_finalize(nnfft_plan *ths)
 {
-
   nfft_finalize(ths->direct_plan);
-
   nfft_free(ths->direct_plan);
 
   nfft_free(ths->aN1);

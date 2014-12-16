@@ -34,7 +34,7 @@ void simple_test_nnfft_1d(void)
   nnfft_plan my_plan;                    /**< plan for the nfft                */
 
   int N[1];
-  N[0]=12;
+  N[0]=10;
 
   /** init an one dimensional plan */
   nnfft_init(&my_plan, 1, 3, 19, N);
@@ -51,18 +51,20 @@ void simple_test_nnfft_1d(void)
   }
 
   /** precompute psi, the entries of the matrix B */
-  if(my_plan.nnfft_flags & PRE_PSI)
-    nnfft_precompute_psi(&my_plan);
+/*  if(my_plan.nnfft_flags & PRE_PSI)
+        nnfft_precompute_psi(&my_plan);
 
   if(my_plan.nnfft_flags & PRE_FULL_PSI)
-    nnfft_precompute_full_psi(&my_plan);
-
+ 	nnfft_precompute_full_psi(&my_plan);
   if(my_plan.nnfft_flags & PRE_LIN_PSI)
-    nnfft_precompute_lin_psi(&my_plan);
-
+	 nnfft_precompute_lin_psi(&my_plan);
   /** precompute phi_hut, the entries of the matrix D */
-  if(my_plan.nnfft_flags & PRE_PHI_HUT)
-    nnfft_precompute_phi_hut(&my_plan);
+/*  if(my_plan.nnfft_flags & PRE_PHI_HUT)
+	  nnfft_precompute_phi_hut(&my_plan);
+*/
+
+nnfft_precompute_one_psi(&my_plan);
+
 
   /** init pseudo random Fourier coefficients and show them */
   for(k=0;k<my_plan.N_total;k++)
@@ -310,10 +312,10 @@ static void measure_time_nnfft_1d(void)
 int main(void)
 {
   system("clear");
-  printf("1) computing a one dimensional nndft, nnfft\n\n");
+  printf("1) computing a one dimensional nndft, nnfft SUSE\n\n");
   simple_test_nnfft_1d();
 
-  getc(stdin);
+  /*getc(stdin);
 
   system("clear");
   printf("1a) computing a one dimensional adjoint nndft, nnfft\n\n");
@@ -336,6 +338,6 @@ int main(void)
   system("clear");
   printf("4) computing times for one dimensional nnfft\n\n");
   measure_time_nnfft_1d();
-
+*/
   return 1;
 }
