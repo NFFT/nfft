@@ -46,32 +46,34 @@
 #define X(name) NFCT(name)
 
 /** Compute aggregated product of integer array. */
-static inline INT intprod(const INT *vec, const INT d)
+static inline INT intprod(const INT *vec, const INT a, const INT d)
 {
   INT t, p;
 
   p = 1;
   for (t = 0; t < d; t++)
-    p *= vec[t];
+    p *= vec[t] - a;
 
   return p;
 }
 
 /* handy shortcuts */
-#define NFCT_DEFAULT_FLAGS PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | \
-  MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE
-
+#define BASE(x) COS(x)
+#define NN(x) (x - 1)
+#define OFFSET 0
+#define FOURIER_TRAFO FFTW_REDFT00
 #define FFTW_DEFAULT_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
 
 #define NODE(p,r) (ths->x[(p) * ths->d + (r)])
 
 #define MACRO_with_FG_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
-#define MACRO_without_PRE_PSI PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + t]) \
-  - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t)
-#define MACRO_compute_PSI PHI((2 * (ths->n[t] - 1)), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t)
+#define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + t]) \
+  - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)NN(ths->n[t])))), t)
+#define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)NN(ths->n[t])))), t)
 
-/** direct computation of non equispaced cosine transforms
+/**
+ * Direct computation of non equispaced cosine transforms
  *  nfct_trafo_direct,  nfct_adjoint_direct
  *  require O(M N^d) arithemtical operations
  *
@@ -85,25 +87,26 @@ static inline INT intprod(const INT *vec, const INT d)
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M-1} f[j] * cos(2 (pi) k x[j])
  */
-
 void X(trafo_direct)(const X(plan) *ths)
 {
   R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
 
-  memset(f, 0, ths->M_total * sizeof(R));
+  memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
 
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j)
+#endif
     for (j = 0; j < ths->M_total; j++)
     {
       INT k_L;
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = K2PI * ((R)(k_L)) * ths->x[j];
-        f[j] += f_hat[k_L] * COS(omega);
+        R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
+        f[j] += f_hat[k_L] * BASE(omega);
       }
     }
   }
@@ -111,7 +114,9 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* multivariate case */
     INT j;
+#ifdef ENABLE_OPENMP
     #pragma omp parallel for default(shared) private(j)
+#endif
     for (j = 0; j < ths->M_total; j++)
     {
       R x[ths->d], omega, Omega[ths->d + 1];
@@ -119,9 +124,9 @@ void X(trafo_direct)(const X(plan) *ths)
       Omega[0] = K(1.0);
       for (t = 0; t < ths->d; t++)
       {
-        k[t] = 0;
+        k[t] = OFFSET;
         x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = COS(((R)(k[t])) * x[t]) * Omega[t];
+        Omega[t+1] = BASE(((R)(k[t])) * x[t]) * Omega[t];
       }
       omega = Omega[ths->d];
 
@@ -130,12 +135,12 @@ void X(trafo_direct)(const X(plan) *ths)
         f[j] += f_hat[k_L] * omega;
         {
           for (t = ths->d - 1; (t >= 1) && (k[t] == (ths->N[t] - 1)); t--)
-            k[t] = 0;
+            k[t] = OFFSET;
 
           k[t]++;
 
           for (t2 = t; t2 < ths->d; t2++)
-            Omega[t2+1] = COS(((R)(k[t2])) * x[t2]) * Omega[t2];
+            Omega[t2+1] = BASE(((R)(k[t2])) * x[t2]) * Omega[t2];
 
           omega = Omega[ths->d];
         }
@@ -148,7 +153,7 @@ void X(adjoint_direct)(const X(plan) *ths)
 {
   R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
 
-  memset(f_hat, 0, ths->N_total * sizeof(R));
+  memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(R));
 
   if (ths->d == 1)
   {
@@ -161,8 +166,8 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT j;
         for (j = 0; j < ths->M_total; j++)
         {
-          R omega = K2PI * ((R)(k_L)) * ths->x[j];
-          f_hat[k_L] += f[j] * COS(omega);
+          R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
+          f_hat[k_L] += f[j] * BASE(omega);
         }
       }
 #else
@@ -172,8 +177,8 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT k_L;
         for (k_L = 0; k_L < ths->N_total; k_L++)
         {
-          R omega = K2PI * ((R)(k_L)) * ths->x[j];
-          f_hat[k_L] += f[j] * COS(omega);
+          R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
+          f_hat[k_L] += f[j] * BASE(omega);
         }
       }
 #endif
@@ -200,7 +205,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       {
         R omega = K(1.0);
         for (t = 0; t < ths->d; t++)
-          omega *= COS(K2PI * (k[t]) * ths->x[j * ths->d + t]);
+          omega *= BASE(K2PI * (k[t] + OFFSET) * ths->x[j * ths->d + t]);
         f_hat[k_L] += f[j] * omega;
       }
     }
@@ -212,9 +217,9 @@ void X(adjoint_direct)(const X(plan) *ths)
       Omega[0] = K(1.0);
       for (t = 0; t < ths->d; t++)
       {
-        k[t] = 0;
+        k[t] = OFFSET;
         x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = COS(((R)(k[t])) * x[t]) * Omega[t];
+        Omega[t+1] = BASE(((R)(k[t])) * x[t]) * Omega[t];
       }
       omega = Omega[ths->d];
       for (k_L = 0; k_L < ths->N_total; k_L++)
@@ -222,12 +227,12 @@ void X(adjoint_direct)(const X(plan) *ths)
         f_hat[k_L] += f[j] * omega;
 
         for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t] - 1); t--)
-          k[t] = 0;
+          k[t] = OFFSET;
 
         k[t]++;
 
         for (t2 = t; t2 < ths->d; t2++)
-          Omega[t2+1] = COS(((R)(k[t2])) * x[t2]) * Omega[t2];
+          Omega[t2+1] = BASE(((R)(k[t2])) * x[t2]) * Omega[t2];
 
         omega = Omega[ths->d];
       }
@@ -256,32 +261,32 @@ void X(adjoint_direct)(const X(plan) *ths)
 /** computes 2m+2 indices for the matrix B
  */
 static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
-    const INT act_dim)
+  const INT act_dim)
 {
   const R xj = ths->x[j * ths->d + act_dim];
-  INT c = LRINT(xj * (2 * (ths->n[(act_dim)] - 1)));
+  INT c = LRINT(xj * (2 * NN(ths->n[(act_dim)])));
 
   (*up) = c - (ths->m);
   (*op) = c + 1 + (ths->m);
 }
 
-#define MACRO_nfct_D_compute_A \
+#define MACRO_D_compute_A \
 { \
   g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfct_D_compute_T \
+#define MACRO_D_compute_T \
 { \
   f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfct_D_init_result_A memset(g_hat, 0, ths->n_total * sizeof(R));
+#define MACRO_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(R));
 
-#define MACRO_nfct_D_init_result_T memset(f_hat, 0, ths->N_total * sizeof(R));
+#define MACRO_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(R));
 
 #define MACRO_with_PRE_PHI_HUT ths->c_phi_inv[t][kg[t]]
 
-#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT((2 * (ths->n[t] - 1)), kg[t], t)))
+#define MACRO_compute_PHI_HUT_INV (K(1.0) / (PHI_HUT((2 * NN(ths->n[t])), kg[t] + OFFSET, t)))
 
 #define MACRO_init_k_ks \
 { \
@@ -330,13 +335,14 @@ static inline void D_ ## which_one (X(plan) *ths) \
 { \
   R *g_hat, *f_hat; /* local copy */ \
   R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT */ \
-  INT i, t; \
+  INT t, t2; /* index dimensions */ \
+  INT i; \
   INT k_L; /* plain index */ \
   INT kg[ths->d]; /* multi index in g_hat */ \
   INT kg_plain[ths->d+1]; /* postfix plain index */ \
 \
-  g_hat = ths->g_hat; f_hat = ths->f_hat; \
-  MACRO_nfct_D_init_result_ ## which_one; \
+  f_hat = (R*)ths->f_hat; g_hat = (R*)ths->g_hat; \
+  MACRO_D_init_result_ ## which_one; \
 \
   c_phi_inv_k[0] = K(1.0); \
   kg_plain[0] = 0; \
@@ -348,7 +354,7 @@ static inline void D_ ## which_one (X(plan) *ths) \
     for (k_L = 0; k_L < ths->N_total; k_L++) \
     { \
       MACRO_update_c_phi_inv_k(which_one, with_PRE_PHI_HUT); \
-      MACRO_nfct_D_compute_ ## which_one; \
+      MACRO_D_compute_ ## which_one; \
       MACRO_count_k_ks; \
     } \
   } \
@@ -357,7 +363,7 @@ static inline void D_ ## which_one (X(plan) *ths) \
     for (k_L = 0; k_L < ths->N_total; k_L++) \
     { \
       MACRO_update_c_phi_inv_k(which_one,compute_PHI_HUT_INV); \
-      MACRO_nfct_D_compute_ ## which_one; \
+      MACRO_D_compute_ ## which_one; \
       MACRO_count_k_ks; \
     } \
   } \
@@ -367,15 +373,15 @@ MACRO_D(A)
 MACRO_D(T)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_nfct_B_init_result_A memset(f, 0, ths->M_total * sizeof(R));
-#define MACRO_nfct_B_init_result_T memset(g, 0, ths->n_total * sizeof(R));
+#define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
+#define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(R));
 
-#define MACRO_nfct_B_PRE_FULL_PSI_compute_A \
+#define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
   (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
 }
 
-#define MACRO_nfct_B_PRE_FULL_PSI_compute_T \
+#define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
   factor = K(1.0); \
   d = ths->psi_index_g[ix]; \
@@ -389,12 +395,12 @@ MACRO_D(T)
   g[ths->psi_index_g[ix]] += factor * ths->psi[ix] * (*fj); \
 }
 
-#define MACRO_nfct_B_compute_A \
+#define MACRO_B_compute_A \
 { \
   (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
 }
 
-#define MACRO_nfct_B_compute_T \
+#define MACRO_B_compute_T \
 { \
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
 }
@@ -408,11 +414,11 @@ MACRO_D(T)
     /* determine index in g-array corresponding to u[(t2)] */ \
     if (u[(t2)] < 0) \
       lg_offset[(t2)] = \
-        (u[(t2)] % (2 * (ths->n[(t2)] - 1))) + (2 * (ths->n[(t2)] - 1)); \
+        (u[(t2)] % (2 * NN(ths->n[(t2)]))) + (2 * NN(ths->n[(t2)])); \
     else \
-      lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] - 1)); \
-      if (lg_offset[(t2)] >= ths->n[(t2)]) \
-        lg_offset[(t2)] = -(2 * (ths->n[(t2)] - 1) - lg_offset[(t2)]); \
+      lg_offset[(t2)] = u[(t2)] % (2 * NN(ths->n[(t2)])); \
+      if (lg_offset[(t2)] > NN(ths->n[(t2)])) \
+        lg_offset[(t2)] = -(2 * NN(ths->n[(t2)]) - lg_offset[(t2)]); \
     \
     if (lg_offset[t2] <= 0) \
     { \
@@ -446,7 +452,7 @@ MACRO_D(T)
 #define MACRO_count_uo_l_lj_t \
 { \
   /* turn around if we hit one of the boundaries */ \
-  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == ths->n[(ths->d-1)] - 1)) \
+  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == NN(ths->n[(ths->d-1)]))) \
     count_lg[(ths->d-1)] *= -1; \
  \
   /* move array index */ \
@@ -462,7 +468,7 @@ MACRO_D(T)
     /* ansonsten lg[i-1] verschieben */ \
  \
     /* turn around if we hit one of the boundaries */ \
-    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == ths->n[(t2 - 1)] - 1)) \
+    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == NN(ths->n[(t2 - 1)]))) \
       count_lg[(t2 - 1)] *= -1; \
     /* move array index */ \
     l[(t2 - 1)] += count_lg[(t2 - 1)]; \
@@ -508,30 +514,26 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT lg_offset[ths->d]; /* offset in g according to u */ \
   INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
-  f = ths->f; g = ths->g; \
+  f = (R*)ths->f; g = (R*)ths->g; \
 \
-  MACRO_nfct_B_init_result_ ## which_one \
+  MACRO_B_init_result_ ## which_one \
 \
-  /* both flags are set */ \
   if (ths->flags & PRE_FULL_PSI) \
   { \
     R factor; \
     INT d, m; \
-    /*fprintf(stderr,"\n");*/ \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
       { \
-        /*fprintf(stderr,__FE__ ", %d\n",ths->psi[ix], ths->psi_index_g[ix]);*/ \
-        MACRO_nfct_B_PRE_FULL_PSI_compute_ ## which_one; \
+        MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
       } \
-      /*fprintf(stderr,"\n");*/ \
     } \
     return; \
   } \
 \
   phi_prod[0] = K(1.0); \
-  ll_plain[0]  = 0; \
+  ll_plain[0] = 0; \
 \
   for (t = 0, lprod = 1; t < ths->d; t++) \
     lprod *= (2 * ths->m + 2); \
@@ -546,13 +548,13 @@ static inline void B_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(which_one, with_PRE_PSI); \
  \
-        MACRO_nfct_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } /* for(l_L) */ \
     } /* for(j) */ \
     return; \
-  } \
+  } /* if(PRE_PSI) */ \
  \
   if (ths->flags & PRE_FG_PSI) \
   { \
@@ -593,7 +595,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
  \
-        MACRO_nfct_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } \
@@ -624,9 +626,9 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
       for (t = 0; t < ths->d; t++) \
       { \
-        fg_psi[t][0] = (PHI((2 * (ths->n[t] - 1)), (ths->x[j*ths->d+t] - ((R)u[t])/(2 * (ths->n[t] - 1))),(t)));\
+        fg_psi[t][0] = (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)u[t])/(2 * NN(ths->n[t]))),(t)));\
  \
-        tmpEXP1 = EXP(K(2.0) * ((2 * (ths->n[t] - 1)) * ths->x[j * ths->d + t] - u[t]) / ths->b[t]); \
+        tmpEXP1 = EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - u[t]) / ths->b[t]); \
         tmp1 = K(1.0); \
         for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++) \
         { \
@@ -639,7 +641,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
  \
-        MACRO_nfct_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } \
@@ -655,7 +657,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   \
       for (t = 0; t < ths->d; t++) \
       { \
-        y[t] = (((2 * (ths->n[t] - 1)) * ths->x[j * ths->d + t] - (R)u[t]) \
+        y[t] = (((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - (R)u[t]) \
                 * ((R)ths->K))/(ths->m + 2); \
         ip_u  = LRINT(FLOOR(y[t])); \
         ip_w  = y[t]-ip_u; \
@@ -671,7 +673,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
  \
-        MACRO_nfct_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       }  /* for(l_L) */  \
@@ -688,7 +690,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
     { \
       MACRO_update_phi_prod_ll_plain(which_one, without_PRE_PSI); \
  \
-      MACRO_nfct_B_compute_ ## which_one; \
+      MACRO_B_compute_ ## which_one; \
  \
       MACRO_count_uo_l_lj_t; \
     } /* for (l_L) */ \
@@ -788,11 +790,11 @@ static inline void precompute_phi_hut(X(plan) *ths)
 
   for (t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (R*)Y(malloc)((ths->N[t]) * sizeof(R));
+    ths->c_phi_inv[t] = (R*)Y(malloc)((ths->N[t] - OFFSET) * sizeof(R));
 
-    for (ks[t] = 0; ks[t] < ths->N[t]; ks[t]++)
+    for (ks[t] = 0; ks[t] < ths->N[t] - OFFSET; ks[t]++)
     {
-      ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT((2 * (ths->n[t] - 1)), ks[t], t)));
+      ths->c_phi_inv[t][ks[t]] = (K(1.0) / (PHI_HUT((2 * NN(ths->n[t])), ks[t] + OFFSET, t)));
     }
   }
 } /* phi_hut */
@@ -810,11 +812,11 @@ void X(precompute_lin_psi)(X(plan) *ths)
 
   for (t = 0; t < ths->d; t++)
   {
-    step = ((R)(ths->m+2)) / (((R)ths->K) * (2 * (ths->n[t] - 1)));
+    step = ((R)(ths->m+2)) / (((R)ths->K) * (2 * NN(ths->n[t])));
 
     for (j = 0; j <= ths->K; j++)
     {
-      ths->psi[(ths->K + 1) * t + j] = PHI((2 * (ths->n[t] - 1)), (j * step), t);
+      ths->psi[(ths->K + 1) * t + j] = PHI((2 * NN(ths->n[t])), (j * step), t);
     } /* for(j) */
   } /* for(t) */
 }
@@ -834,8 +836,8 @@ void X(precompute_fg_psi)(X(plan) *ths)
     {
       uo(ths, j, &u, &o, t);
 
-      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * (ths->n[t] - 1)),(ths->x[j * ths->d + t] - ((R)u) / (2 * (ths->n[t] - 1))),(t)));
-      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * (ths->n[t] - 1)) * ths->x[j * ths->d + t] - u) / ths->b[t]);
+      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),(ths->x[j * ths->d + t] - ((R)u) / (2 * NN(ths->n[t]))),(t)));
+      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - u) / ths->b[t]);
       } /* for(j) */
   }
   /* for(t) */
@@ -859,7 +861,7 @@ void X(precompute_psi)(X(plan) *ths)
 
       for(lj = 0; lj < (2 * ths->m + 2); lj++)
         ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
-            (PHI((2 * (ths->n[t] - 1)), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)(ths->n[t]) - K(1.0)))), t));
+            (PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)NN(ths->n[t])))), t));
     } /* for (j) */
   } /* for (t) */
 } /* precompute_psi */
@@ -934,18 +936,18 @@ static inline void init_help(X(plan) *ths)
   if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     ths->flags |= NFFT_SORT_NODES;
 
-  ths->N_total = intprod(ths->N, ths->d);
-  ths->n_total = intprod(ths->n, ths->d);
+  ths->N_total = intprod(ths->N, OFFSET, ths->d);
+  ths->n_total = intprod(ths->n, 0, ths->d);
 
   ths->sigma = (R*)Y(malloc)(ths->d * sizeof(R));
 
   for (t = 0; t < ths->d; t++)
-    ths->sigma[t] = ((R)(ths->n[t] - 1)) / ths->N[t];
+    ths->sigma[t] = ((R)NN(ths->n[t])) / ths->N[t];
 
   /* Assign r2r transform kinds for each dimension */
   ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)(ths->d * sizeof (Z(r2r_kind)));
   for (t = 0; t < ths->d; t++)
-    ths->r2r_kind[t] = FFTW_REDFT00;
+    ths->r2r_kind[t] = FOURIER_TRAFO;
 
   WINDOW_HELP_INIT;
 
@@ -1029,7 +1031,7 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   ths->n = (INT*) Y(malloc)(d * sizeof(INT));
 
   for (t = 0; t < d; t++)
-    ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1);
+    ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1) + OFFSET;
 
   ths->m = WINDOW_HELP_ESTIMATE_m;
 

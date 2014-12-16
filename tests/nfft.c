@@ -174,7 +174,7 @@ static R trafo_direct_cost(X(plan) *p)
             p2.x[i] = K(0.0);
           if(p2.flags & PRE_ONE_PSI)
             X(precompute_one_psi)(&p2);
-          for (i = 0; i < d*Nd; i++)
+          for (i = 0; i < d * Nd; i++)
           {
             p2.f_hat[i] = K(0.0) + K(0.0) * I;
           }
@@ -218,9 +218,6 @@ static R err_trafo_direct(X(plan) *p)
 
 static R err_trafo(X(plan) *p)
 {
-  //if (p->flags & PRE_LIN_PSI)
-  //  return FMAX(K(2.5)*K(10E-08), K(50.0) * EPSILON);
-
   const R m = ((R)p->m);
   R s; /* oversampling factor */
   R a;
@@ -246,8 +243,28 @@ static R err_trafo(X(plan) *p)
     //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
     //printf("\n<s = %E>\n", s);
     //fflush(stdout);
+#if defined(NFFT_LDOUBLE)
+    a = K(0.3);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(1.0);
+    b = K(2000.0);
+#endif
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
   #elif defined(SINC_POWER)
+#if defined(NFFT_LDOUBLE)
+    a = K(0.3);
+    b = K(50.0);
+#elif defined(NFFT_SINGLE)
+    a = K(0.4);
+    b = K(2000.0);
+#else
+    a = K(1.0);
+    b = K(2000.0);
+#endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
 #if defined(NFFT_LDOUBLE)
@@ -258,7 +275,7 @@ static R err_trafo(X(plan) *p)
     b = K(2000.0);
 #else
     a = K(0.3);
-    b = K(2000.0);
+    b = K(2100.0);
 #endif
     err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
   #else
@@ -727,7 +744,7 @@ static R compare_trafo(check_delegate_t *ego, X(plan) *p, const int NN, const in
   for (j = 0; j < NN; j++)
     denominator += CABS(p->f_hat[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const int M, const C *f, const C *f_hat)
@@ -737,10 +754,11 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   int j;
   R numerator = K(0.0), denominator = K(0.0);
 
-  //  fprintf(stderr, "\n");
-  //  for (j = 0; j < NN; j++)
-  //    fprintf(stderr, "f_hat[%2d] = " __FE__ " + " __FE__ "I, f_hat[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
-  //      CREAL(f_hat[j]), CIMAG(f_hat[j]), j, CREAL(p->f_hat[j]), CIMAG(p->f_hat[j]), CABS(f_hat[j] - p->f_hat[j]) / CABS(f_hat[j]));
+  /* debug */
+//  fprintf(stderr, "\n");
+//  for (j = 0; j < NN; j++)
+//    fprintf(stderr, "f_hat[%2d] = " __FE__ " + " __FE__ "I, f_hat[%2d] = " __FE__ " + " __FE__ "I, err = " __FE__ "\n", j,
+//      CREAL(f_hat[j]), CIMAG(f_hat[j]), j, CREAL(p->f_hat[j]), CIMAG(p->f_hat[j]), CABS(f_hat[j] - p->f_hat[j]) / CABS(f_hat[j]));
 
   for (j = 0; j < NN; j++)
     numerator = MAX(numerator, CABS(f_hat[j] - p->f_hat[j]));
@@ -748,7 +766,7 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
   for (j = 0; j < M; j++)
     denominator += CABS(p->f[j]);
 
-  return numerator/denominator;
+  return numerator == K(0.0) ? K(0.0) : numerator/denominator;
 }
 
 static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
@@ -778,7 +796,7 @@ static const init_delegate_t* initializers_1d[] =
 {
   &init_1d,
   &init,
-//  &init_advanced_pre_psi,
+  &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1000,7 +1018,7 @@ static const init_delegate_t* initializers_2d[] =
 {
   &init_2d,
   &init,
-//  &init_advanced_pre_psi,
+  &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1146,7 +1164,7 @@ static const init_delegate_t* initializers_3d[] =
 {
   &init_3d,
   &init,
-//  &init_advanced_pre_psi,
+  &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1247,7 +1265,7 @@ void X(check_adjoint_3d_online)(void)
 static const init_delegate_t* initializers_4d[] =
 {
   &init,
-//  &init_advanced_pre_psi,
+  &init_advanced_pre_psi,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,

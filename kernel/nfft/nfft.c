@@ -46,16 +46,19 @@
 #define X(name) NFFT(name)
 
 /** Compute aggregated product of integer array. */
-static inline INT intprod(const INT *vec, const INT d)
+static inline INT intprod(const INT *vec, const INT a, const INT d)
 {
   INT t, p;
 
   p = 1;
   for (t = 0; t < d; t++)
-    p *= vec[t];
+    p *= vec[t] - a;
 
   return p;
 }
+
+/* handy shortcuts */
+#define BASE(x) CEXP(x)
 
 /**
  * Sort nodes (index) to get better cache utilization during multiplication
@@ -159,8 +162,8 @@ void X(trafo_direct)(const X(plan) *ths)
       INT k_L;
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = (R)(k_L - ths->N_total/2) * K2PI * ths->x[j];
-        f[j] += f_hat[k_L] * CEXP(-II * omega);
+        R omega = K2PI * ((R)(k_L - ths->N_total/2)) * ths->x[j];
+        f[j] += f_hat[k_L] * BASE(-II * omega);
       }
     }
   }
@@ -173,7 +176,7 @@ void X(trafo_direct)(const X(plan) *ths)
 #endif
     for (j = 0; j < ths->M_total; j++)
     {
-      R x[ths->d], omega, Omega[ths->d+1];
+      R x[ths->d], omega, Omega[ths->d + 1];
       INT t, t2, k_L, k[ths->d];
       Omega[0] = K(0.0);
       for (t = 0; t < ths->d; t++)
@@ -186,9 +189,9 @@ void X(trafo_direct)(const X(plan) *ths)
 
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        f[j] += f_hat[k_L] * CEXP(-II * omega);
+        f[j] += f_hat[k_L] * BASE(-II * omega);
         {
-          for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)
+          for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)
             k[t]-= ths->N[t]-1;
 
           k[t]++;
@@ -220,8 +223,8 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT j;
         for (j = 0; j < ths->M_total; j++)
         {
-          R omega = (k_L - (ths->N_total/2)) * K2PI * ths->x[j];
-          f_hat[k_L] += f[j] * CEXP(II * omega);
+          R omega = K2PI * ((R)(k_L - (ths->N_total/2))) * ths->x[j];
+          f_hat[k_L] += f[j] * BASE(II * omega);
         }
       }
 #else
@@ -231,8 +234,8 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT k_L;
         for (k_L = 0; k_L < ths->N_total; k_L++)
         {
-          R omega = (R)(k_L - ths->N_total / 2) * K2PI * ths->x[j];
-          f_hat[k_L] += f[j] * CEXP(II * omega);
+          R omega = K2PI * ((R)(k_L - ths->N_total / 2)) * ths->x[j];
+          f_hat[k_L] += f[j] * BASE(II * omega);
         }
       }
 #endif
@@ -260,7 +263,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         R omega = K(0.0);
         for (t = 0; t < ths->d; t++)
           omega += k[t] * K2PI * ths->x[j * ths->d + t];
-        f_hat[k_L] += f[j] * CEXP(II * omega);
+        f_hat[k_L] += f[j] * BASE(II * omega);
       }
     }
 #else
@@ -278,7 +281,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       omega = Omega[ths->d];
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        f_hat[k_L] += f[j] * CEXP(II * omega);
+        f_hat[k_L] += f[j] * BASE(II * omega);
 
         for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
           k[t]-= ths->N[t]-1;
@@ -338,19 +341,19 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
-#define MACRO_nfft_D_compute_A \
+#define MACRO_D_compute_A \
 { \
   g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfft_D_compute_T \
+#define MACRO_D_compute_T \
 { \
   f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_nfft_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
 
-#define MACRO_nfft_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(C));
+#define MACRO_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(C));
 
 #define MACRO_with_PRE_PHI_HUT * ths->c_phi_inv[t2][ks[t2]];
 
@@ -393,10 +396,10 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
 } \
 
 /* sub routines for the fast transforms  matrix vector multiplication with D, D^T */
-#define MACRO_nfft_D(which_one) \
-static inline void nfft_D_serial_ ## which_one (X(plan) *ths) \
+#define MACRO_D(which_one) \
+static inline void D_serial_ ## which_one (X(plan) *ths) \
 { \
-  C *f_hat, *g_hat; /* local copy  */ \
+  C *f_hat, *g_hat; /* local copy */ \
   R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT */ \
   INT t, t2; /* index dimensions */ \
   INT k_L; /* plain index */ \
@@ -407,7 +410,7 @@ static inline void nfft_D_serial_ ## which_one (X(plan) *ths) \
   INT ks_plain[ths->d+1]; /* postfix plain index */ \
  \
   f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat; \
-  MACRO_nfft_D_init_result_ ## which_one; \
+  MACRO_D_init_result_ ## which_one; \
 \
   c_phi_inv_k[0] = K(1.0); \
   k_plain[0] = 0; \
@@ -420,7 +423,7 @@ static inline void nfft_D_serial_ ## which_one (X(plan) *ths) \
     for (k_L = 0; k_L < ths->N_total; k_L++) \
     { \
       MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT); \
-      MACRO_nfft_D_compute_ ## which_one; \
+      MACRO_D_compute_ ## which_one; \
       MACRO_count_k_ks; \
     } \
   } \
@@ -429,14 +432,14 @@ static inline void nfft_D_serial_ ## which_one (X(plan) *ths) \
     for (k_L = 0; k_L < ths->N_total; k_L++) \
     { \
       MACRO_update_c_phi_inv_k(without_PRE_PHI_HUT); \
-      MACRO_nfft_D_compute_ ## which_one; \
+      MACRO_D_compute_ ## which_one; \
       MACRO_count_k_ks; \
     } \
   } \
 }
 
 #ifdef _OPENMP
-static inline void nfft_D_openmp_A(X(plan) *ths)
+static inline void D_openmp_A(X(plan) *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
   INT k_L;                              /**< plain index                    */
@@ -518,20 +521,20 @@ static inline void nfft_D_openmp_A(X(plan) *ths)
 #endif
 
 #ifndef _OPENMP
-MACRO_nfft_D(A)
+MACRO_D(A)
 #endif
 
-static inline void nfft_D_A(X(plan) *ths)
+static inline void D_A(X(plan) *ths)
 {
 #ifdef _OPENMP
-  nfft_D_openmp_A(ths);
+  D_openmp_A(ths);
 #else
-  nfft_D_serial_A(ths);
+  D_serial_A(ths);
 #endif
 }
 
 #ifdef _OPENMP
-static void nfft_D_openmp_T(X(plan) *ths)
+static void D_openmp_T(X(plan) *ths)
 {
   C *f_hat, *g_hat;                     /**< local copy                     */
   INT k_L;                              /**< plain index                    */
@@ -613,38 +616,38 @@ static void nfft_D_openmp_T(X(plan) *ths)
 #endif
 
 #ifndef _OPENMP
-MACRO_nfft_D(T)
+MACRO_D(T)
 #endif
 
-static void nfft_D_T(X(plan) *ths)
+static void D_T(X(plan) *ths)
 {
 #ifdef _OPENMP
-  nfft_D_openmp_T(ths);
+  D_openmp_T(ths);
 #else
-  nfft_D_serial_T(ths);
+  D_serial_T(ths);
 #endif
 }
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_nfft_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
-#define MACRO_nfft_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
+#define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
-#define MACRO_nfft_B_PRE_FULL_PSI_compute_A \
+#define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
   (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
 }
 
-#define MACRO_nfft_B_PRE_FULL_PSI_compute_T \
+#define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
   g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
 }
 
-#define MACRO_nfft_B_compute_A \
+#define MACRO_B_compute_A \
 { \
   (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
 }
 
-#define MACRO_nfft_B_compute_T \
+#define MACRO_B_compute_T \
 { \
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
 }
@@ -687,8 +690,8 @@ static void nfft_D_T(X(plan) *ths)
   lj[t]++; \
 }
 
-#define MACRO_nfft_B(which_one) \
-static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
+#define MACRO_B(which_one) \
+static inline void B_serial_ ## which_one (X(plan) *ths) \
 { \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
@@ -712,22 +715,26 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
  \
   f = (C*)ths->f; g = (C*)ths->g; \
  \
-  MACRO_nfft_B_init_result_ ## which_one; \
+  MACRO_B_init_result_ ## which_one; \
  \
   if (ths->flags & PRE_FULL_PSI) \
   { \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
-        MACRO_nfft_B_PRE_FULL_PSI_compute_ ## which_one; \
+      { \
+        MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
+      } \
+    } \
     return; \
   } \
- \
+\
   phi_prod[0] = K(1.0); \
   ll_plain[0] = 0; \
- \
+\
   for (t = 0, lprod = 1; t < ths->d; t++) \
     lprod *= (2 * ths->m + 2); \
- \
+\
   if (ths->flags & PRE_PSI) \
   { \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -738,7 +745,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(with_PRE_PSI); \
  \
-        MACRO_nfft_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } /* for(l_L) */ \
@@ -750,16 +757,16 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
   { \
     for(t2 = 0; t2 < ths->d; t2++) \
     { \
-      tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
+      tmpEXP2 = EXP(K(-1.0) / ths->b[t2]); \
       tmpEXP2sq = tmpEXP2*tmpEXP2; \
       tmp2 = K(1.0); \
       tmp3 = K(1.0); \
       fg_exp_l[t2][0] = K(1.0); \
-      for(lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
+      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++) \
       { \
         tmp3 = tmp2*tmpEXP2; \
         tmp2 *= tmpEXP2sq; \
-        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
+        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1] * tmp3; \
       } \
     } \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -782,7 +789,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
  \
-        MACRO_nfft_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } /* for(l_L) */ \
@@ -828,7 +835,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
  \
-        MACRO_nfft_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } /* for(l_L) */ \
@@ -860,7 +867,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
       { \
         MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
  \
-        MACRO_nfft_B_compute_ ## which_one; \
+        MACRO_B_compute_ ## which_one; \
  \
         MACRO_count_uo_l_lj_t; \
       } /* for(l_L) */ \
@@ -877,7 +884,7 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
     { \
       MACRO_update_phi_prod_ll_plain(without_PRE_PSI); \
  \
-      MACRO_nfft_B_compute_ ## which_one; \
+      MACRO_B_compute_ ## which_one; \
  \
       MACRO_count_uo_l_lj_t; \
     } /* for(l_L) */ \
@@ -885,11 +892,11 @@ static inline void nfft_B_serial_ ## which_one (X(plan) *ths) \
 } /* nfft_B */ \
 
 #ifndef _OPENMP
-MACRO_nfft_B(A)
+MACRO_B(A)
 #endif
 
 #ifdef _OPENMP
-static inline void nfft_B_openmp_A (X(plan) *ths)
+static inline void B_openmp_A (X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
@@ -1161,12 +1168,12 @@ static inline void nfft_B_openmp_A (X(plan) *ths)
 }
 #endif
 
-static void nfft_B_A(X(plan) *ths)
+static void B_A(X(plan) *ths)
 {
 #ifdef _OPENMP
-  nfft_B_openmp_A(ths);
+  B_openmp_A(ths);
 #else
-  nfft_B_serial_A(ths);
+  B_serial_A(ths);
 #endif
 }
 
@@ -1447,11 +1454,11 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
 }
 
 #ifndef _OPENMP
-MACRO_nfft_B(T)
+MACRO_B(T)
 #endif
 
 #ifdef _OPENMP
-static inline void nfft_B_openmp_T(X(plan) *ths)
+static inline void B_openmp_T(X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
@@ -1775,12 +1782,12 @@ static inline void nfft_B_openmp_T(X(plan) *ths)
 }
 #endif
 
-static void nfft_B_T(X(plan) *ths)
+static void B_T(X(plan) *ths)
 {
 #ifdef _OPENMP
-  nfft_B_openmp_T(ths);
+  B_openmp_T(ths);
 #else
-  nfft_B_serial_T(ths);
+  B_serial_T(ths);
 #endif
 }
 
@@ -2123,34 +2130,34 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
 { \
           assert(ar_x[2*k] >= min_u_a || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_a); \
 }
 #else
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A
 #endif
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
 { \
           assert(ar_x[2*k] >= min_u_b || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_b); \
 }
 #else
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B
 #endif
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
 { \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, \
                 ths->psi + j * (2 * m + 2), ths->x + j, n, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
             R psij_const[2 * m + 2]; \
             INT u, o, l; \
@@ -2169,7 +2176,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
                 ths->x + j, n, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
 { \
             R psij_const[2 * m + 2]; \
             R fg_psij0, fg_psij1, fg_psij2; \
@@ -2190,7 +2197,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
                 ths->x + j, n, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
 { \
             R psij_const[2 * m + 2]; \
             INT ip_u; \
@@ -2211,7 +2218,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
                 ths->x + j, n, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
 { \
             R psij_const[2 * m + 2]; \
             INT u, o, l; \
@@ -2225,7 +2232,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
                 ths->x + j, n, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(whichone) \
+#define MACRO_adjoint_1d_B_OMP_BLOCKWISE(whichone) \
 { \
     if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT) \
     { \
@@ -2241,7 +2248,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -2251,7 +2258,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             if (u_prod < min_u_a || u_prod > max_u_a) \
               break; \
  \
-            MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -2261,7 +2268,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -2271,7 +2278,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             if (u_prod < min_u_b || u_prod > max_u_b) \
               break; \
  \
-            MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -2299,7 +2306,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   if (ths->flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_PSI)
+    MACRO_adjoint_1d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -2325,7 +2332,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+    MACRO_adjoint_1d_B_OMP_BLOCKWISE(PRE_FG_PSI)
 #endif
 
 
@@ -2367,7 +2374,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(FG_PSI)
+    MACRO_adjoint_1d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -2409,7 +2416,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+    MACRO_adjoint_1d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -2446,7 +2453,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   sort(ths);
 
 #ifdef _OPENMP
-  MACRO_nfft_adjoint_1d_B_OMP_BLOCKWISE(NO_PSI)
+  MACRO_adjoint_1d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -3099,33 +3106,33 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 }
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
 { \
           assert(ar_x[2*k] >= min_u_a || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_a); \
 }
 #else
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A
 #endif
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
 { \
           assert(ar_x[2*k] >= min_u_b || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_b); \
 }
 #else
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B
 #endif
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, \
                 ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), \
                 ths->x+2*j, ths->x+2*j+1, n0, n1, m, my_u0, my_o0);
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
             R psij_const[2*(2*m+2)]; \
             INT u, o, l; \
@@ -3155,7 +3162,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                 n0, n1, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
 { \
             R psij_const[2*(2*m+2)]; \
             R fg_psij0, fg_psij1, fg_psij2; \
@@ -3188,7 +3195,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                 n0, n1, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
 { \
             R psij_const[2*(2*m+2)]; \
             INT u, o, l; \
@@ -3216,7 +3223,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                 n0, n1, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
 { \
             R psij_const[2*(2*m+2)]; \
             INT u, o, l; \
@@ -3234,7 +3241,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                 n0, n1, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(whichone) \
+#define MACRO_adjoint_2d_B_OMP_BLOCKWISE(whichone) \
 { \
     if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT) \
     { \
@@ -3250,7 +3257,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -3260,7 +3267,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             if (u_prod < min_u_a || u_prod > max_u_a) \
               break; \
  \
-            MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -3270,7 +3277,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
         { \
           INT k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -3280,7 +3287,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             if (u_prod < min_u_b || u_prod > max_u_b) \
               break; \
  \
-            MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -3312,7 +3319,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   if(ths->flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_PSI)
+    MACRO_adjoint_2d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -3338,7 +3345,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+    MACRO_adjoint_2d_B_OMP_BLOCKWISE(PRE_FG_PSI)
 #endif
 
 
@@ -3391,7 +3398,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(FG_PSI)
+    MACRO_adjoint_2d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -3444,7 +3451,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+    MACRO_adjoint_2d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -3487,7 +3494,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   sort(ths);
 
 #ifdef _OPENMP
-  MACRO_nfft_adjoint_2d_B_OMP_BLOCKWISE(NO_PSI)
+  MACRO_adjoint_2d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -4615,28 +4622,28 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 }
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
 { \
           assert(ar_x[2*k] >= min_u_a || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_a); \
 }
 #else
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A
 #endif
 
 #ifdef OMP_ASSERT
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
 { \
           assert(ar_x[2*k] >= min_u_b || k == M-1); \
           if (k > 0) \
             assert(ar_x[2*k-2] < min_u_b); \
 }
 #else
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B
 #endif
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, \
                 ths->psi+j*3*(2*m+2), \
                 ths->psi+(j*3+1)*(2*m+2), \
@@ -4644,7 +4651,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, \
                 n0, n1, n2, m, my_u0, my_o0);
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
             INT u, o, l; \
             R psij_const[3*(2*m+2)]; \
@@ -4685,7 +4692,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 n0, n1, n2, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_FG_PSI \
 { \
             INT u, o, l; \
             R psij_const[3*(2*m+2)]; \
@@ -4730,7 +4737,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 n0, n1, n2, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_LIN_PSI \
 { \
             INT u, o, l; \
             R psij_const[3*(2*m+2)]; \
@@ -4767,7 +4774,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 n0, n1, n2, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_NO_PSI \
 { \
             INT u, o, l; \
             R psij_const[3*(2*m+2)]; \
@@ -4790,7 +4797,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 n0, n1, n2, m, my_u0, my_o0); \
 }
 
-#define MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(whichone) \
+#define MACRO_adjoint_3d_B_OMP_BLOCKWISE(whichone) \
 { \
     if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT) \
     { \
@@ -4806,7 +4813,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -4816,7 +4823,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             if (u_prod < min_u_a || u_prod > max_u_a) \
               break; \
  \
-            MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -4826,7 +4833,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
         { \
           INT k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -4836,7 +4843,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             if (u_prod < min_u_b || u_prod > max_u_b) \
               break; \
  \
-            MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
+            MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_ ##whichone \
  \
             k++; \
           } \
@@ -4869,7 +4876,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
   if(ths->flags & PRE_PSI)
   {
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_PSI)
+    MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -4896,7 +4903,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     nfft_3d_init_fg_exp_l(fg_exp_l+2*(2*m+2), m, ths->b[2]);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_FG_PSI)
+    MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_FG_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -4959,7 +4966,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(FG_PSI)
+    MACRO_adjoint_3d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -5023,7 +5030,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     sort(ths);
 
 #ifdef _OPENMP
-    MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
+    MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -5074,7 +5081,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
   sort(ths);
 
 #ifdef _OPENMP
-  MACRO_nfft_adjoint_3d_B_OMP_BLOCKWISE(NO_PSI)
+  MACRO_adjoint_3d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
 #ifdef ENABLE_OPENMP
@@ -5380,7 +5387,7 @@ void X(trafo)(X(plan) *ths)
        *  k \in I_N \f$
        */
       TIC(0)
-      nfft_D_A(ths);
+      D_A(ths);
       TOC(0)
 
       /** compute by d-variate discrete Fourier transform
@@ -5395,7 +5402,7 @@ void X(trafo)(X(plan) *ths)
        *  \text{ for } j=0,\hdots,M_total-1 \f$
        */
       TIC(2)
-      nfft_B_A(ths);
+      B_A(ths);
       TOC(2)
     }
   }
@@ -5418,7 +5425,7 @@ void X(adjoint)(X(plan) *ths)
        *  \text{ for } l \in I_n,m(x_j) \f$
        */
       TIC(2)
-      nfft_B_T(ths);
+      B_T(ths);
       TOC(2)
 
       /** compute by d-variate discrete Fourier transform
@@ -5433,7 +5440,7 @@ void X(adjoint)(X(plan) *ths)
        *  k \in I_N \f$
        */
       TIC(0)
-      nfft_D_T(ths);
+      D_T(ths);
       TOC(0)
     }
   }
@@ -5648,8 +5655,8 @@ static void init_help(X(plan) *ths)
   if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     ths->flags |= NFFT_SORT_NODES;
 
-  ths->N_total=intprod(ths->N, ths->d);
-  ths->n_total=intprod(ths->n, ths->d);
+  ths->N_total = intprod(ths->N, 0, ths->d);
+  ths->n_total = intprod(ths->n, 0, ths->d);
 
   ths->sigma = (R*) Y(malloc)((size_t)(ths->d) * sizeof(R));
 
