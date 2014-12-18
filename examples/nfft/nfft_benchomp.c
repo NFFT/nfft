@@ -561,6 +561,99 @@ void test1(int *nthreads_array, int n_threads_array_size, int m)
 
 }
 
+void test2(int *nthreads_array, int n_threads_array_size, int m)
+{
+  s_testset testsets[15];
+
+  run_testset(&testsets[0], 1, 0, 16777216, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[0]);
+#endif
+
+  run_testset(&testsets[1], 1, 0, 16777216, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[1]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets, 2);
+
+  run_testset(&testsets[2], 1, 1, 16777216, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[2]);
+#endif
+
+  run_testset(&testsets[3], 1, 1, 16777216, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[3]);
+#endif
+
+  run_testset(&testsets[4], 1, 1, 16777216, 2097152, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[4]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+2, 3);
+
+  run_testset(&testsets[5], 2, 0, 4096, 1048576, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[5]);
+#endif
+
+  run_testset(&testsets[6], 2, 0, 4096, 1048576, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[6]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+5, 2);
+
+  run_testset(&testsets[7], 2, 1, 4096, 1048576, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[7]);
+#endif
+
+  run_testset(&testsets[8], 2, 1, 4096, 1048576, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[8]);
+#endif
+
+  run_testset(&testsets[9], 2, 1, 4096, 1048576, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[9]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+7, 3);
+
+  run_testset(&testsets[10], 3, 0, 256, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[10]);
+#endif
+
+  run_testset(&testsets[11], 3, 0, 256, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[11]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+10, 2);
+
+  run_testset(&testsets[12], 3, 1, 256, 2097152, 2.0, m, 0, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[12]);
+#endif
+
+  run_testset(&testsets[13], 3, 1, 256, 2097152, 2.0, m, NFFT_SORT_NODES, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[13]);
+#endif
+
+  run_testset(&testsets[14], 3, 1, 256, 2097152, 2.0, m, NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT, nthreads_array, n_threads_array_size);
+#if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
+  print_output_histo_DFBRT(file_out_tex, testsets[14]);
+#endif
+
+  print_output_speedup_total(file_out_tex, testsets+12, 3);
+
+}
+
 int main(int argc, char** argv)
 {
   int *nthreads_array;
@@ -583,6 +676,7 @@ int main(int argc, char** argv)
   test1(nthreads_array, n_threads_array_size, 2);
   test1(nthreads_array, n_threads_array_size, 4);
   test1(nthreads_array, n_threads_array_size, 6);
+//  test2(nthreads_array, n_threads_array_size, 2);
 
   fclose(file_out_tex);
 

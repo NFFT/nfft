@@ -32,7 +32,7 @@
 
 void bench_openmp(FILE *infile, int m, int psi_flag)
 {
-  nfft_plan p;
+  NFFT(plan) p;
   int *N;
   int *n;
   int M, d, trafo_adjoint;
@@ -55,20 +55,20 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   fscanf(infile, "%d", &M);
 
 #ifdef _OPENMP
-  fftw_import_wisdom_from_filename("nfft_benchomp_detail_threads.plan");
+  Z(import_wisdom_from_filename)("nfft_benchomp_detail_threads.plan");
 #else
-  fftw_import_wisdom_from_filename("nfft_benchomp_detail_single.plan");
+  Z(import_wisdom_from_filename)("nfft_benchomp_detail_single.plan");
 #endif
 
   /** init an d-dimensional plan */
-  nfft_init_guru(&p, d, N, M, n, m,
+  NFFT(init_guru)(&p, d, N, M, n, m,
                    PRE_PHI_HUT| psi_flag | MALLOC_X | MALLOC_F_HAT| MALLOC_F| FFTW_INIT | FFT_OUT_OF_PLACE,
                    FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
 #ifdef _OPENMP
-  fftw_export_wisdom_to_filename("nfft_benchomp_detail_threads.plan");
+  Z(export_wisdom_to_filename)("nfft_benchomp_detail_threads.plan");
 #else
-  fftw_export_wisdom_to_filename("nfft_benchomp_detail_single.plan");
+  Z(export_wisdom_to_filename)("nfft_benchomp_detail_single.plan");
 #endif
 
   for (j=0; j < p.M_total; j++)
@@ -97,16 +97,16 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   t0 = getticks();
   /** precompute psi, the entries of the matrix B */
   if(p.flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p);
+      NFFT(precompute_one_psi)(&p);
   t1 = getticks();
-  tt_preonepsi = nfft_elapsed_seconds(t1,t0);
+  tt_preonepsi = NFFT(elapsed_seconds)(t1,t0);
 
   if (trafo_adjoint==0)
-    nfft_trafo(&p);
+    NFFT(trafo)(&p);
   else
-    nfft_adjoint(&p);
+    NFFT(adjoint)(&p);
   t1 = getticks();
-  tt_total = nfft_elapsed_seconds(t1,t0);
+  tt_total = NFFT(elapsed_seconds)(t1,t0);
 
 #ifndef MEASURE_TIME
   p.MEASURE_TIME_t[0] = 0.0;
@@ -124,7 +124,7 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   free(n);
 
   /** finalise the one dimensional plan */
-  nfft_finalize(&p);
+  NFFT(finalize)(&p);
 }
 
 int main(int argc, char **argv)
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
     return 1;
 
   nthreads = atoi(argv[3]);
-  fftw_init_threads();
+  Z(init_threads)();
   omp_set_num_threads(nthreads);
 #else
   if (argc != 3)

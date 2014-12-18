@@ -35,35 +35,40 @@ int main(void)
   CU_pSuite util, nfft, nfct, nfst;
   CU_initialize_registry();
   /*CU_set_output_filename("nfft");*/
+#ifdef _OPENMP
+  CU_set_output_filename("CUnitAutomated_threads");
+#endif
+
 #undef X
 #define X(name) NFFT(name)
   nfft = CU_add_suite("nfft", 0, 0);
-//  CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
-//  CU_add_test(nfft, "nfft_1d_fast_file", X(check_1d_fast_file));
-//  CU_add_test(nfft, "nfft_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
-//  CU_add_test(nfft, "nfft_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
-//  CU_add_test(nfft, "nfft_1d_online", X(check_1d_online));
-//  CU_add_test(nfft, "nfft_adjoint_1d_online", X(check_adjoint_1d_online));
-//
-//  CU_add_test(nfft, "nfft_2d_direct_file", X(check_2d_direct_file));
-//  CU_add_test(nfft, "nfft_2d_fast_file", X(check_2d_fast_file));
-//  CU_add_test(nfft, "nfft_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
-//  CU_add_test(nfft, "nfft_adjoint_2d_fast_file", X(check_adjoint_2d_fast_file));
-//  CU_add_test(nfft, "nfft_2d_online", X(check_2d_online));
-//  CU_add_test(nfft, "nfft_adjoint_2d_online", X(check_adjoint_2d_online));
-//
-//  CU_add_test(nfft, "nfft_3d_direct_file", X(check_3d_direct_file));
-//  CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
-//  CU_add_test(nfft, "nfft_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
-//  CU_add_test(nfft, "nfft_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
-//  CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
-//  CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
-//
-//  CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
-//  CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
+  CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
+  CU_add_test(nfft, "nfft_1d_fast_file", X(check_1d_fast_file));
+  CU_add_test(nfft, "nfft_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
+  CU_add_test(nfft, "nfft_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
+  CU_add_test(nfft, "nfft_1d_online", X(check_1d_online));
+  CU_add_test(nfft, "nfft_adjoint_1d_online", X(check_adjoint_1d_online));
+
+  CU_add_test(nfft, "nfft_2d_direct_file", X(check_2d_direct_file));
+  CU_add_test(nfft, "nfft_2d_fast_file", X(check_2d_fast_file));
+  CU_add_test(nfft, "nfft_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
+  CU_add_test(nfft, "nfft_adjoint_2d_fast_file", X(check_adjoint_2d_fast_file));
+  CU_add_test(nfft, "nfft_2d_online", X(check_2d_online));
+  CU_add_test(nfft, "nfft_adjoint_2d_online", X(check_adjoint_2d_online));
+
+  CU_add_test(nfft, "nfft_3d_direct_file", X(check_3d_direct_file));
+  CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
+  CU_add_test(nfft, "nfft_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
+  CU_add_test(nfft, "nfft_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+  CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
+  CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
+
+  CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
+  CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
+#ifndef _OPENMP
   nfct = CU_add_suite("nfct", 0, 0);
   CU_add_test(nfct, "nfct_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
@@ -89,9 +94,11 @@ int main(void)
   CU_add_test(nfct, "nfct_4d_online", X(check_4d_online));
   CU_add_test(nfct, "nfct_adjoint_4d_online", X(check_adjoint_4d_online));
 #endif
+#endif
 #ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
+#ifndef _OPENMP
   nfst = CU_add_suite("nfst", 0, 0);
   CU_add_test(nfst, "nfst_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
@@ -116,6 +123,7 @@ int main(void)
 
   CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #endif
 #undef X
 #define X(name) Y(name)

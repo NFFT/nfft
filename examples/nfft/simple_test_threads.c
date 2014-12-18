@@ -34,44 +34,44 @@
 
 int main(void)
 {
-  nfft_plan p;
+  NFFT(plan) p;
   const int N = 1000000;
   const int M = 1000000;
   ticks t0, t1;
   double t;
 
-  printf("nthreads = %d\n", X(get_num_threads)());
+  printf("nthreads = %d\n", NFFT(get_num_threads)());
 
   /* init */
-  fftw_init_threads();
-  nfft_init_1d(&p,N,M);
+  Z(init_threads)();
+  NFFT(init_1d)(&p,N,M);
 
   /* pseudo random nodes */
-  nfft_vrand_shifted_unit_double(p.x,p.M_total);
+  NFFT(vrand_shifted_unit_double)(p.x,p.M_total);
 
   /* precompute psi, that is, the entries of the matrix B */
   t0 = getticks();
   if(p.flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&p);
+      NFFT(precompute_one_psi)(&p);
   t1 = getticks();
-  t = nfft_elapsed_seconds(t1,t0);
+  t = NFFT(elapsed_seconds(t1,t0));
   fprintf(stderr,"precompute elapsed time: %.3f seconds\n",t);
 
   /* pseudo random Fourier coefficients */
-  nfft_vrand_unit_complex(p.f_hat,p.N_total);
+  NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
 
   /* transformation */
   t0 = getticks();
-  nfft_trafo(&p);
+  NFFT(trafo)(&p);
   t1 = getticks();
-  t = nfft_elapsed_seconds(t1,t0);
+  t = NFFT(elapsed_seconds)(t1,t0);
   fprintf(stderr,"compute    elapsed time: %.3f seconds\n",t);
   fflush(stderr);
-//  nfft_vpr_complex(p.f,p.M_total,"ndft, vector f");
+//  NFFT(vpr_complex)(p.f,p.M_total,"ndft, vector f");
 
   /* cleanup */
-  nfft_finalize(&p);
-  fftw_cleanup_threads();
+  NFFT(finalize)(&p);
+  Z(cleanup_threads)();
 
   return EXIT_SUCCESS;
 }

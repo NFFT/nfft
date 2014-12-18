@@ -40,23 +40,23 @@ void nfft_benchomp_createdataset(unsigned int d, unsigned int trafo_adjoint, int
   for (t = 0; t < d; t++)
     N_total *= N[t];
 
-  x = (R*) nfft_malloc(d*M*sizeof(R));
-  f = (C*) nfft_malloc(M*sizeof(C));
-  f_hat = (C*) nfft_malloc(N_total*sizeof(C));
+  x = (R*) NFFT(malloc)(d*M*sizeof(R));
+  f = (C*) NFFT(malloc)(M*sizeof(C));
+  f_hat = (C*) NFFT(malloc)(N_total*sizeof(C));
 
   for (t=0; t<d; t++)
-    n[t] = sigma*nfft_next_power_of_2(N[t]);
+    n[t] = sigma*NFFT(next_power_of_2)(N[t]);
 
   /** init pseudo random nodes */
-  nfft_vrand_shifted_unit_double(x,d*M);
+  NFFT(vrand_shifted_unit_double)(x,d*M);
  
   if (trafo_adjoint==0)
   {
-    nfft_vrand_unit_complex(f_hat,N_total);
+    NFFT(vrand_unit_complex)(f_hat,N_total);
   }
   else
   {
-    nfft_vrand_unit_complex(f,M);
+    NFFT(vrand_unit_complex)(f,M);
   }
 
   printf("%d %d ", d, trafo_adjoint);
@@ -87,9 +87,9 @@ void nfft_benchomp_createdataset(unsigned int d, unsigned int trafo_adjoint, int
       printf("%.16e %.16e\n", creal(f[j]), cimag(f[j]));
   }
 
-  nfft_free(x);
-  nfft_free(f);
-  nfft_free(f_hat);
+  NFFT(free)(x);
+  NFFT(free)(f);
+  NFFT(free)(f_hat);
 }
 
 int main(int argc, char **argv)
