@@ -5487,7 +5487,7 @@ void X(precompute_lin_psi)(X(plan) *ths)
     } /* for(t) */
 }
 
-static void nfft_precompute_fg_psi(X(plan) *ths)
+void X(precompute_fg_psi)(X(plan) *ths)
 {
   INT t;                                /**< index over all dimensions       */
   INT u, o;                             /**< depends on x_j                  */

@@ -77,6 +77,9 @@ static inline void sort_node_indices_radix_rearrange(INT n, INT *keys_in, INT *k
   }
 }
 
+#define rwidth 9
+#define radix_n (1 << rwidth)
+
 /**
  * Radix sort for node indices with OpenMP support.
  *
@@ -84,8 +87,6 @@ static inline void sort_node_indices_radix_rearrange(INT n, INT *keys_in, INT *k
  */
 void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
 {
-  const INT rwidth = 9;
-  const INT radix_n = 1 << rwidth;
   const INT radix_mask = radix_n - 1;
   const INT rhigh_in = rhigh;
 
@@ -99,10 +100,11 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
   INT *from, *to, *tmp;
 
   INT i, k, l, h;
-  INT lcounts[tmax * radix_n];
+  INT *lcounts;
 
   INT tid = 0, tnum = 1;
 
+  STACK_MALLOC(INT*, lcounts, (size_t)(tmax * radix_n) * sizeof(INT));
 
   from = keys0;
   to = keys1;
@@ -157,6 +159,8 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
   }
 
   if (to == keys0) memcpy(to, from, (size_t)(n) * 2 * sizeof(INT));
+
+  STACK_FREE(lcounts);
 }
 
 /**
@@ -166,8 +170,6 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
  */
 void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
 {
-  const INT rwidth = 9;
-  const INT radix_n = 1 << rwidth;
   const INT radix_mask = radix_n - 1;
 
   const INT tmax =
@@ -178,12 +180,13 @@ void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
 #endif
 
   INT i, k, l, h;
-  INT lcounts[tmax * radix_n];
+  INT *lcounts;
 
   INT counts[radix_n], displs[radix_n];
 
   INT tid = 0, tnum = 1;
 
+  STACK_MALLOC(INT*, lcounts, (size_t)(tmax * radix_n) * sizeof(INT));
 
   rhigh -= rwidth;
 
@@ -244,4 +247,6 @@ void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh)
       }
     }
   }
+
+  STACK_FREE(lcounts);
 }

@@ -36,11 +36,9 @@
 static void simple_test_nfft_1d(void)
 {
   X(plan) p;
-  R t;
 
   int N = 14;
   int M = 19;
-  ticks t0, t1;
 
   /** init an one dimensional plan */
   X(init_1d)(&p, N, M);
@@ -57,12 +55,8 @@ static void simple_test_nfft_1d(void)
   Y(vpr_complex)(p.f_hat, p.N_total, "given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  t0 = getticks();
   X(trafo_direct)(&p);
-  t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
   Y(vpr_complex)(p.f,p.M_total,"ndft, vector f");
-  printf(" took %.2" __FES__ " seconds.\n", t);
 
   /** approx. trafo and show the result */
   X(trafo)(&p);

@@ -335,7 +335,7 @@ static inline void D_ ## which_one (X(plan) *ths) \
 { \
   R *g_hat, *f_hat; /* local copy */ \
   R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT */ \
-  INT t, t2; /* index dimensions */ \
+  INT t; /* index dimensions */ \
   INT i; \
   INT k_L; /* plain index */ \
   INT kg[ths->d]; /* multi index in g_hat */ \
@@ -383,11 +383,11 @@ MACRO_D(T)
 
 #define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
-  factor = K(1.0); \
-  d = ths->psi_index_g[ix]; \
+  R factor = K(1.0); \
+  INT d = ths->psi_index_g[ix]; \
   for (t = ths->d - 1; t >= 0; t--) \
   { \
-    m = d % ths->n[t]; \
+    INT m = d % ths->n[t]; \
     if (m != 0 && m != ths->n[t] - 1) \
       factor *= K(0.5); \
     d = d / ths->n[t]; \
@@ -520,8 +520,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
 \
   if (ths->flags & PRE_FULL_PSI) \
   { \
-    R factor; \
-    INT d, m; \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
@@ -786,11 +784,11 @@ static inline void precompute_phi_hut(X(plan) *ths)
   INT ks[ths->d]; /* index over all frequencies */
   INT t; /* index over all dimensions */
 
-  ths->c_phi_inv = (R**) Y(malloc)(ths->d * sizeof(R*));
+  ths->c_phi_inv = (R**) Y(malloc)((size_t)(ths->d) * sizeof(R*));
 
   for (t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (R*)Y(malloc)((ths->N[t] - OFFSET) * sizeof(R));
+    ths->c_phi_inv[t] = (R*)Y(malloc)((size_t)(ths->N[t] - OFFSET) * sizeof(R));
 
     for (ks[t] = 0; ks[t] < ths->N[t] - OFFSET; ks[t]++)
     {
@@ -866,7 +864,7 @@ void X(precompute_psi)(X(plan) *ths)
   } /* for (t) */
 } /* precompute_psi */
 
-X(precompute_full_psi)(X(plan) *ths)
+void X(precompute_full_psi)(X(plan) *ths)
 {
 //#ifdef _OPENMP
 //  sort(ths);
@@ -918,14 +916,14 @@ X(precompute_full_psi)(X(plan) *ths)
 
 void X(precompute_one_psi)(X(plan) *ths)
 {
-  if(ths->flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(ths);
-  if(ths->flags & PRE_FG_PSI)
-    X(precompute_fg_psi)(ths);
   if(ths->flags & PRE_PSI)
     X(precompute_psi)(ths);
   if(ths->flags & PRE_FULL_PSI)
     X(precompute_full_psi)(ths);
+  if(ths->flags & PRE_FG_PSI)
+    X(precompute_fg_psi)(ths);
+  if(ths->flags & PRE_LIN_PSI)
+    X(precompute_lin_psi)(ths);
 }
 
 static inline void init_help(X(plan) *ths)
@@ -939,26 +937,26 @@ static inline void init_help(X(plan) *ths)
   ths->N_total = intprod(ths->N, OFFSET, ths->d);
   ths->n_total = intprod(ths->n, 0, ths->d);
 
-  ths->sigma = (R*)Y(malloc)(ths->d * sizeof(R));
+  ths->sigma = (R*)Y(malloc)((size_t)(ths->d) * sizeof(R));
 
   for (t = 0; t < ths->d; t++)
     ths->sigma[t] = ((R)NN(ths->n[t])) / ths->N[t];
 
   /* Assign r2r transform kinds for each dimension */
-  ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)(ths->d * sizeof (Z(r2r_kind)));
+  ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)((size_t)(ths->d) * sizeof (Z(r2r_kind)));
   for (t = 0; t < ths->d; t++)
     ths->r2r_kind[t] = FOURIER_TRAFO;
 
   WINDOW_HELP_INIT;
 
   if (ths->flags & MALLOC_X)
-    ths->x = (R*)Y(malloc)(ths->d * ths->M_total * sizeof(R));
+    ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));
 
   if (ths->flags & MALLOC_F_HAT)
-    ths->f_hat = (R*)Y(malloc)(ths->N_total * sizeof(R));
+    ths->f_hat = (R*)Y(malloc)((size_t)(ths->N_total) * sizeof(R));
 
   if (ths->flags & MALLOC_F)
-    ths->f = (R*)Y(malloc)(ths->M_total * sizeof(R));
+    ths->f = (R*)Y(malloc)((size_t)(ths->M_total) * sizeof(R));
 
   if (ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
@@ -966,42 +964,42 @@ static inline void init_help(X(plan) *ths)
   if(ths->flags & PRE_LIN_PSI)
   {
       ths->K = (1U<< 10) * (ths->m+2);
-      ths->psi = (R*) Y(malloc)((ths->K + 1) * ths->d * sizeof(R));
+      ths->psi = (R*) Y(malloc)((size_t)((ths->K + 1) * ths->d) * sizeof(R));
   }
 
   if(ths->flags & PRE_FG_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * 2 * sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * 2) * sizeof(R));
 
   if (ths->flags & PRE_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * (2 * ths->m + 2 ) *sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * (2 * ths->m + 2 )) * sizeof(R));
 
   if(ths->flags & PRE_FULL_PSI)
   {
       for (t = 0, lprod = 1; t < ths->d; t++)
         lprod *= 2 * ths->m + 2;
 
-      ths->psi = (R*) Y(malloc)(ths->M_total * lprod * sizeof(R));
+      ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(R));
 
-      ths->psi_index_f = (INT*) Y(malloc)(ths->M_total * sizeof(INT));
-      ths->psi_index_g = (INT*) Y(malloc)(ths->M_total * lprod * sizeof(INT));
+      ths->psi_index_f = (INT*) Y(malloc)((size_t)(ths->M_total) * sizeof(INT));
+      ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
   if (ths->flags & FFTW_INIT)
   {
-    ths->g1 = (R*)Y(malloc)(ths->n_total * sizeof(R));
+    ths->g1 = (R*)Y(malloc)((size_t)(ths->n_total) * sizeof(R));
 
     if (ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (R*) Y(malloc)(ths->n_total * sizeof(R));
+      ths->g2 = (R*) Y(malloc)((size_t)(ths->n_total) * sizeof(R));
     else
       ths->g2 = ths->g1;
 
     {
-      int *_n = Y(malloc)(ths->d * sizeof(int));
+      int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
 
       for (t = 0; t < ths->d; t++)
         _n[t] = (int)(ths->n[t]);
 
-      ths->my_fftw_r2r_plan = Z(plan_r2r)(ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
+      ths->my_fftw_r2r_plan = Z(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
       Y(free)(_n);
     }
   }
@@ -1021,14 +1019,14 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 
   ths->d = (INT)d;
 
-  ths->N = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->N = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
   ths->M_total = (INT)M_total;
 
-  ths->n = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->n = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1) + OFFSET;
@@ -1062,12 +1060,12 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->d = (INT)d;
   ths->M_total = (INT)M_total;
-  ths->N = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->N = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
-  ths->n = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->n = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = (INT)n[t];

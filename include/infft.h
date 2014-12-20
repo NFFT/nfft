@@ -1372,8 +1372,8 @@ extern double _Complex catanh(double _Complex z);
 #else /* ! HAVE_ALLOCA */
   /* Use malloc instead of alloca. So we allocate memory on the heap instead of
    * on the stack which is slower. */
-  #define STACK_MALLOC(T, p, x) p = (T)nfft_malloc(x)
-  #define STACK_FREE(x) nfft_free(x)
+  #define STACK_MALLOC(T, p, x) p = (T)Y(malloc)(x)
+  #define STACK_FREE(x) Y(free)(x)
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
@@ -1483,6 +1483,7 @@ void Y(vrand_unit_complex)(C *x, const INT n);
 /** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
  */
 void Y(vrand_shifted_unit_double)(R *x, const INT n);
+void Y(vrand_real)(R *x, const INT n, const R a, const R b);
 
 /* vector1.c */
 /** Computes the inner/dot product \f$x^H x\f$. */

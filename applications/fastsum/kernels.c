@@ -376,6 +376,7 @@ C kcot(R x, int der, const R *param)   /* K(x) = cot(cx) */
 C one_over_cube(R x, int der, const R *param)
 {
   R value=K(0.0);
+  UNUSED(param);
 
   if (FABS(x)<DBL_EPSILON) value=K(0.0);
   else switch (der)

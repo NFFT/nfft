@@ -983,46 +983,49 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   X(finalize)(&p);
 }
 
-static int main2(void)
-{
-  int l, d, logIN;
-
-  for (l = 3; l <= 6; l++)
-  {
-    d = 3;
-    logIN = d * l;
-    int N = (int)(1U << (logIN / d));
-    measure_time_nfft_XXX6(d, N, logIN <= 15 ? 1 : 0);
-    measure_time_nfft_XXX7(d, N, logIN <= 15 ? 1 : 0);
-  }
-
-  return EXIT_FAILURE;
-
-  for (l = 7; l <= 12; l++)
-  {
-    d = 2;
-    logIN = d * l;
-    int N = (int)(1U << (logIN / d));
-    measure_time_nfft_XXX4(d, N, logIN <= 15 ? 1 : 0);
-    measure_time_nfft_XXX5(d, N, logIN <= 15 ? 1 : 0);
-  }
-
-  return EXIT_FAILURE;
-
-  for (l = 3; l <= 12; l++)
-  {
-    logIN = l;
-    int N = (int)(1U << (logIN));
-    measure_time_nfft_XXX2(1, N, logIN <= 15 ? 1 : 0);
-    measure_time_nfft_XXX3(1, N, logIN <= 15 ? 1 : 0);
-  }
-
-  return EXIT_FAILURE;
-}
+//static int main(void)
+//{
+//  int l, d, logIN;
+//
+//  for (l = 3; l <= 6; l++)
+//  {
+//    d = 3;
+//    logIN = d * l;
+//    int N = (int)(1U << (logIN / d));
+//    measure_time_nfft_XXX6(d, N, logIN <= 15 ? 1 : 0);
+//    measure_time_nfft_XXX7(d, N, logIN <= 15 ? 1 : 0);
+//  }
+//
+//  for (l = 7; l <= 12; l++)
+//  {
+//    d = 2;
+//    logIN = d * l;
+//    int N = (int)(1U << (logIN / d));
+//    measure_time_nfft_XXX4(d, N, logIN <= 15 ? 1 : 0);
+//    measure_time_nfft_XXX5(d, N, logIN <= 15 ? 1 : 0);
+//  }
+//
+//  for (l = 3; l <= 12; l++)
+//  {
+//    logIN = l;
+//    int N = (int)(1U << (logIN));
+//    measure_time_nfft_XXX2(1, N, logIN <= 15 ? 1 : 0);
+//    measure_time_nfft_XXX3(1, N, logIN <= 15 ? 1 : 0);
+//  }
+//
+//  return EXIT_SUCCESS;
+//}
 
 int main(void)
 {
   int l, d, logIN;
+
+  UNUSED(measure_time_nfft_XXX2);
+  UNUSED(measure_time_nfft_XXX3);
+  UNUSED(measure_time_nfft_XXX4);
+  UNUSED(measure_time_nfft_XXX5);
+  UNUSED(measure_time_nfft_XXX6);
+  UNUSED(measure_time_nfft_XXX7);
 
   printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
   printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=1$} \\\\ \\hline\n");

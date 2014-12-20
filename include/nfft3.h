@@ -181,8 +181,9 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
 NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, int K, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
@@ -270,7 +271,11 @@ NFFT_EXTERN void X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_tot
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
 NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
   int m, unsigned flags, unsigned fftw_flags); \
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
@@ -329,9 +334,9 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  int size_psi; /**< only for thin B */\
-  int *psi_index_g; /**< only for thin B */\
-  int *psi_index_f; /**< only for thin B */\
+  _INT size_psi; /**< only for thin B */\
+  _INT *psi_index_g; /**< only for thin B */\
+  _INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -349,7 +354,11 @@ NFFT_EXTERN void X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_tot
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
 NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
   int m, unsigned flags, unsigned fftw_flags); \
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
+NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \

@@ -37,6 +37,6 @@
  */
 INT Y(m2K)(const INT m)
 {
-  int j = MIN(m, (sizeof(m2K_) / sizeof(m2K_[0])) - 1);
+  int j = MIN(((int)(m)), ((int)((sizeof(m2K_) / sizeof(m2K_[0])) - 1)));
   return (INT)((1U << m2K_[j]) * (m + 2));
 }

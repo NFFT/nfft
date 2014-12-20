@@ -91,7 +91,7 @@ void X(trafo_direct)(const X(plan) *ths)
 {
   R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
 
-  memset(f, 0, ths->M_total * sizeof(R));
+  memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
 
   if (ths->d == 1)
   {
@@ -335,7 +335,7 @@ static inline void D_ ## which_one (X(plan) *ths) \
 { \
   R *g_hat, *f_hat; /* local copy */ \
   R c_phi_inv_k[ths->d+1]; /* postfix product of PHI_HUT */ \
-  INT t, t2; /* index dimensions */ \
+  INT t; /* index dimensions */ \
   INT i; \
   INT k_L; /* plain index */ \
   INT kg[ths->d]; /* multi index in g_hat */ \
@@ -383,8 +383,7 @@ MACRO_D(T)
 
 #define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
-  factor = K(1.0); \
-  g[ths->psi_index_g[ix]] += factor * ths->psi[ix] * (*fj); \
+  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
 }
 
 #define MACRO_B_compute_A \
@@ -520,8 +519,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
 \
   if (ths->flags & PRE_FULL_PSI) \
   { \
-    R factor; \
-    INT d, m; \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
@@ -700,653 +697,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
 MACRO_B(A)
 MACRO_B(T)
 
-//static inline void B_A(nfst_plan *ths)
-//{
-//  INT lprod; /* 'regular bandwidth' of matrix B  */
-//  INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-//  INT t, t2; /* index dimensions */
-//  INT j; /* index nodes */
-//  INT l_L, ix; /* index one row of B */
-//  INT l[ths->d]; /* multi index u<=l<=o (real index of g in array) */
-//  INT lj[ths->d]; /* multi index 0<=lc<2m+2 */
-//  INT ll_plain[ths->d + 1]; /* postfix plain index in g */
-//  R phi_prod[ths->d + 1]; /* postfix product of PHI */
-//  R *f, *g; /* local copy */
-//  R *fj; /* local copy */
-//  R y[ths->d];
-//  R fg_psi[ths->d][2 * ths->m + 2];
-//  R fg_exp_l[ths->d][2 * ths->m + 2];
-//  INT l_fg, lj_fg;
-//  R tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3;
-//  R ip_w;
-//  INT ip_u;
-//  INT ip_s = ths->K / (ths->m + 2);
-//  INT lg_offset[ths->d]; /* offset in g according to u */
-//  INT count_lg[ths->d]; /* count summands (2m+2) */
-//
-//  f = (R*) ths->f;
-//  g = (R*) ths->g;
-//
-//  __builtin___memset_chk(f, 0, (size_t) (ths->M_total) * sizeof(R),
-//      __builtin_object_size(f, 0));
-//
-//  if (ths->flags & (1U << 5))
-//  {
-//    R factor;
-//    INT d, m;
-//    for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++)
-//    {
-//      for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++)
-//      {
-//        {
-//          (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]];
-//        };
-//      }
-//    }
-//    return;
-//  }
-//
-//  phi_prod[0] = ((R) 1.0);
-//  ll_plain[0] = 0;
-//
-//  for (t = 0, lprod = 1; t < ths->d; t++)
-//    lprod *= (2 * ths->m + 2);
-//
-//  if (ths->flags & (1U << 4))
-//  {
-//    for (j = 0, fj = f; j < ths->M_total; j++, fj++)
-//    {
-//      {
-//        for (t2 = 0; t2 < ths->d; t2++)
-//        {
-//          uo(ths, j, &u[t2], &o[t2], t2);
-//
-//          /* determine index in g-array corresponding to u[(t2)] */
-//          if (u[(t2)] < 0)
-//            lg_offset[(t2)] = (u[(t2)] % (2 * (ths->n[(t2)] + 1)))
-//                + (2 * (ths->n[(t2)] + 1));
-//          else
-//            lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] + 1));
-//          if (lg_offset[(t2)] > (ths->n[(t2)] + 1))
-//            lg_offset[(t2)] = -(2 * (ths->n[(t2)] + 1) - lg_offset[(t2)]);
-//
-//          if (lg_offset[t2] <= 0)
-//          {
-//            l[t2] = -lg_offset[t2];
-//            count_lg[t2] = -1;
-//          }
-//          else
-//          {
-//            l[t2] = +lg_offset[t2];
-//            count_lg[t2] = +1;
-//          }
-//
-//          lj[t2] = 0;
-//        }
-//        t2 = 0;
-//      };
-//
-//      for (l_L = 0; l_L < lprod; l_L++)
-//      {
-//        fprintf(stdout, "----\n");
-//        {
-//          fprintf(stdout, "t2 = %d, d = %d\n", t2, ths->d);
-//          for (t = t2; t < ths->d; t++)
-//          {
-//            fprintf(stdout, "t = %d, l[t] = %d, ths->n[t] = %d, ll_plain[t] = %d\n", t, l[t], ths->n[t], ll_plain[t]);
-//            if ((l[t] != 0) && (l[t] != (ths->n[t] + 1)))
-//            {
-//              phi_prod[t + 1] = (((R) count_lg[t])) * phi_prod[t]
-//                  * (ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]);
-//            }
-//            else
-//            {
-//              phi_prod[t + 1] = ((R) 0.0);
-//            }
-//            ll_plain[t + 1] = ll_plain[t] * ths->n[t] + l[t] - 1;
-//          }
-//        };
-//
-//        {
-//          fprintf(stderr, "ll_plain[ths->d] = %d\n", ll_plain[ths->d]);
-//          (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];
-//        };
-//
-//        {
-//          /* turn around if we hit one of the boundaries */
-//          if ((l[(ths->d - 1)] == 0)
-//              || (l[(ths->d - 1)] == (ths->n[(ths->d - 1)] + 1)))
-//            count_lg[(ths->d - 1)] *= -1;
-//
-//          /* move array index */
-//          l[(ths->d - 1)] += count_lg[(ths->d - 1)];
-//
-//          lj[ths->d - 1]++;
-//          t2 = ths->d - 1;
-//
-//          while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0))
-//          {
-//            lj[t2 - 1]++;
-//            lj[t2] = 0;
-//            /* ansonsten lg[i-1] verschieben */
-//
-//            /* turn around if we hit one of the boundaries */
-//            if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == (ths->n[(t2 - 1)] + 1)))
-//              count_lg[(t2 - 1)] *= -1;
-//            /* move array index */
-//            l[(t2 - 1)] += count_lg[(t2 - 1)];
-//
-//            /* lg[i] = anfangswert */
-//            if (lg_offset[t2] <= 0)
-//            {
-//              l[t2] = -lg_offset[t2];
-//              count_lg[t2] = -1;
-//            }
-//            else
-//            {
-//              l[t2] = +lg_offset[t2];
-//              count_lg[t2] = +1;
-//            }
-//
-//            t2--;
-//          }
-//        };
-//      } /* for(l_L) */
-//    } /* for(j) */
-//    return;
-//  } /* if(PRE_PSI) */
-//
-//  if (ths->flags & (1U << 3))
-//  {
-//    for (t = 0; t < ths->d; t++)
-//    {
-//      tmpEXP2 = exp(((R) -1.0) / ths->b[t]);
-//      tmpEXP2sq = tmpEXP2 * tmpEXP2;
-//      tmp2 = ((R) 1.0);
-//      tmp3 = ((R) 1.0);
-//      fg_exp_l[t][0] = ((R) 1.0);
-//
-//      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++)
-//      {
-//        tmp3 = tmp2 * tmpEXP2;
-//        tmp2 *= tmpEXP2sq;
-//        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg - 1] * tmp3;
-//      }
-//    }
-//
-//    for (j = 0, fj = f; j < ths->M_total; j++, fj++)
-//    {
-//      {
-//        for (t2 = 0; t2 < ths->d; t2++)
-//        {
-//          uo(ths, j, &u[t2], &o[t2], t2);
-//
-//          /* determine index in g-array corresponding to u[(t2)] */
-//          if (u[(t2)] < 0)
-//            lg_offset[(t2)] = (u[(t2)] % (2 * (ths->n[(t2)] + 1)))
-//                + (2 * (ths->n[(t2)] + 1));
-//          else
-//            lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] + 1));
-//          if (lg_offset[(t2)] > (ths->n[(t2)] + 1))
-//            lg_offset[(t2)] = -(2 * (ths->n[(t2)] + 1) - lg_offset[(t2)]);
-//
-//          if (lg_offset[t2] <= 0)
-//          {
-//            l[t2] = -lg_offset[t2];
-//            count_lg[t2] = -1;
-//          }
-//          else
-//          {
-//            l[t2] = +lg_offset[t2];
-//            count_lg[t2] = +1;
-//          }
-//
-//          lj[t2] = 0;
-//        }
-//        t2 = 0;
-//      };
-//
-//      for (t = 0; t < ths->d; t++)
-//      {
-//        fg_psi[t][0] = ths->psi[2 * (j * ths->d + t)];
-//        tmpEXP1 = ths->psi[2 * (j * ths->d + t) + 1];
-//        tmp1 = ((R) 1.0);
-//
-//        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++)
-//        {
-//          tmp1 *= tmpEXP1;
-//          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg];
-//        }
-//      }
-//
-//      for (l_L = 0; l_L < lprod; l_L++)
-//      {
-//        {
-//          for (t = t2; t < ths->d; t++)
-//          {
-//            if ((l[t] != 0) && (l[t] != (ths->n[t] + 1)))
-//            {
-//              phi_prod[t + 1] = (((R) count_lg[t])) * phi_prod[t]
-//                  * (fg_psi[t][lj[t]]);
-//            }
-//            else
-//            {
-//              phi_prod[t + 1] = ((R) 0.0);
-//            }
-//            ll_plain[t + 1] = ll_plain[t] * ths->n[t] + l[t] - 1;
-//          }
-//        };
-//
-//        {
-//          (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];
-//        };
-//
-//        {
-//          /* turn around if we hit one of the boundaries */
-//          if ((l[(ths->d - 1)] == 0)
-//              || (l[(ths->d - 1)] == (ths->n[(ths->d - 1)] + 1)))
-//            count_lg[(ths->d - 1)] *= -1;
-//
-//          /* move array index */
-//          l[(ths->d - 1)] += count_lg[(ths->d - 1)];
-//
-//          lj[ths->d - 1]++;
-//          t2 = ths->d - 1;
-//
-//          while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0))
-//          {
-//            lj[t2 - 1]++;
-//            lj[t2] = 0;
-//            /* ansonsten lg[i-1] verschieben */
-//
-//            /* turn around if we hit one of the boundaries */
-//            if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == (ths->n[(t2 - 1)] + 1)))
-//              count_lg[(t2 - 1)] *= -1;
-//            /* move array index */
-//            l[(t2 - 1)] += count_lg[(t2 - 1)];
-//
-//            /* lg[i] = anfangswert */
-//            if (lg_offset[t2] <= 0)
-//            {
-//              l[t2] = -lg_offset[t2];
-//              count_lg[t2] = -1;
-//            }
-//            else
-//            {
-//              l[t2] = +lg_offset[t2];
-//              count_lg[t2] = +1;
-//            }
-//
-//            t2--;
-//          }
-//        };
-//      }
-//    }
-//    return;
-//  }
-//
-//  if (ths->flags & (1U << 1))
-//  {
-//    for (t = 0; t < ths->d; t++)
-//    {
-//      tmpEXP2 = exp(((R) -1.0) / ths->b[t]);
-//      tmpEXP2sq = tmpEXP2 * tmpEXP2;
-//      tmp2 = ((R) 1.0);
-//      tmp3 = ((R) 1.0);
-//      fg_exp_l[t][0] = ((R) 1.0);
-//      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++)
-//      {
-//        tmp3 = tmp2 * tmpEXP2;
-//        tmp2 *= tmpEXP2sq;
-//        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg - 1] * tmp3;
-//      }
-//    }
-//
-//    for (j = 0, fj = f; j < ths->M_total; j++, fj++)
-//    {
-//      {
-//        for (t2 = 0; t2 < ths->d; t2++)
-//        {
-//          uo(ths, j, &u[t2], &o[t2], t2);
-//
-//          /* determine index in g-array corresponding to u[(t2)] */
-//          if (u[(t2)] < 0)
-//            lg_offset[(t2)] = (u[(t2)] % (2 * (ths->n[(t2)] + 1)))
-//                + (2 * (ths->n[(t2)] + 1));
-//          else
-//            lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] + 1));
-//          if (lg_offset[(t2)] > (ths->n[(t2)] + 1))
-//            lg_offset[(t2)] = -(2 * (ths->n[(t2)] + 1) - lg_offset[(t2)]);
-//
-//          if (lg_offset[t2] <= 0)
-//          {
-//            l[t2] = -lg_offset[t2];
-//            count_lg[t2] = -1;
-//          }
-//          else
-//          {
-//            l[t2] = +lg_offset[t2];
-//            count_lg[t2] = +1;
-//          }
-//
-//          lj[t2] = 0;
-//        }
-//        t2 = 0;
-//      };
-//
-//      for (t = 0; t < ths->d; t++)
-//      {
-//        fg_psi[t][0] = (((R) exp(
-//            -pow(
-//                ((ths->x[j * ths->d + t] - ((R) u[t]) / (2 * (ths->n[t] + 1))))
-//                    * ((R) (2 * (ths->n[t] + 1))), ((R) 2.0)) / ths->b[(t)])
-//            / sqrt(
-//                ((R) 3.1415926535897932384626433832795028841971693993751)
-//                    * ths->b[(t)])));
-//
-//        tmpEXP1 = exp(
-//            ((R) 2.0) * ((2 * (ths->n[t] + 1)) * ths->x[j * ths->d + t] - u[t])
-//                / ths->b[t]);
-//        tmp1 = ((R) 1.0);
-//        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++)
-//        {
-//          tmp1 *= tmpEXP1;
-//          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg];
-//        }
-//      }
-//
-//      for (l_L = 0; l_L < lprod; l_L++)
-//      {
-//        {
-//          for (t = t2; t < ths->d; t++)
-//          {
-//            if ((l[t] != 0) && (l[t] != (ths->n[t] + 1)))
-//            {
-//              phi_prod[t + 1] = (((R) count_lg[t])) * phi_prod[t]
-//                  * (fg_psi[t][lj[t]]);
-//            }
-//            else
-//            {
-//              phi_prod[t + 1] = ((R) 0.0);
-//            }
-//            ll_plain[t + 1] = ll_plain[t] * ths->n[t] + l[t] - 1;
-//          }
-//        };
-//
-//        {
-//          (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];
-//        };
-//
-//        {
-//          /* turn around if we hit one of the boundaries */
-//          if ((l[(ths->d - 1)] == 0)
-//              || (l[(ths->d - 1)] == (ths->n[(ths->d - 1)] + 1)))
-//            count_lg[(ths->d - 1)] *= -1;
-//
-//          /* move array index */
-//          l[(ths->d - 1)] += count_lg[(ths->d - 1)];
-//
-//          lj[ths->d - 1]++;
-//          t2 = ths->d - 1;
-//
-//          while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0))
-//          {
-//            lj[t2 - 1]++;
-//            lj[t2] = 0;
-//            /* ansonsten lg[i-1] verschieben */
-//
-//            /* turn around if we hit one of the boundaries */
-//            if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == (ths->n[(t2 - 1)] + 1)))
-//              count_lg[(t2 - 1)] *= -1;
-//            /* move array index */
-//            l[(t2 - 1)] += count_lg[(t2 - 1)];
-//
-//            /* lg[i] = anfangswert */
-//            if (lg_offset[t2] <= 0)
-//            {
-//              l[t2] = -lg_offset[t2];
-//              count_lg[t2] = -1;
-//            }
-//            else
-//            {
-//              l[t2] = +lg_offset[t2];
-//              count_lg[t2] = +1;
-//            }
-//
-//            t2--;
-//          }
-//        };
-//      }
-//    }
-//    return;
-//  }
-//
-//  if (ths->flags & (1U << 2))
-//  {
-//    for (j = 0, fj = f; j < ths->M_total; j++, fj++)
-//    {
-//      {
-//        for (t2 = 0; t2 < ths->d; t2++)
-//        {
-//          uo(ths, j, &u[t2], &o[t2], t2);
-//
-//          /* determine index in g-array corresponding to u[(t2)] */
-//          if (u[(t2)] < 0)
-//            lg_offset[(t2)] = (u[(t2)] % (2 * (ths->n[(t2)] + 1)))
-//                + (2 * (ths->n[(t2)] + 1));
-//          else
-//            lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] + 1));
-//          if (lg_offset[(t2)] > (ths->n[(t2)] + 1))
-//            lg_offset[(t2)] = -(2 * (ths->n[(t2)] + 1) - lg_offset[(t2)]);
-//
-//          if (lg_offset[t2] <= 0)
-//          {
-//            l[t2] = -lg_offset[t2];
-//            count_lg[t2] = -1;
-//          }
-//          else
-//          {
-//            l[t2] = +lg_offset[t2];
-//            count_lg[t2] = +1;
-//          }
-//
-//          lj[t2] = 0;
-//        }
-//        t2 = 0;
-//      };
-//
-//      for (t = 0; t < ths->d; t++)
-//      {
-//        y[t] = (((2 * (ths->n[t] + 1)) * ths->x[j * ths->d + t] - (R) u[t])
-//            * ((R) ths->K)) / (ths->m + 2);
-//        ip_u = lrint(floor(y[t]));
-//        ip_w = y[t] - ip_u;
-//        for (l_fg = u[t], lj_fg = 0; l_fg <= o[t]; l_fg++, lj_fg++)
-//        {
-//          fg_psi[t][lj_fg] = ths->psi[(ths->K + 1) * t
-//              + (((ip_u - lj_fg * ip_s) > ((R) 0.0)) ? (ip_u - lj_fg * ip_s) :
-//                  (-(ip_u - lj_fg * ip_s)))] * (1 - ip_w)
-//              + ths->psi[(ths->K + 1) * t
-//                  + (((ip_u - lj_fg * ip_s + 1) > ((R) 0.0)) ? (ip_u
-//                      - lj_fg * ip_s + 1) :
-//                      (-(ip_u - lj_fg * ip_s + 1)))] * (ip_w);
-//        }
-//      }
-//
-//      for (l_L = 0; l_L < lprod; l_L++)
-//      {
-//        {
-//          for (t = t2; t < ths->d; t++)
-//          {
-//            if ((l[t] != 0) && (l[t] != (ths->n[t] + 1)))
-//            {
-//              phi_prod[t + 1] = (((R) count_lg[t])) * phi_prod[t]
-//                  * (fg_psi[t][lj[t]]);
-//            }
-//            else
-//            {
-//              phi_prod[t + 1] = ((R) 0.0);
-//            }
-//            ll_plain[t + 1] = ll_plain[t] * ths->n[t] + l[t] - 1;
-//          }
-//        };
-//
-//        {
-//          (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];
-//        };
-//
-//        {
-//          /* turn around if we hit one of the boundaries */
-//          if ((l[(ths->d - 1)] == 0)
-//              || (l[(ths->d - 1)] == (ths->n[(ths->d - 1)] + 1)))
-//            count_lg[(ths->d - 1)] *= -1;
-//
-//          /* move array index */
-//          l[(ths->d - 1)] += count_lg[(ths->d - 1)];
-//
-//          lj[ths->d - 1]++;
-//          t2 = ths->d - 1;
-//
-//          while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0))
-//          {
-//            lj[t2 - 1]++;
-//            lj[t2] = 0;
-//            /* ansonsten lg[i-1] verschieben */
-//
-//            /* turn around if we hit one of the boundaries */
-//            if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == (ths->n[(t2 - 1)] + 1)))
-//              count_lg[(t2 - 1)] *= -1;
-//            /* move array index */
-//            l[(t2 - 1)] += count_lg[(t2 - 1)];
-//
-//            /* lg[i] = anfangswert */
-//            if (lg_offset[t2] <= 0)
-//            {
-//              l[t2] = -lg_offset[t2];
-//              count_lg[t2] = -1;
-//            }
-//            else
-//            {
-//              l[t2] = +lg_offset[t2];
-//              count_lg[t2] = +1;
-//            }
-//
-//            t2--;
-//          }
-//        };
-//      } /* for(l_L) */
-//    } /* for(j) */
-//    return;
-//  } /* if(PRE_LIN_PSI) */
-//
-//  /* no precomputed psi at all */
-//  for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1)
-//  {
-//    {
-//      for (t2 = 0; t2 < ths->d; t2++)
-//      {
-//        uo(ths, j, &u[t2], &o[t2], t2);
-//
-//        /* determine index in g-array corresponding to u[(t2)] */
-//        if (u[(t2)] < 0)
-//          lg_offset[(t2)] = (u[(t2)] % (2 * (ths->n[(t2)] + 1)))
-//              + (2 * (ths->n[(t2)] + 1));
-//        else
-//          lg_offset[(t2)] = u[(t2)] % (2 * (ths->n[(t2)] + 1));
-//        if (lg_offset[(t2)] > (ths->n[(t2)] + 1))
-//          lg_offset[(t2)] = -(2 * (ths->n[(t2)] + 1) - lg_offset[(t2)]);
-//
-//        if (lg_offset[t2] <= 0)
-//        {
-//          l[t2] = -lg_offset[t2];
-//          count_lg[t2] = -1;
-//        }
-//        else
-//        {
-//          l[t2] = +lg_offset[t2];
-//          count_lg[t2] = +1;
-//        }
-//
-//        lj[t2] = 0;
-//      }
-//      t2 = 0;
-//    };
-//
-//    for (l_L = 0; l_L < lprod; l_L++)
-//    {
-//      {
-//        for (t = t2; t < ths->d; t++)
-//        {
-//          if ((l[t] != 0) && (l[t] != (ths->n[t] + 1)))
-//          {
-//            phi_prod[t + 1] =
-//                (((R) count_lg[t])) * phi_prod[t]
-//                    * (((R) exp(
-//                        -pow(
-//                            (((ths->x[(j) * ths->d + t])
-//                                - ((R) (lj[t] + u[t]))
-//                                    / (((R) 2.0) * ((R) (ths->n[t] + 1)))))
-//                                * ((R) (2 * (ths->n[t] + 1))), ((R) 2.0))
-//                            / ths->b[t])
-//                        / sqrt(
-//                            ((R) 3.1415926535897932384626433832795028841971693993751)
-//                                * ths->b[t])));
-//          }
-//          else
-//          {
-//            phi_prod[t + 1] = ((R) 0.0);
-//          }
-//          ll_plain[t + 1] = ll_plain[t] * ths->n[t] + l[t] - 1;
-//        }
-//      };
-//
-//      {
-//        (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]];
-//      };
-//
-//      {
-//        /* turn around if we hit one of the boundaries */
-//        if ((l[(ths->d - 1)] == 0)
-//            || (l[(ths->d - 1)] == (ths->n[(ths->d - 1)] + 1)))
-//          count_lg[(ths->d - 1)] *= -1;
-//
-//        /* move array index */
-//        l[(ths->d - 1)] += count_lg[(ths->d - 1)];
-//
-//        lj[ths->d - 1]++;
-//        t2 = ths->d - 1;
-//
-//        while ((lj[t2] == (2 * ths->m + 2)) && (t2 > 0))
-//        {
-//          lj[t2 - 1]++;
-//          lj[t2] = 0;
-//          /* ansonsten lg[i-1] verschieben */
-//
-//          /* turn around if we hit one of the boundaries */
-//          if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == (ths->n[(t2 - 1)] + 1)))
-//            count_lg[(t2 - 1)] *= -1;
-//          /* move array index */
-//          l[(t2 - 1)] += count_lg[(t2 - 1)];
-//
-//          /* lg[i] = anfangswert */
-//          if (lg_offset[t2] <= 0)
-//          {
-//            l[t2] = -lg_offset[t2];
-//            count_lg[t2] = -1;
-//          }
-//          else
-//          {
-//            l[t2] = +lg_offset[t2];
-//            count_lg[t2] = +1;
-//          }
-//
-//          t2--;
-//        }
-//      };
-//    } /* for (l_L) */
-//  } /* for (j) */
-//}
-
 /**
  * user routines
  */
@@ -1433,11 +783,11 @@ static inline void precompute_phi_hut(X(plan) *ths)
   INT ks[ths->d]; /* index over all frequencies */
   INT t; /* index over all dimensions */
 
-  ths->c_phi_inv = (R**) Y(malloc)(ths->d * sizeof(R*));
+  ths->c_phi_inv = (R**) Y(malloc)((size_t)(ths->d) * sizeof(R*));
 
   for (t = 0; t < ths->d; t++)
   {
-    ths->c_phi_inv[t] = (R*)Y(malloc)((ths->N[t] - OFFSET) * sizeof(R));
+    ths->c_phi_inv[t] = (R*)Y(malloc)((size_t)(ths->N[t] - OFFSET) * sizeof(R));
 
     for (ks[t] = 0; ks[t] < ths->N[t] - OFFSET; ks[t]++)
     {
@@ -1513,7 +863,7 @@ void X(precompute_psi)(X(plan) *ths)
   } /* for (t) */
 } /* precompute_psi */
 
-X(precompute_full_psi)(X(plan) *ths)
+void X(precompute_full_psi)(X(plan) *ths)
 {
 //#ifdef _OPENMP
 //  sort(ths);
@@ -1565,14 +915,14 @@ X(precompute_full_psi)(X(plan) *ths)
 
 void X(precompute_one_psi)(X(plan) *ths)
 {
-  if(ths->flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(ths);
-  if(ths->flags & PRE_FG_PSI)
-    X(precompute_fg_psi)(ths);
   if(ths->flags & PRE_PSI)
     X(precompute_psi)(ths);
   if(ths->flags & PRE_FULL_PSI)
     X(precompute_full_psi)(ths);
+  if(ths->flags & PRE_FG_PSI)
+    X(precompute_fg_psi)(ths);
+  if(ths->flags & PRE_LIN_PSI)
+    X(precompute_lin_psi)(ths);
 }
 
 static inline void init_help(X(plan) *ths)
@@ -1586,26 +936,26 @@ static inline void init_help(X(plan) *ths)
   ths->N_total = intprod(ths->N, OFFSET, ths->d);
   ths->n_total = intprod(ths->n, 0, ths->d);
 
-  ths->sigma = (R*)Y(malloc)(ths->d * sizeof(R));
+  ths->sigma = (R*)Y(malloc)((size_t)(ths->d) * sizeof(R));
 
   for (t = 0; t < ths->d; t++)
     ths->sigma[t] = ((R)NN(ths->n[t])) / ths->N[t];
 
   /* Assign r2r transform kinds for each dimension */
-  ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)(ths->d * sizeof (Z(r2r_kind)));
+  ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)((size_t)(ths->d) * sizeof (Z(r2r_kind)));
   for (t = 0; t < ths->d; t++)
     ths->r2r_kind[t] = FOURIER_TRAFO;
 
   WINDOW_HELP_INIT;
 
   if (ths->flags & MALLOC_X)
-    ths->x = (R*)Y(malloc)(ths->d * ths->M_total * sizeof(R));
+    ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));
 
   if (ths->flags & MALLOC_F_HAT)
-    ths->f_hat = (R*)Y(malloc)(ths->N_total * sizeof(R));
+    ths->f_hat = (R*)Y(malloc)((size_t)(ths->N_total) * sizeof(R));
 
   if (ths->flags & MALLOC_F)
-    ths->f = (R*)Y(malloc)(ths->M_total * sizeof(R));
+    ths->f = (R*)Y(malloc)((size_t)(ths->M_total) * sizeof(R));
 
   if (ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
@@ -1613,42 +963,42 @@ static inline void init_help(X(plan) *ths)
   if(ths->flags & PRE_LIN_PSI)
   {
       ths->K = (1U<< 10) * (ths->m+2);
-      ths->psi = (R*) Y(malloc)((ths->K + 1) * ths->d * sizeof(R));
+      ths->psi = (R*) Y(malloc)((size_t)((ths->K + 1) * ths->d) * sizeof(R));
   }
 
   if(ths->flags & PRE_FG_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * 2 * sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * 2) * sizeof(R));
 
   if (ths->flags & PRE_PSI)
-    ths->psi = (R*) Y(malloc)(ths->M_total * ths->d * (2 * ths->m + 2 ) *sizeof(R));
+    ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * (2 * ths->m + 2 )) * sizeof(R));
 
   if(ths->flags & PRE_FULL_PSI)
   {
       for (t = 0, lprod = 1; t < ths->d; t++)
         lprod *= 2 * ths->m + 2;
 
-      ths->psi = (R*) Y(malloc)(ths->M_total * lprod * sizeof(R));
+      ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(R));
 
-      ths->psi_index_f = (INT*) Y(malloc)(ths->M_total * sizeof(INT));
-      ths->psi_index_g = (INT*) Y(malloc)(ths->M_total * lprod * sizeof(INT));
+      ths->psi_index_f = (INT*) Y(malloc)((size_t)(ths->M_total) * sizeof(INT));
+      ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
   if (ths->flags & FFTW_INIT)
   {
-    ths->g1 = (R*)Y(malloc)(ths->n_total * sizeof(R));
+    ths->g1 = (R*)Y(malloc)((size_t)(ths->n_total) * sizeof(R));
 
     if (ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (R*) Y(malloc)(ths->n_total * sizeof(R));
+      ths->g2 = (R*) Y(malloc)((size_t)(ths->n_total) * sizeof(R));
     else
       ths->g2 = ths->g1;
 
     {
-      int *_n = Y(malloc)(ths->d * sizeof(int));
+      int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
 
       for (t = 0; t < ths->d; t++)
         _n[t] = (int)(ths->n[t]);
 
-      ths->my_fftw_r2r_plan = Z(plan_r2r)(ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
+      ths->my_fftw_r2r_plan = Z(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
       Y(free)(_n);
     }
   }
@@ -1668,14 +1018,14 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 
   ths->d = (INT)d;
 
-  ths->N = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->N = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
   ths->M_total = (INT)M_total;
 
-  ths->n = (INT*) Y(malloc)(d * sizeof(INT));
+  ths->n = (INT*) Y(malloc)((size_t)(d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = 2 * (Y(next_power_of_2)(ths->N[t]) - 1) + OFFSET;
@@ -1709,12 +1059,12 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->d = (INT)d;
   ths->M_total = (INT)M_total;
-  ths->N = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->N = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->N[t] = (INT)N[t];
 
-  ths->n = (INT*)Y(malloc)(ths->d * sizeof(INT));
+  ths->n = (INT*)Y(malloc)((size_t)(ths->d) * sizeof(INT));
 
   for (t = 0; t < d; t++)
     ths->n[t] = (INT)n[t];

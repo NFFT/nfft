@@ -26,57 +26,55 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#undef X
+#define X(name) NFCT(name)
+
 static void simple_test_nfct_1d(void)
 {
-  int j,k;
-  nfct_plan p;
+  X(plan) p;
 
-  int N=14;
-  int M=19;
+  int N = 14;
+  int M = 19;
 
   /** init an one dimensional plan */
-  nfct_init_1d(&p,N,M);
+  X(init_1d)(&p,N,M);
 
   /** init pseudo random nodes */
-  for(j = 0; j < p.d*p.M_total; j++)
-    p.x[j] = 0.5 * ((double)rand()) / RAND_MAX;
+  Y(vrand_real)(p.x, p.M_total, K(0.0), K(0.5));
 
   /** precompute psi, the entries of the matrix B */
-  if( p.flags & PRE_PSI)
-    nfct_precompute_psi( &p);
+  if( p.flags & PRE_ONE_PSI)
+    X(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  for(k = 0; k < p.N_total; k++)
-    p.f_hat[k] = (double)rand() / RAND_MAX;
-
-  nfft_vpr_double(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
+  Y(vrand_real)(p.f_hat, p.N_total, K(0.0), K(1.0));
+  Y(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  nfct_trafo_direct(&p);
-  nfft_vpr_double(p.f,p.M_total,"ndct, vector f");
+  X(trafo_direct)(&p);
+  Y(vpr_double)(p.f,p.M_total,"ndct, vector f");
 
   /** approx. trafo and show the result */
-  nfct_trafo(&p);
-  nfft_vpr_double(p.f,p.M_total,"nfct, vector f");
+  X(trafo)(&p);
+  Y(vpr_double)(p.f,p.M_total,"nfct, vector f");
 
   /** approx. adjoint and show the result */
-  nfct_adjoint_direct(&p);
-  nfft_vpr_double(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
+  X(adjoint_direct)(&p);
+  Y(vpr_double)(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
 
   /** approx. adjoint and show the result */
-  nfct_adjoint(&p);
-  nfft_vpr_double(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
+  X(adjoint)(&p);
+  Y(vpr_double)(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
 
   /** finalise the one dimensional plan */
-  nfct_finalize(&p);
+  X(finalize)(&p);
 }
 
 int main(void)
 {
-  system("clear");
-  printf("computing one dimensional ndct, nfct and adjoint ndct, nfct\n\n");
+  printf("Computing one dimensional ndct, nfct, adjoint ndct, and adjoint nfct...\n\n");
   simple_test_nfct_1d();
   printf("\n\n");
 
-  return 1;
+  return EXIT_SUCCESS;
 }

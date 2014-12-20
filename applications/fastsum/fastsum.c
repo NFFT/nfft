@@ -1035,7 +1035,7 @@ void fastsum_precompute(fastsum_plan *ths)
             * ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5));
         k = k / (ths->n);
       }
-      ths->b[j] = regkern3(ths->k, SQRT(ths->b[j]), ths->p, ths->kernel_param,
+      ths->b[j] = regkern3(ths->k, SQRT(CREAL(ths->b[j])), ths->p, ths->kernel_param,
           ths->eps_I, ths->eps_B) / (R)(n_total);
     }
   }

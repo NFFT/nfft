@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   int n; /**< expansion degree        */
   int m; /**< cut-off parameter       */
   int p; /**< degree of smoothness    */
-  char *s; /**< name of kernel          */
+  const char *s; /**< name of kernel          */
   C (*kernel)(R, int, const R *); /**< kernel function         */
   R c; /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan; /**< plan for fast summation */

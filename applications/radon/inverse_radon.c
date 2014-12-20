@@ -118,7 +118,7 @@ static int linogram_grid(int T, int S, R *x, R *w)
  *  on the grid given by gridfcn() with T angles and R offsets
  *  by a NFFT-based CG-type algorithm
  */
-int Inverse_Radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R *f,
+static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R *f,
     int max_i)
 {
   int j, k; /**< index for nodes and freqencies   */
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
   fclose(fp);
 
   /** inverse Radon transform */
-  Inverse_Radon_trafo(gridfcn, T, S, Rf, N, iRf, max_i);
+  inverse_radon_trafo(gridfcn, T, S, Rf, N, iRf, max_i);
 
   /** write result */
   fp = fopen("output_data.bin", "wb+");
