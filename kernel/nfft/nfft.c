@@ -5640,7 +5640,7 @@ void X(precompute_one_psi)(X(plan) *ths)
   if(ths->flags & PRE_LIN_PSI)
     X(precompute_lin_psi)(ths);
   if(ths->flags & PRE_FG_PSI)
-    nfft_precompute_fg_psi(ths);
+    X(precompute_fg_psi)(ths);
   if(ths->flags & PRE_PSI)
     X(precompute_psi)(ths);
   if(ths->flags & PRE_FULL_PSI)

@@ -171,7 +171,7 @@ int main(int argc, char **argv)
   fastsum_exact(&my_fastsum_plan);
   t1 = getticks();
   time = Y(elapsed_seconds)(t1, t0);
-  printf("%fsec\n", time);
+  printf(__FI__ "sec\n", time);
 
   /** copy result */
   direct = (C *) Y(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
   fastsum_precompute(&my_fastsum_plan);
   t1 = getticks();
   time = Y(elapsed_seconds)(t1, t0);
-  printf("%fsec\n", time);
+  printf(__FI__ "sec\n", time);
 
   /** fast computation */
   printf("fast computation:   ");
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
   fastsum_trafo(&my_fastsum_plan);
   t1 = getticks();
   time = Y(elapsed_seconds)(t1, t0);
-  printf("%fsec\n", time);
+  printf(__FI__ "sec\n", time);
 
   /** compute max error */
   error = K(0.0);
