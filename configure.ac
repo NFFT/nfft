@@ -116,16 +116,7 @@ need_fpt="no"
 # build all modules by default in maintainer mode or if option is given
 AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
   ok=$enableval, ok=$USE_MAINTAINER_MODE)
-if test "x$ok" = "xyes" -o "x$USE_MAINTAINER_MODE" = "xyes"; then
-  if test ! "$PRECISION" = "s" -a ! "$PRECISION" = "l"; then
-    nfft_module_default="yes"
-  else
-    nfft_module_default="no"
-  fi
-else
-  nfft_module_default="no"
-fi
-#nfft_module_default=$enable_all
+nfft_module_default=$ok
 
 # option for example programs
 nfft_examples_default="yes"
@@ -140,17 +131,17 @@ AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
 # options for modules
-AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform])
-AX_NFFT_MODULE([nfst],[NFST],[nonequispaced fast sine transform])
-AX_NFFT_MODULE([nfsft],[NFSFT],[nonequispaced fast spherical Fourier transform],
+AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform],["yes"])
+AX_NFFT_MODULE([nfst],[NFST],[nonequispaced fast sine transform],["yes"])
+AX_NFFT_MODULE([nfsft],[NFSFT],[nonequispaced fast spherical Fourier transform],["no"],
   [need_fpt="yes"])
-AX_NFFT_MODULE([nfsoft],[NFSOFT],[nonequispaced fast SO(3) Fourier transform],
+AX_NFFT_MODULE([nfsoft],[NFSOFT],[nonequispaced fast SO(3) Fourier transform],["no"],
   [need_fpt="yes"])
 AX_NFFT_MODULE([nnfft],[NNFFT],[nonequispaced fast Fourier transform -- ]#
-  [nonequispaced in both domains])
-AX_NFFT_MODULE([nsfft],[NSFFT],[nonequispaced sparse fast Fourier transform])
-AX_NFFT_MODULE([mri],[MRI],[magnet resonance imaging])
-AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],[],[],
+  [nonequispaced in both domains],["no"])
+AX_NFFT_MODULE([nsfft],[NSFFT],[nonequispaced sparse fast Fourier transform],["no"])
+AX_NFFT_MODULE([mri],[MRI],[magnet resonance imaging],["no"])
+AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
