@@ -1406,7 +1406,7 @@ R Y(elapsed_seconds)(ticks t1, ticks t0);
 
 #define TOC(a)                                                                \
       MEASURE_TIME_t1 = getticks();                                           \
-      MEASURE_TIME_tt = nfft_elapsed_seconds(MEASURE_TIME_t1,MEASURE_TIME_t0);\
+      MEASURE_TIME_tt = Y(elapsed_seconds)(MEASURE_TIME_t1,MEASURE_TIME_t0);\
       ths->MEASURE_TIME_t[(a)]+=MEASURE_TIME_tt;                              \
     }                                                                         \
   ths->MEASURE_TIME_t[(a)]/=MEASURE_TIME_r;                                   \
@@ -1472,7 +1472,7 @@ void Y(sort_node_indices_radix_msdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
 void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
 
 /* assert.c */
-void nfft_assertion_failed(const char *s, int line, const char *file);
+void Y(assertion_failed)(const char *s, int line, const char *file);
 
 /* rand.c */
 R Y(drand48)(void);
@@ -1567,12 +1567,12 @@ INT Y(get_num_threads)(void);
 
 /* always check */
 #define CK(ex) \
-  (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+  (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))
 
 #ifdef NFFT_DEBUG
   /* check only if debug enabled */
   #define A(ex) \
-    (void)((ex) || (nfft_assertion_failed(#ex, __LINE__, __FILE__), 0))
+    (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))
 #else
   #define A(ex) /* nothing */
 #endif

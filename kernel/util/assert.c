@@ -24,7 +24,7 @@
  * Prints an error message for a failed assertion together with filename and the
  * line where the assertion failed.
  */
-void nfft_assertion_failed(const char *s, int line, const char *file)
+void Y(assertion_failed)(const char *s, int line, const char *file)
 {
   fflush(stdout);
   fprintf(stderr, "nfft: %s:%d: assertion failed: %s\n", file, line, s);
