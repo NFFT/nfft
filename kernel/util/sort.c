@@ -18,6 +18,11 @@
 
 /* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "infft.h"
 
 #define z_swap(_a_, _b_, _t_) do { (_t_) = (_a_); (_a_) = (_b_); (_b_) = (_t_); } while (0)
