@@ -228,11 +228,11 @@ static R err_trafo(X(plan) *p)
     s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
 #if defined(NFFT_LDOUBLE)
-    a = K(0.6);
+    a = K(3.0);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
-    b = K(2000.0);
+    b = K(9500.0);
 #else
     a = K(1.5);
     b = K(50.0);
@@ -247,7 +247,7 @@ static R err_trafo(X(plan) *p)
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
-    b = K(2000.0);
+    b = K(4800.0);
 #else
     a = K(1.0);
     b = K(4100.0);
@@ -259,7 +259,7 @@ static R err_trafo(X(plan) *p)
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
-    b = K(2000.0);
+    b = K(4800.0);
 #else
     a = K(1.0);
     b = K(4100.0);
@@ -267,11 +267,11 @@ static R err_trafo(X(plan) *p)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
 #if defined(NFFT_LDOUBLE)
-    a = K(0.3);
+    a = K(2.9);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(2000.0);
+    a = K(0.95);
+    b = K(4800.0);
 #else
     a = K(0.3);
     b = K(5000.0);

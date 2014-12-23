@@ -268,7 +268,7 @@ static R err_trafo(X(plan) *p)
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
 #if defined(NFFT_LDOUBLE)
-    a = K(0.3);
+    a = K(1.5);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
