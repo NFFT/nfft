@@ -276,6 +276,10 @@ fi
 # Check for MATLAB.
 AX_PROG_MATLAB
 
+if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd"; then
+  AC_MSG_ERROR([Building the Matlab interfaces requires double precision.])
+fi
+
 if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
   AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with \"--enable-openmp\".])
 fi
