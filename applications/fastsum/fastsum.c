@@ -611,77 +611,84 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
     const R *xmin, const R *xmax, const int N, const kernel k, const R *param,
     const int Ad, const C *Add, const int p, const unsigned flags)
 {
-  int m = N / 2;
-  R Min = xmin[t], Max = xmax[t], Median = x[m * d + t];
-  R a = FABS(Max - Min) / 2;
-  int l;
-  int E = 0;
-  R r;
-
   if (N == 0)
-    return K(0.0);
-  if (Min > Median)
-    return SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
-        xmax, N - m - 1, k, param, Ad, Add, p, flags);
-  else if (Max < Median)
-    return SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad,
-        Add, p, flags);
+  {
+      return K(0.0);
+  }
   else
   {
-    C result = K(0.0);
-    E = 0;
+      int m = N / 2;
+      R Min = xmin[t];
+      R Max = xmax[t];
+      R Median = x[m * d + t];
+      R a = FABS(Max - Min) / 2;
+      int l;
+      int E = 0;
+      R r;
 
-    for (l = 0; l < d; l++)
-    {
-      if (x[m * d + l] > xmin[l] && x[m * d + l] < xmax[l])
-        E++;
-    }
-
-    if (E == d)
-    {
-      if (d == 1)
-      {
-        r = xmin[0] + a - x[m]; /* remember: xmin+a = y */
-      }
+      if (Min > Median)
+          return SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
+                  xmax, N - m - 1, k, param, Ad, Add, p, flags);
+      else if (Max < Median)
+          return SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad,
+                  Add, p, flags);
       else
       {
-        r = K(0.0);
-        for (l = 0; l < d; l++)
-          r += (xmin[l] + a - x[m * d + l]) * (xmin[l] + a - x[m * d + l]); /* remember: xmin+a = y */
-        r = SQRT(r);
-      }
-      if (FABS(r) < a)
-      {
-        result += alpha[m] * k(r, 0, param); /* alpha*(kern-regkern) */
-        if (d == 1)
-        {
-          if (flags & EXACT_NEARFIELD)
-            result -= alpha[m] * regkern1(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in 1D)  */
-          else
-            result -= alpha[m] * kubintkern1(r, Add, Ad, a); /* spline approximation */
-        }
-        else
-        {
-          if (flags & EXACT_NEARFIELD)
-            result -= alpha[m] * regkern(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in dD)  */
-          else
+          C result = K(0.0);
+          E = 0;
+
+          for (l = 0; l < d; l++)
+          {
+              if (x[m * d + l] > xmin[l] && x[m * d + l] < xmax[l])
+                  E++;
+          }
+
+          if (E == d)
+          {
+              if (d == 1)
+              {
+                  r = xmin[0] + a - x[m]; /* remember: xmin+a = y */
+              }
+              else
+              {
+                  r = K(0.0);
+                  for (l = 0; l < d; l++)
+                      r += (xmin[l] + a - x[m * d + l]) * (xmin[l] + a - x[m * d + l]); /* remember: xmin+a = y */
+                  r = SQRT(r);
+              }
+              if (FABS(r) < a)
+              {
+                  result += alpha[m] * k(r, 0, param); /* alpha*(kern-regkern) */
+                  if (d == 1)
+                  {
+                      if (flags & EXACT_NEARFIELD)
+                          result -= alpha[m] * regkern1(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in 1D)  */
+                      else
+                          result -= alpha[m] * kubintkern1(r, Add, Ad, a); /* spline approximation */
+                  }
+                  else
+                  {
+                      if (flags & EXACT_NEARFIELD)
+                          result -= alpha[m] * regkern(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in dD)  */
+                      else
 #if defined(NF_KUB)
-            result -= alpha[m] * kubintkern(r, Add, Ad, a); /* spline approximation */
+                          result -= alpha[m] * kubintkern(r, Add, Ad, a); /* spline approximation */
 #elif defined(NF_QUADR)
-          result -= alpha[m]*quadrintkern(r,Add,Ad,a); /* spline approximation */
+                      result -= alpha[m]*quadrintkern(r,Add,Ad,a); /* spline approximation */
 #elif defined(NF_LIN)
-          result -= alpha[m]*linintkern(r,Add,Ad,a); /* spline approximation */
+                      result -= alpha[m]*linintkern(r,Add,Ad,a); /* spline approximation */
 #else
 #error define interpolation method
 #endif
-        }
+                  }
+              }
+          }
+          result += SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
+                  xmax, N - m - 1, k, param, Ad, Add, p, flags)
+                + SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad, Add,
+                        p, flags);
+          return result;
       }
-    }
-    result += SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
-        xmax, N - m - 1, k, param, Ad, Add, p, flags)
-        + SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad, Add,
-            p, flags);
-    return result;
   }
 }
 
@@ -809,7 +816,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
   for (t = 0; t < d; t++)
     n_total *= nn;
 
-  ths->b = (C*) Y(malloc)((size_t)(n_total) * sizeof(fftw_complex));
+  ths->b = (C*) Y(malloc)((size_t)(n_total) * sizeof(C));
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
