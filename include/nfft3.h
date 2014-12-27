@@ -283,12 +283,10 @@ NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 
-#if defined(HAVE_NFCT)
 /* nfct api */
 NFCT_DEFINE_API(NFCT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFCT_DEFINE_API(NFCT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFCT_DEFINE_API(NFCT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* nfst */
 
@@ -366,12 +364,10 @@ NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 
-#ifdef HAVE_NFST
 /* nfst api */
 NFST_DEFINE_API(NFST_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFST_DEFINE_API(NFST_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFST_DEFINE_API(NFST_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* nnfft */
 
@@ -433,12 +429,10 @@ NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan);
 
-#ifdef HAVE_NNFFT
 /* nnfft api */
 NNFFT_DEFINE_API(NNFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NNFFT_DEFINE_API(NNFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NNFFT_DEFINE_API(NNFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* additional init flags */
 #define MALLOC_V         (1U<< 11)
@@ -489,12 +483,10 @@ NFFT_EXTERN void X(init_random_nodes_coeffs)(X(plan) *ths); \
 NFFT_EXTERN void X(init)(X(plan) *ths, int d, int J, int M, int m, unsigned flags); \
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
-#ifdef HAVE_NSFFT
 /* nsfft api */
 NSFFT_DEFINE_API(NSFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NSFFT_DEFINE_API(NSFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NSFFT_DEFINE_API(NSFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* additional init flags */
 #define NSDFT            (1U<< 12)
@@ -545,12 +537,10 @@ void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
 void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
 
-#ifdef HAVE_MRI
   /* mri api */
 MRI_DEFINE_API(MRI_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 MRI_DEFINE_API(MRI_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 MRI_DEFINE_API(MRI_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* nfsft */
 
@@ -599,12 +589,10 @@ NFFT_EXTERN void X(adjoint)(X(plan)* plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
 NFFT_EXTERN void X(precompute_x)(X(plan) *plan);
 
-#ifdef HAVE_NFSFT
 /* nfsft api */
 NFSFT_DEFINE_API(NFSFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFSFT_DEFINE_API(NFSFT_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
-#endif
 
 /* init flags */
 #define NFSFT_NORMALIZED     (1U << 0)
@@ -659,7 +647,6 @@ NFFT_EXTERN void X(transposed)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
 NFFT_EXTERN void X(finalize)(X(set) set);
 
-#ifdef HAVE_FPT
 /* fpt api */
 FPT_DEFINE_API(FPT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 FPT_DEFINE_API(FPT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
@@ -674,7 +661,6 @@ FPT_DEFINE_API(FPT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_
 /* transform flags */
 #define FPT_FUNCTION_VALUES     (1U << 5)
 #define FPT_AL_SYMMETRY         (1U << 6)
-#endif
 
 /* nfsoft*/
 
@@ -721,7 +707,6 @@ NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
 NFFT_EXTERN int X(posN)(int n,int m, int B);
 
-#ifdef HAVE_NFSOFT
 /* nfsoft api */
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,FPT_MANGLE_FLOAT,float,fftwf_complex)
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,FPT_MANGLE_DOUBLE,double,fftw_complex)
@@ -752,8 +737,6 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
 #define NFSOFT_INDEX(m,n,l,B) (((l)+((B)+1))+(2*(B)+2)*(((n)+((B)+1))+(2*(B)+2)*((m)+((B)+1))))
 #define NFSOFT_INDEX_TWO(m,n,l,B) ((B+1)*(B+1)+(B+1)*(B+1)*(m+B)-((m-1)*m*(2*m-1)+(B+1)*(B+2)*(2*B+3))/6)+(posN(n,m,B))+(l-MAX(ABS(m),ABS(n)))
 #define NFSOFT_F_HAT_SIZE(B) (((B)+1)*(4*((B)+1)*((B)+1)-1)/3)
-
-#endif
 
 /*solver */
 
