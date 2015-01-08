@@ -93,7 +93,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("\\verb+%ld+&\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
 
@@ -110,7 +110,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   /** init pseudo random nodes */
   X(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
@@ -150,7 +150,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -218,7 +218,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   //  printf("\\verb+%.1" __FES__ "+ & \\verb+(%d)+ & \\verb+(%.1" __FES__ ")+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
   printf("\\verb+%.1" __FES__ "+ & \\verb+(%3.1" __FIS__ ")+\\\\\n", t_nfft, t_nfft / t_fft);
 
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -229,7 +229,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -248,7 +248,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.M_total) * sizeof(C));
 
@@ -270,7 +270,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -338,7 +338,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -349,7 +349,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -368,7 +368,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f, p.f_hat, FFTW_BACKWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_BACKWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.N_total) * sizeof(C));
 
@@ -390,7 +390,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -458,7 +458,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -469,7 +469,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -488,7 +488,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.M_total) * sizeof(C));
 
@@ -513,7 +513,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -591,7 +591,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -602,7 +602,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -621,7 +621,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.N_total) * sizeof(C));
 
@@ -642,7 +642,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -720,7 +720,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -731,7 +731,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -750,7 +750,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.M_total) * sizeof(C));
 
@@ -772,7 +772,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -850,7 +850,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 
@@ -861,7 +861,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   ticks t0, t1;
 
   X(plan) p;
-  Z(plan) p_fft;
+  FFTW(plan) p_fft;
 
   printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
   fflush(stdout);
@@ -880,7 +880,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  p_fft = Z(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
+  p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
   C *swapndft = (C*) Y(malloc)((size_t)(p.N_total) * sizeof(C));
 
@@ -901,7 +901,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   {
     r++;
     t0 = getticks();
-    Z(execute)(p_fft);
+    FFTW(execute)(p_fft);
     t1 = getticks();
     t = X(elapsed_seconds)(t1, t0);
     t_fft += t;
@@ -979,7 +979,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   printf("\n");
 
   Y(free)(swapndft);
-  Z(destroy_plan)(p_fft);
+  FFTW(destroy_plan)(p_fft);
   X(finalize)(&p);
 }
 

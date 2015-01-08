@@ -124,7 +124,7 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
   X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
 
   C *fft; /**< variable for the fftw-1Ds        */
-  Z(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
+  FFTW(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
 
   int t, r; /**< index for directions and offsets */
   R *x, *w; /**< knots and associated weights     */
@@ -138,7 +138,7 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
   n[1] = 2 * N[1];
 
   fft = (C *) Y(malloc)((size_t)(S) * sizeof(C));
-  my_fftw_plan = Z(plan_dft_1d)(S, fft, fft, FFTW_BACKWARD, FFTW_MEASURE);
+  my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_BACKWARD, FFTW_MEASURE);
 
   x = (R *) Y(malloc)((size_t)(2 * T * S) * (sizeof(R)));
   if (x == NULL)
@@ -187,7 +187,7 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
       fft[r + S / 2] = KERNEL(r) * my_nfft_plan.f[t * S + (r + S / 2)];
 
     Y(fftshift_complex_int)(fft, 1, &S);
-    Z(execute)(my_fftw_plan);
+    FFTW(execute)(my_fftw_plan);
     Y(fftshift_complex_int)(fft, 1, &S);
 
     for (r = 0; r < S; r++)
@@ -201,7 +201,7 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
   }
 
   /** finalise the plans and free the variables */
-  Z(destroy_plan)(my_fftw_plan);
+  FFTW(destroy_plan)(my_fftw_plan);
   Y(free)(fft);
   X(finalize)(&my_nfft_plan);
   Y(free)(x);

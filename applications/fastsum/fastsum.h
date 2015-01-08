@@ -112,7 +112,7 @@ typedef struct fastsum_plan_
   C *Add;                 /**< spline values */
 
   /* things for computing *b - are they used only once?? */
-  Z(plan) fft_plan;
+  FFTW(plan) fft_plan;
 
   int box_count;
   int box_count_per_dim;

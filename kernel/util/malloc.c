@@ -36,7 +36,7 @@ void *Y(malloc)(size_t n)
   if (n == 0)
     n = 1;
 
-  p = Z(malloc)(n);
+  p = FFTW(malloc)(n);
 
   if (!p)
     Y(die)(STRINGIZE(Y(malloc)) ": out of memory\n");
@@ -53,7 +53,7 @@ void Y(free)(void *p)
       Y(free_hook)(p);
       return;
     }
-    Z(free)(p);
+    FFTW(free)(p);
   }
 }
 

@@ -175,7 +175,7 @@ static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int 
     unsigned flags)
 {
   int j, n_fftw;
-  Z(plan) fplan;
+  FFTW(plan) fplan;
 
   ths->M = M;
   ths->N = N;
@@ -210,7 +210,7 @@ static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int 
 
   if (ths->flags & FGT_APPROX_B)
   {
-    fplan = Z(plan_dft_1d)(ths->n, ths->b, ths->b, FFTW_FORWARD,
+    fplan = FFTW(plan_dft_1d)(ths->n, ths->b, ths->b, FFTW_FORWARD,
     FFTW_MEASURE);
 
     for (j = 0; j < ths->n; j++)
@@ -219,10 +219,10 @@ static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int 
               / ((R) (ths->n * ths->n))) / ((R)(ths->n));
 
     X(fftshift_complex_int)(ths->b, 1, &ths->n);
-    Z(execute)(fplan);
+    FFTW(execute)(fplan);
     X(fftshift_complex_int)(ths->b, 1, &ths->n);
 
-    Z(destroy_plan)(fplan);
+    FFTW(destroy_plan)(fplan);
   }
   else
   {
@@ -469,7 +469,7 @@ static void fgt_test_andersson(void)
 
     Y(free)(swap_dgt);
     fgt_finalize(&my_plan);
-    Z(cleanup)();
+    FFTW(cleanup)();
   }
 }
 
@@ -516,7 +516,7 @@ static void fgt_test_error(void)
       fflush(stdout);
 
       fgt_finalize(&my_plan);
-      Z(cleanup)();
+      FFTW(cleanup)();
     }
     printf("\n");
   }
@@ -568,7 +568,7 @@ static void fgt_test_error_p(void)
       fflush(stdout);
 
       fgt_finalize(&my_plan);
-      Z(cleanup)();
+      FFTW(cleanup)();
     }
     printf("\n");
   }

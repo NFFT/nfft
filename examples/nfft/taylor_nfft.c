@@ -153,7 +153,7 @@ static void taylor_trafo(taylor_plan *ths)
     for (k = 1, g1 = cths->g1 + 1; k < cths->N_total / 2; k++)
       (*g1++) /= (-K2PI * II * (R)(k));
 
-    Z(execute)(cths->my_fftw_plan1);
+    FFTW(execute)(cths->my_fftw_plan1);
 
     ll = (l == 0 ? 1 : l);
 

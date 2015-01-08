@@ -49,18 +49,18 @@ int bench_openmp(FILE *infile, int n, int m, int p,
   fscanf(infile, "%d %d %d", &d, &L, &M);
 
 #ifdef _OPENMP
-  Z(import_wisdom_from_filename)("fastsum_benchomp_detail_threads.plan");
+  FFTW(import_wisdom_from_filename)("fastsum_benchomp_detail_threads.plan");
 #else
-  Z(import_wisdom_from_filename)("fastsum_benchomp_detail_single.plan");
+  FFTW(import_wisdom_from_filename)("fastsum_benchomp_detail_single.plan");
 #endif
 
   fastsum_init_guru(&my_fastsum_plan, d, L, M, kernel, &c, NEARFIELD_BOXES, n,
       m, p, eps_I, eps_B);
 
 #ifdef _OPENMP
-  Z(export_wisdom_to_filename)("fastsum_benchomp_detail_threads.plan");
+  FFTW(export_wisdom_to_filename)("fastsum_benchomp_detail_threads.plan");
 #else
-  Z(export_wisdom_to_filename)("fastsum_benchomp_detail_single.plan");
+  FFTW(export_wisdom_to_filename)("fastsum_benchomp_detail_single.plan");
 #endif
 
   for (j = 0; j < L; j++)
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
 
   nthreads = atoi(argv[8]);
-  Z(init_threads)();
+  FFTW(init_threads)();
   omp_set_num_threads(nthreads);
 #else
   if (argc != 8)

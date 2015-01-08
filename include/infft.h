@@ -71,7 +71,7 @@
 typedef float R;
 typedef float _Complex C;
 #define Y(name) CONCAT(nfftf_,name)
-#define Z(name) CONCAT(fftwf_,name)
+#define FFTW(name) CONCAT(fftwf_,name)
 #define NFFT(name) CONCAT(nfftf_,name)
 #define NFCT(name) CONCAT(nfctf_,name)
 #define NFST(name) CONCAT(nfstf_,name)
@@ -81,7 +81,7 @@ typedef float _Complex C;
 typedef long double R;
 typedef long double _Complex C;
 #define Y(name) CONCAT(nfftl_,name)
-#define Z(name) CONCAT(fftwl_,name)
+#define FFTW(name) CONCAT(fftwl_,name)
 #define NFFT(name) CONCAT(nfftl_,name)
 #define NFCT(name) CONCAT(nfctl_,name)
 #define NFST(name) CONCAT(nfstl_,name)
@@ -91,7 +91,7 @@ typedef long double _Complex C;
 typedef double R;
 typedef double _Complex C;
 #define Y(name) CONCAT(nfft_,name)
-#define Z(name) CONCAT(fftw_,name)
+#define FFTW(name) CONCAT(fftw_,name)
 #define NFFT(name) CONCAT(nfft_,name)
 #define NFCT(name) CONCAT(nfct_,name)
 #define NFST(name) CONCAT(nfst_,name)

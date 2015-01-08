@@ -326,7 +326,7 @@ static int inverse_linogram_fft(C *f, int T, int rr, C *f_hat, int NN,
 static int comparison_fft(FILE *fp, int N, int T, int rr)
 {
   ticks t0, t1;
-  Z(plan) my_fftw_plan;
+  FFTW(plan) my_fftw_plan;
   C *f_hat, *f;
   int m, k;
   R t_fft, t_dft_linogram;
@@ -334,7 +334,7 @@ static int comparison_fft(FILE *fp, int N, int T, int rr)
   f_hat = (C *) Y(malloc)(sizeof(C) * (size_t)(N * N));
   f = (C *) Y(malloc)(sizeof(C) * (size_t)((T * rr / 4) * 5));
 
-  my_fftw_plan = Z(plan_dft_2d)(N, N, f_hat, f, FFTW_BACKWARD, FFTW_MEASURE);
+  my_fftw_plan = FFTW(plan_dft_2d)(N, N, f_hat, f, FFTW_BACKWARD, FFTW_MEASURE);
 
   for (k = 0; k < N * N; k++)
     f_hat[k] = Y(drand48)() + II * Y(drand48)();
@@ -342,7 +342,7 @@ static int comparison_fft(FILE *fp, int N, int T, int rr)
   t0 = getticks();
   for (m = 0; m < 65536 / N; m++)
   {
-    Z(execute)(my_fftw_plan);
+    FFTW(execute)(my_fftw_plan);
     /* touch */
     f_hat[2] = K(2.0) * f_hat[0];
   }

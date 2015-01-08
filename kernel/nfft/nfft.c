@@ -2531,7 +2531,7 @@ void X(trafo_1d)(X(plan) *ths)
     TOC(0)
 
     TIC_FFTW(1)
-    Z(execute)(ths->my_fftw_plan1);
+    FFTW(execute)(ths->my_fftw_plan1);
     TOC_FFTW(1);
 
     TIC(2);
@@ -2562,7 +2562,7 @@ void X(adjoint_1d)(X(plan) *ths)
   TOC(2)
 
   TIC_FFTW(1)
-  Z(execute)(ths->my_fftw_plan2);
+  FFTW(execute)(ths->my_fftw_plan2);
   TOC_FFTW(1);
 
   TIC(0)
@@ -3609,7 +3609,7 @@ void X(trafo_2d)(X(plan) *ths)
   TOC(0)
 
   TIC_FFTW(1)
-  Z(execute)(ths->my_fftw_plan1);
+  FFTW(execute)(ths->my_fftw_plan1);
   TOC_FFTW(1);
 
   TIC(2);
@@ -3641,7 +3641,7 @@ void X(adjoint_2d)(X(plan) *ths)
   TOC(2);
 
   TIC_FFTW(1)
-  Z(execute)(ths->my_fftw_plan2);
+  FFTW(execute)(ths->my_fftw_plan2);
   TOC_FFTW(1);
 
   TIC(0)
@@ -5237,7 +5237,7 @@ void X(trafo_3d)(X(plan) *ths)
   TOC(0)
 
   TIC_FFTW(1)
-  Z(execute)(ths->my_fftw_plan1);
+  FFTW(execute)(ths->my_fftw_plan1);
   TOC_FFTW(1);
 
   TIC(2);
@@ -5272,7 +5272,7 @@ void X(adjoint_3d)(X(plan) *ths)
   TOC(2);
 
   TIC_FFTW(1)
-  Z(execute)(ths->my_fftw_plan2);
+  FFTW(execute)(ths->my_fftw_plan2);
   TOC_FFTW(1);
 
   TIC(0)
@@ -5395,7 +5395,7 @@ void X(trafo)(X(plan) *ths)
        *  \text{ for } l \in I_n \f$
        */
       TIC_FFTW(1)
-      Z(execute)(ths->my_fftw_plan1);
+      FFTW(execute)(ths->my_fftw_plan1);
       TOC_FFTW(1)
 
       /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
@@ -5433,7 +5433,7 @@ void X(adjoint)(X(plan) *ths)
        *  \text{ for }  k \in I_N\f$
        */
       TIC_FFTW(1)
-      Z(execute)(ths->my_fftw_plan2);
+      FFTW(execute)(ths->my_fftw_plan2);
       TOC_FFTW(1)
 
       /** form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
@@ -5719,7 +5719,7 @@ static void init_help(X(plan) *ths)
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    Z(plan_with_nthreads)(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
     {
       int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
@@ -5727,8 +5727,8 @@ static void init_help(X(plan) *ths)
       for (t = 0; t < ths->d; t++)
         _n[t] = (int)(ths->n[t]);
 
-      ths->my_fftw_plan1 = Z(plan_dft)((int)ths->d, _n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
-      ths->my_fftw_plan2 = Z(plan_dft)((int)ths->d, _n, ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
+      ths->my_fftw_plan1 = FFTW(plan_dft)((int)ths->d, _n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
+      ths->my_fftw_plan2 = FFTW(plan_dft)((int)ths->d, _n, ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
       Y(free)(_n);
     }
 #ifdef _OPENMP
@@ -5907,8 +5907,8 @@ void X(finalize)(X(plan) *ths)
 #ifdef ENABLE_OPENMP
     #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
-    Z(destroy_plan)(ths->my_fftw_plan2);
-    Z(destroy_plan)(ths->my_fftw_plan1);
+    FFTW(destroy_plan)(ths->my_fftw_plan2);
+    FFTW(destroy_plan)(ths->my_fftw_plan1);
 
     if(ths->flags & FFT_OUT_OF_PLACE)
       Y(free)(ths->g2);

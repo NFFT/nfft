@@ -149,7 +149,7 @@ int main(int argc, char **argv)
     }
   }
 
-  Z(init_threads)();
+  FFTW(init_threads)();
 #endif
 
   /** init d-dimensional fastsum plan */

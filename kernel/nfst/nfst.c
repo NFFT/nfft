@@ -720,7 +720,7 @@ void X(trafo)(X(plan) *ths)
        * \f$ g_l = \sum_{k \in I_N} \hat g_k {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
        * \text{ for } l \in I_n \f$ */
       TIC_FFTW(1)
-      Z(execute)(ths->my_fftw_r2r_plan);
+      FFTW(execute)(ths->my_fftw_r2r_plan);
       TOC_FFTW(1)
 
       /*if (ths->flags & PRE_FULL_PSI)
@@ -764,7 +764,7 @@ void X(adjoint)(X(plan) *ths)
        * \f$ \hat g_k = \sum_{l \in I_n} g_l {\rm e}^{-2\pi {\rm i} \frac{kl}{n}}
        * \text{ for }  k \in I_N\f$ */
       TIC_FFTW(1)
-      Z(execute)(ths->my_fftw_r2r_plan);
+      FFTW(execute)(ths->my_fftw_r2r_plan);
       TOC_FFTW(1)
 
       /* Form \f$ \hat f_k = \frac{\hat g_k}{c_k\left(\phi\right)} \text{ for }
@@ -942,7 +942,7 @@ static inline void init_help(X(plan) *ths)
     ths->sigma[t] = ((R)NN(ths->n[t])) / ths->N[t];
 
   /* Assign r2r transform kinds for each dimension */
-  ths->r2r_kind = (Z(r2r_kind)*)Y(malloc)((size_t)(ths->d) * sizeof (Z(r2r_kind)));
+  ths->r2r_kind = (FFTW(r2r_kind)*)Y(malloc)((size_t)(ths->d) * sizeof (FFTW(r2r_kind)));
   for (t = 0; t < ths->d; t++)
     ths->r2r_kind[t] = FOURIER_TRAFO;
 
@@ -998,7 +998,7 @@ static inline void init_help(X(plan) *ths)
       for (t = 0; t < ths->d; t++)
         _n[t] = (int)(ths->n[t]);
 
-      ths->my_fftw_r2r_plan = Z(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
+      ths->my_fftw_r2r_plan = FFTW(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
       Y(free)(_n);
     }
   }
@@ -1143,7 +1143,7 @@ void X(finalize)(X(plan) *ths)
   if (ths->flags & FFTW_INIT)
   {
 #pragma omp critical (nfft_omp_critical_fftw_plan)
-    Z(destroy_plan)(ths->my_fftw_r2r_plan);
+    FFTW(destroy_plan)(ths->my_fftw_r2r_plan);
 
     if (ths->flags & FFT_OUT_OF_PLACE)
       Y(free)(ths->g2);

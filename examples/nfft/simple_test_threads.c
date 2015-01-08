@@ -43,7 +43,7 @@ int main(void)
   printf("nthreads = %d\n", NFFT(get_num_threads)());
 
   /* init */
-  Z(init_threads)();
+  FFTW(init_threads)();
   NFFT(init_1d)(&p,N,M);
 
   /* pseudo random nodes */
@@ -71,7 +71,7 @@ int main(void)
 
   /* cleanup */
   NFFT(finalize)(&p);
-  Z(cleanup_threads)();
+  FFTW(cleanup_threads)();
 
   return EXIT_SUCCESS;
 }

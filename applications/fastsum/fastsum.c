@@ -820,10 +820,10 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
-    Z(plan_with_nthreads)(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
 
-  ths->fft_plan = Z(plan_dft)(d, N, ths->b, ths->b, FFTW_FORWARD,
+  ths->fft_plan = FFTW(plan_dft)(d, N, ths->b, ths->b, FFTW_FORWARD,
       FFTW_ESTIMATE);
 
 #ifdef _OPENMP
@@ -863,7 +863,7 @@ void fastsum_finalize(fastsum_plan *ths)
 #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
 #endif
-  Z(destroy_plan)(ths->fft_plan);
+  FFTW(destroy_plan)(ths->fft_plan);
 #ifdef _OPENMP
 }
 #endif
@@ -1048,7 +1048,7 @@ void fastsum_precompute(fastsum_plan *ths)
   }
 
   Y(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
-  Z(execute)(ths->fft_plan);
+  FFTW(execute)(ths->fft_plan);
   Y(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
 #ifdef MEASURE_TIME
   t1 = getticks();

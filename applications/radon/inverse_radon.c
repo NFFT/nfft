@@ -126,7 +126,7 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
   SOLVER(plan_complex) my_infft_plan; /**< plan for the inverse nfft        */
 
   C *fft; /**< variable for the fftw-1Ds        */
-  Z(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
+  FFTW(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
 
   int t, r; /**< index for directions and offsets */
   R *x, *w; /**< knots and associated weights     */
@@ -141,7 +141,7 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
   n[1] = 2 * N[1];
 
   fft = (C *) Y(malloc)((size_t)(S) * sizeof(C));
-  my_fftw_plan = Z(plan_dft_1d)(S, fft, fft, FFTW_FORWARD, FFTW_MEASURE);
+  my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_FORWARD, FFTW_MEASURE);
 
   x = (R *) Y(malloc)((size_t)(2 * T * S) * (sizeof(R)));
   if (x == NULL)
@@ -196,7 +196,7 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
       fft[r] = Rf[t * S + r] + II * K(0.0);
 
     Y(fftshift_complex_int)(fft, 1, &S);
-    Z(execute)(my_fftw_plan);
+    FFTW(execute)(my_fftw_plan);
     Y(fftshift_complex_int)(fft, 1, &S);
 
     my_infft_plan.y[t * S] = K(0.0);
@@ -232,7 +232,7 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
     f[k] = CREAL(my_infft_plan.f_hat_iter[k]);
 
   /** finalise the plans and free the variables */
-  Z(destroy_plan)(my_fftw_plan);
+  FFTW(destroy_plan)(my_fftw_plan);
   Y(free)(fft);
   SOLVER(finalize_complex)(&my_infft_plan);
   X(finalize)(&my_nfft_plan);
