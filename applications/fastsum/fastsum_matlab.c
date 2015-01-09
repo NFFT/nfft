@@ -38,9 +38,6 @@
 #include "kernels.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /**
  * \defgroup applications_fastsum_matlab fastsum_matlab
  * \ingroup applications_fastsum
@@ -170,11 +167,11 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_exact(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** copy result */
-  direct = (C *) Y(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
+  direct = (C *) NFFT(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
   for (j = 0; j < my_fastsum_plan.M_total; j++)
     direct[j] = my_fastsum_plan.f[j];
 
@@ -184,7 +181,7 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_precompute(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** fast computation */
@@ -193,7 +190,7 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_trafo(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** compute max error */

@@ -32,9 +32,6 @@
 #include <omp.h>
 #endif
 
-#undef X
-#define X(name) NFFT(name)
-
 int bench_openmp(FILE *infile, int n, int m, int p,
     C (*kernel)(R, int, const R *), R c, R eps_I, R eps_B)
 {
@@ -96,7 +93,7 @@ int bench_openmp(FILE *infile, int n, int m, int p,
   /** fast computation */
   fastsum_trafo(&my_fastsum_plan);
   t1 = getticks();
-  tt_total = Y(elapsed_seconds)(t1, t0);
+  tt_total = NFFT(elapsed_seconds)(t1, t0);
 
 #ifndef MEASURE_TIME
   my_fastsum_plan.MEASURE_TIME_t[0] = K(0.0);

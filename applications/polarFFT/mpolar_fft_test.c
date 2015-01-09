@@ -38,9 +38,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /**
  * \defgroup applications_polarFFT_mpolar mpolar_fft_test
  * \ingroup applications_polarFFT
@@ -110,7 +107,7 @@ static int mpolar_dft(C *f_hat, int NN, C *f, int T, int S, int m)
 {
   ticks t0, t1;
   int j, k; /**< index for nodes and freqencies   */
-  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
 
   R *x, *w; /**< knots and associated weights     */
 
@@ -122,17 +119,17 @@ static int mpolar_dft(C *f_hat, int NN, C *f, int T, int S, int m)
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (R *) Y(malloc)((size_t)(5 * (T / 2) * S) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(5 * (T / 2) * S) * (sizeof(R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (R *) Y(malloc)((size_t)(5 * (T * S) / 4) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(5 * (T * S) / 4) * (sizeof(R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
   M = mpolar_grid(T, S, x, w);
-  X(init_guru)(&my_nfft_plan, 2, N, M, n, m,
+  NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, m,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
@@ -151,19 +148,19 @@ static int mpolar_dft(C *f_hat, int NN, C *f, int T, int S, int m)
   t0 = getticks();
 
   /** NDFT-2D */
-  X(trafo_direct)(&my_nfft_plan);
+  NFFT(trafo_direct)(&my_nfft_plan);
 
   t1 = getticks();
-  GLOBAL_elapsed_time = Y(elapsed_seconds)(t1, t0);
+  GLOBAL_elapsed_time = NFFT(elapsed_seconds)(t1, t0);
 
   /** copy result */
   for (j = 0; j < my_nfft_plan.M_total; j++)
     f[j] = my_nfft_plan.f[j];
 
   /** finalise the plans and free the variables */
-  X(finalize)(&my_nfft_plan);
-  Y(free)(x);
-  Y(free)(w);
+  NFFT(finalize)(&my_nfft_plan);
+  NFFT(free)(x);
+  NFFT(free)(w);
 
   return EXIT_SUCCESS;
 }
@@ -173,7 +170,7 @@ static int mpolar_fft(C *f_hat, int NN, C *f, int T, int S, int m)
 {
   ticks t0, t1;
   int j, k; /**< index for nodes and freqencies   */
-  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
 
   R *x, *w; /**< knots and associated weights     */
 
@@ -185,17 +182,17 @@ static int mpolar_fft(C *f_hat, int NN, C *f, int T, int S, int m)
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (R *) Y(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (R *) Y(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
   M = mpolar_grid(T, S, x, w);
-  X(init_guru)(&my_nfft_plan, 2, N, M, n, m,
+  NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, m,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
@@ -210,13 +207,13 @@ static int mpolar_fft(C *f_hat, int NN, C *f, int T, int S, int m)
 
   /** precompute psi, the entries of the matrix B */
   if (my_nfft_plan.flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(&my_nfft_plan);
+    NFFT(precompute_lin_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_PSI)
-    X(precompute_psi)(&my_nfft_plan);
+    NFFT(precompute_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(&my_nfft_plan);
+    NFFT(precompute_full_psi)(&my_nfft_plan);
 
   /** init Fourier coefficients from given image */
   for (k = 0; k < my_nfft_plan.N_total; k++)
@@ -225,19 +222,19 @@ static int mpolar_fft(C *f_hat, int NN, C *f, int T, int S, int m)
   t0 = getticks();
 
   /** NFFT-2D */
-  X(trafo)(&my_nfft_plan);
+  NFFT(trafo)(&my_nfft_plan);
 
   t1 = getticks();
-  GLOBAL_elapsed_time = Y(elapsed_seconds)(t1, t0);
+  GLOBAL_elapsed_time = NFFT(elapsed_seconds)(t1, t0);
 
   /** copy result */
   for (j = 0; j < my_nfft_plan.M_total; j++)
     f[j] = my_nfft_plan.f[j];
 
   /** finalise the plans and free the variables */
-  X(finalize)(&my_nfft_plan);
-  Y(free)(x);
-  Y(free)(w);
+  NFFT(finalize)(&my_nfft_plan);
+  NFFT(free)(x);
+  NFFT(free)(w);
 
   return EXIT_SUCCESS;
 }
@@ -248,7 +245,7 @@ static int inverse_mpolar_fft(C *f, int T, int S, C *f_hat, int NN, int max_i,
 {
   ticks t0, t1;
   int j, k; /**< index for nodes and freqencies   */
-  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
   SOLVER(plan_complex) my_infft_plan; /**< plan for the inverse nfft        */
 
   R *x, *w; /**< knots and associated weights     */
@@ -262,24 +259,24 @@ static int inverse_mpolar_fft(C *f, int T, int S, C *f_hat, int NN, int max_i,
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (R *) Y(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (R *) Y(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
   M = mpolar_grid(T, S, x, w);
-  X(init_guru)(&my_nfft_plan, 2, N, M, n, m,
+  NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, m,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
   SOLVER(init_advanced_complex)(&my_infft_plan,
-      (X(mv_plan_complex)*) (&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
+      (NFFT(mv_plan_complex)*) (&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
 
   /** init nodes, given samples and weights */
   for (j = 0; j < my_nfft_plan.M_total; j++)
@@ -292,13 +289,13 @@ static int inverse_mpolar_fft(C *f, int T, int S, C *f_hat, int NN, int max_i,
 
   /** precompute psi, the entries of the matrix B */
   if (my_nfft_plan.flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(&my_nfft_plan);
+    NFFT(precompute_lin_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_PSI)
-    X(precompute_psi)(&my_nfft_plan);
+    NFFT(precompute_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(&my_nfft_plan);
+    NFFT(precompute_full_psi)(&my_nfft_plan);
 
   /** initialise damping factors */
   if (my_infft_plan.flags & PRECOMPUTE_DAMP)
@@ -336,7 +333,7 @@ static int inverse_mpolar_fft(C *f, int T, int S, C *f_hat, int NN, int max_i,
   }
 
   t1 = getticks();
-  GLOBAL_elapsed_time = Y(elapsed_seconds)(t1, t0);
+  GLOBAL_elapsed_time = NFFT(elapsed_seconds)(t1, t0);
 
   /** copy result */
   for (k = 0; k < my_nfft_plan.N_total; k++)
@@ -344,9 +341,9 @@ static int inverse_mpolar_fft(C *f, int T, int S, C *f_hat, int NN, int max_i,
 
   /** finalise the plans and free the variables */
   SOLVER(finalize_complex)(&my_infft_plan);
-  X(finalize)(&my_nfft_plan);
-  Y(free)(x);
-  Y(free)(w);
+  NFFT(finalize)(&my_nfft_plan);
+  NFFT(free)(x);
+  NFFT(free)(w);
 
   return EXIT_SUCCESS;
 }
@@ -360,13 +357,13 @@ static int comparison_fft(FILE *fp, int N, int T, int S)
   int m, k;
   R t_fft, t_dft_mpolar;
 
-  f_hat = (C *) Y(malloc)(sizeof(C) * (size_t)(N * N));
-  f = (C *) Y(malloc)(sizeof(C) * (size_t)((T * S / 4) * 5));
+  f_hat = (C *) NFFT(malloc)(sizeof(C) * (size_t)(N * N));
+  f = (C *) NFFT(malloc)(sizeof(C) * (size_t)((T * S / 4) * 5));
 
   my_fftw_plan = FFTW(plan_dft_2d)(N, N, f_hat, f, FFTW_BACKWARD, FFTW_MEASURE);
 
   for (k = 0; k < N * N; k++)
-    f_hat[k] = Y(drand48)() + II * Y(drand48)();
+    f_hat[k] = NFFT(drand48)() + II * NFFT(drand48)();
 
   t0 = getticks();
   for (m = 0; m < 65536 / N; m++)
@@ -376,7 +373,7 @@ static int comparison_fft(FILE *fp, int N, int T, int S)
     f_hat[2] = K(2.0) * f_hat[0];
   }
   t1 = getticks();
-  GLOBAL_elapsed_time = Y(elapsed_seconds)(t1, t0);
+  GLOBAL_elapsed_time = NFFT(elapsed_seconds)(t1, t0);
   t_fft = (R)(N) * GLOBAL_elapsed_time / K(65536.0);
 
   if (N < 256)
@@ -410,8 +407,8 @@ static int comparison_fft(FILE *fp, int N, int T, int S)
 
   fflush(fp);
 
-  Y(free)(f);
-  Y(free)(f_hat);
+  NFFT(free)(f);
+  NFFT(free)(f_hat);
 
   return EXIT_SUCCESS;
 }
@@ -458,13 +455,13 @@ int main(int argc, char **argv)
   S = atoi(argv[3]);
   printf("N=%d, modified polar grid with T=%d, R=%d => ", N, T, S);
 
-  x = (R *) Y(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
-  w = (R *) Y(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(R)));
 
-  f_hat = (C *) Y(malloc)(sizeof(C) * (size_t)(N * N));
-  f = (C *) Y(malloc)(sizeof(C) * (size_t)(1.25 * T * S)); /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
-  f_direct = (C *) Y(malloc)(sizeof(C) * (size_t)(1.25 * T * S));
-  f_tilde = (C *) Y(malloc)(sizeof(C) * (size_t)(N * N));
+  f_hat = (C *) NFFT(malloc)(sizeof(C) * (size_t)(N * N));
+  f = (C *) NFFT(malloc)(sizeof(C) * (size_t)(1.25 * T * S)); /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
+  f_direct = (C *) NFFT(malloc)(sizeof(C) * (size_t)(1.25 * T * S));
+  f_tilde = (C *) NFFT(malloc)(sizeof(C) * (size_t)(N * N));
 
   /** generate knots of mpolar grid */
   M = mpolar_grid(T, S, x, w);
@@ -497,7 +494,7 @@ int main(int argc, char **argv)
     mpolar_fft(f_hat, N, f, T, S, m);
 
     /** compute error of fast mpolar FFT */
-    E_max = X(error_l_infty_complex)(f_direct, f, M);
+    E_max = NFFT(error_l_infty_complex)(f_direct, f, M);
     printf("m=%2d: E_max = %" __FES__ "\n", m, E_max);
     fprintf(fp1, "%" __FES__ "\n", E_max);
   }
@@ -515,7 +512,7 @@ int main(int argc, char **argv)
       inverse_mpolar_fft(f_direct, T, S, f_tilde, N, max_i, m);
 
       /** compute maximum relativ error */
-      E_max = X(error_l_infty_complex)(f_hat, f_tilde, N * N);
+      E_max = NFFT(error_l_infty_complex)(f_hat, f_tilde, N * N);
       printf("%3d iterations: E_max = %" __FES__ "\n", max_i, E_max);
       fprintf(fp1, "%" __FES__ "\n", E_max);
     }
@@ -523,12 +520,12 @@ int main(int argc, char **argv)
   }
 
   /** free the variables */
-  Y(free)(x);
-  Y(free)(w);
-  Y(free)(f_hat);
-  Y(free)(f);
-  Y(free)(f_direct);
-  Y(free)(f_tilde);
+  NFFT(free)(x);
+  NFFT(free)(w);
+  NFFT(free)(f_hat);
+  NFFT(free)(f);
+  NFFT(free)(f_direct);
+  NFFT(free)(f_tilde);
 
   return EXIT_SUCCESS;
 }

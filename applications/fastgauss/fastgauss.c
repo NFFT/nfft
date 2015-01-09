@@ -36,9 +36,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /**
  * If this flag is set, the whole matrix is precomputed and stored for the
  * discrete Gauss transfrom.
@@ -94,8 +91,8 @@ typedef struct
 
   C *b; /**< expansion coefficients          */
 
-  X(plan) *nplan1; /**< source nfft plan                */
-  X(plan) *nplan2; /**< target nfft plan                */
+  NFFT(plan) *nplan1; /**< source nfft plan                */
+  NFFT(plan) *nplan2; /**< target nfft plan                */
 
 } fgt_plan;
 
@@ -139,21 +136,21 @@ static void fgt_trafo(fgt_plan *ths)
 
   if (ths->flags & FGT_NDFT)
   {
-    X(adjoint_direct)(ths->nplan1);
+    NFFT(adjoint_direct)(ths->nplan1);
 
     for (l = 0; l < ths->n; l++)
       ths->nplan1->f_hat[l] *= ths->b[l];
 
-    X(trafo_direct)(ths->nplan2);
+    NFFT(trafo_direct)(ths->nplan2);
   }
   else
   {
-    X(adjoint)(ths->nplan1);
+    NFFT(adjoint)(ths->nplan1);
 
     for (l = 0; l < ths->n; l++)
       ths->nplan1->f_hat[l] *= ths->b[l];
 
-    X(trafo)(ths->nplan2);
+    NFFT(trafo)(ths->nplan2);
   }
 }
 
@@ -182,25 +179,25 @@ static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int 
   ths->sigma = sigma;
   ths->flags = flags;
 
-  ths->x = (R*) Y(malloc)((size_t)(ths->N) * sizeof(R));
-  ths->y = (R*) Y(malloc)((size_t)(ths->M) * sizeof(R));
-  ths->alpha = (C*) Y(malloc)((size_t)(ths->N) * sizeof(C));
-  ths->f = (C*) Y(malloc)((size_t)(ths->M) * sizeof(C));
+  ths->x = (R*) NFFT(malloc)((size_t)(ths->N) * sizeof(R));
+  ths->y = (R*) NFFT(malloc)((size_t)(ths->M) * sizeof(R));
+  ths->alpha = (C*) NFFT(malloc)((size_t)(ths->N) * sizeof(C));
+  ths->f = (C*) NFFT(malloc)((size_t)(ths->M) * sizeof(C));
 
   ths->n = n;
   ths->p = p;
 
-  ths->b = (C*) Y(malloc)((size_t)(ths->n) * sizeof(C));
+  ths->b = (C*) NFFT(malloc)((size_t)(ths->n) * sizeof(C));
 
-  ths->nplan1 = (X(plan)*) Y(malloc)(sizeof(X(plan)));
-  ths->nplan2 = (X(plan)*) Y(malloc)(sizeof(X(plan)));
+  ths->nplan1 = (NFFT(plan)*) NFFT(malloc)(sizeof(NFFT(plan)));
+  ths->nplan2 = (NFFT(plan)*) NFFT(malloc)(sizeof(NFFT(plan)));
 
-  n_fftw = (int)Y(next_power_of_2)(2 * ths->n);
+  n_fftw = (int)NFFT(next_power_of_2)(2 * ths->n);
 
   {
-    X(init_guru)(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT |
+    NFFT(init_guru)(ths->nplan1, 1, &(ths->n), ths->N, &n_fftw, m, PRE_PHI_HUT |
     PRE_PSI | MALLOC_X | MALLOC_F_HAT | FFTW_INIT, FFTW_MEASURE);
-    X(init_guru)(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, m, PRE_PHI_HUT |
+    NFFT(init_guru)(ths->nplan2, 1, &(ths->n), ths->M, &n_fftw, m, PRE_PHI_HUT |
     PRE_PSI | MALLOC_X | FFTW_INIT, FFTW_MEASURE);
   }
 
@@ -218,9 +215,9 @@ static void fgt_init_guru(fgt_plan *ths, int N, int M, C sigma, int n, R p, int 
           -ths->p * ths->p * ths->sigma * ((R)(j) - (R)(ths->n) / K(2.0)) * ((R)(j) - (R)(ths->n) / K(2.0))
               / ((R) (ths->n * ths->n))) / ((R)(ths->n));
 
-    X(fftshift_complex_int)(ths->b, 1, &ths->n);
+    NFFT(fftshift_complex_int)(ths->b, 1, &ths->n);
     FFTW(execute)(fplan);
-    X(fftshift_complex_int)(ths->b, 1, &ths->n);
+    NFFT(fftshift_complex_int)(ths->b, 1, &ths->n);
 
     FFTW(destroy_plan)(fplan);
   }
@@ -272,7 +269,7 @@ static void fgt_init_node_dependent(fgt_plan *ths)
 
   if (ths->flags & DGT_PRE_CEXP)
   {
-    ths->pre_cexp = (C*) Y(malloc)((size_t)(ths->M * ths->N) * sizeof(C));
+    ths->pre_cexp = (C*) NFFT(malloc)((size_t)(ths->M * ths->N) * sizeof(C));
 
     for (j = 0, l = 0; j < ths->M; j++)
       for (k = 0; k < ths->N; k++, l++)
@@ -286,9 +283,9 @@ static void fgt_init_node_dependent(fgt_plan *ths)
     ths->nplan2->x[j] = ths->y[j] / ths->p;
 
   if (ths->nplan1->flags & PRE_PSI)
-    X(precompute_psi)(ths->nplan1);
+    NFFT(precompute_psi)(ths->nplan1);
   if (ths->nplan2->flags & PRE_PSI)
-    X(precompute_psi)(ths->nplan2);
+    NFFT(precompute_psi)(ths->nplan2);
 }
 
 /**
@@ -299,19 +296,19 @@ static void fgt_init_node_dependent(fgt_plan *ths)
  */
 static void fgt_finalize(fgt_plan *ths)
 {
-  X(finalize)(ths->nplan2);
-  X(finalize)(ths->nplan1);
+  NFFT(finalize)(ths->nplan2);
+  NFFT(finalize)(ths->nplan1);
 
-  Y(free)(ths->nplan2);
-  Y(free)(ths->nplan1);
+  NFFT(free)(ths->nplan2);
+  NFFT(free)(ths->nplan1);
 
-  Y(free)(ths->b);
+  NFFT(free)(ths->b);
 
-  Y(free)(ths->f);
-  Y(free)(ths->y);
+  NFFT(free)(ths->f);
+  NFFT(free)(ths->y);
 
-  Y(free)(ths->alpha);
-  Y(free)(ths->x);
+  NFFT(free)(ths->alpha);
+  NFFT(free)(ths->x);
 }
 
 /**
@@ -325,14 +322,14 @@ static void fgt_test_init_rand(fgt_plan *ths)
   INT j, k;
 
   for (k = 0; k < ths->N; k++)
-    ths->x[k] = Y(drand48)() / K(2.0) - K(1.0) / K(4.0);
+    ths->x[k] = NFFT(drand48)() / K(2.0) - K(1.0) / K(4.0);
 
   for (j = 0; j < ths->M; j++)
-    ths->y[j] = Y(drand48)() / K(2.0) - K(1.0) / K(4.0);
+    ths->y[j] = NFFT(drand48)() / K(2.0) - K(1.0) / K(4.0);
 
   for (k = 0; k < ths->N; k++)
-    ths->alpha[k] = Y(drand48)() - K(1.0) / K(2.0)
-        + II * (Y(drand48)() - K(1.0) / K(2.0));
+    ths->alpha[k] = NFFT(drand48)() - K(1.0) / K(2.0)
+        + II * (NFFT(drand48)() - K(1.0) / K(2.0));
 }
 
 /**
@@ -361,7 +358,7 @@ static R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
     else
       fgt_trafo(ths);
     t1 = getticks();
-    t_out += Y(elapsed_seconds)(t1, t0);
+    t_out += NFFT(elapsed_seconds)(t1, t0);
   }
   t_out /= (R)(r);
 
@@ -383,24 +380,24 @@ static void fgt_test_simple(int N, int M, C sigma, R eps)
   C *swap_dgt;
 
   fgt_init(&my_plan, N, M, sigma, eps);
-  swap_dgt = (C*) Y(malloc)((size_t)(my_plan.M) * sizeof(C));
+  swap_dgt = (C*) NFFT(malloc)((size_t)(my_plan.M) * sizeof(C));
 
   fgt_test_init_rand(&my_plan);
   fgt_init_node_dependent(&my_plan);
 
   CSWAP(swap_dgt, my_plan.f);
   dgt_trafo(&my_plan);
-  Y(vpr_complex)(my_plan.f, my_plan.M, "discrete gauss transform");
+  NFFT(vpr_complex)(my_plan.f, my_plan.M, "discrete gauss transform");
   CSWAP(swap_dgt, my_plan.f);
 
   fgt_trafo(&my_plan);
-  Y(vpr_complex)(my_plan.f, my_plan.M, "fast gauss transform");
+  NFFT(vpr_complex)(my_plan.f, my_plan.M, "fast gauss transform");
 
   printf("\n relative error: %1.3" __FES__ "\n",
-      Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M,
+      NFFT(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M,
           my_plan.alpha, my_plan.N));
 
-  Y(free)(swap_dgt);
+  NFFT(free)(swap_dgt);
   fgt_finalize(&my_plan);
 }
 
@@ -432,7 +429,7 @@ static void fgt_test_andersson(void)
 
     fgt_init_guru(&my_plan, N, N, sigma, n, 1, 7, N < N_dgt_pre_exp ? DGT_PRE_CEXP : 0);
 
-    swap_dgt = (C*) Y(malloc)((size_t)(my_plan.M) * sizeof(C));
+    swap_dgt = (C*) NFFT(malloc)((size_t)(my_plan.M) * sizeof(C));
 
     fgt_test_init_rand(&my_plan);
 
@@ -464,10 +461,10 @@ static void fgt_test_andersson(void)
     printf("$%1.1" __FES__ "$\t & ", fgt_test_measure_time(&my_plan, 0));
 
     printf("$%1.1" __FES__ "$\t \\\\ \n",
-    Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+    NFFT(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
     fflush(stdout);
 
-    Y(free)(swap_dgt);
+    NFFT(free)(swap_dgt);
     fgt_finalize(&my_plan);
     FFTW(cleanup)();
   }
@@ -494,7 +491,7 @@ static void fgt_test_error(void)
       CIMAG(sigma));
   printf("error=[\n");
 
-  swap_dgt = (C*) Y(malloc)((size_t)(M) * sizeof(C));
+  swap_dgt = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
 
   for (n = 8; n <= 128; n += 4)
   {
@@ -512,7 +509,7 @@ static void fgt_test_error(void)
       fgt_trafo(&my_plan);
 
       printf("%1.3" __FES__ "\t",
-        Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+        NFFT(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
       fflush(stdout);
 
       fgt_finalize(&my_plan);
@@ -522,7 +519,7 @@ static void fgt_test_error(void)
   }
   printf("];\n");
 
-  Y(free)(swap_dgt);
+  NFFT(free)(swap_dgt);
 }
 
 /**
@@ -546,7 +543,7 @@ static void fgt_test_error_p(void)
       CIMAG(sigma));
   printf("error=[\n");
 
-  swap_dgt = (C*) Y(malloc)((size_t)(M) * sizeof(C));
+  swap_dgt = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
 
   for (n = 8; n <= 128; n += 4)
   {
@@ -564,7 +561,7 @@ static void fgt_test_error_p(void)
       fgt_trafo(&my_plan);
 
       printf("%1.3" __FES__ "\t",
-      Y(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
+      NFFT(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));
       fflush(stdout);
 
       fgt_finalize(&my_plan);

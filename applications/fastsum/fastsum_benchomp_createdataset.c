@@ -29,9 +29,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
 {
   int t, j, k;
@@ -39,9 +36,9 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
   R *y;
   C *alpha;
 
-  x = (R*) X(malloc)((size_t)(d * L) * sizeof(R));
-  y = (R*) X(malloc)((size_t)(d * L) * sizeof(R));
-  alpha = (C*) X(malloc)((size_t)(L) * sizeof(C));
+  x = (R*) NFFT(malloc)((size_t)(d * L) * sizeof(R));
+  y = (R*) NFFT(malloc)((size_t)(d * L) * sizeof(R));
+  alpha = (C*) NFFT(malloc)((size_t)(L) * sizeof(C));
 
   /** init source knots in a d-ball with radius 1 */
   k = 0;
@@ -51,7 +48,7 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
     R r2 = K(0.0);
 
     for (j = 0; j < d; j++)
-      x[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
+      x[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += x[k * d + j] * x[k * d + j];
@@ -62,7 +59,7 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
     k++;
   }
 
-  Y(vrand_unit_complex)(alpha, L);
+  NFFT(vrand_unit_complex)(alpha, L);
 
   /** init target knots in a d-ball with radius 1 */
   k = 0;
@@ -72,7 +69,7 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
     R r2 = K(0.0);
 
     for (j = 0; j < d; j++)
-      y[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
+      y[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += y[k * d + j] * y[k * d + j];
@@ -102,9 +99,9 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
     printf("\n");
   }
 
-  Y(free)(x);
-  Y(free)(y);
-  Y(free)(alpha);
+  NFFT(free)(x);
+  NFFT(free)(y);
+  NFFT(free)(alpha);
 }
 
 int main(int argc, char **argv)

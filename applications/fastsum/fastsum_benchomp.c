@@ -25,16 +25,13 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 #define NREPEAT 5
 
 static FILE* file_out_tex = NULL;
 
 int get_nthreads_array(int **arr)
 {
-  int max_threads = Y(get_num_threads)();
+  int max_threads = NFFT(get_num_threads)();
   int alloc_num = 2;
   int k;
   int ret_number = 0;
@@ -42,7 +39,7 @@ int get_nthreads_array(int **arr)
 
   if (max_threads <= 5)
   {
-    *arr = (int*) Y(malloc)((size_t) (max_threads) * sizeof(int));
+    *arr = (int*) NFFT(malloc)((size_t) (max_threads) * sizeof(int));
     for (k = 0; k < max_threads; k++)
       *(*arr + k) = k + 1;
     return max_threads;
@@ -51,7 +48,7 @@ int get_nthreads_array(int **arr)
   for (k = 1; k <= max_threads; k *= 2, alloc_num++)
     ;
 
-  *arr = (int*) Y(malloc)((size_t)(alloc_num) * sizeof(int));
+  *arr = (int*) NFFT(malloc)((size_t)(alloc_num) * sizeof(int));
 
   for (k = 1; k <= max_threads; k *= 2)
   {
@@ -670,7 +667,7 @@ void run_testset(s_testset *testset, int d, int L, int M, int n, int m, int p,
   testset->param.eps_I = eps_I;
   testset->param.eps_B = eps_B;
 
-  testset->results = (s_result*) Y(malloc)(
+  testset->results = (s_result*) NFFT(malloc)(
       (size_t)(n_threads_array_size) * sizeof(s_result));
   testset->nresults = n_threads_array_size;
 

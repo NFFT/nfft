@@ -39,9 +39,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 #ifdef GAUSSIAN
   unsigned test_fg=1;
 #else
@@ -60,7 +57,7 @@
   unsigned test=0;
 #endif
 
-static void flags_cp(X(plan) *dst, X(plan) *src)
+static void flags_cp(NFFT(plan) *dst, NFFT(plan) *src)
 {
   dst->x = src->x;
   dst->f_hat = src->f_hat;
@@ -79,13 +76,13 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   C *swapndft = NULL;
   ticks t0, t1;
 
-  X(plan) p;
-  X(plan) p_pre_phi_hut;
-  X(plan) p_fg_psi;
-  X(plan) p_pre_lin_psi;
-  X(plan) p_pre_fg_psi;
-  X(plan) p_pre_psi;
-  X(plan) p_pre_full_psi;
+  NFFT(plan) p;
+  NFFT(plan) p_pre_phi_hut;
+  NFFT(plan) p_fg_psi;
+  NFFT(plan) p_pre_lin_psi;
+  NFFT(plan) p_pre_fg_psi;
+  NFFT(plan) p_pre_psi;
+  NFFT(plan) p_pre_full_psi;
 
   printf("%d\t%d\t", d, N);
 
@@ -97,51 +94,51 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /* output vector ndft */
   if (test_ndft)
-    swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
+    swapndft = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
 
-  X(init_guru)(&p, d, NN, M, nn, m,
+  NFFT(init_guru)(&p, d, NN, M, nn, m,
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  Y(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
+  NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
-  X(init_guru)(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT, 0);
+  NFFT(init_guru)(&p_pre_phi_hut, d, NN, M, nn, m, PRE_PHI_HUT, 0);
   flags_cp(&p_pre_phi_hut, &p);
-  X(precompute_one_psi)(&p_pre_phi_hut);
+  NFFT(precompute_one_psi)(&p_pre_phi_hut);
 
   if (test_fg)
   {
-    X(init_guru)(&p_fg_psi, d, NN, M, nn, m, FG_PSI, 0);
+    NFFT(init_guru)(&p_fg_psi, d, NN, M, nn, m, FG_PSI, 0);
     flags_cp(&p_fg_psi, &p);
-    X(precompute_one_psi)(&p_fg_psi);
+    NFFT(precompute_one_psi)(&p_fg_psi);
   }
 
-  X(init_guru)(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI, 0);
+  NFFT(init_guru)(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI, 0);
   flags_cp(&p_pre_lin_psi, &p);
-  X(precompute_one_psi)(&p_pre_lin_psi);
+  NFFT(precompute_one_psi)(&p_pre_lin_psi);
 
   if (test_fg)
   {
-    X(init_guru)(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI, 0);
+    NFFT(init_guru)(&p_pre_fg_psi, d, NN, M, nn, m, PRE_FG_PSI, 0);
     flags_cp(&p_pre_fg_psi, &p);
-    X(precompute_one_psi)(&p_pre_fg_psi);
+    NFFT(precompute_one_psi)(&p_pre_fg_psi);
   }
 
-  X(init_guru)(&p_pre_psi, d, NN, M, nn, m, PRE_PSI, 0);
+  NFFT(init_guru)(&p_pre_psi, d, NN, M, nn, m, PRE_PSI, 0);
   flags_cp(&p_pre_psi, &p);
-  X(precompute_one_psi)(&p_pre_psi);
+  NFFT(precompute_one_psi)(&p_pre_psi);
 
   if (test_pre_full_psi)
   {
-    X(init_guru)(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI, 0);
+    NFFT(init_guru)(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI, 0);
     flags_cp(&p_pre_full_psi, &p);
-    X(precompute_one_psi)(&p_pre_full_psi);
+    NFFT(precompute_one_psi)(&p_pre_full_psi);
   }
 
   /* init pseudo random Fourier coefficients */
-  Y(vrand_unit_complex)(p.f_hat, p.N_total);
+  NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /* NDFT */
   if (test_ndft)
@@ -154,9 +151,9 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     {
       r++;
       t0 = getticks();
-      X(trafo_direct)(&p);
+      NFFT(trafo_direct)(&p);
       t1 = getticks();
-      t = Y(elapsed_seconds)(t1, t0);
+      t = NFFT(elapsed_seconds)(t1, t0);
       t_ndft += t;
     }
     t_ndft /= (R)(r);
@@ -167,20 +164,20 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     t_ndft = MKNAN("");
 
   /* NFFTs */
-  X(trafo)(&p);
-  X(trafo)(&p_pre_phi_hut);
+  NFFT(trafo)(&p);
+  NFFT(trafo)(&p_pre_phi_hut);
   if (test_fg)
-    X(trafo)(&p_fg_psi);
+    NFFT(trafo)(&p_fg_psi);
   else
     p_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
-  X(trafo)(&p_pre_lin_psi);
+  NFFT(trafo)(&p_pre_lin_psi);
   if (test_fg)
-    X(trafo)(&p_pre_fg_psi);
+    NFFT(trafo)(&p_pre_fg_psi);
   else
     p_pre_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
-  X(trafo)(&p_pre_psi);
+  NFFT(trafo)(&p_pre_psi);
   if (test_pre_full_psi)
-    X(trafo)(&p_pre_full_psi);
+    NFFT(trafo)(&p_pre_full_psi);
   else
     p_pre_full_psi.MEASURE_TIME_t[2] = MKNAN("");
 
@@ -188,7 +185,7 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     p.MEASURE_TIME_t[1] = MKNAN("");
 
   if (test_ndft)
-    e = Y(error_l_2_complex)(swapndft, p.f, p.M_total);
+    e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
   else
     e = MKNAN("");
 
@@ -203,18 +200,18 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /** finalise */
   if (test_pre_full_psi)
-    X(finalize)(&p_pre_full_psi);
-  X(finalize)(&p_pre_psi);
+    NFFT(finalize)(&p_pre_full_psi);
+  NFFT(finalize)(&p_pre_psi);
   if (test_fg)
-    X(finalize)(&p_pre_fg_psi);
-  X(finalize)(&p_pre_lin_psi);
+    NFFT(finalize)(&p_pre_fg_psi);
+  NFFT(finalize)(&p_pre_lin_psi);
   if (test_fg)
-    X(finalize)(&p_fg_psi);
-  X(finalize)(&p_pre_phi_hut);
-  X(finalize)(&p);
+    NFFT(finalize)(&p_fg_psi);
+  NFFT(finalize)(&p_pre_phi_hut);
+  NFFT(finalize)(&p);
 
   if (test_ndft)
-    Y(free)(swapndft);
+    NFFT(free)(swapndft);
 }
 
 static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
@@ -223,7 +220,7 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   R e;
   C *swapndft;
 
-  X(plan) p;
+  NFFT(plan) p;
 
   for (r = 0; r < d; r++)
   {
@@ -232,36 +229,36 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   }
 
   /* output vector ndft */
-  swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
+  swapndft = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
 
-  X(init_guru)(&p, d, NN, M, nn, m,
+  NFFT(init_guru)(&p, d, NN, M, nn, m,
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
   PRE_PHI_HUT | PRE_LIN_PSI |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** realloc psi */
-  Y(free)(p.psi);
+  NFFT(free)(p.psi);
   p.K = K;
-  p.psi = (R*) Y(malloc)((size_t)((p.K + 1) * p.d) * sizeof(R));
+  p.psi = (R*) NFFT(malloc)((size_t)((p.K + 1) * p.d) * sizeof(R));
 
   /** precomputation can be done before the nodes are initialised */
-  X(precompute_one_psi)(&p);
+  NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random nodes */
-  Y(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
+  NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   /** init pseudo random Fourier coefficients */
-  Y(vrand_unit_complex)(p.f_hat, p.N_total);
+  NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** compute exact result */
   CSWAP(p.f, swapndft);
-  X(trafo_direct)(&p);
+  NFFT(trafo_direct)(&p);
   CSWAP(p.f, swapndft);
 
   /** NFFT */
-  X(trafo)(&p);
-  e = Y(error_l_2_complex)(swapndft, p.f, p.M_total);
+  NFFT(trafo)(&p);
+  e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
   printf("$%.1" __FES__ "$&\t", e);
@@ -269,8 +266,8 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   fflush(stdout);
 
   /** finalise */
-  X(finalize)(&p);
-  Y(free)(swapndft);
+  NFFT(finalize)(&p);
+  NFFT(free)(swapndft);
 }
 
 int main(int argc, char **argv)

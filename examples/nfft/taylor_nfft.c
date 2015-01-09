@@ -40,12 +40,9 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 typedef struct
 {
-  X(plan) p; /* used for fftw and data */
+  NFFT(plan) p; /* used for fftw and data */
   INT *idx0; /* index of next neighbour of x_j on the oversampled regular grid */
   R *deltax0; /* distance to the grid point */
 } taylor_plan;
@@ -64,12 +61,12 @@ typedef struct
 static void taylor_init(taylor_plan *ths, int N, int M, int n, int m)
 {
   /* Note: no nfft precomputation! */
-  X(init_guru)((X(plan)*) ths, 1, &N, M, &n, m,
+  NFFT(init_guru)((NFFT(plan)*) ths, 1, &N, M, &n, m,
       MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
       FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
 
-  ths->idx0 = (INT*) Y(malloc)((size_t)(M) * sizeof(INT));
-  ths->deltax0 = (R*) Y(malloc)((size_t)(M) * sizeof(R));
+  ths->idx0 = (INT*) NFFT(malloc)((size_t)(M) * sizeof(INT));
+  ths->deltax0 = (R*) NFFT(malloc)((size_t)(M) * sizeof(R));
 }
 
 /**
@@ -83,7 +80,7 @@ static void taylor_precompute(taylor_plan *ths)
 {
   INT j;
 
-  X(plan)* cths = (X(plan)*) ths;
+  NFFT(plan)* cths = (NFFT(plan)*) ths;
 
   for (j = 0; j < cths->M_total; j++)
   {
@@ -103,10 +100,10 @@ static void taylor_precompute(taylor_plan *ths)
  */
 static void taylor_finalize(taylor_plan *ths)
 {
-  Y(free)(ths->deltax0);
-  Y(free)(ths->idx0);
+  NFFT(free)(ths->deltax0);
+  NFFT(free)(ths->idx0);
 
-  X(finalize)((X(plan)*) ths);
+  NFFT(finalize)((NFFT(plan)*) ths);
 }
 
 /**
@@ -126,7 +123,7 @@ static void taylor_trafo(taylor_plan *ths)
   R *deltax;
   INT *idx;
 
-  X(plan) *cths = (X(plan)*) ths;
+  NFFT(plan) *cths = (NFFT(plan)*) ths;
 
   for (j = 0, f = cths->f; j < cths->M_total; j++)
     *f++ = K(0.0);
@@ -185,13 +182,13 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   ticks t0, t1;
 
   taylor_plan tp;
-  X(plan) np;
+  NFFT(plan) np;
 
   printf("%d\t%d\t", N, M);
 
   taylor_init(&tp, N, M, n_taylor, m_taylor);
 
-  X(init_guru)(&np, 1, &N, M, &n, m,
+  NFFT(init_guru)(&np, 1, &N, M, &n, m,
       PRE_PHI_HUT | PRE_FG_PSI | FFTW_INIT | FFT_OUT_OF_PLACE,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
@@ -202,20 +199,20 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
   /* output vector ndft */
   if (test_accuracy)
-    swapndft = (C*) Y(malloc)((size_t)(M) * sizeof(C));
+    swapndft = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
 
   /* init pseudo random nodes */
-  Y(vrand_shifted_unit_double)(np.x, np.M_total);
+  NFFT(vrand_shifted_unit_double)(np.x, np.M_total);
 
   /* nfft precomputation */
   taylor_precompute(&tp);
 
   /* nfft precomputation */
   if (np.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&np);
+    NFFT(precompute_one_psi)(&np);
 
   /* init pseudo random Fourier coefficients */
-  Y(vrand_unit_complex)(np.f_hat, np.N_total);
+  NFFT(vrand_unit_complex)(np.f_hat, np.N_total);
 
   /* NDFT */
   if (test_accuracy)
@@ -228,9 +225,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     {
       r++;
       t0 = getticks();
-      X(trafo_direct)(&np);
+      NFFT(trafo_direct)(&np);
       t1 = getticks();
-      t = Y(elapsed_seconds)(t1, t0);
+      t = NFFT(elapsed_seconds)(t1, t0);
       t_ndft += t;
     }
     t_ndft /= (R)(r);
@@ -248,9 +245,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   {
     r++;
     t0 = getticks();
-    X(trafo)(&np);
+    NFFT(trafo)(&np);
     t1 = getticks();
-    t = Y(elapsed_seconds)(t1, t0);
+    t = NFFT(elapsed_seconds)(t1, t0);
     t_nfft += t;
   }
   t_nfft /= (R)(r);
@@ -258,7 +255,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   printf("%.2" __FES__ "\t%d\t%.2" __FES__ "\t", ((R)(n)) / ((R)(N)), m, t_nfft);
 
   if (test_accuracy)
-    printf("%.2" __FES__ "\t", Y(error_l_infty_complex)(swapndft, np.f, np.M_total));
+    printf("%.2" __FES__ "\t", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
     printf("N/A\t\t");
 
@@ -271,7 +268,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     t0 = getticks();
     taylor_trafo(&tp);
     t1 = getticks();
-    t = Y(elapsed_seconds)(t1, t0);
+    t = NFFT(elapsed_seconds)(t1, t0);
     t_taylor += t;
   }
   t_taylor /= (R)(r);
@@ -279,7 +276,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   printf("%.2" __FES__ "\t%d\t%.2" __FES__ "\t", ((R)(n_taylor)) / ((R)(N)), m_taylor, t_taylor);
 
   if (test_accuracy)
-    printf("%.2" __FES__ "\n", Y(error_l_infty_complex)(swapndft, np.f, np.M_total));
+    printf("%.2" __FES__ "\n", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
     printf("N/A\t\n");
 
@@ -287,9 +284,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
 
   /* finalise */
   if (test_accuracy)
-    Y(free)(swapndft);
+    NFFT(free)(swapndft);
 
-  X(finalize)(&np);
+  NFFT(finalize)(&np);
   taylor_finalize(&tp);
 }
 

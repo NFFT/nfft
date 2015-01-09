@@ -37,10 +37,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
-static void ndft_horner_trafo(X(plan) *ths)
+static void ndft_horner_trafo(NFFT(plan) *ths)
 {
   INT j, k;
   C *f_hat_k, *f_j;
@@ -61,7 +58,7 @@ static void ndft_horner_trafo(X(plan) *ths)
   }
 } /* ndft_horner_trafo */
 
-static void ndft_pre_full_trafo(X(plan) *ths, C *A)
+static void ndft_pre_full_trafo(NFFT(plan) *ths, C *A)
 {
   INT j, k;
   C *f_hat_k, *f_j;
@@ -75,7 +72,7 @@ static void ndft_pre_full_trafo(X(plan) *ths, C *A)
       (*f_j) += (*f_hat_k) * (*A_local);
 } /* ndft_pre_full_trafo */
 
-static void ndft_pre_full_init(X(plan) *ths, C *A)
+static void ndft_pre_full_init(NFFT(plan) *ths, C *A)
 {
   INT j, k;
   C *f_hat_k, *f_j, *A_local;
@@ -94,23 +91,23 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   C *A = NULL;
   ticks t0, t1;
 
-  X(plan) np;
+  NFFT(plan) np;
 
   printf("%d\t%d\t", N, M);
 
-  X(init_1d)(&np, N, M);
+  NFFT(init_1d)(&np, N, M);
 
   /* Initialize pseudo random nodes. */
-  Y(vrand_shifted_unit_double)(np.x, np.M_total);
+  NFFT(vrand_shifted_unit_double)(np.x, np.M_total);
 
   if (test_pre_full)
   {
-    A = (C*) Y(malloc)((size_t)(N * M) * sizeof(R));
+    A = (C*) NFFT(malloc)((size_t)(N * M) * sizeof(R));
     ndft_pre_full_init(&np, A);
   }
 
   /* Initialize pseudo random Fourier coefficients. */
-  Y(vrand_unit_complex)(np.f_hat, np.N_total);
+  NFFT(vrand_unit_complex)(np.f_hat, np.N_total);
 
   /* NDFT */
   if (test_ndft)
@@ -121,9 +118,9 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
     {
       r++;
       t0 = getticks();
-      X(trafo_direct)(&np);
+      NFFT(trafo_direct)(&np);
       t1 = getticks();
-      t = Y(elapsed_seconds)(t1, t0);
+      t = NFFT(elapsed_seconds)(t1, t0);
       t_ndft += t;
     }
     t_ndft /= (R) (r);
@@ -142,7 +139,7 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
     t0 = getticks();
     ndft_horner_trafo(&np);
     t1 = getticks();
-    t = Y(elapsed_seconds)(t1, t0);
+    t = NFFT(elapsed_seconds)(t1, t0);
     t_horner += t;
   }
   t_horner /= (R)(r);
@@ -160,7 +157,7 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       t0 = getticks();
       ndft_pre_full_trafo(&np, A);
       t1 = getticks();
-      t = Y(elapsed_seconds)(t1, t0);
+      t = NFFT(elapsed_seconds)(t1, t0);
       t_pre_full += t;
     }
     t_pre_full /= (R)(r);
@@ -176,9 +173,9 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   {
     r++;
     t0 = getticks();
-    X(trafo)(&np);
+    NFFT(trafo)(&np);
     t1 = getticks();
-    t = Y(elapsed_seconds)(t1, t0);
+    t = NFFT(elapsed_seconds)(t1, t0);
     t_nfft += t;
   }
   t_nfft /= (R)(r);
@@ -188,9 +185,9 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   fflush(stdout);
 
   if (test_pre_full)
-    Y(free)(A);
+    NFFT(free)(A);
 
-  Y(finalize)(&np);
+  NFFT(finalize)(&np);
 }
 
 int main(int argc, char **argv)

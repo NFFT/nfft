@@ -26,48 +26,45 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFCT(name)
-
 static void simple_test_nfct_1d(void)
 {
-  X(plan) p;
+  NFCT(plan) p;
 
   int N = 14;
   int M = 19;
 
   /** init an one dimensional plan */
-  X(init_1d)(&p,N,M);
+  NFCT(init_1d)(&p,N,M);
 
   /** init pseudo random nodes */
-  Y(vrand_real)(p.x, p.M_total, K(0.0), K(0.5));
+  NFFT(vrand_real)(p.x, p.M_total, K(0.0), K(0.5));
 
   /** precompute psi, the entries of the matrix B */
   if( p.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+    NFCT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  Y(vrand_real)(p.f_hat, p.N_total, K(0.0), K(1.0));
-  Y(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
+  NFFT(vrand_real)(p.f_hat, p.N_total, K(0.0), K(1.0));
+  NFFT(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  X(trafo_direct)(&p);
-  Y(vpr_double)(p.f,p.M_total,"ndct, vector f");
+  NFCT(trafo_direct)(&p);
+  NFFT(vpr_double)(p.f,p.M_total,"ndct, vector f");
 
   /** approx. trafo and show the result */
-  X(trafo)(&p);
-  Y(vpr_double)(p.f,p.M_total,"nfct, vector f");
+  NFCT(trafo)(&p);
+  NFFT(vpr_double)(p.f,p.M_total,"nfct, vector f");
 
   /** approx. adjoint and show the result */
-  X(adjoint_direct)(&p);
-  Y(vpr_double)(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
+  NFCT(adjoint_direct)(&p);
+  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
 
   /** approx. adjoint and show the result */
-  X(adjoint)(&p);
-  Y(vpr_double)(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
+  NFCT(adjoint)(&p);
+  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
 
   /** finalise the one dimensional plan */
-  X(finalize)(&p);
+  NFCT(finalize)(&p);
 }
 
 int main(void)

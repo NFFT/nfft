@@ -42,9 +42,6 @@
 #include "kernels.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /**
  * \defgroup applications_fastsum_test fastsum_test
  * \ingroup applications_fastsum
@@ -171,7 +168,7 @@ int main(int argc, char **argv)
     R r2 = K(0.0);
 
     for (j = 0; j < d; j++)
-      my_fastsum_plan.x[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
+      my_fastsum_plan.x[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += my_fastsum_plan.x[k * d + j] * my_fastsum_plan.x[k * d + j];
@@ -197,7 +194,7 @@ int main(int argc, char **argv)
      my_fastsum_plan.x[k*d+j] *= sin(phi);
      }
      */
-    my_fastsum_plan.alpha[k] = Y(drand48)() + II * Y(drand48)();
+    my_fastsum_plan.alpha[k] = NFFT(drand48)() + II * NFFT(drand48)();
   }
 
   /** init target knots in a d-ball with radius 0.25-eps_b/2 */
@@ -208,7 +205,7 @@ int main(int argc, char **argv)
     R r2 = K(0.0);
 
     for (j = 0; j < d; j++)
-      my_fastsum_plan.y[k * d + j] = K(2.0) * r_max * Y(drand48)() - r_max;
+      my_fastsum_plan.y[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += my_fastsum_plan.y[k * d + j] * my_fastsum_plan.y[k * d + j];
@@ -240,11 +237,11 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_exact(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** copy result */
-  direct = (C *) Y(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
+  direct = (C *) NFFT(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
   for (j = 0; j < my_fastsum_plan.M_total; j++)
     direct[j] = my_fastsum_plan.f[j];
 
@@ -254,7 +251,7 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_precompute(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** fast computation */
@@ -263,7 +260,7 @@ int main(int argc, char **argv)
   t0 = getticks();
   fastsum_trafo(&my_fastsum_plan);
   t1 = getticks();
-  time = Y(elapsed_seconds)(t1, t0);
+  time = NFFT(elapsed_seconds)(t1, t0);
   printf(__FI__ "sec\n", time);
 
   /** compute max error */

@@ -39,9 +39,6 @@
 /** Required for test if (ths->k == one_over_x) */
 #include "kernels.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /**
  * \addtogroup applications_fastsum
  * \{
@@ -429,7 +426,7 @@ static void BuildBox(fastsum_plan *ths)
   int *box_index;
   R val[ths->d];
 
-  box_index = (int *) Y(malloc)((size_t)(ths->box_count) * sizeof(int));
+  box_index = (int *) NFFT(malloc)((size_t)(ths->box_count) * sizeof(int));
   for (t = 0; t < ths->box_count; t++)
     box_index[t] = 0;
 
@@ -470,7 +467,7 @@ static void BuildBox(fastsum_plan *ths)
     }
     box_index[ind]++;
   }
-  Y(free)(box_index);
+  NFFT(free)(box_index);
 }
 
 /** inner computation function for box-based near field correction */
@@ -702,7 +699,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
   unsigned sort_flags_trafo = 0U;
   unsigned sort_flags_adjoint = 0U;
 #ifdef _OPENMP
-  int nthreads = X(get_num_threads)();
+  int nthreads = NFFT(get_num_threads)();
 #endif
 
   if (d > 1)
@@ -720,11 +717,11 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
   ths->N_total = N_total;
   ths->M_total = M_total;
 
-  ths->x = (R *) Y(malloc)((size_t)(d * N_total) * (sizeof(R)));
-  ths->alpha = (C *) Y(malloc)((size_t)(N_total) * (sizeof(C)));
+  ths->x = (R *) NFFT(malloc)((size_t)(d * N_total) * (sizeof(R)));
+  ths->alpha = (C *) NFFT(malloc)((size_t)(N_total) * (sizeof(C)));
 
-  ths->y = (R *) Y(malloc)((size_t)(d * M_total) * (sizeof(R)));
-  ths->f = (C *) Y(malloc)((size_t)(M_total) * (sizeof(C)));
+  ths->y = (R *) NFFT(malloc)((size_t)(d * M_total) * (sizeof(R)));
+  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
 
   ths->k = k;
   ths->kernel_param = param;
@@ -741,7 +738,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     if (ths->d == 1)
     {
       ths->Ad = 4 * (ths->p) * (ths->p);
-      ths->Add = (C *) Y(malloc)((size_t)(ths->Ad + 5) * (sizeof(C)));
+      ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 5) * (sizeof(C)));
     }
     else
     {
@@ -774,13 +771,13 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 
 #if defined(NF_KUB)
         ths->Ad = max_i(10, (int)(LRINT(CEIL(K(1.4) / POW(delta, K(1.0) / K(4.0))))));
-        ths->Add = (C *) Y(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
+        ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
 #elif defined(NF_QUADR)
         ths->Ad = (int)(LRINT(CEIL(K(2.2)/POW(delta,K(1.0)/K(3.0)))));
-        ths->Add = (C *)Y(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
+        ths->Add = (C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
 #elif defined(NF_LIN)
         ths->Ad = (int)(LRINT(CEIL(K(1.7)/pow(delta,K(1.0)/K(2.0)))));
-        ths->Add = (C *)Y(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
+        ths->Add = (C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
 #else
 #error define NF_LIN or NF_QUADR or NF_KUB
 #endif
@@ -788,7 +785,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
       else
       {
         ths->Ad = 2 * (ths->p) * (ths->p);
-        ths->Add = (C *) Y(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
+        ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
       }
     }
   }
@@ -800,12 +797,12 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     N[t] = nn;
     n[t] = 2 * nn;
   }
-  X(init_guru)(&(ths->mv1), d, N, N_total, n, m,
+  NFFT(init_guru)(&(ths->mv1), d, N, N_total, n, m,
       sort_flags_adjoint |
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
-  X(init_guru)(&(ths->mv2), d, N, M_total, n, m,
+  NFFT(init_guru)(&(ths->mv2), d, N, M_total, n, m,
       sort_flags_trafo |
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
@@ -816,7 +813,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
   for (t = 0; t < d; t++)
     n_total *= nn;
 
-  ths->b = (C*) Y(malloc)((size_t)(n_total) * sizeof(C));
+  ths->b = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
@@ -837,27 +834,27 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     for (t = 0; t < ths->d; t++)
       ths->box_count *= ths->box_count_per_dim;
 
-    ths->box_offset = (int *) Y(malloc)((size_t)(ths->box_count + 1) * sizeof(int));
+    ths->box_offset = (int *) NFFT(malloc)((size_t)(ths->box_count + 1) * sizeof(int));
 
-    ths->box_alpha = (C *) Y(malloc)((size_t)(ths->N_total) * (sizeof(C)));
+    ths->box_alpha = (C *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(C)));
 
-    ths->box_x = (R *) Y(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
+    ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
   }
 }
 
 /** finalization of fastsum plan */
 void fastsum_finalize(fastsum_plan *ths)
 {
-  Y(free)(ths->x);
-  Y(free)(ths->alpha);
-  Y(free)(ths->y);
-  Y(free)(ths->f);
+  NFFT(free)(ths->x);
+  NFFT(free)(ths->alpha);
+  NFFT(free)(ths->y);
+  NFFT(free)(ths->f);
 
   if (!(ths->flags & EXACT_NEARFIELD))
-    Y(free)(ths->Add);
+    NFFT(free)(ths->Add);
 
-  X(finalize)(&(ths->mv1));
-  X(finalize)(&(ths->mv2));
+  NFFT(finalize)(&(ths->mv1));
+  NFFT(finalize)(&(ths->mv2));
 
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
@@ -868,13 +865,13 @@ void fastsum_finalize(fastsum_plan *ths)
 }
 #endif
 
-  Y(free)(ths->b);
+  NFFT(free)(ths->b);
 
   if (ths->flags & NEARFIELD_BOXES)
   {
-    Y(free)(ths->box_offset);
-    Y(free)(ths->box_alpha);
-    Y(free)(ths->box_x);
+    NFFT(free)(ths->box_offset);
+    NFFT(free)(ths->box_alpha);
+    NFFT(free)(ths->box_x);
   }
 }
 
@@ -965,7 +962,7 @@ void fastsum_precompute(fastsum_plan *ths)
   }
 #ifdef MEASURE_TIME
   t1 = getticks();
-  ths->MEASURE_TIME_t[0] += Y(elapsed_seconds)(t1,t0);
+  ths->MEASURE_TIME_t[0] += NFFT(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -978,13 +975,13 @@ void fastsum_precompute(fastsum_plan *ths)
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv1.flags & PRE_LIN_PSI)
-    Y(precompute_lin_psi)(&(ths->mv1));
+    NFFT(precompute_lin_psi)(&(ths->mv1));
 
   if (ths->mv1.flags & PRE_PSI)
-    Y(precompute_psi)(&(ths->mv1));
+    NFFT(precompute_psi)(&(ths->mv1));
 
   if (ths->mv1.flags & PRE_FULL_PSI)
-    Y(precompute_full_psi)(&(ths->mv1));
+    NFFT(precompute_full_psi)(&(ths->mv1));
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[1] += nfft_elapsed_seconds(t1,t0);
@@ -1004,16 +1001,16 @@ void fastsum_precompute(fastsum_plan *ths)
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv2.flags & PRE_LIN_PSI)
-    Y(precompute_lin_psi)(&(ths->mv2));
+    NFFT(precompute_lin_psi)(&(ths->mv2));
 
   if (ths->mv2.flags & PRE_PSI)
-    Y(precompute_psi)(&(ths->mv2));
+    NFFT(precompute_psi)(&(ths->mv2));
 
   if (ths->mv2.flags & PRE_FULL_PSI)
-    Y(precompute_full_psi)(&(ths->mv2));
+    NFFT(precompute_full_psi)(&(ths->mv2));
 #ifdef MEASURE_TIME
   t1 = getticks();
-  ths->MEASURE_TIME_t[2] += Y(elapsed_seconds)(t1,t0);
+  ths->MEASURE_TIME_t[2] += NFFT(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -1047,9 +1044,9 @@ void fastsum_precompute(fastsum_plan *ths)
     }
   }
 
-  Y(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
   FFTW(execute)(ths->fft_plan);
-  Y(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
@@ -1073,10 +1070,10 @@ void fastsum_trafo(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** first step of algorithm */
-  X(adjoint)(&(ths->mv1));
+  NFFT(adjoint)(&(ths->mv1));
 #ifdef MEASURE_TIME
   t1 = getticks();
-  ths->MEASURE_TIME_t[4] += Y(elapsed_seconds)(t1,t0);
+  ths->MEASURE_TIME_t[4] += NFFT(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -1097,7 +1094,7 @@ void fastsum_trafo(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** third step of algorithm */
-  X(trafo)(&(ths->mv2));
+  NFFT(trafo)(&(ths->mv2));
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[6] += nfft_elapsed_seconds(t1,t0);
@@ -1135,7 +1132,7 @@ void fastsum_trafo(fastsum_plan *ths)
 
 #ifdef MEASURE_TIME
   t1 = getticks();
-  ths->MEASURE_TIME_t[7] += Y(elapsed_seconds)(t1,t0);
+  ths->MEASURE_TIME_t[7] += NFFT(elapsed_seconds)(t1,t0);
 #endif
 }
 /* \} */

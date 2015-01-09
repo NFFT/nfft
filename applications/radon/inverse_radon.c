@@ -49,9 +49,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /** define weights of kernel function for discrete Radon transform */
 /*#define KERNEL(r) 1.0 */
 #define KERNEL(r) (K(1.0)-FABS((R)(r))/((R)S/2))
@@ -122,7 +119,7 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
     int max_i)
 {
   int j, k; /**< index for nodes and freqencies   */
-  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
   SOLVER(plan_complex) my_infft_plan; /**< plan for the inverse nfft        */
 
   C *fft; /**< variable for the fftw-1Ds        */
@@ -140,26 +137,26 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
   N[1] = NN;
   n[1] = 2 * N[1];
 
-  fft = (C *) Y(malloc)((size_t)(S) * sizeof(C));
+  fft = (C *) NFFT(malloc)((size_t)(S) * sizeof(C));
   my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_FORWARD, FFTW_MEASURE);
 
-  x = (R *) Y(malloc)((size_t)(2 * T * S) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(2 * T * S) * (sizeof(R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(T * S) * (sizeof(R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
-  X(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
+  NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init two dimensional infft plan */
   SOLVER(init_advanced_complex)(&my_infft_plan,
-      (X(mv_plan_complex)*) (&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
+      (NFFT(mv_plan_complex)*) (&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
 
   /** init nodes and weights of grid*/
   gridfcn(T, S, x, w);
@@ -175,13 +172,13 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
 
   /** precompute psi, the entries of the matrix B */
   if (my_nfft_plan.flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(&my_nfft_plan);
+    NFFT(precompute_lin_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_PSI)
-    X(precompute_psi)(&my_nfft_plan);
+    NFFT(precompute_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(&my_nfft_plan);
+    NFFT(precompute_full_psi)(&my_nfft_plan);
 
   /** compute 1D-ffts and init given samples and weights */
   for (t = 0; t < T; t++)
@@ -195,9 +192,9 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
     for (r = 0; r < S; r++)
       fft[r] = Rf[t * S + r] + II * K(0.0);
 
-    Y(fftshift_complex_int)(fft, 1, &S);
+    NFFT(fftshift_complex_int)(fft, 1, &S);
     FFTW(execute)(my_fftw_plan);
-    Y(fftshift_complex_int)(fft, 1, &S);
+    NFFT(fftshift_complex_int)(fft, 1, &S);
 
     my_infft_plan.y[t * S] = K(0.0);
     for (r = -S / 2 + 1; r < S / 2; r++)
@@ -233,11 +230,11 @@ static int inverse_radon_trafo(int (*gridfcn)(), int T, int S, R *Rf, int NN, R 
 
   /** finalise the plans and free the variables */
   FFTW(destroy_plan)(my_fftw_plan);
-  Y(free)(fft);
+  NFFT(free)(fft);
   SOLVER(finalize_complex)(&my_infft_plan);
-  X(finalize)(&my_nfft_plan);
-  Y(free)(x);
-  Y(free)(w);
+  NFFT(finalize)(&my_nfft_plan);
+  NFFT(free)(x);
+  NFFT(free)(w);
   return 0;
 }
 
@@ -275,8 +272,8 @@ int main(int argc, char **argv)
   /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
   max_i = atoi(argv[5]);
 
-  Rf = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
-  iRf = (R *) Y(malloc)((size_t)(N * N) * (sizeof(R)));
+  Rf = (R *) NFFT(malloc)((size_t)(T * S) * (sizeof(R)));
+  iRf = (R *) NFFT(malloc)((size_t)(N * N) * (sizeof(R)));
 
   /** load data */
   fp = fopen("sinogram_data.bin", "rb");
@@ -296,8 +293,8 @@ int main(int argc, char **argv)
   fclose(fp);
 
   /** free the variables */
-  Y(free)(Rf);
-  Y(free)(iRf);
+  NFFT(free)(Rf);
+  NFFT(free)(iRf);
 
   return EXIT_SUCCESS;
 }

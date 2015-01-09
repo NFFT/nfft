@@ -30,48 +30,45 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 static void simple_test_nfft_1d(void)
 {
-  X(plan) p;
+  NFFT(plan) p;
 
   int N = 14;
   int M = 19;
 
   /** init an one dimensional plan */
-  X(init_1d)(&p, N, M);
+  NFFT(init_1d)(&p, N, M);
 
   /** init pseudo random nodes */
-  Y(vrand_shifted_unit_double)(p.x, p.M_total);
+  NFFT(vrand_shifted_unit_double)(p.x, p.M_total);
  
   /** precompute psi, the entries of the matrix B */
   if (p.flags & PRE_ONE_PSI)
-      X(precompute_one_psi)(&p);
+      NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  Y(vrand_unit_complex)(p.f_hat,p.N_total);
-  Y(vpr_complex)(p.f_hat, p.N_total, "given Fourier coefficients, vector f_hat");
+  NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
+  NFFT(vpr_complex)(p.f_hat, p.N_total, "given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  X(trafo_direct)(&p);
-  Y(vpr_complex)(p.f,p.M_total,"ndft, vector f");
+  NFFT(trafo_direct)(&p);
+  NFFT(vpr_complex)(p.f,p.M_total,"ndft, vector f");
 
   /** approx. trafo and show the result */
-  X(trafo)(&p);
-  Y(vpr_complex)(p.f,p.M_total,"nfft, vector f");
+  NFFT(trafo)(&p);
+  NFFT(vpr_complex)(p.f,p.M_total,"nfft, vector f");
 
   /** approx. adjoint and show the result */
-  X(adjoint_direct)(&p);
-  Y(vpr_complex)(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
+  NFFT(adjoint_direct)(&p);
+  NFFT(vpr_complex)(p.f_hat,p.N_total,"adjoint ndft, vector f_hat");
 
   /** approx. adjoint and show the result */
-  X(adjoint)(&p);
-  Y(vpr_complex)(p.f_hat,p.N_total,"adjoint nfft, vector f_hat");
+  NFFT(adjoint)(&p);
+  NFFT(vpr_complex)(p.f_hat,p.N_total,"adjoint nfft, vector f_hat");
 
   /** finalise the one dimensional plan */
-  X(finalize)(&p);
+  NFFT(finalize)(&p);
 }
 
 static void simple_test_nfft_2d(void)
@@ -80,7 +77,7 @@ static void simple_test_nfft_2d(void)
   R t;
   ticks t0, t1;
 
-  X(plan) p;
+  NFFT(plan) p;
 
   N[0] = 32; n[0] = 64;
   N[1] = 14; n[1] = 32;
@@ -89,60 +86,60 @@ static void simple_test_nfft_2d(void)
 
   t0 = getticks();
   /** init a two dimensional plan */
-  X(init_guru)(&p, 2, N, M, n, 7,
+  NFFT(init_guru)(&p, 2, N, M, n, 7,
      PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
      FFTW_INIT| FFT_OUT_OF_PLACE,
      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 
   /** init pseudo random nodes */
-  Y(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
+  NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   /** precompute psi, the entries of the matrix B */
   if(p.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+    NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  Y(vrand_unit_complex)(p.f_hat, p.N_total);
+  NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
-  Y(vpr_complex)(p.f_hat,K, "given Fourier coefficients, vector f_hat (first few entries)");
+  t = NFFT(elapsed_seconds)(t1, t0);
+  NFFT(vpr_complex)(p.f_hat,K, "given Fourier coefficients, vector f_hat (first few entries)");
   printf(" ... initialisation took %.2" __FES__ " seconds.\n",t);
 
   /** direct trafo and show the result */
   t0 = getticks();
-  X(trafo_direct)(&p);
+  NFFT(trafo_direct)(&p);
   t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
-  Y(vpr_complex)(p.f, K, "ndft, vector f (first few entries)");
+  t = NFFT(elapsed_seconds)(t1, t0);
+  NFFT(vpr_complex)(p.f, K, "ndft, vector f (first few entries)");
   printf(" took %.2" __FES__ " seconds.\n",t);
 
   /** approx. trafo and show the result */
   t0 = getticks();
-  X(trafo)(&p);
+  NFFT(trafo)(&p);
   t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
-  Y(vpr_complex)(p.f, K, "nfft, vector f (first few entries)");
+  t = NFFT(elapsed_seconds)(t1, t0);
+  NFFT(vpr_complex)(p.f, K, "nfft, vector f (first few entries)");
   printf(" took %.2" __FES__ " seconds.\n",t);
 
   /** direct adjoint and show the result */
   t0 = getticks();
-  X(adjoint_direct)(&p);
+  NFFT(adjoint_direct)(&p);
   t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
-  Y(vpr_complex)(p.f_hat, K, "adjoint ndft, vector f_hat (first few entries)");
+  t = NFFT(elapsed_seconds)(t1, t0);
+  NFFT(vpr_complex)(p.f_hat, K, "adjoint ndft, vector f_hat (first few entries)");
   printf(" took %.2" __FES__ " seconds.\n",t);
 
   /** approx. adjoint and show the result */
   t0 = getticks();
-  X(adjoint)(&p);
+  NFFT(adjoint)(&p);
   t1 = getticks();
-  t = Y(elapsed_seconds)(t1, t0);
-  Y(vpr_complex)(p.f_hat, K, "adjoint nfft, vector f_hat (first few entries)");
+  t = NFFT(elapsed_seconds)(t1, t0);
+  NFFT(vpr_complex)(p.f_hat, K, "adjoint nfft, vector f_hat (first few entries)");
   printf(" took %.2" __FES__ " seconds.\n",t);
 
   /** finalise the two dimensional plan */
-  X(finalize)(&p);
+  NFFT(finalize)(&p);
 }
 
 int main(void)

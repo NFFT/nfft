@@ -50,9 +50,6 @@
 #include "nfft3.h"
 #include "infft.h"
 
-#undef X
-#define X(name) NFFT(name)
-
 /** define weights of kernel function for discrete Radon transform */
 /*#define KERNEL(r) 1.0 */
 #define KERNEL(r) (K(1.0)-FABS((R)(r))/((R)S/2))
@@ -121,7 +118,7 @@ static int linogram_grid(int T, int S, R *x, R *w)
 static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
 {
   int j, k; /**< index for nodes and freqencies   */
-  X(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
 
   C *fft; /**< variable for the fftw-1Ds        */
   FFTW(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
@@ -137,19 +134,19 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
   N[1] = NN;
   n[1] = 2 * N[1];
 
-  fft = (C *) Y(malloc)((size_t)(S) * sizeof(C));
+  fft = (C *) NFFT(malloc)((size_t)(S) * sizeof(C));
   my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_BACKWARD, FFTW_MEASURE);
 
-  x = (R *) Y(malloc)((size_t)(2 * T * S) * (sizeof(R)));
+  x = (R *) NFFT(malloc)((size_t)(2 * T * S) * (sizeof(R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
+  w = (R *) NFFT(malloc)((size_t)(T * S) * (sizeof(R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
   /** init two dimensional NFFT plan */
-  X(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
+  NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
@@ -164,20 +161,20 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
 
   /** precompute psi, the entries of the matrix B */
   if (my_nfft_plan.flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(&my_nfft_plan);
+    NFFT(precompute_lin_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_PSI)
-    X(precompute_psi)(&my_nfft_plan);
+    NFFT(precompute_psi)(&my_nfft_plan);
 
   if (my_nfft_plan.flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(&my_nfft_plan);
+    NFFT(precompute_full_psi)(&my_nfft_plan);
 
   /** init Fourier coefficients from given image */
   for (k = 0; k < my_nfft_plan.N_total; k++)
     my_nfft_plan.f_hat[k] = f[k] + II * K(0.0);
 
   /** NFFT-2D */
-  X(trafo)(&my_nfft_plan);
+  NFFT(trafo)(&my_nfft_plan);
 
   /** FFTW-1Ds */
   for (t = 0; t < T; t++)
@@ -186,9 +183,9 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
     for (r = -S / 2 + 1; r < S / 2; r++)
       fft[r + S / 2] = KERNEL(r) * my_nfft_plan.f[t * S + (r + S / 2)];
 
-    Y(fftshift_complex_int)(fft, 1, &S);
+    NFFT(fftshift_complex_int)(fft, 1, &S);
     FFTW(execute)(my_fftw_plan);
-    Y(fftshift_complex_int)(fft, 1, &S);
+    NFFT(fftshift_complex_int)(fft, 1, &S);
 
     for (r = 0; r < S; r++)
       Rf[t * S + r] = CREAL(fft[r]) / (R)(S);
@@ -202,10 +199,10 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, R *f, int NN, R *Rf)
 
   /** finalise the plans and free the variables */
   FFTW(destroy_plan)(my_fftw_plan);
-  Y(free)(fft);
-  X(finalize)(&my_nfft_plan);
-  Y(free)(x);
-  Y(free)(w);
+  NFFT(free)(fft);
+  NFFT(finalize)(&my_nfft_plan);
+  NFFT(free)(x);
+  NFFT(free)(w);
   return 0;
 }
 
@@ -240,8 +237,8 @@ int main(int argc, char **argv)
   S = atoi(argv[4]);
   /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
 
-  f = (R *) Y(malloc)((size_t)(N * N) * (sizeof(R)));
-  Rf = (R *) Y(malloc)((size_t)(T * S) * (sizeof(R)));
+  f = (R *) NFFT(malloc)((size_t)(N * N) * (sizeof(R)));
+  Rf = (R *) NFFT(malloc)((size_t)(T * S) * (sizeof(R)));
 
   /** load data */
   fp = fopen("input_data.bin", "rb");
@@ -261,8 +258,8 @@ int main(int argc, char **argv)
   fclose(fp);
 
   /** free the variables */
-  Y(free)(f);
-  Y(free)(Rf);
+  NFFT(free)(f);
+  NFFT(free)(Rf);
 
   return EXIT_SUCCESS;
 }
