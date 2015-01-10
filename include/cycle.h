@@ -187,7 +187,7 @@ INLINE_ELAPSED(__inline__)
 #endif
 
 /* Visual C++ -- thanks to Morten Nissov for his help with this */
-#if _MSC_VER >= 1200 && _M_IX86 >= 500 && !defined(HAVE_TICK_COUNTER)
+#if defined(_MSC_VER) && _MSC_VER >= 1200 && _M_IX86 >= 500 && !defined(HAVE_TICK_COUNTER)
 #include <windows.h>
 typedef LARGE_INTEGER ticks;
 #define RDTSC __asm __emit 0fh __asm __emit 031h /* hack for VC++ 5.0 */
@@ -248,7 +248,7 @@ INLINE_ELAPSED(__inline__)
 #endif
 
 /* Visual C++, courtesy of Dirk Michaelis */
-#if _MSC_VER >= 1400 && (defined(_M_AMD64) || defined(_M_X64)) && !defined(HAVE_TICK_COUNTER)
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && (defined(_M_AMD64) || defined(_M_X64)) && !defined(HAVE_TICK_COUNTER)
 
 #include <intrin.h>
 #pragma intrinsic(__rdtsc)
@@ -474,7 +474,7 @@ INLINE_ELAPSED(inline)
 
 /*----------------------------------------------------------------*/
 /* MIPS ZBus */
-#if HAVE_MIPS_ZBUS_TIMER
+#if defined(HAVE_MIPS_ZBUS_TIMER) && HAVE_MIPS_ZBUS_TIMER
 #if defined(__mips__) && !defined(HAVE_TICK_COUNTER)
 #include <sys/mman.h>
 #include <unistd.h>
