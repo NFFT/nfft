@@ -5870,6 +5870,15 @@ const char* X(check)(X(plan) *ths)
 {
   INT j;
 
+  if (!ths->f)
+      return "Member f not initialized.";
+
+  if (!ths->x)
+      return "Member x not initialized.";
+
+  if (!ths->f_hat)
+      return "Member f_hat not initialized.";
+
   if ((ths->flags & PRE_LIN_PSI) && ths->K < ths->M_total)
     return "Number of nodes too small to use PRE_LIN_PSI.";
 
