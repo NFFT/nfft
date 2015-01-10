@@ -38,33 +38,34 @@ to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D.
 ACM Trans. Math. Software,36, Article 19, 1-30,  2009 
 Directory structure
 -------------------
-3rdparty (dir)		Third-party source code
-aclocal.m4		Macros for configure script
+3rdparty (dir)	    Third-party source code
+aclocal.m4		    Macros for configure script
 applications (dir)	Application programs (see 4) above)
-AUTHORS			Information about the authors of NFFT3
-bootstrap.sh		Bootstrap shell script that call Autoconf and friends
-ChangeLog		A short version history
-config.guess		Used by configure script
-config.sub		Used by configure script
-configure		Configure script
-configure.in		Autoconf configure script template
-COPYING			Information about redistributing NFFT3
-depcomp			Used by configure script
-doc (dir)		User and developer documentation
-examples (dir)		Simple examples for using NFFT3 routines
-include (dir)		Header files
-INSTALL			Installation instructions
-install-sh		Used by configure script
-kernel (dir)		Source code for core library routines
-ltmain.sh		Used by configure script
-Makefile.am		Automake Makefile template
-Makefile.in		Makefile template generated from Makefile.am,
-                        processed by configure script
-missing			Used by configure script
-NEWS			New and noteworthy
-README			This file
-TODO			Current work to be done
-util (dir)		Source code for auxilliary routines
+AUTHORS			    Information about the authors of NFFT3
+bootstrap.sh	    Bootstrap shell script that call Autoconf and friends
+ChangeLog		    A short version history
+config.guess        Used by configure script
+config.sub          Used by configure script
+configure           Configure script
+configure.in        Autoconf configure script template
+CONVENTIONS         Internal coding conventions
+COPYING             Information about redistributing NFFT3
+depcomp             Used by configure script
+doc (dir)           User and developer documentation
+examples (dir)      Simple examples for using NFFT3 routines
+include (dir)       Header files
+INSTALL             Installation instructions
+install-sh          Used by configure script
+kernel (dir)        Source code for core library routines
+ltmain.sh           Used by configure script
+Makefile.am         Automake Makefile template
+Makefile.in         Makefile template generated from Makefile.am,
+                    processed by configure script
+missing             Used by configure script
+NEWS                New and noteworthy
+README              This file
+TODO                Work to be done
+util (dir)          Source code for auxilliary routines
 
 Feedback
 --------
