@@ -3,9 +3,9 @@
 %   matrix B) uses linear interpolation from a lookup table of equispaced samples
 %   of the window function instead of exact values of the window function.
 %
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

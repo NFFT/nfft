@@ -41,7 +41,8 @@ function replace {
 }
 
 # C source and header files
-for name in $(find .. -wholename "../applications/texture" -prune -o -name "cycle.h" -prune -o -name "config.h" -prune -o -name "*.[ch]" -o -name "ticks.in" -print -o -name "nfftconf.h.in" -print); do
+for name in $(find .. \( -name "*.[ch]" -or -name "ticks.in" -or -name "nfftconf.h.in" \) -and -not -wholename "../applications/texture" -and -not -name "cycle.h" -and -not -name "config.h"); do
+  echo $name
   replace "/^ \* Copyright/" "/^ \* Franklin Street/" $name "copyright.txt" '/*' ' */' "no"
 done
 

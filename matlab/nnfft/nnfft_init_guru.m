@@ -11,9 +11,9 @@
 %   flags   PRE_PHI_HUT | {FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
 %	             PRE_FULL_PSI} | FFT_OUT_OF_PLACE
 %
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

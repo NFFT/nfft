@@ -1,9 +1,9 @@
 %FFT_OUT_OF_PLACE FFT flag
 %   If this flag is set, FFTW uses disjoint input/output vectors.
 %
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

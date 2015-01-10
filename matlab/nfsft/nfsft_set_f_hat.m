@@ -1,7 +1,7 @@
 %NFSFT_SET_F_HAT Set Fourier coefficients in plan from a matrix
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

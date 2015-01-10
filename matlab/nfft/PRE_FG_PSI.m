@@ -4,9 +4,9 @@
 %   multiplications for direct calls to exponential function (the remaining 2dM
 %   direct calls are precomputed).
 %
-%   Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

@@ -1,6 +1,6 @@
 # $Id: matlab.m4 2652 2008-12-04 13:19:40Z keiner $
 #
-# Copyright (c) 2002, 2012 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
