@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-8 Matteo Frigo
- * Copyright (c) 2003, 2007-8 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -52,7 +52,7 @@
    defined according to whether the corresponding function/type/header
    is available on your system.  The necessary macros are most
    conveniently defined if you are using GNU autoconf, via the tests:
-   
+
    dnl ---------------------------------------------------------------------
 
    AC_C_INLINE
@@ -90,12 +90,9 @@
 #endif
 
 #define INLINE_ELAPSED(INL) static INL double elapsed(ticks t1, ticks t0) \
-{									  \
-     return (double)t1 - (double)t0;					  \
+{                                     \
+     return (double)t1 - (double)t0;                      \
 }
-
-#if 1 == 0
-#else
 
 /*----------------------------------------------------------------*/
 /* Solaris */
@@ -125,8 +122,8 @@ static __inline double elapsed(ticks t1, ticks t0) /* time in nanoseconds */
 {
      time_base_to_time(&t1, TIMEBASE_SZ);
      time_base_to_time(&t0, TIMEBASE_SZ);
-     return (((double)t1.tb_high - (double)t0.tb_high) * 1.0e9 + 
-	     ((double)t1.tb_low - (double)t0.tb_low));
+     return (((double)t1.tb_high - (double)t0.tb_high) * 1.0e9 +
+         ((double)t1.tb_low - (double)t0.tb_low));
 }
 
 #define HAVE_TICK_COUNTER
@@ -144,9 +141,9 @@ static __inline__ ticks getticks(void)
      unsigned int tbl, tbu0, tbu1;
 
      do {
-	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu0));
-	  __asm__ __volatile__ ("mftb %0" : "=r"(tbl));
-	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu1));
+      __asm__ __volatile__ ("mftbu %0" : "=r"(tbu0));
+      __asm__ __volatile__ ("mftb %0" : "=r"(tbl));
+      __asm__ __volatile__ ("mftbu %0" : "=r"(tbu1));
      } while (tbu0 != tbu1);
 
      return (((unsigned long long)tbu0) << 32) | tbl;
@@ -169,7 +166,7 @@ INLINE_ELAPSED(__inline__)
 
 /*----------------------------------------------------------------*/
 /*
- * Pentium cycle counter 
+ * Pentium cycle counter
  */
 #if (defined(__GNUC__) || defined(__ICC)) && defined(__i386__)  && !defined(HAVE_TICK_COUNTER)
 typedef unsigned long long ticks;
@@ -190,7 +187,7 @@ INLINE_ELAPSED(__inline__)
 #endif
 
 /* Visual C++ -- thanks to Morten Nissov for his help with this */
-#if defined(_MSC_VER) && _MSC_VER >= 1200 && _M_IX86 >= 500 && !defined(HAVE_TICK_COUNTER)
+#if _MSC_VER >= 1200 && _M_IX86 >= 500 && !defined(HAVE_TICK_COUNTER)
 #include <windows.h>
 typedef LARGE_INTEGER ticks;
 #define RDTSC __asm __emit 0fh __asm __emit 031h /* hack for VC++ 5.0 */
@@ -200,17 +197,17 @@ static __inline ticks getticks(void)
      ticks retval;
 
      __asm {
-	  RDTSC
-	  mov retval.HighPart, edx
-	  mov retval.LowPart, eax
+      RDTSC
+      mov retval.HighPart, edx
+      mov retval.LowPart, eax
      }
      return retval;
 }
 
 static __inline double elapsed(ticks t1, ticks t0)
-{  
+{
      return (double)t1.QuadPart - (double)t0.QuadPart;
-}  
+}
 
 #define HAVE_TICK_COUNTER
 #define TIME_MIN 5000.0   /* unreliable pentium IV cycle counter */
@@ -225,20 +222,21 @@ typedef unsigned long long ticks;
 
 static __inline__ ticks getticks(void)
 {
-     unsigned a, d; 
-     asm volatile("rdtsc" : "=a" (a), "=d" (d)); 
-     return ((ticks)a) | (((ticks)d) << 32); 
+     unsigned a, d;
+     asm volatile("rdtsc" : "=a" (a), "=d" (d));
+     return ((ticks)a) | (((ticks)d) << 32);
 }
 
 INLINE_ELAPSED(__inline__)
 
 #define HAVE_TICK_COUNTER
+#define TIME_MIN 5000.0
 #endif
 
 /* PGI compiler, courtesy Cristiano Calonaci, Andrea Tarsi, & Roberto Gori.
    NOTE: this code will fail to link unless you use the -Masmkeyword compiler
    option (grrr). */
-#if defined(__PGI) && defined(__x86_64__) && !defined(HAVE_TICK_COUNTER) 
+#if defined(__PGI) && defined(__x86_64__) && !defined(HAVE_TICK_COUNTER)
 typedef unsigned long long ticks;
 static ticks getticks(void)
 {
@@ -246,10 +244,11 @@ static ticks getticks(void)
 }
 INLINE_ELAPSED(__inline__)
 #define HAVE_TICK_COUNTER
+#define TIME_MIN 5000.0
 #endif
 
 /* Visual C++, courtesy of Dirk Michaelis */
-#if defined(_MSC_VER) && _MSC_VER >= 1400 && (defined(_M_AMD64) || defined(_M_X64)) && !defined(HAVE_TICK_COUNTER)
+#if _MSC_VER >= 1400 && (defined(_M_AMD64) || defined(_M_X64)) && !defined(HAVE_TICK_COUNTER)
 
 #include <intrin.h>
 #pragma intrinsic(__rdtsc)
@@ -258,6 +257,7 @@ typedef unsigned __int64 ticks;
 INLINE_ELAPSED(__inline)
 
 #define HAVE_TICK_COUNTER
+#define TIME_MIN 5000.0
 #endif
 
 /*----------------------------------------------------------------*/
@@ -274,9 +274,9 @@ static __inline__ ticks getticks(void)
 {
      return __getReg(_IA64_REG_AR_ITC);
 }
- 
+
 INLINE_ELAPSED(__inline__)
- 
+
 #define HAVE_TICK_COUNTER
 #endif
 
@@ -339,9 +339,9 @@ INLINE_ELAPSED(inline)
 
 /*----------------------------------------------------------------*/
 /*
- * PA-RISC cycle counter 
+ * PA-RISC cycle counter
  */
-#if defined(__hppa__) || defined(__hppa) && !defined(HAVE_TICK_COUNTER)
+#if (defined(__hppa__) || defined(__hppa)) && !defined(HAVE_TICK_COUNTER)
 typedef unsigned long ticks;
 
 #  ifdef __GNUC__
@@ -387,7 +387,7 @@ INLINE_ELAPSED(__inline__)
 /*----------------------------------------------------------------*/
 #if defined(__GNUC__) && defined(__alpha__) && !defined(HAVE_TICK_COUNTER)
 /*
- * The 32-bit cycle counter on alpha overflows pretty quickly, 
+ * The 32-bit cycle counter on alpha overflows pretty quickly,
  * unfortunately.  A 1GHz machine overflows in 4 seconds.
  */
 typedef unsigned int ticks;
@@ -451,7 +451,7 @@ static inline ticks getticks(void)
 static inline double elapsed(ticks t1, ticks t0)
 {
      return ((double)t1.tv_sec - (double)t0.tv_sec) * 1.0E9 +
-	  ((double)t1.tv_nsec - (double)t0.tv_nsec);
+      ((double)t1.tv_nsec - (double)t0.tv_nsec);
 }
 #define HAVE_TICK_COUNTER
 #endif
@@ -474,7 +474,7 @@ INLINE_ELAPSED(inline)
 
 /*----------------------------------------------------------------*/
 /* MIPS ZBus */
-#if defined(HAVE_MIPS_ZBUS_TIMER) && HAVE_MIPS_ZBUS_TIMER
+#if HAVE_MIPS_ZBUS_TIMER
 #if defined(__mips__) && !defined(HAVE_TICK_COUNTER)
 #include <sys/mman.h>
 #include <unistd.h>
@@ -515,4 +515,3 @@ INLINE_ELAPSED(inline)
 #endif
 #endif /* HAVE_MIPS_ZBUS_TIMER */
 
-#endif
