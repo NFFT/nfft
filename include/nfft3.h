@@ -21,9 +21,6 @@
 #ifndef __NFFT3_H__
 #define __NFFT3_H__
 
-/* module configuration */
-#include "nfft3conf.h"
-
 /* fftw_complex */
 #include <fftw3.h>
 

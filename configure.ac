@@ -508,7 +508,6 @@ AC_CONFIG_FILES(Makefile \
                 nfft3.pc \
                 doxygen/doxygen.Doxyfile \
                 include/Makefile \
-                include/nfft3conf.h \
                 include/ticks.h \
                 3rdparty/Makefile \
                 3rdparty/cstripack/Makefile \
