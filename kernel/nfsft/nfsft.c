@@ -657,7 +657,9 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   if (plan->flags & NFSFT_NORMALIZED)
   {
     /* Traverse Fourier coefficients array. */
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k,n)
+#endif
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
@@ -689,7 +691,9 @@ void nfsft_trafo_direct(nfsft_plan *plan)
      *   = \sum_{n=-N}^N \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
      *     e^{i n phi_m}.
      */
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(m,stheta,sphi,f_m,n,a,n_abs,alpha,gamma,it2,it1,k,temp)
+#endif
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
@@ -891,7 +895,9 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   if (plan->flags & NFSFT_NORMALIZED)
   {
     /* Traverse Fourier coefficients array. */
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k,n)
+#endif
     for (k = 0; k <= plan->N; k++)
     {
       for (n = -k; n <= k; n++)
@@ -983,7 +989,9 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_NORMALIZED)
     {
       /* Traverse Fourier coefficients array. */
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k,n)
+#endif
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)
@@ -1227,7 +1235,9 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fprintf(stderr,"nfsft_adjoint: Normalizing\n");
       //fflush(stderr);
       /* Traverse Fourier coefficients array. */
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k,n)
+#endif
       for (k = 0; k <= plan->N; k++)
       {
         for (n = -k; n <= k; n++)

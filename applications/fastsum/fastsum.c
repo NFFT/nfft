@@ -815,7 +815,7 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 
   ths->b = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
 #ifdef _OPENMP
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+  #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
     FFTW(plan_with_nthreads)(nthreads);
 #endif
@@ -857,7 +857,7 @@ void fastsum_finalize(fastsum_plan *ths)
   NFFT(finalize)(&(ths->mv2));
 
 #ifdef _OPENMP
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+  #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
 #endif
   FFTW(destroy_plan)(ths->fft_plan);
@@ -882,8 +882,8 @@ void fastsum_exact(fastsum_plan *ths)
   int t;
   R r;
 
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(j,k,t,r)
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(j,k,t,r)
 #endif
   for (j = 0; j < ths->M_total; j++)
   {
@@ -945,16 +945,16 @@ void fastsum_precompute(fastsum_plan *ths)
   if (!(ths->flags & EXACT_NEARFIELD))
   {
     if (ths->d == 1)
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(k)
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(k)
 #endif
       for (k = -ths->Ad / 2 - 2; k <= ths->Ad / 2 + 2; k++)
         ths->Add[k + ths->Ad / 2 + 2] = regkern1(ths->k,
             ths->eps_I * (R) k / (R)(ths->Ad) * K(2.0), ths->p, ths->kernel_param,
             ths->eps_I, ths->eps_B);
     else
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(k)
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(k)
 #endif
       for (k = 0; k <= ths->Ad + 2; k++)
         ths->Add[k] = regkern3(ths->k, ths->eps_I * (R) k / (R)(ths->Ad), ths->p,
@@ -1021,8 +1021,8 @@ void fastsum_precompute(fastsum_plan *ths)
   for (t = 0; t < ths->d; t++)
     n_total *= ths->n;
 
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(j,k,t)
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(j,k,t)
 #endif
   for (j = 0; j < n_total; j++)
   {
@@ -1080,8 +1080,8 @@ void fastsum_trafo(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** second step of algorithm */
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(k)
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < ths->mv2.N_total; k++)
     ths->mv2.f_hat[k] = ths->b[k] * ths->mv1.f_hat[k];
@@ -1104,8 +1104,8 @@ void fastsum_trafo(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** add near field */
-#ifdef ENABLE_OPENMP
-#pragma omp parallel for default(shared) private(j,k,t)
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(j,k,t)
 #endif
   for (j = 0; j < ths->M_total; j++)
   {

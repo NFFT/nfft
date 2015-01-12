@@ -1502,7 +1502,9 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
   {
     y[0] *= 2.0;
     fftw_execute_r2r(plan,(double*)y,(double*)y);
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+#ifdef _OPENMP
+    #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
     fftw_destroy_plan(plan);
     for (k = 0; k <= k_end; k++)
     {
@@ -1631,7 +1633,9 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
 }
 #endif
     fftw_execute_r2r(plan,(double*)y,(double*)set->result);
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+#ifdef _OPENMP
+    #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
     fftw_destroy_plan(plan);
     for (k = 0; k <= k_end; k++)
     {
@@ -1893,7 +1897,9 @@ void fpt_finalize(fpt_set set)
     /* Free FFTW plans. */
     for(tau = 0; tau < set->t/*-1*/; tau++)
     {
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
 {
       fftw_destroy_plan(set->plans_dct3[tau]);
       fftw_destroy_plan(set->plans_dct2[tau]);

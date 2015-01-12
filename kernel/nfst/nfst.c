@@ -97,7 +97,7 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* specialize for univariate case, rationale: faster */
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -114,7 +114,7 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* multivariate case */
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -1151,7 +1151,9 @@ void X(finalize)(X(plan) *ths)
 
   if (ths->flags & FFTW_INIT)
   {
-#pragma omp critical (nfft_omp_critical_fftw_plan)
+#ifdef _OPENMP
+    #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
     FFTW(destroy_plan)(ths->my_fftw_r2r_plan);
 
     if (ths->flags & FFT_OUT_OF_PLACE)

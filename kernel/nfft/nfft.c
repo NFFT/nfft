@@ -154,7 +154,7 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* specialize for univariate case, rationale: faster */
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -171,7 +171,7 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* multivariate case */
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -1324,7 +1324,7 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
 {
   INT k;
   INT lprod;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   INT lprod_m1;
 #endif
 #ifndef _OPENMP
@@ -1335,7 +1335,7 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
     for(t = 0, lprod = 1; t < d; t++)
         lprod *= 2 * m + 2;
   }
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   lprod_m1 = lprod / (2 * m + 2);
 #endif
 
@@ -1426,7 +1426,7 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
   } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -1972,7 +1972,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & PRE_FULL_PSI)
   {
     INT k;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -1989,7 +1989,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & PRE_PSI)
   {
     INT k;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2008,7 +2008,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2042,7 +2042,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2077,7 +2077,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2109,7 +2109,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2309,7 +2309,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_adjoint_1d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2336,7 +2336,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 #endif
 
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2377,7 +2377,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_adjoint_1d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2419,8 +2419,8 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     MACRO_adjoint_1d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
-    #pragma openmp parallel for default(shared) private(k)
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
     {
@@ -2456,7 +2456,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   MACRO_adjoint_1d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -2507,7 +2507,7 @@ void X(trafo_1d)(X(plan) *ths)
       c_phi_inv1 = ths->c_phi_inv[0];
       c_phi_inv2 = &ths->c_phi_inv[0][N2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k)
 #endif
       for (k = 0; k < N2; k++)
@@ -2519,7 +2519,7 @@ void X(trafo_1d)(X(plan) *ths)
     else
     {
       INT k;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k)
 #endif
       for (k = 0; k < N2; k++)
@@ -2572,7 +2572,7 @@ void X(adjoint_1d)(X(plan) *ths)
     c_phi_inv1=ths->c_phi_inv[0];
     c_phi_inv2=&ths->c_phi_inv[0][N/2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < N/2; k++)
@@ -2585,7 +2585,7 @@ void X(adjoint_1d)(X(plan) *ths)
   {
     INT k;
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < N/2; k++)
@@ -2927,7 +2927,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2);
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2943,7 +2943,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   if(ths->flags & PRE_PSI)
   {
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -2962,7 +2962,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3006,7 +3006,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3050,7 +3050,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3084,7 +3084,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -3322,7 +3322,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_adjoint_2d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3349,7 +3349,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 #endif
 
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3401,7 +3401,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_adjoint_2d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -3454,8 +3454,8 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     MACRO_adjoint_2d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
-    #pragma openmp parallel for default(shared) private(k)
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
     {
@@ -3497,7 +3497,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   MACRO_adjoint_2d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -3555,7 +3555,7 @@ void X(trafo_2d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
 #endif
       for(k0=0;k0<N0/2;k0++)
@@ -3588,7 +3588,7 @@ void X(trafo_2d)(X(plan) *ths)
       }
     }
   else
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
 #endif
     for(k0=0;k0<N0/2;k0++)
@@ -3650,7 +3650,7 @@ void X(adjoint_2d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,c_phi_inv11,c_phi_inv12,g_hat11,f_hat11,g_hat21,f_hat21,g_hat12,f_hat12,g_hat22,f_hat22,ck11,ck12)
 #endif
       for(k0=0;k0<N0/2;k0++)
@@ -3683,7 +3683,7 @@ void X(adjoint_2d)(X(plan) *ths)
       }
     }
   else
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,ck01,ck02,ck11,ck12)
 #endif
     for(k0=0;k0<N0/2;k0++)
@@ -4407,7 +4407,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2) * (2*m+2);
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4423,7 +4423,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   if(ths->flags & PRE_PSI)
   {
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4442,7 +4442,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*(2*m+2), m, ths->b[2]);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4497,7 +4497,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4552,7 +4552,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
     sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4596,7 +4596,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   sort(ths);
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -4879,7 +4879,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4906,7 +4906,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_FG_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
@@ -4969,8 +4969,8 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_adjoint_3d_B_OMP_BLOCKWISE(FG_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
-    #pragma openmp parallel for default(shared) private(k)
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
     {
@@ -5033,8 +5033,8 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     MACRO_adjoint_3d_B_OMP_BLOCKWISE(PRE_LIN_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
-    #pragma openmp parallel for default(shared) private(k)
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(k)
 #endif
     for (k = 0; k < M; k++)
     {
@@ -5084,7 +5084,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
   MACRO_adjoint_3d_B_OMP_BLOCKWISE(NO_PSI)
 #endif
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < M; k++)
@@ -5150,7 +5150,7 @@ void X(trafo_3d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
 #endif
       for(k0=0;k0<N0/2;k0++)
@@ -5204,7 +5204,7 @@ void X(trafo_3d)(X(plan) *ths)
   }
     }
   else
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
 #endif
     for(k0=0;k0<N0/2;k0++)
@@ -5281,7 +5281,7 @@ void X(adjoint_3d)(X(plan) *ths)
       c_phi_inv01=ths->c_phi_inv[0];
       c_phi_inv02=&ths->c_phi_inv[0][N0/2];
 
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,c_phi_inv11,c_phi_inv12,ck11,ck12,c_phi_inv21,c_phi_inv22,g_hat111,f_hat111,g_hat211,f_hat211,g_hat121,f_hat121,g_hat221,f_hat221,g_hat112,f_hat112,g_hat212,f_hat212,g_hat122,f_hat122,g_hat222,f_hat222,ck21,ck22)
 #endif
       for(k0=0;k0<N0/2;k0++)
@@ -5335,7 +5335,7 @@ void X(adjoint_3d)(X(plan) *ths)
   }
     }
   else
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k0,k1,k2,ck01,ck02,ck11,ck12,ck21,ck22)
 #endif
     for(k0=0;k0<N0/2;k0++)
@@ -5497,7 +5497,7 @@ void X(precompute_fg_psi)(X(plan) *ths)
   for (t=0; t<ths->d; t++)
   {
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j,u,o)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -5526,7 +5526,7 @@ void X(precompute_psi)(X(plan) *ths)
   for (t=0; t<ths->d; t++)
   {
     INT j;
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j,l,lj,u,o)
 #endif
     for (j = 0; j < ths->M_total; j++)
@@ -5913,10 +5913,13 @@ void X(finalize)(X(plan) *ths)
 
   if(ths->flags & FFTW_INIT)
   {
-#ifdef ENABLE_OPENMP
+#ifdef _OPENMP
     #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
     FFTW(destroy_plan)(ths->my_fftw_plan2);
+#ifdef _OPENMP
+    #pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
     FFTW(destroy_plan)(ths->my_fftw_plan1);
 
     if(ths->flags & FFT_OUT_OF_PLACE)
