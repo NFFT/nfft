@@ -17,18 +17,21 @@
  */
 
 /* $Id$ */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
-#include <complex.h>
-#endif
 
-#include "nfft3.h"
-#include "infft.h"
+#include <time.h>
+
+#define @NFFT_PRECISION_MACRO@
+
+#include "nfft3mp.h"
+
+NFFT_R cputime_elapsed_seconds(clock_t t1, clock_t t0)
+{
+  return (NFFT_R) (t1-t0) / CLOCKS_PER_SEC;
+}
 
 static void simple_test_nfft_1d(void)
 {
@@ -74,8 +77,8 @@ static void simple_test_nfft_1d(void)
 static void simple_test_nfft_2d(void)
 {
   int K, N[2], n[2], M;
-  R t;
-  ticks t0, t1;
+  NFFT_R t;
+  clock_t t0, t1;
 
   NFFT(plan) p;
 
@@ -84,7 +87,7 @@ static void simple_test_nfft_2d(void)
   M = N[0] * N[1];
   K = 16;
 
-  t0 = getticks();
+  t0 = clock();
   /** init a two dimensional plan */
   NFFT(init_guru)(&p, 2, N, M, n, 7,
      PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
@@ -101,42 +104,42 @@ static void simple_test_nfft_2d(void)
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1, t0);
+  t1 = clock();
+  t = cputime_elapsed_seconds(t1, t0);
   NFFT(vpr_complex)(p.f_hat,K, "given Fourier coefficients, vector f_hat (first few entries)");
-  printf(" ... initialisation took %.2" __FES__ " seconds.\n",t);
+  printf(" ... initialisation took %.2" NFFT__FES__ " seconds.\n",t);
 
   /** direct trafo and show the result */
-  t0 = getticks();
+  t0 = clock();
   NFFT(trafo_direct)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1, t0);
+  t1 = clock();
+  t = cputime_elapsed_seconds(t1, t0);
   NFFT(vpr_complex)(p.f, K, "ndft, vector f (first few entries)");
-  printf(" took %.2" __FES__ " seconds.\n",t);
+  printf(" took %.2" NFFT__FES__ " seconds.\n",t);
 
   /** approx. trafo and show the result */
-  t0 = getticks();
+  t0 = clock();
   NFFT(trafo)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1, t0);
+  t1 = clock();
+  t = cputime_elapsed_seconds(t1, t0);
   NFFT(vpr_complex)(p.f, K, "nfft, vector f (first few entries)");
-  printf(" took %.2" __FES__ " seconds.\n",t);
+  printf(" took %.2" NFFT__FES__ " seconds.\n",t);
 
   /** direct adjoint and show the result */
-  t0 = getticks();
+  t0 = clock();
   NFFT(adjoint_direct)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1, t0);
+  t1 = clock();
+  t = cputime_elapsed_seconds(t1, t0);
   NFFT(vpr_complex)(p.f_hat, K, "adjoint ndft, vector f_hat (first few entries)");
-  printf(" took %.2" __FES__ " seconds.\n",t);
+  printf(" took %.2" NFFT__FES__ " seconds.\n",t);
 
   /** approx. adjoint and show the result */
-  t0 = getticks();
+  t0 = clock();
   NFFT(adjoint)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1, t0);
+  t1 = clock();
+  t = cputime_elapsed_seconds(t1, t0);
   NFFT(vpr_complex)(p.f_hat, K, "adjoint nfft, vector f_hat (first few entries)");
-  printf(" took %.2" __FES__ " seconds.\n",t);
+  printf(" took %.2" NFFT__FES__ " seconds.\n",t);
 
   /** finalise the two dimensional plan */
   NFFT(finalize)(&p);

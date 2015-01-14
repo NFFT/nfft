@@ -735,7 +735,7 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
 #define NFSOFT_INDEX_TWO(m,n,l,B) ((B+1)*(B+1)+(B+1)*(B+1)*(m+B)-((m-1)*m*(2*m-1)+(B+1)*(B+2)*(2*B+3))/6)+(posN(n,m,B))+(l-MAX(ABS(m),ABS(n)))
 #define NFSOFT_F_HAT_SIZE(B) (((B)+1)*(4*((B)+1)*((B)+1)-1)/3)
 
-/*solver */
+/* solver */
 
 /* name mangling macros */
 #define SOLVER_MANGLE_DOUBLE(name) NFFT_CONCAT(solver_, name)
@@ -819,6 +819,40 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 #define NORMS_FOR_LANDWEBER   (1U<< 4)
 #define PRECOMPUTE_WEIGHT     (1U<< 5)
 #define PRECOMPUTE_DAMP       (1U<< 6)
+
+/* util */
+
+/* huge second-order macro that defines prototypes for all utility API functions.
+ * We expand this macro for each supported precision.
+ *   Y: nfft name-mangling macro
+ *   R: real data type
+ *   C: complex data type
+ */
+#define NFFT_DEFINE_UTIL_API(Y,R,C) \
+/* rand.c */ \
+R Y(drand48)(void); \
+void Y(srand48)(long int seed); \
+\
+/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
+ */ \
+void Y(vrand_unit_complex)(C *x, const _INT n); \
+\
+/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
+ */ \
+void Y(vrand_shifted_unit_double)(R *x, const _INT n); \
+\
+void Y(vrand_real)(R *x, const _INT n, const R a, const R b); \
+\
+/* print.c */ \
+/** Print real vector to standard output. */ \
+void Y(vpr_double)(R *x, const _INT n, const char *text); \
+\
+/** Print complex vector to standard output. */ \
+void Y(vpr_complex)(C *x, const _INT n, const char *text);
+
+NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
+NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
+NFFT_DEFINE_UTIL_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
 #ifdef __cplusplus
 }  /* extern "C" */

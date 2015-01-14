@@ -1474,17 +1474,6 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
 /* assert.c */
 void Y(assertion_failed)(const char *s, int line, const char *file);
 
-/* rand.c */
-R Y(drand48)(void);
-void Y(srand48)(long int seed);
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$.
- */
-void Y(vrand_unit_complex)(C *x, const INT n);
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$.
- */
-void Y(vrand_shifted_unit_double)(R *x, const INT n);
-void Y(vrand_real)(R *x, const INT n, const R a, const R b);
-
 /* vector1.c */
 /** Computes the inner/dot product \f$x^H x\f$. */
 R Y(dot_complex)(C *x, INT n);
@@ -1537,12 +1526,6 @@ void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
 /** Swaps each half over N[d]/2. */
 void Y(fftshift_complex)(C *x, INT d, INT* N);
 void Y(fftshift_complex_int)(C *x, int d, int* N);
-
-/* print.c */
-/** Print real vector to standard output. */
-void Y(vpr_double)(R *x, const INT n, const char *text);
-/** Print complex vector to standard output. */
-void Y(vpr_complex)(C *x, const INT n, const char *text);
 
 /* voronoi.c */
 void Y(voronoi_weights_1d)(R *w, R *x, const INT M);
