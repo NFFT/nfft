@@ -88,7 +88,7 @@ maintainer-clean-local:
 	rm -f $(srcdir)/doc/api/latex/Makefile
 
 dist-hook:
-	if test ! -f "$(srcdir)/doc/tutorial/tutorial.pdf"; then \
+	if test ! -f "$(srcdir)/doc/api/html/index.html"; then \
 		chmod -Rf u+rwX $(srcdir)/doc; \
 		sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
 		sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
@@ -99,16 +99,6 @@ dist-hook:
 		mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html; \
 		cp -R $(srcdir)/doc $(distdir)/; \
 		rm -Rf `find $(distdir) -name .svn -type d`; \
-		pwd; \
-		echo $(distdir); \
-		echo $(top_srcdir); \
-		echo $(srcdir); \
-		(cd $(distdir)/doc/tutorial && pdflatex paper.tex); \
-		mv $(distdir)/doc/tutorial/paper.pdf $(distdir)/doc/tutorial.pdf; \
-		rm -Rf $(distdir)/doc/tutorial/*; \
-		mv $(distdir)/doc/tutorial.pdf $(distdir)/doc/tutorial/tutorial.pdf; \
-		rm -Rf $(distdir)/doc/logo; \
-		rm -Rf $(distdir)/doc/api/latex; \
 	else \
 		cp -R $(srcdir)/doc $(distdir)/; \
 	fi
@@ -117,8 +107,3 @@ doc:
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
-
-#distclean-local:
-#	rm -Rf `find $(builddir) -type f -name *.Po`
-#	rm -Rf `find $(builddir) -type f -name Makefile`
-	
