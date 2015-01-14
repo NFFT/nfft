@@ -48,7 +48,7 @@ int main(void)
   const int M = 1000000;
   NFFT_R t0, t1;
 
-  printf("nthreads = %d\n", NFFT(get_num_threads)());
+  printf("nthreads = %td\n", NFFT(get_num_threads)());
 
   /* init */
   FFTW(init_threads)();
