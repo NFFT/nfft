@@ -48,12 +48,14 @@ extern "C"
 #  define NFFT_EXTERN extern
 #endif
 
-typedef ptrdiff_t _INT;
+/* Integral type large enough to contain a stride (what ``int'' should have been
+ * in the first place) */
+typedef ptrdiff_t NFFT_INT;
 
 /* Members inherited by all plans. */
 #define MACRO_MV_PLAN(RC) \
-  _INT N_total; /**< Total number of Fourier coefficients. */\
-  _INT M_total; /**< Total number of samples. */\
+  NFFT_INT N_total; /**< Total number of Fourier coefficients. */\
+  NFFT_INT M_total; /**< Total number of samples. */\
   RC *f_hat; /**< Fourier coefficients. */\
   RC *f; /**< Samples. */\
   void (*mv_trafo)(void*); /**< Transform. */\
@@ -109,20 +111,20 @@ typedef struct\
 {\
   MACRO_MV_PLAN(C)\
 \
-  _INT d; /**< Dimension (rank). */\
-  _INT *N; /**< Multi-bandwidth. */\
+  NFFT_INT d; /**< Dimension (rank). */\
+  NFFT_INT *N; /**< Multi-bandwidth. */\
   R *sigma; /**< Oversampling factor. */\
-  _INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
+  NFFT_INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
                is to use a power of two that satifies  \f$2\le\sigma<4\f$. */\
-  _INT n_total; /**< Combined total length of FFTW transforms. */\
-  _INT m; /**< Cut-off parameter for window function. Default values for the
+  NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
+  NFFT_INT m; /**< Cut-off parameter for window function. Default values for the
               different window functions are
               -  6 (KAISER_BESSEL),
               -  9 (SINC_POWER),
               - 11 (B_SPLINE),
               - 12 (GAUSSIAN) */\
   R *b; /**< Shape parameter for window function */\
-  _INT K; /**< Number of equispaced samples of window function. Used for flag
+  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
              PRE_LIN_PSI. */\
 \
   unsigned flags; /**< Flags for precomputation, (de)allocation, and FFTW
@@ -146,8 +148,8 @@ typedef struct\
     is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
-  _INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
-  _INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  NFFT_INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
 \
   C *g; /**< Oversampled vector of samples, size is \ref n_total double complex */\
   C *g_hat; /**< Zero-padded vector of Fourier coefficients, size is \ref n_total fftw_complex */\
@@ -156,7 +158,7 @@ typedef struct\
 \
   R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
 \
-  _INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
+  NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
 \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
@@ -226,15 +228,15 @@ typedef struct\
   /* api */\
   MACRO_MV_PLAN(R)\
 \
-  _INT d; /**< dimension, rank */\
-  _INT *N; /**< cut-off-frequencies (kernel) */\
-  _INT *n; /**< length of DCT-I */\
-  _INT n_total; /**< Combined total length of FFTW transforms. */\
+  NFFT_INT d; /**< dimension, rank */\
+  NFFT_INT *N; /**< cut-off-frequencies (kernel) */\
+  NFFT_INT *n; /**< length of DCT-I */\
+  NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
   R *sigma; /**< oversampling-factor */\
-  _INT m; /**< cut-off parameter in time-domain */\
+  NFFT_INT m; /**< cut-off parameter in time-domain */\
 \
   R *b; /**< shape parameters */\
-  _INT K; /**< Number of equispaced samples of window function. Used for flag
+  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
@@ -250,9 +252,9 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  _INT size_psi; /**< only for thin B */\
-  _INT *psi_index_g; /**< only for thin B */\
-  _INT *psi_index_f; /**< only for thin B */\
+  NFFT_INT size_psi; /**< only for thin B */\
+  NFFT_INT *psi_index_g; /**< only for thin B */\
+  NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -305,15 +307,15 @@ typedef struct\
   /* api */\
   MACRO_MV_PLAN(R)\
 \
-  _INT d; /**< dimension, rank */\
-  _INT *N; /**< bandwidth */\
-  _INT *n; /**< length of DST-I */\
-  _INT n_total; /**< Combined total length of FFTW transforms. */\
+  NFFT_INT d; /**< dimension, rank */\
+  NFFT_INT *N; /**< bandwidth */\
+  NFFT_INT *n; /**< length of DST-I */\
+  NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
   R *sigma; /**< oversampling-factor */\
-  _INT m; /**< cut-off parameter in time-domain */\
+  NFFT_INT m; /**< cut-off parameter in time-domain */\
 \
   R *b; /**< shape parameters */\
-  _INT K; /**< Number of equispaced samples of window function. Used for flag
+  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
@@ -329,9 +331,9 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  _INT size_psi; /**< only for thin B */\
-  _INT *psi_index_g; /**< only for thin B */\
-  _INT *psi_index_f; /**< only for thin B */\
+  NFFT_INT size_psi; /**< only for thin B */\
+  NFFT_INT *psi_index_g; /**< only for thin B */\
+  NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -835,20 +837,22 @@ void Y(srand48)(long int seed); \
 \
 /** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
  */ \
-void Y(vrand_unit_complex)(C *x, const _INT n); \
+void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
 \
 /** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
  */ \
-void Y(vrand_shifted_unit_double)(R *x, const _INT n); \
+void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
 \
-void Y(vrand_real)(R *x, const _INT n, const R a, const R b); \
+void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
 \
 /* print.c */ \
 /** Print real vector to standard output. */ \
-void Y(vpr_double)(R *x, const _INT n, const char *text); \
+void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 \
 /** Print complex vector to standard output. */ \
-void Y(vpr_complex)(C *x, const _INT n, const char *text);
+void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
+/* thread.c */ \
+NFFT_INT Y(get_num_threads)(void);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

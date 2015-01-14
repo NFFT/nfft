@@ -28,10 +28,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/* Integral type large enough to contain a stride (what ``int'' should have been
- * in the first place) */
-typedef ptrdiff_t NFFT_INT;
-
 #if defined(NFFT_PRECISION_SINGLE)
 typedef float NFFT_R;
 typedef float _Complex NFFT_C;

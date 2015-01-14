@@ -1545,9 +1545,6 @@ R Y(modified_sobolev)(const R mu, const INT kk);
 /** Comput damping factor for modified multiquadric kernel. */
 R Y(modified_multiquadric)(const R mu, const R c, const INT kk);
 
-/* thread.c */
-INT Y(get_num_threads)(void);
-
 /* always check */
 #define CK(ex) \
   (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))
