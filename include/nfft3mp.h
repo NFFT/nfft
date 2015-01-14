@@ -64,7 +64,7 @@ typedef double _Complex NFFT_C;
 #endif
 
 /* format strings */
-#if defined(NFFT_PRECISION_LONGDOUBLE)
+#if defined(NFFT_PRECISION_LONG_DOUBLE)
 #  define NFFT__FGS__ "Lg"
 #  define NFFT__FES__ "LE"
 #  define NFFT__FE__ "% 36.32LE"
