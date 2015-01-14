@@ -114,7 +114,7 @@ AC_SUBST(PREC_SUFFIX)
 need_fpt="no"
 
 # build all modules by default in maintainer mode or if option is given
-AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])], 
+AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])],
   ok=$enableval, ok=$USE_MAINTAINER_MODE)
 nfft_module_default=$ok
 
@@ -173,7 +173,7 @@ if test "x$ok" = "xyes"; then
 fi
 
 AC_ARG_ENABLE(mips_zbus_timer, [AC_HELP_STRING([--enable-mips-zbus-timer],
-  [use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval, 
+  [use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval,
   have_mips_zbus_timer=no)
 if test "$have_mips_zbus_timer" = "yes"; then
   AC_DEFINE(HAVE_MIPS_ZBUS_TIMER,1,
@@ -243,6 +243,9 @@ AM_PROG_AS
 
 # BSD-compatible install
 AC_PROG_INSTALL
+
+# mkdir
+AC_PROG_MKDIR_P
 
 # whether ln -s works
 AC_PROG_LN_S
@@ -317,7 +320,7 @@ if test "x${enable_debug}" = "xyes"; then
 fi
 
 # add gcc warnings, in debug/maintainer mode only
-if test "x${enable_debug}" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes"; 
+if test "x${enable_debug}" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes";
 then
   if test "x$ac_cv_c_compiler_gnu" = "xyes"; then
     CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
@@ -329,7 +332,7 @@ then
 fi
 
 # option to accept C99
-CFLAGS="$CFLAGS $ac_cv_prog_cc_c99" 
+CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
@@ -339,7 +342,7 @@ if test "x$ax_prog_matlab" = "xyes"; then
 fi
 
 ################################################################################
-# check if mex.h can be included without undefinition of  
+# check if mex.h can be included without undefinition of
 ################################################################################
 ax_prog_matlab_gcc_require_undef_stdc_utf_16=no
 if test "x$ax_prog_matlab" = "xyes"; then
@@ -403,7 +406,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 saved_LIBS=$LIBS
-AC_CHECK_LIB(m, sin)
+AC_CHECK_LIB(m, sin, [])
 LIBS=$saved_LIBS
 
 AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time])
@@ -481,7 +484,7 @@ AC_SUBST(TICKS_PER_SECOND)
 if test "$PRECISION" = "l"; then
 #AC_CHECK_FUNCS([copysignl nextafterl nanl ceill floorl nearbyintl rintl roundl lrintl lroundl llrintl llroundl truncl fmodl remainderl remquol fdiml fmaxl fminl fmal fabsl sqrtl cbrtl hypotl expl exp2l expm1l logl log2l log10l log1pl logbl ilogbl modfl frexpl ldexpl scalbnl scalblnl powl cosl sinl tanl coshl sinhl tanhl acosl asinl atanl atan2l acoshl asinhl atanhl tgammal lgammal j0l j1l jnl jnl y0l y1l ynl erfl erfcl creall cimagl cabsl cargl conjl cprojl csqrtl cexpl clogl cpowl csinl ccosl ctanl casinl cacosl catanl csinhl ccoshl ctanhl casinhl cacoshl catanhl])
 AC_CHECK_DECLS([copysignl, nextafterl, nanl, ceill, floorl, nearbyintl, rintl, roundl, lrintl, lroundl, llrintl, llroundl, truncl, fmodl, remainderl, remquol, fdiml, fmaxl, fminl, fmal, fabsl, sqrtl, cbrtl, hypotl, expl, exp2l, expm1l, logl, log2l, log10l, log1pl, logbl, ilogbl, modfl, frexpl, ldexpl, scalbnl, scalblnl, powl, cosl, sinl, tanl, coshl, sinhl, tanhl, acosl, asinl, atanl, atan2l, acoshl, asinhl, atanhl, tgammal, lgammal, j0l, j1l, jnl, y0l, y1l, ynl, erfl, erfcl, creall, cimagl, cabsl, cargl, conjl, cprojl, csqrtl, cexpl, clogl, cpowl, csinl, ccosl, ctanl, casinl, cacosl, catanl, csinhl, ccoshl, ctanhl, casinhl, cacoshl, catanhl],[],[],
-  [#include <math.h> 
+  [#include <math.h>
 #include <complex.h>])
 fi
 
@@ -495,7 +498,7 @@ fi
 if test "$PRECISION" = "s"; then
 #AC_CHECK_FUNCS([copysignf nextafterf nanf ceilf floorf nearbyintf rintf roundf lrintf lroundf llrintf llroundf truncf fmodf remainderf remquof fdimf fmaxf fminf fmaf fabsf sqrtf cbrtf hypotf expf exp2f expm1f logf log2f log10f log1pf logbf ilogbf modff frexpf ldexpf scalbnf scalblnf powf cosf sinf tanf coshf sinhf tanhf acosf asinf atanf atan2f acoshf asinhf atanhf tgammaf lgammaf j0f j1f jnf y0f y1f ynf erff erfcf crealf cimagf cabsf cargf conjf cprojf csqrtf cexpf clogf cpowf csinf ccosf ctanf casinf cacosf catanf csinhf ccoshf ctanhf casinhf cacoshf catanhf])
 AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabsf, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
-  [#include <math.h> 
+  [#include <math.h>
 #include <complex.h>])
 fi
 
@@ -550,7 +553,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
-		matlab/nnfft/Makefile \
+                matlab/nnfft/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 doxygen/Makefile \

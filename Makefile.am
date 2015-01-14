@@ -69,12 +69,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	chmod u+wX $(prefix)
-	$(install_sh) -d $(datarootdir)
-	chmod -R u+wX $(datarootdir)
-	$(install_sh) -d $(docdir)
-	chmod -Rf u+rwX $(srcdir)/doc
-	cp -R $(srcdir)/doc/* $(docdir)/
+	$(MKDIR_P) $(DESTDIR)$(docdir)
+	cp -R $(srcdir)/doc/* $(DESTDIR)$(docdir)/
 
 uninstall-hook:
 	rm -Rf $(docdir)
