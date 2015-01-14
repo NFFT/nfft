@@ -541,6 +541,7 @@ AC_CONFIG_FILES(Makefile \
                 examples/nfct/Makefile \
                 examples/nfft/Makefile \
                 examples/nfft/simple_test.c \
+                examples/nfft/simple_test_threads.c \
                 examples/nfsft/Makefile \
                 examples/nfsoft/Makefile \
                 examples/nfst/Makefile \

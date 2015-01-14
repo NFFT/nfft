@@ -16,29 +16,31 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id: simple_test.c 3198 2009-05-27 14:16:50Z keiner $ */
-#include "config.h"
-
+/* $Id$ */
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
-#include <complex.h>
-#endif
 #include <omp.h>
 
-#include "nfft3.h"
-#include "infft.h"
-//#include <time.h>
+#include <time.h>
+
+#define @NFFT_PRECISION_MACRO@
+
+#include "nfft3mp.h"
+
+NFFT_R cputime_elapsed_seconds(clock_t t1, clock_t t0)
+{
+  return (NFFT_R) (t1-t0) / CLOCKS_PER_SEC;
+}
 
 int main(void)
 {
   NFFT(plan) p;
   const int N = 1000000;
   const int M = 1000000;
-  ticks t0, t1;
-  double t;
+  clock_t t0, t1;
+  NFFT_R t;
 
   printf("nthreads = %d\n", NFFT(get_num_threads)());
 
@@ -50,24 +52,23 @@ int main(void)
   NFFT(vrand_shifted_unit_double)(p.x,p.M_total);
 
   /* precompute psi, that is, the entries of the matrix B */
-  t0 = getticks();
+  t0 = clock();
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds(t1,t0));
+  t1 = clock();
+  t = cputime_elapsed_second(t1,t0);
   fprintf(stderr,"precompute elapsed time: %.3f seconds\n",t);
 
   /* pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
 
   /* transformation */
-  t0 = getticks();
+  t0 = clock();
   NFFT(trafo)(&p);
-  t1 = getticks();
+  t1 = clock();
   t = NFFT(elapsed_seconds)(t1,t0);
   fprintf(stderr,"compute    elapsed time: %.3f seconds\n",t);
   fflush(stderr);
-//  NFFT(vpr_complex)(p.f,p.M_total,"ndft, vector f");
 
   /* cleanup */
   NFFT(finalize)(&p);
