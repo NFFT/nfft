@@ -27,7 +27,10 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 /**
  * \defgroup applications_mri2d_construct_data_inh_nnfft construct_data_inh_nnfft
@@ -49,7 +52,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   FILE* fout_real;              /* output file                        */
   FILE* fout_imag;              /* output file                        */
   int my_N[3],my_n[3];          /* to init the nfft */
-  ticks t0, t1;
+  double t0, t1;
   double t,epsilon=0.0000003;     /* epsilon is a the break criterium for
                                    the iteration */
   unsigned infft_flags = CGNR | PRECOMPUTE_DAMP; /* flags for the infft*/
@@ -184,7 +187,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
     my_iplan.f_hat_iter[k]=0.0;
   }
 
-  t0 = getticks();
+  t0 = nfft_wallclock_time_seconds();
 
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
@@ -198,15 +201,15 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
     solver_loop_one_step_complex(&my_iplan);
   }
 
-  t1 = getticks();
-  t = nfft_elapsed_seconds(t1,t0);
+  t1 = nfft_wallclock_time_seconds();
+  t = t1-t0;
 
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 
   for(k=0;k<my_plan.N_total;k++) {
 
-    my_iplan.f_hat_iter[k]*=cexp(2.0*_Complex_I*KPI*Ts*w[k]);
+    my_iplan.f_hat_iter[k]*=cexp(2.0*_Complex_I*M_PI*Ts*w[k]);
 
     fprintf(fout_real,"%le ", creal(my_iplan.f_hat_iter[k]));
     fprintf(fout_imag,"%le ", cimag(my_iplan.f_hat_iter[k]));
