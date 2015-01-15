@@ -38,14 +38,14 @@ static void simple_test_nfct_1d(void)
   NFCT(init_1d)(&p,N,M);
 
   /** init pseudo random nodes */
-  NFFT(vrand_real)(p.x, p.M_total, K(0.0), K(0.5));
+  NFFT(vrand_real)(p.x, p.M_total, NFFT_K(0.0), NFFT_K(0.5));
 
   /** precompute psi, the entries of the matrix B */
   if( p.flags & PRE_ONE_PSI)
     NFCT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  NFFT(vrand_real)(p.f_hat, p.N_total, K(0.0), K(1.0));
+  NFFT(vrand_real)(p.f_hat, p.N_total, NFFT_K(0.0), NFFT_K(1.0));
   NFFT(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
