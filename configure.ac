@@ -539,12 +539,14 @@ AC_CONFIG_FILES(Makefile \
                 examples/fpt/Makefile \
                 examples/mri/Makefile \
                 examples/nfct/Makefile \
+                examples/nfct/simple_test.c \
                 examples/nfft/Makefile \
                 examples/nfft/simple_test.c \
                 examples/nfft/simple_test_threads.c \
                 examples/nfsft/Makefile \
                 examples/nfsoft/Makefile \
                 examples/nfst/Makefile \
+                examples/nfst/simple_test.c \
                 examples/nnfft/Makefile \
                 examples/nsfft/Makefile \
                 examples/solver/Makefile \

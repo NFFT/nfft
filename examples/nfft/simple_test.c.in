@@ -22,23 +22,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <sys/time.h>
-
 #define @NFFT_PRECISION_MACRO@
 
 #include "nfft3mp.h"
-
-static NFFT_R wallclock_gettime_seconds(void)
-{
-  struct timeval t;
-  if (gettimeofday(&t, NULL) != 0)
-  {
-    t.tv_sec = 0;
-    t.tv_usec = 0;
-  }
-
-  return t.tv_sec+(NFFT_R)t.tv_usec/1000000;
-}
 
 static void simple_test_nfft_1d(void)
 {
@@ -93,7 +79,7 @@ static void simple_test_nfft_2d(void)
   M = N[0] * N[1];
   K = 16;
 
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   /** init a two dimensional plan */
   NFFT(init_guru)(&p, 2, N, M, n, 7,
      PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
@@ -110,35 +96,35 @@ static void simple_test_nfft_2d(void)
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   NFFT(vpr_complex)(p.f_hat,K, "given Fourier coefficients, vector f_hat (first few entries)");
   printf(" ... initialisation took %.2" NFFT__FES__ " seconds.\n",t1-t0);
 
   /** direct trafo and show the result */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   NFFT(trafo_direct)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   NFFT(vpr_complex)(p.f, K, "ndft, vector f (first few entries)");
   printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
 
   /** approx. trafo and show the result */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   NFFT(trafo)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   NFFT(vpr_complex)(p.f, K, "nfft, vector f (first few entries)");
   printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
 
   /** direct adjoint and show the result */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   NFFT(adjoint_direct)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   NFFT(vpr_complex)(p.f_hat, K, "adjoint ndft, vector f_hat (first few entries)");
   printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
 
   /** approx. adjoint and show the result */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   NFFT(adjoint)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   NFFT(vpr_complex)(p.f_hat, K, "adjoint nfft, vector f_hat (first few entries)");
   printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
 
