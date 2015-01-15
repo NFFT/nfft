@@ -18,11 +18,8 @@
 
 /* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
 
-/** \mainpage notitle
- * \htmlonly
- *   <h2 class="anchor">Contents</h2>
- * \endhtmlonly
- * \htmlinclude toc.txt
+/**
+ * \mainpage notitle
  *
  * \section introduction Introduction
  *
@@ -41,7 +38,7 @@
  * computation to only \f${\cal O}(N\log N)\f$.
  * In conjunction with publicly available efficient implementations the fast
  * Fourier transform has become of great importance in scientific computing.
-
+ *
  * However, two shortcomings of traditional schemes are the need for
  * equispaced sampling and the restriction to the system of complex
  * exponential functions.
@@ -103,7 +100,7 @@
  *          provided.
  *
  *          Building NFFT with other compilers, e.g. Microsoft's Visual C++, has
- *          no been tested. If you have successfully be able to build NFFT, you
+ *          not been tested. If you have successfully be able to build NFFT, you
  *          can send us all relevant information and we will share it with
  *          others on our website.
  *   </ol>

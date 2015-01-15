@@ -44,6 +44,18 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 # canonical host system type string
 AC_CANONICAL_HOST
 
+# doxygen ${PACKAGE_STRING}
+DX_DOT_FEATURE(ON)
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN([foo], [doxygen/doxygen.Doxyfile], [doc])
+
 # number of CPUs
 #AX_COUNT_CPUS
 #AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
