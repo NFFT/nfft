@@ -88,20 +88,6 @@
  * \section faq FAQ - Frequently Asked Questions
  *
  *   <ol>
- *     <li> <em>Can NFFT be built on Windows?</em>
- *
- *          Since version 3.2, NFFT should build on Windows systems under MinGW.
- *          It might be necessary to add the --disable-shared option to
- *          configure to silence linker warnings.
- *
- *          Building under Cygwin does not work since NFFT relies on data types
- *          and functions declared in complex.h. While some of them are
- *          available as built-in functions in gcc, not all needed by NFFT are
- *          provided.
- *
- *          Building NFFT with other compilers, e.g. Microsoft's Visual C++, has
- *          not been tested. If you have successfully be able to build NFFT, you
- *          can send us all relevant information and we will share it with
- *          others on our website.
+ * see  https://www.tu-chemnitz.de/~potts/nfft/faq.php
  *   </ol>
  */
