@@ -1,4 +1,4 @@
-strlcpy# $Id$
+# $Id$
 #
 # Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
 #
@@ -44,18 +44,6 @@ AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
 # canonical host system type string
 AC_CANONICAL_HOST
 
-# doxygen ${PACKAGE_STRING}
-DX_DOT_FEATURE(ON)
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(OFF)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(OFF)
-DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN([foo], [doxygen/doxygen.Doxyfile], [doc])
-
 # number of CPUs
 #AX_COUNT_CPUS
 #AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
@@ -63,6 +51,10 @@ DX_INIT_DOXYGEN([foo], [doxygen/doxygen.Doxyfile], [doc])
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
 AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
+
+AC_SUBST([abs_top_srcdir])
+AC_SUBST([top_builddir])
+AC_SUBST([abs_top_builddir])
 
 # minimum required libtool version
 LT_PREREQ([2.4.2])
@@ -84,6 +76,18 @@ AC_PROG_MAKE_SET
 
 # automake initialization
 AM_INIT_AUTOMAKE(1.10)
+
+# doxygen ${PACKAGE_STRING}
+DX_DOT_FEATURE(ON)
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN([NFFT], [doxygen/doxygen.Doxyfile], [doc])
 
 ################################################################################
 # options for customizing the build process

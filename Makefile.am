@@ -61,7 +61,7 @@ endif
   libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc
 
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
 	cp -f nfft3.pc nfft3@PREC_SUFFIX@.pc
@@ -69,44 +69,25 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)
-	cp -R $(srcdir)/doc/* $(DESTDIR)$(docdir)/
+	if test -f "$(abs_top_builddir)/doc/html/index.html"; then \
+		$(MKDIR_P) $(DESTDIR)$(docdir); \
+		cp -Rf $(abs_top_builddir)/doc/html $(DESTDIR)$(docdir)/; \
+	elif test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
+		$(MKDIR_P) $(DESTDIR)$(docdir); \
+		cp -Rf $(abs_top_srcdir)/doc/html $(DESTDIR)$(docdir)/; \
+	fi
 
 uninstall-hook:
 	chmod -Rf u+rwX $(DESTDIR)$(docdir)
 	rm -Rf $(DESTDIR)$(docdir)
 
-maintainer-clean-local:
-	rm -f $(srcdir)/doc/api/html/*.html
-	rm -f $(srcdir)/doc/api/html/*.css
-	rm -f $(srcdir)/doc/api/html/*.js
-	rm -f $(srcdir)/doc/api/html/*.png
-	rm -f $(srcdir)/doc/api/html/*.gif
-	rm -f $(srcdir)/doc/api/html/formula.repository
-	rm -f $(srcdir)/doc/api/latex/*.tex
-	rm -f $(srcdir)/doc/api/latex/*.sty
-	rm -f $(srcdir)/doc/api/latex/*.ttf
-	rm -f $(srcdir)/doc/api/latex/*.pdf
-	rm -f $(srcdir)/doc/api/latex/Makefile
+clean-local:
+	rm -Rf $(abs_top_builddir)/doc/html
 
-dist-hook:
+dist-hook: doc
 	rm -f @DX_DOCDIR@/@PACKAGE@.tag
-	cp -R $(srcdir)/doc $(distdir)/
+	cp -R $(abs_top_builddir)/doc $(distdir)/
 	rm -Rf `find $(distdir) -name .svn -type d`
-#	if test ! -f "$(srcdir)/doc/api/html/index.html"; then \
-#		chmod -Rf u+rwX $(srcdir)/doc; \
-#		sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-#		sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-#		sed 's/^ \* \\subsubsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-#		doxygen $(builddir)/doxygen/doxygen.Doxyfile; \
-#		rm -f $(srcdir)/doc/api/html/toc.txt; \
-#		$(srcdir)/support/rem.sed < $(srcdir)/doc/api/html/index.html > $(srcdir)/doc/api/html/index.html.new; \
-#		mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html; \
-#		cp -R $(srcdir)/doc $(distdir)/; \
-#		rm -Rf `find $(distdir) -name .svn -type d`; \
-#	else \
-#		cp -R $(srcdir)/doc $(distdir)/; \
-#	fi
 
 include aminclude.am
 

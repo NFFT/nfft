@@ -137,15 +137,8 @@ doxygen-run: @DX_DOCDIR@/@PACKAGE@.tag
 doxygen-doc: doxygen-run $(DX_PS_GOAL) $(DX_PDF_GOAL)
 
 @DX_DOCDIR@/@PACKAGE@.tag: $(DX_CONFIG) $(pkginclude_HEADERS)
-#	rm -rf @DX_DOCDIR@
-#	chmod -Rf u+rwX $(srcdir)/doc
-#	sed -e 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/w '"${srcdir}/doc/api/html/toc.txt" -e 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/w '"${srcdir}/doc/api/html/toc.txt" -e 's/^ \* \\subsubsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul><\/ul>/w '"${srcdir}/doc/api/html/toc.txt" < ${srcdir}/doxygen.dox
-#	cp "${srcdir}/doc/api/html/toc.txt" "${srcdir}/toc.txt"
-	$(DX_ENV) $(DX_DOXYGEN) $(srcdir)/$(DX_CONFIG)
+	$(DX_ENV) $(DX_DOXYGEN) $(DX_CONFIG)
 	echo Timestamp >$@
-#	rm -f $(srcdir)/doc/api/html/toc.txt
-#	$(srcdir)/support/rem.sed < $(srcdir)/doc/api/html/index.html > $(srcdir)/doc/api/html/index_new.html
-#	mv $(srcdir)/doc/api/html/index_new.html $(srcdir)/doc/api/html/index.html
 
 DX_CLEANFILES = \
     @DX_DOCDIR@/@PACKAGE@.tag \

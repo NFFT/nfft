@@ -226,7 +226,7 @@
 #
 #     @DX_DOCDIR@/@PACKAGE@.tag: $(DX_CONFIG) $(pkginclude_HEADERS)
 #         rm -rf @DX_DOCDIR@
-#         $(DX_ENV) $(DX_DOXYGEN) $(srcdir)/$(DX_CONFIG)
+#         $(DX_ENV) $(DX_DOXYGEN) $(DX_CONFIG)
 #         echo Timestamp >$@
 #
 #     DX_CLEANFILES = \
