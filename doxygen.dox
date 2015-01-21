@@ -18,11 +18,8 @@
 
 /* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
 
-/** \mainpage notitle
- * \htmlonly
- *   <h2 class="anchor">Contents</h2>
- * \endhtmlonly
- * \htmlinclude toc.txt
+/**
+ * \mainpage notitle
  *
  * \section introduction Introduction
  *
@@ -41,7 +38,7 @@
  * computation to only \f${\cal O}(N\log N)\f$.
  * In conjunction with publicly available efficient implementations the fast
  * Fourier transform has become of great importance in scientific computing.
-
+ *
  * However, two shortcomings of traditional schemes are the need for
  * equispaced sampling and the restriction to the system of complex
  * exponential functions.
@@ -90,21 +87,7 @@
  *
  * \section faq FAQ - Frequently Asked Questions
  *
- *   <ol>
- *     <li> <em>Can NFFT be built on Windows?</em>
- *
- *          Since version 3.2, NFFT should build on Windows systems under MinGW.
- *          It might be necessary to add the --disable-shared option to
- *          configure to silence linker warnings.
- *
- *          Building under Cygwin does not work since NFFT relies on data types
- *          and functions declared in complex.h. While some of them are
- *          available as built-in functions in gcc, not all needed by NFFT are
- *          provided.
- *
- *          Building NFFT with other compilers, e.g. Microsoft's Visual C++, has
- *          no been tested. If you have successfully be able to build NFFT, you
- *          can send us all relevant information and we will share it with
- *          others on our website.
- *   </ol>
+ * 
+ * see  https://www.tu-chemnitz.de/~potts/nfft/faq.php
+ *  
  */

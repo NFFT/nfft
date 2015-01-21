@@ -61,7 +61,7 @@ endif
   libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc
 
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
 	cp -f nfft3.pc nfft3@PREC_SUFFIX@.pc
@@ -69,60 +69,31 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	chmod u+wX $(prefix)
-	$(install_sh) -d $(datarootdir)
-	chmod -R u+wX $(datarootdir)
-	$(install_sh) -d $(docdir)
-	chmod -Rf u+rwX $(srcdir)/doc
-	cp -R $(srcdir)/doc/* $(docdir)/
-
-uninstall-hook:
-	rm -Rf $(docdir)
-
-maintainer-clean-local:
-	rm -f $(srcdir)/doc/api/html/*.html
-	rm -f $(srcdir)/doc/api/html/*.png
-	rm -f $(srcdir)/doc/api/html/*.gif
-	rm -f $(srcdir)/doc/api/html/doxygen.css
-	rm -f $(srcdir)/doc/api/html/formula.repository
-	rm -f $(srcdir)/doc/api/latex/*.tex
-	rm -f $(srcdir)/doc/api/latex/*.sty
-	rm -f $(srcdir)/doc/api/latex/*.ttf
-	rm -f $(srcdir)/doc/api/latex/*.pdf
-	rm -f $(srcdir)/doc/api/latex/Makefile
-
-dist-hook:
-	if test ! -f "$(srcdir)/doc/tutorial/tutorial.pdf"; then \
-		chmod -Rf u+rwX $(srcdir)/doc; \
-		sed 's/^ \* \\section \([a-zA-Z0-9_]*\) \(.*\)/<ul><li><a href="#\1">\2<\/a><\/li><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-		sed 's/^ \* \\subsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-		sed 's/^ \* \\subsubsection \([a-zA-Z0-9_]*\) \(.*\)/<ul><ul><ul><li><a href="#\1">\2<\/a><\/li><\/ul><\/ul><\/ul>/' < $(srcdir)/doxygen.dox > $(srcdir)/doc/api/html/toc.txt; \
-		doxygen $(builddir)/doxygen/doxygen.Doxyfile; \
-		rm -f $(srcdir)/doc/api/html/toc.txt; \
-		$(srcdir)/support/rem.sed < $(srcdir)/doc/api/html/index.html > $(srcdir)/doc/api/html/index.html.new; \
-		mv $(srcdir)/doc/api/html/index.html.new $(srcdir)/doc/api/html/index.html; \
-		cp -R $(srcdir)/doc $(distdir)/; \
-		rm -Rf `find $(distdir) -name .svn -type d`; \
-		pwd; \
-		echo $(distdir); \
-		echo $(top_srcdir); \
-		echo $(srcdir); \
-		(cd $(distdir)/doc/tutorial && pdflatex paper.tex); \
-		mv $(distdir)/doc/tutorial/paper.pdf $(distdir)/doc/tutorial.pdf; \
-		rm -Rf $(distdir)/doc/tutorial/*; \
-		mv $(distdir)/doc/tutorial.pdf $(distdir)/doc/tutorial/tutorial.pdf; \
-		rm -Rf $(distdir)/doc/logo; \
-		rm -Rf $(distdir)/doc/api/latex; \
-	else \
-		cp -R $(srcdir)/doc $(distdir)/; \
+	if test -f "$(abs_top_builddir)/doc/html/index.html"; then \
+		$(MKDIR_P) $(DESTDIR)$(docdir); \
+		cp -Rf $(abs_top_builddir)/doc/html $(DESTDIR)$(docdir)/; \
+	elif test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
+		$(MKDIR_P) $(DESTDIR)$(docdir); \
+		cp -Rf $(abs_top_srcdir)/doc/html $(DESTDIR)$(docdir)/; \
 	fi
 
-doc:
+uninstall-hook:
+	chmod -Rf u+rwX $(DESTDIR)$(docdir)
+	rm -Rf $(DESTDIR)$(docdir)
+
+clean-local:
+	rm -Rf $(abs_top_builddir)/doc/html
+
+dist-hook: doc
+	rm -f @DX_DOCDIR@/@PACKAGE@.tag
+	cp -R $(abs_top_builddir)/doc $(distdir)/
+	rm -Rf `find $(distdir) -name .svn -type d`
+
+include aminclude.am
+
+doc: doxygen-doc
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
-#distclean-local:
-#	rm -Rf `find $(builddir) -type f -name *.Po`
-#	rm -Rf `find $(builddir) -type f -name Makefile`
-	
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-all

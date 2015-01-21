@@ -6329,7 +6329,7 @@ static const R bound = K(15.0) * EPSILON;
 #elif defined(NFFT_SINGLE)
 static const R bound = K(20.0) * EPSILON;
 #else
-static const R bound = K(15.0) * EPSILON;
+static const R bound = K(16.0) * EPSILON;
 #endif
 
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)

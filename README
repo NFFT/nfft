@@ -61,11 +61,12 @@ ltmain.sh           Used by configure script
 Makefile.am         Automake Makefile template
 Makefile.in         Makefile template generated from Makefile.am,
                     processed by configure script
+matlab (dir)        Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
 missing             Used by configure script
 NEWS                New and noteworthy
 README              This file
+tests (dir)         CUnit tests
 TODO                Work to be done
-util (dir)          Source code for auxilliary routines
 
 Feedback
 --------
