@@ -4,7 +4,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 
 # matlab wrapper directory
-nnfftmatlabdir = $(datadir)/nnfft/matlab/nnfft
+nnfftmatlabdir = $(datadir)/nfft/matlab/nnfft
 
 # library
 lib_LTLIBRARIES = libnnfft.la
