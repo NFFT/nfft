@@ -124,6 +124,14 @@ case "$PRECISION" in
 esac
 AC_SUBST(PREC_SUFFIX)
 
+# Library suffix
+case "$PRECISION" in
+     s) NFFT_PRECISION_MACRO=NFFT_PRECISION_SINGLE;;
+     d) NFFT_PRECISION_MACRO=NFFT_PRECISION_DOUBLE;;
+     l) NFFT_PRECISION_MACRO=NFFT_PRECISION_LONG_DOUBLE;;
+esac
+AC_SUBST(NFFT_PRECISION_MACRO)
+
 # enable or disable parts of NFFT
 
 # whether we need the fpt module
@@ -161,8 +169,10 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
+#AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
+#  [enable OpenMP multithreaded code])], [enable_threads=$enableval; AC_DEFINE(ENABLE_OPENMP, 1, ["Define to enable OpenMP code."])], enable_threads=no)
 AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
-  [enable OpenMP multithreaded code])], [enable_threads=$enableval; AC_DEFINE(ENABLE_OPENMP, 1, ["Define to enable OpenMP code."])], enable_threads=no)
+  [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
 AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
@@ -548,10 +558,14 @@ AC_CONFIG_FILES(Makefile \
                 examples/fpt/Makefile \
                 examples/mri/Makefile \
                 examples/nfct/Makefile \
+                examples/nfct/simple_test.c \
                 examples/nfft/Makefile \
+                examples/nfft/simple_test.c \
+                examples/nfft/simple_test_threads.c \
                 examples/nfsft/Makefile \
                 examples/nfsoft/Makefile \
                 examples/nfst/Makefile \
+                examples/nfst/simple_test.c \
                 examples/nnfft/Makefile \
                 examples/nsfft/Makefile \
                 examples/solver/Makefile \

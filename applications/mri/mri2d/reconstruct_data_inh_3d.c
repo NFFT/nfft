@@ -27,7 +27,10 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 /**
  * \defgroup applications_mri2d_reconstruct_data_inh_3d reconstruct_data_inh_3d
@@ -38,7 +41,7 @@
 static void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
-  ticks t0, t1;
+  double t0, t1;
   double time,min_time,max_time,min_inh,max_inh;
   double t,real,imag;
   double w,epsilon=0.0000003;     /* epsilon is a the break criterium for
@@ -171,7 +174,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
     my_iplan.f_hat_iter[j]=0.0;
   }
 
-  t0 = getticks();
+  t0 = nfft_wallclock_time_seconds();
 
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
@@ -185,15 +188,15 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
     solver_loop_one_step_complex(&my_iplan);
   }
 
-  t1 = getticks();
-  t = nfft_elapsed_seconds(t1,t0);
+  t1 = nfft_wallclock_time_seconds();
+  t = t1-t0;
 
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");
 
   for (j=0;j<N*N;j++) {
     /* Verschiebung wieder herausrechnen */
-    my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
+    my_iplan.f_hat_iter[j]*=cexp(-2.0*_Complex_I*M_PI*Ts*my_plan.w[j]*W);
 
     fprintf(fout_real,"%le ",creal(my_iplan.f_hat_iter[j]));
     fprintf(fout_imag,"%le ",cimag(my_iplan.f_hat_iter[j]));

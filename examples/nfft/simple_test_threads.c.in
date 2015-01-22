@@ -16,31 +16,39 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id: simple_test.c 3198 2009-05-27 14:16:50Z keiner $ */
-#include "config.h"
-
+/* $Id$ */
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
-#include <complex.h>
-#endif
 #include <omp.h>
 
-#include "nfft3.h"
-#include "infft.h"
-//#include <time.h>
+#include <sys/time.h>
+
+#define @NFFT_PRECISION_MACRO@
+
+#include "nfft3mp.h"
+
+static NFFT_R wallclock_gettime_seconds(void)
+{
+  struct timeval t;
+  if (gettimeofday(&t, NULL) != 0)
+  {
+    t.tv_sec = 0;
+    t.tv_usec = 0;
+  }
+
+  return t.tv_sec+(NFFT_R)t.tv_usec/1000000;
+}
 
 int main(void)
 {
   NFFT(plan) p;
   const int N = 1000000;
   const int M = 1000000;
-  ticks t0, t1;
-  double t;
+  NFFT_R t0, t1;
 
-  printf("nthreads = %d\n", NFFT(get_num_threads)());
+  printf("nthreads = %td\n", NFFT(get_num_threads)());
 
   /* init */
   FFTW(init_threads)();
@@ -50,24 +58,21 @@ int main(void)
   NFFT(vrand_shifted_unit_double)(p.x,p.M_total);
 
   /* precompute psi, that is, the entries of the matrix B */
-  t0 = getticks();
+  t0 = wallclock_gettime_seconds();
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds(t1,t0));
-  fprintf(stderr,"precompute elapsed time: %.3f seconds\n",t);
+  t1 = wallclock_gettime_seconds();
+  fprintf(stderr,"precompute elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
 
   /* pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
 
   /* transformation */
-  t0 = getticks();
+  t0 = wallclock_gettime_seconds();
   NFFT(trafo)(&p);
-  t1 = getticks();
-  t = NFFT(elapsed_seconds)(t1,t0);
-  fprintf(stderr,"compute    elapsed time: %.3f seconds\n",t);
+  t1 = wallclock_gettime_seconds();
+  fprintf(stderr,"compute    elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
   fflush(stderr);
-//  NFFT(vpr_complex)(p.f,p.M_total,"ndft, vector f");
 
   /* cleanup */
   NFFT(finalize)(&p);

@@ -23,54 +23,55 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "nfft3.h"
-#include "infft.h"
+#define @NFFT_PRECISION_MACRO@
 
-static void simple_test_nfst_1d(void)
+#include "nfft3mp.h"
+
+static void simple_test_nfct_1d(void)
 {
-  NFST(plan) p;
+  NFCT(plan) p;
 
   int N = 14;
   int M = 19;
 
   /** init an one dimensional plan */
-  NFST(init_1d)(&p,N,M);
+  NFCT(init_1d)(&p,N,M);
 
   /** init pseudo random nodes */
-  NFFT(vrand_real)(p.x, p.M_total, K(0.0), K(0.5));
+  NFFT(vrand_real)(p.x, p.M_total, NFFT_K(0.0), NFFT_K(0.5));
 
   /** precompute psi, the entries of the matrix B */
   if( p.flags & PRE_ONE_PSI)
-    NFST(precompute_one_psi)(&p);
+    NFCT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
-  NFFT(vrand_real)(p.f_hat, p.N_total, K(0.0), K(1.0));
+  NFFT(vrand_real)(p.f_hat, p.N_total, NFFT_K(0.0), NFFT_K(1.0));
   NFFT(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
 
   /** direct trafo and show the result */
-  NFST(trafo_direct)(&p);
-  NFFT(vpr_double)(p.f,p.M_total,"ndst, vector f");
+  NFCT(trafo_direct)(&p);
+  NFFT(vpr_double)(p.f,p.M_total,"ndct, vector f");
 
   /** approx. trafo and show the result */
-  NFST(trafo)(&p);
-  NFFT(vpr_double)(p.f,p.M_total,"nfst, vector f");
+  NFCT(trafo)(&p);
+  NFFT(vpr_double)(p.f,p.M_total,"nfct, vector f");
 
   /** approx. adjoint and show the result */
-  NFST(adjoint_direct)(&p);
-  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint ndst, vector f_hat");
+  NFCT(adjoint_direct)(&p);
+  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint ndct, vector f_hat");
 
   /** approx. adjoint and show the result */
-  NFST(adjoint)(&p);
-  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint nfst, vector f_hat");
+  NFCT(adjoint)(&p);
+  NFFT(vpr_double)(p.f_hat,p.N_total,"adjoint nfct, vector f_hat");
 
   /** finalise the one dimensional plan */
-  NFST(finalize)(&p);
+  NFCT(finalize)(&p);
 }
 
 int main(void)
 {
   printf("Computing one dimensional ndct, nfct, adjoint ndct, and adjoint nfct...\n\n");
-  simple_test_nfst_1d();
+  simple_test_nfct_1d();
   printf("\n\n");
 
   return EXIT_SUCCESS;

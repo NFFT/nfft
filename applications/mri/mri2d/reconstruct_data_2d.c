@@ -26,7 +26,6 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
 
 /**
  * \defgroup applications_mri2d_reconstruct_data_2d reconstruct_data_2d
@@ -40,7 +39,7 @@
 static void reconstruct(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
-  ticks t0, t1;
+  double t0, t1;
   double real,imag,t;           /* to read the real and imag part of a complex number */
   nfft_plan my_plan;            /* plan for the two dimensional nfft  */
   solver_plan_complex my_iplan; /* plan for the two dimensional infft */
@@ -124,7 +123,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
 
-  t0 = getticks();
+  t0 = nfft_wallclock_time_seconds();
 
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
@@ -139,8 +138,8 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   }
 
 
-  t1 = getticks();
-  t=nfft_elapsed_seconds(t1,t0);
+  t1 = nfft_wallclock_time_seconds();
+  t=t1-t0;
 
   fout_real=fopen("output_real.dat","w");
   fout_imag=fopen("output_imag.dat","w");

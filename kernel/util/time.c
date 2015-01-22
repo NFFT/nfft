@@ -18,6 +18,8 @@
 
 /* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
+#include <sys/time.h>
+
 #include "infft.h"
 
 R Y(elapsed_seconds)(ticks t1, ticks t0)
@@ -26,3 +28,16 @@ R Y(elapsed_seconds)(ticks t1, ticks t0)
   UNUSED(t0);
   return (R)(elapsed(t1,t0)) / (R)(TICKS_PER_SECOND);
 }
+
+R Y(wallclock_time_seconds)(void)
+{
+  struct timeval t;
+  if (gettimeofday(&t, NULL) != 0)
+  {
+    t.tv_sec = 0;
+    t.tv_usec = 0;
+  }
+
+  return t.tv_sec+(R)t.tv_usec/1000000;
+}
+

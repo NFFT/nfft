@@ -27,7 +27,10 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 /**
  * \defgroup applications_mri2d_construct_data_inh_3d construct_data_inh_3d
@@ -122,7 +125,7 @@ static void construct(char * file, int N, int M)
   for(j=0;j<N*N;j++)
   {
     fscanf(fi,"%le ",&real);
-    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*KPI*Ts*my_plan.w[j]*W);
+    my_plan.f_hat[j] = real*cexp(2.0*_Complex_I*M_PI*Ts*my_plan.w[j]*W);
   }
 
   if(my_plan.plan.flags & PRE_PSI)
