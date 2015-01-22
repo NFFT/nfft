@@ -29,7 +29,7 @@ x=rand(M,3)-0.5; %nodes
 % Initialisation
 plan=nfft(3,N,M); % create plan of class type nfft
 %n=2^(ceil(log(max(N))/log(2))+1);
-%plan=nfft(3,N,M,n,n,n,7,'PRE_PHI_HUT','FFTW_MEASURE'); % use of nfft_init_guru
+%plan=nfft(3,N,M,n,n,n,7,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE); % use of nfft_init_guru
 
 plan.x=x; % set nodes in plan
 nfft_precompute_psi(plan); % precomputations
