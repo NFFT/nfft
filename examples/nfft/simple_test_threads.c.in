@@ -29,18 +29,6 @@
 
 #include "nfft3mp.h"
 
-static NFFT_R wallclock_gettime_seconds(void)
-{
-  struct timeval t;
-  if (gettimeofday(&t, NULL) != 0)
-  {
-    t.tv_sec = 0;
-    t.tv_usec = 0;
-  }
-
-  return t.tv_sec+(NFFT_R)t.tv_usec/1000000;
-}
-
 int main(void)
 {
   NFFT(plan) p;
@@ -58,19 +46,19 @@ int main(void)
   NFFT(vrand_shifted_unit_double)(p.x,p.M_total);
 
   /* precompute psi, that is, the entries of the matrix B */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   fprintf(stderr,"precompute elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
 
   /* pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
 
   /* transformation */
-  t0 = wallclock_gettime_seconds();
+  t0 = NFFT(wallclock_time_seconds)();
   NFFT(trafo)(&p);
-  t1 = wallclock_gettime_seconds();
+  t1 = NFFT(wallclock_time_seconds)();
   fprintf(stderr,"compute    elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
   fflush(stderr);
 
