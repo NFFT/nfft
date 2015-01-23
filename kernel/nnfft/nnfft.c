@@ -590,7 +590,7 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
   ths->m= m;
   ths->nnfft_flags= nnfft_flags;
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
-  nfft_flags= PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
+  nfft_flags= PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE| NFFT_OMP_BLOCKWISE_ADJOINT;
 
   if(ths->nnfft_flags & PRE_PSI)
     nfft_flags = nfft_flags | PRE_PSI;
@@ -643,7 +643,7 @@ ths->m=WINDOW_HELP_ESTIMATE_m;
   }
 
   ths->nnfft_flags=PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F;
-  nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE;
+  nfft_flags= PRE_PSI| PRE_PHI_HUT| MALLOC_F_HAT| FFTW_INIT| FFT_OUT_OF_PLACE| NFFT_OMP_BLOCKWISE_ADJOINT;
 
   fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
   nnfft_init_help(ths,ths->m,nfft_flags,fftw_flags);
