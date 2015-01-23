@@ -63,8 +63,8 @@ function h=nfft(d,N,M,varargin)
 % h=nfft(d,N,M,varargin) for use of nfft_init_guru
 % For example
 % h=nfft(1,N,M,n,7,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE)     for d=1, m=7
-% h=nfft(2,N,M,n,n,7,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE)   for d=2, m=7
-% h=nfft(3,N,M,n,n,n,7,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE) for d=3, m=7
+% h=nfft(2,N,M,n,n,7,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE)   for d=2, m=7
+% h=nfft(3,N,M,n,n,n,7,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=3, m=7
 % with n=2^(ceil(log(max(N))/log(2))+1)
 % Be careful: There is no error handling with using nfft_init_guru.
 % Incorrect inputs can cause a Matlab crash!

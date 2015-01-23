@@ -70,7 +70,7 @@ for logN=3:10
   N=2^logN;
   M=N^2;
   x=rand(2,M)-0.5;
-  plan = nfft_init_guru(d,N,N,M,2*N,2*N,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
+  plan = nfft_init_guru(d,N,N,M,2*N,2*N,2,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE);
   nfft_set_x(plan,x);
   nfft_precompute_psi(plan);
   f_hat = rand(N,N)+i*rand(N,N);
@@ -103,7 +103,7 @@ for logN=3:10
   N3=18;       n3=32;
   M=N1*N2*N3;
   x=rand(3,M)-0.5;
-  plan = nfft_init_guru(d,N1,N2,N3,M,n1,n2,n3,2,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE);
+  plan = nfft_init_guru(d,N1,N2,N3,M,n1,n2,n3,2,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE);
   nfft_set_x(plan,x);
   nfft_precompute_psi(plan);
   f_hat = rand(N1,N2,N3)+i*rand(N1,N2,N3);
