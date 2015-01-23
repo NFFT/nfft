@@ -14,9 +14,9 @@ libnnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(to
 
 libnnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version @matlab_fftw3_LDFLAGS@ $(matlab_LDFLAGS)
 
-#if HAVE_MATLAB_THREADS
-#libnnfft_la_CFLAGS = $(OPENMP_CFLAGS)
-#endif
+if HAVE_MATLAB_THREADS
+libnnfft_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
 
 
 dist_nnfftmatlab_DATA = Contents.m nnfft.m nnfft_display.m nnfft_finalize.m \
@@ -24,7 +24,7 @@ dist_nnfftmatlab_DATA = Contents.m nnfft.m nnfft_display.m nnfft_finalize.m \
 	nnfft_init_2d.m nnfft_init_3d.m nnfft_init_guru.m nnfft_precompute_psi.m \
 	nnfft_set_f.m nnfft_set_f_hat.m nnfft_set_v.m nnfft_set_x.m nnfft_trafo.m \
 	nnfft_trafo_direct.m PRE_FULL_PSI.m PRE_LIN_PSI.m PRE_PHI_HUT.m PRE_PSI.m \
-	simple_test.m test_nnfft1d.m test_nnfft2d.m
+	simple_test.m test_nnfft1d.m test_nnfft2d.m nnfft_get_num_threads.m
 
 # target all-am builds .libs/libnnfft@matlab_mexext@
 nnfftmex@matlab_mexext@: all-am
