@@ -69,9 +69,9 @@ function h=nnfft(d,N_total,M,N,varargin)
 %
 % h=nnfft(d,N_total,M,N,varargin) for use of nnfft_init_guru
 % For example
-% h=nnfft(1,N_total,M,N,N1,7,'PRE_PHI_HUT')     for d=1
-% h=nnfft(2,N_total,M,N,N,N1,N1,7,'PRE_PHI_HUT')   for d=2
-% h=nnfft(3,N_total,M,N,N,N,N1,N1,N1,7,'PRE_PHI_HUT') for d=3
+% h=nnfft(1,N_total,M,N,N1,7,bitor(PRE_PHI_HUT,PRE_PSI))     for d=1, m=7
+% h=nnfft(2,N_total,M,N,N1_1,N1_2,7,bitor(PRE_PHI_HUT,PRE_PSI)) for d=2, m=7
+% h=nnfft(3,N_total,M,N,N1_1,N1_2,N1_3,7,bitor(PRE_PHI_HUT,PRE_PSI)) for d=3, m=7
 % with N1=sigma*N   ; n=N1
 % NOT IMPLEMENTED: Be careful: There is no error handling with using nfft_init_guru.
 % Incorrect inputs can cause a Matlab crash!
@@ -84,7 +84,7 @@ function h=nnfft(d,N_total,M,N,varargin)
 %   varargin  parameters for use of nnfft_init_guru (see documentation of NFFT for more details)
 %
 % OUTPUT
-%   h   object of class type nfft
+%   h   object of class type nnfft
 
 	h.d=d;
 	h.N_total=N_total;

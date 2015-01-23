@@ -19,17 +19,20 @@
 clear all;
 
 M=16; % number of nodes
-N=8; % number of Fourier coefficients in first direction
-N1=2*N;
-N_total=8;
+N=24; % number of Fourier coefficients in first direction
+N_total=N; % total number of Fourier coefficients
 
 x=rand(M,1)-0.5; %nodes
-v=rand(N_total,1)-0.5; %nodes
+v=rand(N,1)-0.5; %nodes
 
-% Initialisation
-%plan=nnfft(1,N_total,M,N); % create plan of class type nfft
+% Plan initialisation simple interface
+plan=nnfft(1,N_total,M,N); % create plan of class type nfft
 
-plan=nnfft(1,N_total,M,N,N1,6,'PRE_PHI_HUT'); % use of nfft_init_guru
+% Plan initialisation guru interface
+%sigma=2; % oversampling factor
+%N1=sigma*N; % FFTW length, must be even natural number!
+%m=6; % window cut-off parameter
+%plan=nnfft(1,N,M,N,N1,m,bitor(PRE_PHI_HUT,PRE_PSI)); % create plan of class type nfft
 
 plan.x=x; % set nodes in plan
 plan.v=v;
@@ -43,7 +46,7 @@ fhatv=fhat(:);
 
 % Compute samples with NFFT
 plan.fhat=fhatv; % set Fourier coefficients
-nnfft_trafo(plan); % compute nonequispaced Fourier transform
+nnfft_trafo(plan); % compute nonequispaced Fourier transform (in space and time)
 f1=plan.f; % get samples
 
 % Compute samples direct

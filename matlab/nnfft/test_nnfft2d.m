@@ -19,21 +19,23 @@
 clear all;
 
 M=16; % number of nodes
-N_1=8; % number of Fourier coefficients in first direction
-N_2=8; % number of Fourier coefficients in second direction
+N_1=24; % number of Fourier coefficients in first direction
+N_2=32; % number of Fourier coefficients in second direction
 N=[N_1;N_2];
-N1_1=2*N_1;
-N1_2=2*N_2;
-N1=[N1_1;N1_2];
-N_total=N_1*N_2;
+N_total=N_1*N_2; % total number of Fourier coefficients
 
 x=rand(M,2)-0.5; %nodes
 v=rand(N_total,2)-0.5; %nodes
 
-% Initialisation
-%plan=nnfft(2,N_total,M,N); % create plan of class type nnfft
+% Plan initialisation simple interface
+plan=nnfft(2,N_total,M,N); % create plan of class type nnfft
 
-plan=nnfft(2,N_total,M,N,N1,N1,6,'PRE_PHI_HUT'); % use of nnfft_init_guru
+% Plan initialisation guru interface
+%sigma=2; % oversampling factor
+%N1_1=sigma*N_1; % FFTW length, must be even natural number!
+%N1_2=sigma*N_2; % FFTW length, must be even natural number!
+%m=6; % window cut-off parameter
+%plan=nnfft(2,N_total,M,N,N1_1,N1_2,m,bitor(PRE_PHI_HUT,PRE_PSI)); % create plan of class type nnfft
 
 plan.x=x; % set nodes in plan
 plan.v=v; % set nodes in plan
