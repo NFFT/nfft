@@ -123,7 +123,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   for(k=0;k<my_plan.N_total;k++)
     my_iplan.f_hat_iter[k]=0.0;
 
-  t0 = nfft_wallclock_time_seconds();
+  t0 = nfft_clock_gettime_seconds();
 
   /* inverse trafo */
   solver_before_loop_complex(&my_iplan);
@@ -138,7 +138,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   }
 
 
-  t1 = nfft_wallclock_time_seconds();
+  t1 = nfft_clock_gettime_seconds();
   t=t1-t0;
 
   fout_real=fopen("output_real.dat","w");

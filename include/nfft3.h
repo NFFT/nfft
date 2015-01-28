@@ -854,7 +854,7 @@ void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* thread.c */ \
 NFFT_INT Y(get_num_threads)(void); \
 /* time.c */ \
-R Y(wallclock_time_seconds)(void);
+R Y(clock_gettime_seconds)(void);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

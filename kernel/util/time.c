@@ -18,9 +18,11 @@
 
 /* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
-#include <sys/time.h>
-
 #include "infft.h"
+
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
 
 R Y(elapsed_seconds)(ticks t1, ticks t0)
 {
@@ -29,15 +31,19 @@ R Y(elapsed_seconds)(ticks t1, ticks t0)
   return (R)(elapsed(t1,t0)) / (R)(TICKS_PER_SECOND);
 }
 
-R Y(wallclock_time_seconds)(void)
+R Y(clock_gettime_seconds)(void)
 {
-  struct timeval t;
-  if (gettimeofday(&t, NULL) != 0)
+#if defined(HAVE_CLOCK_GETTIME)
+  struct timespec tp;
+  if (clock_gettime(CLOCK_REALTIME, &tp) != 0)
   {
-    t.tv_sec = 0;
-    t.tv_usec = 0;
+    tp.tv_sec = 0;
+    tp.tv_nsec = 0;
   }
 
-  return t.tv_sec+(R)t.tv_usec/1000000;
+  return tp.tv_sec+(R)tp.tv_nsec/K(1e9);
+#else
+  return K(0.0);
+#endif
 }
 
