@@ -17,14 +17,10 @@
  */
 
 /* $Id$ */
-#include "config.h"
-
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 

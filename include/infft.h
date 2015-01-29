@@ -1452,13 +1452,11 @@ R Y(float_property)(float_property);
 R Y(prod_real)(R *vec, INT d);
 
 /* int.c: */
-INT Y(exp2i)(const INT a);
 INT Y(log2i)(const INT m);
 INT Y(next_power_of_2)(const INT N);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
 
 /* error.c: */
-R Y(error_l_infty_complex)(const C *x, const C *y, const INT n);
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
 R Y(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
   const C *z, const INT m);

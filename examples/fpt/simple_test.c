@@ -18,23 +18,18 @@
 
 /* $Id$ */
 
-#include "config.h"
-
 /* standard headers */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
-/* It is important to include complex.h before nfft3.h. */
-#ifdef HAVE_COMPLEX_H
+/* It is important to include complex.h before nfft3.h and fftw3.h. */
 #include <complex.h>
-#endif
 
 #include <fftw3.h>
 
 /* NFFT3 header */
 #include "nfft3.h"
-#include "infft.h"
 
 int main(void)
 {
@@ -113,7 +108,7 @@ int main(void)
       printf("\n2) Random Fourier coefficients a_k, k=0,1,...,N:\n");
       for (k = 0; k <= N; k++)
       {
-        a[k] = 2.0*X(drand48)() - 1.0; /* for debugging: use k+1 */
+        a[k] = 2.0*nfft_drand48() - 1.0; /* for debugging: use k+1 */
         printf("   a_%-2d = %+5.3lE\n",k,creal(a[k]));
       }
     }

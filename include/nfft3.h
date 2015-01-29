@@ -854,7 +854,11 @@ void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* thread.c */ \
 NFFT_INT Y(get_num_threads)(void); \
 /* time.c */ \
-R Y(clock_gettime_seconds)(void);
+R Y(clock_gettime_seconds)(void); \
+/* error.c: */ \
+R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
+/* int.c: */ \
+NFFT_INT Y(exp2i)(const NFFT_INT a);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
