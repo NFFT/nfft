@@ -2,7 +2,7 @@ NFFT3 - Nonequispaced FFT, generalisations, inversion, and applications
 
 Overview
 --------
-NFFT3 is a software library written in C for computing nonequispaced fast Fourier  
+NFFT3 is a software library written in C for computing nonequispaced fast Fourier
 and related transformations. In detail, NFFT3 implements
 
  1) The nonequispaced fast Fourier transform (NFFT)
@@ -14,7 +14,7 @@ and related transformations. In detail, NFFT3 implements
     - to the hyperbolic cross (NSFFT)
     - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST)
     - to the rotation group (NFSOFT)
- 3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE 
+ 3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE
  4) Applications in
     - medical imaging
          (i) magnetic resonance imaging
@@ -25,17 +25,17 @@ and related transformations. In detail, NFFT3 implements
         (iii) zonal kernels
     - polar FFT, discrete Radon transform, ridgelet transform
 
-For an introduction, please read the "NFFT 3.0 - Tutorial" first. It is 
-available in the subdirectory doc/tutorial/tutorial.pdf. Detailed API 
+For an introduction, please read the "NFFT 3.0 - Tutorial" first. It is
+available in the subdirectory doc/tutorial/tutorial.pdf. Detailed API
 documentation can be found in HTML format in /doc/api/html/index.html
 or in LaTeX format for self compilation in /doc/api/latex/refman.tex.
 For installation instructions, you can also refer to the file INSTALL
 in this directory.
 
-The most current general paper, and the one that we recommend if you wish 
-to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D. 
-''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms'' 
-ACM Trans. Math. Software,36, Article 19, 1-30,  2009 
+The most current general paper, and the one that we recommend if you wish
+to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D.
+''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
+ACM Trans. Math. Software,36, Article 19, 1-30,  2009
 Directory structure
 -------------------
 3rdparty (dir)	    Third-party source code
@@ -99,7 +99,7 @@ NFFT3 is free software. You can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
 version. If not stated otherwise, this applies to all files contained in this
-package and its sub-directories. 
+package and its sub-directories.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -109,4 +109,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
