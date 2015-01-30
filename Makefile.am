@@ -63,8 +63,11 @@ endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc
 
+if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
 	cp -f nfft3.pc nfft3@PREC_SUFFIX@.pc
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 

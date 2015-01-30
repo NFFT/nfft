@@ -132,6 +132,8 @@ case "$PRECISION" in
 esac
 AC_SUBST(NFFT_PRECISION_MACRO)
 
+AM_CONDITIONAL(HAVE_NON_DOUBLE_PRECISION, test "x$PRECISION" != "xd" )
+
 # enable or disable parts of NFFT
 
 # whether we need the fpt module

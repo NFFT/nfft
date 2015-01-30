@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: NFFT
 Description: Nonuniform fast Fourier transform library
 Version: @VERSION@
-Requires: fftw3
-Libs: -L${libdir} -lnfft3
+Requires: fftw3@PREC_SUFFIX@
+Libs: -L${libdir} -lnfft3@PREC_SUFFIX@
 Cflags: -I${includedir}
