@@ -18,17 +18,25 @@
 % Test script of class nnfft for spatial dimension d=2.
 clear all;
 
-M=16; % number of nodes
-N_1=24; % number of Fourier coefficients in first direction
-N_2=32; % number of Fourier coefficients in second direction
+%M=16; % number of nodes
+%N_1=24; % number of Fourier coefficients in first direction
+%N_2=32; % number of Fourier coefficients in second direction
+%N=[N_1;N_2];
+%N_total=N_1*N_2; % total number of Fourier coefficients
+M=4;
+N_1=2;
+N_2=2;
 N=[N_1;N_2];
-N_total=N_1*N_2; % total number of Fourier coefficients
+N_total=N_1*N_2;
+
+
 
 x=rand(M,2)-0.5; %nodes
 v=rand(N_total,2)-0.5; %nodes
 
 % Plan initialisation simple interface
 plan=nnfft(2,N_total,M,N); % create plan of class type nnfft
+
 
 % Plan initialisation guru interface
 %sigma=2; % oversampling factor
@@ -43,22 +51,34 @@ nnfft_precompute_psi(plan); % precomputations
 
 % NFFT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fhat=rand(N_1,N_2); % Fourier coefficients
+%fhat=rand(N_1,N_2); % Fourier coefficients
+%fhat=rand(N_total,1);
+fhat=ones(N_total,1);
+%fhat(4)=1;
 fhatv=fhat(:);
 
 % Compute samples with NNFFT
-plan.fhat=fhatv; % set Fourier coefficients
-nnfft_trafo(plan); % compute nonequispaced Fourier transform
-f1=plan.f; % get samples
+ plan.fhat=fhatv; % set Fourier coefficients
+ nnfft_trafo(plan); % compute nonequispaced Fourier transform
+ f1=plan.f; % get samples
 
 % Compute samples direct
 nnfft_trafo_direct(plan);
 f2=plan.f; 
 
-% Compare results
+%% Compare results
 disp('NNFFT vs NNDFT');
 max(abs(f1-f2))
+%v
+
+%v.*repmat(N',size(v,1),1)
 
 
+tmpv=(v.*repmat(N',size(v,1),1)).';
+%tmpx=(x.*repmat(N',size(x,1),1));
+%tmpv=v.'*N_total;
 
-
+%x
+f3=exp(-2*pi*1i*(x*tmpv))*plan.fhat;
+%f3=exp(-2*pi*1i*(tmpx*v.'))*fhatv;
+max(abs(f2-f3))
