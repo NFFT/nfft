@@ -305,13 +305,13 @@ function set.fhat(h,fhat)
 			% Do nothing.
 		case 2
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N_1,h.N_2).';
-			fhat=fhat(:);
+			%fhat=reshape(fhat,h.N_1,h.N_2).';
+			%fhat=fhat(:);
 		case 3
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N_1,h.N_2,h.N_3);
-			fhat=permute(fhat,[3,2,1]);
-			fhat=fhat(:);
+			%fhat=reshape(fhat,h.N_1,h.N_2,h.N_3);
+			%fhat=permute(fhat,[3,2,1]);
+			%fhat=fhat(:);
 		otherwise
 			error('Unknown error.');
 		end %switch
@@ -351,13 +351,13 @@ function fhat=get.fhat(h)
 			% Do nothing.
 		case 2
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N_2,h.N_1).';
-			fhat=fhat(:);
+			%fhat=reshape(fhat,h.N_2,h.N_1).';
+			%fhat=fhat(:);
 		case 3
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N_3,h.N_2,h.N_1);
-			fhat=permute(fhat,[3,2,1]);
-			fhat=fhat(:);
+			%fhat=reshape(fhat,h.N_3,h.N_2,h.N_1);
+			%fhat=permute(fhat,[3,2,1]);
+			%fhat=fhat(:);
 		otherwise
 			error('Unknown error.');
 		end %switch

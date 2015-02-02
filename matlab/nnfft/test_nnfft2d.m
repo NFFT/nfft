@@ -73,9 +73,13 @@ f2=plan.f;
 disp('NNFFT vs NNDFT');
 max(abs(f1-f2))
 
-tmpv=(v.*repmat(N',size(v,1),1)).';
+
+A=exp(-2*pi*1i*x*diag(N)*v');
+f3=A*fhatv;
+
+%tmpv=(v.*repmat(N',size(v,1),1)).';
 
 %geflipter zweiter Einheitsvektor
-f3=exp(-2*pi*1i*(x*tmpv))*flipud(plan.fhat);
+%f3=exp(-2*pi*1i*(x*tmpv))*flipud(plan.fhat);
 %f3=exp(-2*pi*1i*(tmpx*v.'))*fhatv;
 max(abs(f2-f3))
