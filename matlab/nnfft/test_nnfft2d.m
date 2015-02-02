@@ -53,9 +53,12 @@ nnfft_precompute_psi(plan); % precomputations
 
 %fhat=rand(N_1,N_2); % Fourier coefficients
 %fhat=rand(N_total,1);
-fhat=ones(N_total,1);
-%fhat(4)=1;
-fhatv=fhat(:);
+%fhat=ones(N_total,1);
+
+%Test mit zweitem Einheitsvektor
+fhat=zeros(N_total,1);
+fhat(2)=1;
+fhatv=fhat;%(:);
 
 % Compute samples with NNFFT
  plan.fhat=fhatv; % set Fourier coefficients
@@ -69,16 +72,10 @@ f2=plan.f;
 %% Compare results
 disp('NNFFT vs NNDFT');
 max(abs(f1-f2))
-%v
-
-%v.*repmat(N',size(v,1),1)
-
 
 tmpv=(v.*repmat(N',size(v,1),1)).';
-%tmpx=(x.*repmat(N',size(x,1),1));
-%tmpv=v.'*N_total;
 
-%x
-f3=exp(-2*pi*1i*(x*tmpv))*plan.fhat;
+%geflipter zweiter Einheitsvektor
+f3=exp(-2*pi*1i*(x*tmpv))*flipud(plan.fhat);
 %f3=exp(-2*pi*1i*(tmpx*v.'))*fhatv;
 max(abs(f2-f3))
