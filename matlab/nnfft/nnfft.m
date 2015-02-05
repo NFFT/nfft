@@ -24,7 +24,7 @@ classdef nnfft < handle
 properties(Dependent=true)
 	x;     % nodes in time/spatial domain (real Mxd matrix)
 	v;		% nodes in fourier domain (real N_totalxd matrix)
-	fhat;  % fourier coefficients (complex column vector of length N_1, N_1*N_2 or N_1*N_2*N_3, for d=2 columnwise linearisation of N_1xN_2 matrix and for d=3 columnwise linearisation of N_1xN_2xN_3 array)
+	fhat;  % fourier coefficients (complex column vector of length N_total)
 	f;     % samples (complex column vector of length M)
 end %properties
 
@@ -284,38 +284,24 @@ function set.v(h,v)
 end %function
 
 function set.fhat(h,fhat)
-	switch h.d
-	case 1
-		n=h.N_1;
-	case 2
-		n=h.N_1*h.N_2;
-	case 3
-		n=h.N_1*h.N_2*h.N_3;
-	otherwise
-		error('Unknown error.');
-	end % switch
+	%switch h.d
+	%case 1
+		%n=h.N_1;
+	%case 2
+	%	n=h.N_1*h.N_2;
+	%case 3
+	%	n=h.N_1*h.N_2*h.N_3;
+	%otherwise
+	%	error('Unknown error.');
+	%end % switch
+
+	n=h.N_total;
 
 	if( isempty(fhat) || ~isnumeric(fhat))
 		error('The Fourier coefficients fhat have to be complex numbers.');
 	elseif( size(fhat,1)~=(n) || size(fhat,2)~=1 )
 		error('The Fourier coefficients fhat have to be a column vector of length %u.',n);
 	else
-		switch h.d
-		case 1
-			% Do nothing.
-		case 2
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			%fhat=reshape(fhat,h.N_1,h.N_2).';
-			%fhat=fhat(:);
-		case 3
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			%fhat=reshape(fhat,h.N_1,h.N_2,h.N_3);
-			%fhat=permute(fhat,[3,2,1]);
-			%fhat=fhat(:);
-		otherwise
-			error('Unknown error.');
-		end %switch
-
 		nnfftmex('set_f_hat',h.plan,fhat);
 		h.fhat_is_set=true;
 	end %if
@@ -346,21 +332,21 @@ function fhat=get.fhat(h)
 	if(h.fhat_is_set)
 		fhat=nnfftmex('get_f_hat',h.plan);
 
-		switch h.d
-		case 1
+		%switch h.d
+		%case 1
 			% Do nothing.
-		case 2
+		%case 2
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
 			%fhat=reshape(fhat,h.N_2,h.N_1).';
 			%fhat=fhat(:);
-		case 3
+		%case 3
 			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
 			%fhat=reshape(fhat,h.N_3,h.N_2,h.N_1);
 			%fhat=permute(fhat,[3,2,1]);
 			%fhat=fhat(:);
-		otherwise
-			error('Unknown error.');
-		end %switch
+		%otherwise
+		%	error('Unknown error.');
+		%end %switch
 	else
 		fhat=[];
 	end %if
