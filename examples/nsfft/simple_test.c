@@ -17,18 +17,14 @@
  */
 
 /* $Id$ */
-#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
-#include "infft.h"
 
 static void simple_test_nsfft(int d, int J, int M)
 {
@@ -69,7 +65,7 @@ int main(int argc,char **argv)
   printf("1) computing a two dimensional nsdft, nsfft and adjoints\n\n");
   d=2;
   J=5;
-  M=(J+4)*X(exp2i)(J+1);
+  M=(J+4)*nfft_exp2i(J+1);
   simple_test_nsfft(d,J,M);
   getc(stdin);
 
@@ -77,7 +73,7 @@ int main(int argc,char **argv)
   printf("2) computing a three dimensional nsdft, nsfft and adjoints\n\n");
   d=3;
   J=5;
-  M=6*X(exp2i)(J)*(X(exp2i)((J+1)/2+1)-1)+X(exp2i)(3*(J/2+1));
+  M=6*nfft_exp2i(J)*(nfft_exp2i((J+1)/2+1)-1)+nfft_exp2i(3*(J/2+1));
   simple_test_nsfft(d,J,M);
 
   return 1;

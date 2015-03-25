@@ -18,16 +18,15 @@
 
 /* $Id$ */
 
-#include "config.h"
-
 #include <math.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+/** Swap two vectors. */
+#define CSWAP(x,y) {double _Complex * NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 void accuracy(int d)
 {
@@ -86,8 +85,8 @@ void accuracy(int d)
       nnfft_trafo(&my_plan);
 
       printf("%e, %e\n",
-	     X(error_l_infty_complex)(slow, my_plan.f, M_total),
-	     X(error_l_infty_1_complex)(slow, my_plan.f, M_total, my_plan.f_hat,
+	     nfft_error_l_infty_complex(slow, my_plan.f, M_total),
+	     nfft_error_l_infty_1_complex(slow, my_plan.f, M_total, my_plan.f_hat,
 				     my_plan.N_total));
 
       /** finalise the one dimensional plan */

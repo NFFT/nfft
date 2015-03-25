@@ -857,8 +857,21 @@ NFFT_INT Y(get_num_threads)(void); \
 R Y(clock_gettime_seconds)(void); \
 /* error.c: */ \
 R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
+R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
+  const C *z, const NFFT_INT m); \
 /* int.c: */ \
-NFFT_INT Y(exp2i)(const NFFT_INT a);
+NFFT_INT Y(exp2i)(const NFFT_INT a); \
+NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
+/* vector1.c */ \
+/** Computes the inner/dot product \f$x^H x\f$. */ \
+R Y(dot_complex)(C *x, NFFT_INT n); \
+/* vector3.c */ \
+/** Updates \f$x \leftarrow a x + y\f$. */ \
+void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
+/** Swaps each half over N[d]/2. */ \
+void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
+void Y(fftshift_complex_int)(C *x, int d, int* N);
+
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

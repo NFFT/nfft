@@ -1453,13 +1453,10 @@ R Y(prod_real)(R *vec, INT d);
 
 /* int.c: */
 INT Y(log2i)(const INT m);
-INT Y(next_power_of_2)(const INT N);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
 
 /* error.c: */
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const INT n,
-  const C *z, const INT m);
 /* not used */ R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
   const INT m);
 R Y(error_l_2_complex)(const C *x, const C *y, const INT n);
@@ -1473,8 +1470,6 @@ void Y(sort_node_indices_radix_lsdf)(INT n, INT *keys0, INT *keys1, INT rhigh);
 void Y(assertion_failed)(const char *s, int line, const char *file);
 
 /* vector1.c */
-/** Computes the inner/dot product \f$x^H x\f$. */
-R Y(dot_complex)(C *x, INT n);
 /** Computes the inner/dot product \f$x^H x\f$. */
 R Y(dot_double)(R *x, INT n);
 /** Computes the weighted inner/dot product \f$x^H (w \odot x)\f$. */
@@ -1502,8 +1497,6 @@ void Y(cp_w_double)(R *x, R *w, R *y, INT n);
 
 /* vector3.c */
 /** Updates \f$x \leftarrow a x + y\f$. */
-void Y(upd_axpy_complex)(C *x, R a, C *y, INT n);
-/** Updates \f$x \leftarrow a x + y\f$. */
 void Y(upd_axpy_double)(R *x, R a, R *y, INT n);
 /** Updates \f$x \leftarrow x + a y\f$. */
 void Y(upd_xpay_complex)(C *x, R a, C *y, INT n);
@@ -1521,9 +1514,6 @@ void Y(upd_xpawy_double)(R *x, R a, R *w, R *y, INT n);
 void Y(upd_axpwy_complex)(C *x, R a, R *w, C *y, INT n);
 /** Updates \f$x \leftarrow a x +  w\odot y\f$. */
 void Y(upd_axpwy_double)(R *x, R a, R *w, R *y, INT n);
-/** Swaps each half over N[d]/2. */
-void Y(fftshift_complex)(C *x, INT d, INT* N);
-void Y(fftshift_complex_int)(C *x, int d, int* N);
 
 /* voronoi.c */
 void Y(voronoi_weights_1d)(R *w, R *x, const INT M);

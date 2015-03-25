@@ -17,18 +17,18 @@
  */
 
 /* $Id$ */
-#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+/** Swap two vectors. */
+#define CSWAP(x,y) {double _Complex * NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 static void accuracy_nsfft(int d, int J, int M, int m)
 {
@@ -53,7 +53,7 @@ static void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_trafo(&p);
 
   printf("%5d\t %+.5E\t",J,
-         X(error_l_infty_1_complex)(swap_sndft_trafo, p.f, p.M_total,
+         nfft_error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
                                  p.f_hat, p.N_total));
   fflush(stdout);
 
@@ -68,7 +68,7 @@ static void accuracy_nsfft(int d, int J, int M, int m)
   nsfft_adjoint(&p);
 
   printf("%+.5E\n",
-         X(error_l_infty_1_complex)(swap_sndft_adjoint, p.f_hat,
+         nfft_error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
                                  p.N_total,
                                  p.f, p.M_total));
   fflush(stdout);
@@ -84,14 +84,14 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
 {
   int r, N[d], n[d];
   double t, t_nsdft, t_nfft, t_nsfft;
-  ticks t0, t1;
+  double t0, t1;
 
   nsfft_plan p;
   nfft_plan np;
 
   for(r=0;r<d;r++)
   {
-    N[r]= X(exp2i)(J+2);
+    N[r]= nfft_exp2i(J+2);
     n[r]=(3*N[r])/2;
     /*n[r]=2*N[r];*/
   }
@@ -108,10 +108,10 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
     while(t_nsdft<0.1)
     {
       r++;
-      t0 = getticks();
+      t0 = nfft_clock_gettime_seconds();
       nsfft_trafo_direct(&p);
-      t1 = getticks();
-      t = nfft_elapsed_seconds(t1,t0);
+      t1 = nfft_clock_gettime_seconds();
+      t = (t1 - t0);
       t_nsdft+=t;
     }
     t_nsdft/=r;
@@ -133,10 +133,10 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
     while(t_nfft<0.1)
     {
       r++;
-      t0 = getticks();
+      t0 = nfft_clock_gettime_seconds();
       nfft_trafo(&np);
-      t1 = getticks();
-      t = nfft_elapsed_seconds(t1,t0);
+      t1 = nfft_clock_gettime_seconds();
+      t = (t1 - t0);
       t_nfft+=t;
     }
     t_nfft/=r;
@@ -153,10 +153,10 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
   while(t_nsfft<0.1)
     {
       r++;
-      t0 = getticks();
+      t0 = nfft_clock_gettime_seconds();
       nsfft_trafo(&p);
-      t1 = getticks();
-      t = nfft_elapsed_seconds(t1,t0);
+      t1 = nfft_clock_gettime_seconds();
+      t = (t1 - t0);
       t_nsfft+=t;
     }
   t_nsfft/=r;
@@ -198,9 +198,9 @@ int main(int argc,char **argv)
     for(J=atoi(argv[3]); J<=atoi(argv[4]); J++)
     {
       if(d==2)
-	M=(J+4)*X(exp2i)(J+1);
+	M=(J+4)*nfft_exp2i(J+1);
       else
-	M=6*X(exp2i)(J)*(X(exp2i)((J+1)/2+1)-1)+X(exp2i)(3*(J/2+1));
+	M=6*nfft_exp2i(J)*(nfft_exp2i((J+1)/2+1)-1)+nfft_exp2i(3*(J/2+1));
 
       if(d*(J+2)<=24)
 	time_nsfft(d, J, M, 1, 1);

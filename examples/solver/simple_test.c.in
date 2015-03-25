@@ -17,18 +17,16 @@
  */
 
 /* $Id$ */
-#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
-#include "nfft3.h"
-#include "infft.h"
+#define @NFFT_PRECISION_MACRO@
+
+#include "nfft3mp.h"
 
 /* void simple_test_infft_1d(int N, int M, int iter) */
 /* { */
@@ -112,18 +110,18 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
 
   /** initialise some guess f_hat_0 and solve */
   for (k = 0; k < p.N_total; k++)
-    ip.f_hat_iter[k] = K(0.0);
+    ip.f_hat_iter[k] = NFFT_K(0.0);
 
   NFFT(vpr_complex)(ip.f_hat_iter, p.N_total,
       "Initial guess, vector f_hat_iter");
 
-  CSWAP(ip.f_hat_iter, p.f_hat);
+  NFFT_CSWAP(ip.f_hat_iter, p.f_hat);
   NFFT(trafo)(&p);
   NFFT(vpr_complex)(p.f, p.M_total, "Data fit, vector f");
-  CSWAP(ip.f_hat_iter, p.f_hat);
+  NFFT_CSWAP(ip.f_hat_iter, p.f_hat);
 
   SOLVER(before_loop_complex)(&ip);
-  printf("\n Residual r=%" __FES__ "\n", ip.dot_r_iter);
+  printf("\n Residual r=%" NFFT__FES__ "\n", ip.dot_r_iter);
 
   for (l = 0; l < iter; l++)
   {
@@ -132,12 +130,12 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
     NFFT(vpr_complex)(ip.f_hat_iter, p.N_total,
         "Approximate solution, vector f_hat_iter");
 
-    CSWAP(ip.f_hat_iter, p.f_hat);
+    NFFT_CSWAP(ip.f_hat_iter, p.f_hat);
     NFFT(trafo)(&p);
     NFFT(vpr_complex)(p.f, p.M_total, "Data fit, vector f");
-    CSWAP(ip.f_hat_iter, p.f_hat);
+    NFFT_CSWAP(ip.f_hat_iter, p.f_hat);
 
-    printf("\n Residual r=%" __FES__ "\n", ip.dot_r_iter);
+    printf("\n Residual r=%"  NFFT__FES__ "\n", ip.dot_r_iter);
   }
 
   SOLVER(finalize_complex)(&ip);

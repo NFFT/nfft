@@ -17,18 +17,16 @@
  */
 
 /* $Id$ */
-#include "config.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
-#include "nfft3.h"
-#include "infft.h"
+#define @NFFT_PRECISION_MACRO@
+
+#include "nfft3mp.h"
 
 /**
  * \defgroup examples_solver_glacier Reconstruction of a glacier from \
@@ -38,16 +36,16 @@
  */
 
 /** Generalised Sobolev weight */
-static R my_weight(R z, R a, R b, R c)
+static NFFT_R my_weight(NFFT_R z, NFFT_R a, NFFT_R b, NFFT_R c)
 {
-  return POW(K(0.25) - z * z, b) / (c + POW(FABS(z), K(2.0) * a));
+  return NFFT_M(pow)(NFFT_K(0.25) - z * z, b) / (c + NFFT_M(pow)(NFFT_M(fabs)(z), NFFT_K(2.0) * a));
 }
 
 /** Reconstruction routine */
 static void glacier(int N, int M)
 {
   int j, k, k0, k1, l, my_N[2], my_n[2];
-  R tmp_y;
+  NFFT_R tmp_y;
   NFFT(plan) p;
   SOLVER(plan_complex) ip;
   FILE* fp;
@@ -72,7 +70,7 @@ static void glacier(int N, int M)
   fp = fopen("input_data.dat", "r");
   for (j = 0; j < p.M_total; j++)
   {
-    fscanf(fp, "%" __FES__ " %" __FES__ " %" __FES__, &p.x[2 * j + 0], &p.x[2 * j + 1], &tmp_y);
+    fscanf(fp, "%" NFFT__FES__ " %" NFFT__FES__ " %" NFFT__FES__, &p.x[2 * j + 0], &p.x[2 * j + 1], &tmp_y);
     ip.y[j] = tmp_y;
   }
   fclose(fp);
@@ -85,25 +83,25 @@ static void glacier(int N, int M)
   if (ip.flags & PRECOMPUTE_DAMP)
     for (k0 = 0; k0 < p.N[0]; k0++)
       for (k1 = 0; k1 < p.N[1]; k1++)
-        ip.w_hat[k0 * p.N[1] + k1] = my_weight(((R) ((R)(k0) - (R)(p.N[0]) / K(2.0))) / ((R)(p.N[0])),
-            K(0.5), K(3.0), K(0.001))
-            * my_weight((((R)(k1) - (R)(p.N[1]) / K(2.0))) / ((R)(p.N[1])), K(0.5), K(3.0), K(0.001));
+        ip.w_hat[k0 * p.N[1] + k1] = my_weight(((NFFT_R) ((NFFT_R)(k0) - (NFFT_R)(p.N[0]) / NFFT_K(2.0))) / ((NFFT_R)(p.N[0])),
+            NFFT_K(0.5), NFFT_K(3.0), NFFT_K(0.001))
+            * my_weight((((NFFT_R)(k1) - (NFFT_R)(p.N[1]) / NFFT_K(2.0))) / ((NFFT_R)(p.N[1])), NFFT_K(0.5), NFFT_K(3.0), NFFT_K(0.001));
 
   /* init some guess */
   for (k = 0; k < p.N_total; k++)
-    ip.f_hat_iter[k] = K(0.0);
+    ip.f_hat_iter[k] = NFFT_K(0.0);
 
   /* inverse trafo */
   SOLVER(before_loop_complex)(&ip);
 
   for (l = 0; l < 40; l++)
   {
-    fprintf(stderr, "Residual ||r||=%" __FES__ ",\n", SQRT(ip.dot_r_iter));
+    fprintf(stderr, "Residual ||r||=%" NFFT__FES__ ",\n", NFFT_M(sqrt)(ip.dot_r_iter));
     SOLVER(loop_one_step_complex)(&ip);
   }
 
   for (k = 0; k < p.N_total; k++)
-    printf("%" __FES__ " %" __FES__ "\n", CREAL(ip.f_hat_iter[k]), CIMAG(ip.f_hat_iter[k]));
+    printf("%" NFFT__FES__ " %" NFFT__FES__ "\n", NFFT_M(creal)(ip.f_hat_iter[k]), NFFT_M(cimag)(ip.f_hat_iter[k]));
 
   SOLVER(finalize_complex)(&ip);
   NFFT(finalize)(&p);
@@ -113,10 +111,10 @@ static void glacier(int N, int M)
 static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
 {
   int j, k, k0, k1, l, my_N[2], my_n[2];
-  R tmp_y, r;
+  NFFT_R tmp_y, r;
   NFFT(plan) p, cp;
   SOLVER(plan_complex) ip;
-  C* cp_y;
+  NFFT_C* cp_y;
   FILE* fp;
   int M_re = M - M_cv;
 
@@ -135,7 +133,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   SOLVER(init_advanced_complex)(&ip, (NFFT(mv_plan_complex)*) (&p), solver_flags);
 
   /* initialise cp for validation */
-  cp_y = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
+  cp_y = (NFFT_C*) NFFT(malloc)((size_t)(M) * sizeof(NFFT_C));
   NFFT(init_guru)(&cp, 2, my_N, M, my_n, 6,
   PRE_PHI_HUT | PRE_FULL_PSI |
   MALLOC_X | MALLOC_F |
@@ -148,7 +146,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   fp = fopen("input_data.dat", "r");
   for (j = 0; j < cp.M_total; j++)
   {
-    fscanf(fp, "%" __FES__ " %" __FES__ " %" __FES__, &cp.x[2 * j + 0], &cp.x[2 * j + 1], &tmp_y);
+    fscanf(fp, "%" NFFT__FES__ " %" NFFT__FES__ " %" NFFT__FES__, &cp.x[2 * j + 0], &cp.x[2 * j + 1], &tmp_y);
     cp_y[j] = tmp_y;
   }
   fclose(fp);
@@ -173,13 +171,13 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   if (ip.flags & PRECOMPUTE_DAMP)
     for (k0 = 0; k0 < p.N[0]; k0++)
       for (k1 = 0; k1 < p.N[1]; k1++)
-        ip.w_hat[k0 * p.N[1] + k1] = my_weight((((R)(k0) - (R)(p.N[0]) / K(2.0))) / ((R)(p.N[0])),
-            K(0.5), K(3.0), K(0.001))
-            * my_weight((((R)(k1) - (R)(p.N[1]) / K(2.0))) / ((R)(p.N[1])), K(0.5), K(3.0), K(0.001));
+        ip.w_hat[k0 * p.N[1] + k1] = my_weight((((NFFT_R)(k0) - (NFFT_R)(p.N[0]) / NFFT_K(2.0))) / ((NFFT_R)(p.N[0])),
+            NFFT_K(0.5), NFFT_K(3.0), NFFT_K(0.001))
+            * my_weight((((NFFT_R)(k1) - (NFFT_R)(p.N[1]) / NFFT_K(2.0))) / ((NFFT_R)(p.N[1])), NFFT_K(0.5), NFFT_K(3.0), NFFT_K(0.001));
 
   /* init some guess */
   for (k = 0; k < p.N_total; k++)
-    ip.f_hat_iter[k] = K(0.0);
+    ip.f_hat_iter[k] = NFFT_K(0.0);
 
   /* inverse trafo */
   SOLVER(before_loop_complex)(&ip);
@@ -189,19 +187,19 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
 
   //fprintf(stderr,"r=%1.2e, ",sqrt(ip.dot_r_iter)/M_re);
 
-  CSWAP(p.f_hat, ip.f_hat_iter);
+  NFFT_CSWAP(p.f_hat, ip.f_hat_iter);
   NFFT(trafo)(&p);
-  CSWAP(p.f_hat, ip.f_hat_iter);
+  NFFT_CSWAP(p.f_hat, ip.f_hat_iter);
   NFFT(upd_axpy_complex)(p.f, -1, ip.y, M_re);
-  r = SQRT(NFFT(dot_complex)(p.f, M_re) / NFFT(dot_complex)(cp_y, M));
-  fprintf(stderr, "r=%1.2" __FES__ ", ", r);
-  printf("$%1.1" __FES__ "$ & ", r);
+  r = NFFT_M(sqrt)(NFFT(dot_complex)(p.f, M_re) / NFFT(dot_complex)(cp_y, M));
+  fprintf(stderr, "r=%1.2" NFFT__FES__ ", ", r);
+  printf("$%1.1" NFFT__FES__ "$ & ", r);
 
   NFFT(trafo)(&cp);
   NFFT(upd_axpy_complex)(&cp.f[M_re], -1, &cp_y[M_re], M_cv);
-  r = SQRT(NFFT(dot_complex)(&cp.f[M_re], M_cv) / NFFT(dot_complex)(cp_y, M));
-  fprintf(stderr, "r_1=%1.2" __FES__ "\t", r);
-  printf("$%1.1" __FES__ "$ & ", r);
+  r = NFFT_M(sqrt)(NFFT(dot_complex)(&cp.f[M_re], M_cv) / NFFT(dot_complex)(cp_y, M));
+  fprintf(stderr, "r_1=%1.2" NFFT__FES__ "\t", r);
+  printf("$%1.1" NFFT__FES__ "$ & ", r);
 
   NFFT(finalize)(&cp);
   SOLVER(finalize_complex)(&ip);

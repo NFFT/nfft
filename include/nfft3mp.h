@@ -32,6 +32,7 @@ extern "C"
 typedef float NFFT_R;
 typedef float _Complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
+#define NFFT_M(name) NFFT_CONCAT(name,f)
 #define FFTW(name) NFFT_CONCAT(fftwf_,name)
 #define NFFT(name) NFFT_CONCAT(nfftf_,name)
 #define NFCT(name) NFFT_CONCAT(nfctf_,name)
@@ -42,6 +43,7 @@ typedef float _Complex NFFT_C;
 typedef long double NFFT_R;
 typedef long double _Complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x##L)
+#define NFFT_M(name) NFFT_CONCAT(name,l)
 #define FFTW(name) NFFT_CONCAT(fftwl_,name)
 #define NFFT(name) NFFT_CONCAT(nfftl_,name)
 #define NFCT(name) NFFT_CONCAT(nfctl_,name)
@@ -52,6 +54,7 @@ typedef long double _Complex NFFT_C;
 typedef double NFFT_R;
 typedef double _Complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
+#define NFFT_M(name) name
 #define FFTW(name) NFFT_CONCAT(fftw_,name)
 #define NFFT(name) NFFT_CONCAT(nfft_,name)
 #define NFCT(name) NFFT_CONCAT(nfct_,name)
@@ -91,5 +94,11 @@ typedef double _Complex NFFT_C;
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif /* __cplusplus */
+
+/** Swap two vectors. */
+#define NFFT_CSWAP(x,y) {NFFT_C* NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
+
+#define NFFT_KPI NFFT_K(3.1415926535897932384626433832795028841971693993751)
 
 #endif /* defined(__NFFT3MP_H__) */

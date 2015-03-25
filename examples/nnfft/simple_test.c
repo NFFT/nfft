@@ -17,16 +17,16 @@
  */
 
 /* $Id$ */
-#include "config.h"
 
 #include <stdlib.h>
 #include <math.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
-#include "infft.h"
+
+/** Swap two vectors. */
+#define CSWAP(x,y) {double _Complex * NFFT_SWAP_temp__; \
+  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
 
 void simple_test_nnfft_1d(void)
 {
@@ -267,7 +267,7 @@ static void measure_time_nnfft_1d(void)
   nnfft_plan my_plan;                    /**< plan for the nfft                */
   int my_N,N=4;
   double t;
-  ticks t0, t1;
+  double t0, t1;
 
   for(my_N=16; my_N<=16384; my_N*=2)
   {
@@ -291,16 +291,16 @@ static void measure_time_nnfft_1d(void)
     for(k=0;k<my_plan.N_total;k++)
       my_plan.f_hat[k] = ((double)rand())/((double)RAND_MAX) + _Complex_I*((double)rand())/((double)RAND_MAX);
 
-    t0 = getticks();
+    t0 = nfft_clock_gettime_seconds();
     nnfft_trafo_direct(&my_plan);
-    t1 = getticks();
-    t = nfft_elapsed_seconds(t1,t0);
+    t1 = nfft_clock_gettime_seconds();
+    t = t1 - t0;
     printf("t_nndft=%e,\t",t);
 
-    t0 = getticks();
+    t0 = nfft_clock_gettime_seconds();
     nnfft_trafo(&my_plan);
-    t1 = getticks();
-    t = nfft_elapsed_seconds(t1,t0);
+    t1 = nfft_clock_gettime_seconds();
+    t = t1 - t0;
     printf("t_nnfft=%e\t",t);
 
     printf("(N=M=%d)\n",my_N);
