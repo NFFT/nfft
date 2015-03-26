@@ -147,7 +147,7 @@ int main(void)
 {
   printf("\n Computing a one dimensional inverse nfft\n");
 
-  simple_test_solver_nfft_1d(8, 4, 5);
+  simple_test_solver_nfft_1d(16, 8, 9);
 
   return EXIT_SUCCESS;
 }
