@@ -25,12 +25,19 @@ and related transformations. In detail, NFFT3 implements
         (iii) zonal kernels
     - polar FFT, discrete Radon transform, ridgelet transform
 
-For an introduction, please read the "NFFT 3.0 - Tutorial" first. It is
-available in the subdirectory doc/tutorial/tutorial.pdf. Detailed API
-documentation can be found in HTML format in /doc/api/html/index.html
-or in LaTeX format for self compilation in /doc/api/latex/refman.tex.
+Detailed API documentation can be found in HTML format in
+/doc/api/html/index.html.
+
 For installation instructions, you can also refer to the file INSTALL
-in this directory.
+in this directory. The installation of NFFT3 follows the typical steps
+  ./configure
+  make
+  make install
+Optionally, some test programs can be built and run with
+  make check
+If the file configure is missing, please run
+  ./bootstrap.sh
+first.
 
 The most current general paper, and the one that we recommend if you wish
 to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D.
@@ -46,7 +53,7 @@ bootstrap.sh	    Bootstrap shell script that call Autoconf and friends
 ChangeLog		    A short version history
 config.guess        Used by configure script
 config.sub          Used by configure script
-configure           Configure script
+configure           Configure script (created by calling ./bootstrap.sh)
 configure.in        Autoconf configure script template
 CONVENTIONS         Internal coding conventions
 COPYING             Information about redistributing NFFT3
