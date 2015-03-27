@@ -1131,7 +1131,7 @@ const char* X(check)(X(plan) *ths)
   for (j = 0; j < ths->d; j++)
   {
     if (ths->sigma[j] <= 1)
-      return "nfft_check: oversampling factor too small";
+      return "Oversampling factor too small";
 
     if(ths->N[j] - 1 <= ths->m)
       return "Polynomial degree N is smaller than cut-off m";

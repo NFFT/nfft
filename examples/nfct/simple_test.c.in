@@ -31,6 +31,8 @@ static void simple_test_nfct_1d(void)
 {
   NFCT(plan) p;
 
+  const char *error_str;
+
   int N = 14;
   int M = 19;
 
@@ -47,6 +49,14 @@ static void simple_test_nfct_1d(void)
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_real)(p.f_hat, p.N_total, NFFT_K(0.0), NFFT_K(1.0));
   NFFT(vpr_double)(p.f_hat,p.N_total,"given Fourier coefficients, vector f_hat");
+
+  /** check for valid parameters before calling any trafo/adjoint method */
+  error_str = NFCT(check)(&p);
+  if (error_str != 0)
+  {
+    printf("Error in nfct module: %s\n", error_str);
+    return;
+  }
 
   /** direct trafo and show the result */
   NFCT(trafo_direct)(&p);

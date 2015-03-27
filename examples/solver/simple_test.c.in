@@ -90,6 +90,7 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
   int k, l; /**< index for nodes, freqencies,iter*/
   NFFT(plan) p; /**< plan for the nfft               */
   SOLVER(plan_complex) ip; /**< plan for the inverse nfft       */
+  const char *error_str;
 
   /** initialise an one dimensional plan */
   NFFT(init_1d)(&p, N, M);
@@ -114,6 +115,14 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
 
   NFFT(vpr_complex)(ip.f_hat_iter, p.N_total,
       "Initial guess, vector f_hat_iter");
+
+  /** check for valid parameters before calling any trafo/adjoint method */
+  error_str = NFFT(check)(&p);
+  if (error_str != 0)
+  {
+    printf("Error in nfft module: %s\n", error_str);
+    return;
+  }
 
   NFFT_CSWAP(ip.f_hat_iter, p.f_hat);
   NFFT(trafo)(&p);
