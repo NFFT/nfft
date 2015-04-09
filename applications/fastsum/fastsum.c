@@ -36,7 +36,7 @@
 #include "fastsum.h"
 #include "infft.h"
 
-/** Required for test if (ths->k == one_over_x) */
+// Required for test if (ths->k == one_over_x)
 #include "kernels.h"
 
 /**

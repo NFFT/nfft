@@ -107,6 +107,7 @@ typedef struct \
   MACRO_MV_PLAN(R) \
 } X(mv_plan_double); \
 \
+/** data structure for an NFFT (nonequispaced fast Fourier transform) plan with R precision */ \
 typedef struct\
 {\
   MACRO_MV_PLAN(C)\
@@ -135,7 +136,7 @@ typedef struct\
   unsigned fftw_flags; /**< Flags for the FFTW, default is
                             FFTW_ESTIMATE | FFTW_DESTROY_INPUT */\
 \
-  R *x; /**< Nodes in time/spatial domain, size is \f$dM\f$ doubles */\
+  R *x; /**< Nodes in time/spatial domain, size is \f$dM\f$ R ## s */\
 \
   R MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
     set */\
@@ -223,6 +224,7 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *   C: complex data type
  */
 #define NFCT_DEFINE_API(X,Y,R,C) \
+/** data structure for an NFCT (nonequispaced fast cosine transform) plan with R precision */ \
 typedef struct\
 {\
   /* api */\
@@ -302,6 +304,7 @@ NFCT_DEFINE_API(NFCT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *   C: complex data type
  */
 #define NFST_DEFINE_API(X,Y,R,C) \
+/** data structure for an NFST (nonequispaced fast sine transform) plan with R precision */ \
 typedef struct\
 {\
   /* api */\
@@ -384,6 +387,7 @@ NFST_DEFINE_API(NFST_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *   C: complex data type
  */
 #define NNFFT_DEFINE_API(X,Y,Z,R,C) \
+/** data structure for an NNFFT (nonequispaced in time and frequency fast Fourier transform) plan with R precision */ \
 typedef struct\
 {\
   /* api */\
@@ -451,6 +455,7 @@ NNFFT_DEFINE_API(NNFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LO
  *   C: complex data type
  */
 #define NSFFT_DEFINE_API(X,Y,Z,R,C) \
+/** data structure for an NSFFT (nonequispaced sparse fast Fourier transform) plan with R precision */ \
 typedef struct\
 {\
   MACRO_MV_PLAN(C)\
@@ -556,6 +561,7 @@ MRI_DEFINE_API(MRI_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_
  *   C: complex data type
  */
 #define NFSFT_DEFINE_API(X,Z,R,C) \
+/** data structure for an NFSFT (nonequispaced fast spherical Fourier transform) plan with R precision */ \
 typedef struct\
 {\
   MACRO_MV_PLAN(C)\
@@ -752,6 +758,7 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
  *   C: complex data type
  */
 #define SOLVER_DEFINE_API(X,Y,R,C)\
+/** data structure for an inverse NFFT plan with R precision */ \
 typedef struct\
 {\
   Y(mv_plan_complex) *mv; /**< matrix vector multiplication   */\
@@ -780,6 +787,7 @@ NFFT_EXTERN void X(before_loop_complex)(X(plan_complex)* ths);\
 NFFT_EXTERN void X(loop_one_step_complex)(X(plan_complex) *ths);\
 NFFT_EXTERN void X(finalize_complex)(X(plan_complex) *ths);\
 \
+/** data structure for an inverse NFFT plan with R precision */ \
 typedef struct\
 {\
   Y(mv_plan_double) *mv; /**< matrix vector multiplication   */\
