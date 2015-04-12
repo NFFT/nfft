@@ -1,0 +1,24 @@
+Based on the research paper:
+A note on the iterative MRI reconstruction from nonuniform k-space data
+ 
+by Tobias Knopp, Stefan Kunis and Daniel Potts
+Available from:
+http://www.mathematik.tu-chemnitz.de/~potts
+
+see also: 
+http://www.tu-chemnitz.de/~potts/projecte/projekt_mri.php
+http://www.tu-chemnitz.de/~potts/projects/mri/
+
+Furthermore see the Paper
+Field Inhomogeneity Correction based on Gridding Reconstruction for Magnetic Resonance Imaging
+
+by H. Eggers, Tobias Knopp, and Daniel Potts
+
+--------------------------------------------------------------------
+
+Open MATLAB and run the script file mri.m or mri_inh.m.
+mri.m and mri_inh are an examples for the usage of the programs.
+mri.m uses a simple model without considering  a field inhomogenity
+against what mri_inh.m considers the field inhomogeneity
+
+For questions mail us: tobias.knopp@informatik.uni-luebeck.de 

@@ -1,0 +1,8 @@
+nsfft - nonequispaced sparse FFT or sparse NFFT
+
+Based on the research paper:
+Fast evaluation of trigonometric polynomials from hyperbolic crosses
+by Markus Fenn and Stefan Kunis and Daniel Potts
+
+Available from:
+http://www.tu-chemnitz.de/~potts

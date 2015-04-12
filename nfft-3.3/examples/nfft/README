@@ -1,0 +1,30 @@
+Examples to the nonequispaced FFT
+
+Author
+
+  Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+
+List of files and purpose
+
+  README            this file
+  simple_test.c     introductory example how to use the nfft
+  flags.c           compares different precomputation strategies for the nfft
+  flags.m           visualisation with MATLAB, loads data files
+                    'flags.data0.gaussian', ... (previously computed by the
+                    executable flags (where the window function has to be set
+                    and the whole library needs recompilation); calls also the
+                    executable taylor_nfft
+  ndft_fast.c       compares different precomputation strategies for the ndft
+  ndft_fast.m       visualisation with MATLAB, calls the executable ndft_fast
+  nfft_benchomp.c   runs benchmarks for nfft OpenMP code and writes results as
+                    pgfplots to nfft_benchomp_results_plots.tex, uses
+		    nfft_benchomp_createdataset.c and nfft_benchomp_detail.c
+  nfft_times.c      compares 1d, 2d, and 3d times to compute nffts and ffts,
+                    outputs a latex-table
+  taylor_nfft.c     compares the nfft with a taylor expansion based one
+  taylor_nfft.m     visualisation with MATLAB, calls the executable taylor_nfft
+
+References
+
+  Kunis, S. and Potts, D. Time and memory requirements of the nonequispaced FFT
+  Preprint 2006-1, Chemnitz University of Technology, Faculty of Mathematics

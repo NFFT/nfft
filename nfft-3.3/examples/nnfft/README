@@ -1,0 +1,12 @@
+NDFT for nonequispaced data in time and frequency domain
+
+the algorithms are written by Tobias Knopp 
+based on the paper
+Potts, D., Steidl G., and Tasche M.
+ Fast Fourier transforms for nonequispaced data: A tutorial.
+ in: Modern Sampling Theory: Mathematics and Applications, 
+ J.J. Benedetto and P. Ferreira (Eds.), Chapter 12, pages 249-274. 1998
+
+Available from:
+http://www.tu-chemnitz.de/~potts
+ 

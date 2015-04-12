@@ -1,0 +1,370 @@
+/*
+ * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/*! \file nfft3.h
+ *  \brief Header file for the nfft3 library.
+ */
+
+/*! \def MACRO_MV_PLAN(RC)
+ *  Macros for public members inherited by all plan structures. 
+ *  */
+
+/**
+ * @defgroup nfft NFFT - Nonequispaced fast Fourier transform
+ * Direct and fast computation of the nonequispaced discrete Fourier transform.
+ * @{
+ *
+ * This module implements the nonequispaced fast Fourier transforms.
+ * In the following, we abbreviate the term "nonequispaced fast Fourier
+ * transform" by NFFT.
+ *
+ * We introduce our notation and nomenclature for discrete Fourier transforms.
+ * Let the torus
+ * \f[
+ *   \mathbb{T}^d
+ *    := \left\{ \mathbf{x}=\left(x_t\right)_{t=0,\hdots,d-1}\in\mathbb{R}^{d}:
+ *    \; - \frac{1}{2} \le x_t < \frac{1}{2},\; t=0,\hdots,d-1 \right\}
+ * \f]
+ * of dimension \f$d\f$ be given.
+ * It will serve as domain from which the nonequispaced nodes \f$\mathbf{x}\f$
+ * are taken.
+ * The sampling set is given by \f${\cal X}:=\{\mathbf{x}_j \in {\mathbb T}^d:
+ * \,j=0,\hdots,M-1\}\f$.
+ * Possible frequencies \f$\mathbf{k}\f$ are collected in the multi index set
+ * \f[
+ *   I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}\in
+ *   \mathbb{Z}^d: - \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1
+ * \right\}.
+ * \f]
+ *
+ * Our concern is the computation of the
+ * \e nonequispaced discrete Fourier transform \e (NDFT) \anchor ndft_formula
+ * \f[
+ * f_j = \sum_{\mathbf{k}\in I_{\mathbf{N}}}
+ * \hat{f}_{\mathbf{k}} {\rm e}^{-2\pi{\rm i} \mathbf{k}\mathbf{x}_j}, \qquad
+ * j=0,\hdots,M-1.
+ * \f]
+ * The corresponding adjoint NDFT is the computation of
+ * \f[
+ *   \hat f_{\mathbf{k}}=\sum_{j=0}^{M-1} f_j {\rm e}^{+2\pi{\rm i}
+ *    \mathbf{k}\mathbf{x}_j}, \qquad \mathbf{k}\in I_{\mathbf{N}}.
+ * \f]
+ * Direct implementations are given by \ref nfft_direct_trafo and \ref nfft_direct_adjoint
+ * taking \f${\cal O}(|I_{\mathbf{N}}|M)\f$ floating point operations.
+ * Approximative realisations take only
+ * \f${\cal O}(|I_{\mathbf{N}}|\log|I_{\mathbf{N}}|+M)\f$ floating point operations.
+ * These are provided by \ref nfft_trafo and \ref nfft_adjoint, respectively.
+ */
+
+/*! \struct nfft_plan 
+ * NFFT transform plan 
+ */
+
+/*! \fn void nfft_direct_trafo(nfft_plan *ths)
+ * Computes an NDFT, see the \ref ndft_formula "definition".
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_direct_adjoint(nfft_plan *ths)
+ * Computes an adjoint NDFT, see the \ref ndftH_formula "definition".
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_trafo(nfft_plan *ths)
+ * Computes a NFFT, see the \ref ndft_formula "definition".
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_adjoint(nfft_plan *ths)
+ * Computes an adjoint NFFT, see the \ref ndftH_formula "definition".
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_init_1d(nfft_plan *ths, int N1, int M)
+ * Initialisation of a transform plan, wrapper d=1.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg M The number of nodes
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_init_2d(nfft_plan *ths, int N1, int N2, int M)
+ * Initialisation of a transform plan, wrapper d=2.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg N2 bandwidth
+ * \arg M The number of nodes
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_init_3d(nfft_plan *ths, int N1, int N2, int N3, int M)
+ * Initialisation of a transform plan, wrapper d=3.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg N1 bandwidth
+ * \arg N2 bandwidth
+ * \arg N3 bandwidth
+ * \arg M The number of nodes
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_init(nfft_plan *ths, int d, int *N, int M)
+ * Initialisation of a transform plan, simple.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M The number of nodes
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_init_advanced(nfft_plan *ths, int d, int *N, int M, unsigned flags_on, unsigned flags_off)
+ * Initialisation of a transform plan, advanced.
+ * NOT YET IMPLEMENTED!!
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M The number of nodes
+ * \arg flags_on NFFT flags to switch on
+ * \arg flags_off NFFT flags to switch off
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, int m, unsigned flags, unsigned fftw_flags)
+ * Initialisation of a transform plan, guru.
+ *
+ * \arg ths The pointer to a nfft plan
+ * \arg d The dimension
+ * \arg N The multi bandwidth
+ * \arg M The number of nodes
+ * \arg n The oversampled multi bandwidth
+ * \arg m The spatial cut-off
+ * \arg flags NFFT flags to use
+ * \arg fftw_flags_off FFTW flags to use
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_precompute_one_psi(nfft_plan *ths)
+ * Precomputation for a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis
+ *
+ * wrapper for precompute*_psi
+ *
+ * if PRE_*_PSI is set the application program has to call this routine
+ * (after) setting the nodes x
+ */
+
+/*! \fn void nfft_precompute_full_psi(nfft_plan *ths)
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
+
+/*! \fn void nfft_precompute_psi(nfft_plan *ths)
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
+
+/*! \fn void nfft_precompute_lin_psi(nfft_plan *ths)
+ * Superceded by nfft_precompute_one_psi.
+ * \author Stefan Kunis
+ */
+
+/*! \fn void nfft_check(nfft_plan *ths)
+ * Checks a transform plan for frequently used bad parameter.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \fn void nfft_finalize(nfft_plan *ths)
+ * Destroys a transform plan.
+ *
+ * \arg ths The pointer to a nfft plan
+ *
+ * \author Stefan Kunis, Daniel Potts
+ */
+
+/*! \def PRE_PHI_HUT
+ * If this flag is set, the deconvolution step (the multiplication with the
+ * diagonal matrix \f$\mathbf{D}\f$) uses precomputed values of the Fourier
+ * transformed window function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def FG_PSI
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses particular properties of the Gaussian
+ * window function to trade multiplications for direct calls to exponential
+ * function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def PRE_LIN_PSI
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses linear interpolation from a lookup
+ * table of equispaced samples of the window function instead of exact values
+ * of the window function.
+ * At the moment a table of size \f$(K+1)d\f$ is used, where
+ * \f$K=2^{10}(m+1)\f$.
+ * An estimate for the size of the lookup table with respect to the target
+ * accuracy should be implemented.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def PRE_FG_PSI
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses particular properties of the Gaussian
+ * window function to trade multiplications for direct calls to exponential
+ * function (the remaining \f$2dM\f$ direct calls are precomputed).
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def PRE_PSI
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses \f$(2m+2)dM\f$ precomputed values of
+ * the window function.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def PRE_FULL_PSI
+ * If this flag is set, the convolution step (the multiplication with the
+ * sparse matrix \f$\mathbf{B}\f$) uses \f$(2m+2)^dM\f$ precomputed values of
+ * the window function, in addition indices of source and target vectors are
+ * stored.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \author Stefan Kunis
+ */
+
+/*! \def MALLOC_X
+ * If this flag is set, (de)allocation of the node vector is done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+/*! \def MALLOC_F_HAT
+ * If this flag is set, (de)allocation of the vector of Fourier coefficients is
+ * done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+/*! \def MALLOC_F
+ * If this flag is set, (de)allocation of the vector of samples is done.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+/*! \def FFT_OUT_OF_PLACE
+ * If this flag is set, FFTW uses disjoint input/output vectors.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+/*! \def FFTW_INIT
+ * If this flag is set, fftw_init/fftw_finalize is called.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+/*! \def PRE_ONE_PSI
+ * Summarises if precomputation is used within the convolution step (the
+ * multiplication with the sparse matrix \f$\mathbf{B}\f$).
+ * If testing against this flag is positive, \ref nfft_precompute_one_psi has
+ * to be called.
+ *
+ * \see nfft_init
+ * \see nfft_init_advanced
+ * \see nfft_init_guru
+ * \see nfft_precompute_one_psi
+ * \see nfft_finalize
+ * \author Stefan Kunis
+ */
+
+
+/** @}
+ */

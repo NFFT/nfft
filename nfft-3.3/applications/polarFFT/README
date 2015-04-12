@@ -1,0 +1,20 @@
+polarFFT
+
+  These are examples of the application of the NFFT for the computation of the
+
+  - polar FFT: polar_fft_test.c
+
+  - modified polar FFT: mpolar_fft_test.c
+
+  - pseudopolar (linogram) FFT: linogram_fft_test.c.
+
+  Use the Matlab script file fft_test.m for a demonstration.
+
+
+  Reference:
+
+ [1]  M. Fenn, S. Kunis, and D. Potts. On the computation of the polar FFT.
+      Appl. Comput. Harmon. Anal., accepted.
+
+ [2]  D. Potts, and G. Steidl, G. A new linogram algorithm for computerized 
+      tomography. IMA J. Numer. Anal. 21, 769-782, 2001

@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/** @defgroup nsfft NSFFT - Nonequispaced sparse FFT
+ * Direct and fast computation of the nonequispaced FFT on the hyperbolic
+ * cross.
+ * @{
+ */
+
+/*! \struct nsfft_plan 
+ * Structure for a NFFT plan
+ */
+
+/*! \fn void nsfft_direct_trafo(nsfft_plan *ths)
+ * Executes an NSDFT, computes for \f$j=0,\hdots,M-1\f$:
+ * \f[
+ *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
+ * \f]
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \fn void nsfft_direct_adjoint(nsfft_plan *ths)
+ * Executes an adjoint NSFFT, computes for \f$k\in H_N^d\f$:
+ * \f[
+ *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ * \f]
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \fn void nsfft_trafo(nsfft_plan *ths)
+ * Executes an NSFFT, computes \b fast and \b approximate for
+ * \f$j=0,\hdots,M-1\f$:
+ * \f[
+ *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
+ * \f]
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \fn void nsfft_adjoint(nsfft_plan *ths)
+ * Executes an adjoint NSFFT, computes \b fast and \b approximate for
+ * \f$k\in H_N^d\f$:
+ * \f[
+ *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ * \f]
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \fn void nsfft_cp(nsfft_plan *ths, nfft_plan *ths_nfft)
+ * Copy coefficients from nsfft plan to a nfft plan.
+ *
+ * \arg ths Pointers to a nsfft plan and to a nfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \fn void nsfft_init_random_nodes_coeffs(nsfft_plan *ths)
+ * Initialisation of pseudo random nodes and coefficients.
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \fn void nsfft_init(nsfft_plan *ths, int d, int J, int M, int m, unsigned flags)
+ * Initialisation of a transform plan.
+ *
+ * \arg ths The pointer to a nsfft plan
+ * \arg d The dimension
+ * \arg J The problem size
+ * \arg M The number of nodes
+ * \arg m nfft cut-off parameter
+ * \arg flags
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \fn void nsfft_finalize(nsfft_plan *ths)
+ * Destroys a transform plan.
+ *
+ * \arg ths The pointer to a nsfft plan
+ *
+ * \author Markus Fenn, Stefan Kunis
+ */
+
+/*! \def NSDFT
+ * If this flag is set, the member \ref index_sparse_to_full is (de)allocated
+ * and initialised for the use in the routine \ref nsfft_direct_trafo and
+ * \ref nsdft_adjoint.
+ *
+ * \see nsfft_init
+ * \author Stefan Kunis
+ */
+
+/** @}
+ */

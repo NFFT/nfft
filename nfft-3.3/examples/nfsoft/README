@@ -1,0 +1,12 @@
+NDFT for nonequispaced data on the rotation group SO(3)
+
+the algorithms are written by Antje Vollrath
+
+based on the paper
+Potts, D., Prestin J., and Vollrath A.
+ A Fast Algorithm for Nonequispaced Fourier Transforms on the Rotation Group
+ to appear in Num. Alg.
+ 
+Available from:
+http://www.tu-chemnitz.de/~potts
+ 

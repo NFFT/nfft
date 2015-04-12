@@ -1,0 +1,46 @@
+The NFFT3 package was developed and is maintained by
+
+Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
+ TU Chemnitz, Fakultaet fuer Mathematik
+ Reichenhainer Str. 39
+ 09107 Chemnitz, GERMANY
+
+Dr. Jens Keiner <jens@nfft.org> 
+ - fast polynomial transform (/kernel/fpt)
+ - nfft on the sphere (/kernel/nfsft)
+ - fast summation on the sphere (/applications/fastsumS2)
+ - autotools, doxygen and friends
+ - Matlab mex interface for nfsft (/matlab/nfsft)
+
+Prof. Dr. Stefan Kunis <stefan.kunis@math.uos.de> 
+ - nfft (/kernel/nfft)
+ - inverse transforms (kernel/solver)
+ - nfft on the hyperbolic cross (/kernel/nsfft)
+ - fast Gauss transform (/applications/fastgauss)
+ - Matlab mex interface for nfft (/matlab/nfft)
+
+Further contributions, in particular applications, are due to
+
+Dr. Markus Fenn 
+ - nfft on the hyperbolic cross (/kernel/nsfft)
+ - polar fft (/applications/polarFFT)
+ - discrete Radon transform and ridgelet transform (/applications/radon)
+ - fast summation (/applications/fastsum)
+
+Steffen Klatt 
+ - nonequispaced cosine transform (/kernel/nfct)
+ - nonequispaced sine transform (/kernel/nfst)
+
+Dr. Tobias Knopp 
+ - transforms in magnetic resonance imaging (/kernel/mri)
+ - nonequispaced in time and frequency fft (/kernel/nnfft)
+ - reconstruction in magnetic resonance imaging (/applications/mri)
+
+Dr. Antje Vollrath <a.vollrath@tu-bs.de>
+ - transforms on the rotation group SO(3) (/kernel/nfsoft)
+
+Toni Volkmer
+ - OpenMP parallelization of nfft (/kernel/nfft)
+ - OpenMP parallelization of nfsft (/kernel/nfsft)
+ - OpenMP parallelization of fast summation (/applications/fastsum)
+

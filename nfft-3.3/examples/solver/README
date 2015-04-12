@@ -1,0 +1,21 @@
+Examples to the inverse NFFT
+
+Author
+
+  Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+
+List of files and purpose
+
+  README            this file
+  simple_test.c     introductory example how to use the solver component with
+                    the nfft
+  glacier.c         reconstruction of a glacier from sampled level curves
+  glacier.m         visualisation with MATLAB, calls the executable glacier
+  glacier_cv.m      cross validation test for the glacier reconstruction
+  vol87.dat         data set, see http://www.math.nps.navy.mil/~rfranke/README
+  
+References
+
+  Kunis, S. and Potts, D. Stability Results for Scattered Data Interpolation
+  by Trigonometric Polynomials, SIAM J. Sci. Comput. 29, 1403 - 1419, 2007.
+

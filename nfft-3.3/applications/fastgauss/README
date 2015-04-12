@@ -1,0 +1,22 @@
+Examples to the fast Gauss transform with complex parameters
+
+Author
+
+  Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+
+List of files and purpose
+
+  README            this file
+  fastgauss.c       univariate Gauss transform and tests
+  levelplots.m	    visualisation with MATLAB of error estimates
+  show_results.m    visualisation with MATLAB of tested accuracy, relies on
+                    output_error.m and output_error_p.m produced by fastgauss.c
+
+References
+
+  Stefan Kunis, Daniel Potts, and Gabriele Steidl
+  Fast Gauss transforms with complex parameters using NFFTs.
+  J. Numer. Math., to appear. 2006
+
+  Preprint available online
+  http://www.tu-chemnitz.de/~potts/paper/fastgauss.pdf

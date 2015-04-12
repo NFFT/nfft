@@ -1,0 +1,329 @@
+/*
+ * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/**
+ * @defgroup nfsoft NFSOFT - Nonequispaced fast SO(3) Fourier transform
+ * @{
+ *
+ * This module implements nonuniform fast SO(3) Fourier transforms. In the
+ * following, we abbreviate the term "nonuniform fast SO(3) Fourier
+ * transform" by NFSOFT.
+ *
+ */
+
+/*! \fn void nfsoft_precompute(nfsoft_plan *plan)
+ * Does all node-dependent and node-independent precomputations needed for the NFSOFT.
+ *
+ * \arg plan a pointer to a \ref nfsoft_plan structure
+ */
+
+/*! \fn fpt_set nfsoft_SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
+ * Computes the FPT transform.
+ *
+ * \arg coeffs the Chebychev coefficients that should be transformed
+ * \arg set the FPT-set containing precomputed data
+ * \arg l the polynomial degree
+ * \arg k the first order
+ * \arg m the second order
+ * \arg nfsoft_flags
+ */
+
+/*! \fn void nfsoft_init(nfsoft_plan *plan, int N, int M)
+ * Creates a NFSOFT transform plan.
+ *
+ * \arg plan a pointer to a \ref nfsoft_plan structure
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags)
+ * Creates a NFSOFT transform plan.
+ *
+ * \arg plan a pointer to a \ref nfsoft_plan structure
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ * \arg nfsoft_flags the NFSOFT flags
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_init_guru(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa)
+ * Creates a  NFSOFT transform plan.
+ *
+ * \arg plan a pointer to a \ref nfsoft_plan structure
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ * \arg nfsoft_flags the NFSFT flags
+ * \arg nfft_flags the NFFT flags
+ * \arg fpt_kappa a parameter contolling the accuracy of the FPT
+ * \arg nfft_cutoff the NFFT cutoff parameter
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_trafo(nfsoft_plan *plan_nfsoft)
+ * Executes a NFSOFT, i.e. computes for \f$m = 0,\ldots,M-1\f$
+ * \f[
+ *   f(g_m) = \sum_{l=0}^B \sum_{m=-l}^l \sum_{n=-l}^l \hat{f}^{mn}_l
+ *            D_l^{mn}\left( \alpha_m,\beta_m,\gamma_m\right).
+ * \f]
+ *
+ * \arg plan_nfsoft the plan
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_adjoint(nfsoft_plan *plan_nfsoft)
+ * Executes an adjoint NFSOFT, i.e. computes for \f$l=0,\ldots,B;
+ * m,n=-l,\ldots,l\f$
+ * \f[
+ *   \hat{f}^{mn}_l = \sum_{m = 0}^{M-1} f(g_m)
+ *                    D_l^{mn}\left( \alpha_m,\beta_m,\gamma_m\right)
+ * \f]
+ *
+ * \arg plan_nfsoft the plan
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_finalize(nfsoft_plan *plan)
+ * Destroys a plan.
+ *
+ * \arg plan the plan to be destroyed
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_NORMALIZED
+ * By default, all computations are performed with respect to the
+ * unnormalized basis functions
+ * \f[
+ *   D_{mn}^l(\alpha,\beta,\gamma) = d^{mn}_{l}(\cos\beta)
+ *   \mathrm{e}^{-\mathrm{i} m \alpha}\mathrm{e}^{-\mathrm{i} n \gamma}.
+ * \f]
+ * If this flag is set, all computations are carried out using the \f$L_2\f$-
+ * normalized basis functions
+ * \f[
+ *  \tilde D_{mn}^l(\alpha,\beta,\gamma) = \sqrt{\frac{2l+1}{8\pi^2}}d^{mn}_{l}(\cos\beta)
+ *   \mathrm{e}^{-\mathrm{i} m \alpha}\mathrm{e}^{-\mathrm{i} n \gamma}
+ * \f]
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_USE_NDFT
+ * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
+ * \ref nfsoft_adjoint) will use internally the exact but usually slower direct
+ * NDFT algorithm in favor of fast but approximative NFFT algorithm.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_USE_DPT
+ * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
+ * \ref nfsoft_adjoint) will use internally the usually slower direct
+ * DPT algorithm in favor of the fast FPT algorithm.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_MALLOC_X
+ * If this flag is set, the init methods (see \ref nfsoft_init ,
+ * \ref nfsoft_init_advanced , and \ref nfsoft_init_guru) will allocate memory and the
+ * method \ref nfsoft_finalize will free the array \c x for you. Otherwise,
+ * you have to assure by yourself that \c x points to an array of
+ * proper size before excuting a transform and you are responsible for freeing
+ * the corresponding memory before program termination.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_REPRESENT
+ * If this flag is set, the Wigner-D functions will be normed
+ * such that they satisfy the representation property of
+ * the spherical harmonics as defined in the NFFT software package, i.e.
+ * for every rotation matrix \f$A$\f with Euler angles \f$\alpha, \beta, \gamma$\f
+ * and every unit vector \f$x$\f the Wigner-D functions will be normed such that
+ *
+ * \f[
+ *  \sum_{m=-l}^l D_{mn}^l(\alpha,\beta,\gamma) Y_m^l(x) = Y_n^l(A^{-1} x)
+ * \f]
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_MALLOC_F_HAT
+ * If this flag is set, the init methods (see \ref nfsoft_init ,
+ * \ref nfsoft_init_advanced , and \ref nfsoft_init_guru) will allocate memory and the
+ * method \ref nfsoft_finalize will free the array \c f_hat for you. Otherwise,
+ * you have to assure by yourself that \c f_hat points to an array of
+ * proper size before excuting a transform and you are responsible for freeing
+ * the corresponding memory before program termination.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_MALLOC_F
+ * If this flag is set, the init methods (see \ref nfsoft_init ,
+ * \ref nfsoft_init_advanced , and \ref nfsoft_init_guru) will allocate memory and the
+ * method \ref nfsoft_finalize will free the array \c f for you. Otherwise,
+ * you have to assure by yourself that \c f points to an array of
+ * proper size before excuting a transform and you are responsible for freeing
+ * the corresponding memory before program termination.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_PRESERVE_F_HAT
+ * If this flag is set, it is guaranteed that during an execution of
+ * \ref nfsoft_trafo the content of \c f_hat remains
+ * unchanged.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_PRESERVE_X
+ * If this flag is set, it is guaranteed that during an execution of
+ * \ref nfsoft_trafo or \ref nfsoft_adjoint
+ * the content of \c x remains
+ * unchanged.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_PRESERVE_F
+ * If this flag is set, it is guaranteed that during an execution of
+ * \ref ndsoft_adjoint or \ref nfsoft_adjoint the content of \c f remains
+ * unchanged.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_DESTROY_F_HAT
+ * If this flag is set, it is explicitely allowed that during an execution of
+ * \ref nfsoft_trafo the content of \c f_hat may be changed.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_DESTROY_X
+ * If this flag is set, it is explicitely allowed that during an execution of
+ * \ref nfsoft_trafo or \ref nfsoft_adjoint
+ * the content of \c x may be changed.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_DESTROY_F
+ * If this flag is set, it is explicitely allowed that during an execution of
+ * \ref ndsoft_adjoint or \ref nfsoft_adjoint the content of \c f may be changed.
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_NO_STABILIZATION
+ * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
+ * \ref nfsoft_adjoint) will use internally the FPT algorithm without the
+ * stabilization scheme and thus making bigger errors for higher
+ * bandwidth but becoming significantly faster
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_CHOOSE_DPT
+ * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
+ * \ref nfsoft_adjoint) will decide whether to use the DPT or
+ * FPT algorithm depending on which is faster for the chosen orders.
+ *
+ * not yet included in the checked-in version
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_SOFT
+ * If this flag is set, the fast NFSOFT algorithms (see \ref nfsoft_trafo,
+ * \ref nfsoft_adjoint) becomes a SOFT, i.e., we use equispaced nodes.
+ * The FFTW will be used instead of the NFFT.-->not included yet
+ *
+ * \see nfsoft_init
+ * \see nfsoft_init_advanced
+ * \see nfsoft_init_guru
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_ZERO_F_HAT
+ * If this flag is set, the transform \ref nfsoft_adjoint
+ * sets all unused entries in \c f_hat not corresponding to
+ * SO(3) Fourier coefficients to zero.
+ *
+ * \author Antje Vollrath
+ */
+
+/*! \def NFSOFT_INDEX(m,n,l,B)
+ * These macro expands to the index \f$i\f$
+ * corresponding to the SO(3) Fourier coefficient
+ * \f$f_hat^{mn}_l\f$ for \f$l=0,...,B\f$, \f$m,n =-l,...,l\f$ with
+ */
+
+/*! \def NFSOFT_F_HAT_SIZE(B)
+ * This macro expands to the logical size of a SO(3) Fourier coefficients
+ * array for a bandwidth B.
+ */
+
+/** @}
+ */

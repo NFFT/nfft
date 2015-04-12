@@ -1,0 +1,9 @@
+This directory contains third party code that is needed to build NFFT3. This 
+directory does, however, not contain the FFTW3 library which is also needed to 
+build NFFT3. It is available from http://www.fftw.org as a free download. All 
+code in subpackages is copyright of the respective authors as stated in each
+package. Currently, the following packages are included:
+
+CSTRIPACK - A C-version of Robert J. Renka's the STRIPACK Fortran package to 
+  compute Delaunay triangulations and Voronoi partitions on the unit sphere.
+

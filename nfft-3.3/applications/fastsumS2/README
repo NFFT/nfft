@@ -1,0 +1,191 @@
+fastsumS2 - Fast summation of radial functions on the sphere
+
+  Introduction
+  ------------
+  This application deals with approximations to sums of the form
+
+            L-1
+             -
+  f(xi_d) =  >  b_l  K(eta_l - xi_d)    (d=0,...,D-1)                    (1)
+             -
+            l=0
+
+  where xi_d, eta_l are arbitrary nodes on the sphere S^2 given in spherical
+  coordinates (theta,phi) from [0,pi] x [0,2pi), b_l are complex coefficients
+  and K: [-1,1] -> C is a kernel function. Such kernels include the Abel-Poisson
+  and singularity kernels as well as locally supported kernels and the spherical
+  Gaussian kernel. In the following, we will assume that the reader is familiar
+  with the general procedure. A detailed description can be found in [1].
+
+  The fast approximate algorithm usees the fast spherical Fourier transform for 
+  arbitrary nodes (NFSFT). For more information on this algorithm and notation 
+  in detail, we refer to [1] and [2]. Alternatively, one can replace the 
+  individual steps of the NFSFT algirithm by exact but asymptotically slower 
+  versions or use a direct evaluation and summation of the kernel functions in 
+  (1).
+
+  Directory contents
+  ------------------
+  fastsumS2.c     Example C program
+  example.in      Example input for fastsum.c
+  example.out     Example output of fastsum.c on input example.in
+  README          This file
+  Makefile.am     Automake template
+  fastsumS2.m     MATLAB example file that re-produces figures and tables from 
+                  [1] using fastsumS2.c
+  readTestcase.m  MATLAB function that reads output of fastsumS2.c
+  writeTestcase.m MATLAB function that writes input for fastsumS2.c
+
+  fastsumS2.c
+  -----------
+  The C program fastsumS2.c computes approximations to the sums in (1) using the
+  aforementioned different algorithms. It reads input from the standard input 
+  stream and writes output to the standard output stream. The input consists of 
+  one ore more testcases. Each testcase specifies
+  - the algorithm(s) and corresponding parameters,
+  - the kernel function and corresponding parameters,
+  - the cut-off degree(s) M for the approximation to the kernel function,
+  - the numbers D and L of nodes.
+  The D and L nodes xi_d and eta_l in (1) are chosen uniformly randomly 
+  distributed over the sphere S^2. The coefficients b_l in (1) are chosen 
+  uniformly randomly distributed in the complex square [-1/2,1/2] x i[-1/2,1/2].
+  For more information, see the example input file example.in .
+
+  Each parameter is specified by an assignment of the form 'name=value'. Each
+  assignment is seperated from the others by at least one whitespace. All
+  parameter values are integer or floating point numbers. There are obligatory
+  parameters which have to be specified in every testcase and extra 
+  parameters which are only necessary if the parameters on which each of them 
+  depends take certain values. The parameters must be specified in the order as 
+  above. Every parameter has a range of admissible values. The behaviour of the 
+  program for illegal values of parameters is unspecified. The first parameter 
+  specification is 'testcases=...' which specifies the number of testcases to 
+  follow. Each testcase has the following parameters with extra parameters 
+  marked by an asterisk:
+  - nfsft          If set to 1, the NFSFT algorithm is used. If set to 0, the 
+                   direct NDSFT algorithm is used.
+  * nfft           If set to 1, the NFSFT algorithm will internally use the NFFT
+                   algorithm. If set to 0, the NFSFT algorithm will instead use 
+                   the direct NDSFT algorithm. Extra parameter. Specified only 
+                   if nfsft=1.
+  * cutoff         An integer > 0 specifying the NFFT cut-off parameter. Extra
+                   parameter. Specified only if nfft=1.
+  * fpt            If set to 1, the NFSFT algorithm will internally use the fast 
+                   polynomial transform algorithm (FPT). If set to 0, the NFSFT 
+                   algorithm will instead use the direct discrete polynomial 
+                   transform algorithm (direct DPT). Extra parameter. Specified 
+                   only if nfsft=1.
+  * threshold      A floating point number > 0 specifying the threshold 
+                   parameter for the FPT algorithm. Extra parameter. Specified 
+                   only if fpt=1.
+  - kernel         An integer from {0,1,2,3} specifying the type of kernel 
+                   function to be used. The different kernel functions available 
+                   are
+                     + the Abel-Poisson kernel Q_h with real parameter h from 
+                       (0,1),
+                     + the singularity kernel S_h with real parameter h from 
+                       (0,1),
+                     + the locally supported kernel L_h,lambda real parameter h 
+                       from (-1,1) and integer parameter lambda >= 0.
+                     + the spherical Gaussian kernel G_sigma with real parameter 
+                       sigma > 0.
+  - parameter_sets An integer > 0 specifying the number of parameter sets to
+                   follow for the chosen type of kernel function. In a testcase, 
+                   the specified type of kernel function can be used with more 
+                   than one set of distinct parameters to yield different kernel 
+                   functions.
+  - parameters     An integer > 0 specifying the number of parameters that 
+                   specifies each individual kernel function (one for 
+                   Abel-Poisson, singularity and spherical Gaussian kernel, two 
+                   for the locally supported kernel). The parameters' values are 
+                   given afterwards a list floating point numbers order as in 
+                   the description of the kernel functions above and grouped by 
+                   kernel function instance.
+  - bandwidths     The number of different cut-off degrees M to be used in the
+                   approximation. There follows a list of positive integers 
+                   specifying the distinct cut-off degrees.
+  - node_sets      An integer > 0 specifying the number of sets of nodes to 
+                   follow
+  - L              An integer > 0 specifying the number of source nodes.
+  - D              An integer > 0 specifying the number of target nodes.
+  - compare        If set to 1, the result of the approximate algorithm is 
+                   compared to the result of the direct evaluation. If set to 0, 
+                   no comparison is performed.
+  * precomputed    If set to 1, all values in the sum (1) are precomputed and 
+                   the time measurement for the direct evaluation only measures 
+                   the time needed to sum up these values. Extra parameter. 
+                   Specified only if compare=1.
+  * repetitions    An integer > 0 specifying the number of times the summation
+                   process is repeated. Time emasurements are averaged over all 
+                   repetitions. This can be used to compensate for inaccuracies 
+                   in the time measurements for very small computation times.
+
+  The output of the program containes all the input but without the parameter
+  names and, in addition, the results of time and error measurements after each
+  testcase. See the file example.out for an example output on input the contents
+  of example.in.
+
+  To each combination of kernel function, cut-off degree, and node set
+  corresponds a single run of the summation algorithm and therefore a set of
+  six resulting values grouped together. These are
+  - the time needed for direct evaluation of the sums (1),
+  - the time needed for direct evaluation of the sums (1) with the values of
+    the kernel functions precomputed,
+  - the time needed by the fast summation algorithm using the direct NDSFT
+    algorithm,
+  - the time needed by the fast summation algorithm using the NFSFT algorithm,
+  - the error E_infty for the fast summation algorithm using the direct NDSFT
+    algorithm,
+  - the error E_infty for the fast summation algorithm using the NFSFT
+    algorithm.
+
+  Here, the error E_infty is defined as ||f - f_M||_infty / ||b||_1 with the
+  infinity norm ||.||_infty, the one norm ||.||_1, the vector f of function
+  values computed by direct evaluation of the sums in (1), f_M the vector
+  computed by the fast summation algorithm, using either the direct NDSFT or
+  the NFSFT algorithm, and the vector b containing the coefficients b_l from
+  (1).
+  Depending on the parameter combination, some of these (always positive) values 
+  might be undefined. This indicated by setting these values to -1.0.
+  The blocks of resulting values for a single run are grouped for each testcase
+  first by the kernel parameters, second by the node sets and third by the
+  cut-off bandwidths ordered as in the input.
+
+  fastsumS2.m
+  -----------
+  This MATLAB function demonstrates the fast summation algorithm using the C
+  program fastsumS2.c . It allows for selecting different testcases to reproduce
+  the figures and tables from [1]. On choosing a testcase, input for the C
+  program fastsumS2.c is generated and written to the file data.in ,
+  fastsumS2.c is called with the generated input writing the result to the file
+  data.out where it is read again into MATLAB. In MATLAB, type "help fatsumS2"
+  for more information.
+
+  readTestcase.m
+  --------------
+  This MATLAB function is used by fatsumS2.m and allows for reading testcase
+  specifications and results from a file. In MATLAB, type "help readTestcase"
+  for more information.
+
+  writeTestcase.m
+  ---------------
+  This MATLAB function is used by fatsumS2.m and allows for writing testcase
+  specifications to a file. In MATLAB, type "help readTestcase" for more
+  information.
+
+  References
+  ----------
+  [1] Keiner, J., Kunis, S. and Potts, D., Fast summation of radial functions
+      on the sphere, Computing 78, 1-15 , 2006
+
+  [2] Kunis, S. and Potts, D., Fast spherical Fourier algorithms, J. Comput.
+      Appl. Math. 161, 75-98, 2003
+
+
+  Feedback
+  --------
+  If you have comments, questions, or suggestions regarding NFFT, don't
+  hesitate to contact us. For more information, news and updates see the NFFT
+  website at
+
+                 http://www.tu-chemnitz.de/~potts/nfft/

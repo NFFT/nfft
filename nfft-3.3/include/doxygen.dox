@@ -1,0 +1,29 @@
+/*! \file nfft3.h 
+ *  Header file for NFFT3 
+ */
+
+/*! \fn extern void *nfft_malloc(size_t n)
+ *  Our \c malloc function
+ *  \param n The number of bytes to allocate
+ */
+
+/*! \fn extern void nfft_free(void *p)
+ *  Our \c free function
+ *  \param p Pointer to the memory region to free
+ */
+
+/*! \typedef typedef void *(*nfft_malloc_type_function) (size_t n)
+ *  A \c malloc type function
+ */
+
+/*! \typedef typedef void  (*nfft_free_type_function) (void *p)
+ *  A \c free type function
+ */
+
+/*! \var extern nfft_malloc_type_function nfft_malloc_hook
+ *  Hook for \c nfft_malloc
+ */
+
+/*! \var extern nfft_free_type_function nfft_free_hook
+ *  Hook for \c nfft_free
+ */

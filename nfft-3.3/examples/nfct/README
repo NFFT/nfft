@@ -1,0 +1,17 @@
+Examples to the nonequispaced fast cosine transform
+
+Author
+
+  Stefan Kunis <kunis@mathematik.tu-chemnitz.de>
+  Steffen Klatt <heracleum.mantegazziani@web.de>
+
+List of files and purpose
+
+  README            this file
+  simple_test.c     introductory example how to use the nfct
+
+References
+
+  M. Fenn and D. Potts.
+  Fast summation based on fast trigonometric transforms at nonequispaced nodes.
+  Numer. Linear Algebra Appl., 12:161--169, 2005.

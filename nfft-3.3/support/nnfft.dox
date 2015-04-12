@@ -1,0 +1,176 @@
+/*
+ * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/** @defgroup nnfft NNFFT - Nonequispaced in time and frequency FFT
+ * Direct and fast computation of the discrete nonequispaced in time and
+ * frequency Fourier transform.
+ * @{
+ */
+
+/*! \struct nnfft_plan
+ * NNFFT transform plan 
+ */
+
+/*! \fn nnfft_init(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N)
+ * Creates a transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d The dimension
+ * \arg N_total The number of nodes \f$v\f$
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg N The bandwidth \f$N\f$
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_init_guru(nnfft_plan *ths_plan, int d, int N_total, int M_total, int *N, int *N1, int m, unsigned nnfft_flags)
+ * Creates a transform plan.
+ *
+ * \arg ths_plan The plan for the transform
+ * \arg d The dimension
+ * \arg N_total The number of nodes \f$v\f$
+ * \arg M_total The number of nodes \f$x\f$
+ * \arg N The bandwidth \f$N\f$
+ * \arg N1 The oversampled bandwidth \f$N\f$
+ * \arg m The cut-off parameter
+ * \arg nnfft_flags The flags
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_direct_trafo(nnfft_plan *ths_plan)
+ * Executes a direct NNDFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi
+ *            \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_direct_adjoint(nnfft_plan *ths_plan)
+ * Executes a direct adjoint NNDFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{total}-1} f(x_j) {\rm e}^{2 \pi
+ *                  \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_trafo(nnfft_plan *ths_plan)
+ * Executes a NNFFT, i.e. computes for \f$j=0,...,M_{total}-1\f$
+ * \f[
+ *   f(x_j) = \sum_{k = 0}^{N_{total}-1} \hat{f}(v_k) {\rm e}^{-2 \pi
+ *            \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_adjoint(nnfft_plan *ths_plan)
+ * Executes a adjoint NNFFT, i.e. computes for \f$k=0,...,N_{total}-1\f$
+ * \f[
+ *   \hat{f}(v_k) = \sum_{j = 0}^{M_{tota}l-1} f(x_j) {\rm e}^{2 \pi
+ *                  \mbox{\rm\scriptsize i} v_k x_j \odot N}
+ * \f]
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \fn void nnfft_precompute_lin_psi(nnfft_plan *ths_plan)
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes equally spaced values of the window function psi
+ *
+ * if PRE_LIN_PSI is set the application program has to call this routine
+ */
+
+/*! \fn void nnfft_precompute_psi(nnfft_plan *ths_plan)
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the window function psi in a tensor product form
+ *
+ * if PRE_PSI is set the application program has to call this routine after
+ * setting the nodes x
+ */
+
+/*! \fn void nnfft_precompute_full_psi(nnfft_plan *ths_plan)
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the window function psi and their indices in
+ * non tensor product form
+ *
+ * if PRE_FULL_PSI is set the application program has to call this routine
+ * after setting the nodes x
+ */
+
+/*! \fn void nnfft_precompute_phi_hut(nnfft_plan *ths_plan)
+ * Precomputation for a transform plan.
+ *
+ * \arg ths_plan The pointer to a nfft plan
+ *
+ * \author Tobias Knopp
+ *
+ * precomputes the values of the fourier transformed window function, i.e. phi_hut
+ *
+ * if PRE_PHI_HUT is set the application program has to call this routine
+ * after setting the nodes v
+ */
+
+/*! \fn void nnfft_finalize(nnfft_plan *ths_plan)
+ * Destroys a plan.
+ *
+ * \arg ths_plan The plan
+ *
+ * \author Tobias Knopp
+ */
+
+/*! \def MALLOC_V
+ * If this flag is set, (de)allocation of the frequency node vector is done.
+ *
+ * \see nnfft_init
+ * \see nnfft_init_guru
+ * \see nnfft_finalize
+ * \author Tobias Knopp
+ */
+
+/** @}
+ */

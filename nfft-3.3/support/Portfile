@@ -1,0 +1,59 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           github 1.0
+
+github.setup        NFFT nfft 3.3.0.alpha4
+github.tarball_from releases
+
+name                nfft-3
+categories          math
+license             GPL-2+
+platforms           darwin
+maintainers         nfft.org:jens
+homepage            http://www.nfft.org/
+distname            ${version}
+worksrcdir          nfft-${version}
+description         Fast C routines to compute the Non-equispaced Discrete Fourier Transform
+long_description    NFFT3 is a software library written in C for computing nonequispaced fast Fourier \
+                    and related transformations. In detail, NFFT3 implements \
+                    1) The nonequispaced fast Fourier transform (NFFT) \
+                       - the forward transform (NFFT) \
+                       - the adjoint transform (adjoint NFFT) \
+                    2) Generalisations of the NFFT \
+                       - to arbitrary knots in time and frequency domain (NNFFT) \
+                       - to the sphere S^2 (NFSFT) \
+                       - to the hyperbolic cross (NSFFT) \
+                       - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST) \
+                       - to the rotation group (NFSOFT) \
+                     3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE \
+                     4) Applications in \
+                        - medical imaging \
+                          (i) magnetic resonance imaging \
+                          (ii) computerised tomography \
+                        - summation schemes \
+                          (i) fast Gauss transform (FGT) \
+                          (ii) singular kernels \
+                          (iii) zonal kernels \
+                        - polar FFT, discrete Radon transform, ridgelet transform
+homepage            http://www.nfft.org
+master_sites        https://github.com/NFFT/nfft/archive/
+checksums           rmd160 619d92a96e3037b918de0da87da78acf5fe35ca3 \
+                    sha256 dd61562cca1345871aa847b70ecc256bd65c3c2d88476a14a17fea80285c3034
+depends_lib         port:fftw-3
+use_autoreconf      yes
+configure.args      --enable-shared --enable-static --enable-all
+use_parallel_build  yes
+
+variant gaussian description {compile NFFT with Gaussian window} conflicts bspline sinc {
+    configure.args-append   --with-window=gaussian
+}
+
+variant bspline description {compile NFFT with B-Spline window} conflicts gaussian sinc {
+    configure.args-append   --with-window=bspline
+}
+
+variant sinc description {compile NFFT with Sinc window} conflicts gaussian bspline {
+    configure.args-append   --with-window=sinc
+}

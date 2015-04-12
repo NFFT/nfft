@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* $Id: doxygen.c 3475 2010-04-11 14:58:03Z keiner $ */
+
+/** @defgroup solver Solver - Inverse transforms
+ * @{
+ */
+
+/*! \def LANDWEBER
+ * If this flag is set, the Landweber (Richardson) iteration is used to compute
+ * an inverse transform.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def STEEPEST_DESCENT
+ * If this flag is set, the method of steepest descent (gradient) is used to
+ * compute an inverse transform.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def CGNR
+ * If this flag is set, the conjugate gradient method for the normal equation
+ * of first kind is used to compute an inverse transform.
+ * Each iterate minimises the residual in the current Krylov subspace.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def CGNE
+ * If this flag is set, the conjugate gradient method for the normal equation
+ * of second kind is used to compute an inverse transform.
+ * Each iterate minimises the error in the current Krylov subspace.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def NORMS_FOR_LANDWEBER
+ * If this flag is set, the Landweber iteration updates the member
+ * dot_r_iter.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def PRECOMPUTE_WEIGHT
+ * If this flag is set, the samples are weighted, eg to cope with varying
+ * sampling density.
+ *
+ * \author Stefan Kunis
+ */
+
+/*! \def PRECOMPUTE_DAMP
+ * If this flag is set, the Fourier coefficients are damped, eg to favour
+ * fast decaying coefficients.
+ *
+ * \author Stefan Kunis
+ */
+
+/** @}
+ */
