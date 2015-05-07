@@ -312,7 +312,7 @@ static void measure_time_nnfft_1d(void)
 int main(void)
 {
   system("clear");
-  printf("1) computing a one dimensional nndft, nnfft SUSE\n\n");
+  printf("1) computing a one dimensional nndft, nnfft\n\n");
   simple_test_nnfft_1d();
 
   /*getc(stdin);
