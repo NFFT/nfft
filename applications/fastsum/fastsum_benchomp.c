@@ -27,6 +27,16 @@
 
 #define NREPEAT 5
 
+#if defined(_WIN32) || defined(_WIN64)
+const char *CMD_CREATEDATASET = "fastsum_benchomp_createdataset.exe";
+const char *CMD_DETAIL_SINGLE = "fastsum_benchomp_detail_single.exe";
+const char *CMD_DETAIL_THREADS = "fastsum_benchomp_detail_threads.exe";
+#else
+const char *CMD_CREATEDATASET = "./fastsum_benchomp_createdataset";
+const char *CMD_DETAIL_SINGLE = "./fastsum_benchomp_detail_single";
+const char *CMD_DETAIL_THREADS = "./fastsum_benchomp_detail_threads";
+#endif
+
 static FILE* file_out_tex = NULL;
 
 int get_nthreads_array(int **arr)
@@ -87,8 +97,8 @@ void run_test_create(int d, int L, int M)
   char cmd[1025];
 
   snprintf(cmd, 1024,
-      "./fastsum_benchomp_createdataset %d %d %d > fastsum_benchomp_test.data",
-      d, L, M);
+      "%s %d %d %d > fastsum_benchomp_test.data",
+      CMD_CREATEDATASET, d, L, M);
   fprintf(stderr, "%s\n", cmd);
   check_result_value(system(cmd), 0, "createdataset");
 }
@@ -149,12 +159,12 @@ void run_test(s_resval *res, int nrepeat, int n, int m, int p,
 
   if (nthreads < 2)
     snprintf(cmd, 1024,
-        "./fastsum_benchomp_detail_single %d %d %d %s " __FR__ " " __FR__ " " __FR__ " < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
-        n, m, p, kernel_name, c, eps_I, eps_B);
+        "%s %d %d %d %s " __FR__ " " __FR__ " " __FR__ " < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
+        CMD_DETAIL_SINGLE, n, m, p, kernel_name, c, eps_I, eps_B);
   else
     snprintf(cmd, 1024,
-        "./fastsum_benchomp_detail_threads %d %d %d %s " __FR__ " " __FR__ " " __FR__ " %d < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
-        n, m, p, kernel_name, c, eps_I, eps_B, nthreads);
+        "%s %d %d %d %s " __FR__ " " __FR__ " " __FR__ " %d < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
+        CMD_DETAIL_THREADS, n, m, p, kernel_name, c, eps_I, eps_B, nthreads);
   fprintf(stderr, "%s\n", cmd);
   check_result_value(system(cmd), 0, cmd);
 
@@ -398,7 +408,9 @@ void nfft_adjoint_print_output_histo_DFBRT(FILE *out, s_testset testset)
   int i, size = testset.nresults;
   char hostname[1025];
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");
@@ -461,7 +473,9 @@ void nfft_trafo_print_output_histo_DFBRT(FILE *out, s_testset testset)
   int i, size = testset.nresults;
   char hostname[1025];
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");
@@ -524,7 +538,9 @@ void fastsum_print_output_histo_PreRfNfT(FILE *out, s_testset testset)
   char hostname[1025];
   char plottitle[1025];
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   fastsum_get_plot_title_minus_indep(plottitle, 1024, hostname, testset.param,
@@ -592,7 +608,9 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
   unsigned int diff_mask = fastsum_determine_different_parameters(testsets,
       ntestsets);
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   fastsum_get_plot_title_minus_indep(plottitle, 1024, hostname,

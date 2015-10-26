@@ -21,7 +21,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.3.0],[mail@nfft.org])
+AC_INIT([NFFT],[3.3.1-alpha],[mail@nfft.org])
 
 # revision id from svn
 AC_REVISION([$Id$])
@@ -443,6 +443,7 @@ AC_CHECK_FUNCS([memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
+AC_CHECK_FUNCS([gethostname])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])

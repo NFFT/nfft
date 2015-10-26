@@ -27,6 +27,16 @@
 
 #define NREPEAT 5
 
+#if defined(_WIN32) || defined(_WIN64)
+const char *CMD_CREATEDATASET = "nfft_benchomp_createdataset.exe";
+const char *CMD_DETAIL_SINGLE = "nfft_benchomp_detail_single.exe";
+const char *CMD_DETAIL_THREADS = "nfft_benchomp_detail_threads.exe";
+#else
+const char *CMD_CREATEDATASET = "./nfft_benchomp_createdataset";
+const char *CMD_DETAIL_SINGLE = "./nfft_benchomp_detail_single";
+const char *CMD_DETAIL_THREADS = "./nfft_benchomp_detail_threads";
+#endif
+
 static FILE* file_out_tex = NULL;
 
 int get_nthreads_array(int **arr)
@@ -87,13 +97,13 @@ void run_test_create(int d, int trafo_adjoint, int N, int M, double sigma)
   char cmd[1025];
 
   if (d==1)
-    snprintf(cmd, 1024, "./nfft_benchomp_createdataset %d %d %d %d %lg > nfft_benchomp_test.data", d, trafo_adjoint, N, M, sigma);
+    snprintf(cmd, 1024, "%s %d %d %d %d %lg > nfft_benchomp_test.data", CMD_CREATEDATASET, d, trafo_adjoint, N, M, sigma);
   else if (d==2)  
-    snprintf(cmd, 1024, "./nfft_benchomp_createdataset %d %d %d %d %d %lg > nfft_benchomp_test.data", d, trafo_adjoint, N, N, M, sigma);
+    snprintf(cmd, 1024, "%s %d %d %d %d %d %lg > nfft_benchomp_test.data", CMD_CREATEDATASET, d, trafo_adjoint, N, N, M, sigma);
   else if (d==3)  
-    snprintf(cmd, 1024, "./nfft_benchomp_createdataset %d %d %d %d %d %d %lg > nfft_benchomp_test.data", d, trafo_adjoint, N, N, N, M, sigma);
+    snprintf(cmd, 1024, "%s %d %d %d %d %d %d %lg > nfft_benchomp_test.data", CMD_CREATEDATASET, d, trafo_adjoint, N, N, N, M, sigma);
   else if (d==4)  
-    snprintf(cmd, 1024, "./nfft_benchomp_createdataset %d %d %d %d %d %d %d %lg > nfft_benchomp_test.data", d, trafo_adjoint, N, N, N, N, M, sigma);
+    snprintf(cmd, 1024, "%s %d %d %d %d %d %d %d %lg > nfft_benchomp_test.data", CMD_CREATEDATASET, d, trafo_adjoint, N, N, N, N, M, sigma);
   else
     exit(1);
   fprintf(stderr, "%s\n", cmd);
@@ -149,9 +159,9 @@ void run_test(s_resval *res, int nrepeat, int m, int flags, int nthreads)
   }
 
   if (nthreads < 2)
-    snprintf(cmd, 1024, "./nfft_benchomp_detail_single %d %d < nfft_benchomp_test.data > nfft_benchomp_test.out", m, flags);
+    snprintf(cmd, 1024, "%s %d %d < nfft_benchomp_test.data > nfft_benchomp_test.out", CMD_DETAIL_SINGLE, m, flags);
   else
-    snprintf(cmd, 1024, "./nfft_benchomp_detail_threads %d %d %d < nfft_benchomp_test.data > nfft_benchomp_test.out", m, flags, nthreads);
+    snprintf(cmd, 1024, "%s %d %d %d < nfft_benchomp_test.data > nfft_benchomp_test.out", CMD_DETAIL_THREADS, m, flags, nthreads);
   fprintf(stderr, "%s\n", cmd);
   check_result_value(system(cmd), 0, cmd);
 
@@ -332,7 +342,9 @@ void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestse
   char plottitle[1025];
   unsigned int diff_mask = determine_different_parameters(testsets, ntestsets);
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   get_plot_title(plottitle, 1024, hostname, testsets[0].param, diff_mask | MASK_FLAGS_SORT);
@@ -396,7 +408,9 @@ void print_output_histo_DFBRT(FILE *out, s_testset testset)
   int i, size = testset.nresults;
   char hostname[1025];
 
+#ifdef HAVE_GETHOSTNAME
   if (gethostname(hostname, 1024) != 0)
+#endif
     strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");

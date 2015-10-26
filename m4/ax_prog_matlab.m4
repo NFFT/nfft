@@ -113,8 +113,9 @@ AC_DEFUN([AX_PROG_MATLAB],
           [$matlab_bin_dir$PATH_SEPARATOR$PATH$PATH_SEPARATOR$matlab_bin_dir])
         if test ! "x${matlab_prog_mexext}" = "xno"; then
           AC_MSG_CHECKING([for mex file extension])
-          if test "x${host_os}" = "xmingw32"; then
-            matlab_mexext=mexw32
+	  # Calling mexext.bat from mingw may fail
+          if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+            matlab_mexext=unknown
           else
             matlab_mexext=`${matlab_prog_mexext}`
             matlab_mexext=`echo ${matlab_mexext} | tr -d '\r\n'`
@@ -133,13 +134,13 @@ AC_DEFUN([AX_PROG_MATLAB],
           *powerpc*darwin*) matlab_arch_test="mac mac64";;
           *86*darwin*) matlab_arch_test="maci maci64";; 
           *solaris*) matlab_arch_test="sol sol64";;
-          *cygwin*) matlab_arch_test="win32 win64";;
-          *mingw*) matlab_arch_test="win32 win64";;
+          *cygwin*) matlab_arch_test="win64 win32";;
+          *mingw*) matlab_arch_test="win64 win32";;
           *) AC_MSG_ERROR([Cannot guess Matlab architecture based on host type.]);;
         esac
         AC_MSG_CHECKING([for architecture])
-        for matlab_arch in "$matlab_arch_test"; do
-          if test -d "${matlab_bin_dir}/${matlab_arch}" -a -f "${matlab_bin_dir}/${matlab_arch}/MATLAB"; then
+        for matlab_arch in $matlab_arch_test; do
+          if test -d "${matlab_bin_dir}/${matlab_arch}" -a -f "${matlab_bin_dir}/${matlab_arch}/MATLAB$ac_exeext"; then
             AC_MSG_RESULT([${matlab_arch}])
             break
           fi
@@ -242,67 +243,73 @@ AC_DEFUN([AX_PROG_MATLAB],
     saved_LIBS="$LIBS"
     saved_LDFLAGS="$LDFLAGS"
 
-    matlab_fftw3_LIBS="-lfftw3"
-    LIBS="-lfftw3 $LIBS"
-    LDFLAGS="-L$matlab_fftw3_lib_dir ${matlab_LDFLAGS} $LDFLAGS"
-    AC_MSG_CHECKING([for Matlab fftw3 library])
-    AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
-    AC_MSG_RESULT([$ax_matlab_lib_fftw3])
-
-    if test "x$ax_matlab_lib_fftw3" = "xno"; then
-      matlab_fftw3_LIBS="-lfftw3 -lm"
-      LIBS="$matlab_fftw3_LIBS $saved_LIBS"
-      AC_MSG_CHECKING([for Matlab fftw3 library (-lm set)])
+    for matlab_fftw3_lib_name in mwfftw3 fftw3; do
+      matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}"
+      LIBS="-l${matlab_fftw3_lib_name} $LIBS"
+      LDFLAGS="-L$matlab_fftw3_lib_dir ${matlab_LDFLAGS} $LDFLAGS"
+      AC_MSG_CHECKING([for Matlab fftw3 library])
       AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
       AC_MSG_RESULT([$ax_matlab_lib_fftw3])
-    fi
 
-    if test "x$ax_matlab_lib_fftw3" = "xno"; then
-      matlab_fftw3_LIBS="-lfftw3 -pthread -lm"
-      LIBS="$matlab_fftw3_LIBS $saved_LIBS"
-      AC_MSG_CHECKING([for Matlab fftw3 library (-lpthread -lm set)])
-      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
-      AC_MSG_RESULT([$ax_matlab_lib_fftw3])
-    fi
-
-    if test "x$ax_matlab_lib_fftw3" = "xno"; then
-      AC_MSG_ERROR([You don't seem to have installed installed the FFTW 3 libray for the NFFT Matlab interface.])
-    fi
-
-    if test "x$matlab_threads" = "xyes"; then
-      LIBS="$matlab_fftw3_LIBS $saved_LIBS"
-      AC_MSG_CHECKING([for Matlab combined fftw3 library with thread support])
-      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_matlab_lib_fftw3_threads=yes],[ax_matlab_lib_fftw3_threads=no])
-      AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
-
-      if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
-        ax_matlab_lib_fftw3_threads="yes"
-        LIBS="$matlab_fftw3_LIBS -lpthread -lm $saved_LIBS"
-        AC_MSG_CHECKING([for Matlab combined fftw3 library with thread support (-lpthread -lm set)])
-        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="$matlab_fftw3_LIBS -lpthread -lm"],[ax_matlab_lib_fftw3_threads=no])
-        AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+      if test "x$ax_matlab_lib_fftw3" = "xno"; then
+        matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name} -lm"
+        LIBS="$matlab_fftw3_LIBS $saved_LIBS"
+        AC_MSG_CHECKING([for Matlab fftw3 library (-lm set)])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
+        AC_MSG_RESULT([$ax_matlab_lib_fftw3])
       fi
 
-      if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
-        ax_matlab_lib_fftw3_threads="yes"
-        LIBS="-lfftw3_threads $matlab_fftw3_LIBS $saved_LIBS"
-        AC_MSG_CHECKING([for Matlab fftw3 library with thread support])
-        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-lfftw3_threads $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
-        AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+      if test "x$ax_matlab_lib_fftw3" = "xno"; then
+        matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name} -pthread -lm"
+        LIBS="$matlab_fftw3_LIBS $saved_LIBS"
+        AC_MSG_CHECKING([for Matlab fftw3 library (-lpthread -lm set)])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
+        AC_MSG_RESULT([$ax_matlab_lib_fftw3])
       fi
 
-      if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
-        ax_matlab_lib_fftw3_threads="yes"
-        LIBS="-lfftw3_threads -lpthread $matlab_fftw3_LIBS $saved_LIBS"
-        AC_MSG_CHECKING([for Matlab fftw3 library with thread support (-lpthread set)])
-        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-lfftw3_threads -lpthread $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
-        AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
-      fi
-
-      if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+      if test "x$ax_matlab_lib_fftw3" = "xno"; then
         AC_MSG_ERROR([You don't seem to have installed the FFTW 3 libray for the NFFT Matlab interface.])
       fi
-    fi
+
+      if test "x$matlab_threads" = "xyes"; then
+        LIBS="$matlab_fftw3_LIBS $saved_LIBS"
+        AC_MSG_CHECKING([for Matlab combined fftw3 library with thread support])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [ax_matlab_lib_fftw3_threads=yes],[ax_matlab_lib_fftw3_threads=no])
+        AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+
+        if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+          ax_matlab_lib_fftw3_threads="yes"
+          LIBS="$matlab_fftw3_LIBS -lpthread -lm $saved_LIBS"
+          AC_MSG_CHECKING([for Matlab combined fftw3 library with thread support (-lpthread -lm set)])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="$matlab_fftw3_LIBS -lpthread -lm"],[ax_matlab_lib_fftw3_threads=no])
+          AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+        fi
+
+        if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+          ax_matlab_lib_fftw3_threads="yes"
+          LIBS="-l${matlab_fftw3_lib_name}_threads $matlab_fftw3_LIBS $saved_LIBS"
+          AC_MSG_CHECKING([for Matlab fftw3 library with thread support])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
+          AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+        fi
+
+        if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+          ax_matlab_lib_fftw3_threads="yes"
+          LIBS="-l${matlab_fftw3_lib_name}_threads -lpthread $matlab_fftw3_LIBS $saved_LIBS"
+          AC_MSG_CHECKING([for Matlab fftw3 library with thread support (-lpthread set)])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads -lpthread $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
+          AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
+        fi
+
+        if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+          AC_MSG_ERROR([You don't seem to have installed the FFTW 3 libray for the NFFT Matlab interface.])
+        fi
+      fi
+
+      if test "x$ax_matlab_lib_fftw3" != "xno"; then
+        break
+      fi
+    done
 
     LIBS="$saved_LIBS"
     LDFLAGS="$saved_LDFLAGS"
