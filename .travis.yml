@@ -1,0 +1,18 @@
+language: c
+compiler: gcc
+os: linux
+
+notifications:
+  email: false
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -q libfftw3-dev 
+
+# install:
+
+script: ./bootstrap.sh && ./configure --enable-all && make && make check
+
+after_failure: "cat config.log"
+
+
