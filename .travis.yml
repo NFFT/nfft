@@ -2,19 +2,18 @@ language: c
 compiler: gcc
 os: linux
 
-notifications:
-  email: true
+## turn off email notifications
+# notifications:
+#   email: false
 
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -q libfftw3-dev
-  - murks 
 
 # install:
 
-script: ./bootstrap.sh && ./configure --enable-all && make && make check
+script: ./bootstrap.sh && ./configure --enable-all --enable-openmp && make && make check
 
+## print config.log for debugging
 after_failure: "cat config.log"
-
-
 
