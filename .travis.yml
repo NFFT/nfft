@@ -5,9 +5,9 @@ os: linux
 # Turn off sudo to run on container based infrastructure
 sudo: false
 
-## turn off email notifications
-# notifications:
-#   email: false
+# turn off email notifications
+ notifications:
+   email: false
 
 addons:
   apt:
@@ -19,14 +19,14 @@ addons:
     - libcunit1-dev
 
 env:
-  - WINDOW=kaiserbessel
-  - WINDOW=gaussian
-  - WINDOW=bspline
-  - WINDOW=sinc
+  - NFFT_WINDOW=kaiserbessel
+  - NFFT_WINDOW=gaussian
+  - NFFT_WINDOW=bspline
+  - NFFT_WINDOW=sinc
 
-# install:
-script: ./bootstrap.sh && ./configure --with-window $WINDOW --enable-all --enable-openmp && make && make check
+# Compile, link, and run tests.
+script: ./bootstrap.sh && ./configure --with-window $NFFT_WINDOW --enable-all --enable-openmp && make && make check
 
-## print config.log for debugging
+## Print config.log for debugging.
 after_failure: "cat config.log"
 
