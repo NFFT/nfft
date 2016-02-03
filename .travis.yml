@@ -16,10 +16,16 @@ addons:
     - automake
     - libtool
     - libfftw3-dev
-    - libcunit1-dev    
+    - libcunit1-dev
+
+env:
+  - WINDOW=kaiserbessel
+  - WINDOW=gaussian
+  - WINDOW=bspline
+  - WINDOW=sinc
 
 # install:
-script: ./bootstrap.sh && ./configure --enable-all --enable-openmp && make && make check
+script: ./bootstrap.sh && ./configure --with-window ${WINDOW} --enable-all --enable-openmp && make && make check
 
 ## print config.log for debugging
 after_failure: "cat config.log"
