@@ -25,7 +25,7 @@ env:
   - WINDOW=sinc
 
 # install:
-script: ./bootstrap.sh && ./configure --with-window ${WINDOW} --enable-all --enable-openmp && make && make check
+script: ./bootstrap.sh && ./configure --with-window $WINDOW --enable-all --enable-openmp && make && make check
 
 ## print config.log for debugging
 after_failure: "cat config.log"
