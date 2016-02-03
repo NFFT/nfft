@@ -12,11 +12,13 @@ sudo: false
 addons:
   apt:
     packages:
+    - autoconf
+    - automake
+    - libtool
     - libfftw3-dev
-    - libcunit1-dev
+    - libcunit1-dev    
 
 # install:
-
 script: ./bootstrap.sh && ./configure --enable-all --enable-openmp && make && make check
 
 ## print config.log for debugging
