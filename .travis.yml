@@ -2,19 +2,12 @@ language: c
 compiler: gcc
 os: linux
 
-# Turn off sudo to run on container based infrastructure
+# Turn off sudo to run on container based infrastructure.
 sudo: false
-
-# turn off email notifications
- notifications:
-   email: false
 
 addons:
   apt:
     packages:
-    - autoconf
-    - automake
-    - libtool
     - libfftw3-dev
     - libcunit1-dev
 
@@ -29,4 +22,8 @@ script: ./bootstrap.sh && ./configure --with-window $NFFT_WINDOW --enable-all --
 
 ## Print config.log for debugging.
 after_failure: "cat config.log"
+
+# Turn off email notifications.
+notifications:
+   email: false
 
