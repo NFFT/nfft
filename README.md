@@ -1,48 +1,60 @@
+Master: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=master)](https://travis-ci.org/NFFT/nfft_new)
+Develop: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=develop)](https://travis-ci.org/NFFT/nfft_new)
+
 NFFT3 - Nonequispaced FFT, generalisations, inversion, and applications
+=======================================================================
 
 Overview
 --------
 NFFT3 is a software library written in C for computing nonequispaced fast Fourier
 and related transformations. In detail, NFFT3 implements
 
- 1) The nonequispaced fast Fourier transform (NFFT)
+1. The nonequispaced fast Fourier transform (NFFT)
     - the forward transform (NFFT)
     - the adjoint transform (adjoint NFFT)
- 2) Generalisations of the NFFT
+2. Generalisations of the NFFT
     - to arbitrary knots in time and frequency domain (NNFFT)
     - to the sphere S^2 (NFSFT)
     - to the hyperbolic cross (NSFFT)
     - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST)
     - to the rotation group (NFSOFT)
- 3) Generalised inverses based on iterative methods, e.g. CGNR, CGNE
- 4) Applications in
+3. Generalised inverses based on iterative methods, e.g. CGNR, CGNE
+4. Applications in
     - medical imaging
-         (i) magnetic resonance imaging
-        (ii) computerised tomography
+        * magnetic resonance imaging
+        * computerised tomography
     - summation schemes
-          (i) fast Gauss transform (FGT)
-         (ii) singular kernels
-        (iii) zonal kernels
+        * fast Gauss transform (FGT)
+        * singular kernels
+         * zonal kernels
     - polar FFT, discrete Radon transform, ridgelet transform
 
 Detailed API documentation can be found in HTML format in
-/doc/api/html/index.html.
+`doc/api/html/index.html`.
 
-For installation instructions, you can also refer to the file INSTALL
+For installation instructions, you can also refer to the file `INSTALL`
 in this directory. The installation of NFFT3 follows the typical steps
-  ./configure
-  make
-  make install
+```
+bash
+./configure
+make
+make install
+```
 Optionally, some test programs can be built and run with
+```
   make check
+```
 If the file configure is missing, please run
+```
   ./bootstrap.sh
+```
 first.
 
 The most current general paper, and the one that we recommend if you wish
 to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D.
 ''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
 ACM Trans. Math. Software,36, Article 19, 1-30,  2009
+
 Directory structure
 -------------------
 3rdparty (dir)	    Third-party source code
