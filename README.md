@@ -71,8 +71,9 @@ ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
 
 Directory structure
 -------------------
+
 File/Folder        | Purpose
----------------------------------------------------------------------------
+------------------:| ------------------------------------------------------
 3rdparty (dir)	   | Third-party source code
 aclocal.m4		   | Macros for configure script
 applications (dir) | Application programs (see 4) above)
@@ -94,8 +95,7 @@ install-sh         | Used by configure script
 kernel (dir)       | Source code for core library routines
 ltmain.sh          | Used by configure script
 Makefile.am        | Automake Makefile template
-Makefile.in        | Makefile template generated from Makefile.am,
-                   | processed by configure script
+Makefile.in        | Makefile template generated from Makefile.am, processed by configure script
 matlab (dir)       | Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
 missing            | Used by configure script
 NEWS               | New and noteworthy
