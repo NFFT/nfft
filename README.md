@@ -6,7 +6,7 @@ NFFT - Nonequispaced FFT
 
 Overview
 --------
-NFFT is a software library, written in C, for computing non-equispaced fast 
+NFFT is a software library, written in C, for computing non-equispaced fast
 Fourier transforms and related variations. It implements the following
 transforms:
 
@@ -28,15 +28,17 @@ Some examples for application of these transforms are provided:
 1. Medical imaging
     - magnetic resonance imaging
     - computerised tomography
+
 2. Summation schemes
     - fast Gauss transform (FGT)
     - singular kernels
     - zonal kernels
+
 3. polar FFT, discrete Radon transform, ridgelet transform
 
 Detailed API documentation in HTML format can be found in
-`doc/api/html/index.html`, if you are working from a release tarball. 
-When working from a source repository, the documentation can be 
+`doc/api/html/index.html`, if you are working from a release tarball.
+When working from a source repository, the documentation can be
 generated with Doxygen.
 ```
 make doc
@@ -49,7 +51,7 @@ When working from a source repository, your need to run libtoolize and autorecon
 ./bootstrap.sh
 ```
 
-The rest of the build process is standard. 
+The rest of the build process is standard.
 ```
 ./configure (add options as necessary)
 make
@@ -69,35 +71,37 @@ ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
 
 Directory structure
 -------------------
-3rdparty (dir)	    Third-party source code
-aclocal.m4		      Macros for configure script
-applications (dir)	Application programs (see 4) above)
-AUTHORS			        Information about the authors of NFFT
-bootstrap.sh	      Bootstrap shell script that call Autoconf and friends
-ChangeLog		        A short version history
-config.guess        Used by configure script
-config.sub          Used by configure script
-configure           Configure script (created by calling ./bootstrap.sh)
-configure.in        Autoconf configure script template
-CONVENTIONS         Internal coding conventions
-COPYING             Information about redistributing NFFT
-depcomp             Used by configure script
-doc (dir)           User and developer documentation
-examples (dir)      Simple examples for using NFFT routines
-include (dir)       Header files
-INSTALL             Installation instructions
-install-sh          Used by configure script
-kernel (dir)        Source code for core library routines
-ltmain.sh           Used by configure script
-Makefile.am         Automake Makefile template
-Makefile.in         Makefile template generated from Makefile.am,
-                    processed by configure script
-matlab (dir)        Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
-missing             Used by configure script
-NEWS                New and noteworthy
-README              This file
-tests (dir)         CUnit tests
-TODO                Work to be done
+File/Folder        | Purpose
+---------------------------------------------------------------------------
+3rdparty (dir)	   | Third-party source code
+aclocal.m4		   | Macros for configure script
+applications (dir) | Application programs (see 4) above)
+AUTHORS			   | Information about the authors of NFFT
+bootstrap.sh       | Bootstrap shell script that call Autoconf and friends
+ChangeLog          | A short version history
+config.guess       | Used by configure script
+config.sub         | Used by configure script
+configure          | Configure script (created by calling ./bootstrap.sh)
+configure.in       | Autoconf configure script template
+CONVENTIONS        | Internal coding conventions
+COPYING            | Information about redistributing NFFT
+depcomp            | Used by configure script
+doc (dir)          | User and developer documentation
+examples (dir)     | Simple examples for using NFFT routines
+include (dir)      | Header files
+INSTALL            | Installation instructions
+install-sh         | Used by configure script
+kernel (dir)       | Source code for core library routines
+ltmain.sh          | Used by configure script
+Makefile.am        | Automake Makefile template
+Makefile.in        | Makefile template generated from Makefile.am,
+                   | processed by configure script
+matlab (dir)       | Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
+missing            | Used by configure script
+NEWS               | New and noteworthy
+README             | This file
+tests (dir)        | CUnit tests
+TODO               | Work to be done
 
 Feedback
 --------
