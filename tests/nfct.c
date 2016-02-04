@@ -234,7 +234,7 @@ static R err_trafo(X(plan) *p)
     a = K(0.4);
     b = K(9500.0);
 #else
-    a = K(1.5);
+    a = K(1.9);
     b = K(50.0);
 #endif
     err = EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*K(2.0) - K(1.0))));
