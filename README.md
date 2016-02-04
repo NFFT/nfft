@@ -1,77 +1,89 @@
 Master: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=master)](https://travis-ci.org/NFFT/nfft_new)
 Develop: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=develop)](https://travis-ci.org/NFFT/nfft_new)
 
-NFFT3 - Nonequispaced FFT, generalisations, inversion, and applications
-=======================================================================
+NFFT - Nonequispaced FFT
+=========================
 
 Overview
 --------
-NFFT3 is a software library written in C for computing nonequispaced fast Fourier
-and related transformations. In detail, NFFT3 implements
+NFFT is a software library, written in C, for computing non-equispaced fast 
+Fourier transforms and related variations. It implements the following
+transforms:
 
-1. The nonequispaced fast Fourier transform (NFFT)
-    - the forward transform (NFFT)
-    - the adjoint transform (adjoint NFFT)
-2. Generalisations of the NFFT
-    - to arbitrary knots in time and frequency domain (NNFFT)
-    - to the sphere S^2 (NFSFT)
-    - to the hyperbolic cross (NSFFT)
-    - to real-valued data, i.e. (co)sine transforms, (NFCT, NFST)
-    - to the rotation group (NFSOFT)
-3. Generalised inverses based on iterative methods, e.g. CGNR, CGNE
-4. Applications in
-    - medical imaging
-        * magnetic resonance imaging
-        * computerised tomography
-    - summation schemes
-        * fast Gauss transform (FGT)
-        * singular kernels
-         * zonal kernels
-    - polar FFT, discrete Radon transform, ridgelet transform
+1. Non-equispaced fast Fourier transform (NFFT)
+    - forward transform *(NFFT)*, i.e. frequency to time/space domain
+    - adjoint transform *(adjoint NFFT)*, i.e. time/space to frequency domain
 
-Detailed API documentation can be found in HTML format in
-`doc/api/html/index.html`.
+2. Generalisations
+    - to arbitrary nodes in time *and* frequency domain *(NNFFT)*
+    - to real-valued data, i.e. (co)sine transforms, *(NFCT, NFST)*
+    - to the sphere S^2 *(NFSFT)*
+    - to the rotation group *(NFSOFT)*
+    - to the hyperbolic cross *(NSFFT)*
 
-For installation instructions, you can also refer to the file `INSTALL`
-in this directory. The installation of NFFT3 follows the typical steps
+3. Generalised inverse transformations based on iterative methods, e.g. CGNR/CGNE
+
+Some examples for application of these transforms are provided:
+
+1. Medical imaging
+    - magnetic resonance imaging
+    - computerised tomography
+2. Summation schemes
+    - fast Gauss transform (FGT)
+    - singular kernels
+    - zonal kernels
+3. polar FFT, discrete Radon transform, ridgelet transform
+
+Detailed API documentation in HTML format can be found in
+`doc/api/html/index.html`, if you are working from a release tarball. 
+When working from a source repository, the documentation can be 
+generated with Doxygen.
 ```
-bash
-./configure
+make doc
+```
+
+Building
+--------
+When working from a source repository, your need to run libtoolize and autoreconf first. A bash script to do this is provided.
+```
+./bootstrap.sh
+```
+
+The rest of the build process is standard. 
+```
+./configure (add options as necessary)
 make
 make install
 ```
-Optionally, some test programs can be built and run with
-```
-  make check
-```
-If the file configure is missing, please run
-```
-  ./bootstrap.sh
-```
-first.
 
-The most current general paper, and the one that we recommend if you wish
-to cite NFFT, is: The paper by Keiner, J., Kunis, S., and Potts, D.
+Optionally, unit tests may be run.
+```
+make check
+```
+
+Citing
+------
+The most current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
 ''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
-ACM Trans. Math. Software,36, Article 19, 1-30,  2009
+ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
 
 Directory structure
 -------------------
 3rdparty (dir)	    Third-party source code
-aclocal.m4		    Macros for configure script
+aclocal.m4		      Macros for configure script
 applications (dir)	Application programs (see 4) above)
-AUTHORS			    Information about the authors of NFFT3
-bootstrap.sh	    Bootstrap shell script that call Autoconf and friends
-ChangeLog		    A short version history
+AUTHORS			        Information about the authors of NFFT
+bootstrap.sh	      Bootstrap shell script that call Autoconf and friends
+ChangeLog		        A short version history
 config.guess        Used by configure script
 config.sub          Used by configure script
 configure           Configure script (created by calling ./bootstrap.sh)
 configure.in        Autoconf configure script template
 CONVENTIONS         Internal coding conventions
-COPYING             Information about redistributing NFFT3
+COPYING             Information about redistributing NFFT
 depcomp             Used by configure script
 doc (dir)           User and developer documentation
-examples (dir)      Simple examples for using NFFT3 routines
+examples (dir)      Simple examples for using NFFT routines
 include (dir)       Header files
 INSTALL             Installation instructions
 install-sh          Used by configure script
@@ -103,12 +115,12 @@ or
   Stefan Kunis           <stefan.kunis@math.uos.de>
   Jens Keiner            <jens@nfft.org>>
 
-If you find NFFT3 useful, we would be delighted to hear about what application
-you are using NFFT3 for!
+If you find NFFT useful, we would be delighted to hear about what application
+you are using NFFT for!
 
 Legal Information & Credits
 ---------------------------
-Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
 This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
 It was developed at the Mathematical Institute, University of
