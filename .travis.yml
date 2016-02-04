@@ -18,7 +18,7 @@ env:
   - NFFT_WINDOW=sinc
 
 # Compile, link, and run tests.
-script: ./bootstrap.sh && ./configure --with-window=$NFFT_WINDOW --enable-all --enable-openmp && make && make check
+script: ./bootstrap.sh && ./configure --with-window=$NFFT_WINDOW --enable-all && make && make check
 
 ## Print config.log for debugging.
 after_failure: "cat config.log"
@@ -26,4 +26,3 @@ after_failure: "cat config.log"
 # Turn off email notifications.
 notifications:
    email: false
-
