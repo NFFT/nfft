@@ -1,5 +1,3 @@
-# $Id$
-
 # compiler flags
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 

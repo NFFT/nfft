@@ -1,5 +1,3 @@
-# $Id$
-
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 noinst_PROGRAMS = polar_fft_test mpolar_fft_test linogram_fft_test

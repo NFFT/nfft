@@ -16,8 +16,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* $Id$ */
-
 #ifndef __NFFT3MP_H__
 #define __NFFT3MP_H__
 

@@ -1,5 +1,3 @@
-# $Id$
-
 if HAVE_NFSFT
   DIR_NFSFT=nfsft
 else

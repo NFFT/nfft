@@ -1,6 +1,4 @@
-# $Id$
-#
-# Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -22,9 +20,6 @@
 
 # autoconf initialization
 AC_INIT([NFFT],[3.3.1-alpha],[mail@nfft.org])
-
-# revision id from svn
-AC_REVISION([$Id$])
 
 # copyright notice
 AC_COPYRIGHT([2003, 2012, Jens Keiner, Stefan Kunis, Daniel Potts])

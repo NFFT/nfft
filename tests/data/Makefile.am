@@ -1,5 +1,3 @@
-# $Id: Makefile.am 3456 2010-03-17 19:25:47Z keiner $
-
 EXTRA_DIST = nfct_1d_10_1.txt  \
 nfct_1d_10_10.txt  \
 nfct_1d_10_20.txt  \

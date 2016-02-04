@@ -1,5 +1,3 @@
-# $Id: Makefile.am 3842 2012-07-18 12:14:23Z tovo $
-
 # compiler flags
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
 

@@ -8,9 +8,9 @@ function plotGrid(gridType,p)
 %   2: HEALPix point set,
 %   3: Equidistribution point set.
 %
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -26,8 +26,6 @@ function plotGrid(gridType,p)
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 if (gridType == 0)
   [theta,w] = lgwt(p(1)+1,-1,1);
   theta = acos(theta);

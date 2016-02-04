@@ -1,5 +1,3 @@
-# $Id: Makefile.am 3456 2010-03-17 19:25:47Z keiner $
-
 AM_CPPFLAGS = -I$(top_srcdir)/include -DSRCDIR=@abs_srcdir@
 
 SUBDIRS= data

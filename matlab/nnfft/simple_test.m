@@ -1,8 +1,8 @@
 %SIMPLE_TEST Example program: Basic usage principles
 %
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -18,8 +18,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id: simple_test.m 3776 2012-06-03 13:29:25Z keiner $
-
 disp(sprintf('Number of threads: %d\n', nnfft_get_num_threads()));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('A simple one dimensional example');

@@ -1,5 +1,3 @@
-# $Id$
-
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 noinst_PROGRAMS = simple_test glacier

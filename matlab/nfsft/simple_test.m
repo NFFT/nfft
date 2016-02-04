@@ -1,7 +1,7 @@
 %SIMPLE_TEST Example program: Basic usage principles
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -17,8 +17,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 disp(sprintf('Number of threads: %d\n', nfsft_get_num_threads()));
 
 % maximum degree (bandwidth) of spherical harmonics expansions
@@ -30,7 +28,7 @@ kappa = 1000;
 % precomputation
 nfsft_precompute(N,kappa);
 
-% Gauﬂ-Legendre interpolatory quadrature nodes for N. See gl.m
+% Gau√ü-Legendre interpolatory quadrature nodes for N. See gl.m
 [X,W] = gl(N);
 
 % number of nodes
