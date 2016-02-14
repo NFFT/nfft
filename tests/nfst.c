@@ -226,11 +226,11 @@ static R err_trafo(X(plan) *p)
     s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
 #if defined(NFFT_LDOUBLE)
-    a = K(3.0);
+    a = K(3.4);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
-    b = K(9500.0);
+    b = K(11700.0);
 #else
     a = K(1.95);
     b = K(50.0);
