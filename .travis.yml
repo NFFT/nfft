@@ -14,13 +14,21 @@ addons:
     - libcunit1-dev
 
 env:
-  - WINDOW=kaiserbessel
-  - WINDOW=gaussian
-  - WINDOW=bspline
-  - WINDOW=sinc
+  - WINDOW=kaiserbessel PRECISION=
+  - WINDOW=gaussian PRECISION=
+  - WINDOW=bspline PRECISION=
+  - WINDOW=sinc PRECISION=
+  - WINDOW=kaiserbessel PRECISION=--enable-float
+  - WINDOW=gaussian PRECISION=--enable-float
+  - WINDOW=bspline PRECISION=--enable-float
+  - WINDOW=sinc PRECISION=--enable-float
+  - WINDOW=kaiserbessel PRECISION=--enable-long-double
+  - WINDOW=gaussian PRECISION=--enable-long-double
+  - WINDOW=bspline PRECISION=--enable-long-double
+  - WINDOW=sinc PRECISION=--enable-long-double
 
 # Compile, link, and run tests.
-script: ./bootstrap.sh && ./configure --with-window=$WINDOW --enable-all && make && make check
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all && make && make check
 
 ## Print config.log for debugging.
 after_failure: "cat config.log"
