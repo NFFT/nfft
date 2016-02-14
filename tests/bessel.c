@@ -135,7 +135,7 @@ static const R r[] =
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
 #if defined(NFFT_LDOUBLE)
-static const R bound = K(59.0) * EPSILON;
+static const R bound = K(58.0) * EPSILON;
 #elif defined(NFFT_SINGLE)
 static const R bound = K(14.0) * EPSILON;
 #else
