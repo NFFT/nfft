@@ -14,13 +14,13 @@ addons:
     - libcunit1-dev
 
 env:
-  - NFFT_WINDOW=kaiserbessel
-  - NFFT_WINDOW=gaussian
-  - NFFT_WINDOW=bspline
-  - NFFT_WINDOW=sinc
+  - WINDOW=kaiserbessel
+  - WINDOW=gaussian
+  - WINDOW=bspline
+  - WINDOW=sinc
 
 # Compile, link, and run tests.
-script: ./bootstrap.sh && ./configure --with-window=$NFFT_WINDOW --enable-all && make && make check
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW --enable-all && make && make check
 
 ## Print config.log for debugging.
 after_failure: "cat config.log"
