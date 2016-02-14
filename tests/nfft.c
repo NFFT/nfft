@@ -230,10 +230,10 @@ static R err_trafo(X(plan) *p)
     a = K(0.6);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
-    a = K(0.41);
+    a = K(0.4);
     b = K(2000.0);
 #else
-    a = K(0.4);
+    a = K(0.41);
     b = K(50.0);
 #endif
     err = EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*K(2.0) - K(1.0))));
