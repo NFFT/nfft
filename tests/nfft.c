@@ -978,10 +978,12 @@ static const testcase_delegate_online_t *testcases_1d_online[] =
   &nfft_online_1d_100_50,
   &nfft_online_1d_200_50,
   &nfft_online_1d_500_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_online_1d_1000_50,
   &nfft_online_1d_2000_50,
   &nfft_online_1d_5000_50,
   &nfft_online_1d_10000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_1d_online[] = {&trafo, &trafo_1d};
@@ -1007,10 +1009,12 @@ static const testcase_delegate_online_t *testcases_adjoint_1d_online[] =
   &nfft_adjoint_online_1d_100_50,
   &nfft_adjoint_online_1d_200_50,
   &nfft_adjoint_online_1d_500_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_adjoint_online_1d_1000_50,
   &nfft_adjoint_online_1d_2000_50,
   &nfft_adjoint_online_1d_5000_50,
   &nfft_adjoint_online_1d_10000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint, &adjoint_1d};
@@ -1132,8 +1136,10 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
   &nfft_online_2d_50_50,
   &nfft_online_2d_100_50,
   &nfft_online_2d_200_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_online_2d_500_50,
   &nfft_online_2d_1000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
@@ -1155,8 +1161,10 @@ static const testcase_delegate_online_t *testcases_adjoint_2d_online[] =
   &nfft_adjoint_online_2d_50_50,
   &nfft_adjoint_online_2d_100_50,
   &nfft_adjoint_online_2d_200_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_adjoint_online_2d_500_50,
   &nfft_adjoint_online_2d_1000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint, &adjoint_2d};
@@ -1243,7 +1251,9 @@ static const testcase_delegate_online_t nfft_online_3d_50_50 = {setup_online, de
 
 static const testcase_delegate_online_t *testcases_3d_online[] =
 {
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_online_3d_50_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
@@ -1258,7 +1268,9 @@ static const testcase_delegate_online_t nfft_adjoint_online_3d_50_50 = {setup_ad
 
 static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
 {
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_adjoint_online_3d_50_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint, &adjoint_3d};
