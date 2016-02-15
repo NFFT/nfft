@@ -226,6 +226,11 @@ case "$window" in
 esac
 AC_MSG_RESULT([$window])
 
+AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  AC_DEFINE(NFFT_EXHAUSTIVE_UNIT_TESTS,1,[Define to enable exhaustive unit tests.])
+fi
+
 ################################################################################
 # compiler characteristis
 ################################################################################
