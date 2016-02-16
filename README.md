@@ -1,5 +1,4 @@
-Master: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=master)](https://travis-ci.org/NFFT/nfft_new)
-Develop: [![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=develop)](https://travis-ci.org/NFFT/nfft_new)
+[![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=develop)](https://travis-ci.org/NFFT/nfft_new)
 
 NFFT - Nonequispaced FFT
 =========================
@@ -69,6 +68,53 @@ The most current general paper, the one that we recommend if you wish to cite NF
 ''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
 ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
 
+Feedback
+--------
+Your comments are welcome! This is the third version of the library and may
+not be as robust or well documented as it should be. Please keep track of bugs
+or missing/confusing instructions and report them to
+
+```
+  Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
+  TU Chemnitz, Fakultaet fuer Mathematik
+  Reichenhainer Str. 39
+  09107 Chemnitz
+  GERMANY
+```
+
+or
+
+```
+  Stefan Kunis <stefan.kunis@math.uos.de>
+  Jens Keiner <jens@nfft.org>>
+```
+
+If you find NFFT useful, we would be delighted to hear about what application
+you are using NFFT for!
+
+Legal Information & Credits
+---------------------------
+Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+
+This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
+It was developed at the Mathematical Institute, University of
+Luebeck, and at the Faculty of Mathematics, Chemnitz University of Technology.
+
+NFFT3 is free software. You can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version. If not stated otherwise, this applies to all files contained in this
+package and its sub-directories.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 Directory structure
 -------------------
 
@@ -102,45 +148,3 @@ NEWS               | New and noteworthy
 README             | This file
 tests (dir)        | CUnit tests
 TODO               | Work to be done
-
-Feedback
---------
-Your comments are welcome! This is the third version of the library and may
-not be as robust or well documented as it should be. Please keep track of bugs
-or missing/confusing instructions and report them to
-
-  Prof. Dr. Daniel Potts <potts@mathematik.tu-chemnitz.de>
-  TU Chemnitz, Fakultaet fuer Mathematik
-  Reichenhainer Str. 39
-  09107 Chemnitz, GERMANY
-
-or
-
-  Stefan Kunis           <stefan.kunis@math.uos.de>
-  Jens Keiner            <jens@nfft.org>>
-
-If you find NFFT useful, we would be delighted to hear about what application
-you are using NFFT for!
-
-Legal Information & Credits
----------------------------
-Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
-
-This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
-It was developed at the Mathematical Institute, University of
-Luebeck, and at the Faculty of Mathematics, Chemnitz University of Technology.
-
-NFFT3 is free software. You can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version. If not stated otherwise, this applies to all files contained in this
-package and its sub-directories.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
