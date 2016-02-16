@@ -74,16 +74,20 @@ Your comments are welcome! This is the third version of the library and may
 not be as robust or well documented as it should be. Please keep track of bugs
 or missing/confusing instructions and report them to
 
+```
   Prof. Dr. Daniel Potts [<potts@mathematik.tu-chemnitz.de>](mailto:potts@mathematik.tu-chemnitz.de)
   TU Chemnitz, Fakultaet fuer Mathematik
   Reichenhainer Str. 39
   09107 Chemnitz
   GERMANY
+```
 
 or
 
+```
   Stefan Kunis [<stefan.kunis@math.uos.de>](mailto:stefan.kunis@math.uos.de)
   Jens Keiner [<jens@nfft.org>](mailto:jens@nfft.org)
+```
 
 If you find NFFT useful, we would be delighted to hear about what application
 you are using NFFT for!
