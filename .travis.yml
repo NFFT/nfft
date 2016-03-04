@@ -28,7 +28,7 @@ env:
   - WINDOW=sinc PRECISION=--enable-long-double
 
 # Compile, link, and run tests.
-script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all --enable-openmp && make && make check
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi) && make && make check
 
 ## Print config.log for debugging.
 after_failure: "cat config.log"
