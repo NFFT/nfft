@@ -110,3 +110,7 @@ examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
 
+
+CUnitAutomated-Results.xml
+
+tests/checkall
