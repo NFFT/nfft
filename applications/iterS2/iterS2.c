@@ -200,7 +200,6 @@ int main (int argc, char **argv)
   double re;
   double im;
   double a;
-  double *scratch;
   double xs;
   double *ys;
   double *temp;
@@ -284,7 +283,6 @@ int main (int argc, char **argv)
       X(next_power_of_2_exp)(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
       fprintf(stderr,"Optimal interpolation!\n");
-      scratch = (double*) nfft_malloc(4*sizeof(double));
       ys = (double*) nfft_malloc((N+1)*sizeof(double));
       temp = (double*) nfft_malloc((2*N+1)*sizeof(double));
       temp2 = (double _Complex*) nfft_malloc((N+1)*sizeof(double _Complex));
@@ -293,7 +291,7 @@ int main (int argc, char **argv)
       for (j = 0; j <= N; j++)
       {
         xs = 2.0 + (2.0*j)/(N+1);
-        ys[j] = (2.0-((j == 0)?(1.0):(0.0)))*4.0*nfft_bspline(4,xs,scratch);
+        ys[j] = (2.0-((j == 0)?(1.0):(0.0)))*4.0*nfft_bspline(4,xs);
         //fprintf(stdout,"%3d: g(%le) = %le\n",j,xs,ys[j]);
         a += ys[j];
       }
@@ -369,7 +367,6 @@ int main (int argc, char **argv)
 
       fftw_destroy_plan(fplan);
 
-      nfft_free(scratch);
       nfft_free(qweights);
       nfft_free(ys);
       nfft_free(temp);

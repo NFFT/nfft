@@ -6333,14 +6333,13 @@ static const R bound = K(16.0) * EPSILON;
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)
 {
   unsigned int j;
-  R scratch[100];
   R err = K(0.0);
   int ok;
 
   for (j = 0; j < m; j++)
   {
     const R x = r[2*j], yr = r[2*j+1];
-    R y = X(bspline)((INT)(n + 1), x, scratch);
+    R y = X(bspline)((INT)(n + 1), x);
     /*printf("x = " __FE__ ", err = " __FE__ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }
