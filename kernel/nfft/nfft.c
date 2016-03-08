@@ -1440,10 +1440,10 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
       R *gref_real = (R*) gref;
 
       #pragma omp atomic
-      gref_real[0] += creal(val);
+      gref_real[0] += CREAL(val);
 
       #pragma omp atomic
-      gref_real[1] += cimag(val);
+      gref_real[1] += CIMAG(val);
 #else
       g[psi_index_g[j * lprod + l]] += psi[j * lprod + l] * f[j];
 #endif
@@ -1881,10 +1881,10 @@ static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,
     R *lhs_real = (R*)lhs;
     C val = psij_const[l] * f;
     #pragma omp atomic
-    lhs_real[0] += creal(val);
+    lhs_real[0] += CREAL(val);
 
     #pragma omp atomic
-    lhs_real[1] += cimag(val);
+    lhs_real[1] += CIMAG(val);
   }
 }
 #endif
@@ -2726,10 +2726,10 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
       C val = psij_const0[l0] * psij_const1[l1] * f;
 
       #pragma omp atomic
-      lhs_real[0] += creal(val);
+      lhs_real[0] += CREAL(val);
 
       #pragma omp atomic
-      lhs_real[1] += cimag(val);
+      lhs_real[1] += CIMAG(val);
     }
   }
 }
@@ -4132,10 +4132,10 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
         C val = psij_const0[l0] * psij_const1[l1] * psij_const2[l2] * f;
 
 #pragma omp atomic
-        lhs_real[0] += creal(val);
+        lhs_real[0] += CREAL(val);
 
 #pragma omp atomic
-        lhs_real[1] += cimag(val);
+        lhs_real[1] += CIMAG(val);
       }
     }
   }
