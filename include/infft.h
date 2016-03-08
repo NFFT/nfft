@@ -186,7 +186,7 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
       K(2.0) * ths->m)/n))
-  #define PHI(n,x,d) (Y(bspline)(2*ths->m,((x)*n) + \
+  #define PHI(n,x,d) (Y(bsplines)(2*ths->m,((x)*n) + \
     (R)ths->m) / n)
   #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
@@ -198,7 +198,7 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_ESTIMATE_m 11
 #endif
 #elif defined(SINC_POWER)
-  #define PHI_HUT(n,k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
+  #define PHI_HUT(n,k,d) (Y(bsplines)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * n / \
       ths->sigma[(d)]) + (R)ths->m))
   #define PHI(n,x,d) ((R)(n / ths->sigma[(d)] * \
@@ -1433,7 +1433,7 @@ R Y(lambda2)(R mu, R nu);
 R Y(bessel_i0)(R x);
 
 /* bspline.c: */
-R Y(bspline)(const INT, const R x);
+R Y(bsplines)(const INT, const R x);
 
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,

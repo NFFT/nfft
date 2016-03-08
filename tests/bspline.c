@@ -6339,7 +6339,7 @@ static int check_bspline(const unsigned n, const unsigned int m, const R *r)
   for (j = 0; j < m; j++)
   {
     const R x = r[2*j], yr = r[2*j+1];
-    R y = X(bspline)((INT)(n + 1), x);
+    R y = X(bsplines)((INT)(n + 1), x);
     /*printf("x = " __FE__ ", err = " __FE__ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }

@@ -291,7 +291,7 @@ int main (int argc, char **argv)
       for (j = 0; j <= N; j++)
       {
         xs = 2.0 + (2.0*j)/(N+1);
-        ys[j] = (2.0-((j == 0)?(1.0):(0.0)))*4.0*nfft_bspline(4,xs);
+        ys[j] = (2.0-((j == 0)?(1.0):(0.0)))*4.0*nfft_bsplines(4,xs);
         //fprintf(stdout,"%3d: g(%le) = %le\n",j,xs,ys[j]);
         a += ys[j];
       }
