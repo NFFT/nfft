@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/NFFT/nfft_new.svg?branch=develop)](https://travis-ci.org/NFFT/nfft_new)
+[![Build Status](https://travis-ci.org/NFFT/nfft.svg?branch=develop)](https://travis-ci.org/NFFT/nfft)
 
 NFFT - Nonequispaced FFT
 =========================
