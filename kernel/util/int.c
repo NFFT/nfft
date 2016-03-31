@@ -109,3 +109,42 @@ void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t)
     *t = logn+1;
   }
 }
+
+void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t)
+{
+  int n,i,logn;
+  int N_is_not_power_of_2=0;
+
+  if (N == 0)
+  {
+    *N2 = 1;
+    *t = 0;
+  }
+  else
+  {
+    n = N;
+    logn = 0;
+    while (n != 1)
+    {
+      if (n%2 == 1)
+      {
+          N_is_not_power_of_2=1;
+      }
+      n = n/2;
+      logn++;
+    }
+
+    if (!N_is_not_power_of_2)
+    {
+      logn--;
+    }
+
+    for (i = 0; i <= logn; i++)
+    {
+      n = n*2;
+    }
+
+    *N2 = n;
+    *t = logn+1;
+  }
+}

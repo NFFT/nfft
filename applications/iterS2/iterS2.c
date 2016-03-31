@@ -280,7 +280,7 @@ int main (int argc, char **argv)
     /* */
     if ((N+1)*(N+1) > M)
     {
-      X(next_power_of_2_exp)(N, &npt, &npt_exp);
+      X(next_power_of_2_exp_int)(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
       fprintf(stderr,"Optimal interpolation!\n");
       ys = (double*) nfft_malloc((N+1)*sizeof(double));

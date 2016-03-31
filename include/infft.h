@@ -1446,6 +1446,7 @@ R Y(prod_real)(R *vec, INT d);
 /* int.c: */
 INT Y(log2i)(const INT m);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
+void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 
 /* error.c: */
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
