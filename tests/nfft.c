@@ -1247,13 +1247,12 @@ void X(check_adjoint_3d_fast_file)(void)
     testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
 }
 
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
 static const testcase_delegate_online_t nfft_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_3d_online[] =
 {
-#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_online_3d_50_50,
-#endif
 };
 
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
@@ -1268,9 +1267,7 @@ static const testcase_delegate_online_t nfft_adjoint_online_3d_50_50 = {setup_ad
 
 static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
 {
-#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfft_adjoint_online_3d_50_50,
-#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint, &adjoint_3d};
@@ -1280,6 +1277,7 @@ void X(check_adjoint_3d_online)(void)
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
     testcases_adjoint_3d_online, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
 }
+#endif
 
 /* 4D. */
 
@@ -1302,6 +1300,7 @@ static const init_delegate_t* initializers_4d[] =
 #endif
 };
 
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
 static const testcase_delegate_online_t nfft_online_4d_28_50 = {setup_online, destroy_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
@@ -1331,6 +1330,7 @@ void X(check_adjoint_4d_online)(void)
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
     testcases_adjoint_4d_online, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }
+#endif
 
 /* accuracy */
 
