@@ -19,7 +19,7 @@
 ################################################################################
 
 # autoconf initialization
-AC_INIT([NFFT],[3.3.1-alpha],[mail@nfft.org])
+AC_INIT([NFFT],[3.3.1],[mail@nfft.org])
 
 # copyright notice
 AC_COPYRIGHT([2003, 2012, Jens Keiner, Stefan Kunis, Daniel Potts])
