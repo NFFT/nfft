@@ -280,7 +280,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
 
   /* Calculate the next greater power of two with respect to the bandwidth N
    * and the corresponding exponent. */
-  //next_power_of_2_exp(plan->N,&plan->NPT,&plan->t);
+  //next_power_of_2_exp_int(plan->N,&plan->NPT,&plan->t);
 
   /* Save length of array of Fourier coefficients. Owing to the data layout the
    * length is (2N+2)(2N+2) */
@@ -382,7 +382,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
 
   /* Compute and save N_max = 2^{\ceil{log_2 N}} as next greater
    * power of two with respect to N. */
-  X(next_power_of_2_exp)(N,&wisdom.N_MAX,&wisdom.T_MAX);
+  X(next_power_of_2_exp_int)(N,&wisdom.N_MAX,&wisdom.T_MAX);
 
   /* Check, if precomputation for direct algorithms needs to be performed. */
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)

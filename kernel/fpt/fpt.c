@@ -1049,7 +1049,7 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
         {
           /* Stabilize. */
           degree_stab = degree*(2*l+1);
-          Y(next_power_of_2_exp)((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
+          Y(next_power_of_2_exp_int)((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
 
           /* Old arrays are to small. */
           nfft_free(a11);
@@ -1181,7 +1181,7 @@ void fpt_trafo_direct(fpt_set set, const int m, const C *x, C *y,
   
     //fprintf(stderr, "Executing dpt.\n");  
 
-  Y(next_power_of_2_exp)(k_end+1,&Nk,&tk);
+  Y(next_power_of_2_exp_int)(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
     //fprintf(stderr, "Norm = %e.\n", norm);  
@@ -1279,7 +1279,7 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
     return;
   }
 
-  Y(next_power_of_2_exp)(k_end,&Nk,&tk);
+  Y(next_power_of_2_exp_int)(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
@@ -1524,7 +1524,7 @@ void fpt_transposed_direct(fpt_set set, const int m, C *x,
   int tk;
   R norm;
 
-  Y(next_power_of_2_exp)(k_end+1,&Nk,&tk);
+  Y(next_power_of_2_exp_int)(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
   if (set->flags & FPT_NO_DIRECT_ALGORITHM)
@@ -1611,7 +1611,7 @@ void fpt_transposed(fpt_set set, const int m, C *x,
     return;
   }
 
-  Y(next_power_of_2_exp)(k_end,&Nk,&tk);
+  Y(next_power_of_2_exp_int)(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 

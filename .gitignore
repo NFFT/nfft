@@ -37,6 +37,7 @@
 # Other
 .cproject
 .project
+.settings
 aclocal.m4
 Makefile.in
 INSTALL

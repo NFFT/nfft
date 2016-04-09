@@ -187,13 +187,10 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
       K(2.0) * ths->m)/n))
-  #define PHI(n,x,d) (Y(bspline)(2*ths->m,((x)*n) + \
-    (R)ths->m,ths->spline_coeffs) / n)
-  #define WINDOW_HELP_INIT \
-    { \
-      ths->spline_coeffs= (R*)Y(malloc)(2*ths->m*sizeof(R)); \
-    }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
+  #define PHI(n,x,d) (Y(bsplines)(2*ths->m,((x)*n) + \
+    (R)ths->m) / n)
+  #define WINDOW_HELP_INIT
+  #define WINDOW_HELP_FINALIZE
 #if defined(NFFT_LDOUBLE)
   #define WINDOW_HELP_ESTIMATE_m 11
 #elif defined(NFFT_SINGLE)
@@ -202,19 +199,16 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_ESTIMATE_m 11
 #endif
 #elif defined(SINC_POWER)
-  #define PHI_HUT(n,k,d) (Y(bspline)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
+  #define PHI_HUT(n,k,d) (Y(bsplines)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * n / \
-      ths->sigma[(d)]) + (R)ths->m, ths->spline_coeffs))
+      ths->sigma[(d)]) + (R)ths->m))
   #define PHI(n,x,d) ((R)(n / ths->sigma[(d)] * \
     (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
     POW(Y(sinc)(KPI * n / ths->sigma[(d)] * (x) * \
     (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) / \
     n))
-  #define WINDOW_HELP_INIT \
-    { \
-      ths->spline_coeffs= (R*)Y(malloc)(2 * ths->m * sizeof(R)); \
-    }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
+  #define WINDOW_HELP_INIT
+  #define WINDOW_HELP_FINALIZE
 #if defined(NFFT_LDOUBLE)
   #define WINDOW_HELP_ESTIMATE_m 13
 #elif defined(NFFT_SINGLE)
@@ -1440,7 +1434,7 @@ R Y(lambda2)(R mu, R nu);
 R Y(bessel_i0)(R x);
 
 /* bspline.c: */
-R Y(bspline)(const INT, const R x, R*);
+R Y(bsplines)(const INT, const R x);
 
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
@@ -1453,6 +1447,7 @@ R Y(prod_real)(R *vec, INT d);
 /* int.c: */
 INT Y(log2i)(const INT m);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
+void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 
 /* error.c: */
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
