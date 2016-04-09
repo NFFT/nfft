@@ -10,8 +10,6 @@ noinst_LTLIBRARIES = libfpt.la $(LIBFPT_THREADS_LA)
 
 libfpt_la_SOURCES = fpt.c
 
-noinst_HEADERS = fpt.h
-
 if HAVE_THREADS
   libfpt_threads_la_SOURCES = fpt.c
 if HAVE_OPENMP
