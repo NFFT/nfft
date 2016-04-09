@@ -93,6 +93,7 @@ typedef double _Complex C;
 #define NFFT(name) CONCAT(nfft_,name)
 #define NFCT(name) CONCAT(nfct_,name)
 #define NFST(name) CONCAT(nfst_,name)
+#define FPT(name) CONCAT(fpt_,name)
 #define NFSFT(name) CONCAT(nfsft_,name)
 #define SOLVER(name) CONCAT(solver_,name)
 #endif
