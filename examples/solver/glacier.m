@@ -29,7 +29,12 @@ input_data(:,2)=(input_data(:,2)-min(input_data(:,2))) /y_range*(1-2*border_eps)
 
 save input_data.dat -ascii -double -tabs input_data
 
-system(sprintf('./glacier %d %d > output_data.dat',N,M));
+if ispc
+    cmd='glacier.exe';
+else 
+    cmd='./glacier';
+end
+system(sprintf('%s %d %d > output_data.dat',cmd,N,M));
 
 load output_data.dat
 f_hat=output_data(:,1)+i*output_data(:,2);
