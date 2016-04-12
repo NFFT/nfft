@@ -45,7 +45,12 @@ save -ascii -double alpha.dat alpha2
 save -ascii -double y.dat y
 
 %execute C-program for fast summation
-system(sprintf('./fastsum_matlab %d %d %d %d %d %d %s %e %e %e',d,N,M,n,m,p,kernel,c,eps_I,eps_B));
+if ispc
+    cmd='fastsum_matlab.exe';
+else 
+    cmd='./fastsum_matlab';
+end
+system(sprintf('%s %d %d %d %d %d %d %s %e %e %e',cmd,d,N,M,n,m,p,kernel,c,eps_I,eps_B));
 
 %read result from file
 f2=load('f.dat');
