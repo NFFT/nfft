@@ -234,7 +234,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     printf("%.2" __FES__ "\t", t_ndft);
   }
   else
-    printf("N/A\t\t");
+    printf("NaN\t");
 
   /* NFFT */
   t_nfft = K(0.0);
@@ -255,7 +255,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   if (test_accuracy)
     printf("%.2" __FES__ "\t", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
-    printf("N/A\t\t");
+    printf("NaN\t");
 
   /** TAYLOR NFFT */
   t_taylor = K(0.0);
@@ -276,7 +276,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   if (test_accuracy)
     printf("%.2" __FES__ "\n", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));
   else
-    printf("N/A\t\n");
+    printf("NaN\n");
 
   fflush(stdout);
 
