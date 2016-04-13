@@ -32,7 +32,12 @@ to_pdf=0;
 trials=10;
 first=4;
 last=22;
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft.data0',0,first,last,trials,2,4));
+if ispc
+    cmd='taylor_nfft.exe';
+else 
+    cmd='./taylor_nfft';
+end
+system(sprintf('%s %d %d %d %d %f %f > taylor_nfft.data0',cmd,0,first,last,trials,2,4));
 data=load('taylor_nfft.data0');
 
 N=data(1:trials:end,1);
@@ -71,11 +76,6 @@ sigma_nfft_c=16;
 sigma_taylor_c=16;
 
 % typical sigma
-if ispc
-    cmd='taylor_nfft.exe';
-else 
-    cmd='./taylor_nfft';
-end
 system(sprintf('%s %d %d %d %d %f %f > taylor_nfft.data1a',cmd,1,first,...
 	       last,trials,sigma_nfft_a,sigma_taylor_a));
 data=load('taylor_nfft.data1a');
