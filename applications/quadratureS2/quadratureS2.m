@@ -24,7 +24,11 @@ infilename = 'data.in';
 % The name of the output file
 outfilename = 'data.out';
 % The name of the program
-programname = 'quadratureS2';
+if ispc
+    programname='quadratureS2.exe';
+else 
+    programname='./quadratureS2';
+end
 
 % Display the menu.
 selection = menu('quadratureS2 - Fast evaluation of quadrature formulae on the sphere',...
@@ -122,7 +126,7 @@ fclose(file);
 
 fprintf('Program in execution. Please be patient! This may take a while!\n');
 
-system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 file = fopen(outfilename,'r');
 T = readTestcase(file);
 fclose(file);

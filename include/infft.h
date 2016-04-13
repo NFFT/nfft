@@ -1300,21 +1300,21 @@ extern double _Complex catanh(double _Complex z);
 #  define __FE__ "% 36.32LE"
 #  define __FI__ "%Lf"
 #  define __FIS__ "Lf"
-#  define __FR__ "%La"
+#  define __FR__ "%Le"
 #elif defined(NFFT_SINGLE)
 #  define __FGS__ "g"
 #  define __FES__ "E"
 #  define __FE__ "% 12.8E"
 #  define __FI__ "%f"
 #  define __FIS__ "f"
-#  define __FR__ "%a"
+#  define __FR__ "%e"
 #else
 #  define __FGS__ "lg"
 #  define __FES__ "lE"
 #  define __FE__ "% 20.16lE"
 #  define __FI__ "%lf"
 #  define __FIS__ "lf"
-#  define __FR__ "%la"
+#  define __FR__ "%le"
 #endif
 
 #define TRUE 1

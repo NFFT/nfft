@@ -25,7 +25,12 @@ save 'input_data_r.dat' fr -ascii -double
 save 'input_data_i.dat' fi -ascii -double
 
 
-system(sprintf('./polar_fft_test %d %d %d',N,T,R));
+if ispc
+    cmd='polar_fft_test.exe';
+else 
+    cmd='./polar_fft_test';
+end
+system(sprintf('%s %d %d %d',cmd,N,T,R));
 
 polar_fft_error = load('polar_fft_error.dat');
 polar_ifft_error3 = load('polar_ifft_error3.dat');
@@ -58,7 +63,12 @@ print fig_ipolar_fft -deps2
 disp(sprintf('\n'));
 
 
-system(sprintf('./mpolar_fft_test %d %d %d',N,T,R));
+if ispc
+    cmd_mpolar_fft_test='mpolar_fft_test.exe';
+else 
+    cmd_mpolar_fft_test='./mpolar_fft_test';
+end
+system(sprintf('%s %d %d %d',cmd_mpolar_fft_test,N,T,R));
 
 mpolar_fft_error = load('mpolar_fft_error.dat');
 mpolar_ifft_error3 = load('mpolar_ifft_error3.dat');
@@ -91,7 +101,12 @@ print fig_impolar_fft -deps2
 disp(sprintf('\n'));
 
 
-system(sprintf('./linogram_fft_test %d %d %d',N,T,R));
+if ispc
+    cmd_linogram_fft_test='linogram_fft_test.exe';
+else 
+    cmd_linogram_fft_test='./linogram_fft_test';
+end
+system(sprintf('%s %d %d %d',cmd_linogram_fft_test,N,T,R));
 
 linogram_fft_error = load('linogram_fft_error.dat');
 linogram_ifft_error3 = load('linogram_ifft_error3.dat');

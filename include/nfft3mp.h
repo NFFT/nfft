@@ -70,21 +70,21 @@ typedef double _Complex NFFT_C;
 #  define NFFT__FE__ "% 36.32LE"
 #  define NFFT__FI__ "%Lf"
 #  define NFFT__FIS__ "Lf"
-#  define NFFT__FR__ "%La"
+#  define NFFT__FR__ "%Le"
 #elif defined(NFFT_PRECISION_SINGLE)
 #  define NFFT__FGS__ "g"
 #  define NFFT__FES__ "E"
 #  define NFFT__FE__ "% 12.8E"
 #  define NFFT__FI__ "%f"
 #  define NFFT__FIS__ "f"
-#  define NFFT__FR__ "%a"
+#  define NFFT__FR__ "%e"
 #elif defined(NFFT_PRECISION_DOUBLE)
 #  define NFFT__FGS__ "lg"
 #  define NFFT__FES__ "lE"
 #  define NFFT__FE__ "% 20.16lE"
 #  define NFFT__FI__ "%lf"
 #  define NFFT__FIS__ "lf"
-#  define NFFT__FR__ "%la"
+#  define NFFT__FR__ "%le"
 #else
 #error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
 #endif
