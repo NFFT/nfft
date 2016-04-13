@@ -89,7 +89,7 @@ if ispc
 else 
     cmd='./reconstruct_data_3d';
 end
-system([cmd 'output_phantom_nfft.dat ' ...
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
 visualize_data('pics_3d/pic', N, Z, 3, 'Inverse 3d-NFFT - 1. iteration - spiral knots');
 rms('pics_3d/rms.txt');
