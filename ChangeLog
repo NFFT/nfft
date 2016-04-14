@@ -3,8 +3,9 @@ This file contains the version history for NFFT 3.x.x.
 Changes in version 3.3.1:
 
     Bugfixes
-    - #11 NFSFT module crashes due to pointer type incompatibility.
     - #2 NFFT/NFST/NFCT transforms fail when using certain window functions.
+    - #11 NFSFT module crashes due to pointer type incompatibility.
+    - #16 X(bsplines)(n, x) can be inaccurate when x is close to zero.
 
     Enhancements
     - #3 Allow to select scope of unit tests via configure.
