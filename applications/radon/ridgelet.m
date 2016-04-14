@@ -69,7 +69,12 @@ axis image
 title(sprintf('noisy image (SNR=%g)',SNR));
 
 %compute Radon transform by C-program
-system(sprintf('./radon %s %d %d %d %d',grid,N,T,R));
+if ispc
+    cmd='radon.exe';
+else 
+    cmd='./radon';
+end
+system(sprintf('%s %s %d %d %d %d',cmd,grid,N,T,R));
 
 %read result from file
 fp = fopen('sinogram_data.bin','rb+');
@@ -94,7 +99,12 @@ fwrite(fp,Rf2d,'double');
 fclose(fp);
 
 %compute inverse Radon transform by C-program
-system(sprintf('./inverse_radon %s %d %d %d %d',grid,N,T,R,it));
+if ispc
+    cmd='inverse_radon.exe';
+else 
+    cmd='./inverse_radon';
+end
+system(sprintf('%s %s %d %d %d %d',cmd,grid,N,T,R,it));
 
 %read result
 fp = fopen('output_data.bin','rb+');

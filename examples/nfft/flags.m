@@ -92,7 +92,12 @@ sigma_nfft2=8;
 sigma_taylor2=16;
 
 % typical sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2a.dat',1,first,...
+if ispc
+    cmd='taylor_nfft.exe';
+else 
+    cmd='./taylor_nfft';
+end
+system(sprintf('%s %d %d %d %d %f %f > taylor_nfft2a.dat',cmd,1,first,...
 	       last,trials,sigma_nfft,sigma_taylor));
 data=load('taylor_nfft2a.dat');
 
@@ -105,14 +110,14 @@ e_taylor=data(:,11);
 max_e_taylor=(max(reshape(e_taylor,trials,last-first+1)))';
 
 % small sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2b.dat',1,first,...
+system(sprintf('%s %d %d %d %d %f %f > taylor_nfft2b.dat',cmd,1,first,...
 	       last,trials,sigma_nfft1,sigma_taylor1));
 data1=load('taylor_nfft2b.dat');
 max_e_nfft_sigma=(max(reshape(data1(:,7),trials,last-first+1)))';
 max_e_taylor_sigma=(max(reshape(data1(:,11),trials,last-first+1)))';
 
 % large sigma
-system(sprintf('./taylor_nfft %d %d %d %d %f %f > taylor_nfft2c.dat',1,first,...
+system(sprintf('%s %d %d %d %d %f %f > taylor_nfft2c.dat',cmd,1,first,...
 	       last,trials,sigma_nfft2,sigma_taylor2));
 data2=load('taylor_nfft2c.dat');
 max_e_nfft_sigma2=(max(reshape(data2(:,7),trials,last-first+1)))';

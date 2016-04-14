@@ -24,7 +24,11 @@ infilename = 'data.in';
 % The output file name.
 outfilename = 'data.out';
 % The name of the fastsumS2.c executable
-programname = 'fastsumS2';
+if ispc
+    programname='fastsumS2.exe';
+else 
+    programname='./fastsumS2';
+end
 % The name of the file to write the time measurements table to.
 texfilename = 'table.tex';
 
@@ -143,7 +147,7 @@ if (selection > 0 && selection <= 4)
 
   % Call fastsumS2.c with the generated input file writing the output to the
   % output file.
-  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+  system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 
   % Open the output file.
   file = fopen(outfilename,'r');
@@ -235,7 +239,7 @@ elseif (selection == 5)
 
   % Call fastsumS2.c with the generated input file writing the output to the
   % output file.
-  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+  system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 
   % Open the output file.
   file = fopen(outfilename,'r');
