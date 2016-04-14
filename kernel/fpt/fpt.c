@@ -67,8 +67,8 @@ typedef struct fpt_step_
   /** Whether this instance stores data for a stable fast step */
   bool stable;
 
-  int Ns;                                 /**< TODO Add comment here.         */
-  int ts;                                 /**< TODO Add comment here.         */
+  INT Ns;                                 /**< TODO Add comment here.         */
+  INT ts;                                 /**< TODO Add comment here.         */
   R **a11,**a12,**a21,**a22;         /**< The matrix components          */
   R *g;                              /**<                                */
 } fpt_step;
@@ -79,7 +79,7 @@ typedef struct fpt_step_
 typedef struct fpt_data_
 {
   fpt_step **steps;                       /**< The cascade summation steps    */
-  int k_start;                            /**< TODO Add comment here.         */
+  INT k_start;                            /**< TODO Add comment here.         */
   R *alphaN;                         /**< TODO Add comment here.         */
   R *betaN;                          /**< TODO Add comment here.         */
   R *gammaN;                         /**< TODO Add comment here.         */
@@ -98,10 +98,10 @@ typedef struct fpt_data_
 typedef struct fpt_set_s_
 {
   unsigned int flags;                              /**< The flags                     */
-  int M;                                  /**< The number of DPT transforms  */
-  int N;                                  /**< The transform length. Must be
+  INT M;                                  /**< The number of DPT transforms  */
+  INT N;                                  /**< The transform length. Must be
                                                a power of two.               */
-  int t;                                  /**< The exponent of N             */
+  INT t;                                  /**< The exponent of N             */
   fpt_data *dpt;                          /**< The DPT transform data        */
   R **xcvecs;                        /**< Array of pointers to arrays
                                                containing the Chebyshev
@@ -129,9 +129,9 @@ typedef struct fpt_set_s_
 } fpt_set_s;
 
 static inline void abuvxpwy(R a, R b, C* u, C* x,
-  R* v, C* y, R* w, int n)
+  R* v, C* y, R* w, INT n)
 {
-  int l; C *u_ptr = u, *x_ptr = x, *y_ptr = y;
+  INT l; C *u_ptr = u, *x_ptr = x, *y_ptr = y;
   R *v_ptr = v, *w_ptr = w;
   for (l = 0; l < n; l++)
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++));
@@ -139,10 +139,10 @@ static inline void abuvxpwy(R a, R b, C* u, C* x,
 
 #define ABUVXPWY_SYMMETRIC(NAME,S1,S2) \
 static inline void NAME(R a, R b, C* u, C* x, \
-  R* v, C* y, R* w, int n) \
+  R* v, C* y, R* w, INT n) \
 { \
-  const int n2 = n>>1; \
-  int l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  const INT n2 = n>>1; \
+  INT l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   R *v_ptr = v, *w_ptr = w; \
   for (l = 0; l < n2; l++) \
     *u_ptr++ = a * (b * (*v_ptr++) * (*x_ptr++) + (*w_ptr++) * (*y_ptr++)); \
@@ -156,10 +156,10 @@ ABUVXPWY_SYMMETRIC(abuvxpwy_symmetric2,-1.0,1.0)
 
 #define ABUVXPWY_SYMMETRIC_1(NAME,S1) \
 static inline void NAME(R a, R b, C* u, C* x, \
-  R* v, C* y, int n, R *xx) \
+  R* v, C* y, INT n, R *xx) \
 { \
-  const int n2 = n>>1; \
-  int l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  const INT n2 = n>>1; \
+  INT l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   R *v_ptr = v, *xx_ptr = xx; \
   for (l = 0; l < n2; l++, v_ptr++) \
     *u_ptr++ = a * (b * (*v_ptr) * (*x_ptr++) + ((*v_ptr)*(1.0+*xx_ptr++)) * (*y_ptr++)); \
@@ -173,10 +173,10 @@ ABUVXPWY_SYMMETRIC_1(abuvxpwy_symmetric1_2,-1.0)
 
 #define ABUVXPWY_SYMMETRIC_2(NAME,S1) \
 static inline void NAME(R a, R b, C* u, C* x, \
-  C* y, R* w, int n, R *xx) \
+  C* y, R* w, INT n, R *xx) \
 { \
-  const int n2 = n>>1; \
-  int l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
+  const INT n2 = n>>1; \
+  INT l; C *u_ptr = u, *x_ptr = x, *y_ptr = y; \
   R *w_ptr = w, *xx_ptr = xx; \
   for (l = 0; l < n2; l++, w_ptr++) \
     *u_ptr++ = a * (b * (*w_ptr/(1.0+*xx_ptr++)) * (*x_ptr++) + (*w_ptr) * (*y_ptr++)); \
@@ -189,9 +189,9 @@ ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_1,1.0)
 ABUVXPWY_SYMMETRIC_2(abuvxpwy_symmetric2_2,-1.0)
 
 static inline void auvxpwy(R a, C* u, C* x, R* v,
-  C* y, R* w, int n)
+  C* y, R* w, INT n)
 {
-  int l;
+  INT l;
   C *u_ptr = u, *x_ptr = x, *y_ptr = y;
   R *v_ptr = v, *w_ptr = w;
   for (l = n; l > 0; l--)
@@ -199,10 +199,10 @@ static inline void auvxpwy(R a, C* u, C* x, R* v,
 }
 
 static inline void auvxpwy_symmetric(R a, C* u, C* x,
-  R* v, C* y, R* w, int n)
+  R* v, C* y, R* w, INT n)
 {
-  const int n2 = n>>1; \
-  int l;
+  const INT n2 = n>>1; \
+  INT l;
   C *u_ptr = u, *x_ptr = x, *y_ptr = y;
   R *v_ptr = v, *w_ptr = w;
   for (l = n2; l > 0; l--)
@@ -213,10 +213,10 @@ static inline void auvxpwy_symmetric(R a, C* u, C* x,
 }
 
 static inline void auvxpwy_symmetric_1(R a, C* u, C* x,
-  R* v, C* y, R* w, int n, R *xx)
+  R* v, C* y, R* w, INT n, R *xx)
 {
-  const int n2 = n>>1; \
-  int l;
+  const INT n2 = n>>1; \
+  INT l;
   C *u_ptr = u, *x_ptr = x, *y_ptr = y;
   R *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
   for (l = n2; l > 0; l--, xx_ptr++)
@@ -227,10 +227,10 @@ static inline void auvxpwy_symmetric_1(R a, C* u, C* x,
 }
 
 static inline void auvxpwy_symmetric_2(R a, C* u, C* x,
-  R* v, C* y, R* w, int n, R *xx)
+  R* v, C* y, R* w, INT n, R *xx)
 {
-  const int n2 = n>>1; \
-  int l;
+  const INT n2 = n>>1; \
+  INT l;
   C *u_ptr = u, *x_ptr = x, *y_ptr = y;
   R *v_ptr = v, *w_ptr = w, *xx_ptr = xx;
   for (l = n2; l > 0; l--, xx_ptr++)
@@ -242,10 +242,10 @@ static inline void auvxpwy_symmetric_2(R a, C* u, C* x,
 
 #define FPT_DO_STEP(NAME,M1_FUNCTION,M2_FUNCTION) \
 static inline void NAME(C  *a, C *b, R *a11, R *a12, \
-  R *a21, R *a22, R g, int tau, fpt_set set) \
+  R *a21, R *a22, R g, INT tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
-  int length = 1<<(tau+1); \
+  INT length = 1<<(tau+1); \
   /** Twice the length of the coefficient arrays. */ \
   R norm = 1.0/(length<<1); \
   \
@@ -254,8 +254,8 @@ static inline void NAME(C  *a, C *b, R *a11, R *a12, \
   b[0] *= 2.0; \
   \
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */ \
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a); \
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b); \
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a); \
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b); \
   \
   /*for (k = 0; k < length; k++)*/ \
   /*{*/ \
@@ -278,13 +278,13 @@ static inline void NAME(C  *a, C *b, R *a11, R *a12, \
     M1_FUNCTION(norm*g,a,a,a11,b,a12,length); \
     memcpy(b,set->z, (size_t)(length) * sizeof(C)); \
     /* Compute Chebyshev-coefficients using a DCT-II. */ \
-    fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a); \
+    FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a); \
     /* Compensate for factors introduced by a raw DCT-II. */ \
     a[0] *= 0.5; \
   } \
   \
   /* Compute Chebyshev-coefficients using a DCT-II. */ \
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b); \
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b); \
   /* Compensate for factors introduced by a raw DCT-II. */ \
   b[0] *= 0.5; \
 }
@@ -296,10 +296,10 @@ FPT_DO_STEP(fpt_do_step_symmetric_l,auvxpwy,auvxpwy_symmetric)*/
 
 static inline void fpt_do_step_symmetric_u(C *a, C *b,
   R *a11, R *a12, R *a21, R *a22, R *x,
-  R gam, int tau, fpt_set set)
+  R gam, INT tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
-  int length = 1<<(tau+1);
+  INT length = 1<<(tau+1);
   /** Twice the length of the coefficient arrays. */
   R norm = 1.0/(length<<1);
 
@@ -310,8 +310,8 @@ static inline void fpt_do_step_symmetric_u(C *a, C *b,
   b[0] *= 2.0;
 
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b);
 
   /*for (k = 0; k < length; k++)*/
   /*{*/
@@ -334,22 +334,22 @@ static inline void fpt_do_step_symmetric_u(C *a, C *b,
     auvxpwy_symmetric(norm*gam,a,a,a11,b,a12,length);
     memcpy(b,set->z,(size_t)(length) * sizeof(C));
     /* Compute Chebyshev-coefficients using a DCT-II. */
-    fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a);
+    FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a);
     /* Compensate for factors introduced by a raw DCT-II. */
     a[0] *= 0.5;
   }
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b);
   /* Compensate for factors introduced by a raw DCT-II. */
   b[0] *= 0.5;
 }
 
 static inline void fpt_do_step_symmetric_l(C  *a, C *b,
-  R *a11, R *a12, R *a21, R *a22, R *x, R gam, int tau, fpt_set set)
+  R *a11, R *a12, R *a21, R *a22, R *x, R gam, INT tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
-  int length = 1<<(tau+1);
+  INT length = 1<<(tau+1);
   /** Twice the length of the coefficient arrays. */
   R norm = 1.0/(length<<1);
 
@@ -360,8 +360,8 @@ static inline void fpt_do_step_symmetric_l(C  *a, C *b,
   UNUSED(a11); UNUSED(a12);
 
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b);
 
   /*for (k = 0; k < length; k++)*/
   /*{*/
@@ -384,29 +384,29 @@ static inline void fpt_do_step_symmetric_l(C  *a, C *b,
     auvxpwy_symmetric_2(norm*gam,a,a,a21,b,a22,length,x);
     memcpy(b,set->z, (size_t)(length) * sizeof(C));
     /* Compute Chebyshev-coefficients using a DCT-II. */
-    fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a);
+    FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a);
     /* Compensate for factors introduced by a raw DCT-II. */
     a[0] *= 0.5;
   }
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b);
   /* Compensate for factors introduced by a raw DCT-II. */
   b[0] *= 0.5;
 }
 
 #define FPT_DO_STEP_TRANSPOSED(NAME,M1_FUNCTION,M2_FUNCTION) \
 static inline void NAME(C  *a, C *b, R *a11, \
-  R *a12, R *a21, R *a22, R g, int tau, fpt_set set) \
+  R *a12, R *a21, R *a22, R g, INT tau, fpt_set set) \
 { \
   /** The length of the coefficient arrays. */ \
-  int length = 1<<(tau+1); \
+  INT length = 1<<(tau+1); \
   /** Twice the length of the coefficient arrays. */ \
   R norm = 1.0/(length<<1); \
   \
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */ \
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a); \
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b); \
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a); \
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b); \
   \
   /* Perform matrix multiplication. */ \
   M1_FUNCTION(norm,g,set->z,a,a11,b,a21,length); \
@@ -414,8 +414,8 @@ static inline void NAME(C  *a, C *b, R *a11, \
   memcpy(a,set->z, (size_t)(length) * sizeof(C)); \
   \
   /* Compute Chebyshev-coefficients using a DCT-II. */ \
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a); \
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b); \
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a); \
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b); \
 }
 
 FPT_DO_STEP_TRANSPOSED(fpt_do_step_t,abuvxpwy,abuvxpwy)
@@ -426,16 +426,16 @@ FPT_DO_STEP_TRANSPOSED(fpt_do_step_t_symmetric,abuvxpwy_symmetric1,abuvxpwy_symm
 
 static inline void fpt_do_step_t_symmetric_u(C  *a,
   C *b, R *a11, R *a12, R *x,
-  R gam, int tau, fpt_set set)
+  R gam, INT tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
-  int length = 1<<(tau+1);
+  INT length = 1<<(tau+1);
   /** Twice the length of the coefficient arrays. */
   R norm = 1.0/(length<<1);
 
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b);
 
   /* Perform matrix multiplication. */
   abuvxpwy_symmetric1_1(norm,gam,set->z,a,a11,b,length,x);
@@ -443,22 +443,22 @@ static inline void fpt_do_step_t_symmetric_u(C  *a,
   memcpy(a,set->z, (size_t)(length) * sizeof(C));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b);
 }
 
 static inline void fpt_do_step_t_symmetric_l(C  *a,
   C *b, R *a21, R *a22,
-  R *x, R gam, int tau, fpt_set set)
+  R *x, R gam, INT tau, fpt_set set)
 {
   /** The length of the coefficient arrays. */
-  int length = 1<<(tau+1);
+  INT length = 1<<(tau+1);
   /** Twice the length of the coefficient arrays. */
   R norm = 1.0/(length<<1);
 
   /* Compute function values from Chebyshev-coefficients using a DCT-III. */
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct3[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct3[tau-1],(R*)b,(R*)b);
 
   /* Perform matrix multiplication. */
   abuvxpwy_symmetric2_2(norm,gam,set->z,a,b,a21,length,x);
@@ -466,18 +466,18 @@ static inline void fpt_do_step_t_symmetric_l(C  *a,
   memcpy(a,set->z, (size_t)(length) * sizeof(C));
 
   /* Compute Chebyshev-coefficients using a DCT-II. */
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)a,(R*)a);
-  fftw_execute_r2r(set->plans_dct2[tau-1],(R*)b,(R*)b);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)a,(R*)a);
+  FFTW(execute_r2r)(set->plans_dct2[tau-1],(R*)b,(R*)b);
 }
 
 
-static void eval_clenshaw(const R *x, R *y, int size, int k, const R *alpha,
+static void eval_clenshaw(const R *x, R *y, INT size, INT k, const R *alpha,
   const R *beta, const R *gam)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
-  int i,j;
+  INT i,j;
   R a,b,x_val_act,a_old;
   const R *x_act;
   R *y_act;
@@ -517,13 +517,13 @@ static void eval_clenshaw(const R *x, R *y, int size, int k, const R *alpha,
   }
 }
 
-static void eval_clenshaw2(const R *x, R *z, R *y, int size1, int size, int k, const R *alpha,
+static void eval_clenshaw2(const R *x, R *z, R *y, INT size1, INT size, INT k, const R *alpha,
   const R *beta, const R *gam)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
-  int i,j;
+  INT i,j;
   R a,b,x_val_act,a_old;
   const R *x_act;
   R *y_act, *z_act;
@@ -573,19 +573,19 @@ static void eval_clenshaw2(const R *x, R *z, R *y, int size1, int size, int k, c
   fclose(f);*/
 }
 
-static int eval_clenshaw_thresh2(const R *x, R *z, R *y, int size, int k,
+static INT eval_clenshaw_thresh2(const R *x, R *z, R *y, INT size, INT k,
   const R *alpha, const R *beta, const R *gam, const
   R threshold)
 {
   /* Evaluate the associated Legendre polynomial P_{k,nleg} (l,x) for the vector
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
-  int i,j;
+  INT i,j;
   R a,b,x_val_act,a_old;
   const R *x_act;
   R *y_act, *z_act;
   const R *alpha_act, *beta_act, *gamma_act;
-  R max = -nfft_float_property(NFFT_R_MAX);
+  R max = -Y(float_property)(NFFT_R_MAX);
   const R t = LOG10(FABS(threshold));
 
   /* Traverse all nodes. */
@@ -630,12 +630,12 @@ static int eval_clenshaw_thresh2(const R *x, R *z, R *y, int size, int k,
   return 0;
 }
 
-static inline void eval_sum_clenshaw_fast(const int N, const int M,
+static inline void eval_sum_clenshaw_fast(const INT N, const INT M,
   const C *a, const R *x, C *y,
   const R *alpha, const R *beta, const R *gam,
   const R lambda)
 {
-  int j,k;
+  INT j,k;
   C tmp1, tmp2, tmp3;
   R xc;
   
@@ -713,11 +713,11 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
  * \mathbb{C}^{N+1}\f$ at given nodes \f$\left(x_j\right)_{j=0}^M \in
  * \mathbb{R}^{M+1}\f$, \f$M \in \mathbb{N}_0\f$.
  */
-static void eval_sum_clenshaw_transposed(int N, int M, C* a, R *x,
+static void eval_sum_clenshaw_transposed(INT N, INT M, C* a, R *x,
   C *y, C *temp, R *alpha, R *beta, R *gam,
   R lambda)
 {
-  int j,k;
+  INT j,k;
   C* it1 = temp;
   C* it2 = y;
   C aux;
@@ -756,17 +756,17 @@ static void eval_sum_clenshaw_transposed(int N, int M, C* a, R *x,
 }
 
 
-fpt_set fpt_init(const int M, const int t, const unsigned int flags)
+X(set) X(init)(const int M, const int t, const unsigned int flags)
 {
   /** Polynomial length */
-  int plength;
+  INT plength;
   /** Cascade level */
-  int tau;
+  INT tau;
   /** Index m */
-  int m;
-  int k;
+  INT m;
+  INT k;
 #ifdef _OPENMP
-  int nthreads = X(get_num_threads)();
+  int nthreads = Y(get_num_threads)();
 #endif
 
   /* Allocate memory for new DPT set. */
@@ -820,14 +820,14 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->kindsr[1]  = FFTW_REDFT10;
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
-    set->lengths[tau] = plength;
+    set->lengths[tau] = (int)plength;
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
     set->plans_dct2[tau] =
-      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (R*)set->work, NULL,
+      FFTW(plan_many_r2r)(1, &set->lengths[tau], 2, (R*)set->work, NULL,
                          2, 1, (R*)set->result, NULL, 2, 1,set->kindsr,
                          0);
 #ifdef _OPENMP
@@ -850,23 +850,23 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     set->kinds[1]   = FFTW_REDFT01;
     for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
     {
-      set->lengths[tau] = plength;
+      set->lengths[tau] = (int)plength;
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
       set->plans_dct3[tau] =
-        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (R*)set->work, NULL,
+        FFTW(plan_many_r2r)(1, &set->lengths[tau], 2, (R*)set->work, NULL,
                            2, 1, (R*)set->result, NULL, 2, 1, set->kinds,
                            0);
 #ifdef _OPENMP
 }
 #endif
     }
-    nfft_free(set->lengths);
-    nfft_free(set->kinds);
-    nfft_free(set->kindsr);
+    Y(free)(set->lengths);
+    Y(free)(set->kinds);
+    Y(free)(set->kindsr);
     set->lengths = NULL;
     set->kinds = NULL;
     set->kindsr = NULL;
@@ -882,21 +882,21 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   return set;
 }
 
-void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
+void X(precompute)(X(set) set, const int m, R *alpha, R *beta,
   R *gam, int k_start, const R threshold)
 {
 
-  int tau;          /**< Cascade level                                       */
-  int l;            /**< Level index                                         */
-  int plength;      /**< Length of polynomials for the next level in the
+  INT tau;          /**< Cascade level                                       */
+  INT l;            /**< Level index                                         */
+  INT plength;      /**< Length of polynomials for the next level in the
                          cascade                                             */
-  int degree;       /**< Degree of polynomials for the current level in the
+  INT degree;       /**< Degree of polynomials for the current level in the
                          cascade                                             */
-  int firstl;       /**< First index l for current cascade level             */
-  int lastl;        /**< Last index l for current cascade level and current  */
-  int plength_stab; /**< Length of polynomials for the next level in the
+  INT firstl;       /**< First index l for current cascade level             */
+  INT lastl;        /**< Last index l for current cascade level and current  */
+  INT plength_stab; /**< Length of polynomials for the next level in the
                          cascade for stabilization                           */
-  int degree_stab;  /**< Degree of polynomials for the current level in the
+  INT degree_stab;  /**< Degree of polynomials for the current level in the
                          cascade for stabilization                           */
   R *a11;      /**< Array containing function values of the
                          (1,1)-component of U_k^n.                           */
@@ -909,13 +909,13 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
   const R *calpha;
   const R *cbeta;
   const R *cgamma;
-  int needstab = 0; /**< Used to indicate that stabilization is neccessary.  */
-  int k_start_tilde;
-  int N_tilde;
-  int clength;
-  int clength_1;
-  int clength_2;
-  int t_stab, N_stab;
+  INT needstab = 0; /**< Used to indicate that stabilization is necessary.  */
+  INT k_start_tilde;
+  INT N_tilde;
+  INT clength;
+  INT clength_1;
+  INT clength_2;
+  INT t_stab, N_stab;
   fpt_data *data;
 
   /* Get pointer to DPT data. */
@@ -960,7 +960,7 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
     plength = 4;
     for (tau = 1; tau < set->t; tau++)
     {
-      /* Compute auxilliary values. */
+      /* Compute auxiliary values. */
       degree = plength>>1;
       /* Compute first l. */
       firstl = FIRST_L(k_start_tilde,plength);
@@ -1049,13 +1049,13 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
         {
           /* Stabilize. */
           degree_stab = degree*(2*l+1);
-          Y(next_power_of_2_exp_int)((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
+          Y(next_power_of_2_exp)((l+1)*(1<<(tau+1)),&N_stab,&t_stab);
 
           /* Old arrays are to small. */
-          nfft_free(a11);
-          nfft_free(a12);
-          nfft_free(a21);
-          nfft_free(a22);
+          Y(free)(a11);
+          Y(free)(a12);
+          Y(free)(a21);
+          Y(free)(a22);
 
           data->steps[tau][l].a11 = (R**) Y(malloc)(sizeof(R*));
           data->steps[tau][l].a12 = (R**)Y(malloc)(sizeof(R*));
@@ -1077,7 +1077,7 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
               a12 = (R*) Y(malloc)(sizeof(R) * (size_t)clength_1);
               a21 = (R*) Y(malloc)(sizeof(R) * (size_t)clength_2);
               a22 = (R*) Y(malloc)(sizeof(R) * (size_t)clength_2);
-              /* Get the pointers to the three-term recurrence coeffcients. */
+              /* Get the pointers to the three-term recurrence coefficients. */
               calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gam[1]);
               eval_clenshaw2(set->xcvecs[t_stab-2], a11, a21, clength_1,
                 clength_2, degree_stab-1, calpha, cbeta, cgamma);
@@ -1170,18 +1170,18 @@ void fpt_precompute(fpt_set set, const int m, R *alpha, R *beta,
   }
 }
 
-void fpt_trafo_direct(fpt_set set, const int m, const C *x, C *y,
+void X(trafo_direct)(X(set) set, const int m, const C *x, C *y,
   const int k_end, const unsigned int flags)
 {
-  int j;
+  INT j;
   fpt_data *data = &(set->dpt[m]);
-  int Nk;
-  int tk;
+  INT Nk;
+  INT tk;
   R norm;
   
     //fprintf(stderr, "Executing dpt.\n");  
 
-  Y(next_power_of_2_exp_int)(k_end+1,&Nk,&tk);
+  Y(next_power_of_2_exp)(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
     //fprintf(stderr, "Norm = %e.\n", norm);  
@@ -1200,7 +1200,7 @@ void fpt_trafo_direct(fpt_set set, const int m, const C *x, C *y,
         //fprintf(stderr, "x[%4d] = %e.\n", j, set->xc_slow[j]);  
     }
 
-    memset(set->result,0U,data->k_start*sizeof(C));
+    memset(set->result, 0U , (size_t)(data->k_start) * sizeof(C));
     memcpy(&set->result[data->k_start],x, (size_t)((k_end - data->k_start + 1)) * sizeof(C));
 
     /*eval_sum_clenshaw(k_end, k_end, set->result, set->xc_slow,
@@ -1211,14 +1211,14 @@ void fpt_trafo_direct(fpt_set set, const int m, const C *x, C *y,
   }
   else
   {
-    memset(set->temp,0U,data->k_start*sizeof(C));
+    memset(set->temp, 0U, (size_t)(data->k_start)  *sizeof(C));
     memcpy(&set->temp[data->k_start],x, (size_t)((k_end - data->k_start + 1)) * sizeof(C));
 
     eval_sum_clenshaw_fast(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
       set->result, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
       data->gamma_m1);
 
-    fftw_execute_r2r(set->plans_dct2[tk-2],(R*)set->result,
+    FFTW(execute_r2r)(set->plans_dct2[tk-2],(R*)set->result,
       (R*)set->result);
 
     set->result[0] *= 0.5;
@@ -1231,42 +1231,42 @@ void fpt_trafo_direct(fpt_set set, const int m, const C *x, C *y,
   }
 }
 
-void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
+void X(trafo)(X(set) set, const int m, const C *x, C *y,
   const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
   fpt_data *data = &(set->dpt[m]);
   /** */
-  int Nk;
+  INT Nk;
   /** */
-  int tk;
+  INT tk;
   /** */
-  int k_start_tilde;
+  INT k_start_tilde;
   /** */
-  int k_end_tilde;
+  INT k_end_tilde;
 
   /** Level index \f$tau\f$ */
-  int tau;
+  INT tau;
   /** Index of first block at current level */
-  int firstl;
+  INT firstl;
   /** Index of last block at current level */
-  int lastl;
+  INT lastl;
   /** Block index \f$l\f$ */
-  int l;
+  INT l;
   /** Length of polynomial coefficient arrays at next level */
-  int plength;
+  INT plength;
   /** Polynomial array length for stabilization */
-  int plength_stab;
-  int t_stab;
+  INT plength_stab;
+  INT t_stab;
   /** Current matrix \f$U_{n,tau,l}\f$ */
   fpt_step *step;
   /** */
   fftw_plan plan = 0;
-  int length = k_end+1;
+  int length = k_end + 1;
   fftw_r2r_kind kinds[2] = {FFTW_REDFT01,FFTW_REDFT01};
 
   /** Loop counter */
-  int k;
+  INT k;
 
   C *work_ptr;
   const C *x_ptr;
@@ -1274,12 +1274,12 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   /* Check, if slow transformation should be used due to small bandwidth. */
   if (k_end < FPT_BREAK_EVEN)
   {
-    /* Use NDSFT. */
-    fpt_trafo_direct(set, m, x, y, k_end, flags);
+    /* Use direct FPT. */
+    X(trafo_direct)(set, m, x, y, k_end, flags);
     return;
   }
 
-  Y(next_power_of_2_exp_int)(k_end,&Nk,&tk);
+  Y(next_power_of_2_exp)(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
@@ -1290,12 +1290,12 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   if (flags & FPT_FUNCTION_VALUES)
   {
 #ifdef _OPENMP
-    int nthreads = X(get_num_threads)();
+    int nthreads = Y(get_num_threads)();
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
-    plan = fftw_plan_many_r2r(1, &length, 2, (R*)set->work, NULL, 2, 1,
+    plan = FFTW(plan_many_r2r)(1, &length, 2, (R*)set->work, NULL, 2, 1,
       (R*)set->work, NULL, 2, 1, kinds, 0U);
 #ifdef _OPENMP
 }
@@ -1303,12 +1303,12 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   }
 
   /* Initialize working arrays. */
-  memset(set->result,0U,2*Nk*sizeof(C));
+  memset(set->result, 0U, 2 * (size_t)(Nk) * sizeof(C));
 
   /* The first step. */
 
   /* Set the first 2*data->k_start coefficients to zero. */
-  memset(set->work,0U,2*data->k_start*sizeof(C));
+  memset(set->work, 0U, 2 * (size_t)(data->k_start) * sizeof(C));
 
   work_ptr = &set->work[2*data->k_start];
   x_ptr = x;
@@ -1320,7 +1320,7 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   }
 
   /* Set the last 2*(set->N-1-k_end_tilde) coefficients to zero. */
-  memset(&set->work[2*(k_end_tilde+1)],0U,2*(Nk-1-k_end_tilde)*sizeof(C));
+  memset(&set->work[2*(k_end_tilde+1)], 0U, 2 * (size_t)(Nk - 1 - k_end_tilde) * sizeof(C));
 
   /* If k_end == Nk, use three-term recurrence to map last coefficient x_{Nk} to
    * x_{Nk-1} and x_{Nk-2}. */
@@ -1346,13 +1346,13 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
       /* Copy vectors to multiply into working arrays zero-padded to twice the length. */
       memcpy(set->vec3,&(set->work[(plength/2)*(4*l+2)]), (size_t)((plength / 2)) * sizeof(C));
       memcpy(set->vec4,&(set->work[(plength/2)*(4*l+3)]), (size_t)((plength / 2)) * sizeof(C));
-      memset(&set->vec3[plength/2],0U,(plength/2)*sizeof(C));
-      memset(&set->vec4[plength/2],0U,(plength/2)*sizeof(C));
+      memset(&set->vec3[plength/2], 0U, (size_t)(plength / 2) * sizeof(C));
+      memset(&set->vec4[plength/2], 0U, (size_t)(plength / 2) * sizeof(C));
 
       /* Copy coefficients into first half. */
       memcpy(&(set->work[(plength/2)*(4*l+2)]),&(set->work[(plength/2)*(4*l+1)]), (size_t)((plength / 2)) * sizeof(C));
-      memset(&(set->work[(plength/2)*(4*l+1)]),0U,(plength/2)*sizeof(C));
-      memset(&(set->work[(plength/2)*(4*l+3)]),0U,(plength/2)*sizeof(C));
+      memset(&(set->work[(plength/2)*(4*l+1)]), 0U, (size_t)(plength / 2) * sizeof(C));
+      memset(&(set->work[(plength/2)*(4*l+3)]), 0U, (size_t)(plength / 2) * sizeof(C));
 
       /* Get matrix U_{n,tau,l} */
       step = &(data->steps[tau][l]);
@@ -1410,8 +1410,8 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
         /* Set rest of vectors explicitely to zero */
         /*fprintf(stderr,"fpt_trafo: stabilizing: plength = %d, plength_stab = %d\n",
           plength, plength_stab);*/
-        memset(&set->vec3[plength/2],0U,(plength_stab-plength/2)*sizeof(C));
-        memset(&set->vec4[plength/2],0U,(plength_stab-plength/2)*sizeof(C));
+        memset(&set->vec3[plength/2], 0U, (size_t)(plength_stab-plength / 2) * sizeof(C));
+        memset(&set->vec4[plength/2], 0U, (size_t)(plength_stab-plength / 2) * sizeof(C));
 
         /* Multiply third and fourth polynomial with matrix U. */
         /* Check for symmetry. */
@@ -1503,11 +1503,11 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   if (flags & FPT_FUNCTION_VALUES)
   {
     y[0] *= 2.0;
-    fftw_execute_r2r(plan,(R*)y,(R*)y);
+    FFTW(execute_r2r)(plan,(R*)y,(R*)y);
 #ifdef _OPENMP
     #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
-    fftw_destroy_plan(plan);
+    FFTW(destroy_plan)(plan);
     for (k = 0; k <= k_end; k++)
     {
       y[k] *= 0.5;
@@ -1515,16 +1515,16 @@ void fpt_trafo(fpt_set set, const int m, const C *x, C *y,
   }
 }
 
-void fpt_transposed_direct(fpt_set set, const int m, C *x,
+void X(transposed_direct)(X(set) set, const int m, C *x,
   C *y, const int k_end, const unsigned int flags)
 {
-  int j;
+  INT j;
   fpt_data *data = &(set->dpt[m]);
-  int Nk;
-  int tk;
+  INT Nk;
+  INT tk;
   R norm;
 
-  Y(next_power_of_2_exp_int)(k_end+1,&Nk,&tk);
+  Y(next_power_of_2_exp)(k_end+1,&Nk,&tk);
   norm = 2.0/(Nk<<1);
 
   if (set->flags & FPT_NO_DIRECT_ALGORITHM)
@@ -1548,15 +1548,15 @@ void fpt_transposed_direct(fpt_set set, const int m, C *x,
   }
   else
   {
-    memcpy(set->result,y, (size_t)((k_end + 1)) * sizeof(C));
-    memset(&set->result[k_end+1],0U,(Nk-k_end-1)*sizeof(C));
+    memcpy(set->result, y, (size_t)((k_end + 1)) * sizeof(C));
+    memset(&set->result[k_end+1], 0U, (size_t)(Nk - k_end - 1) * sizeof(C));
 
     for (j = 0; j < Nk; j++)
     {
       set->result[j] *= norm;
     }
 
-    fftw_execute_r2r(set->plans_dct3[tk-2],(R*)set->result,
+    FFTW(execute_r2r)(set->plans_dct3[tk-2],(R*)set->result,
       (R*)set->result);
 
     eval_sum_clenshaw_transposed(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
@@ -1567,51 +1567,51 @@ void fpt_transposed_direct(fpt_set set, const int m, C *x,
   }
 }
 
-void fpt_transposed(fpt_set set, const int m, C *x,
+void X(transposed)(X(set) set, const int m, C *x,
   C *y, const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */
   fpt_data *data = &(set->dpt[m]);
   /** */
-  int Nk;
+  INT Nk;
   /** */
-  int tk;
+  INT tk;
   /** */
-  int k_start_tilde;
+  INT k_start_tilde;
   /** */
-  int k_end_tilde;
+  INT k_end_tilde;
 
   /** Level index \f$tau\f$ */
-  int tau;
+  INT tau;
   /** Index of first block at current level */
-  int firstl;
+  INT firstl;
   /** Index of last block at current level */
-  int lastl;
+  INT lastl;
   /** Block index \f$l\f$ */
-  int l;
+  INT l;
   /** Length of polynomial coefficient arrays at next level */
-  int plength;
+  INT plength;
   /** Polynomial array length for stabilization */
-  int plength_stab;
+  INT plength_stab;
   /** Current matrix \f$U_{n,tau,l}\f$ */
   fpt_step *step;
   /** */
   fftw_plan plan;
-  int length = k_end+1;
+  int length = k_end + 1;
   fftw_r2r_kind kinds[2] = {FFTW_REDFT10,FFTW_REDFT10};
   /** Loop counter */
-  int k;
-  int t_stab;
+  INT k;
+  INT t_stab;
 
   /* Check, if slow transformation should be used due to small bandwidth. */
   if (k_end < FPT_BREAK_EVEN)
   {
-    /* Use NDSFT. */
-    fpt_transposed_direct(set, m, x, y, k_end, flags);
+    /* Use direct FPT. */
+    X(transposed_direct)(set, m, x, y, k_end, flags);
     return;
   }
 
-  Y(next_power_of_2_exp_int)(k_end,&Nk,&tk);
+  Y(next_power_of_2_exp)(k_end,&Nk,&tk);
   k_start_tilde = K_START_TILDE(data->k_start,Nk);
   k_end_tilde = K_END_TILDE(k_end,Nk);
 
@@ -1624,21 +1624,21 @@ void fpt_transposed(fpt_set set, const int m, C *x,
   if (flags & FPT_FUNCTION_VALUES)
   {
 #ifdef _OPENMP
-    int nthreads = X(get_num_threads)();
+    int nthreads = Y(get_num_threads)();
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+    FFTW(plan_with_nthreads)(nthreads);
 #endif
-    plan = fftw_plan_many_r2r(1, &length, 2, (R*)set->work, NULL, 2, 1,
+    plan = FFTW(plan_many_r2r)(1, &length, 2, (R*)set->work, NULL, 2, 1,
       (R*)set->work, NULL, 2, 1, kinds, 0U);
 #ifdef _OPENMP
 }
 #endif
-    fftw_execute_r2r(plan,(R*)y,(R*)set->result);
+    FFTW(execute_r2r)(plan,(R*)y,(R*)set->result);
 #ifdef _OPENMP
     #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
-    fftw_destroy_plan(plan);
+    FFTW(destroy_plan)(plan);
     for (k = 0; k <= k_end; k++)
     {
       set->result[k] *= 0.5;
@@ -1650,7 +1650,7 @@ void fpt_transposed(fpt_set set, const int m, C *x,
   }
 
   /* Initialize working arrays. */
-  memset(set->work,0U,2*Nk*sizeof(C));
+  memset(set->work, 0U, 2 * (size_t)(Nk) * sizeof(C));
 
   /* The last step is now the first step. */
   for (k = 0; k <= k_end; k++)
@@ -1668,7 +1668,7 @@ void fpt_transposed(fpt_set set, const int m, C *x,
   }
   if (k_end<Nk)
   {
-    memset(&set->work[k_end],0U,(Nk-k_end)*sizeof(C));
+    memset(&set->work[k_end], 0U, (size_t)(Nk - k_end) * sizeof(C));
   }
 
   /** Save copy of inpute data for stabilization steps. */
@@ -1778,17 +1778,17 @@ void fpt_transposed(fpt_set set, const int m, C *x,
   }
 }
 
-void fpt_finalize(fpt_set set)
+void X(finalize)(X(set) set)
 {
-  int tau;
-  int l;
-  int m;
+  INT tau;
+  INT l;
+  INT m;
   fpt_data *data;
-  int k_start_tilde;
-  int N_tilde;
-  int firstl, lastl;
-  int plength;
-  const int M = set->M;
+  INT k_start_tilde;
+  INT N_tilde;
+  INT firstl, lastl;
+  INT plength;
+  const INT M = set->M;
 
   /* TODO Clean up DPT transform data structures. */
   for (m = 0; m < M; m++)
@@ -1797,9 +1797,9 @@ void fpt_finalize(fpt_set set)
     data = &set->dpt[m];
     if (data->steps != (fpt_step**)NULL)
     {
-      nfft_free(data->alphaN);
-      nfft_free(data->betaN);
-      nfft_free(data->gammaN);
+      Y(free)(data->alphaN);
+      Y(free)(data->betaN);
+      Y(free)(data->gammaN);
       data->alphaN = NULL;
       data->betaN = NULL;
       data->gammaN = NULL;
@@ -1820,20 +1820,20 @@ void fpt_finalize(fpt_set set)
         for (l = firstl; l <= lastl; l++)
         {
           /* Free components. */
-          nfft_free(data->steps[tau][l].a11[0]);
-          nfft_free(data->steps[tau][l].a12[0]);
-          nfft_free(data->steps[tau][l].a21[0]);
-          nfft_free(data->steps[tau][l].a22[0]);
+          Y(free)(data->steps[tau][l].a11[0]);
+          Y(free)(data->steps[tau][l].a12[0]);
+          Y(free)(data->steps[tau][l].a21[0]);
+          Y(free)(data->steps[tau][l].a22[0]);
           data->steps[tau][l].a11[0] = NULL;
           data->steps[tau][l].a12[0] = NULL;
           data->steps[tau][l].a21[0] = NULL;
           data->steps[tau][l].a22[0] = NULL;
           /* Free components. */
-          nfft_free(data->steps[tau][l].a11);
-          nfft_free(data->steps[tau][l].a12);
-          nfft_free(data->steps[tau][l].a21);
-          nfft_free(data->steps[tau][l].a22);
-          nfft_free(data->steps[tau][l].g);
+          Y(free)(data->steps[tau][l].a11);
+          Y(free)(data->steps[tau][l].a12);
+          Y(free)(data->steps[tau][l].a21);
+          Y(free)(data->steps[tau][l].a22);
+          Y(free)(data->steps[tau][l].g);
           data->steps[tau][l].a11 = NULL;
           data->steps[tau][l].a12 = NULL;
           data->steps[tau][l].a21 = NULL;
@@ -1841,13 +1841,13 @@ void fpt_finalize(fpt_set set)
           data->steps[tau][l].g = NULL;
         }
         /* Free pointers for current level. */
-        nfft_free(data->steps[tau]);
+        Y(free)(data->steps[tau]);
         data->steps[tau] = NULL;
         /* Double length of polynomials. */
         plength = plength<<1;
       }
       /* Free steps. */
-      nfft_free(data->steps);
+      Y(free)(data->steps);
       data->steps = NULL;
     }
 
@@ -1857,9 +1857,9 @@ void fpt_finalize(fpt_set set)
       //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
       if (!(set->flags & FPT_PERSISTENT_DATA))
       {
-        nfft_free(data->_alpha);
-        nfft_free(data->_beta);
-        nfft_free(data->_gamma);
+        Y(free)(data->_alpha);
+        Y(free)(data->_beta);
+        Y(free)(data->_gamma);
       }
       data->_alpha = NULL;
       data->_beta = NULL;
@@ -1868,28 +1868,28 @@ void fpt_finalize(fpt_set set)
   }
 
   /* Delete array of DPT transform data. */
-  nfft_free(set->dpt);
+  Y(free)(set->dpt);
   set->dpt = NULL;
 
   for (tau = 1; tau < set->t+1; tau++)
   {
-    nfft_free(set->xcvecs[tau-1]);
+    Y(free)(set->xcvecs[tau-1]);
     set->xcvecs[tau-1] = NULL;
   }
-  nfft_free(set->xcvecs);
+  Y(free)(set->xcvecs);
   set->xcvecs = NULL;
 
   /* Free auxilliary arrays. */
-  nfft_free(set->work);
-  nfft_free(set->result);
+  Y(free)(set->work);
+  Y(free)(set->result);
 
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /* Free auxilliary arrays. */
-    nfft_free(set->vec3);
-    nfft_free(set->vec4);
-    nfft_free(set->z);
+    Y(free)(set->vec3);
+    Y(free)(set->vec4);
+    Y(free)(set->z);
     set->work = NULL;
     set->result = NULL;
     set->vec3 = NULL;
@@ -1903,15 +1903,15 @@ void fpt_finalize(fpt_set set)
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
 {
-      fftw_destroy_plan(set->plans_dct3[tau]);
-      fftw_destroy_plan(set->plans_dct2[tau]);
+      FFTW(destroy_plan)(set->plans_dct3[tau]);
+      FFTW(destroy_plan)(set->plans_dct2[tau]);
 }
       set->plans_dct3[tau] = NULL;
       set->plans_dct2[tau] = NULL;
     }
 
-    nfft_free(set->plans_dct3);
-    nfft_free(set->plans_dct2);
+    Y(free)(set->plans_dct3);
+    Y(free)(set->plans_dct2);
     set->plans_dct3 = NULL;
     set->plans_dct2 = NULL;
   }
@@ -1919,12 +1919,12 @@ void fpt_finalize(fpt_set set)
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
   {
     /* Delete arrays of Chebyshev nodes. */
-    nfft_free(set->xc_slow);
+    Y(free)(set->xc_slow);
     set->xc_slow = NULL;
-    nfft_free(set->temp);
+    Y(free)(set->temp);
     set->temp = NULL;
   }
 
   /* Free DPT set structure. */
-  nfft_free(set);
+  Y(free)(set);
 }
