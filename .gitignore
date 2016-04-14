@@ -116,3 +116,5 @@ examples/solver/simple_test
 tests/checkall
 *.trs
 CUnitAutomated-Results.xml
+
+*.pc
