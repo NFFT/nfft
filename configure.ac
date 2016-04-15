@@ -18,11 +18,24 @@
 # Process this file with autoconf to produce a configure script.
 ################################################################################
 
+m4_define([nfft_version_major], [3])
+m4_define([nfft_version_minor], [3])
+m4_define([nfft_version_patch], [1])
+m4_define([nfft_version_type], [alpha])
+...
+m4_define([NFFT_VERSION],
+      [nfft_version_major.nfft_version_minor.nfft_version_patch])
+
 # autoconf initialization
-AC_INIT([NFFT],[3.3.1-alpha],[mail@nfft.org])
+AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2012, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2015, Jens Keiner, Stefan Kunis, Daniel Potts])
+
+AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_PATCH], [nfft_version_patch], [Patch version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_TYPE], [nfft_version_type], [Release type.])
 
 # m4 macros go here
 AC_CONFIG_MACRO_DIR([m4])
