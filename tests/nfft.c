@@ -412,7 +412,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   printf(" M = %-5d", *M);
 
 #ifdef _OPENMP
-  printf(" nthreads = %td", X(get_num_threads)());
+  printf(" nthreads = " __D__, X(get_num_threads)());
 #endif
 
   for (j = 0, *NN = 1; j < *d; j++)
@@ -485,7 +485,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   printf(" M = %-5d", *M);
 
 #ifdef _OPENMP
-  printf(" nthreads = %td", X(get_num_threads)());
+  printf(" nthreads = " __D__, X(get_num_threads)());
 #endif
 
   for (j = 0, *NN = 1; j < *d; j++)
@@ -573,7 +573,7 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   printf(" M = %-5d", *M);
 
 #ifdef _OPENMP
-  printf(" nthreads = %td", X(get_num_threads)());
+  printf(" nthreads = " __D__, X(get_num_threads)());
 #endif
 
   for (j = 0, *NN = 1; j < *d; j++)

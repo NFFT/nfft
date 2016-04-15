@@ -99,4 +99,10 @@ typedef double _Complex NFFT_C;
 
 #define NFFT_KPI NFFT_K(3.1415926535897932384626433832795028841971693993751)
 
+#if defined(_WIN32) || defined(_WIN64)
+#  define NFFT__D__ "%Id"
+#else
+#  define NFFT__D__ "%td"
+#endif
+
 #endif /* defined(__NFFT3MP_H__) */
