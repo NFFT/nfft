@@ -241,7 +241,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     saved_LIBS="$LIBS"
     saved_LDFLAGS="$LDFLAGS"
 
-    for matlab_fftw3_lib_name in mwfftw3 fftw3; do
+    for matlab_fftw3_lib_name in mwfftw3 :libmwfftw3.so.3 fftw3; do
       matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}"
       LIBS="-l${matlab_fftw3_lib_name} $LIBS"
       LDFLAGS="-L$matlab_fftw3_lib_dir ${matlab_LDFLAGS} $LDFLAGS"
@@ -266,7 +266,7 @@ AC_DEFUN([AX_PROG_MATLAB],
       fi
 
       if test "x$ax_matlab_lib_fftw3" = "xno"; then
-        AC_MSG_ERROR([You don't seem to have installed the FFTW 3 libray for the NFFT Matlab interface.])
+        continue
       fi
 
       if test "x$matlab_threads" = "xyes"; then
@@ -300,7 +300,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         fi
 
         if test "x$ax_matlab_lib_fftw3_threads" = "xno"; then
-          AC_MSG_ERROR([You don't seem to have installed the FFTW 3 libray for the NFFT Matlab interface.])
+          continue
         fi
       fi
 
@@ -308,6 +308,14 @@ AC_DEFUN([AX_PROG_MATLAB],
         break
       fi
     done
+
+    if test "x$ax_matlab_lib_fftw3" = "xno"; then
+      AC_MSG_ERROR([You don't seem to have installed the FFTW 3 libray for the NFFT Matlab interface.])
+    fi
+
+    if test "x$matlab_threads" = "xyes" -a "x$ax_matlab_lib_fftw3_threads" = "xno"; then
+      AC_MSG_ERROR([You don't seem to have installed the threaded FFTW 3 libray for the NFFT Matlab interface.])
+    fi
 
     LIBS="$saved_LIBS"
     LDFLAGS="$saved_LDFLAGS"
