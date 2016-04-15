@@ -23,9 +23,10 @@ env:
 - WINDOW=gaussian PRECISION=--enable-long-double
 - WINDOW=bspline PRECISION=--enable-long-double
 - WINDOW=sinc PRECISION=--enable-long-double
+- WINDOW=kaiserbessel PRECISION= DIST=dist
 script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
   $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi) && make
-  && make check && make dist
+  && make check && make $DIST
 after_failure: cat config.log
 notifications:
   email: false
