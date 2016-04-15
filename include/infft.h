@@ -1320,7 +1320,11 @@ extern double _Complex catanh(double _Complex z);
 #define TRUE 1
 #define FALSE 0
 
-#define __D__ "%td"
+#if defined(_WIN32) || defined(_WIN64)
+#  define __D__ "%Id"
+#else
+#  define __D__ "%td"
+#endif
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
