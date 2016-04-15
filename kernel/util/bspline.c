@@ -57,15 +57,9 @@ R Y(bsplines)(const INT k, const R _x)
 
     r = (INT)LRINT(CEIL(x) - K(1.0));
 
-    /* Explicit case for first interval. */
-    if (r == 0)
-    {
-      result_value = K(1.0);
-      for (j = 0; j < k - 1; j++)
-        result_value *= x/((R)(j+1));
-      return result_value;
-    }
-
+    /* Do not use the explicit formula x^k / k! for first interval! De Boor's
+     * algorithm is more accurate. See https://github.com/NFFT/nfft/issues/16.
+     */
 
     for (idx = 0; idx < k; idx++)
       scratch[idx] = K(0.0);

@@ -58,11 +58,13 @@ int main(void)
   CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfft, "nfft_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
   CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
   CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
@@ -86,11 +88,13 @@ int main(void)
   CU_add_test(nfct, "nfct_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfct, "nfct_3d_online", X(check_3d_online));
   CU_add_test(nfct, "nfct_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfct, "nfct_4d_online", X(check_4d_online));
   CU_add_test(nfct, "nfct_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #endif
 #endif
 #ifdef HAVE_NFST
@@ -116,11 +120,13 @@ int main(void)
   CU_add_test(nfst, "nfst_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfst, "nfst_3d_online", X(check_3d_online));
   CU_add_test(nfst, "nfst_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #endif
 #endif
 #undef X

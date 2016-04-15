@@ -6320,7 +6320,7 @@ static const R b30[] =
   K(0.24684163539601499376496292031270154746415289827073608174217318),
 };
 
-#define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
+#define ERR(x,y) IF(ABS(y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
 #if defined(NFFT_LDOUBLE)
 static const R bound = K(16.0) * EPSILON;
