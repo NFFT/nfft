@@ -41,5 +41,6 @@ deploy:
   file: ${NFFT_DISTRO}
   skip_cleanup: true
   on:
+    condition: $DIST = dist
     tags: true
     repo: NFFT/nfft
