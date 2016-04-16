@@ -11,7 +11,12 @@ else
 endif
 
 DIR_NFFT=nfft
-DIR_NNFFT=nnfft
+
+if HAVE_NNFFT
+  DIR_NNFFT=nnfft
+else
+  DIR_NNFFT=
+endif
 
 SUBDIRS = . $(DIR_NFFT) $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NNFFT)
 
