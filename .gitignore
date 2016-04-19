@@ -71,7 +71,7 @@ include/config.h
 include/stamp-h1
 include/ticks.h
 libtool
-nfft3.pc
+*.pc
 **/.libs/*
 applications/fastgauss/fastgauss
 applications/fastsum/fastsum_matlab
