@@ -22,10 +22,9 @@ m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [3])
 m4_define([nfft_version_patch], [1])
 m4_define([nfft_version_type], [alpha])
+m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
+m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 ...
-m4_define([NFFT_VERSION],
-      [nfft_version_major.nfft_version_minor.nfft_version_patch])
-
 # autoconf initialization
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
