@@ -24,6 +24,15 @@ env:
 - WINDOW=bspline PRECISION=--enable-long-double
 - WINDOW=sinc PRECISION=--enable-long-double
 - WINDOW=kaiserbessel PRECISION= DIST=dist
+before_script:
+  if [ "x$TRAVIS_TAG" != "x" ]; then
+    TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG")
+    a=( ${TRAVIS_TAG//./ } )
+    if [ ${#a[@]} -gt 2 ]; then
+      sed -e "s/\(m4_define(\[nfft_version_major\], \[\).*\(\])\)/\1${a[0]}\2/" -e "s/\(m4_define(\[nfft_version_minor\], \[\).*\(\])\)/\1${a[1]}\2/" -e "s/\(m4_define(\[nfft_version_patch\], \[\).*\(\])\)/\1${a[2]}\2/" -e "s/\(m4_define(\[nfft_version_type\], \[\).*\(\])\)/\1${a[3]}\2/" configure.ac > configure.ac.modified
+      mv configure.ac.modified configure.ac
+    fi
+  fi
 script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
   $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi) && make
   && make check && make $DIST
