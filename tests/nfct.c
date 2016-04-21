@@ -380,7 +380,7 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   const testcase_delegate_file_t *ego = (const testcase_delegate_file_t*)ego_;
   int j;
   char filename[200];
-  char* c = rindex(ego->filename, SEP[0]);
+  char* c = strrchr(ego->filename, SEP[0]);
   FILE *file = fopen(ego->filename, "r");
 
   filename[0] = (char) 0;
