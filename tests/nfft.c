@@ -29,7 +29,7 @@
 #include "cycle.h"
 #include "nfft.h"
 
-#define ABSPATH(x) ABS_SRCDIR SEP "tests" SEP x
+#define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
@@ -381,11 +381,12 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   const testcase_delegate_file_t *ego = (const testcase_delegate_file_t*)ego_;
   int j;
   char filename[200];
-  char* c = strrchr(ego->filename, SEP[0]);
+  char* c = strrchr(ego->filename, '/');
   FILE *file = fopen(ego->filename, "r");
 
   filename[0] = (char) 0;
-  strcpy(filename, &c[1]);
+  strncpy(filename, &c[1], 200);
+  filename[199] = (char) 0;
   printf("%-31s", filename);
 
   /* Dimensions. */
