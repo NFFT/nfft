@@ -189,7 +189,7 @@ static R trafo_direct_cost(X(plan) *p)
             x += 1;
           }
           X(finalize)(&p2);
-          free(N);
+          Y(free)(N);
         }
       }
     }
@@ -450,10 +450,10 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
 static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
-  free(N);
-  free(x);
-  free(f_hat);
-  free(f);
+  Y(free)(N);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
 }
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
@@ -626,10 +626,10 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
-  free(N);
-  free(x);
-  free(f_hat);
-  free(f);
+  Y(free)(N);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
 }
 
 /* Initializers. */
@@ -667,7 +667,7 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   for (i = 0; i < d; i++)
     n[i] = 2 * (int)(Y(next_power_of_2)(N[i]));
   X(init_guru)(p, d, N, M, n, ego->m, ego->flags, ego->fftw_flags);
-  free(n);
+  Y(free)(n);
 }
 
 static init_delegate_t init_direct = {"init_guru ()", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, (DEFAULT_NFFT_FLAGS ^ PRE_PSI), DEFAULT_FFTW_FLAGS};
