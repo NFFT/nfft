@@ -8,8 +8,10 @@ Changes in version 3.3.1:
     - #14 applications\fastsum\fastsum_matlab produces wrong results in Windows.
     - #15 Fixes for Matlab applications/examples in Windows.
     - #16 X(bsplines)(n, x) can be inaccurate when x is close to zero.
+    - #17 MATLAB r2015b/r2016a don't ship symlink libmfftw3.so to libmfftw3.so.3.
+    - #18 Define format string for ptrdiff_t in platform-dependent macro.
 
-    Enhancements
+    Improvements
     - #3 Allow to select scope of unit tests via configure.
     - #1 Extend Travis CI configuration.
 
