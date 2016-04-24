@@ -1,9 +1,9 @@
 function fastsumS2()
 %FASTSUMS2
 %
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -19,14 +19,16 @@ function fastsumS2()
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 % The input file's name for fastsumS2.c
 infilename = 'data.in';
 % The output file name.
 outfilename = 'data.out';
 % The name of the fastsumS2.c executable
-programname = 'fastsumS2';
+if ispc
+    programname='fastsumS2.exe';
+else 
+    programname='./fastsumS2';
+end
 % The name of the file to write the time measurements table to.
 texfilename = 'table.tex';
 
@@ -145,7 +147,7 @@ if (selection > 0 && selection <= 4)
 
   % Call fastsumS2.c with the generated input file writing the output to the
   % output file.
-  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+  system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 
   % Open the output file.
   file = fopen(outfilename,'r');
@@ -237,7 +239,7 @@ elseif (selection == 5)
 
   % Call fastsumS2.c with the generated input file writing the output to the
   % output file.
-  system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+  system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 
   % Open the output file.
   file = fopen(outfilename,'r');

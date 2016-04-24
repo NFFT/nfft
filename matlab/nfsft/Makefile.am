@@ -1,5 +1,3 @@
-# $Id$
-
 SUBDIRS = @f_hat
 
 # compiler flags

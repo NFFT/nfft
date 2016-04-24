@@ -12,7 +12,7 @@ function [x,w]=lgwt(N,a,b)
 %
 %   Written by Greg von Winckel - 02/25/2004
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -28,8 +28,6 @@ function [x,w]=lgwt(N,a,b)
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 N=N-1;
 N1=N+1; N2=N+2;
 

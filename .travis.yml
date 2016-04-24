@@ -1,24 +1,55 @@
 language: c
-compiler: gcc
+compiler:
+- gcc
+- clang
 os: linux
-
-# Turn off sudo to run on container based infrastructure
 sudo: false
-
-## turn off email notifications
-# notifications:
-#   email: false
-
 addons:
   apt:
     packages:
     - libfftw3-dev
     - libcunit1-dev
-
-# install:
-
-script: ./bootstrap.sh && ./configure --enable-all --enable-openmp && make && make check
-
-## print config.log for debugging
-after_failure: "cat config.log"
-
+    - doxygen
+env:
+- WINDOW=kaiserbessel PRECISION=
+- WINDOW=gaussian PRECISION=
+- WINDOW=bspline PRECISION=
+- WINDOW=sinc PRECISION=
+- WINDOW=kaiserbessel PRECISION=--enable-float
+- WINDOW=gaussian PRECISION=--enable-float
+- WINDOW=bspline PRECISION=--enable-float
+- WINDOW=sinc PRECISION=--enable-float
+- WINDOW=kaiserbessel PRECISION=--enable-long-double
+- WINDOW=gaussian PRECISION=--enable-long-double
+- WINDOW=bspline PRECISION=--enable-long-double
+- WINDOW=sinc PRECISION=--enable-long-double
+- WINDOW=kaiserbessel PRECISION= DIST=dist
+before_script:
+  if [ "x$TRAVIS_TAG" != "x" ]; then
+    TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
+    a=( ${TRAVIS_TAG//./ } );
+    if [ ${#a[@]} -gt 2 ]; then
+      sed -e "s/\(m4_define(\[nfft_version_major\], \[\).*\(\])\)/\1${a[0]}\2/" -e "s/\(m4_define(\[nfft_version_minor\], \[\).*\(\])\)/\1${a[1]}\2/" -e "s/\(m4_define(\[nfft_version_patch\], \[\).*\(\])\)/\1${a[2]}\2/" -e "s/\(m4_define(\[nfft_version_type\], \[\).*\(\])\)/\1${a[3]}\2/" configure.ac > configure.ac.modified;
+      mv configure.ac.modified configure.ac;
+    fi
+  fi
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
+  $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi) && make
+  && make check && make $DIST
+after_failure: cat config.log
+notifications:
+  email: false
+before_deploy:
+- export NFFT_DISTRO=$(ls *.tar.gz)
+- echo "Deploying $NFFT_DISTRO to GitHub releases..."
+deploy:
+  provider: releases
+  api_key:
+    secure: RzoI1Acp6lZncLnsINrEByZlL2EecIi9IygLFAklyF4YlMWRNhnu+ePW3AovFI7jU8v0H9LmSM0KYi3dIEUpQbQd46IVErihD2dZmICyxqpn1HUrfmpd3EQ1wFBA3wkCmvOWXcN3n8bCDDDV4HX6d/AQtRCp7G6HK+na8fG7JJqkBah50PytU9rcUCHIvzywg6HKQn1rbYOXhDcJs64Ns2F+z5iMlOHA02lRJgmO+5oU3Q2Bhk1V+JypEmMQ8u7zI9/TOVjMzIA0VVz68GiRHBShSRb5VPsGqhWZqqx0shpQqYVd7S9S50AURaqsSGTMmxM3pgWltkx8kUBGwessuX4uB5MdjyZwa1EJV0qIqCVxkxdX925P1zqR/0CBcbwRl9hIB6NytKodraoUbK7B3SaRF64a+l8h5gYBQfhZZEp5itkdvf+hOKQknCPiULS0yhzFLKYTui3h6iVToA2ncYzsesJdcO3vGRFWFyeFPHR/miuWMU4ZVJPKtyEU2A4SBTUIvaDIac1wvNns1fXXHuG7kiCUuZXRHjKQIhIpTahTy5/1RWolt0UlRo/SrKoW0ZDQF8NWwUy/+trdK9Ksr0aZHUo+q0rLSuJO82lJIs3mZpAGuM1a5rtQO9p7aPnuJy7Df4/1xhygig+00Mxw+D4u+HKsvgeJH01cz1rlybE=
+  file_glob: true
+  file: ${NFFT_DISTRO}
+  skip_cleanup: true
+  on:
+    condition: $DIST = dist
+    tags: true
+    repo: NFFT/nfft

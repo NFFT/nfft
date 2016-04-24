@@ -1,5 +1,3 @@
-# $Id: Makefile.am 3456 2010-03-17 19:25:47Z keiner $
-
 AM_CPPFLAGS = -I$(top_srcdir)/include -DSRCDIR=@abs_srcdir@
 
 SUBDIRS= data
@@ -21,7 +19,6 @@ else
 endif
 
 check_PROGRAMS = $(CHECK) $(CHECK_THREADS)
-#debug
 
 TESTS = $(check_PROGRAMS)
 
@@ -47,9 +44,6 @@ if HAVE_OPENMP
   checkall_threads_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif
-
-#debug_SOURCES = debug.c nfct.c nfst.c nfct.h nfst.h
-#debug_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lcunit -lncurses
 
 clean-local:
 	rm -f CUnitAutomated-Results.xml CUnitAutomated_threads-Results.xml checkall.log checkall.trs checkall_threads.log checkall_threads.trs

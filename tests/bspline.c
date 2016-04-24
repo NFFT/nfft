@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -15,8 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/* $Id: simple_test.c 3509 2010-05-25 19:00:59Z keiner $ */
 
 /* Standard headers. */
 #include <stdio.h>
@@ -6322,10 +6320,10 @@ static const R b30[] =
   K(0.24684163539601499376496292031270154746415289827073608174217318),
 };
 
-#define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
+#define ERR(x,y) IF(ABS(y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
 #if defined(NFFT_LDOUBLE)
-static const R bound = K(15.0) * EPSILON;
+static const R bound = K(16.0) * EPSILON;
 #elif defined(NFFT_SINGLE)
 static const R bound = K(20.0) * EPSILON;
 #else
@@ -6335,14 +6333,13 @@ static const R bound = K(16.0) * EPSILON;
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)
 {
   unsigned int j;
-  R scratch[100];
   R err = K(0.0);
   int ok;
 
   for (j = 0; j < m; j++)
   {
     const R x = r[2*j], yr = r[2*j+1];
-    R y = X(bspline)((INT)(n + 1), x, scratch);
+    R y = X(bsplines)((INT)(n + 1), x);
     /*printf("x = " __FE__ ", err = " __FE__ "\n", x, ERR(y,yr));*/
     err = FMAX(err, ERR(y, yr));
   }

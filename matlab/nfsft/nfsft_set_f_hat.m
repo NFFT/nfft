@@ -1,7 +1,7 @@
 %NFSFT_SET_F_HAT Set Fourier coefficients in plan from a matrix
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -16,7 +16,5 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-%
-% $Id$
 function nfsft_set_f_hat(p,f_hat)
 nfsftmex('set_f_hat',p,f_hat)

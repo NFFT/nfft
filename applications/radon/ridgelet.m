@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
 %file: ridgelet.m
 %
 %  Simple test program for denoising an image
@@ -70,7 +69,12 @@ axis image
 title(sprintf('noisy image (SNR=%g)',SNR));
 
 %compute Radon transform by C-program
-system(sprintf('./radon %s %d %d %d %d',grid,N,T,R));
+if ispc
+    cmd='radon.exe';
+else 
+    cmd='./radon';
+end
+system(sprintf('%s %s %d %d %d %d',cmd,grid,N,T,R));
 
 %read result from file
 fp = fopen('sinogram_data.bin','rb+');
@@ -95,7 +99,12 @@ fwrite(fp,Rf2d,'double');
 fclose(fp);
 
 %compute inverse Radon transform by C-program
-system(sprintf('./inverse_radon %s %d %d %d %d',grid,N,T,R,it));
+if ispc
+    cmd='inverse_radon.exe';
+else 
+    cmd='./inverse_radon';
+end
+system(sprintf('%s %s %d %d %d %d',cmd,grid,N,T,R,it));
 
 %read result
 fp = fopen('output_data.bin','rb+');

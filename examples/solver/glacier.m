@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -13,8 +13,6 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-%
-% $Id$
 N=256;
 border_eps=0.1;
 
@@ -31,7 +29,12 @@ input_data(:,2)=(input_data(:,2)-min(input_data(:,2))) /y_range*(1-2*border_eps)
 
 save input_data.dat -ascii -double -tabs input_data
 
-system(sprintf('./glacier %d %d > output_data.dat',N,M));
+if ispc
+    cmd='glacier.exe';
+else 
+    cmd='./glacier';
+end
+system(sprintf('%s %d %d > output_data.dat',cmd,N,M));
 
 load output_data.dat
 f_hat=output_data(:,1)+i*output_data(:,2);

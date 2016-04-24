@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -15,8 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/* $Id: simple_test.c 3509 2010-05-25 19:00:59Z keiner $ */
 
 /* Standard headers. */
 #include <stdio.h>
@@ -228,11 +226,11 @@ static R err_trafo(X(plan) *p)
     s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
 #if defined(NFFT_LDOUBLE)
-    a = K(3.0);
+    a = K(3.4);
     b = K(50.0);
 #elif defined(NFFT_SINGLE)
     a = K(0.4);
-    b = K(9500.0);
+    b = K(11700.0);
 #else
     a = K(1.95);
     b = K(50.0);
@@ -933,10 +931,12 @@ static const testcase_delegate_online_t *testcases_1d_online[] =
   &nfst_online_1d_100_50,
   &nfst_online_1d_200_50,
   &nfst_online_1d_500_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfst_online_1d_1000_50,
   &nfst_online_1d_2000_50,
   &nfst_online_1d_5000_50,
   &nfst_online_1d_10000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_1d_online[] = {&trafo/*, &trafo_1d*/};
@@ -962,10 +962,12 @@ static const testcase_delegate_online_t *testcases_adjoint_1d_online[] =
   &nfst_adjoint_online_1d_100_50,
   &nfst_adjoint_online_1d_200_50,
   &nfst_adjoint_online_1d_500_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfst_adjoint_online_1d_1000_50,
   &nfst_adjoint_online_1d_2000_50,
   &nfst_adjoint_online_1d_5000_50,
   &nfst_adjoint_online_1d_10000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint/*, &adjoint_1d*/};
@@ -1080,8 +1082,10 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
   &nfst_online_2d_50_50,
   &nfst_online_2d_100_50,
   &nfst_online_2d_200_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfst_online_2d_500_50,
   &nfst_online_2d_1000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo/*, &trafo_2d*/};
@@ -1103,8 +1107,10 @@ static const testcase_delegate_online_t *testcases_adjoint_2d_online[] =
   &nfst_adjoint_online_2d_50_50,
   &nfst_adjoint_online_2d_100_50,
   &nfst_adjoint_online_2d_200_50,
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   &nfst_adjoint_online_2d_500_50,
   &nfst_adjoint_online_2d_1000_50,
+#endif
 };
 
 static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint/*, &adjoint_2d*/};
@@ -1180,6 +1186,7 @@ void X(check_adjoint_3d_fast_file)(void)
     testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
 }
 
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
 static const testcase_delegate_online_t nfst_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_3d_online[] =
@@ -1209,6 +1216,7 @@ void X(check_adjoint_3d_online)(void)
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
     testcases_adjoint_3d_online, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
 }
+#endif
 
 /* 4D. */
 
@@ -1224,6 +1232,7 @@ static const init_delegate_t* initializers_4d[] =
 #endif
 };
 
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
 static const testcase_delegate_online_t nfst_online_4d_28_50 = {setup_online, destroy_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
@@ -1253,3 +1262,4 @@ void X(check_adjoint_4d_online)(void)
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
     testcases_adjoint_4d_online, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -15,8 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
 #include "infft.h"
 
@@ -77,6 +75,45 @@ void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t)
 {
   INT n,i,logn;
   INT N_is_not_power_of_2=0;
+
+  if (N == 0)
+  {
+    *N2 = 1;
+    *t = 0;
+  }
+  else
+  {
+    n = N;
+    logn = 0;
+    while (n != 1)
+    {
+      if (n%2 == 1)
+      {
+          N_is_not_power_of_2=1;
+      }
+      n = n/2;
+      logn++;
+    }
+
+    if (!N_is_not_power_of_2)
+    {
+      logn--;
+    }
+
+    for (i = 0; i <= logn; i++)
+    {
+      n = n*2;
+    }
+
+    *N2 = n;
+    *t = logn+1;
+  }
+}
+
+void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t)
+{
+  int n,i,logn;
+  int N_is_not_power_of_2=0;
 
   if (N == 0)
   {

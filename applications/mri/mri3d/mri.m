@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
 % This script file is an example of the usage
 
 N=48;   % points per row / column
@@ -35,7 +34,12 @@ M = construct_knots_spiral(N,Z);
 
 % First make N^2 1d-FFT, then Z 2d-NFFT on the constructed knots
 % and write the output to output_phantom_nfft.dat
-system(['./construct_data_2d1d ' 'output_phantom_nfft.dat '...
+if ispc
+    cmd='construct_data_2d1d.exe';
+else 
+    cmd='./construct_data_2d1d';
+end
+system([cmd ' output_phantom_nfft.dat '...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)]);
 
 % Precompute the weights using voronoi cells
@@ -47,7 +51,12 @@ precompute_weights_2d('output_phantom_nfft.dat',M,Z);
 % The usage is "./reconstruct_data_2d1d filename N M Z ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-system(['./reconstruct_data_2d1d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_2d1d.exe';
+else 
+    cmd='./reconstruct_data_2d1d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 3 1']);
 
 % Visualize the three dimensional phantom. Makes a pic of
@@ -62,7 +71,12 @@ visualize_data('pics_2+1d/pic', N, Z, 1, 'Inverse 2d1d-NFFT - 3. iteration - spi
 % The same as above but reconstructed with gridding.
 % That means first an adjoint 2d-NFFT, then a 1d-FFT.
 % The ITER parameter is obsolent and just for compatibility
-system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_gridding.exe';
+else 
+    cmd='./reconstruct_data_gridding';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 0 1']);
 visualize_data('pics_gridding/pic', N, Z, 2, 'Adjoint 2d1d-NFFT (Gridding) - spiral knots');
 rms('pics_gridding/rms.txt');
@@ -70,7 +84,12 @@ rms('pics_gridding/rms.txt');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % The same as above but reconstructed with a 3d-nfft
-system(['./reconstruct_data_3d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_3d.exe';
+else 
+    cmd='./reconstruct_data_3d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
 visualize_data('pics_3d/pic', N, Z, 3, 'Inverse 3d-NFFT - 1. iteration - spiral knots');
 rms('pics_3d/rms.txt');

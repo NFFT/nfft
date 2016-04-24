@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -15,8 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/* $Id: simple_test.c 3509 2010-05-25 19:00:59Z keiner $ */
 
 /* Standard headers. */
 #include <CUnit/CUnit.h>
@@ -60,11 +58,13 @@ int main(void)
   CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfft, "nfft_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
   CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
   CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
@@ -88,11 +88,13 @@ int main(void)
   CU_add_test(nfct, "nfct_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfct, "nfct_3d_online", X(check_3d_online));
   CU_add_test(nfct, "nfct_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfct, "nfct_4d_online", X(check_4d_online));
   CU_add_test(nfct, "nfct_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #endif
 #endif
 #ifdef HAVE_NFST
@@ -118,11 +120,13 @@ int main(void)
   CU_add_test(nfst, "nfst_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfst, "nfst_3d_online", X(check_3d_online));
   CU_add_test(nfst, "nfst_adjoint_3d_online", X(check_adjoint_3d_online));
 
   CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
+#endif
 #endif
 #endif
 #undef X

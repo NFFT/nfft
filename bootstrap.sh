@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Id$
-#
 # Copyright (c) 2003, 2006 Matteo Frigo
 # Copyright (c) 2003, 2006 Massachusetts Institute of Technology
 # Copyright (c) 2007 Jens Keiner

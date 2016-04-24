@@ -1,5 +1,3 @@
-# $Id$
-
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 if HAVE_THREADS

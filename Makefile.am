@@ -1,4 +1,3 @@
-# $Id$
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
 libtool: $(LIBTOOL_DEPS)

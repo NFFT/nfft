@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -15,8 +15,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
-/* $Id: util.c 3483 2010-04-23 19:02:34Z keiner $ */
 
 #include "infft.h"
 
@@ -36,7 +34,7 @@ static inline void bspline_help(const INT k, const R x, R *scratch, const INT j,
 }
 
 /* Evaluate the cardinal B-Spline B_{n-1} supported on [0,n]. */
-R Y(bspline)(const INT k, const R _x, R *scratch)
+R Y(bsplines)(const INT k, const R _x)
 {
   const R kk = (R)k;
   R result_value;
@@ -45,6 +43,7 @@ R Y(bspline)(const INT k, const R _x, R *scratch)
   INT j, idx, ug, og; /* indices */
   R a; /* Alpha of de Boor scheme*/
   R x = _x;
+  R scratch[k];
 
   result_value = K(0.0);
 
@@ -58,15 +57,9 @@ R Y(bspline)(const INT k, const R _x, R *scratch)
 
     r = (INT)LRINT(CEIL(x) - K(1.0));
 
-    /* Explicit case for first interval. */
-    if (r == 0)
-    {
-      result_value = K(1.0);
-      for (j = 0; j < k - 1; j++)
-        result_value *= x/((R)(j+1));
-      return result_value;
-    }
-
+    /* Do not use the explicit formula x^k / k! for first interval! De Boor's
+     * algorithm is more accurate. See https://github.com/NFFT/nfft/issues/16.
+     */
 
     for (idx = 0; idx < k; idx++)
       scratch[idx] = K(0.0);

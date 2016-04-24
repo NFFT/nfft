@@ -1,6 +1,4 @@
-# $Id$
-#
-# Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -20,14 +18,23 @@
 # Process this file with autoconf to produce a configure script.
 ################################################################################
 
+m4_define([nfft_version_major], [3])
+m4_define([nfft_version_minor], [3])
+m4_define([nfft_version_patch], [1])
+m4_define([nfft_version_type], [alpha])
+m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
+m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
+...
 # autoconf initialization
-AC_INIT([NFFT],[3.3.1-alpha],[mail@nfft.org])
-
-# revision id from svn
-AC_REVISION([$Id$])
+AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2012, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2015, Jens Keiner, Stefan Kunis, Daniel Potts])
+
+AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_PATCH], [nfft_version_patch], [Patch version number.])
+AC_DEFINE_UNQUOTED([NFFT_VERSION_TYPE], [nfft_version_type], [Release type.])
 
 # m4 macros go here
 AC_CONFIG_MACRO_DIR([m4])
@@ -230,6 +237,11 @@ case "$window" in
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
 AC_MSG_RESULT([$window])
+
+AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
+if test "$ok" = "yes"; then
+  AC_DEFINE(NFFT_EXHAUSTIVE_UNIT_TESTS,1,[Define to enable exhaustive unit tests.])
+fi
 
 ################################################################################
 # compiler characteristis

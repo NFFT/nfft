@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
 % This script file is an example of the usage
 
 N=128;   % points per row / column
@@ -33,7 +32,12 @@ M = construct_knots_spiral(N,1);
 
 % Make a 2d-NFFT on the constructed knots
 % and write the output to output_data_phantom_nfft.dat
-system(['./construct_data_2d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='construct_data_2d.exe';
+else 
+    cmd='./construct_data_2d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)]);
 
 % Precompute the weights using voronoi cells
@@ -45,7 +49,12 @@ precompute_weights('output_phantom_nfft.dat',M);
 % The usage is "./reconstruct_data_2 filename N M ITER WEIGHTS"
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
-system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_2d.exe';
+else 
+    cmd='./reconstruct_data_2d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 3 1']);
 
 % Visualize the two dimensional phantom. Make a pic
@@ -60,7 +69,12 @@ rms('pics/rms_2d.txt');
 % The same as above but reconstructed with gridding
 % That means an adjoint 2d-NFFT
 % The ITER parameter is unused and just for compatibility
-system(['./reconstruct_data_gridding ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_gridding.exe';
+else 
+    cmd='./reconstruct_data_gridding';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 5 1']);
 visualize_data('pics/pic_gridding', N, 2, '2d-NFFT (Gridding)');
 rms('pics/rms_gridding.txt');

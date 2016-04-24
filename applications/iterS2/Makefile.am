@@ -1,5 +1,3 @@
-# $Id$
-
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft
 
 noinst_PROGRAMS = iterS2

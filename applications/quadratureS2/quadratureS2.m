@@ -1,9 +1,9 @@
 function quadratureS2()
 %QUADRATURES2
 %
-%   Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -19,14 +19,16 @@ function quadratureS2()
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 % The name of the input file
 infilename = 'data.in';
 % The name of the output file
 outfilename = 'data.out';
 % The name of the program
-programname = 'quadratureS2';
+if ispc
+    programname='quadratureS2.exe';
+else 
+    programname='./quadratureS2';
+end
 
 % Display the menu.
 selection = menu('quadratureS2 - Fast evaluation of quadrature formulae on the sphere',...
@@ -124,7 +126,7 @@ fclose(file);
 
 fprintf('Program in execution. Please be patient! This may take a while!\n');
 
-system(sprintf('./%s < %s > %s',programname,infilename,outfilename));
+system(sprintf('%s < %s > %s',programname,infilename,outfilename));
 file = fopen(outfilename,'r');
 T = readTestcase(file);
 fclose(file);

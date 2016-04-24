@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -13,8 +13,6 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-%
-% $Id$
 N=256;
 border_eps=0.1;
 
@@ -39,4 +37,9 @@ M_cv_end=1000;
 
 save input_data.dat -ascii -double -tabs input_data
 
-system(sprintf('./glacier %d %d %d %d %d > output_data_cv.tex',N,M,M_cv_start,M_cv_step,M_cv_end));
+if ispc
+    cmd='glacier.exe';
+else 
+    cmd='./glacier';
+end
+system(sprintf('%s %d %d %d %d %d > output_data_cv.tex',cmd,N,M,M_cv_start,M_cv_step,M_cv_end));

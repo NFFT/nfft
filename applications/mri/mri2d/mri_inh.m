@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,6 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
 % This script file is an example of the usage
 
 N=128;   % points per row / column
@@ -39,7 +38,12 @@ save input_f.dat -ascii out
 
 % Construct the k-space data considering the fieldmap
 % and write the output to output_data_phantom_nfft.dat
-system(['./construct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='construct_data_inh_2d1d.exe';
+else 
+    cmd='./construct_data_inh_2d1d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)]);
 
 % Precompute the weights using voronoi cells
@@ -52,7 +56,12 @@ precompute_weights('output_phantom_nfft.dat',M);
 % where ITER is the number of iteration and WEIGHTS is 1
 % if the weights are used 0 else
 % The other methods can be used by replacing 2d1d with 3d or nnfft
-system(['./reconstruct_data_inh_2d1d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_inh_2d1d.exe';
+else 
+    cmd='./reconstruct_data_inh_2d1d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 3 1']);
 
 % Visualize the two dimensional phantom. Make a pic
@@ -63,7 +72,12 @@ visualize_data('pics/pic_2d1d', N, 1, 'Reconstruction considering the fieldmap')
 rms('pics/rms_2d1d.txt');
 
 % Reconstruct without considering the fieldmap
-system(['./reconstruct_data_2d ' 'output_phantom_nfft.dat ' ...
+if ispc
+    cmd='reconstruct_data_2d.exe';
+else 
+    cmd='./reconstruct_data_2d';
+end
+system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M)  ' 3 1']);
 visualize_data('pics/pic_2d', N, 2, 'Inverse 2d-NFFT - 3. iteration');
 rms('pics/rms_2d.txt');

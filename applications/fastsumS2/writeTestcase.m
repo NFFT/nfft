@@ -36,7 +36,7 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,...
 %     - in the fifth column the error E_infty (undefined if direct sum
 %       evaluation has not been used).
 
-% Copyright (c) 2002, 2015 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -52,8 +52,6 @@ function writeTestcase(file,usenfsft,usenfft,cutoff,usefpt,threshold,kernel,...
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-% $Id$
-
 % Write NFSFT usage flag.
 fprintf(file,'nfsft=%d\n',usenfsft);
 
