@@ -57,7 +57,11 @@ AC_CANONICAL_HOST
 
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
-AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd -W`/$srcdir"], [Absolute path to source directory.])
+else
+  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
+fi  
 
 AC_SUBST([abs_top_srcdir])
 AC_SUBST([top_builddir])
