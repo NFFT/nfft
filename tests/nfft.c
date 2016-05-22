@@ -211,7 +211,7 @@ static R trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(40.0) * EPSILON;
+  return K(44.0) * EPSILON;
 }
 
 static R err_trafo(X(plan) *p)

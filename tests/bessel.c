@@ -137,7 +137,7 @@ static const R r[] =
 #if defined(NFFT_LDOUBLE)
 static const R bound = K(58.0) * EPSILON;
 #elif defined(NFFT_SINGLE)
-static const R bound = K(14.0) * EPSILON;
+static const R bound = K(16.0) * EPSILON;
 #else
 static const R bound = K(4.0) * EPSILON;
 #endif
