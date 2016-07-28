@@ -27,7 +27,9 @@
 #endif
 
 #include <mex.h>
+#ifndef HAVE_OCTAVE
 #include <matrix.h>
+#endif
 
 #ifdef HAVE_MATLAB_GCC_REQUIRE_UNDEF_STDC_UTF_16
   #define __STDC_UTF_16__

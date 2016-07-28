@@ -27,6 +27,12 @@ AC_DEFUN([AX_PROG_MATLAB],
   AC_REQUIRE([AC_CANONICAL_HOST])
   AC_REQUIRE([AX_LIB_FFTW3])
 
+  # option to enable mex file compilation for GNU Octave
+  AC_ARG_WITH(octave,
+    [AC_HELP_STRING([--with-octave=DIR],
+      [the directory where Octave header files are installed])],
+    octave_dir=${withval},octave_dir="no")
+
   # option to enable mex file compilation
   AC_ARG_WITH(matlab,
     [AC_HELP_STRING([--with-matlab=DIR],
@@ -57,6 +63,10 @@ AC_DEFUN([AX_PROG_MATLAB],
       [Compile Matlab interface with thread support [default same as --enable-openmp]])],
       [matlab_threads="$enableval"],
       [matlab_threads="$enable_threads"])
+
+  if test "x${matlab_dir}" != "xno" -a "x${octave_dir}" != "xno"; then
+    AC_MSG_ERROR([The arguments --with-matlab and --with-octave can not be used simultaneously.])
+  fi
 
   AC_MSG_CHECKING([whether to check for Matlab])
 
@@ -320,7 +330,26 @@ AC_DEFUN([AX_PROG_MATLAB],
     LIBS="$saved_LIBS"
     LDFLAGS="$saved_LDFLAGS"
   fi
-  AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+
+
+  AC_MSG_CHECKING([whether to check for GNU Octave])
+
+  if test "x${octave_dir}" = "xno"; then
+    AC_MSG_RESULT([no])
+    ax_prog_octave="no"
+  else
+    AC_MSG_RESULT([yes])
+    ax_prog_octave="yes"
+
+    # Octave root
+    AX_CHECK_DIR([${octave_dir}],[],
+      [AC_MSG_ERROR([Please supply a valid path to a GNU Octave headers directory or run configure without the option --with-octave.])])
+    matlab_CPPFLAGS="-I${octave_dir}"
+    matlab_mexext=".mex"
+  fi
+
+
+  AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" -o "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB_THREADS, test "x$matlab_threads" = "xyes")
   AC_SUBST(matlab_CPPFLAGS)
   AC_SUBST(matlab_LIBS)
