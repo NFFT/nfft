@@ -331,11 +331,6 @@ if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
   AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with \"--enable-openmp\".])
 fi
 
-AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
-AC_SUBST(matlab_CPPFLAGS)
-AC_SUBST(matlab_LIBS)
-AC_SUBST(matlab_LDFLAGS)
-AC_SUBST(matlab_mexext)
 
 ################################################################################
 # compiler options

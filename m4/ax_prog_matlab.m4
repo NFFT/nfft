@@ -27,6 +27,12 @@ AC_DEFUN([AX_PROG_MATLAB],
   AC_REQUIRE([AC_CANONICAL_HOST])
   AC_REQUIRE([AX_LIB_FFTW3])
 
+  # option to enable mex file compilation for GNU Octave
+  AC_ARG_WITH(octave,
+    [AC_HELP_STRING([--with-octave=DIR],
+      [the directory where GNU Octave is installed])],
+    octave_dir=${withval},octave_dir="no")
+
   # option to enable mex file compilation
   AC_ARG_WITH(matlab,
     [AC_HELP_STRING([--with-matlab=DIR],
@@ -57,6 +63,10 @@ AC_DEFUN([AX_PROG_MATLAB],
       [Compile Matlab interface with thread support [default same as --enable-openmp]])],
       [matlab_threads="$enableval"],
       [matlab_threads="$enable_threads"])
+
+  if test "x${matlab_dir}" != "xno" -a "x${octave_dir}" != "xno"; then
+    AC_MSG_ERROR([The arguments --with-matlab and --with-octave can not be used simultaneously.])
+  fi
 
   AC_MSG_CHECKING([whether to check for Matlab])
 
@@ -320,7 +330,165 @@ AC_DEFUN([AX_PROG_MATLAB],
     LIBS="$saved_LIBS"
     LDFLAGS="$saved_LDFLAGS"
   fi
-  AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
+
+
+  AC_MSG_CHECKING([whether to check for GNU Octave])
+
+  if test "x${octave_dir}" = "xno"; then
+    AC_MSG_RESULT([no])
+    ax_prog_octave="no"
+  else
+    AC_MSG_RESULT([yes])
+    ax_prog_octave="yes"
+
+    if test "x${octave_dir}" = "xyes"; then
+      octave_dir=""
+    fi
+
+    # Modified code from RcppOctave
+    AC_MSG_CHECKING([Octave custom binary path specification])
+    if test [ -n "$octave_dir" ] ; then # passed as an option
+      AC_MSG_RESULT([$octave_dir [[from configure option --with-octave]]])
+      if test [ -n "${OCTAVE_PATH}" ] ; then
+	AC_MSG_NOTICE([overriding environment variable \$OCTAVE_PATH])
+      fi
+      OCTAVE_PATH="$octave_dir"
+    elif test [ -n "${OCTAVE_PATH}" ] ; then
+      AC_MSG_RESULT([${OCTAVE_PATH} [[from environment variable OCTAVE_PATH]]])
+    else
+      AC_MSG_RESULT([none])
+    fi
+
+    # build lookup path for octave-config
+    AS_IF([test -n "${OCTAVE_PATH}"], [
+	if test [ -f "$OCTAVE_PATH" ] ; then # path is a file: use parent directory
+	  OCTAVE_PATH=`AS_DIRNAME(["$OCTAVE_PATH"])`
+	fi
+	OCTAVE_LOOKUP_PATH="${OCTAVE_PATH}${PATH_SEPARATOR}${OCTAVE_PATH}/bin"
+	],[	
+	OCTAVE_LOOKUP_PATH="$PATH"
+	AC_MSG_NOTICE([using Octave binary path from \$PATH])
+	]
+    )
+
+    AC_PATH_PROG([OCTAVE_CONFIG], [octave-config], [], [${OCTAVE_LOOKUP_PATH}])
+    AC_PATH_PROG([OCTAVE_MKOCTFILE], [mkoctfile], [], [${OCTAVE_LOOKUP_PATH}])
+
+    AC_ARG_WITH(octave-libdir, [AC_HELP_STRING([--with-octave-libdir=DIR],
+    [compile with Octave library directory DIR])], octave_lib_dir=$withval, 
+      octave_lib_dir="yes")
+
+    AC_ARG_WITH(octave-includedir, [AC_HELP_STRING([--with-octave-includedir=DIR],
+    [compile with octave include directory DIR])], octave_include_dir=$withval, 
+      octave_include_dir="yes")
+
+    if test "x${octave_include_dir}" = "xyes"; then
+      if test "${OCTAVE_CONFIG}" != ""; then	
+        AC_MSG_CHECKING([Octave includes directory])
+        octave_include_dir=`${OCTAVE_CONFIG} --print OCTINCLUDEDIR`
+        if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+          octave_include_dir=`cygpath -u ${octave_include_dir}`
+        fi
+	AC_MSG_RESULT([${octave_include_dir}])
+      else
+        octave_include_dir=""
+      fi
+    fi
+
+    if test "x${octave_lib_dir}" = "xyes"; then 
+      if test "${OCTAVE_CONFIG}" != ""; then	
+        AC_MSG_CHECKING([Octave libraries directory])
+	octave_lib_dir=`${OCTAVE_CONFIG} --print OCTLIBDIR`
+        if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+	  octave_lib_dir=`cygpath -u ${octave_lib_dir}`
+        fi
+	AC_MSG_RESULT([${octave_lib_dir}])
+      else
+        octave_lib_dir=""
+      fi
+    fi
+
+    if test [ -n "$octave_include_dir" ]; then
+      matlab_CPPFLAGS="-I${octave_include_dir}"
+    else
+      matlab_CPPFLAGS=""
+    fi
+
+    if test [ -n "$octave_lib_dir" ]; then
+      matlab_LDFLAGS="-L${octave_lib_dir}"
+    else
+      matlab_LDFLAGS=""
+    fi
+
+    matlab_fftw3_LDFLAGS="$fftw3_LDFLAGS"
+    matlab_fftw3_LIBS="$fftw3_LIBS"
+    matlab_mexext=".mex"
+
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$matlab_CPPFLAGS"
+    AC_CHECK_HEADER([mex.h], [], [AC_MSG_ERROR([Needed mex.h not found.])])
+    CPPFLAGS="$saved_CPPFLAGS"
+
+    saved_LDFLAGS="$LDFLAGS"
+    saved_LIBS="$LIBS"
+
+    if test "${OCTAVE_MKOCTFILE}" != ""; then	
+      AC_MSG_CHECKING([Octave liboctave flag])
+      octave_liboctave=`${OCTAVE_MKOCTFILE} --print LIBOCTAVE`
+      AC_MSG_RESULT([${octave_liboctave}])
+
+      AC_MSG_CHECKING([Octave libinterp flag])
+      octave_liboctinterp=`${OCTAVE_MKOCTFILE} --print LIBOCTINTERP`
+      AC_MSG_RESULT([${octave_liboctinterp}])
+
+      matlab_LIBS=""
+
+      if test [ -n "${octave_liboctave}"]; then
+        LDFLAGS="${saved_LDFLAGS} ${matlab_LDFLAGS}"
+        LIBS="${saved_LIBS} ${octave_liboctave}"
+        AC_MSG_CHECKING([for usable ${octave_liboctave}])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [octave_handle_signal])], [
+          AC_MSG_RESULT([yes])
+          matlab_LIBS="${octave_liboctave}"
+          ],[AC_MSG_ERROR([no])])
+      fi
+
+      if test [ -n "${octave_liboctinterp}"]; then
+        LDFLAGS="${saved_LDFLAGS} ${matlab_LDFLAGS}"
+        LIBS="${saved_LIBS} ${octave_liboctinterp} ${matlab_LIBS}"
+        AC_MSG_CHECKING([for usable ${octave_liboctinterp}])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [mexCallMATLAB])], [
+          AC_MSG_RESULT([yes])
+          matlab_LIBS="${octave_liboctinterp} ${matlab_LIBS}"
+          ],[
+          AC_MSG_ERROR([no])
+          ])
+      elif test [ -n "${octave_liboctave}"]; then
+        LDFLAGS="$saved_LDFLAGS ${matlab_LDFLAGS}"
+        LIBS="${saved_LIBS} ${matlab_LIBS}"
+        AC_MSG_CHECKING([for usable ${octave_liboctave}])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [mexCallMATLAB])], [
+          AC_MSG_RESULT([yes])
+          ],[
+          AC_MSG_ERROR([no])
+          ])
+      fi
+    else
+      matlab_LIBS="-loctinterp -loctave"
+    fi
+
+    LDFLAGS="$saved_LDFLAGS ${matlab_LDFLAGS}"
+    LIBS="${saved_LIBS} ${matlab_LIBS}"
+    AC_MSG_CHECKING([for usable Octave MEX interface])
+    AC_LINK_IFELSE([AC_LANG_CALL([], [mexCallMATLAB])], [AC_MSG_RESULT([yes])],[AC_MSG_ERROR([no])])
+
+    LDFLAGS="$saved_LDFLAGS"
+    LIBS="$saved_LIBS"
+
+  fi
+
+
+  AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" -o "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB_THREADS, test "x$matlab_threads" = "xyes")
   AC_SUBST(matlab_CPPFLAGS)
   AC_SUBST(matlab_LIBS)
