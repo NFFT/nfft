@@ -1,5 +1,15 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.3.2:
+
+    Bugfixes
+    - #20 `make check` crashes on windows.
+    - #24 Testsuite failures on selected architectures with 3.3.1.
+    
+    Enhancements
+    - #25 Add support for GNU Octave via MEX interface.
+    - #27 Enable query of versioning information.
+
 Changes in version 3.3.1:
 
     Bugfixes
@@ -11,7 +21,7 @@ Changes in version 3.3.1:
     - #17 MATLAB r2015b/r2016a don't ship symlink libmfftw3.so to libmfftw3.so.3.
     - #18 Define format string for ptrdiff_t in platform-dependent macro.
 
-    Improvements
+    Enhancements
     - #3 Allow to select scope of unit tests via configure.
     - #1 Extend Travis CI configuration.
 
