@@ -45,7 +45,7 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 %   'inverse_multiquadric3'   K(x) = 1/SQRT(x^2+c^2)^3
 %   'sinc_kernel'             K(x) = SIN(cx)/x
 %   'cosc'                    K(x) = COS(cx)/x
-%   'kcot'                    K(x) = cot(cx)
+%   'cot'                     K(x) = cot(cx)
 %   'one_over_cube'           K(x) = 1/x^3
 %
 % Markus Fenn, 2006.
