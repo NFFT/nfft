@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* Standard headers. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <CUnit/CUnit.h>
+
+#include "nfft3.h"
+#include "infft.h"
+#include "version.h"
+
+void X(check_version)(void)
+{
+    unsigned major, minor, patch;
+    char v1[20], v2[20];
+
+    Y(get_version)(&major, &minor, &patch);
+
+    snprintf(v1, sizeof(v1), "%u.%u.%u", major, minor, patch);
+    snprintf(v2, sizeof(v2), "%u.%u.%u", NFFT_VERSION_MAJOR, NFFT_VERSION_MINOR, NFFT_VERSION_PATCH);
+
+    CU_ASSERT(strncmp(v1, v2, sizeof(v1)) == 0);
+}

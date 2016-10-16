@@ -27,11 +27,26 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 %   size(x) = [N,d]
 %   size(alpha) = [N,1] (complex)
 %   size(y)=[M,d]
-%   kernel = 'multiquadric', e.g.
+%   kernel = 'multiquadric', etc. (see options below)
 %   c kernel parameter
 %   m cut-off parameter for NFFT
 %   n expansion degree
 %   p smoothness
+% 
+%   Kernel functions:
+%   'gaussian'                K(x) = EXP(-x^2/c^2) 
+%   'multiquadric'            K(x) = SQRT(x^2+c^2)
+%   'inverse_multiquadric'    K(x) = 1/SQRT(x^2+c^2)
+%   'logarithm'               K(x) = LOG |x|
+%   'thinplate_spline'        K(x) = x^2 LOG |x|
+%   'one_over_square'         K(x) = 1/x^2
+%   'one_over_modulus'        K(x) = 1/|x|
+%   'one_over_x'              K(x) = 1/x
+%   'inverse_multiquadric3'   K(x) = 1/SQRT(x^2+c^2)^3
+%   'sinc_kernel'             K(x) = SIN(cx)/x
+%   'cosc'                    K(x) = COS(cx)/x
+%   'cot'                     K(x) = cot(cx)
+%   'one_over_cube'           K(x) = 1/x^3
 %
 % Markus Fenn, 2006.
 

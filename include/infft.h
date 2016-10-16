@@ -115,17 +115,6 @@ typedef double _Complex C;
 #  define __CYGWIN__  __CYGWIN32__
 #endif
 
-#if defined _WIN32 && !defined __CYGWIN__
-   /* Use Windows separators on all _WIN32 defining
-      environments, except Cygwin. */
-#  define SEP "\\"
-#endif
-#ifndef SEP
-   /* Assume that not having this is an indicator that all
-      are missing. */
-#  define SEP "/"
-#endif /* !DIR_SEPARATOR_CHAR */
-
 /* Integral type large enough to contain a stride (what ``int'' should have been
  * in the first place) */
 typedef ptrdiff_t INT;

@@ -20,7 +20,7 @@
 
 m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [3])
-m4_define([nfft_version_patch], [1])
+m4_define([nfft_version_patch], [2])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -57,7 +57,11 @@ AC_CANONICAL_HOST
 
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
-AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd -W`/$srcdir"], [Absolute path to source directory.])
+else
+  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
+fi  
 
 AC_SUBST([abs_top_srcdir])
 AC_SUBST([top_builddir])
@@ -327,11 +331,6 @@ if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
   AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with \"--enable-openmp\".])
 fi
 
-AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" )
-AC_SUBST(matlab_CPPFLAGS)
-AC_SUBST(matlab_LIBS)
-AC_SUBST(matlab_LDFLAGS)
-AC_SUBST(matlab_mexext)
 
 ################################################################################
 # compiler options
