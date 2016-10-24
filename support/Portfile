@@ -37,7 +37,7 @@ long_description    NFFT3 is a software library written in C for computing noneq
 homepage            http://www.nfft.org
 master_sites        https://github.com/NFFT/nfft/releases/download/${version}/
 checksums           rmd160 08b4ff6b8d35b2ebc90159a8e86ff400e565528c \
-                    sha256 74cc7f4c8922d72131c59f88ecb542e06254eaded09018d6367f8a46c0fb3125
+                    sha256 9dcebd905a82c4f0a339d0d5e666b68c507169d9173b66d5ac588aae5d50b57c
 depends_lib         port:fftw-3
 use_autoreconf      no
 configure.args      --enable-shared --enable-static --enable-all
