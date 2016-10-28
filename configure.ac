@@ -507,7 +507,7 @@ SLEEP;{
   FILE *f = fopen("ticks.tmp","w");
   fprintf(f,"%.1f\n",tps);
   fclose(f);}
-return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
+return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[TICKS_PER_SECOND=1])
     rm -f ticks.tmp
   if test "$TICKS_PER_SECOND" = "1"; then
     echo "***************************************************************"
