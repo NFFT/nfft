@@ -23,17 +23,70 @@ INT Y(exp2i)(const INT a)
   return (1U << a);
 }
 
+/**
+ * Return floor(log2(x)) for an integer input x. If x is zero or negative this
+ * method returns -1.
+ *
+ * see https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogDeBruijn
+ */
 INT Y(log2i)(const INT m)
 {
-  INT l = 0;
-  INT mm = m;
+  /* Special case, zero or negative input. */
+  if (m <= 0)
+    return -1;
 
-  while (mm > 0)
+#if SIZEOF_PTRDIFF_T == 8
+  /* Hash map with return values based on De Bruijn sequence. */
+  static INT debruijn[64] =
   {
-    mm = (mm >> 1);
-    l++;
-  }
-  return (l-1);
+    0, 58, 1, 59, 47, 53, 2, 60, 39, 48, 27, 54, 33, 42, 3, 61, 51, 37, 40, 49,
+    18, 28, 20, 55, 30, 34, 11, 43, 14, 22, 4, 62, 57, 46, 52, 38, 26, 32, 41,
+    50, 36, 17, 19, 29, 10, 13, 21, 56, 45, 25, 31, 35, 16, 9, 12, 44, 24, 15,
+    8, 23, 7, 6, 5, 63
+  };
+
+  register uint64_t v = (uint64_t)(m);
+
+  /* Round down to one less than a power of 2. */
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v |= v >> 32;
+
+  /* 0x03f6eaf2cd271461 is a hexadecimal representation of a De Bruijn
+   * sequence for binary words of length 6. The binary representation
+   * starts with 000000111111. This is required to make it work with one less
+   * than a power of 2 instead of an actual power of 2.
+   */
+  return debruijn[(uint64_t)(v * 0x03f6eaf2cd271461LU) >> 58];
+#elif SIZEOF_PTRDIFF_T == 4
+  /* Hash map with return values based on De Bruijn sequence. */
+  static INT debruijn[32] =
+  {
+    0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28,
+    15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+  };
+
+  register uint32_t v = (uint32_t)(m);
+
+  /* Round down to one less than a power of 2. */
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+
+  /* 0x07C4ACDD is a hexadecimal representation of a De Bruijn sequence for
+   * binary words of length 5. The binary representation starts with
+   * 0000011111. This is required to make it work with one less than a power of
+   * 2 instead of an actual power of 2.
+   */
+  return debruijn[(uint32_t)(v * 0x07C4ACDDU) >> 27];
+#else
+#error Incompatible size of ptrdiff_t
+#endif
 }
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.

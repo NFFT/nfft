@@ -23,6 +23,7 @@
 
 #include "infft.h"
 #include "version.h"
+#include "util.h"
 #include "bspline.h"
 #include "bessel.h"
 #include "nfft.h"
@@ -37,6 +38,14 @@ int main(void)
 #ifdef _OPENMP
   CU_set_output_filename("CUnitAutomated_threads");
 #endif
+
+#undef X
+#define X(name) Y(name)
+  util = CU_add_suite("util", 0, 0);
+  CU_add_test(util, "bspline", X(check_bspline));
+  CU_add_test(util, "bessel_i0", X(check_bessel_i0));
+  CU_add_test(util, "version", X(check_version));
+  CU_add_test(util, "log2i", X(check_log2i));
 
 #undef X
 #define X(name) NFFT(name)
@@ -130,12 +139,6 @@ int main(void)
 #endif
 #endif
 #endif
-#undef X
-#define X(name) Y(name)
-  util = CU_add_suite("util", 0, 0);
-  CU_add_test(util, "bspline", X(check_bspline));
-  CU_add_test(util, "bessel_i0", X(check_bessel_i0));
-  CU_add_test(util, "version", X(check_version));
   CU_automated_run_tests();
   //CU_basic_run_tests();
   {
