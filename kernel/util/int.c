@@ -89,37 +89,44 @@ INT Y(log2i)(const INT m)
 #endif
 }
 
-/** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
+/**
+ * Calculate next power of two larger or equal to a given integer value.
+ *
+ * If the input is negative, this method returns -1. As a special case, 2 is
+ * returned when the input is 1. In all other cases, the smallest power of 2
+ * larger or equal to the input is returned.
  */
-INT Y(next_power_of_2)(const INT N)
+INT Y(next_power_of_2)(const INT x)
 {
-  INT n,i,logn;
-  INT N_is_not_power_of_2=0;
-
-  if (N == 0)
-    return 1;
-  else if (N == 1)
-    return 2;
-  else
-  {
-    n = N;
-    logn = 0;
-    while (n != 1)
+    if (x < 0)
+        return -1;
+    else if (x < 2)
+        return x + 1;
+    else
     {
-      if (n%2 == 1)
-        N_is_not_power_of_2=1;
-      n = n/2;
-      logn++;
+        uint64_t v = (uint64_t)x;
+
+        /* Subtract one, so we return the input if it is a power of two. */
+        v--;
+
+        /* Round down to one less than a power of two. */
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+#if SIZEOF_PTRDIFF_T >= 2
+        v |= v >> 8;
+#endif
+#if SIZEOF_PTRDIFF_T >= 4
+        v |= v >> 16;
+#endif
+#if SIZEOF_PTRDIFF_T >= 8
+        v |= v >> 32;
+#endif
+        /* Add one to get power of two. */
+        v++;
+
+        return v;
     }
-
-    if (!N_is_not_power_of_2)
-      logn--;
-
-    for (i = 0; i <= logn; i++)
-      n = n*2;
-
-    return n;
-  }
 }
 
 /** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.

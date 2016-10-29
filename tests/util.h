@@ -19,3 +19,4 @@
 #include "infft.h"
 
 void X(check_log2i)(void);
+void X(check_next_power_of_2)(void);

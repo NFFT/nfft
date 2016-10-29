@@ -81,3 +81,74 @@ void X(check_log2i)(void)
     }
 }
 
+/** Computes /f$n\ge N/f$ such that /f$n=2^j,\, j\in\mathhb{N}_0/f$.
+ */
+static INT _next_power_of_2(const INT N)
+{
+  INT n,i,logn;
+  INT N_is_not_power_of_2=0;
+
+  if (N == 0)
+    return 1;
+  else if (N == 1)
+    return 2;
+  else
+  {
+    n = N;
+    logn = 0;
+    while (n != 1)
+    {
+      if (n%2 == 1)
+        N_is_not_power_of_2=1;
+      n = n/2;
+      logn++;
+    }
+
+    if (!N_is_not_power_of_2)
+      logn--;
+
+    for (i = 0; i <= logn; i++)
+      n = n*2;
+
+    return n;
+  }
+}
+
+void X(check_next_power_of_2)(void)
+{
+    INT i;
+    INT j;
+
+    {
+        INT r = Y(next_power_of_2)(0);
+        int ok = r == 1;
+        printf("next_power_of_2(%td) = %td -> %s\n", (INT)(0), r, ok ? "OK" : "FAIL");
+        CU_ASSERT(ok)
+    }
+
+    {
+        INT r = Y(next_power_of_2)(-1);
+        int ok = r == -1;
+        printf("log2i(%td) = %td -> %s\n", (INT)(-1), r, ok ? "OK" : "FAIL");
+        CU_ASSERT(ok)
+    }
+
+    for (i = 0, j = 1; i < 8 * SIZEOF_PTRDIFF_T - 1; i++, j <<= 1)
+    {
+        {
+            INT r = Y(next_power_of_2)(j);
+            INT r2 = _next_power_of_2(j);
+            int ok = r == r2;
+            printf("next_power_of_2(%td) = %td -> %s\n", j, r, ok ? "OK" : "FAIL");
+            CU_ASSERT(ok)
+        }
+        {
+            INT r = Y(next_power_of_2)(j - 1);
+            INT r2 = _next_power_of_2(j - 1);
+            int ok = r == r2;
+            printf("next_power_of_2(%td) = %td -> %s\n", j - 1, r, ok ? "OK" : "FAIL");
+            CU_ASSERT(ok)
+        }
+    }
+}
+
