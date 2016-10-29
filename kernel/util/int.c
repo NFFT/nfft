@@ -95,6 +95,8 @@ INT Y(log2i)(const INT m)
  * If the input is negative, this method returns -1. As a special case, 2 is
  * returned when the input is 1. In all other cases, the smallest power of 2
  * larger or equal to the input is returned.
+ *
+ * see https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
  */
 INT Y(next_power_of_2)(const INT x)
 {
