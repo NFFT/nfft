@@ -51,14 +51,14 @@ void X(check_log2i)(void)
     {
         INT r = Y(log2i)(0);
         int ok = r == -1;
-        printf("log2i(%td) = %td -> %s\n", (INT)(0), r, ok ? "OK" : "FAIL");
+        printf("log2i("__D__") = "__D__" -> %s\n", (INT)(0), r, ok ? "OK" : "FAIL");
         CU_ASSERT(ok)
     }
 
     {
         INT r = Y(log2i)(-1);
         int ok = r == -1;
-        printf("log2i(%td) = %td -> %s\n", (INT)(-1), r, ok ? "OK" : "FAIL");
+        printf("log2i("__D__") = "__D__" -> %s\n", (INT)(-1), r, ok ? "OK" : "FAIL");
         CU_ASSERT(ok)
     }
 
@@ -68,14 +68,14 @@ void X(check_log2i)(void)
             INT r = Y(log2i)(j);
             INT r2 = _log2i(j);
             int ok = r == r2;
-            printf("log2i(%td) = %td -> %s\n", j, r, ok ? "OK" : "FAIL");
+            printf("log2i("__D__") = "__D__" -> %s\n", j, r, ok ? "OK" : "FAIL");
             CU_ASSERT(ok)
         }
         {
             INT r = Y(log2i)(j - 1);
             INT r2 = _log2i(j - 1);
             int ok = r == r2;
-            printf("log2i(%td) = %td -> %s\n", j - 1, r, ok ? "OK" : "FAIL");
+            printf("log2i("__D__") = "__D__" -> %s\n", j - 1, r, ok ? "OK" : "FAIL");
             CU_ASSERT(ok)
         }
     }
@@ -122,14 +122,14 @@ void X(check_next_power_of_2)(void)
     {
         INT r = Y(next_power_of_2)(0);
         int ok = r == 1;
-        printf("next_power_of_2(%td) = %td -> %s\n", (INT)(0), r, ok ? "OK" : "FAIL");
+        printf("next_power_of_2("__D__") = "__D__" -> %s\n", (INT)(0), r, ok ? "OK" : "FAIL");
         CU_ASSERT(ok)
     }
 
     {
         INT r = Y(next_power_of_2)(-1);
         int ok = r == -1;
-        printf("log2i(%td) = %td -> %s\n", (INT)(-1), r, ok ? "OK" : "FAIL");
+        printf("log2i("__D__") = "__D__" -> %s\n", (INT)(-1), r, ok ? "OK" : "FAIL");
         CU_ASSERT(ok)
     }
 
@@ -139,14 +139,14 @@ void X(check_next_power_of_2)(void)
             INT r = Y(next_power_of_2)(j);
             INT r2 = _next_power_of_2(j);
             int ok = r == r2;
-            printf("next_power_of_2(%td) = %td -> %s\n", j, r, ok ? "OK" : "FAIL");
+            printf("next_power_of_2("__D__") = "__D__" -> %s\n", j, r, ok ? "OK" : "FAIL");
             CU_ASSERT(ok)
         }
         {
             INT r = Y(next_power_of_2)(j - 1);
             INT r2 = _next_power_of_2(j - 1);
             int ok = r == r2;
-            printf("next_power_of_2(%td) = %td -> %s\n", j - 1, r, ok ? "OK" : "FAIL");
+            printf("next_power_of_2("__D__") = "__D__" -> %s\n", j - 1, r, ok ? "OK" : "FAIL");
             CU_ASSERT(ok)
         }
     }
