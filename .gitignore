@@ -19,6 +19,8 @@
 *.so
 *.so.*
 *.dylib
+*.mex
+*.mexw64
 
 # Executables
 *.exe
@@ -49,6 +51,7 @@ m4/lt~obsolete.m4
 autom4te.cache/*
 config/*
 include/config.h.in
+include/config.h.in~
 configure
 **/.deps/*
 Makefile
