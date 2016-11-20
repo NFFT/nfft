@@ -364,7 +364,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
       check_plan(i);
-      const int d = plans[i]->d;
       const int N = plans[i]->N_total;
       plhs[0] = mxCreateDoubleMatrix((unsigned int)N, 1, mxCOMPLEX);
       {

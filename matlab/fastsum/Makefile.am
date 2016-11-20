@@ -8,7 +8,11 @@ fastsummatlabdir = $(datadir)/nfft/matlab/fastsum
 lib_LTLIBRARIES = libfastsum.la
 libfastsum_la_SOURCES = fastsummex.c
 
+if HAVE_MATLAB_THREADS
+libfastsum_la_LIBADD = $(top_srcdir)/applications/fastsum/libfastsum_threads.la $(top_srcdir)/applications/fastsum/libkernels.la  $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+else
 libfastsum_la_LIBADD = $(top_srcdir)/applications/fastsum/libfastsum.la $(top_srcdir)/applications/fastsum/libkernels.la  $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+endif
 
 libfastsum_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version @matlab_fftw3_LDFLAGS@ $(matlab_LDFLAGS)
 
@@ -17,8 +21,7 @@ libfastsum_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 
-dist_fastsummatlab_DATA = Contents.m \
-	fastsum_get_num_threads.m
+dist_fastsummatlab_DATA = fastsum_get_num_threads.m fastsum_init_guru.m fastsum_set_x.m fastsum_set_y.m fastsum_set_alpha.m fastsum_precompute.m fastsum_trafo.m fastsum_trafo_direct.m fastsum_get_f.m fastsum_get_b.m fastsum_finalize.m
 
 # target all-am builds .libs/libfastsum@matlab_mexext@
 fastsummex@matlab_mexext@: all-am 
