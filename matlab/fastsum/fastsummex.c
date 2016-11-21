@@ -76,6 +76,7 @@ static void cleanup(void)
     for (i = 0; i < PLANS_MAX; i++)
       if (plans[i])
       {
+		nfft_free(plans[i]->kernel_param);
         fastsum_finalize(plans[i]);
         nfft_free(plans[i]);
         plans[i] = 0;
@@ -144,11 +145,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	param = nfft_malloc(sizeof(double));
 	
     d = nfft_mex_get_int(prhs[1],"fastsum: Input argument d must be a scalar.");
+	DM(if (d < 1)
+		mexErrMsgTxt("nfft: Input argument d must be positive.");)
 	N = nfft_mex_get_int(prhs[2],"fastsum: Input argument N must be a scalar.");
+	DM(if (N < 1)
+		mexErrMsgTxt("nfft: Input argument N must be positive.");)
 	M = nfft_mex_get_int(prhs[3],"fastsum: Input argument M must be a scalar.");
+	DM(if (M < 1)
+		mexErrMsgTxt("nfft: Input argument M must be positive.");)
     n = nfft_mex_get_int(prhs[4],"fastsum: Input argument n must be a scalar.");
+	DM(if (n < 1)
+		mexErrMsgTxt("nfft: Input argument n must be positive.");)
     m = nfft_mex_get_int(prhs[5],"fastsum: Input argument m must be a scalar.");
+	DM(if (m < 1)
+		mexErrMsgTxt("nfft: Input argument m must be positive.");)
     p = nfft_mex_get_int(prhs[6],"fastsum: Input argument p must be a scalar.");
+	DM(if (p < 1)
+		mexErrMsgTxt("nfft: Input argument p must be positive.");)
 	if (mxGetString(prhs[7], s, CMD_LEN_MAX))
 		mexErrMsgTxt("Could not get kernel string.");
     if (strcmp(s, "gaussian") == 0)
@@ -323,7 +336,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
     {
-      int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
+      const int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
 	  nfft_free(plans[i]->kernel_param);
       fastsum_finalize(plans[i]);
