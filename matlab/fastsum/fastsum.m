@@ -1,0 +1,65 @@
+function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
+
+% Computes the sums
+% 
+%   f(y_j) = sum_{k=1}^N alpha_k kernel(x_k-y_j)   (j=1:M).
+% 
+% Calling:
+%   f = fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
+%   [f,f_direct] = fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
+% 
+% Output:
+% f           fast summation
+% f_direct    computed with direct summation
+% 
+% Input:
+% size(x) = [N,d]                 source knots in d-ball with radius 1/4-eps_b/2
+% size(alpha) = [N,1] (complex)   source coefficients
+% size(y)=[M,d]                   target knots in d-ball with radius 1/4-eps_b/2
+% size(f) = [N,1] (complex)       target evaluations
+% 
+% d number of dimensions
+% N number of source knots
+% M number of target knots
+% kernel = 'multiquadric', etc. (see options below)
+% c kernel parameter
+% n expansion degree
+% m cut-off parameter for NFFT
+% p degree of smoothness of regularization
+% eps_I inner boundary
+% eps_B outer boundary
+% 
+% Kernel functions:
+% 'gaussian'                K(x) = EXP(-x^2/c^2) 
+% 'multiquadric'            K(x) = SQRT(x^2+c^2)
+% 'inverse_multiquadric'    K(x) = 1/SQRT(x^2+c^2)
+% 'logarithm'               K(x) = LOG |x|
+% 'thinplate_spline'        K(x) = x^2 LOG |x|
+% 'one_over_square'         K(x) = 1/x^2
+% 'one_over_modulus'        K(x) = 1/|x|
+% 'one_over_x'              K(x) = 1/x
+% 'inverse_multiquadric3'   K(x) = 1/SQRT(x^2+c^2)^3
+% 'sinc_kernel'             K(x) = SIN(cx)/x
+% 'cosc'                    K(x) = COS(cx)/x
+% 'cot'                     K(x) = cot(cx)
+% 'one_over_cube'           K(x) = 1/x^3
+
+nargoutchk(1, 2)
+
+[N,d]=size(x);
+[M,d]=size(y);
+
+plan=fastsum_init_guru(d,N,M,n,m,p,kernel,c,eps_I,eps_B);
+fastsum_set_x(plan,x)
+fastsum_set_y(plan,y)
+fastsum_set_alpha(plan,alpha)
+
+if(nargout==2)
+    fastsum_trafo_direct(plan)   % direct computation
+    f_direct = fastsum_get_f(plan);
+end
+
+fastsum_trafo(plan)         % fast computation
+f = fastsum_get_f(plan);
+fastsum_finalize(plan)
+end
