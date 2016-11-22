@@ -65,7 +65,7 @@ if ispc
 else 
     cmd='./fastsum_matlab';
 end
-system(sprintf('%s %d %d %d %d %d %d %s %e %e %e',cmd,d,N,M,n,m,p,kernel,c,eps_I,eps_B));
+system(sprintf('%s %d %d %d %d %d %d %s %.16g %.16g %.16g',cmd,d,N,M,n,m,p,kernel,c,eps_I,eps_B));
 
 %read result from file
 f2=load('f.dat');
