@@ -65,7 +65,6 @@ fastsum_set_alpha(plan,alpha)
 fastsum_trafo_direct(plan)   % direct computation
 f_direct = fastsum_get_f(plan);
 
-fastsum_precompute(plan)    % precompute
 fastsum_trafo(plan)         % fast computation
 f = fastsum_get_f(plan);
 b = fastsum_get_b(plan);    % get expansion coefficients

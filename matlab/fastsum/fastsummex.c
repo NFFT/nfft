@@ -219,12 +219,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Input argument x must have correct size.");)
       {
         double *x = mxGetPr(prhs[2]);
+		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);)
         for (int k = 0; k < N; k++)
         {
+			DM(double norm = 0;)
 			for (int t = 0; t < d; t++)
 			{
 			plans[i]->x[k*d+t] = x[k+t*N];
+			DM(norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
 			}
+			DM(if( norm > norm_max)
+				mexErrMsgTxt("x must be in ball with radius 1/4-eps_B/2");)
         }
       }
     }
@@ -245,12 +250,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Input argument y must have correct size.");)
       {
         double *y = mxGetPr(prhs[2]);
+		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);)
         for (int j = 0; j < M; j++)
         {
+			DM(double norm = 0;)
 			for (int t = 0; t < d; t++)
 			{
 			plans[i]->y[d*j+t] = y[j+t*M];
+			DM(norm += plans[i]->y[d*j+t] * plans[i]->y[d*j+t];)
 			}
+			DM(if( norm > norm_max)
+				mexErrMsgTxt("x must be in ball with radius 1/4-eps_B/2");)
         }
       }
     }
