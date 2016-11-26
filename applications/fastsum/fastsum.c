@@ -687,6 +687,86 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
   }
 }
 
+static inline void fastsum_precompute_spline(fastsum_plan *ths)
+{
+  int k;
+#ifdef MEASURE_TIME
+  ticks t0, t1;
+#endif
+
+#ifdef MEASURE_TIME
+  t0 = getticks();
+#endif
+  /** precompute spline values for near field*/
+  if (!(ths->flags & EXACT_NEARFIELD))
+  {
+    if (ths->d == 1)
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(k)
+#endif
+      for (k = -ths->Ad / 2 - 2; k <= ths->Ad / 2 + 2; k++)
+        ths->Add[k + ths->Ad / 2 + 2] = regkern1(ths->k,
+            ths->eps_I * (R) k / (R)(ths->Ad) * K(2.0), ths->p, ths->kernel_param,
+            ths->eps_I, ths->eps_B);
+    else
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(k)
+#endif
+      for (k = 0; k <= ths->Ad + 2; k++)
+        ths->Add[k] = regkern3(ths->k, ths->eps_I * (R) k / (R)(ths->Ad), ths->p,
+            ths->kernel_param, ths->eps_I, ths->eps_B);
+  }
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[0] += NFFT(elapsed_seconds)(t1,t0);
+#endif
+}
+
+static inline void fastsum_precompute_coefficients(fastsum_plan *ths)
+{
+  int j, k, t;
+  int n_total;
+#ifdef MEASURE_TIME
+  ticks t0, t1;
+  t0 = getticks();
+#endif
+  /** precompute Fourier coefficients of regularised kernel*/
+  n_total = 1;
+  for (t = 0; t < ths->d; t++)
+    n_total *= ths->n;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(j,k,t)
+#endif
+  for (j = 0; j < n_total; j++)
+  {
+    if (ths->d == 1)
+      ths->b[j] = regkern1(ths->k, (R) j / (R)(ths->n) - K(0.5), ths->p,
+          ths->kernel_param, ths->eps_I, ths->eps_B) / (R)(n_total);
+    else
+    {
+      k = j;
+      ths->b[j] = K(0.0);
+      for (t = 0; t < ths->d; t++)
+      {
+        ths->b[j] += ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5))
+            * ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5));
+        k = k / (ths->n);
+      }
+      ths->b[j] = regkern3(ths->k, SQRT(CREAL(ths->b[j])), ths->p, ths->kernel_param,
+          ths->eps_I, ths->eps_B) / (R)(n_total);
+    }
+  }
+
+  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+  FFTW(execute)(ths->fft_plan);
+  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+#ifdef MEASURE_TIME
+  t1 = getticks();
+  ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
+#endif
+}
+
 /** initialization of fastsum plan */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
@@ -838,6 +918,9 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 
     ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
   }
+  
+  fastsum_precompute_spline(ths);
+  fastsum_precompute_coefficients(ths);
 }
 
 /** finalization of fastsum plan */
@@ -939,33 +1022,6 @@ void fastsum_precompute(fastsum_plan *ths)
 #ifdef MEASURE_TIME
   t0 = getticks();
 #endif
-  /** precompute spline values for near field*/
-  if (!(ths->flags & EXACT_NEARFIELD))
-  {
-    if (ths->d == 1)
-#ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k)
-#endif
-      for (k = -ths->Ad / 2 - 2; k <= ths->Ad / 2 + 2; k++)
-        ths->Add[k + ths->Ad / 2 + 2] = regkern1(ths->k,
-            ths->eps_I * (R) k / (R)(ths->Ad) * K(2.0), ths->p, ths->kernel_param,
-            ths->eps_I, ths->eps_B);
-    else
-#ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k)
-#endif
-      for (k = 0; k <= ths->Ad + 2; k++)
-        ths->Add[k] = regkern3(ths->k, ths->eps_I * (R) k / (R)(ths->Ad), ths->p,
-            ths->kernel_param, ths->eps_I, ths->eps_B);
-  }
-#ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[0] += NFFT(elapsed_seconds)(t1,t0);
-#endif
-
-#ifdef MEASURE_TIME
-  t0 = getticks();
-#endif
   /** init NFFT plan for transposed transform in first step*/
   for (k = 0; k < ths->mv1.M_total; k++)
     for (t = 0; t < ths->mv1.d; t++)
@@ -1009,45 +1065,6 @@ void fastsum_precompute(fastsum_plan *ths)
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[2] += NFFT(elapsed_seconds)(t1,t0);
-#endif
-
-#ifdef MEASURE_TIME
-  t0 = getticks();
-#endif
-  /** precompute Fourier coefficients of regularised kernel*/
-  n_total = 1;
-  for (t = 0; t < ths->d; t++)
-    n_total *= ths->n;
-
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j,k,t)
-#endif
-  for (j = 0; j < n_total; j++)
-  {
-    if (ths->d == 1)
-      ths->b[j] = regkern1(ths->k, (R) j / (R)(ths->n) - K(0.5), ths->p,
-          ths->kernel_param, ths->eps_I, ths->eps_B) / (R)(n_total);
-    else
-    {
-      k = j;
-      ths->b[j] = K(0.0);
-      for (t = 0; t < ths->d; t++)
-      {
-        ths->b[j] += ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5))
-            * ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5));
-        k = k / (ths->n);
-      }
-      ths->b[j] = regkern3(ths->k, SQRT(CREAL(ths->b[j])), ths->p, ths->kernel_param,
-          ths->eps_I, ths->eps_B) / (R)(n_total);
-    }
-  }
-
-  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
-  FFTW(execute)(ths->fft_plan);
-  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
-#ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
 #endif
 }
 
