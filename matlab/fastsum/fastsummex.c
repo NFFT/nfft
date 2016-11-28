@@ -219,7 +219,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Input argument x must have correct size.");)
       {
         double *x = mxGetPr(prhs[2]);
-		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);)
+		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
+		short warn=0;)
         for (int k = 0; k < N; k++)
         {
 			DM(double norm = 0;)
@@ -229,8 +230,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			DM(norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
 			}
 			DM(if( norm > norm_max)
-				mexErrMsgTxt("x must be in ball with radius 1/4-eps_B/2");)
+				warn = 1;)
         }
+		DM(if(warn)
+			mexWarnMsgTxt("x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
       }
     }
     return;
