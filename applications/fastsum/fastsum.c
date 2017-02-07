@@ -582,7 +582,7 @@ static C SearchBox(R *y, fastsum_plan *ths)
   }
   else
   {
-    exit(EXIT_FAILURE);
+    return 0.0/0.0; //exit(EXIT_FAILURE);
   }
   return val;
 }
@@ -687,9 +687,11 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
   }
 }
 
-static inline void fastsum_precompute_spline(fastsum_plan *ths)
+static void fastsum_precompute_kernel(fastsum_plan *ths)
 {
-  int k;
+  int j, k, t;
+  INT N[ths->d];
+  int n_total;
 #ifdef MEASURE_TIME
   ticks t0, t1;
 #endif
@@ -720,14 +722,8 @@ static inline void fastsum_precompute_spline(fastsum_plan *ths)
   t1 = getticks();
   ths->MEASURE_TIME_t[0] += NFFT(elapsed_seconds)(t1,t0);
 #endif
-}
 
-static inline void fastsum_precompute_coefficients(fastsum_plan *ths)
-{
-  int j, k, t;
-  int n_total;
 #ifdef MEASURE_TIME
-  ticks t0, t1;
   t0 = getticks();
 #endif
   /** precompute Fourier coefficients of regularised kernel*/
@@ -741,7 +737,7 @@ static inline void fastsum_precompute_coefficients(fastsum_plan *ths)
   for (j = 0; j < n_total; j++)
   {
     if (ths->d == 1)
-      ths->b[j] = regkern1(ths->k, (R) j / (R)(ths->n) - K(0.5), ths->p,
+      ths->b[j] = regkern1(ths->k, (R) - (j / (R)(ths->n) - K(0.5)), ths->p,
           ths->kernel_param, ths->eps_I, ths->eps_B) / (R)(n_total);
     else
     {
@@ -758,48 +754,29 @@ static inline void fastsum_precompute_coefficients(fastsum_plan *ths)
     }
   }
 
-  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+  for (t = 0; t < ths->d; t++)
+    N[t] = ths->n;
+
+  NFFT(fftshift_complex)(ths->b, (int)(ths->d), N);
   FFTW(execute)(ths->fft_plan);
-  NFFT(fftshift_complex)(ths->b, (int)(ths->mv1.d), ths->mv1.N);
+  NFFT(fftshift_complex)(ths->b, (int)(ths->d), N);
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
 #endif
 }
 
-/** initialization of fastsum plan */
-void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
-    kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
+void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
+    unsigned flags, int nn, int p, R eps_I, R eps_B)
 {
   int t;
-  int N[d], n[d];
+  int N[d];
   int n_total;
-  unsigned sort_flags_trafo = 0U;
-  unsigned sort_flags_adjoint = 0U;
 #ifdef _OPENMP
   int nthreads = NFFT(get_num_threads)();
 #endif
 
-  if (d > 1)
-  {
-    sort_flags_trafo = NFFT_SORT_NODES;
-#ifdef _OPENMP
-    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
-#else
-    sort_flags_adjoint = NFFT_SORT_NODES;
-#endif
-  }
-
   ths->d = d;
-
-  ths->N_total = N_total;
-  ths->M_total = M_total;
-
-  ths->x = (R *) NFFT(malloc)((size_t)(d * N_total) * (sizeof(R)));
-  ths->alpha = (C *) NFFT(malloc)((size_t)(N_total) * (sizeof(C)));
-
-  ths->y = (R *) NFFT(malloc)((size_t)(d * M_total) * (sizeof(R)));
-  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
 
   ths->k = k;
   ths->kernel_param = param;
@@ -868,23 +845,11 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     }
   }
 
-  /** init d-dimensional NFFT plan */
   ths->n = nn;
   for (t = 0; t < d; t++)
   {
     N[t] = nn;
-    n[t] = 2 * nn;
   }
-  NFFT(init_guru)(&(ths->mv1), d, N, N_total, n, m,
-      sort_flags_adjoint |
-      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-          | FFT_OUT_OF_PLACE,
-      FFTW_MEASURE | FFTW_DESTROY_INPUT);
-  NFFT(init_guru)(&(ths->mv2), d, N, M_total, n, m,
-      sort_flags_trafo |
-      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-          | FFT_OUT_OF_PLACE,
-      FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
   /** init d-dimensional FFTW plan */
   n_total = 1;
@@ -905,6 +870,58 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 }
 #endif
 
+  fastsum_precompute_kernel(ths);
+}
+
+void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
+{
+  int t;
+  int N[ths->d], n[ths->d];
+  unsigned sort_flags_trafo = 0U;
+  unsigned sort_flags_adjoint = 0U;
+#ifdef _OPENMP
+  int nthreads = NFFT(get_num_threads)();
+#endif
+
+  if (ths->d > 1)
+  {
+    sort_flags_trafo = NFFT_SORT_NODES;
+#ifdef _OPENMP
+    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
+    sort_flags_adjoint = NFFT_SORT_NODES;
+#endif
+  }
+
+  ths->N_total = N_total;
+  ths->M_total = M_total;
+
+  ths->x = (R *) NFFT(malloc)((size_t)(ths->d * N_total) * (sizeof(R)));
+  ths->alpha = (C *) NFFT(malloc)((size_t)(N_total) * (sizeof(C)));
+
+  ths->y = (R *) NFFT(malloc)((size_t)(ths->d * M_total) * (sizeof(R)));
+  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
+
+  /** init d-dimensional NFFT plan */
+  for (t = 0; t < ths->d; t++)
+  {
+    N[t] = ths->n;
+    n[t] = 2 * ths->n;
+  }
+
+  NFFT(init_guru)(&(ths->mv1), ths->d, N, N_total, n, m,
+      sort_flags_adjoint |
+      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+          | FFT_OUT_OF_PLACE,
+      FFTW_MEASURE | FFTW_DESTROY_INPUT);
+  ths->mv1.x = ths->x;
+  NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
+      sort_flags_trafo |
+      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+          | FFT_OUT_OF_PLACE,
+      FFTW_MEASURE | FFTW_DESTROY_INPUT);
+  ths->mv2.x = ths->y;
+
   if (ths->flags & NEARFIELD_BOXES)
   {
     ths->box_count_per_dim = (int)(LRINT(FLOOR((K(0.5) - ths->eps_B) / ths->eps_I))) + 1;
@@ -918,24 +935,41 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
 
     ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
   }
-  
-  fastsum_precompute_spline(ths);
-  fastsum_precompute_coefficients(ths);
+
+}
+
+/** initialization of fastsum plan */
+void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
+    kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
+{
+  fastsum_init_guru_kernel(ths, d, k, param, flags, nn, p, eps_I, eps_B);
+  fastsum_init_guru_nodes(ths, N_total, M_total, m);
 }
 
 /** finalization of fastsum plan */
-void fastsum_finalize(fastsum_plan *ths)
+void fastsum_finalize_nodes(fastsum_plan *ths)
 {
   NFFT(free)(ths->x);
   NFFT(free)(ths->alpha);
   NFFT(free)(ths->y);
   NFFT(free)(ths->f);
 
-  if (!(ths->flags & EXACT_NEARFIELD))
-    NFFT(free)(ths->Add);
-
   NFFT(finalize)(&(ths->mv1));
   NFFT(finalize)(&(ths->mv2));
+
+  if (ths->flags & NEARFIELD_BOXES)
+  {
+    NFFT(free)(ths->box_offset);
+    NFFT(free)(ths->box_alpha);
+    NFFT(free)(ths->box_x);
+  }
+}
+
+/** finalization of fastsum plan */
+void fastsum_finalize_kernel(fastsum_plan *ths)
+{
+  if (!(ths->flags & EXACT_NEARFIELD))
+    NFFT(free)(ths->Add);
 
 #ifdef _OPENMP
   #pragma omp critical (nfft_omp_critical_fftw_plan)
@@ -947,13 +981,13 @@ void fastsum_finalize(fastsum_plan *ths)
 #endif
 
   NFFT(free)(ths->b);
+}
 
-  if (ths->flags & NEARFIELD_BOXES)
-  {
-    NFFT(free)(ths->box_offset);
-    NFFT(free)(ths->box_alpha);
-    NFFT(free)(ths->box_x);
-  }
+/** finalization of fastsum plan */
+void fastsum_finalize(fastsum_plan *ths)
+{
+  fastsum_finalize_nodes(ths);
+  fastsum_finalize_kernel(ths);
 }
 
 /** direct computation of sums */
@@ -1023,9 +1057,9 @@ void fastsum_precompute(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** init NFFT plan for transposed transform in first step*/
-  for (k = 0; k < ths->mv1.M_total; k++)
-    for (t = 0; t < ths->mv1.d; t++)
-      ths->mv1.x[ths->mv1.d * k + t] = -ths->x[ths->mv1.d * k + t]; /* note the factor -1 for transposed transform instead of adjoint*/
+//  for (k = 0; k < ths->mv1.M_total; k++)
+//    for (t = 0; t < ths->mv1.d; t++)
+//      ths->mv1.x[ths->mv1.d * k + t] = -ths->x[ths->mv1.d * k + t]; /* note the factor -1 for transposed transform instead of adjoint*/
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv1.flags & PRE_LIN_PSI)
@@ -1049,9 +1083,9 @@ void fastsum_precompute(fastsum_plan *ths)
   t0 = getticks();
 #endif
   /** init NFFT plan for transform in third step*/
-  for (j = 0; j < ths->mv2.M_total; j++)
-    for (t = 0; t < ths->mv2.d; t++)
-      ths->mv2.x[ths->mv2.d * j + t] = -ths->y[ths->mv2.d * j + t]; /* note the factor -1 for conjugated transform instead of standard*/
+//  for (j = 0; j < ths->mv2.M_total; j++)
+//    for (t = 0; t < ths->mv2.d; t++)
+//      ths->mv2.x[ths->mv2.d * j + t] = -ths->y[ths->mv2.d * j + t]; /* note the factor -1 for conjugated transform instead of standard*/
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv2.flags & PRE_LIN_PSI)

@@ -139,11 +139,49 @@ typedef struct fastsum_plan_
  */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B);
 
+/** initialize node independent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ * \param d The dimension of the problem.
+ * \param kernel The kernel function.
+ * \param param The parameters for the kernel function.
+ * \param flags Fastsum flags.
+ * \param nn The expansion degree.
+ * \param p The degree of smoothness.
+ * \param eps_I The inner boundary.
+ * \param eps_B the outer boundary.
+ *
+ */
+void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
+    unsigned flags, int nn, int p, R eps_I, R eps_B);
+
+/** initialize node dependent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ * \param N_total The number of source knots x.
+ * \param M_total The number of target knots y.
+ * \param m The cut-off parameter for the NFFT.
+ *
+ */
+void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m);
+
 /** finalize plan
  *
  * \param ths The pointer to a fastsum plan.
  */
 void fastsum_finalize(fastsum_plan *ths);
+
+/** finalize node dependent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_nodes(fastsum_plan *ths);
+
+/** finalize node independent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_kernel(fastsum_plan *ths);
 
 /** direct summation
  *
