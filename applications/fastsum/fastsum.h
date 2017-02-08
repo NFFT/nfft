@@ -155,15 +155,23 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
 void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
     unsigned flags, int nn, int p, R eps_I, R eps_B);
 
-/** initialize node dependent part of fast summation plan
+/** initialize source nodes dependent part of fast summation plan
  *
  * \param ths The pointer to a fastsum plan.
  * \param N_total The number of source knots x.
+ * \param m The cut-off parameter for the NFFT.
+ *
+ */
+void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m);
+
+/** initialize target nodes dependent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
  * \param M_total The number of target knots y.
  * \param m The cut-off parameter for the NFFT.
  *
  */
-void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m);
+void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m);
 
 /** finalize plan
  *
@@ -171,11 +179,17 @@ void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
  */
 void fastsum_finalize(fastsum_plan *ths);
 
-/** finalize node dependent part of plan
+/** finalize source nodes dependent part of plan
  *
  * \param ths The pointer to a fastsum plan.
  */
-void fastsum_finalize_nodes(fastsum_plan *ths);
+void fastsum_finalize_source_nodes(fastsum_plan *ths);
+
+/** finalize target nodes dependent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_target_nodes(fastsum_plan *ths);
 
 /** finalize node independent part of plan
  *

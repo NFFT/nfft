@@ -873,15 +873,12 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   fastsum_precompute_kernel(ths);
 }
 
-void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
+void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m)
 {
   int t;
   int N[ths->d], n[ths->d];
   unsigned sort_flags_trafo = 0U;
   unsigned sort_flags_adjoint = 0U;
-#ifdef _OPENMP
-  int nthreads = NFFT(get_num_threads)();
-#endif
 
   if (ths->d > 1)
   {
@@ -894,13 +891,9 @@ void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
   }
 
   ths->N_total = N_total;
-  ths->M_total = M_total;
 
   ths->x = (R *) NFFT(malloc)((size_t)(ths->d * N_total) * (sizeof(R)));
   ths->alpha = (C *) NFFT(malloc)((size_t)(N_total) * (sizeof(C)));
-
-  ths->y = (R *) NFFT(malloc)((size_t)(ths->d * M_total) * (sizeof(R)));
-  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
 
   /** init d-dimensional NFFT plan */
   for (t = 0; t < ths->d; t++)
@@ -915,12 +908,6 @@ void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
   ths->mv1.x = ths->x;
-  NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
-      sort_flags_trafo |
-      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-          | FFT_OUT_OF_PLACE,
-      FFTW_MEASURE | FFTW_DESTROY_INPUT);
-  ths->mv2.x = ths->y;
 
   if (ths->flags & NEARFIELD_BOXES)
   {
@@ -935,7 +922,43 @@ void fastsum_init_guru_nodes(fastsum_plan *ths, int N_total, int M_total, int m)
 
     ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
   }
+}
 
+void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m)
+{
+  int t;
+  int N[ths->d], n[ths->d];
+  unsigned sort_flags_trafo = 0U;
+  unsigned sort_flags_adjoint = 0U;
+
+  if (ths->d > 1)
+  {
+    sort_flags_trafo = NFFT_SORT_NODES;
+#ifdef _OPENMP
+    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
+    sort_flags_adjoint = NFFT_SORT_NODES;
+#endif
+  }
+
+  ths->M_total = M_total;
+
+  ths->y = (R *) NFFT(malloc)((size_t)(ths->d * M_total) * (sizeof(R)));
+  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
+
+  /** init d-dimensional NFFT plan */
+  for (t = 0; t < ths->d; t++)
+  {
+    N[t] = ths->n;
+    n[t] = 2 * ths->n;
+  }
+
+  NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
+      sort_flags_trafo |
+      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+          | FFT_OUT_OF_PLACE,
+      FFTW_MEASURE | FFTW_DESTROY_INPUT);
+  ths->mv2.x = ths->y;
 }
 
 /** initialization of fastsum plan */
@@ -943,19 +966,17 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
 {
   fastsum_init_guru_kernel(ths, d, k, param, flags, nn, p, eps_I, eps_B);
-  fastsum_init_guru_nodes(ths, N_total, M_total, m);
+  fastsum_init_guru_source_nodes(ths, N_total, m);
+  fastsum_init_guru_target_nodes(ths, M_total, m);
 }
 
 /** finalization of fastsum plan */
-void fastsum_finalize_nodes(fastsum_plan *ths)
+void fastsum_finalize_source_nodes(fastsum_plan *ths)
 {
   NFFT(free)(ths->x);
   NFFT(free)(ths->alpha);
-  NFFT(free)(ths->y);
-  NFFT(free)(ths->f);
 
   NFFT(finalize)(&(ths->mv1));
-  NFFT(finalize)(&(ths->mv2));
 
   if (ths->flags & NEARFIELD_BOXES)
   {
@@ -963,6 +984,15 @@ void fastsum_finalize_nodes(fastsum_plan *ths)
     NFFT(free)(ths->box_alpha);
     NFFT(free)(ths->box_x);
   }
+}
+
+/** finalization of fastsum plan */
+void fastsum_finalize_target_nodes(fastsum_plan *ths)
+{
+  NFFT(free)(ths->y);
+  NFFT(free)(ths->f);
+
+  NFFT(finalize)(&(ths->mv2));
 }
 
 /** finalization of fastsum plan */
@@ -986,7 +1016,8 @@ void fastsum_finalize_kernel(fastsum_plan *ths)
 /** finalization of fastsum plan */
 void fastsum_finalize(fastsum_plan *ths)
 {
-  fastsum_finalize_nodes(ths);
+  fastsum_finalize_target_nodes(ths);
+  fastsum_finalize_source_nodes(ths);
   fastsum_finalize_kernel(ths);
 }
 
