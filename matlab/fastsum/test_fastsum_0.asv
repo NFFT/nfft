@@ -1,0 +1,55 @@
+%% Initialize parameters
+d=2;
+% rng(97)
+N=1024;
+M=1024;
+kernel='inverse_multiquadric3';
+c = 1;%1/sqrt(N);
+m = 4;
+p = 3;
+n = 156;
+eps_I = .0625;
+eps_B = .0625;
+
+%% Initialize fastsum
+% plan=fastsum_init_guru(d,N,M,n,m,p,kernel,c,eps_I,eps_B);
+plan=fastsummex('init_guru_kernel',d,n,p,kernel,c,eps_I,eps_B);
+
+%% set nodes
+r = sqrt(rand(N,1))*(0.25-eps_B/2);
+phi = rand(N,1)*2*pi;
+x = [r.*cos(phi) r.*sin(phi)];
+alpha = rand(N,1) + 1i*rand(N,1);
+r = sqrt(rand(M,1))*(0.25-eps_B/2);
+phi = rand(M,1)*2*pi;
+y = [r.*cos(phi) r.*sin(phi)];
+
+%% compute
+fastsummex('display',plan)
+fastsummex('set_source',plan,x,alpha,m)
+fastsummex('set_y',plan,rand(500,2),7)
+
+tic
+fastsum_trafo_direct(plan)   % direct computation
+f_dir=fastsum_get_f(plan);
+t_direct=toc;
+tic
+
+tic
+fastsum_trafo(plan)        % fast computation
+t_trafo=toc;
+f = fastsum_get_f(plan);
+b = fastsum_get_b(plan);   % get expansion coefficients
+
+% [f_old,f_dir_old]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B);
+
+% plot 
+figure(1)
+% scatter(x(:,1),x(:,2),120,real(alpha),'.')
+% colorbar
+% figure(2)
+scatter(y(:,1),y(:,2),120,abs(f./f_dir-1),'.')
+colorbar
+
+%% finalize 
+fastsummex('finalize',plan)

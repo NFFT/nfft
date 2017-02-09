@@ -13,21 +13,17 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 % f_direct    computed with direct summation
 % 
 % Input:
-% size(x) = [N,d]                 source knots in d-ball with radius 1/4-eps_b/2
-% size(alpha) = [N,1] (complex)   source coefficients
-% size(y)=[M,d]                   target knots in d-ball with radius 1/4-eps_b/2
-% size(f) = [N,1] (complex)       target evaluations
-% 
-% d number of dimensions
-% N number of source knots
-% M number of target knots
+% size(x)     = [N,d]   source knots in d-ball with radius 1/4-eps_b/2
+% size(alpha) = [N,1]   source coefficients (complex)
+% size(y)     = [M,d]   target knots in d-ball with radius 1/4-eps_b/2
+% size(f)     = [N,1]   target evaluations (complex)
 % kernel = 'multiquadric', etc. (see options below)
-% c kernel parameter
-% n expansion degree
-% m cut-off parameter for NFFT
-% p degree of smoothness of regularization
-% eps_I inner boundary
-% eps_B outer boundary
+% c       kernel parameter
+% n       expansion degree
+% m       cut-off parameter for NFFT
+% p       degree of smoothness of regularization
+% eps_I   inner boundary
+% eps_B   outer boundary
 % 
 % Kernel functions:
 % 'gaussian'                K(x) = EXP(-x^2/c^2) 
@@ -46,13 +42,9 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 
 nargoutchk(1, 2)
 
-[N,d]=size(x);
-[M,d]=size(y);
-
-plan=fastsum_init_guru(d,N,M,n,m,p,kernel,c,eps_I,eps_B);
-fastsum_set_x(plan,x)
-fastsum_set_y(plan,y)
-fastsum_set_alpha(plan,alpha)
+plan=fastsum_init(d,n,p,kernel,c,eps_I,eps_B);
+fastsum_set_x(plan,x,alpha,m)
+fastsum_set_y(plan,y,m)
 
 if(nargout==2)
     fastsum_trafo_direct(plan)   % direct computation

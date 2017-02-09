@@ -1,2 +1,2 @@
-function fastsum_set_y(plan,y)
-fastsummex('set_y',plan,y);
+function fastsum_set_y(plan,y,m)
+fastsummex('set_y',plan,y,m);
