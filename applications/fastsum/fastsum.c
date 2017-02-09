@@ -769,7 +769,7 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
 }
 
 void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
-    unsigned flags, int nn, int p, R eps_I, R eps_B)
+    unsigned flags, int nn, int nn_oversampled, int p, R eps_I, R eps_B)
 {
   int t;
   int N[d];
@@ -848,6 +848,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   }
 
   ths->n = nn;
+  ths->n_oversampled = nn_oversampled;
   for (t = 0; t < d; t++)
   {
     N[t] = nn;
@@ -900,7 +901,7 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m)
   for (t = 0; t < ths->d; t++)
   {
     N[t] = ths->n;
-    n[t] = 2 * ths->n;
+    n[t] = ths->n_oversampled;
   }
 
   NFFT(init_guru)(&(ths->mv1), ths->d, N, N_total, n, m,
@@ -945,7 +946,7 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m)
   for (t = 0; t < ths->d; t++)
   {
     N[t] = ths->n;
-    n[t] = 2 * ths->n;
+    n[t] = ths->n_oversampled;
   }
 
   NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
@@ -962,7 +963,7 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m)
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
     kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
 {
-  fastsum_init_guru_kernel(ths, d, k, param, flags, nn, p, eps_I, eps_B);
+  fastsum_init_guru_kernel(ths, d, k, param, flags, nn, 2*nn, p, eps_I, eps_B);
   fastsum_init_guru_source_nodes(ths, N_total, m);
   fastsum_init_guru_target_nodes(ths, M_total, m);
 }

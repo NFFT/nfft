@@ -96,7 +96,9 @@ typedef struct fastsum_plan_
 
   /** FS__ - fast summation */
   int n;                                /**< expansion degree                */
+  int n_oversampled;  /**< oversampled expansion degree for nfft */
   C *b;                      /**< expansion coefficients          */
+  C *f_hat;  /**< Fourier coefficients of nfft plans */
 
   int p;                                /**< degree of smoothness of regularization */
   R eps_I;                         /**< inner boundary                  */  /* fixed to p/n so far  */
@@ -120,7 +122,6 @@ typedef struct fastsum_plan_
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 
-  C *f_hat;  /**< Fourier coefficients of nfft plans */
 } fastsum_plan;
 
 /** initialize fast summation plan
@@ -149,13 +150,14 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
  * \param param The parameters for the kernel function.
  * \param flags Fastsum flags.
  * \param nn The expansion degree.
+ * \param nn_oversampled The oversampled expansion degree for nfft.
  * \param p The degree of smoothness.
  * \param eps_I The inner boundary.
  * \param eps_B the outer boundary.
  *
  */
 void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
-    unsigned flags, int nn, int p, R eps_I, R eps_B);
+    unsigned flags, int nn, int nn_oversampled, int p, R eps_I, R eps_B);
 
 /** initialize source nodes dependent part of fast summation plan
  *
