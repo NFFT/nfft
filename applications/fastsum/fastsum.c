@@ -696,6 +696,8 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
   ticks t0, t1;
 #endif
 
+  ths->MEASURE_TIME_t[0] = K(0.0);
+
 #ifdef MEASURE_TIME
   t0 = getticks();
 #endif
@@ -857,6 +859,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
     n_total *= nn;
 
   ths->b = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
+  ths->f_hat = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
 #ifdef _OPENMP
   #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
@@ -877,12 +880,10 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m)
 {
   int t;
   int N[ths->d], n[ths->d];
-  unsigned sort_flags_trafo = 0U;
   unsigned sort_flags_adjoint = 0U;
 
   if (ths->d > 1)
   {
-    sort_flags_trafo = NFFT_SORT_NODES;
 #ifdef _OPENMP
     sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
 #else
@@ -904,10 +905,12 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m)
 
   NFFT(init_guru)(&(ths->mv1), ths->d, N, N_total, n, m,
       sort_flags_adjoint |
-      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X | MALLOC_F_HAT | MALLOC_F |*/ FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
   ths->mv1.x = ths->x;
+  ths->mv1.f = ths->alpha;
+  ths->mv1.f_hat = ths->f_hat;
 
   if (ths->flags & NEARFIELD_BOXES)
   {
@@ -929,17 +932,9 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m)
   int t;
   int N[ths->d], n[ths->d];
   unsigned sort_flags_trafo = 0U;
-  unsigned sort_flags_adjoint = 0U;
 
   if (ths->d > 1)
-  {
     sort_flags_trafo = NFFT_SORT_NODES;
-#ifdef _OPENMP
-    sort_flags_adjoint = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
-#else
-    sort_flags_adjoint = NFFT_SORT_NODES;
-#endif
-  }
 
   ths->M_total = M_total;
 
@@ -955,10 +950,12 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m)
 
   NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
       sort_flags_trafo |
-      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X |*/ MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+      PRE_PHI_HUT | PRE_PSI | /*MALLOC_X | MALLOC_F_HAT | MALLOC_F |*/ FFTW_INIT
           | FFT_OUT_OF_PLACE,
       FFTW_MEASURE | FFTW_DESTROY_INPUT);
   ths->mv2.x = ths->y;
+  ths->mv2.f = ths->f;
+  ths->mv2.f_hat = ths->f_hat;
 }
 
 /** initialization of fastsum plan */
@@ -1011,6 +1008,7 @@ void fastsum_finalize_kernel(fastsum_plan *ths)
 #endif
 
   NFFT(free)(ths->b);
+  NFFT(free)(ths->f_hat);
 }
 
 /** finalization of fastsum plan */
@@ -1052,17 +1050,13 @@ void fastsum_exact(fastsum_plan *ths)
 }
 
 /** precomputation for fastsum */
-void fastsum_precompute(fastsum_plan *ths)
+void fastsum_precompute_source_nodes(fastsum_plan *ths)
 {
-  int j, k, t;
-  int n_total;
 #ifdef MEASURE_TIME
   ticks t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[0] = K(0.0);
   ths->MEASURE_TIME_t[1] = K(0.0);
-  ths->MEASURE_TIME_t[2] = K(0.0);
   ths->MEASURE_TIME_t[3] = K(0.0);
 
 #ifdef MEASURE_TIME
@@ -1106,9 +1100,19 @@ void fastsum_precompute(fastsum_plan *ths)
   ths->MEASURE_TIME_t[1] += nfft_elapsed_seconds(t1,t0);
 #endif
 
-  /** init Fourier coefficients */
-  for (k = 0; k < ths->mv1.M_total; k++)
-    ths->mv1.f[k] = ths->alpha[k];
+//  /** init Fourier coefficients */
+//  for (k = 0; k < ths->mv1.M_total; k++)
+//    ths->mv1.f[k] = ths->alpha[k];
+}
+
+/** precomputation for fastsum */
+void fastsum_precompute_target_nodes(fastsum_plan *ths)
+{
+#ifdef MEASURE_TIME
+  ticks t0, t1;
+#endif
+
+  ths->MEASURE_TIME_t[2] = K(0.0);
 
 #ifdef MEASURE_TIME
   t0 = getticks();
@@ -1131,6 +1135,13 @@ void fastsum_precompute(fastsum_plan *ths)
   t1 = getticks();
   ths->MEASURE_TIME_t[2] += NFFT(elapsed_seconds)(t1,t0);
 #endif
+}
+
+/** precomputation for fastsum */
+void fastsum_precompute(fastsum_plan *ths)
+{
+  fastsum_precompute_source_nodes(ths);
+  fastsum_precompute_target_nodes(ths);
 }
 
 /** fast NFFT-based summation */

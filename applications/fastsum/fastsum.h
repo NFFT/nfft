@@ -119,6 +119,8 @@ typedef struct fastsum_plan_
   C *box_alpha;
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
+
+  C *f_hat;  /**< Fourier coefficients of nfft plans */
 } fastsum_plan;
 
 /** initialize fast summation plan
@@ -203,7 +205,19 @@ void fastsum_finalize_kernel(fastsum_plan *ths);
  */
 void fastsum_exact(fastsum_plan *ths);
 
-/** sort source nodes, precompute Fourier coefficients, etc.
+/** sort source nodes, precompute nfft source plan.
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_precompute_source_nodes(fastsum_plan *ths);
+
+/** precompute nfft target plan.
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_precompute_target_nodes(fastsum_plan *ths);
+
+/** sort source nodes, precompute nfft plans etc.
  *
  * \param ths The pointer to a fastsum plan.
  */
