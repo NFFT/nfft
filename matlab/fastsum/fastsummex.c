@@ -217,7 +217,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     i = mkplan();
     
-	fastsum_init_guru_kernel(plans[i], d, ker, param, 0, n, p, eps_I, eps_B);
+	fastsum_init_guru_kernel(plans[i], d, ker, param, 0, n, 2*n, p, eps_I, eps_B);
 	
 	zero_nodes_pointer(i);
 
