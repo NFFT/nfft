@@ -59,7 +59,7 @@ static inline void check_plan(int i)
 static inline void check_plan_nodes(int i)
 {
   DM(
-    if (!(plans[i]->x) || !(plans[i]->y))
+    if (!(plans[i]->x) && !(plans[i]->y))
 		mexErrMsgTxt("Required to set source and target nodes first");
 	else if (!(plans[i]->x))
 		mexErrMsgTxt("Required to set source nodes first");
@@ -278,6 +278,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		DM(if(warn)
 			mexWarnMsgTxt("x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
       }
+	  
+	  fastsum_precompute_source_nodes(plans[i]);
     }
     return;
   }
@@ -323,7 +325,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
 		DM(if(warn)
 			mexWarnMsgTxt("y must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
-
+	  
+	  fastsum_precompute_target_nodes(plans[i]);
       }
     }
     return;
@@ -337,18 +340,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
 	  check_plan_nodes(i);
       fastsum_exact(plans[i]);
-    }
-    return;
-  }
-  
-  else if (strcmp(cmd,"precompute") == 0)
-  {
-    check_nargs(nrhs,2,"Wrong number of arguments for precompute.");
-    {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum precompute: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_nodes(i);
-      fastsum_precompute(plans[i]);
     }
     return;
   }

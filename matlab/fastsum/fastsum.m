@@ -41,6 +41,7 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 % 'one_over_cube'           K(x) = 1/x^3
 
 nargoutchk(1, 2)
+d = size(x,2);
 
 plan=fastsum_init(d,n,p,kernel,c,eps_I,eps_B);
 fastsum_set_x(plan,x,alpha,m)
