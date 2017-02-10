@@ -217,7 +217,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     i = mkplan();
     
-	fastsum_init_guru_kernel(plans[i], d, ker, param, 0, n, 2*n, p, eps_I, eps_B);
+	fastsum_init_guru_kernel(plans[i], d, ker, param, 0, n, p, eps_I, eps_B);
 	
 	zero_nodes_pointer(i);
 
@@ -251,11 +251,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    mexErrMsgTxt("Input arguments x and alpha must have the same number of rows");)
 	  
 	  if(!(plans[i]->x)) 
-		fastsum_init_guru_source_nodes(plans[i], N, m);
+		fastsum_init_guru_source_nodes(plans[i], N, 2*plans[i]->n, m);
 	  else if( (N != plans[i]->N_total) || (m != plans[i]->mv1.m) )
 		{
 		fastsum_finalize_source_nodes(plans[i]);
-		fastsum_init_guru_source_nodes(plans[i], N, m);
+		fastsum_init_guru_source_nodes(plans[i], N, 2*plans[i]->n, m);
 		}
 		
       {
@@ -301,11 +301,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("fastsum set_y: Input argument m must be positive.");)
 	  
 	  if(!(plans[i]->y))
-		fastsum_init_guru_target_nodes(plans[i], M, m);
+		fastsum_init_guru_target_nodes(plans[i], M, 2*plans[i]->n, m);
 	  else if( (M != plans[i]->M_total) || (m != plans[i]->mv2.m) )
 		{
 		fastsum_finalize_target_nodes(plans[i]);
-		fastsum_init_guru_target_nodes(plans[i], M, m);
+		fastsum_init_guru_target_nodes(plans[i], M, 2*plans[i]->n, m);
 		}
 	  
       {

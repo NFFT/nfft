@@ -96,7 +96,6 @@ typedef struct fastsum_plan_
 
   /** FS__ - fast summation */
   int n;                                /**< expansion degree                */
-  int n_oversampled;  /**< oversampled expansion degree for nfft */
   C *b;                      /**< expansion coefficients          */
   C *f_hat;  /**< Fourier coefficients of nfft plans */
 
@@ -150,32 +149,33 @@ void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kerne
  * \param param The parameters for the kernel function.
  * \param flags Fastsum flags.
  * \param nn The expansion degree.
- * \param nn_oversampled The oversampled expansion degree for nfft.
  * \param p The degree of smoothness.
  * \param eps_I The inner boundary.
  * \param eps_B the outer boundary.
  *
  */
 void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
-    unsigned flags, int nn, int nn_oversampled, int p, R eps_I, R eps_B);
+    unsigned flags, int nn, int p, R eps_I, R eps_B);
 
 /** initialize source nodes dependent part of fast summation plan
  *
  * \param ths The pointer to a fastsum plan.
  * \param N_total The number of source knots x.
+ * \param nn_oversampled The oversampled expansion degree for nfft.
  * \param m The cut-off parameter for the NFFT.
  *
  */
-void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int m);
+void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_oversampled, int m);
 
 /** initialize target nodes dependent part of fast summation plan
  *
  * \param ths The pointer to a fastsum plan.
  * \param M_total The number of target knots y.
+ * \param nn_oversampled The oversampled expansion degree for nfft.
  * \param m The cut-off parameter for the NFFT.
  *
  */
-void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int m);
+void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_oversampled, int m);
 
 /** finalize plan
  *
