@@ -204,15 +204,24 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     d = nfft_mex_get_int(prhs[1],"fastsum init: Input argument d must be a scalar.");
 	DM(if (d < 1)
 		mexErrMsgTxt("fastsum init: Input argument d must be positive.");)
+	
 	ker = get_kernel(prhs[2]);
+	
     *param = nfft_mex_get_double(prhs[3],"fastsum init: Input argument c must be a scalar.");
-	unsigned flags = nfft_mex_get_int(prhs[4],"fastsum init: Input argument flags must be a scalar.");
+	
+	int flags_int = nfft_mex_get_int(prhs[4],"fastsum init: Input argument flags must be a scalar.");
+	DM( if (flags_int < 0)
+		mexErrMsgTxt("fastsum init: Input argument flags must be non-negative.");)
+	unsigned flags = (unsigned) flags_int;
+	
     n = nfft_mex_get_int(prhs[5],"fastsum init: Input argument n must be a scalar.");
 	DM(if (n < 1)
 		mexErrMsgTxt("fastsum init: Input argument n must be positive.");)
+	
     p = nfft_mex_get_int(prhs[6],"fastsum init: Input argument p must be a scalar.");
 	DM(if (p < 1)
 		mexErrMsgTxt("fastsum init: Input argument p must be positive.");)
+	
     eps_I = nfft_mex_get_double(prhs[7],"fastsum init: Input argument eps_I must be a scalar.");
     eps_B = nfft_mex_get_double(prhs[8],"fastsum init: Input argument eps_B must be a scalar.");
 
@@ -236,13 +245,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	  
       int d = plans[i]->d;
       DM(if (!mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != (unsigned)d))
-        mexErrMsgTxt("Input argument x must be a matrix with d columns");)
+        mexErrMsgTxt("Input argument x must be a matrix with d columns");
+	  if (mxGetM(prhs[2]) > INT_MAX)
+		mexErrMsgTxt("fastsum set_x_alpha: Input argument x is too large");)
 		
-      int N = mxGetM(prhs[2]);
+      int N = (int) mxGetM(prhs[2]);
 		
 	  DM(if (!mxIsComplex(prhs[3]) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1))
-        mexErrMsgTxt("Input argument alpha must be a complex N x 1 array");)
-      int N_alpha = mxGetM(prhs[3]);
+        mexErrMsgTxt("Input argument alpha must be a complex N x 1 array");
+	  if (mxGetM(prhs[3]) > INT_MAX)
+		mexErrMsgTxt("fastsum set_x_alpha: Input argument alpha is too large");)
+      int N_alpha = (int) mxGetM(prhs[3]);
 	  
 	  int nn_oversampled = nfft_mex_get_int(prhs[4],"fastsum set_x_alpha: Input argument nn_oversampled must be a scalar.");
 	  DM(if (nn_oversampled < 1)
@@ -253,7 +266,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("fastsum set_x_alpha: Input argument m must be positive.");)
 	  
 	  DM(if(N != N_alpha)
-	    mexErrMsgTxt("Input arguments x and alpha must have the same number of rows");)
+	    mexErrMsgTxt("fastsum set_x_alpha: Input arguments x and alpha must have the same number of rows");)
 	  
 	  if(!(plans[i]->x)) 
 		fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
@@ -275,7 +288,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			{
 			plans[i]->x[k*d+t] = x[k+t*N];
 			plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
-			DM(norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
+			DM( if((plans[i]->x[k*d+t] < -0.5) || (plans[i]->x[k*d+t] >= 0.5))
+				mexErrMsgTxt("x must be in interval [-0.5,0.5)");
+			norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
 			}
 			DM(if( norm > norm_max)
 				warn = 1;)
@@ -298,8 +313,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
       int d = plans[i]->d;
       DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2 || mxGetN(prhs[2]) != (unsigned)d)
-        mexErrMsgTxt("fastsum set_y: Input argument y must be an M x d double array");)
-      int M = mxGetM(prhs[2]);
+        mexErrMsgTxt("fastsum set_y: Input argument y must be an M x d double array");
+	  if(mxGetM(prhs[2]) > INT_MAX)
+	    mexErrMsgTxt("fastsum set_y: Input argument y is too large");)
+      int M = (int) mxGetM(prhs[2]);
 	  
 	  int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_y: Input argument nn_oversampled must be a scalar.");
 	  DM(if (nn_oversampled < 1)
@@ -327,7 +344,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			for (int t = 0; t < d; t++)
 			{
 			plans[i]->y[d*j+t] = y[j+t*M];
-			DM(norm += plans[i]->y[d*j+t] * plans[i]->y[d*j+t];)
+			DM( if((plans[i]->y[d*j+t] < -0.5) || (plans[i]->y[d*j+t] >= 0.5))
+				mexErrMsgTxt("y must be in interval [-0.5,0.5)");
+			norm += plans[i]->y[d*j+t] * plans[i]->y[d*j+t];)
 			}
 			DM(if( norm > norm_max)
 				warn = 1;)
@@ -539,7 +558,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	  int n_total = 1;
 	  for(int j=0; j<d; j++)
 	  {
-		  dims[j] = plans[i]->n;
+		  dims[j] = (unsigned int) plans[i]->n;
 		  n_total *= plans[i]->n;
 	  }
       plhs[0] = mxCreateNumericArray((unsigned int)d, dims, mxDOUBLE_CLASS, mxCOMPLEX);
