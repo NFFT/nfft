@@ -1,4 +1,4 @@
-function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
+function [f,f_direct]=fastsum_simple(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
     ,nn_oversampled,flags)
 
 % Computes the sums
@@ -52,7 +52,7 @@ if (nargin<11)
 end
 
 plan=fastsum_init(d,kernel,c,flags,n,p,eps_I,eps_B);
-fastsum_set_x(plan,x,alpha,nn_oversampled,m)
+fastsum_set_x_alpha(plan,x,alpha,nn_oversampled,m)
 fastsum_set_y(plan,y,nn_oversampled,m)
 
 if(nargout==2)

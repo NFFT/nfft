@@ -34,7 +34,7 @@ n = 156;        % expansion degree
 eps_I = p/n;    % inner boundary
 eps_B = 1/16;   % outer boundary
 m = p;          % cut-off parameter for NFFT
-nn_oversampled=2*n; % overampling factor for NFFT
+nn_oversampled=2*n; % oversampling factor for NFFT
 
 %% random source nodes in circle of radius 0.25-eps_B/2
 r = sqrt(rand(N,1))*(0.25-eps_B/2);
@@ -49,7 +49,7 @@ y = [r.*cos(phi) r.*sin(phi)];
 
 %% Perform fastsum
 plan=fastsum_init(d,kernel,c,flags,n,p,eps_I,eps_B);
-fastsum_set_x(plan,x,alpha,nn_oversampled,m)
+fastsum_set_x_alpha(plan,x,alpha,nn_oversampled,m)
 fastsum_set_y(plan,y,nn_oversampled,m)
 
 fastsum_trafo_direct(plan)   % direct computation
