@@ -1,8 +1,9 @@
-function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
+function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
+    ,nn_oversampled,flags)
 
 % Computes the sums
 % 
-%   f(y_j) = sum_{k=1}^N alpha_k kernel(x_k-y_j)   (j=1:M).
+%   f(y_j) = sum_{k=1}^N alpha_k kernel(x_k-y_j)   (j=1:M)
 % 
 % Calling:
 %   f = fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
@@ -43,9 +44,16 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 nargoutchk(1, 2)
 d = size(x,2);
 
-plan=fastsum_init(d,n,p,kernel,c,eps_I,eps_B);
-fastsum_set_x(plan,x,alpha,m)
-fastsum_set_y(plan,y,m)
+if(nargin<12)
+    flags = 0;
+end
+if (nargin<11)
+    nn_oversampled = 2*n;
+end
+
+plan=fastsum_init(d,kernel,c,flags,n,p,eps_I,eps_B);
+fastsum_set_x(plan,x,alpha,nn_oversampled,m)
+fastsum_set_y(plan,y,nn_oversampled,m)
 
 if(nargout==2)
     fastsum_trafo_direct(plan)   % direct computation

@@ -28,11 +28,13 @@ N = 2000;       % number of source knots
 M = 2000;       % number of target knots
 kernel = 'multiquadric';
 c = 1/sqrt(N);  % kernel parameter
-m = 4;          % cut-off parameter for NFFT
 p = 3;          % degree of smoothness of regularization
+flags = 0;      % flags (could be EXACT_NEARFIELD or NEARFIELD_BOXES)
 n = 156;        % expansion degree
 eps_I = p/n;    % inner boundary
 eps_B = 1/16;   % outer boundary
+m = p;          % cut-off parameter for NFFT
+nn_oversampled=2*n; % overampling factor for NFFT
 
 %% random source nodes in circle of radius 0.25-eps_B/2
 r = sqrt(rand(N,1))*(0.25-eps_B/2);
@@ -46,9 +48,9 @@ phi = rand(M,1)*2*pi;
 y = [r.*cos(phi) r.*sin(phi)];
 
 %% Perform fastsum
-plan=fastsum_init(d,n,p,kernel,c,eps_I,eps_B);
-fastsum_set_x(plan,x,alpha,m)
-fastsum_set_y(plan,y,m)
+plan=fastsum_init(d,kernel,c,flags,n,p,eps_I,eps_B);
+fastsum_set_x(plan,x,alpha,nn_oversampled,m)
+fastsum_set_y(plan,y,nn_oversampled,m)
 
 fastsum_trafo_direct(plan)   % direct computation
 f_dir = fastsum_get_f(plan);

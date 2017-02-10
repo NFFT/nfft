@@ -188,7 +188,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"init_guru_kernel") == 0)
   {
-	check_nargs(nrhs,8,"Wrong number of arguments for init_guru_kernel.");
+	check_nargs(nrhs,9,"Wrong number of arguments for init_guru_kernel.");
 	{
     int i;
 	
@@ -204,20 +204,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     d = nfft_mex_get_int(prhs[1],"fastsum init_guru_kernel: Input argument d must be a scalar.");
 	DM(if (d < 1)
 		mexErrMsgTxt("fastsum init_guru_kernel: Input argument d must be positive.");)
-    n = nfft_mex_get_int(prhs[2],"fastsum init_guru_kernel: Input argument n must be a scalar.");
+	ker = get_kernel(prhs[2]);
+    *param = nfft_mex_get_double(prhs[3],"fastsum init_guru_kernel: Input argument c must be a scalar.");
+	unsigned flags = nfft_mex_get_int(prhs[4],"fastsum init_guru_kernel: Input argument flags must be a scalar.");
+    n = nfft_mex_get_int(prhs[5],"fastsum init_guru_kernel: Input argument n must be a scalar.");
 	DM(if (n < 1)
 		mexErrMsgTxt("fastsum init_guru_kernel: Input argument n must be positive.");)
-    p = nfft_mex_get_int(prhs[3],"fastsum init_guru_kernel: Input argument p must be a scalar.");
+    p = nfft_mex_get_int(prhs[6],"fastsum init_guru_kernel: Input argument p must be a scalar.");
 	DM(if (p < 1)
 		mexErrMsgTxt("fastsum init_guru_kernel: Input argument p must be positive.");)
-	ker = get_kernel(prhs[4]);
-    *param = nfft_mex_get_double(prhs[5],"fastsum init_guru_kernel: Input argument c must be a scalar.");
-    eps_I = nfft_mex_get_double(prhs[6],"fastsum init_guru_kernel: Input argument eps_I must be a scalar.");
-    eps_B = nfft_mex_get_double(prhs[7],"fastsum init_guru_kernel: Input argument eps_B must be a scalar.");
+    eps_I = nfft_mex_get_double(prhs[7],"fastsum init_guru_kernel: Input argument eps_I must be a scalar.");
+    eps_B = nfft_mex_get_double(prhs[8],"fastsum init_guru_kernel: Input argument eps_B must be a scalar.");
 
     i = mkplan();
     
-	fastsum_init_guru_kernel(plans[i], d, ker, param, 0, n, p, eps_I, eps_B);
+	fastsum_init_guru_kernel(plans[i], d, ker, param, flags, n, p, eps_I, eps_B);
 	
 	zero_nodes_pointer(i);
 
@@ -228,22 +229,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"set_source") == 0)
   {
-    check_nargs(nrhs,5,"Wrong number of arguments for set_source.");
+    check_nargs(nrhs,6,"Wrong number of arguments for set_source.");
     {
-      // read plan i
 	  int i = nfft_mex_get_int(prhs[1],"fastsum set_source: Input argument plan must be a scalar.");
 	  check_plan(i);
 	  
       int d = plans[i]->d;
       DM(if (!mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != (unsigned)d))
         mexErrMsgTxt("Input argument x must be a matrix with d columns");)
+		
       int N = mxGetM(prhs[2]);
 		
 	  DM(if (!mxIsComplex(prhs[3]) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1))
         mexErrMsgTxt("Input argument alpha must be a complex N x 1 array");)
       int N_alpha = mxGetM(prhs[3]);
 	  
-	  int m = nfft_mex_get_int(prhs[4],"fastsum set_source: Input argument m must be a scalar.");
+	  int nn_oversampled = nfft_mex_get_int(prhs[4],"fastsum set_source: Input argument nn_oversampled must be a scalar.");
+	  DM(if (nn_oversampled < 1)
+		mexErrMsgTxt("fastsum set_source: Input argument nn_oversampled must be positive.");)
+	  
+	  int m = nfft_mex_get_int(prhs[5],"fastsum set_source: Input argument m must be a scalar.");
 	  DM(if (m < 1)
 		mexErrMsgTxt("fastsum set_source: Input argument m must be positive.");)
 	  
@@ -251,11 +256,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	    mexErrMsgTxt("Input arguments x and alpha must have the same number of rows");)
 	  
 	  if(!(plans[i]->x)) 
-		fastsum_init_guru_source_nodes(plans[i], N, 2*plans[i]->n, m);
-	  else if( (N != plans[i]->N_total) || (m != plans[i]->mv1.m) )
+		fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
+	  else if( (N != plans[i]->N_total) || (m != plans[i]->mv1.m) || (nn_oversampled != plans[i]->mv1.n[0]) )
 		{
 		fastsum_finalize_source_nodes(plans[i]);
-		fastsum_init_guru_source_nodes(plans[i], N, 2*plans[i]->n, m);
+		fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
 		}
 		
       {
@@ -286,7 +291,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"set_y") == 0)
   {
-    check_nargs(nrhs,4,"Wrong number of arguments for set_y.");
+    check_nargs(nrhs,5,"Wrong number of arguments for set_y.");
     {
       int i = nfft_mex_get_int(prhs[1],"fastsum set_y: Input argument plan must be a scalar.");
 	  check_plan(i);
@@ -296,16 +301,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("fastsum set_y: Input argument y must be an M x d double array");)
       int M = mxGetM(prhs[2]);
 	  
-	  int m = nfft_mex_get_int(prhs[3],"fastsum set_y: Input argument m must be a scalar.");
+	  int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_y: Input argument nn_oversampled must be a scalar.");
+	  DM(if (nn_oversampled < 1)
+		mexErrMsgTxt("fastsum set_source: Input argument nn_oversampled must be positive.");)
+	  
+	  int m = nfft_mex_get_int(prhs[4],"fastsum set_y: Input argument m must be a scalar.");
 	  DM(if (m < 1)
 		mexErrMsgTxt("fastsum set_y: Input argument m must be positive.");)
 	  
 	  if(!(plans[i]->y))
-		fastsum_init_guru_target_nodes(plans[i], M, 2*plans[i]->n, m);
-	  else if( (M != plans[i]->M_total) || (m != plans[i]->mv2.m) )
+		fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
+	  else if( (M != plans[i]->M_total) || (m != plans[i]->mv2.m) || (nn_oversampled != plans[i]->mv2.n[0]) )
 		{
 		fastsum_finalize_target_nodes(plans[i]);
-		fastsum_init_guru_target_nodes(plans[i], M, 2*plans[i]->n, m);
+		fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
 		}
 	  
       {
