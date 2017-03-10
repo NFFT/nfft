@@ -605,6 +605,8 @@ AC_CONFIG_FILES(Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
+                matlab/nfct/Makefile \
+                matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
