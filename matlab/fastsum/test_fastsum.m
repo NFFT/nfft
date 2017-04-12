@@ -21,12 +21,13 @@
 % 'cosc'                    K(x) = COS(cx)/x
 % 'cot'                     K(x) = cot(cx)
 % 'one_over_cube'           K(x) = 1/x^3
+% 'log_sin'                 K(x) = LOG(|SIN(cx)|)
 
 %% Initialize parameters
 d = 2;          % number of dimensions
 N = 2000;       % number of source knots
 M = 2000;       % number of target knots
-kernel = 'multiquadric';
+kernel = 'log_sin';
 c = 1/sqrt(N);  % kernel parameter
 p = 3;          % degree of smoothness of regularization
 flags = 0;      % flags (could be EXACT_NEARFIELD or NEARFIELD_BOXES)

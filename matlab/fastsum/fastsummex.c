@@ -108,6 +108,10 @@ static kernel get_kernel(const mxArray *p)
       ker = cosc;
     else if (strcmp(s, "cot") == 0)
       ker = kcot;
+    else if (strcmp(s, "one_over_cube") == 0)
+      kernel = one_over_cube;
+    else if (strcmp(s, "log_sin") == 0)
+      ker = log_sin;
     else
     {
       mexErrMsgTxt("fastsum: Unknown kernel function.");

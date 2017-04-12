@@ -52,8 +52,9 @@ C one_over_x(R x, int der, const R *param);            /* K(x) = 1/x */
 C inverse_multiquadric3(R x, int der, const R *param); /* K(x) = 1/sqrt(x^2+c^2)^3 */
 C sinc_kernel(R x, int der, const R *param);           /* K(x) = sin(cx)/x */
 C cosc(R x, int der, const R *param);                  /* K(x) = cos(cx)/x */
-C kcot(R x, int der, const R *param);                   /* K(x) = cot(cx) */
-C one_over_cube(R x, int der, const R *param);                /* K(x) = 1/x^3 */
+C kcot(R x, int der, const R *param);                  /* K(x) = cot(cx) */
+C one_over_cube(R x, int der, const R *param);         /* K(x) = 1/x^3 */
+C log_sin(R x, int der, const R *param);               /* K(x) = log(|sin(cx)|)*/
 /* \} */
 
 #ifdef __cplusplus

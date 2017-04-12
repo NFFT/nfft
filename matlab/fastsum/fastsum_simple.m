@@ -40,6 +40,7 @@ function [f,f_direct]=fastsum_simple(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
 % 'cosc'                    K(x) = COS(cx)/x
 % 'cot'                     K(x) = cot(cx)
 % 'one_over_cube'           K(x) = 1/x^3
+% 'log_sin'                 K(x) = LOG(|SIN(cx)|)
 
 nargoutchk(1, 2)
 d = size(x,2);
