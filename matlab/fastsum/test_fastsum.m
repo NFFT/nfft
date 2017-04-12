@@ -21,6 +21,7 @@
 % 'cosc'                    K(x) = COS(cx)/x
 % 'cot'                     K(x) = cot(cx)
 % 'one_over_cube'           K(x) = 1/x^3
+% 'log_sin'                 K(x) = LOG(|SIN(cx)|)
 
 %% Initialize parameters
 d = 2;          % number of dimensions
