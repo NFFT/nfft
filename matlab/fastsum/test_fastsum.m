@@ -27,7 +27,7 @@
 d = 2;          % number of dimensions
 N = 2000;       % number of source knots
 M = 2000;       % number of target knots
-kernel = 'log_sin';
+kernel = 'multiquadric';
 c = 1/sqrt(N);  % kernel parameter
 p = 3;          % degree of smoothness of regularization
 flags = 0;      % flags (could be EXACT_NEARFIELD or NEARFIELD_BOXES)
