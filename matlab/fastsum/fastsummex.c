@@ -56,6 +56,22 @@ static inline void check_plan(int i)
     mexErrMsgTxt("Plan was not initialized or has already been finalized");)
 }
 
+static inline void check_plan_source_nodes(int i)
+{
+  DM(
+	if (!(plans[i]->x))
+		mexErrMsgTxt("Required to set source nodes first");
+	)
+}
+
+static inline void check_plan_target_nodes(int i)
+{
+  DM(
+	if (!(plans[i]->y))
+		mexErrMsgTxt("Required to set target nodes first");
+	)
+}
+
 static inline void check_plan_nodes(int i)
 {
   DM(
@@ -255,8 +271,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
       int N = (int) mxGetM(prhs[2]);
 		
-	  DM(if (!mxIsComplex(prhs[3]) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1))
-        mexErrMsgTxt("Input argument alpha must be a complex N x 1 array");
+	  DM(if (!(mxIsDouble(prhs[3]) || mxIsComplex(prhs[3])) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1))
+        mexErrMsgTxt("Input argument alpha must be an N x 1 array");
 	  if (mxGetM(prhs[3]) > INT_MAX)
 		mexErrMsgTxt("fastsum set_x_alpha: Input argument alpha is too large");)
       int N_alpha = (int) mxGetM(prhs[3]);
@@ -282,7 +298,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
       {
         double *x = mxGetPr(prhs[2]);
-        double *ar = mxGetPr(prhs[3]), *ai = mxGetPi(prhs[3]);
+        double *ar = mxGetPr(prhs[3]), *ai=0;
+		if(mxIsComplex(prhs[3])) 
+			ai = mxGetPi(prhs[3]);
 		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
 		short warn=0;)
         for (int k = 0; k < N; k++)
@@ -291,7 +309,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			for (int t = 0; t < d; t++)
 			{
 			plans[i]->x[k*d+t] = x[k+t*N];
-			plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
+			if(ai)
+				plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
+			else
+				plans[i]->alpha[k] = ar[k];
 			DM( if((plans[i]->x[k*d+t] < -0.5) || (plans[i]->x[k*d+t] >= 0.5))
 				mexErrMsgTxt("x must be in interval [-0.5,0.5)");
 			norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
@@ -487,7 +508,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
       check_plan(i);
-	  check_plan_nodes(i);
+	  check_plan_source_nodes(i);
       const int d = plans[i]->d;
       const int N = plans[i]->N_total;
       plhs[0] = mxCreateDoubleMatrix((unsigned int)N, (unsigned int)d, mxREAL);
@@ -511,7 +532,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
       check_plan(i);
-	  check_plan_nodes(i);
+	  check_plan_source_nodes(i);
       const int N = plans[i]->N_total;
       plhs[0] = mxCreateDoubleMatrix((unsigned int)N, 1, mxCOMPLEX);
       {
@@ -532,7 +553,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
       check_plan(i);
-	  check_plan_nodes(i);
+	  check_plan_target_nodes(i);
       const int d = plans[i]->d;
       const int M = plans[i]->M_total;
       plhs[0] = mxCreateDoubleMatrix((unsigned int)M, (unsigned int)d, mxREAL);
