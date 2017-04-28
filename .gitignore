@@ -36,6 +36,9 @@
 # Log files
 *.log
 
+# Autosave files
+*.asv
+
 # Other
 .cproject
 .project

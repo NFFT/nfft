@@ -18,7 +18,8 @@ endif
 
 
 dist_nfsoftmatlab_DATA = Contents.m \
-	nfsoft_get_num_threads.m
+	nfsoft_get_num_threads.m nfsoft_f_hat_size.m nfsoft_finalize.m nfsoft_get_f_hat.m nfsoft_get_f.m nfsoft_init.m nfsoft_precompute.m nfsoft_trafo.m test_nfsoft.m \
+	NFSOFT_NORMALIZED.m NFSOFT_REPRESENT.m NFSOFT_USE_DPT.m NFSOFT_USE_NDFT.m 
 
 # target all-am builds .libs/libnfsoft@matlab_mexext@
 nfsoftmex@matlab_mexext@: all-am 
