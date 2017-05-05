@@ -8,11 +8,7 @@ fastsummatlabdir = $(datadir)/nfft/matlab/fastsum
 lib_LTLIBRARIES = libfastsum.la
 libfastsum_la_SOURCES = fastsummex.c
 
-if HAVE_MATLAB_THREADS
-libfastsum_la_LIBADD = $(top_srcdir)/applications/fastsum/libfastsum_threads.la $(top_srcdir)/applications/fastsum/libkernels.la  $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
-else
-libfastsum_la_LIBADD = $(top_srcdir)/applications/fastsum/libfastsum.la $(top_srcdir)/applications/fastsum/libkernels.la  $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
-endif
+libfastsum_la_LIBADD = $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 
 libfastsum_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version @matlab_fftw3_LDFLAGS@ $(matlab_LDFLAGS)
 

@@ -26,8 +26,8 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "imex.h"
-#include "fastsum.h"
-#include "kernels.h"
+#include "fastsum.c"
+#include "kernels.c"
 
 #ifdef HAVE_MEXVERSION_C
   #include "mexversion.c"
