@@ -1,5 +1,5 @@
-N = 64;     % bandwidth (polynomial degree)
-M = 100;	% number of points
+N = 32;     % bandwidth (polynomial degree)
+M = 1000;	% number of points
 
 % random nodes
 alpha = rand(M,1)*2*pi;
