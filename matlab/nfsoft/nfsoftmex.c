@@ -127,7 +127,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"init") == 0)
+  else if(strcmp(cmd,"init") == 0)
   {
     check_nargs(nrhs,7,"Wrong number of arguments for init.");
 	int N = nfft_mex_get_int(prhs[1],"N must be scalar");
@@ -150,7 +150,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"set_x") == 0)
+  else if(strcmp(cmd,"set_x") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_x.");
 	int i = get_plan(prhs[1]);
@@ -166,7 +166,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	return;
   }
 
-  if(strcmp(cmd,"set_f_hat") == 0)
+  else if(strcmp(cmd,"set_f_hat") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_f_hat.");
 	int i = get_plan(prhs[1]);
@@ -197,7 +197,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"set_f") == 0)
+  else if(strcmp(cmd,"set_f") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_f.");
 	int i = get_plan(prhs[1]);
@@ -216,7 +216,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"precompute") == 0)
+  else if(strcmp(cmd,"precompute") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for precompute.");
 	int i = get_plan(prhs[1]);
@@ -224,7 +224,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"trafo") == 0)
+  else if(strcmp(cmd,"trafo") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for trafo.");
 	int i = get_plan(prhs[1]);
@@ -232,7 +232,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"adjoint") == 0)
+  else if(strcmp(cmd,"adjoint") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for adjoint.");
 	int i = get_plan(prhs[1]);
@@ -240,7 +240,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"get_f") == 0)
+  else if(strcmp(cmd,"get_f") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_f.");
 	int i = get_plan(prhs[1]);
@@ -257,7 +257,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"get_f_hat") == 0)
+  else if(strcmp(cmd,"get_f_hat") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_f_hat.");
 	int i = get_plan(prhs[1]);
@@ -277,7 +277,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		{
 		int my_ind = NFSOFT_F_HAT_SIZE(j-1) + (m+j)*(2*j+1) + (k+j);
 		fr[my_ind] = creal(plans[i]->f_hat[glo1]);
-		fi[my_ind] = creal(plans[i]->f_hat[glo1]);
+		fi[my_ind] = cimag(plans[i]->f_hat[glo1]);
 		glo1++;
 		}
 	  }
@@ -285,7 +285,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
   }
 
-  if(strcmp(cmd,"finalize") == 0)
+  else if(strcmp(cmd,"finalize") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments finalize.");
 	int i = get_plan(prhs[1]);
@@ -310,14 +310,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
       mexPrintf("    flags: %d\n",plans[i]->flags);
     }
-    return;
-  }
-  
-  
-  if(strcmp(cmd,"test") == 0)
-  {
-	double *f_real = mxGetPr(prhs[1]);
-	*f_real += 1;
     return;
   }
   
