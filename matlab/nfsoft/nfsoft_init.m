@@ -4,9 +4,14 @@
 % plan = nfsoft_init(N, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa)
 % N ... polynomial degree (bandwidth)
 % M ... number of nodes
+% nfsoft_flags  ... can be NFSOFT_NORMALIZED, NFSOFT_REPRESENT,
+% NFSOFT_USE_DPT, NFSOFT_USE_NDFT (default=0)
 
-function plan = nfsoft_init(N, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa)
-narginchk(2,6);
+function plan = nfsoft_init(N, M, ...
+    nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, nn_oversampled)
+narginchk(2,7);
+if(nargin<7)
+    nn_oversampled=8*N; % oversampling of NFFT
 if(nargin<6)
     fpt_kappa=1000;
 if(nargin<5)
@@ -19,4 +24,6 @@ end
 end
 end
 end
-plan = nfsoftmex('init',N,M,nfsoft_flags,nfft_flags,nfft_cutoff,fpt_kappa);
+end
+plan = nfsoftmex('init',N,M,nfsoft_flags,nfft_flags,nfft_cutoff,...
+    fpt_kappa, nn_oversampled);

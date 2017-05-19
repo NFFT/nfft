@@ -705,6 +705,7 @@ NFFT_EXTERN void X(SO3_fpt_transposed)(C *coeffs, Z(set) set,int l, int k, int m
 NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \
 NFFT_EXTERN void X(init_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags); \
 NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa); \
+NFFT_EXTERN void X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
 NFFT_EXTERN void X(trafo)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \

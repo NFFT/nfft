@@ -129,7 +129,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   else if(strcmp(cmd,"init") == 0)
   {
-    check_nargs(nrhs,7,"Wrong number of arguments for init.");
+    check_nargs(nrhs,8,"Wrong number of arguments for init.");
 	int N = nfft_mex_get_int(prhs[1],"N must be scalar");
 	int M = nfft_mex_get_int(prhs[2],"M must be scalar");
 	int flags_int = nfft_mex_get_int(prhs[3],"Input argument flags must be a scalar.");
@@ -142,10 +142,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	unsigned nfft_flags = (unsigned) nfft_flags_int;
 	int nfft_cutoff = nfft_mex_get_int(prhs[5],"Input argument nfft_cutoff must be a scalar.");
 	int fpt_kappa = nfft_mex_get_int(prhs[6],"Input argument fpt_kappa must be a scalar.");
+	int nn_oversampled = nfft_mex_get_int(prhs[7],"Input argument nn_oversampled must be a scalar.");
 	
 	int i = mkplan();
-	nfsoft_init_guru(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,
-	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa);
+	nfsoft_init_guru_advanced(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,
+	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, nn_oversampled);
     plhs[0] = mxCreateDoubleScalar((double)i);
     return;
   }

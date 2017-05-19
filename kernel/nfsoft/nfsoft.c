@@ -52,6 +52,13 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
     unsigned int nfsoft_flags, unsigned int nfft_flags, int nfft_cutoff,
     int fpt_kappa)
 {
+	nfsoft_init_guru_advanced(plan, B, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, 8* B);
+}
+
+void nfsoft_init_guru_advanced(nfsoft_plan *plan, int B, int M,
+    unsigned int nfsoft_flags, unsigned int nfft_flags, int nfft_cutoff,
+    int fpt_kappa, int nn_oversampled)
+{
   int N[3];
   int n[3];
 
@@ -59,9 +66,9 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   N[1] = 2* B + 2;
   N[2] = 2* B + 2;
 
-  n[0] = 8* B ;
-  n[1] = 8* B ;
-  n[2] = 8* B ;
+  n[0] = nn_oversampled ;
+  n[1] = nn_oversampled ;
+  n[2] = nn_oversampled ;
 
   nfft_init_guru(&plan->p_nfft, 3, N, M, n, nfft_cutoff, nfft_flags,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
