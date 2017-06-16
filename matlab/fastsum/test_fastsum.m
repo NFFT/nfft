@@ -60,6 +60,15 @@ fastsum_trafo(plan)         % fast computation
 f = fastsum_get_f(plan);
 fastsum_finalize(plan)
 
+%% fastsum class
+a=fastsum(d,kernel,c,flags,n,p,eps_I,eps_B,nn_oversampled,m);
+a.x=x;
+a.alpha=alpha;
+a.y=y;
+
+fastsum_trafo(a);
+disp(max(a.f-f))
+
 %% plot source and target evaluations
 figure(1)
 scatter(x(:,1),x(:,2),120,real(alpha),'.')

@@ -577,7 +577,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
       check_plan(i);
-	  check_plan_nodes(i);
       const int d = plans[i]->d;
 	  size_t dims[d];
 	  int n_total = 1;
