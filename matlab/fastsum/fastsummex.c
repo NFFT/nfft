@@ -235,8 +235,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	unsigned flags = (unsigned) flags_int;
 	
     n = nfft_mex_get_int(prhs[5],"fastsum init: Input argument n must be a scalar.");
-	DM(if (n < 1)
-		mexErrMsgTxt("fastsum init: Input argument n must be positive.");)
+	DM(if ((n < 1) || (n%2))
+		mexErrMsgTxt("fastsum init: Input argument n must be an even, positive integer.");)
 	
     p = nfft_mex_get_int(prhs[6],"fastsum init: Input argument p must be a scalar.");
 	DM(if (p < 1)

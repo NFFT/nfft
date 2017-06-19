@@ -60,6 +60,12 @@ function h=fastsum(d,kernel,c,flags,n,p,eps_I,eps_B,nn_x,m_x,nn_y,m_y)
 % p       degree of smoothness of regularization
 % eps_I   inner boundary
 % eps_B   outer boundary
+% nn      oversampled nn in NFFT (in x and y)
+% m       cut-off parameter for NFFT (in x and y)
+% nn_x    oversampled nn in NFFT (in x)
+% m_x     cut-off parameter for NFFT (in x)
+% nn_y    oversampled nn in NFFT (in y)
+% m_y     cut-off parameter for NFFT (in y)
 %
 % OUTPUT
 %   h   object of class type fastsum
@@ -94,6 +100,10 @@ function h=fastsum(d,kernel,c,flags,n,p,eps_I,eps_B,nn_x,m_x,nn_y,m_y)
         error('Wrong number of arguments')
     end
     
+    if nn_x<=h.n || nn_x<=h.n
+        error('Oversampled nn must be larger than n')
+    end
+    
     h.plan=fastsummex('init',h.d,h.kernel,h.c,h.flags,h.n,h.p,h.eps_I,h.eps_B);
     h.plan_is_set=true;
 end %function
@@ -122,12 +132,11 @@ function set.y(h,y)
     h.pre_y_done = true;
 end %function
 
-function set.nn_x(h,nn_x)
-    h.nn_x = nn_x + mod(nn_x,2);    % make nn even
-end %function
-
-function set.nn_y(h,nn_y)
-    h.nn_y = nn_y + mod(nn_y,2);    % make nn even
+function set.n(h,n)
+    if (~isscalar(n) || mod(n,2))
+        error('n must be an even integer')
+    end
+    h.n = n;
 end %function
 
 
