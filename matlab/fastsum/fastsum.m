@@ -1,44 +1,40 @@
 % This class provides a Matlab interface to the NFFT-fastsum library.
-%
-% Examples
-%   See Matlab scripts ...
 classdef fastsum < handle
 
 properties(Dependent=true)
-	x {mustBeReal}        % source nodes (real Nxd matrix)
-	alpha {mustBeNumeric} % fourier coefficients (column vector of length N)
-	y {mustBeReal}        % target nodes (real Mxd matrix)
+	x           % source nodes in d-ball with radius 1/4-eps_b/2 (real Nxd matrix)
+	alpha       % fourier coefficients (column vector of length N)
+	y           % target nodes in d-ball with radius 1/4-eps_b/2 (real Mxd matrix)
 end %properties
 
 properties(Dependent=true,SetAccess='private')
-    f;      % function evaluations in y
-    b;      % expansion coefficients
+    f;          % function evaluations in y
+    b;          % expansion coefficients
 end %properties
 
 properties(SetAccess='private')
-	d {mustBeInteger,mustBePositive}    % spatial dimension 
-    kernel
-    c {mustBeNumeric}                   % kernel parameter
-    flags {mustBeInteger,mustBeNonnegative} = 0
-    n {mustBeInteger,mustBePositive}    % expansion degree (of NFFT)
-    p {mustBeInteger,mustBePositive}    % degree of smoothness of regularization
-    eps_I {mustBeNonnegative}           % inner boundary
-    eps_B {mustBeNonnegative}           % outer boundary
-    nn_x {mustBeInteger,mustBePositive} % oversampled nn in x
-    nn_y {mustBeInteger,mustBePositive} % oversampled nn in y
-    m_x {mustBeInteger,mustBePositive}  % NFFT-cutoff in x
-    m_y {mustBeInteger,mustBePositive}  % NFFT-cutoff in y
+	d               % spatial dimension 
+    kernel          % kernel
+    c               % kernel parameter
+    flags  = 0      % flags
+    n               % expansion degree (of NFFT)
+    p               % degree of smoothness of regularization
+    eps_I           % inner boundary
+    eps_B           % outer boundary
+    nn_x            % oversampled nn in x
+    nn_y            % oversampled nn in y
+    m_x             % NFFT-cutoff in x
+    m_y             % NFFT-cutoff in y
 end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private')
 	plan
-	x_storage     % source nodes (real Nxd matrix)
-	alpha_storage % fourier coefficients (column vector of length N)
-    
-	f_is_set=false             % flag if f is set
-	plan_is_set=false          % flag if plan was created
-	pre_x_done=false % flag if precomputations were done
-	pre_y_done=false % flag if precomputations were done
+	x_storage           % source nodes (real Nxd matrix)
+	alpha_storage       % fourier coefficients (column vector of length N)
+	f_is_set=false      % flag if f is set
+	plan_is_set=false   % flag if plan was created
+	pre_x_done=false    % flag if precomputations were done
+	pre_y_done=false    % flag if precomputations were done
 end %properties
 
 methods
@@ -118,25 +114,97 @@ end %function
 % Set functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function set.x(h,x)
+    if (size(x,2)~=h.d || ~isreal(x))
+        error('x must be a real matrix with d columns');
+    end
     h.x_storage = x;
     h.pre_x_done = false;
 end %function
 
 function set.alpha(h,alpha)
+    if (~isvector(alpha) || ~isnumeric(alpha))
+        error('alpha must be a vector');
+    end
     h.alpha_storage = alpha;
     h.pre_x_done = false;
 end %function
 
 function set.y(h,y)
+    if (size(y,2)~=h.d || ~isreal(y))
+        error('y must be a real matrix with d columns');
+    end
     fastsummex('set_y',h.plan,y,h.nn_y,h.m_y)
     h.pre_y_done = true;
 end %function
 
+function set.d(h,d)
+    if (~isscalar(d) || ~isreal(d) || d<=0 || mod(d,1)~=0)
+        error('d must be a positive integer')
+    end
+    h.d = d;
+end %function
+
+function set.flags(h,n)
+    if (~isscalar(n) || ~isreal(n) || n<0 || mod(n,1)~=0)
+        error('flags must be a non-negative integer')
+    end
+    h.flags = n;
+end %function
+
 function set.n(h,n)
-    if (~isscalar(n) || mod(n,2))
-        error('n must be an even integer')
+    if (~isscalar(n) || ~isreal(n) || n<=0 || mod(n,2)~=0)
+        error('n must be a positive, even integer')
     end
     h.n = n;
+end %function
+
+function set.p(h,p)
+    if (~isscalar(p) || ~isreal(p) || p<=0 || mod(p,1)~=0)
+        error('p must be a positive integer')
+    end
+    h.p = p;
+end %function
+
+function set.eps_I(h,arg)
+    if (~isscalar(arg) || arg<0 || arg>=pi/4)
+        error('eps_I must be in the interval [0,pi/4)')
+    end
+    h.eps_I = arg;
+end %function
+
+function set.eps_B(h,arg)
+    if (~isscalar(arg) || arg<0 || arg>=pi/4)
+        error('eps_B must be in the interval [0,pi/4)')
+    end
+    h.eps_B = arg;
+end %function
+
+function set.nn_x(h,arg)
+    if (~isscalar(arg) || ~isreal(arg) || arg<=0 || mod(arg,1)~=0)
+        error('nn_x must be a positive integer')
+    end
+    h.nn_x = arg;
+end %function
+
+function set.m_x(h,arg)
+    if (~isscalar(arg) || ~isreal(arg) || arg<=0 || mod(arg,1)~=0)
+        error('m_x must be a positive integer')
+    end
+    h.m_x = arg;
+end %function
+
+function set.nn_y(h,arg)
+    if (~isscalar(arg) || ~isreal(arg) || arg<=0 || mod(arg,1)~=0)
+        error('nn_y must be a positive integer')
+    end
+    h.nn_y = arg;
+end %function
+
+function set.m_y(h,arg)
+    if (~isscalar(arg) || ~isreal(arg) || arg<=0 || mod(arg,1)~=0)
+        error('m_y must be a positive integer')
+    end
+    h.m_y = arg;
 end %function
 
 
