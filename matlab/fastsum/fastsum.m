@@ -10,6 +10,7 @@ end %properties
 properties(Dependent=true,SetAccess='private')
     f;          % function evaluations in y
     b;          % expansion coefficients
+    N;          % number of source nodes
 end %properties
 
 properties(SetAccess='private')
@@ -29,12 +30,11 @@ end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private')
 	plan
-	x_storage           % source nodes (real Nxd matrix)
-	alpha_storage       % fourier coefficients (column vector of length N)
+	x_is_set=false      % flag if x is set
+	y_is_set=false      % flag if y is set
+	alpha_is_set=false  % flag if alpha is set
 	f_is_set=false      % flag if f is set
 	plan_is_set=false   % flag if plan was created
-	pre_x_done=false    % flag if precomputations were done
-	pre_y_done=false    % flag if precomputations were done
 end %properties
 
 methods
@@ -117,16 +117,23 @@ function set.x(h,x)
     if (size(x,2)~=h.d || ~isreal(x))
         error('x must be a real matrix with d columns');
     end
-    h.x_storage = x;
-    h.pre_x_done = false;
+    if h.x_is_set && h.alpha_is_set && size(x,1)~=h.N
+        warning('Size of x has changed, so alpha is deleted');
+        h.alpha_is_set=false;
+    end
+    fastsummex('set_x',h.plan,x,h.nn_x,h.m_x)
+    h.x_is_set = true;
 end %function
 
 function set.alpha(h,alpha)
-    if (~isvector(alpha) || ~isnumeric(alpha))
-        error('alpha must be a vector');
+    if ~h.x_is_set
+        error('You have to set x before you set alpha')
     end
-    h.alpha_storage = alpha;
-    h.pre_x_done = false;
+    if (~isvector(alpha) || ~isnumeric(alpha) || length(alpha)~=h.N)
+        error('alpha must be a vector of length N');
+    end
+    fastsummex('set_alpha',h.plan,alpha)
+    h.alpha_is_set=true;
 end %function
 
 function set.y(h,y)
@@ -134,7 +141,7 @@ function set.y(h,y)
         error('y must be a real matrix with d columns');
     end
     fastsummex('set_y',h.plan,y,h.nn_y,h.m_y)
-    h.pre_y_done = true;
+    h.y_is_set = true;
 end %function
 
 function set.d(h,d)
@@ -211,15 +218,23 @@ end %function
 % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function x=get.x(h)
-	x=h.x_storage;
+    if h.x_is_set
+        x=fastsummex('get_x',h.plan);
+    else
+        x=[];
+    end
 end %function
 
 function alpha=get.alpha(h)
-	alpha=h.alpha_storage;
+    if h.alpha_is_set
+        alpha=fastsummex('get_alpha',h.plan);
+    else
+        alpha=[];
+    end
 end %function
 
 function y=get.y(h)
-    if h.pre_y_done
+    if h.y_is_set
         y=fastsummex('get_y',h.plan);
     else
         y=[];
@@ -242,6 +257,14 @@ function f=get.f(h)
 	end %if
 end %function
 
+function N=get.N(h)
+	if(h.x_is_set)
+		N=fastsummex('get_N_total',h.plan);
+	else
+		N=[];
+	end %if
+end %function
+
 % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function fastsum_trafo(h)
@@ -251,14 +274,14 @@ function fastsum_trafo(h)
 %
 % INPUT
 %   h  object of class type nfft
-    if(~h.pre_x_done)
-        fastsummex('set_x_alpha',h.plan,h.x,h.alpha,h.nn_x,h.m_x);
-        h.pre_x_done=true;
+    if(~h.x_is_set)
+		error('Before doing a fastsum transform you have to set nodes x.');
     end
-    
-    if(~h.pre_y_done)
-        fastsummex('set_y',h.plan,h.y,h.nn_y,h.m_y);
-        h.pre_y_done=true;
+    if(~h.alpha_is_set)
+		error('Before doing a fastsum transform you have to set coefficients alpha.');
+    end
+    if(~h.y_is_set)
+		error('Before doing a fastsum transform you have to set nodes y.');
     end
         
 	fastsummex('trafo',h.plan);
@@ -272,14 +295,14 @@ function fastsum_trafo_direct(h)
 %
 % INPUT
 %   h  object of class type nfft
-    if(~h.pre_x_done)
-        fastsummex('set_x_alpha',h.x,h.alpha,h.nn_x,h.m_x);
-        h.pre_x_done=true;
+    if(~h.x_is_set)
+		error('Before doing a fastsum transform you have to set nodes x.');
     end
-    
-    if(~h.pre_y_done)
-        fastsummex('set_y',h.plan,h.y,h.nn_y,h.m_y);
-        h.pre_y_done=true;
+    if(~h.alpha_is_set)
+		error('Before doing a fastsum transform you have to set coefficients alpha.');
+    end
+    if(~h.y_is_set)
+		error('Before doing a fastsum transform you have to set nodes y.');
     end
     
     fastsummex('trafo_direct',h.plan);

@@ -50,7 +50,8 @@ y = [r.*cos(phi) r.*sin(phi)];
 
 %% Perform fastsum
 plan=fastsum_init(d,kernel,c,flags,n,p,eps_I,eps_B);
-fastsum_set_x_alpha(plan,x,alpha,nn_oversampled,m)
+fastsum_set_x(plan,x,nn_oversampled,m)
+fastsum_set_alpha(plan,alpha)
 fastsum_set_y(plan,y,nn_oversampled,m)
 
 fastsum_trafo_direct(plan)   % direct computation
@@ -65,7 +66,6 @@ a=fastsum(d,kernel,c,flags,n,p,eps_I,eps_B,nn_oversampled,m);
 a.x=x;
 a.alpha=alpha;
 a.y=y;
-
 fastsum_trafo(a);
 disp(max(a.f-f))
 

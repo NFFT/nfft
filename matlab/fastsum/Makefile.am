@@ -17,7 +17,7 @@ libfastsum_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 
-dist_fastsummatlab_DATA = Contents.m EXACT_NEARFIELD.m NEARFIELD_BOXES.m fastsum_get_num_threads.m fastsum_init.m fastsum_set_x_alpha.m fastsum_set_y.m fastsum_trafo.m fastsum_trafo_direct.m fastsum_get_f.m fastsum_finalize.m test_fastsum.m
+dist_fastsummatlab_DATA = Contents.m EXACT_NEARFIELD.m NEARFIELD_BOXES.m fastsum.m fastsum_get_num_threads.m fastsum_init.m fastsum_set_x.m fastsum_set_alpha.m fastsum_set_y.m fastsum_trafo.m fastsum_trafo_direct.m fastsum_get_f.m fastsum_finalize.m test_fastsum.m
 
 # target all-am builds .libs/libfastsum@matlab_mexext@
 fastsummex@matlab_mexext@: all-am 

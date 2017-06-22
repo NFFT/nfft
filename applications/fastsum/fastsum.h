@@ -118,6 +118,8 @@ typedef struct fastsum_plan_
   int *box_offset;
   R *box_x;
   C *box_alpha;
+  
+  int *perm;    /**< permutation vector of source nodes */
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 
