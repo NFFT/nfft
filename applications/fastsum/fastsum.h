@@ -68,6 +68,8 @@ typedef C (*kernel)(R , int , const R *);
 
 #define NEARFIELD_BOXES (1U<< 1)
 
+#define STORE_PERMUTATION_X_ALPHA (1U<< 2)
+
 /** plan for fast summation algorithm */
 typedef struct fastsum_plan_
 {
@@ -119,7 +121,7 @@ typedef struct fastsum_plan_
   R *box_x;
   C *box_alpha;
   
-  int *perm;    /**< permutation vector of source nodes */
+  int *permutation_x_alpha;    /**< permutation vector of source nodes */
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 

@@ -378,7 +378,7 @@ static C kubintkern1(const R x, const C *Add, const int Ad, const R a)
 }
 
 /** quicksort algorithm for source knots and associated coefficients */
-static void quicksort(int d, int t, R *x, C *alpha, int *perm, int N)
+static void quicksort(int d, int t, R *x, C *alpha, int *permutation_x_alpha, int N)
 {
   int lpos = 0;
   int rpos = N - 1;
@@ -408,18 +408,21 @@ static void quicksort(int d, int t, R *x, C *alpha, int *perm, int N)
       alpha[lpos] = alpha[rpos];
       alpha[rpos] = temp2;
       
-      temp_int = perm[lpos];
-      perm[lpos] = perm[rpos];
-      perm[rpos] = temp_int;      
-
+      if (permutation_x_alpha)   /** store the permutation of x */
+      {
+        temp_int = permutation_x_alpha[lpos];
+        permutation_x_alpha[lpos] = permutation_x_alpha[rpos];
+        permutation_x_alpha[rpos] = temp_int;      
+      }
+      
       lpos++;
       rpos--;
     }
   }
   if (0 < rpos)
-    quicksort(d, t, x, alpha, perm, rpos + 1);
+    quicksort(d, t, x, alpha, permutation_x_alpha, rpos + 1);
   if (lpos < N - 1)
-    quicksort(d, t, x + lpos * d, alpha + lpos, perm + lpos, N - lpos);
+    quicksort(d, t, x + lpos * d, alpha + lpos, permutation_x_alpha ? permutation_x_alpha + lpos : NULL, N - lpos);
 }
 
 /** initialize box-based search data structures */
@@ -593,16 +596,16 @@ static C SearchBox(R *y, fastsum_plan *ths)
 }
 
 /** recursive sort of source knots dimension by dimension to get tree structure */
-static void BuildTree(int d, int t, R *x, C *alpha, int *perm, int N)
+static void BuildTree(int d, int t, R *x, C *alpha, int *permutation_x_alpha, int N)
 {
   if (N > 1)
   {
     int m = N / 2;
 
-    quicksort(d, t, x, alpha, perm, N);
+    quicksort(d, t, x, alpha, permutation_x_alpha, N);
 
-    BuildTree(d, (t + 1) % d, x, alpha, perm, m);
-    BuildTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), perm + (m + 1), N - m - 1);
+    BuildTree(d, (t + 1) % d, x, alpha, permutation_x_alpha, m);
+    BuildTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), permutation_x_alpha ? permutation_x_alpha + (m + 1) : NULL, N - m - 1);
   }
 }
 
@@ -916,6 +919,8 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   ths->mv1.x = ths->x;
   ths->mv1.f = ths->alpha;
   ths->mv1.f_hat = ths->f_hat;
+  
+  ths->permutation_x_alpha = NULL;
 
   if (ths->flags & NEARFIELD_BOXES)
   {
@@ -932,9 +937,12 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   }
   else
   {
-    ths->perm = (int *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(int)));
-    for (int i=0; i<ths->N_total; i++)
-      ths->perm[i] = i;
+    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+    {
+      ths->permutation_x_alpha = (int *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(int)));
+      for (int i=0; i<ths->N_total; i++)
+        ths->permutation_x_alpha[i] = i;
+    }
   }
 }
 
@@ -994,7 +1002,8 @@ void fastsum_finalize_source_nodes(fastsum_plan *ths)
   }
   else
   {
-    NFFT(free)(ths->perm);
+    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+      NFFT(free)(ths->permutation_x_alpha);
   }
 }
 
@@ -1086,7 +1095,7 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
   {
     /** sort source knots */
 	
-    BuildTree(ths->d, 0, ths->x, ths->alpha, ths->perm, ths->N_total);
+    BuildTree(ths->d, 0, ths->x, ths->alpha, ths->permutation_x_alpha, ths->N_total);
   }
 
 #ifdef MEASURE_TIME

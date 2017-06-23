@@ -129,8 +129,8 @@ function set.alpha(h,alpha)
     if ~h.x_is_set
         error('You have to set x before you set alpha')
     end
-    if (~isvector(alpha) || ~isnumeric(alpha) || length(alpha)~=h.N)
-        error('alpha must be a vector of length N');
+    if (~iscolumn(alpha) || ~isnumeric(alpha) || length(alpha)~=h.N)
+        error('alpha must be a column vector of length N');
     end
     fastsummex('set_alpha',h.plan,alpha)
     h.alpha_is_set=true;
@@ -322,10 +322,16 @@ end %methods
 methods(Static)
 function h = loadobj(s)
     h=fastsum(s.d,s.kernel,s.c,s.flags,s.n,s.p,s.eps_I,s.eps_B,...
-        x.nn_x,s.m_x,s.nn_y,s.m_y);
-    h.x=s.x;
-    h.alpha=s.alpha;
-    h.y=s.y;
+        s.nn_x,s.m_x,s.nn_y,s.m_y);
+    if ~isempty(s.x)
+        h.x=s.x;
+    end
+    if ~isempty(s.alpha)
+        h.alpha=s.alpha;
+    end
+    if ~isempty(s.y)
+        h.y=s.y;
+    end
 end
 end %methods
 end %classdef

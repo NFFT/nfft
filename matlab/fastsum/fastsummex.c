@@ -96,50 +96,48 @@ static inline int mkplan()
 
 static kernel get_kernel(const mxArray *p)
 {
-	kernel ker;
-	char s[CMD_LEN_MAX+1]; /**< name of kernel          */
-	if (mxGetString(p, s, CMD_LEN_MAX))
-		mexErrMsgTxt("Could not get kernel string.");
-    if (strcmp(s, "gaussian") == 0)
-      ker = gaussian;
-    else if (strcmp(s, "multiquadric") == 0)
-      ker = multiquadric;
-    else if (strcmp(s, "inverse_multiquadric") == 0)
-      ker = inverse_multiquadric;
-    else if (strcmp(s, "logarithm") == 0)
-      ker = logarithm;
-    else if (strcmp(s, "thinplate_spline") == 0)
-      ker = thinplate_spline;
-    else if (strcmp(s, "one_over_square") == 0)
-      ker = one_over_square;
-    else if (strcmp(s, "one_over_modulus") == 0)
-      ker = one_over_modulus;
-    else if (strcmp(s, "one_over_x") == 0)
-      ker = one_over_x;
-    else if (strcmp(s, "inverse_multiquadric3") == 0)
-      ker = inverse_multiquadric3;
-    else if (strcmp(s, "sinc_kernel") == 0)
-      ker = sinc_kernel;
-    else if (strcmp(s, "cosc") == 0)
-      ker = cosc;
-    else if (strcmp(s, "cot") == 0)
-      ker = kcot;
-    else if (strcmp(s, "one_over_cube") == 0)
-      ker = one_over_cube;
-    else if (strcmp(s, "log_sin") == 0)
-      ker = log_sin;
-    else
-    {
-      mexErrMsgTxt("fastsum: Unknown kernel function.");
-    }
-	return ker;
+  kernel ker;
+  char s[CMD_LEN_MAX+1]; /**< name of kernel          */
+  if (mxGetString(p, s, CMD_LEN_MAX))
+    mexErrMsgTxt("Could not get kernel string.");
+  if (strcmp(s, "gaussian") == 0)
+    ker = gaussian;
+  else if (strcmp(s, "multiquadric") == 0)
+    ker = multiquadric;
+  else if (strcmp(s, "inverse_multiquadric") == 0)
+    ker = inverse_multiquadric;
+  else if (strcmp(s, "logarithm") == 0)
+    ker = logarithm;
+  else if (strcmp(s, "thinplate_spline") == 0)
+    ker = thinplate_spline;
+  else if (strcmp(s, "one_over_square") == 0)
+    ker = one_over_square;
+  else if (strcmp(s, "one_over_modulus") == 0)
+    ker = one_over_modulus;
+  else if (strcmp(s, "one_over_x") == 0)
+    ker = one_over_x;
+  else if (strcmp(s, "inverse_multiquadric3") == 0)
+    ker = inverse_multiquadric3;
+  else if (strcmp(s, "sinc_kernel") == 0)
+    ker = sinc_kernel;
+  else if (strcmp(s, "cosc") == 0)
+    ker = cosc;
+  else if (strcmp(s, "cot") == 0)
+    ker = kcot;
+  else if (strcmp(s, "one_over_cube") == 0)
+    ker = one_over_cube;
+  else if (strcmp(s, "log_sin") == 0)
+    ker = log_sin;
+  else
+    mexErrMsgTxt("fastsum: Unknown kernel function.");
+  return ker;
 }
 
 static inline void zero_nodes_pointer(int i)
 {
-	// Initialize pointers that are set in init_nodes
-	plans[i]->x = 0;
-	plans[i]->y = 0;
+  // Initialize pointers that are set in init_nodes
+  plans[i]->x = 0;
+  plans[i]->y = 0;
 }
 
 /* cleanup on mex function unload */
@@ -152,11 +150,11 @@ static void cleanup(void)
     for (i = 0; i < PLANS_MAX; i++)
       if (plans[i])
       {
-		nfft_free(plans[i]->kernel_param);
-	    if(plans[i]->x)
-		  fastsum_finalize_source_nodes(plans[i]);
-	    if(plans[i]->y)
-		  fastsum_finalize_target_nodes(plans[i]);
+        nfft_free(plans[i]->kernel_param);
+        if(plans[i]->x)
+          fastsum_finalize_source_nodes(plans[i]);
+        if(plans[i]->y)
+          fastsum_finalize_target_nodes(plans[i]);
         fastsum_finalize_kernel(plans[i]);
         nfft_free(plans[i]);
         plans[i] = 0;
@@ -208,146 +206,162 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"init") == 0)
   {
-	check_nargs(nrhs,9,"Wrong number of arguments for init.");
-	{
-    int i;
-	
-	int d; /**< number of dimensions    */
-	int n; /**< expansion degree        */
-	int p; /**< degree of smoothness    */
-	kernel ker; /**< kernel function         */
-	double *param; /**< parameter for kernel    */
-	double eps_I; /**< inner boundary          */
-	double eps_B; /**< outer boundary          */
-	param = nfft_malloc(sizeof(double));
-	
+    check_nargs(nrhs,9,"Wrong number of arguments for init.");
+    
+    int i;  /**< fastsum plan    */
+    
+    int d; /**< number of dimensions    */
+    int n; /**< expansion degree        */
+    int p; /**< degree of smoothness    */
+    kernel ker; /**< kernel function         */
+    double *param; /**< parameter for kernel    */
+    double eps_I; /**< inner boundary          */
+    double eps_B; /**< outer boundary          */
+    param = nfft_malloc(sizeof(double));
+  
     d = nfft_mex_get_int(prhs[1],"fastsum init: Input argument d must be a scalar.");
-	DM(if (d < 1)
-		mexErrMsgTxt("fastsum init: Input argument d must be positive.");)
-	
-	ker = get_kernel(prhs[2]);
-	
+    DM(if (d < 1)
+      mexErrMsgTxt("fastsum init: Input argument d must be positive.");)
+    
+    ker = get_kernel(prhs[2]);
+    
     *param = nfft_mex_get_double(prhs[3],"fastsum init: Input argument c must be a scalar.");
-	
-	int flags_int = nfft_mex_get_int(prhs[4],"fastsum init: Input argument flags must be a scalar.");
-	DM( if (flags_int < 0)
-		mexErrMsgTxt("fastsum init: Input argument flags must be non-negative.");)
-	unsigned flags = (unsigned) flags_int;
-	
+    
+    int flags_int = nfft_mex_get_int(prhs[4],"fastsum init: Input argument flags must be a scalar.");
+    DM( if (flags_int < 0)
+      mexErrMsgTxt("fastsum init: Input argument flags must be non-negative.");)
+    unsigned flags = (unsigned) flags_int;
+    
     n = nfft_mex_get_int(prhs[5],"fastsum init: Input argument n must be a scalar.");
-	DM(if ((n < 1) || (n%2))
-		mexErrMsgTxt("fastsum init: Input argument n must be an even, positive integer.");)
-	
+    DM(if ((n < 1) || (n%2))
+      mexErrMsgTxt("fastsum init: Input argument n must be an even, positive integer.");)
+    
     p = nfft_mex_get_int(prhs[6],"fastsum init: Input argument p must be a scalar.");
-	DM(if (p < 1)
-		mexErrMsgTxt("fastsum init: Input argument p must be positive.");)
-	
+    DM(if (p < 1)
+      mexErrMsgTxt("fastsum init: Input argument p must be positive.");)
+    
     eps_I = nfft_mex_get_double(prhs[7],"fastsum init: Input argument eps_I must be a scalar.");
     eps_B = nfft_mex_get_double(prhs[8],"fastsum init: Input argument eps_B must be a scalar.");
 
     i = mkplan();
     
-	fastsum_init_guru_kernel(plans[i], d, ker, param, flags, n, p, eps_I, eps_B);
-	
-	zero_nodes_pointer(i);
+    fastsum_init_guru_kernel(plans[i], d, ker, param, flags | STORE_PERMUTATION_X_ALPHA, n, p, eps_I, eps_B);
+    
+    zero_nodes_pointer(i);
 
     plhs[0] = mxCreateDoubleScalar((double)i);
-	}
+
     return;
   }
   
   else if (strcmp(cmd,"set_x") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for set_x.");
+    
+    int i = nfft_mex_get_int(prhs[1],"fastsum set_x: Input argument plan must be a scalar.");
+    check_plan(i);
+    int d = plans[i]->d;
+    
+    DM(if (!mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != (unsigned)d))
+      mexErrMsgTxt("Input argument x must be a matrix with d columns");
+    if (mxGetM(prhs[2]) > INT_MAX)
+      mexErrMsgTxt("fastsum set_x: Input argument x is too large");)
+    
+    int N = (int) mxGetM(prhs[2]);
+    
+    int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_x: Input argument nn_oversampled must be a scalar.");
+    DM(if (nn_oversampled < 1)
+      mexErrMsgTxt("fastsum set_x: Input argument nn_oversampled must be positive.");)
+    
+    int m = nfft_mex_get_int(prhs[4],"fastsum set_x: Input argument m must be a scalar.");
+    DM(if (m < 1)
+      mexErrMsgTxt("fastsum set_x: Input argument m must be positive.");)
+    
+    if(!(plans[i]->x)) 
+      fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
+    else if( (N != plans[i]->N_total) || (m != plans[i]->mv1.m) || (nn_oversampled != plans[i]->mv1.n[0]) )
     {
-	  int i = nfft_mex_get_int(prhs[1],"fastsum set_x: Input argument plan must be a scalar.");
-	  check_plan(i);
-	  
-      int d = plans[i]->d;
-      DM(if (!mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != (unsigned)d))
-        mexErrMsgTxt("Input argument x must be a matrix with d columns");
-	  if (mxGetM(prhs[2]) > INT_MAX)
-		mexErrMsgTxt("fastsum set_x: Input argument x is too large");)
-		
-      int N = (int) mxGetM(prhs[2]);
-	  
-	  int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_x: Input argument nn_oversampled must be a scalar.");
-	  DM(if (nn_oversampled < 1)
-		mexErrMsgTxt("fastsum set_x: Input argument nn_oversampled must be positive.");)
-	  
-	  int m = nfft_mex_get_int(prhs[4],"fastsum set_x: Input argument m must be a scalar.");
-	  DM(if (m < 1)
-		mexErrMsgTxt("fastsum set_x: Input argument m must be positive.");)
-	  
-	  if(!(plans[i]->x)) 
-		fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
-	  else if( (N != plans[i]->N_total) || (m != plans[i]->mv1.m) || (nn_oversampled != plans[i]->mv1.n[0]) )
-		{
-		fastsum_finalize_source_nodes(plans[i]);
-		fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
-		}
-		
+      fastsum_finalize_source_nodes(plans[i]);
+      fastsum_init_guru_source_nodes(plans[i], N, nn_oversampled, m);
+    }
+    
     double *x = mxGetPr(prhs[2]);
-		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
-		short warn=0;)
-    for (int k = 0; k < N; k++)
+    DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
+      short warn=0;)
+    if (plans[i]->flags & NEARFIELD_BOXES)
     {
-			DM(double norm = 0;)
-			for (int t = 0; t < d; t++)
-			{
-			plans[i]->x[k*d+t] = x[k+t*N];
-			DM( if((plans[i]->x[k*d+t] < -0.5) || (plans[i]->x[k*d+t] >= 0.5))
-				mexErrMsgTxt("x must be in interval [-0.5,0.5)");
-			norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
-			}
-			DM(if( norm > norm_max)
-				warn = 1;)
+      for (int k = 0; k < N; k++)
+      {
+        DM(double norm = 0;)
+        for (int t = 0; t < d; t++)
+        {
+        plans[i]->x[k*d+t] = x[k+t*N];
+        DM( if((plans[i]->x[k*d+t] < -0.5) || (plans[i]->x[k*d+t] >= 0.5))
+          mexErrMsgTxt("x must be in interval [-0.5,0.5)");
+        norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
+        }
+        DM(if( norm > norm_max)
+          warn = 1;)
+      }
     }
-		DM(if(warn)
-			mexWarnMsgTxt("x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
-	  
-	  fastsum_precompute_source_nodes(plans[i]);
+    else
+    {
+      for (int k = 0; k < N; k++)
+      {
+        DM(double norm = 0;)
+        for (int t = 0; t < d; t++)
+        {
+        plans[i]->x[k*d+t] = x[plans[i]->permutation_x_alpha[k]+t*N];
+        DM( if((plans[i]->x[k*d+t] < -0.5) || (plans[i]->x[k*d+t] >= 0.5))
+          mexErrMsgTxt("x must be in interval [-0.5,0.5)");
+        norm += plans[i]->x[k*d+t] * plans[i]->x[k*d+t];)
+        }
+        DM(if( norm > norm_max)
+          warn = 1;)
+      }
     }
+    
+    DM(if(warn)
+      mexWarnMsgTxt("x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
+    
+    fastsum_precompute_source_nodes(plans[i]);
+    
     return;
   }
   
   else if (strcmp(cmd,"set_alpha") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_alpha.");
-    {
-	  int i = nfft_mex_get_int(prhs[1],"fastsum set_x_alpha: Input argument plan must be a scalar.");
-	  check_plan(i);
-	  
-    int d = plans[i]->d;
-		if(!(plans[i]->x)) 
+    int i = nfft_mex_get_int(prhs[1],"fastsum set_x_alpha: Input argument plan must be a scalar.");
+    check_plan(i);
+    
+    if(!(plans[i]->x)) 
       mexErrMsgTxt("You have to set x before you set alpha.");
-    int N = (int) mxGetM(prhs[2]);
-		
-	  DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetM(prhs[2]) != plans[i]->N_total) || (mxGetN(prhs[2]) != 1))
+    
+    DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetM(prhs[2]) != plans[i]->N_total) || (mxGetN(prhs[2]) != 1))
         mexErrMsgTxt("Input argument alpha must be an N x 1 array");
-	  if (mxGetM(prhs[2]) > INT_MAX)
-		mexErrMsgTxt("fastsum set_alpha: Input argument alpha is too large");)	  
-		
+    if (mxGetM(prhs[2]) > INT_MAX)
+    mexErrMsgTxt("fastsum set_alpha: Input argument alpha is too large");)
+    
     double *ar = mxGetPr(prhs[2]), *ai=0;
-		if(mxIsComplex(prhs[2])) 
-			ai = mxGetPi(prhs[2]);
-    for (int k = 0; k < N; k++)
+    if(mxIsComplex(prhs[2])) 
+      ai = mxGetPi(prhs[2]);
+    for (int k = 0; k < plans[i]->N_total; k++)
     {
-        if (plans[i]->flags & NEARFIELD_BOXES)
-        {
-          if(ai)
-            plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
-          else
-            plans[i]->alpha[k] = ar[k];
-        }
+      if (plans[i]->flags & NEARFIELD_BOXES)
+      {
+        if(ai)
+          plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
         else
-        {
-          if(ai)
-            plans[i]->alpha[k] = ar[plans[i]->perm[k]] + _Complex_I*ai[plans[i]->perm[k]];
-          else
-            plans[i]->alpha[k] = ar[plans[i]->perm[k]];
-        }
-    }
+          plans[i]->alpha[k] = ar[k];
+      }
+      else
+      {
+        if(ai)
+          plans[i]->alpha[k] = ar[plans[i]->permutation_x_alpha[k]] + _Complex_I*ai[plans[i]->permutation_x_alpha[k]];
+        else
+          plans[i]->alpha[k] = ar[plans[i]->permutation_x_alpha[k]];
+      }
     }
     return;
   }
@@ -355,100 +369,88 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"set_y") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for set_y.");
+    int i = nfft_mex_get_int(prhs[1],"fastsum set_y: Input argument plan must be a scalar.");
+    check_plan(i);
+
+    int d = plans[i]->d;
+    DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2 || mxGetN(prhs[2]) != (unsigned)d)
+      mexErrMsgTxt("fastsum set_y: Input argument y must be an M x d double array");
+    if(mxGetM(prhs[2]) > INT_MAX)
+      mexErrMsgTxt("fastsum set_y: Input argument y is too large");)
+    int M = (int) mxGetM(prhs[2]);
+    
+    int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_y: Input argument nn_oversampled must be a scalar.");
+    DM(if (nn_oversampled < 1)
+      mexErrMsgTxt("fastsum set_y: Input argument nn_oversampled must be positive.");)
+    
+    int m = nfft_mex_get_int(prhs[4],"fastsum set_y: Input argument m must be a scalar.");
+    DM(if (m < 1)
+      mexErrMsgTxt("fastsum set_y: Input argument m must be positive.");)
+    
+    if(!(plans[i]->y))
+      fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
+    else if( (M != plans[i]->M_total) || (m != plans[i]->mv2.m) || (nn_oversampled != plans[i]->mv2.n[0]) )
     {
-      int i = nfft_mex_get_int(prhs[1],"fastsum set_y: Input argument plan must be a scalar.");
-	  check_plan(i);
-	
-      int d = plans[i]->d;
-      DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2 || mxGetN(prhs[2]) != (unsigned)d)
-        mexErrMsgTxt("fastsum set_y: Input argument y must be an M x d double array");
-	  if(mxGetM(prhs[2]) > INT_MAX)
-	    mexErrMsgTxt("fastsum set_y: Input argument y is too large");)
-      int M = (int) mxGetM(prhs[2]);
-	  
-	  int nn_oversampled = nfft_mex_get_int(prhs[3],"fastsum set_y: Input argument nn_oversampled must be a scalar.");
-	  DM(if (nn_oversampled < 1)
-		mexErrMsgTxt("fastsum set_y: Input argument nn_oversampled must be positive.");)
-	  
-	  int m = nfft_mex_get_int(prhs[4],"fastsum set_y: Input argument m must be a scalar.");
-	  DM(if (m < 1)
-		mexErrMsgTxt("fastsum set_y: Input argument m must be positive.");)
-	  
-	  if(!(plans[i]->y))
-		fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
-	  else if( (M != plans[i]->M_total) || (m != plans[i]->mv2.m) || (nn_oversampled != plans[i]->mv2.n[0]) )
-		{
-		fastsum_finalize_target_nodes(plans[i]);
-		fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
-		}
-	  
-      {
-        double *y = mxGetPr(prhs[2]);
-		DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
-		short warn=0;)
-        for (int j = 0; j < M; j++)
-        {
-			DM(double norm = 0;)
-			for (int t = 0; t < d; t++)
-			{
-			plans[i]->y[d*j+t] = y[j+t*M];
-			DM( if((plans[i]->y[d*j+t] < -0.5) || (plans[i]->y[d*j+t] >= 0.5))
-				mexErrMsgTxt("y must be in interval [-0.5,0.5)");
-			norm += plans[i]->y[d*j+t] * plans[i]->y[d*j+t];)
-			}
-			DM(if( norm > norm_max)
-				warn = 1;)
-        }
-		DM(if(warn)
-			mexWarnMsgTxt("y must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
-	  
-	  fastsum_precompute_target_nodes(plans[i]);
-      }
+      fastsum_finalize_target_nodes(plans[i]);
+      fastsum_init_guru_target_nodes(plans[i], M, nn_oversampled, m);
     }
+    
+    double *y = mxGetPr(prhs[2]);
+    DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
+    short warn=0;)
+    for (int j = 0; j < M; j++)
+    {
+      DM(double norm = 0;)
+      for (int t = 0; t < d; t++)
+      {
+        plans[i]->y[d*j+t] = y[j+t*M];
+        DM( if((plans[i]->y[d*j+t] < -0.5) || (plans[i]->y[d*j+t] >= 0.5))
+          mexErrMsgTxt("y must be in interval [-0.5,0.5)");
+        norm += plans[i]->y[d*j+t] * plans[i]->y[d*j+t];)
+      }
+      DM(if( norm > norm_max)
+        warn = 1;)
+    }
+    DM(if(warn)
+      mexWarnMsgTxt("y must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
+    
+    fastsum_precompute_target_nodes(plans[i]);
     return;
   }
   
   else if (strcmp(cmd,"trafo_direct") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for trafo_direct.");
-    {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum trafo_direct: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_nodes(i);
-      fastsum_exact(plans[i]);
-    }
+    const int i = nfft_mex_get_int(prhs[1],"fastsum trafo_direct: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_nodes(i);
+    fastsum_exact(plans[i]);
     return;
   }
   
   else if (strcmp(cmd,"trafo") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for trafo.");
-    {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum trafo: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_nodes(i);
-      fastsum_trafo(plans[i]);
-    }
+    const int i = nfft_mex_get_int(prhs[1],"fastsum trafo: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_nodes(i);
+    fastsum_trafo(plans[i]);
     return;
   }
   
   else if (strcmp(cmd,"get_f") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_f.");
+    const int i = nfft_mex_get_int(prhs[1],"fastsum get_f: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_nodes(i);
+    const int M = plans[i]->M_total;
+    plhs[0] = mxCreateDoubleMatrix((unsigned int)M, 1, mxCOMPLEX);
+    double *fr = mxGetPr(plhs[0]), *fi = mxGetPi(plhs[0]);
+    for (int j = 0; j < M; j++)
     {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum get_f: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_nodes(i);
-      const int M = plans[i]->M_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)M, 1, mxCOMPLEX);
-      {
-        double *fr = mxGetPr(plhs[0]), *fi = mxGetPi(plhs[0]);
-        for (int j = 0; j < M; j++)
-        {
-          fr[j] = creal(plans[i]->f[j]);
-          fi[j] = cimag(plans[i]->f[j]);
-        }
-      }
+      fr[j] = creal(plans[i]->f[j]);
+      fi[j] = cimag(plans[i]->f[j]);
     }
     return;
   }
@@ -456,97 +458,37 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"finalize") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
-    {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum finalize: Input argument plan must be a scalar.");
-      check_plan(i);
-	  nfft_free(plans[i]->kernel_param);
-	  if(plans[i]->x || plans[i]->alpha)
-		fastsum_finalize_source_nodes(plans[i]);
-	  if(plans[i]->y)
-		fastsum_finalize_target_nodes(plans[i]);
-      fastsum_finalize_kernel(plans[i]);
-      nfft_free(plans[i]);
-      plans[i] = 0;
-    }
-    return;
-  }
-  
-  
-  
-  
-  // Auxiliary functions
-  else if (strcmp(cmd,"init_guru") == 0)
-  {
-	check_nargs(nrhs,11,"Wrong number of arguments for init_guru.");
-	{
-    int i;
-	
-	int d; /**< number of dimensions    */
-	int N; /**< number of source nodes  */
-	int M; /**< number of target nodes  */
-	int n; /**< expansion degree        */
-	int m; /**< cut-off parameter       */
-	int p; /**< degree of smoothness    */
-	kernel ker; /**< kernel function         */
-	double *param; /**< parameter for kernel    */
-	double eps_I; /**< inner boundary          */
-	double eps_B; /**< outer boundary          */
-	param = nfft_malloc(sizeof(double));
-	
-    d = nfft_mex_get_int(prhs[1],"fastsum init_guru: Input argument d must be a scalar.");
-	DM(if (d < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument d must be positive.");)
-	N = nfft_mex_get_int(prhs[2],"fastsum init_guru: Input argument N must be a scalar.");
-	DM(if (N < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument N must be positive.");)
-	M = nfft_mex_get_int(prhs[3],"fastsum init_guru: Input argument M must be a scalar.");
-	DM(if (M < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument M must be positive.");)
-    n = nfft_mex_get_int(prhs[4],"fastsum init_guru: Input argument n must be a scalar.");
-	DM(if (n < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument n must be positive.");)
-    m = nfft_mex_get_int(prhs[5],"fastsum init_guru: Input argument m must be a scalar.");
-	DM(if (m < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument m must be positive.");)
-    p = nfft_mex_get_int(prhs[6],"fastsum init_guru: Input argument p must be a scalar.");
-	DM(if (p < 1)
-		mexErrMsgTxt("fastsum init_guru: Input argument p must be positive.");)
-	ker = get_kernel(prhs[7]);
-    *param = nfft_mex_get_double(prhs[8],"fastsum init_guru: Input argument c must be a scalar.");
-    eps_I = nfft_mex_get_double(prhs[9],"fastsum init_guru: Input argument eps_I must be a scalar.");
-    eps_B = nfft_mex_get_double(prhs[10],"fastsum init_guru: Input argument eps_B must be a scalar.");
-
-    i = mkplan();
-    
-	fastsum_init_guru(plans[i], d, N, M, ker, param, 0, n, m, p, eps_I, eps_B);
-
-    plhs[0] = mxCreateDoubleScalar((double)i);
-	}
+    const int i = nfft_mex_get_int(prhs[1],"fastsum finalize: Input argument plan must be a scalar.");
+    check_plan(i);
+    nfft_free(plans[i]->kernel_param);
+    if(plans[i]->x || plans[i]->alpha)
+      fastsum_finalize_source_nodes(plans[i]);
+    if(plans[i]->y)
+      fastsum_finalize_target_nodes(plans[i]);
+    fastsum_finalize_kernel(plans[i]);
+    nfft_free(plans[i]);
+    plans[i] = 0;
     return;
   }
   
   else if (strcmp(cmd,"get_x") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_x.");
+    const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_source_nodes(i);
+    const int d = plans[i]->d;
+    const int N = plans[i]->N_total;
+    plhs[0] = mxCreateDoubleMatrix((unsigned int)N, (unsigned int)d, mxREAL);
+    double *x = mxGetPr(plhs[0]);
+    for (int j = 0; j < N; j++)
     {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_source_nodes(i);
-      const int d = plans[i]->d;
-      const int N = plans[i]->N_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)N, (unsigned int)d, mxREAL);
+      for (int t = 0; t < d; t++)
       {
-		double *x = mxGetPr(plhs[0]);
-        for (int j = 0; j < N; j++)
-        {
-			for (int t = 0; t < d; t++)
-			{
         if (plans[i]->flags & NEARFIELD_BOXES)
           x[j+t*N] = plans[i]->x[d*j+t];
         else
-          x[plans[i]->perm[j]+t*N] = plans[i]->x[d*j+t];
-			}
-        }
+          x[plans[i]->permutation_x_alpha[j]+t*N] = plans[i]->x[d*j+t];
       }
     }
     return;
@@ -555,27 +497,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"get_alpha") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_alpha.");
+    const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_source_nodes(i);
+    const int N = plans[i]->N_total;
+    plhs[0] = mxCreateDoubleMatrix((unsigned int)N, 1, mxCOMPLEX);
+    double *ar = mxGetPr(plhs[0]), *ai = mxGetPi(plhs[0]);
+    for (int j = 0; j < N; j++)
     {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_source_nodes(i);
-      const int N = plans[i]->N_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)N, 1, mxCOMPLEX);
+      if (plans[i]->flags & NEARFIELD_BOXES)
       {
-		double *ar = mxGetPr(plhs[0]), *ai = mxGetPi(plhs[0]);
-        for (int j = 0; j < N; j++)
-        {
-          if (plans[i]->flags & NEARFIELD_BOXES)
-          {
-            ar[j] = creal(plans[i]->alpha[j]);
-            ai[j] = cimag(plans[i]->alpha[j]);
-          }
-          else
-          {
-            ar[plans[i]->perm[j]] = creal(plans[i]->alpha[j]);
-            ai[plans[i]->perm[j]] = cimag(plans[i]->alpha[j]);
-          }
-        }
+        ar[j] = creal(plans[i]->alpha[j]);
+        ai[j] = cimag(plans[i]->alpha[j]);
+      }
+      else
+      {
+        ar[plans[i]->permutation_x_alpha[j]] = creal(plans[i]->alpha[j]);
+        ai[plans[i]->permutation_x_alpha[j]] = cimag(plans[i]->alpha[j]);
       }
     }
     return;
@@ -584,23 +522,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"get_y") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_y.");
+    const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
+    check_plan(i);
+    check_plan_target_nodes(i);
+    const int d = plans[i]->d;
+    const int M = plans[i]->M_total;
+    
+    plhs[0] = mxCreateDoubleMatrix((unsigned int)M, (unsigned int)d, mxREAL);
+    double *y = mxGetPr(plhs[0]);
+    for (int j = 0; j < M; j++)
     {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
-      check_plan(i);
-	  check_plan_target_nodes(i);
-      const int d = plans[i]->d;
-      const int M = plans[i]->M_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)M, (unsigned int)d, mxREAL);
-      {
-		double *y = mxGetPr(plhs[0]);
-        for (int j = 0; j < M; j++)
-        {
-			for (int t = 0; t < d; t++)
-			{
-			y[j+t*M] = plans[i]->y[d*j+t];
-			}
-        }
-      }
+      for (int t = 0; t < d; t++)
+        y[j+t*M] = plans[i]->y[d*j+t];
     }
     return;
   }
@@ -608,26 +541,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if (strcmp(cmd,"get_b") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for get_b.");
+    const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
+    check_plan(i);
+    const int d = plans[i]->d;
+    size_t dims[d];
+    int n_total = 1;
+    for(int j=0; j<d; j++)
     {
-      const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
-      check_plan(i);
-      const int d = plans[i]->d;
-	  size_t dims[d];
-	  int n_total = 1;
-	  for(int j=0; j<d; j++)
-	  {
-		  dims[j] = (unsigned int) plans[i]->n;
-		  n_total *= plans[i]->n;
-	  }
-      plhs[0] = mxCreateNumericArray((unsigned int)d, dims, mxDOUBLE_CLASS, mxCOMPLEX);
-      {
-		double *br = mxGetPr(plhs[0]), *bi = mxGetPi(plhs[0]);
-        for (int j = 0; j < n_total; j++)
-        {
-			br[j] = creal(plans[i]->b[j]);
-			bi[j] = cimag(plans[i]->b[j]);
-        }
-      }
+      dims[j] = (unsigned int) plans[i]->n;
+      n_total *= plans[i]->n;
+    }
+    
+    plhs[0] = mxCreateNumericArray((unsigned int)d, dims, mxDOUBLE_CLASS, mxCOMPLEX);
+    double *br = mxGetPr(plhs[0]), *bi = mxGetPi(plhs[0]);
+    for (int j = 0; j < n_total; j++)
+    {
+      br[j] = creal(plans[i]->b[j]);
+      bi[j] = cimag(plans[i]->b[j]);
     }
     return;
   }
@@ -638,7 +568,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
-		double *pr = mxGetPr(plhs[0]);
+    double *pr = mxGetPr(plhs[0]);
     pr[0] = plans[i]->N_total;
     return;
   }
