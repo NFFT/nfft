@@ -118,7 +118,8 @@ function set.x(h,x)
         error('x must be a real matrix with d columns');
     end
     if h.x_is_set && h.alpha_is_set && size(x,1)~=h.N
-        warning('Size of x has changed, so alpha is deleted');
+        warning('fastsum:alphaDeleted',...
+            'Size of x has changed, so alpha is deleted');
         h.alpha_is_set=false;
     end
     fastsummex('set_x',h.plan,x,h.nn_x,h.m_x)

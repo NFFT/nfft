@@ -322,7 +322,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     
     DM(if(warn)
-      mexWarnMsgTxt("x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
+      mexWarnMsgIdAndTxt("fastsum:nodesOutsideBall","x must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
     
     fastsum_precompute_source_nodes(plans[i]);
     
@@ -412,7 +412,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         warn = 1;)
     }
     DM(if(warn)
-      mexWarnMsgTxt("y must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
+      mexWarnMsgIdAndTxt("fastsum:nodesOutsideBall","y must be in ball with radius 1/4-eps_B/2.\nThis may cause wrong results or crashes!!");)
     
     fastsum_precompute_target_nodes(plans[i]);
     return;
