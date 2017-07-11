@@ -5,6 +5,13 @@ classdef infft < handle
     end
     
     properties(SetAccess=private)
+        y                       % Knots where inversion should be done
+        m                       % Cut-off parameter for NFFT 
+        p                       % Degree of smoothness of fastsum
+        sigma                   % Oversampling factor for NFFT
+        n                       % Expansion degree  
+        eps_B = 0;              % Outer boundary
+        eps_I                   % Inner boundary (<=1/4)
         fbar                    % Approximated Fourier coefficients
         fbar_direct             % Direcly computed Fourier coefficients
         times                   % Computing times
@@ -13,21 +20,14 @@ classdef infft < handle
     properties(GetAccess=private, SetAccess=private)
         N                       % Number of knots
         x                       % Additional equidistant knots
-        y                       % Knots where inversion should be done
         perm                    % Permutaion to sort y (if unsorted)
         f_storage               % Evaluations at points y
-        abs                     % Distance needed for a shift
-        trafo_done = false;     % Flag if trafo is done
-        direct_done = false;    % Flag if direct trafo is done
-        m                       % Cut-off parameter for NFFT 
-        p                       % Degree of smoothness of fastsum
-        sigma                   % Oversampling factor for NFFT
-        n                       % Expansion degree  
         nn_oversampled          % n*sigma
-        eps_B = 0;              % Outer boundary
-        eps_I                   % Inner boundary (<=1/4)
+        abs                     % Distance needed for a shift
         c                       % Needed coefficients for iNFFT
         d                       % Needed coefficients for iNFFT
+        trafo_done = false;     % Flag if trafo is done
+        direct_done = false;    % Flag if direct trafo is done
     end
     
     methods
@@ -166,6 +166,10 @@ classdef infft < handle
         
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
+        function f=get.f(h)
+            f = h.f_storage;
+        end %function
+        
         function fbar=get.fbar(h)
             if(~h.trafo_done)
                 error('No trafo was done.');

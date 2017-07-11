@@ -18,23 +18,23 @@ f = exp(2*pi*1i*y'*(-N/2:N/2-1))*fhat;
 %% Fast computation
 
 plan = infft(y);
-% Using the default values; could also be computed as
+% Using the default values. Could also be computed as
 %   infft(y,'m',4,'p',4,'n',2*N,'eps_I',4*4/(2*N),'sigma',2);
 
 plan.f = f;
 infft_trafo(plan);
 
-fbar = plan.fbar;
-times = plan.times;
+fbar = plan.fbar;                                   % Approximated Fourier coefficients
+times = plan.times;                                 % Computing times
 
-err_max_abs = max(abs(fhat-fbar));                  % maximum absolute error
-err_max_rel = max(abs(fhat-fbar)./abs(fhat));       % maximum relative error
-err_mean_abs = sum(abs(fhat-fbar))/N;               % mean absolute error
-err_mean_rel = sum(abs(fhat-fbar)./abs(fhat))/N;	% mean relative error
+err_max_abs = max(abs(fhat-fbar));                  % Maximum absolute error
+err_max_rel = max(abs(fhat-fbar)./abs(fhat));       % Maximum relative error
+err_mean_abs = sum(abs(fhat-fbar))/N;               % Mean absolute error
+err_mean_rel = sum(abs(fhat-fbar)./abs(fhat))/N;	% Mean relative error
 
 %% Direct computation
 
 infft_direct(plan,f);
 
-fbar_direct = plan.fbar_direct;
+fbar_direct = plan.fbar_direct;                     % Direcly computed Fourier coefficients
 times.t_direct = plan.times.t_direct;
