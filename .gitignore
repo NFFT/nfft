@@ -119,6 +119,7 @@ examples/nsfft/nsfft_test
 examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
+doc
 tests/checkall
 *.trs
 CUnitAutomated-Results.xml

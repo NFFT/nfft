@@ -31,6 +31,12 @@
  * \defgroup applications_fastsum Fast summation
  * \ingroup applications
  * \{
+ * Direct and fast summation (convolution)
+ * 
+ * Computes the sums
+ * \f[
+ *   f(y_j) = \sum_{k=1}^N \alpha_k K(x_k-y_j),\quad   j=1\dots M.
+ * \f]
  */
 
 #ifndef fastsum_h_inc
@@ -121,7 +127,7 @@ typedef struct fastsum_plan_
   R *box_x;
   C *box_alpha;
   
-  int *permutation_x_alpha;    /**< permutation vector of source nodes */
+  int *permutation_x_alpha;    /**< permutation vector of source nodes if STORE_PERMUTATION_X_ALPHA is set */
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 
