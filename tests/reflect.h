@@ -16,25 +16,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Standard headers. */
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <CUnit/CUnit.h>
-
-#include "nfft3.h"
 #include "infft.h"
-#include "version.h"
 
-void X(check_version)(void)
-{
-    unsigned major, minor, patch;
-    char v1[20], v2[20];
-
-    Y(get_version)(&major, &minor, &patch);
-
-    snprintf(v1, sizeof(v1), "%u.%u.%u", major, minor, patch);
-    snprintf(v2, sizeof(v2), "%u.%u.%u", NFFT_VERSION_MAJOR, NFFT_VERSION_MINOR, NFFT_VERSION_PATCH);
-
-    CU_ASSERT(strncmp(v1, v2, sizeof(v1)) == 0);
-}
+void X(check_get_version)(void);
+void X(check_get_window_name)(void);

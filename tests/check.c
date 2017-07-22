@@ -22,7 +22,7 @@
 #include <CUnit/Automated.h>
 
 #include "infft.h"
-#include "version.h"
+#include "reflect.h"
 #include "util.h"
 #include "bspline.h"
 #include "bessel.h"
@@ -44,7 +44,8 @@ int main(void)
   util = CU_add_suite("util", 0, 0);
   CU_add_test(util, "bspline", X(check_bspline));
   CU_add_test(util, "bessel_i0", X(check_bessel_i0));
-  CU_add_test(util, "version", X(check_version));
+  CU_add_test(util, "version", X(check_get_version));
+  CU_add_test(util, "window_name", X(check_get_window_name));
   CU_add_test(util, "log2i", X(check_log2i));
   CU_add_test(util, "next_power_of_2", X(check_next_power_of_2));
 
