@@ -41,9 +41,9 @@ void X(check_get_version)(void)
 
 void X(check_get_window_name)(void)
 {
-    const char window_name1[] = STRINGIZE(WINDOW_NAME);
-    const char window_name2[100];
-    Y(get_window_name)(window_name2);
+    const char *window_name1 = STRINGIZE(WINDOW_NAME);
+    const char *window_name2 = Y(get_window_name)();
 
+    /* Just compare what's returned by the method against the literal from config.h. */
     CU_ASSERT(strncmp(window_name1, window_name2, sizeof(window_name1)) == 0);
 }

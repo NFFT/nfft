@@ -40,8 +40,7 @@ INT Y(m2K)(const INT m)
   return (INT)((1U << m2K_[j]) * (m + 2));
 }
 
-void Y(get_window_name)(char *target)
+const char *Y(get_window_name)()
 {
-    static const char name[] = STRINGIZE(WINDOW_NAME);
-    strncpy(target, name, sizeof(name));
+  return STRINGIZE(WINDOW_NAME);
 }
