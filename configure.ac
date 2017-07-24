@@ -241,6 +241,7 @@ case "$window" in
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
 AC_MSG_RESULT([$window])
+AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then

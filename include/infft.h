@@ -53,7 +53,7 @@
 #include "ticks.h"
 
 /**
- * @defgroup nfftutil Util - Auxilliary functions
+ * @defgroup nfftutil Util - Auxiliary functions
  * @{
  *
  * This module implements frequently used utility functions.

@@ -18,4 +18,5 @@
 
 #include "infft.h"
 
-void X(check_version)(void);
+void X(check_get_version)(void);
+void X(check_get_window_name)(void);
