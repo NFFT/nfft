@@ -5277,7 +5277,7 @@ void X(adjoint_3d)(X(plan) *ths)
 {
   if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[3] <= ths->m))
   {
-    X(trafo_direct)(ths);
+    X(adjoint_direct)(ths);
     return;
   }
   
