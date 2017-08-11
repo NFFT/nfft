@@ -131,6 +131,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     check_nargs(nrhs,8,"Wrong number of arguments for init.");
 	int N = nfft_mex_get_int(prhs[1],"N must be scalar");
+ 	DM( if (N <= 0)
+		mexErrMsgTxt("Input argument N must be positive.");)
 	int M = nfft_mex_get_int(prhs[2],"M must be scalar");
 	int flags_int = nfft_mex_get_int(prhs[3],"Input argument flags must be a scalar.");
 	DM( if (flags_int < 0)
