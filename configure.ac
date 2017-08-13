@@ -543,6 +543,30 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
+# Calculate machine epsilon for selected precision.
+AX_EPS_CALC([$PRECISION])
+
+# Get machine epsilon as per float.h.
+AX_EPS_DEF([$PRECISION])
+
+if test "$ax_cv_eps_calc" = "unknown"; then  
+  if test "$ax_cv_eps_def" = "unknown"; then
+    # Calculation has failed and unable to get from float.h.
+    AC_MSG_ERROR([Unable to determine floating-point epsilon.])
+  else
+    # Unable to calculate but have value in float.h.
+    AC_MSG_WARN([Unable to calculate floating-point epsilon. Using pre-defined value from macro.])
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
+  fi
+else
+  if test "$ax_cv_eps_calc" != "$ax_cv_eps_def"; then
+    # Calculated epsilon different from float.h.
+    AC_MSG_WARN([Calculated epsilon "$ax_cv_eps_calc" and epsilon from macro "$ax_cv_eps_def" differ. Using calculated value.])
+  fi
+    # Calculated and pre-defined values identical.
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_calc], [Floating-point epsilon.])
+fi
+
 # CUnit
 AX_CUNIT
 AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )

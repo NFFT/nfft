@@ -61,9 +61,7 @@ R Y(float_property)(const float_property p)
     first = FALSE;
   }
 
-  if (p == NFFT_EPSILON)
-    return eps;
-  else if (p == NFFT_SAFE__MIN)
+  if (p == NFFT_SAFE__MIN)
     return sfmin;
   else if (p == NFFT_BASE)
     return base;
