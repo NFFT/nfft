@@ -21,7 +21,7 @@
 R Y(float_property)(const float_property p)
 {
   const R base = FLT_RADIX;
-  const R eps = EPSILON;
+  const R eps = NFFT_EPSILON;
   const R t = MANT_DIG;
   const R emin = MIN_EXP;
   const R emax = MAX_EXP;

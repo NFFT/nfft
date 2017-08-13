@@ -1246,9 +1246,6 @@ extern double _Complex catanh(double _Complex z);
 #define CATANH catanh
 #endif
 
-// Machine epsilon as per configure
-#define EPSILON K(NFFT_EPSILON)
-
 #if defined(NFFT_LDOUBLE)
   #define MANT_DIG LDBL_MANT_DIG
   #define MIN_EXP LDBL_MIN_EXP

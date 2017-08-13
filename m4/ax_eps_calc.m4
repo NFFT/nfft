@@ -49,7 +49,7 @@ typedef float R;
 #endif], [  FILE *f;
   R eps = K(1.0);
   int i = 0;
-  for(i = 0; i < 100000; i++) {
+  for (i = 0; i < 100000; i++) {
     if (K(1.0) + eps == K(1.0))
       break;
     eps /= K(2.0);
