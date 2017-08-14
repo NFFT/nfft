@@ -47,16 +47,17 @@ typedef float R;
 #else
 #error "Unknown floating-point precision."
 #endif], [  FILE *f;
-  R eps = K(1.0);
+  volatile R eps = K(1.0), one_plus_eps;
   int i = 0;
   for (i = 0; i < 100000; i++) {
-    if (K(1.0) + eps == K(1.0))
+    one_plus_eps = K(1.0) + eps;
+    if (one_plus_eps == K(1.0))
       break;
     eps /= K(2.0);
   }
   if (eps == K(0.0))
     return 1;
-  if (K(1.0) + eps != K(1.0))
+  if (one_plus_eps != K(1.0))
     return 1;
   eps *= K(2.0);
   f = fopen("conftest_eps_calc", "w"); if (!f) return 1;
