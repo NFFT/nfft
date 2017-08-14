@@ -21,7 +21,7 @@
 R Y(sinc)(const R x)
 {
   /* Based on sinc function from Boost C++ library. */
-  const R b =  EPSILON;
+  const R b = NFFT_EPSILON;
   const R bs = SQRT(b);
   const R bs2 = SQRT(bs);
 
