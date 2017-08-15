@@ -1,5 +1,22 @@
 This file contains the version history for NFFT 3.x.x. 
 
+Changes in version 3.4.0:
+
+    Bugfixes
+    - Use nfft_free in nfsoft.c.
+    - Replace %td in format strings with macro __D__ for Windows compatibility.
+    - Support fftw3 compatible libraries that do not require -l linker flags, 
+        e.g. Intel MKL.
+
+    Enhancements
+    - #29 Calculate machine epsilon in configure and prefer over definition in 
+        float.h.
+    - #30 Support cross-compiling (thanks GitHub user xantares).
+    - #35 Add API to query window function name.
+    - Use more efficient method to find log base 2 of an integer.
+    - #39 Add Matlab mex interface for fastsum application.
+    - #40 Add Matlab mex interface for NFCT and NFST modules.
+
 Changes in version 3.3.2:
 
     Bugfixes
