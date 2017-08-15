@@ -633,6 +633,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfct/Makefile \
                 matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
+                matlab/fastsum/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 doxygen/Makefile \
