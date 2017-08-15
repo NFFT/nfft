@@ -3,9 +3,9 @@
 %   matrix B) uses (2m+2)^dM precomputed values of the window function, in
 %   addition indices of source and target vectors are stored.
 %
-%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software

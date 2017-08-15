@@ -1,6 +1,7 @@
-function [f,f_direct]=fastsum_simple(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
-    ,nn_oversampled,flags)
-
+%FASTSUM_SIMPLE Compute fast and, optionally, direct fast summation.
+%
+%   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+%
 % Computes the sums
 % 
 %   f(y_j) = sum_{k=1}^N alpha_k kernel(x_k-y_j)   (j=1:M)
@@ -41,6 +42,24 @@ function [f,f_direct]=fastsum_simple(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
 % 'cot'                     K(x) = cot(cx)
 % 'one_over_cube'           K(x) = 1/x^3
 % 'log_sin'                 K(x) = LOG(|SIN(cx)|)
+
+% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+%
+% This program is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+%
+% You should have received a copy of the GNU General Public License along with
+% this program; if not, write to the Free Software Foundation, Inc., 51
+% Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+function [f,f_direct]=fastsum_simple(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B...
+    ,nn_oversampled,flags)
 
 nargoutchk(1, 2)
 d = size(x,2);

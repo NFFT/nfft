@@ -1,9 +1,9 @@
 %NFFT_OMP_BLOCKWISE_ADJOINT Flag which results in usage of (probably) faster algorithm in adjoint NFFT with OpenMP support.
 %   If this flag is set, additionally the nonequispaced nodes are sorted
 %   which may also accelerate the standard NFFT trafo due to cache effects.
-%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
