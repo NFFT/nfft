@@ -94,7 +94,7 @@ you are using NFFT for!
 
 Legal Information & Credits
 ---------------------------
-Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
 This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
 It was developed at the Mathematical Institute, University of
@@ -145,6 +145,7 @@ Makefile.in        | Makefile template generated from Makefile.am, processed by 
 matlab (dir)       | Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
 missing            | Used by configure script
 NEWS               | New and noteworthy
-README             | This file
+README             | This file.
+README.md          | This file
 tests (dir)        | CUnit tests
 TODO               | Work to be done
