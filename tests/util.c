@@ -24,7 +24,6 @@
 
 #include "nfft3.h"
 #include "infft.h"
-#include "version.h"
 
 static INT _log2i(const INT m)
 {

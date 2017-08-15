@@ -241,6 +241,7 @@ case "$window" in
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
 AC_MSG_RESULT([$window])
+AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
@@ -542,6 +543,30 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
+# Calculate machine epsilon for selected precision.
+AX_EPS_CALC([$PRECISION])
+
+# Get machine epsilon as per float.h.
+AX_EPS_DEF([$PRECISION])
+
+if test "$ax_cv_eps_calc" = "unknown"; then  
+  if test "$ax_cv_eps_def" = "unknown"; then
+    # Calculation has failed and unable to get from float.h.
+    AC_MSG_ERROR([Unable to determine floating-point epsilon.])
+  else
+    # Unable to calculate but have value in float.h.
+    AC_MSG_WARN([Unable to calculate floating-point epsilon. Using pre-defined value from macro.])
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
+  fi
+else
+  if test "$ax_cv_eps_calc" != "$ax_cv_eps_def"; then
+    # Calculated epsilon different from float.h.
+    AC_MSG_WARN([Calculated epsilon "$ax_cv_eps_calc" and epsilon from macro "$ax_cv_eps_def" differ. Using calculated value.])
+  fi
+    # Calculated and pre-defined values identical.
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_calc], [Floating-point epsilon.])
+fi
+
 # CUnit
 AX_CUNIT
 AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )
@@ -605,6 +630,8 @@ AC_CONFIG_FILES(Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
+                matlab/nfct/Makefile \
+                matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
                 matlab/fastsum/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
