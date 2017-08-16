@@ -5894,7 +5894,7 @@ const char* X(check)(X(plan) *ths)
       return "Oversampling factor too small";
 
     if(ths->N[j] <= ths->m)
-      return "Polynomial degree N is smaller than cut-off m";
+      return "Polynomial degree N is <= cut-off m";
 
     if(ths->N[j]%2 == 1)
       return "polynomial degree N has to be even";
