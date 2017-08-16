@@ -2478,7 +2478,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
 void X(trafo_1d)(X(plan) *ths)
 {
-  if(ths->N[0] <= ths->m)
+  if((ths->N[0] <= ths->m) || (ths->n[0] <= 2*ths->m+2))
   {
     X(trafo_direct)(ths);
     return;
@@ -2546,7 +2546,7 @@ void X(trafo_1d)(X(plan) *ths)
 
 void X(adjoint_1d)(X(plan) *ths)
 {
-  if(ths->N[0] <= ths->m)
+  if((ths->N[0] <= ths->m) || (ths->n[0] <= 2*ths->m+2))
   {
     X(adjoint_direct)(ths);
     return;
@@ -3535,7 +3535,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
 void X(trafo_2d)(X(plan) *ths)
 {
-  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m))
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2))
   {
     X(trafo_direct)(ths);
     return;
@@ -3635,7 +3635,7 @@ void X(trafo_2d)(X(plan) *ths)
 
 void X(adjoint_2d)(X(plan) *ths)
 {
-  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m))
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2))
   {
     X(adjoint_direct)(ths);
     return;
@@ -5138,7 +5138,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
 void X(trafo_3d)(X(plan) *ths)
 {
-  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[2] <= ths->m))
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[2] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2) || (ths->n[2] <= 2*ths->m+2))
   {
     X(trafo_direct)(ths);
     return;
@@ -5275,7 +5275,7 @@ void X(trafo_3d)(X(plan) *ths)
 
 void X(adjoint_3d)(X(plan) *ths)
 {
-  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[3] <= ths->m))
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[2] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2) || (ths->n[2] <= 2*ths->m+2))
   {
     X(adjoint_direct)(ths);
     return;
@@ -5409,7 +5409,7 @@ void X(trafo)(X(plan) *ths)
   /* use direct transform if degree N is too low */
   for (int j = 0; j < ths->d; j++)
   {
-    if(ths->N[j] <= ths->m)
+    if((ths->N[j] <= ths->m) || (ths->n[j] <= 2*ths->m+2))
     {
       X(trafo_direct)(ths);
       return;
@@ -5457,7 +5457,7 @@ void X(adjoint)(X(plan) *ths)
   /* use direct transform if degree N is too low */
   for (int j = 0; j < ths->d; j++)
   {
-    if(ths->N[j] <= ths->m)
+    if((ths->N[j] <= ths->m) || (ths->n[j] <= 2*ths->m+2))
     {
       X(adjoint_direct)(ths);
       return;
