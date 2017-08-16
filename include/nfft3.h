@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -30,7 +30,7 @@ extern "C"
 #define NFFT_CONCAT(prefix, name) prefix ## name
 
 /* IMPORTANT: for Windows compilers, you should add a line
- *   #define FFTW_DLL
+ *   #define NFFT_DLL
  * here and in kernel/infft.h if you are compiling/using NFFT as a DLL, in order
  * to do the proper importing/exporting, or alternatively compile with
  * -DNFFT_DLL or the equivalent command-line flag. This is not necessary under

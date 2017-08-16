@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -5951,7 +5951,7 @@ const char* X(check)(X(plan) *ths)
     
     /* Automatically calls trafo_direct if 
     if(ths->N[j] <= ths->m)
-      return "Polynomial degree N is smaller than cut-off m";
+      return "Polynomial degree N is <= cut-off m";
     */
 
     if(ths->N[j]%2 == 1)
