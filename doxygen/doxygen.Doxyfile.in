@@ -755,8 +755,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @abs_top_srcdir@/doxygen.dox \
-                         @abs_top_srcdir@/include \
                          @abs_top_srcdir@/support \
+                         @abs_top_srcdir@/include \
                          @abs_top_srcdir@/kernel \
                          @abs_top_srcdir@/examples \
                          @abs_top_srcdir@/applications

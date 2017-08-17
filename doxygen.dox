@@ -21,9 +21,9 @@
  *
  * \section introduction Introduction
  *
- * \cite{nfft3} Fast Fourier transforms (FFTs) belong \cite{nfft3_2} to the '10 algorithms with the
+ * Fast Fourier transforms (FFTs) belong to the '10 algorithms with the
  * greatest influence on the development and practice of science and
- * engineering \cite{nfft3} in the 20th century'.
+ * engineering in the 20th century'.
  * The classic algorithm computes the discrete Fourier transform
  * \f[
  *   f_j= \sum_{k=-\frac{N}{2}}^{\frac{N}{2}-1} \hat{f}_{k}
@@ -44,7 +44,7 @@
  * Fourier transform (NDFT) and its generalisations in one or more dimensions,
  * of arbitrary input size, and of complex data.
  *
- * More precisely,we collect the possible frequencies
+ * More precisely, we collect the possible frequencies
  * \f$\mathbf{k}\in\mathbb{Z}^d\f$ in the multi-index set
  * \f[
  * I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}
