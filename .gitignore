@@ -120,6 +120,7 @@ examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
 doc/html
+doc/latex
 doc/doxygen_sqlite3.db
 doc/nfft.tag
 tests/checkall
