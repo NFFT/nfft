@@ -123,3 +123,4 @@ doc
 tests/checkall
 *.trs
 CUnitAutomated-Results.xml
+CUnitAutomated_threads-Results.xml

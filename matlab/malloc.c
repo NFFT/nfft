@@ -27,6 +27,9 @@ void *nfft_mex_malloc(size_t n)
 
  #pragma omp critical (nfft_omp_matlab)
  {
+  if (n == 0)
+    n = 1;
+
   p = mxMalloc(n);
 
   /* Should never be reached if mxMalloc fails (in a mex file) but in Matlab
