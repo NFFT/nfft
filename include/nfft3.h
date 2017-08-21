@@ -144,7 +144,7 @@ typedef struct\
   Y(plan) my_fftw_plan2; /**< Backward FFTW plan */\
 \
   R **c_phi_inv; /**< Precomputed data for the diagonal matrix \f$D\f$, size \
-    is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
+    is \f$N_0+\dots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
   NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\

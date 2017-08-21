@@ -5443,7 +5443,7 @@ void X(trafo)(X(plan) *ths)
       TOC_FFTW(1)
 
       /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-       *  \text{ for } j=0,\hdots,M_total-1 \f$
+       *  \text{ for } j=0,\dots,M_total-1 \f$
        */
       TIC(2)
       B_A(ths);

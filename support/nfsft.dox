@@ -42,8 +42,12 @@
  * and identify a point from \f$\mathbb{S}^2\f$ with the corresponding vector
  * \f$(\vartheta,\varphi)^{\mathrm{T}}\f$. The
  * spherical coordinate system is illustrated in the following figure:
+ *
+ * <center>
  * \image html sphere.png ""
  * \image latex sphere.pdf "" width=0.45\textwidth
+ * </center>
+ *
  * For consistency with the other modules and the conventions used there, we
  * also use \e swapped \e scaled \e spherical \e coordinates \f$x_1 :=
  * \frac{\varphi}{2\pi}\f$, \f$x_2 := \frac{\vartheta}{2\pi}\f$ and identify a
