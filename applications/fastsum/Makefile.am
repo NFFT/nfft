@@ -40,11 +40,7 @@ fastsum_test_SOURCES = fastsum_test.c
 fastsum_test_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la
 
 fastsum_matlab_SOURCES = fastsum_matlab.c
-if HAVE_THREADS
-fastsum_matlab_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la
-else
 fastsum_matlab_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la
-endif
 
 if HAVE_THREADS
   fastsum_test_threads_SOURCES = fastsum_test.c

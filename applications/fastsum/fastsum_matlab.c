@@ -116,10 +116,6 @@ int main(int argc, char **argv)
       kernel = cosc;
     else if (strcmp(s, "cot") == 0)
       kernel = kcot;
-    else if (strcmp(s, "one_over_cube") == 0)
-      kernel = one_over_cube;
-    else if (strcmp(s, "log_sin") == 0)
-      kernel = log_sin;
     else
     {
       s = "multiquadric";
