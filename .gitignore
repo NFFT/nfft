@@ -122,6 +122,7 @@ examples/solver/simple_test
 doc/html
 doc/latex
 doc/doxygen_sqlite3.db
+doc/nfft.pdf
 doc/nfft.tag
 tests/checkall
 *.trs

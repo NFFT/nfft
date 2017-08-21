@@ -84,7 +84,11 @@ uninstall-hook:
 	rm -Rf $(DESTDIR)$(docdir)
 
 clean-local:
+	rm -f $(abs_top_builddir)/doc/doxygen_sqlite3.db
+	rm -f $(abs_top_builddir)/doc/nfft.pdf
+	rm -f $(abs_top_builddir)/doc/nfft.tag
 	rm -Rf $(abs_top_builddir)/doc/html
+	rm -Rf $(abs_top_builddir)/doc/latex
 
 dist-hook: doc
 	rm -f @DX_DOCDIR@/@PACKAGE@.tag
