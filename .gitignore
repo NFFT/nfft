@@ -19,8 +19,6 @@
 *.so
 *.so.*
 *.dylib
-*.mex
-*.mexw64
 
 # Executables
 *.exe
@@ -35,9 +33,6 @@
 
 # Log files
 *.log
-
-# Autosave files
-*.asv
 
 # Other
 .cproject
@@ -54,7 +49,6 @@ m4/lt~obsolete.m4
 autom4te.cache/*
 config/*
 include/config.h.in
-include/config.h.in~
 configure
 **/.deps/*
 Makefile
@@ -119,7 +113,6 @@ examples/nsfft/nsfft_test
 examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
-doc
 tests/checkall
 *.trs
 CUnitAutomated-Results.xml

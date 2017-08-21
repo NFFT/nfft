@@ -399,22 +399,6 @@ C one_over_cube(R x, int der, const R *param)
 }
 
 
-C log_sin(R x, int der, const R *param)   /* K(x) = log(|sin(cx)|) */
-{
-  R c=param[0];
-  R value=K(0.0);
-
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
-  else
-  {
-      if (der == 0) value = LOG(FABS(SIN(c * x)));
-      else value = c * kcot(x, der-1, param);
-  }
-  
-  return value;
-}
-
-
 /* \} */
 
 /* kernels.c */
