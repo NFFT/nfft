@@ -36,15 +36,11 @@
 
 /* global flags */
 #define NFFT_MEX_FIRST_CALL (1U << 0)
-unsigned short gflags = NFFT_MEX_FIRST_CALL;
+static unsigned short gflags = NFFT_MEX_FIRST_CALL;
 
-nfft_plan** plans = NULL; /* plans */
-unsigned int plans_num_allocated = 0;
-char cmd[CMD_LEN_MAX];
-
-#ifndef INT_MAX
-  #define INT_MAX 2147483647 /* from limits.h */
-#endif
+static nfft_plan** plans = NULL; /* plans */
+static unsigned int plans_num_allocated = 0;
+static char cmd[CMD_LEN_MAX];
 
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
@@ -168,7 +164,11 @@ static void cleanup(void)
   {
     for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
+      {
         nfft_finalize(plans[i]);
+	nfft_free(plans[i]);
+	plans[i] = 0;
+      }
 
     if (plans_num_allocated > 0)
     {
