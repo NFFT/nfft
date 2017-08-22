@@ -36,6 +36,10 @@
 #define PLANS_MAX 100 /* maximum number of plans */
 #define CMD_LEN_MAX 40 /* maximum length of command argument */
 
+#ifndef INT_MAX
+  #define INT_MAX 2147483647 /* from limits.h */
+#endif
+
 /* global flags */
 #define FASTSUM_MEX_FIRST_CALL (1U << 0)
 unsigned short gflags = FASTSUM_MEX_FIRST_CALL;
