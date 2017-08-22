@@ -42,6 +42,10 @@ nfft_plan** plans = NULL; /* plans */
 unsigned int plans_num_allocated = 0;
 char cmd[CMD_LEN_MAX];
 
+#ifndef INT_MAX
+  #define INT_MAX 2147483647 /* from limits.h */
+#endif
+
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfft: Input argument N must be a scalar.");
@@ -135,6 +139,10 @@ static inline int mkplan(void)
   if (i == plans_num_allocated)
   {
     int l;
+
+    if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
+      mexErrMsgTxt("nfft: Too many plans already allocated.");
+
     nfft_plan** plans_old = plans;
     plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nfft_plan*));
     for (l = 0; l < plans_num_allocated; l++)
