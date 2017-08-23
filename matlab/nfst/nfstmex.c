@@ -31,15 +31,16 @@
   #include "mexversion.c"
 #endif
 
-#define PLANS_MAX 1000 /* maximum number of plans */
+#define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 20 /* maximum length of command argument */
 
 /* global flags */
 #define NFST_MEX_FIRST_CALL (1U << 0)
-unsigned short gflags = NFST_MEX_FIRST_CALL;
+static unsigned short gflags = NFST_MEX_FIRST_CALL;
 
-nfst_plan* plans[PLANS_MAX]; /* plans */
-char cmd[CMD_LEN_MAX];
+static nfst_plan** plans = NULL; /* plans */
+static unsigned int plans_num_allocated = 0;
+static char cmd[CMD_LEN_MAX];
 
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
@@ -122,9 +123,7 @@ static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 
 static inline void check_plan(int i)
 {
-  DM(if (i < 0 || i >= PLANS_MAX)
-    mexErrMsgTxt("Invalid plan");)
-  DM(if (plans[i] == 0)
+  DM(if (i < 0 || i >= plans_num_allocated || plans[i] == 0)
     mexErrMsgTxt("Plan was not initialized or has already been finalized");)
 }
 
@@ -132,9 +131,24 @@ static inline int mkplan(void)
 {
   mexLock();
   int i = 0;
-  while (i < PLANS_MAX && plans[i] != NULL) i++;
-  if (i == PLANS_MAX)
-    mexErrMsgTxt("nfst: Too many plans already allocated.");
+  while (i < plans_num_allocated && plans[i] != 0) i++;
+  if (i == plans_num_allocated)
+  {
+    int l;
+
+    if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
+      mexErrMsgTxt("nfft: Too many plans already allocated.");
+
+    nfst_plan** plans_old = plans;
+    plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nfst_plan*));
+    for (l = 0; l < plans_num_allocated; l++)
+      plans[l] = plans_old[l];
+    for (l = plans_num_allocated; l < plans_num_allocated+PLANS_START; l++)
+      plans[l] = 0;
+    if (plans_num_allocated > 0)
+      nfft_free(plans_old);
+    plans_num_allocated += PLANS_START;
+  }
   plans[i] = nfft_malloc(sizeof(nfst_plan));
   return i;
 }
@@ -148,12 +162,20 @@ static void cleanup(void)
 
   if (!(gflags & NFST_MEX_FIRST_CALL))
   {
-    for (i = 0; i < PLANS_MAX; i++)
+    for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
       {
         nfst_finalize(plans[i]);
+	nfft_free(plans[i]);
         plans[i] = NULL;
       }
+
+    if (plans_num_allocated > 0)
+    {
+      nfft_free(plans);
+      plans = NULL;
+      plans_num_allocated = 0;
+    }
     gflags |= NFST_MEX_FIRST_CALL;
   }
 }
@@ -167,13 +189,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexEvalString("fft([1,2,3,4]);");
 
     nfft_mex_install_mem_hooks();
-
-    /* plan pointers to zeros */
-    {
-      int i;
-      for (i = 0; i < PLANS_MAX; i++)
-        plans[i] = 0;
-    }
 
     mexAtExit(cleanup);
     gflags &= ~NFST_MEX_FIRST_CALL;
