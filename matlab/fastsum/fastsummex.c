@@ -85,7 +85,6 @@ static inline void check_plan_nodes(int i)
 
 static inline int mkplan()
 {
-  mexLock();
   int i = 0;
   while (i < plans_num_allocated && plans[i] != 0) i++;
   if (i == plans_num_allocated)
@@ -159,8 +158,6 @@ static inline void zero_nodes_pointer(int i)
 static void cleanup(void)
 {
   int i;
-
-  mexUnlock();
 
   if (!(gflags & FASTSUM_MEX_FIRST_CALL))
   {

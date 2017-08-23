@@ -90,7 +90,6 @@ static inline void check_plan(int i)
 
 static inline int mkplan()
 {
-  mexLock();
   int i = 0;
   while (i < plans_num_allocated && plans[i] != 0) i++;
   if (i == plans_num_allocated)
@@ -118,8 +117,6 @@ static inline int mkplan()
 static void cleanup(void)
 {
   int i;
-
-  mexUnlock();
 
   if (!(gflags & NFSFT_MEX_FIRST_CALL))
   {
