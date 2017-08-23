@@ -136,7 +136,7 @@ static inline int mkplan(void)
     int l;
 
     if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
-      mexErrMsgTxt("nfft: Too many plans already allocated.");
+      mexErrMsgTxt("nnfft: Too many plans already allocated.");
 
     nnfft_plan** plans_old = plans;
     plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nnfft_plan*));

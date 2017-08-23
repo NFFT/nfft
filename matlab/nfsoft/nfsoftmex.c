@@ -66,7 +66,7 @@ static inline int mkplan()
     int l;
 
     if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
-      mexErrMsgTxt("nfft: Too many plans already allocated.");
+      mexErrMsgTxt("nfsoft: Too many plans already allocated.");
 
     nfsoft_plan** plans_old = plans;
     plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nfsoft_plan*));

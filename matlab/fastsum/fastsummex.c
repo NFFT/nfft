@@ -92,7 +92,7 @@ static inline int mkplan()
     int l;
 
     if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
-      mexErrMsgTxt("nfft: Too many plans already allocated.");
+      mexErrMsgTxt("fastsum: Too many plans already allocated.");
 
     fastsum_plan** plans_old = plans;
     plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(fastsum_plan*));
@@ -558,7 +558,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     const int d = plans[i]->d;
-    size_t dims[d];
+    mwSize dims[d];
     int n_total = 1;
     for(int j=0; j<d; j++)
     {
