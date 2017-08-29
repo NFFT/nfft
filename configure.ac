@@ -374,6 +374,11 @@ fi
 # option to accept C99
 CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
 
+# use MinGW implementation of printf
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
+fi  
+
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
 # add Matlab CFLAGS
