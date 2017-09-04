@@ -35,6 +35,10 @@
   #define __STDC_UTF_16__
 #endif
 
+#ifndef INT_MAX
+  #define INT_MAX 2147483647 /* from limits.h */
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Replacements for nfft_malloc and nfft_free plus install routine */
 extern void *nfft_mex_malloc(size_t n);

@@ -31,16 +31,17 @@
   #include "mexversion.c"
 #endif
 
-#define PLANS_MAX 100 /* maximum number of plans */
+#define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 20 /* maximum length of command argument */
 
 /* global flags */
 #define NFSOFT_MEX_FIRST_CALL (1U << 0)
-unsigned short gflags = NFSOFT_MEX_FIRST_CALL;
+static unsigned short gflags = NFSOFT_MEX_FIRST_CALL;
 
-nfsoft_plan* plans[PLANS_MAX]; /* plans */
-int n_max = -1; /* maximum degree precomputed */
-char cmd[CMD_LEN_MAX];
+static nfsoft_plan** plans = NULL; /* plans */
+static unsigned int plans_num_allocated = 0;
+static int n_max = -1; /* maximum degree precomputed */
+static char cmd[CMD_LEN_MAX];
 
 static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 {
@@ -51,9 +52,7 @@ static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 static inline int get_plan(const mxArray *pm)
 {
   int i = nfft_mex_get_int(pm,"Input argument plan must be a scalar.");
-  DM(if (i < 0 || i >= PLANS_MAX)
-    mexErrMsgTxt("Invalid plan");)
-  DM(if (plans[i] == 0)
+  DM(if (i < 0 || i >= plans_num_allocated || plans[i] == 0)
     mexErrMsgTxt("Plan was not initialized or has already been finalized");)
   return i;
 }
@@ -61,9 +60,24 @@ static inline int get_plan(const mxArray *pm)
 static inline int mkplan()
 {
   int i = 0;
-  while (i < PLANS_MAX && plans[i] != 0) i++;
-  if (i == PLANS_MAX)
-    mexErrMsgTxt("nfsoft: Too many plans already allocated.");
+  while (i < plans_num_allocated && plans[i] != 0) i++;
+  if (i == plans_num_allocated)
+  {
+    int l;
+
+    if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
+      mexErrMsgTxt("nfsoft: Too many plans already allocated.");
+
+    nfsoft_plan** plans_old = plans;
+    plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nfsoft_plan*));
+    for (l = 0; l < plans_num_allocated; l++)
+      plans[l] = plans_old[l];
+    for (l = plans_num_allocated; l < plans_num_allocated+PLANS_START; l++)
+      plans[l] = 0;
+    if (plans_num_allocated > 0)
+      nfft_free(plans_old);
+    plans_num_allocated += PLANS_START;
+  }
   plans[i] = nfft_malloc(sizeof(nfsoft_plan));
   return i;
 }
@@ -75,13 +89,20 @@ static void cleanup(void)
 
   if (!(gflags & NFSOFT_MEX_FIRST_CALL))
   {
-    for (i = 0; i < PLANS_MAX; i++)
+    for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
       {
         nfsoft_finalize(plans[i]);
         nfft_free(plans[i]);
         plans[i] = 0;
       }
+
+    if (plans_num_allocated > 0)
+    {
+      nfft_free(plans);
+      plans = NULL;
+      plans_num_allocated = 0;
+    }
     gflags |= NFSOFT_MEX_FIRST_CALL;
     n_max = -1;
   }
@@ -96,13 +117,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexEvalString("fft([1,2,3,4]);");
 
     nfft_mex_install_mem_hooks();
-
-    /* plan pointers to zeros */
-    {
-      int i;
-      for (i = 0; i < PLANS_MAX; i++)
-        plans[i] = 0;
-    }
 
     mexAtExit(cleanup);
     gflags &= ~NFSOFT_MEX_FIRST_CALL;
