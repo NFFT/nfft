@@ -687,8 +687,8 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
               }
           }
           result += SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
-                  xmax, N - m - 1, k, param, Ad, Add, p, flags)
-                + SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad, Add,
+                  xmax, N - m - 1, k, param, Ad, Add, p, flags);
+          result += SearchTree(d, (t + 1) % d, x, alpha, xmin, xmax, m, k, param, Ad, Add,
                         p, flags);
           return result;
       }
