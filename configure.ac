@@ -631,7 +631,6 @@ AC_CONFIG_FILES(Makefile \
                 applications/radon/Makefile \
 		applications/radon/inverse_radon.c \
 		applications/radon/radon.c \
-                applications/iterS2/Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
@@ -643,5 +642,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfsoft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
+# temproarily removed:
+#  applications/iterS2/Makefile \
 
 AC_OUTPUT

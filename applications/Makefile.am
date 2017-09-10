@@ -1,7 +1,7 @@
 if HAVE_NFSFT
   DIR_FASTSUMS2=fastsumS2
   DIR_QUADRATURES2=quadratureS2
-  DIR_ITERS2=iterS2
+  DIR_ITERS2=
 else
   DIR_FASTSUMS2=
   DIR_QUADRATURES2=
@@ -15,7 +15,7 @@ else
 endif
 
 DIST_SUBDIRS = fastgauss fastsum fastsumS2 mri polarFFT \
-  quadratureS2 radon iterS2
+  quadratureS2 radon 
 
 SUBDIRS= fastgauss fastsum $(DIR_FASTSUMS2) $(DIR_MRI) polarFFT \
   $(DIR_QUADRATURES2) radon $(DIR_ITERS2)
