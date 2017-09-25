@@ -15,8 +15,8 @@
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # @synopsis AX_EPS_DEF
-# @summary Dtermine machine epsilon for given floating-point type (d = double, 
-#     f = float, l = long double) from corresponding macro defined in float.h.
+# @summary Determine machine epsilon for given floating-point type (d = double, 
+#     f = float, l = long double) from 2^(1-MAND_DIG) defined in float.h.
 # @category C
 #
 # @version 2017-08-13
@@ -25,28 +25,37 @@
 AC_DEFUN([AX_EPS_DEF],
 [AC_REQUIRE([AC_PROG_CC])
 AC_LANG_PUSH([C])
-AC_CACHE_CHECK(for floating-point epsilon as per macro, ax_cv_eps_def,
+AC_CACHE_CHECK(for floating-point epsilon as per length of mantissa, ax_cv_eps_def,
  [AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <stdio.h>
 #include <float.h>
 #define d 1
 #define l 2
 #define s 3
 #define PRECISION $1
- 
+
 #if PRECISION == 1
+typedef double R;
 #define __FE__ "%.16lE"
-#define EPSILON DBL_EPSILON
+#define K(x) ((R) x)
+#define MANT_DIG DBL_MANT_DIG
 #elif PRECISION == 2
+typedef long double R;
 #define __FE__ "%.32LE"
-#define EPSILON LDBL_EPSILON
+#define K(x) ((R) x##L)
+#define MANT_DIG LDBL_MANT_DIG
 #elif PRECISION == 3
+typedef float R;
 #define __FE__ "%.8E"
-#define EPSILON FLT_EPSILON
+#define K(x) ((R) x)
+#define MANT_DIG FLT_MANT_DIG
 #else
 #error "Unknown floating-point precision."
 #endif], [  FILE *f;
   f = fopen("conftest_eps_def", "w"); if (!f) return 1;
-  fprintf(f, __FE__ "\n", EPSILON);
+  R epsilon = K(1.0);
+  for (int i=0; i<MANT_DIG-1; i++)
+    epsilon /= K(2.0);
+  fprintf(f, __FE__ "\n", epsilon);
   fclose(f);
   return 0;])], 
   [ax_cv_eps_def=`cat conftest_eps_def`; rm -f conftest_eps_def],

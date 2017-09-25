@@ -551,25 +551,25 @@ fi
 # Calculate machine epsilon for selected precision.
 AX_EPS_CALC([$PRECISION])
 
-# Get machine epsilon as per float.h.
+# Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
 AX_EPS_DEF([$PRECISION])
 
-if test "$ax_cv_eps_calc" = "unknown"; then  
-  if test "$ax_cv_eps_def" = "unknown"; then
+if test "$ax_cv_eps_def" = "unknown"; then  
+  if test "$ax_cv_eps_calc" = "unknown"; then
     # Calculation has failed and unable to get from float.h.
     AC_MSG_ERROR([Unable to determine floating-point epsilon.])
   else
-    # Unable to calculate but have value in float.h.
-    AC_MSG_WARN([Unable to calculate floating-point epsilon. Using pre-defined value from macro.])
-    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
+    # Unable to get value in float.h but have our calculation.
+    AC_MSG_WARN([Unable to get floating-point epsilon from macro. Using our calculation.])
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_calc], [Floating-point epsilon.])
   fi
 else
   if test "$ax_cv_eps_calc" != "$ax_cv_eps_def"; then
     # Calculated epsilon different from float.h.
-    AC_MSG_WARN([Calculated epsilon "$ax_cv_eps_calc" and epsilon from macro "$ax_cv_eps_def" differ. Using calculated value.])
+    AC_MSG_WARN([Calculated epsilon "$ax_cv_eps_calc" and epsilon from macro "$ax_cv_eps_def" differ. Using macro-defined value.])
   fi
     # Calculated and pre-defined values identical.
-    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_calc], [Floating-point epsilon.])
+    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
 fi
 
 # CUnit
