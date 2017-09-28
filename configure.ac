@@ -548,9 +548,6 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
-# Calculate machine epsilon for selected precision.
-AX_EPS_CALC([$PRECISION])
-
 # Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
 AX_EPS_DEF([$PRECISION])
 
