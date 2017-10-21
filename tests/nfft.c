@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -211,7 +211,7 @@ static R trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(44.0) * EPSILON;
+  return K(48.0) * NFFT_EPSILON;
 }
 
 static R err_trafo(X(plan) *p)
@@ -220,7 +220,7 @@ static R err_trafo(X(plan) *p)
   R s; /* oversampling factor */
   R a;
   R b;
-  R eps = EPSILON;
+  R eps = NFFT_EPSILON;
   R err;
   int i;
   for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
@@ -1396,7 +1396,7 @@ static int check_single_file(const testcase_delegate_t *testcase,
     R err = check_delegate->compare(check_delegate, &p, NN, M, f, f_hat);
     FILE *file = fopen(filename, "a");
     fprintf(file, "%d % 20.16lE\n", (int)p.m, (double)err);
-    printf(", %2d % 20.16lE (" __FE__ ")\n", (int)p.m, (double)err, EPSILON);
+    printf(", %2d % 20.16lE (" __FE__ ")\n", (int)p.m, (double)err, NFFT_EPSILON);
     fclose(file);
   }
 

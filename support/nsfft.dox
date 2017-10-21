@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -27,7 +27,7 @@
  */
 
 /*! \fn void nsfft_direct_trafo(nsfft_plan *ths)
- * Executes an NSDFT, computes for \f$j=0,\hdots,M-1\f$:
+ * Executes an NSDFT, computes for \f$j=0,\dots,M-1\f$:
  * \f[
  *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
  * \f]
@@ -40,7 +40,7 @@
 /*! \fn void nsfft_direct_adjoint(nsfft_plan *ths)
  * Executes an adjoint NSFFT, computes for \f$k\in H_N^d\f$:
  * \f[
- *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ *   \hat f_k = \sum_{j=0,\dots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
  * \f]
  *
  * \arg ths The pointer to a nsfft plan
@@ -50,7 +50,7 @@
 
 /*! \fn void nsfft_trafo(nsfft_plan *ths)
  * Executes an NSFFT, computes \b fast and \b approximate for
- * \f$j=0,\hdots,M-1\f$:
+ * \f$j=0,\dots,M-1\f$:
  * \f[
  *   f_j = \sum_{k\in H_N^d}\hat f_k {\rm e}^{-2\pi{\rm\scriptsize i}k x_j}
  * \f]
@@ -64,7 +64,7 @@
  * Executes an adjoint NSFFT, computes \b fast and \b approximate for
  * \f$k\in H_N^d\f$:
  * \f[
- *   \hat f_k = \sum_{j=0,\hdots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
+ *   \hat f_k = \sum_{j=0,\dots,M-1} f_j {\rm e}^{+2\pi{\rm\scriptsize i}k x_j}
  * \f]
  *
  * \arg ths The pointer to a nsfft plan

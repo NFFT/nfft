@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -37,18 +37,18 @@
  * Let the torus
  * \f[
  *   \mathbb{T}^d
- *    := \left\{ \mathbf{x}=\left(x_t\right)_{t=0,\hdots,d-1}\in\mathbb{R}^{d}:
- *    \; - \frac{1}{2} \le x_t < \frac{1}{2},\; t=0,\hdots,d-1 \right\}
+ *    := \left\{ \mathbf{x}=\left(x_t\right)_{t=0,\dots,d-1}\in\mathbb{R}^{d}:
+ *    \; - \frac{1}{2} \le x_t < \frac{1}{2},\; t=0,\dots,d-1 \right\}
  * \f]
  * of dimension \f$d\f$ be given.
  * It will serve as domain from which the nonequispaced nodes \f$\mathbf{x}\f$
  * are taken.
  * The sampling set is given by \f${\cal X}:=\{\mathbf{x}_j \in {\mathbb T}^d:
- * \,j=0,\hdots,M-1\}\f$.
+ * \,j=0,\dots,M-1\}\f$.
  * Possible frequencies \f$\mathbf{k}\f$ are collected in the multi index set
  * \f[
- *   I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\hdots,d-1}\in
- *   \mathbb{Z}^d: - \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\hdots,d-1
+ *   I_{\mathbf{N}} := \left\{ \mathbf{k}=\left(k_t\right)_{t=0,\dots,d-1}\in
+ *   \mathbb{Z}^d: - \frac{N_t}{2} \le k_t < \frac{N_t}{2} ,\;t=0,\dots,d-1
  * \right\}.
  * \f]
  *
@@ -57,7 +57,7 @@
  * \f[
  * f_j = \sum_{\mathbf{k}\in I_{\mathbf{N}}}
  * \hat{f}_{\mathbf{k}} {\rm e}^{-2\pi{\rm i} \mathbf{k}\mathbf{x}_j}, \qquad
- * j=0,\hdots,M-1.
+ * j=0,\dots,M-1.
  * \f]
  * The corresponding adjoint NDFT is the computation of
  * \f[

@@ -755,6 +755,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @abs_top_srcdir@/doxygen.dox \
+                         @abs_top_srcdir@/support \
                          @abs_top_srcdir@/include \
                          @abs_top_srcdir@/kernel \
                          @abs_top_srcdir@/examples \
@@ -1017,8 +1018,9 @@ IGNORE_PREFIX          =
 
 # If the GENERATE_HTML tag is set to YES doxygen will generate HTML output
 # The default value is: YES.
-
-GENERATE_HTML          = YES
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_HTML          = YES
 
 # The HTML_OUTPUT tag is used to specify where the HTML docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1219,8 +1221,9 @@ DOCSET_PUBLISHER_NAME  = Publisher
 # compressed HTML files.
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
-
-GENERATE_HTMLHELP      = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_HTMLHELP      = NO
 
 # The CHM_FILE tag can be used to specify the file name of the resulting .chm
 # file. You can add a path in front of the file if the result should not be
@@ -1241,8 +1244,9 @@ HHC_LOCATION           =
 # YES) or that it should be included in the master .chm file ( NO).
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTMLHELP is set to YES.
-
-GENERATE_CHI           = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_CHI           = NO
 
 # The CHM_INDEX_ENCODING is used to encode HtmlHelp index ( hhk), content ( hhc)
 # and project file content.
@@ -1561,8 +1565,9 @@ EXTRA_SEARCH_MAPPINGS  =
 
 # If the GENERATE_LATEX tag is set to YES doxygen will generate LaTeX output.
 # The default value is: YES.
-
-GENERATE_LATEX         = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_LATEX         = NO
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1709,8 +1714,9 @@ LATEX_BIB_STYLE        = plain
 # RTF output is optimized for Word 97 and may not look too pretty with other RTF
 # readers/editors.
 # The default value is: NO.
-
-GENERATE_RTF           = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_RTF           = NO
 
 # The RTF_OUTPUT tag is used to specify where the RTF docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1764,8 +1770,9 @@ RTF_EXTENSIONS_FILE    =
 # If the GENERATE_MAN tag is set to YES doxygen will generate man pages for
 # classes and files.
 # The default value is: NO.
-
-GENERATE_MAN           = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_MAN           = NO
 
 # The MAN_OUTPUT tag is used to specify where the man pages will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1808,8 +1815,9 @@ MAN_LINKS              = NO
 # If the GENERATE_XML tag is set to YES doxygen will generate an XML file that
 # captures the structure of the code including all documentation.
 # The default value is: NO.
-
-GENERATE_XML           = NO
+#
+#deactivated because this is set by automake as environment variable
+#GENERATE_XML           = NO
 
 # The XML_OUTPUT tag is used to specify where the XML pages will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -2022,8 +2030,9 @@ EXTERNAL_PAGES         = YES
 # The PERL_PATH should be the absolute path and name of the perl script
 # interpreter (i.e. the result of 'which perl').
 # The default file (with absolute path) is: /usr/bin/perl.
-
-PERL_PATH              = /usr/bin/perl
+#
+#deactivated because this is set by automake as environment variable
+#PERL_PATH              = /usr/bin/perl
 
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
@@ -2066,8 +2075,9 @@ HIDE_UNDOC_RELATIONS   = YES
 # Bell Labs. The other options in this section have no effect if this option is
 # set to NO
 # The default value is: NO.
-
-HAVE_DOT               = NO
+#
+#deactivated because this is set by automake as environment variable
+#HAVE_DOT               = NO
 
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is allowed
 # to run in parallel. When set to 0 doxygen will base this on the number of
@@ -2238,8 +2248,9 @@ INTERACTIVE_SVG        = NO
 # The DOT_PATH tag can be used to specify the path where the dot tool can be
 # found. If left blank, it is assumed the dot tool can be found in the path.
 # This tag requires that the tag HAVE_DOT is set to YES.
-
-DOT_PATH               =
+#
+#deactivated because this is set by automake as environment variable
+#DOT_PATH               =
 
 # The DOTFILE_DIRS tag can be used to specify one or more directories that
 # contain dot files that are included in the documentation (see the \dotfile

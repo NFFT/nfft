@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -22,7 +22,8 @@
 #include <CUnit/Automated.h>
 
 #include "infft.h"
-#include "version.h"
+#include "reflect.h"
+#include "util.h"
 #include "bspline.h"
 #include "bessel.h"
 #include "nfft.h"
@@ -37,6 +38,16 @@ int main(void)
 #ifdef _OPENMP
   CU_set_output_filename("CUnitAutomated_threads");
 #endif
+
+#undef X
+#define X(name) Y(name)
+  util = CU_add_suite("util", 0, 0);
+  CU_add_test(util, "bspline", X(check_bspline));
+  CU_add_test(util, "bessel_i0", X(check_bessel_i0));
+  CU_add_test(util, "version", X(check_get_version));
+  CU_add_test(util, "window_name", X(check_get_window_name));
+  CU_add_test(util, "log2i", X(check_log2i));
+  CU_add_test(util, "next_power_of_2", X(check_next_power_of_2));
 
 #undef X
 #define X(name) NFFT(name)
@@ -130,12 +141,6 @@ int main(void)
 #endif
 #endif
 #endif
-#undef X
-#define X(name) Y(name)
-  util = CU_add_suite("util", 0, 0);
-  CU_add_test(util, "bspline", X(check_bspline));
-  CU_add_test(util, "bessel_i0", X(check_bessel_i0));
-  CU_add_test(util, "version", X(check_version));
   CU_automated_run_tests();
   //CU_basic_run_tests();
   {

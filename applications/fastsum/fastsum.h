@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -31,6 +31,12 @@
  * \defgroup applications_fastsum Fast summation
  * \ingroup applications
  * \{
+ * Direct and fast summation (convolution)
+ * 
+ * Computes the sums
+ * \f[
+ *   f(y_j) = \sum_{k=1}^N \alpha_k K(x_k-y_j),\quad   j=1\dots M.
+ * \f]
  */
 
 #ifndef fastsum_h_inc
@@ -68,6 +74,8 @@ typedef C (*kernel)(R , int , const R *);
 
 #define NEARFIELD_BOXES (1U<< 1)
 
+#define STORE_PERMUTATION_X_ALPHA (1U<< 2)
+
 /** plan for fast summation algorithm */
 typedef struct fastsum_plan_
 {
@@ -97,6 +105,7 @@ typedef struct fastsum_plan_
   /** FS__ - fast summation */
   int n;                                /**< expansion degree                */
   C *b;                      /**< expansion coefficients          */
+  C *f_hat;  /**< Fourier coefficients of nfft plans */
 
   int p;                                /**< degree of smoothness of regularization */
   R eps_I;                         /**< inner boundary                  */  /* fixed to p/n so far  */
@@ -117,8 +126,11 @@ typedef struct fastsum_plan_
   int *box_offset;
   R *box_x;
   C *box_alpha;
+  
+  int *permutation_x_alpha;    /**< permutation vector of source nodes if STORE_PERMUTATION_X_ALPHA is set */
 
   R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
+
 } fastsum_plan;
 
 /** initialize fast summation plan
@@ -139,11 +151,65 @@ typedef struct fastsum_plan_
  */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total, kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B);
 
+/** initialize node independent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ * \param d The dimension of the problem.
+ * \param kernel The kernel function.
+ * \param param The parameters for the kernel function.
+ * \param flags Fastsum flags.
+ * \param nn The expansion degree.
+ * \param p The degree of smoothness.
+ * \param eps_I The inner boundary.
+ * \param eps_B the outer boundary.
+ *
+ */
+void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
+    unsigned flags, int nn, int p, R eps_I, R eps_B);
+
+/** initialize source nodes dependent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ * \param N_total The number of source knots x.
+ * \param nn_oversampled The oversampled expansion degree for nfft.
+ * \param m The cut-off parameter for the NFFT.
+ *
+ */
+void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_oversampled, int m);
+
+/** initialize target nodes dependent part of fast summation plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ * \param M_total The number of target knots y.
+ * \param nn_oversampled The oversampled expansion degree for nfft.
+ * \param m The cut-off parameter for the NFFT.
+ *
+ */
+void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_oversampled, int m);
+
 /** finalize plan
  *
  * \param ths The pointer to a fastsum plan.
  */
 void fastsum_finalize(fastsum_plan *ths);
+
+/** finalize source nodes dependent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_source_nodes(fastsum_plan *ths);
+
+/** finalize target nodes dependent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_target_nodes(fastsum_plan *ths);
+
+/** finalize node independent part of plan
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_finalize_kernel(fastsum_plan *ths);
 
 /** direct summation
  *
@@ -151,7 +217,19 @@ void fastsum_finalize(fastsum_plan *ths);
  */
 void fastsum_exact(fastsum_plan *ths);
 
-/** sort source nodes, precompute Fourier coefficients, etc.
+/** sort source nodes, precompute nfft source plan.
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_precompute_source_nodes(fastsum_plan *ths);
+
+/** precompute nfft target plan.
+ *
+ * \param ths The pointer to a fastsum plan.
+ */
+void fastsum_precompute_target_nodes(fastsum_plan *ths);
+
+/** sort source nodes, precompute nfft plans etc.
  *
  * \param ths The pointer to a fastsum plan.
  */

@@ -12,13 +12,31 @@ endif
 
 DIR_NFFT=nfft
 
+if HAVE_NFCT
+  DIR_NFCT=nfct
+else
+  DIR_NFCT=
+endif
+
+if HAVE_NFST
+  DIR_NFST=nfst
+else
+  DIR_NFST=
+endif
+
 if HAVE_NNFFT
   DIR_NNFFT=nnfft
 else
   DIR_NNFFT=
 endif
 
-SUBDIRS = . $(DIR_NFFT) $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NNFFT)
+if HAVE_APPLICATIONS
+  DIR_FASTSUM=fastsum
+else
+  DIR_FASTSUM=
+endif
+
+SUBDIRS = . $(DIR_NFFT) $(DIR_NFCT) $(DIR_NFST) $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NNFFT) $(DIR_FASTSUM)
 
 AM_CPPFLAGS = -I$(top_srcdir)/include $(matlab_CPPFLAGS)
 

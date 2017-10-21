@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -30,7 +30,7 @@ extern "C"
 #define NFFT_CONCAT(prefix, name) prefix ## name
 
 /* IMPORTANT: for Windows compilers, you should add a line
- *   #define FFTW_DLL
+ *   #define NFFT_DLL
  * here and in kernel/infft.h if you are compiling/using NFFT as a DLL, in order
  * to do the proper importing/exporting, or alternatively compile with
  * -DNFFT_DLL or the equivalent command-line flag. This is not necessary under
@@ -144,7 +144,7 @@ typedef struct\
   Y(plan) my_fftw_plan2; /**< Backward FFTW plan */\
 \
   R **c_phi_inv; /**< Precomputed data for the diagonal matrix \f$D\f$, size \
-    is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
+    is \f$N_0+\dots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
   NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
@@ -705,6 +705,7 @@ NFFT_EXTERN void X(SO3_fpt_transposed)(C *coeffs, Z(set) set,int l, int k, int m
 NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \
 NFFT_EXTERN void X(init_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags); \
 NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa); \
+NFFT_EXTERN void X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
 NFFT_EXTERN void X(trafo)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
@@ -877,7 +878,14 @@ void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
 void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
 void Y(fftshift_complex_int)(C *x, int d, int* N); \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch);
+/** Return library version. */ \
+void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
+/** \
+ * Return name of window function. \
+ * \
+ * The window function to be used is configured at compile time. \
+ */ \
+const char *Y(get_window_name)();
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

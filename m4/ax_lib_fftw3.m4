@@ -1,4 +1,4 @@
-# Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -75,8 +75,15 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
     AC_SEARCH_LIBS([fftw${PREC_SUFFIX}_execute], [fftw3${PREC_SUFFIX} fftw3${PREC_SUFFIX}-3], [ax_lib_fftw3=yes], [ax_lib_fftw3=no], [-lm])
     fftw3_libvar=ac_cv_search_fftw${PREC_SUFFIX}_execute
-    fftw3_libname="${!fftw3_libvar:2}"
-    fftw3_LIBS="-l${fftw3_libname} -lm"
+    if test "x$ac_res" = "xnone required"; then
+      fftw3_libname=""
+      fftw3_lib_flag=""
+      fftw3_LIBS=""
+    else
+      fftw3_libname="${!fftw3_libvar:2}"
+      fftw3_lib_flag="-l${fftw3_libname}"
+      fftw3_LIBS="${fftw3_lib_flag} -lm"
+    fi
     LIBS="$saved_LIBS"
   fi
 
@@ -84,13 +91,17 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
 
     # Check for combined fftw threads
-    AC_CHECK_LIB([${fftw3_libname}], [fftw${PREC_SUFFIX}_init_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [-lpthread -lm])
-    fftw3_threads_LIBS="-l${fftw3_libname} -lpthread -lm"
+    LIBS="${fftw3_lib_flag} -lpthread -lm"
+    AC_MSG_CHECKING([for threaded fftw3 library with combined threads (-lpthread -lm set)])
+    AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
+    AC_MSG_RESULT([$ax_lib_fftw3_threads])
+    fftw3_threads_LIBS="${fftw3_lib_flag} -lpthread -lm"
 
+    LIBS="$saved_LIBS"
     # Check for extra fftw threads library
     if test "x$ax_lib_fftw3_threads" = "xno"; then
-      AC_SEARCH_LIBS([fftw${PREC_SUFFIX}_init_threads], [fftw3${PREC_SUFFIX}_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [-l${fftw3_libname} -lpthread -lm])
-      fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}_threads -l${fftw3_libname} -lpthread -lm"
+      AC_SEARCH_LIBS([fftw${PREC_SUFFIX}_init_threads], [fftw3${PREC_SUFFIX}_threads], [ax_lib_fftw3_threads=yes], [ax_lib_fftw3_threads=no], [${fftw3_lib_flag} -lpthread -lm])
+      fftw3_threads_LIBS="-lfftw3${PREC_SUFFIX}_threads ${fftw3_lib_flag} -lpthread -lm"
     fi
 
     LIBS="$saved_LIBS"

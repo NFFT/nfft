@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -65,7 +65,7 @@ if ispc
 else 
     cmd='./fastsum_matlab';
 end
-system(sprintf('%s %d %d %d %d %d %d %s %e %e %e',cmd,d,N,M,n,m,p,kernel,c,eps_I,eps_B));
+system(sprintf('%s %d %d %d %d %d %d %s %.16g %.16g %.16g',cmd,d,N,M,n,m,p,kernel,c,eps_I,eps_B));
 
 %read result from file
 f2=load('f.dat');

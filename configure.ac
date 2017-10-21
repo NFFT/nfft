@@ -1,4 +1,4 @@
-# Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -19,8 +19,8 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [3])
-m4_define([nfft_version_patch], [2])
+m4_define([nfft_version_minor], [4])
+m4_define([nfft_version_patch], [0])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -29,7 +29,7 @@ m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2015, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2017, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
@@ -77,7 +77,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="2:0:0"
+SHARED_VERSION_INFO="3:0:1"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
@@ -241,6 +241,7 @@ case "$window" in
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
 AC_MSG_RESULT([$window])
+AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
 if test "$ok" = "yes"; then
@@ -372,6 +373,11 @@ fi
 
 # option to accept C99
 CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
+
+# use MinGW implementation of printf
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
+fi  
 
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
@@ -507,7 +513,7 @@ SLEEP;{
   FILE *f = fopen("ticks.tmp","w");
   fprintf(f,"%.1f\n",tps);
   fclose(f);}
-return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[])
+return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[TICKS_PER_SECOND=1])
     rm -f ticks.tmp
   if test "$TICKS_PER_SECOND" = "1"; then
     echo "***************************************************************"
@@ -540,6 +546,15 @@ if test "$PRECISION" = "s"; then
 AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabsf, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
   [#include <math.h>
 #include <complex.h>])
+fi
+
+# Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
+AX_EPS_DEF([$PRECISION])
+
+if test "$ax_cv_eps_def" = "unknown"; then  
+  AC_MSG_ERROR([Unable to determine floating-point epsilon.])
+else
+  AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
 fi
 
 # CUnit
@@ -601,14 +616,18 @@ AC_CONFIG_FILES(Makefile \
                 applications/radon/Makefile \
 		applications/radon/inverse_radon.c \
 		applications/radon/radon.c \
-                applications/iterS2/Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
+                matlab/nfct/Makefile \
+                matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
+                matlab/fastsum/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
+# temproarily removed:
+#  applications/iterS2/Makefile \
 
 AC_OUTPUT

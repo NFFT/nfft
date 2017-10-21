@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -21,7 +21,7 @@
 R Y(sinc)(const R x)
 {
   /* Based on sinc function from Boost C++ library. */
-  const R b =  EPSILON;
+  const R b = NFFT_EPSILON;
   const R bs = SQRT(b);
   const R bs2 = SQRT(bs);
 

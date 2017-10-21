@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -118,6 +118,10 @@ int main(int argc, char **argv)
       kernel = cosc;
     else if (strcmp(s, "cot") == 0)
       kernel = kcot;
+    else if (strcmp(s, "one_over_cube") == 0)
+      kernel = one_over_cube;
+    else if (strcmp(s, "log_sin") == 0)
+      kernel = log_sin;
     else
     {
       s = "multiquadric";

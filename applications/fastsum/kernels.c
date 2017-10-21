@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -395,6 +395,22 @@ C one_over_cube(R x, int der, const R *param)
     default : value=K(0.0);
   }
 
+  return value;
+}
+
+
+C log_sin(R x, int der, const R *param)   /* K(x) = log(|sin(cx)|) */
+{
+  R c=param[0];
+  R value=K(0.0);
+
+  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  else
+  {
+      if (der == 0) value = LOG(FABS(SIN(c * x)));
+      else value = c * kcot(x, der-1, param);
+  }
+  
   return value;
 }
 

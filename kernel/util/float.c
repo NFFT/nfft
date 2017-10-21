@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -21,7 +21,7 @@
 R Y(float_property)(const float_property p)
 {
   const R base = FLT_RADIX;
-  const R eps = EPSILON;
+  const R eps = NFFT_EPSILON;
   const R t = MANT_DIG;
   const R emin = MIN_EXP;
   const R emax = MAX_EXP;
@@ -61,9 +61,7 @@ R Y(float_property)(const float_property p)
     first = FALSE;
   }
 
-  if (p == NFFT_EPSILON)
-    return eps;
-  else if (p == NFFT_SAFE__MIN)
+  if (p == NFFT_SAFE__MIN)
     return sfmin;
   else if (p == NFFT_BASE)
     return base;

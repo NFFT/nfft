@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -16,9 +16,10 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "infft.h"
+#include "api.h"
 
 #if defined(DIRAC_DELTA)
+  static const INT m2K_[] = {0};
 #elif defined(GAUSSIAN)
   static const INT m2K_[] = {0, 1, 3, 6, 7, 9, 11, 13, 15, 17, 19, 21, 22, 23, 24};
 #elif defined(B_SPLINE)
@@ -37,4 +38,9 @@ INT Y(m2K)(const INT m)
 {
   int j = MIN(((int)(m)), ((int)((sizeof(m2K_) / sizeof(m2K_[0])) - 1)));
   return (INT)((1U << m2K_[j]) * (m + 2));
+}
+
+const char *Y(get_window_name)()
+{
+  return STRINGIZE(WINDOW_NAME);
 }

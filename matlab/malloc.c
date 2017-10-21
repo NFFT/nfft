@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -27,6 +27,9 @@ void *nfft_mex_malloc(size_t n)
 
  #pragma omp critical (nfft_omp_matlab)
  {
+  if (n == 0)
+    n = 1;
+
   p = mxMalloc(n);
 
   /* Should never be reached if mxMalloc fails (in a mex file) but in Matlab

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -44,14 +44,14 @@
  * \arg set The set of DPT transform data where the computed data will be stored.
  * \arg m The transform index \f$m \in \mathbb{N}, 0 \le m \le M\f$.
  * \arg alpha The three-term recurrence coefficients \f$\alpha_k \in
- *      \mathbb{R}\f$ for \f$k=0,\ldots,N\f$ such that \verbatim alpha[k]
- *      \endverbatim \f$=\alpha_k\f$.
+ *      \mathbb{R}\f$ for \f$k=0,\ldots,N\f$ such that <tt> alpha[k]</tt>
+ *      \f$=\alpha_k\f$.
  * \arg beta The three-term recurrence coefficients \f$\beta_k \in \mathbb{R}\f$
- *            for \f$k=0,\ldots,N\f$ such that \verbatim beta[k] \endverbatim
+ *            for \f$k=0,\ldots,N\f$ such that <tt> beta[k] </tt>
  *            \f$=\beta_k\f$.
  * \arg gamma The three-term recurrence coefficients \f$\gamma_k \in
- *            \mathbb{R}\f$ for \f$k=0,\ldots,N\f$ such that \verbatim gamma[k]
- *            \endverbatim \f$=\gamma_k\f$.
+ *            \mathbb{R}\f$ for \f$k=0,\ldots,N\f$ such that <tt> gamma[k]  </tt>
+ *            \f$=\gamma_k\f$.
  * \arg k_start The index \f$k_{\text{start}} \in \mathbb{N}_0,
  *              0 \le k_{\text{start}} \le N\f$
  * \arg threshold The treshold \f$\kappa \in \mathbb{R}, \kappa > 0\f$.

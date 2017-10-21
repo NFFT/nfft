@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -2478,6 +2478,12 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
 void X(trafo_1d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->n[0] <= 2*ths->m+2))
+  {
+    X(trafo_direct)(ths);
+    return;
+  }
+  
   const INT N = ths->N[0], N2 = N/2, n = ths->n[0];
   C *f_hat1 = (C*)ths->f_hat, *f_hat2 = (C*)&ths->f_hat[N2];
 
@@ -2540,6 +2546,12 @@ void X(trafo_1d)(X(plan) *ths)
 
 void X(adjoint_1d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->n[0] <= 2*ths->m+2))
+  {
+    X(adjoint_direct)(ths);
+    return;
+  }
+  
   INT n,N;
   C *g_hat1,*g_hat2,*f_hat1,*f_hat2;
   R *c_phi_inv1, *c_phi_inv2;
@@ -3523,6 +3535,12 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
 void X(trafo_2d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2))
+  {
+    X(trafo_direct)(ths);
+    return;
+  }
+  
   INT k0,k1,n0,n1,N0,N1;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
@@ -3617,6 +3635,12 @@ void X(trafo_2d)(X(plan) *ths)
 
 void X(adjoint_2d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2))
+  {
+    X(adjoint_direct)(ths);
+    return;
+  }
+  
   INT k0,k1,n0,n1,N0,N1;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
@@ -5114,6 +5138,12 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
 void X(trafo_3d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[2] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2) || (ths->n[2] <= 2*ths->m+2))
+  {
+    X(trafo_direct)(ths);
+    return;
+  }
+  
   INT k0,k1,k2,n0,n1,n2,N0,N1,N2;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12, *c_phi_inv21, *c_phi_inv22;
@@ -5245,6 +5275,12 @@ void X(trafo_3d)(X(plan) *ths)
 
 void X(adjoint_3d)(X(plan) *ths)
 {
+  if((ths->N[0] <= ths->m) || (ths->N[1] <= ths->m) || (ths->N[2] <= ths->m) || (ths->n[0] <= 2*ths->m+2) || (ths->n[1] <= 2*ths->m+2) || (ths->n[2] <= 2*ths->m+2))
+  {
+    X(adjoint_direct)(ths);
+    return;
+  }
+  
   INT k0,k1,k2,n0,n1,n2,N0,N1,N2;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12, *c_phi_inv21, *c_phi_inv22;
@@ -5370,6 +5406,16 @@ void X(adjoint_3d)(X(plan) *ths)
  */
 void X(trafo)(X(plan) *ths)
 {
+  /* use direct transform if degree N is too low */
+  for (int j = 0; j < ths->d; j++)
+  {
+    if((ths->N[j] <= ths->m) || (ths->n[j] <= 2*ths->m+2))
+    {
+      X(trafo_direct)(ths);
+      return;
+    }
+  }
+  
   switch(ths->d)
   {
     case 1: X(trafo_1d)(ths); break;
@@ -5397,7 +5443,7 @@ void X(trafo)(X(plan) *ths)
       TOC_FFTW(1)
 
       /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-       *  \text{ for } j=0,\hdots,M_total-1 \f$
+       *  \text{ for } j=0,\dots,M_total-1 \f$
        */
       TIC(2)
       B_A(ths);
@@ -5408,6 +5454,16 @@ void X(trafo)(X(plan) *ths)
 
 void X(adjoint)(X(plan) *ths)
 {
+  /* use direct transform if degree N is too low */
+  for (int j = 0; j < ths->d; j++)
+  {
+    if((ths->N[j] <= ths->m) || (ths->n[j] <= 2*ths->m+2))
+    {
+      X(adjoint_direct)(ths);
+      return;
+    }
+  }
+  
   switch(ths->d)
   {
     case 1: X(adjoint_1d)(ths); break;
@@ -5892,9 +5948,11 @@ const char* X(check)(X(plan) *ths)
   {
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
-
+    
+    /* Automatically calls trafo_direct if 
     if(ths->N[j] <= ths->m)
-      return "Polynomial degree N is smaller than cut-off m";
+      return "Polynomial degree N is <= cut-off m";
+    */
 
     if(ths->N[j]%2 == 1)
       return "polynomial degree N has to be even";

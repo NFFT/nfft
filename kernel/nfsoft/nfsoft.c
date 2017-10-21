@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -52,6 +52,13 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
     unsigned int nfsoft_flags, unsigned int nfft_flags, int nfft_cutoff,
     int fpt_kappa)
 {
+	nfsoft_init_guru_advanced(plan, B, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, 8* B);
+}
+
+void nfsoft_init_guru_advanced(nfsoft_plan *plan, int B, int M,
+    unsigned int nfsoft_flags, unsigned int nfft_flags, int nfft_cutoff,
+    int fpt_kappa, int nn_oversampled)
+{
   int N[3];
   int n[3];
 
@@ -59,9 +66,9 @@ void nfsoft_init_guru(nfsoft_plan *plan, int B, int M,
   N[1] = 2* B + 2;
   N[2] = 2* B + 2;
 
-  n[0] = 8* B ;
-  n[1] = 8* B ;
-  n[2] = 8* B ;
+  n[0] = nn_oversampled ;
+  n[1] = nn_oversampled ;
+  n[2] = nn_oversampled ;
 
   nfft_init_guru(&plan->p_nfft, 3, N, M, n, nfft_cutoff, nfft_flags,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
@@ -142,7 +149,7 @@ static void c2e(nfsoft_plan *my_plan, int even)
     }
 
   }
-  free(aux);
+  nfft_free(aux);
   aux = NULL;
 }
 
@@ -206,9 +213,9 @@ static fpt_set SO3_fpt_init(int l, unsigned int flags, int kappa)
       glo++;
     }
 
-  free(alpha);
-  free(beta);
-  free(gamma);
+  nfft_free(alpha);
+  nfft_free(beta);
+  nfft_free(gamma);
   alpha = NULL;
   beta = NULL;
   gamma = NULL;
@@ -273,9 +280,9 @@ static fpt_set SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int 
 
   fpt_precompute(set, 0, alpha, beta, gamma, k_start, kappa);
 
-  free(alpha);
-  free(beta);
-  free(gamma);
+  nfft_free(alpha);
+  nfft_free(beta);
+  nfft_free(gamma);
   alpha = NULL;
   beta = NULL;
   gamma = NULL;
@@ -353,8 +360,8 @@ void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 
   /** Free memory. */
 
-  free(x);
-  free(y);
+  nfft_free(x);
+  nfft_free(y);
   x = NULL;
   y = NULL;
 }
@@ -422,8 +429,8 @@ void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
   }
 
   /** Free memory. */
-  free(x);
-  free(y);
+  nfft_free(x);
+  nfft_free(y);
   x = NULL;
   y = NULL;
 }
@@ -685,9 +692,9 @@ void nfsoft_finalize(nfsoft_plan *plan)
 {
   /* Finalise the nfft plan. */
   nfft_finalize(&plan->p_nfft);
-  free(plan->wig_coeffs);
-  free(plan->cheby);
-  free(plan->aux);
+  nfft_free(plan->wig_coeffs);
+  nfft_free(plan->cheby);
+  nfft_free(plan->aux);
 
   fpt_finalize(plan->internal_fpt_set);
   plan->internal_fpt_set = NULL;
@@ -695,21 +702,21 @@ void nfsoft_finalize(nfsoft_plan *plan)
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
   {
     //fprintf(stderr,"deallocating f_hat\n");
-    free(plan->f_hat);
+    nfft_free(plan->f_hat);
   }
 
   /* De-allocate memory for samples, if neccesary. */
   if (plan->flags & NFSOFT_MALLOC_F)
   {
     //fprintf(stderr,"deallocating f\n");
-    free(plan->f);
+    nfft_free(plan->f);
   }
 
   /* De-allocate memory for nodes, if neccesary. */
   if (plan->flags & NFSOFT_MALLOC_X)
   {
     //fprintf(stderr,"deallocating x\n");
-    free(plan->x);
+    nfft_free(plan->x);
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -24,9 +24,9 @@
 
 #include "nfft3.h"
 #include "infft.h"
-#include "version.h"
+#include "reflect.h"
 
-void X(check_version)(void)
+void X(check_get_version)(void)
 {
     unsigned major, minor, patch;
     char v1[20], v2[20];
@@ -37,4 +37,13 @@ void X(check_version)(void)
     snprintf(v2, sizeof(v2), "%u.%u.%u", NFFT_VERSION_MAJOR, NFFT_VERSION_MINOR, NFFT_VERSION_PATCH);
 
     CU_ASSERT(strncmp(v1, v2, sizeof(v1)) == 0);
+}
+
+void X(check_get_window_name)(void)
+{
+    const char *window_name1 = STRINGIZE(WINDOW_NAME);
+    const char *window_name2 = Y(get_window_name)();
+
+    /* Just compare what's returned by the method against the literal from config.h. */
+    CU_ASSERT(strncmp(window_name1, window_name2, sizeof(window_name1)) == 0);
 }
