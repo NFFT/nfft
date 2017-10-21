@@ -1,4 +1,4 @@
-# Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -19,8 +19,8 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [3])
-m4_define([nfft_version_patch], [2])
+m4_define([nfft_version_minor], [4])
+m4_define([nfft_version_patch], [0])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -29,7 +29,7 @@ m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2015, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2017, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
@@ -77,7 +77,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="2:0:0"
+SHARED_VERSION_INFO="3:0:1"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
@@ -374,6 +374,11 @@ fi
 # option to accept C99
 CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
 
+# use MinGW implementation of printf
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
+fi  
+
 CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
 
 # add Matlab CFLAGS
@@ -543,28 +548,13 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
-# Calculate machine epsilon for selected precision.
-AX_EPS_CALC([$PRECISION])
-
-# Get machine epsilon as per float.h.
+# Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
 AX_EPS_DEF([$PRECISION])
 
-if test "$ax_cv_eps_calc" = "unknown"; then  
-  if test "$ax_cv_eps_def" = "unknown"; then
-    # Calculation has failed and unable to get from float.h.
-    AC_MSG_ERROR([Unable to determine floating-point epsilon.])
-  else
-    # Unable to calculate but have value in float.h.
-    AC_MSG_WARN([Unable to calculate floating-point epsilon. Using pre-defined value from macro.])
-    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
-  fi
+if test "$ax_cv_eps_def" = "unknown"; then  
+  AC_MSG_ERROR([Unable to determine floating-point epsilon.])
 else
-  if test "$ax_cv_eps_calc" != "$ax_cv_eps_def"; then
-    # Calculated epsilon different from float.h.
-    AC_MSG_WARN([Calculated epsilon "$ax_cv_eps_calc" and epsilon from macro "$ax_cv_eps_def" differ. Using calculated value.])
-  fi
-    # Calculated and pre-defined values identical.
-    AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_calc], [Floating-point epsilon.])
+  AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
 fi
 
 # CUnit
@@ -626,7 +616,6 @@ AC_CONFIG_FILES(Makefile \
                 applications/radon/Makefile \
 		applications/radon/inverse_radon.c \
 		applications/radon/radon.c \
-                applications/iterS2/Makefile \
                 matlab/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
@@ -638,5 +627,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfsoft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
+# temproarily removed:
+#  applications/iterS2/Makefile \
 
 AC_OUTPUT

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -30,7 +30,7 @@ extern "C"
 #define NFFT_CONCAT(prefix, name) prefix ## name
 
 /* IMPORTANT: for Windows compilers, you should add a line
- *   #define FFTW_DLL
+ *   #define NFFT_DLL
  * here and in kernel/infft.h if you are compiling/using NFFT as a DLL, in order
  * to do the proper importing/exporting, or alternatively compile with
  * -DNFFT_DLL or the equivalent command-line flag. This is not necessary under
@@ -144,7 +144,7 @@ typedef struct\
   Y(plan) my_fftw_plan2; /**< Backward FFTW plan */\
 \
   R **c_phi_inv; /**< Precomputed data for the diagonal matrix \f$D\f$, size \
-    is \f$N_0+\hdots+N_{d-1}\f$ doubles*/\
+    is \f$N_0+\dots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
   NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\

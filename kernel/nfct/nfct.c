@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -726,7 +726,7 @@ void X(trafo)(X(plan) *ths)
         full_psi__A(ths);*/
 
       /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
-       * \text{ for } j=0,\hdots,M-1 \f$ */
+       * \text{ for } j=0,\dots,M-1 \f$ */
       TIC(2)
       B_A(ths);
       TOC(2)

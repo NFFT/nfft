@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -33,14 +33,15 @@
   #include "mexversion.c"
 #endif
 
-#define PLANS_MAX 100 /* maximum number of plans */
+#define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 40 /* maximum length of command argument */
 
 /* global flags */
 #define FASTSUM_MEX_FIRST_CALL (1U << 0)
-unsigned short gflags = FASTSUM_MEX_FIRST_CALL;
+static unsigned short gflags = FASTSUM_MEX_FIRST_CALL;
 
-fastsum_plan* plans[PLANS_MAX]; /* plans */
+static fastsum_plan** plans = NULL; /* plans */
+static unsigned int plans_num_allocated = 0;
 
 static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 {
@@ -50,10 +51,8 @@ static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
 
 static inline void check_plan(int i)
 {
-  DM(if (i < 0 || i >= PLANS_MAX)
-    mexErrMsgTxt("Invalid plan");)
-  DM(if (plans[i] == 0)
-    mexErrMsgTxt("Plan was not initialized or has already been finalized");)
+  DM(if (i < 0 || i >= plans_num_allocated || plans[i] == 0)
+     mexErrMsgTxt("Plan was not initialized or has already been finalized");)
 }
 
 static inline void check_plan_source_nodes(int i)
@@ -87,9 +86,24 @@ static inline void check_plan_nodes(int i)
 static inline int mkplan()
 {
   int i = 0;
-  while (i < PLANS_MAX && plans[i] != 0) i++;
-  if (i == PLANS_MAX)
-    mexErrMsgTxt("fastsum: Too many plans already allocated.");
+  while (i < plans_num_allocated && plans[i] != 0) i++;
+  if (i == plans_num_allocated)
+  {
+    int l;
+
+    if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
+      mexErrMsgTxt("fastsum: Too many plans already allocated.");
+
+    fastsum_plan** plans_old = plans;
+    plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(fastsum_plan*));
+    for (l = 0; l < plans_num_allocated; l++)
+      plans[l] = plans_old[l];
+    for (l = plans_num_allocated; l < plans_num_allocated+PLANS_START; l++)
+      plans[l] = 0;
+    if (plans_num_allocated > 0)
+      nfft_free(plans_old);
+    plans_num_allocated += PLANS_START;
+  }
   plans[i] = nfft_malloc(sizeof(fastsum_plan));
   return i;
 }
@@ -147,7 +161,7 @@ static void cleanup(void)
 
   if (!(gflags & FASTSUM_MEX_FIRST_CALL))
   {
-    for (i = 0; i < PLANS_MAX; i++)
+    for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
       {
         nfft_free(plans[i]->kernel_param);
@@ -157,8 +171,15 @@ static void cleanup(void)
           fastsum_finalize_target_nodes(plans[i]);
         fastsum_finalize_kernel(plans[i]);
         nfft_free(plans[i]);
-        plans[i] = 0;
+	plans[i] = 0;
       }
+
+    if (plans_num_allocated > 0)
+    {
+      nfft_free(plans);
+      plans = NULL;
+      plans_num_allocated = 0;
+    }
     gflags |= FASTSUM_MEX_FIRST_CALL;
   }
 }
@@ -173,13 +194,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexEvalString("fft([1,2,3,4]);");
 
     nfft_mex_install_mem_hooks();
-
-    /* plan pointers to zeros */
-    {
-      int i;
-      for (i = 0; i < PLANS_MAX; i++)
-        plans[i] = 0;
-    }
 
     mexAtExit(cleanup);
     gflags &= ~FASTSUM_MEX_FIRST_CALL;
@@ -544,7 +558,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     const int d = plans[i]->d;
-    size_t dims[d];
+    mwSize dims[d];
     int n_total = 1;
     for(int j=0; j<d; j++)
     {

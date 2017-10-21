@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -211,7 +211,7 @@ static R trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(44.0) * NFFT_EPSILON;
+  return K(48.0) * NFFT_EPSILON;
 }
 
 static R err_trafo(X(plan) *p)

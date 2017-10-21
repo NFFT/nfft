@@ -119,7 +119,12 @@ examples/nsfft/nsfft_test
 examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
-doc
+doc/html
+doc/latex
+doc/doxygen_sqlite3.db
+doc/nfft.pdf
+doc/nfft.tag
 tests/checkall
 *.trs
 CUnitAutomated-Results.xml
+CUnitAutomated_threads-Results.xml

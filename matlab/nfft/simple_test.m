@@ -1,8 +1,8 @@
 %SIMPLE_TEST Example program: Basic usage principles
 %
-%   Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+%   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
-% Copyright (c) 2002, 2016 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -18,7 +18,7 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-disp(sprintf('Number of threads: %d\n', nfft_get_num_threads()));
+fprintf('Number of threads: %d\n\n', nfft_get_num_threads());
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('A simple one dimensional example');
 
@@ -41,7 +41,7 @@ nfft_set_x(plan,x);
 nfft_precompute_psi(plan);
 
 % Fourier coefficients
-f_hat = rand(N,1)+i*rand(N,1);
+f_hat = rand(N,1)+1i*rand(N,1);
 
 % Set Fourier coefficients.
 nfft_set_f_hat(plan,double(f_hat));
@@ -62,7 +62,7 @@ error_vector=f-f2
 error_linfl1=norm(f-f2,inf)/norm(f_hat,1)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(sprintf('\nA two dimensional example'));
+fprintf('\nA two dimensional example, m=2\n');
 d=2;
 for logN=3:10
   N=2^logN;
@@ -71,7 +71,7 @@ for logN=3:10
   plan = nfft_init_guru(d,N,N,M,2*N,2*N,2,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE);
   nfft_set_x(plan,x);
   nfft_precompute_psi(plan);
-  f_hat = rand(N,N)+i*rand(N,N);
+  f_hat = rand(N,N)+1i*rand(N,N);
   nfft_set_f_hat(plan,double(f_hat(:)));
   tic
   nfft_trafo(plan);
@@ -87,13 +87,13 @@ for logN=3:10
   else
     t2=inf;
     e=nan;
-  end;
+  end
   nfft_finalize(plan);
-  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
-end;
+  fprintf('t1=%1.2e, t2=%1.2e, e=%1.2e\n',t1,t2,e);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-disp(sprintf('\nAn asymmetric three dimensional example'));
+fprintf('\nAn asymmetric three dimensional example, m=2\n');
 d=3;
 for logN=3:10
   N1=2^logN;   n1=2*N1;
@@ -104,7 +104,7 @@ for logN=3:10
   plan = nfft_init_guru(d,N1,N2,N3,M,n1,n2,n3,2,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE);
   nfft_set_x(plan,x);
   nfft_precompute_psi(plan);
-  f_hat = rand(N1,N2,N3)+i*rand(N1,N2,N3);
+  f_hat = rand(N1,N2,N3)+1i*rand(N1,N2,N3);
   nfft_set_f_hat(plan,double(f_hat(:)));
   tic
   nfft_trafo(plan);
@@ -120,7 +120,7 @@ for logN=3:10
   else
     t2=inf;
     e=nan;
-  end;
+  end
   nfft_finalize(plan);
-  disp(sprintf('t1=%1.2e, t2=%1.2e, e=%1.2e',t1,t2,e));
-end;
+  fprintf('t1=%1.2e, t2=%1.2e, e=%1.2e\n',t1,t2,e);
+end
