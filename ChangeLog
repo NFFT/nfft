@@ -1,28 +1,35 @@
-This file contains the version history for NFFT 3.x.x. 
+This file contains the version history for NFFT 3.x.x.
 
 Changes in version 3.4.0:
 
     Bugfixes
-    - Use nfft_free in nfsoft.c.
-    - Replace %td in format strings with macro __D__ for Windows compatibility.
-    - Support fftw3 compatible libraries that do not require -l linker flags, 
-        e.g. Intel MKL.
+    - #29 NFSOFT crashes due to false memory free.
+    - #32 Support fftw3 compatible libraries that do not require -l linker flags,
+          e.g. Intel MKL.
+    - #31 Maximum number of plans too low.
+    - #34 nfft_adjoint() crash with small N_total.
+    - #50 Build of Octave interface fails in fastsummex bug.
+    - #54 Remove defunct iterS2 application.
+    - #55 Use MinGW implementation of printf.
+    - #57 Internal compiler error with GCC 7 in fastsum.
+    - #59 Replace %td in format strings with macro __D__ for Windows
+          compatibility.
 
     Enhancements
-    - #29 Calculate machine epsilon in configure and prefer over definition in 
-        float.h.
+    - #29 Change definition of NFFT_EPSILON to 2^(1-MANT_DIG) to allow for
+          better estimation of error bounds when using long double.
     - #30 Support cross-compiling (thanks GitHub user xantares).
     - #35 Add API to query window function name.
-    - Use more efficient method to find log base 2 of an integer.
     - #39 Add Matlab mex interface for fastsum application.
     - #40 Add Matlab mex interface for NFCT and NFST modules.
+    - #58 Use more efficient method to find log base 2 of an integer.
 
 Changes in version 3.3.2:
 
     Bugfixes
     - #20 `make check` crashes on windows.
     - #24 Testsuite failures on selected architectures with 3.3.1.
-    
+
     Enhancements
     - #25 Add support for GNU Octave via MEX interface.
     - #27 Enable query of versioning information.
@@ -64,13 +71,13 @@ Changes in version 3.2.1:
   - Added missing files of new nfft MATLAB (class) interface to release.
 
 Changes in version 3.2.0:
-  - Added support for OpenMP. To activate, use the configure script with the 
+  - Added support for OpenMP. To activate, use the configure script with the
     --enable-openmp option.
   - Added ticks.h from FFTW to leverage CPU cycle counters. If cycle counters
-    are available, the configure script will try to determine the number of 
+    are available, the configure script will try to determine the number of
     ticks per second. If successful, example programs measure times in seconds.
-    Otherwise, example programs will output raw cycle counter differences in 
-    arbitrary units. If cycle counters are not available, results of time 
+    Otherwise, example programs will output raw cycle counter differences in
+    arbitrary units. If cycle counters are not available, results of time
     measurements are undefined.
   - Renamed functions of direct (non-fast) algorithms to
     <function name of fast algorithm>_direct, e.g. the function name for the
@@ -79,24 +86,24 @@ Changes in version 3.2.0:
 
 Changes in version 3.1.4:
   - Added pkg-config file (thanks Gert Wollny)
-  - Headers include/nfft3util.h, applications/fastsum/fastsum.h, and 
+  - Headers include/nfft3util.h, applications/fastsum/fastsum.h, and
     applications/fastsum/kernels.h can now be included by C++ compilers.
   - Fixed an error that occured when trying to create symbolic links to Matlab mex
     files during installation.
   - All programs from the application and examples subdirectories are no longer
-    installed. The same holds for the Matlab code from the matlab subdirectory. 
+    installed. The same holds for the Matlab code from the matlab subdirectory.
 
 Changes in version 3.1.3:
   - Fixed some issues that can cause C++ compilers to fail. Thanks to Romain Bossart.
-  - Fixed an error that caused linking against FFTW while checking compiler 
-    characteristics in the configure script. This only affected installations where 
+  - Fixed an error that caused linking against FFTW while checking compiler
+    characteristics in the configure script. This only affected installations where
     FFTW had been installed in a custom location.
-  - Doxygen generated documentation is now only deleted if the target 
-    maintainer-clean is used. The documentation is no longer deleted if the user 
+  - Doxygen generated documentation is now only deleted if the target
+    maintainer-clean is used. The documentation is no longer deleted if the user
     invokes the usual clean target.
 
 Changes in version 3.1.2:
-  - Fixed a bug in fpt_precompute() that caused excessive stabilization and 
+  - Fixed a bug in fpt_precompute() that caused excessive stabilization and
     incorrect results.
   - Fixed three bugs in the nfft: window function defines are moved to the
     internal header infft.h, a larger lookup table is used for PRE_LIN_PSI, and
@@ -106,13 +113,13 @@ Changes in version 3.1.1:
   - Added a workaround for an internal compiler error occuring with gcc 4.3.2.
 
 Changes in version 3.1.0:
-  - The FPT example program, that is, examples/fpt/simple_test has been 
-    modified to not require the NFCT module anymore. This solves the problem 
-    that NFFT won't compile when the FPT module has been switched on while the 
+  - The FPT example program, that is, examples/fpt/simple_test has been
+    modified to not require the NFCT module anymore. This solves the problem
+    that NFFT won't compile when the FPT module has been switched on while the
     NFCT module is swithced off.
 
 Changes in version 3.1.0:
-  - A module, called nfsoft, for fast Fourier transforms on the rotation group 
+  - A module, called nfsoft, for fast Fourier transforms on the rotation group
     SO(3) has been added.
   - It is now possible to configure the build process so that only specific
     modules are compiled and installed. Invoke the configure script with option
