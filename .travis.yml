@@ -27,32 +27,13 @@ matrix:
   include:
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
-      addons:
-        apt:
-          packages:
-          - libfftw3-dev
-          - libcunit1-dev
-          - doxygen
-	  - liboctave-dev
-  include:
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "liboctave-dev"] } }
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=dist
-      addons:
-        apt:
-          packages:
-          - libfftw3-dev
-          - libcunit1-dev
-          - doxygen
-	  - doxygen-latex
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= DIST=dist
-      addons:
-        apt:
-          packages:
-          - libfftw3-dev
-          - libcunit1-dev
-          - doxygen
-	  - doxygen-latex
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
 before_script:
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
