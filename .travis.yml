@@ -9,7 +9,6 @@ addons:
     packages:
     - libfftw3-dev
     - libcunit1-dev
-    - doxygen
 env:
 - WINDOW=kaiserbessel PRECISION=
 - WINDOW=gaussian PRECISION=
@@ -27,7 +26,10 @@ matrix:
   include:
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
-      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "liboctave-dev"] } }
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=dist
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
