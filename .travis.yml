@@ -9,7 +9,6 @@ addons:
     packages:
     - libfftw3-dev
     - libcunit1-dev
-    - doxygen
 env:
 - WINDOW=kaiserbessel PRECISION=
 - WINDOW=gaussian PRECISION=
@@ -23,7 +22,20 @@ env:
 - WINDOW=gaussian PRECISION=--enable-long-double
 - WINDOW=bspline PRECISION=--enable-long-double
 - WINDOW=sinc PRECISION=--enable-long-double
-- WINDOW=kaiserbessel PRECISION= DIST=dist
+matrix:
+  include:
+    - compiler: gcc
+      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
+    - compiler: gcc
+      env: WINDOW=kaiserbessel PRECISION= DIST=dist
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION= DIST=dist
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
 before_script:
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
@@ -34,7 +46,9 @@ before_script:
     fi
   fi
 script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
-  $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi) && make
+  $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi)
+  $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
+  && make
   && make check && make $DIST
 after_failure: cat config.log
 notifications:
