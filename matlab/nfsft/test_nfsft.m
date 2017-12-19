@@ -18,7 +18,7 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 % maximum degree (bandwidth) of spherical harmonics expansions
-N = 512;
+N = 32;
 
 % Gauss-Legendre interpolatory quadrature nodes for N. See gl.m
 [X,W] = gl(N);
@@ -34,9 +34,6 @@ p.x=X;
 
 % Fourier coefficients
 fh = f_hat(rand((N+1)*(N+1),1));
-for i=1:N/2
-    fh(2*i-1,-2*i+1:2*i-1)=fh(2*i-1,-2*i+1:2*i-1)/2;
-end
 
 % Set Fourier coefficients.
 p.fhat=fh;
