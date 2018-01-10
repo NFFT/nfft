@@ -6,16 +6,14 @@
 # The Matlab path should not contain spaces!
 # 
 # Example call:
-# ./nfft-build-dll.sh --nfft=3.4.0 --fftw=3.3.7 --octave=4.2.1 --matlab=/c/path/to/matlab
+# ./nfft-build-dll.sh --fftw=3.3.7 --octave=4.2.1 --matlab=/c/path/to/matlab
 # 
 # WARNING: This script downloads and compiles FFTW and downloads GCC and Octave (requires ~ 2GB).
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
-set -e
-set -x
+set -ex
 
 # default values (to be overwritten if respective parameters are set)
-NFFTVERSION="3.4.0";
 FFTWVERSION="3.3.7"
 OCTAVEVERSION='4.2.1'
 
@@ -145,38 +143,42 @@ Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 
 # Build FFTW
-rm -rf "fftw-$FFTWVERSION"
-wget http://fftw.org/fftw-$FFTWVERSION.tar.gz
-tar -zxf fftw-$FFTWVERSION.tar.gz
-rm fftw-$FFTWVERSION.tar.gz
-cd "$FFTWDIR"
+if [ ! -f "$FFTWDIR/build-success" ]; then
+  rm -rf "$FFTWDIR"
+  wget http://fftw.org/fftw-$FFTWVERSION.tar.gz
+  tar -zxf fftw-$FFTWVERSION.tar.gz
+  rm fftw-$FFTWVERSION.tar.gz
+  cd "$FFTWDIR"
 
-mkdir build build-static build-threads build-threads-static
-FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --with-incoming-stack-boundary=2 --disable-fortran"
+  mkdir build build-static build-threads build-threads-static
+  FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --with-incoming-stack-boundary=2 --disable-fortran"
 
-cd build-threads
-../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared --enable-threads --with-combined-threads
-make -j4
-cd ../build-threads-static
-../configure $FFTWFLAGS --host=x86_64-w64-mingw32.static --disable-fortran --enable-static --disable-shared --enable-threads --with-combined-threads
-make -j4
-cd ../build
-../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared
-make -j4
-cd ../build-static
-../configure $FFTWFLAGS --host=x86_64-w64-mingw32.static --enable-static --disable-shared
-make -j4
+  cd build-threads
+  ../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared --enable-threads --with-combined-threads
+  make -j4
+  cd ../build-threads-static
+  ../configure $FFTWFLAGS --host=x86_64-w64-mingw32.static --disable-fortran --enable-static --disable-shared --enable-threads --with-combined-threads
+  make -j4
+  cd ../build
+  ../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared
+  make -j4
+  cd ../build-static
+  ../configure $FFTWFLAGS --host=x86_64-w64-mingw32.static --enable-static --disable-shared
+  make -j4
+  touch "$FFTWDIR/build-success"
+fi
 
 
 # Get Octave
 cd "$HOMEDIR"
-rm -f "octave-$OCTAVEVERSION-w64.zip"
-rm -f -r "octave-$OCTAVEVERSION"
-wget https://ftp.gnu.org/gnu/octave/windows/octave-$OCTAVEVERSION-w64.zip
-unzip -q octave-$OCTAVEVERSION-w64.zip
-rm octave-$OCTAVEVERSION-w64.zip
 OCTAVEDIR="$HOMEDIR/octave-$OCTAVEVERSION"
-OCTLIBDIR=$($OCTAVEDIR/bin/octave-config -p OCTLIBDIR)
+if [ ! -d "$OCTAVEDIR" ]; then
+  rm -f "octave-$OCTAVEVERSION-w64.zip"
+  wget https://ftp.gnu.org/gnu/octave/windows/octave-$OCTAVEVERSION-w64.zip
+  unzip -q octave-$OCTAVEVERSION-w64.zip
+  rm "octave-$OCTAVEVERSION-w64.zip"
+fi
+OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
 rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
 # Build NFFT
@@ -262,12 +264,12 @@ zip -r -q octave-$DIR.zip octave-$DIR
 
 # Create Matlab release
 if [ -n "$MATLABDIR" ]; then
-  ../configure --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab=$MATLABDIR --with-gcc-arch=core2 --disable-static --enable-shared
+  ../configure --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
   do
     cd matlab/"$LIB"
-    gcc -shared  .libs/lib"$LIB"_la-"$LIB"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a -Wl,--no-whole-archive  -L$MATLABDIR/bin/win64 -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=core2 -o .libs/lib"$LIB".mexw64 -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB".dll.a -static-libgcc -Wl,-Bstatic -lwinpthread $OMPLIBS
+    gcc -shared  .libs/lib"$LIB"_la-"$LIB"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a -Wl,--no-whole-archive  -L"$MATLABDIR"/bin/win64 -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=core2 -o .libs/lib"$LIB".mexw64 -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB".dll.a -static-libgcc -Wl,-Bstatic -lwinpthread $OMPLIBS
     cp .libs/lib"$LIB".mexw64 "$LIB"mex.mexw64
     cd ../..
   done
@@ -283,7 +285,6 @@ if [ -n "$MATLABDIR" ]; then
     cd "$BUILDDIR"
   done
 fi
-
 
 cp "$NFFTDIR"/COPYING matlab-$DIR/COPYING
 echo 'NFFT - Nonequispaced FFT
