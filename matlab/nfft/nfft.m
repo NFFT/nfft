@@ -56,24 +56,24 @@ function h=nfft(d,N,M,varargin)
 % h=nfft(d,N,M,varargin) for use of nfft_init_guru
 % For example
 % h=nfft(1,N,M,n,8,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE)     for d=1, m=8
-% h=nfft(2,N,M,n,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=2, m=8
-% h=nfft(3,N,M,n,n,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=3, m=8
-% with n=2^(ceil(log(max(N))/log(2))+1)
-% Be careful: There is no error handling with using nfft_init_guru.
-% Incorrect inputs can cause a Matlab crash!
+% h=nfft(2,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=2, m=8
+% h=nfft(3,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=3, m=8
+% with n=2.^(ceil(log(N)/log(2))+1)
 %
 % INPUT
 %   d         spatial dimension
-%   N         numbers of nodes in each direction (column vector of length d with positive even integers)
+%   N         bandwidth in each direction (column vector of length d with positive even integers)
 %   M         number of sampling points (positive integer)
 %   varargin  parameters for use of nfft_init_guru (see documentation of NFFT for more details)
 %
 % OUTPUT
 %   h   object of class type nfft
 	h.d=d;
-	if length(N) ~= d
-		error('The bandwidth vector N must be an integer vector of length %u for spatial dimension d=%u',d,d);
-	end
+
+  if length(N) ~= d
+    error('The bandwidth vector N must be an integer vector of length %u for spatial dimension d=%u',d,d);
+  end
+
 	h.N=N;
 	h.M=M;
 
@@ -82,36 +82,66 @@ function h=nfft(d,N,M,varargin)
 	elseif( 3==nargin )
 		switch d
 		case 1
-			h.plan=nfftmex('init_1d',N,M);
+			h.plan=nfftmex('init_1d',h.N,h.M);
 			h.plan_is_set=true;
 		case 2
-			h.plan=nfftmex('init_2d',N(1),N(2),M);
+			h.plan=nfftmex('init_2d',h.N(1),h.N(2),h.M);
 			h.plan_is_set=true;
 		case 3
-			h.plan=nfftmex('init_3d',N(1),N(2),N(3),M);
+			h.plan=nfftmex('init_3d',h.N(1),h.N(2),h.N(3),h.M);
 			h.plan_is_set=true;
 		otherwise
-			h.plan=nfftmex('init',N,M);
+			h.plan=nfftmex('init',h.N,h.M);
 			h.plan_is_set=true;
 		end %switch
 	else % nfft_init_guru
-		args_cell = cell(1,d+2);
+		args_cell = cell(1,2*d+5);
 		args_cell{1,1} = d;
-		for t=1:d
-		  args_cell{1,1+t} = N(t);
-		end
-		args_cell{1,2+d} = M;
-		if ~isempty(varargin) && (length(varargin{1}) > 1) % support for n (oversampled N) as vector
-			n_array = varargin{1};
-			n_array = n_array(:)';
-			if length(varargin) > 1
-				h.plan=nfftmex('init_guru',[args_cell,num2cell(n_array),varargin{2:end}]);
-			else
-				h.plan=nfftmex('init_guru',[args_cell,num2cell(n_array)]);
-			end
-		else % n(1), ..., n(d) (oversampled N) as scalars
-			h.plan=nfftmex('init_guru',[args_cell,varargin]);
-		end
+		args_cell(1,2:1+d) = num2cell(h.N);
+		args_cell{1,2+d} = h.M;
+
+    if ~isempty(varargin) % oversampled FFT length n
+      if length(varargin{1}) == d % support for n (oversampled N) as vector
+        n_array = varargin{1};
+        n_array = double(n_array(:)');
+        args_cell_n_m_flags = [num2cell(n_array),varargin{2:end}];
+      elseif length(varargin{1}) == 1 % n(1),...,n(d) (oversampled N) as scalars
+        args_cell_n_m_flags = varargin;
+      else
+        error('Invalid parameter n');
+      end
+
+      if length(args_cell_n_m_flags) < d
+        error('Oversampled FFT length n must be vector of length d');
+      end
+
+      args_cell(1,3+d:2+2*d) = num2cell(double([args_cell_n_m_flags{1,1:d}]));
+    else
+      args_cell(1,3+d:2+2*d) = num2cell(2.^(ceil(log(h.N)/log(2))+1));
+    end
+
+    if length(args_cell_n_m_flags) >= d+1 % window cut-off parameter m
+      args_cell{3+2*d} = double(args_cell_n_m_flags{d+1});
+    else
+      args_cell{3+2*d} = nfftmex('get_default_window_cut_off_m');
+    end
+
+    if length(args_cell_n_m_flags) >= d+2 % nfft flags
+      args_cell{4+2*d} = double(args_cell_n_m_flags{d+2});
+    else
+      args_cell{4+2*d} = bitor(PRE_PHI_HUT,PRE_PSI);
+      if d > 1
+        args_cell{4+2*d} = bitor(args_cell{4+2*d},NFFT_OMP_BLOCKWISE_ADJOINT);
+      end
+    end
+
+    if length(args_cell_n_m_flags) >= d+3 % fftw flags
+      args_cell{5+2*d} = double(args_cell_n_m_flags{d+3});
+    else
+      args_cell{5+2*d} = bitor(FFT_OUT_OF_PLACE,FFTW_ESTIMATE);
+    end
+
+    h.plan = nfftmex('init_guru',args_cell);
 		h.plan_is_set=true;
 	end %if
 end %function
@@ -129,7 +159,7 @@ function set.d(h,d)
 	if( isempty(d) || (d~=round(d)) || (d<1) )
 		error('The spatial dimension d has to be a natural number.');
 	else
-		h.d=d;
+		h.d = double(d);
 	end %if
 end %function
 
@@ -138,7 +168,7 @@ function set.N(h,N)
 	if( isempty(N) || size(N,1)~=1 || ~isnumeric(N) || ~isreal(N) || (sum(mod(N,2))>0) || ~prod(N>0))
 		error('The entries of the bandwidth vector N must be even positive integers.');
 	end
-	h.N = N;
+	h.N = double(N);
 end
 
 function set.M(h,M)
@@ -147,7 +177,7 @@ function set.M(h,M)
 	elseif( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
 		error('The number of sampling points M has to be an positive integer.');
 	else
-		h.M=M;
+		h.M = double(M);
 	end %if
 end %function
 
@@ -163,8 +193,8 @@ function set.x(h,x)
 	%	error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
 		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
-	end
-
+  end
+  x = double(x);
 	x=mod(x+0.5,1)-0.5;
 	nfftmex('set_x',h.plan,x.');
 	h.x_is_set=true;

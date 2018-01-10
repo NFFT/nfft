@@ -46,7 +46,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
   AC_ARG_ENABLE(matlab-argchecks,
     [AC_HELP_STRING([--enable-matlab-argchecks],
-      [Compile Matlab interface with argument checks [default=yes]])],
+      [Compile Matlab interface with argument checks (recommended) [default=yes]])],
       [ok="$enableval"],
       [ok="yes"])
 
