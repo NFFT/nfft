@@ -35,12 +35,7 @@ case '()'
   end
 
   if (length(ind1) == 1 && min(ind2) >= -ind1 && max(ind2) <= ind1)
-    if (ind1 == 0)
-      o = 0;
-    else
-      o = ind1^2;
-    end
-    p.f_hat(o+ind1+1+ind2) = v;
+    p.f_hat(ind1^2+ind1+1+ind2) = v;
   elseif (length(ind2) == 1 && min(ind1) >= abs(ind2))
     ind = zeros(size(ind1));
     for k = 1:length(ind1)
