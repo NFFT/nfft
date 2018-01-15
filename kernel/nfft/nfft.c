@@ -5501,8 +5501,8 @@ void X(trafo)(X(plan) *ths)
   switch(ths->d)
   {
     case 1: X(trafo_1d)(ths); break;
-//    case 2: X(trafo_2d)(ths); break;
-//    case 3: X(trafo_3d)(ths); break;
+    case 2: X(trafo_2d)(ths); break;
+    case 3: X(trafo_3d)(ths); break;
     default:
     {
       /* use ths->my_fftw_plan1 */
@@ -5549,8 +5549,8 @@ void X(adjoint)(X(plan) *ths)
   switch(ths->d)
   {
     case 1: X(adjoint_1d)(ths); break;
-//    case 2: X(adjoint_2d)(ths); break;
-//    case 3: X(adjoint_3d)(ths); break;
+    case 2: X(adjoint_2d)(ths); break;
+    case 3: X(adjoint_3d)(ths); break;
     default:
     {
       /* use ths->my_fftw_plan2 */
