@@ -625,6 +625,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/fastsum/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
+                matlab/tests/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
