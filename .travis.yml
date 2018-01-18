@@ -55,7 +55,7 @@ script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-
   $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
   && make
   && make check && make $DIST
-after_failure: cat config.log && cat tests/test-suite.log && if test "$BUILD_OCTAVE" = "1"; then cat matlab/tests/test-suite.log; fi
+after_failure: cat config.log && cat tests/test-suite.log && cat /proc/cpuinfo && if test "$BUILD_OCTAVE" = "1"; then cat matlab/tests/test-suite.log; fi
 notifications:
   email: false
 before_deploy:
