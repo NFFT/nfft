@@ -25,11 +25,11 @@ env:
 matrix:
   include:
     - compiler: gcc
-      sudo: required
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - compiler: clang
-      sudo: required
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=dist
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
@@ -37,19 +37,14 @@ matrix:
       env: WINDOW=kaiserbessel PRECISION= DIST=dist
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex"] } }
 before_script:
-  if [ "$BUILD_OCTAVE" = "1" ]; then
-    sudo add-apt-repository -y ppa:octave/stable;
-    sudo apt-get update;
-    sudo apt-get install -y libfftw3-dev libcunit1-dev liboctave-dev;
-  fi;
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
     a=( ${NFFT_TRAVIS_TAG//./ } );
     if [ ${#a[@]} -gt 2 ]; then
       sed -e "s/\(m4_define(\[nfft_version_major\], \[\).*\(\])\)/\1${a[0]}\2/" -e "s/\(m4_define(\[nfft_version_minor\], \[\).*\(\])\)/\1${a[1]}\2/" -e "s/\(m4_define(\[nfft_version_patch\], \[\).*\(\])\)/\1${a[2]}\2/" -e "s/\(m4_define(\[nfft_version_type\], \[\).*\(\])\)/\1${a[3]}\2/" configure.ac > configure.ac.modified;
       mv configure.ac.modified configure.ac;
-    fi;
-  fi;
+    fi
+  fi
 script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
   $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi)
   $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
