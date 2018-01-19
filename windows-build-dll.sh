@@ -47,7 +47,9 @@ done
 # Install required packages
 pacman -S --needed autoconf perl libtool automake mingw-w64-x86_64-gcc make tar zip unzip wget dos2unix
 
-HOMEDIR=$(pwd)
+NFFTDIR=$(pwd)
+HOMEDIR="$NFFTDIR"/windows-build-dll
+mkdir -p "$HOMEDIR"
 FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
 GCCVERSION=$(gcc -dumpversion)
 
@@ -87,11 +89,11 @@ if [ ! -d "$OCTAVEDIR" ]; then
   unzip -q "octave-$OCTAVEVERSION-w64.zip"
   rm "octave-$OCTAVEVERSION-w64.zip"
 fi
-OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
+#OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
+OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
 rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
 # Build NFFT
-NFFTDIR="$HOMEDIR"
 READMECONTENT="
 $(sed '/Directory structure/Q' $NFFTDIR/README.md) 
 
@@ -100,6 +102,7 @@ FFTW
 The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology"
+cd "$NFFTDIR"
 ./bootstrap.sh
 make distclean || true
 
@@ -107,25 +110,25 @@ for OMPYN in 0 1
 do
 if [ $OMPYN = 1 ]; then
   FFTWBUILDDIR="$FFTWDIR/build-threads"
-  BUILDDIR="$NFFTDIR/build-openmp"
+  NFFTBUILDDIR="$HOMEDIR/build-openmp"
   OMPFLAG="--enable-openmp"
   OMPLIBS="-fopenmp -static-libgcc"
   THREADSSUFFIX="_threads"
   OMPSUFFIX="-openmp"
 else
   FFTWBUILDDIR="$FFTWDIR/build"
-  BUILDDIR="$NFFTDIR/build"
+  NFFTBUILDDIR="$HOMEDIR/build"
   OMPFLAG=""
   OMPLIBS=""
   THREADSSUFFIX=""
   OMPSUFFIX=""
 fi
 
-rm -f -r "$BUILDDIR"
-mkdir "$BUILDDIR"
-cd "$BUILDDIR"
+rm -f -r "$NFFTBUILDDIR"
+mkdir "$NFFTBUILDDIR"
+cd "$NFFTBUILDDIR"
 
-../configure --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
 make
 
 
@@ -162,7 +165,7 @@ do
   cd "octave-$DIR/$SUBDIR"
   rm -f -r .deps .libs
   rm -f Makefile* README *.lo *.la *.c *.h
-  cd "$BUILDDIR"
+  cd "$NFFTBUILDDIR"
 done
 
 cp "$NFFTDIR"/COPYING octave-"$DIR"/COPYING
@@ -175,7 +178,7 @@ zip -r -q "octave-$DIR.zip" "octave-$DIR"
 
 # Create Matlab release
 if [ -n "$MATLABDIR" ]; then
-  ../configure --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
   do
@@ -193,7 +196,7 @@ if [ -n "$MATLABDIR" ]; then
     cd matlab-"$DIR"/$SUBDIR
     rm -f -r .deps .libs
     rm -f Makefile* README *.lo *.la *.c *.h
-    cd "$BUILDDIR"
+    cd "$NFFTBUILDDIR"
   done
 
 cp "$NFFTDIR"/COPYING matlab-"$DIR"/COPYING
