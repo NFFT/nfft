@@ -626,6 +626,8 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 matlab/tests/Makefile \
+		matlab/tests/check_nfft_matlab.sh \
+		matlab/tests/check_nfft_octave.sh \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
