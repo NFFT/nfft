@@ -47,9 +47,11 @@ done
 # Install required packages
 pacman -S --needed autoconf perl libtool automake mingw-w64-x86_64-gcc make tar zip unzip wget dos2unix
 
-NFFTDIR=$(pwd)
+#NFFTDIR=$(pwd)
+NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOMEDIR="$NFFTDIR"/windows-build-dll
 mkdir -p "$HOMEDIR"
+cd "$HOMEDIR"
 FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
 GCCVERSION=$(gcc -dumpversion)
 
@@ -105,7 +107,7 @@ Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology"
 cd "$NFFTDIR"
 ./bootstrap.sh
 make distclean || true
-
+sss
 for OMPYN in 0 1
 do
 if [ $OMPYN = 1 ]; then
@@ -156,28 +158,9 @@ cp "$NFFTDIR"/COPYING "$DIR"-dll64/COPYING
 zip -r -q "$DIR"-dll64.zip "$DIR"-dll64
 
 
-# Create Octave release
-cp --recursive matlab octave-"$DIR"
-cp --recursive --update ../matlab/* octave-"$DIR"
-
-for SUBDIR in . nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst
-do
-  cd "octave-$DIR/$SUBDIR"
-  rm -f -r .deps .libs
-  rm -f Makefile* README *.lo *.la *.c *.h
-  cd "$NFFTBUILDDIR"
-done
-
-cp "$NFFTDIR"/COPYING octave-"$DIR"/COPYING
-echo 'This archive contains the Octave interface of NFFT' $NFFTVERSION 'compiled for 64-bit Windows
-using GCC' $GCCVERSION 'x86_64-w64-mingw32 and Octave '$OCTAVEVERSION'.
-' "$READMECONTENT" > octave-"$DIR"/readme-octave.txt
-unix2dos octave-"$DIR"/readme-octave.txt
-zip -r -q "octave-$DIR.zip" "octave-$DIR"
-
-
-# Create Matlab release
+# Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
+  cd "$NFFTBUILDDIR"
   "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
@@ -187,24 +170,26 @@ if [ -n "$MATLABDIR" ]; then
     cp .libs/lib"$LIB".mexw64 "$LIB"mex.mexw64
     cd ../..
   done
+fi
 
-  cp --recursive matlab "matlab-$DIR"
-  cp --recursive --update ../matlab/* "matlab-$DIR"
+# Create Matlab/Octave release
+cp -r matlab "matlab-$DIR"
+cp -r --update "$NFFTDIR"/matlab/* "matlab-$DIR"
 
-  for SUBDIR in . nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst
+for SUBDIR in . nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst
   do
-    cd matlab-"$DIR"/$SUBDIR
-    rm -f -r .deps .libs
-    rm -f Makefile* README *.lo *.la *.c *.h
-    cd "$NFFTBUILDDIR"
-  done
+  cd "$NFFTBUILDDIR"/matlab-"$DIR"/$SUBDIR
+  rm -f -r .deps .libs
+  rm -f Makefile* README *.lo *.la *.c *.h
+done
+rm -f -r "$NFFTBUILDDIR"/matlab-"$DIR"/tests
 
+cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING matlab-"$DIR"/COPYING
-echo 'This archive contains the Matlab interface of NFFT' $NFFTVERSION 'compiled for 64-bit Windows
-using GCC' $GCCVERSION 'x86_64-w64-mingw32 and FFTW' $FFTWVERSION'.
+echo 'This archive contains the Matlab and Octave interface of NFFT' $NFFTVERSION 'compiled for
+64-bit Windows using GCC' $GCCVERSION 'x86_64-w64-mingw32 and FFTW' $FFTWVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > matlab-"$DIR"/readme-matlab.txt
 unix2dos matlab-"$DIR"/readme-matlab.txt
 zip -r -q matlab-"$DIR".zip matlab-"$DIR"
-fi
 
 done
