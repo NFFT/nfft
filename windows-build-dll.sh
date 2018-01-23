@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script builds statically linked DLL and Octave / Matlab interfaces for Windows.
 # It is meant to be called with MSYS2-MinGW64.
@@ -45,7 +45,7 @@ while true ; do
 done
 
 # Install required packages
-pacman -S --needed autoconf perl libtool automake mingw-w64-x86_64-gcc make tar zip unzip wget dos2unix
+pacman -S --needed autoconf perl libtool automake mingw-w64-x86_64-gcc make mingw-w64-x86_64-cunit mingw-w64-x86_64-ncurses tar zip unzip wget dos2unix
 
 #NFFTDIR=$(pwd)
 NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -107,7 +107,7 @@ Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology"
 cd "$NFFTDIR"
 ./bootstrap.sh
 make distclean || true
-sss
+
 for OMPYN in 0 1
 do
 if [ $OMPYN = 1 ]; then
@@ -132,7 +132,7 @@ cd "$NFFTBUILDDIR"
 
 "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
 make
-
+#make check
 
 # Create DLL release
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
@@ -163,6 +163,7 @@ if [ -n "$MATLABDIR" ]; then
   cd "$NFFTBUILDDIR"
   "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
+  #make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
   do
     cd matlab/"$LIB"
@@ -173,16 +174,14 @@ if [ -n "$MATLABDIR" ]; then
 fi
 
 # Create Matlab/Octave release
-cp -r matlab "matlab-$DIR"
-cp -r --update "$NFFTDIR"/matlab/* "matlab-$DIR"
-
-for SUBDIR in . nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst
   do
-  cd "$NFFTBUILDDIR"/matlab-"$DIR"/$SUBDIR
-  rm -f -r .deps .libs
-  rm -f Makefile* README *.lo *.la *.c *.h
+  mkdir -p matlab-"$DIR"/$SUBDIR
+  cp -f -r matlab/$SUBDIR/*.mex* matlab-"$DIR"/$SUBDIR/
+  cp -r "$NFFTDIR"/matlab/$SUBDIR/*.m matlab-"$DIR"/$SUBDIR/
 done
-rm -f -r "$NFFTBUILDDIR"/matlab-"$DIR"/tests
+mkdir -p matlab-"$DIR"/nfsft/@f_hat
+cp -r "$NFFTDIR"/matlab/nfsft/@f_hat/*.m matlab-"$DIR"/nfsft/@f_hat
 
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING matlab-"$DIR"/COPYING
