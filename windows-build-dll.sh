@@ -132,7 +132,7 @@ cd "$NFFTBUILDDIR"
 
 "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
 make
-#make check
+make check
 
 # Create DLL release
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
@@ -163,7 +163,7 @@ if [ -n "$MATLABDIR" ]; then
   cd "$NFFTBUILDDIR"
   "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
-  #make check
+  make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
   do
     cd matlab/"$LIB"
