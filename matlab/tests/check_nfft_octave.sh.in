@@ -1,3 +1,3 @@
 #!/bin/sh
 echo "Running Octave nfft tests..."
-"@octave_dir@/bin/octave-cli" --eval 'nfftUnitTestsRunAndExit;'
+"@octave_dir@/bin/octave-cli" --eval "try; addpath('@ABS_SRCDIR@/matlab/tests','@ABS_SRCDIR@/matlab/nfft'); nfftUnitTestsRunAndExit; catch; disp('Error running nfftUnitTestsRunAndExit'); end; exit(1);"

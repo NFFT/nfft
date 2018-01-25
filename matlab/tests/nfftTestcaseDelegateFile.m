@@ -14,6 +14,9 @@ classdef nfftTestcaseDelegateFile < nfftTestcaseDelegate
     
     function h = setup(h)
       file = fopen(h.filename, 'r');
+      if file == -1
+        error('Cannot open file: %s', h.filename);
+      end
       c = strfind(h.filename, '/');
       if ~isempty(c)
         c = c(end)+1;
@@ -23,14 +26,28 @@ classdef nfftTestcaseDelegateFile < nfftTestcaseDelegate
       fprintf('%-31s', h.filename(c:end));
       
       % Dimensions.
-      h.d = fscanf(file, '%d', 1);
+      [d,count] = fscanf(file, '%d', 1);
+      if count ~= 1
+        error('Unable to read d from file');
+      end
+      h.d = d;
+
       % Bandwidths.
       h.N = zeros(h.d,1);
       for j=1:h.d
-        h.N(j) = fscanf(file, '%d', 1);
+        [N_j,count] = fscanf(file, '%d', 1);
+        if count ~= 1
+          error('Unable to read N from file');
+        end
+	h.N(j) = N_j;
       end
+
       % Number of nodes.
-      h.M = fscanf(file, '%d', 1);
+      [M,count] = fscanf(file, '%d', 1);
+      if count ~= 1
+        error('Unable to read M from file');
+      end
+      h.M = M;
       
       fprintf(' d = %-1d, N = [', h.d);
       if h.d > 3
@@ -65,7 +82,11 @@ classdef nfftTestcaseDelegateFile < nfftTestcaseDelegate
       x = zeros(h.M, h.d);
       for j=1:h.M
         for t=1:h.d
-          x(j,t) = fscanf(file, '%g', 1);
+          [x_j_t,count] = fscanf(file, '%g', 1);
+          if count ~= 1
+            error('Unable to read x from file');
+          end
+          x(j,t) = x_j_t;
         end
       end
       h.x = x;
@@ -73,8 +94,14 @@ classdef nfftTestcaseDelegateFile < nfftTestcaseDelegate
       % Fourier coefficients.
       f_hat = zeros(h.NN,1);
       for j=1:h.NN
-        val_real = fscanf(file, '%g', 1);
-        val_imag = fscanf(file, '%g', 1);
+        [val_real,count] = fscanf(file, '%g', 1);
+        if count ~= 1
+          error('Unable to read fhat from file');
+        end
+        [val_imag,count] = fscanf(file, '%g', 1);
+        if count ~= 1
+          error('Unable to read fhat from file');
+        end
         f_hat(j) = val_real + 1i*val_imag;
       end
       h.f_hat = f_hat;
@@ -82,9 +109,18 @@ classdef nfftTestcaseDelegateFile < nfftTestcaseDelegate
       % Reference function values.
       f = zeros(h.M,1);
       for j=1:h.M
-        val_real = fscanf(file, '%g', 1);
-        val_imag = fscanf(file, '%g', 1);
+        [val_real,count] = fscanf(file, '%g', 1);
+        if count ~= 1
+          error('Unable to read f from file');
+        end
+        [val_imag,count] = fscanf(file, '%g', 1);
+        if count ~= 1
+          error('Unable to read f from file');
+        end
         f(j) = val_real + 1i*val_imag;
+        if count ~= 1
+          error('Unable to read fhat from file');
+        end
       end
       h.f = f;
       
