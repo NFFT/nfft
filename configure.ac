@@ -58,11 +58,12 @@ AC_CANONICAL_HOST
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
 if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
-  PWD_SRCDIR=`cd "$srcdir" && pwd -W`
+  ABS_SRCDIR=`cd "$srcdir" && pwd -W`
 else
-  PWD_SRCDIR=`cd "$srcdir" && pwd`
+  ABS_SRCDIR=`cd "$srcdir" && pwd`
 fi
-AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["$PWD_SRCDIR"], [Absolute path to source directory.])
+AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["$ABS_SRCDIR"], [Absolute path to source directory.])
+AC_SUBST([ABS_SRCDIR])
 
 AC_SUBST([abs_top_srcdir])
 AC_SUBST([top_builddir])
@@ -626,6 +627,10 @@ AC_CONFIG_FILES(Makefile \
                 matlab/fastsum/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
+                matlab/tests/Makefile \
+		matlab/tests/check_nfft_matlab.sh \
+		matlab/tests/check_nfft_octave.sh \
+		matlab/tests/nfftUnitTests.m \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

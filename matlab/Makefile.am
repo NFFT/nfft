@@ -36,7 +36,7 @@ else
   DIR_FASTSUM=
 endif
 
-SUBDIRS = . $(DIR_NFFT) $(DIR_NFCT) $(DIR_NFST) $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NNFFT) $(DIR_FASTSUM)
+SUBDIRS = . $(DIR_NFFT) $(DIR_NFCT) $(DIR_NFST) $(DIR_NFSFT) $(DIR_NFSOFT) $(DIR_NNFFT) $(DIR_FASTSUM) tests
 
 AM_CPPFLAGS = -I$(top_srcdir)/include $(matlab_CPPFLAGS)
 
