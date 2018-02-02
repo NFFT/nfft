@@ -148,6 +148,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
  	DM( if (N <= 0)
 		mexErrMsgTxt("Input argument N must be positive.");)
 	int M = nfft_mex_get_int(prhs[2],"M must be scalar");
+	DM( if (M <= 0)
+		mexErrMsgTxt("Input argument M must be positive.");)
 	int flags_int = nfft_mex_get_int(prhs[3],"Input argument flags must be a scalar.");
 	DM( if (flags_int < 0)
 		mexErrMsgTxt("Input argument flags must be non-negative.");)
@@ -157,8 +159,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("Input argument nfft_flags must be non-negative.");)
 	unsigned nfft_flags = (unsigned) nfft_flags_int;
 	int nfft_cutoff = nfft_mex_get_int(prhs[5],"Input argument nfft_cutoff must be a scalar.");
+	DM( if (nfft_cutoff <= 0)
+		mexErrMsgTxt("Input argument nfft_cutoff must be positive.");)
 	int fpt_kappa = nfft_mex_get_int(prhs[6],"Input argument fpt_kappa must be a scalar.");
+	DM( if (fpt_kappa <= 0)
+		mexErrMsgTxt("Input argument fpt_kappa must be positive.");)
 	int nn_oversampled = nfft_mex_get_int(prhs[7],"Input argument nn_oversampled must be a scalar.");
+	DM( if ((nn_oversampled %2) || (nn_oversampled < 2*N+2))
+		mexErrMsgTxt("Input argument nn_oversampled must be even and at least 2*N+2.");)
 	
 	int i = mkplan();
 	nfsoft_init_guru_advanced(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,

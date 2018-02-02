@@ -488,12 +488,15 @@ AC_DEFUN([AX_PROG_MATLAB],
   fi
 
 
+  AM_CONDITIONAL(HAVE_OCTAVE, test "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" -o "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB_THREADS, test "x$matlab_threads" = "xyes")
   AC_SUBST(matlab_CPPFLAGS)
   AC_SUBST(matlab_LIBS)
   AC_SUBST(matlab_LDFLAGS)
+  AC_SUBST(matlab_bin_dir)
   AC_SUBST(matlab_mexext)
   AC_SUBST(matlab_fftw3_LIBS)
   AC_SUBST(matlab_fftw3_LDFLAGS)
+  AC_SUBST(octave_dir)
 ])
