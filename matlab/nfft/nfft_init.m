@@ -1,17 +1,4 @@
-%NFFT_INIT_GURU Initialise plans
-%   Matlab might run into a segmentation violation for wrong parameters
-%
-%   nfft_init_guru(d,N1,...,Nd,M,n1,...,nd,m,flags,fftw_flags)
-%
-%   d            spatial dimension
-%   N1,...,Nd    bandwidths
-%   M            number of nodes
-%   n1,...,nd    fft lengths
-%   m            cut-off parameter
-%   flags   PRE_PHI_HUT | {FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
-%	             PRE_FULL_PSI} | FFT_OUT_OF_PLACE
-%   fftw_flags   {FFTW_ESTIMATE, FFTW_MEASURE}
-%
+%NFFT_INIT Initialise plans
 %   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -29,6 +16,6 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-function p = nfft_init_guru(varargin)
+function p = nfft_init(N,M)
 
-p = nfftmex('init_guru',varargin);
+p = nfftmex('init',N,M);

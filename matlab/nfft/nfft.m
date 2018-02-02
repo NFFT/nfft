@@ -22,25 +22,19 @@ classdef nfft < handle
 
 properties(Dependent=true)
 	x;     % nodes (real Mxd matrix)
-	fhat;  % fourier coefficients (complex column vector of length N1, N1*N2 or N1*N2*N3, for d=2 columnwise linearisation of N1xN2 matrix and for d=3 columnwise linearisation of N1xN2xN3 array)
+	fhat;  % fourier coefficients (linearized complex column vector)
 	f;     % samples (complex column vector of length M)
-end %properties
-
-properties(Dependent=true,SetAccess='private');
-	N;
+	num_threads; % number of threads used for computation
 end %properties
 
 properties(SetAccess='private')
-	d=[];   % spatial dimension (d=1, d=2 or d=3)
+	d=[];   % spatial dimension (natural number)
+	N=[];   % bandwidth (positive even integer vector)
 	M=[];   % number of sampling points (positive integer)
 end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private');
-	plan=[];
-	N1=[];  % number of nodes in first direction (positive even integer)
-	N2=[];  % number of nodes in second direction (positive even integer)
-	N3=[];  % number of nodes in third direction (positive even integer)
-
+	plan=[];                    % nfftmex plan number
 	x_is_set=false;             % flag if x is set
 	fhat_is_set=false;          % flag if fhat is set
 	f_is_set=false;             % flag if f is set
@@ -61,30 +55,26 @@ function h=nfft(d,N,M,varargin)
 %
 % h=nfft(d,N,M,varargin) for use of nfft_init_guru
 % For example
-% h=nfft(1,N,M,n,7,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE)     for d=1, m=7
-% h=nfft(2,N,M,n,n,7,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE)   for d=2, m=7
-% h=nfft(3,N,M,n,n,n,7,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=3, m=7
-% with n=2^(ceil(log(max(N))/log(2))+1)
-% Be careful: There is no error handling with using nfft_init_guru.
-% Incorrect inputs can cause a Matlab crash!
+% h=nfft(1,N,M,n,8,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_MEASURE)     for d=1, m=8
+% h=nfft(2,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=2, m=8
+% h=nfft(3,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE) for d=3, m=8
+% with n=2.^(ceil(log(N)/log(2))+1)
 %
 % INPUT
-%   d         spatial dimension (d=1, d=2 or d=3)
-%   N         numbers of nodes in each direction (column vector of length d with positive even integers)
+%   d         spatial dimension
+%   N         bandwidth in each direction (column vector of length d with positive even integers)
 %   M         number of sampling points (positive integer)
 %   varargin  parameters for use of nfft_init_guru (see documentation of NFFT for more details)
 %
 % OUTPUT
 %   h   object of class type nfft
-
 	h.d=d;
 
-	if( isempty(N) || size(N,1)~=d || size(N,2)~=1)
-		error('The numbers of nodes N have to be an integer column vector of length %u for spatial dimension d=%u',d,d);
-	else
-		h.N=N;
-	end %if
+  if length(N) ~= d
+    error('The bandwidth vector N must be an integer vector of length %u for spatial dimension d=%u',d,d);
+  end
 
+	h.N=N;
 	h.M=M;
 
 	if( 3>nargin )
@@ -92,30 +82,66 @@ function h=nfft(d,N,M,varargin)
 	elseif( 3==nargin )
 		switch d
 		case 1
-			h.plan=nfftmex('init_1d',N,M);
+			h.plan=nfftmex('init_1d',h.N,h.M);
 			h.plan_is_set=true;
 		case 2
-			h.plan=nfftmex('init_2d',N(1),N(2),M);
+			h.plan=nfftmex('init_2d',h.N(1),h.N(2),h.M);
 			h.plan_is_set=true;
 		case 3
-			h.plan=nfftmex('init_3d',N(1),N(2),N(3),M);
+			h.plan=nfftmex('init_3d',h.N(1),h.N(2),h.N(3),h.M);
 			h.plan_is_set=true;
 		otherwise
-			error('Invalid spatial dimension d.');
+			h.plan=nfftmex('init',h.N,h.M);
+			h.plan_is_set=true;
 		end %switch
 	else % nfft_init_guru
-		%disp('You are using nfft_init_guru. This is on your own risk. There will be no error handling. Incorrect inputs can cause a Matlab crash.');
-		switch d
-		case 1
-			args=[{d,N(1),M},varargin];
-		case 2
-			args=[{d,N(1),N(2),M},varargin];
-		case 3
-			args=[{d,N(1),N(2),N(3),M},varargin];
-		otherwise
-			error('Unknown error.');
-		end %switch
-		h.plan=nfftmex('init_guru',args);
+		args_cell = cell(1,2*d+5);
+		args_cell{1,1} = d;
+		args_cell(1,2:1+d) = num2cell(h.N);
+		args_cell{1,2+d} = h.M;
+
+    if ~isempty(varargin) % oversampled FFT length n
+      if length(varargin{1}) == d % support for n (oversampled N) as vector
+        n_array = varargin{1};
+        n_array = double(n_array(:)');
+        args_cell_n_m_flags = [num2cell(n_array),varargin{2:end}];
+      elseif length(varargin{1}) == 1 % n(1),...,n(d) (oversampled N) as scalars
+        args_cell_n_m_flags = varargin;
+      else
+        error('Invalid parameter n');
+      end
+
+      if length(args_cell_n_m_flags) < d
+        error('Oversampled FFT length n must be vector of length d');
+      end
+
+      args_cell(1,3+d:2+2*d) = num2cell(double([args_cell_n_m_flags{1,1:d}]));
+    else
+      args_cell(1,3+d:2+2*d) = num2cell(2.^(ceil(log(h.N)/log(2))+1));
+    end
+
+    if length(args_cell_n_m_flags) >= d+1 % window cut-off parameter m
+      args_cell{3+2*d} = double(args_cell_n_m_flags{d+1});
+    else
+      args_cell{3+2*d} = nfftmex('get_default_window_cut_off_m');
+    end
+
+    if length(args_cell_n_m_flags) >= d+2 % nfft flags
+      args_cell{4+2*d} = double(args_cell_n_m_flags{d+2});
+    else
+      args_cell{4+2*d} = bitor(PRE_PHI_HUT,PRE_PSI);
+      if d > 1
+        args_cell{4+2*d} = bitor(args_cell{4+2*d},NFFT_OMP_BLOCKWISE_ADJOINT);
+      end
+    end
+
+    if length(args_cell_n_m_flags) >= d+3 % fftw flags
+      args_cell{5+2*d} = double(args_cell_n_m_flags{d+3});
+    else
+      args_cell{5+2*d} = bitor(FFT_OUT_OF_PLACE,FFTW_ESTIMATE);
+    end
+
+    h.plan = nfftmex('init_guru',args_cell);
 		h.plan_is_set=true;
 	end %if
 end %function
@@ -130,64 +156,35 @@ end %function
 % Set functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function set.d(h,d)
-	if( isempty(d) || (d~=1 && d~=2 && d~=3) )
-		error('The spatial dimension d has to be d=1, d=2 or d=3.');
+	if( isempty(d) || (d~=round(d)) || (d<1) )
+		error('The spatial dimension d has to be a natural number.');
 	else
-		h.d=d;
+		h.d = double(d);
 	end %if
 end %function
 
 function set.N(h,N)
-	switch length(N)
-	case 1
-		h.N1=N;
-	case 2
-		h.N1=N(1);
-		h.N2=N(2);
-	case 3
-		h.N1=N(1);
-		h.N2=N(2);
-		h.N3=N(3);
-	otherwise
-		error('Unknown error');
-	end %switch
-end %function
-
-function set.N1(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N1 has to be an even positive integer.');
-	else
-		h.N1=N;
-	end %if
-end %function
-
-function set.N2(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
-	else
-		h.N2=N;
-	end %if
-end %function
-
-function set.N3(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
-	else
-		h.N3=N;
-	end %if
-end %function
+	N = N(:)';
+	if( isempty(N) || size(N,1)~=1 || ~isnumeric(N) || ~isreal(N) || (sum(mod(N,2))>0) || ~prod(N>0))
+		error('The entries of the bandwidth vector N must be even positive integers.');
+	end
+	h.N = double(N);
+end
 
 function set.M(h,M)
-	if( ndims(M)~=2 || size(M,1)~=1 || size(M,2)~=1)
-		error('The number of sampling pints M has to be an positive integer.');
+	if( ~ismatrix(M) || size(M,1)~=1 || size(M,2)~=1)
+		error('The number of sampling points M has to be an positive integer.');
 	elseif( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
-		error('The number of sampling pints M has to be an positive integer.');
+		error('The number of sampling points M has to be an positive integer.');
 	else
-		h.M=M;
+		h.M = double(M);
 	end %if
 end %function
 
 function set.x(h,x)
+	h.x_is_set=false;
+	h.precomputations_done=false;
+
 	if( isempty(x) )
 		error('The sampling points x have to be real numbers.');
 	elseif( ~isnumeric(x) || ~isreal(x) )
@@ -196,53 +193,37 @@ function set.x(h,x)
 	%	error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
 		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
-	else
-		x=mod(x+0.5,1)-0.5;
-		nfftmex('set_x',h.plan,x.');
-		h.x_is_set=true;
-		h.precomputations_done=false;
-	end %if
+  end
+  x = double(x);
+	x=mod(x+0.5,1)-0.5;
+	nfftmex('set_x',h.plan,x.');
+	h.x_is_set=true;
+	nfftmex('precompute_psi',h.plan)
+	h.precomputations_done=true;
 end %function
 
 function set.fhat(h,fhat)
-	switch h.d
-	case 1
-		n=h.N1;
-	case 2
-		n=h.N1*h.N2;
-	case 3
-		n=h.N1*h.N2*h.N3;
-	otherwise
-		error('Unknown error.');
-	end % switch
+	h.fhat_is_set=false;
+	n=prod(h.N);
 
 	if( isempty(fhat) || ~isnumeric(fhat))
 		error('The Fourier coefficients fhat have to be complex numbers.');
 	elseif( size(fhat,1)~=(n) || size(fhat,2)~=1 )
 		error('The Fourier coefficients fhat have to be a column vector of length %u.',n);
-	else
-		switch h.d
-		case 1
-			% Do nothing.
-		case 2
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N1,h.N2).';
-			fhat=fhat(:);
-		case 3
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N1,h.N2,h.N3);
-			fhat=permute(fhat,[3,2,1]);
-			fhat=fhat(:);
-		otherwise
-			error('Unknown error.');
-		end %switch
+	end
 
-		nfftmex('set_f_hat',h.plan,fhat);
-		h.fhat_is_set=true;
-	end %if
+	if h.d > 1
+	  fhat = reshape(fhat, h.N);
+	  fhat = permute(fhat, h.d:-1:1);
+	  fhat = fhat(:);
+	end
+
+	nfftmex('set_f_hat',h.plan,fhat);
+	h.fhat_is_set=true;
 end %function
 
 function set.f(h,f)
+	h.f_is_set=false;
 	if(isempty(f) || ~isnumeric(f))
 		error('The samples f have to be complex numbers.');
 	elseif( size(f,1)~=h.M || size(f,2)~=1 )
@@ -251,6 +232,12 @@ function set.f(h,f)
 		nfftmex('set_f',h.plan,f);
 		h.f_is_set=true;
 	end %if
+end %function
+
+function set.num_threads(~,nthreads)
+	if nthreads ~= nfft_get_num_threads
+		error('Setting the number of threads is not supported');
+	end
 end %function
 
 % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -267,21 +254,11 @@ function fhat=get.fhat(h)
 	if(h.fhat_is_set)
 		fhat=nfftmex('get_f_hat',h.plan);
 
-		switch h.d
-		case 1
-			% Do nothing.
-		case 2
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N2,h.N1).';
-			fhat=fhat(:);
-		case 3
-			% linearization in matlab with column (:) operator is columnwise, in NFFT it is rowwise
-			fhat=reshape(fhat,h.N3,h.N2,h.N1);
-			fhat=permute(fhat,[3,2,1]);
-			fhat=fhat(:);
-		otherwise
-			error('Unknown error.');
-		end %switch
+		if h.d > 1
+			fhat = reshape(fhat, h.N(end:-1:1));
+			fhat = permute(fhat, h.d:-1:1);
+			fhat = fhat(:);
+		end
 	else
 		fhat=[];
 	end %if
@@ -295,20 +272,14 @@ function f=get.f(h)
 	end %if
 end %function
 
-function N=get.N(h)
-	N=[h.N1;h.N2;h.N3];
+function nthreads=get.num_threads(~)
+	nthreads=nfft_get_num_threads;
 end %function
 
 % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function nfft_precompute_psi(h)
-% Precomputations for NFFT.
-	if(~h.x_is_set)
-		error('Before doing precomputations you have to set nodes in x.');
-	else
-		nfftmex('precompute_psi',h.plan)
-		h.precomputations_done=true;
-	end %if
+function nfft_precompute_psi(~)
+% Precomputations for NFFT now performed in set.x.
 end %function
 
 function ndft_trafo(h)
