@@ -733,6 +733,47 @@ INT l_all[ths->d*(2*ths->m+2)]; \
           } \
         } \
       } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  MACRO_B_compute_ ## whichone_AT; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
       else { \
         for (l_L = 0; l_L < lprod; l_L++) \
         { \
@@ -1075,6 +1116,47 @@ MACRO_B(A)
           } \
         } \
       } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
       else { \
         for (l_L = 0; l_L < lprod; l_L++) \
         { \
@@ -1639,6 +1721,49 @@ MACRO_B(T)
           } \
         } \
       } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          if (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0) \
+            continue; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
       else { \
         l_L = 0; \
         while (l_L < lprod) \
@@ -1754,18 +1879,14 @@ MACRO_B(T)
               ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
-                C *lhs; \
-                R *lhs_real; \
-                C val; \
- \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
                 ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
-                lhs = ths->g + ll_plain[ths->d]; \
-                lhs_real = (R*)lhs; \
-                val = phi_prod[ths->d] * ths->f[j]; \
+                C *lhs = ths->g + ll_plain[ths->d]; \
+                R *lhs_real = (R*)lhs; \
+                C val = phi_prod[ths->d] * ths->f[j]; \
  \
                 _Pragma("omp atomic") \
                 lhs_real[0] += CREAL(val); \
@@ -1777,6 +1898,55 @@ MACRO_B(T)
           } \
         } \
       } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  C *lhs = ths->g + ll_plain[ths->d]; \
+                  R *lhs_real = (R*)lhs; \
+                  C val = phi_prod[ths->d] * ths->f[j]; \
+ \
+                  _Pragma("omp atomic") \
+                  lhs_real[0] += CREAL(val); \
+ \
+                  _Pragma("omp atomic") \
+                  lhs_real[1] += CIMAG(val); \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
       else { \
         for (l_L = 0; l_L < lprod; l_L++) \
         { \
