@@ -147,7 +147,7 @@ cp "$NFFTDIR"/include/nfft3mp.h "$DIR"-dll64/nfft3mp.h
 cp examples/nfft/simple_test.c "$DIR"-dll64/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for 64-bit Windows
-using GCC' $GCCVERSION 'x86_64-w64-mingw32 and FFTW' $FFTWVERSION '.
+using GCC' $GCCVERSION 'x86_64-w64-mingw32 and FFTW' $FFTWVERSION'.
 
 As a small example, you can compile the NFFT simple test with the following command
 
