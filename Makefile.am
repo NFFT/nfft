@@ -97,7 +97,9 @@ dist-hook: doc
 
 include aminclude.am
 
+if DX_COND_doc
 doc: doxygen-doc
+endif
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
