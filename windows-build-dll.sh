@@ -11,6 +11,7 @@
 # WARNING: This script downloads and compiles FFTW and downloads GCC and Octave (requires ~ 2GB).
 # 
 # Optional flags: --arch=64 (default) or 32 (swich wheater to build 64 or 32 bit binaries)
+# To build for 32 bit you should use MinGW-w64 Win32 Shell.
 # --gcc-arch (Flag for gcc --march=)
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
@@ -20,7 +21,7 @@ set -ex
 FFTWVERSION=3.3.7
 OCTAVEVERSION=4.2.2
 ARCH=64
-GCCARCH=core2
+GCCARCH=""
 
 # read the options
 TEMP=`getopt -o o:m:f:a:g: --long octave:,matlab:,fftw:,arch:,gcc-arch: -n 'nfft-build-dll.sh' -- "$@"`
@@ -59,12 +60,19 @@ while true ; do
     esac
 done
 
-ARCHNAME=x86_64
-MATLABARCHFLAG=""
 if [ "$ARCH" == "32" ]; then
   ARCHNAME=i686
   MATLABARCHFLAG="--with-matlab-arch=win32"
-elif [ "$ARCH" != "64" ]; then
+  if [ "$GCCARCH" == "" ]; then
+    GCCARCH=pentium4;
+  fi
+elif [ "$ARCH" == "64" ]; then
+  ARCHNAME=x86_64
+  MATLABARCHFLAG=""
+  if [ "$GCCARCH" == "" ]; then
+    GCCARCH=core2;
+  fi
+else
   echo "Unknown architecture!" ; exit 1 ;
 fi
 
@@ -122,12 +130,7 @@ rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 # Build NFFT
 READMECONTENT="
 $(sed '/Directory structure/Q' $NFFTDIR/README.md) 
-
-FFTW
-----
-The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
-Copyright (c) 2003, 2007-14 Matteo Frigo
-Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology"
+"
 cd "$NFFTDIR"
 ./bootstrap.sh
 make distclean || true
@@ -160,26 +163,32 @@ make check
 
 # Create DLL release
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
-DIR=nfft-$NFFTVERSION-$GCCARCH$OMPSUFFIX
+DLLDIR=nfft-"$NFFTVERSION"-dll$ARCH$OMPSUFFIX
 
 gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-2.dll -Wl,-Bstatic -lwinpthread $OMPLIBS
 
-mkdir "$DIR-dll$ARCH"
-cp ".libs/libnfft3$THREADSSUFFIX-2.dll" "$DIR-dll$ARCH/libnfft3$THREADSSUFFIX-2.dll"
-cp "$NFFTDIR"/include/nfft3.h "$DIR"-dll$ARCH/nfft3.h
-cp "$NFFTDIR"/include/nfft3mp.h "$DIR"-dll$ARCH/nfft3mp.h
-cp examples/nfft/simple_test.c "$DIR"-dll$ARCH/simple_test.c
+mkdir "$DLLDIR"
+cp ".libs/libnfft3$THREADSSUFFIX-2.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-2.dll"
+cp "$NFFTDIR"/include/nfft3.h "$DLLDIR"/nfft3.h
+cp "$NFFTDIR"/include/nfft3mp.h "$DLLDIR"/nfft3mp.h
+cp examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
-using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 and FFTW' $FFTWVERSION'.
+using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
 
 As a small example, you can compile the NFFT simple test with the following command
 
 	gcc -O3 simple_test.c -o simple_test.exe -L. libnfft3'$THREADSSUFFIX'-2.dll
-' "$READMECONTENT" > "$DIR"-dll$ARCH/readme-windows.txt
-unix2dos "$DIR"-dll$ARCH/readme-windows.txt
-cp "$NFFTDIR"/COPYING "$DIR"-dll$ARCH/COPYING
-zip -r -q "$DIR"-dll$ARCH.zip "$DIR"-dll$ARCH
+' "$READMECONTENT" "
+FFTW
+----
+The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
+Copyright (c) 2003, 2007-14 Matteo Frigo
+Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology" > "$DLLDIR"/readme-windows.txt
+unix2dos "$DLLDIR"/readme-windows.txt
+cp "$NFFTDIR"/COPYING "$DLLDIR"/COPYING
+rm -f "$HOMEDIR/$DLLDIR".zip
+zip -r -q -9 "$HOMEDIR/$DLLDIR".zip "$DLLDIR"
 
 
 # Compile with Matlab
@@ -200,21 +209,22 @@ if [ -n "$MATLABDIR" ]; then
 fi
 
 # Create Matlab/Octave release
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst
+MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
+for SUBDIR in nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst infft_1d
   do
-  mkdir -p matlab-"$DIR"/$SUBDIR
-  cp -f -r matlab/$SUBDIR/*.mex* matlab-"$DIR"/$SUBDIR/
-  cp -r "$NFFTDIR"/matlab/$SUBDIR/*.m matlab-"$DIR"/$SUBDIR/
+  mkdir -p "$MEXDIR"/$SUBDIR
+  cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
+  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$MEXDIR"/$SUBDIR/
 done
-mkdir -p matlab-"$DIR"/nfsft/@f_hat
-cp -r "$NFFTDIR"/matlab/nfsft/@f_hat/*.m matlab-"$DIR"/nfsft/@f_hat
+cp "$NFFTDIR"/matlab/infft_1d/README "$MEXDIR"/infft_1d/
 
 cd "$NFFTBUILDDIR"
-cp "$NFFTDIR"/COPYING matlab-"$DIR"/COPYING
+cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
 echo 'This archive contains the Matlab and Octave interface of NFFT' $NFFTVERSION 'compiled for
-'$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 and FFTW' $FFTWVERSION' and Octave '$OCTAVEVERSION'.
-' "$READMECONTENT" > matlab-"$DIR"/readme-matlab.txt
-unix2dos matlab-"$DIR"/readme-matlab.txt
-zip -r -q matlab-"$DIR".zip matlab-"$DIR"
+'$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH', FFTW' $FFTWVERSION' and Octave '$OCTAVEVERSION'.
+' "$READMECONTENT" > "$MEXDIR"/readme-matlab.txt
+unix2dos "$MEXDIR"/readme-matlab.txt
+rm -f "$HOMEDIR/$MEXDIR".zip
+zip -r -q -9 "$HOMEDIR/$MEXDIR".zip "$MEXDIR"
 
 done
