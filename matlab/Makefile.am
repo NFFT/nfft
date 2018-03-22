@@ -32,7 +32,7 @@ endif
 
 if HAVE_APPLICATIONS
   DIR_FASTSUM=fastsum
-  DIR_INFFT1D=infft_1D
+  DIR_INFFT1D=infft1d
 else
   DIR_FASTSUM=
   DIR_INFFT1D=

@@ -625,7 +625,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
                 matlab/fastsum/Makefile \
-                matlab/infft_1D/Makefile \
+                matlab/infft1d/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 matlab/tests/Makefile \

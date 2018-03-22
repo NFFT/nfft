@@ -129,7 +129,7 @@ rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
 # Build NFFT
 READMECONTENT="
-$(sed '/Directory structure/Q' $NFFTDIR/README.md) 
+$(sed '/Directory structure/Q' $NFFTDIR/README) 
 "
 cd "$NFFTDIR"
 ./bootstrap.sh
@@ -210,13 +210,13 @@ fi
 
 # Create Matlab/Octave release
 MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
-for SUBDIR in nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst infft_1d
+for SUBDIR in nfft nfsft nfsft/@f_hat nfsoft nnfft fastsum nfct nfst infft1d
   do
   mkdir -p "$MEXDIR"/$SUBDIR
   cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
   cp -f -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$MEXDIR"/$SUBDIR/
 done
-cp "$NFFTDIR"/matlab/infft_1d/README "$MEXDIR"/infft_1d/
+cp "$NFFTDIR"/matlab/infft1d/README "$MEXDIR"/infft1d/
 
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
