@@ -193,6 +193,8 @@ zip -r -q -9 "$HOMEDIR/$DLLDIR".zip "$DLLDIR"
 
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
+  "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -nodisplay -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
+  MATLABSTRING=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   cd "$NFFTBUILDDIR"
   "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared
   make
@@ -221,7 +223,7 @@ cp "$NFFTDIR"/matlab/infft1d/README "$MEXDIR"/infft1d/
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
 echo 'This archive contains the Matlab and Octave interface of NFFT' $NFFTVERSION 'compiled for
-'$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH', FFTW' $FFTWVERSION' and Octave '$OCTAVEVERSION'.
+'$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH', FFTW' $FFTWVERSION$MATLABSTRING' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$MEXDIR"/readme-matlab.txt
 unix2dos "$MEXDIR"/readme-matlab.txt
 rm -f "$HOMEDIR/$MEXDIR".zip
