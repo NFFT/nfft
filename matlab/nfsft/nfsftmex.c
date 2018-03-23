@@ -203,7 +203,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       get_nmffc(prhs,&n,&m,&f,&f2,&c);
       i = mkplan();
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-        NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT
+        NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT
         | FFT_OUT_OF_PLACE, c);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
@@ -436,10 +436,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       const int n = plans[i]->N;
       DM(if (!mxIsDouble(prhs[2]))
-        mexErrMsgTxt("Input argument f must be a double array");)
+        mexErrMsgTxt("Input argument f_hat must be a double array");)
       DM(if (   mxGetM(prhs[2]) != (unsigned)(2*n+1)
           || mxGetN(prhs[2]) != (unsigned)(n+1))
-        mexErrMsgTxt("Input argument f must have correct size.");)
+        mexErrMsgTxt("Input argument f_hat must have correct size.");)
       {
         double *f_hatr = mxGetPr(prhs[2]), *f_hati = mxGetPi(prhs[2]);
         int j,k;
