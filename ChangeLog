@@ -5,7 +5,8 @@ Changes in version 3.4.1:
     Bugfixes
     - #60 Add Latex for target `dist` in Travis.
     - #66 `ABS_SRCDIR` might return a wrong path.
-    - #70 infft_1d is missing in release.
+    - #70 infft1d is missing in release.
+    - Solved compatibility problem with MATLAB 2018a.
 
     Enhancements
     - #52 Compile mex interface against GNU Octave in TravisCI.
