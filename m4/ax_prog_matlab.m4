@@ -421,7 +421,11 @@ AC_DEFUN([AX_PROG_MATLAB],
     fi
 
     matlab_fftw3_LDFLAGS="$fftw3_LDFLAGS"
-    matlab_fftw3_LIBS="$fftw3_LIBS"
+    if test "x$matlab_threads" = "xyes"; then
+      matlab_fftw3_LIBS="$fftw3_threads_LIBS"
+    else
+      matlab_fftw3_LIBS="$fftw3_LIBS"
+    fi
     matlab_mexext=".mex"
 
     saved_CPPFLAGS="$CPPFLAGS"
