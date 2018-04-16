@@ -37,9 +37,9 @@ elseif (isnumeric(a) && ndims(a) == 2 && (size(a,1)-1)/2+1 == size(a,2))
     o = o + 2*k+1;
   end
   p = class(p,'f_hat');
-elseif (isnumeric(a) && ndims(a) == 2 && length(a) == 0 || ...
-        round(sqrt(length(a(:)))-1) == sqrt(length(a(:)))-1)
-  p.N = sqrt(length(a(:)))-1;
+elseif (isnumeric(a) && ndims(a) == 2 && isempty(a) || ...
+        round(sqrt(numel(a))-1) == sqrt(numel(a))-1)
+  p.N = sqrt(numel(a))-1;
   p.f_hat = a(:);
   p = class(p,'f_hat');
 else

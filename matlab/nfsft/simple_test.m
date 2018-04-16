@@ -17,7 +17,7 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
-disp(sprintf('Number of threads: %d\n', nfsft_get_num_threads()));
+fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 % maximum degree (bandwidth) of spherical harmonics expansions
 N = 2;
@@ -28,7 +28,7 @@ kappa = 1000;
 % precomputation
 nfsft_precompute(N,kappa);
 
-% Gauß-Legendre interpolatory quadrature nodes for N. See gl.m
+% Gauss-Legendre interpolatory quadrature nodes for N. See gl.m
 [X,W] = gl(N);
 
 % number of nodes
@@ -57,7 +57,7 @@ nfsft_trafo(plan);
 f = nfsft_get_f(plan);
 display(f);
 
-% adjoint transform, using quadrature weights tor ecover Fourier coefficients
+% adjoint transform, using quadrature weights to recover Fourier coefficients
 nfsft_set_f(plan,f.*W');
 nfsft_adjoint(plan);
 

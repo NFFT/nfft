@@ -1,5 +1,19 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.4.1:
+
+    Bugfixes
+    - #60 Add Latex for target `dist` in Travis.
+    - #66 `ABS_SRCDIR` might return a wrong path.
+    - #70 infft1d is missing in release.
+    - Solved compatibility problem with MATLAB 2018a.
+
+    Enhancements
+    - #52 Compile mex interface against GNU Octave in TravisCI.
+    - #63 Add bash script to build statically linked libs in Windows.
+    - #65 Add Octave tests.
+    - #68 Add NFSFT Matlab class.
+
 Changes in version 3.4.0:
 
     Bugfixes

@@ -20,7 +20,7 @@
 
 m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [4])
-m4_define([nfft_version_patch], [0])
+m4_define([nfft_version_patch], [1])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -58,10 +58,12 @@ AC_CANONICAL_HOST
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
 if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
-  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd -W`/$srcdir"], [Absolute path to source directory.])
+  ABS_SRCDIR=`cd "$srcdir" && pwd -W`
 else
-  AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["`pwd`/$srcdir"], [Absolute path to source directory.])
-fi  
+  ABS_SRCDIR=`cd "$srcdir" && pwd`
+fi
+AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["$ABS_SRCDIR"], [Absolute path to source directory.])
+AC_SUBST([ABS_SRCDIR])
 
 AC_SUBST([abs_top_srcdir])
 AC_SUBST([top_builddir])
@@ -623,8 +625,13 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
                 matlab/fastsum/Makefile \
+                matlab/infft1d/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
+                matlab/tests/Makefile \
+		matlab/tests/check_nfft_matlab.sh \
+		matlab/tests/check_nfft_octave.sh \
+		matlab/tests/nfftUnitTests.m \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

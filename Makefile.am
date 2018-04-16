@@ -60,7 +60,7 @@ endif
   libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc linux-build-mex.sh windows-build-dll.sh
 
 if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
@@ -97,7 +97,9 @@ dist-hook: doc
 
 include aminclude.am
 
+if DX_COND_doc
 doc: doxygen-doc
+endif
 
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4

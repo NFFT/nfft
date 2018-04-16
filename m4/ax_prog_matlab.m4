@@ -232,7 +232,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     LDFLAGS="$saved_LDFLAGS"
 
-    matlab_CPPFLAGS="-I${matlab_include_dir}"
+    matlab_CPPFLAGS="-I${matlab_include_dir} -DMATLAB_DEFAULT_RELEASE=R2017b"
 
     # mexversion.c
     AC_CHECK_FILE([${matlab_src_dir}/mexversion.c],[matlab_CPPFLAGS="${matlab_CPPFLAGS} -I${matlab_src_dir}"; AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])],[AC_MSG_WARN([File ]${matlab_src_dir}[/mexversion.c not found])])
@@ -421,7 +421,11 @@ AC_DEFUN([AX_PROG_MATLAB],
     fi
 
     matlab_fftw3_LDFLAGS="$fftw3_LDFLAGS"
-    matlab_fftw3_LIBS="$fftw3_LIBS"
+    if test "x$matlab_threads" = "xyes"; then
+      matlab_fftw3_LIBS="$fftw3_threads_LIBS"
+    else
+      matlab_fftw3_LIBS="$fftw3_LIBS"
+    fi
     matlab_mexext=".mex"
 
     saved_CPPFLAGS="$CPPFLAGS"
@@ -488,12 +492,15 @@ AC_DEFUN([AX_PROG_MATLAB],
   fi
 
 
+  AM_CONDITIONAL(HAVE_OCTAVE, test "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB, test "x$ax_prog_matlab" = "xyes" -o "x$ax_prog_octave" = "xyes" )
   AM_CONDITIONAL(HAVE_MATLAB_THREADS, test "x$matlab_threads" = "xyes")
   AC_SUBST(matlab_CPPFLAGS)
   AC_SUBST(matlab_LIBS)
   AC_SUBST(matlab_LDFLAGS)
+  AC_SUBST(matlab_bin_dir)
   AC_SUBST(matlab_mexext)
   AC_SUBST(matlab_fftw3_LIBS)
   AC_SUBST(matlab_fftw3_LDFLAGS)
+  AC_SUBST(octave_dir)
 ])
