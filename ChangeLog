@@ -7,6 +7,7 @@ Changes in version 3.4.1:
     - #66 `ABS_SRCDIR` might return a wrong path.
     - #70 infft1d is missing in release.
     - Solved compatibility problem with MATLAB 2018a.
+    - Fixed wrong libs flag when compiling for Octave and non-combined fftw3_threads.
 
     Enhancements
     - #52 Compile mex interface against GNU Octave in TravisCI.
