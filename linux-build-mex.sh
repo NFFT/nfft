@@ -109,7 +109,7 @@ echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSIO
 64-bit Linux using GCC '$GCCVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 else
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled for
+echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled for
 64-bit Linux using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 fi
