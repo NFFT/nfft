@@ -18,7 +18,7 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 function err = projection()
-disp(sprintf('Number of threads: %d\n', nfsft_get_num_threads()));
+fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 % threshold
 kappa = 1000;
 % polynomial degrees

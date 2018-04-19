@@ -17,7 +17,7 @@
 % This class provides a Matlab interface to the NFSFT module.
 %
 % Examples
-%   See Matlab scripts test_nfsft.m.
+%   See Matlab scripts simple_test.m.
 classdef nfsft < handle
 
 properties(Dependent=true)
