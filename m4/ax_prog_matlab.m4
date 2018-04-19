@@ -251,7 +251,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     for matlab_fftw3_lib_name in mwfftw3 :libmwfftw3.so.3 fftw3; do
       matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}"
       LIBS="-l${matlab_fftw3_lib_name} $LIBS"
-      LDFLAGS="-L$matlab_fftw3_lib_dir ${matlab_LDFLAGS} $LDFLAGS"
+      LDFLAGS="-L$matlab_fftw3_lib_dir $LDFLAGS"
       AC_MSG_CHECKING([for Matlab fftw3 library])
       AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
       AC_MSG_RESULT([$ax_matlab_lib_fftw3])
