@@ -831,6 +831,34 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 #endif
   }
 
+  /** Initialize FFTW plans. */
+  set->plans_dct3 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
+  set->kinds      = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
+  set->kinds[0]   = FFTW_REDFT01;
+  set->kinds[1]   = FFTW_REDFT01;
+  for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
+  {
+    set->lengths[tau] = plength;
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+{
+  fftw_plan_with_nthreads(nthreads);
+#endif
+    set->plans_dct3[tau] =
+      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
+                         2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
+                         0);
+#ifdef _OPENMP
+}
+#endif
+  }
+  nfft_free(set->lengths);
+  nfft_free(set->kinds);
+  nfft_free(set->kindsr);
+  set->lengths = NULL;
+  set->kinds = NULL;
+  set->kindsr = NULL;
+
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
@@ -838,34 +866,6 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     set->vec3 = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
     set->vec4 = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
     set->z = (double _Complex*) nfft_malloc(set->N*sizeof(double _Complex));
-
-    /** Initialize FFTW plans. */
-    set->plans_dct3 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
-    set->kinds      = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
-    set->kinds[0]   = FFTW_REDFT01;
-    set->kinds[1]   = FFTW_REDFT01;
-    for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
-    {
-      set->lengths[tau] = plength;
-#ifdef _OPENMP
-#pragma omp critical (nfft_omp_critical_fftw_plan)
-{
-    fftw_plan_with_nthreads(nthreads);
-#endif
-      set->plans_dct3[tau] =
-        fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
-                           2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
-                           0);
-#ifdef _OPENMP
-}
-#endif
-    }
-    nfft_free(set->lengths);
-    nfft_free(set->kinds);
-    nfft_free(set->kindsr);
-    set->lengths = NULL;
-    set->kinds = NULL;
-    set->kindsr = NULL;
   }
 
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
@@ -1878,6 +1878,27 @@ void fpt_finalize(fpt_set set)
   /* Free auxilliary arrays. */
   nfft_free(set->work);
   nfft_free(set->result);
+  set->work = NULL;
+  set->result = NULL;
+
+  /* Free FFTW plans. */
+  for(tau = 0; tau < set->t/*-1*/; tau++)
+  {
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
+{
+    fftw_destroy_plan(set->plans_dct3[tau]);
+    fftw_destroy_plan(set->plans_dct2[tau]);
+}
+    set->plans_dct3[tau] = NULL;
+    set->plans_dct2[tau] = NULL;
+  }
+
+  nfft_free(set->plans_dct3);
+  nfft_free(set->plans_dct2);
+  set->plans_dct3 = NULL;
+  set->plans_dct2 = NULL;
 
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
@@ -1886,30 +1907,9 @@ void fpt_finalize(fpt_set set)
     nfft_free(set->vec3);
     nfft_free(set->vec4);
     nfft_free(set->z);
-    set->work = NULL;
-    set->result = NULL;
     set->vec3 = NULL;
     set->vec4 = NULL;
     set->z = NULL;
-
-    /* Free FFTW plans. */
-    for(tau = 0; tau < set->t/*-1*/; tau++)
-    {
-#ifdef _OPENMP
-#pragma omp critical (nfft_omp_critical_fftw_plan)
-#endif
-{
-      fftw_destroy_plan(set->plans_dct3[tau]);
-      fftw_destroy_plan(set->plans_dct2[tau]);
-}
-      set->plans_dct3[tau] = NULL;
-      set->plans_dct2[tau] = NULL;
-    }
-
-    nfft_free(set->plans_dct3);
-    nfft_free(set->plans_dct2);
-    set->plans_dct3 = NULL;
-    set->plans_dct2 = NULL;
   }
 
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
