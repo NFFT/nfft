@@ -474,7 +474,6 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
-  double a,b,x_val_act,a_old;
   const double *x_act;
   double *y_act;
   const double *alpha_act, *beta_act, *gamma_act;
@@ -484,9 +483,7 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
   y_act = y;
   for (i = 0; i < size; i++)
   {
-    a = 1.0;
-    b = 0.0;
-    x_val_act = *x_act;
+    double x_val_act = *x_act;
 
     if (k == 0)
     {
@@ -497,16 +494,35 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
       gamma_act = &(gam[k]);
-      for (j = k; j > 1; j--)
+      double a = 1.0;
+      double b = 0.0;
+      /* 1e247 should not trigger for NFSFT with N <= 1024 */
+      for (j = k; j > 1 && fabs(a) < 1e247; j--)
       {
-        a_old = a;
+        double a_old = a;
         a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
-         b = a_old*(*gamma_act);
+        b = a_old*(*gamma_act);
         alpha_act--;
         beta_act--;
         gamma_act--;
       }
-      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
+      if (j <= 1)
+        *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
+      else /* fabs(a) >= 1e247, continue in long double */
+      {
+        long double a_ld = a;
+	long double b_ld = b;
+        for (; j > 1; j--)
+        {
+          long double a_old = a_ld;
+          a_ld = b_ld + a_old*((*alpha_act)*x_val_act+(*beta_act));
+          b_ld = a_old*(*gamma_act);
+          alpha_act--;
+          beta_act--;
+          gamma_act--;
+        }
+        *y_act = (a_ld*((*alpha_act)*x_val_act+(*beta_act))+b_ld);
+      }
     }
     x_act++;
     y_act++;
@@ -615,7 +631,8 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
       }
       *z_act = a;
       *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
-      max = FMAX(max,LOG10(FABS(*y_act)));
+      if (*y_act != 0.0)
+        max = FMAX(max,LOG10(FABS(*y_act)));
       if (max > t)
         return 1;
     }
@@ -632,16 +649,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
   const double lambda)
 {
   int j,k;
-  double _Complex tmp1, tmp2, tmp3;
-  double xc;
   
-  /*fprintf(stderr, "Executing eval_sum_clenshaw_fast.\n");  
-  fprintf(stderr, "Before transform:\n");  
-  for (j = 0; j < N; j++)
-    fprintf(stderr, "a[%4d] = %e.\n", j, a[j]);  
-  for (j = 0; j <= M; j++)
-    fprintf(stderr, "x[%4d] = %e, y[%4d] = %e.\n", j, x[j], j, y[j]);*/
-
   if (N == 0)
     for (j = 0; j <= M; j++)
       y[j] = a[0];
@@ -649,46 +657,38 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
   {
     for (j = 0; j <= M; j++)
     {
-#if 0
-      xc = x[j];
-      tmp2 = a[N];
-      tmp1 = a[N-1] + (alpha[N-1] * xc + beta[N-1])*tmp2;
-      for (k = N-1; k > 0; k--)
+      double xc = x[j];
+      double _Complex tmp1 = a[N-1];
+      double _Complex tmp2 = a[N];
+      /* 1e247 should not trigger for NFSFT with N <= 1024 */
+      for (k = N-1; k > 0 && fabs(tmp2) < 1e247; k--)
       {
-        tmp3 =   a[k-1]
-               + (alpha[k-1] * xc + beta[k-1]) * tmp1
-               + gam[k] * tmp2;
-        tmp2 = tmp1;
-        tmp1 = tmp3;
-      }
-      y[j] = lambda * tmp1;
-#else
-      xc = x[j];
-      tmp1 = a[N-1];
-      tmp2 = a[N];
-      for (k = N-1; k > 0; k--)
-      {
-        tmp3 = a[k-1] + tmp2 * gam[k];
+        double _Complex tmp3 = a[k-1] + tmp2 * gam[k];
         tmp2 *= (alpha[k] * xc + beta[k]);
         tmp2 += tmp1;
         tmp1 = tmp3;
-        /*if (j == 1515) 
-        {
-          fprintf(stderr, "k = %d, tmp1 = %e, tmp2 = %e.\n", k, tmp1, tmp2);  
-        }*/
       }
-      tmp2 *= (alpha[0] * xc + beta[0]);
-        //fprintf(stderr, "alpha[0] = %e, beta[0] = %e.\n", alpha[0], beta[0]);  
-      y[j] = lambda * (tmp2 + tmp1);
-        //fprintf(stderr, "lambda = %e.\n", lambda);  
-#endif
-    }
-  }
-  /*fprintf(stderr, "Before transform:\n");  
-  for (j = 0; j < N; j++)
-    fprintf(stderr, "a[%4d] = %e.\n", j, a[j]);  
-  for (j = 0; j <= M; j++)
-    fprintf(stderr, "x[%4d] = %e, y[%4d] = %e.\n", j, x[j], j, y[j]);  */
+      if (k <= 0)
+      {
+        tmp2 *= (alpha[0] * xc + beta[0]);
+        y[j] = lambda * (tmp2 + tmp1);
+      }
+      else /* fabs(tmp2) >= 1e247 */
+      {
+        long double _Complex tmp1_ld = tmp1;
+	long double _Complex tmp2_ld = tmp2;
+        for (; k > 0; k--)
+        {
+          long double _Complex tmp3_ld = a[k-1] + tmp2_ld * gam[k];
+          tmp2_ld *= (alpha[k] * xc + beta[k]);
+          tmp2_ld += tmp1_ld;
+          tmp1_ld = tmp3_ld;
+        }
+        tmp2_ld *= (alpha[0] * xc + beta[0]);
+        y[j] = lambda * (tmp2_ld + tmp1_ld);
+      } /* end fabs(tmp2) >= 1e159 */
+    } /* for j */
+  } /* N > 0 */
 }
 
 /**

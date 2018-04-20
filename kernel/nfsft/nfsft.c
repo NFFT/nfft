@@ -619,11 +619,6 @@ void nfsft_trafo_direct(nfsft_plan *plan)
                            coefficient beta_k^n for associated Legendre
                            functions P_k^n                                   */
   double _Complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
-  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex f_m;  /*< The final function value f_m = f(x_m) for a
-                           single node.                                      */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
@@ -690,7 +685,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
      *     e^{i n phi_m}.
      */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(m,stheta,sphi,f_m,n,a,n_abs,alpha,gamma,it2,it1,k,temp)
+    #pragma omp parallel for default(shared) private(m,stheta,sphi,n,a,n_abs,alpha,gamma,k)
 #endif
     for (m = 0; m < plan->M_total; m++)
     {
@@ -698,9 +693,6 @@ void nfsft_trafo_direct(nfsft_plan *plan)
       stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
       sphi = 2.0*KPI*plan->x[2*m];
-
-      /* Initialize result for current node. */
-      f_m = 0.0;
 
       /* For n = -N,...,N, evaluate
        *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
@@ -718,34 +710,66 @@ void nfsft_trafo_direct(nfsft_plan *plan)
         alpha = &(wisdom.alpha[ROW(n_abs)]);
         gamma = &(wisdom.gamma[ROW(n_abs)]);
 
-        /* Clenshaw's algorithm */
-        it2 = a[plan->N];
-        it1 = a[plan->N-1];
-        for (k = plan->N; k > n_abs + 1; k--)
-        {
-          temp = a[k-2] + it2 * gamma[k];
-          it2 = it1 + it2 * alpha[k] * stheta;
-          it1 = temp;
-        }
+        if (plan->N > 1024)
+	{
+          /* Clenshaw's algorithm */
+          long double _Complex it2 = a[plan->N];
+          long double _Complex it1 = a[plan->N-1];
+          for (k = plan->N; k > n_abs + 1; k--)
+          {
+            long double _Complex temp = a[k-2] + it2 * gamma[k];
+            it2 = it1 + it2 * alpha[k] * stheta;
+            it1 = temp;
+          }
 
-        /* Compute final step if neccesary. */
-        if (n_abs < plan->N)
-        {
-          it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-        }
+          /* Compute final step if neccesary. */
+          if (n_abs < plan->N)
+          {
+            it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+          }
 
-        /* Compute final result by multiplying the fixed part
-         *   gamma_|n| (1-cos^2(theta))^{|n|/2}
-         * for order n and the exponential part
-         *   e^{i n phi}
-         * and add the result to f_m.
-         */
-        f_m += it2 * wisdom.gamma[ROW(n_abs)] *
-          pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+          /* Compute final result by multiplying the fixed part
+           *   gamma_|n| (1-cos^2(theta))^{|n|/2}
+           * for order n and the exponential part
+           *   e^{i n phi}
+           * and add the result to f_m.
+           */
+          long double _Complex result = it2 * wisdom.gamma[ROW(n_abs)] *
+            powl(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+
+          plan->f[m] += result;
+	}
+	else
+	{
+          /* Clenshaw's algorithm */
+          double _Complex it2 = a[plan->N];
+          double _Complex it1 = a[plan->N-1];
+          for (k = plan->N; k > n_abs + 1; k--)
+          {
+            double _Complex temp = a[k-2] + it2 * gamma[k];
+            it2 = it1 + it2 * alpha[k] * stheta;
+            it1 = temp;
+          }
+
+          /* Compute final step if neccesary. */
+          if (n_abs < plan->N)
+          {
+            it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+          }
+
+          /* Compute final result by multiplying the fixed part
+           *   gamma_|n| (1-cos^2(theta))^{|n|/2}
+           * for order n and the exponential part
+           *   e^{i n phi}
+           * and add the result to f_m.
+           */
+          plan->f[m] += it2 * wisdom.gamma[ROW(n_abs)] *
+            pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+	}
       }
 
       /* Write result f_m for current node to array f. */
-      plan->f[m] = f_m;
+//      plan->f[m] = f_m;
     }
   }
 }
