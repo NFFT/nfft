@@ -489,9 +489,10 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       }
 #else
     /* Allocate memory for three-term recursion coefficients. */
-      wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      double *alpha, *beta, *gamma;
+      alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.set = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
@@ -500,22 +501,19 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
         fflush(stderr);*/
         /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
          * gamma_k^n. */
-        alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
-        beta_al_row(wisdom.beta,wisdom.N_MAX,n);
-        gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
+        alpha_al_row(alpha,wisdom.N_MAX,n);
+        beta_al_row(beta,wisdom.N_MAX,n);
+        gamma_al_row(gamma,wisdom.N_MAX,n);
 
         /* Precompute data for FPT transformation for order n. */
-        fpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,
+        fpt_precompute(wisdom.set,n,alpha,beta,gamma,n,
                        kappa);
       }
       /* Free auxilliary arrays. */
-      nfft_free(wisdom.alpha);
-      nfft_free(wisdom.beta);
-      nfft_free(wisdom.gamma);
+      nfft_free(alpha);
+      nfft_free(beta);
+      nfft_free(gamma);
 #endif
-      wisdom.alpha = NULL;
-      wisdom.beta = NULL;
-      wisdom.gamma = NULL;
     }
   }
 
@@ -574,8 +572,11 @@ void nfsft_finalize(nfsft_plan *plan)
   if (!plan)
     return;
 
-  /* Finalise the nfft plan. */
-  nfft_finalize(&plan->plan_nfft);
+  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM))
+  {
+    /* Finalise the nfft plan. */
+    nfft_finalize(&plan->plan_nfft);
+  }
 
   /* De-allocate memory for auxilliary array of spherical Fourier coefficients,
    * if neccesary. */
@@ -606,6 +607,14 @@ void nfsft_finalize(nfsft_plan *plan)
   }
 }
 
+static void nfsft_set_f_nan(nfsft_plan *plan)
+{
+  int m;
+  double nan_value = nan("");
+  for (m = 0; m < plan->M_total; m++)
+    plan->f[m] = nan_value;
+}
+
 void nfsft_trafo_direct(nfsft_plan *plan)
 {
   int m;               /*< The node index                                    */
@@ -630,6 +639,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -693,6 +703,9 @@ void nfsft_trafo_direct(nfsft_plan *plan)
       stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
       sphi = 2.0*KPI*plan->x[2*m];
+
+      /* Initialize result for current node. */
+      plan->f[m] = 0.0;
 
       /* For n = -N,...,N, evaluate
        *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
@@ -774,6 +787,15 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   }
 }
 
+static void nfsft_set_f_hat_nan(nfsft_plan *plan)
+{
+  int k, n;
+  double nan_value = nan("");
+  for (k = 0; k <= plan->N; k++)
+    for (n = -k; n <= k; n++)
+      plan->f_hat[NFSFT_INDEX(k,n,plan)] = nan_value;
+}
+
 void nfsft_adjoint_direct(nfsft_plan *plan)
 {
   int m;               /*< The node index                                    */
@@ -800,6 +822,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -966,6 +989,13 @@ void nfsft_trafo(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
+    nfsft_set_f_nan(plan);
+    return;
+  }
+
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -974,6 +1004,7 @@ void nfsft_trafo(nfsft_plan *plan)
    */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -1128,6 +1159,13 @@ void nfsft_adjoint(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
+    nfsft_set_f_hat_nan(plan);
+    return;
+  }
+
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -1136,6 +1174,7 @@ void nfsft_adjoint(nfsft_plan *plan)
    */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -1289,6 +1328,9 @@ void nfsft_adjoint(nfsft_plan *plan)
 
 void nfsft_precompute_x(nfsft_plan *plan)
 {
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+    return;
+
   /* Pass angle array to NFFT plan. */
   plan->plan_nfft.x = plan->x;
 

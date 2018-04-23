@@ -780,7 +780,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 
   /* Initialize with NULL pointer. */
   for (m = 0; m < set->M; m++)
-    set->dpt[m].steps = 0;
+    set->dpt[m].steps = NULL;
 
   /* Create arrays with Chebyshev nodes. */
 
@@ -859,6 +859,13 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->kinds = NULL;
   set->kindsr = NULL;
 
+  set->vec3 = NULL;
+  set->vec4 = NULL;
+  set->z = NULL;
+
+  set->xc_slow = NULL;
+  set->temp = NULL;
+
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
@@ -926,6 +933,10 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
 
   data->gamma_m1 = gam[0];
 
+  data->alphaN = NULL;
+  data->betaN = NULL;
+  data->gammaN = NULL;
+
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
@@ -971,7 +982,7 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
       /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
       for (l = firstl; l <= lastl; l++)
       {
-        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
+        if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
         {
           //fprintf(stderr,"fpt_precompute(%d): symmetric step\n",m);
           //fflush(stderr);
@@ -1357,7 +1368,7 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
       if (step->stable)
       {
         /* Check, if we should do a symmetrizised step. */
-        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
+        if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
         {
           /*for (k = 0; k < plength; k++)
           {
@@ -1695,7 +1706,7 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
       /* Check if step is stable. */
       if (step->stable)
       {
-        if (set->flags & FPT_AL_SYMMETRY && IS_SYMMETRIC(l,m,plength))
+        if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
         {
           /* Multiply third and fourth polynomial with matrix U. */
           fpt_do_step_t_symmetric(set->vec3, set->vec4, step->a11[0], step->a12[0],
@@ -1793,12 +1804,15 @@ void fpt_finalize(fpt_set set)
     data = &set->dpt[m];
     if (data->steps != (fpt_step**)NULL)
     {
-      nfft_free(data->alphaN);
-      nfft_free(data->betaN);
-      nfft_free(data->gammaN);
-      data->alphaN = NULL;
-      data->betaN = NULL;
-      data->gammaN = NULL;
+      if (!(set->flags & FPT_NO_FAST_ALGORITHM))
+      {
+        nfft_free(data->alphaN);
+        nfft_free(data->betaN);
+        nfft_free(data->gammaN);
+        data->alphaN = NULL;
+        data->betaN = NULL;
+        data->gammaN = NULL;
+      }
 
       /* Free precomputed data. */
       k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
