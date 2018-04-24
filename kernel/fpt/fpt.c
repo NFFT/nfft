@@ -35,6 +35,13 @@
 #include "nfft3.h"
 #include "infft.h"
 
+/**
+ * If defined, perform critical computations in three-term recurrence
+ * always in long double instead of using adaptive version that starts
+ * in double and switches to long double if required.
+ */
+#undef  FPT_CLENSHAW_USE_ONLY_LONG_DOUBLE
+
 /* Macros for index calculation. */
 
 /** Minimum degree at top of a cascade */
@@ -494,6 +501,21 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
       gamma_act = &(gam[k]);
+
+#ifdef FPT_CLENSHAW_USE_ONLY_LONG_DOUBLE
+      long double a = 1.0;
+      long double b = 0.0;
+      for (j = k; j > 1; j--)
+      {
+        long double a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
+        b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
+#else
       double a = 1.0;
       double b = 0.0;
       /* 1e247 should not trigger for NFSFT with N <= 1024 */
@@ -511,7 +533,7 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
       else /* fabs(a) >= 1e247, continue in long double */
       {
         long double a_ld = a;
-	long double b_ld = b;
+        long double b_ld = b;
         for (; j > 1; j--)
         {
           long double a_old = a_ld;
@@ -523,6 +545,8 @@ static void eval_clenshaw(const double *x, double *y, int size, int k, const dou
         }
         *y_act = (a_ld*((*alpha_act)*x_val_act+(*beta_act))+b_ld);
       }
+#endif
+
     }
     x_act++;
     y_act++;
@@ -593,7 +617,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
    * of knots  x[0], ..., x[size-1] by the Clenshaw algorithm
    */
   int i,j;
-  double a,b,x_val_act,a_old;
+  double x_val_act;
   const double *x_act;
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
@@ -606,8 +630,6 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   z_act = z;
   for (i = 0; i < size; i++)
   {
-    a = 1.0;
-    b = 0.0;
     x_val_act = *x_act;
 
     if (k == 0)
@@ -620,17 +642,55 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
       alpha_act = &(alpha[k]);
       beta_act = &(beta[k]);
       gamma_act = &(gam[k]);
+
+#ifdef FPT_CLENSHAW_USE_ONLY_LONG_DOUBLE
+      long double a = 1.0;
+      long double b = 0.0;
       for (j = k; j > 1; j--)
       {
-        a_old = a;
+        long double a_old = a;
         a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
-         b = a_old*(*gamma_act);
+        b = a_old*(*gamma_act);
         alpha_act--;
         beta_act--;
         gamma_act--;
       }
       *z_act = a;
       *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
+#else
+      double a = 1.0;
+      double b = 0.0;
+      for (j = k; j > 1 && fabs(a) < 1e247; j--)
+      {
+        double a_old = a;
+        a = b + a_old*((*alpha_act)*x_val_act+(*beta_act));
+        b = a_old*(*gamma_act);
+        alpha_act--;
+        beta_act--;
+        gamma_act--;
+      }
+      if (j <= 1)
+      {
+        *z_act = a;
+        *y_act = (a*((*alpha_act)*x_val_act+(*beta_act))+b);
+      }
+      else /* fabs(a) >= 1e247, continue in long double */
+      {
+        long double a_ld = a;
+        long double b_ld = b;
+        for (; j > 1; j--)
+        {
+          long double a_old = a_ld;
+          a_ld = b_ld + a_old*((*alpha_act)*x_val_act+(*beta_act));
+          b_ld = a_old*(*gamma_act);
+          alpha_act--;
+          beta_act--;
+          gamma_act--;
+        }
+        *z_act = a_ld;
+        *y_act = (a_ld*((*alpha_act)*x_val_act+(*beta_act))+b_ld);
+      }
+#endif
       if (*y_act != 0.0)
         max = FMAX(max,LOG10(FABS(*y_act)));
       if (max > t)
@@ -658,6 +718,19 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
     for (j = 0; j <= M; j++)
     {
       double xc = x[j];
+#ifdef FPT_CLENSHAW_USE_ONLY_LONG_DOUBLE
+      long double _Complex tmp1 = a[N-1];
+      long double _Complex tmp2 = a[N];
+      for (k = N-1; k > 0; k--)
+      {
+        long double _Complex tmp3 = a[k-1] + tmp2 * gam[k];
+        tmp2 *= (alpha[k] * xc + beta[k]);
+        tmp2 += tmp1;
+        tmp1 = tmp3;
+      }
+      tmp2 *= (alpha[0] * xc + beta[0]);
+      y[j] = lambda * (tmp2 + tmp1);
+#else
       double _Complex tmp1 = a[N-1];
       double _Complex tmp2 = a[N];
       /* 1e247 should not trigger for NFSFT with N <= 1024 */
@@ -676,7 +749,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
       else /* fabs(tmp2) >= 1e247 */
       {
         long double _Complex tmp1_ld = tmp1;
-	long double _Complex tmp2_ld = tmp2;
+        long double _Complex tmp2_ld = tmp2;
         for (; k > 0; k--)
         {
           long double _Complex tmp3_ld = a[k-1] + tmp2_ld * gam[k];
@@ -686,7 +759,8 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
         }
         tmp2_ld *= (alpha[0] * xc + beta[0]);
         y[j] = lambda * (tmp2_ld + tmp1_ld);
-      } /* end fabs(tmp2) >= 1e159 */
+      } /* end fabs(tmp2) >= 1e247 */
+#endif
     } /* for j */
   } /* N > 0 */
 }
