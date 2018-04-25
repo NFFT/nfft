@@ -20,6 +20,7 @@
 *.so.*
 *.dylib
 *.mex
+*.mexa64
 *.mexw64
 
 # Executables
@@ -128,4 +129,9 @@ tests/checkall
 *.trs
 CUnitAutomated-Results.xml
 CUnitAutomated_threads-Results.xml
-windows-build-dll/*
+matlab/tests/check_nfft_matlab.sh
+matlab/tests/check_nfft_octave.sh
+matlab/tests/nfftUnitTests.m
+windows-build-dll*/*
+linux-build-mex/*
+nfft-3.*.tar.gz

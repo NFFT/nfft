@@ -27,10 +27,6 @@
 #include "infft.h"
 #include "imex.h"
 
-#ifdef HAVE_MEXVERSION_C
-  #include "mexversion.c"
-#endif
-
 #define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 40 /* maximum length of command argument */
 

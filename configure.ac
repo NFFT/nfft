@@ -20,7 +20,7 @@
 
 m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [4])
-m4_define([nfft_version_patch], [1])
+m4_define([nfft_version_patch], [2])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -625,6 +625,7 @@ AC_CONFIG_FILES(Makefile \
                 matlab/nfst/Makefile \
                 matlab/nnfft/Makefile \
                 matlab/fastsum/Makefile \
+                matlab/infft1d/Makefile \
                 matlab/nfsft/@f_hat/Makefile \
                 matlab/nfsoft/Makefile \
                 matlab/tests/Makefile \

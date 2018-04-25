@@ -61,6 +61,7 @@ system([cmd ' output_phantom_nfft.dat ' ...
 
 % Visualize the three dimensional phantom. Makes a pic of
 % every slice and one plot of the N/2 row of the 10th plane.
+[~,~] = mkdir('pics_2+1d');
 visualize_data('pics_2+1d/pic', N, Z, 1, 'Inverse 2d1d-NFFT - 3. iteration - spiral knots');
 
 % Compute the root mean square
@@ -78,6 +79,7 @@ else
 end
 system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 0 1']);
+[~,~] = mkdir('pics_gridding');
 visualize_data('pics_gridding/pic', N, Z, 2, 'Adjoint 2d1d-NFFT (Gridding) - spiral knots');
 rms('pics_gridding/rms.txt');
 
@@ -91,6 +93,7 @@ else
 end
 system([cmd ' output_phantom_nfft.dat ' ...
          int2str(N) ' ' int2str(M) ' ' int2str(Z)  ' 1 1']);
+[~,~] = mkdir('pics_3d');
 visualize_data('pics_3d/pic', N, Z, 3, 'Inverse 3d-NFFT - 1. iteration - spiral knots');
 rms('pics_3d/rms.txt');
 

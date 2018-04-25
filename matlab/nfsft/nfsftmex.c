@@ -27,10 +27,6 @@
 #include "infft.h"
 #include "imex.h"
 
-#ifdef HAVE_MEXVERSION_C
-  #include "mexversion.c"
-#endif
-
 #define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 20 /* maximum length of command argument */
 
@@ -42,6 +38,9 @@ static unsigned short gflags = NFSFT_MEX_FIRST_CALL;
 static nfsft_plan** plans = NULL; /* plans */
 static unsigned int plans_num_allocated = 0;
 static int n_max = -1; /* maximum degree precomputed */
+static double kappa_global; /* parameters of percompute */
+static unsigned int nfsft_flags_global = 0U;
+static unsigned int fpt_flags_global = 0U;
 static char cmd[CMD_LEN_MAX];
 
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
@@ -203,7 +202,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       get_nmffc(prhs,&n,&m,&f,&f2,&c);
       i = mkplan();
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-        NFSFT_MALLOC_F_HAT, PRE_PHI_HUT | PRE_PSI | FFTW_INIT
+        NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT
         | FFT_OUT_OF_PLACE, c);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
@@ -217,13 +216,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       double k = nfft_mex_get_double(prhs[2],"nfsft: Input argument kappa must be a scalar.");
       unsigned int f = nfft_mex_get_int(prhs[3],"nfsft: Input argument flags must be a scalar.");
       unsigned int f2 = nfft_mex_get_int(prhs[4],"nfsft: Input argument flags2 must be a scalar.");
-      if (n_max < n)
+      if ((n_max < n) || (k != kappa_global) || (f != nfsft_flags_global) || (f2 != fpt_flags_global))
       {
         if (gflags & NFSFT_MEX_PRECOMPUTED)
           nfsft_forget();
 
         nfsft_precompute(n,k,f,f2);
         n_max = n;
+        kappa_global = k;
+        nfsft_flags_global = f;
+        fpt_flags_global = f2;
         gflags |= NFSFT_MEX_PRECOMPUTED;
       }
     }
@@ -436,10 +438,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       const int n = plans[i]->N;
       DM(if (!mxIsDouble(prhs[2]))
-        mexErrMsgTxt("Input argument f must be a double array");)
+        mexErrMsgTxt("Input argument f_hat must be a double array");)
       DM(if (   mxGetM(prhs[2]) != (unsigned)(2*n+1)
           || mxGetN(prhs[2]) != (unsigned)(n+1))
-        mexErrMsgTxt("Input argument f must have correct size.");)
+        mexErrMsgTxt("Input argument f_hat must have correct size.");)
       {
         double *f_hatr = mxGetPr(prhs[2]), *f_hati = mxGetPi(prhs[2]);
         int j,k;

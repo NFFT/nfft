@@ -35,12 +35,7 @@ case '()'
   end
 
   if (length(ind1) == 1 && min(ind2) >= -ind1 && max(ind2) <= ind1)
-    if (ind1 == 0)
-      o = 0;
-    else
-      o = ind1^2;
-    end
-    b = p.f_hat(o+ind1+1+ind2);
+    b = p.f_hat(ind1^2+ind1+1+ind2);
   elseif (length(ind2) == 1 && min(ind1) >= abs(ind2))
     b = zeros(size(ind1));
     for k = 1:length(ind1)
@@ -48,6 +43,14 @@ case '()'
     end
   else
     error('Invalid subindex');
+  end
+case '.'
+  if (s.subs == 'N')
+    b = p.N;
+  elseif (s.subs == 'f_hat')
+    b = p.f_hat;
+  else
+    error('Invalid member');
   end
 otherwise
   error('Wrong subindex format');

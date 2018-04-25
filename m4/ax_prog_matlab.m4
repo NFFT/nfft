@@ -232,10 +232,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     LDFLAGS="$saved_LDFLAGS"
 
-    matlab_CPPFLAGS="-I${matlab_include_dir}"
-
-    # mexversion.c
-    AC_CHECK_FILE([${matlab_src_dir}/mexversion.c],[matlab_CPPFLAGS="${matlab_CPPFLAGS} -I${matlab_src_dir}"; AC_DEFINE([HAVE_MEXVERSION_C],[1],[Define to have the file mexversion.c])],[AC_MSG_WARN([File ]${matlab_src_dir}[/mexversion.c not found])])
+    matlab_CPPFLAGS="-I${matlab_include_dir} -DMATLAB_DEFAULT_RELEASE=R2017b"
 
     ax_prog_matlab="yes"
 
@@ -254,7 +251,7 @@ AC_DEFUN([AX_PROG_MATLAB],
     for matlab_fftw3_lib_name in mwfftw3 :libmwfftw3.so.3 fftw3; do
       matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}"
       LIBS="-l${matlab_fftw3_lib_name} $LIBS"
-      LDFLAGS="-L$matlab_fftw3_lib_dir ${matlab_LDFLAGS} $LDFLAGS"
+      LDFLAGS="-L$matlab_fftw3_lib_dir $LDFLAGS"
       AC_MSG_CHECKING([for Matlab fftw3 library])
       AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
       AC_MSG_RESULT([$ax_matlab_lib_fftw3])
@@ -421,7 +418,11 @@ AC_DEFUN([AX_PROG_MATLAB],
     fi
 
     matlab_fftw3_LDFLAGS="$fftw3_LDFLAGS"
-    matlab_fftw3_LIBS="$fftw3_LIBS"
+    if test "x$matlab_threads" = "xyes"; then
+      matlab_fftw3_LIBS="$fftw3_threads_LIBS"
+    else
+      matlab_fftw3_LIBS="$fftw3_LIBS"
+    fi
     matlab_mexext=".mex"
 
     saved_CPPFLAGS="$CPPFLAGS"

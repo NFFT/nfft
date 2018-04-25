@@ -59,6 +59,7 @@ system([cmd ' output_phantom_nfft.dat ' ...
 
 % Visualize the two dimensional phantom. Make a pic
 % and one plot of the N/2 row
+[~,~] = mkdir('pics');
 visualize_data('pics/pic_2d', N, 1, 'Inverse 2d-NFFT - 3. iteration');
 
 % Compute the root mean square
