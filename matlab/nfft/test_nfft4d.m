@@ -15,7 +15,7 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Test script of class nfft for spatial dimension d=3.
+% Test script of class nfft for spatial dimension d=4.
 clear all;
 
 M=65; % number of nodes
@@ -30,7 +30,7 @@ x=rand(M,4)-0.5; %nodes
 % Initialisation
 plan=nfft(4,N,M); % create plan of class type nfft
 %n=2.^(ceil(log(N)/log(2))+1);
-%plan=nfft(4,N,M,n(1),n(2),n(3),n(4),8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_ESTIMATE); % use of nfft_init_guru
+%plan=nfft(4,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_ESTIMATE); % use of nfft_init_guru
 
 plan.x=x; % set nodes in plan and perform precomputations
 
@@ -41,47 +41,44 @@ fhatv=fhat(:);
 
 % Compute samples with NFFT
 plan.fhat=fhatv; % set Fourier coefficients
+tic
 nfft_trafo(plan); % compute nonequispaced Fourier transform
+fprintf("Time nfft_trafo:   %g sec\n",toc)
 f1=plan.f; % get samples
 
 % Compute samples direct
+tic
 k1=-N1/2:N1/2-1;
 k2=-N2/2:N2/2-1;
 k3=-N3/2:N3/2-1;
 k4=-N4/2:N4/2-1;
 [K1,K2,K3,K4]=ndgrid(k1,k2,k3,k4);
-k1=K1(:); clear K1;
-k2=K2(:); clear K2;
-k3=K3(:); clear K3;
-k4=K4(:); clear K4;
+k=[K1(:), K2(:), K3(:), K4(:)];
+clear K1 K2 K3 K4;
 f2=zeros(M,1);
 for j=1:M
-	x1j=x(j,1);
-	x2j=x(j,2);
-	x3j=x(j,3);
-	x4j=x(j,4);
-	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k1*x1j+k2*x2j+k3*x3j+k4*x4j)) );
+	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k*x(j,:).')) );
 end %for
+fprintf("Time direct trafo: %g sec\n",toc)
 
 % Compare results
-max(abs(f1-f2))
+fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
 
 % Adjoint NFFT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Computation with NFFT
+tic
 nfft_adjoint(plan);
+fprintf("Time nfft_adjoint:   %g sec\n",toc)
 fhat1=plan.fhat;
 
 % Direct computation
-fhat2=zeros(N1*N2*N3*N4,1);
-for j=1:N1*N2*N3*N4
-	k1j=k1(j);
-	k2j=k2(j);
-	k3j=k3(j);
-	k4j=k4(j);
-	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(k1j*x(:,1)+k2j*x(:,2)+k3j*x(:,3)+k4j*x(:,4))) );
+tic
+fhat2=zeros(prod(N),1);
+for j=1:prod(N)
+	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(x*k(j,:).')) );
 end %for
+fprintf("Time direct adjoint: %g sec\n",toc)
 
 % Compare results
-max(abs(fhat1-fhat2))
-
+fprintf('Maximum error of adjoint = %g\n',max(abs(fhat1-fhat2)))

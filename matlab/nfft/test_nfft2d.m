@@ -46,13 +46,11 @@ f1=plan.f; % get samples
 k1=-N1/2:N1/2-1;
 k2=-N2/2:N2/2-1;
 [K1,K2]=ndgrid(k1,k2);
-k1=K1(:); clear K1;
-k2=K2(:); clear K2;
+k=[K1(:) K2(:)];
+clear K1 K2;
 f2=zeros(M,1);
 for j=1:M
-	x1j=x(j,1);
-	x2j=x(j,2);
-	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k1*x1j+k2*x2j)) );
+	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k*x(j,:).')) );
 end %for
 
 % Compare results
@@ -67,9 +65,7 @@ fhat1=plan.fhat;
 % Direct computation
 fhat2=zeros(N1*N2,1);
 for j=1:N1*N2
-	k1j=k1(j);
-	k2j=k2(j);
-	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(k1j*x(:,1)+k2j*x(:,2))) );
+	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(x*k(j,:).')) );
 end %for
 
 % Compare results

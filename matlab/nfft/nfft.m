@@ -140,6 +140,10 @@ function h=nfft(d,N,M,varargin)
     else
       args_cell{5+2*d} = bitor(FFT_OUT_OF_PLACE,FFTW_ESTIMATE);
     end
+    
+    if length(args_cell_n_m_flags) > d+3
+      error('Too many input arguments')
+    end
 
     h.plan = nfftmex('init_guru',args_cell);
 		h.plan_is_set=true;
@@ -173,9 +177,9 @@ end
 
 function set.M(h,M)
 	if( ~ismatrix(M) || size(M,1)~=1 || size(M,2)~=1)
-		error('The number of sampling points M has to be an positive integer.');
+		error('The number of sampling points M has to be a positive integer.');
 	elseif( isempty(M) || ~isnumeric(M) || ~isreal(M) || mod(M,1)~=0 || ~(M>0) )
-		error('The number of sampling points M has to be an positive integer.');
+		error('The number of sampling points M has to be a positive integer.');
 	else
 		h.M = double(M);
 	end %if
@@ -192,7 +196,7 @@ function set.x(h,x)
 	%elseif( min(x(:))<-1/2 || ~(max(x(:))<1/2) )
 	%	error('The sampling points x have to be in the two dimensional Torus [-0.5,0.5)^2');
 	elseif( size(x,1)~=h.M || size(x,2)~=h.d )
-		error('The sampling points have to be a %ux%u matrix',h.M,h.d);
+		error('The sampling points x have to be a %ux%u matrix',h.M,h.d);
   end
   x = double(x);
 	x=mod(x+0.5,1)-0.5;
