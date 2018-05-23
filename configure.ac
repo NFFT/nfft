@@ -619,6 +619,7 @@ AC_CONFIG_FILES(Makefile \
 		applications/radon/inverse_radon.c \
 		applications/radon/radon.c \
                 matlab/Makefile \
+                matlab/fpt/Makefile \
                 matlab/nfsft/Makefile \
                 matlab/nfft/Makefile \
                 matlab/nfct/Makefile \
