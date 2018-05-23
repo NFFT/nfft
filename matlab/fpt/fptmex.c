@@ -1,4 +1,3 @@
-        nfft_f2
 /*
  * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
  *
@@ -75,6 +74,7 @@ static inline int mkset()
       nfft_free(sets_old);
     sets_num_allocated += SETS_START;
   }
+  sets[i] = nfft_malloc(sizeof(fpt_set));
   return i;
 }
 
@@ -89,6 +89,7 @@ static void cleanup(void)
       if (sets[i])
       {
         fpt_finalize(*(sets[i]));
+        nfft_free(sets[i]);
         sets[i] = NULL;
       }
 
@@ -140,7 +141,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     int i = mkset();
     fpt_set set = fpt_init(1, t, flags);
-    sets[i] = &set;
+    *(sets[i]) = set;
     plhs[0] = mxCreateDoubleScalar((double)i);
 
   }else if(strcmp(cmd,"precompute") == 0)
@@ -251,6 +252,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
     int i = get_set(prhs[1]);
     fpt_finalize(*(sets[i]));
+    nfft_free(sets[i]);
     sets[i] = NULL;
 
   }else
