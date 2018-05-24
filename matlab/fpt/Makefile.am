@@ -15,7 +15,7 @@ libfpt_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 
-dist_fptmatlab_DATA = 
+dist_fptmatlab_DATA = simple_test.m fpt_init.m fpt_precompute.m fpt_trafo.m fpt_transposed.m fpt_finalize.m
 
 # target all-am builds .libs/libfpt@matlab_mexext@
 fptmex@matlab_mexext@: all-am 

@@ -32,7 +32,7 @@
 
 /* global flags */
 #define FPT_MEX_FIRST_CALL (1U << 0)
-static unsigned short gflags = FPT_MEX_FIRST_CALL;
+static unsigned int gflags = FPT_MEX_FIRST_CALL;
 
 static fpt_set** sets = NULL; /* sets */
 static unsigned int sets_num_allocated = 0;
@@ -45,21 +45,21 @@ static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
     mexErrMsgTxt(errmsg);)
 }
 
-static inline int get_set(const mxArray *pm)
+static inline unsigned int get_set(const mxArray *pm)
 {
   int i = nfft_mex_get_int(pm,"Input argument set must be a scalar.");
-  DM(if (i < 0 || i >= sets_num_allocated || sets[i] == NULL)
+  DM(if (i < 0 || i >= (int) sets_num_allocated || sets[i] == NULL)
     mexErrMsgTxt("Set was not initialized or has already been finalized");)
-  return i;
+  return (unsigned int) i;
 }
 
-static inline int mkset()
+static inline unsigned int mkset(void)
 {
-  int i = 0;
+  unsigned int i = 0;
   while (i < sets_num_allocated && sets[i] != NULL) i++;
   if (i == sets_num_allocated)
   {
-    int l;
+    unsigned int l;
 
     if (sets_num_allocated >= INT_MAX - SETS_START - 1)
       mexErrMsgTxt("nfsoft: Too many sets already allocated.");
@@ -81,7 +81,7 @@ static inline int mkset()
 /* cleanup on mex function unload */
 static void cleanup(void)
 {
-  int i;
+  unsigned int i;
 
   if (!(gflags & FPT_MEX_FIRST_CALL))
   {
@@ -131,7 +131,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   if(strcmp(cmd,"init") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for init.");
-    int t = nfft_mex_get_int(prhs[1],"t must be scalar"); // exponent of the length of the transformation 2^t
+    int t = nfft_mex_get_int(prhs[1],"t must be scalar"); // maximal exponent of the length of the transformation 2^t
     DM( if (t <= 0)
       mexErrMsgTxt("Input argument t must be positive.");)
     int flags_int = nfft_mex_get_int(prhs[2],"Input argument flags must be a scalar."); // flags
@@ -139,7 +139,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexErrMsgTxt("Input argument flags must be non-negative.");)
     unsigned flags = (unsigned) flags_int;
 
-    int i = mkset();
+    unsigned int i = mkset();
     fpt_set set = fpt_init(1, t, flags);
     *(sets[i]) = set;
     plhs[0] = mxCreateDoubleScalar((double)i);
@@ -147,7 +147,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }else if(strcmp(cmd,"precompute") == 0)
   {
     check_nargs(nrhs,6,"Wrong number of arguments for precompute.");
-    int i = get_set(prhs[1]);
+    unsigned int i = get_set(prhs[1]);
     double *alpha = mxGetPr(prhs[2]);
     DM(if (!(mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1)))
         mexErrMsgTxt("Input argument alpha must be a M x 1 array");)
@@ -166,17 +166,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   } else if(strcmp(cmd,"trafo") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for trafo.");
-    int i = get_set(prhs[1]);
+    unsigned int i = get_set(prhs[1]);
 
     DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
       mexErrMsgTxt("Input argument a must be an M x 1 array");)
     double *a_real = mxGetPr(prhs[2]), *a_imag=0;
     if(mxIsComplex(prhs[2])) 
       a_imag = mxGetPi(prhs[2]);
-    int N = mxGetM(prhs[2]);
+    long unsigned int N = mxGetM(prhs[2]);
     double _Complex *a = nfft_malloc(N*sizeof(double _Complex));
 
-    for (int j = 0; j < N; j++)
+    for (long unsigned int j = 0; j < N; j++)
     {
       if(a_imag)
         a[j] = a_real[j] + I*a_imag[j];
@@ -196,7 +196,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[0] = mxCreateDoubleMatrix(N, 1, mxCOMPLEX); // return value
     {
       double *br = mxGetPr(plhs[0]), *bi = mxGetPi(plhs[0]);
-      for (int j = 0; j < N; j++)
+      for (long unsigned int j = 0; j < N; j++)
       {
         br[j] = creal(b[j]);
         bi[j] = cimag(b[j]);
@@ -208,17 +208,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   } else if(strcmp(cmd,"transposed") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for transposed.");
-    int i = get_set(prhs[1]);
+    unsigned int i = get_set(prhs[1]);
 
     DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
       mexErrMsgTxt("Input argument a must be an M x 1 array");)
     double *b_real = mxGetPr(prhs[2]), *b_imag=0;
     if(mxIsComplex(prhs[2])) 
       b_imag = mxGetPi(prhs[2]);
-    int N = mxGetM(prhs[2]);
+    long unsigned int N = mxGetM(prhs[2]);
     double _Complex *b = nfft_malloc(N*sizeof(double _Complex));
 
-    for (int j = 0; j < N; j++)
+    for (long unsigned int j = 0; j < N; j++)
     {
       if(b_imag)
         b[j] = b_real[j] + I*b_imag[j];
@@ -238,7 +238,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[0] = mxCreateDoubleMatrix(N, 1, mxCOMPLEX); // return value
     {
       double *ar = mxGetPr(plhs[0]), *ai = mxGetPi(plhs[0]);
-      for (int j = 0; j < N; j++)
+      for (long unsigned int j = 0; j < N; j++)
       {
         ar[j] = creal(a[j]);
         ai[j] = cimag(a[j]);
@@ -250,7 +250,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   } else if(strcmp(cmd,"finalize") == 0)
   {
     check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
-    int i = get_set(prhs[1]);
+    unsigned int i = get_set(prhs[1]);
     fpt_finalize(*(sets[i]));
     nfft_free(sets[i]);
     sets[i] = NULL;
