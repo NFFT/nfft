@@ -627,8 +627,8 @@ static void D_T(X(plan) *ths)
 }
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
-#define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_B_init_result_A memset(ths->f, 0, (size_t)(ths->M_total) * sizeof(C));
+#define MACRO_B_init_result_T memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
 
 #define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
@@ -642,27 +642,32 @@ static void D_T(X(plan) *ths)
 
 #define MACRO_B_compute_A \
 { \
-  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
+  ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
 }
 
 #define MACRO_B_compute_T \
 { \
-  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
+  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
 }
 
 #define MACRO_with_FG_PSI fg_psi[t2][lj[t2]]
 
 #define MACRO_with_PRE_PSI ths->psi[(j*ths->d+t2) * (2*ths->m+2)+lj[t2]]
 
+#define MACRO_without_PRE_PSI_improved psij_const[t2 * (2*ths->m+2) + lj[t2]]
+
 #define MACRO_without_PRE_PSI  PHI(ths->n[t2], ths->x[j*ths->d+t2] \
-  - ((R)l[t2])/((R)ths->n[t2]), t2)
+  - ((R) (lj[t2]+u[t2]))/((R)ths->n[t2]), t2)
 
 #define MACRO_init_uo_l_lj_t \
+INT l_all[ths->d*(2*ths->m+2)]; \
 { \
   for (t = ths->d-1; t >= 0; t--) \
   { \
     uo(ths,j,&u[t],&o[t],t); \
-    l[t] = u[t]; \
+    INT lj_t; \
+    for (lj_t = 0; lj_t < 2*ths->m+2; lj_t++) \
+      l_all[t*(2*ths->m+2) + lj_t] = (u[t] + lj_t + ths->n[t]) % ths->n[t]; \
     lj[t] = 0; \
   } \
   t++; \
@@ -672,21 +677,113 @@ static void D_T(X(plan) *ths)
   for (t2 = t; t2 < ths->d; t2++) \
     { \
       phi_prod[t2+1] = phi_prod[t2] * MACRO_ ## which_one; \
-      ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + (l[t2] + ths->n[t2]) % ths->n[t2]; \
+      ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
     } \
 }
 
 #define MACRO_count_uo_l_lj_t \
 { \
-  for (t = ths->d-1; (t > 0) && (l[t] == o[t]); t--) \
+  for (t = ths->d-1; (t > 0) && (lj[t] == o[t]-u[t]); t--) \
   { \
-    l[t] = u[t]; \
     lj[t] = 0; \
   } \
  \
-  l[t]++; \
   lj[t]++; \
 }
+
+#define MACRO_COMPUTE_with_PRE_PSI MACRO_with_PRE_PSI
+#define MACRO_COMPUTE_with_PRE_FG_PSI MACRO_with_FG_PSI
+#define MACRO_COMPUTE_with_FG_PSI MACRO_with_FG_PSI
+#define MACRO_COMPUTE_with_PRE_LIN_PSI MACRO_with_FG_PSI
+#define MACRO_COMPUTE_without_PRE_PSI MACRO_without_PRE_PSI_improved
+#define MACRO_COMPUTE_without_PRE_PSI_improved MACRO_without_PRE_PSI_improved
+
+#define MACRO_B_COMPUTE_ONE_NODE(whichone_AT,whichone_FLAGS) \
+      if (ths->d == 4) \
+      { \
+        INT l0, l1, l2, l3; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                MACRO_B_compute_ ## whichone_AT; \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  MACRO_B_compute_ ## whichone_AT; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
+      else { \
+        for (l_L = 0; l_L < lprod; l_L++) \
+        { \
+          MACRO_update_phi_prod_ll_plain(whichone_FLAGS); \
+ \
+          MACRO_B_compute_ ## whichone_AT; \
+ \
+          MACRO_count_uo_l_lj_t; \
+        } /* for(l_L) */ \
+      }
 
 #define MACRO_B(which_one) \
 static inline void B_serial_ ## which_one (X(plan) *ths) \
@@ -694,14 +791,11 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
   INT t, t2; /* index dimensions */ \
-  INT j; /* index nodes */ \
+  INT k; /* index nodes */ \
   INT l_L, ix; /* index one row of B */ \
-  INT l[ths->d]; /* multi index u<=l<=o */ \
   INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
   INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
-  C *f, *g; /* local copy */ \
-  C *fj; /* local copy */ \
   R y[ths->d]; \
   R fg_psi[ths->d][2*ths->m+2]; \
   R fg_exp_l[ths->d][2*ths->m+2]; \
@@ -711,12 +805,15 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
   INT ip_u; \
   INT ip_s = ths->K/(ths->m+2); \
  \
-  f = (C*)ths->f; g = (C*)ths->g; \
- \
   MACRO_B_init_result_ ## which_one; \
  \
   if (ths->flags & PRE_FULL_PSI) \
   { \
+    INT j; \
+    C *f, *g; /* local copy */ \
+    C *fj; /* local copy */ \
+    f = (C*)ths->f; g = (C*)ths->g; \
+ \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
@@ -735,24 +832,23 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
 \
   if (ths->flags & PRE_PSI) \
   { \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    sort(ths); \
+ \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
       MACRO_init_uo_l_lj_t; \
  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(with_PRE_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } /* for(l_L) */ \
+      MACRO_B_COMPUTE_ONE_NODE(which_one,with_PRE_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_PSI) */ \
  \
   if (ths->flags & PRE_FG_PSI) \
   { \
+    sort(ths); \
+ \
     for(t2 = 0; t2 < ths->d; t2++) \
     { \
       tmpEXP2 = EXP(K(-1.0) / ths->b[t2]); \
@@ -767,8 +863,10 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1] * tmp3; \
       } \
     } \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
       MACRO_init_uo_l_lj_t; \
  \
       for (t2 = 0; t2 < ths->d; t2++) \
@@ -783,20 +881,15 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         } \
       } \
  \
-      for (l_L= 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } /* for(l_L) */ \
+      MACRO_B_COMPUTE_ONE_NODE(which_one,with_FG_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_FG_PSI) */ \
  \
   if (ths->flags & FG_PSI) \
   { \
+    sort(ths); \
+ \
     for (t2 = 0; t2 < ths->d; t2++) \
     { \
       tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
@@ -811,8 +904,10 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
       } \
     } \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
       MACRO_init_uo_l_lj_t; \
  \
       for (t2 = 0; t2 < ths->d; t2++) \
@@ -829,22 +924,19 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         } \
       } \
  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } /* for(l_L) */ \
+      MACRO_B_COMPUTE_ONE_NODE(which_one,with_FG_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(FG_PSI) */ \
  \
   if (ths->flags & PRE_LIN_PSI) \
   { \
-    for (j = 0, fj=f; j<ths->M_total; j++, fj++) \
+    sort(ths); \
+ \
+    for (k = 0; k<ths->M_total; k++) \
     { \
+      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
       MACRO_init_uo_l_lj_t; \
  \
       for (t2 = 0; t2 < ths->d; t2++) \
@@ -861,31 +953,31 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         } \
       } \
  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } /* for(l_L) */ \
+      MACRO_B_COMPUTE_ONE_NODE(which_one,with_FG_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_LIN_PSI) */ \
  \
+  sort(ths); \
+ \
   /* no precomputed psi at all */ \
-  for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+  for (k = 0; k < ths->M_total; k++) \
   { \
+    INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
+    R psij_const[ths->d * (2*ths->m+2)]; \
+ \
     MACRO_init_uo_l_lj_t; \
  \
-    for (l_L = 0; l_L < lprod; l_L++) \
+    for (t2 = 0; t2 < ths->d; t2++) \
     { \
-      MACRO_update_phi_prod_ll_plain(without_PRE_PSI); \
+      INT lj_t; \
+      for (lj_t = 0; lj_t < 2*ths->m+2; lj_t++) \
+        psij_const[t2 * (2*ths->m+2) + lj_t] = PHI(ths->n[t2], ths->x[j*ths->d+t2] \
+                - ((R) (lj_t+u[t2]))/((R)ths->n[t2]), t2); \
+    } \
  \
-      MACRO_B_compute_ ## which_one; \
- \
-      MACRO_count_uo_l_lj_t; \
-    } /* for(l_L) */ \
+    MACRO_B_COMPUTE_ONE_NODE(which_one,without_PRE_PSI_improved); \
   } /* for(j) */ \
 } /* nfft_B */ \
 
@@ -894,6 +986,189 @@ MACRO_B(A)
 #endif
 
 #ifdef _OPENMP
+#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_PSI
+#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_PSI \
+  MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
+
+#define MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI \
+    for (t2 = 0; t2 < ths->d; t2++) \
+    { \
+      INT lj_fg; \
+      R tmpEXP2 = EXP(K(-1.0)/ths->b[t2]); \
+      R tmpEXP2sq = tmpEXP2*tmpEXP2; \
+      R tmp2 = K(1.0); \
+      R tmp3 = K(1.0); \
+      fg_exp_l[t2][0] = K(1.0); \
+      for(lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++) \
+      { \
+        tmp3 = tmp2*tmpEXP2; \
+        tmp2 *= tmpEXP2sq; \
+        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3; \
+      } \
+    }
+#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_FG_PSI \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)]; \
+        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1]; \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      }
+#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_FG_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_FG_PSI \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/((R)ths->n[t2])),t2)); \
+ \
+        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2]) \
+          /ths->b[t2]); \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      }
+#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_FG_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_LIN_PSI \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2]) \
+          * ((R)ths->K))/(ths->m+2); \
+        ip_u  = LRINT(FLOOR(y[t2])); \
+        ip_w  = y[t2]-ip_u; \
+        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
+            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
+            * (ip_w); \
+        } \
+      }
+#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_LIN_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_without_PRE_PSI \
+    for (t2 = 0; t2 < ths->d; t2++) \
+    { \
+      INT lj_t; \
+      for (lj_t = 0; lj_t < 2*ths->m+2; lj_t++) \
+        psij_const[t2 * (2*ths->m+2) + lj_t] = PHI(ths->n[t2], ths->x[j*ths->d+t2] \
+                - ((R) (lj_t+u[t2]))/((R)ths->n[t2]), t2); \
+    }
+#define MACRO_B_openmp_A_COMPUTE_UPDATE_without_PRE_PSI \
+  MACRO_update_phi_prod_ll_plain(without_PRE_PSI_improved);
+
+#define MACRO_B_openmp_A_COMPUTE(whichone) \
+{ \
+      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
+      INT l_L; /* index one row of B */ \
+      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
+      INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
+      R phi_prod[ths->d+1]; /* postfix product of PHI */ \
+      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k; \
+ \
+      phi_prod[0] = K(1.0); \
+      ll_plain[0] = 0; \
+ \
+      MACRO_init_uo_l_lj_t; \
+ \
+      MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_ ##whichone \
+ \
+      if (ths->d == 4) \
+      { \
+        INT l0, l1, l2, l3; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
+      else { \
+        for (l_L = 0; l_L < lprod; l_L++) \
+        { \
+          MACRO_B_openmp_A_COMPUTE_UPDATE_ ##whichone \
+ \
+          ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+ \
+          MACRO_count_uo_l_lj_t; \
+        } /* for(l_L) */ \
+      } \
+}
+
 static inline void B_openmp_A (X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
@@ -923,28 +1198,8 @@ static inline void B_openmp_A (X(plan) *ths)
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
       INT t, t2; /* index dimensions */
-      INT l_L; /* index one row of B */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
-
-        ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]];
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_B_openmp_A_COMPUTE(with_PRE_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_PSI) */
@@ -954,61 +1209,16 @@ static inline void B_openmp_A (X(plan) *ths)
     INT t, t2; /* index dimensions */
     R fg_exp_l[ths->d][2*ths->m+2];
 
-    for (t2 = 0; t2 < ths->d; t2++)
-    {
-      INT lj_fg;
-      R tmpEXP2 = EXP(K(-1.0)/ths->b[t2]);
-      R tmpEXP2sq = tmpEXP2*tmpEXP2;
-      R tmp2 = K(1.0);
-      R tmp3 = K(1.0);
-      fg_exp_l[t2][0] = K(1.0);
-      for(lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++)
-      {
-        tmp3 = tmp2*tmpEXP2;
-        tmp2 *= tmpEXP2sq;
-        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3;
-      }
-    }
+    MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI
 
     #pragma omp parallel for default(shared) private(k,t,t2)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
       R fg_psi[ths->d][2*ths->m+2];
       R tmpEXP1, tmp1;
       INT l_fg,lj_fg;
-      INT l_L;
-      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)];
-        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1];
-        tmp1 = K(1.0);
-        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          tmp1 *= tmpEXP1;
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg];
-        }
-      }
-
-      for (l_L= 0; l_L < lprod; l_L++)
-      {
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]];
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_B_openmp_A_COMPUTE(with_PRE_FG_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_FG_PSI) */
@@ -1020,63 +1230,16 @@ static inline void B_openmp_A (X(plan) *ths)
 
     sort(ths);
 
-    for (t2 = 0; t2 < ths->d; t2++)
-    {
-      INT lj_fg;
-      R tmpEXP2 = EXP(K(-1.0)/ths->b[t2]);
-      R tmpEXP2sq = tmpEXP2*tmpEXP2;
-      R tmp2 = K(1.0);
-      R tmp3 = K(1.0);
-      fg_exp_l[t2][0] = K(1.0);
-      for (lj_fg = 1; lj_fg <= (2*ths->m+2); lj_fg++)
-      {
-        tmp3 = tmp2*tmpEXP2;
-        tmp2 *= tmpEXP2sq;
-        fg_exp_l[t2][lj_fg] = fg_exp_l[t2][lj_fg-1]*tmp3;
-      }
-    }
+    MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI
 
     #pragma omp parallel for default(shared) private(k,t,t2)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
       R fg_psi[ths->d][2*ths->m+2];
       R tmpEXP1, tmp1;
       INT l_fg,lj_fg;
-      INT l_L;
-      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
-
-        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])
-          /ths->b[t2]);
-        tmp1 = K(1.0);
-        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          tmp1 *= tmpEXP1;
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg];
-        }
-      }
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]];
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_B_openmp_A_COMPUTE(with_FG_PSI);
     } /* for(j) */
     return;
   } /* if(FG_PSI) */
@@ -1088,48 +1251,15 @@ static inline void B_openmp_A (X(plan) *ths)
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k<ths->M_total; k++)
     {
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
       INT t, t2; /* index dimensions */
-      INT l_L; /* index one row of B */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
       R y[ths->d];
       R fg_psi[ths->d][2*ths->m+2];
       INT l_fg,lj_fg;
       R ip_w;
       INT ip_u;
       INT ip_s = ths->K/(ths->m+2);
-      INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2])
-          * ((R)ths->K))/(ths->m+2);
-        ip_u  = LRINT(FLOOR(y[t2]));
-        ip_w  = y[t2]-ip_u;
-        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)]
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)]
-            * (ip_w);
-        }
-      }
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]];
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_B_openmp_A_COMPUTE(with_PRE_LIN_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_LIN_PSI) */
@@ -1140,28 +1270,10 @@ static inline void B_openmp_A (X(plan) *ths)
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < ths->M_total; k++)
   {
-    INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
     INT t, t2; /* index dimensions */
-    INT l_L; /* index one row of B */
-    INT l[ths->d]; /* multi index u<=l<=o */
-    INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-    INT ll_plain[ths->d+1]; /* postfix plain index in g */
-    R phi_prod[ths->d+1]; /* postfix product of PHI */
-    INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
+    R psij_const[ths->d * (2*ths->m+2)];
 
-    phi_prod[0] = K(1.0);
-    ll_plain[0] = 0;
-
-    MACRO_init_uo_l_lj_t;
-
-    for (l_L = 0; l_L < lprod; l_L++)
-    {
-      MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
-
-      ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]];
-
-      MACRO_count_uo_l_lj_t;
-    } /* for(l_L) */
+    MACRO_B_openmp_A_COMPUTE(without_PRE_PSI);
   } /* for(j) */
 }
 #endif
@@ -1455,7 +1567,410 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
 MACRO_B(T)
 #endif
 
+
 #ifdef _OPENMP
+
+#ifdef OMP_ASSERT
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A \
+{ \
+          assert(ar_x[2*k] >= min_u_a || k == M-1); \
+          if (k > 0) \
+            assert(ar_x[2*k-2] < min_u_a); \
+}
+#else
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A
+#endif
+
+#ifdef OMP_ASSERT
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B \
+{ \
+          assert(ar_x[2*k] >= min_u_b || k == M-1); \
+          if (k > 0) \
+            assert(ar_x[2*k-2] < min_u_b); \
+}
+#else
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B
+#endif
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_with_PRE_PSI
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_with_PRE_PSI \
+  MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_with_PRE_FG_PSI \
+      R fg_psi[ths->d][2*ths->m+2]; \
+      R tmpEXP1, tmp1; \
+      INT l_fg,lj_fg; \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)]; \
+        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1]; \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      }
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_with_PRE_FG_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_with_FG_PSI \
+      R fg_psi[ths->d][2*ths->m+2]; \
+      R tmpEXP1, tmp1; \
+      INT l_fg,lj_fg; \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/((R)ths->n[t2])),t2)); \
+ \
+        tmpEXP1 = EXP(K(2.0)*((R)ths->n[t2]*ths->x[j*ths->d+t2] - (R)u[t2]) \
+          /ths->b[t2]); \
+        tmp1 = K(1.0); \
+        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          tmp1 *= tmpEXP1; \
+          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg]; \
+        } \
+      }
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_with_FG_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_with_PRE_LIN_PSI \
+      R y[ths->d]; \
+      R fg_psi[ths->d][2*ths->m+2]; \
+      INT l_fg,lj_fg; \
+      R ip_w; \
+      INT ip_u; \
+      INT ip_s = ths->K/(ths->m+2); \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        y[t2] = ((((R)ths->n[t2])*ths->x[j*ths->d+t2]-(R)u[t2]) \
+          * ((R)ths->K))/((R)ths->m+2); \
+        ip_u  = LRINT(FLOOR(y[t2])); \
+        ip_w  = y[t2]-ip_u; \
+        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
+        { \
+          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
+            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
+            * (ip_w); \
+        } \
+      }
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_with_PRE_LIN_PSI \
+  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_without_PRE_PSI \
+      R psij_const[ths->d * (2*ths->m+2)]; \
+      for (t2 = 0; t2 < ths->d; t2++) \
+      { \
+        INT lj_t; \
+        for (lj_t = 0; lj_t < 2*ths->m+2; lj_t++) \
+          psij_const[t2 * (2*ths->m+2) + lj_t] = PHI(ths->n[t2], ths->x[j*ths->d+t2] \
+                  - ((R) (lj_t+u[t2]))/((R)ths->n[t2]), t2); \
+      }
+#define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_without_PRE_PSI \
+  MACRO_update_phi_prod_ll_plain(without_PRE_PSI_improved);
+
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE_COMPUTE(whichone) \
+{ \
+      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
+      INT t, t2; /* index dimensions */ \
+      INT l_L; /* index one row of B */ \
+      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
+      INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
+      R phi_prod[ths->d+1]; /* postfix product of PHI */ \
+ \
+      phi_prod[0] = K(1.0); \
+      ll_plain[0] = 0; \
+ \
+      MACRO_init_uo_l_lj_t; \
+ \
+      MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_ ##whichone \
+ \
+      if (ths->d == 4) \
+      { \
+        INT l0, l1, l2, l3; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          if (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0) \
+            continue; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          if (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0) \
+            continue; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
+      else { \
+        l_L = 0; \
+        while (l_L < lprod) \
+        { \
+          if (t == 0 && (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0)) \
+          { \
+            lj[0]++; \
+            l_L += lprodrest; \
+            continue; \
+          } \
+          MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_ ##whichone \
+          ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+          MACRO_count_uo_l_lj_t; \
+          l_L++; \
+        } /* for(l_L) */ \
+      } \
+}
+
+#define MACRO_adjoint_nd_B_OMP_BLOCKWISE(whichone) \
+{ \
+    if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT) \
+    { \
+      INT lprodrest = 1; \
+      for (k = 1; k < ths->d; k++) \
+        lprodrest *= (2*ths->m+2); \
+      _Pragma("omp parallel private(k)") \
+      { \
+        INT my_u0, my_o0, min_u_a, max_u_a, min_u_b, max_u_b; \
+        INT *ar_x = ths->index_x; \
+ \
+        nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, \
+            &min_u_b, &max_u_b, ths->d, ths->n, ths->m); \
+ \
+        if (min_u_a != -1) \
+        { \
+          k = index_x_binary_search(ar_x, ths->M_total, min_u_a); \
+ \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A \
+ \
+          while (k < ths->M_total) \
+          { \
+            INT u_prod = ar_x[2*k]; \
+            INT j = ar_x[2*k+1]; \
+ \
+            if (u_prod < min_u_a || u_prod > max_u_a) \
+              break; \
+ \
+            MACRO_adjoint_nd_B_OMP_BLOCKWISE_COMPUTE(whichone) \
+ \
+            k++; \
+          } \
+        } \
+ \
+        if (min_u_b != -1) \
+        { \
+          INT k = index_x_binary_search(ar_x, ths->M_total, min_u_b); \
+ \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B \
+ \
+          while (k < ths->M_total) \
+          { \
+            INT u_prod = ar_x[2*k]; \
+            INT j = ar_x[2*k+1]; \
+ \
+            if (u_prod < min_u_b || u_prod > max_u_b) \
+              break; \
+ \
+            MACRO_adjoint_nd_B_OMP_BLOCKWISE_COMPUTE(whichone) \
+ \
+            k++; \
+          } \
+        } \
+      } /* omp parallel */ \
+      return; \
+    } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */ \
+}
+
+#define MACRO_adjoint_nd_B_OMP_COMPUTE(whichone) \
+{ \
+      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
+      INT l_L; /* index one row of B */ \
+      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
+      INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
+      R phi_prod[ths->d+1]; /* postfix product of PHI */ \
+ \
+      phi_prod[0] = K(1.0); \
+      ll_plain[0] = 0; \
+ \
+      MACRO_init_uo_l_lj_t; \
+ \
+      MACRO_adjoint_nd_B_OMP_COMPUTE_BEFORE_LOOP_ ## whichone \
+ \
+      if (ths->d == 4) \
+      { \
+        INT l0, l1, l2, l3; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                C *lhs = ths->g + ll_plain[ths->d]; \
+                R *lhs_real = (R*)lhs; \
+                C val = phi_prod[ths->d] * ths->f[j]; \
+ \
+                _Pragma("omp atomic") \
+                lhs_real[0] += CREAL(val); \
+ \
+                _Pragma("omp atomic") \
+                lhs_real[1] += CIMAG(val); \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==4) */ \
+      else if (ths->d == 5) \
+      { \
+        INT l0, l1, l2, l3, l4; \
+        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
+        { \
+          lj[0] = l0; \
+          t2 = 0; \
+          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
+          { \
+            lj[1] = l1; \
+            t2 = 1; \
+            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
+            { \
+              lj[2] = l2; \
+              t2 = 2; \
+              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
+              { \
+                lj[3] = l3; \
+                t2 = 3; \
+                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
+                { \
+                  lj[4] = l4; \
+                  t2 = 4; \
+                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
+                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+ \
+                  C *lhs = ths->g + ll_plain[ths->d]; \
+                  R *lhs_real = (R*)lhs; \
+                  C val = phi_prod[ths->d] * ths->f[j]; \
+ \
+                  _Pragma("omp atomic") \
+                  lhs_real[0] += CREAL(val); \
+ \
+                  _Pragma("omp atomic") \
+                  lhs_real[1] += CIMAG(val); \
+                } \
+              } \
+            } \
+          } \
+        } \
+      } /* if(d==5) */ \
+      else { \
+        for (l_L = 0; l_L < lprod; l_L++) \
+        { \
+          C *lhs; \
+          R *lhs_real; \
+          C val; \
+ \
+          MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_ ## whichone \
+ \
+          lhs = ths->g + ll_plain[ths->d]; \
+          lhs_real = (R*)lhs; \
+          val = phi_prod[ths->d] * ths->f[j]; \
+ \
+          _Pragma("omp atomic") \
+          lhs_real[0] += CREAL(val); \
+ \
+          _Pragma("omp atomic") \
+          lhs_real[1] += CIMAG(val); \
+ \
+          MACRO_count_uo_l_lj_t; \
+        } /* for(l_L) */ \
+      } \
+}
+
 static inline void B_openmp_T(X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
@@ -1475,43 +1990,14 @@ static inline void B_openmp_T(X(plan) *ths)
 
   if (ths->flags & PRE_PSI)
   {
+    MACRO_adjoint_nd_B_OMP_BLOCKWISE(with_PRE_PSI);
+
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-      INT t, t2; /* index dimensions */
-      INT l_L; /* index one row of B */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
+      INT t, t2; /* index dimensions */ \
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        C *lhs;
-        R *lhs_real;
-        C val;
-
-        MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
-
-        lhs = ths->g + ll_plain[ths->d];
-        lhs_real = (R*)lhs;
-        val = phi_prod[ths->d] * ths->f[j];
-
-        #pragma omp atomic
-        lhs_real[0] += CREAL(val);
-
-        #pragma omp atomic
-        lhs_real[1] += CIMAG(val);
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_adjoint_nd_B_OMP_COMPUTE(with_PRE_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_PSI) */
@@ -1536,57 +2022,13 @@ static inline void B_openmp_T(X(plan) *ths)
       }
     }
 
+    MACRO_adjoint_nd_B_OMP_BLOCKWISE(with_PRE_FG_PSI);
+
     #pragma omp parallel for default(shared) private(k,t,t2)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      R fg_psi[ths->d][2*ths->m+2];
-      R tmpEXP1, tmp1;
-      INT l_fg,lj_fg;
-      INT l_L;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        fg_psi[t2][0] = ths->psi[2*(j*ths->d+t2)];
-        tmpEXP1 = ths->psi[2*(j*ths->d+t2)+1];
-        tmp1 = K(1.0);
-        for (l_fg = u[t2]+1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          tmp1 *= tmpEXP1;
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg];
-        }
-      }
-
-      for (l_L= 0; l_L < lprod; l_L++)
-      {
-        C *lhs;
-        R *lhs_real;
-        C val;
-
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        lhs = ths->g + ll_plain[ths->d];
-        lhs_real = (R*)lhs;
-        val = phi_prod[ths->d] * ths->f[j];
-
-        #pragma omp atomic
-        lhs_real[0] += CREAL(val);
-
-        #pragma omp atomic
-        lhs_real[1] += CIMAG(val);
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_adjoint_nd_B_OMP_COMPUTE(with_PRE_FG_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_FG_PSI) */
@@ -1614,59 +2056,13 @@ static inline void B_openmp_T(X(plan) *ths)
       }
     }
 
+    MACRO_adjoint_nd_B_OMP_BLOCKWISE(with_FG_PSI);
+
     #pragma omp parallel for default(shared) private(k,t,t2)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      R fg_psi[ths->d][2*ths->m+2];
-      R tmpEXP1, tmp1;
-      INT l_fg,lj_fg;
-      INT l_L;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        fg_psi[t2][0] = (PHI(ths->n[t2],(ths->x[j*ths->d+t2]-((R)u[t2])/ths->n[t2]),t2));
-
-        tmpEXP1 = EXP(K(2.0)*(ths->n[t2]*ths->x[j*ths->d+t2] - u[t2])
-          /ths->b[t2]);
-        tmp1 = K(1.0);
-        for (l_fg = u[t2] + 1, lj_fg = 1; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          tmp1 *= tmpEXP1;
-          fg_psi[t2][lj_fg] = fg_psi[t2][0]*tmp1*fg_exp_l[t2][lj_fg];
-        }
-      }
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        C *lhs;
-        R *lhs_real;
-        C val;
-
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        lhs = ths->g + ll_plain[ths->d];
-        lhs_real = (R*)lhs;
-        val = phi_prod[ths->d] * ths->f[j];
-
-        #pragma omp atomic
-        lhs_real[0] += CREAL(val);
-
-        #pragma omp atomic
-        lhs_real[1] += CIMAG(val);
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_adjoint_nd_B_OMP_COMPUTE(with_FG_PSI);
     } /* for(j) */
     return;
   } /* if(FG_PSI) */
@@ -1675,63 +2071,14 @@ static inline void B_openmp_T(X(plan) *ths)
   {
     sort(ths);
 
+    MACRO_adjoint_nd_B_OMP_BLOCKWISE(with_PRE_LIN_PSI);
+
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k<ths->M_total; k++)
     {
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
       INT t, t2; /* index dimensions */
-      INT l_L; /* index one row of B */
-      INT l[ths->d]; /* multi index u<=l<=o */
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */
-      R phi_prod[ths->d+1]; /* postfix product of PHI */
-      R y[ths->d];
-      R fg_psi[ths->d][2*ths->m+2];
-      INT l_fg,lj_fg;
-      R ip_w;
-      INT ip_u;
-      INT ip_s = ths->K/(ths->m+2);
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-      phi_prod[0] = K(1.0);
-      ll_plain[0] = 0;
-
-      MACRO_init_uo_l_lj_t;
-
-      for (t2 = 0; t2 < ths->d; t2++)
-      {
-        y[t2] = ((ths->n[t2]*ths->x[j*ths->d+t2]-(R)u[t2])
-          * ((R)ths->K))/(ths->m+2);
-        ip_u  = LRINT(FLOOR(y[t2]));
-        ip_w  = y[t2]-ip_u;
-        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++)
-        {
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)]
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)]
-            * (ip_w);
-        }
-      }
-
-      for (l_L = 0; l_L < lprod; l_L++)
-      {
-        C *lhs;
-        R *lhs_real;
-        C val;
-
-        MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-        lhs = ths->g + ll_plain[ths->d];
-        lhs_real = (R*)lhs;
-        val = phi_prod[ths->d] * ths->f[j];
-
-        #pragma omp atomic
-        lhs_real[0] += CREAL(val);
-
-        #pragma omp atomic
-        lhs_real[1] += CIMAG(val);
-
-        MACRO_count_uo_l_lj_t;
-      } /* for(l_L) */
+      MACRO_adjoint_nd_B_OMP_COMPUTE(with_PRE_LIN_PSI);
     } /* for(j) */
     return;
   } /* if(PRE_LIN_PSI) */
@@ -1739,43 +2086,14 @@ static inline void B_openmp_T(X(plan) *ths)
   /* no precomputed psi at all */
   sort(ths);
 
+  MACRO_adjoint_nd_B_OMP_BLOCKWISE(without_PRE_PSI);
+
   #pragma omp parallel for default(shared) private(k)
   for (k = 0; k < ths->M_total; k++)
   {
-    INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */
     INT t, t2; /* index dimensions */
-    INT l_L; /* index one row of B */
-    INT l[ths->d]; /* multi index u<=l<=o */
-    INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-    INT ll_plain[ths->d+1]; /* postfix plain index in g */
-    R phi_prod[ths->d+1]; /* postfix product of PHI */
     INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-
-    phi_prod[0] = K(1.0);
-    ll_plain[0] = 0;
-
-    MACRO_init_uo_l_lj_t;
-
-    for (l_L = 0; l_L < lprod; l_L++)
-    {
-      C *lhs;
-      R *lhs_real;
-      C val;
-
-      MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
-
-      lhs = ths->g + ll_plain[ths->d];
-      lhs_real = (R*)lhs;
-      val = phi_prod[ths->d] * ths->f[j];
-
-      #pragma omp atomic
-      lhs_real[0] += CREAL(val);
-
-      #pragma omp atomic
-      lhs_real[1] += CIMAG(val);
-
-      MACRO_count_uo_l_lj_t;
-    } /* for(l_L) */
+    MACRO_adjoint_nd_B_OMP_COMPUTE(without_PRE_PSI);
   } /* for(j) */
 }
 #endif
@@ -2127,28 +2445,6 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 }
 
 
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
-{ \
-          assert(ar_x[2*k] >= min_u_a || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_a); \
-}
-#else
-#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A
-#endif
-
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
-{ \
-          assert(ar_x[2*k] >= min_u_b || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_b); \
-}
-#else
-#define MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B
-#endif
-
 #define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
 { \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, \
@@ -2158,7 +2454,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 #define MACRO_adjoint_1d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
             R psij_const[2 * m + 2]; \
-            INT u, o, l; \
+            INT l; \
             R fg_psij0 = ths->psi[2 * j]; \
             R fg_psij1 = ths->psi[2 * j + 1]; \
             R fg_psij2 = K(1.0); \
@@ -2181,8 +2477,8 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             INT u, o, l; \
  \
             uo(ths, j, &u, &o, (INT)0); \
-            fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/n,0)); \
-            fg_psij1 = EXP(K(2.0) * (n * (ths->x[j]) - u) / ths->b[0]); \
+            fg_psij0 = (PHI(ths->n[0],ths->x[j]-((R)u)/((R)n),0)); \
+            fg_psij1 = EXP(K(2.0) * (((R)n) * (ths->x[j]) - (R)u) / ths->b[0]); \
             fg_psij2 = K(1.0); \
             psij_const[0] = fg_psij0; \
             for (l = 1; l <= 2 * m + 1; l++) \
@@ -2204,7 +2500,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
  \
             uo(ths, j, &u, &o, (INT)0); \
  \
-            ip_y = FABS(n * ths->x[j] - u) * ((R)ip_s); \
+            ip_y = FABS(((R)n) * ths->x[j] - (R)u) * ((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y - ip_u; \
             for (l = 0; l < 2 * m + 2; l++) \
@@ -2224,7 +2520,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             uo(ths, j, &u, &o, (INT)0); \
  \
             for (l = 0; l <= 2 * m + 1; l++) \
-              psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/n,0)); \
+              psij_const[l] = (PHI(ths->n[0],ths->x[j]-((R)((u+l)))/((R)n),0)); \
  \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, \
                 ths->x + j, n, m, my_u0, my_o0); \
@@ -2246,7 +2542,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -2266,7 +2562,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_adjoint_1d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -2714,7 +3010,6 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
             const R *xj1, const INT n0, const INT n1, const INT m)
 {
   INT u0,o0,l0,u1,o1,l1;
-  const INT lprod = (2*m+2) * (2*m+2);
 
   INT index_temp0[2*m+2];
   INT index_temp1[2*m+2];
@@ -2772,7 +3067,6 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
             const INT my_u0, const INT my_o0)
 {
   INT ar_u0,ar_o0,l0,u1,o1,l1;
-  const INT lprod = (2*m+2) * (2*m+2);
   INT index_temp1[2*m+2];
 
   uo2(&ar_u0,&ar_o0,*xj0, n0, m);
@@ -3115,28 +3409,6 @@ static void nfft_trafo_2d_B(X(plan) *ths)
   }
 }
 
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
-{ \
-          assert(ar_x[2*k] >= min_u_a || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_a); \
-}
-#else
-#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A
-#endif
-
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
-{ \
-          assert(ar_x[2*k] >= min_u_b || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_b); \
-}
-#else
-#define MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B
-#endif
-
 #define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, \
                 ths->psi+j*2*(2*m+2), ths->psi+(j*2+1)*(2*m+2), \
@@ -3145,7 +3417,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 #define MACRO_adjoint_2d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
             R psij_const[2*(2*m+2)]; \
-            INT u, o, l; \
+            INT l; \
             R fg_psij0 = ths->psi[2*j*2]; \
             R fg_psij1 = ths->psi[2*j*2+1]; \
             R fg_psij2 = K(1.0); \
@@ -3179,8 +3451,8 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             INT u, o, l; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/n0,0)); \
-            fg_psij1 = EXP(K(2.0)*(n0*(ths->x[2*j]) - u)/ths->b[0]); \
+            fg_psij0 = (PHI(ths->n[0],ths->x[2*j]-((R)u)/((R)n0),0)); \
+            fg_psij1 = EXP(K(2.0)*(((R)n0)*(ths->x[2*j]) - (R)u)/ths->b[0]); \
             fg_psij2 = K(1.0); \
             psij_const[0] = fg_psij0; \
             for(l=1; l<=2*m+1; l++) \
@@ -3190,8 +3462,8 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             } \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/n1,1)); \
-            fg_psij1 = EXP(K(2.0)*(n1*(ths->x[2*j+1]) - u)/ths->b[1]); \
+            fg_psij0 = (PHI(ths->n[1],ths->x[2*j+1]-((R)u)/((R)n1),1)); \
+            fg_psij1 = EXP(K(2.0)*(((R)n1)*(ths->x[2*j+1]) - (R)u)/ths->b[1]); \
             fg_psij2 = K(1.0); \
             psij_const[2*m+2] = fg_psij0; \
             for(l=1; l<=2*m+1; l++) \
@@ -3213,7 +3485,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             R ip_y, ip_w; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            ip_y = FABS(n0*(ths->x[2*j]) - u)*((R)ip_s); \
+            ip_y = FABS(((R)n0)*(ths->x[2*j]) - (R)u)*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
@@ -3221,7 +3493,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
                 ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w); \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            ip_y = FABS(n1*(ths->x[2*j+1]) - u)*((R)ip_s); \
+            ip_y = FABS(((R)n1)*(ths->x[2*j+1]) - (R)u)*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
@@ -3240,11 +3512,11 @@ static void nfft_trafo_2d_B(X(plan) *ths)
  \
             uo(ths,j,&u,&o,(INT)0); \
             for(l=0;l<=2*m+1;l++) \
-              psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/n0,0)); \
+              psij_const[l]=(PHI(ths->n[0],ths->x[2*j]-((R)((u+l)))/((R)n0),0)); \
  \
             uo(ths,j,&u,&o,(INT)1); \
             for(l=0;l<=2*m+1;l++) \
-              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/n1,1)); \
+              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[2*j+1]-((R)((u+l)))/((R)n1),1)); \
  \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, \
@@ -3267,7 +3539,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -3287,7 +3559,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
         { \
           INT k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_adjoint_2d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -4021,7 +4293,6 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
     const INT my_u0, const INT my_o0)
 {
   INT ar_u0,ar_o0,l0,u1,o1,l1,u2,o2,l2;
-  const INT lprod = (2*m+2) * (2*m+2) * (2*m+2);
 
   INT index_temp1[2*m+2];
   INT index_temp2[2*m+2];
@@ -4125,7 +4396,6 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
     const INT n0, const INT n1, const INT n2, const INT m)
 {
   INT u0,o0,l0,u1,o1,l1,u2,o2,l2;
-  const INT lprod = (2*m+2) * (2*m+2) * (2*m+2);
 
   INT index_temp0[2*m+2];
   INT index_temp1[2*m+2];
@@ -4643,28 +4913,6 @@ static void nfft_trafo_3d_B(X(plan) *ths)
   }
 }
 
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
-{ \
-          assert(ar_x[2*k] >= min_u_a || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_a); \
-}
-#else
-#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A
-#endif
-
-#ifdef OMP_ASSERT
-#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
-{ \
-          assert(ar_x[2*k] >= min_u_b || k == M-1); \
-          if (k > 0) \
-            assert(ar_x[2*k-2] < min_u_b); \
-}
-#else
-#define MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B
-#endif
-
 #define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_PSI \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, \
                 ths->psi+j*3*(2*m+2), \
@@ -4675,7 +4923,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
 #define MACRO_adjoint_3d_B_OMP_BLOCKWISE_COMPUTE_PRE_FG_PSI \
 { \
-            INT u, o, l; \
+            INT l; \
             R psij_const[3*(2*m+2)]; \
             R fg_psij0 = ths->psi[2*j*3]; \
             R fg_psij1 = ths->psi[2*j*3+1]; \
@@ -4721,8 +4969,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             R fg_psij0, fg_psij1, fg_psij2; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/n0,0)); \
-            fg_psij1 = EXP(K(2.0)*(n0*(ths->x[3*j]) - u)/ths->b[0]); \
+            fg_psij0 = (PHI(ths->n[0],ths->x[3*j]-((R)u)/((R)n0),0)); \
+            fg_psij1 = EXP(K(2.0)*(((R)n0)*(ths->x[3*j]) - (R)u)/ths->b[0]); \
             fg_psij2 = K(1.0); \
             psij_const[0] = fg_psij0; \
             for(l=1; l<=2*m+1; l++) \
@@ -4732,8 +4980,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             } \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/n1,1)); \
-            fg_psij1 = EXP(K(2.0)*(n1*(ths->x[3*j+1]) - u)/ths->b[1]); \
+            fg_psij0 = (PHI(ths->n[1],ths->x[3*j+1]-((R)u)/((R)n1),1)); \
+            fg_psij1 = EXP(K(2.0)*(((R)n1)*(ths->x[3*j+1]) - (R)u)/ths->b[1]); \
             fg_psij2 = K(1.0); \
             psij_const[2*m+2] = fg_psij0; \
             for(l=1; l<=2*m+1; l++) \
@@ -4743,8 +4991,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             } \
  \
             uo(ths,j,&u,&o,(INT)2); \
-            fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/n2,2)); \
-            fg_psij1 = EXP(K(2.0)*(n2*(ths->x[3*j+2]) - u)/ths->b[2]); \
+            fg_psij0 = (PHI(ths->n[2],ths->x[3*j+2]-((R)u)/((R)n2),2)); \
+            fg_psij1 = EXP(K(2.0)*(((R)n2)*(ths->x[3*j+2]) - (R)u)/ths->b[2]); \
             fg_psij2 = K(1.0); \
             psij_const[2*(2*m+2)] = fg_psij0; \
             for(l=1; l<=2*m+1; l++) \
@@ -4767,7 +5015,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             R ip_y, ip_w; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            ip_y = FABS(n0*ths->x[3*j+0] - u)*((R)ip_s); \
+            ip_y = FABS(((R)n0)*ths->x[3*j+0] - (R)u)*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
@@ -4775,7 +5023,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w); \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            ip_y = FABS(n1*ths->x[3*j+1] - u)*((R)ip_s); \
+            ip_y = FABS(((R)n1)*ths->x[3*j+1] - (R)u)*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
@@ -4783,7 +5031,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
                 ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w); \
  \
             uo(ths,j,&u,&o,(INT)2); \
-            ip_y = FABS(n2*ths->x[3*j+2] - u)*((R)ip_s); \
+            ip_y = FABS(((R)n2)*ths->x[3*j+2] - (R)u)*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
@@ -4803,15 +5051,15 @@ static void nfft_trafo_3d_B(X(plan) *ths)
  \
             uo(ths,j,&u,&o,(INT)0); \
             for(l=0;l<=2*m+1;l++) \
-              psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/n0,0)); \
+              psij_const[l]=(PHI(ths->n[0],ths->x[3*j]-((R)((u+l)))/((R) n0),0)); \
  \
             uo(ths,j,&u,&o,(INT)1); \
             for(l=0;l<=2*m+1;l++) \
-              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/n1,1)); \
+              psij_const[2*m+2+l]=(PHI(ths->n[1],ths->x[3*j+1]-((R)((u+l)))/((R) n1),1)); \
  \
             uo(ths,j,&u,&o,(INT)2); \
             for(l=0;l<=2*m+1;l++) \
-              psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/n2,2)); \
+              psij_const[2*(2*m+2)+l]=(PHI(ths->n[2],ths->x[3*j+2]-((R)((u+l)))/((R) n2),2)); \
  \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, \
@@ -4835,7 +5083,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
         { \
           k = index_x_binary_search(ar_x, M, min_u_a); \
  \
-          MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_A \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_A \
  \
           while (k < M) \
           { \
@@ -4855,7 +5103,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
         { \
           INT k = index_x_binary_search(ar_x, M, min_u_b); \
  \
-          MACRO_adjoint_3d_B_OMP_BLOCKWISE_ASSERT_B \
+          MACRO_adjoint_nd_B_OMP_BLOCKWISE_ASSERT_B \
  \
           while (k < M) \
           { \
@@ -5612,7 +5860,6 @@ static void nfft_precompute_full_psi_omp(X(plan) *ths)
     {
       INT t,t2;                             /**< index over all dimensions       */
       INT l_L;                              /**< plain index 0<=l_L<lprod        */
-      INT l[ths->d];                        /**< multi index u<=l<=o             */
       INT lj[ths->d];                       /**< multi index 0<=lj<u+o+1         */
       INT ll_plain[ths->d+1];               /**< postfix plain index             */
 
@@ -5651,7 +5898,6 @@ void X(precompute_full_psi)(X(plan) *ths)
   INT t, t2; /* index over all dimensions */
   INT j; /* index over all nodes */
   INT l_L; /* plain index 0 <= l_L < lprod */
-  INT l[ths->d]; /* multi index u<=l<=o */
   INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
   INT ll_plain[ths->d+1]; /* postfix plain index */
   INT lprod; /* 'bandwidth' of matrix B */

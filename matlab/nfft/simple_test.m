@@ -55,7 +55,7 @@ f = nfft_get_f(plan)
 % finalize plan
 nfft_finalize(plan);
 
-A=exp(-2*pi*i*x'*(-N/2:N/2-1));
+A=exp(-2*pi*1i*x'*(-N/2:N/2-1));
 f2=A*f_hat
 
 error_vector=f-f2
