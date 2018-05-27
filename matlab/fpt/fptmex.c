@@ -25,6 +25,10 @@
 #include <stdint.h>
 #include "nfft3.h"
 #include "infft.h"
+
+#include <stdbool.h> // just for including fpt.h
+#include "../../kernel/fpt/fpt.h" // TODO: find a better solution (maybe include this in nfft3.h)
+
 #include "imex.h"
 
 #define SETS_START 10 /* initial number of sets */
@@ -149,16 +153,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     check_nargs(nrhs,6,"Wrong number of arguments for precompute.");
     unsigned int i = get_set(prhs[1]);
     double *alpha = mxGetPr(prhs[2]);
-    DM(if (!(mxIsDouble(prhs[2]) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1)))
-        mexErrMsgTxt("Input argument alpha must be a M x 1 array");)
+    DM(if (!(mxIsDouble(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1) || (mxGetM(prhs[2]) != (*sets[i])->N+2))
+        mexErrMsgTxt("Input argument alpha must be a N_max+2 x 1 array");)
     double *beta = mxGetPr(prhs[3]);
-    DM(if (!(mxIsDouble(prhs[3]) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1)))
-        mexErrMsgTxt("Input argument beta must be a M x 1 array");)
+    DM(if (!(mxIsDouble(prhs[3])) || (mxGetNumberOfDimensions(prhs[3]) > 2) || (mxGetN(prhs[3]) != 1) || (mxGetM(prhs[3]) != (*sets[i])->N+2))
+        mexErrMsgTxt("Input argument beta must be a N_max+2 x 1 array");)
     double *gam = mxGetPr(prhs[4]);
-    DM(if (!(mxIsDouble(prhs[4]) || (mxGetNumberOfDimensions(prhs[4]) > 2) || (mxGetN(prhs[4]) != 1)))
-        mexErrMsgTxt("Input argument gamma must be a M x 1 array");)
-    DM(if ((mxGetM(prhs[2]) != mxGetM(prhs[3])) || (mxGetM(prhs[2]) != mxGetM(prhs[4])))
-        mexErrMsgTxt("Input argument alpha, beta and gamma must have the same length");)
+    DM(if (!(mxIsDouble(prhs[4])) || (mxGetNumberOfDimensions(prhs[4]) > 2) || (mxGetN(prhs[4]) != 1) || (mxGetM(prhs[4]) != (*sets[i])->N+2))
+        mexErrMsgTxt("Input argument gamma must be a N_max+2 x 1 array");)
     int k_start = nfft_mex_get_int(prhs[5],"k_start must be scalar");
 
     fpt_precompute(*(sets[i]), 0, alpha, beta, gam, k_start, 1000.0);
@@ -170,6 +172,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
       mexErrMsgTxt("Input argument a must be an M x 1 array");)
+    DM(if (mxGetM(prhs[2]) > (*sets[i])->N+1)
+      mexErrMsgTxt("You exeed your precomputed maximal polynomial degree");)
     double *a_real = mxGetPr(prhs[2]), *a_imag=0;
     if(mxIsComplex(prhs[2])) 
       a_imag = mxGetPi(prhs[2]);
@@ -212,6 +216,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
       mexErrMsgTxt("Input argument a must be an M x 1 array");)
+    DM(if (!(mxGetM(prhs[2]) > (*sets[i])->N+1))
+      mexErrMsgTxt("You exeed your precomputed maximal polynomial degree");)
     double *b_real = mxGetPr(prhs[2]), *b_imag=0;
     if(mxIsComplex(prhs[2])) 
       b_imag = mxGetPi(prhs[2]);
