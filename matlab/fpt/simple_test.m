@@ -29,14 +29,14 @@ N = N_max;
 fprintf('Initializing fast polynomial transform for degree up to N=%d\n', N_max);
 % An fpt_set is a data structure that contains precomputed data for a number
 % of different polynomial transforms. The first parameter (t) is the exponent
-% of the maximum transform size desired (2^t), i.e., t = 3 means that N in (1)
+% of the maximum transform size desired (2^t), i.e., t = 3 means that N_max in (1)
 % can be at most N = 8. The third parameter are flags.
 fpt_set = fpt_init(t,0);
 
 % Three-term recurrence coefficients for Legendre polynomials
 % alpha(1) and beta(1) are not referenced.
 % gamma(1) contains the value of P_0(x) (which is a constant).
-% Note that the length of these vectors has to be \le N+2
+% Note that the length of these vectors has to be N_max+2
 alpha = [0 ((2*(0:N_max)+1)./((0:N_max)+1))]';
 beta = zeros(N_max+2,1);
 gamma = [1 -((0:N_max)./((0:N_max)+1))]';
@@ -49,7 +49,7 @@ fprintf('Precomputations for Legendre polynomials\n');
 % linear combination (1) starts, here k_start=0.
 fpt_precompute(fpt_set,alpha,beta,gamma,0);
 
-% random Fourier coefficients of the same length as alpha, beta and gamma - 1
+% random Fourier coefficients of the length at most N_max
 a = 2*rand(N+1,1)-1;
 
 fprintf('Converting coefficients of Legendre polynomial of degree N=%d into Chebyshev basis\n\n', N);
