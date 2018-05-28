@@ -15,61 +15,70 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Test script of class nfft for spatial dimension d=3.
+% Test script of class nfft for spatial dimension d=4.
 clear all;
 
-M=16; % number of nodes
+M=65; % number of nodes
 N1=24; % number of Fourier coefficients in first direction
 N2=32; % number of Fourier coefficients in second direction
 N3=30; % number of Fourier coefficients in third direction
-N=[N1;N2;N3];
+N4=10; % number of Fourier coefficients in forth direction
+N=[N1;N2;N3;N4];
 
-x=rand(M,3)-0.5; %nodes
+x=rand(M,4)-0.5; %nodes
 
 % Initialisation
-plan=nfft(3,N,M); % create plan of class type nfft
-%n=2^(ceil(log(max(N))/log(2))+1);
-%plan=nfft(3,N,M,n,n,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_MEASURE); % use of nfft_init_guru
+plan=nfft(4,N,M); % create plan of class type nfft
+%n=2.^(ceil(log(N)/log(2))+1);
+%plan=nfft(4,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_ESTIMATE); % use of nfft_init_guru
 
 plan.x=x; % set nodes in plan and perform precomputations
 
 % NFFT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fhat=rand(N1,N2,N3); % Fourier coefficients
+fhat=rand(N1,N2,N3,N4); % Fourier coefficients
 fhatv=fhat(:);
 
 % Compute samples with NFFT
 plan.fhat=fhatv; % set Fourier coefficients
+tic
 nfft_trafo(plan); % compute nonequispaced Fourier transform
+fprintf("Time nfft_trafo:   %g sec\n",toc)
 f1=plan.f; % get samples
 
 % Compute samples direct
+tic
 k1=-N1/2:N1/2-1;
 k2=-N2/2:N2/2-1;
 k3=-N3/2:N3/2-1;
-[K1,K2,K3]=ndgrid(k1,k2,k3);
-k=[K1(:), K2(:), K3(:)];
-clear K1 K2 K3;
+k4=-N4/2:N4/2-1;
+[K1,K2,K3,K4]=ndgrid(k1,k2,k3,k4);
+k=[K1(:), K2(:), K3(:), K4(:)];
+clear K1 K2 K3 K4;
 f2=zeros(M,1);
 for j=1:M
 	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k*x(j,:).')) );
 end %for
+fprintf("Time direct trafo: %g sec\n",toc)
 
 % Compare results
-max(abs(f1-f2))
+fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
 
 % Adjoint NFFT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Computation with NFFT
+tic
 nfft_adjoint(plan);
+fprintf("Time nfft_adjoint:   %g sec\n",toc)
 fhat1=plan.fhat;
 
 % Direct computation
-fhat2=zeros(N1*N2*N3,1);
-for j=1:N1*N2*N3
+tic
+fhat2=zeros(prod(N),1);
+for j=1:prod(N)
 	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(x*k(j,:).')) );
 end %for
+fprintf("Time direct adjoint: %g sec\n",toc)
 
 % Compare results
-max(abs(fhat1-fhat2))
-
+fprintf('Maximum error of adjoint = %g\n',max(abs(fhat1-fhat2)))

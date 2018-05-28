@@ -27,11 +27,9 @@ classdef nfftTestcaseInitDelegate
           argsin = num2cell([d, N(:)', M, n(:)', h.m, h.flags, h.fftw_flags]);
           plan = nfft_init_guru(argsin{:});
         case 'init_class_no_flags'
-	  N = N(:); %TODO remove
           argsin = num2cell([n(:)', h.m]);
           plan = nfft(d,N,M,argsin{:});
         case 'init_class_flags'
-	  N = N(:); %TODO remove
           argsin = num2cell([n(:)', h.m, h.flags, h.fftw_flags]);
           plan = nfft(d,N,M,argsin{:});
         case 'init_1d'
@@ -43,7 +41,6 @@ classdef nfftTestcaseInitDelegate
         case 'init'
           plan = nfft_init(N, M);
         case 'init_class'
-	  N = N(:); %TODO remove
           plan = nfft(d, N, M);
         otherwise
           error('Unknown init name: %s', h.name);
