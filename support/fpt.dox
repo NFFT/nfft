@@ -22,6 +22,29 @@
  *
  * This module implements fast polynomial transforms. In the following, we
  * abbreviate the term "fast polynomial transforms" by FPT.
+ 
+ Let \f$\alpha_n,\;\beta_n,\;\gamma_n,\;n=0,\dots,N\f$ be given recursion coefficients
+ of the polynomials \f$P_n\f$ defined by \f$P_{-1}(x) = 0\f$, \f$P_{0}(x) = 1\f$ and
+ \f[
+  P_n(x) = (\alpha_nx+\beta_n) P_{n-1}(x) + \gamma_n P_{n-2}(x)
+  ,\qquad n=1,2,\dots
+ \f]
+ for \f$x\in[-1,1]\f$.
+ The Chebyshev polnyomials of the first kind are defined by
+ \f[
+  T_n(x) = \cos(n\, \arccos x).
+ \f]
+ 
+ 
+ Let \f$f\colon [-1,1]\to\mathbb R\f$ be a polynomial of degree \f$N\in\mathbb N\f$.
+ The FPT transforms the polynomial coefficients \f$[x_n]_{n=0..N}\f$ from
+ \f[
+  f = \sum_{n=0}^N x_n P_n
+ \f]
+ into Chebyshev coefficients \f$[y_n]_{n=0..N}\f$ from
+ \f[
+  f = \sum_{n=0}^N y_n T_n.
+ \f]
  */
 
 /*! \fn fpt_set fpt_init(const int M, const int t, const unsigned int flags)
@@ -54,7 +77,7 @@
  *            \f$=\gamma_k\f$.
  * \arg k_start The index \f$k_{\text{start}} \in \mathbb{N}_0,
  *              0 \le k_{\text{start}} \le N\f$
- * \arg threshold The treshold \f$\kappa \in \mathbb{R}, \kappa > 0\f$.
+ * \arg threshold The threshold \f$\kappa \in \mathbb{R}, \kappa > 0\f$.
  *
  * \author Jens Keiner
  */

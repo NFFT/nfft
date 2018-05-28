@@ -84,3 +84,11 @@ fprintf('Clenshaw algorithm vs.  direct evaluation, max abs error = %.3e\n', max
 
 % cleanup
 fpt_finalize(fpt_set);
+
+% Comparison with Matlab legendre function
+f_direct = zeros(size(nodes));
+for k=0:N
+  L = legendre(k, nodes);
+  f_direct = f_direct + a(k+1)*L(1,:).';
+endfor
+fprintf('Clenshaw algorithm vs. Matlab-legendre, max abs error = %.3e\n', max(abs(fct_chebyshev - f_direct)));
