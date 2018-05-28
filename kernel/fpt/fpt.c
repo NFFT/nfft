@@ -849,12 +849,17 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->t = t;
   set->N = 1<<t;
 
-  /* Allocate memory for M transforms. */
-  set->dpt = (fpt_data*) nfft_malloc(M*sizeof(fpt_data));
+  if (!(flags & FPT_NO_INIT_FPT_DATA))
+  {
+    /* Allocate memory for M transforms. */
+    set->dpt = (fpt_data*) nfft_malloc(M*sizeof(fpt_data));
 
-  /* Initialize with NULL pointer. */
-  for (m = 0; m < set->M; m++)
-    set->dpt[m].steps = NULL;
+    /* Initialize with NULL pointer. */
+    for (m = 0; m < set->M; m++)
+      set->dpt[m].steps = NULL;
+  }
+  else
+    set->dpt = NULL;
 
   /* Create arrays with Chebyshev nodes. */
 
@@ -1864,7 +1869,6 @@ void fpt_finalize(fpt_set set)
   int tau;
   int l;
   int m;
-  fpt_data *data;
   int k_start_tilde;
   int N_tilde;
   int firstl, lastl;
@@ -1872,88 +1876,91 @@ void fpt_finalize(fpt_set set)
   const int M = set->M;
 
   /* TODO Clean up DPT transform data structures. */
-  for (m = 0; m < M; m++)
+  if (!(set->flags & FPT_NO_INIT_FPT_DATA))
   {
-    /* Check if precomputed. */
-    data = &set->dpt[m];
-    if (data->steps != (fpt_step**)NULL)
+    for (m = 0; m < M; m++)
     {
-      if (!(set->flags & FPT_NO_FAST_ALGORITHM))
+      /* Check if precomputed. */
+      fpt_data *data = &set->dpt[m];
+      if (data->steps != (fpt_step**)NULL)
       {
-        nfft_free(data->alphaN);
-        nfft_free(data->betaN);
-        nfft_free(data->gammaN);
-        data->alphaN = NULL;
-        data->betaN = NULL;
-        data->gammaN = NULL;
-      }
-
-      /* Free precomputed data. */
-      k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
-        /*set->N*/);
-      N_tilde = N_TILDE(set->N);
-      plength = 4;
-      for (tau = 1; tau < set->t; tau++)
-      {
-        /* Compute first l. */
-        firstl = FIRST_L(k_start_tilde,plength);
-        /* Compute last l. */
-        lastl = LAST_L(N_tilde,plength);
-
-        /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
-        for (l = firstl; l <= lastl; l++)
+        if (!(set->flags & FPT_NO_FAST_ALGORITHM))
         {
-          /* Free components. */
-          nfft_free(data->steps[tau][l].a11[0]);
-          nfft_free(data->steps[tau][l].a12[0]);
-          nfft_free(data->steps[tau][l].a21[0]);
-          nfft_free(data->steps[tau][l].a22[0]);
-          data->steps[tau][l].a11[0] = NULL;
-          data->steps[tau][l].a12[0] = NULL;
-          data->steps[tau][l].a21[0] = NULL;
-          data->steps[tau][l].a22[0] = NULL;
-          /* Free components. */
-          nfft_free(data->steps[tau][l].a11);
-          nfft_free(data->steps[tau][l].a12);
-          nfft_free(data->steps[tau][l].a21);
-          nfft_free(data->steps[tau][l].a22);
-          nfft_free(data->steps[tau][l].g);
-          data->steps[tau][l].a11 = NULL;
-          data->steps[tau][l].a12 = NULL;
-          data->steps[tau][l].a21 = NULL;
-          data->steps[tau][l].a22 = NULL;
-          data->steps[tau][l].g = NULL;
+          nfft_free(data->alphaN);
+          nfft_free(data->betaN);
+          nfft_free(data->gammaN);
+          data->alphaN = NULL;
+          data->betaN = NULL;
+          data->gammaN = NULL;
         }
-        /* Free pointers for current level. */
-        nfft_free(data->steps[tau]);
-        data->steps[tau] = NULL;
-        /* Double length of polynomials. */
-        plength = plength<<1;
-      }
-      /* Free steps. */
-      nfft_free(data->steps);
-      data->steps = NULL;
-    }
 
-    if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
-    {
-      /* Check, if recurrence coefficients must be copied. */
-      //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
-      if (!(set->flags & FPT_PERSISTENT_DATA))
+        /* Free precomputed data. */
+        k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
+          /*set->N*/);
+        N_tilde = N_TILDE(set->N);
+        plength = 4;
+        for (tau = 1; tau < set->t; tau++)
+        {
+          /* Compute first l. */
+          firstl = FIRST_L(k_start_tilde,plength);
+          /* Compute last l. */
+          lastl = LAST_L(N_tilde,plength);
+
+          /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
+          for (l = firstl; l <= lastl; l++)
+          {
+            /* Free components. */
+            nfft_free(data->steps[tau][l].a11[0]);
+            nfft_free(data->steps[tau][l].a12[0]);
+            nfft_free(data->steps[tau][l].a21[0]);
+            nfft_free(data->steps[tau][l].a22[0]);
+            data->steps[tau][l].a11[0] = NULL;
+            data->steps[tau][l].a12[0] = NULL;
+            data->steps[tau][l].a21[0] = NULL;
+            data->steps[tau][l].a22[0] = NULL;
+            /* Free components. */
+            nfft_free(data->steps[tau][l].a11);
+            nfft_free(data->steps[tau][l].a12);
+            nfft_free(data->steps[tau][l].a21);
+            nfft_free(data->steps[tau][l].a22);
+            nfft_free(data->steps[tau][l].g);
+            data->steps[tau][l].a11 = NULL;
+            data->steps[tau][l].a12 = NULL;
+            data->steps[tau][l].a21 = NULL;
+            data->steps[tau][l].a22 = NULL;
+            data->steps[tau][l].g = NULL;
+          }
+          /* Free pointers for current level. */
+          nfft_free(data->steps[tau]);
+          data->steps[tau] = NULL;
+          /* Double length of polynomials. */
+          plength = plength<<1;
+        }
+        /* Free steps. */
+        nfft_free(data->steps);
+        data->steps = NULL;
+      }
+
+      if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
       {
-        nfft_free(data->_alpha);
-        nfft_free(data->_beta);
-        nfft_free(data->_gamma);
+        /* Check, if recurrence coefficients must be copied. */
+        //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
+        if (!(set->flags & FPT_PERSISTENT_DATA))
+        {
+          nfft_free(data->_alpha);
+          nfft_free(data->_beta);
+          nfft_free(data->_gamma);
+        }
+        data->_alpha = NULL;
+        data->_beta = NULL;
+        data->_gamma = NULL;
       }
-      data->_alpha = NULL;
-      data->_beta = NULL;
-      data->_gamma = NULL;
     }
-  }
 
-  /* Delete array of DPT transform data. */
-  nfft_free(set->dpt);
-  set->dpt = NULL;
+    /* Delete array of DPT transform data. */
+    nfft_free(set->dpt);
+    set->dpt = NULL;
+  }
 
   for (tau = 1; tau < set->t+1; tau++)
   {

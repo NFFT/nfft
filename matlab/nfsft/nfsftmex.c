@@ -148,7 +148,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * which otherwise crashes upon invocation of this mex function. */
     mexEvalString("fft([1,2,3,4]);");
 
-    nfft_mex_install_mem_hooks();
+/**  Disabled for performance issues caused by non-thread-safe mxMalloc()
+  *  and many calls of nfft_malloc in nfsft_precompute/fpt_precompute...
+  *    nfft_mex_install_mem_hooks();
+  */
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;

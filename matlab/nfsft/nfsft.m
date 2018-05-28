@@ -105,8 +105,8 @@ end %function
 % Set functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function set.N(h,N)
-    if( ~isscalar(N) || (N<1) || (N>1024) || round(N)~=N )
-        error('The degree N must be a positive integer up to 1024.')
+    if( ~isscalar(N) || (N<1) || (N>4096) || round(N)~=N )
+        error('The degree N must be a positive integer up to 4096.')
     else
         h.N=N;
     end %if

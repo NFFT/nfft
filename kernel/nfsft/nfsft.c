@@ -49,6 +49,9 @@
 /* Include private API header. */
 #include "api.h"
 
+#ifdef _OPENMP
+#include "../fpt/fpt.h"
+#endif
 
 /** \addtogroup nfsft
  * \{
@@ -81,7 +84,11 @@
  *
  * \author Jens Keiner
  */
-static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0};
+#ifdef _OPENMP
+  static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0,0};
+#else
+  static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0};
+#endif
 
 /**
  * Converts coefficients \f$\left(b_k^n\right)_{k=0}^M\f$ with
@@ -369,7 +376,6 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   #pragma omp parallel default(shared)
   {
     int nthreads = omp_get_num_threads();
-    int threadid = omp_get_thread_num();
     #pragma omp single
     {
       wisdom.nthreads = nthreads;
@@ -423,15 +429,26 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       #pragma omp parallel default(shared) private(n)
       {
         int nthreads = omp_get_num_threads();
-	int threadid = omp_get_thread_num();
-	#pragma omp single
-	{
-	  wisdom.nthreads = nthreads;
-	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
-	}
+        int threadid = omp_get_thread_num();
+        #pragma omp single
+        {
+          wisdom.nthreads = nthreads;
+          wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+        }
 
-        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
-          fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        if (threadid == 0)
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        else
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA | FPT_NO_INIT_FPT_DATA);
+
+        #pragma omp barrier
+
+        if (threadid != 0)
+          wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
+
+        #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
           fpt_precompute(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
             &wisdom.beta[ROW(n)], &wisdom.gamma[ROW(n)],n,kappa);
@@ -459,19 +476,30 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       {
         double *alpha, *beta, *gamma;
         int nthreads = omp_get_num_threads();
-	int threadid = omp_get_thread_num();
-	#pragma omp single
-	{
-	  wisdom.nthreads = nthreads;
-	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
-	}
+        int threadid = omp_get_thread_num();
+        #pragma omp single
+        {
+          wisdom.nthreads = nthreads;
+          wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+        }
 
         alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
         beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
         gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
-        fpt_flags | FPT_AL_SYMMETRY);
 
+        if (threadid == 0)
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY);
+        else
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_NO_INIT_FPT_DATA);
+
+        #pragma omp barrier
+
+        if (threadid != 0)
+          wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
+
+        #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
         {
           alpha_al_row(alpha,wisdom.N_MAX,n);
@@ -724,7 +752,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
         gamma = &(wisdom.gamma[ROW(n_abs)]);
 
         if (plan->N > 1024)
-	{
+        {
           /* Clenshaw's algorithm */
           long double _Complex it2 = a[plan->N];
           long double _Complex it1 = a[plan->N-1];
@@ -751,9 +779,9 @@ void nfsft_trafo_direct(nfsft_plan *plan)
             powl(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
 
           plan->f[m] += result;
-	}
-	else
-	{
+        }
+        else
+        {
           /* Clenshaw's algorithm */
           double _Complex it2 = a[plan->N];
           double _Complex it1 = a[plan->N-1];
@@ -778,7 +806,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
            */
           plan->f[m] += it2 * wisdom.gamma[ROW(n_abs)] *
             pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
-	}
+        }
       }
 
       /* Write result f_m for current node to array f. */
@@ -1063,12 +1091,28 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_USE_DPT)
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-         fpt_trafo_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_trafo_direct(wisdom.set_threads[0],abs(n),
+        &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_trafo_direct(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_trafo_direct(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1085,12 +1129,28 @@ void nfsft_trafo(nfsft_plan *plan)
     else
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_trafo(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_trafo(wisdom.set_threads[0],abs(n),
+        &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_trafo(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_trafo(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1241,12 +1301,28 @@ void nfsft_adjoint(nfsft_plan *plan)
     if (plan->flags & NFSFT_USE_DPT)
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_transposed_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_transposed_direct(wisdom.set_threads[0],abs(n),
+        &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_transposed_direct(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_transposed_direct(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use transposed DPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1263,12 +1339,28 @@ void nfsft_adjoint(nfsft_plan *plan)
     else
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_transposed(wisdom.set_threads[omp_get_thread_num()],abs(n),
-          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
-          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
-          plan->N,0U);
+      n = 0;
+      fpt_transposed(wisdom.set_threads[0],abs(n),
+        &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+       #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+       for (n_abs = 1; n_abs <= plan->N; n_abs++)
+       {
+         int threadid = omp_get_thread_num();
+         n = -n_abs;
+         fpt_transposed(wisdom.set_threads[threadid],abs(n),
+           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+           plan->N,0U);
+         n = n_abs;
+         fpt_transposed(wisdom.set_threads[threadid],abs(n),
+           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+           plan->N,0U);
+       }
 #else
       //fprintf(stderr,"nfsft_adjoint: fpt_transposed\n");
       /* Use transposed FPT. */
