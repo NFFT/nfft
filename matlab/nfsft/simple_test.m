@@ -59,4 +59,4 @@ plan.f = f.*W';
 nfsft_adjoint(plan);
 
 fh2 = plan.fhat;
-fprintf('Error of reconstructed f_hat: %g\n',norm(fh2-fh));
+fprintf('Relative error of reconstructed f_hat: %g\n',norm(fh2-fh)/norm(fh));

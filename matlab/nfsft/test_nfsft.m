@@ -1,4 +1,4 @@
-%TEST_NFSFT Example program: Advanced usage principles
+%TEST_NFSFT Example program:  of fast algorithm
 %Use simple_test.m for the basic usage exampe.
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -21,24 +21,27 @@ fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 % maximum degree (bandwidth) of spherical harmonics expansions
 N = 128;
-fprintf('Performing a fast and direct NFSFT with bandwidth N = %d\n', N);
 
 % threshold (affects accuracy, 1000 is the default)
 kappa = 1000;
 
 % random Fourier coefficients
-fh = f_hat(rand((N+1)*(N+1),1));
+fh = f_hat(rand((N+1)*(N+1),1)./(1:(N+1)*(N+1))');
 
 % precomputation
 tic
 nfsft_precompute(N,kappa);
 fprintf('Time of precomputation:    %g seconds\n', toc);
 
-% Gauss-Legendre interpolatory quadrature nodes for N. See gl.m
-[X,W] = gl(N);
-
 % number of nodes
-M = size(X,2);
+M = 5000;
+
+% random nodes
+ph=rand(1,M)*2*pi;
+th=rand(1,M)*pi;
+X=[ph;th];
+
+fprintf('Performing a fast and direct NFSFT with bandwidth N = %d and M = %d nodes\n', N,M);
 
 % Create plan.
 plan = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT));
@@ -64,22 +67,24 @@ f_direct = nfsft_get_f(plan);
 tic
 nfsft_trafo(plan);
 fprintf('Time of fast transform:    %g seconds\n', toc);
-
 % get function values
 f_fast = nfsft_get_f(plan);
 
-% adjoint transform, using quadrature weights to recover Fourier coefficients
-nfsft_set_f(plan,f_direct.*W')
+
+% random function values for adjoint
+f = rand(M,1);
+
+% adjoint transform
+nfsft_set_f(plan,f)
 tic
 ndsft_adjoint(plan);
-times.adjoint_direct=toc;
 fprintf('Time of direct adjoint:    %g seconds\n', toc);
 
 % get function values
 fh2_direct = f_hat(nfsft_get_f_hat(plan));
 
 % Fast adjoint transform
-nfsft_set_f(plan,f_direct.*W')
+nfsft_set_f(plan,f)
 tic
 nfsft_adjoint(plan);
 times.adjoint=toc;
@@ -90,9 +95,29 @@ fh2_fast = f_hat(nfsft_get_f_hat(plan));
 nfsft_finalize(plan);
 
 
+% Algorithm in Matlab
+tic
+f_mat = legendre(0,cos(X(2,:)),'norm').' / sqrt(2*pi) * fh(0,0);
+fh2_mat = zeros(size(fh.f_hat));
+fh2_mat(1)= legendre(0,cos(X(2,:)),'norm') / sqrt(2*pi) * f;
+for n=1:N
+    Lp = legendre(n,cos(X(2,:)),'norm') / sqrt(2*pi);
+    f_mat=f_mat + (flipud(Lp).* exp((-n:0)'.*1i.*X(1,:))).'* fh(n,-n:0)...
+     + (Lp(2:end,:).* exp((1:n)'.*1i.*X(1,:))).'* fh(n,1:n);
+    
+    fh2_mat(n^2+1:n^2+n+1)= (flipud(Lp).* exp(-(-n:0)'.*1i.*X(1,:)))* f;
+    fh2_mat(n^2+n+2:n^2+2*n+1)= (Lp(2:end,:).* exp(-(1:n)'.*1i.*X(1,:)))* f;
+end
+fh2_mat = f_hat(fh2_mat);
+fprintf('Time in Matlab:            %g seconds\n', toc);
+
 % display error
-fprintf('Relative error of fast transform:         %g\n', norm(f_fast-f_direct)/norm(f_direct));
-fprintf('Relative error of fast adjoint transform: %g\n', norm(fh2_fast-fh2_direct)/norm(fh2_direct));
+fprintf('Relative error trafo fast vs matlab:     %g\n', norm(f_fast-f_mat)/norm(f_mat));
+fprintf('Relative error trafo direct vs matlab:   %g\n', norm(f_fast-f_mat)/norm(f_mat));
+fprintf('Relative error trafo fast vs direct:     %g\n', norm(f_fast-f_direct)/norm(f_direct));
+fprintf('Relative error adjoint fast vs matlab:   %g\n', norm(fh2_fast-fh2_mat)/norm(fh2_mat));
+fprintf('Relative error adjoint direct vs matlab: %g\n', norm(fh2_direct-fh2_mat)/norm(fh2_mat));
+fprintf('Relative error adjoint fast vs direct:   %g\n', norm(fh2_fast-fh2_direct)/norm(fh2_direct));
 
 % destroy all precomputations
-nfsft_forget()
+% nfsft_forget()
