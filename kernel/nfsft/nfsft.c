@@ -689,7 +689,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   {
     /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k,n)
+    #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
     for (k = 0; k <= plan->N; k++)
     {
@@ -836,11 +836,6 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
                            coefficient beta_k^n for associated Legendre
                            functions P_k^n                                   */
-  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
-  double stheta;       /*< Current angle theta for Clenshaw algorithm        */
-  double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
 #ifdef MEASURE_TIME
   plan->MEASURE_TIME_t[0] = 0.0;
@@ -874,7 +869,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
 
 #ifdef _OPENMP
       /* Traverse all orders n. */
-      #pragma omp parallel for default(shared) private(n,n_abs,alpha,gamma,m,stheta,sphi,it2,it1,k,temp)
+      #pragma omp parallel for default(shared) private(n,n_abs,alpha,gamma,m,k) schedule(dynamic)
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Take absolute value of n. */
@@ -888,31 +883,56 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         for (m = 0; m < plan->M_total; m++)
         {
           /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-          stheta = cos(2.0*KPI*plan->x[2*m+1]);
+          double stheta = cos(2.0*KPI*plan->x[2*m+1]);
           /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-          sphi = 2.0*KPI*plan->x[2*m];
+          double sphi = 2.0*KPI*plan->x[2*m];
 
           /* Transposed Clenshaw algorithm */
-
-          /* Initial step */
-          it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
-            pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
-          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
-          it2 = 0.0;
-
-          if (n_abs < plan->N)
+          if (plan->N > 1024)
           {
-            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            /* Initial step */
+            long double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+              powl(1 - stheta * stheta, 0.5*n_abs) * cexpl(-_Complex_I*n*sphi);
+            plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+            long double _Complex it2 = 0.0;
+
+            if (n_abs < plan->N)
+            {
+              it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+              plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            }
+
+            /* Loop for transposed Clenshaw algorithm */
+            for (k = n_abs+2; k <= plan->N; k++)
+            {
+              long double _Complex temp = it2;
+              it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+              it1 = temp;
+              plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            }
           }
-
-          /* Loop for transposed Clenshaw algorithm */
-          for (k = n_abs+2; k <= plan->N; k++)
+          else
           {
-            temp = it2;
-            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
-            it1 = temp;
-            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            /* Initial step */
+            double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+              pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
+            plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+            double _Complex it2 = 0.0;
+
+            if (n_abs < plan->N)
+            {
+              it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+              plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            }
+
+            /* Loop for transposed Clenshaw algorithm */
+            for (k = n_abs+2; k <= plan->N; k++)
+            {
+              double _Complex temp = it2;
+              it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+              it1 = temp;
+              plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            }
           }
         }
       }
@@ -921,9 +941,9 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-      stheta = cos(2.0*KPI*plan->x[2*m+1]);
+      double stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-      sphi = 2.0*KPI*plan->x[2*m];
+      double sphi = 2.0*KPI*plan->x[2*m];
 
       /* Traverse all orders n. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -936,26 +956,51 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         gamma = &(wisdom.gamma[ROW(n_abs)]);
 
         /* Transposed Clenshaw algorithm */
-
-        /* Initial step */
-        it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
-          pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
-        plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
-        it2 = 0.0;
-
-        if (n_abs < plan->N)
+        if (plan->N > 1024)
         {
-          it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-          plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          /* Initial step */
+          long double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+            powl(1 - stheta * stheta, 0.5*n_abs) * cexpl(-_Complex_I*n*sphi);
+          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+          long double _Complex it2 = 0.0;
+
+          if (n_abs < plan->N)
+          {
+            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          }
+
+          /* Loop for transposed Clenshaw algorithm */
+          for (k = n_abs+2; k <= plan->N; k++)
+          {
+            long double _Complex temp = it2;
+            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it1 = temp;
+            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          }
         }
-
-        /* Loop for transposed Clenshaw algorithm */
-        for (k = n_abs+2; k <= plan->N; k++)
+        else
         {
-          temp = it2;
-          it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
-          it1 = temp;
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          /* Initial step */
+          double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+            pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
+          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+          double _Complex it2 = 0.0;
+
+          if (n_abs < plan->N)
+          {
+            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          }
+
+          /* Loop for transposed Clenshaw algorithm */
+          for (k = n_abs+2; k <= plan->N; k++)
+          {
+            double _Complex temp = it2;
+            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it1 = temp;
+            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          }
         }
       }
     }
@@ -969,7 +1014,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   {
     /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k,n)
+    #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
     for (k = 0; k <= plan->N; k++)
     {
@@ -1071,7 +1116,7 @@ void nfsft_trafo(nfsft_plan *plan)
     {
       /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k,n)
+      #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
       for (k = 0; k <= plan->N; k++)
       {
@@ -1389,7 +1434,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fflush(stderr);
       /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k,n)
+      #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
       for (k = 0; k <= plan->N; k++)
       {

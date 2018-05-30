@@ -825,6 +825,41 @@ static void eval_sum_clenshaw_transposed(int N, int M, double _Complex* a, doubl
   }
 }
 
+static void eval_sum_clenshaw_transposed_ld(int N, int M, double _Complex* a, double *x,
+  double _Complex *y, double _Complex *temp, double *alpha, double *beta, double *gam,
+  double lambda)
+{
+  int j,k;
+
+  for (k = 0; k <= N; k++)
+    a[k] = 0.0;
+
+  if (N == 0)
+    for (j = 0; j <= M; j++)
+      a[0] += lambda * y[j];
+  else
+  {
+    for (j = 0; j <= M; j++)
+    {
+      /* Compute final result by multiplying with the constant lambda */
+      long double _Complex it2 = lambda * y[j];
+      a[0] += it2;
+
+      /* Compute final step. */
+      long double _Complex it1 = it2;
+      it2 = it2 * (alpha[0] * x[j] + beta[0]);
+      a[1] += it2;
+
+      for (k = 2; k <= N; k++)
+      {
+        long double _Complex aux = it1;
+        it1 = it2;
+        it2 = it2*(alpha[k-1] * x[j] + beta[k-1]) + gam[k-1] * aux;
+        a[k] += it2;
+      }
+    }
+  }
+}
 
 fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 {
@@ -1645,9 +1680,14 @@ void fpt_transposed_direct(fpt_set set, const int m, double _Complex *x,
     fftw_execute_r2r(set->plans_dct3[tk-2],(double*)set->result,
       (double*)set->result);
 
-    eval_sum_clenshaw_transposed(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
-      set->result, set->work, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
-      data->gamma_m1);
+    if (set->N > 1024)
+      eval_sum_clenshaw_transposed_ld(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
+        set->result, set->work, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
+        data->gamma_m1);
+    else
+      eval_sum_clenshaw_transposed(k_end, Nk-1, set->temp, set->xcvecs[tk-2],
+        set->result, set->work, &data->_alpha[1], &data->_beta[1], &data->_gamma[1],
+        data->gamma_m1);
 
     memcpy(x,&set->temp[data->k_start],(k_end-data->k_start+1)*sizeof(double _Complex));
   }
