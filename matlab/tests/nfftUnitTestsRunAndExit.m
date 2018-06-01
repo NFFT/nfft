@@ -26,8 +26,11 @@ try
   result = nfft_check_3d_online(tests); ok = min(ok, result);
   result = nfft_check_adjoint_3d_online(tests); ok = min(ok, result);
 
-%  result = nfft_check_4d_online(tests); ok = min(ok, result);
-%  result = nfft_check_adjoint_4d_online(tests); ok = min(ok, result);
+  result = nfft_check_4d_online(tests); ok = min(ok, result);
+  result = nfft_check_adjoint_4d_online(tests); ok = min(ok, result);
+
+  result = nfft_check_5d_online(tests); ok = min(ok, result);
+  result = nfft_check_adjoint_5d_online(tests); ok = min(ok, result);
 
   clear tests;
 catch err

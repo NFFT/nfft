@@ -27,10 +27,6 @@
 #include "infft.h"
 #include "imex.h"
 
-#ifdef HAVE_MEXVERSION_C
-  #include "mexversion.c"
-#endif
-
 #define PLANS_START 10 /* initial number of plans */
 #define CMD_LEN_MAX 20 /* maximum length of command argument */
 
@@ -42,6 +38,9 @@ static unsigned short gflags = NFSFT_MEX_FIRST_CALL;
 static nfsft_plan** plans = NULL; /* plans */
 static unsigned int plans_num_allocated = 0;
 static int n_max = -1; /* maximum degree precomputed */
+static double kappa_global; /* parameters of percompute */
+static unsigned int nfsft_flags_global = 0U;
+static unsigned int fpt_flags_global = 0U;
 static char cmd[CMD_LEN_MAX];
 
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
@@ -217,13 +216,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       double k = nfft_mex_get_double(prhs[2],"nfsft: Input argument kappa must be a scalar.");
       unsigned int f = nfft_mex_get_int(prhs[3],"nfsft: Input argument flags must be a scalar.");
       unsigned int f2 = nfft_mex_get_int(prhs[4],"nfsft: Input argument flags2 must be a scalar.");
-      if (n_max < n)
+      if ((n_max < n) || (k != kappa_global) || (f != nfsft_flags_global) || (f2 != fpt_flags_global))
       {
         if (gflags & NFSFT_MEX_PRECOMPUTED)
           nfsft_forget();
 
         nfsft_precompute(n,k,f,f2);
         n_max = n;
+        kappa_global = k;
+        nfsft_flags_global = f;
+        fpt_flags_global = f2;
         gflags |= NFSFT_MEX_PRECOMPUTED;
       }
     }

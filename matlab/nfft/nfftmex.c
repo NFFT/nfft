@@ -27,12 +27,8 @@
 #include "infft.h"
 #include "imex.h"
 
-#ifdef HAVE_MEXVERSION_C
-  #include "mexversion.c"
-#endif
-
 #define PLANS_START 10 /* initial number of plans */
-#define CMD_LEN_MAX 20 /* maximum length of command argument */
+#define CMD_LEN_MAX 40 /* maximum length of command argument */
 
 /* global flags */
 #define NFFT_MEX_FIRST_CALL (1U << 0)
@@ -97,18 +93,28 @@ static inline void get_n1n2n3m(const mxArray *prhs[], int *n1, int *n2, int *n3,
 
 static inline void get_guru(const mxArray *prhs[], int d, int *N, int *M, int *n, int *m, unsigned int *f1, unsigned int *f2)
 {
-  /** NO ERROR HANDLING !!*/
+  DM(if (mxGetNumberOfElements(prhs[1]) != 2*d+5)
+    mexErrMsgTxt("init_guru: Cell array must have 2*d+5 many entries: {d, N(1),...,N(d), M, n(1),...,n(d), m, nfft_flag, fftw_flags}");)
+
   int k;
 
   for(k=0;k<d;k++)
+  {
     N[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(1+k)));
+    DM(if (N[k] < 2 || (N[k]%2 != 0))
+      mexErrMsgTxt("init_guru: input vector N must consist of even natural numbers");)
+  }
 
   *M = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+1)));
+  DM(if (*M < 1)
+    mexErrMsgTxt("init_guru: input argument M must be a natural number");)
 
   for(k=0;k<d;k++)
     n[k] = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(d+2+k)));
 
   *m = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+2)));
+  DM(if (*m < 1)
+    mexErrMsgTxt("init_guru: input argument m must be a natural number");)
 
   *f1 = mxGetScalar(mxGetCell(prhs[1], (unsigned int)(2*d+3)));
 
@@ -203,57 +209,96 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (strcmp(cmd,"init_1d") == 0)
   {
-    check_nargs(nrhs,3,"Wrong number of arguments for init.");
+    check_nargs(nrhs,3,"Wrong number of arguments for init_1d.");
     {
       int i;
-      int n, m;
-      get_nm(prhs,&n,&m);
+      int N, M;
+      get_nm(prhs,&N,&M);
       i = mkplan();
-      nfft_init_1d(plans[i],n,m);
+      nfft_init_1d(plans[i],N,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
   }
   else if (strcmp(cmd,"init_2d") == 0)
   {
-    check_nargs(nrhs,4,"Wrong number of arguments for init.");
+    check_nargs(nrhs,4,"Wrong number of arguments for init_2d.");
     {
       int i;
-      int n1, n2, m;
-      get_n1n2m(prhs,&n1,&n2,&m);
+      int N1, N2, M;
+      get_n1n2m(prhs,&N1,&N2,&M);
       i = mkplan();
-      nfft_init_2d(plans[i],n1,n2,m);
+      nfft_init_2d(plans[i],N1,N2,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
   }
   else if (strcmp(cmd,"init_3d") == 0)
   {
-    check_nargs(nrhs,5,"Wrong number of arguments for init.");
+    check_nargs(nrhs,5,"Wrong number of arguments for init_3d.");
     {
       int i;
-      int n1, n2, n3, m;
-      get_n1n2n3m(prhs,&n1,&n2,&n3,&m);
+      int N1, N2, N3, M;
+      get_n1n2n3m(prhs,&N1,&N2,&N3,&M);
       i = mkplan();
-      nfft_init_3d(plans[i],n1,n2,n3,m);
+      nfft_init_3d(plans[i],N1,N2,N3,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
+    }
+    return;
+  }
+  else if (strcmp(cmd,"init") == 0)
+  {
+    check_nargs(nrhs,3,"Wrong number of arguments for init.");
+    {
+      int i;
+      int d, M;
+      
+      DM(if (!mxIsDouble(prhs[1]) || mxGetNumberOfDimensions(prhs[1]) > 2)
+        mexErrMsgTxt("init: input argument N must be a double array");)
+
+      d = mxGetNumberOfElements(prhs[1]);
+      if (d < 1)
+        mexErrMsgTxt("init: input argument N must be a double array of length >= 1");
+      else
+      {
+        int t, N[d];
+        double *N_vec = mxGetPr(prhs[1]);
+        for (t = 0; t < d; t++)
+        {
+          N[t] = (int) N_vec[t];
+          DM(if (N[t] < 2 || (N[t]%2 != 0))
+            mexErrMsgTxt("init: input vector N must consist of even natural numbers");)
+        }
+        M = nfft_mex_get_int(prhs[2],"init: input argument M must be a scalar.");
+        DM(if (M < 1)
+          mexErrMsgTxt("init: input argument NM must be a natural number");)
+        i = mkplan();
+        nfft_init(plans[i],d,N,M);
+        plhs[0] = mxCreateDoubleScalar((double)i);
+      }
     }
     return;
   }
   else if (strcmp(cmd,"init_guru") == 0)
   {
-    /** NO ERROR HANDLING !!*/
-    int i;
+    check_nargs(nrhs,2,"Wrong number of arguments for init_guru");
+
+    DM(if (!mxIsCell(prhs[1]) || mxGetNumberOfElements(prhs[1]) < 3)
+      mexErrMsgTxt("init_guru: second argument must be a cell array of length 2*d+5");)
+
+    DM(if (!mxIsScalar(mxGetCell(prhs[1], 0)))
+      mexErrMsgTxt("init_guru: cell array entry at index 0 (dimension d) must be scalar");)
+
     const int d = mxGetScalar(mxGetCell(prhs[1], 0));
 
+    DM(if (d < 1)
+      mexErrMsgTxt("init_guru: cell array entry at index 0 (dimension d) must be a natural number");)
+    
     int N[d],n[d],m,M;
     unsigned int f1,f2;
 
-    DM(if ((d < 1) || (d>4)) 
-	 mexErrMsgTxt("nfft: Input argument d must be positive and smaller than 5.");)
-
     get_guru(prhs,d,N,&M,n,&m,&f1,&f2);
-    i = mkplan();
+    int i = mkplan();
     nfft_init_guru(plans[i],d,N,M,n,m,
 		   f1 | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT,
 		   f2);
@@ -482,6 +527,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     *((int32_t *)mxGetData(plhs[0])) = nthreads;
 
     return;
+  }
+  else if(strcmp(cmd,"get_default_window_cut_off_m") == 0)
+  {
+    plhs[0] = mxCreateDoubleScalar((double) WINDOW_HELP_ESTIMATE_m);
   }
   else
     mexErrMsgTxt("nfft: Unknown command.\n");
