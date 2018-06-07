@@ -26,7 +26,7 @@ t = 8;
 N_max = 2^t; % maximal polynomial degree
 N = N_max;
 
-fprintf('Initializing fast polynomial transform for degree up to N=%d\n', N_max);
+fprintf('Initializing fast polynomial transform for degree up to N = %d\n', N_max);
 % An fpt_set is a data structure that contains precomputed data for a number
 % of different polynomial transforms. The first parameter (t) is the exponent
 % of the maximum transform size desired (2^t), i.e., t = 3 means that N_max in (1)
@@ -52,10 +52,14 @@ fpt_precompute(fpt_set,alpha,beta,gamma,0);
 % random Fourier coefficients of the length at most N_max
 a = 2*rand(N+1,1)-1;
 
-fprintf('Converting coefficients of Legendre polynomial of degree N=%d into Chebyshev basis\n\n', N);
+fprintf('Converting coefficients of Legendre polynomial of degree N = %d into Chebyshev basis\n\n', N);
 % fast polynomial transform for the polynomial degree N and flags 0.
 b = fpt_trafo(fpt_set,a,N,0);
 
+% Comparison with direct fpt
+
+b_direct = fpt_trafo_direct(fpt_set,a,N,0);
+fprintf('Comparison of fpt vs. fpt_direct, max abs error = %.3e\n\n', norm(b-b_direct,'inf'));
 
 % Comparison with Legendre polynomial
 
@@ -73,14 +77,14 @@ fct_chebyshev = eval_clenshaw(alpha_chebyshev, beta_chebyshev, gamma_chebyshev, 
 
 fprintf('Comparison of input Legendre polynomial\n');
 fprintf('and output Chebyshev polynomial evaluated at random nodes:\n');
-fprintf('Clenshaw algorithm vs. Clenshaw algorithm, max abs error = %.3e\n', max(abs(fct_legendre-fct_chebyshev)));
+fprintf('Clenshaw algorithm vs. Clenshaw algorithm, max abs error = %.3e\n', norm(fct_legendre-fct_chebyshev,'inf'));
 
 % evaluate Chebyshev polynomial at random nodes using direct evaluation:
 fct_chebyshev_direct = zeros(length(nodes),1);
 for k=0:N
   fct_chebyshev_direct = fct_chebyshev_direct + b(k+1) * cos(k * acos(nodes));
 end
-fprintf('Clenshaw algorithm vs.  direct evaluation, max abs error = %.3e\n', max(abs(fct_legendre-fct_chebyshev_direct)));
+fprintf('Clenshaw algorithm vs. direct evaluation, max abs error = %.3e\n', norm(fct_legendre-fct_chebyshev_direct,'inf'));
 
 % cleanup
 fpt_finalize(fpt_set);
@@ -90,5 +94,5 @@ f_direct = zeros(size(nodes));
 for k=0:N
   L = legendre(k, nodes);
   f_direct = f_direct + a(k+1)*L(1,:).';
-endfor
-fprintf('Clenshaw algorithm vs. Matlab-legendre, max abs error = %.3e\n', max(abs(fct_chebyshev - f_direct)));
+end
+fprintf('Clenshaw algorithm vs. Matlab-legendre, max abs error = %.3e\n', norm(fct_chebyshev-f_direct,'inf'));

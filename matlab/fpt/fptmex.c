@@ -15,6 +15,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+
+/* Author: Felix Bartel 2018 */
+
 #include "config.h"
 
 #ifdef HAVE_COMPLEX_H
@@ -165,6 +168,50 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     fpt_precompute(*(sets[i]), 0, alpha, beta, gam, k_start, 1000.0);
 
+  } else if(strcmp(cmd,"trafo_direct") == 0)
+  {
+    check_nargs(nrhs,5,"Wrong number of arguments for trafo_direct.");
+    unsigned int i = get_set(prhs[1]);
+
+    DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
+      mexErrMsgTxt("Input argument a must be an M x 1 array");)
+    DM(if (mxGetM(prhs[2]) > (*sets[i])->N+1)
+      mexErrMsgTxt("You exeed your precomputed maximal polynomial degree");)
+    double *a_real = mxGetPr(prhs[2]), *a_imag=0;
+    if(mxIsComplex(prhs[2])) 
+      a_imag = mxGetPi(prhs[2]);
+    long unsigned int N = mxGetM(prhs[2]);
+    double _Complex *a = nfft_malloc(N*sizeof(double _Complex));
+
+    for (long unsigned int j = 0; j < N; j++)
+    {
+      if(a_imag)
+        a[j] = a_real[j] + I*a_imag[j];
+      else 
+        a[j] = a_real[j];
+    }
+
+    int k_end = nfft_mex_get_int(prhs[3],"k_end must be scalar"); // k_end
+    int flags_int = nfft_mex_get_int(prhs[4],"Input argument flags must be a scalar."); // flags
+    DM( if (flags_int < 0)
+      mexErrMsgTxt("Input argument flags must be non-negative.");)
+    unsigned flags = (unsigned) flags_int;
+
+    double _Complex *b = nfft_malloc(N*sizeof(double _Complex));
+    fpt_trafo_direct(*(sets[i]), 0, a, b, k_end, flags);
+
+    plhs[0] = mxCreateDoubleMatrix(N, 1, mxCOMPLEX); // return value
+    {
+      double *br = mxGetPr(plhs[0]), *bi = mxGetPi(plhs[0]);
+      for (long unsigned int j = 0; j < N; j++)
+      {
+        br[j] = creal(b[j]);
+        bi[j] = cimag(b[j]);
+      }
+    }
+    nfft_free(a);
+    nfft_free(b);
+  
   } else if(strcmp(cmd,"trafo") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for trafo.");
@@ -209,6 +256,49 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nfft_free(a);
     nfft_free(b);
   
+  } else if(strcmp(cmd,"transposed_direct") == 0)
+  {
+    check_nargs(nrhs,5,"Wrong number of arguments for transposed_direct.");
+    unsigned int i = get_set(prhs[1]);
+
+    DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
+      mexErrMsgTxt("Input argument a must be an M x 1 array");)
+    DM(if (mxGetM(prhs[2]) > (*sets[i])->N+1)
+      mexErrMsgTxt("You exeed your precomputed maximal polynomial degree");)
+    double *b_real = mxGetPr(prhs[2]), *b_imag=0;
+    if(mxIsComplex(prhs[2])) 
+      b_imag = mxGetPi(prhs[2]);
+    long unsigned int N = mxGetM(prhs[2]);
+    double _Complex *b = nfft_malloc(N*sizeof(double _Complex));
+
+    for (long unsigned int j = 0; j < N; j++)
+    {
+      if(b_imag)
+        b[j] = b_real[j] + I*b_imag[j];
+      else 
+        b[j] = b_real[j];
+    }
+
+    int k_end = nfft_mex_get_int(prhs[3],"k_end must be scalar"); // k_end
+    int flags_int = nfft_mex_get_int(prhs[4],"Input argument flags must be a scalar."); // flags
+    DM( if (flags_int < 0)
+      mexErrMsgTxt("Input argument flags must be non-negative.");)
+    unsigned flags = (unsigned) flags_int;
+
+    double _Complex *a = nfft_malloc(N*sizeof(double _Complex));
+    fpt_transposed_direct(*(sets[i]), 0, a, b, k_end, flags);
+
+    plhs[0] = mxCreateDoubleMatrix(N, 1, mxCOMPLEX); // return value
+    {
+      double *ar = mxGetPr(plhs[0]), *ai = mxGetPi(plhs[0]);
+      for (long unsigned int j = 0; j < N; j++)
+      {
+        ar[j] = creal(a[j]);
+        ai[j] = cimag(a[j]);
+      }
+    }
+    nfft_free(a);
+    nfft_free(b);
   } else if(strcmp(cmd,"transposed") == 0)
   {
     check_nargs(nrhs,5,"Wrong number of arguments for transposed.");
@@ -216,7 +306,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     DM(if (!(mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != 1))
       mexErrMsgTxt("Input argument a must be an M x 1 array");)
-    DM(if (!(mxGetM(prhs[2]) > (*sets[i])->N+1))
+    DM(if (mxGetM(prhs[2]) > (*sets[i])->N+1)
       mexErrMsgTxt("You exeed your precomputed maximal polynomial degree");)
     double *b_real = mxGetPr(prhs[2]), *b_imag=0;
     if(mxIsComplex(prhs[2])) 
