@@ -17,6 +17,7 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 
+% The computations performed by the fpt are based on Potts, D. Fast algorithms for discrete polynomial transforms on arbitrary grids. Linear Algebra Appl. 366, 353-370., 2003  (https://www-user.tu-chemnitz.de/~potts/paper/ndct.pdf)
 
 % This example shows the use of the fast polynomial transform to compute
 % the Chebyshev coefficients from a polynomial given by Legendre coefficients,
