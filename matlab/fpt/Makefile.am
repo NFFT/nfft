@@ -15,7 +15,8 @@ libfpt_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 
-dist_fptmatlab_DATA = simple_test.m fpt_init.m fpt_precompute.m fpt_trafo.m fpt_transposed.m fpt_finalize.m eval_clenshaw.m
+dist_fptmatlab_DATA = simple_test.m fpt_init.m fpt_precompute.m fpt_trafo.m fpt_trafo_direct.m fpt_transposed.m fpt_transposed_direct.m fpt_finalize.m eval_clenshaw.m \
+	FPT_NO_FAST_ALGORITHM.m FPT_NO_DIRECT_ALGORITHM.m FPT_NO_STABILIZATION.m FPT_FUNCTION_VALUES.m FPT_AL_SYMMETRY.m
 
 # target all-am builds .libs/libfpt@matlab_mexext@
 fptmex@matlab_mexext@: all-am 
