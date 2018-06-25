@@ -18,11 +18,9 @@ M = length(alpha);
 fh = rand(nfsoft_f_hat_size(N),1)./(1:nfsoft_f_hat_size(N)).';
 
 tic
-plan = nfsoft_init(N,M,NFSOFT_NORMALIZED);  % create NFSOFT plan
-nfsoft_set_x(plan,x);           % set nodes
-nfsoft_precompute(plan);        % node-dependent precomputation
-nfsoft_set_f_hat(plan,fh);      % set Fourier (Wigner) coefficients
+plan = nfsoft(N,M,NFSOFT_NORMALIZED);  % create NFSOFT plan
+plan.x = x;                     % set nodes
+plan.fhat = fh;                 % set Fourier (Wigner) coefficients
 nfsoft_trafo(plan);             % NFSOFT transform
-f = nfsoft_get_f(plan);         % get function values
-nfsoft_finalize(plan);
+f = plan.f;                     % get function values
 toc

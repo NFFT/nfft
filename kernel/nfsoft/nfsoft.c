@@ -438,22 +438,25 @@ void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
 void nfsoft_precompute(nfsoft_plan *plan3D)
 {
   int j;
-  int N = plan3D->N_total;
   int M = plan3D->M_total;
 
   /** Node-dependent part*/
 
-  for (j = 0; j < M; j++)
-  {
-    plan3D->p_nfft.x[3* j ] = plan3D->x[3* j + 2];
-    plan3D->p_nfft.x[3* j + 1] = plan3D->x[3* j ];
-    plan3D->p_nfft.x[3* j + 2] = plan3D->x[3* j + 1];
+  if (plan3D->x != plan3D->p_nfft.x)
+  {/** Resort and copy nodes*/
+    for (j = 0; j < M; j++)
+    {
+      plan3D->p_nfft.x[3* j ] = plan3D->x[3* j + 2];
+      plan3D->p_nfft.x[3* j + 1] = plan3D->x[3* j ];
+      plan3D->p_nfft.x[3* j + 2] = plan3D->x[3* j + 1];
+    }
+
+    for (j = 0; j < 3* plan3D ->p_nfft.M_total; j++)
+    {
+      plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* KPI ));
+    }
   }
 
-  for (j = 0; j < 3* plan3D ->p_nfft.M_total; j++)
-  {
-    plan3D->p_nfft.x[j] = plan3D->p_nfft.x[j] * (1 / (2* KPI ));
-  }
 
   if ((plan3D->p_nfft).flags & FG_PSI)
   {
@@ -549,8 +552,9 @@ void nfsoft_trafo(nfsoft_plan *plan3D)
     nfft_trafo(&(plan3D->p_nfft));
   }
 
-  for (j = 0; j < plan3D->M_total; j++)
-    plan3D->f[j] = plan3D->p_nfft.f[j];
+  if (plan3D->f != plan3D->p_nfft.f)
+    for (j = 0; j < plan3D->M_total; j++)
+      plan3D->f[j] = plan3D->p_nfft.f[j];
 
 }
 
@@ -705,14 +709,14 @@ void nfsoft_finalize(nfsoft_plan *plan)
     nfft_free(plan->f_hat);
   }
 
-  /* De-allocate memory for samples, if neccesary. */
+  /* De-allocate memory for samples, if necessary. */
   if (plan->flags & NFSOFT_MALLOC_F)
   {
     //fprintf(stderr,"deallocating f\n");
     nfft_free(plan->f);
   }
 
-  /* De-allocate memory for nodes, if neccesary. */
+  /* De-allocate memory for nodes, if necessary. */
   if (plan->flags & NFSOFT_MALLOC_X)
   {
     //fprintf(stderr,"deallocating x\n");
