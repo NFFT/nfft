@@ -51,7 +51,7 @@ fprintf('Precomputations for Legendre polynomials\n');
 fpt_precompute(fpt_set,alpha,beta,gamma,0);
 
 % random Fourier coefficients of the length at most N_max
-a = 2*rand(N+1,1)-1;
+a = 2*(rand(N+1,1) + 1i*rand(N+1,1)) - 1;
 
 fprintf('Converting coefficients of Legendre polynomial of degree N = %d into Chebyshev basis\n\n', N);
 % fast polynomial transform for the polynomial degree N and flags 0.
