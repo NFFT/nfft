@@ -1,9 +1,11 @@
-clear all
 addpath ../nfsft
 ok = 1;
 bound = 2^20* eps;
 bound_direct = 2^12* eps;
+bound_direct_adjoint = 2^13* eps;
 bound_reconstruction = 2^22* eps;
+
+fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 try
   for N = 2.^(2:10)
@@ -27,9 +29,6 @@ try
 
     % Set nodes.
     nfsft_set_x(plan,X);
-
-    % node-dependent precomputation
-    nfsft_precompute_x(plan);
 
     % set Fourier coefficients
     nfsft_set_f_hat(plan,double(fh));
@@ -62,7 +61,6 @@ try
     % the same with DPT
     plan_dpt = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+NFSFT_USE_DPT);
     nfsft_set_x(plan_dpt,X);
-    nfsft_precompute_x(plan_dpt);
     nfsft_set_f_hat(plan_dpt,double(fh));
     nfsft_trafo(plan_dpt);
     f_dpt = nfsft_get_f(plan_dpt);
@@ -101,14 +99,14 @@ try
         N, result, error_trafo(1), error_trafo(2), bound, error_trafo(3), bound_direct);
 
       error_adjoint = [norm(fh2_fast-fh2_mat), norm(fh2_dpt-fh2_mat), norm(fh2_direct-fh2_mat)]/norm(fh2_mat);
-      if (max(error_adjoint) > bound) || (error_adjoint(3) > bound_direct)
+      if (max(error_adjoint) > bound) || (error_adjoint(3) > bound_direct_adjoint)
         ok = 0;
         result = 'FAIL';
       else
         result = ' OK ';
       end
       fprintf('NFSFT_adjoint  (N =%4d) ---> %s  fpt: %.3e, dpt: %.3e (%.3e), direct: %.3e (%.3e)\n', ...
-        N, result, error_adjoint(1), error_adjoint(2), bound, error_adjoint(3), bound_direct);
+        N, result, error_adjoint(1), error_adjoint(2), bound, error_adjoint(3), bound_direct_adjoint);
     
     else %Octave for high N
       error_trafo = [norm(f_fast-f_direct), norm(f_dpt-f_direct)]/norm(f_direct);
@@ -132,7 +130,7 @@ try
         N, result, error_adjoint(1), error_adjoint(2), bound);
     end
 
-    % Run test with many nodes and quadrature
+    % Run test with many nodes and Gauss-Legendre quadrature
     [X,W] = gl(N);
     M = size(X,2);
 
@@ -140,7 +138,6 @@ try
       % Create plan of class NFSFT.
       plan = nfsft_init_advanced(N,M,NFSFT_NORMALIZED + (use_dpt-1)*NFSFT_USE_DPT);
       nfsft_set_x(plan,X);
-      nfsft_precompute_x(plan)
 
       % random Fourier coefficients
       fh = f_hat(rand((N+1)*(N+1),1));

@@ -49,9 +49,6 @@ plan = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT));
 % Set nodes.
 nfsft_set_x(plan,X);
 
-% node-dependent precomputation
-nfsft_precompute_x(plan);
-
 % set Fourier coefficients
 nfsft_set_f_hat(plan,double(fh));
 
@@ -87,7 +84,6 @@ fh2_direct = f_hat(nfsft_get_f_hat(plan));
 nfsft_set_f(plan,f)
 tic
 nfsft_adjoint(plan);
-times.adjoint=toc;
 fprintf('Time of fast adjoint:      %g seconds\n', toc);
 fh2_fast = f_hat(nfsft_get_f_hat(plan));
 

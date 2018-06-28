@@ -276,12 +276,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"precompute_x") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for precompute_x.");
-    {
-      int i = nfft_mex_get_int(prhs[1],"nfsft: Input argument plan must be a scalar.");
-      check_plan(i);
-      nfsft_precompute_x(plans[i]);
-    }
+    /* Do nothing here.
+     * nfsft_precompute_x has been moved to the set_x routine. */
     return;
   }
   else if (strcmp(cmd,"trafo_direct") == 0)
@@ -408,6 +404,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
           plans[i]->x[2*j+1] = x[2*j+1]/K2PI;
         }
       }
+      nfsft_precompute_x(plans[i]);
     }
     return;
   }

@@ -23,4 +23,4 @@ dist_matlabtests_DATA = nfftTestcaseCheckDelegate.m nfftTestcaseDelegateFile.m \
  nfftUnitTestsRunAndExit.m nfsftUnitTestsRunAndExit.m
 
 clean-local:
-	rm -f check_nfft_octave.log check_nfft_octave.trs check_nfft_matlab.log check_nfft_matlab.trs check_nfft_matlab.output check_nfsft_matlab.output
+	rm -f check_nfft_octave.log check_nfft_octave.trs check_nfft_matlab.log check_nfft_matlab.trs check_nfft_matlab.output check_nfsft_octave.log check_nfsft_octave.trs check_nfsft_matlab.log check_nfsft_matlab.trs check_nfsft_matlab.output

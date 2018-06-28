@@ -146,7 +146,6 @@ function set.x(h,x)
     else
         x(1,:)=mod(x(1,:),2*pi);
         nfsftmex('set_x',h.plan,x);
-        nfsftmex('precompute_x',h.plan);
         h.x_is_set=true;
     end %if
 end %function
