@@ -780,7 +780,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
 
   /* Initialize with NULL pointer. */
   for (m = 0; m < set->M; m++)
-    set->dpt[m].steps = 0;
+    set->dpt[m].steps = NULL;
 
   /* Create arrays with Chebyshev nodes. */
 
@@ -872,6 +872,13 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   {
     set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
     set->temp = (double _Complex*) nfft_malloc((set->N+1)*sizeof(double _Complex));
+    for (m = 0; m < set->M; m++)
+    {
+      fpt_data *data = &(set->dpt[m]);
+      data->_alpha = NULL;
+      data->_beta = NULL;
+      data->_gamma = NULL;
+    }
   }
 
   /* Return the newly created DPT set. */
@@ -1853,9 +1860,12 @@ void fpt_finalize(fpt_set set)
       //fprintf(stderr,"\nfpt_finalize: %d\n",set->flags & FPT_PERSISTENT_DATA);
       if (!(set->flags & FPT_PERSISTENT_DATA))
       {
-        nfft_free(data->_alpha);
-        nfft_free(data->_beta);
-        nfft_free(data->_gamma);
+        if (data->_alpha != NULL)
+          nfft_free(data->_alpha);
+        if (data->_beta != NULL)
+          nfft_free(data->_beta);
+	if (data->_gamma != NULL)
+          nfft_free(data->_gamma);
       }
       data->_alpha = NULL;
       data->_beta = NULL;
