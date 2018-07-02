@@ -15,6 +15,6 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 function fpt_precompute(fpt_set,alpha,beta,gamma,k_start)
 
-fptmex('precompute',fpt_set,alpha,beta,gamma,0);
+fptmex('precompute',fpt_set,alpha,beta,gamma,k_start);
 
 end

@@ -17,7 +17,9 @@
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 %
 
-% The computations performed by the fpt are based on Potts, D. Fast algorithms for discrete polynomial transforms on arbitrary grids. Linear Algebra Appl. 366, 353-370., 2003  (https://www-user.tu-chemnitz.de/~potts/paper/ndct.pdf)
+% The computations performed by the fpt are based on Potts, D. Fast algorithms
+% for discrete polynomial transforms on arbitrary grids. Linear Algebra Appl.
+% 366, 353-370., 2003  (https://www-user.tu-chemnitz.de/~potts/paper/ndct.pdf)
 
 % This example shows the use of the fast polynomial transform to compute
 % the Chebyshev coefficients from a polynomial given by Legendre coefficients,
@@ -28,10 +30,10 @@ N_max = 2^t; % maximal polynomial degree
 N = N_max;
 
 fprintf('Initializing fast polynomial transform for degree up to N = %d\n', N_max);
-% An fpt_set is a data structure that contains precomputed data for a number
-% of different polynomial transforms. The first parameter (t) is the exponent
-% of the maximum transform size desired (2^t), i.e., t = 3 means that N_max in (1)
-% can be at most N = 8. The third parameter are flags.
+% An fpt_set is a data structure that contains precomputed data for a polynomial
+% transform. The first parameter (t) is the exponent of the maximum transform size
+% desired (2^t), i.e., t = 3 means that N_max in (1) can be at most N = 8.
+% The second parameter are flags.
 fpt_set = fpt_init(t,0);
 
 % Three-term recurrence coefficients for Legendre polynomials
@@ -43,11 +45,11 @@ beta = zeros(N_max+2,1);
 gamma = [1 -((0:N_max)./((0:N_max)+1))]';
 
 fprintf('Precomputations for Legendre polynomials\n');
-% The function fpt_precompute actually does the precomputation for a single
-% transform. It needs arrays alpha, beta, and gamma, containing the three-
-% term recurrence coefficients, here of the Legendre polynomials. The format
-% is explained above. The fith parameter (k_start) is where the index in the
-% linear combination (1) starts, here k_start=0.
+% The function fpt_precompute actually does the precomputation for a transform.
+% It needs arrays alpha, beta, and gamma, containing the three-term recurrence
+% coefficients, here of the Legendre polynomials. The format is explained above.
+% The fith parameter (k_start) is where the index in the linear combination (1)
+% starts, here k_start=0.
 fpt_precompute(fpt_set,alpha,beta,gamma,0);
 
 % random Fourier coefficients of the length at most N_max
