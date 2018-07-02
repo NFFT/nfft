@@ -168,6 +168,8 @@ try
     fprintf('Reconstruction (N =%4d) ---> %s  fpt: %.3e  dpt: %.3e (%.3e)\n',...
       N,result,error_quad(1),error_quad(2),bound_reconstruction);
   end
+  
+  nfsft_forget();
 
 catch err
   try

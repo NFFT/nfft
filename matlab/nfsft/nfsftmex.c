@@ -47,7 +47,9 @@ static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfsft: Input argument N must be a scalar.");
   DM(if (t < 0)
-    mexErrMsgTxt("nfsft: Input argument N must be non-negative.");)
+    mexErrMsgTxt("nfsft: Input argument N must be non-negative.");
+  if (t > n_max)
+    mexErrMsgTxt("nfsft: Input argument N must be <= the degree from nfsft_precompute.");)
   *n = t;
   t = nfft_mex_get_int(prhs[2],"nfsft: Input argument M must be a scalar.");
   DM(if (t < 1)
@@ -110,6 +112,13 @@ static inline int mkplan()
   }
   plans[i] = nfft_malloc(sizeof(nfsft_plan));
   return i;
+}
+
+static inline void init_values_zero(nfsft_plan *plan)
+{
+  memset(plan->x, 0U, plan->M_total*2*sizeof(double));
+  memset(plan->f, 0U, plan->M_total*sizeof(double _Complex));
+  memset(plan->f_hat, 0U, plan->N_total*sizeof(double _Complex));
 }
 
 /* cleanup on mex function unload */
@@ -176,6 +185,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       get_nm(prhs,&n,&m);
       i = mkplan();
       nfsft_init(plans[i],n,m);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -191,6 +201,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       i = mkplan();
       nfsft_init_advanced(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -207,6 +218,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT
         | FFT_OUT_OF_PLACE, c);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
