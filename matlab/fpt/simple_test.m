@@ -18,7 +18,7 @@
 %
 
 % The computations performed by the fpt are based on Potts, D. Fast algorithms
-% for discrete poly2nomial transforms on arbitrary grids. Linear Algebra Appl.
+% for discrete polynomial transforms on arbitrary grids. Linear Algebra Appl.
 % 366, 353-370., 2003  (https://www-user.tu-chemnitz.de/~potts/paper/ndct.pdf)
 
 % This example shows the use of the fast polynomial transform to compute
@@ -28,7 +28,7 @@
 t = 8;
 N_max = 2^t; % maximal polynomial degree
 k_end = N_max;
-k_start = 2;
+k_start = 0;
 
 fprintf('Initializing fast polynomial transform for degree up to N = %d\n', N_max);
 % An fpt_set is a data structure that contains precomputed data for a polynomial
