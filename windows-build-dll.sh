@@ -17,9 +17,14 @@
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
+# Write log file
+# exec > >(tee -a windows-build-dll.log)
+# exec 2>&1
+
+
 # default values (to be overwritten if respective parameters are set)
-FFTWVERSION=3.3.7
-OCTAVEVERSION=4.2.2
+FFTWVERSION=3.3.8
+OCTAVEVERSION=4.4.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
@@ -87,7 +92,7 @@ pacman -S --needed autoconf perl libtool automake mingw-w64-$ARCHNAME-gcc make m
 
 #NFFTDIR=$(pwd)
 NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HOMEDIR="$NFFTDIR"/windows-build-dll-$ARCHNAME
+HOMEDIR="$(pwd)"/windows-build-dll-$ARCHNAME
 mkdir -p "$HOMEDIR"
 cd "$HOMEDIR"
 FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
@@ -125,9 +130,11 @@ cd "$HOMEDIR"
 OCTAVEDIR="$HOMEDIR/octave-$OCTAVEVERSION"
 if [ ! -d "$OCTAVEDIR" ]; then
   rm -f "octave-$OCTAVEVERSION-w$ARCH.zip"
+  rm -f -r "octave-$OCTAVEVERSION-w$ARCH"
   wget "https://ftp.gnu.org/gnu/octave/windows/octave-$OCTAVEVERSION-w$ARCH.zip"
-  unzip -q "octave-$OCTAVEVERSION-w$ARCH.zip"
+  unzip -q -o "octave-$OCTAVEVERSION-w$ARCH.zip"
   rm "octave-$OCTAVEVERSION-w$ARCH.zip"
+  mv "$OCTAVEDIR-w$ARCH" "$OCTAVEDIR" || true	# Folder name has suffix -w64 for Octave >=4.4
 fi
 #OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
 OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
@@ -213,7 +220,7 @@ if [ -n "$MATLABDIR" ]; then
   if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
     make check
   fi
-  for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
+  for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
     cd matlab/"$LIB"
     gcc -shared  .libs/lib"$LIB"_la-"$LIB"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a -Wl,--no-whole-archive  -L"$MATLABDIR"/bin/win$ARCH -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=$GCCARCH -o .libs/lib"$LIB".mexw$ARCH -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB".dll.a -static-libgcc -Wl,-Bstatic -lwinpthread $OMPLIBS
@@ -224,7 +231,7 @@ fi
 
 # Create Matlab/Octave release
 MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
-for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d
+for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt
   do
   mkdir -p "$MEXDIR"/$SUBDIR
   cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
