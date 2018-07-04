@@ -79,7 +79,7 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DIR=nfft-$NFFTVERSION-mexa64$OMPSUFFIX
 
 # Create Matlab/Octave release
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
   do
   mkdir -p "$DIR"/$SUBDIR
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/ || true
@@ -97,7 +97,7 @@ if [ -n "$MATLABDIR" ]; then
   make check
 fi
 
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
 done
