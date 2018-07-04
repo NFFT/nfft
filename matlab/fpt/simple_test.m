@@ -18,16 +18,17 @@
 %
 
 % The computations performed by the fpt are based on Potts, D. Fast algorithms
-% for discrete polynomial transforms on arbitrary grids. Linear Algebra Appl.
+% for discrete poly2nomial transforms on arbitrary grids. Linear Algebra Appl.
 % 366, 353-370., 2003  (https://www-user.tu-chemnitz.de/~potts/paper/ndct.pdf)
 
 % This example shows the use of the fast polynomial transform to compute
 % the Chebyshev coefficients from a polynomial given by Legendre coefficients,
 %
-%   f(x) = a_0 P_0(x) + a_1 P_1(x) + ... + a_N P_N(x).                   (1)
+%   f(x) = a_0 P_0(x) + a_1 P_1(x) + ... + a_k_end P_k_end(x).                   (1)
 t = 8;
 N_max = 2^t; % maximal polynomial degree
-N = N_max;
+k_end = N_max;
+k_start = 2;
 
 fprintf('Initializing fast polynomial transform for degree up to N = %d\n', N_max);
 % An fpt_set is a data structure that contains precomputed data for a polynomial
@@ -48,31 +49,34 @@ fprintf('Precomputations for Legendre polynomials\n');
 % The function fpt_precompute actually does the precomputation for a transform.
 % It needs arrays alpha, beta, and gamma, containing the three-term recurrence
 % coefficients, here of the Legendre polynomials. The format is explained above.
-% The fith parameter (k_start) is where the index in the linear combination (1)
+% The fifth parameter (k_start) is where the index in the linear combination (1)
 % starts, here k_start=0.
-fpt_precompute(fpt_set,alpha,beta,gamma,0);
+fpt_precompute(fpt_set,alpha,beta,gamma,k_start);
 
 % random Fourier coefficients of the length at most N_max
-a = 2*(rand(N+1,1) + 1i*rand(N+1,1)) - 1;
+a = 2*(rand(k_end+1-k_start,1) + 1i*rand(k_end+1-k_start,1)) - 1;
 fprintf('l1-norm of coefficients of Legendre polynomial: %.3e\n\n', norm(a,1));
 
-fprintf('Converting coefficients of Legendre polynomial of degree N = %d into Chebyshev basis\n\n', N);
-% fast polynomial transform for the polynomial degree N and flags 0.
-b = fpt_trafo(fpt_set,a,N,0);
-
+fprintf('Converting coefficients of Legendre polynomial of degree N = %d into Chebyshev basis\n\n', k_end);
+% fast polynomial transform for the polynomial degree k_end and flags 0.
+b = fpt_trafo(fpt_set,a,k_end,0);
 fprintf('l1-norm of coefficients of Chebyshev polynomial: %.3e\n\n', norm(b,1));
 
 % Comparison with dpt (slow direct version of fpt)
 
-b_direct = fpt_trafo_direct(fpt_set,a,N,0);
+b_direct = fpt_trafo_direct(fpt_set,a,k_end,0);
 fprintf('Comparison of Chebyshev coefficients fpt vs. fpt_direct (dpt),\nmax abs error = %.3e\n\n', norm(b-b_direct,'inf'));
+
+% cleanup
+fpt_finalize(fpt_set);
 
 % Comparison with Legendre polynomial
 
-nodes = 2 * rand(10*(N+1),1) - 1;
+nodes = 2 * rand(10*(k_end+1),1) - 1;
 
 % first evaluate Legendre polynomial at random nodes using Clenshaw algorithm:
-fct_legendre_clenshaw = eval_clenshaw(alpha, beta, gamma, a, nodes);
+za = [zeros(k_start,1); a];
+fct_legendre_clenshaw = eval_clenshaw(alpha, beta, gamma, za, nodes);
 
 % then evaluate Chebyshev polynomial at random nodes using Clenshaw algorithm:
 alpha_chebyshev = [0 1 repmat(2,1,N_max)]';
@@ -87,18 +91,15 @@ fprintf('Chebyshev poly.(Clenshaw) vs. Legendre(Clenshaw),     max abs error = %
 
 % evaluate Chebyshev polynomial at random nodes using direct evaluation:
 fct_chebyshev_direct = zeros(length(nodes),1);
-for k=0:N
+for k=0:k_end
   fct_chebyshev_direct = fct_chebyshev_direct + b(k+1) * cos(k * acos(nodes));
 end
 fprintf('Chebyshev poly.(direct eval.) vs. Legendre(Clenshaw), max abs error = %.3e\n', norm(fct_chebyshev_direct-fct_legendre_clenshaw,'inf'));
 
-% cleanup
-fpt_finalize(fpt_set);
-
 % Comparison with Matlab legendre function
 f_direct = zeros(size(nodes));
-for k=0:N
+for k=0:k_end
   L = legendre(k, nodes);
-  f_direct = f_direct + a(k+1)*L(1,:).';
+  f_direct = f_direct + za(k+1)*L(1,:).';
 end
 fprintf('Chebyshev poly.(Clenshaw) vs. Legendre(direct eval.), max abs error = %.3e\n', norm(fct_chebyshev-f_direct,'inf'));

@@ -13,8 +13,8 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-function b = fpt_trafo_direct(fpt_set,a,N,flags)
+function b = fpt_trafo_direct(fpt_set,a,k_end,flags)
 
-b = fptmex('trafo_direct',fpt_set,a,N,flags);
+b = fptmex('trafo_direct',fpt_set,a,k_end,flags);
 
 end
