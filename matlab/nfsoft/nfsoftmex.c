@@ -152,7 +152,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	unsigned flags = (unsigned) flags_int;
 	int nfft_flags_int = nfft_mex_get_int(prhs[4],"Input argument nfft_flags must be a scalar.");
 	DM( if (nfft_flags_int < 0)
-		mexErrMsgTxt("Input argument nfft_flags must be non-negative.");)
+		mexErrMsgTxt("Input argument nfft_flags must be non-negative.");
+	  if (nfft_flags_int & (MALLOC_X | MALLOC_F))
+	    mexErrMsgTxt("nfft_flags must not contain MALLOC_X or MALLOC_F.");)
 	unsigned nfft_flags = (unsigned) nfft_flags_int;
 	int nfft_cutoff = nfft_mex_get_int(prhs[5],"Input argument nfft_cutoff must be a scalar.");
 	DM( if (nfft_cutoff <= 0)
@@ -160,14 +162,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int fpt_kappa = nfft_mex_get_int(prhs[6],"Input argument fpt_kappa must be a scalar.");
 	DM( if (fpt_kappa <= 0)
 		mexErrMsgTxt("Input argument fpt_kappa must be positive.");)
-	int nn_oversampled = nfft_mex_get_int(prhs[7],"Input argument nn_oversampled must be a scalar.");
-	DM( if ((nn_oversampled %2) || (nn_oversampled < 2*N+2))
-		mexErrMsgTxt("Input argument nn_oversampled must be even and at least 2*N+2.");)
+	int fftw_size = nfft_mex_get_int(prhs[7],"Input argument nn_oversampled must be a scalar.");
+	DM( if ((fftw_size %2) || (fftw_size < 2*N+2))
+		mexErrMsgTxt("Input argument fftw_size must be even and at least 2*N+2.");)
 	
 	int i = mkplan();
 	nfsoft_init_guru_advanced(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,
-	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, nn_oversampled);
-    plhs[0] = mxCreateDoubleScalar((double)i);
+	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, fftw_size);
+    plans[i]->p_nfft.f = plans[i]->f;
+    plans[i]->p_nfft.x = plans[i]->x;
+	  plhs[0] = mxCreateDoubleScalar((double)i);
     return;
   }
 
@@ -180,9 +184,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Input argument x must be a real 3 x M array");
 	double *x = mxGetPr(prhs[2]);
 	
-	for (int j = 0; j < 3*(plans[i]->M_total); j++)
+	for (int j = 0; j < plans[i]->M_total; j++)
     {
-    plans[i]->x[j] = x[j];
+    plans[i]->p_nfft.x[3*j]   = x[3*j+2] / K2PI;  // gamma
+    plans[i]->p_nfft.x[3*j+1] = x[3*j]   / K2PI;  // alpha
+    plans[i]->p_nfft.x[3*j+2] = x[3*j+1] / K2PI;  // beta
     }
 	return;
   }
@@ -259,6 +265,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int i = get_plan(prhs[1]);
 	nfsoft_adjoint(plans[i]);
     return;
+  }
+
+  else if(strcmp(cmd,"get_x") == 0)
+  {
+    check_nargs(nrhs,2,"Wrong number of arguments for get_x.");
+  int i = get_plan(prhs[1]);
+
+  plhs[0] = mxCreateDoubleMatrix(3, (unsigned int) plans[i]->M_total, mxREAL);
+  double *x = mxGetPr(plhs[0]);
+
+  for (int j = 0; j < plans[i]->M_total; j++)
+    {
+    x[3*j+2] = plans[i]->p_nfft.x[3*j]   * K2PI;  // gamma
+    x[3*j]   = plans[i]->p_nfft.x[3*j+1] * K2PI;  // alpha
+    x[3*j+1] = plans[i]->p_nfft.x[3*j+2] * K2PI;  // beta
+    }
+  return;
   }
 
   else if(strcmp(cmd,"get_f") == 0)

@@ -99,7 +99,7 @@ CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configu
 make
 make check
 
-for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
+for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
 do
   cd matlab/"$LIB"
   $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=core2 -mtune=core2 -arch x86_64 $OMPLIBS
@@ -110,7 +110,7 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DIR=nfft-$NFFTVERSION-mexmaci64$OMPSUFFIX
 
 # Create Matlab/Octave release
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
   do
   mkdir -p "$DIR"/$SUBDIR
   cp -f -L matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/ || true
@@ -128,7 +128,7 @@ if [ -n "$MATLABDIR" ]; then
   CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
   make
   make check
-  for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst
+  for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
     cd matlab/"$LIB"
     $GCC -o .libs/lib"$LIB".mexmaci64 -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o   -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a  -L"$MATLABDIR"/bin/maci64 -lm -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=core2 -mtune=core2 -arch x86_64 $OMPLIBS
@@ -136,7 +136,7 @@ if [ -n "$MATLABDIR" ]; then
   done
 fi
 
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
   cp -f -L matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
 done

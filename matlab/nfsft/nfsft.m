@@ -33,7 +33,7 @@ properties(SetAccess='private')
     nfsft_flags = 0;
     fpt_flags = 0;
     nfft_cutoff = 6;
-    nfft_flags = 4096;   % NFFT_OMP_BLOCKWISE_ADJOINT
+    nfft_flags = bitshift(1,12);   % NFFT_OMP_BLOCKWISE_ADJOINT
 end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private')
