@@ -993,12 +993,16 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   {
     set->xc_slow = (double*) nfft_malloc((set->N+1)*sizeof(double));
     set->temp = (double _Complex*) nfft_malloc((set->N+1)*sizeof(double _Complex));
-    for (m = 0; m < set->M; m++)
+
+    if (!(flags & FPT_NO_INIT_FPT_DATA))
     {
-      fpt_data *data = &(set->dpt[m]);
-      data->_alpha = NULL;
-      data->_beta = NULL;
-      data->_gamma = NULL;
+      for (m = 0; m < set->M; m++)
+      {
+        fpt_data *data = &(set->dpt[m]);
+        data->_alpha = NULL;
+        data->_beta = NULL;
+        data->_gamma = NULL;
+      }
     }
   }
 
