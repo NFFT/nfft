@@ -77,8 +77,8 @@ Optionally, unit tests may be run.
 make check
 ```
 
-Optionally, install NFFT on your system. 
-````
+Optionally, install NFFT on your system.
+```
 make install
 ```
 
