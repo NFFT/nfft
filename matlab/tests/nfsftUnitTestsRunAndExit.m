@@ -79,11 +79,11 @@ try
       fh2_mat(1)= legendre(0,cos(X(2,:)),'norm') / sqrt(2*pi) * f;
       for n=1:N
         Lp = legendre(n,cos(X(2,:)),'norm') / sqrt(2*pi);
-        f_mat=f_mat + (flipud(Lp).* exp((-n:0)'.*1i.*X(1,:))).'* fh(n,-n:0)...
-         + (Lp(2:end,:).* exp((1:n)'.*1i.*X(1,:))).'* fh(n,1:n);
+        f_mat=f_mat + (flipud(Lp).* exp((-n:0)'*1i*X(1,:))).'* fh(n,-n:0)...
+         + (Lp(2:end,:).* exp((1:n)'*1i*X(1,:))).'* fh(n,1:n);
 
-        fh2_mat(n^2+1:n^2+n+1)= (flipud(Lp).* exp(-(-n:0)'.*1i.*X(1,:)))* f;
-        fh2_mat(n^2+n+2:n^2+2*n+1)= (Lp(2:end,:).* exp(-(1:n)'.*1i.*X(1,:)))* f;
+        fh2_mat(n^2+1:n^2+n+1)= (flipud(Lp).* exp(-(-n:0)'*1i*X(1,:)))* f;
+        fh2_mat(n^2+n+2:n^2+2*n+1)= (Lp(2:end,:).* exp(-(1:n)'*1i*X(1,:)))* f;
       end
       fh2_mat = f_hat(fh2_mat);
 
