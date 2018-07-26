@@ -35,10 +35,10 @@ clean: clean-am
 	rm -f ./nnfftmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nnfftmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnnfft@matlab_mexext@ $(libdir)/nnfftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nnfftmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnnfft@matlab_mexext@ $(DESTDIR)$(libdir)/nnfftmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nnfftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nnfftmex@matlab_mexext@
 
 
