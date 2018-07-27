@@ -36,9 +36,9 @@ clean: clean-am
 	rm -f ./nfstmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nfstmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnfst@matlab_mexext@ $(libdir)/nfstmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfstmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnfst@matlab_mexext@ $(DESTDIR)$(libdir)/nfstmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nfstmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfstmex@matlab_mexext@
 

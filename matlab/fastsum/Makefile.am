@@ -20,7 +20,7 @@ endif
 dist_fastsummatlab_DATA = Contents.m EXACT_NEARFIELD.m NEARFIELD_BOXES.m fastsum.m fastsum_get_num_threads.m fastsum_init.m fastsum_set_x.m fastsum_set_alpha.m fastsum_set_y.m fastsum_trafo.m fastsum_trafo_direct.m fastsum_get_f.m fastsum_finalize.m simple_test.m test_fastsum.m
 
 # target all-am builds .libs/libfastsum@matlab_mexext@
-fastsummex@matlab_mexext@: all-am 
+fastsummex@matlab_mexext@: all-am
 	rm -f ./fastsummex@matlab_mexext@
 	$(LN_S) .libs/libfastsum@matlab_mexext@ ./fastsummex@matlab_mexext@
 
@@ -30,9 +30,9 @@ clean: clean-am
 	rm -f ./fastsummex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/fastsummex@matlab_mexext@
-	$(LN_S) $(libdir)/libfastsum@matlab_mexext@ $(libdir)/fastsummex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/fastsummex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libfastsum@matlab_mexext@ $(DESTDIR)$(libdir)/fastsummex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/fastsummex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/fastsummex@matlab_mexext@
 
