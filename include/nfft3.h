@@ -695,7 +695,8 @@ typedef struct X(plan_)\
   int t; /**< the logaritm of NPT with respect to the basis 2 */\
   unsigned int flags; /**< the planner flags  */\
   Y(plan) p_nfft; /**< the internal NFFT plan */\
-  Z(set) internal_fpt_set; /**< the internal FPT plan */\
+  Z(set) *internal_fpt_set; /**< the internal FPT plan */\
+  int nthreads; /**< the number of threads */\
   int fpt_kappa; /**a parameter controlling the accuracy of the FPT*/\
 } X(plan);\
 \

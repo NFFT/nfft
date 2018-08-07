@@ -19,6 +19,8 @@
 #ifndef _FPT_H_
 #define _FPT_H_
 
+#include<stdbool.h>
+
 /**
  * Holds data for a single multiplication step in the cascade summation.
  */
