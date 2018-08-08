@@ -21,6 +21,9 @@
 
 #include<stdbool.h>
 
+void fpt_precompute_1(fpt_set set, const int m, int k_start);
+void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta, double *gam, int k_start, const double threshold);
+
 /**
  * Holds data for a single multiplication step in the cascade summation.
  */
@@ -31,8 +34,9 @@ typedef struct fpt_step_
                                                a slow stabilized step.        */
   int Ns;                                 /**< TODO Add comment here.         */
   int ts;                                 /**< TODO Add comment here.         */
-  double **a11,**a12,**a21,**a22;         /**< The matrix components          */
-  double *g;                              /**<                                */
+  double *a;                              /**< The matrix components          */
+//  double *a11,*a12,*a21,*a22;         /**< The matrix components          */
+  double g;                              /**<                                */
 } fpt_step;
 
 /**
@@ -52,6 +56,7 @@ typedef struct fpt_data_
   double *alpha;                          /**< TODO Add comment here.         */
   double *beta;                           /**< TODO Add comment here.         */
   double *gamma;                          /**< TODO Add comment here.         */
+  bool precomputed;
 } fpt_data;
 
 /**

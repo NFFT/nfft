@@ -222,6 +222,14 @@ static fpt_set* SO3_fpt_init(int l, unsigned int flags, int kappa, int nthreads)
 //#endif
 
 #ifdef _OPENMP
+  for (k = -N; k <= N; k++)
+    for (m = -N; m <= N; m++)
+    {
+      /** Read in start and end indices */
+      k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
+
+      fpt_precompute_1(set[0], (k+N)*(2*N+1) + m+N,k_start);
+    }
   #pragma omp parallel for default(shared) private(k,m,k_start) schedule(dynamic) num_threads(nthreads)
 #endif
   for (k = -N; k <= N; k++)
@@ -237,7 +245,7 @@ static fpt_set* SO3_fpt_init(int l, unsigned int flags, int kappa, int nthreads)
       SO3_gamma_row(gamma, N, k, m);
 
 #ifdef _OPENMP
-      fpt_precompute(set[omp_get_thread_num()], (k+N)*(2*N+1) + m+N, alpha, beta, gamma, k_start, kappa);
+      fpt_precompute_2(set[omp_get_thread_num()], (k+N)*(2*N+1) + m+N, alpha, beta, gamma, k_start, kappa);
 #else
       fpt_precompute(set[0], (k+N)*(2*N+1) + m+N, alpha, beta, gamma, k_start, kappa);
 #endif

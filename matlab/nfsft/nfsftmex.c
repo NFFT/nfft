@@ -159,8 +159,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 /**  Disabled for performance issues caused by non-thread-safe mxMalloc()
   *  and many calls of nfft_malloc in nfsft_precompute/fpt_precompute...
-  *    nfft_mex_install_mem_hooks();
   */
+    nfft_mex_install_mem_hooks();
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;
