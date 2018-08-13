@@ -734,7 +734,7 @@ static inline void eval_sum_clenshaw_fast(const int N, const int M,
       double _Complex tmp1 = a[N-1];
       double _Complex tmp2 = a[N];
       /* 1e247 should not trigger for NFSFT with N <= 1024 */
-      for (k = N-1; k > 0 && cabs(tmp2) < 1e247; k--)
+      for (k = N-1; k > 0 && fabs(creal(tmp2)) < 1e247 && fabs(cimag(tmp2)) < 1e247; k--)
       {
         double _Complex tmp3 = a[k-1] + tmp2 * gam[k];
         tmp2 *= (alpha[k] * xc + beta[k]);
