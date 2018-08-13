@@ -28,7 +28,7 @@ dist_nfsftmatlab_DATA = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_traf
 	nfsft_get_num_threads.m
 
 # target all-am builds .libs/libnfsft@matlab_mexext@
-nfsftmex@matlab_mexext@: all-am 
+nfsftmex@matlab_mexext@: all-am
 	rm -f ./nfsftmex@matlab_mexext@
 	$(LN_S) .libs/libnfsft@matlab_mexext@ ./nfsftmex@matlab_mexext@
 
@@ -38,9 +38,9 @@ clean: clean-am
 	rm -f ./nfsftmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nfsftmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnfsft@matlab_mexext@ $(libdir)/nfsftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnfsft@matlab_mexext@ $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nfsftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
 

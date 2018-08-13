@@ -22,7 +22,7 @@ dist_nfsoftmatlab_DATA = Contents.m \
 	NFSOFT_NORMALIZED.m NFSOFT_REPRESENT.m NFSOFT_USE_DPT.m NFSOFT_USE_NDFT.m simple_test.m nfsoft.m
 
 # target all-am builds .libs/libnfsoft@matlab_mexext@
-nfsoftmex@matlab_mexext@: all-am 
+nfsoftmex@matlab_mexext@: all-am
 	rm -f ./nfsoftmex@matlab_mexext@
 	$(LN_S) .libs/libnfsoft@matlab_mexext@ ./nfsoftmex@matlab_mexext@
 
@@ -32,9 +32,9 @@ clean: clean-am
 	rm -f ./nfsoftmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nfsoftmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnfsoft@matlab_mexext@ $(libdir)/nfsoftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnfsoft@matlab_mexext@ $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nfsoftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
 
