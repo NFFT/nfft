@@ -172,7 +172,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, fftw_size);
     plans[i]->p_nfft.f = plans[i]->f;
     plans[i]->p_nfft.x = plans[i]->x;
-	  plhs[0] = mxCreateDoubleScalar((double)i);
+    plhs[0] = mxCreateDoubleScalar((double)i);
     return;
   }
 

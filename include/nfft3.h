@@ -686,18 +686,15 @@ typedef struct X(plan_)\
 {\
   MACRO_MV_PLAN(C) \
   R *x; /**< input nodes */\
-  C *wig_coeffs; /**< contains a set of SO(3) Fourier coefficients for fixed
-    orders m and n*/\
-  C *cheby; /**< contains a set of Chebychev coefficients for fixed orders m
-    and n*/\
-  C *aux; /**< used when converting Chebychev to Fourier coeffcients*/\
   /* internal use only */\
+  C *wig_coeffs; /**< Deprecated. Will be removed in a future version*/\
+  C *cheby; /**< Deprecated. Will be removed in a future version*/\
+  C *aux; /**< Deprecated. Will be removed in a future version*/\
   int t; /**< the logaritm of NPT with respect to the basis 2 */\
   unsigned int flags; /**< the planner flags  */\
   Y(plan) p_nfft; /**< the internal NFFT plan */\
   Z(set) *internal_fpt_set; /**< the internal FPT plan */\
   int nthreads; /**< the number of threads */\
-  int fpt_kappa; /**a parameter controlling the accuracy of the FPT*/\
 } X(plan);\
 \
 NFFT_EXTERN void X(precompute)(X(plan) *plan); \
@@ -741,7 +738,6 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
 
 /* helper macros */
 #define NFSOFT_INDEX(m,n,l,B) (((l)+((B)+1))+(2*(B)+2)*(((n)+((B)+1))+(2*(B)+2)*((m)+((B)+1))))
-#define NFSOFT_INDEX_TWO(m,n,l,B) ((B+1)*(B+1)+(B+1)*(B+1)*(m+B)-((m-1)*m*(2*m-1)+(B+1)*(B+2)*(2*B+3))/6)+(posN(n,m,B))+(l-MAX(ABS(m),ABS(n)))
 #define NFSOFT_F_HAT_SIZE(B) (((B)+1)*(4*((B)+1)*((B)+1)-1)/3)
 
 /* solver */

@@ -37,7 +37,10 @@
 #define DEFAULT_NFFT_CUTOFF    6
 #define FPT_THRESHOLD          1000
 
+#define NFSOFT_INDEX_TWO(m,n,l,B) ((B+1)*(B+1)+(B+1)*(B+1)*(m+B)-((m-1)*m*(2*m-1)+(B+1)*(B+2)*(2*B+3))/6)+(posN(n,m,B))+(l-MAX(ABS(m),ABS(n)))
+
 static fpt_set* SO3_fpt_init(int l, unsigned int flags, int kappa, int nthreads);
+static int posN(int n, int m, int B);
 
 void nfsoft_init(nfsoft_plan *plan, int N, int M)
 {
@@ -85,7 +88,6 @@ void nfsoft_init_guru_advanced(nfsoft_plan *plan, int B, int M,
 
   plan->N_total = B;
   plan->M_total = M;
-  plan->fpt_kappa = fpt_kappa;
   plan->flags = nfsoft_flags;
 
   if (plan->flags & NFSOFT_MALLOC_F_HAT)
@@ -114,7 +116,7 @@ void nfsoft_init_guru_advanced(nfsoft_plan *plan, int B, int M,
 
   plan->nthreads = Y(get_num_threads)();
 
-  plan->internal_fpt_set = SO3_fpt_init(plan->N_total, plan->flags, plan->fpt_kappa, plan->nthreads);
+  plan->internal_fpt_set = SO3_fpt_init(plan->N_total, plan->flags, fpt_kappa, plan->nthreads);
 
 }
 
@@ -254,7 +256,7 @@ static fpt_set* SO3_fpt_init(int l, unsigned int flags, int kappa, int nthreads)
   return set;
 }
 
-void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
+static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 {
   int N;
   /** The Wigner  coefficients */
@@ -330,7 +332,7 @@ void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
   y = NULL;
 }
 
-void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
+static void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
     unsigned int flags)
 {
   int N, k_start, k_end, j;
@@ -693,7 +695,7 @@ void nfsoft_finalize(nfsoft_plan *plan)
   }
 }
 
-int posN(int n, int m, int B)
+static int posN(int n, int m, int B)
 {
   int pos;
 
