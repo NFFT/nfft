@@ -59,7 +59,7 @@ classdef nfsftTestcaseInitDelegate
         case 'init_class'
           if isempty(h.flags) && isempty(h.nfft_cutoff_m) && isempty(h.fpt_flags) && isempty(h.nfft_flags)
             plan = nfsft(N,M);
-          elseif isempty(h.flags)
+          elseif ~isempty(h.flags)
             plan = nfsft(N,M,h.flags);
           else
             plan = nfsft(N,M,h.flags,h.kappa,h.nfft_cutoff_m,h.fpt_flags,h.nfft_flags);
