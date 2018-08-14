@@ -640,6 +640,7 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/check_nfsoft_matlab.sh \
 		matlab/tests/check_nfsoft_octave.sh \
 		matlab/tests/nfftUnitTests.m \
+		matlab/tests/nfsftUnitTests.m \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

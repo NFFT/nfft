@@ -19,7 +19,7 @@ dist_fptmatlab_DATA = simple_test.m fpt_init.m fpt_precompute.m fpt_trafo.m fpt_
 	FPT_NO_FAST_ALGORITHM.m FPT_NO_DIRECT_ALGORITHM.m FPT_NO_STABILIZATION.m FPT_FUNCTION_VALUES.m FPT_AL_SYMMETRY.m
 
 # target all-am builds .libs/libfpt@matlab_mexext@
-fptmex@matlab_mexext@: all-am 
+fptmex@matlab_mexext@: all-am
 	rm -f ./fptmex@matlab_mexext@
 	$(LN_S) .libs/libfpt@matlab_mexext@ ./fptmex@matlab_mexext@
 
@@ -29,9 +29,9 @@ clean: clean-am
 	rm -f ./fptmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/fptmex@matlab_mexext@
-	$(LN_S) $(libdir)/libfpt@matlab_mexext@ $(libdir)/fptmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/fptmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libfpt@matlab_mexext@ $(DESTDIR)$(libdir)/fptmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/fptmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/fptmex@matlab_mexext@
 

@@ -25,7 +25,11 @@ matlabtestsdir = $(datadir)/nfft/matlab/tests
 dist_matlabtests_DATA = nfftTestcaseCheckDelegate.m nfftTestcaseDelegateFile.m \
  nfftTestcaseDelegate.m nfftTestcaseDelegateOnline.m \
  nfftTestcaseInitDelegate.m nfftTestcaseTrafoDelegate.m \
- nfftUnitTestsRunAndExit.m nfsftUnitTestsRunAndExit.m \
+ nfftUnitTestsRunAndExit.m \
+ nfsftTestcaseCheckDelegate.m nfsftTestcaseDelegate.m \
+ nfsftTestcaseDelegateGLQuadratureOnline.m nfsftTestcaseDelegateOnline.m \
+ nfsftTestcaseInitDelegate.m nfsftTestcaseTrafoDelegate.m nfsftUnitTests.m \
+ nfsftUnitTestsRunAndExit.m \
  nfsoftTestcaseCheckDelegate.m nfsoftTestcaseDelegate.m nfsoftTestcaseDelegateGLQuadratureOnline.m nfsoftTestcaseDelegateOnline.m nfsoftTestcaseInitDelegate.m nfsoftTestcaseTrafoDelegate.m nfsoftUnitTests.m nfsoftUnitTestsRunAndExit.m 
 
 clean-local:

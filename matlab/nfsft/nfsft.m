@@ -71,19 +71,19 @@ function h=nfsft(N, M, nfsft_flags, kappa, nfft_cutoff, fpt_flags, nfft_flags)
     if (nargin<2)
         error('Too few arguments')
     end
-    if exist('nfsft_flags','var')
+    if exist('nfsft_flags','var') && ~isempty(nfsft_flags)
         h.nfsft_flags=nfsft_flags;
     end
-    if exist('kappa','var')
+    if exist('kappa','var') && ~isempty(kappa)
         h.kappa=kappa;
     end
-    if exist('nfft_cutoff','var')
+    if exist('nfft_cutoff','var') && ~isempty(nfft_cutoff)
         h.nfft_cutoff=nfft_cutoff;
     end
-    if exist('fpt_flags','var')
+    if exist('fpt_flags','var') && ~isempty(fpt_flags)
         h.fpt_flags=fpt_flags;
     end
-    if exist('nfft_flags','var')
+    if exist('nfft_flags','var') && ~isempty(nfft_flags)
         h.nfft_flags=nfft_flags;
     end
     
