@@ -1050,51 +1050,51 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
     data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
     data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
     data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
-  }
 
-  k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
-        /*set->N*/);
-  N_tilde = N_TILDE(set->N);
-
-  /* Allocate memory for the cascade with t = log_2(N) many levels. */
-  data->steps = (fpt_step**) nfft_malloc(sizeof(fpt_step*)*set->t);
+    k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
+          /*set->N*/);
+    N_tilde = N_TILDE(set->N);
   
-  plength = 4;
-  for (tau = 1; tau < set->t; tau++)
-  {
-    /* Compute auxilliary values. */
-    degree = plength>>1;
-    /* Compute first l. */
-    firstl = FIRST_L(k_start_tilde,plength);
-    /* Compute last l. */
-    lastl = LAST_L(N_tilde,plength);
+    /* Allocate memory for the cascade with t = log_2(N) many levels. */
+    data->steps = (fpt_step**) nfft_malloc(sizeof(fpt_step*)*set->t);
 
-    /* Allocate memory for current level. This level will contain 2^{t-tau-1}
-     * many matrices. */
-    data->steps[tau] = (fpt_step*) nfft_malloc(sizeof(fpt_step)
-                       * (lastl+1));
-
-    /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
-    for (l = firstl; l <= lastl; l++)
+    plength = 4;
+    for (tau = 1; tau < set->t; tau++)
     {
-      if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
-      {
-        clength = plength/2;
-      }
-      else
-      {
-        clength = plength;
-      }
+      /* Compute auxilliary values. */
+      degree = plength>>1;
+      /* Compute first l. */
+      firstl = FIRST_L(k_start_tilde,plength);
+      /* Compute last l. */
+      lastl = LAST_L(N_tilde,plength);
 
-      /* Allocate memory for the components of U_{n,tau,l}. */
-      data->steps[tau][l].a = (double*) nfft_malloc(sizeof(double)*clength*4);
-//      data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength);
-//      data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength);
-//      data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength);
-//      data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength);
+      /* Allocate memory for current level. This level will contain 2^{t-tau-1}
+       * many matrices. */
+      data->steps[tau] = (fpt_step*) nfft_malloc(sizeof(fpt_step)
+                         * (lastl+1));
+
+      /* For l = 0,...2^{t-tau-1}-1 compute the matrices U_{n,tau,l}. */
+      for (l = firstl; l <= lastl; l++)
+      {
+        if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
+        {
+          clength = plength/2;
+        }
+        else
+        {
+          clength = plength;
+        }
+
+        /* Allocate memory for the components of U_{n,tau,l}. */
+        data->steps[tau][l].a = (double*) nfft_malloc(sizeof(double)*clength*4);
+  //      data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength);
+  //      data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength);
+  //      data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength);
+  //      data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength);
+      }
+      /** Increase polynomial degree to next power of two. */
+      plength = plength << 1;
     }
-    /** Increase polynomial degree to next power of two. */
-    plength = plength << 1;
   }
 }
 
@@ -1401,6 +1401,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       /** Increase polynomial degree to next power of two. */
       plength = plength << 1;
     }
+    data->precomputed = TRUE;
   }
 
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
@@ -1422,7 +1423,6 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       memcpy(data->_gamma,gam,(set->N+1)*sizeof(double));
     }
   }
-  data->precomputed = TRUE;
 }
 
 void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
