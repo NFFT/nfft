@@ -1096,6 +1096,13 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
       plength = plength << 1;
     }
   }
+
+  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM) && !(set->flags & FPT_PERSISTENT_DATA))
+  {
+    data->_alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
+    data->_beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
+    data->_gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
+  }
 }
 
 void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
@@ -1145,7 +1152,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
   data->k_start = k_start;
 
   data->gamma_m1 = gam[0];
-/* moved
+/* moved to fpt_precompute_1
   data->alphaN = NULL;
   data->betaN = NULL;
   data->gammaN = NULL;*/
@@ -1153,7 +1160,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
   /* Check if fast transform is activated. */
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
-    /* Save recursion coefficients. moved
+    /* Save recursion coefficients. moved to fpt_precompute_1
     data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
     data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
     data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex)); */
@@ -1173,7 +1180,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       /*set->N*/);
     N_tilde = N_TILDE(set->N);
 
-    /* Allocate memory for the cascade with t = log_2(N) many levels. moved
+    /* Allocate memory for the cascade with t = log_2(N) many levels. moved to fpt_precompute_1
     data->steps = (fpt_step**) nfft_malloc(sizeof(fpt_step*)*set->t); */
 
     /* For tau = 1,...t compute the matrices U_{n,tau,l}. */
@@ -1188,7 +1195,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       lastl = LAST_L(N_tilde,plength);
 
       /* Allocate memory for current level. This level will contain 2^{t-tau-1}
-       * many matrices. moved
+       * many matrices. moved to fpt_precompute_1
       data->steps[tau] = (fpt_step*) nfft_malloc(sizeof(fpt_step)
                          * (lastl+1)); */
 
@@ -1206,7 +1213,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
           clength = plength;
         }
 
-        /* Allocate memory for the components of U_{n,tau,l}. moved
+        /* Allocate memory for the components of U_{n,tau,l}. moved to fpt_precompute_1
         data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength);
         data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength);
         data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength);
@@ -1414,10 +1421,10 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       data->_gamma = (double*) gam;
     }
     else
-    {
+    {/* moved to fpt_precompute_1
       data->_alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
       data->_beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
-      data->_gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
+      data->_gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));*/
       memcpy(data->_alpha,alpha,(set->N+1)*sizeof(double));
       memcpy(data->_beta,beta,(set->N+1)*sizeof(double));
       memcpy(data->_gamma,gam,(set->N+1)*sizeof(double));
