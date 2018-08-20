@@ -6,7 +6,7 @@
 # The Matlab path should not contain spaces!
 # 
 # Example call:
-# ./nfft-build-dll.sh --fftw=3.3.7 --octave=4.2.2 --matlab=/c/path/to/matlab
+# ./nfft-build-dll.sh --fftw=3.3.8 --octave=4.4.1 --matlab=/c/path/to/matlab
 # 
 # WARNING: This script downloads and compiles FFTW and downloads GCC and Octave (requires ~ 2GB).
 # 
@@ -24,7 +24,7 @@ set -ex
 
 # default values (to be overwritten if respective parameters are set)
 FFTWVERSION=3.3.8
-OCTAVEVERSION=4.4.0
+OCTAVEVERSION=4.4.1
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
@@ -107,7 +107,7 @@ if [ ! -f "$FFTWDIR/build-success" ]; then
   cd "$FFTWDIR"
 
   mkdir build build-static build-threads build-threads-static
-  FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --with-incoming-stack-boundary=2 --disable-fortran"
+  FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --enable-avx2 --with-incoming-stack-boundary=2 --disable-fortran"
 
   cd build-threads
   ../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared --enable-threads --with-combined-threads
@@ -178,7 +178,7 @@ cd "$NFFTBUILDDIR"
 
 
 # Compile with Octave
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples
 make
 make check
 
@@ -215,7 +215,7 @@ if [ -n "$MATLABDIR" ]; then
   fi
   MATLABSTRING=" and Matlab $MATLABVERSION"
   cd "$NFFTBUILDDIR"
-  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared
+  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples
   make
   if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
     make check
@@ -235,9 +235,9 @@ for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt
   do
   mkdir -p "$MEXDIR"/$SUBDIR
   cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
-  cp -f -r "$NFFTDIR"/$SUBDIR/README "$MEXDIR"/$SUBDIR/ || true
+  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/README "$MEXDIR"/$SUBDIR/ || true
   cp -f -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$MEXDIR"/$SUBDIR/
-  "$OCTAVEDIR"/bin/octave-cli --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
+  "$OCTAVEDIR"/bin/octave-cli --no-window-system --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
 done
 
 cd "$NFFTBUILDDIR"

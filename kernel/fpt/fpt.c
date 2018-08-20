@@ -1099,9 +1099,9 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
 
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM) && !(set->flags & FPT_PERSISTENT_DATA))
   {
-    data->_alpha = (double*) nfft_malloc((set->N+1)*sizeof(double));
-    data->_beta = (double*) nfft_malloc((set->N+1)*sizeof(double));
-    data->_gamma = (double*) nfft_malloc((set->N+1)*sizeof(double));
+    data->_alpha = (double*) nfft_malloc(3*(set->N+1)*sizeof(double));
+    data->_beta = data->_alpha + (set->N+1);
+    data->_gamma = data->_beta + (set->N+1);
   }
 }
 
@@ -2215,10 +2215,6 @@ void fpt_finalize(fpt_set set)
         {
           if (data->_alpha != NULL)
             nfft_free(data->_alpha);
-          if (data->_beta != NULL)
-            nfft_free(data->_beta);
-	  if (data->_gamma != NULL)
-            nfft_free(data->_gamma);
         }
         data->_alpha = NULL;
         data->_beta = NULL;
