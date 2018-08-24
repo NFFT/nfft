@@ -138,7 +138,7 @@ static void c2e(nfsoft_plan *my_plan, int even, C* wig_coeffs, int k, int m)
     cheby[my_plan->N_total+1-j]=0.5* wig_coeffs[j];
   }
 
-  C *aux= (C*) nfft_malloc((N+2)*sizeof(C));
+  C aux[N+2];
 
   for(j=1;j<N;j++)
   aux[j]=cheby[j];
@@ -155,8 +155,6 @@ static void c2e(nfsoft_plan *my_plan, int even, C* wig_coeffs, int k, int m)
     }
 
   }
-  nfft_free(aux);
-  aux = NULL;
 
   for (int i = 1; i <= 2* my_plan ->N_total + 2; i++)
   {
@@ -259,11 +257,6 @@ static fpt_set* SO3_fpt_init(int l, unsigned int flags, int kappa, int nthreads)
 static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int flags)
 {
   int N;
-  /** The Wigner  coefficients */
-  C* x;
-  /** The Chebyshev coefficients */
-  C* y;
-
   int trafo_nr; /**gives the index of the trafo in the FPT_set*/
   int k_start, k_end, j;
   int function_values = 0;
@@ -289,7 +282,7 @@ static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int fl
   trafo_nr = (N + k) * (2* N + 1) + (m + N);
 
   /** Read in Wigner coefficients. */
-  x = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+  C x[k_end + 1];
 
   for (j = 0; j <= k_end; j++)
    x[j] = K(0.0);
@@ -304,8 +297,8 @@ static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int fl
     x[j + k_start] = K(0.0);
   }
 
-  /** Allocate memory for Chebyshev coefficients. */
-  y = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+  /** The Chebyshev coefficients. */
+  C y[k_end + 1];
 
   if (flags & NFSOFT_USE_DPT)
   { /** Execute DPT. */
@@ -324,12 +317,6 @@ static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int fl
     coeffs[j] = y[j];
   }
 
-  /** Free memory. */
-
-  nfft_free(x);
-  nfft_free(y);
-  x = NULL;
-  y = NULL;
 }
 
 static void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
@@ -338,10 +325,6 @@ static void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
   int N, k_start, k_end, j;
   int trafo_nr; /**gives the index of the trafo in the FPT_set*/
   int function_values = 0;
-  /** The Wigner  coefficients */
-  C* x;
-  /** The Chebyshev coefficients */
-  C* y;
 
   /** Read in transfrom length. */
 
@@ -364,10 +347,10 @@ static void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
   k_end = N;
   trafo_nr = (N + k) * (2* N + 1) + (m + N);
 
-  /** Allocate memory for Chebychev coefficients. */
-  y = (C*) nfft_malloc((k_end + 1) * sizeof(C));
-  /** Allocate memory for Wigner coefficients. */
-  x = (C*) nfft_malloc((k_end + 1) * sizeof(C));
+  /** The Chebychev coefficients. */
+  C y[k_end + 1];
+  /** The Wigner coefficients. */
+  C x[k_end + 1];
 
   for (j = 0; j <= l; j++)
   {
@@ -394,11 +377,6 @@ static void SO3_fpt_transposed(C *coeffs, fpt_set set, int l, int k, int m,
     coeffs[j] = x[j];
   }
 
-  /** Free memory. */
-  nfft_free(x);
-  nfft_free(y);
-  x = NULL;
-  y = NULL;
 }
 
 void nfsoft_precompute(nfsoft_plan *plan3D)

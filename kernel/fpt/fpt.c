@@ -1047,9 +1047,9 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /* Save recursion coefficients. */
-    data->alphaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
-    data->betaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
-    data->gammaN = (double*) nfft_malloc((set->t-1)*sizeof(double _Complex));
+    data->alphaN = (double*) nfft_malloc(3*(set->t-1)*sizeof(double _Complex));
+    data->betaN = data->alphaN + (set->t-1);
+    data->gammaN = data->betaN + (set->t-1);
 
     k_start_tilde = K_START_TILDE(data->k_start,X(next_power_of_2)(data->k_start)
           /*set->N*/);
@@ -2160,8 +2160,6 @@ void fpt_finalize(fpt_set set)
         if (!(set->flags & FPT_NO_FAST_ALGORITHM))
         {
           nfft_free(data->alphaN);
-          nfft_free(data->betaN);
-          nfft_free(data->gammaN);
           data->alphaN = NULL;
           data->betaN = NULL;
           data->gammaN = NULL;
