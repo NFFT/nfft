@@ -660,6 +660,7 @@ FPT_DEFINE_API(FPT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_
 #define FPT_NO_FAST_ALGORITHM   (1U << 2)
 #define FPT_NO_DIRECT_ALGORITHM (1U << 3)
 #define FPT_PERSISTENT_DATA     (1U << 4)
+#define FPT_NO_INIT_FPT_DATA    (1U << 7)
 
 /* transform flags */
 #define FPT_FUNCTION_VALUES     (1U << 5)

@@ -1,4 +1,5 @@
-%NFSFT_PRECOMPUTE Node-independent precomputation (for FPT)
+%FPT_NO_FAST_ALGORITHM Flag for not precomputing for the fast FPT algorithm
+%   If enabled, nfsft flag NFSFT_USE_DPT must be used.
 %   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -16,17 +17,5 @@
 % You should have received a copy of the GNU General Public License along with
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-function nfsft_precompute(N,kappa,nfsft_flags,fpt_flags)
-if ~exist('kappa','var')
-  kappa = 1000;
-end
-
-if ~exist('nfsft_flags','var')
-  nfsft_flags = 0;
-end
-
-if ~exist('fpt_flags','var')
-  fpt_flags = 0;
-end
-
-nfsftmex('precompute',N,kappa,nfsft_flags,fpt_flags)
+function f = FPT_NO_FAST_ALGORITHM()
+f = 4;

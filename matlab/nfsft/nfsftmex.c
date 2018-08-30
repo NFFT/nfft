@@ -47,7 +47,9 @@ static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfsft: Input argument N must be a scalar.");
   DM(if (t < 0)
-    mexErrMsgTxt("nfsft: Input argument N must be non-negative.");)
+    mexErrMsgTxt("nfsft: Input argument N must be non-negative.");
+  if (t > n_max)
+    mexErrMsgTxt("nfsft: Input argument N must be <= the degree from nfsft_precompute.");)
   *n = t;
   t = nfft_mex_get_int(prhs[2],"nfsft: Input argument M must be a scalar.");
   DM(if (t < 1)
@@ -112,6 +114,13 @@ static inline int mkplan()
   return i;
 }
 
+static inline void init_values_zero(nfsft_plan *plan)
+{
+  memset(plan->x, 0U, plan->M_total*2*sizeof(double));
+  memset(plan->f, 0U, plan->M_total*sizeof(double _Complex));
+  memset(plan->f_hat, 0U, plan->N_total*sizeof(double _Complex));
+}
+
 /* cleanup on mex function unload */
 static void cleanup(void)
 {
@@ -148,7 +157,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * which otherwise crashes upon invocation of this mex function. */
     mexEvalString("fft([1,2,3,4]);");
 
-    nfft_mex_install_mem_hooks();
+/**  Disabled for performance issues caused by non-thread-safe mxMalloc()
+  *  and many calls of nfft_malloc in nfsft_precompute/fpt_precompute...
+  *    nfft_mex_install_mem_hooks();
+  */
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;
@@ -173,6 +185,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       get_nm(prhs,&n,&m);
       i = mkplan();
       nfsft_init(plans[i],n,m);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -188,6 +201,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       i = mkplan();
       nfsft_init_advanced(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -204,6 +218,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
         NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT
         | FFT_OUT_OF_PLACE, c);
+      init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -273,12 +288,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
   else if (strcmp(cmd,"precompute_x") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for precompute_x.");
-    {
-      int i = nfft_mex_get_int(prhs[1],"nfsft: Input argument plan must be a scalar.");
-      check_plan(i);
-      nfsft_precompute_x(plans[i]);
-    }
+    /* Do nothing here.
+     * nfsft_precompute_x has been moved to the set_x routine. */
     return;
   }
   else if (strcmp(cmd,"trafo_direct") == 0)
@@ -405,6 +416,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
           plans[i]->x[2*j+1] = x[2*j+1]/K2PI;
         }
       }
+      nfsft_precompute_x(plans[i]);
     }
     return;
   }

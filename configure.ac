@@ -246,9 +246,12 @@ AC_MSG_RESULT([$window])
 AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
+matlab_exhaustive_unit_tests_flag=0
 if test "$ok" = "yes"; then
   AC_DEFINE(NFFT_EXHAUSTIVE_UNIT_TESTS,1,[Define to enable exhaustive unit tests.])
+  matlab_exhaustive_unit_tests_flag=1
 fi
+AC_SUBST(matlab_exhaustive_unit_tests_flag)
 
 ################################################################################
 # compiler characteristis
@@ -632,7 +635,10 @@ AC_CONFIG_FILES(Makefile \
                 matlab/tests/Makefile \
 		matlab/tests/check_nfft_matlab.sh \
 		matlab/tests/check_nfft_octave.sh \
+		matlab/tests/check_nfsft_matlab.sh \
+		matlab/tests/check_nfsft_octave.sh \
 		matlab/tests/nfftUnitTests.m \
+		matlab/tests/nfsftUnitTests.m \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

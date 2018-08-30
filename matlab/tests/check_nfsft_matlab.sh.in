@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Running MATLAB nfsft tests..."
+"@matlab_bin_dir@/matlab" -wait -nodesktop -nosplash -r "try; diary('check_nfsft_matlab.output'); addpath('@ABS_SRCDIR@/matlab/tests','@ABS_SRCDIR@/matlab/nfsft'); nfsftUnitTestsRunAndExit; catch; disp('Error running nfsftUnitTestsRunAndExit'); end; exit(1);"
