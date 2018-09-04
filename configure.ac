@@ -169,6 +169,17 @@ AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
   [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
+# option for julia interface
+nfft_julia_default="no"
+AC_ARG_ENABLE(julia, [AC_HELP_STRING([--enable-julia],
+  [enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
+AM_CONDITIONAL(HAVE_JULIA, test "x$enable_julia" = "xyes" )
+
+if test "x$enable_julia" = "xyes" -a "x$PRECISION" != "xd"; then
+  AC_MSG_ERROR([Building the julia interface requires double precision.])
+fi
+
+
 # options for modules
 AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform],["yes"])
 AX_NFFT_MODULE([nfst],[NFST],[nonequispaced fast sine transform],["yes"])
@@ -639,6 +650,8 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/check_nfsft_octave.sh \
 		matlab/tests/nfftUnitTests.m \
 		matlab/tests/nfsftUnitTests.m \
+		julia/Makefile \
+		julia/nfft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

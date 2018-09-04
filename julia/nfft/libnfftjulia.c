@@ -1,10 +1,16 @@
+#include "config.h"
+
 #include <stdio.h>
+
+#ifdef HAVE_COMPLEX_H
 #include <complex.h>
+#endif
+
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#define NFFT_PRECISION_DOUBLE
-#include "nfft3mp.h"
+
+#include "nfft3.h"
 
 nfft_plan* jnfft_alloc(void) {
 	nfft_plan* p = nfft_malloc(sizeof(nfft_plan));
@@ -26,7 +32,7 @@ double* jnfft_set_x(nfft_plan* p, double* X){
 }
 
 // setting Fourier coefficients and returning pointer for access by Julia
-complex double* jnfft_set_fhat(nfft_plan* p,complex double* f_hat){
+double _Complex* jnfft_set_fhat(nfft_plan* p,double _Complex* f_hat){
 	int n = p->N_total;
 	int k;
 	for (k=0;k<n;k++)
@@ -35,7 +41,7 @@ complex double* jnfft_set_fhat(nfft_plan* p,complex double* f_hat){
 }
 
 // setting values and returning pointer for access by Julia
-complex double* jnfft_set_f(nfft_plan* p,complex double* f){
+double _Complex* jnfft_set_f(nfft_plan* p,double _Complex* f){
 	int M = p->M_total;
 	int j;
 	for (j=0;j<M;j++)
@@ -48,13 +54,13 @@ void jnfft_precompute_psi(nfft_plan* p){
 }
 
 // nfft trafo, return pointer to values for access by Julia if pointer isn't set
-complex double* jnfft_trafo(nfft_plan* p){
+double _Complex* jnfft_trafo(nfft_plan* p){
 	nfft_trafo(p);
 	return p->f;
 }
 
 // nfft adjoint, return pointer to coefficients for access by Julia if pointer isn't set
-complex double* jnfft_adjoint(nfft_plan* p){
+double _Complex* jnfft_adjoint(nfft_plan* p){
 	nfft_adjoint(p);
 	return p->f_hat;
 }
