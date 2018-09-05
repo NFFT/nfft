@@ -2,8 +2,17 @@ module NFFT
 
 export Plan,nfft_plan
 
+# file ending for OS
+ending = ".so"
+
+if Sys.iswindows()
+    ending = ".dll"
+elseif Sys.isapple()
+    ending = ".dylib"
+end
+
 # path to .so file
-const lib_path = "$(pwd())/libnfftjulia.so";
+const lib_path = string( "$(pwd())/libnfftjulia", ending )
 
 # NFFT flags
 PRE_PHI_HUT = UInt32(1)<<0
