@@ -62,7 +62,7 @@ Alternatively, you might run the configure script for Matlab.
 
 Here are some useful optional flags for `./configure`:
 * `--enable-all` specifies that all modules should be compiled,
-* `--enable-openmp` enables the multicore support and.
+* `--enable-openmp` enables the multicore support and
 * `--enable-julia` specifies that the julia interface will be compiled.
 * `--with-matlab=path/to/matlab` specifies a path of Matlab, and
 * `--with-octave=path/to/octave` does the same for GNU Octave.
