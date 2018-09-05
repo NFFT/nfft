@@ -71,7 +71,7 @@ mutable struct Plan{D}
 end
 
 # additional constructor for easy use [Plan((N,N),M) instead of Plan{2}((N,N),M)]
-function Plan(N::NTuple{D,Int32},M::Int32) where {D}
+function Plan(N::NTuple{D,Integer},M::Integer) where {D}
     # convert N to vector for passing it over to C
     Nv = collect(N)
     # default oversampling
@@ -84,11 +84,7 @@ function Plan(N::NTuple{D,Int32},M::Int32) where {D}
     else
         f1 = f1_default_1d
     end
-    Plan{D}(N,M,n,Int32(6),f1,f2_default)
-end
-
-function Plan(N::NTuple{D,Int64},M::Int64) where {D}
-    Plan(NTuple{D,Int32}(N),Int32(M))
+    Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(6),f1,f2_default)
 end
 
 function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=UInt32(0),f2::UInt32=UInt32(0)) where {D}
