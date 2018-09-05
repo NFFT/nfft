@@ -41,6 +41,11 @@ FFTW_PATIENT = UInt32(1)<<5
 FFTW_ESTIMATE = UInt32(1)<<6
 FFTW_WISDOM_ONLY = UInt32(1)<<21
 
+#default flag values
+f1_default_1d = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE)
+f1_default = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT)
+f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
+
 # dummy struct for C
 mutable struct nfft_plan
 end
@@ -59,21 +64,7 @@ mutable struct Plan{D}
     f::Ref{ComplexF64}      # function values
     fhat::Ref{ComplexF64}   # Fourier coefficients
     plan::Ref{nfft_plan}    # plan (C pointer)
-    function Plan{D}(N::NTuple{D,Int32},M::Int32) where D
-        # convert N to vector for passing it over to C
-        Nv = collect(N)
-        # default oversampling
-        n = Array{Int32}(2 .^(ceil.(log.(Nv)/log(2)).+1))
-        n = NTuple{D,Int32}(n)
-        # default NFFT flags
-        f1 = UInt32(0)
-        if D > 1
-            f1 = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT)
-        else
-            f1 = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE)
-        end
-        # default FFTW flags
-        f2 = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
+    function Plan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
         # create plan object
         new(N,M,n,Int32(6),f1,f2,false,false)
     end
@@ -81,7 +72,28 @@ end
 
 # additional constructor for easy use [Plan((N,N),M) instead of Plan{2}((N,N),M)]
 function Plan(N::NTuple{D,Int32},M::Int32) where {D}
-    Plan{D}(N,M)
+    # convert N to vector for passing it over to C
+    Nv = collect(N)
+    # default oversampling
+    n = Array{Int32}(2 .^(ceil.(log.(Nv)/log(2)).+1))
+    n = NTuple{D,Int32}(n)
+    # default NFFT flags
+    f1 = UInt32(0)
+    if D > 1
+        f1 = f1_default
+    else
+        f1 = f1_default_1d
+    end
+    Plan{D}(N,M,n,Int32(6),f1,f2_default)
+end
+
+function Plan(N::NTuple{D,Int64},M::Int64) where {D}
+    Plan(NTuple{D,Int32}(N),Int32(M))
+end
+
+function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=UInt32(0),f2::UInt32=UInt32(0)) where {D}
+    @info "You are using the guru interface. There is no safety check for the parameters n, m, f1 and f2"
+    Plan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),f1,f2)
 end
 
 # allocate plan memory and init with D,N,M,n,m,f1,f2
