@@ -148,7 +148,23 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
         Core.setfield!(p,v,ptr)
     # prevent modification of NFFT plan pointer
     elseif v == :plan
-        error("You can't modify the C pointer to the NFFT plan.")
+        @warn "You can't modify the C pointer to the NFFT plan."
+    elseif v == :init_done
+        @warn "You can't modify this flag."
+    elseif v == :precompute_done
+        @warn "You can't modify this flag."
+    elseif v == :N
+        @warn "You can't modify the bandwidth, please create an additional plan."
+    elseif v == :M
+        @warn "You can't modify the number of nodes, please create an additional plan."
+    elseif v == :n
+        @warn "You can't modify the oversampling parameter, please create an additional plan."
+    elseif v == :m
+        @warn "You can't modify the window size, please create an additional plan."
+    elseif v == :f1
+        @warn "You can't modify the NFFT flags, please create an additional plan."
+    elseif v == :f2
+        @warn "You can't modify the FFTW flags, please create an additional plan."
     # handle other set operations the default way
     else
         Core.setfield!(p,v,val)
@@ -190,7 +206,7 @@ function precompute_psi(P::Plan{D}) where {D}
 		error("X has not been set.")
 	end
     ccall(("jnfft_precompute_psi",lib_path),Nothing,(Ref{nfft_plan},),P.plan)
-    P.precompute_done = true
+    Core.setfield!(P,:precompute_done,true)
 end
 
 # nfft trafo [call with NFFT.trafo outside module]
