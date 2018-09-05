@@ -53,12 +53,12 @@ mutable struct Plan{D}
     m::Int32                # windows size
     f1::UInt32              # NFFT flags
     f2::UInt32              # FFTW flags
+    init_done::Bool         # bool for plan init
+    precompute_done::Bool   # bool for precompute
     X::Ref{Float64}         # nodes
     f::Ref{ComplexF64}      # function values
     fhat::Ref{ComplexF64}   # Fourier coefficients
     plan::Ref{nfft_plan}    # plan (C pointer)
-    precompute_done::Bool   # bool for precompute
-    init_done::Bool         # bool for plan init
     function Plan{D}(N::NTuple{D,Int32},M::Int32) where D
         # convert N to vector for passing it over to C
         Nv = collect(N)
@@ -75,7 +75,7 @@ mutable struct Plan{D}
         # default FFTW flags
         f2 = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
         # create plan object
-        new(N,M,n,Int32(6),f1,f2)
+        new(N,M,n,Int32(6),f1,f2,false,false)
     end
 end
 
