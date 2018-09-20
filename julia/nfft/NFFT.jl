@@ -156,17 +156,17 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
     if v == :x
         if D == 1
             if typeof(val) != Vector{Float64}
-                error("x has to be a vector.")
+                error("x has to be a Float64 vector.")
             end
             if size(val)[1] != p.M
-                error("x has to be a vector of length M.")
+                error("x has to be a Float64 vector of length M.")
             end
         else
             if typeof(val) != Array{Float64,2}
-                error("x has to be a matrix.")
+                error("x has to be a Float64 matrix.")
             end
             if size(val)[1] != D || size(val)[2] != p.M
-                error("x has to be a matrix of size Mxd.")
+                error("x has to be a Float64 matrix of size Mxd.")
             end
         end
         ptr = ccall(("jnfft_set_x",lib_path),Ptr{Float64},(Ref{nfft_plan},Ref{Cdouble}),p.plan,val)
@@ -176,21 +176,21 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
     # setting values
     elseif v == :f
         if typeof(val) != Array{ComplexF64,1}
-            error("f has to be a vector.")
+            error("f has to be a ComplexFloat64 vector.")
         end
         if size(val)[1] != p.M
-            error("f has to be a vector of size M.")
+            error("f has to be a ComplexFloat64 vector of size M.")
         end
         ptr = ccall(("jnfft_set_f",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},Ref{ComplexF64}),p.plan,val)
         Core.setfield!(p,v,ptr)
     # setting Fourier coefficients
     elseif v == :fhat
         if typeof(val) != Array{ComplexF64,1}
-            error("fhat has to be a vector.")
+            error("fhat has to be a ComplexFloat64 vector.")
         end
         l = prod(p.N)
         if size(val)[1] != l
-            error("fhat has to be a vector of size N[1]*N[2]*N[3].")
+            error("fhat has to be a ComplexFloat64 vector of size prod(N).")
         end
         ptr = ccall(("jnfft_set_fhat",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},Ref{ComplexF64}),p.plan,val)
         Core.setfield!(p,v,ptr)
@@ -251,7 +251,7 @@ end
 # precomputations [call with NFFT.precompute_psi outside module]
 function precompute_psi(P::Plan{D}) where {D}
 	if !isdefined(P,:x)
-		error("X has not been set.")
+		error("x has not been set.")
 	end
     ccall(("jnfft_precompute_psi",lib_path),Nothing,(Ref{nfft_plan},),P.plan)
     Core.setfield!(P,:precompute_done,true)

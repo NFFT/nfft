@@ -2,12 +2,6 @@ push!(LOAD_PATH, pwd())
 using NFFT
 using LinearAlgebra
 
-p = Nothing
-N = Nothing
-M = Nothing
-A = Nothing
-fhat = Nothing
-
 println("2d NFFT Test")
 
 # bandwidth
