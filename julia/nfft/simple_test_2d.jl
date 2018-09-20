@@ -23,7 +23,7 @@ p = Plan(N,M)
 A = rand(2,M).-0.5
 
 #set nodes
-p.X = A
+p.x = A
 
 #node-dependent precomputations
 println("precompute time:")

@@ -60,7 +60,7 @@ mutable struct Plan{D}
     f2::UInt32              # FFTW flags
     init_done::Bool         # bool for plan init
     precompute_done::Bool   # bool for precompute
-    X::Ref{Float64}         # nodes
+    x::Ref{Float64}         # nodes
     f::Ref{ComplexF64}      # function values
     fhat::Ref{ComplexF64}   # Fourier coefficients
     plan::Ref{nfft_plan}    # plan (C pointer)
@@ -153,20 +153,20 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
         nfft_init(p)
     end
     # setting nodes, verification of correct size Mxd
-    if v == :X
+    if v == :x
         if D == 1
             if typeof(val) != Vector{Float64}
-                error("X has to be a vector.")
+                error("x has to be a vector.")
             end
             if size(val)[1] != p.M
-                error("X has to be a vector of length M.")
+                error("x has to be a vector of length M.")
             end
         else
             if typeof(val) != Array{Float64,2}
-                error("X has to be a matrix.")
+                error("x has to be a matrix.")
             end
             if size(val)[1] != D || size(val)[2] != p.M
-                error("X has to be a matrix of size Mxd.")
+                error("x has to be a matrix of size Mxd.")
             end
         end
         ptr = ccall(("jnfft_set_x",lib_path),Ptr{Float64},(Ref{nfft_plan},Ref{Cdouble}),p.plan,val)
@@ -221,11 +221,11 @@ end
 
 # overwrite dot notation for plan struct in order to use C memory
 function Base.getproperty(p::Plan{D},v::Symbol) where {D}
-    if v == :X
-        if !isdefined(p,:X)
-            error("X is not set.")
+    if v == :x
+        if !isdefined(p,:x)
+            error("x is not set.")
         end
-        ptr = Core.getfield(p,:X)
+        ptr = Core.getfield(p,:x)
         if D==1
             return unsafe_wrap(Vector{Float64},ptr,p.M)             # get nodes from C memory and convert to Julia type
         else
@@ -250,7 +250,7 @@ end
 
 # precomputations [call with NFFT.precompute_psi outside module]
 function precompute_psi(P::Plan{D}) where {D}
-	if !isdefined(P,:X)
+	if !isdefined(P,:x)
 		error("X has not been set.")
 	end
     ccall(("jnfft_precompute_psi",lib_path),Nothing,(Ref{nfft_plan},),P.plan)
