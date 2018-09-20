@@ -72,6 +72,17 @@ end
 
 # additional constructor for easy use [Plan((N,N),M) instead of Plan{2}((N,N),M)]
 function Plan(N::NTuple{D,Integer},M::Integer) where {D}
+    if any(x->x<=0,N)
+        error("Every entry of N has to be an even, positive integer." )
+    end
+    
+    if sum(N .% 2) != 0
+        error("Every entry of N has to be an even, positive integer." )
+    end
+    
+    if M <= 0
+        error("M has to be a positive integer." )
+    end
     # convert N to vector for passing it over to C
     Nv = collect(N)
     # default oversampling
@@ -87,8 +98,37 @@ function Plan(N::NTuple{D,Integer},M::Integer) where {D}
     Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(6),f1,f2_default)
 end
 
-function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=UInt32(0),f2::UInt32=UInt32(0)) where {D}
-    @info "You are using the guru interface. There is no safety check for the parameters n, m, f1 and f2"
+function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
+    @info "You are using the guru interface. There is no safety check for the parameters f1 and f2"
+
+    if any(x->x<=0,N)
+        error("Every entry of N has to be an even, positive integer." )
+    end
+    
+    if sum(N .% 2) != 0
+        error("Every entry of N has to be an even, positive integer." )
+    end
+    
+    if M <= 0
+        error("M has to be a positive integer." )
+    end
+    
+    if any(x->x<=0,n)
+        error("Every entry of n has to be an even integer." )
+    end
+    
+    if n <= N
+        error("Every entry of n has to be larger than the corresponding entry in N." )
+    end
+    
+    if sum(n .% 2) != 0
+        error("Every entry of n has to be an even integer." )
+    end
+    
+    if m <= 0
+        error("m has to be a positive integer." )
+    end
+    
     Plan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),f1,f2)
 end
 
