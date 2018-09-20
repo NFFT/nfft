@@ -101,6 +101,7 @@ end
 function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
     @info "You are using the guru interface. Please consult the README if you are having trouble."
 
+    # safety checks
     if any(x->x<=0,N)
         error("Every entry of N has to be an even, positive integer." )
     end
