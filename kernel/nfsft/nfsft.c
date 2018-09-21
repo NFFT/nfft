@@ -268,8 +268,8 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
                          unsigned int flags)
 {
   /* Call nfsft_init_guru with the flags and default NFFT cut-off. */
-  nfsft_init_guru(plan, N, M, flags, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | NFFT_OMP_BLOCKWISE_ADJOINT |
-                         FFT_OUT_OF_PLACE, NFSFT_DEFAULT_NFFT_CUTOFF);
+  nfsft_init_guru(plan, N, M, flags, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | NFFT_OMP_BLOCKWISE_ADJOINT,
+                         NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,

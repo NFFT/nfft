@@ -52,7 +52,7 @@ void nfsoft_init_advanced(nfsoft_plan *plan, int N, int M,
     unsigned int nfsoft_flags)
 {
   nfsoft_init_guru(plan, N, M, nfsoft_flags, PRE_PHI_HUT | PRE_PSI | MALLOC_X | NFFT_OMP_BLOCKWISE_ADJOINT
-      | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
+      | MALLOC_F_HAT | MALLOC_F | FFTW_INIT,
       DEFAULT_NFFT_CUTOFF, FPT_THRESHOLD);
 }
 

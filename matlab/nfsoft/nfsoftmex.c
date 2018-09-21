@@ -169,7 +169,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	int i = mkplan();
 	nfsoft_init_guru_advanced(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,
-	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, fftw_size);
+	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT, nfft_cutoff, fpt_kappa, fftw_size);
     plans[i]->p_nfft.f = plans[i]->f;
     plans[i]->p_nfft.x = plans[i]->x;
     plhs[0] = mxCreateDoubleScalar((double)i);
