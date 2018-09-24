@@ -158,6 +158,8 @@ typedef struct\
   R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
 \
   NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
+  NFFT_INT *index_u; \
+  NFFT_INT *index_o; \
 } X(plan); \
 \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
