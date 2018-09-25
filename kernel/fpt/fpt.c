@@ -1087,10 +1087,6 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
 
         /* Allocate memory for the components of U_{n,tau,l}. */
         data->steps[tau][l].a = (double*) nfft_malloc(sizeof(double)*clength*4);
-  //      data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength);
-  //      data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength);
-  //      data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength);
-  //      data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength);
       }
       /** Increase polynomial degree to next power of two. */
       plength = plength << 1;
@@ -1640,12 +1636,10 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
           /*for (k = 0; k < plength; k++)
           {
             fprintf(stderr,"fpt_trafo: a11 = %le, a12 = %le, a21 = %le, a22 = %le\n",
-              step->a11[0][k],step->a12[0][k],step->a21[0][k],step->a22[0][k]);
+              a11[k],a12[k],a21[k],step->a22[k]);
           }*/
           /* Multiply third and fourth polynomial with matrix U. */
           //fprintf(stderr,"\nhallo\n");
-//          fpt_do_step_symmetric(set->vec3, set->vec4, step->a11,
-//            step->a12, step->a21, step->a22, step->g, tau, set);
           fpt_do_step_symmetric(set->vec3, set->vec4, a11,
             a12, a21, a22, step->g, tau, set);
         }
@@ -1657,8 +1651,6 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
           double *a21 = a12+clength;
           double *a22 = a21+clength;
           /* Multiply third and fourth polynomial with matrix U. */
-//          fpt_do_step(set->vec3, set->vec4, step->a11, step->a12,
-//            step->a21, step->a22, step->g, tau, set);
             fpt_do_step(set->vec3, set->vec4, a11, a12,
               a21, a22, step->g, tau, set);
         }
@@ -1708,8 +1700,6 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
             double *a12 = a11+clength_1;
             double *a21 = a12+clength_1;
             double *a22 = a21+clength_2;
-//            fpt_do_step_symmetric(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->g, t_stab-1, set);
             fpt_do_step_symmetric(set->vec3, set->vec4, a11, a12,
               a21, a22, step->g, t_stab-1, set);
           }
@@ -1723,13 +1713,6 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
             fpt_do_step_symmetric_u(set->vec3, set->vec4, a11, a12,
               a21, a22,
               set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            /*fpt_do_step_symmetric_u(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->gamma[0], t_stab-1, set);*/
-//            fpt_do_step_symmetric_u(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22,
-//              set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            /*fpt_do_step(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->gamma[0], t_stab-1, set);*/
           }
           else
           {
@@ -1742,14 +1725,6 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
                 a11, a12,
                 a21,
                 a22, set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            /*fpt_do_step_symmetric_l(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->gamma[0], t_stab-1, set);*/
-//            fpt_do_step_symmetric_l(set->vec3, set->vec4,
-//              step->a11, step->a12,
-//              step->a21,
-//              step->a22, set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            /*fpt_do_step(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->gamma[0], t_stab-1, set);*/
           }
         }
         else
@@ -2021,8 +1996,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
         if ((set->flags & FPT_AL_SYMMETRY) && IS_SYMMETRIC(l,m,plength))
         {
           /* Multiply third and fourth polynomial with matrix U. */
-//          fpt_do_step_t_symmetric(set->vec3, set->vec4, step->a11, step->a12,
-//            step->a21, step->a22, step->g, tau, set);
           int clength = 1<<(tau);
           double *a11 = step->a;
           double *a12 = a11+clength;
@@ -2034,8 +2007,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
         else
         {
           /* Multiply third and fourth polynomial with matrix U. */
-//          fpt_do_step_t(set->vec3, set->vec4, step->a11, step->a12,
-//            step->a21, step->a22, step->g, tau, set);
           int clength = 1<<(tau+1);
           double *a11 = step->a;
           double *a12 = a11+clength;
@@ -2073,8 +2044,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
             double *a22 = a21+clength_2;
             fpt_do_step_t_symmetric(set->vec3, set->vec4, a11, a12,
               a21, a22, step->g, t_stab-1, set);
-//            fpt_do_step_t_symmetric(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->g, t_stab-1, set);
           }
           else if (m%2 == 0)
           {
@@ -2083,8 +2052,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
             double *a12 = a11+clength;
             fpt_do_step_t_symmetric_u(set->vec3, set->vec4, a11, a12,
               set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            fpt_do_step_t_symmetric_u(set->vec3, set->vec4, step->a11, step->a12,
-//              set->xcvecs[t_stab-2], step->g, t_stab-1, set);
           }
           else
           {
@@ -2093,8 +2060,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
             double *a22 = a21+clength;
             fpt_do_step_t_symmetric_l(set->vec3, set->vec4,
               a21, a22, set->xcvecs[t_stab-2], step->g, t_stab-1, set);
-//            fpt_do_step_t_symmetric_l(set->vec3, set->vec4,
-//              step->a21, step->a22, set->xcvecs[t_stab-2], step->g, t_stab-1, set);
           }
         }
         else
@@ -2107,8 +2072,6 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
           double *a22 = a21+clength_2;
           fpt_do_step_t(set->vec3, set->vec4, a11, a12,
             a21, a22, step->g, t_stab-1, set);
-//            fpt_do_step_t(set->vec3, set->vec4, step->a11, step->a12,
-//              step->a21, step->a22, step->g, t_stab-1, set);
         }
 
         memcpy(&(set->vec3[plength/2]),set->vec4,(plength/2)*sizeof(double _Complex));
@@ -2186,14 +2149,6 @@ void fpt_finalize(fpt_set set)
               nfft_free(data->steps[tau][l].a);
               data->steps[tau][l].a = NULL;
             }
-//            nfft_free(data->steps[tau][l].a11);
-//            nfft_free(data->steps[tau][l].a12);
-//            nfft_free(data->steps[tau][l].a21);
-//            nfft_free(data->steps[tau][l].a22);
-//            data->steps[tau][l].a11 = NULL;
-//            data->steps[tau][l].a12 = NULL;
-//            data->steps[tau][l].a21 = NULL;
-//            data->steps[tau][l].a22 = NULL;
           }
           /* Free pointers for current level. */
           nfft_free(data->steps[tau]);

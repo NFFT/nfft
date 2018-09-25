@@ -687,10 +687,10 @@ typedef struct X(plan_)\
   MACRO_MV_PLAN(C) \
   R *x; /**< input nodes */\
   /* internal use only */\
-  C *wig_coeffs; /**< Deprecated. Will be removed in a future version*/\
-  C *cheby; /**< Deprecated. Will be removed in a future version*/\
-  C *aux; /**< Deprecated. Will be removed in a future version*/\
-  int t; /**< the logaritm of NPT with respect to the basis 2 */\
+  C *wig_coeffs; /**< deprecated variable */\
+  C *cheby; /**< deprecated variable */\
+  C *aux; /**< deprecated variable */\
+  int t; /**< the logarithm of NPT with respect to the basis 2 */\
   unsigned int flags; /**< the planner flags  */\
   Y(plan) p_nfft; /**< the internal NFFT plan */\
   Z(set) *internal_fpt_set; /**< the internal FPT plan */\

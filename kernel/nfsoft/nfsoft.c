@@ -276,7 +276,7 @@ static void SO3_fpt(C *coeffs, fpt_set set, int l, int k, int m, unsigned int fl
       N = X(next_power_of_2)(l);
   }
 
-  /** Read in start and end indeces */
+  /** Read in start and end indices */
   k_start = (ABS(k) >= ABS(m)) ? ABS(k) : ABS(m);
   k_end = N;
   trafo_nr = (N + k) * (2* N + 1) + (m + N);
