@@ -1093,7 +1093,7 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
     }
   }
 
-  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM) && !(set->flags & FPT_PERSISTENT_DATA))
+  if (!(set->flags & FPT_NO_DIRECT_ALGORITHM) && !(set->flags & FPT_PERSISTENT_DATA) && (data->_alpha == NULL))
   {
     data->_alpha = (double*) nfft_malloc(3*(set->N+1)*sizeof(double));
     data->_beta = data->_alpha + (set->N+1);

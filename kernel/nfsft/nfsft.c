@@ -448,12 +448,19 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
         if (threadid != 0)
           wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
 
+        /* Perform the first part of precomputation which contains most allocations in one thread */
+        #pragma omp master
+        {
+          for (int n = 0; n <= wisdom.N_MAX; n++)
+            fpt_precompute_1(wisdom.set_threads[0],n,n);
+        }
+        #pragma omp barrier
+
         #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
-          fpt_precompute(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
+          fpt_precompute_2(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
             &wisdom.beta[ROW(n)], &wisdom.gamma[ROW(n)],n,kappa);
       }
-
 #else
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
@@ -499,6 +506,14 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
         if (threadid != 0)
           wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
 
+        /* Perform the first part of precomputation which contains most allocations in one thread */
+        #pragma omp master
+        {
+          for (int n = 0; n <= wisdom.N_MAX; n++)
+            fpt_precompute_1(wisdom.set_threads[0],n,n);
+        }
+        #pragma omp barrier
+
         #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
         {
@@ -507,7 +522,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
           gamma_al_row(gamma,wisdom.N_MAX,n);
 
           /* Precompute data for FPT transformation for order n. */
-          fpt_precompute(wisdom.set_threads[threadid],n,alpha,beta,gamma,n,
+          fpt_precompute_2(wisdom.set_threads[threadid],n,alpha,beta,gamma,n,
                          kappa);
         }
         /* Free auxilliary arrays. */
