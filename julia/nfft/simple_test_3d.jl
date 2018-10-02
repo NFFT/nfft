@@ -51,4 +51,19 @@ println("relative l2 error:")
 print( norm(error_vector)/norm(f1) )
 println("\nl infinity error:")
 print( norm(error_vector, Inf)/norm(fhat,1) ) 
- 
+
+#adjoint
+println("\nadjoint time:")
+@time NFFT.adjoint(p)
+
+#get function values
+f2 = p.fhat
+
+#multiply Fourier matrix with vector of Fourier coefficients
+f1 = F'*p.f
+
+error_vector = f1-f2
+println("relative l2 error:")
+print( norm(error_vector)/norm(f1) )
+println("\nl infinity error:")
+print( norm(error_vector, Inf)/norm(p.f,1) )
