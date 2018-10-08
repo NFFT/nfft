@@ -12,7 +12,7 @@ elseif Sys.isapple()
 end
 
 # path to .so file
-const lib_path = string( "/path/to/nfft/julia/nfft/libnfftjulia", ending )
+const lib_path = string( @__DIR__, "/libnfftjulia", ending )
 
 # NFFT flags
 PRE_PHI_HUT = UInt32(1)<<0
