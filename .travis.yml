@@ -53,6 +53,7 @@ before_script:
 script: cat /proc/cpuinfo; ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
   $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi)
   $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
+  $(if test "$PRECISION" = ""; then echo "--enable-julia"; else echo ""; fi)
   && make
   && make check && make $DIST
 after_failure: cat config.log && cat tests/test-suite.log && if test "$BUILD_OCTAVE" = "1"; then cat matlab/tests/test-suite.log; fi
