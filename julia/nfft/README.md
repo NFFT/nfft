@@ -11,6 +11,6 @@ General Remarks
 Path
 -----
 
-The NFFT module contains an absolute path to the library. You don't need to change anything if you always keep the .so file (or a symbolic link to it) in the same directory as the NFFT module NFFT.jl, otherwise you have to change the `lib_path` variable accordingly. In this case, you need to watch out for the `pwd()` function since it is executed within the directory of the NFFT.jl module and not the directory where you are currently running Julia.
+The NFFT module contains an absolute path to the shared library. You have to adjust the variable `lib_path` by replacing `/path/to/nfft/` with the path to your main nfft directory.
 
-In order to load the module, you can push the module directory to the load path with `push!`(see simple test files). 
+In order to load the NFFT module in Julia, you have to add the directory to the `LOAD_PATH` which would look like `push!(LOAD_PATH, "/path/to/nfft/julia/nfft/")`.

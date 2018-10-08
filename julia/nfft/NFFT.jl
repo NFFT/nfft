@@ -12,7 +12,7 @@ elseif Sys.isapple()
 end
 
 # path to .so file
-const lib_path = string( "$(pwd())/libnfftjulia", ending )
+const lib_path = string( "/path/to/nfft/julia/nfft/libnfftjulia", ending )
 
 # NFFT flags
 PRE_PHI_HUT = UInt32(1)<<0
@@ -66,7 +66,7 @@ mutable struct Plan{D}
     plan::Ref{nfft_plan}    # plan (C pointer)
     function Plan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
         # create plan object
-        new(N,M,n,Int32(6),f1,f2,false,false)
+        new(N,M,n,m,f1,f2,false,false)
     end
 end
 
