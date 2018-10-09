@@ -62,7 +62,7 @@ script: cat /proc/cpuinfo; ./bootstrap.sh && ./configure --with-window=$WINDOW $
   $(if test "$BUILD_JULIA" = "1"; then echo "--enable-julia"; else echo ""; fi)
   && make
   && make check && make $DIST
-  && if test "$BUILD_JULIA" = "1"; then wget https://julialang-s3.julialang.org/bin/linux/x64/1.0/julia-1.0.1-linux-x86_64.tar.gz && tar -xf julia-1.0.1-linux-x86_64.tar.gz && cd julia/nfft && ./../../julia-1.0.1/bin/julia simple_test_1d.jl && ./../../julia-1.0.1/bin/julia simple_test_2d.jl && ./../../julia-1.0.1/bin/julia simple_test_2d.jl; fi)
+  && if test "$BUILD_JULIA" = "1"; then wget https://julialang-s3.julialang.org/bin/linux/x64/1.0/julia-1.0.1-linux-x86_64.tar.gz && tar -xf julia-1.0.1-linux-x86_64.tar.gz && cd julia/nfft && ./../../julia-1.0.1/bin/julia simple_test_1d.jl && ./../../julia-1.0.1/bin/julia simple_test_2d.jl && ./../../julia-1.0.1/bin/julia simple_test_2d.jl; fi;
 after_failure: cat config.log && cat tests/test-suite.log && if test "$BUILD_OCTAVE" = "1"; then cat matlab/tests/test-suite.log; fi
 notifications:
   email: false
