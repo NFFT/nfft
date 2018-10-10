@@ -54,7 +54,7 @@ println( E_2 )
 println( "E_infty error:" )
 println( E_infty )
 
-if ( E_2 >= 1 ) || ( E_infty >= 1 )
+if ( E_2 >= 1e-8 ) || ( E_infty >= 1e-8 )
 	error( "Errors are too large." )
 end
 
@@ -76,6 +76,6 @@ println( E_2 )
 println( "E_infty error:" )
 println( E_infty )
 
-if ( E_2 >= 1 ) || ( E_infty >= 1 )
+if ( E_2 >= 1e-8 ) || ( E_infty >= 1e-8 )
 	error( "Errors are too large." )
 end
