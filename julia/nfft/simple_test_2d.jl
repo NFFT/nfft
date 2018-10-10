@@ -2,13 +2,13 @@ push!(LOAD_PATH, pwd())
 using NFFT
 using LinearAlgebra
 
-println("2d NFFT Test")
+println( "2d NFFT Test" )
 
-# bandwidth
-N = ( Cint(16), Cint(8) )
+#bandwidth
+N = ( 16, 8 )
 
 #number of nodes
-M = Cint(10000)
+M = 10000
 
 #create plan
 p = Plan(N,M)
@@ -20,7 +20,7 @@ A = rand(2,M).-0.5
 p.x = A
 
 #node-dependent precomputations
-println("precompute time:")
+println( "precompute time:" )
 @time NFFT.precompute_psi(p)
 
 #generate random Fourier coefficients
@@ -30,7 +30,7 @@ fhat = rand(prod(N))+im*rand(prod(N))
 p.fhat = fhat
 
 #transform
-println("trafo time:")
+println( "trafo time:" )
 @time NFFT.trafo(p)
 
 #get function values
@@ -47,13 +47,19 @@ F = [ exp(-2*pi*im*sum(A[:,j]'*I[l])) for j in 1:M, l in 1:prod(N) ]
 f1 = F*fhat
 
 error_vector = f1-f2
-println("relative l2 error:")
-println( norm(error_vector)/norm(f1) )
-println("l infinity error:")
-println( norm(error_vector, Inf)/norm(fhat,1) ) 
+E_2 = norm(error_vector)/norm(f1)
+E_infty = norm(error_vector, Inf)/norm(fhat,1)
+println( "E_2 error:" )
+println( E_2 )
+println( "E_infty error:" )
+println( E_infty )
+
+if ( E_2 >= 1 ) || ( E_infty >= 1 )
+	error( "Errors are too large." )
+end
 
 #adjoint
-println("adjoint time:")
+println( "adjoint time:" )
 @time NFFT.adjoint(p)
 
 #get function values
@@ -63,7 +69,13 @@ f2 = p.fhat
 f1 = F'*p.f
 
 error_vector = f1-f2
-println("relative l2 error:")
-println( norm(error_vector)/norm(f1) )
-println("l infinity error:")
-println( norm(error_vector, Inf)/norm(p.f,1) )
+E_2 = norm(error_vector)/norm(f1)
+E_infty = norm(error_vector, Inf)/norm(fhat,1)
+println( "E_2 error:" )
+println( E_2 )
+println( "E_infty error:" )
+println( E_infty )
+
+if ( E_2 >= 1 ) || ( E_infty >= 1 )
+	error( "Errors are too large." )
+end

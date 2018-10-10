@@ -5,10 +5,10 @@ using LinearAlgebra
 println("1d NFFT Test")
 
 # bandwidth
-N = Cint(10)
+N = 10
 
 #number of nodes
-M = Cint(10000)
+M = 10000
 
 #create plan
 p = Plan((N,),M)
@@ -20,7 +20,7 @@ A = rand(M).-0.5
 p.x = A
 
 #node-dependent precomputations
-println("precompute time:")
+println( "precompute time:" )
 @time NFFT.precompute_psi(p)
 
 #generate random Fourier coefficients
@@ -30,7 +30,7 @@ fhat = rand(N)+im*rand(N)
 p.fhat = fhat
 
 #transform
-println("trafo time:")
+println( "trafo time:" )
 @time NFFT.trafo(p)
 
 #get function values
@@ -43,13 +43,19 @@ F = [ exp(-2*pi*im*x_j*k_l) for x_j in A, k_l in -N/2:N/2-1 ]
 f1 = F*fhat
 
 error_vector = f1-f2
-println("relative l2 error:")
-println( norm(error_vector)/norm(f1) )
-println("l infinity error:")
-println( norm(error_vector, Inf)/norm(fhat,1) )
+E_2 = norm(error_vector)/norm(f1)
+E_infty = norm(error_vector, Inf)/norm(fhat,1)
+println( "E_2 error:" )
+println( E_2 )
+println( "E_infty error:" )
+println( E_infty )
+
+if ( E_2 >= 1 ) || ( E_infty >= 1 )
+	error( "Errors are too large." )
+end
 
 #adjoint
-println("adjoint time:")
+println( "adjoint time:" )
 @time NFFT.adjoint(p)
 
 #get function values
@@ -59,8 +65,13 @@ f2 = p.fhat
 f1 = F'*p.f
 
 error_vector = f1-f2
-println("relative l2 error:")
-println( norm(error_vector)/norm(f1) )
-println("l infinity error:")
-println( norm(error_vector, Inf)/norm(p.f,1) )
- 
+E_2 = norm(error_vector)/norm(f1)
+E_infty = norm(error_vector, Inf)/norm(fhat,1)
+println( "E_2 error:" )
+println( E_2 )
+println( "E_infty error:" )
+println( E_infty )
+
+if ( E_2 >= 1 ) || ( E_infty >= 1 )
+	error( "Errors are too large." )
+end
