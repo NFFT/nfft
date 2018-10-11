@@ -62,7 +62,8 @@ Alternatively, you might run the configure script for Matlab.
 
 Here are some useful optional flags for `./configure`:
 * `--enable-all` specifies that all modules should be compiled,
-* `--enable-openmp` enables the multicore support.
+* `--enable-openmp` enables the multicore support and
+* `--enable-julia` specifies that the julia interface will be compiled.
 * `--with-matlab=path/to/matlab` specifies a path of Matlab, and
 * `--with-octave=path/to/octave` does the same for GNU Octave.
 * For a list of all available options, run `./configure --help`.
@@ -158,6 +159,7 @@ examples (dir)     | Simple examples for using NFFT routines
 include (dir)      | Header files
 INSTALL            | Installation instructions
 install-sh         | Used by configure script
+julia (dir)        | Julia interface for nfft
 kernel (dir)       | Source code for core library routines
 ltmain.sh          | Used by configure script
 Makefile.am        | Automake Makefile template

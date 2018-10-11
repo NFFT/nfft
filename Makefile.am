@@ -4,7 +4,7 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 # Subdirectories
-DIST_SUBDIRS=3rdparty include kernel . tests examples applications matlab support doxygen
+DIST_SUBDIRS=3rdparty include kernel . tests examples applications matlab julia support doxygen
 
 if HAVE_EXAMPLES
   EXAMPLE_DIRS=examples
@@ -26,16 +26,24 @@ else
   LIBNFFT3_MATLAB_LA=
 endif
 
+if HAVE_JULIA
+  JULIA_DIRS=julia
+  LIBNFFT3_JULIA_LA=libnfft3@PREC_SUFFIX@_julia.la
+else
+  JULIA_DIRS=
+  LIBNFFT3_JULIA_LA=
+endif
+
 if HAVE_THREADS
   LIBNFFT3_THREADS_LA = libnfft3@PREC_SUFFIX@_threads.la
 else
   LIBNFFT3_THREADS_LA =
 endif
 
-SUBDIRS= 3rdparty include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS)
+SUBDIRS= 3rdparty include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS)
 
 lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADS_LA)
-noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA)
+noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA) $(LIBNFFT3_JULIA_LA)
 
 libnfft3@PREC_SUFFIX@_la_SOURCES =
 libnfft3@PREC_SUFFIX@_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel.la @fftw3_LIBS@ -lm
@@ -58,6 +66,16 @@ else
     libnfft3@PREC_SUFFIX@_matlab_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel.la @matlab_fftw3_LIBS@ -lm
 endif
   libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
+endif
+
+if HAVE_JULIA
+  libnfft3@PREC_SUFFIX@_julia_la_SOURCES =
+if HAVE_THREADS
+    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel_threads.la @fftw3_LIBS@ -lm
+else
+    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel.la @fftw3_LIBS@ -lm
+endif
+  libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
 endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc linux-build-mex.sh windows-build-dll.sh
