@@ -28,6 +28,7 @@ double* jnfft_set_x(nfft_plan* p, double* X){
 	for (r = 0; r < M; r++)
 		for (c = 0; c < d; c++)
 			p->x[d*r+c] = X[d*r+c];
+	nfft_precompute_one_psi(p);
 	return p->x;
 }
 
@@ -49,10 +50,6 @@ double _Complex* jnfft_set_f(nfft_plan* p,double _Complex* f){
 	return p->f;
 }
 
-void jnfft_precompute_psi(nfft_plan* p){
-	nfft_precompute_one_psi(p);
-}
-
 // nfft trafo, return pointer to values for access by Julia if pointer isn't set
 double _Complex* jnfft_trafo(nfft_plan* p){
 	nfft_trafo(p);
@@ -62,5 +59,17 @@ double _Complex* jnfft_trafo(nfft_plan* p){
 // nfft adjoint, return pointer to coefficients for access by Julia if pointer isn't set
 double _Complex* jnfft_adjoint(nfft_plan* p){
 	nfft_adjoint(p);
+	return p->f_hat;
+}
+
+// nfft trafo, return pointer to values for access by Julia if pointer isn't set
+double _Complex* jnfft_trafo_direct(nfft_plan* p){
+	nfft_trafo_direct(p);
+	return p->f;
+}
+
+// nfft adjoint, return pointer to coefficients for access by Julia if pointer isn't set
+double _Complex* jnfft_adjoint_direct(nfft_plan* p){
+	nfft_adjoint_direct(p);
 	return p->f_hat;
 }

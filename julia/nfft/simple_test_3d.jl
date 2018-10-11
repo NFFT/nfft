@@ -19,10 +19,6 @@ A = rand(3,M).-0.5
 #set nodes
 p.x = A
 
-#node-dependent precomputations
-println("precompute time:")
-@time NFFT.precompute_psi(p)
-
 #generate random Fourier coefficients
 fhat = rand(prod(N))+im*rand(prod(N))
 

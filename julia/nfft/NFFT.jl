@@ -59,14 +59,13 @@ mutable struct Plan{D}
     f1::UInt32              # NFFT flags
     f2::UInt32              # FFTW flags
     init_done::Bool         # bool for plan init
-    precompute_done::Bool   # bool for precompute
     x::Ref{Float64}         # nodes
     f::Ref{ComplexF64}      # function values
     fhat::Ref{ComplexF64}   # Fourier coefficients
     plan::Ref{nfft_plan}    # plan (C pointer)
     function Plan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
         # create plan object
-        new(N,M,n,m,f1,f2,false,false)
+        new(N,M,n,m,f1,f2,false)
     end
 end
 
@@ -130,7 +129,7 @@ function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=In
         error("m has to be a positive integer." )
     end
     
-    Plan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),f1,f2)
+    Plan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),(f1 | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT),f2)
 end
 
 # allocate plan memory and init with D,N,M,n,m,f1,f2
@@ -172,8 +171,6 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
         end
         ptr = ccall(("jnfft_set_x",lib_path),Ptr{Float64},(Ref{nfft_plan},Ref{Cdouble}),p.plan,val)
         Core.setfield!(p,v,ptr)
-        # new precomputations necessary if nodes changed
-        Core.setfield!(p,:precompute_done,false)
     # setting values
     elseif v == :f
         if typeof(val) != Array{ComplexF64,1}
@@ -200,8 +197,7 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
         @warn "You can't modify the C pointer to the NFFT plan."
     elseif v == :init_done
         @warn "You can't modify this flag."
-    elseif v == :precompute_done
-        @warn "You can't modify this flag."
+
     elseif v == :N
         @warn "You can't modify the bandwidth, please create an additional plan."
     elseif v == :M
@@ -249,13 +245,28 @@ function Base.getproperty(p::Plan{D},v::Symbol) where {D}
     end
 end
 
-# precomputations [call with NFFT.precompute_psi outside module]
-function precompute_psi(P::Plan{D}) where {D}
+# nfft trafo direct [call with NFFT.trafo_direct outside module]
+function trafo_direct(P::Plan{D}) where {D}
+	if !isdefined(P, :fhat)
+		error("fhat has not been set.")
+	end
 	if !isdefined(P,:x)
 		error("x has not been set.")
 	end
-    ccall(("jnfft_precompute_psi",lib_path),Nothing,(Ref{nfft_plan},),P.plan)
-    Core.setfield!(P,:precompute_done,true)
+    ptr = ccall(("jnfft_trafo_direct",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},),P.plan)
+    Core.setfield!(P,:f,ptr)
+end
+
+# adjoint trafo direct [call with NFFT.adjoint_direct outside module]
+function adjoint_direct(P::Plan{D}) where {D}
+    if !isdefined(P, :f)
+        error("f has not been set.")
+    end
+	if !isdefined(P,:x)
+		error("x has not been set.")
+	end
+    ptr = ccall(("jnfft_adjoint_direct",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},),P.plan)
+    Core.setfield!(P,:fhat,ptr)
 end
 
 # nfft trafo [call with NFFT.trafo outside module]
@@ -263,9 +274,9 @@ function trafo(P::Plan{D}) where {D}
 	if !isdefined(P, :fhat)
 		error("fhat has not been set.")
 	end
-    if !P.precompute_done
-        error("Please do the precomputations with nfft_precompute_psi.")
-    end
+	if !isdefined(P,:x)
+		error("x has not been set.")
+	end
     ptr = ccall(("jnfft_trafo",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},),P.plan)
     Core.setfield!(P,:f,ptr)
 end
@@ -275,9 +286,9 @@ function adjoint(P::Plan{D}) where {D}
     if !isdefined(P, :f)
         error("f has not been set.")
     end
-    if !P.precompute_done
-        error("Please do the precomputations with nfft_precompute_psi.")
-    end
+	if !isdefined(P,:x)
+		error("x has not been set.")
+	end
     ptr = ccall(("jnfft_adjoint",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},),P.plan)
     Core.setfield!(P,:fhat,ptr)
 end
