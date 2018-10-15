@@ -186,16 +186,20 @@ make check
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DLLDIR=nfft-"$NFFTVERSION"-dll$ARCH$OMPSUFFIX
 
-gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-2.dll -Wl,-Bstatic -lwinpthread $OMPLIBS
+gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-2.dll -Wl,-Bstatic -lwinpthread $OMPLIBS -Wl,--output-def,libnfft3$THREADSSUFFIX-2.def
 
 mkdir "$DLLDIR"
 cp ".libs/libnfft3$THREADSSUFFIX-2.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-2.dll"
+cp ".libs/libnfft3$THREADSSUFFIX-2.def" "$DLLDIR/libnfft3$THREADSSUFFIX-2.def"
 cp "$NFFTDIR"/include/nfft3.h "$DLLDIR"/nfft3.h
 cp "$NFFTDIR"/include/nfft3mp.h "$DLLDIR"/nfft3mp.h
 cp examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
 using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
+
+In order to link the .dll file from Visual C++, you should run
+    lib /def:libnfft3'$THREADSSUFFIX'-2.def
 
 As a small example, you can compile the NFFT simple test with the following command
 
