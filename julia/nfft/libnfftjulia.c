@@ -73,3 +73,9 @@ double _Complex* jnfft_adjoint_direct(nfft_plan* p){
 	nfft_adjoint_direct(p);
 	return p->f_hat;
 }
+
+// nfft plan finalizer
+void jnfft_finalize(nfft_plan* p){
+	nfft_finalize(p);
+	nfft_free(p);
+}
