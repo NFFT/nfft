@@ -59,7 +59,7 @@ mutable struct Plan{D}
 	f1::UInt32              # NFFT flags
 	f2::UInt32              # FFTW flags
 	init_done::Bool         # bool for plan init
-	finalized::Bool	    # bool for finalizer
+	finalized::Bool	    	# bool for finalizer
 	x::Ref{Float64}         # nodes
 	f::Ref{ComplexF64}      # function values
 	fhat::Ref{ComplexF64}   # Fourier coefficients
@@ -100,10 +100,10 @@ function Plan(N::NTuple{D,Integer},M::Integer) where {D}
 		f1 = f1_default_1d
 	end
 	
-	Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(6),f1,f2_default)
+	Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(8),f1,f2_default)
 end
 
-function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(6),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
+function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(8),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
 	@info "You are using the guru interface. Please consult the README if you are having trouble."
 
     # safety checks
