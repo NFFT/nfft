@@ -120,10 +120,12 @@ int main(int argc, char **argv)
       kernel = one_over_cube;
     else if (strcmp(s, "log_sin") == 0)
       kernel = log_sin;
+    else if (strcmp(s, "laplacian_rbf") == 0)
+      kernel = laplacian_rbf;
     else
     {
-      s = "multiquadric";
-      kernel = multiquadric;
+      printf("Unrecognized kernel function!\n");
+      exit(EXIT_FAILURE);
     }
   }
   printf(
@@ -209,7 +211,7 @@ int main(int argc, char **argv)
   fid2 = fopen("f_direct.dat", "w+");
   if (fid1 == NULL)
   {
-    printf("Fehler!\n");
+    printf("Error writing to file f.dat!\n");
     exit(EXIT_FAILURE);
   }
   for (j = 0; j < M; j++)

@@ -414,6 +414,22 @@ C log_sin(R x, int der, const R *param)   /* K(x) = log(|sin(cx)|) */
   return value;
 }
 
+C laplacian_rbf(R x, int der, const R *param)    /* K(x)=EXP(-|x|/c) */
+{
+  R c = param[0];
+  R value = K(0.0);
+
+  switch (der)
+  {
+    case  0: value = EXP(-FABS(x)/c); break;
+    default:
+      value = EXP(-FABS(x)/c)/POW(-c,(R)der);
+      if (x < K(0.0))
+        value *= POW(K(-1.0),(R)der);
+  }
+
+  return value;
+}
 
 /* \} */
 
