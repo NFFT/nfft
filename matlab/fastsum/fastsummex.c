@@ -300,7 +300,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double *x = mxGetPr(prhs[2]);
     DM(double norm_max = (.25-(plans[i]->eps_B)*.5)*(.25-(plans[i]->eps_B)*.5);
       short warn=0;)
-    if (plans[i]->flags & NEARFIELD_BOXES)
+    if (plans[i]->permutation_x_alpha == NULL)
     {
       for (int k = 0; k < N; k++)
       {
@@ -360,7 +360,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ai = mxGetPi(prhs[2]);
     for (int k = 0; k < plans[i]->N_total; k++)
     {
-      if (plans[i]->flags & NEARFIELD_BOXES)
+      if (plans[i]->permutation_x_alpha == NULL)
       {
         if(ai)
           plans[i]->alpha[k] = ar[k] + _Complex_I*ai[k];
@@ -497,7 +497,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       for (int t = 0; t < d; t++)
       {
-        if (plans[i]->flags & NEARFIELD_BOXES)
+        if (plans[i]->permutation_x_alpha == NULL)
           x[j+t*N] = plans[i]->x[d*j+t];
         else
           x[plans[i]->permutation_x_alpha[j]+t*N] = plans[i]->x[d*j+t];
@@ -517,7 +517,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double *ar = mxGetPr(plhs[0]), *ai = mxGetPi(plhs[0]);
     for (int j = 0; j < N; j++)
     {
-      if (plans[i]->flags & NEARFIELD_BOXES)
+      if (plans[i]->permutation_x_alpha == NULL)
       {
         ar[j] = creal(plans[i]->alpha[j]);
         ai[j] = cimag(plans[i]->alpha[j]);

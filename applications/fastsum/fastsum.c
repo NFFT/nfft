@@ -943,7 +943,7 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   } /* NEARFIELD_BOXES */
   else
   {
-    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+    if ((ths->flags & STORE_PERMUTATION_X_ALPHA) && (ths->eps_I > 0.0))
     {
       ths->permutation_x_alpha = (int *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(int)));
       for (int i=0; i<ths->N_total; i++)
@@ -1011,7 +1011,7 @@ void fastsum_finalize_source_nodes(fastsum_plan *ths)
   } /* NEARFIELD_BOXES */
   else
   {
-    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+    if (ths->permutation_x_alpha)
       NFFT(free)(ths->permutation_x_alpha);
   } /* search tree */
 }
