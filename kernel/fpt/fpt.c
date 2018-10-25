@@ -624,7 +624,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
   R max = -nfft_float_property(NFFT_R_MAX);
-  const R t = LOG10(FABS(threshold));
+  const R threshold_abs = FABS(threshold);
 
   /* Traverse all nodes. */
   x_act = x;
@@ -694,8 +694,8 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
       }
 #endif
       if (*y_act != 0.0)
-        max = FMAX(max,LOG10(FABS(*y_act)));
-      if (max > t)
+        max = FMAX(max,FABS(*y_act));
+      if (max > threshold_abs)
         return 1;
     }
     x_act++;
