@@ -623,7 +623,6 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
   const double *x_act;
   double *y_act, *z_act;
   const double *alpha_act, *beta_act, *gamma_act;
-  R max = -nfft_float_property(NFFT_R_MAX);
   const R threshold_abs = FABS(threshold);
 
   /* Traverse all nodes. */
@@ -693,9 +692,7 @@ static int eval_clenshaw_thresh2(const double *x, double *z, double *y, int size
         *y_act = (a_ld*((*alpha_act)*x_val_act+(*beta_act))+b_ld);
       }
 #endif
-      if (*y_act != 0.0)
-        max = FMAX(max,FABS(*y_act));
-      if (max > threshold_abs)
+      if (FABS(*y_act) > threshold_abs)
         return 1;
     }
     x_act++;
@@ -1234,10 +1231,6 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
           calpha--;
           cbeta--;
           cgamma--;
-//          eval_clenshaw2(set->xcvecs[tau-1], data->steps[tau][l].a11, data->steps[tau][l].a21, clength, clength, degree-1, calpha, cbeta,
-//            cgamma);
-//          eval_clenshaw2(set->xcvecs[tau-1], data->steps[tau][l].a12, data->steps[tau][l].a22, clength, clength, degree, calpha, cbeta,
-//            cgamma);
           eval_clenshaw2(set->xcvecs[tau-1], a11, a21, clength, clength, degree-1, calpha, cbeta,
             cgamma);
           eval_clenshaw2(set->xcvecs[tau-1], a12, a22, clength, clength, degree, calpha, cbeta,
@@ -1250,14 +1243,6 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
           cbeta--;
           cgamma--;
           /* Evaluate P_{2^{tau}-1}^n(\cdot,2^{tau+1}l+1). */
-//          needstab = eval_clenshaw_thresh2(set->xcvecs[tau-1], data->steps[tau][l].a11, data->steps[tau][l].a21, clength,
-//            degree-1, calpha, cbeta, cgamma, threshold);
-//          if (needstab == 0)
-//          {
-//            /* Evaluate P_{2^{tau}}^n(\cdot,2^{tau+1}l+1). */
-//            needstab = eval_clenshaw_thresh2(set->xcvecs[tau-1], data->steps[tau][l].a12, data->steps[tau][l].a22, clength,
-//              degree, calpha, cbeta, cgamma, threshold);
-//          }
           needstab = eval_clenshaw_thresh2(set->xcvecs[tau-1], a11, a21, clength,
             degree-1, calpha, cbeta, cgamma, threshold);
           if (needstab == 0)
@@ -1288,10 +1273,6 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
           a12 = NULL;
           a21 = NULL;
           a22 = NULL;
-//          nfft_free(data->steps[tau][l].a11);
-//          nfft_free(data->steps[tau][l].a12);
-//          nfft_free(data->steps[tau][l].a21);
-//          nfft_free(data->steps[tau][l].a22);
 
           plength_stab = N_stab;
 
@@ -1304,20 +1285,12 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
               clength_2 = plength_stab;
               /* Allocate memory for arrays. */
               data->steps[tau][l].a = (double*) nfft_malloc(sizeof(double)*(clength_1*2+clength_2*2));
-//              data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength_1);
-//              data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength_1);
-//              data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength_2);
-//              data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength_2);
               a11 = data->steps[tau][l].a;
               a12 = a11+clength_1;
               a21 = a12+clength_1;
               a22 = a21+clength_2;
               /* Get the pointers to the three-term recurrence coeffcients. */
               calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gam[1]);
-//              eval_clenshaw2(set->xcvecs[t_stab-2], data->steps[tau][l].a11, data->steps[tau][l].a21, clength_1,
-//                clength_2, degree_stab-1, calpha, cbeta, cgamma);
-//              eval_clenshaw2(set->xcvecs[t_stab-2], data->steps[tau][l].a12, data->steps[tau][l].a22, clength_1,
-//                clength_2, degree_stab+0, calpha, cbeta, cgamma);
               eval_clenshaw2(set->xcvecs[t_stab-2], a11, a21, clength_1,
                 clength_2, degree_stab-1, calpha, cbeta, cgamma);
               eval_clenshaw2(set->xcvecs[t_stab-2], a12, a22, clength_1,
@@ -1329,17 +1302,9 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
               data->steps[tau][l].a = (double*) nfft_malloc(sizeof(double)*clength*2);
               if (m%2 == 0)
               {
-//                data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength);
-//                data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength);
-//                data->steps[tau][l].a21 = 0;
-//                data->steps[tau][l].a22 = 0;
                 a11 = data->steps[tau][l].a;
                 a12 = a11+clength;
                 calpha = &(alpha[2]); cbeta = &(beta[2]); cgamma = &(gam[2]);
-//                eval_clenshaw(set->xcvecs[t_stab-2], data->steps[tau][l].a11, clength,
-//                  degree_stab-2, calpha, cbeta, cgamma);
-//                eval_clenshaw(set->xcvecs[t_stab-2], data->steps[tau][l].a12, clength,
-//                  degree_stab-1, calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a11, clength,
                   degree_stab-2, calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a12, clength,
@@ -1347,17 +1312,9 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
               }
               else
               {
-//                data->steps[tau][l].a11 = 0;
-//                data->steps[tau][l].a12 = 0;
-//                data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength);
-//                data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength);
                 a21 = data->steps[tau][l].a;
                 a22 = a21+clength;
                 calpha = &(alpha[1]); cbeta = &(beta[1]); cgamma = &(gam[1]);
-//                eval_clenshaw(set->xcvecs[t_stab-2], data->steps[tau][l].a21, clength,
-//                  degree_stab-1,calpha, cbeta, cgamma);
-//                eval_clenshaw(set->xcvecs[t_stab-2], data->steps[tau][l].a22, clength,
-//                  degree_stab+0, calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a21, clength,
                   degree_stab-1,calpha, cbeta, cgamma);
                 eval_clenshaw(set->xcvecs[t_stab-2], a22, clength,
@@ -1374,20 +1331,12 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
             a12 = a11+clength_1;
             a21 = a12+clength_1;
             a22 = a21+clength_2;
-//            data->steps[tau][l].a11 = (double*) nfft_malloc(sizeof(double)*clength_1);
-//            data->steps[tau][l].a12 = (double*) nfft_malloc(sizeof(double)*clength_1);
-//            data->steps[tau][l].a21 = (double*) nfft_malloc(sizeof(double)*clength_2);
-//            data->steps[tau][l].a22 = (double*) nfft_malloc(sizeof(double)*clength_2);
             calpha = &(alpha[2]);
             cbeta = &(beta[2]);
             cgamma = &(gam[2]);
             calpha--;
             cbeta--;
             cgamma--;
-//            eval_clenshaw2(set->xcvecs[t_stab-2], data->steps[tau][l].a11, data->steps[tau][l].a21, clength_1, clength_2, degree_stab-1,
-//              calpha, cbeta, cgamma);
-//            eval_clenshaw2(set->xcvecs[t_stab-2], data->steps[tau][l].a12, data->steps[tau][l].a22, clength_1, clength_2, degree_stab+0,
-//              calpha, cbeta, cgamma);
             eval_clenshaw2(set->xcvecs[t_stab-2], a11, a21, clength_1, clength_2, degree_stab-1,
               calpha, cbeta, cgamma);
             eval_clenshaw2(set->xcvecs[t_stab-2], a12, a22, clength_1, clength_2, degree_stab+0,
