@@ -1044,7 +1044,7 @@ void fpt_precompute_1(fpt_set set, const int m, int k_start)
   if (!(set->flags & FPT_NO_FAST_ALGORITHM))
   {
     /* Save recursion coefficients. */
-    data->alphaN = (double*) nfft_malloc(3*(set->t-1)*sizeof(double _Complex));
+    data->alphaN = (double*) nfft_malloc(3*(set->t-1)*sizeof(double));
     data->betaN = data->alphaN + (set->t-1);
     data->gammaN = data->betaN + (set->t-1);
 
