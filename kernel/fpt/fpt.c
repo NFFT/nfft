@@ -127,8 +127,6 @@ typedef struct fpt_set_s_
   fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw
                                                library                       */
 
-  int *lengths; /**< Transform lengths for fftw library */
-
   /* Data for slow transforms. */
   double *xc_slow;
 } fpt_set_s;
@@ -925,21 +923,19 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->work = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
   set->result = (double _Complex*) nfft_malloc((2*set->N)*sizeof(double _Complex));
 
-  set->lengths = (int*) nfft_malloc((set->t/*-1*/)*sizeof(int));
   set->plans_dct2 = (fftw_plan*) nfft_malloc(sizeof(fftw_plan)*(set->t/*-1*/));
   set->kindsr     = (fftw_r2r_kind*) nfft_malloc(2*sizeof(fftw_r2r_kind));
   set->kindsr[0]  = FFTW_REDFT10;
   set->kindsr[1]  = FFTW_REDFT10;
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
-    set->lengths[tau] = plength;
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
     fftw_plan_with_nthreads(nthreads);
 #endif
     set->plans_dct2[tau] =
-      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
+      fftw_plan_many_r2r(1, &plength, 2, (double*)set->work, NULL,
                          2, 1, (double*)set->result, NULL, 2, 1,set->kindsr,
                          0);
 #ifdef _OPENMP
@@ -954,24 +950,21 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->kinds[1]   = FFTW_REDFT01;
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
-    set->lengths[tau] = plength;
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
   fftw_plan_with_nthreads(nthreads);
 #endif
     set->plans_dct3[tau] =
-      fftw_plan_many_r2r(1, &set->lengths[tau], 2, (double*)set->work, NULL,
+      fftw_plan_many_r2r(1, &plength, 2, (double*)set->work, NULL,
                          2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
                          0);
 #ifdef _OPENMP
 }
 #endif
   }
-  nfft_free(set->lengths);
   nfft_free(set->kinds);
   nfft_free(set->kindsr);
-  set->lengths = NULL;
   set->kinds = NULL;
   set->kindsr = NULL;
 

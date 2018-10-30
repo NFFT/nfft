@@ -89,8 +89,6 @@ typedef struct fpt_set_s_
   fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw
                                                library                       */
 
-  int *lengths; /**< Transform lengths for fftw library */
-
   /* Data for slow transforms. */
   double *xc_slow;
 } fpt_set_s;
