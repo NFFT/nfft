@@ -610,6 +610,7 @@ NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,ff
 #define NFSFT_DESTROY_F_HAT  (1U << 10)
 #define NFSFT_DESTROY_X      (1U << 11)
 #define NFSFT_DESTROY_F      (1U << 12)
+#define NFSFT_USE_FSFT       (1U << 17)
 
 /* precompute flags */
 #define NFSFT_NO_DIRECT_ALGORITHM (1U << 13)

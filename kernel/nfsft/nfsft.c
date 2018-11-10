@@ -321,7 +321,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
 
   /* Check if fast algorithm is activated. */
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_USE_FSFT))
   {
   }
   else
@@ -615,7 +615,7 @@ void nfsft_finalize(nfsft_plan *plan)
   if (!plan)
     return;
 
-  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM))
+  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM) && !(plan->flags & NFSFT_USE_FSFT))
   {
     /* Finalise the nfft plan. */
     nfft_finalize(&plan->plan_nfft);
@@ -1120,9 +1120,12 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    plan->plan_nfft.x = plan->x;
-    plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat_intern;
+    if (!(plan->flags & NFSFT_USE_FSFT))
+    {
+      plan->plan_nfft.x = plan->x;
+      plan->plan_nfft.f = plan->f;
+      plan->plan_nfft.f_hat = plan->f_hat_intern;
+    }
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,
      * multiply spherical Fourier coefficients with corresponding normalization
@@ -1250,6 +1253,29 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use NDFT. */
       nfft_trafo_direct(&plan->plan_nfft);
     }
+    else if (plan->flags & NFSFT_USE_FSFT)
+    {
+     // int n = 2*plan->N+2;
+      int N[2];
+      N[0] = 2*plan->N+2;
+      N[1] = 2*plan->N+2;
+
+      for (int j=0; j<N[0]; j++)
+	for (int k=0; k<N[1]; k++)
+	  plan->f[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * ((j+k)%2 ? -1 : 1);
+//	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
+      fftw_plan plan_fftw = FFTW(plan_dft)(2, N, plan->f, plan->f, FFTW_FORWARD, FFTW_ESTIMATE);
+      fftw_execute(plan_fftw);
+      for (int j=0; j<N[0]; j++)
+//	for (int k=j%2-1; k<N[1]; k+=2)
+//	    plan->f[j*N[1]+k] *= -1;
+	for (int k=0; k<N[1]; k++)
+	  if ((j+k)%2)
+	    plan->f[j*N[1]+k] *= -1;
+//            plan->f[j*N[1]+k] *= CEXP(II*KPI*(j + k));
+//          plan->f[j*N[1]+k] *= CEXP(II*KPI*(j-N[0]/2 + k-N[1]/2));
+      fftw_destroy_plan(plan_fftw);
+    }
     else
     {
       /* Use NFFT. */
@@ -1312,9 +1338,12 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    plan->plan_nfft.x = plan->x;
-    plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat;
+    if (!(plan->flags & NFSFT_USE_FSFT))
+    {
+      plan->plan_nfft.x = plan->x;
+      plan->plan_nfft.f = plan->f;
+      plan->plan_nfft.f_hat = plan->f_hat;
+    }
 
 #ifdef MEASURE_TIME
     t0 = getticks();
@@ -1328,6 +1357,24 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fflush(stderr);
       /* Use adjoint NDFT. */
       nfft_adjoint_direct(&plan->plan_nfft);
+    }
+    else if (plan->flags & NFSFT_USE_FSFT)
+    {
+     // int n = 2*plan->N+2;
+      int N[2];
+      N[0] = 2*plan->N+2;
+      N[1] = 2*plan->N+2;
+
+      for (int j=0; j<N[0]; j++)
+	for (int k=0; k<N[1]; k++)
+	  plan->f_hat[j*N[1]+k] = plan->f[j*N[1]+k] * ((j+k)%2 ? -1 : 1);
+      fftw_plan plan_fftw = FFTW(plan_dft)(2, N, plan->f_hat, plan->f_hat, FFTW_BACKWARD, FFTW_ESTIMATE);
+      fftw_execute(plan_fftw);
+      for (int j=0; j<N[0]; j++)
+	for (int k=0; k<N[1]; k++)
+	  if ((j+k)%2)
+	    plan->f_hat[j*N[1]+k] *= -1;
+      fftw_destroy_plan(plan_fftw);
     }
     else
     {
@@ -1480,7 +1527,7 @@ void nfsft_adjoint(nfsft_plan *plan)
 
 void nfsft_precompute_x(nfsft_plan *plan)
 {
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_USE_FSFT))
     return;
 
   /* Pass angle array to NFFT plan. */
