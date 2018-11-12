@@ -35,24 +35,22 @@ nfsft_precompute(N,kappa,0,0*FPT_NO_FAST_ALGORITHM);
 fprintf('Time of precomputation:    %g seconds\n', toc);
 
 % number of nodes
-M = (2*N+2)^2;
+M = (2*N+2) * (N+1);
 
 % nodes
 ph=(-N-1:N)/(2*N+2)*2*pi;
-th=(-N-1:N)/(2*N+2)*2*pi;
+th=(0:N)/(2*N+2)*2*pi;
 [ph,th]=meshgrid(ph,th);
 X=[ph(:)';th(:)'];
-index = th(:)>=0;
 
 fprintf('Performing a fast and direct NFSFT with bandwidth N = %d and M = %d nodes\n', N,M);
 
 % Create plan.
 plan = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT));
-plan2 = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+2^17);
+plan2 = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+NFSFT_USE_FSFT);
 
 % Set nodes.
 nfsft_set_x(plan,X);
-nfsft_set_x(plan2,X);
 
 % set Fourier coefficients
 nfsft_set_f_hat(plan,double(fh));
@@ -85,7 +83,6 @@ f_fsft = nfsft_get_f(plan2);
 
 % random function values for adjoint
 f = rand(M,1);
-f = f.*index;
 
 % adjoint transform
 if(direct)
@@ -116,33 +113,12 @@ fh2_fsft = f_hat(nfsft_get_f_hat(plan2));
 nfsft_finalize(plan);
 nfsft_finalize(plan2);
 
-
-% % Algorithm in Matlab
-% tic
-% f_mat = legendre(0,cos(X(2,:)),'norm').' / sqrt(2*pi) * fh(0,0);
-% fh2_mat = zeros(size(fh.f_hat));
-% %fh2_mat(1)= legendre(0,cos(X(2,:)),'norm') / sqrt(2*pi) * f;
-% for n=1:N
-%     Lp = legendre(n,cos(X(2,:)),'norm') / sqrt(2*pi);
-%     f_mat=f_mat + (flipud(Lp).* exp((-n:0)'*1i*X(1,:))).'* fh(n,-n:0)...
-%      + (Lp(2:end,:).* exp((1:n)'*1i*X(1,:))).'* fh(n,1:n);
-%     
-% %    fh2_mat(n^2+1:n^2+n+1)= (flipud(Lp).* exp(-(-n:0)'*1i*X(1,:)))* f;
-% %    fh2_mat(n^2+n+2:n^2+2*n+1)= (Lp(2:end,:).* exp(-(1:n)'*1i*X(1,:)))* f;
-% end
-% fh2_mat = f_hat(fh2_mat);
-% fprintf('Time in Matlab:            %g seconds\n', toc);
-
 % display error
-fprintf('Relative error trafo fast vs FSFT:     %g\n', norm(f_fast(index)-f_fsft(index))/norm(f_fast(index)));
-% fprintf('Relative error trafo fast vs matlab:     %g\n', norm(f_fast(index)-f_mat(index))/norm(f_mat(index)));
-% fprintf('Relative error trafo direct vs matlab:   %g\n', norm(f_direct(index)-f_mat(index))/norm(f_mat(index)));
+fprintf('Relative error trafo fast vs FSFT:       %g\n', norm(f_fast-f_fsft)/norm(f_fast));
 if(direct)
-fprintf('Relative error trafo FSFT vs direct:     %g\n', norm(f_fsft(index)-f_direct(index))/norm(f_direct(index)));
+fprintf('Relative error trafo FSFT vs direct:     %g\n', norm(f_fsft-f_direct)/norm(f_direct));
 end
-fprintf('Relative error adjoint fast vs FSFT:   %g\n', norm(fh2_fast-fh2_fsft)/norm(fh2_fast));
-% fprintf('Relative error adjoint fast vs matlab:   %g\n', norm(fh2_fast-fh2_mat)/norm(fh2_mat));
-% fprintf('Relative error adjoint direct vs matlab: %g\n', norm(fh2_direct-fh2_mat)/norm(fh2_mat));
+fprintf('Relative error adjoint fast vs FSFT:     %g\n', norm(fh2_fast-fh2_fsft)/norm(fh2_fast));
 if(direct)
 fprintf('Relative error adjoint FSFT vs direct:   %g\n', norm(fh2_fsft-fh2_direct)/norm(fh2_direct));
 end
