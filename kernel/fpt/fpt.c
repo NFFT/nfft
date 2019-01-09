@@ -62,74 +62,8 @@
 
 #define FPT_BREAK_EVEN 4
 
-/**
- * Holds data for a single multiplication step in the cascade summation.
- */
-typedef struct fpt_step_
-{
-  bool stable;                            /**< Indicates if the values
-                                               contained represent a fast or
-                                               a slow stabilized step.        */
-  int Ns;                                 /**< TODO Add comment here.         */
-  int ts;                                 /**< TODO Add comment here.         */
-  double *a;                              /**< The matrix components          */
-//  double *a11,*a12,*a21,*a22;         /**< The matrix components          */
-  double g;                              /**<                                */
-} fpt_step;
+#include "fpt.h"
 
-/**
- * Holds data for a single cascade summation.
- */
-typedef struct fpt_data_
-{
-  fpt_step **steps;                       /**< The cascade summation steps    */
-  int k_start;                            /**< TODO Add comment here.         */
-  double *alphaN;                         /**< TODO Add comment here.         */
-  double *betaN;                          /**< TODO Add comment here.         */
-  double *gammaN;                         /**< TODO Add comment here.         */
-  double alpha_0;                         /**< TODO Add comment here.         */
-  double beta_0;                          /**< TODO Add comment here.         */
-  double gamma_m1;                        /**< TODO Add comment here.         */
-  /* Data for direct transform. */        /**< TODO Add comment here.         */
-  double *_alpha;                          /**< TODO Add comment here.         */
-  double *_beta;                           /**< TODO Add comment here.         */
-  double *_gamma;                          /**< TODO Add comment here.         */
-  bool precomputed;
-} fpt_data;
-
-/**
- * Holds data for a set of cascade summations.
- */
-typedef struct fpt_set_s_
-{
-  int flags;                              /**< The flags                     */
-  int M;                                  /**< The number of DPT transforms  */
-  int N;                                  /**< The transform length. Must be
-                                               a power of two.               */
-  int t;                                  /**< The exponent of N             */
-  fpt_data *dpt;                          /**< The DPT transform data        */
-  double **xcvecs;                        /**< Array of pointers to arrays
-                                               containing the Chebyshev
-                                               nodes                         */
-  double *xc;                             /**< Array for Chebychev-nodes.    */
-  double _Complex *temp;                          /**< */
-  double _Complex *work;                          /**< */
-  double _Complex *result;                        /**< */
-  double _Complex *vec3;
-  double _Complex *vec4;
-  double _Complex *z;
-  fftw_plan *plans_dct3;                  /**< Transform plans for the fftw
-                                               library                       */
-  fftw_plan *plans_dct2;                  /**< Transform plans for the fftw
-                                               library                       */
-  fftw_r2r_kind *kinds;                   /**< Transform kinds for fftw
-                                               library                       */
-  fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw
-                                               library                       */
-
-  /* Data for slow transforms. */
-  double *xc_slow;
-} fpt_set_s;
 
 static inline void abuvxpwy(double a, double b, double _Complex* u, double _Complex* x,
   double* v, double _Complex* y, double* w, int n)
@@ -890,7 +824,7 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
     for (m = 0; m < set->M; m++)
       {
       set->dpt[m].steps = NULL;
-      set->dpt[m].precomputed = FALSE;
+      set->dpt[m].precomputed = false;
       }
   }
   else
@@ -1107,13 +1041,13 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
                          cascade for stabilization                           */
   int degree_stab;  /**< Degree of polynomials for the current level in the
                          cascade for stabilization                           */
-  /*double *a11;      /**< Array containing function values of the
+  /*double *a11;*/      /**< Array containing function values of the
                          (1,1)-component of U_k^n.                           */
-  /*double *a12;      /**< Array containing function values of the
+  /*double *a12;*/      /**< Array containing function values of the
                          (1,2)-component of U_k^n.                           */
-  /*double *a21;      /**< Array containing function values of the
+  /*double *a21;*/      /**< Array containing function values of the
                          (2,1)-component of U_k^n.                           */
-  /*double *a22;      /**< Array containing function values of the
+  /*double *a22;*/      /**< Array containing function values of the
                          (2,2)-component of U_k^n.                           */
   const double *calpha;
   const double *cbeta;
@@ -1346,7 +1280,7 @@ void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta,
       /** Increase polynomial degree to next power of two. */
       plength = plength << 1;
     }
-    data->precomputed = TRUE;
+    data->precomputed = true;
   }
 
   if (!(set->flags & FPT_NO_DIRECT_ALGORITHM))
