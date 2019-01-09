@@ -1,6 +1,7 @@
 %TEST_NFSOFT Example program: Advanced usage principles
 N = 32;     % bandwidth (polynomial degree)
 nfsoft_flags = NFSOFT_NORMALIZED; % L2-normalized Wigner functions (rotational harmonics)
+% nfsoft_flags = bitor(NFSOFT_NORMALIZED,NFSOFT_USE_DPT);
 nfft_flags = bitshift(1,12);      % NFFT_OMP_BLOCKWISE_ADJOINT (default)
 nfft_cutoff = 6;
 fpt_kappa = 1000;   % threshold (affects accuracy, 1000 is the default)
@@ -22,7 +23,7 @@ fh = rand(nfsoft_f_hat_size(N),1)./(1:nfsoft_f_hat_size(N)).';
 
 % compare different oversamplings fftw_size (must be >= 2*N+2 and even, default 4*N+4)
 % (higher oversampling means better accuracy but more time and memory required)
-for fftw_size = [8*N, 4*N+4]
+for fftw_size = [3*N, 4*N+4]
     fprintf('\nPerform NFSOFT with bandwidth N = %d and oversampling %d\n',N,fftw_size)
 
     % create NFSOFT plan

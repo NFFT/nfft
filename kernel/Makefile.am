@@ -30,9 +30,15 @@ endif
 if HAVE_NFSOFT
   LIB_NFSOFT=nfsoft/libnfsoft.la
   DIR_NFSOFT=nfsoft
+if HAVE_THREADS
+  LIB_NFSOFT_THREADS=nfsoft/libnfsoft_threads.la
+else
+  LIB_NFSOFT_THREADS=
+endif
 else
   LIB_NFSOFT=
   DIR_NFSOFT=
+  LIB_NFSOFT_THREADS=
 endif
 
 if HAVE_NNFFT
@@ -95,7 +101,7 @@ if HAVE_THREADS
   libkernel_threads_la_SOURCES =
 
   libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
-    $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT) \
+    $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
     solver/libsolver.la
 
 if HAVE_OPENMP

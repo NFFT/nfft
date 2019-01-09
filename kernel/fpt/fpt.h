@@ -19,6 +19,11 @@
 #ifndef _FPT_H_
 #define _FPT_H_
 
+#include <stdbool.h>
+
+void fpt_precompute_1(fpt_set set, const int m, int k_start);
+void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta, double *gam, int k_start, const double threshold);
+
 /**
  * Holds data for a single multiplication step in the cascade summation.
  */
@@ -29,8 +34,9 @@ typedef struct fpt_step_
                                                a slow stabilized step.        */
   int Ns;                                 /**< TODO Add comment here.         */
   int ts;                                 /**< TODO Add comment here.         */
-  double **a11,**a12,**a21,**a22;         /**< The matrix components          */
-  double *g;                              /**<                                */
+  double *a;                              /**< The matrix components          */
+//  double *a11,*a12,*a21,*a22;         /**< The matrix components          */
+  double g;                              /**<                                */
 } fpt_step;
 
 /**
@@ -47,9 +53,10 @@ typedef struct fpt_data_
   double beta_0;                          /**< TODO Add comment here.         */
   double gamma_m1;                        /**< TODO Add comment here.         */
   /* Data for direct transform. */        /**< TODO Add comment here.         */
-  double *alpha;                          /**< TODO Add comment here.         */
-  double *beta;                           /**< TODO Add comment here.         */
-  double *gamma;                          /**< TODO Add comment here.         */
+  double *_alpha;                         /**< TODO Add comment here.         */
+  double *_beta;                          /**< TODO Add comment here.         */
+  double *_gamma;                         /**< TODO Add comment here.         */
+  bool precomputed;
 } fpt_data;
 
 /**
@@ -81,8 +88,6 @@ typedef struct fpt_set_s_
                                                library                       */
   fftw_r2r_kind *kindsr;                  /**< Transform kinds for fftw
                                                library                       */
-
-  int *lengths; /**< Transform lengths for fftw library */
 
   /* Data for slow transforms. */
   double *xc_slow;

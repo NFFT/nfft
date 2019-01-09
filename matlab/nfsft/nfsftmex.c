@@ -159,8 +159,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 /**  Disabled for performance issues caused by non-thread-safe mxMalloc()
   *  and many calls of nfft_malloc in nfsft_precompute/fpt_precompute...
-  *    nfft_mex_install_mem_hooks();
   */
+    nfft_mex_install_mem_hooks();
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;
@@ -216,8 +216,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       get_nmffc(prhs,&n,&m,&f,&f2,&c);
       i = mkplan();
       nfsft_init_guru(plans[i],n,m,f | NFSFT_MALLOC_X | NFSFT_MALLOC_F |
-        NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT
-        | FFT_OUT_OF_PLACE, c);
+        NFSFT_MALLOC_F_HAT, f2 | PRE_PHI_HUT | PRE_PSI | FFTW_INIT, c);
       init_values_zero(plans[i]);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }

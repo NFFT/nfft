@@ -109,7 +109,7 @@ fprintf('Time in Matlab:            %g seconds\n', toc);
 
 % display error
 fprintf('Relative error trafo fast vs matlab:     %g\n', norm(f_fast-f_mat)/norm(f_mat));
-fprintf('Relative error trafo direct vs matlab:   %g\n', norm(f_fast-f_mat)/norm(f_mat));
+fprintf('Relative error trafo direct vs matlab:   %g\n', norm(f_direct-f_mat)/norm(f_mat));
 fprintf('Relative error trafo fast vs direct:     %g\n', norm(f_fast-f_direct)/norm(f_direct));
 fprintf('Relative error adjoint fast vs matlab:   %g\n', norm(fh2_fast-fh2_mat)/norm(fh2_mat));
 fprintf('Relative error adjoint direct vs matlab: %g\n', norm(fh2_direct-fh2_mat)/norm(fh2_mat));
