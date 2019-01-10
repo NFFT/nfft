@@ -41,10 +41,13 @@ FFTW_PATIENT = UInt32(1)<<5
 FFTW_ESTIMATE = UInt32(1)<<6
 FFTW_WISDOM_ONLY = UInt32(1)<<21
 
-#default flag values
+# default flag values
 f1_default_1d = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE)
 f1_default = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT)
 f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
+
+# default window cut off
+default_window_cut_off = ccall(("nfft_get_default_window_cut_off", lib_path),Int64,())
 
 # dummy struct for C
 mutable struct nfft_plan
@@ -103,7 +106,7 @@ function Plan(N::NTuple{D,Integer},M::Integer) where {D}
 	Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(8),f1,f2_default)
 end
 
-function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(8),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
+function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(default_window_cut_off),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
 	@info "You are using the guru interface. Please consult the README if you are having trouble."
 
     # safety checks
