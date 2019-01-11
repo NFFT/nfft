@@ -25,7 +25,7 @@ dist_nfsftmatlab_DATA = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_traf
         NFSFT_PRESERVE_F_HAT.m nfsft_set_f_hat.m nfsft_set_f.m nfsft_set_x.m \
         nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m gl.m lgwt.m simple_test.m \
         nfsft_get_f_hat_linear.m nfsft_set_f_hat_linear.m projection.m nfsft.m test_nfsft.m \
-	nfsft_get_num_threads.m
+        nfsft_get_num_threads.m FPT_NO_FAST_ALGORITHM.m
 
 # target all-am builds .libs/libnfsft@matlab_mexext@
 nfsftmex@matlab_mexext@: all-am
