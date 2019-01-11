@@ -79,7 +79,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="3:0:1"
+SHARED_VERSION_INFO="4:0:0"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
