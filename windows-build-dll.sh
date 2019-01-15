@@ -28,6 +28,7 @@ OCTAVEVERSION=4.4.1
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
+SOVERSION=4
 
 # read the options
 TEMP=`getopt -o o:m:f:a:g:v: --long octave:,matlab:,fftw:,arch:,gcc-arch:,matlab-version: -n 'nfft-build-dll.sh' -- "$@"`
@@ -186,11 +187,11 @@ make check
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DLLDIR=nfft-"$NFFTVERSION"-dll$ARCH$OMPSUFFIX
 
-gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-2.dll -Wl,-Bstatic -lwinpthread $OMPLIBS -Wl,--output-def,.libs/libnfft3$THREADSSUFFIX-2.def
+gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-$SOVERSION.dll -Wl,-Bstatic -lwinpthread $OMPLIBS -Wl,--output-def,.libs/libnfft3$THREADSSUFFIX-$SOVERSION.def
 
 mkdir "$DLLDIR"
-cp ".libs/libnfft3$THREADSSUFFIX-2.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-2.dll"
-cp ".libs/libnfft3$THREADSSUFFIX-2.def" "$DLLDIR/libnfft3$THREADSSUFFIX-2.def"
+cp ".libs/libnfft3$THREADSSUFFIX-$SOVERSION.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-$SOVERSION.dll"
+cp ".libs/libnfft3$THREADSSUFFIX-$SOVERSION.def" "$DLLDIR/libnfft3$THREADSSUFFIX-$SOVERSION.def"
 cp "$NFFTDIR"/include/nfft3.h "$DLLDIR"/nfft3.h
 cp "$NFFTDIR"/include/nfft3mp.h "$DLLDIR"/nfft3mp.h
 cp "$FFTWDIR"/api/fftw3.h "$DLLDIR"/fftw3.h
@@ -200,11 +201,11 @@ The NFFT library was compiled with double precision support for' $ARCH'-bit Wind
 using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
 
 In order to link the .dll file from Visual C++, you should run
-    lib /def:libnfft3'$THREADSSUFFIX'-2.def
+    lib /def:libnfft3'$THREADSSUFFIX'-'$SOVERSION'.def
 
 As a small example, you can compile the NFFT simple test with the following command
 
-	gcc -O3 simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-2.dll
+	gcc -O3 simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-'$SOVERSION'.dll
 ' "$READMECONTENT" "$FFTWREADME" > "$DLLDIR"/readme-windows.txt
 unix2dos "$DLLDIR"/readme-windows.txt
 cp "$NFFTDIR"/COPYING "$DLLDIR"/COPYING
@@ -214,7 +215,7 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
-  if [ ! "$MATLABVERSION" == "" ]; then
+  if [ "$MATLABVERSION" == "" ]; then
     "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -nodisplay -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
     MATLABVERSION=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
