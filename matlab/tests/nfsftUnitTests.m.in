@@ -302,7 +302,7 @@ classdef nfsftUnitTests
       result = h.check_many_quadrature(h.testcases_gl_quadrature_online, h.initializers_quadrature, {nfsftTestcaseTrafoDelegate('adjoint')});
 
       % Don't perform large test in 32bit Octave
-      archstring = computer('arch');
+      archstring = computer;
       if isempty(strfind(archstring,'i686'))
         result2 = h.check_many_quadrature(h.testcases_gl_quadrature_online_large, h.initializers_quadrature_large, {nfsftTestcaseTrafoDelegate('adjoint')});
         result = min(result,result2);
