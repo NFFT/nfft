@@ -7,7 +7,7 @@
 # The script is known to work on MacOS High Sierra with MacPorts.
 #
 # At least the following packages are required:
-# getopt, gcc9, cunit, octave-devel, gsed
+# getopt, gcc8, cunit, octave, gsed
 #
 # Additionally, the FFTW3 library available in MacPorts does not support
 # threads at the time of writing. Therefore, it is assumed that an up-to-date
@@ -25,7 +25,7 @@
 set -ex
 
 FFTWDIR=/opt/local
-GCC=gcc-mp-9
+GCC=gcc-mp-8
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/opt/local
