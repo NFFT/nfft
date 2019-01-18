@@ -7,7 +7,7 @@
 # The script is known to work on MacOS High Sierra with MacPorts.
 #
 # At least the following packages are required:
-# getopt, gcc7, cunit, octave-devel
+# getopt, gcc9, cunit, octave-devel, gsed
 #
 # Additionally, the FFTW3 library available in MacPorts does not support
 # threads at the time of writing. Therefore, it is assumed that an up-to-date
@@ -24,8 +24,8 @@
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
-FFTWDIR=/opt/fftw3
-GCC=gcc-mp-7
+FFTWDIR=/opt/local
+GCC=gcc-mp-9
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/opt/local
@@ -144,13 +144,13 @@ done
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled for
-64-bit MacOS using GCC '$GCCVERSION' and Matlab '$MATLABVERSION'
+echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled
+for 64-bit MacOS using GCC '$GCCVERSION' and Matlab '$MATLABVERSION'
 and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 else
-echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled for
-64-bit MacOS using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
+echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled
+for 64-bit MacOS using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 fi
 
