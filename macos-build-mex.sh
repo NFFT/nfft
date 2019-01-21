@@ -4,7 +4,7 @@
 # A Matlab installation must be specified in order to build the
 # Matlab interface. The paths should not contain spaces!
 #
-# The script is known to work on MacOS High Sierra with MacPorts.
+# The script is known to work on MacOS Mojave with MacPorts.
 #
 # At least the following packages are required:
 # getopt, gcc8, cunit, octave, gsed
