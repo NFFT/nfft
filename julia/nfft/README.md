@@ -4,7 +4,7 @@ Julia NFFT Interface
 General Remarks
 ---------------
 
-* This interface was developed for Julia 1.0.0 and does not work with previous versions due to significant changes.
+* This interface was tested with Julia 1.0.0 and Julia 1.1.0. It does not work with previous versions due to significant changes.
 * You can enable compilation of the required library by adding `--enable-julia` to the configure call. Please consult the main README for further information.
 * The C library does not depend on your Julia installation.
 
