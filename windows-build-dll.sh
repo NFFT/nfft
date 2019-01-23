@@ -152,7 +152,7 @@ The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 cd "$NFFTDIR"
-./bootstrap.sh
+#./bootstrap.sh
 make distclean || true
 
 for OMPYN in 0 1
