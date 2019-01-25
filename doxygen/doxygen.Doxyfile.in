@@ -1567,7 +1567,7 @@ EXTRA_SEARCH_MAPPINGS  =
 # The default value is: YES.
 #
 #deactivated because this is set by automake as environment variable
-#GENERATE_LATEX         = NO
+GENERATE_LATEX         = $(GENERATE_LATEX)
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
