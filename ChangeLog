@@ -1,5 +1,20 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.0:
+
+    Bugfixes
+    - #83 _Complex is not supported by some compilers. 
+
+    Enhancements
+    - #62 Extend NFFT Matlab interface to d>4.
+    - #64 Faster NFFT in 4D and 5D.
+    - #72 Add support for higher bandwidth in NFSFT and improve parallelization.
+    - #73 fastsum: Skip nearfield (pre-)computations when eps_I is zero.
+    - #76 Add NFSOFT Matlab class.
+    - #77 Add Mex interface for FPT.
+    - #81 OpenMP parallelization of NFSOFT.
+    - #82 Add NFFT Julia interface.
+
 Changes in version 3.4.1:
 
     Bugfixes
@@ -7,6 +22,7 @@ Changes in version 3.4.1:
     - #66 `ABS_SRCDIR` might return a wrong path.
     - #70 infft1d is missing in release.
     - Solved compatibility problem with MATLAB 2018a.
+    - Fixed wrong libs flag when compiling for Octave and non-combined fftw3_threads.
 
     Enhancements
     - #52 Compile mex interface against GNU Octave in TravisCI.

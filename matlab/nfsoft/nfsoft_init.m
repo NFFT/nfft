@@ -8,22 +8,22 @@
 % NFSOFT_USE_DPT, NFSOFT_USE_NDFT (default=0)
 
 function plan = nfsoft_init(N, M, ...
-    nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, nn_oversampled)
+    nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, fftw_size)
 narginchk(2,7);
-if(nargin<7)
-    nn_oversampled=8*N; % oversampling of NFFT
-if(nargin<6)
+if(nargin<7 || isempty(fftw_size))
+    fftw_size=4*N+4; % oversampling of NFFT
+end
+if(nargin<6 || isempty(fpt_kappa))
     fpt_kappa=1000;
-if(nargin<5)
+end
+if(nargin<5 || isempty(nfft_cutoff))
     nfft_cutoff=6;
-if(nargin<4)
+end
+if(nargin<4 || isempty(nfft_flags))
     nfft_flags=0;
-if( nargin<3)
+end
+if(nargin<3 || isempty(nfsoft_flags))
     nfsoft_flags=0;
 end
-end
-end
-end
-end
 plan = nfsoftmex('init',N,M,nfsoft_flags,nfft_flags,nfft_cutoff,...
-    fpt_kappa, nn_oversampled);
+    fpt_kappa, fftw_size);

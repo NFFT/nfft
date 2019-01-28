@@ -1,4 +1,4 @@
-%NFFT_INIT_GURU Initialise plans, no error handling
+%NFFT_INIT_GURU Initialise plans
 %   Matlab might run into a segmentation violation for wrong parameters
 %
 %   nfft_init_guru(d,N1,...,Nd,M,n1,...,nd,m,flags,fftw_flags)

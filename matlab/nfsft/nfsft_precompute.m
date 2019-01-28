@@ -17,6 +17,10 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 function nfsft_precompute(N,kappa,nfsft_flags,fpt_flags)
+if ~exist('kappa','var')
+  kappa = 1000;
+end
+
 if ~exist('nfsft_flags','var')
   nfsft_flags = 0;
 end

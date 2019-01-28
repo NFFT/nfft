@@ -45,21 +45,42 @@ make doc
 
 Building
 --------
-When working from a source repository, your need to run libtoolize and autoreconf first. A bash script to do this is provided.
+When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
 ```
 ./bootstrap.sh
 ```
 
 The rest of the build process is standard.
 ```
-./configure (add options as necessary)
+./configure --enable-all --enable-openmp [add options as necessary, see below]
+```
+
+Alternatively, you might run the configure script for Matlab.
+```
+./configure --enable-all --enable-openmp --with-matlab=/path/to/matlab
+```
+
+Here are some useful optional flags for `./configure`:
+* `--enable-all` specifies that all modules should be compiled,
+* `--enable-openmp` enables the multicore support and
+* `--enable-julia` specifies that the julia interface will be compiled.
+* `--with-matlab=path/to/matlab` specifies a path of Matlab, and
+* `--with-octave=path/to/octave` does the same for GNU Octave.
+* For a list of all available options, run `./configure --help`.
+
+Build the software.
+```
 make
-make install
 ```
 
 Optionally, unit tests may be run.
 ```
 make check
+```
+
+Optionally, install NFFT on your system.
+```
+make install
 ```
 
 Citing
@@ -138,6 +159,7 @@ examples (dir)     | Simple examples for using NFFT routines
 include (dir)      | Header files
 INSTALL            | Installation instructions
 install-sh         | Used by configure script
+julia (dir)        | Julia interface for nfft
 kernel (dir)       | Source code for core library routines
 ltmain.sh          | Used by configure script
 Makefile.am        | Automake Makefile template

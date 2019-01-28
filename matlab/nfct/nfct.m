@@ -124,6 +124,7 @@ function delete(h)
 % Destructor
 	if(h.plan_is_set)
 		nfctmex('finalize',h.plan);
+		h.plan_is_set=false;
 	end %if
 end %function
 

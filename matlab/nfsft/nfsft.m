@@ -17,7 +17,7 @@
 % This class provides a Matlab interface to the NFSFT module.
 %
 % Examples
-%   See Matlab scripts test_nfsft.m.
+%   See Matlab scripts simple_test.m.
 classdef nfsft < handle
 
 properties(Dependent=true)
@@ -33,7 +33,7 @@ properties(SetAccess='private')
     nfsft_flags = 0;
     fpt_flags = 0;
     nfft_cutoff = 6;
-    nfft_flags = 4096;   % NFFT_OMP_BLOCKWISE_ADJOINT
+    nfft_flags = bitshift(1,12);   % NFFT_OMP_BLOCKWISE_ADJOINT
 end %properties
 
 properties(Hidden=true,SetAccess='private',GetAccess='private')
@@ -71,19 +71,19 @@ function h=nfsft(N, M, nfsft_flags, kappa, nfft_cutoff, fpt_flags, nfft_flags)
     if (nargin<2)
         error('Too few arguments')
     end
-    if exist('nfsft_flags','var')
+    if exist('nfsft_flags','var') && ~isempty(nfsft_flags)
         h.nfsft_flags=nfsft_flags;
     end
-    if exist('kappa','var')
+    if exist('kappa','var') && ~isempty(kappa)
         h.kappa=kappa;
     end
-    if exist('nfft_cutoff','var')
+    if exist('nfft_cutoff','var') && ~isempty(nfft_cutoff)
         h.nfft_cutoff=nfft_cutoff;
     end
-    if exist('fpt_flags','var')
+    if exist('fpt_flags','var') && ~isempty(fpt_flags)
         h.fpt_flags=fpt_flags;
     end
-    if exist('nfft_flags','var')
+    if exist('nfft_flags','var') && ~isempty(nfft_flags)
         h.nfft_flags=nfft_flags;
     end
     
@@ -99,14 +99,15 @@ function delete(h)
 % Destructor
     if(h.plan_is_set)
         nfsftmex('finalize',h.plan);
+        h.plan_is_set=false;
     end %if
 end %function
 
 % Set functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function set.N(h,N)
-    if( ~isscalar(N) || (N<1) || (N>1024) || round(N)~=N )
-        error('The degree N must be a positive integer up to 1024.')
+    if( ~isscalar(N) || (N<1) || (N>4096) || round(N)~=N )
+        error('The degree N must be a positive integer up to 4096.')
     else
         h.N=N;
     end %if
@@ -146,7 +147,6 @@ function set.x(h,x)
     else
         x(1,:)=mod(x(1,:),2*pi);
         nfsftmex('set_x',h.plan,x);
-        nfsftmex('precompute_x',h.plan);
         h.x_is_set=true;
     end %if
 end %function

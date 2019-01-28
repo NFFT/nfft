@@ -23,12 +23,12 @@ dist_nfsftmatlab_DATA = cc.m Contents.m f_hat_index.m ndsft_adjoint.m ndsft_traf
         nfsft_init.m NFSFT_NO_DIRECT_ALGORITHM.m NFSFT_NO_FAST_ALGORITHM.m \
         NFSFT_NORMALIZED.m nfsft_precompute_x.m nfsft_precompute.m \
         NFSFT_PRESERVE_F_HAT.m nfsft_set_f_hat.m nfsft_set_f.m nfsft_set_x.m \
-        nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m gl.m simple_test.m \
+        nfsft_trafo.m NFSFT_USE_DPT.m NFSFT_USE_NDFT.m gl.m lgwt.m simple_test.m \
         nfsft_get_f_hat_linear.m nfsft_set_f_hat_linear.m projection.m nfsft.m test_nfsft.m \
-	nfsft_get_num_threads.m
+        nfsft_get_num_threads.m FPT_NO_FAST_ALGORITHM.m
 
 # target all-am builds .libs/libnfsft@matlab_mexext@
-nfsftmex@matlab_mexext@: all-am 
+nfsftmex@matlab_mexext@: all-am
 	rm -f ./nfsftmex@matlab_mexext@
 	$(LN_S) .libs/libnfsft@matlab_mexext@ ./nfsftmex@matlab_mexext@
 
@@ -38,9 +38,9 @@ clean: clean-am
 	rm -f ./nfsftmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nfsftmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnfsft@matlab_mexext@ $(libdir)/nfsftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnfsft@matlab_mexext@ $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nfsftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsftmex@matlab_mexext@
 

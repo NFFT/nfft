@@ -709,8 +709,8 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
 #ifdef MEASURE_TIME
   t0 = getticks();
 #endif
-  /** precompute spline values for near field*/
-  if (!(ths->flags & EXACT_NEARFIELD))
+  /** precompute spline values for near field */
+  if (ths->eps_I > 0.0 && !(ths->flags & EXACT_NEARFIELD))
   {
     if (ths->d == 1)
 #ifdef _OPENMP
@@ -798,7 +798,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   ths->eps_B = eps_B; /* =K(1.0)/K(16.0); *//** outer boundary */
 
   /** init spline for near field computation */
-  if (!(ths->flags & EXACT_NEARFIELD))
+  if (ths->eps_I > 0.0 && !(ths->flags & EXACT_NEARFIELD))
   {
     if (ths->d == 1)
     {
@@ -852,8 +852,8 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
         ths->Ad = 2 * (ths->p) * (ths->p);
         ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
       }
-    }
-  }
+    } /* multi-dimensional case */
+  } /* !EXACT_NEARFIELD == spline approximation in near field AND eps_I > 0 */
 
   ths->n = nn;
   for (t = 0; t < d; t++)
@@ -920,30 +920,36 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   ths->mv1.f = ths->alpha;
   ths->mv1.f_hat = ths->f_hat;
   
+  ths->box_offset = NULL;
+  ths->box_alpha = NULL;
+  ths->box_x = NULL;
   ths->permutation_x_alpha = NULL;
 
   if (ths->flags & NEARFIELD_BOXES)
   {
-    ths->box_count_per_dim = (int)(LRINT(FLOOR((K(0.5) - ths->eps_B) / ths->eps_I))) + 1;
-    ths->box_count = 1;
-    for (t = 0; t < ths->d; t++)
-      ths->box_count *= ths->box_count_per_dim;
+    if (ths->eps_I > 0.0)
+    {
+      ths->box_count_per_dim = (int)(LRINT(FLOOR((K(0.5) - ths->eps_B) / ths->eps_I))) + 1;
+      ths->box_count = 1;
+      for (t = 0; t < ths->d; t++)
+        ths->box_count *= ths->box_count_per_dim;
 
-    ths->box_offset = (int *) NFFT(malloc)((size_t)(ths->box_count + 1) * sizeof(int));
+      ths->box_offset = (int *) NFFT(malloc)((size_t)(ths->box_count + 1) * sizeof(int));
 
-    ths->box_alpha = (C *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(C)));
+      ths->box_alpha = (C *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(C)));
 
-    ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
-  }
+      ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
+    } /* eps_I > 0 */
+  } /* NEARFIELD_BOXES */
   else
   {
-    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+    if ((ths->flags & STORE_PERMUTATION_X_ALPHA) && (ths->eps_I > 0.0))
     {
       ths->permutation_x_alpha = (int *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(int)));
       for (int i=0; i<ths->N_total; i++)
         ths->permutation_x_alpha[i] = i;
     }
-  }
+  } /* search tree */
 }
 
 void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_oversampled, int m)
@@ -996,15 +1002,18 @@ void fastsum_finalize_source_nodes(fastsum_plan *ths)
 
   if (ths->flags & NEARFIELD_BOXES)
   {
-    NFFT(free)(ths->box_offset);
-    NFFT(free)(ths->box_alpha);
-    NFFT(free)(ths->box_x);
-  }
+    if (ths->eps_I > 0.0)
+    {
+      NFFT(free)(ths->box_offset);
+      NFFT(free)(ths->box_alpha);
+      NFFT(free)(ths->box_x);
+    }
+  } /* NEARFIELD_BOXES */
   else
   {
-    if (ths->flags & STORE_PERMUTATION_X_ALPHA)
+    if (ths->permutation_x_alpha)
       NFFT(free)(ths->permutation_x_alpha);
-  }
+  } /* search tree */
 }
 
 /** finalization of fastsum plan */
@@ -1019,7 +1028,7 @@ void fastsum_finalize_target_nodes(fastsum_plan *ths)
 /** finalization of fastsum plan */
 void fastsum_finalize_kernel(fastsum_plan *ths)
 {
-  if (!(ths->flags & EXACT_NEARFIELD))
+  if (ths->eps_I > 0.0 && !(ths->flags & EXACT_NEARFIELD))
     NFFT(free)(ths->Add);
 
 #ifdef _OPENMP
@@ -1087,16 +1096,14 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
   t0 = getticks();
 #endif
 
-  if (ths->flags & NEARFIELD_BOXES)
+  if (ths->eps_I > 0.0)
   {
-    BuildBox(ths);
-  }
-  else
-  {
-    /** sort source knots */
-	
-    BuildTree(ths->d, 0, ths->x, ths->alpha, ths->permutation_x_alpha, ths->N_total);
-  }
+    if (ths->flags & NEARFIELD_BOXES)
+      BuildBox(ths);
+    else
+    /** sort source knots for search tree */
+      BuildTree(ths->d, 0, ths->x, ths->alpha, ths->permutation_x_alpha, ths->N_total);
+  } /* eps_I > 0 */
 
 #ifdef MEASURE_TIME
   t1 = getticks();
@@ -1219,31 +1226,38 @@ void fastsum_trafo(fastsum_plan *ths)
 #ifdef MEASURE_TIME
   t0 = getticks();
 #endif
-  /** add near field */
+
+  /** write far field to output */
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j,k,t)
+  #pragma omp parallel for default(shared) private(j)
 #endif
   for (j = 0; j < ths->M_total; j++)
-  {
-    R ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
+    ths->f[j] = ths->mv2.f[j];
 
-    if (ths->flags & NEARFIELD_BOXES)
+  if (ths->eps_I > 0.0)
+  {
+    /** add near field */
+  #ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(j,k,t)
+  #endif
+    for (j = 0; j < ths->M_total; j++)
     {
-      ths->f[j] = ths->mv2.f[j] + SearchBox(ths->y + ths->d * j, ths);
-    }
-    else
-    {
-      for (t = 0; t < ths->d; t++)
+      R ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
+
+      if (ths->flags & NEARFIELD_BOXES)
+        ths->f[j] += SearchBox(ths->y + ths->d * j, ths);
+      else
       {
-        ymin[t] = ths->y[ths->d * j + t] - ths->eps_I;
-        ymax[t] = ths->y[ths->d * j + t] + ths->eps_I;
+        for (t = 0; t < ths->d; t++)
+        {
+          ymin[t] = ths->y[ths->d * j + t] - ths->eps_I;
+          ymax[t] = ths->y[ths->d * j + t] + ths->eps_I;
+        }
+        ths->f[j]
+         += SearchTree(ths->d, 0, ths->x, ths->alpha, ymin, ymax, ths->N_total,
+             ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
       }
-      ths->f[j] = ths->mv2.f[j]
-          + SearchTree(ths->d, 0, ths->x, ths->alpha, ymin, ymax, ths->N_total,
-              ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags);
     }
-    /* ths->f[j] = ths->mv2.f[j]; */
-    /* ths->f[j] = SearchTree(ths->d,0, ths->x, ths->alpha, ymin, ymax, ths->N_total, ths->k, ths->kernel_param, ths->Ad, ths->Add, ths->p, ths->flags); */
   }
 
 #ifdef MEASURE_TIME

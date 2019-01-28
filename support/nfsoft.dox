@@ -32,17 +32,6 @@
  * \arg plan a pointer to a \ref nfsoft_plan structure
  */
 
-/*! \fn fpt_set nfsoft_SO3_single_fpt_init(int l, int k, int m, unsigned int flags, int kappa)
- * Computes the FPT transform.
- *
- * \arg coeffs the Chebychev coefficients that should be transformed
- * \arg set the FPT-set containing precomputed data
- * \arg l the polynomial degree
- * \arg k the first order
- * \arg m the second order
- * \arg nfsoft_flags
- */
-
 /*! \fn void nfsoft_init(nfsoft_plan *plan, int N, int M)
  * Creates a NFSOFT transform plan.
  *
@@ -76,6 +65,19 @@
  * \arg nfft_cutoff the NFFT cutoff parameter
  *
  * \author Antje Vollrath
+ */
+
+/*! \fn void nfsoft_init_guru_advanced(nfsoft_plan *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int fftw_size)
+ * Creates a  NFSOFT transform plan.
+ *
+ * \arg plan a pointer to a \ref nfsoft_plan structure
+ * \arg N the bandwidth \f$N \in \mathbb{N}_0\f$
+ * \arg M the number of nodes \f$M \in \mathbb{N}\f$
+ * \arg nfsoft_flags the NFSFT flags
+ * \arg nfft_flags the NFFT flags
+ * \arg fpt_kappa a parameter contolling the accuracy of the FPT
+ * \arg nfft_cutoff the NFFT cutoff parameter
+ * \arg fftw_size the size of the 3D FFTW transform inside the NFFT ( fftw_size \f$= (2N+2)\,\sigma\f$, where \f$\sigma\ge1\f$ is the oversampling factor) 
  */
 
 /*! \fn void nfsoft_trafo(nfsoft_plan *plan_nfsoft)
@@ -313,9 +315,9 @@
  */
 
 /*! \def NFSOFT_INDEX(m,n,l,B)
- * These macro expands to the index \f$i\f$
+ * This macro expands to the index \f$i\f$
  * corresponding to the SO(3) Fourier coefficient
- * \f$f_hat^{mn}_l\f$ for \f$l=0,...,B\f$, \f$m,n =-l,...,l\f$ with
+ * \f$\hat f^{mn}_l\f$ for \f$l=0,...,B\f$, \f$m,n =-l,...,l\f$ with
  */
 
 /*! \def NFSOFT_F_HAT_SIZE(B)

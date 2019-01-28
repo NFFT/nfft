@@ -90,7 +90,7 @@ classdef nfftTestcaseTrafoDelegate
           val = 48 * eps;
         otherwise
           err = pi * (sqrt(m) + m) * sqrt(sqrt(1 - 1/2)) * exp(-2*pi * m * sqrt(1 - 1 / 2));
-          val = max(0.3 * err, 2100 * eps);
+          val = max(0.33 * err, 2500 * eps);
       end
     end
   end

@@ -49,6 +49,9 @@
 /* Include private API header. */
 #include "api.h"
 
+#ifdef _OPENMP
+#include "../fpt/fpt.h"
+#endif
 
 /** \addtogroup nfsft
  * \{
@@ -81,7 +84,11 @@
  *
  * \author Jens Keiner
  */
-static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0};
+#ifdef _OPENMP
+  static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0,0};
+#else
+  static struct nfsft_wisdom wisdom = {false,0U,-1,-1,0,0,0,0,0};
+#endif
 
 /**
  * Converts coefficients \f$\left(b_k^n\right)_{k=0}^M\f$ with
@@ -261,8 +268,8 @@ void nfsft_init_advanced(nfsft_plan* plan, int N, int M,
                          unsigned int flags)
 {
   /* Call nfsft_init_guru with the flags and default NFFT cut-off. */
-  nfsft_init_guru(plan, N, M, flags, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | NFFT_OMP_BLOCKWISE_ADJOINT |
-                         FFT_OUT_OF_PLACE, NFSFT_DEFAULT_NFFT_CUTOFF);
+  nfsft_init_guru(plan, N, M, flags, PRE_PHI_HUT | PRE_PSI | FFTW_INIT | NFFT_OMP_BLOCKWISE_ADJOINT,
+                         NFSFT_DEFAULT_NFFT_CUTOFF);
 }
 
 void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
@@ -369,7 +376,6 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   #pragma omp parallel default(shared)
   {
     int nthreads = omp_get_num_threads();
-    int threadid = omp_get_thread_num();
     #pragma omp single
     {
       wisdom.nthreads = nthreads;
@@ -423,20 +429,38 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       #pragma omp parallel default(shared) private(n)
       {
         int nthreads = omp_get_num_threads();
-	int threadid = omp_get_thread_num();
-	#pragma omp single
-	{
-	  wisdom.nthreads = nthreads;
-	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
-	}
+        int threadid = omp_get_thread_num();
+        #pragma omp single
+        {
+          wisdom.nthreads = nthreads;
+          wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+        }
 
-        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
-          fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        if (threadid == 0)
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA);
+        else
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_PERSISTENT_DATA | FPT_NO_INIT_FPT_DATA);
+
+        #pragma omp barrier
+
+        if (threadid != 0)
+          wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
+
+        /* Perform the first part of precomputation which contains most allocations in one thread */
+        #pragma omp master
+        {
+          for (int n = 0; n <= wisdom.N_MAX; n++)
+            fpt_precompute_1(wisdom.set_threads[0],n,n);
+        }
+        #pragma omp barrier
+
+        #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
-          fpt_precompute(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
+          fpt_precompute_2(wisdom.set_threads[threadid],n,&wisdom.alpha[ROW(n)],
             &wisdom.beta[ROW(n)], &wisdom.gamma[ROW(n)],n,kappa);
       }
-
 #else
       /* Use the recursion coefficients to precompute FPT data using persistent
        * arrays. */
@@ -459,19 +483,38 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       {
         double *alpha, *beta, *gamma;
         int nthreads = omp_get_num_threads();
-	int threadid = omp_get_thread_num();
-	#pragma omp single
-	{
-	  wisdom.nthreads = nthreads;
-	  wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
-	}
+        int threadid = omp_get_thread_num();
+        #pragma omp single
+        {
+          wisdom.nthreads = nthreads;
+          wisdom.set_threads = (fpt_set*) nfft_malloc(nthreads*sizeof(fpt_set));
+        }
 
         alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
         beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
         gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-        wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
-        fpt_flags | FPT_AL_SYMMETRY);
 
+        if (threadid == 0)
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY);
+        else
+          wisdom.set_threads[threadid] = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
+            fpt_flags | FPT_AL_SYMMETRY | FPT_NO_INIT_FPT_DATA);
+
+        #pragma omp barrier
+
+        if (threadid != 0)
+          wisdom.set_threads[threadid]->dpt = wisdom.set_threads[0]->dpt;
+
+        /* Perform the first part of precomputation which contains most allocations in one thread */
+        #pragma omp master
+        {
+          for (int n = 0; n <= wisdom.N_MAX; n++)
+            fpt_precompute_1(wisdom.set_threads[0],n,n);
+        }
+        #pragma omp barrier
+
+        #pragma omp for private(n) schedule(dynamic)
         for (n = 0; n <= wisdom.N_MAX; n++)
         {
           alpha_al_row(alpha,wisdom.N_MAX,n);
@@ -479,7 +522,7 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
           gamma_al_row(gamma,wisdom.N_MAX,n);
 
           /* Precompute data for FPT transformation for order n. */
-          fpt_precompute(wisdom.set_threads[threadid],n,alpha,beta,gamma,n,
+          fpt_precompute_2(wisdom.set_threads[threadid],n,alpha,beta,gamma,n,
                          kappa);
         }
         /* Free auxilliary arrays. */
@@ -489,9 +532,10 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
       }
 #else
     /* Allocate memory for three-term recursion coefficients. */
-      wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
-      wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      double *alpha, *beta, *gamma;
+      alpha = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      beta = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
+      gamma = (double*) nfft_malloc((wisdom.N_MAX+2)*sizeof(double));
       wisdom.set = fpt_init(wisdom.N_MAX+1, wisdom.T_MAX,
         fpt_flags | FPT_AL_SYMMETRY);
       for (n = 0; n <= wisdom.N_MAX; n++)
@@ -500,22 +544,19 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
         fflush(stderr);*/
         /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
          * gamma_k^n. */
-        alpha_al_row(wisdom.alpha,wisdom.N_MAX,n);
-        beta_al_row(wisdom.beta,wisdom.N_MAX,n);
-        gamma_al_row(wisdom.gamma,wisdom.N_MAX,n);
+        alpha_al_row(alpha,wisdom.N_MAX,n);
+        beta_al_row(beta,wisdom.N_MAX,n);
+        gamma_al_row(gamma,wisdom.N_MAX,n);
 
         /* Precompute data for FPT transformation for order n. */
-        fpt_precompute(wisdom.set,n,wisdom.alpha,wisdom.beta,wisdom.gamma,n,
+        fpt_precompute(wisdom.set,n,alpha,beta,gamma,n,
                        kappa);
       }
       /* Free auxilliary arrays. */
-      nfft_free(wisdom.alpha);
-      nfft_free(wisdom.beta);
-      nfft_free(wisdom.gamma);
+      nfft_free(alpha);
+      nfft_free(beta);
+      nfft_free(gamma);
 #endif
-      wisdom.alpha = NULL;
-      wisdom.beta = NULL;
-      wisdom.gamma = NULL;
     }
   }
 
@@ -574,8 +615,11 @@ void nfsft_finalize(nfsft_plan *plan)
   if (!plan)
     return;
 
-  /* Finalise the nfft plan. */
-  nfft_finalize(&plan->plan_nfft);
+  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM))
+  {
+    /* Finalise the nfft plan. */
+    nfft_finalize(&plan->plan_nfft);
+  }
 
   /* De-allocate memory for auxilliary array of spherical Fourier coefficients,
    * if neccesary. */
@@ -606,6 +650,14 @@ void nfsft_finalize(nfsft_plan *plan)
   }
 }
 
+static void nfsft_set_f_nan(nfsft_plan *plan)
+{
+  int m;
+  double nan_value = nan("");
+  for (m = 0; m < plan->M_total; m++)
+    plan->f[m] = nan_value;
+}
+
 void nfsft_trafo_direct(nfsft_plan *plan)
 {
   int m;               /*< The node index                                    */
@@ -619,11 +671,6 @@ void nfsft_trafo_direct(nfsft_plan *plan)
                            coefficient beta_k^n for associated Legendre
                            functions P_k^n                                   */
   double _Complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
-  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex f_m;  /*< The final function value f_m = f(x_m) for a
-                           single node.                                      */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
@@ -635,6 +682,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -656,7 +704,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   {
     /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k,n)
+    #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
     for (k = 0; k <= plan->N; k++)
     {
@@ -690,7 +738,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
      *     e^{i n phi_m}.
      */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(m,stheta,sphi,f_m,n,a,n_abs,alpha,gamma,it2,it1,k,temp)
+    #pragma omp parallel for default(shared) private(m,stheta,sphi,n,a,n_abs,alpha,gamma,k)
 #endif
     for (m = 0; m < plan->M_total; m++)
     {
@@ -700,7 +748,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
       sphi = 2.0*KPI*plan->x[2*m];
 
       /* Initialize result for current node. */
-      f_m = 0.0;
+      plan->f[m] = 0.0;
 
       /* For n = -N,...,N, evaluate
        *   b_n := \sum_{k=|n|}^N a_k^n P_k^{|n|}(cos theta_m)
@@ -718,36 +766,77 @@ void nfsft_trafo_direct(nfsft_plan *plan)
         alpha = &(wisdom.alpha[ROW(n_abs)]);
         gamma = &(wisdom.gamma[ROW(n_abs)]);
 
-        /* Clenshaw's algorithm */
-        it2 = a[plan->N];
-        it1 = a[plan->N-1];
-        for (k = plan->N; k > n_abs + 1; k--)
+        if (plan->N > 1024)
         {
-          temp = a[k-2] + it2 * gamma[k];
-          it2 = it1 + it2 * alpha[k] * stheta;
-          it1 = temp;
-        }
+          /* Clenshaw's algorithm */
+          long double _Complex it2 = a[plan->N];
+          long double _Complex it1 = a[plan->N-1];
+          for (k = plan->N; k > n_abs + 1; k--)
+          {
+            long double _Complex temp = a[k-2] + it2 * gamma[k];
+            it2 = it1 + it2 * alpha[k] * stheta;
+            it1 = temp;
+          }
 
-        /* Compute final step if neccesary. */
-        if (n_abs < plan->N)
+          /* Compute final step if neccesary. */
+          if (n_abs < plan->N)
+          {
+            it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+          }
+
+          /* Compute final result by multiplying the fixed part
+           *   gamma_|n| (1-cos^2(theta))^{|n|/2}
+           * for order n and the exponential part
+           *   e^{i n phi}
+           * and add the result to f_m.
+           */
+          long double _Complex result = it2 * wisdom.gamma[ROW(n_abs)] *
+            powl(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+
+          plan->f[m] += result;
+        }
+        else
         {
-          it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-        }
+          /* Clenshaw's algorithm */
+          double _Complex it2 = a[plan->N];
+          double _Complex it1 = a[plan->N-1];
+          for (k = plan->N; k > n_abs + 1; k--)
+          {
+            double _Complex temp = a[k-2] + it2 * gamma[k];
+            it2 = it1 + it2 * alpha[k] * stheta;
+            it1 = temp;
+          }
 
-        /* Compute final result by multiplying the fixed part
-         *   gamma_|n| (1-cos^2(theta))^{|n|/2}
-         * for order n and the exponential part
-         *   e^{i n phi}
-         * and add the result to f_m.
-         */
-        f_m += it2 * wisdom.gamma[ROW(n_abs)] *
-          pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+          /* Compute final step if neccesary. */
+          if (n_abs < plan->N)
+          {
+            it2 = it1 + it2 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+          }
+
+          /* Compute final result by multiplying the fixed part
+           *   gamma_|n| (1-cos^2(theta))^{|n|/2}
+           * for order n and the exponential part
+           *   e^{i n phi}
+           * and add the result to f_m.
+           */
+          plan->f[m] += it2 * wisdom.gamma[ROW(n_abs)] *
+            pow(1- stheta * stheta, 0.5*n_abs) * cexp(_Complex_I*n*sphi);
+        }
       }
 
       /* Write result f_m for current node to array f. */
-      plan->f[m] = f_m;
+//      plan->f[m] = f_m;
     }
   }
+}
+
+static void nfsft_set_f_hat_nan(nfsft_plan *plan)
+{
+  int k, n;
+  double nan_value = nan("");
+  for (k = 0; k <= plan->N; k++)
+    for (n = -k; n <= k; n++)
+      plan->f_hat[NFSFT_INDEX(k,n,plan)] = nan_value;
 }
 
 void nfsft_adjoint_direct(nfsft_plan *plan)
@@ -762,11 +851,6 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
                            coefficient beta_k^n for associated Legendre
                            functions P_k^n                                   */
-  double _Complex it1;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex it2;  /*< Auxilliary variable for Clenshaw algorithm        */
-  double _Complex temp; /*< Auxilliary variable for Clenshaw algorithm        */
-  double stheta;       /*< Current angle theta for Clenshaw algorithm        */
-  double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
 #ifdef MEASURE_TIME
   plan->MEASURE_TIME_t[0] = 0.0;
@@ -776,6 +860,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_DIRECT_ALGORITHM)
   {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -799,7 +884,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
 
 #ifdef _OPENMP
       /* Traverse all orders n. */
-      #pragma omp parallel for default(shared) private(n,n_abs,alpha,gamma,m,stheta,sphi,it2,it1,k,temp)
+      #pragma omp parallel for default(shared) private(n,n_abs,alpha,gamma,m,k) schedule(dynamic)
       for (n = -plan->N; n <= plan->N; n++)
       {
         /* Take absolute value of n. */
@@ -813,31 +898,56 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         for (m = 0; m < plan->M_total; m++)
         {
           /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-          stheta = cos(2.0*KPI*plan->x[2*m+1]);
+          double stheta = cos(2.0*KPI*plan->x[2*m+1]);
           /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-          sphi = 2.0*KPI*plan->x[2*m];
+          double sphi = 2.0*KPI*plan->x[2*m];
 
           /* Transposed Clenshaw algorithm */
-
-          /* Initial step */
-          it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
-            pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
-          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
-          it2 = 0.0;
-
-          if (n_abs < plan->N)
+          if (plan->N > 1024)
           {
-            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            /* Initial step */
+            long double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+              powl(1 - stheta * stheta, 0.5*n_abs) * cexpl(-_Complex_I*n*sphi);
+            plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+            long double _Complex it2 = 0.0;
+
+            if (n_abs < plan->N)
+            {
+              it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+              plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            }
+
+            /* Loop for transposed Clenshaw algorithm */
+            for (k = n_abs+2; k <= plan->N; k++)
+            {
+              long double _Complex temp = it2;
+              it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+              it1 = temp;
+              plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            }
           }
-
-          /* Loop for transposed Clenshaw algorithm */
-          for (k = n_abs+2; k <= plan->N; k++)
+          else
           {
-            temp = it2;
-            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
-            it1 = temp;
-            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            /* Initial step */
+            double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+              pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
+            plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+            double _Complex it2 = 0.0;
+
+            if (n_abs < plan->N)
+            {
+              it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+              plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+            }
+
+            /* Loop for transposed Clenshaw algorithm */
+            for (k = n_abs+2; k <= plan->N; k++)
+            {
+              double _Complex temp = it2;
+              it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+              it1 = temp;
+              plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+            }
           }
         }
       }
@@ -846,9 +956,9 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
     for (m = 0; m < plan->M_total; m++)
     {
       /* Scale angle theta from [0,1/2] to [0,pi] and apply cosine. */
-      stheta = cos(2.0*KPI*plan->x[2*m+1]);
+      double stheta = cos(2.0*KPI*plan->x[2*m+1]);
       /* Scale angle phi from [-1/2,1/2] to [-pi,pi]. */
-      sphi = 2.0*KPI*plan->x[2*m];
+      double sphi = 2.0*KPI*plan->x[2*m];
 
       /* Traverse all orders n. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -861,26 +971,51 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
         gamma = &(wisdom.gamma[ROW(n_abs)]);
 
         /* Transposed Clenshaw algorithm */
-
-        /* Initial step */
-        it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
-          pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
-        plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
-        it2 = 0.0;
-
-        if (n_abs < plan->N)
+        if (plan->N > 1024)
         {
-          it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
-          plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          /* Initial step */
+          long double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+            powl(1 - stheta * stheta, 0.5*n_abs) * cexpl(-_Complex_I*n*sphi);
+          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+          long double _Complex it2 = 0.0;
+
+          if (n_abs < plan->N)
+          {
+            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          }
+
+          /* Loop for transposed Clenshaw algorithm */
+          for (k = n_abs+2; k <= plan->N; k++)
+          {
+            long double _Complex temp = it2;
+            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it1 = temp;
+            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          }
         }
-
-        /* Loop for transposed Clenshaw algorithm */
-        for (k = n_abs+2; k <= plan->N; k++)
+        else
         {
-          temp = it2;
-          it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
-          it1 = temp;
-          plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          /* Initial step */
+          double _Complex it1 = plan->f[m] * wisdom.gamma[ROW(n_abs)] *
+            pow(1 - stheta * stheta, 0.5*n_abs) * cexp(-_Complex_I*n*sphi);
+          plan->f_hat[NFSFT_INDEX(n_abs,n,plan)] += it1;
+          double _Complex it2 = 0.0;
+
+          if (n_abs < plan->N)
+          {
+            it2 = it1 * wisdom.alpha[ROWK(n_abs)+1] * stheta;
+            plan->f_hat[NFSFT_INDEX(n_abs+1,n,plan)] += it2;
+          }
+
+          /* Loop for transposed Clenshaw algorithm */
+          for (k = n_abs+2; k <= plan->N; k++)
+          {
+            double _Complex temp = it2;
+            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it1 = temp;
+            plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
+          }
         }
       }
     }
@@ -894,7 +1029,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
   {
     /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k,n)
+    #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
     for (k = 0; k <= plan->N; k++)
     {
@@ -942,6 +1077,13 @@ void nfsft_trafo(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
+    nfsft_set_f_nan(plan);
+    return;
+  }
+
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -950,6 +1092,7 @@ void nfsft_trafo(nfsft_plan *plan)
    */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
+    nfsft_set_f_nan(plan);
     return;
   }
 
@@ -988,7 +1131,7 @@ void nfsft_trafo(nfsft_plan *plan)
     {
       /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k,n)
+      #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
       for (k = 0; k <= plan->N; k++)
       {
@@ -1008,12 +1151,28 @@ void nfsft_trafo(nfsft_plan *plan)
     if (plan->flags & NFSFT_USE_DPT)
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-         fpt_trafo_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_trafo_direct(wisdom.set_threads[0],abs(n),
+        &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_trafo_direct(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_trafo_direct(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use direct discrete polynomial transform DPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1030,12 +1189,28 @@ void nfsft_trafo(nfsft_plan *plan)
     else
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_trafo(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_trafo(wisdom.set_threads[0],abs(n),
+        &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_trafo(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_trafo(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat_intern[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat_intern[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use fast polynomial transform FPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1104,6 +1279,13 @@ void nfsft_adjoint(nfsft_plan *plan)
 
   if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
   {
+    nfsft_set_f_hat_nan(plan);
+    return;
+  }
+
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -1112,6 +1294,7 @@ void nfsft_adjoint(nfsft_plan *plan)
    */
   if (wisdom.initialized == 0 || plan->N > wisdom.N_MAX)
   {
+    nfsft_set_f_hat_nan(plan);
     return;
   }
 
@@ -1178,12 +1361,28 @@ void nfsft_adjoint(nfsft_plan *plan)
     if (plan->flags & NFSFT_USE_DPT)
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_transposed_direct(wisdom.set_threads[omp_get_thread_num()],abs(n),
+      n = 0;
+      fpt_transposed_direct(wisdom.set_threads[0],abs(n),
+        &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+      #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+      for (n_abs = 1; n_abs <= plan->N; n_abs++)
+      {
+        int threadid = omp_get_thread_num();
+        n = -n_abs;
+        fpt_transposed_direct(wisdom.set_threads[threadid],abs(n),
           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
           plan->N,0U);
+        n = n_abs;
+        fpt_transposed_direct(wisdom.set_threads[threadid],abs(n),
+          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+          plan->N,0U);
+      }
 #else
       /* Use transposed DPT. */
       for (n = -plan->N; n <= plan->N; n++)
@@ -1200,12 +1399,28 @@ void nfsft_adjoint(nfsft_plan *plan)
     else
     {
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(n) num_threads(wisdom.nthreads)
-      for (n = -plan->N; n <= plan->N; n++)
-        fpt_transposed(wisdom.set_threads[omp_get_thread_num()],abs(n),
-          &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
-          &plan->f_hat[NFSFT_INDEX(0,n,plan)],
-          plan->N,0U);
+      n = 0;
+      fpt_transposed(wisdom.set_threads[0],abs(n),
+        &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+        &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+        plan->N,0U);
+
+      int n_abs;
+       #pragma omp parallel for default(shared) private(n_abs,n) num_threads(wisdom.nthreads) schedule(dynamic)
+       for (n_abs = 1; n_abs <= plan->N; n_abs++)
+       {
+         int threadid = omp_get_thread_num();
+         n = -n_abs;
+         fpt_transposed(wisdom.set_threads[threadid],abs(n),
+           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+           plan->N,0U);
+         n = n_abs;
+         fpt_transposed(wisdom.set_threads[threadid],abs(n),
+           &plan->f_hat[NFSFT_INDEX(abs(n),n,plan)],
+           &plan->f_hat[NFSFT_INDEX(0,n,plan)],
+           plan->N,0U);
+       }
 #else
       //fprintf(stderr,"nfsft_adjoint: fpt_transposed\n");
       /* Use transposed FPT. */
@@ -1234,7 +1449,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       //fflush(stderr);
       /* Traverse Fourier coefficients array. */
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(k,n)
+      #pragma omp parallel for default(shared) private(k,n) schedule(dynamic)
 #endif
       for (k = 0; k <= plan->N; k++)
       {
@@ -1265,6 +1480,9 @@ void nfsft_adjoint(nfsft_plan *plan)
 
 void nfsft_precompute_x(nfsft_plan *plan)
 {
+  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+    return;
+
   /* Pass angle array to NFFT plan. */
   plan->plan_nfft.x = plan->x;
 

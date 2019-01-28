@@ -28,7 +28,7 @@ extern "C"
 
 #if defined(NFFT_PRECISION_SINGLE)
 typedef float NFFT_R;
-typedef float _Complex NFFT_C;
+typedef fftwf_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_M(name) NFFT_CONCAT(name,f)
 #define FFTW(name) NFFT_CONCAT(fftwf_,name)
@@ -39,7 +39,7 @@ typedef float _Complex NFFT_C;
 #define SOLVER(name) NFFT_CONCAT(solverf_,name)
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 typedef long double NFFT_R;
-typedef long double _Complex NFFT_C;
+typedef fftwl_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x##L)
 #define NFFT_M(name) NFFT_CONCAT(name,l)
 #define FFTW(name) NFFT_CONCAT(fftwl_,name)
@@ -50,7 +50,7 @@ typedef long double _Complex NFFT_C;
 #define SOLVER(name) NFFT_CONCAT(solverl_,name)
 #elif defined(NFFT_PRECISION_DOUBLE)
 typedef double NFFT_R;
-typedef double _Complex NFFT_C;
+typedef fftw_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_M(name) name
 #define FFTW(name) NFFT_CONCAT(fftw_,name)

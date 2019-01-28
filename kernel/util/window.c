@@ -40,6 +40,14 @@ INT Y(m2K)(const INT m)
   return (INT)((1U << m2K_[j]) * (m + 2));
 }
 
+/**
+ * Returns the default window cut off m for the selected window
+ */
+NFFT_INT Y(get_default_window_cut_off)()
+{
+  return (NFFT_INT)(WINDOW_HELP_ESTIMATE_m);
+}
+
 const char *Y(get_window_name)()
 {
   return STRINGIZE(WINDOW_NAME);

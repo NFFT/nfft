@@ -1,5 +1,4 @@
-%NFSFT_PRECOMPUTE_X Node-dependent precomputation (for NFFT)
-%   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+%NFSFT_PRECOMPUTE_X Deprecated function.
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 %
@@ -17,4 +16,5 @@
 % this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 function nfsft_precompute_x(p)
-nfsftmex('precompute_x',p)
+% Do nothing.
+% The functionality has been moved to nfsft_set_x.

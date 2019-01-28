@@ -19,10 +19,10 @@ endif
 
 dist_nfsoftmatlab_DATA = Contents.m \
 	nfsoft_adjoint.m nfsoft_get_num_threads.m nfsoft_f_hat_size.m nfsoft_finalize.m nfsoft_get_f_hat.m nfsoft_get_f.m nfsoft_init.m nfsoft_precompute.m nfsoft_set_f.m nfsoft_set_f_hat.m nfsoft_set_x.m nfsoft_trafo.m test_nfsoft.m \
-	NFSOFT_NORMALIZED.m NFSOFT_REPRESENT.m NFSOFT_USE_DPT.m NFSOFT_USE_NDFT.m 
+	NFSOFT_NORMALIZED.m NFSOFT_REPRESENT.m NFSOFT_USE_DPT.m NFSOFT_USE_NDFT.m simple_test.m nfsoft.m test_nfsoft_direct.m wignerD.m
 
 # target all-am builds .libs/libnfsoft@matlab_mexext@
-nfsoftmex@matlab_mexext@: all-am 
+nfsoftmex@matlab_mexext@: all-am
 	rm -f ./nfsoftmex@matlab_mexext@
 	$(LN_S) .libs/libnfsoft@matlab_mexext@ ./nfsoftmex@matlab_mexext@
 
@@ -32,9 +32,9 @@ clean: clean-am
 	rm -f ./nfsoftmex@matlab_mexext@
 
 install-exec-hook:
-	rm -f $(libdir)/nfsoftmex@matlab_mexext@
-	$(LN_S) $(libdir)/libnfsoft@matlab_mexext@ $(libdir)/nfsoftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
+	$(LN_S) $(DESTDIR)$(libdir)/libnfsoft@matlab_mexext@ $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
 
 uninstall-hook:
-	rm -f $(libdir)/nfsoftmex@matlab_mexext@
+	rm -f $(DESTDIR)$(libdir)/nfsoftmex@matlab_mexext@
 

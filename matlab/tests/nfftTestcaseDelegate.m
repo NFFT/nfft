@@ -29,7 +29,7 @@ classdef nfftTestcaseDelegate
   %       end
   %     end
   %   end
-  properties(Hidden=true,SetAccess='protected',GetAccess='public');
+  properties(Hidden=true,SetAccess='protected',GetAccess='public')
     d = [];
     N = [];
     NN = [];

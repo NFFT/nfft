@@ -4,6 +4,14 @@
 # A Matlab installation must be specified in order to build the Matlab interface.
 # The paths should not contain spaces!
 # 
+# The script is known to work on Ubuntu 18.10. At least the following packages
+# are required:
+# fftw3 libfftw3-dev libcunit1-dev make gcc octave liboctave-dev
+#
+# For running ./bootstrap.sh, the following packages are required:
+# autoconf automake libtool
+#
+#
 # Example call:
 # ./linux-build-mex.sh --matlab=/path/to/matlab
 # 
@@ -79,7 +87,7 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DIR=nfft-$NFFTVERSION-mexa64$OMPSUFFIX
 
 # Create Matlab/Octave release
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
   do
   mkdir -p "$DIR"/$SUBDIR
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/ || true
@@ -97,7 +105,7 @@ if [ -n "$MATLABDIR" ]; then
   make check
 fi
 
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
 done
@@ -109,7 +117,7 @@ echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSIO
 64-bit Linux using GCC '$GCCVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 else
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled for
+echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled for
 64-bit Linux using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 fi
