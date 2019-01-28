@@ -117,6 +117,8 @@ include aminclude.am
 
 if DX_COND_doc
 doc: doxygen-doc
+	rm -f $(abs_top_builddir)/doc/html/*.md5
+	rm -f $(abs_top_builddir)/doc/html/*.map
 endif
 
 # Flags to be passed to aclocal.
