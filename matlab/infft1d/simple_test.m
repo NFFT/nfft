@@ -1,40 +1,66 @@
-% Example for the usage of infft.
+% Example for the usage of class infft.
 
 clear
 
-% Number of knots
-N = 1024;             
+% Number of nodes
+M = 2048;
 
-% Random integer fourier coefficients in [1,100]
-fhat = ceil(rand(N,1)*100);                     
+% Number of Fourier coefficients
+N = 1024;
 
-% Jittered knots in [-0.5,0.5)
-y = (-0.5:1/N:0.5-1/N) + 1/(4*N)*rand(1,N); 
+% Random Fourier coefficients in [1,100]
+fhat = rand(N,1)*99+1;
 
-% Evaluations of a trigonometric polynomial
-f = exp(2*pi*1i*y'*(-N/2:N/2-1))*fhat;          
- 
+% Jittered nodes in [-0.5,0.5)
+y = (-0.5:1/M:0.5-1/M) + 1/(4*M)*rand(1,M);
+
+% Evaluations of a trigonometric polynomial at points y
+f = exp(2*pi*1i*y'*(-N/2:N/2-1))*fhat;
 
 %% Fast computation
 
-plan = infft(y);
-% Using the default values. Could also be computed as
-%   infft(y,'m',4,'p',4,'n',2*N,'eps_I',4*4/(2*N),'sigma',2);
+% Initialization and node-dependent precomputations
+% Using the default values. For customized settings see README.
+plan = infft(y,N);
 
-plan.f = f;
-infft_trafo(plan);
+plan.f = f; % Set function values
+infft_trafo(plan); % Compute inverse nonequispaced Fourier transform
 
-fbar = plan.fbar;                                   % Approximated Fourier coefficients
-times = plan.times;                                 % Computing times
-
-err_max_abs = max(abs(fhat-fbar));                  % Maximum absolute error
-err_max_rel = max(abs(fhat-fbar)./abs(fhat));       % Maximum relative error
-err_mean_abs = sum(abs(fhat-fbar))/N;               % Mean absolute error
-err_mean_rel = sum(abs(fhat-fbar)./abs(fhat))/N;	% Mean relative error
+fcheck = plan.fcheck; % Get approximations of Fourier coefficients
+times = plan.times; % Get computation time
 
 %% Direct computation
 
-infft_direct(plan,f);
+infft_direct(plan); % Compute samples directly
 
-fbar_direct = plan.fbar_direct;                     % Direcly computed Fourier coefficients
-times.t_direct = plan.times.t_direct;
+fcheck_direct = plan.fcheck_direct; % Get approximations of Fourier coefficients
+times.t_direct = plan.times.t_direct; % Get computation time
+
+%% Output
+
+% Graphical representation of the pointwise reconstruction
+figure
+plot(-N/2:N/2-1,fhat,'o',-N/2:N/2-1,real(fcheck),'*')
+title('Pointwise reconstruction')
+xlabel('$k$','Interpreter','latex')
+ylabel('Fourier coefficients $\hat f_k$','Interpreter','latex')
+legend('Fourier coefficients','approximation','Orientation','horizontal','Location','bestoutside')
+xlim([-N/2-1,N/2])
+
+% Graphical representation of pointwise errors
+figure
+semilogy(-N/2:N/2-1,abs(fcheck-fhat),'-sg',-N/2:N/2-1,abs(fcheck-fhat)./abs(fhat),'-dr')
+title('Pointwise maximum errors')
+xlabel('$k$','Interpreter','latex')
+ylabel('pointwise errors')
+legend('absolute maximum error','relative maximum error','Location','best')
+xlim([-N/2-1,N/2])
+
+% Computation of errors
+err_abs_max = norm(fcheck-fhat,Inf);                  % Absolute ell_infinity error
+err_rel_max = norm(fcheck-fhat,Inf)/norm(fhat,Inf);   % Relative ell_infinity error
+err_abs_2 = norm(fcheck-fhat,2);                      % Absolute ell_2 error
+err_rel_2 = norm(fcheck-fhat,2)/norm(fhat,2);         % Relative ell_2 error
+
+% Output in command window
+fprintf(['The absolute maximum error is ',num2str(err_abs_max,'%1.4e'),' and the relative maximum error is ',num2str(err_rel_max,'%1.4e'),'.\n\n'])

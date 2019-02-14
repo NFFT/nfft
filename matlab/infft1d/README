@@ -1,56 +1,69 @@
-infft - Algorithm for fast computation of an iNFFT using fast summation
+infft - Class file for the fast computation of an inverse NFFT
 
- Computes an inverse NFFT, i.e. approximates the Fourier coefficients fhat
- in sums of the form
+ Computes an inverse nonequispaced fast Fourier transform (iNFFT), i.e., 
+ approximates the Fourier coefficients fhat in sums of the form
  
    f(y_j) = sum_{k = -N/2}^{N/2-1} fhat_k * exp(2*pi*i*k*y_j),  j = 1,...,M,
  
  where y_j and f(y_j) are given.
 
- For this purpose a new direct method is used in case that the number of 
- knots (M) equals the number of the unknown Fourier coefficients (N).
- Another restriction is that this algorithm only works in 1-D because it 
- uses the Lagrange interpolation scheme which is only feasible in the 
- one-dimensional setting.
+ For this purpose new direct methods are incorporated. 
+ These methods differ depending on the relation between the number M of 
+ nodes and the number N of unknown Fourier coefficients.
 
- Hence, the computation of an iNFFT can be reduced to the computation of 
- some needed coefficients and the application of one FFT afterwards.
- For the evaluation of thereby occurrent sums fast summation is used.
+ In the quadratic setting M=N, the computation of an iNFFT can be reduced 
+ to the computation of some needed coefficients and application of an FFT afterwards.
+ For fast evaluation of the occurring sums the fastsum method is used.
 
- For more details see [1].
+ Otherwise, in the rectangular setting M~=N, an iNFFT can be obtained by 
+ performing only one adjoint NFFT with a specific optimized matrix.
+ This optimization is done in a precomputation according to the given nodes.
+
+ It must be pointed out that the algorithms only work in the one-dimensional setting.
+ For more details see [1,2].
 
 ------------------------------------------------------------------------------------------------
  INPUT:
- y - Knots where the iNFFT should be computed      
- f - Function evaluations at points y                    
- m - Cut-off parameter for NFFT                    (optional)        default: m = 4
- p - Degree of smoothness of regularization        (optional)        default: p = 4
- n - Expansion degree                              (optional)        default: n = 2*N
- eps_I - Inner boundary (<=1/4)                    (optional)        default: eps_I = 4*p/n
- sigma - Oversampling factor for NFFT              (optional)        default: sigma = 2
+ y - Nodes, where the iNFFT should be computed      
+ N - Number of Fourier coefficients that shall be computed
+ f - Function evaluations at points y
+------------------------------------------------------------------------------------------------
+ OPTIONAL INPUT:
+ n - Expansion degree                             default: n = N
+ m - Cut-off parameter for NFFT                   default: m = 4
+ sigma - Oversampling factor                      default: sigma = 2
+
+ SPECIFIC FOR QUADRATIC SETTING M=N:
+ p - Degree of smoothness of regularization       default: p = 4
+ eps_I - Inner boundary for fastsum (<=1/4)       default: eps_I = 4*p/n
+
+ SPECIFIC FOR RECTANGULAR SETTING M~=N:
+ m2 - Cut-off parameter for inner NFFT            default: m2 = 4
+ window - Window function for inversion           default: 'Dirichlet'
 ------------------------------------------------------------------------------------------------
  OUTPUT:
- fbar - Computed Fourier coefficients
- times - Includes the following fields:            (optional)
-   times.t_c - Computing time for coefficients c_l
-   times.t_d - Computing time for coefficients d_j
-   times.t_g - Computing time for coefficients g_l
-   times.t_fft - Computing time for FFT
-   times.t_total - Total computing time for iNFFT
-   times.t_direct - Total computing time for the exact computation
+ fcheck - Approximations of the Fourier coefficients
+ times - Includes the following fields:                         (optional)
+   times.t_precompute - Computation time for precomputations
+   times.t_trafo - Computation time of the inversion
+   times.t_direct - Total computation time of the exact computation
 ------------------------------------------------------------------------------------------------
 
- The optional input arguments can be commited to infft.m as follows
-     infft(y,'name',value,'name',value,...)
+ The optional input arguments can be communicated to infft.m as follows
+     infft(y,N,'name',value,'name',value,...)
  e.g. 
-     infft(y,'sigma',2).
+     infft(y,N,'sigma',2).
 
- Use the Matlab script file simple_test.m for a simple demonstration.
+ Use the Matlab script file 'simple_test.m' for demonstration.
 
 
 
-Reference:
+References:
 
    [1]  M. Kircheis. Die Direkte Inverse NFFT,
-        Bachelor Thesis, Chemnitz University of Technology, 2017.
-        https://www-user.tu-chemnitz.de/~kimel/paper/bachelorarbeit.pdf
+        Bachelor's Thesis, Chemnitz University of Technology, 2017.
+        https://www.tu-chemnitz.de/~kimel/paper/bachelorthesis.pdf
+
+   [2]  M. Kircheis, D. Potts. Direct inversion of the nonequispaced fast Fourier transform.
+        arXiv:1811.05335, 2018
+        https://www.tu-chemnitz.de/~kimel/paper/infft_1d.pdf
