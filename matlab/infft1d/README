@@ -56,7 +56,22 @@ infft - Class file for the fast computation of an inverse NFFT
 
  Use the Matlab script file 'simple_test.m' for demonstration.
 
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 
+infft_adjoint - Class file for the fast computation of an inverse adjoint NFFT
+
+ Computes an inverse adjoint nonequispaced fast Fourier transform, 
+ i.e., approximates the function values f in sums of the form
+ 
+   fhat_k = sum_{j=1}^{M} f_j * exp(-2*pi*i*k*y_j),  k = -N/2,...,N/2-1,
+ 
+ where y_j and fhat_k are given.
+
+ Use the Matlab script file 'simple_test_adjoint.m' for demonstration.
+
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
 
 References:
 

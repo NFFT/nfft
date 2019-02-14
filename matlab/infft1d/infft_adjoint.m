@@ -1,17 +1,17 @@
-% This class provides a Matlab interface for the iNFFT.
+% This class provides a Matlab interface for the inverse adjoint NFFT.
 
-classdef infft < handle
+classdef infft_adjoint < handle
     
     properties(Dependent=true)
-        f                       % Dummy variable
+        fhat                    % Dummy variable
     end 
     
     properties(SetAccess=private)
         y                       % Nodes, where inversion should be done
         N                       % Number of Fourier coefficients
         n                       % Expansion degree
-        fcheck                  % Approximated Fourier coefficients
-        fcheck_direct           % Directly computed Fourier coefficients
+        f                       % Approximated function values
+        f_direct                % Directly computed function values
         m                       % Cut-off parameter
         sigma                   % Oversampling factor
         p                       % Degree of smoothness              (needed in quadratic setting M=N)
@@ -27,7 +27,7 @@ classdef infft < handle
     
     properties(GetAccess=private, SetAccess=private)
         M                       % Number of nodes
-        f_storage               % Evaluations at points y
+        fhat_storage            % Fourier coefficients
         trafo_done = false;     % Flag if trafo is done
         direct_done = false;    % Flag if direct trafo is done
         perm                    % Permutation to sort y (if unsorted)
@@ -38,7 +38,7 @@ classdef infft < handle
     
     
     methods
-        function h = infft(y,N,varargin) % Constructor
+        function h = infft_adjoint(y,N,varargin) % Constructor
            
            % Add further NFFT methods to search path
            s=fileparts(mfilename('fullpath'));
@@ -125,9 +125,9 @@ classdef infft < handle
            if h.M == h.N
                precompute_quadratic(h)
            elseif h.M > h.N
-               precompute_overdetermined(h)
-           else
                precompute_underdetermined(h)
+           else
+               precompute_overdetermined(h)
            end
            
         end %function
@@ -135,20 +135,20 @@ classdef infft < handle
         
     % Set functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        function set.f(h,f) % Set function values
-            % Check whether the parameters y and f match 
-            if ( isvector(f) ~= 1 )
-                error('Input f must be a vector.');
-            elseif ( length(f) ~= h.M )
-                error('The input vectors y and f need to be of same length.');
+        function set.fhat(h,fhat) % Set function values
+            % Check whether the parameters match 
+            if ( isvector(fhat) ~= 1 )
+                error('Input fhat must be a vector.');
+            elseif ( length(fhat) ~= h.N )
+                error('The input vector fhat needs to be of length N.');
             end
             
             % If the nodes were sorted, also sort f
             if h.perm
-                f = f(h.perm);
+                fhat = fhat(h.perm);
             end
             
-            h.f_storage = f(:);
+            h.fhat_storage = fhat(:);
             h.trafo_done = false;
             h.direct_done = false;
         end %function
@@ -156,23 +156,23 @@ classdef infft < handle
         
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
-        function f=get.f(h) % Get function values
-            f = h.f_storage;
+        function fhat=get.fhat(h) % Get Fourier coefficients
+            fhat = h.fhat_storage;
         end %function
         
-        function fcheck=get.fcheck(h) % Get approximations of the Fourier coefficients
+        function f=get.f(h) % Get approximations of the function values
             if(~h.trafo_done)
                 error('No trafo was done.');
             else
-                fcheck = h.fcheck;
+                f = h.f;
             end
         end %function 
         
-        function fcheck_direct=get.fcheck_direct(h) % Get directly computed coefficients
+        function f_direct=get.f_direct(h) % Get directly computed function values
             if(~h.direct_done)
                 error('No trafo was done.');
             else
-                fcheck_direct = h.fcheck_direct;
+                f_direct = h.f_direct;
             end
         end %function
         
@@ -180,20 +180,20 @@ classdef infft < handle
     % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
         function infft_direct(h)
-        % Exact computation of an iNDFT, i.e., inversion of the nonequispaced Fourier matrix.
+        % Exact computation of an adjoint iNDFT, i.e., inversion of the adjoint nonequispaced Fourier matrix.
             tic
             A = zeros(h.M,h.N);
             j = 1:h.M;
             for k = -h.N/2 : h.N/2-1
                 A(:,k + h.N/2 + 1) = exp(2*pi*1i*k*h.y(j));
             end
-            h.fcheck_direct = A\h.f;
+            h.f_direct = A'\h.fhat;
             h.times.t_direct = toc;
             h.direct_done = true;
         end %function
         
         function infft_trafo(h)
-        % Fast computation of an iNFFT.   
+        % Fast computation of an adjoint iNFFT.   
             if h.M == h.N
                 trafo_quadratic(h)
             else
@@ -245,8 +245,8 @@ classdef infft < handle
             h.times.t_precompute = toc;
         end %function
         
-        function precompute_overdetermined(h)
-        % Precomputations for the overdetermined setting.
+        function precompute_underdetermined(h)
+        % Precomputations for the underdetermined setting.
             % Initialize optimized matrix
             tic
             h.B_opt = sparse(h.M,h.n);
@@ -324,8 +324,8 @@ classdef infft < handle
             h.times.t_precompute = toc;
         end %function
         
-        function precompute_underdetermined(h)
-        % Precomputations for the underdetermined setting.
+        function precompute_overdetermined(h)
+        % Precomputations for the overdetermined setting.
             % Initialize optimized matrix
             tic
             h.B_opt = sparse(h.n,h.M);
@@ -400,34 +400,33 @@ classdef infft < handle
         end %function
         
         function trafo_quadratic(h)
-        % Computation of an iNFFT for the quadratic setting.             
+        % Computation of an adjoint iNFFT for the quadratic setting.             
             % Suppress specific warnings (nodes are in an interval that is larger than normal)
             warning('off','fastsum:alphaDeleted')
             warning('off','fastsum:nodesOutsideBall')
              
             tic
-            % Set constants for fastsum of g
-            alpha = h.f_storage.*h.d;
+            % Computation of the Fourier coefficients by iFFT
+            v = ifft(h.fhat_storage);
+            v = v.*transpose(exp(pi*1i*(0:h.M-1)));
+            v = fftshift(v);
+            v = v.*transpose(exp(pi*1i*(-h.M/2:h.M/2-1)*h.dist));
+                        
+            % Set constants for fastsum of f
+            alpha = v.*h.c;
             
-            % Computation of coefficients g
-            plan = fastsum(1,'cot',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            g = compute_coeff(h,plan,h.x,h.y,alpha);
+            % Computation of coefficients f
+            plan = fastsum(1,'cot',-pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
+            ftilde = compute_coeff(h,plan,h.y,h.x,alpha);
             
             % Final computation
-            g = -h.c.*(-g + 1i*sum(alpha));
+            ftilde = h.d.*(ftilde + 1i*sum(alpha));
             
-            % Computation of the Fourier coefficients by FFT
-            fhat = fft(g);
-            fhat = fhat.*transpose(exp(-pi*1i*(0:h.M-1)));
-            fhat = fftshift(fhat);
-            fhat = fhat/h.M;   
-            fhat = fhat.*transpose(exp(-pi*1i*(-h.M/2:h.M/2-1)*h.dist));
-                        
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
-                h.fcheck(h.perm) = fhat;
+                h.f(h.perm) = ftilde;
             else 
-                h.fcheck = fhat;
+                h.f = ftilde;
             end
             
             % Computation time
@@ -438,31 +437,33 @@ classdef infft < handle
         end %function
         
         function trafo_rectangular(h)
-        % Computation of an iNFFT for the rectangular setting.
+        % Computation of an adjoint iNFFT for the rectangular setting.
             tic
-            % Perform an adjoint NFFT
-            % Multiplication with optimized sparse matrix
-            fhat = h.B_opt*h.f;
-
-            % Perform an FFT
-            fhat = fft(fhat);
-            fhat = fhat.*transpose(exp(pi*1i*(0:h.n-1)));
-            fhat = fftshift(fhat);
+            % Perform an NFFT
+            % Multiplication with diagonal matrix
+            ftilde = transpose(1./phi_hat(h,-h.N/2:h.N/2-1)) .* h.fhat;
             
+            % Perform an iFFT
+            ftilde = ifft([zeros((h.n-h.N)/2,1);ftilde;zeros((h.n-h.N)/2,1)]);
+            ftilde = ftilde.*transpose(exp(pi*1i*(0:h.n-1)));
+            ftilde = fftshift(ftilde);
+            
+            % Multiplication with adjoint of optimized sparse matrix
+            ftilde = h.B_opt'*ftilde;
+            
+            % Multiplication with specific constant
             if h.M > h.N
                 const = 1;
             else 
                 const = 1/h.N;
             end
+            ftilde = const.*ftilde;
 
-            % Multiplication with diagonal matrix
-            fhat = const .* transpose(1/h.n*1./phi_hat(h,-h.N/2:h.N/2-1)) .* fhat(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
-            
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
-                h.fcheck(h.perm) = fhat;
+                h.f(h.perm) = ftilde;
             else 
-                h.fcheck = fhat;
+                h.f = ftilde;
             end
             
             % Computation time
