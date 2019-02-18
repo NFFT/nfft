@@ -62,19 +62,19 @@ classdef infft < handle
             
            % Nodes have to be a row vector
            h.y = transpose(y(:));
-            
-           % Nodes have to be sorted
-           if issorted(h.y)==0
-               [h.y,h.perm] = sort(h.y);
-           else
-               h.perm = [];
-           end
            
            % Set number of nodes
            h.M = length(h.y);
            
            % Set number of Fourier coefficients
            h.N = N;
+            
+           % In quadratic setting nodes have to be sorted
+           if (h.M==h.N && issorted(h.y)==0)
+               [h.y,h.perm] = sort(h.y);
+           else
+               h.perm = [];
+           end
 
            % Parse for optional input
            P = inputParser;
@@ -247,6 +247,9 @@ classdef infft < handle
         
         function precompute_overdetermined(h)
         % Precomputations for the overdetermined setting.
+            % Suppress specific warning (matrix may be ill-conditioned)
+            warning('off','MATLAB:nearlySingularMatrix')
+        
             % Initialize optimized matrix
             tic
             h.B_opt = sparse(h.M,h.n);
@@ -326,6 +329,9 @@ classdef infft < handle
         
         function precompute_underdetermined(h)
         % Precomputations for the underdetermined setting.
+            % Suppress specific warning (matrix may be ill-conditioned)
+            warning('off','MATLAB:nearlySingularMatrix')
+        
             % Initialize optimized matrix
             tic
             h.B_opt = sparse(h.n,h.M);
@@ -422,6 +428,9 @@ classdef infft < handle
             fhat = fftshift(fhat);
             fhat = fhat/h.M;   
             fhat = fhat.*transpose(exp(-pi*1i*(-h.M/2:h.M/2-1)*h.dist));
+            
+            % Set flag
+            h.trafo_done = true;
                         
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
@@ -432,9 +441,6 @@ classdef infft < handle
             
             % Computation time
             h.times.t_trafo = toc;
-            
-            % Set flag
-            h.trafo_done = true;
         end %function
         
         function trafo_rectangular(h)
@@ -458,12 +464,8 @@ classdef infft < handle
             % Multiplication with diagonal matrix
             fhat = const .* transpose(1/h.n*1./phi_hat(h,-h.N/2:h.N/2-1)) .* fhat(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
             
-            % If y got sorted, use the inverse permutation to get back the order of the user
-            if h.perm
-                h.fcheck(h.perm) = fhat;
-            else 
-                h.fcheck = fhat;
-            end
+            % Set approximations
+            h.fcheck = fhat;
             
             % Computation time
             h.times.t_trafo = toc;
