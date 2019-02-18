@@ -254,10 +254,10 @@ classdef infft < handle
             tic
             h.B_opt = sparse(h.M,h.n);
 
+            I = eye(h.n);
             for l = -h.n/2:h.n/2-1
 
               % Generate l-th unit vector
-              I = eye(h.n);
               el = I(:,l+h.n/2+1);
 
               % Determine indices of non-zero entries
