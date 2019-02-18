@@ -49,7 +49,7 @@ xlim([-0.5,0.5])
 
 % Graphical representation of pointwise errors
 figure
-semilogy(y,abs(ftilde-f),'-sg',y,abs(ftilde-f)./abs(f),'-dr')
+semilogy(y,abs(ftilde-f),'-sg',y,abs(ftilde-f)./norm(f,Inf),'-dr')
 title('Pointwise maximum errors')
 xlabel('$y$','Interpreter','latex')
 ylabel('pointwise errors')
