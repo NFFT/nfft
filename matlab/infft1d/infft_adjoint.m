@@ -256,10 +256,6 @@ classdef infft_adjoint < handle
 
             for l = -h.n/2:h.n/2-1
 
-              % Generate l-th unit vector
-              I = eye(h.n);
-              el = I(:,l+h.n/2+1);
-
               % Determine indices of non-zero entries
               a = 1:h.M;
               ind1 = ((-h.m+l)/h.n<=h.y-1) & (h.y-1<=(h.m+l)/h.n);
@@ -316,7 +312,7 @@ classdef infft_adjoint < handle
               end
 
               % Solve normal equations
-              vec = (L'*L) \ (L'*el);
+              vec = (L'*L) \ transpose(L(l+h.n/2+1,:));
 
               % Compose the whole matrix
               h.B_opt = h.B_opt + sparse(a,l+h.n/2+1,vec,h.M,h.n);
@@ -335,12 +331,8 @@ classdef infft_adjoint < handle
             % Initialize optimized matrix
             tic
             h.B_opt = sparse(h.n,h.M);
-            I = h.N*eye(h.M);
 
             for j = 1:h.M
-
-              % Generate j-th unit vector
-              ej = I(:,j);
 
               % Determine indices of non-zero entries
               a = mod((ceil(h.n*h.y(j))-h.m : floor(h.n*h.y(j))+h.m) + h.n/2 + 1, h.n);
@@ -394,7 +386,7 @@ classdef infft_adjoint < handle
               end
 
               % Solve normal equations
-              vec = (K'*K) \ (K'*ej);
+              vec = (K'*K) \ (h.N*transpose(K(j,:)));
 
               % Compose the whole matrix
               h.B_opt = h.B_opt + sparse(a,j,transpose(vec),h.n,h.M);
