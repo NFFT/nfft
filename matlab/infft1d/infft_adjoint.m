@@ -604,6 +604,10 @@ classdef infft_adjoint < handle
         function z = cardinal_bspline(v,order)
         % Evaluation of the centered cardinal B-spline of given order at points v
         % Author: Franziska Nestler
+            if ( order<=0 || order>20 || mod(order,1)~=0 )
+                error('The given order has to be a natural number smaller than 20.')
+            end
+            
             z = zeros(size(v));
 
             for l = 1:length(v)
