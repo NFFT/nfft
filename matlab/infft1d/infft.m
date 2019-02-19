@@ -29,6 +29,7 @@ classdef infft < handle
         M                       % Number of nodes
         y_storage               % Stored nodes (possibly sorted)
         f_storage               % Stored function values (possibly sorted)
+        f_is_set = false;       % Flag if function values are set
         trafo_done = false;     % Flag if trafo is done
         direct_done = false;    % Flag if direct trafo is done
         perm                    % Permutation to sort y (if unsorted)
@@ -151,6 +152,7 @@ classdef infft < handle
             end
             
             h.f_storage = f(:);
+            h.f_is_set = true;
             h.trafo_done = false;
             h.direct_done = false;
         end %function
@@ -159,6 +161,10 @@ classdef infft < handle
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
         function f=get.f(h) % Get function values
+            if not(h.f_is_set)
+                error('No function values were set.')
+            end
+            
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
                 f = h.f_storage(h.perm);
@@ -188,6 +194,10 @@ classdef infft < handle
     
         function infft_direct(h)
         % Exact computation of an iNDFT, i.e., inversion of the nonequispaced Fourier matrix.
+            if not(h.f_is_set)
+                error('Trafo cannot be done. No function values were set.')
+            end
+            
             tic
             A = zeros(h.M,h.N);
             j = 1:h.M;
@@ -201,6 +211,10 @@ classdef infft < handle
         
         function infft_trafo(h)
         % Fast computation of an iNFFT.   
+            if not(h.f_is_set)
+                error('Trafo cannot be done. No function values were set.')
+            end
+            
             if h.M == h.N
                 trafo_quadratic(h)
             else

@@ -29,6 +29,7 @@ classdef infft_adjoint < handle
         M                       % Number of nodes
         y_storage               % Stored nodes (possibly sorted)
         fhat_storage            % Stored Fourier coefficients (possibly sorted)
+        fhat_is_set = false;    % Flag if Fourier coefficients are set
         trafo_done = false;     % Flag if trafo is done
         direct_done = false;    % Flag if direct trafo is done
         perm                    % Permutation to sort y (if unsorted)
@@ -151,6 +152,7 @@ classdef infft_adjoint < handle
             end
             
             h.fhat_storage = fhat(:);
+            h.fhat_is_set = true;
             h.trafo_done = false;
             h.direct_done = false;
         end %function
@@ -159,6 +161,10 @@ classdef infft_adjoint < handle
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
         function fhat=get.fhat(h) % Get Fourier coefficients
+            if not(h.fhat_is_set)
+                error('No Fourier coefficients were set.')
+            end
+            
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
                 fhat = h.fhat_storage(h.perm);
@@ -186,8 +192,12 @@ classdef infft_adjoint < handle
         
     % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        function infft_direct(h)
+        function infft_direct_adjoint(h)
         % Exact computation of an adjoint iNDFT, i.e., inversion of the adjoint nonequispaced Fourier matrix.
+            if not(h.fhat_is_set)
+                error('Trafo cannot be done. No Fourier coefficients were set.')
+            end
+            
             tic
             A = zeros(h.M,h.N);
             j = 1:h.M;
@@ -199,8 +209,12 @@ classdef infft_adjoint < handle
             h.direct_done = true;
         end %function
         
-        function infft_trafo(h)
+        function infft_trafo_adjoint(h)
         % Fast computation of an adjoint iNFFT.   
+            if not(h.fhat_is_set)
+                error('Trafo cannot be done. No Fourier coefficients were set.')
+            end
+            
             if h.M == h.N
                 trafo_quadratic(h)
             else
