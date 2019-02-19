@@ -3,7 +3,7 @@
 classdef infft < handle
     
     properties(Dependent=true)
-        f                       % Dummy variable
+        f                       % Given function values
     end 
     
     properties(SetAccess=private)
@@ -27,7 +27,8 @@ classdef infft < handle
     
     properties(GetAccess=private, SetAccess=private)
         M                       % Number of nodes
-        f_storage               % Evaluations at points y
+        y_storage               % Stored nodes (possibly sorted)
+        f_storage               % Stored function values (possibly sorted)
         trafo_done = false;     % Flag if trafo is done
         direct_done = false;    % Flag if direct trafo is done
         perm                    % Permutation to sort y (if unsorted)
@@ -71,8 +72,9 @@ classdef infft < handle
             
            % In quadratic setting nodes have to be sorted
            if (h.M==h.N && issorted(h.y)==0)
-               [h.y,h.perm] = sort(h.y);
+               [h.y_storage,h.perm] = sort(h.y);
            else
+               h.y_storage = h.y;
                h.perm = [];
            end
 
@@ -157,7 +159,12 @@ classdef infft < handle
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
         function f=get.f(h) % Get function values
-            f = h.f_storage;
+            % If y got sorted, use the inverse permutation to get back the order of the user
+            if h.perm
+                f = h.f_storage(h.perm);
+            else 
+                f = h.f_storage;
+            end
         end %function
         
         function fcheck=get.fcheck(h) % Get approximations of the Fourier coefficients
@@ -224,10 +231,10 @@ classdef infft < handle
             
           	% Computation of coefficients c_l 
             plan = fastsum(1,'log_sin',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            c_abs = compute_coeff(h,plan,h.x,h.y,o);
+            c_abs = compute_coeff(h,plan,h.x,h.y_storage,o);
             
             % Computation of coefficients d_j    
-            d_abs = compute_coeff(h,plan,h.y,h.y,o);
+            d_abs = compute_coeff(h,plan,h.y_storage,h.y_storage,o);
            	d_abs = -d_abs;
             
             % Stabilization
@@ -258,9 +265,9 @@ classdef infft < handle
 
               % Determine indices of non-zero entries
               a = 1:h.M;
-              ind1 = ((-h.m+l)/h.n<=h.y-1) & (h.y-1<=(h.m+l)/h.n);
-              ind2 = ((-h.m+l)/h.n<=h.y) & (h.y<=(h.m+l)/h.n);
-              ind3 = ((-h.m+l)/h.n<=h.y+1) & (h.y+1<=(h.m+l)/h.n);
+              ind1 = ((-h.m+l)/h.n<=h.y_storage-1) & (h.y_storage-1<=(h.m+l)/h.n);
+              ind2 = ((-h.m+l)/h.n<=h.y_storage) & (h.y_storage<=(h.m+l)/h.n);
+              ind3 = ((-h.m+l)/h.n<=h.y_storage+1) & (h.y_storage+1<=(h.m+l)/h.n);
               a = [a(ind1),a(ind2),a(ind3)];
 
               % Computation of columns bl
@@ -271,7 +278,7 @@ classdef infft < handle
 
               % Set nodes
               for b = 1:length(a)      
-                  z(:,b) = L./h.n-h.y(a(b));
+                  z(:,b) = L./h.n-h.y_storage(a(b));
               end
 
               switch h.window
@@ -280,7 +287,7 @@ classdef infft < handle
                       L = 1/h.n .* sin((h.N-1)*pi*z)./sin(pi*z);
                   otherwise
                       % Computation via NFFT
-                      h.y = h.y(:);
+                      h.y_storage = h.y_storage(:);
                       N_oversampled = ceil(h.sigma*h.N);
                       if mod(N_oversampled,2)==1 % If it's odd, make it even
                         N_oversampled = N_oversampled+1;
@@ -335,7 +342,7 @@ classdef infft < handle
             for j = 1:h.M
 
               % Determine indices of non-zero entries
-              a = mod((ceil(h.n*h.y(j))-h.m : floor(h.n*h.y(j))+h.m) + h.n/2 + 1, h.n);
+              a = mod((ceil(h.n*h.y_storage(j))-h.m : floor(h.n*h.y_storage(j))+h.m) + h.n/2 + 1, h.n);
               ind = (a==0);    
               a(ind) = h.n;       % 0 equivalent m modulo m
 
@@ -346,7 +353,7 @@ classdef infft < handle
 
               % Set nodes
               for b = 1:length(a)      
-                  z(:,b) = h.y-L(a(b))/h.n;
+                  z(:,b) = h.y_storage-L(a(b))/h.n;
               end
 
               switch h.window
@@ -409,7 +416,7 @@ classdef infft < handle
             
             % Computation of coefficients g
             plan = fastsum(1,'cot',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            g = compute_coeff(h,plan,h.x,h.y,alpha);
+            g = compute_coeff(h,plan,h.x,h.y_storage,alpha);
             
             % Final computation
             g = -h.c.*(-g + 1i*sum(alpha));
@@ -440,7 +447,7 @@ classdef infft < handle
             tic
             % Perform an adjoint NFFT
             % Multiplication with optimized sparse matrix
-            fhat = h.B_opt*h.f;
+            fhat = h.B_opt*h.f_storage;
 
             % Perform an FFT
             fhat = fft(fhat);
@@ -475,8 +482,8 @@ classdef infft < handle
 
             % Go through the nodes successively and count number of y's smaller than each node x
             while (i <= h.M && j <= h.M)
-            if h.x(i) < h.y(j)
-                diff = h.y(j)-h.x(i);
+            if h.x(i) < h.y_storage(j)
+                diff = h.y_storage(j)-h.x(i);
                 if diff < h.dist
                     h.dist = diff; % Remember the smallest positive distance
                 end
@@ -484,12 +491,12 @@ classdef infft < handle
                 if i <= h.M
                     count(i) = count(i-1);
                 end
-            elseif h.x(i) > h.y(j)
+            elseif h.x(i) > h.y_storage(j)
                 count(i) = count(i) + 1;
                 j = j + 1;
             else % h.x(i) = h.y(j)
                 if j < h.M
-                    diff = h.y(j+1)-h.x(i);
+                    diff = h.y_storage(j+1)-h.x(i);
                     if diff < h.dist
                         h.dist = diff;
                     end
