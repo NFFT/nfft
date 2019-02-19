@@ -52,13 +52,18 @@ classdef infft < handle
            % Check input and determine whether nodes are in the correct interval
            if ( nargin==0 || sum(size(y))==0 )
                error('No nodes were given. The input "y" is compulsory.');
-           elseif mod(nargin,2)==1
-               error('Wrong number of arguments.')
            elseif not(isvector(y))
                error('First argument has to be a vector.');
            elseif ( sum(y<-0.5) + sum(y>=0.5) ~= 0 )
                error('Nodes are in the wrong interval. Only nodes in [-0.5,0.5) are allowed.');
-           elseif ( sum(size(N))>2 || mod(N,2)~=0 || N<=0 )
+           elseif ( mod(nargin,2)==1 && isempty(varargin) )
+               N = length(y); % Only nodes were given, so we assume quadratic setting. (for compatibility)
+           elseif ( mod(nargin,2)==1 && isfloat(N) )
+               error('Wrong number of arguments.')
+           elseif ( mod(nargin,2)==1 && mod(length(varargin),2) )
+               varargin = [N,varargin]; % Only nodes and optional input was given, so we assume quadratic setting. (for compatibility)
+               N = length(y); 
+           elseif ( sum(size(N))>2 || mod(N,2)~=0 || N<=0 || ischar(N) )
                error('Second argument has to be an even natural number.')
            end
             
