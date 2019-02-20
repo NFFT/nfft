@@ -1,2 +1,2 @@
 matlabinfft1ddir = $(datadir)/nfft/matlab/infft1d
-dist_matlabinfft1d_DATA = infft.m infft_adjoint.m README simple_test.m simple_test_adjoint.m
+dist_matlabinfft1d_DATA = coeffs_2048.mat infft.m infft_adjoint.m README test_adjoint.m test_overdetermined.m test_quadratic.m test_underdetermined.m

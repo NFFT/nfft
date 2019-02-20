@@ -24,16 +24,16 @@ fhat = f'*exp(-2*pi*1i*y'*(-N/2:N/2-1));
 plan = infft_adjoint(y,N);
 
 plan.fhat = fhat; % Set Fourier coefficients
-infft_trafo(plan); % Compute inverse adjoint nonequispaced Fourier transform
+infft_trafo_adjoint(plan); % Compute inverse adjoint nonequispaced Fourier transform
 
 %% Direct computation
 
-infft_direct(plan); % Compute samples directly
+infft_direct_adjoint(plan); % Compute samples directly
 
 %% Output
 
 % Graphical representation of the pointwise reconstruction
-figure
+figure(1)
 plot(y,f,'o',y,real(plan.f),'*')
 title('Pointwise reconstruction')
 xlabel('$y$','Interpreter','latex')
@@ -42,7 +42,7 @@ legend('Function values','approximation','Orientation','horizontal','Location','
 xlim([-0.5,0.5])
 
 % Graphical representation of pointwise errors
-figure
+figure(2)
 semilogy(y,abs(plan.f-f),'-sg',y,abs(plan.f-f)./norm(f,Inf),'-dr')
 title('Pointwise maximum errors')
 xlabel('$y$','Interpreter','latex')
