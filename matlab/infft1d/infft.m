@@ -246,14 +246,15 @@ classdef infft < handle
             h.x = -0.5:1/h.M:0.5-1/h.M;
             
             % Set vector for correction of sign and shift x if necessary
-            vec = compute_sign(h);
+            [vec,h.dist] = infft.compute_sign(h.x,h.y_storage,h.M);
+            h.x = h.x + h.dist/2;
             
           	% Computation of coefficients c_l 
             plan = fastsum(1,'log_sin',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            c_abs = compute_coeff(h,plan,h.x,h.y_storage,o);
+            c_abs = infft.compute_coeff(h.M,plan,h.x,h.y_storage,o);
             
             % Computation of coefficients d_j    
-            d_abs = compute_coeff(h,plan,h.y_storage,h.y_storage,o);
+            d_abs = infft.compute_coeff(h.M,plan,h.y_storage,h.y_storage,o);
            	d_abs = -d_abs;
             
             % Stabilization
@@ -321,7 +322,7 @@ classdef infft < handle
                       plan.x = -z; % NFFT defined with an additional minus
 
                       % Fourier coefficients
-                      help = 1./(h.n*phi_hat(h,-h.N/2:h.N/2-1));
+                      help = 1./(h.n*infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1));
                       plan.fhat = help(:);
 
                       % Node-dependent precomputation
@@ -395,7 +396,7 @@ classdef infft < handle
                       plan.x = -z; % NFFT defined with an additional minus
 
                       % Fourier coefficients
-                      help = 1./(h.n*phi_hat(h,-(-h.N/2:h.N/2-1)));
+                      help = 1./(h.n*infft.phi_hat(h.window,h.m,h.N,h.n,-(-h.N/2:h.N/2-1)));
                       plan.fhat = help(:);
 
                       % Node-dependent precomputation
@@ -435,7 +436,7 @@ classdef infft < handle
             
             % Computation of coefficients g
             plan = fastsum(1,'cot',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            g = compute_coeff(h,plan,h.x,h.y_storage,alpha);
+            g = infft.compute_coeff(h.M,plan,h.x,h.y_storage,alpha);
             
             % Final computation
             g = -h.c.*(-g + 1i*sum(alpha));
@@ -480,7 +481,7 @@ classdef infft < handle
             end
 
             % Multiplication with diagonal matrix
-            fhat = const .* transpose(1/h.n*1./phi_hat(h,-h.N/2:h.N/2-1)) .* fhat(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
+            fhat = const .* transpose(1/h.n*1./infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1)) .* fhat(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
             
             % Set approximations
             h.fcheck = fhat;
@@ -491,56 +492,60 @@ classdef infft < handle
             % Set flag
             h.trafo_done = true;
         end %function
+    end %methods
+    
+    
+    % Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    methods(Static) % Can also be used outside class by calling 'infft.methodsname(args)'
         
-        function vec = compute_sign(h)
+        function [vec,dist] = compute_sign(x,y,M)
         % Auxiliary function for computing the correction of sign for coefficients c.
-            count = zeros(h.M,1);
-            h.dist = 1;
+        % Call from outside class: infft.compute_sign(x,y,M)
+            count = zeros(M,1);
+            dist = 1;
             i = 1;
             j = 1;
 
             % Go through the nodes successively and count number of y's smaller than each node x
-            while (i <= h.M && j <= h.M)
-            if h.x(i) < h.y_storage(j)
-                diff = h.y_storage(j)-h.x(i);
-                if diff < h.dist
-                    h.dist = diff; % Remember the smallest positive distance
+            while (i <= M && j <= M)
+            if x(i) < y(j)
+                diff = y(j)-x(i);
+                if diff < dist
+                    dist = diff; % Remember the smallest positive distance
                 end
                 i = i + 1;
-                if i <= h.M
+                if i <= M
                     count(i) = count(i-1);
                 end
-            elseif h.x(i) > h.y_storage(j)
+            elseif x(i) > y(j)
                 count(i) = count(i) + 1;
                 j = j + 1;
             else % h.x(i) = h.y(j)
-                if j < h.M
-                    diff = h.y_storage(j+1)-h.x(i);
-                    if diff < h.dist
-                        h.dist = diff;
+                if j < M
+                    diff = y(j+1)-x(i);
+                    if diff < dist
+                        dist = diff;
                     end
                 end
                 i = i + 1;
-                if i <= h.M
+                if i <= M
                     count(i) = count(i-1);
                 end
                 count(i-1) = count(i-1) + 1;
             end
             end
 
-            % Nodes have to be disjunct, so do a shift if necessary
-            if not(isempty(intersect(h.x,h.y)))
-                h.x = h.x + h.dist/2; % Smallest possible shift without any overlap
-            else
-                h.dist = 0; % Remember that no shift was done
+            if isempty(intersect(x,y))
+                dist = 0; % Remember that no shift has to be done
             end
 
             vec = (-1).^count; % Vector with correct signs
         end %function
         
-        function coeff = compute_coeff(h,plan,a,b,alpha)
+        function coeff = compute_coeff(M,plan,a,b,alpha)
         % Auxiliary function for computing needed coefficients.
-            coeff = zeros(h.M,1);
+        % Call from outside class: infft.compute_coeff(M,plan,a,b,alpha)
+            coeff = zeros(M,1);
 
             % New index sets for nodes a
             A1 = a<-0.25;
@@ -592,34 +597,31 @@ classdef infft < handle
             coeff(A3) = plan.f;
         end %function
         
-        function phihat = phi_hat(h,v)
+        function phihat = phi_hat(window,m,N,n,v)
         % Computation of the Fourier transformed window function at points v
-            o = h.n/h.N;
-            switch h.window
+        % Call from outside class: infft.phi_hat(window,m,N,n,v)
+            o = n/N;
+            switch window
                 case 'BSpline' % The Fourier transform of BSpline is the sinc function.
-                    phihat = 1/h.n.*(infft.sinc(pi.*v/h.n)).^(2*h.m);
+                    phihat = 1/n.*(infft.sinc(pi.*v/n)).^(2*m);
                 case 'Gaussian'
-                    h = 2*o/(2*o-1)*h.m/pi;
-                    phihat = 1/h.n*exp(-h*(pi*v/h.n).^2);
+                    b = 2*o/(2*o-1)*m/pi;
+                    phihat = 1/n*exp(-b*(pi*v/n).^2);
                 case 'Sinc' % The Fourier transform of the sinc function is BSpline.
-                    phihat = infft.cardinal_bspline(2*h.m*v./((2*o-1)*h.N),2*h.m);
+                    phihat = infft.cardinal_bspline(2*m*v./((2*o-1)*N),2*m);
                 case 'Bessel'
                     phihat = zeros(length(v),1);
-                    h = pi*(2-1/o);
-                    ind = (abs(v./(1-1/(2*o))) <= h.n);
-                    phihat(ind) = 1/h.n*besseli(0,h.m*sqrt(h^2-(2*pi*v(ind)./h.n).^2));
+                    b = pi*(2-1/o);
+                    ind = (abs(v./(1-1/(2*o))) <= n);
+                    phihat(ind) = 1/n*besseli(0,m*sqrt(b^2-(2*pi*v(ind)./n).^2));
                 case 'Dirichlet'
                     phihat = ones(size(v));
             end
         end%function
-    end %methods
-    
-    
-    % Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    methods(Static) % Can also be used outside class by calling 'infft.methodsname(args)'
         
         function z = sinc(v)
-        % Evaluation of the sinc function at points v        
+        % Evaluation of the sinc function at points v
+        % Call from outside class: infft.sinc(v)
             z = zeros(size(v));
             ind = (v == 0);
             z(ind) = 1;
@@ -628,6 +630,7 @@ classdef infft < handle
         
         function z = cardinal_bspline(v,order)
         % Evaluation of the centered cardinal B-spline of given order at points v
+        % Call from outside class: infft.cardinal_bspline(v,order)
         % Author: Franziska Nestler
             if ( order<=0 || order>20 || mod(order,1)~=0 )
                 error('The given order has to be a natural number smaller than 20.')

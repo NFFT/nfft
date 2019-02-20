@@ -151,7 +151,7 @@ classdef infft_adjoint < handle
                 error('The input vector fhat needs to be of length N.');
             end
             
-            % If the nodes were sorted, also sort f
+            % If the nodes were sorted, also sort fhat
             if h.perm
                 fhat = fhat(h.perm);
             end
@@ -246,14 +246,15 @@ classdef infft_adjoint < handle
             h.x = -0.5:1/h.M:0.5-1/h.M;
             
             % Set vector for correction of sign and shift x if necessary
-            vec = compute_sign(h);
+            [vec,h.dist] = infft.compute_sign(h.x,h.y_storage,h.M);
+            h.x = h.x + h.dist/2;
             
           	% Computation of coefficients c_l 
             plan = fastsum(1,'log_sin',pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            c_abs = compute_coeff(h,plan,h.x,h.y_storage,o);
+            c_abs = infft.compute_coeff(h.M,plan,h.x,h.y_storage,o);
             
             % Computation of coefficients d_j    
-            d_abs = compute_coeff(h,plan,h.y_storage,h.y_storage,o);
+            d_abs = infft.compute_coeff(h.M,plan,h.y_storage,h.y_storage,o);
            	d_abs = -d_abs;
             
             % Stabilization
@@ -321,7 +322,7 @@ classdef infft_adjoint < handle
                       plan.x = -z; % NFFT defined with an additional minus
 
                       % Fourier coefficients
-                      help = 1./(h.n*phi_hat(h,-h.N/2:h.N/2-1));
+                      help = 1./(h.n*infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1));
                       plan.fhat = help(:);
 
                       % Node-dependent precomputation
@@ -395,7 +396,7 @@ classdef infft_adjoint < handle
                       plan.x = -z; % NFFT defined with an additional minus
 
                       % Fourier coefficients
-                      help = 1./(h.n*phi_hat(h,-(-h.N/2:h.N/2-1)));
+                      help = 1./(h.n*infft.phi_hat(h.window,h.m,h.N,h.n,-(-h.N/2:h.N/2-1)));
                       plan.fhat = help(:);
 
                       % Node-dependent precomputation
@@ -441,7 +442,7 @@ classdef infft_adjoint < handle
             
             % Computation of coefficients f
             plan = fastsum(1,'cot',-pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
-            ftilde = compute_coeff(h,plan,h.y_storage,h.x,alpha);
+            ftilde = infft.compute_coeff(h.M,plan,h.y_storage,h.x,alpha);
             
             % Final computation
             ftilde = h.d.*(ftilde + 1i*sum(alpha));
@@ -465,7 +466,7 @@ classdef infft_adjoint < handle
             tic
             % Perform an NFFT
             % Multiplication with diagonal matrix
-            ftilde = transpose(1./phi_hat(h,-h.N/2:h.N/2-1)) .* h.fhat;
+            ftilde = transpose(1./infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1)) .* h.fhat;
             
             % Perform an iFFT
             ftilde = ifft([zeros((h.n-h.N)/2,1);ftilde;zeros((h.n-h.N)/2,1)]);
@@ -492,126 +493,5 @@ classdef infft_adjoint < handle
             % Set flag
             h.trafo_done = true;
         end %function
-        
-        function vec = compute_sign(h)
-        % Auxiliary function for computing the correction of sign for coefficients c.
-            count = zeros(h.M,1);
-            h.dist = 1;
-            i = 1;
-            j = 1;
-
-            % Go through the nodes successively and count number of y's smaller than each node x
-            while (i <= h.M && j <= h.M)
-            if h.x(i) < h.y_storage(j)
-                diff = h.y_storage(j)-h.x(i);
-                if diff < h.dist
-                    h.dist = diff; % Remember the smallest positive distance
-                end
-                i = i + 1;
-                if i <= h.M
-                    count(i) = count(i-1);
-                end
-            elseif h.x(i) > h.y_storage(j)
-                count(i) = count(i) + 1;
-                j = j + 1;
-            else
-                if j < h.M
-                    diff = h.y_storage(j+1)-h.x(i);
-                    if diff < h.dist
-                        h.dist = diff;
-                    end
-                end
-                i = i + 1;
-                if i <= h.M
-                    count(i) = count(i-1);
-                end
-                count(i-1) = count(i-1) + 1;
-            end
-            end
-
-            % Nodes have to be disjunct, so do a shift if necessary
-            if not(isempty(intersect(h.x,h.y_storage)))
-                h.x = h.x + h.dist/2; % Smallest possible shift without any overlap
-            else
-                h.dist = 0; % Remember that no shift was done
-            end
-
-            vec = (-1).^count; % Vector with correct signs
-        end %function
-        
-        function coeff = compute_coeff(h,plan,a,b,alpha)
-        % Auxiliary function for computing needed coefficients.
-            coeff = zeros(h.M,1);
-
-            % New index sets for nodes a
-            A1 = a<-0.25;
-            A2 = a>=0.25;
-            A3 = and(not(A1),not(A2));
-
-            % New index sets for nodes b
-            B1 = b<0.25;
-            B2 = not(B1);
-            B3 = b>=-0.25;
-            B4 = not(B3);
-            %------------------------------------------------------------------
-            % Case 1 (a < -0.25)
-            % Computation without shift of nodes
-            plan.x = b(B1)';
-            plan.alpha = alpha(B1);
-            plan.y = a(A1)';
-            fastsum_trafo(plan)
-            coeff(A1) = plan.f;
-
-            % Computation with a shift
-            plan.x = (b(B2)-1/4)';
-            plan.alpha = alpha(B2);
-            plan.y = (a(A1)+3/4)';
-            fastsum_trafo(plan)
-            coeff(A1) = coeff(A1) + plan.f;          
-            %------------------------------------------------------------------
-            % Case 2 (a >= 0.25)
-            % Computation without shift of nodes
-            plan.x = b(B3)';
-            plan.alpha = alpha(B3);
-            plan.y = a(A2)';
-            fastsum_trafo(plan)
-            coeff(A2) = plan.f;
-
-            % Computation with a shift
-            plan.x = (b(B4)+1/4)';
-            plan.alpha = alpha(B4);
-            plan.y = (a(A2)-3/4)';
-            fastsum_trafo(plan)
-            coeff(A2) = coeff(A2) + plan.f;
-            %------------------------------------------------------------------
-            % Case 3 (-0.25 <= a < 0.25)
-            % Computation without shift of nodes
-            plan.x = b';
-            plan.alpha = alpha;
-            plan.y = a(A3)';
-            fastsum_trafo(plan)
-            coeff(A3) = plan.f;
-        end %function
-        
-        function phihat = phi_hat(h,v)
-        % Computation of the Fourier transformed window function at points v
-            o = h.n/h.N;
-            switch h.window
-                case 'BSpline' % The Fourier transform of BSpline is the sinc function.
-                    phihat = 1/h.n.*(infft.sinc(pi.*v/h.n)).^(2*h.m);
-                case 'Gaussian'
-                    h = 2*o/(2*o-1)*h.m/pi;
-                    phihat = 1/h.n*exp(-h*(pi*v/h.n).^2);
-                case 'Sinc' % The Fourier transform of the sinc function is BSpline.
-                    phihat = infft.cardinal_bspline(2*h.m*v./((2*o-1)*h.N),2*h.m);
-                case 'Bessel'
-                    phihat = zeros(length(v),1);
-                    h = pi*(2-1/o);
-                    ind = (abs(v./(1-1/(2*o))) <= h.n);
-                    phihat(ind) = 1/h.n*besseli(0,h.m*sqrt(h^2-(2*pi*v(ind)./h.n).^2));
-                case 'Dirichlet'
-                    phihat = ones(size(v));
-            end
-        end%function
     end %methods
 end %classdef
