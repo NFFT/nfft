@@ -43,7 +43,7 @@ infft - Class file for fast computation of an inverse NFFT
  
  TRAFO:
   infft_trafo(plan) % Fast computation
- and
+ or
   infft_direct(plan) % Direct computation
 
 ------------------------------------------------------------------------------------------------
