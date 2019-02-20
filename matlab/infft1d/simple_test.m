@@ -1,4 +1,8 @@
 % Example for the usage of class infft for the quadratic setting M=N.
+%
+% This is the testfile for the quadratic setting. For underdetermined and
+% overdetermined cases see files 'test_underdetermined.m' and
+% 'test_overdetermined.m' respectively.
 
 clear
 
