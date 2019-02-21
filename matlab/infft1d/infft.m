@@ -502,42 +502,42 @@ classdef infft < handle
         % Auxiliary function for computing the correction of sign for coefficients c.
         % Call from outside class: infft.compute_sign(x,y,M)
             count = zeros(M,1);
+            i = 1;
+            j = 1;
 
             if isempty(intersect(x,y))
                 dist = 0; % Remember that no shift has to be done
             else
                 dist = 1;
-                i = 1;
-                j = 1;
+            end
 
-                % Go through the nodes successively and count number of y's smaller than each node x
-                while (i <= M && j <= M)
-                if x(i) < y(j)
-                    diff = y(j)-x(i);
+            % Go through the nodes successively and count number of y's smaller than each node x
+            while (i <= M && j <= M)
+            if x(i) < y(j)
+                diff = y(j)-x(i);
+                if diff < dist
+                    dist = diff; % Remember the smallest positive distance
+                end
+                i = i + 1;
+                if i <= M
+                    count(i) = count(i-1);
+                end
+            elseif x(i) > y(j)
+                count(i) = count(i) + 1;
+                j = j + 1;
+            else % h.x(i) = h.y(j)
+                if j < M
+                    diff = y(j+1)-x(i);
                     if diff < dist
-                        dist = diff; % Remember the smallest positive distance
+                        dist = diff;
                     end
-                    i = i + 1;
-                    if i <= M
-                        count(i) = count(i-1);
-                    end
-                elseif x(i) > y(j)
-                    count(i) = count(i) + 1;
-                    j = j + 1;
-                else % h.x(i) = h.y(j)
-                    if j < M
-                        diff = y(j+1)-x(i);
-                        if diff < dist
-                            dist = diff;
-                        end
-                    end
-                    i = i + 1;
-                    if i <= M
-                        count(i) = count(i-1);
-                    end
-                    count(i-1) = count(i-1) + 1;
                 end
+                i = i + 1;
+                if i <= M
+                    count(i) = count(i-1);
                 end
+                count(i-1) = count(i-1) + 1;
+            end
             end
 
             vec = (-1).^count; % Vector with correct signs
