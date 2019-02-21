@@ -503,7 +503,7 @@ classdef infft < handle
         % Call from outside class: infft.compute_sign(x,y,M)
             count = zeros(M,1);
 
-            if isempty(intersect(x,y,'sorted'))
+            if isempty(intersect(x,y))
                 dist = 0; % Remember that no shift has to be done
             else
                 dist = 1;
