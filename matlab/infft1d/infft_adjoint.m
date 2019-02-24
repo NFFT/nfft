@@ -44,9 +44,9 @@ classdef infft_adjoint < handle
            
            % Add further NFFT methods to search path
            s=fileparts(mfilename('fullpath'));
-           s1=strcat(s,'\..\fastsum');
+           s1=strcat(s,'/../fastsum');
            addpath(s1)
-           s2=strcat(s,'\..\nfft');
+           s2=strcat(s,'/../nfft');
            addpath(s2)
             
            % Check input and determine whether nodes are in the correct interval
