@@ -138,6 +138,11 @@ if [ ! -d "$OCTAVEDIR" ]; then
   mv "$OCTAVEDIR-w$ARCH" "$OCTAVEDIR" || true	# Folder name has suffix -w64 for Octave >=4.4
 fi
 #OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
+# check which folder contains the Octave binaries
+if [ -f "$OCTAVEDIR"/mingw$ARCH/bin/octave-cli.exe ]; then
+  OCTAVEDIR="$OCTAVEDIR"/mingw$ARCH
+fi
+# remove files that prevent compilation
 OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
 rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
