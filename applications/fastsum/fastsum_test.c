@@ -122,6 +122,8 @@ int main(int argc, char **argv)
       kernel = one_over_cube;
     else if (strcmp(s, "log_sin") == 0)
       kernel = log_sin;
+    else if (strcmp(s, "laplacian_rbf") == 0)
+      kernel = laplacian_rbf;
     else
     {
       s = "multiquadric";

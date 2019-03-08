@@ -1,4 +1,4 @@
-# Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+# Copyright (c) 2002, 2019 Jens Keiner, Stefan Kunis, Daniel Potts
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -19,8 +19,8 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [4])
-m4_define([nfft_version_patch], [2])
+m4_define([nfft_version_minor], [5])
+m4_define([nfft_version_patch], [1])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -29,7 +29,7 @@ m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2017, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2019, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
@@ -79,7 +79,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="3:0:1"
+SHARED_VERSION_INFO="4:0:0"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
@@ -168,6 +168,17 @@ nfft_applications_default="yes"
 AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
   [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
+
+# option for julia interface
+nfft_julia_default="no"
+AC_ARG_ENABLE(julia, [AC_HELP_STRING([--enable-julia],
+  [enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
+AM_CONDITIONAL(HAVE_JULIA, test "x$enable_julia" = "xyes" )
+
+if test "x$enable_julia" = "xyes" -a "x$PRECISION" != "xd"; then
+  AC_MSG_ERROR([Building the julia interface requires double precision.])
+fi
+
 
 # options for modules
 AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform],["yes"])
@@ -641,6 +652,8 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/check_nfsoft_octave.sh \
 		matlab/tests/nfftUnitTests.m \
 		matlab/tests/nfsftUnitTests.m \
+		julia/Makefile \
+		julia/nfft/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

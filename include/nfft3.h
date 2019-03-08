@@ -884,7 +884,8 @@ void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
  * \
  * The window function to be used is configured at compile time. \
  */ \
-const char *Y(get_window_name)();
+const char *Y(get_window_name)(); \
+NFFT_INT Y(get_default_window_cut_off)();
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

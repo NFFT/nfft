@@ -19,7 +19,7 @@
 #ifndef _FPT_H_
 #define _FPT_H_
 
-#include<stdbool.h>
+#include <stdbool.h>
 
 void fpt_precompute_1(fpt_set set, const int m, int k_start);
 void fpt_precompute_2(fpt_set set, const int m, double *alpha, double *beta, double *gam, int k_start, const double threshold);
@@ -53,9 +53,9 @@ typedef struct fpt_data_
   double beta_0;                          /**< TODO Add comment here.         */
   double gamma_m1;                        /**< TODO Add comment here.         */
   /* Data for direct transform. */        /**< TODO Add comment here.         */
-  double *alpha;                          /**< TODO Add comment here.         */
-  double *beta;                           /**< TODO Add comment here.         */
-  double *gamma;                          /**< TODO Add comment here.         */
+  double *_alpha;                         /**< TODO Add comment here.         */
+  double *_beta;                          /**< TODO Add comment here.         */
+  double *_gamma;                         /**< TODO Add comment here.         */
   bool precomputed;
 } fpt_data;
 

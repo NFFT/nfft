@@ -74,6 +74,8 @@ typedef C (*kernel)(R , int , const R *);
 
 #define NEARFIELD_BOXES (1U<< 1)
 
+/** If this flag is set, and eps_I > 0.0 and NEARFIELD_BOXES is not set,
+ * then the vector permutation_x_alpha is stored. */
 #define STORE_PERMUTATION_X_ALPHA (1U<< 2)
 
 /** plan for fast summation algorithm */

@@ -28,6 +28,7 @@ OCTAVEVERSION=4.4.1
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
+SOVERSION=4
 
 # read the options
 TEMP=`getopt -o o:m:f:a:g:v: --long octave:,matlab:,fftw:,arch:,gcc-arch:,matlab-version: -n 'nfft-build-dll.sh' -- "$@"`
@@ -137,6 +138,11 @@ if [ ! -d "$OCTAVEDIR" ]; then
   mv "$OCTAVEDIR-w$ARCH" "$OCTAVEDIR" || true	# Folder name has suffix -w64 for Octave >=4.4
 fi
 #OCTLIBDIR=$("$OCTAVEDIR"/bin/octave-config -p OCTLIBDIR)
+# check which folder contains the Octave binaries
+if [ -f "$OCTAVEDIR"/mingw$ARCH/bin/octave-cli.exe ]; then
+  OCTAVEDIR="$OCTAVEDIR"/mingw$ARCH
+fi
+# remove files that prevent compilation
 OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
 rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
@@ -151,7 +157,7 @@ The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 cd "$NFFTDIR"
-./bootstrap.sh
+#./bootstrap.sh
 make distclean || true
 
 for OMPYN in 0 1
@@ -186,20 +192,25 @@ make check
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DLLDIR=nfft-"$NFFTVERSION"-dll$ARCH$OMPSUFFIX
 
-gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-2.dll -Wl,-Bstatic -lwinpthread $OMPLIBS
+gcc -shared  -Wl,--whole-archive 3rdparty/.libs/lib3rdparty.a kernel/.libs/libkernel$THREADSSUFFIX.a -lfftw3 -lm -L"$FFTWBUILDDIR-static/.libs" -Wl,--no-whole-archive -O3 -malign-double   -o .libs/libnfft3$THREADSSUFFIX-$SOVERSION.dll -Wl,-Bstatic -lwinpthread $OMPLIBS -Wl,--output-def,.libs/libnfft3$THREADSSUFFIX-$SOVERSION.def
 
 mkdir "$DLLDIR"
-cp ".libs/libnfft3$THREADSSUFFIX-2.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-2.dll"
+cp ".libs/libnfft3$THREADSSUFFIX-$SOVERSION.dll" "$DLLDIR/libnfft3$THREADSSUFFIX-$SOVERSION.dll"
+cp ".libs/libnfft3$THREADSSUFFIX-$SOVERSION.def" "$DLLDIR/libnfft3$THREADSSUFFIX-$SOVERSION.def"
 cp "$NFFTDIR"/include/nfft3.h "$DLLDIR"/nfft3.h
 cp "$NFFTDIR"/include/nfft3mp.h "$DLLDIR"/nfft3mp.h
+cp "$FFTWDIR"/api/fftw3.h "$DLLDIR"/fftw3.h
 cp examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
 using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
 
+In order to link the .dll file from Visual C++, you should run
+    lib /def:libnfft3'$THREADSSUFFIX'-'$SOVERSION'.def
+
 As a small example, you can compile the NFFT simple test with the following command
 
-	gcc -O3 simple_test.c -o simple_test.exe -L. libnfft3'$THREADSSUFFIX'-2.dll
+	gcc -O3 simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-'$SOVERSION'.dll
 ' "$READMECONTENT" "$FFTWREADME" > "$DLLDIR"/readme-windows.txt
 unix2dos "$DLLDIR"/readme-windows.txt
 cp "$NFFTDIR"/COPYING "$DLLDIR"/COPYING
@@ -209,7 +220,7 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
-  if [ ! "$MATLABVERSION" == "" ]; then
+  if [ "$MATLABVERSION" == "" ]; then
     "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -nodisplay -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
     MATLABVERSION=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi

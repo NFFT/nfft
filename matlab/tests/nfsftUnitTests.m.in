@@ -108,7 +108,7 @@ classdef nfsftUnitTests
       
       testcase = testcase.setup;
       
-      if ~exist('octave_config_info')
+      if isempty(ver('octave'))
         bound = trafo_delegate.acc(init_delegate.nfft_cutoff_m);
         X = testcase.x;
         N = testcase.N;
@@ -325,8 +325,12 @@ classdef nfsftUnitTests
     function result = nfsft_check_quadrature_online(h)
       result = h.check_many_quadrature(h.testcases_gl_quadrature_online, h.initializers_quadrature, {nfsftTestcaseTrafoDelegate('adjoint')});
 
-      result2 = h.check_many_quadrature(h.testcases_gl_quadrature_online_large, h.initializers_quadrature_large, {nfsftTestcaseTrafoDelegate('adjoint')});
-      result = min(result,result2);
+      % Don't perform large test in 32bit Octave
+      archstring = computer;
+      if isempty(strfind(archstring,'i686'))
+        result2 = h.check_many_quadrature(h.testcases_gl_quadrature_online_large, h.initializers_quadrature_large, {nfsftTestcaseTrafoDelegate('adjoint')});
+        result = min(result,result2);
+      end
 
       if h.perform_exhaustive_tests_flag
         result2 = h.check_many_quadrature(h.testcases_gl_quadrature_online_exhaustive, h.initializers_quadrature, {nfsftTestcaseTrafoDelegate('adjoint')});
