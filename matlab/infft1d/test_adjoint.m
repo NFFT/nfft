@@ -24,11 +24,11 @@ fhat = f'*exp(-2*pi*1i*y'*(-N/2:N/2-1));
 plan = infft(y,N);
 
 plan.fhat = fhat; % Set Fourier coefficients
-infft_trafo_adjoint(plan); % Compute inverse adjoint nonequispaced Fourier transform
+infft_adjoint(plan); % Compute inverse adjoint nonequispaced Fourier transform
 
 %% Direct computation
 
-infft_direct_adjoint(plan); % Compute samples directly
+infft_adjoint_direct(plan); % Compute samples directly
 
 %% Output
 

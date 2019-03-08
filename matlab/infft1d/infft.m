@@ -252,7 +252,20 @@ classdef infft < handle
         
     % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        function infft_direct(h)
+        function infft_trafo(h)
+        % Fast computation of an iNFFT.   
+            if not(h.f_is_set)
+                error('Trafo cannot be done. No function values were set.')
+            end
+            
+            if h.M == h.N
+                trafo_quadratic(h)
+            else
+                trafo_rectangular(h)
+            end
+        end %function
+        
+        function infft_trafo_direct(h)
         % Exact computation of an iNDFT, i.e., inversion of the nonequispaced Fourier matrix.
             if not(h.f_is_set)
                 error('Trafo cannot be done. No function values were set.')
@@ -269,20 +282,25 @@ classdef infft < handle
             h.direct_done = true;
         end %function
         
-        function infft_trafo(h)
-        % Fast computation of an iNFFT.   
-            if not(h.f_is_set)
-                error('Trafo cannot be done. No function values were set.')
+        function infft_direct(h)
+        % Additional function for compatibility
+            infft_trafo_direct(h)
+        end %function
+        
+        function infft_adjoint(h)
+        % Fast computation of an adjoint iNFFT.   
+            if not(h.fhat_is_set)
+                error('Trafo cannot be done. No Fourier coefficients were set.')
             end
             
             if h.M == h.N
-                trafo_quadratic(h)
+                adjoint_quadratic(h)
             else
-                trafo_rectangular(h)
+                adjoint_rectangular(h)
             end
         end %function
         
-        function infft_direct_adjoint(h)
+        function infft_adjoint_direct(h)
         % Exact computation of an adjoint iNDFT, i.e., inversion of the adjoint nonequispaced Fourier matrix.
             if not(h.fhat_is_set)
                 error('Trafo cannot be done. No Fourier coefficients were set.')
@@ -297,19 +315,6 @@ classdef infft < handle
             h.ftilde_direct = A'\h.fhat;
             h.times.t_direct = toc;
             h.direct_done = true;
-        end %function
-        
-        function infft_trafo_adjoint(h)
-        % Fast computation of an adjoint iNFFT.   
-            if not(h.fhat_is_set)
-                error('Trafo cannot be done. No Fourier coefficients were set.')
-            end
-            
-            if h.M == h.N
-                trafo_quadratic_adjoint(h)
-            else
-                trafo_rectangular_adjoint(h)
-            end
         end %function
     
     end %methods
@@ -578,7 +583,7 @@ classdef infft < handle
             h.trafo_done = true;
         end %function
         
-        function trafo_quadratic_adjoint(h)
+        function adjoint_quadratic(h)
         % Computation of an adjoint iNFFT for the quadratic setting.             
             % Suppress specific warnings (nodes are in an interval that is larger than normal)
             warning('off','fastsum:alphaDeleted')
@@ -615,7 +620,7 @@ classdef infft < handle
             h.times.t_trafo = toc;
         end %function
         
-        function trafo_rectangular_adjoint(h)
+        function adjoint_rectangular(h)
         % Computation of an adjoint iNFFT for the rectangular setting.
             tic
             % Perform an NFFT

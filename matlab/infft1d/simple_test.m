@@ -31,7 +31,7 @@ infft_trafo(plan); % Compute inverse nonequispaced Fourier transform
 
 %% Direct computation
 
-infft_direct(plan); % Compute samples directly
+infft_trafo_direct(plan); % Compute samples directly
 
 %% Output
 

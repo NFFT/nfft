@@ -54,7 +54,7 @@ infft - Class file for fast computation of an inverse NFFT
  TRAFO:
   infft_trafo(plan) % Fast computation
  or
-  infft_direct(plan) % Direct computation
+  infft_trafo_direct(plan) % Direct computation
 
 ------------------------------------------------------------------------------------------------
  INPUT
@@ -97,8 +97,8 @@ infft - Class file for fast computation of an inverse NFFT
  EXAMPLE WORKFLOW ADJOINT
    plan = infft(y,N);           % Initialization and precomputation
    plan.fhat = fhat;            % Set Fourier coefficients
-   infft_trafo_adjoint(plan)    % Trafo
-   infft_direct_adjoint(plan)   % Direct computation
+   infft_adjoint(plan)          % Trafo
+   infft_adjoint_direct(plan)   % Direct computation
  
  The following instances can be computed. 
 
