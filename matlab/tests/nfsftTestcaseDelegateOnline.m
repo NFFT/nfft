@@ -14,17 +14,25 @@ classdef nfsftTestcaseDelegateOnline < nfsftTestcaseDelegate
     end
     
     function h = setup(h)
-      fprintf('%-31s', 'nfsft_online');
+      
+      if (h.M==0)  % equidistant nodes
+        fprintf('%-31s', 'nfsft_online_equidistant');
+        ph=(-h.N-1:h.N)/(2*h.N+2)*2*pi;
+        th=(0:h.N)/(2*h.N+2)*2*pi;
+        [ph,th]=meshgrid(ph,th);
+        h.x=[ph(:)';th(:)'];
+        h.M=size(h.x,2);
+      else % random nodes
+        fprintf('%-31s', 'nfsft_online');
+        ph=rand(1,h.M)*2*pi;
+        th=rand(1,h.M)*pi;
+        h.x=[ph;th];
+      end
+      
       fprintf(' N = %-5d,', h.N);
       fprintf(' M = %-5d,', h.M);
       
       fprintf(' nthreads = %d', nfsft_get_num_threads);
-      
-      % random nodes
-      ph=rand(1,h.M)*2*pi;
-      th=rand(1,h.M)*pi;
-      X=[ph;th];
-      h.x = X;
 
       switch h.trafo_type
         case 'trafo'
@@ -33,7 +41,7 @@ classdef nfsftTestcaseDelegateOnline < nfsftTestcaseDelegate
           
           p = nfsft(h.N,h.M,NFSFT_USE_DPT,1000.0,6,FPT_NO_FAST_ALGORITHM);
           p.fhat = fh;
-          p.x = X;
+          p.x = h.x;
           nfsft_trafo_direct(p);
           h.f = p.f;
         case 'adjoint'
@@ -42,7 +50,7 @@ classdef nfsftTestcaseDelegateOnline < nfsftTestcaseDelegate
 
           p = nfsft(h.N,h.M,NFSFT_USE_DPT,1000.0,6,FPT_NO_FAST_ALGORITHM);
           p.f = f;
-          p.x = X;
+          p.x = h.x;
           nfsft_adjoint_direct(p);
           h.f_hat = p.fhat;
         otherwise
