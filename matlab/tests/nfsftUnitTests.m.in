@@ -92,7 +92,7 @@ classdef nfsftUnitTests
       
       testcase = testcase.setup;
       
-      if ~exist('octave_config_info')
+      if isempty(ver('octave'))
         bound = trafo_delegate.acc(init_delegate.nfft_cutoff_m);
         X = testcase.x;
         N = testcase.N;
