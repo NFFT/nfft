@@ -4,6 +4,7 @@ classdef infft < handle
     
     properties(Dependent=true)
         f                       % Given function values
+        fhat                    % Given Fourier coefficients
     end 
     
     properties(SetAccess=private)
@@ -12,6 +13,8 @@ classdef infft < handle
         n                       % Expansion degree
         fcheck                  % Approximated Fourier coefficients
         fcheck_direct           % Directly computed Fourier coefficients
+        ftilde                  % Approximated function values
+        ftilde_direct           % Directly computed function values
         m                       % Cut-off parameter
         sigma                   % Oversampling factor
         p                       % Degree of smoothness              (needed in quadratic setting M=N)
@@ -26,16 +29,20 @@ classdef infft < handle
     end
     
     properties(GetAccess=private, SetAccess=private)
-        M                       % Number of nodes
-        y_storage               % Stored nodes (possibly sorted)
-        f_storage               % Stored function values (possibly sorted)
-        f_is_set = false;       % Flag if function values are set
-        trafo_done = false;     % Flag if trafo is done
-        direct_done = false;    % Flag if direct trafo is done
-        perm                    % Permutation to sort y (if unsorted)
-        x                       % Additional equidistant nodes      (needed in quadratic setting M=N)
-        nn_oversampled          % oversampled n                     (needed in quadratic setting M=N)
-        dist                    % Distance needed for a shift       (needed in quadratic setting M=N)
+        M                               % Number of nodes
+        y_storage                       % Stored nodes (possibly sorted)
+        f_storage                       % Stored function values (possibly sorted)
+        fhat_storage                    % Stored Fourier coefficients (possibly sorted)
+        f_is_set = false;               % Flag if function values are set
+        fhat_is_set = false;            % Flag if Fourier coefficients are set
+        trafo_done = false;             % Flag if trafo is done
+        direct_done = false;            % Flag if direct trafo is done
+        trafo_adjoint_done = false;     % Flag if trafo is done
+        direct_adjoint_done = false;    % Flag if direct trafo is done
+        perm                            % Permutation to sort y (if unsorted)
+        x                               % Additional equidistant nodes      (needed in quadratic setting M=N)
+        nn_oversampled                  % oversampled n                     (needed in quadratic setting M=N)
+        dist                            % Distance needed for a shift       (needed in quadratic setting M=N)
     end
     
     
@@ -162,6 +169,25 @@ classdef infft < handle
             h.direct_done = false;
         end %function
         
+        function set.fhat(h,fhat) % Set Fourier coefficients
+            % Check whether the parameters match 
+            if ( isvector(fhat) ~= 1 )
+                error('Input fhat must be a vector.');
+            elseif ( length(fhat) ~= h.N )
+                error('The input vector fhat needs to be of length N.');
+            end
+            
+            % If the nodes were sorted, also sort fhat
+            if h.perm
+                fhat = fhat(h.perm);
+            end
+            
+            h.fhat_storage = fhat(:);
+            h.fhat_is_set = true;
+            h.trafo_adjoint_done = false;
+            h.direct_adjoint_done = false;
+        end %function
+        
         
     % Get functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                      
@@ -194,6 +220,35 @@ classdef infft < handle
             end
         end %function
         
+        function fhat=get.fhat(h) % Get Fourier coefficients
+            if not(h.fhat_is_set)
+                error('No Fourier coefficients were set.')
+            end
+            
+            % If y got sorted, use the inverse permutation to get back the order of the user
+            if h.perm
+                fhat = h.fhat_storage(h.perm);
+            else 
+                fhat = h.fhat_storage;
+            end
+        end %function
+        
+        function ftilde=get.ftilde(h) % Get approximations of the function values
+            if(~h.trafo_done)
+                error('No trafo was done.');
+            else
+                ftilde = h.ftilde;
+            end
+        end %function 
+        
+        function ftilde_direct=get.ftilde_direct(h) % Get directly computed function values
+            if(~h.direct_done)
+                error('No trafo was done.');
+            else
+                ftilde_direct = h.ftilde_direct;
+            end
+        end %function
+
         
     % User methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -224,6 +279,36 @@ classdef infft < handle
                 trafo_quadratic(h)
             else
                 trafo_rectangular(h)
+            end
+        end %function
+        
+        function infft_direct_adjoint(h)
+        % Exact computation of an adjoint iNDFT, i.e., inversion of the adjoint nonequispaced Fourier matrix.
+            if not(h.fhat_is_set)
+                error('Trafo cannot be done. No Fourier coefficients were set.')
+            end
+            
+            tic
+            A = zeros(h.M,h.N);
+            j = 1:h.M;
+            for k = -h.N/2 : h.N/2-1
+                A(:,k + h.N/2 + 1) = exp(2*pi*1i*k*h.y(j));
+            end
+            h.ftilde_direct = A'\h.fhat;
+            h.times.t_direct = toc;
+            h.direct_done = true;
+        end %function
+        
+        function infft_trafo_adjoint(h)
+        % Fast computation of an adjoint iNFFT.   
+            if not(h.fhat_is_set)
+                error('Trafo cannot be done. No Fourier coefficients were set.')
+            end
+            
+            if h.M == h.N
+                trafo_quadratic_adjoint(h)
+            else
+                trafo_rectangular_adjoint(h)
             end
         end %function
     
@@ -442,20 +527,20 @@ classdef infft < handle
             g = -h.c.*(-g + 1i*sum(alpha));
             
             % Computation of the Fourier coefficients by FFT
-            fhat = fft(g);
-            fhat = fhat.*transpose(exp(-pi*1i*(0:h.M-1)));
-            fhat = fftshift(fhat);
-            fhat = fhat/h.M;   
-            fhat = fhat.*transpose(exp(-pi*1i*(-h.M/2:h.M/2-1)*h.dist));
+            temp = fft(g);
+            temp = temp.*transpose(exp(-pi*1i*(0:h.M-1)));
+            temp = fftshift(temp);
+            temp = temp/h.M;   
+            temp = temp.*transpose(exp(-pi*1i*(-h.M/2:h.M/2-1)*h.dist));
             
             % Set flag
             h.trafo_done = true;
                         
             % If y got sorted, use the inverse permutation to get back the order of the user
             if h.perm
-                h.fcheck(h.perm) = fhat;
+                h.fcheck(h.perm) = temp;
             else 
-                h.fcheck = fhat;
+                h.fcheck = temp;
             end
             
             % Computation time
@@ -467,12 +552,12 @@ classdef infft < handle
             tic
             % Perform an adjoint NFFT
             % Multiplication with optimized sparse matrix
-            fhat = h.B_opt*h.f_storage;
+            temp = h.B_opt*h.f_storage;
 
             % Perform an FFT
-            fhat = fft(fhat);
-            fhat = fhat.*transpose(exp(pi*1i*(0:h.n-1)));
-            fhat = fftshift(fhat);
+            temp = fft(temp);
+            temp = temp.*transpose(exp(pi*1i*(0:h.n-1)));
+            temp = fftshift(temp);
             
             if h.M > h.N
                 const = 1;
@@ -481,10 +566,10 @@ classdef infft < handle
             end
 
             % Multiplication with diagonal matrix
-            fhat = const .* transpose(1/h.n*1./infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1)) .* fhat(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
+            temp = const .* transpose(1/h.n*1./infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1)) .* temp(h.n/2+1-h.N/2:h.n/2+1+h.N/2-1);
             
             % Set approximations
-            h.fcheck = fhat;
+            h.fcheck = temp;
             
             % Computation time
             h.times.t_trafo = toc;
@@ -492,6 +577,77 @@ classdef infft < handle
             % Set flag
             h.trafo_done = true;
         end %function
+        
+        function trafo_quadratic_adjoint(h)
+        % Computation of an adjoint iNFFT for the quadratic setting.             
+            % Suppress specific warnings (nodes are in an interval that is larger than normal)
+            warning('off','fastsum:alphaDeleted')
+            warning('off','fastsum:nodesOutsideBall')
+             
+            tic
+            % Computation of the Fourier coefficients by iFFT
+            v = ifft(h.fhat_storage);
+            v = v.*transpose(exp(pi*1i*(0:h.M-1)));
+            v = fftshift(v);
+            v = v.*transpose(exp(pi*1i*(-h.M/2:h.M/2-1)*h.dist));
+                        
+            % Set constants for fastsum of f
+            alpha = v.*h.c;
+            
+            % Computation of coefficients f
+            plan = fastsum(1,'cot',-pi,0,h.n,h.p,h.eps_I,h.eps_B,h.nn_oversampled,h.m);
+            temp = infft.compute_coeff(h.M,plan,h.y_storage,h.x,alpha);
+            
+            % Final computation
+            temp = h.d.*(temp + 1i*sum(alpha));
+            
+            % Set flag
+            h.trafo_done = true;
+            
+            % If y got sorted, use the inverse permutation to get back the order of the user
+            if h.perm
+                h.ftilde(h.perm) = temp;
+            else 
+                h.ftilde = temp;
+            end
+            
+            % Computation time
+            h.times.t_trafo = toc;
+        end %function
+        
+        function trafo_rectangular_adjoint(h)
+        % Computation of an adjoint iNFFT for the rectangular setting.
+            tic
+            % Perform an NFFT
+            % Multiplication with diagonal matrix
+            temp = transpose(1./infft.phi_hat(h.window,h.m,h.N,h.n,-h.N/2:h.N/2-1)) .* h.fhat;
+            
+            % Perform an iFFT
+            temp = ifft([zeros((h.n-h.N)/2,1);temp;zeros((h.n-h.N)/2,1)]);
+            temp = temp.*transpose(exp(pi*1i*(0:h.n-1)));
+            temp = fftshift(temp);
+            
+            % Multiplication with adjoint of optimized sparse matrix
+            temp = h.B_opt'*temp;
+            
+            % Multiplication with specific constant
+            if h.M > h.N
+                const = 1;
+            else 
+                const = 1/h.N;
+            end
+            temp = const.*temp;
+
+            % Set approximations
+            h.ftilde = temp;
+
+            % Computation time
+            h.times.t_trafo = toc;
+            
+            % Set flag
+            h.trafo_done = true;
+        end %function
+
     end %methods
     
     
