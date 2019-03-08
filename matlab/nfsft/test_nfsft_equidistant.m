@@ -20,8 +20,8 @@
 fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 % maximum degree (bandwidth) of spherical harmonics expansions
-N = 1024;
-direct = 0;
+N = 32;
+direct = 1;
 
 % threshold (affects accuracy, 1000 is the default)
 kappa = 10000;
@@ -61,10 +61,10 @@ if(direct)
 tic
 ndsft_trafo(plan);
 fprintf('Time of direct transform:  %g seconds\n', toc);
-end
 
 % get function values
 f_direct = nfsft_get_f(plan);
+end
 
 % fast NFSFT transform
 tic
@@ -90,10 +90,10 @@ nfsft_set_f(plan,f)
 tic
 ndsft_adjoint(plan);
 fprintf('Time of direct adjoint:    %g seconds\n', toc);
-end
 
 % get function values
 fh2_direct = f_hat(nfsft_get_f_hat(plan));
+end
 
 % Fast adjoint transform
 nfsft_set_f(plan,f)
