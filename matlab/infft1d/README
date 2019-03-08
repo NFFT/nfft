@@ -81,8 +81,8 @@ infft - Class file for fast computation of an inverse NFFT
 ------------------------------------------------------------------------------------------------
  The following instances can be computed. 
 
- fcheck - Approximations of the Fourier coefficients
- fcheck_direct - Direct computed coefficients
+ fcheck - Approximations of the Fourier coefficients fhat
+ fcheck_direct - Direct computed Fourier coefficients fhat
  times - Field including:
    times.t_precompute - Computation time for precomputation
    times.t_trafo - Computation time of the inversion
@@ -102,8 +102,8 @@ infft - Class file for fast computation of an inverse NFFT
  
  The following instances can be computed. 
 
- ftilde - Approximations of the function values
- ftilde_direct - Direct computed values
+ ftilde - Approximations of the function values f
+ ftilde_direct - Direct computed function values f
  times - Field including:
    times.t_precompute - Computation time for precomputation
    times.t_trafo - Computation time of the inversion
