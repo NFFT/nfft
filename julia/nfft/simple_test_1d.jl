@@ -1,4 +1,4 @@
-push!(LOAD_PATH, pwd())
+push!(LOAD_PATH, "/home/home/documents/nfft/julia/nfft")
 using NFFT
 using LinearAlgebra
 
