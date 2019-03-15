@@ -31,6 +31,11 @@ infft - Class file for fast computation of an inverse NFFT
  specific optimized matrix. This optimization is done in a 
  precomputational step according to the given nodes.
 
+ ADDITIONAL APPROACH FOR THE SETTING M>=N:
+ An iNFFT can be obtained by exactly solving the normal equations.
+ This is possible since A'*A is a Toeplitz matrix. Therefore, A'*A 
+ can be inverted exactly by means of the Gohberg-Semencul formula.
+
  It must be pointed out that the algorithms only work in the one-dimensional setting.
  For more details see [1,2].
 
@@ -78,6 +83,10 @@ infft - Class file for fast computation of an inverse NFFT
  m2 - Cut-off parameter for inner NFFT            default: m2 = 4
  window - Window function for inversion           default: 'Dirichlet'
 
+ ADDITIONAL FOR SETTING M>=N:
+ flag_toeplitz - Flag to switch between approaches      default: flag_toeplitz = 0
+  ( 0 - matrix approach, 1 - Toeplitz approach )
+
 ------------------------------------------------------------------------------------------------
  The following instances can be computed. 
 
@@ -110,6 +119,9 @@ infft - Class file for fast computation of an inverse NFFT
    times.t_direct - Total computation time of the exact computation
 
  Use the Matlab script file 'test_adjoint.m' for demonstration.
+
+ Please note that the Toeplitz approach via Gohberg-Semencul formula is not
+ available for the adjoint infft.
 
 ------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------

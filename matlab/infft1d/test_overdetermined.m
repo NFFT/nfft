@@ -30,6 +30,13 @@ infft_trafo(plan); % Compute inverse nonequispaced Fourier transform
 
 infft_direct(plan); % Compute samples directly
 
+%% Fast computation via Gohberg-Semencul formula (only for M>=N)
+
+plan2 = infft(y,N,'flag_toeplitz',1);
+
+plan2.f = f; % Set function values
+infft_trafo(plan2); % Compute inverse nonequispaced Fourier transform
+
 %% Output
 
 % Graphical representation of the pointwise reconstruction
@@ -51,10 +58,17 @@ legend('absolute maximum error','relative maximum error','Location','best')
 xlim([-N/2-1,N/2])
 
 % Computation of errors
-err_abs_max = norm(plan.fcheck(:)-fhat(:),Inf);                  % Absolute ell_infinity error
-err_rel_max = norm(plan.fcheck(:)-fhat(:),Inf)/norm(fhat,Inf);   % Relative ell_infinity error
-err_abs_2 = norm(plan.fcheck(:)-fhat(:),2);                      % Absolute ell_2 error
-err_rel_2 = norm(plan.fcheck(:)-fhat(:),2)/norm(fhat,2);         % Relative ell_2 error
+% Matrix approach
+err_abs_max = norm(plan.fcheck(:)-fhat(:),Inf);                        % Absolute ell_infinity error
+err_rel_max = norm(plan.fcheck(:)-fhat(:),Inf)/norm(fhat,Inf);         % Relative ell_infinity error
+err_abs_2 = norm(plan.fcheck(:)-fhat(:),2);                            % Absolute ell_2 error
+err_rel_2 = norm(plan.fcheck(:)-fhat(:),2)/norm(fhat,2);               % Relative ell_2 error
+% Toeplitz approach
+err_abs_max_toep = norm(plan2.fcheck(:)-fhat(:),Inf);                  % Absolute ell_infinity error
+err_rel_max_toep = norm(plan2.fcheck(:)-fhat(:),Inf)/norm(fhat,Inf);   % Relative ell_infinity error
+err_abs_2_toep = norm(plan2.fcheck(:)-fhat(:),2);                      % Absolute ell_2 error
+err_rel_2_toep = norm(plan2.fcheck(:)-fhat(:),2)/norm(fhat,2);         % Relative ell_2 error
 
 % Output in command window
-fprintf(['The absolute maximum error is ',num2str(err_abs_max,'%1.4e'),' and the relative maximum error is ',num2str(err_rel_max,'%1.4e'),'.\n\n'])
+fprintf(['Using the matrix approach the absolute maximum error is ',num2str(err_abs_max,'%1.4e'),' and the relative maximum error is ',num2str(err_rel_max,'%1.4e'),'.\n'])
+fprintf(['Using the Gohberg-Semencul formula the absolute maximum error is ',num2str(err_abs_max_toep,'%1.4e'),' and the relative maximum error is ',num2str(err_rel_max_toep,'%1.4e'),'.\n\n'])

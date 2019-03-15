@@ -25,6 +25,8 @@ classdef infft < handle
         m2                      % Cut-off parameter for inner NFFT  (needed in setting M~=N)
         window                  % Window function for inversion     (needed in setting M~=N)
         B_opt                   % Optimized matrix B*               (precomputed in setting M~=N)
+        flag_toeplitz           % Flag for exact computation via Toeplitz approach (only possible for M>N)
+        D                       % Components of Gohberg-Semencul formula (precomputed if flag_toeplitz==1)
         times                   % Computation times  
     end
     
@@ -97,6 +99,7 @@ classdef infft < handle
            addParameter(P,'n',h.N, @(x) assert(mod(x,2)==0 && x>h.N,'Arguments have to be even natural numbers bigger than N.'))
            addParameter(P,'m',4, @(x) assert(mod(x,1)==0 && x>0,'Arguments must be natural numbers.'))
            addParameter(P,'sigma',2, @(x) assert(x>=1 && not(ischar(x)),'Arguments must be real numbers larger equal 1.'))
+           addParameter(P,'flag_toeplitz',0, @(x) assert((x==0 || x==1) && h.M>=h.N,'Arguments must be zero or one. Besides, computation via Gohberg-Semencul formula is only possible in case M>=N.'))
            
            if h.N == h.M
                addParameter(P,'p',4, @(x) assert(mod(x,1)==0 && x>=0 && x<=12,'Arguments have to be natural numbers smaller equal 12.'))
@@ -105,7 +108,8 @@ classdef infft < handle
 
                % Set additional parameters
                h.m = P.Results.m;
-               h.sigma = P.Results.sigma;   
+               h.sigma = P.Results.sigma;
+               h.flag_toeplitz = P.Results.flag_toeplitz;
                h.n = P.Results.n;
                h.p = P.Results.p;
                h.eps_I = P.Results.eps_I;
@@ -134,10 +138,13 @@ classdef infft < handle
                h.n = P.Results.n;
                h.m2 = P.Results.m2;
                h.window = P.Results.window;
+               h.flag_toeplitz = P.Results.flag_toeplitz;
            end %if
            
            % Node-dependent precomputations
-           if h.M == h.N
+           if h.flag_toeplitz == 1
+               precompute_toep(h)
+           elseif h.M == h.N
                precompute_quadratic(h)
            elseif h.M > h.N
                precompute_overdetermined(h)
@@ -258,7 +265,9 @@ classdef infft < handle
                 error('Trafo cannot be done. No function values were set.')
             end
             
-            if h.M == h.N
+            if h.flag_toeplitz == 1
+                trafo_toep(h)
+            elseif h.M == h.N
                 trafo_quadratic(h)
             else
                 trafo_rectangular(h)
@@ -291,6 +300,10 @@ classdef infft < handle
         % Fast computation of an adjoint iNFFT.   
             if not(h.fhat_is_set)
                 error('Trafo cannot be done. No Fourier coefficients were set.')
+            end
+            
+            if h.flag_toeplitz == 1
+                error('Trafo cannot be done. Computation via Gohberg-Semencul formula is not available in the adjoint setting.')
             end
             
             if h.M == h.N
@@ -514,6 +527,29 @@ classdef infft < handle
             h.times.t_precompute = toc;
         end %function
         
+        function precompute_toep(h)
+        % Precomputations in case flag_toeplitz is true.
+            tic
+            % Initialize matrix A
+            A = zeros(h.M,h.N);
+            for k = -h.N/2 : h.N/2-1
+                A(:,k + h.N/2 + 1) = exp(2*pi*1i*k*h.y);
+            end
+
+            % Compute inverse of Toeplitz matrix A'*A
+            [M1_c,M1_r,M2_c,M2_r,M3_c,M3_r,M4_c,M4_r] = infft.ToeplitzInv(A'*A(:,1),(A'*A(:,1))');
+            
+            % Compute diagonalization of matrices M1-M4
+            h.D.D1 = infft.ToeplitzDiag(M1_c,M1_r);
+            h.D.D2 = infft.ToeplitzDiag(M2_c,M2_r);
+            h.D.D3 = infft.ToeplitzDiag(M3_c,M3_r);
+            h.D.D4 = infft.ToeplitzDiag(M4_c,M4_r);
+            h.D.x0 = M1_c(1);
+            
+            % Computation time
+            h.times.t_precompute = toc;
+        end %function
+        
         function trafo_quadratic(h)
         % Computation of an iNFFT for the quadratic setting.             
             % Suppress specific warnings (nodes are in an interval that is larger than normal)
@@ -575,6 +611,26 @@ classdef infft < handle
             
             % Set approximations
             h.fcheck = temp;
+            
+            % Computation time
+            h.times.t_trafo = toc;
+            
+            % Set flag
+            h.trafo_done = true;
+        end %function
+        
+        function trafo_toep(h)
+        % Computation of an iNFFT via Gohberg-Semencul formula.
+            % Perform an adjoint NFFT
+            tic
+            plan = nfft(1,h.N,h.M);
+            plan.x = -h.y(:);
+            plan.f = h.f;
+            nfft_adjoint(plan);
+            temp = plan.fhat;
+
+            % Multiplication with inverse Toeplitz matrix
+            h.fcheck = infft.ToeplitzInvMul(h.D.x0,h.D.D1,h.D.D2,h.D.D3,h.D.D4,temp);
             
             % Computation time
             h.times.t_trafo = toc;
@@ -702,7 +758,7 @@ classdef infft < handle
             end
 
             vec = (-1).^count; % Vector with correct signs
-        end %function
+        end%function
         
         function coeff = compute_coeff(M,plan,a,b,alpha)
         % Auxiliary function for computing needed coefficients.
@@ -757,7 +813,7 @@ classdef infft < handle
             plan.y = a(A3)';
             fastsum_trafo(plan)
             coeff(A3) = plan.f;
-        end %function
+        end%function
         
         function phihat = phi_hat(window,m,N,n,v)
         % Computation of the Fourier transformed window function at points v
@@ -1106,6 +1162,76 @@ classdef infft < handle
 
                 z(l)=w;
             end
-        end%function        
+        end%function
+        
+        function [M1_c,M1_r,M2_c,M2_r,M3_c,M3_r,M4_c,M4_r] = ToeplitzInv(c,r)
+        % Computation of the inverse Toeplitz matrix of T(c,r) by means of the
+        % Gohberg-Semencul formula
+        % Call from outside class: infft.ToeplitzInv(c,r)
+            if length(c)~=length(r)
+                error('Computation only possible for quadratic Toeplitz matrix.')
+            end
+
+            n = size(c,1);
+            e1 = zeros(n,1);
+            en = zeros(n,1);
+            e1(1) = 1;
+            en(n) = 1;
+
+            % Compute the relevant vectors
+            x = toeplitz(c,r)\e1;
+            y = toeplitz(c,r)\en;
+
+            % Compute the components of the Gohberg-Semencul formula
+            M1_c = x; % First column of M1
+            M1_r = [x(1),zeros(1,n-1)]; % First row of M1
+            M2_c = [y(n);zeros(n-1,1)]; % First column of M2
+            M2_r = flip(y).'; % First row of M2
+            M3_c = [0;y(1:n-1)]; % First column of M2
+            M3_r = zeros(1,n); % First row of M3
+            M4_c = zeros(n,1); % First column of M3
+            M4_r = [0,flip(x(2:n)).']; % First row of M4
+        end%function
+        
+        function D = ToeplitzDiag(c,r)
+        % Diagonalization of circular embedding of Toeplitz matrix T(c,r) via FFT
+        % Call from outside class: infft.ToeplitzDiag(c,r)
+            n = length(c);
+            C = [c;0;r(n:-1:2).'];
+            D = fft(C);
+            D = D/sqrt(2*n);
+        end%function
+        
+        function u = ToeplitzMul(D,v)
+        % Multiplication of Toeplitz matrix T(c,r) with vector v 
+        % via given diagonalized embedding
+        % Call from outside class: infft.ToeplitzMul(D,v)
+            n = length(v);
+            v = [v(:);zeros(n,1)]; % zero-padding
+
+            % FFT
+            w = fft(v);
+            w = w/sqrt(2*n);
+
+            % Multiplication with Diagonalization and iFFT
+            u = ifft(D.*w);
+            u = 2*n*u;
+
+            % Discard last n elements
+            u = u(1:n);
+        end%function
+        
+        function u = ToeplitzInvMul(x0,D1,D2,D3,D4,v)
+        % Multiplication of inverse of Toeplitz matrix T(c,r) with vector v
+        % via given diagonalized embedding
+        % Call from outside class: infft.ToeplitzInvMul(x1,D1,D2,D3,D4,v)
+            u1 = infft.ToeplitzMul(D2,v);
+            u1 = infft.ToeplitzMul(D1,u1);
+            u2 = infft.ToeplitzMul(D4,v);
+            u2 = infft.ToeplitzMul(D3,u2);
+
+            % Apply Gohberg-Semencul formula
+            u = (u1-u2)/x0;
+        end%function
     end %methods
 end %classdef
