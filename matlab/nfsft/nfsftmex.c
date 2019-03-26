@@ -118,11 +118,9 @@ static inline void init_values_zero(nfsft_plan *plan)
 {
   // Equispaced nodes are already set in nfsft_init
   if (!(plan->flags & NFSFT_EQUISPACED))
-  {
     memset(plan->x, 0U, plan->M_total*2*sizeof(double));
-    memset(plan->f, 0U, plan->M_total*sizeof(double _Complex));
-    memset(plan->f_hat, 0U, plan->N_total*sizeof(double _Complex));
-  }
+  memset(plan->f, 0U, plan->M_total*sizeof(double _Complex));
+  memset(plan->f_hat, 0U, plan->N_total*sizeof(double _Complex));
 }
 
 /* cleanup on mex function unload */

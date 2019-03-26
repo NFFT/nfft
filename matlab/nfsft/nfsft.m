@@ -96,6 +96,7 @@ function h=nfsft(N, M, nfsft_flags, kappa, nfft_cutoff, fpt_flags, nfft_flags)
     
     % Equispaced nodes are automatically set in nfsft_init
     if bitand(h.nfsft_flags,NFSFT_EQUISPACED)
+      h.M = (2*N+2) * (N+1);
       h.x_is_set=true;
     end
 end %function
