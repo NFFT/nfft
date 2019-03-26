@@ -159,11 +159,14 @@ classdef nfsftUnitTests
       end
       fprintf(', %-14s', trafo_delegate.name);
 
-      if isnumeric(plan)
-        nfsft_set_x(plan, testcase.x);
-        nfsft_precompute_x(plan);
-      else
-        plan.x = testcase.x;
+      % Equispaced nodes are automatically set in nfsft_init
+      if ~bitand(init_delegate.flags, NFSFT_EQUISPACED)
+        if isnumeric(plan)
+          nfsft_set_x(plan, testcase.x);
+          nfsft_precompute_x(plan);
+        else
+          plan.x = testcase.x;
+        end
       end
 
       run_test = 1;

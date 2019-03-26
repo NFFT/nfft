@@ -322,6 +322,14 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   if (plan->flags & NFSFT_MALLOC_X)
   {
     plan->x = (double*) nfft_malloc(plan->M_total*2*sizeof(double));
+    if (plan->flags & NFSFT_EQUISPACED)
+      // Set equispaced nodes
+      for (int i=0; i<2*plan->N+2; i++)
+        for (int j=0; j<plan->N+1; j++)
+        {
+          plan->x[2*(i*(plan->N+1) + j)] = ((double)i-plan->N-1)/(2.0*plan->N+2);
+          plan->x[2*(i*(plan->N+1) + j) + 1] = ((double)j)/(2.0*plan->N+2);
+        }
   }
 
   /* Check if fast algorithm is activated. */
@@ -1263,13 +1271,17 @@ void nfsft_trafo(nfsft_plan *plan)
       int N[2];
       N[0] = 2*plan->N+2;
       N[1] = 2*plan->N+2;
+      fftw_plan plan_fftw;
 
       for (int j=0; j<N[0]; j++)
         for (int k=0; k<N[1]; k++)
           if ((j+k)%2)
             plan->f_hat_intern[j*N[1]+k] *= -1;
 //	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
-      fftw_plan plan_fftw = FFTW(plan_dft)(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
+      plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
       fftw_execute(plan_fftw);
       for (int j=0; j<N[0]; j++)
 //	for (int k=j%2-1; k<N[1]; k+=2)
@@ -1277,6 +1289,9 @@ void nfsft_trafo(nfsft_plan *plan)
         for (int k=N[1]/2; k<N[1]; k++)
           plan->f[j*N[1]/2+(k-N[1]/2)] = plan->f_hat_intern[j*N[1]+k] * ((j+k)%2 ? -1 : 1);
 //          plan->f[j*N[1]+k] *= CEXP(II*KPI*(j-N[0]/2 + k-N[1]/2));
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
       fftw_destroy_plan(plan_fftw);
     }
     else
