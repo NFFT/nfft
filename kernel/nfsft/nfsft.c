@@ -286,7 +286,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   plan->M_total = M;
 
   /* M is fixed for FSFT algorithm */
-  if (plan->flags & NFSFT_USE_FSFT)
+  if (plan->flags & NFSFT_EQUISPACED)
     plan->M_total = (2*plan->N+2)*(plan->N+1);
 
   /* Calculate the next greater power of two with respect to the bandwidth N
@@ -325,7 +325,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   }
 
   /* Check if fast algorithm is activated. */
-  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_USE_FSFT))
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_EQUISPACED))
   {
   }
   else
@@ -619,7 +619,7 @@ void nfsft_finalize(nfsft_plan *plan)
   if (!plan)
     return;
 
-  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM) && !(plan->flags & NFSFT_USE_FSFT))
+  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM) && !(plan->flags & NFSFT_EQUISPACED))
   {
     /* Finalise the nfft plan. */
     nfft_finalize(&plan->plan_nfft);
@@ -1124,7 +1124,7 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    if (!(plan->flags & NFSFT_USE_FSFT))
+    if (!(plan->flags & NFSFT_EQUISPACED))
     {
       plan->plan_nfft.x = plan->x;
       plan->plan_nfft.f = plan->f;
@@ -1257,7 +1257,7 @@ void nfsft_trafo(nfsft_plan *plan)
       /* Use NDFT. */
       nfft_trafo_direct(&plan->plan_nfft);
     }
-    else if (plan->flags & NFSFT_USE_FSFT)
+    else if (plan->flags & NFSFT_EQUISPACED)
     {
       /* Algorithm for equispaced nodes */
       int N[2];
@@ -1341,7 +1341,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    if (!(plan->flags & NFSFT_USE_FSFT))
+    if (!(plan->flags & NFSFT_EQUISPACED))
     {
       plan->plan_nfft.x = plan->x;
       plan->plan_nfft.f = plan->f;
@@ -1361,7 +1361,7 @@ void nfsft_adjoint(nfsft_plan *plan)
       /* Use adjoint NDFT. */
       nfft_adjoint_direct(&plan->plan_nfft);
     }
-    else if (plan->flags & NFSFT_USE_FSFT)
+    else if (plan->flags & NFSFT_EQUISPACED)
     {
       /* Algorithm for equispaced nodes */
       int N[2];
@@ -1534,7 +1534,7 @@ void nfsft_adjoint(nfsft_plan *plan)
 
 void nfsft_precompute_x(nfsft_plan *plan)
 {
-  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_USE_FSFT))
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_EQUISPACED))
     return;
 
   /* Pass angle array to NFFT plan. */

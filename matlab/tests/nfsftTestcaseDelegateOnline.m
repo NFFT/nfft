@@ -15,8 +15,8 @@ classdef nfsftTestcaseDelegateOnline < nfsftTestcaseDelegate
     
     function h = setup(h)
       
-      if (h.M==0)  % equidistant nodes
-        fprintf('%-31s', 'nfsft_online_equidistant');
+      if (h.M==0)  % equispaced nodes
+        fprintf('%-31s', 'nfsft_online_equispaced');
         ph=(-h.N-1:h.N)/(2*h.N+2)*2*pi;
         th=(0:h.N)/(2*h.N+2)*2*pi;
         [ph,th]=meshgrid(ph,th);

@@ -47,7 +47,7 @@ fprintf('Performing a fast and direct NFSFT with bandwidth N = %d and M = %d nod
 
 % Create plan.
 plan = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT));
-plan2 = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+NFSFT_USE_FSFT);
+plan2 = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+NFSFT_EQUISPACED);
 
 % Set nodes.
 nfsft_set_x(plan,X);
