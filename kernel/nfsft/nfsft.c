@@ -1087,13 +1087,7 @@ void nfsft_trafo(nfsft_plan *plan)
   plan->MEASURE_TIME_t[2] = 0.0;
 #endif
 
-  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
-  {
-    nfsft_set_f_nan(plan);
-    return;
-  }
-
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((wisdom.flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_NO_FAST_ALGORITHM))
   {
     nfsft_set_f_nan(plan);
     return;
@@ -1322,13 +1316,7 @@ void nfsft_adjoint(nfsft_plan *plan)
   plan->MEASURE_TIME_t[2] = 0.0;
 #endif
 
-  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
-  {
-    nfsft_set_f_hat_nan(plan);
-    return;
-  }
-
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((wisdom.flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_NO_FAST_ALGORITHM))
   {
     nfsft_set_f_hat_nan(plan);
     return;
