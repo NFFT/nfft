@@ -323,7 +323,7 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   {
     plan->x = (double*) nfft_malloc(plan->M_total*2*sizeof(double));
     if (plan->flags & NFSFT_EQUISPACED)
-      // Set equispaced nodes
+      /* Set equispaced nodes. This way also trafo_direct works correctly. */
       for (int i=0; i<2*plan->N+2; i++)
         for (int j=0; j<plan->N+1; j++)
         {
@@ -1257,17 +1257,10 @@ void nfsft_trafo(nfsft_plan *plan)
 #ifdef MEASURE_TIME
     t0 = getticks();
 #endif
-    /* Check, which nonequispaced discrete Fourier transform algorithm should
-     * be used.
-     */
-    if (plan->flags & NFSFT_USE_NDFT)
+    if (plan->flags & NFSFT_EQUISPACED)
     {
-      /* Use NDFT. */
-      nfft_trafo_direct(&plan->plan_nfft);
-    }
-    else if (plan->flags & NFSFT_EQUISPACED)
-    {
-      /* Algorithm for equispaced nodes */
+      /* Algorithm for equispaced nodes.
+       * plan_nfft is not initialized if NFSFT_EQUISPACED is set. */
       int N[2];
       N[0] = 2*plan->N+2;
       N[1] = 2*plan->N+2;
@@ -1293,6 +1286,14 @@ void nfsft_trafo(nfsft_plan *plan)
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 #endif
       fftw_destroy_plan(plan_fftw);
+    }
+    /* Check, which nonequispaced discrete Fourier transform algorithm should
+     * be used.
+     */
+    else if (plan->flags & NFSFT_USE_NDFT)
+    {
+      /* Use NDFT. */
+      nfft_trafo_direct(&plan->plan_nfft);
     }
     else
     {
@@ -1366,19 +1367,10 @@ void nfsft_adjoint(nfsft_plan *plan)
 #ifdef MEASURE_TIME
     t0 = getticks();
 #endif
-    /* Check, which adjoint nonequispaced discrete Fourier transform algorithm
-     * should be used.
-     */
-    if (plan->flags & NFSFT_USE_NDFT)
+    if (plan->flags & NFSFT_EQUISPACED)
     {
-      //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint_direct\n");
-      //fflush(stderr);
-      /* Use adjoint NDFT. */
-      nfft_adjoint_direct(&plan->plan_nfft);
-    }
-    else if (plan->flags & NFSFT_EQUISPACED)
-    {
-      /* Algorithm for equispaced nodes */
+      /* Algorithm for equispaced nodes.
+       * plan_nfft is not initialized if NFSFT_EQUISPACED is set. */
       int N[2];
       N[0] = 2*plan->N+2;
       N[1] = 2*plan->N+2;
@@ -1397,6 +1389,16 @@ void nfsft_adjoint(nfsft_plan *plan)
           if ((j+k)%2)
             plan->f_hat[j*N[1]+k] *= -1;
       fftw_destroy_plan(plan_fftw);
+    }
+    /* Check, which adjoint nonequispaced discrete Fourier transform algorithm
+     * should be used.
+     */
+    else if (plan->flags & NFSFT_USE_NDFT)
+    {
+      //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint_direct\n");
+      //fflush(stderr);
+      /* Use adjoint NDFT. */
+      nfft_adjoint_direct(&plan->plan_nfft);
     }
     else
     {
