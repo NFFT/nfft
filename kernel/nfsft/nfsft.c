@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2019 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -1255,6 +1255,11 @@ void nfsft_trafo(nfsft_plan *plan)
     {
       /* Algorithm for equispaced nodes.
        * plan_nfft is not initialized if NFSFT_EQUISPACED is set. */
+
+#ifdef _OPENMP
+      INT nthreads = Y(get_num_threads)();
+#endif
+
       int N[2];
       N[0] = 2*plan->N+2;
       N[1] = 2*plan->N+2;
@@ -1265,10 +1270,16 @@ void nfsft_trafo(nfsft_plan *plan)
           if ((j+k)%2)
             plan->f_hat_intern[j*N[1]+k] *= -1;
 //	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
+
 #ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+        FFTW(plan_with_nthreads)(nthreads);
 #endif
-      plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
+        plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
+#ifdef _OPENMP
+      }
+#endif
       fftw_execute(plan_fftw);
       for (int j=0; j<N[0]; j++)
 //	for (int k=j%2-1; k<N[1]; k+=2)
