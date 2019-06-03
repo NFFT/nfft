@@ -129,7 +129,7 @@ classdef infft < handle
                end
            else
                addParameter(P,'m2',4, @(x) assert(mod(x,1)==0 && x>0,'Arguments must be natural numbers.'))
-               addParameter(P,'window','Dirichlet', @(x) assert(iscategory(categorical({'BSpline' 'Gaussian' 'Sinc' 'Bessel' 'Dirichlet'}),x),'Possible values are ''BSpline'', ''Gaussian'', ''Sinc'', ''Bessel'' or ''Dirichlet''.'))
+               addParameter(P,'window','Dirichlet', @(x) assert(iscategory(categorical({'BSpline' 'Gaussian' 'Sinc' 'Kaiser' 'Bessel' 'Dirichlet'}),x),'Possible values are ''BSpline'', ''Gaussian'', ''Sinc'', ''Kaiser'', ''Bessel'' or ''Dirichlet''.'))
                parse(P,varargin{:});
 
                % Set additional parameters
@@ -827,11 +827,17 @@ classdef infft < handle
                     phihat = 1/n*exp(-b*(pi*v/n).^2);
                 case 'Sinc' % The Fourier transform of the sinc function is BSpline.
                     phihat = infft.cardinal_bspline(2*m*v./((2*o-1)*N),2*m);
-                case 'Bessel'
-                    phihat = zeros(length(v),1);
+                case 'Kaiser'
+                    phihat = zeros(1,length(v));
                     b = pi*(2-1/o);
                     ind = (abs(v./(1-1/(2*o))) <= n);
                     phihat(ind) = 1/n*besseli(0,m*sqrt(b^2-(2*pi*v(ind)./n).^2));
+                case 'Bessel'
+                    phihat = zeros(1,length(v));
+                    b = pi*(2-1/o);
+                    ind = abs(v) <= n*b/(2*pi);
+                    phihat(ind) = 1/n*sinh(m*sqrt(b^2-4*pi^2*v(ind).^2/n^2))./sqrt(b^2-4*pi^2*v(ind).^2/n^2);
+                    phihat(not(ind)) = 1/n*m*sinc(m*sqrt(4*pi^2*v(not(ind)).^2/n^2-b^2));
                 case 'Dirichlet'
                     phihat = ones(size(v));
             end
