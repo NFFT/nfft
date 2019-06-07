@@ -89,7 +89,7 @@ else
 fi
 
 # Install required packages
-pacman -S --needed autoconf perl libtool automake mingw-w64-$ARCHNAME-gcc make mingw-w64-$ARCHNAME-cunit mingw-w64-$ARCHNAME-ncurses tar zip unzip wget dos2unix rsync p7zip
+pacman -S --needed autoconf perl libtool automake mingw-w64-$ARCHNAME-gcc make mingw-w64-$ARCHNAME-cunit tar zip unzip wget dos2unix rsync p7zip
 
 #NFFTDIR=$(pwd)
 NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
