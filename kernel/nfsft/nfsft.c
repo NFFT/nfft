@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2019 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -285,6 +285,10 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
   plan->N = N;
   plan->M_total = M;
 
+  /* M is fixed for FSFT algorithm */
+  if (plan->flags & NFSFT_EQUISPACED)
+    plan->M_total = (2*plan->N+2)*(plan->N+1);
+
   /* Calculate the next greater power of two with respect to the bandwidth N
    * and the corresponding exponent. */
   //next_power_of_2_exp_int(plan->N,&plan->NPT,&plan->t);
@@ -293,35 +297,43 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
    * length is (2N+2)(2N+2) */
   plan->N_total = (2*plan->N+2)*(2*plan->N+2);
 
-  /* Allocate memory for auxilliary array of spherical Fourier coefficients,
-   * if neccesary. */
+  /* Allocate memory for auxiliary array of spherical Fourier coefficients,
+   * if necessary. */
   if (plan->flags & NFSFT_PRESERVE_F_HAT)
   {
     plan->f_hat_intern = (double _Complex*) nfft_malloc(plan->N_total*
                                                   sizeof(double _Complex));
   }
 
-  /* Allocate memory for spherical Fourier coefficients, if neccesary. */
+  /* Allocate memory for spherical Fourier coefficients, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F_HAT)
   {
     plan->f_hat = (double _Complex*) nfft_malloc(plan->N_total*
                                            sizeof(double _Complex));
   }
 
-  /* Allocate memory for samples, if neccesary. */
+  /* Allocate memory for samples, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
     plan->f = (double _Complex*) nfft_malloc(plan->M_total*sizeof(double _Complex));
   }
 
-  /* Allocate memory for nodes, if neccesary. */
+  /* Allocate memory for nodes, if necessary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
     plan->x = (double*) nfft_malloc(plan->M_total*2*sizeof(double));
+    if (plan->flags & NFSFT_EQUISPACED)
+      /* Set equispaced nodes. This way also trafo_direct works correctly. */
+      for (int i=0; i<2*plan->N+2; i++)
+        for (int j=0; j<plan->N+1; j++)
+        {
+          plan->x[2*(i*(plan->N+1) + j)] = ((double)i-plan->N-1)/(2.0*plan->N+2);
+          plan->x[2*(i*(plan->N+1) + j) + 1] = ((double)j)/(2.0*plan->N+2);
+        }
   }
 
   /* Check if fast algorithm is activated. */
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_EQUISPACED))
   {
   }
   else
@@ -615,7 +627,7 @@ void nfsft_finalize(nfsft_plan *plan)
   if (!plan)
     return;
 
-  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM))
+  if (!(plan->flags & NFSFT_NO_FAST_ALGORITHM) && !(plan->flags & NFSFT_EQUISPACED))
   {
     /* Finalise the nfft plan. */
     nfft_finalize(&plan->plan_nfft);
@@ -635,14 +647,14 @@ void nfsft_finalize(nfsft_plan *plan)
     nfft_free(plan->f_hat);
   }
 
-  /* De-allocate memory for samples, if neccesary. */
+  /* De-allocate memory for samples, if necessary. */
   if (plan->flags & NFSFT_MALLOC_F)
   {
     //fprintf(stderr,"deallocating f\n");
     nfft_free(plan->f);
   }
 
-  /* De-allocate memory for nodes, if neccesary. */
+  /* De-allocate memory for nodes, if necessary. */
   if (plan->flags & NFSFT_MALLOC_X)
   {
     //fprintf(stderr,"deallocating x\n");
@@ -670,7 +682,7 @@ void nfsft_trafo_direct(nfsft_plan *plan)
   double *gamma;       /*< Pointer to current three-term recurrence
                            coefficient beta_k^n for associated Legendre
                            functions P_k^n                                   */
-  double _Complex *a;   /*< Pointer to auxilliary array for Clenshaw algor.   */
+  double _Complex *a;   /*< Pointer to auxiliary array for Clenshaw algor.   */
   double stheta;       /*< Current angle theta for Clenshaw algorithm        */
   double sphi;         /*< Current angle phi for Clenshaw algorithm          */
 
@@ -1075,13 +1087,7 @@ void nfsft_trafo(nfsft_plan *plan)
   plan->MEASURE_TIME_t[2] = 0.0;
 #endif
 
-  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
-  {
-    nfsft_set_f_nan(plan);
-    return;
-  }
-
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((wisdom.flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_NO_FAST_ALGORITHM))
   {
     nfsft_set_f_nan(plan);
     return;
@@ -1120,9 +1126,12 @@ void nfsft_trafo(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    plan->plan_nfft.x = plan->x;
-    plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat_intern;
+    if (!(plan->flags & NFSFT_EQUISPACED))
+    {
+      plan->plan_nfft.x = plan->x;
+      plan->plan_nfft.f = plan->f;
+      plan->plan_nfft.f_hat = plan->f_hat_intern;
+    }
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,
      * multiply spherical Fourier coefficients with corresponding normalization
@@ -1242,10 +1251,51 @@ void nfsft_trafo(nfsft_plan *plan)
 #ifdef MEASURE_TIME
     t0 = getticks();
 #endif
+    if (plan->flags & NFSFT_EQUISPACED)
+    {
+      /* Algorithm for equispaced nodes.
+       * plan_nfft is not initialized if NFSFT_EQUISPACED is set. */
+
+#ifdef _OPENMP
+      INT nthreads = Y(get_num_threads)();
+#endif
+
+      int N[2];
+      N[0] = 2*plan->N+2;
+      N[1] = 2*plan->N+2;
+      fftw_plan plan_fftw;
+
+      for (int j=0; j<N[0]; j++)
+        for (int k=0; k<N[1]; k++)
+          if ((j+k)%2)
+            plan->f_hat_intern[j*N[1]+k] *= -1;
+//	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
+
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+        FFTW(plan_with_nthreads)(nthreads);
+#endif
+        plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
+#ifdef _OPENMP
+      }
+#endif
+      fftw_execute(plan_fftw);
+      for (int j=0; j<N[0]; j++)
+//	for (int k=j%2-1; k<N[1]; k+=2)
+//	    plan->f[j*N[1]+k] *= -1;
+        for (int k=N[1]/2; k<N[1]; k++)
+          plan->f[j*N[1]/2+(k-N[1]/2)] = plan->f_hat_intern[j*N[1]+k] * ((j+k)%2 ? -1 : 1);
+//          plan->f[j*N[1]+k] *= CEXP(II*KPI*(j-N[0]/2 + k-N[1]/2));
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
+      fftw_destroy_plan(plan_fftw);
+    }
     /* Check, which nonequispaced discrete Fourier transform algorithm should
      * be used.
      */
-    if (plan->flags & NFSFT_USE_NDFT)
+    else if (plan->flags & NFSFT_USE_NDFT)
     {
       /* Use NDFT. */
       nfft_trafo_direct(&plan->plan_nfft);
@@ -1277,13 +1327,7 @@ void nfsft_adjoint(nfsft_plan *plan)
   plan->MEASURE_TIME_t[2] = 0.0;
 #endif
 
-  if (wisdom.flags & NFSFT_NO_FAST_ALGORITHM)
-  {
-    nfsft_set_f_hat_nan(plan);
-    return;
-  }
-
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((wisdom.flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_NO_FAST_ALGORITHM))
   {
     nfsft_set_f_hat_nan(plan);
     return;
@@ -1312,17 +1356,43 @@ void nfsft_adjoint(nfsft_plan *plan)
     /* Propagate pointer values to the internal NFFT plan to assure
      * consistency. Pointers may have been modified externally.
      */
-    plan->plan_nfft.x = plan->x;
-    plan->plan_nfft.f = plan->f;
-    plan->plan_nfft.f_hat = plan->f_hat;
+    if (!(plan->flags & NFSFT_EQUISPACED))
+    {
+      plan->plan_nfft.x = plan->x;
+      plan->plan_nfft.f = plan->f;
+      plan->plan_nfft.f_hat = plan->f_hat;
+    }
 
 #ifdef MEASURE_TIME
     t0 = getticks();
 #endif
+    if (plan->flags & NFSFT_EQUISPACED)
+    {
+      /* Algorithm for equispaced nodes.
+       * plan_nfft is not initialized if NFSFT_EQUISPACED is set. */
+      int N[2];
+      N[0] = 2*plan->N+2;
+      N[1] = 2*plan->N+2;
+
+      for (int j=0; j<N[0]; j++)
+      {
+        for (int k=0; k<N[1]/2+1; k++)
+          plan->f_hat[j*N[1]+k] = 0;
+        for (int k=N[1]/2; k<N[1]; k++)
+          plan->f_hat[j*N[1]+k] = plan->f[j*N[1]/2+k-N[1]/2] * ((j+k)%2 ? -1 : 1);
+      }
+      fftw_plan plan_fftw = FFTW(plan_dft)(2, N, plan->f_hat, plan->f_hat, FFTW_BACKWARD, FFTW_ESTIMATE);
+      fftw_execute(plan_fftw);
+      for (int j=0; j<N[0]; j++)
+        for (int k=0; k<N[1]; k++)
+          if ((j+k)%2)
+            plan->f_hat[j*N[1]+k] *= -1;
+      fftw_destroy_plan(plan_fftw);
+    }
     /* Check, which adjoint nonequispaced discrete Fourier transform algorithm
      * should be used.
      */
-    if (plan->flags & NFSFT_USE_NDFT)
+    else if (plan->flags & NFSFT_USE_NDFT)
     {
       //fprintf(stderr,"nfsft_adjoint: Executing nfft_adjoint_direct\n");
       //fflush(stderr);
@@ -1480,7 +1550,7 @@ void nfsft_adjoint(nfsft_plan *plan)
 
 void nfsft_precompute_x(nfsft_plan *plan)
 {
-  if (plan->flags & NFSFT_NO_FAST_ALGORITHM)
+  if ((plan->flags & NFSFT_NO_FAST_ALGORITHM) || (plan->flags & NFSFT_EQUISPACED))
     return;
 
   /* Pass angle array to NFFT plan. */

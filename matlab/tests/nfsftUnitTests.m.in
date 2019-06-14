@@ -55,6 +55,22 @@ classdef nfsftUnitTests
       nfsftTestcaseInitDelegate('init_class', NFSFT_USE_DPT, FPT_NO_FAST_ALGORITHM) ...
     };
 
+    testcases_online_trafo_equispaced = { ...
+      nfsftTestcaseDelegateOnline(16, 0, 'trafo') ...
+      nfsftTestcaseDelegateOnline(32, 0, 'trafo') ...
+      nfsftTestcaseDelegateOnline(64, 0, 'trafo') ...
+    };
+
+    testcases_online_adjoint_equispaced = { ...
+      nfsftTestcaseDelegateOnline(16, 0, 'adjoint') ...
+      nfsftTestcaseDelegateOnline(32, 0, 'adjoint') ...
+      nfsftTestcaseDelegateOnline(64, 0, 'adjoint') ...
+                             };
+  
+    initializers_equispaced = { ...
+      nfsftTestcaseInitDelegate('init_class',NFSFT_EQUISPACED) ...
+    };
+
     testcases_gl_quadrature_online = { ...
       nfsftTestcaseDelegateGLQuadratureOnline(4) ...
       nfsftTestcaseDelegateGLQuadratureOnline(8) ...
@@ -143,11 +159,14 @@ classdef nfsftUnitTests
       end
       fprintf(', %-14s', trafo_delegate.name);
 
-      if isnumeric(plan)
-        nfsft_set_x(plan, testcase.x);
-        nfsft_precompute_x(plan);
-      else
-        plan.x = testcase.x;
+      % Equispaced nodes are automatically set in nfsft_init
+      if ~bitand(init_delegate.flags, NFSFT_EQUISPACED)
+        if isnumeric(plan)
+          nfsft_set_x(plan, testcase.x);
+          nfsft_precompute_x(plan);
+        else
+          plan.x = testcase.x;
+        end
       end
 
       run_test = 1;
@@ -207,6 +226,14 @@ classdef nfsftUnitTests
         result2 = h.check_many(h.testcases_online_adjoint_exhaustive, h.initializers_std, nfsftTestcaseCheckDelegate('adjoint'), {nfsftTestcaseTrafoDelegate('adjoint')});
         result = min(result,result2);
       end
+    end
+
+    function result = nfsft_check_trafo_equispaced_online(h)
+      result = h.check_many(h.testcases_online_trafo_equispaced, h.initializers_equispaced, nfsftTestcaseCheckDelegate('trafo'), {nfsftTestcaseTrafoDelegate('trafo')});
+    end
+
+    function result = nfsft_check_adjoint_equispaced_online(h)
+      result = h.check_many(h.testcases_online_adjoint_equispaced, h.initializers_equispaced, nfsftTestcaseCheckDelegate('adjoint'), {nfsftTestcaseTrafoDelegate('adjoint')});
     end
 
     function ok = check_single_quadrature(~, testcase, init_delegate, trafo_delegate)
