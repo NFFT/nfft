@@ -2,8 +2,6 @@ module NFCT
 
 export NFCTplan,nfct_plan
 
-# Passen die Pfade so?
-# file ending for OS
 ending = ".so"
 
 if Sys.iswindows()

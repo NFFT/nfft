@@ -2,25 +2,25 @@ push!(LOAD_PATH, pwd())
 using NFCT
 using LinearAlgebra
 
-println("1d NFCT Test")
+println( "2d NFCT Test" )
 
-# bandwidth
-N = 50
+#bandwidth
+N = ( 16, 8 )
 
 #number of nodes
-M = 100
+M = 10000
 
 #create plan
-p = NFCTplan((N,),M)
+p = NFCTplan( N, M ) 
 
 #generate random nodes
-A = 0.5 .* rand(M)
+A = 0.5 .* rand( 2, M )
 
 #set nodes
 p.x = A
 
 #generate random Fourier coefficients
-fhat = rand(N)
+fhat = rand( prod(N) )
 
 #set Fourier coefficients
 p.fhat = fhat
@@ -32,8 +32,19 @@ println( "trafo time:" )
 #get function values
 f2 = p.f
 
+#indices
+I = Vector{Vector{Int64}}(undef,prod(N))
+freq = 1
+
+for i = 0:N[1]-1
+	for j = 0:N[2]-1
+		I[freq] = [i,j]
+		global freq += 1	
+	end
+end
+
 #define Fourier matrix
-F = [ cos(2*pi*k_l*x_j) for x_j in A, k_l in 0:N-1 ]
+F = [ cos(2*pi*A[:,j][1]*I[l][1])*cos(2*pi*A[:,j][2]*I[l][2]) for j in 1:M, l in 1:prod(N) ]
 
 #multiply Fourier matrix with vector of Fourier coefficients
 f1 = F*fhat
