@@ -11,29 +11,30 @@
 #include <stdlib.h>
 
 #include "nfft3.h"
+#include "infft.h"
 
-nfft_plan* jnfft_alloc(void) {
-	nfft_plan* p = nfft_malloc(sizeof(nfft_plan));
+nfct_plan* jnfct_alloc(void){
+	nfct_plan* p = nfft_malloc(sizeof(nfct_plan));
 	return p;
 }
 
-void jnfft_init(nfft_plan* p, int d, int* N, int M, int* n, int m, unsigned int f1, unsigned int f2){
-    nfft_init_guru(p,d,N,M,n,m,f1,f2);
+void jnfct_init(nfct_plan* p, int d, int* N, int M, int* n, int m, unsigned int f1, unsigned int f2){
+    nfct_init_guru(p,d,N,M,n,m,f1,f2);
 }
 
-double* jnfft_set_x(nfft_plan* p, double* X){
+double* jnfct_set_x(nfct_plan* p, double* X){
 	int M = p->M_total;
 	int d = p->d;
 	int r,c;
 	for (r = 0; r < M; r++)
 		for (c = 0; c < d; c++)
 			p->x[d*r+c] = X[d*r+c];
-	nfft_precompute_one_psi(p);
+	nfct_precompute_one_psi(p);
 	return p->x;
 }
 
 // setting Fourier coefficients and returning pointer for access by Julia
-double _Complex* jnfft_set_fhat(nfft_plan* p,double _Complex* f_hat){
+double* jnfct_set_fhat(nfct_plan* p,double* f_hat){
 	int n = p->N_total;
 	int k;
 	for (k=0;k<n;k++)
@@ -42,7 +43,7 @@ double _Complex* jnfft_set_fhat(nfft_plan* p,double _Complex* f_hat){
 }
 
 // setting values and returning pointer for access by Julia
-double _Complex* jnfft_set_f(nfft_plan* p,double _Complex* f){
+double* jnfct_set_f(nfct_plan* p,double* f){
 	int M = p->M_total;
 	int j;
 	for (j=0;j<M;j++)
@@ -50,32 +51,32 @@ double _Complex* jnfft_set_f(nfft_plan* p,double _Complex* f){
 	return p->f;
 }
 
-// nfft trafo, return pointer to values for access by Julia if pointer isn't set
-double _Complex* jnfft_trafo(nfft_plan* p){
-	nfft_trafo(p);
+// nfct trafo, return pointer to values for access by Julia if pointer isn't set
+double* jnfct_trafo(nfct_plan* p){
+	nfct_trafo(p);
 	return p->f;
 }
 
-// nfft adjoint, return pointer to coefficients for access by Julia if pointer isn't set
-double _Complex* jnfft_adjoint(nfft_plan* p){
-	nfft_adjoint(p);
+// nfct adjoint, return pointer to coefficients for access by Julia if pointer isn't set
+double* jnfct_adjoint(nfct_plan* p){
+	nfct_adjoint(p);
 	return p->f_hat;
 }
 
-// nfft trafo, return pointer to values for access by Julia if pointer isn't set
-double _Complex* jnfft_trafo_direct(nfft_plan* p){
-	nfft_trafo_direct(p);
+// nfct trafo, return pointer to values for access by Julia if pointer isn't set
+double* jnfct_trafo_direct(nfct_plan* p){
+	nfct_trafo_direct(p);
 	return p->f;
 }
 
-// nfft adjoint, return pointer to coefficients for access by Julia if pointer isn't set
-double _Complex* jnfft_adjoint_direct(nfft_plan* p){
-	nfft_adjoint_direct(p);
+// nfct adjoint, return pointer to coefficients for access by Julia if pointer isn't set
+double* jnfct_adjoint_direct(nfct_plan* p){
+	nfct_adjoint_direct(p);
 	return p->f_hat;
 }
 
-// nfft plan finalizer
-void jnfft_finalize(nfft_plan* p){
-	nfft_finalize(p);
+// nfct plan finalizer
+void jnfct_finalize(nfct_plan* p){
+	nfct_finalize(p);
 	nfft_free(p);
 }
