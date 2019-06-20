@@ -1,18 +1,23 @@
 if HAVE_OCTAVE
-if HAVE_NFSFT
-TESTS = check_nfft_octave.sh check_nfsft_octave.sh
-else
-TESTS = check_nfft_octave.sh 
+MAT_OCT=octave
 endif
-else
 if HAVE_MATLAB
+MAT_OCT=matlab
+endif
+
+TEST_NFFT=check_nfft_$(MAT_OCT).sh 
 if HAVE_NFSFT
-TESTS = check_nfft_matlab.sh check_nfsft_matlab.sh
+TEST_NFSFT=check_nfsft_$(MAT_OCT).sh
 else
-TESTS = check_nfft_matlab.sh
+TEST_NFSFT=
 endif
+if HAVE_NFSOFT
+TEST_NFSOFT=check_nfsoft_$(MAT_OCT).sh
+else
+TEST_NFSOFT=
 endif
-endif
+
+TESTS = $(TEST_NFFT) $(TEST_NFSFT) $(TEST_NFSOFT)
 TEST_EXTENSIONS = .sh
 SH_LOG_COMPILER = /bin/sh
 
@@ -24,7 +29,8 @@ dist_matlabtests_DATA = nfftTestcaseCheckDelegate.m nfftTestcaseDelegateFile.m \
  nfsftTestcaseCheckDelegate.m nfsftTestcaseDelegate.m \
  nfsftTestcaseDelegateGLQuadratureOnline.m nfsftTestcaseDelegateOnline.m \
  nfsftTestcaseInitDelegate.m nfsftTestcaseTrafoDelegate.m nfsftUnitTests.m \
- nfsftUnitTestsRunAndExit.m
+ nfsftUnitTestsRunAndExit.m \
+ nfsoftTestcaseCheckDelegate.m nfsoftTestcaseDelegate.m nfsoftTestcaseDelegateGLQuadratureOnline.m nfsoftTestcaseDelegateOnline.m nfsoftTestcaseInitDelegate.m nfsoftTestcaseTrafoDelegate.m nfsoftUnitTests.m nfsoftUnitTestsRunAndExit.m 
 
 clean-local:
-	rm -f check_nfft_octave.log check_nfft_octave.trs check_nfft_matlab.log check_nfft_matlab.trs check_nfft_matlab.output check_nfsft_octave.log check_nfsft_octave.trs check_nfsft_matlab.log check_nfsft_matlab.trs check_nfsft_matlab.output
+	rm -f check_nfft_octave.log check_nfft_octave.trs check_nfft_matlab.log check_nfft_matlab.trs check_nfft_matlab.output check_nfsft_octave.log check_nfsft_octave.trs check_nfsft_matlab.log check_nfsft_matlab.trs check_nfsft_matlab.output check_nfsoft_octave.log check_nfsoft_octave.trs check_nfsoft_matlab.log check_nfsoft_matlab.trs check_nfsoft_matlab.output

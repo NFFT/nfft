@@ -93,12 +93,19 @@ function h=nfsft(N, M, nfsft_flags, kappa, nfft_cutoff, fpt_flags, nfft_flags)
     nfsftmex('precompute',h.N, h.kappa, h.nfsft_flags, h.fpt_flags);
     h.plan=nfsftmex('init_guru',h.N,h.M,h.nfsft_flags,h.nfft_flags,h.nfft_cutoff);
     h.plan_is_set=true;
+    
+    % Equispaced nodes are automatically set in nfsft_init
+    if bitand(h.nfsft_flags,NFSFT_EQUISPACED)
+      h.M = (2*N+2) * (N+1);
+      h.x_is_set=true;
+    end
 end %function
 
 function delete(h)
 % Destructor
     if(h.plan_is_set)
         nfsftmex('finalize',h.plan);
+        h.plan_is_set=false;
     end %if
 end %function
 

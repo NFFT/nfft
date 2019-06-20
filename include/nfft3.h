@@ -610,6 +610,7 @@ NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,ff
 #define NFSFT_DESTROY_F_HAT  (1U << 10)
 #define NFSFT_DESTROY_X      (1U << 11)
 #define NFSFT_DESTROY_F      (1U << 12)
+#define NFSFT_EQUISPACED     (1U << 17)
 
 /* precompute flags */
 #define NFSFT_NO_DIRECT_ALGORITHM (1U << 13)
@@ -686,17 +687,15 @@ typedef struct X(plan_)\
 {\
   MACRO_MV_PLAN(C) \
   R *x; /**< input nodes */\
-  C *wig_coeffs; /**< contains a set of SO(3) Fourier coefficients for fixed
-    orders m and n*/\
-  C *cheby; /**< contains a set of Chebychev coefficients for fixed orders m
-    and n*/\
-  C *aux; /**< used when converting Chebychev to Fourier coeffcients*/\
   /* internal use only */\
-  int t; /**< the logaritm of NPT with respect to the basis 2 */\
+  C *wig_coeffs; /**< deprecated variable */\
+  C *cheby; /**< deprecated variable */\
+  C *aux; /**< deprecated variable */\
+  int t; /**< the logarithm of NPT with respect to the basis 2 */\
   unsigned int flags; /**< the planner flags  */\
   Y(plan) p_nfft; /**< the internal NFFT plan */\
-  Z(set) internal_fpt_set; /**< the internal FPT plan */\
-  int fpt_kappa; /**a parameter controlling the accuracy of the FPT*/\
+  Z(set) *internal_fpt_set; /**< the internal FPT plan */\
+  int nthreads; /**< the number of threads */\
 } X(plan);\
 \
 NFFT_EXTERN void X(precompute)(X(plan) *plan); \
@@ -740,7 +739,6 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
 
 /* helper macros */
 #define NFSOFT_INDEX(m,n,l,B) (((l)+((B)+1))+(2*(B)+2)*(((n)+((B)+1))+(2*(B)+2)*((m)+((B)+1))))
-#define NFSOFT_INDEX_TWO(m,n,l,B) ((B+1)*(B+1)+(B+1)*(B+1)*(m+B)-((m-1)*m*(2*m-1)+(B+1)*(B+2)*(2*B+3))/6)+(posN(n,m,B))+(l-MAX(ABS(m),ABS(n)))
 #define NFSOFT_F_HAT_SIZE(B) (((B)+1)*(4*((B)+1)*((B)+1)-1)/3)
 
 /* solver */
@@ -886,7 +884,8 @@ void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
  * \
  * The window function to be used is configured at compile time. \
  */ \
-const char *Y(get_window_name)();
+const char *Y(get_window_name)(); \
+NFFT_INT Y(get_default_window_cut_off)();
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

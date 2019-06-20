@@ -4,6 +4,14 @@
 # A Matlab installation must be specified in order to build the Matlab interface.
 # The paths should not contain spaces!
 # 
+# The script is known to work on Ubuntu 18.10. At least the following packages
+# are required:
+# fftw3 libfftw3-dev libcunit1-dev make gcc octave liboctave-dev
+#
+# For running ./bootstrap.sh, the following packages are required:
+# autoconf automake libtool
+#
+#
 # Example call:
 # ./linux-build-mex.sh --matlab=/path/to/matlab
 # 

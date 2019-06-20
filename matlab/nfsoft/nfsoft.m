@@ -59,19 +59,19 @@ function h=nfsoft(N, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, fftw_s
     if (nargin<2)
         error('Too few arguments')
     end
-    if exist('nfsoft_flags','var')
+    if exist('nfsoft_flags','var') && ~isempty(nfsoft_flags)
         h.nfsoft_flags=nfsoft_flags;
     end
-    if exist('nfft_flags','var')
+    if exist('nfft_flags','var') && ~isempty(nfft_flags)
         h.nfft_flags=nfft_flags;
     end
-    if exist('nfft_cutoff','var')
+    if exist('nfft_cutoff','var') && ~isempty(nfft_cutoff)
         h.nfft_cutoff=nfft_cutoff;
     end
-    if exist('fpt_kappa','var')
+    if exist('fpt_kappa','var') && ~isempty(fpt_kappa)
         h.fpt_kappa=fpt_kappa;
     end
-    if exist('fftw_size','var')
+    if exist('fftw_size','var') && ~isempty(fftw_size)
         h. fftw_size= fftw_size;
     else
         h. fftw_size=4*h.N+4;
@@ -85,6 +85,7 @@ function delete(h)
 % Destructor
     if(h.plan_is_set)
          nfsoftmex('finalize',h.plan);
+         h.plan_is_set=false;
     end %if
 end %function
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Running Octave nfsoft tests..."
+"@octave_cli@" --eval "try; addpath('@ABS_SRCDIR@/matlab/tests','@ABS_SRCDIR@/matlab/nfsft','@ABS_SRCDIR@/matlab/nfsoft'); perform_exhaustive_tests_flag=@matlab_exhaustive_unit_tests_flag@; nfsoftUnitTestsRunAndExit; catch; disp('Error running nfsoftUnitTestsRunAndExit'); end; exit(1);"

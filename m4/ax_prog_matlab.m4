@@ -361,7 +361,7 @@ AC_DEFUN([AX_PROG_MATLAB],
 	if test [ -f "$OCTAVE_PATH" ] ; then # path is a file: use parent directory
 	  OCTAVE_PATH=`AS_DIRNAME(["$OCTAVE_PATH"])`
 	fi
-	OCTAVE_LOOKUP_PATH="${OCTAVE_PATH}${PATH_SEPARATOR}${OCTAVE_PATH}/bin"
+	OCTAVE_LOOKUP_PATH="${OCTAVE_PATH}${PATH_SEPARATOR}${OCTAVE_PATH}/bin${PATH_SEPARATOR}${OCTAVE_PATH}/mingw64/bin${PATH_SEPARATOR}${OCTAVE_PATH}/mingw32/bin"
 	],[	
 	OCTAVE_LOOKUP_PATH="$PATH"
 	AC_MSG_NOTICE([using Octave binary path from \$PATH])
@@ -370,6 +370,13 @@ AC_DEFUN([AX_PROG_MATLAB],
 
     AC_PATH_PROG([OCTAVE_CONFIG], [octave-config], [], [${OCTAVE_LOOKUP_PATH}])
     AC_PATH_PROG([OCTAVE_MKOCTFILE], [mkoctfile], [], [${OCTAVE_LOOKUP_PATH}])
+    AC_PATH_PROG([OCTAVE_CLI], [octave-cli], [], [${OCTAVE_LOOKUP_PATH}])
+
+    if test "${OCTAVE_CLI}" != ""; then
+      octave_cli="${OCTAVE_CLI}"
+    else
+      octave_cli="${OCTAVE_PATH}"/bin/octave-cli
+    fi
 
     AC_ARG_WITH(octave-libdir, [AC_HELP_STRING([--with-octave-libdir=DIR],
     [compile with Octave library directory DIR])], octave_lib_dir=$withval, 
@@ -500,4 +507,5 @@ AC_DEFUN([AX_PROG_MATLAB],
   AC_SUBST(matlab_fftw3_LIBS)
   AC_SUBST(matlab_fftw3_LDFLAGS)
   AC_SUBST(octave_dir)
+  AC_SUBST(octave_cli)
 ])

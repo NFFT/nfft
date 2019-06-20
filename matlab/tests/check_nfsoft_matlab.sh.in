@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Running MATLAB nfsoft tests..."
+"@matlab_bin_dir@/matlab" -wait -nodesktop -nosplash -r "try; diary('check_nfsoft_matlab.output'); addpath('@ABS_SRCDIR@/matlab/tests','@ABS_SRCDIR@/matlab/nfsft','@ABS_SRCDIR@/matlab/nfsoft'); perform_exhaustive_tests_flag=@matlab_exhaustive_unit_tests_flag@; nfsoftUnitTestsRunAndExit; catch; disp('Error running nfsoftUnitTestsRunAndExit'); end; exit(1);"

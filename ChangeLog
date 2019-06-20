@@ -1,5 +1,20 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.0:
+
+    Bugfixes
+    - #83 _Complex is not supported by some compilers. 
+
+    Enhancements
+    - #62 Extend NFFT Matlab interface to d>4.
+    - #64 Faster NFFT in 4D and 5D.
+    - #72 Add support for higher bandwidth in NFSFT and improve parallelization.
+    - #73 fastsum: Skip nearfield (pre-)computations when eps_I is zero.
+    - #76 Add NFSOFT Matlab class.
+    - #77 Add Mex interface for FPT.
+    - #81 OpenMP parallelization of NFSOFT.
+    - #82 Add NFFT Julia interface.
+
 Changes in version 3.4.1:
 
     Bugfixes

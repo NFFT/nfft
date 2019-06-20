@@ -20,45 +20,51 @@
 fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 % maximum degree (bandwidth) of spherical harmonics expansions
-N = 128;
+N = 32;
+direct = 1;
 
 % threshold (affects accuracy, 1000 is the default)
-kappa = 1000;
+kappa = 10000;
 
 % random Fourier coefficients
 fh = f_hat(rand((N+1)*(N+1),1)./(1:(N+1)*(N+1))');
 
 % precomputation
 tic
-nfsft_precompute(N,kappa);
+nfsft_precompute(N,kappa,0,0*FPT_NO_FAST_ALGORITHM);
 fprintf('Time of precomputation:    %g seconds\n', toc);
 
 % number of nodes
-M = 5000;
+M = (2*N+2) * (N+1);
 
-% random nodes
-ph=rand(1,M)*2*pi;
-th=rand(1,M)*pi;
-X=[ph;th];
+% nodes
+ph=(-N-1:N)/(2*N+2)*2*pi;
+th=(0:N)/(2*N+2)*2*pi;
+[ph,th]=meshgrid(ph,th);
+X=[ph(:)';th(:)'];
 
 fprintf('Performing a fast and direct NFSFT with bandwidth N = %d and M = %d nodes\n', N,M);
 
 % Create plan.
 plan = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT));
+plan2 = nfsft_init_advanced(N,M,bitor(NFSFT_NORMALIZED,NFSFT_PRESERVE_F_HAT)+NFSFT_EQUISPACED);
 
 % Set nodes.
 nfsft_set_x(plan,X);
 
 % set Fourier coefficients
 nfsft_set_f_hat(plan,double(fh));
+nfsft_set_f_hat(plan2,double(fh));
 
 % direct (slow) transform
+if(direct)
 tic
 ndsft_trafo(plan);
 fprintf('Time of direct transform:  %g seconds\n', toc);
 
 % get function values
 f_direct = nfsft_get_f(plan);
+end
 
 % fast NFSFT transform
 tic
@@ -67,11 +73,19 @@ fprintf('Time of fast transform:    %g seconds\n', toc);
 % get function values
 f_fast = nfsft_get_f(plan);
 
+% fast FSFT transform
+tic
+nfsft_trafo(plan2);
+fprintf('Time of FSFT transform:    %g seconds\n', toc);
+% get function values
+f_fsft = nfsft_get_f(plan2);
+
 
 % random function values for adjoint
 f = rand(M,1);
 
 % adjoint transform
+if(direct)
 nfsft_set_f(plan,f)
 tic
 ndsft_adjoint(plan);
@@ -79,6 +93,7 @@ fprintf('Time of direct adjoint:    %g seconds\n', toc);
 
 % get function values
 fh2_direct = f_hat(nfsft_get_f_hat(plan));
+end
 
 % Fast adjoint transform
 nfsft_set_f(plan,f)
@@ -87,33 +102,26 @@ nfsft_adjoint(plan);
 fprintf('Time of fast adjoint:      %g seconds\n', toc);
 fh2_fast = f_hat(nfsft_get_f_hat(plan));
 
+% FSFT adjoint transform
+nfsft_set_f(plan2,f)
+tic
+nfsft_adjoint(plan2);
+fprintf('Time of FSFT adjoint:      %g seconds\n', toc);
+fh2_fsft = f_hat(nfsft_get_f_hat(plan2));
+
 % finalize plan
 nfsft_finalize(plan);
-
-
-% Algorithm in Matlab
-tic
-f_mat = legendre(0,cos(X(2,:)),'norm').' / sqrt(2*pi) * fh(0,0);
-fh2_mat = zeros(size(fh.f_hat));
-fh2_mat(1)= legendre(0,cos(X(2,:)),'norm') / sqrt(2*pi) * f;
-for n=1:N
-    Lp = legendre(n,cos(X(2,:)),'norm') / sqrt(2*pi);
-    f_mat=f_mat + (flipud(Lp).* exp((-n:0)'*1i*X(1,:))).'* fh(n,-n:0)...
-     + (Lp(2:end,:).* exp((1:n)'*1i*X(1,:))).'* fh(n,1:n);
-    
-    fh2_mat(n^2+1:n^2+n+1)= (flipud(Lp).* exp(-(-n:0)'*1i*X(1,:)))* f;
-    fh2_mat(n^2+n+2:n^2+2*n+1)= (Lp(2:end,:).* exp(-(1:n)'*1i*X(1,:)))* f;
-end
-fh2_mat = f_hat(fh2_mat);
-fprintf('Time in Matlab:            %g seconds\n', toc);
+nfsft_finalize(plan2);
 
 % display error
-fprintf('Relative error trafo fast vs matlab:     %g\n', norm(f_fast-f_mat)/norm(f_mat));
-fprintf('Relative error trafo direct vs matlab:   %g\n', norm(f_direct-f_mat)/norm(f_mat));
-fprintf('Relative error trafo fast vs direct:     %g\n', norm(f_fast-f_direct)/norm(f_direct));
-fprintf('Relative error adjoint fast vs matlab:   %g\n', norm(fh2_fast-fh2_mat)/norm(fh2_mat));
-fprintf('Relative error adjoint direct vs matlab: %g\n', norm(fh2_direct-fh2_mat)/norm(fh2_mat));
-fprintf('Relative error adjoint fast vs direct:   %g\n', norm(fh2_fast-fh2_direct)/norm(fh2_direct));
+fprintf('Relative error trafo fast vs FSFT:       %g\n', norm(f_fast-f_fsft)/norm(f_fast));
+if(direct)
+fprintf('Relative error trafo FSFT vs direct:     %g\n', norm(f_fsft-f_direct)/norm(f_direct));
+end
+fprintf('Relative error adjoint fast vs FSFT:     %g\n', norm(fh2_fast-fh2_fsft)/norm(fh2_fast));
+if(direct)
+fprintf('Relative error adjoint FSFT vs direct:   %g\n', norm(fh2_fsft-fh2_direct)/norm(fh2_direct));
+end
 
 % destroy all precomputations
 % nfsft_forget()

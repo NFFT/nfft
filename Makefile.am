@@ -78,7 +78,7 @@ endif
   libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc linux-build-mex.sh windows-build-dll.sh
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
 
 if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
@@ -117,6 +117,8 @@ include aminclude.am
 
 if DX_COND_doc
 doc: doxygen-doc
+	rm -f $(abs_top_builddir)/doc/html/*.md5
+	rm -f $(abs_top_builddir)/doc/html/*.map
 endif
 
 # Flags to be passed to aclocal.

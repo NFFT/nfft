@@ -114,6 +114,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     nfft_mex_install_mem_hooks();
 
+
     mexAtExit(cleanup);
     gflags &= ~NFSOFT_MEX_FIRST_CALL;
   }
@@ -168,29 +169,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	int i = mkplan();
 	nfsoft_init_guru_advanced(plans[i], N, M, flags | NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT,
-	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE, nfft_cutoff, fpt_kappa, fftw_size);
+	nfft_flags | PRE_PHI_HUT | PRE_PSI | MALLOC_F_HAT | FFTW_INIT, nfft_cutoff, fpt_kappa, fftw_size);
     plans[i]->p_nfft.f = plans[i]->f;
     plans[i]->p_nfft.x = plans[i]->x;
-	  plhs[0] = mxCreateDoubleScalar((double)i);
+    plhs[0] = mxCreateDoubleScalar((double)i);
     return;
   }
 
   else if(strcmp(cmd,"set_x") == 0)
   {
     check_nargs(nrhs,3,"Wrong number of arguments for set_x.");
-	int i = get_plan(prhs[1]);
-	
-	DM(if (!(mxIsDouble(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != plans[i]->M_total) || mxGetM(prhs[2]) != 3))
-        mexErrMsgTxt("Input argument x must be a real 3 x M array");
-	double *x = mxGetPr(prhs[2]);
-	
-	for (int j = 0; j < plans[i]->M_total; j++)
+    int i = get_plan(prhs[1]);
+
+    DM(if (!(mxIsDouble(prhs[2])) || (mxGetNumberOfDimensions(prhs[2]) > 2) || (mxGetN(prhs[2]) != plans[i]->M_total) || mxGetM(prhs[2]) != 3))
+    mexErrMsgTxt("Input argument x must be a real 3 x M array");
+    double *x = mxGetPr(prhs[2]);
+
+    for (int j = 0; j < plans[i]->M_total; j++)
     {
     plans[i]->p_nfft.x[3*j]   = x[3*j+2] / K2PI;  // gamma
     plans[i]->p_nfft.x[3*j+1] = x[3*j]   / K2PI;  // alpha
     plans[i]->p_nfft.x[3*j+2] = x[3*j+1] / K2PI;  // beta
     }
-	return;
+    nfsoft_precompute(plans[i]);
+    return;
   }
 
   else if(strcmp(cmd,"set_f_hat") == 0)
@@ -245,11 +247,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   else if(strcmp(cmd,"precompute") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for precompute.");
-	int i = get_plan(prhs[1]);
-	nfsoft_precompute(plans[i]);
-    return;
-  }
+      /* Do nothing here.
+       * nfsft_precompute_x has been moved to the set_x routine. */
+      return;
+    }
 
   else if(strcmp(cmd,"trafo") == 0)
   {
