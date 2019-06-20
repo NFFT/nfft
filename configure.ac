@@ -169,8 +169,8 @@ AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
   [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
-# option for julia interface
-nfft_julia_default="no"
+# option for julia interface (enabled by default if --enable-all is specified)
+nfft_julia_default=$nfft_module_default
 AC_ARG_ENABLE(julia, [AC_HELP_STRING([--enable-julia],
   [enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
 AM_CONDITIONAL(HAVE_JULIA, test "x$enable_julia" = "xyes" )
