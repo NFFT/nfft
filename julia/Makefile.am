@@ -1,1 +1,1 @@
-SUBDIRS = nfft
+SUBDIRS = nfft fastsum

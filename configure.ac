@@ -654,6 +654,7 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/nfsftUnitTests.m \
 		julia/Makefile \
 		julia/nfft/Makefile \
+		julia/fastsum/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
