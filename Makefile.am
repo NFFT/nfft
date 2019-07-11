@@ -71,7 +71,7 @@ endif
 if HAVE_JULIA
   libnfft3@PREC_SUFFIX@_julia_la_SOURCES =
 if HAVE_THREADS
-    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel_threads.la @fftw3_LIBS@ -lm
+    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
 else
     libnfft3@PREC_SUFFIX@_julia_la_LIBADD = 3rdparty/lib3rdparty.la kernel/libkernel.la @fftw3_LIBS@ -lm
 endif
