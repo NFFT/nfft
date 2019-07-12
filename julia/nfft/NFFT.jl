@@ -48,6 +48,7 @@ f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
 
 # default window cut off
 default_window_cut_off = ccall(("nfft_get_default_window_cut_off", lib_path),Int64,())
+threads = ccall(("nfft_get_num_threads", lib_path),Int64,())
 
 # dummy struct for C
 mutable struct nfft_plan
@@ -340,6 +341,15 @@ function adjoint(P::Plan{D}) where {D}
 	end
 	ptr = ccall(("jnfft_adjoint",lib_path),Ptr{ComplexF64},(Ref{nfft_plan},),P.plan)
 	Core.setfield!(P,:fhat,ptr)
+end
+
+function get_num_threads( )
+	global threads
+	return threads
+end
+
+function set_num_threads( )
+	error("You can't set the number of threads.")
 end
 
 # module end
