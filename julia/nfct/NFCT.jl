@@ -222,6 +222,8 @@ function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
     # prevent modification of NFCT plan pointer
 	elseif v == :plan
 		@warn "You can't modify the C pointer to the NFCT plan."
+	elseif v == :num_threads
+                @warn "You can't currently modify the number of threads."
 	elseif v == :init_done
 		@warn "You can't modify this flag."
 	elseif v == :N
@@ -254,6 +256,8 @@ function Base.getproperty(p::NFCTplan{D},v::Symbol) where {D}
 		else
 			return unsafe_wrap(Matrix{Float64},ptr,(D,Int64(p.M)))  # get nodes from C memory and convert to Julia type
 		end
+	elseif v == :num_threads
+                return ccall(("nfft_get_num_threads", lib_path),Int64,())
 	elseif v == :f
 		if !isdefined(p,:f)
 			error("f is not set.")
@@ -336,14 +340,6 @@ function adjoint(P::NFCTplan{D}) where {D}
 	end
 	ptr = ccall(("jnfct_adjoint",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:fhat,ptr)
-end
-
-function get_num_threads( )
-	return ccall(("nfft_get_num_threads", lib_path),Int64,())
-end
-
-function set_num_threads( )
-	error("You can't modify the number of threads!")
 end
 
 # module end

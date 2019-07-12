@@ -13,6 +13,8 @@ M = 100
 #create plan
 p = NFCTplan((N,),M)
 
+println("Number of Threads: ", p.num_threads)
+
 #generate random nodes
 A = 0.5 .* rand(M)
 
