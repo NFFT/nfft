@@ -49,7 +49,6 @@ f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
 
 # default window cut off
 default_window_cut_off = ccall(("nfft_get_default_window_cut_off", lib_path),Int64,())
-threads = ccall(("nfft_get_num_threads", lib_path),Int64,())
 
 # dummy struct for C
 mutable struct nfft_plan
@@ -345,8 +344,7 @@ function adjoint(P::Plan{D}) where {D}
 end
 
 function get_num_threads( )
-	global threads
-	return threads
+	return ccall(("nfft_get_num_threads", lib_path),Int64,())
 end
 
 function set_num_threads( )

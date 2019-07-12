@@ -42,8 +42,6 @@ f1_default_1d = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_
 f1_default = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE | NFCT_SORT_NODES | NFCT_OMP_BLOCKWISE_ADJOINT)
 f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
 
-threads = ccall(("nfft_get_num_threads", lib_path),Int64,())
-
 # dummy struct for C
 mutable struct nfct_plan
 end
@@ -341,8 +339,7 @@ function adjoint(P::NFCTplan{D}) where {D}
 end
 
 function get_num_threads( )
-	global threads
-	return threads
+	return ccall(("nfft_get_num_threads", lib_path),Int64,())
 end
 
 function set_num_threads( )
