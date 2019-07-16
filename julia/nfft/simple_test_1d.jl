@@ -13,6 +13,8 @@ M = 10000
 #create plan
 p = Plan((N,),M)
 
+println("Number of Threads: ", p.num_threads)
+
 #generate random nodes
 A = rand(M).-0.5
 
