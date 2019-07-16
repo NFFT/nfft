@@ -6,7 +6,7 @@
 # The Matlab path should not contain spaces!
 # 
 # Example call:
-# ./nfft-build-dll.sh --fftw=3.3.8 --octave=4.4.1 --matlab=/c/path/to/matlab
+# ./nfft-build-dll.sh --fftw=3.3.8 --octave=5.1.0 --matlab=/c/path/to/matlab
 # 
 # WARNING: This script downloads and compiles FFTW and downloads GCC and Octave (requires ~ 2GB).
 # 
@@ -24,7 +24,7 @@ set -ex
 
 # default values (to be overwritten if respective parameters are set)
 FFTWVERSION=3.3.8
-OCTAVEVERSION=4.4.1
+OCTAVEVERSION=5.1.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
@@ -184,7 +184,7 @@ cd "$NFFTBUILDDIR"
 
 
 # Compile with Octave
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-julia
 make
 make check
 
@@ -218,6 +218,29 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 7z a -r "$HOMEDIR/$DLLDIR".zip "$DLLDIR"
 
 
+# Julia interface
+for LIB in nfft nfct
+do
+  cd julia/"$LIB"
+  gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"    -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
+  cp .libs/lib"$LIB"julia.dll lib"$LIB"julia.dll
+  cd ../..
+done
+
+JULIADIR=nfft-"$NFFTVERSION"-julia-w$ARCH$OMPSUFFIX
+mkdir "$JULIADIR"
+rsync -a --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+rsync -a --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
+
+echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
+The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
+using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
+' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
+unix2dos "$JULIADIR"/readme.txt
+rm -f "$HOMEDIR/$JULIADIR".zip
+7z a -r "$HOMEDIR/$JULIADIR".zip "$JULIADIR"
+
+
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
   if [ "$MATLABVERSION" == "" ]; then
@@ -239,6 +262,7 @@ if [ -n "$MATLABDIR" ]; then
     cd ../..
   done
 fi
+
 
 # Create Matlab/Octave release
 MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
