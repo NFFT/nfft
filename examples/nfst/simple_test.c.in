@@ -78,7 +78,7 @@ static void simple_test_nfst_1d(void)
 
 int main(void)
 {
-  printf("Computing one dimensional ndct, nfct, adjoint ndct, and adjoint nfct...\n\n");
+  printf("Computing one dimensional ndst, nfst, adjoint ndst, and adjoint nfst...\n\n");
   simple_test_nfst_1d();
   printf("\n\n");
 
