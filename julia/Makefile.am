@@ -4,4 +4,11 @@ else
   DIR_NFCT=
 endif
 
-SUBDIRS = nfft $(DIR_NFCT)
+if HAVE_NFST
+  DIR_NFST=nfst
+else
+  DIR_NFST=
+endif
+
+
+SUBDIRS = nfft $(DIR_NFCT) $(DIR_NFST)
