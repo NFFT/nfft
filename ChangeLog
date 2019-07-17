@@ -1,5 +1,18 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.1:
+
+    Bugfixes
+    - #90 Improve check if tests are executed in Matlab or Octave.
+    - #92 Build with Octave 5.1.0 fails in Windows.
+    - #95 FFTW3 Linking problem while building.
+    - #96 Remove unnecessary dependence on ncurses library.
+
+    Enhancements
+    - #88 Inverse NFFT via frame approach.
+    - #87 FSFT: Spherical Fourier transform with equidistant nodes.
+    - #86 Add Julia Interface for NFCT, NFST.
+
 Changes in version 3.5.0:
 
     Bugfixes
