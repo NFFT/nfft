@@ -2,9 +2,13 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -DSRCDIR=@abs_srcdir@
 
 SUBDIRS= data
 
+if HAVE_CUNIT
 if HAVE_THREADS
 if HAVE_OPENMP
   CHECK_THREADS = checkall_threads
+else
+  CHECK_THREADS =
+endif
 else
   CHECK_THREADS =
 endif

@@ -15,9 +15,22 @@
 # Example call:
 # ./linux-build-mex.sh --matlab=/path/to/matlab
 # 
+#
+# For compiling with recent Octave version, one can use flatpak package org.octave.Octave.
+# Then, the following RSYNC variable should be used.
+RSYNC="flatpak-spawn --host rsync"
+# Otherwise, the RSYNC variable should be set to
+#RSYNC=rsync
+#
+# Possible flatpak call:
+#   flatpak --command="bash" run org.octave.Octave
+#   bash linux-build-mex.sh -o /app
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
+
+FFTWVERSION=3.3.8
+GCCARCH=core2
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/usr
@@ -51,10 +64,34 @@ cd "$HOMEDIR"
 GCCVERSION=$(gcc -dumpversion)
 OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n', version); exit;" | grep OCTAVE_VERSION | sed 's/OCTAVE_VERSION=//'`
 
+
+FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
+# Build FFTW
+if [ ! -f "$FFTWDIR/build-success" ]; then
+  rm -rf "$FFTWDIR"
+  curl "http://fftw.org/fftw-$FFTWVERSION.tar.gz" --output "fftw-$FFTWVERSION.tar.gz"
+  tar -zxf "fftw-$FFTWVERSION.tar.gz"
+  rm "fftw-$FFTWVERSION.tar.gz"
+  cd "$FFTWDIR"
+
+  mkdir build
+  cd build
+  ../configure --enable-static --enable-shared --enable-threads --with-pic --enable-sse2 --enable-avx --enable-avx2 --disable-fortran
+  make -j4
+  touch "$FFTWDIR/build-success"
+  cd "$HOMEDIR"
+fi
+
 # Build NFFT
 READMECONTENT="
-$(sed '/Directory structure/Q' $NFFTDIR/README) 
+$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
 "
+FFTWREADME='
+FFTW
+----
+The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
+Copyright (c) 2003, 2007-14 Matteo Frigo
+Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 
 cd "$NFFTDIR"
 make distclean || true
@@ -67,26 +104,53 @@ if [ $OMPYN = 1 ]; then
   OMPLIBS="-fopenmp -static-libgcc"
   THREADSSUFFIX="_threads"
   OMPSUFFIX="-openmp"
+  FFTWLIBSTATIC="$FFTWDIR/build/threads/.libs/libfftw3_threads.a $FFTWDIR/build/.libs/libfftw3.a"
 else
   NFFTBUILDDIR="$HOMEDIR/build"
   OMPFLAG=""
   OMPLIBS=""
   THREADSSUFFIX=""
   OMPSUFFIX=""
+  FFTWLIBSTATIC="$FFTWDIR/build/.libs/libfftw3.a"
 fi
 
 rm -f -r "$NFFTBUILDDIR"
 mkdir "$NFFTBUILDDIR"
 cd "$NFFTBUILDDIR"
 
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
+CPPFLAGS="-I$FFTWDIR/api"
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
 make
-make check
+#make check
 
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
-DIR=nfft-$NFFTVERSION-mexa64$OMPSUFFIX
+
+# Create archive for Julia interface
+cd julia
+for LIB in nf*t
+do
+  cd "$LIB"
+  gcc -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC -Wl,--no-whole-archive  $OMPLIBS -lm  -O3 -malign-double -march="$GCCARCH"   -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  cd ..
+done
+cd "$NFFTBUILDDIR"
+
+ARCH=$(uname -m)
+JULIADIR=nfft-"$NFFTVERSION"-julia-linux_$ARCH$OMPSUFFIX
+mkdir "$JULIADIR"
+$RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
+echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' Linux using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
+' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
+tar czf ../"$JULIADIR".tar.gz --owner=0 --group=0 "$JULIADIR"
+# End of Julia interface
+
 
 # Create Matlab/Octave release
+DIR=nfft-$NFFTVERSION-mexa64$OMPSUFFIX
+
 for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
   do
   mkdir -p "$DIR"/$SUBDIR
@@ -100,7 +164,7 @@ if [ -n "$MATLABDIR" ]; then
   MATLABVERSION=`"$MATLABDIR"/bin/matlab -nodisplay -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | sed 's/.*(//' | sed 's/)//'`
   cd "$NFFTBUILDDIR"
   make clean
-  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
   make
   make check
 fi
@@ -113,14 +177,14 @@ done
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled for
-64-bit Linux using GCC '$GCCVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
+echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' Linux using GCC '$GCCVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 else
 echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled for
 64-bit Linux using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION'.
 ' "$READMECONTENT" > "$DIR"/readme-matlab.txt
 fi
-tar czf ../"$DIR".tar.gz "$DIR"
+tar czf ../"$DIR".tar.gz --owner=0 --group=0 "$DIR"
 
 done
