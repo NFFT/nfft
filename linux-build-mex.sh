@@ -122,7 +122,7 @@ LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
 "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
 make
-#make check
+make check
 
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 

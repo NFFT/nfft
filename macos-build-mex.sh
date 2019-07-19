@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# This script builds Octave / Matlab interfaces for MacOS.
+# This script builds Octave / Matlab interfaces for macOS.
 # A Matlab installation must be specified in order to build the
 # Matlab interface. The paths should not contain spaces!
 #
-# The script is known to work on MacOS Mojave with MacPorts.
+# The script is known to work on macOS Mojave with MacPorts.
 #
 # At least the following packages are required:
 # getopt, gcc8, cunit, octave, gsed
@@ -24,8 +24,9 @@
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
+GCCARCH=core2
 FFTWDIR=/opt/local
-GCC=gcc-mp-8
+GCC=gcc-mp-9
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/opt/local
@@ -67,8 +68,14 @@ OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n'
 
 # Build NFFT
 READMECONTENT="
-$(gsed '/Directory structure/Q' $NFFTDIR/README) 
+$(gsed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
 "
+FFTWREADME='
+FFTW
+----
+The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
+Copyright (c) 2003, 2007-14 Matteo Frigo
+Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 
 cd "$NFFTDIR"
 make distclean || true
@@ -95,21 +102,44 @@ rm -f -r "$NFFTBUILDDIR"
 mkdir "$NFFTBUILDDIR"
 cd "$NFFTBUILDDIR"
 
-CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared --disable-examples --disable-applications
 make
 make check
 
+NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
+
+# Create archive for Julia interface
+cd julia
+for LIB in nf*t
+do
+  cd "$LIB"
+  $GCC -o .libs/lib"$LIB"julia.so -bundle .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=core2 -mtune=$GCCARCH -arch x86_64 $OMPLIBS
+  cd ..
+done
+cd "$NFFTBUILDDIR"
+
+ARCH=$(uname -m)
+JULIADIR=nfft-"$NFFTVERSION"-julia-macos_$ARCH$OMPSUFFIX
+mkdir "$JULIADIR"
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
+echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
+' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
+zip -9 -r ../"$JULIADIR".zip "$JULIADIR"
+# End of Julia interface
+
+
+# Create Matlab/Octave release
 for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
 do
   cd matlab/"$LIB"
-  $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=core2 -mtune=core2 -arch x86_64 $OMPLIBS
+  $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=core2 -mtune=$GCCARCH -arch x86_64 $OMPLIBS
   cd ../..
 done
 
-NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 DIR=nfft-$NFFTVERSION-mexmaci64$OMPSUFFIX
 
-# Create Matlab/Octave release
 for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
   do
   mkdir -p "$DIR"/$SUBDIR
@@ -125,7 +155,7 @@ if [ -n "$MATLABDIR" ]; then
   fi
   cd "$NFFTBUILDDIR"
   make clean
-  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared
+  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared --disable-examples --disable-applications
   make
   make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
@@ -144,21 +174,15 @@ done
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION' compiled
-for 64-bit MacOS using GCC '$GCCVERSION' and Matlab '$MATLABVERSION'
+echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' and Matlab '$MATLABVERSION'
 and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" > "$DIR"/readme-matlab.txt
+' "$READMECONTENT" "$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
 echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled
-for 64-bit MacOS using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" > "$DIR"/readme-matlab.txt
+for '$ARCH' macOS using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
+' "$READMECONTENT" "$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
-
-echo "FFTW
-----
-The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
-Copyright (c) 2003, 2007-14 Matteo Frigo
-Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology" >> "$DIR"/readme-matlab.txt
 
 zip -9 -r ../"$DIR".zip "$DIR"
 
