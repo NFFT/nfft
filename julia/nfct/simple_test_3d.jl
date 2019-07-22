@@ -5,10 +5,10 @@ using LinearAlgebra
 println( "2d NFCT Test" )
 
 #bandwidth
-N = ( 16, 8 )
+N = ( 32, 16, 8 )
 
 #number of nodes
-M = 10000
+M = 1000
 
 #create plan
 p = NFCTplan( N, M ) 
@@ -16,7 +16,7 @@ p = NFCTplan( N, M )
 println("Number of Threads: ", p.num_threads)
 
 #generate random nodes
-A = 0.5 .* rand( 2, M )
+A = 0.5 .* rand( 3, M )
 
 #set nodes
 p.x = A
@@ -35,11 +35,11 @@ println( "trafo time:" )
 f2 = p.f
 
 #indices
-I = [ [j; i] for i in 0:N[2]-1, j in 0:N[1]-1 ]
+I = [ [j; i; k] for k in 0:N[3]-1, i in 0:N[2]-1, j in 0:N[1]-1 ]
 I = vec(I)
 
 #define Fourier matrix
-F = [ cos(2*pi*A[:,j][1]*I[l][1])*cos(2*pi*A[:,j][2]*I[l][2]) for j in 1:M, l in 1:prod(N) ]
+F = [ cos(2*pi*A[:,j][1]*I[l][1])*cos(2*pi*A[:,j][2]*I[l][2])*cos(2*pi*A[:,j][3]*I[l][3]) for j in 1:M, l in 1:prod(N) ]
 
 #multiply Fourier matrix with vector of Fourier coefficients
 f1 = F*fhat
