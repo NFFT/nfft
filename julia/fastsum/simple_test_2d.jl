@@ -5,26 +5,23 @@ using LinearAlgebra
 println("2d fastsum test")
 
 # set the parameters:
-N = 100;
-M = 100;
+d = 2
+N = 20000;
+M = 20000;
 kernel = "multiquadric";
-c = (1/sqrt(N),3.5);
-m = 4;
-p = 7;
-n = 100*128;
-eps_I = p/n;
-eps_B =  1/32;
+c = 1/sqrt(N);
+p = 6;
+m = p;
+nn = 256;
+eps_I = p/nn;
+eps_B = max(1/16,p/nn);
 
 # create a Plan-Object in Julia
-pt = fastsumplan(N,M,n,m,p,kernel,c,eps_I,eps_B);
+pt = fastsumplan(d,N,M,nn,m,p,kernel,c,eps_I,eps_B);
 
 # generate source nodes in circle of radius 0.25-eps_B/2
-r = sqrt.(rand(N))*(0.25-eps_B/2);
-phi = rand(N)*2*pi;
-xhat = zeros(2,N);
-xhat[1,:]=r.*cos.(phi);
-xhat[2,:]=r.*sin.(phi);
-pt.x = xhat;
+X = zeros(Float64, d, N)
+
 
 # generate coefficients alpha_k
 alpha_temp = [1/(1+k) for k in 0:N-1] +im*[1/(1+k^2) for k in 0:N-1];
@@ -48,7 +45,7 @@ for i=1:M
 end
 
 fastsum.trafo_exact(pt);
-f2 = pt.f_exact;
+f2 = pt.f;
 error_vector = f_alg-f2;
 
 E_2 = norm(error_vector)/norm(f1)

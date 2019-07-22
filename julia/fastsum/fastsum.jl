@@ -6,25 +6,22 @@ ending = ".so"
 
 if Sys.iswindows()
 	ending = ".dll"
-elseif Sys.isapple()
-	ending = ".dylib"
 end
 
 const lib_path = string( @__DIR__, "/libfastsumjulia", ending )
 
-#dummy-struct for C
 mutable struct fastsum_plan
-  end
+end
 
-
-mutable struct fastsumplan{D}
+mutable struct fastsumplan
+  d::Int32
 	N::Int32                # number of source nodes
 	M::Int32                # number of target nodes
 	n::Int32                # expansion degree
 	m::Int32                # cut-off parameter
 	p::Int32                # degree of smoothness
 	kernel::String          # name of kernel
-	c::NTuple{D,Float64}    # kernel parameters
+  c::Vector{Float64}      # kernel parameters
 	eps_I::Float64          # inner boundary
 	eps_B::Float64          # outer boundary
 	init_done::Bool         # bool for plan init
@@ -34,48 +31,48 @@ mutable struct fastsumplan{D}
   alpha::Ref{ComplexF64}  # source coefficients
 	f::Ref{ComplexF64}      # target evaluations
 	plan::Ref{fastsum_plan} # plan (C pointer)
-	function fastsumplan{D}(N::Int32,M::Int32,n::Int32,m::Int32,p::Int32,kernel::String,c::NTuple{D,Float64},eps_I::Float64,eps_B::Float64) where {D}
-	# create plan object
-	new(N,M,n,m,p,kernel,c,eps_I,eps_B,false,false)
+  function fastsumplan( d::Int32, N::Int32, M::Int32, n::Int32, m::Int32, p::Int32, kernel::String, c::Vector{Float64}, eps_I::Float64, eps_B::Float64 )
+	  new( d,N,M,n,m,p,kernel,c,eps_I,eps_B,false,false )
 	end
-
 end #struct fastsumplan
 
-function fastsumplan(N::Integer,M::Integer,n::Integer,m::Integer,p::Integer,kernel::String,c::NTuple{D,Float64},eps_I::Float64,eps_B::Float64) where{D}
-
+function fastsumplan( d::Integer, N::Integer, M::Integer, n::Integer, m::Integer, p::Integer, kernel::String, c::Float64, eps_I::Float64, eps_B::Float64 )
 
   if N <= 0
     error("N has to be a positive Integer.")
   end
+
   if M <= 0
     error("M has to be a positive Integer.")
   end
+
   if n <= 0
     error("n has to be a positive Integer.")
   end
+
   if m <= 0
     error("m has to be a positive Integer.")
   end
 
+  cv = rand(1)
+  cv[1] = c
 
-  fastsumplan{D}(Int32(N),Int32(M),Int32(n),Int32(m),Int32(p),kernel,c,Float64(eps_I),Float64(eps_B))
+  fastsumplan( Int32(d), Int32(N), Int32(M), Int32(n), Int32(m), Int32(p), kernel, cv, eps_I, eps_B )
 end #constructor
 
 
-function fastsum_init(fp::fastsumplan{D}) where {D}
+function fastsum_init(fp::fastsumplan) 
 
   ptr = ccall(("jfastsum_alloc", lib_path), Ptr{fastsum_plan}, ())
-
   Core.setfield!(fp, :plan, ptr)
-	# c noch in pointer umwandeln
-	c = collect(fp.c)
-  ccall(("jfastsum_init",lib_path),Nothing,(Ref{fastsum_plan},Int32,Int32,Int32,Cstring,Ref{Float64},Int32,Int32,Int32,Float64,Float64),ptr,D,fp.N,fp.M,fp.kernel,c,fp.n,fp.m,fp.p,fp.eps_I,fp.eps_B)
 
-	Core.setfield!(fp,:init_done, true)
-  finalizer(finalize_plan, fp)
+  ccall( ("jfastsum_init",lib_path),Nothing,(Ref{fastsum_plan},Int32,Int32,Int32,Cstring,Ref{Float64},Int32,Int32,Int32,Float64,Float64),ptr,fp.d,fp.N,fp.M,fp.kernel,fp.c,fp.n,fp.m,fp.p,fp.eps_I,fp.eps_B)
+
+	Core.setfield!( fp, :init_done, true )
+  finalizer( finalize_plan, fp )
 end #fastsum_init
 
-function finalize_plan(fp::fastsumplan{D}) where{D}
+function finalize_plan(fp::fastsumplan) 
   if !fp.init_done
     error("Plan not initialized.")
   end
@@ -86,7 +83,7 @@ function finalize_plan(fp::fastsumplan{D}) where{D}
   end
 end #finalize_plan
 
-function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
+function Base.setproperty!(fp::fastsumplan,v::Symbol,val) 
   if !fp.init_done
 	  fastsum_init(fp)
   end
@@ -97,7 +94,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 
   # edit source nodes
   if v == :x
-      if D==1
+      if fp.d==1
 				 if typeof(val) != Vector{Float64}
            error("x has to be a Float64 vector.")
          end
@@ -108,7 +105,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
          if typeof(val) != Array{Float64, 2}
            error("x has to be a Float64 matrix.")
          end
-         if size(val)[1] != D || size(val)[2] != fp.N
+         if size(val)[1] != fp.d || size(val)[2] != fp.N
            error("x has to be a Float64 matrix of size N.")
          end
 			end
@@ -117,7 +114,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 
 	 # edit target nodes
 	 elseif v == :y
-		  if D==1
+		  if fp.d==1
 			  if typeof(val) != Vector{Float64}
 				  error("y has to be a Float64 vector.")
 			  end
@@ -128,7 +125,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 			  if typeof(val) != Array{Float64, 2}
 				  error("y has to be a Float64 matrix.")
 			  end
-			  if size(val)[1] != D || size(val)[2] != fp.M
+			  if size(val)[1] != fp.d || size(val)[2] != fp.M
 				  error("y has to be a Float64 matrix of size M.")
 			  end
 	    end
@@ -174,7 +171,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 end # Base.setproperty!
 
 # overwrite dot notation for plan struct in order to use C memory
-function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
+function Base.getproperty(fp::fastsumplan,v::Symbol) 
 	if v == :x
 		if !isdefined(fp,:x)
 			error("x is not set.")
@@ -221,7 +218,7 @@ function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
 	end
 end # Base.getproperty
 
-function trafo(fp::fastsumplan{D}) where {D}
+function trafo(fp::fastsumplan) 
   if fp.finalized
     error("Plan already finalized.")
   end
@@ -238,7 +235,7 @@ function trafo(fp::fastsumplan{D}) where {D}
   Core.setfield!(fp,:f,ptr)
 end #trafo
 
-function trafo_exact(fp::fastsumplan{D}) where {D}
+function trafo_exact(fp::fastsumplan) 
   if fp.finalized
     error("Plan already finalized.")
   end
