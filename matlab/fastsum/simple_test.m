@@ -48,11 +48,11 @@ kernel = 'multiquadric';
 c = 1/sqrt(N);  % kernel parameter
 p = 6;          % degree of smoothness of regularization
 flags = 0;      % flags (could be EXACT_NEARFIELD or NEARFIELD_BOXES)
-nn = 256;       % bandwidth in frequency domain for NFFT
-eps_I = p/nn;   % inner boundary, nearfield radius
-eps_B = max(1/16,p/nn); % outer boundary
+n = 256;        % bandwidth in frequency domain for NFFT
+eps_I = p/n;    % inner boundary, nearfield radius
+eps_B = max(1/16,p/n); % outer boundary
 m = p;          % window cut-off parameter for NFFT
-nn_oversampled = 2*nn; % oversampled bandwidth in frequency domain for NFFT
+nn_oversampled = 2*n; % oversampled bandwidth in frequency domain for NFFT
 %% random source nodes in circle of radius 0.25-eps_B/2
 x = [];
 while size(x,1) < N
@@ -75,14 +75,14 @@ y = y(1:M, :);
 %% Perform fastsum via class interface
 fprintf('fastsum d=%d, N=%d source nodes, M=%d target nodes,\n', d, N, M);
 fprintf('        kernel=%s, parameter c=%.3g, fastsum flags=%d,\n', kernel, c, flags);
-fprintf('        NFFT bandwidth nn=%d, regularization smoothness p=%d,\n', nn, p);
+fprintf('        NFFT bandwidth n=%d, regularization smoothness p=%d,\n', n, p);
 fprintf('        inner regularization eps_I=%.6g,\n', eps_I);
 fprintf('        outer regularization eps_B=%.6g,\n', eps_B);
 fprintf('        nn_oversampled=%d, NFFT window cut-off m=%d\n', nn_oversampled, m);
 fprintf('number of threads: %d\n', fastsum_get_num_threads);
 
 tic
-fastsum_instance = fastsum(d,kernel,c,flags,nn,p,eps_I,eps_B,nn_oversampled,m);
+fastsum_instance = fastsum(d,kernel,c,flags,n,p,eps_I,eps_B,nn_oversampled,m);
 time_init = toc;
 
 tic
