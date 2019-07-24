@@ -6,23 +6,23 @@ println("fastsum test")
 
 # set the parameters:
 d = 2
-N = 20000
-M = 20000
+N = 2000
+M = 2000
 kernel = "multiquadric"
 c = 1/sqrt(N)
-p = 6
+p = 3
 flags = 0
 m = p
-n = 256
+n = 156
 eps_I = p/n
-eps_B = max( 1/16, p/n )
+eps_B =  1/16
 nn = 2*n
 
 # create a Plan-Object in Julia
 p = fastsum.Plan( d, N, M, n, p, kernel, c, eps_I, eps_B, nn, m ) 
 
 # generate source nodes in circle of radius 0.25-eps_B/2
-r = sqrt.( rand(N) ).*(0.25-eps_B)
+r = sqrt.( rand(N) ).*(0.25-eps_B/2)
 phi = rand(N).*(2*pi)
 X = vcat( (r.*cos.(phi))', (r.*sin.(phi))' )
 p.x = X
@@ -32,7 +32,7 @@ alpha = rand(N)+im*rand(N)
 p.alpha = alpha
 
 # generate target nodes in circle of radius 0.25-eps_B/2
-r = sqrt.( rand(M) ).*(0.25-eps_B)
+r = sqrt.( rand(M) ).*(0.25-eps_B/2)
 phi = rand(M).*(2*pi)
 Y = vcat( (r.*cos.(phi))', (r.*sin.(phi))' )
 p.y = Y
