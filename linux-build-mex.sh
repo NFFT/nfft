@@ -139,8 +139,8 @@ cd "$NFFTBUILDDIR"
 ARCH=$(uname -m)
 JULIADIR=nfft-"$NFFTVERSION"-julia-linux_$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
+$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
 $RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
-$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
 echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' Linux using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
@@ -150,14 +150,9 @@ tar czf ../"$JULIADIR".tar.gz --owner=0 --group=0 "$JULIADIR"
 
 # Create Matlab/Octave release
 DIR=nfft-$NFFTVERSION-mexa64$OMPSUFFIX
-
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
-  do
-  mkdir -p "$DIR"/$SUBDIR
-  cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/ || true
-  cp -f -L -r "$NFFTDIR"/matlab/$SUBDIR/README "$DIR"/$SUBDIR/ || true
-  cp -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$DIR"/$SUBDIR/
-done
+mkdir $DIR
+$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/matlab/" "$DIR"
+$RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' "matlab/" "$DIR"
 
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then

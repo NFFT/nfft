@@ -242,9 +242,9 @@ cd "$NFFTBUILDDIR"
 JULIADIR=nfft-"$NFFTVERSION"-julia-w$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
 cp "$NFFTDIR"/COPYING "$JULIADIR"/COPYING
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
 rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
-rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
-for DIR in $JULIADIR/nf*t; do cd $DIR; for NAME in simple_test*.jl; do PATH=/c/Windows/System32 $HOMEDIR/julia/bin/julia "$NAME"; done; cd "$NFFTBUILDDIR"; done;
+for DIR in $JULIADIR/nf*t; do cd $DIR; for NAME in simple_test*.jl; do PATH=/c/Windows/System32 $HOMEDIR/julia/bin/julia.exe "$NAME"; done; cd "$NFFTBUILDDIR"; done;
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
@@ -258,7 +258,7 @@ rm -f "$HOMEDIR/$JULIADIR".zip
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
   if [ "$MATLABVERSION" == "" ]; then
-    "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
+    "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
     MATLABVERSION=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
   MATLABSTRING=" and Matlab $MATLABVERSION"
@@ -280,16 +280,28 @@ fi
 
 # Create Matlab/Octave release
 MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
+mkdir "$MEXDIR"
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/matlab/" "$MEXDIR"
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' "matlab/" "$MEXDIR"
+# for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt ; do
+  # cd "$MEXDIR/$SUBDIR"
+  # if [ -f simple_test.m ] ; then
+  # for TESTFILE in *test*.m
+    # do
+    # "$OCTAVEDIR"/bin/octave-cli.exe --no-window-system --eval="run('$TESTFILE')"
+    # if [ -f "$MATLABDIR"/bin/matlab.exe ] ; then
+      # PATH=/c/Windows/System32 "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "run('$TESTFILE'); exit"
+    # fi
+  # done
+  # fi
+  # cd ../..
+# done
 for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt
-  do
-  mkdir -p "$MEXDIR"/$SUBDIR
-  cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
-  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/README "$MEXDIR"/$SUBDIR/ || true
-  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$MEXDIR"/$SUBDIR/
-  "$OCTAVEDIR"/bin/octave-cli.exe --no-window-system --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
-  if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
-    PATH=/c/Windows/System32 "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end; exit"
-  fi
+ do
+ "$OCTAVEDIR"/bin/octave-cli.exe --no-window-system --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
+ if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
+   PATH=/c/Windows/System32 "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end; exit"
+ fi
 done
 
 cd "$NFFTBUILDDIR"

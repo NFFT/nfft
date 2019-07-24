@@ -9,9 +9,9 @@ Changes in version 3.5.1:
     - #96 Remove unnecessary dependence on ncurses library.
 
     Enhancements
-    - #88 Inverse NFFT via frame approach.
-    - #87 FSFT: Spherical Fourier transform with equidistant nodes.
     - #86 Add Julia Interface for NFCT, NFST.
+    - #87 FSFT: Spherical Fourier transform with equidistant nodes.
+    - #88 Inverse NFFT via frame approach.
 
 Changes in version 3.5.0:
 

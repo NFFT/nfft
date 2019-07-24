@@ -121,8 +121,8 @@ cd "$NFFTBUILDDIR"
 ARCH=$(uname -m)
 JULIADIR=nfft-"$NFFTVERSION"-julia-macos_$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
 rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
-rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
 echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' macOS using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
@@ -139,14 +139,9 @@ do
 done
 
 DIR=nfft-$NFFTVERSION-mexmaci64$OMPSUFFIX
-
-for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d nfsft/@f_hat fpt
-  do
-  mkdir -p "$DIR"/$SUBDIR
-  cp -f -L matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/ || true
-  cp -f -L "$NFFTDIR"/matlab/$SUBDIR/README "$DIR"/$SUBDIR/ || true
-  cp -f -L "$NFFTDIR"/matlab/$SUBDIR/*.m "$DIR"/$SUBDIR/
-done
+mkdir $DIR
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/matlab/" "$DIR"
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' "matlab/" "$DIR"
 
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
