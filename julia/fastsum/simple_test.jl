@@ -11,13 +11,15 @@ M = 20000
 kernel = "multiquadric"
 c = 1/sqrt(N)
 p = 6
+flags = 0
 m = p
-nn = 256
-eps_I = p/nn
-eps_B = max(1/16,p/nn)
+n = 256
+eps_I = p/n
+eps_B = max( 1/16, p/n )
+nn = 2*n
 
 # create a Plan-Object in Julia
-p = fastsum.Plan( d, N, M, nn, m, p, kernel, c, eps_I, eps_B )
+p = fastsum.Plan( d, N, M, n, p, kernel, c, eps_I, eps_B, nn, m ) 
 
 # generate source nodes in circle of radius 0.25-eps_B/2
 r = sqrt.( rand(N) ).*(0.25-eps_B)
