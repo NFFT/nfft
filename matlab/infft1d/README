@@ -134,3 +134,10 @@ References:
    [2]  M. Kircheis, D. Potts. Direct inversion of the nonequispaced fast Fourier transform.
         arXiv:1811.05335, 2018
         https://www.tu-chemnitz.de/~kimel/paper/infft_1d.pdf
+
+
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+Octave:
+
+ The iNFFT is written for Matlab. It is not compatible with GNU Octave (as of Octave version 5).
