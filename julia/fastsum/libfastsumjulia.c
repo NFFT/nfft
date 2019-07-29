@@ -24,9 +24,6 @@ fastsum_plan* jfastsum_alloc(){
 
 void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B ){
 	C (*kernel)(R, int, const R *);
-  
-	double* param = nfft_malloc( sizeof(double) );
-	param[0] = c[0];
 	
 	if ( strcmp(s, "gaussian") == 0 )
 		kernel = gaussian;
@@ -63,14 +60,20 @@ void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, 
 		kernel = multiquadric;
 	}
 	
-	fastsum_init_guru_kernel( p, d, kernel, param, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
+	fastsum_init_guru_kernel( p, d, kernel, c, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
 	p -> x = 0;
 	p -> y = 0;
 	
 }
 
 double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){	
-	fastsum_init_guru_source_nodes( p, N, nn, m );
+	
+	if ( !(p->x) ) 
+		fastsum_init_guru_source_nodes( p, N, nn, m );
+	else {
+		fastsum_finalize_source_nodes( p );
+		fastsum_init_guru_source_nodes( p, N, nn, m );
+	}	
 	
 	int d = p -> d;
 	
@@ -94,7 +97,12 @@ double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){
 }
 
 double* jfastsum_set_y( fastsum_plan* p, double* y, int M, int nn, int m ){
-	fastsum_init_guru_target_nodes( p, M, nn, m );
+	if ( !(p->y) ) 
+		fastsum_init_guru_target_nodes( p, M, nn, m );
+	else {
+		fastsum_finalize_target_nodes( p );
+		fastsum_init_guru_target_nodes( p, M, nn, m );
+	}	
 	
 	int d = p -> d;
 	

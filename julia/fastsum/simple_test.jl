@@ -38,10 +38,12 @@ Y = [ (r.*cos.(phi)) (r.*sin.(phi)) ]
 p.y = Y
 
 # Start the Transformation
-fastsum.trafo( p )
+println( "time:" )
+@time fastsum.trafo( p )
 
 f1 = copy( p.f )
-fastsum.trafo_exact( p )
+println( "time direct:" )
+@time fastsum.trafo_exact( p )
 f2 = copy( p.f )
 error_vector = f1 - f2
 
