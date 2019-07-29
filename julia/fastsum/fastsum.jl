@@ -116,7 +116,7 @@ function Base.setproperty!( p::Plan, v::Symbol, val )
 			if typeof(val) != Array{Float64, 2}
 				error( "x has to be a Float64 matrix." )
 			end
-			if size(val)[1] != p.d || size(val)[2] != p.N
+			if size(val)[1] != p.N || size(val)[2] != p.d
 				error("x has to be a Float64 matrix of size N.")
 			end
 		end
@@ -138,7 +138,7 @@ function Base.setproperty!( p::Plan, v::Symbol, val )
 			if typeof(val) != Array{Float64, 2}
 				error("y has to be a Float64 matrix.")
 			end
-			if size(val)[1] != p.d || size(val)[2] != p.M
+			if size(val)[1] != p.M || size(val)[2] != p.d
 				error("y has to be a Float64 matrix of size M.")
 			end
 		end

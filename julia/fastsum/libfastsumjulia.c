@@ -23,8 +23,11 @@ fastsum_plan* jfastsum_alloc(){
 // c wird von Julia als Float64-Pointer übergeben
 
 void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B ){
-  C (*kernel)(R, int, const R *);
+	C (*kernel)(R, int, const R *);
   
+	double* param = nfft_malloc( sizeof(double) );
+	param[0] = c[0];
+	
 	if ( strcmp(s, "gaussian") == 0 )
 		kernel = gaussian;
 	else if ( strcmp(s, "multiquadric") == 0 )
@@ -60,7 +63,10 @@ void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, 
 		kernel = multiquadric;
 	}
 	
-	fastsum_init_guru_kernel( p, d, kernel, c, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
+	fastsum_init_guru_kernel( p, d, kernel, param, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
+	p -> x = 0;
+	p -> y = 0;
+	
 }
 
 double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){	
@@ -72,13 +78,13 @@ double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){
 	
 		for ( int k = 0; k < N; k++ )
 			for ( int t = 0; t < d; t++)
-				p -> x[k*d+t] = x[k*d+t];
+				p -> x[k*d+t] = x[k+t*N];
 			
 	} else {
 		
 		for ( int k = 0; k < N; k++ )
 			for ( int t = 0; t < d; t++)
-				p -> x[k*d+t] = x[p->permutation_x_alpha[k]*d+t];
+				p -> x[k*d+t] = x[p->permutation_x_alpha[k]+t*N];
 		
 	}
 	
@@ -94,7 +100,7 @@ double* jfastsum_set_y( fastsum_plan* p, double* y, int M, int nn, int m ){
 	
 	for ( int j = 0; j < M; j++ )
 		for ( int t = 0; t < d; t++ )
-			p -> y[j*d+t] = y[j*d+t];
+			p -> y[j*d+t] = y[j+t*M];
 		
 	fastsum_precompute_target_nodes( p );
 		

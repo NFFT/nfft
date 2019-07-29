@@ -6,16 +6,16 @@ println("fastsum test")
 
 # set the parameters:
 d = 2
-N = 2000
-M = 2000
+N = 20000
+M = 20000
 kernel = "multiquadric"
 c = 1/sqrt(N)
-p = 3
+p = 8
 flags = 0
 m = p
-n = 156
+n = 256
 eps_I = p/n
-eps_B =  1/16
+eps_B = max( 1/16, p/n )
 nn = 2*n
 
 # create a Plan-Object in Julia
@@ -24,7 +24,7 @@ p = fastsum.Plan( d, N, M, n, p, kernel, c, eps_I, eps_B, nn, m )
 # generate source nodes in circle of radius 0.25-eps_B/2
 r = sqrt.( rand(N) ).*(0.25-eps_B/2)
 phi = rand(N).*(2*pi)
-X = vcat( (r.*cos.(phi))', (r.*sin.(phi))' )
+X = [ (r.*cos.(phi)) (r.*sin.(phi)) ]
 p.x = X
 
 # generate coefficients alpha_k
@@ -34,7 +34,7 @@ p.alpha = alpha
 # generate target nodes in circle of radius 0.25-eps_B/2
 r = sqrt.( rand(M) ).*(0.25-eps_B/2)
 phi = rand(M).*(2*pi)
-Y = vcat( (r.*cos.(phi))', (r.*sin.(phi))' )
+Y = [ (r.*cos.(phi)) (r.*sin.(phi)) ]
 p.y = Y
 
 # Start the Transformation
