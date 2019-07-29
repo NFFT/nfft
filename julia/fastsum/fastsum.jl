@@ -18,7 +18,7 @@ mutable struct Plan
 	n::Integer				# expansion degree
 	p::Integer				# degree of smoothness
 	kernel::String			# name of kernel
-	c::Vector{Float64}	# kernel parameters
+	c::Vector{<:Real}	# kernel parameters
 	eps_I::Real				# inner boundary
 	eps_B::Real			# outer boundary
 	nn_x::Integer			# oversampled nn in x
@@ -35,7 +35,7 @@ mutable struct Plan
 	f::Ref{ComplexF64}				# target evaluations
 	plan::Ref{fastsum_plan}		# plan (C pointer)
 	
-	function Plan( d::Integer, N::Integer, M::Integer, n::Integer, p::Integer, kernel::String, c::Vector{Float64}, eps_I::Real, eps_B::Real, nn_x::Integer, nn_y::Integer, m_x::Integer, m_y::Integer )
+	function Plan( d::Integer, N::Integer, M::Integer, n::Integer, p::Integer, kernel::String, c::Vector{<:Real}, eps_I::Real, eps_B::Real, nn_x::Integer, nn_y::Integer, m_x::Integer, m_y::Integer )
 		new( d, N, M, n, p, kernel, c, eps_I, eps_B, nn_x, nn_y, m_x, m_y, false, false, 0 )
 	end
 end #struct fastsumplan
@@ -70,7 +70,7 @@ function fastsum_init( p::Plan )
 	ptr = ccall( ("jfastsum_alloc", lib_path), Ptr{fastsum_plan}, () )
 	Core.setfield!( p, :plan, ptr )
 	
-	ccall( ("jfastsum_init",lib_path), Nothing, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64), ptr, Int32(p.d), p.kernel, p.c, p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B) )
+	ccall( ("jfastsum_init",lib_path), Nothing, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64), ptr, Int32(p.d), p.kernel, Vector{Float64}(p.c), p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B) )
 
 	Core.setfield!( p, :init_done, true )
 	finalizer( finalize_plan, p )
