@@ -30,7 +30,10 @@ RSYNC="flatpak-spawn --host rsync"
 set -ex
 
 FFTWVERSION=3.3.8
+GCCVERSION=8.3.0
 GCCARCH=core2
+MPFRVERSION=4.0.1
+MPCVERSION=1.1.0
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/usr
@@ -61,8 +64,59 @@ NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOMEDIR="$NFFTDIR"/linux-build-mex
 mkdir -p "$HOMEDIR"
 cd "$HOMEDIR"
-GCCVERSION=$(gcc -dumpversion)
+#GCCVERSION=$(gcc -dumpfullversion)
 OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n', version); exit;" | grep OCTAVE_VERSION | sed 's/OCTAVE_VERSION=//'`
+
+
+MPFRBUILDDIR=$HOMEDIR/mpfr-$MPFRVERSION
+MPFRINSTALLDIR=$HOMEDIR/mpfr-$MPFRVERSION-install
+# Build MPFR for GCC
+if [ ! -f "$MPFRBUILDDIR/build-success" ]; then
+  rm -rf "$MPFRBUILDDIR"
+  curl "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVERSION.tar.gz" --output "mpfr-$MPFRVERSION.tar.gz"
+  tar -zxf "mpfr-$MPFRVERSION.tar.gz"
+  rm "mpfr-$MPFRVERSION.tar.gz"
+  cd $MPFRBUILDDIR
+  ./configure --prefix="$MPFRINSTALLDIR"
+  make -j4
+  make install
+  touch "$MPFRBUILDDIR/build-success"
+  cd $HOMEDIR
+fi
+
+MPCBUILDDIR=$HOMEDIR/mpc-$MPCVERSION
+MPCINSTALLDIR=$HOMEDIR/mpc-$MPCVERSION-install
+# Build MPC for GCC
+if [ ! -f "$MPCBUILDDIR/build-success" ]; then
+  rm -rf "$MPCBUILDDIR"
+  curl "https://ftp.gnu.org/gnu/mpc/mpc-$MPCVERSION.tar.gz" --output "mpc-$MPCVERSION.tar.gz"
+  tar -zxf "mpc-$MPCVERSION.tar.gz"
+  rm "mpc-$MPCVERSION.tar.gz"
+  cd $MPCBUILDDIR
+  ./configure --prefix="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR"
+  make -j4
+  make install
+  touch "$MPCBUILDDIR/build-success"
+  cd $HOMEDIR
+fi
+
+export LD_LIBRARY_PATH="$MPCINSTALLDIR/lib:$MPFRINSTALLDIR/lib"
+
+GCCBUILDDIR="$HOMEDIR/gcc-$GCCVERSION"
+GCCINSTALLDIR="$HOMEDIR/gcc-$GCCVERSION-install"
+# Build GCC
+if [ ! -f "$GCCBUILDDIR/build-success" ]; then
+  rm -rf "$GCCBUILDDIR"
+  curl "https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.gz" --output "gcc-$GCCVERSION.tar.gz"
+  tar -zxf "gcc-$GCCVERSION.tar.gz"
+  rm "gcc-$GCCVERSION.tar.gz"
+  cd $GCCBUILDDIR
+  CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS=-fPIC ./configure -enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --enable-languages=c,lto --disable-multilib --disable-nls --enable-bootstrap --prefix="$GCCINSTALLDIR" --with-mpc="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR" --program-suffix="-$GCCVERSION"
+  make -j4
+  make install
+  touch "$GCCBUILDDIR/build-success"
+  cd $HOMEDIR
+fi
 
 
 FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
@@ -76,11 +130,12 @@ if [ ! -f "$FFTWDIR/build-success" ]; then
 
   mkdir build
   cd build
-  ../configure --enable-static --enable-shared --enable-threads --with-pic --enable-sse2 --enable-avx --enable-avx2 --disable-fortran
+  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" ../configure --enable-static --enable-shared --enable-threads --with-pic --enable-sse2 --enable-avx --enable-avx2 --disable-fortran
   make -j4
   touch "$FFTWDIR/build-success"
   cd "$HOMEDIR"
 fi
+
 
 # Build NFFT
 READMECONTENT="
@@ -120,7 +175,7 @@ cd "$NFFTBUILDDIR"
 
 LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
+CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
 make
 make check
 
@@ -131,7 +186,7 @@ cd julia
 for LIB in nf*t
 do
   cd "$LIB"
-  gcc -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC -Wl,--no-whole-archive  $OMPLIBS -lm  -O3 -malign-double -march="$GCCARCH"   -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
   cd ..
 done
 cd "$NFFTBUILDDIR"
@@ -159,7 +214,7 @@ if [ -n "$MATLABDIR" ]; then
   MATLABVERSION=`"$MATLABDIR"/bin/matlab -nodisplay -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | sed 's/.*(//' | sed 's/)//'`
   cd "$NFFTBUILDDIR"
   make clean
-  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
+  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
   make
   make check
 fi
