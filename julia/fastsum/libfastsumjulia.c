@@ -22,7 +22,7 @@ fastsum_plan* jfastsum_alloc(){
 }
 // c wird von Julia als Float64-Pointer übergeben
 
-void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B ){
+void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
 	C (*kernel)(R, int, const R *);
 	
 	if ( strcmp(s, "gaussian") == 0 )
@@ -63,19 +63,14 @@ void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, 
 	fastsum_init_guru_kernel( p, d, kernel, c, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
 	p -> x = 0;
 	p -> y = 0;
+	fastsum_init_guru_source_nodes( p, N, nn_x, m_x );
+	fastsum_init_guru_target_nodes( p, M, nn_y, m_y );
 	
 }
 
-double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){	
-	
-	if ( !(p->x) ) 
-		fastsum_init_guru_source_nodes( p, N, nn, m );
-	else {
-		fastsum_finalize_source_nodes( p );
-		fastsum_init_guru_source_nodes( p, N, nn, m );
-	}	
-	
+double* jfastsum_set_x( fastsum_plan* p, double* x ){	
 	int d = p -> d;
+	int N = p -> N_total;
 	
 	if ( p -> permutation_x_alpha == NULL ) {
 	
@@ -96,15 +91,9 @@ double* jfastsum_set_x( fastsum_plan* p, double* x, int N, int nn, int m ){
 	return p -> x;
 }
 
-double* jfastsum_set_y( fastsum_plan* p, double* y, int M, int nn, int m ){
-	if ( !(p->y) ) 
-		fastsum_init_guru_target_nodes( p, M, nn, m );
-	else {
-		fastsum_finalize_target_nodes( p );
-		fastsum_init_guru_target_nodes( p, M, nn, m );
-	}	
-	
+double* jfastsum_set_y( fastsum_plan* p, double* y ){
 	int d = p -> d;
+	int M = p -> M_total;
 	
 	for ( int j = 0; j < M; j++ )
 		for ( int t = 0; t < d; t++ )
@@ -142,5 +131,6 @@ void jfastsum_finalize( fastsum_plan* p ){
 	fastsum_finalize_source_nodes( p );
 	fastsum_finalize_target_nodes( p );
 	fastsum_finalize_kernel( p );
+	nfft_free( p );
 	return;
 }

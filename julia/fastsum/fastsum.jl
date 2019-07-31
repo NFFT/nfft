@@ -12,24 +12,24 @@ mutable struct fastsum_plan
 end
 
 mutable struct Plan
-	d::Integer				# dimension
-	N::Integer				# number of source nodes
-	M::Integer				# number of target nodes
-	n::Integer				# expansion degree
-	p::Integer				# degree of smoothness
-	kernel::String			# name of kernel
+	d::Integer					# dimension
+	N::Integer					# number of source nodes
+	M::Integer					# number of target nodes
+	n::Integer					# expansion degree
+	p::Integer					# degree of smoothness
+	kernel::String				# name of kernel
 	c::Vector{Float64}	# kernel parameters
-	eps_I::Real				# inner boundary
-	eps_B::Real			# outer boundary
-	nn_x::Integer			# oversampled nn in x
-	nn_y::Integer			# oversampled nn in y
-	m_x::Integer			# NFFT-cutoff in x
-	m_y::Integer			# NFFT-cutoff in y
-	init_done::Bool		# bool for plan init
-	finalized::Bool		# bool for finalizer
-	flags::UInt32			# flags
-	x::Ref{Float64}		# source nodes
-	y::Ref{Float64}		# target nodes
+	eps_I::Real					# inner boundary
+	eps_B::Real				# outer boundary
+	nn_x::Integer				# oversampled nn in x
+	nn_y::Integer				# oversampled nn in y
+	m_x::Integer				# NFFT-cutoff in x
+	m_y::Integer				# NFFT-cutoff in y
+	init_done::Bool			# bool for plan init
+	finalized::Bool			# bool for finalizer
+	flags::UInt32				# flags
+	x::Ref{Float64}			# source nodes
+	y::Ref{Float64}			# target nodes
 	alpha::Ref{ComplexF64}		# source coefficients
 	b::Ref{ComplexF64}				# expansion coefficients
 	f::Ref{ComplexF64}				# target evaluations
@@ -70,7 +70,7 @@ function fastsum_init( p::Plan )
 	ptr = ccall( ("jfastsum_alloc", lib_path), Ptr{fastsum_plan}, () )
 	Core.setfield!( p, :plan, ptr )
 	
-	ccall( ("jfastsum_init",lib_path), Nothing, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64), ptr, Int32(p.d), p.kernel, p.c, p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B) )
+	ccall( ("jfastsum_init",lib_path), Nothing, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32), ptr, Int32(p.d), p.kernel, p.c, p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B), Int32(p.N), Int32(p.M), Int32(p.nn_x), Int32(p.nn_y), Int32(p.m_x), Int32(p.m_y) )
 
 	Core.setfield!( p, :init_done, true )
 	finalizer( finalize_plan, p )
@@ -115,11 +115,11 @@ function Base.setproperty!( p::Plan, v::Symbol, val )
 				error( "x has to be a Float64 matrix." )
 			end
 			if size(val)[1] != p.N || size(val)[2] != p.d
-				error("x has to be a Float64 matrix of size N.")
+				error( "x has to be a Float64 matrix of size N." )
 			end
 		end
 
-		ptr = ccall( ("jfastsum_set_x", lib_path), Ptr{Float64}, (Ref{fastsum_plan},Ref{Cdouble}, Int32, Int32, Int32), p.plan, val, Int32(p.N), Int32(p.nn_x), Int32(p.m_x) )
+		ptr = ccall( ("jfastsum_set_x", lib_path), Ptr{Float64}, (Ref{fastsum_plan},Ref{Cdouble}), p.plan, val )
 		Core.setfield!( p, v, ptr )
 
 	 # edit target nodes
@@ -134,14 +134,14 @@ function Base.setproperty!( p::Plan, v::Symbol, val )
 			end
 		else # => D > 1
 			if typeof(val) != Array{Float64, 2}
-				error("y has to be a Float64 matrix.")
+				error( "y has to be a Float64 matrix." )
 			end
 			if size(val)[1] != p.M || size(val)[2] != p.d
-				error("y has to be a Float64 matrix of size M.")
+				error( "y has to be a Float64 matrix of size M." )
 			end
 		end
 
-		ptr = ccall( ("jfastsum_set_y", lib_path), Ptr{Float64}, (Ref{fastsum_plan},Ref{Cdouble}, Int32, Int32, Int32), p.plan, val, Int32(p.M), Int32(p.nn_y), Int32(p.m_y) )
+		ptr = ccall( ("jfastsum_set_y", lib_path), Ptr{Float64}, (Ref{fastsum_plan},Ref{Cdouble}), p.plan, val )
 		Core.setfield!( p, v, ptr )
 
    # edit source coefficients
@@ -240,22 +240,22 @@ end # Base.getproperty
 function trafo( p::Plan )
 
 	if p.finalized
-		error("Plan already finalized.")
+		error( "Plan already finalized." )
 	end
 
 	if !isdefined( p, :x )
-		error("x has not been set.")
+		error( "x has not been set." )
 	end
 
 	if !isdefined( p, :y )
-		error("y has not been set.")
+		error( "y has not been set." )
 	end
 
 	if !isdefined( p, :alpha )
-		error("alpha has not been set.")
+		error( "alpha has not been set." )
 	end
 
-	ptr = ccall( ("jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), p.plan )
+	ptr = ccall( ( "jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), p.plan )
 	Core.setfield!( p, :f, ptr )
 
 end #trafo
@@ -263,19 +263,19 @@ end #trafo
 function trafo_exact( p::Plan )
 
 	if p.finalized
-		error("Plan already finalized.")
+		error( "Plan already finalized." )
 	end
 
 	if !isdefined( p, :x )
-		error("x has not been set.")
+		error( "x has not been set." )
 	end
 
 	if !isdefined( p, :y )
-		error("y has not been set.")
+		error( "y has not been set." )
 	end
 
 	if !isdefined( p, :alpha )
-		error("alpha has not been set.")
+		error( "alpha has not been set." )
 	end
 
 	ptr = ccall( ("jfastsum_exact", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), p.plan )
