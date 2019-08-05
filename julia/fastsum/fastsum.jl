@@ -31,7 +31,6 @@ mutable struct Plan
 	x::Ref{Float64}			# source nodes
 	y::Ref{Float64}			# target nodes
 	alpha::Ref{ComplexF64}		# source coefficients
-	b::Ref{ComplexF64}				# expansion coefficients
 	f::Ref{ComplexF64}				# target evaluations
 	plan::Ref{fastsum_plan}		# plan (C pointer)
 	
@@ -70,7 +69,11 @@ function fastsum_init( p::Plan )
 	ptr = ccall( ("jfastsum_alloc", lib_path), Ptr{fastsum_plan}, () )
 	Core.setfield!( p, :plan, ptr )
 	
-	ccall( ("jfastsum_init",lib_path), Nothing, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32), ptr, Int32(p.d), p.kernel, p.c, p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B), Int32(p.N), Int32(p.M), Int32(p.nn_x), Int32(p.nn_y), Int32(p.m_x), Int32(p.m_y) )
+	code = ccall( ("jfastsum_init",lib_path), Int64, (Ref{fastsum_plan}, Int32, Cstring, Ref{Float64}, UInt32, Int32, Int32, Float64, Float64, Int32, Int32, Int32, Int32, Int32, Int32), ptr, Int32(p.d), p.kernel, p.c, p.flags, Int32(p.n), Int32(p.p), Float64(p.eps_I), Float64(p.eps_B), Int32(p.N), Int32(p.M), Int32(p.nn_x), Int32(p.nn_y), Int32(p.m_x), Int32(p.m_y) )
+	
+	if code == 1
+		error( "Unkown kernel." )
+	end
 
 	Core.setfield!( p, :init_done, true )
 	finalizer( finalize_plan, p )

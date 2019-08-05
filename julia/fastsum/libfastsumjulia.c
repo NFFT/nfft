@@ -22,7 +22,7 @@ fastsum_plan* jfastsum_alloc(){
 }
 // c wird von Julia als Float64-Pointer übergeben
 
-void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
+int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
 	C (*kernel)(R, int, const R *);
 	
 	if ( strcmp(s, "gaussian") == 0 )
@@ -56,8 +56,7 @@ void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, 
 	else if ( strcmp(s, "laplacian_rbf") == 0 )
 		kernel = laplacian_rbf;
 	else {
-		s = "multiquadric";
-		kernel = multiquadric;
+		return 1;
 	}
 	
 	fastsum_init_guru_kernel( p, d, kernel, c, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
@@ -65,6 +64,8 @@ void jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, 
 	p -> y = 0;
 	fastsum_init_guru_source_nodes( p, N, nn_x, m_x );
 	fastsum_init_guru_target_nodes( p, M, nn_y, m_y );
+	
+	return 0;
 	
 }
 
