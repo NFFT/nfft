@@ -3,7 +3,7 @@ compiler:
 - gcc
 - clang
 os: linux
-dist: bionic
+dist: xenial
 sudo: false
 addons:
   apt:
