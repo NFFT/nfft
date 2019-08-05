@@ -219,7 +219,7 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 
 
 # Julia interface
-for LIB in nf*t
+for LIB in nf*t fastsum
 do
   cd julia/"$LIB"
   gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"    -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
