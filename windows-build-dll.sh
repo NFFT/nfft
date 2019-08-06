@@ -233,7 +233,7 @@ cd julia
 for LIB in nf*t
 do
   cd "$LIB"
-  gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"    -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
+  gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"  -O3 -malign-double -ffast-math -march=$GCCARCH  -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
   cp .libs/lib"$LIB"julia.dll lib"$LIB"julia.dll
   cd ..
 done
