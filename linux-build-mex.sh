@@ -6,25 +6,23 @@
 # 
 # The script is known to work on Ubuntu 18.10. At least the following packages
 # are required:
-# fftw3 libfftw3-dev libcunit1-dev make gcc octave liboctave-dev
+# libcunit1-dev make gcc octave liboctave-dev
 #
 # For running ./bootstrap.sh, the following packages are required:
 # autoconf automake libtool
 #
 #
+# For compiling with recent Octave version, one can use flatpak package org.octave.Octave.
 # Example call:
-# ./linux-build-mex.sh --matlab=/path/to/matlab
+#   flatpak --command="bash" run org.octave.Octave
+#   bash linux-build-mex.sh -o /app --matlab=/path/to/matlab
 # 
 #
-# For compiling with recent Octave version, one can use flatpak package org.octave.Octave.
-# Then, the following RSYNC variable should be used.
+# When using flatpak, the following RSYNC variable should be used.
 RSYNC="flatpak-spawn --host rsync"
 # Otherwise, the RSYNC variable should be set to
 #RSYNC=rsync
 #
-# Possible flatpak call:
-#   flatpak --command="bash" run org.octave.Octave
-#   bash linux-build-mex.sh -o /app
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
@@ -71,8 +69,9 @@ OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n'
 MPFRBUILDDIR=$HOMEDIR/mpfr-$MPFRVERSION
 MPFRINSTALLDIR=$HOMEDIR/mpfr-$MPFRVERSION-install
 # Build MPFR for GCC
-if [ ! -f "$MPFRBUILDDIR/build-success" ]; then
+if [ ! -f "$MPFRINSTALLDIR/build-success" ]; then
   rm -rf "$MPFRBUILDDIR"
+  rm -rf "$MPFRINSTALLDIR"
   curl "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVERSION.tar.gz" --output "mpfr-$MPFRVERSION.tar.gz"
   tar -zxf "mpfr-$MPFRVERSION.tar.gz"
   rm "mpfr-$MPFRVERSION.tar.gz"
@@ -80,15 +79,16 @@ if [ ! -f "$MPFRBUILDDIR/build-success" ]; then
   ./configure --prefix="$MPFRINSTALLDIR"
   make -j4
   make install
-  touch "$MPFRBUILDDIR/build-success"
+  touch "$MPFRINSTALLDIR/build-success"
   cd $HOMEDIR
 fi
 
 MPCBUILDDIR=$HOMEDIR/mpc-$MPCVERSION
 MPCINSTALLDIR=$HOMEDIR/mpc-$MPCVERSION-install
 # Build MPC for GCC
-if [ ! -f "$MPCBUILDDIR/build-success" ]; then
+if [ ! -f "$MPCINSTALLDIR/build-success" ]; then
   rm -rf "$MPCBUILDDIR"
+  rm -rf "$MPCINSTALLDIR"
   curl "https://ftp.gnu.org/gnu/mpc/mpc-$MPCVERSION.tar.gz" --output "mpc-$MPCVERSION.tar.gz"
   tar -zxf "mpc-$MPCVERSION.tar.gz"
   rm "mpc-$MPCVERSION.tar.gz"
@@ -96,7 +96,7 @@ if [ ! -f "$MPCBUILDDIR/build-success" ]; then
   ./configure --prefix="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR"
   make -j4
   make install
-  touch "$MPCBUILDDIR/build-success"
+  touch "$MPCINSTALLDIR/build-success"
   cd $HOMEDIR
 fi
 
@@ -105,8 +105,9 @@ export LD_LIBRARY_PATH="$MPCINSTALLDIR/lib:$MPFRINSTALLDIR/lib"
 GCCBUILDDIR="$HOMEDIR/gcc-$GCCVERSION"
 GCCINSTALLDIR="$HOMEDIR/gcc-$GCCVERSION-install"
 # Build GCC
-if [ ! -f "$GCCBUILDDIR/build-success" ]; then
+if [ ! -f "$GCCINSTALLDIR/build-success" ]; then
   rm -rf "$GCCBUILDDIR"
+  rm -rf "$GCCINSTALLDIR"
   curl "https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.gz" --output "gcc-$GCCVERSION.tar.gz"
   tar -zxf "gcc-$GCCVERSION.tar.gz"
   rm "gcc-$GCCVERSION.tar.gz"
@@ -114,7 +115,7 @@ if [ ! -f "$GCCBUILDDIR/build-success" ]; then
   CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS=-fPIC ./configure -enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --enable-languages=c,lto --disable-multilib --disable-nls --enable-bootstrap --prefix="$GCCINSTALLDIR" --with-mpc="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR" --program-suffix="-$GCCVERSION"
   make -j4
   make install
-  touch "$GCCBUILDDIR/build-success"
+  touch "$GCCINSTALLDIR/build-success"
   cd $HOMEDIR
 fi
 
@@ -177,6 +178,17 @@ LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
 CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
 make
+if [ $OMPYN = 1 ]; then
+  OCTLIBDIR=`octave-config --print OCTLIBDIR`
+  cd matlab
+  for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
+  do
+    cd "$SUBDIR"
+    "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a  $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$OCTLIBDIR -L/$OCTAVEDIR/lib -lfftw3_threads -lfftw3 -lpthread -lm -loctinterp -loctave  -Wl,-soname -Wl,lib"$SUBDIR".mex -o .libs/lib"$SUBDIR".mex
+    cd ..
+  done
+  cd "$NFFTBUILDDIR"
+fi
 make check
 
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
@@ -216,11 +228,21 @@ if [ -n "$MATLABDIR" ]; then
   make clean
   CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
   make
+  if [ $OMPYN = 1 ]; then
+    cd matlab
+    for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
+    do
+      cd "$SUBDIR"
+      "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$MATLABDIR/bin/glnxa64 -L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs -l:libmwfftw3.so.3 -lm -lmx -lmex -lmat -Wl,-soname -Wl,lib$SUBDIR.mexa64 -o .libs/lib$SUBDIR.mexa64
+      cd ..
+    done
+    cd "$NFFTBUILDDIR"
+  fi
   make check
 fi
 
 for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
-  do
+do
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
 done
 
