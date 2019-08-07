@@ -178,17 +178,6 @@ LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
 CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
 make
-if [ $OMPYN = 1 ]; then
-  OCTLIBDIR=`octave-config --print OCTLIBDIR`
-  cd matlab
-  for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
-  do
-    cd "$SUBDIR"
-    "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a  $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$OCTLIBDIR -L/$OCTAVEDIR/lib -lfftw3_threads -lfftw3 -lpthread -lm -loctinterp -loctave  -Wl,-soname -Wl,lib"$SUBDIR".mex -o .libs/lib"$SUBDIR".mex
-    cd ..
-  done
-  cd "$NFFTBUILDDIR"
-fi
 make check
 
 NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
@@ -233,7 +222,7 @@ if [ -n "$MATLABDIR" ]; then
     for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
     do
       cd "$SUBDIR"
-      "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$MATLABDIR/bin/glnxa64 -L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs -l:libmwfftw3.so.3 -lm -lmx -lmex -lmat -Wl,-soname -Wl,lib$SUBDIR.mexa64 -o .libs/lib$SUBDIR.mexa64
+      "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$MATLABDIR/bin/glnxa64 -l:libmwfftw3.so.3 -lm -lmx -lmex -lmat -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib$SUBDIR.mexa64 -o .libs/lib$SUBDIR.mexa64
       cd ..
     done
     cd "$NFFTBUILDDIR"
