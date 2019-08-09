@@ -1,1 +1,1 @@
-EXTRA_DIST = rem.sed toc.sed
+EXTRA_DIST = rem.sed toc.sed fpt.dox mri.dox nfct.dox nfft.dox nfsft.dox nfsoft.dox nfst.dox nnfft.dox nsfft.dox solver.dox

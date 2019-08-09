@@ -43,7 +43,7 @@ fhatv=fhat(:);
 plan.fhat=fhatv; % set Fourier coefficients
 tic
 nfft_trafo(plan); % compute nonequispaced Fourier transform
-fprintf("Time nfft_trafo:   %g sec\n",toc)
+fprintf('Time nfft_trafo:   %g sec\n',toc)
 f1=plan.f; % get samples
 
 % Compute samples direct
@@ -59,7 +59,7 @@ f2=zeros(M,1);
 for j=1:M
 	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k*x(j,:).')) );
 end %for
-fprintf("Time direct trafo: %g sec\n",toc)
+fprintf('Time direct trafo: %g sec\n',toc)
 
 % Compare results
 fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
@@ -69,7 +69,7 @@ fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
 % Computation with NFFT
 tic
 nfft_adjoint(plan);
-fprintf("Time nfft_adjoint:   %g sec\n",toc)
+fprintf('Time nfft_adjoint:   %g sec\n',toc)
 fhat1=plan.fhat;
 
 % Direct computation
@@ -78,7 +78,7 @@ fhat2=zeros(prod(N),1);
 for j=1:prod(N)
 	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(x*k(j,:).')) );
 end %for
-fprintf("Time direct adjoint: %g sec\n",toc)
+fprintf('Time direct adjoint: %g sec\n',toc)
 
 % Compare results
 fprintf('Maximum error of adjoint = %g\n',max(abs(fhat1-fhat2)))

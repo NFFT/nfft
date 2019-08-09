@@ -10,6 +10,8 @@ try
   result = tests.nfsft_check_online; ok = min(ok, result);
   result = tests.nfsft_check_adjoint_online; ok = min(ok, result);
 
+  result = tests.nfsft_check_trafo_equispaced_online; ok = min(ok, result);
+  result = tests.nfsft_check_adjoint_equispaced_online; ok = min(ok, result);
   result = tests.nfsft_check_quadrature_online; ok = min(ok, result);
 catch err
   try

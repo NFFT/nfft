@@ -426,7 +426,6 @@
  * \see nfsft_init_advanced
  * \see nfsft_init_guru
  * \author Jens Keiner
- * \warning This feature is not implemented yet!
  */
 
 /*! \def NFSFT_MALLOC_X
@@ -564,10 +563,19 @@
  * \author Jens Keiner
  */
 
+/*! \def NFSFT_EQUISPACED
+ * If this flag is set, we use the equispaced FFT instead of the NFFT.
+ * This implies that the nodes are fixed to 
+ * \f[ \varphi_i = 2\pi \frac{i}{2N+2}, \qquad i=-N-1,\dots,N, \f]
+ * \f[ \vartheta_j = 2\pi \frac{j}{2N+2}, \qquad j=0,\dots,N. \f]
+ *
+ * \author Michael Quellmalz
+ */
+
 /*! \def NFSFT_INDEX(k,n,plan)
  * This helper macro expands to the index \f$i\f$
  * corresponding to the spherical Fourier coefficient
- * \f$f_hat(k,n)\f$ for \f$0 \le k \le N\f$, \f$-k \le n \le k\f$ with
+ * \f$\mathtt{f\_hat}(k,n)\f$ for \f$0 \le k \le N\f$, \f$-k \le n \le k\f$ with
  * \f[
  *   (N+2)(N-n+1)+N+k+1
  * \f]

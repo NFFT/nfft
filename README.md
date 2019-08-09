@@ -45,6 +45,8 @@ make doc
 
 Building
 --------
+The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros and MSYS. If you compile the FFTW yourself, it should be configured `--enable-shared`.
+
 When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
 ```
 ./bootstrap.sh

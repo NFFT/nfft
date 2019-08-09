@@ -20,7 +20,7 @@
 
 m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [5])
-m4_define([nfft_version_patch], [0])
+m4_define([nfft_version_patch], [1])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -79,7 +79,7 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="4:0:0"
+SHARED_VERSION_INFO="4:1:0"
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
@@ -169,8 +169,13 @@ AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
   [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
-# option for julia interface
-nfft_julia_default="no"
+# default option for julia interface, may be overwritten (enabled by default
+#   if --enable-all is specified for double precision and enable-shared)
+if test "x$PRECISION" = "xd" -a "x$enable_shared" = "xyes"; then
+  nfft_julia_default=$nfft_module_default
+else
+  nfft_julia_default="no"
+fi
 AC_ARG_ENABLE(julia, [AC_HELP_STRING([--enable-julia],
   [enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
 AM_CONDITIONAL(HAVE_JULIA, test "x$enable_julia" = "xyes" )
@@ -179,6 +184,9 @@ if test "x$enable_julia" = "xyes" -a "x$PRECISION" != "xd"; then
   AC_MSG_ERROR([Building the julia interface requires double precision.])
 fi
 
+if test "x$enable_julia" = "xyes" -a "x$enable_shared" = "xno"; then
+  AC_MSG_ERROR([Building the julia interface requires --enable-shared.])
+fi
 
 # options for modules
 AX_NFFT_MODULE([nfct],[NFCT],[nonequispaced fast cosine transform],["yes"])
@@ -654,6 +662,8 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/nfsftUnitTests.m \
 		julia/Makefile \
 		julia/nfft/Makefile \
+		julia/nfct/Makefile \
+		julia/nfst/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
