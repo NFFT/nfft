@@ -33,7 +33,7 @@ tic
 %plan=nfft(5,N,M,4*N,8); % create plan of class type nfft
 n=2.^(ceil(log(N)/log(2))+1);
 plan=nfft(5,N,M,n,8,bitor(PRE_PHI_HUT,bitor(PRE_PSI,NFFT_OMP_BLOCKWISE_ADJOINT)),FFTW_ESTIMATE); % use of nfft_init_guru
-fprintf("Time nfft_init %g\n",toc)
+fprintf('Time nfft_init %g\n',toc)
 
 plan.x=x; % set nodes in plan and perform precomputations
 
@@ -46,7 +46,7 @@ fhatv=fhat(:);
 plan.fhat=fhatv; % set Fourier coefficients
 tic
 nfft_trafo(plan); % compute nonequispaced Fourier transform
-fprintf("Time nfft_trafo   %g\n",toc)
+fprintf('Time nfft_trafo   %g\n',toc)
 f1=plan.f; % get samples
 
 % Compute samples direct
@@ -64,7 +64,7 @@ for j=1:M
   xj=x(j,:);
 	f2(j)=sum( fhatv.*exp(-2*pi*1i*(k*xj.')) );
 end %for
-fprintf("Time direct trafo %g\n",toc)
+fprintf('Time direct trafo %g\n',toc)
 
 % Compare results
 fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
@@ -74,7 +74,7 @@ fprintf('Maximum error of trafo = %g\n',max(abs(f1-f2)))
 % Computation with NFFT
 tic
 nfft_adjoint(plan);
-fprintf("Time nfft_adjoint   %g\n",toc)
+fprintf('Time nfft_adjoint   %g\n',toc)
 fhat1=plan.fhat;
 
 % Direct computation
@@ -84,7 +84,7 @@ for j=1:prod(N)
   kj=k(j,:);
 	fhat2(j)=sum( plan.f.*exp(2*pi*1i*(x*kj.')) );
 end %for
-fprintf("Time direct adjoint %g\n",toc)
+fprintf('Time direct adjoint %g\n',toc)
 
 % Compare results
 fprintf('Maximum error of adjoint = %g\n',max(abs(fhat1-fhat2)))

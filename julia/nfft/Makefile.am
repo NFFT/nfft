@@ -17,7 +17,7 @@ libnfftjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_L
 
 libnfftjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
 
-EXTRA_DIST = NFFT.jl simple_test_1d.jl simple_test_2d.jl simple_test_3d.jl
+EXTRA_DIST = NFFT.jl simple_test_1d.jl simple_test_2d.jl simple_test_3d.jl README.md
 
 libnfftjulia-link: all-am
 	soname=`$(EGREP) "^dlname=" libnfftjulia.la | $(SED) -e "s|^dlname='\(.*\)'|\1|"` ; \

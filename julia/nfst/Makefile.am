@@ -17,7 +17,7 @@ libnfstjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_L
 
 libnfstjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
 
-EXTRA_DIST = NFST.jl simple_test_1d.jl simple_test_2d.jl
+EXTRA_DIST = NFST.jl simple_test_1d.jl simple_test_2d.jl simple_test_3d.jl
 
 libnfstjulia-link: all-am
 	soname=`$(EGREP) "^dlname=" libnfstjulia.la | $(SED) -e "s|^dlname='\(.*\)'|\1|"` ; \

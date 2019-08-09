@@ -8,7 +8,7 @@
 # Example call:
 # ./nfft-build-dll.sh --fftw=3.3.8 --octave=5.1.0 --matlab=/c/path/to/matlab
 # 
-# WARNING: This script downloads and compiles FFTW and downloads GCC and Octave (requires ~ 2GB).
+# WARNING: This script downloads and compiles FFTW and downloads GCC, Julia and Octave (requires ~ 3GB).
 # 
 # Optional flags: --arch=64 (default) or 32 (swich wheater to build 64 or 32 bit binaries)
 # To build for 32 bit you should use MinGW-w64 Win32 Shell.
@@ -146,9 +146,19 @@ fi
 OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
 rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
 
+# Get Julia
+if [ ! -f julia/bin/julia.exe ]; then
+  rm -f -r julia
+  mkdir julia
+  cd julia
+  wget https://julialang-s3.julialang.org/bin/winnt/x64/1.1/julia-1.1.1-win64.exe
+  7z x *.exe
+  7z x julia-installer.exe
+fi
+
 # Build NFFT
 READMECONTENT="
-$(sed '/Directory structure/Q' $NFFTDIR/README) 
+$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
 "
 FFTWREADME='
 FFTW
@@ -184,7 +194,7 @@ cd "$NFFTBUILDDIR"
 
 
 # Compile with Octave
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-julia
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples
 make
 make check
 
@@ -219,18 +229,22 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 
 
 # Julia interface
+cd julia
 for LIB in nf*t fastsum
 do
-  cd julia/"$LIB"
-  gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"    -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
+  cd "$LIB"
+  gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"  -O3 -malign-double -ffast-math -march=$GCCARCH  -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
   cp .libs/lib"$LIB"julia.dll lib"$LIB"julia.dll
-  cd ../..
+  cd ..
 done
 
+cd "$NFFTBUILDDIR"
 JULIADIR=nfft-"$NFFTVERSION"-julia-w$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
-rsync -a --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
-rsync -a --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' "$NFFTDIR/julia/" "$JULIADIR"
+cp "$NFFTDIR"/COPYING "$JULIADIR"/COPYING
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+for DIR in $JULIADIR/nf*t; do cd $DIR; for NAME in simple_test*.jl; do PATH=/c/Windows/System32 $HOMEDIR/julia/bin/julia.exe "$NAME"; done; cd "$NFFTBUILDDIR"; done;
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
@@ -244,7 +258,7 @@ rm -f "$HOMEDIR/$JULIADIR".zip
 # Compile with Matlab
 if [ -n "$MATLABDIR" ]; then
   if [ "$MATLABVERSION" == "" ]; then
-    "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -nodisplay -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
+    "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
     MATLABVERSION=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
   MATLABSTRING=" and Matlab $MATLABVERSION"
@@ -266,14 +280,31 @@ fi
 
 # Create Matlab/Octave release
 MEXDIR=nfft-"$NFFTVERSION"-mexw$ARCH$OMPSUFFIX
-for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt
-  do
-  mkdir -p "$MEXDIR"/$SUBDIR
-  cp -f -r matlab/$SUBDIR/*.mex* "$MEXDIR"/$SUBDIR/ || true
-  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/README "$MEXDIR"/$SUBDIR/ || true
-  cp -f -r "$NFFTDIR"/matlab/$SUBDIR/*.m "$MEXDIR"/$SUBDIR/
-  "$OCTAVEDIR"/bin/octave-cli --no-window-system --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
+mkdir "$MEXDIR"
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/matlab/" "$MEXDIR"
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' "matlab/" "$MEXDIR"
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt ; do
+  cd "$MEXDIR/$SUBDIR"
+  if [ -f simple_test.m ] ; then
+  for TESTFILE in *test*.m
+    do
+    if [ "$SUBDIR" != "infft1d" ] ; then
+      "$OCTAVEDIR"/bin/octave-cli.exe --no-window-system --eval="run('$TESTFILE')"
+    fi
+    if [ -f "$MATLABDIR"/bin/matlab.exe ] ; then
+      PATH=/c/Windows/System32 "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "run('$TESTFILE'); exit"
+    fi
+  done
+  fi
+  cd "$NFFTBUILDDIR"
 done
+# for SUBDIR in nfft nfsft/@f_hat nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt
+ # do
+ # "$OCTAVEDIR"/bin/octave-cli.exe --no-window-system --eval="cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end"
+ # if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
+   # PATH=/c/Windows/System32 "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "cd $MEXDIR/$SUBDIR; if exist('simple_test')==2; simple_test; end; if exist('test_$SUBDIR')==2; test_$SUBDIR; end; exit"
+ # fi
+# done
 
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
@@ -292,8 +323,9 @@ make all check
 
 APPSDIR=nfft-"$NFFTVERSION"-applications-w$ARCH$OMPSUFFIX
 mkdir "$APPSDIR"
-rsync -a --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' 'applications/' "$APPSDIR"
-rsync -a --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' "$NFFTDIR/applications/" "$APPSDIR"
+cp "$NFFTDIR"/COPYING "$APPSDIR"/COPYING
+rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' 'applications/' "$APPSDIR"
+rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' "$NFFTDIR/applications/" "$APPSDIR"
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'applications.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows

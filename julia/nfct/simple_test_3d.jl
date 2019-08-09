@@ -1,45 +1,45 @@
 push!(LOAD_PATH, pwd())
-using NFST
+using NFCT
 using LinearAlgebra
 
-println( "2d NFST Test" )
+println( "2d NFCT Test" )
 
 #bandwidth
-N = ( 16, 8 )
+N = ( 32, 16, 8 )
 
 #number of nodes
-M = 10000
+M = 1000
 
 #create plan
-p = NFSTplan( N, M ) 
+p = NFCTplan( N, M ) 
 
 println("Number of Threads: ", p.num_threads)
 
 #generate random nodes
-A = 0.5 .* rand( 2, M )
+A = 0.5 .* rand( 3, M )
 
 #set nodes
 p.x = A
 
 #generate random Fourier coefficients
-fhat = rand( prod(collect(N).-1) )
+fhat = rand( prod(N) )
 
 #set Fourier coefficients
 p.fhat = fhat
 
 #transform
 println( "trafo time:" )
-@time NFST.trafo(p)
+@time NFCT.trafo(p)
 
 #get function values
 f2 = p.f
 
 #indices
-I = [ [j; i] for i in 1:N[2]-1, j in 1:N[1]-1 ]
+I = [ [j; i; k] for k in 0:N[3]-1, i in 0:N[2]-1, j in 0:N[1]-1 ]
 I = vec(I)
 
 #define Fourier matrix
-F = [ sin(2*pi*A[:,j][1]*I[l][1])*sin(2*pi*A[:,j][2]*I[l][2]) for j in 1:M, l in 1:prod(collect(N).-1) ]
+F = [ cos(2*pi*A[:,j][1]*I[l][1])*cos(2*pi*A[:,j][2]*I[l][2])*cos(2*pi*A[:,j][3]*I[l][3]) for j in 1:M, l in 1:prod(N) ]
 
 #multiply Fourier matrix with vector of Fourier coefficients
 f1 = F*fhat
@@ -58,7 +58,7 @@ end
 
 #adjoint
 println( "adjoint time:" )
-@time NFST.adjoint(p)
+@time NFCT.adjoint(p)
 
 #get function values
 f2 = p.fhat

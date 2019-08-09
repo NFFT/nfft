@@ -35,15 +35,8 @@ println( "trafo time:" )
 f2 = p.f
 
 #indices
-I = Vector{Vector{Int64}}(undef,prod(N))
-freq = 1
-
-for i = 0:N[1]-1
-	for j = 0:N[2]-1
-		I[freq] = [i,j]
-		global freq += 1	
-	end
-end
+I = [ [j; i] for i in 0:N[2]-1, j in 0:N[1]-1 ]
+I = vec(I)
 
 #define Fourier matrix
 F = [ cos(2*pi*A[:,j][1]*I[l][1])*cos(2*pi*A[:,j][2]*I[l][2]) for j in 1:M, l in 1:prod(N) ]

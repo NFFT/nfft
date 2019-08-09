@@ -18,3 +18,5 @@ endif
 
 
 SUBDIRS = nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_FASTSUM)
+
+EXTRA_DIST = README.md

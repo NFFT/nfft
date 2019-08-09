@@ -563,7 +563,7 @@
  * \author Jens Keiner
  */
 
-/*! \def NFSFT_USE_FSFT
+/*! \def NFSFT_EQUISPACED
  * If this flag is set, we use the equispaced FFT instead of the NFFT.
  * This implies that the nodes are fixed to 
  * \f[ \varphi_i = 2\pi \frac{i}{2N+2}, \qquad i=-N-1,\dots,N, \f]

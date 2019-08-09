@@ -209,7 +209,7 @@ function Base.setproperty!(p::NFSTplan{D},v::Symbol,val) where {D}
 		if typeof(val) != Array{Float64,1}
 			error("fhat has to be a Float64 vector.")
 		end
-		l = prod([j for j in p.N].-1)
+		l = prod(collect(p.N).-1)
 		if size(val)[1] != l
 			error("fhat has to be a Float64 vector of size prod(N-1).")
 		end
@@ -266,7 +266,7 @@ function Base.getproperty(p::NFSTplan{D},v::Symbol) where {D}
 			error("fhat is not set.")
 		end
 		ptr = Core.getfield(p,:fhat)
-		return unsafe_wrap(Vector{Float64},ptr,prod([j for j in p.N].-1)) # get Fourier coefficients from C memory and convert to Julia type
+		return unsafe_wrap(Vector{Float64},ptr,prod(collect(p.N).-1)) # get Fourier coefficients from C memory and convert to Julia type
 	else
 		return Core.getfield(p,v)
 	end
