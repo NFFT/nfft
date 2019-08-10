@@ -184,7 +184,7 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 
 # Create archive for Julia interface
 cd julia
-for LIB in nf*t
+for LIB in nf*t fastsum
 do
   cd "$LIB"
   "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
