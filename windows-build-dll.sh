@@ -230,7 +230,7 @@ rm -f "$HOMEDIR/$DLLDIR".zip
 
 # Julia interface
 cd julia
-for LIB in nf*t
+for LIB in nf*t fastsum
 do
   cd "$LIB"
   gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"  -O3 -malign-double -ffast-math -march=$GCCARCH  -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
@@ -244,7 +244,7 @@ mkdir "$JULIADIR"
 cp "$NFFTDIR"/COPYING "$JULIADIR"/COPYING
 rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
 rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
-for DIR in $JULIADIR/nf*t; do cd $DIR; for NAME in simple_test*.jl; do PATH=/c/Windows/System32 $HOMEDIR/julia/bin/julia.exe "$NAME"; done; cd "$NFFTBUILDDIR"; done;
+for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test*.jl; do PATH=/c/Windows/System32 $HOMEDIR/julia/bin/julia.exe "$NAME"; done; cd "$NFFTBUILDDIR"; done;
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows

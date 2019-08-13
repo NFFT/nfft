@@ -110,7 +110,7 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 
 # Create archive for Julia interface
 cd julia
-for LIB in nf*t
+for LIB in nf*t fastsum
 do
   cd "$LIB"
   $GCC -o .libs/lib"$LIB"julia.so -bundle .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=core2 -mtune=$GCCARCH -arch x86_64 $OMPLIBS
