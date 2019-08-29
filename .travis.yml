@@ -3,7 +3,7 @@ compiler:
 - gcc
 - clang
 os: linux
-dist: xenial
+dist: bionic
 sudo: false
 addons:
   apt:
@@ -38,10 +38,10 @@ matrix:
       env: WINDOW=kaiserbessel PRECISION= BUILD_JULIA=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev"] } }
     - compiler: gcc
-      env: WINDOW=kaiserbessel PRECISION= DIST=dist
+      env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
     - compiler: clang
-      env: WINDOW=kaiserbessel PRECISION= DIST=dist
+      env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
 before_script:
   if [ "$BUILD_OCTAVE" = "1" ]; then
@@ -79,6 +79,6 @@ deploy:
   file: ${NFFT_DISTRO}
   skip_cleanup: true
   on:
-    condition: $DIST = dist && $CC = clang
+    condition: $DIST = distcheck && $CC = clang
     tags: true
     repo: NFFT/nfft
