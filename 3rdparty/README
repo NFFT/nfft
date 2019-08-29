@@ -7,3 +7,5 @@ package. Currently, the following packages are included:
 CSTRIPACK - A C-version of Robert J. Renka's the STRIPACK Fortran package to 
   compute Delaunay triangulations and Voronoi partitions on the unit sphere.
 
+This package is currently not contained in make dist, since it is only used by 
+iterS2.
