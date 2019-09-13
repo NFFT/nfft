@@ -1184,6 +1184,9 @@ classdef infft < handle
             e1(1) = 1;
             en(n) = 1;
 
+            % Prevent warning for tiny difference between r(1) and c(1)
+            r(1) = c(1);
+
             % Compute the relevant vectors
             x = toeplitz(c,r)\e1;
             y = toeplitz(c,r)\en;
