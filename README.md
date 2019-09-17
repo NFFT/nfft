@@ -142,34 +142,28 @@ Directory structure
 -------------------
 
 File/Folder        | Purpose
-------------------:| ------------------------------------------------------
-3rdparty (dir)	   | Third-party source code
+------------------:| ------------------------------------------------------ls
+3rdparty (dir) 	   | Third-party source code
 aclocal.m4		   | Macros for configure script
 applications (dir) | Application programs (see 4) above)
 AUTHORS			   | Information about the authors of NFFT
 bootstrap.sh       | Bootstrap shell script that call Autoconf and friends
 ChangeLog          | A short version history
-config.guess       | Used by configure script
-config.sub         | Used by configure script
+config (dir)       | Used by configure script
 configure          | Configure script (created by calling ./bootstrap.sh)
-configure.in       | Autoconf configure script template
+configure.ac       | Autoconf configure script template
 CONVENTIONS        | Internal coding conventions
 COPYING            | Information about redistributing NFFT
-depcomp            | Used by configure script
 doc (dir)          | User and developer documentation
 examples (dir)     | Simple examples for using NFFT routines
 include (dir)      | Header files
 INSTALL            | Installation instructions
-install-sh         | Used by configure script
 julia (dir)        | Julia interface for nfft
 kernel (dir)       | Source code for core library routines
-ltmain.sh          | Used by configure script
 Makefile.am        | Automake Makefile template
 Makefile.in        | Makefile template generated from Makefile.am, processed by configure script
 matlab (dir)       | Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
-missing            | Used by configure script
 NEWS               | New and noteworthy
 README             | This file.
 README.md          | This file
 tests (dir)        | CUnit tests
-TODO               | Work to be done
