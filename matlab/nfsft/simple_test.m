@@ -4,8 +4,10 @@
 % in terms of spherical harmonics Y_k^n of degree k on a set of arbitrary
 % nodes (theta_d,phi_d) for d=1..M, in spherical coordinates 
 % 0 <= phi_d <2*pi and 0 <= theta_d <= pi.
+% We also recover the original data f from the Fourier coefficients f_hat
+% via an exact quadrature rule.
 
-% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2019 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -24,10 +26,22 @@
 fprintf('Number of threads: %d\n', nfsft_get_num_threads());
 
 % maximum degree (bandwidth) of spherical harmonics expansions
-N = 32;
+N = 64;
 
-% Gauss-Legendre interpolatory quadrature nodes for N. See gl.m
+% Gauss-Legendre exact quadrature nodes for degree N. See gl.m
 [X,W] = gl(N);
+% Clenshaw-Curtis exact quadrature rule is available in cc.m
+% Further exact quadrature rules are available at
+% https://www-user.tu-chemnitz.de/~potts/workgroup/graef/quadrature/
+% They can be imported with either the command
+%    X = importdata('Design_1002000_1000_random.dat')';
+% or
+%    X = importdata('N124_M7812_Ico.dat',' ',2);
+%    X = [atan2(X.data(:,1),X.data(:,2))';acos(X.data(:,3))'];
+% and then
+%    W = ones(1,length(X))/length(X)*4*pi;
+% These quadrature rules have to be at least twice the size of N,
+% e.g. for 'N124_M7812_Ico.dat' this means N<=64.
 
 % number of nodes
 M = size(X,2);
@@ -35,7 +49,7 @@ M = size(X,2);
 % Create plan of class NFSFT.
 plan = nfsft(N,M,NFSFT_NORMALIZED);
 
-% Set nodes. x = [phi; theta]
+% Set nodes in spherical coordinates x = [phi; theta]
 plan.x = X; 
 
 % random Fourier coefficients
