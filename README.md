@@ -142,7 +142,7 @@ Directory structure
 -------------------
 
 File/Folder        | Purpose
-------------------:| ------------------------------------------------------ls
+------------------:| ------------------------------------------------------
 3rdparty (dir) 	   | Third-party source code
 aclocal.m4		   | Macros for configure script
 applications (dir) | Application programs (see 4) above)
