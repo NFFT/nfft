@@ -176,7 +176,7 @@ function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
 		error("NFCTplan already finalized")
 	end
 
-	# setting nodes, verification of correct size Mxd
+	# setting nodes, verification of correct size dxM
 	if v == :x
 		if D == 1
 			if typeof(val) != Vector{Float64}
@@ -190,7 +190,7 @@ function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
 				error("x has to be a Float64 matrix.")
 			end
 			if size(val)[1] != D || size(val)[2] != p.M
-				error("x has to be a Float64 matrix of size Mxd.")
+				error("x has to be a Float64 matrix of size dxM.")
 			end
 		end
 		ptr = ccall(("jnfct_set_x",lib_path),Ptr{Float64},(Ref{nfct_plan},Ref{Cdouble}),p.plan,val)
