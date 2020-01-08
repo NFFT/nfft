@@ -26,8 +26,7 @@ env:
 matrix:
   include:
     - compiler: gcc
-      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 CC=gcc-9
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"] , packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev", "gcc-9"] } }
+      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
@@ -44,6 +43,12 @@ matrix:
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
 before_script:
+  if [ "$BUILD_OCTAVE" = "1" ]; then
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
+    sudo apt-get update --option Acquire::Retries=10 --option Acquire::http::Timeout="30";
+    sudo apt-get install -y libfftw3-dev libcunit1-dev liboctave-dev gcc-9; 
+    export CC=gcc-9;
+  fi;
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
     a=( ${NFFT_TRAVIS_TAG//./ } );
