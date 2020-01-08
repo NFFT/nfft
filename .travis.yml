@@ -27,7 +27,7 @@ matrix:
   include:
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 CC=gcc-9
-      addons: { apt: { sources: ["ubuntu-toolchain-r-test"] packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev", "gcc-9"]] } }
+      addons: { apt: { sources: ["ubuntu-toolchain-r-test"] packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev", "gcc-9"] } }
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
