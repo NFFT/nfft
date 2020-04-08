@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2020 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -41,8 +41,8 @@ static char cmd[CMD_LEN_MAX];
 static inline void get_nm(const mxArray *prhs[], int *n, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfct: Input argument N must be a scalar.");
-  DM(if ((t < 0) || (t%2!=0))
-    mexErrMsgTxt("nfct: Input argument N must be non-negative and multiple of two.");)
+  DM(if (t < 0)
+    mexErrMsgTxt("nfct: Input argument N must be non-negative.");)
   *n = t;
   t = nfft_mex_get_int(prhs[2],"nfct: Input argument M must be a scalar.");
   DM(if (t < 1)
@@ -71,18 +71,18 @@ static inline void get_n1n2m(const mxArray *prhs[], int *n1, int *n2, int *m)
 static inline void get_n1n2n3m(const mxArray *prhs[], int *n1, int *n2, int *n3, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"nfct: Input argument N1 must be a scalar.");
-  DM(if ((t < 0) || (t%2!=0))
-    mexErrMsgTxt("nfct: Input argument N1 must be non-negative and even.");)
+  DM(if (t < 0)
+    mexErrMsgTxt("nfct: Input argument N1 must be non-negative.");)
   *n1 = t;
 
   t = nfft_mex_get_int(prhs[2],"nfct: Input argument N2 must be a scalar.");
-  DM(if ((t < 0) || (t%2!=0))
-    mexErrMsgTxt("nfct: Input argument N2 must be non-negative and even.");)
+  DM(if (t < 0)
+    mexErrMsgTxt("nfct: Input argument N2 must be non-negative.");)
   *n2 = t;
 
   t = nfft_mex_get_int(prhs[3],"nfct: Input argument N3 must be a scalar.");
-  DM(if ((t < 0) || (t%2!=0))
-    mexErrMsgTxt("nfct: Input argument N3 must be non-negative and even.");)
+  DM(if (t < 0)
+    mexErrMsgTxt("nfct: Input argument N3 must be non-negative.");)
   *n3 = t;
 
   t = nfft_mex_get_int(prhs[4],"nfct: Input argument M must be a scalar.");

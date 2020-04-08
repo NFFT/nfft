@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+ * Copyright (c) 2002, 2020 Jens Keiner, Stefan Kunis, Daniel Potts
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -1134,9 +1134,6 @@ const char* X(check)(X(plan) *ths)
 
     if(ths->N[j] - 1 <= ths->m)
       return "Polynomial degree N is smaller than cut-off m";
-
-    if(ths->N[j]%2 == 1)
-      return "polynomial degree N has to be even";
   }
   return 0;
 }
