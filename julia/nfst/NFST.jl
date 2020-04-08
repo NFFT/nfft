@@ -104,10 +104,6 @@ function NFSTplan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Intege
 		error("Every entry of N has to be an even, positive integer." )
 	end
 
-	if sum(N .% 2) != 0
-		error("Every entry of N has to be an even, positive integer." )
-	end
-
 	if M <= 0
 		error("M has to be a positive integer." )
 	end

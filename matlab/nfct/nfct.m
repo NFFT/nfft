@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2020 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -155,24 +155,24 @@ function set.N(h,N)
 end %function
 
 function set.N1(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N1 has to be an even positive integer.');
+	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || ~(N>0))
+		error('The number of the nodes N1 has to be a positive integer.');
 	else
 		h.N1=N;
 	end %if
 end %function
 
 function set.N2(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
+	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || ~(N>0))
+		error('The number of the nodes N2 has to be a positive integer.');
 	else
 		h.N2=N;
 	end %if
 end %function
 
 function set.N3(h,N)
-	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || (mod(N,2)~=0) || ~(N>0))
-		error('The number of the nodes N2 has to be an even positive integer.');
+	if( isempty(N) || ~isnumeric(N) || ~isreal(N) || ~(N>0))
+		error('The number of the nodes N2 has to be a positive integer.');
 	else
 		h.N3=N;
 	end %if

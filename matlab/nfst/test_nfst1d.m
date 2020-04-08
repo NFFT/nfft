@@ -1,4 +1,4 @@
-% Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+% Copyright (c) 2002, 2020 Jens Keiner, Stefan Kunis, Daniel Potts
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -17,8 +17,8 @@
 % Test script of class nfst for spatial dimension d=1.
 clear all;
 
-M=16; % number of nodes
-N=24; % number of Fourier coefficients in first direction
+M=19; % number of nodes
+N=43; % number of Fourier coefficients in first direction
 
 x=0.5*rand(M,1); %nodes
 
