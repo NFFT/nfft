@@ -19,13 +19,16 @@
 
 
 
+(* ::Input::Initialization:: *)
 AppendTo[$Path, NotebookDirectory[]];
 <<PrintVector`
 
 
+(* ::Input::Initialization:: *)
 P=64;(* Working precision. *)
 
 
+(* ::Input::Initialization:: *)
 GenerateFilename[prefix_][NN_,M_]:=Module[{d=Length[NN] (* Dimension. *)},Return[FileNameJoin[{prefix,"nfct_"<>ToString[d]<>"d_"<>StringJoin[Map[Function[x,ToString[x]<>"_"],NN]<>ToString[M]<>".txt"]}]]]
 GenerateFilenameAdjoint[prefix_][NN_,M_]:=Module[{d=Length[NN] (* Dimension. *)},Return[FileNameJoin[{prefix,"nfct_adjoint_"<>ToString[d]<>"d_"<>StringJoin[Map[Function[x,ToString[x]<>"_"],NN]<>ToString[M]<>".txt"]}]]]
 Generate[NN_,M_,FilenameGenerator_]:=Module[
@@ -38,7 +41,7 @@ II=Table[Table[k,{k,0,NN[[i]]-1}],{i,1,d}];
 II[[0]]=Sequence;
 II=Flatten[Outer[List,II],d-1];(* Index set. *)
 x =Transpose[ Table[RandomReal[{0,1/2},M,WorkingPrecision->P](*Table[1/4,{j,1,M}]*),{i,1,d}]];(* Random nodes. *)
-fhat = (*Table[If[i==3,1,0],{i,1,Length[II]}]*) RandomReal[{-1,1},Length[II],WorkingPrecision->P]; (* Random Fourier coefficients. *)
+fhat = (*Table[If[i\[Equal]3,1,0],{i,1,Length[II]}]*) RandomReal[{-1,1},Length[II],WorkingPrecision->P]; (* Random Fourier coefficients. *)
 f=Table[Sum[fhat[[k]]*Product[Cos[2*\[Pi]*II[[k]][[i]]*x[[j]][[i]]],{i,1,d}],{k,1,Length[II]}],{j,1,M}];(* Function values. *)
 filename=FilenameGenerator[NN,M];
 file = OpenWrite[filename];
