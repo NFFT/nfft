@@ -793,46 +793,46 @@ static const init_delegate_t* initializers_1d[] =
 
 static const testcase_delegate_file_t nfst_1d_2_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_2_1.txt")};
 static const testcase_delegate_file_t nfst_1d_2_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_2_10.txt")};
-static const testcase_delegate_file_t nfst_1d_2_20 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_2_20.txt")};
+static const testcase_delegate_file_t nfst_1d_2_25 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_2_25.txt")};
 static const testcase_delegate_file_t nfst_1d_2_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_2_50.txt")};
 static const testcase_delegate_file_t nfst_1d_4_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_4_1.txt")};
 static const testcase_delegate_file_t nfst_1d_4_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_4_10.txt")};
-static const testcase_delegate_file_t nfst_1d_4_20 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_4_20.txt")};
+static const testcase_delegate_file_t nfst_1d_4_25 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_4_25.txt")};
 static const testcase_delegate_file_t nfst_1d_4_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_4_50.txt")};
 static const testcase_delegate_file_t nfst_1d_10_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_10_1.txt")};
 static const testcase_delegate_file_t nfst_1d_10_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_10_10.txt")};
-static const testcase_delegate_file_t nfst_1d_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_10_20.txt")};
+static const testcase_delegate_file_t nfst_1d_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_10_25.txt")};
 static const testcase_delegate_file_t nfst_1d_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_10_50.txt")};
-static const testcase_delegate_file_t nfst_1d_20_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_20_1.txt")};
-static const testcase_delegate_file_t nfst_1d_20_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_20_10.txt")};
-static const testcase_delegate_file_t nfst_1d_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_20_20.txt")};
-static const testcase_delegate_file_t nfst_1d_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_20_50.txt")};
+static const testcase_delegate_file_t nfst_1d_25_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_25_1.txt")};
+static const testcase_delegate_file_t nfst_1d_25_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_25_10.txt")};
+static const testcase_delegate_file_t nfst_1d_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_25_25.txt")};
+static const testcase_delegate_file_t nfst_1d_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_25_50.txt")};
 static const testcase_delegate_file_t nfst_1d_50_1 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_50_1.txt")};
 static const testcase_delegate_file_t nfst_1d_50_10 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_50_10.txt")};
-static const testcase_delegate_file_t nfst_1d_50_20 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_50_20.txt")};
+static const testcase_delegate_file_t nfst_1d_50_25 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_50_25.txt")};
 static const testcase_delegate_file_t nfst_1d_50_50 = {setup_file,destroy_file,ABSPATH("data/nfst_1d_50_50.txt")};
 
 static const testcase_delegate_file_t *testcases_1d_file[] =
 {
     &nfst_1d_2_1,
     &nfst_1d_2_10,
-    &nfst_1d_2_20,
+    &nfst_1d_2_25,
     &nfst_1d_2_50,
     &nfst_1d_4_1,
     &nfst_1d_4_10,
-    &nfst_1d_4_20,
+    &nfst_1d_4_25,
     &nfst_1d_4_50,
     &nfst_1d_10_1,
     &nfst_1d_10_10,
-    &nfst_1d_10_20,
+    &nfst_1d_10_25,
     &nfst_1d_10_50,
-    &nfst_1d_20_1,
-    &nfst_1d_20_10,
-    &nfst_1d_20_20,
-    &nfst_1d_20_50,
+    &nfst_1d_25_1,
+    &nfst_1d_25_10,
+    &nfst_1d_25_25,
+    &nfst_1d_25_50,
     &nfst_1d_50_1,
     &nfst_1d_50_10,
-    &nfst_1d_50_20,
+    &nfst_1d_50_25,
     &nfst_1d_50_50,
 };
 
@@ -856,46 +856,46 @@ void X(check_1d_fast_file)(void)
 
 static const testcase_delegate_file_t nfst_adjoint_1d_2_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_2_1.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_2_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_2_10.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_2_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_2_20.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_2_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_2_25.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_2_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_2_50.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_4_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_4_1.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_4_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_4_10.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_4_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_4_20.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_4_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_4_25.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_4_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_4_50.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_10_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_10_1.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_10_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_10_10.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_10_20.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_10_25.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_10_50.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_20_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_20_1.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_20_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_20_10.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_20_20.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_20_50.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_25_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_25_1.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_25_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_25_10.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_25_25.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_25_50.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_50_1 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_50_1.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_50_10 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_50_10.txt")};
-static const testcase_delegate_file_t nfst_adjoint_1d_50_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_50_20.txt")};
+static const testcase_delegate_file_t nfst_adjoint_1d_50_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_50_25.txt")};
 static const testcase_delegate_file_t nfst_adjoint_1d_50_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_1d_50_50.txt")};
 
 static const testcase_delegate_file_t *testcases_adjoint_1d_file[] =
 {
   &nfst_adjoint_1d_2_1,
   &nfst_adjoint_1d_2_10,
-  &nfst_adjoint_1d_2_20,
+  &nfst_adjoint_1d_2_25,
   &nfst_adjoint_1d_2_50,
   &nfst_adjoint_1d_4_1,
   &nfst_adjoint_1d_4_10,
-  &nfst_adjoint_1d_4_20,
+  &nfst_adjoint_1d_4_25,
   &nfst_adjoint_1d_4_50,
   &nfst_adjoint_1d_10_1,
   &nfst_adjoint_1d_10_10,
-  &nfst_adjoint_1d_10_20,
+  &nfst_adjoint_1d_10_25,
   &nfst_adjoint_1d_10_50,
-  &nfst_adjoint_1d_20_1,
-  &nfst_adjoint_1d_20_10,
-  &nfst_adjoint_1d_20_20,
-  &nfst_adjoint_1d_20_50,
+  &nfst_adjoint_1d_25_1,
+  &nfst_adjoint_1d_25_10,
+  &nfst_adjoint_1d_25_25,
+  &nfst_adjoint_1d_25_50,
   &nfst_adjoint_1d_50_1,
   &nfst_adjoint_1d_50_10,
-  &nfst_adjoint_1d_50_20,
+  &nfst_adjoint_1d_50_25,
   &nfst_adjoint_1d_50_50,
 };
 
@@ -994,25 +994,25 @@ static const init_delegate_t* initializers_2d[] =
 #endif
 };
 
-static const testcase_delegate_file_t nfst_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_10_20.txt")};
+static const testcase_delegate_file_t nfst_2d_10_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_10_25.txt")};
 static const testcase_delegate_file_t nfst_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_10_50.txt")};
-static const testcase_delegate_file_t nfst_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_20_20.txt")};
-static const testcase_delegate_file_t nfst_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_20_50.txt")};
-static const testcase_delegate_file_t nfst_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_20_10_20.txt")};
-static const testcase_delegate_file_t nfst_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_20_10_50.txt")};
-static const testcase_delegate_file_t nfst_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_20_20_20.txt")};
-static const testcase_delegate_file_t nfst_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_20_20_50.txt")};
+static const testcase_delegate_file_t nfst_2d_10_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_25_25.txt")};
+static const testcase_delegate_file_t nfst_2d_10_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_10_25_50.txt")};
+static const testcase_delegate_file_t nfst_2d_25_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_25_10_25.txt")};
+static const testcase_delegate_file_t nfst_2d_25_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_25_10_50.txt")};
+static const testcase_delegate_file_t nfst_2d_25_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_25_25_25.txt")};
+static const testcase_delegate_file_t nfst_2d_25_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_2d_25_25_50.txt")};
 
 static const testcase_delegate_file_t *testcases_2d_file[] =
 {
-  &nfst_2d_10_10_20,
+  &nfst_2d_10_10_25,
   &nfst_2d_10_10_50,
-  &nfst_2d_10_20_20,
-  &nfst_2d_10_20_50,
-  &nfst_2d_20_10_20,
-  &nfst_2d_20_10_50,
-  &nfst_2d_20_20_20,
-  &nfst_2d_20_20_50,
+  &nfst_2d_10_25_25,
+  &nfst_2d_10_25_50,
+  &nfst_2d_25_10_25,
+  &nfst_2d_25_10_50,
+  &nfst_2d_25_25_25,
+  &nfst_2d_25_25_50,
 };
 
 static const trafo_delegate_t* trafos_2d_direct_file[] = {&trafo_direct};
@@ -1033,25 +1033,25 @@ void X(check_2d_fast_file)(void)
     testcases_2d_file, initializers_2d, &check_trafo, trafos_2d_fast_file);
 }
 
-static const testcase_delegate_file_t nfst_adjoint_2d_10_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_10_20.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_10_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_10_25.txt")};
 static const testcase_delegate_file_t nfst_adjoint_2d_10_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_10_50.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_10_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_20_20.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_10_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_20_50.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_20_10_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_20_10_20.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_20_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_20_10_50.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_20_20_20 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_20_20_20.txt")};
-static const testcase_delegate_file_t nfst_adjoint_2d_20_20_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_20_20_50.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_10_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_25_25.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_10_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_10_25_50.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_25_10_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_25_10_25.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_25_10_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_25_10_50.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_25_25_25 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_25_25_25.txt")};
+static const testcase_delegate_file_t nfst_adjoint_2d_25_25_50 = {setup_file,destroy_file,ABSPATH("data/nfst_adjoint_2d_25_25_50.txt")};
 
 static const testcase_delegate_file_t *testcases_adjoint_2d_file[] =
 {
-  &nfst_adjoint_2d_10_10_20,
+  &nfst_adjoint_2d_10_10_25,
   &nfst_adjoint_2d_10_10_50,
-  &nfst_adjoint_2d_10_20_20,
-  &nfst_adjoint_2d_10_20_50,
-  &nfst_adjoint_2d_20_10_20,
-  &nfst_adjoint_2d_20_10_50,
-  &nfst_adjoint_2d_20_20_20,
-  &nfst_adjoint_2d_20_20_50,
+  &nfst_adjoint_2d_10_25_25,
+  &nfst_adjoint_2d_10_25_50,
+  &nfst_adjoint_2d_25_10_25,
+  &nfst_adjoint_2d_25_10_50,
+  &nfst_adjoint_2d_25_25_25,
+  &nfst_adjoint_2d_25_25_50,
 };
 
 static const trafo_delegate_t* trafos_adjoint_2d_direct_file[] = {&adjoint_direct};
