@@ -135,15 +135,16 @@ static const R r[] =
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
 #if defined(NFFT_LDOUBLE)
-static const R bound = K(58.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(58.0);
 #elif defined(NFFT_SINGLE)
-static const R bound = K(24.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(24.0);
 #else
-static const R bound = K(4.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(4.0);
 #endif
 
 void X(check_bessel_i0)(void)
 {
+  R bound = bound_multiplier * Y(float_property)(NFFT_EPSILON);
   R x = K(0.0);
   R err = K(0.0);
   unsigned int j;

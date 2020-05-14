@@ -21,7 +21,7 @@
 R Y(float_property)(const float_property p)
 {
   const R base = FLT_RADIX;
-  const R eps = NFFT_EPSILON;
+  static R eps = K(1.0);
   const R t = MANT_DIG;
   const R emin = MIN_EXP;
   const R emax = MAX_EXP;
@@ -34,6 +34,11 @@ R Y(float_property)(const float_property p)
 
   if (first)
   {
+    /* Compute eps = 2^(1-MANT_DIG).
+     * The usual definition of EPSILON is too small for double-double arithmetic on PowerPC. */
+    for (INT i=0; i<MANT_DIG-1; i++)
+      eps /= K(2.0);
+
     /* Compute rmin */
     {
       const INT n = 1 - MIN_EXP;
@@ -61,7 +66,9 @@ R Y(float_property)(const float_property p)
     first = FALSE;
   }
 
-  if (p == NFFT_SAFE__MIN)
+  if (p == NFFT_EPSILON)
+    return eps;
+  else if (p == NFFT_SAFE__MIN)
     return sfmin;
   else if (p == NFFT_BASE)
     return base;

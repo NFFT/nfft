@@ -1250,14 +1250,17 @@ extern double _Complex catanh(double _Complex z);
   #define MANT_DIG LDBL_MANT_DIG
   #define MIN_EXP LDBL_MIN_EXP
   #define MAX_EXP LDBL_MAX_EXP
+  #define EPSILON LDBL_EPSILON
 #elif defined(NFFT_SINGLE)
   #define MANT_DIG FLT_MANT_DIG
   #define MIN_EXP FLT_MIN_EXP
   #define MAX_EXP FLT_MAX_EXP
+  #define EPSILON FLT_EPSILON
 #else
   #define MANT_DIG DBL_MANT_DIG
   #define MIN_EXP DBL_MIN_EXP
   #define MAX_EXP DBL_MAX_EXP
+  #define EPSILON DBL_EPSILON
 #endif
 
 #if defined(FLT_ROUND)
@@ -1426,9 +1429,9 @@ R Y(bessel_i0)(R x);
 R Y(bsplines)(const INT, const R x);
 
 /* float.c: */
-typedef enum {NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
+typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
-  NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
+  NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9 } float_property;
 
 R Y(float_property)(float_property);
 R Y(prod_real)(R *vec, INT d);
