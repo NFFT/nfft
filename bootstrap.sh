@@ -34,11 +34,8 @@ touch ChangeLog
 
 echo "PLEASE IGNORE WARNINGS AND ERRORS"
 
-# paranoia: sometimes autoconf doesn't get things right the first time
 rm -rf autom4te.cache
 libtoolize
-autoreconf --verbose --install --force
-autoreconf --verbose --install --force
 autoreconf --verbose --install --force
 
 rm -f config.cache
