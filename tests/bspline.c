@@ -6323,16 +6323,17 @@ static const R b30[] =
 #define ERR(x,y) IF(ABS(y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
 #if defined(NFFT_LDOUBLE)
-static const R bound = K(17.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(17.0);
 #elif defined(NFFT_SINGLE)
-static const R bound = K(20.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(20.0);
 #else
-static const R bound = K(16.0) * NFFT_EPSILON;
+static const R bound_multiplier = K(16.0);
 #endif
 
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)
 {
   unsigned int j;
+  R bound = bound_multiplier * Y(float_property)(NFFT_EPSILON);
   R err = K(0.0);
   int ok;
 

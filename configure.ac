@@ -572,15 +572,6 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
-# Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
-AX_EPS_DEF([$PRECISION])
-
-if test "$ax_cv_eps_def" = "unknown"; then  
-  AC_MSG_ERROR([Unable to determine floating-point epsilon.])
-else
-  AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
-fi
-
 # CUnit
 AX_CUNIT
 AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )

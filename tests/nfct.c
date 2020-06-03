@@ -210,7 +210,7 @@ static R trafo_direct_cost(X(plan) *p)
 static R err_trafo_direct(X(plan) *p)
 {
   UNUSED(p);
-  return K(120.0) * NFFT_EPSILON;
+  return K(120.0) * Y(float_property)(NFFT_EPSILON);
 }
 
 static R err_trafo(X(plan) *p)
@@ -219,7 +219,7 @@ static R err_trafo(X(plan) *p)
   R s; /* oversampling factor */
   R a;
   R b;
-  R eps = NFFT_EPSILON;
+  R eps = Y(float_property)(NFFT_EPSILON);
   R err;
   int i;
   for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
