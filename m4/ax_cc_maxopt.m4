@@ -144,10 +144,7 @@ if test "$ac_test_CFLAGS" != "set"; then
      # note that we enable "unsafe" fp optimization with other compilers, too
      AX_CHECK_COMPILER_FLAGS(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
 
-     AX_CHECK_COMPILER_FLAGS(-march=core2, CFLAGS="$CFLAGS -march=core2")
-     AX_CHECK_COMPILER_FLAGS(-mtune=core2, CFLAGS="$CFLAGS -mtune=core2")
-
-     AX_APPLE_GCC_ARCHFLAG($acx_maxopt_portable)
+     AX_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;
   esac
 
