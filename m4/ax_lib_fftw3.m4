@@ -91,11 +91,20 @@ AC_DEFUN([AX_LIB_FFTW3],
     saved_LIBS="$LIBS"
 
     # Check for combined fftw threads
-    LIBS="${fftw3_lib_flag} -lpthread -lm"
-    AC_MSG_CHECKING([for threaded fftw3 library with combined threads (-lpthread -lm set)])
+    LIBS="${fftw3_lib_flag}"
+    AC_MSG_CHECKING([for threaded fftw3 library with combined threads])
     AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
     AC_MSG_RESULT([$ax_lib_fftw3_threads])
-    fftw3_threads_LIBS="${fftw3_lib_flag} -lpthread -lm"
+    fftw3_threads_LIBS="${fftw3_lib_flag}"
+
+    # Check for combined fftw threads (-lpthread -lm set)
+    if test "x$ax_lib_fftw3_threads" = "xno"; then
+      LIBS="${fftw3_lib_flag} -lpthread -lm"
+      AC_MSG_CHECKING([for threaded fftw3 library with combined threads (-lpthread -lm set)])
+      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [ax_lib_fftw3_threads=yes],[ax_lib_fftw3_threads=no])
+      AC_MSG_RESULT([$ax_lib_fftw3_threads])
+      fftw3_threads_LIBS="${fftw3_lib_flag} -lpthread -lm"
+    fi
 
     LIBS="$saved_LIBS"
     # Check for extra fftw threads library

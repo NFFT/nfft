@@ -41,6 +41,7 @@
 *.asv
 
 # Other
+.autotools
 .cproject
 .project
 .settings
