@@ -4,18 +4,11 @@
 # A Matlab installation must be specified in order to build the
 # Matlab interface. The paths should not contain spaces!
 #
-# The script is known to work on macOS Mojave with MacPorts.
+# The script is known to work on macOS 10.5 Catalina with Homebrew.
 #
 # At least the following packages are required:
-# getopt, gcc8, cunit, octave, gsed
+# octave gnu-sed cunit
 #
-# Additionally, the FFTW3 library available in MacPorts does not support
-# threads at the time of writing. Therefore, it is assumed that an up-to-date
-# FFTW3 version was installed in /opt/fftw3
-# using e.g. the following configure options:
-# ./configure --prefix=/opt/fftw3 --enable-threads --enable-fma --enable-sse2
-#             --enable-avx2 --enable-avx-128-fma --enable-avx
-#             --enable-static --enable-shared --with-gcc-arch=core2
 # 
 # Example call:
 # ./macos-build-mex.sh --matlab=/path/to/matlab
@@ -24,12 +17,12 @@
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
-GCCARCH=core2
-FFTWDIR=/opt/local
-GCC=gcc-mp-9
+GCCARCH=haswell
+FFTWDIR=/usr/local
+GCC="gcc-9 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
 
 # default values (to be overwritten if respective parameters are set)
-OCTAVEDIR=/opt/local
+OCTAVEDIR=/usr/local
 
 # read the options
 TEMP=`getopt -o o:m:f:v: --long octave:,matlab:,matlab-version:,fftw: -n 'macos-build-mex.sh' -- "$@"`
@@ -102,7 +95,7 @@ rm -f -r "$NFFTBUILDDIR"
 mkdir "$NFFTBUILDDIR"
 cd "$NFFTBUILDDIR"
 
-CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=core2 --disable-static --enable-shared --disable-examples --disable-applications
+CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-applications
 make
 make check
 
@@ -110,12 +103,17 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 
 # Create archive for Julia interface
 cd julia
-for LIB in nf*t fastsum
+for LIB in nf*t
 do
   cd "$LIB"
-  $GCC -o .libs/lib"$LIB"julia.so -bundle .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=core2 -mtune=$GCCARCH -arch x86_64 $OMPLIBS
+  $GCC -o .libs/lib"$LIB"julia.so -bundle .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
   cd ..
 done
+
+cd fastsum
+$GCC -o .libs/libfastsumjulia.so -bundle .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+cd ..
+
 cd "$NFFTBUILDDIR"
 
 ARCH=$(uname -m)
@@ -134,7 +132,7 @@ zip -9 -r ../"$JULIADIR".zip "$JULIADIR"
 for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
 do
   cd matlab/"$LIB"
-  $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=core2 -mtune=$GCCARCH -arch x86_64 $OMPLIBS
+  $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=$GCCARCH $OMPLIBS
   cd ../..
 done
 
@@ -150,13 +148,13 @@ if [ -n "$MATLABDIR" ]; then
   fi
   cd "$NFFTBUILDDIR"
   make clean
-  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=core2 --disable-static --enable-shared --disable-examples --disable-applications
+  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
   make
   make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
     cd matlab/"$LIB"
-    $GCC -o .libs/lib"$LIB".mexmaci64 -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o   -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a  -L"$MATLABDIR"/bin/maci64 -lm -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=core2 -mtune=core2 -arch x86_64 $OMPLIBS
+    $GCC -o .libs/lib"$LIB".mexmaci64 -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o   -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a  -L"$MATLABDIR"/bin/maci64 -lm -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=$GCCARCH $OMPLIBS
     cd ../..
   done
 fi
