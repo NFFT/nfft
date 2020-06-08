@@ -30,10 +30,6 @@ matrix:
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - os: osx
-      compiler: gcc
-      env: WINDOW=kaiserbessel PRECISION= 
-      install: brew install fftw cunit
-    - os: osx
       compiler: clang
       env: WINDOW=kaiserbessel PRECISION= 
       install: brew install fftw cunit
@@ -59,8 +55,7 @@ before_script:
       mv configure.ac.modified configure.ac;
     fi;
   fi;
-script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all
-  $(if test "$CC" = "clang"; then echo ""; else echo "--enable-openmp"; fi)
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all --enable-openmp"
   $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
   $(if test "$BUILD_JULIA" = "1"; then echo "--enable-julia"; else echo ""; fi)
   && make
