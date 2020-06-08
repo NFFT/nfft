@@ -10,7 +10,7 @@ addons:
     - libfftw3-dev
     - libcunit1-dev
 env:
-- WINDOW=kaiserbessel PRECISION=
+- WINDOW=kaiserbessel PRECISION= BUILD_JULIA=1
 - WINDOW=gaussian PRECISION=
 - WINDOW=bspline PRECISION=
 - WINDOW=sinc PRECISION=
@@ -24,21 +24,19 @@ env:
 - WINDOW=sinc PRECISION=--enable-long-double
 matrix:
   include:
-    - os: osx
-      compiler: clang
-      env: WINDOW=kaiserbessel PRECISION= 
-      install: brew install fftw cunit
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
-    - compiler: gcc
-      env: WINDOW=kaiserbessel PRECISION= BUILD_JULIA=1
-      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev"] } }
-    - compiler: clang
-      env: WINDOW=kaiserbessel PRECISION= BUILD_JULIA=1
-      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev"] } }
+    - os: osx
+      compiler: gcc
+      env: WINDOW=kaiserbessel PRECISION= 
+      install: brew install fftw cunit
+    - os: osx
+      compiler: clang
+      env: WINDOW=kaiserbessel PRECISION= 
+      install: brew install fftw cunit
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
@@ -50,8 +48,8 @@ before_script:
   if [ "$BUILD_OCTAVE" = "1" ]; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
     sudo apt-get update --option Acquire::Retries=10 --option Acquire::http::Timeout="30";
-    sudo apt-get install -y libfftw3-dev libcunit1-dev liboctave-dev gcc-9; 
-    export CC=gcc-9;
+    sudo apt-get install -y libfftw3-dev libcunit1-dev liboctave-dev gcc-10; 
+    export CC=gcc-10;
   fi;
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
