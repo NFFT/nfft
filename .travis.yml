@@ -55,7 +55,7 @@ before_script:
       mv configure.ac.modified configure.ac;
     fi;
   fi;
-script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all --enable-openmp"
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all --enable-openmp
   $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
   $(if test "$BUILD_JULIA" = "1"; then echo "--enable-julia"; else echo ""; fi)
   && make
