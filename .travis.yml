@@ -41,7 +41,8 @@ matrix:
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
 before_script:
   cat /proc/cpuinfo; 
-  if [[ $CC == "clang" ]]; then export LD_LIBRARY_PATH='/usr/local/clang/lib'; fi;
+  if [ $TRAVIS_OS_NAME == "linux" ] && [ $CC == "clang" ]; then export LD_LIBRARY_PATH='/usr/local/clang/lib'; fi;
+  if [ $TRAVIS_OS_NAME == "osx" ]; then export OPENMP_CFLAGS='-Xpreprocessor -fopenmp -lomp'; fi;
   if [ "$BUILD_OCTAVE" = "1" ]; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
     sudo apt-get update --option Acquire::Retries=10 --option Acquire::http::Timeout="30";
