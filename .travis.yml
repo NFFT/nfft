@@ -24,6 +24,10 @@ env:
 - WINDOW=sinc PRECISION=--enable-long-double
 matrix:
   include:
+    - os: osx
+      compiler: clang
+      env: WINDOW=kaiserbessel PRECISION= 
+      addons: { homebrew: { packages: ["fftw", "cunit", "autoconf", "libtool", "make"] } }
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
     - compiler: clang
