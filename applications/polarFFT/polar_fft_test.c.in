@@ -118,9 +118,8 @@ static int polar_dft(NFFT_C *f_hat, int NN, NFFT_C *f, int T, int S,
 
   /** init two dimensional NFFT plan */
   NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, m,
-      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-          | FFT_OUT_OF_PLACE,
-      FFTW_MEASURE | FFTW_DESTROY_INPUT);
+      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT,
+      FFTW_MEASURE);
 
   /** init nodes from polar grid*/
   polar_grid(T, S, x, w);

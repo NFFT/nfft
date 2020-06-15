@@ -328,7 +328,7 @@ int main (int argc, char **argv)
         nfsft_init_guru(&plan,NQ[iNQ],SQ[iNQ], NFSFT_NORMALIZED |
           ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
           ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-          PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFTW_MEASURE | FFT_OUT_OF_PLACE,
+          PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFTW_MEASURE,
           cutoff);
 
         plan.f_hat = f_hat;
@@ -679,8 +679,8 @@ int main (int argc, char **argv)
             nfsft_init_guru(&plan_gen,N,m_total, NFSFT_NORMALIZED |
               ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
               ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-              ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
-              FFT_OUT_OF_PLACE, cutoff);
+              ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
+              cutoff);
 
             plan_gen.f_hat = f_hat_gen;
             plan_gen.x = x_grid;
@@ -720,8 +720,8 @@ int main (int argc, char **argv)
               nfsft_init_guru(&plan_gen,N,m_compare, NFSFT_NORMALIZED |
                 ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
                 ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-                ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
-                FFT_OUT_OF_PLACE, cutoff);
+                ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
+                cutoff);
 
               plan_gen.f_hat = f_hat_gen;
               plan_gen.x = x_compare;
@@ -930,8 +930,8 @@ int main (int argc, char **argv)
         nfsft_init_guru(&plan_adjoint,NQ[iNQ],m_total, NFSFT_NORMALIZED |
           ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
           ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-          ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
-          FFT_OUT_OF_PLACE, cutoff);
+          ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
+          cutoff);
 
         plan_adjoint_ptr = &plan_adjoint;
 
@@ -940,8 +940,8 @@ int main (int argc, char **argv)
           nfsft_init_guru(&plan,NQ[iNQ],m_compare, NFSFT_NORMALIZED |
             ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
-            ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT |
-            FFT_OUT_OF_PLACE, cutoff);
+            ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
+            cutoff);
           plan_ptr = &plan;
         }
         else

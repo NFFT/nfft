@@ -1034,11 +1034,10 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
   {
 //#ifdef _OPENMP
 //    ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
-//                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES |
-//          NFFT_OMP_BLOCKWISE_ADJOINT;
+//                      FFTW_INIT | NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
 //#else
     ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
-                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES;
+                      FFTW_INIT | NFFT_SORT_NODES;
 //#endif
   }
   else

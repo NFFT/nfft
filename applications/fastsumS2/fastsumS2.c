@@ -1086,13 +1086,12 @@ int main (int argc, char **argv)
           nfsft_init_guru(&plan_adjoint, m[im],ld[ild][0],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
-            PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
-            FFT_OUT_OF_PLACE, cutoff);
+            PRE_PHI_HUT | PRE_PSI | FFTW_INIT,
+            cutoff);
           nfsft_init_guru(&plan,m[im],ld[ild][1],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
-            PRE_PHI_HUT | PRE_PSI | FFTW_INIT |
-            FFT_OUT_OF_PLACE,
+            PRE_PHI_HUT | PRE_PSI | FFTW_INIT,
              cutoff);
           plan_adjoint.f_hat = f_hat;
           plan_adjoint.x = eta;

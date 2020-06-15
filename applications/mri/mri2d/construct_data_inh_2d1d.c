@@ -49,8 +49,7 @@ static void construct(char * file, int N, int M)
   FILE *fp,*fout,*fi,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
-                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
-                      FFTW_MEASURE| FFTW_DESTROY_INPUT;
+                      MALLOC_F| FFTW_INIT| FFTW_MEASURE;
 
   double Ts;
   double W,T;

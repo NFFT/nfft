@@ -46,8 +46,7 @@ static void reconstruct(char* filename, int N, int M, int weight)
   FILE *fout_imag;         /* output file  */
   int my_N[2],my_n[2];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
-                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE|
-                      FFTW_MEASURE| FFTW_DESTROY_INPUT;
+                      MALLOC_F| FFTW_INIT| FFTW_MEASURE;
 
   /* initialise nfft */
   my_N[0]=N; my_n[0]=ceil(N*1.2);

@@ -914,7 +914,7 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   NFFT(init_guru)(&(ths->mv1), ths->d, N, N_total, n, m,
       sort_flags_adjoint |
       PRE_PHI_HUT | PRE_PSI | /*MALLOC_X | MALLOC_F_HAT | MALLOC_F |*/ FFTW_INIT
-          | FFT_OUT_OF_PLACE,
+          | ((ths->d == 1) ? FFT_OUT_OF_PLACE : 0U),
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
   ths->mv1.x = ths->x;
   ths->mv1.f = ths->alpha;
@@ -976,7 +976,7 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_overs
   NFFT(init_guru)(&(ths->mv2), ths->d, N, M_total, n, m,
       sort_flags_trafo |
       PRE_PHI_HUT | PRE_PSI | /*MALLOC_X | MALLOC_F_HAT | MALLOC_F |*/ FFTW_INIT
-          | FFT_OUT_OF_PLACE,
+          | ((ths->d == 1) ? FFT_OUT_OF_PLACE : 0U),
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
   ths->mv2.x = ths->y;
   ths->mv2.f = ths->f;

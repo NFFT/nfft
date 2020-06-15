@@ -143,9 +143,8 @@ static int Radon_trafo(int (*gridfcn)(), int T, int S, NFFT_R *f, int NN, NFFT_R
 
   /** init two dimensional NFFT plan */
   NFFT(init_guru)(&my_nfft_plan, 2, N, M, n, 4,
-      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-          | FFT_OUT_OF_PLACE,
-      FFTW_MEASURE | FFTW_DESTROY_INPUT);
+      PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT,
+      FFTW_MEASURE);
 
   /** init nodes from grid*/
   gridfcn(T, S, x, w);

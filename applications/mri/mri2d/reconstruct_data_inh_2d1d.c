@@ -45,7 +45,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   FILE* fp,*fw,*fout_real,*fout_imag,*finh,*ftime;
   int my_N[3],my_n[3];
   int flags = PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
-                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE;
+                      MALLOC_F| FFTW_INIT;
   unsigned infft_flags = CGNR | PRECOMPUTE_DAMP;
 
   double Ts;

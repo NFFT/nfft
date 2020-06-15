@@ -47,8 +47,8 @@ static void construct(char * file, int N, int M, int Z)
   my_N[2]=N; my_n[2]=ceil(N*1.2);
   nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
-                      MALLOC_F| FFTW_INIT| FFT_OUT_OF_PLACE,
-                      FFTW_MEASURE| FFTW_DESTROY_INPUT);
+                      MALLOC_F| FFTW_INIT,
+                      FFTW_MEASURE);
 
   fp=fopen("knots.dat","r");
 
