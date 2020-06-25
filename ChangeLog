@@ -1,5 +1,19 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.2:
+
+    Bugfixes
+    - #103 Build of fastsum fails because fftw_libs are not found.
+    - #109 Update m4 files for 3.5.2 release.
+    - Removed superfluous calls to autoreconf in bootstrap.
+
+    Enhancements
+    - #98  Add Julia Interface fastsum.
+    - #105 Even bandwith in NFCT and NFST.
+    - #108 Compute NFFT_EPSILON at runtime.
+    - #110 In-place fftw for dimension >1 (reduce memory consumption).
+    - TravisCI tests on OSX
+
 Changes in version 3.5.1:
 
     Bugfixes
