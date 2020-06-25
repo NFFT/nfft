@@ -6,7 +6,7 @@
 # The Matlab path should not contain spaces!
 # 
 # Example call:
-# ./nfft-build-dll.sh --fftw=3.3.8 --octave=5.1.0 --matlab=/c/path/to/matlab
+# ./nfft-build-dll.sh --fftw=3.3.8 --octave=5.2.0 --matlab=/c/path/to/matlab
 # 
 # WARNING: This script downloads and compiles FFTW and downloads GCC, Julia and Octave (requires ~ 3GB).
 # 
@@ -24,7 +24,7 @@ set -ex
 
 # default values (to be overwritten if respective parameters are set)
 FFTWVERSION=3.3.8
-OCTAVEVERSION=5.1.0
+OCTAVEVERSION=5.2.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
@@ -82,7 +82,7 @@ elif [ "$ARCH" == "64" ]; then
   ARCHNAME=x86_64
   MATLABARCHFLAG=""
   if [ "$GCCARCH" == "" ]; then
-    GCCARCH=core2;
+    GCCARCH=haswell;
   fi
 else
   echo "Unknown architecture!" ; exit 1 ;

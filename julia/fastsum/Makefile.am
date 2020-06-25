@@ -18,7 +18,7 @@ libfastsumjulia_la_LIBADD = $(top_builddir)/applications/fastsum/libfastsum.la $
 
 libfastsumjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
 
-EXTRA_DIST = fastsum.jl
+EXTRA_DIST = fastsum.jl simple_test.jl
 
 libfastsumjulia-link: all-am
 	soname=`$(EGREP) "^dlname=" libfastsumjulia.la | $(SED) -e "s|^dlname='\(.*\)'|\1|"` ; \

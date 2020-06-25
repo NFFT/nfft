@@ -29,7 +29,7 @@ set -ex
 
 FFTWVERSION=3.3.8
 GCCVERSION=8.3.0
-GCCARCH=core2
+GCCARCH=haswell
 MPFRVERSION=4.0.1
 MPCVERSION=1.1.0
 
@@ -100,7 +100,7 @@ if [ ! -f "$MPCINSTALLDIR/build-success" ]; then
   cd $HOMEDIR
 fi
 
-export LD_LIBRARY_PATH="$MPCINSTALLDIR/lib:$MPFRINSTALLDIR/lib"
+export LD_LIBRARY_PATH="$MPCINSTALLDIR/lib:$MPFRINSTALLDIR/lib:$LD_LIBRARY_PATH"
 
 GCCBUILDDIR="$HOMEDIR/gcc-$GCCVERSION"
 GCCINSTALLDIR="$HOMEDIR/gcc-$GCCVERSION-install"
@@ -195,7 +195,7 @@ cd "$NFFTBUILDDIR"
 ARCH=$(uname -m)
 JULIADIR=nfft-"$NFFTVERSION"-julia-linux_$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
-$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
+$RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' --exclude='*.so' "$NFFTDIR/julia/" "$JULIADIR"
 $RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
 echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' Linux using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
