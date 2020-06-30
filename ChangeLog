@@ -12,7 +12,8 @@ Changes in version 3.5.2:
     - #105 Even bandwith in NFCT and NFST.
     - #108 Compute NFFT_EPSILON at runtime.
     - #110 In-place fftw for dimension >1 (reduce memory consumption).
-    - TravisCI tests on OSX
+    - TravisCI tests on OSX.
+    - Enable AVX2 in precompiled binaries.
 
 Changes in version 3.5.1:
 
