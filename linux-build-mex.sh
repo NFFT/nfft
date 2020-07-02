@@ -36,6 +36,10 @@ MPCVERSION=1.1.0
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/usr
 
+JULIA_BIN=julia/julia-1.1.1/bin/julia
+JULIA_ARCHIVE=julia-1.1.1-linux-x86_64.tar.gz
+JULIA_URL=https://julialang-s3.julialang.org/bin/linux/x64/1.1/$JULIA_ARCHIVE
+
 # read the options
 TEMP=`getopt -o o:m:f: --long octave:,matlab:,fftw: -n 'linux-build-mex.sh' -- "$@"`
 eval set -- "$TEMP"
@@ -138,6 +142,16 @@ if [ ! -f "$FFTWDIR/build-success" ]; then
 fi
 
 
+# Get Julia
+if [ ! -f $JULIA_BIN ]; then
+  rm -f -r julia
+  mkdir julia
+  cd julia
+  curl "$JULIA_URL" --output "$JULIA_ARCHIVE"
+  tar xzf $JULIA_ARCHIVE
+fi
+
+
 # Build NFFT
 READMECONTENT="
 $(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
@@ -184,10 +198,16 @@ NFFTVERSION=$( grep 'Version: ' nfft3.pc | cut -c10-)
 
 # Create archive for Julia interface
 cd julia
-for LIB in nf*t fastsum
+for LIB in nf*t
 do
   cd "$LIB"
   "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  cd ..
+done
+for LIB in fastsum
+do
+  cd "$LIB"
+  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../applications/fastsum/.libs/libfastsum.a ../../applications/fastsum/.libs/libkernels.a ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
   cd ..
 done
 cd "$NFFTBUILDDIR"
@@ -197,6 +217,8 @@ JULIADIR=nfft-"$NFFTVERSION"-julia-linux_$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
 $RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' --exclude='*.so' "$NFFTDIR/julia/" "$JULIADIR"
 $RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test*.jl; do $HOMEDIR/$JULIA_BIN "$NAME"; done; cd "$NFFTBUILDDIR"; done;
+
 echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' Linux using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
@@ -234,6 +256,23 @@ for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
 do
   cp -f -L -r matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
 done
+
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt ; do
+  cd "$DIR/$SUBDIR"
+  if [ -f simple_test.m ] ; then
+  for TESTFILE in *test*.m
+    do
+    if [ "$SUBDIR" != "infft1d" ] ; then
+      "$OCTAVEDIR"/bin/octave-cli --no-window-system --eval="run('$TESTFILE')"
+    fi
+     if [ -n "$MATLABDIR" ]; then
+      "$MATLABDIR"/bin/matlab -nodisplay -r "run('$TESTFILE'); exit"
+    fi
+  done
+  fi
+  cd "$NFFTBUILDDIR"
+done
+
 
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
