@@ -220,7 +220,7 @@ function set.fhat(h,fhat)
 	if h.d > 1
 	  fhat = reshape(fhat, h.N);
 	  fhat = permute(fhat, h.d:-1:1);
-	  fhat = fhat(:);
+	  fhat = reshape(fhat, prod(h.N), 1);
 	end
 
 	nfftmex('set_f_hat',h.plan,fhat);
@@ -262,7 +262,7 @@ function fhat=get.fhat(h)
 		if h.d > 1
 			fhat = reshape(fhat, h.N(end:-1:1));
 			fhat = permute(fhat, h.d:-1:1);
-			fhat = fhat(:);
+			fhat = reshape(fhat, prod(h.N), 1);
 		end
 	else
 		fhat=[];
@@ -369,18 +369,20 @@ function nfft_solver(h,iterations,varargin)
 %   h  object of class type nfft
 %   iterations  number of iterations
 %   flags       solver flags
-    if ~isempty(varargin)
+	if ~isempty(varargin)
         flags = varargin{1};
-    else
+	else
         flags = 0;
-    end % if
+	end % if
+
+	if(~h.fhat_is_set)
+        h.fhat = zeros(prod(h.N),1);
+	end %if
 
 	if(~h.precomputations_done)
 		error('Before doing an inverse NFFT transform you have to set nodes x.');
 	elseif(~h.f_is_set)
 		error('Before doing an inverse NFFT transform you have to set samples in f.');
-	elseif(~h.fhat_is_set)
-		error('Before doing an inverse NFFT transform you have to set an initial guess fhat.');
 	else
 		nfftmex('solver',h.plan,iterations,flags);
 		h.fhat_is_set=true;
@@ -390,4 +392,3 @@ end %function
 end %methods
 
 end %classdef
-
