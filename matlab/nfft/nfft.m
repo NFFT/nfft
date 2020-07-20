@@ -359,6 +359,34 @@ function nfft_adjoint(h)
 	end %if
 end %function
 
+function nfft_solver(h,iterations,varargin)
+% Inverse NFFT
+%
+% nfft_solver(h,iterations)
+% nfft_solver(h,iterations,flags)
+%
+% INPUT
+%   h  object of class type nfft
+%   iterations  number of iterations
+%   flags       solver flags
+    if ~isempty(varargin)
+        flags = varargin{1};
+    else
+        flags = 0;
+    end % if
+
+	if(~h.precomputations_done)
+		error('Before doing an inverse NFFT transform you have to set nodes x.');
+	elseif(~h.f_is_set)
+		error('Before doing an inverse NFFT transform you have to set samples in f.');
+	elseif(~h.fhat_is_set)
+		error('Before doing an inverse NFFT transform you have to set an initial guess fhat.');
+	else
+		nfftmex('solver',h.plan,iterations,flags);
+		h.fhat_is_set=true;
+	end %if
+end %function
+
 end %methods
 
 end %classdef

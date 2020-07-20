@@ -34,7 +34,7 @@
 #define NFFT_MEX_FIRST_CALL (1U << 0)
 static unsigned short gflags = NFFT_MEX_FIRST_CALL;
 
-static nfft_plan** plans = NULL; /* plans */
+static X(plan)** plans = NULL; /* plans */
 static unsigned int plans_num_allocated = 0;
 static char cmd[CMD_LEN_MAX];
 
@@ -144,17 +144,17 @@ static inline int mkplan(void)
     if (plans_num_allocated >= INT_MAX - PLANS_START - 1)
       mexErrMsgTxt("nfft: Too many plans already allocated.");
 
-    nfft_plan** plans_old = plans;
-    plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(nfft_plan*));
+    X(plan)** plans_old = plans;
+    plans = X(malloc)((plans_num_allocated+PLANS_START)*sizeof(nfft_plan*));
     for (l = 0; l < plans_num_allocated; l++)
       plans[l] = plans_old[l];
     for (l = plans_num_allocated; l < plans_num_allocated+PLANS_START; l++)
       plans[l] = 0;
     if (plans_num_allocated > 0)
-      nfft_free(plans_old);
+      X(free)(plans_old);
     plans_num_allocated += PLANS_START;
   }
-  plans[i] = nfft_malloc(sizeof(nfft_plan));
+  plans[i] = X(malloc)(sizeof(nfft_plan));
   return i;
 }
 
@@ -168,14 +168,14 @@ static void cleanup(void)
     for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
       {
-        nfft_finalize(plans[i]);
-	nfft_free(plans[i]);
+        X(finalize)(plans[i]);
+	X(free)(plans[i]);
 	plans[i] = 0;
       }
 
     if (plans_num_allocated > 0)
     {
-      nfft_free(plans);
+      X(free)(plans);
       plans = NULL;
       plans_num_allocated = 0;
     }
@@ -215,7 +215,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int N, M;
       get_nm(prhs,&N,&M);
       i = mkplan();
-      nfft_init_1d(plans[i],N,M);
+      X(init_1d)(plans[i],N,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -228,7 +228,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int N1, N2, M;
       get_n1n2m(prhs,&N1,&N2,&M);
       i = mkplan();
-      nfft_init_2d(plans[i],N1,N2,M);
+      X(init_2d)(plans[i],N1,N2,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -241,7 +241,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int N1, N2, N3, M;
       get_n1n2n3m(prhs,&N1,&N2,&N3,&M);
       i = mkplan();
-      nfft_init_3d(plans[i],N1,N2,N3,M);
+      X(init_3d)(plans[i],N1,N2,N3,M);
       plhs[0] = mxCreateDoubleScalar((double)i);
     }
     return;
@@ -273,7 +273,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         DM(if (M < 1)
           mexErrMsgTxt("init: input argument NM must be a natural number");)
         i = mkplan();
-        nfft_init(plans[i],d,N,M);
+        X(init)(plans[i],d,N,M);
         plhs[0] = mxCreateDoubleScalar((double)i);
       }
     }
@@ -299,7 +299,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     get_guru(prhs,d,N,&M,n,&m,&f1,&f2);
     int i = mkplan();
-    nfft_init_guru(plans[i],d,N,M,n,m,
+    X(init_guru)(plans[i],d,N,M,n,m,
 		   f1 | MALLOC_X | MALLOC_F | MALLOC_F_HAT | FFTW_INIT,
 		   f2);
 
@@ -313,7 +313,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_precompute_one_psi(plans[i]);
+      X(precompute_one_psi)(plans[i]);
     }
     return;
   }
@@ -323,7 +323,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_trafo(plans[i]);
+      X(trafo)(plans[i]);
     }
     return;
   }
@@ -333,7 +333,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_adjoint(plans[i]);
+      X(adjoint)(plans[i]);
     }
     return;
   }
@@ -343,8 +343,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_finalize(plans[i]);
-      nfft_free(plans[i]);
+      X(finalize)(plans[i]);
+      X(free)(plans[i]);
       plans[i] = 0;
     }
     return;
@@ -355,7 +355,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_trafo_direct(plans[i]);
+      X(trafo_direct)(plans[i]);
     }
     return;
   }
@@ -365,7 +365,36 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       check_plan(i);
-      nfft_adjoint_direct(plans[i]);
+      X(adjoint_direct)(plans[i]);
+    }
+    return;
+  }
+  else if (strcmp(cmd,"solver") == 0)
+  {
+    check_nargs(nrhs,4,"Wrong number of arguments for solver.");
+    {
+      int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
+      check_plan(i);
+      unsigned iterations = nfft_mex_get_int(prhs[2],"nfft: Input argument iterations must be a scalar.");
+      unsigned flags = nfft_mex_get_int(prhs[3],"nfft: Input argument flags must be a scalar.");
+      if (flags == 0U)
+        flags = CGNR;
+
+      SOLVER(plan_complex) ip; /**< plan for the inverse nfft       */
+      SOLVER(init_advanced_complex)(&ip, (NFFT(mv_plan_complex)*) plans[i], flags);
+
+      for (int k=0; k < plans[i]->M_total; k++)
+        ip.y[k] = plans[i]->f[k];
+
+      for (int k = 0; k < plans[i]->N_total; k++) // copy initial guess
+        ip.f_hat_iter[k] = plans[i]->f_hat[k];
+
+      SOLVER(before_loop_complex)(&ip);
+      for (int l=0; l < iterations; l++)
+        SOLVER(loop_one_step_complex)(&ip);
+      for (int k=0; k < plans[i]->N_total; k++)
+        plans[i]->f_hat[k] = ip.f_hat_iter[k];
+      SOLVER(finalize_complex)(&ip);
     }
     return;
   }
@@ -403,8 +432,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         for (j = 0; j < m; j++)
         {
-          fr[j] = creal(plans[i]->f[j]);
-          fi[j] = cimag(plans[i]->f[j]);
+          fr[j] = CREAL(plans[i]->f[j]);
+          fi[j] = CIMAG(plans[i]->f[j]);
         }
       }
     }
@@ -424,8 +453,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int k;
         for (k = 0; k < n; k++)
         {
-          f_hatr[k] = creal(plans[i]->f_hat[k]);
-          f_hati[k] = cimag(plans[i]->f_hat[k]);
+          f_hatr[k] = CREAL(plans[i]->f_hat[k]);
+          f_hati[k] = CIMAG(plans[i]->f_hat[k]);
         }
       }
     }
@@ -469,7 +498,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int j;
         if (fi)
           for (j = 0; j < m; j++)
-            plans[i]->f[j] = fr[j] + _Complex_I*fi[j];
+            plans[i]->f[j] = fr[j] + I*fi[j];
         else
           for (j = 0; j < m; j++)
             plans[i]->f[j] = fr[j];
@@ -494,7 +523,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         int k;
         if (f_hati)
           for (k = 0; k < n; k++)
-            plans[i]->f_hat[k] = f_hatr[k] + _Complex_I*f_hati[k];
+            plans[i]->f_hat[k] = f_hatr[k] + I*f_hati[k];
         else
           for (k = 0; k < n; k++)
             plans[i]->f_hat[k] = f_hatr[k];

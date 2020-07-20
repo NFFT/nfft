@@ -248,19 +248,19 @@ AC_DEFUN([AX_PROG_MATLAB],
     saved_LIBS="$LIBS"
     saved_LDFLAGS="$LDFLAGS"
 
-    for matlab_fftw3_lib_name in mwfftw3 :libmwfftw3.so.3 fftw3; do
+    for matlab_fftw3_lib_name in mwfftw3${PREC_SUFFIX} :libmwfftw3${PREC_SUFFIX}.so.3 fftw3${PREC_SUFFIX}; do
       matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}"
       LIBS="-l${matlab_fftw3_lib_name} $LIBS"
       LDFLAGS="-L$matlab_fftw3_lib_dir $LDFLAGS"
       AC_MSG_CHECKING([for Matlab fftw3 library])
-      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
+      AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
       AC_MSG_RESULT([$ax_matlab_lib_fftw3])
 
       if test "x$ax_matlab_lib_fftw3" = "xno"; then
         matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name} -lm"
         LIBS="$matlab_fftw3_LIBS $saved_LIBS"
         AC_MSG_CHECKING([for Matlab fftw3 library (-lm set)])
-        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
         AC_MSG_RESULT([$ax_matlab_lib_fftw3])
       fi
 
@@ -268,7 +268,7 @@ AC_DEFUN([AX_PROG_MATLAB],
         matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name} -pthread -lm"
         LIBS="$matlab_fftw3_LIBS $saved_LIBS"
         AC_MSG_CHECKING([for Matlab fftw3 library (-lpthread -lm set)])
-        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_execute])], [ax_matlab_lib_fftw3=yes],[ax_matlab_lib_fftw3=no])
         AC_MSG_RESULT([$ax_matlab_lib_fftw3])
       fi
 
@@ -286,7 +286,7 @@ AC_DEFUN([AX_PROG_MATLAB],
           ax_matlab_lib_fftw3_threads="yes"
           LIBS="$matlab_fftw3_LIBS -lpthread -lm $saved_LIBS"
           AC_MSG_CHECKING([for Matlab combined fftw3 library with thread support (-lpthread -lm set)])
-          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="$matlab_fftw3_LIBS -lpthread -lm"],[ax_matlab_lib_fftw3_threads=no])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [matlab_fftw3_LIBS="$matlab_fftw3_LIBS -lpthread -lm"],[ax_matlab_lib_fftw3_threads=no])
           AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
         fi
 
@@ -294,7 +294,7 @@ AC_DEFUN([AX_PROG_MATLAB],
           ax_matlab_lib_fftw3_threads="yes"
           LIBS="-l${matlab_fftw3_lib_name}_threads $matlab_fftw3_LIBS $saved_LIBS"
           AC_MSG_CHECKING([for Matlab fftw3 library with thread support])
-          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
           AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
         fi
 
@@ -302,7 +302,7 @@ AC_DEFUN([AX_PROG_MATLAB],
           ax_matlab_lib_fftw3_threads="yes"
           LIBS="-l${matlab_fftw3_lib_name}_threads -lpthread $matlab_fftw3_LIBS $saved_LIBS"
           AC_MSG_CHECKING([for Matlab fftw3 library with thread support (-lpthread set)])
-          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads -lpthread $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
+          AC_LINK_IFELSE([AC_LANG_CALL([], [fftw${PREC_SUFFIX}_init_threads])], [matlab_fftw3_LIBS="-l${matlab_fftw3_lib_name}_threads -lpthread $matlab_fftw3_LIBS"],[ax_matlab_lib_fftw3_threads=no])
           AC_MSG_RESULT([$ax_matlab_lib_fftw3_threads])
         fi
 

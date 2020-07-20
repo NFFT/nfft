@@ -8,7 +8,7 @@ nfftmatlabdir = $(datadir)/nfft/matlab/nfft
 lib_LTLIBRARIES = libnfft.la
 libnfft_la_SOURCES = nfftmex.c
 
-libnfft_la_LIBADD = $(top_builddir)/libnfft3_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
+libnfft_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_matlab.la @matlab_fftw3_LIBS@ $(top_builddir)/matlab/libmatlab.la $(matlab_LIBS)
 
 libnfft_la_LDFLAGS = -no-undefined -module -shared -shrext $(matlab_mexext) -avoid-version @matlab_fftw3_LDFLAGS@ $(matlab_LDFLAGS)
 

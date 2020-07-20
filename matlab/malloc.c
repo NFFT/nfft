@@ -19,6 +19,7 @@
 #include "config.h"
 #include "imex.h"
 #include "nfft3.h"
+#include "infft.h"
 
 /** Replacement for fftw_malloc in mex files */
 void *nfft_mex_malloc(size_t n)
@@ -55,6 +56,6 @@ void nfft_mex_free(void *p)
 /** install hooks. */
 void nfft_mex_install_mem_hooks(void)
 {
-  nfft_malloc_hook = nfft_mex_malloc;
-  nfft_free_hook = nfft_mex_free;
+  X(malloc_hook) = nfft_mex_malloc;
+  X(free_hook) = nfft_mex_free;
 }
