@@ -239,7 +239,7 @@ cd julia
 for LIB in nf*t fastsum
 do
   cd "$LIB"
-  if [ "$LIB" = "fastsum" ]; then FASTSUM_LIBS="../../applications/fastsum/.libs/libfastsum.a ../../applications/fastsum/.libs/libkernels.a"; else FASTSUM_LIBS=""; fi
+  if [ "$LIB" = "fastsum" ]; then FASTSUM_LIBS="../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a ../../applications/fastsum/.libs/libkernels.a"; else FASTSUM_LIBS=""; fi
   gcc -shared  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FASTSUM_LIBS -Wl,--no-whole-archive -L"$FFTWBUILDDIR-static/.libs"  -O3 -malign-double -ffast-math -march=$GCCARCH  -o .libs/lib"$LIB"julia.dll -Wl,--enable-auto-image-base -Xlinker --out-implib -Xlinker .libs/lib"$LIB"julia.dll.a -static-libgcc -Wl,-Bstatic -lwinpthread -lfftw3 $OMPLIBS
   cp .libs/lib"$LIB"julia.dll lib"$LIB"julia.dll
   cd ..

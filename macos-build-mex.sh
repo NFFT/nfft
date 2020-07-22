@@ -111,7 +111,7 @@ do
 done
 
 cd fastsum
-$GCC -o .libs/libfastsumjulia.so -bundle .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+$GCC -o .libs/libfastsumjulia.so -bundle .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
 cd ..
 
 cd "$NFFTBUILDDIR"

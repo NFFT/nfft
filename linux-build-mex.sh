@@ -175,6 +175,7 @@ if [ $OMPYN = 1 ]; then
   THREADSSUFFIX="_threads"
   OMPSUFFIX="-openmp"
   FFTWLIBSTATIC="$FFTWDIR/build/threads/.libs/libfftw3_threads.a $FFTWDIR/build/.libs/libfftw3.a"
+  GOMPLIBSTATIC="$GCCINSTALLDIR/lib64/libgomp.a"
 else
   NFFTBUILDDIR="$HOMEDIR/build"
   OMPFLAG=""
@@ -182,6 +183,7 @@ else
   THREADSSUFFIX=""
   OMPSUFFIX=""
   FFTWLIBSTATIC="$FFTWDIR/build/.libs/libfftw3.a"
+  GOMPLIBSTATIC=""
 fi
 
 rm -f -r "$NFFTBUILDDIR"
@@ -201,13 +203,13 @@ cd julia
 for LIB in nf*t
 do
   cd "$LIB"
-  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GOMPLIBSTATIC -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
   cd ..
 done
 for LIB in fastsum
 do
   cd "$LIB"
-  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../applications/fastsum/.libs/libfastsum.a ../../applications/fastsum/.libs/libkernels.a ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a ../../applications/fastsum/.libs/libkernels.a ../../.libs/libnfft3_julia.a $GOMPLIBSTATIC -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
   cd ..
 done
 cd "$NFFTBUILDDIR"
@@ -244,7 +246,7 @@ if [ -n "$MATLABDIR" ]; then
     for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
     do
       cd "$SUBDIR"
-      "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a $GCCINSTALLDIR/lib64/libgomp.a -Wl,--no-whole-archive  -L$MATLABDIR/bin/glnxa64 -l:libmwfftw3.so.3 -lm -lmx -lmex -lmat -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib$SUBDIR.mexa64 -o .libs/lib$SUBDIR.mexa64
+      "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$SUBDIR"_la-"$SUBDIR"mex.o  -Wl,--whole-archive ../../.libs/libnfft3_matlab.a ../../matlab/.libs/libmatlab.a $GOMPLIBSTATIC -Wl,--no-whole-archive  -L$MATLABDIR/bin/glnxa64 -l:libmwfftw3.so.3 -lm -lmx -lmex -lmat -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib$SUBDIR.mexa64 -o .libs/lib$SUBDIR.mexa64
       cd ..
     done
     cd "$NFFTBUILDDIR"
