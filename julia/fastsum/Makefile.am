@@ -9,11 +9,13 @@ libfastsumjulia_la_SOURCES = libfastsumjulia.c
 
 if HAVE_THREADS
   libadd_for_fftw_threads=@fftw3_threads_LIBS@
+  libadd_libfastsum=$(top_builddir)/applications/fastsum/libfastsum_threads.la
 else
   libadd_for_fftw_threads=
+  libadd_libfastsum=$(top_builddir)/applications/fastsum/libfastsum.la
 endif
 # fastsum_test_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la
-libfastsumjulia_la_LIBADD = $(top_builddir)/applications/fastsum/libfastsum.la $(top_builddir)/applications/fastsum/libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
+libfastsumjulia_la_LIBADD = $(libadd_libfastsum) $(top_builddir)/applications/fastsum/libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
 
 
 libfastsumjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
