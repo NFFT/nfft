@@ -67,9 +67,9 @@ while true ; do
             case "$2" in
                 "")  shift 2 ;;
                 *) MATLABVERSION="$2"; shift 2 ;;
-        -s|--without-threads)
-            OMP_ONLY=0; shift 1 ;;
             esac ;;
+        -s|--without-threads)
+            OMP_ONLY=0; shift 2 ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -120,8 +120,8 @@ if [ ! -f "$FFTWDIR/build-success" ]; then
   make -j4
   touch "$FFTWDIR/build-success"
 fi
-if [ "$OMP_ONLY" = "0" ] && [ -f "$FFTWDIR/build/build-success" ]; then
-  cd ../build
+if [ "$OMP_ONLY" = "0" ] && [ ! -f "$FFTWDIR/build/build-success" ]; then
+  cd "$FFTWDIR"/build
   "$FFTWDIR"/configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared
   make -j4
   cd ../build-static
@@ -200,7 +200,7 @@ cd "$NFFTBUILDDIR"
 
 
 # Compile with Octave
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples
+"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-exhaustive-unit-tests
 make
 make check
 
@@ -270,7 +270,7 @@ if [ -n "$MATLABDIR" ]; then
   fi
   MATLABSTRING=" and Matlab $MATLABVERSION"
   cd "$NFFTBUILDDIR"
-  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples
+  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
   make
   if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
     make check
@@ -318,7 +318,7 @@ rm -f "$HOMEDIR/$MEXDIR".zip
 
 # Build applications
 cd "$NFFTBUILDDIR"
-CPPFLAGS="--static" LDFLAGS="--static" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR-static"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-gcc-arch=$GCCARCH --enable-static --disable-shared
+CPPFLAGS="--static" LDFLAGS="--static" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR-static"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-gcc-arch=$GCCARCH --enable-static --disable-shared --enable-exhaustive-unit-tests
 make all check
 
 APPSDIR=nfft-"$NFFTVERSION"-applications-w$ARCH$OMPSUFFIX
