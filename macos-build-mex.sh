@@ -148,7 +148,7 @@ if [ -n "$MATLABDIR" ]; then
   fi
   cd "$NFFTBUILDDIR"
   make clean
-  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
+  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications --enable-exhaustive-unit-tests
   make
   make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt

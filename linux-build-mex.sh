@@ -21,7 +21,7 @@
 # When using flatpak, the following RSYNC variable should be used.
 RSYNC="flatpak-spawn --host rsync"
 # Otherwise, the RSYNC variable should be set to
-#RSYNC=rsync
+RSYNC=rsync
 #
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
@@ -209,7 +209,7 @@ done
 for LIB in fastsum
 do
   cd "$LIB"
-  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a ../../applications/fastsum/.libs/libkernels.a ../../.libs/libnfft3_julia.a $GOMPLIBSTATIC -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
+  "$GCCINSTALLDIR/bin/gcc-$GCCVERSION" -shared  -fPIC -DPIC  .libs/lib"$LIB"julia.o  -Wl,--whole-archive ../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a ../../applications/fastsum/.libs/libkernels.a ../../.libs/libnfft3_julia.a $FFTWLIBSTATIC $GOMPLIBSTATIC -Wl,--no-whole-archive -O3 -malign-double -march="$GCCARCH" -Wl,-soname -Wl,lib"$LIB"julia.so -o .libs/lib"$LIB"julia.so
   cd ..
 done
 cd "$NFFTBUILDDIR"
@@ -239,7 +239,7 @@ if [ -n "$MATLABDIR" ]; then
   MATLABVERSION=`"$MATLABDIR"/bin/matlab -nodisplay -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | sed 's/.*(//' | sed 's/)//'`
   cd "$NFFTBUILDDIR"
   make clean
-  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
+  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared --enable-exhaustive-unit-tests
   make
   if [ $OMPYN = 1 ]; then
     cd matlab
