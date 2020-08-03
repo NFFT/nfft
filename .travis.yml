@@ -32,7 +32,7 @@ matrix:
     - os: osx
       compiler: clang
       env: WINDOW=kaiserbessel PRECISION= 
-      install: brew install fftw cunit libomp
+      install: brew install fftw cunit julia
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
@@ -61,7 +61,8 @@ script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-
   $(if test "$BUILD_JULIA" = "1"; then echo "--enable-julia"; else echo ""; fi)
   && make
   && make check && make $DIST
-  && if test "$BUILD_JULIA" = "1"; then wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.3/julia-1.3.1-linux-x86_64.tar.gz && tar -xf julia-*-linux-x86_64.tar.gz && for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do ./../../julia-1.3.1/bin/julia "$NAME"; done; cd ../..; done; fi
+  && if [ "$BUILD_JULIA" = "1" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.3/julia-1.3.1-linux-x86_64.tar.gz && tar -xf julia-*-linux-x86_64.tar.gz && for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do ./../../julia-1.3.1/bin/julia "$NAME"; done; cd ../..; done; fi
+  && if [ "$BUILD_JULIA" = "1" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd ../..; done; fi
   && if test "$BUILD_OCTAVE" = "1"; then for DIR in matlab/nf*t matlab/fastsum; do cd $DIR; for NAME in simple_test*.m; do octave-cli --eval="run('$NAME')"; done; cd ../..; done; fi
 after_failure: cat config.log && cat tests/test-suite.log && if test "$BUILD_OCTAVE" = "1"; then cat matlab/tests/test-suite.log; fi
 notifications:
