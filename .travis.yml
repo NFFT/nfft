@@ -55,8 +55,8 @@ before_script:
   fi;
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     export CC=gcc-9;
-    export CPPFLAGS=-I/usr/local/include
-    export LDFLAGS=-L/usr/local/lib
+    export CPPFLAGS=-I/usr/local/include;
+    export LDFLAGS=-L/usr/local/lib;
   fi;
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
