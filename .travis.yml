@@ -31,8 +31,13 @@ matrix:
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - os: osx
       osx_image: xcode12u
-      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 BUILD_JULIA=1 CC=gcc-9
+      env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 BUILD_JULIA=1
       install: brew install fftw cunit gcc@9 octave; brew cask install julia
+      cache:
+        directories:
+	  - $HOME/Library/Caches/Homebrew
+      before_cache:
+        - brew cleanup
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
@@ -42,11 +47,16 @@ matrix:
 before_script:
   cat /proc/cpuinfo; 
   if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" == "clang" ]; then export LD_LIBRARY_PATH='/usr/local/clang/lib'; fi;
-  if [ "$BUILD_OCTAVE" = "1" ]; then
+  if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$BUILD_OCTAVE" = "1" ]; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
     sudo apt-get update --option Acquire::Retries=10 --option Acquire::http::Timeout="30";
     sudo apt-get install -y libfftw3-dev libcunit1-dev liboctave-dev gcc-10; 
     export CC=gcc-10;
+  fi;
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    export CC=gcc-9;
+    export CPPFLAGS=-I/usr/local/include
+    export LDFLAGS=-L/usr/local/lib
   fi;
   if [ "x$TRAVIS_TAG" != "x" ]; then
     NFFT_TRAVIS_TAG=$(sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\)\(.*\)/\1.\2/' <<< "$TRAVIS_TAG");
@@ -56,8 +66,8 @@ before_script:
       mv configure.ac.modified configure.ac;
     fi;
   fi;
-script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all $(if test "$TRAVIS_OS_NAME" = "osx"; then echo ""; else echo "--enable-openmp"; fi)
-  $(if test "$BUILD_OCTAVE" = "1"; then echo "--with-octave=/usr"; else echo ""; fi)
+script: ./bootstrap.sh && ./configure --with-window=$WINDOW $PRECISION --enable-all --enable-openmp
+  $(if [ "$BUILD_OCTAVE" = "1" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then echo "--with-octave=/usr"; elif [ "$BUILD_OCTAVE" = "1" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then echo "--with-octave=/usr/local"; else echo ""; fi)
   $(if test "$BUILD_JULIA" = "1"; then echo "--enable-julia"; else echo ""; fi)
   && make
   && make check && make $DIST
