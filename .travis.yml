@@ -2,6 +2,11 @@ language: c
 compiler:
 - gcc
 - clang
+cache:
+  directories:
+    - $HOME/Library/Caches/Homebrew
+before_cache:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew cleanup; fi
 os: linux
 dist: bionic
 addons:
@@ -33,11 +38,6 @@ matrix:
       osx_image: xcode12u
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 BUILD_JULIA=1
       install: brew install fftw cunit gcc@9 octave; brew cask install julia
-      cache:
-        directories:
-	  - $HOME/Library/Caches/Homebrew
-      before_cache:
-        - brew cleanup
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
