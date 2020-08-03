@@ -6,9 +6,8 @@ ending = ".so"
 
 if Sys.iswindows()
 	ending = ".dll"
-## disabled since libtool option "-module" creates .so file on macOS
-#elseif Sys.isapple()
-#	ending = ".dylib"
+elseif Sys.isapple()
+	ending = ".dylib"
 end
 
 # path to .so file

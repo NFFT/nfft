@@ -18,7 +18,7 @@ endif
 libfastsumjulia_la_LIBADD = $(libadd_libfastsum) $(top_builddir)/applications/fastsum/libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
 
 
-libfastsumjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
+libfastsumjulia_la_LDFLAGS = -no-undefined -shared -avoid-version @fftw3_LDFLAGS@
 
 EXTRA_DIST = fastsum.jl simple_test.jl
 

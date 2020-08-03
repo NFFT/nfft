@@ -6,6 +6,8 @@ ending = ".so"
 
 if Sys.iswindows()
 	ending = ".dll"
+elseif Sys.isapple()
+	ending = ".dylib"
 end
 
 # path to .so file

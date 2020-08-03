@@ -37,7 +37,7 @@ matrix:
     - os: osx
       osx_image: xcode12u
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1 BUILD_JULIA=1
-      install: brew install fftw cunit gcc@9 octave; brew cask install julia
+      addons: { homebrew: { packages: ["fftw", "cunit", "gcc@9", "octave"], casks: ["julia"] } }
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }

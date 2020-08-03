@@ -106,12 +106,12 @@ cd julia
 for LIB in nf*t
 do
   cd "$LIB"
-  $GCC -o .libs/lib"$LIB"julia.so -bundle .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+  $GCC -dynamiclib -o lib"$LIB"julia.dylib .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
   cd ..
 done
 
 cd fastsum
-$GCC -o .libs/libfastsumjulia.so -bundle .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+$GCC -dynamiclib -o libfastsumjulia.dylib .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
 cd ..
 
 cd "$NFFTBUILDDIR"
