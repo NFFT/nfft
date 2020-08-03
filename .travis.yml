@@ -30,9 +30,10 @@ matrix:
       env: WINDOW=kaiserbessel PRECISION= BUILD_OCTAVE=1
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - os: osx
+      osx_image: xcode12u
       compiler: clang
       env: WINDOW=kaiserbessel PRECISION= 
-      install: brew install fftw cunit julia
+      install: brew install fftw cunit; brew cask install julia
     - compiler: gcc
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
