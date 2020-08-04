@@ -23,7 +23,7 @@ dist_nfstmatlab_DATA = Contents.m FFTW_ESTIMATE.m FFTW_MEASURE.m \
 	nfst_get_num_threads.m nfst_get_x.m nfst_init_1d.m nfst_init_2d.m \
 	nfst_init_3d.m nfst_init_guru.m nfst_set_f.m nfst_set_f_hat.m \
 	nfst_set_x.m nfst_trafo.m simple_test.m test_nfst1d.m test_nfst2d.m \
-	test_nfst3d.m
+	test_nfst3d.m nfst_set_num_threads.m
 
 # target all-am builds .libs/libnfst@matlab_mexext@
 nfstmex@matlab_mexext@: all-am
