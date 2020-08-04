@@ -859,6 +859,8 @@ void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* thread.c */ \
 NFFT_INT Y(get_num_threads)(void); \
+void Y(set_num_threads)(NFFT_INT nthreads); \
+NFFT_INT Y(has_threads_enabled)(void); \
 /* time.c */ \
 R Y(clock_gettime_seconds)(void); \
 /* error.c: */ \

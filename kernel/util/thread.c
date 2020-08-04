@@ -39,3 +39,21 @@ INT Y(get_num_threads)(void)
   return 1;
 #endif
 }
+
+void Y(set_num_threads)(INT nthreads)
+{
+#ifdef _OPENMP
+  /* Already created plans may still use old number of threads for FFT step! */
+  omp_set_num_threads(nthreads);
+#endif
+}
+
+INT Y(has_threads_enabled)(void)
+{
+#ifdef _OPENMP
+  return 1;
+#else
+  return 0;
+#endif
+}
+

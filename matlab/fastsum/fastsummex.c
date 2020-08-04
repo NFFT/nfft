@@ -39,12 +39,6 @@ static unsigned short gflags = FASTSUM_MEX_FIRST_CALL;
 static fastsum_plan** plans = NULL; /* plans */
 static unsigned int plans_num_allocated = 0;
 
-static inline void check_nargs(const int nrhs, const int n, const char* errmsg)
-{
-  DM(if (nrhs != n)
-    mexErrMsgTxt(errmsg);)
-}
-
 static inline void check_plan(int i)
 {
   DM(if (i < 0 || i >= plans_num_allocated || plans[i] == 0)
@@ -209,16 +203,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if(strcmp(cmd,"get_num_threads") == 0)
   {
-    int32_t nthreads = X(get_num_threads)();
-    plhs[0] = mxCreateNumericMatrix(1, 1, mxINT32_CLASS, mxREAL);
-    *((int32_t *)mxGetData(plhs[0])) = nthreads;
+    INT nthreads = X(get_num_threads)();
+    plhs[0] = mxCreateDoubleScalar((double) nthreads);
+    return;
+  }
+  else if(strcmp(cmd,"set_num_threads") == 0)
+  {
+    int nthreads_new = nfft_mex_set_num_threads_check(nrhs, prhs, (void **) plans, plans_num_allocated);
+    X(set_num_threads)(nthreads_new);
 
     return;
   }
-  
+  else if(strcmp(cmd,"has_threads_enabled") == 0)
+  {
+    INT threads_enabled = X(has_threads_enabled)();
+    plhs[0] = mxCreateDoubleScalar((double) threads_enabled);
+    return;
+  }
   else if (strcmp(cmd,"init") == 0)
   {
-    check_nargs(nrhs,9,"Wrong number of arguments for init.");
+    nfft_mex_check_nargs(nrhs,9,"Wrong number of arguments for init.");
     
     int i;  /**< fastsum plan    */
     
@@ -268,7 +272,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"set_x") == 0)
   {
-    check_nargs(nrhs,5,"Wrong number of arguments for set_x.");
+    nfft_mex_check_nargs(nrhs,5,"Wrong number of arguments for set_x.");
     
     int i = nfft_mex_get_int(prhs[1],"fastsum set_x: Input argument plan must be a scalar.");
     check_plan(i);
@@ -343,7 +347,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"set_alpha") == 0)
   {
-    check_nargs(nrhs,3,"Wrong number of arguments for set_alpha.");
+    nfft_mex_check_nargs(nrhs,3,"Wrong number of arguments for set_alpha.");
     int i = nfft_mex_get_int(prhs[1],"fastsum set_x_alpha: Input argument plan must be a scalar.");
     check_plan(i);
     
@@ -380,7 +384,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"set_y") == 0)
   {
-    check_nargs(nrhs,5,"Wrong number of arguments for set_y.");
+    nfft_mex_check_nargs(nrhs,5,"Wrong number of arguments for set_y.");
     int i = nfft_mex_get_int(prhs[1],"fastsum set_y: Input argument plan must be a scalar.");
     check_plan(i);
 
@@ -432,7 +436,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"trafo_direct") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for trafo_direct.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for trafo_direct.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum trafo_direct: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_nodes(i);
@@ -442,7 +446,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"trafo") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for trafo.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for trafo.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum trafo: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_nodes(i);
@@ -452,7 +456,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_f") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_f.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_f.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum get_f: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_nodes(i);
@@ -469,7 +473,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"finalize") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum finalize: Input argument plan must be a scalar.");
     check_plan(i);
     nfft_free(plans[i]->kernel_param);
@@ -485,7 +489,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_x") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_x.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_x.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_source_nodes(i);
@@ -508,7 +512,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_alpha") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_alpha.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_alpha.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_source_nodes(i);
@@ -533,7 +537,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_y") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_y.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_y.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     check_plan_target_nodes(i);
@@ -552,7 +556,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_b") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_b.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_b.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     const int d = plans[i]->d;
@@ -576,7 +580,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"get_N_total") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for get_N_total.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for get_N_total.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
     check_plan(i);
     plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
@@ -587,7 +591,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   
   else if (strcmp(cmd,"display") == 0)
   {
-    check_nargs(nrhs,2,"Wrong number of arguments for display.");
+    nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for display.");
     {
       const int i = nfft_mex_get_int(prhs[1],"fastsum: Input argument plan must be a scalar.");
 	  check_plan(i);

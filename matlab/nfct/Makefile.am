@@ -23,7 +23,7 @@ dist_nfctmatlab_DATA = Contents.m FFTW_ESTIMATE.m FFTW_MEASURE.m \
 	nfct_get_num_threads.m nfct_get_x.m nfct_init_1d.m nfct_init_2d.m \
 	nfct_init_3d.m nfct_init_guru.m nfct_set_f.m nfct_set_f_hat.m \
 	nfct_set_x.m nfct_trafo.m simple_test.m test_nfct1d.m test_nfct2d.m \
-	test_nfct3d.m
+	test_nfct3d.m nfct_set_num_threads.m
 
 # target all-am builds .libs/libnfct@matlab_mexext@
 nfctmex@matlab_mexext@: all-am
