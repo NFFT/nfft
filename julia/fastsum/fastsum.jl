@@ -286,4 +286,12 @@ function trafo_exact( p::Plan )
 
 end #trafo
 
+function get_num_threads()
+	return ccall(("nfft_get_num_threads",lib_path),Int64,())
+end
+
+function set_num_threads(nthreads::Number)
+	ccall(("nfft_set_num_threads",lib_path),Nothing,(Int64,),convert(Int64,nthreads))
+end
+
 end #module

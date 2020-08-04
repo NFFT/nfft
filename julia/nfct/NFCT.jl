@@ -219,7 +219,7 @@ function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
 	elseif v == :plan
 		@warn "You can't modify the C pointer to the NFCT plan."
 	elseif v == :num_threads
-                @warn "You can't currently modify the number of threads."
+		@warn "You can't currently modify the number of threads of the NFCT plan. Use NFCT.set_num_threads(nthreads) instead."
 	elseif v == :init_done
 		@warn "You can't modify this flag."
 	elseif v == :N
@@ -336,6 +336,14 @@ function adjoint(P::NFCTplan{D}) where {D}
 	end
 	ptr = ccall(("jnfct_adjoint",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:fhat,ptr)
+end
+
+function get_num_threads()
+	return ccall(("nfft_get_num_threads",lib_path),Int64,())
+end
+
+function set_num_threads(nthreads::Number)
+	ccall(("nfft_set_num_threads",lib_path),Nothing,(Int64,),convert(Int64,nthreads))
 end
 
 # module end
