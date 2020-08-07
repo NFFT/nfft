@@ -121,6 +121,9 @@ JULIADIR=nfft-"$NFFTVERSION"-julia-macos_$ARCH$OMPSUFFIX
 mkdir "$JULIADIR"
 rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/julia/" "$JULIADIR"
 rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
+
+for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd "$NFFTBUILDDIR"; done;
+
 echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' macOS using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
 ' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
@@ -148,7 +151,7 @@ if [ -n "$MATLABDIR" ]; then
   fi
   cd "$NFFTBUILDDIR"
   make clean
-  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications --enable-exhaustive-unit-tests
+  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
   make
   make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
@@ -162,6 +165,22 @@ fi
 for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
   cp -f -L matlab/$SUBDIR/*.mex* "$DIR"/$SUBDIR/
+done
+
+for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt ; do
+  cd "$DIR/$SUBDIR"
+  if [ -f simple_test.m ] ; then
+  for TESTFILE in *test*.m
+    do
+    if [ "$SUBDIR" != "infft1d" ] ; then
+      "$OCTAVEDIR"/bin/octave-cli --eval="run('$TESTFILE')"
+    fi
+     if [ -n "$MATLABDIR" ]; then
+      "$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -r "run('$TESTFILE'); exit"
+    fi
+  done
+  fi
+  cd "$NFFTBUILDDIR"
 done
 
 cd "$NFFTBUILDDIR"
