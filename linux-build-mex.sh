@@ -21,7 +21,7 @@
 # When using flatpak, the following RSYNC variable should be used.
 RSYNC="flatpak-spawn --host rsync"
 # Otherwise, the RSYNC variable should be set to
-RSYNC=rsync
+#RSYNC=rsync
 #
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
@@ -30,6 +30,11 @@ set -ex
 FFTWVERSION=3.3.8
 GCCVERSION=8.3.0
 GCCARCH=haswell
+BINARIES_ARCH_README='
+Please note that since the binaries were compiled with gcc flag -march=haswell,
+they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
+AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
+'
 MPFRVERSION=4.0.1
 MPCVERSION=1.1.0
 
@@ -166,7 +171,7 @@ Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
 cd "$NFFTDIR"
 make distclean || true
 
-for OMPYN in 0 1
+for OMPYN in 1
 do
 if [ $OMPYN = 1 ]; then
   NFFTBUILDDIR="$HOMEDIR/build-openmp"
@@ -221,9 +226,10 @@ $RSYNC -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --excl
 $RSYNC -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' 'julia/' "$JULIADIR"
 for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test*.jl; do $HOMEDIR/$JULIA_BIN "$NAME"; done; cd "$NFFTBUILDDIR"; done;
 
-echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' Linux using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
+echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
+The NFFT library was compiled with double precision support for '$ARCH' Linux
+using GCC '$GCCVERSION' with -march='$GCCARCH' and FFTW '$FFTWVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$JULIADIR"/readme-julia.txt
 tar czf ../"$JULIADIR".tar.gz --owner=0 --group=0 "$JULIADIR"
 # End of Julia interface
 
@@ -280,12 +286,14 @@ cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' Linux using GCC '$GCCVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
-' "$READMECONTENT" > "$DIR"/readme-matlab.txt
+compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
+and FFTW '$FFTWVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
-echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled for
-64-bit Linux using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION'.
-' "$READMECONTENT" > "$DIR"/readme-matlab.txt
+echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
+and FFTW '$FFTWVERSION' and Octave '$OCTAVEVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
 tar czf ../"$DIR".tar.gz --owner=0 --group=0 "$DIR"
 

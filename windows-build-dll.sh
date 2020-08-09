@@ -28,6 +28,11 @@ OCTAVEVERSION=5.2.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
+BINARIES_ARCH_README='
+Please note that since the binaries were compiled with gcc flag -march=haswell,
+they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
+AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
+'
 SOVERSION=4
 OMP_ONLY=
 
@@ -172,6 +177,7 @@ FFTW
 The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
+
 cd "$NFFTDIR"
 #./bootstrap.sh
 make distclean || true
@@ -219,7 +225,7 @@ cp "$FFTWDIR"/api/fftw3.h "$DLLDIR"/fftw3.h
 cp examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
-using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
+using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with -march='$GCCARCH 'and FFTW' $FFTWVERSION'.
 
 In order to link the .dll file from Visual C++, you should run
     lib /def:libnfft3'$THREADSSUFFIX'-'$SOVERSION'.def
@@ -227,7 +233,7 @@ In order to link the .dll file from Visual C++, you should run
 As a small example, you can compile the NFFT simple test with the following command
 
 	gcc -O3 simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-'$SOVERSION'.dll
-' "$READMECONTENT" "$FFTWREADME" > "$DLLDIR"/readme-windows.txt
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DLLDIR"/readme-windows.txt
 unix2dos "$DLLDIR"/readme-windows.txt
 cp "$NFFTDIR"/COPYING "$DLLDIR"/COPYING
 rm -f "$HOMEDIR/$DLLDIR".zip
@@ -255,9 +261,9 @@ for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
-using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
-unix2dos "$JULIADIR"/readme.txt
+using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with -march='$GCCARCH 'and FFTW' $FFTWVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$JULIADIR"/readme-julia.txt
+unix2dos "$JULIADIR"/readme-julia.txt
 rm -f "$HOMEDIR/$JULIADIR".zip
 7z a -r "$HOMEDIR/$JULIADIR".zip "$JULIADIR"
 
@@ -266,9 +272,8 @@ rm -f "$HOMEDIR/$JULIADIR".zip
 if [ -n "$MATLABDIR" ]; then
   if [ "$MATLABVERSION" == "" ]; then
     "$MATLABDIR"/bin/matlab.exe -wait -nodesktop -nosplash -r "fid=fopen('matlab_version.txt','wt'); fprintf(fid,'MATLAB_VERSION=%s\n', version); exit;" 
-    MATLABVERSION=" and Matlab `grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
+    MATLABVERSION="`grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
-  MATLABSTRING=" and Matlab $MATLABVERSION"
   cd "$NFFTBUILDDIR"
   "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
   make
@@ -308,9 +313,10 @@ done
 
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
-echo 'This archive contains the Matlab and Octave interface of NFFT' $NFFTVERSION 'compiled for
-'$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH$MATLABSTRING' and Octave '$OCTAVEVERSION'.
-' "$READMECONTENT" > "$MEXDIR"/readme-matlab.txt
+echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32
+with -march='$GCCARCH$' and FFTW '$FFTWVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$MEXDIR"/readme-matlab.txt
 unix2dos "$MEXDIR"/readme-matlab.txt
 rm -f "$HOMEDIR/$MEXDIR".zip
 7z a -r "$HOMEDIR/$MEXDIR".zip "$MEXDIR"
@@ -330,7 +336,7 @@ rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' "$NFFTD
 echo 'This archive contains the NFFT' $NFFTVERSION 'applications.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
 using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with march='$GCCARCH 'and FFTW' $FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$APPSDIR"/readme.txt
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$APPSDIR"/readme.txt
 unix2dos "$APPSDIR"/readme.txt
 rm -f "$HOMEDIR/$APPSDIR".zip
 7z a -r "$HOMEDIR/$APPSDIR".zip "$APPSDIR"

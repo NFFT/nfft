@@ -69,11 +69,16 @@ FFTW
 The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
+BINARIES_ARCH_README='
+Please note that since the binaries were compiled with gcc flag -march=haswell,
+they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
+AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
+'
 
 cd "$NFFTDIR"
 make distclean || true
 
-for OMPYN in 0 1
+for OMPYN in 1
 do
 if [ $OMPYN = 1 ]; then
   NFFTBUILDDIR="$HOMEDIR/build-openmp"
@@ -124,9 +129,10 @@ rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='
 
 for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd "$NFFTBUILDDIR"; done;
 
-echo 'This archive contains the Julia interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' macOS using GCC '$GCCVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$JULIADIR"/readme.txt
+echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
+The NFFT library was compiled with double precision support for '$ARCH' macOS
+using GCC '$GCCVERSION' with -march='$GCCARCH' and FFTW '$FFTWVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$JULIADIR"/readme-julia.txt
 zip -9 -r ../"$JULIADIR".zip "$JULIADIR"
 # End of Julia interface
 
@@ -149,6 +155,7 @@ if [ -n "$MATLABDIR" ]; then
   if [ -z "$MATLABVERSION" ]; then
     MATLABVERSION=`"$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | gsed 's/.*(//' | gsed 's/)//'`
   fi
+  MATLABSTRING=" and Matlab $MATLABVERSION"
   cd "$NFFTBUILDDIR"
   make clean
   CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
@@ -187,13 +194,14 @@ cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' macOS using GCC '$GCCVERSION' and Matlab '$MATLABVERSION'
-and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$DIR"/readme-matlab.txt
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
+and FFTW '$FFTWVERSION$MATLABSTRING' and Octave '$OCTAVEVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
-echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION' compiled
-for '$ARCH' macOS using GCC '$GCCVERSION' and Octave '$OCTAVEVERSION' and FFTW '$FFTWVERSION'.
-' "$READMECONTENT" "$FFTWREADME" > "$DIR"/readme-matlab.txt
+echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
+and FFTW '$FFTWVERSION' and Octave '$OCTAVEVERSION'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
 
 zip -9 -r ../"$DIR".zip "$DIR"
