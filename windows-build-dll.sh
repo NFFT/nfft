@@ -315,7 +315,7 @@ cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$MEXDIR"/COPYING
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH'-bit Windows using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32
-with -march='$GCCARCH$' and FFTW '$FFTWVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
+with -march='$GCCARCH$' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$MEXDIR"/readme-matlab.txt
 unix2dos "$MEXDIR"/readme-matlab.txt
 rm -f "$HOMEDIR/$MEXDIR".zip

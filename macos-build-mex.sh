@@ -155,7 +155,7 @@ if [ -n "$MATLABDIR" ]; then
   if [ -z "$MATLABVERSION" ]; then
     MATLABVERSION=`"$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | gsed 's/.*(//' | gsed 's/)//'`
   fi
-  MATLABSTRING=" and Matlab $MATLABVERSION"
+  MATLABSTRING="and Matlab $MATLABVERSION "
   cd "$NFFTBUILDDIR"
   make clean
   CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
@@ -195,12 +195,12 @@ cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
-and FFTW '$FFTWVERSION$MATLABSTRING' and Octave '$OCTAVEVERSION'.
+'$MATLABSTRING'and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
 echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
-and FFTW '$FFTWVERSION' and Octave '$OCTAVEVERSION'.
+and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
 

@@ -287,12 +287,12 @@ cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
-and FFTW '$FFTWVERSION' and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
+and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
 echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
 compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
-and FFTW '$FFTWVERSION' and Octave '$OCTAVEVERSION'.
+and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
 tar czf ../"$DIR".tar.gz --owner=0 --group=0 "$DIR"
