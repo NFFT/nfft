@@ -21,7 +21,7 @@
 # When using flatpak, the following RSYNC variable should be used.
 RSYNC="flatpak-spawn --host rsync"
 # Otherwise, the RSYNC variable should be set to
-#RSYNC=rsync
+RSYNC=rsync
 #
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
@@ -179,7 +179,7 @@ if [ $OMPYN = 1 ]; then
   OMPLIBS="-fopenmp -static-libgcc"
   THREADSSUFFIX="_threads"
   OMPSUFFIX="-openmp"
-  FFTWLIBSTATIC="$FFTWDIR/build/threads/.libs/libfftw3_threads.a $FFTWDIR/build/.libs/libfftw3.a"
+  FFTWLIBSTATIC="$FFTWDIR/build/threads/.libs/libfftw3_threads.a -pthread $FFTWDIR/build/.libs/libfftw3.a -lm"
   GOMPLIBSTATIC="$GCCINSTALLDIR/lib64/libgomp.a"
 else
   NFFTBUILDDIR="$HOMEDIR/build"
@@ -187,7 +187,7 @@ else
   OMPLIBS=""
   THREADSSUFFIX=""
   OMPSUFFIX=""
-  FFTWLIBSTATIC="$FFTWDIR/build/.libs/libfftw3.a"
+  FFTWLIBSTATIC="$FFTWDIR/build/.libs/libfftw3.a -lm"
   GOMPLIBSTATIC=""
 fi
 
