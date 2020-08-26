@@ -25,10 +25,11 @@ transforms:
 Some examples for application of these transforms are provided:
 
 1. Medical imaging
-    - magnetic resonance imaging
-    - computerised tomography
+    - magnetic resonance imaging (mri)
+    - computerised tomography (radon)
 
 2. Summation schemes
+    - fast summation (fastsum)
     - fast Gauss transform (FGT)
     - singular kernels
     - zonal kernels
@@ -36,7 +37,7 @@ Some examples for application of these transforms are provided:
 3. polar FFT, discrete Radon transform, ridgelet transform
 
 Detailed API documentation in HTML format can be found in
-`doc/api/html/index.html`, if you are working from a release tarball.
+`doc/html/index.html`, if you are working from a release tarball.
 When working from a source repository, the documentation can be
 generated with Doxygen.
 ```
@@ -45,7 +46,7 @@ make doc
 
 Building
 --------
-The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros and MSYS. If you compile the FFTW yourself, it should be configured `--enable-shared`.
+The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured `--enable-shared`.
 
 When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
 ```

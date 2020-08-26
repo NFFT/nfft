@@ -4,6 +4,8 @@ ending = ".so"
 
 if Sys.iswindows( )
 	ending = ".dll"
+elseif Sys.isapple()
+	ending = ".dylib"
 end
 
 const lib_path = string( @__DIR__, "/libfastsumjulia", ending )
