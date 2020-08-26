@@ -2,7 +2,7 @@ push!(LOAD_PATH, pwd())
 using NFST
 using LinearAlgebra
 
-println( "2d NFST Test" )
+println( "3d NFST Test" )
 
 #bandwidth
 N = ( 32, 16 , 8 )
