@@ -85,16 +85,16 @@ static inline int mkplan()
       mexErrMsgTxt("fastsum: Too many plans already allocated.");
 
     fastsum_plan** plans_old = plans;
-    plans = nfft_malloc((plans_num_allocated+PLANS_START)*sizeof(fastsum_plan*));
+    plans = NFFT(malloc)((plans_num_allocated+PLANS_START)*sizeof(fastsum_plan*));
     for (l = 0; l < plans_num_allocated; l++)
       plans[l] = plans_old[l];
     for (l = plans_num_allocated; l < plans_num_allocated+PLANS_START; l++)
       plans[l] = 0;
     if (plans_num_allocated > 0)
-      nfft_free(plans_old);
+      NFFT(free)(plans_old);
     plans_num_allocated += PLANS_START;
   }
-  plans[i] = nfft_malloc(sizeof(fastsum_plan));
+  plans[i] = NFFT(malloc)(sizeof(fastsum_plan));
   return i;
 }
 
@@ -156,19 +156,19 @@ static void cleanup(void)
     for (i = 0; i < plans_num_allocated; i++)
       if (plans[i])
       {
-        nfft_free(plans[i]->kernel_param);
+        NFFT(free)(plans[i]->kernel_param);
         if(plans[i]->x)
           fastsum_finalize_source_nodes(plans[i]);
         if(plans[i]->y)
           fastsum_finalize_target_nodes(plans[i]);
         fastsum_finalize_kernel(plans[i]);
-        nfft_free(plans[i]);
+        NFFT(free)(plans[i]);
 	plans[i] = 0;
       }
 
     if (plans_num_allocated > 0)
     {
-      nfft_free(plans);
+      NFFT(free)(plans);
       plans = NULL;
       plans_num_allocated = 0;
     }
@@ -230,10 +230,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int n; /**< expansion degree        */
     int p; /**< degree of smoothness    */
     kernel ker; /**< kernel function         */
-    double *param; /**< parameter for kernel    */
+    R *param; /**< parameter for kernel    */
     double eps_I; /**< inner boundary          */
     double eps_B; /**< outer boundary          */
-    param = nfft_malloc(sizeof(double));
+    param = NFFT(malloc)(sizeof(R));
   
     d = nfft_mex_get_int(prhs[1],"fastsum init: Input argument d must be a scalar.");
     DM(if (d < 1)
@@ -476,13 +476,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nfft_mex_check_nargs(nrhs,2,"Wrong number of arguments for finalize.");
     const int i = nfft_mex_get_int(prhs[1],"fastsum finalize: Input argument plan must be a scalar.");
     check_plan(i);
-    nfft_free(plans[i]->kernel_param);
+    NFFT(free)(plans[i]->kernel_param);
     if(plans[i]->x || plans[i]->alpha)
       fastsum_finalize_source_nodes(plans[i]);
     if(plans[i]->y)
       fastsum_finalize_target_nodes(plans[i]);
     fastsum_finalize_kernel(plans[i]);
-    nfft_free(plans[i]);
+    NFFT(free)(plans[i]);
     plans[i] = 0;
     return;
   }

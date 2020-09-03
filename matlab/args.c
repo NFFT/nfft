@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "nfft3.h"
+#include "infft.h"
 #include "imex.h"
 
 int nfft_mex_get_int(const mxArray *p, const char *errmsg)
@@ -102,10 +103,10 @@ int nfft_mex_set_num_threads_check(const int nrhs, const mxArray *prhs[], void *
   if (nthreads_new < 1)
     mexErrMsgTxt("Number of threads must be at least 1.");
 
-  if (nthreads_new > 1 && !nfft_has_threads_enabled())
+  if (nthreads_new > 1 && !X(has_threads_enabled)())
     mexErrMsgTxt("Threads are not enabled.");
 
-  int nthreads_old = nfft_get_num_threads();
+  int nthreads_old = X(get_num_threads)();
   if (nthreads_new != nthreads_old)
   {
     int i;
@@ -117,7 +118,7 @@ int nfft_mex_set_num_threads_check(const int nrhs, const mxArray *prhs[], void *
         break;
       }
     if (is_plan_allocated)
-      mexWarnMsgTxt("At least one plan is allocated. New number of threads may not change for the FFT step of any allocated plans.");
+      mexWarnMsgTxt("At least one plan is allocated. New number of threads may not affect the FFT step of any allocated plans.");
   }
 
   return nthreads_new;

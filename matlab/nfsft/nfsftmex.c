@@ -41,6 +41,7 @@ static int n_max = -1; /* maximum degree precomputed */
 static double kappa_global; /* parameters of percompute */
 static unsigned int nfsft_flags_global = 0U;
 static unsigned int fpt_flags_global = 0U;
+static int nthreads_global = 1;
 static char cmd[CMD_LEN_MAX];
 
 static inline void get_nmf(const mxArray *prhs[], int *n, int *m,
@@ -139,10 +140,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * which otherwise crashes upon invocation of this mex function. */
     mexEvalString("fft([1,2,3,4]);");
 
-/**  Disabled for performance issues caused by non-thread-safe mxMalloc()
-  *  and many calls of nfft_malloc in nfsft_precompute/fpt_precompute...
-  */
     nfft_mex_install_mem_hooks();
+    nthreads_global = X(get_num_threads)();
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;
@@ -212,7 +211,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       double k = nfft_mex_get_double(prhs[2],"nfsft: Input argument kappa must be a scalar.");
       unsigned int f = nfft_mex_get_int(prhs[3],"nfsft: Input argument flags must be a scalar.");
       unsigned int f2 = nfft_mex_get_int(prhs[4],"nfsft: Input argument flags2 must be a scalar.");
-      if ((n_max < n) || (k != kappa_global) || (f != nfsft_flags_global) || (f2 != fpt_flags_global))
+      if ((n_max < n) || (k != kappa_global) || (f != nfsft_flags_global) || (f2 != fpt_flags_global) || (nthreads_global != X(get_num_threads)()))
       {
         if (gflags & NFSFT_MEX_PRECOMPUTED)
           nfsft_forget();
@@ -509,7 +508,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if(strcmp(cmd,"set_num_threads") == 0)
   {
     int nthreads_new = nfft_mex_set_num_threads_check(nrhs, prhs, (void **) plans, plans_num_allocated);
+    DM(if ((gflags & NFSFT_MEX_PRECOMPUTED) && (nthreads_new != nthreads_global))
+      mexWarnMsgTxt("New number of threads may not affect the FPT step unless you re-run nfsft_precompute.");)
     X(set_num_threads)(nthreads_new);
+    nthreads_global = nthreads_new;
 
     return;
   }
