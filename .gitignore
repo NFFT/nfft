@@ -91,6 +91,8 @@ applications/fastsum/fastsum_test
 applications/fastsum/fastsum_test_threads
 applications/fastsumS2/fastsumS2
 applications/iterS2/iterS2
+applications/mri/mri2d/*.dat
+applications/mri/mri2d/pics_*
 applications/mri/mri2d/construct_data_2d
 applications/mri/mri2d/construct_data_inh_2d1d
 applications/mri/mri2d/construct_data_inh_3d
@@ -99,6 +101,8 @@ applications/mri/mri2d/reconstruct_data_gridding
 applications/mri/mri2d/reconstruct_data_inh_2d1d
 applications/mri/mri2d/reconstruct_data_inh_3d
 applications/mri/mri2d/reconstruct_data_inh_nnfft
+applications/mri/mri3d/*.dat
+applications/mri/mri3d/pics_*
 applications/mri/mri3d/construct_data_2d1d
 applications/mri/mri3d/construct_data_3d
 applications/mri/mri3d/reconstruct_data_2d1d

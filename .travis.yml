@@ -54,15 +54,19 @@ jobs:
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION=--enable-long-double
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION=--enable-float
+    - env: WINDOW=gaussian PRECISION=
+    - env: WINDOW=bspline PRECISION=
+    - env: WINDOW=sinc PRECISION=
     - env: WINDOW=gaussian PRECISION=--enable-long-double
     - env: WINDOW=bspline PRECISION=--enable-long-double
     - env: WINDOW=sinc PRECISION=--enable-long-double
     - env: WINDOW=gaussian PRECISION=--enable-float
     - env: WINDOW=bspline PRECISION=--enable-float
     - env: WINDOW=sinc PRECISION=--enable-float
-    - env: WINDOW=gaussian PRECISION=
-    - env: WINDOW=bspline PRECISION=
-    - env: WINDOW=sinc PRECISION=
 before_install:
 - |-
   case $TRAVIS_OS_NAME in
