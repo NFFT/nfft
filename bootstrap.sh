@@ -32,8 +32,6 @@ alias libtoolize=$(type -p glibtoolize libtoolize | head -1)
 
 touch ChangeLog
 
-echo "PLEASE IGNORE WARNINGS AND ERRORS"
-
 rm -rf autom4te.cache
 libtoolize
 autoreconf --verbose --install --force
