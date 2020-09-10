@@ -28,9 +28,12 @@ try
 
   result = nfft_check_4d_online(tests); ok = min(ok, result);
   result = nfft_check_adjoint_4d_online(tests); ok = min(ok, result);
-
-  result = nfft_check_5d_online(tests); ok = min(ok, result);
-  result = nfft_check_adjoint_5d_online(tests); ok = min(ok, result);
+  
+  % 5d tests only in double precision
+  if (nfftmex('get_epsilon') < 1e-10)
+    result = nfft_check_5d_online(tests); ok = min(ok, result);
+    result = nfft_check_adjoint_5d_online(tests); ok = min(ok, result);
+  end
 
   clear tests;
 catch err

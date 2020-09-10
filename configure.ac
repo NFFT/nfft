@@ -351,7 +351,7 @@ fi
 # Check for MATLAB.
 AX_PROG_MATLAB
 
-if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd"; then
+if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd" -a "x$PRECISION" != "xs"; then
   AC_MSG_ERROR([Building the Matlab interfaces requires double precision.])
 fi
 

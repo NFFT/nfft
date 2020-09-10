@@ -483,10 +483,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       mexPrintf("        d: %d\n",plans[i]->d);
       mexPrintf("  N_total: %d\n",plans[i]->N_total);
       mexPrintf("  M_total: %d\n",plans[i]->M_total);
+      mexPrintf("     n[1]: %d\n",plans[i]->n[1]);
+      mexPrintf("        m: %d\n",plans[i]->m);
       mexPrintf("        x: %p\n",plans[i]->x);
       mexPrintf("        f: %p\n",plans[i]->f);
       mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
       mexPrintf("    flags: %d\n",plans[i]->flags);
+      mexPrintf("fft_flags: %d\n",plans[i]->fftw_flags);
     }
     return;
   }
@@ -512,6 +515,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   else if(strcmp(cmd,"get_default_window_cut_off_m") == 0)
   {
     plhs[0] = mxCreateDoubleScalar((double) WINDOW_HELP_ESTIMATE_m);
+    return;
+  }
+  else if(strcmp(cmd,"get_epsilon") == 0)
+  {
+    plhs[0] = mxCreateDoubleScalar((double) X(float_property)(NFFT_EPSILON));
     return;
   }
   else

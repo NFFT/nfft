@@ -54,10 +54,15 @@ jobs:
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION= DIST=distcheck
       addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "doxygen", "doxygen-latex", "graphviz"] } }
+    - dist: focal
+      compiler: gcc
+      env: WINDOW=kaiserbessel PRECISION=--enable-float BUILD_OCTAVE=1 
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
+    - compiler: clang
+      env: WINDOW=kaiserbessel PRECISION=--enable-float BUILD_OCTAVE=1
+      addons: { apt: { packages: ["libfftw3-dev", "libcunit1-dev", "liboctave-dev"] } }
     - compiler: clang
       env: WINDOW=kaiserbessel PRECISION=--enable-long-double
-    - compiler: clang
-      env: WINDOW=kaiserbessel PRECISION=--enable-float
     - env: WINDOW=gaussian PRECISION=
     - env: WINDOW=bspline PRECISION=
     - env: WINDOW=sinc PRECISION=

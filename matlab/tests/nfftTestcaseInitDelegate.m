@@ -14,7 +14,11 @@ classdef nfftTestcaseInitDelegate
   methods
     function h = nfftTestcaseInitDelegate(name, m, flags, fftw_flags)
       h.name = name;
-      h.m = m;
+      if (m==0)
+        h.m = nfftmex('get_default_window_cut_off_m');
+      else
+        h.m = m;
+      end
       h.flags = flags;
       h.fftw_flags = fftw_flags;
     end

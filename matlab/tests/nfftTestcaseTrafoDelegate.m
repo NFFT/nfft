@@ -85,12 +85,13 @@ classdef nfftTestcaseTrafoDelegate
     end
     
     function val = acc(h, m, sigma)
+      epsilon = nfftmex('get_epsilon');
       switch h.name
         case {'trafo_direct', 'adjoint_direct'}
-          val = 48 * eps;
+          val = 48 * epsilon;
         otherwise
           err = pi * (sqrt(m) + m) * sqrt(sqrt(1 - 1/2)) * exp(-2*pi * m * sqrt(1 - 1 / 2));
-          val = max(0.33 * err, 2500 * eps);
+          val = max(0.33 * err, 2500 * epsilon);
       end
     end
   end
