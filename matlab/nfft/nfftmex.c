@@ -348,13 +348,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       m = plans[i]->M_total;
       d = plans[i]->d;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)d, (unsigned int)m, mxREAL);
+      const mwSize dims[2] = {d, m};
+#if defined(NFFT_SINGLE)
+      plhs[0] = mxCreateNumericArray(2, dims, mxSINGLE_CLASS, mxREAL);
+      float *x = (float*)mxGetData(plhs[0]);
+#else
+      plhs[0] = mxCreateNumericArray(2, dims, mxDOUBLE_CLASS, mxREAL);
+      double *x = (double*)mxGetData(plhs[0]);
+#endif
       {
-        double *x = mxGetPr(plhs[0]);
         int j,t;
         for (j = 0; j < m; j++)
-	  for (t = 0; t < d; t++)
-	    x[d*j+t] = plans[i]->x[d*j+t];
+          for (t = 0; t < d; t++)
+            x[d*j+t] = plans[i]->x[d*j+t];
       }
     }
     return;
@@ -367,9 +373,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int m;
       check_plan(i);
       m = plans[i]->M_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)m, 1, mxCOMPLEX);
+      const mwSize dims[2] = {m, 1};
+#if defined(NFFT_SINGLE)
+      plhs[0] = mxCreateNumericArray(2, dims, mxSINGLE_CLASS, mxCOMPLEX);
+      float *fr = (float*)mxGetData(plhs[0]), *fi = (float*)mxGetImagData(plhs[0]);
+#else
+      plhs[0] = mxCreateNumericArray(2, dims, mxDOUBLE_CLASS, mxCOMPLEX);
+      double *fr = (double*)mxGetData(plhs[0]), *fi = (double*)mxGetImagData(plhs[0]);
+#endif
       {
-        double *fr = mxGetPr(plhs[0]), *fi = mxGetPi(plhs[0]);
         int j;
         for (j = 0; j < m; j++)
         {
@@ -388,9 +400,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int n;
       check_plan(i);
       n = plans[i]->N_total;
-      plhs[0] = mxCreateDoubleMatrix((unsigned int)n, 1, mxCOMPLEX);
+      const mwSize dims[2] = {n, 1};
+#if defined(NFFT_SINGLE)
+      plhs[0] = mxCreateNumericArray(2, dims, mxSINGLE_CLASS, mxCOMPLEX);
+      float *f_hatr = (float*)mxGetData(plhs[0]), *f_hati = (float*)mxGetImagData(plhs[0]);
+#else
+      plhs[0] = mxCreateNumericArray(2, dims, mxDOUBLE_CLASS, mxCOMPLEX);
+      double *f_hatr = (double*)mxGetData(plhs[0]), *f_hati = (double*)mxGetImagData(plhs[0]);
+#endif
       {
-        double *f_hatr = mxGetPr(plhs[0]), *f_hati = mxGetPi(plhs[0]);
         int k;
         for (k = 0; k < n; k++)
         {
@@ -410,17 +428,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       check_plan(i);
       m = plans[i]->M_total;
       d = plans[i]->d;
-      DM(if (!mxIsDouble(prhs[2]) || mxGetNumberOfDimensions(prhs[2]) > 2)
+      DM(if (mxGetNumberOfDimensions(prhs[2]) > 2)
         mexErrMsgTxt("Input argument x must be a d x M double array");)
       DM(if (mxGetM(prhs[2]) != (unsigned int)d || mxGetN(prhs[2]) != (unsigned int)m)
         mexErrMsgTxt("Input argument x must have correct size (d x M).");)
+      if (mxIsDouble(prhs[2]))
       {
         double *x = mxGetPr(prhs[2]);
-        int j,t;
-        for (j = 0; j < m; j++)
-	  for (t = 0; t < d; t++)
-	    plans[i]->x[d*j+t] = x[d*j+t];
+        for (int j = 0; j < m; j++)
+          for (int t = 0; t < d; t++)
+            plans[i]->x[d*j+t] = x[d*j+t];
       }
+      else if (mxIsSingle(prhs[2]))
+      {
+        float *x = (float*)mxGetData(prhs[2]);
+        for (int j = 0; j < m; j++)
+          for (int t = 0; t < d; t++)
+            plans[i]->x[d*j+t] = x[d*j+t];
+      }
+      else
+        DM(mexErrMsgTxt("Input argument x must be a d x M double array");)
     }
     return;
   }
@@ -434,16 +461,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       m = plans[i]->M_total;
       DM(if (mxGetM(prhs[2]) * mxGetN(prhs[2]) != (unsigned int)m)
         mexErrMsgTxt("Input argument f must have correct size.");)
+      if (mxIsDouble(prhs[2]))
       {
         double *fr = mxGetPr(prhs[2]), *fi = mxGetPi(prhs[2]);
-        int j;
         if (fi)
-          for (j = 0; j < m; j++)
+          for (int j = 0; j < m; j++)
             plans[i]->f[j] = fr[j] + I*fi[j];
         else
-          for (j = 0; j < m; j++)
+          for (int j = 0; j < m; j++)
             plans[i]->f[j] = fr[j];
       }
+      else if (mxIsSingle(prhs[2]))
+      {
+        float *fr = (float*)mxGetData(prhs[2]), *fi = (float*)mxGetImagData(prhs[2]);
+        if (fi)
+          for (int j = 0; j < m; j++)
+            plans[i]->f[j] = fr[j] + I*fi[j];
+        else
+          for (int j = 0; j < m; j++)
+            plans[i]->f[j] = fr[j];
+      }
+      else
+        DM(mexErrMsgTxt("Input argument f must be a double array");)
     }
     return;
   }
@@ -455,20 +494,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int n;
       check_plan(i);
       n = plans[i]->N_total;
-      DM(if (!mxIsDouble(prhs[2]))
-        mexErrMsgTxt("Input argument f must be a double array");)
       DM(if (   mxGetM(prhs[2]) != (unsigned int)n || mxGetN(prhs[2]) != 1)
-        mexErrMsgTxt("Input argument f must have correct size.");)
+        mexErrMsgTxt("Input argument f_hat must have correct size.");)
+      if (mxIsDouble(prhs[2]))
       {
         double *f_hatr = mxGetPr(prhs[2]), *f_hati = mxGetPi(prhs[2]);
-        int k;
         if (f_hati)
-          for (k = 0; k < n; k++)
+          for (int k = 0; k < n; k++)
             plans[i]->f_hat[k] = f_hatr[k] + I*f_hati[k];
         else
-          for (k = 0; k < n; k++)
+          for (int k = 0; k < n; k++)
             plans[i]->f_hat[k] = f_hatr[k];
       }
+      else if (mxIsSingle(prhs[2]))
+      {
+        float *f_hatr = (float*)mxGetData(prhs[2]), *f_hati = (float*)mxGetImagData(prhs[2]);
+        if (f_hati)
+          for (int k = 0; k < n; k++)
+            plans[i]->f_hat[k] = f_hatr[k] + I*f_hati[k];
+        else
+          for (int k = 0; k < n; k++)
+            plans[i]->f_hat[k] = f_hatr[k];
+      }
+      else
+        DM(mexErrMsgTxt("Input argument f_hat must be a double array");)
     }
     return;
   }
@@ -479,17 +528,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int i = nfft_mex_get_int(prhs[1],"nfft: Input argument plan must be a scalar.");
       mexPrintf("Plan %d\n",i);
       check_plan(i);
-      mexPrintf("  pointer: %p\n",plans[i]);
-      mexPrintf("        d: %d\n",plans[i]->d);
-      mexPrintf("  N_total: %d\n",plans[i]->N_total);
-      mexPrintf("  M_total: %d\n",plans[i]->M_total);
-      mexPrintf("     n[1]: %d\n",plans[i]->n[1]);
-      mexPrintf("        m: %d\n",plans[i]->m);
-      mexPrintf("        x: %p\n",plans[i]->x);
-      mexPrintf("        f: %p\n",plans[i]->f);
-      mexPrintf("    f_hat: %p\n",plans[i]->f_hat);
-      mexPrintf("    flags: %d\n",plans[i]->flags);
-      mexPrintf("fft_flags: %d\n",plans[i]->fftw_flags);
+      mexPrintf("   pointer: %p\n",plans[i]);
+      mexPrintf("         d: %d\n",plans[i]->d);
+      mexPrintf("   N_total: %d\n",plans[i]->N_total);
+      mexPrintf("   M_total: %d\n",plans[i]->M_total);
+      mexPrintf("      n[1]: %d\n",plans[i]->n[1]);
+      mexPrintf("         m: %d\n",plans[i]->m);
+      mexPrintf("         x: %p\n",plans[i]->x);
+      mexPrintf("         f: %p\n",plans[i]->f);
+      mexPrintf("     f_hat: %p\n",plans[i]->f_hat);
+      mexPrintf("     flags: %d\n",plans[i]->flags);
+      mexPrintf("fftw_flags: %d\n",plans[i]->fftw_flags);
     }
     return;
   }
