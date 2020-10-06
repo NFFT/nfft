@@ -118,7 +118,7 @@ int nfft_mex_set_num_threads_check(const int nrhs, const mxArray *prhs[], void *
         break;
       }
     if (is_plan_allocated)
-      mexWarnMsgTxt("At least one plan is allocated. New number of threads may not affect the FFT step of any allocated plans.");
+      mexWarnMsgIdAndTxt("nfft:set_num_threads:plansAllocated","At least one plan is allocated. New number of threads may not affect the FFT step of any allocated plans.");
   }
 
   return nthreads_new;

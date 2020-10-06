@@ -509,7 +509,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   {
     int nthreads_new = nfft_mex_set_num_threads_check(nrhs, prhs, (void **) plans, plans_num_allocated);
     DM(if ((gflags & NFSFT_MEX_PRECOMPUTED) && (nthreads_new != nthreads_global))
-      mexWarnMsgTxt("New number of threads may not affect the FPT step unless you re-run nfsft_precompute.");)
+      mexWarnMsgIdAndTxt("nfft:set_num_threads:fptAllocated","New number of threads may not affect the FPT step unless you re-run nfsft_precompute.");)
     X(set_num_threads)(nthreads_new);
     nthreads_global = nthreads_new;
 
