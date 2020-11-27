@@ -119,7 +119,7 @@ C logarithm(R x, int der, const R *param)    /* K(x)=LOG |x| */
 
   (void)param;
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=LOG(FABS(x)); break;
@@ -152,7 +152,7 @@ C thinplate_spline(R x, int der, const R *param)    /* K(x) = x^2 LOG |x| */
 
   (void)param;
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=x*x*LOG(FABS(x)); break;
@@ -180,7 +180,7 @@ C one_over_square(R x, int der, const R *param)    /* K(x) = 1/x^2 */
 
   (void)param;
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=K(1.0)/(x*x); break;
@@ -208,7 +208,7 @@ C one_over_modulus(R x, int der, const R *param)    /* K(x) = 1/|x| */
 
   (void)param;
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=K(1.0)/FABS(x); break;
@@ -236,7 +236,7 @@ C one_over_x(R x, int der, const R *param)    /* K(x) = 1/x */
 
   (void)param;
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=K(1.0)/x; break;
@@ -289,7 +289,7 @@ C sinc_kernel(R x, int der, const R *param)    /* K(x) = SIN(cx)/x */
   R c=param[0];
   R value=K(0.0);
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=c;
   else switch (der)
   {
     case  0 : value=SIN(c*x)/x; break;
@@ -320,7 +320,7 @@ C cosc(R x, int der, const R *param)    /* K(x) = COS(cx)/x */
   if (x<0) sign=-K(1.0); else sign=K(1.0);
   x=FABS(x);
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value=COS(c*x)/x; break;
@@ -348,7 +348,7 @@ C kcot(R x, int der, const R *param)   /* K(x) = cot(cx) */
   R c=param[0];
   R value=K(0.0);
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value = K(1.0)/TAN(c * x); break;
@@ -376,7 +376,7 @@ C one_over_cube(R x, int der, const R *param)
   R value=K(0.0);
   UNUSED(param);
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else switch (der)
   {
     case  0 : value = K(1.0)/(x*x*x); break;
@@ -404,7 +404,7 @@ C log_sin(R x, int der, const R *param)   /* K(x) = log(|sin(cx)|) */
   R c=param[0];
   R value=K(0.0);
 
-  if (FABS(x)<DBL_EPSILON) value=K(0.0);
+  if (FABS(x)<EPSILON) value=K(0.0);
   else
   {
       if (der == 0) value = LOG(FABS(SIN(c * x)));

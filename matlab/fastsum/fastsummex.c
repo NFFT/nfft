@@ -231,8 +231,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int p; /**< degree of smoothness    */
     kernel ker; /**< kernel function         */
     R *param; /**< parameter for kernel    */
-    double eps_I; /**< inner boundary          */
-    double eps_B; /**< outer boundary          */
+    R eps_I; /**< inner boundary          */
+    R eps_B; /**< outer boundary          */
     param = NFFT(malloc)(sizeof(R));
   
     d = nfft_mex_get_int(prhs[1],"fastsum init: Input argument d must be a scalar.");
