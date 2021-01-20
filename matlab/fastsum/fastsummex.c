@@ -143,6 +143,7 @@ static inline void zero_nodes_pointer(int i)
 {
   // Initialize pointers that are set in init_nodes
   plans[i]->x = 0;
+  plans[i]->alpha = 0;
   plans[i]->y = 0;
 }
 
