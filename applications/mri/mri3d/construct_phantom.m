@@ -35,32 +35,24 @@ A = [1.0 0.69 0.92 0.0 0.0 0;
 
 % compute the phantom
 B = zeros(N_,N_,Z);
-for l=1:10,
-  for z=1:Z,
-    for y=1:N_,
-      for x=1:N_,
-        x_=    x /(N_/2)-1;
-        y_=    y /(N_/2)-1;
-        r = sqrt(x_^2+y_^2);
-        if x_==0 & y_==0,
-          phi=0;
-          elseif x_ >= 0 & y_ >= 0,
-            phi=asin(y_/r);
-          elseif x_ < 0 & y_ > 0,
-            phi=asin(-y_/r)+pi;
-          elseif x_ <= 0 & y_ <= 0,
-            phi=asin(-y_/r)+pi;
-          elseif x_ > 0 & y_ < 0,
-            phi=asin(y_/r);
-          end
+for y=1:N_
+  y_=    y /(N_/2)-1;
+  for x=1:N_
+    x_=    x /(N_/2)-1;
+    r = sqrt(x_*x_+y_*y_);
+    if x_==0 && y_==0
+      phi=0;
+    elseif (x_ > 0) || (x_ >= 0 && y_ >= 0)
+        phi=asin(y_/r);
+    else
+        phi=asin(-y_/r)+pi;
+    end
+    for z=1:Z
+      for l=1:10
           if(((r*cos(pi*A(l,6)/180+phi)+A(l,4))/A(l,2))^2+...
           ((r*sin(pi*A(l,6)/180+phi)+A(l,5))/A(l,3))^2+...
-          ((z/(Z/2)-1)/A(l,3))^2 <= 1 ),
-            if B(x,y,z) > 0.1 & l>2,
-              B(x,y,z) = B(x,y,z) +A(l,1);
-            else
-              B(x,y,z) = A(l,1);
-            end
+          ((z/(Z/2)-1)/A(l,3))^2 <= 1 )
+              B(x,y,z) = B(x,y,z)*(B(x,y,z) > 0.1) .* (l>2) +A(l,1);
           end
       end
     end
@@ -73,13 +65,13 @@ C(N/2-N_/2+1:N/2+N_/2,N/2-N_/2+1:N/2+N_/2,:)=B;
 B=C;
 
 % rotate the matrix B
-for z=1:Z,
+for z=1:Z
   B(:,:,z)=rot90(rot90(rot90((B(:,:,z)))));
 end
 
 output=zeros(Z,N*N);
 
-for z_=0:Z-1,
+for z_=0:Z-1
   output(z_+1,:)=reshape(B(:,:,z_+1),1,N*N);
 end
 
