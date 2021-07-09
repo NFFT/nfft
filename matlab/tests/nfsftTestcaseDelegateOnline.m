@@ -18,7 +18,7 @@ classdef nfsftTestcaseDelegateOnline < nfsftTestcaseDelegate
       if (h.M==0)  % equispaced nodes
         fprintf('%-31s', 'nfsft_online_equispaced');
         ph=(-h.N-1:h.N)/(2*h.N+2)*2*pi;
-        th=(0:h.N)/(2*h.N+2)*2*pi;
+        th=(0:h.N+1)/(2*h.N+2)*2*pi;
         [ph,th]=meshgrid(ph,th);
         h.x=[ph(:)';th(:)'];
         h.M=size(h.x,2);

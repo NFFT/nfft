@@ -35,11 +35,11 @@ nfsft_precompute(N,kappa,0,0*FPT_NO_FAST_ALGORITHM);
 fprintf('Time of precomputation:    %g seconds\n', toc);
 
 % number of nodes
-M = (2*N+2) * (N+1);
+M = (2*N+2) * (N+2);
 
 % nodes
 ph=(-N-1:N)/(2*N+2)*2*pi;
-th=(0:N)/(2*N+2)*2*pi;
+th=(0:N+1)/(2*N+2)*2*pi;
 [ph,th]=meshgrid(ph,th);
 X=[ph(:)';th(:)'];
 
