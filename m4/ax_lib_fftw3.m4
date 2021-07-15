@@ -27,14 +27,14 @@
 
 AC_DEFUN([AX_LIB_FFTW3],
 [
-  AC_ARG_WITH(fftw3, [AC_HELP_STRING([--with-fftw3=DIR],
+  AC_ARG_WITH(fftw3, [AS_HELP_STRING([--with-fftw3=DIR],
   [compile with fftw3 in DIR])], with_fftw3=$withval, with_fftw3="yes")
 
-  AC_ARG_WITH(fftw3-libdir, [AC_HELP_STRING([--with-fftw3-libdir=DIR],
+  AC_ARG_WITH(fftw3-libdir, [AS_HELP_STRING([--with-fftw3-libdir=DIR],
   [compile with fftw3 library directory DIR])], fftw3_lib_dir=$withval, 
     fftw3_lib_dir="yes")
 
-  AC_ARG_WITH(fftw3-includedir, [AC_HELP_STRING([--with-fftw3-includedir=DIR],
+  AC_ARG_WITH(fftw3-includedir, [AS_HELP_STRING([--with-fftw3-includedir=DIR],
   [compile with fftw3 include directory DIR])], fftw3_include_dir=$withval, 
     fftw3_include_dir="yes")
 

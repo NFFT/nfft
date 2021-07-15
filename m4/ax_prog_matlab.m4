@@ -29,23 +29,23 @@ AC_DEFUN([AX_PROG_MATLAB],
 
   # option to enable mex file compilation for GNU Octave
   AC_ARG_WITH(octave,
-    [AC_HELP_STRING([--with-octave=DIR],
+    [AS_HELP_STRING([--with-octave=DIR],
       [the directory where GNU Octave is installed])],
     octave_dir=${withval},octave_dir="no")
 
   # option to enable mex file compilation
   AC_ARG_WITH(matlab,
-    [AC_HELP_STRING([--with-matlab=DIR],
+    [AS_HELP_STRING([--with-matlab=DIR],
       [the directory where Matlab is installed])],
     matlab_dir=${withval},matlab_dir="no")
 
   AC_ARG_WITH(matlab-arch,
-    [AC_HELP_STRING([--with-matlab-arch=DIR],
+    [AS_HELP_STRING([--with-matlab-arch=DIR],
       [Matlab architecture acronym])],
     matlab_arch=${withval},matlab_arch="yes")
 
   AC_ARG_ENABLE(matlab-argchecks,
-    [AC_HELP_STRING([--enable-matlab-argchecks],
+    [AS_HELP_STRING([--enable-matlab-argchecks],
       [Compile Matlab interface with argument checks (recommended) [default=yes]])],
       [ok="$enableval"],
       [ok="yes"])
@@ -54,12 +54,12 @@ AC_DEFUN([AX_PROG_MATLAB],
     AC_DEFINE(MATLAB_ARGCHECKS,1,[Define to enable Matlab argument checks.])
   fi
 
-  AC_ARG_WITH(matlab-fftw3-libdir, [AC_HELP_STRING([--with-matlab-fftw3-libdir=DIR],
+  AC_ARG_WITH(matlab-fftw3-libdir, [AS_HELP_STRING([--with-matlab-fftw3-libdir=DIR],
   [compile Matlab interface with fftw3 library directory DIR])], matlab_fftw3_lib_dir=$withval, 
     matlab_fftw3_lib_dir="yes")
 
   AC_ARG_ENABLE(matlab-threads,
-    [AC_HELP_STRING([--enable-matlab-threads],
+    [AS_HELP_STRING([--enable-matlab-threads],
       [Compile Matlab interface with thread support [default same as --enable-openmp]])],
       [matlab_threads="$enableval"],
       [matlab_threads="$enable_threads"])
@@ -378,11 +378,11 @@ AC_DEFUN([AX_PROG_MATLAB],
       octave_cli="${OCTAVE_PATH}"/bin/octave-cli
     fi
 
-    AC_ARG_WITH(octave-libdir, [AC_HELP_STRING([--with-octave-libdir=DIR],
+    AC_ARG_WITH(octave-libdir, [AS_HELP_STRING([--with-octave-libdir=DIR],
     [compile with Octave library directory DIR])], octave_lib_dir=$withval, 
       octave_lib_dir="yes")
 
-    AC_ARG_WITH(octave-includedir, [AC_HELP_STRING([--with-octave-includedir=DIR],
+    AC_ARG_WITH(octave-includedir, [AS_HELP_STRING([--with-octave-includedir=DIR],
     [compile with octave include directory DIR])], octave_include_dir=$withval, 
       octave_include_dir="yes")
 

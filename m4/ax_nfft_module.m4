@@ -6,7 +6,7 @@ AC_DEFUN([AX_NFFT_MODULE],
       nfft_module_default_local="no"
     fi
   fi
-  AC_ARG_ENABLE($1, [AC_HELP_STRING([--enable-]$1,[build ]$2[ module (]$3[)])], 
+  AC_ARG_ENABLE($1, [AS_HELP_STRING([--enable-]$1,[build ]$2[ module (]$3[)])], 
     ok=$enableval, ok=$nfft_module_default_local)
   AC_MSG_CHECKING([Whether to compile $2 module])
   if m4_default($7,test "x$ok" = "xyes"); then
