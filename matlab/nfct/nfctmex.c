@@ -144,7 +144,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i;
       int n, m;
-      nfft_mex_get_nm(prhs,&n,&m);
+      nfft_mex_get_nm_odd(prhs,&n,&m);
       i = mkplan();
       NFCT(init_1d)(plans[i],n,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
@@ -157,7 +157,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i;
       int n1, n2, m;
-      nfft_mex_get_n1n2m(prhs,&n1,&n2,&m);
+      nfft_mex_get_n1n2m_odd(prhs,&n1,&n2,&m);
       i = mkplan();
       NFCT(init_2d)(plans[i],n1,n2,m);
       plhs[0] = mxCreateDoubleScalar((double)i);
@@ -170,7 +170,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i;
       int n1, n2, n3, m;
-      nfft_mex_get_n1n2n3m(prhs,&n1,&n2,&n3,&m);
+      nfft_mex_get_n1n2n3m_odd(prhs,&n1,&n2,&n3,&m);
       i = mkplan();
       NFCT(init_3d)(plans[i],n1,n2,n3,m);
       plhs[0] = mxCreateDoubleScalar((double)i);

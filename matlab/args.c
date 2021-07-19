@@ -47,6 +47,18 @@ void nfft_mex_get_nm(const mxArray *prhs[], int *n, int *m)
   *m = t;
 }
 
+void nfft_mex_get_nm_odd(const mxArray *prhs[], int *n, int *m)
+{
+  int t = nfft_mex_get_int(prhs[1],"Input argument N must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N must be non-negative.");)
+  *n = t;
+  t = nfft_mex_get_int(prhs[2],"Input argument M must be a scalar.");
+  DM(if (t < 1)
+    mexErrMsgTxt("Input argument M must be positive.");)
+  *m = t;
+}
+
 void nfft_mex_get_n1n2m(const mxArray *prhs[], int *n1, int *n2, int *m)
 {
   int t = nfft_mex_get_int(prhs[1],"Input argument N1 must be a scalar.");
@@ -57,6 +69,24 @@ void nfft_mex_get_n1n2m(const mxArray *prhs[], int *n1, int *n2, int *m)
   t = nfft_mex_get_int(prhs[2],"Input argument N2 must be a scalar.");
   DM(if ((t < 0) || (t%2!=0))
     mexErrMsgTxt("Input argument N2 must be non-negative and even.");)
+  *n2 = t;
+
+  t = nfft_mex_get_int(prhs[3],"Input argument M must be a scalar.");
+  DM(if (t < 1)
+    mexErrMsgTxt("Input argument M must be positive.");)
+  *m = t;
+}
+
+void nfft_mex_get_n1n2m_odd(const mxArray *prhs[], int *n1, int *n2, int *m)
+{
+  int t = nfft_mex_get_int(prhs[1],"Input argument N1 must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N1 must be non-negative.");)
+  *n1 = t;
+
+  t = nfft_mex_get_int(prhs[2],"Input argument N2 must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N2 must be non-negative.");)
   *n2 = t;
 
   t = nfft_mex_get_int(prhs[3],"Input argument M must be a scalar.");
@@ -80,6 +110,29 @@ void nfft_mex_get_n1n2n3m(const mxArray *prhs[], int *n1, int *n2, int *n3, int 
   t = nfft_mex_get_int(prhs[3],"Input argument N3 must be a scalar.");
   DM(if ((t < 0) || (t%2!=0))
     mexErrMsgTxt("Input argument N3 must be non-negative and even.");)
+  *n3 = t;
+
+  t = nfft_mex_get_int(prhs[4],"Input argument M must be a scalar.");
+  DM(if (t < 1)
+    mexErrMsgTxt("Input argument M must be positive.");)
+  *m = t;
+}
+
+void nfft_mex_get_n1n2n3m_odd(const mxArray *prhs[], int *n1, int *n2, int *n3, int *m)
+{
+  int t = nfft_mex_get_int(prhs[1],"Input argument N1 must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N1 must be non-negative.");)
+  *n1 = t;
+
+  t = nfft_mex_get_int(prhs[2],"Input argument N2 must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N2 must be non-negative.");)
+  *n2 = t;
+
+  t = nfft_mex_get_int(prhs[3],"Input argument N3 must be a scalar.");
+  DM(if (t < 0)
+    mexErrMsgTxt("Input argument N3 must be non-negative.");)
   *n3 = t;
 
   t = nfft_mex_get_int(prhs[4],"Input argument M must be a scalar.");
