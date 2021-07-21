@@ -1,0 +1,27 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install jq tool
+      run: |
+        sudo apt-get update
+        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev
+    - name: bootstrap
+      run: ./bootstrap.sh
+    - name: configure
+      run: ./configure --enable-all --enable-openmp --with-octave=/usr
+    - name: make
+      run: make
+    - name: make check
+      run: make check
