@@ -40,10 +40,22 @@ AC_DEFUN([AX_LIB_FFTW3],
 
   if test "x$with_fftw3" != "xyes"; then
     if test "x${fftw3_include_dir}" = "xyes"; then
-      fftw3_include_dir="$with_fftw3/include"
+      if test -d "$with_fftw3/include"; then
+        fftw3_include_dir="$with_fftw3/include"
+      elif test -d "$with_fftw3/api"; then
+        fftw3_include_dir="$with_fftw3/api"
+      else
+        fftw3_include_dir="$with_fftw3"
+      fi
     fi
     if test "x${fftw3_lib_dir}" = "xyes"; then 
-      fftw3_lib_dir="$with_fftw3/lib"
+      if test -d "$with_fftw3/lib"; then
+        fftw3_lib_dir="$with_fftw3/lib"
+      elif test -d "$with_fftw3/.libs"; then
+        fftw3_lib_dir="$with_fftw3/.libs"
+      else
+        fftw3_lib_dir="$with_fftw3"
+      fi
     fi
   fi
 
