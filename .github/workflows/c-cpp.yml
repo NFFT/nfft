@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install jq tool
+    - name: Install libraries
       run: |
         sudo apt-get update
-        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev
+        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev julia
     - name: bootstrap
       run: ./bootstrap.sh
     - name: configure
@@ -25,3 +25,9 @@ jobs:
       run: make
     - name: make check
       run: make check
+    - name: run Octave testfiles
+      run: for DIR in matlab/nf*t matlab/fastsum; do cd $DIR; for NAME in simple_test*.m; do $OCTAVE --eval="run('$NAME')"; done; cd ../..; done
+    - name: run Julia testfiles
+      run: for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd ../..; done
+    - name: make dist
+      run: make dist
