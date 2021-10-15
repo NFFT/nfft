@@ -29,5 +29,5 @@ jobs:
       run: for DIR in matlab/nf*t matlab/fastsum; do cd $DIR; for NAME in simple_test*.m; do octave --eval="run('$NAME')"; done; cd ../..; done
     - name: run Julia testfiles
       run: for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd ../..; done
-    - name: make distcheck
-      run: make distcheck
+    - name: make dist
+      run: make dist
