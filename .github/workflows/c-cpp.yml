@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, master, 'release/**', 'feature/**', 'bugfix/**' ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, master ]
 
 jobs:
   build:
@@ -29,5 +29,5 @@ jobs:
       run: for DIR in matlab/nf*t matlab/fastsum; do cd $DIR; for NAME in simple_test*.m; do octave --eval="run('$NAME')"; done; cd ../..; done
     - name: run Julia testfiles
       run: for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd ../..; done
-    - name: make dist
-      run: make dist
+    - name: make distcheck
+      run: make distcheck
