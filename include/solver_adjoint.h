@@ -29,7 +29,7 @@
  * Macro for mangling an adjoint transform.
  * temporary added 01.2007 by tim becker
  */
-                                                                               \
+
 #define MACRO_SOLVER_ADJOINT_PLAN(MV, FLT, FLT_TYPE)                           \
                                                                                \
 /** Structure for an adjoint transform plan  */                                \
