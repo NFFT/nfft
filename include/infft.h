@@ -16,7 +16,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/*! \file infft3.h
+/*! \file infft.h
  *  \brief Internal header file for auxiliary definitions and functions.
  */
 #ifndef __INFFT_H__
