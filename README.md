@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/NFFT/nfft.svg?branch=develop)](https://travis-ci.org/NFFT/nfft)
-
 NFFT - Nonequispaced FFT
 =========================
 
@@ -46,7 +44,7 @@ make doc
 
 Building
 --------
-The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured `--enable-shared`.
+The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured with the flag `--enable-shared`.
 
 When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
 ```
@@ -67,8 +65,8 @@ Here are some useful optional flags for `./configure`:
 * `--enable-all` specifies that all modules should be compiled,
 * `--enable-openmp` enables the multicore support and
 * `--enable-julia` specifies that the julia interface will be compiled.
-* `--with-matlab=path/to/matlab` specifies a path of Matlab, and
-* `--with-octave=path/to/octave` does the same for GNU Octave.
+* `--with-matlab=/path/to/matlab` specifies a path of Matlab, and
+* `--with-octave=/path/to/octave` does the same for GNU Octave.
 * For a list of all available options, run `./configure --help`.
 
 Build the software.
@@ -76,7 +74,7 @@ Build the software.
 make
 ```
 
-Optionally, unit tests may be run.
+Optionally, unit tests may be run. Some of the unit tests require an installation of [cunit](http://cunit.sourceforge.net).
 ```
 make check
 ```
@@ -165,6 +163,6 @@ Makefile.am        | Automake Makefile template
 Makefile.in        | Makefile template generated from Makefile.am, processed by configure script
 matlab (dir)       | Matlab MEX interfaces for nfft, nfsft, nfsoft, nfft
 NEWS               | New and noteworthy
-README             | This file.
+README             | This file
 README.md          | This file
 tests (dir)        | CUnit tests
