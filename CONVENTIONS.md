@@ -28,7 +28,7 @@ always be `nfft_foo`.
 
 `FFTW(foo)` expands to `fftw_foo`.
 
-Names that are not exported do not need to be mangled.
+Names which are not exported do not need to be mangled.
 
 
 
@@ -98,5 +98,5 @@ source file was enriched with new lines, these lines should apply the chosen
 style.  A refactoring of already existing lines is not required.  Should the
 change affect already existing sections of the file, they should be refactored
 such that they apply the chosen style.  If a change affects lines which already
-apply one the styles above, the change should follow the convention of the
+apply one of the styles above, the change should follow the convention of the
 already existing lines.
