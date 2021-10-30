@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (c) 2003, 2006 Matteo Frigo
 # Copyright (c) 2003, 2006 Massachusetts Institute of Technology
@@ -19,8 +19,8 @@
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 ################################################################################
-# NOTE: If you just want to build NFFT3, do not use this file. Just follow the 
-# installation instructions as described in the tutorial found under 
+# NOTE: If you just want to build NFFT3, do not use this file. Just follow the
+# installation instructions as described in the tutorial found under
 # doc/tutorial.
 #
 # This file is based on the bootstrap.sh script from FFTW 3.1.2 by
