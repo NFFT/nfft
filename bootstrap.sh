@@ -20,8 +20,7 @@
 #
 ################################################################################
 # NOTE: If you just want to build NFFT3, do not use this file. Just follow the
-# installation instructions as described in the tutorial found under
-# doc/tutorial.
+# installation instructions in README.md.
 #
 # This file is based on the bootstrap.sh script from FFTW 3.1.2 by
 # M. Frigo and S. G. Johnson
