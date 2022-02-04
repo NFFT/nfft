@@ -31,8 +31,8 @@ set -ex
 exec > >(tee linux-build-mex.log)
 exec 2>&1
 
-FFTWVERSION=3.3.9
-GCCVERSION=8.5.0
+FFTWVERSION=3.3.8
+GCCVERSION=11.2.0
 GCCARCH=haswell
 BINARIES_ARCH_README='
 Please note that since the binaries were compiled with gcc flag -march=haswell,

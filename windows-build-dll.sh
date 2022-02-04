@@ -24,7 +24,7 @@ set -ex
 
 # default values (to be overwritten if respective parameters are set)
 FFTWVERSION=3.3.8
-OCTAVEVERSION=5.2.0
+OCTAVEVERSION=6.4.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""

@@ -19,11 +19,11 @@ set -ex
 
 GCCARCH=haswell
 FFTWDIR=/usr/local
-GCC="gcc-9 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+GCC="gcc-11"
 
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/usr/local
-
+MATLABDIR=/Applications/MATLAB_R2021b.app
 # read the options
 TEMP=`getopt -o o:m:f:v: --long octave:,matlab:,matlab-version:,fftw: -n 'macos-build-mex.sh' -- "$@"`
 eval set -- "$TEMP"
