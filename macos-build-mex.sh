@@ -4,7 +4,7 @@
 # A Matlab installation must be specified in order to build the
 # Matlab interface. The paths should not contain spaces!
 #
-# The script is known to work on macOS 10.5 Catalina with Homebrew.
+# The script is known to work on macOS 11 Big Sur with Homebrew.
 #
 # At least the following packages are required:
 # octave gnu-sed cunit

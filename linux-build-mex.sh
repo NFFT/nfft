@@ -31,7 +31,7 @@ set -ex
 exec > >(tee linux-build-mex.log)
 exec 2>&1
 
-FFTWVERSION=3.3.8
+FFTWVERSION=3.3.10
 GCCVERSION=11.2.0
 GCCARCH=haswell
 BINARIES_ARCH_README='
