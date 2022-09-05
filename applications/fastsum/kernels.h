@@ -56,6 +56,7 @@ C kcot(R x, int der, const R *param);                  /**< K(x) = cot(cx) */
 C one_over_cube(R x, int der, const R *param);         /**< K(x) = 1/x^3 */
 C log_sin(R x, int der, const R *param);               /**< K(x) = log(|sin(cx)|) */
 C laplacian_rbf(R x, int der, const R *param);         /**< K(x) = exp(-|x|/c) */
+C xx_gaussian(R x, int der, const R *param);           /**< K(x) = x^2 exp(-x^2/c^2) */
 /* \} */
 
 #ifdef __cplusplus

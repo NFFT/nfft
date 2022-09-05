@@ -431,6 +431,32 @@ C laplacian_rbf(R x, int der, const R *param)    /* K(x)=EXP(-|x|/c) */
   return value;
 }
 
+C xx_gaussian(R x, int der, const R *param)    /* K(x)=x^2 EXP(-x^2/c^2) */
+{
+  R c = param[0];
+  R value = K(0.0);
+
+  switch (der)
+  {
+    case  0 : value = x*x*EXP(-x*x/(c*c)); break;
+    case  1 : value = K(2.0)*x*EXP(-x*x/(c*c))-K(2.0)*x*x*x*EXP(-x*x/(c*c))/(c*c); break;
+    case  2 : value = K(4.0)*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c)-K(10.0)*x*x*EXP(-x*x/(c*c))/(c*c)+K(2.0)*EXP(-x*x/(c*c)); break;
+    case  3 : value = -K(8.0)*x*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c)+K(36.0)*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c)-K(24.0)*x*EXP(-x*x/(c*c))/(c*c); break;
+    case  4 : value = K(16.0)*x*x*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c)-K(112.0)*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c)+K(156.0)*x*x*EXP(-x*x/(c*c))/(c*c*c*c)-K(24.0)*EXP(-x*x/(c*c))/(c*c); break;
+    case  5 : value = -K(32.0)*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(320.0)*x*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c)-K(760.0)*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c)+K(360.0)*x*EXP(-x*x/(c*c))/(c*c*c*c); break;
+    case  6 : value = K(64.0)*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(864.0)*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(3120.0)*x*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c)-K(3000.0)*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c)+K(360.0)*EXP(-x*x/(c*c))/(c*c*c*c); break;
+    case  7 : value = -K(128.0)*x*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(2240.0)*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(11424.0)*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(18480.0)*x*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c)-K(6720.0)*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c); break;
+    case  8 : value = K(256.0)*POW(x,K(10.0))*EXP(-x*x/(c*c))/POW(c,K(16.0))-K(5632.0)*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(38528.0)*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(94080.0)*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(68880.0)*x*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c)-K(6720.0)*EXP(-x*x/(c*c))/(c*c*c*c*c*c); break;
+    case  9 : value = -K(512.0)*POW(x,K(11.0))*EXP(-x*x/(c*c))/POW(c,K(18.0))+K(13824.0)*x*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(16.0))-K(122112.0)*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(419328.0)*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(514080.0)*x*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(151200.0)*x*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c); break;
+    case 10 : value = K(1024.0)*POW(x,K(12.0))*EXP(-x*x/(c*c))/POW(c,K(20.0))-K(33280.0)*POW(x,K(10.0))*EXP(-x*x/(c*c))/POW(c,K(18.0))+K(368640.0)*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(16.0))-K(1693440.0)*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(3124800.0)*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(1844640.0)*x*x*EXP(-x*x/(c*c))/POW(c,K(10.0))+K(151200.0)*EXP(-x*x/(c*c))/(c*c*c*c*c*c*c*c); break;
+    case 11 : value = -K(2048.0)*POW(x,K(13.0))*EXP(-x*x/(c*c))/POW(c,K(22.0))+K(78848.0)*POW(x,K(11.0))*EXP(-x*x/(c*c))/POW(c,K(20.0))-K(1070080.0)*x*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(18.0))+K(6336000.0)*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(16.0))-K(16410240.0)*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(16188480.0)*x*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(3991680.0)*x*EXP(-x*x/(c*c))/POW(c,K(10.0)); break;
+    case 12 : value = K(4096.0)*POW(x,K(14.0))*EXP(-x*x/(c*c))/POW(c,K(24.0))-K(184320.0)*POW(x,K(12.0))*EXP(-x*x/(c*c))/POW(c,K(22.0))+K(3007488.0)*POW(x,K(10.0))*EXP(-x*x/(c*c))/POW(c,K(20.0))-K(22302720.0)*x*x*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(18.0))+K(77172480.0)*x*x*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(16.0))-K(114428160.0)*x*x*x*x*EXP(-x*x/(c*c))/POW(c,K(14.0))+K(56548800.0)*x*x*EXP(-x*x/(c*c))/POW(c,K(12.0))-K(3991680.0)*EXP(-x*x/(c*c))/POW(c,K(10.0)); break;
+    default : value = K(0.0);
+  }
+
+  return value;
+}
+
 /* \} */
 
 /* kernels.c */

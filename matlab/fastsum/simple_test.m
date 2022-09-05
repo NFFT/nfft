@@ -38,7 +38,8 @@
 % 'cot'                     K(x) = cot(cx)
 % 'one_over_cube'           K(x) = 1/x^3
 % 'log_sin'                 K(x) = LOG(|SIN(cx)|)
-% 'laplacian_rbf'           K(x)=EXP(-|x|/c)
+% 'laplacian_rbf'           K(x) = EXP(-|x|/c)
+% 'xx_gaussian'             K(x) = x^2 EXP(-x^2/c^2) 
 
 %% Initialize parameters
 d = 2;          % number of dimensions

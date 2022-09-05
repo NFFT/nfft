@@ -122,6 +122,8 @@ int main(int argc, char **argv)
       kernel = log_sin;
     else if (strcmp(s, "laplacian_rbf") == 0)
       kernel = laplacian_rbf;
+    else if (strcmp(s, "xx_gaussian") == 0)
+      kernel = xx_gaussian;
     else
     {
       printf("Unrecognized kernel function!\n");

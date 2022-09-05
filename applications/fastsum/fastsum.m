@@ -47,7 +47,8 @@ function [f,f_direct]=fastsum(x,alpha,y,kernel,c,m,n,p,eps_I,eps_B)
 %   'cosc'                    K(x) = COS(cx)/x
 %   'cot'                     K(x) = cot(cx)
 %   'one_over_cube'           K(x) = 1/x^3
-%   'laplacian_rbf'           K(x)=EXP(-|x|/c)
+%   'laplacian_rbf'           K(x) = EXP(-|x|/c)
+%   'xx_gaussian'             K(x) = x^2 EXP(-x^2/c^2)
 %
 % Markus Fenn, 2006.
 
