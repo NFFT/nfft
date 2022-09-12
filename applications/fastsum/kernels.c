@@ -431,7 +431,7 @@ C laplacian_rbf(R x, int der, const R *param)    /* K(x)=EXP(-|x|/c) */
   return value;
 }
 
-C xx_gaussian(R x, int der, const R *param)    /* K(x)=x^2 EXP(-x^2/c^2) */
+C xx_gaussian(R x, int der, const R *param)    /* K(x)=x^2/c^2 EXP(-x^2/c^2) */
 {
   R c = param[0];
   R value = K(0.0);
@@ -454,7 +454,7 @@ C xx_gaussian(R x, int der, const R *param)    /* K(x)=x^2 EXP(-x^2/c^2) */
     default : value = K(0.0);
   }
 
-  return value;
+  return value / (c*c);
 }
 
 /* \} */
