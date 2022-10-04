@@ -47,7 +47,7 @@ static char cmd[CMD_LEN_MAX];
 static inline void get_nmf(const mxArray *prhs[], int *n, int *m,
   unsigned int *f)
 {
-  nfft_mex_get_nm(prhs,n,m);
+  nfft_mex_get_nm_odd(prhs,n,m);
   *f = nfft_mex_get_int(prhs[3],"nfsft: Input argument flags must be a scalar.");
 }
 
@@ -163,7 +163,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       int i; 
       int n, m;
-      nfft_mex_get_nm(prhs,&n,&m);
+      nfft_mex_get_nm_odd(prhs,&n,&m);
       i = mkplan();
       nfsft_init(plans[i],n,m);
       init_values_zero(plans[i]);

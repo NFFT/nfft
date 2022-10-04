@@ -27,8 +27,12 @@ RSYNC=rsync
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
-FFTWVERSION=3.3.8
-GCCVERSION=8.3.0
+# Write log file
+exec > >(tee linux-build-mex.log)
+exec 2>&1
+
+FFTWVERSION=3.3.9
+GCCVERSION=8.5.0
 GCCARCH=haswell
 BINARIES_ARCH_README='
 Please note that since the binaries were compiled with gcc flag -march=haswell,
@@ -41,9 +45,9 @@ MPCVERSION=1.1.0
 # default values (to be overwritten if respective parameters are set)
 OCTAVEDIR=/usr
 
-JULIA_BIN=julia/julia-1.1.1/bin/julia
-JULIA_ARCHIVE=julia-1.1.1-linux-x86_64.tar.gz
-JULIA_URL=https://julialang-s3.julialang.org/bin/linux/x64/1.1/$JULIA_ARCHIVE
+JULIA_BIN=julia/julia-1.6.2/bin/julia
+JULIA_ARCHIVE=julia-1.6.2-linux-x86_64.tar.gz
+JULIA_URL=https://julialang-s3.julialang.org/bin/linux/x64/1.6/$JULIA_ARCHIVE
 
 # read the options
 TEMP=`getopt -o o:m:f: --long octave:,matlab:,fftw: -n 'linux-build-mex.sh' -- "$@"`
@@ -68,7 +72,7 @@ while true ; do
 done
 
 NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-HOMEDIR="$NFFTDIR"/linux-build-mex
+HOMEDIR=$(pwd)/linux-build-mex
 mkdir -p "$HOMEDIR"
 cd "$HOMEDIR"
 #GCCVERSION=$(gcc -dumpfullversion)

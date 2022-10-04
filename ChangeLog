@@ -1,5 +1,16 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.3:
+
+    Bugfixes
+    - #116 Fix in the fastsum Matlab interface that might cause crashes.
+    - Update obsolete autoconf macros.
+
+    Enhancements
+    - #118 Additional node at South Pole in NFSFT_EQUISPACED enhancement.
+    - #115 Matlab interface with single precision.
+    - #113 Add function to set_num_threads in Matlab.
+
 Changes in version 3.5.2:
 
     Bugfixes

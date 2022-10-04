@@ -19,6 +19,14 @@
 % Comparison with Matlab nufft implementation (Matlab 2020a+)
 clear all;
 
+% Terminate the script to avoid errors when running in old Matlab or Octave.
+% It would otherwise cause an error because nufft is not found in Matlab <=2019
+% or in Octave, which would stop the test sctipt.
+if ~exist('nufft')
+  warning('Script stopped. The function "nufft" is only supperoted by Matlab 2020a or newer.')
+  return
+end
+
 M=16000; % number of nodes
 N=2^16; % number of Fourier coefficients in first direction
 

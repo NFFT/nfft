@@ -29,7 +29,7 @@
  * Macro for mangling an adjoint transform.
  * temporary added 01.2007 by tim becker
  */
-                                                                               \
+
 #define MACRO_SOLVER_ADJOINT_PLAN(MV, FLT, FLT_TYPE)                           \
                                                                                \
 /** Structure for an adjoint transform plan  */                                \
@@ -65,15 +65,15 @@ typedef struct                                                                 \
                                                                                \
 /** Simple initialisation. */                                                  \
 void i ## MV ## _adjoint_init(adjoint ## MV ## _plan *ths, MV ## _plan *mv);   \
-/** Advanced initialisation. */                                               \
-void i ## MV ## _adjoint_init_advanced(adjoint ## MV ## _plan *ths, MV ## _plan,\
-*mv, unsigned adjoint ## MV ## _flags);                                       \
-/** Setting up residuals before the actual iteration.                       */\
-void i ## MV ## _adjoint_before_loop(adjoint ## MV ## _plan *ths);              \
-/** Doing one step in the iteration.                                        */\
-void i ## MV ## _adjoint_loop_one_step(adjoint ## MV ## _plan *ths);            \
-/** Destroys the plan for the adjoint transform.                            */\
-void i ## MV ## _adjoint_finalize(adjoint ## MV ## _plan *ths);                 \
+/** Advanced initialisation. */                                                \
+void i ## MV ## _adjoint_init_advanced(adjoint ## MV ## _plan *ths,            \
+MV ## _plan, *mv, unsigned adjoint ## MV ## _flags);                           \
+/** Setting up residuals before the actual iteration. */                       \
+void i ## MV ## _adjoint_before_loop(adjoint ## MV ## _plan *ths);             \
+/** Doing one step in the iteration. */                                        \
+void i ## MV ## _adjoint_loop_one_step(adjoint ## MV ## _plan *ths);           \
+/** Destroys the plan for the adjoint transform. */                            \
+void i ## MV ## _adjoint_finalize(adjoint ## MV ## _plan *ths);                \
 
 /** TODO: different solvers */
 MACRO_SOLVER_ADJOINT_PLAN(nfsft, complex, double _Complex)
