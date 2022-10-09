@@ -278,7 +278,7 @@ AC_LANG(C)
 AX_COMPILER_VENDOR
 
 # check for C99 compliant mode (possibly with GNU extensions)
-AC_PROG_CC
+AC_PROG_CC_C99
 
 # per-target flags
 AM_PROG_CC_C_O
