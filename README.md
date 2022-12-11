@@ -86,9 +86,19 @@ make install
 
 Citing
 ------
-The most current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
+The current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
 ''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
-ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
+ACM Trans. Math. Software 36, Article 19, 1-30, 2009*. BibTeX entry:
+```
+@article{KeKuPo09,
+ author = {Jens Keiner and Stefan Kunis and Daniel Potts},
+ title = {Using {NFFT3} - a Software Library for Various Nonequispaced Fast {Fourier} Transforms},
+ journal = {{ACM} Trans. Math. Software},
+ year = {2009},
+ volume = {36},
+ pages = {Article 19, 1--30},
+ doi = {10.1145/1555386.1555388}}
+```
 
 Feedback
 --------
