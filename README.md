@@ -37,16 +37,16 @@ Some examples for application of these transforms are provided:
 Detailed API documentation in HTML format can be found in
 `doc/html/index.html`, if you are working from a release tarball.
 When working from a source repository, the documentation can be
-generated with Doxygen.
+generated with Doxygen (which requires the `doxygen-latex` and `perl` packages):
 ```
 make doc
 ```
 
 Building
 --------
-The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured with the flag `--enable-shared`.
+The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured with the flag `--enable-shared` (and `--enable-threads` for the multi-threaded version). Building the NFFT requires `make` and a C compiler such as `gcc`.
 
-When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
+When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided. This step requries the tools `autoconf`, `automake` and `libtool`.
 ```
 ./bootstrap.sh
 ```
@@ -65,7 +65,7 @@ Here are some useful optional flags for `./configure`:
 * `--enable-all` specifies that all modules should be compiled,
 * `--enable-openmp` enables the multicore support and
 * `--enable-julia` specifies that the julia interface will be compiled.
-* `--with-matlab=/path/to/matlab` specifies a path of Matlab, and
+* `--with-matlab=/path/to/matlab` specifies the path of a Matlab installation, and
 * `--with-octave=/path/to/octave` does the same for GNU Octave.
 * For a list of all available options, run `./configure --help`.
 
@@ -104,7 +104,7 @@ Feedback
 --------
 Your comments are welcome! This is the third version of the library and may
 not be as robust or well documented as it should be. Please keep track of bugs
-or missing/confusing instructions and report them to
+or missing/confusing instructions and report them in our issue tracker or directly to
 [Daniel Potts](mailto:potts@mathematik.tu-chemnitz.de).
 The postal address is
 
