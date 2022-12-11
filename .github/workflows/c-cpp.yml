@@ -16,7 +16,7 @@ jobs:
     - name: Install libraries
       run: |
         sudo apt-get update
-        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev
+        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev doxygen-latex graphviz
     - name: bootstrap
       run: ./bootstrap.sh
     - name: configure
