@@ -19,9 +19,11 @@ jobs:
         sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev
     - name: Download julia
       run: | 
-        wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.3-linux-x86_64.tar.gz 
-        tar zxvf julia-1.8.3-linux-x86_64.tar.gz
+        wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.3-linux-x86_64.tar.gz 
+        tar zxf julia-1.8.3-linux-x86_64.tar.gz
         JULIA="$(pwd)/julia-1.8.3/bin/julia"
+        echo $JULIA
+        ls
     - name: bootstrap
       run: ./bootstrap.sh
     - name: configure
