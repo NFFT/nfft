@@ -16,7 +16,12 @@ jobs:
     - name: Install libraries
       run: |
         sudo apt-get update
-        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev julia
+        sudo apt-get install libfftw3-dev libcunit1-dev liboctave-dev
+    - name: Download julia
+      run: | 
+        wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.3-linux-x86_64.tar.gz 
+        tar zxvf julia-1.8.3-linux-x86_64.tar.gz
+        JULIA="$(pwd)/julia-1.8.3/bin/julia"
     - name: bootstrap
       run: ./bootstrap.sh
     - name: configure
@@ -28,6 +33,6 @@ jobs:
     - name: run Octave testfiles
       run: for DIR in matlab/nf*t matlab/fastsum; do cd $DIR; for NAME in simple_test*.m; do octave --eval="run('$NAME')"; done; cd ../..; done
     - name: run Julia testfiles
-      run: for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia "$NAME"; done; cd ../..; done
+      run: for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do "$JULIA" "$NAME"; done; cd ../..; done
     - name: make dist
       run: make dist
