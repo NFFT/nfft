@@ -124,6 +124,8 @@ int main(int argc, char **argv)
       kernel = laplacian_rbf;
     else if (strcmp(s, "xx_gaussian") == 0)
       kernel = xx_gaussian;
+    else if (strcmp(s, "absx") == 0)
+      kernel = absx;
     else
     {
       printf("Unrecognized kernel function!\n");

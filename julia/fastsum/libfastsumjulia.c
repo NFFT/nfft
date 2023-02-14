@@ -55,6 +55,10 @@ int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, i
 		kernel = log_sin;
 	else if ( strcmp(s, "laplacian_rbf") == 0 )
 		kernel = laplacian_rbf;
+	else if ( strcmp(s, "xx_gaussian") == 0 )
+		kernel = xx_gaussian;
+	else if ( strcmp(s, "absx") == 0 )
+		kernel = absx;
 	else {
 		return 1;
 	}

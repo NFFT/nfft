@@ -40,18 +40,19 @@
 % 'log_sin'                 K(x) = LOG(|SIN(cx)|)
 % 'laplacian_rbf'           K(x) = EXP(-|x|/c)
 % 'xx_gaussian'             K(x) = x^2/c^2 EXP(-x^2/c^2) 
+% 'absx'                    K(x) = |x| 
 
 %% Initialize parameters
 d = 2;          % number of dimensions
 N = 2000;       % number of source knots
 M = 2000;       % number of target knots
-kernel = 'multiquadric';
-c = 1/sqrt(N);  % kernel parameter
+kernel = 'xx_gaussian';
+c = 100;  % kernel parameter
 p = 3;          % degree of smoothness of regularization
 flags = 0;      % flags (could be EXACT_NEARFIELD or NEARFIELD_BOXES)
-n = 156;        % expansion degree
-eps_I = p/n;    % inner boundary
-eps_B = 1/16;   % outer boundary
+n = 32;        % expansion degree
+eps_I = 0.0;%p/n;    % inner boundary
+eps_B = 0.0;%1/16;   % outer boundary
 m = p;          % cut-off parameter for NFFT
 nn_oversampled=2*n; % oversampling factor for NFFT
 
@@ -60,7 +61,7 @@ r = sqrt(rand(N,1))*(0.25-eps_B/2);
 phi = rand(N,1)*2*pi;
 x = [r.*cos(phi) r.*sin(phi)];
 % random coefficients
-alpha = rand(N,1) + 1i*rand(N,1);
+alpha = ones(N,1);%rand(N,1) + 1i*rand(N,1);
 % random target nodes in circle of radius 0.25-eps_B/2
 r = sqrt(rand(M,1))*(0.25-eps_B/2);
 phi = rand(M,1)*2*pi;

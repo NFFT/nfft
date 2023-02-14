@@ -40,6 +40,7 @@
 % 'log_sin'                 K(x) = LOG(|SIN(cx)|)
 % 'laplacian_rbf'           K(x) = EXP(-|x|/c)
 % 'xx_gaussian'             K(x) = x^2/c^2 EXP(-x^2/c^2) 
+% 'absx'                    K(x) = |x| 
 
 %% Initialize parameters
 d = 2;          % number of dimensions

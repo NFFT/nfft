@@ -457,6 +457,22 @@ C xx_gaussian(R x, int der, const R *param)    /* K(x)=x^2/c^2 EXP(-x^2/c^2) */
   return value / (c*c);
 }
 
+C absx(R x, int der, const R *param)    /* K(x)=|x| */
+{
+  R value=K(0.0);
+
+  (void)param;
+  
+  if (der == 0) value=FABS(x);
+  else if (der == 1){
+    if (x<0) value=K(-1.0);
+    else value=K(1.0);
+  }
+  else value=K(0.0);
+  
+  return value;
+}
+
 /* \} */
 
 /* kernels.c */
