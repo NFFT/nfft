@@ -1,5 +1,11 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.5.4:
+
+    Enhancements
+    - Add kernels xx_gaussian and absx in fastsum.
+    - #127 Add required software and reference in README.
+
 Changes in version 3.5.3:
 
     Bugfixes
