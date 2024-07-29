@@ -25,47 +25,76 @@ fastsum_plan* jfastsum_alloc(){
 int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, double eps_I, double eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
 	C (*kernel)(R, int, const R *);
 	
-	if ( strcmp(s, "gaussian") == 0 )
+	int n_param;
+
+	if ( strcmp(s, "gaussian") == 0 ){
 		kernel = gaussian;
-	else if ( strcmp(s, "multiquadric") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "multiquadric") == 0 ){
 		kernel = multiquadric;
-	else if ( strcmp(s, "inverse_multiquadric") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "inverse_multiquadric") == 0 ){
 		kernel = inverse_multiquadric;
-	else if ( strcmp(s, "logarithm") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "logarithm") == 0 ){
 		kernel = logarithm;
-	else if ( strcmp(s, "thinplate_spline") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "thinplate_spline") == 0 ){
 		kernel = thinplate_spline;
-	else if ( strcmp(s, "one_over_square") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "one_over_square") == 0 ){
 		kernel = one_over_square;
-	else if ( strcmp(s, "one_over_modulus") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "one_over_modulus") == 0 ){
 		kernel = one_over_modulus;
-	else if ( strcmp(s, "one_over_x") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "one_over_x") == 0 ){
 		kernel = one_over_x;
-	else if ( strcmp(s, "inverse_multiquadric3") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "inverse_multiquadric3") == 0 ){
 		kernel = inverse_multiquadric3;
-	else if ( strcmp(s, "sinc_kernel") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "sinc_kernel") == 0 ){
 		kernel = sinc_kernel;
-	else if ( strcmp(s, "cosc") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "cosc") == 0 ){
 		kernel = cosc;
-	else if ( strcmp(s, "cot") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "cot") == 0 ){
 		kernel = kcot;
-	else if ( strcmp(s, "one_over_cube") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "one_over_cube") == 0 ){
 		kernel = one_over_cube;
-	else if ( strcmp(s, "log_sin") == 0 )
+		n_param = 0;
+	} else if ( strcmp(s, "log_sin") == 0 ){
 		kernel = log_sin;
-	else if ( strcmp(s, "laplacian_rbf") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "laplacian_rbf") == 0 ){
 		kernel = laplacian_rbf;
-    else if ( strcmp(s, "der_laplacian_rbf") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "der_laplacian_rbf") == 0 ){
 		kernel = der_laplacian_rbf;
-	else if ( strcmp(s, "xx_gaussian") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "xx_gaussian") == 0 ){
 		kernel = xx_gaussian;
-	else if ( strcmp(s, "absx") == 0 )
+		n_param = 1;
+	} else if ( strcmp(s, "absx") == 0 ){
 		kernel = absx;
-	else {
+		n_param = 0;
+	} else {
 		return 1;
 	}
 	
-	fastsum_init_guru_kernel( p, d, kernel, c, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
+	if(n_param == 0)
+		p -> kernel_param = (R*)NULL;
+	else{
+		p -> kernel_param = (R*)malloc(n_param * sizeof(R));
+		for(int k = 0; k < n_param; k++)
+			p -> kernel_param[k] = c[k];
+	}
+
+
+	fastsum_init_guru_kernel( p, d, kernel, p -> kernel_param, f | STORE_PERMUTATION_X_ALPHA, n, ps, eps_I, eps_B);
 	p -> x = 0;
 	p -> y = 0;
 	fastsum_init_guru_source_nodes( p, N, nn_x, m_x );
@@ -138,6 +167,7 @@ void jfastsum_finalize( fastsum_plan* p ){
 	fastsum_finalize_source_nodes( p );
 	fastsum_finalize_target_nodes( p );
 	fastsum_finalize_kernel( p );
+	free(p -> kernel_param);
 	nfft_free( p );
 	return;
 }
