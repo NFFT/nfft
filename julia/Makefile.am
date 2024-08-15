@@ -10,13 +10,18 @@ else
   DIR_NFST=
 endif
 
+if HAVE_NFSFT
+  DIR_NFSFT=nfsft
+else
+  DIR_NFSFT=nfsft
+endif
+
 if HAVE_APPLICATIONS
   DIR_FASTSUM=fastsum
 else
   DIR_FASTSUM=
 endif
 
-
-SUBDIRS = nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_FASTSUM)
+SUBDIRS = nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NFSFT) $(DIR_FASTSUM)
 
 EXTRA_DIST = README.md
