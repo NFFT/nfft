@@ -15,7 +15,7 @@ nfsft_plan* jnfsft_alloc(void) {
 }
 
 void jnfsft_init(nfsft_plan* p, int N, int M, unsigned int flags, unsigned int nfft_flags, int nfft_cutoff){
-	nfsft_precompute(N,1000.0,0U,0U); // TODO: Make these variable for user
+	nfsft_precompute(N,1000.0,0U,0U); // \todo: Make these variable for user
     nfsft_init_guru(p, N, M, flags, nfft_flags, nfft_cutoff);
 }
 
