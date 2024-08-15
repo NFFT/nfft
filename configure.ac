@@ -20,7 +20,7 @@
 
 m4_define([nfft_version_major], [3])
 m4_define([nfft_version_minor], [5])
-m4_define([nfft_version_patch], [1])
+m4_define([nfft_version_patch], [4])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -79,7 +79,10 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="4:0:0"
+SHARED_VERSION_INFO="4:3:0"
+# NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
+# NFFT 3.5.2 was 4:2:0
+# NFFT 3.5.2 was 4:1:0
 
 # substitute SHARED_VERSION_INFO in generated Makefiles
 AC_SUBST(SHARED_VERSION_INFO)
@@ -153,20 +156,18 @@ AM_CONDITIONAL(HAVE_NON_DOUBLE_PRECISION, test "x$PRECISION" != "xd" )
 need_fpt="no"
 
 # build all modules by default in maintainer mode or if option is given
-AC_ARG_ENABLE(all, [AC_HELP_STRING([--enable-all],[build all modules])],
+AC_ARG_ENABLE(all, [AS_HELP_STRING([--enable-all],[build all modules])],
   ok=$enableval, ok=$USE_MAINTAINER_MODE)
 nfft_module_default=$ok
 
 # option for example programs
 nfft_examples_default="yes"
-AC_ARG_ENABLE(examples, [AC_HELP_STRING([--enable-examples],
-  [enable example programs])], enable_examples=$enableval, enable_examples=$nfft_examples_default)
+AC_ARG_ENABLE(examples, [AS_HELP_STRING([--enable-examples],[enable example programs])], enable_examples=$enableval, enable_examples=$nfft_examples_default)
 AM_CONDITIONAL(HAVE_EXAMPLES, test "x$enable_examples" = "xyes" )
 
 # option for application programs
 nfft_applications_default="yes"
-AC_ARG_ENABLE(applications, [AC_HELP_STRING([--enable-applications],
-  [enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
+AC_ARG_ENABLE(applications, [AS_HELP_STRING([--enable-applications],[enable application programs])], enable_applications=$enableval, enable_applications=$nfft_applications_default)
 AM_CONDITIONAL(HAVE_APPLICATIONS, test "x$enable_applications" = "xyes" )
 
 # default option for julia interface, may be overwritten (enabled by default
@@ -176,8 +177,7 @@ if test "x$PRECISION" = "xd" -a "x$enable_shared" = "xyes"; then
 else
   nfft_julia_default="no"
 fi
-AC_ARG_ENABLE(julia, [AC_HELP_STRING([--enable-julia],
-  [enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
+AC_ARG_ENABLE(julia, [AS_HELP_STRING([--enable-julia],[enable julia interface])], enable_julia=$enableval, enable_julia=$nfft_julia_default)
 AM_CONDITIONAL(HAVE_JULIA, test "x$enable_julia" = "xyes" )
 
 if test "x$enable_julia" = "xyes" -a "x$PRECISION" != "xd"; then
@@ -206,30 +206,26 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp], [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
 
 # debug mode
-AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug],
-  [compile with extra runtime checks for debugging])], enable_debug=$enableval,
+AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [compile with extra runtime checks for debugging])], enable_debug=$enableval,
   enable_debug=no)
 if test "x$enable_debug" = "xyes"; then
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra debugging code.])
 fi
 
 # runtime time measurements
-AC_ARG_ENABLE(measure-time, [AC_HELP_STRING([--enable-measure-time],
-  [measure time during execution])], ok=$enableval, ok=no)
+AC_ARG_ENABLE(measure-time, [AS_HELP_STRING([--enable-measure-time],[measure time during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME,1,[Define to enable runtime time measurements.])
 fi
 
 # runtime time measurements for FFTW part
-AC_ARG_ENABLE(measure-time-fftw, [AC_HELP_STRING([--enable-measure-time-fftw],
-  [measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
+AC_ARG_ENABLE(measure-time-fftw, [AS_HELP_STRING([--enable-measure-time-fftw],[measure time of FFTW transforms during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW]
   [transforms.])
 fi
 
-AC_ARG_ENABLE(mips_zbus_timer, [AC_HELP_STRING([--enable-mips-zbus-timer],
-  [use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval,
+AC_ARG_ENABLE(mips_zbus_timer, [AS_HELP_STRING([--enable-mips-zbus-timer],[use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval,
   have_mips_zbus_timer=no)
 if test "$have_mips_zbus_timer" = "yes"; then
   AC_DEFINE(HAVE_MIPS_ZBUS_TIMER,1,
@@ -237,7 +233,7 @@ if test "$have_mips_zbus_timer" = "yes"; then
 fi
 
 # select window function
-AC_ARG_WITH(window, [AC_HELP_STRING([--with-window=ARG],[choose window function
+AC_ARG_WITH(window, [AS_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
   dirac)])],
   window=$withval, window="kaiserbessel")
@@ -505,8 +501,6 @@ AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h  sys/time.h \
   complex.h string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h \
   inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h])
 
-AC_HEADER_TIME
-
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE([long double],
   [AC_DEFINE(HAVE_LONG_DOUBLE, 1, [Define to 1 if the compiler supports]
@@ -560,18 +554,18 @@ AC_CHECK_DECLS([srand48],[],[],[#include <stdlib.h>])
 # Cray UNICOS _rtc() (real-time clock) intrinsic
 AC_MSG_CHECKING([for _rtc intrinsic])
 rtc_ok=yes
-AC_TRY_LINK([#ifdef HAVE_INTRINSICS_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifdef HAVE_INTRINSICS_H
 #include <intrinsics.h>
-#endif], [_rtc()], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
+#endif]], [[_rtc()]])],[AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])],[rtc_ok=no])
 AC_MSG_RESULT($rtc_ok)
 
 AC_MSG_CHECKING([whether a cycle counter is available])
 save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -I$srcdir/include"
-AC_TRY_CPP([#include "cycle.h"
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[#include "cycle.h"
 #ifndef HAVE_TICK_COUNTER
 #  error No cycle counter
-#endif], [ok=yes], [ok=no])
+#endif]])],[ok=yes],[ok=no])
 AC_MSG_RESULT($ok)
 TICKS_PER_SECOND=1
 if test $ok = no; then
@@ -580,7 +574,7 @@ if test $ok = no; then
   echo "         show incorrect results.                               "
   echo "***************************************************************"
 else
-  AC_TRY_RUN([#include "cycle.h"
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[#include "cycle.h"
 #include <stdio.h>
 #if defined(HAVE_NANOSLEEP)
 #include <stdlib.h>
@@ -602,7 +596,7 @@ SLEEP;{
   FILE *f = fopen("ticks.tmp","w");
   fprintf(f,"%.1f\n",tps);
   fclose(f);}
-return 0;}],[read TICKS_PER_SECOND < ticks.tmp],[],[TICKS_PER_SECOND=1])
+return 0;}]])],[read TICKS_PER_SECOND < ticks.tmp],[],[TICKS_PER_SECOND=1])
     rm -f ticks.tmp
   if test "$TICKS_PER_SECOND" = "1"; then
     echo "***************************************************************"
@@ -635,15 +629,6 @@ if test "$PRECISION" = "s"; then
 AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, roundf, lrintf, lroundf, llrintf, llroundf, truncf, fmodf, remainderf, remquof, fdimf, fmaxf, fminf, fmaf, fabsf, sqrtf, cbrtf, hypotf, expf, exp2f, expm1f, logf, log2f, log10f, log1pf, logbf, ilogbf, modff, frexpf, ldexpf, scalbnf, scalblnf, powf, cosf, sinf, tanf, coshf, sinhf, tanhf, acosf, asinf, atanf, atan2f, acoshf, asinhf, atanhf, tgammaf, lgammaf, j0f, j1f, jnf, y0f, y1f, ynf, erff, erfcf, crealf, cimagf, cabsf, cargf, conjf, cprojf, csqrtf, cexpf, clogf, cpowf, csinf, ccosf, ctanf, casinf, cacosf, catanf, csinhf, ccoshf, ctanhf, casinhf, cacoshf, catanhf],[],[],
   [#include <math.h>
 #include <complex.h>])
-fi
-
-# Get machine epsilon by 2^(1-MAND_DIG) for selected precision per float.h.
-AX_EPS_DEF([$PRECISION])
-
-if test "$ax_cv_eps_def" = "unknown"; then  
-  AC_MSG_ERROR([Unable to determine floating-point epsilon.])
-else
-  AC_DEFINE_UNQUOTED([NFFT_EPSILON], [$ax_cv_eps_def], [Floating-point epsilon.])
 fi
 
 # CUnit
@@ -759,7 +744,6 @@ AC_CONFIG_FILES(Makefile \
 		julia/Makefile \
 		julia/nfft/Makefile \
 		julia/nfct/Makefile \
-		julia/nfst/Makefile \
     julia/nfsft/Makefile \
                 benchmarks/Makefile \
                 doxygen/Makefile \
