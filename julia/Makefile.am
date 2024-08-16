@@ -13,7 +13,7 @@ endif
 if HAVE_NFSFT
   DIR_NFSFT=nfsft
 else
-  DIR_NFSFT=nfsft
+  DIR_NFSFT=
 endif
 
 if HAVE_APPLICATIONS
@@ -21,6 +21,7 @@ if HAVE_APPLICATIONS
 else
   DIR_FASTSUM=
 endif
+
 
 SUBDIRS = nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NFSFT) $(DIR_FASTSUM)
 

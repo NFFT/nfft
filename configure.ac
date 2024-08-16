@@ -672,8 +672,6 @@ AC_CONFIG_FILES(Makefile \
                 doxygen/doxygen.Doxyfile \
                 include/Makefile \
                 include/ticks.h \
-                3rdparty/Makefile \
-                3rdparty/cstripack/Makefile \
                 kernel/Makefile \
                 kernel/fpt/Makefile \
                 kernel/mri/Makefile \
@@ -743,12 +741,15 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/nfsftUnitTests.m \
 		julia/Makefile \
 		julia/nfft/Makefile \
+    julia/fastsum/Makefile \
 		julia/nfct/Makefile \
+    julia/nfst/Makefile \
     julia/nfsft/Makefile \
                 benchmarks/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
 #  applications/iterS2/Makefile \
+# 3rdparty/Makefile \ 3rdparty/cstripack/Makefile \
 
 AC_OUTPUT
