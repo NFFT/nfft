@@ -22,6 +22,10 @@ void jnfsft_init(nfsft_plan* p, int N, int M, unsigned int flags, unsigned int n
 double* jnfsft_set_x(nfsft_plan* p, double* X){
 	int M = p->M_total;
 	int j,c;
+	for (j = 0; j < M; j++){
+		p->x[2*j] = ((X[2*j] > KPI)?(X[2*j] - K2PI):(X[2*j]))/K2PI;
+        p->x[2*j+1] = X[2*j+1]/K2PI;
+    }
 	nfsft_precompute_x(p);
 	return p->x;
 }
