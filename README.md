@@ -84,6 +84,18 @@ Optionally, install NFFT on your system.
 make install
 ```
 
+CodSpeed benchmarks
+-------------------
+Optionally, NFFT can build benchmark programs using the [CodSpeed](https://codspeed.io) C++ integration library.
+[CodSpeed](https://codspeed.io) is a continuous benchmarking service that can help with tracking performance 
+regressions and improvements.
+
+While these benchmarks can run locally, they are actually only intended to run in CI. They also require a build of the CodSpeed integration library from [source](https://github.com/CodSpeedHQ/codspeed-cpp).
+
+To enable building the benchmarks with the CodSpeed integration library, run `./configure --enable-benchmarks --with-codspeed=<path to codspeed-cpp source directory>`.
+
+After the build, the benchmrks can be found in the `benchmarks` directory.
+
 Citing
 ------
 The current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
@@ -156,6 +168,7 @@ File/Folder        | Purpose
 aclocal.m4		   | Macros for configure script
 applications (dir) | Application programs (see 4) above)
 AUTHORS			   | Information about the authors of NFFT
+benchmarks (dir)   | Benchmark programs
 bootstrap.sh       | Bootstrap shell script that call Autoconf and friends
 ChangeLog          | A short version history
 config (dir)       | Used by configure script

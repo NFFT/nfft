@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # Copyright (c) 2003, 2006 Matteo Frigo
 # Copyright (c) 2003, 2006 Massachusetts Institute of Technology
@@ -26,13 +26,20 @@
 # M. Frigo and S. G. Johnson
 ################################################################################
 
-# alias to allow for systems having glibtoolize
-alias libtoolize=$(type -p glibtoolize libtoolize | head -1)
+# detect libtoolize command (glibtoolize on some systems)
+if command -v glibtoolize >/dev/null 2>&1; then
+    LIBTOOLIZE_CMD="glibtoolize"
+elif command -v libtoolize >/dev/null 2>&1; then
+    LIBTOOLIZE_CMD="libtoolize"
+else
+    echo "Error: Neither glibtoolize nor libtoolize found. Please install libtool." >&2
+    exit 1
+fi
 
 touch ChangeLog
 
 rm -rf autom4te.cache
-libtoolize
+"$LIBTOOLIZE_CMD"
 autoreconf --verbose --install --force
 
 rm -f config.cache

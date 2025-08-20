@@ -29,7 +29,7 @@ m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2019, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2025, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
@@ -267,8 +267,10 @@ if test "$ok" = "yes"; then
 fi
 AC_SUBST(matlab_exhaustive_unit_tests_flag)
 
+AC_ARG_ENABLE(benchmarks, [AS_HELP_STRING([--enable-benchmarks],[enable building benchmark programs])], enable_benchmarks=$enableval, enable_benchmarks=no)
+
 ################################################################################
-# compiler characteristis
+# C compiler characteristis
 ################################################################################
 
 # select programming language
@@ -294,6 +296,11 @@ AC_C_INLINE
 
 # reset CC variable (the C99 option is added back below)
 CC="$ac_save_CC"
+
+################################################################################
+# C++ compiler characteristis
+################################################################################
+AC_PROG_CXX
 
 ################################################################################
 # program checks
@@ -569,6 +576,33 @@ fi
 AX_CUNIT
 AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )
 
+nfft_cv_benchmarks="no"
+nfft_benchmarks_CPPFLAGS=""
+nfft_benchmarks_CXXFLAGS=""
+nfft_benchmarks_LDFLAGS=""
+nfft_benchmarks_LIBS=""
+
+if test "x$enable_benchmarks" = "xyes"; then
+  NFFT_LIB_CODSPEED
+  if test "x$nfft_cv_codspeed" = "xno"; then
+    AC_MSG_ERROR([You have enabled the build of benchmark programs, but the CodSpeed C++ integration library was not found.])
+  else
+    nfft_cv_benchmarks="yes"
+    nfft_benchmarks_CPPFLAGS="$nfft_codspeed_CPPFLAGS"
+    nfft_benchmarks_CXXFLAGS="$nfft_codspeed_CXXFLAGS"
+    nfft_benchmarks_LDFLAGS="$nfft_codspeed_LDFLAGS"
+    nfft_benchmarks_LIBS="$nfft_codspeed_LIBS"
+  fi
+else
+  nfft_cv_benchmarks="no"
+fi
+
+AM_CONDITIONAL(HAVE_BENCHMARKS, test "x$nfft_cv_benchmarks" = "xyes" )
+AC_SUBST(nfft_benchmarks_CPPFLAGS)
+AC_SUBST(nfft_benchmarks_CXXFLAGS)
+AC_SUBST(nfft_benchmarks_LDFLAGS)
+AC_SUBST(nfft_benchmarks_LIBS)
+
 # The output files to be generated
 AC_CONFIG_FILES(Makefile \
                 nfft3.pc \
@@ -647,6 +681,7 @@ AC_CONFIG_FILES(Makefile \
 		julia/fastsum/Makefile \
 		julia/nfct/Makefile \
 		julia/nfst/Makefile \
+                benchmarks/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:
