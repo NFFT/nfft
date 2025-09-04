@@ -189,7 +189,7 @@ void X(trafo_direct)(const X(plan) *ths)
 
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        v += f_hat[k_L] * BASE(-II * omega);
+        v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
         {
           for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)
             k[t]-= ths->N[t]-1;
