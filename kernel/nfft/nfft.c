@@ -168,9 +168,6 @@ void X(trafo_direct)(const X(plan) *ths)
   }
   else
   {
-
-    memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
-
     /* multivariate case */
     INT j;
 #ifdef _OPENMP
@@ -178,6 +175,7 @@ void X(trafo_direct)(const X(plan) *ths)
 #endif
     for (j = 0; j < ths->M_total; j++)
     {
+      C v = K(0.0);
       R x[ths->d], omega, Omega[ths->d + 1];
       INT t, t2, k_L, k[ths->d];
       Omega[0] = K(0.0);
@@ -191,7 +189,7 @@ void X(trafo_direct)(const X(plan) *ths)
 
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        f[j] += f_hat[k_L] * BASE(-II * omega);
+        v += f_hat[k_L] * BASE(-II * omega);
         {
           for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)
             k[t]-= ths->N[t]-1;
@@ -204,6 +202,8 @@ void X(trafo_direct)(const X(plan) *ths)
           omega = Omega[ths->d];
         }
       }
+
+      f[j] = v;
     }
   }
 }
