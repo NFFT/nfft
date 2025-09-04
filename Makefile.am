@@ -4,7 +4,7 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 # Subdirectories
-DIST_SUBDIRS=include kernel . tests examples applications matlab julia support doxygen
+DIST_SUBDIRS=include kernel . tests examples applications matlab julia support doxygen benchmarks
 
 if HAVE_EXAMPLES
   EXAMPLE_DIRS=examples
@@ -34,13 +34,19 @@ else
   LIBNFFT3_JULIA_LA=
 endif
 
+if HAVE_BENCHMARKS
+  BENCHMARK_DIRS=benchmarks
+else
+  BENCHMARK_DIRS=
+endif
+
 if HAVE_THREADS
   LIBNFFT3_THREADS_LA = libnfft3@PREC_SUFFIX@_threads.la
 else
   LIBNFFT3_THREADS_LA =
 endif
 
-SUBDIRS= include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS)
+SUBDIRS= include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS) $(BENCHMARK_DIRS)
 
 lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADS_LA)
 noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA) $(LIBNFFT3_JULIA_LA)
