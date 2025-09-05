@@ -268,6 +268,8 @@ fi
 AC_SUBST(matlab_exhaustive_unit_tests_flag)
 
 AC_ARG_ENABLE(benchmarks, [AS_HELP_STRING([--enable-benchmarks],[enable building benchmark programs])], enable_benchmarks=$enableval, enable_benchmarks=no)
+AC_ARG_WITH(benchmarks-prefix, [AS_HELP_STRING([--with-benchmarks-prefix=PREFIX],[prefix for benchmark names])], benchmarks_prefix=$withval, benchmarks_prefix="")
+AC_DEFINE_UNQUOTED(BENCHMARKS_PREFIX, "${benchmarks_prefix}", [Prefix for benchmark names])
 
 ################################################################################
 # C compiler characteristis
