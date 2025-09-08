@@ -268,6 +268,7 @@ fi
 AC_SUBST(matlab_exhaustive_unit_tests_flag)
 
 AC_ARG_ENABLE(benchmarks, [AS_HELP_STRING([--enable-benchmarks],[enable building benchmark programs])], enable_benchmarks=$enableval, enable_benchmarks=no)
+AC_ARG_WITH(benchmarks-prefix, [AS_HELP_STRING([--with-benchmarks-prefix=PREFIX],[prefix for benchmark names])], benchmarks_prefix=$withval, benchmarks_prefix="")
 
 ################################################################################
 # C compiler characteristis
@@ -592,6 +593,11 @@ if test "x$enable_benchmarks" = "xyes"; then
     nfft_benchmarks_CXXFLAGS="$nfft_codspeed_CXXFLAGS"
     nfft_benchmarks_LDFLAGS="$nfft_codspeed_LDFLAGS"
     nfft_benchmarks_LIBS="$nfft_codspeed_LIBS"
+    
+    # Add benchmarks prefix if specified
+    if test "x$benchmarks_prefix" != "x"; then
+      nfft_benchmarks_CPPFLAGS="$nfft_benchmarks_CPPFLAGS -DBENCHMARKS_PREFIX=\\\"$benchmarks_prefix\\\""
+    fi
   fi
 else
   nfft_cv_benchmarks="no"

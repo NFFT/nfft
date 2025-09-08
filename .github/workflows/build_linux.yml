@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    env:
+      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
     name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
     strategy:
       matrix:
@@ -33,6 +35,8 @@ jobs:
       uses: dsx137/deb-cache@main
       with:
         PACKAGES: |
+          build-essential
+          cmake
           libfftw3-dev
           libcunit1-dev 
           doxygen 
@@ -54,24 +58,52 @@ jobs:
 
     - name: Set up Python
       run: uv python install 3.13
-    
-    - name: Set up compiler
+
+    - name: Cache CodSpeed integration library
+      uses: actions/cache@v4
+      id: cache-codspeed
+      with:
+        path: codspeed-cpp
+        key: codspeed-cpp-${{ matrix.os }}
+
+    - name: Checkout CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4
+      with:
+        repository: CodSpeedHQ/codspeed-cpp
+        path: codspeed-cpp
+        submodules: recursive
+
+    - name: Configure CMake for CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
       run: |
-        echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}" >> $GITHUB_ENV
+        cd codspeed-cpp/google_benchmark
+        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=instrumentation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+
+    - name: Build CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      run: |
+        cd codspeed-cpp/google_benchmark
+        cmake --build . -v
     
     - name: Set up Octave
       if: matrix.build_octave == '1'
       run: |
         echo "OCTAVEDIR=/usr" >> $GITHUB_ENV
         echo "OCTAVE=octave" >> $GITHUB_ENV
-    
+      
+    - name: Set up compiler
+      run: |
+        echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}" >> $GITHUB_ENV
+        
     - name: Bootstrap
       run: ./bootstrap.sh
     
     - name: Configure
       run: |
         ./configure --with-window=${{ matrix.window }} ${{ matrix.precision_opt }} --enable-all --enable-exhaustive-unit-tests \
+        --enable-benchmarks --with-benchmarks-prefix=${{ env.BUILD_CONFIG }}/ --with-codspeed=$(pwd)/codspeed-cpp \
         $(if [ "${{ matrix.openmp }}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
         $(if [ "${{ matrix.build_octave }}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${{ matrix.build_julia }}" = "1" ] && [ "${{ matrix.precision_opt }}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
@@ -86,10 +118,11 @@ jobs:
       run: |
         uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
 
-    - name: Distcheck (if applicable)
-      if: matrix.dist == 'distcheck'
-      run: make distcheck
-    
+    - name: Benchmarks
+      uses: CodSpeedHQ/action@v3
+      with:
+        run: benchmarks/bench_nfft_direct
+  
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
       run: |
@@ -132,3 +165,36 @@ jobs:
             }
           }
       if: always()
+
+  distcheck:
+    runs-on: ubuntu-latest
+    name: "distcheck"
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Disable initramfs update
+      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+
+    - name: Disable man-db update
+      run: sudo rm -f /var/lib/man-db/auto-update        
+
+    - name: Install dependencies
+      uses: dsx137/deb-cache@main
+      with:
+        PACKAGES: |
+          build-essential
+          cmake
+          libfftw3-dev
+          libcunit1-dev 
+          doxygen 
+          doxygen-latex 
+          graphviz
+
+    - name: Bootstrap
+      run: ./bootstrap.sh
+    
+    - name: Configure
+      run: ./configure --enable-all --enable-exhaustive-unit-tests
+    
+    - name: Distcheck
+      run: make distcheck

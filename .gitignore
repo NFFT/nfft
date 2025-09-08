@@ -159,4 +159,4 @@ matlab/tests/nfsftUnitTests.m
 matlab/tests/check_*_matlab.output
 windows-build-dll*/*
 linux-build-mex/*
-nfft-3.*.tar.gz
+nfft-*
