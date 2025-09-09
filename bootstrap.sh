@@ -39,7 +39,7 @@ fi
 touch ChangeLog
 
 rm -rf autom4te.cache
-"$LIBTOOLIZE_CMD"
+"$LIBTOOLIZE_CMD" --force
 autoreconf --verbose --install --force
 
 rm -f config.cache
