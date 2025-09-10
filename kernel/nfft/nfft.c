@@ -226,7 +226,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         for (j = 0; j < ths->M_total; j++)
         {
           R omega = K2PI * ((R)(k_L - (ths->N_total/2))) * ths->x[j];
-          f_hat[k_L] += f[j] * BASE(II * omega);
+          f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
         }
       }
 #else
@@ -237,7 +237,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         for (k_L = 0; k_L < ths->N_total; k_L++)
         {
           R omega = K2PI * ((R)(k_L - ths->N_total / 2)) * ths->x[j];
-          f_hat[k_L] += f[j] * BASE(II * omega);
+          f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
         }
       }
 #endif
@@ -265,7 +265,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         R omega = K(0.0);
         for (t = 0; t < ths->d; t++)
           omega += k[t] * K2PI * ths->x[j * ths->d + t];
-        f_hat[k_L] += f[j] * BASE(II * omega);
+        f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
       }
     }
 #else
@@ -283,7 +283,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       omega = Omega[ths->d];
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        f_hat[k_L] += f[j] * BASE(II * omega);
+        f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
 
         for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
           k[t]-= ths->N[t]-1;
