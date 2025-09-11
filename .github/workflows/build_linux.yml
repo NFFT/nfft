@@ -1,0 +1,200 @@
+name: Build Linux
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    env:
+      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"] # TODO: Add more Ubuntu versions, e.g. "ubuntu-20.04", "ubuntu-18.04".
+        compiler: ["gcc", "clang"]
+        window: ["kaiserbessel", "gaussian", "bspline", "sinc"] # TODO: Add dirac.
+        precision_opt: ["", "--enable-float", "--enable-long-double"]
+        openmp: [0, 1]
+        build_octave: [0] # TODO: Re-activate Octave build and tests.
+        build_julia: [0] # TODO: Re-activate Julia build and tests.
+    steps:    
+    - uses: actions/checkout@v5
+
+    - name: Disable initramfs update
+      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+
+    - name: Disable man-db update
+      run: sudo rm -f /var/lib/man-db/auto-update        
+
+    - name: Install dependencies
+      uses: dsx137/deb-cache@main
+      with:
+        PACKAGES: |
+          build-essential
+          cmake
+          libfftw3-dev
+          libcunit1-dev 
+          doxygen 
+          doxygen-latex 
+          graphviz
+          octave-dev
+          clang
+          libomp-dev
+          libatomic1
+
+    - name: Set up Julia
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      uses: julia-actions/setup-julia@v2
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.13
+
+    - name: Cache CodSpeed integration library
+      uses: actions/cache@v4
+      id: cache-codspeed
+      with:
+        path: codspeed-cpp
+        key: codspeed-cpp-${{ matrix.os }}
+
+    - name: Checkout CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4
+      with:
+        repository: CodSpeedHQ/codspeed-cpp
+        path: codspeed-cpp
+        submodules: recursive
+
+    - name: Configure CMake for CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      run: |
+        cd codspeed-cpp/google_benchmark
+        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=instrumentation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+
+    - name: Build CodSpeed integration library
+      if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      run: |
+        cd codspeed-cpp/google_benchmark
+        cmake --build . -v
+    
+    - name: Set up Octave
+      if: matrix.build_octave == '1'
+      run: |
+        echo "OCTAVEDIR=/usr" >> $GITHUB_ENV
+        echo "OCTAVE=octave" >> $GITHUB_ENV
+      
+    - name: Set up compiler
+      run: |
+        echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}" >> $GITHUB_ENV
+        
+    - name: Bootstrap
+      run: ./bootstrap.sh
+    
+    - name: Configure
+      run: |
+        ./configure --with-window=${{ matrix.window }} ${{ matrix.precision_opt }} --enable-all --enable-exhaustive-unit-tests \
+        --enable-benchmarks --with-benchmarks-prefix=${{ env.BUILD_CONFIG }}/ --with-codspeed=$(pwd)/codspeed-cpp \
+        $(if [ "${{ matrix.openmp }}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
+        $(if [ "${{ matrix.build_octave }}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
+        $(if [ "${{ matrix.build_julia }}" = "1" ] && [ "${{ matrix.precision_opt }}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
+    
+    - name: Build
+      run: make
+    
+    - name: Test
+      run: make check
+
+    - name: Convert CUnit test report to JUnit
+      run: |
+        uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
+
+    - name: Benchmarks
+      uses: CodSpeedHQ/action@v3
+      with:
+        run: benchmarks/bench_nfft_direct
+  
+    - name: Test Julia
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      run: |
+        for DIR in julia/nf*t julia/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.jl; do
+            julia "$NAME"
+          done
+          cd ../..
+        done
+    
+    - name: Test Octave
+      if: matrix.build_octave == '1'
+      run: |
+        for DIR in matlab/nf*t matlab/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.m; do
+            $OCTAVE --eval="run('$NAME')"
+          done
+          cd ../..
+        done
+
+    - name: Publish Test Report
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './tests/junit.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true,
+              "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-report.json",
+                "toolname": "junit-to-ctrf",
+                "useSuiteName": false,
+                "env": {
+                  "appName": "nfft"
+                }
+              }
+            }
+          }
+      if: always()
+
+  distcheck:
+    runs-on: ubuntu-latest
+    name: "distcheck"
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Disable initramfs update
+      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+
+    - name: Disable man-db update
+      run: sudo rm -f /var/lib/man-db/auto-update        
+
+    - name: Install dependencies
+      uses: dsx137/deb-cache@main
+      with:
+        PACKAGES: |
+          build-essential
+          cmake
+          libfftw3-dev
+          libcunit1-dev 
+          doxygen 
+          doxygen-latex 
+          graphviz
+
+    - name: Bootstrap
+      run: ./bootstrap.sh
+    
+    - name: Configure
+      run: ./configure --enable-all --enable-exhaustive-unit-tests
+    
+    - name: Distcheck
+      run: make distcheck

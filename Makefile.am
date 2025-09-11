@@ -7,43 +7,43 @@ libtool: $(LIBTOOL_DEPS)
 DIST_SUBDIRS=include kernel . tests examples applications matlab julia support doxygen benchmarks
 
 if HAVE_EXAMPLES
-  EXAMPLE_DIRS=examples
+EXAMPLE_DIRS=examples
 else
-  EXAMPLE_DIRS=
+EXAMPLE_DIRS=
 endif
 
 if HAVE_APPLICATIONS
-  APPLICATION_DIRS=applications
+APPLICATION_DIRS=applications
 else
-  APPLICATION_DIRS=
+APPLICATION_DIRS=
 endif
 
 if HAVE_MATLAB
-  MATLAB_DIRS=matlab
-  LIBNFFT3_MATLAB_LA=libnfft3@PREC_SUFFIX@_matlab.la
+MATLAB_DIRS=matlab
+LIBNFFT3_MATLAB_LA=libnfft3@PREC_SUFFIX@_matlab.la
 else
-  MATLAB_DIRS=
-  LIBNFFT3_MATLAB_LA=
+MATLAB_DIRS=
+LIBNFFT3_MATLAB_LA=
 endif
 
 if HAVE_JULIA
-  JULIA_DIRS=julia
-  LIBNFFT3_JULIA_LA=libnfft3@PREC_SUFFIX@_julia.la
+JULIA_DIRS=julia
+LIBNFFT3_JULIA_LA=libnfft3@PREC_SUFFIX@_julia.la
 else
-  JULIA_DIRS=
-  LIBNFFT3_JULIA_LA=
+JULIA_DIRS=
+LIBNFFT3_JULIA_LA=
 endif
 
 if HAVE_BENCHMARKS
-  BENCHMARK_DIRS=benchmarks
+BENCHMARK_DIRS=benchmarks
 else
-  BENCHMARK_DIRS=
+BENCHMARK_DIRS=
 endif
 
 if HAVE_THREADS
-  LIBNFFT3_THREADS_LA = libnfft3@PREC_SUFFIX@_threads.la
+LIBNFFT3_THREADS_LA = libnfft3@PREC_SUFFIX@_threads.la
 else
-  LIBNFFT3_THREADS_LA =
+LIBNFFT3_THREADS_LA =
 endif
 
 SUBDIRS= include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS) $(BENCHMARK_DIRS)
@@ -61,28 +61,28 @@ libnfft3@PREC_SUFFIX@_threads_la_SOURCES =
 libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
 libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 if HAVE_OPENMP
-  libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+	libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif
 
 if HAVE_MATLAB
-  libnfft3@PREC_SUFFIX@_matlab_la_SOURCES =
+libnfft3@PREC_SUFFIX@_matlab_la_SOURCES =
 if HAVE_MATLAB_THREADS
-    libnfft3@PREC_SUFFIX@_matlab_la_LIBADD = kernel/libkernel_threads.la @matlab_fftw3_LIBS@ -lm
+libnfft3@PREC_SUFFIX@_matlab_la_LIBADD = kernel/libkernel_threads.la @matlab_fftw3_LIBS@ -lm
 else
-    libnfft3@PREC_SUFFIX@_matlab_la_LIBADD = kernel/libkernel.la @matlab_fftw3_LIBS@ -lm
+libnfft3@PREC_SUFFIX@_matlab_la_LIBADD = kernel/libkernel.la @matlab_fftw3_LIBS@ -lm
 endif
-  libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
+libnfft3@PREC_SUFFIX@_matlab_la_LDFLAGS = @matlab_fftw3_LDFLAGS@
 endif
 
 if HAVE_JULIA
-  libnfft3@PREC_SUFFIX@_julia_la_SOURCES =
+libnfft3@PREC_SUFFIX@_julia_la_SOURCES =
 if HAVE_THREADS
-    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
+libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
 else
-    libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel.la @fftw3_LIBS@ -lm
+libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel.la @fftw3_LIBS@ -lm
 endif
-  libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
+libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
 endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
@@ -117,8 +117,8 @@ clean-local:
 
 dist-hook: doc
 	rm -f @DX_DOCDIR@/@PACKAGE@.tag
+	chmod -R u+w $(distdir)
 	cp -R $(abs_top_builddir)/doc $(distdir)/
-	rm -Rf `find $(distdir) -name .svn -type d`
 
 include aminclude.am
 

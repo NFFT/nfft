@@ -759,13 +759,13 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
 static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
 static check_delegate_t check_adjoint = {prepare_adjoint, compare_adjoint};
 
-static trafo_delegate_t trafo_direct = {"trafo_direct", X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
+static trafo_delegate_t trafo_direct = {"trafo_direct", (trafo_t)X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t trafo = {"trafo", X(trafo), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), X(check), 0, err_trafo};
 
-static trafo_delegate_t adjoint_direct = {"adjoint_direct", X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
+static trafo_delegate_t adjoint_direct = {"adjoint_direct", (trafo_t)X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t adjoint = {"adjoint", X(adjoint), X(check), 0, err_trafo};
 //static trafo_delegate_t adjoint_1d = {"adjoint_1d", adjoint_1d, X(check), 0, err_trafo};
 //static trafo_delegate_t adjoint_2d = {"adjoint_2d", adjoint_2d, X(check), 0, err_trafo};

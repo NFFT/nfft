@@ -25,123 +25,125 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#include "util.h"
+
 // Helper function to initialize random data
-static void init_random_data(nfft_plan* plan) {
+static void NFFT(init_random_data)(NFFT(plan)* plan) {
     NFFT(vrand_shifted_unit_double)(plan->x, plan->d * plan->M_total);
     NFFT(vrand_unit_complex)(plan->f_hat, plan->N_total);
     NFFT(vrand_unit_complex)(plan->f, plan->M_total);
 }
 
 // Benchmark for NFFT direct transform (trafo_direct)
-static void BM_NFFT_TrafoDirect(benchmark::State& state) {
+static void nfft_forward_direct_1d(benchmark::State& state) {
     int N = state.range(0);
     int M = state.range(1);
     
-    nfft_plan plan;
-    nfft_init_1d(&plan, N, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_1d)(&plan, N, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_trafo_direct(&plan);
+        NFFT(trafo_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N * M);
 }
 
 // Benchmark for NFFT adjoint direct transform (adjoint_direct)
-static void BM_NFFT_AdjointDirect(benchmark::State& state) {
+static void nfft_adjoint_direct_1d(benchmark::State& state) {
     int N = state.range(0);
     int M = state.range(1);
     
-    nfft_plan plan;
-    nfft_init_1d(&plan, N, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_1d)(&plan, N, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_adjoint_direct(&plan);
+        NFFT(adjoint_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N * M);
 }
 
 // Benchmark for 2D NFFT direct transform
-static void BM_NFFT_2D_TrafoDirect(benchmark::State& state) {
+static void nfft_forward_direct_2d(benchmark::State& state) {
     int N1 = state.range(0);
     int N2 = state.range(1);
     int M = state.range(2);
     
-    nfft_plan plan;
-    nfft_init_2d(&plan, N1, N2, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_2d)(&plan, N1, N2, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_trafo_direct(&plan);
+        NFFT(trafo_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N1 * N2 * M);
 }
 
 // Benchmark for 2D NFFT adjoint direct transform
-static void BM_NFFT_2D_AdjointDirect(benchmark::State& state) {
+static void nfft_adjoint_direct_2d(benchmark::State& state) {
     int N1 = state.range(0);
     int N2 = state.range(1);
     int M = state.range(2);
     
-    nfft_plan plan;
-    nfft_init_2d(&plan, N1, N2, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_2d)(&plan, N1, N2, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_adjoint_direct(&plan);
+        NFFT(adjoint_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N1 * N2 * M);
 }
 
 // Benchmark for 3D NFFT direct transform
-static void BM_NFFT_3D_TrafoDirect(benchmark::State& state) {
+static void nfft_forward_direct_3d(benchmark::State& state) {
     int N1 = state.range(0);
     int N2 = state.range(1);
     int N3 = state.range(2);
     int M = state.range(3);
     
-    nfft_plan plan;
-    nfft_init_3d(&plan, N1, N2, N3, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_3d)(&plan, N1, N2, N3, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_trafo_direct(&plan);
+        NFFT(trafo_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N1 * N2 * N3 * M);
 }
 
 // Benchmark for 3D NFFT adjoint direct transform
-static void BM_NFFT_3D_AdjointDirect(benchmark::State& state) {
+static void nfft_adjoint_direct_3d(benchmark::State& state) {
     int N1 = state.range(0);
     int N2 = state.range(1);
     int N3 = state.range(2);
     int M = state.range(3);
     
-    nfft_plan plan;
-    nfft_init_3d(&plan, N1, N2, N3, M);
-    init_random_data(&plan);
+    NFFT(plan) plan;
+    NFFT(init_3d)(&plan, N1, N2, N3, M);
+    NFFT(init_random_data)(&plan);
     
     for (auto _ : state) {
-        nfft_adjoint_direct(&plan);
+        NFFT(adjoint_direct)(&plan);
     }
     
-    nfft_finalize(&plan);
+    NFFT(finalize)(&plan);
     state.SetComplexityN(N1 * N2 * N3 * M);
 }
 
 // Register benchmarks for direct transforms
-BENCHMARK(BM_NFFT_TrafoDirect)
+BENCH(nfft_forward_direct_1d)
     ->Args({32, 100})
     ->Args({64, 200})
     ->Args({128, 400})
@@ -149,7 +151,7 @@ BENCHMARK(BM_NFFT_TrafoDirect)
     ->Args({512, 1600})
     ->Complexity();
 
-BENCHMARK(BM_NFFT_AdjointDirect)
+BENCH(nfft_adjoint_direct_1d)
     ->Args({32, 100})
     ->Args({64, 200})
     ->Args({128, 400})
@@ -157,25 +159,25 @@ BENCHMARK(BM_NFFT_AdjointDirect)
     ->Args({512, 1600})
     ->Complexity();
 
-BENCHMARK(BM_NFFT_2D_TrafoDirect)
+BENCH(nfft_forward_direct_2d)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
     ->Args({64, 64, 2000})
     ->Complexity();
 
-BENCHMARK(BM_NFFT_2D_AdjointDirect)
+BENCH(nfft_adjoint_direct_2d)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
     ->Args({64, 64, 2000})
     ->Complexity();
 
-BENCHMARK(BM_NFFT_3D_TrafoDirect)
+BENCH(nfft_forward_direct_3d)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
     ->Args({16, 16, 16, 1000})
     ->Complexity();
 
-BENCHMARK(BM_NFFT_3D_AdjointDirect)
+BENCH(nfft_adjoint_direct_3d)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
     ->Args({16, 16, 16, 1000})

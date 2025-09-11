@@ -44,7 +44,7 @@ checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lm -lcunit
 if HAVE_THREADS
 if HAVE_OPENMP
   checkall_threads_SOURCES = $(checkall_SOURCES)
-  checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@ -lcunit
+  checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@ -latomic -lcunit
   checkall_threads_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif

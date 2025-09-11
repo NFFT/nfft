@@ -29,7 +29,7 @@ libkernels_la_SOURCES = kernels.c
 
 if HAVE_THREADS
   libfastsum_threads_la_SOURCES = fastsum.c fastsum.h kernels.h
-  libfastsum_threads_la_LIBADD = @fftw3_threads_LIBS@
+  libfastsum_threads_la_LIBADD = @fftw3_threads_LIBS@ -latomic
   libfastsum_threads_la_LDFLAGS = @fftw3_threads_LDFLAGS@
 if HAVE_OPENMP
   libfastsum_threads_la_CFLAGS = $(OPENMP_CFLAGS)
