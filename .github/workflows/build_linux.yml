@@ -119,7 +119,7 @@ jobs:
         uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
 
     - name: Benchmarks
-      uses: CodSpeedHQ/action@v3
+      uses: CodSpeedHQ/action@v4
       with:
         run: benchmarks/bench_nfft_direct
   
