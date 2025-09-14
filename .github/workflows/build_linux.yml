@@ -68,7 +68,7 @@ jobs:
 
     - name: Checkout CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: CodSpeedHQ/codspeed-cpp
         path: codspeed-cpp
