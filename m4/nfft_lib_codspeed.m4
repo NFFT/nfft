@@ -36,7 +36,7 @@ AC_DEFUN([NFFT_LIB_CODSPEED],
   AC_LANG_PUSH([C++])
 
   AC_REQUIRE([AC_PROG_CXX])
-  AC_REQUIRE([AX_CXX_COMPILE_STDCXX_17])
+  AC_REQUIRE([NFFT_CXX_COMPILE_STDCXX_17])
 
   AC_ARG_WITH(codspeed, [AS_HELP_STRING([--with-codspeed=DIR],
   [use CodSpeed C++ library project (https://github.com/CodSpeedHQ/codspeed-cpp) in DIR])], with_codspeed=$withval, with_codspeed="no")
