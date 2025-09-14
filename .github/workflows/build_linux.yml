@@ -121,6 +121,7 @@ jobs:
     - name: Benchmarks
       uses: CodSpeedHQ/action@v4
       with:
+        mode: instrumentation
         run: benchmarks/bench_nfft_direct
   
     - name: Test Julia
