@@ -203,10 +203,7 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
-#AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
-#  [enable OpenMP multithreaded code])], [enable_threads=$enableval; AC_DEFINE(ENABLE_OPENMP, 1, ["Define to enable OpenMP code."])], enable_threads=no)
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp], [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
-AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
 AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [compile with extra runtime checks for debugging])], enable_debug=$enableval,
@@ -324,30 +321,57 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
 ################################################################################
+# OpenMP support
+################################################################################
+
+# OpenMP compiler support
+AX_OPENMP
+
+if test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+  AC_MSG_ERROR([You have enabled building NFFT with OpenMP multi-threading support, but your compiler does not seem to support OpenMP.])
+fi
+
+################################################################################
 # 3rd party libraries
 ################################################################################
 
 # Check for fftw3.
-AX_LIB_FFTW3
+NFFT_LIB_FFTW3
 
-if test "x$ax_lib_fftw3" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the FFTW 3 library installed. You can ]#
-     [download it from http://www.fftw.org. If you have installed FFTW 3, ]#
-     [make sure that this configure script can find it. See ./configure ]#
-     [--help for more information.])
+if test "x$nfft_fftw3_have_lib" != "xyes"; then
+  AC_MSG_ERROR([You don't seem to have the FFTW 3 library's developer sources installed.]
+[Use your OS' package manager to install the necessary packages. Alternatively, you can ]
+[download FFTW 3 from http://www.fftw.org and build it yourself. If you are sure you have]
+[FFTW 3 set up correctly, ensure that this configure script can find it, e.g. by setting]
+[CPPFLAGS/LDFLAGS environment variables, or by using --with-fftw3, --with-fftw3-includedir]
+[and/or --with-fftw3-libdir options; see ./configure --help.])
 fi
 
-if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the threaded FFTW 3 library installed.])
+if test "x$enable_threads" = "xyes"; then
+  # Check which FFTW3 threading variant is available and provide appropriate warnings.
+  if test "x$nfft_fftw3_have_lib_omp" = "xyes"; then
+    # FFTW3 OpenMP variant found - no warning needed (optimal case)
+    fftw3_LIBS_omp="$nfft_fftw3_LIBS_omp"
+    AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+  elif test "x$nfft_fftw3_have_lib_threads" = "xyes"; then
+    # Only generic multi-threaded FFTW3 found - warn about potential inefficiency
+    AC_MSG_WARN([Only generic multi-threaded FFTW3 library found. This may be less efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.])
+    fftw3_LIBS_omp="$nfft_fftw3_LIBS_threads"
+    AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+  else
+    # Only single-threaded FFTW3 found - warn that only NFFT code will be multi-threaded
+    AC_MSG_WARN([Only single-threaded FFTW3 library found. Multi-threading will only be used in NFFT code, not in FFTW3 computations.])
+    fftw3_LIBS_omp=""
+  fi
 fi
 
-AX_OPENMP
-AM_CONDITIONAL(HAVE_OPENMP, test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xunknown" )
+AC_SUBST(fftw3_CPPFLAGS)
+AC_SUBST(fftw3_LDFLAGS)
+AC_SUBST(fftw3_LIBS)
+AC_SUBST(fftw3_LIBS_omp)
+
+AM_CONDITIONAL(ENABLE_OPENMP, test "x$enable_threads" = "xyes" )
 AC_SUBST(OPENMP_CFLAGS)
-
-if  test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
-  AC_MSG_ERROR([You don't seem to have a C compiler with OpenMP support installed which is required for threaded NFFT.])
-fi
 
 # Check for MATLAB.
 AX_PROG_MATLAB
@@ -370,9 +394,9 @@ if test "x$ac_test_CFLAGS" != "xset"; then
   saved_CPPFLAGS="$CPPFLAGS"
   saved_LDFLAGS="$LDFLAGS"
   saved_LIBS="$LIBS"
-  CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
   LIBS="$LIBS $fftw3_LIBS"
-  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
+  LDFLAGS="$LDFLAGS $nfft_fftw3_LDFLAGS"
   AX_CC_MAXOPT
   CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
@@ -407,7 +431,7 @@ if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
   CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
 fi  
 
-CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
 
 # add Matlab CFLAGS
 if test "x$ax_prog_matlab" = "xyes"; then

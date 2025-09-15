@@ -40,31 +40,34 @@ else
 BENCHMARK_DIRS=
 endif
 
-if HAVE_THREADS
-LIBNFFT3_THREADS_LA = libnfft3@PREC_SUFFIX@_threads.la
+if ENABLE_OPENMP
+LIBNFFT3_THREADDS_LA = libnfft3@PREC_SUFFIX@_threads.la
+LIBNFFT3_OMP_LA = libnfft3@PREC_SUFFIX@_omp.la
 else
-LIBNFFT3_THREADS_LA =
+LIBNFFT3_THREADDS_LA =
+LIBNFFT3_OMP_LA =
 endif
 
 SUBDIRS= include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS) $(BENCHMARK_DIRS)
 
-lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADS_LA)
+lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADDS_LA) $(LIBNFFT3_OMP_LA)
 noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA) $(LIBNFFT3_JULIA_LA)
 
 libnfft3@PREC_SUFFIX@_la_SOURCES =
-libnfft3@PREC_SUFFIX@_la_LIBADD = kernel/libkernel.la @fftw3_LIBS@ -lm
-libnfft3@PREC_SUFFIX@_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+libnfft3@PREC_SUFFIX@_la_LIBADD = kernel/libkernel.la
+libnfft3@PREC_SUFFIX@_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
 # Removed since it is only used by iterS2:  3rdparty/lib3rdparty.la
 
-if HAVE_THREADS
+if ENABLE_OPENMP
 libnfft3@PREC_SUFFIX@_threads_la_SOURCES =
-libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
-if HAVE_OPENMP
-libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@ $(OPENMP_CFLAGS)
+libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la
+libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ $(OPENMP_CFLAGS)
 libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
-else
-libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
-endif
+
+libnfft3@PREC_SUFFIX@_omp_la_SOURCES =
+libnfft3@PREC_SUFFIX@_omp_la_LIBADD = kernel/libkernel_threads.la
+libnfft3@PREC_SUFFIX@_omp_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ $(OPENMP_CFLAGS)
+libnfft3@PREC_SUFFIX@_omp_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 if HAVE_MATLAB
@@ -79,8 +82,8 @@ endif
 
 if HAVE_JULIA
 libnfft3@PREC_SUFFIX@_julia_la_SOURCES =
-if HAVE_THREADS
-libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
+if ENABLE_OPENMP
+libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel_threads.la @fftw3_LIBS_omp@ @fftw3_LIBS@  -lm
 else
 libnfft3@PREC_SUFFIX@_julia_la_LIBADD = kernel/libkernel.la @fftw3_LIBS@ -lm
 endif

@@ -25,7 +25,7 @@
 AC_DEFUN([AX_PROG_MATLAB],
 [
   AC_REQUIRE([AC_CANONICAL_HOST])
-  AC_REQUIRE([AX_LIB_FFTW3])
+  AC_REQUIRE([NFFT_LIB_FFTW3])
 
   # option to enable mex file compilation for GNU Octave
   AC_ARG_WITH(octave,

@@ -37,7 +37,9 @@ int main(void)
   printf("nthreads = " NFFT__D__ "\n", NFFT(get_num_threads)());
 
   /* init */
-  FFTW(init_threads)();
+  #ifdef HAVE_FFTW_THREADS
+    FFTW(init_threads)();
+  #endif
   NFFT(init_1d)(&p,N,M);
 
   /* pseudo random nodes */
@@ -62,7 +64,9 @@ int main(void)
 
   /* cleanup */
   NFFT(finalize)(&p);
-  FFTW(cleanup_threads)();
+  #ifdef HAVE_FFTW_THREADS
+    FFTW(cleanup_threads)();
+  #endif
 
   return EXIT_SUCCESS;
 }
