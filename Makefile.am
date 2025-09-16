@@ -53,15 +53,17 @@ noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA) $(LIBNFFT3_JULIA_LA)
 
 libnfft3@PREC_SUFFIX@_la_SOURCES =
 libnfft3@PREC_SUFFIX@_la_LIBADD = kernel/libkernel.la @fftw3_LIBS@ -lm
-libnfft3@PREC_SUFFIX@_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
+libnfft3@PREC_SUFFIX@_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 # Removed since it is only used by iterS2:  3rdparty/lib3rdparty.la
 
 if HAVE_THREADS
 libnfft3@PREC_SUFFIX@_threads_la_SOURCES =
 libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la @fftw3_threads_LIBS@ -lm
-libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 if HAVE_OPENMP
-	libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@ $(OPENMP_CFLAGS)
+libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+else
+libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @fftw3_LDFLAGS@
 endif
 endif
 
