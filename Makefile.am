@@ -114,17 +114,17 @@ clean-local:
 	rm -Rf $(abs_top_builddir)/doc/html
 	rm -Rf $(abs_top_builddir)/doc/latex
 
-dist-hook: doc
-	rm -f @DX_DOCDIR@/@PACKAGE@.tag
-	chmod -R u+w $(distdir)
-	cp -R $(abs_top_srcdir)/doc $(distdir)/
-
 include aminclude.am
 
 if DX_COND_doc
 doc: doxygen-doc
 	rm -f $(abs_top_srcdir)/doc/html/*.md5
 	rm -f $(abs_top_srcdir)/doc/html/*.map
+
+dist-hook: doc
+	rm -f @DX_DOCDIR@/@PACKAGE@.tag
+	chmod -R u+w $(distdir)
+	cp -R $(abs_top_srcdir)/doc $(distdir)/
 endif
 
 # Flags to be passed to aclocal.
