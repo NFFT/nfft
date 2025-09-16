@@ -96,10 +96,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	if test -f "$(abs_top_builddir)/doc/html/index.html"; then \
-		$(MKDIR_P) $(DESTDIR)$(docdir); \
-		cp -Rf $(abs_top_builddir)/doc/html $(DESTDIR)$(docdir)/; \
-	elif test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
+	if test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
 		$(MKDIR_P) $(DESTDIR)$(docdir); \
 		cp -Rf $(abs_top_srcdir)/doc/html $(DESTDIR)$(docdir)/; \
 	fi
@@ -118,14 +115,14 @@ clean-local:
 dist-hook: doc
 	rm -f @DX_DOCDIR@/@PACKAGE@.tag
 	chmod -R u+w $(distdir)
-	cp -R $(abs_top_builddir)/doc $(distdir)/
+	cp -R $(abs_top_srcdir)/doc $(distdir)/
 
 include aminclude.am
 
 if DX_COND_doc
 doc: doxygen-doc
-	rm -f $(abs_top_builddir)/doc/html/*.md5
-	rm -f $(abs_top_builddir)/doc/html/*.map
+	rm -f $(abs_top_srcdir)/doc/html/*.md5
+	rm -f $(abs_top_srcdir)/doc/html/*.map
 endif
 
 # Flags to be passed to aclocal.
