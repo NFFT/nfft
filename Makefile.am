@@ -102,8 +102,10 @@ install-data-hook:
 	fi
 
 uninstall-hook:
-	chmod -Rf u+rwX $(DESTDIR)$(docdir)
-	rm -Rf $(DESTDIR)$(docdir)
+	if test -d "$(DESTDIR)$(docdir)"; then \
+		chmod -Rf u+rwX $(DESTDIR)$(docdir); \
+		rm -Rf $(DESTDIR)$(docdir); \
+	fi
 
 clean-local:
 	rm -f $(abs_top_builddir)/doc/doxygen_sqlite3.db
