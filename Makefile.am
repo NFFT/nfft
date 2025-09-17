@@ -98,17 +98,16 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
-	if test -f "$(abs_top_builddir)/doc/html/index.html"; then \
-		$(MKDIR_P) $(DESTDIR)$(docdir); \
-		cp -Rf $(abs_top_builddir)/doc/html $(DESTDIR)$(docdir)/; \
-	elif test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
+	if test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
 		$(MKDIR_P) $(DESTDIR)$(docdir); \
 		cp -Rf $(abs_top_srcdir)/doc/html $(DESTDIR)$(docdir)/; \
 	fi
 
 uninstall-hook:
-	chmod -Rf u+rwX $(DESTDIR)$(docdir)
-	rm -Rf $(DESTDIR)$(docdir)
+	if test -d "$(DESTDIR)$(docdir)"; then \
+		chmod -Rf u+rwX $(DESTDIR)$(docdir); \
+		rm -Rf $(DESTDIR)$(docdir); \
+	fi
 
 clean-local:
 	rm -f $(abs_top_builddir)/doc/doxygen_sqlite3.db
@@ -117,17 +116,17 @@ clean-local:
 	rm -Rf $(abs_top_builddir)/doc/html
 	rm -Rf $(abs_top_builddir)/doc/latex
 
-dist-hook: doc
-	rm -f @DX_DOCDIR@/@PACKAGE@.tag
-	chmod -R u+w $(distdir)
-	cp -R $(abs_top_builddir)/doc $(distdir)/
-
 include aminclude.am
 
 if DX_COND_doc
 doc: doxygen-doc
-	rm -f $(abs_top_builddir)/doc/html/*.md5
-	rm -f $(abs_top_builddir)/doc/html/*.map
+	rm -f $(abs_top_srcdir)/doc/html/*.md5
+	rm -f $(abs_top_srcdir)/doc/html/*.map
+
+dist-hook: doc
+	rm -f @DX_DOCDIR@/@PACKAGE@.tag
+	chmod -R u+w $(distdir)
+	cp -R $(abs_top_srcdir)/doc $(distdir)/
 endif
 
 # Flags to be passed to aclocal.
