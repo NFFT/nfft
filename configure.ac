@@ -575,8 +575,12 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 fi
 
 # CUnit
-AX_CUNIT
-AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )
+NFFT_LIB_CUNIT
+
+AM_CONDITIONAL(HAVE_CUNIT, test "x$cunit_have_lib" = "xyes" )
+AC_SUBST(cunit_CPPFLAGS)
+AC_SUBST(cunit_LDFLAGS)
+AC_SUBST(cunit_LIBS)
 
 nfft_cv_benchmarks="no"
 nfft_benchmarks_CPPFLAGS=""

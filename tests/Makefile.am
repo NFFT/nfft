@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -DSRCDIR=@abs_srcdir@
+AM_CPPFLAGS = -I$(top_srcdir)/include @cunit_CPPFLAGS@ -DSRCDIR=@abs_srcdir@
 
 SUBDIRS= data
 
@@ -39,12 +39,15 @@ else
 endif
 
 checkall_SOURCES = check.c util.c util.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h nfft.c nfft.h $(NFCT_SOURCES) $(NFST_SOURCES)
-checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la -lm -lcunit
+checkall_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
+checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
 if HAVE_THREADS
 if HAVE_OPENMP
   checkall_threads_SOURCES = $(checkall_SOURCES)
-  checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@ -latomic -lcunit
+  checkall_threads_CPPFLAGS = @cunit_CPPFLAGS@
+  checkall_threads_LDFLAGS = $(OPENMP_CFLAGS) @cunit_LDFLAGS@
+  checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_threads.la @fftw3_LDFLAGS@ @fftw3_threads_LIBS@ -latomic @cunit_LIBS@
   checkall_threads_CFLAGS = $(OPENMP_CFLAGS)
 endif
 endif
