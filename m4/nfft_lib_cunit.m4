@@ -50,6 +50,7 @@ AC_DEFUN([NFFT_LIB_CUNIT],
   # Save current flags.
   saved_CPPFLAGS="$CPPFLAGS"
   saved_LDFLAGS="$LDFLAGS"
+  saved_LIBSS="$LIBS"
 
   cunit_have_lib="no"
   cunit_CPPFLAGS=""
@@ -97,4 +98,5 @@ AC_DEFUN([NFFT_LIB_CUNIT],
   # Restore saved flags.
   CPPFLAGS="$saved_CPPFLAGS"
   LDFLAGS="$saved_LDFLAGS"
+  LIBS="$saved_LIBS"
 ])dnl NFFT_CUNIT
