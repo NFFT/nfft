@@ -298,7 +298,7 @@ static int check_single(const testcase_delegate_t *testcase,
 
   /* Init plan. */
   printf(", %-28s", init_delegate->name);
-  init_delegate->init(init_delegate, &p, d, N, M);
+  init_delegate->init((init_delegate_t *)init_delegate, &p, d, N, M);
 
   printf(", m = %2d", (int)p.m);
   printf(", %-14s", trafo_delegate->name);
@@ -367,7 +367,7 @@ static void check_many(const size_t nf, const size_t ni, const size_t nt,
     {
       for (j = 0; j < ni; j++)
       {
-         r = check_single(testcases[i], initializers[j], check_delegate, trafos[k]);
+         r = check_single(testcases[i], (const init_delegate_t *)initializers[j], check_delegate, (const trafo_delegate_t *)trafos[k]);
          ok = MIN(ok, r);
       }
     }
@@ -650,7 +650,7 @@ static void init_3d_(init_delegate_t *ego, X(plan) *p, const int d, const int *N
 static void init_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
 {
   UNUSED(ego);
-  X(init)(p, d, N, M);
+  X(init)(p, d, (int *)N, M);
 }
 
 static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
@@ -659,7 +659,7 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   int i;
   for (i = 0; i < d; i++)
     n[i] = 2 * (int)(Y(next_power_of_2)(N[i]));
-  X(init_guru)(p, d, N, M, n, ego->m, ego->flags, ego->fftw_flags);
+  X(init_guru)(p, d, (int *)N, M, n, ego->m, ego->flags, ego->fftw_flags);
   Y(free)(n);
 }
 
@@ -844,7 +844,7 @@ void X(check_1d_direct_file)(void)
 {
   printf("check_1d_direct_file:\n");
   check_many(SIZE(testcases_1d_file), SIZE(initializers_direct), SIZE(trafos_1d_direct_file),
-    testcases_1d_file_, initializers_direct, &check_trafo, trafos_1d_direct_file);
+    (const testcase_delegate_t **)testcases_1d_file, (const init_delegate_t **)initializers_direct, &check_trafo, (const trafo_delegate_t **)trafos_1d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_1d_fast_file[] = {&trafo/*, &trafo_1d*/};
@@ -853,7 +853,7 @@ void X(check_1d_fast_file)(void)
 {
   printf("check_1d_fast_file:\n");
   check_many(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_fast_file),
-    testcases_1d_file_, initializers_1d, &check_trafo, trafos_1d_fast_file);
+    (const testcase_delegate_t **)testcases_1d_file, (const init_delegate_t **)initializers_1d, &check_trafo, (const trafo_delegate_t **)trafos_1d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_1.txt")};
@@ -917,7 +917,7 @@ void X(check_adjoint_1d_direct_file)(void)
 {
   printf("check_adjoint_1d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_direct_1d_file),
-    testcases_adjoint_1d_file_, initializers_direct, &check_adjoint, trafos_adjoint_direct_1d_file);
+    (const testcase_delegate_t **)testcases_adjoint_1d_file, (const init_delegate_t **)initializers_direct, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_direct_1d_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_fast_1d_file[] = {&adjoint/*, &adjoint_1d*/};
@@ -926,7 +926,7 @@ void X(check_adjoint_1d_fast_file)(void)
 {
   printf("check_adjoint_1d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_1d), SIZE(trafos_adjoint_fast_1d_file),
-    testcases_adjoint_1d_file_, initializers_1d, &check_adjoint, trafos_adjoint_fast_1d_file);
+    (const testcase_delegate_t **)testcases_adjoint_1d_file, (const init_delegate_t **)initializers_1d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_fast_1d_file);
 }
 
 static const testcase_delegate_online_t nfct_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
@@ -959,7 +959,7 @@ static const trafo_delegate_t* trafos_1d_online[] = {&trafo/*, &trafo_1d*/};
 void X(check_1d_online)(void)
 {
   check_many(SIZE(testcases_1d_online), SIZE(initializers_1d), SIZE(trafos_1d_online),
-    testcases_1d_online_, initializers_1d, &check_trafo, trafos_1d_online);
+    (const testcase_delegate_t **)testcases_1d_online, (const init_delegate_t **)initializers_1d, &check_trafo, (const trafo_delegate_t **)trafos_1d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
@@ -992,7 +992,7 @@ static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint/*, &adjoin
 void X(check_adjoint_1d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_1d_online), SIZE(initializers_1d), SIZE(trafos_adjoint_1d_online),
-    testcases_adjoint_1d_online_, initializers_1d, &check_adjoint, trafos_adjoint_1d_online);
+    (const testcase_delegate_t **)testcases_adjoint_1d_online, (const init_delegate_t **)initializers_1d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_1d_online);
 }
 
 /* 2D */
@@ -1039,7 +1039,7 @@ void X(check_2d_direct_file)(void)
 {
   printf("check_2d_direct_file:\n");
   check_many(SIZE(testcases_2d_file), SIZE(initializers_direct), SIZE(trafos_2d_direct_file),
-    testcases_2d_file_, initializers_direct, &check_trafo, trafos_2d_direct_file);
+    (const testcase_delegate_t **)testcases_2d_file, (const init_delegate_t **)initializers_direct, &check_trafo, (const trafo_delegate_t **)trafos_2d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_2d_fast_file[] = {&trafo/*, &trafo_2d*/};
@@ -1048,7 +1048,7 @@ void X(check_2d_fast_file)(void)
 {
   printf("check_2d_fast_file:\n");
   check_many(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_fast_file),
-    testcases_2d_file_, initializers_2d, &check_trafo, trafos_2d_fast_file);
+    (const testcase_delegate_t **)testcases_2d_file, (const init_delegate_t **)initializers_2d, &check_trafo, (const trafo_delegate_t **)trafos_2d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_2d_10_10_25 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_10_25.txt")};
@@ -1080,7 +1080,7 @@ void X(check_adjoint_2d_direct_file)(void)
 {
   printf("check_adjoint_2d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_2d_direct_file),
-    testcases_adjoint_2d_file_, initializers_direct, &check_adjoint, trafos_adjoint_2d_direct_file);
+    (const testcase_delegate_t **)testcases_adjoint_2d_file, (const init_delegate_t **)initializers_direct, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_2d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_2d_fast_file[] = {&adjoint/*, &adjoint_2d*/};
@@ -1089,7 +1089,7 @@ void X(check_adjoint_2d_fast_file)(void)
 {
   printf("check_adjoint_2d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_fast_file),
-    testcases_adjoint_2d_file_, initializers_2d, &check_adjoint, trafos_adjoint_2d_fast_file);
+    (const testcase_delegate_t **)testcases_adjoint_2d_file, (const init_delegate_t **)initializers_2d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_2d_fast_file);
 }
 
 static const testcase_delegate_online_t nfct_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
@@ -1116,7 +1116,7 @@ static const trafo_delegate_t* trafos_2d_online[] = {&trafo/*, &trafo_2d*/};
 void X(check_2d_online)(void)
 {
   check_many(SIZE(testcases_2d_online), SIZE(initializers_2d), SIZE(trafos_2d_online),
-    testcases_2d_online_, initializers_2d, &check_trafo, trafos_2d_online);
+    (const testcase_delegate_t **)testcases_2d_online, (const init_delegate_t **)initializers_2d, &check_trafo, (const trafo_delegate_t **)trafos_2d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
@@ -1143,7 +1143,7 @@ static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint/*, &adjoin
 void X(check_adjoint_2d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_2d_online), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_online),
-    testcases_adjoint_2d_online_, initializers_2d, &check_adjoint, trafos_adjoint_2d_online);
+    (const testcase_delegate_t **)testcases_adjoint_2d_online, (const init_delegate_t **)initializers_2d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_2d_online);
 }
 
 /* 3D */
@@ -1176,7 +1176,7 @@ void X(check_3d_direct_file)(void)
 {
   printf("check_3d_direct_file:\n");
   check_many(SIZE(testcases_3d_file), SIZE(initializers_direct), SIZE(trafos_3d_direct_file),
-    testcases_3d_file_, initializers_direct, &check_trafo, trafos_3d_direct_file);
+    (const testcase_delegate_t **)testcases_3d_file, (const init_delegate_t **)initializers_direct, &check_trafo, (const trafo_delegate_t **)trafos_3d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_3d_fast_file[] = {&trafo/*, &trafo_3d*/};
@@ -1185,7 +1185,7 @@ void X(check_3d_fast_file)(void)
 {
   printf("check_3d_fast_file:\n");
   check_many(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_fast_file),
-    testcases_3d_file_, initializers_3d, &check_trafo, trafos_3d_fast_file);
+    (const testcase_delegate_t **)testcases_3d_file, (const init_delegate_t **)initializers_3d, &check_trafo, (const trafo_delegate_t **)trafos_3d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_3d_10_10_10_10.txt")};
@@ -1203,7 +1203,7 @@ void X(check_adjoint_3d_direct_file)(void)
 {
   printf("check_adjoint_3d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_3d_direct_file),
-    testcases_adjoint_3d_file_, initializers_direct, &check_adjoint, trafos_adjoint_3d_direct_file);
+    (const testcase_delegate_t **)testcases_adjoint_3d_file, (const init_delegate_t **)initializers_direct, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_3d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_3d_fast_file[] = {&adjoint/*, &adjoint_3d*/};
@@ -1212,7 +1212,7 @@ void X(check_adjoint_3d_fast_file)(void)
 {
   printf("check_adjoint_3d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_fast_file),
-    testcases_adjoint_3d_file_, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
+    (const testcase_delegate_t **)testcases_adjoint_3d_file, (const init_delegate_t **)initializers_3d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_3d_fast_file);
 }
 
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
@@ -1230,7 +1230,7 @@ static const trafo_delegate_t* trafos_3d_online[] = {&trafo/*, &trafo_3d*/};
 void X(check_3d_online)(void)
 {
   check_many(SIZE(testcases_3d_online), SIZE(initializers_3d), SIZE(trafos_3d_online),
-    testcases_3d_online_, initializers_3d, &check_trafo, trafos_3d_online);
+    (const testcase_delegate_t **)testcases_3d_online, (const init_delegate_t **)initializers_3d, &check_trafo, (const trafo_delegate_t **)trafos_3d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
@@ -1247,7 +1247,7 @@ static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint/*, &adjoin
 void X(check_adjoint_3d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
-    testcases_adjoint_3d_online_, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
+    (const testcase_delegate_t **)testcases_adjoint_3d_online, (const init_delegate_t **)initializers_3d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_3d_online);
 }
 #endif
 
@@ -1280,7 +1280,7 @@ static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 void X(check_4d_online)(void)
 {
   check_many(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
-    testcases_4d_online_, initializers_4d, &check_trafo, trafos_4d_online);
+    (const testcase_delegate_t **)testcases_4d_online, (const init_delegate_t **)initializers_4d, &check_trafo, (const trafo_delegate_t **)trafos_4d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
@@ -1297,6 +1297,6 @@ static const trafo_delegate_t* trafos_adjoint_4d_online[] = {&adjoint};
 void X(check_adjoint_4d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
-    testcases_adjoint_4d_online_, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
+    (const testcase_delegate_t **)testcases_adjoint_4d_online, (const init_delegate_t **)initializers_4d, &check_adjoint, (const trafo_delegate_t **)trafos_adjoint_4d_online);
 }
 #endif
