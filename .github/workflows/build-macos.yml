@@ -1,0 +1,252 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    env:
+      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+      CPPFLAGS: "-I/opt/homebrew/include"
+      LDFLAGS: "-L/opt/homebrew/lib"
+    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+    strategy:
+      matrix:
+        os: ["macos-26"]
+        compiler: ["gcc"]
+        window: ["kaiserbessel"]
+        precision_opt: ["", "--enable-float", "--enable-long-double"]
+        openmp: [0]
+        build_octave: [0] # TODO: Re-activate Octave build and tests.
+        build_julia: [1]
+        include:
+          # Clang
+          - os: "macos-26"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 0
+            build_octave: 0
+            build_julia: 1
+          # Homebrew's Clang
+          - os: "macos-26"
+            compiler: "clang-homebrew"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          # GCC 13
+          - os: "macos-26"
+            compiler: "gcc-13"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 0
+            build_octave: 0
+            build_julia: 1
+          # GCC 14
+          - os: "macos-26"
+            compiler: "gcc-14"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 0
+            build_octave: 0
+            build_julia: 1
+          # GCC 15
+          - os: "macos-26"
+            compiler: "gcc-15"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 0
+            build_octave: 0
+            build_julia: 1
+    steps:    
+    - uses: actions/checkout@v5
+
+    - uses: gerlero/brew-install@v1
+      with:
+        cache: true
+        packages: |
+          autoconf
+          automake
+          libtool
+          cmake
+          fftw
+          cunit
+          octave
+          llvm
+
+    - name: Set up Julia
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      uses: julia-actions/setup-julia@v2
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.13
+      
+    - name: Set up compiler
+      run: |
+        if [ "${{ matrix.compiler }}" = "clang" ]; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+        elif [ "${{ matrix.compiler }}" = "gcc" ]; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+        elif [ "${{ matrix.compiler }}" = "clang-homebrew" ]; then
+          echo "CC=/opt/homebrew/opt/llvm/bin/clang" >> $GITHUB_ENV
+          echo "CXX=/opt/homebrew/opt/llvm/bin/clang++" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/opt/homebrew/opt/llvm/lib $LDFLAGS" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/opt/homebrew/opt/llvm/include $CPPFLAGS" >> $GITHUB_ENV          
+        elif echo "${{ matrix.compiler }}" | grep -qE '^gcc-[0-9]+$'; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          GCC_VERSION=$(echo "${{ matrix.compiler }}" | sed 's/gcc-//')
+          echo "CXX=g++-${GCC_VERSION}" >> $GITHUB_ENV
+        else
+          echo "Error: Unknown compiler '${{ matrix.compiler }}'. Supported compilers are: gcc, clang, gcc-snapshot, gcc-<version>" >&2
+          exit 1
+        fi
+
+    # - name: Cache CodSpeed integration library
+    #   uses: actions/cache@v4
+    #   id: cache-codspeed
+    #   with:
+    #     path: codspeed-cpp
+    #     key: codspeed-cpp-${{ matrix.os }}
+
+    # - name: Checkout CodSpeed integration library
+    #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
+    #   uses: actions/checkout@v5
+    #   with:
+    #     repository: CodSpeedHQ/codspeed-cpp
+    #     path: codspeed-cpp
+    #     submodules: recursive
+
+    # - name: Configure CMake for CodSpeed integration library
+    #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
+    #   run: |
+    #     cd codspeed-cpp/google_benchmark
+    #     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=instrumentation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+
+    # - name: Build CodSpeed integration library
+    #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
+    #   run: |
+    #     cd codspeed-cpp/google_benchmark
+    #     cmake --build . -v
+    
+    - name: Set up Octave
+      if: matrix.build_octave == '1'
+      run: |
+        echo "OCTAVEDIR=/usr" >> $GITHUB_ENV
+        echo "OCTAVE=octave" >> $GITHUB_ENV
+        
+    - name: Bootstrap
+      run: ./bootstrap.sh
+    
+    - name: Configure
+      run: |
+        AGNOSTIC_FLAGS=""
+        [ "${{ matrix.window }}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
+        [ "${{ matrix.openmp }}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
+        [ "${{ matrix.precision_opt }}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
+        ./configure --with-window=${{ matrix.window }} ${{ matrix.precision_opt }} --enable-all --enable-exhaustive-unit-tests \
+        $(if [ "${{ matrix.openmp }}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
+        $(if [ "${{ matrix.build_octave }}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
+        $(if [ "${{ matrix.build_julia }}" = "1" ] && [ "${{ matrix.precision_opt }}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
+      # --enable-benchmarks --with-benchmarks-prefix=${{ env.BUILD_CONFIG }}/ --with-codspeed=$(pwd)/codspeed-cpp \
+      # --with-agnostic-benchmarks="$AGNOSTIC_FLAGS" \
+
+    - name: Build
+      run: make
+    
+    - name: Test
+      run: make check
+
+    - name: Convert CUnit test report to JUnit
+      run: |
+        uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
+
+    # - name: Benchmarks
+    #   uses: CodSpeedHQ/action@v4
+    #   with:
+    #     mode: instrumentation
+    #     run: cd benchmarks && make bench
+  
+    - name: Test Julia
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      run: |
+        for DIR in julia/nf*t julia/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.jl; do
+            julia "$NAME"
+          done
+          cd ../..
+        done
+    
+    - name: Test Octave
+      if: matrix.build_octave == '1'
+      run: |
+        for DIR in matlab/nf*t matlab/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.m; do
+            $OCTAVE --eval="run('$NAME')"
+          done
+          cd ../..
+        done
+
+    - name: Publish Test Report
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './tests/junit.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true,
+              "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-report.json",
+                "toolname": "junit-to-ctrf",
+                "useSuiteName": false,
+                "env": {
+                  "appName": "nfft"
+                }
+              }
+            }
+          }
+      if: always()
+
+  distcheck:
+    runs-on: macos-26
+    name: "distcheck"
+    env:
+      CPPFLAGS: "-I/opt/homebrew/include"
+      LDFLAGS: "-L/opt/homebrew/lib"
+    steps:
+    - uses: actions/checkout@v5
+
+    - uses: gerlero/brew-install@v1
+      with:
+        cache: true
+        packages: |
+          autoconf
+          automake
+          libtool
+          cmake
+          fftw
+
+    - name: Bootstrap
+      run: ./bootstrap.sh
+    
+    - name: Configure
+      run: ./configure --enable-all
+    
+    - name: Distcheck
+      run: make distcheck

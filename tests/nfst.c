@@ -31,6 +31,8 @@
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
+#define SEED 1234567890L
+
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
@@ -264,16 +266,22 @@ static R err_trafo(X(plan) *p)
 #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-#if defined(NFFT_LDOUBLE)
-    a = K(2.9);
-    b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.95);
-    b = K(4800.0);
-#else
-    a = K(0.7);
-    b = K(5000.0);
-#endif
+    // TODO: Set good values for quadruple precision.
+    #if MANT_DIG == 113
+      a = K(2.9);
+      b = K(50.0);
+    #elif MANT_DIG == 64
+      a = K(2.9);
+      b = K(50.0);
+    #elif MANT_DIG == 53
+      a = K(0.7);
+      b = K(5000.0);
+    #elif MANT_DIG == 24
+      a = K(0.95);
+      b = K(4800.0);
+    #else
+      #error "Unsupported floating-point type."
+    #endif
     err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
   #else
     #error Unsupported window function.
@@ -462,6 +470,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
 
+  Y(srand48)(SEED);
+
   /* Dimensions. */
   *d = ego->d;
   /* Bandwidths. */
@@ -542,6 +552,8 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
+
+  Y(srand48)(SEED);
 
   /* Dimensions. */
   *d = ego->d;

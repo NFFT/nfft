@@ -134,12 +134,17 @@ static const R r[] =
 
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
-#if defined(NFFT_LDOUBLE)
-static const R bound_multiplier = K(58.0);
-#elif defined(NFFT_SINGLE)
-static const R bound_multiplier = K(24.0);
+// TODO: Set good values for quadruple precision.
+#if MANT_DIG == 113
+  static const R bound_multiplier = K(58.0);
+#elif MANT_DIG == 64
+  static const R bound_multiplier = K(58.0);
+#elif MANT_DIG == 53
+  static const R bound_multiplier = K(4.0);
+#elif MANT_DIG == 24
+  static const R bound_multiplier = K(24.0);
 #else
-static const R bound_multiplier = K(4.0);
+  #error "Unsupported floating-point type."
 #endif
 
 void X(check_bessel_i0)(void)

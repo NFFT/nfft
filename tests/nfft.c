@@ -31,6 +31,8 @@
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
+#define SEED 1234567890L
+
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
@@ -265,16 +267,22 @@ static R err_trafo(X(plan) *p)
 #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
   #elif defined(KAISER_BESSEL)
-#if defined(NFFT_LDOUBLE)
-    a = K(1.5);
-    b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(2000.0);
-#else
-    a = K(0.3);
-    b = K(2100.0);
-#endif
+    // TODO: Set good values for quadruple precision.
+    #if MANT_DIG == 113
+      a = K(1.5);
+      b = K(50.0);
+    #elif MANT_DIG == 64
+      a = K(1.5);
+      b = K(50.0);
+    #elif MANT_DIG == 53
+      a = K(0.3);
+      b = K(2100.0);
+    #elif MANT_DIG == 24
+      a = K(0.4);
+      b = K(2000.0);
+    #else
+      #error "Unsupported floating-point type."
+    #endif
     err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
   #else
     #error Unsupported window function.
@@ -461,6 +469,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
 
+  Y(srand48)(SEED);
+
   /* Dimensions. */
   *d = ego->d;
   /* Bandwidths. */
@@ -545,6 +555,8 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
+
+  Y(srand48)(SEED);
 
   /* Dimensions. */
   *d = ego->d;
@@ -999,6 +1011,7 @@ static const trafo_delegate_t* trafos_1d_online[] = {&trafo, &trafo_1d};
 
 void X(check_1d_online)(void)
 {
+  printf("check_1d_online:\n");
   check_many(SIZE(testcases_1d_online), SIZE(initializers_1d), SIZE(trafos_1d_online),
     testcases_1d_online_, initializers_1d, &check_trafo, trafos_1d_online);
 }
@@ -1032,6 +1045,7 @@ static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint, &adjoint_
 
 void X(check_adjoint_1d_online)(void)
 {
+  printf("check_adjoint_1d_online:\n");
   check_many(SIZE(testcases_adjoint_1d_online), SIZE(initializers_1d), SIZE(trafos_adjoint_1d_online),
     testcases_adjoint_1d_online_, initializers_1d, &check_adjoint, trafos_adjoint_1d_online);
 }
@@ -1163,6 +1177,7 @@ static const trafo_delegate_t* trafos_2d_online[] = {&trafo, &trafo_2d};
 
 void X(check_2d_online)(void)
 {
+  printf("check_2d_online:\n");
   check_many(SIZE(testcases_2d_online), SIZE(initializers_2d), SIZE(trafos_2d_online),
     testcases_2d_online_, initializers_2d, &check_trafo, trafos_2d_online);
 }
@@ -1190,6 +1205,7 @@ static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint, &adjoint_
 
 void X(check_adjoint_2d_online)(void)
 {
+  printf("check_adjoint_2d_online:\n");
   check_many(SIZE(testcases_adjoint_2d_online), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_online),
     testcases_adjoint_2d_online_, initializers_2d, &check_adjoint, trafos_adjoint_2d_online);
 }
@@ -1284,6 +1300,7 @@ static const trafo_delegate_t* trafos_3d_online[] = {&trafo, &trafo_3d};
 
 void X(check_3d_online)(void)
 {
+  printf("check_3d_online:\n");
   check_many(SIZE(testcases_3d_online), SIZE(initializers_3d), SIZE(trafos_3d_online),
     testcases_3d_online_, initializers_3d, &check_trafo, trafos_3d_online);
 }
@@ -1301,6 +1318,7 @@ static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint, &adjoint_
 
 void X(check_adjoint_3d_online)(void)
 {
+  printf("check_adjoint_3d_online:\n");
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
     testcases_adjoint_3d_online_, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
 }
@@ -1341,6 +1359,7 @@ static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 
 void X(check_4d_online)(void)
 {
+  printf("check_4d_online:\n");
   check_many(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
     testcases_4d_online_, initializers_4d, &check_trafo, trafos_4d_online);
 }
@@ -1358,6 +1377,7 @@ static const trafo_delegate_t* trafos_adjoint_4d_online[] = {&adjoint};
 
 void X(check_adjoint_4d_online)(void)
 {
+  printf("check_adjoint_4d_online:\n");
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
     testcases_adjoint_4d_online_, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }

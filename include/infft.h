@@ -119,6 +119,23 @@ typedef double _Complex C;
  * in the first place) */
 typedef ptrdiff_t INT;
 
+#if defined(NFFT_LDOUBLE)
+  #define MANT_DIG LDBL_MANT_DIG
+  #define MIN_EXP LDBL_MIN_EXP
+  #define MAX_EXP LDBL_MAX_EXP
+  #define EPSILON LDBL_EPSILON
+#elif defined(NFFT_SINGLE)
+  #define MANT_DIG FLT_MANT_DIG
+  #define MIN_EXP FLT_MIN_EXP
+  #define MAX_EXP FLT_MAX_EXP
+  #define EPSILON FLT_EPSILON
+#else
+  #define MANT_DIG DBL_MANT_DIG
+  #define MIN_EXP DBL_MIN_EXP
+  #define MAX_EXP DBL_MAX_EXP
+  #define EPSILON DBL_EPSILON
+#endif
+
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
 #define K2PI K(6.2831853071795864769252867665590057683943387987502)
 #define K4PI K(12.5663706143591729538505735331180115367886775975004)
@@ -164,13 +181,18 @@ typedef ptrdiff_t INT;
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-#if defined(NFFT_LDOUBLE)
-  #define WINDOW_HELP_ESTIMATE_m 17
-#elif defined(NFFT_SINGLE)
-  #define WINDOW_HELP_ESTIMATE_m 5
-#else
-  #define WINDOW_HELP_ESTIMATE_m 13
-#endif
+  #if MANT_DIG == 113
+    // TODO: Set good value for quadruple precision.
+    #define WINDOW_HELP_ESTIMATE_m 17
+  #elif MANT_DIG == 64
+    #define WINDOW_HELP_ESTIMATE_m 17
+  #elif MANT_DIG == 53
+    #define WINDOW_HELP_ESTIMATE_m 13
+  #elif MANT_DIG == 24
+    #define WINDOW_HELP_ESTIMATE_m 5
+  #else
+    #error "Unsupported floating-point type."
+  #endif
 #elif defined(B_SPLINE)
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
     POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
@@ -179,13 +201,18 @@ typedef ptrdiff_t INT;
     (R)ths->m) / n)
   #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
-#if defined(NFFT_LDOUBLE)
-  #define WINDOW_HELP_ESTIMATE_m 11
-#elif defined(NFFT_SINGLE)
-  #define WINDOW_HELP_ESTIMATE_m 11
-#else
-  #define WINDOW_HELP_ESTIMATE_m 11
-#endif
+  #if MANT_DIG == 113
+    // TODO: Set good value for quadruple precision.
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #elif MANT_DIG == 64
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #elif MANT_DIG == 53
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #elif MANT_DIG == 24
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #else
+    #error "Unsupported floating-point type."
+  #endif
 #elif defined(SINC_POWER)
   #define PHI_HUT(n,k,d) (Y(bsplines)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
     ((K(2.0) * ths->sigma[(d)] - 1) * n / \
@@ -197,13 +224,18 @@ typedef ptrdiff_t INT;
     n))
   #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
-#if defined(NFFT_LDOUBLE)
-  #define WINDOW_HELP_ESTIMATE_m 13
-#elif defined(NFFT_SINGLE)
-  #define WINDOW_HELP_ESTIMATE_m 11
-#else
-  #define WINDOW_HELP_ESTIMATE_m 11
-#endif
+  #if MANT_DIG == 113
+    // TODO: Set good value for quadruple precision.
+    #define WINDOW_HELP_ESTIMATE_m 13
+  #elif MANT_DIG == 64
+    #define WINDOW_HELP_ESTIMATE_m 13
+  #elif MANT_DIG == 53
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #elif MANT_DIG == 24
+    #define WINDOW_HELP_ESTIMATE_m 11
+  #else
+    #error "Unsupported floating-point type."
+  #endif
 #else /* Kaiser-Bessel is the default. */
   #define PHI_HUT(n,k,d) (Y(bessel_i0)((R)(ths->m) * SQRT(ths->b[d] * ths->b[d] - (K(2.0) * KPI * (R)(k) / (R)(n)) * (K(2.0) * KPI * (R)(k) / (R)(n)))))
   #define PHI(n,x,d) (  (((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) > K(0.0)) \
@@ -221,12 +253,17 @@ typedef ptrdiff_t INT;
         ths->b[WINDOW_idx] = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
-  #if defined(NFFT_LDOUBLE)
+  #if MANT_DIG == 113
+    // TODO: Set good value for quadruple precision.
+    #define WINDOW_HELP_ESTIMATE_m 10 
+  #elif MANT_DIG == 64
     #define WINDOW_HELP_ESTIMATE_m 9
-  #elif defined(NFFT_SINGLE)
+  #elif MANT_DIG == 53
+    #define WINDOW_HELP_ESTIMATE_m 8
+  #elif MANT_DIG == 24
     #define WINDOW_HELP_ESTIMATE_m 4
   #else
-    #define WINDOW_HELP_ESTIMATE_m 8
+    #error "Unsupported floating-point type."
   #endif
 #endif
 
@@ -1246,23 +1283,6 @@ extern double _Complex catanh(double _Complex z);
 #define CATANH catanh
 #endif
 
-#if defined(NFFT_LDOUBLE)
-  #define MANT_DIG LDBL_MANT_DIG
-  #define MIN_EXP LDBL_MIN_EXP
-  #define MAX_EXP LDBL_MAX_EXP
-  #define EPSILON LDBL_EPSILON
-#elif defined(NFFT_SINGLE)
-  #define MANT_DIG FLT_MANT_DIG
-  #define MIN_EXP FLT_MIN_EXP
-  #define MAX_EXP FLT_MAX_EXP
-  #define EPSILON FLT_EPSILON
-#else
-  #define MANT_DIG DBL_MANT_DIG
-  #define MIN_EXP DBL_MIN_EXP
-  #define MAX_EXP DBL_MAX_EXP
-  #define EPSILON DBL_EPSILON
-#endif
-
 #if defined(FLT_ROUND)
   #if FLT_ROUND != -1
     #define FLTROUND 1.0
@@ -1286,24 +1306,32 @@ extern double _Complex catanh(double _Complex z);
 #if defined(NFFT_LDOUBLE)
 #  define __FGS__ "Lg"
 #  define __FES__ "LE"
-#  define __FE__ "% 36.32LE"
 #  define __FI__ "%Lf"
 #  define __FIS__ "Lf"
 #  define __FR__ "%Le"
+#if MANT_DIG == 113
+#  define __FE__ "% 36.32LE"
+#elif MANT_DIG == 64
+#  define __FE__ "% 24.20LE"
+#elif MANT_DIG == 53
+#  define __FE__ "% 20.16LE"
+#else
+  #error "Unsupported precision"
+#endif
 #elif defined(NFFT_SINGLE)
 #  define __FGS__ "g"
 #  define __FES__ "E"
-#  define __FE__ "% 12.8E"
 #  define __FI__ "%f"
 #  define __FIS__ "f"
 #  define __FR__ "%e"
-#else
+#  define __FE__ "% 12.8E"
+#else // double precision
 #  define __FGS__ "lg"
 #  define __FES__ "lE"
-#  define __FE__ "% 20.16lE"
 #  define __FI__ "%lf"
 #  define __FIS__ "lf"
 #  define __FR__ "%le"
+#  define __FE__ "% 20.16lE"
 #endif
 
 #define TRUE 1
