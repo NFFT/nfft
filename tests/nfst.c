@@ -1215,6 +1215,8 @@ static const testcase_delegate_online_t *testcases_3d_online[] =
   &nfst_online_3d_50_50,
 };
 
+static const testcase_delegate_t **testcases_3d_online_ = (const testcase_delegate_t**)testcases_3d_online;
+
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo/*, &trafo_3d*/};
 
 void X(check_3d_online)(void)
@@ -1263,12 +1265,14 @@ static const testcase_delegate_online_t *testcases_4d_online[] =
   &nfst_online_4d_28_50,
 };
 
+static const testcase_delegate_t **testcases_4d_online_ = (const testcase_delegate_t**)testcases_4d_online;
+
 static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 
 void X(check_4d_online)(void)
 {
   check_many(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
-    testcases_4d_online, initializers_4d, &check_trafo, trafos_4d_online);
+    testcases_4d_online_, initializers_4d, &check_trafo, trafos_4d_online);
 }
 
 static const testcase_delegate_online_t nfst_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
@@ -1278,11 +1282,13 @@ static const testcase_delegate_online_t *testcases_adjoint_4d_online[] =
   &nfst_adjoint_online_4d_28_50,
 };
 
+static const testcase_delegate_t **testcases_adjoint_4d_online_ = (const testcase_delegate_t**)testcases_adjoint_4d_online;
+
 static const trafo_delegate_t* trafos_adjoint_4d_online[] = {&adjoint};
 
 void X(check_adjoint_4d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
-    testcases_adjoint_4d_online, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
+    testcases_adjoint_4d_online_, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }
 #endif
