@@ -156,7 +156,9 @@ int main(int argc, char **argv)
     }
   }
 
-  FFTW(init_threads)();
+  #ifdef HAVE_FFTW_THREADS
+    FFTW(init_threads)();
+  #endif
 #endif
 
   /** init d-dimensional fastsum plan */

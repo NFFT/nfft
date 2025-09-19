@@ -16,7 +16,7 @@ endif
 if HAVE_NFSFT
   LIB_NFSFT=nfsft/libnfsft.la
   DIR_NFSFT=nfsft
-if HAVE_THREADS
+if ENABLE_OPENMP
   LIB_NFSFT_THREADS=nfsft/libnfsft_threads.la
 else
   LIB_NFSFT_THREADS=
@@ -30,7 +30,7 @@ endif
 if HAVE_NFSOFT
   LIB_NFSOFT=nfsoft/libnfsoft.la
   DIR_NFSOFT=nfsoft
-if HAVE_THREADS
+if ENABLE_OPENMP
   LIB_NFSOFT_THREADS=nfsoft/libnfsoft_threads.la
 else
   LIB_NFSOFT_THREADS=
@@ -68,7 +68,7 @@ endif
 if HAVE_FPT
   LIB_FPT=fpt/libfpt.la
   DIR_FPT=fpt
-if HAVE_THREADS
+if ENABLE_OPENMP
   LIB_FPT_THREADS=fpt/libfpt_threads.la
 else
   LIB_FPT_THREADS=
@@ -82,7 +82,7 @@ endif
 SUBDIRS = util nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
   $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver .
 
-if HAVE_THREADS
+if ENABLE_OPENMP
   LIBKERNEL_THREADS_LA = libkernel_threads.la
 else
   LIBKERNEL_THREADS_LA =
@@ -97,14 +97,11 @@ libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT) $(LIB_NFSFT) $(LIB_NFSOFT) \
   solver/libsolver.la
 
-if HAVE_THREADS
-  libkernel_threads_la_SOURCES =
-
-  libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
-    $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
-    solver/libsolver.la
-
-if HAVE_OPENMP
-  libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)
-endif
+if ENABLE_OPENMP
+libkernel_threads_la_SOURCES =
+libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
+  $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
+  solver/libsolver.la
+libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)
+libkernel_threads_la_LDLAGS = $(OPENMP_CFLAGS)
 endif

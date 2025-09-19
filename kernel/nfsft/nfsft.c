@@ -1271,13 +1271,13 @@ void nfsft_trafo(nfsft_plan *plan)
             plan->f_hat_intern[j*N[1]+k] *= -1;
 //	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
 #pragma omp critical (nfft_omp_critical_fftw_plan)
       {
         FFTW(plan_with_nthreads)(nthreads);
 #endif
         plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
       }
 #endif
       fftw_execute(plan_fftw);

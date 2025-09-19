@@ -8,19 +8,24 @@ noinst_PROGRAMS = \
   reconstruct_data_3d
 
 construct_data_2d1d_SOURCES = construct_data_2d1d.c doxygen.h
-construct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+construct_data_2d1d_LDFLAGS = @fftw3_LDFLAGS@
+construct_data_2d1d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 construct_data_3d_SOURCES = construct_data_3d.c
-construct_data_3d_LDADD = $(top_builddir)/libnfft3.la -lm
+construct_data_3d_LDFLAGS = @fftw3_LDFLAGS@
+construct_data_3d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_gridding_SOURCES = reconstruct_data_gridding.c
-reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+reconstruct_data_gridding_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_2d1d_SOURCES = reconstruct_data_2d1d.c
-reconstruct_data_2d1d_LDADD = $(top_builddir)/libnfft3.la @fftw3_LDFLAGS@ @fftw3_LIBS@
+reconstruct_data_2d1d_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_2d1d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_3d_SOURCES = reconstruct_data_3d.c
-reconstruct_data_3d_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_3d_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_3d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 EXTRA_DIST = mri.m \
 			construct_knots_linogram.m \

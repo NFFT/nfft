@@ -868,7 +868,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
 
   ths->b = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
   ths->f_hat = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
   #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
     FFTW(plan_with_nthreads)(nthreads);
@@ -877,7 +877,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   ths->fft_plan = FFTW(plan_dft)(d, N, ths->b, ths->b, FFTW_FORWARD,
       FFTW_ESTIMATE);
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
 }
 #endif
 

@@ -191,7 +191,9 @@ int main(int argc, char **argv)
     return 1;
 
   nthreads = atoi(argv[5]);
-  fftw_init_threads();
+  #ifdef HAVE_FFTW_THREADS
+    FFTW(init_threads)();
+  #endif
   omp_set_num_threads(nthreads);
 #else
   if (argc != 5)
