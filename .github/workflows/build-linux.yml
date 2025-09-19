@@ -102,8 +102,13 @@ jobs:
     
     - name: Configure
       run: |
+        AGNOSTIC_FLAGS=""
+        [ "${{ matrix.window }}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
+        [ "${{ matrix.openmp }}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
+        [ "${{ matrix.precision_opt }}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
         ./configure --with-window=${{ matrix.window }} ${{ matrix.precision_opt }} --enable-all --enable-exhaustive-unit-tests \
         --enable-benchmarks --with-benchmarks-prefix=${{ env.BUILD_CONFIG }}/ --with-codspeed=$(pwd)/codspeed-cpp \
+        --with-agnostic-benchmarks="$AGNOSTIC_FLAGS" \
         $(if [ "${{ matrix.openmp }}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
         $(if [ "${{ matrix.build_octave }}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${{ matrix.build_julia }}" = "1" ] && [ "${{ matrix.precision_opt }}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
@@ -122,7 +127,7 @@ jobs:
       uses: CodSpeedHQ/action@v4
       with:
         mode: instrumentation
-        run: benchmarks/bench_nfft_direct
+        run: cd benchmarks && make bench
   
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''

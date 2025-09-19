@@ -268,6 +268,37 @@ AC_ARG_ENABLE(benchmarks, [AS_HELP_STRING([--enable-benchmarks],[enable building
 AC_ARG_WITH(benchmarks-prefix, [AS_HELP_STRING([--with-benchmarks-prefix=PREFIX],[prefix for benchmark names])], benchmarks_prefix=$withval, benchmarks_prefix="")
 AC_DEFINE_UNQUOTED(BENCHMARKS_PREFIX, "${benchmarks_prefix}", [Prefix for benchmark names])
 
+# Flags for benchmarks agnostic to certain parameters. Used only in CI.
+AC_ARG_WITH(agnostic-benchmarks, [AS_HELP_STRING([--with-agnostic-benchmarks=FLAGS],[specify which benchmarks should be built based on agnostic parameters. FLAGS should be a comma-separated list of parameter:flag pairs, e.g., window:1,openmp:0,precision:1,os:0,compiler:1])], agnostic_benchmarks=$withval, agnostic_benchmarks="")
+
+# Parse agnostic benchmarks flags.
+if test -z "$agnostic_benchmarks"; then
+  # All on by default.
+  BENCHMARK_AGNOSTIC_WINDOW=1 BENCHMARK_AGNOSTIC_OPENMP=1 BENCHMARK_AGNOSTIC_PRECISION=1
+else
+  # All off by default, unless specified otherwise.
+  BENCHMARK_AGNOSTIC_WINDOW=0 BENCHMARK_AGNOSTIC_OPENMP=0 BENCHMARK_AGNOSTIC_PRECISION=0
+  saved_IFS="$IFS"; IFS=','
+  for flag in $agnostic_benchmarks; do
+    case "$flag" in
+      precision:1) BENCHMARK_AGNOSTIC_PRECISION=1 ;;
+      precision:0) BENCHMARK_AGNOSTIC_PRECISION=0 ;;
+      window:1) BENCHMARK_AGNOSTIC_WINDOW=1 ;;
+      window:0) BENCHMARK_AGNOSTIC_WINDOW=0 ;;
+      openmp:1) BENCHMARK_AGNOSTIC_OPENMP=1 ;;
+      openmp:0) BENCHMARK_AGNOSTIC_OPENMP=0 ;;
+      '') ;;
+      *) AC_MSG_ERROR([Unknown agnostic benchmark flag "$flag". Valid flags are: precision:0/1, window:0/1, openmp:0/1]) ;;
+    esac
+  done
+  IFS="$saved_IFS"
+fi
+
+# Create automake conditionals for agnostic benchmark flags.
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_PRECISION, test "x$BENCHMARK_AGNOSTIC_PRECISION" = "x1")
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_WINDOW, test "x$BENCHMARK_AGNOSTIC_WINDOW" = "x1")
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_OPENMP, test "x$BENCHMARK_AGNOSTIC_OPENMP" = "x1")
+
 ################################################################################
 # C compiler characteristis
 ################################################################################
