@@ -1,6 +1,10 @@
 push!(LOAD_PATH, pwd())
 using NFFT
 using LinearAlgebra
+using Random
+
+# Set random seed for reproducible results
+Random.seed!(1234)
 
 println("1d NFFT Test")
 

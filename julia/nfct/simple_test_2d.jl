@@ -1,6 +1,10 @@
 push!(LOAD_PATH, pwd())
 using NFCT
 using LinearAlgebra
+using Random
+
+# Set random seed for reproducible results
+Random.seed!(1234)
 
 println( "2d NFCT Test" )
 
