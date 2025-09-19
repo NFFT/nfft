@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN groupadd --gid 2000 vscode \
     && useradd --uid 2000 --gid vscode --shell /bin/bash --create-home vscode \
     && apt update \
-    && apt install -y --no-install-recommends\
+    && apt install -y --no-install-recommends \
     software-properties-common \
     && add-apt-repository universe \
     && apt-get update \
