@@ -16,12 +16,37 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"] # TODO: Add more Ubuntu versions, e.g. "ubuntu-20.04", "ubuntu-18.04".
-        compiler: ["gcc", "clang"]
+        compiler: ["gcc"]
         window: ["kaiserbessel", "gaussian", "bspline", "sinc"] # TODO: Add dirac.
         precision_opt: ["", "--enable-float", "--enable-long-double"]
         openmp: [0, 1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
         build_julia: [1]
+        include:
+          # Clang
+          - os: "ubuntu-latest"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 0
+          # GCC 14
+          - os: "ubuntu-latest"
+            compiler: "gcc-14"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 0
+          # GCC Snapshot
+          - os: "ubuntu-latest"
+            compiler: "gcc-snapshot"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 0
     steps:    
     - uses: actions/checkout@v5
 
@@ -30,12 +55,24 @@ jobs:
 
     - name: Disable man-db update
       run: sudo rm -f /var/lib/man-db/auto-update        
+    
+    - name: Install dependencies
+      uses: dsx137/deb-cache@main
+      with:
+        PACKAGES: |
+          software-properties-common
+
+    - name: Add universe repo
+      run: sudo add-apt-repository universe
 
     - name: Install dependencies
       uses: dsx137/deb-cache@main
       with:
         PACKAGES: |
           build-essential
+          gcc-snapshot
+          gcc-14
+          g++-14
           cmake
           libfftw3-dev
           libcunit1-dev 
@@ -97,8 +134,23 @@ jobs:
       
     - name: Set up compiler
       run: |
-        echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}" >> $GITHUB_ENV
+        if [ "${{ matrix.compiler }}" = "clang" ]; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+        elif [ "${{ matrix.compiler }}" = "gcc" ]; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          echo "CXX=g++" >> $GITHUB_ENV
+        elif [ "${{ matrix.compiler }}" = "gcc-snapshot" ]; then
+          echo "CC=/usr/lib/gcc-snapshot/bin/gcc" >> $GITHUB_ENV
+          echo "CXX=/usr/lib/gcc-snapshot/bin/g++" >> $GITHUB_ENV
+        elif echo "${{ matrix.compiler }}" | grep -qE '^gcc-[0-9]+$'; then
+          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+          GCC_VERSION=$(echo "${{ matrix.compiler }}" | sed 's/gcc-//')
+          echo "CXX=g++-${GCC_VERSION}" >> $GITHUB_ENV
+        else
+          echo "Error: Unknown compiler '${{ matrix.compiler }}'. Supported compilers are: gcc, clang, gcc-snapshot, gcc-<version>" >&2
+          exit 1
+        fi
         
     - name: Bootstrap
       run: ./bootstrap.sh
