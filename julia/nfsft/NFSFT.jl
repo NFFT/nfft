@@ -49,9 +49,11 @@ NFSFT_ZERO_F_HAT = UInt32(1)<<16
 NFSFT_EQUISPACED  = UInt32(1)<<17
 
 # default flag values
+nfsft_mandatory_flags = UInt32(NFSFT_MALLOC_X | NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT) # Memory allocation flags are mandatory
 nfsft_default = UInt32(NFSFT_MALLOC_X | NFSFT_MALLOC_F | NFSFT_MALLOC_F_HAT)
 #nfsft_nfft_default = UInt32(PRE_PHI_HUT | PRE_PSI | FFTW_INIT | NFFT_OMP_BLOCKWISE_ADJOINT)
-nfsft_nfft_default = UInt32(PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE)
+nfsft_nfft_mandatory_flags = UInt32(FFTW_INIT)
+nfsft_nfft_default = UInt32(PRE_PHI_HUT | PRE_PSI | FFTW_INIT)
 
 # default window cut off
 nfsft_default_nfft_cut_off = 6
@@ -89,6 +91,9 @@ function NFSFTplan(N::Integer,M::Integer,flags::UInt32=nfsft_default,nfft_flags:
 	if M <= 0
 		error("Invalid M: " + M + ". Argument must be a positive integer")
 	end
+
+	flags = UInt32(flags | nfsft_mandatory_flags)
+	nfft_flags = UInt32(flags | nfsft_nfft_mandatory_flags)
 
 	NFSFTplan(Int32(N),Int32(M),flags,nfft_flags, Int32(nfft_cutoff))
 end
