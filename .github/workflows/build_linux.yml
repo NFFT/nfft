@@ -21,7 +21,7 @@ jobs:
         precision_opt: ["", "--enable-float", "--enable-long-double"]
         openmp: [0, 1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
-        build_julia: [1] # TODO: Re-activate Julia build and tests.
+        build_julia: [1]
     steps:    
     - uses: actions/checkout@v5
 
