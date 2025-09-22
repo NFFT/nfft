@@ -25,30 +25,51 @@ jobs:
     name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
     strategy:
       matrix:
-        os: ["ubuntu-latest"] # TODO: Add more Ubuntu versions, e.g. "ubuntu-20.04", "ubuntu-18.04".
+        os: ["ubuntu-24.04", "ubuntu-24.04-arm"]
         compiler: ["gcc"]
-        window: ["kaiserbessel", "gaussian", "bspline", "sinc"] # TODO: Add dirac.
+        window: ["kaiserbessel", "gaussian", "bspline", "sinc"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
         openmp: [1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
         build_julia: [1]
         include:
           # Clang
-          - os: "ubuntu-latest"
+          - os: "ubuntu-24.04"
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-latest"
+          - os: "ubuntu-24.04-arm"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-24.04"
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-float"
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-latest"
+          - os: "ubuntu-24.04-arm"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: "--enable-float"
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-24.04"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: "--enable-long-double"
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-24.04-arm"
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-long-double"
@@ -56,7 +77,14 @@ jobs:
             build_octave: 0
             build_julia: 1
           # GCC 14
-          - os: "ubuntu-latest"
+          - os: "ubuntu-24.04"
+            compiler: "gcc-14"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-24.04-arm"
             compiler: "gcc-14"
             window: "kaiserbessel"
             precision_opt: ""
@@ -64,7 +92,14 @@ jobs:
             build_octave: 0
             build_julia: 1
           # GCC Snapshot
-          - os: "ubuntu-latest"
+          - os: "ubuntu-24.04"
+            compiler: "gcc-snapshot"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-24.04-arm"
             compiler: "gcc-snapshot"
             window: "kaiserbessel"
             precision_opt: ""
