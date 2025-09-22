@@ -7,13 +7,13 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 lib_LTLIBRARIES = libnfsftjulia.la
 libnfsftjulia_la_SOURCES = libnfsftjulia.c
 
-if HAVE_THREADS
-  libadd_for_fftw_threads=@fftw3_threads_LIBS@
+if ENABLE_OPENMP
+  libadd_for_fftw_threads=@fftw3_LIBS_omp@ @fftw3_LIBS@
 else
   libadd_for_fftw_threads=
 endif
 
-libnfsftjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
+libnfsftjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la $(libadd_for_fftw_threads) @fftw3_LIBS@
 
 libnfsftjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
 
