@@ -43,7 +43,7 @@ checkall_threads_SOURCES = $(checkall_SOURCES)
 checkall_threads_CPPFLAGS = $(cunit_CPPFLAGS)
 checkall_threads_CFLAGS = $(OPENMP_CFLAGS)
 checkall_threads_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@ @cunit_LDFLAGS@
-checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ -latomic @cunit_LIBS@
+checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@  $(OPENMP_LIBS) @cunit_LIBS@
 endif
 
 clean-local:

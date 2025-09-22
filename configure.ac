@@ -362,6 +362,21 @@ if test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "x
   AC_MSG_ERROR([You have enabled building NFFT with OpenMP multi-threading support, but your compiler does not seem to support OpenMP.])
 fi
 
+OPENMP_LIBS=""
+
+if test "x$enable_threads" = "xyes"; then
+  NFFT_OPENMP_ATOMIC_FLOAT
+  if test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "xunknown"; then
+    AC_MSG_ERROR([OpenMP atomic operations do not work.])
+  elif test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "x"; then
+    # No additional flags required.
+    :
+  else
+    # Add additional flags.
+    OPENMP_LIBS="$OPENMP_ATOMIC_FLOAT_LIBS"
+  fi
+fi
+
 ################################################################################
 # 3rd party libraries
 ################################################################################
@@ -403,6 +418,7 @@ AC_SUBST(fftw3_LIBS_omp)
 
 AM_CONDITIONAL(ENABLE_OPENMP, test "x$enable_threads" = "xyes" )
 AC_SUBST(OPENMP_CFLAGS)
+AC_SUBST(OPENMP_LIBS)
 
 # Check for MATLAB.
 AX_PROG_MATLAB
