@@ -93,7 +93,7 @@ function NFSFTplan(N::Integer,M::Integer,flags::UInt32=nfsft_default,nfft_flags:
 	end
 
 	flags = UInt32(flags | nfsft_mandatory_flags)
-	nfft_flags = UInt32(flags | nfsft_nfft_mandatory_flags)
+	nfft_flags = UInt32(nfft_flags | nfsft_nfft_mandatory_flags)
 
 	NFSFTplan(Int32(N),Int32(M),flags,nfft_flags, Int32(nfft_cutoff))
 end
