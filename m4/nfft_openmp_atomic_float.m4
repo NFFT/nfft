@@ -78,14 +78,14 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
       LDFLAGS_bak=$LDFLAGS
       LDFLAGS="$LDFLAGS $atomic_flag"
       
-      AC_RUN_IFELSE([
+      AC_LINK_IFELSE([
         OMP_ATOMIC_TEST_PROGRAM
       ], [
         OPENMP_ATOMIC_FLOAT_LIBS="$atomic_flag"
       ], [
         # Test failed, continue to next iteration
         :
-      ], [])
+      ])
 
       # Restore flags.
       LDFLAGS="$LDFLAGS_bak"
