@@ -502,7 +502,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R *fj; /* local copy */ \
   R y[ths->d]; \
   R fg_psi[ths->d][2*ths->m+2]; \
-  R fg_exp_l[ths->d][2*ths->m+2]; \
+  R fg_exp_l[ths->d][2*ths->m+2+1]; \
   INT l_fg,lj_fg; \
   R tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3; \
   R ip_w; \

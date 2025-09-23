@@ -802,7 +802,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
   R y[ths->d]; \
   R fg_psi[ths->d][2*ths->m+2]; \
-  R fg_exp_l[ths->d][2*ths->m+2]; \
+  R fg_exp_l[ths->d][2*ths->m+2+1]; \
   INT l_fg,lj_fg; \
   R tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3; \
   R ip_w; \
@@ -1211,7 +1211,7 @@ static inline void B_openmp_A (X(plan) *ths)
   if (ths->flags & PRE_FG_PSI)
   {
     INT t, t2; /* index dimensions */
-    R fg_exp_l[ths->d][2*ths->m+2];
+    R fg_exp_l[ths->d][2*ths->m+2+1];
 
     MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI
 
@@ -1230,7 +1230,7 @@ static inline void B_openmp_A (X(plan) *ths)
   if (ths->flags & FG_PSI)
   {
     INT t, t2; /* index dimensions */
-    R fg_exp_l[ths->d][2*ths->m+2];
+    R fg_exp_l[ths->d][2*ths->m+2+1];
 
     sort(ths);
 
@@ -2009,7 +2009,7 @@ static inline void B_openmp_T(X(plan) *ths)
   if (ths->flags & PRE_FG_PSI)
   {
     INT t, t2; /* index dimensions */
-    R fg_exp_l[ths->d][2*ths->m+2];
+    R fg_exp_l[ths->d][2*ths->m+2+1];
     for(t2 = 0; t2 < ths->d; t2++)
     {
       INT lj_fg;
@@ -2040,7 +2040,7 @@ static inline void B_openmp_T(X(plan) *ths)
   if (ths->flags & FG_PSI)
   {
     INT t, t2; /* index dimensions */
-    R fg_exp_l[ths->d][2*ths->m+2];
+    R fg_exp_l[ths->d][2*ths->m+2+1];
 
     sort(ths);
 
@@ -2324,7 +2324,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & PRE_FG_PSI)
   {
     INT k;
-    R fg_exp_l[m2p2];
+    R fg_exp_l[m2p2+1];
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
@@ -2356,7 +2356,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   if (ths->flags & FG_PSI)
   {
     INT k;
-    R fg_exp_l[m2p2];
+    R fg_exp_l[m2p2+1];
 
     sort(ths);
 
@@ -2625,7 +2625,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
   if (ths->flags & PRE_FG_PSI)
   {
-    R fg_exp_l[2 * m + 2];
+    R fg_exp_l[2 * m + 2 + 1];
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
@@ -2665,7 +2665,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
   if (ths->flags & FG_PSI)
   {
-    R fg_exp_l[2 * m + 2];
+    R fg_exp_l[2 * m + 2 + 1];
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
@@ -3265,7 +3265,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   if(ths->flags & PRE_FG_PSI)
   {
-    R fg_exp_l[2*(2*m+2)];
+    R fg_exp_l[2*(2*m+2+1)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -3307,7 +3307,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 
   if(ths->flags & FG_PSI)
   {
-    R fg_exp_l[2*(2*m+2)];
+    R fg_exp_l[2*(2*m+2+1)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -3625,7 +3625,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
   if(ths->flags & PRE_FG_PSI)
   {
-    R fg_exp_l[2*(2*m+2)];
+    R fg_exp_l[2*(2*m+2+1)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -3676,7 +3676,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
 
   if(ths->flags & FG_PSI)
   {
-    R fg_exp_l[2*(2*m+2)];
+    R fg_exp_l[2*(2*m+2+1)];
 
     nfft_2d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_2d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -4732,7 +4732,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   if(ths->flags & PRE_FG_PSI)
   {
-    R fg_exp_l[3*(2*m+2)];
+    R fg_exp_l[3*(2*m+2+1)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -4785,7 +4785,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 
   if(ths->flags & FG_PSI)
   {
-    R fg_exp_l[3*(2*m+2)];
+    R fg_exp_l[3*(2*m+2+1)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -5170,7 +5170,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
   if(ths->flags & PRE_FG_PSI)
   {
-    R fg_exp_l[3*(2*m+2)];
+    R fg_exp_l[3*(2*m+2+1)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
@@ -5231,7 +5231,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
   if(ths->flags & FG_PSI)
   {
-    R fg_exp_l[3*(2*m+2)];
+    R fg_exp_l[3*(2*m+2+1)];
 
     nfft_3d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
     nfft_3d_init_fg_exp_l(fg_exp_l+2*m+2, m, ths->b[1]);
