@@ -32,10 +32,20 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
   # Save current flags.
   ac_save_CFLAGS="$CFLAGS"
   ac_save_LDFLAGS="$LDFLAGS"
-  
+  ac_save_LIBS="$LIBS"
+
   # Add OpenMP flags.
   CFLAGS="$CFLAGS $OPENMP_CFLAGS"
   LDFLAGS="$LDFLAGS $OPENMP_CFLAGS"
+
+  # Add OpenMP flags.
+  #if test "x$CC" = "xclang"; then
+  #  CFLAGS="$CFLAGS -g -Rpass=.* -Rpass-missed=.* -fsave-optimization-record -foptimization-record-file=opt.txt $OPENMP_CFLAGS"
+  #  LDFLAGS="$LDFLAGS $OPENMP_CFLAGS"
+  #else
+  #  CFLAGS="$CFLAGS -g -fopt-info-all=opt.txt $OPENMP_CFLAGS"
+  #  LDFLAGS="$LDFLAGS $OPENMP_CFLAGS"
+  #fi
   
   # Define test program as a macro for reuse.
   m4_define([OMP_ATOMIC_TEST_PROGRAM], [
@@ -43,28 +53,33 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
       #include <omp.h>
       #include <stdint.h>
     ], [
-      /* Test atomic operation on floating point type. */
       #if defined(NFFT_LDOUBLE)
       long double r = 0.0L;
       long double increment = 2.0L;
+      long double expected_min = 150.0L;
       #elif defined(NFFT_SINGLE)
       float r = 0.0f;
       float increment = 2.0f;
+      float expected_min = 150.0f;
       #else
       double r = 0.0;
       double increment = 2.0;
+      double expected_min = 150.0;
       #endif
       int i;
+      // Make loop count unpredictable to compiler by using address arithmetic.
+      volatile int loop_count = (int)((uintptr_t)&r % 50) + 75;
+      // Make increment unpredictable by using address-based modification.
+      increment += (((uintptr_t)&i % 3) == 0) ? 0.0 : 0.0;
 
       #pragma omp parallel for
-      for (i = 0; i < 100; i++) {
+      for (i = 0; i < loop_count; i++) {
         #pragma omp atomic
         r += increment;
       }
       
-      /* Ensure the compiler doesn't optimize away our operations */
-      if (r < 0.0) {
-        return 1; /* This should never happen */
+      if (r < expected_min) {
+        return 1;
       }
       
       return 0;
@@ -75,8 +90,8 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
   OPENMP_ATOMIC_FLOAT_LIBS="unknown"
   for atomic_flag in "" "-latomic"; do
     if test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "xunknown"; then
-      LDFLAGS_bak=$LDFLAGS
-      LDFLAGS="$LDFLAGS $atomic_flag"
+      LIBS_bak=$LIBS
+      LIBS="$LIBS $atomic_flag"
       
       AC_LINK_IFELSE([
         OMP_ATOMIC_TEST_PROGRAM
@@ -88,7 +103,7 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
       ])
 
       # Restore flags.
-      LDFLAGS="$LDFLAGS_bak"
+      LIBS="$LIBS_bak"
     fi
   done
 
@@ -105,4 +120,5 @@ AC_DEFUN([NFFT_OPENMP_ATOMIC_FLOAT],
   # Restore original flags.
   CFLAGS="$ac_save_CFLAGS"
   LDFLAGS="$ac_save_LDFLAGS"
+  LIBS="$ac_save_LIBS"
 ])
