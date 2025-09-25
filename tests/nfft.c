@@ -35,7 +35,7 @@
 typedef struct testcase_delegate_s testcase_delegate_t;
 
 typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+typedef void (*destroy_t)(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f);
 
 struct testcase_delegate_s
 {
@@ -51,7 +51,7 @@ typedef struct testcase_delegate_file_s
 } testcase_delegate_file_t;
 
 static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-static void destroy_file(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f);
 
 typedef struct testcase_delegate_online_s
 {
@@ -63,7 +63,7 @@ typedef struct testcase_delegate_online_s
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
-static void destroy_online(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f);
+static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f);
 
 /* Initialization delegate. */
 typedef struct init_delegate_s init_delegate_t;
@@ -350,7 +350,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
 cleanup:
-  testcase->destroy(testcase, x, f_hat, f);
+  testcase->destroy(testcase, N, x, f_hat, f);
   X(finalize)(&p);
 
   return ok;
@@ -447,9 +447,10 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   fclose(file);
 }
 
-static void destroy_file(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f)
+static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f)
 {
   UNUSED(ego_);
+  Y(free)(N);
   Y(free)(x);
   Y(free)(f_hat);
   Y(free)(f);
@@ -630,9 +631,10 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   }
 }
 
-static void destroy_online(const testcase_delegate_t *ego_, R *x, C *f_hat, C *f)
+static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f)
 {
   UNUSED(ego_);
+  Y(free)(N);
   Y(free)(x);
   Y(free)(f_hat);
   Y(free)(f);
@@ -1429,7 +1431,7 @@ static int check_single_file(const testcase_delegate_t *testcase,
   }
 
 cleanup:
-  testcase->destroy(testcase, x, f_hat, f);
+  testcase->destroy(testcase, N, x, f_hat, f);
   X(finalize)(&p);
 
   return ok;
