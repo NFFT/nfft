@@ -24,11 +24,19 @@ m4_define([nfft_version_patch], [4])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
-...
-# autoconf initialization
-AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
-# copyright notice
+# Version number of the NFFT source package.
+AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
+AC_CONFIG_SRCDIR([include/nfft3.h])
+
+# Version number for libtool shared libraries. Libtool wants a string
+# of the form CURRENT:REVISION:AGE.
+# NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
+# NFFT 3.5.2 was 4:2:0
+# NFFT 3.5.2 was 4:1:0
+SHARED_VERSION_INFO="4:3:0"
+
+# Copyright notice.
 AC_COPYRIGHT([2003, 2025, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
@@ -36,25 +44,16 @@ AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version nu
 AC_DEFINE_UNQUOTED([NFFT_VERSION_PATCH], [nfft_version_patch], [Patch version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_TYPE], [nfft_version_type], [Release type.])
 
-# m4 macros go here
-AC_CONFIG_MACRO_DIR([m4])
-
-# where to put auxilliary files
-AC_CONFIG_AUX_DIR([config])
-
-# how to recognize the source directory
-AC_CONFIG_SRCDIR([include/nfft3.h])
-
-# header to create
+AC_CONFIG_AUX_DIR([config]) 
+AM_INIT_AUTOMAKE(1.10)
 AC_CONFIG_HEADERS([include/config.h:include/config.h.in])
-
-# canonical host system type string
+AC_CONFIG_MACRO_DIR([m4])
+AM_MAINTAINER_MODE
+AC_SUBST(SHARED_VERSION_INFO)
 AC_CANONICAL_HOST
 
-# number of CPUs
-#AX_COUNT_CPUS
-#AC_DEFINE_UNQUOTED(NFFT_NUM_CORES,$cpu_count,[Define to number of cores.])
-
+# TODO: This part has a smell. abs_srcdir is substituted in generated files. 
+#   It should not be necessary to define ABS_SRCDIR as well.
 # substitute abs_srcdir in generated Makefiles.
 AC_SUBST([abs_srcdir])
 if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
@@ -65,33 +64,30 @@ fi
 AC_DEFINE_UNQUOTED([ABS_SRCDIR], ["$ABS_SRCDIR"], [Absolute path to source directory.])
 AC_SUBST([ABS_SRCDIR])
 
+# TODO: These are pre-set precious output variables. It should not be necessary to explicitly SUBST them.
+#   see https://www.gnu.org/software/autoconf/manual/autoconf-2.67/html_node/Setting-Output-Variables.html#Setting-Output-Variables
 AC_SUBST([abs_top_srcdir])
 AC_SUBST([top_builddir])
 AC_SUBST([abs_top_builddir])
 
-# minimum required libtool version
-LT_PREREQ([2.4.2])
+# Set programming language.
+AC_LANG(C)
 
-# libtool initialization
-LT_INIT([win32-dll])
-
-# substitute LIBTOOL_DEPS variable in generated Makefiles
-AC_SUBST([LIBTOOL_DEPS])
-
-# version information for shared library
-SHARED_VERSION_INFO="4:3:0"
-# NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
-# NFFT 3.5.2 was 4:2:0
-# NFFT 3.5.2 was 4:1:0
-
-# substitute SHARED_VERSION_INFO in generated Makefiles
-AC_SUBST(SHARED_VERSION_INFO)
-
-# check for make
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_CC_C_O
+AX_COMPILER_VENDOR
+AC_C_CONST
+AC_C_RESTRICT
+AC_C_INLINE
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_LN_S
 AC_PROG_MAKE_SET
-
-# automake initialization
-AM_INIT_AUTOMAKE(1.10)
+AC_PROG_MKDIR_P
+LT_PREREQ([2.4.2])
+LT_INIT([win32-dll])
+AC_SUBST([LIBTOOL_DEPS])
 
 # doxygen ${PACKAGE_STRING}
 DX_DOT_FEATURE(ON)
@@ -108,9 +104,6 @@ DX_INIT_DOXYGEN([NFFT], [doxygen/doxygen.Doxyfile], [doc])
 ################################################################################
 # options for customizing the build process
 ################################################################################
-
-# maintainer mode option
-AM_MAINTAINER_MODE
 
 # Precision.
 AC_ARG_ENABLE(single, [AS_HELP_STRING([--enable-single],[compile NFFT in single precision])], ok=$enableval, ok=no)
@@ -130,9 +123,10 @@ if test "$ok" = "yes"; then
   AC_DEFINE(NFFT_LDOUBLE,1,[Define to compile in long-double precision.])
   PRECISION=l
 fi
+
 AC_SUBST(PRECISION)
 
-# Library suffix
+# Library suffix.
 case "$PRECISION" in
      s) PREC_SUFFIX=f;;
      d) PREC_SUFFIX=;;
@@ -140,7 +134,10 @@ case "$PRECISION" in
 esac
 AC_SUBST(PREC_SUFFIX)
 
-# Library suffix
+# TODO: Do we really need these macros? It seems they are used in nfft3mp.h to conditionally define
+#   an API specific to the used floating-point type. This is unlike nfft3.h and fftw3.h which always
+#   define the APIs for all floating-point types. Since nfft3mp.h is redistributed, we probably should
+#   have similar behavior. 
 case "$PRECISION" in
      s) NFFT_PRECISION_MACRO=NFFT_PRECISION_SINGLE;;
      d) NFFT_PRECISION_MACRO=NFFT_PRECISION_DOUBLE;;
@@ -148,6 +145,9 @@ case "$PRECISION" in
 esac
 AC_SUBST(NFFT_PRECISION_MACRO)
 
+# TODO: Eventually, this conditional should be removed in favor of handling similar to FFTW3:
+#   Build nfft3@@PREC_SUFFIX@.la from nfft.pc. But we need to be careful since nfft3.pc is
+#   hardcoded in some place son renaming can easily have unintended side effects.
 AM_CONDITIONAL(HAVE_NON_DOUBLE_PRECISION, test "x$PRECISION" != "xd" )
 
 # enable or disable parts of NFFT
@@ -198,7 +198,7 @@ AX_NFFT_MODULE([nfsoft],[NFSOFT],[nonequispaced fast SO(3) Fourier transform],["
 AX_NFFT_MODULE([nnfft],[NNFFT],[nonequispaced fast Fourier transform -- ]#
   [nonequispaced in both domains],["no"])
 AX_NFFT_MODULE([nsfft],[NSFFT],[nonequispaced sparse fast Fourier transform],["no"])
-AX_NFFT_MODULE([mri],[MRI],[magnet resonance imaging],["no"])
+AX_NFFT_MODULE([mri],[MRI],[magnetic resonance imaging],["no"])
 AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
@@ -300,39 +300,6 @@ AM_CONDITIONAL(BENCHMARK_AGNOSTIC_WINDOW, test "x$BENCHMARK_AGNOSTIC_WINDOW" = "
 AM_CONDITIONAL(BENCHMARK_AGNOSTIC_OPENMP, test "x$BENCHMARK_AGNOSTIC_OPENMP" = "x1")
 
 ################################################################################
-# C compiler characteristis
-################################################################################
-
-# select programming language
-AC_LANG(C)
-
-# compiler vendor
-AX_COMPILER_VENDOR
-
-# check for C99 compliant mode (possibly with GNU extensions)
-AC_PROG_CC
-
-# per-target flags
-AM_PROG_CC_C_O
-
-# enable "const" keyword
-AC_C_CONST
-
-# enable "restrict" keyword
-AC_C_RESTRICT
-
-# enable "inline" keyword
-AC_C_INLINE
-
-# reset CC variable (the C99 option is added back below)
-CC="$ac_save_CC"
-
-################################################################################
-# C++ compiler characteristis
-################################################################################
-AC_PROG_CXX
-
-################################################################################
 # program checks
 ################################################################################
 
@@ -341,15 +308,6 @@ AC_PROG_CPP_WERROR
 
 # assembler
 AM_PROG_AS
-
-# BSD-compatible install
-AC_PROG_INSTALL
-
-# mkdir
-AC_PROG_MKDIR_P
-
-# whether ln -s works
-AC_PROG_LN_S
 
 ################################################################################
 # compiler options
