@@ -8,9 +8,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Create the vscode user and install dependencies.
 RUN groupadd --gid 2000 vscode \
     && useradd --uid 2000 --gid vscode --shell /bin/bash --create-home vscode \
+    && apt update \
+    && apt install -y --no-install-recommends\
+    software-properties-common \
+    && add-apt-repository universe \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     build-essential \
+    gcc-snapshot \
+    gcc-14 \
+    g++-14 \
     cmake \
     libfftw3-dev \
     libfftw3-single3 \
