@@ -314,9 +314,7 @@ AM_PROG_AS
 ################################################################################
 
 # Try to choose good compiler options.
-if test "x$ac_test_CFLAGS" != "xset"; then
-  AX_CC_MAXOPT
-fi
+AX_CC_MAXOPT
 
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
