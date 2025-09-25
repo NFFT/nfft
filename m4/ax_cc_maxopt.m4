@@ -16,7 +16,7 @@ dnl Note also that the flags assume that ANSI C aliasing rules are
 dnl followed by the code (e.g. for gcc's -fstrict-aliasing), and that
 dnl floating-point computations can be re-ordered as needed.
 dnl
-dnl Requires macros: AX_CHECK_COMPILER_FLAGS, AX_COMPILER_VENDOR,
+dnl Requires macros: AX_CHECK_COMPILE_FLAG, AX_COMPILER_VENDOR,
 dnl                  AX_GCC_ARCHFLAG, AX_GCC_X86_CPUID
 dnl
 dnl @version 2008-12-02
@@ -55,7 +55,7 @@ if test "$ac_test_CFLAGS" != "set"; then
       else
         xlc_opt="-qtune=auto"
       fi
-      AX_CHECK_COMPILER_FLAGS($xlc_opt,
+      AX_CHECK_COMPILE_FLAG($xlc_opt,
         CFLAGS="-O3 -qansialias -w $xlc_opt",
         [CFLAGS="-O3 -qansialias -w"
               echo "******************************************************"
@@ -74,12 +74,12 @@ if test "$ac_test_CFLAGS" != "set"; then
         # Intel seems to have changed the spelling of this flag recently
         icc_ansi_alias="unknown"
 	for flag in -ansi-alias -ansi_alias; do
-	  AX_CHECK_COMPILER_FLAGS($flag, [icc_ansi_alias=$flag; break])
+	  AX_CHECK_COMPILE_FLAG($flag, [icc_ansi_alias=$flag; break])
 	done
  	if test "x$icc_ansi_alias" != xunknown; then
             CFLAGS="$CFLAGS $icc_ansi_alias"
         fi
-	AX_CHECK_COMPILER_FLAGS(-malign-double, CFLAGS="$CFLAGS -malign-double")
+	AX_CHECK_COMPILE_FLAG(-malign-double, CFLAGS="$CFLAGS -malign-double")
 	if test "x$acx_maxopt_portable" = xno; then
 	  icc_archflag=unknown
 	  icc_flags=""
@@ -102,7 +102,7 @@ if test "$ac_test_CFLAGS" != "set"; then
 	  icc_flags="-xHost $icc_flags"
           if test "x$icc_flags" != x; then
             for flag in $icc_flags; do
-              AX_CHECK_COMPILER_FLAGS($flag, [icc_archflag=$flag; break])
+              AX_CHECK_COMPILE_FLAG($flag, [icc_archflag=$flag; break])
             done
           fi
           AC_MSG_CHECKING([for icc architecture flag])
@@ -118,31 +118,31 @@ if test "$ac_test_CFLAGS" != "set"; then
      CFLAGS="-O3 -fomit-frame-pointer"
 
      # -malign-double for x86 systems
-     AX_CHECK_COMPILER_FLAGS(-malign-double, CFLAGS="$CFLAGS -malign-double")
+     AX_CHECK_COMPILE_FLAG(-malign-double, CFLAGS="$CFLAGS -malign-double")
 
      #  -fstrict-aliasing for gcc-2.95+
-     AX_CHECK_COMPILER_FLAGS(-fstrict-aliasing,
+     AX_CHECK_COMPILE_FLAG(-fstrict-aliasing,
      CFLAGS="$CFLAGS -fstrict-aliasing")
 
      # note that we enable "unsafe" fp optimization with other compilers, too
-     AX_CHECK_COMPILER_FLAGS(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
+     AX_CHECK_COMPILE_FLAG(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
 
      AX_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;
    apple)
      # default optimization flags for apple on all systems
-     AX_CHECK_COMPILER_FLAGS(-O3, CFLAGS="$CFLAGS -O3")
-     AX_CHECK_COMPILER_FLAGS(-fomit-frame-pointer, CFLAGS="$CFLAGS -fomit-frame-pointer")
-     AX_CHECK_COMPILER_FLAGS(-fPIC, CFLAGS="$CFLAGS -fPIC")
+     AX_CHECK_COMPILE_FLAG(-O3, CFLAGS="$CFLAGS -O3")
+     AX_CHECK_COMPILE_FLAG(-fomit-frame-pointer, CFLAGS="$CFLAGS -fomit-frame-pointer")
+     AX_CHECK_COMPILE_FLAG(-fPIC, CFLAGS="$CFLAGS -fPIC")
 
      # -malign-double for x86 systems
-     AX_CHECK_COMPILER_FLAGS(-malign-double, CFLAGS="$CFLAGS -malign-double")
+     AX_CHECK_COMPILE_FLAG(-malign-double, CFLAGS="$CFLAGS -malign-double")
 
      #  -fstrict-aliasing for gcc-2.95+
-     AX_CHECK_COMPILER_FLAGS(-fstrict-aliasing,CFLAGS="$CFLAGS -fstrict-aliasing")
+     AX_CHECK_COMPILE_FLAG(-fstrict-aliasing,CFLAGS="$CFLAGS -fstrict-aliasing")
 
      # note that we enable "unsafe" fp optimization with other compilers, too
-     AX_CHECK_COMPILER_FLAGS(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
+     AX_CHECK_COMPILE_FLAG(-ffast-math, CFLAGS="$CFLAGS -ffast-math")
 
      AX_GCC_ARCHFLAG($acx_maxopt_portable)
      ;;
@@ -159,7 +159,7 @@ if test "$ac_test_CFLAGS" != "set"; then
         CFLAGS="-O3"
   fi
 
-  AX_CHECK_COMPILER_FLAGS($CFLAGS, [], [
+  AX_CHECK_COMPILE_FLAG($CFLAGS, [], [
 	echo ""
         echo "********************************************************"
         echo "* WARNING: The guessed CFLAGS don't seem to work with  *"
