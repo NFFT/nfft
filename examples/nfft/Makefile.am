@@ -17,7 +17,7 @@ noinst_PROGRAMS = simple_test $(SIMPLE_TEST_THREADS) ndft_fast taylor_nfft flags
 if ENABLE_OPENMP
   simple_test_threads_SOURCES = simple_test_threads.c
   simple_test_threads_LDFLAGS = @fftw3_LDFLAGS@
-  simple_test_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ -latomic
+  simple_test_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
 endif
 
 simple_test_SOURCES = simple_test.c
@@ -44,20 +44,20 @@ if ENABLE_OPENMP
 nfft_benchomp_SOURCES = nfft_benchomp.c
 nfft_benchomp_CFLAGS = $(OPENMP_CFLAGS)
 nfft_benchomp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
-nfft_benchomp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ -latomic
+nfft_benchomp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
 
 nfft_benchomp_createdataset_SOURCES = nfft_benchomp_createdataset.c
 nfft_benchomp_createdataset_LDFLAGS = @fftw3_LDFLAGS@
-nfft_benchomp_createdataset_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ -latomic
+nfft_benchomp_createdataset_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ $(OPENMP_LIBS) 
 
 nfft_benchomp_detail_single_SOURCES = nfft_benchomp_detail.c
 nfft_benchomp_detail_single_LDFLAGS = @fftw3_LDFLAGS@
-nfft_benchomp_detail_single_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ -latomic
+nfft_benchomp_detail_single_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ $(OPENMP_LIBS) 
 
 nfft_benchomp_detail_threads_SOURCES = nfft_benchomp_detail.c
 nfft_benchomp_detail_threads_CFLAGS = $(OPENMP_CFLAGS)
 nfft_benchomp_detail_threads_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
-nfft_benchomp_detail_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ -latomic
+nfft_benchomp_detail_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS) 
 endif
 
 EXTRA_DIST = flags.m ndft_fast.m taylor_nfft.m README

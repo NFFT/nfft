@@ -310,7 +310,7 @@ AC_LANG(C)
 AX_COMPILER_VENDOR
 
 # check for C99 compliant mode (possibly with GNU extensions)
-AC_PROG_CC_C99
+AC_PROG_CC
 
 # per-target flags
 AM_PROG_CC_C_O
@@ -352,6 +352,43 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
 ################################################################################
+# compiler options
+################################################################################
+
+# Try to choose good compiler options.
+if test "x$ac_test_CFLAGS" != "xset"; then
+  AX_CC_MAXOPT
+fi
+
+# override CFLAGS selection when debugging
+if test "x${enable_debug}" = "xyes"; then
+  CFLAGS="-g -O2 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -v"
+#  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
+#    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
+#  fi
+fi
+
+# add gcc warnings, in debug/maintainer mode only
+if test "x${enable_debug}" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes";
+then
+  if test "x$ac_cv_c_compiler_gnu" = "xyes"; then
+    CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
+    CFLAGS="$CFLAGS -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings"
+    CFLAGS="$CFLAGS -Wstrict-prototypes -Wredundant-decls -Wnested-externs"
+    CFLAGS="$CFLAGS -Wundef -Wconversion -Wmissing-prototypes "
+    CFLAGS="$CFLAGS -Wmissing-declarations"
+  fi
+fi
+
+# option to accept C99
+CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
+
+# use MinGW implementation of printf
+if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
+  CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
+fi  
+
+################################################################################
 # OpenMP support
 ################################################################################
 
@@ -360,6 +397,21 @@ AX_OPENMP
 
 if test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
   AC_MSG_ERROR([You have enabled building NFFT with OpenMP multi-threading support, but your compiler does not seem to support OpenMP.])
+fi
+
+OPENMP_LIBS=""
+
+if test "x$enable_threads" = "xyes"; then
+  NFFT_OPENMP_ATOMIC_FLOAT
+  if test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "xunknown"; then
+    AC_MSG_ERROR([OpenMP atomic operations do not work.])
+  elif test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "x"; then
+    # No additional flags required.
+    :
+  else
+    # Add additional flags.
+    OPENMP_LIBS="$OPENMP_ATOMIC_FLOAT_LIBS"
+  fi
 fi
 
 ################################################################################
@@ -403,6 +455,7 @@ AC_SUBST(fftw3_LIBS_omp)
 
 AM_CONDITIONAL(ENABLE_OPENMP, test "x$enable_threads" = "xyes" )
 AC_SUBST(OPENMP_CFLAGS)
+AC_SUBST(OPENMP_LIBS)
 
 # Check for MATLAB.
 AX_PROG_MATLAB
@@ -415,59 +468,8 @@ if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
   AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with --enable-openmp.])
 fi
 
-
-################################################################################
-# compiler options
-################################################################################
-
-# Try to choose good compiler options.
-if test "x$ac_test_CFLAGS" != "xset"; then
-  saved_CPPFLAGS="$CPPFLAGS"
-  saved_LDFLAGS="$LDFLAGS"
-  saved_LIBS="$LIBS"
-  CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
-  LIBS="$LIBS $fftw3_LIBS"
-  LDFLAGS="$LDFLAGS $nfft_fftw3_LDFLAGS"
-  AX_CC_MAXOPT
-  CPPFLAGS="$saved_CPPFLAGS"
-  LDFLAGS="$saved_LDFLAGS"
-  LIBS="$saved_LIBS"
-fi
-
-# override CFLAGS selection when debugging
-if test "x${enable_debug}" = "xyes"; then
-  CFLAGS="-g"
-#  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
-#    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
-#  fi
-fi
-
-# add gcc warnings, in debug/maintainer mode only
-if test "x${enable_debug}" = "xyes" || test "x$USE_MAINTAINER_MODE" = "xyes";
-then
-  if test "x$ac_cv_c_compiler_gnu" = "xyes"; then
-    CFLAGS="$CFLAGS -Wall -W -Wcast-qual -Wpointer-arith -Wcast-align -pedantic"
-    CFLAGS="$CFLAGS -Wno-long-long -Wshadow -Wbad-function-cast -Wwrite-strings"
-    CFLAGS="$CFLAGS -Wstrict-prototypes -Wredundant-decls -Wnested-externs"
-    CFLAGS="$CFLAGS -Wundef -Wconversion -Wmissing-prototypes "
-    CFLAGS="$CFLAGS -Wmissing-declarations"
-  fi
-fi
-
-# option to accept C99
-CFLAGS="$CFLAGS $ac_cv_prog_cc_c99"
-
-# use MinGW implementation of printf
-if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
-  CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
-fi  
-
+# Add FFTW preprocessor flags.
 CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
-
-# add Matlab CFLAGS
-if test "x$ax_prog_matlab" = "xyes"; then
-  CFLAGS="$CFLAGS $matlab_CFLAGS"
-fi
 
 ################################################################################
 # check if mex.h can be included without undefinition of

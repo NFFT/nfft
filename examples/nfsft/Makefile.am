@@ -30,7 +30,7 @@ endif
 if ENABLE_OPENMP
 nfsft_benchomp_SOURCES = nfsft_benchomp.c
 nfsft_benchomp_CFLAGS = $(OPENMP_CFLAGS)
-nfsft_benchomp_LDFLAGS = $(OPENMP_LDFLAGS) @fftw3_LDFLAGS@
+nfsft_benchomp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
 nfsft_benchomp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ 
 
 nfsft_benchomp_createdataset_SOURCES = nfsft_benchomp_createdataset.c
