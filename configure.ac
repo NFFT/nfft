@@ -741,9 +741,10 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/nfsftUnitTests.m \
 		julia/Makefile \
 		julia/nfft/Makefile \
-		julia/fastsum/Makefile \
+    julia/fastsum/Makefile \
 		julia/nfct/Makefile \
-		julia/nfst/Makefile \
+    julia/nfst/Makefile \
+    julia/nfsft/Makefile \
                 benchmarks/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
