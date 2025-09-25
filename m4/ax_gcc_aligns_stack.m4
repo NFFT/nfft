@@ -11,7 +11,7 @@ dnl
 dnl ACTION-IF-YES/ACTION-IF-NO are shell commands to execute if we are
 dnl using gcc and the stack is/isn't aligned, respectively.
 dnl
-dnl Requires macro: AX_CHECK_COMPILER_FLAGS, AX_GCC_VERSION
+dnl Requires macro: AX_CHECK_COMPILE_FLAG, AX_GCC_VERSION
 dnl
 dnl @version 2005-05-30
 dnl @license GPLWithACException
@@ -21,11 +21,11 @@ AC_DEFUN([AX_GCC_ALIGNS_STACK],
 AC_REQUIRE([AC_PROG_CC])
 ax_gcc_aligns_stack=no
 if test "$GCC" = "yes"; then
-AX_CHECK_COMPILER_FLAGS(-mpreferred-stack-boundary=4, [
+AX_CHECK_COMPILE_FLAG(-mpreferred-stack-boundary=4, [
 	AC_MSG_CHECKING([whether the stack is at least 8-byte aligned by gcc])
 	save_CFLAGS="$CFLAGS"
 	CFLAGS="-O"
-	AX_CHECK_COMPILER_FLAGS(-malign-double, CFLAGS="$CFLAGS -malign-double")
+	AX_CHECK_COMPILE_FLAG(-malign-double, CFLAGS="$CFLAGS -malign-double")
 	AC_TRY_RUN([#include <stdlib.h>
 #       include <stdio.h>
 	struct yuck { int blechh; };
