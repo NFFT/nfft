@@ -30,7 +30,21 @@ jobs:
             precision_opt: ""
             openmp: 1
             build_octave: 0
-            build_julia: 0
+            build_julia: 1
+          - os: "ubuntu-latest"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: "--enable-float"
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          - os: "ubuntu-latest"
+            compiler: "clang"
+            window: "kaiserbessel"
+            precision_opt: "--enable-long-double"
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
           # GCC 14
           - os: "ubuntu-latest"
             compiler: "gcc-14"
@@ -38,7 +52,7 @@ jobs:
             precision_opt: ""
             openmp: 1
             build_octave: 0
-            build_julia: 0
+            build_julia: 1
           # GCC Snapshot
           - os: "ubuntu-latest"
             compiler: "gcc-snapshot"
@@ -46,7 +60,7 @@ jobs:
             precision_opt: ""
             openmp: 1
             build_octave: 0
-            build_julia: 0
+            build_julia: 1
     steps:    
     - uses: actions/checkout@v5
 
