@@ -182,16 +182,22 @@ typedef ptrdiff_t INT;
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
+    // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
     #define WINDOW_HELP_ESTIMATE_m 17
   #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
     #define WINDOW_HELP_ESTIMATE_m 17
   #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 13
   #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
     #define WINDOW_HELP_ESTIMATE_m 5
   #else
-    #error "Unsupported floating-point type."
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
   #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
@@ -202,16 +208,22 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
   #if MANT_DIG == 113
+    // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
     #define WINDOW_HELP_ESTIMATE_m 11
   #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
     #define WINDOW_HELP_ESTIMATE_m 11
   #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 11
   #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
     #define WINDOW_HELP_ESTIMATE_m 11
   #else
-    #error "Unsupported floating-point type."
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #elif defined(SINC_POWER)
   #define PHI_HUT(n,k,d) (Y(bsplines)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
@@ -225,16 +237,22 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
   #if MANT_DIG == 113
+    // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
     #define WINDOW_HELP_ESTIMATE_m 13
   #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
     #define WINDOW_HELP_ESTIMATE_m 13
   #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 11
   #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
     #define WINDOW_HELP_ESTIMATE_m 11
   #else
-    #error "Unsupported floating-point type."
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #else /* Kaiser-Bessel is the default. */
   #define PHI_HUT(n,k,d) (Y(bessel_i0)((R)(ths->m) * SQRT(ths->b[d] * ths->b[d] - (K(2.0) * KPI * (R)(k) / (R)(n)) * (K(2.0) * KPI * (R)(k) / (R)(n)))))
@@ -254,16 +272,21 @@ typedef ptrdiff_t INT;
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
+    // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
     #define WINDOW_HELP_ESTIMATE_m 10 
   #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
     #define WINDOW_HELP_ESTIMATE_m 9
   #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 8
   #elif MANT_DIG == 24
-    #define WINDOW_HELP_ESTIMATE_m 4
+      #define WINDOW_HELP_ESTIMATE_m 4
   #else
-    #error "Unsupported floating-point type."
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    #define WINDOW_HELP_ESTIMATE_m 8
   #endif
 #endif
 
@@ -1309,29 +1332,35 @@ extern double _Complex catanh(double _Complex z);
 #  define __FI__ "%Lf"
 #  define __FIS__ "Lf"
 #  define __FR__ "%Le"
-#if MANT_DIG == 113
-#  define __FE__ "% 36.32LE"
-#elif MANT_DIG == 64
-#  define __FE__ "% 24.20LE"
-#elif MANT_DIG == 53
-#  define __FE__ "% 20.16LE"
-#else
-  #error "Unsupported precision"
-#endif
 #elif defined(NFFT_SINGLE)
 #  define __FGS__ "g"
 #  define __FES__ "E"
 #  define __FI__ "%f"
 #  define __FIS__ "f"
 #  define __FR__ "%e"
-#  define __FE__ "% 12.8E"
 #else // double precision
 #  define __FGS__ "lg"
 #  define __FES__ "lE"
 #  define __FI__ "%lf"
 #  define __FIS__ "lf"
 #  define __FR__ "%le"
-#  define __FE__ "% 20.16lE"
+#endif
+
+#if MANT_DIG == 113
+  // IEEE 754 quadruple precision, 128 bits.
+  #define __FE__ "% 36.32LE"
+#elif MANT_DIG == 64
+  // Intel double extended, 80 bits.
+  #define __FE__ "% 24.20LE"
+#elif MANT_DIG == 53
+  // IEEE 754 double precision, 64 bits.
+  #define __FE__ "% 20.16LE"
+#elif MANT_DIG == 24
+  #define __FE__ "% 12.8E"
+#else
+  // Unknown floating-point type.
+  // Assume IEEE 754 double precision, 64 bits.
+  #define __FE__ "% 20.16LE"
 #endif
 
 #define TRUE 1

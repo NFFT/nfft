@@ -6322,17 +6322,22 @@ static const R b30[] =
 
 #define ERR(x,y) IF(ABS(y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
-// TODO: Set good values for quadruple precision.
+// TODO: Set good values for IEEE 754 quadruple precision, 128 bits..
 #if MANT_DIG == 113
   static const R bound_multiplier = K(17.0);
 #elif MANT_DIG == 64
+  // Intel double extended, 80 bits.
   static const R bound_multiplier = K(17.0);
 #elif MANT_DIG == 53
+  // IEEE 754 double precision, 64 bits.
   static const R bound_multiplier = K(16.0);
 #elif MANT_DIG == 24
+  // IEEE 754 single precision, 32 bits.
   static const R bound_multiplier = K(20.0);
 #else
-  #error "Unsupported floating-point type."
+  // Unknown floating-point type.
+  // Assume IEEE 754 double precision, 64 bits.
+  static const R bound_multiplier = K(16.0);
 #endif
 
 static int check_bspline(const unsigned n, const unsigned int m, const R *r)
