@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libnfftjulia.la
 libnfftjulia_la_SOURCES = libnfftjulia.c
 
 if ENABLE_OPENMP
-  libadd_for_fftw_threads=@fftw3_LIBS_omp@ @fftw3_LIBS@ 
+  libadd_for_fftw_threads=@fftw3_LIBS_omp@ @fftw3_LIBS@
 else
   libadd_for_fftw_threads=
 endif
@@ -30,7 +30,3 @@ clean-libnfftjulia-link:
 all: all-am libnfftjulia-link
 
 clean: clean-libnfftjulia-link clean-am
-
-#all-local:: libnfftjulia-link
-	
-#clean-local:: clean-libnfftjulia-link
