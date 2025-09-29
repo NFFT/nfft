@@ -1,0 +1,24 @@
+name: Draft Release
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  draft-release:
+    name: Draft a new release
+    permissions:
+      # Write permissions are required to create a GitHub release.
+      contents: write
+      # Write permissions are required for autolabeler
+      # otherwise, read permissions are required, at least.
+      pull-requests: read
+    runs-on: ubuntu-latest
+    steps:
+      # Drafts your next Release notes as Pull Requests are merged into "develop"
+      - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter-config.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
