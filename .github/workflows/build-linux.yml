@@ -219,6 +219,18 @@ jobs:
     
     - name: Build
       run: make -j
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: checkall
+        path: benchmarks/bench_nfft_direct*
+
+    - name: Set cores to get stored in /cores
+      run: |
+        sudo mkdir /cores
+        sudo chmod 777 /cores
+        # Core filenames will be of the form executable.pid.timestamp:
+        sudo bash -c 'echo "/cores/%e.%p.%t" > /proc/sys/kernel/core_pattern'
     
     - name: Test
       run: make check
@@ -231,7 +243,7 @@ jobs:
       uses: CodSpeedHQ/action@v4
       with:
         mode: instrumentation
-        run: cd benchmarks && make bench
+        run: ulimit -c unlimited && cd benchmarks && make bench
   
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -275,6 +287,12 @@ jobs:
             }
           }
       if: always()
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ failure() }}
+      with:
+        name: cores
+        path: /cores      
 
   distcheck:
     runs-on: ubuntu-latest
