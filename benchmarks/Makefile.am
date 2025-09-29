@@ -36,9 +36,11 @@ noinst_PROGRAMS = $(NFFT_BENCHMARKS) $(NFFT_BENCHMARKS_OMP)
 bench: $(NFFT_BENCHMARKS) $(NFFT_BENCHMARKS_OMP)
 	for bench in $(NFFT_BENCHMARKS); do \
 		echo "Running $$bench..."; \
+		ulimit -c unlimited; \
 		./$$bench; \
 	done
 	for bench in $(NFFT_BENCHMARKS_OMP); do \
 		echo "Running $$bench..."; \
+		ulimit -c unlimited; \
 		./$$bench; \
 	done

@@ -222,7 +222,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: checkall
+        name: checkall-${{ env.BUILD_CONFIG }}
         path: benchmarks/bench_nfft_direct*
 
     - name: Set cores to get stored in /cores
@@ -243,7 +243,7 @@ jobs:
       uses: CodSpeedHQ/action@v4
       with:
         mode: instrumentation
-        run: ulimit -c unlimited && cd benchmarks && make bench
+        run: cd benchmarks && make bench
   
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -291,7 +291,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ failure() }}
       with:
-        name: cores
+        name: cores-${{ env.BUILD_CONFIG }}
         path: /cores      
 
   distcheck:
