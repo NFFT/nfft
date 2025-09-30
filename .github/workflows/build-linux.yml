@@ -186,7 +186,24 @@ jobs:
       run: make -j
     
     - name: Test
+      id: test
       run: make check
+
+    - name: Run tests again to reproduce failure
+      if: steps.test.outcome == 'failure'
+      run: |
+        tests/checkall > checkall.log
+        if [ "${{ matrix.openmp }}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
+
+    - name: Upload test failure logs
+      if: steps.test.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-failure-logs-${{ env.BUILD_CONFIG }}
+        path: |
+          checkall.log
+          checkall_threads.log
+        if-no-files-found: ignore
 
     - name: Convert CUnit test report to JUnit
       run: |
