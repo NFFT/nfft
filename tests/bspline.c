@@ -6355,7 +6355,7 @@ static int check_bspline(const unsigned n, const unsigned int m, const R *r)
     err = FMAX(err, ERR(y, yr));
   }
   ok = IF(err < bound, 1, 0);
-  fprintf(stderr, "b%02d: err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", n, err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
+  printf("b%02d: err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", n, err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
   return ok;
 }
 

@@ -168,7 +168,7 @@ void X(check_bessel_i0)(void)
     R yr = r[j];
     err = ERR(y,yr);
     ok = IF(err < bound, 1, 0);
-    fprintf(stderr, "i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", x, y,
+    printf("i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", x, y,
       err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
   }
