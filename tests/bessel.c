@@ -134,12 +134,22 @@ static const R r[] =
 
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
-#if defined(NFFT_LDOUBLE)
-static const R bound_multiplier = K(58.0);
-#elif defined(NFFT_SINGLE)
-static const R bound_multiplier = K(24.0);
+// TODO: Set good values for IEEE 754 quadruple precision, 128 bits.
+#if MANT_DIG == 113
+  static const R bound_multiplier = K(58.0);
+#elif MANT_DIG == 64
+  // Intel double extended, 80 bits.
+  static const R bound_multiplier = K(58.0);
+#elif MANT_DIG == 53
+  // IEEE 754 double precision, 64 bits.
+  static const R bound_multiplier = K(4.0);
+#elif MANT_DIG == 24
+  // IEEE 754 single precision, 32 bits.
+  static const R bound_multiplier = K(24.0);
 #else
-static const R bound_multiplier = K(4.0);
+  // Unknown floating-point type.
+  // Assume IEEE 754 double precision, 64 bits.
+  static const R bound_multiplier = K(4.0);
 #endif
 
 void X(check_bessel_i0)(void)
@@ -158,7 +168,7 @@ void X(check_bessel_i0)(void)
     R yr = r[j];
     err = ERR(y,yr);
     ok = IF(err < bound, 1, 0);
-    fprintf(stderr, "i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", x, y,
+    printf("i0[" __FE__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n", x, y,
       err, IF(ok == 0, ">=", "<"), bound , IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
   }

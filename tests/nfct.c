@@ -31,6 +31,8 @@
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
+#define SEED 1234567890L
+
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
@@ -225,59 +227,104 @@ static R err_trafo(X(plan) *p)
   for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
     s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
-#if defined(NFFT_LDOUBLE)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(3.0);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(9500.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(3.0);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.9);
     b = K(50.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(9500.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.9);
+    b = K(50.0);
+  #endif
     err = EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*K(2.0) - K(1.0))));
 #elif defined(B_SPLINE)
-    //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
-    //printf("\n<s = %E>\n", s);
-    //fflush(stdout);
-#if defined(NFFT_LDOUBLE)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(0.3);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(0.3);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.0);
     b = K(4100.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(4800.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.0);
+    b = K(4100.0);
+  #endif
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
-  #elif defined(SINC_POWER)
-#if defined(NFFT_LDOUBLE)
+#elif defined(SINC_POWER)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(0.3);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(0.3);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.0);
     b = K(4100.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(4800.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.0);
+    b = K(4100.0);
+  #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
-  #elif defined(KAISER_BESSEL)
-#if defined(NFFT_LDOUBLE)
+#elif defined(KAISER_BESSEL)
+  #if MANT_DIG == 113
+    // TODO: Set good values for IEEE 754 quadruple precision, 128 bits.
     a = K(2.9);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.95);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(2.9);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(0.3);
     b = K(5050.0);
-#endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.95);
+    b = K(4800.0);
   #else
-    #error Unsupported window function.
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(0.3);
+    b = K(5050.0);
   #endif
+    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+#else
+  #error Unsupported window function.
+#endif
 
   return FMAX(FMAX(a * err, b * eps), err_trafo_direct(p));
 }
@@ -456,6 +503,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
 
+  Y(srand48)(SEED);
+
   /* Dimensions. */
   *d = ego->d;
   /* Bandwidths. */
@@ -536,6 +585,8 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
+
+  Y(srand48)(SEED);
 
   /* Dimensions. */
   *d = ego->d;

@@ -14,8 +14,7 @@ else
 endif
 
 libnfsftjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la $(libadd_for_fftw_threads) @fftw3_LIBS@
-
-libnfsftjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
+libnfsftjulia_la_LDFLAGS = -no-undefined -shared -avoid-version @fftw3_LDFLAGS@
 
 EXTRA_DIST = NFSFT.jl simple_test.jl
 

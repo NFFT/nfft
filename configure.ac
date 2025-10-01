@@ -327,6 +327,27 @@ AC_C_INLINE
 # reset CC variable (the C99 option is added back below)
 CC="$ac_save_CC"
 
+# Determine mantissa width for selected floating-point type.
+AC_MSG_CHECKING([Mantissa width of floating-point type])
+
+# Extract MANT_DIG value
+AC_COMPUTE_INT([nfft_mant_dig], [MANT_DIG], [
+#include <float.h>
+#if defined(NFFT_LDOUBLE)
+  #define MANT_DIG LDBL_MANT_DIG
+#elif defined(NFFT_SINGLE)
+  #define MANT_DIG FLT_MANT_DIG
+#else
+  #define MANT_DIG DBL_MANT_DIG
+#endif
+], [AC_MSG_ERROR([Cannot determine MANT_DIG])])
+
+AC_MSG_RESULT([$nfft_mant_dig bits])
+
+if test "x$nfft_mant_dig" != "x113" -a "x$nfft_mant_dig" != "x64" -a "x$nfft_mant_dig" != "x53" -a "x$nfft_mant_dig" != "x24"; then
+  AC_MSG_WARN([Unknown floating-point type with unexpected mantissa width! Assuming IEEE 754 double precision which may lead to incorrect results.])
+fi
+
 ################################################################################
 # C++ compiler characteristis
 ################################################################################
