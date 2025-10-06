@@ -71,8 +71,9 @@ jobs:
     #     Write-Output "MAKE=mingw32-make" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install dependencies
+      shell: C:\msys64\usr\bin\bash.exe
       run: |
-        msys2bash.cmd -c "pacman --sync --noconfirm --needed mingw-w64-x86_64-fftw"
+        pacman --sync --noconfirm --needed mingw-w64-x86_64-fftw
   
     # - name: Bootstrap
     #   shell: cmd
