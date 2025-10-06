@@ -71,7 +71,7 @@ jobs:
     #     Write-Output "MAKE=mingw32-make" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install dependencies
-      shell: C:\msys64\usr\bin\bash.exe
+      shell: C:\msys64\usr\bin\bash.exe {0}
       run: |
         pacman --sync --noconfirm --needed mingw-w64-x86_64-fftw
   
