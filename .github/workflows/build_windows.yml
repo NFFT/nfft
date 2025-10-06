@@ -1,0 +1,142 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          # Windows with GCC
+          - compiler: gcc
+            window: kaiserbessel
+            precision: ""
+            build_julia: 1
+          
+          # Windows with Clang
+          - compiler: clang
+            window: kaiserbessel
+            precision: ""
+            build_julia: 1
+
+    steps:
+    - uses: actions/checkout@v5
+      # with:
+      #   autocrlf: input
+      #   symlinks: true
+    
+    # - name: Cache MSYS2 and Chocolatey
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: |
+    #       ~/AppData/Local/Temp/chocolatey
+    #       C:/tools/msys64
+    #     key: ${{ runner.os }}-msys2-${{ hashFiles('**/packages.txt') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-msys2-
+    
+    # - name: Setup MSYS2
+    #   run: |
+    #     if (!(Test-Path "C:/tools/msys64/msys2_shell.cmd")) {
+    #       Remove-Item -Recurse -Force "C:/tools/msys64" -ErrorAction SilentlyContinue
+    #     }
+    #     choco uninstall -y mingw
+    #     choco upgrade --no-progress -y msys2 julia
+        
+    #     $msys2 = "cmd /C RefreshEnv.cmd "
+    #     $msys2 += "& set MSYS=winsymlinks:nativestrict "
+    #     $msys2 += "& C:\tools\msys64\msys2_shell.cmd -defterm -no-start"
+        
+    #     Write-Output "msys2=$msys2" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        
+    #     # Install base packages
+    #     & $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-fftw mingw-w64-x86_64-cunit autoconf perl libtool automake make
+        
+    #     if ("${{ matrix.compiler }}" -eq "clang") {
+    #       & $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-clang mingw-w64-x86_64-openmp
+    #       Write-Output "OPENMP_CFLAGS=-fopenmp=libomp" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    #       Write-Output "LDFLAGS=-lomp" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    #     }
+        
+    #     # Kill gpg-agent to prevent issues
+    #     taskkill //IM gpg-agent.exe //F
+        
+    #     Write-Output "PATH=C:/tools/msys64/mingw64/bin;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+    #     Write-Output "MAKE=mingw32-make" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Install dependencies
+      run: |
+        msys2bash.cmd -c "pacman --sync --noconfirm --needed mingw-w64-x86_64-fftw"
+  
+    # - name: Bootstrap
+    #   shell: cmd
+    #   run: |
+    #     set MSYSTEM=MINGW64
+    #     set PATH=C:\tools\msys64\mingw64\bin;%PATH%
+    #     bash -lc "cd /c/Users/%USERNAME%/work/%REPOSITORY_NAME%/%REPOSITORY_NAME% && ./bootstrap.sh"
+    #   env:
+    #     MSYSTEM: MINGW64
+    
+    # - name: Configure
+    #   shell: cmd
+    #   run: |
+    #     set MSYSTEM=MINGW64
+    #     set PATH=C:\tools\msys64\mingw64\bin;%PATH%
+    #     bash -lc "cd /c/Users/%USERNAME%/work/%REPOSITORY_NAME%/%REPOSITORY_NAME% && ./configure --with-window=${{ matrix.window }} ${{ matrix.precision }} --enable-all --enable-openmp --enable-julia"
+    #   env:
+    #     MSYSTEM: MINGW64
+    
+    # - name: Build
+    #   shell: cmd
+    #   run: |
+    #     set MSYSTEM=MINGW64
+    #     set PATH=C:\tools\msys64\mingw64\bin;%PATH%
+    #     bash -lc "cd /c/Users/%USERNAME%/work/%REPOSITORY_NAME%/%REPOSITORY_NAME% && make"
+    #   env:
+    #     MSYSTEM: MINGW64
+    
+    # - name: Test
+    #   shell: cmd
+    #   run: |
+    #     set MSYSTEM=MINGW64
+    #     set PATH=C:\tools\msys64\mingw64\bin;%PATH%
+    #     bash -lc "cd /c/Users/%USERNAME%/work/%REPOSITORY_NAME%/%REPOSITORY_NAME% && make check"
+    #   env:
+    #     MSYSTEM: MINGW64
+    
+    # - name: Test Julia
+    #   if: matrix.build_julia == '1'
+    #   shell: cmd
+    #   run: |
+    #     set MSYSTEM=MINGW64
+    #     set PATH=C:\tools\msys64\mingw64\bin;%PATH%
+    #     bash -lc "cd /c/Users/%USERNAME%/work/%REPOSITORY_NAME%/%REPOSITORY_NAME% && for DIR in julia/nf*t julia/fastsum; do cd $DIR; for NAME in simple_test*.jl; do julia \"$NAME\"; done; cd ../..; done"
+    #   env:
+    #     MSYSTEM: MINGW64
+    
+    # - name: Upload logs on failure
+    #   if: failure()
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: config-logs-windows-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision }}
+    #     path: |
+    #       config.log
+    #       tests/test-suite.log
+    #       matlab/tests/test-suite.log
+    
+    # - name: Cleanup MSYS2
+    #   if: always()
+    #   shell: cmd
+    #   run: |
+    #     $msys2 = "cmd /C RefreshEnv.cmd "
+    #     $msys2 += "& set MSYS=winsymlinks:nativestrict "
+    #     $msys2 += "& C:\tools\msys64\msys2_shell.cmd -defterm -no-start"
+    #     & $msys2 pacman --sync --clean --noconfirm
+    #     Remove-Item -Force "C:\tools\msys64\update.log" -ErrorAction SilentlyContinue
+    #     Remove-Item -Recurse -Force "C:\tools\msys64\var\log" -ErrorAction SilentlyContinue
