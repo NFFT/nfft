@@ -179,7 +179,7 @@ jobs:
 
     - name: Upload test failure logs
       if: steps.test.outcome == 'failure'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: test-failure-logs-${{ env.BUILD_CONFIG }}
         path: |
