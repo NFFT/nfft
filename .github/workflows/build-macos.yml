@@ -7,6 +7,13 @@ on:
     branches: [ main, develop, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-macos
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -66,9 +73,11 @@ jobs:
             build_octave: 0
             build_julia: 1
     steps:    
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      with:
+        persist-credentials: false
 
-    - uses: gerlero/brew-install@v1
+    - uses: gerlero/brew-install@5e2f576b2a0ede9d50a5b08c0099c70fdda0b0b9 # v1
       with:
         cache: true
         packages: |
@@ -83,10 +92,10 @@ jobs:
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
-      uses: julia-actions/setup-julia@v2
+      uses: julia-actions/setup-julia@5c9647d97b78a5debe5164e9eec09d653d29bd71 # v2
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@v7
+      uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7
       with:
         enable-cache: true
 
@@ -94,24 +103,27 @@ jobs:
       run: uv python install 3.13
       
     - name: Set up compiler
+      shell: bash
+      env:
+        COMPILER: ${{ matrix.compiler }}
       run: |
-        if [ "${{ matrix.compiler }}" = "clang" ]; then
-          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+        if [ "${COMPILER}" = "clang" ]; then
+          echo "CC=${COMPILER}" >> $GITHUB_ENV
           echo "CXX=clang++" >> $GITHUB_ENV
-        elif [ "${{ matrix.compiler }}" = "gcc" ]; then
-          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
+        elif [ "${COMPILER}" = "gcc" ]; then
+          echo "CC=${COMPILER}" >> $GITHUB_ENV
           echo "CXX=g++" >> $GITHUB_ENV
-        elif [ "${{ matrix.compiler }}" = "clang-homebrew" ]; then
+        elif [ "${COMPILER}" = "clang-homebrew" ]; then
           echo "CC=/opt/homebrew/opt/llvm/bin/clang" >> $GITHUB_ENV
           echo "CXX=/opt/homebrew/opt/llvm/bin/clang++" >> $GITHUB_ENV
           echo "LDFLAGS=-L/opt/homebrew/opt/llvm/lib $LDFLAGS" >> $GITHUB_ENV
           echo "CPPFLAGS=-I/opt/homebrew/opt/llvm/include $CPPFLAGS" >> $GITHUB_ENV          
-        elif echo "${{ matrix.compiler }}" | grep -qE '^gcc-[0-9]+$'; then
-          echo "CC=${{ matrix.compiler }}" >> $GITHUB_ENV
-          GCC_VERSION=$(echo "${{ matrix.compiler }}" | sed 's/gcc-//')
+        elif echo "${COMPILER}" | grep -qE '^gcc-[0-9]+$'; then
+          echo "CC=${COMPILER}" >> $GITHUB_ENV
+          GCC_VERSION=$(echo "${COMPILER}" | sed 's/gcc-//')
           echo "CXX=g++-${GCC_VERSION}" >> $GITHUB_ENV
         else
-          echo "Error: Unknown compiler '${{ matrix.compiler }}'. Supported compilers are: gcc, clang, gcc-snapshot, gcc-<version>" >&2
+          echo "Error: Unknown compiler '${COMPILER}'. Supported compilers are: gcc, clang, gcc-snapshot, gcc-<version>" >&2
           exit 1
         fi
 
@@ -124,8 +136,9 @@ jobs:
 
     # - name: Checkout CodSpeed integration library
     #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
-    #   uses: actions/checkout@v5
+    #   uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
     #   with:
+    #     persist-credentials: false
     #     repository: CodSpeedHQ/codspeed-cpp
     #     path: codspeed-cpp
     #     submodules: recursive
@@ -152,16 +165,23 @@ jobs:
       run: ./bootstrap.sh
     
     - name: Configure
+      shell: bash
+      env:
+        WINDOW: ${{ matrix.window }}
+        OPENMP: ${{ matrix.openmp }}
+        PRECISION_OPT: ${{ matrix.precision_opt }}
+        BUILD_OCTAVE: ${{ matrix.build_octave }}
+        BUILD_JULIA: ${{ matrix.build_julia }}
       run: |
         AGNOSTIC_FLAGS=""
-        [ "${{ matrix.window }}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
-        [ "${{ matrix.openmp }}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
-        [ "${{ matrix.precision_opt }}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-        ./configure --with-window=${{ matrix.window }} ${{ matrix.precision_opt }} --enable-all --enable-exhaustive-unit-tests \
-        $(if [ "${{ matrix.openmp }}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
-        $(if [ "${{ matrix.build_octave }}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
-        $(if [ "${{ matrix.build_julia }}" = "1" ] && [ "${{ matrix.precision_opt }}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
-      # --enable-benchmarks --with-benchmarks-prefix=${{ env.BUILD_CONFIG }}/ --with-codspeed=$(pwd)/codspeed-cpp \
+        [ "${WINDOW}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
+        [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
+        [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
+        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests \
+        $(if [ "${OPENMP}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
+        $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
+        $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
+      # --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG}/ --with-codspeed=$(pwd)/codspeed-cpp \
       # --with-agnostic-benchmarks="$AGNOSTIC_FLAGS" \
 
     - name: Build
@@ -173,15 +193,18 @@ jobs:
 
     - name: Run tests again to reproduce failure
       if: steps.test.outcome == 'failure'
+      shell: bash
+      env:
+        OPENMP: ${{ matrix.openmp }}
       run: |
         tests/checkall > checkall.log
-        if [ "${{ matrix.openmp }}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
+        if [ "${OPENMP}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
 
     - name: Upload test failure logs
       if: steps.test.outcome == 'failure'
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
       with:
-        name: test-failure-logs-${{ env.BUILD_CONFIG }}
+        name: test-failure-logs-${BUILD_CONFIG}
         path: |
           checkall.log
           checkall_threads.log
@@ -220,7 +243,7 @@ jobs:
         done
 
     - name: Publish Test Report
-      uses: ctrf-io/github-test-reporter@v1
+      uses: ctrf-io/github-test-reporter@024bc4b64d997ca9da86833c6b9548c55c620e40 # v1
       with:
         report-path: './tests/junit.xml'
         integrations-config: |
@@ -247,9 +270,11 @@ jobs:
       CPPFLAGS: "-I/opt/homebrew/include"
       LDFLAGS: "-L/opt/homebrew/lib"
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      with:
+        persist-credentials: false
 
-    - uses: gerlero/brew-install@v1
+    - uses: gerlero/brew-install@5e2f576b2a0ede9d50a5b08c0099c70fdda0b0b9 # v1
       with:
         cache: true
         packages: |
