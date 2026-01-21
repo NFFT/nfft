@@ -210,7 +210,7 @@ jobs:
 
     - name: Upload test failure logs
       if: failure() && steps.test.conclusion == 'failure'
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: test-failure-logs-${{ env.BUILD_CONFIG }}
         path: |
@@ -287,7 +287,7 @@ jobs:
 
     - name: Upload core dumps
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coredumps-${{ github.run_id }}
         path: /cores/
