@@ -254,7 +254,7 @@ jobs:
       if: failure()
       run: |
         # Extract binary paths from core dumps and copy them
-        for corefile in cores/*.*.*; do
+        for corefile in /cores/*.*.*; do
           if [ -f "$corefile" ]; then
             echo "Processing $corefile"
             
