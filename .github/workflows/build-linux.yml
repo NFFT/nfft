@@ -7,6 +7,9 @@ on:
     branches: [ main, develop, master ]
   workflow_dispatch:
 
+env:
+  CODSPEED_VERSION: v1.3.0
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -118,14 +121,14 @@ jobs:
       id: cache-codspeed
       with:
         path: codspeed-cpp
-        key: codspeed-cpp-${{ matrix.os }}
+        key: codspeed-cpp-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}
 
     - name: Checkout CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
       uses: actions/checkout@v5
       with:
         repository: CodSpeedHQ/codspeed-cpp
-        ref: "v1.3.0"
+        ref: "${{ env.CODSPEED_VERSION }}"
         path: codspeed-cpp
         submodules: recursive
 
