@@ -208,7 +208,7 @@ jobs:
         [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
         [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
         ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests \
-        --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG }/ --with-codspeed=$(pwd)/codspeed-cpp \
+        --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG}/ --with-codspeed=$(pwd)/codspeed-cpp \
         --with-agnostic-benchmarks="$AGNOSTIC_FLAGS" \
         $(if [ "${OPENMP}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
