@@ -203,13 +203,13 @@ jobs:
       run: make check
 
     - name: Run tests again to reproduce failure
-      if: steps.test.outcome == 'failure'
+      if: failure() && steps.test.conclusion == 'failure'
       run: |
         tests/checkall > checkall.log
         if [ "${{ matrix.openmp }}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
 
     - name: Upload test failure logs
-      if: steps.test.outcome == 'failure'
+      if: failure() && steps.test.conclusion == 'failure'
       uses: actions/upload-artifact@v5
       with:
         name: test-failure-logs-${{ env.BUILD_CONFIG }}
@@ -283,7 +283,7 @@ jobs:
           fi
         done
         
-        ls -lah cores/
+        ls -lah /cores/
 
     - name: Upload core dumps
       if: failure()
