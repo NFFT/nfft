@@ -67,6 +67,13 @@ jobs:
     steps:    
     - uses: actions/checkout@v5
 
+    - name: Enable core dumps
+      run: |
+        ulimit -c unlimited
+        mkdir -p coredumps
+        sudo sysctl -w kernel.core_pattern="$(pwd)/coredumps/core.%e.%p"
+        echo "Core dumps will be written to: $(pwd)/coredumps/"
+
     - name: Disable initramfs update
       run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
 
@@ -240,6 +247,24 @@ jobs:
           done
           cd ../..
         done
+
+    - name: Collect core dumps
+      if: failure()
+      run: |
+        echo "Looking for core dumps..."
+        find . -name "core*" -type f -ls
+        # Move any core files to coredumps directory
+        find . -name "core*" -type f -exec mv {} coredumps/ \; 2>/dev/null || true
+        ls -lah coredumps/
+
+    - name: Upload core dumps
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coredumps-${{ github.run_id }}
+        path: coredumps/
+        if-no-files-found: warn
+        retention-days: 7
 
     - name: Publish Test Report
       uses: ctrf-io/github-test-reporter@v1
