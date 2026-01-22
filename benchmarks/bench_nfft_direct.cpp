@@ -148,7 +148,7 @@ BENCH(nfft_forward_direct_1d)
     ->Args({64, 200})
     ->Args({128, 400})
     ->Args({256, 800})
-    ->Args({512, 1600})
+    //->Args({512, 1600})
     ->Complexity();
 
 BENCH(nfft_adjoint_direct_1d)
@@ -156,31 +156,31 @@ BENCH(nfft_adjoint_direct_1d)
     ->Args({64, 200})
     ->Args({128, 400})
     ->Args({256, 800})
-    ->Args({512, 1600})
+    //->Args({512, 1600})
     ->Complexity();
 
 BENCH(nfft_forward_direct_2d)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
-    ->Args({64, 64, 2000})
+    //->Args({64, 64, 2000})
     ->Complexity();
 
 BENCH(nfft_adjoint_direct_2d)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
-    ->Args({64, 64, 2000})
+    //->Args({64, 64, 2000})
     ->Complexity();
 
 BENCH(nfft_forward_direct_3d)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
-    ->Args({16, 16, 16, 1000})
+    //->Args({16, 16, 16, 1000})
     ->Complexity();
 
 BENCH(nfft_adjoint_direct_3d)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
-    ->Args({16, 16, 16, 1000})
+    //->Args({16, 16, 16, 1000})
     ->Complexity();
 
 // Main function.

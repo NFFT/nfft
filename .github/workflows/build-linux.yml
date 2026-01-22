@@ -9,7 +9,7 @@ on:
 
 env:
   CODSPEED_VERSION: v2.1.0
-  CODESPEED_MODE: walltime
+  CODESPEED_MODE: simulation
 
 jobs:
   build:
