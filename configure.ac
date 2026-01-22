@@ -19,8 +19,8 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [5])
-m4_define([nfft_version_patch], [4])
+m4_define([nfft_version_minor], [6])
+m4_define([nfft_version_patch], [0])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
