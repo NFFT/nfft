@@ -232,7 +232,7 @@ jobs:
 
     - name: Upload test failure logs
       if: failure() && steps.test.conclusion == 'failure'
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: test-failure-logs-${BUILD_CONFIG}
         path: |
@@ -318,7 +318,7 @@ jobs:
 
     - name: Upload core dumps
       if: failure()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: coredumps-${{ github.run_id }}
         path: /cores/

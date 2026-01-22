@@ -305,7 +305,7 @@ static R err_trafo(X(plan) *p)
     b = K(50.0);
   #elif MANT_DIG == 64
     // Intel double extended, 80 bits.
-    a = K(2.9);
+    a = K(3.0);
     b = K(50.0);
   #elif MANT_DIG == 53
     // IEEE 754 double precision, 64 bits.
