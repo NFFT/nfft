@@ -248,7 +248,16 @@ jobs:
       uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4
       with:
         mode: instrumentation
-        run: cd benchmarks && make bench
+        run: |
+          cd benchmarks
+          max_attempts=3
+          attempt=1
+          until [ $attempt -gt $max_attempts ]
+          do
+              make bench && break
+              attempt=$((attempt + 1))
+              sleep 5
+          done
   
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
