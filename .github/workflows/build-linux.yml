@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 env:
-  CODSPEED_VERSION: v2.1.0
-  CODESPEED_MODE: simulation
+  CODSPEED_VERSION: v1.3.0
+  CODESPEED_MODE: walltime
 
 jobs:
   build:

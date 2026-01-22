@@ -49,7 +49,7 @@ AC_DEFUN([NFFT_LIB_CODSPEED],
     nfft_codspeed_LDFLAGS=""
   fi
 
-  nfft_codspeed_CPPFLAGS="-DBENCHMARK_STATIC_DEFINE -DCODSPEED_ENABLED -DCODSPEED_INSTRUMENTATION $nfft_codspeed_CPPFLAGS"
+  nfft_codspeed_CPPFLAGS="-DBENCHMARK_STATIC_DEFINE -DCODSPEED_ENABLED -DCODSPEED_WALLTIME $nfft_codspeed_CPPFLAGS"
   nfft_codspeed_CXXFLAGS=""
   nfft_codspeed_LDFLAGS="$nfft_codspeed_LDFLAGS"
   nfft_codspeed_LIBS="-lbenchmark -lcodspeed -linstrument_hooks"
