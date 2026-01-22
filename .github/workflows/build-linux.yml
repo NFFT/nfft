@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 env:
-  CODSPEED_VERSION: v1.3.0
+  CODSPEED_VERSION: v2.1.0
+  CODESPEED_MODE: walltime
 
 jobs:
   build:
@@ -130,7 +131,7 @@ jobs:
       id: cache-codspeed
       with:
         path: codspeed-cpp
-        key: codspeed-cpp-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}
+        key: codspeed-cpp-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}-${{ env.CODESPEED_MODE }}
 
     - name: Checkout CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
@@ -143,9 +144,10 @@ jobs:
 
     - name: Configure CMake for CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
+      shell: bash
       run: |
         cd codspeed-cpp/google_benchmark
-        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=walltime -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=${CODESPEED_MODE} -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
 
     - name: Build CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
@@ -225,7 +227,7 @@ jobs:
     - name: Benchmarks
       uses: CodSpeedHQ/action@v4
       with:
-        mode: walltime
+        mode: ${{ env.CODESPEED_MODE }}
         run: cd benchmarks && make bench
   
     - name: Test Julia
