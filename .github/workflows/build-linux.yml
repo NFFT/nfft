@@ -145,7 +145,7 @@ jobs:
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
       run: |
         cd codspeed-cpp/google_benchmark
-        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=wallclock -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=walltime -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
 
     - name: Build CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
@@ -225,7 +225,7 @@ jobs:
     - name: Benchmarks
       uses: CodSpeedHQ/action@v4
       with:
-        mode: wallclock
+        mode: walltime
         run: cd benchmarks && make bench
   
     - name: Test Julia
