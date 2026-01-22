@@ -5,19 +5,23 @@ on:
     branches:
       - develop
 
+permissions:
+  contents: read
+
+concurrency:
+  group: release-drafter
+  cancel-in-progress: false
+
 jobs:
-  draft-release:
+  draft-release-publish:
     name: Draft a new release
     permissions:
-      # Write permissions are required to create a GitHub release.
-      contents: write
-      # Write permissions are required for autolabeler
-      # otherwise, read permissions are required, at least.
-      pull-requests: read
+      contents: write  # Required to create GitHub release.
+      pull-requests: read  # Required to read PR contents.
     runs-on: ubuntu-latest
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "develop"
-      - uses: release-drafter/release-drafter@v6
+      - uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6
         with:
           config-name: release-drafter-config.yml
         env:
