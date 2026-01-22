@@ -80,6 +80,7 @@ AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
 SHARED_VERSION_INFO="4:3:0"
+# NFFT 3.6.0 was 4:3:0 (No API changes)
 # NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
 # NFFT 3.5.2 was 4:2:0
 # NFFT 3.5.2 was 4:1:0
