@@ -73,7 +73,7 @@ jobs:
             build_octave: 0
             build_julia: 1
     steps:    
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         persist-credentials: false
 
@@ -136,7 +136,7 @@ jobs:
 
     # - name: Checkout CodSpeed integration library
     #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
-    #   uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    #   uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     #   with:
     #     persist-credentials: false
     #     repository: CodSpeedHQ/codspeed-cpp
@@ -270,7 +270,7 @@ jobs:
       CPPFLAGS: "-I/opt/homebrew/include"
       LDFLAGS: "-L/opt/homebrew/lib"
     steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         persist-credentials: false
 
