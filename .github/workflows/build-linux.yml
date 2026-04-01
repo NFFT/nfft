@@ -120,7 +120,7 @@ jobs:
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
-      uses: julia-actions/setup-julia@5c9647d97b78a5debe5164e9eec09d653d29bd71 # v2
+      uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
       with:
         version: '1'
         show-versioninfo: false
