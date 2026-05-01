@@ -24,7 +24,7 @@ set -ex
 
 # default values (to be overwritten if respective parameters are set)
 FFTWVERSION=3.3.10
-OCTAVEVERSION=6.4.0
+OCTAVEVERSION=11.1.0
 MATLABVERSION=""
 ARCH=64
 GCCARCH=""
@@ -153,23 +153,25 @@ if [ -f "$OCTAVEDIR"/mingw$ARCH/bin/octave-cli.exe ]; then
   OCTAVEDIR="$OCTAVEDIR"/mingw$ARCH
 fi
 # remove files that prevent compilation
-OCTLIBDIR="$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION"
-rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la
+for OCTLIBDIR in "$OCTAVEDIR/lib/octave/$OCTAVEVERSION" "$OCTAVEDIR/mingw64/lib/octave/$OCTAVEVERSION"
+do
+  rm -f "$OCTLIBDIR"/liboctave.la "$OCTLIBDIR"/liboctinterp.la "$OCTLIBDIR"/liboctmex.la
+done
 
 # Get Julia
 if [ ! -f julia/bin/julia.exe ]; then
   rm -f -r julia
   mkdir julia
   cd julia
-  wget https://julialang-s3.julialang.org/bin/winnt/x$ARCH/1.3/julia-1.3.1-win$ARCH.exe
-  7z x julia-*.exe
-  7z x julia-installer.exe
-  rm julia-*.exe
+  wget https://julialang-s3.julialang.org/bin/winnt/x$ARCH/1.12/julia-1.12.5-win$ARCH.zip
+  7z x julia-*.zip
+  rm julia-*.zip
+  mv julia-*/ julia/
 fi
 
 # Build NFFT
 READMECONTENT="
-$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
+$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README.md) 
 "
 FFTWREADME='
 FFTW

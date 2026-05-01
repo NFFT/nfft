@@ -21,6 +21,11 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#ifdef OCTAVE_LIBOCTMEX_MAJOR_VERSION
+const int __octave_mex_soversion__ = OCTAVE_LIBOCTMEX_MAJOR_VERSION;
+#endif
+
+
 /** Replacement for fftw_malloc in mex files */
 void *nfft_mex_malloc(size_t n)
 {

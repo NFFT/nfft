@@ -452,6 +452,10 @@ AC_DEFUN([AX_PROG_MATLAB],
       octave_liboctinterp=`${OCTAVE_MKOCTFILE} --print LIBOCTINTERP`
       AC_MSG_RESULT([${octave_liboctinterp}])
 
+      AC_MSG_CHECKING([Octave libmex flag])
+      octave_liboctmex=`${OCTAVE_MKOCTFILE} --print LIBOCTMEX`
+      AC_MSG_RESULT([${octave_liboctmex}])
+
       matlab_LIBS=""
 
       if test [ -n "${octave_liboctave}"]; then
@@ -464,7 +468,45 @@ AC_DEFUN([AX_PROG_MATLAB],
           ],[AC_MSG_ERROR([no])])
       fi
 
-      if test [ -n "${octave_liboctinterp}"]; then
+      octave_liboctmex_ok="no"
+
+      if test [ -n "${octave_liboctmex}"] ; then
+        LDFLAGS="${saved_LDFLAGS} ${matlab_LDFLAGS}"
+        LIBS="${saved_LIBS} ${octave_liboctmex} ${matlab_LIBS}"
+        AC_MSG_CHECKING([for usable ${octave_liboctmex}])
+        AC_LINK_IFELSE([AC_LANG_CALL([], [mexCallMATLAB])], [
+          AC_MSG_RESULT([yes])
+          matlab_LIBS="${octave_liboctmex} ${matlab_LIBS}"
+          octave_liboctmex_ok="yes"
+
+          # Detect major soversion of liboctmex
+          AC_MSG_CHECKING([for liboctmex major soversion])
+          octave_liboctmex_major="unknown"
+          octave_bin_dir=`AS_DIRNAME(["$octave_cli"])`
+          for liboctmex_file in ${octave_lib_dir}/liboctmex.so.* ${octave_lib_dir}/liboctmex.*.dylib ${octave_lib_dir}/liboctmex*.dll ${octave_bin_dir}/liboctmex*.dll; do
+            if test -f "$liboctmex_file"; then
+              liboctmex_basename=`basename "$liboctmex_file"`
+              # Extract major version from filenames like liboctmex.so.8, liboctmex.8.dylib, or liboctmex-8.dll
+              if echo "$liboctmex_basename" | grep -q "\.so\."; then
+                octave_liboctmex_major=`echo "$liboctmex_basename" | sed 's/.*\.so\.\([[0-9]]*\).*/\1/'`
+              elif echo "$liboctmex_basename" | grep -q "\.dylib"; then
+                octave_liboctmex_major=`echo "$liboctmex_basename" | sed 's/liboctmex\.\([[0-9]]*\)\.dylib/\1/'`
+              elif echo "$liboctmex_basename" | grep -q "^liboctmex-"; then
+                octave_liboctmex_major=`echo "$liboctmex_basename" | sed 's/liboctmex-\([[0-9]]*\)\.dll/\1/'`
+              fi
+              break
+            fi
+          done
+          AC_MSG_RESULT([${octave_liboctmex_major}])
+          if test "x${octave_liboctmex_major}" != "xunknown"; then
+            AC_DEFINE_UNQUOTED([OCTAVE_LIBOCTMEX_MAJOR_VERSION], [${octave_liboctmex_major}], [Define to the major soversion of liboctmex.])
+          fi
+          ],[
+          AC_MSG_RESULT([no])
+          ])
+      fi
+
+      if test "x${octave_liboctmex_ok}" = "xno" && test [ -n "${octave_liboctinterp}"]; then
         LDFLAGS="${saved_LDFLAGS} ${matlab_LDFLAGS}"
         LIBS="${saved_LIBS} ${octave_liboctinterp} ${matlab_LIBS}"
         AC_MSG_CHECKING([for usable ${octave_liboctinterp}])
