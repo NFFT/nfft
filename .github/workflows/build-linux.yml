@@ -245,7 +245,7 @@ jobs:
         uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
 
     - name: Benchmarks
-      uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4
+      uses: CodSpeedHQ/action@658a901452bb54c799643e060733b7afe9121b8d # v4
       with:
         mode: instrumentation
         run: |
