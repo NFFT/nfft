@@ -45,7 +45,7 @@ jobs:
             compiler: "clang-homebrew"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 1
+            openmp: 0 # TODO: Re-activate openmp.
             build_octave: 0
             build_julia: 1
           # GCC 13
