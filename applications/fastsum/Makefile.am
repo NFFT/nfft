@@ -52,7 +52,7 @@ endif
 if ENABLE_OPENMP
 fastsum_benchomp_SOURCES = fastsum_benchomp.c
 fastsum_benchomp_CFLAGS = $(OPENMP_CFLAGS)
-fastsum_benchomp_LDLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
+fastsum_benchomp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
 fastsum_benchomp_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
 
 fastsum_benchomp_createdataset_SOURCES = fastsum_benchomp_createdataset.c
