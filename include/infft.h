@@ -1354,7 +1354,7 @@ extern double _Complex catanh(double _Complex z);
   #define __FE__ "% 24.20LE"
 #elif MANT_DIG == 53
   // IEEE 754 double precision, 64 bits.
-  #define __FE__ "% 20.16LE"
+  #define __FE__ "% 20.16lE"
 #elif MANT_DIG == 24
   #define __FE__ "% 12.8E"
 #else

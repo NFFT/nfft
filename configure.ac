@@ -19,8 +19,8 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [5])
-m4_define([nfft_version_patch], [4])
+m4_define([nfft_version_minor], [6])
+m4_define([nfft_version_patch], [0])
 m4_define([nfft_version_type], [alpha])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
@@ -80,6 +80,7 @@ AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
 SHARED_VERSION_INFO="4:3:0"
+# NFFT 3.6.0 was 4:3:0 (No API changes)
 # NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
 # NFFT 3.5.2 was 4:2:0
 # NFFT 3.5.2 was 4:1:0

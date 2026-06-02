@@ -40,7 +40,7 @@ checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LI
 
 if ENABLE_OPENMP
 checkall_threads_SOURCES = $(checkall_SOURCES)
-checkall_threads_CPPFLAGS = $(cunit_CPPFLAGS)
+checkall_threads_CPPFLAGS = -I$(top_srcdir)/include $(cunit_CPPFLAGS)
 checkall_threads_CFLAGS = $(OPENMP_CFLAGS)
 checkall_threads_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@  $(OPENMP_LIBS) @cunit_LIBS@
