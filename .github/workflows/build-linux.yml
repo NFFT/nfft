@@ -228,8 +228,8 @@ jobs:
         echo "=========================================="
         echo "Contents of checkall.log:"
         echo "=========================================="
-        if [ -f checkall.log ]; then
-          cat checkall.log
+        if [ -f tests/checkall.log ]; then
+          cat tests/checkall.log
         else
           echo "checkall.log not found"
         fi
@@ -237,8 +237,8 @@ jobs:
         echo "=========================================="
         echo "Contents of checkall_threads.log:"
         echo "=========================================="
-        if [ -f checkall_threads.log ]; then
-          cat checkall_threads.log
+        if [ -f tests/checkall_threads.log ]; then
+          cat tests/checkall_threads.log
         else
           echo "checkall_threads.log not found"
         fi
