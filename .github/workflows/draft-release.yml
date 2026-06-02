@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Drafts your next Release notes as Pull Requests are merged into "develop"
-      - uses: release-drafter/release-drafter@5de93583980a40bd78603b6dfdcda5b4df377b32 # v6
+      - uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v6
         with:
           config-name: release-drafter-config.yml
         env:
