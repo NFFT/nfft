@@ -326,7 +326,7 @@ jobs:
         retention-days: 7
 
     - name: Publish Test Report
-      uses: ctrf-io/github-test-reporter@024bc4b64d997ca9da86833c6b9548c55c620e40 # v1
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
       with:
         report-path: './tests/junit.xml'
         integrations-config: |
