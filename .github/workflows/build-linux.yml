@@ -221,6 +221,28 @@ jobs:
       id: test
       run: make check
 
+    - name: Print checkall.log on test failure
+      if: failure() && steps.test.conclusion == 'failure'
+      shell: bash
+      run: |
+        echo "=========================================="
+        echo "Contents of checkall.log:"
+        echo "=========================================="
+        if [ -f checkall.log ]; then
+          cat checkall.log
+        else
+          echo "checkall.log not found"
+        fi
+        echo ""
+        echo "=========================================="
+        echo "Contents of checkall_threads.log:"
+        echo "=========================================="
+        if [ -f checkall_threads.log ]; then
+          cat checkall_threads.log
+        else
+          echo "checkall_threads.log not found"
+        fi
+
     - name: Run tests again to reproduce failure
       if: failure() && steps.test.conclusion == 'failure'
       shell: bash
