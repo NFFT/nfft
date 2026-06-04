@@ -66,7 +66,7 @@ fastsum_benchomp_detail_single_LDADD = libfastsum.la libkernels.la $(top_builddi
 fastsum_benchomp_detail_threads_SOURCES = fastsum_benchomp_detail.c
 fastsum_benchomp_detail_threads_CFLAGS = $(OPENMP_CFLAGS)
 fastsum_benchomp_detail_threads_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
-fastsum_benchomp_detail_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ 
+fastsum_benchomp_detail_threads_LDADD = libfastsum_threads.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
 endif
 
 EXTRA_DIST = fastsum.m fastsum_test.m README
