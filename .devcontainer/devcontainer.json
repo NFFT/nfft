@@ -2,8 +2,16 @@
     "name": "NFFT Development Container",
     "build": {
         "dockerfile": "Dockerfile",
-        "context": ".."
+        "context": ".",
+        "args": {
+            "TZ": "${localEnv:TZ:Europe/Berlin}",
+            "ZSH_IN_DOCKER_VERSION": "1.2.0"
+        }
     },
+    "runArgs": [
+        "--cap-add=NET_ADMIN",
+        "--cap-add=NET_RAW"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -16,16 +24,38 @@
             "settings": {
                 "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
                 "cmake.configureOnOpen": true,
-                "python.defaultInterpreterPath": "/home/vscode/.local/bin/python"
+                "python.defaultInterpreterPath": "/home/vscode/.local/bin/python",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "bash",
+                        "icon": "terminal-bash"
+                    },
+                    "zsh": {
+                        "path": "zsh"
+                    }
+                }
             }
         }
+    },
+    "mounts": [
+        "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+        "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+    ],
+    "containerEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+        "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
     },
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/github-cli:1": {},
-        "ghcr.io/devcontainers/features/common-utils:2": {}
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0.5": {}
     },
-    "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && rtk init -g && git config --global --add safe.directory ${containerWorkspaceFolder} && sh -c 'touch ~/.gitignore_global && grep -qxF .DS_Store ~/.gitignore_global || printf \"%s\\n\" .DS_Store >> ~/.gitignore_global' && git config --global core.excludesfile ~/.gitignore_global",
+    "waitFor": "postStartCommand",
     "remoteUser": "vscode",
-    "containerUser": "vscode"
+    "containerUser": "vscode",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+    "workspaceFolder": "/workspace"
 }

@@ -161,3 +161,9 @@ windows-build-dll*/*
 linux-build-mex/*
 nfft-*
 .vscode/*
+
+# CMake build tree
+build/
+
+# macOS
+.DS_Store

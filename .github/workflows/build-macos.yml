@@ -147,7 +147,7 @@ jobs:
     #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
     #   run: |
     #     cd codspeed-cpp/google_benchmark
-    #     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=instrumentation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
+    #     cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=simulation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
 
     # - name: Build CodSpeed integration library
     #   if: steps.cache-codspeed.outputs.cache-hit != 'true'
@@ -210,16 +210,120 @@ jobs:
           checkall_threads.log
         if-no-files-found: ignore
 
-    - name: Convert CUnit test report to JUnit
+    - name: Convert CUnit test reports to JUnit
+      if: always()
       run: |
-        uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
+        conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
+        [ -f tests/CUnitAutomated-Results.xml ]         && conv tests/CUnitAutomated-Results.xml         tests/junit.xml         || true
+        [ -f tests/CUnitAutomated_threads-Results.xml ] && conv tests/CUnitAutomated_threads-Results.xml tests/junit_threads.xml || true
 
-    # - name: Benchmarks
-    #   uses: CodSpeedHQ/action@v4
-    #   with:
-    #     mode: instrumentation
-    #     run: cd benchmarks && make bench
-  
+    - name: CMake — clear stale in-source config.h
+      shell: bash
+      run: |
+        if [ -f include/config.h ]; then mv include/config.h include/config.h.autotools.bak; fi
+
+    - name: CMake — configure (no benchmark, OpenMP off, Homebrew FFTW)
+      shell: bash
+      env:
+        PRECISION_OPT: ${{ matrix.precision_opt }}
+        BUILD_JULIA: ${{ matrix.build_julia }}
+      run: |
+        case "${PRECISION_OPT}" in
+          "")                     CMAKE_PREC="" ;;
+          "--enable-float")       CMAKE_PREC="-DNFFT_ENABLE_FLOAT=ON" ;;
+          "--enable-long-double") CMAKE_PREC="-DNFFT_ENABLE_LONG_DOUBLE=ON" ;;
+          *) echo "Unknown PRECISION_OPT '${PRECISION_OPT}'" >&2; exit 1 ;;
+        esac
+        # Julia interface is double-only — mirror the Autotools --enable-julia gating.
+        CMAKE_JULIA=""
+        if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
+          CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
+        fi
+        cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DNFFT_WINDOW=kaiserbessel ${CMAKE_PREC} ${CMAKE_JULIA} \
+          -DNFFT_ENABLE_OPENMP=OFF -DNFFT_ENABLE_BENCHMARKS=OFF \
+          -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
+          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
+          -DFFTW3_ROOT=/opt/homebrew
+        # CC/CXX from the "Set up compiler" step are honored by CMake automatically.
+
+    - name: CMake — build
+      run: cmake --build build-cmake -j
+
+    - name: CMake — assert example/application binaries built
+      shell: bash
+      run: |
+        set -e
+        # Always-precision representatives (present in every cell):
+        for b in examples/nfft/simple_test examples/solver/glacier \
+                 applications/fastgauss/fastgauss applications/fastsum/fastsum_test \
+                 applications/radon/radon; do
+          test -x "build-cmake/$b" || { echo "MISSING: build-cmake/$b" >&2; exit 1; }
+        done
+        # Double-only representatives only in the double cells (precision_opt empty):
+        if [ -z "${{ matrix.precision_opt }}" ]; then
+          for b in examples/nfsft/simple_test applications/quadratureS2/quadratureS2 \
+                   applications/mri/mri2d/construct_data_2d; do
+            test -x "build-cmake/$b" || { echo "MISSING (double): build-cmake/$b" >&2; exit 1; }
+          done
+        fi
+        echo "example/application binaries present"
+
+    - name: CMake — ctest (CUnit suite)
+      shell: bash
+      run: |
+        set -o pipefail
+        ctest --test-dir build-cmake --output-on-failure 2>&1 | tee build-cmake/ctest.log
+
+    - name: CMake — convert CUnit reports to JUnit
+      if: always()
+      shell: bash
+      run: |
+        conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
+        [ -f build-cmake/tests/CUnitAutomated-Results.xml ]         && conv build-cmake/tests/CUnitAutomated-Results.xml         build-cmake/tests/junit.xml         || true
+        [ -f build-cmake/tests/CUnitAutomated_threads-Results.xml ] && conv build-cmake/tests/CUnitAutomated_threads-Results.xml build-cmake/tests/junit_threads.xml || true
+
+    - name: CMake — Publish Test Report (serial)
+      if: ${{ always() && hashFiles('build-cmake/tests/junit.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './build-cmake/tests/junit.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-cmake.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-cmake" }
+              }
+            }
+          }
+
+    - name: CMake — test install
+      shell: bash
+      run: |
+        cmake --install build-cmake --prefix "${{ github.workspace }}/_install_cmake"
+        test -f "${{ github.workspace }}/_install_cmake/include/nfft3.h"
+        SUFFIX=$([ "${{ matrix.precision_opt }}" = "--enable-float" ] && echo f || \
+                 { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
+        ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
+
+    - name: CMake — run-verify Julia staged simple_tests
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      shell: bash
+      run: |
+        set -e
+        ls build-cmake/julia/nfft/libnfftjulia.*
+        echo "macOS CMake julia interface artifact present"
+        for DIR in build-cmake/julia/*/; do
+          for NAME in "$DIR"simple_test*.jl; do
+            [ -e "$NAME" ] || continue
+            echo "== julia $NAME =="
+            ( cd "$DIR" && julia "$(basename "$NAME")" )
+          done
+        done
+
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
       run: |
@@ -261,7 +365,24 @@ jobs:
               }
             }
           }
-      if: always()
+      if: ${{ always() && hashFiles('tests/junit.xml') != '' }}
+
+    - name: Publish Test Report (threads)
+      if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './tests/junit_threads.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-threads.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-threads" }
+              }
+            }
+          }
 
   distcheck:
     runs-on: macos-26
