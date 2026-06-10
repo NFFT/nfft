@@ -1,0 +1,4 @@
+bin/glnxa64/*.so
+bin/glnxa64/*.so.*
+bin/glnxa64/*.dylib
+bin/mexext

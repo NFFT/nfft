@@ -6333,7 +6333,7 @@ static const R b30[] =
   static const R bound_multiplier = K(16.0);
 #elif MANT_DIG == 24
   // IEEE 754 single precision, 32 bits.
-  static const R bound_multiplier = K(20.0);
+  static const R bound_multiplier = K(25.0);
 #else
   // Unknown floating-point type.
   // Assume IEEE 754 double precision, 64 bits.

@@ -1,0 +1,73 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-windows
+  cancel-in-progress: false
+
+jobs:
+  cmake-windows:
+    runs-on: windows-latest
+    # NFFT's C99 native-_Complex code is not compatible with MSVC's C frontend,
+    # so build with the MinGW-w64 (GCC) toolchain NFFT actually supports on
+    # Windows. All run steps use the MSYS2 MINGW64 shell.
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up MSYS2 / MinGW-w64
+        uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c # v2.31.1
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-fftw
+
+      - name: Configure (shared DLL, no OpenMP/benchmarks)
+        # Examples/applications are OFF here: this lane is the documented Windows
+        # scope (core lib + find_package), not the example/app suite. Several
+        # example/app programs use library-INTERNAL infft.h helpers (e.g.
+        # nfft_elapsed_seconds, nfft_vrand_*) that are plain `extern`, not
+        # NFFT_EXTERN/dllexport, so they are absent from libnfft3.dll's export
+        # table and cannot link against a shared DLL on Windows PE (Linux/macOS
+        # export everything by default, so they build there). Tactical fix; a
+        # future effort may move those shared helpers into a separate helper
+        # library so test/example programs can link them on Windows too.
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DNFFT_ENABLE_OPENMP=OFF \
+            -DNFFT_ENABLE_BENCHMARKS=OFF \
+            -DNFFT_ENABLE_EXAMPLES=OFF \
+            -DNFFT_ENABLE_APPLICATIONS=OFF
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Install
+        run: cmake --install build --prefix "$(pwd)/_install"
+
+      - name: Consumer find_package test
+        run: |
+          cmake -S cmake/consumer-tests/find_package -B build-consumer -G Ninja \
+            -DCMAKE_PREFIX_PATH="$(pwd)/_install"
+          cmake --build build-consumer -j
+          # libnfft3 from the staging prefix; libfftw3 is already on the MINGW64 PATH.
+          PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3.exe

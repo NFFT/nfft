@@ -1,0 +1,16 @@
+# NFFT3 C style — approximates CONVENTIONS.md (BSD bracing, 2-space indent).
+# Style rules are documented in CONVENTIONS.md; this enforces the mechanical parts.
+Language:        Cpp
+BasedOnStyle:    LLVM
+IndentWidth:     2
+TabWidth:        2
+UseTab:          Never
+ColumnLimit:     0           # do not reflow existing lines
+BreakBeforeBraces: Allman    # BSD style: braces on their own line
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
+SpaceBeforeParens: ControlStatements
+PointerAlignment: Right
+SortIncludes:    false       # preserve include order (config.h ordering matters)
