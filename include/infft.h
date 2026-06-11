@@ -98,6 +98,26 @@ typedef double _Complex C;
 #endif
 #define X(name) Y(name)
 
+/* Pull in the public API declarations so that NFFT_EXTERN and the public
+   util-API prototypes (next_power_of_2, drand48, vpr_*, etc.) are always in
+   scope at the point where the kernel translation units define them. Several
+   kernel/util/*.c files include only this header, so without this include the
+   __declspec(dllexport) decoration on those prototypes would not be visible
+   while compiling the DLL, and the symbols would be missing from its export
+   table. This mirrors FFTW's kernel/ifftw.h, which sees fftw3.h via api/api.h. */
+#include "nfft3.h"
+
+/* When compiling a DLL on Windows, we must add the dllexport attribute to
+   to internal functions used by test programs. */
+#if defined(NFFT_EXTERN)
+#  define INFFT_EXTERN NFFT_EXTERN
+#elif (defined(NFFT_DLL) || defined(DLL_EXPORT)) \
+       && (defined(_WIN32) || defined(__WIN32__))
+#  define INFFT_EXTERN extern __declspec(dllexport)
+#else
+#  define INFFT_EXTERN extern
+#endif
+
 #define STRINGIZEx(x) #x
 #define STRINGIZE(x) STRINGIZEx(x)
 
@@ -1419,7 +1439,7 @@ extern double _Complex catanh(double _Complex z);
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
-R Y(elapsed_seconds)(ticks t1, ticks t0);
+INFFT_EXTERN R Y(elapsed_seconds)(ticks t1, ticks t0);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1480,21 +1500,21 @@ R Y(lambda)(R z, R eps);
 R Y(lambda2)(R mu, R nu);
 
 /* bessel_i0.c: */
-R Y(bessel_i0)(R x);
+INFFT_EXTERN R Y(bessel_i0)(R x);
 
 /* bspline.c: */
-R Y(bsplines)(const INT, const R x);
+INFFT_EXTERN R Y(bsplines)(const INT, const R x);
 
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9 } float_property;
 
-R Y(float_property)(float_property);
+INFFT_EXTERN R Y(float_property)(float_property);
 R Y(prod_real)(R *vec, INT d);
 
 /* int.c: */
-INT Y(log2i)(const INT m);
+INFFT_EXTERN INT Y(log2i)(const INT m);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
 void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 

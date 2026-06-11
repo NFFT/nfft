@@ -46,6 +46,22 @@ extern "C"
 #  define NFFT_EXTERN extern
 #endif
 
+/* specify calling convention (Windows only) */
+#if defined(_WIN32) || defined(__WIN32__)
+#  define NFFT_CDECL __cdecl
+#else
+#  define NFFT_CDECL
+#endif
+
+/* On Microsoft Visual C++: the DLL export/import machinery above
+ * (NFFT_EXTERN/NFFT_CDECL, the COMPILING_NFFT switch, and the matching plumbing) 
+ * is in place so that NFFT is ready to be built as a native MSVC DLL. However, 
+ * a native MSVC build is currently blocked because our internal complex type is 
+ * the C99 'double _Complex' and MSVC has no usable C99 _Complex. This will not 
+ * compile under cl.exe, even with this machinery present. We maintain the export
+ * discipline so it works the moment the underlying language dependency is 
+ * satisfiable. */
+
 /* Integral type large enough to contain a stride (what ``int'' should have been
  * in the first place) */
 typedef ptrdiff_t NFFT_INT;
@@ -68,9 +84,9 @@ typedef ptrdiff_t NFFT_INT;
 
 #define NFFT_DEFINE_MALLOC_API(X) \
 /* our own memory allocation and exit functions */ \
-NFFT_EXTERN void *X(malloc)(size_t n); \
-NFFT_EXTERN void X(free)(void *p); \
-NFFT_EXTERN void X(die)(const char *s); \
+NFFT_EXTERN void *NFFT_CDECL X(malloc)(size_t n); \
+NFFT_EXTERN void NFFT_CDECL X(free)(void *p); \
+NFFT_EXTERN void NFFT_CDECL X(die)(const char *s); \
 \
 /* You can replace the hooks with your own functions, if necessary. We */ \
 /* need this for the Matlab interface. */ \
@@ -160,31 +176,31 @@ typedef struct\
   NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
 \
-NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
-NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths);\
-NFFT_EXTERN void X(trafo)(X(plan) *ths);\
-NFFT_EXTERN void X(trafo_1d)(X(plan) *ths);\
-NFFT_EXTERN void X(trafo_2d)(X(plan) *ths);\
-NFFT_EXTERN void X(trafo_3d)(X(plan) *ths);\
-NFFT_EXTERN void X(adjoint)(X(plan) *ths);\
-NFFT_EXTERN void X(adjoint_1d)(X(plan) *ths);\
-NFFT_EXTERN void X(adjoint_2d)(X(plan) *ths);\
-NFFT_EXTERN void X(adjoint_3d)(X(plan) *ths);\
-NFFT_EXTERN void X(init_1d)(X(plan) *ths, int N1, int M);\
-NFFT_EXTERN void X(init_2d)(X(plan) *ths, int N1, int N2, int M);\
-NFFT_EXTERN void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
-NFFT_EXTERN void X(init)(X(plan) *ths, int d, int *N, int M);\
-NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(const X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(const X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo_1d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo_2d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo_3d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(adjoint_1d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(adjoint_2d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(adjoint_3d)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(init_1d)(X(plan) *ths, int N1, int M);\
+NFFT_EXTERN void NFFT_CDECL X(init_2d)(X(plan) *ths, int N1, int N2, int M);\
+NFFT_EXTERN void NFFT_CDECL X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *ths, int d, int *N, int M);\
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, unsigned flags, unsigned fftw_flags);\
-NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, int K, unsigned flags, unsigned fftw_flags); \
-NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
-NFFT_EXTERN const char* X(check)(X(plan) *ths);\
-NFFT_EXTERN void X(finalize)(X(plan) *ths);
+NFFT_EXTERN void NFFT_CDECL X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_lin_psi)(X(plan) *ths);\
+NFFT_EXTERN const char* NFFT_CDECL X(check)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *ths);
 
 /* Nfft module API. */
 NFFT_DEFINE_API(NFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
@@ -264,23 +280,23 @@ typedef struct\
   R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined   */\
 } X(plan);\
 \
-NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
-NFFT_EXTERN void X(init_2d)(X(plan) *ths_plan, int N0, int N1, int M_total); \
-NFFT_EXTERN void X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_total); \
-NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
-NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_2d)(X(plan) *ths_plan, int N0, int N1, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
   int m, unsigned flags, unsigned fftw_flags); \
-NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
-NFFT_EXTERN const char* X(check)(X(plan) *ths);\
-NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_lin_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(const X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(const X(plan) *ths_plan); \
+NFFT_EXTERN const char* NFFT_CDECL X(check)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *ths_plan); \
 
 /* nfct api */
 NFCT_DEFINE_API(NFCT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
@@ -346,23 +362,23 @@ typedef struct\
   R X(full_psi_eps);\
 } X(plan);\
 \
-NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
-NFFT_EXTERN void X(init_2d)(X(plan) *ths_plan, int N0, int N1, int M_total); \
-NFFT_EXTERN void X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_total); \
-NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
-NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_2d)(X(plan) *ths_plan, int N0, int N1, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_3d)(X(plan) *ths_plan, int N0, int N1, int N2, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *ths_plan, int d, int *N, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int *n, \
   int m, unsigned flags, unsigned fftw_flags); \
-NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
-NFFT_EXTERN const char* X(check)(X(plan) *ths);\
-NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_lin_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(const X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(const X(plan) *ths_plan); \
+NFFT_EXTERN const char* NFFT_CDECL X(check)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *ths_plan); \
 
 /* nfst api */
 NFST_DEFINE_API(NFST_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
@@ -415,20 +431,20 @@ typedef struct\
   R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
 } X(plan);\
 \
-NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \
-NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N, int M_total); \
-NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int N_total, int M_total, \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \
+NFFT_EXTERN void NFFT_CDECL X(init_1d)(X(plan) *ths_plan, int N, int M_total); \
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *ths_plan, int d, int N_total, int M_total, \
   int *N, int *N1, int m, unsigned nnfft_flags); \
-NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(finalize)(X(plan) *ths_plan);
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_lin_psi)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_psi)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_full_psi)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_phi_hut)(X(plan) *ths_plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *ths_plan);
 
 /* nnfft api */
 NNFFT_DEFINE_API(NNFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -476,14 +492,14 @@ typedef struct\
   R *x_102,*x_201,*x_120,*x_021; /**< coordinate exchanged nodes, d=3 */\
 } X(plan);\
 \
-NFFT_EXTERN void X(trafo_direct)(X(plan) *ths); \
-NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths); \
-NFFT_EXTERN void X(trafo)(X(plan) *ths); \
-NFFT_EXTERN void X(adjoint)(X(plan) *ths); \
-NFFT_EXTERN void X(cp)(X(plan) *ths, Z(plan) *ths_nfft); \
-NFFT_EXTERN void X(init_random_nodes_coeffs)(X(plan) *ths); \
-NFFT_EXTERN void X(init)(X(plan) *ths, int d, int J, int M, int m, unsigned flags); \
-NFFT_EXTERN void X(finalize)(X(plan) *ths);
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(cp)(X(plan) *ths, Z(plan) *ths_nfft); \
+NFFT_EXTERN void NFFT_CDECL X(init_random_nodes_coeffs)(X(plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *ths, int d, int J, int M, int m, unsigned flags); \
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *ths);
 
 /* nsfft api */
 NSFFT_DEFINE_API(NSFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -528,16 +544,16 @@ typedef struct\
   R *w;\
 } X(inh_3d_plan);\
 \
-void X(inh_2d1d_trafo)(X(inh_2d1d_plan) *ths); \
-void X(inh_2d1d_adjoint)(X(inh_2d1d_plan) *ths); \
-void X(inh_2d1d_init_guru)(X(inh_2d1d_plan) *ths, int *N, int M, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(inh_2d1d_trafo)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(inh_2d1d_adjoint)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(inh_2d1d_init_guru)(X(inh_2d1d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-void X(inh_2d1d_finalize)(X(inh_2d1d_plan) *ths); \
-void X(inh_3d_trafo)(X(inh_3d_plan) *ths); \
-void X(inh_3d_adjoint)(X(inh_3d_plan) *ths); \
-void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
+NFFT_EXTERN void NFFT_CDECL X(inh_2d1d_finalize)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(inh_3d_trafo)(X(inh_3d_plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(inh_3d_adjoint)(X(inh_3d_plan) *ths); \
+NFFT_EXTERN void NFFT_CDECL X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
+NFFT_EXTERN void NFFT_CDECL X(inh_3d_finalize)(X(inh_3d_plan) *ths);
 
   /* mri api */
 MRI_DEFINE_API(MRI_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -577,20 +593,20 @@ typedef struct\
     set */\
 } X(plan);\
 \
-NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \
-NFFT_EXTERN void X(init_advanced)(X(plan)* plan, int N, int M, unsigned int \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *plan, int N, int M); \
+NFFT_EXTERN void NFFT_CDECL X(init_advanced)(X(plan)* plan, int N, int M, unsigned int \
   nfsft_flags); \
-NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M, \
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *plan, int N, int M, \
   unsigned int nfsft_flags, unsigned int nfft_flags, int nfft_cutoff); \
-NFFT_EXTERN void X(precompute)(int N, R kappa, unsigned int nfsft_flags, \
+NFFT_EXTERN void NFFT_CDECL X(precompute)(int N, R kappa, unsigned int nfsft_flags, \
   unsigned int fpt_flags); \
-NFFT_EXTERN void X(forget)(void); \
-NFFT_EXTERN void X(trafo_direct)(X(plan)* plan); \
-NFFT_EXTERN void X(adjoint_direct)(X(plan)* plan); \
-NFFT_EXTERN void X(trafo)(X(plan)* plan); \
-NFFT_EXTERN void X(adjoint)(X(plan)* plan); \
-NFFT_EXTERN void X(finalize)(X(plan) *plan); \
-NFFT_EXTERN void X(precompute_x)(X(plan) *plan);
+NFFT_EXTERN void NFFT_CDECL X(forget)(void); \
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(X(plan)* plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint_direct)(X(plan)* plan); \
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan)* plan); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan)* plan); \
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *plan); \
+NFFT_EXTERN void NFFT_CDECL X(precompute_x)(X(plan) *plan);
 
 /* nfsft api */
 NFSFT_DEFINE_API(NFSFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -638,18 +654,18 @@ NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,ff
 typedef struct X(set_s_) *X(set); /**< A set of precomputed data for a set of
   DPT transforms of equal maximum length. */\
 \
-NFFT_EXTERN X(set) X(init)(const int M, const int t, const unsigned int flags); \
-NFFT_EXTERN void X(precompute)(X(set) set, const int m, R *alpha, R *beta, \
+NFFT_EXTERN X(set) NFFT_CDECL X(init)(const int M, const int t, const unsigned int flags); \
+NFFT_EXTERN void NFFT_CDECL X(precompute)(X(set) set, const int m, R *alpha, R *beta, \
   R *gam, int k_start, const R threshold); \
-NFFT_EXTERN void X(trafo_direct)(X(set) set, const int m, const C *x, C *y, \
+NFFT_EXTERN void NFFT_CDECL X(trafo_direct)(X(set) set, const int m, const C *x, C *y, \
   const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(trafo)(X(set) set, const int m, const C *x, C *y, \
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(set) set, const int m, const C *x, C *y, \
   const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(transposed_direct)(X(set) set, const int m, C *x, \
+NFFT_EXTERN void NFFT_CDECL X(transposed_direct)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(transposed)(X(set) set, const int m, C *x, \
+NFFT_EXTERN void NFFT_CDECL X(transposed)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(finalize)(X(set) set);
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(set) set);
 
 /* fpt api */
 FPT_DEFINE_API(FPT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
@@ -698,18 +714,18 @@ typedef struct X(plan_)\
   int nthreads; /**< the number of threads */\
 } X(plan);\
 \
-NFFT_EXTERN void X(precompute)(X(plan) *plan); \
-NFFT_EXTERN Z(set) X(SO3_single_fpt_init)(int l, int k, int m, unsigned int flags, int kappa); \
-NFFT_EXTERN void X(SO3_fpt)(C *coeffs, Z(set) set, int l, int k, int m, unsigned int nfsoft_flags); \
-NFFT_EXTERN void X(SO3_fpt_transposed)(C *coeffs, Z(set) set,int l, int k, int m,unsigned int nfsoft_flags); \
-NFFT_EXTERN void X(init)(X(plan) *plan, int N, int M); \
-NFFT_EXTERN void X(init_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags); \
-NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa); \
-NFFT_EXTERN void X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
-NFFT_EXTERN void X(trafo)(X(plan) *plan_nfsoft); \
-NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
-NFFT_EXTERN void X(finalize)(X(plan) *plan); \
-NFFT_EXTERN int X(posN)(int n,int m, int B);
+NFFT_EXTERN void NFFT_CDECL X(precompute)(X(plan) *plan); \
+NFFT_EXTERN Z(set) NFFT_CDECL X(SO3_single_fpt_init)(int l, int k, int m, unsigned int flags, int kappa); \
+NFFT_EXTERN void NFFT_CDECL X(SO3_fpt)(C *coeffs, Z(set) set, int l, int k, int m, unsigned int nfsoft_flags); \
+NFFT_EXTERN void NFFT_CDECL X(SO3_fpt_transposed)(C *coeffs, Z(set) set,int l, int k, int m,unsigned int nfsoft_flags); \
+NFFT_EXTERN void NFFT_CDECL X(init)(X(plan) *plan, int N, int M); \
+NFFT_EXTERN void NFFT_CDECL X(init_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags); \
+NFFT_EXTERN void NFFT_CDECL X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa); \
+NFFT_EXTERN void NFFT_CDECL X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
+NFFT_EXTERN void NFFT_CDECL X(trafo)(X(plan) *plan_nfsoft); \
+NFFT_EXTERN void NFFT_CDECL X(adjoint)(X(plan) *plan_nfsoft); \
+NFFT_EXTERN void NFFT_CDECL X(finalize)(X(plan) *plan); \
+NFFT_EXTERN int NFFT_CDECL X(posN)(int n,int m, int B);
 
 /* nfsoft api */
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,FPT_MANGLE_FLOAT,float,fftwf_complex)
@@ -779,11 +795,11 @@ typedef struct\
   R dot_v_iter; /**< weighted dotproduct of v_iter */\
 } X(plan_complex);\
 \
-NFFT_EXTERN void X(init_advanced_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv, unsigned flags);\
-NFFT_EXTERN void X(init_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv);\
-NFFT_EXTERN void X(before_loop_complex)(X(plan_complex)* ths);\
-NFFT_EXTERN void X(loop_one_step_complex)(X(plan_complex) *ths);\
-NFFT_EXTERN void X(finalize_complex)(X(plan_complex) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(init_advanced_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv, unsigned flags);\
+NFFT_EXTERN void NFFT_CDECL X(init_complex)(X(plan_complex)* ths, Y(mv_plan_complex) *mv);\
+NFFT_EXTERN void NFFT_CDECL X(before_loop_complex)(X(plan_complex)* ths);\
+NFFT_EXTERN void NFFT_CDECL X(loop_one_step_complex)(X(plan_complex) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize_complex)(X(plan_complex) *ths);\
 \
 /** data structure for an inverse NFFT plan with R precision */ \
 typedef struct\
@@ -808,11 +824,11 @@ typedef struct\
   R dot_v_iter; /**< weighted dotproduct of v_iter */\
 } X(plan_double);\
 \
-NFFT_EXTERN void X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) *mv, unsigned flags);\
-NFFT_EXTERN void X(init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv);\
-NFFT_EXTERN void X(before_loop_double)(X(plan_double)* ths);\
-NFFT_EXTERN void X(loop_one_step_double)(X(plan_double) *ths);\
-NFFT_EXTERN void X(finalize_double)(X(plan_double) *ths);
+NFFT_EXTERN void NFFT_CDECL X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) *mv, unsigned flags);\
+NFFT_EXTERN void NFFT_CDECL X(init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv);\
+NFFT_EXTERN void NFFT_CDECL X(before_loop_double)(X(plan_double)* ths);\
+NFFT_EXTERN void NFFT_CDECL X(loop_one_step_double)(X(plan_double) *ths);\
+NFFT_EXTERN void NFFT_CDECL X(finalize_double)(X(plan_double) *ths);
 
 /* solver api */
 SOLVER_DEFINE_API(SOLVER_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -838,56 +854,56 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
  */
 #define NFFT_DEFINE_UTIL_API(Y,R,C) \
 /* rand.c */ \
-R Y(drand48)(void); \
-void Y(srand48)(long int seed); \
+NFFT_EXTERN R NFFT_CDECL Y(drand48)(void); \
+NFFT_EXTERN void NFFT_CDECL Y(srand48)(long int seed); \
 \
 /** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
  */ \
-void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
+NFFT_EXTERN void NFFT_CDECL Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
 \
 /** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
  */ \
-void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
+NFFT_EXTERN void NFFT_CDECL Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
 \
-void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
+NFFT_EXTERN void NFFT_CDECL Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
 \
 /* print.c */ \
 /** Print real vector to standard output. */ \
-void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
+NFFT_EXTERN void NFFT_CDECL Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 \
 /** Print complex vector to standard output. */ \
-void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
+NFFT_EXTERN void NFFT_CDECL Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* thread.c */ \
-NFFT_INT Y(get_num_threads)(void); \
-void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_INT Y(has_threads_enabled)(void); \
+NFFT_EXTERN NFFT_INT NFFT_CDECL Y(get_num_threads)(void); \
+NFFT_EXTERN void NFFT_CDECL Y(set_num_threads)(NFFT_INT nthreads); \
+NFFT_EXTERN NFFT_INT NFFT_CDECL Y(has_threads_enabled)(void); \
 /* time.c */ \
-R Y(clock_gettime_seconds)(void); \
+NFFT_EXTERN R NFFT_CDECL Y(clock_gettime_seconds)(void); \
 /* error.c: */ \
-R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
+NFFT_EXTERN R NFFT_CDECL Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
+NFFT_EXTERN R NFFT_CDECL Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
   const C *z, const NFFT_INT m); \
 /* int.c: */ \
-NFFT_INT Y(exp2i)(const NFFT_INT a); \
-NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
+NFFT_EXTERN NFFT_INT NFFT_CDECL Y(exp2i)(const NFFT_INT a); \
+NFFT_EXTERN NFFT_INT NFFT_CDECL Y(next_power_of_2)(const NFFT_INT N); \
 /* vector1.c */ \
 /** Computes the inner/dot product \f$x^H x\f$. */ \
-R Y(dot_complex)(C *x, NFFT_INT n); \
+NFFT_EXTERN R NFFT_CDECL Y(dot_complex)(C *x, NFFT_INT n); \
 /* vector3.c */ \
 /** Updates \f$x \leftarrow a x + y\f$. */ \
-void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
+NFFT_EXTERN void NFFT_CDECL Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
-void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-void Y(fftshift_complex_int)(C *x, int d, int* N); \
+NFFT_EXTERN void NFFT_CDECL Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
+NFFT_EXTERN void NFFT_CDECL Y(fftshift_complex_int)(C *x, int d, int* N); \
 /** Return library version. */ \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
+NFFT_EXTERN void NFFT_CDECL Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
 /** \
  * Return name of window function. \
  * \
  * The window function to be used is configured at compile time. \
  */ \
-const char *Y(get_window_name)(); \
-NFFT_INT Y(get_default_window_cut_off)();
+NFFT_EXTERN const char *NFFT_CDECL Y(get_window_name)(); \
+NFFT_EXTERN NFFT_INT NFFT_CDECL Y(get_default_window_cut_off)();
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

@@ -19,6 +19,21 @@
 #ifndef __API_H__
 #define __API_H__
 
+#ifndef CALLING_NFFT /* defined when calling internal functions. */
+# ifndef COMPILING_NFFT
+#  define COMPILING_NFFT /* used for dymbol exporting in nfft3.h */
+# endif
+#endif
+
+/* When compiling with GNU libtool on Windows, DLL_EXPORT is #defined for the
+   shared-library objects. In this case, we'll define NFFT_DLL to add dllexport 
+   attributes to the specified functions in nfft3.h; see also api/api.h in FFTW. */
+#ifdef DLL_EXPORT
+# ifndef NFFT_DLL
+#  define NFFT_DLL
+# endif
+#endif
+
 #include "nfft3.h"
 #include "infft.h"
 
