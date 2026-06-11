@@ -108,8 +108,8 @@ static void print(int N,int M,int Z, fftw_complex *mem)
 
   for(i=0;i<Z;i++) {
     for (j=0;j<N*N;j++) {
-      fprintf(fout_real,"%le ",creal(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /Z);
-      fprintf(fout_imag,"%le ",cimag(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /Z);
+      fprintf(fout_real,"%le ",creal(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(double)Z);
+      fprintf(fout_imag,"%le ",cimag(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(double)Z);
     }
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");
