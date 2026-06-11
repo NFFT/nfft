@@ -161,3 +161,5 @@ windows-build-dll*/*
 linux-build-mex/*
 nfft-*
 .vscode/*
+
+macos-build-mex/*

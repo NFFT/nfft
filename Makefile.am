@@ -60,7 +60,7 @@ libnfft3@PREC_SUFFIX@_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_I
 
 if ENABLE_OPENMP
 libnfft3@PREC_SUFFIX@_threads_la_SOURCES =
-libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la @fftw3_LIBS@ 
+libnfft3@PREC_SUFFIX@_threads_la_LIBADD = kernel/libkernel_threads.la @fftw3_LIBS@ @fftw3_LIBS_omp@ 
 libnfft3@PREC_SUFFIX@_threads_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
 libnfft3@PREC_SUFFIX@_threads_la_CFLAGS = $(OPENMP_CFLAGS)
 
