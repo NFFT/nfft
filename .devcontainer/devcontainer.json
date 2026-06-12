@@ -28,7 +28,9 @@
         "ghcr.io/devcontainers/features/github-cli:1.1.0": {},
         "ghcr.io/anthropics/devcontainer-features/claude-code:1.0.5": {}
     },
-    "postCreateCommand": "rtk init -g && git config --global --add safe.directory ${containerWorkspaceFolder} && sh -c 'touch ~/.gitignore_global && grep -qxF .DS_Store ~/.gitignore_global || printf \"%s\\n\" .DS_Store >> ~/.gitignore_global' && git config --global core.excludesfile ~/.gitignore_global",
+    "postCreateCommand": "mkdir -p ~/.claude && sh -c 'echo \"n\" | rtk init -g --auto-patch' && sh -c 'touch ~/.gitignore_global && grep -qxF .DS_Store ~/.gitignore_global || printf \"%s\\n\" .DS_Store >> ~/.gitignore_global'",
+    //"postAttachCommand": "ls -la /home/vscode/ && rtk init -g --auto-patch",
+    //"postCreateCommand": "rtk init -g --auto-patch && git config --global --add safe.directory ${containerWorkspaceFolder} && sh -c 'touch ~/.gitignore_global && grep -qxF .DS_Store ~/.gitignore_global || printf \"%s\\n\" .DS_Store >> ~/.gitignore_global' && git config --global core.excludesfile ~/.gitignore_global",
     "remoteUser": "vscode",
     "containerUser": "vscode"
 }
