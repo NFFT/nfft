@@ -1,0 +1,21 @@
+# Dev tooling only — NOT part of the C library build (autotools/CMake ignore this).
+# Declares the uv-managed environment for the reference-data generator in
+# tests/refgen/ (see docs/agents/test-methodology.md and docs/adr/0002-*.md).
+# `package = false` makes this a virtual project: uv manages the venv + locked
+# deps but never tries to build the C repo as a Python package.
+[project]
+name = "nfft-refgen"
+version = "0"
+description = "Arbitrary-precision reference-data generator for the NFFT3 CUnit test suite"
+requires-python = ">=3.9"
+dependencies = [
+    "mpmath==1.3.0", # pinned: the drift guard regenerates and diffs, so output must be byte-stable
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7",
+]
+
+[tool.uv]
+package = false

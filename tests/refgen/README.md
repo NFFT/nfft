@@ -6,21 +6,23 @@ list. Single source of truth — see `docs/agents/test-methodology.md`.
 
 ## Install (dev only; not a build dependency)
 
+Managed by [uv](https://docs.astral.sh/uv/). From the repository root:
+
 ```bash
-pip install -r tests/refgen/requirements.txt   # pinned mpmath for byte-stable output
+uv sync   # creates .venv from the locked deps (mpmath, pytest); byte-stable output
 ```
 
 ## Regenerate everything
 
 ```bash
 # from the repository root
-python -m tests.refgen.generate --module all --precision 64
+uv run python -m tests.refgen.generate --module all --precision 64
 ```
 
 ## Run the generator's own tests
 
 ```bash
-python -m pytest tests/refgen/tests -q
+uv run python -m pytest tests/refgen/tests -q
 ```
 
 ## Options

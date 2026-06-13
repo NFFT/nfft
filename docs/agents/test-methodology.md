@@ -67,11 +67,12 @@ in `tests/refgen/grids.py` it emits, in one run:
   files `#include`), and
 - the `tests/data/Makefile.am` `EXTRA_DIST` list.
 
-The C build never runs Python; the artifacts are committed. Regenerate with:
+The C build never runs Python; the artifacts are committed. The generator is a
+uv-managed dev tool (deps pinned in `pyproject.toml` / `uv.lock`). Regenerate with:
 
 ```bash
-pip install mpmath                       # one-time dev dependency
-python -m tests.refgen.generate --module all --precision 64
+uv sync                                  # one-time: create .venv from the lockfile
+uv run python -m tests.refgen.generate --module all --precision 64
 ```
 
 ## How to add a new transform's tests
