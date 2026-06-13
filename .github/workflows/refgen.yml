@@ -1,0 +1,33 @@
+name: refgen
+on:
+  push:
+    paths:
+      - 'tests/refgen/**'
+      - 'tests/data/**'
+      - '.github/workflows/refgen.yml'
+  pull_request:
+    paths:
+      - 'tests/refgen/**'
+      - 'tests/data/**'
+      - '.github/workflows/refgen.yml'
+jobs:
+  refgen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned deps
+        run: pip install -r tests/refgen/requirements.txt
+      - name: Generator self-tests
+        run: python -m pytest tests/refgen/tests -q
+      - name: Regenerate reference data + headers
+        run: python -m tests.refgen.generate --module all --precision 64 --seed 1
+      - name: Fail if committed artifacts are stale
+        run: |
+          if ! git diff --exit-code -- tests/data tests/data/generated; then
+            echo "::error::Committed reference data/headers are stale. Run:"
+            echo "::error::  python -m tests.refgen.generate --module all --precision 64 --seed 1"
+            exit 1
+          fi
