@@ -47,3 +47,25 @@ def test_write_then_parse_roundtrip_complex(tmp_path):
     rd, rN, rM, rx, rfh, rf = IO.parse_testcase(str(p), is_complex=True)
     assert (rd, rN, rM) == (d, N, M)
     assert abs(rf[0] - f[0]) < mpmath.mpf(10) ** -40
+
+
+from tests.refgen import registration as REG
+
+
+def test_header_contains_decls_and_arrays():
+    h = REG.render_header("nfft")
+    assert "data/nfft_1d_1_1.txt" in h
+    assert "testcase_delegate_file_t nfft_1d_1_1 =" in h
+    assert "*testcases_1d_file[]" in h
+    assert "*testcases_adjoint_1d_file[]" in h
+    assert "*testcases_3d_file[]" in h
+    # header guard
+    assert "#ifndef" in h and "#endif" in h
+
+
+def test_extra_dist_lists_all_modules():
+    txt = REG.render_extra_dist()
+    assert txt.startswith("EXTRA_DIST =")
+    assert "nfft_1d_1_1.txt" in txt
+    assert "nfct_2d_10_25_50.txt" in txt
+    assert "nfst_adjoint_3d_10_10_10_10.txt" in txt
