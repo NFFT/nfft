@@ -60,3 +60,26 @@ target_link_libraries(bench_nfft_direct PRIVATE nfft3 FFTW3::fftw3 benchmark::be
 if(UNIX)
   target_link_libraries(bench_nfft_direct PRIVATE m)
 endif()
+
+# OpenMP (threaded) benchmark variant.
+if(NFFT_ENABLE_OPENMP)
+  # The benchmark TU is C++, so it needs the CXX OpenMP flags — OpenMP::OpenMP_C
+  # (used for the library) gates -fopenmp on $<COMPILE_LANGUAGE:C> and would leave
+  # _OPENMP undefined here, collapsing SUFFIX to "" and silently producing a second
+  # copy of the *serial*-named benchmarks.
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+  add_executable(bench_nfft_direct_omp bench_nfft_direct.cpp util.h)
+  target_include_directories(bench_nfft_direct_omp PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+  target_link_libraries(bench_nfft_direct_omp PRIVATE
+    nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
+  if(FFTW3_OMP_FOUND)
+    target_link_libraries(bench_nfft_direct_omp PRIVATE FFTW3::fftw3_omp)
+  elseif(FFTW3_THREADS_FOUND)
+    target_link_libraries(bench_nfft_direct_omp PRIVATE FFTW3::fftw3_threads)
+  endif()
+  if(UNIX)
+    target_link_libraries(bench_nfft_direct_omp PRIVATE m)
+  endif()
+endif()

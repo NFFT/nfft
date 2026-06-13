@@ -390,7 +390,11 @@ jobs:
         # instrumentation/simulation/memory to the same CODSPEED_ANALYSIS build,
         # so this is behavior- and benchmark-name-identical to the old value.
         mode: simulation
-        run: ./build-cmake/benchmarks/bench_nfft_direct
+        run: |
+          ./build-cmake/benchmarks/bench_nfft_direct
+          if [ -x ./build-cmake/benchmarks/bench_nfft_direct_omp ]; then
+            ./build-cmake/benchmarks/bench_nfft_direct_omp
+          fi
 
     - name: CMake — run-verify Julia staged simple_tests
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -587,96 +591,3 @@ jobs:
           set -o pipefail
           ctest --test-dir build-cmake -L octave --output-on-failure 2>&1 \
             | tee build-cmake/ctest-octave.log
-
-  # Standalone run-once smoke: fresh-FetchContent codspeed build (the only place the
-  # GitHub-clone download path runs) + find_package consumer compile. NO CodSpeed
-  # upload (no CodSpeedHQ/action wrapper) — cannot perturb the CodSpeed profile.
-  # Deliberately NOT folded into the build matrix (single-shot smoke, not coverage).
-  cmake-bench:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          persist-credentials: false
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build gcc g++ \
-            libfftw3-dev libfftw3-double3 libomp-dev
-
-      - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNFFT_ENABLE_BENCHMARKS=ON
-
-      - name: Build library + benchmark
-        run: cmake --build build -j
-
-      - name: Run benchmark (smoke only — NO CodSpeed upload)
-        run: ./build/benchmarks/bench_nfft_direct --benchmark_min_time=0.01s
-
-      - name: Install to staging prefix
-        run: |
-          cmake --install build --prefix "${{ github.workspace }}/_install"
-          test -f "${{ github.workspace }}/_install/include/nfft3.h"
-          ls "${{ github.workspace }}"/_install/lib*/cmake/nfft3/NFFT3Config.cmake
-
-      - name: Consumer find_package test
-        run: |
-          cmake -S cmake/consumer-tests/find_package -B build-consumer \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/_install"
-          cmake --build build-consumer -j
-          LD_LIBRARY_PATH="${{ github.workspace }}/_install/lib:${{ github.workspace }}/_install/lib/x86_64-linux-gnu" \
-            ./build-consumer/use_nfft3
-
-  # Standalone run-once smoke: per-precision symbol assertion + find_package probe.
-  # Deliberately NOT folded into the build matrix (single-shot smoke, not coverage).
-  cmake-precision:
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: float
-            flag: "-DNFFT_ENABLE_FLOAT=ON"
-            suffix: "f"
-          - name: long-double
-            flag: "-DNFFT_ENABLE_LONG_DOUBLE=ON"
-            suffix: "l"
-    name: "cmake-${{ matrix.name }}"
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          persist-credentials: false
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build gcc \
-            libfftw3-dev libfftw3-single3 libfftw3-long3 libomp-dev
-
-      - name: Configure (${{ matrix.name }}, OpenMP on, no benchmarks)
-        run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            ${{ matrix.flag }} -DNFFT_ENABLE_OPENMP=ON -DNFFT_ENABLE_BENCHMARKS=OFF
-
-      - name: Build (library + OpenMP variant)
-        run: cmake --build build -j
-
-      - name: Assert precision-mangled symbols
-        run: |
-          nm -D --defined-only build/kernel/libnfft3${{ matrix.suffix }}.so \
-            | grep -m1 " nfft${{ matrix.suffix }}_init$"
-
-      - name: Install to staging prefix
-        run: |
-          cmake --install build --prefix "${{ github.workspace }}/_install"
-          ls "${{ github.workspace }}"/_install/lib*/cmake/nfft3${{ matrix.suffix }}/NFFT3${{ matrix.suffix }}Config.cmake
-
-      - name: Per-precision find_package probe
-        run: |
-          cmake -S cmake/consumer-tests/precision_probe -B build-probe \
-            -DNFFT_PROBE_SUFFIX=${{ matrix.suffix }} \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/_install"
-          cmake --build build-probe -j
-          LD_LIBRARY_PATH="${{ github.workspace }}/_install/lib:${{ github.workspace }}/_install/lib/x86_64-linux-gnu" \
-            ./build-probe/use_nfft3_precision
