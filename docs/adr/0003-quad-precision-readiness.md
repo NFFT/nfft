@@ -26,8 +26,10 @@ takes `--precision`, so the **data** is quad-ready. Wiring an actual `__float128
   quad.
 - Public API: `include/nfft3.h` needs `NFFT_MANGLE_QUAD` + a 4th `*_DEFINE_API`
   instantiation per module; `include/nfft3mp.h` needs an `NFFT_PRECISION_QUAD` arm.
-- Test bounds: the `MANT_DIG==113`/`64` fast-bound `a`/`b` tables in
+- Test bounds: the `MANT_DIG==113` fast-bound `a`/`b` tables in
   `tests/{nfft,nfct,nfst}.c` carry `// TODO`s and need tuning once a quad build runs.
+  The `MANT_DIG==64` (Intel 80-bit extended) tables are already tuned and pass
+  unchanged under the long-double matrix below.
 
 ## Decision
 Make the reference-data pipeline quad-ready now (done: generator `--precision`,

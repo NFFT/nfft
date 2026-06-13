@@ -35,8 +35,9 @@ A case passes when `err < bound`:
 
 Because bounds are `multiplier · ε(MANT_DIG)` and `float_property` derives `ε` from
 `MANT_DIG`, tolerances auto-scale across precisions. The `MANT_DIG == 113` (quad)
-and `64` (extended) branches carry `// TODO` notes — their `a`/`b` constants are not
-yet tuned (see [ADR-0003](../adr/0003-quad-precision-readiness.md)).
+branch carries `// TODO` notes — its `a`/`b` constants are not yet tuned. The
+`MANT_DIG == 64` (Intel 80-bit extended) branch is tuned and passes
+(see [ADR-0003](../adr/0003-quad-precision-readiness.md)).
 
 ## Reference-data file format
 
