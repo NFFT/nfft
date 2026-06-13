@@ -100,6 +100,21 @@ counterpart of `m4/nfft_lib_cunit.m4`. Honors `CUnit_ROOT` / `CUnit_INCLUDEDIR` 
 `CUnit_LIBDIR`.
 _Avoid_: the CUnit finder (ambiguous with the Autotools macro).
 
+**Reference-data generator**:
+The Python + mpmath tool `tests/refgen/` that is the single source of truth for the
+file-based check data: it emits `tests/data/*.txt`, the generated C headers
+`tests/data/generated/<module>_testcases.h`, and the data `EXTRA_DIST` list. Not a
+build dependency. See ADR-0002.
+_Avoid_: data scripts, Mathematica notebooks (removed).
+
+**File-based check / Online check**:
+The two CUnit test classes. A **file-based check** reads a high-precision reference
+from `tests/data/*.txt` and validates both the direct and fast transform against it.
+An **online check** generates random input, builds the reference with the direct
+transform, and validates the fast transform against it. See
+`docs/agents/test-methodology.md`.
+_Avoid_: reference test / accuracy test (ambiguous — name the class).
+
 ### Language interfaces
 
 **Interface kernel**:
