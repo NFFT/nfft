@@ -69,3 +69,18 @@ def test_extra_dist_lists_all_modules():
     assert "nfft_1d_1_1.txt" in txt
     assert "nfct_2d_10_25_50.txt" in txt
     assert "nfst_adjoint_3d_10_10_10_10.txt" in txt
+
+
+def test_quad_precision_digits(tmp_path):
+    import mpmath
+    from tests.refgen import generate as GEN
+    # Generate one nfft file at quad-target precision and check digit count.
+    GEN.main(["--module", "nfft", "--precision", "40",
+              "--data-dir", str(tmp_path), "--header-dir", str(tmp_path)])
+    # pick the smallest file
+    p = tmp_path / "nfft_1d_1_1.txt"
+    toks = p.read_text().split()
+    # node value should carry >=34 significant digits (quad)
+    node = toks[3]  # d, N, M, then first node
+    sig = node.replace("-", "").replace(".", "").lstrip("0")
+    assert len(sig) >= 34
