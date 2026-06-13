@@ -1,6 +1,7 @@
 FROM ubuntu:24.04
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG TZ
+ENV TZ="$TZ"
 
 # Avoid warnings by switching to noninteractive.
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN groupadd --gid 2000 vscode \
     && useradd --uid 2000 --gid vscode --shell /bin/bash --create-home vscode \
     && apt update \
-    && apt install -y --no-install-recommends\
+    && apt install -y --no-install-recommends \
     software-properties-common \
     && add-apt-repository universe \
     && apt-get update \
@@ -40,10 +41,14 @@ RUN groupadd --gid 2000 vscode \
     automake \
     libtool \
     pkg-config \
+    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
+
+# Set `DEVCONTAINER` environment variable to help with orientation
+ENV DEVCONTAINER=true
 
 # Set up working directory
 WORKDIR /workspace
@@ -54,10 +59,14 @@ RUN chown -R vscode:vscode /workspace
 # Switch to vscode user
 USER vscode
 
+# Set the default editor and visual
+ENV EDITOR=nano
+ENV VISUAL=nano
+
 # Install Julia, uv, and Python.
 RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
   && curl -fsSL https://astral.sh/uv/install.sh | sh \
   && /home/vscode/.local/bin/uv python install --default 3.13
 
-# Set up git safe directory (will be configured by postCreateCommand)
-CMD ["/bin/bash"]
+# Install RTK.
+RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh

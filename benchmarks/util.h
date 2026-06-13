@@ -20,8 +20,8 @@
 #define NFFT_BENCHMARKS_UTIL_H
 
 #include "config.h"
-     
-// Macro to register benchmark with optional prefix
-#define BENCH(function) BENCHMARK(function)->Name("benchmarks/" __FILE__ "::" BENCHMARKS_PREFIX #function)
+
+// Macro to register benchmark with optional prefix.
+#define BENCH(function) BENCHMARK(function)->Name(BENCHMARKS_PREFIX #function)
 
 #endif // NFFT_BENCHMARKS_UTIL_H

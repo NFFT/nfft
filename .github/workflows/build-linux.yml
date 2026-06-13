@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CODSPEED_VERSION: v1.3.0
+  CODSPEED_VERSION: v2.3.0
 
 jobs:
   build:
@@ -150,18 +150,6 @@ jobs:
         path: codspeed-cpp
         submodules: recursive
 
-    - name: Configure CMake for CodSpeed integration library
-      if: steps.cache-codspeed.outputs.cache-hit != 'true'
-      run: |
-        cd codspeed-cpp/google_benchmark
-        cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DCODSPEED_MODE=instrumentation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF.
-
-    - name: Build CodSpeed integration library
-      if: steps.cache-codspeed.outputs.cache-hit != 'true'
-      run: |
-        cd codspeed-cpp/google_benchmark
-        cmake --build . -v
-    
     - name: Set up Octave
       if: matrix.build_octave == '1'
       run: |
@@ -203,13 +191,7 @@ jobs:
         BUILD_OCTAVE: ${{ matrix.build_octave }}
         BUILD_JULIA: ${{ matrix.build_julia }}
       run: |
-        AGNOSTIC_FLAGS=""
-        [ "${WINDOW}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
-        [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
-        [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
         ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests \
-        --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG}/ --with-codspeed=$(pwd)/codspeed-cpp \
-        --with-agnostic-benchmarks="$AGNOSTIC_FLAGS" \
         $(if [ "${OPENMP}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
@@ -262,25 +244,169 @@ jobs:
           checkall_threads.log
         if-no-files-found: ignore
 
-    - name: Convert CUnit test report to JUnit
+    - name: Convert CUnit test reports to JUnit
+      if: always()
       run: |
-        uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
+        conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
+        [ -f tests/CUnitAutomated-Results.xml ]         && conv tests/CUnitAutomated-Results.xml         tests/junit.xml         || true
+        [ -f tests/CUnitAutomated_threads-Results.xml ] && conv tests/CUnitAutomated_threads-Results.xml tests/junit_threads.xml || true
 
-    - name: Benchmarks
+    # CMake build starts here.
+    - name: CMake — clear stale in-source config.h.
+      shell: bash
+      run: |
+        if [ -f include/config.h ]; then mv include/config.h include/config.h.autotools.bak; fi
+
+    - name: CMake — configure (all windows; benchmark only in kaiserbessel)
+      shell: bash
+      env:
+        WINDOW: ${{ matrix.window }}
+        OPENMP: ${{ matrix.openmp }}
+        PRECISION_OPT: ${{ matrix.precision_opt }}
+        BUILD_JULIA: ${{ matrix.build_julia }}
+      run: |
+        case "${PRECISION_OPT}" in
+          "")                     CMAKE_PREC="" ;;
+          "--enable-float")       CMAKE_PREC="-DNFFT_ENABLE_FLOAT=ON" ;;
+          "--enable-long-double") CMAKE_PREC="-DNFFT_ENABLE_LONG_DOUBLE=ON" ;;
+          *) echo "Unknown PRECISION_OPT '${PRECISION_OPT}'" >&2; exit 1 ;;
+        esac
+        CMAKE_OMP=$([ "${OPENMP}" = "1" ] && echo "-DNFFT_ENABLE_OPENMP=ON" || echo "-DNFFT_ENABLE_OPENMP=OFF")
+        # Julia interface is double-only — mirror the Autotools --enable-julia gating.
+        # (Octave is NOT folded here; it stays in the standalone cmake-octave job.)
+        CMAKE_JULIA=""
+        if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
+          CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
+        fi
+        # Benchmark flags ONLY in the benchmark-producing (kaiserbessel) cells.
+        EXTRA=()
+        if [ "${WINDOW}" = "kaiserbessel" ]; then
+          AGNOSTIC_FLAGS="window:1"
+          [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
+          [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
+          EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
+                   -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
+                   -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
+                   -DCODSPEED_MODE=simulation
+                   -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
+        fi
+        cmake -S . -B build-cmake \
+          -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
+          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} ${CMAKE_OMP} ${CMAKE_JULIA} \
+          -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
+          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
+          "${EXTRA[@]}"
+
+    - name: CMake — config.h parity (Autotools vs. CMake)
+      shell: bash
+      run: bash cmake/config-parity-check.sh include/config.h.autotools.bak build-cmake/config.h include/config.h.in
+
+    - name: CMake — build (library + benchmark)
+      run: cmake --build build-cmake -j
+
+    - name: CMake — assert example/application binaries built
+      shell: bash
+      run: |
+        set -e
+        # Always-precision representatives (present in every cell):
+        for b in examples/nfft/simple_test examples/solver/glacier \
+                 applications/fastgauss/fastgauss applications/fastsum/fastsum_test \
+                 applications/radon/radon; do
+          test -x "build-cmake/$b" || { echo "MISSING: build-cmake/$b" >&2; exit 1; }
+        done
+        # Double-only representatives only in the double cells (precision_opt empty):
+        if [ -z "${{ matrix.precision_opt }}" ]; then
+          for b in examples/nfsft/simple_test applications/quadratureS2/quadratureS2 \
+                   applications/mri/mri2d/construct_data_2d; do
+            test -x "build-cmake/$b" || { echo "MISSING (double): build-cmake/$b" >&2; exit 1; }
+          done
+        fi
+        echo "example/application binaries present"
+
+    - name: CMake — ctest (CUnit suite, parity with make check)
+      shell: bash
+      run: |
+        set -o pipefail
+        ctest --test-dir build-cmake --output-on-failure 2>&1 | tee build-cmake/ctest.log
+
+    - name: CMake — convert CUnit reports to JUnit
+      if: always()
+      shell: bash
+      run: |
+        conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
+        [ -f build-cmake/tests/CUnitAutomated-Results.xml ]         && conv build-cmake/tests/CUnitAutomated-Results.xml         build-cmake/tests/junit.xml         || true
+        [ -f build-cmake/tests/CUnitAutomated_threads-Results.xml ] && conv build-cmake/tests/CUnitAutomated_threads-Results.xml build-cmake/tests/junit_threads.xml || true
+
+    - name: CMake — Publish Test Report (serial)
+      if: ${{ always() && hashFiles('build-cmake/tests/junit.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './build-cmake/tests/junit.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-cmake.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-cmake" }
+              }
+            }
+          }
+
+    - name: CMake — Publish Test Report (threads)
+      if: ${{ always() && hashFiles('build-cmake/tests/junit_threads.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './build-cmake/tests/junit_threads.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-cmake-threads.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-cmake-threads" }
+              }
+            }
+          }
+
+    - name: CMake — test install
+      if: matrix.window == 'kaiserbessel'
+      shell: bash
+      run: |
+        cmake --install build-cmake --prefix "${{ github.workspace }}/_install_cmake"
+        test -f "${{ github.workspace }}/_install_cmake/include/nfft3.h"
+        SUFFIX=$([ "${{ matrix.precision_opt }}" = "--enable-float" ] && echo f || \
+                 { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
+        ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
+
+    - name: CMake — Benchmarks (CodSpeed upload — the sole reporter now)
+      if: matrix.window == 'kaiserbessel'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
-        mode: instrumentation
-        run: |
-          cd benchmarks
-          max_attempts=3
-          attempt=1
-          until [ $attempt -gt $max_attempts ]
-          do
-              make bench && break
-              attempt=$((attempt + 1))
-              sleep 5
+        # "simulation" is the current name for what v3/codspeed-cpp called
+        # "instrumentation" (now a deprecated alias). codspeed-cpp v2.3.0 maps
+        # instrumentation/simulation/memory to the same CODSPEED_ANALYSIS build,
+        # so this is behavior- and benchmark-name-identical to the old value.
+        mode: simulation
+        run: ./build-cmake/benchmarks/bench_nfft_direct
+
+    - name: CMake — run-verify Julia staged simple_tests
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      shell: bash
+      run: |
+        set -e
+        ls build-cmake/julia/nfft/libnfftjulia.*
+        echo "CMake julia interface artifact present"
+        for DIR in build-cmake/julia/*/; do
+          for NAME in "$DIR"simple_test*.jl; do
+            [ -e "$NAME" ] || continue
+            echo "== julia $NAME =="
+            ( cd "$DIR" && julia "$(basename "$NAME")" )
           done
-  
+        done
+
     - name: Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
       run: |
@@ -348,6 +474,7 @@ jobs:
         retention-days: 7
 
     - name: Publish Test Report
+      if: ${{ always() && hashFiles('tests/junit.xml') != '' }}
       uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
       with:
         report-path: './tests/junit.xml'
@@ -366,7 +493,23 @@ jobs:
               }
             }
           }
-      if: always()
+
+    - name: Publish Test Report (threads)
+      if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './tests/junit_threads.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-threads.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-threads" }
+              }
+            }
+          }
 
   distcheck:
     runs-on: ubuntu-latest
@@ -402,3 +545,138 @@ jobs:
     
     - name: Distcheck
       run: make distcheck
+
+  # Standalone run-once Octave-interface smoke. Deliberately NOT folded into the
+  # build matrix: NFFT_WITH_OCTAVE FATAL_ERRORs on long-double, and the Octave
+  # ctest suite is ~6.5 min/cell — folding would be costly and break the
+  # long-double cells. (The CMake Julia interface IS folded into the build matrix,
+  # gated on double precision, mirroring the Autotools --enable-julia path.)
+  cmake-octave:
+    runs-on: ubuntu-24.04
+    name: "cmake-octave"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc g++ \
+            libfftw3-dev libfftw3-double3 libcunit1-dev octave-dev libomp-dev
+
+      - name: Configure (Octave interface, double, OpenMP)
+        run: |
+          cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DNFFT_WITH_OCTAVE=ON \
+            -DNFFT_ENABLE_OPENMP=ON -DNFFT_ENABLE_BENCHMARKS=OFF \
+            -DNFFT_ENABLE_EXAMPLES=OFF -DNFFT_ENABLE_APPLICATIONS=OFF \
+            -DNFFT_ENABLE_TESTS=ON
+
+      - name: Build interface
+        run: cmake --build build-cmake -j
+
+      - name: Assert interface artifact built
+        run: |
+          set -e
+          test -f build-cmake/matlab/nfft/nfftmex.mex
+          echo "octave interface artifact present"
+
+      - name: Run-verify Octave interface tests (ctest -L octave)
+        run: |
+          set -o pipefail
+          ctest --test-dir build-cmake -L octave --output-on-failure 2>&1 \
+            | tee build-cmake/ctest-octave.log
+
+  # Standalone run-once smoke: fresh-FetchContent codspeed build (the only place the
+  # GitHub-clone download path runs) + find_package consumer compile. NO CodSpeed
+  # upload (no CodSpeedHQ/action wrapper) — cannot perturb the CodSpeed profile.
+  # Deliberately NOT folded into the build matrix (single-shot smoke, not coverage).
+  cmake-bench:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build gcc g++ \
+            libfftw3-dev libfftw3-double3 libomp-dev
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNFFT_ENABLE_BENCHMARKS=ON
+
+      - name: Build library + benchmark
+        run: cmake --build build -j
+
+      - name: Run benchmark (smoke only — NO CodSpeed upload)
+        run: ./build/benchmarks/bench_nfft_direct --benchmark_min_time=0.01s
+
+      - name: Install to staging prefix
+        run: |
+          cmake --install build --prefix "${{ github.workspace }}/_install"
+          test -f "${{ github.workspace }}/_install/include/nfft3.h"
+          ls "${{ github.workspace }}"/_install/lib*/cmake/nfft3/NFFT3Config.cmake
+
+      - name: Consumer find_package test
+        run: |
+          cmake -S cmake/consumer-tests/find_package -B build-consumer \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/_install"
+          cmake --build build-consumer -j
+          LD_LIBRARY_PATH="${{ github.workspace }}/_install/lib:${{ github.workspace }}/_install/lib/x86_64-linux-gnu" \
+            ./build-consumer/use_nfft3
+
+  # Standalone run-once smoke: per-precision symbol assertion + find_package probe.
+  # Deliberately NOT folded into the build matrix (single-shot smoke, not coverage).
+  cmake-precision:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: float
+            flag: "-DNFFT_ENABLE_FLOAT=ON"
+            suffix: "f"
+          - name: long-double
+            flag: "-DNFFT_ENABLE_LONG_DOUBLE=ON"
+            suffix: "l"
+    name: "cmake-${{ matrix.name }}"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build gcc \
+            libfftw3-dev libfftw3-single3 libfftw3-long3 libomp-dev
+
+      - name: Configure (${{ matrix.name }}, OpenMP on, no benchmarks)
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            ${{ matrix.flag }} -DNFFT_ENABLE_OPENMP=ON -DNFFT_ENABLE_BENCHMARKS=OFF
+
+      - name: Build (library + OpenMP variant)
+        run: cmake --build build -j
+
+      - name: Assert precision-mangled symbols
+        run: |
+          nm -D --defined-only build/kernel/libnfft3${{ matrix.suffix }}.so \
+            | grep -m1 " nfft${{ matrix.suffix }}_init$"
+
+      - name: Install to staging prefix
+        run: |
+          cmake --install build --prefix "${{ github.workspace }}/_install"
+          ls "${{ github.workspace }}"/_install/lib*/cmake/nfft3${{ matrix.suffix }}/NFFT3${{ matrix.suffix }}Config.cmake
+
+      - name: Per-precision find_package probe
+        run: |
+          cmake -S cmake/consumer-tests/precision_probe -B build-probe \
+            -DNFFT_PROBE_SUFFIX=${{ matrix.suffix }} \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/_install"
+          cmake --build build-probe -j
+          LD_LIBRARY_PATH="${{ github.workspace }}/_install/lib:${{ github.workspace }}/_install/lib/x86_64-linux-gnu" \
+            ./build-probe/use_nfft3_precision
