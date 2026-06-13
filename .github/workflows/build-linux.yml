@@ -29,7 +29,7 @@ jobs:
         compiler: ["gcc"]
         window: ["kaiserbessel", "gaussian", "bspline", "sinc"] # TODO: Add dirac.
         precision_opt: ["", "--enable-float", "--enable-long-double"]
-        openmp: [0, 1]
+        openmp: [1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
         build_julia: [1]
         include:

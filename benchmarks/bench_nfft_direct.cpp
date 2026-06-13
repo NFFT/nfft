@@ -27,8 +27,30 @@
 
 #include "util.h"
 
+#ifdef _OPENMP
+  #define SUFFIX "_omp"
+#else
+  #define SUFFIX ""
+#endif
+
+static void DoSetup(const benchmark::State& state) {
+    #ifdef _OPENMP
+    #ifdef HAVE_FFTW_THREADS
+    FFTW(init_threads)();
+    #endif  
+    #endif
+}
+
+static void DoTeardown(const benchmark::State& state) {
+    #ifdef _OPENMP
+    #ifdef HAVE_FFTW_THREADS
+    FFTW(cleanup_threads)();
+    #endif
+    #endif
+}
+
 // Helper function to initialize random data
-static void NFFT(init_random_data)(NFFT(plan)* plan) {
+static void init_random_data(NFFT(plan)* plan) {
     NFFT(vrand_shifted_unit_double)(plan->x, plan->d * plan->M_total);
     NFFT(vrand_unit_complex)(plan->f_hat, plan->N_total);
     NFFT(vrand_unit_complex)(plan->f, plan->M_total);
@@ -41,7 +63,7 @@ static void nfft_forward_direct_1d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_1d)(&plan, N, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(trafo_direct)(&plan);
@@ -58,7 +80,7 @@ static void nfft_adjoint_direct_1d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_1d)(&plan, N, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(adjoint_direct)(&plan);
@@ -76,7 +98,7 @@ static void nfft_forward_direct_2d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_2d)(&plan, N1, N2, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(trafo_direct)(&plan);
@@ -94,7 +116,7 @@ static void nfft_adjoint_direct_2d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_2d)(&plan, N1, N2, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(adjoint_direct)(&plan);
@@ -113,7 +135,7 @@ static void nfft_forward_direct_3d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_3d)(&plan, N1, N2, N3, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(trafo_direct)(&plan);
@@ -132,7 +154,7 @@ static void nfft_adjoint_direct_3d(benchmark::State& state) {
     
     NFFT(plan) plan;
     NFFT(init_3d)(&plan, N1, N2, N3, M);
-    NFFT(init_random_data)(&plan);
+    init_random_data(&plan);
     
     for (auto _ : state) {
         NFFT(adjoint_direct)(&plan);
@@ -143,44 +165,56 @@ static void nfft_adjoint_direct_3d(benchmark::State& state) {
 }
 
 // Register benchmarks for direct transforms
-BENCH(nfft_forward_direct_1d)
+BENCH(nfft_forward_direct_1d, SUFFIX)
     ->Args({32, 100})
     ->Args({64, 200})
     ->Args({128, 400})
     ->Args({256, 800})
     ->Args({512, 1600})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
-BENCH(nfft_adjoint_direct_1d)
+BENCH(nfft_adjoint_direct_1d, SUFFIX)
     ->Args({32, 100})
     ->Args({64, 200})
     ->Args({128, 400})
     ->Args({256, 800})
     ->Args({512, 1600})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
-BENCH(nfft_forward_direct_2d)
+BENCH(nfft_forward_direct_2d, SUFFIX)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
     ->Args({64, 64, 2000})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
-BENCH(nfft_adjoint_direct_2d)
+BENCH(nfft_adjoint_direct_2d, SUFFIX)
     ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
     ->Args({64, 64, 2000})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
-BENCH(nfft_forward_direct_3d)
+BENCH(nfft_forward_direct_3d, SUFFIX)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
     ->Args({16, 16, 16, 1000})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
-BENCH(nfft_adjoint_direct_3d)
+BENCH(nfft_adjoint_direct_3d, SUFFIX)
     ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
     ->Args({16, 16, 16, 1000})
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown)
     ->Complexity();
 
 // Main function.
