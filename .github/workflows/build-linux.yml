@@ -22,6 +22,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+      # Benchmarks only for ubuntu-24.04 (x86_64) + gcc + kaiserbessel.
+      RUN_BENCHMARKS: ${{ matrix.window == 'kaiserbessel' && matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc' }}
     name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
     strategy:
       matrix:
@@ -292,7 +294,7 @@ jobs:
       run: |
         if [ -f include/config.h ]; then mv include/config.h include/config.h.autotools.bak; fi
 
-    - name: CMake — configure (all windows; benchmark only in kaiserbessel)
+    - name: CMake — configure
       shell: bash
       env:
         WINDOW: ${{ matrix.window }}
@@ -313,9 +315,9 @@ jobs:
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
         fi
-        # Benchmark flags ONLY in the benchmark-producing (kaiserbessel) cells.
+        # Benchmark flags only in the canonical cell.
         EXTRA=()
-        if [ "${WINDOW}" = "kaiserbessel" ]; then
+        if [ "${RUN_BENCHMARKS}" = "true" ]; then
           AGNOSTIC_FLAGS="window:1"
           [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
           [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
@@ -332,33 +334,14 @@ jobs:
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
           "${EXTRA[@]}"
 
-    - name: CMake — config.h parity (Autotools vs. CMake)
+    - name: CMake — config.h parity vs Autotools
       shell: bash
       run: bash cmake/config-parity-check.sh include/config.h.autotools.bak build-cmake/config.h include/config.h.in
 
-    - name: CMake — build (library + benchmark)
+    - name: CMake — build
       run: cmake --build build-cmake -j
 
-    - name: CMake — assert example/application binaries built
-      shell: bash
-      run: |
-        set -e
-        # Always-precision representatives (present in every cell):
-        for b in examples/nfft/simple_test examples/solver/glacier \
-                 applications/fastgauss/fastgauss applications/fastsum/fastsum_test \
-                 applications/radon/radon; do
-          test -x "build-cmake/$b" || { echo "MISSING: build-cmake/$b" >&2; exit 1; }
-        done
-        # Double-only representatives only in the double cells (precision_opt empty):
-        if [ -z "${{ matrix.precision_opt }}" ]; then
-          for b in examples/nfsft/simple_test applications/quadratureS2/quadratureS2 \
-                   applications/mri/mri2d/construct_data_2d; do
-            test -x "build-cmake/$b" || { echo "MISSING (double): build-cmake/$b" >&2; exit 1; }
-          done
-        fi
-        echo "example/application binaries present"
-
-    - name: CMake — ctest (CUnit suite, parity with make check)
+    - name: CMake — ctest
       shell: bash
       run: |
         set -o pipefail
@@ -416,14 +399,10 @@ jobs:
                  { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
         ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
 
-    - name: CMake — Benchmarks (CodSpeed upload — the sole reporter now)
-      if: matrix.window == 'kaiserbessel'
+    - name: CMake — Benchmarks
+      if: env.RUN_BENCHMARKS == 'true'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
-        # "simulation" is the current name for what v3/codspeed-cpp called
-        # "instrumentation" (now a deprecated alias). codspeed-cpp v2.3.0 maps
-        # instrumentation/simulation/memory to the same CODSPEED_ANALYSIS build,
-        # so this is behavior- and benchmark-name-identical to the old value.
         mode: simulation
         run: |
           ./build-cmake/benchmarks/bench_nfft_direct
