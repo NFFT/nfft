@@ -17,17 +17,18 @@ concurrency:
 env:
   CODSPEED_VERSION: v2.3.0
 
+  UBUNTU: &ubuntu ubuntu-latest
+  UBUNTU_ARM: &ubuntu_arm ubuntu-latest-arm
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     env:
       BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
-      # Benchmarks only for ubuntu-24.04 (x86_64) + gcc + kaiserbessel.
-      RUN_BENCHMARKS: ${{ matrix.window == 'kaiserbessel' && matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc' }}
     name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
     strategy:
       matrix:
-        os: ["ubuntu-24.04", "ubuntu-24.04-arm"]
+        os: [*ubuntu, *ubuntu_arm]
         compiler: ["gcc"]
         window: ["kaiserbessel", "gaussian", "bspline", "sinc"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
@@ -36,42 +37,42 @@ jobs:
         build_julia: [1]
         include:
           # Clang
-          - os: "ubuntu-24.04"
+          - os: *ubuntu
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04-arm"
+          - os: *ubuntu_arm
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04"
+          - os: *ubuntu
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-float"
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04-arm"
+          - os: *ubuntu_arm
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-float"
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04"
+          - os: *ubuntu
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-long-double"
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04-arm"
+          - os: *ubuntu_arm
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-long-double"
@@ -79,14 +80,14 @@ jobs:
             build_octave: 0
             build_julia: 1
           # GCC 14
-          - os: "ubuntu-24.04"
+          - os: *ubuntu
             compiler: "gcc-14"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04-arm"
+          - os: *ubuntu_arm
             compiler: "gcc-14"
             window: "kaiserbessel"
             precision_opt: ""
@@ -94,24 +95,30 @@ jobs:
             build_octave: 0
             build_julia: 1
           # GCC Snapshot
-          - os: "ubuntu-24.04"
+          - os: *ubuntu
             compiler: "gcc-snapshot"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-          - os: "ubuntu-24.04-arm"
+          - os: *ubuntu_arm
             compiler: "gcc-snapshot"
             window: "kaiserbessel"
             precision_opt: ""
             openmp: 1
             build_octave: 0
             build_julia: 1
-    steps:    
+    steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         persist-credentials: false
+
+    - name: Decide whether to run benchmarks
+      env:
+        RUN_BENCHMARKS: ${{ matrix.window == 'kaiserbessel' && matrix.os == env.UBUNTU && matrix.compiler == 'gcc' }}
+      run: echo "RUN_BENCHMARKS=${RUN_BENCHMARKS}" >> "$GITHUB_ENV"
+
     - name: Enable core dumps
       run: |
         ulimit -c unlimited
@@ -530,7 +537,7 @@ jobs:
           }
 
   distcheck:
-    runs-on: ubuntu-latest
+    runs-on: *ubuntu
     name: "distcheck"
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -570,7 +577,7 @@ jobs:
   # long-double cells. (The CMake Julia interface IS folded into the build matrix,
   # gated on double precision, mirroring the Autotools --enable-julia path.)
   cmake-octave:
-    runs-on: ubuntu-24.04
+    runs-on: *ubuntu
     name: "cmake-octave"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
