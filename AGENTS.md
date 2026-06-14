@@ -81,7 +81,8 @@ Useful `./configure` flags:
 - `--enable-exhaustive-unit-tests` — larger, slower test cases (CI uses this).
 - `--enable-julia` — build the Julia interface (double precision + shared libs only).
 - `--with-matlab=/path` / `--with-octave=/path` — build the MATLAB/Octave interface.
-- `--enable-benchmarks --with-codspeed=<path>` — see §4.
+- `--enable-benchmarks --with-codspeed=<path>` — **legacy** Autotools benchmark
+  build; benchmarks are now built with CMake (see §4).
 - `./configure --help` lists everything.
 
 A representative "build everything" configure line matching CI:
@@ -131,38 +132,57 @@ transforms against reference data in `tests/data/` and against the direct
 ## 4. Running the benchmarks
 
 Benchmarks (`benchmarks/bench_nfft_direct.cpp`) use the **CodSpeed** C++
-integration library and are primarily intended to run in CI. To build/run them
-locally you must first build `codspeed-cpp` from source.
+integration and run in CI for continuous regression tracking. Build and run them
+locally with the **CMake** build — it is self-contained: CMake's `FetchContent`
+downloads and builds codspeed-cpp (submodules and all) and produces the library, the
+CUnit tests, and the benchmark binaries in one tree. (No separate `make` build or
+hand-built `codspeed-cpp` is needed; that older Autotools path is **legacy** — see
+the note below.)
 
 ```bash
-# 1. Build the CodSpeed integration library (one-time):
-git clone --depth 1 https://github.com/CodSpeedHQ/codspeed-cpp
-cmake -S codspeed-cpp/google_benchmark -B codspeed-cpp/google_benchmark \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON \
-      -DCODSPEED_MODE=simulation -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=OFF \
-      -DCMAKE_CXX_FLAGS="-DCODSPEED_ROOT_DIR=\\\"$(pwd)\\\""
-cmake --build codspeed-cpp/google_benchmark
+# 1. Configure with benchmarks (add precision / drop OpenMP as needed):
+cmake -S . -B build-cmake \
+      -DNFFT_ENABLE_BENCHMARKS=ON -DNFFT_ENABLE_OPENMP=ON -DCODSPEED_MODE=simulation \
+      -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math"
 
-# 2. Configure NFFT with benchmarks enabled:
-./configure --enable-all --enable-benchmarks \
-            --with-codspeed="$(pwd)/codspeed-cpp"
-make -j
-
-# 3. Build and run all benchmarks:
-cd benchmarks
-make bench          # builds each benchmark, then runs it, printing results
+# 2. Build (library + CUnit tests + benchmarks):
+cmake --build build-cmake -j
 ```
 
-Other benchmark configure flags:
+Benchmark binaries land in `build-cmake/benchmarks/` (`bench_nfft_direct`, plus
+`bench_nfft_direct_omp` when `-DNFFT_ENABLE_OPENMP=ON`).
 
-- `--with-benchmarks-prefix=PREFIX` — prefix applied to benchmark names.
-- `--with-agnostic-benchmarks="window:1,openmp:0,precision:1"` — comma-separated
+The binaries are CodSpeed-**instrumented**: run directly they make no measurement
+(*"running in an unknown environment"*). Obtain numbers by running under
+Valgrind/callgrind — which emits a deterministic instruction count per benchmark — or
+via the `codspeed` CLI (both preinstalled in the dev container):
+
+```bash
+valgrind --tool=callgrind build-cmake/benchmarks/bench_nfft_direct \
+         --benchmark_filter='nfft_forward_direct_1d.*'   # read "I refs" / "Collected"
+# or, with the CodSpeed CLI:
+codspeed exec -- build-cmake/benchmarks/bench_nfft_direct
+```
+
+Other CMake benchmark options:
+
+- `-DBENCHMARKS_PREFIX=PREFIX` — prefix applied to benchmark names.
+- `-DNFFT_AGNOSTIC_BENCHMARKS="window:1,openmp:0,precision:1"` — comma-separated
   `param:flag` pairs selecting which benchmark variants get built.
+- `-DFETCHCONTENT_SOURCE_DIR_CODSPEED=<path>` — use an existing codspeed-cpp checkout
+  instead of downloading (offline / CI).
 
-Benchmark binaries are placed in `benchmarks/`. The built binaries are plain
-google_benchmark executables, so you can also run one directly to see timing
-output (e.g. `./benchmarks/bench_nfft_direct`). Continuous performance tracking
-(regression detection) happens via CodSpeed in GitHub Actions, not locally.
+Continuous performance tracking (regression detection) happens via CodSpeed in GitHub
+Actions, which uses this same CMake build (`.github/workflows/build-linux.yml`), not
+locally. For the full optimization workflow built on these benchmarks, see
+[`docs/agents/performance-optimization-loop.md`](docs/agents/performance-optimization-loop.md).
+
+> **Legacy (do not use):** the Autotools benchmark path —
+> `./configure --enable-benchmarks --with-codspeed=<path>` then
+> `cd benchmarks && make bench` — predates the move to CodSpeed. It requires a
+> hand-built `codspeed-cpp` *and* a separately built library, and `make bench` runs
+> the instrumented binaries directly, so it prints no measurements. Use the CMake
+> build above.
 
 ## Quick reference
 
@@ -173,7 +193,8 @@ output (e.g. `./benchmarks/bench_nfft_direct`). Continuous performance tracking
 | Build | `make -j` |
 | Run tests | `make check` |
 | Test results (detail) | `tests/checkall`, `tests/CUnitAutomated-Results.xml` |
-| Build + run benchmarks | `./configure --enable-benchmarks --with-codspeed=<path>` then `cd benchmarks && make bench` |
+| Build benchmarks | `cmake -S . -B build-cmake -DNFFT_ENABLE_BENCHMARKS=ON -DCODSPEED_MODE=simulation && cmake --build build-cmake -j` (§4) |
+| Measure a benchmark | `valgrind --tool=callgrind build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` |
 | Clean | `make clean` / full reset: `make distclean` |
 | Format C code | `clang-format -i <file>` (uses repo `.clang-format`) |
 

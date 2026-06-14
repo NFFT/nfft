@@ -165,6 +165,10 @@ nfft-*
 
 # CMake build tree
 build/
+build-cmake/
+
+# Hand-built CodSpeed C++ integration (legacy Autotools --with-codspeed path)
+codspeed-cpp/
 
 # macOS
 .DS_Store
