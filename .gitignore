@@ -161,6 +161,7 @@ windows-build-dll*/*
 linux-build-mex/*
 nfft-*
 .vscode/*
+.venv/
 
 # CMake build tree
 build/
