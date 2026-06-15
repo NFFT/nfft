@@ -6,8 +6,9 @@ in hand the whole time:
 
 - **Correctness** — the CUnit accuracy suites (see
   [`test-methodology.md`](test-methodology.md)).
-- **Performance** — the CodSpeed / google_benchmark binaries, built by the **CMake**
-  tree (not Autotools — see [Phase 0](#phase-0--build-tree--full-baseline-the-exit-reference)).
+- **Performance** — the CodSpeed / google_benchmark binaries built by the **CMake**
+  tree, measured locally in **walltime** mode (see
+  [Measurement modes](#measurement-modes-walltime-locally-simulation-in-ci)).
 
 The core idea: before changing anything for speed, *prove* which tests catch a
 regression in the target and which benchmarks measure its speed. Do that by
@@ -39,45 +40,73 @@ hypothetical target. Read the [caveats](#caveats) — `intprod` turns out to be 
 
 ## Phase 0 — build tree + full baseline (the exit reference)
 
-**Use one CMake tree for the whole loop.** It is self-contained: `FetchContent` pulls
-and builds codspeed-cpp (submodules and all) and produces the library, the CUnit
-tests, **and** the benchmark binaries together. Do *not* use the Autotools benchmark
-path (`./configure --enable-benchmarks --with-codspeed=<path>`) — it is a pre-CodSpeed
-leftover that needs a hand-built codspeed-cpp *and* a separately built library, and is
-the source of the [legacy-path gaps](#tooling-status-agent-operability).
+**One self-contained CMake tree drives the whole loop, in `walltime` mode** — the only
+mode that emits benchmark results locally and offline (a per-case stats JSON; no
+runner, token, or upload). `FetchContent` fetches/builds codspeed-cpp (submodules and
+all) and the tree produces the library, the CUnit tests, **and** the benchmark
+binaries together. (Don't use the Autotools `--with-codspeed` path — it is legacy.)
 
 ```bash
-cmake -S . -B build-cmake \
-  -DNFFT_ENABLE_BENCHMARKS=ON -DNFFT_ENABLE_OPENMP=ON -DCODSPEED_MODE=simulation \
+cmake -S . -B build-cmake -DNFFT_BENCHMARK_MODE=walltime -DNFFT_ENABLE_OPENMP=ON \
   -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math"
 cmake --build build-cmake -j   # libnfft3, checkall(_threads), bench_nfft_direct(_omp)
 ```
 
-This tree gives both signals:
+Both signals come from this tree:
 
-- **correctness** — `ctest --test-dir build-cmake`, or run
-  `build-cmake/tests/checkall` directly for the granular `-> OK/FAIL` stdout (same
-  CUnit suite as `make check`).
-- **performance** — `build-cmake/benchmarks/bench_nfft_direct[_omp]` under callgrind.
+- **correctness** — `ctest --test-dir build-cmake`, or run `build-cmake/tests/checkall`
+  directly for the granular `-> OK/FAIL` stdout (same CUnit suite as `make check`).
+- **performance** — `build-cmake/benchmarks/bench_nfft_direct[_omp]`, run directly
+  (walltime). See [Measurement modes](#measurement-modes-walltime-locally-simulation-in-ci)
+  for when to *also* consult the CI **simulation** metric.
 
 For network-free rebuilds, reuse a checkout with
-`-DFETCHCONTENT_SOURCE_DIR_CODSPEED=<path>`. (Autotools `make check` is still a valid,
+`-DFETCHCONTENT_SOURCE_DIR_CODSPEED=<path>`. (Autotools `make check` is a valid,
 CI-canonical correctness path — see [`test-methodology.md`](test-methodology.md) — but
-it does not build the benchmarks, so the loop below stays in the CMake tree.)
+it does not build the benchmarks, so the loop stays in the CMake tree.)
 
 Now record the complete state of **both** signals on the unmodified tree — the
 contract the finished work is judged against in
-[Phase D](#phase-d--exit-gate-full-baseline-re-check). It
-must be the *full* suite, not the scoped subset used later.
+[Phase D](#phase-d--exit-gate-full-baseline-re-check). It must be the *full* suite, not
+the scoped subset used later.
 
 ```bash
-ctest --test-dir build-cmake 2>&1 | tee /tmp/baseline-tests.log   # full suite
-valgrind --tool=callgrind --callgrind-out-file=/tmp/baseline-%p.cg \
-    build-cmake/benchmarks/bench_nfft_direct 2>/tmp/baseline-bench.log   # ALL cases
+ctest --test-dir build-cmake 2>&1 | tee /tmp/baseline-tests.log              # full suite
+CODSPEED_PROFILE_FOLDER=/tmp/bench-base build-cmake/benchmarks/bench_nfft_direct \
+    2>/tmp/baseline-bench.log                          # ALL cases → /tmp/bench-base/results/*.json
 ```
 
 If the baseline is not fully green, **stop** — optimization starts only from a clean
 tree. Keep these artifacts for the whole task.
+
+## Measurement modes (walltime locally, simulation in CI)
+
+Mode is **baked in at build time** via `-DNFFT_BENCHMARK_MODE=` (`off`, the default,
+builds no benchmarks). The two measuring modes play different roles:
+
+| | **walltime** — local workhorse | **simulation** — CI gate |
+|---|---|---|
+| Build | `-DNFFT_BENCHMARK_MODE=walltime` | `-DNFFT_BENCHMARK_MODE=simulation` |
+| Run | binary directly, offline | under `valgrind --tool=callgrind` (or in CI) |
+| Metric | wall-clock ns: min/mean/median/stdev/IQR | deterministic instruction count |
+| Local result | JSON at `$CODSPEED_PROFILE_FOLDER/results/<pid>.json` | callgrind `I refs` on stderr |
+| Authoritative source | the local JSON | **CodSpeed** (uploaded from CI) |
+| Noise | real timing noise — compare medians | none (deterministic) |
+
+**Use walltime for the local loop.** It is the only mode that writes results locally
+and offline, so Phases 0/B/C/D below read its JSON. Switching mode is just a
+reconfigure (`-DNFFT_BENCHMARK_MODE=…`); you do **not** need two build trees unless you
+want both modes at once. Because walltime is noisy in a container, compare **medians**
+over the (auto-tuned) rounds, not single runs.
+
+**Simulation is what CI gates on.** For the before/after comparison and the
+[Phase-D exit gate](#phase-d--exit-gate-full-baseline-re-check), also check the
+simulation metric against the base branch. Those CI-comparable numbers live on
+**CodSpeed**, best read via the **CodSpeed MCP server** (HTTP API otherwise) — *this
+MCP must be configured for the agent* (an open setup item, see
+[Tooling status](#tooling-status-agent-operability)). A local `valgrind --tool=callgrind`
+run on a `simulation` build gives a deterministic instruction count too — handy as a
+quick local cross-check, though not identical to CodSpeed's normalised figure.
 
 ## Phase A — pin the correctness net
 
@@ -117,31 +146,22 @@ You now know the precise tests that guard this region.
 
 ## Phase B — pin the performance metric
 
-**B1. Measure a baseline for the target's case(s).** The benchmark binary built in
-[Phase 0](#phase-0--build-tree--full-baseline-the-exit-reference) is
-CodSpeed-**instrumented**: run directly it measures *nothing* ("running in an unknown
-environment"). It only produces numbers under Valgrind/callgrind, which emits a
-deterministic **instruction count** per benchmark.
+**B1. Measure a baseline for the target's case(s)** with the walltime binary from
+Phase 0 (run directly; it writes a per-case JSON):
 
 ```bash
-valgrind --tool=callgrind --callgrind-out-file=/tmp/base.cg \
-    build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='nfft_forward_direct_1d.*'
+CODSPEED_PROFILE_FOLDER=/tmp/b build-cmake/benchmarks/bench_nfft_direct \
+    --benchmark_filter='nfft_forward_direct_1d.*'
+# /tmp/b/results/<pid>.json → per case: stats.median_ns (use the median, it is robust)
 ```
 
-Each benchmark case prints `Collected : <N>` / `I refs: <N>` (instruction
-references) on stderr — that integer is the metric. Instruction count is
-*deterministic* (no timing noise), which is exactly what an autonomous loop wants;
-the trade-off is it measures instructions, not wall-clock. Record the per-case
-counts as the baseline. (The `codspeed` CLI — `codspeed exec -- <binary>` — wraps
-the same callgrind run and emits structured output if you prefer it.)
-
 **B2. Inject a slowdown** in the target — e.g. wrap its body in a `for` loop that
-repeats the work N times. Keep results correct (so you isolate cost, not
-correctness). More instructions ⇒ higher count, so callgrind detects it reliably.
+repeats the work N times. Keep results correct (so you isolate cost, not correctness).
 
-**B3. Re-run and diff against the baseline.** Whichever benchmark cases' instruction
-counts rise are the ones that exercise the target — your performance metric. A case
-whose count is unchanged does **not** touch the target.
+**B3. Re-run and compare medians against the baseline.** Whichever benchmark cases'
+`median_ns` rise clearly (well beyond `stdev_ns`) are the ones that exercise the
+target — your performance metric. A case whose median is unchanged does **not** touch
+the target.
 
 > **HARD GATE — no obtainable metric ⇒ no progress.** The agent must be able to
 > produce a *concrete, comparable* number for the target — in either **simulation**
@@ -163,8 +183,8 @@ full suite — that is Phase D). After every change:
 1. `cmake --build build-cmake -j && build-cmake/tests/checkall` (add
    `build-cmake/tests/checkall_threads` if the change touches OpenMP) — the Phase-A
    net must stay green.
-2. Re-run the Phase-B benchmark case(s) under callgrind — the per-case instruction
-   count should drop, and **must not** rise, versus the saved baseline.
+2. Re-run the Phase-B benchmark case(s) (walltime) — `median_ns` should drop, and
+   **must not** rise beyond noise, versus the saved baseline.
 
 Iterate until the metric is satisfactory. The scoped checks here are *necessary but
 not sufficient*: they are fast feedback, but they only see the narrow slice. The
@@ -178,22 +198,26 @@ done** until the *entire* Phase-0 baseline is re-run and compared:
 
 ```bash
 cmake --build build-cmake -j
-ctest --test-dir build-cmake                 # FULL suite — must be all-pass
-valgrind --tool=callgrind --callgrind-out-file=/tmp/final-%p.cg \
-    build-cmake/benchmarks/bench_nfft_direct 2>/tmp/final-bench.log   # ALL cases
+ctest --test-dir build-cmake                            # FULL suite — must be all-pass
+CODSPEED_PROFILE_FOLDER=/tmp/bench-final build-cmake/benchmarks/bench_nfft_direct \
+    2>/tmp/final-bench.log                              # ALL cases (walltime) vs Phase-0
 ```
 
 **Exit condition (all must hold):**
 
 1. The full test suite passes exactly as in Phase 0 — no new failures, in either the
    single-threaded or the OpenMP (`checkall_threads`) library.
-2. **No** benchmark regresses versus the Phase-0 baseline — not just the target's,
-   *every* benchmark. The target's metric should be improved (or at least equal).
-3. `git diff` contains only the intended optimization.
+2. **No** benchmark regresses (walltime `median_ns`) versus the Phase-0 baseline — not
+   just the target's, *every* case. The target's metric should improve (or be equal).
+3. **CI-parity (simulation):** the deterministic simulation metric must not regress
+   either. Read the base branch's numbers from CodSpeed (via the MCP server, once
+   configured) and compare; absent MCP, do a local `simulation`-build callgrind run of
+   the affected cases as a stand-in and note that CI is the final authority.
+4. `git diff` contains only the intended optimization.
 
 If any check fails, the optimization is **not complete**. The agent may loop back to
 Phase C with further changes and re-evaluate this gate, or — if it cannot satisfy all
-three — **give up and revert**, reporting why. A faster target bought with a
+of them — **give up and revert**, reporting why. A faster target bought with a
 regression or a broken test elsewhere is not a success.
 
 ---
@@ -202,13 +226,13 @@ regression or a broken test elsewhere is not a success.
 
 | Step | Command |
 |------|---------|
-| Configure build tree | `cmake -S . -B build-cmake -DNFFT_ENABLE_BENCHMARKS=ON -DNFFT_ENABLE_OPENMP=ON -DCODSPEED_MODE=simulation` |
+| Configure (local loop) | `cmake -S . -B build-cmake -DNFFT_BENCHMARK_MODE=walltime -DNFFT_ENABLE_OPENMP=ON` |
 | Build (lib + tests + benchmarks) | `cmake --build build-cmake -j` |
 | Run tests | `ctest --test-dir build-cmake` |
 | Granular test run | `build-cmake/tests/checkall` / `…/checkall_threads` (exit code + stdout `-> OK/FAIL`) |
 | Failing cases only | `build-cmake/tests/checkall 2>&1 \| grep -E '\-> (FAIL\|ERROR)'` |
-| Measure one benchmark | `valgrind --tool=callgrind build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` → read `I refs` / `Collected` |
-| ~~Run benchmark directly~~ | inert — CodSpeed instrumentation makes no measurement outside Valgrind |
+| Measure (walltime, local) | `CODSPEED_PROFILE_FOLDER=/tmp/b build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` → `/tmp/b/results/*.json` (`median_ns`) |
+| CI metric (simulation) | read from CodSpeed via MCP; or local cross-check: reconfigure `-DNFFT_BENCHMARK_MODE=simulation` + `valgrind --tool=callgrind …` (`I refs`) |
 
 ## Caveats
 
@@ -240,31 +264,24 @@ Verified end to end in the dev container on branch `feature/coding-agents`, usin
 CMake tree throughout:
 
 - **Phase A is fully agent-operable.** `cmake --build` + `ctest` / direct
-  `build-cmake/tests/checkall`, the `-> FAIL` stdout signal, exit codes, and the
-  CUnit XML all work with no human step. Fault-inject → observe → revert was
-  exercised end to end (67 `-> FAIL` lines on the seeded fault; 0 after revert).
-- **Phase B is agent-operable via the CMake build.** `cmake -B build-cmake
-  -DNFFT_ENABLE_BENCHMARKS=ON …` configured, built, and ran end to end:
-  `FetchContent` cloned codspeed-cpp `v2.3.0` **with submodules recursed
-  automatically** (`GIT_SUBMODULES_RECURSE TRUE` in `benchmarks/CMakeLists.txt`), and
-  `build-cmake/benchmarks/bench_nfft_direct` under `valgrind --tool=callgrind`
-  produced per-case instruction counts. `valgrind` and the `codspeed` CLI are
-  installed by the dev container (`.devcontainer/Dockerfile`: `valgrind` via apt,
-  `codspeed` via `https://codspeed.io/install.sh` → `~/.cargo/bin`). The bench binary
-  is still *inert when run directly* (CodSpeed instrumentation: "unknown
-  environment") — it only measures under callgrind; this is expected, not a gap.
-
-- **The Autotools benchmark path is legacy and should not be used.**
-  `./configure --enable-benchmarks --with-codspeed=<path>` predates the move to
-  CodSpeed: it requires a **hand-built** codspeed-cpp and links a **separately built**
-  library, and `make bench` just runs the binaries directly (so it prints no numbers).
-  The hand-build is also where `AGENTS.md` §4 is wrong — its `git clone --depth 1`
-  omits `--recurse-submodules`, so `core/instrument-hooks/` is empty and configure
-  fails with `fatal error: core.h: No such file or directory`. **Recommended:** point
-  `AGENTS.md` §4 at the CMake benchmark build (`-DNFFT_ENABLE_BENCHMARKS=ON`) and
-  retire / clearly mark the Autotools `--with-codspeed` path as legacy.
-
-- **No benchmark covers the fast path or the example target** — the one substantive
-  gap left for *real* work. See [caveats](#caveats): only `*_direct` transforms are
-  benchmarked, and `init`-only code like `intprod` sits outside every measured region.
-  Closing perf work on `trafo`/`adjoint` requires *adding* benchmarks first.
+  `build-cmake/tests/checkall`, the `-> FAIL` stdout signal, exit codes, and the CUnit
+  XML all work with no human step. Fault-inject → observe → revert was exercised end to
+  end (67 `-> FAIL` lines on the seeded fault; 0 after revert).
+- **Phase B (local, walltime) is agent-operable.** `cmake -B build-cmake
+  -DNFFT_BENCHMARK_MODE=walltime` built and ran offline end to end: `FetchContent`
+  fetched codspeed-cpp `v2.3.0` (submodules auto-recursed), and the binary wrote a
+  per-case stats JSON (`median_ns`, …) with no runner, token, or upload. The
+  `simulation` build also measures under `valgrind --tool=callgrind`. `valgrind` and
+  the `codspeed` CLI ship in the dev container (`.devcontainer/Dockerfile`).
+- **Open item — CodSpeed MCP not yet wired.** The Phase-D CI-parity check reads the
+  base branch's deterministic *simulation* numbers from CodSpeed; that is best done via
+  the **CodSpeed MCP server**, which **must still be configured** for the agent (token
+  + MCP registration). Until then the agent falls back to a local `simulation`-build
+  callgrind cross-check, with CI as the final authority.
+- **The Autotools benchmark path is legacy** (`./configure --enable-benchmarks
+  --with-codspeed=<path>` + `make bench`): it needs a hand-built codspeed-cpp and
+  prints no measurements. AGENTS.md §4 and the loop above use the CMake build instead.
+- **No benchmark covers the fast path or the example target** — the substantive gap for
+  *real* work. See [caveats](#caveats): only `*_direct` transforms are benchmarked, and
+  `init`-only code like `intprod` sits outside every measured region. Closing perf work
+  on `trafo`/`adjoint` requires *adding* benchmarks first.

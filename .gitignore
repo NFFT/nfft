@@ -165,7 +165,7 @@ nfft-*
 
 # CMake build tree
 build/
-build-cmake/
+build-cmake*/
 
 # Hand-built CodSpeed C++ integration (legacy Autotools --with-codspeed path)
 codspeed-cpp/
