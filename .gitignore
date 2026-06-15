@@ -175,3 +175,5 @@ codspeed-cpp/
 
 # JetBrains IDEs
 .idea
+# callgrind output from local simulation benchmark runs
+callgrind.out.*

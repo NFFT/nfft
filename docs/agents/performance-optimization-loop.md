@@ -99,14 +99,47 @@ reconfigure (`-DNFFT_BENCHMARK_MODE=…`); you do **not** need two build trees u
 want both modes at once. Because walltime is noisy in a container, compare **medians**
 over the (auto-tuned) rounds, not single runs.
 
-**Simulation is what CI gates on.** For the before/after comparison and the
-[Phase-D exit gate](#phase-d--exit-gate-full-baseline-re-check), also check the
-simulation metric against the base branch. Those CI-comparable numbers live on
-**CodSpeed**, best read via the **CodSpeed MCP server** (HTTP API otherwise) — *this
-MCP must be configured for the agent* (an open setup item, see
-[Tooling status](#tooling-status-agent-operability)). A local `valgrind --tool=callgrind`
-run on a `simulation` build gives a deterministic instruction count too — handy as a
-quick local cross-check, though not identical to CodSpeed's normalised figure.
+**Simulation is the deterministic enhancement** (and what CI gates on). It is
+*optional* — see [Working without CodSpeed](#working-without-codspeed). Three ways to
+get simulation numbers, in increasing fidelity, none of the first two needing a
+CodSpeed account:
+
+1. **Raw `valgrind --tool=callgrind` on a `simulation` build** — quick, but the
+   `I refs` it prints is a **process total**, not per-benchmark. Usable only by
+   filtering to a *single* case (and it still includes process startup). Good for a
+   fast before/after on one case.
+2. **`codspeed run --skip-upload`** (the CLI, in the dev container) — runs offline, no
+   token, and post-processes callgrind into clean **per-benchmark** instruction
+   counts. This is the way to get per-case simulation locally.
+3. **CodSpeed MCP / cloud** — the base branch's CI numbers, for cross-commit parity.
+   Needs a CodSpeed account and the repo onboarded; see
+   [Tooling status](#tooling-status-agent-operability). Use it in
+   [Phase D](#phase-d--exit-gate-full-baseline-re-check) to confirm against CI.
+
+Instruction count and wall-clock can diverge a lot (e.g. a change measured here was
+2.3× fewer instructions but only 1.3× faster wall-clock — the loop became
+memory/arithmetic-bound once the transcendentals went). The wall-clock figure is the
+user-facing speedup; instruction count is the low-noise proxy.
+
+### Working without CodSpeed
+
+A coding agent may have **no CodSpeed access at all** (no account, repo not onboarded,
+no MCP). That is a supported — if non-ideal — configuration: **the entire loop below
+runs on walltime alone.** What you lose is the deterministic metric and the CI-history
+comparison; what you keep is a complete, offline measure → change → re-measure cycle.
+The cost is **timing noise**, which you must manage explicitly:
+
+- Compare **medians**, never single runs.
+- Treat a case as regressed only when its median rises **beyond noise** — past, say,
+  `max(3·stdev, 2% of the median)`. Identical, untouched code routinely swings several
+  percent here (worst on the few-iteration 2d/3d cases), so a hard "no case may be
+  slower at all" rule produces **false regressions**.
+- **Re-run** any case that trips the threshold before believing it; noise rarely
+  survives a second run, a real regression does.
+
+If `codspeed run --skip-upload` is available (it is in the dev container), prefer it
+for the affected cases — deterministic instruction counts sidestep the noise entirely,
+no account required.
 
 ## Phase A — pin the correctness net
 
@@ -203,16 +236,30 @@ CODSPEED_PROFILE_FOLDER=/tmp/bench-final build-cmake/benchmarks/bench_nfft_direc
     2>/tmp/final-bench.log                              # ALL cases (walltime) vs Phase-0
 ```
 
+The full walltime pass is **slow** (the 2d/3d cases run for seconds each, twice — here
+and in Phase 0). That cost is the price of catching out-of-scope regressions; if you
+must trim it, run the affected families at full fidelity and the rest as a coarse
+sanity pass, and **say so** in the report rather than silently skipping cases.
+
 **Exit condition (all must hold):**
 
 1. The full test suite passes exactly as in Phase 0 — no new failures, in either the
    single-threaded or the OpenMP (`checkall_threads`) library.
-2. **No** benchmark regresses (walltime `median_ns`) versus the Phase-0 baseline — not
-   just the target's, *every* case. The target's metric should improve (or be equal).
-3. **CI-parity (simulation):** the deterministic simulation metric must not regress
-   either. Read the base branch's numbers from CodSpeed (via the MCP server, once
-   configured) and compare; absent MCP, do a local `simulation`-build callgrind run of
-   the affected cases as a stand-in and note that CI is the final authority.
+2. **No benchmark regresses beyond noise** versus the Phase-0 baseline — *every* case,
+   not just the target's. Apply the noise rule from
+   [Working without CodSpeed](#working-without-codspeed): a case counts as regressed
+   only if its `median_ns` rises past `max(3·stdev, 2% of the median)`, **and** the
+   rise survives a re-run. Do **not** fail the gate on raw walltime jitter — untouched
+   code routinely swings a few percent. The target's own metric should improve (or be
+   equal). *(With CodSpeed/simulation available, judge this on the deterministic
+   instruction count instead — no noise rule needed.)*
+3. **CI-parity (simulation), if available:** the deterministic instruction count must
+   not regress either. Best: read the base branch's numbers from CodSpeed via the MCP
+   server. Locally without CodSpeed: there is no simulation baseline from Phase 0 (it
+   captured walltime), so reconstruct one — `git stash` the change, build a
+   `simulation` tree, measure the affected cases, `git stash pop`, rebuild, re-measure,
+   compare. If no simulation is available at all, this step is **skipped** — note in
+   the report that the verdict rests on walltime only and CI is the final authority.
 4. `git diff` contains only the intended optimization.
 
 If any check fails, the optimization is **not complete**. The agent may loop back to
@@ -232,7 +279,9 @@ regression or a broken test elsewhere is not a success.
 | Granular test run | `build-cmake/tests/checkall` / `…/checkall_threads` (exit code + stdout `-> OK/FAIL`) |
 | Failing cases only | `build-cmake/tests/checkall 2>&1 \| grep -E '\-> (FAIL\|ERROR)'` |
 | Measure (walltime, local) | `CODSPEED_PROFILE_FOLDER=/tmp/b build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` → `/tmp/b/results/*.json` (`median_ns`) |
-| CI metric (simulation) | read from CodSpeed via MCP; or local cross-check: reconfigure `-DNFFT_BENCHMARK_MODE=simulation` + `valgrind --tool=callgrind …` (`I refs`) |
+| Per-case simulation (local, no account) | `codspeed run --skip-upload -- build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` |
+| Quick simulation (single case) | reconfigure `-DNFFT_BENCHMARK_MODE=simulation`; `valgrind --tool=callgrind … --benchmark_filter='<one case>'` → process-total `I refs` |
+| CI-history simulation | CodSpeed MCP (`https://mcp.codspeed.io/mcp`) — needs account + onboarded repo |
 
 ## Caveats
 
@@ -257,11 +306,25 @@ regression or a broken test elsewhere is not a success.
   **fast** NFFT path (`trafo`, `adjoint`, the `precompute_one_psi` strategies) and
   every non-NFFT module have no benchmark yet. Optimizing those requires adding a
   benchmark first (Phase B with no coverage is meaningless).
+- **`[ERROR] instrument-hooks: failed to write environment.json` is benign.** A
+  walltime run prints it when the **current working directory** (where the binary
+  tries to drop `environment.json`) is not writable; the per-case results JSON is
+  still written to `$CODSPEED_PROFILE_FOLDER/results/` and the exit code is 0. Run
+  from a writable dir to silence it, or ignore it.
+- **Walltime regressions on untouched code are noise, not bugs.** A change confined to
+  one function (e.g. `trafo_direct`'s 1d branch) will still show neighbouring,
+  *byte-identical* cases (`adjoint_direct`, other dims) swinging ±several percent run
+  to run — worst on the few-iteration 2d/3d cases. This is why Phase D uses a noise
+  threshold and a re-run, not a bare "nothing got slower" check.
 
 ## Tooling status (agent-operability)
 
-Verified end to end in the dev container on branch `feature/coding-agents`, using the
-CMake tree throughout:
+Verified end to end in the dev container, using the CMake tree throughout. The full
+five-phase loop was run on a real target (`X(trafo_direct)`, optimised by phase
+recurrence): the fault enumerated a 149-case net, the slowdown isolated the
+`forward_direct_1d` metric, and the change landed at ~1.3× wall-clock / ~2.3×
+instructions with the net green — the gaps that surfaced are folded into the notes
+above.
 
 - **Phase A is fully agent-operable.** `cmake --build` + `ctest` / direct
   `build-cmake/tests/checkall`, the `-> FAIL` stdout signal, exit codes, and the CUnit
@@ -273,11 +336,20 @@ CMake tree throughout:
   per-case stats JSON (`median_ns`, …) with no runner, token, or upload. The
   `simulation` build also measures under `valgrind --tool=callgrind`. `valgrind` and
   the `codspeed` CLI ship in the dev container (`.devcontainer/Dockerfile`).
-- **Open item — CodSpeed MCP not yet wired.** The Phase-D CI-parity check reads the
-  base branch's deterministic *simulation* numbers from CodSpeed; that is best done via
-  the **CodSpeed MCP server**, which **must still be configured** for the agent (token
-  + MCP registration). Until then the agent falls back to a local `simulation`-build
-  callgrind cross-check, with CI as the final authority.
+- **Simulation locally needs no CodSpeed account.** Clean per-case instruction counts
+  come from `codspeed run --skip-upload` (CLI, offline); a raw `valgrind` run gives a
+  single-case process total. The loop is fully operable on **walltime alone** with no
+  CodSpeed dependency at all (see
+  [Working without CodSpeed](#working-without-codspeed)) — that is the baseline,
+  accepting timing noise.
+- **Optional — CodSpeed MCP for CI-history parity.** To compare against the base
+  branch's CI numbers in Phase D, register the **CodSpeed MCP server**
+  (`npx add-mcp https://mcp.codspeed.io/mcp --name CodSpeed`, or the Claude Code plugin
+  `CodSpeedHQ/codspeed`). It exposes tools to list/compare runs and read flamegraphs.
+  **Prerequisites the user must provide:** a CodSpeed account, the repo onboarded to
+  CodSpeed, and CI uploading results — so this is an *enhancement*, not a requirement,
+  and is **not wired by default**. Without it the Phase-D simulation check is the local
+  `codspeed run --skip-upload` cross-check (or is skipped, walltime-only).
 - **The Autotools benchmark path is legacy** (`./configure --enable-benchmarks
   --with-codspeed=<path>` + `make bench`): it needs a hand-built codspeed-cpp and
   prints no measurements. AGENTS.md §4 and the loop above use the CMake build instead.
