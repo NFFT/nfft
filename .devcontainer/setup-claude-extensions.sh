@@ -3,7 +3,7 @@
 # Install a well-defined set of Claude Code plugins and skills into the dev
 # container so a freshly started container has them by default.
 #
-# Scope is user-level (~/.claude). The script is idempotent and never aborts 
+# Scope is user-level (~/.claude). The script is idempotent and never aborts
 # container creation on a failed install.
 #
 # What it installs:
