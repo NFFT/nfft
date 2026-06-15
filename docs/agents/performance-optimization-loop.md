@@ -376,6 +376,11 @@ above.
   **process total** (startup-contaminated, rough). So with no CodSpeed access the loop
   runs on **walltime alone** (see [Working without CodSpeed](#working-without-codspeed))
   — the supported baseline, accepting timing noise.
+- **The simulation instrument needs CodSpeed's Valgrind fork**, not stock valgrind
+  (`codspeed setup status` otherwise reports *"not a CodSpeed build"*). The dev
+  container installs it (`.devcontainer/Dockerfile` runs `codspeed setup --mode
+  simulation`, which apt-installs `valgrind-…codspeedN` over `/usr/bin/valgrind`); no
+  account is needed for `codspeed setup` itself, only for `codspeed run`.
 - **Optional — CodSpeed MCP for CI-history parity.** To compare against the base
   branch's CI numbers in Phase D, register the **CodSpeed MCP server**
   (`npx add-mcp https://mcp.codspeed.io/mcp --name CodSpeed`, or the Claude Code plugin
