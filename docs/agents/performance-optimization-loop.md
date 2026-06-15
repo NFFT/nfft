@@ -100,17 +100,17 @@ want both modes at once. Because walltime is noisy in a container, compare **med
 over the (auto-tuned) rounds, not single runs.
 
 **Simulation is the deterministic enhancement** (and what CI gates on). It is
-*optional* — see [Working without CodSpeed](#working-without-codspeed). Three ways to
-get simulation numbers, in increasing fidelity, none of the first two needing a
-CodSpeed account:
+*optional* — see [Working without CodSpeed](#working-without-codspeed). How to get
+simulation numbers, in increasing fidelity:
 
-1. **Raw `valgrind --tool=callgrind` on a `simulation` build** — quick, but the
-   `I refs` it prints is a **process total**, not per-benchmark. Usable only by
-   filtering to a *single* case (and it still includes process startup). Good for a
-   fast before/after on one case.
-2. **`codspeed run --skip-upload`** (the CLI, in the dev container) — runs offline, no
-   token, and post-processes callgrind into clean **per-benchmark** instruction
-   counts. This is the way to get per-case simulation locally.
+1. **Raw `valgrind --tool=callgrind` on a `simulation` build** — no account needed, but
+   the `I refs` it prints is a **process total** that *includes fixed startup*
+   (dynamic-linker/regex setup, ~3M Ir). Filter to a *single* case and treat it as a
+   rough before/after — the delta is meaningful, the ratio is diluted by startup.
+2. **CodSpeed CLI (`codspeed run` / `exec`)** — gives clean per-benchmark counts
+   (its instrumentation excludes startup), **but requires a CodSpeed token**: the
+   runner validates auth before it will run (verified — there is no offline /
+   `--skip-upload` mode in 4.17.5). So this needs a CodSpeed account.
 3. **CodSpeed MCP / cloud** — the base branch's CI numbers, for cross-commit parity.
    Needs a CodSpeed account and the repo onboarded; see
    [Tooling status](#tooling-status-agent-operability). Use it in
@@ -137,9 +137,10 @@ The cost is **timing noise**, which you must manage explicitly:
 - **Re-run** any case that trips the threshold before believing it; noise rarely
   survives a second run, a real regression does.
 
-If `codspeed run --skip-upload` is available (it is in the dev container), prefer it
-for the affected cases — deterministic instruction counts sidestep the noise entirely,
-no account required.
+A raw `valgrind` single-case process total (option 1 above) is a cheap deterministic
+sanity check when a walltime result is ambiguous, but clean per-case instruction
+counts need a CodSpeed account (the CLI is auth-gated), so on a no-CodSpeed setup
+**walltime with the noise rule is the metric** — accept that and lean on re-runs.
 
 ## Phase A — pin the correctness net
 
@@ -253,12 +254,13 @@ sanity pass, and **say so** in the report rather than silently skipping cases.
    code routinely swings a few percent. The target's own metric should improve (or be
    equal). *(With CodSpeed/simulation available, judge this on the deterministic
    instruction count instead — no noise rule needed.)*
-3. **CI-parity (simulation), if available:** the deterministic instruction count must
-   not regress either. Best: read the base branch's numbers from CodSpeed via the MCP
-   server. Locally without CodSpeed: there is no simulation baseline from Phase 0 (it
-   captured walltime), so reconstruct one — `git stash` the change, build a
-   `simulation` tree, measure the affected cases, `git stash pop`, rebuild, re-measure,
-   compare. If no simulation is available at all, this step is **skipped** — note in
+3. **Deterministic cross-check (simulation), if available:** the instruction count
+   should not regress either. *With a CodSpeed account:* `codspeed run` for clean
+   per-case counts, or the MCP server for the base branch's CI numbers. *Account-free:*
+   there is no simulation baseline from Phase 0 (it captured walltime), so reconstruct
+   a rough one — `git stash` the change, build a `simulation` tree, `valgrind` the
+   affected cases *one at a time* (process-total `I refs`), `git stash pop`, rebuild,
+   re-measure, compare deltas. *No simulation at all:* **skip** this step and note in
    the report that the verdict rests on walltime only and CI is the final authority.
 4. `git diff` contains only the intended optimization.
 
@@ -279,8 +281,8 @@ regression or a broken test elsewhere is not a success.
 | Granular test run | `build-cmake/tests/checkall` / `…/checkall_threads` (exit code + stdout `-> OK/FAIL`) |
 | Failing cases only | `build-cmake/tests/checkall 2>&1 \| grep -E '\-> (FAIL\|ERROR)'` |
 | Measure (walltime, local) | `CODSPEED_PROFILE_FOLDER=/tmp/b build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` → `/tmp/b/results/*.json` (`median_ns`) |
-| Per-case simulation (local, no account) | `codspeed run --skip-upload -- build-cmake/benchmarks/bench_nfft_direct --benchmark_filter='…'` |
-| Quick simulation (single case) | reconfigure `-DNFFT_BENCHMARK_MODE=simulation`; `valgrind --tool=callgrind … --benchmark_filter='<one case>'` → process-total `I refs` |
+| Rough simulation (no account) | reconfigure `-DNFFT_BENCHMARK_MODE=simulation`; `valgrind --tool=callgrind … --benchmark_filter='<one case>'` → process-total `I refs` (incl. startup) |
+| Clean per-case simulation | `codspeed run` — **needs a CodSpeed token** (`codspeed auth login`) |
 | CI-history simulation | CodSpeed MCP (`https://mcp.codspeed.io/mcp`) — needs account + onboarded repo |
 
 ## Caveats
@@ -336,20 +338,21 @@ above.
   per-case stats JSON (`median_ns`, …) with no runner, token, or upload. The
   `simulation` build also measures under `valgrind --tool=callgrind`. `valgrind` and
   the `codspeed` CLI ship in the dev container (`.devcontainer/Dockerfile`).
-- **Simulation locally needs no CodSpeed account.** Clean per-case instruction counts
-  come from `codspeed run --skip-upload` (CLI, offline); a raw `valgrind` run gives a
-  single-case process total. The loop is fully operable on **walltime alone** with no
-  CodSpeed dependency at all (see
-  [Working without CodSpeed](#working-without-codspeed)) — that is the baseline,
-  accepting timing noise.
+- **Clean per-case simulation needs a CodSpeed account.** The CodSpeed CLI (`codspeed
+  run`/`exec`, in the dev container) validates a token before running — there is **no
+  offline mode** in 4.17.5 (`codspeed run` with no/empty token fails immediately;
+  verified). Account-free, the only local simulation is a raw `valgrind` single-case
+  **process total** (startup-contaminated, rough). So with no CodSpeed access the loop
+  runs on **walltime alone** (see [Working without CodSpeed](#working-without-codspeed))
+  — the supported baseline, accepting timing noise.
 - **Optional — CodSpeed MCP for CI-history parity.** To compare against the base
   branch's CI numbers in Phase D, register the **CodSpeed MCP server**
   (`npx add-mcp https://mcp.codspeed.io/mcp --name CodSpeed`, or the Claude Code plugin
   `CodSpeedHQ/codspeed`). It exposes tools to list/compare runs and read flamegraphs.
   **Prerequisites the user must provide:** a CodSpeed account, the repo onboarded to
   CodSpeed, and CI uploading results — so this is an *enhancement*, not a requirement,
-  and is **not wired by default**. Without it the Phase-D simulation check is the local
-  `codspeed run --skip-upload` cross-check (or is skipped, walltime-only).
+  and is **not wired by default**. Without it the Phase-D simulation check falls back to
+  a rough raw-`valgrind` single-case cross-check, or is skipped (walltime-only).
 - **The Autotools benchmark path is legacy** (`./configure --enable-benchmarks
   --with-codspeed=<path>` + `make bench`): it needs a hand-built codspeed-cpp and
   prints no measurements. AGENTS.md §4 and the loop above use the CMake build instead.
