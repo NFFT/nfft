@@ -18,7 +18,7 @@ env:
   CODSPEED_VERSION: v2.3.0
 
   UBUNTU: &ubuntu ubuntu-latest
-  UBUNTU_ARM: &ubuntu_arm ubuntu-latest-arm
+  UBUNTU_ARM: &ubuntu_arm ubuntu-24.04-arm
 
 jobs:
   build:
