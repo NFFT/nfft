@@ -18,11 +18,12 @@ known, trustworthy net (tests) and a known yardstick (benchmarks).
 The shape of the whole task:
 
 ```
-Phase 0  full baseline  ── capture EVERY test + benchmark result (the exit reference)
-Phase A  pin correctness net ── which tests guard the target?   [HARD GATE]
-Phase B  pin performance metric ── which benchmark measures it?  [HARD GATE]
-Phase C  inner loop ── optimize against the scoped net + metric
-Phase D  exit gate ── re-run the FULL Phase-0 baseline; no failure, no regression
+Preflight pick the measurement track ── CodSpeed available? → simulation, else walltime
+Phase 0   full baseline  ── capture EVERY test + benchmark result (the exit reference)
+Phase A   pin correctness net ── which tests guard the target?   [HARD GATE]
+Phase B   pin performance metric ── which benchmark measures it?  [HARD GATE]
+Phase C   inner loop ── optimize against the scoped net + metric
+Phase D   exit gate ── re-run the FULL Phase-0 baseline; no failure, no regression
 ```
 
 Phases A and B carry **hard gates**: if breaking the target fails *no* test, or if
@@ -38,13 +39,40 @@ hypothetical target. Read the [caveats](#caveats) — `intprod` turns out to be 
 
 ---
 
+## Preflight — pick the measurement track
+
+**Do this first, once, and record the result** — it decides the build mode in Phase 0
+and the performance metric in Phases B/C/D. The correctness signal (tests) is the same
+either way; only how *performance* is measured changes.
+
+Check, in order, whether the **CodSpeed track** is fully available *for this repo*:
+
+1. **MCP present** — are the CodSpeed MCP tools (e.g. list/compare runs) actually in
+   your toolset this session?
+2. **Authenticated** — `codspeed status` reports logged in (not *"Not logged in"*).
+3. **Repo onboarded with data** — an MCP *list-runs* / *list-repositories* call shows
+   **this** repository with at least one run on the base branch to compare against.
+
+- **All three yes → CodSpeed (simulation) track.** Build `-DNFFT_BENCHMARK_MODE=simulation`;
+  the metric is the deterministic instruction count (per-case via `codspeed run`, and
+  the base branch via the MCP). This is what CI gates on, so local and CI agree.
+- **Any no → local (walltime) track.** Build `-DNFFT_BENCHMARK_MODE=walltime`; the
+  metric is `median_ns` under the noise rule in
+  [Working without CodSpeed](#working-without-codspeed). Fully offline, no account.
+  Less precise, but a complete, supported loop.
+
+State which track you're on at the start of the report; everything below adapts to it.
+The default the rest of this doc shows is the **local track** (the always-available
+one); where the CodSpeed track differs, it is called out inline.
+
 ## Phase 0 — build tree + full baseline (the exit reference)
 
-**One self-contained CMake tree drives the whole loop, in `walltime` mode** — the only
-mode that emits benchmark results locally and offline (a per-case stats JSON; no
-runner, token, or upload). `FetchContent` fetches/builds codspeed-cpp (submodules and
-all) and the tree produces the library, the CUnit tests, **and** the benchmark
-binaries together. (Don't use the Autotools `--with-codspeed` path — it is legacy.)
+**One self-contained CMake tree drives the whole loop**, built in the mode your
+[preflight](#preflight--pick-the-measurement-track) picked — `walltime` (local track,
+shown here) or `simulation` (CodSpeed track). `FetchContent` fetches/builds codspeed-cpp
+(submodules and all) and the tree produces the library, the CUnit tests, **and** the
+benchmark binaries together. (Don't use the Autotools `--with-codspeed` path — it is
+legacy.)
 
 ```bash
 cmake -S . -B build-cmake -DNFFT_BENCHMARK_MODE=walltime -DNFFT_ENABLE_OPENMP=ON \
@@ -75,6 +103,9 @@ ctest --test-dir build-cmake 2>&1 | tee /tmp/baseline-tests.log              # f
 CODSPEED_PROFILE_FOLDER=/tmp/bench-base build-cmake/benchmarks/bench_nfft_direct \
     2>/tmp/baseline-bench.log                          # ALL cases → /tmp/bench-base/results/*.json
 ```
+
+(*CodSpeed track:* the benchmark baseline is the base branch's CI run, read via the
+MCP in Phase D — no local capture needed; still record the test baseline.)
 
 If the baseline is not fully green, **stop** — optimization starts only from a clean
 tree. Keep these artifacts for the whole task.
