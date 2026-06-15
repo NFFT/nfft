@@ -32,10 +32,9 @@ RUN groupadd --gid 2000 vscode \
     clang \
     libomp-dev \
     libatomic1 \
-    valgrind \
+    git \
     curl \
     wget \
-    git-lfs \
     ca-certificates \
     autotools-dev \
     autoconf \

@@ -29,7 +29,7 @@
         "ghcr.io/devcontainers/features/github-cli:1.1.0": {},
         "ghcr.io/anthropics/devcontainer-features/claude-code:1.0.5": {}
     },
-    "postCreateCommand": "mkdir -p ~/.claude && sh -c 'echo \"n\" | rtk init -g --auto-patch' && sh -c 'touch ~/.gitignore && grep -qxF .DS_Store ~/.gitignore || printf \"%s\\n\" .DS_Store >> ~/.gitignore' && bash .devcontainer/setup-claude-extensions.sh",
+    "postCreateCommand": "mkdir -p ~/.claude && sh -c 'echo \"n\" | rtk init -g --auto-patch' && sh -c 'touch ~/.gitignore && grep -qxF .DS_Store ~/.gitignore || printf \"%s\\n\" .DS_Store >> ~/.gitignore'",
     "remoteUser": "vscode",
     "containerUser": "vscode"
 }
