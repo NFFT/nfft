@@ -32,9 +32,10 @@ RUN groupadd --gid 2000 vscode \
     clang \
     libomp-dev \
     libatomic1 \
-    git \
+    valgrind \
     curl \
     wget \
+    git-lfs \
     ca-certificates \
     autotools-dev \
     autoconf \
@@ -70,3 +71,19 @@ RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
 
 # Install RTK.
 RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+
+# Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /
+# simulation track). Installs to ~/.cargo/bin and adds it to PATH.
+RUN curl -fsSL https://codspeed.io/install.sh | sh
+ENV PATH="/home/vscode/.cargo/bin:${PATH}"
+
+# Install CodSpeed's Valgrind fork — the simulation/instrumentation instrument
+# requires it (stock valgrind is rejected as "not a CodSpeed build"). On Ubuntu the
+# CLI fetches and apt-installs the prebuilt .deb (resolving deps) over /usr/bin/valgrind;
+# run as root so it installs without sudo — `codspeed setup` checks geteuid and skips
+# sudo when already root (the vscode user only gains sudo later, via the common-utils
+# feature). The stock `valgrind` from apt above is the safety net if this step is
+# skipped; `codspeed setup status` should then report a "codspeed build" of valgrind.
+USER root
+RUN /home/vscode/.cargo/bin/codspeed setup --mode simulation
+USER vscode
