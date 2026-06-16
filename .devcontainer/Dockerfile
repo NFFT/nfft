@@ -35,7 +35,6 @@ RUN groupadd --gid 2000 vscode \
     valgrind \
     curl \
     wget \
-    git-lfs \
     ca-certificates \
     autotools-dev \
     autoconf \
