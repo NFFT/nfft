@@ -5,7 +5,7 @@ repository **without human intervention**, keeping two independent feedback sign
 in hand the whole time:
 
 - **Correctness** — the CUnit accuracy suites (see
-  [`test-methodology.md`](test-methodology.md)).
+  [`test-methodology.md`](../../../docs/agents/test-methodology.md)).
 - **Performance** — the CodSpeed / google_benchmark binaries built by the **CMake**
   tree, measured locally in **walltime** mode (see
   [Measurement modes](#measurement-modes-walltime-locally-simulation-in-ci)).
@@ -90,7 +90,7 @@ Both signals come from this tree:
 
 For network-free rebuilds, reuse a checkout with
 `-DFETCHCONTENT_SOURCE_DIR_CODSPEED=<path>`. (Autotools `make check` is a valid,
-CI-canonical correctness path — see [`test-methodology.md`](test-methodology.md) — but
+CI-canonical correctness path — see [`test-methodology.md`](../../../docs/agents/test-methodology.md) — but
 it does not build the benchmarks, so the loop stays in the CMake tree.)
 
 Now record the complete state of **both** signals on the unmodified tree — the

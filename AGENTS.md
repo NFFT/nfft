@@ -159,8 +159,9 @@ container.
 
 Continuous tracking happens via CodSpeed in GitHub Actions (same CMake build,
 `.github/workflows/build-linux.yml`). For the agent optimization workflow built on
-these benchmarks, see
-[`docs/agents/performance-optimization-loop.md`](docs/agents/performance-optimization-loop.md).
+these benchmarks, use the `optimize-nfft-performance` skill
+(`.claude/skills/optimize-nfft-performance/`; full methodology in its
+[`REFERENCE.md`](.claude/skills/optimize-nfft-performance/REFERENCE.md)).
 
 > **Legacy (do not use):** the Autotools benchmark path (`./configure
 > --enable-benchmarks --with-codspeed=<path>` + `make bench`) predates CodSpeed; it
@@ -197,4 +198,10 @@ Five canonical triage roles using their default strings (`needs-triage`, `needs-
 ### Domain docs
 
 Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Performance optimization
+
+Safely optimizing a scoped function/hot loop with correctness (CUnit) and performance
+(CodSpeed/walltime) as independent signals. Use the `optimize-nfft-performance` skill
+(`.claude/skills/optimize-nfft-performance/`).
 
