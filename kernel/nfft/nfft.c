@@ -157,10 +157,17 @@ void X(trafo_direct)(const X(plan) *ths)
     {
       C v = K(0.0);
       INT k_L;
+      /* The kernel e^{-i omega_k} with omega_k = 2pi (k - N/2) x[j] advances by a
+       * constant factor as k increments, so evaluate the two trigonometric calls
+       * once per node and carry the phase by complex multiplication. */
+      R omega0 = K2PI * ((R)(-ths->N_total/2)) * ths->x[j];
+      R domega = K2PI * ths->x[j];
+      C w = COS(omega0) - II * SIN(omega0);
+      C dw = COS(domega) - II * SIN(domega);
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        R omega = K2PI * ((R)(k_L - ths->N_total/2)) * ths->x[j];
-        v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
+        v += f_hat[k_L] * w;
+        w *= dw;
       }
 
       f[j] = v;
