@@ -2,11 +2,14 @@
 
 *[← Overview & map](../REFERENCE.md) · Prev: [Phase 0 — baseline](phase-0-baseline.md) · Next: [Phase B — performance metric](phase-b-performance-metric.md)*
 
-**A1. Identify the target.** A specific function / region, e.g. `intprod()`.
+**A1. Identify the target.** A specific function / region, e.g. `X(trafo_direct)()` —
+the direct, O(N·M) NDFT in `kernel/nfft/nfft.c:145`.
 
 **A2. Inject a fault.** Make the *smallest* edit that changes the target's behaviour
 — flip an operator, drop a term. The goal is to make dependent tests fail, not to be
-realistic. Example: in `intprod`, `p *= vec[t] - a;` → `p += vec[t] - a;`.
+realistic. Example: in `trafo_direct`'s 1d branch, flip the sign of the imaginary
+kernel — `v += f_hat[k_L] * (COS(omega) - II * SIN(omega));` →
+`v += f_hat[k_L] * (COS(omega) + II * SIN(omega));`.
 
 **A3. Rebuild and see what flips to FAIL.** This set is your correctness net.
 
@@ -18,8 +21,8 @@ grep -E '\-> (FAIL|ERROR)' /tmp/buggy.log          # granular failing cases
 
 Each line names the suite/case, the measured error and the bound, e.g.
 `nfft_1d_50_50.txt … trafo_direct -> FAIL 5.7e+14 ( 1.07e-14)`. The affected
-**suites** (`nfft` / `nfct` / `nfst`, never `util` for `intprod`) are the ones to
-run in the inner loop. The detailed machine-readable report is
+**suite** (`nfft` — `trafo_direct` is NFFT-specific, so not `nfct`/`nfst`/`util`) is
+the one to run in the inner loop. The detailed machine-readable report is
 `tests/CUnitAutomated-Results.xml` (and `…_threads-Results.xml`).
 
 > **HARD GATE — no failing test ⇒ no coverage ⇒ stop.** If the injected fault leaves

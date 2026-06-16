@@ -36,9 +36,12 @@ net/metric from A and B drive the fast inner loop (Phase C); the full Phase-0
 baseline is the slow, authoritative check at the end (Phase D) that nothing outside
 that narrow scope was broken or slowed down.
 
-The worked example throughout uses `intprod()` (`kernel/nfft/nfft.c:47`) as the
-hypothetical target. Read the [caveats](details/caveats.md) — `intprod` turns out to
-be a *poor* target (it trips both hard gates), and the loop is what reveals that.
+The worked example throughout is `X(trafo_direct)()` — the direct, O(N·M) NDFT
+(`kernel/nfft/nfft.c:145`): a real transformation, benchmarked forward and adjoint in
+1d/2d/3d. Picking a *wrong* target is possible (code no test pins, or that no benchmark
+measures), but you don't have to detect that up front — the Phase A and B hard gates
+surface it for you: no failing test, or no benchmark moves, means **stop**. See
+[caveats](details/caveats.md) for the common ways a target turns out unmeasurable.
 
 ## Map — read these in order
 

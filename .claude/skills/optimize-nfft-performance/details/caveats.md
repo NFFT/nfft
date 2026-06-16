@@ -2,22 +2,24 @@
 
 *[← Overview & map](../REFERENCE.md) — cross-cutting reference, consult from any phase.*
 
-- **Crash-class faults lose granularity.** The Phase-A `intprod` fault corrupts the
-  allocation sizes `N_total`/`n_total` (`kernel/nfft/nfft.c:5962`), so multi-dim
-  cases under-allocate and the binary `SIGABRT`s (exit 134) partway through. The
-  `-> FAIL` lines printed *before* the abort are still a reliable net, but the XML
-  may be truncated. Prefer a fault that yields wrong-but-finite results over one that
-  aborts when you want a complete failure list.
+- **Crash-class faults lose granularity.** A Phase-A fault that corrupts buffer sizes
+  or indices (rather than just values) can make a case under-allocate and `SIGABRT`
+  (exit 134) partway through the suite. The `-> FAIL` lines printed *before* the abort
+  are still a reliable net, but the XML may be truncated. Prefer a fault that yields
+  wrong-but-finite results — e.g. the imaginary-sign flip in `trafo_direct`'s kernel
+  (Phase A) — over one that aborts when you want a complete failure list.
 - **OpenMP-only changes show only in `checkall_threads`.** That binary links the
   `_omp` library; `checkall` does not. A change guarded by `#ifdef _OPENMP` (or
   affecting only parallel scheduling) will leave `checkall` green and must be judged
   by `checkall_threads`.
-- **`intprod` is a deliberately bad example.** It runs only in `*_init*` (plan
-  setup), and the current benchmarks call `init_*` **outside** the timed
-  `for (auto _ : state)` loop (`benchmarks/bench_nfft_direct.cpp:65`) — they time
-  only `trafo_direct` / `adjoint_direct`. So Phase B will show *no* benchmark moving
-  for an `intprod` change: it is not a meaningful performance target under the
-  current suite. Real targets live inside `trafo*` / `adjoint*`.
+- **A wrong target is possible — but Phase B catches it, so you needn't pre-judge.**
+  Some code is simply not on any timed path: `init`-only helpers like `intprod()` run
+  only in `*_init*` (plan setup), and the benchmarks call `init_*` **outside** the
+  timed `for (auto _ : state)` loop (`benchmarks/bench_nfft_direct.cpp:65`) — they time
+  only `trafo_direct` / `adjoint_direct`. You don't have to know that up front: the
+  Phase B hard gate makes it self-evident — the deliberate slowdown moves *no*
+  benchmark, so there is no metric, so the loop **stops**. The remedy is to target code
+  inside the timed region (`trafo*` / `adjoint*`) or add a benchmark that covers it.
 - **Benchmark coverage is narrow.** Only the **direct** (slow, O(N·M)) transforms
   are benchmarked, forward and adjoint, in 1d/2d/3d (`bench_nfft_direct.cpp`). The
   **fast** NFFT path (`trafo`, `adjoint`, the `precompute_one_psi` strategies) and

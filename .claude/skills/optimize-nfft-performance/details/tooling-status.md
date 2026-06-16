@@ -3,7 +3,7 @@
 *[← Overview & map](../REFERENCE.md) — cross-cutting reference, consult from any phase.*
 
 Verified end to end in the dev container, using the CMake tree throughout. The full
-five-phase loop was run on a real target (`X(trafo_direct)`, optimised by phase
+five-phase loop was run on the worked example (`X(trafo_direct)`, optimised by phase
 recurrence): the fault enumerated a 149-case net, the slowdown isolated the
 `forward_direct_1d` metric, and the change landed at ~1.3× wall-clock / ~2.3×
 instructions with the net green — the gaps that surfaced are folded into the notes
@@ -42,7 +42,8 @@ above.
 - **The Autotools benchmark path is legacy** (`./configure --enable-benchmarks
   --with-codspeed=<path>` + `make bench`): it needs a hand-built codspeed-cpp and
   prints no measurements. AGENTS.md §4 and the loop above use the CMake build instead.
-- **No benchmark covers the fast path or the example target** — the substantive gap for
-  *real* work. See [caveats](caveats.md): only `*_direct` transforms are benchmarked, and
-  `init`-only code like `intprod` sits outside every measured region. Closing perf work
-  on `trafo`/`adjoint` requires *adding* benchmarks first.
+- **No benchmark covers the fast path** — the substantive gap for *real* work. See
+  [caveats](caveats.md): only the `*_direct` transforms are benchmarked (the worked
+  example, `trafo_direct`, is among them). The *fast* path (`trafo` / `adjoint` and the
+  `precompute_one_psi` strategies) and `init`-only helpers like `intprod` sit outside
+  every measured region; closing perf work there requires *adding* benchmarks first.
