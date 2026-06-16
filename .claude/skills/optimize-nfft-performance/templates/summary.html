@@ -82,6 +82,7 @@
     <div class="meta">
       <b>Target</b><span><code>X(target)()</code> — <file:line></span>
       <b>Track</b><span><walltime | simulation></span>
+      <b>Precisions</b><span><float · double · long double — net green in all, or name the exception></span>
       <b>Baseline commit</b><span><sha></span>
       <b>Date</b><span><YYYY-MM-DD></span>
       <b>Tracker</b><span><a href="README.md">README.md</a> · phase deliverables linked in the footer</span>
@@ -107,24 +108,28 @@
   <!-- Walk the reviewer through the phases concisely. Prose or the table below; keep it tight. -->
   <table>
     <tr><th>Phase</th><th>What happened</th></tr>
-    <tr><td>A · baseline</td><td><build + full suite green; N benchmark cases captured.></td></tr>
+    <tr><td>A · baseline</td><td><build all 3 precision trees; full suite green in each; N benchmark cases × 3 captured.></td></tr>
     <tr><td>B · correctness net</td><td><fault injected; M cases pinned as the net (suite <code>nfft</code>).></td></tr>
     <tr><td>C · performance metric</td><td><slowdown injected; which benchmark case(s) moved = the metric.></td></tr>
-    <tr><td>D · inner loop</td><td><the iterations that worked and the ones reverted — the real story.></td></tr>
-    <tr><td>E · exit gate</td><td><full re-run verdict: net green, no out-of-scope regression (or what bounced it back).></td></tr>
+    <tr><td>D · inner loop</td><td><the iterations that worked and the ones reverted — the real story, incl. any precision-specific surprise.></td></tr>
+    <tr><td>E · exit gate</td><td><full re-run in float/double/long double: net green everywhere, no regression in any precision (or what bounced it back).></td></tr>
   </table>
 
   <h2>4 · Results</h2>
-  <!-- The numbers that justify the change. Use medians; mark noise vs real movement. -->
+  <!-- The numbers that justify the change. Use medians; mark noise vs real movement.
+       Show the target metric in each precision (d/f/l) — a one-precision-only win or
+       regression is exactly what the matrix exists to surface. -->
   <table>
-    <tr><th>case</th><th>before (ns)</th><th>after (ns)</th><th>Δ</th><th>note</th></tr>
-    <tr><td><nfft_forward_direct_1d/…></td><td class="num"><123456></td><td class="num"><95012></td>
-        <td class="good"><−23%></td><td><the target metric — real, beyond noise></td></tr>
-    <tr><td><nfft_adjoint_direct_2d/…></td><td class="num"><45000></td><td class="num"><45600></td>
-        <td><+1%></td><td>within noise (untouched)</td></tr>
+    <tr><th>prec</th><th>case</th><th>before (ns)</th><th>after (ns)</th><th>Δ</th><th>note</th></tr>
+    <tr><td>d</td><td><nfft_forward_direct_1d/…></td><td class="num"><123456></td><td class="num"><95012></td>
+        <td class="good"><−23%></td><td><target — real, beyond noise></td></tr>
+    <tr><td>f</td><td><nfft_forward_direct_1d/…></td><td class="num"><98765></td><td class="num"><80120></td>
+        <td class="good"><−19%></td><td><target — float></td></tr>
+    <tr><td>l</td><td><nfft_forward_direct_1d/…></td><td class="num"><210987></td><td class="num"><165430></td>
+        <td class="good"><−22%></td><td><target — long double></td></tr>
   </table>
-  <p><One or two lines interpreting it: wall-clock vs instruction-count if both seen, and the
-     headline speedup. If reverted, say what the numbers would have needed to be.></p>
+  <p><One or two lines interpreting it: the speedup per precision (consistent, or precision-dependent?),
+     wall-clock vs instruction-count if both seen. If reverted, say what the numbers would have needed to be.></p>
 
   <!-- ===== §5 — KEEP only if the run was reverted, blocked, or landed with caveats. ===== -->
   <h2>5 · Why it stalled (failure analysis)</h2>

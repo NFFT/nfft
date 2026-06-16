@@ -69,6 +69,7 @@ Cross-cutting references, consult as needed:
 | Topic | Doc |
 |-------|-----|
 | task directory layout, tracker, canonical deliverable formats | [`details/deliverables.md`](details/deliverables.md) |
+| **float · double · long double** matrix (three trees; A/D/E run all) | [`details/precision-matrix.md`](details/precision-matrix.md) |
 | fill-in skeletons to copy per phase (tracker + one per deliverable) | [`templates/`](templates/) |
 | walltime vs simulation; **working without CodSpeed** (the noise rule) | [`details/measurement-modes.md`](details/measurement-modes.md) |
 | pitfalls (crash faults, OpenMP-only changes, narrow benchmark coverage, benign errors) | [`details/caveats.md`](details/caveats.md) |

@@ -4,22 +4,23 @@
 - **Target metric:** <case>: <base> → <final> ns (<Δ%>)
 - **Landed change:** `artifacts/change.diff`
 
-## Comparison (baseline → final, all cases)
+## Comparison (baseline → final, all cases × all precisions)
 
-<!-- Comparison table format — keep these columns; one row per benchmark case (ALL cases).
-     The two example rows are illustrative verdicts (faster vs within-noise) — replace
-     them with real per-case rows. `threshold` is the constant shorthand `2%/3σ` =
-     max(3·stdev_ns, 2% of base median). Noise rule: a case counts as regressed only if
-     its median rises past that threshold AND the rise survives a re-run. -->
-| case                       | base median_ns | final median_ns | Δ%   | threshold | verdict   |
-|----------------------------|----------------|-----------------|------|-----------|-----------|
-| <nfft_forward_direct_1d/…> | <123456>       | <95012>         | <−23%> | 2%/3σ   | <✅ faster> |
-| <nfft_adjoint_direct_2d/…> | <45000>        | <45600>         | <+1%>  | 2%/3σ   | <✅ noise>  |
+<!-- Comparison table format — keep these columns; one row per benchmark case PER PRECISION
+     (prec = d/f/l). The example rows illustrate verdicts (faster vs within-noise) — replace
+     with real rows. `threshold` is the shorthand `2%/3σ` = max(3·stdev_ns, 2% of base median).
+     Noise rule: regressed only if median rises past threshold AND survives a re-run. A
+     regression in ANY precision fails the gate. -->
+| prec | case                     | base median_ns | final median_ns | Δ%   | threshold | verdict   |
+|------|--------------------------|----------------|-----------------|------|-----------|-----------|
+| d    | <nfft_forward_direct_1d/…> | <123456>     | <95012>         | <−23%> | 2%/3σ   | <✅ faster> |
+| f    | <nfft_forward_direct_1d/…> | <98765>      | <80120>         | <−19%> | 2%/3σ   | <✅ faster> |
+| l    | <nfft_forward_direct_1d/…> | <210987>     | <165430>        | <−22%> | 2%/3σ   | <✅ faster> |
 
-## Exit conditions (all must hold)
+## Exit conditions (all must hold, in float · double · long double)
 
-1. Full suite passes as in Phase A (incl. `checkall_threads`): <PASS> — `artifacts/final-tests.log`
-2. No benchmark regresses beyond noise (every case): <PASS>
+1. Full suite passes as in Phase A (incl. `checkall_threads`), every precision: <PASS d/f/l> — `artifacts/final-tests-{d,f,l}.log`
+2. No benchmark regresses beyond noise (every case, every precision): <PASS d/f/l>
 3. Deterministic cross-check (simulation), if available: <PASS | N/A — no CodSpeed, walltime-only>
 4. `git diff` is only the intended change: <PASS>
 

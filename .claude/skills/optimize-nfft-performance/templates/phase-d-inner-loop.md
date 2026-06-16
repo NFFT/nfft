@@ -6,17 +6,18 @@
 ## Iterations
 
 <!-- Iteration journal format — append one row per change attempt as you go (living doc).
-     net = green, or the B-net case that flipped to -> FAIL (then revert that attempt).
-     medians = the Phase-C metric case(s), before→after — never single runs. -->
-| iter | change                         | net                                | metric median (ns) before→after |
-|------|--------------------------------|------------------------------------|----------------------------------|
-| 1    | <hoist `K[j]` out of inner loop> | <green>                          | <123456 → 118900>                |
-| 2    | <unroll ×4>                    | <FAIL: nfft_1d_50_50 trafo_direct> | <— (reverted)>                   |
+     net = green in ALL THREE precisions (write "green d/f/l"), or name the precision+case
+     that flipped to -> FAIL (then revert that attempt). medians = the Phase-C metric case(s),
+     before→after — never single runs; note the precision if it differs. -->
+| iter | change                         | net                                  | metric median (ns) before→after |
+|------|--------------------------------|--------------------------------------|----------------------------------|
+| 1    | <hoist `K[j]` out of inner loop> | <green d/f/l>                      | <d 123456→118900; f/l similar>   |
+| 2    | <unroll ×4>                    | <FAIL (f): nfft_1d_50_50 trafo_direct> | <— (reverted)>                 |
 
 ## Exit state
 
-- B-net green at latest kept state: <yes>
-- metric median dropped beyond noise: <base → final ns (Δ%)>
+- B-net green at latest kept state, **all precisions**: <yes — d/f/l>
+- metric median dropped beyond noise: <d: base→final (Δ%); f/l similar>
 - `artifacts/change.diff` matches latest kept state: <yes>
 
 <!-- ✅ means "passed its own gate", not "final" — if Phase E bounces the work back,

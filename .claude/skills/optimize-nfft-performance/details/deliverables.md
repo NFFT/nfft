@@ -39,14 +39,19 @@ docs/perfeng/
     phase-e-exit-gate.md            # Phase E deliverable — final verdict
     summary.html                    # Close-out — human-facing report (any outcome)
     artifacts/                      # raw captured data, kept verbatim for exact diffing
-      baseline-tests.log            # Phase A  (tee'd ctest output)
-      baseline-bench.json           # Phase A  (per-case stats, collated from the codspeed scratch dir)
+      baseline-tests-{d,f,l}.log    # Phase A  (tee'd ctest output, one per precision)
+      baseline-bench-{d,f,l}.json   # Phase A  (per-case stats, collated from the codspeed scratch dir)
       fault.diff                    # Phase B  (the injected correctness fault)
       slowdown.diff                 # Phase C  (the injected slowdown)
       change.diff                   # Phase D/E (the actual optimization)
-      final-tests.log               # Phase E
-      final-bench.json              # Phase E  (collated like baseline-bench.json)
+      final-tests-{d,f,l}.log       # Phase E
+      final-bench-{d,f,l}.json      # Phase E  (collated like baseline-bench-*.json)
 ```
+
+Captures are **per precision** — `-d` (double), `-f` (float), `-l` (long double) — because
+Phases A, D, E run the whole float·double·long-double matrix; see
+[precision-matrix.md](precision-matrix.md). (`fault.diff`/`slowdown.diff`/`change.diff` are
+source edits, precision-independent, so they are single files.)
 
 The benchmark binary writes one file per process to
 `$CODSPEED_PROFILE_FOLDER/results/<pid>.json`; that folder is a transient scratch dir
@@ -117,12 +122,15 @@ Use these exact shapes so snapshots are comparable across phases (Phase E diffs 
 Phase-A and final benchmark snapshots; the B net is re-checked in D and E).
 
 **Benchmark snapshot** — Phase A, C, D, E. Embed a table in the narrative doc; keep
-the raw per-case JSON in `artifacts/`.
+the raw per-case JSON in `artifacts/`. The `prec` column (`d`/`f`/`l`) keeps all three
+precisions in one comparable table ([precision-matrix](precision-matrix.md)).
 
 ```markdown
-| case                              | median_ns | stdev_ns | rounds |
-|-----------------------------------|-----------|----------|--------|
-| nfft_forward_direct_1d/…          |    123456 |      789 |     50 |
+| prec | case                       | median_ns | stdev_ns | rounds |
+|------|----------------------------|-----------|----------|--------|
+| d    | nfft_forward_direct_1d/…   |    123456 |      789 |     50 |
+| f    | nfft_forward_direct_1d/…   |     98765 |      654 |     50 |
+| l    | nfft_forward_direct_1d/…   |    210987 |      912 |     50 |
 ```
 
 **Correctness net** — Phase B. The set of cases that flip to `-> FAIL` under the
@@ -138,14 +146,15 @@ two as header bullets above the table, as in the template):
 | nfft  | nfft_1d_50_50.txt … trafo_direct       | 5.7e+14 | 1.07e-14 |
 ```
 
-**Comparison table** — Phase E. Baseline vs final per case, with the noise rule
-applied and a per-case verdict.
+**Comparison table** — Phase E. Baseline vs final per case **per precision**, with the
+noise rule applied and a per-case verdict. A regression in *any* precision fails the gate.
 
 ```markdown
-| case                       | base median_ns | final median_ns | Δ%   | threshold | verdict |
-|----------------------------|-----------------|-----------------|------|-----------|---------|
-| nfft_forward_direct_1d/…   |          123456 |           95012 | −23% | 2%/3σ     | ✅ faster |
-| nfft_adjoint_direct_2d/…   |           45000 |           45600 |  +1% | 2%/3σ     | ✅ noise  |
+| prec | case                     | base median_ns | final median_ns | Δ%   | threshold | verdict |
+|------|--------------------------|-----------------|-----------------|------|-----------|---------|
+| d    | nfft_forward_direct_1d/… |          123456 |           95012 | −23% | 2%/3σ     | ✅ faster |
+| f    | nfft_forward_direct_1d/… |           98765 |           80120 | −19% | 2%/3σ     | ✅ faster |
+| l    | nfft_forward_direct_1d/… |          210987 |          165430 | −22% | 2%/3σ     | ✅ faster |
 ```
 
 **Iteration journal** — Phase D. One row per change attempt, appended as you go;
