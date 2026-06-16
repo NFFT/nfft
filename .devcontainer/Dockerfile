@@ -32,7 +32,7 @@ RUN groupadd --gid 2000 vscode \
     clang \
     libomp-dev \
     libatomic1 \
-    git \
+    valgrind \
     curl \
     wget \
     ca-certificates \
@@ -70,3 +70,14 @@ RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
 
 # Install RTK.
 RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+
+# Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /
+# simulation track). Installs to ~/.cargo/bin and adds it to PATH.
+RUN curl -fsSL https://codspeed.io/install.sh | sh
+ENV PATH="/home/vscode/.cargo/bin:${PATH}"
+
+# Install CodSpeed's Valgrind fork — the simulation/instrumentation instrument
+# requires it.
+USER root
+RUN /home/vscode/.cargo/bin/codspeed setup --mode simulation
+USER vscode
