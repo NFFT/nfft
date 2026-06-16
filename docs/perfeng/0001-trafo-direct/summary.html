@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perf · X(trafo_direct) — optimization summary</title>
+<style>
+  :root{ --ink:#1a1a1a; --bg:#fffefb; --muted:#6b6256; --rule:#e4ddcf;
+         --brown:#9a6b2f; --blue:#26506e; --green:#5f8a59; --red:#b4412f;
+         --ok:#e7f1e3; --okline:#5f8a59; --fail:#f7e2dd; --failline:#b4412f;
+         --warn:#fbeecb; --warnline:#c79a3a;}
+  *{box-sizing:border-box}
+  body{ background:var(--bg); color:var(--ink); margin:0;
+        font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+        line-height:1.58; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:820px; margin:0 auto; padding:3rem 1.5rem 6rem;}
+  .kicker{font-size:.72rem; text-transform:uppercase; letter-spacing:.16em; color:var(--brown);}
+  h1{font-size:2rem; line-height:1.12; margin:.3rem 0 .4rem; letter-spacing:-.015em;}
+  .deck{font-size:1.12rem; color:var(--muted); font-style:italic; margin:0 0 1.4rem;}
+  .verdict{border-left:3px solid var(--brown); padding:.8rem 1.1rem; border-radius:0 4px 4px 0;
+           margin:1.4rem 0 2rem; font-size:1rem; background:#f6efe0;}
+  .verdict b{font-size:1.05rem}
+  body.ok      .verdict{background:var(--ok);   border-color:var(--okline)}
+  body.fail    .verdict{background:var(--fail); border-color:var(--failline)}
+  body.partial .verdict{background:var(--warn); border-color:var(--warnline)}
+  .meta{display:grid; grid-template-columns:auto 1fr; gap:.25rem 1rem; font-size:.9rem; color:var(--muted); margin:.6rem 0 0;}
+  .meta b{color:var(--ink); font-weight:600}
+  h2{font-size:1.32rem; margin:2.6rem 0 .7rem; letter-spacing:-.01em;}
+  p{margin:.8rem 0}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.85em; background:#f3eede; padding:.05em .35em; border-radius:3px;}
+  pre{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.82rem; line-height:1.45; background:#f3eede; border:1px solid var(--rule); border-radius:6px; padding:.9rem 1.1rem; overflow:auto;}
+  pre code{background:none; padding:0; font-size:1em;}
+  .cap{font-size:.84rem; color:var(--muted); margin:.4rem 0 1.4rem;}
+  table{border-collapse:collapse; width:100%; font-size:.92rem; margin:1.1rem 0;}
+  th,td{border:1px solid var(--rule); padding:.4rem .6rem; text-align:left;}
+  th{background:#f6efe0; font-weight:600;}
+  td.num{text-align:right; font-family:"SF Mono",Menlo,Consolas,monospace;}
+  .good{color:var(--green); font-weight:600} .bad{color:var(--red); font-weight:600}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; margin:1.1rem 0;}
+  .cols h3{font-size:1rem; margin:.2rem 0 .4rem; color:var(--blue)}
+  ul{margin:.5rem 0 .5rem 1.1rem; padding:0} li{margin:.3rem 0}
+  aside{font-size:.92rem; color:var(--muted); border-left:2px solid var(--rule); padding-left:1rem; margin:1.4rem 0;}
+  .carry{background:#f7f2e7; border:1px solid var(--rule); border-radius:8px; padding:1.1rem 1.3rem; margin:1.4rem 0;}
+  .carry h2{margin-top:.2rem}
+  a{color:var(--blue)}
+  footer{margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule); color:var(--muted); font-size:.82rem;}
+  footer a{margin-right:1rem;}
+</style>
+</head>
+<body class="partial">
+<div class="wrap">
+
+  <div class="kicker">Performance optimization · NFFT3</div>
+  <h1><code>X(trafo_direct)()</code> — phase recurrence in the 1d direct NDFT</h1>
+  <p class="deck">Replace two transcendentals per inner-loop iteration with one complex multiply. A large, precision-dependent win — up to ~3.9× in long double — but with one reproducible float side-effect the matrix caught.</p>
+
+  <div class="verdict">
+    <b>⚠ Landed with caveat</b> — the target speeds up in <b>every</b> precision
+    (<b>~1.3× double, ~1.6× float, ~3.9× long double</b>) with the 116-case correctness net green
+    in all three. But the exit gate is <b>not clean</b>: a reproducible <b>+8% slowdown</b> on the
+    untouched <code>adjoint_direct_1d[32/100]</code> micro-benchmark <em>in float only</em> — a
+    code-layout effect. A reviewer must decide: ship, attempt a layout-neutral form, or revert.
+    <div class="meta">
+      <b>Target</b><span><code>X(trafo_direct)()</code> — kernel/nfft/nfft.c:145 (1d branch)</span>
+      <b>Track</b><span>walltime</span>
+      <b>Precisions</b><span>float · double · long double — net green in all three (1843/1854/1854)</span>
+      <b>Baseline commit</b><span>a692216c</span>
+      <b>Date</b><span>2026-06-16</span>
+      <b>Tracker</b><span><a href="README.md">README.md</a></span>
+    </div>
+  </div>
+
+  <h2>1 · The target — what we optimized and why</h2>
+  <p><code>X(trafo_direct)</code> is the direct (<code>O(N·M)</code>) nonequispaced DFT; its 1d hot
+  loop evaluates <code>COS</code>/<code>SIN</code> on every inner iteration. It is precision-agnostic,
+  so it must be validated in float, double, <em>and</em> long double — where the per-call trig cost
+  differs by orders of magnitude.</p>
+  <pre><code>/* 1d branch, before */
+for (k_L = 0; k_L &lt; ths-&gt;N_total; k_L++) {
+  R omega = K2PI * ((R)(k_L - ths-&gt;N_total/2)) * ths-&gt;x[j];
+  v += f_hat[k_L] * (COS(omega) - II * SIN(omega));   /* 2 transcendentals / term */
+}</code></pre>
+
+  <h2>2 · The idea — what to change, and the reasoning</h2>
+  <p><code>omega_k</code> advances by a constant <code>Δ = 2π·x[j]</code> as <code>k</code> grows, so
+  the kernel <code>e<sup>−iω</sup></code> is a geometric sequence: evaluate the two trig calls once
+  per node, then carry the phase by one complex multiply per term (phase recurrence / strength
+  reduction).</p>
+  <pre><code>/* 1d branch, after */
+C w  = COS(omega0) - II * SIN(omega0);   /* start phase */
+C dw = COS(domega) - II * SIN(domega);   /* step factor */
+for (k_L = 0; k_L &lt; ths-&gt;N_total; k_L++) { v += f_hat[k_L] * w; w *= dw; }</code></pre>
+  <aside><b>Risk watched:</b> rounding drift over <code>N</code> steps — checked against the net
+  tolerance <em>in every precision</em>. It held (float included).</aside>
+
+  <h2>3 · The process — idea to verdict</h2>
+  <table>
+    <tr><th>Phase</th><th>What happened</th></tr>
+    <tr><td>A · baseline</td><td>Built all 3 precision trees (after clearing a stale in-source <code>config.h</code> that had broken non-double builds); full suite green d/f/l; 22 bench cases × 3. <b>Long double is ~250× slower than double</b> here (<code>COSL</code>/<code>SINL</code>).</td></tr>
+    <tr><td>B · correctness net</td><td>Imaginary-sign fault pins 116 <code>nfft</code> cases (1d <code>trafo_direct</code> + online).</td></tr>
+    <tr><td>C · performance metric</td><td>10× slowdown moves <code>forward_direct_1d[*]</code> ~10×; adjoint control flat → that is the metric.</td></tr>
+    <tr><td>D · inner loop</td><td>Recurrence applied (1 iteration). Net green d/f/l; metric drops ~1.3×/1.6×/3.9×.</td></tr>
+    <tr><td>E · exit gate</td><td>Full <code>ctest</code> green d/f/l. Benchmarks: double &amp; long-double clean; <b>float flags one real regression</b> on an untouched adjoint case (below).</td></tr>
+  </table>
+
+  <h2>4 · Results — the target, per precision</h2>
+  <table>
+    <tr><th>prec</th><th>case</th><th>before (ns)</th><th>after (ns)</th><th>Δ</th><th>note</th></tr>
+    <tr><td>d</td><td>forward_direct_1d[512/1600]</td><td class="num">1862450</td><td class="num">1468760</td><td class="good">−21%</td><td>~1.3×</td></tr>
+    <tr><td>f</td><td>forward_direct_1d[512/1600]</td><td class="num">2222930</td><td class="num">1439690</td><td class="good">−35%</td><td>~1.6×</td></tr>
+    <tr><td>l</td><td>forward_direct_1d[512/1600]</td><td class="num">528143000</td><td class="num">132684000</td><td class="good">−75%</td><td><b>~3.9×</b></td></tr>
+  </table>
+  <p>The win scales with the precision's trig cost: marginal-but-real in double, larger in float, and
+  <b>~3.9× in long double</b> where <code>COSL</code>/<code>SINL</code> dominate. (Full 22-case × 3-precision
+  table in <a href="phase-e-exit-gate.md">phase-e-exit-gate.md</a>; raw JSON in <code>artifacts/</code>.)</p>
+
+  <h2>5 · The caveat (why the gate is not clean)</h2>
+  <table>
+    <tr><th>case (float)</th><th>baseline</th><th>final</th><th>re-run</th><th>verdict</th></tr>
+    <tr><td>adjoint_direct_1d[32/100]</td><td class="num">7849</td><td class="num">8508</td><td class="num">~8480 (×4)</td><td class="bad">+8% — real (layout)</td></tr>
+    <tr><td>adjoint_direct_1d[256/800]</td><td class="num">547651</td><td class="num">559795</td><td class="num">+0.2%</td><td>noise (didn't survive)</td></tr>
+    <tr><td>adjoint_direct_2d[16/16/500]</td><td class="num">436553</td><td class="num">445324</td><td class="num">+0.5%</td><td>noise (didn't survive)</td></tr>
+  </table>
+  <ul>
+    <li><b>Known:</b> <code>adjoint_direct</code> is <em>not touched</em> by this change, yet float
+        <code>adjoint_1d[32/100]</code> is a stable ~8480 ns vs a stable reverted-baseline ~7840 ns
+        (confirmed by reverting + rebuilding + 4+3 independent runs). Cause: enlarging the sibling
+        <code>trafo_direct</code> shifts <code>adjoint_direct</code>'s code placement → i-cache/alignment
+        on the smallest case. <b>It is precision-specific</b> — in double the same case is noise.</li>
+    <li><b>Mechanism confirmed = alignment.</b> Rebuilding the float tree with
+        <code>-falign-functions=64 -falign-loops=32</code> (everything else equal) returns
+        <code>adjoint_1d[32/100]</code> to <b>~7840 ns</b> (regression gone) while the target
+        <code>forward_1d[32/100]</code> stays <b>~4470 ns (~1.7×)</b>. So it is alignment roulette,
+        not an algorithmic change to adjoint — deterministic alignment makes the neighbour insensitive
+        to <code>trafo_direct</code>'s size.</li>
+    <li><b>To resolve (recommended):</b> add <code>-falign-functions=64</code> as a <em>separate
+        build-policy change</em> — it removes this regression and damps the broader walltime layout
+        jitter, without touching the optimization diff. Alternatives: accept + document (the regressed
+        case is an 8 µs op on the slow reference path), or revert. <b>Deferred to a focused session</b>
+        — handoff at <code>/tmp/handoff-nfft-alignment-regression.md</code> (validate the flag across
+        the full matrix, weigh code-size, decide default-vs-opt-in).</li>
+  </ul>
+
+  <h2>6 · Patterns</h2>
+  <div class="cols">
+    <div><h3>Used</h3><ul>
+      <li>Phase recurrence — a constant-step phase is a geometric sequence; carry by multiplication.</li>
+      <li>Strength reduction — per-iteration transcendentals → one complex multiply.</li>
+    </ul></div>
+    <div><h3>Discovered</h3><ul>
+      <li><b>The win is precision-dependent</b> (1.3× / 1.6× / 3.9×) and largest where the baseline is
+          worst (long double). Double-only would report only the floor.</li>
+      <li><b>Code layout can regress an untouched sibling</b> — and only in one precision. The full
+          per-precision exit gate is what surfaced it; a scoped or double-only check would not.</li>
+    </ul></div>
+  </div>
+
+  <div class="carry">
+    <h2>7 · Carry-forward notes</h2>
+    <ul>
+      <li><b>Clear stale in-source <code>include/config.h</code> before configuring precision trees</b>
+          (a leftover Autotools double config silently breaks float/long-double linking). CI does this;
+          the skill now does too.</li>
+      <li><b>Long double trig is ~250× double</b> on this hardware — any cos/sin-heavy kernel is a prime
+          long-double optimization target, with outsized payoff there.</li>
+      <li><b>The same recurrence applies to <code>adjoint_direct</code> and the multivariate branches</b>
+          (untouched here) — obvious next targets, and doing adjoint too might offset the layout shift.</li>
+      <li><b>Re-run flagged walltime cases</b> — 2 of 3 float flags here were noise that vanished on re-run;
+          only the reverted-baseline comparison proved the third real.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Deliverables: <a href="preflight.md">preflight</a> <a href="phase-a-baseline.md">A·baseline</a>
+    <a href="phase-b-correctness-net.md">B·net</a> <a href="phase-c-performance-metric.md">C·metric</a>
+    <a href="phase-d-inner-loop.md">D·inner</a> <a href="phase-e-exit-gate.md">E·exit</a>
+    · raw data in <code>artifacts/</code> · tracker <a href="README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

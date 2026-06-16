@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspaces/nfft/build-cmake-f
+Test project /workspaces/nfft/build-cmake-f
+    Start 1: checkall
+1/2 Test #1: checkall .........................   Passed    0.86 sec
+    Start 2: checkall_threads
+2/2 Test #2: checkall_threads .................   Passed    1.00 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   1.86 sec
