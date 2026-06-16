@@ -203,5 +203,7 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agent
 
 Safely optimizing a scoped function/hot loop with correctness (CUnit) and performance
 (CodSpeed/walltime) as independent signals. Use the `optimize-nfft-performance` skill
-(`.claude/skills/optimize-nfft-performance/`).
+(`.claude/skills/optimize-nfft-performance/`). Each run is tracked front-to-back in one
+directory per optimization under `docs/perfeng/` (a tracker + one deliverable per phase,
+the way decisions accumulate as ADRs under `docs/adr/`). See `docs/perfeng/README.md`.
 

@@ -15,7 +15,7 @@ builds no benchmarks). The two measuring modes play different roles:
 | Noise | real timing noise — compare medians | none (deterministic) |
 
 **Use walltime for the local loop.** It is the only mode that writes results locally
-and offline, so Phases 0/B/C/D read its JSON. Switching mode is just a
+and offline, so Phases A/C/D/E read its JSON. Switching mode is just a
 reconfigure (`-DNFFT_BENCHMARK_MODE=…`); you do **not** need two build trees unless you
 want both modes at once. Because walltime is noisy in a container, compare **medians**
 over the (auto-tuned) rounds, not single runs.
@@ -35,7 +35,7 @@ simulation numbers, in increasing fidelity:
 3. **CodSpeed MCP / cloud** — the base branch's CI numbers, for cross-commit parity.
    Needs a CodSpeed account and the repo onboarded; see
    [Tooling status](tooling-status.md). Use it in
-   [Phase D](phase-d-exit-gate.md) to confirm against CI.
+   [Phase E](phase-e-exit-gate.md) to confirm against CI.
 
 Instruction count and wall-clock can diverge a lot (e.g. a change measured here was
 2.3× fewer instructions but only 1.3× faster wall-clock — the loop became

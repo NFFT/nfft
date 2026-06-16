@@ -9,11 +9,11 @@ recurrence): the fault enumerated a 149-case net, the slowdown isolated the
 instructions with the net green — the gaps that surfaced are folded into the notes
 above.
 
-- **Phase A is fully agent-operable.** `cmake --build` + `ctest` / direct
+- **Phase B is fully agent-operable.** `cmake --build` + `ctest` / direct
   `build-cmake/tests/checkall`, the `-> FAIL` stdout signal, exit codes, and the CUnit
   XML all work with no human step. Fault-inject → observe → revert was exercised end to
   end (67 `-> FAIL` lines on the seeded fault; 0 after revert).
-- **Phase B (local, walltime) is agent-operable.** `cmake -B build-cmake
+- **Phase C (local, walltime) is agent-operable.** `cmake -B build-cmake
   -DNFFT_BENCHMARK_MODE=walltime` built and ran offline end to end: `FetchContent`
   fetched codspeed-cpp `v2.3.0` (submodules auto-recursed), and the binary wrote a
   per-case stats JSON (`median_ns`, …) with no runner, token, or upload. The
@@ -32,12 +32,12 @@ above.
   simulation`, which apt-installs `valgrind-…codspeedN` over `/usr/bin/valgrind`); no
   account is needed for `codspeed setup` itself, only for `codspeed run`.
 - **Optional — CodSpeed MCP for CI-history parity.** To compare against the base
-  branch's CI numbers in Phase D, register the **CodSpeed MCP server**
+  branch's CI numbers in Phase E, register the **CodSpeed MCP server**
   (`npx add-mcp https://mcp.codspeed.io/mcp --name CodSpeed`, or the Claude Code plugin
   `CodSpeedHQ/codspeed`). It exposes tools to list/compare runs and read flamegraphs.
   **Prerequisites the user must provide:** a CodSpeed account, the repo onboarded to
   CodSpeed, and CI uploading results — so this is an *enhancement*, not a requirement,
-  and is **not wired by default**. Without it the Phase-D simulation check falls back to
+  and is **not wired by default**. Without it the Phase-E simulation check falls back to
   a rough raw-`valgrind` single-case cross-check, or is skipped (walltime-only).
 - **The Autotools benchmark path is legacy** (`./configure --enable-benchmarks
   --with-codspeed=<path>` + `make bench`): it needs a hand-built codspeed-cpp and

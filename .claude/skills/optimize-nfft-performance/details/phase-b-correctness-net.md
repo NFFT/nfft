@@ -1,6 +1,6 @@
-# Phase A — pin the correctness net
+# Phase B — pin the correctness net
 
-*[← Overview & map](../REFERENCE.md) · Prev: [Phase 0 — baseline](phase-0-baseline.md) · Next: [Phase B — performance metric](phase-b-performance-metric.md)*
+*[← Overview & map](../REFERENCE.md) · Prev: [Phase A — baseline](phase-a-baseline.md) · Next: [Phase C — performance metric](phase-c-performance-metric.md)*
 
 **A1. Identify the target.** A specific function / region, e.g. `X(trafo_direct)()` —
 the direct, O(N·M) NDFT in `kernel/nfft/nfft.c:145`.
@@ -38,3 +38,27 @@ the one to run in the inner loop. The detailed machine-readable report is
 empty.
 
 You now know the precise tests that guard this region.
+
+## Deliverables (exit criteria)
+
+Fill [`../templates/phase-b-correctness-net.md`](../templates/phase-b-correctness-net.md)
+in the task dir (`docs/perfeng/NNNN-<target-slug>/`, e.g. `0001-trafo-direct`). It has
+two outcomes — record exactly one:
+
+- **Net pinned ✅** — the fault flipped ≥1 case. The doc records: the injected fault
+  (saved verbatim as `artifacts/fault.diff`); the resulting net as a **Correctness
+  net** table (canonical format — see [deliverables.md](deliverables.md#canonical-formats))
+  *with the suite to run in the inner loop and the net size*; and the revert
+  confirmation (`git diff` empty, suite green again).
+- **Blocked ⛔** — no test failed even under a more destructive fault ⇒ region
+  uncovered. The doc is a **blocked report**: it documents the coverage gap and states
+  that the loop STOPS here — no Phase C/D/E. `artifacts/fault.diff` still records the
+  fault tried.
+
+*Deliverable = exit gate:* Phase B is not exitable until `phase-b-correctness-net.md`
+and `artifacts/fault.diff` exist AND the tracker Phase B row is flipped — `✅` (net
+pinned, proceed to C) or `⛔` (blocked, stop). On `⛔` the run ends here: set the
+tracker header **Status** = `reverted`, update the `docs/perfeng/README.md` index
+row (status `reverted`, one-line blocked outcome), and write the human report
+`summary.html` (`<body class>` = `fail`, documenting the coverage gap) — the index must
+not be left showing `in-progress`, and a blocked run still gets a reviewer-facing report.

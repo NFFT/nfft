@@ -21,25 +21,34 @@ known, trustworthy net (tests) and a known yardstick (benchmarks).
 The shape of the whole task:
 
 ```
+Step 0    open the task directory ── docs/perfeng/NNNN-<slug>/ + tracker README
 Preflight pick the measurement track ── CodSpeed available? → simulation, else walltime
-Phase 0   full baseline  ── capture EVERY test + benchmark result (the exit reference)
-Phase A   pin correctness net ── which tests guard the target?   [HARD GATE]
-Phase B   pin performance metric ── which benchmark measures it?  [HARD GATE]
-Phase C   inner loop ── optimize against the scoped net + metric
-Phase D   exit gate ── re-run the FULL Phase-0 baseline; no failure, no regression
+Phase A   full baseline  ── capture EVERY test + benchmark result (the exit reference)
+Phase B   pin correctness net ── which tests guard the target?   [HARD GATE]
+Phase C   pin performance metric ── which benchmark measures it?  [HARD GATE]
+Phase D   inner loop ── optimize against the scoped net + metric
+Phase E   exit gate ── re-run the FULL Phase-A baseline; no failure, no regression
 ```
 
-Phases A and B carry **hard gates**: if breaking the target fails *no* test, or if
+**Front-to-back tracking.** The whole run lives in one directory per optimization
+under [`docs/perfeng/`](../../../docs/perfeng/) — a tracker `README.md` plus one
+deliverable per phase, the way decisions accumulate as ADRs under `docs/adr/`. Each
+phase produces a concrete, canonical-format deliverable, and *deliverable = exit
+gate*: a phase isn't done until its file is written and the tracker row flipped. The
+layout, tracker template, and snapshot formats are in
+[`details/deliverables.md`](details/deliverables.md) — read it before Phase A.
+
+Phases B and C carry **hard gates**: if breaking the target fails *no* test, or if
 *no* concrete benchmark metric can be obtained for it, the task **cannot proceed** —
 that is a coverage gap to fix or escalate, not something to work around. The narrow
-net/metric from A and B drive the fast inner loop (Phase C); the full Phase-0
-baseline is the slow, authoritative check at the end (Phase D) that nothing outside
+net/metric from B and C drive the fast inner loop (Phase D); the full Phase-A
+baseline is the slow, authoritative check at the end (Phase E) that nothing outside
 that narrow scope was broken or slowed down.
 
 The worked example throughout is `X(trafo_direct)()` — the direct, O(N·M) NDFT
 (`kernel/nfft/nfft.c:145`): a real transformation, benchmarked forward and adjoint in
 1d/2d/3d. Picking a *wrong* target is possible (code no test pins, or that no benchmark
-measures), but you don't have to detect that up front — the Phase A and B hard gates
+measures), but you don't have to detect that up front — the Phase B and C hard gates
 surface it for you: no failing test, or no benchmark moves, means **stop**. See
 [caveats](details/caveats.md) for the common ways a target turns out unmeasurable.
 
@@ -47,17 +56,20 @@ surface it for you: no failing test, or no benchmark moves, means **stop**. See
 
 | Step | Detail doc |
 |------|-----------|
+| **Step 0 / deliverables** — task directory, tracker, canonical formats | [`details/deliverables.md`](details/deliverables.md) |
 | **Preflight** — pick the measurement track | [`details/preflight.md`](details/preflight.md) |
-| **Phase 0** — build tree + full baseline | [`details/phase-0-baseline.md`](details/phase-0-baseline.md) |
-| **Phase A** — pin the correctness net *[HARD GATE]* | [`details/phase-a-correctness-net.md`](details/phase-a-correctness-net.md) |
-| **Phase B** — pin the performance metric *[HARD GATE]* | [`details/phase-b-performance-metric.md`](details/phase-b-performance-metric.md) |
-| **Phase C** — inner loop | [`details/phase-c-inner-loop.md`](details/phase-c-inner-loop.md) |
-| **Phase D** — exit gate | [`details/phase-d-exit-gate.md`](details/phase-d-exit-gate.md) |
+| **Phase A** — build tree + full baseline | [`details/phase-a-baseline.md`](details/phase-a-baseline.md) |
+| **Phase B** — pin the correctness net *[HARD GATE]* | [`details/phase-b-correctness-net.md`](details/phase-b-correctness-net.md) |
+| **Phase C** — pin the performance metric *[HARD GATE]* | [`details/phase-c-performance-metric.md`](details/phase-c-performance-metric.md) |
+| **Phase D** — inner loop | [`details/phase-d-inner-loop.md`](details/phase-d-inner-loop.md) |
+| **Phase E** — exit gate | [`details/phase-e-exit-gate.md`](details/phase-e-exit-gate.md) |
 
 Cross-cutting references, consult as needed:
 
 | Topic | Doc |
 |-------|-----|
+| task directory layout, tracker, canonical deliverable formats | [`details/deliverables.md`](details/deliverables.md) |
+| fill-in skeletons to copy per phase (tracker + one per deliverable) | [`templates/`](templates/) |
 | walltime vs simulation; **working without CodSpeed** (the noise rule) | [`details/measurement-modes.md`](details/measurement-modes.md) |
 | pitfalls (crash faults, OpenMP-only changes, narrow benchmark coverage, benign errors) | [`details/caveats.md`](details/caveats.md) |
 | what is agent-operable, and what needs a CodSpeed account | [`details/tooling-status.md`](details/tooling-status.md) |
