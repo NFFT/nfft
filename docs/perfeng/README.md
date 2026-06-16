@@ -32,4 +32,4 @@ failure analysis and reusable lessons) and approve the work.
 
 | Task | Target | Track | Status | Outcome |
 |------|--------|-------|--------|---------|
-| _none yet_ | | | | |
+| [0001-trafo-direct](0001-trafo-direct/) | `X(trafo_direct)` (kernel/nfft/nfft.c:145) | walltime | complete (caveat) | recurrence: ~1.3×/1.6×/3.9× (d/f/l), net green all 3; one confirmed +8% float layout regression on an untouched control case → reviewer decides |

@@ -1,0 +1,24 @@
+diff --git a/kernel/nfft/nfft.c b/kernel/nfft/nfft.c
+index 4ae7b392..df60ebca 100644
+--- a/kernel/nfft/nfft.c
++++ b/kernel/nfft/nfft.c
+@@ -156,11 +156,15 @@ void X(trafo_direct)(const X(plan) *ths)
+     for (j = 0; j < ths->M_total; j++)
+     {
+       C v = K(0.0);
+-      INT k_L;
+-      for (k_L = 0; k_L < ths->N_total; k_L++)
++      INT k_L, rep;
++      for (rep = 0; rep < 10; rep++)
+       {
+-        R omega = K2PI * ((R)(k_L - ths->N_total/2)) * ths->x[j];
+-        v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
++        v = K(0.0);
++        for (k_L = 0; k_L < ths->N_total; k_L++)
++        {
++          R omega = K2PI * ((R)(k_L - ths->N_total/2)) * ths->x[j];
++          v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
++        }
+       }
+ 
+       f[j] = v;

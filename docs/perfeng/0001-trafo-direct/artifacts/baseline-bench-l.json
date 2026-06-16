@@ -1,0 +1,564 @@
+[
+  {
+    "creator": {
+      "name": "codspeed-cpp",
+      "version": "2.3.0",
+      "pid": 51739
+    },
+    "instrument": {
+      "type": "walltime"
+    },
+    "benchmarks": [
+      {
+        "name": "nfft_forward_direct_1d[32/100]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_1d[32/100]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.87201E+6,
+          "max_ns": 1.93389E+6,
+          "mean_ns": 1.89773E+6,
+          "stdev_ns": 20273.1,
+          "q1_ns": 1.88871E+6,
+          "median_ns": 1.89559E+6,
+          "q3_ns": 1.89845E+6,
+          "rounds": 5,
+          "total_time": 3.52029,
+          "iqr_outlier_rounds": 2,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 371,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_1d[64/200]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_1d[64/200]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 7.97481E+6,
+          "max_ns": 8.03381E+6,
+          "mean_ns": 7.99606E+6,
+          "stdev_ns": 20593.7,
+          "q1_ns": 7.98521E+6,
+          "median_ns": 7.98581E+6,
+          "q3_ns": 8.00067E+6,
+          "rounds": 5,
+          "total_time": 3.2384,
+          "iqr_outlier_rounds": 1,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 81,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_1d[128/400]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_1d[128/400]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 3.26973E+7,
+          "max_ns": 3.29268E+7,
+          "mean_ns": 3.28304E+7,
+          "stdev_ns": 88814.7,
+          "q1_ns": 3.27534E+7,
+          "median_ns": 3.28861E+7,
+          "q3_ns": 3.28887E+7,
+          "rounds": 5,
+          "total_time": 3.4472,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 21,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_1d[256/800]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_1d[256/800]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.31037E+8,
+          "max_ns": 1.33628E+8,
+          "mean_ns": 1.32267E+8,
+          "stdev_ns": 944229,
+          "q1_ns": 1.31639E+8,
+          "median_ns": 1.31978E+8,
+          "q3_ns": 1.33052E+8,
+          "rounds": 5,
+          "total_time": 3.30667,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 5,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_1d[512/1600]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_1d[512/1600]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 5.25612E+8,
+          "max_ns": 5.3104E+8,
+          "mean_ns": 5.28676E+8,
+          "stdev_ns": 1.97365E+6,
+          "q1_ns": 5.27979E+8,
+          "median_ns": 5.28143E+8,
+          "q3_ns": 5.30608E+8,
+          "rounds": 5,
+          "total_time": 2.64338,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_1d[32/100]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_1d[32/100]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.91092E+6,
+          "max_ns": 1.9302E+6,
+          "mean_ns": 1.92033E+6,
+          "stdev_ns": 6588.99,
+          "q1_ns": 1.91641E+6,
+          "median_ns": 1.91988E+6,
+          "q3_ns": 1.92425E+6,
+          "rounds": 5,
+          "total_time": 3.495,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 364,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_1d[64/200]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_1d[64/200]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 8.0982E+6,
+          "max_ns": 8.27585E+6,
+          "mean_ns": 8.16531E+6,
+          "stdev_ns": 65000.9,
+          "q1_ns": 8.10766E+6,
+          "median_ns": 8.15029E+6,
+          "q3_ns": 8.19452E+6,
+          "rounds": 5,
+          "total_time": 3.51108,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 86,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_1d[128/400]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_1d[128/400]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 3.28108E+7,
+          "max_ns": 3.30191E+7,
+          "mean_ns": 3.29182E+7,
+          "stdev_ns": 74118.9,
+          "q1_ns": 3.28717E+7,
+          "median_ns": 3.29118E+7,
+          "q3_ns": 3.29777E+7,
+          "rounds": 5,
+          "total_time": 3.45641,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 21,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_1d[256/800]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_1d[256/800]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.31071E+8,
+          "max_ns": 1.31893E+8,
+          "mean_ns": 1.31467E+8,
+          "stdev_ns": 334137,
+          "q1_ns": 1.311E+8,
+          "median_ns": 1.31517E+8,
+          "q3_ns": 1.31754E+8,
+          "rounds": 5,
+          "total_time": 3.28668,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 5,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_1d[512/1600]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_1d[512/1600]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 5.2479E+8,
+          "max_ns": 5.33493E+8,
+          "mean_ns": 5.28244E+8,
+          "stdev_ns": 2.84854E+6,
+          "q1_ns": 5.27547E+8,
+          "median_ns": 5.27667E+8,
+          "q3_ns": 5.27722E+8,
+          "rounds": 5,
+          "total_time": 2.64122,
+          "iqr_outlier_rounds": 2,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_2d[16/16/500]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_2d[16/16/500]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 8.23416E+7,
+          "max_ns": 8.34751E+7,
+          "mean_ns": 8.28783E+7,
+          "stdev_ns": 446961,
+          "q1_ns": 8.24122E+7,
+          "median_ns": 8.29158E+7,
+          "q3_ns": 8.32471E+7,
+          "rounds": 5,
+          "total_time": 3.31513,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 8,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_2d[32/32/1000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_2d[32/32/1000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 6.65826E+8,
+          "max_ns": 6.7259E+8,
+          "mean_ns": 6.68842E+8,
+          "stdev_ns": 2.26412E+6,
+          "q1_ns": 6.67697E+8,
+          "median_ns": 6.68311E+8,
+          "q3_ns": 6.69788E+8,
+          "rounds": 5,
+          "total_time": 3.34421,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_2d[64/64/2000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_2d[64/64/2000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 5.328E+9,
+          "max_ns": 5.39994E+9,
+          "mean_ns": 5.35797E+9,
+          "stdev_ns": 2.34382E+7,
+          "q1_ns": 5.34888E+9,
+          "median_ns": 5.35608E+9,
+          "q3_ns": 5.35695E+9,
+          "rounds": 5,
+          "total_time": 26.7898,
+          "iqr_outlier_rounds": 2,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_2d[16/16/500]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_2d[16/16/500]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 8.15288E+7,
+          "max_ns": 8.5149E+7,
+          "mean_ns": 8.30066E+7,
+          "stdev_ns": 1.65146E+6,
+          "q1_ns": 8.16912E+7,
+          "median_ns": 8.17634E+7,
+          "q3_ns": 8.49005E+7,
+          "rounds": 5,
+          "total_time": 3.7353,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 9,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_2d[32/32/1000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_2d[32/32/1000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 6.61181E+8,
+          "max_ns": 6.70514E+8,
+          "mean_ns": 6.65678E+8,
+          "stdev_ns": 3.32322E+6,
+          "q1_ns": 6.63622E+8,
+          "median_ns": 6.64817E+8,
+          "q3_ns": 6.68254E+8,
+          "rounds": 5,
+          "total_time": 3.32839,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_2d[64/64/2000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_2d[64/64/2000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 5.32178E+9,
+          "max_ns": 5.34761E+9,
+          "mean_ns": 5.33132E+9,
+          "stdev_ns": 9.55196E+6,
+          "q1_ns": 5.32481E+9,
+          "median_ns": 5.32584E+9,
+          "q3_ns": 5.33655E+9,
+          "rounds": 5,
+          "total_time": 26.6566,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_3d[4/4/4/250]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_3d[4/4/4/250]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 9.45761E+6,
+          "max_ns": 9.62009E+6,
+          "mean_ns": 9.54113E+6,
+          "stdev_ns": 53050.5,
+          "q1_ns": 9.5193E+6,
+          "median_ns": 9.54998E+6,
+          "q3_ns": 9.55864E+6,
+          "rounds": 5,
+          "total_time": 3.53022,
+          "iqr_outlier_rounds": 2,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 74,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_3d[8/8/8/500]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_3d[8/8/8/500]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.61053E+8,
+          "max_ns": 1.61837E+8,
+          "mean_ns": 1.6131E+8,
+          "stdev_ns": 283571,
+          "q1_ns": 1.61075E+8,
+          "median_ns": 1.61259E+8,
+          "q3_ns": 1.61327E+8,
+          "rounds": 5,
+          "total_time": 3.22621,
+          "iqr_outlier_rounds": 1,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 4,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_forward_direct_3d[16/16/16/1000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_forward_direct_3d[16/16/16/1000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 2.62011E+9,
+          "max_ns": 2.63406E+9,
+          "mean_ns": 2.62459E+9,
+          "stdev_ns": 5.0969E+6,
+          "q1_ns": 2.6203E+9,
+          "median_ns": 2.62336E+9,
+          "q3_ns": 2.62513E+9,
+          "rounds": 5,
+          "total_time": 13.123,
+          "iqr_outlier_rounds": 1,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_3d[4/4/4/250]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_3d[4/4/4/250]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 9.39479E+6,
+          "max_ns": 9.45541E+6,
+          "mean_ns": 9.41969E+6,
+          "stdev_ns": 25130.4,
+          "q1_ns": 9.39507E+6,
+          "median_ns": 9.40985E+6,
+          "q3_ns": 9.44332E+6,
+          "rounds": 5,
+          "total_time": 3.48528,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 74,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_3d[8/8/8/500]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_3d[8/8/8/500]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 1.59934E+8,
+          "max_ns": 1.61388E+8,
+          "mean_ns": 1.60387E+8,
+          "stdev_ns": 555912,
+          "q1_ns": 1.59987E+8,
+          "median_ns": 1.60025E+8,
+          "q3_ns": 1.60603E+8,
+          "rounds": 5,
+          "total_time": 3.20775,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 4,
+          "warmup_iters": 0
+        }
+      },
+      {
+        "name": "nfft_adjoint_direct_3d[16/16/16/1000]",
+        "uri": "benchmarks/bench_nfft_direct.cpp::nfft_adjoint_direct_3d[16/16/16/1000]",
+        "config": {
+          "warmup_time_ns": null,
+          "min_round_time_ns": null,
+          "max_time_ns": null,
+          "max_rounds": null
+        },
+        "stats": {
+          "min_ns": 2.62207E+9,
+          "max_ns": 2.63235E+9,
+          "mean_ns": 2.62655E+9,
+          "stdev_ns": 3.60515E+6,
+          "q1_ns": 2.62389E+9,
+          "median_ns": 2.6259E+9,
+          "q3_ns": 2.62852E+9,
+          "rounds": 5,
+          "total_time": 13.1327,
+          "iqr_outlier_rounds": 0,
+          "stdev_outlier_rounds": 0,
+          "iter_per_round": 1,
+          "warmup_iters": 0
+        }
+      }
+    ]
+  }
+]
