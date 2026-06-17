@@ -257,13 +257,14 @@ jobs:
       run: |
         if [ -f include/config.h ]; then mv include/config.h include/config.h.autotools.bak; fi
 
-    - name: CMake — configure (all windows; benchmark only in kaiserbessel)
+    - name: CMake — configure (all windows; benchmark only in gcc kaiserbessel)
       shell: bash
       env:
         WINDOW: ${{ matrix.window }}
         OPENMP: ${{ matrix.openmp }}
         PRECISION_OPT: ${{ matrix.precision_opt }}
         BUILD_JULIA: ${{ matrix.build_julia }}
+        COMPILER: ${{ matrix.compiler }}
       run: |
         case "${PRECISION_OPT}" in
           "")                     CMAKE_PREC="" ;;
@@ -278,9 +279,9 @@ jobs:
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
         fi
-        # Benchmark flags ONLY in the benchmark-producing (kaiserbessel) cells.
+        # Benchmark flags ONLY in the benchmark-producing cells: plain gcc, kaiserbessel.
         EXTRA=()
-        if [ "${WINDOW}" = "kaiserbessel" ]; then
+        if [ "${WINDOW}" = "kaiserbessel" ] && [ "${COMPILER}" = "gcc" ]; then
           AGNOSTIC_FLAGS="window:1"
           [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
           [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
@@ -385,7 +386,7 @@ jobs:
         ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
 
     - name: CMake — Benchmarks (CodSpeed upload — the sole reporter now)
-      if: matrix.window == 'kaiserbessel'
+      if: matrix.window == 'kaiserbessel' && matrix.compiler == 'gcc'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
         # "simulation" is the current name for what v3/codspeed-cpp called
