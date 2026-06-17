@@ -56,10 +56,6 @@ jobs:
           build-essential
           cmake
           libfftw3-dev
-          libcunit1-dev 
-          doxygen 
-          doxygen-latex 
-          graphviz
           libomp-dev
           libatomic1
 
@@ -94,16 +90,13 @@ jobs:
           *) echo "Unknown PRECISION_OPT '${PRECISION_OPT}'" >&2; exit 1 ;;
         esac
         EXTRA=()
-        if [ "${WINDOW}" = "kaiserbessel" ] && [ "${COMPILER}" = "gcc" ]; then
-          AGNOSTIC_FLAGS="window:1"
-          AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1"
-          [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-          EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
-                   -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
-                   -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
-                   -DCODSPEED_MODE=walltime
-                   -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
-        fi
+        AGNOSTIC_FLAGS="window:1,openmp:1"
+        [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
+        EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
+                  -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
+                  -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
+                  -DCODSPEED_MODE=walltime
+                  -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
         # -falign-functions/-falign-loops: force deterministic code layout so an
         # unrelated function's hot loop can't shift to a worse alignment when a
         # nearby function changes size (avoids phantom instruction-count regressions).
@@ -118,7 +111,6 @@ jobs:
       run: cmake --build build-cmake -j
 
     - name: CMake — Benchmarks
-      if: matrix.window == 'kaiserbessel' && matrix.compiler == 'gcc'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
         # "walltime" measures real elapsed time instead of the deterministic
