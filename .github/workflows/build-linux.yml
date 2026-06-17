@@ -165,7 +165,7 @@ jobs:
     
     - name: Autotools - Test
       id: test
-      if: matrix.compiler == 'gcc' && matrix.window == 'kaiserbessel'
+      if: matrix.compiler == 'gcc'
       run: make check
 
     - name: Autotools - Print checkall.log on test failure
@@ -332,7 +332,7 @@ jobs:
         echo "example/application binaries present"
 
     - name: CMake — Test
-      if: matrix.compiler == 'gcc' && matrix.window == 'kaiserbessel'
+      if: matrix.compiler == 'gcc'
       shell: bash
       run: |
         set -o pipefail
