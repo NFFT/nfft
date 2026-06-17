@@ -39,33 +39,20 @@ jobs:
 
     # - name: Disable man-db update
     #   run: sudo rm -f /var/lib/man-db/auto-update        
-    
-    - name: Install dependencies
-      uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
-      with:
-        PACKAGES: |
-          software-properties-common
-
-    - name: Add universe repo
-      run: sudo add-apt-repository universe
 
     - name: Install dependencies
-      uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
-      with:
-        PACKAGES: |
-          libc6-dbg
-          build-essential
-          cmake
-          libfftw3-dev
-          libomp-dev
-          libatomic1
+      run: |
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe
+        sudo apt-get update
+        sudo apt-get install -y libc6-dbg build-essential cmake libfftw3-dev libomp-dev libatomic1
 
     - name: Cache CodSpeed integration library
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       id: cache-codspeed
       with:
         path: codspeed-cpp
-        key: codspeed-cpp-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}
+        key: codspeed-cpp-${{ runner.arch }}-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}
 
     - name: Checkout CodSpeed integration library
       if: steps.cache-codspeed.outputs.cache-hit != 'true'
