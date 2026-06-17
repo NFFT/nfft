@@ -25,7 +25,7 @@ jobs:
     name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
     strategy:
       matrix:
-        os: ["ubuntu-latest"]
+        os: ["codspeed-macro"]
         compiler: ["gcc"]
         window: ["kaiserbessel"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
@@ -34,11 +34,11 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Disable initramfs update
-      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+    # - name: Disable initramfs update
+    #   run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
 
-    - name: Disable man-db update
-      run: sudo rm -f /var/lib/man-db/auto-update        
+    # - name: Disable man-db update
+    #   run: sudo rm -f /var/lib/man-db/auto-update        
     
     - name: Install dependencies
       uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
