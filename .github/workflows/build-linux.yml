@@ -14,9 +14,6 @@ concurrency:
   group: build-linux
   cancel-in-progress: false
 
-env:
-  CODSPEED_VERSION: v2.3.0
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -118,23 +115,6 @@ jobs:
 
     - name: Set up Python
       run: uv python install 3.13
-
-    - name: Cache CodSpeed integration library
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-      id: cache-codspeed
-      with:
-        path: codspeed-cpp
-        key: codspeed-cpp-${{ matrix.os }}-${{ env.CODSPEED_VERSION }}
-
-    - name: Checkout CodSpeed integration library
-      if: steps.cache-codspeed.outputs.cache-hit != 'true'
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      with:
-        persist-credentials: false
-        repository: CodSpeedHQ/codspeed-cpp
-        ref: "${{ env.CODSPEED_VERSION }}"
-        path: codspeed-cpp
-        submodules: recursive
 
     - name: Set up Octave
       if: matrix.build_octave == '1'
@@ -318,27 +298,11 @@ jobs:
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
         fi
-        # Benchmark flags ONLY in the benchmark-producing cells: plain gcc, kaiserbessel.
-        EXTRA=()
-        if [ "${WINDOW}" = "kaiserbessel" ] && [ "${COMPILER}" = "gcc" ]; then
-          AGNOSTIC_FLAGS="window:1"
-          AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1"
-          [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-          EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
-                   -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
-                   -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
-                   -DCODSPEED_MODE=walltime
-                   -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
-        fi
-        # -falign-functions/-falign-loops: force deterministic code layout so an
-        # unrelated function's hot loop can't shift to a worse alignment when a
-        # nearby function changes size (avoids phantom instruction-count regressions).
         cmake -S . -B build-cmake \
-          -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math -falign-functions=64 -falign-loops=32" \
+          -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
           -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
-          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
-          "${EXTRA[@]}"
+          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON"
 
     - name: CMake — Check config.h parity (Autotools vs. CMake)
       shell: bash
@@ -423,22 +387,6 @@ jobs:
         SUFFIX=$([ "${{ matrix.precision_opt }}" = "--enable-float" ] && echo f || \
                  { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
         ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
-
-    - name: CMake — Benchmarks
-      if: matrix.window == 'kaiserbessel' && matrix.compiler == 'gcc'
-      uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
-      with:
-        # "walltime" measures real elapsed time instead of the deterministic
-        # instruction-count "simulation" build. Must match -DCODSPEED_MODE=walltime
-        # in the configure step above. NOTE: walltime on shared GitHub-hosted
-        # runners is sensitive to neighbour noise; CodSpeed recommends their
-        # hosted macro runners for stable walltime data.
-        mode: walltime
-        run: |
-          ./build-cmake/benchmarks/bench_nfft_direct
-          if [ -x ./build-cmake/benchmarks/bench_nfft_direct_omp ]; then
-            ./build-cmake/benchmarks/bench_nfft_direct_omp
-          fi
 
     - name: CMake — Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
