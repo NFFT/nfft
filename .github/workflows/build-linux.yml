@@ -21,13 +21,13 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
-    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
+    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
     strategy:
       matrix:
-        os: ["ubuntu-latest"] # TODO: Add more Ubuntu versions, e.g. "ubuntu-20.04", "ubuntu-18.04".
+        os: ["ubuntu-latest"]
         compiler: ["gcc"]
-        window: ["kaiserbessel", "gaussian", "bspline", "sinc"] # TODO: Add dirac.
+        window: ["kaiserbessel", "gaussian", "bspline", "sinc"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
         openmp: [1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
@@ -75,14 +75,6 @@ jobs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         persist-credentials: false
-    - name: Enable core dumps
-      run: |
-        ulimit -c unlimited
-        sudo mkdir /cores
-        sudo chmod 777 /cores
-        # Core filenames will be of the form executable.pid.timestamp:
-        sudo bash -c 'echo "/cores/%e.%p.%t" > /proc/sys/kernel/core_pattern'
-        echo "Core dumps will be written to: /cores"
 
     - name: Disable initramfs update
       run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
@@ -179,31 +171,29 @@ jobs:
           exit 1
         fi
         
-    - name: Bootstrap
+    - name: Autotools - Bootstrap
       run: ./bootstrap.sh
     
-    - name: Configure
+    - name: Autotools - Configure
       shell: bash
       env:
         WINDOW: ${{ matrix.window }}
-        OPENMP: ${{ matrix.openmp }}
         PRECISION_OPT: ${{ matrix.precision_opt }}
         BUILD_OCTAVE: ${{ matrix.build_octave }}
         BUILD_JULIA: ${{ matrix.build_julia }}
       run: |
-        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests \
-        $(if [ "${OPENMP}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
+        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests --enable-openmp \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
     
-    - name: Build
+    - name: Autotools - Build
       run: make -j
     
-    - name: Test
+    - name: Autotools - Test
       id: test
       run: make check
 
-    - name: Print checkall.log on test failure
+    - name: Autotools - Print checkall.log on test failure
       if: failure() && steps.test.conclusion == 'failure'
       shell: bash
       run: |
@@ -225,16 +215,14 @@ jobs:
           echo "checkall_threads.log not found"
         fi
 
-    - name: Run tests again to reproduce failure
+    - name: Autotools - Run tests again to reproduce failure
       if: failure() && steps.test.conclusion == 'failure'
       shell: bash
-      env:
-        OPENMP: ${{ matrix.openmp }}
       run: |
         tests/checkall > checkall.log
-        if [ "${OPENMP}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
+        tests/checkall_threads > checkall_threads.log
 
-    - name: Upload test failure logs
+    - name: Autotools - Upload test failure logs
       if: failure() && steps.test.conclusion == 'failure'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
@@ -244,24 +232,83 @@ jobs:
           checkall_threads.log
         if-no-files-found: ignore
 
-    - name: Convert CUnit test reports to JUnit
+    - name: Autotools - Convert CUnit test reports to JUnit
       if: always()
       run: |
         conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
         [ -f tests/CUnitAutomated-Results.xml ]         && conv tests/CUnitAutomated-Results.xml         tests/junit.xml         || true
         [ -f tests/CUnitAutomated_threads-Results.xml ] && conv tests/CUnitAutomated_threads-Results.xml tests/junit_threads.xml || true
 
+    - name: Autotools - Publish Test Report (serial)
+      if: ${{ always() && hashFiles('tests/junit.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './tests/junit.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true,
+              "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-report.json",
+                "toolname": "junit-to-ctrf",
+                "useSuiteName": false,
+                "env": {
+                  "appName": "nfft"
+                }
+              }
+            }
+          }
+
+    - name: Autotools - Publish Test Report (threads)
+      if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
+      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      with:
+        report-path: './tests/junit_threads.xml'
+        integrations-config: |
+          {
+            "junit-to-ctrf": {
+              "enabled": true, "action": "convert",
+              "options": {
+                "output": "./ctrf-reports/ctrf-threads.json",
+                "toolname": "junit-to-ctrf", "useSuiteName": false,
+                "env": { "appName": "nfft-threads" }
+              }
+            }
+          }
+
+    - name: Autotools - Test Julia
+      if: matrix.build_julia == '1' && matrix.precision_opt == ''
+      run: |
+        for DIR in julia/nf*t julia/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.jl; do
+            julia -q "$NAME"
+          done
+          cd ../..
+        done
+    
+    - name: Autotools - Test Octave
+      if: matrix.build_octave == '1'
+      run: |
+        for DIR in matlab/nf*t matlab/fastsum; do
+          cd $DIR
+          for NAME in simple_test*.m; do
+            $OCTAVE --eval="run('$NAME')"
+          done
+          cd ../..
+        done
+
     # CMake build starts here.
-    - name: CMake — clear stale in-source config.h.
+    - name: CMake — Clear stale in-source config.h
       shell: bash
       run: |
         if [ -f include/config.h ]; then mv include/config.h include/config.h.autotools.bak; fi
 
-    - name: CMake — configure (all windows; benchmark only in gcc kaiserbessel)
+    - name: CMake — Configure (all windows; benchmark only in gcc kaiserbessel)
       shell: bash
       env:
         WINDOW: ${{ matrix.window }}
-        OPENMP: ${{ matrix.openmp }}
         PRECISION_OPT: ${{ matrix.precision_opt }}
         BUILD_JULIA: ${{ matrix.build_julia }}
         COMPILER: ${{ matrix.compiler }}
@@ -272,9 +319,7 @@ jobs:
           "--enable-long-double") CMAKE_PREC="-DNFFT_ENABLE_LONG_DOUBLE=ON" ;;
           *) echo "Unknown PRECISION_OPT '${PRECISION_OPT}'" >&2; exit 1 ;;
         esac
-        CMAKE_OMP=$([ "${OPENMP}" = "1" ] && echo "-DNFFT_ENABLE_OPENMP=ON" || echo "-DNFFT_ENABLE_OPENMP=OFF")
-        # Julia interface is double-only — mirror the Autotools --enable-julia gating.
-        # (Octave is NOT folded here; it stays in the standalone cmake-octave job.)
+        # Julia interface is double-only.
         CMAKE_JULIA=""
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
@@ -296,19 +341,19 @@ jobs:
         # nearby function changes size (avoids phantom instruction-count regressions).
         cmake -S . -B build-cmake \
           -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math -falign-functions=64 -falign-loops=32" \
-          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} ${CMAKE_OMP} ${CMAKE_JULIA} \
+          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
           "${EXTRA[@]}"
 
-    - name: CMake — config.h parity (Autotools vs. CMake)
+    - name: CMake — Check config.h parity (Autotools vs. CMake)
       shell: bash
       run: bash cmake/config-parity-check.sh include/config.h.autotools.bak build-cmake/config.h include/config.h.in
 
-    - name: CMake — build (library + benchmark)
+    - name: CMake — Build
       run: cmake --build build-cmake -j
 
-    - name: CMake — assert example/application binaries built
+    - name: CMake — Assert example/application
       shell: bash
       run: |
         set -e
@@ -327,13 +372,13 @@ jobs:
         fi
         echo "example/application binaries present"
 
-    - name: CMake — ctest (CUnit suite, parity with make check)
+    - name: CMake — Test
       shell: bash
       run: |
         set -o pipefail
         ctest --test-dir build-cmake --output-on-failure 2>&1 | tee build-cmake/ctest.log
 
-    - name: CMake — convert CUnit reports to JUnit
+    - name: CMake — Convert test reports to JUnit
       if: always()
       shell: bash
       run: |
@@ -375,7 +420,7 @@ jobs:
             }
           }
 
-    - name: CMake — test install
+    - name: CMake — Install
       if: matrix.window == 'kaiserbessel'
       shell: bash
       run: |
@@ -385,7 +430,7 @@ jobs:
                  { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
         ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
 
-    - name: CMake — Benchmarks (CodSpeed upload — the sole reporter now)
+    - name: CMake — Benchmarks
       if: matrix.window == 'kaiserbessel' && matrix.compiler == 'gcc'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
@@ -401,7 +446,7 @@ jobs:
             ./build-cmake/benchmarks/bench_nfft_direct_omp
           fi
 
-    - name: CMake — run-verify Julia staged simple_tests
+    - name: CMake — Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
       shell: bash
       run: |
@@ -415,110 +460,6 @@ jobs:
             ( cd "$DIR" && julia "$(basename "$NAME")" )
           done
         done
-
-    - name: Test Julia
-      if: matrix.build_julia == '1' && matrix.precision_opt == ''
-      run: |
-        for DIR in julia/nf*t julia/fastsum; do
-          cd $DIR
-          for NAME in simple_test*.jl; do
-            julia -q "$NAME"
-          done
-          cd ../..
-        done
-    
-    - name: Test Octave
-      if: matrix.build_octave == '1'
-      run: |
-        for DIR in matlab/nf*t matlab/fastsum; do
-          cd $DIR
-          for NAME in simple_test*.m; do
-            $OCTAVE --eval="run('$NAME')"
-          done
-          cd ../..
-        done
-
-    - name: Collect core dumps and binaries
-      if: failure()
-      run: |
-        # Extract binary paths from core dumps and copy them
-        for corefile in /cores/*.*.*; do
-          if [ -f "$corefile" ]; then
-            echo "Processing $corefile"
-            
-            # Get the binary path from the core dump
-            binary=$(file "$corefile" | grep -oP "from '[^']*'" | cut -d"'" -f2)
-            
-            # Alternative method using gdb (more reliable)
-            if command -v gdb &> /dev/null; then
-              binary=$(gdb -quiet -batch -c "$corefile" 2>/dev/null | grep "Core was generated by" | sed "s/Core was generated by \`\(.*\)'.*/\1/" | awk '{print $1}')
-            fi
-            
-            echo "Binary: $binary"
-            
-            # Copy the binary if it exists
-            if [ -n "$binary" ] && [ -f "$binary" ]; then
-              cp "$binary" /cores/
-              echo "Copied binary: $binary"
-              
-              # Also copy any shared libraries if needed
-              ldd "$binary" 2>/dev/null | grep "=>" | awk '{print $3}' | while read lib; do
-                if [ -f "$lib" ]; then
-                  cp --parents "$lib" /cores/ 2>/dev/null || true
-                fi
-              done
-            fi
-          fi
-        done
-        
-        ls -lah /cores/
-
-    - name: Upload core dumps
-      if: failure()
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      with:
-        name: coredumps-${{ github.run_id }}
-        path: /cores/
-        if-no-files-found: warn
-        retention-days: 7
-
-    - name: Publish Test Report
-      if: ${{ always() && hashFiles('tests/junit.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
-      with:
-        report-path: './tests/junit.xml'
-        integrations-config: |
-          {
-            "junit-to-ctrf": {
-              "enabled": true,
-              "action": "convert",
-              "options": {
-                "output": "./ctrf-reports/ctrf-report.json",
-                "toolname": "junit-to-ctrf",
-                "useSuiteName": false,
-                "env": {
-                  "appName": "nfft"
-                }
-              }
-            }
-          }
-
-    - name: Publish Test Report (threads)
-      if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
-      with:
-        report-path: './tests/junit_threads.xml'
-        integrations-config: |
-          {
-            "junit-to-ctrf": {
-              "enabled": true, "action": "convert",
-              "options": {
-                "output": "./ctrf-reports/ctrf-threads.json",
-                "toolname": "junit-to-ctrf", "useSuiteName": false,
-                "env": { "appName": "nfft-threads" }
-              }
-            }
-          }
 
   distcheck:
     runs-on: ubuntu-latest
