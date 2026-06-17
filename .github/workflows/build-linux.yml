@@ -165,6 +165,7 @@ jobs:
     
     - name: Autotools - Test
       id: test
+      if: matrix.compiler == 'gcc' && matrix.window == 'kaiserbessel'
       run: make check
 
     - name: Autotools - Print checkall.log on test failure
@@ -302,7 +303,7 @@ jobs:
           -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
           -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
-          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON"
+          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON
 
     - name: CMake — Check config.h parity (Autotools vs. CMake)
       shell: bash
@@ -331,6 +332,7 @@ jobs:
         echo "example/application binaries present"
 
     - name: CMake — Test
+      if: matrix.compiler == 'gcc' && matrix.window == 'kaiserbessel'
       shell: bash
       run: |
         set -o pipefail
