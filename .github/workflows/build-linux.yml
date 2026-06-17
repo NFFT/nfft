@@ -290,8 +290,11 @@ jobs:
                    -DCODSPEED_MODE=simulation
                    -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
         fi
+        # -falign-functions/-falign-loops: force deterministic code layout so an
+        # unrelated function's hot loop can't shift to a worse alignment when a
+        # nearby function changes size (avoids phantom instruction-count regressions).
         cmake -S . -B build-cmake \
-          -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
+          -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math -falign-functions=64 -falign-loops=32" \
           -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} ${CMAKE_OMP} ${CMAKE_JULIA} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
