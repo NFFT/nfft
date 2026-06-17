@@ -18,7 +18,7 @@ option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
 option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
 option(NFFT_ENABLE_BENCHMARKS  "Build CodSpeed benchmarks"        OFF)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
-option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       ON)
+option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
 
 # If tests are enabled, allow opt-in to set of more exhaustive tests.
 include(CMakeDependentOption)

@@ -155,8 +155,10 @@ jobs:
         PRECISION_OPT: ${{ matrix.precision_opt }}
         BUILD_OCTAVE: ${{ matrix.build_octave }}
         BUILD_JULIA: ${{ matrix.build_julia }}
+        COMPILER: ${{ matrix.compiler }}
       run: |
-        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests --enable-openmp \
+        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-openmp \
+        $(if [ "${COMPILER}" = "gcc" ]; then echo "--enable-tests  --enable-exhaustive-unit-tests"; fi) \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
     
@@ -299,9 +301,14 @@ jobs:
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
         fi
+        # CUnit test suite only where the tests actually run (gcc + kaiserbessel).
+        CMAKE_TESTS=""
+        if [ "${COMPILER}" = "gcc" ]; then
+          CMAKE_TESTS="-DNFFT_ENABLE_TESTS=ON"
+        fi
         cmake -S . -B build-cmake \
           -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
-          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} \
+          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} ${CMAKE_TESTS} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON
 
