@@ -29,7 +29,6 @@ jobs:
         compiler: ["gcc"]
         window: ["kaiserbessel", "gaussian", "bspline", "sinc"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
-        openmp: [1]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
         build_julia: [1]
         include:
@@ -38,21 +37,18 @@ jobs:
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 1
             build_octave: 0
             build_julia: 1
           - os: "ubuntu-latest"
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-float"
-            openmp: 1
             build_octave: 0
             build_julia: 1
           - os: "ubuntu-latest"
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: "--enable-long-double"
-            openmp: 1
             build_octave: 0
             build_julia: 1
           # GCC 14
@@ -60,7 +56,6 @@ jobs:
             compiler: "gcc-14"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 1
             build_octave: 0
             build_julia: 1
           # GCC Snapshot
@@ -68,7 +63,6 @@ jobs:
             compiler: "gcc-snapshot"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 1
             build_octave: 0
             build_julia: 1
     steps:    
@@ -328,7 +322,7 @@ jobs:
         EXTRA=()
         if [ "${WINDOW}" = "kaiserbessel" ] && [ "${COMPILER}" = "gcc" ]; then
           AGNOSTIC_FLAGS="window:1"
-          [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
+          AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1"
           [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
           EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
                    -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"

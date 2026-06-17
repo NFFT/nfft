@@ -1,4 +1,4 @@
-name: Build Linux
+name: Bench Linux
 
 on:
   push:
@@ -85,6 +85,7 @@ jobs:
       env:
         WINDOW: ${{ matrix.window }}
         PRECISION_OPT: ${{ matrix.precision_opt }}
+        COMPILER: ${{ matrix.compiler }}
       run: |
         case "${PRECISION_OPT}" in
           "")                     CMAKE_PREC="" ;;
@@ -109,6 +110,8 @@ jobs:
         cmake -S . -B build-cmake \
           -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math -falign-functions=64 -falign-loops=32" \
           -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON \
+          -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=OFF \
+          -DNFFT_ENABLE_EXAMPLES=OFF -DNFFT_ENABLE_APPLICATIONS=OFF \
           "${EXTRA[@]}"
 
     - name: CMake — Build
