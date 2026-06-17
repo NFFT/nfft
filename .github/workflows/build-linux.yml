@@ -288,7 +288,7 @@ jobs:
           EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
                    -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
                    -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
-                   -DCODSPEED_MODE=simulation
+                   -DCODSPEED_MODE=walltime
                    -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
         fi
         # -falign-functions/-falign-loops: force deterministic code layout so an
@@ -389,11 +389,12 @@ jobs:
       if: matrix.window == 'kaiserbessel' && matrix.compiler == 'gcc'
       uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
       with:
-        # "simulation" is the current name for what v3/codspeed-cpp called
-        # "instrumentation" (now a deprecated alias). codspeed-cpp v2.3.0 maps
-        # instrumentation/simulation/memory to the same CODSPEED_ANALYSIS build,
-        # so this is behavior- and benchmark-name-identical to the old value.
-        mode: simulation
+        # "walltime" measures real elapsed time instead of the deterministic
+        # instruction-count "simulation" build. Must match -DCODSPEED_MODE=walltime
+        # in the configure step above. NOTE: walltime on shared GitHub-hosted
+        # runners is sensitive to neighbour noise; CodSpeed recommends their
+        # hosted macro runners for stable walltime data.
+        mode: walltime
         run: |
           ./build-cmake/benchmarks/bench_nfft_direct
           if [ -x ./build-cmake/benchmarks/bench_nfft_direct_omp ]; then
