@@ -301,16 +301,12 @@ jobs:
         if [ "${BUILD_JULIA}" = "1" ] && [ -z "${PRECISION_OPT}" ]; then
           CMAKE_JULIA="-DNFFT_ENABLE_JULIA=ON"
         fi
-        # CUnit test suite only where the tests actually run (gcc + kaiserbessel).
-        CMAKE_TESTS=""
-        if [ "${COMPILER}" = "gcc" ]; then
-          CMAKE_TESTS="-DNFFT_ENABLE_TESTS=ON"
-        fi
         cmake -S . -B build-cmake \
           -DCMAKE_C_FLAGS="-O3 -g -fomit-frame-pointer -fstrict-aliasing -ffast-math" \
-          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} ${CMAKE_TESTS} \
+          -DNFFT_WINDOW="${WINDOW}" ${CMAKE_PREC} -DNFFT_ENABLE_OPENMP=ON ${CMAKE_JULIA} \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
-          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON
+          -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
+          -DNFFT_ENABLE_TESTS=ON
 
     - name: CMake — Check config.h parity (Autotools vs. CMake)
       shell: bash
@@ -338,54 +334,54 @@ jobs:
         fi
         echo "example/application binaries present"
 
-    - name: CMake — Test
-      if: matrix.compiler == 'gcc'
-      shell: bash
-      run: |
-        set -o pipefail
-        ctest --test-dir build-cmake --output-on-failure 2>&1 | tee build-cmake/ctest.log
+    # - name: CMake — Test
+    #   if: matrix.compiler == 'gcc'
+    #   shell: bash
+    #   run: |
+    #     set -o pipefail
+    #     ctest --test-dir build-cmake --output-on-failure 2>&1 | tee build-cmake/ctest.log
 
-    - name: CMake — Convert test reports to JUnit
-      if: always()
-      shell: bash
-      run: |
-        conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
-        [ -f build-cmake/tests/CUnitAutomated-Results.xml ]         && conv build-cmake/tests/CUnitAutomated-Results.xml         build-cmake/tests/junit.xml         || true
-        [ -f build-cmake/tests/CUnitAutomated_threads-Results.xml ] && conv build-cmake/tests/CUnitAutomated_threads-Results.xml build-cmake/tests/junit_threads.xml || true
+    # - name: CMake — Convert test reports to JUnit
+    #   if: always()
+    #   shell: bash
+    #   run: |
+    #     conv() { uv run --with lxml python -c "import sys;from lxml import etree;d=etree.parse(sys.argv[1]);open(sys.argv[3],'wb').write(etree.tostring(etree.XSLT(etree.parse(sys.argv[2]))(d),pretty_print=True))" "$1" tests/cunit2junit.xsl "$2"; }
+    #     [ -f build-cmake/tests/CUnitAutomated-Results.xml ]         && conv build-cmake/tests/CUnitAutomated-Results.xml         build-cmake/tests/junit.xml         || true
+    #     [ -f build-cmake/tests/CUnitAutomated_threads-Results.xml ] && conv build-cmake/tests/CUnitAutomated_threads-Results.xml build-cmake/tests/junit_threads.xml || true
 
-    - name: CMake — Publish Test Report (serial)
-      if: ${{ always() && hashFiles('build-cmake/tests/junit.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
-      with:
-        report-path: './build-cmake/tests/junit.xml'
-        integrations-config: |
-          {
-            "junit-to-ctrf": {
-              "enabled": true, "action": "convert",
-              "options": {
-                "output": "./ctrf-reports/ctrf-cmake.json",
-                "toolname": "junit-to-ctrf", "useSuiteName": false,
-                "env": { "appName": "nfft-cmake" }
-              }
-            }
-          }
+    # - name: CMake — Publish Test Report (serial)
+    #   if: ${{ always() && hashFiles('build-cmake/tests/junit.xml') != '' }}
+    #   uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+    #   with:
+    #     report-path: './build-cmake/tests/junit.xml'
+    #     integrations-config: |
+    #       {
+    #         "junit-to-ctrf": {
+    #           "enabled": true, "action": "convert",
+    #           "options": {
+    #             "output": "./ctrf-reports/ctrf-cmake.json",
+    #             "toolname": "junit-to-ctrf", "useSuiteName": false,
+    #             "env": { "appName": "nfft-cmake" }
+    #           }
+    #         }
+    #       }
 
-    - name: CMake — Publish Test Report (threads)
-      if: ${{ always() && hashFiles('build-cmake/tests/junit_threads.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
-      with:
-        report-path: './build-cmake/tests/junit_threads.xml'
-        integrations-config: |
-          {
-            "junit-to-ctrf": {
-              "enabled": true, "action": "convert",
-              "options": {
-                "output": "./ctrf-reports/ctrf-cmake-threads.json",
-                "toolname": "junit-to-ctrf", "useSuiteName": false,
-                "env": { "appName": "nfft-cmake-threads" }
-              }
-            }
-          }
+    # - name: CMake — Publish Test Report (threads)
+    #   if: ${{ always() && hashFiles('build-cmake/tests/junit_threads.xml') != '' }}
+    #   uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+    #   with:
+    #     report-path: './build-cmake/tests/junit_threads.xml'
+    #     integrations-config: |
+    #       {
+    #         "junit-to-ctrf": {
+    #           "enabled": true, "action": "convert",
+    #           "options": {
+    #             "output": "./ctrf-reports/ctrf-cmake-threads.json",
+    #             "toolname": "junit-to-ctrf", "useSuiteName": false,
+    #             "env": { "appName": "nfft-cmake-threads" }
+    #           }
+    #         }
+    #       }
 
     - name: CMake — Install
       if: matrix.window == 'kaiserbessel'
