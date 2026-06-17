@@ -53,6 +53,7 @@ jobs:
       uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
       with:
         PACKAGES: |
+          libc6-dbg
           build-essential
           cmake
           libfftw3-dev
