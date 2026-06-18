@@ -164,6 +164,7 @@ nfft-*
 
 # CMake build tree
 build/
+build-cmake*/
 
 # macOS
 .DS_Store

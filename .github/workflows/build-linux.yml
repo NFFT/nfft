@@ -264,7 +264,7 @@ jobs:
           done
           cd ../..
         done
-    
+
     - name: Autotools - Test Octave
       if: matrix.build_octave == '1'
       run: |
@@ -417,7 +417,7 @@ jobs:
         run: |
           cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DNFFT_WITH_OCTAVE=ON \
-            -DNFFT_ENABLE_OPENMP=ON -DNFFT_ENABLE_BENCHMARKS=OFF \
+            -DNFFT_ENABLE_OPENMP=ON \
             -DNFFT_ENABLE_EXAMPLES=OFF -DNFFT_ENABLE_APPLICATIONS=OFF \
             -DNFFT_ENABLE_TESTS=ON
 
