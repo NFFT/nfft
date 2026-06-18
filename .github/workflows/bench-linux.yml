@@ -100,11 +100,10 @@ jobs:
         EXTRA=()
         AGNOSTIC_FLAGS="window:1,openmp:1"
         [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-        EXTRA+=( -DNFFT_ENABLE_BENCHMARKS=ON
-                  -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
-                  -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
-                  -DCODSPEED_MODE=walltime
-                  -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
+        EXTRA+=( -DNFFT_BENCHMARK_MODE=wallclock
+                 -DBENCHMARKS_PREFIX="${BUILD_CONFIG}/"
+                 -DNFFT_AGNOSTIC_BENCHMARKS="$AGNOSTIC_FLAGS"
+                 -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$(pwd)/codspeed-cpp" )
         # -falign-functions/-falign-loops: force deterministic code layout so an
         # unrelated function's hot loop can't shift to a worse alignment when a
         # nearby function changes size (avoids phantom instruction-count regressions).
