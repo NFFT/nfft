@@ -1,6 +1,13 @@
 name: Bench Linux
 
 on:
+  # SECURITY INVARIANT: use `pull_request`, NEVER `pull_request_target`.
+  # `pull_request` runs fork code with a read-only token and no secrets;
+  # `pull_request_target` would expose a read-write token + secrets to
+  # untrusted PR code. Benchmarks on PRs are gated by the `benchmarks`
+  # environment approval below (see the job's `environment:`); pushes to the
+  # default branches run automatically to keep the CodSpeed baseline fresh.
+  # `workflow_dispatch` runs are also un-gated (ad-hoc manual runs).
   push:
     branches: [ main, develop, master ]
   pull_request:
@@ -11,14 +18,27 @@ permissions:
   contents: read
 
 concurrency:
-  group: bench-linux
-  cancel-in-progress: false
+  # Per-ref group: a new push to a PR supersedes that PR's older, not-yet-approved
+  # benchmark run (GitHub can't distinguish "waiting for approval" from "running",
+  # so cancel-in-progress cancels the stale waiting run too — desired, since the
+  # superseded commit's run is stale anyway). Per-ref (not global) so one PR never
+  # cancels another PR's or the default branch's run. The approval gate is now the
+  # throttle, so global serialization is no longer needed. For default-branch
+  # pushes, a rapid second push likewise supersedes the first; CodSpeed still
+  # records the latest commit as the baseline.
+  group: bench-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CODSPEED_VERSION: v2.3.0
 
 jobs:
   build:
+    # OPT-IN GATE: on pull_request, reference the protected `benchmarks`
+    # environment so a required reviewer must approve before any PR code runs.
+    # On push/workflow_dispatch the name is empty -> no environment -> no gate,
+    # so default-branch baseline runs stay automatic.
+    environment: ${{ github.event_name == 'pull_request' && 'benchmarks' || '' }}
     runs-on: ${{ matrix.os }}
     env:
       BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
