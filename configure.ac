@@ -653,10 +653,19 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 #include <complex.h>])
 fi
 
-# CUnit
-NFFT_LIB_CUNIT
+# option for the CUnit test suite (requires CUnit, disabled by default)
+AC_ARG_ENABLE(tests, [AS_HELP_STRING([--enable-tests],[enable the CUnit test suite])], enable_tests=$enableval, enable_tests=no)
 
-AM_CONDITIONAL(HAVE_CUNIT, test "x$cunit_have_lib" = "xyes" )
+# CUnit
+cunit_have_lib="no"
+if test "x$enable_tests" = "xyes"; then
+  NFFT_LIB_CUNIT
+  if test "x$cunit_have_lib" != "xyes"; then
+    AC_MSG_ERROR([You have enabled the test suite (--enable-tests), but the CUnit library was not found.])
+  fi
+fi
+
+AM_CONDITIONAL(HAVE_CUNIT, test "x$enable_tests" = "xyes" -a "x$cunit_have_lib" = "xyes" )
 AC_SUBST(cunit_CPPFLAGS)
 AC_SUBST(cunit_LDFLAGS)
 AC_SUBST(cunit_LIBS)
