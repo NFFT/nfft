@@ -241,7 +241,7 @@ jobs:
         fi
         cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DNFFT_WINDOW=kaiserbessel ${CMAKE_PREC} ${CMAKE_JULIA} \
-          -DNFFT_ENABLE_OPENMP=OFF -DNFFT_ENABLE_BENCHMARKS=OFF \
+          -DNFFT_ENABLE_OPENMP=OFF \
           -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
           -DFFTW3_ROOT=/opt/homebrew

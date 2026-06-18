@@ -54,7 +54,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=ON \
             -DNFFT_ENABLE_OPENMP=OFF \
-            -DNFFT_ENABLE_BENCHMARKS=OFF \
             -DNFFT_ENABLE_EXAMPLES=OFF \
             -DNFFT_ENABLE_APPLICATIONS=OFF
 

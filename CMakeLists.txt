@@ -16,9 +16,20 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs on Windows)" ON)
 option(NFFT_ENABLE_FLOAT       "Build single (float) precision"   OFF)
 option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
 option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
-option(NFFT_ENABLE_BENCHMARKS  "Build CodSpeed benchmarks"        OFF)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
 option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
+
+# Benchmarks: a single knob that both selects the CodSpeed measurement mode and
+# (when not "off") enables the benchmark build. The mode is baked in at build time
+# and forwarded to codspeed-cpp's CODSPEED_MODE.
+#   off        - benchmarks not built (default).
+#   simulation - deterministic instruction count via callgrind (needs valgrind to
+#                measure); the mode CI gates on.
+#   walltime   - wall-clock timing; the binary writes a local JSON of per-benchmark
+#                stats to $CODSPEED_PROFILE_FOLDER (offline, no runner/upload).
+set(NFFT_BENCHMARK_MODE "off" CACHE STRING
+    "Benchmark build + CodSpeed mode: off|simulation|walltime")
+set_property(CACHE NFFT_BENCHMARK_MODE PROPERTY STRINGS off simulation walltime)
 
 # If tests are enabled, allow opt-in to set of more exhaustive tests.
 include(CMakeDependentOption)
@@ -203,8 +214,8 @@ include(nfft_programs)  # nfft_add_serial_program / nfft_add_omp_program helpers
 # Kernel always built.
 add_subdirectory(kernel)
 
-# Optional benchmarks.
-if(NFFT_ENABLE_BENCHMARKS)
+# Optional benchmarks (built unless NFFT_BENCHMARK_MODE is "off").
+if(NOT NFFT_BENCHMARK_MODE STREQUAL "off")
   include(nfft_benchmarks) # parse NFFT_AGNOSTIC_BENCHMARKS into gating vars
   add_subdirectory(benchmarks)
 endif()

@@ -16,6 +16,11 @@ include(FetchContent)
 # Codspeed version.
 set(CODSPEED_VERSION "v2.3.0" CACHE STRING "codspeed-cpp tag")
 
+# Forward onto codspeed-cpp's own CODSPEED_MODE cache var. FORCE so that reconfiguring 
+# a tree with a different -DNFFT_BENCHMARK_MODE takes effect.
+set(CODSPEED_MODE "${NFFT_BENCHMARK_MODE}" CACHE STRING "Build mode for Codspeed" FORCE)
+message(STATUS "NFFT benchmark mode: ${NFFT_BENCHMARK_MODE}")
+
 # Build the CodSpeed google_benchmark fork with our toolchain.
 set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_TESTING        OFF CACHE BOOL "" FORCE)
