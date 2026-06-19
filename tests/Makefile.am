@@ -38,6 +38,10 @@ checkall_SOURCES = check.c util.c util.h reflect.c reflect.h bspline.c bspline.h
 checkall_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
+EXTRA_DIST = data/generated/nfft_testcases.h \
+             data/generated/nfct_testcases.h \
+             data/generated/nfst_testcases.h
+
 if ENABLE_OPENMP
 checkall_threads_SOURCES = $(checkall_SOURCES)
 checkall_threads_CPPFLAGS = -I$(top_srcdir)/include $(cunit_CPPFLAGS)

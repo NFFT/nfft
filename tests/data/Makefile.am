@@ -1,11 +1,11 @@
-EXTRA_DIST = nfct_1d_10_1.txt  \
-nfct_1d_10_10.txt  \
-nfct_1d_10_25.txt  \
-nfct_1d_10_50.txt  \
-nfct_1d_1_1.txt  \
-nfct_1d_1_10.txt  \
-nfct_1d_1_25.txt  \
-nfct_1d_1_50.txt  \
+EXTRA_DIST = nfct_1d_10_1.txt \
+nfct_1d_10_10.txt \
+nfct_1d_10_25.txt \
+nfct_1d_10_50.txt \
+nfct_1d_1_1.txt \
+nfct_1d_1_10.txt \
+nfct_1d_1_25.txt \
+nfct_1d_1_50.txt \
 nfct_1d_25_1.txt \
 nfct_1d_25_10.txt \
 nfct_1d_25_25.txt \

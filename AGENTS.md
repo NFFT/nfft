@@ -130,6 +130,9 @@ Checking which tests pass/fail:
 The C tests (`tests/nfft.c`, `nfct.c`, `nfst.c`, `check_nfsft.c`, …) validate
 transforms against reference data in `tests/data/` and against the direct
 (slow) transforms. Use `--enable-exhaustive-unit-tests` for the thorough set.
+The `tests/data/` reference data is produced by a Python generator (`tests/refgen/`);
+see [`docs/agents/test-methodology.md`](docs/agents/test-methodology.md) for the test
+methodology and how to regenerate it.
 
 ## 4. Running the benchmarks
 

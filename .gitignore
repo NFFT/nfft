@@ -162,6 +162,8 @@ linux-build-mex/*
 nfft-*
 .vscode/*
 
+.venv/
+
 # CMake build tree
 build/
 build-cmake*/
