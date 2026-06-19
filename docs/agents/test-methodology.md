@@ -53,8 +53,13 @@ product with dimension 0 lowest; per-dim ranges are `[⌈-N/2⌉..⌊(N-1)/2⌋]
 `[0..N-1]` (NFCT), `[1..N-1]` (NFST). Filenames:
 `<module>[_adjoint]_<d>d_<N0>[_<N1>…]_<M>.txt`.
 
-The values carry ≥64 significant digits — more than long-double (≈19) or quad (≈34),
-so the same files serve every precision; the C reader (`__FI__`) rounds on input.
+The two **input** sections — the nodes `x` and the input coefficients (`f_hat` for a
+trafo case, `f` for an adjoint case) — are drawn as single-precision floats, so they
+are exactly representable in every build precision (float through quad) and are written
+**compactly**, with trailing zeros stripped. The remaining **output** section is the
+high-precision reference and carries ≥64 significant digits — more than long-double
+(≈19) or quad (≈34) — so the same files serve every precision; the C reader (`__FI__`)
+reads each value and rounds it to the build's type on input.
 
 ## The reference-data generator
 
@@ -79,11 +84,8 @@ uv run --with mpmath==1.3.0 python -m tests.refgen.generate --module all --preci
 See [`tests/refgen/README.md`](../../tests/refgen/README.md) for all CLI options and
 the generator self-tests.
 
-> **Current state:** the committed `tests/data/*.txt` are still the original
-> (Mathematica-era) reference data. The generator and its committed headers/wiring
-> are in place, but regenerating and replacing the shipped `.txt` is deferred to a
-> later change. The generated headers reference exactly the shipped filenames, so the
-> existing data validates against them unchanged.
+The committed `tests/data/*.txt` are now produced by this generator (regenerated with
+`--module all --precision 64 --seed 1`), replacing the original Mathematica-era data.
 
 ## How to add a new transform's tests
 

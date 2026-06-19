@@ -7,21 +7,31 @@ NFFT scalars are complex ("re im"); NFCT/NFST are real (one value).
 import mpmath
 
 
-def fmt_scalar(value, ndig, is_complex):
+def fmt_scalar(value, ndig, is_complex, strip_zeros=False):
     """Format one scalar. Complex -> 're im'; real -> 're'. Fixed-point, no exponent."""
     if is_complex:
-        return "%s %s" % (_fmt_real(value.real, ndig), _fmt_real(value.imag, ndig))
-    return _fmt_real(value, ndig)
+        return "%s %s" % (_fmt_real(value.real, ndig, strip_zeros),
+                          _fmt_real(value.imag, ndig, strip_zeros))
+    return _fmt_real(value, ndig, strip_zeros)
 
 
-def _fmt_real(v, ndig):
+def _fmt_real(v, ndig, strip_zeros=False):
     # mpmath.nstr with no exponent: values here are O(1)..O(M), safe as fixed-point.
-    s = mpmath.nstr(mpmath.mpf(v), ndig, strip_zeros=False, min_fixed=-mpmath.inf,
+    # strip_zeros=True drops trailing zeros: inputs are drawn as floats, so their
+    # exact decimal is short and padding to ndig is pure waste (lossless to strip).
+    s = mpmath.nstr(mpmath.mpf(v), ndig, strip_zeros=strip_zeros, min_fixed=-mpmath.inf,
                     max_fixed=mpmath.inf)
     return s
 
 
-def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig):
+def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig, input_is_f_hat=None):
+    # Inputs are drawn as floats (exact in every build precision), so their decimals
+    # are short — strip trailing zeros to keep the files compact. The high-precision
+    # computed *output* keeps the full ndig. The nodes x are always an input; of the
+    # coefficient vectors, the input is f_hat for a trafo case and f for an adjoint
+    # case (input_is_f_hat True/False); None keeps full precision for both.
+    strip_f_hat = input_is_f_hat is True
+    strip_f = input_is_f_hat is False
     lines = []
     lines.append(str(d))
     lines.append("")
@@ -32,13 +42,13 @@ def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig):
     lines.append("")
     for xj in x:  # node-major: node j's d coords contiguous
         for coord in xj:
-            lines.append(_fmt_real(coord, ndig))
+            lines.append(_fmt_real(coord, ndig, strip_zeros=True))
     lines.append("")
     for v in f_hat:
-        lines.append(fmt_scalar(v, ndig, is_complex))
+        lines.append(fmt_scalar(v, ndig, is_complex, strip_zeros=strip_f_hat))
     lines.append("")
     for v in f:
-        lines.append(fmt_scalar(v, ndig, is_complex))
+        lines.append(fmt_scalar(v, ndig, is_complex, strip_zeros=strip_f))
     lines.append("")
     with open(path, "w") as fp:
         fp.write("\n".join(lines) + "\n")

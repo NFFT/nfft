@@ -77,10 +77,12 @@ def test_quad_precision_digits(tmp_path):
     # Generate one nfft file at quad-target precision and check digit count.
     GEN.main(["--module", "nfft", "--precision", "40",
               "--data-dir", str(tmp_path), "--header-dir", str(tmp_path)])
-    # pick the smallest file
-    p = tmp_path / "nfft_1d_1_1.txt"
+    # Use a file whose output is a genuine multi-term sum (N=10 > 1).
+    p = tmp_path / "nfft_1d_10_1.txt"
     toks = p.read_text().split()
-    # node value should carry >=34 significant digits (quad)
-    node = toks[3]  # d, N, M, then first node
-    sig = node.replace("-", "").replace(".", "").lstrip("0")
+    # The computed *output* (last scalar of the f section) must carry >=34
+    # significant digits (quad-sufficient). Inputs (nodes/coefficients) are now
+    # drawn as floats and written compact, so the digit budget lives in the output.
+    out = toks[-1]
+    sig = out.replace("-", "").replace(".", "").lstrip("0")
     assert len(sig) >= 34
