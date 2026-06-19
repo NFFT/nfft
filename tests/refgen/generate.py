@@ -5,6 +5,7 @@
 import argparse
 import os
 import random
+import struct
 
 import mpmath
 
@@ -20,16 +21,25 @@ def _is_complex(module):
     return module == "nfft"
 
 
+def _f32(v):
+    """Round a Python float (double) to IEEE-754 single precision, returned as the
+    exact double that holds that float value."""
+    return struct.unpack("f", struct.pack("f", v))[0]
+
+
 def _draw_inputs(module, kind, d, N, M, rng):
-    """Reproducible inputs. Nodes drawn as doubles (exactly representable in any R,
-    so the C reader rounds losslessly even at quad); summation is high precision."""
+    """Reproducible inputs. Nodes and coefficients are drawn as single-precision
+    (float) values: a float is exactly representable in float, double, long double,
+    and __float128, so the C reader reproduces the input bit-for-bit at *every*
+    precision — including the float build — leaving no input-rounding term (only
+    summation error). Summation itself is done at the configured high precision."""
     lo, hi = (-0.5, 0.5) if module == "nfft" else (0.0, 0.5)
-    x = [tuple(mpmath.mpf(rng.uniform(lo, hi)) for _ in range(d)) for _ in range(M)]
+    x = [tuple(mpmath.mpf(_f32(rng.uniform(lo, hi))) for _ in range(d)) for _ in range(M)]
     count = T.nn(module, N) if kind == "trafo" else M
     if _is_complex(module):
-        coeff = [mpmath.mpc(rng.uniform(-1, 1), rng.uniform(-1, 1)) for _ in range(count)]
+        coeff = [mpmath.mpc(_f32(rng.uniform(-1, 1)), _f32(rng.uniform(-1, 1))) for _ in range(count)]
     else:
-        coeff = [mpmath.mpf(rng.uniform(-1, 1)) for _ in range(count)]
+        coeff = [mpmath.mpf(_f32(rng.uniform(-1, 1))) for _ in range(count)]
     return x, coeff
 
 

@@ -25,34 +25,34 @@ Replace the test-data notebooks with `tests/refgen/`, a Python + mpmath generato
   generator carries its own pytest self-tests (run locally with
   `uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/refgen/tests`).
   (No CI workflow is wired up for now; a regenerate-and-`git diff --exit-code` drift
-  guard is intentionally deferred — the shipped `.txt` data has not yet been
-  regenerated from this generator, see below, so there is nothing for it to pin
-  against yet.)
+  guard could be added later to enforce that the committed artifacts stay in step
+  with the generator.)
 - The generator has its own pytest self-tests (equispaced NDFT = DFT, adjoint =
   conjugate transpose, hand-computed cases, format round-trip).
 
-### Input values are drawn as doubles, summed at high precision
-Nodes and input coefficients are drawn with a 53-bit (double) PRNG and only the
-*summation* is done at the configured arbitrary precision. Rationale: the stored
-decimal of a double is representable **exactly** in `long double` and `__float128`,
-so the C reader reproduces the generator's input bit-for-bit at *every* precision —
-the cross-precision comparison carries **no input-rounding term**, only summation
-error, which the existing `48·ε`/`120·ε`/`130·ε` bounds cover. This keeps a future
-quad-accuracy measurement (for tuning the `MANT_DIG==113` bound constants) free of an
-input-rounding artifact. Drawing full-precision random inputs (as Mathematica did)
-also passes, but injects a tiny bounded input perturbation at every precision; we
-prefer the cleaner property. Node entropy is irrelevant for these deterministic
-accuracy tests, and the transforms are continuous in `x`, so 53-bit nodes lose
-nothing.
+### Input values are drawn as single-precision floats, summed at high precision
+Nodes and input coefficients are drawn with the PRNG and **rounded to 24-bit single
+precision (`float`)**; only the *summation* is done at the configured arbitrary
+precision. Rationale: a `float` value is representable **exactly** in `float`,
+`double`, `long double`, and `__float128`, so the C reader reproduces the generator's
+input bit-for-bit at *every* precision the library builds — **including the `float`
+build**. The cross-precision comparison therefore carries **no input-rounding term**,
+only summation error, which the existing `48·ε`/`120·ε`/`130·ε` bounds cover.
+(Drawing as `double`, as we did initially, has this property only for `long double`
+and `__float128`; the `float` build then has to round the stored double input down to
+single precision, injecting an input-rounding term that the `float` tests would carry.
+Drawing as `float` is the smallest draw precision that is exact in all four types, so
+it cleanly covers the `float` suite too.) This also keeps a future quad-accuracy
+measurement (for tuning the `MANT_DIG==113` bound constants) free of an input-rounding
+artifact. Node entropy is irrelevant for these deterministic accuracy tests, and the
+transforms are continuous in `x`, so 24-bit nodes lose nothing.
 
-Mathematica's `SeedRandom[1]` is not byte-reproducible outside Mathematica, so once
-the `.txt` are regenerated they will carry new (equally valid) random inputs;
-correctness is then verified by `make check` against the unchanged error bounds, not
-by byte-equality. **That regeneration is deferred:** the shipped `tests/data/*.txt`
-remain the original Mathematica data for now, and the generator's committed headers
-reference the same filenames, so `make check` passes against the existing data. Only
-the generator, its headers, and the build wiring land in this change; replacing the
-data is a separate later step.
+Mathematica's `SeedRandom[1]` is not byte-reproducible outside Mathematica, so the
+regenerated `.txt` carry new (equally valid) random inputs; correctness is verified by
+`make check` against the unchanged error bounds, not by byte-equality. The generator,
+its headers, and the build wiring landed first; the shipped `tests/data/*.txt` were
+then regenerated from it in a follow-up change (filenames unchanged), so the data is
+now produced from the Python source rather than the retired notebooks.
 
 The legacy **transform-data** notebooks are moved to `tests/legacy/` (slated for
 removal in a later change; git history also retains them). Kept,

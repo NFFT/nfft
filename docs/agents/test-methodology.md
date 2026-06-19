@@ -79,11 +79,8 @@ uv run --with mpmath==1.3.0 python -m tests.refgen.generate --module all --preci
 See [`tests/refgen/README.md`](../../tests/refgen/README.md) for all CLI options and
 the generator self-tests.
 
-> **Current state:** the committed `tests/data/*.txt` are still the original
-> (Mathematica-era) reference data. The generator and its committed headers/wiring
-> are in place, but regenerating and replacing the shipped `.txt` is deferred to a
-> later change. The generated headers reference exactly the shipped filenames, so the
-> existing data validates against them unchanged.
+The committed `tests/data/*.txt` are now produced by this generator (regenerated with
+`--module all --precision 64 --seed 1`), replacing the original Mathematica-era data.
 
 ## How to add a new transform's tests
 
