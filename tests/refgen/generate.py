@@ -61,8 +61,11 @@ def _gen_module(module, precision, seed, data_dir):
                 f = coeff
                 f_hat = T.adjoint(module, N, M, x, f)
             path = os.path.join(data_dir, G.basename(module, kind, d, N, M) + ".txt")
+            # trafo: f_hat is the (float-drawn) input, f the computed output;
+            # adjoint: the roles swap. Inputs get trailing zeros stripped.
             IO.write_testcase(path, d, N, M, x, f_hat, f,
-                              is_complex=is_c, ndig=precision)
+                              is_complex=is_c, ndig=precision,
+                              input_is_f_hat=(kind == "trafo"))
             print("wrote", path)
 
 

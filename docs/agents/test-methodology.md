@@ -53,8 +53,13 @@ product with dimension 0 lowest; per-dim ranges are `[⌈-N/2⌉..⌊(N-1)/2⌋]
 `[0..N-1]` (NFCT), `[1..N-1]` (NFST). Filenames:
 `<module>[_adjoint]_<d>d_<N0>[_<N1>…]_<M>.txt`.
 
-The values carry ≥64 significant digits — more than long-double (≈19) or quad (≈34),
-so the same files serve every precision; the C reader (`__FI__`) rounds on input.
+The two **input** sections — the nodes `x` and the input coefficients (`f_hat` for a
+trafo case, `f` for an adjoint case) — are drawn as single-precision floats, so they
+are exactly representable in every build precision (float through quad) and are written
+**compactly**, with trailing zeros stripped. The remaining **output** section is the
+high-precision reference and carries ≥64 significant digits — more than long-double
+(≈19) or quad (≈34) — so the same files serve every precision; the C reader (`__FI__`)
+reads each value and rounds it to the build's type on input.
 
 ## The reference-data generator
 
