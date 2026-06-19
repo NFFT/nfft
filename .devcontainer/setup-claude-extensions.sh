@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
 # Install a well-defined set of Claude Code plugins and skills into the dev
-# container so a freshly started container has them by default.
+# container, and apply user-level Claude Code settings, so a freshly started
+# container has them by default.
 #
-# Scope is user-level (~/.claude). The script is idempotent and never aborts 
+# Scope is user-level (~/.claude). The script is idempotent and never aborts
 # container creation on a failed install.
 #
 # What it installs:
@@ -13,6 +14,9 @@
 #   Skills:
 #     - mattpocock/skills                      (Matt Pocock's skills)
 #     - shadcn/improve                         (shadcn Improve skill)
+#   Settings (~/.claude/settings.json):
+#     - attribution.commit = ""                (no Claude attribution on commits)
+#     - attribution.pr     = ""                (no Claude attribution on PRs)
 
 set -u
 
@@ -91,6 +95,32 @@ if [ "${NPX_OK}" = "1" ]; then
       npx -y skills@latest add "${src}" \
         --skill '*' --agent claude-code --global --yes
   done
+fi
+
+# --- Settings --------------------------------------------------------------
+# Apply user-level Claude Code settings. Merge into any existing settings.json
+# rather than clobbering it, preserving keys the user (or other tooling) set.
+# `node` ships with the claude-code devcontainer feature; fall back gracefully.
+if command -v node >/dev/null 2>&1; then
+  # Empty attribution strings = no "Co-Authored-By: Claude" / "Generated with
+  # Claude Code" text on commits or PRs. (Supersedes the deprecated
+  # `includeCoAuthoredBy` boolean.)
+  try "clear git attribution" node -e '
+    const fs = require("fs");
+    const os = require("os");
+    const path = require("path");
+    const dir = path.join(os.homedir(), ".claude");
+    const file = path.join(dir, "settings.json");
+    fs.mkdirSync(dir, { recursive: true });
+    let settings = {};
+    try {
+      settings = JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch (e) { /* missing or empty/invalid: start fresh */ }
+    settings.attribution = { ...settings.attribution, commit: "", pr: "" };
+    fs.writeFileSync(file, JSON.stringify(settings, null, 2) + "\n");
+  '
+else
+  warn "'node' not found on PATH — skipping settings.json update."
 fi
 
 # --- Summary ---------------------------------------------------------------
