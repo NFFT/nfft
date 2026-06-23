@@ -2795,15 +2795,19 @@ void X(trafo_1d)(X(plan) *ths)
     R *c_phi_inv1, *c_phi_inv2;
 
     TIC(0)
+    /* Only the oversampling gap g_hat[N/2 .. n-N/2) needs to be zeroed: the two
+       outer blocks g_hat[0 .. N/2) and g_hat[n-N/2 .. n) are fully overwritten
+       by the deconvolution loop below.  (Since sigma > 1 we have n > N, so the
+       gap length n-N is positive and the two blocks do not overlap.) */
 #ifdef _OPENMP
     {
       INT k;
       #pragma omp parallel for default(shared) private(k)
-      for (k = 0; k < ths->n_total; k++)
+      for (k = N2; k < n - N2; k++)
         ths->g_hat[k] = 0.0;
     }
 #else
-    memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+    memset(ths->g_hat + N2, 0, (size_t)(n - N) * sizeof(C));
 #endif
     if(ths->flags & PRE_PHI_HUT)
     {
