@@ -38,7 +38,7 @@
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
 
-#include "infft.h"
+#include "nfft3util.h"
 
 /** Enumeration for parameter values */
 enum boolean {NO = 0, YES = 1};

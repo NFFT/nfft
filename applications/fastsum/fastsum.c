@@ -32,7 +32,7 @@
 
 #include "nfft3.h"
 #include "fastsum.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 // Required for test if (ths->k == one_over_x)
 #include "kernels.h"

@@ -38,7 +38,7 @@
 
 #include "fastsum.h"
 #include "kernels.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 /**
  * \defgroup applications_fastsum_test fastsum_test

@@ -25,7 +25,7 @@
 #include "config.h"
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
 {

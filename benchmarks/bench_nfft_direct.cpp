@@ -23,7 +23,7 @@
 #include <time.h>
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 #include "util.h"
 

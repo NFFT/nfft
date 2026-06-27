@@ -35,7 +35,7 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 #ifdef GAUSSIAN
   unsigned test_fg=1;

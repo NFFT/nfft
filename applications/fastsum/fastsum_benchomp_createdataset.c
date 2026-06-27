@@ -25,7 +25,7 @@
 #include "config.h"
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
 {

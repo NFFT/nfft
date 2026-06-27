@@ -23,7 +23,7 @@
 #include "config.h"
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 #define NREPEAT 5
 

@@ -23,7 +23,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 #include "fastsum.h"
 #include "kernels.h"
 #ifdef _OPENMP

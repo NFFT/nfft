@@ -33,7 +33,7 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 static void ndft_horner_trafo(NFFT(plan) *ths)
 {

@@ -51,7 +51,7 @@
 /** Include header for utils from NFFT3 library. */
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 #undef X
 #define X(name) NFFT(name)

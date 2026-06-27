@@ -4,6 +4,9 @@ Changes in version 3.6.0:
 
     ## Added
 
+    - Add shared helper header `nfft3util.h` exposing the precision-agnostic
+      subset of `infft.h` (types, name-mangling and math macros) for use by
+      example and application programs.
     - Add release drafter workflow. (#174) @jenskeiner
     - Add macOS build workflow. (#168) @jenskeiner
     - Add more compiler versions to CI and dev container. (#166) @jenskeiner

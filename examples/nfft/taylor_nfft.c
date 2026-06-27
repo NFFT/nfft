@@ -36,7 +36,7 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3util.h"
 
 typedef struct
 {
