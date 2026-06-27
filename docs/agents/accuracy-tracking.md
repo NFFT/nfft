@@ -39,6 +39,11 @@ bencher run --dry-run --project nfft-accuracy --branch local \
   lower-is-better → add an *upper* boundary when alerts come later.
 - **Determinism.** Serial `tests/checkall`, fixed `SEED`. Not `checkall_threads`.
 - **Metric-name stability.** Changing the grouping key breaks Bencher history.
+- **Speed axis granularity.** The `fast` speed axis does not distinguish the
+  dimension-specialized kernels (`trafo_1d/2d/3d`, `adjoint_1d/2d/3d`) from the
+  generic guru transform (`trafo`/`adjoint`); within a group their errors are
+  `max`-merged. The `init` variant usually separates them in practice (the
+  dedicated 1D path pairs with `init_1d`, the guru path with `init_guru …`).
 - **Scope.** Only nfft/nfct/nfst emit today. To add a module, give its harness the
   same `#include "bench_emit.h"` + one `bench_emit_accuracy(...)` call.
 - **Quota dial.** Merge file+online in `group_key` (180 → 108 metrics/cell) first.
