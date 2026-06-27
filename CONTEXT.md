@@ -113,6 +113,42 @@ transform, and validates the fast transform against it. See
 `docs/agents/test-methodology.md`.
 _Avoid_: reference test / accuracy test (ambiguous — name the class).
 
+### Accuracy tracking (Bencher)
+
+**Accuracy metric**:
+One Bencher series — the **max error over all bound-absorbed parameter values** for
+a fixed combination of **error-shaping parameters**. Tracked over time in Bencher
+(track-only; never gates CI). Distinct from a CodSpeed **Benchmark name**, which
+tracks instruction count, not error. See `docs/agents/accuracy-tracking.md` and
+ADR-0004.
+_Avoid_: accuracy benchmark, error benchmark (conflates with CodSpeed).
+
+**Error-shaping parameter**:
+A test parameter that changes a transform's *achievable* accuracy and so earns its
+own **accuracy metric**: window, precision, dimension, transform kind (direct/fast,
+forward/adjoint), precompute/init variant, and the file-vs-online oracle. Window and
+precision are carried by the **accuracy testbed**, not the metric name.
+_Avoid_: error parameter (ambiguous).
+
+**Bound-absorbed parameter**:
+A test parameter whose effect is already captured by the analytic error bound — the
+bandwidth `N` and node count `M`. Collapsed via `max` within an **accuracy metric**,
+never given its own series.
+_Avoid_: size parameter.
+
+**Tightness ratio**:
+The primary accuracy measure, `err / bound` — the headroom to the CUnit pass/fail
+gate (approaching 1 means approaching failure). The raw `err` is uploaded as a
+secondary measure for absolute context.
+_Avoid_: error ratio, normalized error.
+
+**Accuracy testbed**:
+The Bencher testbed dimension, the per-cell `BUILD_CONFIG`
+(`<os>_<compiler>_<window>_<precision>`). The only per-matrix-cell-variable part of
+an **accuracy metric**; the metric name is identical across testbeds so series line
+up for comparison.
+_Avoid_: cell, matrix testbed.
+
 ### Language interfaces
 
 **Interface kernel**:
