@@ -1,0 +1,3 @@
+# Local Bencher accuracy artifacts (see docs/agents/accuracy-tracking.md).
+accuracy.ndjson
+accuracy.bmf.json

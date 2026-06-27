@@ -134,6 +134,11 @@ The `tests/data/` reference data is produced by a Python generator (`tests/refge
 see [`docs/agents/test-methodology.md`](docs/agents/test-methodology.md) for the test
 methodology and how to regenerate it.
 
+Test **accuracy figures** (each case's `err` vs `bound`) are additionally tracked
+over time in Bencher; set `NFFT_BENCH_OUT=<file>` when running `tests/checkall` to
+emit them. See [`docs/agents/accuracy-tracking.md`](docs/agents/accuracy-tracking.md)
+and [ADR-0004](docs/adr/0004-accuracy-tracking-with-bencher.md).
+
 ## 4. Running the benchmarks
 
 Benchmarks (`benchmarks/bench_nfft_direct.cpp`) use the **CodSpeed** C++ integration
