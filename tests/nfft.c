@@ -28,6 +28,7 @@
 #include "infft.h"
 #include "cycle.h"
 #include "nfft.h"
+#include "bench_emit.h"
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
@@ -394,6 +395,10 @@ static int check_single(const testcase_delegate_t *testcase,
     R bound = trafo_delegate->acc(&p);
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
+    bench_emit_accuracy("nfft",
+      testcase->setup == setup_online ? "online" : "file",
+      d, N, M, init_delegate->name, trafo_delegate->name,
+      (long double)err, (long double)bound, ok);
   }
 
 cleanup:

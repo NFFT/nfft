@@ -4,6 +4,7 @@
 set(NFFT_TEST_SOURCES
   check.c
   util.c    util.h
+  bench_emit.c bench_emit.h
   reflect.c reflect.h
   bspline.c bspline.h
   bessel.c  bessel.h
