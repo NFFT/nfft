@@ -6,8 +6,8 @@ separate from the CodSpeed instruction-count benchmarks). Rather than one Benche
 per case (~1456/cell × 12 cells), we aggregate: one **accuracy metric** per combination of
 **error-shaping parameters** (window, precision, runtime serial/OpenMP, dimension,
 direct/fast, forward/adjoint, init variant, file/online), collapsing the **bound-absorbed
-parameters** (`N`, `M`) via `max`. The uploaded value is the **tightness ratio**
-`max(err/bound)` (primary) plus `max(err)` raw (secondary).
+parameters** (`N`, `M`) via `max`. The uploaded measures are **accuracy-digits**
+`-log10(max(err))` (primary, higher = better) plus **max-error** `max(err)` raw (secondary).
 
 ## Status
 
@@ -23,9 +23,15 @@ accepted
   highest-value, most-realistic sizes — because online uses a different oracle (the C
   direct transform) and is therefore an *error-shaping* difference, not merely a larger
   `N`. We split file vs online (~180/cell) to preserve that signal.
-- **Raw `err` only / ratio only.** We upload both: the **tightness ratio** is primary
-  (normalizes out the bound-absorbed `N`-dependence and reads as distance-to-failure),
-  raw `err` secondary (absolute context). Same group count, so cheap.
+- **Which value to upload.** Initially `max(err/bound)` (a "tightness ratio"). Replaced:
+  the bound is a fixed analytic function, so per metric the ratio carries the same
+  regression signal as the raw error (Bencher's per-metric thresholds don't need the
+  normalization), and it was as illegible as the raw error in the UI. Raw errors span
+  ~14 orders of magnitude (1e-17 .. 1e-3), which no *linear* display renders well (all
+  round to `0.00`). So the primary is **accuracy-digits** = `-log10(max(err))` — the
+  worst-case accurate digits, which reads cleanly (~3 .. 18) and where a regression
+  *lowers* the value (Bencher **lower-boundary** threshold). The exact worst error is
+  kept as the secondary **max-error** for the precise figure.
 
 ## Consequences
 

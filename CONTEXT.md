@@ -137,11 +137,12 @@ bandwidth `N` and node count `M`. Collapsed via `max` within an **accuracy metri
 never given its own series.
 _Avoid_: size parameter.
 
-**Tightness ratio**:
-The primary accuracy measure, `err / bound` — the headroom to the CUnit pass/fail
-gate (approaching 1 means approaching failure). The raw `err` is uploaded as a
-secondary measure for absolute context.
-_Avoid_: error ratio, normalized error.
+**Accuracy digits**:
+The primary accuracy measure, `-log10(max err)` — the worst-case number of accurate
+digits (higher is better; a regression lowers it). Log-scaled so it reads cleanly
+across the ~14 orders of magnitude the raw error spans. The raw `max err` is uploaded
+as the secondary **max-error** measure for the exact figure.
+_Avoid_: tightness ratio (`err/bound`, the superseded measure), error ratio.
 
 **Accuracy testbed**:
 The Bencher testbed dimension, the per-cell `BUILD_CONFIG`

@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from ndjson_to_bmf import convert, read_ndjson, group_key, metric_name, slug
@@ -42,13 +44,20 @@ def test_missing_openmp_field_treated_as_serial():
     assert metric_name(group_key(rec)).split("/")[1] == "serial"
 
 
-def test_convert_takes_max_ratio_and_max_error():
-    recs = [_rec(N=[16], accuracy=1e-14, bound=1e-13),   # ratio 0.1
-            _rec(N=[64], accuracy=5e-13, bound=1e-12)]   # ratio 0.5, err 5e-13
+def test_convert_takes_max_error_and_digits():
+    recs = [_rec(N=[16], accuracy=1e-14),    # smaller error
+            _rec(N=[64], accuracy=5e-13)]    # worst error -> drives both measures
     bmf = convert(recs)
     (name, measures), = bmf.items()
-    assert measures["tightness-ratio"]["value"] == pytest.approx(0.5)
     assert measures["max-error"]["value"] == pytest.approx(5e-13)
+    # accuracy-digits is -log10 of the WORST error (fewest digits)
+    assert measures["accuracy-digits"]["value"] == pytest.approx(-math.log10(5e-13))
+
+
+def test_zero_error_gives_finite_capped_digits():
+    measures = convert([_rec(accuracy=0.0)]).popitem()[1]
+    assert measures["max-error"]["value"] == 0.0
+    assert measures["accuracy-digits"]["value"] == pytest.approx(30.0)  # floor cap
 
 
 def test_file_and_online_are_separate_metrics():
@@ -56,10 +65,9 @@ def test_file_and_online_are_separate_metrics():
     assert len(bmf) == 2
 
 
-@pytest.mark.parametrize("bad_bound", [0.0, -1e-13])
-def test_nonpositive_bound_raises(bad_bound):
-    with pytest.raises(ValueError, match="bound"):
-        convert([_rec(bound=bad_bound)])
+def test_negative_accuracy_raises():
+    with pytest.raises(ValueError, match="accuracy"):
+        convert([_rec(accuracy=-1e-13)])
 
 
 def test_read_ndjson_skips_blank_and_reports_bad_line():

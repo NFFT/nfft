@@ -10,13 +10,20 @@ direct/fast, direction forward/adjoint, dimension, init variant) -- with the
 bound-absorbed parameters (N, M) collapsed via max:
 
     {"<module>/<runtime>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>": {
-        "tightness-ratio": {"value": max(err/bound)},   # primary
-        "max-error":       {"value": max(err)}}, ...}    # secondary
+        "accuracy-digits": {"value": -log10(max(err))},  # primary (higher=better)
+        "max-error":       {"value": max(err)}}, ...}     # secondary (raw worst err)
+
+The primary measure is the worst-case *accurate digits* (-log10 of the worst
+relative error). Raw errors span ~14 orders of magnitude (1e-17 .. 1e-3), which
+no linear scale displays well; the log transform reads cleanly (~3 .. 18) and a
+regression lowers it -> use a Bencher lower-boundary threshold. The exact worst
+error is kept as the secondary `max-error` measure.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 
@@ -42,27 +49,31 @@ def metric_name(key):
     return f"{module}/{runtime}/{oracle}/{speed}/{direction}/{dim}d/{init}"
 
 
-def convert(records):
-    agg = {}  # key -> [max_ratio, max_err]
-    for rec in records:
-        bound = float(rec["bound"])
-        if bound <= 0.0:
-            raise ValueError(f"non-positive bound in record: {rec!r}")
-        err = float(rec["accuracy"])
-        ratio = err / bound
-        key = group_key(rec)
-        if key not in agg:
-            agg[key] = [ratio, err]
-        else:
-            agg[key][0] = max(agg[key][0], ratio)
-            agg[key][1] = max(agg[key][1], err)
+# Floor for the -log10 transform so an exact-zero (perfect) error stays finite;
+# any error <= this is reported as ~30 accurate digits.
+_ERR_FLOOR = 1e-30
+
+
+def _measures(max_err):
+    # accuracy-digits = -log10(worst error): readable across the ~14 orders of
+    # magnitude the raw error spans, and higher = better (a regression lowers it).
+    digits = -math.log10(max(max_err, _ERR_FLOOR))
     return {
-        metric_name(key): {
-            "tightness-ratio": {"value": r},
-            "max-error": {"value": e},
-        }
-        for key, (r, e) in agg.items()
+        "accuracy-digits": {"value": digits},  # primary
+        "max-error": {"value": max_err},        # secondary (exact worst error)
     }
+
+
+def convert(records):
+    agg = {}  # key -> max_err (worst error over the bound-absorbed N/M)
+    for rec in records:
+        err = float(rec["accuracy"])
+        if err < 0.0:
+            raise ValueError(f"negative accuracy in record: {rec!r}")
+        key = group_key(rec)
+        if key not in agg or err > agg[key]:
+            agg[key] = err
+    return {metric_name(key): _measures(max_err) for key, max_err in agg.items()}
 
 
 def read_ndjson(text):

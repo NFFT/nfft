@@ -16,8 +16,9 @@ The pass/fail gate stays in C (`err < bound`); Bencher additionally tracks the
    interleaving) and tags its records `"openmp": 1`.
 2. **Aggregate (Python).** `tests/bench/ndjson_to_bmf.py` groups by the
    *error-shaping parameters* and collapses the *bound-absorbed* `N`/`M` via `max`,
-   emitting BMF with two measures per metric: `tightness-ratio` = `max(err/bound)`
-   (primary) and `max-error` = `max(err)` (secondary). Metric name:
+   emitting BMF with two measures per metric: `accuracy-digits` = `-log10(max(err))`
+   (primary, **higher = better**) and `max-error` = `max(err)` (secondary, the exact
+   worst error). Metric name:
    `<module>/<runtime>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>`
    (`runtime` = `serial` | `omp`).
 3. **Upload (CI).** The existing `make check` in
@@ -60,8 +61,9 @@ bencher run --dry-run --project nfft --branch local \
 - **`checkall` is a `check_PROGRAM`** — `make all` does not build it; use
   `make -C tests checkall` (or `make check`). `checkall_threads` needs
   `--enable-openmp` configured.
-- **Track-only, phased.** No thresholds yet; never `--err`. `tightness-ratio` is
-  lower-is-better → add an *upper* boundary when alerts come later.
+- **Track-only, phased.** No thresholds yet; never `--err`. `accuracy-digits` is
+  higher-is-better → add a *lower* boundary when alerts come later (alert if the
+  worst-case accurate digits drop).
 - **Serial vs OpenMP.** Both are tracked as distinct metrics (the `runtime` axis);
   the OpenMP binary routes to `<file>.threads` and tags `openmp: 1`. The serial
   results are the deterministic baseline (fixed `SEED`).

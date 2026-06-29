@@ -5,8 +5,10 @@
 > **Revision (2026-06-29) — implemented, with two changes from the original Task 4/§measures below.** The authoritative description is now [ADR-0004](../../adr/0004-accuracy-tracking-with-bencher.md) and [`docs/agents/accuracy-tracking.md`](../../agents/accuracy-tracking.md):
 > 1. **No separate workflow.** Instead of a dedicated `bench-accuracy-linux.yml` that re-runs the 12-cell test matrix, emission piggybacks on the **existing `make check`** in `build-linux.yml` (set `NFFT_BENCH_OUT`); each gcc cell publishes an `accuracy-bmf-<BUILD_CONFIG>` artifact with no secret, and a separate **environment-gated `bencher-upload` job** is the only step that touches the API key (PRs gated, `develop` pushes automatic). Tests run once.
 > 2. **Serial + OpenMP both tracked** as a `runtime` (serial/omp) axis — `checkall_threads` routes to `<file>.threads` and tags `openmp:1`; the metric name gains a `/<runtime>/` segment. Bencher project is **`nfft`** (not `nfft-accuracy`).
+> 3. **Measures changed.** `tightness-ratio` (`max(err/bound)`) was dropped (redundant with the raw error and illegible in the UI). Primary is now **`accuracy-digits`** = `-log10(max(err))` (higher = better; reads cleanly across ~14 orders of magnitude; a regression = a *lower* boundary alert); **`max-error`** stays as the exact secondary. The emitter still records `bound` in the NDJSON but the converter no longer consumes it.
+> 4. **The CI key is passed via the `BENCHER_API_KEY` env var** (a project-scoped `bencher_run_*` key + `--key`), NOT `BENCHER_API_TOKEN` (whose env var feeds the deprecated `--token` and is JWT-validated). The GitHub secret keeps the name `BENCHER_API_TOKEN`.
 >
-> Tasks 2–3 below are accurate; Task 1 (Bencher project/secret) and Task 5 (docs) stand; Task 4's standalone-workflow steps are superseded by the above.
+> Tasks 2–3 below are accurate except the measures (see #3); Task 1 (Bencher project/secret) and Task 5 (docs) stand; Task 4's standalone-workflow steps are superseded by the above.
 
 **Goal:** Capture the per-case accuracy figures (`err` vs `bound`) the NFFT/NFCT/NFST CUnit suites already compute, aggregate them by error-shaping parameters, and track them over time in Bencher Cloud — track-only, never changing the existing pass/fail gate.
 
