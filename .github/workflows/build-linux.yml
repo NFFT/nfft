@@ -428,8 +428,14 @@ jobs:
 
       - name: Upload to Bencher (track-only)
         shell: bash
+        # Expose the secret as BENCHER_API_KEY (NOT BENCHER_API_TOKEN): the value
+        # is a project-scoped `bencher_run_*` key, and `bencher run`'s deprecated
+        # `--token` reads the BENCHER_API_TOKEN env var and validates it as a JWT.
+        # Setting that var would make `--token` reject the (non-JWT) key, failing
+        # the upload at arg-parse time even though we pass `--key`. The GitHub
+        # secret keeps the name BENCHER_API_TOKEN (no rename needed on GitHub).
         env:
-          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
+          BENCHER_API_KEY: ${{ secrets.BENCHER_API_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           shopt -s nullglob
@@ -443,9 +449,9 @@ jobs:
             file="${d}accuracy.bmf.json"
             [ -f "$file" ] || { echo "skip ${testbed}: no BMF file"; continue; }
             # Track-only: no --err and no thresholds, so nothing ever fails CI.
-            # Fork PRs without the secret fall back to --dry-run.
+            # Fork PRs without the key fall back to --dry-run.
             ARGS=()
-            [ -z "${BENCHER_API_TOKEN}" ] && ARGS+=(--dry-run)
+            [ -z "${BENCHER_API_KEY}" ] && ARGS+=(--dry-run)
             if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
               ARGS+=(--branch "${GITHUB_HEAD_REF}"
                      --start-point "${GITHUB_BASE_REF}"
@@ -458,7 +464,7 @@ jobs:
             bencher run \
               "${ARGS[@]}" \
               --project nfft \
-              --key "${BENCHER_API_TOKEN}" \
+              --key "${BENCHER_API_KEY}" \
               --testbed "${testbed}" \
               --adapter json \
               --file "${file}" \
