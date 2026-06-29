@@ -391,14 +391,19 @@ jobs:
 
   # Gated upload of the accuracy BMF artifacts to Bencher (track-only). The test
   # run and BMF production happen in `build` with no secret; ONLY this upload is
-  # gated. PRs require approval of the protected `benchmarks` environment (after
-  # which the secret is exposed, even for forks); pushes to default branches
-  # upload the baseline automatically. No `--err`/thresholds -> never fails.
+  # gated. No `--err`/thresholds -> never fails CI.
+  #
+  # BENCHER_API_TOKEN is held as an *environment* secret (not a repo-wide secret)
+  # so only this job can read it, and only after the environment's rules pass:
+  #   - push            -> `bencher-baseline` (branch policy: develop/main only,
+  #                                            no reviewer -> automatic baseline)
+  #   - pull_request /  -> `benchmarks`        (required reviewer: manual approval;
+  #     workflow_dispatch                       no branch policy -> any branch)
+  # Both environments must hold the BENCHER_API_TOKEN environment secret.
   bencher-upload:
     needs: build
     runs-on: ubuntu-latest
-    # OPT-IN GATE on pull_request only; empty name on push/dispatch -> no gate.
-    environment: ${{ github.event_name == 'pull_request' && 'benchmarks' || '' }}
+    environment: ${{ github.event_name == 'push' && 'bencher-baseline' || 'benchmarks' }}
     permissions:
       contents: read
       pull-requests: write
