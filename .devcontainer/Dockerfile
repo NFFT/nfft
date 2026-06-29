@@ -68,7 +68,7 @@ ENV PATH="/home/vscode/.local/bin:${PATH}"
 RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
   && curl -fsSL https://astral.sh/uv/install.sh | sh \
   && /home/vscode/.local/bin/uv python install --default 3.13 \
-  && bin/uv tool install zizmor
+  && uv tool install zizmor
 
 # Install RTK.
 RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
