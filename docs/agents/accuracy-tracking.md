@@ -30,12 +30,17 @@ The pass/fail gate stays in C (`err < bound`); Bencher additionally tracks the
    no `--err`), `develop` baseline, start-point recipe on PRs. The tests are **not
    re-run** just to produce Bencher data; only the upload is gated.
 
-   `BENCHER_API_TOKEN` is an **environment secret** (not repo-wide) held in two
-   environments, so only this job can read it, only after the environment's rules
-   pass: `push` → `bencher-baseline` (branch policy `develop`/`main`, no reviewer
-   → automatic baseline); `pull_request`/`workflow_dispatch` → `benchmarks`
-   (required reviewer → manual approval). Without the token a run falls back to
-   `--dry-run`.
+   `BENCHER_API_TOKEN` is an **environment secret** (not repo-wide; it holds the
+   project-scoped `bencher_run_*` key) held in two environments, so only this job
+   can read it, only after the environment's rules pass. **Only fork PRs are
+   gated** (the one untrusted upload source); everything else runs unattended:
+   - **fork `pull_request`** → `benchmarks` (required reviewer → manual approval);
+   - **everything else** (push to default branches, same-repo PR,
+     `workflow_dispatch`) → `bencher-baseline` (no reviewer → unattended).
+
+   `bencher-baseline` must **allow all branches** in its deployment-branch policy,
+   or same-repo PR feature branches are blocked from it. Without the key a run
+   falls back to `--dry-run`.
 
 ## Run it locally
 
