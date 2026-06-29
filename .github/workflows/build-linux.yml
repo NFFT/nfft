@@ -454,7 +454,7 @@ jobs:
             bencher run \
               "${ARGS[@]}" \
               --project nfft \
-              --token "${BENCHER_API_TOKEN}" \
+              --key "${BENCHER_API_TOKEN}" \
               --testbed "${testbed}" \
               --adapter json \
               --file "${file}" \
