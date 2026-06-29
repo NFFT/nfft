@@ -78,6 +78,9 @@ RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/in
 RUN curl -fsSL https://codspeed.io/install.sh | sh
 ENV PATH="/home/vscode/.cargo/bin:${PATH}"
 
+# Install Bencher CLI.
+RUN curl --proto '=https' --tlsv1.2 -sSfL https://bencher.dev/download/install-cli.sh | sh
+
 # Install CodSpeed's Valgrind fork — the simulation/instrumentation instrument
 # requires it.
 USER root
