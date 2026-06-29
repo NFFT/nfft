@@ -125,9 +125,10 @@ _Avoid_: accuracy benchmark, error benchmark (conflates with CodSpeed).
 
 **Error-shaping parameter**:
 A test parameter that changes a transform's *achievable* accuracy and so earns its
-own **accuracy metric**: window, precision, dimension, transform kind (direct/fast,
+own **accuracy metric**: window, precision, runtime (serial vs OpenMP — the parallel
+reduction order perturbs the low bits), dimension, transform kind (direct/fast,
 forward/adjoint), precompute/init variant, and the file-vs-online oracle. Window and
-precision are carried by the **accuracy testbed**, not the metric name.
+precision are carried by the **accuracy testbed**; the rest are in the metric name.
 _Avoid_: error parameter (ambiguous).
 
 **Bound-absorbed parameter**:

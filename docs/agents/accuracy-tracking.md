@@ -10,34 +10,50 @@ The pass/fail gate stays in C (`err < bound`); Bencher additionally tracks the
 ## Pipeline
 
 1. **Emit (C).** `bench_emit_accuracy` (`tests/bench_emit.c`) appends one raw
-   NDJSON record per case to `$NFFT_BENCH_OUT`. No-op when unset, so `make check`
-   is unaffected.
+   NDJSON record per case to `$NFFT_BENCH_OUT`. No-op when unset, so an ordinary
+   `make check` is unaffected. The serial `checkall` writes `$NFFT_BENCH_OUT`; the
+   OpenMP `checkall_threads` writes `$NFFT_BENCH_OUT.threads` (separate file, no
+   interleaving) and tags its records `"openmp": 1`.
 2. **Aggregate (Python).** `tests/bench/ndjson_to_bmf.py` groups by the
    *error-shaping parameters* and collapses the *bound-absorbed* `N`/`M` via `max`,
    emitting BMF with two measures per metric: `tightness-ratio` = `max(err/bound)`
    (primary) and `max-error` = `max(err)` (secondary). Metric name:
-   `<module>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>`.
-3. **Upload (CI).** `.github/workflows/bench-accuracy-linux.yml` runs the serial
-   `tests/checkall` across the window×precision matrix (each cell a testbed) and
-   calls `bencher run --adapter json --file ...` track-only (no thresholds, no
-   `--err`), `develop` baseline, start-point recipe on PRs.
+   `<module>/<runtime>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>`
+   (`runtime` = `serial` | `omp`).
+3. **Upload (CI).** The existing `make check` in
+   [`.github/workflows/build-linux.yml`](../../.github/workflows/build-linux.yml)
+   runs with `NFFT_BENCH_OUT` set, so each gcc window×precision cell emits NDJSON
+   as a byproduct, converts it, and publishes a `accuracy-bmf-<BUILD_CONFIG>`
+   artifact — **no secret involved**. A separate, environment-gated
+   `bencher-upload` job downloads those artifacts and calls
+   `bencher run --project nfft --adapter json --file …` track-only (no thresholds,
+   no `--err`), `develop` baseline, start-point recipe on PRs. The tests are **not
+   re-run** just to produce Bencher data; only the upload is gated on approval +
+   the `BENCHER_API_TOKEN` secret.
 
 ## Run it locally
 
 ```bash
 NFFT_BENCH_OUT="$PWD/tests/accuracy.ndjson" tests/checkall > /dev/null
-uv run python tests/bench/ndjson_to_bmf.py tests/accuracy.ndjson tests/accuracy.bmf.json
-bencher run --dry-run --project nfft-accuracy --branch local \
+# Optional: also capture the OpenMP build (writes the .threads file):
+NFFT_BENCH_OUT="$PWD/tests/accuracy.ndjson" tests/checkall_threads > /dev/null
+cat tests/accuracy.ndjson tests/accuracy.ndjson.threads > tests/accuracy.all.ndjson 2>/dev/null \
+  || cp tests/accuracy.ndjson tests/accuracy.all.ndjson
+uv run python tests/bench/ndjson_to_bmf.py tests/accuracy.all.ndjson tests/accuracy.bmf.json
+bencher run --dry-run --project nfft --branch local \
   --testbed local --adapter json --file tests/accuracy.bmf.json
 ```
 
 ## Conventions / gotchas
 
 - **`checkall` is a `check_PROGRAM`** — `make all` does not build it; use
-  `make -C tests checkall` (or `make check`).
+  `make -C tests checkall` (or `make check`). `checkall_threads` needs
+  `--enable-openmp` configured.
 - **Track-only, phased.** No thresholds yet; never `--err`. `tightness-ratio` is
   lower-is-better → add an *upper* boundary when alerts come later.
-- **Determinism.** Serial `tests/checkall`, fixed `SEED`. Not `checkall_threads`.
+- **Serial vs OpenMP.** Both are tracked as distinct metrics (the `runtime` axis);
+  the OpenMP binary routes to `<file>.threads` and tags `openmp: 1`. The serial
+  results are the deterministic baseline (fixed `SEED`).
 - **Metric-name stability.** Changing the grouping key breaks Bencher history.
 - **Speed axis granularity.** The `fast` speed axis does not distinguish the
   dimension-specialized kernels (`trafo_1d/2d/3d`, `adjoint_1d/2d/3d`) from the

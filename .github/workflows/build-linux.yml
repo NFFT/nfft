@@ -168,6 +168,12 @@ jobs:
     - name: Autotools - Test
       id: test
       if: matrix.compiler == 'gcc'
+      # NFFT_BENCH_OUT makes the existing `make check` run also emit per-case
+      # accuracy NDJSON (serial -> *.ndjson, OpenMP -> *.ndjson.threads). No-op
+      # without this var, so other cells/builds are unaffected. See
+      # docs/agents/accuracy-tracking.md.
+      env:
+        NFFT_BENCH_OUT: ${{ github.workspace }}/tests/accuracy.ndjson
       run: make check
 
     - name: Autotools - Print checkall.log on test failure
@@ -253,6 +259,30 @@ jobs:
               }
             }
           }
+
+    # Accuracy tracking: aggregate the NDJSON `make check` just emitted into a
+    # Bencher BMF file and publish it as an artifact. No secret is used here, so
+    # this runs on every push/PR (forks included); the gated upload to Bencher
+    # is the separate `bencher-upload` job. gcc cells only (they run the tests).
+    - name: Accuracy - aggregate NDJSON to BMF
+      if: matrix.compiler == 'gcc'
+      shell: bash
+      run: |
+        : > tests/accuracy.all.ndjson
+        for f in tests/accuracy.ndjson tests/accuracy.ndjson.threads; do
+          [ -f "$f" ] && cat "$f" >> tests/accuracy.all.ndjson
+        done
+        test -s tests/accuracy.all.ndjson
+        uv run python tests/bench/ndjson_to_bmf.py \
+          tests/accuracy.all.ndjson tests/accuracy.bmf.json
+
+    - name: Accuracy - upload BMF artifact
+      if: matrix.compiler == 'gcc'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: accuracy-bmf-${{ env.BUILD_CONFIG }}
+        path: tests/accuracy.bmf.json
+        if-no-files-found: error
 
     - name: Autotools - Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -358,6 +388,73 @@ jobs:
             ( cd "$DIR" && julia "$(basename "$NAME")" )
           done
         done
+
+  # Gated upload of the accuracy BMF artifacts to Bencher (track-only). The test
+  # run and BMF production happen in `build` with no secret; ONLY this upload is
+  # gated. PRs require approval of the protected `benchmarks` environment (after
+  # which the secret is exposed, even for forks); pushes to default branches
+  # upload the baseline automatically. No `--err`/thresholds -> never fails.
+  bencher-upload:
+    needs: build
+    runs-on: ubuntu-latest
+    # OPT-IN GATE on pull_request only; empty name on push/dispatch -> no gate.
+    environment: ${{ github.event_name == 'pull_request' && 'benchmarks' || '' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0   # start-point-hash needs base-branch history
+
+      - name: Set up Bencher CLI
+        uses: bencherdev/bencher@5f9d4cf890255c35e0354af1ed325108a6a0babd # v0.6.8
+
+      - name: Download accuracy BMF artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: accuracy-bmf-*
+          path: bmf-artifacts
+
+      - name: Upload to Bencher (track-only)
+        shell: bash
+        env:
+          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          shopt -s nullglob
+          dirs=(bmf-artifacts/accuracy-bmf-*/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "No accuracy BMF artifacts found; nothing to upload."
+            exit 0
+          fi
+          for d in "${dirs[@]}"; do
+            testbed="$(basename "$d")"; testbed="${testbed#accuracy-bmf-}"
+            file="${d}accuracy.bmf.json"
+            [ -f "$file" ] || { echo "skip ${testbed}: no BMF file"; continue; }
+            # Track-only: no --err and no thresholds, so nothing ever fails CI.
+            # Fork PRs without the secret fall back to --dry-run.
+            ARGS=()
+            [ -z "${BENCHER_API_TOKEN}" ] && ARGS+=(--dry-run)
+            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+              ARGS+=(--branch "${GITHUB_HEAD_REF}"
+                     --start-point "${GITHUB_BASE_REF}"
+                     --start-point-hash "$(git rev-parse "origin/${GITHUB_BASE_REF}")"
+                     --start-point-reset)
+            else
+              ARGS+=(--branch "${GITHUB_REF_NAME}")
+            fi
+            echo "== uploading testbed ${testbed} =="
+            bencher run \
+              "${ARGS[@]}" \
+              --project nfft \
+              --token "${BENCHER_API_TOKEN}" \
+              --testbed "${testbed}" \
+              --adapter json \
+              --file "${file}" \
+              --github-actions "${GH_TOKEN}"
+          done
 
   distcheck:
     runs-on: ubuntu-latest

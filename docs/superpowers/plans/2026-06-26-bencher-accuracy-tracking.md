@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Revision (2026-06-29) — implemented, with two changes from the original Task 4/§measures below.** The authoritative description is now [ADR-0004](../../adr/0004-accuracy-tracking-with-bencher.md) and [`docs/agents/accuracy-tracking.md`](../../agents/accuracy-tracking.md):
+> 1. **No separate workflow.** Instead of a dedicated `bench-accuracy-linux.yml` that re-runs the 12-cell test matrix, emission piggybacks on the **existing `make check`** in `build-linux.yml` (set `NFFT_BENCH_OUT`); each gcc cell publishes an `accuracy-bmf-<BUILD_CONFIG>` artifact with no secret, and a separate **environment-gated `bencher-upload` job** is the only step that touches the API key (PRs gated, `develop` pushes automatic). Tests run once.
+> 2. **Serial + OpenMP both tracked** as a `runtime` (serial/omp) axis — `checkall_threads` routes to `<file>.threads` and tags `openmp:1`; the metric name gains a `/<runtime>/` segment. Bencher project is **`nfft`** (not `nfft-accuracy`).
+>
+> Tasks 2–3 below are accurate; Task 1 (Bencher project/secret) and Task 5 (docs) stand; Task 4's standalone-workflow steps are superseded by the above.
+
 **Goal:** Capture the per-case accuracy figures (`err` vs `bound`) the NFFT/NFCT/NFST CUnit suites already compute, aggregate them by error-shaping parameters, and track them over time in Bencher Cloud — track-only, never changing the existing pass/fail gate.
 
 **Architecture:** `check_single` (`tests/nfft.c:393`, `tests/nfct.c:392`, `tests/nfst.c:398`) computes a relative error `err` and an analytic `bound` per case. We add an *opt-in* emitter (`tests/bench_emit.{c,h}`) that, when `NFFT_BENCH_OUT` is set, appends **one raw, structured NDJSON record per case**. A pure-stdlib Python converter then does **all grouping and aggregation**: it collapses the *bound-absorbed* parameters (`N`, `M`) via `max` within each combination of *error-shaping* parameters (oracle file/online, direct/fast, forward/adjoint, dimension, init variant) and emits [Bencher Metric Format (BMF)](https://bencher.dev/docs/reference/bencher-metric-format/) JSON with two measures per group. A new GitHub Actions workflow runs the serial suite across the window×precision matrix (each cell an *accuracy testbed*) and uploads via `bencher run` — **track-only** (no thresholds, no `--err`).

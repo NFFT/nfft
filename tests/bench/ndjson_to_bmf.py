@@ -2,14 +2,14 @@
 NFFT_BENCH_OUT) into aggregated Bencher Metric Format (BMF) JSON.
 
 Each input line is one raw case:
-    {"module","oracle","dim","N","M","init","trafo","accuracy","bound","ok"}
+    {"module","oracle","openmp","dim","N","M","init","trafo","accuracy","bound","ok"}
 
 Output is one BMF object per *accuracy metric* -- a combination of the
-error-shaping parameters (module, oracle file/online, speed direct/fast,
-direction forward/adjoint, dimension, init variant) -- with the bound-absorbed
-parameters (N, M) collapsed via max:
+error-shaping parameters (module, runtime serial/omp, oracle file/online, speed
+direct/fast, direction forward/adjoint, dimension, init variant) -- with the
+bound-absorbed parameters (N, M) collapsed via max:
 
-    {"<module>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>": {
+    {"<module>/<runtime>/<oracle>/<speed>/<direction>/<dim>d/<init-slug>": {
         "tightness-ratio": {"value": max(err/bound)},   # primary
         "max-error":       {"value": max(err)}}, ...}    # secondary
 """
@@ -29,13 +29,17 @@ def group_key(rec):
     trafo = rec["trafo"]
     speed = "direct" if "direct" in trafo else "fast"
     direction = "adjoint" if trafo.startswith("adjoint") else "forward"
-    return (rec["module"], rec["oracle"], speed, direction,
+    # `runtime` (serial vs OpenMP) is error-shaping: the parallel reduction order
+    # perturbs the low bits, so the two builds get distinct metrics. Records
+    # without an `openmp` field are treated as serial.
+    runtime = "omp" if rec.get("openmp") else "serial"
+    return (rec["module"], runtime, rec["oracle"], speed, direction,
             int(rec["dim"]), slug(rec["init"]))
 
 
 def metric_name(key):
-    module, oracle, speed, direction, dim, init = key
-    return f"{module}/{oracle}/{speed}/{direction}/{dim}d/{init}"
+    module, runtime, oracle, speed, direction, dim, init = key
+    return f"{module}/{runtime}/{oracle}/{speed}/{direction}/{dim}d/{init}"
 
 
 def convert(records):

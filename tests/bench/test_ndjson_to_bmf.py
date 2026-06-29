@@ -4,8 +4,8 @@ from ndjson_to_bmf import convert, read_ndjson, group_key, metric_name, slug
 
 
 def _rec(**kw):
-    base = {"module": "nfft", "oracle": "file", "dim": 1, "N": [16], "M": 8,
-            "init": "init_guru ()", "trafo": "trafo_direct",
+    base = {"module": "nfft", "oracle": "file", "openmp": 0, "dim": 1,
+            "N": [16], "M": 8, "init": "init_guru ()", "trafo": "trafo_direct",
             "accuracy": 1e-14, "bound": 1e-13, "ok": 1}
     base.update(kw)
     return base
@@ -23,9 +23,23 @@ def test_group_key_collapses_N_and_M():
 
 def test_speed_and_direction_derived_from_trafo():
     assert metric_name(group_key(_rec(trafo="trafo"))) == \
-        "nfft/file/fast/forward/1d/init_guru"
+        "nfft/serial/file/fast/forward/1d/init_guru"
     assert metric_name(group_key(_rec(trafo="adjoint_direct"))) == \
-        "nfft/file/direct/adjoint/1d/init_guru"
+        "nfft/serial/file/direct/adjoint/1d/init_guru"
+
+
+def test_serial_and_omp_are_separate_metrics():
+    bmf = convert([_rec(openmp=0), _rec(openmp=1)])
+    assert set(bmf) == {
+        "nfft/serial/file/direct/forward/1d/init_guru",
+        "nfft/omp/file/direct/forward/1d/init_guru",
+    }
+
+
+def test_missing_openmp_field_treated_as_serial():
+    rec = _rec()
+    del rec["openmp"]
+    assert metric_name(group_key(rec)).split("/")[1] == "serial"
 
 
 def test_convert_takes_max_ratio_and_max_error():
@@ -42,9 +56,10 @@ def test_file_and_online_are_separate_metrics():
     assert len(bmf) == 2
 
 
-def test_nonpositive_bound_raises():
+@pytest.mark.parametrize("bad_bound", [0.0, -1e-13])
+def test_nonpositive_bound_raises(bad_bound):
     with pytest.raises(ValueError, match="bound"):
-        convert([_rec(bound=0.0)])
+        convert([_rec(bound=bad_bound)])
 
 
 def test_read_ndjson_skips_blank_and_reports_bad_line():

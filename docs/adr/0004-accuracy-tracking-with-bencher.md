@@ -1,13 +1,13 @@
 # Track test accuracy in Bencher, aggregated by error-shaping parameters
 
 We track the per-case accuracy figures (`err` vs `bound`) that the `nfft`/`nfct`/`nfst`
-CUnit suites already compute, uploading them to **Bencher** (track-only, separate from
-the CodSpeed instruction-count benchmarks). Rather than one Bencher series per case
-(~1680/cell × 12 cells ≈ 20k metrics/run), we aggregate: one **accuracy metric** per
-combination of **error-shaping parameters** (window, precision, dimension, direct/fast,
-forward/adjoint, init variant, file/online), collapsing the **bound-absorbed parameters**
-(`N`, `M`) via `max`. The uploaded value is the **tightness ratio** `max(err/bound)`
-(primary) plus `max(err)` raw (secondary). This yields ~180 metrics/cell (~4.3k/run).
+CUnit suites already compute, uploading them to the **Bencher** project `nfft` (track-only,
+separate from the CodSpeed instruction-count benchmarks). Rather than one Bencher series
+per case (~1456/cell × 12 cells), we aggregate: one **accuracy metric** per combination of
+**error-shaping parameters** (window, precision, runtime serial/OpenMP, dimension,
+direct/fast, forward/adjoint, init variant, file/online), collapsing the **bound-absorbed
+parameters** (`N`, `M`) via `max`. The uploaded value is the **tightness ratio**
+`max(err/bound)` (primary) plus `max(err)` raw (secondary).
 
 ## Status
 
@@ -36,6 +36,17 @@ accepted
   the `NFFT_BENCH_OUT` env var (a no-op when unset). **All grouping and `max` aggregation
   live in a Python converter**, so the policy is tunable without touching C or re-running
   builds.
+- **Emission piggybacks on the existing test run; only the upload is gated.** Rather than a
+  dedicated workflow that re-builds and re-runs the 12-cell gcc matrix, the emission is
+  switched on inside `build-linux.yml`'s existing `make check` (via `NFFT_BENCH_OUT`); each
+  cell publishes its BMF as an artifact with no secret. A separate `bencher-upload` job —
+  gated on the protected `benchmarks` environment for PRs, automatic on default-branch
+  pushes — is the *only* step that needs the API key. Tests run exactly once.
+- **Serial and OpenMP are both tracked, not duplicated.** `make check` runs `checkall`
+  (serial) and `checkall_threads` (OpenMP); the parallel reduction order perturbs the low
+  bits, so `runtime` (serial/omp) is an error-shaping axis. The OpenMP binary routes its
+  records to a separate `<file>.threads` path (no interleaving), and the converter gives
+  serial and omp distinct metric names.
 - **Track-only, phased.** Pure recording first (no thresholds — they misfire on a cold
   baseline); non-blocking upper-boundary alerts on the ratio once `develop` has baseline
   history; hard CI gating (`--err`) only later, by explicit decision. CUnit's `err < bound`
