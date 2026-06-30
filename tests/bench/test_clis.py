@@ -29,7 +29,8 @@ def test_pr_report_changed_writes_all_artifacts(tmp_path):
     out = tmp_path / "out"
     pr_report.main([str(pr), str(base), str(out),
                     "--abs-url", "http://x/a.png", "--rel-url", "http://x/r.png"])
-    check = json.load(open(out / "check.json"))
+    with open(out / "check.json", encoding="utf-8") as f:
+        check = json.load(f)
     assert check["conclusion"] == "neutral" and "improved" in check["title"]
     body = (out / "comment.md").read_text()
     assert "Improvements" in body and "http://x/a.png" in body
@@ -45,7 +46,8 @@ def test_pr_report_no_baseline(tmp_path):
                     "--abs-url", "http://x/a.png"])
     body = (out / "comment.md").read_text()
     assert "No `develop` baseline" in body and "http://x/a.png" in body
-    check = json.load(open(out / "check.json"))
+    with open(out / "check.json", encoding="utf-8") as f:
+        check = json.load(f)
     assert check["conclusion"] == "neutral" and "pending" in check["title"]
     assert (out / "absolute.png").stat().st_size > 0
     assert not (out / "relative.png").exists()  # no relative heatmap without baseline
