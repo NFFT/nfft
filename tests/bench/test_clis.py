@@ -1,5 +1,4 @@
 import json
-import os
 
 import dashboard
 import pr_report
