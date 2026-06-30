@@ -467,9 +467,63 @@ jobs:
               --key "${BENCHER_API_KEY}" \
               --testbed "${testbed}" \
               --adapter json \
-              --file "${file}" \
-              --github-actions "${GH_TOKEN}"
+              --file "${file}"
           done
+
+  accuracy-report:
+    needs: build
+    runs-on: ubuntu-latest
+    # Fork PRs gated (no gh-pages write); everything else unattended. Mirrors
+    # bencher-upload. Never fails CI (the Check is informational).
+    environment: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork && 'benchmarks' || 'bencher-baseline' }}
+    permissions:
+      contents: write          # push to gh-pages
+      checks: write            # post the Check
+      pull-requests: write      # upsert the comment
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: true   # need to push gh-pages
+          fetch-depth: 0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v7
+        with:
+          enable-cache: true
+
+      - name: Download accuracy BMF artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: accuracy-bmf-*
+          path: bmf-artifacts
+
+      - name: Arrange BMFs as <testbed>.bmf.json
+        shell: bash
+        run: |
+          mkdir -p pr-bmf
+          shopt -s nullglob
+          for d in bmf-artifacts/accuracy-bmf-*/; do
+            tb="$(basename "$d")"; tb="${tb#accuracy-bmf-}"
+            [ -f "${d}accuracy.bmf.json" ] && cp "${d}accuracy.bmf.json" "pr-bmf/${tb}.bmf.json"
+          done
+          ls pr-bmf
+
+      - name: Develop — publish dashboard + baseline to gh-pages
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run --with matplotlib python tests/bench/dashboard.py pr-bmf site
+          bash .github/scripts/gh-pages-publish.sh site "develop dashboard ${GITHUB_SHA::7}"
+
+      - name: PR — fetch baseline, diff, post Check + comment
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+        run: bash .github/scripts/accuracy-pr-report.sh
 
   distcheck:
     runs-on: ubuntu-latest
