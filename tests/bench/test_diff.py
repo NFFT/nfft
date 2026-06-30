@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from diff import Change, DiffResult, diff, digits, load_bmf_tree
+from diff import DiffResult, diff, digits, load_bmf_tree
 
 
 def _bmf(**digit_by_name):
