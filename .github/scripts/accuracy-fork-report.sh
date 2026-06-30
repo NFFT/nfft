@@ -21,18 +21,22 @@ for d in bmf-artifacts/accuracy-bmf-*/; do
   tb="$(basename "$d")"; tb="${tb#accuracy-bmf-}"
   [ -f "${d}accuracy.bmf.json" ] && cp "${d}accuracy.bmf.json" "pr-bmf/${tb}.bmf.json"
 done
-ls pr-bmf/*.bmf.json >/dev/null 2>&1 || { echo "no BMFs; nothing to do"; exit 0; }
+# nullglob-safe: empty array when no BMFs (not the literal glob).
+pr_files=(pr-bmf/*.bmf.json)
+[ "${#pr_files[@]}" -gt 0 ] || { echo "no BMFs; nothing to do"; exit 0; }
 
 # Fetch baseline (skip cleanly if develop has not published one yet).
 mkdir -p base-bmf
-for f in pr-bmf/*.bmf.json; do
+for f in "${pr_files[@]}"; do
   tb="$(basename "$f")"
   curl -fsSL --remove-on-error "${baseline_raw}/${tb}" -o "base-bmf/${tb}" \
     || echo "no baseline yet: ${tb}"
 done
 
 # Render WITHOUT png URLs -> the comment carries the inline emoji grid + lists.
-if ls base-bmf/*.bmf.json >/dev/null 2>&1; then
+# nullglob-safe existence check (see accuracy-pr-report.sh for why not `ls glob`).
+base_files=(base-bmf/*.bmf.json)
+if [ "${#base_files[@]}" -gt 0 ]; then
   uv run --with matplotlib python tests/bench/pr_report.py pr-bmf base-bmf out
 else
   uv run --with matplotlib python tests/bench/pr_report.py pr-bmf pr-bmf out --no-baseline

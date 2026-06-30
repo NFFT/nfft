@@ -27,7 +27,11 @@ for f in pr-bmf/*.bmf.json; do
     || echo "no baseline yet: ${tb}"
 done
 
-if ls base-bmf/*.bmf.json >/dev/null 2>&1; then
+# nullglob-safe existence check: an unmatched glob is an EMPTY array (NOT a
+# literal), whereas `ls base-bmf/*.bmf.json` under nullglob would run `ls` with no
+# args, list the cwd, and falsely succeed -> always diff vs an empty baseline.
+base_files=(base-bmf/*.bmf.json)
+if [ "${#base_files[@]}" -gt 0 ]; then
   run_report pr-bmf base-bmf out --abs-url "$abs_url" --rel-url "$rel_url"
   publish out/absolute.png out/relative.png
 else
