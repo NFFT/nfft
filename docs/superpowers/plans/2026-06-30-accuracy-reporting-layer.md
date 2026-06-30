@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Revision (2026-06-30) — implemented, with three post-build refinements** (authoritative: the spec + the actual code):
+> 1. **No-baseline path.** The first PR (or any PR before `develop` has published a baseline) now shows absolute accuracy with a clear "no baseline yet" message — not a misleading "unchanged". New `report.comment_body_no_baseline` / `check_summary_no_baseline` and `pr_report.py --no-baseline`.
+> 2. **Permanent PR heatmap links.** PR images are linked via `raw.githubusercontent.com/<owner>/<repo>/gh-pages/pr/<n>/…` (stable, inline-rendering, work before Pages is enabled) rather than the Pages site URL.
+> 3. **gh-pages branch confirmed** as the archive (permanent, accumulating per-PR; `actions/deploy-pages` replaces the site each deploy and artifacts expire). Fork PRs cannot write `gh-pages` (read-only token) → emoji/text only.
+
 **Goal:** Replace Bencher's noisy PR comments and unscalable dashboard with a GitHub Pages heatmap dashboard of absolute accuracy plus a quiet, bidirectional, always-present PR signal (Check + diff comment), keeping Bencher purely as the data archive.
 
 **Architecture:** New pure-Python modules under `tests/bench/` (`diff.py`, `report.py`, `heatmap.py`) plus two thin CLIs (`dashboard.py`, `pr_report.py`) transform the existing per-testbed BMF JSON into heatmap PNGs, an emoji grid, a PR comment body, and a Check summary. A new `accuracy-report` job in `build-linux.yml` runs them: on `develop` push it publishes the absolute dashboard + baseline BMFs to a `gh-pages` branch; on a PR it fetches the baseline, diffs, and posts the Check + comment. The diff is a pure function of two sets of BMF files — no Bencher API in the PR path.

@@ -122,17 +122,34 @@ Assembles the PR surfaces from a `DiffResult`.
     **Regressions** group, each listing cases as
     `‹name›: ‹base›→‹pr› digits (‹±pct›%)`, capped at **10** with `… +N more`;
     and links to the absolute + relative detailed heatmap PNGs.
-  - When `png_urls` is empty (fork PR, no Pages write), omit the links; the emoji
+  - When `png_urls` is empty (fork PR, no archive write), omit the links; the emoji
     heatmap and itemized lists remain.
+- `check_summary_no_baseline()` / `comment_body_no_baseline(abs_url=None)` — the
+  **no-baseline** state (the first PR, or any PR opened before `develop` has
+  published a baseline). The Check title is `baseline pending` (still `neutral`);
+  the comment says plainly "No `develop` baseline yet … showing this PR's absolute
+  accuracy", links the absolute heatmap (if `abs_url`), and shows **no diff** — it
+  must NOT report a misleading "unchanged".
 
-### 5.4 Pages publishing
+### 5.4 Archiving & publishing (gh-pages branch)
+The heatmaps are committed to a **`gh-pages` branch** — chosen deliberately over
+`actions/deploy-pages` (which replaces the whole site each deploy, so per-PR
+history doesn't accumulate) and over workflow artifacts (which expire ~90 days →
+stale links). The branch gives **permanent, accumulating per-PR archives**.
+
 - **develop push:** render absolute heatmaps + a minimal `index.html`, and copy
-  the per-testbed baseline BMF files to a known Pages path (e.g.
-  `baseline/<testbed>.bmf.json`) so PR runs can fetch them. Publish via
-  `actions/deploy-pages` (or a `gh-pages` branch commit).
-- **same-repo PR:** publish the PR's two heatmap PNGs to a PR-scoped Pages path
-  (e.g. `pr/<number>/{absolute,relative}.png`); their URLs go in the comment.
-- **fork PR:** no Pages write; comment uses the inline emoji heatmap only.
+  the per-testbed baseline BMFs to `baseline/<testbed>.bmf.json` (so PR runs can
+  fetch them). The human dashboard is served by **GitHub Pages** from this branch.
+- **same-repo PR:** publish the PR's heatmap PNGs to `pr/<number>/…` on `gh-pages`.
+  The comment links them via **`raw.githubusercontent.com/<owner>/<repo>/gh-pages/
+  pr/<number>/…`** — permanent, render inline, and resolve **without Pages enabled
+  or built** (also why the first PR works before Pages is configured).
+- **no baseline yet:** same-repo PR still archives + links the **absolute** heatmap
+  only (no relative diff).
+- **fork PR:** GitHub forces a read-only `GITHUB_TOKEN` for fork `pull_request`
+  runs regardless of `permissions:`/environment approval, so forks **cannot** write
+  `gh-pages`. Fork comments use the inline emoji heatmap (or, in the no-baseline
+  case, text) only — no archived PNG. This is a hard GitHub limitation.
 
 ### 5.5 Workflow wiring (`accuracy-report` job in `build-linux.yml`)
 - `needs: build`; downloads all `accuracy-bmf-*` artifacts (same as the upload job).
