@@ -1,30 +1,44 @@
 #!/usr/bin/env bash
+# Post the accuracy Check + upserted comment for a PR. Same-repo PRs also archive
+# their heatmaps to the gh-pages branch (permanent); the comment links them via
+# raw.githubusercontent URLs (stable, render inline, work without Pages enabled).
+# Fork PRs get no gh-pages write (read-only token) -> emoji/text only.
 set -euo pipefail
 owner="${GITHUB_REPOSITORY%%/*}"; repo="${GITHUB_REPOSITORY##*/}"
-pages_raw="https://raw.githubusercontent.com/${owner}/${repo}/gh-pages/baseline"
+baseline_raw="https://raw.githubusercontent.com/${owner}/${repo}/gh-pages/baseline"
+images_raw="https://raw.githubusercontent.com/${owner}/${repo}/gh-pages/pr"
 pr="$(jq -r .number "$GITHUB_EVENT_PATH")"
+abs_url="${images_raw}/${pr}/absolute.png"
+rel_url="${images_raw}/${pr}/relative.png"
 
-# Fetch baseline BMFs (skip cleanly if the dashboard hasn't published yet).
+run_report() { uv run --with matplotlib python tests/bench/pr_report.py "$@"; }
+publish() {  # publish given PNGs to gh-pages under pr/<n>/
+  mkdir -p "site/pr/${pr}"; cp "$@" "site/pr/${pr}/"
+  bash .github/scripts/gh-pages-publish.sh "site/pr/${pr}" "pr ${pr} heatmaps" "pr/${pr}"
+}
+
+# Fetch baseline BMFs (skip cleanly if develop has not published a baseline yet).
 mkdir -p base-bmf
 for f in pr-bmf/*.bmf.json; do
   tb="$(basename "$f")"
-  curl -fsSL "${pages_raw}/${tb}" -o "base-bmf/${tb}" || echo "no baseline yet: ${tb}"
+  curl -fsSL "${baseline_raw}/${tb}" -o "base-bmf/${tb}" || echo "no baseline yet: ${tb}"
 done
 
-if [ -d base-bmf ] && ls base-bmf/*.bmf.json >/dev/null 2>&1; then
+if ls base-bmf/*.bmf.json >/dev/null 2>&1; then
   if [ "${IS_FORK:-false}" = "true" ]; then
-    uv run --with matplotlib python tests/bench/pr_report.py pr-bmf base-bmf out
+    run_report pr-bmf base-bmf out                       # emoji only, no archive
   else
-    abs="https://${owner}.github.io/${repo}/pr/${pr}/absolute.png"
-    rel="https://${owner}.github.io/${repo}/pr/${pr}/relative.png"
-    uv run --with matplotlib python tests/bench/pr_report.py pr-bmf base-bmf out \
-      --abs-url "$abs" --rel-url "$rel"
-    mkdir -p site/pr/${pr}; cp out/absolute.png out/relative.png site/pr/${pr}/
-    bash .github/scripts/gh-pages-publish.sh site/pr/${pr} "pr ${pr} heatmaps" "pr/${pr}"
+    run_report pr-bmf base-bmf out --abs-url "$abs_url" --rel-url "$rel_url"
+    publish out/absolute.png out/relative.png
   fi
 else
-  # No baseline published yet: still render PR-only heatmaps + a flat-ish comment.
-  uv run --with matplotlib python tests/bench/pr_report.py pr-bmf pr-bmf out
+  # No develop baseline yet (e.g. the first PR): absolute-only, no misleading diff.
+  if [ "${IS_FORK:-false}" = "true" ]; then
+    run_report pr-bmf pr-bmf out --no-baseline           # text only, no archive
+  else
+    run_report pr-bmf pr-bmf out --no-baseline --abs-url "$abs_url"
+    publish out/absolute.png
+  fi
 fi
 
 # Post the Check (never fails CI).

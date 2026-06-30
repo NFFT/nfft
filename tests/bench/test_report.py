@@ -1,5 +1,6 @@
 from diff import Change, DiffResult
-from report import MARKER, check_summary, comment_body
+from report import (MARKER, check_summary, check_summary_no_baseline,
+                    comment_body, comment_body_no_baseline)
 
 
 def _result(impr=0, regr=0, unchanged=5):
@@ -38,6 +39,19 @@ def test_changed_comment_lists_groups_and_links():
     assert "Improvements" in body and "Regressions" in body
     assert "13.00 → 14.00 digits" in body  # i0: base 13 -> pr 14
     assert "http://x/abs.png" in body and "http://x/rel.png" in body
+
+
+def test_no_baseline_check_is_neutral_and_pending():
+    conclusion, title, _ = check_summary_no_baseline()
+    assert conclusion == "neutral" and "pending" in title
+
+
+def test_no_baseline_comment_explains_and_links_absolute():
+    body = comment_body_no_baseline("http://x/abs.png")
+    assert body.splitlines()[0] == MARKER
+    assert "No `develop` baseline" in body
+    assert "http://x/abs.png" in body
+    assert "Regressions" not in body and "unchanged" not in body
 
 
 def test_group_capped_at_10_with_more_note():

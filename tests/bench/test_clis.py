@@ -37,6 +37,20 @@ def test_pr_report_changed_writes_all_artifacts(tmp_path):
     assert (out / "relative.png").stat().st_size > 0
 
 
+def test_pr_report_no_baseline(tmp_path):
+    pr = tmp_path / "pr"; pr.mkdir()
+    _write_bmf(pr / "tb1.bmf.json", **{"m/serial/file/fast/forward/1d/a": 13.5})
+    out = tmp_path / "out"
+    pr_report.main([str(pr), str(pr), str(out), "--no-baseline",
+                    "--abs-url", "http://x/a.png"])
+    body = (out / "comment.md").read_text()
+    assert "No `develop` baseline" in body and "http://x/a.png" in body
+    check = json.load(open(out / "check.json"))
+    assert check["conclusion"] == "neutral" and "pending" in check["title"]
+    assert (out / "absolute.png").stat().st_size > 0
+    assert not (out / "relative.png").exists()  # no relative heatmap without baseline
+
+
 def test_pr_report_flat_has_no_links_and_one_liner(tmp_path):
     pr = tmp_path / "pr"; pr.mkdir()
     base = tmp_path / "base"; base.mkdir()

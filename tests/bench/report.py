@@ -30,6 +30,21 @@ def _group(heading, changes):
     return "\n".join(out)
 
 
+def check_summary_no_baseline():
+    """Check output when no develop baseline exists yet (e.g. the first PR)."""
+    return "neutral", "baseline pending", "no develop baseline yet to compare against"
+
+
+def comment_body_no_baseline(abs_url=None):
+    """Comment when there is no baseline: show absolute accuracy only, no diff."""
+    lines = [MARKER, "## Accuracy report", "",
+             "No `develop` baseline yet to compare against — showing this PR's "
+             "absolute accuracy. A baseline appears once changes land on `develop`."]
+    if abs_url:
+        lines += ["", f"[absolute heatmap]({abs_url})"]
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def comment_body(result, png_urls):
     y, z = len(result.improvements), len(result.regressions)
     if y == 0 and z == 0:
