@@ -67,8 +67,11 @@ without Pages enabled).
 - **No baseline yet** (first PR, or any PR before `develop` has published): the
   comment shows absolute accuracy with a clear "no baseline yet" note — never a
   misleading "unchanged" — and links the absolute heatmap only.
-- **Fork PRs** get a read-only token (GitHub limitation) so they cannot write
-  `gh-pages`: they receive the inline emoji grid / text only, no archived PNG.
+- **Fork PRs** get a read-only token (GitHub limitation) so they can write neither
+  `gh-pages` nor a Check/comment; the `accuracy-report` job is **skipped** for them
+  (it can't fail trying). Fork PRs get no accuracy report.
+- The report steps are `continue-on-error` and the Check is `neutral`, so a publish
+  or API failure is **never** able to red CI.
 
 Scope: P1. The convergence-curve view (err vs N) is P2 — see
 [`docs/superpowers/specs/2026-06-30-accuracy-reporting-layer-design.md`](../superpowers/specs/2026-06-30-accuracy-reporting-layer-design.md).

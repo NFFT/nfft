@@ -147,18 +147,28 @@ stale links). The branch gives **permanent, accumulating per-PR archives**.
 - **no baseline yet:** same-repo PR still archives + links the **absolute** heatmap
   only (no relative diff).
 - **fork PR:** GitHub forces a read-only `GITHUB_TOKEN` for fork `pull_request`
-  runs regardless of `permissions:`/environment approval, so forks **cannot** write
-  `gh-pages`. Fork comments use the inline emoji heatmap (or, in the no-baseline
-  case, text) only — no archived PNG. This is a hard GitHub limitation.
+  runs regardless of `permissions:`/environment approval — so forks can write
+  neither `gh-pages` nor a Check/comment. The `accuracy-report` job is therefore
+  **skipped entirely for fork PRs** (job-level `if`), so it can't fail trying.
+  Fork PRs get no accuracy report. (A future `workflow_run`-triggered companion,
+  running with the base-repo token after the untrusted build, could add it — out
+  of scope for P1.)
 
 ### 5.5 Workflow wiring (`accuracy-report` job in `build-linux.yml`)
 - `needs: build`; downloads all `accuracy-bmf-*` artifacts (same as the upload job).
-- Permissions: `contents: read`, `checks: write`, `pull-requests: write`, plus
-  `pages: write`/`id-token: write` (or `contents: write` for a `gh-pages` commit).
-- Branch logic mirrors the existing upload job: `push` → develop dashboard +
-  baseline publish; `pull_request` → diff + Check + comment (+ PR PNG publish for
-  same-repo). **Fork-gating identical** to the upload job (forks gated to the
-  reviewer environment; everything else unattended).
+- Uses **only `GITHUB_TOKEN`** (no external secret), so **no environment gating**.
+  Permissions: `contents: write` (push `gh-pages`), `checks: write`, `pull-requests:
+  write`. `persist-credentials: false` (the publish script authenticates via its own
+  clone URL).
+- **Job-level `if` skips fork PRs** (read-only token can't write); runs for pushes,
+  same-repo PRs, and `workflow_dispatch`.
+- `push` → publish dashboard + baseline **only on `refs/heads/develop`** (main/master
+  pushes must not clobber the develop baseline). `pull_request` → diff + Check +
+  comment (+ PR PNG archive).
+- **Both report steps are `continue-on-error: true`** — a publish/post/network
+  failure is informational and must never red CI (the Check *conclusion* is also
+  always `neutral`). The Check is posted on the **PR head SHA**
+  (`github.event.pull_request.head.sha`), not the ephemeral merge SHA.
 - The existing `bencher-upload` job stays; remove its `--github-actions` flag so
   Bencher no longer comments.
 

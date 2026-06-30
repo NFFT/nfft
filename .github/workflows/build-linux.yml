@@ -473,9 +473,11 @@ jobs:
   accuracy-report:
     needs: build
     runs-on: ubuntu-latest
-    # Fork PRs gated (no gh-pages write); everything else unattended. Mirrors
-    # bencher-upload. Never fails CI (the Check is informational).
-    environment: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork && 'benchmarks' || 'bencher-baseline' }}
+    # Uses only GITHUB_TOKEN (no secret) -> no environment gating needed. Skipped
+    # for FORK PRs: GitHub forces a read-only token on fork pull_request runs, so
+    # the gh-pages push and the Check/comment POSTs cannot succeed there. Runs for
+    # pushes to default branches, same-repo PRs, and workflow_dispatch.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
     permissions:
       contents: write          # push to gh-pages
       checks: write            # post the Check
@@ -483,7 +485,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          persist-credentials: true   # need to push gh-pages
+          persist-credentials: false   # gh-pages-publish.sh authenticates via its own clone URL
           fetch-depth: 0
 
       - name: Set up uv
@@ -509,7 +511,9 @@ jobs:
           ls pr-bmf
 
       - name: Develop — publish dashboard + baseline to gh-pages
-        if: github.event_name == 'push'
+        # Only the develop baseline is published; main/master pushes must not clobber it.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        continue-on-error: true   # informational: a publish failure must never red CI
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -519,10 +523,11 @@ jobs:
 
       - name: PR — fetch baseline, diff, post Check + comment
         if: github.event_name == 'pull_request'
+        continue-on-error: true   # informational: a report/post failure must never red CI
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: bash .github/scripts/accuracy-pr-report.sh
 
   distcheck:
