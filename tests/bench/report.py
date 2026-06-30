@@ -38,7 +38,7 @@ def check_summary_no_baseline():
 def comment_body_no_baseline(abs_url=None):
     """Comment when there is no baseline: show absolute accuracy only, no diff."""
     lines = [MARKER, "## Accuracy report", "",
-             "No `develop` baseline yet to compare against — showing this PR's "
+             "No `develop` baseline yet to compare against — showing this PR's " +
              "absolute accuracy. A baseline appears once changes land on `develop`."]
     if abs_url:
         lines += ["", f"[absolute heatmap]({abs_url})"]
