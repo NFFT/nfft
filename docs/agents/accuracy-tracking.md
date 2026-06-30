@@ -43,6 +43,28 @@ The pass/fail gate stays in C (`err < bound`); Bencher additionally tracks the
    or same-repo PR feature branches are blocked from it. Without the key a run
    falls back to `--dry-run`.
 
+## Reporting
+
+Bencher is now only the long-term archive. Human-facing reporting is the
+`accuracy-report` job in `build-linux.yml`, built from pure modules in
+`tests/bench/`:
+
+- **`diff.py`** — compares two sets of per-testbed BMFs on `accuracy-digits`;
+  a case is *changed* when `|Δ digits| ≥ 0.5` (configurable).
+- **`heatmap.py`** — absolute and relative heatmap PNGs + an inline emoji grid.
+- **`report.py`** — the Check summary and the upserted PR comment body.
+- **`dashboard.py` / `pr_report.py`** — CLIs the workflow runs.
+
+On **develop** push: the absolute heatmap + `baseline/*.bmf.json` are published
+to the `gh-pages` branch (the standing dashboard). On a **PR**: the baseline is
+fetched from `gh-pages`, diffed against the PR's BMFs, and a non-failing
+**Check** plus an always-upserted **comment** (emoji grid + itemized
+improvements/regressions, capped at 10/group, links to the absolute + relative
+heatmap PNGs) are posted. Fork PRs get the emoji grid only (no `gh-pages` write).
+
+Scope: P1. The convergence-curve view (err vs N) is P2 — see
+[`docs/superpowers/specs/2026-06-30-accuracy-reporting-layer-design.md`](../superpowers/specs/2026-06-30-accuracy-reporting-layer-design.md).
+
 ## Run it locally
 
 ```bash

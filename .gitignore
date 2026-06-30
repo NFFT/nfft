@@ -173,3 +173,6 @@ build-cmake*/
 
 # JetBrains IDEs
 .idea
+
+# Local Bencher credential files (never commit)
+BENCHER_*.txt

@@ -8,3 +8,7 @@ accuracy.bmf.json
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# Local accuracy-report scratch (heatmaps, comment.md, gh-pages staging)
+/bench/out/
+/bench/site/
