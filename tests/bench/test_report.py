@@ -42,5 +42,7 @@ def test_changed_comment_lists_groups_and_links():
 
 def test_group_capped_at_10_with_more_note():
     body = comment_body(_result(impr=13), None)
-    assert body.count("i") >= 10
+    # Exactly 10 itemized rows are rendered (the cap), plus a "+N more" note.
+    item_lines = [ln for ln in body.splitlines() if ln.startswith("- `t1 i")]
+    assert len(item_lines) == 10
     assert "+3 more" in body

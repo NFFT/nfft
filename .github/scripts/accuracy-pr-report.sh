@@ -2,7 +2,6 @@
 set -euo pipefail
 owner="${GITHUB_REPOSITORY%%/*}"; repo="${GITHUB_REPOSITORY##*/}"
 pages_raw="https://raw.githubusercontent.com/${owner}/${repo}/gh-pages/baseline"
-pr="${GITHUB_REF_NAME%%/*}"   # refs/pull/<n>/merge -> GITHUB_REF gives the number via event
 pr="$(jq -r .number "$GITHUB_EVENT_PATH")"
 
 # Fetch baseline BMFs (skip cleanly if the dashboard hasn't published yet).

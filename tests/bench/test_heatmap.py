@@ -5,10 +5,10 @@ from heatmap import emoji_grid, render_absolute, render_relative
 
 
 def _result():
+    # One large improvement (+1.5 → 💚) and one large regression (-1.5 → 🟥).
     return DiffResult(
         improvements=[Change("t1", "m/serial/file/fast/forward/1d/a", 13, 14.5, 1.5, 11)],
-        regressions=[Change("t1", "m/serial/file/fast/forward/2d/a", 14, 13.7, -0.3, -2)]
-        and [Change("t1", "m/serial/file/fast/forward/2d/a", 14, 12.5, -1.5, -11)],
+        regressions=[Change("t1", "m/serial/file/fast/forward/2d/a", 14, 12.5, -1.5, -11)],
         unchanged_count=3,
         by_testbed={"t1": {"improved": 1, "regressed": 1, "unchanged": 3}},
     )

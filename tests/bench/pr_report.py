@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 
 from diff import diff, load_bmf_tree
 from heatmap import emoji_grid, render_absolute, render_relative
@@ -37,7 +36,7 @@ def main(argv=None):
     body = comment_body(result, png_urls)
     if result.improvements or result.regressions:
         body = body.replace("## Accuracy report\n",
-                            "## Accuracy report\n\n" + emoji_grid(result) + "\n\n", 1)
+                            "## Accuracy report\n\n" + emoji_grid(result, args.gate) + "\n\n", 1)
     with open(os.path.join(args.out_dir, "comment.md"), "w", encoding="utf-8") as f:
         f.write(body)
 

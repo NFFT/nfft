@@ -23,9 +23,8 @@ def _emoji(delta, gate=0.5):
     return "·"           # ·
 
 
-def emoji_grid(result):
-    rows = {c.name: c for c in result.improvements + result.regressions}
-    if not rows:
+def emoji_grid(result, gate=0.5):
+    if not (result.improvements or result.regressions):
         return "_No significant changes._"
     testbeds = sorted(result.by_testbed)
     out = ["| case | " + " | ".join(testbeds) + " |",
@@ -34,12 +33,12 @@ def emoji_grid(result):
     for c in result.improvements + result.regressions:
         by_name.setdefault(c.name, {})[c.testbed] = c.delta_digits
     for name in sorted(by_name):
-        cells = [_emoji(by_name[name].get(t, 0.0)) for t in testbeds]
+        cells = [_emoji(by_name[name].get(t, 0.0), gate) for t in testbeds]
         out.append(f"| `{name}` | " + " | ".join(cells) + " |")
     return "\n".join(out)
 
 
-def _heatmap(matrix, rows, cols, out_png, cmap, vcenter=None):
+def _heatmap(matrix, rows, cols, out_png, cmap):
     fig, ax = plt.subplots(figsize=(max(6, len(cols) * 0.6),
                                     max(4, len(rows) * 0.25)))
     im = ax.imshow(matrix, aspect="auto", cmap=cmap)

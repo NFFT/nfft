@@ -33,6 +33,7 @@ def test_pr_report_changed_writes_all_artifacts(tmp_path):
     assert check["conclusion"] == "neutral" and "improved" in check["title"]
     body = (out / "comment.md").read_text()
     assert "Improvements" in body and "http://x/a.png" in body
+    assert (out / "absolute.png").stat().st_size > 0
     assert (out / "relative.png").stat().st_size > 0
 
 

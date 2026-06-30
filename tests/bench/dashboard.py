@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
-import sys
 
 from diff import load_bmf_tree
 from heatmap import render_absolute
