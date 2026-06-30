@@ -1,0 +1,41 @@
+name: Accuracy Report (forks)
+
+# Posts the emoji-heatmap accuracy comment + Check for FORK PRs, which the
+# in-build `accuracy-report` job cannot do (a fork `pull_request` run gets a
+# read-only token). SECURITY: `workflow_run` runs the workflow definition + code
+# from the DEFAULT branch (trusted), AFTER the fork's build. It only consumes the
+# fork's BMF *artifacts* (JSON data — parsed/rendered, never executed) and never
+# checks out or runs fork code. No gh-pages write, no PNG archive — emoji grid +
+# itemized lists only (which is all forks need).
+on:
+  workflow_run:
+    workflows: ["Build Linux"]
+    types: [completed]
+
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  fork-report:
+    if: >-
+      ${{ github.event.workflow_run.event == 'pull_request' &&
+          github.event.workflow_run.head_repository.fork == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false   # default-branch (trusted) scripts only
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v7
+        with:
+          enable-cache: true
+
+      - name: Render emoji comment + Check and post to the fork PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: bash .github/scripts/accuracy-fork-report.sh

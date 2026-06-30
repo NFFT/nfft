@@ -67,9 +67,11 @@ without Pages enabled).
 - **No baseline yet** (first PR, or any PR before `develop` has published): the
   comment shows absolute accuracy with a clear "no baseline yet" note — never a
   misleading "unchanged" — and links the absolute heatmap only.
-- **Fork PRs** get a read-only token (GitHub limitation) so they can write neither
-  `gh-pages` nor a Check/comment; the `accuracy-report` job is **skipped** for them
-  (it can't fail trying). Fork PRs get no accuracy report.
+- **Fork PRs** get a read-only token, so the in-build `accuracy-report` job is
+  **skipped** for them; a trusted `workflow_run` companion
+  (`accuracy-report-fork.yml`) instead posts the **emoji comment + Check** (no
+  `gh-pages`/PNG archive). It runs default-branch code over the fork's BMF
+  artifacts (data only).
 - The report steps are `continue-on-error` and the Check is `neutral`, so a publish
   or API failure is **never** able to red CI.
 

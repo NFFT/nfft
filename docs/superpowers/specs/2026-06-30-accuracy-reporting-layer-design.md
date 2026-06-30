@@ -147,12 +147,12 @@ stale links). The branch gives **permanent, accumulating per-PR archives**.
 - **no baseline yet:** same-repo PR still archives + links the **absolute** heatmap
   only (no relative diff).
 - **fork PR:** GitHub forces a read-only `GITHUB_TOKEN` for fork `pull_request`
-  runs regardless of `permissions:`/environment approval — so forks can write
-  neither `gh-pages` nor a Check/comment. The `accuracy-report` job is therefore
-  **skipped entirely for fork PRs** (job-level `if`), so it can't fail trying.
-  Fork PRs get no accuracy report. (A future `workflow_run`-triggered companion,
-  running with the base-repo token after the untrusted build, could add it — out
-  of scope for P1.)
+  runs, so the in-build `accuracy-report` job is **skipped** for forks. Instead a
+  **`workflow_run` companion** (`accuracy-report-fork.yml`, §5.6) posts the
+  **emoji-grid comment + Check** for fork PRs — no `gh-pages` write, no PNG archive
+  (which is all forks need). It runs **default-branch (trusted) code** after the
+  fork's build and only *consumes* the fork's BMF artifacts (JSON data, never
+  executed).
 
 ### 5.5 Workflow wiring (`accuracy-report` job in `build-linux.yml`)
 - `needs: build`; downloads all `accuracy-bmf-*` artifacts (same as the upload job).
@@ -171,6 +171,16 @@ stale links). The branch gives **permanent, accumulating per-PR archives**.
   (`github.event.pull_request.head.sha`), not the ephemeral merge SHA.
 - The existing `bencher-upload` job stays; remove its `--github-actions` flag so
   Bencher no longer comments.
+
+### 5.6 Fork-PR companion (`accuracy-report-fork.yml`)
+A separate `workflow_run` workflow (triggered on `Build Linux` completion, gated
+to `workflow_run.event == 'pull_request'` and `head_repository.fork == true`)
+posts the emoji comment + Check for fork PRs. **Security:** it runs the workflow
+and scripts from the **default branch** (trusted), never checks out or runs fork
+code, and only `gh run download`s the fork build's BMF *artifacts* (JSON), which
+are parsed/rendered (never executed). It resolves the PR number from the build's
+`head_sha`, renders `pr_report.py` **without** PNG URLs (so the comment carries the
+inline emoji grid + lists), and posts non-fatally. No `gh-pages` write.
 
 ## 6. Testing
 
