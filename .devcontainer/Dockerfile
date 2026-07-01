@@ -56,6 +56,9 @@ WORKDIR /workspace
 # Change ownership to vscode user
 RUN chown -R vscode:vscode /workspace
 
+# Create Claude config directory and change ownership.
+RUN mkdir -p /home/vscode/.claude && chown -R vscode:vscode /home/vscode/.claude
+
 # Switch to vscode user
 USER vscode
 
@@ -66,12 +69,10 @@ ENV VISUAL=nano
 # Install Julia, uv, Python, zizmor.
 ENV PATH="/home/vscode/.local/bin:${PATH}"
 RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
-  && curl -fsSL https://astral.sh/uv/install.sh | sh \
-  && /home/vscode/.local/bin/uv python install --default 3.13 \
-  && bin/uv tool install zizmor
-
-# Install RTK.
-RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+    && curl -fsSL https://astral.sh/uv/install.sh | sh \
+    && uv python install --default 3.13 \
+    && uv tool install zizmor \
+    && uv tool install ruff
 
 # Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /
 # simulation track). Installs to ~/.cargo/bin and adds it to PATH.
