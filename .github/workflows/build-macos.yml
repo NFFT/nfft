@@ -285,7 +285,7 @@ jobs:
 
     - name: CMake — Publish Test Report (serial)
       if: ${{ always() && hashFiles('build-cmake/tests/junit.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
       with:
         report-path: './build-cmake/tests/junit.xml'
         integrations-config: |
@@ -347,7 +347,7 @@ jobs:
         done
 
     - name: Publish Test Report
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
       with:
         report-path: './tests/junit.xml'
         integrations-config: |
@@ -369,7 +369,7 @@ jobs:
 
     - name: Publish Test Report (threads)
       if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@0f299074936c32ccaab5be5230511f6b2b9080aa # v1
+      uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
       with:
         report-path: './tests/junit_threads.xml'
         integrations-config: |
