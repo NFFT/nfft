@@ -23,12 +23,14 @@ _Avoid_: precision flavor, variant.
 
 **Benchmark name**:
 The google_benchmark/CodSpeed identifier
-`benchmarks/bench_nfft_direct.cpp::<prefix><function>/<args>`. The leaf
-(`<prefix><function>`) comes from the `BENCH` macro in `benchmarks/util.h`; since
-codspeed-cpp v2.x the `benchmarks/bench_nfft_direct.cpp::` prefix is supplied by
-codspeed from `__FILE__` relative to `CODSPEED_ROOT_DIR` (pinned to the repo root
-in `benchmarks/CMakeLists.txt`). The unit CodSpeed tracks; Preserving benchmark 
-names for the same unit of work while making changes is important.
+`benchmarks/bench_<module>_direct.cpp::<prefix><function>/<args>`, one source file
+per direct-transform module (`bench_nfft_direct.cpp`, `bench_nfct_direct.cpp`,
+`bench_nfst_direct.cpp`), each mirroring the same 1D/2D/3D forward/adjoint
+structure. The leaf (`<prefix><function>`) comes from the `BENCH` macro in
+`benchmarks/util.h`; since codspeed-cpp v2.x the `benchmarks/bench_<module>_direct.cpp::`
+prefix is supplied by codspeed from `__FILE__` relative to `CODSPEED_ROOT_DIR`
+(pinned to the repo root in `benchmarks/CMakeLists.txt`). The unit CodSpeed tracks;
+Preserving benchmark names for the same unit of work while making changes is important.
 _Avoid_: benchmark id, test name, label.
 
 **Benchmarks prefix** (`BENCHMARKS_PREFIX`):
