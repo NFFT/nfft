@@ -37,6 +37,9 @@
 # Log files
 *.log
 
+# ...but keep curated perf-engineering run logs (test/benchmark evidence under docs/perfeng/)
+!docs/perfeng/**/*.log
+
 # Autosave files
 *.asv
 
@@ -159,7 +162,7 @@ matlab/tests/nfsftUnitTests.m
 matlab/tests/check_*_matlab.output
 windows-build-dll*/*
 linux-build-mex/*
-nfft-*
+/nfft-*
 .vscode/*
 
 .venv/
