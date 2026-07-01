@@ -113,6 +113,45 @@ transform, and validates the fast transform against it. See
 `docs/agents/test-methodology.md`.
 _Avoid_: reference test / accuracy test (ambiguous — name the class).
 
+### Accuracy tracking (HTML report)
+
+**Accuracy metric**:
+One row key in the aggregated accuracy JSON ("BMF") — the **max error over all
+bound-absorbed parameter values** for a fixed combination of **error-shaping
+parameters**. Rendered into the in-tree HTML report (never gates CI). Distinct from
+a CodSpeed **Benchmark name**, which tracks instruction count, not error. See
+`docs/agents/accuracy-tracking.md` and ADR-0004.
+_Avoid_: accuracy benchmark, error benchmark (conflates with CodSpeed).
+
+**Error-shaping parameter**:
+A test parameter that changes a transform's *achievable* accuracy and so earns its
+own **accuracy metric**: window, precision, runtime (serial vs OpenMP — the parallel
+reduction order perturbs the low bits), dimension, transform kind (direct/fast,
+forward/adjoint), precompute/init variant, and the file-vs-online oracle. Window and
+precision are carried by the **accuracy testbed**; the rest are in the metric name.
+_Avoid_: error parameter (ambiguous).
+
+**Bound-absorbed parameter**:
+A test parameter whose effect is already captured by the analytic error bound — the
+bandwidth `N` and node count `M`. Collapsed via `max` within an **accuracy metric**,
+never given its own series.
+_Avoid_: size parameter.
+
+**Accuracy digits**:
+The primary accuracy measure, `-log10(max err)` — the worst-case number of accurate
+digits (higher is better; a regression lowers it). Log-scaled so it reads cleanly
+across the ~14 orders of magnitude the raw error spans. The raw `max err` is kept as
+the secondary **max-error** measure for the exact figure, and `-log10(bound)` as
+**bound-digits** so the heatmap can color by margin.
+_Avoid_: tightness ratio (`err/bound`, the superseded measure), error ratio.
+
+**Accuracy testbed**:
+The per-cell `BUILD_CONFIG` (`<os>_<compiler>_<window>_<precision>`), one
+`<testbed>.bmf.json` file. The only per-matrix-cell-variable part of an **accuracy
+metric**; the metric name is identical across testbeds so `diff.py` joins PR-vs-
+baseline figures by name (metric-name stability is what makes the diff align).
+_Avoid_: cell, matrix testbed.
+
 ### Language interfaces
 
 **Interface kernel**:

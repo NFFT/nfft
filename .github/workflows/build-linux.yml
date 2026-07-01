@@ -168,6 +168,8 @@ jobs:
     - name: Autotools - Test
       id: test
       if: matrix.compiler == 'gcc'
+      env:
+        NFFT_BENCH_OUT: ${{ github.workspace }}/tests/accuracy.ndjson  # emit accuracy results as NDJSON
       run: make check
 
     - name: Autotools - Print checkall.log on test failure
@@ -253,6 +255,27 @@ jobs:
               }
             }
           }
+
+    # Aggregate the NDJSON results.
+    - name: Accuracy - aggregate NDJSON to BMF
+      if: always() && matrix.compiler == 'gcc'
+      shell: bash
+      run: |
+        : > tests/accuracy.all.ndjson
+        for f in tests/accuracy.ndjson tests/accuracy.ndjson.threads; do
+          [ -f "$f" ] && cat "$f" >> tests/accuracy.all.ndjson
+        done
+        test -s tests/accuracy.all.ndjson
+        uv run python -m tests.accuracy.ndjson_to_bmf \
+          tests/accuracy.all.ndjson tests/accuracy.bmf.json
+
+    - name: Accuracy - upload BMF artifact
+      if: always() && matrix.compiler == 'gcc'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: accuracy-bmf-${{ env.BUILD_CONFIG }}
+        path: tests/accuracy.bmf.json
+        if-no-files-found: error
 
     - name: Autotools - Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -358,6 +381,63 @@ jobs:
             ( cd "$DIR" && julia "$(basename "$NAME")" )
           done
         done
+
+  accuracy-report:  # Accuracy report publishing (only baseline and in-repo PRs).
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
+    permissions:
+      contents: write  # push to gh-pages
+      checks: write  # post the Check
+      pull-requests: write  # upsert the comment
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v7
+        with:
+          enable-cache: true
+
+      - name: Download accuracy BMF artifacts
+        continue-on-error: true   # tolerate a partial/empty artifact set when build cells failed
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: accuracy-bmf-*
+          path: bmf-artifacts
+
+      - name: Arrange BMFs as <testbed>.bmf.json
+        shell: bash
+        run: |
+          mkdir -p pr-bmf
+          shopt -s nullglob
+          for d in bmf-artifacts/accuracy-bmf-*/; do
+            tb="$(basename "$d")"; tb="${tb#accuracy-bmf-}"
+            [ -f "${d}accuracy.bmf.json" ] && cp "${d}accuracy.bmf.json" "pr-bmf/${tb}.bmf.json"
+          done
+          ls pr-bmf
+
+      - name: Develop — publish dashboard + baseline to gh-pages
+        # Only the develop baseline is published.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run python -m tests.accuracy.dashboard pr-bmf site
+          bash .github/scripts/gh-pages-publish.sh site "develop dashboard ${GITHUB_SHA::7}"
+
+      - name: PR — fetch baseline, diff, post Check + comment
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash .github/scripts/accuracy-pr-report.sh
 
   distcheck:
     runs-on: ubuntu-latest

@@ -134,6 +134,12 @@ The `tests/data/` reference data is produced by a Python generator (`tests/refge
 see [`docs/agents/test-methodology.md`](docs/agents/test-methodology.md) for the test
 methodology and how to regenerate it.
 
+Test **accuracy figures** (each case's `err` vs `bound`) are rendered into an
+in-tree HTML accuracy report (vector heatmaps, served via GitHub Pages) and a
+per-module PR comment; set `NFFT_BENCH_OUT=<file>` when running `tests/checkall` to
+emit them. See [`docs/agents/accuracy-tracking.md`](docs/agents/accuracy-tracking.md)
+and [ADR-0004](docs/adr/0004-in-tree-html-accuracy-reports.md).
+
 ## 4. Running the benchmarks
 
 Benchmarks (`benchmarks/bench_nfft_direct.cpp`) use the **CodSpeed** C++ integration
