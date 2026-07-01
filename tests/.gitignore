@@ -1,0 +1,10 @@
+# Local accuracy artifacts (see docs/agents/accuracy-tracking.md).
+# Serial (.ndjson), OpenMP (.ndjson.threads), merged (.all.ndjson), and BMF.
+accuracy.ndjson
+accuracy.ndjson.threads
+accuracy.all.ndjson
+accuracy.bmf.json
+
+# Python bytecode cache
+__pycache__/
+*.pyc
