@@ -56,6 +56,9 @@ WORKDIR /workspace
 # Change ownership to vscode user
 RUN chown -R vscode:vscode /workspace
 
+# Create Claude config directory and change ownership.
+RUN mkdir -p /home/vscode/.claude && chown -R vscode:vscode /home/vscode/.claude
+
 # Switch to vscode user
 USER vscode
 
@@ -70,9 +73,6 @@ RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
     && uv python install --default 3.13 \
     && uv tool install zizmor \
     && uv tool install ruff
-
-# Install RTK.
-RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
 
 # Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /
 # simulation track). Installs to ~/.cargo/bin and adds it to PATH.
