@@ -172,6 +172,12 @@ def test_pr_view_marks_changed_cell():
     doc = render_report(_tree(), _diff(), title="PR")
     assert 'class="chg"' in doc
     assert "▲" in doc
+    # Changed cell shows baseline → new (bound) using cell's own digits (13.7 from tree).
+    # In production change.pr_digits == cell digits; the mock has them mismatched on purpose
+    # so we test with the cell value that actually ends up in the HTML.
+    assert "13.0 → 13.7 (11.0) ▲" in doc
+    # Regression: base=14.0, cell digits=12.0 (bound=11.0)
+    assert "14.0 → 12.0 (11.0) ▼" in doc
 
 
 def test_changes_itemized_capped_at_10():
