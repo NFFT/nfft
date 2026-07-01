@@ -31,5 +31,8 @@
     },
     "postCreateCommand": "mkdir -p ~/.claude && sh -c 'echo \"n\" | rtk init -g --auto-patch' && sh -c 'touch ~/.gitignore && grep -qxF .DS_Store ~/.gitignore || printf \"%s\\n\" .DS_Store >> ~/.gitignore' && bash .devcontainer/setup-claude-extensions.sh",
     "remoteUser": "vscode",
-    "containerUser": "vscode"
+    "containerUser": "vscode",
+    "mounts": [
+        "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+    ]
 }
