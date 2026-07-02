@@ -80,11 +80,14 @@ int main(void)
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
-#ifndef _OPENMP
   nfct = CU_add_suite("nfct", 0, 0);
+  /* The 1D direct/adjoint transforms are OpenMP-parallelised, so validate them in both the
+     serial and the threaded (checkall_threads) build. The remaining NFCT paths (fast, 2D/3D,
+     online) are exercised single-threaded only. */
   CU_add_test(nfct, "nfct_1d_direct_file", X(check_1d_direct_file));
-  CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
+#ifndef _OPENMP
+  CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfct, "nfct_1d_online", X(check_1d_online));
   CU_add_test(nfct, "nfct_adjoint_1d_online", X(check_adjoint_1d_online));
@@ -112,11 +115,13 @@ int main(void)
 #ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
-#ifndef _OPENMP
   nfst = CU_add_suite("nfst", 0, 0);
+  /* As for NFCT: the 1D direct/adjoint transforms are OpenMP-parallelised, so validate them in
+     both serial and threaded builds; the fast, 2D/3D and online NFST paths stay serial-only. */
   CU_add_test(nfst, "nfst_1d_direct_file", X(check_1d_direct_file));
-  CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
+#ifndef _OPENMP
+  CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfst, "nfst_1d_online", X(check_1d_online));
   CU_add_test(nfst, "nfst_adjoint_1d_online", X(check_adjoint_1d_online));

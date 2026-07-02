@@ -36,17 +36,19 @@ esac
 [ -n "$TASKDIR" ] || { echo "error: task dir required" >&2; exit 2; }
 shift 2 2>/dev/null || true
 
-DO_TESTS=1; DO_BENCH=1; ONLY_PREC=""; FILTER=""
+DO_TESTS=1; DO_BENCH=1; ONLY_PREC=""; FILTER=""; BINS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --bench-only) DO_TESTS=0 ;;
     --tests-only) DO_BENCH=0 ;;
     --prec) shift; ONLY_PREC="${1:-}" ;;
     --filter) shift; FILTER="${1:-}" ;;
+    --bin) shift; BINS+=("${1:-}") ;;   # benchmark binary name (repeatable); default bench_nfft_direct
     *) echo "error: unknown option '$1'" >&2; exit 2 ;;
   esac
   shift
 done
+[ ${#BINS[@]} -gt 0 ] || BINS=(bench_nfft_direct)
 { [ "$DO_TESTS" -eq 1 ] || [ "$DO_BENCH" -eq 1 ]; } || {
   echo "error: --bench-only and --tests-only are mutually exclusive" >&2; exit 2; }
 
@@ -86,19 +88,24 @@ for p in "${PERF_PRECISIONS[@]}"; do
   fi
 
   if [ "$DO_BENCH" -eq 1 ]; then
-    bin="$t/benchmarks/bench_nfft_direct"
-    if [ ! -x "$bin" ]; then
-      echo "WARN: [$p] benchmark binary not built ($bin)" >&2; green=0; continue
-    fi
-    echo ">> [$p] benchmark ($bin, ${FILTER:-all cases})"
     pf="$SCRATCH/$p"; mkdir -p "$pf"
     # provenance header into the (already-linked) bench log, so a noisy capture is identifiable
-    echo "# $PHASE capture $(date -u +%FT%TZ) loadavg(1m)=$la/${ncpu}cpu filter=${FILTER:-<all>}" \
+    echo "# $PHASE capture $(date -u +%FT%TZ) loadavg(1m)=$la/${ncpu}cpu filter=${FILTER:-<all>} bins=${BINS[*]}" \
       > "$ART/$PHASE-bench-$p.log"
     fargs=(); [ -n "$FILTER" ] && fargs+=(--benchmark_filter="$FILTER")
-    if ! CODSPEED_PROFILE_FOLDER="$pf" "$bin" "${fargs[@]}" 2>>"$ART/$PHASE-bench-$p.log"; then
-      echo "WARN: [$p] benchmark binary failed — see $ART/$PHASE-bench-$p.log" >&2; green=0; continue
-    fi
+    binfail=0
+    for bn in "${BINS[@]}"; do
+      bin="$t/benchmarks/$bn"
+      if [ ! -x "$bin" ]; then
+        echo "WARN: [$p] benchmark binary not built ($bin)" >&2; green=0; binfail=1; continue
+      fi
+      echo ">> [$p] benchmark ($bin, ${FILTER:-all cases})"
+      # All binaries dump per-pid JSON into the SAME $pf/results; jq collation below globs them all.
+      if ! CODSPEED_PROFILE_FOLDER="$pf" "$bin" "${fargs[@]}" 2>>"$ART/$PHASE-bench-$p.log"; then
+        echo "WARN: [$p] benchmark binary failed ($bin) — see $ART/$PHASE-bench-$p.log" >&2; green=0; binfail=1
+      fi
+    done
+    [ "$binfail" -eq 1 ] && [ ! -d "$pf/results" ] && continue
     if compgen -G "$pf/results/*.json" >/dev/null; then
       jq -s '[.[].benchmarks[]]' "$pf"/results/*.json > "$ART/$PHASE-bench-$p.json"
     else

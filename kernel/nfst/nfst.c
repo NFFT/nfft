@@ -64,6 +64,21 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 
 #define NODE(p,r) (ths->x[(p) * ths->d + (r)])
 
+/* Block size for the phase recurrence in the direct transforms */
+#define NFFT_DIRECT_RECURRENCE_BLOCK 32
+
+/* The (co)sine value is a part of the complex phase exp(+i 2pi (k+OFFSET) x): NDCT reads the
+ * real part (cos), NDST reads the imaginary part (sin). */
+#define BASEPART(w) CIMAG(w)
+
+/* Accurate phase for exp(+i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
+ * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
+static inline R X(reduced_omega)(const R k, const R x)
+{
+  const R n = RINT(k * x);      // Nearest integer to k * x.
+  return K2PI * FFMA(k, x, -n); // Calculate k * x - n with a single rounding, then multiply 2 * pi.
+}
+
 #define MACRO_with_FG_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + t]) \
@@ -94,18 +109,32 @@ void X(trafo_direct)(const X(plan) *ths)
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
+    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
     {
-      INT k_L;
-      for (k_L = 0; k_L < ths->N_total; k_L++)
+      R v = K(0.0);
+      const R x = ths->x[j];
+      const R dphi = K2PI * x;                 /* |dphi| <= pi: accurate without reduction */
+      const C dw = COS(dphi) + II * SIN(dphi); /* per-step phase factor exp(+i 2pi x)      */
+      INT k_L = 0;
+      while (k_L < ths->N_total)
       {
-        R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
-        f[j] += f_hat[k_L] * BASE(omega);
+        /* Accurate seed exp(+i 2pi (k_L + OFFSET) x), then recur within the block. */
+        const R omega = X(reduced_omega)((R)(k_L + OFFSET), x);
+        C w = COS(omega) + II * SIN(omega);
+        INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+        for (; k_L < kend; k_L++)
+        {
+          v += f_hat[k_L] * BASEPART(w);
+          w *= dw;
+        }
       }
+
+      f[j] = v;
     }
   }
   else
@@ -156,7 +185,49 @@ void X(adjoint_direct)(const X(plan) *ths)
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
+    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
 #ifdef _OPENMP
+    if (ths->N_total > B)
+    {
+      /* Give each thread a disjoint, contiguous range of frequencies [klo,khi) (so the
+       * f_hat[k] writes are race-free) and run the phase recurrence within it, re-seeded
+       * every B steps. Cap the team at N/B threads so every thread owns at least one full
+       * block (>= B frequencies): with sub-block ranges the per-block seed (a COS+SIN pair)
+       * is un-amortised and the recurrence loses to the plain per-k loop. The cap depends
+       * only on N and B, so it removes any dependence on the machine's thread count. */
+      const int nt_cap = (int)(ths->N_total / B);
+      #pragma omp parallel default(shared) num_threads(nt_cap)
+      {
+        const int nt = omp_get_num_threads();
+        const int tid = omp_get_thread_num();
+        const INT klo = (INT)(((long long)ths->N_total * tid) / nt);
+        const INT khi = (INT)(((long long)ths->N_total * (tid + 1)) / nt);
+        INT j;
+        for (j = 0; j < ths->M_total; j++)
+        {
+          const R x = ths->x[j];
+          const R dphi = K2PI * x;
+          const C dw = COS(dphi) + II * SIN(dphi);
+          INT k_L = klo;
+          while (k_L < khi)
+          {
+            const R omega = X(reduced_omega)((R)(k_L + OFFSET), x);
+            C w = COS(omega) + II * SIN(omega);
+            INT kend = k_L + B; if (kend > khi) kend = khi;
+            for (; k_L < kend; k_L++)
+            {
+              f_hat[k_L] += f[j] * BASEPART(w);
+              w *= dw;
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      /* N <= B: the recurrence spans at most one block per thread-range, so its per-block
+       * seed/setup costs more than it saves once threaded. Use the plain per-k
+       * parallelisation. At these tiny N the per-entry phase error is in check. */
       INT k_L;
       #pragma omp parallel for default(shared) private(k_L)
       for (k_L = 0; k_L < ths->N_total; k_L++)
@@ -168,15 +239,43 @@ void X(adjoint_direct)(const X(plan) *ths)
           f_hat[k_L] += f[j] * BASE(omega);
         }
       }
+    }
 #else
       INT j;
-      for (j = 0; j < ths->M_total; j++)
+      if (ths->N_total > B)
       {
-        INT k_L;
-        for (k_L = 0; k_L < ths->N_total; k_L++)
+        for (j = 0; j < ths->M_total; j++)
         {
-          R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
-          f_hat[k_L] += f[j] * BASE(omega);
+          const R x = ths->x[j];
+          const R dphi = K2PI * x;
+          const C dw = COS(dphi) + II * SIN(dphi);
+          INT k_L = 0;
+          while (k_L < ths->N_total)
+          {
+            const R omega = X(reduced_omega)((R)(k_L + OFFSET), x);
+            C w = COS(omega) + II * SIN(omega);
+            INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+            for (; k_L < kend; k_L++)
+            {
+              f_hat[k_L] += f[j] * BASEPART(w);
+              w *= dw;
+            }
+          }
+        }
+      }
+      else
+      {
+        /* N <= B: the recurrence spans at most one block, so its per-j seed/setup outweighs
+         * the saved transcendentals (which the plain loop vectorises); the un-reduced
+         * argument's phase error is still in check at these tiny N. */
+        for (j = 0; j < ths->M_total; j++)
+        {
+          INT k_L;
+          for (k_L = 0; k_L < ths->N_total; k_L++)
+          {
+            R omega = K2PI * ((R)(k_L + OFFSET)) * ths->x[j];
+            f_hat[k_L] += f[j] * BASE(omega);
+          }
         }
       }
 #endif
