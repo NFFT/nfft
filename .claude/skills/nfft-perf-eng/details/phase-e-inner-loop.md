@@ -46,6 +46,13 @@ scoped loop.)
    the question is order-of-growth — and record the outcome (`retired`, `proven`, or
    `accepted`). Otherwise carry the risk forward as `residual` for the Phase-F summary.
 
+4. **Commit the kept change.** When an attempt sticks — net green in all three precisions and
+   the metric improved — commit it as its own self-contained commit with a clear message (e.g.
+   `git commit -am "trafo_direct: hoist K[j] out of the inner loop"`); a permanent test addition
+   is its own commit too. `.perfeng/` is gitignored, so the commit is source-only. A reverted
+   attempt leaves nothing to commit. These per-unit commits are what
+   [Phase G](phase-g-conclude.md) squashes into one at the end.
+
 Iterate until the metric is satisfactory in all three **and** the Phase-D accuracy objective
 is met. The scoped checks here are *necessary but not sufficient*: they are fast feedback,
 but they only see the narrow slice. The authoritative verdict is Phase F.
@@ -55,8 +62,7 @@ but they only see the narrow slice. The authoritative verdict is Phase F.
 This phase produces a **living** deliverable — `phase-e-inner-loop.md`, an *iteration
 journal* (fill [`../templates/phase-e-inner-loop.md`](../templates/phase-e-inner-loop.md))
 — plus the current `artifacts/change.diff`. Both update **every iteration**, not once at
-the end. Write into `docs/perfeng/NNNN-<target-slug>/` (worked example:
-`docs/perfeng/0001-trafo-direct/`).
+the end. Write into `.perfeng/` (gitignored — these deliverables are never committed).
 
 - **`phase-e-inner-loop.md`** — one row per change attempt, appended as you go, in the
   **Iteration journal** canonical format

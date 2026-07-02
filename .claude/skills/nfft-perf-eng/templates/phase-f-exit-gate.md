@@ -54,9 +54,9 @@ Note: `proven` material accuracy drop is a hard no — it never reaches this con
 - tracker header **Status** = <complete | reverted>
 - tracker **Outcome** one-liner filled
 - tracker **Phase F** row flipped (`✅` complete / `⛔` reverted) + Exit signal set
-- `docs/perfeng/README.md` index row updated to the same **Status** + **Outcome**
 - **charts generated** — `perf-summary.py charts --taskdir .` → `artifacts/chart-speedup-{d,f,l}.svg` (+ `chart-trend-{d,f,l}.svg` if a trend study ran)
 - **`summary.html` written** (from `../templates/summary.html`) — the human report;
   presents every phase's result + numbers, embeds the required charts, links every deliverable + artifact;
   set `<body class>` to `ok` (completed clean) · `partial` (landed with caveats — an unsettled `residual` material risk) · `fail` (reverted / hard-gate block)
 - **completeness verified** — `perf-summary.py check --taskdir .` exits 0 (nothing orphaned; required charts linked)
+- **concluded (Phase G)** — `perf-conclude.sh squash -m "…"` squashed the run to one commit; then (opt-in) pushed, opened a `perf-eng`-labelled PR to `develop`, and `perf-conclude.sh package <N>` renamed `.perfeng/` → `.perfeng-pr-<N>/` + zipped it, attached to the PR

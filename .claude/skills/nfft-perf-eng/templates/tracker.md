@@ -15,6 +15,7 @@
 | Phase D — error analysis | ⬜ | —                                    | — |
 | Phase E — inner          | ⬜ | —                                    | — |
 | Phase F — exit           | ⬜ | —                                    | — |
+| Phase G — conclude       | ⬜ | — (squash + PR)                      | — |
 
 <!-- Status: ⬜ todo · 🔄 in-progress · ✅ done · ⛔ blocked. A fresh copy ships with Phase A
      🔄 (Step 0 just finished; Phase A is the first phase).

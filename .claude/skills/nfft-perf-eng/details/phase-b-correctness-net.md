@@ -18,7 +18,7 @@ canonical table and the failing-case name set, no hand-grepping:
 
 ```bash
 SCR=.claude/skills/nfft-perf-eng/scripts
-D=docs/perfeng/0001-trafo-direct/artifacts
+D=.perfeng/artifacts
 cmake --build build-cmake -j >/dev/null                                  # rebuild the library
 build-cmake/tests/checkall > $D/fault.log 2>&1; echo "exit=$?"
 uv run python $SCR/perf-net.py table $D/fault.log                        # the Correctness-net table (suite|case|error|bound)
@@ -59,8 +59,7 @@ entries the [risk assessment](risk-assessment.md) carries forward into Phase D (
 ## Deliverables (exit criteria)
 
 Fill [`../templates/phase-b-correctness-net.md`](../templates/phase-b-correctness-net.md)
-in the task dir (`docs/perfeng/NNNN-<target-slug>/`, e.g. `0001-trafo-direct`). It has
-two outcomes — record exactly one:
+in `.perfeng/`. It has two outcomes — record exactly one:
 
 - **Net pinned ✅** — the fault flipped ≥1 case. The doc records: the injected fault
   (saved verbatim as `artifacts/fault.diff`); the resulting net as a **Correctness
@@ -75,7 +74,7 @@ two outcomes — record exactly one:
 *Deliverable = exit gate:* Phase B is not exitable until `phase-b-correctness-net.md`
 and `artifacts/fault.diff` exist AND the tracker Phase B row is flipped — `✅` (net
 pinned, proceed to C) or `⛔` (blocked, stop). On `⛔` the run ends here: set the
-tracker header **Status** = `reverted`, update the `docs/perfeng/README.md` index
-row (status `reverted`, one-line blocked outcome), and write the human report
-`summary.html` (`<body class>` = `fail`, documenting the coverage gap) — the index must
-not be left showing `in-progress`, and a blocked run still gets a reviewer-facing report.
+tracker header **Status** = `reverted` and write the human report
+`summary.html` (`<body class>` = `fail`, documenting the coverage gap) — a blocked run
+still gets a reviewer-facing report, then [conclude](phase-g-conclude.md) (there is no
+optimization to land, so a PR is optional — offer one only if a permanent test closed the gap).

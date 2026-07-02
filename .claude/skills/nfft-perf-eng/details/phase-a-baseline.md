@@ -1,6 +1,6 @@
 # Phase A — build tree + full baseline (the exit reference)
 
-*[← Overview & map](../REFERENCE.md) · Prev: [Step 0 — task directory](deliverables.md#step-0--open-the-task-directory-gated) · Next: [Phase B — correctness net](phase-b-correctness-net.md)*
+*[← Overview & map](../REFERENCE.md) · Prev: [Step 0 — .perfeng directory](deliverables.md#step-0--open-the-perfeng-directory-gated) · Next: [Phase B — correctness net](phase-b-correctness-net.md)*
 
 **One self-contained CMake tree per precision drives the loop** — float, double, and long
 double (the sources are precision-agnostic, so a change can pass in one precision and break
@@ -51,7 +51,7 @@ benchmark per precision straight into the task dir's `artifacts/`, collating the
 codspeed JSON into one flat array per precision:
 
 ```bash
-$SCR/perf-capture.sh baseline docs/perfeng/0001-trafo-direct
+$SCR/perf-capture.sh baseline .perfeng
 #   → artifacts/baseline-tests-{d,f,l}.log  and  artifacts/baseline-bench-{d,f,l}.json
 #   exit 0 = every precision fully green and captured; exit 1 = a precision was not (see WARNs)
 ```
@@ -68,7 +68,7 @@ table from them with [`scripts/perf-bench.py snapshot`](../scripts/perf-bench.py
 
 ```bash
 for p in d f l; do uv run python $SCR/perf-bench.py snapshot \
-  docs/perfeng/0001-trafo-direct/artifacts/baseline-bench-$p.json --prec $p; done
+  .perfeng/artifacts/baseline-bench-$p.json --prec $p; done
 ```
 
 Fill [`../templates/phase-a-baseline.md`](../templates/phase-a-baseline.md), which
@@ -89,4 +89,4 @@ WARNs — record that, never silently drop a precision; see [precision-matrix](p
 raw artifacts exist, and the tracker Phase A row reads `✅` with exit signal `full suite green
 (d/f/l); N cases captured`. A non-green baseline in *any* precision ⇒ stop; do not proceed to Phase B.
 
-*[← Overview & map](../REFERENCE.md) · Prev: [Step 0 — task directory](deliverables.md#step-0--open-the-task-directory-gated) · Next: [Phase B — correctness net](phase-b-correctness-net.md)*
+*[← Overview & map](../REFERENCE.md) · Prev: [Step 0 — .perfeng directory](deliverables.md#step-0--open-the-perfeng-directory-gated) · Next: [Phase B — correctness net](phase-b-correctness-net.md)*

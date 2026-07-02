@@ -8,8 +8,8 @@
 #
 # Usage:  perf-capture.sh <baseline|final|confirm> <task-dir> [--bench-only|--tests-only]
 #                         [--prec d|f|l] [--filter REGEX]
-#   e.g.  perf-capture.sh baseline docs/perfeng/0001-trafo-direct
-#         perf-capture.sh final    docs/perfeng/0001-trafo-direct --bench-only   # re-measure cleanly
+#   e.g.  perf-capture.sh baseline .perfeng
+#         perf-capture.sh final    .perfeng --bench-only   # re-measure cleanly
 # Flags:
 #   --bench-only   skip ctest (tests are deterministic — re-measure benchmarks without the slow
 #                  long-double suite; the recommended way to re-run after a noisy capture)
@@ -31,7 +31,7 @@ PHASE="${1:-}"; TASKDIR="${2:-}"
 case "$PHASE" in
   baseline|final|confirm) ;;
   *) echo "usage: $(basename "$0") <baseline|final|confirm> <task-dir> [--bench-only|--tests-only] [--prec d|f|l] [--filter RE]" >&2
-     echo "  e.g. $(basename "$0") baseline docs/perfeng/0001-trafo-direct" >&2; exit 2 ;;
+     echo "  e.g. $(basename "$0") baseline .perfeng" >&2; exit 2 ;;
 esac
 [ -n "$TASKDIR" ] || { echo "error: task dir required" >&2; exit 2; }
 shift 2 2>/dev/null || true

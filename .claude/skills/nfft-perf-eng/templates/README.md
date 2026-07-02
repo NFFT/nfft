@@ -1,7 +1,7 @@
 # Deliverable templates
 
-Fill-in skeletons for the per-optimization deliverables, so every run under
-`docs/perfeng/` records the same fields in the same shape and runs stay comparable
+Fill-in skeletons for the per-optimization deliverables, so every run under the gitignored
+`.perfeng/` records the same fields in the same shape and runs stay comparable
 (no reinventing the structure each time). The authoritative format spec — layout,
 canonical tables, the exit-gate rule — is
 [`../details/deliverables.md`](../details/deliverables.md); these files are its
@@ -9,8 +9,8 @@ copy-paste counterparts.
 
 ## How to use
 
-At each phase, **copy** the matching file into the task directory
-`docs/perfeng/NNNN-<target-slug>/`, keeping the filename, and fill it in. (Step 0's
+At each phase, **copy** the matching file into the gitignored `.perfeng/` directory,
+keeping the filename, and fill it in. (Step 0's
 [`scripts/perf-init.sh`](../scripts/perf-init.sh) copies them all in one shot.)
 
 | When | Copy | → becomes |

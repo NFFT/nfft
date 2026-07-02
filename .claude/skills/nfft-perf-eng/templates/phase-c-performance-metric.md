@@ -35,7 +35,6 @@
 - **Slowdown tried:** <description> — `artifacts/slowdown.diff`
 - **Resolution:** add a benchmark that covers the target, then resume — or pick another target.
 
-Close-out: set the tracker header **Status** = `reverted`, update the
-`docs/perfeng/README.md` index row (status `reverted`, one-line blocked outcome), and
-write `summary.html` (from `../templates/summary.html`, `<body class>` = `fail`) — the
-human report documents the no-metric block as the failure. -->
+Close-out: set the tracker header **Status** = `reverted`, write `summary.html` (from
+`../templates/summary.html`, `<body class>` = `fail`) — the human report documents the
+no-metric block as the failure — then conclude (Phase G). -->

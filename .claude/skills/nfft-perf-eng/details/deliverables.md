@@ -1,13 +1,18 @@
-# Deliverables & the task directory
+# Deliverables & the `.perfeng/` directory
 
 *[← Overview & map](../REFERENCE.md) — cross-cutting reference; read before Phase A, consult from every phase.*
 
 This loop is **front-to-back auditable**: every phase produces a concrete
-deliverable, and a phase is not exitable until its deliverable exists in the task
-directory and the tracker row is updated. Deliverables accumulate in one directory
-per optimization — the same way decisions accumulate as ADRs under
-[`docs/adr/`](../../../../docs/adr/). The tracker is the live front page; the phase
+deliverable, and a phase is not exitable until its deliverable exists in the
+directory and the tracker row is updated. The tracker is the live front page; the phase
 docs are the durable record of what was measured and decided.
+
+**Deliverables are never committed.** They live in a fixed, **gitignored** directory,
+`.perfeng/`. Git only ever sees your *source* changes — so commit each self-contained unit of
+work as you go (a kept optimization step, a permanent test addition), and let
+[Phase G](phase-g-conclude.md) squash them into one commit and carry the deliverables to the
+reviewer as a **zip attached to the PR**. The run's permanent record is that commit + PR +
+archive, not files in the tree.
 
 **The rule:** *deliverable = exit gate.* You may not mark a phase `done` (or move to
 the next phase) until its deliverable file is written and the tracker reflects it.
@@ -17,40 +22,45 @@ green light.
 
 **Don't hand-write the deliverables — fill the templates.** Every deliverable below
 has a fill-in skeleton under [`../templates/`](../templates/) (one per phase, plus the
-tracker). At each phase, copy the matching template into the task dir and fill its
+tracker). At each phase, copy the matching template into `.perfeng/` and fill its
 `<…>` placeholders; the canonical tables below are pre-embedded in them. This is what
 keeps runs comparable. The phase docs name the exact template to copy.
 
 ## Where it lives
 
-One directory per optimization, created at the very start (Step 0), under `docs/perfeng/`:
+One fixed, **gitignored** directory — `.perfeng/` — holds the **current** run. It is a
+*static* path (no `NNNN` sequence, no shared index): each run overwrites it, and Step 0's
+[`scripts/perf-init.sh`](../scripts/perf-init.sh) moves any prior `.perfeng/` aside to
+`.perfeng.bak/` (a one-level undo) before recreating it. Nothing here is committed. At
+[conclude](phase-g-conclude.md), once the PR number `N` is known, `.perfeng/` is renamed to
+`.perfeng-pr-<N>/` (no leading zeros) and zipped, so a downloaded results archive unpacks into a
+PR-unique directory. (`.perfeng-pr-*` is gitignored too.)
 
 ```
-docs/perfeng/
-  README.md                         # convention + index of all optimization tasks
-  NNNN-<target-slug>/               # one optimization, front-to-back (e.g. 0001-trafo-direct)
-    README.md                       # THE TRACKER — status per phase, links, outcome (front page)
-    phase-a-baseline.md             # Phase A deliverable — baseline snapshot (the exit reference)
-    phase-b-correctness-net.md      # Phase B deliverable — the pinned net (or blocked report)
-    phase-c-performance-metric.md   # Phase C deliverable — the pinned metric (or blocked report)
-    phase-d-error-analysis.md       # Phase D deliverable — rounding-error verdict & objective (companion to the HTML)
-    error-analysis.html             # Phase D deliverable — full standard-model analysis (MathJax, self-contained)
-    phase-e-inner-loop.md           # Phase E deliverable — iteration journal
-    phase-f-exit-gate.md            # Phase F deliverable — final verdict
-    summary.html                    # Close-out — human-facing report (any outcome)
-    artifacts/                      # raw captured data, kept verbatim for exact diffing
-      baseline-tests-{d,f,l}.log    # Phase A  (tee'd ctest output, one per precision)
-      baseline-bench-{d,f,l}.json   # Phase A  (per-case stats, collated by perf-capture.sh)
-      fault.diff                    # Phase B  (the injected correctness fault)
-      fault.log                     # Phase B  (checkall stdout under the fault — parsed by perf-net.py)
-      net-cases.txt                 # Phase B  (failing-case names = the net; revert + inner-loop checks)
-      slowdown.diff                 # Phase C  (the injected slowdown)
-      trend-{baseline,optimized}-{d,f,l}.dat  # Phase D  (differential trend study: N→error pairs, per precision, if run)
-      change.diff                   # Phase E/F (the actual optimization)
-      final-tests-{d,f,l}.log       # Phase F
-      final-bench-{d,f,l}.json      # Phase F  (collated like baseline-bench-*.json)
-      chart-speedup-{d,f,l}.svg     # Phase F  (perf-summary.py — embedded tabbed in summary.html)
-      chart-trend-{d,f,l}.svg       # Phase F  (perf-summary.py — when a trend study ran, per precision)
+.perfeng/                           # gitignored; the current optimization, front-to-back
+  BASE                              # squash base — the commit + branch HEAD was at, at Step 0 (for Phase G)
+  README.md                         # THE TRACKER — status per phase, links, outcome (front page)
+  phase-a-baseline.md               # Phase A deliverable — baseline snapshot (the exit reference)
+  phase-b-correctness-net.md        # Phase B deliverable — the pinned net (or blocked report)
+  phase-c-performance-metric.md     # Phase C deliverable — the pinned metric (or blocked report)
+  phase-d-error-analysis.md         # Phase D deliverable — rounding-error verdict & objective (companion to the HTML)
+  error-analysis.html               # Phase D deliverable — full standard-model analysis (MathJax, self-contained)
+  phase-e-inner-loop.md             # Phase E deliverable — iteration journal
+  phase-f-exit-gate.md              # Phase F deliverable — final verdict
+  summary.html                      # Close-out — human-facing report (any outcome)
+  artifacts/                        # raw captured data, kept verbatim for exact diffing
+    baseline-tests-{d,f,l}.log      # Phase A  (tee'd ctest output, one per precision)
+    baseline-bench-{d,f,l}.json     # Phase A  (per-case stats, collated by perf-capture.sh)
+    fault.diff                      # Phase B  (the injected correctness fault)
+    fault.log                       # Phase B  (checkall stdout under the fault — parsed by perf-net.py)
+    net-cases.txt                   # Phase B  (failing-case names = the net; revert + inner-loop checks)
+    slowdown.diff                   # Phase C  (the injected slowdown)
+    trend-{baseline,optimized}-{d,f,l}.dat  # Phase D  (differential trend study: N→error pairs, per precision, if run)
+    change.diff                     # Phase E/F (the actual optimization)
+    final-tests-{d,f,l}.log         # Phase F
+    final-bench-{d,f,l}.json        # Phase F  (collated like baseline-bench-*.json)
+    chart-speedup-{d,f,l}.svg       # Phase F  (perf-summary.py — embedded tabbed in summary.html)
+    chart-trend-{d,f,l}.svg         # Phase F  (perf-summary.py — when a trend study ran, per precision)
 ```
 
 Captures are **per precision** — `-d` (double), `-f` (float), `-l` (long double) — because
@@ -61,8 +71,8 @@ source edits, precision-independent, so they are single files.)
 **Test additions.** When the [risk assessment](risk-assessment.md) leads you to extend
 the net ([extending-tests.md](extending-tests.md)), a *permanent* case lands as ordinary
 source: harness/registration edits under `tests/` and any committed `tests/data/*.txt` +
-generated headers — part of the change's `git diff`, not under `artifacts/`. A *temporary*
-probe is removed before close-out; only its finding survives, in the risk table.
+generated headers — part of the change's `git diff` (commit it), not under `.perfeng/artifacts/`.
+A *temporary* probe is removed before close-out; only its finding survives, in the risk table.
 
 The benchmark binary writes one file per process to
 `$CODSPEED_PROFILE_FOLDER/results/<pid>.json` (a transient scratch dir).
@@ -72,42 +82,35 @@ deliverable — one flat-array JSON per precision under `artifacts/`
 [`scripts/perf-bench.py compare`](../scripts/perf-bench.py) diffs the two, per precision,
 applying the noise rule.
 
-- `NNNN` is a zero-padded sequence (`0001`, `0002`, …), like ADRs; `<target-slug>`
-  names the region, e.g. `0001-trafo-direct`.
 - The phase docs mirror the skill's own `details/` phase names 1:1, so the mapping
   from instruction to deliverable is obvious.
 - Keep `artifacts/` raw and verbatim (logs, JSON, diffs) — the narrative docs embed
   *summaries* (tables) of these; the raw files are what Phase F diffs against.
-- Redirect commands that the phase docs write to `/tmp/...` into `artifacts/`
+- Redirect commands that the phase docs write to `/tmp/...` into `.perfeng/artifacts/`
   instead, so the capture is durable. Example: `... | tee
-  docs/perfeng/0001-trafo-direct/artifacts/baseline-tests.log`.
+  .perfeng/artifacts/baseline-tests.log`.
 
-## Step 0 — open the task directory (gated)
+## Step 0 — open the `.perfeng/` directory (gated)
 
 Bootstrap the directory first. This is deterministic — run
-[`scripts/perf-init.sh <target-slug>`](../scripts/perf-init.sh): it does steps 1–3 (pick
-`NNNN`, create the dir + `artifacts/`, copy **every** template in — tracker→`README.md`, the
-phase docs, and `error-analysis.html` — and stamp the baseline commit) and *prints* the row
-for step 4 (which stays manual — the shared index is never rewritten silently). The steps it
-automates:
+[`scripts/perf-init.sh <target-slug>`](../scripts/perf-init.sh): it creates the fixed
+`.perfeng/` (with `artifacts/`), copies **every** template in (tracker→`README.md`, the
+phase docs, and `error-analysis.html`), stamps the baseline commit, and records the **squash
+base** — the commit + branch HEAD points at right now — into `.perfeng/BASE` so
+[Phase G](phase-g-conclude.md) can collapse the run's commits deterministically. If `.perfeng/`
+already exists it is moved aside to `.perfeng.bak/` and recreated fresh. What remains manual:
 
-1. **Pick `NNNN`** — highest existing number under `docs/perfeng/` plus one,
-   zero-padded (`ls docs/perfeng/` → next is `0001`, `0002`, …).
-2. **Derive `<target-slug>`** from the region (e.g. `trafo-direct`), giving
-   `docs/perfeng/NNNN-<target-slug>/`.
-3. **Create the tracker** — copy [`../templates/tracker.md`](../templates/tracker.md)
-   into the new dir as `README.md`, set the **Target** line; leave **Outcome**
-   as `—` and the **Status** as `in-progress`. Create the empty `artifacts/` dir.
-4. **Add the index row** to `docs/perfeng/README.md` (see [below](#index-in-docsperfengreadmemd)).
+1. **Set the tracker's Target line** — open `.perfeng/README.md` (copied from
+   [`../templates/tracker.md`](../templates/tracker.md)) and set the **Target** line; leave
+   **Outcome** as `—` and **Status** as `in-progress`.
 
-*Deliverable = exit gate:* Step 0 is not done until
-`docs/perfeng/NNNN-<slug>/README.md` exists with all six phase rows present **and**
-the `docs/perfeng/README.md` index row is added. Every later "flip the tracker row"
-instruction assumes this infrastructure already exists.
+*Deliverable = exit gate:* Step 0 is not done until `.perfeng/README.md` exists with all six
+phase rows present and `.perfeng/BASE` records the squash base. Every later "flip the tracker
+row" instruction assumes this infrastructure already exists.
 
 ## The tracker (`README.md`)
 
-The front page of the task directory. Created in Step 0 by copying
+The front page of the directory. Created in Step 0 by copying
 [`../templates/tracker.md`](../templates/tracker.md), updated at every phase boundary:
 flip the row's status, fill its **Deliverable** link and **Exit signal**, and append a
 **Log** line. The template ships with **Phase A** `🔄` (everything below `⬜`, `Outcome`
@@ -132,7 +135,9 @@ hard-gate block (Phase B or C). It walks the reviewer concisely from the idea (w
 change and why), through the process, to the results — and on a failure documents the
 known and hypothetical causes. It also banks **patterns used/discovered** and
 **carry-forward notes** so knowledge accumulates across optimization targets. Set its
-`<body class>` to `ok` / `partial` / `fail` to match the outcome.
+`<body class>` to `ok` / `partial` / `fail` to match the outcome. In [Phase
+G](phase-g-conclude.md) `summary.html` (with the rest of `.perfeng/`) is zipped and attached
+to the PR — it is the reviewer's entry point into the evidence bundle.
 
 The run's *other* human-facing HTML is the Phase-D **`error-analysis.html`** — the
 self-contained, MathJax-rendered rounding-error analysis (the math the reviewer must follow
@@ -142,7 +147,7 @@ close-out, and `summary.html` links to it rather than repeating the derivation.
 `summary.html` must present the **entire** run to the reviewer — every phase's result, with
 the numbers, **and links to every deliverable and raw artifact** (the per-phase docs,
 `error-analysis.html`, and each file under `artifacts/`: tests logs, benchmark JSON, the
-diffs, the net, the charts). Nothing in the task dir may be orphaned;
+diffs, the net, the charts). Nothing in the directory may be orphaned;
 [`scripts/perf-summary.py check`](../scripts/perf-summary.py) enforces this at close-out
 (exit 1 on any unlinked file or missing required chart).
 
@@ -239,21 +244,3 @@ See [risk-assessment.md](risk-assessment.md).
 | accuracy may drop for N≫ tested 1d sizes    | size-dependent    | retired  | added online check N=4096, green d/f/l (temp probe)    |
 | reassociated sum loses bits in long double  | accuracy-for-speed| residual | plausible; no case isolates it — see summary    |
 | shared `K[j]` helper reused by `nnfft`      | out-of-scope coupling | accepted | `nnfft` suite green in Phase F; within bound |
-
-## Index in `docs/perfeng/README.md`
-
-When you create a task directory (Step 0), add one row to the index table in
-`docs/perfeng/README.md`, matching its columns exactly — `Task` (a link to the task
-dir), `Target`, `Status`, `Outcome`. At Step 0 the `Outcome` cell
-is `—` (not yet known); fill `Status`/`Outcome` at the
-close-out (Phase F, **or** a Phase B/C hard-gate `reverted` exit). This is the
-at-a-glance registry of every optimization run, the way `docs/adr/` is the registry
-of decisions.
-
-> **Never add an index row without its task dir** (and never ship one). A row whose
-> `NNNN-<slug>/` directory does not exist is the cause of the original collision: `perf-init.sh`
-> would still pick that `NNNN` (it scanned only dirs) and clobber the meaning of the row, and a
-> pre-filled `Outcome` on a non-existent run leaks/misleads. `perf-init.sh` now also bumps past
-> any `NNNN` *referenced in the index*, and warns on a duplicate slug — but the invariant stands:
-> a worked-example row in the shipped index must point at a **present, complete** task dir (e.g.
-> `0001-trafo-direct/`), so the example is real and self-consistent, not a dangling teaser.

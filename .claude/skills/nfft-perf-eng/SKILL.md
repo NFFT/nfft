@@ -19,13 +19,20 @@ enforced checklist — open a phase's doc when you reach it, plus the cross-cutt
 [risk-assessment](details/risk-assessment.md), [extending-tests](details/extending-tests.md)
 and [tooling-status](details/tooling-status.md) docs as needed.
 
-**Every phase produces deliverables.** The loop is tracked front-to-back in one
-directory per optimization under [`docs/perfeng/`](../../../docs/perfeng/). 
-*Deliverables = exit gate:* a phase is not done until its deliverables exist in the task 
-directory and the tracker row is updated. The format, layout, and canonical snapshot shapes are in
+**Every phase produces deliverables.** The loop is tracked front-to-back in one fixed,
+**gitignored** directory, [`.perfeng/`](details/deliverables.md#where-it-lives) — **deliverables
+are never committed.** The run's permanent record ships as its squashed commit + the PR + the
+zip attached to that PR (Phase G), not as repo files.
+*Deliverables = exit gate:* a phase is not done until its deliverables exist in `.perfeng/`
+and the tracker row is updated. The format, layout, and canonical snapshot shapes are in
 [deliverables.md](details/deliverables.md) — read it before Phase A. Don't hand-write
 deliverables: each phase has a fill-in skeleton under [`templates/`](templates/);
 copy the named one and fill its `<…>` placeholders.
+
+**Commit source changes as you go.** `.perfeng/` is gitignored, so commits capture only
+*source* changes — commit each self-contained unit of work (a kept optimization step, a
+permanent test addition) with a clear message as you reach it. Phase G squashes these into one
+at the end.
 
 ## The loop (do these in order)
 
@@ -33,12 +40,12 @@ Create one TodoWrite item per phase. **Phases B and C are HARD GATES — if they
 stop and report, do not work around them** (record the gate failure as a `blocked`
 deliverable — see [deliverables.md](details/deliverables.md)).
 
-- [ ] **Step 0 — open the task directory.** Run
-  [`scripts/perf-init.sh <target-slug>`](scripts/perf-init.sh): it creates
-  `docs/perfeng/NNNN-<target-slug>/`, copies every template in (tracker → `README.md`, the
-  phase docs, `error-analysis.html`), stamps the commit, and prints the index row to add to
-  `docs/perfeng/README.md`. Set the **Target** line; add that printed index row. → *Deliverable:*
-  the task directory + initialized tracker.
+- [ ] **Step 0 — open the deliverables directory.** Run
+  [`scripts/perf-init.sh <target-slug>`](scripts/perf-init.sh): it creates the fixed, gitignored
+  `.perfeng/`, copies every template in (tracker → `README.md`, the phase docs,
+  `error-analysis.html`), stamps the baseline commit, and records the **squash base** (HEAD now)
+  into `.perfeng/BASE` for Phase G. Set the **Target** line. → *Deliverable:* the `.perfeng/`
+  directory + initialized tracker.
 
 - [ ] **[Phase A — baseline](details/phase-a-baseline.md).** Build all three precision trees in
   **walltime** mode and capture the FULL test + benchmark state (the exit reference for Phase F) — **in
@@ -47,7 +54,7 @@ deliverable — see [deliverables.md](details/deliverables.md)).
   ```bash
   SCR=.claude/skills/nfft-perf-eng/scripts
   $SCR/perf-build.sh walltime                                   # configure+build build-cmake{,-f,-l}
-  $SCR/perf-capture.sh baseline docs/perfeng/0001-trafo-direct  # full ctest + all bench cases → artifacts/, collated per precision
+  $SCR/perf-capture.sh baseline .perfeng                        # full ctest + all bench cases → artifacts/, collated per precision
   ```
   `perf-capture.sh` exits non-zero if any precision's baseline isn't fully green → **stop**;
   optimization starts only from a clean tree. Build the snapshot table with
@@ -95,6 +102,8 @@ deliverable — see [deliverables.md](details/deliverables.md)).
   can't see (size-dependent, precision-specific, input-range — see
   [risk-assessment](details/risk-assessment.md)); when a risk is material and cheaply testable,
   extend the net ([extending-tests](details/extending-tests.md)) to prove or disprove it.
+  **Commit each kept change** (and any permanent test addition) as its own self-contained commit
+  as you go — Phase G squashes them later.
   → *Deliverable:* `phase-e-inner-loop.md` (iteration journal: per-change net result + metric
   before→after, per precision) and the current `artifacts/change.diff`.
 
@@ -113,12 +122,27 @@ deliverable — see [deliverables.md](details/deliverables.md)).
   back to E, or revert and report why. → *Deliverable:* `phase-f-exit-gate.md` (per-precision
   comparison table over ALL cases + the six-point checklist + verdict) with raw
   `artifacts/final-{tests,bench}-{d,f,l}.*`; then close out the tracker (**Status** = complete |
-  reverted, **Outcome** one-liner), update the `docs/perfeng/` index, and write the human report
+  reverted, **Outcome** one-liner) and write the human report
   `summary.html` (the reviewer-facing walkthrough — produced on *every* exit, including a Phase
   B/C hard-gate block; it presents every phase's result + numbers, **embeds the required charts**
   via `perf-summary.py charts`, and links every deliverable + artifact — `perf-summary.py check`
   verifies nothing is orphaned). A faster target bought with a regression or a broken test
   elsewhere is **not** a success.
+
+- [ ] **[Phase G — conclude](details/phase-g-conclude.md).** Hand the work off, in two scripted
+  steps around the interactive publish. **Squash** the run's intermediate commits into one —
+  `perf-conclude.sh squash -m "<message>"` (deterministic: preflights a clean tree on a feature
+  branch, `git reset --soft <base>` + one commit). Then **offer to push** the branch and
+  **optionally open a PR** to `develop`, labelled **`perf-eng`** (create the label once if absent)
+  — both opt-in, confirm with the user. Once the PR number `N` is known, **package**:
+  `perf-conclude.sh package <N>` renames `.perfeng/` → `.perfeng-pr-<N>/` (no leading zeros — so a
+  downloaded archive unpacks into a PR-unique dir) and zips it; **attach that zip** to the PR
+  (drag-drop in the web UI — `gh` has no binary PR-attach; deliverables are gitignored, so they
+  never ride in the commit). **If follow-up work lands after conclude** (a reviewer question →
+  more code + deliverable changes), commit the code, refresh `.perfeng-pr-<N>/`, re-run
+  `perf-conclude.sh package <N>`, and **overwrite** the zip in its existing PR comment so the
+  attached archive stays current. → *Deliverable:* one squashed commit; (if published) a
+  `perf-eng`-labelled PR with the `perfeng-pr-<N>.zip` deliverables archive attached (kept current).
 
 ## Key rules
 

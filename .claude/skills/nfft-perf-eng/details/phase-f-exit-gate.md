@@ -1,6 +1,6 @@
 # Phase F — exit gate (full baseline re-check)
 
-*[← Overview & map](../REFERENCE.md) · Prev: [Phase E — inner loop](phase-e-inner-loop.md)*
+*[← Overview & map](../REFERENCE.md) · Prev: [Phase E — inner loop](phase-e-inner-loop.md) · Next: [Phase G — conclude](phase-g-conclude.md)*
 
 A scoped optimization can have effects outside its scope — a shared helper, a header
 change, a compiler-visibility shift, an aliasing assumption, **or a precision-specific
@@ -14,10 +14,10 @@ reproducible, not eyeballed:
 ```bash
 SCR=.claude/skills/nfft-perf-eng/scripts
 $SCR/perf-build.sh walltime                                  # rebuild all 3 trees (or incremental if untouched)
-$SCR/perf-capture.sh final docs/perfeng/0001-trafo-direct    # FULL ctest + ALL bench cases → artifacts/final-*
-uv run python $SCR/perf-bench.py compare --taskdir docs/perfeng/0001-trafo-direct
+$SCR/perf-capture.sh final .perfeng    # FULL ctest + ALL bench cases → artifacts/final-*
+uv run python $SCR/perf-bench.py compare --taskdir .perfeng
 #   → the Comparison table (all cases × d/f/l) + the noise-rule verdict; exit 1 if any case regressed
-$SCR/perf-confirm.sh docs/perfeng/0001-trafo-direct
+$SCR/perf-confirm.sh .perfeng
 #   → if compare flagged any case, RE-MEASURE the affected precision(s) and report which survive
 #     (a whole capture can be inflated by background load; re-measure on a quiet box). Exit 1 if
 #     a flagged regression survives — then attribute it (real coupling vs code-layout artifact).
@@ -119,11 +119,11 @@ and `change.diff` (the landed change). `perf-bench.py compare` diffs each
 **Comparison table**. (If a precision was correctness-only at baseline, compare its tests and
 say so.)
 
-**Close-out** (part of this deliverable — the run ends here): in the tracker
+**Close-out** (part of this deliverable — Phase F ends here; [Phase
+G](phase-g-conclude.md) then hands the run off): in the tracker
 (`README.md`) set header **Status** = `complete` (gate passed) or `reverted` (gave
-up), fill the **Outcome** one-liner, and flip the Phase F row. Then update the
-matching row in the [`docs/perfeng/README.md`](../../../../docs/perfeng/) index to the
-same status + outcome. Finally, write the **human report** `summary.html` (from
+up), fill the **Outcome** one-liner, and flip the Phase F row. Then write the **human
+report** `summary.html` (from
 [`../templates/summary.html`](../templates/summary.html), `<body class>` = `ok` or
 `partial`) — the reviewer-facing walkthrough of the whole run. It must present **every
 phase's result with numbers, the required charts, and links to every deliverable and raw
@@ -131,7 +131,7 @@ artifact** (see [deliverables.md](deliverables.md#required-visualizations)). Gen
 charts and verify completeness deterministically:
 
 ```bash
-SCR=.claude/skills/nfft-perf-eng/scripts; T=docs/perfeng/0001-trafo-direct
+SCR=.claude/skills/nfft-perf-eng/scripts; T=.perfeng
 uv run python $SCR/perf-summary.py charts --taskdir $T   # → artifacts/chart-speedup-{d,f,l}.svg (+ chart-trend-{d,f,l}.svg if a trend study ran)
 # ... fill summary.html: embed the charts, link all deliverables + artifacts ...
 uv run python $SCR/perf-summary.py check  --taskdir $T   # exit 0 only when nothing is orphaned and required charts are linked
@@ -142,7 +142,8 @@ six conditions hold **in every precision** (or `reverted`-with-reason is recorde
 including the honoured Phase-D accuracy objective and a completed risk assessment with no
 `proven` regression left unaddressed — `phase-f-exit-gate.md`, the per-precision artifacts +
 `change.diff`, **and** `summary.html` exist, `summary.html` **embeds the required charts and
-links every asset** (`perf-summary.py check` passes), **and** both the tracker header/row and
-the index row are flipped. A green verdict with the tracker still `in-progress` — or green in
+links every asset** (`perf-summary.py check` passes), **and** the tracker header/row is
+flipped. A green verdict with the tracker still `in-progress` — or green in
 double but untested in float/long double, or a `summary.html` that omits charts or orphans an
-artifact — is not done.
+artifact — is not done. With the gate passed, proceed to [Phase G](phase-g-conclude.md) to
+squash, and offer to push + open the PR + attach the deliverables.

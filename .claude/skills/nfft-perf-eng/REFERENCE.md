@@ -24,19 +24,20 @@ known, trustworthy net (tests), a known yardstick (benchmarks), and a known erro
 The shape of the whole task:
 
 ```
-Step 0    open the task directory ── docs/perfeng/NNNN-<slug>/ + tracker README
+Step 0    open the deliverables dir ── gitignored .perfeng/ + tracker README + squash base
 Phase A   full baseline  ── build walltime trees; capture EVERY test + benchmark result (the exit reference)
 Phase B   pin correctness net ── which tests guard the target?   [HARD GATE]
 Phase C   pin performance metric ── which benchmark measures it?  [HARD GATE]
 Phase D   rounding-error analysis ── standard-model bound; set the accuracy objective
-Phase E   inner loop ── optimize toward that objective against the scoped net + metric
+Phase E   inner loop ── optimize toward that objective against the scoped net + metric (commit each unit)
 Phase F   exit gate ── re-run the FULL Phase-A baseline; no failure, no regression
+Phase G   conclude ── squash to one commit; offer push + PR (label perf-eng); package .perfeng-pr-<N> zip + attach
 ```
 
-**Front-to-back tracking.** The whole run lives in one directory per optimization
-under [`docs/perfeng/`](../../../docs/perfeng/) — a tracker `README.md` plus one
-deliverable per phase. Each
-phase produces concrete, canonical-format deliverables, and *deliverables = exit
+**Front-to-back tracking.** The whole run lives in one fixed, **gitignored** directory,
+`.perfeng/` — a tracker `README.md` plus one deliverable per phase. Deliverables are **never
+committed**; the run's record ships as its squashed commit + PR + the zip attached to that PR
+(Phase G). Each phase produces concrete, canonical-format deliverables, and *deliverables = exit
 gate*: a phase isn't done until its deliverables are written and the tracker row is flipped. The
 layout, tracker template, and snapshot formats are in
 [`details/deliverables.md`](details/deliverables.md) — read it before Phase A.
@@ -75,6 +76,7 @@ surface it for you: no failing test, or no benchmark moves, means **stop**. See
 | **Phase D** — rounding-error analysis | [`details/phase-d-error-analysis.md`](details/phase-d-error-analysis.md) |
 | **Phase E** — inner loop | [`details/phase-e-inner-loop.md`](details/phase-e-inner-loop.md) |
 | **Phase F** — exit gate | [`details/phase-f-exit-gate.md`](details/phase-f-exit-gate.md) |
+| **Phase G** — conclude (squash · push · PR · attach) | [`details/phase-g-conclude.md`](details/phase-g-conclude.md) |
 
 Cross-cutting references, consult as needed:
 

@@ -30,7 +30,6 @@
 - **Why no test caught it:** <which tests sit near the region and why they stayed green>
 - **Resolution:** add a test that fails on this fault, then resume — or escalate.
 
-Close-out: set the tracker header **Status** = `reverted`, update the
-`docs/perfeng/README.md` index row (status `reverted`, one-line blocked outcome), and
-write `summary.html` (from `../templates/summary.html`, `<body class>` = `fail`) — the
-human report documents the coverage gap as the failure. -->
+Close-out: set the tracker header **Status** = `reverted`, write `summary.html` (from
+`../templates/summary.html`, `<body class>` = `fail`) — the human report documents the
+coverage gap as the failure — then conclude (Phase G). -->

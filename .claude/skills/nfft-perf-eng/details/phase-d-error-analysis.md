@@ -100,8 +100,8 @@ error. Reconcile them:
   target's cases, per precision. Expect the trend dominated by **`√N`** (random-sign
   cancellation), well below the worst-case `N·u` envelope — that is the *healthy* baseline.
   A fitted exponent a little above 0.5 (≈0.6–0.7) is normal — the sub-dominant
-  working-precision phase term (above), present in the baseline too; the worked example
-  ([`docs/perfeng/0001-trafo-direct`](../../../docs/perfeng/0001-trafo-direct/)) measured
+  working-precision phase term (above), present in the baseline too; the `trafo-direct`
+  reference run measured
   ≈0.62–0.68 in *both* arms. What would be alarming is the **optimized** trend growing
   *faster than the baseline* (an avoidable source the theory pinned, or the worst case being
   realised) — i.e. a non-trivial Δp, not the absolute `p`.
@@ -147,7 +147,7 @@ laid out) rather than burying a chosen point on the accuracy/speed curve.
 
 ## Deliverables (exit criteria)
 
-Two deliverables, both in the task dir (`docs/perfeng/NNNN-<target-slug>/`):
+Two deliverables, both in `.perfeng/`:
 
 - **`error-analysis.html`** — the **primary** deliverable: a self-contained, MathJax-rendered
   document carrying the full standard-model derivation (the math the reviewer must follow),

@@ -37,8 +37,13 @@
 # Log files
 *.log
 
-# ...but keep curated perf-engineering run logs (test/benchmark evidence under docs/perfeng/)
-!docs/perfeng/**/*.log
+# nfft-perf-eng deliverables — never committed. The single static working directory the
+# skill writes every run into; its record ships as the run's squashed commit + PR + the
+# zip attached to that PR, not in the repo tree. (.perfeng.bak = perf-init's one-level undo;
+# .perfeng-pr-<n> = the run renamed at conclude, and where a downloaded results zip unpacks.)
+/.perfeng/
+/.perfeng.bak/
+/.perfeng-pr-*/
 
 # Autosave files
 *.asv

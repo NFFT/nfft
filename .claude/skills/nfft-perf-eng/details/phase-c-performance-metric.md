@@ -51,7 +51,7 @@ is the goal, so a non-zero exit confirms the metric moved.
 ## Deliverables (exit criteria)
 
 Fill [`../templates/phase-c-performance-metric.md`](../templates/phase-c-performance-metric.md)
-in the task dir (`docs/perfeng/NNNN-<target-slug>/`, e.g. `0001-trafo-direct`) and save
+in `.perfeng/` and save
 the injected slowdown verbatim as `artifacts/slowdown.diff`. Two outcomes — record
 exactly one:
 
@@ -69,6 +69,5 @@ exactly one:
 *Deliverable = exit gate:* Phase C is not exitable until `phase-c-performance-metric.md`
 exists, `artifacts/slowdown.diff` is saved, and the tracker row is flipped — ✅ (metric
 pinned) ⇒ continue to D, or ⛔ (blocked) ⇒ the run ends here: like a Phase B block, set
-the tracker header **Status** = `reverted`, update the `docs/perfeng/README.md`
-index row (status `reverted`, one-line blocked outcome), and write the human report
-`summary.html` (`<body class>` = `fail`), then stop and report.
+the tracker header **Status** = `reverted`, write the human report
+`summary.html` (`<body class>` = `fail`), then [conclude](phase-g-conclude.md) and report.

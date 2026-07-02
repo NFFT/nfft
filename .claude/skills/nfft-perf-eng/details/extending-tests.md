@@ -136,8 +136,8 @@ study**:
 4. The sweep grids/oracles are a *temporary probe* (revert the grid/cost edits at close-out);
    keep the per-precision `(N, error)` data as `artifacts/trend-{baseline,optimized}-{d,f,l}.dat`
    ([`perf-summary.py charts`](../scripts/perf-summary.py) charts them tabbed in `summary.html`)
-   and cite the exponents per precision in the risk table. (Worked example:
-   [`docs/perfeng/0001-trafo-direct`](../../../docs/perfeng/0001-trafo-direct/) — blocked
+   and cite the exponents per precision in the risk table. (Worked example: the `trafo-direct`
+   reference run — blocked
    recurrence vs baseline: Δp = +0.034 (double), +0.0012 (float), +0.005 (long double), all
    ≪ the ±0.15 tolerance ⇒ retired. Absolute `p` ≈ 0.62–0.68, above √N, in *both* arms — the
    working-precision phase term, not a recurrence artifact; the small Δp is what settles it.)
