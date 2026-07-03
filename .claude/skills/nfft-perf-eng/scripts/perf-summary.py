@@ -249,7 +249,8 @@ def cmd_check(args):
     if not os.path.exists(summ):
         sys.stderr.write(f"error: {summ} not found\n")
         return 1
-    html = open(summ, encoding="utf-8").read()
+    with open(summ, encoding="utf-8") as fh:
+        html = fh.read()
     refs = set(re.findall(r'(?:href|src)\s*=\s*["\']([^"\']+)["\']', html))
     refs = {r.split("#")[0].rstrip("/") for r in refs}
 
