@@ -71,13 +71,11 @@ def parse(stream):
         yield m.group("status"), case_id(label), err or "—", bound or "—"
 
 
-def read(path):
-    return sys.stdin if path == "-" else open(path)
-
-
 def failing(path):
-    fails = [(c, e, b) for st, c, e, b in parse(read(path)) if st in ("FAIL", "ERROR")]
-    return fails
+    if path == "-":
+        return [(c, e, b) for st, c, e, b in parse(sys.stdin) if st in ("FAIL", "ERROR")]
+    with open(path) as f:
+        return [(c, e, b) for st, c, e, b in parse(f) if st in ("FAIL", "ERROR")]
 
 
 def cmd_table(args):
