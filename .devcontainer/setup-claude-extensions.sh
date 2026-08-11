@@ -23,13 +23,10 @@ set -u
 MARKETPLACE="claude-plugins-official"
 PLUGINS=(
   "superpowers@${MARKETPLACE}"
-  "codspeed@${MARKETPLACE}"
+  "mattpocock-skills@${MARKETPLACE}"
 )
 # GitHub owner/repo[/subpath] shorthand resolved by the `skills` CLI.
-SKILL_SOURCES=(
-  "mattpocock/skills"
-  "shadcn/improve"
-)
+SKILL_SOURCES=()
 
 failures=0
 

@@ -1,5 +1,5 @@
 FROM ubuntu:24.04
-
+ARG NODE_VERSION=24
 ARG TZ
 ENV TZ="$TZ"
 
@@ -43,6 +43,12 @@ RUN groupadd --gid 2000 vscode \
     pkg-config \
     clang-format \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+
+ENV NVM_DIR=/root/.nvm
+
+RUN bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION"
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
