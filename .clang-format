@@ -1,16 +1,130 @@
-# NFFT3 C style — approximates CONVENTIONS.md (BSD bracing, 2-space indent).
-# Style rules are documented in CONVENTIONS.md; this enforces the mechanical parts.
-Language:        Cpp
-BasedOnStyle:    LLVM
-IndentWidth:     2
-TabWidth:        2
-UseTab:          Never
-ColumnLimit:     0           # do not reflow existing lines
-BreakBeforeBraces: Allman    # BSD style: braces on their own line
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
+Language: Cpp
+BasedOnStyle: LLVM
+
+# ---- Indentation ---------------------------------------------------------
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ContinuationIndentWidth: 5
+AccessModifierOffset: -5
+IndentCaseLabels: true
+IndentCaseBlocks: false
+IndentGotoLabels: true
+IndentPPDirectives: AfterHash
+IndentExternBlock: NoIndent
+IndentWrappedFunctionNames: false
+NamespaceIndentation: None
+PPIndentWidth: 1
+
+# ---- Braces ---------------------------------------------------------------
+# Classic K&R: functions get their own line, everything else is cuddled.
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterEnum: false
+  AfterClass: false
+  AfterNamespace: false
+  AfterExternBlock: true
+  BeforeElse: false
+  BeforeCatch: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# ---- Line length / wrapping -----------------------------------------------
+ColumnLimit: 79
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+BinPackArguments: true
+BinPackParameters: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeTernaryOperators: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+BreakStringLiterals: true
+PenaltyBreakAssignment: 10
+PenaltyBreakBeforeFirstCallParameter: 30
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakString: 10
+PenaltyExcessCharacter: 100
+PenaltyReturnTypeOnItsOwnLine: 1000000
+
+# ---- Short blocks/statements -----------------------------------------------
+# FFTW never collapses control bodies onto one line; single-statement
+# bodies still get their own (indented) line.
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
-AllowShortBlocksOnASingleLine: false
-SpaceBeforeParens: ControlStatements
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+
+# ---- Pointers / references -------------------------------------------------
 PointerAlignment: Right
-SortIncludes:    false       # preserve include order (config.h ordering matters)
+ReferenceAlignment: Right
+DerivePointerAlignment: false
+SpaceAroundPointerQualifiers: Default
+
+# ---- Spacing ----------------------------------------------------------------
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: Never
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Cpp11BracedListStyle: true
+BitFieldColonSpacing: Both
+
+# ---- Alignment --------------------------------------------------------------
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: None
+AlignConsecutiveBitFields: None
+AlignEscapedNewlines: Right
+AlignTrailingComments: false
+
+# ---- Empty lines --------------------------------------------------------------
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtEOF: false
+
+# ---- Comments -----------------------------------------------------------------
+# FFTW has hand-formatted / ASCII-art comments (there's literally a Latin
+# poem in a comment in kernel/planner.c). Don't let clang-format reflow or
+# re-wrap comment text.
+ReflowComments: false
+
+# ---- Includes / preprocessor ---------------------------------------------------
+SortIncludes: Never
+IncludeBlocks: Preserve
+SortUsingDeclarations: false
+
+# ---- Misc -------------------------------------------------------------------
+Standard: c++03
+CommentPragmas: '^ IWYU pragma:'
+FixNamespaceComments: false
+InsertBraces: false
+InsertNewlineAtEOF: true
+RemoveBracesLLVM: false
+RemoveSemicolon: false
+QualifierAlignment: Leave
+SeparateDefinitionBlocks: Leave
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
