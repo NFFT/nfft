@@ -694,13 +694,13 @@
   },
   "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 12.326763135141965
+      "value": 12.326763157948442
     },
     "bound-digits": {
       "value": 8.60622080970389
     },
     "max-error": {
-      "value": 4.712342681949263e-13
+      "value": 4.712342434486e-13
     }
   },
   "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_PSI": {
