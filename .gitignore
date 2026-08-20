@@ -123,6 +123,7 @@ examples/nfft/nfft_benchomp
 examples/nfft/nfft_benchomp_createdataset
 examples/nfft/nfft_benchomp_detail_single
 examples/nfft/nfft_benchomp_detail_threads
+examples/nfft/nfast_native
 examples/nfft/nfft_times
 examples/nfft/simple_test
 examples/nfft/simple_test_threads
@@ -149,9 +150,13 @@ doc/nfft.pdf
 doc/nfft.tag
 tests/checkall
 tests/checkall_threads
+tests/checkall_ng
+tests/checkall_ng_threads
 *.trs
 CUnitAutomated-Results.xml
 CUnitAutomated_threads-Results.xml
+CUnitAutomated_ng-Results.xml
+CUnitAutomated_ng_threads-Results.xml
 matlab/tests/check_nf*t_matlab.sh
 matlab/tests/check_nf*t_octave.sh
 matlab/tests/nfftUnitTests.m
@@ -159,7 +164,7 @@ matlab/tests/nfsftUnitTests.m
 matlab/tests/check_*_matlab.output
 windows-build-dll*/*
 linux-build-mex/*
-nfft-*
+/nfft-*
 .vscode/*
 
 .venv/
@@ -173,3 +178,9 @@ build-cmake*/
 
 # JetBrains IDEs
 .idea
+.worktrees
+.superpowers
+
+# Local-only planner design artifacts (never committed)
+.scratch/planner-v2/fftw-planner-deep-dive.md
+.scratch/planner-v2/2026-07-03-phase0-infrastructure-plan.md

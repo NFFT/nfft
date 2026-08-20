@@ -18,6 +18,10 @@
 
 #include "infft.h"
 
+/* Modified Bessel function I0 and its logarithmic forms. Two ranges per
+ * precision: the Chebyshev ratio P1/Q1 for x <= NFFT_I0_ASYMP_SPLIT, and the
+ * asymptotic exp(x)/sqrt(x) times P2/Q2 above it. */
+
 #if MANT_DIG == 113
   // IEEE 754 quadruple precision, 128 bits.
   static const R P1[] =
@@ -347,16 +351,13 @@ static inline R evaluate_polynomial(const INT n, const R *c, const R x)
 R Y(bessel_i0)(R x)
 {
   if (x < 0)
-  {
-    /* even function */
     x = -x;
-  }
 
   if (x == K(0.0))
     return K(1.0);
 
 #if MANT_DIG == 113
-  if (x <= K(25.0))
+  if (x <= NFFT_I0_ASYMP_SPLIT)
   {
     R y = (x / K(2.0));
     y = y * y;
@@ -368,18 +369,92 @@ R Y(bessel_i0)(R x)
     return (EXP(x) / SQRT(x)) * evaluate_polynomial(N2, P2, 1 / x);
   }
 #else
-  if (x <= K(15.0))
+  if (x <= NFFT_I0_ASYMP_SPLIT)
   {
-    /* x in (0, 15] */
     const R y = x * x;
     return evaluate_chebyshev(N1, P1, y) / evaluate_chebyshev(M1, Q1, y);
   }
   else
   {
-    /* x in (15, \infty) */
     const R y = (K(30.0) - x) / x;
     return (EXP(x) / SQRT(x)) * (evaluate_chebyshev(N2, P2, y) /
       evaluate_chebyshev(M2, Q2, y));
   }
+#endif
+}
+
+R Y(bessel_i0_log)(R x)
+{
+  if (x < 0)
+    x = -x;
+  if (x == K(0.0))
+    return K(0.0);
+#if MANT_DIG == 113
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  {
+    R y = (x / K(2.0));
+    y = y * y;
+    return LOG(K(1.0) + y * evaluate_polynomial(N1, P1, y));
+  }
+  else
+    return x - K(0.5) * LOG(x) + LOG(evaluate_polynomial(N2, P2, K(1.0) / x));
+#else
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  {
+    const R y = x * x;
+    return LOG(evaluate_chebyshev(N1, P1, y) / evaluate_chebyshev(M1, Q1, y));
+  }
+  else
+  {
+    const R y = (K(30.0) - x) / x;
+    return x - K(0.5) * LOG(x) + LOG(evaluate_chebyshev(N2, P2, y) / evaluate_chebyshev(M2, Q2, y));
+  }
+#endif
+}
+
+R Y(bessel_i0_scaled)(R x, R lg_peak)
+{
+  if (x < 0)
+    x = -x;
+  if (x == K(0.0))
+    return EXP(-lg_peak);
+#if MANT_DIG == 113
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  {
+    R y = (x / K(2.0));
+    y = y * y;
+    return (K(1.0) + y * evaluate_polynomial(N1, P1, y)) * EXP(-lg_peak);
+  }
+  else
+    return (EXP(x - lg_peak) / SQRT(x)) * evaluate_polynomial(N2, P2, K(1.0) / x);
+#else
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  {
+    const R y = x * x;
+    return (evaluate_chebyshev(N1, P1, y) / evaluate_chebyshev(M1, Q1, y)) * EXP(-lg_peak);
+  }
+  else
+  {
+    const R y = (K(30.0) - x) / x;
+    return (EXP(x - lg_peak) / SQRT(x)) * (evaluate_chebyshev(N2, P2, y) / evaluate_chebyshev(M2, Q2, y));
+  }
+#endif
+}
+
+R Y(bessel_i0_logtail)(R x) /* log I0(x) - x, cancellation-free */
+{
+  if (x < 0) x = -x;
+  if (x == K(0.0)) return K(0.0);
+#if MANT_DIG == 113
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  { R y = (x / K(2.0)); y = y * y; return LOG(K(1.0) + y * evaluate_polynomial(N1, P1, y)) - x; }
+  else
+    return -K(0.5) * LOG(x) + LOG(evaluate_polynomial(N2, P2, K(1.0) / x));
+#else
+  if (x <= NFFT_I0_ASYMP_SPLIT)
+  { const R y = x * x; return LOG(evaluate_chebyshev(N1, P1, y) / evaluate_chebyshev(M1, Q1, y)) - x; }
+  else
+  { const R y = (K(30.0) - x) / x;
+    return -K(0.5) * LOG(x) + LOG(evaluate_chebyshev(N2, P2, y) / evaluate_chebyshev(M2, Q2, y)); }
 #endif
 }

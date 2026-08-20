@@ -68,6 +68,7 @@
 #if defined(NFFT_SINGLE)
 typedef float R;
 typedef float _Complex C;
+typedef fftwf_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfftf_,name)
 #define FFTW(name) CONCAT(fftwf_,name)
 #define NFFT(name) CONCAT(nfftf_,name)
@@ -78,6 +79,7 @@ typedef float _Complex C;
 #elif defined(NFFT_LDOUBLE)
 typedef long double R;
 typedef long double _Complex C;
+typedef fftwl_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfftl_,name)
 #define FFTW(name) CONCAT(fftwl_,name)
 #define NFFT(name) CONCAT(nfftl_,name)
@@ -88,6 +90,7 @@ typedef long double _Complex C;
 #else
 typedef double R;
 typedef double _Complex C;
+typedef fftw_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfft_,name)
 #define FFTW(name) CONCAT(fftw_,name)
 #define NFFT(name) CONCAT(nfft_,name)
@@ -1480,7 +1483,19 @@ R Y(lambda)(R z, R eps);
 R Y(lambda2)(R mu, R nu);
 
 /* bessel_i0.c: */
-R Y(bessel_i0)(R x);
+R Y(bessel_i0)(R x);                    /* I0(x) */
+R Y(bessel_i0_log)(R x);                /* log I0(x), overflow-free for large x */
+R Y(bessel_i0_scaled)(R x, R lg_peak);  /* I0(x) * exp(-lg_peak), never forms I0(x) */
+R Y(bessel_i0_logtail)(R x);            /* log I0(x) - x, cancellation-free */
+
+/* Argument above which I0 switches to its asymptotic exp(x)/sqrt(x) form. Shared
+ * by all four bessel_i0* routines and by the KB window's asymptotic branch in
+ * window.c; single source of truth (kept in sync with bessel_i0.c). */
+#if MANT_DIG == 113
+#  define NFFT_I0_ASYMP_SPLIT K(25.0)
+#else
+#  define NFFT_I0_ASYMP_SPLIT K(15.0)
+#endif
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);

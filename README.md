@@ -67,6 +67,7 @@ Here are some useful optional flags for `./configure`:
 * `--enable-julia` specifies that the julia interface will be compiled.
 * `--with-matlab=/path/to/matlab` specifies the path of a Matlab installation, and
 * `--with-octave=/path/to/octave` does the same for GNU Octave.
+* `--enable-debug` compiles in extra runtime `A(...)` assertion checks and enables `-fsanitize=address,undefined -fno-sanitize-recover=all` (slower).
 * For a list of all available options, run `./configure --help`.
 
 Build the software.
