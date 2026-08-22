@@ -44,10 +44,9 @@ Registered in `kernel/nfft/conf.c` (`the_roster`), **registration order shown**
 | # | Solver (registrar) | Kind / rank | Gated by | Notes |
 |---|--------------------|-------------|----------|-------|
 | 1 | `nfft_solver_fast_native` | any rank | `NFFT_NO_FAST_NATIVE` | The composed fast NFFT. Registered *first* → iterated *last* → loses exact ties. |
-| 2 | `nfft_solver_ndft_1d` | rnk 1 | `NFFT_NO_NDFT_PLAIN` (+ `NFFT_NO_DIRECT`) | Plain per-term direct NDFT. |
-| 3 | `nfft_solver_ndft_1d_blocked` | rnk 1 | `NFFT_NO_NDFT_BLOCKED` (+ `NFFT_NO_DIRECT`) | Blocked-recurrence 1D NDFT (fewer transcendentals). |
-| 4 | `nfft_solver_ndft_nd` | rnk ≥ 2 | `NFFT_NO_NDFT_PLAIN` (+ `NFFT_NO_DIRECT`) | One generic direct NDFT (no 2D/3D specialization — direct has none). `NFFT_NO_NDFT_PLAIN` is "plain per-term, **any rank**", so it forbids both `ndft_1d` and `ndft_nd`. |
-| 5 | `nfft_solver_const_0d` | rnk 0 | ungated | Rank-0 base case: forward = broadcast `f_hat[0]`, adjoint = reduce `Σ f_j`. The sole rank-0 solver, so it never ties. |
+| 2 | `nfft_solver_ndft_1d` | rnk 1 | `NFFT_NO_DIRECT` | Direct 1D NDFT, blocked phase recurrence. |
+| 3 | `nfft_solver_ndft_nd` | rnk ≥ 2 | `NFFT_NO_DIRECT` | One generic direct NDFT (no 2D/3D specialization — direct has none); blocked recurrence on the innermost axis. |
+| 4 | `nfft_solver_const_0d` | rnk 0 | ungated | Rank-0 base case: forward = broadcast `f_hat[0]`, adjoint = reduce `Σ f_j`. The sole rank-0 solver, so it never ties. |
 
 All direct/NDFT solvers are **serial** (OpenMP was stripped from the native
 direct path). There are no `nfft_solver_direct` or `fast_1d/2d/3d/nd` solvers —

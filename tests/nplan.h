@@ -43,16 +43,16 @@ void Y(check_nplan_variant_key)(void);
 void Y(check_nplan_guard_declines)(void);
 void Y(check_nplan_solvers)(void);
 
-/* For d == 1 the two planner-native NDFT solvers (plain + blocked)
- * compete instead of the legacy direct wrapper. */
+/* For d == 1 the planner-native NDFT solver wins instead of the legacy
+ * direct wrapper. */
 void Y(check_nplan_ndft_dispatch)(void);
 
 /* For d >= 2 the single generic native multivariate NDFT solver wins
  * (the legacy direct wrapper is retired). */
 void Y(check_nplan_ndft_multivariate_dispatch)(void);
 
-/* Accuracy: blocked is strictly more accurate than plain against a
- * long-double, argument-reduced reference (large N, nodes near +-1/2). */
+/* Accuracy: the native NDFT beats the legacy direct against a long-double,
+ * argument-reduced reference (large N, nodes near +-1/2). */
 void Y(check_nplan_ndft_accuracy)(void);
 void Y(check_nplan_correct)(void);
 void Y(check_nplan_wisdom_memo)(void);
@@ -96,8 +96,8 @@ void Y(check_nplan_variant_guru)(void);
  * including non-outermost odd axes and odd+unit mixes. */
 void Y(check_nplan_odd_n)(void);
 
-/* type-II 1D natives (plain + blocked) compute the ascending
- * (+N/2-at-last-slot) range: uniform +1 shift of the type-I range. */
+/* The type-II 1D native computes the ascending (+N/2-at-last-slot) range:
+ * uniform +1 shift of the type-I range. */
 void Y(check_nplan_type_ii_1d)(void);
 
 /* per-axis type-II in the nD native (kernel/nfft/ndft-nd.c odometer):

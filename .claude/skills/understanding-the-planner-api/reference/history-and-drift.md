@@ -27,8 +27,9 @@ current-branch code wins.**
 |-----------------------------------|-----------------|
 | `nfct_plan_ng` / `nfst_plan_ng` exist; two-solver `{direct, fast}` roster per kind; `X(check)` guard mirror; `R*` accessors | **Removed.** New API is NDFT/NFFT only. Use legacy `nfct_*`/`nfst_*`. |
 | Bundle owns a shared/provisional/legacy core; `Y(nfft_solver_plan_set_core)`; `psi_valid` | **Gone.** Coreless native plans; each reads/writes through its problem. Fast plan builds ψ in its own `awake` via CONV child. |
-| Roster is `direct + fast_{1,2,3}d + fast_nd` | **Replaced** by `fast_native`, `ndft_1d`, `ndft_1d_blocked`, `ndft_nd`, `const_0d`. |
-| `NFFT_NO_DIM_SPECIAL`, `NFFT_NO_FAST_WRAPPER` flags | **Removed.** Fast is gated by `NFFT_NO_FAST_NATIVE` (`1<<4`); direct by `NFFT_NO_DIRECT`/`NFFT_NO_NDFT_PLAIN`/`NFFT_NO_NDFT_BLOCKED`. |
+| Roster is `direct + fast_{1,2,3}d + fast_nd` | **Replaced** by `fast_native`, `ndft_1d`, `ndft_nd`, `const_0d`. |
+| `NFFT_NO_DIM_SPECIAL`, `NFFT_NO_FAST_WRAPPER` flags | **Removed.** Fast is gated by `NFFT_NO_FAST_NATIVE` (`1<<4`); direct by `NFFT_NO_DIRECT`. |
+| `nfft_solver_ndft_1d_blocked`; `NFFT_NO_NDFT_PLAIN` (`1<<2`) / `NFFT_NO_NDFT_BLOCKED` (`1<<3`) flags | **Removed.** The blocked phase recurrence is now the only direct NDFT at every rank, so there is nothing left to choose between; `NFFT_NO_DIRECT` is the single direct gate. |
 | ψ-strategy flags `NFFT_NO_FULL_PSI`, `NFFT_SHARED_CORE`, `NFFT_PREFER_FORWARD`, `NFFT_PREFER_ADJOINT`, `NFFT_CONSERVE_MEMORY`; `fast_*_fullpsi` solvers; share-when-agree cores | **Reverted.** `PRE_PSI` (sparse) is the only fast ψ-strategy in the planner. `PRE_FULL_PSI` survives only in the *legacy* kernel, untouched. |
 | `NFFT_MEASURE`/`NFFT_PATIENT`/`NFFT_EXHAUSTIVE` patience ladder; `BELIEVE_PCOST` | **Dropped.** Only `NFFT_MEASURE` (=0) and `NFFT_ESTIMATE` exist. Planning-effort control is measured-vs-estimate plus the timelimit. |
 | `nfft_flags` parameter on `plan_ng_guru`; legacy `PRE_*` flags are caller inputs; `nfft_flags` in the wisdom key | **Removed.** Guru takes only `fftw_flags` + `planning`. Each solver derives its own child flags. |

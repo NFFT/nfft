@@ -903,8 +903,6 @@ NFFT_DEFINE_UTIL_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 #define NFFT_MEASURE         (0U)       // Measure solutions.
 #define NFFT_ESTIMATE        (1U << 0)  // Estimate winner.
 #define NFFT_NO_DIRECT       (1U << 1)  // Do not use direct (slow) algorithms.
-#define NFFT_NO_NDFT_PLAIN   (1U << 2)  // Do not use the plain per-term direct NDFT (any rank).
-#define NFFT_NO_NDFT_BLOCKED (1U << 3)  // Do not use the blocked-recurrence 1D direct NDFT.
 #define NFFT_NO_FAST_NATIVE  (1U << 4)  // Do not use the fast NFFT algorithm.
 
 /* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2. 

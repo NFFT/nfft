@@ -378,7 +378,7 @@ void Y(check_nplan_guard_declines)(void) {
     C fh = K(0.0), f = K(0.0);
     INT N = 64, n = 64; /* sigma == 1: declined even at big M */
     p = Y(mkproblem_nfft)(1, &N, 0, &n, 200000, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0u, &x, 0, &fh, &f);
-    expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
+    expect_winner(pl, p, "nfft_solver_ndft_1d");
     Y(problem_destroy)
     (p);
   }
@@ -448,16 +448,16 @@ void Y(check_nplan_solvers)(void) {
   Y(problem_destroy)
   (p);
 
-  /* (b) degenerate size: guards decline fast -> direct-class (blocked NDFT) */
+  /* (b) degenerate size: guards decline fast -> direct NDFT */
   p = mk_problem(1, 4, 16, 8, 6, 1);
-  expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
+  expect_winner(pl, p, "nfft_solver_ndft_1d");
   Y(problem_destroy)
   (p);
 
-  /* (c) tiny M: estimate picks direct-class (blocked NDFT; 4x oversampling
-   * keeps the margin ~4x) */
+  /* (c) tiny M: estimate picks the direct NDFT (4x oversampling keeps the
+   * margin ~4x) */
   p = mk_problem(1, 256, 1024, 1, 6, 1);
-  expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
+  expect_winner(pl, p, "nfft_solver_ndft_1d");
   Y(problem_destroy)
   (p);
 
@@ -525,24 +525,24 @@ void Y(check_nplan_solvers)(void) {
   /* Registration re-arms across global-planner generations; pointer identity
    * is not a valid generation check, since a recreated planner can reuse the
    * freed address. nslvdesc counts descriptors of every kind: the NFFT roster
-   * in kernel/nfft/conf.c is 5 (composed native fast, two native 1D direct,
+   * in kernel/nfft/conf.c is 4 (composed native fast, native 1D direct,
    * generic nD NDFT, rank-0 base case), plus the DECONV and CONV rosters of 4
    * each, which ensure_registered installs first because the composed fast
    * recurses into them. */
   Y(nfft_ensure_registered)
   ();
-  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 13u);
+  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 12u);
   Y(the_planner_destroy)
   ();
   Y(nfft_ensure_registered)
   ();
-  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 13u); /* fresh generation */
+  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 12u); /* fresh generation */
   Y(the_planner_destroy)
   ();
 }
 
-/* dispatch: for d == 1 the two planner-native NDFT solvers compete and each
- * per-variant flag prunes one. */
+/* dispatch: for d == 1 the planner-native NDFT solver wins whenever a direct
+ * plan is legal, and NO_DIRECT prunes it. */
 void Y(check_nplan_ndft_dispatch)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
@@ -553,34 +553,13 @@ void Y(check_nplan_ndft_dispatch)(void) {
   Y(nfft_solvers_register)
   (pl);
 
-  /* Tiny M keeps a direct-class solver ahead of fast; blocked beats plain. */
-  p = mk_problem(1, 256, 1024, 1, 6, 1);
-  expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
-  Y(problem_destroy)
-  (p);
-
-  /* NO_NDFT_BLOCKED leaves the plain solver. */
-  pl->flags.l = pl->flags.u = PLNR_NO_NDFT_BLOCKED;
+  /* Tiny M keeps the direct solver ahead of fast. */
   p = mk_problem(1, 256, 1024, 1, 6, 1);
   expect_winner(pl, p, "nfft_solver_ndft_1d");
   Y(problem_destroy)
   (p);
 
-  /* NO_NDFT_PLAIN leaves the blocked solver. */
-  pl->flags.l = pl->flags.u = PLNR_NO_NDFT_PLAIN;
-  p = mk_problem(1, 256, 1024, 1, 6, 1);
-  expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
-  Y(problem_destroy)
-  (p);
-
-  /* Both disabled + fast inapplicable (degenerate size) -> no plan at all. */
-  pl->flags.l = pl->flags.u = PLNR_NO_NDFT_PLAIN | PLNR_NO_NDFT_BLOCKED;
-  p = mk_problem(1, 4, 16, 8, 6, 1);
-  CU_ASSERT_PTR_NULL(Y(planner_mkplan)(pl, p));
-  Y(problem_destroy)
-  (p);
-
-  /* NO_DIRECT subsumes both native solvers; degenerate 1D -> no plan. */
+  /* NO_DIRECT prunes the native solver; degenerate 1D -> no plan. */
   pl->flags.l = pl->flags.u = PLNR_NO_DIRECT;
   p = mk_problem(1, 4, 16, 8, 6, 1);
   CU_ASSERT_PTR_NULL(Y(planner_mkplan)(pl, p));
@@ -595,7 +574,7 @@ void Y(check_nplan_ndft_dispatch)(void) {
   /* Adjoint direction dispatches identically (its own problem/sign). */
   pl->flags.l = pl->flags.u = 0;
   p = mk_problem(1, 256, 1024, 1, 6, -1);
-  expect_winner(pl, p, "nfft_solver_ndft_1d_blocked");
+  expect_winner(pl, p, "nfft_solver_ndft_1d");
   Y(problem_destroy)
   (p);
 
@@ -995,19 +974,14 @@ void Y(check_nplan_correct)(void) {
     check_case_against_direct_arr(2, Nu2, nu2, 512, 64u, NFFT_MEASURE);
   }
 
-  /* Force each native 1D variant -- NO_FAST_NATIVE keeps the fast from
-   * winning, one NO_NDFT_* flag pins the survivor -- and validate both
-   * directions against the legacy direct oracle. */
-  check_case_against_direct(1, 256, 512, 4096, 51u,
-                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_BLOCKED); /* plain, estimate */
+  /* Force the native 1D NDFT -- NO_FAST_NATIVE keeps the fast from winning --
+   * and validate both directions against the legacy direct oracle. */
   check_case_against_direct(1, 256, 512, 4096, 52u,
-                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_PLAIN); /* blocked, estimate */
-  check_case_against_direct(1, 128, 256, 1024, 53u,
-                            NFFT_MEASURE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_BLOCKED); /* plain, measured */
+                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE); /* estimate */
   check_case_against_direct(1, 128, 256, 1024, 54u,
-                            NFFT_MEASURE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_PLAIN); /* blocked, measured */
+                            NFFT_MEASURE | NFFT_NO_FAST_NATIVE); /* measured */
   check_case_against_direct(1, 16, 64, 256, 55u,
-                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_PLAIN); /* Ntot<=B blocked adjoint path */
+                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE); /* Ntot <= B adjoint path */
 
   /* Force the generic multivariate NDFT: at d=2/3 NO_FAST_NATIVE declines the
    * fast, and at d=4 a tiny M makes the direct native win on cost. */
@@ -1287,7 +1261,7 @@ void Y(check_nplan_measured)(void) {
  * so it reads f_hat and clobbers f; filling after planning is the documented
  * lifecycle. */
 void Y(check_nplan_destructive_default)(void) {
-  /* M small enough that the blocked NDFT survives the estimate gate
+  /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
   INT N = 64, n = 128, M = 64;
   static R x[8192];
@@ -1517,7 +1491,7 @@ void Y(check_nplan_measured_wisdom)(void) {
  * path as the no-usable-clock case. Estimate never blesses, so the blessed
  * store stays empty; the degraded bundle still produces unblessed memos. */
 void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void) {
-  /* M small enough that the blocked NDFT survives the estimate gate
+  /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
   INT N = 64, n = 128, M = 64;
   static R x[8192];
@@ -1863,11 +1837,11 @@ void Y(check_nplan_core_owns_no_data_arrays)(void) {
   ();
 }
 
-/* The blocked recurrence is strictly more accurate than plain per-term in the
- * ill-conditioned regime (large N, nodes near +-1/2), where plain's error is
- * dominated by libm reducing huge phase arguments. That loss is present in
- * every precision. The reference sums in long double with argument reduction,
- * independent of R. */
+/* The native NDFT beats the legacy per-term direct in the ill-conditioned
+ * regime (large N, nodes near +-1/2), where the legacy error is dominated by
+ * libm reducing huge phase arguments. The loss is present in every precision.
+ * The reference sums in long double with argument reduction, independent of
+ * R. */
 void Y(check_nplan_ndft_accuracy)(void) {
   enum {
     N = 8192,
@@ -1875,19 +1849,20 @@ void Y(check_nplan_ndft_accuracy)(void) {
   };
   const INT Nn = N, nn = 2 * N, Mm = M;
   static R x[M];
-  static C fh[N], f_plain[M], f_blocked[M];
+  static C fh[N], f_planner[M];
   long double _Complex ref[M];
   const long double TWO_PI = 6.28318530717958647692528676655900577L;
   Y(plan_ng) * pp;
+  NFFT(plan) lref;
   INT j, k;
-  long double num_p = 0.0L, num_b = 0.0L, den = 0.0L;
-  R err_plain, err_blocked;
+  long double num_l = 0.0L, num_p = 0.0L, den = 0.0L;
+  R err_legacy, err_planner;
 
   Y(the_planner_destroy)
   ();
 
   for (j = 0; j < Mm; j++)
-    x[j] = (R)0.4999 - (R)0.0001 * (R)((int)j % 7); /* near +1/2: worst for plain */
+    x[j] = (R)0.4999 - (R)0.0001 * (R)((int)j % 7); /* near +1/2: worst case */
   fill_fhat(fh, Nn, 4242u);
 
   for (j = 0; j < Mm; j++) {
@@ -1903,22 +1878,22 @@ void Y(check_nplan_ndft_accuracy)(void) {
     ref[j] = v;
   }
 
-  /* Without NFFT_NO_FAST_NATIVE the composed fast would outrun the direct
-   * natives here and return an approximate result. */
-  pp = Y(plan_ng_guru)(1, &Nn, 0, &nn, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, x, fh, f_plain, 0u,
-                       NFFT_ESTIMATE | NFFT_NO_NDFT_BLOCKED |
-                           NFFT_NO_FAST_NATIVE);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(pp);
-  Y(precompute)
-  (pp);
-  Y(execute)
-  (pp);
-  Y(plan_ng_destroy)
-  (pp);
+  {
+    int Ni = (int)Nn, ni = (int)nn;
+    NFFT(init_guru)
+    (&lref, 1, &Ni, (int)Mm, &ni, 6, MALLOC_X | MALLOC_F_HAT | MALLOC_F, 0u);
+  }
+  for (j = 0; j < Mm; j++)
+    lref.x[j] = x[j];
+  for (k = 0; k < Nn; k++)
+    lref.f_hat[k] = fh[k];
+  NFFT(trafo_direct)
+  (&lref);
 
-  pp = Y(plan_ng_guru)(1, &Nn, 0, &nn, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, x, fh, f_blocked, 0u,
-                       NFFT_ESTIMATE | NFFT_NO_NDFT_PLAIN |
-                           NFFT_NO_FAST_NATIVE);
+  /* NO_FAST_NATIVE: the composed fast would outrun the direct here and return
+   * an approximate result. */
+  pp = Y(plan_ng_guru)(1, &Nn, 0, &nn, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, x, fh,
+                       f_planner, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pp);
   Y(precompute)
   (pp);
@@ -1928,22 +1903,23 @@ void Y(check_nplan_ndft_accuracy)(void) {
   (pp);
 
   for (j = 0; j < Mm; j++) {
-    long double dp = cabsl((long double _Complex)f_plain[j] - ref[j]);
-    long double db = cabsl((long double _Complex)f_blocked[j] - ref[j]);
+    long double dl = cabsl((long double _Complex)lref.f[j] - ref[j]);
+    long double dp = cabsl((long double _Complex)f_planner[j] - ref[j]);
     long double da = cabsl(ref[j]);
+    if (dl > num_l)
+      num_l = dl;
     if (dp > num_p)
       num_p = dp;
-    if (db > num_b)
-      num_b = db;
     if (da > den)
       den = da;
   }
-  err_plain = (R)(den > 0.0L ? num_p / den : num_p);
-  err_blocked = (R)(den > 0.0L ? num_b / den : num_b);
+  err_legacy = (R)(den > 0.0L ? num_l / den : num_l);
+  err_planner = (R)(den > 0.0L ? num_p / den : num_p);
 
-  /* Blocked strictly more accurate than plain, in every build precision. */
-  CU_ASSERT(err_blocked < err_plain);
+  CU_ASSERT(err_planner < err_legacy);
 
+  NFFT(finalize)
+  (&lref);
   Y(the_planner_destroy)
   ();
 }
@@ -1954,7 +1930,7 @@ void Y(check_nplan_core_elision)(void) {
   Y(the_planner_destroy)
   ();
 
-  /* (a) tiny M -> blocked NDFT beats fast; coreless; still executes. */
+  /* (a) tiny M -> direct NDFT beats fast; coreless; still executes. */
   {
     INT N = 256, n = 1024, M = 1;
     static R x[1];
@@ -2325,10 +2301,7 @@ static void type_ii_1d_once(unsigned steer) {
 }
 
 void Y(check_nplan_type_ii_1d)(void) {
-  type_ii_1d_once(NFFT_NO_FAST_NATIVE
-                  | NFFT_NO_NDFT_BLOCKED); /* plain direct */
-  type_ii_1d_once(NFFT_NO_FAST_NATIVE
-                  | NFFT_NO_NDFT_PLAIN); /* blocked direct */
+  type_ii_1d_once(NFFT_NO_FAST_NATIVE); /* direct */
   type_ii_1d_once(NFFT_NO_DIRECT); /* composed fast */
   /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)

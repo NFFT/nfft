@@ -239,11 +239,9 @@ enum {
   PLNR_ESTIMATE = 0x0002,
   PLNR_NO_SLOW = 0x0004,
   PLNR_NO_UGLY = 0x0008,
-  PLNR_NO_DIRECT = 0x0010,     /* forbid O(N.M) direct solvers */
-  PLNR_NO_NDFT_PLAIN = 0x0040, /* forbid the plain per-term 1D direct NDFT solver */
+  PLNR_NO_DIRECT = 0x0010, /* forbid O(N.M) direct solvers */
   PLNR_ALLOW_PRUNING = 0x0080,
-  PLNR_NO_NDFT_BLOCKED = 0x0100, /* forbid the blocked-recurrence 1D direct NDFT solver */
-  PLNR_NO_FAST_NATIVE = 0x0200   /* forbid the planner-native fast NFFT solver */
+  PLNR_NO_FAST_NATIVE = 0x0200 /* forbid the planner-native fast NFFT solver */
 };
 
 /* hashtable slot information */
@@ -454,9 +452,6 @@ void Y(nfft_solver_rnk0_register)(planner *pl);
 
 /* One-dimensional direct NDFT */
 void Y(nfft_solver_ndft_1d_register)(planner *pl);
-
-/* One-dimensional blocked direct NDFT */
-void Y(nfft_solver_ndft_1d_blocked_register)(planner *pl);
 
 /* Multi-dimensional direct NDFT */
 void Y(nfft_solver_ndft_nd_register)(planner *pl);

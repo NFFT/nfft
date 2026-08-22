@@ -22,10 +22,9 @@
 
 /* NFFT solver roster (~ FFTW's dft/conf.c).  Y(nfft_solver_fast_native) is the
  * sole fast solver and claims every d, composed from independently-planned
- * DECONV/CONV sub-problems; the direct NDFT is two 1D solvers (plain per-term,
- * blocked recurrence) plus one generic solver for d >= 2.  Applicability is
- * expressed by mkplan returning NULL.  PRE_PSI is the only fast psi strategy
- * this planner offers.
+ * DECONV/CONV sub-problems; the direct NDFT is one 1D solver plus one generic
+ * solver for d >= 2.  Applicability is expressed by mkplan returning NULL.
+ * PRE_PSI is the only fast psi strategy this planner offers.
  *
  * Registration order matters for determinism: iteration is reverse
  * registration order, and on exact pcost ties the earlier-encountered plan is
@@ -33,7 +32,6 @@
 static const solvtab the_roster = {
     SOLVTAB(Y(nfft_solver_fast_native_register)),
     SOLVTAB(Y(nfft_solver_ndft_1d_register)),
-    SOLVTAB(Y(nfft_solver_ndft_1d_blocked_register)),
     SOLVTAB(Y(nfft_solver_ndft_nd_register)),
     SOLVTAB(Y(nfft_solver_rnk0_register)),
     SOLVTAB_END};

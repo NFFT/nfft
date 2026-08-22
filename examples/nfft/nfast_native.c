@@ -18,24 +18,22 @@
 
 /*! \file nfast_native.c
  *
- * Seven-way check of the composed planner-native fast NFFT: legacy direct
- * NDFT, legacy fast NFFT, planner direct-plain NDFT, planner direct-blocked
- * NDFT, and planner native fast NFFT, all built over the same problem (data/
- * nfft_1d_8192_128.txt, an offline exact-precision reference) and the same
- * compile-time-selected window. The two fast NFFTs (legacy + native) are each
- * built twice -- once with FFTW_ESTIMATE and once with FFTW_MEASURE for the
- * internal DFT plan -- so the effect of the FFTW planner flag on the fast
- * transform is visible side by side. Each of the three planner plans prints its
- * plan tree (so the implementation the planner picked is visible). For every
- * plan, legacy and planner alike, precompute/forward/adjoint are timed
- * separately; forward-transform error is checked against the file reference
- * and PASS/FAIL'd.
+ * Six-way check of the composed planner-native fast NFFT: legacy direct NDFT,
+ * legacy fast NFFT, planner direct NDFT, and planner native fast NFFT, all
+ * built over the same problem (data/nfft_1d_8192_128.txt, an offline
+ * exact-precision reference) and the same compile-time-selected window. The two
+ * fast NFFTs (legacy + native) are each built twice, once with FFTW_ESTIMATE
+ * and once with FFTW_MEASURE for the internal DFT plan, so the effect of the
+ * FFTW planner flag is visible side by side. Each of the two planner plans
+ * prints its plan tree. For every plan, legacy and planner alike,
+ * precompute/forward/adjoint are timed separately; forward-transform error is
+ * checked against the file reference and PASS/FAIL'd.
  *
- * The two FFTW_MEASURE plans are constructed AFTER every FFTW_ESTIMATE plan:
+ * The two FFTW_MEASURE plans are constructed after every FFTW_ESTIMATE plan:
  * FFTW caches wisdom process-globally, so a measured plan of a given size would
  * otherwise bless a later estimate plan of the same size and spoil the
- * comparison. (The NFFT-level planner mode stays NFFT_ESTIMATE throughout, so
- * only the FFTW DFT plan quality changes between the est/meas rows.)
+ * comparison. The NFFT-level planner mode stays NFFT_ESTIMATE throughout, so
+ * only the FFTW DFT plan quality changes between the est/meas rows.
  */
 
 #include "config.h"
@@ -70,9 +68,9 @@
 #endif
 
 /* Loose PASS/FAIL gate; the point of the table is the printed magnitudes
- * (unblocked direct worst), not the threshold. Scaled by build precision: at
- * N=8192 the unblocked direct accumulates ~N*eps, which is ~1e-3 in float but
- * ~1e-12/~1e-15 in double/long-double, so a single bound cannot fit all three. */
+ * (the legacy direct worst), not the threshold. Scaled by build precision: at
+ * N=8192 the legacy per-term direct accumulates ~N*eps, ~1e-3 in float but
+ * ~1e-12/~1e-15 in double/long-double, so one bound cannot fit all three. */
 #if defined(NFFT_SINGLE)
 #define NFAST_NATIVE_BOUND NFFT_K(1e-2)
 #else
@@ -355,20 +353,19 @@ int main(void) {
   NFFT(plan)
   lp, lp_m;
 
-  NFFT(plan_ng) * p_dp, *p_db, *p_native, *p_native_m;
-  NFFT_C *f_dp, *f_db, *f_native, *f_native_m, *f_hat_adj;
+  NFFT(plan_ng) * p_dir, *p_native, *p_native_m;
+  NFFT_C *f_dir, *f_native, *f_native_m, *f_hat_adj;
 
   nfast_timing t_pre_legacy, t_pre_none, t_ld, t_lf, t_adj_ld, t_adj_lf;
-  nfast_timing t_pre_dp, t_dp, t_adj_dp;
-  nfast_timing t_pre_db, t_db, t_adj_db;
+  nfast_timing t_pre_dir, t_dir, t_adj_dir;
   nfast_timing t_pre_native, t_native, t_adj_native;
   /* FFTW_MEASURE variants of the two fast NFFTs (legacy + native). */
   nfast_timing t_pre_legacy_m, t_lf_m, t_adj_lf_m;
   nfast_timing t_pre_native_m, t_native_m, t_adj_native_m;
-  NFFT_R err_legacy_direct_file, err_legacy_file, err_native_file, err_dp_file,
-      err_db_file, err_legacy_meas, err_native_meas;
-  int ok_legacy_direct_file, ok_legacy_file, ok_native_file, ok_dp_file,
-      ok_db_file, ok_legacy_meas, ok_native_meas, all_ok;
+  NFFT_R err_legacy_direct_file, err_legacy_file, err_native_file, err_dir_file,
+      err_legacy_meas, err_native_meas;
+  int ok_legacy_direct_file, ok_legacy_file, ok_native_file, ok_dir_file,
+      ok_legacy_meas, ok_native_meas, all_ok;
   plan_ng_adjoint_ctx adj_ctx;
 
   if (!read_reference(NFAST_NATIVE_DATA, &d, &N, &M, &x, &f_hat, &f_ref)) {
@@ -425,29 +422,18 @@ int main(void) {
   t_adj_ld = time_run(run_legacy_adjoint_direct, &lp);
   t_adj_lf = time_run(run_legacy_adjoint_fast, &lp);
 
-  /* --- planner-native direct-plain NDFT ------------------------------- */
-  f_dp = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
-  p_dp = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_dp, 0u,
-                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_BLOCKED);
+  /* --- planner-native direct NDFT ------------------------------------- */
+  f_dir = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
+  p_dir = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_dir, 0u,
+                             NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
   /* "(adj (null))" is expected here: the adjoint direction reuses the
    * forward winner rather than racing its own plan (Y(plan_ng_print)). */
-  printf("\nplan: planner direct-plain\n");
+  printf("\nplan: planner direct\n");
   NFFT(fprint_plan)
-  (p_dp, stdout);
+  (p_dir, stdout);
   printf("\n");
-  t_pre_dp = time_run(run_precompute, p_dp);
-  t_dp = time_run(run_plan_ng, p_dp);
-
-  /* --- planner-native direct-blocked NDFT ----------------------------- */
-  f_db = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
-  p_db = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_db, 0u,
-                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | NFFT_NO_NDFT_PLAIN);
-  printf("\nplan: planner direct-blocked\n");
-  NFFT(fprint_plan)
-  (p_db, stdout);
-  printf("\n");
-  t_pre_db = time_run(run_precompute, p_db);
-  t_db = time_run(run_plan_ng, p_db);
+  t_pre_dir = time_run(run_precompute, p_dir);
+  t_dir = time_run(run_plan_ng, p_dir);
 
   /* --- composed planner-native fast NFFT solver ----------------------- */
   f_native = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
@@ -496,49 +482,42 @@ int main(void) {
   t_native_m = time_run(run_plan_ng, p_native_m);
 
   /* Adjoint direction: execute_adjoint_on takes explicit buffers, so the
-   * plan's own forward-bound f_hat/f_dp/f_db/f_native are left untouched. */
+   * plan's own forward-bound f_hat/f_dir/f_native are left untouched. */
   f_hat_adj = (NFFT_C *)malloc((size_t)N * sizeof(NFFT_C));
   adj_ctx.f = f_ref;
   adj_ctx.f_hat = f_hat_adj;
-  adj_ctx.p = p_dp;
-  t_adj_dp = time_run(run_plan_ng_adjoint, &adj_ctx);
-  adj_ctx.p = p_db;
-  t_adj_db = time_run(run_plan_ng_adjoint, &adj_ctx);
+  adj_ctx.p = p_dir;
+  t_adj_dir = time_run(run_plan_ng_adjoint, &adj_ctx);
   adj_ctx.p = p_native;
   t_adj_native = time_run(run_plan_ng_adjoint, &adj_ctx);
   adj_ctx.p = p_native_m;
   t_adj_native_m = time_run(run_plan_ng_adjoint, &adj_ctx);
 
   /* --- Compare (forward error only, every figure vs the file reference) */
-  err_dp_file = rel_max_err(f_dp, f_ref, M);
-  err_db_file = rel_max_err(f_db, f_ref, M);
+  err_dir_file = rel_max_err(f_dir, f_ref, M);
   err_native_file = rel_max_err(f_native, f_ref, M);
   err_native_meas = rel_max_err(f_native_m, f_ref, M);
 
   ok_legacy_direct_file = err_legacy_direct_file <= NFAST_NATIVE_BOUND;
   ok_legacy_file = err_legacy_file <= NFAST_NATIVE_BOUND;
   ok_legacy_meas = err_legacy_meas <= NFAST_NATIVE_BOUND;
-  ok_dp_file = err_dp_file <= NFAST_NATIVE_BOUND;
-  ok_db_file = err_db_file <= NFAST_NATIVE_BOUND;
+  ok_dir_file = err_dir_file <= NFAST_NATIVE_BOUND;
   ok_native_file = err_native_file <= NFAST_NATIVE_BOUND;
   ok_native_meas = err_native_meas <= NFAST_NATIVE_BOUND;
   all_ok = ok_legacy_direct_file && ok_legacy_file && ok_legacy_meas &&
-           ok_dp_file && ok_db_file && ok_native_file && ok_native_meas;
+           ok_dir_file && ok_native_file && ok_native_meas;
 
   /* Timing and accuracy on the same rows (fwd row carries the forward error).
-   * Ordered so the two direct families sit together (legacy direct, planner
-   * direct-plain, planner direct-blocked) and the two fast NFFTs are adjacent
-   * (legacy fast, planner native fast), each fast NFFT showing its FFTW_ESTIMATE
-   * row immediately above its FFTW_MEASURE row for a direct est-vs-meas read. */
+   * Ordered so the two directs sit together (legacy, planner) and the two fast
+   * NFFTs are adjacent (legacy, planner native), each fast NFFT showing its
+   * FFTW_ESTIMATE row immediately above its FFTW_MEASURE row. */
   printf("\ntiming (mean +/- std over ~%g s per step; wall seconds / CPU ticks)"
          " with forward accuracy vs reference (max|got-ref|/max|ref|):\n",
          NFAST_MEASURE_SECONDS);
   print_timing("legacy direct", t_pre_none, t_ld, t_adj_ld,
                err_legacy_direct_file, ok_legacy_direct_file);
-  print_timing("planner direct-plain", t_pre_dp, t_dp, t_adj_dp, err_dp_file,
-               ok_dp_file);
-  print_timing("planner direct-blocked", t_pre_db, t_db, t_adj_db, err_db_file,
-               ok_db_file);
+  print_timing("planner direct", t_pre_dir, t_dir, t_adj_dir, err_dir_file,
+               ok_dir_file);
   print_timing("legacy fast est", t_pre_legacy, t_lf, t_adj_lf, err_legacy_file,
                ok_legacy_file);
   print_timing("legacy fast meas", t_pre_legacy_m, t_lf_m, t_adj_lf_m,
@@ -557,16 +536,13 @@ int main(void) {
   NFFT(finalize)
   (&lp_m);
   NFFT(plan_ng_destroy)
-  (p_dp);
-  NFFT(plan_ng_destroy)
-  (p_db);
+  (p_dir);
   NFFT(plan_ng_destroy)
   (p_native);
   NFFT(plan_ng_destroy)
   (p_native_m);
 
-  free(f_dp);
-  free(f_db);
+  free(f_dir);
   free(f_native);
   free(f_native_m);
   free(f_hat_adj);

@@ -84,11 +84,11 @@ not merely un-wired). If you add a planner source file, add it to **both**
 
 ## Runnable examples (`examples/nfft/`)
 
-- **`nfast_native.c`** — the best worked example. A five-way check over one 1D
+- **`nfast_native.c`** — the best worked example. A six-way check over one 1D
   problem (`data/nfft_1d_8192_128.txt`): legacy direct NDFT, legacy fast NFFT,
-  planner direct-plain, planner direct-blocked, and planner native fast. It
-  forces specific solvers via flags (e.g. `NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE |
-  NFFT_NO_NDFT_BLOCKED` to isolate direct-plain), prints each plan tree with
+  planner direct NDFT, and planner native fast (each fast one twice, FFTW
+  estimate vs measure). It forces specific solvers via flags (e.g.
+  `NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE` to isolate the direct NDFT), prints each plan tree with
   `nfft_fprint_plan`, times precompute/forward/adjoint separately, and checks the
   forward error against the file reference. Shows correct guru → `precompute` →
   `execute`/`execute_adjoint_on` → `plan_ng_destroy` usage.
@@ -107,5 +107,5 @@ Build them with `--enable-all`; both are `noinst_PROGRAMS` linking
 
 The `(adj (null))` is expected (forward-only race — the forward plan serves the
 adjoint). A direct winner prints `(<solver-name> pcost=...)` — e.g.
-`nfft_solver_ndft_1d`, `nfft_solver_ndft_1d_blocked`, `nfft_solver_ndft_nd`,
+`nfft_solver_ndft_1d`, `nfft_solver_ndft_nd`,
 `nfft_solver_const_0d`.

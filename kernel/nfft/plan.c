@@ -58,10 +58,6 @@ static unsigned map_planning_flags(unsigned planning) {
   unsigned F = 0;
   if (planning & NFFT_NO_DIRECT)
     F |= PLNR_NO_DIRECT;
-  if (planning & NFFT_NO_NDFT_PLAIN)
-    F |= PLNR_NO_NDFT_PLAIN;
-  if (planning & NFFT_NO_NDFT_BLOCKED)
-    F |= PLNR_NO_NDFT_BLOCKED;
   if (planning & NFFT_NO_FAST_NATIVE)
     F |= PLNR_NO_FAST_NATIVE;
   return F;

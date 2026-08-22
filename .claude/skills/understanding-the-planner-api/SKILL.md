@@ -127,8 +127,6 @@ Full detail: [lifecycle-and-contracts.md](reference/lifecycle-and-contracts.md).
 | `NFFT_MEASURE` | `0` | Default: race candidates on your nodes, bless the winner. |
 | `NFFT_ESTIMATE` | `1<<0` | Skip the race; pick by analytic cost model. |
 | `NFFT_NO_DIRECT` | `1<<1` | Forbid the O(N·M) direct/NDFT solvers. |
-| `NFFT_NO_NDFT_PLAIN` | `1<<2` | Forbid the plain per-term direct NDFT. |
-| `NFFT_NO_NDFT_BLOCKED` | `1<<3` | Forbid the blocked-recurrence 1D direct NDFT. |
 | `NFFT_NO_FAST_NATIVE` | `1<<4` | Forbid the native fast NFFT (DECONV+FFT+CONV). It is the *only* fast solver, so this effectively forces a direct NDFT. |
 
 Per-axis NDFT variant (even `N`): `NFFT_NDFT_TYPE_I` (`k=-N/2..N/2-1`),
@@ -192,7 +190,7 @@ trees) and `examples/nfft/ndft_fast.c`. Tests: `tests/checkall_ng`
 
 - A "shared/provisional/legacy core" per bundle → **gone**; plans are coreless native.
 - Solvers named `nfft_solver_fast_1d/2d/3d`, `fast_nd`, or `nfft_solver_direct`
-  → **replaced** by `fast_native` + `ndft_1d`/`ndft_1d_blocked`/`ndft_nd` + `const_0d`.
+  → **replaced** by `fast_native` + `ndft_1d`/`ndft_nd` + `const_0d`.
 - Flags `NFFT_NO_DIM_SPECIAL`, `NFFT_CONSERVE_MEMORY`, `NFFT_NO_FULL_PSI`,
   `NFFT_SHARED_CORE`, `NFFT_FORWARD_ONLY`, `NFFT_NO_FAST_WRAPPER`, or an
   `nfft_flags` guru parameter → **all removed**.

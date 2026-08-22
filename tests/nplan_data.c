@@ -340,11 +340,7 @@ void Y(check_nplan_data)(void) {
   int i, ran_fast = 0;
   for (i = 0; i < native_testcases_count; i++) {
     const native_testcase_t *tc = &native_testcases[i];
-    if (tc->d == 1) {
-      run_native(tc, NFFT_NO_NDFT_BLOCKED); /* plain */
-      run_native(tc, NFFT_NO_NDFT_PLAIN);   /* blocked */
-    } else
-      run_native(tc, 0u);
+    run_native(tc, 0u);
     ran_fast += run_native_fast(tc); /* the composed fast, where the guard admits it */
   }
   /* A guard regression that rejects every case would leave this suite

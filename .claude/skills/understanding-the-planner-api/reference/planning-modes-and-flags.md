@@ -112,8 +112,6 @@ Public `NFFT_*` (in `nfft3.h`) map to internal `PLNR_*` (in `iplanner.h`) via
 | `NFFT_MEASURE` | `0` | — | Default. Race + bless. |
 | `NFFT_ESTIMATE` | `1<<0` | `PLNR_ESTIMATE` (in `u`) | Analytic pick, unblessed, no race. |
 | `NFFT_NO_DIRECT` | `1<<1` | `PLNR_NO_DIRECT` | Forbid O(N·M) direct/NDFT solvers. |
-| `NFFT_NO_NDFT_PLAIN` | `1<<2` | `PLNR_NO_NDFT_PLAIN` | Forbid the plain per-term NDFT. |
-| `NFFT_NO_NDFT_BLOCKED` | `1<<3` | `PLNR_NO_NDFT_BLOCKED` | Forbid the blocked 1D NDFT. |
 | `NFFT_NO_FAST_NATIVE` | `1<<4` | `PLNR_NO_FAST_NATIVE` | Forbid the native fast NFFT. |
 
 A solver reads the current bounds (`PLNR_L(pl)`) inside its `mkplan` and returns
