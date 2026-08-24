@@ -131,6 +131,10 @@ jobs:
           if [ -x ./build-cmake/benchmarks/bench_nfft_direct_omp ]; then
             ./build-cmake/benchmarks/bench_nfft_direct_omp
           fi
+          ./build-cmake/benchmarks/bench_nfft_ng
+          if [ -x ./build-cmake/benchmarks/bench_nfft_ng_omp ]; then
+            ./build-cmake/benchmarks/bench_nfft_ng_omp
+          fi
           ./build-cmake/benchmarks/bench_nfct_direct
           if [ -x ./build-cmake/benchmarks/bench_nfct_direct_omp ]; then
             ./build-cmake/benchmarks/bench_nfct_direct_omp

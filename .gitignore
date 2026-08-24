@@ -143,6 +143,7 @@ examples/nsfft/simple_test
 examples/solver/glacier
 examples/solver/simple_test
 benchmarks/bench_nfft_direct
+benchmarks/bench_nfft_ng
 doc/html
 doc/latex
 doc/doxygen_sqlite3.db

@@ -26,7 +26,10 @@ The google_benchmark/CodSpeed identifier
 `benchmarks/bench_<module>_direct.cpp::<prefix><function>/<args>`, one source file
 per direct-transform module (`bench_nfft_direct.cpp`, `bench_nfct_direct.cpp`,
 `bench_nfst_direct.cpp`), each mirroring the same 1D/2D/3D forward/adjoint
-structure. The leaf (`<prefix><function>`) comes from the `BENCH` macro in
+structure. `bench_nfft_ng.cpp` repeats that same structure and the same argument
+sets through the planner API (`plan_ng`, `NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE`),
+so planner and legacy direct NDFT are comparable pair by pair.
+The leaf (`<prefix><function>`) comes from the `BENCH` macro in
 `benchmarks/util.h`; since codspeed-cpp v2.x the `benchmarks/bench_<module>_direct.cpp::`
 prefix is supplied by codspeed from `__FILE__` relative to `CODSPEED_ROOT_DIR`
 (pinned to the repo root in `benchmarks/CMakeLists.txt`). The unit CodSpeed tracks;
