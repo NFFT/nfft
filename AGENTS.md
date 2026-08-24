@@ -116,9 +116,14 @@ make check  # builds + runs the test suite, prints PASS/FAIL summary
 
 What this runs:
 
-- `tests/checkall` — the full single-threaded suite.
+- `tests/checkall` — the full single-threaded suite for the legacy API.
 - `tests/checkall_threads` — the same suite against the OpenMP library
   (only when configured with `--enable-openmp`).
+- `tests/checkall_ng` — the planner (FFTW-style) API suite: the planner itself,
+  the `plan_ng` lifecycle, the fast-NFFT decomposition, and `tests/nfft_ng.c`,
+  which repeats every legacy NFFT case with the legacy error bounds and adds
+  the type-II / odd-N / unit-axis coverage only the new API can express.
+- `tests/checkall_ng_threads` — the same against the OpenMP library.
 
 Checking which tests pass/fail:
 
@@ -131,7 +136,7 @@ Checking which tests pass/fail:
 - To re-run a single binary directly and capture full output:
 
   ```bash
-  tests/checkall  # or: tests/checkall_threads
+  tests/checkall  # or: tests/checkall_threads, checkall_ng, checkall_ng_threads
   ```
 
 The C tests (`tests/nfft.c`, `nfct.c`, `nfst.c`, `check_nfsft.c`, …) validate

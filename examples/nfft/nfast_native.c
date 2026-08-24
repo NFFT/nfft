@@ -80,8 +80,10 @@
 
 #define WINDOW_M 12
 
-/* Reads d, N[0], M, x[d*M], f_hat[NN], f[M] (same token layout as
- * tests/nplan_data.c:read_case); d is expected to be 1. */
+/* Reads d, N[0], M, x[d*M], f_hat[NN], f[M] (the tests/refgen token layout);
+ * d is expected to be 1. Scans at the build precision: the file carries 64
+ * significant digits, so reading through double would cap the reference at
+ * double round-off in a long-double build. */
 static int read_reference(const char *path, int *d_out, NFFT_INT *N_out,
                           NFFT_INT *M_out, NFFT_R **x_out, NFFT_C **f_hat_out, NFFT_C **f_out) {
   FILE *fp;
@@ -121,38 +123,36 @@ static int read_reference(const char *path, int *d_out, NFFT_INT *N_out,
 
   x = (NFFT_R *)malloc((size_t)(d * M) * sizeof(NFFT_R));
   for (j = 0; j < (NFFT_INT)d * M; j++) {
-    double xv;
-    if (fscanf(fp, "%lf", &xv) != 1) {
+    if (fscanf(fp, NFFT__FI__, &x[j]) != 1) {
       fclose(fp);
       free(x);
       return 0;
     }
-    x[j] = (NFFT_R)xv;
   }
 
   f_hat = (NFFT_C *)malloc((size_t)nn * sizeof(NFFT_C));
   for (j = 0; j < nn; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
+    NFFT_R re, im;
+    if (fscanf(fp, NFFT__FI__ " " NFFT__FI__, &re, &im) != 2) {
       fclose(fp);
       free(x);
       free(f_hat);
       return 0;
     }
-    f_hat[j] = (NFFT_R)re + (NFFT_R)im * I;
+    f_hat[j] = re + im * I;
   }
 
   f = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
   for (j = 0; j < M; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
+    NFFT_R re, im;
+    if (fscanf(fp, NFFT__FI__ " " NFFT__FI__, &re, &im) != 2) {
       fclose(fp);
       free(x);
       free(f_hat);
       free(f);
       return 0;
     }
-    f[j] = (NFFT_R)re + (NFFT_R)im * I;
+    f[j] = re + im * I;
   }
 
   fclose(fp);

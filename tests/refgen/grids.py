@@ -29,8 +29,45 @@ _NFFT_NATIVE_ONLY = (
     + [(2, list(N), 50, [TYPE_II, TYPE_I]) for N in ((10, 20), (20, 10))]
 )
 
+# Native-only: complete the type/parity coverage in 2D-4D, so every dimension
+# has a case that is type-I even throughout (2D and 3D get theirs from the
+# legacy grid), one type-II throughout, one odd throughout, and -- from d = 3,
+# where there are enough axes -- one mixing all three. Sizes stay on the
+# per-dimension scale of the existing grid so mpmath stays cheap.
+_NFFT_NATIVE_TYPES = [
+    (2, [10, 20], 50, [TYPE_II, TYPE_II]),
+    (2, [5, 10], 50, [TYPE_I, TYPE_II]),  # odd + even-II
+    (3, [4, 10, 20], 10, [TYPE_II, TYPE_II, TYPE_II]),
+    (3, [5, 9, 15], 10, None),  # odd everywhere
+    (3, [10, 5, 20], 10, [TYPE_I, TYPE_I, TYPE_II]),  # even-I + odd + even-II
+    (4, [4, 6, 8, 10], 10, None),  # even, type-I
+    (4, [4, 6, 8, 10], 10, [TYPE_II] * 4),  # even, type-II
+    (4, [3, 5, 7, 9], 10, None),  # odd
+    (4, [4, 5, 6, 7], 10, [TYPE_I, TYPE_I, TYPE_II, TYPE_I]),  # three-way mix
+]
+
+# Native-only: unit axes, which the new API elides from the problem geometry.
+# One unit axis, several, and the all-unit case that compresses to rank 0, per
+# dimension; 1D is already covered by the legacy N=1 files.
+_NFFT_NATIVE_UNIT = [
+    (2, [1, 10], 50, None),
+    (2, [10, 1], 50, None),
+    (2, [1, 1], 20, None),  # rank 0
+    (3, [1, 10, 10], 10, None),
+    (3, [10, 1, 10], 10, None),
+    (3, [10, 10, 1], 10, None),
+    (3, [1, 1, 10], 10, None),
+    (3, [1, 1, 1], 10, None),  # rank 0
+    (4, [1, 4, 6, 8], 10, None),
+    (4, [4, 1, 6, 1], 10, None),
+    (4, [4, 6, 8, 1], 10, None),
+    # live axes keep their own variants across elision
+    (4, [1, 10, 1, 20], 10, [TYPE_I, TYPE_II, TYPE_I, TYPE_II]),
+    (4, [1, 1, 1, 1], 10, None),  # rank 0
+]
+
 GRIDS = {
-    "nfft": NFFT_LEGACY_GRID + _NFFT_NATIVE_ONLY,
+    "nfft": NFFT_LEGACY_GRID + _NFFT_NATIVE_ONLY + _NFFT_NATIVE_TYPES + _NFFT_NATIVE_UNIT,
     "nfct": (
         [(1, [n], m, None) for n in (1, 2, 4, 10, 25, 50) for m in (1, 10, 25, 50)]
         + [(2, list(N), m, None) for N in ((10, 10), (10, 25), (25, 10), (25, 25)) for m in (25, 50)]

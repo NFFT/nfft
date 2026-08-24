@@ -4,134 +4,187 @@
 #ifndef NFFT3_TESTS_DATA_GENERATED_NFFT_NATIVE_TESTCASES_H
 #define NFFT3_TESTS_DATA_GENERATED_NFFT_NATIVE_TESTCASES_H
 
-typedef struct {
-  const char *filename;
-  int d;
-  const int *variant;
-  int kind;
-} native_testcase_t;
+typedef struct { const char *filename; int d; const int *variant; int kind; } native_testcase_t;
 /* kind: 0 = trafo, 1 = adjoint */
 
-static const int native_variant_nfft_1d_4_10_t21[] = {1};
-static const int native_variant_nfft_1d_4_50_t21[] = {1};
-static const int native_variant_nfft_1d_10_10_t21[] = {1};
-static const int native_variant_nfft_1d_10_50_t21[] = {1};
-static const int native_variant_nfft_1d_20_10_t21[] = {1};
-static const int native_variant_nfft_1d_20_50_t21[] = {1};
-static const int native_variant_nfft_2d_10_20_50_t210[] = {1, 0};
-static const int native_variant_nfft_2d_20_10_50_t210[] = {1, 0};
-static const int native_variant_nfft_adjoint_1d_4_10_t21[] = {1};
-static const int native_variant_nfft_adjoint_1d_4_50_t21[] = {1};
-static const int native_variant_nfft_adjoint_1d_10_10_t21[] = {1};
-static const int native_variant_nfft_adjoint_1d_10_50_t21[] = {1};
-static const int native_variant_nfft_adjoint_1d_20_10_t21[] = {1};
-static const int native_variant_nfft_adjoint_1d_20_50_t21[] = {1};
-static const int native_variant_nfft_adjoint_2d_10_20_50_t210[] = {1, 0};
-static const int native_variant_nfft_adjoint_2d_20_10_50_t210[] = {1, 0};
+static const int native_variant_nfft_1d_4_10_t21[] = { 1 };
+static const int native_variant_nfft_1d_4_50_t21[] = { 1 };
+static const int native_variant_nfft_1d_10_10_t21[] = { 1 };
+static const int native_variant_nfft_1d_10_50_t21[] = { 1 };
+static const int native_variant_nfft_1d_20_10_t21[] = { 1 };
+static const int native_variant_nfft_1d_20_50_t21[] = { 1 };
+static const int native_variant_nfft_2d_10_20_50_t210[] = { 1, 0 };
+static const int native_variant_nfft_2d_20_10_50_t210[] = { 1, 0 };
+static const int native_variant_nfft_2d_10_20_50_t211[] = { 1, 1 };
+static const int native_variant_nfft_2d_5_10_50_t201[] = { 0, 1 };
+static const int native_variant_nfft_3d_4_10_20_10_t2111[] = { 1, 1, 1 };
+static const int native_variant_nfft_3d_10_5_20_10_t2001[] = { 0, 0, 1 };
+static const int native_variant_nfft_4d_4_6_8_10_10_t21111[] = { 1, 1, 1, 1 };
+static const int native_variant_nfft_4d_4_5_6_7_10_t20010[] = { 0, 0, 1, 0 };
+static const int native_variant_nfft_4d_1_10_1_20_10_t20101[] = { 0, 1, 0, 1 };
+static const int native_variant_nfft_adjoint_1d_4_10_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_1d_4_50_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_1d_10_10_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_1d_10_50_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_1d_20_10_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_1d_20_50_t21[] = { 1 };
+static const int native_variant_nfft_adjoint_2d_10_20_50_t210[] = { 1, 0 };
+static const int native_variant_nfft_adjoint_2d_20_10_50_t210[] = { 1, 0 };
+static const int native_variant_nfft_adjoint_2d_10_20_50_t211[] = { 1, 1 };
+static const int native_variant_nfft_adjoint_2d_5_10_50_t201[] = { 0, 1 };
+static const int native_variant_nfft_adjoint_3d_4_10_20_10_t2111[] = { 1, 1, 1 };
+static const int native_variant_nfft_adjoint_3d_10_5_20_10_t2001[] = { 0, 0, 1 };
+static const int native_variant_nfft_adjoint_4d_4_6_8_10_10_t21111[] = { 1, 1, 1, 1 };
+static const int native_variant_nfft_adjoint_4d_4_5_6_7_10_t20010[] = { 0, 0, 1, 0 };
+static const int native_variant_nfft_adjoint_4d_1_10_1_20_10_t20101[] = { 0, 1, 0, 1 };
 
 static const native_testcase_t native_testcases[] =
-    {
-        {"data/nfft_1d_1_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_1_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_1_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_1_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_2_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_2_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_2_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_2_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_4_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_4_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_4_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_4_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_10_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_10_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_10_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_10_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_20_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_20_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_20_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_20_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_50_1.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_50_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_50_20.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_50_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_2d_10_10_20.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_10_10_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_10_20_20.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_10_20_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_20_10_20.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_20_10_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_20_20_20.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_20_20_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_3d_10_10_10_10.txt", 3, 0, 0 /*trafo*/},
-        {"data/nfft_1d_5_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_5_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_15_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_15_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_25_10.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_1d_25_50.txt", 1, 0, 0 /*trafo*/},
-        {"data/nfft_2d_5_10_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_10_5_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_2d_5_5_50.txt", 2, 0, 0 /*trafo*/},
-        {"data/nfft_1d_4_10_t21.txt", 1, native_variant_nfft_1d_4_10_t21, 0 /*trafo*/},
-        {"data/nfft_1d_4_50_t21.txt", 1, native_variant_nfft_1d_4_50_t21, 0 /*trafo*/},
-        {"data/nfft_1d_10_10_t21.txt", 1, native_variant_nfft_1d_10_10_t21, 0 /*trafo*/},
-        {"data/nfft_1d_10_50_t21.txt", 1, native_variant_nfft_1d_10_50_t21, 0 /*trafo*/},
-        {"data/nfft_1d_20_10_t21.txt", 1, native_variant_nfft_1d_20_10_t21, 0 /*trafo*/},
-        {"data/nfft_1d_20_50_t21.txt", 1, native_variant_nfft_1d_20_50_t21, 0 /*trafo*/},
-        {"data/nfft_2d_10_20_50_t210.txt", 2, native_variant_nfft_2d_10_20_50_t210, 0 /*trafo*/},
-        {"data/nfft_2d_20_10_50_t210.txt", 2, native_variant_nfft_2d_20_10_50_t210, 0 /*trafo*/},
-        {"data/nfft_adjoint_1d_1_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_1_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_1_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_1_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_2_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_2_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_2_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_2_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_50_1.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_50_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_50_20.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_50_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_10_20.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_10_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_20_20.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_20_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_20_10_20.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_20_10_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_20_20_20.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_20_20_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_3d_10_10_10_10.txt", 3, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_5_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_5_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_15_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_15_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_25_10.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_25_50.txt", 1, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_5_10_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_5_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_5_5_50.txt", 2, 0, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_10_t21.txt", 1, native_variant_nfft_adjoint_1d_4_10_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_4_50_t21.txt", 1, native_variant_nfft_adjoint_1d_4_50_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_10_t21.txt", 1, native_variant_nfft_adjoint_1d_10_10_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_10_50_t21.txt", 1, native_variant_nfft_adjoint_1d_10_50_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_10_t21.txt", 1, native_variant_nfft_adjoint_1d_20_10_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_1d_20_50_t21.txt", 1, native_variant_nfft_adjoint_1d_20_50_t21, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_10_20_50_t210.txt", 2, native_variant_nfft_adjoint_2d_10_20_50_t210, 1 /*adjoint*/},
-        {"data/nfft_adjoint_2d_20_10_50_t210.txt", 2, native_variant_nfft_adjoint_2d_20_10_50_t210, 1 /*adjoint*/},
+{
+  {"data/nfft_1d_1_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_1_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_1_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_1_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_2_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_2_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_2_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_2_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_4_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_4_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_4_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_4_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_10_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_10_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_10_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_10_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_20_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_20_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_20_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_20_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_50_1.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_50_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_50_20.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_50_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_10_20.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_10_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_20_20.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_20_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_20_10_20.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_20_10_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_20_20_20.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_20_20_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_3d_10_10_10_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_1d_5_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_5_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_15_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_15_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_25_10.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_1d_25_50.txt", 1, 0, 0 /*trafo*/},
+  {"data/nfft_2d_5_10_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_5_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_5_5_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_1d_4_10_t21.txt", 1, native_variant_nfft_1d_4_10_t21, 0 /*trafo*/},
+  {"data/nfft_1d_4_50_t21.txt", 1, native_variant_nfft_1d_4_50_t21, 0 /*trafo*/},
+  {"data/nfft_1d_10_10_t21.txt", 1, native_variant_nfft_1d_10_10_t21, 0 /*trafo*/},
+  {"data/nfft_1d_10_50_t21.txt", 1, native_variant_nfft_1d_10_50_t21, 0 /*trafo*/},
+  {"data/nfft_1d_20_10_t21.txt", 1, native_variant_nfft_1d_20_10_t21, 0 /*trafo*/},
+  {"data/nfft_1d_20_50_t21.txt", 1, native_variant_nfft_1d_20_50_t21, 0 /*trafo*/},
+  {"data/nfft_2d_10_20_50_t210.txt", 2, native_variant_nfft_2d_10_20_50_t210, 0 /*trafo*/},
+  {"data/nfft_2d_20_10_50_t210.txt", 2, native_variant_nfft_2d_20_10_50_t210, 0 /*trafo*/},
+  {"data/nfft_2d_10_20_50_t211.txt", 2, native_variant_nfft_2d_10_20_50_t211, 0 /*trafo*/},
+  {"data/nfft_2d_5_10_50_t201.txt", 2, native_variant_nfft_2d_5_10_50_t201, 0 /*trafo*/},
+  {"data/nfft_3d_4_10_20_10_t2111.txt", 3, native_variant_nfft_3d_4_10_20_10_t2111, 0 /*trafo*/},
+  {"data/nfft_3d_5_9_15_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_3d_10_5_20_10_t2001.txt", 3, native_variant_nfft_3d_10_5_20_10_t2001, 0 /*trafo*/},
+  {"data/nfft_4d_4_6_8_10_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_4d_4_6_8_10_10_t21111.txt", 4, native_variant_nfft_4d_4_6_8_10_10_t21111, 0 /*trafo*/},
+  {"data/nfft_4d_3_5_7_9_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_4d_4_5_6_7_10_t20010.txt", 4, native_variant_nfft_4d_4_5_6_7_10_t20010, 0 /*trafo*/},
+  {"data/nfft_2d_1_10_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_10_1_50.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_2d_1_1_20.txt", 2, 0, 0 /*trafo*/},
+  {"data/nfft_3d_1_10_10_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_3d_10_1_10_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_3d_10_10_1_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_3d_1_1_10_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_3d_1_1_1_10.txt", 3, 0, 0 /*trafo*/},
+  {"data/nfft_4d_1_4_6_8_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_4d_4_1_6_1_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_4d_4_6_8_1_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_4d_1_10_1_20_10_t20101.txt", 4, native_variant_nfft_4d_1_10_1_20_10_t20101, 0 /*trafo*/},
+  {"data/nfft_4d_1_1_1_1_10.txt", 4, 0, 0 /*trafo*/},
+  {"data/nfft_adjoint_1d_1_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_1_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_1_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_1_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_2_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_2_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_2_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_2_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_50_1.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_50_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_50_20.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_50_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_10_20.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_10_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_20_20.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_20_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_20_10_20.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_20_10_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_20_20_20.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_20_20_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_10_10_10_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_5_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_5_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_15_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_15_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_25_10.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_25_50.txt", 1, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_5_10_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_5_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_5_5_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_10_t21.txt", 1, native_variant_nfft_adjoint_1d_4_10_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_4_50_t21.txt", 1, native_variant_nfft_adjoint_1d_4_50_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_10_t21.txt", 1, native_variant_nfft_adjoint_1d_10_10_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_10_50_t21.txt", 1, native_variant_nfft_adjoint_1d_10_50_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_10_t21.txt", 1, native_variant_nfft_adjoint_1d_20_10_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_1d_20_50_t21.txt", 1, native_variant_nfft_adjoint_1d_20_50_t21, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_20_50_t210.txt", 2, native_variant_nfft_adjoint_2d_10_20_50_t210, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_20_10_50_t210.txt", 2, native_variant_nfft_adjoint_2d_20_10_50_t210, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_20_50_t211.txt", 2, native_variant_nfft_adjoint_2d_10_20_50_t211, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_5_10_50_t201.txt", 2, native_variant_nfft_adjoint_2d_5_10_50_t201, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_4_10_20_10_t2111.txt", 3, native_variant_nfft_adjoint_3d_4_10_20_10_t2111, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_5_9_15_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_10_5_20_10_t2001.txt", 3, native_variant_nfft_adjoint_3d_10_5_20_10_t2001, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_4_6_8_10_10.txt", 4, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_4_6_8_10_10_t21111.txt", 4, native_variant_nfft_adjoint_4d_4_6_8_10_10_t21111, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_3_5_7_9_10.txt", 4, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_4_5_6_7_10_t20010.txt", 4, native_variant_nfft_adjoint_4d_4_5_6_7_10_t20010, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_1_10_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_10_1_50.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_2d_1_1_20.txt", 2, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_1_10_10_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_10_1_10_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_10_10_1_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_1_1_10_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_3d_1_1_1_10.txt", 3, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_1_4_6_8_10.txt", 4, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_4_1_6_1_10.txt", 4, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_4_6_8_1_10.txt", 4, 0, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_1_10_1_20_10_t20101.txt", 4, native_variant_nfft_adjoint_4d_1_10_1_20_10_t20101, 1 /*adjoint*/},
+  {"data/nfft_adjoint_4d_1_1_1_1_10.txt", 4, 0, 1 /*adjoint*/},
 };
-static const int native_testcases_count = 100;
+static const int native_testcases_count = 144;
 
 #endif /* NFFT3_TESTS_DATA_GENERATED_NFFT_NATIVE_TESTCASES_H */

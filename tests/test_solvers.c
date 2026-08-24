@@ -16,8 +16,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* A test-only raceable permuting NFFT solver, registered only by
- * Y(nfft_solver_perm_test_register), never by the library roster.
+/* Two test-only NFFT solvers -- a permuting one and a deliberately slow one --
+ * registered only through their own register functions, never by the library
+ * roster.  See tests/test_solvers.h for what each proves.
  *
  * A coreless plan that borrows problem_nfft.x, the problem's owned copy:
  * SLEEPY -> AWAKE_ZERO reverses the M node-blocks of x in place, and
@@ -28,6 +29,7 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
+#include "test_solvers.h"
 
 #undef X
 #define X(name) NFFT(name)

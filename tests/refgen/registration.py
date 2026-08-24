@@ -67,11 +67,13 @@ def render_header(module):
 
 
 def render_extra_dist():
+    # Every generated data file, not just the legacy roster: the native-only
+    # cases are consumed by the planner-API suites and must ship too.
     files = []
     for module in _MODULES:
         for kind in G.KINDS:
-            for (d, N, M) in _legacy_grid(module):
-                files.append(G.basename(module, kind, d, N, M) + ".txt")
+            for (d, N, M, variant) in G.GRIDS[module]:
+                files.append(G.basename(module, kind, d, N, M, variant) + ".txt")
     files = sorted(set(files))
     body = "  \\\n".join(files)
     return "EXTRA_DIST = " + body + "\n"

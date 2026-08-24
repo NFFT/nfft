@@ -155,7 +155,7 @@ NFFT(plan_ng_destroy)(p);
 Working, runnable examples on the current branch:
 `examples/nfft/nfast_native.c` (five-way legacy-vs-planner check, prints plan
 trees) and `examples/nfft/ndft_fast.c`. Tests: `tests/checkall_ng`
-(`nplan.c`, `nfast.c`, ...). See
+(`plan.c`, `window.c`, `deconv.c`, `conv.c`, `fast_native.c`, `nfft_ng.c`). See
 [building-testing-examples.md](reference/building-testing-examples.md).
 
 ## Where to go next (progressive disclosure)

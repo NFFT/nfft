@@ -27,16 +27,11 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "plan_ng_test.h" /* test-only plan_ng_test_awake_state hook */
-#include "nplan.h"
+#include "plan.h"
+#include "test_solvers.h"
 
-/* The test-only raceable permuting native solver in tests/nplan_perm.c. */
-extern int Y(nfft_perm_break_restore);
-plan *Y(nfft_perm_test_mkplan)(const problem *p);
-void Y(nfft_solver_perm_test_register)(planner *pl);
-extern INT Y(nfft_slow_test_applies);
-void Y(nfft_solver_slow_test_register)(planner *pl);
 
-void Y(check_nplan_problem)(void) {
+void Y(check_plan_problem)(void) {
   planner *pl = Y(planner_create)();
   INT N1 = 16, n1 = 32;
   problem *p1, *p2;
@@ -138,8 +133,8 @@ void Y(check_nplan_problem)(void) {
 }
 
 /* The compressed rank and surviving-axis order are pinned numerically by
- * check_nplan_unit_axis_correct, not here. */
-void Y(check_nplan_elides_unit_axes_geometry)(void) {
+ * check_plan_unit_axis_correct, not here. */
+void Y(check_plan_elides_unit_axes_geometry)(void) {
   /* (a) A borrowed x cannot be gathered into a fresh buffer, so the copy_x=0
    * path keeps full rank and a unit-padded problem hashes distinctly from the
    * lower-rank one. On the copy_x=1 path the same geometry compresses to
@@ -202,7 +197,7 @@ void Y(check_nplan_elides_unit_axes_geometry)(void) {
   }
 }
 
-void Y(check_nplan_variant_key)(void) {
+void Y(check_plan_variant_key)(void) {
   INT N1 = 16, n1 = 32, No = 15, no = 32;
   int v_i = NFFT_NDFT_TYPE_I, v_ii = NFFT_NDFT_TYPE_II;
   R x = K(0.1);
@@ -251,7 +246,7 @@ void Y(check_nplan_variant_key)(void) {
 /* mkproblem_nfft borrows the caller's f_hat/f and never frees them. x on a
  * copy_x=1 problem is instead a private copy, equal in content and freed with
  * the problem. */
-void Y(check_nplan_problem_owns_data)(void) {
+void Y(check_plan_problem_owns_data)(void) {
   INT N = 16, n = 32, M = 100;
   static R x[100];
   static C f_hat[16], f[100];
@@ -274,7 +269,7 @@ void Y(check_nplan_problem_owns_data)(void) {
 
 /* The wisdom key is data-blind: two problems of identical shape hash the same
  * whatever their data pointers, so the cache is keyed on geometry. */
-void Y(check_nplan_key_is_data_blind)(void) {
+void Y(check_plan_key_is_data_blind)(void) {
   planner *pl = Y(planner_create)();
   INT N = 16, n = 32, M = 100;
   static R x[100];
@@ -344,7 +339,7 @@ static void expect_winner(planner *pl, problem *p, const char *nam) {
 /* The fast solver declines sigma = n/N <= 1 (guards_ok, kernel/nfft/nfft-nd.c)
  * and a direct native takes those. The guru rejects sigma <= 1 up front, so the
  * decline is reachable only through mkproblem_nfft, as below. */
-void Y(check_nplan_guard_declines)(void) {
+void Y(check_plan_guard_declines)(void) {
   planner *pl;
   problem *p;
   Y(nfft_ensure_registered)
@@ -429,7 +424,7 @@ void Y(check_nplan_guard_declines)(void) {
   ();
 }
 
-void Y(check_nplan_solvers)(void) {
+void Y(check_plan_solvers)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
 
@@ -543,10 +538,10 @@ void Y(check_nplan_solvers)(void) {
 
 /* dispatch: for d == 1 the planner-native NDFT solver wins whenever a direct
  * plan is legal, and NO_DIRECT prunes it. */
-void Y(check_nplan_ndft_dispatch)(void) {
+void Y(check_plan_ndft_dispatch)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
-  /* See check_nplan_solvers: the fast solver's DECONV/CONV children recurse
+  /* See check_plan_solvers: the fast solver's DECONV/CONV children recurse
    * via the process-global planner, so it must be registered too. */
   Y(nfft_ensure_registered)
   ();
@@ -585,10 +580,10 @@ void Y(check_nplan_ndft_dispatch)(void) {
 /* dispatch: for d >= 2 the single generic native multivariate NDFT solver
  * wins whenever a direct plan is legal. NO_FAST_NATIVE must be set explicitly
  * to steer away from the fast solver. */
-void Y(check_nplan_ndft_multivariate_dispatch)(void) {
+void Y(check_plan_ndft_multivariate_dispatch)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
-  /* See check_nplan_solvers: the fast solver's DECONV/CONV children recurse
+  /* See check_plan_solvers: the fast solver's DECONV/CONV children recurse
    * via the process-global planner, so it must be registered too. */
   Y(nfft_ensure_registered)
   ();
@@ -936,7 +931,7 @@ static void check_case_against_direct_arr(int d, const INT *N, const INT *n,
   (ref_fhat);
 }
 
-void Y(check_nplan_correct)(void) {
+void Y(check_plan_correct)(void) {
   check_case_against_direct(1, 256, 512, 4096, 42u, NFFT_ESTIMATE);
   check_case_against_direct(1, 4, 16, 8, 43u, NFFT_ESTIMATE);
   check_case_against_direct(2, 32, 64, 512, 44u, NFFT_ESTIMATE);
@@ -1000,7 +995,7 @@ void Y(check_nplan_correct)(void) {
   ();
 }
 
-void Y(check_nplan_wisdom_memo)(void) {
+void Y(check_plan_wisdom_memo)(void) {
   INT N = 256, n = 512, M = 4096;
   static R x[4096];
   static C f_hat[256], f[4096];
@@ -1100,7 +1095,7 @@ static int import_from_string(planner *pl, const char *s) {
  * machine- and thread-dependent, so measured tests must not hard-code one:
  * they capture the actual choice and assert only that fwd names a real solver
  * and that a repeat or imported plan reproduces it. Which solver wins at which
- * size is pinned by the estimate-mode check_nplan_solvers instead.
+ * size is pinned by the estimate-mode check_plan_solvers instead.
  * The race is forward-only, so adj is captured verbatim and reads "(null))". */
 static void bundle_winners(Y(plan_ng) * p, char *fwd, char *adj) {
   /* 512: printer_create_str is unbounded, and the bundle print nests both
@@ -1125,7 +1120,7 @@ static void bundle_winners(Y(plan_ng) * p, char *fwd, char *adj) {
 
 /* The bundle print carries the forward direction's solver registrar name.
  * The race is forward-only, so (adj ...) always reads (null). */
-void Y(check_nplan_print_includes_registrar_names)(void) {
+void Y(check_plan_print_includes_registrar_names)(void) {
   INT N = 64, n = 128, M = 8192;
   static R x[8192];
   static C f_hat[64], f[8192];
@@ -1157,7 +1152,7 @@ void Y(check_nplan_print_includes_registrar_names)(void) {
   ();
 }
 
-void Y(check_nplan_measured)(void) {
+void Y(check_plan_measured)(void) {
   INT N = 64, n = 128, M = 8192;
   static R x[8192];
   static C f_hat[64], f[8192];
@@ -1260,7 +1255,7 @@ void Y(check_nplan_measured)(void) {
  * scratch, and races on their real bytes un-zeroed. The race is forward-only,
  * so it reads f_hat and clobbers f; filling after planning is the documented
  * lifecycle. */
-void Y(check_nplan_destructive_default)(void) {
+void Y(check_plan_destructive_default)(void) {
   /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
   INT N = 64, n = 128, M = 64;
@@ -1343,7 +1338,7 @@ void Y(check_nplan_destructive_default)(void) {
 /* New-array execute: nfft_execute_on / _adjoint_on run the plan on
  * caller-supplied f_hat/f, with x fixed at plan time, without disturbing the
  * plan-time bindings. */
-void Y(check_nplan_execute_on)(void) {
+void Y(check_plan_execute_on)(void) {
   INT N = 64, n = 128, M = 512;
   static R x[512];
   static C f_hat[64], f[512];     /* plan-time bound arrays */
@@ -1423,7 +1418,7 @@ void Y(check_nplan_execute_on)(void) {
   ();
 }
 
-void Y(check_nplan_measured_wisdom)(void) {
+void Y(check_plan_measured_wisdom)(void) {
   INT N = 64, n = 128, M = 8192;
   static R x[8192];
   static C f_hat[64], f[8192];
@@ -1490,7 +1485,7 @@ void Y(check_nplan_measured_wisdom)(void) {
  * measurement completes, so the guru takes the same estimate-grade restart
  * path as the no-usable-clock case. Estimate never blesses, so the blessed
  * store stays empty; the degraded bundle still produces unblessed memos. */
-void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void) {
+void Y(check_plan_timelimit_tight_degrades_to_estimate)(void) {
   /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
   INT N = 64, n = 128, M = 64;
@@ -1522,7 +1517,7 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void) {
 
 /* With the default unlimited timelimit (-1.0) the race completes and blesses
  * one new entry for the forward direction. */
-void Y(check_nplan_timelimit_unset_measures_and_blesses)(void) {
+void Y(check_plan_timelimit_unset_measures_and_blesses)(void) {
   INT N = 64, n = 128, M = 8192;
   static R x[8192];
   static C f_hat[64], f[8192];
@@ -1559,7 +1554,7 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void) {
 
 /* The public nfft_set_timelimit symbol forwards to the internal global-planner
  * timelimit (one nfft_ symbol serves all three kinds). */
-void Y(check_nplan_set_timelimit_roundtrip)(void) {
+void Y(check_plan_set_timelimit_roundtrip)(void) {
   Y(set_timelimit)
   (0.5);
   CK(Y(planner_timelimit)(Y(the_planner)()) == 0.5);
@@ -1568,7 +1563,7 @@ void Y(check_nplan_set_timelimit_roundtrip)(void) {
 }
 
 /* Exercise the public surface (nfft3.h) through the Y() mangle. */
-void Y(check_nplan_public_api)(void) {
+void Y(check_plan_public_api)(void) {
   INT N = 64, n = 128, M = 512;
   static R x[512];
   static C f_hat[64], f[512];
@@ -1631,7 +1626,7 @@ void Y(check_nplan_public_api)(void) {
 /* Forward-only race: the bundle selects one plan (dir[FWD]) and the adjoint
  * reuses it via apply_adjoint, so plan_ng_print always shows a real forward
  * solver and a (null) adjoint, in both planning modes. */
-void Y(check_nplan_forward_only_race)(void) {
+void Y(check_plan_forward_only_race)(void) {
   INT N = 64, n = 128, M = 2048;
   static R x[2048];
   static C f_hat[64], f[2048];
@@ -1678,7 +1673,7 @@ void Y(check_nplan_forward_only_race)(void) {
 /* execute_adjoint on the forward-winning plan produces the correct adjoint;
  * wrong wiring would run the forward transform and mismatch the reference.
  * Measured, so a fast solver wins and its apply_adjoint is exercised. */
-void Y(check_nplan_apply_adjoint)(void) {
+void Y(check_plan_apply_adjoint)(void) {
   INT N = 64, n = 128, M = 2048, Ntot = N;
   R *xin;
   C *f_hat, *f;
@@ -1738,7 +1733,7 @@ void Y(check_nplan_apply_adjoint)(void) {
  * the assertion that separates the copy contract from an aliasing one. N <= m
  * makes the fast solver decline, which is incidental: x-copying is a
  * problem-level property. */
-void Y(check_nplan_x_copied_not_aliased)(void) {
+void Y(check_plan_x_copied_not_aliased)(void) {
   INT N = 4, n = 16, M = 1;
   R x[1];
   C f_hat[4], f[1];
@@ -1790,7 +1785,7 @@ void Y(check_nplan_x_copied_not_aliased)(void) {
 
 /* A wrapper plan's core carries PRE_PSI and builds psi once per awake period;
  * a native winner stays coreless. */
-void Y(check_nplan_per_plan_core)(void) {
+void Y(check_plan_per_plan_core)(void) {
   INT N = 256, n = 512, M = 4096;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -1819,7 +1814,7 @@ void Y(check_nplan_per_plan_core)(void) {
  * MALLOC_F. The winner here is coreless, so there are no core flags left to
  * inspect and this only covers planning such a problem.
  * TODO: assert the core flags on a plan that builds a core. */
-void Y(check_nplan_core_owns_no_data_arrays)(void) {
+void Y(check_plan_core_owns_no_data_arrays)(void) {
   INT N = 64, n = 128, M = 512;
   static R x[512];
   static C f_hat[64], f[512];
@@ -1842,7 +1837,7 @@ void Y(check_nplan_core_owns_no_data_arrays)(void) {
  * libm reducing huge phase arguments. The loss is present in every precision.
  * The reference sums in long double with argument reduction, independent of
  * R. */
-void Y(check_nplan_ndft_accuracy)(void) {
+void Y(check_plan_ndft_accuracy)(void) {
   enum {
     N = 8192,
     M = 64
@@ -1926,7 +1921,7 @@ void Y(check_nplan_ndft_accuracy)(void) {
 
 /* Core elision: an NDFT-only bundle needs no legacy core, so it builds none
  * -- no FFTW planning, no phi_hut, no g1/g2 -- and still executes. */
-void Y(check_nplan_core_elision)(void) {
+void Y(check_plan_core_elision)(void) {
   Y(the_planner_destroy)
   ();
 
@@ -2024,8 +2019,8 @@ void Y(check_nplan_core_elision)(void) {
 }
 
 /* The guru accepts a per-axis variant and builds an executable type-II
- * plan (numerics checked in check_nplan_type_ii_1d). */
-void Y(check_nplan_variant_guru)(void) {
+ * plan (numerics checked in check_plan_type_ii_1d). */
+void Y(check_plan_variant_guru)(void) {
   INT N = 16, n = 32, M = 100, j;
   int variant = NFFT_NDFT_TYPE_II;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
@@ -2178,7 +2173,7 @@ static void odd_case(int d, const INT *N, const INT *n, INT M, unsigned seed) {
   (ref_fhat);
 }
 
-void Y(check_nplan_odd_n)(void) {
+void Y(check_plan_odd_n)(void) {
   {
     INT N[1] = {15}, n[1] = {32};
     odd_case(1, N, n, 500, 11u);
@@ -2300,7 +2295,7 @@ static void type_ii_1d_once(unsigned steer) {
   (ref_fhat);
 }
 
-void Y(check_nplan_type_ii_1d)(void) {
+void Y(check_plan_type_ii_1d)(void) {
   type_ii_1d_once(NFFT_NO_FAST_NATIVE); /* direct */
   type_ii_1d_once(NFFT_NO_DIRECT); /* composed fast */
   /* Reset the process-global planner so later suites see a fresh generation. */
@@ -2358,7 +2353,7 @@ static void type_ii_nd_once(unsigned steer)
   (ref_fhat);
 }
 
-void Y(check_nplan_type_ii_nd)(void)
+void Y(check_plan_type_ii_nd)(void)
 {
   type_ii_nd_once(NFFT_NO_FAST_NATIVE); /* direct native */
   type_ii_nd_once(NFFT_NO_DIRECT); /* composed fast */
@@ -2370,7 +2365,7 @@ void Y(check_nplan_type_ii_nd)(void)
 /* The 3-state wakefulness enum. SLEEPY < AWAKE_ZERO < AWAKE
  * so ">= PLNR_AWAKE_ZERO" reads "runnable" and "== PLNR_AWAKE" reads
  * "correct". */
-void Y(check_nplan_awake_states)(void) {
+void Y(check_plan_awake_states)(void) {
   CU_ASSERT_EQUAL(PLNR_SLEEPY, 0);
   CU_ASSERT_EQUAL(PLNR_AWAKE_ZERO, 1);
   CU_ASSERT_EQUAL(PLNR_AWAKE, 2);
@@ -2380,7 +2375,7 @@ void Y(check_nplan_awake_states)(void) {
 /* mkproblem_nfft copies x for the top-level problem, so the user's array is
  * independent of the plan as soon as guru returns: clobbering it afterwards
  * must not disturb precompute or execute. */
-void Y(check_nplan_user_x_pristine)(void) {
+void Y(check_plan_user_x_pristine)(void) {
   INT N = 32, n = 64, M = 128;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   R *snap = (R *)Y(malloc)((size_t)M * sizeof(R));
@@ -2417,7 +2412,7 @@ void Y(check_nplan_user_x_pristine)(void) {
  * with no planner and no race: x must be permuted at AWAKE_ZERO and restored
  * exactly on the way back. copy_x=1, so pr owns a private permutable copy and
  * the test frees its own array separately. */
-void Y(check_nplan_awake_zero_restore)(void) {
+void Y(check_plan_awake_zero_restore)(void) {
   INT N = 16, n = 32, M = 8, j;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   R snap[8];
@@ -2457,7 +2452,7 @@ void Y(check_nplan_awake_zero_restore)(void) {
 /* The restore guard Y(nfft_x_verify), the same one wrapping the measured race
  * in plan_ng.c, detects a broken restore. Gated on NFFT_DEBUG because the
  * guard is an A() and exists only in debug builds. */
-void Y(check_nplan_restore_guard_fires)(void) {
+void Y(check_plan_restore_guard_fires)(void) {
 #ifdef NFFT_DEBUG
   INT N = 16, n = 32, M = 8;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
@@ -2494,7 +2489,7 @@ void Y(check_nplan_restore_guard_fires)(void) {
 /* A candidate whose pcost exceeds PLNR_PRUNE_RATIO times the cheapest estimate
  * is never timed. The slow test solver accepts every NFFT problem with pcost
  * 1e18, so it joins the candidate set, must be pruned, and must never win. */
-void Y(check_nplan_measured_prunes_by_estimate)(void) {
+void Y(check_plan_measured_prunes_by_estimate)(void) {
   INT N = 64, n = 128, M = 64;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -2531,7 +2526,7 @@ void Y(check_nplan_measured_prunes_by_estimate)(void) {
  * >= 2 candidates and the race loop, with its debug x-restore guard between
  * candidates, actually runs. No abort under --enable-debug proves the restore
  * is exact inside a real race, not just under direct drive. */
-void Y(check_nplan_in_race_guard_passes)(void) {
+void Y(check_plan_in_race_guard_passes)(void) {
   INT N = 16, n = 32, M = 8192;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -2573,7 +2568,7 @@ void Y(check_nplan_in_race_guard_passes)(void) {
 
 /* AWAKE_ZERO is internal to planning: a fresh guru's winner is returned
  * SLEEPY, and precompute is what awakens it to AWAKE. */
-void Y(check_nplan_awake_zero_internal)(void) {
+void Y(check_plan_awake_zero_internal)(void) {
   INT N = 32, n = 64, M = 128;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -2598,7 +2593,7 @@ void Y(check_nplan_awake_zero_internal)(void) {
 
 /* A unit axis is elided at construction, so the surviving axes go through the
  * fast algorithm. */
-void Y(check_nplan_elides_unit_axes)(void) {
+void Y(check_plan_elides_unit_axes)(void) {
   const int d = 3;
   INT N[3] = {16, 1, 8}; /* middle axis unit */
   INT n[3] = {32, 1, 16};
@@ -2633,7 +2628,7 @@ void Y(check_nplan_elides_unit_axes)(void) {
 /* All axes unit -> a rank-0 problem, served by the ungated exact base case
  * nfft_solver_const_0d: forward broadcasts f_hat[0], adjoint reduces
  * sum_j f[j]. */
-void Y(check_nplan_rank0_solver)(void) {
+void Y(check_plan_rank0_solver)(void) {
   const int d = 3;
   INT N[3] = {1, 1, 1}, n[3] = {1, 1, 1};
   const INT M = 12;
@@ -2733,7 +2728,7 @@ static void ndft_adj_ref(int d, const INT *N, INT M, const R *x, const C *f,
  * bound. With flags 0u a direct solver would serve these shapes, so the
  * accuracy check alone is not an elision gate; each shape is planned a second
  * time with NFFT_NO_DIRECT, where a non-NULL plan proves elision happened. */
-void Y(check_nplan_unit_axis_correct)(void) {
+void Y(check_plan_unit_axis_correct)(void) {
   INT shapes[4][3] = {{1, 16, 8}, {16, 1, 8}, {16, 8, 1}, {16, 1, 1}};
   INT nshape[4][3] = {{1, 32, 16}, {32, 1, 16}, {32, 16, 1}, {32, 1, 1}};
   const int d = 3, m = 6;
@@ -2797,10 +2792,10 @@ void Y(check_nplan_unit_axis_correct)(void) {
 
 /* New-array execute on a plan served by nfft_solver_fast_native, whose
  * DECONV/CONV children must forward the swapped problem pointers instead of
- * the ones cached at construction. check_nplan_execute_on plans a 1D shape
+ * the ones cached at construction. check_plan_execute_on plans a 1D shape
  * served by a different solver, so it does not reach this path. Compared
  * against ndft_ref / ndft_adj_ref under the window-aware bound. */
-void Y(check_nplan_newarray_native_fast)(void) {
+void Y(check_plan_newarray_native_fast)(void) {
   /* This geometry passes guards_ok (kernel/nfft/nfft-nd.c), so the native fast
    * is admitted; NFFT_NO_DIRECT then forces it, since direct would otherwise
    * serve a shape this small. */
@@ -2862,7 +2857,7 @@ void Y(check_nplan_newarray_native_fast)(void) {
  * construction, so a replacement f_hat in the full d layout must read
  * correctly through the compressed strides. Compared against ndft_ref under
  * the window-aware bound. */
-void Y(check_nplan_unit_axis_execute_on)(void) {
+void Y(check_plan_unit_axis_execute_on)(void) {
   const int d = 3;
   INT N[3] = {16, 1, 8}, n[3] = {32, 1, 16};
   const INT M = 20;
@@ -2913,7 +2908,7 @@ void Y(check_nplan_unit_axis_execute_on)(void) {
 
 /* The guru must return NULL rather than dereference on NULL or zero
  * arguments, including in release builds where A() is a no-op. */
-void Y(check_nplan_guru_rejects_null_args)(void) {
+void Y(check_plan_guru_rejects_null_args)(void) {
   INT N = 4, n = 8, M = 10;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *fh = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -2945,7 +2940,7 @@ void Y(check_nplan_guru_rejects_null_args)(void) {
 
 /* The guru must return NULL on non-positive per-axis geometry, in release
  * builds too. A unit axis (N[t] == 1) stays valid. */
-void Y(check_nplan_guru_rejects_bad_geometry)(void) {
+void Y(check_plan_guru_rejects_bad_geometry)(void) {
   INT Nzero[2] = {4, 0}, nok[2] = {8, 8}; /* N[1] == 0 */
   INT Nok[2] = {4, 4}, nzero[2] = {8, 0}; /* n[1] == 0 */
   INT M = 10;

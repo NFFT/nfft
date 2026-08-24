@@ -37,10 +37,13 @@ set(NFFT_NG_TEST_SOURCES
   bspline.c bspline.h
   bessel.c  bessel.h
   planner.c planner.h
-  nplan.c   nplan.h
-  nplan_data.c
-  nplan_perm.c
-  nfast.c   nfast.h)
+  plan.c    plan.h
+  test_solvers.c test_solvers.h
+  window.c  window.h
+  deconv.c  deconv.h
+  conv.c    conv.h
+  fast_native.c fast_native.h
+  nfft_ng.c nfft_ng.h)
 
 add_executable(checkall_ng ${NFFT_NG_TEST_SOURCES})
 target_include_directories(checkall_ng PRIVATE

@@ -58,11 +58,14 @@ tests/checkall_ng         # run the planner suite directly, full output
 ```
 
 `checkall_ng` sources (`tests/Makefile.am`): `check_ng.c` + shared `util.c` +
-`planner.c` (wisdom-store unit tests) + `nplan.c` / `nplan_data.c` /
-`nplan_perm.c` (the bundle lifecycle, file-based reference checks, and the
-permuting-solver x-restore guard tests) + `nfast.c` (native-fast vs legacy/direct
-checks). Reference data: `tests/data/nfft_{,adjoint_}{1d,2d}_*.txt`, listed in
-`tests/data/generated/nfft_native_testcases.h`.
+`planner.c` (wisdom-store unit tests) + `plan.c` (the bundle lifecycle) +
+`test_solvers.c` (the permuting and slow solver fixtures the lifecycle tests
+race) + `window.c` / `deconv.c` / `conv.c` (unit tests for the window vtable and
+the two fast-NFFT leaf stages) + `fast_native.c` (composed solver vs the legacy
+implementation, plus plan-tree and gate-flag checks) + `nfft_ng.c` (the
+tests/nfft.c roster and online grid through the planner API, on the legacy
+bounds). Reference data: `tests/data/nfft_{,adjoint_}{1d,2d,3d,4d}_*.txt`,
+listed in `tests/data/generated/nfft_native_testcases.h`.
 
 > `make check` can no-op on an already-built tree; run `tests/checkall_ng`
 > directly to be sure it actually executed (verify `exit 0`).
@@ -70,7 +73,7 @@ checks). Reference data: `tests/data/nfft_{,adjoint_}{1d,2d}_*.txt`, listed in
 Notes: the measured-race timing tests are known-skips (visible `CU_PASS`) on
 hosts without a cycle counter, and hard-fail only under
 `--enable-exhaustive-unit-tests`. Negative-argument tests
-(`check_nplan_guru_rejects_null_args`, `..._bad_geometry`) cover the release-safe
+(`check_plan_guru_rejects_null_args`, `..._bad_geometry`) cover the release-safe
 guard; the x-restore guard tests are no-ops unless `--enable-debug`.
 
 ## CMake

@@ -87,6 +87,62 @@ the generator self-tests.
 The committed `tests/data/*.txt` are now produced by this generator (regenerated with
 `--module all --precision 64 --seed 1`), replacing the original Mathematica-era data.
 
+## The planner-API (`checkall_ng`) NFFT suite
+
+`tests/nfft_ng.c` is the `plan_ng` counterpart of `tests/nfft.c`, on the same
+reference files, the same online grid (same `SEED`, `N`/`M` lists and exhaustive
+gating), the same error metric and the same bounds — so the legacy NFFT roster
+is a subset of what `checkall_ng` runs.
+
+**Pinning the algorithm.** The legacy harness selects the algorithm by calling
+`X(trafo_direct)` or `X(trafo)`. The planner selects by cost, so the suite pins
+it with the gate flags, which makes the plan deterministic:
+
+| mode | flags | what survives |
+|---|---|---|
+| direct | `NFFT_ESTIMATE \| NFFT_NO_FAST_NATIVE` | the direct NDFT, and the rank-0 solver |
+| fast | `NFFT_ESTIMATE \| NFFT_NO_DIRECT` | the composed fast NFFT, and the rank-0 solver |
+| auto | `NFFT_ESTIMATE` | whatever the planner costs cheapest |
+
+Every reference case runs in all three modes. The `auto` pass carries the subset
+property: it must produce a plan for every geometry.
+
+**Geometry and bounds.** `n[t] = 2 * next_power_of_2(N[t])` and
+`m = WINDOW_HELP_ESTIMATE_m`, what `X(init)` uses, so `sigma` — and with it
+`err_trafo` — evaluates to the legacy number. `bound_direct` / `bound_fast` are
+copies of `err_trafo_direct` / `err_trafo`; retune the two files together.
+
+**Where the implementations differ.** Three legacy behaviours have no
+counterpart in the new API:
+
+- `N[t] <= m`. Legacy `X(check)` admits it (its degree guard is commented out).
+  The planner's fast solver declines (`guards_ok`: `N > m`, `n > 2m+2`,
+  `n > N`), so under `NFFT_NO_DIRECT` there is no plan and the case is skipped
+  — but only after `fast_admits()` confirms the guard rejects that geometry, and
+  each test asserts that something ran, so a guard regression cannot pass
+  silently. The `auto` mode still runs the case, on the direct NDFT.
+- Odd `N`. Legacy `X(check)` rejects it and the legacy harness scores the case a
+  pass without running it. The planner supports odd `N` natively.
+- `N[t] == 1`. The planner elides unit axes; an all-unit problem compresses to
+  rank 0 and is served by `nfft_solver_const_0d` under both gate flags. Those
+  cases are checked against the closed form (forward broadcasts the single
+  coefficient, adjoint sums the nodes) rather than against an oracle running the
+  same solver.
+
+Two legacy input guards have no counterpart at all: `X(check)` rejects nodes
+outside `[-0.5, 0.5)` and `sigma <= 1`, whereas `plan_ng_guru` validates only
+`sigma`, and only when the fast solver is wanted. Node-range validation is
+absent from the new API.
+
+**New coverage.** The reference roster
+(`tests/data/generated/nfft_native_testcases.h`, emitted from the whole
+`GRIDS["nfft"]` rather than the legacy filter) carries, for `d = 1..4`, type-I
+even, type-II even, odd and per-axis mixed cases, plus unit-axis and all-unit
+cases. The fast solver needs `N > m` on every live axis, which the small
+reference sizes rarely clear, so `check_nfft_ng_fast_variants_*` and
+`check_nfft_ng_fast_unit_axes_*` repeat those geometries at online sizes with
+the direct NDFT as the oracle.
+
 ## How to add a new transform's tests
 
 1. **Generator:** add the transform's direct forward/adjoint and frequency index
