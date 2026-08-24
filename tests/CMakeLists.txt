@@ -43,7 +43,8 @@ set(NFFT_NG_TEST_SOURCES
   deconv.c  deconv.h
   conv.c    conv.h
   fast_native.c fast_native.h
-  nfft_ng.c nfft_ng.h)
+  nfft_ng.c nfft_ng.h
+  tune_ng.c tune_ng.h)
 
 add_executable(checkall_ng ${NFFT_NG_TEST_SOURCES})
 target_include_directories(checkall_ng PRIVATE

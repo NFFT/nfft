@@ -955,7 +955,58 @@ NFFT_EXTERN void X(forget_wisdom)(void); \
  *  to all kinds (NFFT/NFCT/NFST) sharing this  wisdom store */ \
 NFFT_EXTERN void X(set_timelimit)(double seconds); \
 /** Return the compile-time-selected window as an NFFT_WINDOW_* ordinal. */ \
-int X(get_window_id)();
+int X(get_window_id)(); \
+/** \
+ * Smallest Kaiser-Bessel cut-off m reaching `goal`, for a 1-D transform of \
+ * bandwidth N on an oversampled grid of size n. `adjoint` picks the error \
+ * measure: 0 for max_j |f_j - s_j| / ||f_hat||_1, non-zero for \
+ * max_k |fhat_k - s_k| / ||f||_1. Requires sigma = n/N of at least 5/4. \
+ * \
+ * Low oversampling caps the accuracy no m can beat, and caps it hardest for \
+ * the widest mantissa: at sigma = 5/4 a double-precision transform bottoms \
+ * out around 1000*eps, a long-double one far above that. By sigma = 2 the \
+ * floor is a small multiple of eps in every precision. \
+ * \
+ * Returns 1 if `goal` is met, 0 if no m meets it -- `*m` is then the \
+ * smallest m reaching the best accuracy on offer -- and -1 on invalid \
+ * arguments, leaving the outputs alone. `*attained` takes the predicted \
+ * error at `*m` and may be NULL. \
+ */ \
+NFFT_EXTERN int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, \
+    int *m, R *attained); \
+/** \
+ * Smallest oversampled size n at which some m reaches `goal`, given the \
+ * bandwidth N. Feed the answer to X(tune) for that m; the two agree by \
+ * construction, so the returned n always admits a solution. \
+ * \
+ * `*n` is even and lies in the range sigma = n/N of 5/4 to 4. Rounding it \
+ * further up, to a power of two or another size the FFT likes, is always \
+ * safe: more oversampling never needs a larger m and never lowers the \
+ * accuracy on offer. \
+ * \
+ * Returns 1 if `goal` is reachable, 0 if even sigma = 4 falls short -- `*n` \
+ * is then 4*N and `*attained` the best accuracy there -- and -1 on invalid \
+ * arguments. `*attained` may be NULL. \
+ */ \
+NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, \
+    NFFT_INT *n, R *attained); \
+/** \
+ * Pick both the oversampled size and the cut-off in one call: the goal is \
+ * first capped at the best accuracy this window can actually deliver, then \
+ * the smallest sufficient oversampling is found, rounded up to the next even \
+ * 5-smooth size so the FFT runs at full speed, and the cut-off re-derived \
+ * and checked at the size actually chosen. \
+ * \
+ * `*n` is even and has no prime factor above 5. It may exceed 4*N slightly \
+ * when the next such size overshoots; more oversampling is never worse. \
+ * \
+ * Returns 1 if the chosen pair meets `goal`, 0 if `goal` was below what this \
+ * window can reach and the capped goal was met instead, -1 on invalid \
+ * arguments. `*attained` takes the predicted error at the chosen pair and \
+ * may be NULL. \
+ */ \
+NFFT_EXTERN int X(tune_plan)(NFFT_INT N, int adjoint, R goal, \
+    NFFT_INT *n, int *m, R *attained);
 
 
 NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)

@@ -9,7 +9,7 @@ set(NFFT_KERNEL_SOURCES
   planner/solvtab.c planner/planner.c planner/tensor.c
   planner/problem.c planner/plan.c planner/theplanner.c planner/timer.c
   nfft/nfft.c nfft/problem.c nfft/xcheck.c nfft/ndft.h nfft/ndft-1d.c nfft/ndft-nd.c nfft/nfft-nd.c nfft/rnk0.c nfft/conf.c
-  nfft/plan.c nfft/api.c
+  nfft/plan.c nfft/api.c nfft/tune.c
   nfct/nfct.c
   nfst/nfst.c
   conv/conv.c conv/solver.c conv/conv-1d.c conv/conv-2d.c conv/conv-3d.c conv/conv-nd.c

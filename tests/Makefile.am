@@ -40,7 +40,7 @@ checkall_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
 # checkall_ng: new planner (plan_ng / planner-native) suites + shared util.
-checkall_ng_SOURCES = check_ng.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h planner.c planner.h plan.c plan.h test_solvers.c test_solvers.h window.c window.h deconv.c deconv.h conv.c conv.h fast_native.c fast_native.h nfft_ng.c nfft_ng.h
+checkall_ng_SOURCES = check_ng.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h planner.c planner.h plan.c plan.h test_solvers.c test_solvers.h window.c window.h deconv.c deconv.h conv.c conv.h fast_native.c fast_native.h nfft_ng.c nfft_ng.h tune_ng.c tune_ng.h
 checkall_ng_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_ng_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
