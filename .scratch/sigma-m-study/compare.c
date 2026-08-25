@@ -1,10 +1,13 @@
 /* Tuned parameters against the legacy choice, head to head.
  *
  * NEW    : (n, m) from Y(tune_plan).
+ * DYADIC : (n, m) from Y(tune_plan_dyadic), which chooses among
+ *          n = 2^j * next_power_of_2(N) for j in {0, 1, 2}.
  * LEGACY : n = 2 * next_power_of_2(N), the legacy default, with m found by
  *          searching upward for the smallest cut-off whose *measured* error
  *          meets the goal. The legacy API has no m estimator, so this gives
  *          it the best cut-off it could possibly have used -- an oracle.
+ *          It is also rung 1 of the dyadic ladder.
  *
  * Both run through the same plan_ng path, so the only difference is the
  * parameter pair. Error is measured against a long-double direct NDFT, which
@@ -162,7 +165,16 @@ static const char *shape_name(int s)
 
 int main(int argc, char **argv)
 {
-  static const NFFT_INT Ns[] = {256, 251, 250, 243, 255, 512};
+  /* Spread over t = next_power_of_2(N)/N, which is what decides whether the
+   * dyadic ladder has a rung below the legacy grid at all. The older set was
+   * {256, 251, 250, 243, 255, 512}, every one of which has t <= 1.06, so rung
+   * 0 was illegal in all of it and the two tuners were indistinguishable.
+   *
+   *   N    256  512  255  251  250  243  200  320  160  600  1100  140
+   *   t   1.00 1.00 1.00 1.02 1.02 1.05 1.28 1.60 1.60 1.71  1.86 1.83
+   */
+  static const NFFT_INT Ns[] = {256, 512, 255, 251, 250, 243,
+                                200, 320, 160, 600, 1100, 140};
   static const double goals_f[] = {1e-2, 1e-4};
   static const double goals_d[] = {1e-4, 1e-8, 1e-11};
   static const double goals_l[] = {1e-8, 1e-14, 1e-20};
@@ -181,7 +193,8 @@ int main(int argc, char **argv)
   int iN, ish, ig, dir;
 
   printf("prec,N,M,shape,goal,dir,n_new,m_new,err_new,t_new,"
-         "n_leg,m_leg,err_leg,t_leg,new_met,leg_met\n");
+         "n_dya,m_dya,err_dya,t_dya,"
+         "n_leg,m_leg,err_leg,t_leg,new_met,dya_met,leg_met\n");
 
   for (iN = 0; iN < (int)(sizeof(Ns) / sizeof(Ns[0])); iN++)
     for (ish = 0; ish < 3; ish++)
@@ -215,10 +228,14 @@ int main(int argc, char **argv)
         xl[j] = (LR)(rng_uniform() - 0.5);
         x_[j] = (R)xl[j];
       }
+      /* Real and imaginary parts on [0, 1), as gsweep.c draws them. Centred
+       * data measures a forward error up to 2.6x smaller, so drawing it here
+       * would time the tuner on an easier distribution than it was fitted
+       * for. */
       nrm_fhat_ = 0.0L;
       for (k = 0; k < N; k++)
       {
-        R re = (R)(rng_uniform() - 0.5), im = (R)(rng_uniform() - 0.5);
+        R re = (R)rng_uniform(), im = (R)rng_uniform();
         in_fwd_[k] = re + I * im;
         fhat_l[k] = (LR)re + I * (LR)im;
         nrm_fhat_ += cabsl(fhat_l[k]);
@@ -226,7 +243,7 @@ int main(int argc, char **argv)
       nrm_f_ = 0.0L;
       for (j = 0; j < M; j++)
       {
-        R re = (R)(rng_uniform() - 0.5), im = (R)(rng_uniform() - 0.5);
+        R re = (R)rng_uniform(), im = (R)rng_uniform();
         in_adj_[j] = re + I * im;
         f_l[j] = (LR)re + I * (LR)im;
         nrm_f_ += cabsl(f_l[j]);
@@ -254,11 +271,11 @@ int main(int argc, char **argv)
         for (dir = 0; dir <= 1; dir++)
         {
           const R goal = (R)goals[ig];
-          NFFT_INT n_new = 0, n_leg;
-          int m_new = 0, m_leg = 0;
+          NFFT_INT n_new = 0, n_dya = 0, n_leg;
+          int m_new = 0, m_dya = 0, m_leg = 0;
           R att = 0;
-          LR err_new, err_leg = -1.0L;
-          double t_new = 0.0, t_leg = 0.0;
+          LR err_new, err_dya, err_leg = -1.0L;
+          double t_new = 0.0, t_dya = 0.0, t_leg = 0.0;
           int m;
 
           if (NF(tune_plan)(N, M, dir, goal, &n_new, &m_new, &att) < 0)
@@ -274,6 +291,17 @@ int main(int argc, char **argv)
               NF(tune_refine)(N, M, dir, goal, x_, n_new, &m_new, 0);
           }
           err_new = run(n_new, m_new, dir, &t_new, reps);
+
+          if (NF(tune_plan_dyadic)(N, M, dir, goal, &n_dya, &m_dya, &att) < 0)
+            continue;
+          if (refine)
+          {
+            const double fft = (double)n_dya * log2((double)n_dya);
+            const double conv = 0.8 * (double)M * (double)(2 * m_dya + 2);
+            if (conv >= 0.3 * (fft + conv))
+              NF(tune_refine)(N, M, dir, goal, x_, n_dya, &m_dya, 0);
+          }
+          err_dya = run(n_dya, m_dya, dir, &t_dya, reps);
 
           /* Legacy geometry, with an oracle search for its cut-off. */
           n_leg = 2 * next_pow2(N);
@@ -306,11 +334,14 @@ int main(int argc, char **argv)
           }
           run(n_leg, m_leg, dir, &t_leg, reps);
 
-          printf("%s,%d,%d,%s,%.3e,%s,%d,%d,%.6Le,%.9f,%d,%d,%.6Le,%.9f,%d,%d\n",
+          printf("%s,%d,%d,%s,%.3e,%s,%d,%d,%.6Le,%.9f,%d,%d,%.6Le,%.9f,"
+                 "%d,%d,%.6Le,%.9f,%d,%d,%d\n",
                  PREC_NAME, (int)N, (int)M, shape_name(ish), (double)goal,
                  dir ? "adjoint" : "forward", (int)n_new, m_new, err_new, t_new,
+                 (int)n_dya, m_dya, err_dya, t_dya,
                  (int)n_leg, m_leg, err_leg, t_leg,
-                 err_new <= (LR)goal ? 1 : 0, err_leg <= (LR)goal ? 1 : 0);
+                 err_new <= (LR)goal ? 1 : 0, err_dya <= (LR)goal ? 1 : 0,
+                 err_leg <= (LR)goal ? 1 : 0);
           fflush(stdout);
         }
 

@@ -185,3 +185,7 @@ build-cmake*/
 # Local-only planner design artifacts (never committed)
 .scratch/planner-v2/fftw-planner-deep-dive.md
 .scratch/planner-v2/2026-07-03-phase0-infrastructure-plan.md
+
+# Byte-compiled Python from the study scripts in .scratch/
+__pycache__/
+*.pyc

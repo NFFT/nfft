@@ -1022,6 +1022,21 @@ NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
 NFFT_EXTERN int X(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
     NFFT_INT *n, int *m, R *attained); \
 /** \
+ * Pick the pair from the ladder `n = 2^j * next_power_of_2(N)`, j in \
+ * {0, 1, 2}, rather than from every 5-smooth size in a band. \
+ * \
+ * `*n` is always a power of two. Rung 1 is the legacy default grid \
+ * `2*next_power_of_2(N)`, so the answer is never rated dearer than that; \
+ * rung 0 is offered only when N sits more than a quarter above a power of \
+ * two, the 5/4 oversampling floor. \
+ * \
+ * Same contract as X(tune_plan): 1 if the chosen pair meets `goal`, 0 if \
+ * `goal` was below what this window can reach and the capped goal was met \
+ * instead, -1 on invalid arguments. `*attained` may be NULL. \
+ */ \
+NFFT_EXTERN int X(tune_plan_dyadic)(NFFT_INT N, NFFT_INT M, int adjoint, \
+    R goal, NFFT_INT *n, int *m, R *attained); \
+/** \
  * Refine the cut-off by measurement, on the caller's own nodes `x`. \
  * \
  * X(tune_plan) predicts from a model fitted as an upper envelope over every \

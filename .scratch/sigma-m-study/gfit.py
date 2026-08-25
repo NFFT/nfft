@@ -103,7 +103,15 @@ def split_regimes(pts, key):
     return trunc, round_
 
 
-def fit_direction(pts, key):
+def fit_direction(pts, key, alpha_fixed=None):
+    """Fit both branches and raise them to an envelope.
+
+    alpha_fixed pins the roundoff branch's exponent instead of fitting it.
+    That exponent is a correction to the exactly derived rate A = b - D, and
+    where A*m stays small over the fitted range there is nothing for it to
+    correct: the branch is flat in m and the least squares reads noise. Pass
+    1.0 -- the derivation's own value -- for such a range.
+    """
     trunc, round_ = split_regimes(pts, key)
 
     rows = [[1.0, math.log(1.0 - 1.0 / r["sigma"]), math.log(r["m"]),
@@ -112,11 +120,20 @@ def fit_direction(pts, key):
     sol = lstsq(rows, rhs)
     a, p, rr, tn, tm = math.exp(sol[0]), sol[1], sol[2], sol[3], sol[4]
 
-    rows = [[1.0, A(r["sigma"]) * r["m"], math.log(1.0 - 1.0 / r["sigma"]),
-             math.log(r["N"]), math.log(r["M"])] for r in round_]
-    rhs = [math.log(r[key] / r["eps"]) for r in round_]
-    sol = lstsq(rows, rhs)
-    c, alpha, q, un, um = math.exp(sol[0]), sol[1], sol[2], sol[3], sol[4]
+    if alpha_fixed is None:
+        rows = [[1.0, A(r["sigma"]) * r["m"], math.log(1.0 - 1.0 / r["sigma"]),
+                 math.log(r["N"]), math.log(r["M"])] for r in round_]
+        rhs = [math.log(r[key] / r["eps"]) for r in round_]
+        sol = lstsq(rows, rhs)
+        c, alpha, q, un, um = math.exp(sol[0]), sol[1], sol[2], sol[3], sol[4]
+    else:
+        alpha = alpha_fixed
+        rows = [[1.0, math.log(1.0 - 1.0 / r["sigma"]), math.log(r["N"]),
+                 math.log(r["M"])] for r in round_]
+        rhs = [math.log(r[key] / r["eps"]) - alpha * A(r["sigma"]) * r["m"]
+               for r in round_]
+        sol = lstsq(rows, rhs)
+        c, q, un, um = math.exp(sol[0]), sol[1], sol[2], sol[3]
 
     def raw(rec, aa, cc):
         s, m = rec["sigma"], rec["m"]

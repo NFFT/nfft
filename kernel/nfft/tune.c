@@ -428,6 +428,147 @@ int Y(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, NFFT_INT *n,
   }
 }
 
+/* The dyadic ladder, n = 2^j * next_power_of_2(N).
+ *
+ * next_power_of_2(2*N) is 2*next_power_of_2(N) for every N, so the legacy
+ * grid is rung 1. With t = next_power_of_2(N)/N in (1, 2] the rungs
+ * oversample by sigma = t, 2t and 4t, three disjoint bands, and rung 0 is
+ * legal only when t >= 5/4. One coefficient row per rung, selected by j and
+ * not by testing sigma, since rung 0 and rung 1 meet at sigma = 2 when t = 1.
+ *
+ * A row has to dominate its own band only, where tune_forward/tune_adjoint
+ * must dominate all of [5/4, 4] at once. Rung 2's alpha is pinned at 1 rather
+ * than fitted: A = b - D is 0.056 there falling to 0.012, so exp(alpha*A*m)
+ * is flat over m <= 32 and the fit reads noise.
+ *
+ * Every rung is a power of two, which is why no tie-break appears below.
+ *
+ * Fitted by .scratch/sigma-m-study/dfit.py, same envelope discipline as the
+ * tables at the top of this file.
+ */
+static const tune_coeff tune_dyadic_forward[3] = {
+    {K(60.6176), K(0.928375), K(-0.370109), K(-0.43395), K(0.0568873),
+     K(24.4189), K(0.936522), K(0.193903), K(-0.17226), K(0.121651)},
+    {K(27.3498), K(2.17547), K(-0.309852), K(-0.217142), K(0.0868104),
+     K(21.6553), K(0.593618), K(1.9439), K(0.0856313), K(0.151626)},
+    {K(10.2261), K(2.68804), K(-0.212348), K(-0.12615), K(0.0901836),
+     K(13.0956), K(1), K(9.04299), K(0.347203), K(0.110038)},
+};
+
+static const tune_coeff tune_dyadic_adjoint[3] = {
+    {K(22.4855), K(0.208243), K(0.464053), K(0.0432581), K(-0.501897),
+     K(173.261), K(1.0011), K(0.310334), K(-0.174676), K(0.00122196)},
+    {K(30.2286), K(0.411002), K(0.419399), K(0.0467219), K(-0.503082),
+     K(51.0493), K(0.798611), K(0.254312), K(0.330917), K(-0.208085)},
+    {K(22.7536), K(0.437151), K(0.368359), K(0.0715423), K(-0.489816),
+     K(64.1882), K(1), K(12.1863), K(0.84782), K(-0.411437)},
+};
+
+/* Size of rung j, or 0 when that rung is not usable at this bandwidth. */
+static NFFT_INT tune_dyadic_size(NFFT_INT N, int j)
+{
+  NFFT_INT nj;
+
+  if (j < 0 || j > 2)
+    return 0;
+  nj = Y(next_power_of_2)(N) << j;
+  if (nj <= N)
+    return 0; /* rung 0 when N is itself a power of two */
+  if ((NFFT_INT)4 * nj < (NFFT_INT)5 * N)
+    return 0; /* rung 0 when N sits less than a quarter above one */
+  if (tune_m_max(nj) < 1)
+    return 0;
+  return nj;
+}
+
+int Y(tune_dyadic_at)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, int j,
+                      NFFT_INT *n, int *m, R *attained)
+{
+  const tune_coeff *band = adjoint ? tune_dyadic_adjoint : tune_dyadic_forward;
+  const R eps = Y(float_property)(NFFT_EPSILON);
+  NFFT_INT nj;
+  int best_m, hit;
+  R best_e;
+
+  if (n == 0 || m == 0 || N < (NFFT_INT)1 || M < (NFFT_INT)1
+      || !(goal > K(0.0)))
+    return -1;
+
+  nj = tune_dyadic_size(N, j);
+  if (nj == (NFFT_INT)0)
+    return -1;
+
+  hit = tune_scan(&band[j], (R)nj / (R)N, eps, tune_m_max(nj), goal, N, M,
+                  &best_m, &best_e);
+  *n = nj;
+  if (hit) {
+    *m = hit;
+    if (attained)
+      *attained = tune_error(&band[j], (R)nj / (R)N, eps, hit, N, M);
+    return 1;
+  }
+  *m = best_m;
+  if (attained)
+    *attained = best_e;
+  return 0;
+}
+
+int Y(tune_plan_dyadic)(NFFT_INT N, NFFT_INT M, int adjoint, R goal,
+                        NFFT_INT *n, int *m, R *attained)
+{
+  const tune_coeff *band = adjoint ? tune_dyadic_adjoint : tune_dyadic_forward;
+  const R eps = Y(float_property)(NFFT_EPSILON);
+  NFFT_INT top, best_n = 0;
+  R cap, a, best_cost = K(0.0), best_e = K(0.0);
+  int j, best_m = 0;
+
+  if (n == 0 || m == 0 || N < (NFFT_INT)1 || M < (NFFT_INT)1
+      || !(goal > K(0.0)))
+    return -1;
+
+  /* The top rung always clears both the n > N and the 5/4 tests, so the
+   * ladder is never empty and there is always a floor to cap against. */
+  top = tune_dyadic_size(N, 2);
+  if (top == (NFFT_INT)0)
+    return -1;
+
+  cap = tune_floor(&band[2], N, top, M, eps);
+  a = goal > cap ? goal : cap;
+
+  for (j = 0; j < 3; j++) {
+    NFFT_INT nj = 0;
+    int cand_m = 0;
+    R cand_e = K(0.0), cost;
+
+    if (Y(tune_dyadic_at)(N, M, adjoint, a, j, &nj, &cand_m, &cand_e) != 1)
+      continue;
+
+    cost = tune_cost(nj, cand_m, M);
+    if (best_n == (NFFT_INT)0 || cost < best_cost) {
+      best_cost = cost;
+      best_n = nj;
+      best_m = cand_m;
+      best_e = cand_e;
+    }
+  }
+
+  /* The cap is the top rung's own floor, so that rung reaches it and the loop
+   * normally returns. It can still come back empty when the two are separated
+   * by rounding, since -ffast-math lets one expression differ in the last bit
+   * between call sites. Fall back to the top rung's best. */
+  if (best_n == (NFFT_INT)0) {
+    tune_scan(&band[2], (R)top / (R)N, eps, tune_m_max(top), K(0.0), N, M,
+              &best_m, &best_e);
+    best_n = top;
+  }
+
+  *n = best_n;
+  *m = best_m;
+  if (attained)
+    *attained = best_e;
+  return best_e <= goal ? 1 : 0;
+}
+
 /* Measured refinement of the cut-off.
  *
  * The model is an upper envelope over every geometry it was fitted on, while

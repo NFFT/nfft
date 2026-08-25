@@ -262,3 +262,79 @@ cd .scratch/sigma-m-study && python3 costfit.py /tmp/cost/costfit-*.csv
 sh .scratch/sigma-m-study/run_gsweep.sh "$PWD" /tmp/gs 32 5
 cd .scratch/sigma-m-study && python3 gfit.py /tmp/gs/gsweep-*.csv
 ```
+
+## The dyadic ladder
+
+A second tuner, `Y(tune_plan_dyadic)`, chooses among three sizes instead of
+every 5-smooth size in a band. Since `next_power_of_2(2N)` is
+`2*next_power_of_2(N)`, the legacy grid is one rung of
+
+    n = 2^j * next_power_of_2(N),   j in {0, 1, 2}
+
+and with `t = next_power_of_2(N)/N` in (1, 2] the rungs oversample by `t`,
+`2t` and `4t` -- three disjoint bands of sigma. Rung 0 needs `t >= 5/4`, the
+existing oversampling floor; rung 1 is the legacy choice.
+
+Every rung is a power of two, so the radix-2 tie-break `Y(tune_plan)` carries
+has nothing to correct: no candidate can lose to a power of two of similar
+size when all of them are. The design and its measured gate are in
+`.scratch/tune-dyadic/`.
+
+- `dfit.py` fits the model once per band and validates each against the
+  shipped constants on the same band-restricted population. It emits the two
+  three-row tables `kernel/nfft/tune.c` carries. Run it on the same
+  `gsweep-*.csv` files `gfit.py` takes.
+- `dgate.py` replays the rung choice against the measured error, using the
+  sigma triples in ratio 2 the sweep contains, with legacy given an oracle
+  cut-off. It answers whether the ladder beats the legacy choice before any
+  of it is built.
+- `dvalidate.c` measures the returned pair against a direct NDFT on many
+  fresh draws and counts how many exceed the goal. The fit is an envelope
+  over a sweep that records the worst of five trials; the promise is about
+  one draw it never saw, and this is the difference.
+- `dcompare_report.py` renders the three-arm comparison -- legacy,
+  `tune_plan`, `tune_plan_dyadic` -- that `compare.c` now produces.
+  `compare_report.py` still renders the two-arm view from the same file.
+
+`run_gsweep.sh` takes the sigma list as a seventh argument, which is how the
+`(4, 8]` band was measured. An empty list argument keeps that list's default.
+
+### The input distribution
+
+`gsweep.c` and `compare.c` draw both input vectors with real and imaginary
+parts on `[0, 1)`, matching `Y(vrand_unit_complex)` -- what the library's own
+accuracy tests present and what `Y(tune_refine)` probes with. They drew them
+centred on zero before the dyadic work, and the two are not interchangeable:
+
+| geometry | forward, `[0,1)` | forward, centred | ratio |
+|---|---|---|---|
+| N=128, sigma=2, m=1 | 9.81e-03 | 3.77e-03 | 2.60 |
+| N=128, sigma=2, m=3 | 1.14e-06 | 6.19e-07 | 1.83 |
+| N=256, sigma=2, m=5 | 9.74e-11 | 5.52e-11 | 1.77 |
+
+Uncentred data has a coherent component, so the forward transform peaks where
+the phases line up and the error peaks with it, while the `l1` norm it is
+divided by does not. The adjoint measure is within 10 % either way: its input
+sits at the nodes and its norm runs over the same index, so a constant offset
+scales both halves of the ratio alike.
+
+The shipped constants were fitted on the centred draw and **miss the goal** on
+the uncentred one, 193 times over the fitted population -- see issue 05 in
+`.scratch/tune-dyadic/`. Neither draw is a bound: the measure has a finite
+supremum over all inputs that no random draw reaches, which the same issue
+records as an open question.
+
+### Data
+
+| file | what |
+|---|---|
+| `data/gsweep-{d,f,l}.csv.gz` | the centred draw, 13 sigma values. The shipped `X(tune_plan)` constants came from it. |
+| `data/gsweep-unit-{d,f,l}.csv.gz` | the `[0, 1)` draw, 17 sigma values covering all three bands. The dyadic constants come from it. |
+| `data/compare-dyadic-{d,f,l}.csv.gz` | the three-arm head-to-head, rendered to `docs/tuning-dyadic.md`. |
+| `data/dvalidate-{d,f,l}.csv.gz` | fresh-draw accuracy of the returned pairs. |
+
+Regenerate the sweep with
+
+    sh run_gsweep.sh "$PWD" /tmp/gs 32 5 "" "" \
+       "1.25,1.3,1.35,1.4,1.5,1.6,1.75,2.0,2.25,2.5,3.0,3.5,4.0,5.0,6.0,7.0,8.0"
+    python3 dfit.py /tmp/gs/gsweep-*.csv

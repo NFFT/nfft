@@ -175,6 +175,9 @@ int main(void) {
   CU_add_test(tune_suite, "plan_capped", Y(check_tune_plan_capped));
   CU_add_test(tune_suite, "plan_cost", Y(check_tune_plan_cost));
   CU_add_test(tune_suite, "refine", Y(check_tune_refine));
+  CU_add_test(tune_suite, "dyadic_plan", Y(check_tune_dyadic_plan));
+  CU_add_test(tune_suite, "dyadic_cost", Y(check_tune_dyadic_cost));
+  CU_add_test(tune_suite, "dyadic_capped", Y(check_tune_dyadic_capped));
 
   nfft_ng_suite = CU_add_suite("nfft_ng", 0, 0);
   CU_add_test(nfft_ng_suite, "nfft_ng_1d_file", Y(check_nfft_ng_1d_file));

@@ -54,4 +54,16 @@ void Y(check_tune_plan_cost)(void);
  * goal needs. */
 void Y(check_tune_refine)(void);
 
+/* Y(tune_plan_dyadic) returns one of the three rungs
+ * n = 2^j * next_power_of_2(N), and a real transform at the pair meets the
+ * goal. */
+void Y(check_tune_dyadic_plan)(void);
+/* The rung returned is the cheapest of those reaching the goal. Rung 1 is the
+ * legacy grid, so this also pins that the answer is never rated dearer than
+ * the legacy choice. */
+void Y(check_tune_dyadic_cost)(void);
+/* Goals below the reachable floor are capped rather than refused, illegal
+ * rungs and bad arguments are refused, and a looser goal never costs more. */
+void Y(check_tune_dyadic_capped)(void);
+
 #endif

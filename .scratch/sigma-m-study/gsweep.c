@@ -76,29 +76,35 @@ static LC twiddle(LR k, LR x, int sign)
 
 int main(int argc, char **argv)
 {
-  static const double sigmas[] = {1.25, 1.3,  1.35, 1.4, 1.5, 1.6, 1.75,
-                                  2.0,  2.25, 2.5,  3.0, 3.5, 4.0};
+  double sigmas[32] = {1.25, 1.3,  1.35, 1.4, 1.5, 1.6, 1.75,
+                       2.0,  2.25, 2.5,  3.0, 3.5, 4.0};
   int Ns[16] = {32, 64, 128, 256, 512, 1024};
   /* M as a fraction of N, so the two are crossed rather than tied. */
   double m_factors[16] = {0.25, 1.0, 2.0, 8.0};
-  const int n_sigma = (int)(sizeof(sigmas) / sizeof(sigmas[0]));
-  int n_N = 6, n_M = 4;
+  int n_sigma = 13, n_N = 6, n_M = 4;
   const int m_max_cap = (argc > 1) ? atoi(argv[1]) : 32;
   const int trials = (argc > 2) ? atoi(argv[2]) : 5;
 
   /* Optional comma-separated overrides, so the same binary can be pointed at
-   * a validation grid outside the fitted box. */
-  if (argc > 3)
+   * a validation grid outside the fitted box. An empty argument keeps the
+   * default, which is how one list is overridden without the others. */
+  if (argc > 3 && argv[3][0])
   {
     char *t = strtok(argv[3], ",");
     for (n_N = 0; t && n_N < 16; t = strtok(0, ","))
       Ns[n_N++] = atoi(t);
   }
-  if (argc > 4)
+  if (argc > 4 && argv[4][0])
   {
     char *t = strtok(argv[4], ",");
     for (n_M = 0; t && n_M < 16; t = strtok(0, ","))
       m_factors[n_M++] = atof(t);
+  }
+  if (argc > 5 && argv[5][0])
+  {
+    char *t = strtok(argv[5], ",");
+    for (n_sigma = 0; t && n_sigma < 32; t = strtok(0, ","))
+      sigmas[n_sigma++] = atof(t);
   }
 
   int is, iN, iM, m, t, j, k;
@@ -140,10 +146,22 @@ int main(int argc, char **argv)
           xl[j] = (LR)(rng_uniform() - 0.5);
           x[j] = (R)xl[j];
         }
+        /* Real and imaginary parts on [0, 1), matching Y(vrand_unit_complex),
+         * which is what the library's accuracy tests present and what
+         * Y(tune_refine) probes with. The nonzero mean matters: the coherent
+         * component makes the forward transform peak where the phases line up
+         * and the error peaks with it, while the l1 norm it is divided by
+         * does not. Centred data measures a forward error up to 2.6x smaller,
+         * so an envelope fitted to it misses the goal here. The adjoint is
+         * within 10 % either way.
+         *
+         * No draw is a bound: the measure has a finite supremum over all
+         * inputs that random data approaches from below. See
+         * .scratch/tune-dyadic/issues/05-input-distribution-in-the-fit.md */
         nrm1_fhat = 0.0L;
         for (k = 0; k < N; k++)
         {
-          R re = (R)(rng_uniform() - 0.5), im = (R)(rng_uniform() - 0.5);
+          R re = (R)rng_uniform(), im = (R)rng_uniform();
           fhat_in[k] = re + I * im;
           fhat_l[k] = (LR)re + I * (LR)im;
           nrm1_fhat += cabsl(fhat_l[k]);
@@ -151,7 +169,7 @@ int main(int argc, char **argv)
         nrm1_f = 0.0L;
         for (j = 0; j < M; j++)
         {
-          R re = (R)(rng_uniform() - 0.5), im = (R)(rng_uniform() - 0.5);
+          R re = (R)rng_uniform(), im = (R)rng_uniform();
           f_in[j] = re + I * im;
           f_l[j] = (LR)re + I * (LR)im;
           nrm1_f += cabsl(f_l[j]);

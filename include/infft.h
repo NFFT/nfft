@@ -1513,6 +1513,14 @@ INT Y(log2i)(const INT m);
 void Y(next_power_of_2_exp)(const INT N, INT *N2, INT *t);
 void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 
+/* nfft/tune.c: one rung of the ladder Y(tune_plan_dyadic) chooses from,
+ * n = 2^j * next_power_of_2(N). Returns that rung's size and the smallest
+ * cut-off its band model needs: 1 when the goal is met, 0 when none reaches
+ * it and `*m` is the argmin, -1 on invalid arguments or a rung this
+ * bandwidth cannot use. */
+int Y(tune_dyadic_at)(INT N, INT M, int adjoint, R goal, int j,
+    INT *n, int *m, R *attained);
+
 /* error.c: */
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
 /* not used */ R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
