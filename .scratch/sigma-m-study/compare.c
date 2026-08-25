@@ -259,7 +259,7 @@ int main(int argc, char **argv)
           double t_new = 0.0, t_leg = 0.0;
           int m;
 
-          if (NF(tune_plan)(N, dir, goal, &n_new, &m_new, &att) < 0)
+          if (NF(tune_plan)(N, M, dir, goal, &n_new, &m_new, &att) < 0)
             continue;
           err_new = run(n_new, m_new, dir, &t_new, reps);
 

@@ -18,6 +18,8 @@ typedef long double R;
 #define PREC_NAME "long double"
 #endif
 
+/* The pair depends on the node count; this table shows one shape. */
+#define MNODES(N) (N)
 static const double GOALS[] = {1e-2, 1e-4, 1e-6, 1e-8, 1e-10, 1e-12, 1e-16};
 #define NG ((int)(sizeof(GOALS) / sizeof(GOALS[0])))
 
@@ -42,7 +44,8 @@ int main(void)
         NFFT_INT n = 0;
         int m = 0;
         R att = 0;
-        int rc = NF(tune_plan)(Ns[iN], dir, (R)GOALS[ig], &n, &m, &att);
+        int rc = NF(tune_plan)(Ns[iN], MNODES(Ns[iN]), dir, (R)GOALS[ig], &n, &m,
+                               &att);
         if (rc < 0)
           printf(" %14s", "-");
         else
@@ -59,7 +62,7 @@ int main(void)
       NFFT_INT n = 0;
       int m = 0;
       R att = 0;
-      NF(tune_plan)(Ns[iN], dir, (R)1e-30, &n, &m, &att);
+      NF(tune_plan)(Ns[iN], MNODES(Ns[iN]), dir, (R)1e-30, &n, &m, &att);
       printf("  %-8s N=%-5d -> n=%-6d sigma=%.3f m=%-3d attained=%.3e\n",
              dir ? "adjoint" : "forward", (int)Ns[iN], (int)n,
              (double)n / (double)Ns[iN], m, (double)att);

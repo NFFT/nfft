@@ -236,43 +236,94 @@ static NFFT_INT tune_next_smooth(NFFT_INT kk)
   return best;
 }
 
-int Y(tune_plan)(NFFT_INT N, int adjoint, R goal, NFFT_INT *n, int *m,
-                 R *attained)
+/* Relative price of one node-convolution sample against one FFT butterfly.
+ *
+ * An operation count, not a measurement: a complex FFT of size n takes about
+ * 5*n*log2(n) real operations, and each of the M*(2m+2) window samples
+ * multiplies a complex grid value by a real window value and accumulates,
+ * four real operations. A weight fitted to timings would bind the library to
+ * one machine's cache and its scatter/gather asymmetry. It would also buy
+ * nothing: over the 27600 timings in .scratch/sigma-m-study/costfit.c, 4/5
+ * orders 92.6 % of candidate pairs as measured, the best weight there 92.7 %,
+ * and the 2/5 the planner's own pcost assumes 90.4 %.
+ */
+#define TUNE_NODE_WEIGHT (K(4.0) / K(5.0))
+
+/* Predicted run time of one transform, in arbitrary units. */
+static R tune_cost(NFFT_INT n, int m, NFFT_INT M)
+{
+  const R nn = (R)n;
+  return nn * LOG(nn) / LOG(K(2.0))
+         + TUNE_NODE_WEIGHT * (R)M * (R)(2 * m + 2);
+}
+
+int Y(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, NFFT_INT *n,
+                 int *m, R *attained)
 {
   const tune_coeff *k = adjoint ? &tune_adjoint : &tune_forward;
   const R eps = Y(float_property)(NFFT_EPSILON);
-  R cap, a;
-  NFFT_INT n0, nn;
-  int tries;
+  const NFFT_INT hi = (NFFT_INT)4 * N;
+  R cap, a, best_cost = K(0.0), best_e = K(0.0);
+  NFFT_INT n0, nn, best_n = 0;
+  int best_m = 0, tries;
 
-  if (n == 0 || m == 0 || N < (NFFT_INT)1 || !(goal > K(0.0)))
+  if (n == 0 || m == 0 || N < (NFFT_INT)1 || M < (NFFT_INT)1
+      || !(goal > K(0.0)))
     return -1;
 
   /* Cap the goal at what the band can actually deliver: the floor at the
    * widest oversampling on offer. Asking for less than this is asking for
    * accuracy no cut-off and no grid in range can reach. */
-  cap = tune_floor(k, N, (NFFT_INT)4 * N, eps);
+  cap = tune_floor(k, N, hi, eps);
   a = goal > cap ? goal : cap;
 
+  /* Walk every even 5-smooth size in the band, only tens of them, take the
+   * smallest sufficient cut-off at each and keep the cheapest pair. The
+   * legacy size 2*next_power_of_2(N) is a power of two in [2N, 4N), so it is
+   * always among the candidates and the answer never rates worse than it. */
+  for (nn = tune_next_smooth(tune_band_lo(N)); nn != 0 && nn <= hi;
+       nn = tune_next_smooth(nn + (NFFT_INT)1)) {
+    const int m_max = tune_m_max(nn);
+    int cand_m, hit;
+    R cand_e, cost;
+
+    if (m_max < 1)
+      continue;
+    hit = tune_scan(k, (R)nn / (R)N, eps, m_max, a, &cand_m, &cand_e);
+    if (!hit)
+      continue;
+
+    cost = tune_cost(nn, hit, M);
+    if (best_n == 0 || cost < best_cost) {
+      best_cost = cost;
+      best_n = nn;
+      best_m = hit;
+      best_e = tune_error(k, (R)nn / (R)N, eps, hit);
+    }
+  }
+
+  if (best_n != 0) {
+    *n = best_n;
+    *m = best_m;
+    if (attained)
+      *attained = best_e;
+    return best_e <= goal ? 1 : 0;
+  }
+
+  /* Nothing in the band cleared the capped goal, so the floor is only reached
+   * past 4*N. Keep walking: more oversampling is never worse, and the first
+   * size that clears it is the cheapest of those that do. */
   n0 = tune_smallest_n(k, N, a, eps);
   if (n0 == 0)
-    n0 = (NFFT_INT)4 * N; /* a == cap: the top of the band is the answer */
-
-  /* Round up to a size the FFT likes. That only raises sigma, which never
-   * hurts -- but the error is not quite monotone in sigma at small m, so the
-   * cut-off is re-derived at the size actually chosen and the answer checked
-   * rather than assumed. */
-  nn = tune_next_smooth(n0);
-  if (nn == 0)
-    nn = n0;
-
-  for (tries = 0; tries < 8; tries++) {
+    n0 = hi;
+  nn = tune_next_smooth(n0 > hi ? n0 : hi + (NFFT_INT)1);
+  for (tries = 0; tries < 8 && nn != 0; tries++) {
     const int m_max = tune_m_max(nn);
-    int best_m, hit;
-    R best_e;
+    int cand_m, hit;
+    R cand_e;
 
     if (m_max >= 1) {
-      hit = tune_scan(k, (R)nn / (R)N, eps, m_max, a, &best_m, &best_e);
+      hit = tune_scan(k, (R)nn / (R)N, eps, m_max, a, &cand_m, &cand_e);
       if (hit) {
         const R got = tune_error(k, (R)nn / (R)N, eps, hit);
         *n = nn;
@@ -283,23 +334,21 @@ int Y(tune_plan)(NFFT_INT N, int adjoint, R goal, NFFT_INT *n, int *m,
       }
     }
     nn = tune_next_smooth(nn + (NFFT_INT)1);
-    if (nn == 0)
-      break;
   }
 
   /* No smooth size cleared it: fall back to the unrounded n, whose floor was
    * established above. */
   {
-    int best_m;
-    R best_e;
+    int fb_m;
+    R fb_e;
     const int m_max = tune_m_max(n0);
     if (m_max < 1)
       return -1;
-    tune_scan(k, (R)n0 / (R)N, eps, m_max, K(0.0), &best_m, &best_e);
+    tune_scan(k, (R)n0 / (R)N, eps, m_max, K(0.0), &fb_m, &fb_e);
     *n = n0;
-    *m = best_m;
+    *m = fb_m;
     if (attained)
-      *attained = best_e;
-    return best_e <= goal ? 1 : 0;
+      *attained = fb_e;
+    return fb_e <= goal ? 1 : 0;
   }
 }

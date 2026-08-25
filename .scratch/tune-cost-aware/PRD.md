@@ -29,12 +29,13 @@ int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, int *m, R *attained);
  * 1 = reachable, 0 = not even at sigma=4, -1 = bad args. */
 int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, NFFT_INT *n, R *attained);
 
-/* Both at once: cap the goal at what the window can deliver, find the
- * smallest sufficient oversampling, round n up to the next even 5-smooth
- * size, re-derive and re-check m there.
+/* Both at once, for a problem with M nodes: cap the goal at what the window
+ * can deliver, then take the cheapest (n, m) over every even 5-smooth n in
+ * the band. Issue 02 added M and the cost ranking; before it, this minimised
+ * n and took whatever m that needed.
  * 1 = goal met, 0 = goal was below the reachable floor and the capped goal
  * was met instead, -1 = bad args. */
-int X(tune_plan)(NFFT_INT N, int adjoint, R goal,
+int X(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal,
                  NFFT_INT *n, int *m, R *attained);
 ```
 
@@ -184,7 +185,27 @@ actual error of the one geometry in front of it. `exp(-D*m)` with `D ≈ 4.4` at
 
 | issue | title | status |
 |---|---|---|
-| [01](issues/01-config-h-shadowing-guard.md) | Guard against `include/config.h` shadowing CMake builds | ready-for-agent |
-| [02](issues/02-cost-aware-tune-plan.md) | Take `M` and choose `(n, m)` by cost | ready-for-agent |
+| [01](issues/01-config-h-shadowing-guard.md) | Guard against `include/config.h` shadowing CMake builds | done |
+| [02](issues/02-cost-aware-tune-plan.md) | Take `M` and choose `(n, m)` by cost | done, two speed targets missed |
 
-Do 01 first — without it, any three-precision verification of 02 is untrustworthy.
+Both are done. §1 and §4 above describe the state before them; each issue's
+"Resolution" section carries what changed and what it measured. In short:
+
+- `X(tune_plan)` now takes `M` and ranks candidate pairs by
+  `n*log2(n) + (4/5)*M*(2m+2)`. The weight is an operation count, not a
+  measured constant — a fitted one would carry this host's cache behaviour
+  into the library.
+- Against the legacy geometry with an oracle cut-off: accuracy still 288/288,
+  overall median speedup 0.97x -> 1.02x, N-dominated 1.31x -> 1.35x,
+  M-dominated 0.77x -> 0.91x. The M-dominated shape still trails, by the one
+  extra `m` the upper-envelope error model costs.
+
+Open follow-ups, neither started:
+
+- A per-geometry error model, or an opt-in measured refinement of `m`. Either
+  would close the remaining gap against the oracle; both are larger than
+  issue 02 was.
+- The planner's own `pcost` in `kernel/nfft/nfft-nd.c` weights the node
+  convolution at 2/5 of an FFT butterfly, where the operation count says 4/5.
+  It decides which solver `NFFT_ESTIMATE` picks. Its own issue, not raised
+  yet.

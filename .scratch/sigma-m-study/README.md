@@ -104,22 +104,58 @@ constants it emits.
 ## The three entry points
 
 `Y(tune)` answers "what m at this geometry", `Y(tune_sigma)` answers "what
-oversampling for this accuracy", and `Y(tune_plan)` composes them into the
-call most users want:
+oversampling for this accuracy", and `Y(tune_plan)` answers "what pair for
+this problem", which needs the node count M as well:
 
 1. cap the goal at the best accuracy the window can reach -- the floor at the
    top of the band;
-2. find the smallest oversampling meeting the capped goal;
-3. round n up to the next even 5-smooth size, so the FFT runs at full speed
-   (`nsweep.c` measures why: a size with a prime factor above 13 costs about
-   3x one without);
-4. re-derive m at the size actually chosen, and check it, since the error is
-   not quite monotone in sigma at small m.
+2. walk every even 5-smooth n with sigma in [5/4, 4] -- only tens of them, and
+   the FFT runs at full speed on such a size (`nsweep.c` measures why: a size
+   with a prime factor above 13 costs about 3x one without);
+3. at each, take the smallest m reaching the capped goal, and keep the pair
+   that costs least.
 
-Step 3 uses `tune_next_smooth`, which enumerates every 3^b*5^c up to the bound
+The cost is `n*log2(n) + (4/5)*M*(2m+2)`: the FFT is O(n log n) and the node
+convolution O(M*(2m+2)), so more nodes argue for a larger grid and a smaller
+cut-off. The weight 4/5 is an operation count -- about `5*n*log2(n)` real
+operations for the FFT, four per window sample -- not a measurement, so the
+library does not carry a constant fitted to one machine. `costfit.c` checks
+the ranking it produces; see below.
+
+The legacy size `2*next_power_of_2(N)` is a power of two in [2N, 4N), so it is
+always one of the candidates and the answer is never rated worse than it.
+
+Step 2 uses `tune_next_smooth`, which enumerates every 3^b*5^c up to the bound
 and rounds each up by powers of two -- O(log^3 n), not an upward scan. Scanning
 would be near-linear: 5-smooth numbers thin out multiplicatively, so gaps near
 k grow like k/log^3 k.
+
+## The cost weight
+
+`costfit.c` times one transform over a grid of (N, n, m, M) that moves the two
+terms independently -- the head-to-head data cannot, since n and m move
+together there. `costfit.py` reports both a least-squares fit of the weight and
+the weight that ranks the most candidate pairs correctly.
+
+    sh run_costfit.sh <worktree-root> <out-dir> 0.02
+    cd .scratch/sigma-m-study && python3 costfit.py <out-dir>/costfit-*.csv
+
+27600 timings on one aarch64 host, per precision and direction, put the fitted
+weight between 0.93 and 1.7, and the best-ranking weight between 0.6 and 1.6.
+The ranking is flat across that whole range:
+
+| weight | pairs ordered as measured |
+|---|---|
+| 0.4 (the planner's `pcost`) | 90.4 % |
+| **0.8 (the operation count, used)** | **92.6 %** |
+| 1.0 | 92.7 % |
+| 1.5 | 92.2 % |
+| 3.0 | 89.8 % |
+
+Measured weights above the operation count are the scattered grid access
+costing more than its operation count says, and the adjoint scatter costing
+more than the forward gather. Both are properties of one machine's memory
+system, so neither is baked in.
 
 ## The n sweep
 
@@ -142,9 +178,13 @@ two.
 | `nsweep.c`, `run_nsweep.sh` | the fine-grained n sweep, accuracy and time |
 | `nanalyze.py`, `nsmooth.py` | summarise it; compare the ways of choosing n |
 | `nreport.py` | emits the JSON behind `nsweep-report.html` |
+| `costfit.c`, `run_costfit.sh` | the (N, n, m, M) timing grid behind the cost weight |
+| `costfit.py` | fits the weight and scores how well it ranks |
+| `compare.c`, `run_compare.sh` | the head-to-head against the legacy parameter choice |
+| `compare_report.py` | renders it into `docs/tuning-vs-legacy.md` |
 | `plantable.c`, `table.c` | print what the tuning entry points return |
 | `run_tests.sh` | build and run `checkall_ng` in one precision tree |
-| `data/*.csv.gz` | the measurements the constants were fitted to |
+| `data/*.csv.gz` | the measurements behind the constants, the weight and the comparison |
 | `nsweep-report.html` | the rendered n-sweep summary |
 
 Regenerating everything, from the worktree root:
@@ -153,4 +193,6 @@ Regenerating everything, from the worktree root:
 sh .scratch/sigma-m-study/run_sweeps.sh "$PWD" /tmp/sweeps 40
 cd .scratch/sigma-m-study && python3 constants.py /tmp/sweeps/sweep-*.csv
 sh .scratch/sigma-m-study/run_nsweep.sh "$PWD" /tmp/nsw 6 100
+sh .scratch/sigma-m-study/run_costfit.sh "$PWD" /tmp/cost 0.02
+cd .scratch/sigma-m-study && python3 costfit.py /tmp/cost/costfit-*.csv
 ```

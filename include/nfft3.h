@@ -991,21 +991,27 @@ NFFT_EXTERN int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, \
 NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, \
     NFFT_INT *n, R *attained); \
 /** \
- * Pick both the oversampled size and the cut-off in one call: the goal is \
- * first capped at the best accuracy this window can actually deliver, then \
- * the smallest sufficient oversampling is found, rounded up to the next even \
- * 5-smooth size so the FFT runs at full speed, and the cut-off re-derived \
- * and checked at the size actually chosen. \
+ * Pick both the oversampled size and the cut-off in one call, for a \
+ * transform of bandwidth N at M nodes: the goal is first capped at the best \
+ * accuracy this window can actually deliver, then every even 5-smooth size \
+ * in the range sigma = n/N of 5/4 to 4 is costed with the smallest cut-off \
+ * that reaches the goal there, and the cheapest pair is returned. \
  * \
- * `*n` is even and has no prime factor above 5. It may exceed 4*N slightly \
- * when the next such size overshoots; more oversampling is never worse. \
+ * M matters because the two costs pull against each other: the FFT is \
+ * O(n log n), the node convolution O(M*(2m+2)). At few nodes the cheapest \
+ * pair is the smallest grid with whatever cut-off it needs; at many nodes it \
+ * is worth paying for a larger grid to buy a smaller cut-off. The returned \
+ * `*n` is therefore non-decreasing in M. \
+ * \
+ * `*n` is even and has no prime factor above 5. It may exceed 4*N when only \
+ * a wider grid reaches the goal; more oversampling is never worse. \
  * \
  * Returns 1 if the chosen pair meets `goal`, 0 if `goal` was below what this \
  * window can reach and the capped goal was met instead, -1 on invalid \
  * arguments. `*attained` takes the predicted error at the chosen pair and \
  * may be NULL. \
  */ \
-NFFT_EXTERN int X(tune_plan)(NFFT_INT N, int adjoint, R goal, \
+NFFT_EXTERN int X(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
     NFFT_INT *n, int *m, R *attained);
 
 

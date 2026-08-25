@@ -89,6 +89,7 @@ def main():
 
     nd = [r for r in rows if r["shape"] == "N-dominated"]
     md = [r for r in rows if r["shape"] == "M-dominated"]
+    bl = [r for r in rows if r["shape"] == "balanced"]
     w("## Verdict")
     w("")
     w("**Accuracy: yes, consistently.** The tuner meets the goal in every one")
@@ -97,25 +98,52 @@ def main():
     w("API ships no way to find that `m`, so in practice the choice is between a")
     w("tuner that lands the accuracy and a guess that might not.")
     w("")
-    w("**Speed: no, not consistently -- it depends on how many nodes there are.**")
+    w("**Speed: it depends on how many nodes there are.**")
     w(
         f"With few nodes the tuner wins clearly ({med([r['speedup'] for r in nd]):.2f}x median, "
-        f"{sum(1 for r in nd if r['speedup'] > 1.0)}/{len(nd)} cases); with many nodes it loses "
-        f"({med([r['speedup'] for r in md]):.2f}x median, only "
+        f"{sum(1 for r in nd if r['speedup'] > 1.0)}/{len(nd)} cases); with many nodes it still "
+        f"trails ({med([r['speedup'] for r in md]):.2f}x median, "
         f"{sum(1 for r in md if r['speedup'] > 1.0)}/{len(md)} wins)."
     )
     w("")
-    w("The reason is visible in the table below: the tuner drives `n` down to")
-    w("about 0.62 of the legacy size, and pays for it with a cut-off 2 to 3")
-    w("larger. The FFT costs `O(n log n)` and the node convolution `O(M m)`, so")
-    w("shrinking `n` while growing `m` is a good trade exactly while the FFT")
-    w("dominates. Once `M` outgrows `N` it is the wrong trade.")
+    w("`tune_plan` takes the node count and picks the pair its cost model rates")
+    w("cheapest, `n*log2(n) + (4/5)*M*(2m+2)`, over every even 5-smooth `n` with")
+    w("sigma in [5/4, 4]. The legacy size is a power of two in that range, so it")
+    w("is always among the candidates. More nodes therefore buy a larger grid")
+    w("and a smaller cut-off, which is what the M-dominated shape wants.")
     w("")
-    w("`tune_plan` minimises the oversampling first and the cut-off second,")
-    w("which is a memory-first policy, not a time-first one. Making it")
-    w("time-optimal means giving it `M` and minimising `c1 n log n + c2 M m`")
-    w("over the pair instead of taking the smallest `n` that works.")
+    w("What remains is not the choice of pair but the error model. It is an")
+    w("upper envelope over every measured geometry, while the oracle uses the")
+    w("actual error of the one geometry in front of it, so the tuner hands out")
+    w("about one more `m` than needed -- see the headroom figures below. At the")
+    w("same `n` that alone costs `(2m+4)/(2m+2)`, and that is what is left in")
+    w("the M-dominated shape, where the convolution is the whole bill.")
+    w("Raising the cost weight does not recover it. On the double tree, a weight")
+    w("of 1.5 instead of 4/5 moves the M-dominated median by less than 0.01x,")
+    w("costs 0.10x in the N-dominated shape, and makes the worst case worse.")
     w("")
+    w("## Against the cost-blind policy")
+    w("")
+    w("The first version of `tune_plan` did not take `M`. It minimised `n` and")
+    w("then took the smallest `m` that worked there, which is a memory-first")
+    w("policy. Same 288 configurations, same host:")
+    w("")
+    w("| | cost-blind | cost-aware |")
+    w("|---|---|---|")
+    w("| overall median | 0.97x | "
+      f"{med([r['speedup'] for r in rows]):.2f}x |")
+    w("| N-dominated | 1.31x | "
+      f"{med([r['speedup'] for r in nd]):.2f}x |")
+    w("| balanced | 0.96x | "
+      f"{med([r['speedup'] for r in bl]):.2f}x |")
+    w("| M-dominated | 0.77x | "
+      f"{med([r['speedup'] for r in md]):.2f}x |")
+    w("| worst single case | 0.60x | "
+      f"{min([r['speedup'] for r in rows]):.2f}x |")
+    w("| goal met | 288/288 | "
+      f"{new_met}/{total} |")
+    w("")
+
     w("## By problem shape")
     w("")
     w("This is where the answer splits. `M` is the node count.")

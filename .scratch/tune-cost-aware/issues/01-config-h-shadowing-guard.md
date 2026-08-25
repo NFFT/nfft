@@ -1,6 +1,6 @@
 # 01 — Guard against `include/config.h` shadowing CMake builds
 
-Status: ready-for-agent
+Status: done
 
 ## The defect
 
@@ -130,3 +130,24 @@ distinct name in any message or comment so the two stay separable.
   no stale header is present.
 - The full Autotools `--enable-all` build still works (run it last, then delete
   `include/config.h`).
+
+## Resolution
+
+Three layers, all named "in-tree config.h guard" to keep them apart from
+`cmake/config-parity-check.sh`:
+
+- `cmake/nfft_intree_config_h.cmake` refuses to configure while
+  `include/config.h` exists. The same file runs as a `cmake -P` script from
+  the `nfft3_intree_config_h_guard` target, which the kernel targets depend
+  on, so it also fires when the file appears after configure.
+- `kernel/util/config_guard.c` compares the precision CMake configured
+  (`NFFT_CONFIG_GUARD_PRECISION`, set with `add_compile_definitions`) against
+  the one the `config.h` actually read selects, and `#error`s on a mismatch.
+  Autotools leaves the macro unset and compiles the file to nothing.
+- `NFFT_ALLOW_INTREE_CONFIG_H=ON` turns all of it off.
+
+Verified: configure refused with the file present; a build of an
+already-configured float tree refused after the file appeared; the guard
+translation unit `#error`ed when compiled by hand against a double
+`config.h` in a float tree; the escape hatch configured cleanly; and all
+three precision trees configure, build and pass `checkall_ng` without it.

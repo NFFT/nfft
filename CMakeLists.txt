@@ -18,6 +18,8 @@ option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
 option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
 option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
+option(NFFT_ALLOW_INTREE_CONFIG_H
+       "Build even when a generated include/config.h sits in the source tree" OFF)
 
 # Benchmarks: a single knob that both selects the CodSpeed measurement mode and
 # (when not "off") enables the benchmark build. The mode is baked in at build time
@@ -99,17 +101,28 @@ if(NFFT_ENABLE_MATLAB_THREADS AND NOT NFFT_ENABLE_OPENMP)
   message(FATAL_ERROR "NFFT_ENABLE_MATLAB_THREADS requires NFFT_ENABLE_OPENMP=ON.")
 endif()
 
+# A generated include/config.h in the source tree shadows this build's own and
+# silently changes its precision. Refuse to configure while one is there.
+include(nfft_intree_config_h)
+
 # Precision fixed per build tree.
 if(NFFT_ENABLE_FLOAT)
   set(NFFT_PREC_SUFFIX "f")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_SINGLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 1)
 elseif(NFFT_ENABLE_LONG_DOUBLE)
   set(NFFT_PREC_SUFFIX "l")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_LONG_DOUBLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 3)
 else()
   set(NFFT_PREC_SUFFIX "")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_DOUBLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 2)
 endif()
+
+# kernel/util/config_guard.c compares this against the precision the config.h
+# it actually reads selects, and #errors when the two disagree.
+add_compile_definitions(NFFT_CONFIG_GUARD_PRECISION=${NFFT_CONFIG_GUARD_PRECISION})
 
 message(STATUS "NFFT3 ${PROJECT_VERSION}${NFFT_VERSION_TYPE}: precision suffix='${NFFT_PREC_SUFFIX}', window=${NFFT_WINDOW}")
 
@@ -213,6 +226,19 @@ include(nfft_programs)  # nfft_add_serial_program / nfft_add_omp_program helpers
 
 # Kernel always built.
 add_subdirectory(kernel)
+
+# The stale header can also appear after this tree was configured, which is the
+# way it usually happens. Re-check on every build, before the kernel compiles.
+if(NOT NFFT_ALLOW_INTREE_CONFIG_H)
+  add_custom_target(nfft3_intree_config_h_guard
+    COMMAND ${CMAKE_COMMAND} -DNFFT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+            -P ${PROJECT_SOURCE_DIR}/cmake/nfft_intree_config_h.cmake
+    COMMENT "Checking for a stale in-tree include/config.h")
+  add_dependencies(nfft3 nfft3_intree_config_h_guard)
+  if(TARGET nfft3_omp)
+    add_dependencies(nfft3_omp nfft3_intree_config_h_guard)
+  endif()
+endif()
 
 # Optional benchmarks (built unless NFFT_BENCHMARK_MODE is "off").
 if(NOT NFFT_BENCHMARK_MODE STREQUAL "off")

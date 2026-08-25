@@ -401,11 +401,12 @@ void Y(check_tune_plan)(void)
     for (ig = 0; ig < sizeof(goals) / sizeof(goals[0]); ig++)
       for (dir = 0; dir <= 1; dir++) {
         const INT N = Ns[iN];
+        const INT M = 2 * N;
         const R goal = goals[ig];
         INT n = 0;
         int m = 0;
         R attained = K(0.0);
-        const int rc = Y(tune_plan)(N, (int)dir, goal, &n, &m, &attained);
+        const int rc = Y(tune_plan)(N, M, (int)dir, goal, &n, &m, &attained);
         int m_chk = 0;
 
         CU_ASSERT(rc >= 0);
@@ -427,7 +428,7 @@ void Y(check_tune_plan)(void)
          * O(N*M) direct NDFT, so only the small geometries are run: what is
          * under test is the pair, not the bandwidth. */
         if (goal >= K(1.0e4) * eps && N <= (INT)128) {
-          const R err = measure(N, n, 2 * N, m, (int)dir);
+          const R err = measure(N, n, M, m, (int)dir);
           if (err > goal)
             printf("\ntune_plan(N=" __D__ ", %s, goal=" __FE__ ") -> n=" __D__
                    " m=%d but err=" __FE__ "\n",
@@ -447,10 +448,15 @@ void Y(check_tune_plan_capped)(void)
   R attained = K(0.0);
 
   /* Bad arguments. */
-  CU_ASSERT_EQUAL(Y(tune_plan)(0, TUNE_FWD, K(1.0e-6), &n, &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune_plan)(64, TUNE_FWD, K(0.0), &n, &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune_plan)(64, TUNE_FWD, K(1.0e-6), 0, &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune_plan)(64, TUNE_FWD, K(1.0e-6), &n, 0, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(0, 64, TUNE_FWD, K(1.0e-6), &n, &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(64, 0, TUNE_FWD, K(1.0e-6), &n, &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(0.0), &n, &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(1.0e-6), 0, &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(1.0e-6), &n, 0, &attained),
+                  -1);
 
   for (iN = 0; iN < sizeof(Ns) / sizeof(Ns[0]); iN++)
     for (dir = 0; dir <= 1; dir++) {
@@ -460,8 +466,8 @@ void Y(check_tune_plan_capped)(void)
       R a_cap = K(0.0), a_loose = K(0.0);
 
       /* Far below anything reachable: capped, not refused. */
-      CU_ASSERT_EQUAL(Y(tune_plan)(N, (int)dir, eps / K(1.0e6), &n_cap, &m_cap,
-                                   &a_cap),
+      CU_ASSERT_EQUAL(Y(tune_plan)(N, N, (int)dir, eps / K(1.0e6), &n_cap,
+                                   &m_cap, &a_cap),
                       0);
       CU_ASSERT(is_even_smooth5(n_cap));
       CU_ASSERT(m_cap >= 1);
@@ -472,15 +478,51 @@ void Y(check_tune_plan_capped)(void)
         INT n2 = 0;
         int m2 = 0;
         R a2 = K(0.0);
-        CU_ASSERT_EQUAL(Y(tune_plan)(N, (int)dir, a_cap, &n2, &m2, &a2), 1);
+        CU_ASSERT_EQUAL(Y(tune_plan)(N, N, (int)dir, a_cap, &n2, &m2, &a2), 1);
         CU_ASSERT(a2 <= a_cap);
       }
 
       /* A loose goal costs no more oversampling than a tight one. */
-      CU_ASSERT_EQUAL(Y(tune_plan)(N, (int)dir, K(1.0e-2), &n_loose, &m_loose,
-                                   &a_loose),
+      CU_ASSERT_EQUAL(Y(tune_plan)(N, N, (int)dir, K(1.0e-2), &n_loose,
+                                   &m_loose, &a_loose),
                       1);
       CU_ASSERT(n_loose <= n_cap);
       CU_ASSERT(m_loose <= m_cap);
     }
+}
+
+/* The node count is what makes the choice a trade-off: the FFT costs
+ * O(n log n) and the convolution O(M*(2m+2)), so more nodes can only ever
+ * argue for a larger grid and a smaller cut-off, never the reverse. Pinned
+ * here on the predicted pair alone, free of timing noise. */
+void Y(check_tune_plan_cost)(void)
+{
+  static const INT Ns[] = {64, 100, 243, 256, 512};
+  static const R goals[] = {K(1.0e-2), K(1.0e-6), K(1.0e-10)};
+  static const INT Ms[] = {1, 16, 256, 4096, 65536, 1048576};
+  size_t iN, ig, dir, iM;
+
+  for (iN = 0; iN < sizeof(Ns) / sizeof(Ns[0]); iN++)
+    for (ig = 0; ig < sizeof(goals) / sizeof(goals[0]); ig++)
+      for (dir = 0; dir <= 1; dir++) {
+        const INT N = Ns[iN];
+        const R goal = goals[ig];
+        INT prev_n = 0;
+        int prev_m = 0;
+
+        for (iM = 0; iM < sizeof(Ms) / sizeof(Ms[0]); iM++) {
+          INT n = 0;
+          int m = 0;
+          R attained = K(0.0);
+
+          if (Y(tune_plan)(N, Ms[iM], (int)dir, goal, &n, &m, &attained) < 0)
+            continue;
+          if (prev_n != 0) {
+            CU_ASSERT(n >= prev_n);
+            CU_ASSERT(m <= prev_m);
+          }
+          prev_n = n;
+          prev_m = m;
+        }
+      }
 }
