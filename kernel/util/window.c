@@ -52,3 +52,47 @@ const char *Y(get_window_name)()
 {
   return STRINGIZE(WINDOW_NAME);
 }
+
+/* Kaiser-Bessel window. lg_peak = log I0(m b), lg_tail = lg_peak - m b. */
+
+R Y(kb_phi_hut)(R b, R lg_peak, R lg_tail, R m, R n, R k)
+{
+  const R xpk = m * b;
+  const R t = K(2.0) * KPI * k / n;
+  const R rs = SQRT(b * b - t * t);
+  const R a = m * rs;
+
+  if (a > NFFT_I0_ASYMP_SPLIT && xpk > NFFT_I0_ASYMP_SPLIT)
+  {
+    /* I0(a)/I0(xpk) with a - xpk rationalized, so small t does not cancel */
+    const R da = -m * t * t / (rs + b);
+    return EXP(da + Y(bessel_i0_logtail)(a) - lg_tail);
+  }
+
+  return Y(bessel_i0_scaled)(a, lg_peak);
+}
+
+R Y(kb_phi)(R b, R lg_peak, R lg_tail, R m, R n, R x)
+{
+  const R nx = n * x;
+  const R a = m * m - nx * nx;
+
+  if (a > K(0.0))
+  {
+    const R ra = SQRT(a);
+    const R u = b * ra;
+    /* sinh(u) exp(-lg_peak) as exp(u - m b - lg_tail) (1 - exp(-2u)) / 2, with
+     * u - m b rationalized: no overflow for large u, none of the cancellation
+     * a difference of exponentials has for small u */
+    const R du = -b * nx * nx / (ra + m);
+    return K(-0.5) * EXP(du - lg_tail) * EXPM1(K(-2.0) * u) / (KPI * ra);
+  }
+
+  if (a < K(0.0))
+  {
+    const R rma = SQRT(-a);
+    return SIN(b * rma) * EXP(-lg_peak) / (KPI * rma);
+  }
+
+  return (b / KPI) * EXP(-lg_peak);
+}

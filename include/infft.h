@@ -255,20 +255,30 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(n,k,d) (Y(bessel_i0)((R)(ths->m) * SQRT(ths->b[d] * ths->b[d] - (K(2.0) * KPI * (R)(k) / (R)(n)) * (K(2.0) * KPI * (R)(k) / (R)(n)))))
-  #define PHI(n,x,d) (  (((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) > K(0.0)) \
-                      ?   SINH(ths->b[d] * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
-                        / (KPI * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
-                      :   ((((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) < K(0.0)) \
-                        ?   SIN(ths->b[d] * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
-                          / (KPI * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
-                        : ths->b[d] / KPI))
+  /* PHI and PHI_HUT both carry the factor exp(-log I0(m b)) so that PHI_HUT(n,0,ax) 
+   * is normalized to 1. Deconvolution divides by PHI_HUT and convolution multiplies 
+   * by PHI, so the factor cancels and the transform is unchanged.
+   *
+   * ths->b holds 3 * ths->d reals: b per axis, log I0(m b), and log I0(m b) - m b. */
+  #define KB_B(ax) (ths->b[(ax)])
+  #define KB_LG_PEAK(ax) (ths->b[(ths->d) + (ax)])
+  #define KB_LG_TAIL(ax) (ths->b[2 * (ths->d) + (ax)])
+  #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_LG_PEAK(ax), \
+                             KB_LG_TAIL(ax), (R)(ths->m), (R)(n), (R)(k)))
+  #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_PEAK(ax), KB_LG_TAIL(ax), \
+                         (R)(ths->m), (R)(n), (R)(x)))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)((size_t)(ths->d) * sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(3 * ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
-        ths->b[WINDOW_idx] = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
+      { \
+        R WINDOW_b = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
+        R WINDOW_xpk = ((R)(ths->m)) * WINDOW_b; \
+        ths->b[WINDOW_idx] = WINDOW_b; \
+        ths->b[ths->d + WINDOW_idx] = Y(bessel_i0_log)(WINDOW_xpk); \
+        ths->b[2 * ths->d + WINDOW_idx] = Y(bessel_i0_logtail)(WINDOW_xpk); \
+      } \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -292,6 +302,11 @@ typedef ptrdiff_t INT;
 
 /* window.c */
 INT Y(m2K)(const INT m);
+
+/* Kaiser-Bessel window scaled by exp(-lg_peak), with lg_peak = log I0(m b) and
+ * lg_tail = lg_peak - m b, so that phi_hut(0) == 1. */
+R Y(kb_phi_hut)(R b, R lg_peak, R lg_tail, R m, R n, R k);
+R Y(kb_phi)(R b, R lg_peak, R lg_tail, R m, R n, R x);
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0
@@ -1480,7 +1495,18 @@ R Y(lambda)(R z, R eps);
 R Y(lambda2)(R mu, R nu);
 
 /* bessel_i0.c: */
-R Y(bessel_i0)(R x);
+
+/* Argument above which I0 switches to its asymptotic exp(x)/sqrt(x) form. */
+#if MANT_DIG == 113
+#  define NFFT_I0_ASYMP_SPLIT K(25.0)
+#else
+#  define NFFT_I0_ASYMP_SPLIT K(15.0)
+#endif
+
+R Y(bessel_i0)(R x);                    /* I0(x) */
+R Y(bessel_i0_log)(R x);                /* log I0(x), overflow-free for large x */
+R Y(bessel_i0_scaled)(R x, R lg_peak);  /* I0(x) * exp(-lg_peak), never forms I0(x) */
+R Y(bessel_i0_logtail)(R x);            /* log I0(x) - x, cancellation-free */
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);
