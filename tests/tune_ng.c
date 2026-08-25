@@ -139,7 +139,7 @@ void Y(check_tune_meets_goal)(void)
         for (dir = 0; dir <= 1; dir++) {
           int m = 0;
           R attained = K(0.0);
-          const int rc = Y(tune)(N, n, (int)dir, goal, &m, &attained);
+          const int rc = Y(tune)(N, n, 2 * N, (int)dir, goal, &m, &attained);
           R err;
           CU_ASSERT(rc >= 0);
           if (rc != 1)
@@ -179,7 +179,8 @@ void Y(check_tune_unreachable)(void)
         int m = -1;
         R attained = K(-1.0);
         /* Below eps no cut-off can help, whatever the oversampling. */
-        const int rc = Y(tune)(N, n, (int)dir, eps / K(1.0e3), &m, &attained);
+        const int rc =
+             Y(tune)(N, n, 2 * N, (int)dir, eps / K(1.0e3), &m, &attained);
         CU_ASSERT_EQUAL(rc, 0);
         CU_ASSERT(m >= 1);
         CU_ASSERT(m <= (int)(n / 2 - 1));
@@ -193,7 +194,8 @@ void Y(check_tune_unreachable)(void)
           int m_lo = 0;
           R a_lo = K(0.0);
           const R loosened = attained * (K(1.0) + K(1.0e-6));
-          CU_ASSERT_EQUAL(Y(tune)(N, n, (int)dir, loosened, &m_lo, &a_lo), 1);
+          CU_ASSERT_EQUAL(
+               Y(tune)(N, n, 2 * N, (int)dir, loosened, &m_lo, &a_lo), 1);
           CU_ASSERT(m_lo <= m);
           CU_ASSERT(a_lo <= loosened);
         }
@@ -225,7 +227,8 @@ void Y(check_tune_geometries)(void)
         for (ig = sizeof(goals) / sizeof(goals[0]); ig-- > 0;) {
           int m = 0;
           R attained = K(0.0);
-          const int rc = Y(tune)(N, n, (int)dir, goals[ig], &m, &attained);
+          const int rc =
+               Y(tune)(N, n, 2 * N, (int)dir, goals[ig], &m, &attained);
           CU_ASSERT(rc >= 0);
           CU_ASSERT(m >= 1);
           CU_ASSERT(m <= (int)(n / 2 - 1));
@@ -251,7 +254,7 @@ void Y(check_tune_geometries)(void)
             n++;
           if (n <= N)
             n = N + 2;
-          rc = Y(tune)(N, n, (int)dir, goals[ig], &m, &attained);
+          rc = Y(tune)(N, n, 2 * N, (int)dir, goals[ig], &m, &attained);
           if (rc != 1)
             continue;
           if (prev >= 0)
@@ -268,31 +271,39 @@ void Y(check_tune_bad_args)(void)
   R attained = K(-7.0);
 
   /* n must exceed N. */
-  CU_ASSERT_EQUAL(Y(tune)(64, 64, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune)(64, 32, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 64, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 32, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
   /* sigma below the 5/4 floor is refused, exactly at the boundary. */
-  CU_ASSERT_EQUAL(Y(tune)(64, 66, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune)(64, 79, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune)(4, 4, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 66, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 79, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune)(4, 4, 128, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
   /* Non-positive geometry. */
-  CU_ASSERT_EQUAL(Y(tune)(0, 128, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune)(-8, 128, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(0, 128, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune)(-8, 128, 128, TUNE_FWD, K(1.0e-6), &m, &attained),
+                  -1);
   /* Non-positive goal. */
-  CU_ASSERT_EQUAL(Y(tune)(64, 128, TUNE_FWD, K(0.0), &m, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune)(64, 128, TUNE_FWD, K(-1.0), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 128, 0, TUNE_FWD, K(1.0e-6), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 128, 128, TUNE_FWD, K(0.0), &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 128, 128, TUNE_FWD, K(-1.0), &m, &attained), -1);
   /* No output slot. */
-  CU_ASSERT_EQUAL(Y(tune)(64, 128, TUNE_FWD, K(1.0e-6), 0, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 128, 128, TUNE_FWD, K(1.0e-6), 0, &attained),
+                  -1);
   /* Refusals leave the caller's outputs untouched. */
   CU_ASSERT_EQUAL(m, 4321);
   CU_ASSERT(attained == K(-7.0));
 
   /* sigma exactly 5/4 is accepted. */
-  CU_ASSERT(Y(tune)(64, 80, TUNE_FWD, K(1.0e-6), &m, &attained) >= 0);
+  CU_ASSERT(Y(tune)(64, 80, 128, TUNE_FWD, K(1.0e-6), &m, &attained) >= 0);
 
   /* attained is optional. */
-  CU_ASSERT(Y(tune)(64, 128, TUNE_FWD, K(1.0e-6), &m, 0) >= 0);
+  CU_ASSERT(Y(tune)(64, 128, 128, TUNE_FWD, K(1.0e-6), &m, 0) >= 0);
   CU_ASSERT(m >= 1);
-  CU_ASSERT_EQUAL(Y(tune)(64, 128, TUNE_ADJ, K(1.0e-6), &m, 0) >= 0, 1);
+  CU_ASSERT_EQUAL(Y(tune)(64, 128, 128, TUNE_ADJ, K(1.0e-6), &m, 0) >= 0, 1);
 }
 
 void Y(check_tune_sigma_agrees)(void)
@@ -309,7 +320,7 @@ void Y(check_tune_sigma_agrees)(void)
         const R goal = goals[ig];
         INT n = 0;
         R attained = K(0.0);
-        const int rc = Y(tune_sigma)(N, (int)dir, goal, &n, &attained);
+        const int rc = Y(tune_sigma)(N, 2 * N, (int)dir, goal, &n, &attained);
         int m = 0;
         R m_att = K(0.0);
 
@@ -327,13 +338,14 @@ void Y(check_tune_sigma_agrees)(void)
 
         CU_ASSERT(attained <= goal);
         /* The whole point: tune must agree that this n works. */
-        CU_ASSERT_EQUAL(Y(tune)(N, n, (int)dir, goal, &m, &m_att), 1);
+        CU_ASSERT_EQUAL(Y(tune)(N, n, 2 * N, (int)dir, goal, &m, &m_att), 1);
         CU_ASSERT(m >= 1);
         CU_ASSERT(m_att <= goal);
 
         /* And it is the smallest such n on the even grid. */
         if (n - 2 > N && (INT)4 * (n - 2) >= (INT)5 * N)
-          CU_ASSERT_EQUAL(Y(tune)(N, n - 2, (int)dir, goal, &m, &m_att), 0);
+          CU_ASSERT_EQUAL(Y(tune)(N, n - 2, 2 * N, (int)dir, goal, &m, &m_att),
+                          0);
       }
 }
 
@@ -347,18 +359,22 @@ void Y(check_tune_sigma_limits)(void)
   size_t dir;
 
   /* Bad arguments. */
-  CU_ASSERT_EQUAL(Y(tune_sigma)(0, TUNE_FWD, K(1.0e-6), &n, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune_sigma)(N, TUNE_FWD, K(0.0), &n, &attained), -1);
-  CU_ASSERT_EQUAL(Y(tune_sigma)(N, TUNE_FWD, K(1.0e-6), 0, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_sigma)(0, 128, TUNE_FWD, K(1.0e-6), &n, &attained),
+                  -1);
+  CU_ASSERT_EQUAL(Y(tune_sigma)(N, 0, TUNE_FWD, K(1.0e-6), &n, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_sigma)(N, 128, TUNE_FWD, K(0.0), &n, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_sigma)(N, 128, TUNE_FWD, K(1.0e-6), 0, &attained),
+                  -1);
 
   for (dir = 0; dir <= 1; dir++) {
     /* Below eps nothing reaches the goal, at any oversampling. */
-    CU_ASSERT_EQUAL(Y(tune_sigma)(N, (int)dir, eps / K(1.0e3), &n, &attained),
-                    0);
+    CU_ASSERT_EQUAL(
+         Y(tune_sigma)(N, 2 * N, (int)dir, eps / K(1.0e3), &n, &attained), 0);
     CU_ASSERT_EQUAL(n, (INT)4 * N);
 
     /* A loose goal is met at the bottom of the band. */
-    CU_ASSERT_EQUAL(Y(tune_sigma)(N, (int)dir, K(1.0e-2), &n, &attained), 1);
+    CU_ASSERT_EQUAL(
+         Y(tune_sigma)(N, 2 * N, (int)dir, K(1.0e-2), &n, &attained), 1);
     CU_ASSERT(n <= (INT)2 * N);
   }
 
@@ -368,8 +384,8 @@ void Y(check_tune_sigma_limits)(void)
     R err;
     if (goal < K(1.0e4) * eps)
       continue;
-    CU_ASSERT_EQUAL(Y(tune_sigma)(N, (int)dir, goal, &n, &attained), 1);
-    CU_ASSERT_EQUAL(Y(tune)(N, n, (int)dir, goal, &m, 0), 1);
+    CU_ASSERT_EQUAL(Y(tune_sigma)(N, 2 * N, (int)dir, goal, &n, &attained), 1);
+    CU_ASSERT_EQUAL(Y(tune)(N, n, 2 * N, (int)dir, goal, &m, 0), 1);
     err = measure(N, n, 2 * N, m, (int)dir);
     CU_ASSERT(err <= goal);
   }
@@ -421,7 +437,7 @@ void Y(check_tune_plan)(void)
 
         CU_ASSERT(attained <= goal);
         /* tune must agree that this cut-off works at this size. */
-        CU_ASSERT_EQUAL(Y(tune)(N, n, (int)dir, goal, &m_chk, 0), 1);
+        CU_ASSERT_EQUAL(Y(tune)(N, n, 2 * N, (int)dir, goal, &m_chk, 0), 1);
         CU_ASSERT(m_chk <= m);
 
         /* And the pair has to survive a real transform. The oracle is an
@@ -452,7 +468,8 @@ void Y(check_tune_plan_capped)(void)
                   -1);
   CU_ASSERT_EQUAL(Y(tune_plan)(64, 0, TUNE_FWD, K(1.0e-6), &n, &m, &attained),
                   -1);
-  CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(0.0), &n, &m, &attained), -1);
+  CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(0.0), &n, &m, &attained),
+                  -1);
   CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(1.0e-6), 0, &m, &attained),
                   -1);
   CU_ASSERT_EQUAL(Y(tune_plan)(64, 64, TUNE_FWD, K(1.0e-6), &n, 0, &attained),
@@ -491,38 +508,163 @@ void Y(check_tune_plan_capped)(void)
     }
 }
 
-/* The node count is what makes the choice a trade-off: the FFT costs
- * O(n log n) and the convolution O(M*(2m+2)), so more nodes can only ever
- * argue for a larger grid and a smaller cut-off, never the reverse. Pinned
- * here on the predicted pair alone, free of timing noise. */
+/* The pair is the cheapest of those that reach the goal.
+ *
+ * Pinned against the model itself rather than against a clock: for every even
+ * 5-smooth grid in the band, Y(tune) says what cut-off it needs, and the pair
+ * Y(tune_plan) returns must cost no more than the best of those -- up to the
+ * documented tie window, which lets it take a richer power of two for the
+ * same cut-off.
+ *
+ * Trap for anyone tightening this: n does not grow with M, and must not be
+ * asserted to. The error measure is relative, so the accuracy the goal demands
+ * moves with the node count as well -- the adjoint error falls like M^-1/2, so
+ * more nodes make a goal easier and a smaller grid can carry it. Only the cost
+ * ordering is a property of the policy.
+ */
 void Y(check_tune_plan_cost)(void)
 {
   static const INT Ns[] = {64, 100, 243, 256, 512};
   static const R goals[] = {K(1.0e-2), K(1.0e-6), K(1.0e-10)};
   static const INT Ms[] = {1, 16, 256, 4096, 65536, 1048576};
+  const R w = K(0.8); /* TUNE_NODE_WEIGHT */
+  const R tie = K(1.1); /* TUNE_FFT_TIE */
   size_t iN, ig, dir, iM;
 
   for (iN = 0; iN < sizeof(Ns) / sizeof(Ns[0]); iN++)
     for (ig = 0; ig < sizeof(goals) / sizeof(goals[0]); ig++)
-      for (dir = 0; dir <= 1; dir++) {
-        const INT N = Ns[iN];
-        const R goal = goals[ig];
-        INT prev_n = 0;
-        int prev_m = 0;
-
+      for (dir = 0; dir <= 1; dir++)
         for (iM = 0; iM < sizeof(Ms) / sizeof(Ms[0]); iM++) {
-          INT n = 0;
-          int m = 0;
-          R attained = K(0.0);
+          const INT N = Ns[iN], M = Ms[iM];
+          const R goal = goals[ig];
+          INT n = 0, cand;
+          int m = 0, m_chk = 0;
+          R attained = K(0.0), best = K(-1.0), chosen;
 
-          if (Y(tune_plan)(N, Ms[iM], (int)dir, goal, &n, &m, &attained) < 0)
+          if (Y(tune_plan)(N, M, (int)dir, goal, &n, &m, &attained) != 1)
             continue;
-          if (prev_n != 0) {
-            CU_ASSERT(n >= prev_n);
-            CU_ASSERT(m <= prev_m);
+
+          /* The cut-off has to be the one tune() derives at that grid. */
+          CU_ASSERT_EQUAL(Y(tune)(N, n, M, (int)dir, goal, &m_chk, 0), 1);
+          CU_ASSERT_EQUAL(m_chk, m);
+
+          for (cand = 2; cand <= 4 * N; cand += 2) {
+            int cm = 0;
+            R cost;
+            if (!is_even_smooth5(cand) || 4 * cand < 5 * N)
+              continue;
+            if (Y(tune)(N, cand, M, (int)dir, goal, &cm, 0) != 1)
+              continue;
+            cost = (R)cand * LOG((R)cand) / LOG(K(2.0))
+                   + w * (R)M * (R)(2 * cm + 2);
+            if (best < K(0.0) || cost < best)
+              best = cost;
           }
-          prev_n = n;
-          prev_m = m;
+          if (best < K(0.0))
+            continue;
+          chosen = (R)n * LOG((R)n) / LOG(K(2.0)) + w * (R)M * (R)(2 * m + 2);
+          if (chosen > tie * best)
+            printf("\ntune_plan(N=" __D__ ", M=" __D__ ", %s, goal=" __FE__
+                   ") -> n=" __D__ " m=%d costs " __FE__ " against "
+                   "best " __FE__ "\n",
+                   N, M, dir ? "adjoint" : "forward", goal, n, m, chosen,
+                   best);
+          CU_ASSERT(chosen <= tie * best);
         }
-      }
+}
+
+/* The measured refinement never returns a cut-off that misses the goal, and
+ * never returns a larger one than the model proposed. */
+void Y(check_tune_refine)(void)
+{
+  static const INT Ns[] = {128, 243, 256};
+  static const R goals[] = {K(1.0e-4), K(1.0e-8), K(1.0e-11)};
+  static const INT Mfac[] = {1, 2}; /* M = N/4 and M = 2N */
+  const R eps = Y(float_property)(NFFT_EPSILON);
+  size_t iN, ig, dir, iM;
+  R *x;
+  int shrank = 0, ran = 0;
+
+  x = (R *)Y(malloc)((size_t)1024 * sizeof(R));
+  Y(srand48)(97);
+  Y(vrand_shifted_unit_double)(x, 1024);
+
+  for (iN = 0; iN < sizeof(Ns) / sizeof(Ns[0]); iN++)
+    for (ig = 0; ig < sizeof(goals) / sizeof(goals[0]); ig++)
+      for (iM = 0; iM < sizeof(Mfac) / sizeof(Mfac[0]); iM++)
+        for (dir = 0; dir <= 1; dir++) {
+          const INT N = Ns[iN];
+          const INT M = Mfac[iM] == 1 ? N / 4 : 2 * N;
+          const R goal = goals[ig];
+          INT n = 0;
+          int m = 0, m0;
+          R attained = K(0.0), measured = K(0.0);
+
+          if (goal < K(1.0e4) * eps)
+            continue;
+          if (Y(tune_plan)(N, M, (int)dir, goal, &n, &m, &attained) != 1)
+            continue;
+          m0 = m;
+          ran++;
+
+          CU_ASSERT_EQUAL(
+               Y(tune_refine)(N, M, (int)dir, goal, x, n, &m, &measured), 1);
+          CU_ASSERT(m >= 1);
+          CU_ASSERT(m <= m0);
+          CU_ASSERT(measured <= goal);
+          if (m < m0)
+            shrank++;
+
+          /* And the refined cut-off really does hold up in a fresh transform. */
+          {
+            const R err = measure(N, n, M, m, (int)dir);
+            if (err > goal)
+              printf("\ntune_refine(N=" __D__ ", %s, goal=" __FE__ ") -> m=%d "
+                     "but err=" __FE__ "\n",
+                     N, dir ? "adjoint" : "forward", goal, m, err);
+          }
+        }
+
+  /* One cut-off is worth a factor exp(D) of error, 30 to 90 across the band,
+   * so whether any is removable depends on the headroom the model happened to
+   * leave, and in some precisions none is. Given room there must be: a tight
+   * pair refined against a goal a million times looser has to shrink. */
+  {
+    const INT N = 128, M = 256;
+    INT n = 0;
+    int m = 0, m_loose;
+    R att = K(0.0), meas = K(0.0);
+
+    if (Y(tune_plan)(N, M, TUNE_FWD, K(1.0e-6), &n, &m, &att) == 1) {
+      m_loose = m;
+      CU_ASSERT_EQUAL(Y(tune_refine)(N, M, TUNE_FWD, K(1.0e-6) * K(1.0e6), x,
+                                     n, &m_loose, &meas),
+                      1);
+      CU_ASSERT(m_loose < m);
+      CU_ASSERT(meas <= K(1.0e-6) * K(1.0e6));
+    }
+  }
+  (void)shrank;
+  (void)ran;
+
+  /* Bad arguments. */
+  {
+    INT n = 256;
+    int m = 4;
+    CU_ASSERT_EQUAL(Y(tune_refine)(0, 128, TUNE_FWD, K(1.0e-4), x, n, &m, 0),
+                    -1);
+    CU_ASSERT_EQUAL(Y(tune_refine)(128, 0, TUNE_FWD, K(1.0e-4), x, n, &m, 0),
+                    -1);
+    CU_ASSERT_EQUAL(Y(tune_refine)(128, 128, TUNE_FWD, K(0.0), x, n, &m, 0),
+                    -1);
+    CU_ASSERT_EQUAL(Y(tune_refine)(128, 128, TUNE_FWD, K(1.0e-4), 0, n, &m, 0),
+                    -1);
+    CU_ASSERT_EQUAL(Y(tune_refine)(128, 128, TUNE_FWD, K(1.0e-4), x, n, 0, 0),
+                    -1);
+    m = 0;
+    CU_ASSERT_EQUAL(Y(tune_refine)(128, 128, TUNE_FWD, K(1.0e-4), x, n, &m, 0),
+                    -1);
+  }
+
+  Y(free)(x);
 }

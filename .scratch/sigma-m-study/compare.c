@@ -11,6 +11,7 @@
  * depends on (N, M, x) but not on n or m and is computed once per case.
  *
  * One CSV row per (case, goal, direction). Built once per precision.
+ * argv[1] is the repetition count, argv[2] turns the measured refinement on.
  */
 
 #include <complex.h>
@@ -176,6 +177,7 @@ int main(int argc, char **argv)
   const int n_goals = 3;
 #endif
   const int reps = (argc > 1) ? atoi(argv[1]) : 50;
+  const int refine = (argc > 2) ? atoi(argv[2]) : 0;
   int iN, ish, ig, dir;
 
   printf("prec,N,M,shape,goal,dir,n_new,m_new,err_new,t_new,"
@@ -261,6 +263,16 @@ int main(int argc, char **argv)
 
           if (NF(tune_plan)(N, M, dir, goal, &n_new, &m_new, &att) < 0)
             continue;
+          /* Opt-in measured refinement, when asked for: the cost model says
+           * the node convolution is the bigger half of the bill, so a
+           * needless cut-off is worth paying an O(N*M) probe to remove. */
+          if (refine)
+          {
+            const double fft = (double)n_new * log2((double)n_new);
+            const double conv = 0.8 * (double)M * (double)(2 * m_new + 2);
+            if (conv >= 0.3 * (fft + conv))
+              NF(tune_refine)(N, M, dir, goal, x_, n_new, &m_new, 0);
+          }
           err_new = run(n_new, m_new, dir, &t_new, reps);
 
           /* Legacy geometry, with an oracle search for its cut-off. */

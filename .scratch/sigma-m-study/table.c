@@ -47,7 +47,7 @@ int main(void)
       {
         int m = 0;
         R att = 0;
-        int rc = NF(tune)(N, n, dir, (R)GOALS[ig], &m, &att);
+        int rc = NF(tune)(N, n, 2 * N, dir, (R)GOALS[ig], &m, &att);
         if (rc == 1)
           printf(" %8d", m);
         else if (rc == 0)
@@ -69,11 +69,11 @@ int main(void)
     {
       NFFT_INT n = 0;
       R att = 0;
-      int rc = NF(tune_sigma)(N, dir, (R)GOALS[ig], &n, &att);
+      int rc = NF(tune_sigma)(N, 2 * N, dir, (R)GOALS[ig], &n, &att);
       int m = 0;
       if (rc == 1)
       {
-        NF(tune)(N, n, dir, (R)GOALS[ig], &m, 0);
+        NF(tune)(N, n, 2 * N, dir, (R)GOALS[ig], &m, 0);
         printf(" %8.3f m=%-3d", (double)n / (double)N, m);
       }
       else

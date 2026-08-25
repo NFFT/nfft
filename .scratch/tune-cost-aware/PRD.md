@@ -23,11 +23,13 @@ in `kernel/nfft/tune.c`. All three are **1-D and Kaiser-Bessel only**, analytic
 ```c
 /* Smallest cut-off m reaching `goal` at a given geometry.
  * 1 = met, 0 = not met (*m is the best available), -1 = bad args. */
-int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, int *m, R *attained);
+int X(tune)(NFFT_INT N, NFFT_INT n, NFFT_INT M, int adjoint, R goal,
+            int *m, R *attained);
 
 /* Smallest oversampled size n at which some m reaches `goal`.
  * 1 = reachable, 0 = not even at sigma=4, -1 = bad args. */
-int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, NFFT_INT *n, R *attained);
+int X(tune_sigma)(NFFT_INT N, NFFT_INT M, int adjoint, R goal,
+                  NFFT_INT *n, R *attained);
 
 /* Both at once, for a problem with M nodes: cap the goal at what the window
  * can deliver, then take the cheapest (n, m) over every even 5-smooth n in
@@ -37,7 +39,17 @@ int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, NFFT_INT *n, R *attained);
  * was met instead, -1 = bad args. */
 int X(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal,
                  NFFT_INT *n, int *m, R *attained);
+
+/* Opt-in: measure against a direct NDFT on the caller's nodes and step the
+ * cut-off down while `goal` still holds. Costs O(N*M) once.
+ * 1 = met, 0 = the starting m does not meet it in measurement, -1 = bad. */
+int X(tune_refine)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, const R *x,
+                   NFFT_INT n, int *m, R *attained);
 ```
+
+Every one of them takes `M`: both error measures are relative to a norm over
+the other index, so the accuracy on offer depends on the geometry and not on
+`sigma` alone.
 
 `adjoint` picks the error measure — 0 for `max_j |f_j - s_j| / ||f_hat||_1`,
 non-zero for `max_k |fhat_k - s_k| / ||f||_1`. These are the measures
@@ -78,11 +90,15 @@ Facts worth knowing before touching this:
 - **`sigma` is floored at 5/4**, checked in exact integer arithmetic
   (`4*n >= 5*N`); below that the fit is out of range and the attainable
   accuracy collapses.
-- `TUNE_M_MAX` is 40, the top of the fitted range.
+- `TUNE_M_MAX` is 32, the top of the fitted range.
 - The fitted constants are an **upper envelope**: they were raised until the
-  formula dominates every one of 4674 measured points. So the model
-  systematically over-estimates error, which is why it hands out roughly one
-  more `m` than a measured search would. See §4.
+  formula dominates every one of ~29000 measured points. It still
+  over-estimates, but far less than before the geometry terms: it picks the
+  measured cut-off in about three cases in four.
+- The cut-off is **quantised**. One step of `m` is a factor `exp(D)` of error,
+  30 to 90 across the band, so a cut-off is only ever wasted when the headroom
+  exceeds that. This bounds what any refinement can return, and makes a safety
+  margin cheap.
 
 ### The study
 
@@ -90,11 +106,13 @@ Facts worth knowing before touching this:
 is the entry point. Data is gzipped CSV under `data/`. Regenerate with:
 
 ```sh
-sh .scratch/sigma-m-study/run_sweeps.sh "$PWD" /tmp/sweeps 40
-cd .scratch/sigma-m-study && python3 constants.py /tmp/sweeps/sweep-*.csv
+sh .scratch/sigma-m-study/run_gsweep.sh "$PWD" /tmp/gs 32 5
+cd .scratch/sigma-m-study && python3 gfit.py /tmp/gs/gsweep-*.csv
 ```
 
-`constants.py` prints the constants above plus the validation numbers.
+`gfit.py` prints the constants above plus the validation numbers, and takes
+`--holdout` to validate outside the fitted box. `run_sweeps.sh`/`constants.py`
+are the older `M = 2N` pair, kept for the pre-geometry constants.
 `selectform.py` picks the model form by validation rather than in-sample fit —
 use it if you change the functional form, because a form that fits better
 in-sample can pick worse `m` (an `m^w` term in the roundoff branch fit well and
@@ -120,8 +138,10 @@ count. Expect `exit=0 cunit_failures=0` in all three.
 
 The tuning tests are the `tune` suite in `tests/tune_ng.c`, registered in
 `tests/check_ng.c`: `meets_goal`, `unreachable`, `geometries`, `bad_args`,
-`sigma_agrees`, `sigma_limits`, `plan`, `plan_capped`. `meets_goal` and `plan`
-run real transforms and compare against the planner's own direct NDFT.
+`sigma_agrees`, `sigma_limits`, `plan`, `plan_capped`, `plan_cost`, `refine`.
+`meets_goal`, `plan` and `refine` run real transforms and compare against the
+planner's own direct NDFT. `plan_cost` pins the cost policy: the pair returned
+must cost no more than the best candidate, within the tie window.
 
 Autotools must keep working too — but read issue 01 before running it in the
 same tree, it will silently corrupt the CMake builds.
@@ -144,6 +164,10 @@ same tree, it will silently corrupt the CMake builds.
 4. **`select.py` is a stdlib module name.** The model-form selector is
    `selectform.py` for that reason.
 5. Work in a git worktree; `.claude/worktrees/<name>` off `feature/tune-m`.
+6. **The returned `n` is not monotone in `M`, deliberately.** More nodes make
+   an adjoint goal easier (the error falls like `M^-1/2`), so a smaller grid
+   can carry it. An earlier test asserted monotonicity; it was wrong once the
+   model became geometry-aware.
 
 ## 4. The measured baseline
 
@@ -186,7 +210,8 @@ actual error of the one geometry in front of it. `exp(-D*m)` with `D ≈ 4.4` at
 | issue | title | status |
 |---|---|---|
 | [01](issues/01-config-h-shadowing-guard.md) | Guard against `include/config.h` shadowing CMake builds | done |
-| [02](issues/02-cost-aware-tune-plan.md) | Take `M` and choose `(n, m)` by cost | done, two speed targets missed |
+| [02](issues/02-cost-aware-tune-plan.md) | Take `M` and choose `(n, m)` by cost | done |
+| [03](issues/03-geometry-aware-error-model.md) | Geometry-aware error model, opt-in measured refinement | done |
 
 Both are done. §1 and §4 above describe the state before them; each issue's
 "Resolution" section carries what changed and what it measured. In short:
@@ -195,16 +220,20 @@ Both are done. §1 and §4 above describe the state before them; each issue's
   `n*log2(n) + (4/5)*M*(2m+2)`. The weight is an operation count, not a
   measured constant — a fitted one would carry this host's cache behaviour
   into the library.
-- Against the legacy geometry with an oracle cut-off: accuracy still 288/288,
-  overall median speedup 0.97x -> 1.02x, N-dominated 1.31x -> 1.35x,
-  M-dominated 0.77x -> 0.91x. The M-dominated shape still trails, by the one
-  extra `m` the upper-envelope error model costs.
+- The error model is geometry-aware (issue 03). `X(tune)` and
+  `X(tune_sigma)` take `M` as well, and `X(tune_refine)` is the opt-in
+  measured half.
+- Against the legacy geometry with an oracle cut-off: accuracy 288/288
+  throughout, overall median speedup 0.97x -> 1.04x, M-dominated
+  0.77x -> 0.95x. What still trails is not the cut-off; see issue 03.
 
-Open follow-ups, neither started:
+Issue 03 did both follow-ups issue 02 listed. What is left:
 
-- A per-geometry error model, or an opt-in measured refinement of `m`. Either
-  would close the remaining gap against the oracle; both are larger than
-  issue 02 was.
+- **Hand the planner a shortlist to time.** The remaining M-dominated gap is
+  FFT size quality and the wall-clock price of an FFT against a node
+  convolution, neither of which belongs in an analytic model. The tuner
+  should offer the planner its best few pairs and let measured planning pick.
+  Not raised as an issue yet.
 - The planner's own `pcost` in `kernel/nfft/nfft-nd.c` weights the node
   convolution at 2/5 of an FFT butterfly, where the operation count says 4/5.
   It decides which solver `NFFT_ESTIMATE` picks. Its own issue, not raised

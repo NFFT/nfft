@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Turn the tuned-vs-legacy comparison into a Markdown summary.
 
-Usage: compare_report.py out.md compare-*.csv
+Usage: compare_report.py out.md <csv>... [--refined <csv>...]
+
+The optional second set is the same comparison with the opt-in measured
+refinement on, and gets its own section.
 """
 
 import csv
@@ -55,7 +58,13 @@ def med(v):
 
 def main():
     out_path = sys.argv[1]
-    rows = load(sys.argv[2:])
+    argv = sys.argv[2:]
+    ref_rows = []
+    if "--refined" in argv:
+        i = argv.index("--refined")
+        ref_rows = load(argv[i + 1:])
+        argv = argv[:i]
+    rows = load(argv)
     L = []
     w = L.append
 
@@ -106,43 +115,110 @@ def main():
         f"{sum(1 for r in md if r['speedup'] > 1.0)}/{len(md)} wins)."
     )
     w("")
-    w("`tune_plan` takes the node count and picks the pair its cost model rates")
-    w("cheapest, `n*log2(n) + (4/5)*M*(2m+2)`, over every even 5-smooth `n` with")
-    w("sigma in [5/4, 4]. The legacy size is a power of two in that range, so it")
-    w("is always among the candidates. More nodes therefore buy a larger grid")
-    w("and a smaller cut-off, which is what the M-dominated shape wants.")
+    w("`tune_plan` takes the node count and picks the pair its cost model")
+    w("rates cheapest, `n*log2(n) + (4/5)*M*(2m+2)`, over every even 5-smooth")
+    w("`n` with sigma in [5/4, 4]. The legacy size is a power of two in that")
+    w("range, so it is always among the candidates.")
     w("")
-    w("What remains is not the choice of pair but the error model. It is an")
-    w("upper envelope over every measured geometry, while the oracle uses the")
-    w("actual error of the one geometry in front of it, so the tuner hands out")
-    w("about one more `m` than needed -- see the headroom figures below. At the")
-    w("same `n` that alone costs `(2m+4)/(2m+2)`, and that is what is left in")
-    w("the M-dominated shape, where the convolution is the whole bill.")
-    w("Raising the cost weight does not recover it. On the double tree, a weight")
-    w("of 1.5 instead of 4/5 moves the M-dominated median by less than 0.01x,")
-    w("costs 0.10x in the N-dominated shape, and makes the worst case worse.")
+    w("The error model is geometry-aware: both measures are relative, so the")
+    w("forward error falls like `N^-0.58` and rises slowly with `M`, and the")
+    w("adjoint the other way round. Without those terms the envelope is not")
+    w("just loose but wrong away from `M = 2N` -- the model this replaced")
+    w("misses the goal outright in 185 of 15226 swept geometries.")
     w("")
-    w("## Against the cost-blind policy")
+    w("### Where the remaining M-dominated gap sits")
     w("")
-    w("The first version of `tune_plan` did not take `M`. It minimised `n` and")
-    w("then took the smallest `m` that worked there, which is a memory-first")
-    w("policy. Same 288 configurations, same host:")
-    w("")
-    w("| | cost-blind | cost-aware |")
+    md_same = [r for r in md if r["m_new"] == r["m_leg"]]
+    md_pow2 = [r for r in md_same if r["n_new"] & (r["n_new"] - 1) == 0]
+    md_other = [r for r in md_same if r["n_new"] & (r["n_new"] - 1) != 0]
+    md_more = [r for r in md if r["m_new"] > r["m_leg"]]
+    w("| M-dominated subset | cases | median |")
     w("|---|---|---|")
-    w("| overall median | 0.97x | "
-      f"{med([r['speedup'] for r in rows]):.2f}x |")
-    w("| N-dominated | 1.31x | "
-      f"{med([r['speedup'] for r in nd]):.2f}x |")
-    w("| balanced | 0.96x | "
-      f"{med([r['speedup'] for r in bl]):.2f}x |")
-    w("| M-dominated | 0.77x | "
-      f"{med([r['speedup'] for r in md]):.2f}x |")
-    w("| worst single case | 0.60x | "
-      f"{min([r['speedup'] for r in rows]):.2f}x |")
-    w("| goal met | 288/288 | "
-      f"{new_met}/{total} |")
+    if md_pow2:
+        w(f"| oracle's `m` already, `n` a power of two | {len(md_pow2)} | "
+          f"{med([r['speedup'] for r in md_pow2]):.2f}x |")
+    if md_other:
+        w(f"| oracle's `m` already, other `n` | {len(md_other)} | "
+          f"{med([r['speedup'] for r in md_other]):.2f}x |")
+    if md_more:
+        w(f"| more `m`, at a different `n` | {len(md_more)} | "
+          f"{med([r['speedup'] for r in md_more]):.2f}x |")
     w("")
+    w("Both residuals are the same thing: an analytic model cannot know this")
+    w("machine's relative speed of an FFT against a node convolution. Where")
+    w("the tuner already has the oracle's cut-off and lands on a power of")
+    w("two, it is exactly on par. Where it lands on another 5-smooth size it")
+    w("pays for that size's codelets, which no operation count predicts --")
+    w("`n = 432` measures 1.7x the time of `n = 512` in float though it is")
+    w("the smaller grid. Where it takes an extra cut-off, the cost model")
+    w("preferred a smaller grid on an operation count that undervalues the")
+    w("convolution in wall time.")
+    w("")
+    w("Neither is fixable in the model without fitting it to one machine.")
+    w("A wider power-of-two preference was tried and costs more than it")
+    w("returns: at a 1.25 window every shape's median falls. Choosing among")
+    w("candidate pairs on measured time is what measured planning is for.")
+    w("")
+
+    rn = [r for r in ref_rows if r["shape"] == "N-dominated"]
+    rb = [r for r in ref_rows if r["shape"] == "balanced"]
+    rm = [r for r in ref_rows if r["shape"] == "M-dominated"]
+    w("## How it got here")
+    w("")
+    w("Four steps, all on the same 288 configurations and the same host. The")
+    w("first column is the original policy: minimise `n`, then take whatever")
+    w("cut-off that grid needs, with no `M` anywhere.")
+    w("")
+    w("| | cost-blind | + tie-break | + geometry model | + refinement |")
+    w("|---|---|---|---|---|")
+    w("| overall median | 0.97x | 1.04x | "
+      f"{med([r['speedup'] for r in rows]):.2f}x | "
+      + (f"{med([r['speedup'] for r in ref_rows]):.2f}x |" if ref_rows else "-- |"))
+    w("| N-dominated | 1.31x | 1.33x | "
+      f"{med([r['speedup'] for r in nd]):.2f}x | "
+      + (f"{med([r['speedup'] for r in rn]):.2f}x |" if ref_rows else "-- |"))
+    w("| balanced | 0.96x | 1.03x | "
+      f"{med([r['speedup'] for r in bl]):.2f}x | "
+      + (f"{med([r['speedup'] for r in rb]):.2f}x |" if ref_rows else "-- |"))
+    w("| M-dominated | 0.77x | 0.92x | "
+      f"{med([r['speedup'] for r in md]):.2f}x | "
+      + (f"{med([r['speedup'] for r in rm]):.2f}x |" if ref_rows else "-- |"))
+    w("| goal met | 288/288 | 288/288 | "
+      f"{new_met}/{total} | "
+      + (f"{sum(r['new_met'] for r in ref_rows)}/{len(ref_rows)} |" if ref_rows else "-- |"))
+    w("")
+    w("The tie-break prefers a power-of-two-richer grid when two need the")
+    w("same cut-off and cost within 10 % of each other. The geometry model")
+    w("adds the `N` and `M` powers. The refinement is opt-in and measured.")
+    w("")
+
+    if ref_rows:
+        w("## With the measured refinement")
+        w("")
+        w("`nfft_tune_refine` measures the transform against a direct NDFT on")
+        w("the caller's own nodes and steps the cut-off down while the goal")
+        w("still holds. It is opt-in and costs one O(N*M) probe, so the driver")
+        w("calls it only where the cost model says the node convolution is at")
+        w("least 30 % of the bill -- below that a needless cut-off is too")
+        w("cheap to be worth removing.")
+        w("")
+        w("| | model only | with refinement |")
+        w("|---|---|---|")
+        for lbl, a, b in (("overall median", rows, ref_rows),
+                          ("N-dominated", nd, rn),
+                          ("balanced", bl, rb),
+                          ("M-dominated", md, rm)):
+            w(f"| {lbl} | {med([r['speedup'] for r in a]):.2f}x | "
+              f"{med([r['speedup'] for r in b]):.2f}x |")
+        w(f"| goal met | {new_met}/{total} | "
+          f"{sum(r['new_met'] for r in ref_rows)}/{len(ref_rows)} |")
+        w("")
+        w("It is judged on eight probe vectors and keeps a factor of two in")
+        w("hand, because at fixed nodes the error still spans a median 1.55x")
+        w("and up to 6x across input draws -- shaving to a single probe does")
+        w("miss the goal on the next vector. Over 3840 fresh draws on 96")
+        w("refined geometries, none exceeded the goal.")
+        w("")
 
     w("## By problem shape")
     w("")

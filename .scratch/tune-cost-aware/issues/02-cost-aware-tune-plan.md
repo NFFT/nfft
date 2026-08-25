@@ -1,6 +1,6 @@
 # 02 — Take `M` and choose `(n, m)` by cost
 
-Status: done, with two acceptance targets missed
+Status: done; see also issue 03, which followed from it
 
 ## The defect
 
@@ -183,3 +183,10 @@ The worst cases share one shape — the model demands `m+1` where the oracle
 measured `m` to be enough, and with many nodes the convolution is the whole
 bill. Closing it needs a per-geometry error model or an opt-in measured
 refinement, both out of scope here.
+
+
+## Follow-up: the geometry-aware model and the measured refinement
+
+Recorded in [03](03-geometry-aware-error-model.md). The short version: the
+cost policy above was not what held the M-dominated shape back. Two other
+things were, and one of them was a defect.

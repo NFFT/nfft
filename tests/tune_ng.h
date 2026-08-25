@@ -47,7 +47,11 @@ void Y(check_tune_plan)(void);
  * capped answer is still honoured. */
 void Y(check_tune_plan_capped)(void);
 
-/* More nodes never argue for a smaller grid or a larger cut-off. */
+/* The pair is the cheapest of those that reach the goal. */
 void Y(check_tune_plan_cost)(void);
+
+/* The measured refinement only ever takes cut-offs off, and never the one the
+ * goal needs. */
+void Y(check_tune_refine)(void);
 
 #endif

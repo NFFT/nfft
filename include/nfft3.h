@@ -958,9 +958,13 @@ NFFT_EXTERN void X(set_timelimit)(double seconds); \
 int X(get_window_id)(); \
 /** \
  * Smallest Kaiser-Bessel cut-off m reaching `goal`, for a 1-D transform of \
- * bandwidth N on an oversampled grid of size n. `adjoint` picks the error \
- * measure: 0 for max_j |f_j - s_j| / ||f_hat||_1, non-zero for \
+ * bandwidth N at M nodes on an oversampled grid of size n. `adjoint` picks \
+ * the error measure: 0 for max_j |f_j - s_j| / ||f_hat||_1, non-zero for \
  * max_k |fhat_k - s_k| / ||f||_1. Requires sigma = n/N of at least 5/4. \
+ * \
+ * Both measures are relative, so both depend on the geometry and not on \
+ * sigma alone: the forward error falls roughly like N^-1/2 and rises slowly \
+ * with M, and the adjoint the other way round. M is therefore required. \
  * \
  * Low oversampling caps the accuracy no m can beat, and caps it hardest for \
  * the widest mantissa: at sigma = 5/4 a double-precision transform bottoms \
@@ -972,12 +976,13 @@ int X(get_window_id)(); \
  * arguments, leaving the outputs alone. `*attained` takes the predicted \
  * error at `*m` and may be NULL. \
  */ \
-NFFT_EXTERN int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, \
-    int *m, R *attained); \
+NFFT_EXTERN int X(tune)(NFFT_INT N, NFFT_INT n, NFFT_INT M, int adjoint, \
+    R goal, int *m, R *attained); \
 /** \
  * Smallest oversampled size n at which some m reaches `goal`, given the \
- * bandwidth N. Feed the answer to X(tune) for that m; the two agree by \
- * construction, so the returned n always admits a solution. \
+ * bandwidth N and the node count M. Feed the answer to X(tune) with the \
+ * same M for that m; the two agree by construction, so the returned n \
+ * always admits a solution. \
  * \
  * `*n` is even and lies in the range sigma = n/N of 5/4 to 4. Rounding it \
  * further up, to a power of two or another size the FFT likes, is always \
@@ -988,7 +993,7 @@ NFFT_EXTERN int X(tune)(NFFT_INT N, NFFT_INT n, int adjoint, R goal, \
  * is then 4*N and `*attained` the best accuracy there -- and -1 on invalid \
  * arguments. `*attained` may be NULL. \
  */ \
-NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, \
+NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
     NFFT_INT *n, R *attained); \
 /** \
  * Pick both the oversampled size and the cut-off in one call, for a \
@@ -997,11 +1002,14 @@ NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, \
  * in the range sigma = n/N of 5/4 to 4 is costed with the smallest cut-off \
  * that reaches the goal there, and the cheapest pair is returned. \
  * \
- * M matters because the two costs pull against each other: the FFT is \
- * O(n log n), the node convolution O(M*(2m+2)). At few nodes the cheapest \
- * pair is the smallest grid with whatever cut-off it needs; at many nodes it \
- * is worth paying for a larger grid to buy a smaller cut-off. The returned \
- * `*n` is therefore non-decreasing in M. \
+ * M enters twice. It sets the cost balance -- the FFT is O(n log n), the \
+ * node convolution O(M*(2m+2)), so at many nodes it is worth paying for a \
+ * larger grid to buy a smaller cut-off -- and it sets the accuracy on offer, \
+ * since both error measures are relative to a norm over the other index. \
+ * The second effect can pull the other way: the adjoint error falls like \
+ * M^-1/2, so more nodes make a goal easier and can let a smaller grid carry \
+ * it. The returned pair is the cheapest that reaches the goal, not a \
+ * monotone function of M. \
  * \
  * `*n` is even and has no prime factor above 5. It may exceed 4*N when only \
  * a wider grid reaches the goal; more oversampling is never worse. \
@@ -1012,7 +1020,34 @@ NFFT_EXTERN int X(tune_sigma)(NFFT_INT N, int adjoint, R goal, \
  * may be NULL. \
  */ \
 NFFT_EXTERN int X(tune_plan)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
-    NFFT_INT *n, int *m, R *attained);
+    NFFT_INT *n, int *m, R *attained); \
+/** \
+ * Refine the cut-off by measurement, on the caller's own nodes `x`. \
+ * \
+ * X(tune_plan) predicts from a model fitted as an upper envelope over every \
+ * geometry, so it hands out roughly one cut-off more than the problem in \
+ * front of it needs. No formula can do better: at a fixed geometry the error \
+ * still varies by a factor of a few from one set of nodes to another. This \
+ * measures instead -- it runs the transform against a direct NDFT on `x` and \
+ * steps `*m` down while `goal` still holds, so the result is as small a \
+ * cut-off as the problem actually admits. \
+ * \
+ * Pass the pair X(tune_plan) returned. Costs one O(N*M) direct transform \
+ * plus one fast transform per cut-off tried, hence opt-in: worth it when the \
+ * plan is reused, and worth most when the node convolution dominates the \
+ * cost, which is where a needless cut-off is dearest. It measures \
+ * arithmetic, not time, so it is as machine-independent as the transform. \
+ * \
+ * Accuracy is judged on one random probe vector, in the measure the model \
+ * predicts: the max output error over the l_1 norm of the input. \
+ * \
+ * Returns 1 if `*m` meets `goal` in measurement, 0 if no cut-off up to the \
+ * largest this grid allows does -- `*m` is then the best measured -- and -1 \
+ * on invalid arguments. `*attained` takes the measured error and may be \
+ * NULL. \
+ */ \
+NFFT_EXTERN int X(tune_refine)(NFFT_INT N, NFFT_INT M, int adjoint, R goal, \
+    const R *x, NFFT_INT n, int *m, R *attained);
 
 
 NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
