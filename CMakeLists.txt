@@ -103,13 +103,21 @@ endif()
 if(NFFT_ENABLE_FLOAT)
   set(NFFT_PREC_SUFFIX "f")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_SINGLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 1)
 elseif(NFFT_ENABLE_LONG_DOUBLE)
   set(NFFT_PREC_SUFFIX "l")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_LONG_DOUBLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 3)
 else()
   set(NFFT_PREC_SUFFIX "")
   set(NFFT_PRECISION_MACRO "NFFT_PRECISION_DOUBLE")
+  set(NFFT_CONFIG_GUARD_PRECISION 2)
 endif()
+
+# kernel/util/config_guard.c compares this against the precision the config.h
+# it actually reads selects, and #errors when the two disagree. That is the
+# invariant the angle include and the include order below exist to hold.
+add_compile_definitions(NFFT_CONFIG_GUARD_PRECISION=${NFFT_CONFIG_GUARD_PRECISION})
 
 message(STATUS "NFFT3 ${PROJECT_VERSION}${NFFT_VERSION_TYPE}: precision suffix='${NFFT_PREC_SUFFIX}', window=${NFFT_WINDOW}")
 

@@ -1,6 +1,6 @@
 # Core kernel sources, always built.
 set(NFFT_KERNEL_SOURCES
-  util/assert.c util/bessel_i0.c util/bspline.c util/damp.c util/error.c
+  util/config_guard.c util/assert.c util/bessel_i0.c util/bspline.c util/damp.c util/error.c
   util/float.c util/int.c util/lambda.c util/malloc.c util/print.c util/rand.c
   util/sinc.c util/sort.c util/thread.c util/time.c util/vector1.c
   util/vector2.c util/vector3.c util/version.c util/window.c
@@ -37,12 +37,17 @@ function(nfft_configure_library tgt outname)
     VERSION 4.0.3        # libtool -version-info 4:3:0 -> current.age.revision
     SOVERSION 0
     EXPORT_NAME "${outname}")
+  # The generated directory goes first: infft.h includes <config.h>, and the
+  # source include/ can hold a config.h left by an in-tree Autotools configure.
+  # Whichever directory comes first on the -I line wins, so this build's own
+  # header has to precede it. kernel/util/config_guard.c fails the compile if
+  # this ordering is ever lost.
+  target_include_directories(${tgt} BEFORE PRIVATE
+      ${NFFT_GENERATED_INCLUDE_DIR})   # build/: config.h + ticks.h
   target_include_directories(${tgt}
     PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-      ${NFFT_GENERATED_INCLUDE_DIR})   # build/: config.h + ticks.h
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   if(UNIX)
     target_link_libraries(${tgt} PUBLIC m)  # Add math library.
   endif()
