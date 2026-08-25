@@ -955,7 +955,35 @@ NFFT_EXTERN void X(forget_wisdom)(void); \
  *  to all kinds (NFFT/NFCT/NFST) sharing this  wisdom store */ \
 NFFT_EXTERN void X(set_timelimit)(double seconds); \
 /** Return the compile-time-selected window as an NFFT_WINDOW_* ordinal. */ \
-int X(get_window_id)();
+int X(get_window_id)(); \
+/** \
+ * Pick the oversampled size and the window cut-off for a 1-D Kaiser-Bessel \
+ * transform of bandwidth N at M nodes, from the ladder \
+ * `n = 2^j * next_power_of_2(N)` with j in {0, 1, 2}. \
+ * \
+ * `*n` is always a power of two. Rung 1 is the legacy default grid \
+ * `2*next_power_of_2(N)`, so the answer is never rated dearer than that; \
+ * rung 0 is offered only when N sits more than a quarter above a power of \
+ * two, the 5/4 oversampling floor. Which rung wins turns on M: the FFT costs \
+ * O(n log n) and the node convolution O(M*(2m+2)), so many nodes argue for a \
+ * wider grid and a smaller cut-off. \
+ * \
+ * `adjoint` picks the error measure, 0 for max_j |f_j - s_j| / ||f_hat||_1 \
+ * and non-zero for max_k |fhat_k - s_k| / ||f||_1. Both are relative, so M \
+ * is required: the forward error falls roughly like N^-1/2 and rises slowly \
+ * with M, the adjoint the other way round. \
+ * \
+ * Low oversampling caps the accuracy no cut-off can beat, hardest for the \
+ * widest mantissa. Goals below that cap are met as closely as the ladder \
+ * allows rather than refused. \
+ * \
+ * Returns 1 if the chosen pair meets `goal`, 0 if `goal` was below what this \
+ * window can reach and the capped goal was met instead, -1 on invalid \
+ * arguments. `*attained` takes the predicted error and may be NULL. \
+ */ \
+NFFT_EXTERN int X(tune_plan_dyadic)(NFFT_INT N, NFFT_INT M, int adjoint, \
+    R goal, NFFT_INT *n, int *m, R *attained); \
+
 
 
 NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)

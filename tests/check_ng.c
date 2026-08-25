@@ -33,10 +33,11 @@
 #include "conv.h"
 #include "fast_native.h"
 #include "nfft_ng.h"
+#include "tune_ng.h"
 
 int main(void) {
   CU_pSuite util, planner_suite, plan_suite, window_suite, deconv_suite,
-      conv_suite, fast_native_suite, nfft_ng_suite;
+      conv_suite, fast_native_suite, nfft_ng_suite, tune_suite;
   CU_initialize_registry();
 #ifdef _OPENMP
   CU_set_output_filename("CUnitAutomated_ng_threads");
@@ -162,6 +163,11 @@ int main(void) {
   CU_add_test(fast_native_suite, "4d_adjoint", Y(check_fast_native_4d_adjoint));
   CU_add_test(fast_native_suite, "window_select", Y(check_fast_native_window_select));
   CU_add_test(fast_native_suite, "window_accuracy", Y(check_fast_native_window_accuracy));
+
+  tune_suite = CU_add_suite("tune", 0, 0);
+  CU_add_test(tune_suite, "dyadic_plan", Y(check_tune_dyadic_plan));
+  CU_add_test(tune_suite, "dyadic_cost", Y(check_tune_dyadic_cost));
+  CU_add_test(tune_suite, "dyadic_capped", Y(check_tune_dyadic_capped));
 
   nfft_ng_suite = CU_add_suite("nfft_ng", 0, 0);
   CU_add_test(nfft_ng_suite, "nfft_ng_1d_file", Y(check_nfft_ng_1d_file));
