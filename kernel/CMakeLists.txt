@@ -30,12 +30,16 @@ function(nfft_configure_library tgt outname)
     VERSION 4.0.3        # libtool -version-info 4:3:0 -> current.age.revision
     SOVERSION 0
     EXPORT_NAME "${outname}")
+  # The generated directory goes first: infft.h includes <config.h>, and the
+  # source include/ can hold a config.h left by an in-tree Autotools configure.
+  # Whichever directory comes first on the -I line wins, so this build's own
+  # header has to precede it.
+  target_include_directories(${tgt} BEFORE PRIVATE
+      ${NFFT_GENERATED_INCLUDE_DIR})   # build/: config.h + ticks.h
   target_include_directories(${tgt}
     PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-      ${NFFT_GENERATED_INCLUDE_DIR})   # build/: config.h + ticks.h
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   if(UNIX)
     target_link_libraries(${tgt} PUBLIC m)  # Add math library.
   endif()
