@@ -27,7 +27,7 @@ def _f32(v):
     return struct.unpack("f", struct.pack("f", v))[0]
 
 
-def _draw_inputs(module, kind, d, N, M, rng):
+def _draw_inputs(module, kind, d, N, M, rng, variant=None):
     """Reproducible inputs. Nodes and coefficients are drawn as single-precision
     (float) values: a float is exactly representable in float, double, long double,
     and __float128, so the C reader reproduces the input bit-for-bit at *every*
@@ -35,7 +35,7 @@ def _draw_inputs(module, kind, d, N, M, rng):
     summation error). Summation itself is done at the configured high precision."""
     lo, hi = (-0.5, 0.5) if module == "nfft" else (0.0, 0.5)
     x = [tuple(mpmath.mpf(_f32(rng.uniform(lo, hi))) for _ in range(d)) for _ in range(M)]
-    count = T.nn(module, N) if kind == "trafo" else M
+    count = T.nn(module, N, variant) if kind == "trafo" else M
     if _is_complex(module):
         coeff = [mpmath.mpc(_f32(rng.uniform(-1, 1)), _f32(rng.uniform(-1, 1))) for _ in range(count)]
     else:
@@ -47,20 +47,20 @@ def _gen_module(module, precision, seed, data_dir):
     mpmath.mp.dps = precision
     is_c = _is_complex(module)
     for kind in G.KINDS:
-        for (d, N, M) in G.GRIDS[module]:
+        for (d, N, M, variant) in G.GRIDS[module]:
             # Deterministic per-file seed so a single file regenerates identically
             # regardless of iteration order. random.Random(str) uses a stable
             # internal hash (NOT PYTHONHASHSEED), so this is reproducible across
             # processes — unlike the builtin hash() of a tuple.
-            rng = random.Random("%d:%s" % (seed, G.basename(module, kind, d, N, M)))
-            x, coeff = _draw_inputs(module, kind, d, N, M, rng)
+            rng = random.Random("%d:%s" % (seed, G.basename(module, kind, d, N, M, variant)))
+            x, coeff = _draw_inputs(module, kind, d, N, M, rng, variant)
             if kind == "trafo":
                 f_hat = coeff
-                f = T.trafo(module, N, M, x, f_hat)
+                f = T.trafo(module, N, M, x, f_hat, variant)
             else:
                 f = coeff
-                f_hat = T.adjoint(module, N, M, x, f)
-            path = os.path.join(data_dir, G.basename(module, kind, d, N, M) + ".txt")
+                f_hat = T.adjoint(module, N, M, x, f, variant)
+            path = os.path.join(data_dir, G.basename(module, kind, d, N, M, variant) + ".txt")
             # trafo: f_hat is the (float-drawn) input, f the computed output;
             # adjoint: the roles swap. Inputs get trailing zeros stripped.
             IO.write_testcase(path, d, N, M, x, f_hat, f,
@@ -87,6 +87,11 @@ def main(argv=None):
         with open(hpath, "w") as fp:
             fp.write(REG.render_header(m))
         print("wrote", hpath)
+        if m == "nfft":
+            npath = os.path.join(args.header_dir, "nfft_native_testcases.h")
+            with open(npath, "w") as fp:
+                fp.write(REG.render_native_header())
+            print("wrote", npath)
 
     # EXTRA_DIST always reflects all modules (the file lists every module's data).
     mk = os.path.join(args.data_dir, "Makefile.am")

@@ -4,9 +4,16 @@ set(NFFT_KERNEL_SOURCES
   util/float.c util/int.c util/lambda.c util/malloc.c util/print.c util/rand.c
   util/sinc.c util/sort.c util/thread.c util/time.c util/vector1.c
   util/vector2.c util/vector3.c util/version.c util/window.c
-  nfft/nfft.c
+  planner/md5.c planner/print.c planner/printers.c planner/scan.c
+  planner/scanners.c planner/primes.c planner/solver.c
+  planner/solvtab.c planner/planner.c planner/tensor.c
+  planner/problem.c planner/plan.c planner/theplanner.c planner/timer.c
+  nfft/nfft.c nfft/problem.c nfft/xcheck.c nfft/ndft.h nfft/ndft-1d.c nfft/ndft-nd.c nfft/nfft-nd.c nfft/rnk0.c nfft/conf.c
+  nfft/plan.c nfft/api.c
   nfct/nfct.c
   nfst/nfst.c
+  conv/conv.c conv/solver.c conv/conv-1d.c conv/conv-2d.c conv/conv-3d.c conv/conv-nd.c
+  deconv/deconv.c deconv/solver.c deconv/deconv-1d.c deconv/deconv-2d.c deconv/deconv-3d.c deconv/deconv-nd.c
   solver/solver.c)
 
 # Add double-precision-only modules, maybe.

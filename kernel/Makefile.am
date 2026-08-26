@@ -79,7 +79,7 @@ else
   LIB_FPT_THREADS=
 endif
 
-SUBDIRS = util nfft $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
+SUBDIRS = util planner nfft deconv conv $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
   $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver .
 
 if ENABLE_OPENMP
@@ -93,13 +93,13 @@ noinst_LTLIBRARIES = libkernel.la $(LIBKERNEL_THREADS_LA)
 
 libkernel_la_SOURCES =
 
-libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
+libkernel_la_LIBADD = util/libutil.la planner/libplanner.la nfft/libnfft.la deconv/libdeconv.la conv/libconv.la $(LIB_NFCT) $(LIB_NFST) \
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT) $(LIB_NFSFT) $(LIB_NFSOFT) \
   solver/libsolver.la
 
 if ENABLE_OPENMP
 libkernel_threads_la_SOURCES =
-libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
+libkernel_threads_la_LIBADD = util/libutil_threads.la planner/libplanner_threads.la nfft/libnfft_threads.la deconv/libdeconv.la conv/libconv.la $(LIB_NFCT) $(LIB_NFST) \
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
   solver/libsolver.la
 libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)
