@@ -127,9 +127,8 @@ void X(check_kaiser_bessel_peak)(void)
       const int m = kb_m[i];
       const INT n = 2 * (INT)(kb_sigma[s] * (R)N / K(2.0));
       const R sh = KPI * (K(2.0) - (R)N / (R)n);
-      const R lg = Y(bessel_i0_log)((R)m * sh);
       const R lt = Y(bessel_i0_logtail)((R)m * sh);
-      const R peak = Y(kb_phi_hut)(sh, lg, lt, (R)m, (R)n, K(0.0));
+      const R peak = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, K(0.0));
       const R err = ERR(peak, K(1.0));
       const int ok = IF(err < b, 1, 0);
       R prev = peak;
@@ -144,7 +143,7 @@ void X(check_kaiser_bessel_peak)(void)
       /* phi_hut decays from the peak across the band and stays finite */
       for (k = 1; k <= N / 2; k++)
       {
-        const R v = Y(kb_phi_hut)(sh, lg, lt, (R)m, (R)n, (R)k);
+        const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
         const int okk = IF(FINITE(v) && v > K(0.0)
             && v <= prev * (K(1.0) + b), 1, 0);
         if (okk == 0)
@@ -157,11 +156,11 @@ void X(check_kaiser_bessel_peak)(void)
       /* phi peaks at the node and decays to zero across its support; at the
        * far edge the peak-normalized value is below the smallest number the
        * precision can hold, so it may be zero */
-      prev = Y(kb_phi)(sh, lg, lt, (R)m, (R)n, K(0.0));
+      prev = Y(kb_phi)(sh, lt, (R)m, (R)n, K(0.0));
       CU_ASSERT(FINITE(prev) && prev > K(0.0));
       for (l = 1; l <= m; l++)
       {
-        const R v = Y(kb_phi)(sh, lg, lt, (R)m, (R)n, (R)l / (R)n);
+        const R v = Y(kb_phi)(sh, lt, (R)m, (R)n, (R)l / (R)n);
         const int okl = IF(FINITE(v) && v >= K(0.0)
             && v <= prev * (K(1.0) + b), 1, 0);
         if (okl == 0)
@@ -181,7 +180,6 @@ void X(check_kaiser_bessel_reference)(void)
   const int m = 6;
   const INT N = 64, n = 128;
   const R sh = KPI * (K(2.0) - (R)N / (R)n);
-  const R lg = Y(bessel_i0_log)((R)m * sh);
   const R lt = Y(bessel_i0_logtail)((R)m * sh);
   const R peak = Y(bessel_i0)((R)m * sh);
   const R b = K(4.0) * bound();
@@ -195,7 +193,7 @@ void X(check_kaiser_bessel_reference)(void)
     const R t = K(2.0) * KPI * (R)k / (R)n;
     const R a = (R)m * SQRT(sh * sh - t * t);
     const R ref = Y(bessel_i0)(a) / peak;
-    const R v = Y(kb_phi_hut)(sh, lg, lt, (R)m, (R)n, (R)k);
+    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
     const R err = ERR(v, ref);
     const int ok = IF(err < b, 1, 0);
     printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
@@ -211,11 +209,65 @@ void X(check_kaiser_bessel_reference)(void)
     const R ref = IF(s > K(0.0),
         SINH(sh * SQRT(ABS(s))) / (KPI * SQRT(ABS(s))) / peak,
         (sh / KPI) / peak);
-    const R v = Y(kb_phi)(sh, lg, lt, (R)m, (R)n, x);
+    const R v = Y(kb_phi)(sh, lt, (R)m, (R)n, x);
     const R err = ERR(v, ref);
     const int ok = IF(err < b, 1, 0);
     printf("phi[l=%d] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
       " -> %-4s\n", l, v, err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* phi_hut against reference I0(m*sqrt(b^2-t^2))/I0(m*b) at 60 digits, for the near-peak
+ * bins where the two Bessel arguments nearly coincide, plus the band edge.
+ *
+ * Regenerate with b = pi*(2 - N/n), t = 2*pi*k/n and
+ *   mpmath.besseli(0, m*mpmath.sqrt(b*b - t*t)) / mpmath.besseli(0, m*b)
+ * at mpmath.mp.dps = 60. */
+static const R kb_phi_hut_ref_512_256_8[] =
+{
+  K(1.0),
+  K(9.99873882985617506643870290279057361423044e-1),
+  K(9.99495624837643910978594435458575184590944e-1),
+  K(9.98865504130588397987934385630536020655212e-1),
+  K(9.97983984785438854687931348979505266186542e-1)
+};
+
+/* Value at the band edge, same parameters. */
+#define KB_PHI_HUT_EDGE_512_256_8 K(1.19266391939960090608558187858420025398744e-1)
+
+void X(check_kaiser_bessel_cancellation)(void)
+{
+  const INT N = 256, n = 512;
+  const int m = 8;
+  const R sh = KPI * (K(2.0) - (R)N / (R)n);
+  const R lt = Y(bessel_i0_logtail)((R)m * sh);
+  /* leaves room for the rounding of b and t, which no formulation can undo */
+  const R b = bound();
+  unsigned int k;
+
+  printf("KAISER-BESSEL CANCELLATION\n--------------------------\n");
+
+  for (k = 0; k < sizeof(kb_phi_hut_ref_512_256_8) / sizeof(R); k++)
+  {
+    const R ref = kb_phi_hut_ref_512_256_8[k];
+    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
+    const R err = ERR(v, ref);
+    const int ok = IF(err < b, 1, 0);
+    printf("phi_hut[k=%u] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", k, v, err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+
+  {
+    const R ref = KB_PHI_HUT_EDGE_512_256_8;
+    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)(N / 2));
+    const R err = ERR(v, ref);
+    const int ok = IF(err < b, 1, 0);
+    printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", N / 2, v, err, IF(ok == 0, ">=", "<"), b,
       IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
   }

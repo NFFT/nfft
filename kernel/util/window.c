@@ -53,46 +53,54 @@ const char *Y(get_window_name)()
   return STRINGIZE(WINDOW_NAME);
 }
 
-/* Kaiser-Bessel window. lg_peak = log I0(m b), lg_tail = lg_peak - m b. */
+/* Kaiser-Bessel window, scaled so that phi_hut(0) = 1. lg_tail = log I0(m b) - m b.
 
-R Y(kb_phi_hut)(R b, R lg_peak, R lg_tail, R m, R n, R k)
+/* 1 / I0(m b). The out-of-support branch has no cancellation to preserve, so it
+ * divides by the peak, formed on demand: the convolution never reaches it. */
+static inline R kb_inv_peak(R b, R lg_tail, R m)
 {
   const R xpk = m * b;
-  const R t = K(2.0) * KPI * k / n;
-  const R rs = SQRT(b * b - t * t);
-  const R a = m * rs;
 
-  if (a > NFFT_I0_ASYMP_SPLIT && xpk > NFFT_I0_ASYMP_SPLIT)
-  {
-    /* I0(a)/I0(xpk) with a - xpk rationalized, so small t does not cancel */
-    const R da = -m * t * t / (rs + b);
-    return EXP(da + Y(bessel_i0_logtail)(a) - lg_tail);
-  }
+  if (xpk <= NFFT_LOG_MAX_SAFE)
+    return K(1.0) / Y(bessel_i0)(xpk);
 
-  return Y(bessel_i0_scaled)(a, lg_peak);
+  return EXP(-xpk - lg_tail);
 }
 
-R Y(kb_phi)(R b, R lg_peak, R lg_tail, R m, R n, R x)
+R Y(kb_phi_hut)(R b, R lg_tail, R m, R n, R k)
+{
+  const R t = K(2.0) * KPI * k / n;
+  /* (b-t)(b+t), not b*b - t*t to avoid cancellations */
+  const R s = (b - t) * (b + t); /* >= 0 in band, so SQRT is safe */
+  const R ra = SQRT(s);
+  const R a = m * ra;
+
+  /* a - m b = m*(ra - b) = -m*t^2/(ra + b), formed without the cancellation.
+   * Both logtails are O(log a) and nearly equal, so the exponent stays small
+   * and its absolute error near eps. */
+  return EXP(-m * t * t / (ra + b) + Y(bessel_i0_logtail)(a) - lg_tail);
+}
+
+R Y(kb_phi)(R b, R lg_tail, R m, R n, R x)
 {
   const R nx = n * x;
-  const R a = m * m - nx * nx;
+  const R a = (m - nx) * (m + nx);
 
   if (a > K(0.0))
   {
     const R ra = SQRT(a);
     const R u = b * ra;
-    /* sinh(u) exp(-lg_peak) as exp(u - m b - lg_tail) (1 - exp(-2u)) / 2, with
-     * u - m b rationalized: no overflow for large u, none of the cancellation
-     * a difference of exponentials has for small u */
-    const R du = -b * nx * nx / (ra + m);
-    return K(-0.5) * EXP(du - lg_tail) * EXPM1(K(-2.0) * u) / (KPI * ra);
+    /* 0.5*(e^u - e^-u)/I0(m b) = e^(u - m b - lg_tail) * (-expm1(-2u))/2, with
+     * u - m b = -b*nx^2/(ra + m). */
+    const R umb = -b * (nx * nx) / (ra + m);
+    return EXP(umb - lg_tail) * (-EXPM1(K(-2.0) * u)) / (K(2.0) * KPI * ra);
   }
 
   if (a < K(0.0))
   {
     const R rma = SQRT(-a);
-    return SIN(b * rma) * EXP(-lg_peak) / (KPI * rma);
+    return (SIN(b * rma) / (KPI * rma)) * kb_inv_peak(b, lg_tail, m);
   }
 
-  return (b / KPI) * EXP(-lg_peak);
+  return (b / KPI) * kb_inv_peak(b, lg_tail, m);
 }

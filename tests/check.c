@@ -48,6 +48,7 @@ int main(void)
   CU_add_test(util, "bessel_i0_scaling", X(check_bessel_i0_scaling));
   CU_add_test(util, "kaiser_bessel_peak", X(check_kaiser_bessel_peak));
   CU_add_test(util, "kaiser_bessel_reference", X(check_kaiser_bessel_reference));
+  CU_add_test(util, "kaiser_bessel_cancellation", X(check_kaiser_bessel_cancellation));
   CU_add_test(util, "kaiser_bessel_nfft", X(check_kaiser_bessel_nfft));
   CU_add_test(util, "version", X(check_get_version));
   CU_add_test(util, "window_name", X(check_get_window_name));

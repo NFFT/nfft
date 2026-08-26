@@ -21,4 +21,5 @@
 void X(check_bessel_i0_scaling)(void);
 void X(check_kaiser_bessel_peak)(void);
 void X(check_kaiser_bessel_reference)(void);
+void X(check_kaiser_bessel_cancellation)(void);
 void X(check_kaiser_bessel_nfft)(void);

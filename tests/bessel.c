@@ -134,18 +134,18 @@ static const R r[] =
 
 #define ERR(x,y) IF(ABS(x - y) == K(0.0), ABS(x - y), ABS(x - y) / ABS(y))
 
-// TODO: Set good values for IEEE 754 quadruple precision, 128 bits.
 #if MANT_DIG == 113
-  static const R bound_multiplier = K(58.0);
+  // IEEE 754 quadruple precision, 128 bits.
+  static const R bound_multiplier = K(16.0);
 #elif MANT_DIG == 64
   // Intel double extended, 80 bits.
-  static const R bound_multiplier = K(58.0);
+  static const R bound_multiplier = K(4.0);
 #elif MANT_DIG == 53
   // IEEE 754 double precision, 64 bits.
   static const R bound_multiplier = K(4.0);
 #elif MANT_DIG == 24
   // IEEE 754 single precision, 32 bits.
-  static const R bound_multiplier = K(24.0);
+  static const R bound_multiplier = K(8.0);
 #else
   // Unknown floating-point type.
   // Assume IEEE 754 double precision, 64 bits.

@@ -259,25 +259,23 @@ typedef ptrdiff_t INT;
    * is normalized to 1. Deconvolution divides by PHI_HUT and convolution multiplies 
    * by PHI, so the factor cancels and the transform is unchanged.
    *
-   * ths->b holds 3 * ths->d reals: b per axis, log I0(m b), and log I0(m b) - m b. */
+   * ths->b holds 2 * ths->d reals: b per axis, and log I0(m b) - m b. */
   #define KB_B(ax) (ths->b[(ax)])
-  #define KB_LG_PEAK(ax) (ths->b[(ths->d) + (ax)])
-  #define KB_LG_TAIL(ax) (ths->b[2 * (ths->d) + (ax)])
-  #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_LG_PEAK(ax), \
-                             KB_LG_TAIL(ax), (R)(ths->m), (R)(n), (R)(k)))
-  #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_PEAK(ax), KB_LG_TAIL(ax), \
+  #define KB_LG_TAIL(ax) (ths->b[(ths->d) + (ax)])
+  #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_LG_TAIL(ax), \
+                             (R)(ths->m), (R)(n), (R)(k)))
+  #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), \
                          (R)(ths->m), (R)(n), (R)(x)))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)((size_t)(3 * ths->d) * sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(2 * ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
       { \
         R WINDOW_b = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
-        R WINDOW_xpk = ((R)(ths->m)) * WINDOW_b; \
         ths->b[WINDOW_idx] = WINDOW_b; \
-        ths->b[ths->d + WINDOW_idx] = Y(bessel_i0_log)(WINDOW_xpk); \
-        ths->b[2 * ths->d + WINDOW_idx] = Y(bessel_i0_logtail)(WINDOW_xpk); \
+        ths->b[ths->d + WINDOW_idx] = \
+            Y(bessel_i0_logtail)(((R)(ths->m)) * WINDOW_b); \
       } \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
@@ -303,10 +301,10 @@ typedef ptrdiff_t INT;
 /* window.c */
 INT Y(m2K)(const INT m);
 
-/* Kaiser-Bessel window scaled by exp(-lg_peak), with lg_peak = log I0(m b) and
- * lg_tail = lg_peak - m b, so that phi_hut(0) == 1. */
-R Y(kb_phi_hut)(R b, R lg_peak, R lg_tail, R m, R n, R k);
-R Y(kb_phi)(R b, R lg_peak, R lg_tail, R m, R n, R x);
+/* Kaiser-Bessel window scaled by exp(-log I0(m b)), so that phi_hut(0) == 1.
+ * lg_tail = log I0(m b) - m b. */
+R Y(kb_phi_hut)(R b, R lg_tail, R m, R n, R k);
+R Y(kb_phi)(R b, R lg_tail, R m, R n, R x);
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0
@@ -1495,18 +1493,19 @@ R Y(lambda)(R z, R eps);
 R Y(lambda2)(R mu, R nu);
 
 /* bessel_i0.c: */
+R Y(bessel_i0)(R x); /* I0(x) */
+R Y(bessel_i0_log)(R x);/* log I0(x) */
+R Y(bessel_i0_scaled)(R x, R lg_peak); /* I0(x) * exp(-lg_peak). Use bessel_i0_logtail and subtract in the exponent if the peak argument is known. */
+R Y(bessel_i0_logtail)(R x); /* log I0(x) - x */
 
-/* Argument above which I0 switches to its asymptotic exp(x)/sqrt(x) form. */
-#if MANT_DIG == 113
-#  define NFFT_I0_ASYMP_SPLIT K(25.0)
+/* log of the largest finite R, less a margin: EXP() overflows above it. */
+#if MANT_DIG == 24
+#  define NFFT_LOG_MAX_SAFE K(80.0)
+#elif MANT_DIG == 53
+#  define NFFT_LOG_MAX_SAFE K(700.0)
 #else
-#  define NFFT_I0_ASYMP_SPLIT K(15.0)
+#  define NFFT_LOG_MAX_SAFE K(11340.0)
 #endif
-
-R Y(bessel_i0)(R x);                    /* I0(x) */
-R Y(bessel_i0_log)(R x);                /* log I0(x), overflow-free for large x */
-R Y(bessel_i0_scaled)(R x, R lg_peak);  /* I0(x) * exp(-lg_peak), never forms I0(x) */
-R Y(bessel_i0_logtail)(R x);            /* log I0(x) - x, cancellation-free */
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);
