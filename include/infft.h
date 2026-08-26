@@ -68,6 +68,7 @@
 #if defined(NFFT_SINGLE)
 typedef float R;
 typedef float _Complex C;
+typedef fftwf_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfftf_,name)
 #define FFTW(name) CONCAT(fftwf_,name)
 #define NFFT(name) CONCAT(nfftf_,name)
@@ -78,6 +79,7 @@ typedef float _Complex C;
 #elif defined(NFFT_LDOUBLE)
 typedef long double R;
 typedef long double _Complex C;
+typedef fftwl_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfftl_,name)
 #define FFTW(name) CONCAT(fftwl_,name)
 #define NFFT(name) CONCAT(nfftl_,name)
@@ -88,6 +90,7 @@ typedef long double _Complex C;
 #else
 typedef double R;
 typedef double _Complex C;
+typedef fftw_complex FC; /* FFTW complex: ABI type of the public API's C */
 #define Y(name) CONCAT(nfft_,name)
 #define FFTW(name) CONCAT(fftw_,name)
 #define NFFT(name) CONCAT(nfft_,name)

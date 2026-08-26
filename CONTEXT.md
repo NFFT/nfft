@@ -62,8 +62,7 @@ _Avoid_: benchmark filters, build flags.
 **Config-symbol parity guard**:
 `cmake/config-parity-check.sh` — diffs the macro symbol *set* in Autotools
 `include/config.h` against CMake `build/config.h`, failing on any symbol the CMake
-header omits. Guards against config drift between the two build systems. (As of
-Phase 4 it exists but is not yet wired into CI.)
+header omits. Guards against config drift between the two build systems.
 _Avoid_: the parity guard (ambiguous), config check.
 
 ### Tests
@@ -71,10 +70,10 @@ _Avoid_: the parity guard (ambiguous), config check.
 **ctest suite**:
 The CMake counterpart of the Autotools `make check`: the CUnit binaries `checkall`
 (serial) and `checkall_threads` (OpenMP) registered with `add_test` and run via
-`ctest`. Covers exactly the **util / nfft / nfct / nfst** suites — the same set the
-Autotools suite builds. In CI it runs in every matrix cell (full window × precision ×
-openmp × compiler parity), like `make check`. Distinct from an **interface test**:
-the term covers the CUnit core only, never the opt-in MATLAB/Octave runners.
+`ctest`. Covers exactly the **util / planner / nplan / nfft / nfct / nfst** suites
+— the same set the Autotools suite builds. In CI it runs in every matrix cell (full window ×
+precision × openmp × compiler parity), like `make check`. Distinct from an **interface
+test**: the term covers the CUnit core only, never the opt-in MATLAB/Octave runners.
 _Avoid_: unit tests (ambiguous with the per-assertion `CU_ASSERT` cases), test harness.
 
 **Interface test**:
@@ -92,6 +91,190 @@ build system. The CUnit suite has no tests for the six double-only modules (nnff
 nsfft, mri, fpt, nfsft, nfsoft); the tested modules nfct/nfst build in every precision,
 so "gate the six modules' tests to double precision" is a **no-op**.
 _Avoid_: disabled test, skipped test (those imply a wired-up test deliberately not run).
+
+**wisdom**:
+The planner's memo: for a problem size class (keyed by a 128-bit MD5 signature),
+which solver won a search conducted under given impatience bounds. A cache, never a
+source of truth — any mismatch on lookup or import degrades to a miss, never a wrong
+plan. Lives in `kernel/planner/`; exported/imported through the public
+`nfft_export_wisdom_*` / `nfft_import_wisdom_*` functions.
+
+**timelimit** (planner):
+A global wall-clock budget on the planner's *measured* candidate race, set by
+`nfft_set_timelimit(seconds)` (`< 0` = unlimited, the default). Before measuring
+each candidate the guru checks the elapsed coarse wall clock; on expiry it stops.
+If no candidate finished before expiry (or there is no usable clock), the
+selection degrades to **estimate grade** (unblessed) — so a timelimit-induced
+loser is never blessed. ESTIMATE planning is never bounded. The timelimit is a
+runtime bound on `struct planner_s`, *not* part of the wisdom key (the reserved
+`timelimit_imp` impatience field stays 0).
+
+**blessing**:
+Marking a wisdom entry (`PLNR_BLESSING`) as worth persisting: it lives in the
+planner's *blessed* hash table, is exported to wisdom files, and survives
+`PLNR_FORGET_UNBLESSED`. An entry without this flag is *unblessed* — session-only
+search memoisation, dropped on forget.
+
+**subsumption**:
+The impatience-lattice rule by which one wisdom entry answers another query's
+bounds — `LEQ(a.u, q.u) && LEQ(q.l, a.l)` for a feasible entry `a` against query
+`q` (with a mirrored rule for infeasible entries). Lookup returns the subsuming
+entry with the smallest upper bound; insert kills every existing entry the
+newcomer subsumes.
+
+**solver registry**:
+The planner's per-problem-kind table of registered solver recipes
+(`kernel/planner/solvtab.c`, `solver.c`), keyed by registrar name + per-registrar
+ordinal id. Wisdom import resolves a serialised `(name, id)` pair back to a solver
+index through this table; an unresolvable pair is treated as malformed wisdom.
+
+**provenance** (planner):
+`kernel/planner/` follows the architecture of FFTW3's planner (problem / solver /
+plan, wisdom keyed by an MD5 signature, printer/scanner, timer). The
+implementation was written for this repository; FFTW3 is GPL-2.0-or-later like
+NFFT3. `include/cycle.h` is FFTW's MIT-licensed file (see next entry).
+
+**cycle.h provenance** (planner timing):
+`include/cycle.h` is a vendored MIT-licensed copy of FFTW's (Frigo / MIT) — the
+**one FFTW-derived file** the planner timing path depends on, kept under FFTW's
+copyright header. The NFFT copy adds the aarch64 `CNTVCT_EL0`/`PMCCNTR_EL0`
+tick-counter stanza and a guarded `<stdint.h>` include.
+
+**problem / solver / plan** (planner trinity):
+The planner's core (`kernel/planner/{problem,plan}.c`, search in `planner.c`):
+a *problem* is a hashable description of work, a *solver* a registered recipe
+whose `mkplan` returns an executable *plan* (with `pcost`) or NULL when
+inapplicable; `planner_mkplan` consults wisdom, else keeps the cheapest
+candidate and memoises the outcome unblessed. `pcost` is an analytic estimate
+in the estimate-mode search; in a measured race it is in
+**arbitrary tick units** (tick mode, when a cycle counter is present) or wall
+seconds (slow-timer fallback), compared only within one race — measured and
+estimate costs are never compared across modes.
+
+**plan_ng** (NFFT bundled plan):
+The next-generation NFFT lifecycle (`kernel/nfft/plan.c`): one bundle owns
+one forward problem and one planner-selected plan that serves both directions
+via `apply_adjoint`. Every plan (fast or direct) is coreless and
+planner-native; there is no shared or per-plan legacy core. Naming rule:
+`_ng` marks colliding nouns only; lifecycle verbs stay bare (`nfft_execute`,
+`nfft_precompute`, ...). The guru + verbs + `nfft_fprint_plan` + planning
+flags + wisdom I/O are declared in `nfft3.h`; the wisdom/print/timelimit
+wrappers live in `kernel/nfft/api.c`. The guru takes only `fftw_flags` +
+`planning` (no `nfft_flags`); `x`/`f_hat`/`f` are required in every mode,
+`x` is copied into the plan, `f_hat`/`f` are borrowed; there are no
+`plan_ng_x`/`plan_ng_f_hat`/`plan_ng_f` accessors.
+
+**plan_ng (NFCT/NFST)** — *deferred*. The real-valued kinds were prototyped
+and then removed from the new planner API before review; the new API is
+NDFT/NFFT-only for now. The legacy NFCT/NFST API (`nfct_*`/`nfst_*`) is unaffected.
+
+**fast-path geometry guard** (`guards_ok`, `kernel/nfft/nfft-nd.c`):
+The applicability check the planner-native fast NFFT solver runs per axis
+before it competes with the direct NDFT solvers. It accepts every geometry the
+direct solvers accept — odd `N`, and per-axis type-I/type-II (mixed across
+axes) — and additionally requires oversampling `sigma = n/N > 1` strictly on
+every axis; at `sigma == 1` there is no zero-pad for DECONV to deconvolve into,
+and for even `N` the window's `phi_hut` is exactly zero at the band edge. A
+geometry the guard declines for a size reason still gets a correct answer from
+the direct NDFT, just without the fast path.
+
+`sigma <= 1` is different: `nfft_plan_ng_guru` **rejects** it and returns NULL
+rather than quietly planning a direct transform, since the guru does not tell
+the caller which solver won and a silent fallback would cost O(N*M) in place of
+O(n log n). The rejection applies only while the fast solver is in play —
+`NFFT_NO_FAST_NATIVE` takes it out of the running, so nothing is lost
+unintentionally and `sigma <= 1` becomes legal. Unit axes are exempt, being
+elided. The guard keeps its own check for callers who build a problem through
+`mkproblem_nfft` below the guru. Wisdom consequence: for an odd or type-II shape
+blessed before this guard existed, the wisdom key already hashed `variant[]`
+and carried `N` parity, so the entry stays valid — it just still names a direct
+solver and stays correct, only slower. Call `nfft_forget_wisdom()` (or delete
+the wisdom file) to let such a shape re-plan onto the fast path.
+_Avoid_: even-only fast path (no longer true).
+
+**unit-axis invariant** (solver applicability):
+Every NFFT solver of rank >= 1 declines a problem carrying an axis with
+`N_t == 1` (`problem_nfft_has_unit_axis`). Unit axes are elided at problem
+construction, so one reaching a solver means compression was bypassed — a bug
+to surface, not a case to serve, even where the algorithm could handle it. The
+rank-0 base case is unaffected: it has no axes, and it is what serves a problem
+whose axes were all elided away. Only `mkproblem_nfft`'s borrowed path
+(`copy_x = 0`) keeps full rank and can build such a problem.
+_Avoid_: unit-axis support, degenerate-axis handling.
+
+**configuration signature** (wisdom):
+The MD5 over `sizeof(R)` followed by, in registration order, every registered
+solver's `reg_id` and registrar name (`kernel/planner/planner.c`). It is
+**global across all problem kinds** (iterated via `FORALL_SOLVERS`, not
+per-kind), and is written on wisdom export and checked on import: a roster
+mismatch (different precision, or a different solver set) degrades import to a
+clean rejection, never a wrong plan. Consequence: registering a new kind's
+solvers changes the signature, so wisdom from a process with a different
+roster fails import — safe by design (a cache, never authoritative).
+_Avoid_: per-kind signature, solver fingerprint (it is the whole-roster digest).
+
+**tensor / mvdim** (planner):
+The planner's geometry descriptor (`kernel/planner/tensor.c`): a `tensor`
+is an array of rectangular `mvdim` factors `{n_in, is, n_out, os}`, each an
+`n_out x n_in` strided operator, denoting their Kronecker product.
+Generalises FFTW's square `iodim` (recovered as the state `n_in == n_out`);
+the adjoint is an involution (swap sizes and strides per factor);
+canonicalisation is behavior-matched to FFTW's `tensor_compress`(`_contiguous`).
+Describes the structured stages of a transform — the scattered-node side of
+NFFT is not a Kronecker factor and stays a flat count in the problem type.
+_Avoid_: iodim (that is the square state, not a type here).
+
+**size class**:
+The structural identity a wisdom entry is keyed on: problem kind, geometry
+(tensors, strides), window cutoff `m`, window type, power-of-two-bucketed node
+count `M`, algorithm-relevant flags, precision, and thread count — but never
+node coordinates. Wisdom means "for this size class on this machine, solver X
+won."
+_Avoid_: problem size (underspecified), problem hash (that is the key, not the class).
+
+**estimate mode / measured mode**:
+The two planning modes. *Estimate mode* (`NFFT_ESTIMATE` set) selects by the
+fixed analytic cost model; nodes may be supplied later. *Measured mode* (the
+default, flag absent — FFTW's convention) races the applicable candidates on
+the user's actual nodes at plan time and blesses the winner. In the impatience
+lattice, `ESTIMATE` rides in the upper bound only: "this search was allowed to
+settle for estimate-grade evidence" — so measured wisdom answers estimate
+queries, never the reverse.
+_Avoid_: patient/exhaustive (not implemented), optimize (there is no separate refinement call).
+
+**value-blind race**:
+How measured mode times candidates: the real nodes drive the true memory-access
+pattern (window support indices, node sorting), while the genuine value vectors
+(`f_hat`, `f`) are irrelevant to the timing. Unlike FFTW (which zeroes its
+operands), the NFFT race does **not** touch `f_hat`/`f` — it times `apply()` on
+the caller's real arrays as-is. This is safe because the trip counts and access
+pattern derive entirely from the nodes `x`, not from the values: forward reads
+`f_hat` and writes `f`, adjoint the reverse, all node-driven. Timing is
+pattern-faithful and value-independent; numerical output during the race is
+meaningless by design. The ψ table is **precomputed, not zeroed**: `psi` and
+`index_x` are functions of the nodes, not values, and zeroing them would destroy
+the access pattern the race exists to measure. Precompute cost itself stays out of the
+measurement (plans are executed many times), so what is timed is the
+steady-state trafo. The NFFT analog of FFTW's zero-twiddle measurement —
+which works here only because the access pattern derives from the nodes,
+not the table values. The timer uses a **cycle-counter
+fine clock** — raw ticks in arbitrary units via `include/cycle.h`'s
+`getticks`/`elapsed`, timed the way FFTW times — with a **separate wall
+clock** (`clock_gettime` `CLOCK_REALTIME`) bounding only the per-candidate
+budget; where no tick counter exists it falls back to wall-clock seconds
+(FFTW's slow-timer path), and where no clock exists it returns −1.0
+(estimate-grade fallback).
+_Avoid_: synthetic-node measurement (the nodes are real), bogus precompute
+(nothing is precomputed for the race).
+
+**precompute (awakening)**:
+The deferrable lifecycle step (`nfft_precompute`) that materialises the real
+node-dependent window values by awakening the bundle's direction plans; fast
+plans build ψ exactly once per bundle awakening, direct plans awaken vacuously.
+A measured-mode plan leaves its plans asleep — executing before precompute is
+a checked error for every bundle (uniform rule).
+_Avoid_: init-time precompute (that is `c_phi_inv`, node-independent, built at
+construction).
 
 **FindCUnit**:
 The vendored `cmake/FindCUnit.cmake` — locates CUnit (the `<CUnit/CUnit.h>` header and

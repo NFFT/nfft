@@ -148,7 +148,7 @@ int main(void)
 #endif
 #endif
   CU_automated_run_tests();
-  //CU_basic_run_tests();
+  // CU_basic_run_tests();
   {
     unsigned int ok = (CU_get_number_of_tests_failed() == 0);
     CU_cleanup_registry();

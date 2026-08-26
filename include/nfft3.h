@@ -893,6 +893,76 @@ NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
+
+/* nfft (planner API) */
+
+/* FFTW-like self-tuning lifecycle where a planner measures the applicable algorithms
+ * for the given problem, picks the fastest, and caches the decision (wisdom). */
+
+/* Planning flags. */
+#define NFFT_MEASURE         (0U)       // Measure solutions.
+#define NFFT_ESTIMATE        (1U << 0)  // Estimate winner.
+#define NFFT_NO_DIRECT       (1U << 1)  // Do not use direct (slow) algorithms.
+#define NFFT_NO_FAST_NATIVE  (1U << 4)  // Do not use the fast NFFT algorithm.
+
+/* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2. 
+ * For odd N, there is only one type (defined as type-I) and the range is k = -(N-1)/2 .. (N-1)/2. */
+#define NFFT_NDFT_TYPE_I  (0)
+#define NFFT_NDFT_TYPE_II (1)
+
+/* Available window functions for NFFT algorithm. Note: DIRAC_DELTA unsupported here. */
+#define NFFT_WINDOW_KAISER_BESSEL 0
+#define NFFT_WINDOW_GAUSSIAN      1
+#define NFFT_WINDOW_B_SPLINE      2
+#define NFFT_WINDOW_SINC_POWER    3
+#define NFFT_WINDOW_DIRAC_DELTA   4
+
+/* Per-precision planner API. */
+#define NFFT_DEFINE_PLANNER_API(X,R,C) \
+typedef struct X(plan_ng_s) X(plan_ng); \
+/** Create transform plan. `variant` NULL means all type-I. Unless \
+ *  NFFT_NO_FAST_NATIVE is set, requires `n[t] > N[t]` on every axis with \
+ *  `N[t] > 1`. Returns NULL otherwise. */ \
+NFFT_EXTERN X(plan_ng) *X(plan_ng_guru)(int d, const NFFT_INT *N, \
+    const int *variant, const NFFT_INT *n, NFFT_INT M, int m, int window, \
+    R *x, C *f_hat, C *f, unsigned fftw_flags, \
+    unsigned planning); \
+/** build the node-dependent tables, call after filling x */ \
+NFFT_EXTERN void X(precompute)(X(plan_ng) *p); \
+/** forward transform */ \
+NFFT_EXTERN void X(execute)(X(plan_ng) *p); \
+/** adjoint transform */ \
+NFFT_EXTERN void X(execute_adjoint)(X(plan_ng) *p); \
+/** new-array forward transform. */ \
+NFFT_EXTERN void X(execute_on)(X(plan_ng) *p, C *f_hat, C *f); \
+/** new-array adjoint transform */ \
+NFFT_EXTERN void X(execute_adjoint_on)(X(plan_ng) *p, C *f_hat, C *f); \
+/** printplan tree */ \
+NFFT_EXTERN void X(fprint_plan)(X(plan_ng) *p, FILE *out); \
+/** destroy the plan and release its resources */ \
+NFFT_EXTERN void X(plan_ng_destroy)(X(plan_ng) *p); \
+/** export accumulated wisdom to a file; returns 1 on success, 0 on failure */ \
+NFFT_EXTERN int X(export_wisdom_to_filename)(const char *filename); \
+/** export accumulated wisdom to a NUL-terminated string, free with X(free) */ \
+NFFT_EXTERN char *X(export_wisdom_to_string)(void); \
+/** import wisdom from a file; returns 1 on success, 0 on failure */ \
+NFFT_EXTERN int X(import_wisdom_from_filename)(const char *filename); \
+/** import wisdom from a string; returns 1 on success, 0 on failure */ \
+NFFT_EXTERN int X(import_wisdom_from_string)(const char *s); \
+/** discard all wisdom (blessed and session) */ \
+NFFT_EXTERN void X(forget_wisdom)(void); \
+/** per-process planning timelimit in seconds (negative = unlimited); applies \
+ *  to all kinds (NFFT/NFCT/NFST) sharing this  wisdom store */ \
+NFFT_EXTERN void X(set_timelimit)(double seconds); \
+/** Return the compile-time-selected window as an NFFT_WINDOW_* ordinal. */ \
+int X(get_window_id)();
+
+
+NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
+NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
+NFFT_DEFINE_PLANNER_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
+
+
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif /* __cplusplus */

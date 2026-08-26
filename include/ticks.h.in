@@ -25,7 +25,7 @@
 
 #ifndef HAVE_TICK_COUNTER
   typedef unsigned ticks;
-  #define getticks() 0U;
+  #define getticks() 0U
   INLINE_ELAPSED(__inline__)
 #endif
 

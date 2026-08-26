@@ -84,6 +84,13 @@ Useful `./configure` flags:
 - `--enable-tests` - build the CUnit test programs.
 - `--enable-benchmarks --with-codspeed=<path>` — Autotools benchmark
   build; benchmarks are now built in CI with CMake, easier to integrate (see §4).
+- `--enable-debug` — compiles the internal `A(...)` runtime assertions (off in
+  release builds); includes the planner's md5 guard that verifies the internal
+  copy of `x` is restored between racing candidates during measured planning
+  (`kernel/nfft/plan.c`).
+  This flag also switches `CFLAGS` to an Address/UBSan build
+  (`-fsanitize=address,undefined -fno-sanitize-recover=all`), so debug binaries
+  run slower and need the sanitizers' runtime libraries.
 - `./configure --help` lists everything.
 
 A representative "build everything" configure line matching CI:
