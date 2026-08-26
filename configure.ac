@@ -690,6 +690,8 @@ AC_CONFIG_FILES(Makefile \
                 kernel/mri/Makefile \
                 kernel/nfct/Makefile \
                 kernel/nfft/Makefile \
+                kernel/deconv/Makefile \
+                kernel/conv/Makefile \
                 kernel/nfsft/Makefile \
                 kernel/nfsoft/Makefile \
                 kernel/nfst/Makefile \
@@ -697,6 +699,7 @@ AC_CONFIG_FILES(Makefile \
                 kernel/nsfft/Makefile \
                 kernel/solver/Makefile \
                 kernel/util/Makefile \
+                kernel/planner/Makefile \
                 tests/Makefile \
                 tests/data/Makefile \
                 examples/Makefile \

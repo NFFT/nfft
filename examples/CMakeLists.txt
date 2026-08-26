@@ -12,6 +12,9 @@ nfft_add_serial_program(example_nfft_flags        nfft flags        nfft/flags.c
 target_compile_definitions(example_nfft_flags PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_nfft_times   nfft nfft_times   nfft/nfft_times.c)
 target_compile_definitions(example_nfft_nfft_times PRIVATE ${NFFT_PRECISION_MACRO})
+nfft_add_serial_program(example_nfft_nfast_native nfft nfast_native nfft/nfast_native.c)
+target_compile_definitions(example_nfft_nfast_native PRIVATE ${NFFT_PRECISION_MACRO}
+  NFAST_NATIVE_DATA="${CMAKE_CURRENT_SOURCE_DIR}/nfft/data/nfft_1d_8192_128.txt")
 
 # nfft (OpenMP)
 # nfft_benchomp_detail.c is built TWICE: serial (_single) and OpenMP (_threads),
